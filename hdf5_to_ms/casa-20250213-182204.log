@@ -1,0 +1,20 @@
+2025-02-13 18:22:04	INFO	::casa	
+2025-02-13 18:22:04	SEVERE	::casa	
+2025-02-13 18:22:04	SEVERE	::casa	Some or all of the expected auto updates did not happen.
+2025-02-13 18:22:04	SEVERE	::casa	This indicates that measurespath is not empty and does not contain data maintained by casaconfig.
+2025-02-13 18:22:04	SEVERE	::casa	If the IERSeop2000 table is found in datapth then casatools will import.
+2025-02-13 18:22:04	SEVERE	::casa	
+2025-02-13 18:22:04	SEVERE	::casa	The contents of measurespath do not appear to be casarundata. CASA may still work if the data can be found in datapath.
+2025-02-13 18:22:04	SEVERE	::casa	The contents of measurespath do not appear to include measures data. CASA may still work if the data can be found in datapath.
+2025-02-13 18:22:04	SEVERE	::casa	visit https://casadocs.readthedocs.io/en/stable/notebooks/external-data.html for more information
+2025-02-13 18:22:04	SEVERE	::casa	
+2025-02-13 18:22:10	INFO	::casa	
+2025-02-13 18:22:10	SEVERE	::casa	
+2025-02-13 18:22:10	SEVERE	::casa	Some or all of the expected auto updates did not happen.
+2025-02-13 18:22:10	SEVERE	::casa	This indicates that measurespath is not empty and does not contain data maintained by casaconfig.
+2025-02-13 18:22:10	SEVERE	::casa	If the IERSeop2000 table is found in datapth then casatools will import.
+2025-02-13 18:22:10	SEVERE	::casa	
+2025-02-13 18:22:10	SEVERE	::casa	The contents of measurespath do not appear to be casarundata. CASA may still work if the data can be found in datapath.
+2025-02-13 18:22:10	SEVERE	::casa	The contents of measurespath do not appear to include measures data. CASA may still work if the data can be found in datapath.
+2025-02-13 18:22:10	SEVERE	::casa	visit https://casadocs.readthedocs.io/en/stable/notebooks/external-data.html for more information
+2025-02-13 18:22:10	SEVERE	::casa	
