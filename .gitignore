@@ -1,12 +1,54 @@
-# Ignore CASA Measurement Sets (directories ending in .ms)
-*.ms/
+# Ignore old files
+*old*/
 
-# Ignore CASA calibration tables (directories ending in .bcal, .pcal, etc.)
+# Ignore CASA Measurement Sets (.ms)
+*.ms/
+*.flagversions/
+*_ms/
+*_msfiles/
+
+# Ignore CASA calibration tables (.bcal, .pcal, etc.)
 *.bcal/
 *.pcal/
 *.gcal/
 
-# Fits files
+# Ignore images and component lists (.cl)
+*.image
+*_images/
+*.cl 
+*_cl/
+*.model
+*_model/
+*.psf
+*_psf/
+*.residual
+*_residual/
+*.mask
+*_mask/
+*.pb
+*_pb/
+*.pbcor
+*_pbcor/
+
+# Ignore mosaic files
+*_linmos/
+*_weightlinmos/
+*_field/
+
+# Ignore images, componentfigures
+*_figs/
+*.png
+*.jpg
+*.jpeg
+*.gif
+*.pdf
+*.eps
+*.ps
+*.tiff
+*.tif
+
+# Fits files and fits directories
+*_fits/
 *.fits
 
 # Temporary files
@@ -18,29 +60,24 @@
 *.pyc
 __pycache__/
 
+# Pytest cache
+.cache/
+.pytest_cache/
+
+# Jupyter Notebook checkpoints
+.ipynb_checkpoints/
+
 # Log files
 *.log
 *.out
 *.err
 
-# 
-
-# Jupyter Notebook checkpoints
-.ipynb_checkpoints/
+# Other files
+*.all
 
 # Virtual environment directories
 venv/
 env/
-
-# Pytest cache
-.cache/
-
-# Coverage reports
-.coverage
-coverage.xml
-
-# Pytest cache
-.pytest_cache/
 
 # Pyre type checker
 .pyre/
