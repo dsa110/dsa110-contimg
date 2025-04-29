@@ -230,8 +230,8 @@ class MSEventHandler(FileSystemEventHandler):
             block_center_time = block_start_time + (block_end_time - block_start_time) / 2.0
             block_center_mjd = block_center_time.mjd
             # Calculate center RA = LST at center time
-            # Requires telescope location from utils_dsa110 or config
-            telescope_loc = utils_dsa110.loc_dsa110 # Assuming imported
+            # Requires telescope location from dsa110_utils or config
+            telescope_loc = dsa110_utils.loc_dsa110 # Assuming imported
             center_lst = block_center_time.sidereal_time('apparent', longitude=telescope_loc.lon)
             center_ra = center_lst.to(u.deg)
             # Get fixed declination - NEEDS configuration or reading from first MS header

@@ -48,10 +48,10 @@ def _load_uvh5_file(fnames: list, antenna_list: list = None, telescope_pos: Eart
     # Convert antenna numbers to pyuvdata expected format (names/numbers) if needed
     # Assuming antenna_list contains integer numbers from config
     # pyuvdata read expects antenna *names* or *numbers* based on file content.
-    # utils_dsa110 maps indices (0-based) to names ('padX')
+    # dsa110_utils maps indices (0-based) to names ('padX')
     antenna_names_to_load = None
     if antenna_list is not None:
-        valid_indices = utils_dsa110.valid_antennas_dsa110 # 0-based indices
+        valid_indices = dsa110_utils.valid_antennas_dsa110 # 0-based indices
         valid_numbers = valid_indices + 1 # 1-based numbers often used in lists
         # Filter the provided list to only include valid antennas for DSA-110
         antennas_to_request = [a for a in antenna_list if a in valid_numbers]
@@ -62,7 +62,7 @@ def _load_uvh5_file(fnames: list, antenna_list: list = None, telescope_pos: Eart
             return None
         # Convert 1-based numbers back to 0-based indices for name lookup
         antenna_indices = [a - 1 for a in antennas_to_request]
-        antenna_names_to_load = utils_dsa110.ant_inds_to_names_dsa110(antenna_indices)
+        antenna_names_to_load = dsa110_utils.ant_inds_to_names_dsa110(antenna_indices)
         logger.info(f"Requesting antennas: {list(antenna_names_to_load)}")
 
 
@@ -152,8 +152,8 @@ def _load_uvh5_file(fnames: list, antenna_list: list = None, telescope_pos: Eart
         uvdata.telescope_location = telescope_pos.itrs.xyz.to_value(u.m)
     else:
         # Try to use the default DSA-110 location if none provided
-        uvdata.telescope_name = utils_dsa110.loc_dsa110.info.name
-        uvdata.telescope_location = utils_dsa110.loc_dsa110.itrs.xyz.to_value(u.m)
+        uvdata.telescope_name = dsa110_utils.loc_dsa110.info.name
+        uvdata.telescope_location = dsa110_utils.loc_dsa110.itrs.xyz.to_value(u.m)
         logger.warning("Using default DSA-110 location.")
 
     # Rename antennas from numbers (if needed) to 'padX' format for consistency
@@ -220,7 +220,7 @@ def _set_phase_centers(uvdata: UVData, field_name_base: str, telescope_pos: Eart
     logger.info("Calculating and setting phase centers for drift scan.")
 
     if telescope_pos is None:
-        telescope_pos = utils_dsa110.loc_dsa110
+        telescope_pos = dsa110_utils.loc_dsa110
         logger.warning("Using default DSA-110 location for phase setting.")
 
     try:
@@ -300,10 +300,10 @@ def _make_calib_model(uvdata: UVData, config: dict, telescope_pos: EarthLocation
     uvcalib.data_array[:] = 0.0 + 0.0j # Initialize model visibilities to zero
 
     beam_func_name = calib_info.get('beam_function', 'gaussian')
-    beam_diameter = calib_info.get('beam_diameter_m', utils_dsa110.diam_dsa110)
+    beam_diameter = calib_info.get('beam_diameter_m', dsa110_utils.diam_dsa110)
 
     if telescope_pos is None:
-        telescope_pos = utils_dsa110.loc_dsa110
+        telescope_pos = dsa110_utils.loc_dsa110
 
     # --- Determine pointing centers for beam calculation ---
     # Recompute unique pointings for beam attenuation calculation
@@ -339,7 +339,7 @@ def _make_calib_model(uvdata: UVData, config: dict, telescope_pos: EarthLocation
 
             # Calculate beam attenuation for this source vs time
             if beam_func_name == 'gaussian':
-                beam_func = utils_dsa110.pb_dsa110
+                beam_func = dsa110_utils.pb_dsa110
             # Add other beam models if needed (e.g., airy disk)
             # elif beam_func_name == 'airy': ...
             elif beam_func_name == 'none':
@@ -347,7 +347,7 @@ def _make_calib_model(uvdata: UVData, config: dict, telescope_pos: EarthLocation
                 beam_attenuation = np.ones(uvcalib.Nblts) # Apply no beam effect
             else: # Default to Gaussian
                 logger.warning(f"Unknown beam_function '{beam_func_name}', defaulting to Gaussian.")
-                beam_func = utils_dsa110.pb_dsa110
+                beam_func = dsa110_utils.pb_dsa110
 
             if beam_func_name != 'none':
                  # Calculate separation between source and pointing center for each unique time
@@ -573,7 +573,7 @@ def process_hdf5_set(config: dict, timestamp: str, hdf5_files: list):
 
     # --- Load Data ---
     antenna_list = ms_creation_config.get('output_antennas', None) # Get antenna list from config
-    uvdata = _load_uvh5_file(hdf5_files, antenna_list=antenna_list, telescope_pos=utils_dsa110.loc_dsa110)
+    uvdata = _load_uvh5_file(hdf5_files, antenna_list=antenna_list, telescope_pos=dsa110_utils.loc_dsa110)
     if uvdata is None:
         logger.error(f"Failed to load HDF5 data for {timestamp}. Skipping.")
         return None # Indicate failure
@@ -581,13 +581,13 @@ def process_hdf5_set(config: dict, timestamp: str, hdf5_files: list):
     # --- Set Phase Centers ---
     # Assuming field name base can be simple like 'drift'
     field_name_base = "drift"
-    uvdata = _set_phase_centers(uvdata, field_name_base, utils_dsa110.loc_dsa110)
+    uvdata = _set_phase_centers(uvdata, field_name_base, dsa110_utils.loc_dsa110)
     if uvdata is None:
         logger.error(f"Failed to set phase centers for {timestamp}. Skipping.")
         return None
 
     # --- Make Calibrator Model (Optional) ---
-    uvcalib = _make_calib_model(uvdata, config, utils_dsa110.loc_dsa110)
+    uvcalib = _make_calib_model(uvdata, config, dsa110_utils.loc_dsa110)
     # Note: _make_calib_model returns None if no model is requested or fails
 
     # --- Write MS ---

@@ -18,7 +18,7 @@ try:
     from . import mosaicking
     from . import photometry
     from . import variability_analyzer
-    from . import utils_dsa110 # Needed for location if calculating coords
+    from . import dsa110_utils # Needed for location if calculating coords
 except ImportError:
     # Allow running script directly for testing, adjust paths
     sys.path.append(os.path.dirname(__file__))
@@ -31,7 +31,7 @@ except ImportError:
     import mosaicking
     import photometry
     import variability_analyzer
-    import utils_dsa110
+    import dsa110_utils
 
 
 def find_ms_blocks_for_batch(config, start_time_iso=None, end_time_iso=None):
@@ -165,7 +165,7 @@ def run_main_pipeline(config_path, args):
 
             # Generate Sky Model and Gain Cal (same logic as in run_processing_block)
             block_center_time = block_start_time + (block_end_time - block_start_time) / 2.0
-            telescope_loc = utils_dsa110.loc_dsa110
+            telescope_loc = dsa110_utils.loc_dsa110
             center_lst = block_center_time.sidereal_time('apparent', longitude=telescope_loc.lon)
             center_ra = center_lst.to(u.deg)
             fixed_dec_deg = config.get('calibration', {}).get('fixed_declination_deg', None)
