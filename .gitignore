@@ -1,0 +1,47 @@
+# Ignore CASA Measurement Sets (directories ending in .ms)
+*.ms/
+
+# Ignore CASA calibration tables (directories ending in .bcal, .pcal, etc.)
+*.bcal/
+*.pcal/
+*.gcal/
+
+# Fits files
+*.fits
+
+# Temporary files
+*.tmp
+*.swp
+*.swo
+
+# Python compiled files and cache
+*.pyc
+__pycache__/
+
+# Log files
+*.log
+*.out
+*.err
+
+# 
+
+# Jupyter Notebook checkpoints
+.ipynb_checkpoints/
+
+# Virtual environment directories
+venv/
+env/
+
+# Pytest cache
+.cache/
+
+# Coverage reports
+.coverage
+coverage.xml
+
+# Pytest cache
+.pytest_cache/
+
+# Pyre type checker
+.pyre/
+
