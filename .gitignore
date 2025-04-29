@@ -74,6 +74,7 @@ __pycache__/
 
 # Other files
 *.all
+.DS_store
 
 # Virtual environment directories
 venv/
