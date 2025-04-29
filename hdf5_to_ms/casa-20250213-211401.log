@@ -1,7 +1,0 @@
-2025-02-13 21:14:02	INFO	::casa	
-2025-02-13 21:14:02	INFO	::casa	data_update: version installed or checked less than 1 day ago, nothing updated or checked
-2025-02-13 21:14:02	INFO	::casa	measures_update: version installed or checked less than 1 day ago, nothing updated or checked
-2025-02-13 21:14:38	INFO	::casa	
-2025-02-13 21:14:39	INFO	::casa	Python version 3.10.16
-2025-02-13 21:14:39	INFO	::casa	CASA Version MODULAR 6.6.5.31
-2025-02-13 21:24:13	SEVERE		Unknown observatory asked for
