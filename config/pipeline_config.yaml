@@ -52,8 +52,8 @@ calibration:
   bcal_uvrange: '>1klambda' # UV range for BPCAL solve
   fixed_declination_deg: 71.0 # Fixed declination for BPCAL
   bcal_search_beam_radius_deg: 1.5 # Search radius for BPCAL candidates
-  bcal_min_flux_jy: 5.0 # Minimum flux for BPCAL candidates
-  bcal_max_flux_jy: 100.0 # Maximum flux for BPCAL candidates
+  bcal_min_flux_jy: 1.0 # Minimum flux for BPCAL candidates
+  bcal_max_flux_jy: 10.0 # Maximum flux for BPCAL candidates
   #bcal_candidate_catalog: 'bcal_candidates_nvss.csv'
   bcal_candidate_catalog: /data/jfaber/dsa110-contimg/bcal_candidates_vla.csv
 
