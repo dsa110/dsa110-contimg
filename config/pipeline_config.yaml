@@ -7,7 +7,7 @@ paths:
   # Directory to store processed HDF5 files (optional, if post_handle='move')
   hdf5_processed: /data/incoming/processed/
   # Base directory for all pipeline outputs
-  pipeline_base_dir: /data/pipeline/
+  pipeline_base_dir: /data/jfaber/dsa110-contimg/pipeline/
   # Subdirectories (relative to pipeline_base_dir, or absolute paths)
   ms_stage1_dir: ms_stage1/         # Output of Service 1 (5-min MS files)
   cal_tables_dir: cal_tables/       # BPCAL, Gain tables
@@ -47,9 +47,16 @@ ms_creation:
 calibration:
   # Bandpass Calibration
   bcal_interval_hours: 6
-  bcal_candidate_catalog: /path/to/your/bcal_candidates.csv # List of potential BPCALs
+  #bcal_candidate_catalog: /Users/jakobfaber/Documents/research/caltech/ovro/dsa110/dsa110-contimg/pipeline/cal_tables/bcal_candidates.csv # List of potential BPCALs
   bcal_refant: 'pad103'  # Example reference antenna
   bcal_uvrange: '>1klambda' # UV range for BPCAL solve
+  fixed_declination_deg: 71.0 # Fixed declination for BPCAL
+  bcal_search_beam_radius_deg: 1.5 # Search radius for BPCAL candidates
+  bcal_min_flux_jy: 1.0 # Minimum flux for BPCAL candidates
+  bcal_max_flux_jy: 10.0 # Maximum flux for BPCAL candidates
+  #bcal_candidate_catalog: 'bcal_candidates_nvss.csv'
+  bcal_candidate_catalog: /data/jfaber/dsa110-contimg/bcal_candidates_vla.csv
+
 
   # Gain Calibration
   gcal_interval_min: 30
@@ -142,4 +149,4 @@ variability_analysis:
   lookback_days: 90
   significance_threshold_mad: 5.0
   min_consecutive_points: 2
-  candidate_list_path: variable_candidates.csv # Relative to photometry_dir
+  candidate_list_path: /data/jfaber/dsa110-contimg/pipeline/variable_candidates.csv # Relative to photometry_dir
