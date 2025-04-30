@@ -7,7 +7,7 @@ paths:
   # Directory to store processed HDF5 files (optional, if post_handle='move')
   hdf5_processed: /data/incoming/processed/
   # Base directory for all pipeline outputs
-  pipeline_base_dir: /Users/jakobfaber/Documents/research/caltech/ovro/dsa110/dsa110-contimg/pipeline/
+  pipeline_base_dir: /data/jfaber/dsa110-contimg/pipeline/
   # Subdirectories (relative to pipeline_base_dir, or absolute paths)
   ms_stage1_dir: ms_stage1/         # Output of Service 1 (5-min MS files)
   cal_tables_dir: cal_tables/       # BPCAL, Gain tables
@@ -55,7 +55,7 @@ calibration:
   bcal_min_flux_jy: 5.0 # Minimum flux for BPCAL candidates
   bcal_max_flux_jy: 100.0 # Maximum flux for BPCAL candidates
   #bcal_candidate_catalog: 'bcal_candidates_nvss.csv'
-  bcal_candidate_catalog: /Users/jakobfaber/Documents/research/caltech/ovro/dsa110/dsa110-contimg/pipeline/cal_tables/bcal_candidates_vla.csv
+  bcal_candidate_catalog: /data/jfaber/dsa110-contimg/bcal_candidates_vla.csv
 
 
   # Gain Calibration
@@ -149,4 +149,4 @@ variability_analysis:
   lookback_days: 90
   significance_threshold_mad: 5.0
   min_consecutive_points: 2
-  candidate_list_path: /Users/jakobfaber/Documents/research/caltech/ovro/dsa110/dsa110-contimg/pipeline/variable_candidates.csv # Relative to photometry_dir
+  candidate_list_path: /data/jfaber/dsa110-contimg/pipeline/variable_candidates.csv # Relative to photometry_dir
