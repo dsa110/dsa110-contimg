@@ -8,6 +8,8 @@ paths:
   hdf5_processed: /data/incoming/processed/
   # Base directory for all pipeline outputs
   pipeline_base_dir: /data/jfaber/dsa110-contimg/pipeline/
+  # Path to VLA calibrator catalog
+  vla_calibrator_catalog: /data/jfaber/dsa110-contimg/vlacals.csv
   # Subdirectories (relative to pipeline_base_dir, or absolute paths)
   ms_stage1_dir: ms_stage1/         # Output of Service 1 (5-min MS files)
   cal_tables_dir: cal_tables/       # BPCAL, Gain tables
@@ -20,6 +22,7 @@ paths:
 
 # --- Service Control ---
 services:
+  hdf5_post_handle: none # What to do with HDF5 files after processing: 'move', 'delete', 'none'
   # Service 1: HDF5 Watcher
   hdf5_watcher_poll_interval_sec: 60  # How often to check if using polling (ignored if using watchdog events)
   hdf5_expected_subbands: 16         # Number of subbands expected per 5-min chunk
@@ -50,17 +53,17 @@ calibration:
   #bcal_candidate_catalog: /Users/jakobfaber/Documents/research/caltech/ovro/dsa110/dsa110-contimg/pipeline/cal_tables/bcal_candidates.csv # List of potential BPCALs
   bcal_refant: 'pad103'  # Example reference antenna
   bcal_uvrange: '>1klambda' # UV range for BPCAL solve
-  fixed_declination_deg: 71.0 # Fixed declination for BPCAL
+  fixed_declination_deg: 67.0 # Fixed declination for BPCAL
   bcal_search_beam_radius_deg: 1.5 # Search radius for BPCAL candidates
-  bcal_min_flux_jy: 1.0 # Minimum flux for BPCAL candidates
-  bcal_max_flux_jy: 10.0 # Maximum flux for BPCAL candidates
+  bcal_min_flux_jy: 3.0 # Minimum flux for BPCAL candidates
+  bcal_max_flux_jy: 15.0 # Maximum flux for BPCAL candidates
   #bcal_candidate_catalog: 'bcal_candidates_nvss.csv'
   bcal_candidate_catalog: /data/jfaber/dsa110-contimg/bcal_candidates_vla.csv
 
 
   # Gain Calibration
   gcal_interval_min: 30
-  gcal_refant: 'pad103' # Example reference antenna
+  gcal_refant: 'pad103' # Selected reference antenna
   gcal_mode: 'ap'       # 'ap', 'p'
   gcal_solint: '30min'  # Solution interval for gaincal
   gcal_minsnr: 3.0      # Minimum SNR for gaincal solutions

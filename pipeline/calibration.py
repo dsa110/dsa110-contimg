@@ -7,10 +7,10 @@ import glob
 
 # CASA imports
 try:
+    from casatools import msmetadata, table
     from casatasks import (
         clearcal, delmod, rmtables, flagdata, bandpass, ft, mstransform, gaincal, applycal, listobs, split
     )
-    from casatools import msmetadata, table
     casa_available = True
 except ImportError:
     print("Warning: CASA tasks/tools not found. Calibration module functionality will be limited.")

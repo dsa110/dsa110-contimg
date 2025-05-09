@@ -5,6 +5,8 @@ import os
 import numpy as np
 from shutil import rmtree
 import warnings
+import pandas as pd
+import csv
 
 # Astropy imports
 from astropy.coordinates import SkyCoord, Angle, match_coordinates_sky
@@ -392,6 +394,134 @@ def create_calibrator_component_list(config: dict, cal_info: dict, output_cl_pat
             cl.close()
         if os.path.exists(output_cl_path): rmtree(output_cl_path)
         return None, None
+
+def generate_bcal_candidate_list(config: dict, fixed_dec_deg: float, min_flux_override=None):
+    """
+    Filters a pre-parsed VLA catalog CSV based on Dec, Flux, and RA separation
+    to produce the pipeline's BPCAL candidate list for a given pointing.
+
+    Args:
+        config (dict): Pipeline configuration dictionary.
+        fixed_dec_deg (float): The central declination of the observation in degrees.
+        min_flux_override (float, optional): Override minimum flux in Jy. Defaults to None.
+
+    Returns:
+        str or None: Path to the filtered BPCAL candidate CSV file, or None on failure.
+    """
+    if not astropy_available:
+         logger.error("astropy required for filtering.")
+         return None
+
+    logger.info(f"Generating BPCAL candidate list for Dec ~ {fixed_dec_deg:.2f} deg")
+    try:
+        paths_config = config['paths']
+        cal_config = config['calibration']
+
+        # Input: Full parsed VLA list CSV path from config
+        input_csv_path = paths_config.get('vla_calibrator_full_list_csv')
+        if not input_csv_path or not os.path.exists(input_csv_path):
+            logger.error(f"ERROR: Input VLA Calibrator CSV file not found at path specified in config: {input_csv_path}")
+            return None
+
+        # Output: Determine path for the filtered list for this Dec
+        cal_tables_dir_path = paths_config.get('cal_tables_dir')
+        bcal_catalog_basename = cal_config.get('bcal_candidate_catalog', 'bcal_candidates_vla') # Base name
+        if not all([cal_tables_dir_path, bcal_catalog_basename]):
+            raise KeyError("Config missing required paths:paths.cal_tables_dir or calibration:bcal_candidate_catalog")
+
+        # Add declination to filename
+        output_filename = f"{bcal_catalog_basename}_dec{fixed_dec_deg:.1f}.csv"
+        output_bcal_csv_path = os.path.join(cal_tables_dir_path, output_filename)
+        os.makedirs(os.path.dirname(output_bcal_csv_path), exist_ok=True)
+        logger.info(f"Output filtered candidate list will be: {output_bcal_csv_path}")
+
+        # Declination Range
+        beam_radius_deg = cal_config.get('bcal_search_beam_radius_deg', 1.5)
+        dec_min = fixed_dec_deg - beam_radius_deg
+        dec_max = fixed_dec_deg + beam_radius_deg
+        logger.info(f"Filtering Dec range: {dec_min:.2f} to {dec_max:.2f} deg")
+
+        # Flux Range (use L-band/20cm flux for filtering)
+        min_flux_jy = min_flux_override if min_flux_override is not None else cal_config.get('bcal_min_flux_jy', 1.0)
+        max_flux_jy = cal_config.get('bcal_max_flux_jy', 100.0)
+        logger.info(f"Filtering L-band (20cm or L code) flux range: {min_flux_jy} to {max_flux_jy} Jy")
+
+        # --- Filtering ---
+        df = pd.read_csv(input_csv_path, na_values=['None', 'NaN', ''])
+        if df.empty: raise ValueError(f"Input CSV {input_csv_path} is empty.")
+
+        df_filtered = df.dropna(subset=['DEC_J2000', 'FLUX_JY', 'BAND', 'BAND_CODE']).copy()
+        def parse_dec(dec_str):
+            try: return Angle(dec_str.replace('"',''), unit=u.deg).deg
+            except: return np.nan
+        df_filtered['dec_deg'] = df_filtered['DEC_J2000'].apply(parse_dec)
+        df_filtered = df_filtered.dropna(subset=['dec_deg'])
+        dec_mask = (df_filtered['dec_deg'] >= dec_min) & (df_filtered['dec_deg'] <= dec_max)
+        df_filtered = df_filtered[dec_mask]
+        logger.info(f"{len(df_filtered.drop_duplicates(subset=['J2000_NAME']))} sources within declination range.")
+        if df_filtered.empty: raise ValueError("No sources found in declination range.")
+
+        df_filtered['flux_num'] = pd.to_numeric(df_filtered['FLUX_JY'], errors='coerce')
+        l_band_mask = (df_filtered['BAND_CODE'] == 'L') | (df_filtered['BAND'] == '20cm')
+        flux_mask = (df_filtered['flux_num'] >= min_flux_jy) & \
+                    (df_filtered['flux_num'] <= max_flux_jy) & \
+                    (df_filtered['flux_num'].notna())
+        df_lband_filtered = df_filtered[l_band_mask & flux_mask].copy()
+        logger.info(f"Found {len(df_lband_filtered)} L-band sources meeting flux criteria.")
+        if df_lband_filtered.empty: raise ValueError("No L-band sources found meeting flux criteria.")
+
+        # --- Select 4 Brightest, Well-Separated Candidates ---
+        df_lband_filtered = df_lband_filtered.sort_values(by='flux_num', ascending=False)
+        final_candidates = []
+        min_ra_sep_deg = 80.0 # Approx 5.3 hours
+
+        for _, row in df_lband_filtered.iterrows():
+            if len(final_candidates) >= 4: break
+            try:
+                current_coord = SkyCoord(ra=row['RA_J2000'], dec=row['DEC_J2000'], unit=(u.hourangle, u.deg), frame='icrs')
+                is_separated_enough = True
+                for existing_cand in final_candidates:
+                    existing_coord = SkyCoord(ra=existing_cand['ra_str'], dec=existing_cand['dec_str'], unit=(u.hourangle, u.deg), frame='icrs')
+                    ra_sep = Angle(current_coord.ra - existing_coord.ra).wrap_at(180*u.deg).deg
+                    if abs(ra_sep) < min_ra_sep_deg: is_separated_enough = False; break
+                if is_separated_enough:
+                    logger.info(f"Selecting candidate: {row['J2000_NAME']} (Flux: {row['flux_num']:.2f} Jy)")
+                    final_candidates.append({
+                        'name': row['J2000_NAME'], 'ra_str': row['RA_J2000'],
+                        'dec_str': row['DEC_J2000'], 'flux_jy': f"{row['flux_num']:.4f}",
+                        'epoch': 'J2000' })
+            except Exception as e: logger.warning(f"Could not process candidate {row.get('J2000_NAME', 'N/A')}: {e}")
+
+        # --- Write Final CSV ---
+        header = ['name', 'ra_str', 'dec_str', 'flux_jy', 'epoch']
+        if not final_candidates:
+             logger.warning("No candidates remain after RA separation filtering.")
+             with open(output_bcal_csv_path, 'w', newline='') as csvfile: writer = csv.DictWriter(csvfile, fieldnames=header); writer.writeheader()
+             logger.info(f"Created empty BPCAL candidate file: {output_bcal_csv_path}")
+             return output_bcal_csv_path # Return path even if empty
+
+        logger.info(f"Writing {len(final_candidates)} final BPCAL candidates to: {output_bcal_csv_path}")
+        with open(output_bcal_csv_path, 'w', newline='') as csvfile:
+            writer = csv.DictWriter(csvfile, fieldnames=header)
+            writer.writeheader()
+            writer.writerows(final_candidates)
+        logger.info(f"Successfully wrote {len(final_candidates)} candidates to {output_bcal_csv_path}")
+        return output_bcal_csv_path
+
+    except ValueError as e: # Catch specific errors from filtering
+         logger.warning(f"Filtering resulted in no candidates: {e}")
+         header = ['name', 'ra_str', 'dec_str', 'flux_jy', 'epoch']
+         with open(output_bcal_csv_path, 'w', newline='') as csvfile: writer = csv.DictWriter(csvfile, fieldnames=header); writer.writeheader()
+         logger.info(f"Created empty BPCAL candidate file: {output_bcal_csv_path}")
+         return output_bcal_csv_path
+    except KeyError as e:
+        logger.error(f"ERROR: Missing required key in config or input CSV '{input_csv_path}': {e}", exc_info=True)
+        return None
+    except Exception as e:
+        logger.error(f"ERROR: Failed during filtering or writing final CSV: {e}", exc_info=True)
+        return None
+
+
 
 # Optional: Image Sky Model (Adapted from skymodel_utils.py)
 # Needs significant refactoring to fit the new structure (config, logging)

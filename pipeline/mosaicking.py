@@ -8,6 +8,7 @@ from shutil import rmtree
 from astropy.coordinates import SkyCoord
 from astropy.io import fits
 from astropy.wcs import WCS
+from astropy.table import Table
 import astropy.units as u
 
 # CASA imports
