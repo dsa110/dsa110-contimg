@@ -17,6 +17,7 @@ from datetime import datetime, timedelta
 from astropy.time import Time, TimeDelta
 from astropy.coordinates import SkyCoord, Angle, EarthLocation
 import astropy.units as u
+from astropy.table import Table
 from astropy.io import fits # Needed if checking FITS output here
 from astropy.wcs import WCS # Needed if checking FITS output here
 
