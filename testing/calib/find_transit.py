@@ -26,9 +26,14 @@ dsa110_location = EarthLocation.of_site("ovro")
 #calibrator_name = "J2253+1608"
 #calibrator_ra = "22h53m57.7479s"
 #calibrator_dec = "+16d08m53.563s"
-calibrator_name = "J0521+166"
-calibrator_ra = "05h21m09.886021s"
-calibrator_dec = "16d38m22.051220s"
+#calibrator_name = "J0521+166"
+#calibrator_ra = "05h21m09.886021s"
+#calibrator_dec = "16d38m22.051220s"
+
+calibrator_name = "TOI-6324"
+calibrator_ra = "22h03m21.26s"
+calibrator_dec = "+67d29m59.83s"
+
 calibrator_coord = SkyCoord(calibrator_ra, calibrator_dec, frame="icrs")
 print("RA, Dec (hms): ", calibrator_ra, calibrator_dec)
 print("RA, Dec (deg): ", calibrator_coord.ra.deg, calibrator_coord.dec.deg)

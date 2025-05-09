@@ -10,6 +10,7 @@ try:
     from matplotlib.patches import Circle
     from astropy.io import fits
     from astropy.wcs import WCS
+    from astropy.table import Table
     from astropy.visualization import (ZScaleInterval, PowerStretch, ImageNormalize)
     from astropy.coordinates import SkyCoord
     import astropy.units as u
