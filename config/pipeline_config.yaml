@@ -22,11 +22,10 @@ paths:
 
 # --- Service Control ---
 services:
-  hdf5_post_handle: none # What to do with HDF5 files after processing: 'move', 'delete', 'none'
   # Service 1: HDF5 Watcher
   hdf5_watcher_poll_interval_sec: 60  # How often to check if using polling (ignored if using watchdog events)
   hdf5_expected_subbands: 16         # Number of subbands expected per 5-min chunk
-  hdf5_post_handle: move             # What to do after processing: 'move', 'delete', 'none'
+  hdf5_post_handle: none             # What to do after processing: 'move', 'delete', 'none'
 
   # Service 2: MS Processor
   ms_processor_poll_interval_sec: 120 # How often to check if using polling (ignored if using watchdog events)
