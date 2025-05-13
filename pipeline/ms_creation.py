@@ -16,14 +16,16 @@ from pyuvdata import UVData
 
 # Attempt to import phasing utilities
 try:
-    from pyuvdata.utils.phasing import calc_app_coords, calc_frame_pos_angle, calc_uvw
-    print("INFO: Successfully imported phasing utilities from pyuvdata.utils.phasing")
-    PHASING_MODULE_SOURCE = "pyuvdata.utils.phasing"
+    # Expected path for pyuvdata >= 2.2 (including 3.2.1)
+    from pyuvdata.coordinates import calc_app_coords, calc_frame_pos_angle, calc_uvw
+    print("INFO: Imported phasing utilities from pyuvdata.coordinates")
+    PHASING_MODULE_SOURCE = "pyuvdata.coordinates"
 except ImportError:
     try:
-        from pyuvdata.coordinates import calc_app_coords, calc_frame_pos_angle, calc_uvw
-        print("INFO: Imported phasing utilities from pyuvdata.coordinates (standard for pyuvdata >=2.2)")
-        PHASING_MODULE_SOURCE = "pyuvdata.coordinates"
+        # Fallback for older structure if user's environment resolves it this way
+        from pyuvdata.utils.phasing import calc_app_coords, calc_frame_pos_angle, calc_uvw
+        print("INFO: Successfully imported phasing utilities from pyuvdata.utils.phasing (older path)")
+        PHASING_MODULE_SOURCE = "pyuvdata.utils.phasing"
     except ImportError as e:
         print(f"CRITICAL ERROR: Could not import phasing utilities: {e}")
         calc_app_coords, calc_frame_pos_angle, calc_uvw = None, None, None 
@@ -84,13 +86,17 @@ def _load_uvh5_file(fnames: list, antenna_list: list = None, telescope_pos: Eart
     try:
         logger.info(f"Attempting to read first file: {fnames[0]}")
         current_keep_all_metadata = True
-        current_antenna_names_to_read = None
+        current_antenna_names_to_read = None # Read all antennas from the first file initially
+        
+        # If user requested specific antennas, we can pass them to read with keep_all_metadata=False
+        # This is generally more efficient than reading all then selecting.
         if user_requested_antenna_names is not None:
-            current_keep_all_metadata = False # If selecting, don't keep all from file initially
+            current_keep_all_metadata = False
             current_antenna_names_to_read = user_requested_antenna_names
             logger.info(f"Reading first file with antenna selection and keep_all_metadata=False.")
         else:
             logger.info(f"Reading first file with all antennas and keep_all_metadata=True.")
+
 
         with warnings.catch_warnings():
             warnings.filterwarnings("ignore", message=r".*key .* is longer than 8 characters.*")
@@ -121,19 +127,6 @@ def _load_uvh5_file(fnames: list, antenna_list: list = None, telescope_pos: Eart
              logger.debug(f"Top-level antenna names after first read: {uvdata_obj.antenna_names}")
         else:
             logger.warning("antenna_names attribute still MISSING after first read and check!")
-
-        if current_keep_all_metadata and user_requested_antenna_names is not None:
-            logger.info(f"Applying antenna selection post-read (as keep_all_metadata was True): {list(user_requested_antenna_names)}")
-            select_names = [str(name) for name in user_requested_antenna_names]
-            uvdata_obj.select(antenna_names=select_names)
-            logger.info("Antenna selection applied post-read.")
-            if hasattr(uvdata_obj, 'telescope') and hasattr(uvdata_obj.telescope, 'antenna_names'):
-                 logger.debug(f"Telescope antenna names after selection: {uvdata_obj.telescope.antenna_names}")
-            elif hasattr(uvdata_obj, 'antenna_names'):
-                 logger.debug(f"Top-level antenna names after selection: {uvdata_obj.antenna_names}")
-            else:
-                logger.error("CRITICAL ERROR: antenna_names attribute MISSING after select() call!")
-                return None
         
     except Exception as e:
         logger.error(f"Failed during initial read, uvw_conversion, check, or selection of HDF5 file {fnames[0]}: {e}", exc_info=True)
@@ -197,7 +190,7 @@ def _load_uvh5_file(fnames: list, antenna_list: list = None, telescope_pos: Eart
             logger.info(f"Concatenating {len(uvdata_to_append)} additional frequency chunks.")
             with warnings.catch_warnings():
                 warnings.filterwarnings("ignore", message=r".*key .* is longer than 8 characters.*")
-                uvdata_obj.fast_concat(uvdata_to_append, axis='freq', inplace=True, run_check=False, check_extra=False, run_check_acceptability=False, strict_uvw_antpos_check=False) # Changed to False
+                uvdata_obj.fast_concat(uvdata_to_append, axis='freq', inplace=True, run_check=False, check_extra=False, run_check_acceptability=False, strict_uvw_antpos_check=False)
             logger.info("Concatenation complete. Running pyuvdata check...")
             try:
                 uvdata_obj.check(check_extra=True, run_check_acceptability=True)
@@ -350,24 +343,26 @@ def _set_phase_centers(uvdata_obj: UVData, field_name_base: str, telescope_pos: 
             selection_mask_for_this_center = (blt_to_unique_time_map == i)
             new_phase_center_ids[selection_mask_for_this_center] = cat_id
             
-            # Call with positional (coord_pair) and then keyword arguments
+            # Corrected call to calc_app_coords for pyuvdata 3.2.1 signature
             app_ra, app_dec = calc_app_coords(
-                (center_coord.ra.rad, center_coord.dec.rad), # coord_pair
+                lon_coord=center_coord.ra.rad, # Keyword-only
+                lat_coord=center_coord.dec.rad, # Keyword-only
                 coord_frame='icrs', 
-                coord_epoch=common_epoch.jyear, 
+                coord_epoch=common_epoch.jyear, # Pass float JYear
                 time_array=Time(uvdata_obj.time_array[selection_mask_for_this_center], format='jd', scale='utc'),
                 lst_array=uvdata_obj.lst_array[selection_mask_for_this_center],
                 telescope_loc=effective_telescope_loc_lat_lon_alt, 
                 telescope_frame='itrs' 
             )
             
+            # Corrected call to calc_frame_pos_angle
             frame_pa = calc_frame_pos_angle(
                 time_array=uvdata_obj.time_array[selection_mask_for_this_center], 
                 app_ra=app_ra,
                 app_dec=app_dec,
                 telescope_loc=effective_telescope_loc_lat_lon_alt, 
                 telescope_frame='itrs', 
-                ref_frame='icrs', 
+                ref_frame='icrs', # Corrected from phase_frame
                 ref_epoch=common_epoch.jyear 
             )
             

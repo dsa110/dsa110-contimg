@@ -3,6 +3,11 @@
 import logging
 import sys
 import os
+
+# point Casacore’s table cache to a real, writable directory
+#os.environ['CASACORE_TABLE_PATH'] = '/data/jfaber/dsa110-contimg/tmp/casatables'
+#os.makedirs(os.environ['CASACORE_TABLE_PATH'], exist_ok=True)
+
 from datetime import datetime
 
 # Define CASA log file path globally or pass via config if needed
