@@ -208,18 +208,19 @@ def _load_uvh5_file(fnames: list, antenna_list: list = None, telescope_pos: Eart
 
     if telescope_pos is not None:
         uvdata_obj.telescope_name = telescope_pos.info.name
-        uvdata_obj.telescope.location = np.array([
-            telescope_pos.itrs.x.to_value(u.m),
-            telescope_pos.itrs.y.to_value(u.m),
-            telescope_pos.itrs.z.to_value(u.m)
-        ])
+        uvdata_obj.telescope.location = EarthLocation.from_geocentric(
+           telescope_pos.itrs.x,
+           telescope_pos.itrs.y,
+           telescope_pos.itrs.z
+           )
     else:
         uvdata_obj.telescope_name = dsa110_utils.loc_dsa110.info.name
-        uvdata_obj.telescope.location = np.array([
-            dsa110_utils.loc_dsa110.itrs.x.to_value(u.m),
-            dsa110_utils.loc_dsa110.itrs.y.to_value(u.m),
-            dsa110_utils.loc_dsa110.itrs.z.to_value(u.m)
-        ])
+        uvdata_obj.telescope.location = EarthLocation.from_geocentric(
+           dsa110_utils.loc_dsa110.itrs.x,
+           dsa110_utils.loc_dsa110.itrs.y,
+           dsa110_utils.loc_dsa110.itrs.z
+           )
+
         logger.warning("Using default DSA-110 location.")
 
     if hasattr(uvdata_obj, 'telescope') and hasattr(uvdata_obj.telescope, 'antenna_names'):
@@ -278,25 +279,29 @@ def _set_phase_centers(uvdata_obj: UVData, field_name_base: str, telescope_pos: 
 
     # --- Start Diagnostics for telescope.location ---
     logger.debug(f"Type of uvdata_obj entering _set_phase_centers: {type(uvdata_obj)}")
-    if hasattr(uvdata_obj, 'telescope.location'):
-        logger.debug(f"uvdata_obj.telescope.location (XYZ) value: {uvdata_obj.telescope.location}")
-        logger.debug(f"uvdata_obj.telescope.location type: {type(uvdata_obj.telescope.location)}")
-        if uvdata_obj.telescope.location is None:
+
+    # Define telescope attribute for clarity
+    tel = uvdata_obj.telescope
+
+    if hasattr(tel, 'location'):
+        logger.debug(f"uvdata_obj.telescope.location (XYZ) value: {tel.location}")
+        logger.debug(f"uvdata_obj.telescope.location type: {type(tel.location)}")
+        if tel.location is None:
             logger.error("CRITICAL: uvdata_obj.telescope.location is None at start of _set_phase_centers!")
     else:
         logger.error("CRITICAL: uvdata_obj has NO telescope.location attribute at start of _set_phase_centers!")
         return None 
     
     effective_telescope_loc_lat_lon_alt = None
-    if hasattr(uvdata_obj.telescope, 'location_lat_lon_alt') and uvdata_obj.telescope.location_lat_lon_alt is not None:
-        logger.debug(f"uvdata_obj.telescope.location_lat_lon_alt exists. Value: {uvdata_obj.telescope.location_lat_lon_alt}")
-        effective_telescope_loc_lat_lon_alt = uvdata_obj.telescope.location_lat_lon_alt
+    if hasattr(tel, 'location_lat_lon_alt') and tel.location_lat_lon_alt is not None:
+        logger.debug(f"uvdata_obj.telescope.location_lat_lon_alt exists. Value: {tel.location_lat_lon_alt}")
+        effective_telescope_loc_lat_lon_alt = tel.location_lat_lon_alt
     else:
         logger.warning("uvdata_obj.telescope.location_lat_lon_alt is missing or None.")
-        if uvdata_obj.telescope.location is not None:
+        if tel.location is not None:
             try:
                 logger.warning("Attempting to manually derive lat/lon/alt from telescope.location (XYZ).")
-                el = EarthLocation.from_geocentric(*uvdata_obj.telescope.location, unit=u.m)
+                el = tel.location
                 manual_lat_lon_alt = (el.lat.rad, el.lon.rad, el.height.to_value(u.m))
                 logger.info(f"Manually derived lat/lon/alt: {manual_lat_lon_alt}")
                 effective_telescope_loc_lat_lon_alt = manual_lat_lon_alt
@@ -312,7 +317,7 @@ def _set_phase_centers(uvdata_obj: UVData, field_name_base: str, telescope_pos: 
         return None
 
     if not (hasattr(uvdata_obj, 'antenna_names') or \
-            (hasattr(uvdata_obj, 'telescope') and hasattr(uvdata_obj.telescope, 'antenna_names'))):
+            (hasattr(uvdata_obj, 'telescope') and hasattr(tel, 'antenna_names'))):
         logger.error("CRITICAL: UVData object passed to _set_phase_centers is missing 'antenna_names'. Aborting phase setting.")
         return None 
     # --- End Diagnostics ---
