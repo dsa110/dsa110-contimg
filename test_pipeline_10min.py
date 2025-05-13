@@ -131,7 +131,7 @@ def collect_files_for_nominal_start_time(nominal_start_time_str, hdf5_dir, confi
     logger.debug(f"Expected SPWs: {sorted(list(expected_spws_set))}")
 
     files_for_this_chunk = defaultdict(list)
-    all_hdf5_files_in_dir = glob.glob(os.path.join(hdf5_dir, "20*.hdf5")) # Glob for files starting with "20"
+    all_hdf5_files_in_dir = glob.glob(os.path.join(hdf5_dir, "2035*.hdf5")) # Glob for files starting with "20"
     logger.debug(f"Found {len(all_hdf5_files_in_dir)} total HDF5 files in {hdf5_dir} to check.")
 
     found_any_for_nominal_time = False
