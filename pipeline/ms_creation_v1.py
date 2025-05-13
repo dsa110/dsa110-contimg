@@ -15,8 +15,11 @@ import pyuvdata
 from pyuvdata import UVData
 
 # Attempt to import phasing utilities
+# Based on user feedback, pyuvdata.utils.phasing is the path that works in their environment.
+# This might indicate an older pyuvdata structure or a mixed environment.
 try:
     from pyuvdata.utils.phasing import calc_app_coords, calc_frame_pos_angle, calc_uvw
+    # Logger will be initialized after this block, so print for now
     print("INFO: Successfully imported phasing utilities from pyuvdata.utils.phasing")
     PHASING_MODULE_SOURCE = "pyuvdata.utils.phasing"
 except ImportError:
@@ -26,7 +29,7 @@ except ImportError:
         PHASING_MODULE_SOURCE = "pyuvdata.coordinates"
     except ImportError as e:
         print(f"CRITICAL ERROR: Could not import phasing utilities: {e}")
-        calc_app_coords, calc_frame_pos_angle, calc_uvw = None, None, None 
+        calc_app_coords, calc_frame_pos_angle, calc_uvw = None, None, None # Define to prevent NameErrors
         PHASING_MODULE_SOURCE = "NONE - IMPORT FAILED"
 
 
@@ -38,12 +41,14 @@ import inspect
 try:
     import casacore
     import casacore.tables
+    from casatasks import rmtables
+    from casatools import table
     casacore_version_str = casacore.__version__
+    print(f"INFO: Successfully imported casacore version {casacore_version_str}")
 except ImportError:
     casacore_version_str = "casacore not found"
 except Exception as e:
     casacore_version_str = f"Error getting casacore version: {e}"
-
 
 # Pipeline imports
 from .pipeline_utils import get_logger 
@@ -83,14 +88,17 @@ def _load_uvh5_file(fnames: list, antenna_list: list = None, telescope_pos: Eart
 
     try:
         logger.info(f"Attempting to read first file: {fnames[0]}")
+        # If specific antennas are requested, read only those and don't keep all metadata.
+        # Otherwise, read all and keep all metadata.
         current_keep_all_metadata = True
         current_antenna_names_to_read = None
         if user_requested_antenna_names is not None:
-            current_keep_all_metadata = False # If selecting, don't keep all from file initially
+            current_keep_all_metadata = False
             current_antenna_names_to_read = user_requested_antenna_names
             logger.info(f"Reading first file with antenna selection and keep_all_metadata=False.")
         else:
             logger.info(f"Reading first file with all antennas and keep_all_metadata=True.")
+
 
         with warnings.catch_warnings():
             warnings.filterwarnings("ignore", message=r".*key .* is longer than 8 characters.*")
@@ -98,11 +106,12 @@ def _load_uvh5_file(fnames: list, antenna_list: list = None, telescope_pos: Eart
             uvdata_obj.read(
                 fnames[0], 
                 file_type='uvh5', 
-                antenna_names=current_antenna_names_to_read,
+                antenna_names=current_antenna_names_to_read, # Use selection here
                 keep_all_metadata=current_keep_all_metadata, 
                 run_check=False
             ) 
         logger.debug(f"Successfully executed read command for {fnames[0]}")
+
 
         if hasattr(uvdata_obj, 'uvw_array') and uvdata_obj.uvw_array is not None:
             if uvdata_obj.uvw_array.dtype != np.float64:
@@ -122,11 +131,11 @@ def _load_uvh5_file(fnames: list, antenna_list: list = None, telescope_pos: Eart
         else:
             logger.warning("antenna_names attribute still MISSING after first read and check!")
 
-        if current_keep_all_metadata and user_requested_antenna_names is not None:
-            logger.info(f"Applying antenna selection post-read (as keep_all_metadata was True): {list(user_requested_antenna_names)}")
+        if user_requested_antenna_names is not None:
+            logger.info(f"Applying antenna selection: {list(user_requested_antenna_names)}")
             select_names = [str(name) for name in user_requested_antenna_names]
             uvdata_obj.select(antenna_names=select_names)
-            logger.info("Antenna selection applied post-read.")
+            logger.info("Antenna selection applied.")
             if hasattr(uvdata_obj, 'telescope') and hasattr(uvdata_obj.telescope, 'antenna_names'):
                  logger.debug(f"Telescope antenna names after selection: {uvdata_obj.telescope.antenna_names}")
             elif hasattr(uvdata_obj, 'antenna_names'):
@@ -162,8 +171,7 @@ def _load_uvh5_file(fnames: list, antenna_list: list = None, telescope_pos: Eart
             with warnings.catch_warnings():
                 warnings.filterwarnings("ignore", message=r".*key .* is longer than 8 characters.*")
                 warnings.filterwarnings("ignore", message=r".*Telescope .* is not in known_telescopes.*")
-                # For subsequent files, antenna_names and keep_all_metadata=False
-                uvdataf.read(f, file_type='uvh5', antenna_names=user_requested_antenna_names, keep_all_metadata=False, run_check=False) 
+                uvdataf.read(f, file_type='uvh5', keep_all_metadata=False, run_check=False)
             
             if hasattr(uvdataf, 'uvw_array') and uvdataf.uvw_array is not None:
                 if uvdataf.uvw_array.dtype != np.float64:
@@ -171,6 +179,10 @@ def _load_uvh5_file(fnames: list, antenna_list: list = None, telescope_pos: Eart
                     uvdataf.uvw_array = uvdataf.uvw_array.astype(np.float64)
             else:
                 logger.warning(f"uvw_array not present or is None after reading {f}.")
+
+            if user_requested_antenna_names is not None:
+                select_names_f = [str(name) for name in user_requested_antenna_names]
+                uvdataf.select(antenna_names=select_names_f)
             
             logger.debug(f"Successfully read and processed subsequent file {f}")
 
@@ -197,7 +209,7 @@ def _load_uvh5_file(fnames: list, antenna_list: list = None, telescope_pos: Eart
             logger.info(f"Concatenating {len(uvdata_to_append)} additional frequency chunks.")
             with warnings.catch_warnings():
                 warnings.filterwarnings("ignore", message=r".*key .* is longer than 8 characters.*")
-                uvdata_obj.fast_concat(uvdata_to_append, axis='freq', inplace=True, run_check=False, check_extra=False, run_check_acceptability=False, strict_uvw_antpos_check=False) # Changed to False
+                uvdata_obj.fast_concat(uvdata_to_append, axis='freq', inplace=True, run_check=False, check_extra=False, run_check_acceptability=False, strict_uvw_antpos_check=True)
             logger.info("Concatenation complete. Running pyuvdata check...")
             try:
                 uvdata_obj.check(check_extra=True, run_check_acceptability=True)
@@ -216,17 +228,21 @@ def _load_uvh5_file(fnames: list, antenna_list: list = None, telescope_pos: Eart
         return None
 
     if telescope_pos is not None:
-        uvdata_obj.telescope.name = telescope_pos.info.name if hasattr(telescope_pos, 'info') and hasattr(telescope_pos.info, 'name') else "Unknown"
+        uvdata_obj.telescope_name = telescope_pos.info.name
         uvdata_obj.telescope.location = EarthLocation.from_geocentric(
-            telescope_pos.itrs.x, telescope_pos.itrs.y, telescope_pos.itrs.z, unit=u.m
-        )
+           telescope_pos.itrs.x,
+           telescope_pos.itrs.y,
+           telescope_pos.itrs.z
+           )
     else:
-        uvdata_obj.telescope.name = dsa110_utils.loc_dsa110.info.name if hasattr(dsa110_utils.loc_dsa110, 'info') and hasattr(dsa110_utils.loc_dsa110.info, 'name') else "DSA-110"
+        uvdata_obj.telescope_name = dsa110_utils.loc_dsa110.info.name
         uvdata_obj.telescope.location = EarthLocation.from_geocentric(
-             dsa110_utils.loc_dsa110.itrs.x, dsa110_utils.loc_dsa110.itrs.y, dsa110_utils.loc_dsa110.itrs.z, unit=u.m
-        )
-        logger.warning("Using default DSA-110 location.")
+           dsa110_utils.loc_dsa110.itrs.x,
+           dsa110_utils.loc_dsa110.itrs.y,
+           dsa110_utils.loc_dsa110.itrs.z
+           )
 
+        logger.warning("Using default DSA-110 location.")
 
     if hasattr(uvdata_obj, 'telescope') and hasattr(uvdata_obj.telescope, 'antenna_names'):
         logger.debug(f"Final telescope antenna names in _load_uvh5_file: {uvdata_obj.telescope.antenna_names}")
@@ -235,7 +251,7 @@ def _load_uvh5_file(fnames: list, antenna_list: list = None, telescope_pos: Eart
     else:
         logger.error("CRITICAL ERROR: antenna_names attribute MISSING (both top-level and telescope.antenna_names) before returning from _load_uvh5_file!")
     
-    if hasattr(uvdata_obj, 'antenna_numbers'): 
+    if hasattr(uvdata_obj, 'antenna_numbers'):
         logger.debug(f"Final antenna numbers (0-indexed internal IDs): {uvdata_obj.antenna_numbers}")
 
     logger.info(f"Finished loading data. Nbls: {uvdata_obj.Nbls}, Ntimes: {uvdata_obj.Ntimes}, Nfreqs: {uvdata_obj.Nfreqs}, Nants: {uvdata_obj.Nants_data}")
@@ -282,31 +298,51 @@ def _set_phase_centers(uvdata_obj: UVData, field_name_base: str, telescope_pos: 
     logger.info("Setting phase centers and recalculating UVWs manually for drift scan.")
     logger.info(f"_set_phase_centers - PyUVData version: {pyuvdata.__version__}, Path: {pyuvdata.__file__}")
 
-    tel = uvdata_obj.telescope 
+    # --- Start Diagnostics for telescope.location ---
     logger.debug(f"Type of uvdata_obj entering _set_phase_centers: {type(uvdata_obj)}")
-    if hasattr(tel, 'location') and tel.location is not None:
-        logger.debug(f"uvdata_obj.telescope.location (XYZ EarthLocation) value: {tel.location.value}") 
+
+    # Define telescope attribute for clarity
+    tel = uvdata_obj.telescope
+
+    if hasattr(tel, 'location'):
+        logger.debug(f"uvdata_obj.telescope.location (XYZ) value: {tel.location}")
         logger.debug(f"uvdata_obj.telescope.location type: {type(tel.location)}")
+        if tel.location is None:
+            logger.error("CRITICAL: uvdata_obj.telescope.location is None at start of _set_phase_centers!")
     else:
-        logger.error("CRITICAL: uvdata_obj.telescope.location is None or missing at start of _set_phase_centers!")
+        logger.error("CRITICAL: uvdata_obj has NO telescope.location attribute at start of _set_phase_centers!")
         return None 
     
     effective_telescope_loc_lat_lon_alt = None
-    try:
-        effective_telescope_loc_lat_lon_alt = (
-            tel.location.lat.rad, 
-            tel.location.lon.rad, 
-            tel.location.height.to_value(u.m)
-        )
-        logger.debug(f"Derived lat/lon/alt from uvdata_obj.telescope.location: {effective_telescope_loc_lat_lon_alt}")
-    except Exception as e_lla:
-        logger.error(f"Failed to get lat/lon/alt from uvdata_obj.telescope.location: {e_lla}", exc_info=True)
-        return None
+    if hasattr(tel, 'location_lat_lon_alt') and tel.location_lat_lon_alt is not None:
+        logger.debug(f"uvdata_obj.telescope.location_lat_lon_alt exists. Value: {tel.location_lat_lon_alt}")
+        effective_telescope_loc_lat_lon_alt = tel.location_lat_lon_alt
+    else:
+        logger.warning("uvdata_obj.telescope.location_lat_lon_alt is missing or None.")
+        if tel.location is not None:
+            try:
+                logger.warning("Attempting to manually derive lat/lon/alt from telescope.location (XYZ).")
+                el = tel.location
+                manual_lat_lon_alt = (el.lat.rad, el.lon.rad, el.height.to_value(u.m))
+                logger.info(f"Manually derived lat/lon/alt: {manual_lat_lon_alt}")
+                effective_telescope_loc_lat_lon_alt = manual_lat_lon_alt
+            except Exception as e_manual_conv:
+                logger.error(f"Failed to manually derive lat/lon/alt: {e_manual_conv}", exc_info=True)
+                return None
+        else:
+            logger.error("Cannot derive lat/lon/alt because telescope.location (XYZ) is also None.")
+            return None
             
+    if effective_telescope_loc_lat_lon_alt is None:
+        logger.error("Could not obtain effective telescope lat/lon/alt. Aborting phase setting.")
+        return None
+
     if not (hasattr(uvdata_obj, 'antenna_names') or \
-            (hasattr(tel, 'antenna_names'))):
+            (hasattr(uvdata_obj, 'telescope') and hasattr(tel, 'antenna_names'))):
         logger.error("CRITICAL: UVData object passed to _set_phase_centers is missing 'antenna_names'. Aborting phase setting.")
         return None 
+    # --- End Diagnostics ---
+
 
     if telescope_pos is None: 
         telescope_pos = dsa110_utils.loc_dsa110 
@@ -332,7 +368,7 @@ def _set_phase_centers(uvdata_obj: UVData, field_name_base: str, telescope_pos: 
              logger.info("LST array not set or empty, calculating from time_array.")
              uvdata_obj.set_lsts_from_time_array()
         
-        common_epoch = Time(2000.0, format="jyear") 
+        common_epoch = Time(2000.0, format="jyear") # Astropy Time object for epoch
 
         for i, center_coord in enumerate(unique_pointing_skycoords):
             cat_name_str = f"{field_name_base}_T{i:04d}_RA{center_coord.ra.deg:.3f}"
@@ -350,24 +386,27 @@ def _set_phase_centers(uvdata_obj: UVData, field_name_base: str, telescope_pos: 
             selection_mask_for_this_center = (blt_to_unique_time_map == i)
             new_phase_center_ids[selection_mask_for_this_center] = cat_id
             
-            # Call with positional (coord_pair) and then keyword arguments
+            # Corrected call to calc_app_coords based on pyuvdata 3.2.1 signature
+            # (lon_coord, lat_coord are keyword-only)
             app_ra, app_dec = calc_app_coords(
-                (center_coord.ra.rad, center_coord.dec.rad), # coord_pair
+                lon_coord=center_coord.ra.rad,
+                lat_coord=center_coord.dec.rad,
                 coord_frame='icrs', 
-                coord_epoch=common_epoch.jyear, 
+                coord_epoch=common_epoch.jyear, # Pass float JYear
                 time_array=Time(uvdata_obj.time_array[selection_mask_for_this_center], format='jd', scale='utc'),
                 lst_array=uvdata_obj.lst_array[selection_mask_for_this_center],
                 telescope_loc=effective_telescope_loc_lat_lon_alt, 
                 telescope_frame='itrs' 
             )
             
+            # Corrected call to calc_frame_pos_angle (ref_frame instead of phase_frame)
             frame_pa = calc_frame_pos_angle(
                 time_array=uvdata_obj.time_array[selection_mask_for_this_center], 
                 app_ra=app_ra,
                 app_dec=app_dec,
                 telescope_loc=effective_telescope_loc_lat_lon_alt, 
                 telescope_frame='itrs', 
-                ref_frame='icrs', 
+                ref_frame='icrs', # Corrected from phase_frame
                 ref_epoch=common_epoch.jyear 
             )
             
@@ -377,7 +416,7 @@ def _set_phase_centers(uvdata_obj: UVData, field_name_base: str, telescope_pos: 
                 frame_pa=frame_pa,
                 lst_array=uvdata_obj.lst_array[selection_mask_for_this_center],
                 use_ant_pos=True, 
-                antenna_positions=uvdata_obj.telescope.antenna_positions, 
+                antenna_positions=uvdata_obj.telescope.antenna_positions,
                 antenna_numbers=uvdata_obj.telescope.antenna_numbers, 
                 ant_1_array=uvdata_obj.ant_1_array[selection_mask_for_this_center],
                 ant_2_array=uvdata_obj.ant_2_array[selection_mask_for_this_center],
@@ -486,6 +525,29 @@ def _write_ms(uvdata_obj: UVData, uvcalib: UVData, ms_outfile_base: str, protect
     ms_outfile = f'{ms_outfile_base}.ms'
     logger.info(f"Writing Measurement Set to: {ms_outfile}")
 
+    logger.info("Removing any existing MS file with casatools table.")
+    tb = table()
+    if os.path.exists(ms_outfile):
+        tb.open(ms_outfile, nomodify=True)
+        if tb.islocked(): tb.unlock()
+        tb.close()
+
+    logger.info("Removing any existing MS file with casatasks rmtables.")
+    if os.path.exists(ms_outfile):
+        try:
+            tb = table()
+            tb.open(ms_outfile, nomodify=True)
+            if tb.islocked(): tb.unlock()
+            tb.close()
+        except Exception as e_table:
+            logger.error(f"Failed to remove existing MS file with : {e_table}", exc_info=True)
+            return None
+        try:
+            rmtables(ms_outfile, force=True)
+        except Exception as e_rmtables:
+            logger.error(f"Failed to remove existing MS file with rmtables: {e_rmtables}", exc_info=True)
+            return None
+
     if os.path.exists(ms_outfile):
         if protect_files:
             logger.error(f"MS file {ms_outfile} already exists and protect_files is True. Skipping.")
@@ -498,14 +560,14 @@ def _write_ms(uvdata_obj: UVData, uvcalib: UVData, ms_outfile_base: str, protect
                 logger.error(f"Failed to remove existing MS {ms_outfile}: {e}", exc_info=True)
                 raise
     
+    try: 
+        logger.info("Conjugating baselines...")
+        uvdata_obj.conjugate_bls(convention="ant1<ant2")
+    except Exception as e_conjugate:
+        logger.error(f"Failed to conjugate baselines: {e_conjugate}", exc_info=True)
+        return None
+    
     try:
-        # Explicitly conjugate baselines before writing to ensure CASA compatibility
-        logger.info("Enforcing 'ant2<ant1' baseline conjugation convention before writing MS.")
-        uvdata_obj.conjugate_bls(convention="ant2<ant1", use_enu=False)
-        if uvcalib is not None:
-            logger.info("Enforcing 'ant2<ant1' baseline conjugation for model data.")
-            uvcalib.conjugate_bls(convention="ant2<ant1", use_enu=False)
-
         logger.info("Running final pyuvdata check on uvdata_obj before writing MS...")
         uvdata_obj.check(check_extra=True, run_check_acceptability=True)
         logger.info("Final pyuvdata check passed for uvdata_obj.")
@@ -517,43 +579,43 @@ def _write_ms(uvdata_obj: UVData, uvcalib: UVData, ms_outfile_base: str, protect
         logger.error(f"Final pyuvdata check FAILED before MS write: {e_final_check}", exc_info=True)
         return None 
 
-    try:
-        with warnings.catch_warnings():
-            warnings.filterwarnings("ignore", message=r".*Writing in the MS file that the units of the data are uncalib.*")
-            # Test with force_phase=True as a diagnostic for segfault
-            logger.info("Attempting to write MS with force_phase=True (diagnostic for segfault)")
-            uvdata_obj.write_ms(ms_outfile,
-                            run_check=False, 
-                            force_phase=True, # DIAGNOSTIC: Try True
-                            run_check_acceptability=False, 
-                            strict_uvw_antpos_check=False) 
+    #try:
+    with warnings.catch_warnings():
+        warnings.filterwarnings("ignore", message=r".*Writing in the MS file that the units of the data are uncalib.*")
+        logger.info("About to call uvdata_obj.write_ms(…)")
+        uvdata_obj.write_ms(ms_outfile,
+                        run_check=False, 
+                        force_phase=False, 
+                        run_check_acceptability=False, 
+                        strict_uvw_antpos_check=False) 
+        logger.info("Returned from write_ms") 
 
-        if uvcalib is not None: 
-            logger.info("Adding MODEL_DATA and CORRECTED_DATA columns.")
-            try:
-                tables.addImagingColumns(ms_outfile)
-                with tables.table(ms_outfile, readonly=False, ack=False) as tb:
-                    model_data_to_write = np.squeeze(uvcalib.data_array, axis=1)
-                    corrected_data_to_write = np.squeeze(uvdata_obj.data_array, axis=1) 
-                    if tb.ncols() == 0: 
-                         raise RuntimeError("MS table appears empty after write_ms.")
-                    tb.putcol('MODEL_DATA', model_data_to_write)
-                    tb.putcol('CORRECTED_DATA', corrected_data_to_write)
-                logger.info("MODEL_DATA and CORRECTED_DATA columns added.")
-            except Exception as e:
-                logger.error(f"Failed to add imaging columns or write model/corrected data: {e}", exc_info=True)
+    if uvcalib is not None: 
+        logger.info("Adding MODEL_DATA and CORRECTED_DATA columns.")
+        try:
+            tables.addImagingColumns(ms_outfile)
+            with tables.table(ms_outfile, readonly=False, ack=False) as tb:
+                model_data_to_write = np.squeeze(uvcalib.data_array, axis=1)
+                corrected_data_to_write = np.squeeze(uvdata_obj.data_array, axis=1)
+                if tb.ncols() == 0: 
+                        raise RuntimeError("MS table appears empty after write_ms.")
+                tb.putcol('MODEL_DATA', model_data_to_write)
+                tb.putcol('CORRECTED_DATA', corrected_data_to_write)
+            logger.info("MODEL_DATA and CORRECTED_DATA columns added.")
+        except Exception as e:
+            logger.error(f"Failed to add imaging columns or write model/corrected data: {e}", exc_info=True)
 
-        logger.info(f"Successfully wrote MS: {ms_outfile}")
-        return ms_outfile
-    except Exception as e:
-        logger.error(f"Failed to write MS file {ms_outfile}: {e}", exc_info=True)
-        if os.path.exists(ms_outfile):
-            try:
-                shutil.rmtree(ms_outfile)
-                logger.info(f"Removed incomplete MS file: {ms_outfile}")
-            except Exception as e_clean:
-                logger.error(f"Failed to remove incomplete MS file {ms_outfile}: {e_clean}")
-        return None
+    logger.info(f"Successfully wrote MS: {ms_outfile}")
+    return ms_outfile
+    #except Exception as e:
+    #    logger.error(f"Failed to write MS file {ms_outfile}: {e}", exc_info=True)
+    #    if os.path.exists(ms_outfile):
+    #        try:
+    #            shutil.rmtree(ms_outfile)
+    #            logger.info(f"Removed incomplete MS file: {ms_outfile}")
+    #        except Exception as e_clean:
+    #            logger.error(f"Failed to remove incomplete MS file {ms_outfile}: {e_clean}")
+    #    return None
 
 def find_hdf5_sets(config: dict):
     incoming_path = config['paths']['hdf5_incoming']
@@ -628,20 +690,21 @@ def process_hdf5_set(config: dict, timestamp: str, hdf5_files: list):
     uvmodel_for_ms = _make_calib_model(uvdata_obj, config, dsa110_utils.loc_dsa110) 
     protect_files = False 
     
-    # --- Test writing without model first ---
-    # Comment out this block to write with model directly if the no-model test passes
-    logger.info("Attempting to write MS WITHOUT model data as a test...")
-    ms_output_path_nomodel = _write_ms(uvdata_obj, None, output_ms_base + "_nomodel", protect_files)
-    if not ms_output_path_nomodel:
-       logger.error("Segfault or failure occurred even when writing MS WITHOUT model data.")
-       return None # Stop if this critical step fails
+    ms_output_path = _write_ms(uvdata_obj, uvmodel_for_ms, output_ms_base, protect_files) 
+    print(f"MS output path: {output_ms_base}")
+    #logger.info("Attempting to write MS WITHOUT model data as a test...")
+    #ms_output_path = _write_ms(uvdata_obj, None, output_ms_base + "_nomodel", protect_files)
+    if not ms_output_path:
+        logger.error("Segfault or failure occurred even when writing MS WITHOUT model data.")
+        # You might want to return None or raise an error here to stop further processing in the test script
+        # For now, let's allow it to try writing with the model if this fails, for completeness of the original logic
     else:
-       logger.info(f"Successfully wrote MS without model: {ms_output_path_nomodel}.")
-    
-    logger.info("Now attempting to write MS WITH model data (if model was generated)...")
-    ms_output_path = _write_ms(uvdata_obj, uvmodel_for_ms, output_ms_base, protect_files)
-    # --- End Test ---
+        logger.info(f"Successfully wrote MS without model: {ms_output_path}. Now attempting with model (if enabled).")
 
+    # Keep the original call as well, or comment it out if the above test is conclusive
+    if ms_output_path: # Only proceed if the no-model write was successful, or remove this check to always try
+        logger.info("Now attempting to write MS WITH model data (if model was generated)...")
+        ms_output_path = _write_ms(uvdata_obj, uvmodel_for_ms, output_ms_base, protect_files)
 
     if ms_output_path: 
         post_handle_mode = config['services'].get('hdf5_post_handle', 'none').lower()
