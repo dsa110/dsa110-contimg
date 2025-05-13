@@ -515,6 +515,13 @@ def _write_ms(uvdata_obj: UVData, uvcalib: UVData, ms_outfile_base: str, protect
             except Exception as e:
                 logger.error(f"Failed to remove existing MS {ms_outfile}: {e}", exc_info=True)
                 raise
+
+    try: 
+        logger.info("Conjugating baselines...")
+        uvdata_obj.conjugate_bls(convention="ant1<ant2")
+    except Exception as e_conjugate:
+        logger.error(f"Failed to conjugate baselines: {e_conjugate}", exc_info=True)
+        return None
     
     try:
         logger.info("Running final pyuvdata check on uvdata_obj before writing MS...")
@@ -532,6 +539,7 @@ def _write_ms(uvdata_obj: UVData, uvcalib: UVData, ms_outfile_base: str, protect
         with warnings.catch_warnings():
             warnings.filterwarnings("ignore", message=r".*Writing in the MS file that the units of the data are uncalib.*")
             uvdata_obj.write_ms(ms_outfile,
+                            clobber=True,
                             run_check=False, 
                             force_phase=False, 
                             run_check_acceptability=False, 
