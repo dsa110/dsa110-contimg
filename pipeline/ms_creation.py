@@ -89,7 +89,7 @@ def _load_uvh5_file(fnames: list, antenna_list: list = None, telescope_pos: Eart
         with warnings.catch_warnings():
             warnings.filterwarnings("ignore", message=r".*key .* is longer than 8 characters.*")
             warnings.filterwarnings("ignore", message=r".*Telescope .* is not in known_telescopes.*")
-            uvdata_obj.read(fnames[0], file_type='uvh5', keep_all_metadata=False, run_check=False) 
+            uvdata_obj.read(fnames[0], file_type='uvh5', keep_all_metadata=True, run_check=False) 
         logger.debug(f"Successfully executed read command for {fnames[0]}")
 
         if hasattr(uvdata_obj, 'uvw_array') and uvdata_obj.uvw_array is not None:
@@ -208,14 +208,14 @@ def _load_uvh5_file(fnames: list, antenna_list: list = None, telescope_pos: Eart
 
     if telescope_pos is not None:
         uvdata_obj.telescope_name = telescope_pos.info.name
-        uvdata_obj.telescope_location = np.array([
+        uvdata_obj.telescope.location = np.array([
             telescope_pos.itrs.x.to_value(u.m),
             telescope_pos.itrs.y.to_value(u.m),
             telescope_pos.itrs.z.to_value(u.m)
         ])
     else:
         uvdata_obj.telescope_name = dsa110_utils.loc_dsa110.info.name
-        uvdata_obj.telescope_location = np.array([
+        uvdata_obj.telescope.location = np.array([
             dsa110_utils.loc_dsa110.itrs.x.to_value(u.m),
             dsa110_utils.loc_dsa110.itrs.y.to_value(u.m),
             dsa110_utils.loc_dsa110.itrs.z.to_value(u.m)
@@ -276,27 +276,27 @@ def _set_phase_centers(uvdata_obj: UVData, field_name_base: str, telescope_pos: 
     logger.info("Setting phase centers and recalculating UVWs manually for drift scan.")
     logger.info(f"_set_phase_centers - PyUVData version: {pyuvdata.__version__}, Path: {pyuvdata.__file__}")
 
-    # --- Start Diagnostics for telescope_location ---
+    # --- Start Diagnostics for telescope.location ---
     logger.debug(f"Type of uvdata_obj entering _set_phase_centers: {type(uvdata_obj)}")
-    if hasattr(uvdata_obj, 'telescope_location'):
-        logger.debug(f"uvdata_obj.telescope_location (XYZ) value: {uvdata_obj.telescope_location}")
-        logger.debug(f"uvdata_obj.telescope_location type: {type(uvdata_obj.telescope_location)}")
-        if uvdata_obj.telescope_location is None:
-            logger.error("CRITICAL: uvdata_obj.telescope_location is None at start of _set_phase_centers!")
+    if hasattr(uvdata_obj, 'telescope.location'):
+        logger.debug(f"uvdata_obj.telescope.location (XYZ) value: {uvdata_obj.telescope.location}")
+        logger.debug(f"uvdata_obj.telescope.location type: {type(uvdata_obj.telescope.location)}")
+        if uvdata_obj.telescope.location is None:
+            logger.error("CRITICAL: uvdata_obj.telescope.location is None at start of _set_phase_centers!")
     else:
-        logger.error("CRITICAL: uvdata_obj has NO telescope_location attribute at start of _set_phase_centers!")
+        logger.error("CRITICAL: uvdata_obj has NO telescope.location attribute at start of _set_phase_centers!")
         return None 
     
     effective_telescope_loc_lat_lon_alt = None
-    if hasattr(uvdata_obj, 'telescope_location_lat_lon_alt') and uvdata_obj.telescope_location_lat_lon_alt is not None:
-        logger.debug(f"uvdata_obj.telescope_location_lat_lon_alt exists. Value: {uvdata_obj.telescope_location_lat_lon_alt}")
-        effective_telescope_loc_lat_lon_alt = uvdata_obj.telescope_location_lat_lon_alt
+    if hasattr(uvdata_obj.telescope, 'location_lat_lon_alt') and uvdata_obj.telescope.location_lat_lon_alt is not None:
+        logger.debug(f"uvdata_obj.telescope.location_lat_lon_alt exists. Value: {uvdata_obj.telescope.location_lat_lon_alt}")
+        effective_telescope_loc_lat_lon_alt = uvdata_obj.telescope.location_lat_lon_alt
     else:
-        logger.warning("uvdata_obj.telescope_location_lat_lon_alt is missing or None.")
-        if uvdata_obj.telescope_location is not None:
+        logger.warning("uvdata_obj.telescope.location_lat_lon_alt is missing or None.")
+        if uvdata_obj.telescope.location is not None:
             try:
-                logger.warning("Attempting to manually derive lat/lon/alt from telescope_location (XYZ).")
-                el = EarthLocation.from_geocentric(*uvdata_obj.telescope_location, unit=u.m)
+                logger.warning("Attempting to manually derive lat/lon/alt from telescope.location (XYZ).")
+                el = EarthLocation.from_geocentric(*uvdata_obj.telescope.location, unit=u.m)
                 manual_lat_lon_alt = (el.lat.rad, el.lon.rad, el.height.to_value(u.m))
                 logger.info(f"Manually derived lat/lon/alt: {manual_lat_lon_alt}")
                 effective_telescope_loc_lat_lon_alt = manual_lat_lon_alt
@@ -304,7 +304,7 @@ def _set_phase_centers(uvdata_obj: UVData, field_name_base: str, telescope_pos: 
                 logger.error(f"Failed to manually derive lat/lon/alt: {e_manual_conv}", exc_info=True)
                 return None
         else:
-            logger.error("Cannot derive lat/lon/alt because telescope_location (XYZ) is also None.")
+            logger.error("Cannot derive lat/lon/alt because telescope.location (XYZ) is also None.")
             return None
             
     if effective_telescope_loc_lat_lon_alt is None:
@@ -390,8 +390,8 @@ def _set_phase_centers(uvdata_obj: UVData, field_name_base: str, telescope_pos: 
                 frame_pa=frame_pa,
                 lst_array=uvdata_obj.lst_array[selection_mask_for_this_center],
                 use_ant_pos=True, 
-                antenna_positions=uvdata_obj.antenna_positions,
-                antenna_numbers=uvdata_obj.antenna_numbers, 
+                antenna_positions=uvdata_obj.telescope.antenna_positions,
+                antenna_numbers=uvdata_obj.telescope.antenna_numbers, 
                 ant_1_array=uvdata_obj.ant_1_array[selection_mask_for_this_center],
                 ant_2_array=uvdata_obj.ant_2_array[selection_mask_for_this_center],
                 telescope_lat=effective_telescope_loc_lat_lon_alt[0], 
