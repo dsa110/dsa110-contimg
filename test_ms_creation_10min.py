@@ -390,7 +390,7 @@ def find_hdf5_chunks_around_time(config, hdf5_dir, target_time):
 
     # Now find the actual complete file sets for these two timestamps using the tolerance
     ts1_dt = preceding_chunk_start_time.datetime
-    #ts2_dt = transit_chunk_start_time.datetime
+    ts2_dt = transit_chunk_start_time.datetime
     hdf5_sets = {}
 
     all_hdf5 = glob.glob(os.path.join(hdf5_dir, "20*.hdf5"))
@@ -403,8 +403,8 @@ def find_hdf5_chunks_around_time(config, hdf5_dir, target_time):
              # Group files that are close in time to the target start times
              if abs((file_dt - ts1_dt).total_seconds()) <= tolerance_sec:
                   files_by_approx_ts[ts1_dt.strftime(time_format)].append(f_path)
-             #elif abs((file_dt - ts2_dt).total_seconds()) <= tolerance_sec:
-             #     files_by_approx_ts[ts2_dt.strftime(time_format)].append(f_path)
+             elif abs((file_dt - ts2_dt).total_seconds()) <= tolerance_sec:
+                  files_by_approx_ts[ts2_dt.strftime(time_format)].append(f_path)
          except Exception:
              continue # Ignore files with bad names
 
@@ -412,28 +412,28 @@ def find_hdf5_chunks_around_time(config, hdf5_dir, target_time):
     expected_subbands = config['services']['hdf5_expected_subbands']
     spws_to_include = set(config['ms_creation']['spws'])
     ts1_str_exact = ts1_dt.strftime(time_format)
-    #ts2_str_exact = ts2_dt.strftime(time_format)
+    ts2_str_exact = ts2_dt.strftime(time_format)
 
-    for ts_key in ts1_str_exact: #[ts1_str_exact, ts2_str_exact]:
-         found_files_for_ts = {}
-         if ts_key in files_by_approx_ts:
-              for f_path in files_by_approx_ts[ts_key]:
-                   try:
-                        f_name = os.path.basename(f_path)
-                        spw_str = f_name.split('_')[1].replace('.hdf5', '')
-                        base_spw = spw_str.split('spl')[0]
-                        if base_spw in spws_to_include:
-                             found_files_for_ts[base_spw] = f_path
-                   except IndexError: continue
-         if len(found_files_for_ts) == len(spws_to_include):
-              logger.info(f"Found complete set for target time {ts_key}")
-              sorted_filepaths = [found_files_for_ts[spw] for spw in sorted(list(spws_to_include))]
-              hdf5_sets[ts_key] = sorted_filepaths
-         else:
-              logger.error(f"Incomplete HDF5 set found for target time {ts_key} ({len(found_files_for_ts)}/{len(spws_to_include)} required SPWs).")
-              return None, None, None, None
+    for ts_key in [ts1_str_exact, ts2_str_exact]:
+        found_files_for_ts = {}
+        if ts_key in files_by_approx_ts:
+            for f_path in files_by_approx_ts[ts_key]:
+                try:
+                    f_name = os.path.basename(f_path)
+                    spw_str = f_name.split('_')[1].replace('.hdf5', '')
+                    base_spw = spw_str.split('spl')[0]
+                    if base_spw in spws_to_include:
+                        found_files_for_ts[base_spw] = f_path
+                except IndexError: continue
+        if len(found_files_for_ts) == len(spws_to_include):
+            logger.info(f"Found complete set for target time {ts_key}")
+            sorted_filepaths = [found_files_for_ts[spw] for spw in sorted(list(spws_to_include))]
+            hdf5_sets[ts_key] = sorted_filepaths
+        else:
+            logger.error(f"Incomplete HDF5 set found for target time {ts_key} ({len(found_files_for_ts)}/{len(spws_to_include)} required SPWs).")
+            return None, None, None, None
 
-    return hdf5_sets[ts1_str_exact], preceding_chunk_start_time, transit_chunk_start_time #hdf5_sets[ts2_str_exact], 
+    return hdf5_sets[ts1_str_exact], hdf5_sets[ts2_str_exact], preceding_chunk_start_time, transit_chunk_start_time
 
 logging.info("Helper functions defined.")
 
@@ -455,22 +455,22 @@ HDF5_DIR_MANUAL = config['paths']['hdf5_incoming'] # Or override: '/data/incomin
 # The exact nominal value here helps center the search window defined by `same_timestamp_tolerance`.
 # Let's assume the first 5-min block you want to process starts *nominally* around ts1_manual_nominal_str
 ts1_manual_nominal_str = "20250507T000500"  # first chunk's nominal start time
-#ts2_manual_nominal_str = "20250507T001000"  # second chunk's nominal start time
+ts2_manual_nominal_str = "20250507T001000"  # second chunk's nominal start time
 # ==========================================================================
 
 hdf5_files_1 = collect_files_for_nominal_start_time(ts1_manual_nominal_str, HDF5_DIR_MANUAL, config)
-#hdf5_files_2 = collect_files_for_nominal_start_time(ts2_manual_nominal_str, HDF5_DIR_MANUAL, config)
+hdf5_files_2 = collect_files_for_nominal_start_time(ts2_manual_nominal_str, HDF5_DIR_MANUAL, config)
 
 # The 'ts1_str' and 'ts2_str' should be the nominal timestamps used for collection,
 # as these are used for directory/file naming in subsequent pipeline stages.
 ts1_str = ts1_manual_nominal_str
-#ts2_str = ts2_manual_nominal_str
+ts2_str = ts2_manual_nominal_str
 
-#if not hdf5_files_1 or not hdf5_files_2:
-#    raise RuntimeError("Manual HDF5 file selection failed for one or both nominal start times. Check logs and HDF5_DIR.")
+if not hdf5_files_1 or not hdf5_files_2:
+    raise RuntimeError("Manual HDF5 file selection failed for one or both nominal start times. Check logs and HDF5_DIR.")
 
 logging.info(f"Manually selected HDF5 chunk 1 (Nominal Start: {ts1_str}): Files: {list(map(os.path.basename, hdf5_files_1))}")
-#logging.info(f"Manually selected HDF5 chunk 2 (Nominal Start: {ts2_str}): Files: {list(map(os.path.basename, hdf5_files_2))}")
+logging.info(f"Manually selected HDF5 chunk 2 (Nominal Start: {ts2_str}): Files: {list(map(os.path.basename, hdf5_files_2))}")
 
 # --- You still need to select a BPCAL for calibration/imaging metadata ---
 # Determine observation declination (can still be automatic or you can hardcode it)
@@ -493,11 +493,11 @@ print(f"HDF5 files: {hdf5_files_1}")
 
 logging.info("--- Stage 1: MS Creation ---")
 ms_path_1 = ms_creation.process_hdf5_set(config, ts1_str, hdf5_files_1)
-#ms_path_2 = ms_creation.process_hdf5_set(config, ts2_str, hdf5_files_2)
+ms_path_2 = ms_creation.process_hdf5_set(config, ts2_str, hdf5_files_2)
 
-#if not ms_path_1 or not ms_path_2:
-#    raise RuntimeError("MS Creation failed for one or both chunks.")
+if not ms_path_1 or not ms_path_2:
+    raise RuntimeError("MS Creation failed for one or both chunks.")
 
-logging.info(f"Created MS files: {os.path.basename(ms_path_1)}") #, {os.path.basename(ms_path_2)}")
-ms_files_to_process = ms_path_1 #[ms_path_1, ms_path_2]
+logging.info(f"Created MS files: {os.path.basename(ms_path_1), os.path.basename(ms_path_2)}")
+ms_files_to_process = [ms_path_1, ms_path_2]
 
