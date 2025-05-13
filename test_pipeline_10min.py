@@ -53,7 +53,9 @@ except ImportError as e:
 
 # pyuvdata needed for reading header
 try:
+    import pyuvdata
     from pyuvdata import UVData
+    print(f"PyUVData version: {pyuvdata.__version__}, Path: {pyuvdata.__file__}")
     pyuvdata_available = True
 except ImportError:
      print("ERROR: pyuvdata is required to read HDF5 metadata.")
