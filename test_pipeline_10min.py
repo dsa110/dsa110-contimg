@@ -1,7 +1,5 @@
-# test_pipeline_10min.py
-# Runs core pipeline steps on two 5-min chunks selected around a BPCAL transit.
-# Determines Dec automatically, selects BPCAL, finds data chunks.
-# Performs BPCAL + limited GCAL (on calibrator only).
+# -*- coding: utf-8 -*-
+# Notebook Setup Cell
 
 import argparse
 import os
@@ -11,19 +9,34 @@ import time
 import numpy as np
 import pandas as pd
 import yaml
+from importlib import reload
 from datetime import datetime, timedelta
+import logging
+from collections import defaultdict
+from pickleshare import *
 
 # Astropy imports
 from astropy.time import Time, TimeDelta
 from astropy.coordinates import SkyCoord, Angle, EarthLocation
 import astropy.units as u
 from astropy.table import Table
-from astropy.io import fits # Needed if checking FITS output here
-from astropy.wcs import WCS # Needed if checking FITS output here
+from astropy.io import fits
+from astropy.wcs import WCS
+
+# --- IMPORTANT: Adjust sys.path if needed ---
+# If your notebook is NOT in the same directory as the 'pipeline' folder,
+# add the parent directory to the path so Python can find the modules.
+pipeline_parent_dir = '/data/jfaber/dsa110-contimg/' # ADJUST IF YOUR NOTEBOOK IS ELSEWHERE
+if pipeline_parent_dir not in sys.path:
+    sys.path.insert(0, pipeline_parent_dir)
+
+from casatasks import (
+        clearcal, delmod, rmtables, flagdata, bandpass, ft, mstransform, gaincal, applycal, listobs, split
+    )
+from casatools import componentlist, msmetadata, imager, ms, table
 
 # Pipeline module imports
 try:
-    # Assumes script is run from the parent directory of 'pipeline/'
     from pipeline import config_parser
     from pipeline import pipeline_utils
     from pipeline import ms_creation
@@ -32,20 +45,11 @@ try:
     from pipeline import imaging
     from pipeline import mosaicking
     from pipeline import photometry
-    from pipeline import utils_dsa110 # Needed for location
-except ImportError:
-    print("ERROR: Ensure this script is run from the parent directory containing")
-    print("       the 'pipeline' module directory, or adjust PYTHONPATH.")
-    sys.path.append(os.path.dirname(os.path.dirname(__file__))) # Go up one level
-    from pipeline import config_parser
-    from pipeline import pipeline_utils
-    from pipeline import ms_creation
-    from pipeline import calibration
-    from pipeline import skymodel
-    from pipeline import imaging
-    from pipeline import mosaicking
-    from pipeline import photometry
-    from pipeline import utils_dsa110
+    from pipeline import dsa110_utils # Needed for location
+except ImportError as e:
+    print(f"ERROR: Failed to import pipeline modules. Check sys.path.")
+    print(f"Current sys.path: {sys.path}")
+    raise e
 
 # pyuvdata needed for reading header
 try:
@@ -53,33 +57,161 @@ try:
     pyuvdata_available = True
 except ImportError:
      print("ERROR: pyuvdata is required to read HDF5 metadata.")
-     pyuvdata_available = False
+     pyuvdata_available = False # Script will likely fail later
 
+# --- Define Paths and Parameters (modify as needed) ---
+CONFIG_PATH = 'config/pipeline_config.yaml' # Relative path from notebook location
+HDF5_DIR = '/data/incoming/' # Location of your HDF5 data chunks
+BCAL_NAME_OVERRIDE = None # Optional: Force a specific BPCAL name for testing, e.g., '3C286', otherwise set to None
+VERBOSE_LOGGING = True # Set True for DEBUG level, False for INFO
 
+# --- Setup Logging ---
+# Load config minimally just to get log path
+try:
+    with open(CONFIG_PATH, 'r') as f:
+        temp_config_for_log = yaml.safe_load(f)
+    log_dir_config = temp_config_for_log.get('paths', {}).get('log_dir', 'logs') #
+
+    # Resolve log_dir relative to pipeline parent dir if log_dir_config is relative
+    if not os.path.isabs(log_dir_config):
+        # Assumes pipeline_utils.py is in 'pipeline_parent_dir/pipeline/'
+        # and log_dir in config is relative to 'pipeline_parent_dir'
+        # Example: config log_dir: ../logs -> resolved: pipeline_parent_dir/../logs
+        # If log_dir is like 'logs/', it will be pipeline_parent_dir/logs/
+        # The config_parser.py resolves log_dir relative to the parent of the script dir.
+        # For consistency, let's assume pipeline_parent_dir is the project root.
+        log_dir = os.path.abspath(os.path.join(pipeline_parent_dir, log_dir_config))
+    else:
+        log_dir = log_dir_config
+
+    os.makedirs(log_dir, exist_ok=True)
+    log_level = logging.DEBUG if VERBOSE_LOGGING else logging.INFO
+    
+    # Ensure CASA log is also set if casatasks is available
+    logger = pipeline_utils.setup_logging(log_dir, config_name=f"notebook_test_{datetime.now().strftime('%H%M%S')}") #
+    logger.setLevel(log_level)
+    
+    # Suppress overly verbose CASA logs if desired (from casatasks import casalog; casalog.filter('INFO'))
+    logger.info("Setup cell executed.")
+except Exception as e:
+    print(f"ERROR during setup: {e}")
+    # Stop execution if setup fails
+    raise RuntimeError("Setup failed")
+
+# Helper Function Definitions
+
+from collections import defaultdict 
+
+def collect_files_for_nominal_start_time(nominal_start_time_str, hdf5_dir, config):
+    """
+    Collects a complete set of HDF5 files for a nominal start time,
+    respecting timestamp variations via same_timestamp_tolerance.
+    Handles HDF5 filenames with timestamps like 'YYYY-MM-DDTHH:MM:SS_sbXX.hdf5'.
+    """
+    logger = logging.getLogger(__name__)
+    
+    # Format for the user-provided nominal start time string
+    nominal_time_format = "%Y%m%dT%H%M%S" 
+    # Format for timestamps found in the actual HDF5 filenames
+    actual_file_time_format = "%Y-%m-%dT%H:%M:%S" # Corrected format
+
+    try:
+        # Parse the user-provided nominal start time
+        nominal_dt_obj = datetime.strptime(nominal_start_time_str, nominal_time_format)
+    except ValueError:
+        logger.error(f"Invalid nominal_start_time_str format: {nominal_start_time_str}. Expected {nominal_time_format}.")
+        return None
+
+    tolerance_sec = config['ms_creation'].get('same_timestamp_tolerance', 30.0)
+    expected_spws_set = set(config['ms_creation']['spws'])
+    
+    logger.info(f"Collecting files for nominal start time: {nominal_start_time_str} (parsed as {nominal_dt_obj}) in {hdf5_dir} with tolerance {tolerance_sec}s")
+    logger.debug(f"Expected SPWs: {sorted(list(expected_spws_set))}")
+
+    files_for_this_chunk = defaultdict(list)
+    all_hdf5_files_in_dir = glob.glob(os.path.join(hdf5_dir, "20*.hdf5")) # Glob for files starting with "20"
+    logger.debug(f"Found {len(all_hdf5_files_in_dir)} total HDF5 files in {hdf5_dir} to check.")
+
+    found_any_for_nominal_time = False
+    for f_path in all_hdf5_files_in_dir:
+        try:
+            f_name = os.path.basename(f_path)
+            # Assuming filename format YYYY-MM-DDTHH:MM:SS_sbXX.hdf5
+            ts_str_from_file = f_name.split('_')[0] 
+            
+            # Parse timestamp from the filename using the correct format
+            file_dt_obj = datetime.strptime(ts_str_from_file, actual_file_time_format)
+            
+            time_diff_seconds = abs((file_dt_obj - nominal_dt_obj).total_seconds())
+            
+            if time_diff_seconds <= tolerance_sec:
+                found_any_for_nominal_time = True
+                spw_str_from_file = f_name.split('_')[1].replace('.hdf5', '')
+                base_spw = spw_str_from_file # Since 'spl' is no longer used
+                
+                logger.debug(f"  File {f_name}: ActualTS={file_dt_obj}, time_diff={time_diff_seconds:.1f}s, parsed_spw='{base_spw}'")
+                if base_spw in expected_spws_set:
+                    files_for_this_chunk[base_spw].append(f_path)
+                    logger.debug(f"    -> Matched expected SPW: '{base_spw}'")
+                else:
+                    logger.debug(f"    -> Parsed SPW '{base_spw}' not in expected_spws_set.")
+            # else: # This else can be very verbose if many files are outside the tolerance
+                # logger.debug(f"  File {f_name}: ActualTS={file_dt_obj}, time_diff={time_diff_seconds:.1f}s (OUTSIDE tolerance for {nominal_start_time_str})")
+
+        except (IndexError, ValueError) as e_parse: # Catch errors from split or strptime
+            logger.debug(f"Could not parse filename or timestamp for {f_name} (format expected: YYYY-MM-DDTHH:MM:SS_sbXX.hdf5): {e_parse}")
+            continue
+        except Exception as e_gen: # Catch any other unexpected errors for a file
+            logger.debug(f"Unexpected error processing file {f_name}: {e_gen}")
+            continue
+            
+    if not found_any_for_nominal_time:
+        logger.warning(f"No HDF5 files found whose timestamps were within the {tolerance_sec}s tolerance window for nominal start time {nominal_start_time_str} ({nominal_dt_obj}).")
+
+    collected_files_list = []
+    is_complete = True
+    missing_spws = []
+    for spw_needed in sorted(list(expected_spws_set)): 
+        if spw_needed in files_for_this_chunk and files_for_this_chunk[spw_needed]:
+            files_for_this_chunk[spw_needed].sort() 
+            collected_files_list.append(files_for_this_chunk[spw_needed][0]) 
+        else:
+            is_complete = False
+            missing_spws.append(spw_needed)
+
+    if not is_complete:
+        logger.error(f"Incomplete HDF5 set for nominal time {nominal_start_time_str}: Missing SPW(s): {', '.join(missing_spws)}")
+        return None # Return None if set is not complete
+            
+    if len(collected_files_list) == len(expected_spws_set): # Check if all expected SPWs were collected
+        logger.info(f"Found complete set of {len(collected_files_list)} files for nominal start time {nominal_start_time_str}")
+        return sorted(collected_files_list) 
+    else:
+        # This path should ideally be caught by "is_complete" check, but good for robustness
+        logger.error(f"Failed to form a complete set for nominal start {nominal_start_time_str}. Expected {len(expected_spws_set)}, collected {len(collected_files_list)}. Missing: {', '.join(missing_spws)}")
+        return None
+        
 def get_obs_declination(config, hdf5_dir):
     """Reads the fixed declination from an arbitrary HDF5 file's metadata."""
     if not pyuvdata_available: return None
-    logger = pipeline_utils.get_logger(__name__)
-    logger.info("Attempting to determine observation declination from HDF5 metadata...")
+    logging.info("Attempting to determine observation declination from HDF5 metadata...")
     try:
-        # Find any sb00 file to read metadata from
         pattern = os.path.join(hdf5_dir, "20*_sb00.hdf5")
         hdf5_files = glob.glob(pattern)
         if not hdf5_files:
             raise FileNotFoundError(f"No '*_sb00.hdf5' files found in {hdf5_dir} to read metadata.")
-
         uvd = UVData()
-        logger.debug(f"Reading metadata from: {hdf5_files[0]}")
-        uvd.read(hdf5_files[0], filetype='uvf5', run_check=False, read_data=False)
+        logging.debug(f"Reading metadata from: {hdf5_files[0]}")
+        uvd.read(hdf5_files[0], file_type='uvh5', run_check=False, read_data=False)
         fixed_dec_rad = uvd.extra_keywords['phase_center_dec']
-        fixed_dec_deg = np.rad2deg(fixed_dec_rad) % 360
-        logger.info(f"Determined observation Declination: {fixed_dec_deg:.4f} degrees")
+        fixed_dec_deg = np.rad2deg(fixed_dec_rad) % 360.0
+        logging.info(f"Determined observation Declination: {fixed_dec_deg:.4f} degrees")
         return fixed_dec_deg
     except KeyError:
-        logger.error(f"Metadata key 'phase_center_dec' not found in {hdf5_files[0]}. Cannot determine Dec.")
+        logging.error(f"Metadata key 'phase_center_dec' not found in {hdf5_files[0]}. Cannot determine Dec.")
         return None
     except Exception as e:
-        logger.error(f"Failed to read HDF5 metadata to determine Declination: {e}", exc_info=True)
+        logging.error(f"Failed to read HDF5 metadata to determine Declination: {e}", exc_info=True)
         return None
 
 def select_bcal_for_test(config, fixed_dec_deg, bcal_name_override=None):
@@ -296,235 +428,67 @@ def find_hdf5_chunks_around_time(config, hdf5_dir, target_time):
 
     return hdf5_sets[ts1_str_exact], hdf5_sets[ts2_str_exact], preceding_chunk_start_time, transit_chunk_start_time
 
+logging.info("Helper functions defined.")
 
-def run_test(config_path, hdf5_dir, bcal_name_override=None, verbose=False):
-    """Runs the test pipeline workflow for two 5-minute chunks around a BPCAL transit."""
+# Load the main pipeline configuration
+config = config_parser.load_config(CONFIG_PATH) 
+if not config:
+    raise ValueError("Failed to load configuration.")
 
-    # --- Load Config and Setup Logging ---
-    config = config_parser.load_config(config_path)
-    if not config: sys.exit(1)
-    log_dir = config['paths'].get('log_dir', 'logs')
-    os.makedirs(log_dir, exist_ok=True)
-    log_level = logging.DEBUG if verbose else logging.INFO
-    logger = pipeline_utils.setup_logging(log_dir, config_name=f"test_run_{datetime.now().strftime('%Y%m%dT%H%M%S')}")
-    logger.setLevel(log_level)
+config['services']['hdf5_post_handle'] = 'none' 
+logging.info("Ensuring HDF5 post_handle is set to 'none' for this test run.")
 
-    logger.info("--- Starting Test Pipeline Run (Auto BPCAL Select) ---")
-    logger.info(f"Using configuration: {config_path}")
-    logger.info(f"Reading HDF5 from: {hdf5_dir}")
+# --- Stage 0: MANUAL HDF5 Chunk Selection by Nominal Start Time ---
+logging.info("--- Stage 0: MANUAL HDF5 Chunk Selection by Nominal Start Time ---")
 
-    config['services']['hdf5_post_handle'] = 'none'
-    logger.info("Ensuring HDF5 post_handle is set to 'none' for test.")
+HDF5_DIR_MANUAL = config['paths']['hdf5_incoming'] # Or override: '/data/incoming/' 
 
-    # --- Ensure Output Dirs Exist ---
-    paths_config = config['paths']
-    for key in ['ms_stage1_dir', 'cal_tables_dir', 'skymodels_dir', 'images_dir', 'mosaics_dir', 'photometry_dir']:
-        dir_path = paths_config.get(key)
-        if dir_path: os.makedirs(dir_path, exist_ok=True)
-        else: logger.error(f"Path key 'paths:{key}' not found in config."); sys.exit(1)
+# == Specify your desired NOMINAL start times for the two 5-minute chunks ==
+# For your example (2025-05-07T00:04:06/07), a nominal start might be "20250507T000400" or "20250507T000405"
+# The exact nominal value here helps center the search window defined by `same_timestamp_tolerance`.
+# Let's assume the first 5-min block you want to process starts *nominally* around ts1_manual_nominal_str
+ts1_manual_nominal_str = "20250507T000500"  # first chunk's nominal start time
+ts2_manual_nominal_str = "20250507T001000"  # second chunk's nominal start time
+# ==========================================================================
 
-    # --- Stage 0: Determine Dec, Select BPCAL, Find Chunks ---
-    fixed_dec_deg = get_obs_declination(config, hdf5_dir)
-    if fixed_dec_deg is None: sys.exit(1)
-    config['calibration']['fixed_declination_deg'] = fixed_dec_deg
+hdf5_files_1 = collect_files_for_nominal_start_time(ts1_manual_nominal_str, HDF5_DIR_MANUAL, config)
+hdf5_files_2 = collect_files_for_nominal_start_time(ts2_manual_nominal_str, HDF5_DIR_MANUAL, config)
 
-    selected_bcal_info = select_bcal_for_test(config, fixed_dec_deg, bcal_name_override)
-    if selected_bcal_info is None: sys.exit(1)
+# The 'ts1_str' and 'ts2_str' should be the nominal timestamps used for collection,
+# as these are used for directory/file naming in subsequent pipeline stages.
+ts1_str = ts1_manual_nominal_str
+ts2_str = ts2_manual_nominal_str
 
-    transit_time = calculate_next_transit(selected_bcal_info, utils_dsa110.loc_dsa110)
-    if transit_time is None: sys.exit(1)
+if not hdf5_files_1 or not hdf5_files_2:
+    raise RuntimeError("Manual HDF5 file selection failed for one or both nominal start times. Check logs and HDF5_DIR.")
 
-    hdf5_files_1, hdf5_files_2, start_time_1, start_time_2 = find_hdf5_chunks_around_time(config, hdf5_dir, transit_time)
-    if not hdf5_files_1 or not hdf5_files_2: sys.exit(1)
-    ts1_str = start_time_1.strftime("%Y%m%dT%H%M%S")
-    ts2_str = start_time_2.strftime("%Y%m%dT%H%M%S") # This is the transit chunk
+logging.info(f"Manually selected HDF5 chunk 1 (Nominal Start: {ts1_str}): Files: {list(map(os.path.basename, hdf5_files_1))}")
+logging.info(f"Manually selected HDF5 chunk 2 (Nominal Start: {ts2_str}): Files: {list(map(os.path.basename, hdf5_files_2))}")
 
-    # --- Stage 1: MS Creation ---
-    logger.info("--- Stage 1: MS Creation ---")
-    ms_path_1 = ms_creation.process_hdf5_set(config, ts1_str, hdf5_files_1)
-    ms_path_2 = ms_creation.process_hdf5_set(config, ts2_str, hdf5_files_2)
+# --- You still need to select a BPCAL for calibration/imaging metadata ---
+# Determine observation declination (can still be automatic or you can hardcode it)
+# It will read one of the files from your HDF5_DIR_MANUAL to get the declination
+fixed_dec_deg = get_obs_declination(config, HDF5_DIR_MANUAL) 
+if fixed_dec_deg is None: 
+    logging.warning("Failed to get observation declination automatically. Using a default or you might need to set it manually.")
+    fixed_dec_deg = 67.0 # Example default value, adjust as needed
+config['calibration']['fixed_declination_deg'] = fixed_dec_deg
+logging.info(f"Observation Declination set to: {fixed_dec_deg:.4f} degrees for this run.")
 
-    if not ms_path_1 or not ms_path_2: logger.critical("MS Creation failed. Aborting test."); sys.exit(1)
-    logger.info(f"Created MS files: {os.path.basename(ms_path_1)}, {os.path.basename(ms_path_2)}")
-    ms_files_to_process = [ms_path_1, ms_path_2]
+selected_bcal_info = select_bcal_for_test(config, fixed_dec_deg, BCAL_NAME_OVERRIDE) 
+if selected_bcal_info is None: 
+    logging.warning(f"Failed to select BPCAL for test. Subsequent steps might be affected.")
+    # Optionally, provide a default BPCAL dictionary here if needed for the test to proceed
+    # selected_bcal_info = {'name': '3C286', 'ra': '13h31m08.288s', 'dec': '+30d30m32.96s', 
+    #                       'epoch': 'J2000', 'flux_jy': 14.79, 'ref_freq_ghz': 1.4}
 
-    # --- Stage 2: Calibration and Imaging ---
-    logger.info("--- Stage 2: Calibration and Imaging ---")
-    processed_images = []
-    processed_pbs = []
-    block_mask_path = None
-    template_image_path = None
-    gcal_table_path = None
-    cl_path_bcal = None
+logging.info("--- Stage 1: MS Creation ---")
+ms_path_1 = ms_creation.process_hdf5_set(config, ts1_str, hdf5_files_1)
+ms_path_2 = ms_creation.process_hdf5_set(config, ts2_str, hdf5_files_2)
 
-    # 2a. Find latest BPCAL table
-    try:
-        cal_tables_dir = paths_config['cal_tables_dir']
-        bcal_files = sorted(glob.glob(os.path.join(cal_tables_dir, "*.bcal")))
-        if not bcal_files: raise RuntimeError(f"No BPCAL tables (*.bcal) found in {cal_tables_dir}.")
-        latest_bcal_table = bcal_files[-1]
-        logger.info(f"Using BPCAL table: {os.path.basename(latest_bcal_table)}")
-    except Exception as e: logger.critical(f"Failed to find BPCAL table: {e}. Aborting test."); sys.exit(1)
+if not ms_path_1 or not ms_path_2:
+    raise RuntimeError("MS Creation failed for one or both chunks.")
 
-    # 2b. Generate Calibrator Model & Gain Cal Table (using transit chunk only)
-    try:
-        skymodels_dir = paths_config['skymodels_dir']
-        cl_bcal_filename = f"bcal_sky_{selected_bcal_info['name']}.cl"
-        cl_bcal_output_path = os.path.join(skymodels_dir, cl_bcal_filename)
-        cl_path_bcal, _ = skymodel.create_calibrator_component_list(config, selected_bcal_info, cl_bcal_output_path)
-        if not cl_path_bcal: raise RuntimeError("Failed to create BPCAL sky model.")
+logging.info(f"Created MS files: {os.path.basename(ms_path_1)}, {os.path.basename(ms_path_2)}")
+ms_files_to_process = [ms_path_1, ms_path_2]
 
-        logger.info(f"Performing gain calibration on transit chunk: {os.path.basename(ms_path_2)}")
-        gcal_time_str = f"bcal_test_{ts2_str}"
-        gcal_table_path = calibration.perform_gain_calibration(config, [ms_path_2], cl_path_bcal, gcal_time_str, solint='inf')
-        if not gcal_table_path: raise RuntimeError("Gain calibration on BPCAL failed.")
-        logger.info(f"Gain table generated: {os.path.basename(gcal_table_path)}")
-    except Exception as e:
-        logger.error(f"Failed during gain calibration setup stage: {e}", exc_info=True)
-        logger.warning("Proceeding without gain calibration solutions.")
-        gcal_table_path = [] # Set to empty list if failed
-
-    # 2c. Prepare Mask (using BPCAL model, defer creation until template exists)
-    use_mask_config = config.get('imaging',{}).get('use_clean_mask', False)
-    mask_output_path = None
-    if use_mask_config and cl_path_bcal:
-        mask_output_path = os.path.join(skymodels_dir, f"mask_bcal_test_{selected_bcal_info['name']}.mask")
-        logger.info(f"Will attempt to create mask: {mask_output_path}")
-    else: logger.info("Masking disabled or BPCAL model missing, skipping mask.")
-    mask_created = False # Reset flag
-
-    # 2d. Loop through MS files for Flagging, ApplyCal, Imaging
-    for i, ms_path in enumerate(ms_files_to_process):
-        logger.info(f"Processing MS {i+1}/{len(ms_files_to_process)}: {os.path.basename(ms_path)}")
-        ms_base = os.path.splitext(os.path.basename(ms_path))[0]
-        image_base = os.path.join(images_dir, f"{ms_base}_test") # Add suffix to avoid overwrite
-
-        try:
-            if not calibration.flag_rfi(config, ms_path): raise RuntimeError("RFI Flagging failed.")
-            if not calibration.flag_general(config, ms_path): raise RuntimeError("General Flagging failed.")
-
-            gcal_list = [gcal_table_path] if gcal_table_path and isinstance(gcal_table_path, str) else []
-            if not calibration.apply_calibration(config, ms_path, latest_bcal_table, gcal_list):
-                raise RuntimeError("ApplyCal failed.")
-
-            ms_to_image = ms_path
-            current_mask_path = None
-            if use_mask_config and mask_output_path:
-                if not mask_created:
-                    if template_image_path:
-                        logger.info(f"Creating block mask {mask_output_path} using template {template_image_path}")
-                        if imaging.create_clean_mask(config, cl_path_bcal, template_image_path, mask_output_path):
-                             mask_created = True
-                        else: logger.warning("Failed to create mask. Proceeding without.")
-                    else: logger.debug("Template image not yet available for mask creation.")
-                if mask_created: current_mask_path = mask_output_path
-
-            logger.info("Running tclean...")
-            tclean_image_basename = imaging.run_tclean(config, ms_to_image, image_base, cl_path=None, mask_path=current_mask_path)
-
-            if tclean_image_basename:
-                img_path = f"{tclean_image_basename}.image"
-                pb_path = f"{tclean_image_basename}.pb"
-                if os.path.exists(img_path) and os.path.exists(pb_path):
-                    processed_images.append(img_path); processed_pbs.append(pb_path)
-                    logger.info(f"Successfully imaged {ms_path}")
-                    if template_image_path is None: template_image_path = img_path
-                else: raise RuntimeError(f"tclean image/pb missing for {tclean_image_basename}")
-            else: raise RuntimeError("tclean failed.")
-
-        except Exception as e_ms:
-             logger.error(f"Failed processing MS {ms_path}: {e_ms}", exc_info=True)
-             logger.critical("Aborting test due to MS processing failure.")
-             sys.exit(1)
-
-    # --- Stage 3: Mosaicking ---
-    mosaic_img_path = None
-    if len(processed_images) == 2:
-        logger.info("--- Stage 3: Mosaicking ---")
-        mosaic_basename = f"mosaic_test_{ts1_str}_{ts2_str}"
-        try:
-            mosaic_img_path, _ = mosaicking.create_mosaic(config, processed_images, processed_pbs, mosaic_basename)
-            if not mosaic_img_path: raise RuntimeError("Mosaicking function returned None.")
-            logger.info(f"Mosaic created: {mosaic_img_path}")
-        except Exception as e_mosaic: logger.critical(f"Mosaicking failed: {e_mosaic}. Aborting.", exc_info=True); sys.exit(1)
-    else: logger.critical(f"Could not proceed to mosaicking: Only {len(processed_images)} images were created."); sys.exit(1)
-
-    # --- Stage 4: Photometry ---
-    if mosaic_img_path:
-        logger.info("--- Stage 4: Photometry ---")
-        mosaic_fits_path = f"{os.path.splitext(mosaic_img_path)[0]}.linmos.fits"
-        if not os.path.exists(mosaic_fits_path):
-             logger.warning(f"Mosaic FITS {mosaic_fits_path} not found, attempting export...")
-             mosaic_fits_path = imaging.export_image_to_fits(config, mosaic_img_path, suffix='.linmos')
-
-        if mosaic_fits_path and os.path.exists(mosaic_fits_path):
-            logger.info(f"Running photometry on mosaic: {mosaic_fits_path}")
-            try:
-                targets, references = photometry.identify_sources(config, mosaic_fits_path)
-                # Add BPCAL to targets list if not already there
-                phot_targets_df = pd.DataFrame(targets) if targets is not None else pd.DataFrame()
-                if selected_bcal_info and selected_bcal_info['name'] not in phot_targets_df['name'].values:
-                     try:
-                          bcal_coord = SkyCoord(ra=selected_bcal_info['ra'], dec=selected_bcal_info['dec'], unit=(u.hourangle, u.deg), frame='icrs')
-                          with fits.open(mosaic_fits_path) as hdul:
-                               wcs = WCS(hdul[0].header).celestial
-                               xpix, ypix = wcs.world_to_pixel(bcal_coord)
-                          bcal_row = {'name': selected_bcal_info['name'], 'source_id':selected_bcal_info['name'], # Add source_id too
-                                        'RA_J2000': selected_bcal_info['ra'], 'DEC_J2000': selected_bcal_info['dec'],
-                                        'xpix': xpix, 'ypix': ypix}
-                          # Add other columns as NaN if needed by photometry functions
-                          for col in phot_targets_df.columns:
-                              if col not in bcal_row: bcal_row[col] = np.nan
-                          phot_targets_df = pd.concat([phot_targets_df, pd.DataFrame([bcal_row])], ignore_index=True)
-                          logger.info(f"Added BPCAL {selected_bcal_info['name']} to target list for photometry.")
-                     except Exception as e_add: logger.warning(f"Could not add BPCAL to target list: {e_add}")
-
-                if not phot_targets_df.empty and references is not None:
-                    phot_table = photometry.perform_aperture_photometry(config, mosaic_fits_path, phot_targets_df, pd.DataFrame(references)) # Use pandas DF
-                    if phot_table is not None:
-                        rel_flux_table = photometry.calculate_relative_fluxes(config, phot_table)
-                        if rel_flux_table is not None:
-                            logger.info("Photometry successful. Relative flux results:")
-                            print("\n--- Relative Photometry Results ---")
-                            try:
-                                rel_flux_table_final = Table.from_pandas(rel_flux_table[['source_id', 'relative_flux', 'relative_flux_error', 'median_reference_flux', 'reference_source_ids']])
-                                print(rel_flux_table_final)
-                                test_output_csv = os.path.join(config['paths']['photometry_dir'], f"test_photometry_{ts1_str}_{ts2_str}.csv")
-                                rel_flux_table_final.write(test_output_csv, format='csv', overwrite=True)
-                                logger.info(f"Saved test photometry results to: {test_output_csv}")
-                            except Exception as e_print: logger.error(f"Could not print/save photometry table: {e_print}")
-                        else: logger.error("Relative flux calculation failed.")
-                    else: logger.error("Aperture photometry failed.")
-                elif phot_targets_df.empty: logger.warning("No target sources identified/valid for photometry.")
-                else: logger.error("Reference source identification failed.")
-            except Exception as e_phot: logger.error(f"Photometry stage failed: {e_phot}", exc_info=True)
-        else: logger.error(f"Mosaic FITS file missing: {mosaic_fits_path}. Cannot run photometry.")
-
-    logger.info("--- Test Pipeline Run Finished ---")
-
-
-if __name__ == "__main__":
-    parser = argparse.ArgumentParser(description="DSA-110 Continuum Pipeline - Two Chunk Test Runner")
-    parser.add_argument("-c", "--config", required=True, help="Path to the main pipeline YAML config file.")
-    parser.add_argument("--hdf5-dir", required=True, help="Path to the directory containing the input HDF5 files.")
-    parser.add_argument("--bcal-name", default=None, help="Optional: Force use of specific BPCAL name from catalog.")
-    parser.add_argument("-v", "--verbose", action="store_true", help="Enable debug logging.")
-
-    args = parser.parse_args()
-
-    # Basic check for BPCAL file existence before starting
-    temp_config = config_parser.load_config(args.config)
-    if not temp_config: sys.exit(1)
-    bcal_list_path = temp_config.get('calibration',{}).get('bcal_candidate_catalog')
-    if not bcal_list_path or not os.path.exists(bcal_list_path):
-         print(f"ERROR: BPCAL candidate list specified in config not found: {bcal_list_path}")
-         print(f"       Please run the catalog generation script first.")
-         sys.exit(1)
-    del temp_config # Avoid confusion
-
-    run_test(
-        config_path=args.config,
-        hdf5_dir=args.hdf5_dir,
-        bcal_name_override=args.bcal_name,
-        verbose=args.verbose
-    )
