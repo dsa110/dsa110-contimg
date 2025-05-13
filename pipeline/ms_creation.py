@@ -41,7 +41,10 @@ import inspect
 try:
     import casacore
     import casacore.tables
+    from casatasks import rmtables
+    from casatools import table
     casacore_version_str = casacore.__version__
+    print(f"INFO: Successfully imported casacore version {casacore_version_str}")
 except ImportError:
     casacore_version_str = "casacore not found"
 except Exception as e:
@@ -86,11 +89,30 @@ def _load_uvh5_file(fnames: list, antenna_list: list = None, telescope_pos: Eart
 
     try:
         logger.info(f"Attempting to read first file: {fnames[0]}")
+        # If specific antennas are requested, read only those and don't keep all metadata.
+        # Otherwise, read all and keep all metadata.
+        current_keep_all_metadata = True
+        current_antenna_names_to_read = None
+        if user_requested_antenna_names is not None:
+            current_keep_all_metadata = False
+            current_antenna_names_to_read = user_requested_antenna_names
+            logger.info(f"Reading first file with antenna selection and keep_all_metadata=False.")
+        else:
+            logger.info(f"Reading first file with all antennas and keep_all_metadata=True.")
+
+
         with warnings.catch_warnings():
             warnings.filterwarnings("ignore", message=r".*key .* is longer than 8 characters.*")
             warnings.filterwarnings("ignore", message=r".*Telescope .* is not in known_telescopes.*")
-            uvdata_obj.read(fnames[0], file_type='uvh5', keep_all_metadata=True, run_check=False) 
+            uvdata_obj.read(
+                fnames[0], 
+                file_type='uvh5', 
+                antenna_names=current_antenna_names_to_read, # Use selection here
+                keep_all_metadata=current_keep_all_metadata, 
+                run_check=False
+            ) 
         logger.debug(f"Successfully executed read command for {fnames[0]}")
+
 
         if hasattr(uvdata_obj, 'uvw_array') and uvdata_obj.uvw_array is not None:
             if uvdata_obj.uvw_array.dtype != np.float64:
@@ -504,6 +526,29 @@ def _write_ms(uvdata_obj: UVData, uvcalib: UVData, ms_outfile_base: str, protect
     ms_outfile = f'{ms_outfile_base}.ms'
     logger.info(f"Writing Measurement Set to: {ms_outfile}")
 
+    logger.info("Removing any existing MS file with casatools table.")
+    tb = table()
+    if os.path.exists(ms_outfile):
+        tb.open(ms_outfile, nomodify=True)
+        if tb.islocked(): tb.unlock()
+        tb.close()
+
+    logger.info("Removing any existing MS file with casatasks rmtables.")
+    if os.path.exists(ms_outfile):
+        try:
+            tb = table()
+            tb.open(ms_outfile, nomodify=True)
+            if tb.islocked(): tb.unlock()
+            tb.close()
+        except Exception as e_table:
+            logger.error(f"Failed to remove existing MS file with : {e_table}", exc_info=True)
+            return None
+        try:
+            rmtables(ms_outfile, force=True)
+        except Exception as e_rmtables:
+            logger.error(f"Failed to remove existing MS file with rmtables: {e_rmtables}", exc_info=True)
+            return None
+
     if os.path.exists(ms_outfile):
         if protect_files:
             logger.error(f"MS file {ms_outfile} already exists and protect_files is True. Skipping.")
@@ -515,6 +560,7 @@ def _write_ms(uvdata_obj: UVData, uvcalib: UVData, ms_outfile_base: str, protect
             except Exception as e:
                 logger.error(f"Failed to remove existing MS {ms_outfile}: {e}", exc_info=True)
                 raise
+    
 
     try: 
         logger.info("Conjugating baselines...")
@@ -538,12 +584,14 @@ def _write_ms(uvdata_obj: UVData, uvcalib: UVData, ms_outfile_base: str, protect
     try:
         with warnings.catch_warnings():
             warnings.filterwarnings("ignore", message=r".*Writing in the MS file that the units of the data are uncalib.*")
+            logger.info("About to call uvdata_obj.write_ms(…)")
             uvdata_obj.write_ms(ms_outfile,
                             clobber=True,
                             run_check=False, 
                             force_phase=False, 
                             run_check_acceptability=False, 
                             strict_uvw_antpos_check=False) 
+            logger.info("Returned from write_ms") 
 
         if uvcalib is not None: 
             logger.info("Adding MODEL_DATA and CORRECTED_DATA columns.")
@@ -645,7 +693,20 @@ def process_hdf5_set(config: dict, timestamp: str, hdf5_files: list):
     uvmodel_for_ms = _make_calib_model(uvdata_obj, config, dsa110_utils.loc_dsa110) 
     protect_files = False 
     
-    ms_output_path = _write_ms(uvdata_obj, uvmodel_for_ms, output_ms_base, protect_files) 
+    #ms_output_path = _write_ms(uvdata_obj, uvmodel_for_ms, output_ms_base, protect_files) 
+    logger.info("Attempting to write MS WITHOUT model data as a test...")
+    ms_output_path = _write_ms(uvdata_obj, None, output_ms_base + "_nomodel", protect_files)
+    if not ms_output_path:
+        logger.error("Segfault or failure occurred even when writing MS WITHOUT model data.")
+        # You might want to return None or raise an error here to stop further processing in the test script
+        # For now, let's allow it to try writing with the model if this fails, for completeness of the original logic
+    else:
+        logger.info(f"Successfully wrote MS without model: {ms_output_path}. Now attempting with model (if enabled).")
+
+    # Keep the original call as well, or comment it out if the above test is conclusive
+    if ms_output_path: # Only proceed if the no-model write was successful, or remove this check to always try
+        logger.info("Now attempting to write MS WITH model data (if model was generated)...")
+        ms_output_path = _write_ms(uvdata_obj, uvmodel_for_ms, output_ms_base, protect_files)
 
     if ms_output_path: 
         post_handle_mode = config['services'].get('hdf5_post_handle', 'none').lower()
