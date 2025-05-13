@@ -42,7 +42,7 @@ ms_creation:
   # List of antenna numbers (1-based) to include, e.g., [1, 2, ..., 110] or null for all valid
   output_antennas: null
   # Time tolerance for grouping HDF5 files (seconds)
-  same_timestamp_tolerance: 30.0
+  same_timestamp_tolerance: 120.0
   # Spectral windows (SPWs) to include from HDF5
   spws: ['sb00','sb01','sb02','sb03','sb04','sb05','sb06','sb07','sb08','sb09','sb10','sb11','sb12','sb13','sb14','sb15']
 
@@ -53,7 +53,7 @@ calibration:
   #bcal_candidate_catalog: /Users/jakobfaber/Documents/research/caltech/ovro/dsa110/dsa110-contimg/pipeline/cal_tables/bcal_candidates.csv # List of potential BPCALs
   bcal_refant: 'pad103'  # Example reference antenna
   bcal_uvrange: '>1klambda' # UV range for BPCAL solve
-  fixed_declination_deg: 67.0 # Fixed declination for BPCAL
+  fixed_declination_deg: 16.0 # Fixed declination for BPCAL
   bcal_search_beam_radius_deg: 1.5 # Search radius for BPCAL candidates
   bcal_min_flux_jy: 3.0 # Minimum flux for BPCAL candidates
   bcal_max_flux_jy: 15.0 # Maximum flux for BPCAL candidates
