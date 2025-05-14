@@ -517,9 +517,16 @@ def _write_ms(uvdata_obj: UVData, uvcalib: UVData, ms_outfile_base: str, protect
             warnings.filterwarnings("ignore", message=r".*Writing in the MS file that the units of the data are uncalib.*")
             # Test with force_phase=True as a diagnostic for segfault
             logger.info("Attempting to write MS with force_phase=True (diagnostic for segfault)")
+            # In ms_creation.py, before write_ms
+            logger.info(f"Original Ntimes: {uvdata_obj.Ntimes}, Nbls: {uvdata_obj.Nbls}, Nfreqs: {uvdata_obj.Nfreqs}")
+            logger.info("Selecting a small subset for testing")
+            #uvdata_obj.select(times=uvdata_obj.time_array[:2]) # Select first 2 integrations
+            #uvdata_obj.select(frequencies=uvdata_obj.freq_array[:2]) # Select first 10 channels
+            #uvdata_obj.select(bls=)
+            logger.info(f"Reduced Ntimes: {uvdata_obj.Ntimes}, Nbls: {uvdata_obj.Nbls}, Nfreqs: {uvdata_obj.Nfreqs}")
             uvdata_obj.write_ms(ms_outfile,
                             run_check=False, 
-                            force_phase=True, # DIAGNOSTIC: Try True
+                            force_phase=False, 
                             run_check_acceptability=False, 
                             strict_uvw_antpos_check=False) 
 
@@ -623,20 +630,14 @@ def process_hdf5_set(config: dict, timestamp: str, hdf5_files: list):
     uvmodel_for_ms = _make_calib_model(uvdata_obj, config, dsa110_utils.loc_dsa110) 
     protect_files = False 
     
-    # --- Test writing without model first ---
     # Comment out this block to write with model directly if the no-model test passes
-    logger.info("Attempting to write MS WITHOUT model data as a test...")
-    ms_output_path_nomodel = _write_ms(uvdata_obj, None, output_ms_base + "_nomodel", protect_files)
-    if not ms_output_path_nomodel:
+    logger.info("Attempting to write MS as a test...")
+    ms_output_path = _write_ms(uvdata_obj, uvmodel_for_ms, output_ms_base, protect_files)
+    if not ms_output_path:
        logger.error("Segfault or failure occurred even when writing MS WITHOUT model data.")
        return None # Stop if this critical step fails
     else:
-       logger.info(f"Successfully wrote MS without model: {ms_output_path_nomodel}.")
-    
-    logger.info("Now attempting to write MS WITH model data (if model was generated)...")
-    ms_output_path = _write_ms(uvdata_obj, uvmodel_for_ms, output_ms_base, protect_files)
-    # --- End Test ---
-
+       logger.info(f"Successfully wrote MS: {ms_output_path}.")
 
     if ms_output_path: 
         post_handle_mode = config['services'].get('hdf5_post_handle', 'none').lower()
