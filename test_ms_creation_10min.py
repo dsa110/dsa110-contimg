@@ -27,10 +27,7 @@ from astropy.table import Table
 from astropy.io import fits
 from astropy.wcs import WCS
 
-# --- IMPORTANT: Adjust sys.path if needed ---
-# If your notebook is NOT in the same directory as the 'pipeline' folder,
-# add the parent directory to the path so Python can find the modules.
-pipeline_parent_dir = '/data/jfaber/dsa110-contimg/' # ADJUST IF YOUR NOTEBOOK IS ELSEWHERE
+pipeline_parent_dir = '/data/jfaber/dsa110-contimg/'
 if pipeline_parent_dir not in sys.path:
     sys.path.insert(0, pipeline_parent_dir)
 
@@ -49,7 +46,7 @@ try:
     from pipeline import imaging
     from pipeline import mosaicking
     from pipeline import photometry
-    from pipeline import dsa110_utils # Needed for location
+    from pipeline import dsa110_utils
 except ImportError as e:
     print(f"ERROR: Failed to import pipeline modules. Check sys.path.")
     print(f"Current sys.path: {sys.path}")
