@@ -1,10 +1,11 @@
 # pipeline/config_parser.py
 
-import yaml
+import yaml # Requires pip install PyYAML
 import os
-from .pipeline_utils import get_logger
+import logging # Use standard logging
 
-logger = get_logger(__name__)
+# Initialize logger for this module - will be configured by main script
+logger = logging.getLogger(__name__)
 
 def resolve_paths(config):
     """Resolves relative paths in the config based on pipeline_base_dir."""
@@ -14,44 +15,75 @@ def resolve_paths(config):
 
     base_dir = config['paths'].get('pipeline_base_dir')
     if not base_dir:
-        logger.warning("Config missing 'paths:pipeline_base_dir'. Cannot resolve relative paths.")
+        logger.error("Config missing 'paths:pipeline_base_dir'. Path resolution requires this key.")
+        # Return config as is, calling function should check base_dir existence
         return config
+
+    # Resolve base_dir itself if it's relative (relative to CWD where script is run)
     if not os.path.isabs(base_dir):
-        # Assume base_dir itself might be relative to the config file location? Risky.
-        # Best practice: Require pipeline_base_dir to be absolute or handle explicitly.
-        logger.warning(f"pipeline_base_dir '{base_dir}' is not absolute. Assuming relative to CWD or config file.")
-        # For now, let's assume it's relative to CWD if not absolute
+        logger.warning(f"pipeline_base_dir '{base_dir}' is not absolute. Resolving relative to current working directory.")
         base_dir = os.path.abspath(base_dir)
         config['paths']['pipeline_base_dir'] = base_dir
+        logger.info(f"Resolved pipeline_base_dir to: {base_dir}")
 
-
-    paths_to_resolve = [
+    # Paths relative to pipeline_base_dir
+    # Ensure keys exist before trying to resolve
+    paths_to_resolve_relative_to_base = [
         'ms_stage1_dir', 'cal_tables_dir', 'skymodels_dir',
-        'images_dir', 'mosaics_dir', 'photometry_dir',
-        'hdf5_incoming', 'hdf5_processed', 'log_dir', 'diagnostics_base_dir'
-        # Add other paths that might be relative here
+        'images_dir', 'mosaics_dir', 'photometry_dir'
     ]
-
-    for key in paths_to_resolve:
-        if key in config['paths']:
+    for key in paths_to_resolve_relative_to_base:
+        if key in config['paths'] and config['paths'][key]:
             path_val = config['paths'][key]
-            if path_val and not os.path.isabs(path_val):
-                # If key is log_dir or diagnostics_base_dir, resolve relative to pipeline dir parent
-                if key in ['log_dir', 'diagnostics_base_dir']:
-                     # Assumes pipeline dir is one level down from root where logs are
-                     pipeline_script_dir = os.path.dirname(__file__)
-                     resolved_path = os.path.abspath(os.path.join(pipeline_script_dir, path_val))
-                # If key is hdf5 related, keep as is or resolve relative to CWD? Assume absolute for now.
-                elif key in ['hdf5_incoming', 'hdf5_processed']:
-                     # Let's assume these should be absolute paths specified by user
-                     logger.debug(f"Path '{key}': '{path_val}' is relative. Assuming it's correctly specified by user.")
-                     resolved_path = path_val # Don't change relative path unless basedir logic applies
-                # Otherwise, resolve relative to pipeline_base_dir
-                else:
-                     resolved_path = os.path.join(base_dir, path_val)
-
+            if not os.path.isabs(path_val):
+                resolved_path = os.path.join(base_dir, path_val)
                 config['paths'][key] = resolved_path
-                logger.debug(f"Resolved path '{key}': {resolved_path}")
+                logging.debug(f"Resolved relative path '{key}': {resolved_path}")
+
+    # Paths relative to the parent of the pipeline module directory (logs, diagnostics)
+    paths_relative_to_script_parent = ['log_dir', 'diagnostics_base_dir']
+    try:
+        # Assumes this parser script is inside the 'pipeline' directory
+        pipeline_script_dir = os.path.dirname(__file__)
+        pipeline_root_dir = os.path.dirname(pipeline_script_dir)
+        if not pipeline_root_dir: pipeline_root_dir = '.' # Fallback to CWD if structure unexpected
+
+        for key in paths_relative_to_script_parent:
+             if key in config['paths'] and config['paths'][key]:
+                 path_val = config['paths'][key]
+                 if not os.path.isabs(path_val):
+                     resolved_path = os.path.abspath(os.path.join(pipeline_root_dir, path_val))
+                     config['paths'][key] = resolved_path
+                     logging.debug(f"Resolved relative path '{key}': {resolved_path}")
+    except Exception as e:
+         logger.warning(f"Could not determine script parent directory for resolving log/diagnostic paths: {e}")
+
+
+    # Paths that should likely be absolute (input data, maybe processed data)
+    absolute_paths_expected = ['hdf5_incoming', 'hdf5_processed']
+    for key in absolute_paths_expected:
+         if key in config['paths'] and config['paths'][key]:
+             path_val = config['paths'][key]
+             if not os.path.isabs(path_val):
+                 logger.warning(f"Path '{key}': '{path_val}' is relative. This path should ideally be absolute.")
+                 # Optionally resolve relative to CWD or raise error
+                 # config['paths'][key] = os.path.abspath(path_val)
+
+    # Resolve BPCAL candidate catalog path (might be relative to cal_tables_dir or absolute)
+    try:
+         cal_path = config.get('calibration',{}).get('bcal_candidate_catalog', None)
+         cal_tables_dir_path = config.get('paths',{}).get('cal_tables_dir', None)
+         if cal_path and cal_tables_dir_path and not os.path.isabs(cal_path):
+             # If cal_tables_dir itself was resolved to be absolute
+             if os.path.isabs(cal_tables_dir_path):
+                  resolved_path = os.path.join(cal_tables_dir_path, cal_path)
+                  config['calibration']['bcal_candidate_catalog'] = resolved_path
+                  logging.debug(f"Resolved relative path 'bcal_candidate_catalog': {resolved_path}")
+             else:
+                  logger.warning("Cannot resolve relative 'bcal_candidate_catalog' path as 'cal_tables_dir' is not absolute.")
+    except Exception as e:
+         logger.warning(f"Could not resolve bcal_candidate_catalog path: {e}")
+
 
     return config
 
@@ -69,30 +101,48 @@ def validate_config(config):
             logger.error(f"Config validation failed: Missing required top-level key '{key}'.")
             valid = False
 
-    # Add more specific validation checks as needed
-    # e.g., check path existence, numerical ranges, specific values
+    if not valid: return False # Stop if top keys missing
 
-    if 'paths' in config:
-         if 'pipeline_base_dir' not in config['paths'] or not config['paths']['pipeline_base_dir']:
-              logger.error("Config validation failed: 'paths:pipeline_base_dir' is required.")
+    # --- Paths Validation ---
+    required_path_keys = ['pipeline_base_dir', 'ms_stage1_dir', 'cal_tables_dir', 'skymodels_dir', 'images_dir', 'mosaics_dir', 'photometry_dir', 'log_dir', 'diagnostics_base_dir', 'hdf5_incoming']
+    if 'paths' not in config: valid = False # Should have been caught already
+    else:
+         for key in required_path_keys:
+             if key not in config['paths'] or not config['paths'][key]:
+                  logger.error(f"Config validation failed: Missing required path key 'paths:{key}'.")
+                  valid = False
+
+    # --- Calibration Validation ---
+    if 'calibration' not in config: valid = False
+    else:
+         if 'fixed_declination_deg' not in config['calibration']:
+              logger.error("Config validation failed: Missing required key 'calibration:fixed_declination_deg'.")
+              valid = False
+         if 'bcal_candidate_catalog' not in config['calibration'] or not config['calibration']['bcal_candidate_catalog']:
+              logger.error("Config validation failed: Missing required key 'calibration:bcal_candidate_catalog'.")
               valid = False
 
-    # Example: Check mosaic duration/overlap logic
+    # --- Services Validation (Example) ---
     if 'services' in config:
-        duration = config['services'].get('mosaic_duration_min', 60)
-        overlap = config['services'].get('mosaic_overlap_min', 10)
-        ms_chunk = config['services'].get('ms_chunk_duration_min', 5)
-        if duration <= overlap:
-            logger.error("Config validation failed: 'mosaic_duration_min' must be greater than 'mosaic_overlap_min'.")
-            valid = False
-        if duration % ms_chunk != 0 or overlap % ms_chunk != 0:
-             logger.warning("Config validation warning: Mosaic duration/overlap not integer multiple of MS chunk duration.")
-             # May not be critical error, but good to warn
+        if 'mosaic_duration_min' not in config['services'] or 'mosaic_overlap_min' not in config['services'] or 'ms_chunk_duration_min' not in config['services']:
+             logger.warning("Config validation warning: Missing one or more mosaic timing keys in 'services'. Defaults may apply.")
+        else:
+             duration = config['services']['mosaic_duration_min']
+             overlap = config['services']['mosaic_overlap_min']
+             ms_chunk = config['services']['ms_chunk_duration_min']
+             if not isinstance(duration, (int, float)) or not isinstance(overlap, (int, float)) or not isinstance(ms_chunk, (int, float)):
+                  logger.error("Config validation error: Mosaic timing values must be numeric.")
+                  valid = False
+             elif duration <= overlap:
+                  logger.error("Config validation failed: 'mosaic_duration_min' must be greater than 'mosaic_overlap_min'.")
+                  valid = False
+             elif duration % ms_chunk != 0 or overlap % ms_chunk != 0:
+                  logger.warning("Config validation warning: Mosaic duration/overlap not integer multiple of MS chunk duration.")
 
+    # Add more checks for other sections as needed...
 
     if not valid:
-        logger.error("Configuration validation failed. Please check config file.")
-
+        logger.critical("Configuration validation failed. Please check config file structure and values.")
     return valid
 
 
@@ -110,12 +160,12 @@ def load_config(config_path):
              logger.error(f"Config file {config_path} is empty or invalid YAML.")
              return None
 
+        # Resolve Paths *before* full validation that might check resolved paths
+        config = resolve_paths(config)
+
         # Basic Validation
         if not validate_config(config):
             return None
-
-        # Resolve Paths
-        config = resolve_paths(config)
 
         logger.info("Configuration loaded and validated successfully.")
         return config
