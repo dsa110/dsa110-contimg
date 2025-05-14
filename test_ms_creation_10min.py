@@ -1,16 +1,15 @@
 # -*- coding: utf-8 -*-
 # Notebook Setup Cell
-
-import argparse
 import os
 
 # point Casacore’s table cache to a real, writable directory
-#os.environ['CASACORE_TABLE_PATH'] = '/data/jfaber/dsa110-contimg/tmp/casatables'
-#os.makedirs(os.environ['CASACORE_TABLE_PATH'], exist_ok=True)
+os.environ['CASACORE_TABLE_PATH'] = '/data/jfaber/tmp/casatables/'
+os.makedirs(os.environ['CASACORE_TABLE_PATH'], exist_ok=True)
 
 import sys
 import glob
 import time
+import argparse
 import numpy as np
 import pandas as pd
 import yaml
