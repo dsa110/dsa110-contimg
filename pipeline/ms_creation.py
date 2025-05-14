@@ -12,7 +12,7 @@ import astropy.units as u
 from astropy.time import Time
 from astropy.coordinates import EarthLocation, SkyCoord, HADec, ICRS, Angle
 import pyuvdata 
-from pyuvdata import UVData
+from pyuvdata import UVData #pyuvdata v2.4.2
 
 # Attempt to import phasing utilities
 try:
