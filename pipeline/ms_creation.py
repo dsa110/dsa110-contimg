@@ -16,20 +16,13 @@ from pyuvdata import UVData
 
 # Attempt to import phasing utilities
 try:
-    # Expected path for pyuvdata >= 2.2 (including 3.2.1)
-    from pyuvdata.coordinates import calc_app_coords, calc_frame_pos_angle, calc_uvw
-    print("INFO: Imported phasing utilities from pyuvdata.coordinates")
-    PHASING_MODULE_SOURCE = "pyuvdata.coordinates"
-except ImportError:
-    try:
-        # Fallback for older structure if user's environment resolves it this way
-        from pyuvdata.utils.phasing import calc_app_coords, calc_frame_pos_angle, calc_uvw
-        print("INFO: Successfully imported phasing utilities from pyuvdata.utils.phasing (older path)")
-        PHASING_MODULE_SOURCE = "pyuvdata.utils.phasing"
-    except ImportError as e:
-        print(f"CRITICAL ERROR: Could not import phasing utilities: {e}")
-        calc_app_coords, calc_frame_pos_angle, calc_uvw = None, None, None 
-        PHASING_MODULE_SOURCE = "NONE - IMPORT FAILED"
+    from pyuvdata.utils import calc_app_coords, calc_frame_pos_angle, calc_uvw
+    print("INFO: Imported phasing utilities from pyuvdata.utils")
+    PHASING_MODULE_SOURCE = "pyuvdata.utils"
+except ImportError as e:
+    print(f"CRITICAL ERROR: Could not import phasing utilities: {e}")
+    calc_app_coords, calc_frame_pos_angle, calc_uvw = None, None, None 
+    PHASING_MODULE_SOURCE = "NONE - IMPORT FAILED"
 
 
 from pyuvdata.uvdata.ms import tables
@@ -121,9 +114,9 @@ def _load_uvh5_file(fnames: list, antenna_list: list = None, telescope_pos: Eart
         uvdata_obj.check(check_extra=True, run_check_acceptability=True)
         logger.info(f"pyuvdata check passed for first file data ({fnames[0]}).")
         
-        if hasattr(uvdata_obj, 'telescope') and hasattr(uvdata_obj.telescope, 'antenna_names'):
-            logger.debug(f"Telescope antenna names after first read: {uvdata_obj.telescope.antenna_names}")
-        elif hasattr(uvdata_obj, 'antenna_names'): 
+        #if hasattr(uvdata_obj, 'telescope') and hasattr(uvdata_obj.telescope, 'antenna_names'):
+        #    logger.debug(f"Telescope antenna names after first read: {uvdata_obj.antenna_names}")
+        if hasattr(uvdata_obj, 'antenna_names'): 
              logger.debug(f"Top-level antenna names after first read: {uvdata_obj.antenna_names}")
         else:
             logger.warning("antenna_names attribute still MISSING after first read and check!")
@@ -209,21 +202,23 @@ def _load_uvh5_file(fnames: list, antenna_list: list = None, telescope_pos: Eart
         return None
 
     if telescope_pos is not None:
-        uvdata_obj.telescope.name = telescope_pos.info.name if hasattr(telescope_pos, 'info') and hasattr(telescope_pos.info, 'name') else "Unknown"
-        uvdata_obj.telescope.location = EarthLocation.from_geocentric(
-            telescope_pos.itrs.x, telescope_pos.itrs.y, telescope_pos.itrs.z, unit=u.m
-        )
+        uvdata_obj.telescope_name = telescope_pos.info.name if hasattr(telescope_pos, 'info') and hasattr(telescope_pos.info, 'name') else "Unknown"
+        # Set telescope_location as a simple numpy array of XYZ values
+        uvdata_obj.telescope_location = np.array([
+            telescope_pos.itrs.x.value, telescope_pos.itrs.y.value, telescope_pos.itrs.z.value
+        ])
     else:
-        uvdata_obj.telescope.name = dsa110_utils.loc_dsa110.info.name if hasattr(dsa110_utils.loc_dsa110, 'info') and hasattr(dsa110_utils.loc_dsa110.info, 'name') else "DSA-110"
-        uvdata_obj.telescope.location = EarthLocation.from_geocentric(
-             dsa110_utils.loc_dsa110.itrs.x, dsa110_utils.loc_dsa110.itrs.y, dsa110_utils.loc_dsa110.itrs.z, unit=u.m
-        )
+        uvdata_obj.telescope_name = dsa110_utils.loc_dsa110.info.name if hasattr(dsa110_utils.loc_dsa110, 'info') and hasattr(dsa110_utils.loc_dsa110.info, 'name') else "DSA-110"
+        # Set telescope_location as a simple numpy array of XYZ values
+        uvdata_obj.telescope_location = np.array([
+            dsa110_utils.loc_dsa110.itrs.x.value, dsa110_utils.loc_dsa110.itrs.y.value, dsa110_utils.loc_dsa110.itrs.z.value
+        ])
         logger.warning("Using default DSA-110 location.")
 
 
-    if hasattr(uvdata_obj, 'telescope') and hasattr(uvdata_obj.telescope, 'antenna_names'):
-        logger.debug(f"Final telescope antenna names in _load_uvh5_file: {uvdata_obj.telescope.antenna_names}")
-    elif hasattr(uvdata_obj, 'antenna_names'):
+    #if hasattr(uvdata_obj, 'telescope') and hasattr(uvdata_obj.telescope, 'antenna_names'):
+    #    logger.debug(f"Final telescope antenna names in _load_uvh5_file: {uvdata_obj.telescope.antenna_names}")
+    if hasattr(uvdata_obj, 'antenna_names'):
         logger.debug(f"Final top-level antenna names in _load_uvh5_file: {uvdata_obj.antenna_names}")
     else:
         logger.error("CRITICAL ERROR: antenna_names attribute MISSING (both top-level and telescope.antenna_names) before returning from _load_uvh5_file!")
@@ -269,41 +264,59 @@ def _compute_pointing_per_visibility(uvdata_obj: UVData, telescope_pos: EarthLoc
 
 def _set_phase_centers(uvdata_obj: UVData, field_name_base: str, telescope_pos: EarthLocation):
     """
-    Set phase centers and recalculate UVW coordinates for a drift scan,
-    mimicking the colleague's manual UVW calculation approach.
+    Set phase centers and recalculate UVW coordinates for a drift scan
     """
     logger.info("Setting phase centers and recalculating UVWs manually for drift scan.")
     logger.info(f"_set_phase_centers - PyUVData version: {pyuvdata.__version__}, Path: {pyuvdata.__file__}")
 
-    tel = uvdata_obj.telescope 
-    logger.debug(f"Type of uvdata_obj entering _set_phase_centers: {type(uvdata_obj)}")
-    if hasattr(tel, 'location') and tel.location is not None:
-        logger.debug(f"uvdata_obj.telescope.location (XYZ EarthLocation) value: {tel.location.value}") 
-        logger.debug(f"uvdata_obj.telescope.location type: {type(tel.location)}")
-    else:
-        logger.error("CRITICAL: uvdata_obj.telescope.location is None or missing at start of _set_phase_centers!")
-        return None 
+    telescope_loc = None
+    if hasattr(uvdata_obj, 'telescope_location'):
+        telescope_loc = uvdata_obj.telescope_location 
+
+    if telescope_loc is None: 
+        telescope_loc = dsa110_utils.loc_dsa110 
+        logger.warning("Using default DSA-110 location for LST calculation in _set_phase_centers.")
     
-    effective_telescope_loc_lat_lon_alt = None
+    # Get lat/lon/alt from telescope location - IMPROVED VERSION
     try:
-        effective_telescope_loc_lat_lon_alt = (
-            tel.location.lat.rad, 
-            tel.location.lon.rad, 
-            tel.location.height.to_value(u.m)
-        )
-        logger.debug(f"Derived lat/lon/alt from uvdata_obj.telescope.location: {effective_telescope_loc_lat_lon_alt}")
-    except Exception as e_lla:
-        logger.error(f"Failed to get lat/lon/alt from uvdata_obj.telescope.location: {e_lla}", exc_info=True)
-        return None
+        # First try the property which should work if properly set up
+        try:
+            if hasattr(uvdata_obj, 'telescope_location_lat_lon_alt'):
+                effective_telescope_loc_lat_lon_alt = uvdata_obj.telescope_location_lat_lon_alt
+                logger.debug(f"Successfully accessed telescope_location_lat_lon_alt: {effective_telescope_loc_lat_lon_alt}")
+            else:
+                raise AttributeError("No telescope_location_lat_lon_alt attribute.")
+        except (AttributeError, TypeError) as e:
+            # If that fails, convert from XYZ directly
+            logger.warning(f"telescope_location was assigned manually when loading hdf5 files, so telescope_loc_lat_lon_alt is invalid: {e}. Converting from XYZ coords.")
             
-    if not (hasattr(uvdata_obj, 'antenna_names') or \
-            (hasattr(tel, 'antenna_names'))):
-        logger.error("CRITICAL: UVData object passed to _set_phase_centers is missing 'antenna_names'. Aborting phase setting.")
+            # Handle possible structured array format
+            if hasattr(telescope_loc, 'dtype') and telescope_loc.dtype.names is not None:
+                x, y, z = telescope_loc['x'], telescope_loc['y'], telescope_loc['z']
+            elif isinstance(telescope_loc, (list, tuple, np.ndarray)) and len(telescope_loc) == 3:
+                x, y, z = telescope_loc
+            else:
+                # Fallback to robust handling
+                logger.warning("Complex telescope location format, using alternative conversion.")
+                from astropy.coordinates import ITRS
+                xyz = ITRS(telescope_loc * u.m)
+                x, y, z = xyz.x.value, xyz.y.value, xyz.z.value
+                
+            # Create explicit EarthLocation
+            tel_loc = EarthLocation.from_geocentric(x, y, z, unit=u.m)
+            effective_telescope_loc_lat_lon_alt = (
+                tel_loc.lat.rad, tel_loc.lon.rad, tel_loc.height.to_value(u.m)
+            )
+            
+        logger.debug(f"Using lat/lon/alt: {effective_telescope_loc_lat_lon_alt}")
+    except Exception as e_lla:
+        logger.error(f"Failed to get lat/lon/alt from telescope location: {e_lla}", exc_info=True)
         return None 
 
-    if telescope_pos is None: 
-        telescope_pos = dsa110_utils.loc_dsa110 
-        logger.warning("Using default DSA-110 location for LST calculation in _set_phase_centers.")
+    # Check for antenna names
+    if not hasattr(uvdata_obj, 'antenna_names'):
+        logger.error("CRITICAL: UVData object passed to _set_phase_centers is missing 'antenna_names'. Aborting phase setting.")
+        return None
 
     try:
         vis_coords = _compute_pointing_per_visibility(uvdata_obj, telescope_pos)
@@ -335,8 +348,7 @@ def _set_phase_centers(uvdata_obj: UVData, field_name_base: str, telescope_pos: 
                 cat_lon=center_coord.ra.rad,  
                 cat_lat=center_coord.dec.rad, 
                 cat_frame='icrs',
-                cat_epoch=common_epoch, 
-                info_source='calculated'
+                cat_epoch=common_epoch.jyear
             )
             logger.debug(f"Added phase center ID {cat_id}: {cat_name_str}")
             
@@ -372,8 +384,8 @@ def _set_phase_centers(uvdata_obj: UVData, field_name_base: str, telescope_pos: 
                 frame_pa=frame_pa,
                 lst_array=uvdata_obj.lst_array[selection_mask_for_this_center],
                 use_ant_pos=True, 
-                antenna_positions=uvdata_obj.telescope.antenna_positions, 
-                antenna_numbers=uvdata_obj.telescope.antenna_numbers, 
+                antenna_positions=uvdata_obj.antenna_positions, 
+                antenna_numbers=uvdata_obj.antenna_numbers, 
                 ant_1_array=uvdata_obj.ant_1_array[selection_mask_for_this_center],
                 ant_2_array=uvdata_obj.ant_2_array[selection_mask_for_this_center],
                 telescope_lat=effective_telescope_loc_lat_lon_alt[0], 
