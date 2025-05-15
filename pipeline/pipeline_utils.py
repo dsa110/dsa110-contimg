@@ -3,16 +3,11 @@
 import logging
 import sys
 import os
-
-# point Casacore’s table cache to a real, writable directory
-#os.environ['CASACORE_TABLE_PATH'] = '/data/jfaber/dsa110-contimg/tmp/casatables'
-#os.makedirs(os.environ['CASACORE_TABLE_PATH'], exist_ok=True)
-
 from datetime import datetime
 
 # Define CASA log file path globally or pass via config if needed
-# This might need refinement depending on how CASA logs are handled in CASA runtime
-# For now, assume we might redirect CASA logs externally if running within CASA env
+# THIS NEEDS RETHINKING, SINCE PYUVDATA CONFLICTS WITH CASA AND CAUSES A SEGMENTATION FAULT (CORE DUMPED) ERROR
+# WE NEED TO MAKE SURE PYUVDATA AND CASA ARE NEVER LOADED TOGETHER
 _CASA_LOG_FILE = None
 
 def setup_logging(log_dir, config_name="pipeline"):
@@ -40,13 +35,15 @@ def setup_logging(log_dir, config_name="pipeline"):
     console_handler.setFormatter(log_formatter)
     root_logger.addHandler(console_handler)
 
-    # --- CASA Log Handling ---
-    # Option 1: Try setting CASA log file if casalog is available
+    # --- CASA Log Handling --- IGNORE FOR NOW
+    # This part is commented out because it requires the casatasks module
+    # and conflicts with pyuvdata.
+    # Uncomment and modify as needed when integrating with CASA
     try:
-        from casatasks import casalog
+        #from casatasks import casalog
         global _CASA_LOG_FILE
         _CASA_LOG_FILE = os.path.join(log_dir, f"casa_{timestamp}.log")
-        casalog.setlogfile(_CASA_LOG_FILE)
+        #casalog.setlogfile(_CASA_LOG_FILE)
         root_logger.info(f"CASA log file set to: {_CASA_LOG_FILE}")
     except ImportError:
         root_logger.warning("casatasks not found. CASA logging not configured by pipeline.")
