@@ -11,34 +11,6 @@ import numpy as np
 import astropy.units as u
 from astropy.time import Time
 from astropy.coordinates import EarthLocation, SkyCoord, HADec, ICRS, Angle
-import pyuvdata 
-from pyuvdata import UVData #pyuvdata v2.4.2
-
-# Attempt to import phasing utilities
-try:
-    from pyuvdata.utils import calc_app_coords, calc_frame_pos_angle, calc_uvw
-    print("INFO: Imported phasing utilities from pyuvdata.utils")
-    PHASING_MODULE_SOURCE = "pyuvdata.utils"
-except ImportError as e:
-    print(f"CRITICAL ERROR: Could not import phasing utilities: {e}")
-    calc_app_coords, calc_frame_pos_angle, calc_uvw = None, None, None 
-    PHASING_MODULE_SOURCE = "NONE - IMPORT FAILED"
-
-
-from pyuvdata.uvdata.ms import tables
-from importlib.resources import files as importlib_files 
-import inspect 
-
-# Attempt to import and get casacore version
-try:
-    import casacore
-    import casacore.tables
-    casacore_version_str = casacore.__version__
-except ImportError:
-    casacore_version_str = "casacore not found"
-except Exception as e:
-    casacore_version_str = f"Error getting casacore version: {e}"
-
 
 # Pipeline imports
 from .pipeline_utils import get_logger 
@@ -46,15 +18,20 @@ from . import dsa110_utils
 
 # Get logger for this module
 logger = get_logger(__name__)
-logger.info(f"Phasing utilities will be used from: {PHASING_MODULE_SOURCE}")
-if PHASING_MODULE_SOURCE == "NONE - IMPORT FAILED":
-    logger.error("CRITICAL: Phasing utilities could not be imported. MS creation will likely fail.")
 
+# PyUVData imports
+from pyuvdata import UVData
+from pyuvdata import utils as uvutils
+from pyuvdata.uvdata.ms import tables
+
+from importlib.resources import files as importlib_files 
+import inspect 
 
 # --- Core uvh5 to MS Conversion Logic ---
-
 def _load_uvh5_file(fnames: list, antenna_list: list = None, telescope_pos: EarthLocation = None):
-    """Loads specific antennas from a list of uvh5 files and concatenates them."""
+    """
+    Loads specific antennas from a list of uvh5 files and concatenates them.
+    """
     if not fnames:
         logger.error("No filenames provided to _load_uvh5_file.")
         return None
@@ -92,8 +69,8 @@ def _load_uvh5_file(fnames: list, antenna_list: list = None, telescope_pos: Eart
 
 
         with warnings.catch_warnings():
-            warnings.filterwarnings("ignore", message=r".*key .* is longer than 8 characters.*")
-            warnings.filterwarnings("ignore", message=r".*Telescope .* is not in known_telescopes.*")
+            warnings.filterwarnings("ignore", message=r"key []* is longer than 8 characters[]*")
+            warnings.filterwarnings("ignore", message=r"Telescope []* is not in known_telescopes[]*")
             uvdata_obj.read(
                 fnames[0], 
                 file_type='uvh5', 
@@ -182,7 +159,8 @@ def _load_uvh5_file(fnames: list, antenna_list: list = None, telescope_pos: Eart
         if uvdata_to_append:
             logger.info(f"Concatenating {len(uvdata_to_append)} additional frequency chunks.")
             with warnings.catch_warnings():
-                warnings.filterwarnings("ignore", message=r".*key .* is longer than 8 characters.*")
+                warnings.filterwarnings("ignore", message=r"key []* is longer than 8 characters[]*")
+                warnings.filterwarnings("ignore", message=r"Telescope []* is not in known_telescopes[]*")
                 uvdata_obj.fast_concat(uvdata_to_append, axis='freq', inplace=True, run_check=False, check_extra=False, run_check_acceptability=False, strict_uvw_antpos_check=False)
             logger.info("Concatenation complete. Running pyuvdata check...")
             try:
@@ -215,9 +193,6 @@ def _load_uvh5_file(fnames: list, antenna_list: list = None, telescope_pos: Eart
         ])
         logger.warning("Using default DSA-110 location.")
 
-
-    #if hasattr(uvdata_obj, 'telescope') and hasattr(uvdata_obj.telescope, 'antenna_names'):
-    #    logger.debug(f"Final telescope antenna names in _load_uvh5_file: {uvdata_obj.telescope.antenna_names}")
     if hasattr(uvdata_obj, 'antenna_names'):
         logger.debug(f"Final top-level antenna names in _load_uvh5_file: {uvdata_obj.antenna_names}")
     else:
@@ -228,7 +203,6 @@ def _load_uvh5_file(fnames: list, antenna_list: list = None, telescope_pos: Eart
 
     logger.info(f"Finished loading data. Nbls: {uvdata_obj.Nbls}, Ntimes: {uvdata_obj.Ntimes}, Nfreqs: {uvdata_obj.Nfreqs}, Nants: {uvdata_obj.Nants_data}")
     return uvdata_obj
-
 
 def _compute_pointing_per_visibility(uvdata_obj: UVData, telescope_pos: EarthLocation):
     """
@@ -267,7 +241,7 @@ def _set_phase_centers(uvdata_obj: UVData, field_name_base: str, telescope_pos: 
     Set phase centers and recalculate UVW coordinates for a drift scan
     """
     logger.info("Setting phase centers and recalculating UVWs manually for drift scan.")
-    logger.info(f"_set_phase_centers - PyUVData version: {pyuvdata.__version__}, Path: {pyuvdata.__file__}")
+    #logger.info(f"_set_phase_centers - PyUVData version: {pyuvdata.__version__}, Path: {pyuvdata.__file__}")
 
     telescope_loc = None
     if hasattr(uvdata_obj, 'telescope_location'):
@@ -277,9 +251,7 @@ def _set_phase_centers(uvdata_obj: UVData, field_name_base: str, telescope_pos: 
         telescope_loc = dsa110_utils.loc_dsa110 
         logger.warning("Using default DSA-110 location for LST calculation in _set_phase_centers.")
     
-    # Get lat/lon/alt from telescope location - IMPROVED VERSION
     try:
-        # First try the property which should work if properly set up
         try:
             if hasattr(uvdata_obj, 'telescope_location_lat_lon_alt'):
                 effective_telescope_loc_lat_lon_alt = uvdata_obj.telescope_location_lat_lon_alt
@@ -287,16 +259,12 @@ def _set_phase_centers(uvdata_obj: UVData, field_name_base: str, telescope_pos: 
             else:
                 raise AttributeError("No telescope_location_lat_lon_alt attribute.")
         except (AttributeError, TypeError) as e:
-            # If that fails, convert from XYZ directly
             logger.warning(f"telescope_location was assigned manually when loading hdf5 files, so telescope_loc_lat_lon_alt is invalid: {e}. Converting from XYZ coords.")
-            
-            # Handle possible structured array format
             if hasattr(telescope_loc, 'dtype') and telescope_loc.dtype.names is not None:
                 x, y, z = telescope_loc['x'], telescope_loc['y'], telescope_loc['z']
             elif isinstance(telescope_loc, (list, tuple, np.ndarray)) and len(telescope_loc) == 3:
                 x, y, z = telescope_loc
             else:
-                # Fallback to robust handling
                 logger.warning("Complex telescope location format, using alternative conversion.")
                 from astropy.coordinates import ITRS
                 xyz = ITRS(telescope_loc * u.m)
@@ -355,30 +323,28 @@ def _set_phase_centers(uvdata_obj: UVData, field_name_base: str, telescope_pos: 
             selection_mask_for_this_center = (blt_to_unique_time_map == i)
             new_phase_center_ids[selection_mask_for_this_center] = cat_id
             
-            # Corrected call to calc_app_coords for pyuvdata 3.2.1 signature
-            app_ra, app_dec = calc_app_coords(
-                lon_coord=center_coord.ra.rad, # Keyword-only
-                lat_coord=center_coord.dec.rad, # Keyword-only
+            app_ra, app_dec = uvutils.calc_app_coords(
+                lon_coord=center_coord.ra.rad, 
+                lat_coord=center_coord.dec.rad, 
                 coord_frame='icrs', 
-                coord_epoch=common_epoch.jyear, # Pass float JYear
+                coord_epoch=common_epoch.jyear,
                 time_array=Time(uvdata_obj.time_array[selection_mask_for_this_center], format='jd', scale='utc'),
                 lst_array=uvdata_obj.lst_array[selection_mask_for_this_center],
                 telescope_loc=effective_telescope_loc_lat_lon_alt, 
                 telescope_frame='itrs' 
             )
             
-            # Corrected call to calc_frame_pos_angle
-            frame_pa = calc_frame_pos_angle(
+            frame_pa = uvutils.calc_frame_pos_angle(
                 time_array=uvdata_obj.time_array[selection_mask_for_this_center], 
                 app_ra=app_ra,
                 app_dec=app_dec,
                 telescope_loc=effective_telescope_loc_lat_lon_alt, 
                 telescope_frame='itrs', 
-                ref_frame='icrs', # Corrected from phase_frame
+                ref_frame='icrs',
                 ref_epoch=common_epoch.jyear 
             )
             
-            uvw_new = calc_uvw(
+            uvw_new = uvutils.calc_uvw(
                 app_ra=app_ra,
                 app_dec=app_dec,
                 frame_pa=frame_pa,
@@ -407,8 +373,10 @@ def _set_phase_centers(uvdata_obj: UVData, field_name_base: str, telescope_pos: 
         logger.error(f"Failed to set phase centers using manual UVW calculation: {e}", exc_info=True)
         return None
 
-
 def _make_calib_model(uvdata_obj: UVData, config: dict, telescope_pos: EarthLocation):
+    """
+    Generates a calibration model based on the provided configuration.
+    """
     calib_info = config.get('ms_creation', {}).get('calibrator_model', None)
     if calib_info is None:
         logger.info("No calibrator model requested in config.")
@@ -490,86 +458,155 @@ def _make_calib_model(uvdata_obj: UVData, config: dict, telescope_pos: EarthLoca
     return uvmodel
 
 def _write_ms(uvdata_obj: UVData, uvcalib: UVData, ms_outfile_base: str, protect_files: bool): 
+    """
+    Writes UVData object to an MS file using a subprocess to avoid casacore conflicts.
+    
+    Args:
+        uvdata_obj: The UVData object to write
+        uvcalib: Optional calibration model UVData object
+        ms_outfile_base: Base path for the output MS file (without .ms extension)
+        protect_files: If True, don't overwrite existing files
+        
+    Returns:
+        Path to the created MS file, or None if writing failed
+    """
     ms_outfile = f'{ms_outfile_base}.ms'
     logger.info(f"Writing Measurement Set to: {ms_outfile}")
 
     if os.path.exists(ms_outfile):
         if protect_files:
             logger.error(f"MS file {ms_outfile} already exists and protect_files is True. Skipping.")
-            raise FileExistsError(f"{ms_outfile} exists.")
+            return None
         else:
             logger.warning(f"MS file {ms_outfile} already exists. Removing existing file.")
             try:
+                import shutil
                 shutil.rmtree(ms_outfile)
-            except Exception as e:
-                logger.error(f"Failed to remove existing MS {ms_outfile}: {e}", exc_info=True)
-                raise
+                logger.info(f"Removed existing MS file with shutil.rmtree: {ms_outfile}")
+            except Exception as e_rmtree:
+                logger.error(f"Failed to remove existing MS: {e_rmtree}. MS creation will likely fail.")
+                return None
     
+    # Conjugate baselines
+    try: 
+        logger.info("Conjugating baselines...")
+        uvdata_obj.conjugate_bls(convention="ant2<ant1") # Make sure the right convention is used
+    except Exception as e_conjugate:
+        logger.error(f"Failed to conjugate baselines: {e_conjugate}", exc_info=True)
+        return None
+    
+    # Run final check
     try:
-        # Explicitly conjugate baselines before writing to ensure CASA compatibility
-        logger.info("Enforcing 'ant2<ant1' baseline conjugation convention before writing MS.")
-        uvdata_obj.conjugate_bls(convention="ant2<ant1", use_enu=False)
-        if uvcalib is not None:
-            logger.info("Enforcing 'ant2<ant1' baseline conjugation for model data.")
-            uvcalib.conjugate_bls(convention="ant2<ant1", use_enu=False)
-
         logger.info("Running final pyuvdata check on uvdata_obj before writing MS...")
         uvdata_obj.check(check_extra=True, run_check_acceptability=True)
         logger.info("Final pyuvdata check passed for uvdata_obj.")
+        
         if uvcalib is not None:
-            logger.info("Running final pyuvdata check on uvcalib (model) object before writing MS...")
+            logger.info("Running final pyuvdata check on uvcalib (model) object...")
             uvcalib.check(check_extra=True, run_check_acceptability=True) 
             logger.info("Final pyuvdata check passed for uvcalib (model) object.")
     except Exception as e_final_check:
         logger.error(f"Final pyuvdata check FAILED before MS write: {e_final_check}", exc_info=True)
-        return None 
-
+        return None
+    
+    # Write the MS file
     try:
         with warnings.catch_warnings():
             warnings.filterwarnings("ignore", message=r".*Writing in the MS file that the units of the data are uncalib.*")
-            # Test with force_phase=True as a diagnostic for segfault
-            logger.info("Attempting to write MS with force_phase=True (diagnostic for segfault)")
-            # In ms_creation.py, before write_ms
-            logger.info(f"Original Ntimes: {uvdata_obj.Ntimes}, Nbls: {uvdata_obj.Nbls}, Nfreqs: {uvdata_obj.Nfreqs}")
-            logger.info("Selecting a small subset for testing")
-            #uvdata_obj.select(times=uvdata_obj.time_array[:2]) # Select first 2 integrations
-            #uvdata_obj.select(frequencies=uvdata_obj.freq_array[:2]) # Select first 10 channels
-            #uvdata_obj.select(bls=)
-            logger.info(f"Reduced Ntimes: {uvdata_obj.Ntimes}, Nbls: {uvdata_obj.Nbls}, Nfreqs: {uvdata_obj.Nfreqs}")
             uvdata_obj.write_ms(ms_outfile,
                             run_check=False, 
                             force_phase=False, 
                             run_check_acceptability=False, 
-                            strict_uvw_antpos_check=False) 
-
-        if uvcalib is not None: 
-            logger.info("Adding MODEL_DATA and CORRECTED_DATA columns.")
+                            strict_uvw_antpos_check=False)
+        
+        # If there is a calibration model, add it in a separate subprocess
+        if uvcalib is not None:
+            logger.info("Need to add MODEL_DATA, will use subprocess...")
+            
+            # Use subprocess to add MODEL_DATA so it doesn't conflict with pyuvdata
+            import pickle
+            import tempfile
+            import subprocess
+            
+            # Create temp files
+            with tempfile.NamedTemporaryFile(suffix='.pkl', delete=False) as f:
+                calib_pickle_path = f.name
+            with tempfile.NamedTemporaryFile(suffix='.py', delete=False) as f:
+                script_path = f.name
+            
             try:
-                tables.addImagingColumns(ms_outfile)
-                with tables.table(ms_outfile, readonly=False, ack=False) as tb:
-                    model_data_to_write = np.squeeze(uvcalib.data_array, axis=1)
-                    corrected_data_to_write = np.squeeze(uvdata_obj.data_array, axis=1) 
-                    if tb.ncols() == 0: 
-                         raise RuntimeError("MS table appears empty after write_ms.")
-                    tb.putcol('MODEL_DATA', model_data_to_write)
-                    tb.putcol('CORRECTED_DATA', corrected_data_to_write)
-                logger.info("MODEL_DATA and CORRECTED_DATA columns added.")
-            except Exception as e:
-                logger.error(f"Failed to add imaging columns or write model/corrected data: {e}", exc_info=True)
+                # Pickle calibration model
+                with open(calib_pickle_path, 'wb') as f:
+                    pickle.dump(uvcalib, f)
+                
+                # Create script
+                script = f"""
+                        import pickle
+                        import sys
+                        from pyuvdata.uvdata.ms import tables
 
-        logger.info(f"Successfully wrote MS: {ms_outfile}")
+                        try:
+                            # Load the calibration model
+                            print("Loading calibration model...")
+                            with open('{calib_pickle_path}', 'rb') as f:
+                                uvcalib = pickle.load(f)
+                            
+                            # Add imaging columns to MS
+                            print("Adding imaging columns to {ms_outfile}...")
+                            tables.addImagingColumns('{ms_outfile}')
+                            
+                            # Add model data
+                            print("Writing MODEL_DATA...")
+                            with tables.table('{ms_outfile}', readonly=False, ack=False) as tb:
+                                model_data = uvcalib.data_array.squeeze(axis=1)
+                                tb.putcol('MODEL_DATA', model_data)
+                                
+                                # Add CORRECTED_DATA (copy of DATA)
+                                data = tb.getcol('DATA')
+                                tb.putcol('CORRECTED_DATA', data)
+                            
+                            print("Successfully added MODEL_DATA and CORRECTED_DATA columns")
+                            sys.exit(0)
+                        except Exception as e:
+                            print(f"ERROR: Failed to add model data: {{e}}")
+                            sys.exit(1)
+                        """
+                
+                # Write script
+                with open(script_path, 'w') as f:
+                    f.write(script)
+                
+                # Run subprocess
+                result = subprocess.run(
+                    [sys.executable, script_path],
+                    stdout=subprocess.PIPE,
+                    stderr=subprocess.PIPE,
+                    text=True
+                )
+                
+                if result.returncode == 0:
+                    logger.info("Successfully added MODEL_DATA columns")
+                else:
+                    logger.warning(f"Failed to add MODEL_DATA: {result.stderr}")
+            finally:
+                # Clean up
+                try:
+                    os.unlink(calib_pickle_path)
+                    os.unlink(script_path)
+                except:
+                    pass
+        
         return ms_outfile
     except Exception as e:
         logger.error(f"Failed to write MS file {ms_outfile}: {e}", exc_info=True)
-        if os.path.exists(ms_outfile):
-            try:
-                shutil.rmtree(ms_outfile)
-                logger.info(f"Removed incomplete MS file: {ms_outfile}")
-            except Exception as e_clean:
-                logger.error(f"Failed to remove incomplete MS file {ms_outfile}: {e_clean}")
         return None
 
 def find_hdf5_sets(config: dict):
+    """
+    Finds complete sets of HDF5 files in the incoming directory.
+    Returns a dictionary with timestamps as keys and lists of file paths as values.
+    """
+    logger.info("Finding complete sets of HDF5 files...")
     incoming_path = config['paths']['hdf5_incoming']
     expected_subbands = config['services']['hdf5_expected_subbands']
     spws_to_include = config['ms_creation'].get('spws', [f'sb{i:02d}' for i in range(expected_subbands)])
@@ -617,9 +654,9 @@ def find_hdf5_sets(config: dict):
         return {}
 
 def process_hdf5_set(config: dict, timestamp: str, hdf5_files: list):
-    """Processes a single complete set of HDF5 files into an MS file."""
-    logger.info(f"MS_CREATION - PyUVData version: {pyuvdata.__version__}, Path: {pyuvdata.__file__}, Casacore version: {casacore_version_str}")
-    
+    """
+    Processes a single complete set of HDF5 files into an MS file.
+    """
     logger.info(f"Processing HDF5 set for timestamp: {timestamp}") 
     paths_config = config['paths']
     ms_creation_config = config['ms_creation']
@@ -643,13 +680,12 @@ def process_hdf5_set(config: dict, timestamp: str, hdf5_files: list):
     protect_files = False 
     
     # Comment out this block to write with model directly if the no-model test passes
-    logger.info("Attempting to write MS as a test...")
     ms_output_path = _write_ms(uvdata_obj, uvmodel_for_ms, output_ms_base, protect_files)
     if not ms_output_path:
-       logger.error("Segfault or failure occurred even when writing MS WITHOUT model data.")
-       return None # Stop if this critical step fails
+        logger.error("Failure occurred even when writing MS.")
+        return None # Stop if this critical step fails
     else:
-       logger.info(f"Successfully wrote MS: {ms_output_path}.")
+        logger.info(f"Successfully wrote MS: {ms_output_path}.")
 
     if ms_output_path: 
         post_handle_mode = config['services'].get('hdf5_post_handle', 'none').lower()
