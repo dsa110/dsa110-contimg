@@ -8,7 +8,7 @@ import re
 import numpy as np
 import yaml # Requires pip install pyyaml
 import pandas as pd
-#import logging
+import logging
 
 # Astropy imports
 try:
@@ -16,7 +16,7 @@ try:
     import astropy.units as u
     astropy_available = True
 except ImportError:
-    print("ERROR: astropy library is required. Please install it (`pip install astropy`).")
+    logging.error("ERROR: astropy library is required. Please install it (`pip install astropy`).")
     sys.exit(1)
 
 def parse_vla_list_to_dataframe(vla_list_path):
@@ -24,9 +24,9 @@ def parse_vla_list_to_dataframe(vla_list_path):
     Parses the vlacals.txt file
     and returns a pandas DataFrame.
     """
-    print(f"Parsing VLA calibrator list using provided logic: {vla_list_path}")
+    logging.info(f"Parsing VLA calibrator list using provided logic: {vla_list_path}")
     if not os.path.exists(vla_list_path):
-        print(f"Input VLA list file not found: {vla_list_path}")
+        logging.error(f"Input VLA list file not found: {vla_list_path}")
         return None
 
     # Define month prefixes
@@ -36,7 +36,7 @@ def parse_vla_list_to_dataframe(vla_list_path):
         with open(vla_list_path, "r") as f:
             lines = f.readlines()
     except Exception as e:
-        print(f"Failed to read VLA list file {vla_list_path}: {e}", exc_info=True)
+        logging.error(f"Failed to read VLA list file {vla_list_path}: {e}", exc_info=True)
         return None
 
     records = []
@@ -74,7 +74,7 @@ def parse_vla_list_to_dataframe(vla_list_path):
             if len(bparts) < 5 or bparts[1] != "B1950":
                 # This means B1950 line wasn't found where expected,
                 # reset and continue searching from next line
-                print(f"Expected B1950 line after J2000 line {i}, but found '{bline}'. Skipping source {j2000_name}.")
+                logging.warning(f"Expected B1950 line after J2000 line {i}, but found '{bline}'. Skipping source {j2000_name}.")
                 # Important: Need to make sure 'i' advances correctly even if B1950 is missing
                 i += 1 # Advance past the unexpected line
                 continue
@@ -134,52 +134,52 @@ def parse_vla_list_to_dataframe(vla_list_path):
                         "FLUX_JY": flux, "UVMIN_kL": uvm_min, "UVMAX_kL": uvm_max
                     })
                 else:
-                     print(f"Line {i+1} skipped, doesn't look like a band data line: '{row}'")
+                     logging.debug(f"Line {i+1} skipped, doesn't look like a band data line: '{row}'")
                 i += 1
             continue # Continue outer loop after processing bands
         i += 1
 
     # Build DataFrame
     if not records:
-         print("No records parsed from VLA list.")
+         logging.warning("No records parsed from VLA list.")
          return None
 
     df = pd.DataFrame(records)
     # Fill NA added by DataFrame creation if columns mismatch, although records should be consistent
     df = df.fillna("None")
-    print(f"Successfully created DataFrame with {len(df)} band entries.")
+    logging.info(f"Successfully created DataFrame with {len(df)} band entries.")
     return df
 
 
 def write_intermediate_csv(calibrator_df, output_csv_path):
     """Writes the fully parsed calibrator DataFrame to a CSV file."""
     if calibrator_df is None or calibrator_df.empty:
-        print("No calibrator data to write to intermediate CSV.")
+        logging.error("No calibrator data to write to intermediate CSV.")
         return False
-    print(f"Writing intermediate parsed data ({len(calibrator_df)} rows) to: {output_csv_path}")
+    logging.info(f"Writing intermediate parsed data ({len(calibrator_df)} rows) to: {output_csv_path}")
     try:
         # Use pandas to_csv for simplicity
         df_to_write = calibrator_df.replace("None", np.nan) # Write actual NaNs for missing values
         df_to_write.to_csv(output_csv_path, index=False, na_rep='NaN', float_format='%.4f')
-        print(f"Successfully wrote intermediate CSV: {output_csv_path}")
+        logging.info(f"Successfully wrote intermediate CSV: {output_csv_path}")
         return True
     except Exception as e:
-        print(f"ERROR: Failed to write intermediate CSV {output_csv_path}: {e}", exc_info=True)
+        logging.error(f"ERROR: Failed to write intermediate CSV {output_csv_path}: {e}", exc_info=True)
         return False
 
 def filter_and_write_bcal_candidates(config, intermediate_csv_path, output_bcal_csv_path, min_flux_override=None, dec_range_override=None):
     """Filters the intermediate VLA catalog and writes the final BPCAL candidate list."""
     if not os.path.exists(intermediate_csv_path):
-        print(f"ERROR: Intermediate CSV file not found: {intermediate_csv_path}")
+        logging.error(f"ERROR: Intermediate CSV file not found: {intermediate_csv_path}")
         return False
 
-    print(f"Filtering calibrators from {intermediate_csv_path}...")
+    logging.info(f"Filtering calibrators from {intermediate_csv_path}...")
     try:
         # Load intermediate CSV using pandas
         df = pd.read_csv(intermediate_csv_path, na_values=['None', 'NaN', '']) # Read blank/None/NaN as NaN
 
         if df.empty:
-             print("Intermediate CSV is empty. Cannot filter.")
+             logging.warning("Intermediate CSV is empty. Cannot filter.")
              return False
 
         cal_config = config['calibration']
@@ -187,24 +187,24 @@ def filter_and_write_bcal_candidates(config, intermediate_csv_path, output_bcal_
         if dec_range_override:
             try:
                 dec_min, dec_max = map(float, dec_range_override.split(':'))
-                print(f"Using overridden declination range: {dec_min} to {dec_max} deg")
+                logging.info(f"Using overridden declination range: {dec_min} to {dec_max} deg")
             except Exception as e:
-                print(f"Invalid format for --dec-range-deg '{dec_range_override}'. Use MIN:MAX. {e}")
+                logging.error(f"Invalid format for --dec-range-deg '{dec_range_override}'. Use MIN:MAX. {e}")
                 return False
         else:
             if 'fixed_declination_deg' not in cal_config:
-                 print("Missing 'calibration:fixed_declination_deg' in config.")
+                 logging.error("Missing 'calibration:fixed_declination_deg' in config.")
                  return False
             fixed_dec_deg = cal_config['fixed_declination_deg']
             beam_radius_deg = cal_config.get('bcal_search_beam_radius_deg', 1.5)
             dec_min = fixed_dec_deg - beam_radius_deg
             dec_max = fixed_dec_deg + beam_radius_deg
-            print(f"Using declination range from config: {dec_min:.2f} to {dec_max:.2f} deg")
+            logging.info(f"Using declination range from config: {dec_min:.2f} to {dec_max:.2f} deg")
 
         # Flux Range (use L-band/20cm flux for filtering)
         min_flux_jy = min_flux_override if min_flux_override is not None else cal_config.get('bcal_min_flux_jy', 5.0)
         max_flux_jy = cal_config.get('bcal_max_flux_jy', 100.0)
-        print(f"Using L-band (20cm or L code) flux range: {min_flux_jy} to {max_flux_jy} Jy")
+        logging.info(f"Using L-band (20cm or L code) flux range: {min_flux_jy} to {max_flux_jy} Jy")
 
         # --- Filtering ---
         filtered_candidates = []
@@ -216,13 +216,13 @@ def filter_and_write_bcal_candidates(config, intermediate_csv_path, output_bcal_
         try:
             df_valid['dec_deg'] = df_valid['DEC_J2000'].apply(lambda x: Angle(x.replace('"',''), unit=u.deg).deg)
         except Exception as e:
-             print(f"Failed to parse DEC_J2000 column: {e}. Check intermediate CSV format.")
+             logging.error(f"Failed to parse DEC_J2000 column: {e}. Check intermediate CSV format.")
              return False
 
         # Filter by Declination
         dec_mask = (df_valid['dec_deg'] >= dec_min) & (df_valid['dec_deg'] <= dec_max)
         df_dec_filtered = df_valid[dec_mask]
-        print(f"{len(df_dec_filtered)} sources within declination range.")
+        logging.info(f"{len(df_dec_filtered)} sources within declination range.")
 
         # Filter by L-band (check BAND_CODE == 'L' OR BAND == '20cm') and Flux
         # Convert flux to numeric, coercing errors
@@ -237,7 +237,7 @@ def filter_and_write_bcal_candidates(config, intermediate_csv_path, output_bcal_
         final_mask = l_band_mask & flux_mask
         filtered_df = df_dec_filtered[final_mask]
 
-        print(f"Filtered down to {len(filtered_df)} BPCAL candidates matching L-band and flux criteria.")
+        logging.info(f"Filtered down to {len(filtered_df)} BPCAL candidates matching L-band and flux criteria.")
 
         # --- Format Output ---
         header = ['name', 'ra_str', 'dec_str', 'flux_jy', 'epoch']
@@ -253,27 +253,27 @@ def filter_and_write_bcal_candidates(config, intermediate_csv_path, output_bcal_
 
         # Write final CSV
         if not output_rows:
-             print("No candidates remain after filtering.")
+             logging.warning("No candidates remain after filtering.")
              with open(output_bcal_csv_path, 'w', newline='') as csvfile:
                   writer = csv.DictWriter(csvfile, fieldnames=header)
                   writer.writeheader()
-             print(f"Created empty BPCAL candidate file: {output_bcal_csv_path}")
+             logging.info(f"Created empty BPCAL candidate file: {output_bcal_csv_path}")
              return True
 
-        print(f"Writing final BPCAL candidate list to: {output_bcal_csv_path}")
+        logging.info(f"Writing final BPCAL candidate list to: {output_bcal_csv_path}")
         with open(output_bcal_csv_path, 'w', newline='') as csvfile:
             writer = csv.DictWriter(csvfile, fieldnames=header)
             writer.writeheader()
             writer.writerows(output_rows)
 
-        print(f"Successfully wrote {len(output_rows)} candidates to {output_bcal_csv_path}")
+        logging.info(f"Successfully wrote {len(output_rows)} candidates to {output_bcal_csv_path}")
         return True
 
     except KeyError as e:
-        print(f"ERROR: Missing required key in configuration file or intermediate CSV: {e}", exc_info=True)
+        logging.error(f"ERROR: Missing required key in configuration file or intermediate CSV: {e}", exc_info=True)
         return False
     except Exception as e:
-        print(f"ERROR: Failed during filtering or writing final CSV: {e}", exc_info=True)
+        logging.error(f"ERROR: Failed during filtering or writing final CSV: {e}", exc_info=True)
         return False
 
 
@@ -291,8 +291,8 @@ if __name__ == "__main__":
     args = parser.parse_args()
 
     # --- Setup Basic Logging ---
-    log_level = print if args.verbose else print
-    #logging.basicConfig(level=log_level, format='%(asctime)s [%(levelname)-7s] %(message)s', datefmt='%Y-%m-%d %H:%M:%S', handlers=[logging.StreamHandler(sys.stdout)])
+    log_level = logging.DEBUG if args.verbose else logging.INFO
+    logging.basicConfig(level=log_level, format='%(asctime)s [%(levelname)-7s] %(message)s', datefmt='%Y-%m-%d %H:%M:%S', handlers=[logging.StreamHandler(sys.stdout)])
 
     # --- Step 1: Parse the input text file ---
     parsed_df = parse_vla_list_to_dataframe(args.vla_list)
@@ -334,15 +334,15 @@ if __name__ == "__main__":
                     min_flux_override=args.min_flux, dec_range_override=args.dec_range_deg
                 )
             except Exception as e:
-                print(f"ERROR loading config or running filtering: {e}", exc_info=True)
+                logging.error(f"ERROR loading config or running filtering: {e}", exc_info=True)
                 sys.exit(1)
         else:
-             print("ERROR: Failed to write intermediate CSV, cannot proceed to filtering.")
+             logging.error("ERROR: Failed to write intermediate CSV, cannot proceed to filtering.")
              sys.exit(1)
     elif parsed_df is not None and parsed_df.empty:
-         print("Parsing succeeded but produced no records.")
+         logging.warning("Parsing succeeded but produced no records.")
     else: # parsed_data is None
-        print("ERROR: Failed to parse VLA calibrator list.")
+        logging.error("ERROR: Failed to parse VLA calibrator list.")
         sys.exit(1)
 
-    print("\nCatalog generation process finished.")
+    logging.info("\nCatalog generation process finished.")

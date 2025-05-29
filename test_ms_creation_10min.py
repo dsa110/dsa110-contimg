@@ -1,11 +1,7 @@
 # -*- coding: utf-8 -*-
+
 # Notebook Setup Cell
 import os
-
-# point Casacore’s table cache to a real, writable directory
-os.environ['CASACORE_TABLE_PATH'] = '/data/jfaber/tmp/casatables/'
-os.makedirs(os.environ['CASACORE_TABLE_PATH'], exist_ok=True)
-
 import sys
 import glob
 import time
@@ -27,29 +23,25 @@ from astropy.table import Table
 from astropy.io import fits
 from astropy.wcs import WCS
 
-# --- IMPORTANT: Adjust sys.path if needed ---
-# If your notebook is NOT in the same directory as the 'pipeline' folder,
-# add the parent directory to the path so Python can find the modules.
-pipeline_parent_dir = '/data/jfaber/dsa110-contimg/' # ADJUST IF YOUR NOTEBOOK IS ELSEWHERE
+pipeline_parent_dir = '/data/jfaber/dsa110-contimg/'
 if pipeline_parent_dir not in sys.path:
     sys.path.insert(0, pipeline_parent_dir)
-
-from casatasks import (
-        clearcal, delmod, rmtables, flagdata, bandpass, ft, mstransform, gaincal, applycal, listobs, split
-    )
-from casatools import componentlist, msmetadata, imager, ms, table
 
 # Pipeline module imports
 try:
     from pipeline import config_parser
     from pipeline import pipeline_utils
     from pipeline import ms_creation
-    from pipeline import calibration
-    from pipeline import skymodel
-    from pipeline import imaging
-    from pipeline import mosaicking
-    from pipeline import photometry
-    from pipeline import dsa110_utils # Needed for location
+
+    # THIS PART NEEDS TO BE RETHOUGH, ALL THE CASA IMPORTS NEED TO BE MOVED OUT OF HERE
+    # SINCE PYUVDATA CONFLICTS WITH CASA AND CAUSES A SEGMENTATION FAULT (CORE DUMPED) ERROR
+
+    #from pipeline import calibration
+    #from pipeline import skymodel
+    #from pipeline import imaging
+    #from pipeline import mosaicking
+    #from pipeline import photometry
+    #from pipeline import dsa110_utils
 except ImportError as e:
     print(f"ERROR: Failed to import pipeline modules. Check sys.path.")
     print(f"Current sys.path: {sys.path}")
@@ -198,7 +190,9 @@ def collect_files_for_nominal_start_time(nominal_start_time_str, hdf5_dir, confi
         return None
         
 def get_obs_declination(config, hdf5_dir):
-    """Reads the fixed declination from an arbitrary HDF5 file's metadata."""
+    """
+    Reads the fixed declination from an arbitrary HDF5 file's metadata.
+    """
     if not pyuvdata_available: return None
     logging.info("Attempting to determine observation declination from HDF5 metadata...")
     try:
@@ -221,7 +215,9 @@ def get_obs_declination(config, hdf5_dir):
         return None
 
 def select_bcal_for_test(config, fixed_dec_deg, bcal_name_override=None):
-    """Reads BPCAL candidate catalog, filters by Dec, selects one for testing."""
+    """
+    Reads BPCAL candidate catalog, filters by Dec, selects one for testing.
+    """
     logger = pipeline_utils.get_logger(__name__)
     cal_config = config['calibration']
     # Path to the *filtered* candidate list
@@ -295,7 +291,9 @@ def select_bcal_for_test(config, fixed_dec_deg, bcal_name_override=None):
         return None
 
 def calculate_next_transit(bcal_info, telescope_loc):
-    """Calculates the next transit time for the selected calibrator."""
+    """
+    Calculates the next transit time for the selected calibrator.
+    """
     logger = pipeline_utils.get_logger(__name__)
     try:
         # Use SkyCoord for robust parsing and calculations
@@ -325,7 +323,9 @@ def calculate_next_transit(bcal_info, telescope_loc):
         return None
 
 def find_hdf5_chunks_around_time(config, hdf5_dir, target_time):
-    """Finds the HDF5 sets for the 5-min chunk containing target_time and the one before it."""
+    """
+    Finds the HDF5 sets for the 5-min chunk containing target_time and the one before it.
+    """
     logger = pipeline_utils.get_logger(__name__)
     ms_chunk_mins = config['services'].get('ms_chunk_duration_min', 5)
     tolerance_sec = config['ms_creation'].get('same_timestamp_tolerance', 30) # Use tolerance

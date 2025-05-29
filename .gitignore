@@ -52,6 +52,7 @@
 *.fits
 
 # Temporary files
+*tmp/
 *.tmp
 *.swp
 *.swo
