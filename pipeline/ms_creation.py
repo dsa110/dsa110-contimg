@@ -31,6 +31,7 @@ import inspect
 def _load_uvh5_file(fnames: list, antenna_list: list = None, telescope_pos: EarthLocation = None):
     """
     Loads specific antennas from a list of uvh5 files and concatenates them.
+    Fixed to handle antennas with metadata but no actual visibility data.
     """
     if not fnames:
         logger.error("No filenames provided to _load_uvh5_file.")
@@ -39,84 +40,145 @@ def _load_uvh5_file(fnames: list, antenna_list: list = None, telescope_pos: Eart
     logger.info(f"Loading {len(fnames)} HDF5 files for one time chunk...")
     uvdata_obj = UVData() 
 
-    user_requested_antenna_names = None
+    # Step 1: Determine antennas that actually have data in ALL files
+    logger.info("Step 1: Determining antennas with actual data in ALL files...")
+    all_file_active_antennas = []
+    
+    for fname in fnames:
+        try:
+            temp_uvd = UVData()
+            with warnings.catch_warnings():
+                warnings.filterwarnings("ignore", message=r".*key .* is longer than 8 characters.*")
+                warnings.filterwarnings("ignore", message=r".*Telescope .* is not in known_telescopes.*")
+                temp_uvd.read(fname, file_type='uvh5', run_check=False)  # Read data this time
+            
+            # Find antennas that actually appear in baselines (have data)
+            active_antenna_numbers = np.unique(np.concatenate([temp_uvd.ant_1_array, temp_uvd.ant_2_array]))
+            
+            # Convert to antenna names using the file's antenna_names array
+            if hasattr(temp_uvd, 'antenna_names') and hasattr(temp_uvd, 'antenna_numbers'):
+                # Create mapping from antenna number to name
+                ant_num_to_name = {}
+                for i, (num, name) in enumerate(zip(temp_uvd.antenna_numbers, temp_uvd.antenna_names)):
+                    ant_num_to_name[num] = name
+                
+                # Get names of active antennas
+                active_antenna_names = []
+                for ant_num in active_antenna_numbers:
+                    if ant_num in ant_num_to_name:
+                        name = ant_num_to_name[ant_num]
+                        # Convert numeric names to pad format
+                        if name.isdigit():
+                            name = f"pad{name}"
+                        active_antenna_names.append(name)
+                
+                file_active_antennas = set(active_antenna_names)
+                all_file_active_antennas.append(file_active_antennas)
+                
+                logger.debug(f"File {os.path.basename(fname)}: {len(file_active_antennas)} antennas with data")
+                
+            else:
+                logger.error(f"Missing antenna metadata in {fname}")
+                return None
+                
+        except Exception as e:
+            logger.error(f"Failed to read antenna data from {fname}: {e}")
+            return None
+    
+    # Find antennas with data in ALL files
+    if all_file_active_antennas:
+        common_active_antennas = set.intersection(*all_file_active_antennas)
+        logger.info(f"Found {len(common_active_antennas)} antennas with data in all {len(fnames)} files")
+        
+        if len(common_active_antennas) == 0:
+            logger.error("No antennas have data in all frequency files!")
+            return None
+            
+        # Log antennas that have data in some files but not others
+        all_unique_active = set.union(*all_file_active_antennas)
+        inconsistent_antennas = all_unique_active - common_active_antennas
+        if inconsistent_antennas:
+            logger.warning(f"Antennas with inconsistent data availability (excluded): {sorted(list(inconsistent_antennas))}")
+    else:
+        logger.error("Failed to determine active antennas from any files")
+        return None
+
+    # Step 2: Apply user antenna selection to active antennas
     if antenna_list is not None:
         valid_indices = dsa110_utils.valid_antennas_dsa110 
-        valid_numbers = valid_indices + 1 
+        valid_numbers = valid_indices + 1  # Convert to 1-based
         antennas_to_request = [a for a in antenna_list if a in valid_numbers]
+        
         if len(antennas_to_request) < len(antenna_list):
             logger.warning(f"Filtered antenna list to {len(antennas_to_request)} valid antennas.")
         if not antennas_to_request:
             logger.error("No valid antennas specified in the filtered list.")
             return None
-        antenna_indices = [a - 1 for a in antennas_to_request]
-        user_requested_antenna_names = dsa110_utils.ant_inds_to_names_dsa110(antenna_indices)
-        logger.info(f"User requested antennas for selection: {list(user_requested_antenna_names) if user_requested_antenna_names is not None else 'all'}")
-
-    try:
-        logger.info(f"Attempting to read first file: {fnames[0]}")
-        current_keep_all_metadata = True
-        current_antenna_names_to_read = None # Read all antennas from the first file initially
+            
+        # Convert to pad names and intersect with active antennas
+        requested_antenna_names = set([f"pad{a}" for a in antennas_to_request])
+        final_antenna_names = list(common_active_antennas.intersection(requested_antenna_names))
         
-        # If user requested specific antennas, we can pass them to read with keep_all_metadata=False
-        # This is generally more efficient than reading all then selecting.
-        if user_requested_antenna_names is not None:
-            current_keep_all_metadata = False
-            current_antenna_names_to_read = user_requested_antenna_names
-            logger.info(f"Reading first file with antenna selection and keep_all_metadata=False.")
-        else:
-            logger.info(f"Reading first file with all antennas and keep_all_metadata=True.")
+        excluded_by_availability = requested_antenna_names - common_active_antennas
+        if excluded_by_availability:
+            logger.warning(f"Requested antennas without data in all files: {sorted(list(excluded_by_availability))}")
+            
+        if not final_antenna_names:
+            logger.error("No requested antennas have data in all frequency files!")
+            return None
+            
+        logger.info(f"Will select {len(final_antenna_names)} antennas: {sorted(final_antenna_names)[:10]}...")
+    else:
+        # Use all active antennas
+        final_antenna_names = list(common_active_antennas)
+        logger.info(f"Will use all {len(final_antenna_names)} antennas with data")
 
-
+    # Step 3: Read and process first file
+    try:
+        logger.info(f"Step 2: Reading first file: {fnames[0]}")
         with warnings.catch_warnings():
-            warnings.filterwarnings("ignore", message=r"key []* is longer than 8 characters[]*")
-            warnings.filterwarnings("ignore", message=r"Telescope []* is not in known_telescopes[]*")
+            warnings.filterwarnings("ignore", message=r".*key .* is longer than 8 characters.*")
+            warnings.filterwarnings("ignore", message=r".*Telescope .* is not in known_telescopes.*")
             uvdata_obj.read(
                 fnames[0], 
                 file_type='uvh5', 
-                antenna_names=current_antenna_names_to_read,
-                keep_all_metadata=current_keep_all_metadata, 
+                antenna_names=None,  # Read all first
+                keep_all_metadata=True, 
                 run_check=False
             ) 
-        logger.debug(f"Successfully executed read command for {fnames[0]}")
 
+        # Convert UVW array to float64
         if hasattr(uvdata_obj, 'uvw_array') and uvdata_obj.uvw_array is not None:
             if uvdata_obj.uvw_array.dtype != np.float64:
-                logger.debug(f"Original uvw_array dtype from {fnames[0]}: {uvdata_obj.uvw_array.dtype}. Converting to float64.")
                 uvdata_obj.uvw_array = uvdata_obj.uvw_array.astype(np.float64)
-        else:
-            logger.warning(f"uvw_array not present or is None after reading {fnames[0]}.")
 
-        logger.info(f"Running pyuvdata check on first file data ({fnames[0]})...")
+        # Fix antenna naming
+        if hasattr(uvdata_obj, 'antenna_names') and all(name.isdigit() for name in uvdata_obj.antenna_names):
+            uvdata_obj.antenna_names = [f"pad{name}" for name in uvdata_obj.antenna_names]
+
+        # Apply antenna selection - this should work now since we only select antennas with data
+        logger.info(f"Selecting antennas: {sorted(final_antenna_names)}")
+        uvdata_obj.select(antenna_names=final_antenna_names)
+        logger.info(f"Selected {uvdata_obj.Nants_data} antennas from first file")
+
+        # Run check
         uvdata_obj.check(check_extra=True, run_check_acceptability=True)
-        logger.info(f"pyuvdata check passed for first file data ({fnames[0]}).")
-        
-        #if hasattr(uvdata_obj, 'telescope') and hasattr(uvdata_obj.telescope, 'antenna_names'):
-        #    logger.debug(f"Telescope antenna names after first read: {uvdata_obj.antenna_names}")
-        if hasattr(uvdata_obj, 'antenna_names'): 
-             logger.debug(f"Top-level antenna names after first read: {uvdata_obj.antenna_names}")
-        else:
-            logger.warning("antenna_names attribute still MISSING after first read and check!")
         
     except Exception as e:
-        logger.error(f"Failed during initial read, uvw_conversion, check, or selection of HDF5 file {fnames[0]}: {e}", exc_info=True)
+        logger.error(f"Failed processing first file {fnames[0]}: {e}", exc_info=True)
         return None
 
-    if hasattr(uvdata_obj, 'uvw_array') and uvdata_obj.uvw_array is not None and uvdata_obj.uvw_array.dtype != np.float64:
-        logger.warning("Re-converting main uvdata_obj.uvw_array to float64 as a safeguard.")
-        uvdata_obj.uvw_array = uvdata_obj.uvw_array.astype(np.float64)
-
+    # Prepare for concatenation
     prec_t = -2 * np.floor(np.log10(uvdata_obj._time_array.tols[-1])).astype(int)
     prec_b = 8 
     try:
-        if uvdata_obj.time_array is None or uvdata_obj.baseline_array is None or len(uvdata_obj.time_array) == 0:
-             raise ValueError("Time or baseline array is missing/empty in the first file after processing.")
         ref_blts = np.array([f"{blt[1]:.{prec_t}f}_{blt[0]:0{prec_b}d}" for blt in zip(uvdata_obj.baseline_array, uvdata_obj.time_array)])
         ref_freq = np.copy(uvdata_obj.freq_array)
     except Exception as e:
-        logger.error(f"Error preparing baseline/time check arrays: {e}", exc_info=True)
+        logger.error(f"Error preparing reference arrays: {e}", exc_info=True)
         return None
 
+    # Step 4: Process remaining files
     uvdata_to_append = []
     for f_idx, f in enumerate(fnames[1:]):
         uvdataf = UVData()
@@ -125,84 +187,81 @@ def _load_uvh5_file(fnames: list, antenna_list: list = None, telescope_pos: Eart
             with warnings.catch_warnings():
                 warnings.filterwarnings("ignore", message=r".*key .* is longer than 8 characters.*")
                 warnings.filterwarnings("ignore", message=r".*Telescope .* is not in known_telescopes.*")
-                # For subsequent files, antenna_names and keep_all_metadata=False
-                uvdataf.read(f, file_type='uvh5', antenna_names=user_requested_antenna_names, keep_all_metadata=False, run_check=False) 
-            
-            if hasattr(uvdataf, 'uvw_array') and uvdataf.uvw_array is not None:
-                if uvdataf.uvw_array.dtype != np.float64:
-                    logger.debug(f"Converting uvw_array for {f} to float64.")
-                    uvdataf.uvw_array = uvdataf.uvw_array.astype(np.float64)
-            else:
-                logger.warning(f"uvw_array not present or is None after reading {f}.")
-            
-            logger.debug(f"Successfully read and processed subsequent file {f}")
+                uvdataf.read(f, file_type='uvh5', antenna_names=None, keep_all_metadata=False, run_check=False) 
 
-            if uvdataf.time_array is None or uvdataf.baseline_array is None or len(uvdataf.time_array) == 0:
-                raise ValueError(f"Time or baseline array is missing/empty in file {f}.")
+            # Convert UVW and fix naming
+            if hasattr(uvdataf, 'uvw_array') and uvdataf.uvw_array is not None:
+                uvdataf.uvw_array = uvdataf.uvw_array.astype(np.float64)
+
+            if hasattr(uvdataf, 'antenna_names') and all(name.isdigit() for name in uvdataf.antenna_names):
+                uvdataf.antenna_names = [f"pad{name}" for name in uvdataf.antenna_names]
+
+            # Select same antennas as first file
+            uvdataf.select(antenna_names=final_antenna_names)
+
+            # Check consistency
             add_blts = np.array([f"{blt[1]:.{prec_t}f}_{blt[0]:0{prec_b}d}" for blt in zip(uvdataf.baseline_array, uvdataf.time_array)])
             if not np.array_equal(add_blts, ref_blts):
-                logger.error(f"Baseline-time arrays do not match between {fnames[0]} and {f}. Skipping file.")
+                logger.error(f"Baseline-time arrays do not match. Skipping {f}")
                 continue 
 
             if len(np.intersect1d(ref_freq, uvdataf.freq_array)) > 0:
-                logger.error(f"File {f} appears to have overlapping frequencies with previous files. Skipping.")
+                logger.error(f"Overlapping frequencies detected. Skipping {f}")
                 continue 
 
             uvdata_to_append.append(uvdataf)
             ref_freq = np.concatenate((ref_freq, uvdataf.freq_array))
 
         except Exception as e:
-            logger.error(f"Failed to read or process HDF5 file {f}: {e}", exc_info=True)
+            logger.error(f"Failed processing {f}: {e}", exc_info=True)
             return None 
 
+    # Step 5: Concatenate and finalize
     try:
         if uvdata_to_append:
-            logger.info(f"Concatenating {len(uvdata_to_append)} additional frequency chunks.")
+            logger.info(f"Concatenating {len(uvdata_to_append)} frequency chunks.")
             with warnings.catch_warnings():
-                warnings.filterwarnings("ignore", message=r"key []* is longer than 8 characters[]*")
-                warnings.filterwarnings("ignore", message=r"Telescope []* is not in known_telescopes[]*")
+                warnings.filterwarnings("ignore", message=r".*key .* is longer than 8 characters.*")
+                warnings.filterwarnings("ignore", message=r".*Telescope .* is not in known_telescopes.*")
                 uvdata_obj.fast_concat(uvdata_to_append, axis='freq', inplace=True, run_check=False, check_extra=False, run_check_acceptability=False, strict_uvw_antpos_check=False)
-            logger.info("Concatenation complete. Running pyuvdata check...")
-            try:
-                uvdata_obj.check(check_extra=True, run_check_acceptability=True)
-                logger.info("pyuvdata check passed after concatenation.")
-            except Exception as e_check:
-                logger.error(f"pyuvdata check FAILED after concatenation: {e_check}", exc_info=True)
-                return None 
-    except Exception as e:
-        logger.error(f"Failed during frequency concatenation: {e}", exc_info=True)
-        return None
+            
+            uvdata_obj.check(check_extra=True, run_check_acceptability=True)
+            logger.info("Concatenation and check completed successfully.")
 
-    try:
         uvdata_obj.reorder_freqs(channel_order='freq', run_check=False)
+
+        # Set telescope location (same as before)
+        if telescope_pos is not None:
+            uvdata_obj.telescope_name = getattr(telescope_pos.info, 'name', 'Unknown') if hasattr(telescope_pos, 'info') else "Unknown"
+            try:
+                uvdata_obj.telescope_location = np.array([
+                    telescope_pos.itrs.x.value, telescope_pos.itrs.y.value, telescope_pos.itrs.z.value
+                ])
+            except:
+                itrs_coord = telescope_pos.transform_to('itrs')
+                uvdata_obj.telescope_location = np.array([
+                    itrs_coord.x.value, itrs_coord.y.value, itrs_coord.z.value
+                ])
+        else:
+            uvdata_obj.telescope_name = getattr(dsa110_utils.loc_dsa110.info, 'name', 'DSA-110') if hasattr(dsa110_utils.loc_dsa110, 'info') else "DSA-110"
+            try:
+                uvdata_obj.telescope_location = np.array([
+                    dsa110_utils.loc_dsa110.itrs.x.value, 
+                    dsa110_utils.loc_dsa110.itrs.y.value, 
+                    dsa110_utils.loc_dsa110.itrs.z.value
+                ])
+            except:
+                itrs_coord = dsa110_utils.loc_dsa110.transform_to('itrs')
+                uvdata_obj.telescope_location = np.array([
+                    itrs_coord.x.value, itrs_coord.y.value, itrs_coord.z.value
+                ])
+
+        logger.info(f"Finished loading data. Nbls: {uvdata_obj.Nbls}, Ntimes: {uvdata_obj.Ntimes}, Nfreqs: {uvdata_obj.Nfreqs}, Nants: {uvdata_obj.Nants_data}")
+        return uvdata_obj
+
     except Exception as e:
-        logger.error(f"Failed to reorder frequencies: {e}", exc_info=True)
+        logger.error(f"Failed during final processing: {e}", exc_info=True)
         return None
-
-    if telescope_pos is not None:
-        uvdata_obj.telescope_name = telescope_pos.info.name if hasattr(telescope_pos, 'info') and hasattr(telescope_pos.info, 'name') else "Unknown"
-        # Set telescope_location as a simple numpy array of XYZ values
-        uvdata_obj.telescope_location = np.array([
-            telescope_pos.itrs.x.value, telescope_pos.itrs.y.value, telescope_pos.itrs.z.value
-        ])
-    else:
-        uvdata_obj.telescope_name = dsa110_utils.loc_dsa110.info.name if hasattr(dsa110_utils.loc_dsa110, 'info') and hasattr(dsa110_utils.loc_dsa110.info, 'name') else "DSA-110"
-        # Set telescope_location as a simple numpy array of XYZ values
-        uvdata_obj.telescope_location = np.array([
-            dsa110_utils.loc_dsa110.itrs.x.value, dsa110_utils.loc_dsa110.itrs.y.value, dsa110_utils.loc_dsa110.itrs.z.value
-        ])
-        logger.warning("Using default DSA-110 location.")
-
-    if hasattr(uvdata_obj, 'antenna_names'):
-        logger.debug(f"Final top-level antenna names in _load_uvh5_file: {uvdata_obj.antenna_names}")
-    else:
-        logger.error("CRITICAL ERROR: antenna_names attribute MISSING (both top-level and telescope.antenna_names) before returning from _load_uvh5_file!")
-    
-    if hasattr(uvdata_obj, 'antenna_numbers'): 
-        logger.debug(f"Final antenna numbers (0-indexed internal IDs): {uvdata_obj.antenna_numbers}")
-
-    logger.info(f"Finished loading data. Nbls: {uvdata_obj.Nbls}, Ntimes: {uvdata_obj.Ntimes}, Nfreqs: {uvdata_obj.Nfreqs}, Nants: {uvdata_obj.Nants_data}")
-    return uvdata_obj
 
 def _compute_pointing_per_visibility(uvdata_obj: UVData, telescope_pos: EarthLocation):
     """
@@ -372,6 +431,23 @@ def _set_phase_centers(uvdata_obj: UVData, field_name_base: str, telescope_pos: 
     except Exception as e:
         logger.error(f"Failed to set phase centers using manual UVW calculation: {e}", exc_info=True)
         return None
+
+def _set_phase_centers_builtin(uvdata_obj: UVData, field_name_base: str, telescope_pos: EarthLocation):
+    """
+    Use pyuvdata's built-in phasing instead of manual UVW calculation
+    """
+    
+    # Calculate pointing coordinates
+    vis_coords = _compute_pointing_per_visibility(uvdata_obj, telescope_pos)
+    
+    # Use pyuvdata's phase_to_time method instead of manual calc
+    try:
+        uvdata_obj.phase_to_time(Time(uvdata_obj.time_array, format='jd'))
+        logger.info("Used pyuvdata built-in phasing method")
+        return uvdata_obj
+    except Exception as e:
+        logger.warning(f"Built-in phasing failed: {e}, falling back to manual method")
+        return _set_phase_centers(uvdata_obj, field_name_base, telescope_pos)
 
 def _make_calib_model(uvdata_obj: UVData, config: dict, telescope_pos: EarthLocation):
     """
@@ -671,7 +747,7 @@ def process_hdf5_set(config: dict, timestamp: str, hdf5_files: list):
         return None 
 
     field_name_base = "drift"
-    uvdata_obj = _set_phase_centers(uvdata_obj, field_name_base, dsa110_utils.loc_dsa110)
+    uvdata_obj = _set_phase_centers_builtin(uvdata_obj, field_name_base, dsa110_utils.loc_dsa110)
     if uvdata_obj is None:
         logger.error(f"Failed to set phase centers for {timestamp}. Skipping.")
         return None
