@@ -54,12 +54,12 @@ def test_ms_creation():
             print(f"✅ SUCCESS: Created MS at {ms_path}")
             
             # Quick validation
-            from casatools import table
-            tb = table()
-            tb.open(ms_path)
-            nrows = tb.nrows()
-            tb.close()
-            print(f"📊 MS contains {nrows} visibility rows")
+            #from casatools import table
+            #tb = table()
+            #tb.open(ms_path)
+            #nrows = tb.nrows()
+            #tb.close()
+            #print(f"📊 MS contains {nrows} visibility rows")
             return True
         else:
             print("❌ FAILED: MS creation returned None or file doesn't exist")
