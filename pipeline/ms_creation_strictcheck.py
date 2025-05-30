@@ -38,7 +38,6 @@ except ImportError:
     #    logger.info("Imported phasing utilities from pyuvdata.coordinates")
     #except ImportError as e:
     logger.error(f"CRITICAL ERROR: Could not import phasing utilities: {e}")
-    print(f"CRITICAL ERROR: Could not import phasing utilities: {e}")
     calc_app_coords, calc_frame_pos_angle, calc_uvw = None, None, None
     PHASING_MODULE_SOURCE = "NONE - IMPORT FAILED"
 
@@ -56,7 +55,6 @@ def _load_uvh5_file(fnames: list, antenna_list: list = None, telescope_pos: Eart
         return None
 
     logger.info(f"Loading {len(fnames)} HDF5 files for one time chunk...")
-    print(f"Loading {len(fnames)} HDF5 files for one time chunk...")
     uvdata_obj = UVData() 
 
     # Step 1: Determine antennas that actually have data in ALL files
@@ -72,9 +70,6 @@ def _load_uvh5_file(fnames: list, antenna_list: list = None, telescope_pos: Eart
                 warnings.filterwarnings("ignore", message=r".*uvw_array does not match.*")
                 temp_uvd.read(fname, file_type='uvh5', run_check=False)
             
-            print(temp_uvd.ant_1_array)
-            print(temp_uvd.ant_2_array)
-
             active_antenna_numbers = np.unique(np.concatenate([temp_uvd.ant_1_array, temp_uvd.ant_2_array]))
             
             # Updated for PyUVData 3.x: telescope object
@@ -94,29 +89,24 @@ def _load_uvh5_file(fnames: list, antenna_list: list = None, telescope_pos: Eart
                 file_active_antennas = set(active_antenna_names)
                 all_file_active_antennas.append(file_active_antennas)
                 logger.debug(f"File {os.path.basename(fname)}: {len(file_active_antennas)} antennas with data")
-                print(f"File {os.path.basename(fname)}: {len(file_active_antennas)} antennas with data")    
+                
             else:
                 logger.error(f"Missing telescope/antenna metadata in {fname}")
-                print(f"Missing telescope/antenna metadata in {fname}")
                 return None
                 
         except Exception as e:
             logger.error(f"Failed to read antenna data from {fname}: {e}")
-            print(f"Failed to read antenna data from {fname}: {e}")
             return None
     
     if all_file_active_antennas:
         common_active_antennas = set.intersection(*all_file_active_antennas)
         logger.info(f"Found {len(common_active_antennas)} antennas with data in all {len(fnames)} files")
-        print(f"Found {len(common_active_antennas)} antennas with data in all {len(fnames)} files") 
-
+        
         if len(common_active_antennas) == 0:
             logger.error("No antennas have data in all frequency files!")
-            print("No antennas have data in all frequency files!")
             return None
     else:
         logger.error("Failed to determine active antennas from any files")
-        print("Failed to determine active antennas from any files")
         return None
 
     # Step 2: Apply user antenna selection
@@ -127,10 +117,8 @@ def _load_uvh5_file(fnames: list, antenna_list: list = None, telescope_pos: Eart
         
         if len(antennas_to_request) < len(antenna_list):
             logger.warning(f"Filtered antenna list to {len(antennas_to_request)} valid antennas.")
-            print(f"Filtered antenna list to {len(antennas_to_request)} valid antennas.")
         if not antennas_to_request:
             logger.error("No valid antennas specified in the filtered list.")
-            print("No valid antennas specified in the filtered list.")
             return None
             
         requested_antenna_names = set([f"pad{a}" for a in antennas_to_request])
@@ -139,19 +127,15 @@ def _load_uvh5_file(fnames: list, antenna_list: list = None, telescope_pos: Eart
         excluded_by_availability = requested_antenna_names - common_active_antennas
         if excluded_by_availability:
             logger.warning(f"Requested antennas without data in all files: {sorted(list(excluded_by_availability))}")
-            print(f"Requested antennas without data in all files: {sorted(list(excluded_by_availability))}")
-
+            
         if not final_antenna_names:
             logger.error("No requested antennas have data in all frequency files!")
-            print("No requested antennas have data in all frequency files!")
             return None
             
         logger.info(f"Will select {len(final_antenna_names)} antennas: {sorted(final_antenna_names)[:10]}...")
-        print(f"Will select {len(final_antenna_names)} antennas: {sorted(final_antenna_names)[:10]}...")
     else:
         final_antenna_names = list(common_active_antennas)
         logger.info(f"Will use all {len(final_antenna_names)} antennas with data")
-        print(f"Will use all {len(final_antenna_names)} antennas with data")
 
     # Step 3: Read and process first file with comprehensive fixes
     try:
@@ -173,7 +157,6 @@ def _load_uvh5_file(fnames: list, antenna_list: list = None, telescope_pos: Eart
         original_name = getattr(uvdata_obj.telescope, 'name', 'UNKNOWN')
         uvdata_obj.telescope.name = standard_telescope_name
         logger.info(f"Standardized telescope name: '{original_name}' -> '{standard_telescope_name}'")
-        print(f"Standardized telescope name: '{original_name}' -> '{standard_telescope_name}'")
 
         # CRITICAL FIX 2: Set correct telescope location
         if telescope_pos is not None:
@@ -193,18 +176,15 @@ def _load_uvh5_file(fnames: list, antenna_list: list = None, telescope_pos: Eart
         if hasattr(uvdata_obj.telescope, 'location') and uvdata_obj.telescope.location is not None:
             current_loc = uvdata_obj.telescope.location
             logger.info(f"Telescope location set: {current_loc}")
-            print(f"Telescope location set: {current_loc}")
         
         # CRITICAL FIX 3: Fix antenna positions coordinate system
         if hasattr(uvdata_obj.telescope, 'antenna_positions') and uvdata_obj.telescope.antenna_positions is not None:
             max_ant_dist = np.sqrt(np.sum(uvdata_obj.telescope.antenna_positions**2, axis=1)).max()
             logger.info(f"Max antenna distance from center: {max_ant_dist:.1f} m")
-            print(f"Max antenna distance from center: {max_ant_dist:.1f} m")
             
             # Check if positions are in absolute ECEF coordinates
             if max_ant_dist > 1e6:  # > 1000 km suggests absolute coordinates
                 logger.warning("🚨 FIXING: Antenna positions are in absolute ECEF coordinates!")
-                print("🚨 FIXING: Antenna positions are in absolute ECEF coordinates!")
                 # Get telescope location in ITRS XYZ
                 tel_xyz = np.array([
                     uvdata_obj.telescope.location.itrs.x.value,
@@ -214,20 +194,17 @@ def _load_uvh5_file(fnames: list, antenna_list: list = None, telescope_pos: Eart
                 uvdata_obj.telescope.antenna_positions = uvdata_obj.telescope.antenna_positions - tel_xyz
                 new_max_dist = np.sqrt(np.sum(uvdata_obj.telescope.antenna_positions**2, axis=1)).max()
                 logger.info(f"✅ After fix: max antenna distance = {new_max_dist:.1f} m")
-                print(f"✅ After fix: max antenna distance = {new_max_dist:.1f} m") 
-
+            
             # Final check on antenna positions
             final_max_dist = np.sqrt(np.sum(uvdata_obj.telescope.antenna_positions**2, axis=1)).max()
             if final_max_dist > 50000:  # Still > 50 km
                 logger.error(f"Antenna positions still problematic after fix: {final_max_dist:.1f} m")
-                print(f"Antenna positions still problematic after fix: {final_max_dist:.1f} m")
                 return None
 
         # CRITICAL FIX 4: Fix antenna naming consistency
         if hasattr(uvdata_obj.telescope, 'antenna_names') and all(name.isdigit() for name in uvdata_obj.telescope.antenna_names):
             uvdata_obj.telescope.antenna_names = np.array([f"pad{name}" for name in uvdata_obj.telescope.antenna_names])
             logger.info("Fixed antenna naming to pad### format")
-            print("Fixed antenna naming to pad### format")
 
         # Convert UVW array to float64
         if hasattr(uvdata_obj, 'uvw_array') and uvdata_obj.uvw_array is not None:
@@ -236,27 +213,20 @@ def _load_uvh5_file(fnames: list, antenna_list: list = None, telescope_pos: Eart
 
         # Apply antenna selection
         logger.info(f"Selecting antennas: {sorted(final_antenna_names)}")
-        print(f"Selecting antennas: {sorted(final_antenna_names)}")
         uvdata_obj.select(antenna_names=final_antenna_names)
         logger.info(f"Selected {uvdata_obj.Nants_data} antennas from first file")
-        print(f"Selected {uvdata_obj.Nants_data} antennas from first file")
 
         # Run check with automatic conjugation fix
         logger.info("Running uvdata check with automatic conjugation correction...")
-        print("Running uvdata check with automatic conjugation correction...")
         try:
-            uvdata_obj.check(check_extra=False, run_check_acceptability=False, allow_flip_conj=True)
+            uvdata_obj.check(check_extra=True, run_check_acceptability=True, allow_flip_conj=True)
             logger.info("✅ UVData check passed (with automatic conjugation correction if needed)")
-            print("✅ UVData check passed (with automatic conjugation correction if needed)")
         except Exception as e_check:
             logger.warning(f"⚠️  UVData check failed: {e_check}")
-            print(f"⚠️  UVData check failed: {e_check}")
             logger.info("Continuing anyway...")
-            print("Continuing anyway...")
         
     except Exception as e:
         logger.error(f"Failed processing first file {fnames[0]}: {e}", exc_info=True)
-        print(f"Failed processing first file {fnames[0]}: {e}")
         return None
     
     # Prepare for concatenation
@@ -267,7 +237,6 @@ def _load_uvh5_file(fnames: list, antenna_list: list = None, telescope_pos: Eart
         ref_freq = np.copy(uvdata_obj.freq_array)
     except Exception as e:
         logger.error(f"Error preparing reference arrays: {e}", exc_info=True)
-        print(f"Error preparing reference arrays: {e}")
         return None
 
     # Process remaining files
@@ -307,16 +276,13 @@ def _load_uvh5_file(fnames: list, antenna_list: list = None, telescope_pos: Eart
             uvdataf.select(antenna_names=final_antenna_names)
 
             # Check baseline-time consistency
-            #add_blts = np.array([f"{blt[1]:.{prec_t}f}_{blt[0]:0{prec_b}d}" for blt in zip(uvdataf.baseline_array, uvdataf.time_array)])
-            add_blts = np.array(["{1:.{0}f}_".format(prec_t, blt[0])+str(blt[1]).zfill(prec_b) for blt in zip(uvdataf.time_array, uvdataf.baseline_array)])
+            add_blts = np.array([f"{blt[1]:.{prec_t}f}_{blt[0]:0{prec_b}d}" for blt in zip(uvdataf.baseline_array, uvdataf.time_array)])
             if not np.array_equal(add_blts, ref_blts):
                 logger.error(f"Baseline-time arrays do not match. Skipping {f}")
-                print(f"Baseline-time arrays do not match. Skipping {f}")
                 continue 
 
             if len(np.intersect1d(ref_freq, uvdataf.freq_array)) > 0:
                 logger.error(f"Overlapping frequencies detected. Skipping {f}")
-                print(f"Overlapping frequencies detected. Skipping {f}")
                 continue 
 
             uvdata_to_append.append(uvdataf)
@@ -324,7 +290,6 @@ def _load_uvh5_file(fnames: list, antenna_list: list = None, telescope_pos: Eart
 
         except Exception as e:
             logger.error(f"Failed processing {f}: {e}", exc_info=True)
-            print(f"Failed processing {f}: {e}")
             return None 
 
     # Concatenate and finalize
@@ -340,16 +305,13 @@ def _load_uvh5_file(fnames: list, antenna_list: list = None, telescope_pos: Eart
                     uvdata_to_append, 
                     axis='freq', 
                     inplace=True, 
-                    verbose_history=True,
                     run_check=False, 
                     check_extra=False, 
                     run_check_acceptability=False, 
-                    strict_uvw_antpos_check=False,
-                    ignore_name=True
+                    strict_uvw_antpos_check=False
                 )
             
             logger.info("Concatenation completed successfully.")
-            print("Concatenation completed successfully.")
             
             # Run a more lenient final check with automatic conjugation fix
             try:
@@ -370,10 +332,9 @@ def _load_uvh5_file(fnames: list, antenna_list: list = None, telescope_pos: Eart
             final_uvw_max = np.max(np.abs(uvdata_obj.uvw_array))
             final_ant_max = np.sqrt(np.sum(uvdata_obj.telescope.antenna_positions**2, axis=1)).max()
             logger.info(f"Final validation - UVW max: {final_uvw_max:.1f} m, Antenna max: {final_ant_max:.1f} m")
-            print(f"Final validation - UVW max: {final_uvw_max:.1f} m, Antenna max: {final_ant_max:.1f} m") 
+            
             if final_uvw_max > 20 * final_ant_max:
                 logger.warning(f"Large UVW/antenna ratio detected, but proceeding...")
-                print(f"Large UVW/antenna ratio detected, but proceeding...")
 
         return uvdata_obj
 
@@ -712,12 +673,12 @@ def _write_ms(uvdata_obj: UVData, uvcalib: UVData, ms_outfile_base: str, protect
     # Run final check with automatic conjugation correction
     try:
         logger.info("Running final pyuvdata check on uvdata_obj before writing MS...")
-        uvdata_obj.check(check_extra=False, run_check_acceptability=False, allow_flip_conj=True)
+        uvdata_obj.check(check_extra=True, run_check_acceptability=True, allow_flip_conj=True)
         logger.info("Final pyuvdata check passed for uvdata_obj.")
         
         if uvcalib is not None:
             logger.info("Running final pyuvdata check on uvcalib (model) object...")
-            uvcalib.check(check_extra=False, run_check_acceptability=False, allow_flip_conj=True) 
+            uvcalib.check(check_extra=True, run_check_acceptability=True, allow_flip_conj=True) 
             logger.info("Final pyuvdata check passed for uvcalib (model) object.")
     except Exception as e_final_check:
         logger.error(f"Final pyuvdata check FAILED before MS write: {e_final_check}", exc_info=True)
@@ -894,7 +855,7 @@ def process_hdf5_set(config: dict, timestamp: str, hdf5_files: list):
         max_ant_dist = np.sqrt(np.sum(uvdata_obj.telescope.antenna_positions**2, axis=1)).max()
         print(f"Max antenna distance from center: {max_ant_dist:.1f} m")
         
-        if max_ant_dist > 1e5:  # > 100 km = absolute coordinates
+        if max_ant_dist > 1e6:  # > 1000 km = absolute coordinates
             print("🚨 PROBLEM FOUND: Antenna positions are in ABSOLUTE ECEF coordinates!")
             print("🔧 APPLYING FIX: Converting to relative coordinates...")
             
@@ -921,32 +882,27 @@ def process_hdf5_set(config: dict, timestamp: str, hdf5_files: list):
     
     # Try multiple phasing approaches in order of preference
     phasing_methods = [
-        #("simple", _set_phase_centers_simple),
-        #("manual", _set_phase_centers),  
+        ("simple", _set_phase_centers_simple),
+        ("manual", _set_phase_centers),  
         ("builtin", _set_phase_centers_builtin)
     ]
     
     uvdata_obj_phased = None
     for method_name, method_func in phasing_methods:
         logger.info(f"Attempting {method_name} phasing method...")
-        print(f"Attempting {method_name} phasing method...")
         try:
             uvdata_obj_phased = method_func(uvdata_obj, field_name_base, dsa110_utils.loc_dsa110)
             if uvdata_obj_phased is not None:
                 logger.info(f"Successfully used {method_name} phasing method")
-                print(f"Successfully used {method_name} phasing method")
                 break
             else:
                 logger.warning(f"{method_name} phasing method returned None")
-                print(f"{method_name} phasing method returned None")
         except Exception as e:
             logger.warning(f"{method_name} phasing method failed: {e}")
-            print(f"{method_name} phasing method failed: {e}")
             continue
     
     if uvdata_obj_phased is None:
         logger.error(f"All phasing methods failed for {timestamp}. Skipping.")
-        print(f"All phasing methods failed for {timestamp}. Skipping.")
         return None
 
     uvmodel_for_ms = _make_calib_model(uvdata_obj_phased, config, dsa110_utils.loc_dsa110) 

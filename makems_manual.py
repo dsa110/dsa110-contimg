@@ -204,8 +204,8 @@ if __name__ == "__main__":
     hdf5_dir = config['paths']['hdf5_incoming']  # Or specify directly: "/data/incoming/"
     
     # Specify your time range (format: YYYYMMDDTHHMMSS)
-    start_time = "20250529T055500"  # Start of search range  
-    end_time = "20250529T065500"    # End of search range
+    start_time = "20250529T055000"  # Start of search range  
+    end_time = "20250529T070000"    # End of search range
     
     # Tolerance for grouping files together (in minutes)
     tolerance_minutes = 3  # Files within +/- 3 minutes will be grouped
