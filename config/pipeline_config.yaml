@@ -44,6 +44,8 @@ ms_creation:
   same_timestamp_tolerance: 120.0
   # Spectral windows (SPWs) to include from HDF5
   spws: ['sb00','sb01','sb02','sb03','sb04','sb05','sb06','sb07','sb08','sb09','sb10','sb11','sb12','sb13','sb14','sb15']
+  check_coordinate_systems: true  # Enable coordinate system validation
+  fix_antenna_positions: true     # Auto-fix antenna position reference frame
 
 # --- Calibration Parameters (calibration.py) ---
 calibration:
