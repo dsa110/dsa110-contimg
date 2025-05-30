@@ -60,7 +60,7 @@ def test_ms_creation():
             #nrows = tb.nrows()
             #tb.close()
             #print(f"📊 MS contains {nrows} visibility rows")
-            #return True
+            return True
         else:
             print("❌ FAILED: MS creation returned None or file doesn't exist")
             return False
