@@ -119,7 +119,7 @@ def load_uvh5_file(fname: str, antenna_list: list = None, telescope_pos: EarthLo
         warnings.filterwarnings("ignore", message=r"Telescope []* is not in known_telescopes[]*")
         # keep_all_metadata removes the unused antennas
         uvdata.read(fname[0], file_type='uvh5', antenna_names=antenna_list, keep_all_metadata=False,
-                    run_check=False, strict_uvw_antpos_check=False)
+                    run_check=False)
 
     # pyuvdata really wants uvw_array to be float64:
     uvdata.uvw_array = uvdata.uvw_array.astype(np.float64)
@@ -142,7 +142,7 @@ def load_uvh5_file(fname: str, antenna_list: list = None, telescope_pos: EarthLo
             warnings.filterwarnings("ignore", message=r"Telescope []* is not in known_telescopes[]*")
             # keep_all_metadata removes the unused antennas
             uvdataf.read(f, file_type='uvh5', antenna_names=antenna_list, keep_all_metadata=False,
-                    run_check=False, strict_uvw_antpos_check=False)
+                    run_check=False)
         uvdataf.uvw_array = uvdataf.uvw_array.astype(np.float64)
 
         # Compare baseline-time arrays
@@ -164,12 +164,12 @@ def load_uvh5_file(fname: str, antenna_list: list = None, telescope_pos: EarthLo
     # Update frequency ordering
     uvdata.reorder_freqs(channel_order='freq', run_check=False)
 
-    # Name telescope - Updated for PyUVData 3.2.1
+    # Name telescope
     if telescope_pos is not None:
-        uvdata.telescope.name = telescope_pos.info.name
+        uvdata.telescope_name = telescope_pos.info.name
 
-    # Rename antennas to differentiate from index number more clearly - Already correct format
-    uvdata.telescope.antenna_names = ['pad'+n for n in uvdata.telescope.antenna_names]
+    # Rename antennas to differentiate from index number more clearly
+    uvdata.antenna_names = ['pad'+n for n in uvdata.antenna_names]
 
     return uvdata
 
@@ -258,9 +258,9 @@ def set_phases(uvdata: UVData, field_name: str, telescope_pos: EarthLocation, ve
         selection = np.nonzero((vis_coords.ra.rad==center.ra.rad) & (vis_coords.dec.rad==center.dec.rad))
 
         # Compute apparent coordinates and position angle for frame        
-        new_app_ra, new_app_dec = uvutils.phasing.calc_app_coords(
-            lon_coord=uvdata.phase_center_catalog[new_cat_id]["cat_lon"],
-            lat_coord=uvdata.phase_center_catalog[new_cat_id]["cat_lat"],
+        new_app_ra, new_app_dec = uvutils.calc_app_coords(
+            uvdata.phase_center_catalog[new_cat_id]["cat_lon"],
+            uvdata.phase_center_catalog[new_cat_id]["cat_lat"],
             coord_frame=uvdata.phase_center_catalog[new_cat_id]["cat_frame"],
             coord_epoch=uvdata.phase_center_catalog[new_cat_id]["cat_epoch"],
             coord_times=uvdata.phase_center_catalog[new_cat_id]["cat_times"],
@@ -271,33 +271,32 @@ def set_phases(uvdata: UVData, field_name: str, telescope_pos: EarthLocation, ve
             pm_dec=uvdata.phase_center_catalog[new_cat_id]["cat_pm_dec"],
             vrad=uvdata.phase_center_catalog[new_cat_id]["cat_vrad"],
             dist=uvdata.phase_center_catalog[new_cat_id]["cat_dist"],
-            telescope_loc=uvdata.telescope.location_lat_lon_alt,
-            telescope_frame=uvdata.telescope._location.frame,
+            telescope_loc=uvdata.telescope_location_lat_lon_alt,
+            telescope_frame=uvdata._telescope_location.frame,
         )
-        new_frame_pa = uvutils.phasing.calc_frame_pos_angle(
-            time_array=uvdata.time_array[selection],
-            app_ra=new_app_ra,
-            app_dec=new_app_dec,
-            telescope_loc=uvdata.telescope.location_lat_lon_alt,
-            ref_frame=uvdata.phase_center_catalog[new_cat_id]["cat_frame"],
+        new_frame_pa = uvutils.calc_frame_pos_angle(
+            uvdata.time_array[selection],
+            new_app_ra,
+            new_app_dec,
+            uvdata.telescope_location_lat_lon_alt,
+            uvdata.phase_center_catalog[new_cat_id]["cat_frame"],
             ref_epoch=uvdata.phase_center_catalog[new_cat_id]["cat_epoch"],
-            telescope_frame=uvdata.telescope._location.frame,
+            telescope_frame=uvdata._telescope_location.frame,
         )
 
         # Calculate new uvw coordinates from the antenna positions plus the pointing
-        # Updated for PyUVData 3.2.1 - use telescope object for antenna data
-        new_uvw = uvutils.phasing.calc_uvw(
+        new_uvw = uvutils.calc_uvw(
             app_ra=new_app_ra,
             app_dec=new_app_dec,
             frame_pa=new_frame_pa,
             lst_array=uvdata.lst_array[selection],
             use_ant_pos=True,
-            antenna_positions=uvdata.telescope.antenna_positions,
-            antenna_numbers=uvdata.telescope.antenna_numbers,
+            antenna_positions=uvdata.antenna_positions,
+            antenna_numbers=uvdata.antenna_numbers,
             ant_1_array=uvdata.ant_1_array[selection],
             ant_2_array=uvdata.ant_2_array[selection],
-            telescope_lat=uvdata.telescope.location_lat_lon_alt[0],
-            telescope_lon=uvdata.telescope.location_lat_lon_alt[1],
+            telescope_lat=uvdata.telescope_location_lat_lon_alt[0],
+            telescope_lon=uvdata.telescope_location_lat_lon_alt[1],
         )
 
         # Set all of this information for the selected data    
@@ -558,7 +557,7 @@ def load_uvh5_file_v1(fname: str, antenna_list: list = None, telescope_pos: Eart
         warnings.filterwarnings("ignore", message=r"key []* is longer than 8 characters[]*")
         warnings.filterwarnings("ignore", message=r"Telescope []* is not in known_telescopes[]*")
         uvdata.read(fname[0], file_type='uvh5', antenna_names=antenna_list,
-                    run_check=False, strict_uvw_antpos_check=False)
+                    run_check=False)
 
 
     # pyuvdata really wants uvw_array to be float64:
@@ -573,18 +572,19 @@ def load_uvh5_file_v1(fname: str, antenna_list: list = None, telescope_pos: Eart
             warnings.filterwarnings("ignore", message=r"key []* is longer than 8 characters[]*")
             warnings.filterwarnings("ignore", message=r"Telescope []* is not in known_telescopes[]*")
             uvdataf.read(f, file_type='uvh5', antenna_names=antenna_list,
-                    run_check=False, strict_uvw_antpos_check=False)
+                    run_check=False)
         uvdataf.uvw_array = uvdataf.uvw_array.astype(np.float64)
 
         with warnings.catch_warnings():
             warnings.filterwarnings("ignore", message=r"key []* is longer than 8 characters[]*")
             uvdata.__add__(uvdataf, inplace=True, run_check=False, check_extra=False, run_check_acceptability=False, strict_uvw_antpos_check=False, ignore_name=True)
 
-    # Name telescope - Updated for PyUVData 3.2.1
+    # Name telescope
     if telescope_pos is not None:
-        uvdata.telescope.name = telescope_pos.info.name
+        uvdata.telescope_name = telescope_pos.info.name
 
-    # Rename antennas to differentiate from index number more clearly - Updated for PyUVData 3.2.1
-    uvdata.telescope.antenna_names = ['pad'+n for n in uvdata.telescope.antenna_names]
+    # Rename antennas to differentiate from index number more clearly
+    uvdata.antenna_names = ['pad'+n for n in uvdata.antenna_names]
 
     return uvdata
+

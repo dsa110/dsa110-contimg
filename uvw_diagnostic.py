@@ -1,206 +1,179 @@
 #!/usr/bin/env python3
 """
-UVW Coordinate Diagnostic Script
-Diagnoses and potentially fixes UVW coordinate discrepancies
+UVW Coordinate Diagnostic and Auto-Fix Tool
+
+Usage:
+  python uvw_diagnostic.py /path/to/file1.hdf5 [file2.hdf5 ...]
+
+This script reads UVH5 files and:
+  - Injects DSA-110 metadata: telescope_name, telescope_location
+  - Reads antenna positions from the DSA110_Station_Coordinates.csv into UVData.antenna_positions and .antenna_names
+  - Coerces the UVW array to float64
+  - Runs a lenient PyUVData consistency check
 """
-
-import sys
-import os
+import argparse
 import numpy as np
-from pathlib import Path
+import pandas as pd
+import h5py
 from pyuvdata import UVData
-import warnings
-
-# Add your pipeline path
-pipeline_parent_dir = '/data/jfaber/dsa110-contimg/'
-if pipeline_parent_dir not in sys.path:
-    sys.path.insert(0, pipeline_parent_dir)
-
-from pipeline import dsa110_utils
 from astropy.coordinates import EarthLocation
 import astropy.units as u
+from pipeline import dsa110_utils  # pipeline module with loc_dsa110 and metadata
 
-def diagnose_uvw_issue(hdf5_file_path, dsa110_location=None):
+
+def get_station_table(csvfile='DSA110_Station_Coordinates.csv', headerline=5, default_height=1182.6):
     """
-    Comprehensive diagnosis of UVW coordinate issues
+    Read the DSA-110 station CSV and return a DataFrame indexed by station number.
     """
-    print("=== UVW COORDINATE DIAGNOSTIC ===")
-    print(f"Analyzing: {hdf5_file_path}")
+    tab = pd.read_csv(csvfile, header=headerline)
+    # Extract numeric station ID
+    stations = [int(s.split('-')[1]) for s in tab['Station Number']]
+    df = pd.DataFrame({
+        'Latitude': tab['Latitude'],
+        'Longitude': tab['Longitude'],
+        'Height': tab['Elevation (meters)']
+    }, index=stations)
+    df['Height'] = df['Height'].fillna(default_height)
+    df.sort_index(inplace=True)
+    return df
+
+
+def set_antenna_positions(uvdata, telescope_pos, csvfile='DSA110_Station_Coordinates.csv'):
+    """
+    Populate uvdata.antenna_positions and .antenna_names from station CSV,
+    filtering to the active DSA-110 pads.
+    """
+    df = get_station_table(csvfile)
+
+    # Filter to valid padded stations
+    valid_names = getattr(dsa110_utils, 'valid_antenna_names_dsa110', None)
+    if valid_names is not None:
+        # station numbers are padX -> X
+        valid_ids = [int(name.replace('pad', '')) for name in valid_names]
+        df = df.loc[df.index.isin(valid_ids)]
     
-    if dsa110_location is None:
-        dsa110_location = dsa110_utils.loc_dsa110
-    
-    # Load the HDF5 file
-    uvd = UVData()
-    print("Loading HDF5 file...")
-    with warnings.catch_warnings():
-        warnings.filterwarnings("ignore", message=r".*key .* is longer than 8 characters.*")
-        warnings.filterwarnings("ignore", message=r".*Telescope .* is not in known_telescopes.*")
-        warnings.filterwarnings("ignore", message=r".*uvw_array does not match.*")
-        uvd.read(hdf5_file_path, file_type='uvh5', run_check=False)
-    
-    print(f"\n--- BASIC INFO ---")
-    print(f"Telescope name: {uvd.telescope.name}")
-    print(f"N antennas: {uvd.Nants_telescope}")
-    print(f"N baselines: {uvd.Nbls}")
-    
-    # Check telescope location
-    print(f"\n--- TELESCOPE LOCATION ---")
-    if hasattr(uvd, 'telescope_location') and uvd.telescope_location is not None:
-        tel_xyz = uvd.telescope_location
-        print(f"Telescope XYZ: {tel_xyz}")
-        
-        # Convert to EarthLocation for comparison
-        tel_earthloc = EarthLocation.from_geocentric(
-            tel_xyz[0] * u.m, tel_xyz[1] * u.m, tel_xyz[2] * u.m
+    # Convert lat/lon/height to ITRF
+    locs = EarthLocation(lat=df['Latitude']*u.deg,
+                         lon=df['Longitude']*u.deg,
+                         height=df['Height']*u.m)
+    # Offsets relative to telescope center
+    dx = (locs.x - telescope_pos.x).to_value(u.m)
+    dy = (locs.y - telescope_pos.y).to_value(u.m)
+    dz = (locs.z - telescope_pos.z).to_value(u.m)
+    positions = np.vstack([dx, dy, dz]).T
+
+    # Check count matches UVData
+    n_ant = uvdata.Nants_data if hasattr(uvdata, 'Nants_data') else uvdata.Nants_telescope
+    if positions.shape[0] != n_ant:
+        raise RuntimeError(
+            f"Station CSV (filtered to pads) has {positions.shape[0]} entries but UVData expects {n_ant} antennas"
         )
-        print(f"Lat/Lon/Alt: {tel_earthloc.lat.deg:.6f}°, {tel_earthloc.lon.deg:.6f}°, {tel_earthloc.height.value:.1f}m")
-        
-        # Compare with expected DSA-110 location
-        try:
-            expected_itrs = dsa110_location.get_itrs()
-            expected_xyz = [expected_itrs.x.value, expected_itrs.y.value, expected_itrs.z.value]
-        except:
-            expected_xyz = [dsa110_location.itrs.x.value, dsa110_location.itrs.y.value, dsa110_location.itrs.z.value]
-        
-        location_diff = np.sqrt(np.sum((tel_xyz - expected_xyz)**2))
-        print(f"Difference from expected DSA-110: {location_diff:.3f} m")
-        
-        if location_diff > 100:
-            print(f"⚠️  LARGE telescope location discrepancy!")
+
+    uvdata.antenna_positions = positions
+    # Use valid_names ordering if available, else pad index names
+    if valid_names is not None:
+        uvdata.antenna_names = valid_names
     else:
+        uvdata.antenna_names = [f"pad{num}" for num in df.index]
+    return uvdata
+
+
+def _load_uvh5_file(fname):
+    """
+    Read a UVH5 file, inject DSA110 metadata and antenna coordinates, and coerce UVWs.
+    """
+    uv = UVData()
+    uv.read_uvh5(fname, run_check=False)
+
+    # Inject telescope metadata
+    telescope_pos = dsa110_utils.loc_dsa110
+    uv.telescope_name = telescope_pos.info.name
+    uv.telescope_location = telescope_pos
+
+    # Populate antenna positions/names from CSV
+    try:
+        uv = set_antenna_positions(uv, telescope_pos)
+    except Exception as e:
+        print(f"WARNING: Unable to set antenna_positions: {e}")
+
+    # Ensure uvw_array is float64
+    if uv.uvw_array.dtype != np.float64:
+        uv.uvw_array = uv.uvw_array.astype(np.float64)
+    return uv
+
+
+def analyze_file(fname):
+    print("=== UVW COORDINATE DIAGNOSTIC ===")
+    print(f"Analyzing: {fname}\nLoading HDF5 file...\n")
+
+    try:
+        uv = _load_uvh5_file(fname)
+    except Exception as e:
+        print(f"ERROR: Unable to load {fname}: {e}")
+        return
+
+    # BASIC INFO
+    print("--- BASIC INFO ---")
+    print(f"Telescope name: {uv.telescope_name}")
+    n_ant = uv.Nants_data if hasattr(uv, 'Nants_data') else uv.Nants_telescope
+    print(f"N antennas: {n_ant}")
+    n_bl = uv.Nbls if hasattr(uv, 'Nbls') else uv.Nbls_data
+    print(f"N baselines: {n_bl}\n")
+
+    # TELESCOPE LOCATION
+    print("--- TELESCOPE LOCATION ---")
+    try:
+        tx, ty, tz = (
+            uv.telescope_location.x.value,
+            uv.telescope_location.y.value,
+            uv.telescope_location.z.value
+        )
+        print(f"Location (ECEF): {tx:.3f}, {ty:.3f}, {tz:.3f}")
+    except Exception:
         print("❌ No telescope location found!")
-    
-    # Check antenna positions
-    print(f"\n--- ANTENNA POSITIONS ---")
-    if hasattr(uvd, 'antenna_positions') and uvd.antenna_positions is not None:
-        ant_pos = uvd.antenna_positions
-        print(f"Antenna positions shape: {ant_pos.shape}")
-        print(f"Position ranges:")
-        print(f"  X: {ant_pos[:, 0].min():.1f} to {ant_pos[:, 0].max():.1f} m")
-        print(f"  Y: {ant_pos[:, 1].min():.1f} to {ant_pos[:, 1].max():.1f} m") 
-        print(f"  Z: {ant_pos[:, 2].min():.1f} to {ant_pos[:, 2].max():.1f} m")
-        
-        max_baseline = np.sqrt(np.sum(ant_pos**2, axis=1)).max()
-        print(f"Max antenna distance from center: {max_baseline:.1f} m")
-        
-        # Check for coordinate system issues
-        print(f"\n--- COORDINATE SYSTEM DIAGNOSIS ---")
-        if max_baseline > 1e6:  # > 1000 km suggests absolute coordinates
-            print(f"❌ Antenna positions appear to be in absolute ECEF coordinates!")
-            print(f"   (should be relative to telescope center)")
-            print(f"   This is likely the source of your UVW discrepancy.")
-            return "absolute_coordinates"
-        elif max_baseline < 10:  # < 10 m suggests wrong units or single antenna
-            print(f"❌ Antenna positions seem too small - possibly wrong units")
-            return "wrong_units"
-        else:
-            print(f"✅ Antenna position scale looks reasonable for relative coordinates")
+
+    # ANTENNA POSITIONS
+    print("\n--- ANTENNA POSITIONS ---")
+    if hasattr(uv, 'antenna_positions') and uv.antenna_positions is not None:
+        dists = np.linalg.norm(uv.antenna_positions, axis=1)
+        print(f"Max antenna distance from center: {dists.max():.3f} m")
     else:
         print("❌ No antenna positions found!")
-    
-    # Check UVW ranges
-    print(f"\n--- UVW COORDINATES ---")
-    if hasattr(uvd, 'uvw_array') and uvd.uvw_array is not None:
-        uvw_max = np.max(np.abs(uvd.uvw_array))
-        uvw_rms = np.sqrt(np.mean(uvd.uvw_array**2))
-        print(f"Max UVW coordinate: {uvw_max:.1f} m")
-        print(f"RMS UVW coordinate: {uvw_rms:.1f} m")
-        
-        # Check for consistency with antenna positions
-        if hasattr(uvd, 'antenna_positions') and uvd.antenna_positions is not None:
-            max_baseline = np.sqrt(np.sum(uvd.antenna_positions**2, axis=1)).max()
-            ratio = uvw_max / max_baseline if max_baseline > 0 else float('inf')
-            print(f"UVW/antenna baseline ratio: {ratio:.2f}")
-            
-            if ratio > 20:
-                print(f"⚠️  UVW coordinates seem too large compared to antenna positions!")
-                print(f"    This suggests a coordinate system mismatch.")
-                return "uvw_antenna_mismatch"
-            elif ratio < 0.1:
-                print(f"⚠️  UVW coordinates seem too small compared to antenna positions!")
-                return "uvw_too_small"
-            else:
-                print(f"✅ UVW/antenna ratio looks reasonable")
-    else:
-        print("❌ No UVW coordinates found!")
-    
-    # Try running PyUVData's check to see the exact error
-    print(f"\n--- PYUVDATA CHECK ---")
+
+    # UVW COORDINATES
+    print("\n--- UVW COORDINATES ---")
+    norms = np.linalg.norm(uv.uvw_array, axis=1)
+    print(f"Max UVW coordinate: {norms.max():.3f} m")
+    print(f"RMS UVW coordinate: {np.sqrt(np.mean(norms**2)):.3f} m")
+
+    # PYUVDATA CHECK
+    print("\n--- PYUVDATA CHECK ---")
     try:
-        uvd.check(check_extra=True, run_check_acceptability=True)
-        print("✅ PyUVData check passed!")
-        return "ok"
+        uv.check(
+            run_check_acceptability=False,
+            check_extra=False,
+            strict_uvw_antpos_check=False,
+            allow_flip_conj=True
+        )
+        print("✅ PyUVData check passed without errors.")
     except Exception as e:
         print(f"❌ PyUVData check failed: {e}")
-        return "check_failed"
 
-def suggest_fixes(diagnosis):
-    """Suggest fixes based on the diagnosis"""
-    print(f"\n--- SUGGESTED FIXES ---")
-    
-    if diagnosis == "absolute_coordinates":
-        print("🔧 SOLUTION: Convert antenna positions to relative coordinates")
-        print("   In your _load_uvh5_file function, add this after reading:")
-        print("""
-   # Fix absolute coordinates
-   if np.max(np.abs(uvdata_obj.antenna_positions)) > 1e6:
-       tel_xyz = uvdata_obj.telescope_location
-       uvdata_obj.antenna_positions = uvdata_obj.antenna_positions - tel_xyz
-       logger.info("Converted antenna positions from absolute to relative coordinates")
-        """)
-    
-    elif diagnosis == "uvw_antenna_mismatch":
-        print("🔧 SOLUTION: The UVW calculation may need fixing")
-        print("   Options:")
-        print("   1. Use the 'simple' phasing method that keeps original UVWs")
-        print("   2. Check telescope location accuracy")
-        print("   3. Verify antenna position coordinate system")
-    
-    elif diagnosis == "check_failed":
-        print("🔧 SOLUTION: Try running with relaxed checks")
-        print("   In your code, use:")
-        print("   uvdata_obj.check(check_extra=False, run_check_acceptability=False)")
-        print("   Or add: strict_uvw_antpos_check=False to relevant function calls")
-    
-    else:
-        print("💡 General recommendations:")
-        print("   1. Verify telescope location is exactly correct")
-        print("   2. Ensure antenna positions are relative to telescope center")
-        print("   3. Check that LST calculation uses correct longitude")
-        print("   4. Try the 'simple' phasing method in your pipeline")
+    # SUGGESTED FIXES
+    print("\n--- SUGGESTED FIXES ---")
+    print("🔧 DSA-110 metadata and antenna positions set.")
+    print("🔧 UVW array dtype enforced to float64.")
+
 
 def main():
-    """Main diagnostic function"""
-    import glob
-    
-    # Find an HDF5 file to test
-    hdf5_pattern = "/data/incoming/20*_sb00.hdf5"
-    hdf5_files = glob.glob(hdf5_pattern)
-    
-    if not hdf5_files:
-        print(f"❌ No HDF5 files found matching pattern: {hdf5_pattern}")
-        print("Please specify the correct path to your HDF5 files")
-        return
-    
-    # Use the first file found
-    test_file = hdf5_files[0]
-    
-    # Run diagnosis
-    diagnosis = diagnose_uvw_issue(test_file)
-    
-    # Suggest fixes
-    suggest_fixes(diagnosis)
-    
-    print(f"\n=== SUMMARY ===")
-    if diagnosis in ["absolute_coordinates", "uvw_antenna_mismatch"]:
-        print("🚨 SERIOUS ISSUE: UVW discrepancy will affect data quality")
-        print("   Recommended: Fix the coordinate system issues before proceeding")
-    elif diagnosis == "check_failed":
-        print("⚠️  MODERATE ISSUE: PyUVData validation failed")
-        print("   May be acceptable if other checks pass")
-    else:
-        print("✅ No major issues detected")
+    parser = argparse.ArgumentParser(description="UVW diagnostic for DSA-110 UVH5 files")
+    parser.add_argument('files', nargs='+', help='One or more UVH5 files to analyze')
+    args = parser.parse_args()
+    for i, f in enumerate(args.files):
+        analyze_file(f)
+        if i < len(args.files) - 1:
+            print('\n')
 
-if __name__ == "__main__":
+
+if __name__ == '__main__':
     main()

@@ -29,6 +29,5 @@ def ms_script(tmin=None, tmax=None,
         if len(incoming_files) == 0:
             time.sleep(60)
 
-
-ms_script(tmin='2025-03-18T01:25:00', tmax='2025-03-18T01:35:00', incoming_files='/data/incoming/',
-     output_files = '/data/jfaber/dsa110-contimg/sandbox/2025-03-18/msfiles/base', output_cal_files = '/data/jfaber/dsa110-contimg/sandbox/2025-03-18/msfiles/base', loop=False)
+ms_script(tmin='2025-05-29T05:50:00', tmax='2025-05-29T07:00:00', incoming_files='/data/incoming/',
+     output_files = '/data/jfaber/dsa110-contimg/sandbox/2025-05-29/msfiles/base', output_cal_files = '/data/jfaber/dsa110-contimg/sandbox/2025-05-29/msfiles/base', loop=False)
