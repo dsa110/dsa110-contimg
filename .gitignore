@@ -1,6 +1,11 @@
 # Ignore old files
 *old*/
 
+# Ignore HDF5 files (large data files)
+*.hdf5
+*.h5
+*.hdf
+
 # Ignore CASA Measurement Sets (.ms)
 *.ms/
 *.flagversions/
@@ -83,4 +88,3 @@ env/
 
 # Pyre type checker
 .pyre/
-
