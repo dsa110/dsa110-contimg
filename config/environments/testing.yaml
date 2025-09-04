@@ -1,0 +1,133 @@
+# config/environments/testing.yaml
+"""
+Testing environment configuration for DSA-110 pipeline.
+
+This configuration is optimized for automated testing with
+minimal data volumes and fast execution.
+"""
+
+# Base configuration
+base_config: &base_config
+  # Paths
+  paths:
+    log_dir: "test_logs"
+    ms_stage1_dir: "test_data/ms_stage1"
+    cal_tables_dir: "test_data/cal_tables"
+    skymodels_dir: "test_data/skymodels"
+    images_dir: "test_data/images"
+    mosaics_dir: "test_data/mosaics"
+    photometry_dir: "test_data/photometry"
+    hdf5_dir: "test_data/hdf5"
+  
+  # Services
+  services:
+    mosaic_duration_min: 2  # Very short for testing
+    mosaic_overlap_min: 1
+    ms_chunk_duration_min: 1
+    max_concurrent_blocks: 1
+  
+  # Calibration
+  calibration:
+    fixed_declination_deg: 37.0
+    gcal_refant: "pad001"
+    gcal_mode: "ap"
+    gcal_solint: "1min"  # Very short for testing
+    gcal_minsnr: 1.0  # Lower threshold for testing
+    gcal_uvrange: ""
+    flagging:
+      tfcrop_timecutoff: 4.0
+      tfcrop_freqcutoff: 4.0
+  
+  # Imaging
+  imaging:
+    deconvolver: "hogbom"
+    gridder: "wproject"
+    wprojplanes: -1
+    niter: 10  # Very few iterations for testing
+    threshold: "50mJy"  # High threshold for testing
+    interactive: false
+    image_size: [100, 100]  # Very small images for testing
+    cell_size: "3arcsec"
+    weighting: "briggs"
+    robust: 0.5
+    pblimit: 0.1
+    pbcor: true
+    savemodel: "modelcolumn"
+    use_clean_mask: false
+    save_fits: true
+  
+  # Mosaicking
+  mosaicking:
+    mosaic_type: "optimal"
+    mosaic_nx: 200  # Very small mosaic for testing
+    mosaic_ny: 200
+    mosaic_cell: "3arcsec"
+    save_fits: true
+  
+  # Photometry
+  photometry:
+    detection:
+      fwhm_pixels: 3.0
+      threshold_sigma: 3.0  # Lower threshold for testing
+    classification:
+      target_flux_range: [0.001, 0.1]
+      reference_flux_range: [0.01, 1.0]
+      min_separation_arcsec: 30.0
+    aperture:
+      radius_arcsec: 3.0
+      inner_annulus_arcsec: 6.0
+      outer_annulus_arcsec: 9.0
+  
+  # Sky model
+  skymodel:
+    field:
+      radius_deg: 0.1  # Small field for testing
+      n_sources: 5  # Very few sources for testing
+    flux:
+      min_flux_jy: 0.001
+      max_flux_jy: 1.0
+      power_law_index: -1.5
+  
+  # MS creation
+  ms_creation:
+    test_mode: true
+    n_antennas: 3  # Minimal antennas for testing
+    n_frequencies: 8  # Minimal frequencies for testing
+    n_times: 10  # Minimal time samples for testing
+
+# Testing-specific overrides
+testing:
+  <<: *base_config
+  
+  # Testing logging
+  logging:
+    level: "DEBUG"
+    console_output: true
+    file_output: false
+  
+  # Minimal processing for testing
+  services:
+    mosaic_duration_min: 1
+    mosaic_overlap_min: 0
+    ms_chunk_duration_min: 1
+    max_concurrent_blocks: 1
+  
+  # Minimal test data
+  imaging:
+    image_size: [50, 50]
+    niter: 5
+    threshold: "100mJy"
+  
+  mosaicking:
+    mosaic_nx: 100
+    mosaic_ny: 100
+  
+  skymodel:
+    field:
+      radius_deg: 0.05
+      n_sources: 3
+  
+  ms_creation:
+    n_antennas: 2
+    n_frequencies: 4
+    n_times: 5
