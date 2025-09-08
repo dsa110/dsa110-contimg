@@ -99,7 +99,7 @@ class MSCreationManager:
     
     async def _read_hdf5_file(self, hdf5_path: str):
         """
-        Read HDF5 file using PyUVData.
+        Read HDF5 file using PyUVData's native UVH5 reader.
         
         Args:
             hdf5_path: Path to the HDF5 file
@@ -108,11 +108,17 @@ class MSCreationManager:
             UVData object or None if failed
         """
         try:
-            import pyuvdata
-            uv_data = pyuvdata.UVData()
-            uv_data.read(hdf5_path)
+            from .dsa110_hdf5_reader_fixed import DSA110HDF5Reader
             
-            logger.info(f"Read HDF5 file with {uv_data.Nbls} baselines, {uv_data.Nfreqs} frequencies")
+            # Use simplified reader that uses PyUVData's native UVH5 reader
+            reader = DSA110HDF5Reader()
+            uv_data = await reader.create_uvdata_object(hdf5_path)
+            
+            if uv_data is not None:
+                logger.info(f"Read HDF5 file with {uv_data.Nbls} baselines, {uv_data.Nfreqs} frequencies")
+            else:
+                logger.error("Failed to create UVData object from HDF5 file")
+            
             return uv_data
             
         except ImportError:
@@ -167,11 +173,17 @@ class MSCreationManager:
             # Set telescope location
             uv_data.telescope_location = self.telescope_location
             
-            # Write to MS format
-            uv_data.write_ms(output_ms_path, clobber=True)
+            # Use the HDF5 reader's write_ms method with proper parameters
+            from .dsa110_hdf5_reader_fixed import DSA110HDF5Reader
+            reader = DSA110HDF5Reader()
+            success = reader.write_ms(uv_data, output_ms_path)
             
-            logger.info(f"Converted UVData to MS format: {os.path.basename(output_ms_path)}")
-            return True
+            if success:
+                logger.info(f"Converted UVData to MS format: {os.path.basename(output_ms_path)}")
+            else:
+                logger.error(f"Failed to convert UVData to MS format")
+            
+            return success
             
         except Exception as e:
             logger.error(f"MS conversion failed: {e}")
@@ -359,3 +371,46 @@ class MSCreationManager:
         except Exception as e:
             logger.error(f"MS validation error: {e}")
             return False
+
+
+# Import the unified MS creation system
+from .unified_ms_creation import UnifiedMSCreationManager, process_hdf5_set_unified
+
+# Legacy compatibility function - now uses unified system
+def process_hdf5_set(config: Dict[str, Any], timestamp: str, hdf5_files: List[str]) -> Optional[str]:
+    """
+    Process a set of HDF5 files for a given timestamp.
+    
+    This function provides backward compatibility with the original pipeline
+    while using the new unified MS creation system that combines:
+    - DSA-110 specific fixes from debugging work
+    - Quality validation and multi-subband processing
+    - Proper antenna position integration
+    - Advanced error handling and recovery
+    
+    Args:
+        config: Pipeline configuration dictionary
+        timestamp: Timestamp string for the observation
+        hdf5_files: List of HDF5 file paths (all sub-bands for one timestamp)
+        
+    Returns:
+        Path to the created MS file, or None if failed
+    """
+    logger.info(f"Processing HDF5 set for timestamp: {timestamp}")
+    logger.info(f"Found {len(hdf5_files)} HDF5 files")
+    
+    try:
+        # Use the unified MS creation system
+        import asyncio
+        result = asyncio.run(process_hdf5_set_unified(config, timestamp, hdf5_files))
+        
+        if result:
+            logger.info(f"Successfully created MS using unified system: {result}")
+            return result
+        else:
+            logger.error(f"Failed to create MS using unified system")
+            return None
+            
+    except Exception as e:
+        logger.error(f"process_hdf5_set failed: {e}")
+        return None

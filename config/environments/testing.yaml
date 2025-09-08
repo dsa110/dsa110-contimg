@@ -29,7 +29,7 @@ base_config: &base_config
   # Calibration
   calibration:
     fixed_declination_deg: 37.0
-    gcal_refant: "pad001"
+    gcal_refant: "pad103"
     gcal_mode: "ap"
     gcal_solint: "1min"  # Very short for testing
     gcal_minsnr: 1.0  # Lower threshold for testing

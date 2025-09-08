@@ -20,7 +20,9 @@ from astropy.coordinates import SkyCoord
 # Pipeline imports
 from ..utils.logging import get_logger
 from ..utils.monitoring import PipelineMetrics
+from ..utils.casa_logging import ensure_casa_log_directory, force_casa_logging_to_directory, get_casa_log_directory
 from .exceptions import PipelineError, StageError, CalibrationError, ImagingError
+from .stages.data_ingestion_stage import DataIngestionStage
 from .stages.calibration_stage import CalibrationStage
 from .stages.imaging_stage import ImagingStage
 from .stages.mosaicking_stage import MosaickingStage
@@ -73,6 +75,11 @@ class PipelineOrchestrator:
         """
         self.config = config
         self.metrics = PipelineMetrics()
+        
+        # Force CASA logging to use the casalogs directory
+        casa_log_dir = get_casa_log_directory(config)
+        force_casa_logging_to_directory(casa_log_dir)
+        
         self.stages = self._initialize_stages()
         self._ensure_output_directories()
         
@@ -83,6 +90,7 @@ class PipelineOrchestrator:
         stages = {}
         
         try:
+            stages['data_ingestion'] = DataIngestionStage(self.config)
             stages['calibration'] = CalibrationStage(self.config)
             stages['imaging'] = ImagingStage(self.config)
             stages['mosaicking'] = MosaickingStage(self.config)
@@ -233,6 +241,59 @@ class PipelineOrchestrator:
             logger.info(f"Block {block.block_id} processing completed in {result.processing_time:.1f}s")
         
         return result
+    
+    async def process_hdf5_to_ms(self, hdf5_dir: str, start_timestamp: Optional[str] = None,
+                                end_timestamp: Optional[str] = None) -> List[str]:
+        """
+        Process HDF5 files to MS format using the unified data ingestion stage.
+        
+        This method handles the conversion of HDF5 files to Measurement Sets
+        using the unified MS creation system with DSA-110 specific fixes.
+        
+        Args:
+            hdf5_dir: Directory containing HDF5 files
+            start_timestamp: Start timestamp for processing (optional)
+            end_timestamp: End timestamp for processing (optional)
+            
+        Returns:
+            List of created MS file paths
+        """
+        logger.info(f"Processing HDF5 files from directory: {hdf5_dir}")
+        
+        try:
+            data_ingestion_stage = self.stages['data_ingestion']
+            
+            if start_timestamp and end_timestamp:
+                # Process specific timestamp range
+                ms_files = await data_ingestion_stage.process_timestamp_range(
+                    start_timestamp, end_timestamp, hdf5_dir
+                )
+            else:
+                # Process all timestamps in directory
+                ms_files = await data_ingestion_stage.process_timestamp_range(
+                    "", "", hdf5_dir
+                )
+            
+            if ms_files:
+                logger.info(f"Successfully created {len(ms_files)} MS files")
+                
+                # Validate the created MS files
+                validation_results = await data_ingestion_stage.validate_ms_files(ms_files)
+                logger.info(f"MS validation: {validation_results['valid_files']} valid, "
+                           f"{validation_results['invalid_files']} invalid")
+                
+                if validation_results['errors']:
+                    for error in validation_results['errors']:
+                        logger.error(f"MS validation error: {error}")
+                
+                return ms_files
+            else:
+                logger.error("No MS files were created")
+                return []
+                
+        except Exception as e:
+            logger.error(f"HDF5 to MS processing failed: {e}")
+            raise PipelineError(f"HDF5 to MS processing failed: {e}")
     
     def find_ms_blocks_for_batch(self, start_time_iso: Optional[str] = None, 
                                 end_time_iso: Optional[str] = None) -> Dict[Time, List[str]]:

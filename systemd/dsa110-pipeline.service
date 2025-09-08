@@ -1,0 +1,59 @@
+# DSA-110 Pipeline Systemd Service
+# Production service configuration
+
+[Unit]
+Description=DSA-110 Continuum Imaging Pipeline
+Documentation=https://github.com/dsa110/dsa110-contimg
+After=network.target redis.service
+Wants=redis.service
+Requires=network.target
+
+[Service]
+Type=simple
+User=dsa110
+Group=dsa110
+WorkingDirectory=/opt/dsa110-pipeline
+Environment=PYTHONPATH=/opt/dsa110-pipeline
+Environment=REDIS_URL=redis://localhost:6379
+Environment=LOG_LEVEL=INFO
+Environment=CONFIG_PATH=/opt/dsa110-pipeline/config/pipeline_config.yaml
+Environment=DATA_PATH=/opt/dsa110-pipeline/data
+Environment=OUTPUT_PATH=/opt/dsa110-pipeline/output
+Environment=LOG_PATH=/opt/dsa110-pipeline/logs
+
+# Security settings
+NoNewPrivileges=true
+PrivateTmp=true
+ProtectSystem=strict
+ProtectHome=true
+ReadWritePaths=/opt/dsa110-pipeline/data /opt/dsa110-pipeline/output /opt/dsa110-pipeline/logs
+ProtectKernelTunables=true
+ProtectKernelModules=true
+ProtectControlGroups=true
+
+# Resource limits
+LimitNOFILE=65536
+LimitNPROC=32768
+MemoryMax=8G
+CPUQuota=400%
+
+# Restart policy
+Restart=always
+RestartSec=10
+StartLimitInterval=60
+StartLimitBurst=3
+
+# Logging
+StandardOutput=journal
+StandardError=journal
+SyslogIdentifier=dsa110-pipeline
+
+# Health check
+ExecStart=/opt/dsa110-pipeline/venv/bin/python -m core.main
+ExecReload=/bin/kill -HUP $MAINPID
+KillMode=mixed
+KillSignal=SIGTERM
+TimeoutStopSec=30
+
+[Install]
+WantedBy=multi-user.target

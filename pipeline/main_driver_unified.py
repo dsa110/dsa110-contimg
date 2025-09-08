@@ -18,9 +18,14 @@ from astropy.time import Time
 # Add the project root to the Python path
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
+# Import CASA logging hook BEFORE any CASA imports
+from core.utils.casa_import_hook import setup_casa_logging_environment
+
 from core.pipeline import PipelineOrchestrator, ProcessingBlock
 from core.utils.logging import setup_logging, get_logger
 from core.utils.monitoring import HealthChecker
+from core.utils.casa_logging import get_casa_log_directory
+from core.utils.casa_logging_patch import patch_casa_logging, apply_casa_logging_patch
 from core.pipeline.exceptions import PipelineError, ConfigurationError
 
 logger = get_logger(__name__)
@@ -50,7 +55,13 @@ class UnifiedPipelineDriver:
         log_dir = self.config.get('paths', {}).get('log_dir', 'logs')
         setup_logging(log_dir, 'pipeline', logging.INFO)
         
+        # Patch CASA logging to force all log files to casalogs directory
+        casa_log_dir = get_casa_log_directory(self.config)
+        patch_casa_logging(casa_log_dir)
+        apply_casa_logging_patch()
+        
         logger.info("Unified pipeline driver initialized")
+        logger.info(f"CASA logging patched for directory: {casa_log_dir}")
     
     def _load_configuration(self) -> Dict[str, Any]:
         """
@@ -126,6 +137,59 @@ class UnifiedPipelineDriver:
                 'error': str(e),
                 'blocks_processed': 0,
                 'total_blocks': 0
+            }
+    
+    async def process_hdf5_to_ms(self, hdf5_dir: str, start_timestamp: Optional[str] = None,
+                                end_timestamp: Optional[str] = None) -> Dict[str, Any]:
+        """
+        Process HDF5 files to MS format using the unified data ingestion stage.
+        
+        This method handles the conversion of HDF5 files to Measurement Sets
+        using the unified MS creation system with DSA-110 specific fixes.
+        
+        Args:
+            hdf5_dir: Directory containing HDF5 files
+            start_timestamp: Start timestamp for processing (optional)
+            end_timestamp: End timestamp for processing (optional)
+            
+        Returns:
+            Dictionary containing processing results
+        """
+        logger.info(f"Processing HDF5 files from directory: {hdf5_dir}")
+        
+        try:
+            if not self.orchestrator:
+                await self.initialize()
+            
+            # Process HDF5 files to MS format
+            ms_files = await self.orchestrator.process_hdf5_to_ms(
+                hdf5_dir, start_timestamp, end_timestamp
+            )
+            
+            if ms_files:
+                logger.info(f"Successfully created {len(ms_files)} MS files")
+                return {
+                    'success': True,
+                    'ms_files': ms_files,
+                    'count': len(ms_files),
+                    'errors': []
+                }
+            else:
+                logger.error("No MS files were created")
+                return {
+                    'success': False,
+                    'error': 'No MS files were created',
+                    'ms_files': [],
+                    'count': 0
+                }
+                
+        except Exception as e:
+            logger.error(f"HDF5 to MS processing failed: {e}")
+            return {
+                'success': False,
+                'error': str(e),
+                'ms_files': [],
+                'count': 0
             }
     
     async def run_single_block(self, block_end_time_iso: str, ms_files: list) -> Dict[str, Any]:

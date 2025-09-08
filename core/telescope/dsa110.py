@@ -23,6 +23,9 @@ loc_dsa110 = EarthLocation(lat=OVRO_LAT*u.rad, lon=OVRO_LON*u.rad, height=OVRO_A
 # Using CARMA as it's better supported than DSA-110 in CASA
 loc_dsa110.info.name = 'CARMA'
 
+# Alias for backward compatibility
+DSA110_LOCATION = loc_dsa110
+
 # Dish diameter
 diam_dsa110 = 4.7  # meters
 
@@ -99,3 +102,15 @@ def get_telescope_location():
 def get_dish_diameter():
     """Get the DSA-110 dish diameter in meters."""
     return diam_dsa110
+
+
+def get_primary_beam_model(model_type='gaussian'):
+    """Get a primary beam model for DSA-110."""
+    from .beam_models import GaussianBeamModel, AiryDiskBeamModel
+    
+    if model_type.lower() == 'gaussian':
+        return GaussianBeamModel(diameter=diam_dsa110)
+    elif model_type.lower() == 'airy':
+        return AiryDiskBeamModel(diameter=diam_dsa110)
+    else:
+        raise ValueError(f"Unknown beam model type: {model_type}")

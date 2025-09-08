@@ -16,12 +16,12 @@ from astropy.coordinates import SkyCoord
 from astropy import units as u
 from astropy.io import fits
 from astropy.wcs import WCS
-from photutils import CircularAperture, aperture_photometry
+from photutils.aperture import CircularAperture, aperture_photometry
 from photutils.detection import DAOStarFinder
 import warnings
 
 from ..utils.logging import get_logger
-from ..pipeline.exceptions import PhotometryError
+from ..utils.exceptions import PhotometryError
 
 logger = get_logger(__name__)
 

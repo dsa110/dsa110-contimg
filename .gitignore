@@ -73,6 +73,16 @@ __pycache__/
 *.out
 *.err
 
+# Logs directories
+logs/
+casalogs/
+casa-*.log
+
+# Data artifacts (kept structure via per-dir .gitignore)
+data/ms/
+data/sky_models/
+data/tmp/
+
 # Other files
 *.all
 .DS_Store
@@ -84,3 +94,13 @@ env/
 # Pyre type checker
 .pyre/
 
+
+# Logs
+logs/
+casalogs/
+casa-*.log
+
+# Data artifacts
+data/ms/
+data/sky_models/
+data/tmp/

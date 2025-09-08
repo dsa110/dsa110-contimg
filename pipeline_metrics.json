@@ -1,0 +1,13 @@
+[
+  {
+    "operation": "block_processing",
+    "duration_seconds": 8.113222,
+    "timestamp": "2025-09-07T22:04:33.141826",
+    "success": false,
+    "metadata": {
+      "block_id": "imaging_test_001",
+      "ms_count": 1,
+      "image_count": 0
+    }
+  }
+]

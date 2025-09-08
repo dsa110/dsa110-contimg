@@ -3,7 +3,7 @@
 # --- File Paths ---
 paths:
   # Input directory for raw HDF5 files (monitored by Service 1)
-  hdf5_incoming: /data/incoming/
+  hdf5_incoming: /data/incoming_test/
   # Directory to store processed HDF5 files (optional, if post_handle='move')
   hdf5_processed: /data/incoming/processed/
   # Base directory for all pipeline outputs
@@ -18,6 +18,7 @@ paths:
   mosaics_dir: mosaics/            # Mosaicked images
   photometry_dir: photometry/       # Photometry results, light curves, DB
   log_dir: ../logs/                 # Pipeline execution logs (relative to pipeline dir)
+  casa_log_dir: ../casalogs/        # CASA log files (relative to pipeline dir)
   diagnostics_base_dir: ../logs/diagnostics/ # Diagnostic plots
 
 # --- Service Control ---
@@ -49,26 +50,29 @@ ms_creation:
 
 # --- Calibration Parameters (calibration.py) ---
 calibration:
-  # Bandpass Calibration
-  bcal_interval_hours: 6
-  #bcal_candidate_catalog: /Users/jakobfaber/Documents/research/caltech/ovro/dsa110/dsa110-contimg/pipeline/cal_tables/bcal_candidates.csv # List of potential BPCALs
-  bcal_refant: 'pad103'  # Example reference antenna
-  bcal_uvrange: '>1klambda' # UV range for BPCAL solve
-  fixed_declination_deg: 16.0 # Fixed declination for BPCAL
-  bcal_search_beam_radius_deg: 1.5 # Search radius for BPCAL candidates
-  bcal_min_flux_jy: 3.0 # Minimum flux for BPCAL candidates
-  bcal_max_flux_jy: 15.0 # Maximum flux for BPCAL candidates
-  #bcal_candidate_catalog: 'bcal_candidates_nvss.csv'
+  # Enhanced Calibration Parameters
+  bandpass_interval_hours: 8.0        # Bandpass every 6-12 hours
+  gain_interval_hours: 1.0            # Gain every hour
+  reference_antennas: ['pad103', 'pad001']  # Priority list for reference antenna
+  uv_range_taper_klambda: 1.0         # Taper-off at 1 klambda (not hard cutoff)
+  
+  # Legacy parameters (for backward compatibility)
+  bcal_interval_hours: 8.0            # Updated to match enhanced parameters
+  bcal_refant: 'pad103'               # Primary reference antenna
+  bcal_uvrange: '>1klambda'           # Will be replaced with taper-off
+  fixed_declination_deg: 16.0         # Fixed declination for BPCAL
+  bcal_search_beam_radius_deg: 1.5    # Search radius for BPCAL candidates
+  bcal_min_flux_jy: 3.0               # Minimum flux for BPCAL candidates
+  bcal_max_flux_jy: 15.0              # Maximum flux for BPCAL candidates
   bcal_candidate_catalog: /data/jfaber/dsa110-contimg/bcal_candidates_vla.csv
 
-
-  # Gain Calibration
-  gcal_interval_min: 30
-  gcal_refant: 'pad103' # Selected reference antenna
-  gcal_mode: 'ap'       # 'ap', 'p'
-  gcal_solint: '30min'  # Solution interval for gaincal
-  gcal_minsnr: 3.0      # Minimum SNR for gaincal solutions
-  gcal_uvrange: '>1klambda' # UV range for GCAL solve
+  # Gain Calibration (Enhanced)
+  gcal_interval_min: 60               # Updated to 1 hour
+  gcal_refant: 'pad103'               # Primary reference antenna
+  gcal_mode: 'ap'                     # 'ap', 'p'
+  gcal_solint: '1h'                   # Solution interval for gaincal
+  gcal_minsnr: 2.0                    # Reduced from 3.0 for better solution rate
+  gcal_uvrange: '>1klambda'           # Will be replaced with taper-off
 
   # Flagging (used in multiple steps)
   flagging:

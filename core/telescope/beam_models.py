@@ -172,3 +172,57 @@ def calculate_beam_hpbw(freq, diameter=diam_dsa110, model='gaussian'):
         return 0.89 * wl / diameter
     else:
         raise ValueError(f"Unknown beam model type: {model}")
+
+
+class GaussianBeamModel:
+    """Gaussian primary beam model for DSA-110."""
+    
+    def __init__(self, diameter=4.7, frequency=1.4e9):
+        """
+        Initialize Gaussian beam model.
+        
+        Args:
+            diameter: Dish diameter in meters
+            frequency: Reference frequency in Hz
+        """
+        self.diameter = diameter
+        self.frequency = frequency
+    
+    def get_fwhm(self, frequency=None):
+        """Get FWHM at given frequency."""
+        if frequency is None:
+            frequency = self.frequency
+        return calculate_beam_fwhm(frequency / 1e9, self.diameter, 'gaussian')
+    
+    def get_hpbw(self, frequency=None):
+        """Get HPBW at given frequency."""
+        if frequency is None:
+            frequency = self.frequency
+        return calculate_beam_hpbw(frequency / 1e9, self.diameter, 'gaussian')
+
+
+class AiryDiskBeamModel:
+    """Airy disk primary beam model for DSA-110."""
+    
+    def __init__(self, diameter=4.7, frequency=1.4e9):
+        """
+        Initialize Airy disk beam model.
+        
+        Args:
+            diameter: Dish diameter in meters
+            frequency: Reference frequency in Hz
+        """
+        self.diameter = diameter
+        self.frequency = frequency
+    
+    def get_fwhm(self, frequency=None):
+        """Get FWHM at given frequency."""
+        if frequency is None:
+            frequency = self.frequency
+        return calculate_beam_fwhm(frequency / 1e9, self.diameter, 'airy')
+    
+    def get_hpbw(self, frequency=None):
+        """Get HPBW at given frequency."""
+        if frequency is None:
+            frequency = self.frequency
+        return calculate_beam_hpbw(frequency / 1e9, self.diameter, 'airy')

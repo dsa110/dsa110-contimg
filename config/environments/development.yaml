@@ -1,10 +1,7 @@
 # config/environments/development.yaml
-"""
-Development environment configuration for DSA-110 pipeline.
-
-This configuration is optimized for development and testing with
-smaller data volumes and more verbose logging.
-"""
+# Development environment configuration for DSA-110 pipeline.
+# This configuration is optimized for development and testing with
+# smaller data volumes and more verbose logging.
 
 # Base configuration
 base_config: &base_config

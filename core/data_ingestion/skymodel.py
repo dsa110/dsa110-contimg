@@ -15,7 +15,7 @@ from astropy.table import Table
 import astropy.units as u
 
 from ..utils.logging import get_logger
-from ..pipeline.exceptions import DataError
+from ..utils.exceptions import DataError
 
 logger = get_logger(__name__)
 
@@ -198,8 +198,8 @@ class SkyModelManager:
                 from casatools import componentlist
                 cl = componentlist()
                 
-                # Create new component list
-                cl.create(output_path, overwrite=True)
+                # Open new component list (create if doesn't exist)
+                cl.open(output_path)
                 
                 # Add sources
                 for i, (coord, flux) in enumerate(zip(source_coords, source_fluxes)):
@@ -212,9 +212,8 @@ class SkyModelManager:
                         flux=flux,
                         fluxunit='Jy',
                         dir=f"J2000 {ra_str} {dec_str}",
-                        index=0,  # point source
-                        spectrumtype='spectral index',
-                        spectrum=[0.0, 0.0, 0.0, 0.0]  # flat spectrum
+                        shape='point',
+                        spectrumtype='constant'
                     )
                 
                 cl.close()
