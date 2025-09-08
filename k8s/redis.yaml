@@ -1,0 +1,90 @@
+# Redis State Management and Message Queue
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: dsa110-redis
+  namespace: dsa110-pipeline
+  labels:
+    app: dsa110-redis
+    component: state-management
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: dsa110-redis
+  template:
+    metadata:
+      labels:
+        app: dsa110-redis
+        component: state-management
+    spec:
+      containers:
+      - name: redis
+        image: redis:7-alpine
+        ports:
+        - containerPort: 6379
+        command:
+        - redis-server
+        - --appendonly
+        - "yes"
+        - --maxmemory
+        - "2gb"
+        - --maxmemory-policy
+        - "allkeys-lru"
+        resources:
+          requests:
+            memory: "1Gi"
+            cpu: "500m"
+          limits:
+            memory: "2Gi"
+            cpu: "1000m"
+        volumeMounts:
+        - name: redis-data
+          mountPath: /data
+        livenessProbe:
+          exec:
+            command:
+            - redis-cli
+            - ping
+          initialDelaySeconds: 30
+          periodSeconds: 10
+        readinessProbe:
+          exec:
+            command:
+            - redis-cli
+            - ping
+          initialDelaySeconds: 5
+          periodSeconds: 5
+      volumes:
+      - name: redis-data
+        persistentVolumeClaim:
+          claimName: redis-pvc
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: dsa110-redis
+  namespace: dsa110-pipeline
+  labels:
+    app: dsa110-redis
+spec:
+  selector:
+    app: dsa110-redis
+  ports:
+  - port: 6379
+    targetPort: 6379
+    protocol: TCP
+  type: ClusterIP
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: redis-pvc
+  namespace: dsa110-pipeline
+spec:
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: 10Gi
+  storageClassName: standard

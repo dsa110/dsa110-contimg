@@ -1,0 +1,94 @@
+# Prometheus alerting rules for DSA-110 Pipeline
+
+groups:
+  - name: dsa110-pipeline
+    rules:
+      # High error rate
+      - alert: HighErrorRate
+        expr: rate(dsa110_pipeline_errors_total[5m]) > 0.1
+        for: 2m
+        labels:
+          severity: warning
+        annotations:
+          summary: "High error rate detected"
+          description: "DSA-110 pipeline error rate is {{ $value }} errors per second"
+          
+      # High memory usage
+      - alert: HighMemoryUsage
+        expr: dsa110_pipeline_memory_usage_bytes / dsa110_pipeline_memory_limit_bytes > 0.9
+        for: 2m
+        labels:
+          severity: critical
+        annotations:
+          summary: "High memory usage detected"
+          description: "DSA-110 pipeline memory usage is {{ $value | humanizePercentage }} of limit"
+          
+      # High CPU usage
+      - alert: HighCPUUsage
+        expr: rate(dsa110_pipeline_cpu_usage_seconds_total[5m]) > 0.8
+        for: 2m
+        labels:
+          severity: warning
+        annotations:
+          summary: "High CPU usage detected"
+          description: "DSA-110 pipeline CPU usage is {{ $value | humanizePercentage }}"
+          
+      # Service down
+      - alert: ServiceDown
+        expr: up{job="dsa110-pipeline"} == 0
+        for: 1m
+        labels:
+          severity: critical
+        annotations:
+          summary: "DSA-110 pipeline service is down"
+          description: "DSA-110 pipeline service has been down for more than 1 minute"
+          
+      # Redis down
+      - alert: RedisDown
+        expr: up{job="redis"} == 0
+        for: 1m
+        labels:
+          severity: critical
+        annotations:
+          summary: "Redis service is down"
+          description: "Redis service has been down for more than 1 minute"
+          
+      # Disk space low
+      - alert: DiskSpaceLow
+        expr: (node_filesystem_avail_bytes / node_filesystem_size_bytes) < 0.1
+        for: 2m
+        labels:
+          severity: warning
+        annotations:
+          summary: "Disk space is low"
+          description: "Disk space is {{ $value | humanizePercentage }} full"
+          
+      # Pipeline stage failure
+      - alert: PipelineStageFailure
+        expr: dsa110_pipeline_stage_failures_total > 0
+        for: 1m
+        labels:
+          severity: warning
+        annotations:
+          summary: "Pipeline stage failure detected"
+          description: "Pipeline stage {{ $labels.stage }} has {{ $value }} failures"
+          
+      # Circuit breaker open
+      - alert: CircuitBreakerOpen
+        expr: dsa110_pipeline_circuit_breaker_state == 1
+        for: 1m
+        labels:
+          severity: warning
+        annotations:
+          summary: "Circuit breaker is open"
+          description: "Circuit breaker for {{ $labels.stage }} is open"
+          
+      # High response time
+      - alert: HighResponseTime
+        expr: histogram_quantile(0.95, rate(dsa110_pipeline_request_duration_seconds_bucket[5m])) > 30
+        for: 2m
+        labels:
+          severity: warning
+        annotations:
+          summary: "High response time detected"
+          description: "95th percentile response time is {{ $value }}s"

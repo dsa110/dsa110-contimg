@@ -1,0 +1,9 @@
+# DSA-110 Pipeline Kubernetes Namespace
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: dsa110-pipeline
+  labels:
+    name: dsa110-pipeline
+    app: dsa110-contimg
+    version: "1.0.0"

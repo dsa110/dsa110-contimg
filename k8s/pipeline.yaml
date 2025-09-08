@@ -1,0 +1,154 @@
+# DSA-110 Pipeline Main Service
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: dsa110-pipeline
+  namespace: dsa110-pipeline
+  labels:
+    app: dsa110-pipeline
+    component: main-service
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: dsa110-pipeline
+  template:
+    metadata:
+      labels:
+        app: dsa110-pipeline
+        component: main-service
+    spec:
+      containers:
+      - name: pipeline
+        image: dsa110-contimg:latest
+        imagePullPolicy: IfNotPresent
+        ports:
+        - containerPort: 8080
+          name: health
+        - containerPort: 8081
+          name: dashboard
+        env:
+        - name: REDIS_URL
+          value: "redis://dsa110-redis:6379"
+        - name: LOG_LEVEL
+          value: "INFO"
+        - name: CONFIG_PATH
+          value: "/app/config/pipeline_config.yaml"
+        - name: DATA_PATH
+          value: "/app/data"
+        - name: OUTPUT_PATH
+          value: "/app/output"
+        - name: LOG_PATH
+          value: "/app/logs"
+        resources:
+          requests:
+            memory: "4Gi"
+            cpu: "2000m"
+          limits:
+            memory: "8Gi"
+            cpu: "4000m"
+        volumeMounts:
+        - name: config
+          mountPath: /app/config
+        - name: data
+          mountPath: /app/data
+        - name: output
+          mountPath: /app/output
+        - name: logs
+          mountPath: /app/logs
+        livenessProbe:
+          httpGet:
+            path: /health
+            port: 8080
+          initialDelaySeconds: 60
+          periodSeconds: 30
+          timeoutSeconds: 10
+          failureThreshold: 3
+        readinessProbe:
+          httpGet:
+            path: /health
+            port: 8080
+          initialDelaySeconds: 30
+          periodSeconds: 10
+          timeoutSeconds: 5
+          failureThreshold: 3
+      volumes:
+      - name: config
+        configMap:
+          name: dsa110-config
+      - name: data
+        persistentVolumeClaim:
+          claimName: data-pvc
+      - name: output
+        persistentVolumeClaim:
+          claimName: output-pvc
+      - name: logs
+        persistentVolumeClaim:
+          claimName: logs-pvc
+      initContainers:
+      - name: init-data
+        image: busybox
+        command: ['sh', '-c', 'mkdir -p /app/data/hdf5 /app/data/ms /app/data/images /app/data/mosaics /app/data/photometry && chmod 755 /app/data']
+        volumeMounts:
+        - name: data
+          mountPath: /app/data
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: dsa110-pipeline
+  namespace: dsa110-pipeline
+  labels:
+    app: dsa110-pipeline
+spec:
+  selector:
+    app: dsa110-pipeline
+  ports:
+  - name: health
+    port: 8080
+    targetPort: 8080
+    protocol: TCP
+  - name: dashboard
+    port: 8081
+    targetPort: 8081
+    protocol: TCP
+  type: ClusterIP
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: data-pvc
+  namespace: dsa110-pipeline
+spec:
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: 100Gi
+  storageClassName: standard
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: output-pvc
+  namespace: dsa110-pipeline
+spec:
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: 50Gi
+  storageClassName: standard
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: logs-pvc
+  namespace: dsa110-pipeline
+spec:
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: 10Gi
+  storageClassName: standard

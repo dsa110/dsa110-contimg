@@ -1,0 +1,23 @@
+[build-system]
+requires = ["setuptools>=61.0.0", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "dsa110hi"
+authors = []
+description = "HI imaging pipeline for the DSA-110"
+version = "1.0"
+requires-python = ">=3.10"
+dependencies = ["numpy==1.26",
+    "h5py==3.11",
+    "pyuvdata==2.4.2",
+    "casatools==6.6.3.22",
+    "casatasks==6.6.3.22",
+    "casadata>=2024.8.26",
+    "pandas"]
+
+[tool.setuptools.packages.find]
+where = ["."]
+
+[tool.setuptools.package-data]
+"*" = ["*.dat", "*.csv"]
