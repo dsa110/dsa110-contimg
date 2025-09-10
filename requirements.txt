@@ -1,5 +1,4 @@
 # DSA-110 Continuum Imaging Pipeline Requirements
-# Core dependencies for production deployment
 
 # Core Python packages
 numpy>=1.24.0

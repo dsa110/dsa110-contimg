@@ -132,6 +132,9 @@ class WorkingHDF5ToMSConverter:
                 
                 # Extract phase center information
                 phase_center_dec = header['phase_center_app_dec'][()]
+                # Convert from radians to degrees (DSA-110 HDF5 stores in radians)
+                if abs(phase_center_dec) < 10.0:  # Likely radians if < 10 degrees
+                    phase_center_dec = np.degrees(phase_center_dec)
                 phase_type = header['phase_type'][()].decode('utf-8')
                 
                 # Extract polarization information
@@ -445,8 +448,9 @@ class WorkingHDF5ToMSConverter:
             field_table.putcol('NUM_POLY', [0])
             field_table.putcol('SOURCE_ID', [0])
             field_table.putcol('DELAY_DIR', [[0.0, 0.0]])
-            field_table.putcol('PHASE_DIR', [[0.0, 0.0]])
-            field_table.putcol('REFERENCE_DIR', [[0.0, 0.0]])
+            # Use actual phase center coordinates (RA=0 for drift scan, Dec from HDF5)
+            field_table.putcol('PHASE_DIR', [[0.0, hdf5_data['phase_center_dec']]])
+            field_table.putcol('REFERENCE_DIR', [[0.0, hdf5_data['phase_center_dec']]])
             field_table.putcol('FLAG_ROW', [False])
             field_table.close()
             

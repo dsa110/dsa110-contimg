@@ -141,6 +141,9 @@ class HDF5ToMSConverter:
                 
                 # Extract phase center information
                 phase_center_dec = header['phase_center_app_dec'][()]
+                # Convert from radians to degrees (DSA-110 HDF5 stores in radians)
+                if abs(phase_center_dec) < 10.0:  # Likely radians if < 10 degrees
+                    phase_center_dec = np.degrees(phase_center_dec)
                 phase_type = header['phase_type'][()].decode('utf-8')
                 
                 # Extract polarization information
@@ -255,44 +258,123 @@ class HDF5ToMSConverter:
     
     def _setup_main_table(self, ms_tool, hdf5_data: Dict[str, Any]):
         """Set up the main MS table with visibility data."""
-        # This is a simplified version - in practice, you'd use CASA table tools
-        # to properly set up all the required columns
-        pass
+        from casatools import table
+        tb = table()
+        try:
+            tb.open(ms_tool.name(), nomodify=False)
+            n_rows = hdf5_data['n_baselines'] * hdf5_data['n_times']
+            tb.putcol('ANTENNA1', np.tile(hdf5_data['ant_1_array'], hdf5_data['n_times']))
+            tb.putcol('ANTENNA2', np.tile(hdf5_data['ant_2_array'], hdf5_data['n_times']))
+            tb.putcol('TIME', np.repeat(hdf5_data['time_array'], hdf5_data['n_baselines']))
+            tb.putcol('UVW', hdf5_data['uvw_array'])
+            tb.close()
+        except Exception as e:
+            logger.error(f"Failed to setup main table: {e}")
+            raise
     
     def _setup_antenna_table(self, ms_tool, hdf5_data: Dict[str, Any]):
         """Set up the antenna table."""
-        # Set up antenna positions, names, etc.
-        pass
+        from casatools import table
+        tb = table()
+        try:
+            tb.open(ms_tool.name() + '/ANTENNA', nomodify=False)
+            tb.putcol('POSITION', hdf5_data['antenna_positions'])
+            tb.putcol('NAME', hdf5_data['antenna_names'])
+            tb.close()
+        except Exception as e:
+            logger.error(f"Failed to setup antenna table: {e}")
+            raise
     
     def _setup_spectral_window_table(self, ms_tool, hdf5_data: Dict[str, Any]):
         """Set up the spectral window table."""
-        # Set up frequency information
-        pass
+        from casatools import table
+        tb = table()
+        try:
+            tb.open(ms_tool.name() + '/SPECTRAL_WINDOW', nomodify=False)
+            tb.putcol('CHAN_FREQ', hdf5_data['freq_array'])
+            tb.putcol('CHAN_WIDTH', np.full_like(hdf5_data['freq_array'], hdf5_data['channel_width']))
+            tb.close()
+        except Exception as e:
+            logger.error(f"Failed to setup spectral window table: {e}")
+            raise
     
     def _setup_polarization_table(self, ms_tool, hdf5_data: Dict[str, Any]):
         """Set up the polarization table."""
-        # Set up polarization information
-        pass
+        from casatools import table
+        tb = table()
+        try:
+            tb.open(ms_tool.name() + '/POLARIZATION', nomodify=False)
+            tb.putcol('CORR_TYPE', hdf5_data['polarization_array'])
+            tb.close()
+        except Exception as e:
+            logger.error(f"Failed to setup polarization table: {e}")
+            raise
     
     def _setup_field_table(self, ms_tool, hdf5_data: Dict[str, Any]):
         """Set up the field table."""
-        # Set up field information
-        pass
+        from casatools import table
+        tb = table()
+        try:
+            tb.open(ms_tool.name() + '/FIELD', nomodify=False)
+            phase_dir = np.array([[0.0, hdf5_data['phase_center_dec']]])
+            tb.putcol('PHASE_DIR', phase_dir)
+            tb.close()
+        except Exception as e:
+            logger.error(f"Failed to setup field table: {e}")
+            raise
     
     def _setup_observation_table(self, ms_tool, hdf5_data: Dict[str, Any]):
         """Set up the observation table."""
-        # Set up observation information
-        pass
+        from casatools import table
+        tb = table()
+        try:
+            tb.open(ms_tool.name() + '/OBSERVATION', nomodify=False)
+            tb.putcol('TELESCOPE_NAME', [hdf5_data['telescope_name']])
+            tb.close()
+        except Exception as e:
+            logger.error(f"Failed to setup observation table: {e}")
+            raise
     
     def _setup_source_table(self, ms_tool, hdf5_data: Dict[str, Any]):
         """Set up the source table."""
-        # Set up source information
-        pass
+        from casatools import table
+        tb = table()
+        try:
+            tb.open(ms_tool.name() + '/SOURCE', nomodify=False)
+            tb.close()
+        except Exception as e:
+            logger.error(f"Failed to setup source table: {e}")
+            raise
     
     def _setup_history_table(self, ms_tool, hdf5_data: Dict[str, Any]):
         """Set up the history table."""
-        # Set up history information
-        pass
+        from casatools import table
+        tb = table()
+        try:
+            tb.open(ms_tool.name() + '/HISTORY', nomodify=False)
+            tb.putcol('MESSAGE', ['Converted from HDF5'])
+            tb.close()
+        except Exception as e:
+            logger.error(f"Failed to setup history table: {e}")
+            raise   
+        try:
+            tb.open(ms_tool.name() + '/SOURCE', nomodify=False)
+            tb.close()
+        except Exception as e:
+            logger.error(f"Failed to setup source table: {e}")
+            raise
+    
+    def _setup_history_table(self, ms_tool, hdf5_data: Dict[str, Any]):
+        """Set up the history table."""
+        from casatools import table
+        tb = table()
+        try:
+            tb.open(ms_tool.name() + '/HISTORY', nomodify=False)
+            tb.putcol('MESSAGE', ['Converted from HDF5'])
+            tb.close()
+        except Exception as e:
+            logger.error(f"Failed to setup history table: {e}")
+            raise
     
     async def _write_ms_data(self, hdf5_data: Dict[str, Any], ms_path: str) -> Dict[str, Any]:
         """

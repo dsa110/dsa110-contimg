@@ -71,14 +71,14 @@ def find_ms_blocks_for_batch(config, start_time_iso=None, end_time_iso=None):
     ms_times = {}
     for ms_path in all_ms:
         ms_name = os.path.basename(ms_path)
+        parts = ms_name.split('_')
+        if len(parts) < 2:
+            continue
+        ts_str = parts[1].replace('.ms', '')
         try:
-            # Assuming drift_YYYYMMDDTHHMMSS.ms format
-            ts_str = ms_name.split('_')[1].replace('.ms', '')
             ms_start_time = Time(datetime.strptime(ts_str, "%Y%m%dT%H%M%S"), format='datetime', scale='utc')
-            # Use MJD as key for easier comparison, store time object too
             ms_times[ms_start_time.mjd] = {'path': ms_path, 'time': ms_start_time}
-        except Exception as e:
-            logger.warning(f"Could not parse time from {ms_name}. Skipping. Error: {e}")
+        except ValueError:
             continue
 
     if not ms_times:
@@ -131,9 +131,9 @@ def find_ms_blocks_for_batch(config, start_time_iso=None, end_time_iso=None):
 
               # Check if this block overlaps significantly with the requested start time
               # i.e., does the block end *after* the requested start time?
-              if block_end_time >= proc_start_time:
-                   blocks[block_end_time] = final_block_files # Use block end time as key
-                   logger.debug(f"Identified block ending {block_end_time.iso} with {len(blocks[block_end_time])} files.")
+              if current_block_end_time >= proc_start_time:
+                   blocks[current_block_end_time] = final_block_files # Use block end time as key
+                   logger.debug(f"Identified block ending {current_block_end_time.iso} with {len(blocks[current_block_end_time])} files.")
 
          # Advance the search start time for the next potential block
          # Step forward by the non-overlapping part of a block

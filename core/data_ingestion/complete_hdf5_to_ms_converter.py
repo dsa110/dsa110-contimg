@@ -136,6 +136,9 @@ class CompleteHDF5ToMSConverter:
                 
                 # Extract phase center information
                 phase_center_dec = header['phase_center_app_dec'][()]
+                # Convert from radians to degrees (DSA-110 HDF5 stores in radians)
+                if abs(phase_center_dec) < 10.0:  # Likely radians if < 10 degrees
+                    phase_center_dec = np.degrees(phase_center_dec)
                 phase_type = header['phase_type'][()].decode('utf-8')
                 
                 # Extract polarization information
