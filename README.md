@@ -4,22 +4,7 @@
 
 A continuum imaging pipeline for the DSA-110 radio telescope array with advanced error recovery, distributed state management, and real-time monitoring capabilities.
 
-## **CRITICAL BUG FIXES**
-
-### PyUVData Phase Center Bug (Fixed)
-**Issue**: PyUVData's UVH5 reader fails to read phase center coordinates from DSA-110 HDF5 files, causing 36° declination errors in Measurement Sets.
-
-**Root Cause**: PyUVData ignores HDF5 phase center data and falls back to default zenith phase center (90° declination), which gets transformed to incorrect apparent coordinates (~37° declination).
-
-**Solution**: Implemented comprehensive phase center override in `core/data_ingestion/unified_ms_creation.py` that:
-- Reads correct coordinates directly from HDF5 files
-- Overrides PyUVData's incorrect default values
-- Updates phase center catalog with correct coordinates
-- Directly modifies MS FIELD table after creation
-
-**Impact**: Ensures accurate field centers for calibration and imaging. See `docs/technical/PYUVDATA_PHASE_CENTER_BUG.md` for detailed analysis.
-
-## **ORGANIZED DIRECTORY STRUCTURE**
+### **DIRECTORY STRUCTURE**
 
 ```
 dsa110-contimg/
@@ -277,3 +262,16 @@ What fixed prior issues
 Troubleshooting
 - If deltas are large: confirm antenna positions are in the expected frame relative to `telescope_location` (as required by PyUVData), and that `telescope_location` is correct.
 - Recreate the MS and re-run the validator.
+
+### PyUVData Phase Center Bug (Fixed)
+**Issue**: PyUVData's UVH5 reader fails to read phase center coordinates from DSA-110 HDF5 files, causing 36° declination errors in Measurement Sets.
+
+**Root Cause**: PyUVData ignores HDF5 phase center data and falls back to default zenith phase center (90° declination), which gets transformed to incorrect apparent coordinates (~37° declination).
+
+**Solution**: Implemented comprehensive phase center override in `core/data_ingestion/unified_ms_creation.py` that:
+- Reads correct coordinates directly from HDF5 files
+- Overrides PyUVData's incorrect default values
+- Updates phase center catalog with correct coordinates
+- Directly modifies MS FIELD table after creation
+
+**Impact**: Ensures accurate field centers for calibration and imaging. See `docs/technical/PYUVDATA_PHASE_CENTER_BUG.md` for detailed analysis.
