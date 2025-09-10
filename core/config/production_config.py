@@ -9,6 +9,7 @@ with environment variable support, validation, and security.
 import os
 import yaml
 import logging
+import secrets
 from typing import Dict, Any, Optional, List
 from pathlib import Path
 from dataclasses import dataclass, field
@@ -58,8 +59,8 @@ class RedisConfig:
 @dataclass
 class SecurityConfig:
     """Security configuration."""
-    secret_key: str = ""
-    jwt_secret: str = ""
+    secret_key: str = field(default_factory=lambda: secrets.token_urlsafe(32))
+    jwt_secret: str = field(default_factory=lambda: secrets.token_urlsafe(32))
     jwt_expiration: int = 3600
     cors_origins: List[str] = field(default_factory=list)
     rate_limit: int = 100
@@ -161,11 +162,11 @@ class ProductionConfig:
         errors = []
         
         # Validate required fields
-        if not self.security.secret_key:
-            errors.append("SECRET_KEY is required")
+        if not self.security.secret_key or len(self.security.secret_key) < 32:
+            errors.append("SECRET_KEY must be at least 32 characters")
         
-        if not self.security.jwt_secret:
-            errors.append("JWT_SECRET is required")
+        if not self.security.jwt_secret or len(self.security.jwt_secret) < 32:
+            errors.append("JWT_SECRET must be at least 32 characters")
         
         # Validate ports
         if not (1 <= self.database.port <= 65535):

@@ -17,6 +17,8 @@ from astropy.wcs import WCS
 import astropy.units as u
 
 from ...utils.logging import get_logger
+from ...utils.dependencies import OptionalDependency, require_dependency
+from ...utils.config_validation import ConfigValidator
 from ..exceptions import MosaickingError
 
 logger = get_logger(__name__)
@@ -37,6 +39,14 @@ class MosaickingStage:
         Args:
             config: Pipeline configuration dictionary
         """
+        # Validate configuration
+        errors = []
+        errors.extend(ConfigValidator.validate_mosaicking_config(config))
+        errors.extend(ConfigValidator.validate_paths_config(config))
+        
+        if errors:
+            raise ValueError(f"Configuration errors: {'; '.join(errors)}")
+            
         self.config = config
         self.mosaicking_config = config.get('mosaicking', {})
         self.paths_config = config.get('paths', {})
@@ -211,12 +221,10 @@ class MosaickingStage:
         Returns:
             Dictionary containing linearmosaic results
         """
-        try:
-            from casatools import linearmosaic
-            casa_available = True
-        except ImportError:
-            logger.error("CASA linearmosaic tool not available")
-            return {'success': False, 'error': 'CASA not available'}
+        with OptionalDependency('casatools') as casa:
+            if not casa:
+                logger.error("CASA linearmosaic tool not available")
+                return {'success': False, 'error': 'CASA not available'}
         
         # Set up output paths
         mosaic_dir = self.paths_config.get('mosaics_dir')

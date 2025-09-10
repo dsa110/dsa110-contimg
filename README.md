@@ -4,6 +4,21 @@
 
 A comprehensive, enterprise-grade continuum imaging pipeline for the DSA-110 radio telescope array with advanced error recovery, distributed state management, and real-time monitoring capabilities.
 
+## **CRITICAL BUG FIXES**
+
+### PyUVData Phase Center Bug (Fixed)
+**Issue**: PyUVData's UVH5 reader fails to read phase center coordinates from DSA-110 HDF5 files, causing 36° declination errors in Measurement Sets.
+
+**Root Cause**: PyUVData ignores HDF5 phase center data and falls back to default zenith phase center (90° declination), which gets transformed to incorrect apparent coordinates (~37° declination).
+
+**Solution**: Implemented comprehensive phase center override in `core/data_ingestion/unified_ms_creation.py` that:
+- Reads correct coordinates directly from HDF5 files
+- Overrides PyUVData's incorrect default values
+- Updates phase center catalog with correct coordinates
+- Directly modifies MS FIELD table after creation
+
+**Impact**: Ensures accurate field centers for calibration and imaging. See `docs/technical/PYUVDATA_PHASE_CENTER_BUG.md` for detailed analysis.
+
 ## **ORGANIZED DIRECTORY STRUCTURE**
 
 ```
@@ -28,11 +43,13 @@ dsa110-contimg/
 │   │   ├── dsa110.py          # DSA-110 constants
 │   │   └── beam_models.py     # Primary beam models
 │   ├── data_ingestion/         # Data processing
-│   │   ├── ms_creation.py     # MS creation utilities
+│   │   ├── unified_ms_creation.py # Unified MS creation (with phase center fix)
 │   │   ├── skymodel.py        # Sky model management
 │   │   └── photometry.py      # Photometry operations
-│   └── messaging/              # Message queue system (Phase 3)
-│       └── message_queue.py   # Redis-based messaging
+│   ├── calibration/            # Calibration algorithms
+│   │   └── calibrator_finder.py # Calibrator source finding
+│   └── casa/                   # CASA tool wrappers
+│       └── calibration_pipeline.py # CASA calibration interface
 ├── config/                     # Configuration management
 │   ├── pipeline_config.yaml   # Base configuration
 │   └── environments/          # Environment-specific configs
@@ -42,33 +59,39 @@ dsa110-contimg/
 ├── data/                       # Data files and catalogs
 │   ├── catalogs/              # Source catalogs
 │   ├── calibrators/           # Calibrator data
+│   ├── ms/                    # Measurement Set files
+│   ├── hdf5_staging/          # Staged HDF5 files
 │   └── reference/             # Reference data
-├── tools/                      # Utility tools and analysis
+├── docs/                       # Documentation
+│   ├── architecture/          # Architecture documentation
+│   ├── development/           # Development guides
+│   └── organization/          # Project organization
+├── scripts/                    # Utility and operational scripts
+│   ├── diagnostics/           # Diagnostic tools
+│   └── [60+ operational scripts] # Setup, testing, monitoring
+├── tools/                      # Analysis and utility tools
 │   ├── utilities/             # Utility scripts
 │   └── analysis/              # Analysis notebooks
 ├── tests/                      # Comprehensive test suite
 │   ├── unit/                  # Unit tests
 │   ├── integration/           # Integration tests
+│   ├── e2e/                   # End-to-end tests
 │   └── fixtures/              # Test data
 ├── examples/                   # Usage examples
 │   ├── basic_pipeline_example.py      # Basic usage
 │   └── advanced_pipeline_example.py   # Advanced features
-├── monitoring/                 # Advanced monitoring (Phase 3)
-│   └── advanced_monitoring.py # Real-time monitoring & alerting
-├── pipeline/                   # Main drivers
-│   └── main_driver_unified.py # Unified main driver
 ├── services/                   # Service implementations
 │   ├── hdf5_watcher/          # HDF5 file monitoring
 │   ├── ms_processor/          # MS processing service
 │   └── variability_analyzer/  # Variability analysis
-├── archive/                    # Legacy code preservation
-│   ├── legacy_pipeline/       # Original pipeline modules
-│   └── old_scripts/           # Legacy utility scripts
-└── testing/                    # Legacy testing code
-    ├── calib/                 # Calibration testing
-    ├── catalog/               # Catalog generation
-    ├── makems/                # MS creation variants
-    └── sandbox/               # Experimental scripts
+├── logs/                       # Operational logs
+│   ├── pipeline/              # Pipeline logs
+│   └── casa/                  # CASA logs
+├── test_data/                  # Test datasets
+└── archive/                    # Legacy code preservation
+    ├── legacy_pipeline/       # Original pipeline modules
+    ├── testing/               # Legacy testing code
+    └── [archived directories] # Historical code and data
 ```
 
 ## **KEY FEATURES**

@@ -3,6 +3,7 @@ DSA-110 Antenna Position Management
 
 This module handles loading and managing DSA-110 antenna positions
 from the CSV file and converting them to the appropriate coordinate systems.
+Uses the dsa110_antpos package for proper antenna filtering and coordinate conversion.
 """
 
 import os
@@ -17,6 +18,17 @@ from .dsa110 import get_telescope_location
 from ..utils.logging import get_logger
 
 logger = get_logger(__name__)
+
+# Try to import dsa110_antpos package
+try:
+    from antpos import utils as antpos_utils
+    ANTPOS_AVAILABLE = True
+    logger.info("dsa110_antpos package available - using proper antenna filtering")
+except ImportError:
+    # Use local implementation
+    from .dsa110_antpos_local import get_itrf as local_get_itrf, get_active_antenna_list
+    ANTPOS_AVAILABLE = False
+    logger.info("Using local dsa110_antpos implementation for proper antenna filtering")
 
 
 class DSA110AntennaPositions:
@@ -54,11 +66,11 @@ class DSA110AntennaPositions:
             if not os.path.exists(self.csv_path):
                 raise FileNotFoundError(f"Antenna positions CSV not found: {self.csv_path}")
             
-            # Read CSV file (header is on line 5)
-            self._positions_df = pd.read_csv(self.csv_path, header=5)
+            # Read CSV file (header is on line 5, skip first 5 rows)
+            self._positions_df = pd.read_csv(self.csv_path, skiprows=5)
             
-            # Clean up the data
-            self._positions_df = self._positions_df.dropna(subset=['Station Number'])
+            # Clean up the data - remove rows with NaN in any coordinate column
+            self._positions_df = self._positions_df.dropna(subset=['Latitude', 'Longitude', 'Elevation (meters)'])
             
             # Convert station numbers to integers (handle 'DSA-001' format)
             def extract_station_number(station_str):
@@ -66,7 +78,9 @@ class DSA110AntennaPositions:
                     return int(station_str.split('-')[1])
                 return int(station_str)
             
-            self._positions_df['Station Number'] = self._positions_df['Station Number'].apply(extract_station_number)
+            # Extract station numbers from the index
+            station_numbers = [extract_station_number(str(idx)) for idx in self._positions_df.index]
+            self._positions_df['Station Number'] = station_numbers
             
             # Set index to station number
             self._positions_df.set_index('Station Number', inplace=True)
@@ -148,49 +162,56 @@ class DSA110AntennaPositions:
     
     def get_antenna_positions_for_uvdata(self, antenna_numbers: Optional[np.ndarray] = None) -> Tuple[np.ndarray, np.ndarray]:
         """
-        Get antenna positions in the format required by PyUVData.
+        Get antenna positions in the format required by PyUVData using CSV ITRF as authority.
+        
+        - Parses `DSA110_Station_Coordinates.csv`
+        - Converts to ITRF and then relative-to-telescope positions
+        - Returns positions ordered by station number (1..N) with names `DSA-XXX`
         
         Args:
-            antenna_numbers: Array of antenna numbers to include (0-based)
+            antenna_numbers: Optional list of 0-based indices to filter
             
         Returns:
-            Tuple of (antenna_positions, antenna_names)
+            Tuple of (antenna_positions [N,3], antenna_names [N])
         """
         try:
             # Load positions if not already loaded
             if self._positions_df is None:
                 self.load_positions()
             
-            # Get relative positions
+            # Compute relative positions from CSV ITRF
             relative_positions = self.get_relative_positions()
             
-            # Filter by antenna numbers if provided
+            # Names aligned with station numbers (index is station number)
+            station_numbers = list(self._positions_df.index)
+            antenna_names = [f"DSA-{int(station):03d}" for station in station_numbers]
+            
+            # Filter by specific 0-based indices if provided
             if antenna_numbers is not None:
-                # Convert 0-based antenna numbers to 1-based station numbers
-                station_numbers = antenna_numbers + 1
-                
-                # Find indices of requested antennas
-                valid_indices = []
-                for i, station_num in enumerate(self._positions_df.index):
-                    if station_num in station_numbers:
-                        valid_indices.append(i)
-                
-                if len(valid_indices) != len(antenna_numbers):
+                valid_indices = [idx for idx in antenna_numbers if 0 <= idx < len(relative_positions)]
+                if len(valid_indices) != (0 if antenna_numbers is None else len(antenna_numbers)):
                     logger.warning(f"Only found {len(valid_indices)} of {len(antenna_numbers)} requested antennas")
-                
                 relative_positions = relative_positions[valid_indices]
-                antenna_names = [f"pad{station_num}" for station_num in self._positions_df.index[valid_indices]]
-            else:
-                # Use all antennas
-                antenna_names = [f"pad{station_num}" for station_num in self._positions_df.index]
+                antenna_names = [antenna_names[i] for i in valid_indices]
             
-            logger.info(f"Prepared antenna positions for {len(relative_positions)} antennas")
-            
+            logger.info(f"Prepared antenna positions for {len(relative_positions)} antennas from CSV ITRF")
             return relative_positions, antenna_names
-            
         except Exception as e:
             logger.error(f"Failed to prepare antenna positions for UVData: {e}")
             raise
+
+    def get_relative_positions_by_station(self) -> Dict[int, np.ndarray]:
+        """
+        Return a mapping {station_number -> relative_position_xyz_m} using CSV ITRF.
+        """
+        if self._positions_df is None:
+            self.load_positions()
+        positions = self.get_relative_positions()
+        station_numbers = list(self._positions_df.index)
+        mapping: Dict[int, np.ndarray] = {}
+        for i, station in enumerate(station_numbers):
+            mapping[int(station)] = positions[i]
+        return mapping
     
     def get_antenna_info(self) -> Dict[str, Any]:
         """

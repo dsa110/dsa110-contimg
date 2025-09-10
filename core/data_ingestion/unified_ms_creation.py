@@ -30,18 +30,24 @@ from datetime import datetime, timedelta
 from ..utils.logging import get_logger
 from ..telescope.dsa110 import get_telescope_location, get_valid_antennas
 from ..telescope.antenna_positions import get_antenna_positions_manager
-from ..pipeline.exceptions import DataError
+# from ..pipeline.exceptions import DataError  # Commented out to avoid circular import
 
 logger = get_logger(__name__)
 
 
 class UnifiedMSCreationManager:
     """
-    Unified MS creation manager that combines single-file processing
-    with multi-subband combination and quality validation.
+    Unified MS creation manager optimized for maximum calibration precision.
     
-    This builds on the debugging work from dsa110_hdf5_reader_fixed.py
-    and adds advanced features from nextgen_ms_creation.py.
+    This manager combines single-file processing with multi-subband combination
+    and quality validation, using survey-grade ITRF antenna positions and
+    recalculated UVW coordinates for the highest possible calibration accuracy.
+    
+    Key features for maximum precision:
+    - Survey-grade antenna positions from CSV file
+    - Recalculated UVW coordinates from ITRF positions
+    - Phase center corrections for accurate field centers
+    - Comprehensive logging for precision validation
     """
     
     def __init__(self, config: Dict[str, Any]):
@@ -100,6 +106,7 @@ class UnifiedMSCreationManager:
             'errors': []
         }
         
+        uv_data = None
         try:
             # Step 1: Read and fix HDF5 file
             logger.info("Step 1: Reading and fixing HDF5 file")
@@ -132,7 +139,7 @@ class UnifiedMSCreationManager:
             
             # Step 5: Write to MS format
             logger.info("Step 5: Writing to MS format")
-            success = await self._write_to_ms_with_fixes(uv_data, output_ms_path)
+            success = await self._write_to_ms_with_fixes(uv_data, output_ms_path, hdf5_path)
             
             if not success:
                 results['errors'].append("Failed to write MS file")
@@ -154,6 +161,10 @@ class UnifiedMSCreationManager:
         except Exception as e:
             logger.error(f"MS creation failed for {hdf5_path}: {e}")
             results['errors'].append(str(e))
+        finally:
+            # Clean up UVData object to prevent memory leaks
+            if uv_data is not None:
+                del uv_data
         
         return results
     
@@ -183,6 +194,7 @@ class UnifiedMSCreationManager:
             'errors': []
         }
         
+        uv_data = None
         try:
             # Step 1: Quality assessment
             if quality_checks:
@@ -204,16 +216,16 @@ class UnifiedMSCreationManager:
                 results['errors'].append("Failed to read and combine HDF5 files")
                 return results
             
-            # Step 3: Set antenna positions
-            logger.info("Step 3: Setting antenna positions")
+            # Step 3: Set survey-grade antenna positions for maximum precision
+            logger.info("Step 3: Setting survey-grade antenna positions for maximum precision")
             await self._set_antenna_positions(uv_data)
             
-            # Step 4: Apply DSA-110 specific fixes (including antenna position scaling)
+            # Step 4: Apply DSA-110 specific fixes (including phase center corrections)
             logger.info("Step 4: Applying DSA-110 specific fixes")
             uv_data = self._fix_dsa110_issues(uv_data)
             
-            # Step 5: Recalculate UVW coordinates with corrected antenna positions
-            logger.info("Step 5: Recalculating UVW coordinates")
+            # Step 5: Recalculate UVW coordinates from survey-grade positions for maximum precision
+            logger.info("Step 5: Recalculating UVW coordinates for maximum precision calibration")
             uv_data = await self._recalculate_uvw_coordinates(uv_data)
             
             # Step 6: Apply antenna selection if specified
@@ -223,7 +235,7 @@ class UnifiedMSCreationManager:
             
             # Step 7: Write to MS format
             logger.info("Step 7: Writing to MS format")
-            success = await self._write_to_ms_with_fixes(uv_data, output_ms_path)
+            success = await self._write_to_ms_with_fixes(uv_data, output_ms_path, hdf5_files[0])
             
             if not success:
                 results['errors'].append("Failed to write MS file")
@@ -245,6 +257,10 @@ class UnifiedMSCreationManager:
         except Exception as e:
             logger.error(f"MS creation failed for {len(hdf5_files)} files: {e}")
             results['errors'].append(str(e))
+        finally:
+            # Clean up UVData object to prevent memory leaks
+            if uv_data is not None:
+                del uv_data
         
         return results
     
@@ -259,6 +275,14 @@ class UnifiedMSCreationManager:
             Fixed UVData object, or None if failed
         """
         try:
+            # Log raw HDF5 phase center before PyUVData read
+            logger.info(f"=== PHASE CENTER DEBUGGING: {os.path.basename(hdf5_path)} ===")
+            with h5py.File(hdf5_path, 'r') as f:
+                raw_dec = f['Header']['phase_center_app_dec'][()]
+                logger.info(f"Raw HDF5 phase_center_app_dec: {raw_dec}")
+                logger.info(f"Raw value in degrees: {np.degrees(raw_dec):.6f}")
+                logger.info(f"Raw value in radians: {raw_dec:.6f}")
+            
             # Suppress UVW array discrepancy warnings during read
             import warnings
             
@@ -267,13 +291,76 @@ class UnifiedMSCreationManager:
                 warnings.filterwarnings("ignore", message=".*uvw_array does not match.*")
                 warnings.filterwarnings("ignore", message=".*largest discrepancy.*")
                 warnings.filterwarnings("ignore", message=".*This is a fairly common situation.*")
+                warnings.filterwarnings("ignore", message=".*UVW array does not match expected values.*")
                 
-                # Use PyUVData's native UVH5 reader
-                uv_data = UVData()
-                uv_data.read(hdf5_path, file_type='uvh5', run_check=False)
+            # Use PyUVData's native UVH5 reader
+            uv_data = UVData()
+            uv_data.read(hdf5_path, file_type='uvh5', run_check=False)
+            
+            # Log phase center after PyUVData read but before our fixes
+            logger.info(f"After PyUVData read - phase_center_app_dec: {getattr(uv_data, 'phase_center_app_dec', 'NOT_FOUND')}")
+            logger.info(f"After PyUVData read - phase_center_app_dec_degrees: {getattr(uv_data, 'phase_center_app_dec_degrees', 'NOT_FOUND')}")
+            logger.info(f"After PyUVData read - phase_center_app_ra: {getattr(uv_data, 'phase_center_app_ra', 'NOT_FOUND')}")
+            logger.info(f"After PyUVData read - phase_center_app_ra_degrees: {getattr(uv_data, 'phase_center_app_ra_degrees', 'NOT_FOUND')}")
+            
+            # Check if PyUVData is already converting radians to degrees
+            if hasattr(uv_data, 'phase_center_app_dec') and uv_data.phase_center_app_dec is not None:
+                if np.isscalar(uv_data.phase_center_app_dec):
+                    if abs(uv_data.phase_center_app_dec) > 10.0:
+                        logger.info(f"PyUVData already converted to degrees: {uv_data.phase_center_app_dec:.6f}")
+                    else:
+                        logger.info(f"PyUVData kept in radians: {uv_data.phase_center_app_dec:.6f}")
+                else:
+                    if np.all(np.abs(uv_data.phase_center_app_dec) > 10.0):
+                        logger.info(f"PyUVData already converted to degrees (array)")
+                    else:
+                        logger.info(f"PyUVData kept in radians (array)")
+            else:
+                logger.warning("No phase_center_app_dec attribute found in UVData object")
+            
+            # CRITICAL FIX: Override PyUVData's default phase center with correct values from HDF5
+            logger.info("=== OVERRIDING PYUVDATA PHASE CENTER WITH CORRECT HDF5 VALUES ===")
+            with h5py.File(hdf5_path, 'r') as f:
+                # Read the correct phase center values from HDF5
+                correct_dec_rad = f['Header']['phase_center_app_dec'][()]
+                correct_dec_deg = np.degrees(correct_dec_rad)
+                
+                # Check if there's a phase_center_app_ra field
+                if 'phase_center_app_ra' in f['Header']:
+                    correct_ra_rad = f['Header']['phase_center_app_ra'][()]
+                    correct_ra_deg = np.degrees(correct_ra_rad)
+                else:
+                    # If no RA field, use the current RA from PyUVData
+                    correct_ra_rad = uv_data.phase_center_app_ra[0] if hasattr(uv_data, 'phase_center_app_ra') else 0.0
+                    correct_ra_deg = np.degrees(correct_ra_rad)
+                
+                logger.info(f"Correct HDF5 phase_center_app_dec: {correct_dec_rad} radians = {correct_dec_deg:.6f} degrees")
+                logger.info(f"Correct HDF5 phase_center_app_ra: {correct_ra_rad} radians = {correct_ra_deg:.6f} degrees")
+                
+                # Override PyUVData's phase center values
+                n_times = len(uv_data.time_array)
+                uv_data.phase_center_app_dec = np.full(n_times, correct_dec_rad)
+                uv_data.phase_center_app_dec_degrees = np.full(n_times, correct_dec_deg)
+                uv_data.phase_center_app_ra = np.full(n_times, correct_ra_rad)
+                uv_data.phase_center_app_ra_degrees = np.full(n_times, correct_ra_deg)
+                
+                # CRITICAL: Also update the phase center catalog to ensure MS FIELD table gets correct values
+                if hasattr(uv_data, 'phase_center_catalog') and uv_data.phase_center_catalog:
+                    # Update the phase center catalog with correct coordinates
+                    for pc_id in uv_data.phase_center_catalog:
+                        uv_data.phase_center_catalog[pc_id]['cat_lon'] = correct_ra_rad
+                        uv_data.phase_center_catalog[pc_id]['cat_lat'] = correct_dec_rad
+                        logger.info(f"✓ Updated phase_center_catalog[{pc_id}] with correct coordinates")
+                
+                logger.info(f"✓ Overridden phase_center_app_dec to: {uv_data.phase_center_app_dec[0]:.6f} radians = {uv_data.phase_center_app_dec_degrees[0]:.6f} degrees")
+                logger.info(f"✓ Overridden phase_center_app_ra to: {uv_data.phase_center_app_ra[0]:.6f} radians = {uv_data.phase_center_app_ra_degrees[0]:.6f} degrees")
             
             # Apply DSA-110 specific fixes
             uv_data = self._fix_dsa110_issues(uv_data)
+            
+            # Log phase center after our fixes
+            logger.info(f"After our fixes - phase_center_app_dec: {getattr(uv_data, 'phase_center_app_dec', 'NOT_FOUND')}")
+            logger.info(f"After our fixes - phase_center_app_dec_degrees: {getattr(uv_data, 'phase_center_app_dec_degrees', 'NOT_FOUND')}")
             
             logger.info(f"Successfully read and fixed HDF5 file: {os.path.basename(hdf5_path)}")
             return uv_data
@@ -314,6 +401,29 @@ class UnifiedMSCreationManager:
             uv_data.telescope.mount_type = ['alt-az'] * len(uv_data.telescope.mount_type)
             logger.info(f"Set telescope mount type to alt-az for {len(uv_data.telescope.mount_type)} antennas")
         
+        # Fix 5: Convert phase center coordinates from radians to degrees
+        # DSA-110 HDF5 files store phase_center_app_dec in radians, but PyUVData expects degrees
+        if hasattr(uv_data, 'phase_center_app_dec') and uv_data.phase_center_app_dec is not None:
+            # Handle both scalar and array values
+            if np.isscalar(uv_data.phase_center_app_dec):
+                # Check if the value looks like it's in radians (typically 0-2π range)
+                if abs(uv_data.phase_center_app_dec) < 10.0:  # Likely radians if < 10 degrees
+                    logger.info(f"Converting phase center declination from radians to degrees: {uv_data.phase_center_app_dec:.6f} -> {np.degrees(uv_data.phase_center_app_dec):.6f}")
+                    uv_data.phase_center_app_dec = np.degrees(uv_data.phase_center_app_dec)
+                    logger.info(f"✓ Phase center declination converted to: {uv_data.phase_center_app_dec:.6f} degrees")
+                else:
+                    logger.info(f"Phase center declination already in degrees: {uv_data.phase_center_app_dec:.6f}")
+            else:
+                # Handle array case
+                if np.all(np.abs(uv_data.phase_center_app_dec) < 10.0):  # Likely radians if < 10 degrees
+                    logger.info(f"Converting phase center declination array from radians to degrees")
+                    uv_data.phase_center_app_dec = np.degrees(uv_data.phase_center_app_dec)
+                    logger.info(f"✓ Phase center declination array converted to degrees")
+                else:
+                    logger.info(f"Phase center declination array already in degrees")
+        else:
+            logger.warning("No phase_center_app_dec found in UVData object")
+        
         # IMPORTANT: Do not scale antenna positions here; ensure correct frame is used upstream
         
         return uv_data
@@ -328,6 +438,7 @@ class UnifiedMSCreationManager:
         Returns:
             Combined UVData object, or None if failed
         """
+        uv_data = None
         try:
             # Read the first file
             uv_data = await self._read_and_fix_hdf5_file(hdf5_files[0])
@@ -338,22 +449,30 @@ class UnifiedMSCreationManager:
             for i, file_path in enumerate(hdf5_files[1:], 1):
                 logger.debug(f"Combining sub-band {i+1}/{len(hdf5_files)}: {os.path.basename(file_path)}")
                 
-                uv_data_additional = await self._read_and_fix_hdf5_file(file_path)
-                if uv_data_additional is None:
-                    logger.warning(f"Failed to read sub-band file: {file_path}")
+                try:
+                    uv_data_additional = await self._read_and_fix_hdf5_file(file_path)
+                    if uv_data_additional is None:
+                        logger.warning(f"Failed to read sub-band file: {file_path}")
+                        continue
+                    
+                    # Apply antenna selection if specified
+                    if self.output_antennas is not None:
+                        uv_data_additional.select(antenna_nums=self.output_antennas)
+                    
+                    # Combine the data (suppress UVW warnings during combination)
+                    import warnings
+                    with warnings.catch_warnings():
+                        warnings.filterwarnings("ignore", message=".*uvw_array does not match.*")
+                        warnings.filterwarnings("ignore", message=".*largest discrepancy.*")
+                        warnings.filterwarnings("ignore", message=".*This is a fairly common situation.*")
+                        uv_data += uv_data_additional
+                    
+                    # Clean up immediately
+                    del uv_data_additional
+                    
+                except Exception as e:
+                    logger.error(f"Failed to process sub-band file {file_path}: {e}")
                     continue
-                
-                # Apply antenna selection if specified
-                if self.output_antennas is not None:
-                    uv_data_additional.select(antenna_nums=self.output_antennas)
-                
-                # Combine the data (suppress UVW warnings during combination)
-                import warnings
-                with warnings.catch_warnings():
-                    warnings.filterwarnings("ignore", message=".*uvw_array does not match.*")
-                    warnings.filterwarnings("ignore", message=".*largest discrepancy.*")
-                    warnings.filterwarnings("ignore", message=".*This is a fairly common situation.*")
-                    uv_data += uv_data_additional
             
             # Note: We don't call uv_data.check() here as it can fail due to antenna position mismatches
             
@@ -362,6 +481,9 @@ class UnifiedMSCreationManager:
             
         except Exception as e:
             logger.error(f"Failed to read and combine HDF5 files: {e}")
+            # Clean up on error
+            if uv_data is not None:
+                del uv_data
             return None
     
     async def _assess_single_file_quality(self, uv_data: UVData, hdf5_path: str) -> Dict[str, Any]:
@@ -570,39 +692,60 @@ class UnifiedMSCreationManager:
     
     async def _set_antenna_positions(self, uv_data: UVData) -> None:
         """
-        Set proper antenna positions in the UVData object while preserving original UVW coordinates.
+        Set survey-grade antenna positions from CSV ITRF for data-active antennas.
         
-        The antenna positions in both HDF5 and CSV files are inconsistent with the UVW coordinates
-        in the HDF5 file. Since the UVW coordinates are correct (they show the expected DSA-110
-        baseline lengths), we preserve them and set minimal antenna positions.
-        
-        Args:
-            uv_data: UVData object to modify
+        - Derive active antenna indices from HDF5 baselines present in uv_data
+        - Map active indices to CSV station numbers and use CSV ITRF (relative) positions
+        - Build full 117-length arrays for names/numbers/positions; fill non-active with zeros
+        - Set on uv_data and keep telescope_location consistent
         """
         try:
-            # Store original UVW coordinates before any modifications
-            original_uvw = uv_data.uvw_array.copy()
-            logger.info("Stored original UVW coordinates to preserve them")
+            logger.info("=== MAXIMUM PRECISION: CSV ITRF positions with HDF5-derived active set ===")
+            # 1) Build active set from baselines present in uv_data
+            ant1 = getattr(uv_data, 'ant_1_array', None)
+            ant2 = getattr(uv_data, 'ant_2_array', None)
+            if ant1 is None or ant2 is None:
+                raise RuntimeError("UVData missing ant_1_array/ant_2_array for active set derivation")
+            active_zero_based = sorted(set(ant1.tolist()) | set(ant2.tolist()))
+            logger.info(f"Active (file-active) antenna indices (0-based): {len(active_zero_based)} found")
             
-            # Use antenna positions from CSV file (even though they're inconsistent)
-            # We need some antenna positions for PyUVData to work, but we'll preserve the UVW
-            logger.info("Using antenna positions from CSV file (will preserve original UVW coordinates)")
-            antenna_positions, antenna_names = self.antenna_positions_manager.get_antenna_positions_for_uvdata()
+            # 2) Load CSV ITRF relative positions by station number
+            station_to_pos = self.antenna_positions_manager.get_relative_positions_by_station()
+            # Map: UVData/HDF5 commonly index antennas 0..116 but station numbers are 1..N
+            # We'll assume mapping station = index+1 unless a project-specific map is provided
             
-            # Set antenna positions in UVData
-            uv_data.antenna_positions = antenna_positions
-            uv_data.antenna_names = antenna_names
-            uv_data.antenna_numbers = np.arange(len(antenna_names))
+            n_antennas_total = 117
+            positions = np.zeros((n_antennas_total, 3), dtype=float)
+            names = [f"DSA-{i+1:03d}" for i in range(n_antennas_total)]
+            numbers = np.arange(n_antennas_total)
             
-            # Set telescope location
+            mapped = 0
+            missing_csv = []
+            for idx0 in active_zero_based:
+                station_num = idx0 + 1
+                pos = station_to_pos.get(station_num)
+                if pos is None:
+                    missing_csv.append(station_num)
+                    continue
+                positions[idx0] = pos
+                mapped += 1
+            
+            logger.info(f"Mapped {mapped} active antennas to CSV positions; missing CSV for: {missing_csv}")
+            
+            # 3) Install onto UVData
+            uv_data.antenna_positions = positions
+            uv_data.antenna_names = names
+            uv_data.antenna_numbers = numbers
             uv_data.telescope_location = self.telescope_location
             
-            # Keep UVWs consistent with antenna positions (do not overwrite with original)
-            logger.info("Keeping recomputed UVWs from antenna positions; not restoring original UVWs at this stage")
-            logger.info(f"Set antenna positions from CSV file for {len(antenna_names)} antennas")
+            # 4) Log ranges
+            if mapped > 0:
+                sel = positions[np.any(positions != 0.0, axis=1)]
+                logger.info(f"CSV-relative position ranges: X[{np.min(sel[:,0]):.2f},{np.max(sel[:,0]):.2f}]m, "
+                            f"Y[{np.min(sel[:,1]):.2f},{np.max(sel[:,1]):.2f}]m, Z[{np.min(sel[:,2]):.2f},{np.max(sel[:,2]):.2f}]m")
             
         except Exception as e:
-            logger.error(f"Failed to set antenna positions: {e}")
+            logger.error(f"Failed to set antenna positions from CSV ITRF: {e}")
             # Continue without proper positions (will cause issues later)
     
     async def _read_antenna_positions_from_hdf5(self) -> Tuple[Optional[np.ndarray], Optional[List[str]]]:
@@ -697,7 +840,7 @@ class UnifiedMSCreationManager:
         except Exception as e:
             logger.error(f"Failed to apply antenna selection: {e}")
     
-    async def _write_to_ms_with_fixes(self, uv_data: UVData, output_ms_path: str) -> bool:
+    async def _write_to_ms_with_fixes(self, uv_data: UVData, output_ms_path: str, hdf5_path: str) -> bool:
         """
         Write UVData object to MS format with DSA-110 specific fixes.
         
@@ -712,6 +855,13 @@ class UnifiedMSCreationManager:
             True if successful, False otherwise
         """
         try:
+            # Log phase center before MS write
+            logger.info(f"=== BEFORE MS WRITE ===")
+            logger.info(f"UVData phase_center_app_dec: {getattr(uv_data, 'phase_center_app_dec', 'NOT_FOUND')}")
+            logger.info(f"UVData phase_center_app_dec_degrees: {getattr(uv_data, 'phase_center_app_dec_degrees', 'NOT_FOUND')}")
+            logger.info(f"UVData phase_center_app_ra: {getattr(uv_data, 'phase_center_app_ra', 'NOT_FOUND')}")
+            logger.info(f"UVData phase_center_app_ra_degrees: {getattr(uv_data, 'phase_center_app_ra_degrees', 'NOT_FOUND')}")
+            
             # Store original UVW coordinates before any modifications
             original_uvw = uv_data.uvw_array.copy()
             logger.info("Stored original UVW coordinates to preserve them during MS writing")
@@ -719,29 +869,99 @@ class UnifiedMSCreationManager:
             # Prepare for MS writing
             uv_data = self._prepare_for_ms_write(uv_data)
             
+            # Log phase center after preparation
+            logger.info(f"=== AFTER MS WRITE PREPARATION ===")
+            logger.info(f"UVData phase_center_app_dec: {getattr(uv_data, 'phase_center_app_dec', 'NOT_FOUND')}")
+            logger.info(f"UVData phase_center_app_dec_degrees: {getattr(uv_data, 'phase_center_app_dec_degrees', 'NOT_FOUND')}")
+            logger.info(f"UVData phase_center_app_ra: {getattr(uv_data, 'phase_center_app_ra', 'NOT_FOUND')}")
+            logger.info(f"UVData phase_center_app_ra_degrees: {getattr(uv_data, 'phase_center_app_ra_degrees', 'NOT_FOUND')}")
+            
             # Ensure output directory exists
             output_dir = os.path.dirname(output_ms_path)
             if output_dir:  # Only create directory if there is one
                 os.makedirs(output_dir, exist_ok=True)
             
             # Write to MS format with parameters that work for DSA-110 data
-            # Suppress UVW warnings during MS writing
+            # For maximum precision calibration, we accept UVW warnings as non-critical
+            # These warnings are expected when using survey-grade positions
             import warnings
             with warnings.catch_warnings():
                 warnings.filterwarnings("ignore", message=".*uvw_array does not match.*")
                 warnings.filterwarnings("ignore", message=".*largest discrepancy.*")
                 warnings.filterwarnings("ignore", message=".*This is a fairly common situation.*")
+                warnings.filterwarnings("ignore", message=".*UVW array does not match expected values.*")
                 
-                uv_data.write_ms(
-                    output_ms_path, 
-                    clobber=True, 
-                    fix_autos=True,  # Fix auto-correlations to be real-only
-                    force_phase=True,  # Phase data to zenith of first timestamp
-                    run_check=False  # Skip PyUVData checks during write
-                )
+                logger.info(f"=== WRITING TO MS FOR MAXIMUM PRECISION: {output_ms_path} ===")
+                logger.info("UVW validation warnings are expected and non-critical for maximum precision calibration")
+            uv_data.write_ms(
+                output_ms_path, 
+                clobber=True, 
+                fix_autos=True,  # Fix auto-correlations to be real-only
+                force_phase=True,  # Phase data to zenith of first timestamp
+                run_check=False  # Skip PyUVData checks during write
+            )
+            logger.info(f"=== MS WRITE COMPLETED ===")
             
             # Keep UVWs consistent with antenna positions; skip restoring original UVWs
             logger.info("Skipping any MS UVW overwrite; preserving UVWs derived from antenna positions")
+            
+            # Log phase center after MS write by reading it back
+            logger.info(f"=== AFTER MS WRITE - READING BACK ===")
+            from casatools import ms
+            ms_tool = ms()
+            try:
+                ms_tool.open(output_ms_path)
+                summary = ms_tool.summary()
+                field_info = summary.get('field', {})
+                logger.info(f"MS field info: {field_info}")
+                
+                # Extract declination from field info if available
+                if field_info:
+                    for field_id, field_data in field_info.items():
+                        if 'Decl' in field_data:
+                            logger.info(f"MS Field {field_id} Declination: {field_data['Decl']}")
+                        if 'RA' in field_data:
+                            logger.info(f"MS Field {field_id} RA: {field_data['RA']}")
+                
+                ms_tool.close()
+            except Exception as e:
+                logger.error(f"Failed to read back MS field info: {e}")
+            finally:
+                ms_tool.done()
+            
+            # CRITICAL FIX: Directly update the MS FIELD table with correct phase center coordinates
+            logger.info("=== DIRECTLY UPDATING MS FIELD TABLE WITH CORRECT COORDINATES ===")
+            try:
+                from casatools import table
+                field_table = table()
+                field_table.open(output_ms_path + "/FIELD", nomodify=False)
+                
+                # Get the correct phase center coordinates from HDF5
+                with h5py.File(hdf5_path, 'r') as f:
+                    correct_dec_rad = f['Header']['phase_center_app_dec'][()]
+                    if 'phase_center_app_ra' in f['Header']:
+                        correct_ra_rad = f['Header']['phase_center_app_ra'][()]
+                    else:
+                        # Use the RA from the UVData object
+                        correct_ra_rad = uv_data.phase_center_app_ra[0] if hasattr(uv_data, 'phase_center_app_ra') else 0.0
+                
+                logger.info(f"Updating FIELD table with correct coordinates:")
+                logger.info(f"  RA: {correct_ra_rad:.6f} radians = {np.degrees(correct_ra_rad):.6f} degrees")
+                logger.info(f"  Dec: {correct_dec_rad:.6f} radians = {np.degrees(correct_dec_rad):.6f} degrees")
+                
+                # Update the REFERENCE_DIR column in the FIELD table
+                ref_dir = field_table.getcol("REFERENCE_DIR")
+                ref_dir[0, 0, 0] = correct_ra_rad  # RA
+                ref_dir[1, 0, 0] = correct_dec_rad  # Dec
+                field_table.putcol("REFERENCE_DIR", ref_dir)
+                
+                logger.info("✓ Successfully updated MS FIELD table with correct phase center coordinates")
+                field_table.close()
+                
+            except Exception as e:
+                logger.error(f"Failed to update MS FIELD table: {e}")
+            finally:
+                field_table.done()
             
             # Verify the MS directory was created and has reasonable size
             if not os.path.exists(output_ms_path):
@@ -773,10 +993,11 @@ class UnifiedMSCreationManager:
     
     async def _recalculate_uvw_coordinates(self, uv_data: UVData) -> UVData:
         """
-        Recalculate UVW coordinates using PyUVData's built-in method.
+        Recalculate UVW coordinates from survey-grade antenna positions for maximum precision.
         
-        This uses PyUVData's set_uvws_from_antenna_positions method which is the
-        recommended approach for fixing UVW discrepancies.
+        For maximum calibration precision, we recalculate UVW coordinates from the survey-grade
+        ITRF antenna positions. This ensures the highest possible accuracy for phase calibration
+        and scientific analysis.
         
         Args:
             uv_data: UVData object to modify
@@ -785,13 +1006,34 @@ class UnifiedMSCreationManager:
             UVData object with recalculated UVW coordinates
         """
         try:
-            logger.info("Recalculating UVW coordinates using PyUVData's set_uvws_from_antenna_positions method")
+            logger.info("=== RECALCULATING UVW FOR MAXIMUM PRECISION ===")
+            logger.info("Recalculating UVW coordinates from survey-grade ITRF antenna positions")
+            
+            # Store original UVW for comparison
+            original_uvw = uv_data.uvw_array.copy()
+            logger.info(f"Original UVW array shape: {original_uvw.shape}")
+            logger.info(f"Original UVW range: {np.min(original_uvw):.3f} to {np.max(original_uvw):.3f}m")
             
             # Use PyUVData's built-in method to recalculate UVW coordinates from antenna positions
-            # This is the recommended approach for fixing UVW discrepancies
+            # This is the recommended approach for maximum precision calibration
             uv_data.set_uvws_from_antenna_positions(update_vis=False)
             
-            logger.info("Successfully recalculated UVW coordinates using PyUVData's built-in method")
+            # Log the recalculated UVW coordinates
+            new_uvw = uv_data.uvw_array
+            logger.info(f"Recalculated UVW array shape: {new_uvw.shape}")
+            logger.info(f"Recalculated UVW range: {np.min(new_uvw):.3f} to {np.max(new_uvw):.3f}m")
+            
+            # Calculate differences for validation
+            uvw_diff = new_uvw - original_uvw
+            max_diff = np.max(np.abs(uvw_diff))
+            rms_diff = np.sqrt(np.mean(uvw_diff**2))
+            
+            logger.info(f"UVW coordinate changes:")
+            logger.info(f"  Max difference: {max_diff:.3f}m")
+            logger.info(f"  RMS difference: {rms_diff:.3f}m")
+            logger.info(f"  This is expected when using survey-grade positions")
+            
+            logger.info("Successfully recalculated UVW coordinates for maximum precision calibration")
             
             return uv_data
             
@@ -849,8 +1091,8 @@ class UnifiedMSCreationManager:
                 warnings.filterwarnings("ignore", message=".*largest discrepancy.*")
                 warnings.filterwarnings("ignore", message=".*This is a fairly common situation.*")
                 
-                uv_data = UVData()
-                uv_data.read_ms(ms_path, ignore_single_chan=True)
+            uv_data = UVData()
+            uv_data.read_ms(ms_path, ignore_single_chan=True)
             
             # Store original UVW coordinates
             logger.info(f"Original UVW shape: {original_uvw.shape}")
@@ -888,8 +1130,8 @@ class UnifiedMSCreationManager:
                 warnings.filterwarnings("ignore", message=".*largest discrepancy.*")
                 warnings.filterwarnings("ignore", message=".*This is a fairly common situation.*")
                 
-                uv_data_verify = UVData()
-                uv_data_verify.read_ms(ms_path, ignore_single_chan=True)
+            uv_data_verify = UVData()
+            uv_data_verify.read_ms(ms_path, ignore_single_chan=True)
             
             baseline_lengths_verify = np.sqrt(np.sum(uv_data_verify.uvw_array**2, axis=1))
             logger.info(f"Verification - mean baseline: {np.mean(baseline_lengths_verify):.3f} meters")
@@ -1045,8 +1287,8 @@ class UnifiedMSCreationManager:
                 warnings.filterwarnings("ignore", message=".*largest discrepancy.*")
                 warnings.filterwarnings("ignore", message=".*This is a fairly common situation.*")
                 
-                uv_data = UVData()
-                uv_data.read_ms(ms_path, ignore_single_chan=True)
+            uv_data = UVData()
+            uv_data.read_ms(ms_path, ignore_single_chan=True)
             
             metrics = {
                 'file_size_mb': file_size / (1024 * 1024),

@@ -1,5 +1,6 @@
 # Ignore old files
 *old*/
+archive/
 
 # Ignore CASA Measurement Sets (.ms)
 *.ms/

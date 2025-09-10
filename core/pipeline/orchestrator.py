@@ -21,6 +21,7 @@ from astropy.coordinates import SkyCoord
 from ..utils.logging import get_logger
 from ..utils.monitoring import PipelineMetrics
 from ..utils.casa_logging import ensure_casa_log_directory, force_casa_logging_to_directory, get_casa_log_directory
+from ..utils.casa_config_manager import setup_casa_for_pipeline
 from .exceptions import PipelineError, StageError, CalibrationError, ImagingError
 from .stages.data_ingestion_stage import DataIngestionStage
 from .stages.calibration_stage import CalibrationStage
@@ -44,6 +45,11 @@ class ProcessingBlock:
             raise ValueError("ProcessingBlock must have at least one MS file")
         if self.start_time >= self.end_time:
             raise ValueError("start_time must be before end_time")
+        
+        # Validate MS files exist to prevent resource leaks
+        for ms_file in self.ms_files:
+            if not os.path.exists(ms_file):
+                raise ValueError(f"MS file does not exist: {ms_file}")
 
 
 @dataclass
@@ -75,6 +81,10 @@ class PipelineOrchestrator:
         """
         self.config = config
         self.metrics = PipelineMetrics()
+        
+        # Set up comprehensive CASA configuration
+        if not setup_casa_for_pipeline(config):
+            logger.warning("CASA configuration setup failed, continuing with basic setup")
         
         # Force CASA logging to use the casalogs directory
         casa_log_dir = get_casa_log_directory(config)
@@ -156,9 +166,17 @@ class PipelineOrchestrator:
             processed_pbs = []
             
             for i, ms_path in enumerate(block.ms_files):
-                logger.info(f"Processing MS {i+1}/{len(block.ms_files)}: {os.path.basename(ms_path)}")
+                ms_basename = os.path.basename(ms_path)
+                logger.info(f"Processing MS {i+1}/{len(block.ms_files)}: {ms_basename}")
                 
                 try:
+                    # Validate MS file exists and is accessible
+                    if not os.path.exists(ms_path):
+                        error_msg = f"MS file not found: {ms_path}"
+                        logger.error(error_msg)
+                        result.errors.append(error_msg)
+                        continue
+                    
                     # Apply calibration and imaging to each MS
                     img_result = await self.stages['imaging'].process_ms(
                         ms_path, 
@@ -171,13 +189,15 @@ class PipelineOrchestrator:
                     if img_result['success']:
                         processed_images.append(img_result['image_path'])
                         processed_pbs.append(img_result['pb_path'])
-                        logger.info(f"Successfully processed {ms_path}")
+                        logger.info(f"Successfully processed {ms_basename} -> {os.path.basename(img_result['image_path'])}")
                     else:
-                        logger.error(f"Failed to process {ms_path}: {img_result['error']}")
-                        result.errors.append(f"MS processing failed for {ms_path}: {img_result['error']}")
+                        error_detail = img_result.get('error', 'Unknown imaging error')
+                        error_msg = f"MS imaging failed for {ms_basename} (file {i+1}/{len(block.ms_files)}): {error_detail}"
+                        logger.error(error_msg)
+                        result.errors.append(error_msg)
                         
                 except Exception as e:
-                    error_msg = f"Exception processing {ms_path}: {e}"
+                    error_msg = f"Exception processing {ms_basename} (file {i+1}/{len(block.ms_files)}) at {ms_path}: {type(e).__name__}: {e}"
                     logger.error(error_msg, exc_info=True)
                     result.errors.append(error_msg)
             

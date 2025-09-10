@@ -84,7 +84,10 @@ class StructuredLogger:
         """Format message with context."""
         context = {**self.context, **(extra_context or {})}
         if context:
-            context_str = json.dumps(context, default=str)
+            try:
+                context_str = json.dumps(context, default=str)
+            except (TypeError, ValueError) as e:
+                context_str = f"<non-serializable context: {e}>"
             return f"{message} | Context: {context_str}"
         return message
     

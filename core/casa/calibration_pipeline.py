@@ -46,9 +46,10 @@ class CASACalibrationPipeline:
         self.paths_config = config.get('paths', {})
         self.telescope_config = config.get('telescope', {})
         
-        # Initialize CASA tools
-        self.ms_tool = ms()
-        self.cal_tool = calanalysis()
+        # Initialize CASA tools with proper cleanup tracking
+        self.ms_tool = None
+        self.cal_tool = None
+        self._initialize_tools()
         
         # Set up paths
         self.cal_tables_dir = Path(self.paths_config.get('cal_tables_dir', 'cal_tables'))
@@ -124,8 +125,20 @@ class CASACalibrationPipeline:
         except Exception as e:
             logger.error(f"Calibration pipeline failed: {e}")
             results['errors'].append(str(e))
+        finally:
+            self.cleanup_tools()
             
         return results
+    
+    def _initialize_tools(self):
+        """Initialize CASA tools with proper error handling."""
+        try:
+            self.ms_tool = ms()
+            self.cal_tool = calanalysis()
+        except Exception as e:
+            logger.error(f"Failed to initialize CASA tools: {e}")
+            self.cleanup_tools()
+            raise
     
     async def _inspect_data(self, ms_path: str) -> Dict[str, Any]:
         """
@@ -138,38 +151,42 @@ class CASACalibrationPipeline:
             Dictionary with inspection results
         """
         try:
-            # Open MS
+            # Open MS with proper cleanup
             self.ms_tool.open(ms_path)
             
-            # Get basic information
-            n_rows = self.ms_tool.nrow()
-            summary = self.ms_tool.summary()
-            
-            # Get antenna information
-            antenna_info = summary.get('antenna', {})
-            n_antennas = len(antenna_info) if antenna_info else 0
-            
-            # Get spectral window information
-            spw_info = summary.get('spectralWindow', {})
-            n_spws = len(spw_info) if spw_info else 0
-            
-            # Get field information
-            field_info = summary.get('field', {})
-            n_fields = len(field_info) if field_info else 0
-            
-            self.ms_tool.close()
-            self.ms_tool.done()
-            
-            logger.info(f"Data inspection: {n_rows:,} rows, {n_antennas} antennas, {n_spws} SPWs, {n_fields} fields")
-            
-            return {
-                'success': True,
-                'n_rows': n_rows,
-                'n_antennas': n_antennas,
-                'n_spws': n_spws,
-                'n_fields': n_fields,
-                'summary': summary
-            }
+            try:
+                # Get basic information
+                n_rows = self.ms_tool.nrow()
+                summary = self.ms_tool.summary()
+                
+                # Get antenna information
+                antenna_info = summary.get('antenna', {})
+                n_antennas = len(antenna_info) if antenna_info else 0
+                
+                # Get spectral window information
+                spw_info = summary.get('spectralWindow', {})
+                n_spws = len(spw_info) if spw_info else 0
+                
+                # Get field information
+                field_info = summary.get('field', {})
+                n_fields = len(field_info) if field_info else 0
+                
+                logger.info(f"Data inspection: {n_rows:,} rows, {n_antennas} antennas, {n_spws} SPWs, {n_fields} fields")
+                
+                return {
+                    'success': True,
+                    'n_rows': n_rows,
+                    'n_antennas': n_antennas,
+                    'n_spws': n_spws,
+                    'n_fields': n_fields,
+                    'summary': summary
+                }
+            finally:
+                # Always close MS
+                try:
+                    self.ms_tool.close()
+                except Exception as close_e:
+                    logger.warning(f"Failed to close MS tool: {close_e}")
             
         except Exception as e:
             logger.error(f"Data inspection failed: {e}")
@@ -435,10 +452,32 @@ class CASACalibrationPipeline:
         except Exception as e:
             logger.error(f"Calibration table cleanup failed: {e}")
     
+    def cleanup_tools(self):
+        """Clean up CASA tools explicitly."""
+        if hasattr(self, 'ms_tool') and self.ms_tool:
+            try:
+                self.ms_tool.done()
+            except Exception as e:
+                logger.error(f"Failed to cleanup ms_tool: {e}")
+            finally:
+                self.ms_tool = None
+        
+        if hasattr(self, 'cal_tool') and self.cal_tool:
+            try:
+                self.cal_tool.done()
+            except Exception as e:
+                logger.error(f"Failed to cleanup cal_tool: {e}")
+            finally:
+                self.cal_tool = None
+    
+    def __enter__(self):
+        """Context manager entry."""
+        return self
+    
+    def __exit__(self, exc_type, exc_val, exc_tb):
+        """Context manager exit with cleanup."""
+        self.cleanup_tools()
+    
     def __del__(self):
         """Clean up CASA tools."""
-        try:
-            self.ms_tool.done()
-            self.cal_tool.done()
-        except:
-            pass
+        self.cleanup_tools()

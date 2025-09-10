@@ -3,13 +3,13 @@
 # --- File Paths ---
 paths:
   # Input directory for raw HDF5 files (monitored by Service 1)
-  hdf5_incoming: /data/incoming_test/
+  hdf5_incoming: ${DSA110_HDF5_INCOMING_DIR:-/data/incoming_test/}
   # Directory to store processed HDF5 files (optional, if post_handle='move')
-  hdf5_processed: /data/incoming/processed/
+  hdf5_processed: ${DSA110_HDF5_PROCESSED_DIR:-/data/incoming/processed/}
   # Base directory for all pipeline outputs
-  pipeline_base_dir: /data/jfaber/dsa110-contimg/pipeline/
+  pipeline_base_dir: ${DSA110_PIPELINE_BASE_DIR:-./pipeline/}
   # Path to VLA calibrator catalog
-  vla_calibrator_catalog: /data/jfaber/dsa110-contimg/vlacals.csv
+  vla_calibrator_catalog: ${DSA110_VLA_CATALOG:-./vlacals.csv}
   # Subdirectories (relative to pipeline_base_dir, or absolute paths)
   ms_stage1_dir: ms_stage1/         # Output of Service 1 (5-min MS files)
   cal_tables_dir: cal_tables/       # BPCAL, Gain tables
@@ -20,6 +20,24 @@ paths:
   log_dir: ../logs/                 # Pipeline execution logs (relative to pipeline dir)
   casa_log_dir: ../casalogs/        # CASA log files (relative to pipeline dir)
   diagnostics_base_dir: ../logs/diagnostics/ # Diagnostic plots
+
+# --- CASA Configuration ---
+casa:
+  # Data paths (as per CASA documentation)
+  datapath: ['~/.casa/data']        # Where CASA searches for data subdirectories
+  measurespath: '~/.casa/data'      # Location of required measures data
+  
+  # Auto-update settings (as per CASA documentation)
+  measures_auto_update: true        # Auto-update IERS data when casatools starts
+  data_auto_update: true            # Auto-update casarundata when casatools starts
+  
+  # Logging configuration
+  logfile: '../casalogs/casa.log'   # CASA log file path
+  logdir: '../casalogs'             # CASA log directory
+  
+  # Performance settings
+  startupfile: null                 # Optional startup file
+  cachedir: null                    # Optional cache directory
 
 # --- Service Control ---
 services:
@@ -64,7 +82,7 @@ calibration:
   bcal_search_beam_radius_deg: 1.5    # Search radius for BPCAL candidates
   bcal_min_flux_jy: 3.0               # Minimum flux for BPCAL candidates
   bcal_max_flux_jy: 15.0              # Maximum flux for BPCAL candidates
-  bcal_candidate_catalog: /data/jfaber/dsa110-contimg/bcal_candidates_vla.csv
+  bcal_candidate_catalog: ${DSA110_BCAL_CATALOG:-./bcal_candidates_vla.csv}
 
   # Gain Calibration (Enhanced)
   gcal_interval_min: 60               # Updated to 1 hour
@@ -157,4 +175,4 @@ variability_analysis:
   lookback_days: 90
   significance_threshold_mad: 5.0
   min_consecutive_points: 2
-  candidate_list_path: /data/jfaber/dsa110-contimg/pipeline/variable_candidates.csv # Relative to photometry_dir
+  candidate_list_path: ${DSA110_VARIABLE_CANDIDATES:-variable_candidates.csv} # Relative to photometry_dir
