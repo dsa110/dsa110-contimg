@@ -1,0 +1,20 @@
+# Calibration defaults schema
+calibration:
+  ref_freq_hz: 1.4e9
+  dish_diameter_m: 4.65
+  bright_att_flux_threshold_jy: 0.7
+  near_center_limit_deg: null   # if null, uses 0.5 * PB FWHM
+  include_radius_deg: null      # if null, uses 1.5 * PB FWHM
+  max_components: 50
+  gcal_refant: ''
+  gcal_mode: 'p'         # 'p' phase-only; later 'ap' for amp+phase
+  gcal_solint: 'inf'
+  gcal_minsnr: 2.0
+  gcal_uvrange: ''
+  bcal_refant: ''
+  flagging:
+    tfcrop_timecutoff: 4.0
+    tfcrop_freqcutoff: 4.0
+paths:
+  cal_tables_dir: data/cal_tables
+  skymodels_dir: data/sky_models
