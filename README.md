@@ -1,98 +1,121 @@
 # DSA-110 Continuum Imaging Pipeline
 
-## **PRODUCTION-READY PIPELINE ARCHITECTURE**
+## **PIPELINE ARCHITECTURE**
 
-A comprehensive, enterprise-grade continuum imaging pipeline for the DSA-110 radio telescope array with advanced error recovery, distributed state management, and real-time monitoring capabilities.
+A continuum imaging pipeline for the DSA-110 radio telescope array with advanced error recovery, distributed state management, and real-time monitoring capabilities.
 
-## **CRITICAL BUG FIXES**
+### **ORGANIZED DIRECTORY STRUCTURE**
 
-### PyUVData Phase Center Bug (Fixed)
-**Issue**: PyUVData's UVH5 reader fails to read phase center coordinates from DSA-110 HDF5 files, causing 36° declination errors in Measurement Sets.
-
-**Root Cause**: PyUVData ignores HDF5 phase center data and falls back to default zenith phase center (90° declination), which gets transformed to incorrect apparent coordinates (~37° declination).
-
-**Solution**: Implemented comprehensive phase center override in `core/data_ingestion/unified_ms_creation.py` that:
-- Reads correct coordinates directly from HDF5 files
-- Overrides PyUVData's incorrect default values
-- Updates phase center catalog with correct coordinates
-- Directly modifies MS FIELD table after creation
-
-**Impact**: Ensures accurate field centers for calibration and imaging. See `docs/technical/PYUVDATA_PHASE_CENTER_BUG.md` for detailed analysis.
-
-## **ORGANIZED DIRECTORY STRUCTURE**
-
-```
 dsa110-contimg/
-├── core/                        # Core pipeline functionality
-│   ├── pipeline/               # Pipeline orchestration
-│   │   ├── orchestrator.py     # Basic orchestrator
-│   │   ├── enhanced_orchestrator.py # Advanced orchestrator (Phase 3)
-│   │   ├── exceptions.py       # Custom exception hierarchy
-│   │   └── stages/             # Individual processing stages
+├── core/                        # Core pipeline functionality 
+│   ├── pipeline/               # Pipeline orchestration 
+│   │   ├── orchestrator.py     # Main orchestrator (442 lines)
+│   │   └── stages/             # Individual processing stages 
 │   │       ├── calibration_stage.py
+│   │       ├── data_ingestion_stage.py
 │   │       ├── imaging_stage.py
 │   │       ├── mosaicking_stage.py
 │   │       └── photometry_stage.py
-│   ├── utils/                  # Utility modules
-│   │   ├── logging.py          # Enhanced logging
-│   │   ├── monitoring.py       # Basic monitoring
-│   │   ├── error_recovery.py   # Error recovery system (Phase 3)
-│   │   ├── distributed_state.py # Distributed state management (Phase 3)
-│   │   └── config_loader.py    # Configuration management
-│   ├── telescope/              # Telescope-specific code
-│   │   ├── dsa110.py          # DSA-110 constants
-│   │   └── beam_models.py     # Primary beam models
-│   ├── data_ingestion/         # Data processing
-│   │   ├── unified_ms_creation.py # Unified MS creation (with phase center fix)
-│   │   ├── skymodel.py        # Sky model management
-│   │   └── photometry.py      # Photometry operations
-│   ├── calibration/            # Calibration algorithms
-│   │   └── calibrator_finder.py # Calibrator source finding
-│   └── casa/                   # CASA tool wrappers
-│       └── calibration_pipeline.py # CASA calibration interface
-├── config/                     # Configuration management
-│   ├── pipeline_config.yaml   # Base configuration
-│   └── environments/          # Environment-specific configs
-│       ├── development.yaml   # Development settings
-│       ├── production.yaml    # Production settings
-│       └── testing.yaml       # Testing settings
-├── data/                       # Data files and catalogs
-│   ├── catalogs/              # Source catalogs
+│   ├── automation/             # Pipeline automation 
+│   │   └── pipeline_automation.py
+│   ├── calibration/            # Calibration algorithms 
+│   │   ├── calibrator_cache.py
+│   │   ├── calibrator_finder.py
+│   │   ├── provenance.py
+│   │   └── skymodel_builder.py
+│   ├── casa/                   # CASA tool wrappers 
+│   │   ├── calibration_pipeline.py
+│   │   ├── enhanced_calibration_pipeline.py
+│   │   ├── imaging_pipeline.py
+│   │   ├── improved_calibration.py
+│   │   ├── mosaicking_pipeline.py
+│   │   ├── production_calibration.py
+│   │   └── uvw_preservation_calibration.py
+│   ├── config/                 # Configuration management 
+│   │   └── production_config.py
+│   ├── data_ingestion/         # Data processing 
+│   │   ├── complete_hdf5_to_ms_converter.py
+│   │   ├── dsa110_hdf5_reader.py
+│   │   ├── dsa110_hdf5_reader_fixed.py
+│   │   ├── hdf5_to_ms_converter.py
+│   │   ├── ms_creation.py      # Main implementation (larger)
+│   │   ├── nextgen_ms_creation.py
+│   │   └── photometry.py
+│   ├── messaging/              # Messaging system 
+│   ├── telescope/              # Telescope-specific code 
+│   │   ├── dsa110_antpos_local.py
+│   │   └── [other telescope files]
+│   └── utils/                  # Utility modules 
+│       ├── casa_config_manager.py
+│       ├── config_validation.py
+│       ├── dependencies.py
+│       └── [other utility files]
+├── src/                        # Package structure 
+│   └── dsa110/                 # Main package
+│       ├── __init__.py
+│       ├── data/
+│       │   └── ms_creation.py  # Simplified version (117 lines)
+│       ├── pipeline/
+│       │   └── orchestrator.py # Simplified version (117 lines)
+│       └── utils/
+│           └── config.py
+├── config/                     # Configuration management 
+│   ├── calibration_defaults.yaml
+│   ├── environments/           # Environment-specific configs 
+│   └── schemas/                # Configuration schemas 
+├── data/                       # Data files and catalogs 
+│   ├── cal_tables/            # Calibration tables
 │   ├── calibrators/           # Calibrator data
-│   ├── ms/                    # Measurement Set files
+│   ├── catalog_cache/         # Cached catalogs
+│   ├── catalogs/              # Source catalogs
+│   ├── hdf5/                  # HDF5 files
 │   ├── hdf5_staging/          # Staged HDF5 files
-│   └── reference/             # Reference data
-├── docs/                       # Documentation
+│   ├── images/                # Image files
+│   ├── mosaics/               # Mosaic files
+│   ├── ms/                    # Measurement Set files
+│   ├── ms_clean/              # Cleaned MS files
+│   ├── ms_debug/              # Debug MS files
+│   ├── output/                # Output files
+│   ├── photometry/            # Photometry data
+│   ├── reference/             # Reference data
+│   ├── sky_models/            # Sky model files
+│   ├── test_data/             # Test data
+│   └── tmp/                   # Temporary files
+├── docs/                       # Documentation 
 │   ├── architecture/          # Architecture documentation
 │   ├── development/           # Development guides
-│   └── organization/          # Project organization
-├── scripts/                    # Utility and operational scripts
-│   ├── diagnostics/           # Diagnostic tools
+│   ├── organization/          # Project organization
+│   ├── production/            # Production documentation
+│   ├── services/              # Service documentation
+│   └── technical/             # Technical documentation
+├── scripts/                    # Utility and operational scripts 
+│   ├── diagnostics/           # Diagnostic tools 
 │   └── [60+ operational scripts] # Setup, testing, monitoring
-├── tools/                      # Analysis and utility tools
-│   ├── utilities/             # Utility scripts
-│   └── analysis/              # Analysis notebooks
-├── tests/                      # Comprehensive test suite
-│   ├── unit/                  # Unit tests
-│   ├── integration/           # Integration tests
-│   ├── e2e/                   # End-to-end tests
-│   └── fixtures/              # Test data
-├── examples/                   # Usage examples
-│   ├── basic_pipeline_example.py      # Basic usage
-│   └── advanced_pipeline_example.py   # Advanced features
-├── services/                   # Service implementations
+├── services/                   # Service implementations 
 │   ├── hdf5_watcher/          # HDF5 file monitoring
 │   ├── ms_processor/          # MS processing service
 │   └── variability_analyzer/  # Variability analysis
-├── logs/                       # Operational logs
-│   ├── pipeline/              # Pipeline logs
-│   └── casa/                  # CASA logs
-├── test_data/                  # Test datasets
-└── archive/                    # Legacy code preservation
-    ├── legacy_pipeline/       # Original pipeline modules
-    ├── testing/               # Legacy testing code
+├── tests/                      # Comprehensive test suite 
+│   ├── data/                  # Test data
+│   ├── e2e/                   # End-to-end tests
+│   ├── fixtures/              # Test fixtures
+│   ├── integration/           # Integration tests
+│   ├── migrated/              # Migrated tests
+│   ├── science/               # Science tests
+│   └── unit/                  # Unit tests
+├── tools/                      # Analysis and utility tools 
+│   ├── analysis/              # Analysis notebooks
+│   └── utilities/             # Utility scripts
+├── examples/                   # Usage examples 
+├── logs/                       # Operational logs 
+│   ├── casa/                  # CASA logs
+│   └── pipeline/              # Pipeline logs
+├── test_data/                  # Test datasets 
+│   ├── debugging/             # Debug test data
+│   ├── output_testing/        # Output test data
+│   └── uvw_testing/           # UVW test data
+└── archive/                    # Legacy code preservation 
     └── [archived directories] # Historical code and data
-```
 
 ## **KEY FEATURES**
 
@@ -277,3 +300,22 @@ What fixed prior issues
 Troubleshooting
 - If deltas are large: confirm antenna positions are in the expected frame relative to `telescope_location` (as required by PyUVData), and that `telescope_location` is correct.
 - Recreate the MS and re-run the validator.
+
+## **PRODUCTION-READY PIPELINE ARCHITECTURE**
+
+A comprehensive, enterprise-grade continuum imaging pipeline for the DSA-110 radio telescope array with advanced error recovery, distributed state management, and real-time monitoring capabilities.
+
+## **CRITICAL BUG FIXES**
+
+### PyUVData Phase Center Bug (Fixed)
+**Issue**: PyUVData's UVH5 reader fails to read phase center coordinates from DSA-110 HDF5 files, causing 36° declination errors in Measurement Sets.
+
+**Root Cause**: PyUVData ignores HDF5 phase center data and falls back to default zenith phase center (90° declination), which gets transformed to incorrect apparent coordinates (~37° declination).
+
+**Solution**: Implemented comprehensive phase center override in `core/data_ingestion/unified_ms_creation.py` that:
+- Reads correct coordinates directly from HDF5 files
+- Overrides PyUVData's incorrect default values
+- Updates phase center catalog with correct coordinates
+- Directly modifies MS FIELD table after creation
+
+**Impact**: Ensures accurate field centers for calibration and imaging. See `docs/technical/PYUVDATA_PHASE_CENTER_BUG.md` for detailed analysis.

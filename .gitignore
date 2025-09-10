@@ -105,3 +105,9 @@ casa-*.log
 data/ms/
 data/sky_models/
 data/tmp/
+
+# HDF5 data files
+*.hdf5
+**/*.hdf5
+data/hdf5_staging/
+data/hdf5/

@@ -1,297 +1,140 @@
-#!/usr/bin/env python3
 """
-Custom HDF5 reader for DSA-110 data format.
+DSA-110 HDF5 Reader using PyUVData's native UVH5 reader.
 
-This module provides a custom reader that can parse the DSA-110 HDF5 format
-and convert it to PyUVData UVData objects for MS creation.
+This module provides a simple interface to read DSA-110 HDF5 files using
+PyUVData's built-in UVH5 reader, which automatically handles all parameter setup.
 """
 
-import os
-import h5py
+import logging
 import numpy as np
-from typing import Dict, Any, Optional, Tuple
-from astropy.time import Time
+from typing import Optional
+from pyuvdata import UVData
 from astropy.coordinates import EarthLocation
 import astropy.units as u
 
-from ..utils.logging import get_logger
-
-logger = get_logger(__name__)
+logger = logging.getLogger(__name__)
 
 
 class DSA110HDF5Reader:
-    """
-    Custom HDF5 reader for DSA-110 data format.
-    
-    This class handles the specific HDF5 structure used by DSA-110
-    and converts it to PyUVData-compatible format.
-    """
+    """Reader for DSA-110 HDF5 files using PyUVData's native UVH5 reader."""
     
     def __init__(self):
-        """Initialize the DSA-110 HDF5 reader."""
-        self.logger = logger
+        """Initialize the HDF5 reader."""
+        self.logger = logging.getLogger(__name__)
     
-    def read_hdf5_file(self, hdf5_path: str) -> Optional[Dict[str, Any]]:
+    async def create_uvdata_object(self, hdf5_path: str) -> Optional[UVData]:
         """
-        Read a DSA-110 HDF5 file and extract all necessary data.
+        Create a UVData object from HDF5 file using PyUVData's native UVH5 reader.
+        
+        This approach uses PyUVData's built-in UVH5 reader which automatically
+        handles all the parameter setup that we were doing manually. This is
+        the same approach used by the reference pipelines.
         
         Args:
             hdf5_path: Path to the HDF5 file
             
         Returns:
-            Dictionary containing UVData-compatible data, or None if failed
+            UVData object if successful, None otherwise
         """
         try:
-            self.logger.info(f"Reading DSA-110 HDF5 file: {os.path.basename(hdf5_path)}")
+            # Use PyUVData's native UVH5 reader - this automatically sets all required parameters
+            uv_data = UVData()
             
-            with h5py.File(hdf5_path, 'r') as f:
-                # Read header information
-                header = f['Header']
-                
-                # Extract basic dimensions
-                Nblts = header['Nblts'][()]
-                Nfreqs = header['Nfreqs'][()]
-                Npols = header['Npols'][()]
-                Nants_data = header['Nants_data'][()]
-                
-                self.logger.info(f"Data dimensions: Nblts={Nblts}, Nfreqs={Nfreqs}, Npols={Npols}, Nants_data={Nants_data}")
-                
-                # Read time and frequency arrays
-                time_array = header['time_array'][()]
-                freq_array = header['freq_array'][()]
-                
-                # Read telescope information
-                telescope_name = header['telescope_name'][()].decode()
-                lat = header['latitude'][()]
-                lon = header['longitude'][()]
-                alt = header['altitude'][()]
-                
-                # Read antenna information
-                antenna_names = [name.decode() for name in header['antenna_names'][()]]
-                antenna_numbers = header['antenna_numbers'][()]
-                
-                # Read data arrays
-                data_group = f['Data']
-                visdata = data_group['visdata'][()]
-                flags = data_group['flags'][()]
-                nsamples = data_group['nsamples'][()]
-                
-                # Read baseline information from Header
-                ant_1_array = header['ant_1_array'][()]
-                ant_2_array = header['ant_2_array'][()]
-                
-                self.logger.info(f"Read data: {visdata.shape}, flags: {flags.shape}, nsamples: {nsamples.shape}")
-                
-                # Convert to PyUVData-compatible format
-                uv_data_dict = self._convert_to_uvdata_format(
-                    visdata, flags, nsamples, time_array, freq_array,
-                    ant_1_array, ant_2_array, antenna_names, antenna_numbers,
-                    telescope_name, lat, lon, alt
-                )
-                
-                return uv_data_dict
-                
-        except Exception as e:
-            self.logger.error(f"Failed to read HDF5 file: {e}")
-            return None
-    
-    def _convert_to_uvdata_format(self, visdata: np.ndarray, flags: np.ndarray, 
-                                nsamples: np.ndarray, time_array: np.ndarray,
-                                freq_array: np.ndarray, ant_1_array: np.ndarray,
-                                ant_2_array: np.ndarray, antenna_names: list,
-                                antenna_numbers: np.ndarray, telescope_name: str,
-                                lat: float, lon: float, alt: float) -> Dict[str, Any]:
-        """
-        Convert DSA-110 data to PyUVData-compatible format.
-        
-        Args:
-            visdata: Visibility data array
-            flags: Flag array
-            nsamples: Number of samples array
-            time_array: Time array
-            freq_array: Frequency array
-            ant_1_array: Antenna 1 array
-            ant_2_array: Antenna 2 array
-            antenna_names: List of antenna names
-            antenna_numbers: Array of antenna numbers
-            telescope_name: Telescope name
-            lat: Latitude in degrees
-            lon: Longitude in degrees
-            alt: Altitude in meters
+            # Read the HDF5 file using PyUVData's built-in UVH5 reader
+            # This automatically handles all the parameter setup that we were doing manually
+            uv_data.read(hdf5_path, file_type='uvh5', run_check=False)
             
-        Returns:
-            Dictionary with PyUVData-compatible data
-        """
-        try:
-            # Convert data arrays to proper shapes
-            # The data is already in the correct shape (Nblts, 1, Nfreqs, Npols)
-            Nblts, _, Nfreqs, Npols = visdata.shape
+            # Fix known issues with DSA-110 data
+            uv_data = self._fix_dsa110_issues(uv_data)
             
-            # Data is already in the correct shape, just convert to complex
-            data_array = visdata.astype(complex)
-            flag_array = flags
-            nsample_array = nsamples
-            
-            # Set telescope location (convert to ECEF coordinates)
-            telescope_location = EarthLocation(lat=lat*u.deg, lon=lon*u.deg, height=alt*u.m)
-            telescope_location_xyz = telescope_location.to_geocentric()
-            
-            # Calculate baseline array
-            baseline_array = ant_1_array * 1000 + ant_2_array
-            
-            # Calculate number of baselines
-            Nbls = len(np.unique(baseline_array))
-            
-            # Calculate number of times
-            Ntimes = len(np.unique(time_array))
-            
-            # Set antenna positions (simplified - would need actual positions)
-            antenna_positions = np.zeros((len(antenna_names), 3))
-            
-            # Set polarization array (assuming linear polarizations)
-            polarization_array = np.array([1, 2])  # XX, YY
-            
-            # Set spectral window array
-            spw_array = np.array([0])
-            
-            # Set phase center information (from HDF5 header)
-            phase_center_ra = 0.0  # Default value
-            phase_center_dec = 0.0  # Default value
-            
-            # Create phase center catalog (required for MS writing)
-            phase_center_catalog = {
-                0: {
-                    'cat_name': 'drift_ra0.0',
-                    'cat_type': 'sidereal',
-                    'cat_lon': phase_center_ra,
-                    'cat_lat': phase_center_dec,
-                    'cat_frame': 'icrs',
-                    'cat_epoch': 2000.0,
-                    'cat_times': time_array,
-                    'cat_pm_ra': 0.0,
-                    'cat_pm_dec': 0.0,
-                    'cat_vrad': 0.0,
-                    'cat_dist': 0.0
-                }
-            }
-            
-            # Create UVData-compatible dictionary
-            uv_data_dict = {
-                'data_array': data_array,
-                'flag_array': flag_array,
-                'nsample_array': nsample_array,
-                'time_array': time_array,
-                'freq_array': freq_array.reshape(1, -1),
-                'ant_1_array': ant_1_array,
-                'ant_2_array': ant_2_array,
-                'baseline_array': baseline_array,
-                'antenna_names': antenna_names,
-                'antenna_numbers': antenna_numbers,
-                'antenna_positions': antenna_positions,
-                'telescope_name': telescope_name,
-                'telescope_location': telescope_location_xyz,
-                'uvw_array': np.zeros((Nblts, 3), dtype=np.float64),  # Will be calculated later
-                'polarization_array': polarization_array,
-                'spw_array': spw_array,
-                'phase_type': 'phased',
-                'phase_center_ra': phase_center_ra,
-                'phase_center_dec': phase_center_dec,
-                'phase_center_epoch': 2000.0,
-                'phase_center_frame': 'icrs',
-                'extra_keywords': {},  # Critical: must be a dict, not None
-                'Nblts': Nblts,
-                'Nfreqs': Nfreqs,
-                'Npols': Npols,
-                'Nants_data': len(antenna_names),
-                'Nbls': Nbls,
-                'Ntimes': Ntimes,
-                'vis_units': 'Jy',
-                'integration_time': np.full(Nblts, 1.0),  # 1 second integration
-                'channel_width': np.full(Nfreqs, (freq_array.max() - freq_array.min()) / Nfreqs)
-            }
-            
-            self.logger.info(f"Converted to UVData format: {Nblts} blts, {Nfreqs} freqs, {Npols} pols")
-            return uv_data_dict
-            
-        except Exception as e:
-            self.logger.error(f"Failed to convert to UVData format: {e}")
-            return None
-    
-    def create_uvdata_object(self, hdf5_path: str):
-        """
-        Create a PyUVData UVData object from a DSA-110 HDF5 file.
-        
-        Args:
-            hdf5_path: Path to the HDF5 file
-            
-        Returns:
-            UVData object or None if failed
-        """
-        try:
-            import pyuvdata
-            
-            # Read the HDF5 file
-            data_dict = self.read_hdf5_file(hdf5_path)
-            if data_dict is None:
-                return None
-            
-            # Create UVData object
-            uv_data = pyuvdata.UVData()
-            
-            # Set all the attributes
-            uv_data.data_array = data_dict['data_array']
-            uv_data.flag_array = data_dict['flag_array']
-            uv_data.nsample_array = data_dict['nsample_array']
-            uv_data.time_array = data_dict['time_array']
-            uv_data.freq_array = data_dict['freq_array']
-            uv_data.ant_1_array = data_dict['ant_1_array']
-            uv_data.ant_2_array = data_dict['ant_2_array']
-            uv_data.baseline_array = data_dict['baseline_array']
-            uv_data.antenna_names = data_dict['antenna_names']
-            uv_data.antenna_numbers = data_dict['antenna_numbers']
-            uv_data.antenna_positions = data_dict['antenna_positions']
-            uv_data.telescope_name = data_dict['telescope_name']
-            uv_data.telescope_location = data_dict['telescope_location']
-            uv_data.uvw_array = data_dict['uvw_array']
-            uv_data.polarization_array = data_dict['polarization_array']
-            uv_data.spw_array = data_dict['spw_array']
-            uv_data.phase_type = data_dict['phase_type']
-            uv_data.phase_center_ra = data_dict['phase_center_ra']
-            uv_data.phase_center_dec = data_dict['phase_center_dec']
-            uv_data.phase_center_epoch = data_dict['phase_center_epoch']
-            uv_data.phase_center_frame = data_dict['phase_center_frame']
-            uv_data.extra_keywords = data_dict['extra_keywords']
-            
-            # Set up phase center using PyUVData's method
-            uv_data._add_phase_center(
-                cat_name='drift_ra0.0',
-                cat_type='sidereal', 
-                cat_lon=data_dict['phase_center_ra'],
-                cat_lat=data_dict['phase_center_dec'],
-                cat_frame='icrs',
-                cat_epoch=2000.0,
-                cat_pm_ra=0.0,
-                cat_pm_dec=0.0,
-                cat_vrad=0.0,
-                cat_dist=0.0
-            )
-            uv_data.Nblts = data_dict['Nblts']
-            uv_data.Nfreqs = data_dict['Nfreqs']
-            uv_data.Npols = data_dict['Npols']
-            uv_data.Nants_data = data_dict['Nants_data']
-            uv_data.Nbls = data_dict['Nbls']
-            uv_data.Ntimes = data_dict['Ntimes']
-            uv_data._Nspws = len(data_dict['spw_array'])  # Number of spectral windows
-            uv_data.vis_units = data_dict['vis_units']
-            uv_data.integration_time = data_dict['integration_time']
-            uv_data.channel_width = data_dict['channel_width']
-            
-            self.logger.info(f"Successfully created UVData object from {os.path.basename(hdf5_path)}")
+            self.logger.info(f"Successfully created UVData object with {uv_data.Nbls} baselines, {uv_data.Nfreqs} frequencies")
             return uv_data
             
-        except ImportError:
-            self.logger.error("PyUVData not available")
-            return None
         except Exception as e:
             self.logger.error(f"Failed to create UVData object: {e}")
             return None
+    
+    def _fix_dsa110_issues(self, uv_data: UVData) -> UVData:
+        """
+        Fix known issues with DSA-110 HDF5 data.
+        
+        Args:
+            uv_data: UVData object to fix
+            
+        Returns:
+            Fixed UVData object
+        """
+        # Fix 1: Ensure uvw_array is float64 as required by PyUVData
+        if uv_data.uvw_array.dtype != np.float64:
+            self.logger.info("Converting UVW array from float32 to float64")
+            uv_data.uvw_array = uv_data.uvw_array.astype(np.float64)
+        
+        # Fix 2: Correct telescope name from OVRO_MMA to DSA-110
+        if uv_data.telescope.name == "OVRO_MMA":
+            self.logger.info("Correcting telescope name from OVRO_MMA to DSA-110")
+            uv_data.telescope.name = "DSA-110"
+        
+        # Fix 3: Ensure data units are properly set
+        if not hasattr(uv_data, 'vis_units') or uv_data.vis_units is None or uv_data.vis_units == 'uncalib':
+            uv_data.vis_units = 'Jy'
+            self.logger.info("Set visibility units to Jy")
+        
+        # Fix 4: Set proper mount type for DSA-110 (alt-az mount)
+        # This will help reduce CASA MSDerivedValues warnings
+        if hasattr(uv_data.telescope, 'mount_type'):
+            # DSA-110 uses alt-az mounts, so set all antennas to 'alt-az' (with hyphen)
+            uv_data.telescope.mount_type = ['alt-az'] * len(uv_data.telescope.mount_type)
+            self.logger.info(f"Set telescope mount type to alt-az for {len(uv_data.telescope.mount_type)} antennas")
+        
+        return uv_data
+    
+    def write_ms(self, uv_data: UVData, output_ms_path: str) -> bool:
+        """
+        Write UVData object to MS format with proper parameters.
+        
+        Args:
+            uv_data: UVData object to write
+            output_ms_path: Path for the output MS file
+            
+        Returns:
+            True if successful, False otherwise
+        """
+        try:
+            # Write to MS format with parameters that work for DSA-110 data
+            uv_data.write_ms(
+                output_ms_path, 
+                clobber=True, 
+                fix_autos=True,  # Fix auto-correlations to be real-only
+                force_phase=True,  # Phase data to zenith of first timestamp
+                run_check=False  # Skip PyUVData checks during write
+            )
+            
+            self.logger.info(f"Successfully wrote MS file: {output_ms_path}")
+            return True
+            
+        except Exception as e:
+            self.logger.error(f"Failed to write MS file: {e}")
+            return False
+    
+    def _prepare_for_ms_write(self, uv_data: UVData) -> UVData:
+        """
+        Prepare UVData object for MS writing by fixing common issues.
+        
+        Args:
+            uv_data: UVData object to prepare
+            
+        Returns:
+            Prepared UVData object
+        """
+        # Ensure proper data types
+        if uv_data.uvw_array.dtype != np.float64:
+            uv_data.uvw_array = uv_data.uvw_array.astype(np.float64)
+        
+        # Ensure proper units
+        if not hasattr(uv_data, 'vis_units') or uv_data.vis_units is None or uv_data.vis_units == 'uncalib':
+            uv_data.vis_units = 'Jy'
+        
+        # Note: Baseline conjugation is handled by PyUVData's write_ms method
+        # with the force_phase=True parameter, so we don't need to fix it here
+        
+        return uv_data
