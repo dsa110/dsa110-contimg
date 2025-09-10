@@ -1,8 +1,8 @@
 # DSA-110 Continuum Imaging Pipeline
 
-## **PRODUCTION-READY PIPELINE ARCHITECTURE**
+## **PIPELINE ARCHITECTURE**
 
-A comprehensive, enterprise-grade continuum imaging pipeline for the DSA-110 radio telescope array with advanced error recovery, distributed state management, and real-time monitoring capabilities.
+A continuum imaging pipeline for the DSA-110 radio telescope array with advanced error recovery, distributed state management, and real-time monitoring capabilities.
 
 ## **CRITICAL BUG FIXES**
 
