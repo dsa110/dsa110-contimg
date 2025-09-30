@@ -12,11 +12,11 @@ import sys
 from pathlib import Path
 from typing import Optional
 
-from core.utils.logging import setup_logging, get_logger
-from core.utils.config_loader import load_pipeline_config
-from core.messaging.message_queue import MessageQueue, MessageType
-from core.utils.distributed_state import DistributedStateManager, initialize_distributed_state
-from core.utils.monitoring import HealthChecker, HealthStatus
+from dsa110.utils.logging import setup_logging, get_logger
+from dsa110.utils.config_loader import load_pipeline_config
+from dsa110.messaging.message_queue import MessageQueue, MessageType
+from dsa110.utils.distributed_state import DistributedStateManager, initialize_distributed_state
+from dsa110.utils.monitoring import HealthChecker, HealthStatus
 from .variability_analysis_handler import VariabilityAnalysisHandler
 
 logger = get_logger(__name__)

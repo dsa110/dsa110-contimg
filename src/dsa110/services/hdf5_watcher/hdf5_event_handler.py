@@ -16,10 +16,10 @@ from pathlib import Path
 from watchdog.events import FileSystemEventHandler
 from watchdog.observers import Observer
 
-from core.utils.logging import get_logger
-from core.messaging.message_queue import MessageQueue, MessageType
-from core.utils.distributed_state import DistributedStateManager
-from core.data_ingestion.ms_creation import process_hdf5_set
+from dsa110.utils.logging import get_logger
+from dsa110.messaging.message_queue import MessageQueue, MessageType
+from dsa110.utils.distributed_state import DistributedStateManager
+from dsa110.data_ingestion.ms_creation import process_hdf5_set
 
 logger = get_logger(__name__)
 

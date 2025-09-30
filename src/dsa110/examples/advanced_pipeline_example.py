@@ -17,14 +17,14 @@ from pathlib import Path
 project_root = Path(__file__).parent.parent
 sys.path.insert(0, str(project_root))
 
-from core.pipeline.enhanced_orchestrator import EnhancedPipelineOrchestrator
-from core.utils.logging import setup_logging, get_logger
-from core.utils.config_loader import load_pipeline_config
-from core.utils.error_recovery import get_error_recovery_manager
-from core.utils.distributed_state import initialize_distributed_state
-from core.messaging.message_queue import initialize_message_queues
-from core.data_ingestion.ms_creation import MSCreationManager
-from monitoring.advanced_monitoring import AdvancedMonitor, MonitoringDashboard
+from dsa110.pipeline.enhanced_orchestrator import EnhancedPipelineOrchestrator
+from dsa110.utils.logging import setup_logging, get_logger
+from dsa110.utils.config_loader import load_pipeline_config
+from dsa110.utils.error_recovery import get_error_recovery_manager
+from dsa110.utils.distributed_state import initialize_distributed_state
+from dsa110.messaging.message_queue import initialize_message_queues
+from dsa110.data_ingestion.ms_creation import MSCreationManager
+from dsa110.monitoring.advanced_monitoring import AdvancedMonitor, MonitoringDashboard
 from astropy.time import Time
 
 logger = get_logger(__name__)
@@ -236,7 +236,7 @@ async def run_monitoring_dashboard_example():
         monitor = AdvancedMonitor(message_queue)
         
         # Add some threshold rules
-        from monitoring.advanced_monitoring import ThresholdRule, AlertLevel
+        from dsa110.monitoring.advanced_monitoring import ThresholdRule, AlertLevel
         
         # Add threshold rule for processing time
         processing_time_rule = ThresholdRule(

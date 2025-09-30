@@ -14,11 +14,11 @@ from pathlib import Path
 project_root = Path(__file__).parent.parent
 sys.path.insert(0, str(project_root))
 
-from core.utils.logging import setup_logging, get_logger
-from services.hdf5_watcher import HDF5WatcherService
-from services.ms_processor import MSProcessorService
-from services.variability_analyzer import VariabilityAnalyzerService
-from services.service_manager import ServiceManager
+from dsa110.utils.logging import setup_logging, get_logger
+from dsa110.services.hdf5_watcher import HDF5WatcherService
+from dsa110.services.ms_processor import MSProcessorService
+from dsa110.services.variability_analyzer import VariabilityAnalyzerService
+from dsa110.services.service_manager import ServiceManager
 
 logger = get_logger(__name__)
 

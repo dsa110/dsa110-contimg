@@ -19,9 +19,9 @@ import astropy.units as u
 from casatools import ms, image, imager, linearmosaic
 from casatasks import exportfits, imhead, imstat, imval
 
-from core.utils.logging import get_logger
-from core.telescope.dsa110 import get_telescope_location, get_primary_beam_model
-from core.telescope.beam_models import GaussianBeamModel, AiryDiskBeamModel
+from dsa110.utils.logging import get_logger
+from dsa110.telescope.dsa110 import get_telescope_location, get_primary_beam_model
+from dsa110.telescope.beam_models import GaussianBeamModel, AiryDiskBeamModel
 
 logger = get_logger(__name__)
 

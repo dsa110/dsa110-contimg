@@ -13,10 +13,10 @@ from pathlib import Path
 project_root = Path(__file__).parent.parent
 sys.path.insert(0, str(project_root))
 
-from core.utils.health_monitoring import HealthMonitor
-from core.utils.monitoring_dashboard import MonitoringDashboard
-from core.pipeline.orchestrator import PipelineOrchestrator
-from core.config.production_config import ProductionConfig
+from dsa110.utils.health_monitoring import HealthMonitor
+from dsa110.utils.monitoring_dashboard import MonitoringDashboard
+from dsa110.pipeline.orchestrator import PipelineOrchestrator
+from dsa110.config.production_config import ProductionConfig
 
 # Configure logging
 logging.basicConfig(

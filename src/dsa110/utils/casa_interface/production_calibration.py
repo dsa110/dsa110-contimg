@@ -22,8 +22,8 @@ from astropy.coordinates import EarthLocation
 from casatools import ms, calanalysis
 from casatasks import listobs, flagdata, bandpass, gaincal, applycal, gencal, setjy, split, ft, mstransform
 
-from core.utils.logging import get_logger
-from core.telescope.dsa110 import get_telescope_location, get_valid_antennas
+from dsa110.utils.logging import get_logger
+from dsa110.telescope.dsa110 import get_telescope_location, get_valid_antennas
 
 logger = get_logger(__name__)
 

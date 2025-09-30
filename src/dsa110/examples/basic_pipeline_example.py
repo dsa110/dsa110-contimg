@@ -16,10 +16,10 @@ from pathlib import Path
 project_root = Path(__file__).parent.parent
 sys.path.insert(0, str(project_root))
 
-from core.pipeline import PipelineOrchestrator, ProcessingBlock
-from core.utils.logging import setup_logging, get_logger
-from core.utils.config_loader import load_pipeline_config
-from core.data_ingestion.ms_creation import MSCreationManager
+from dsa110.pipeline import PipelineOrchestrator, ProcessingBlock
+from dsa110.utils.logging import setup_logging, get_logger
+from dsa110.utils.config_loader import load_pipeline_config
+from dsa110.data_ingestion.ms_creation import MSCreationManager
 from astropy.time import Time
 
 logger = get_logger(__name__)

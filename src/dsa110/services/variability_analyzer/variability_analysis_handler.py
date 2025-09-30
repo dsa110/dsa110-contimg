@@ -13,9 +13,9 @@ from pathlib import Path
 import pandas as pd
 import numpy as np
 
-from core.utils.logging import get_logger
-from core.messaging.message_queue import MessageQueue, MessageType
-from core.utils.distributed_state import DistributedStateManager
+from dsa110.utils.logging import get_logger
+from dsa110.messaging.message_queue import MessageQueue, MessageType
+from dsa110.utils.distributed_state import DistributedStateManager
 
 logger = get_logger(__name__)
 

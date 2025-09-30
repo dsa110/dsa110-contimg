@@ -15,11 +15,11 @@ from astropy.time import Time
 from astropy.coordinates import SkyCoord
 import astropy.units as u
 
-from core.utils.logging import get_logger
-from core.messaging.message_queue import MessageQueue, MessageType
-from core.utils.distributed_state import DistributedStateManager
-from core.pipeline.enhanced_orchestrator import EnhancedPipelineOrchestrator
-from core.telescope.dsa110 import DSA110_LOCATION
+from dsa110.utils.logging import get_logger
+from dsa110.messaging.message_queue import MessageQueue, MessageType
+from dsa110.utils.distributed_state import DistributedStateManager
+from dsa110.pipeline.enhanced_orchestrator import EnhancedPipelineOrchestrator
+from dsa110.telescope.dsa110 import DSA110_LOCATION
 
 logger = get_logger(__name__)
 
@@ -125,7 +125,7 @@ class MSProcessingHandler:
             await orchestrator.initialize_advanced_features()
 
             # Create processing block
-            from core.pipeline.orchestrator import ProcessingBlock
+            from dsa110.pipeline.orchestrator import ProcessingBlock
             processing_block = ProcessingBlock(
                 block_id=f"block_{block_info['start_mjd']:.6f}",
                 start_time=Time(block_info['start_mjd'], format='mjd', scale='utc'),

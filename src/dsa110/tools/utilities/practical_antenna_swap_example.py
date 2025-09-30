@@ -23,8 +23,8 @@ from astropy.coordinates import EarthLocation
 import astropy.units as u
 
 # Import your existing utilities
-from core.telescope.antenna_positions import DSA110AntennaPositions
-from core.utils.logging import get_logger
+from dsa110.telescope.antenna_positions import DSA110AntennaPositions
+from dsa110.utils.logging import get_logger
 
 logger = get_logger(__name__)
 

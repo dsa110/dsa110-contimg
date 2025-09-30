@@ -19,9 +19,9 @@ import astropy.units as u
 from casatools import ms, calanalysis
 from casatasks import listobs, flagdata, bandpass, gaincal, applycal, gencal
 
-from core.utils.logging import get_logger
-from core.telescope.dsa110 import get_telescope_location, get_valid_antennas
-from core.data_ingestion.skymodel import SkyModelManager
+from dsa110.utils.logging import get_logger
+from dsa110.telescope.dsa110 import get_telescope_location, get_valid_antennas
+from dsa110.data_ingestion.skymodel import SkyModelManager
 
 logger = get_logger(__name__)
 
