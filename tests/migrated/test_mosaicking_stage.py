@@ -1,7 +1,7 @@
 import pytest
 import asyncio
 from unittest.mock import Mock, patch, AsyncMock
-from core.pipeline.stages.mosaicking_stage import MosaickingStage
+from dsa110.pipeline.stages.mosaicking_stage import MosaickingStage
 
 @pytest.fixture
 def mock_config():

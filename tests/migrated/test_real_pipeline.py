@@ -17,9 +17,9 @@ import glob
 project_root = Path(__file__).parent
 sys.path.insert(0, str(project_root))
 
-from core.utils.logging import get_logger
-from core.pipeline.orchestrator import PipelineOrchestrator
-from core.config.production_config import ProductionConfig
+from dsa110.utils.logging import get_logger
+from dsa110.pipeline.orchestrator import PipelineOrchestrator
+from dsa110.config.production_config import ProductionConfig
 
 # Setup logging
 logging.basicConfig(

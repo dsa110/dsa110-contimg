@@ -17,9 +17,9 @@ from pathlib import Path
 # Add the project root to the Python path
 sys.path.insert(0, str(Path(__file__).parent.parent))
 
-from core.casa.enhanced_calibration_pipeline import EnhancedCalibrationPipeline
-from core.utils.config_loader import load_pipeline_config
-from core.utils.logging import get_logger
+from dsa110.casa.enhanced_calibration_pipeline import EnhancedCalibrationPipeline
+from dsa110.utils.config_loader import load_pipeline_config
+from dsa110.utils.logging import get_logger
 
 logger = get_logger(__name__)
 

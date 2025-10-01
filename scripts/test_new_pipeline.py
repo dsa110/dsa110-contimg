@@ -137,7 +137,7 @@ def test_pipeline_config():
     print("\n=== Testing Pipeline Configuration ===")
     
     try:
-        from core.utils.config_loader import load_pipeline_config
+        from dsa110.utils.config_loader import load_pipeline_config
         
         config = load_pipeline_config(environment="development")
         
@@ -184,9 +184,9 @@ async def test_async_functionality():
     print("\n=== Testing Async Functionality ===")
     
     try:
-        from core.utils.logging import setup_logging
-        from core.data_ingestion.ms_creation import MSCreationManager
-        from core.utils.config_loader import load_pipeline_config
+        from dsa110.utils.logging import setup_logging
+        from dsa110.data_ingestion.ms_creation import MSCreationManager
+        from dsa110.utils.config_loader import load_pipeline_config
         
         # Setup logging
         setup_logging(log_dir="logs", config_name="test_new_pipeline")

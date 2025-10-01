@@ -14,7 +14,7 @@ from pathlib import Path
 project_root = Path(__file__).parent.parent
 sys.path.insert(0, str(project_root))
 
-from core.utils.casa_logging import setup_casa_logging, ensure_casa_log_directory, get_casa_log_directory
+from dsa110.utils.casa_logging import setup_casa_logging, ensure_casa_log_directory, get_casa_log_directory
 
 def test_casa_logging():
     """Test CASA logging configuration."""

@@ -13,8 +13,8 @@ from astropy.time import Time
 from astropy.coordinates import EarthLocation, SkyCoord, HADec, ICRS, Angle
 
 # Pipeline imports
-from .pipeline_utils import get_logger 
-from . import dsa110_utils 
+from dsa110.pipeline.pipeline_utils import get_logger 
+from dsa110.utils import dsa110_utils 
 
 # Get logger for this module
 logger = get_logger(__name__)
@@ -23,7 +23,7 @@ logger = get_logger(__name__)
 import pyuvdata 
 from pyuvdata import UVData
 from pyuvdata import utils as uvutils
-from pyuvdata.uvdata.ms import tables
+from casacore import tables
 
 # Updated imports for PyUVData 3.x
 try:

@@ -16,8 +16,8 @@ from pathlib import Path
 project_root = Path(__file__).parent.parent
 sys.path.insert(0, str(project_root))
 
-from core.utils.logging import get_logger
-from core.casa.uvw_preservation_calibration import UVWPreservationCalibrationPipeline
+from dsa110.utils.logging import get_logger
+from dsa110.casa.uvw_preservation_calibration import UVWPreservationCalibrationPipeline
 
 logger = get_logger(__name__)
 

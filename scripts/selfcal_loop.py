@@ -8,8 +8,8 @@ import astropy.units as u
 
 from casatasks import tclean, clearcal, gaincal, applycal
 
-from core.calibration.calibrator_finder import CalibratorFinder
-from core.calibration.skymodel_builder import SkyModelBuilder
+from dsa110.calibration.calibrator_finder import CalibratorFinder
+from dsa110.calibration.skymodel_builder import SkyModelBuilder
 
 
 def image(vis: str, imagename: str, cell='3arcsec', imsize=2048, niter=2000, threshold='5e-5Jy', phasecenter: str = ''):

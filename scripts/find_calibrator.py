@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 import argparse
-from core.calibration.calibrator_finder import CalibratorFinder
+from dsa110.calibration.calibrator_finder import CalibratorFinder
 
 
 def main():

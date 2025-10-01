@@ -7,7 +7,7 @@ from astropy.coordinates import SkyCoord
 from astropy import units as u
 from astroquery.vizier import Vizier
 
-from core.calibration.calibrator_cache import CalibratorCache, CachedSource, NVSS_CSV, VLASS_CSV
+from dsa110.calibration.calibrator_cache import CalibratorCache, CachedSource, NVSS_CSV, VLASS_CSV
 
 
 NVSS_ID = "VIII/65/nvss"

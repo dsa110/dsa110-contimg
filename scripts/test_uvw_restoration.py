@@ -17,8 +17,8 @@ from pathlib import Path
 project_root = Path(__file__).parent.parent
 sys.path.insert(0, str(project_root))
 
-from core.data_ingestion.unified_ms_creation import UnifiedMSCreationManager
-from core.utils.logging import get_logger
+from dsa110.data_ingestion.unified_ms_creation import UnifiedMSCreationManager
+from dsa110.utils.logging import get_logger
 
 logger = get_logger(__name__)
 

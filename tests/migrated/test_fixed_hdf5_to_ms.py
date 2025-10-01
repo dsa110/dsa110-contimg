@@ -54,8 +54,8 @@ async def test_fixed_hdf5_to_ms():
         
         try:
             # Import the existing pipeline components
-            from core.pipeline.orchestrator import PipelineOrchestrator
-            from core.data_ingestion.dsa110_hdf5_reader_fixed import DSA110HDF5Reader
+            from dsa110.pipeline.orchestrator import PipelineOrchestrator
+            from dsa110.data_ingestion.dsa110_hdf5_reader_fixed import DSA110HDF5Reader
             
             # Create a simple config for testing
             config = {

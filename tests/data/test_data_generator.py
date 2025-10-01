@@ -19,7 +19,7 @@ import logging
 from typing import Dict, Any, List, Optional, Tuple
 from pathlib import Path
 
-from core.utils.logging import get_logger
+from dsa110.utils.logging import get_logger
 
 logger = get_logger(__name__)
 

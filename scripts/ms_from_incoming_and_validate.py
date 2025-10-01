@@ -6,7 +6,7 @@ from pathlib import Path
 
 sys.path.insert(0, str(Path.cwd()))
 
-from core.pipeline.orchestrator import PipelineOrchestrator
+from dsa110.pipeline.orchestrator import PipelineOrchestrator
 
 
 async def main() -> int:

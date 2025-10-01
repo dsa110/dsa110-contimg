@@ -15,7 +15,7 @@ project_root = Path(__file__).parent.parent
 sys.path.insert(0, str(project_root))
 
 # Import the CASA import hook BEFORE any CASA imports
-from core.utils.casa_import_hook import setup_casa_logging_environment
+from dsa110.utils.casa_import_hook import setup_casa_logging_environment
 
 def test_casa_import_hook():
     """Test CASA import hook."""

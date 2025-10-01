@@ -21,14 +21,14 @@ from astropy.coordinates import SkyCoord
 import astropy.units as u
 
 # Pipeline imports
-from core.pipeline.stages.data_ingestion_stage import DataIngestionStage
-from core.pipeline.stages.calibration_stage import CalibrationStage
-from core.pipeline.stages.imaging_stage import ImagingStage
-from core.pipeline.stages.mosaicking_stage import MosaickingStage
-from core.pipeline.stages.photometry_stage import PhotometryStage
-from core.utils.error_recovery import error_recovery_manager
-from core.utils.health_monitoring import health_monitor
-from core.utils.logging import get_logger
+from dsa110.pipeline.stages.data_ingestion_stage import DataIngestionStage
+from dsa110.pipeline.stages.calibration_stage import CalibrationStage
+from dsa110.pipeline.stages.imaging_stage import ImagingStage
+from dsa110.pipeline.stages.mosaicking_stage import MosaickingStage
+from dsa110.pipeline.stages.photometry_stage import PhotometryStage
+from dsa110.utils.error_recovery import error_recovery_manager
+from dsa110.utils.health_monitoring import health_monitor
+from dsa110.utils.logging import get_logger
 
 logger = get_logger(__name__)
 

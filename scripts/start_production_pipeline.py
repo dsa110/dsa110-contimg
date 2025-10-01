@@ -19,10 +19,10 @@ from typing import Dict, Any
 project_root = Path(__file__).parent.parent
 sys.path.insert(0, str(project_root))
 
-from core.automation.pipeline_automation import PipelineAutomation, AutomationConfig
-from core.config.production_config import ProductionConfig, Environment
-from core.utils.logging import get_logger
-from core.utils.health_monitoring import health_monitor
+from dsa110.automation.pipeline_automation import PipelineAutomation, AutomationConfig
+from dsa110.config.production_config import ProductionConfig, Environment
+from dsa110.utils.logging import get_logger
+from dsa110.utils.health_monitoring import health_monitor
 
 logger = get_logger(__name__)
 

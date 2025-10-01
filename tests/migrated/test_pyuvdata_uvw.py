@@ -20,7 +20,7 @@ async def test_pyuvdata_uvw_fix():
     print('Creating test MS file...')
     
     # Use the orchestrator to create a minimal MS file
-    from core.pipeline.orchestrator import PipelineOrchestrator
+    from dsa110.pipeline.orchestrator import PipelineOrchestrator
     
     config = {
         'paths': {

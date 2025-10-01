@@ -21,7 +21,7 @@ from pathlib import Path
 project_root = Path(__file__).parent.parent
 sys.path.insert(0, str(project_root))
 
-from core.utils.casa_config_manager import CASAConfigManager
+from dsa110.utils.casa_config_manager import CASAConfigManager
 
 
 def main():

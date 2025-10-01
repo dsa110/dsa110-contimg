@@ -11,7 +11,7 @@ from pathlib import Path
 # Add the project root to the Python path
 sys.path.insert(0, str(Path(__file__).parent.parent))
 
-from core.data_ingestion.dsa110_hdf5_reader_fixed import DSA110HDF5Reader
+from dsa110.data_ingestion.dsa110_hdf5_reader_fixed import DSA110HDF5Reader
 
 async def test_ms_creation(file_path, output_ms_path):
     """Test MS creation from HDF5 file using the simplified reader."""

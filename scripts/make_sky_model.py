@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 import argparse
-from core.calibration.skymodel_builder import SkyModelBuilder
+from dsa110.calibration.skymodel_builder import SkyModelBuilder
 
 
 def main():

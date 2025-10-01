@@ -21,8 +21,8 @@ sys.path.insert(0, str(project_root))
 
 from tests.e2e.test_pipeline_e2e import E2ETestFramework, TestConfig
 from tests.science.validation_framework import ScienceValidator, ValidationCriteria
-from core.automation.pipeline_automation import PipelineAutomation, AutomationConfig
-from core.utils.logging import get_logger
+from dsa110.automation.pipeline_automation import PipelineAutomation, AutomationConfig
+from dsa110.utils.logging import get_logger
 
 logger = get_logger(__name__)
 

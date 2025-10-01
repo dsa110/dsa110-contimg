@@ -13,8 +13,8 @@ from astropy.time import Time
 from astropy.coordinates import SkyCoord
 import astropy.units as u
 
-from core.pipeline import PipelineOrchestrator, ProcessingBlock, ProcessingResult
-from core.pipeline.exceptions import PipelineError
+from dsa110.pipeline import PipelineOrchestrator, ProcessingBlock, ProcessingResult
+from dsa110.pipeline.exceptions import PipelineError
 
 
 class TestProcessingBlock:

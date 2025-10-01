@@ -4,7 +4,7 @@ import os
 import pickle
 from typing import List
 
-from core.calibration.calibrator_cache import CalibratorCache, CachedSource, SEED_CSV
+from dsa110.calibration.calibrator_cache import CalibratorCache, CachedSource, SEED_CSV
 
 
 def load_3c(path: str) -> List[CachedSource]:

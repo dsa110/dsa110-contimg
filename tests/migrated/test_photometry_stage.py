@@ -3,7 +3,7 @@ import numpy as np
 from unittest.mock import Mock, patch
 from astropy.table import Table
 from astropy.time import Time
-from core.pipeline.stages.photometry_stage import PhotometryStage
+from dsa110.pipeline.stages.photometry_stage import PhotometryStage
 
 @pytest.fixture
 def mock_config():

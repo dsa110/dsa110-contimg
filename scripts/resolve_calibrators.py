@@ -101,7 +101,7 @@ def compute_ra_from_hdf5_or_default(h5path: Optional[str], ra_cli_deg: float) ->
 
 
 def find_candidates(ra_deg: float, dec_deg: float, radius_deg: float, min_flux_jy: float) -> List[Dict[str, Any]]:
-    from core.calibration.calibrator_finder import CalibratorFinder
+    from dsa110.calibration.calibrator_finder import CalibratorFinder
     # Query all supported catalogs online (NVSS, FIRST, TGSS, VLASS), with cache-first
     cf = CalibratorFinder(
         catalogs=['nvss', 'first', 'tgss', 'vlass'],

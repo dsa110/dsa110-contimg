@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 import json
 
-from core.pipeline.stages.calibration_stage import CalibrationStage
+from dsa110.pipeline.stages.calibration_stage import CalibrationStage
 
 
 def build_stage():

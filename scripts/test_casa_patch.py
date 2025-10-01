@@ -16,8 +16,8 @@ import time
 project_root = Path(__file__).parent.parent
 sys.path.insert(0, str(project_root))
 
-from core.utils.casa_logging import get_casa_log_directory
-from core.utils.casa_logging_patch import patch_casa_logging, apply_casa_logging_patch
+from dsa110.utils.casa_logging import get_casa_log_directory
+from dsa110.utils.casa_logging_patch import patch_casa_logging, apply_casa_logging_patch
 
 def test_casa_patch():
     """Test CASA logging patch."""

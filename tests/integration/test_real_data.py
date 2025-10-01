@@ -17,11 +17,11 @@ import numpy as np
 project_root = Path(__file__).parent.parent
 sys.path.insert(0, str(project_root))
 
-from core.utils.logging import setup_logging, get_logger
-from core.utils.config_loader import load_pipeline_config
-from core.data_ingestion.ms_creation import MSCreationManager
-from core.telescope.dsa110 import get_telescope_location, get_valid_antennas
-from core.pipeline.orchestrator import ProcessingBlock
+from dsa110.utils.logging import setup_logging, get_logger
+from dsa110.utils.config_loader import load_pipeline_config
+from dsa110.data_ingestion.ms_creation import MSCreationManager
+from dsa110.telescope.dsa110 import get_telescope_location, get_valid_antennas
+from dsa110.pipeline.orchestrator import ProcessingBlock
 from astropy.time import Time
 
 # Setup logging

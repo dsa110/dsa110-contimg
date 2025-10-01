@@ -16,10 +16,10 @@ from datetime import datetime
 project_root = Path(__file__).parent
 sys.path.insert(0, str(project_root))
 
-from core.utils.logging import get_logger
+from dsa110.utils.logging import get_logger
 from tests.data.test_data_generator import TestDataGenerator
-from core.pipeline.orchestrator import PipelineOrchestrator
-from core.config.production_config import ProductionConfig
+from dsa110.pipeline.orchestrator import PipelineOrchestrator
+from dsa110.config.production_config import ProductionConfig
 
 # Setup logging
 logging.basicConfig(
@@ -56,7 +56,7 @@ async def test_image_generation():
         hdf5_dir = "data/test_data"
         
         # Create a processing block for testing
-        from core.pipeline.orchestrator import ProcessingBlock
+        from dsa110.pipeline.orchestrator import ProcessingBlock
         from astropy.time import Time
         
         # Test with the first HDF5 file

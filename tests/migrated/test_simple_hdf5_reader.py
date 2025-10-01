@@ -53,7 +53,7 @@ async def test_simple_hdf5_reader():
         logger.info("🔧 Testing simple HDF5 reader...")
         try:
             # Import the simple HDF5 reader directly
-            from core.data_ingestion.dsa110_hdf5_reader import DSA110HDF5Reader
+            from dsa110.data_ingestion.dsa110_hdf5_reader import DSA110HDF5Reader
             
             # Test with first file
             test_file = hdf5_files[0]

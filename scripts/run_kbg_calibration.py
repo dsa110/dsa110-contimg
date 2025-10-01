@@ -8,10 +8,10 @@ from typing import Dict, Any, Optional
 from casatools import ms as ms_tool_mod, table as table_tool_mod
 from casatasks import gaincal, bandpass, applycal, ft, clearcal
 
-from core.calibration.calibrator_finder import CalibratorFinder
-from core.calibration.skymodel_builder import SkyModelBuilder
-from core.calibration.provenance import write_provenance
-from core.utils.casa_logging import ensure_casa_log_directory, force_casa_logging_to_directory
+from dsa110.calibration.calibrator_finder import CalibratorFinder
+from dsa110.calibration.skymodel_builder import SkyModelBuilder
+from dsa110.calibration.provenance import write_provenance
+from dsa110.utils.casa_logging import ensure_casa_log_directory, force_casa_logging_to_directory
 
 
 def read_field_center(ms_path: str) -> Optional[Dict[str, float]]:

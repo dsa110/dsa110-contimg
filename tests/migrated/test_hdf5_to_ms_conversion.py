@@ -16,8 +16,8 @@ import glob
 project_root = Path(__file__).parent
 sys.path.insert(0, str(project_root))
 
-from core.utils.logging import get_logger
-from core.data_ingestion.complete_hdf5_to_ms_converter import CompleteHDF5ToMSConverter
+from dsa110.utils.logging import get_logger
+from dsa110.data_ingestion.complete_hdf5_to_ms_converter import CompleteHDF5ToMSConverter
 
 # Setup logging
 logging.basicConfig(

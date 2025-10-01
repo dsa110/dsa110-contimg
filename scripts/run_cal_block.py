@@ -5,8 +5,8 @@ from pathlib import Path
 from astropy.coordinates import SkyCoord
 import astropy.units as u
 
-from core.calibration.calibrator_finder import CalibratorFinder
-from core.calibration.skymodel_builder import SkyModelBuilder
+from dsa110.calibration.calibrator_finder import CalibratorFinder
+from dsa110.calibration.skymodel_builder import SkyModelBuilder
 
 
 def main():

@@ -53,7 +53,7 @@ async def test_existing_hdf5_to_ms():
         logger.info("🔧 Testing existing HDF5 reader...")
         try:
             # Import the HDF5 reader directly to avoid circular imports
-            from core.data_ingestion.dsa110_hdf5_reader_fixed import DSA110HDF5Reader
+            from dsa110.data_ingestion.dsa110_hdf5_reader_fixed import DSA110HDF5Reader
             
             # Test with first file
             test_file = hdf5_files[0]

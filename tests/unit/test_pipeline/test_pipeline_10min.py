@@ -24,28 +24,28 @@ from astropy.wcs import WCS # Needed if checking FITS output here
 # Pipeline module imports
 try:
     # Assumes script is run from the parent directory of 'pipeline/'
-    from pipeline import config_parser
-    from pipeline import pipeline_utils
-    from pipeline import ms_creation
-    from pipeline import calibration
-    from pipeline import skymodel
-    from pipeline import imaging
-    from pipeline import mosaicking
-    from pipeline import photometry
-    from pipeline import utils_dsa110 # Needed for location
+    from dsa110.pipeline import config_parser
+    from dsa110.pipeline import pipeline_utils
+    from dsa110.pipeline import ms_creation
+    from dsa110.pipeline import calibration
+    from dsa110.pipeline import skymodel
+    from dsa110.pipeline import imaging
+    from dsa110.pipeline import mosaicking
+    from dsa110.pipeline import photometry
+    from dsa110.pipeline import utils_dsa110 # Needed for location
 except ImportError:
     print("ERROR: Ensure this script is run from the parent directory containing")
     print("       the 'pipeline' module directory, or adjust PYTHONPATH.")
     sys.path.append(os.path.dirname(os.path.dirname(__file__))) # Go up one level
-    from pipeline import config_parser
-    from pipeline import pipeline_utils
-    from pipeline import ms_creation
-    from pipeline import calibration
-    from pipeline import skymodel
-    from pipeline import imaging
-    from pipeline import mosaicking
-    from pipeline import photometry
-    from pipeline import utils_dsa110
+    from dsa110.pipeline import config_parser
+    from dsa110.pipeline import pipeline_utils
+    from dsa110.pipeline import ms_creation
+    from dsa110.pipeline import calibration
+    from dsa110.pipeline import skymodel
+    from dsa110.pipeline import imaging
+    from dsa110.pipeline import mosaicking
+    from dsa110.pipeline import photometry
+    from dsa110.pipeline import utils_dsa110
 
 # pyuvdata needed for reading header
 try:

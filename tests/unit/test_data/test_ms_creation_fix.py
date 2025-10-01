@@ -14,7 +14,7 @@ pipeline_parent_dir = '/data/jfaber/dsa110-contimg/'
 if pipeline_parent_dir not in sys.path:
     sys.path.insert(0, pipeline_parent_dir)
 
-from pipeline import ms_creation, config_parser
+from dsa110.pipeline import ms_creation, config_parser
 
 def test_ms_creation():
     """Test the fixed MS creation on a single timestamp"""

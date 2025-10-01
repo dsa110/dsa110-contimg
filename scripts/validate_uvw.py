@@ -7,7 +7,7 @@ from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 
-from core.utils.uvw_validator import UVWValidator, UVWValidationThresholds
+from dsa110.utils.uvw_validator import UVWValidator, UVWValidationThresholds
 
 
 def main() -> int:

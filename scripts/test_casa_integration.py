@@ -16,12 +16,12 @@ from typing import List, Dict, Any
 # Add the project root to the Python path
 sys.path.insert(0, str(Path(__file__).parent.parent))
 
-from core.casa.calibration_pipeline import CASACalibrationPipeline
-from core.casa.imaging_pipeline import CASAImagingPipeline
-from core.casa.mosaicking_pipeline import CASAMosaickingPipeline
-from core.data_ingestion.ms_creation import MSCreationManager
-from core.utils.config_loader import load_pipeline_config
-from core.utils.logging import get_logger
+from dsa110.casa.calibration_pipeline import CASACalibrationPipeline
+from dsa110.casa.imaging_pipeline import CASAImagingPipeline
+from dsa110.casa.mosaicking_pipeline import CASAMosaickingPipeline
+from dsa110.data_ingestion.ms_creation import MSCreationManager
+from dsa110.utils.config_loader import load_pipeline_config
+from dsa110.utils.logging import get_logger
 
 logger = get_logger(__name__)
 

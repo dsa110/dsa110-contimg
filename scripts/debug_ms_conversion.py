@@ -11,7 +11,7 @@ from pathlib import Path
 project_root = Path(__file__).parent.parent
 sys.path.insert(0, str(project_root))
 
-from core.data_ingestion.dsa110_hdf5_reader import DSA110HDF5Reader
+from dsa110.data_ingestion.dsa110_hdf5_reader import DSA110HDF5Reader
 
 def debug_ms_conversion():
     """Debug the MS conversion process step by step."""

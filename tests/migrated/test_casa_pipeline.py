@@ -17,7 +17,7 @@ import glob
 project_root = Path(__file__).parent
 sys.path.insert(0, str(project_root))
 
-from core.utils.logging import get_logger
+from dsa110.utils.logging import get_logger
 
 # Setup logging
 logging.basicConfig(
@@ -90,27 +90,27 @@ async def test_casa_pipeline():
         
         try:
             # Test data ingestion stage
-            from core.pipeline.stages.data_ingestion_stage import DataIngestionStage
+            from dsa110.pipeline.stages.data_ingestion_stage import DataIngestionStage
             ingestion_stage = DataIngestionStage(simple_config)
             logger.info("✅ Data ingestion stage initialized with CASA support")
             
             # Test calibration stage
-            from core.pipeline.stages.calibration_stage import CalibrationStage
+            from dsa110.pipeline.stages.calibration_stage import CalibrationStage
             calibration_stage = CalibrationStage(simple_config)
             logger.info("✅ Calibration stage initialized with CASA support")
             
             # Test imaging stage
-            from core.pipeline.stages.imaging_stage import ImagingStage
+            from dsa110.pipeline.stages.imaging_stage import ImagingStage
             imaging_stage = ImagingStage(simple_config)
             logger.info("✅ Imaging stage initialized with CASA support")
             
             # Test mosaicking stage
-            from core.pipeline.stages.mosaicking_stage import MosaickingStage
+            from dsa110.pipeline.stages.mosaicking_stage import MosaickingStage
             mosaicking_stage = MosaickingStage(simple_config)
             logger.info("✅ Mosaicking stage initialized with CASA support")
             
             # Test photometry stage
-            from core.pipeline.stages.photometry_stage import PhotometryStage
+            from dsa110.pipeline.stages.photometry_stage import PhotometryStage
             photometry_stage = PhotometryStage(simple_config)
             logger.info("✅ Photometry stage initialized with CASA support")
             
@@ -147,7 +147,7 @@ async def test_casa_pipeline():
         logger.info("📥 Testing HDF5 to MS conversion...")
         
         try:
-            from core.data_ingestion.ms_creation import MSCreationManager
+            from dsa110.data_ingestion.ms_creation import MSCreationManager
             ms_manager = MSCreationManager(simple_config)
             logger.info("✅ MS creation manager initialized")
             

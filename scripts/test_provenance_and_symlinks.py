@@ -7,8 +7,8 @@ from types import SimpleNamespace
 from astropy.coordinates import SkyCoord
 import astropy.units as u
 
-from core.calibration.provenance import write_provenance
-from core.pipeline.stages.calibration_stage import CalibrationStage
+from dsa110.calibration.provenance import write_provenance
+from dsa110.pipeline.stages.calibration_stage import CalibrationStage
 
 
 def test_write_provenance():

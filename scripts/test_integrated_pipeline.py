@@ -15,8 +15,8 @@ from pathlib import Path
 sys.path.insert(0, str(Path(__file__).parent.parent))
 
 from pipeline.main_driver_unified import UnifiedPipelineDriver
-from core.utils.config_loader import load_pipeline_config
-from core.utils.logging import get_logger
+from dsa110.utils.config_loader import load_pipeline_config
+from dsa110.utils.logging import get_logger
 
 logger = get_logger(__name__)
 

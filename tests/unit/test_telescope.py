@@ -11,12 +11,12 @@ import numpy as np
 from astropy.coordinates import EarthLocation
 import astropy.units as u
 
-from core.telescope.dsa110 import (
+from dsa110.telescope.dsa110 import (
     get_valid_antennas, get_valid_antenna_names, is_valid_antenna,
     get_telescope_location, get_dish_diameter,
     ant_inds_to_names_dsa110, ant_names_to_inds_dsa110
 )
-from core.telescope.beam_models import (
+from dsa110.telescope.beam_models import (
     pb_dsa110, pb_dsa110_airy, get_beam_model,
     calculate_beam_fwhm, calculate_beam_hpbw
 )
