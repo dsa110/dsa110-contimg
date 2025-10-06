@@ -21,9 +21,9 @@ PROJECT_ROOT = Path(__file__).resolve().parents[1]
 if str(PROJECT_ROOT) not in sys.path:
     sys.path.insert(0, str(PROJECT_ROOT))
 
-from uvh5_to_ms_converter import calc_uvw_blt
-from antpos_local import get_itrf
-from uvh5_to_ms_converter import OVRO_LAT, OVRO_LON, OVRO_ALT
+from pipeline.pipeline.utils.fringestopping import calc_uvw_blt
+from pipeline.pipeline.utils.antpos import get_itrf
+from pipeline.pipeline.utils.constants import OVRO_LAT, OVRO_LON, OVRO_ALT
 
 SECONDS_PER_DAY = 86400.0
 
