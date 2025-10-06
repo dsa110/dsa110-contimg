@@ -13,7 +13,7 @@ import os
 import glob
 import shutil
 import argparse
-from datetime import datetime
+from datetime import datetime, timedelta
 from typing import List, Optional, Union, Tuple, Dict
 import logging
 import warnings
@@ -75,6 +75,45 @@ CASA_TIME_OFFSET = 0.00042824074625968933  # in days
 OVRO_LON = -2.1454167  # radians
 OVRO_LAT = 0.7106      # radians  
 OVRO_ALT = 1200.0      # meters
+
+DEFAULT_CHUNK_MINUTES = 5.0
+DEFAULT_CLUSTER_TOLERANCE = DEFAULT_CHUNK_MINUTES / 2.0
+
+
+def _parse_timestamp_from_filename(filename: str) -> Optional[datetime]:
+    base = os.path.splitext(filename)[0]
+    if '_sb' not in base:
+        return None
+    ts_part = base.rsplit('_sb', maxsplit=1)[0]
+    for fmt in ('%Y-%m-%dT%H:%M:%S', '%Y-%m-%d %H:%M:%S', '%Y%m%d_%H%M%S'):
+        try:
+            return datetime.strptime(ts_part, fmt)
+        except ValueError:
+            continue
+    return None
+
+
+def _extract_subband_index(filename: str) -> Optional[int]:
+    base = os.path.splitext(filename)[0]
+    if '_sb' not in base:
+        return None
+    try:
+        return int(base.rsplit('_sb', maxsplit=1)[1])
+    except ValueError:
+        return None
+
+
+def _normalize_chunk_start(dt: datetime, chunk_minutes: float) -> datetime:
+    """Floor a datetime to the start of the configured chunk."""
+    chunk_seconds = int(chunk_minutes * 60)
+    epoch = int(dt.timestamp())
+    snapped = epoch - (epoch % chunk_seconds)
+    return datetime.utcfromtimestamp(snapped)
+
+
+def _within_cluster(a: datetime, b: datetime, tolerance_minutes: float) -> bool:
+    delta = abs(a - b)
+    return delta <= timedelta(minutes=tolerance_minutes)
 
 
 class Direction:
@@ -223,95 +262,89 @@ def _set_relative_antenna_positions(uv: UVData, rel_positions: np.ndarray) -> No
         else:
             setattr(telescope, 'antenna_positions', rel_positions)
 
-def find_subband_groups(input_dir: str, start_time: str, end_time: str) -> List[List[str]]:
+def find_subband_groups(
+    input_dir: str,
+    start_time: str,
+    end_time: str,
+    chunk_minutes: float = DEFAULT_CHUNK_MINUTES,
+    tolerance_minutes: float = DEFAULT_CLUSTER_TOLERANCE,
+) -> List[List[str]]:
     """
     Find all DSA-110 subband file groups in the input directory that fall within
     the specified time range.
-    
-    Parameters:
-    -----------
-    input_dir : str
-        Path to directory containing HDF5 subband files
-    start_time : str
-        Start time in 'YYYY-MM-DD HH:MM:SS' format
-    end_time : str
-        End time in 'YYYY-MM-DD HH:MM:SS' format
-        
-    Returns:
-    --------
-    List[List[str]]
-        List of subband file groups, where each group contains all subband files
-        for one observation
     """
     logger.info("Searching for DSA-110 subband files in %s", input_dir)
-    
-    # Convert time strings to datetime objects for comparison
+
     start_dt = datetime.strptime(start_time, '%Y-%m-%d %H:%M:%S')
     end_dt = datetime.strptime(end_time, '%Y-%m-%d %H:%M:%S')
-    
-    # Aggregate files by timestamp prefix
-    buckets: Dict[str, List[str]] = {}
-    hdf5_pattern = os.path.join(input_dir, '*_sb??.hdf5')
-    for file_path in glob.glob(hdf5_pattern):
-        filename = os.path.basename(file_path)
-        base, _ = os.path.splitext(filename)
-        if '_sb' not in base:
-            logger.debug("Skipping candidate without subband suffix: %s", filename)
-            continue
-        ts_part, sb_part = base.rsplit('_sb', maxsplit=1)
-        try:
-            dt = datetime.strptime(ts_part, '%Y-%m-%dT%H:%M:%S')
-        except ValueError:
-            logger.warning("Could not parse timestamp from %s", filename)
-            continue
-        if not (start_dt <= dt <= end_dt):
-            continue
-        try:
-            sb_idx = int(sb_part)
-        except ValueError:
-            logger.warning("Invalid subband index in %s", filename)
-            continue
-        if not 0 <= sb_idx <= 99:
-            logger.warning("Subband index out of range in %s", filename)
-            continue
-        buckets.setdefault(ts_part, []).append(file_path)
 
-    if not buckets:
+    # Collect candidate files with parsed timestamps and indices
+    candidates: List[Tuple[str, datetime, int]] = []
+    for file_path in glob.glob(os.path.join(input_dir, '*_sb??.hdf5')):
+        filename = os.path.basename(file_path)
+        ts = _parse_timestamp_from_filename(filename)
+        if ts is None:
+            logger.debug("Skipping file with unparsable timestamp: %s", filename)
+            continue
+        if not (start_dt <= ts <= end_dt):
+            continue
+        sb_idx = _extract_subband_index(filename)
+        if sb_idx is None:
+            logger.debug("Skipping file with missing subband index: %s", filename)
+            continue
+        candidates.append((file_path, ts, sb_idx))
+
+    if not candidates:
         logger.info("No files found within time range")
         return []
 
-    groups: List[List[str]] = []
-    for ts, files in sorted(buckets.items()):
-        indexed: Dict[int, str] = {}
-        for path in files:
-            fname = os.path.basename(path)
-            sb_idx = int(os.path.splitext(fname)[0].rsplit('_sb', maxsplit=1)[1])
-            if sb_idx in indexed:
-                logger.warning(
-                    "Duplicate subband idx %s for timestamp %s; dropping %s in favour of %s",
-                    sb_idx,
-                    ts,
-                    path,
-                    indexed[sb_idx],
-                )
-                continue
-            indexed[sb_idx] = path
-        missing = sorted({i for i in range(16)} - set(indexed.keys()))
+    # Sort by timestamp so we can cluster deterministically
+    candidates.sort(key=lambda item: item[1])
+    groups: Dict[str, Dict[int, str]] = {}
+    for file_path, ts, sb_idx in candidates:
+        # Locate an existing cluster whose midpoint is within tolerance
+        assigned_group: Optional[str] = None
+        for group_id_str, slot in groups.items():
+            group_start = datetime.strptime(group_id_str, '%Y-%m-%dT%H:%M:%S')
+            group_mid = group_start + timedelta(minutes=chunk_minutes / 2.0)
+            if _within_cluster(ts, group_mid, tolerance_minutes):
+                assigned_group = group_id_str
+                break
+        if assigned_group is None:
+            normalized_start = _normalize_chunk_start(ts, chunk_minutes)
+            assigned_group = normalized_start.strftime('%Y-%m-%dT%H:%M:%S')
+            groups.setdefault(assigned_group, {})
+        slot = groups.setdefault(assigned_group, {})
+        if sb_idx in slot:
+            logger.warning(
+                "Duplicate subband sb%02d detected for group %s; keeping first entry and skipping %s",
+                sb_idx,
+                assigned_group,
+                file_path,
+            )
+            continue
+        slot[sb_idx] = file_path
+
+    file_groups: List[List[str]] = []
+    expected_indices = set(range(16))
+    for group_id_str, slot in sorted(groups.items()):
+        have = set(slot.keys())
+        missing = sorted(expected_indices - have)
         if missing:
             logger.warning(
-                "Group %s has missing subbands: %s (total %s/%s)",
-                ts,
+                "Group %s has missing subbands: %s (%s/%s present)",
+                group_id_str,
                 ','.join(f"sb{idx:02d}" for idx in missing),
-                len(indexed),
+                len(have),
                 16,
             )
             continue
-        sorted_group = [indexed[idx] for idx in sorted(indexed.keys())]
-        logger.info("Identified group at %s with %s subband files", ts, len(sorted_group))
-        groups.append(sorted_group)
+        ordered = [slot[idx] for idx in sorted(slot.keys())]
+        logger.info("Identified group at %s with %s subband files", group_id_str, len(ordered))
+        file_groups.append(ordered)
 
-    logger.info("Found %s complete observation groups within time range", len(groups))
-    return groups
+    logger.info("Found %s complete observation groups within time range", len(file_groups))
+    return file_groups
 
 
 def load_uvh5_file(fname: str, antenna_list: Optional[List[str]] = None,

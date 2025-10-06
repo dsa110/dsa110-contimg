@@ -430,16 +430,23 @@ class QueueDB:
     def _normalize_group_id_datetime(self, group_id: str) -> str:
         """Return the normalized group_id using configured chunk duration."""
         try:
-            start_dt = datetime.strptime(group_id, "%Y-%m-%dT%H:%M:%S")
+            ts = datetime.strptime(group_id, "%Y-%m-%dT%H:%M:%S")
         except ValueError:
             return group_id
 
         chunk = timedelta(minutes=self.chunk_duration_minutes)
-        seconds = chunk.total_seconds()
-        epoch = start_dt.timestamp()
-        snapped = epoch - (epoch % seconds)
-        normalized = datetime.utcfromtimestamp(snapped)
-        return normalized.strftime("%Y-%m-%dT%H:%M:%S")
+        tolerance = timedelta(minutes=self.chunk_duration_minutes / 2.0)
+        # Snap to nearest lower chunk boundary
+        total_seconds = int(self.chunk_duration_minutes * 60)
+        epoch = int(ts.timestamp())
+        snapped = epoch - (epoch % total_seconds)
+        normalized_start = datetime.utcfromtimestamp(snapped)
+        midpoint = normalized_start + chunk / 2
+        if ts - midpoint > tolerance:
+            normalized_start += chunk
+        elif midpoint - ts > tolerance:
+            normalized_start -= chunk
+        return normalized_start.strftime("%Y-%m-%dT%H:%M:%S")
 
     def list_collecting_groups(self, limit: int = 20) -> List[Tuple[str, int]]:
         with self._lock:
