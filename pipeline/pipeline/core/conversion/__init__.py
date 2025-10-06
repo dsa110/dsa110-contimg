@@ -1,15 +1,12 @@
+"""Active conversion entry points for the DSA-110 continuum imaging pipeline.
+
+The legacy batch conversion APIs based on ``UnifiedHDF5Converter`` now live
+under ``pipeline.legacy.conversion``. This package only exposes the actively
+maintained streaming daemon and the batch converter used by that daemon.
 """
-Conversion module for DSA-110 continuum imaging pipeline.
 
-This module handles conversion of HDF5/uvh5 visibility files to
-CASA Measurement Sets for further processing.
-"""
+from . import streaming_converter
+from .uvh5_to_ms_converter import convert_subband_groups_to_ms
 
-from .unified_converter import UnifiedHDF5Converter, convert_single_file, convert_subband_group
-
-__all__ = [
-    'UnifiedHDF5Converter',
-    'convert_single_file',
-    'convert_subband_group'
-]
+__all__ = ["streaming_converter", "convert_subband_groups_to_ms"]
 

@@ -255,7 +255,7 @@ class UnifiedHDF5Converter:
         antenna_list: Optional[List[str]] = None,
         fringestop: bool = True,
         overwrite: bool = False,
-        strategy: str = "concat-uvdata",
+        strategy: str = "parallel-direct",
         workers: int = 4,
         **uvh5_to_ms_kwargs
     ) -> Dict:
@@ -278,9 +278,24 @@ class UnifiedHDF5Converter:
                 "Unused conversion kwargs ignored: %s", list(uvh5_to_ms_kwargs.keys())
             )
 
-        if strategy not in {"concat-uvdata", "uvfits"}:
+        if strategy not in {"concat-uvdata", "uvfits", "parallel-direct"}:
             self.logger.warning(
-                "Unknown strategy '%s'; defaulting to UVFITS conversion", strategy
+                "Unknown strategy '%s'; defaulting to parallel-direct conversion", strategy
+            )
+            strategy = "parallel-direct"
+
+        if strategy == "parallel-direct":
+            return self.convert_subbands_streaming(
+                file_paths,
+                output_name,
+                ra=ra,
+                dec=dec,
+                dt=dt,
+                antenna_list=antenna_list,
+                fringestop=fringestop,
+                overwrite=overwrite,
+                workers=workers,
+                **uvh5_to_ms_kwargs,
             )
 
         try:
@@ -366,11 +381,14 @@ class UnifiedHDF5Converter:
         **uvh5_to_ms_kwargs
     ) -> Dict:
         """
-        Convert sub-bands using single-MS streaming strategy.
+        Convert sub-bands using a highly parallelized, direct-to-MS strategy.
         
-        This method creates exactly one MS for all 16 sub-bands without generating
-        per-subband MS files. It parallelizes sub-band read/phasing and serializes
-        writes into a single MS.
+        This method creates exactly one MS for all sub-bands without generating
+        per-subband intermediate files. It parallelizes the CPU-intensive
+        processing (reading, fringestopping) of each sub-band and then
+        serially writes the results into a single, pre-allocated MS file.
+        This approach is designed to be significantly faster and more memory-
+        efficient than concatenating large UVData objects.
         
         Parameters
         ----------
@@ -391,7 +409,7 @@ class UnifiedHDF5Converter:
         workers : int
             Number of parallel workers
         **uvh5_to_ms_kwargs
-            Additional arguments for uvh5_to_ms
+            Additional arguments passed to the conversion process
         
         Returns
         -------
@@ -408,21 +426,21 @@ class UnifiedHDF5Converter:
             'elapsed': 0.0,
             'num_subbands': len(file_paths),
             'error': None,
-            'strategy': 'single-ms-streaming'
+            'strategy': 'parallel-direct'
         }
         
         try:
             self.logger.info("="*70)
-            self.logger.info("SINGLE-MS STREAMING CONVERSION")
+            self.logger.info("PARALLEL DIRECT-TO-MS CONVERSION")
             self.logger.info("="*70)
             self.logger.info(f"Processing {len(file_paths)} sub-bands with {workers} workers")
             
-            # Step 1: Preflight metadata validation
+            # Step 1: Preflight metadata validation from all sub-band headers
             self.logger.info("Step 1: Validating metadata across all sub-bands...")
             metadata = self._validate_subband_metadata(file_paths)
             
-            # Step 2: Create single MS structure
-            self.logger.info("Step 2: Creating single MS structure...")
+            # Step 2: Create a single, empty MS structure that can hold all sub-bands
+            self.logger.info("Step 2: Pre-creating full MS structure...")
             output_path = self.output_dir / output_name
             ms_path = Path(str(output_path) + '.ms')
             
@@ -433,13 +451,13 @@ class UnifiedHDF5Converter:
                 result['elapsed'] = time.time() - overall_start
                 return result
             
-            # Create MS structure with full frequency grid
+            # Create the full MS structure using the combined metadata
             self._create_ms_structure_full(
                 str(output_path), metadata, ra, dec, antenna_list
             )
             
-            # Step 3: Parallel preprocessing and serialized writing
-            self.logger.info("Step 3: Parallel preprocessing and serialized writing...")
+            # Step 3: Parallel preprocessing of sub-bands and serial writing to the MS
+            self.logger.info("Step 3: Starting parallel sub-band processing...")
             self._process_subbands_parallel(
                 file_paths, str(output_path), metadata, workers,
                 ra, dec, dt, antenna_list, fringestop, **uvh5_to_ms_kwargs
@@ -450,7 +468,7 @@ class UnifiedHDF5Converter:
             result['elapsed'] = time.time() - overall_start
             
             self.logger.info("="*70)
-            self.logger.info("STREAMING CONVERSION SUCCESSFUL")
+            self.logger.info("PARALLEL CONVERSION SUCCESSFUL")
             self.logger.info("="*70)
             self.logger.info(f"Total elapsed time: {result['elapsed']:.2f} seconds")
             self.logger.info(f"Output MS: {result['ms_path']}")
@@ -458,7 +476,7 @@ class UnifiedHDF5Converter:
         except Exception as e:
             result['error'] = str(e)
             result['elapsed'] = time.time() - overall_start
-            self.logger.error(f"✗ Streaming conversion failed: {e}")
+            self.logger.error(f"✗ Parallel conversion failed: {e}")
             import traceback
             self.logger.error(traceback.format_exc())
         
@@ -665,10 +683,14 @@ class UnifiedHDF5Converter:
         
         self.logger.info(f"Starting parallel processing with {workers} workers...")
         
-        # Sort files by sub-band number
+        # Sort files by sub-band number to process them in a predictable order
         sorted_paths = self._sort_by_subband(file_paths)
         
-        # Prepare arguments for workers
+        # Calculate the reference MJD from the first sub-band, to be used by all workers
+        refmjd = self._get_reference_mjd(sorted_paths[0])
+        self.logger.info(f"Using reference MJD {refmjd} for all sub-bands.")
+        
+        # Prepare arguments for each worker process
         worker_args = []
         for i, fpath in enumerate(sorted_paths):
             args = (
@@ -680,19 +702,20 @@ class UnifiedHDF5Converter:
                 fringestop,
                 i,  # subband_index
                 metadata['nfreqs'],
-                metadata['freq_array']
+                metadata['freq_array'],
+                refmjd, # Pass the reference MJD to each worker
             )
             worker_args.append(args)
         
-        # Process in parallel
+        # Process in parallel using a ProcessPoolExecutor
         with ProcessPoolExecutor(max_workers=workers) as executor:
-            # Submit all tasks
+            # Submit all tasks to the executor
             future_to_index = {
-                executor.submit(self._preprocess_subband_worker, args): i 
+                executor.submit(self._preprocess_subband_worker, *args): i 
                 for i, args in enumerate(worker_args)
             }
             
-            # Collect results in order
+            # Collect results as they are completed
             results = [None] * len(worker_args)
             completed = 0
             
@@ -707,72 +730,83 @@ class UnifiedHDF5Converter:
                     self.logger.error(f"Sub-band {index+1} failed: {e}")
                     raise
             
-            # Write results to MS in order
-            self.logger.info("Writing processed data to MS...")
+            # After all workers are done, write the collected results to the MS
+            self.logger.info("All sub-bands processed. Writing to MS...")
             self._write_results_to_ms(ms_path, results, metadata)
-    
-    def _preprocess_subband_worker(self, args):
+
+    def _preprocess_subband_worker(
+        self,
+        filepath: str,
+        ra: Optional[u.Quantity],
+        dec: Optional[u.Quantity],
+        dt: Optional[u.Quantity],
+        antenna_list: Optional[List[str]],
+        fringestop: bool,
+        subband_index: int,
+        total_nfreqs: int,
+        freq_array: np.ndarray,
+        refmjd: float,
+    ) -> Dict:
         """Worker function for preprocessing a single sub-band."""
         import os
         import numpy as np
         from pyuvdata import UVData
+        from .uvh5_to_ms import load_uvh5_file, phase_visibilities, fix_descending_missing_freqs
         
-        (filepath, ra, dec, dt, antenna_list, fringestop, 
-         subband_index, total_nfreqs, freq_array) = args
-        
-        # Set thread limits for worker
+        # Set thread limits for worker to avoid contention
         os.environ['OMP_NUM_THREADS'] = '1'
         os.environ['MKL_NUM_THREADS'] = '1'
         
         try:
-            # Read sub-band file
-            uvdata = UVData()
-            uvdata.read(
+            # Load the sub-band file
+            uvdata, pt_dec, phase_ra, phase_dec = load_uvh5_file(
                 filepath,
-                file_type='uvh5',
-                check_extra=False,
-                run_check=False,
-                run_check_acceptability=False,
-                strict_uvw_antpos_check=False,
-                fix_old_proj=False,
-                fix_use_ant_pos=False
+                antenna_list=antenna_list,
+                dt=dt,
+                phase_ra=ra,
+                phase_dec=dec
             )
             
-            # Apply preprocessing (fringestopping, etc.)
-            if fringestop and hasattr(uvdata, 'phase_to_time'):
-                # Apply fringestopping if needed
-                pass
+            # Fringestop and phase the data in-memory
+            if fringestop:
+                phase_visibilities(
+                    uvdata,
+                    phase_ra,
+                    phase_dec,
+                    fringestop=True,
+                    interpolate_uvws=True, # Use faster, interpolated UVW calculation
+                    refmjd=refmjd
+                )
             
-            # Extract data arrays
-            vis_data = uvdata.data_array
-            model_data = getattr(uvdata, 'model_array', None)
+            # Ensure frequency axis is ascending and correct
+            fix_descending_missing_freqs(uvdata)
             
-            # Calculate channel mapping
-            if uvdata.freq_array.ndim == 1:
-                subband_freqs = uvdata.freq_array
-                channel_start = np.searchsorted(freq_array[0, :], subband_freqs[0])
-            else:
-                subband_freqs = uvdata.freq_array[0, :]
-                channel_start = np.searchsorted(freq_array[0, :], subband_freqs[0])
+            # Extract necessary data arrays and reshape for direct writing
+            # The expected shape for writing is (nblts, npols, nfreqs)
+            vis_data = uvdata.data_array.transpose(0, 2, 1) # (nblts, npols, nfreqs)
+            flag_data = uvdata.flag_array.transpose(0, 2, 1)
+            nsample_data = uvdata.nsample_array.transpose(0, 2, 1)
+            
+            # Determine the channel mapping for this sub-band
+            subband_freqs = uvdata.freq_array.squeeze()
+            channel_start = np.searchsorted(freq_array.squeeze(), subband_freqs[0])
             channel_count = len(subband_freqs)
             
             return {
                 'subband_index': subband_index,
                 'vis_data': vis_data,
-                'model_data': model_data,
                 'channel_start': channel_start,
                 'channel_count': channel_count,
-                'freq_array': subband_freqs,
                 'time_array': uvdata.time_array,
                 'uvw_array': uvdata.uvw_array,
-                'flag_array': uvdata.flag_array,
-                'nsample_array': uvdata.nsample_array,
-                'antenna1_array': uvdata.ant_1_array,
-                'antenna2_array': uvdata.ant_2_array,
+                'flag_array': flag_data,
+                'nsample_array': nsample_data,
+                'ant_1_array': uvdata.ant_1_array,
+                'ant_2_array': uvdata.ant_2_array,
             }
             
         except Exception as e:
-            raise RuntimeError(f"Worker failed for {filepath}: {e}")
+            raise RuntimeError(f"Worker for {os.path.basename(filepath)} failed: {e}")
     
     def _write_results_to_ms(self, ms_path: str, results: List[Dict], metadata: Dict):
         """Write preprocessed results to MS in channel order."""
@@ -793,13 +827,12 @@ class UnifiedHDF5Converter:
                 vis_chunk=result['vis_data'],
                 chan_start=result['channel_start'],
                 chan_count=result['channel_count'],
-                model_chunk=result['model_data'],
                 time_array=result['time_array'],
                 uvw_array=result['uvw_array'],
                 flag_array=result['flag_array'],
                 nsample_array=result['nsample_array'],
-                antenna1_array=result['antenna1_array'],
-                antenna2_array=result['antenna2_array'],
+                ant_1_array=result['ant_1_array'],
+                ant_2_array=result['ant_2_array'],
                 logger=self.logger
             )
         
