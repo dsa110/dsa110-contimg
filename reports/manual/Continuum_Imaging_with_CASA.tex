@@ -1,0 +1,1307 @@
+\documentclass[11pt]{article}
+\usepackage[utf8]{inputenc}
+\usepackage[hidelinks]{hyperref}
+\usepackage{graphicx}
+\usepackage{amsmath}
+\usepackage{amssymb}
+\usepackage{listings}
+\usepackage{xcolor}
+\usepackage{booktabs}
+\usepackage{geometry}
+\usepackage{fancyhdr}
+% \usepackage{titlesec}  % Temporarily disabled due to footnote issues
+
+% Page setup
+\geometry{margin=1in}
+\pagestyle{fancy}
+\fancyhf{}
+\rhead{Continuum Imaging with Radio Interferometers}
+\lhead{Complete Beginner's Guide}
+\cfoot{\thepage}
+
+% Code listing setup
+\lstset{
+    basicstyle=\ttfamily\small,
+    breaklines=true,
+    frame=single,
+    backgroundcolor=\color{gray!10},
+    commentstyle=\color{green!60!black},
+    keywordstyle=\color{blue},
+    stringstyle=\color{red},
+    showstringspaces=false
+}
+
+\title{Continuum Imaging with Radio Interferometers: A Complete Beginner's Guide}
+\author{Using CASA v6.7 and Pyuvdata v3.2.4}
+\date{\today}
+
+\begin{document}
+
+\maketitle
+
+\begin{abstract}
+This comprehensive guide provides a complete walkthrough for beginners on continuum imaging using radio interferometers. It covers the entire process from raw UVH5 data acquisition to producing scientifically valuable images, utilizing CASA v6.7\footnote{CASA Documentation: \url{https://casadocs.readthedocs.io/en/stable/}} and Pyuvdata v3.2.4\footnote{Pyuvdata Documentation: \url{https://pyuvdata.readthedocs.io/en/stable/}}. The guide assumes no prior knowledge of radio astronomy and defines all technical terms clearly.
+\end{abstract}
+
+\tableofcontents
+\newpage
+
+\section{Scope and Assumptions (L-band 1--2 GHz)}
+Throughout this guide, we assume observations are conducted in L-band (1--2\,GHz). All calibrator cadences, solints, and RFI considerations are tuned for L-band operation:
+\begin{itemize}
+    \item \textbf{Calibrator cadence}: Phase-referencing typically every 5--15\,min; shorten to 2--5\,min during strong ionospheric activity
+    \item \textbf{Bandpass}: One stable solution per session (re-observe every 1--2\,h if drift); bright calibrators such as 3C286/3C147/3C48 are suitable
+    \item \textbf{Flux scale}: Use \texttt{setjy} with \texttt{standard='Perley-Butler 2017'} at L-band
+    \item \textbf{RFI}: Expect significant L-band RFI; use \texttt{rflag}/\texttt{tfcrop} and manual masks after inspection with \texttt{plotms}
+    \item \textbf{Wide field}: Primary beam is large at L-band; prefer w-projection for wide-field imaging and apply primary beam correction
+\end{itemize}
+
+\section{Introduction to Radio Interferometry}
+
+\subsection{What is Continuum Imaging?}
+Continuum imaging is a fundamental technique in radio astronomy that maps the sky at specific radio frequencies, capturing the combined emission from various astrophysical sources. Unlike spectral line imaging, which focuses on narrow frequency features, continuum imaging studies broadband emission across a wide range of frequencies.
+
+\textbf{Key Concepts:}
+\begin{itemize}
+    \item \textbf{Continuum emission}: Broadband radio emission spanning a wide range of frequencies
+    \item \textbf{Radio interferometer}: An array of radio antennas working together to create a virtual telescope
+    \item \textbf{Imaging goal}: Convert raw visibility measurements into 2D maps of radio brightness
+\end{itemize}
+
+\subsection{Why Use Interferometers?}
+Radio interferometers achieve high angular resolution by combining signals from multiple antennas. The resolution is determined by the maximum baseline (distance between antennas), not the individual antenna size. This allows us to study fine details in astronomical sources that would be impossible to resolve with single-dish telescopes.
+
+\section{The DSA-110 System Architecture}
+
+The Deep Synoptic Array 110 (DSA-110) is a next-generation radio interferometer specifically designed for fast radio burst (FRB) detection and transient astronomy. Understanding its architecture is crucial for processing DSA-110 data effectively.
+
+\subsection{Physical Array Configuration}
+
+\subsubsection{Antenna Layout and Specifications}
+The DSA-110 consists of 110 radio antennas arranged in a compact configuration optimized for high sensitivity and wide-field imaging:
+
+\begin{itemize}
+    \item \textbf{Antenna Count}: 110 dual-polarization antennas
+    \item \textbf{Frequency Range}: L-band (1--2 GHz) with 1 GHz instantaneous bandwidth
+    \item \textbf{Antenna Type}: 4.65-meter diameter dishes with dual-polarization feeds
+    \item \textbf{Array Configuration}: Compact core with extended arms for baseline diversity
+    \item \textbf{Location}: Owens Valley Radio Observatory (OVRO), California
+\end{itemize}
+
+\subsubsection{Antenna Position Management}
+The DSA-110 system uses sophisticated antenna position tracking and management:
+
+\begin{lstlisting}[language=Python]
+# Example: Loading DSA-110 antenna positions
+from antpos import utils
+import numpy as np
+
+# Get ITRF coordinates for all antennas
+df = utils.get_itrf()
+print(f"Number of antennas: {len(df)}")
+print(f"Position range: X={df['x_m'].min():.1f} to {df['x_m'].max():.1f} m")
+
+# Calculate baseline vectors
+baselines = utils.get_baselines(antenna_order, casa_order=True)
+print(f"Number of baselines: {len(baselines)}")
+\end{lstlisting}
+
+\subsection{Real-Time Data Processing Pipeline}
+
+The DSA-110 employs a sophisticated real-time processing pipeline that handles both correlation and beamforming simultaneously.
+
+\subsubsection{Data Capture and Correlation Engine (dsa110-xengine)}
+The x-engine performs real-time correlation of all antenna pairs:
+
+\begin{itemize}
+    \item \textbf{UDP Packet Capture}: Captures data from SNAP boards at 10 Gbps
+    \item \textbf{Cross-correlation}: Uses xGPU kernels for real-time correlation
+    \item \textbf{Integration Time}: 0.134 seconds for correlation products
+    \item \textbf{Frequency Channels}: 6144 channels across 1 GHz bandwidth
+    \item \textbf{Data Format}: PSRDADA ring buffers for low-latency processing
+\end{itemize}
+
+\paragraph{Correlation Pipeline Architecture}
+\begin{lstlisting}[language=bash]
+# DSA-110 correlation pipeline components
+dsaX_capture    # Captures UDP packets from SNAP boards
+dsaX_split      # Splits data for correlation and beamforming
+dsaX_reorder_raw # Reorders data for xGPU processing
+dsaX_xgpu       # Performs cross-correlation using GPU
+dsaX_writevis   # Writes visibilities to disk
+\end{lstlisting}
+
+\subsubsection{Beamforming System}
+Simultaneously with correlation, the system forms multiple beams for FRB search:
+
+\begin{itemize}
+    \item \textbf{Beam Count}: 256 Stokes-I beams
+    \item \textbf{Integration Time}: 1.048 ms for beamformed data
+    \item \textbf{Frequency Channels}: 768 channels for beamformed data
+    \item \textbf{Processing}: Uses tensor cores for efficient beamforming
+    \item \textbf{Output}: Corner-turned data for transient search algorithms
+\end{itemize}
+
+\subsection{Data Formats and Storage}
+
+\subsubsection{HDF5 Storage Format}
+DSA-110 uses HDF5 for efficient storage of correlated visibilities:
+
+\begin{lstlisting}[language=Python]
+# Example: Reading DSA-110 HDF5 data
+import h5py
+import numpy as np
+
+# Open HDF5 file
+with h5py.File('dsa110_observation.hdf5', 'r') as f:
+    # Access visibility data
+    visdata = f['visdata'][:]  # Complex visibilities
+    flags = f['flags'][:]      # Data quality flags
+    uvw = f['uvw_array'][:]    # Baseline vectors
+    times = f['time_array'][:] # Time stamps
+    freqs = f['freq_array'][:] # Frequency channels
+    
+    print(f"Data shape: {visdata.shape}")
+    print(f"Frequency range: {freqs.min()/1e6:.1f} - {freqs.max()/1e6:.1f} MHz")
+\end{lstlisting}
+
+\subsubsection{Measurement Set Conversion}
+DSA-110 data can be converted to CASA Measurement Sets for standard calibration and imaging:
+
+\begin{lstlisting}[language=Python]
+# Convert DSA-110 HDF5 to Measurement Set
+from dsacalib.ms_io import convert_calibrator_pass_to_ms
+from dsacalib.utils import generate_calibrator_source
+
+# Define calibrator source
+cal = generate_calibrator_source('3C286', ra='13h31m08.29s', dec='+30d30m32.96s', flux=14.7)
+
+# Convert to MS
+convert_calibrator_pass_to_ms(
+    cal=cal,
+    date='2024-01-15',
+    files=['2024-01-15T12:00:00'],
+    msdir='/data/ms/',
+    hdf5dir='/data/hdf5/',
+    refmjd=60310.5
+)
+\end{lstlisting}
+
+\subsection{Calibration System (dsa110-calib)}
+
+The DSA-110 calibration system provides comprehensive calibration capabilities:
+
+\subsubsection{Delay Calibration}
+Corrects for instrumental time delays using bright calibrators:
+
+\begin{lstlisting}[language=Python]
+# DSA-110 delay calibration
+from dsacalib.calib import delay_calibration
+
+# Perform delay calibration
+error = delay_calibration(
+    msname='dsa110_observation',
+    sourcename='3C286',
+    refants=['ANT01', 'ANT02', 'ANT03'],
+    t1='inf',  # One solution per scan
+    combine_spw=False
+)
+\end{lstlisting}
+
+\subsubsection{Gain and Bandpass Calibration}
+The system provides automated gain and bandpass calibration:
+
+\begin{lstlisting}[language=Python]
+# DSA-110 gain calibration
+from dsacalib.calib import gain_calibration, bandpass_calibration
+
+# Gain calibration
+gain_calibration(
+    msname='dsa110_observation',
+    sourcename='3C286',
+    refant='ANT01',
+    caltables=[{'type': 'delay', 'table': 'delay.cal'}],
+    combine='field,scan,obs'
+)
+
+# Bandpass calibration
+bandpass_calibration(
+    msname='dsa110_observation',
+    sourcename='3C286',
+    refant='ANT01',
+    caltables=[{'type': 'delay', 'table': 'delay.cal'}],
+    combine='field,scan,obs'
+)
+\end{lstlisting}
+
+\subsection{Meridian Fringestopping (dsa110-meridian-fs)}
+
+For extended source observations, DSA-110 employs meridian fringestopping:
+
+\subsubsection{Fringestopping Process}
+\begin{itemize}
+    \item \textbf{Purpose}: Corrects for Earth rotation effects on extended sources
+    \item \textbf{Method}: Fringestops on the meridian for each integration
+    \item \textbf{Output}: Fringestopped visibilities ready for imaging
+    \item \textbf{Integration}: Combines with calibration pipeline
+\end{itemize}
+
+\begin{lstlisting}[language=Python]
+# DSA-110 meridian fringestopping
+from dsamfs.routines import run_fringestopping
+
+# Run fringestopping process
+run_fringestopping(
+    param_file='dsa110_parameters.yaml',
+    header_file='observation_header.txt',
+    output_dir='/data/fringestopped/',
+    working_dir='/tmp/'
+)
+\end{lstlisting}
+
+\subsection{System Coordination and Monitoring}
+
+\subsubsection{ETCD-based Coordination}
+DSA-110 uses ETCD for distributed system coordination:
+
+\begin{lstlisting}[language=Python]
+# DSA-110 system monitoring
+import dsautils.dsa_store as ds
+
+# Connect to ETCD
+etcd = ds.DsaStore()
+
+# Monitor antenna status
+for ant_id in range(110):
+    status = etcd.get_dict(f'/mon/ant/{ant_id}')
+    print(f"Antenna {ant_id}: {status['status']}")
+
+# Monitor correlation status
+corr_status = etcd.get_dict('/mon/corr/status')
+print(f"Correlation status: {corr_status}")
+\end{lstlisting}
+
+\subsubsection{Data Quality Monitoring}
+The system provides real-time data quality monitoring:
+
+\begin{itemize}
+    \item \textbf{RMS Monitoring}: Per-antenna RMS values
+    \item \textbf{Flagging Statistics}: Real-time flagging rates
+    \item \textbf{Calibration Quality}: Solution quality metrics
+    \item \textbf{System Health}: Hardware status monitoring
+\end{itemize}
+
+\subsection{DSA-110 Specific Considerations for Continuum Imaging}
+
+\subsubsection{Array Characteristics}
+\begin{itemize}
+    \item \textbf{Compact Configuration}: High sensitivity, moderate resolution
+    \item \textbf{Wide Field of View}: Large primary beam at L-band
+    \item \textbf{High Sensitivity}: Optimized for transient detection
+    \item \textbf{Dual Purpose}: Both correlation and beamforming
+\end{itemize}
+
+\subsubsection{Imaging Recommendations}
+For DSA-110 continuum imaging:
+
+\begin{lstlisting}[language=Python]
+# DSA-110 optimized imaging parameters
+tclean(vis='dsa110_observation.ms',
+       imagename='dsa110_continuum',
+       specmode='mfs',
+       deconvolver='mtmfs',
+       nterms=2,
+       niter=5000,
+       threshold='0.1mJy',
+       weighting='briggs',
+       robust=0.5,
+       imsize=2048,  # Large image for wide field
+       cell='2arcsec',  # Appropriate for L-band resolution
+       gridder='wproject',  # Wide-field imaging
+       wprojplanes=128,
+       pbcor=True)  # Primary beam correction
+\end{lstlisting}
+
+\subsubsection{Calibration Strategy}
+DSA-110 calibration requires special considerations:
+
+\begin{itemize}
+    \item \textbf{High Data Rates}: Real-time processing constraints
+    \item \textbf{Multiple Beams}: Calibration affects both correlation and beamforming
+    \item \textbf{Extended Sources}: Meridian fringestopping integration
+    \item \textbf{Quality Control}: Automated monitoring and flagging
+\end{itemize}
+
+\subsection{Data Processing Workflow}
+
+The complete DSA-110 data processing workflow:
+
+\begin{enumerate}
+    \item \textbf{Data Capture}: Real-time correlation and beamforming
+    \item \textbf{Calibration}: Delay, gain, and bandpass calibration
+    \item \textbf{Fringestopping}: Meridian fringestopping for extended sources
+    \item \textbf{Imaging}: Wide-field continuum imaging
+    \item \textbf{Quality Assessment}: Automated quality control
+\end{enumerate}
+
+This architecture makes DSA-110 uniquely suited for both high-sensitivity transient searches and detailed continuum imaging of extended sources.
+
+\section{Understanding Interferometric Data}
+
+\subsection{Visibility Data: The Foundation}
+\textbf{Visibilities} are the fundamental measurements in radio interferometry:
+\begin{itemize}
+    \item \textbf{What they are}: Complex numbers representing the correlation between signals from antenna pairs
+    \item \textbf{What they measure}: Fourier components of the sky brightness distribution
+    \item \textbf{Structure}: Each visibility has amplitude, phase, and associated metadata (time, frequency, antenna pair)
+\end{itemize}
+
+The relationship between visibilities and sky brightness is given by the van Cittert-Zernike theorem:
+\begin{equation}
+V(u,v) = \int \int I(l,m) e^{-2\pi i(ul + vm)} dl \, dm
+\end{equation}
+where $V(u,v)$ is the visibility, $I(l,m)$ is the sky brightness, and $(u,v)$ are spatial frequencies.
+
+\subsection{Data Formats and Their Purposes}
+
+\subsubsection{UVH5 Format}
+\textbf{Documentation:} \url{https://pyuvdata.readthedocs.io/en/stable/uvdata.html}
+
+\begin{itemize}
+    \item \textbf{Purpose}: Modern, efficient storage format using HDF5
+    \item \textbf{Advantages}: Fast read/write, compression, metadata preservation
+    \item \textbf{Contents}: Visibilities, antenna positions, time/frequency arrays, flags
+    \item \textbf{Supported by}: Pyuvdata, HERA collaboration
+\end{itemize}
+
+\paragraph{UVH5 File Structure (Detailed)}
+UVH5 organizes data into HDF5 datasets and attributes. Typical top-level datasets/attributes include:
+\begin{itemize}
+    \item \texttt{visdata} (complex64): shape \texttt{(Nblts, Nspws, Nfreqs, Npols)} — raw complex visibilities
+    \item \texttt{flags} (bool): same shape as \texttt{visdata} — data quality flags
+    \item \texttt{nsample} (float32): same shape — number of samples contributing to each visibility
+    \item \texttt{uvw\_array} (float64): shape \texttt{(Nblts, 3)} — baseline vectors in meters (U, V, W)
+    \item \texttt{time\_array} (float64): shape \texttt{(Nblts,)} — times in JD
+    \item \texttt{ant\_1\_array}, \texttt{ant\_2\_array} (int32): shape \texttt{(Nblts,)} — antenna indices
+    \item \texttt{freq\_array} (float64): shape \texttt{(Nspws, Nfreqs)} — frequencies in Hz
+    \item \texttt{polarization\_array} (int32): shape \texttt{(Npols,)} — polarization codes (e.g., -5=XX, -6=YY)
+    \item \texttt{integration\_time} (float64): shape \texttt{(Nblts,)} — time per visibility in seconds
+    \item Telescope- and observation-level attributes: \texttt{Nants\_telescope}, \texttt{Npols}, \texttt{Nbls}, \texttt{Nspws}, antenna positions, phase center, etc.
+\end{itemize}
+Pyuvdata's \texttt{UVData} class handles translating between UVH5 and in-memory arrays/metadata and can write directly to a CASA Measurement Set via \texttt{UVData.write\_ms}.
+
+\subsubsection{Measurement Set (MS)}
+\textbf{Documentation:} \url{https://casadocs.readthedocs.io/en/stable/notebooks/uv\_manipulation.html}
+\begin{itemize}
+    \item \textbf{Purpose}: CASA's native data format for calibration and imaging
+    \item \textbf{Structure}: Hierarchical database with multiple tables (MAIN, ANTENNA, SPECTRAL\_WINDOW, etc.)
+    \item \textbf{Function}: Stores visibilities with calibration solutions and imaging metadata
+    \item \textbf{Advantages}: Optimized for CASA operations, supports complex data relationships
+\end{itemize}
+
+\paragraph{Measurement Set Tables and Key Columns (Detailed)}
+The MS schema is standardized. Key tables and commonly used columns include:
+\begin{itemize}
+    \item \textbf{MAIN}: time-ordered visibilities and per-row metadata.
+    \begin{itemize}
+        \item \texttt{DATA} (complex): raw visibilities by channel/polarization
+        \item \texttt{MODEL\_DATA}, \texttt{CORRECTED\_DATA}: optional columns for model and calibrated data
+        \item \texttt{FLAG} (bool): per-channel/pol flags; \texttt{FLAG\_ROW} (bool) for whole-row flags
+        \item \texttt{WEIGHT}, \texttt{SIGMA}: per-polarization weights and uncertainties
+        \item \texttt{UVWX}: \texttt{UVW} baseline coordinates in meters; \texttt{TIME} (MJD seconds)
+        \item Index columns: \texttt{ANTENNA1}, \texttt{ANTENNA2}, \texttt{DATA\_DESC\_ID}, \texttt{FIELD\_ID}, \texttt{SCAN\_NUMBER}
+    \end{itemize}
+    \item \textbf{ANTENNA}: per-antenna metadata.
+    \begin{itemize}
+        \item \texttt{NAME}, \texttt{STATION}, \texttt{POSITION} (ITRF meters), \texttt{DISH\_DIAMETER}
+    \end{itemize}
+    \item \textbf{SPECTRAL\_WINDOW}: per-SPW frequency setup.
+    \begin{itemize}
+        \item \texttt{CHAN\_FREQ}, \texttt{CHAN\_WIDTH}, \texttt{REF\_FREQ}, \texttt{TOTAL\_BANDWIDTH}, \texttt{NUM\_CHAN}
+    \end{itemize}
+    \item \textbf{POLARIZATION}: polarization products present.
+    \begin{itemize}
+        \item \texttt{CORR\_TYPE} (e.g., XX, YY) and \texttt{NUM\_CORR}
+    \end{itemize}
+    \item \textbf{DATA\_DESCRIPTION}: links polarization and spectral window (\texttt{SPECTRAL\_WINDOW\_ID}, \texttt{POLARIZATION\_ID}).
+    \item \textbf{FIELD}: pointing centers, names, direction measures.
+    \item \textbf{OBSERVATION}, \textbf{PROCESSOR}, \textbf{STATE}: observing context.
+    \item \textbf{POINTING}: time-dependent antenna pointing information.
+\end{itemize}
+CASA tools (\texttt{ms}, \texttt{msmd}) and tasks (\texttt{listobs}) expose this structure for inspection and selection.
+
+\subsubsection{UVFITS Format}
+\begin{itemize}
+    \item \textbf{Purpose}: Standard FITS format for radio astronomy data
+    \item \textbf{Compatibility}: Widely supported across different software packages
+    \item \textbf{Limitations}: Less efficient for large datasets, limited metadata support
+\end{itemize}
+
+\section{Prerequisites and Setup}
+
+\subsection{Required Knowledge}
+Before beginning this tutorial, you should have:
+\begin{itemize}
+    \item Basic familiarity with Python programming
+    \item Understanding of command-line interfaces
+    \item Basic knowledge of radio astronomy concepts (helpful but not required)
+    \item Access to a computer with sufficient resources (see System Requirements below)
+\end{itemize}
+
+\subsection{System Requirements}
+\begin{itemize}
+    \item \textbf{Operating System}: Linux, macOS, or Windows with WSL
+    \item \textbf{RAM}: Minimum 8 GB, recommended 16+ GB for large datasets
+    \item \textbf{Storage}: At least 50 GB free space for software and data
+    \item \textbf{CPU}: Multi-core processor recommended for faster processing
+\end{itemize}
+
+\subsection{Data Requirements}
+For this tutorial, you will need:
+\begin{itemize}
+    \item UVH5 files from a radio interferometer observation
+    \item Calibrator source observations (for calibration steps)
+    \item Basic information about your observation (frequency range, integration time, etc.)
+\end{itemize}
+
+\subsection{Obtaining Data}
+\textbf{From Public Archives:} Many facilities provide public data archives (e.g., the NRAO Science Data Archive). Typical steps:
+\begin{enumerate}
+    \item Search by project code, target name, or date
+    \item Download data products (ASDMs, MS, or UVFITS)
+    \item Convert to UVH5 if needed using Pyuvdata or to MS using CASA tasks
+\end{enumerate}
+\textbf{Example (Pyuvdata helpers):}
+\begin{lstlisting}[language=Python]
+from pyuvdata import UVData
+uv = UVData()
+# If you have UVFITS or MIRIAD, you can read and then write UVH5
+uv.read_uvfits('archive_download.uvfits')
+uv.write_uvh5('archive_download.uvh5', clobber=True)
+\end{lstlisting}
+\textbf{Initial Integrity Checks:}
+\begin{itemize}
+    \item Verify file sizes and checksums
+    \item Ensure times/frequencies match proposal/metadata
+    \item Confirm calibrator scans are present
+\end{itemize}
+
+\section{Software Tools and Installation}
+
+\subsection{CASA v6.7.0}
+\textbf{Documentation:} \url{https://casadocs.readthedocs.io/en/stable/}
+CASA (Common Astronomy Software Applications) is the primary software for processing radio astronomical data, developed by an international consortium including NRAO, ESO, NAOJ, and JIV-ERIC.
+
+\textbf{Key Features in v6.7.0:}
+\begin{itemize}
+    \item New experimental gridder option 'awp2' (refactor of awproject)
+    \item GPU-enabled gridding for VLASS project\footnote{Imaging Tutorial: \url{https://casadocs.readthedocs.io/en/stable/imaging.html}}
+    \item Enhanced tclean performance with better wide-field imaging
+    \item Improved calibration tools (gencal, fringefit, phaseshift)
+\end{itemize}
+
+\textbf{Installation (Step-by-Step):}
+\begin{lstlisting}[language=bash]
+# Option A: Conda environment (recommended)
+conda create -y -n casa67 python=3.10
+conda activate casa67
+pip install casatools casatasks  # CASA 6 tasks and tools
+
+# Option B: Standalone tarball (Linux)
+\# Visit https://casa.nrao.edu/casa_obtaining.shtml to download the tarball for your platform
+ tar -xf casa-<version>.tar.xz
+export PATH=$PWD/casa-6.7.0-1/bin:$PATH
+
+# Verify installation
+python -c "import casatools, casatasks; print('casatools OK')"
+python - <<'PY'
+from casatasks import version
+print('CASA version:', version())
+PY
+\end{lstlisting}
+\textbf{Notes:}
+\begin{itemize}
+    \item Use an isolated environment to avoid dependency conflicts
+    \item The classic CASA viewer may be separate; scripted visualization via \texttt{viewer()} is supported
+    \item If GPU features are available, ensure compatible drivers and CUDA are installed
+\end{itemize}
+
+\subsection{Pyuvdata v3.2.4}
+\textbf{Documentation:} \url{https://pyuvdata.readthedocs.io/en/stable/}
+Pyuvdata provides a Pythonic interface to interferometric datasets with four major user classes:
+
+\begin{itemize}
+    \item \textbf{UVData}: Supports interferometric data (visibilities) and associated metadata
+    \item \textbf{UVCal}: Supports interferometric calibration solutions (antenna-based) and associated metadata
+    \item \textbf{UVBeam}: Supports primary beams (E-field or power) and associated metadata
+    \item \textbf{UVFlag}: Handles manipulation and combination of flags for datasets
+\end{itemize}
+
+\textbf{Installation:}
+\begin{lstlisting}[language=bash]
+pip install pyuvdata
+\end{lstlisting}
+
+\subsection{Additional Python Packages}
+\begin{lstlisting}[language=bash]
+pip install numpy matplotlib astropy scipy
+\end{lstlisting}
+
+\section{Complete Processing Pipeline}
+
+This section provides a step-by-step workflow for continuum imaging. Each phase builds upon the previous one, with decision points and validation steps to ensure data quality.
+
+\subsection{Phase 1: Data Preparation and Inspection}
+
+\textbf{Goal:} Prepare raw data for calibration and verify data quality.
+
+\textbf{Time Required:} 30-60 minutes for typical dataset
+
+\textbf{Key Decision Points:}
+\begin{itemize}
+    \item Is the data quality sufficient for calibration?
+    \item Are there obvious data problems that need flagging?
+    \item Is the frequency coverage appropriate for your science goals?
+\end{itemize}
+
+\subsubsection{Loading Raw Data with Pyuvdata}
+\begin{lstlisting}[language=Python]
+import numpy as np
+import matplotlib.pyplot as plt
+from pyuvdata import UVData
+import casatools as cc
+
+# Load UVH5 data
+uv = UVData()
+uv.read_uvh5('observation.uvh5')
+
+# Basic data inspection
+print(f"Number of antennas: {uv.Nants_telescope}")
+print(f"Number of baselines: {uv.Nbls}")
+print(f"Frequency range: {uv.freq_array.min()/1e6:.1f} - {uv.freq_array.max()/1e6:.1f} MHz")
+print(f"Time range: {uv.time_array.min()} - {uv.time_array.max()}")
+
+# Check data structure
+print(f"Data shape: {uv.data_array.shape}")
+print(f"Polarizations: {uv.polarization_array}")
+
+# Plot visibility amplitudes
+plt.figure(figsize=(10, 6))
+plt.subplot(1, 2, 1)
+plt.plot(np.abs(uv.data_array[0, 0, :, 0]))
+plt.xlabel('Channel')
+plt.ylabel('Amplitude')
+plt.title('Visibility Amplitude vs Channel')
+
+plt.subplot(1, 2, 2)
+plt.scatter(uv.uvw_array[:, 0], uv.uvw_array[:, 1], 
+           c=np.abs(uv.data_array[0, 0, 0, 0]), s=1)
+plt.xlabel('U (wavelengths)')
+plt.ylabel('V (wavelengths)')
+plt.title('UV Coverage')
+plt.colorbar(label='Amplitude')
+plt.show()
+\end{lstlisting}
+
+\subsubsection{Converting to CASA Format}
+\begin{lstlisting}[language=Python]
+# Convert UVH5 to Measurement Set
+ms_name = 'observation.ms'
+uv.write_ms(ms_name)
+
+# Verify conversion
+ms = cc.ms()
+ms.open(ms_name)
+print(f"MS has {ms.nrow()} rows")
+print(f"Antennas: {ms.nant()}")
+print(f"Frequency channels: {ms.nchan()}")
+ms.close()
+\end{lstlisting}
+
+\subsubsection{MS Inspection with listobs and msmd}
+Before calibration, inspect the dataset structure to understand scans, fields, SPWs, and intents.
+\begin{lstlisting}[language=Python]
+# In CASA
+# Create a human-readable summary of the MS
+listobs(vis=ms_name, listfile='listobs.txt', overwrite=True)
+
+# Query metadata programmatically
+msmd = cc.msmetadata()
+msmd.open(ms_name)
+print('Fields:', msmd.fieldnames())
+print('SPWs:', msmd.spwsforfield(msmd.fieldsforname(msmd.fieldnames()[0])[0]))
+print('Scans:', msmd.scannumbers())
+print('Intents:', msmd.intents())
+msmd.close()
+\end{lstlisting}
+
+\subsubsection{Optional Averaging and Preparation}
+Use averaging to reduce data volume while preserving scientific goals. Averaging trades spectral/time resolution for smaller data size.
+\begin{lstlisting}[language=Python]
+# In CASA: average channels and time if appropriate
+mstransform(vis=ms_name,
+            outputvis='observation_avg.ms',
+            datacolumn='data',
+            timebin='30s',  # average in time
+            chanaverage=True, chanbin=4,  # average 4 channels
+            regridms=False)
+ms_name = 'observation_avg.ms'
+\end{lstlisting}
+
+\subsection{Phase 2: Calibration Process}
+
+\subsubsection{Data Flagging}
+\textbf{Tutorial:} \url{https://casadocs.readthedocs.io/en/stable/notebooks/data_examination.html}
+Before calibration, we must identify and remove bad data points:
+
+\begin{lstlisting}[language=Python]
+# In CASA
+# Visual inspection with plotms
+plotms(vis=ms_name, xaxis='time', yaxis='amp', 
+       coloraxis='antenna1', plotfile='amp_vs_time.png')
+
+# Flag bad data
+flagdata(vis=ms_name, mode='manual', antenna='ANT01', 
+         spw='0:5~10', reason='bad_antenna')
+
+# Flag RFI (Radio Frequency Interference)
+flagdata(vis=ms_name, mode='rflag', datacolumn='data')
+
+# Flag zero-amplitude data
+flagdata(vis=ms_name, mode='clip', clipzeros=True)
+\end{lstlisting}
+
+\paragraph{Additional Flagging Recipes}
+Commonly useful additional steps include shadowing, quack (remove edges of scans), and robust automatic detection.
+\begin{lstlisting}[language=Python]
+# Flag antennas shadowed by others at low elevation
+flagdata(vis=ms_name, mode='shadow')
+
+# Remove first/last integration of each scan (setup transients)
+flagdata(vis=ms_name, mode='quack', quackinterval=10.0, quackmode='beg')
+
+# Frequency-time RFI detection with tfcrop (more conservative than rflag)
+flagdata(vis=ms_name, mode='tfcrop', timecutoff=4.0, freqcutoff=4.0,
+         timefit='line', freqfit='poly', maxdevfrac=0.5, usewindowstats='sum')
+
+# Apply pre-defined observatory flag commands if present
+flagcmd(vis=ms_name, inpmode='table', useapplied=True)
+\end{lstlisting}
+
+Always re-check with \texttt{plotms} after each step to avoid over-flagging.
+
+\subsubsection{Antenna Position Corrections (optional but recommended)}
+Small antenna position errors can cause residual phase slopes. If accurate position offsets are known, generate and apply an antenna position calibration table.
+\begin{lstlisting}[language=Python]
+# In CASA: specify per-antenna XYZ offsets in meters (example values)
+gencal(vis=ms_name, caltable='antpos.cal', caltype='antpos',
+       antenna='0,1,2', parameter=[0.002, -0.001, 0.003,  -0.001, 0.000, 0.002,  0.000, 0.001, -0.002])
+\end{lstlisting}
+Apply \texttt{antpos.cal} together with other calibrations during \texttt{applycal} (see below).
+
+\subsubsection{Delay Calibration}
+\textbf{Tutorial:} \url{https://casadocs.readthedocs.io/en/stable/notebooks/synthesis_calibration.html}
+Corrects for instrumental time delays:
+
+\begin{lstlisting}[language=Python]
+# In CASA
+# Set reference antenna
+refant = 'ANT02'
+
+# Delay calibration
+gaincal(vis=ms_name, 
+        caltable='delay.cal', 
+        field='0',  # Calibrator field (0 = first field in MS)
+        solint='inf',  # Solution interval: 'inf' = one solution per scan
+        refant=refant,  # Reference antenna for phase reference
+        gaintype='K',  # Delay calibration (K = delay, G = gain)
+        minsnr=3.0)  # Minimum signal-to-noise ratio for solutions
+
+# Plot delay solutions
+plotcal(caltable='delay.cal', xaxis='antenna', yaxis='delay')
+
+# Validate delay calibration
+# Check solution quality
+listcal(caltable='delay.cal', field='0')
+# Look for: reasonable delay values (< 100 ns), good SNR (> 3), 
+# no obvious outliers or systematic trends
+\end{lstlisting}
+
+\paragraph{Solution cadence and solint guidelines (L-band)}
+\begin{itemize}
+    \item \textbf{How often to observe:} At L-band, once at the start of the observing session per band is usually sufficient. Re-observe only if the LO/IF setup changes, hardware is reconfigured, or phases become unstable. For very long sessions, a re-check every few hours is prudent.
+    \item \textbf{Solving cadence:} Solve with \texttt{solint='inf'} on a strong calibrator (one solution per scan), optionally \texttt{combine='scan'} to gather SNR. Delay terms are generally stable and do not require frequent updates.
+    \item \textbf{SNR/validation:} Require SNR > 3--5. Inspect \texttt{plotcal} for flat residual phase vs. frequency after application.
+\end{itemize}
+
+\subsubsection{Gain Calibration}
+Corrects for amplitude and phase variations:
+
+\begin{lstlisting}[language=Python]
+# In CASA
+# Gain calibration
+gaincal(vis=ms_name, 
+        caltable='gain.cal', 
+        field='0', 
+        solint='int',  # Integration time
+        refant=refant, 
+        gaintype='G',  # Gain calibration
+        minsnr=3.0)
+
+# Plot gain solutions
+plotcal(caltable='gain.cal', xaxis='time', yaxis='amp')
+plotcal(caltable='gain.cal', xaxis='time', yaxis='phase')
+\end{lstlisting}
+
+\paragraph{Solution cadence and solint guidelines (L-band)}
+\begin{itemize}
+    \item \textbf{How often to observe:} At L-band (1--2\,GHz), bracket target scans every 5--15\,min. Under strong ionospheric activity or low elevations, shorten to 2--5\,min.
+    \item \textbf{Solving cadence:} Start with \texttt{solint='int'} (per integration) or \texttt{30s}--\texttt{2min}. If SNR is low, relax to \texttt{'scan'}; if SNR is high, you may shorten to track rapid ionospheric variations.
+    \item \textbf{Amplitude:} Amplitude gains vary more slowly; prefer \texttt{solint='scan'} or longer (e.g., \texttt{'inf'}) after phase is stable. Do phase-only first, then amplitude+phase if SNR allows.
+    \item \textbf{Validation:} Check smooth, continuous time series in \texttt{plotcal} with few outliers; inspect corrected visibilities.
+\end{itemize}
+
+\subsubsection{Bandpass Calibration}
+\textbf{Tutorial:} \url{https://casadocs.readthedocs.io/en/stable/notebooks/bandpass\_calibration.html}
+Corrects for frequency-dependent response:
+
+\paragraph{What Bandpass Calibration Does}
+Bandpass calibration solves for per-antenna, per-channel complex gains to correct spectral structure introduced by the system. Use a bright, spectrally simple calibrator observed with sufficient SNR across the band. Typical settings:
+\begin{itemize}
+    \item \texttt{solint='inf'}: one solution per scan (or longer) on the bandpass calibrator
+    \item \texttt{combine='scan'}: combine scans to boost SNR if stable
+    \item \texttt{solnorm=True}: normalize amplitude to unity on average
+\end{itemize}
+
+\begin{lstlisting}[language=Python]
+# In CASA
+# Bandpass calibration
+bandpass(vis=ms_name, 
+         caltable='bandpass.cal', 
+         field='0', 
+         solint='inf', combine='scan', solnorm=True,
+         refant=refant,
+         minsnr=3.0)
+
+# Plot bandpass solutions
+plotcal(caltable='bandpass.cal', xaxis='freq', yaxis='amp')
+plotcal(caltable='bandpass.cal', xaxis='freq', yaxis='phase')
+\end{lstlisting}
+
+\paragraph{Optional pre-phase for bandpass (recommended at L-band)}
+Stabilize phase versus time on the bandpass calibrator before solving the per-channel bandpass:
+\begin{lstlisting}[language=Python]
+# Solve time-dependent phase on the bandpass calibrator
+gaincal(vis=ms_name, caltable='bp_phase.cal', field='0', calmode='p',
+        solint='int', refant=refant)
+
+# Use it while solving bandpass
+bandpass(vis=ms_name, caltable='bandpass.cal', field='0',
+         solint='inf', combine='scan', refant=refant, solnorm=True,
+         gaintable=['bp_phase.cal'])
+\end{lstlisting}
+
+\paragraph{Solution cadence and solint guidelines (L-band)}
+\begin{itemize}
+    \item \textbf{How often to observe:} At L-band, usually once per observing session per band on a bright (\(\gtrsim\) few Jy) calibrator. For very long sessions or known drifts, re-observe every 1--2 hours.
+    \item \textbf{Solving cadence:} Use long solution intervals (\texttt{solint='inf'}) and optionally \texttt{combine='scan'} to maximize SNR; bandpass solutions are assumed stable in time on hour scales.
+    \item \textbf{Validation:} Look for smooth amplitude/phase vs. channel; avoid sharp features not intrinsic to the instrument. Ensure SNR >> 10 per channel if possible.
+\end{itemize}
+
+\subsubsection{Flux Calibration}
+Sets the absolute flux scale. First set the flux model for your primary calibrator, then bootstrap the scale to your gain solutions, and finally apply all calibrations to target fields.
+
+\begin{lstlisting}[language=Python]
+# In CASA
+# 1) Set the flux density model for the primary calibrator (e.g., 3C286)
+setjy(vis=ms_name, field='3C286', standard='Perley-Butler 2017')
+
+# 2) Bootstrap flux scale from the primary to gain solutions
+#    'reference' is the primary; 'transfer' lists secondary calibrators (if any)
+fluxscale(vis=ms_name,
+          caltable='gain.cal',
+          fluxtable='flux.cal',
+          reference='3C286')
+
+# 3) Apply all calibrations to science target(s)
+#    Include optional antpos table if created
+applycal(vis=ms_name,
+         field='1',  # target field ID (adjust as needed)
+         gaintable=['delay.cal', 'bandpass.cal', 'flux.cal'],
+         interp=['nearest','linear','linear'],
+         calwt=False)
+\end{lstlisting}
+
+\paragraph{Solution cadence and solint guidelines (L-band)}
+\begin{itemize}
+    \item \textbf{How often to observe:} At L-band, observe a primary flux calibrator once per session per band (beginning or end). If system gain drifts significantly or multiple days are concatenated, include a primary per day.
+    \item \textbf{Solving cadence:} \texttt{setjy} uses a standard model; \texttt{fluxscale} transfers scale to your gain table typically with \texttt{solint='scan'} or longer. This is a slow-varying calibration and does not need frequent solutions.
+    \item \textbf{Validation:} Compare derived flux densities of secondary calibrators to catalog values; check stability across SPWs.
+\end{itemize}
+
+\subsubsection{Polarization Calibration (optional)}
+\textbf{Purpose:} Correct instrumental polarization (leakage) and cross-hand delay/phase. Requires a suitable polarization calibrator and parallactic angle coverage.
+\begin{itemize}
+    \item \textbf{How often to observe:} Once per session per band, but with multiple short scans spread across the observation to accumulate \(\gtrsim 60^\circ\) of parallactic angle.
+    \item \textbf{Solving cadence:} Use \texttt{solint='inf'} (per scan) on the pol calibrator; combine scans to improve SNR. Solve D-terms (\texttt{polcal} with \texttt{poltype='D'}) and cross-hand delay/phase (e.g., \texttt{poltype='Xf'}).
+    \item \textbf{Validation:} Check residual cross-hand phases and recovered polarization of a standard source.
+\end{itemize}
+\begin{lstlisting}[language=Python]
+# In CASA (examples; adjust fields and options)
+polcal(vis=ms_name, caltable='polD.cal', field='polcal', solint='inf', poltype='D')
+polcal(vis=ms_name, caltable='polXf.cal', field='polcal', solint='inf', poltype='Xf')
+\end{lstlisting}
+
+\subsubsection{Calibration Cadence Summary (Assuming L-band 1--2 GHz)}
+\begin{table}[h]
+\centering
+\begin{tabular}{llll}
+\toprule
+Calibration & Observe how often & Typical solint & Notes \\
+\midrule
+Delay (K) & once per session; on changes & inf (per scan) & stable; bright cal \\
+Bandpass (B) & once per session; 1-2 h if drift & inf; combine=scan & high SNR; solnorm \\
+Gain phase (G) & 1-3 min (mm), 5-15 min (cm) & int; 30-120 s & phase first; refant stable \\
+Gain amp (G) & per scan or inf after phase & scan/inf & needs high SNR \\
+Flux scale & once per session per band & scan/inf & setjy then fluxscale \\
+Polarization (D/Xf) & multiple scans to build PA & inf; combine & needs >60 deg PA \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\subsection{Phase 3: Imaging Process}
+
+\paragraph{Choosing Cell Size and Image Dimensions}
+Cell size (pixel scale) should sample the synthesized beam with 3--5 pixels across the FWHM. A practical rule:
+\[ \text{cell} \approx \frac{\theta_{\rm beam}}{3\,\text{to}\,5}, \quad \theta_{\rm beam} \approx \frac{\lambda}{B_{\max}} \times 206265\,\text{arcsec} \]
+where \(\lambda\) is the wavelength and \(B_{\max}\) the maximum projected baseline. Image size should cover your desired field of view (FoV):
+\[ \text{imsize} \approx \frac{\text{FoV}}{\text{cell}} \]
+For a single pointing, FoV can be approximated by the primary beam FWHM \(\theta_{\rm PB} \approx 1.22\,\lambda/D\) in radians (\(D\) = dish diameter).
+
+\paragraph{Weighting Schemes}
+\begin{itemize}
+    \item \textbf{Natural}: maximizes sensitivity (lowest noise), larger beam
+    \item \textbf{Uniform}: maximizes resolution (smaller beam), higher noise/sidelobes
+    \item \textbf{Briggs (robust)}: trade-off; \texttt{robust} in [-2, +2], where lower values tend toward uniform
+\end{itemize}
+Use \texttt{uvtaper} to down-weight long baselines and enhance extended emission.
+
+\subsubsection{Initial Dirty Image}
+\textbf{Tutorial:} \url{https://casadocs.readthedocs.io/en/stable/imaging.html}
+Create the first image using a simple Fourier transform:
+
+\begin{lstlisting}[language=Python]
+# In CASA
+# Create dirty image
+tclean(vis=ms_name, 
+       imagename='dirty_image',
+       specmode='mfs',  # Multi-frequency synthesis
+       deconvolver='hogbom',
+       niter=0,  # No cleaning
+       threshold='0.1mJy',
+       weighting='natural',
+       imsize=1024,
+       cell='1arcsec',
+       stokes='I')
+
+# View the dirty image
+viewer('dirty_image.image')
+\end{lstlisting}
+
+\subsubsection{Deconvolution with CLEAN Algorithm}
+\textbf{Tutorial:} \url{https://casadocs.readthedocs.io/en/stable/notebooks/clean\_algorithm.html}
+The CLEAN algorithm removes sidelobes and artifacts:
+
+\begin{lstlisting}[language=Python]
+# In CASA
+# Clean the image
+tclean(vis=ms_name, 
+       imagename='continuum',
+       specmode='mfs',  # Multi-frequency synthesis for continuum
+       deconvolver='hogbom',  # Classic CLEAN (good for point sources)
+       niter=1000,  # Number of iterations (adjust based on source complexity)
+       threshold='0.1mJy',  # Stopping threshold (3-5x RMS noise)
+       weighting='briggs',  # Briggs weighting (compromise between sensitivity/resolution)
+       robust=0.5,  # Robustness parameter (0=natural, 1=uniform)
+       imsize=1024,  # Image size (power of 2, 2x beam size)
+       cell='1arcsec',  # Pixel size (beam size / 3-5)
+       stokes='I',  # Stokes I for total intensity
+       savemodel='modelcolumn')  # Save model for self-calibration
+
+# View the cleaned image
+viewer('continuum.image')
+\end{lstlisting}
+
+\subsubsection{Interactive and Auto-masked Cleaning}
+Interactive cleaning can help define masks and stopping criteria. Alternatively, automated masking (auto-multithresh) is robust for surveys.
+\begin{lstlisting}[language=Python]
+# Interactive cleaning (opens viewer; use with desktop session)
+tclean(vis=ms_name,
+       imagename='continuum_int', specmode='mfs', deconvolver='hogbom',
+       niter=20000, threshold='0.0mJy', interactive=True,
+       weighting='briggs', robust=0.5, imsize=1024, cell='1arcsec')
+
+# Automated masking with auto-multithresh
+tclean(vis=ms_name,
+       imagename='continuum_auto', specmode='mfs', deconvolver='hogbom',
+       niter=5000, threshold='3sigma', interactive=False,
+       usemask='auto-multithresh',
+       sidelobethreshold=2.0, noisethreshold=4.0, lownoisethreshold=1.5,
+       minbeamfrac=0.3, growiterations=75,
+       weighting='briggs', robust=0.5, imsize=1024, cell='1arcsec')
+\end{lstlisting}
+
+\subsubsection{Multiscale CLEAN for Extended Emission}
+For resolved sources, multiscale deconvolution reduces residuals and improves fidelity.
+\begin{lstlisting}[language=Python]
+# Choose scales in pixels: [0, 3*beam, 9*beam, ...] approximated in pixels
+tclean(vis=ms_name,
+       imagename='continuum_ms', specmode='mfs', deconvolver='multiscale',
+       scales=[0, 5, 15, 45],
+       niter=8000, threshold='0.1mJy',
+       weighting='briggs', robust=0.5, imsize=1024, cell='1arcsec')
+\end{lstlisting}
+
+\subsubsection{Primary Beam Correction}
+\textbf{Tutorial:} \url{https://casadocs.readthedocs.io/en/stable/notebooks/primary\_beam\_correction.html}
+Corrects for antenna sensitivity pattern:
+
+\begin{lstlisting}[language=Python]
+# In CASA
+# Apply primary beam correction
+impbcor(imagename='continuum.image', 
+        pbimage='continuum.pb', 
+        outfile='continuum.pbcor')
+
+# View the corrected image
+viewer('continuum.pbcor')
+\end{lstlisting}
+
+\paragraph{Primary Beam in tclean}
+Many workflows enable primary beam correction directly in imaging:
+\begin{lstlisting}[language=Python]
+tclean(vis=ms_name, imagename='continuum', specmode='mfs', deconvolver='hogbom',
+       niter=5000, threshold='0.1mJy', weighting='briggs', robust=0.5,
+       imsize=1024, cell='1arcsec', pbcor=True)
+# This writes both continuum.image and continuum.pbcor; avoid running impbcor again on pbcor output
+\end{lstlisting}
+
+\subsection{Phase 4: Advanced Imaging Techniques}
+
+\subsubsection{Multi-Term Multi-Frequency Synthesis (MT-MFS)}
+\textbf{Tutorial:} \url{https://casadocs.readthedocs.io/en/stable/notebooks/synthesis_imaging.html}
+Accounts for spectral variations across the band:
+
+\begin{lstlisting}[language=Python]
+# In CASA
+# MT-MFS imaging
+tclean(vis=ms_name, 
+       imagename='mtmfs_continuum',
+       specmode='mfs',
+       deconvolver='mtmfs',  # Multi-term MFS
+       nterms=2,  # Number of spectral terms
+       niter=1000,
+       threshold='0.1mJy',
+       weighting='briggs',
+       robust=0.5,
+       imsize=1024,
+       cell='1arcsec',
+       stokes='I')
+\end{lstlisting}
+
+\subsubsection{Wide-Field Imaging}
+\textbf{Tutorial:} \url{https://casadocs.readthedocs.io/en/stable/notebooks/widefield\_imaging.html}
+Handles non-coplanar baselines:
+
+\begin{lstlisting}[language=Python]
+# In CASA
+# Wide-field imaging
+tclean(vis=ms_name, 
+       imagename='widefield_continuum',
+       specmode='mfs',
+       deconvolver='mtmfs',
+       nterms=2,
+       niter=1000,
+       threshold='0.1mJy',
+       weighting='briggs',
+       robust=0.5,
+       imsize=2048,
+       cell='0.5arcsec',
+       stokes='I',
+       gridder='wproject',  # W-projection gridder
+       wprojplanes=128)
+\end{lstlisting}
+
+\subsubsection{Mosaicking}
+\textbf{Tutorial:} \url{https://casadocs.readthedocs.io/en/stable/notebooks/image_combination.html}
+Combines multiple pointings:
+
+\begin{lstlisting}[language=Python]
+# In CASA
+# Mosaic imaging
+tclean(vis=ms_name, 
+       imagename='mosaic_continuum',
+       specmode='mfs',
+       deconvolver='mtmfs',
+       nterms=2,
+       niter=1000,
+       threshold='0.1mJy',
+       weighting='briggs',
+       robust=0.5,
+       imsize=4096,
+       cell='0.25arcsec',
+       stokes='I',
+       gridder='mosaic',  # Mosaic gridder
+       phasecenter='J2000 12h00m00s +30d00m00s')
+\end{lstlisting}
+
+\section{Advanced Topics}
+
+\subsection{Self-Calibration}
+Self-calibration iteratively refines antenna-based gains using the target source model to improve coherence and dynamic range.
+\begin{enumerate}
+    \item Image target with \texttt{tclean(savemodel='modelcolumn')} to populate the MODEL\_DATA
+    \item Solve for phase-only gains with short solution interval
+    \item Apply solutions; re-image; repeat; optionally include amplitude
+\end{enumerate}
+\begin{lstlisting}[language=Python]
+# 1) Initial image with model saved
+tclean(vis=ms_name, imagename='selfcal0', specmode='mfs', deconvolver='hogbom',
+       niter=3000, threshold='0.2mJy', weighting='briggs', robust=0.5,
+       imsize=1024, cell='1arcsec', savemodel='modelcolumn')
+
+# 2) Phase-only self-cal
+gaincal(vis=ms_name, caltable='selfcal_p.cal', field='1', solint='int',
+        refant=refant, gaintype='G', calmode='p', minsnr=3.0)
+applycal(vis=ms_name, field='1', gaintable=['selfcal_p.cal'], calwt=False)
+
+# 3) Re-image and assess improvement
+tclean(vis=ms_name, imagename='selfcal1', specmode='mfs', deconvolver='hogbom',
+       niter=5000, threshold='0.1mJy', weighting='briggs', robust=0.5,
+       imsize=1024, cell='1arcsec', savemodel='modelcolumn')
+
+# 4) Optional amplitude+phase self-cal (requires strong SNR)
+gaincal(vis=ms_name, caltable='selfcal_ap.cal', field='1', solint='60s',
+        refant=refant, gaintype='G', calmode='ap', solnorm=True, minsnr=5.0)
+applycal(vis=ms_name, field='1', gaintable=['selfcal_ap.cal'], calwt=False)
+\end{lstlisting}
+
+\subsection{Spectral Line Imaging (Overview)}
+For line imaging, subtract continuum and image in cube mode.
+\begin{lstlisting}[language=Python]
+# Fit and subtract continuum in the uv-plane
+uvcontsub(vis=ms_name, fitspw='0:5~100;200~450', excludechans=False,
+          fitorder=1, want_cont=True)
+
+# Image spectral cube
+tclean(vis=ms_name, imagename='line_cube', specmode='cube',
+       start='1400MHz', width='10kHz', nchan=512, outframe='LSRK',
+       deconvolver='multiscale', scales=[0,5,15],
+       weighting='briggs', robust=0.5,
+       imsize=1024, cell='1arcsec')
+\end{lstlisting}
+
+\section{Data Analysis and Quality Assessment}
+
+\subsection{Image Statistics}
+\textbf{Tutorial:} \url{https://casadocs.readthedocs.io/en/stable/notebooks/image\_analysis.html}
+\paragraph{Noise Estimation and Region Selection}
+Estimate RMS noise in emission-free regions (off-source) to avoid bias. Define a region box in a blank part of the image for \texttt{imstat}.
+\begin{lstlisting}[language=Python]
+# In CASA
+# Define an off-source region and compute statistics
+stats_off = imstat(imagename='continuum.pbcor', region='box[50pix,50pix,150pix,150pix]')
+print('Off-source RMS:', stats_off['rms'][0])
+\end{lstlisting}
+\begin{lstlisting}[language=Python]
+# In CASA
+# Calculate image statistics
+stats = imstat(imagename='continuum.pbcor')
+print(f"Peak flux: {stats['max'][0]:.3f} Jy/beam")
+print(f"RMS noise: {stats['rms'][0]:.6f} Jy/beam")
+print(f"Dynamic range: {stats['max'][0]/stats['rms'][0]:.1f}")
+
+# Quality assessment metrics
+dynamic_range = stats['max'][0]/stats['rms'][0]
+print(f"Dynamic range: {dynamic_range:.1f}")
+if dynamic_range > 100:
+    print("GOOD: Dynamic range > 100")
+elif dynamic_range > 50:
+    print("WARNING: Moderate dynamic range (50-100)")
+else:
+    print("ERROR: Poor dynamic range (<50) - check calibration")
+
+# Check for imaging artifacts
+imhead(imagename='continuum.pbcor', mode='list')
+
+# Verify beam properties
+beam = imhead(imagename='continuum.pbcor', mode='get', hdkey='beammajor')
+print(f"Beam major axis: {beam['value']:.3f} arcsec")
+print(f"Beam minor axis: {imhead(imagename='continuum.pbcor', mode='get', hdkey='beamminor')['value']:.3f} arcsec")
+\end{lstlisting}
+
+\subsection{Source Detection and Measurement}
+Set detection thresholds using multiples of the off-source RMS (e.g., 5\,$\sigma$ for robust detections). Use \texttt{imfit} to fit Gaussians and measure integrated/peak flux.
+\begin{lstlisting}[language=Python]
+# In CASA
+# Fit Gaussian to sources
+imfit(imagename='continuum.pbcor', 
+      box='100,100,200,200',  # Region of interest
+      estimates='continuum.estimates')
+
+# Extract source parameters
+fit_results = imfit(imagename='continuum.pbcor')
+print(f"Peak flux: {fit_results['results']['component0']['peak']['value']:.6f} Jy/beam")
+print(f"Position: {fit_results['results']['component0']['peak']['unit']}")
+\end{lstlisting}
+
+\subsection{Flux Density Measurement}
+\begin{lstlisting}[language=Python]
+# In CASA
+# Measure flux in a region
+imval(imagename='continuum.pbcor', 
+      region='circle[[12h00m00s, +30d00m00s], 10arcsec]')
+
+# Create moment maps
+immoments(imagename='continuum.pbcor', 
+          moments=[0],  # Zeroth moment (integrated flux)
+          outfile='continuum_mom0')
+\end{lstlisting}
+
+\section{Common Issues and Troubleshooting}
+
+\subsection{Data Quality Problems}
+
+\subsubsection{RFI Contamination}
+\textbf{Symptoms:} Sudden spikes in amplitude, frequency-dependent patterns, time-dependent interference
+\begin{itemize}
+    \item \textbf{Detection}: Use \texttt{plotms} to visualize data in time/frequency space
+    \item \textbf{Solution}: Apply \texttt{flagdata} with \texttt{mode='rflag'} for automatic RFI detection
+    \item \textbf{Prevention}: Choose observing frequencies away from known RFI sources
+\end{itemize}
+
+\subsubsection{Calibration Problems}
+\textbf{Symptoms:} Poor image quality, systematic errors, failed calibration solutions
+\begin{itemize}
+    \item \textbf{Reference antenna issues}: Choose antenna with good data quality and central position
+    \item \textbf{Solution quality}: Check SNR values in calibration tables using \texttt{listcal}
+    \item \textbf{Solution intervals}: Use shorter intervals for rapidly varying conditions
+\end{itemize}
+
+\subsubsection{Missing Data}
+\textbf{Symptoms:} Gaps in UV coverage, poor image quality, systematic artifacts
+\begin{itemize}
+    \item \textbf{Detection}: Use \texttt{plotms} to check UV coverage
+    \item \textbf{Solution}: Use appropriate weighting schemes (Briggs with robust parameter)
+    \item \textbf{Prevention}: Plan observations with adequate time sampling
+\end{itemize}
+
+\subsection{Imaging Artifacts}
+\begin{itemize}
+    \item \textbf{Sidelobes}: Use appropriate CLEAN parameters and masking
+    \item \textbf{Bandwidth smearing}: Ensure proper frequency averaging
+    \item \textbf{Time smearing}: Use appropriate time integration
+\end{itemize}
+
+\subsection{Flux Scale Issues}
+\begin{itemize}
+    \item \textbf{Primary beam correction}: Always apply for accurate flux measurements
+    \item \textbf{Calibration accuracy}: Verify calibrator flux densities and models
+    \item \textbf{Spectral index}: Account for frequency-dependent source properties
+\end{itemize}
+
+\section{Practical Examples and Case Studies}
+
+\subsection{Example 1: Point Source Imaging}
+\textbf{Scenario:} Imaging a bright point source (e.g., calibrator) with high signal-to-noise ratio.
+
+\textbf{Recommended Parameters:}
+\begin{itemize}
+    \item \texttt{deconvolver='hogbom'} - Best for point sources
+    \item \texttt{weighting='briggs', robust=0.0} - Natural weighting for maximum sensitivity
+    \item \texttt{threshold='3*RMS'} - Conservative threshold
+    \item \texttt{niter=1000} - Sufficient for point sources
+\end{itemize}
+
+\subsection{Example 2: Extended Source Imaging}
+\textbf{Scenario:} Imaging a galaxy or extended nebula with complex structure.
+
+\textbf{Recommended Parameters:}
+\begin{itemize}
+    \item \texttt{deconvolver='mtmfs', nterms=2} - Multi-scale CLEAN for extended emission
+    \item \texttt{weighting='briggs', robust=0.5} - Compromise between sensitivity and resolution
+    \item \texttt{threshold='5*RMS'} - Higher threshold to avoid over-cleaning
+    \item \texttt{niter=5000} - More iterations for complex structures
+\end{itemize}
+
+\subsection{Example 3: Wide-Field Survey}
+\textbf{Scenario:} Large-area survey with multiple pointings and varying source types.
+
+\textbf{Recommended Parameters:}
+\begin{itemize}
+    \item \texttt{gridder='mosaic'} - For multiple pointings
+    \item \texttt{deconvolver='mtmfs', nterms=2} - Handle spectral variations
+    \item \texttt{weighting='briggs', robust=0.5} - Uniform approach across field
+    \item \texttt{cell='beam/3'} - Nyquist sampling
+\end{itemize}
+
+\section{Best Practices and Recommendations}
+
+\subsection{Data Processing Workflow}
+\begin{enumerate}
+    \item Always inspect raw data before processing
+    \item Use appropriate flagging strategies
+    \item Apply calibration in the correct order
+    \item Verify calibration quality with plots
+    \item Use appropriate imaging parameters
+    \item Always apply primary beam correction
+    \item Document all processing steps
+\end{enumerate}
+
+\subsection{Performance Optimization}
+\begin{itemize}
+    \item Use appropriate image sizes (power of 2)
+    \item Consider parallel processing for large datasets
+    \item Use appropriate CLEAN algorithms for source types
+    \item Monitor memory usage during processing
+\end{itemize}
+
+\subsection{Quality Control}
+\begin{itemize}
+    \item Check dynamic range and noise levels
+    \item Verify source positions and fluxes
+    \item Compare with known calibrators
+    \item Document image quality metrics
+\end{itemize}
+
+\section{Conclusion}
+
+This comprehensive guide provides the foundation for continuum imaging with radio interferometers using CASA v6.7 and Pyuvdata v3.2.4. The process involves careful data preparation, systematic calibration, appropriate imaging techniques, and thorough quality assessment. Each step builds upon the previous one, creating a robust pipeline for radio astronomical data analysis.
+
+The combination of CASA's advanced imaging capabilities and Pyuvdata's flexible data handling provides a powerful platform for continuum imaging, supporting everything from small-scale observations to large survey projects. With proper understanding of the underlying principles and careful attention to data quality, users can produce scientifically valuable images that advance our understanding of the radio universe.
+
+\section{Glossary of Terms}
+
+\begin{description}
+    \item[Baseline] The vector connecting two antennas in an interferometer array
+    \item[CLEAN Algorithm] Iterative deconvolution algorithm that removes sidelobes from dirty images
+    \item[Dynamic Range] Ratio of peak flux to RMS noise in an image; measure of image quality
+    \item[Flagging] Process of identifying and removing bad or corrupted data points
+    \item[Primary Beam] The sensitivity pattern of individual antennas; typically Gaussian-shaped
+    \item[RFI] Radio Frequency Interference; unwanted signals from human-made sources
+    \item[UV Coverage] The distribution of baselines in the UV plane; determines image quality
+    \item[Visibility] Complex number representing the correlation between signals from two antennas
+    \item[Weighting] Scheme for combining data from different baselines; affects sensitivity vs. resolution
+\end{description}
+
+\section{Additional Resources}
+
+\begin{itemize}
+    \item CASA Documentation: \url{https://casadocs.readthedocs.io/en/stable/}
+    \item Pyuvdata Documentation: \url{https://pyuvdata.readthedocs.io/en/stable/}
+    \item NRAO Science Data Archive: \url{https://data.nrao.edu/}
+    \item Radio Astronomy Software: \url{https://www.nrao.edu/software/}
+    \item CASA Memos: \url{https://casadocs.readthedocs.io/en/stable/notebooks/memo-series.html}
+\end{itemize}
+
+\end{document}

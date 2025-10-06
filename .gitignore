@@ -111,3 +111,9 @@ data/tmp/
 **/*.hdf5
 data/hdf5_staging/
 data/hdf5/
+
+# Streaming converter files
+streaming_queue.sqlite3
+*.checkpoint.uvh5
+pipeline/checkpoints/
+pipeline/scratch/
