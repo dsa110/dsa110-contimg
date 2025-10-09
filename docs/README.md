@@ -8,6 +8,7 @@ Repository overview for the DSA-110 continuum imaging pipeline.
 - `tests/` – Unit and integration tests
 - `docs/` – User guides, architecture notes, templates
 - `docs/notebooks/` – Interactive notebooks (e.g., measurement-set staging walkthrough)
+- `docs/notebooks/` – Interactive notebooks (MS staging, calibration tests)
 - `config/` – Runtime and deployment configuration templates
 - `ops/` – Operational scripts and service manifests
 - `state/` – Runtime artifacts (queue SQLite DBs, CASA logs, checkpoints); gitignored
@@ -207,6 +208,49 @@ python -m dsa110_contimg.conversion.streaming_converter \
 
 The dashboard links to a “quicklooks” gallery under `/ui/static/qa.html`, and individual groups link to a detail view at `/ui/static/group.html?group=<group_id>`.
 
+# Reference Antenna Recommendation
+
+The fast QA pass produces a per‑antenna quality summary and an automatic reference‑antenna ranking suitable for `solve_delay`/`solve_bandpass`.
+
+How it works
+- Metrics computed per antenna over the scan:
+  - Mean amplitude (signal strength)
+  - Phase coherence R and circular phase standard deviation σ (stability)
+  - Flagged‑row fraction (data completeness)
+  - Amplitude variance (sanity check)
+  - Array centrality factor (distance to array centroid, favouring central dishes)
+- A composite score ranks antennas (higher is better):
+  - `score = amp_norm^0.5 × coherence^1.0 × (1 − flagged_frac)^1.0 × stability^1.0 × center_factor^0.5`
+  - where `stability = 1 / (1 + phase_sigma_deg / 45)` and `amp_norm = mean_amp / max(mean_amp)`
+- Artifacts written alongside quicklooks:
+  - `per_antenna_metrics_fast.png` — bar charts for mean amp, phase σ, flagged fraction, variance
+  - `phase_sigma_sorted_fast.png` — antennas sorted by phase σ
+  - `coherence_vs_flagged_fast.png` — coherence vs. flagged fraction scatter (colour = mean amp)
+  - `phase_heatmap_fast.png` — phase σ over time for each antenna
+  - `refant_ranking.json` and `refant_ranking.csv` — full ranking and the recommended antenna
+
+Usage
+```
+python -m dsa110_contimg.qa.fast_plots \
+  --ms /scratch/.../2025-10-03T15:15:58.ms \
+  --output-dir /data/dsa110-contimg/state/qa/2025-10-03T15:15:58_fast
+
+# Inspect refant_ranking.json for the recommended antenna_id
+```
+
+Calibration with the recommended refant
+```
+PYTHONPATH=/data/dsa110-contimg/src \
+/opt/miniforge/envs/casa6/bin/python -m dsa110_contimg.calibration.cli calibrate \
+    --ms /scratch/.../2025-10-03T15:15:58.ms \
+    --field <cal_field> \
+    --refant <recommended_antenna_id>
+```
+
+Notes
+- The weighting above is conservative and aims to avoid obviously bad choices without overfitting. If you prefer different trade‑offs (e.g., penalise flagged fraction more strongly, or ignore centrality), the scoring can be tuned.
+- When several antennas tie on score, prefer the one with higher mean amplitude or closer to the array centre.
+
 # To Develop
 
 Dashboard/UI and API enhancements planned to round out monitoring and operator experience:
@@ -242,3 +286,46 @@ High‑value next steps
 - Add Products and Calibration Sets tables to `/ui`
 - Create Group Detail API and link from dashboard
 - Surface performance/system metrics and basic charts
+
+# Bandpass Calibration (Notebook)
+
+An end-to-end calibration test notebook is available at:
+
+- `docs/notebooks/bandpass_calibration_test.ipynb`
+
+What it does
+- Runs fast QA on the MS to generate `refant_ranking.json` and recommends a reference antenna.
+- Auto-selects the bandpass field range using the VLA calibrator catalog (primary-beam weighted).
+- Executes K/BA/BP/G solves via CASA tasks using pipeline helpers.
+
+Prerequisites
+- Run with a CASA 6 kernel (both `casatools` and `casatasks` importable).
+- Ensure the package is importable from the notebook (`../../src` is pre-added to `sys.path`).
+
+Quick start
+1) Open `docs/notebooks/bandpass_calibration_test.ipynb` and set your MS path.
+2) Run the QA cell; review `/tmp/qa-auto/refant_ranking.json`.
+3) Run the catalog auto-selection cell (defaults to `data-samples/catalogs/vlacalibrators.txt`, adjustable search radius and window).
+4) Run the calibration cell; it prints the produced calibration tables.
+
+CLI equivalent
+```
+# Fast QA (reference antenna ranking)
+python -m dsa110_contimg.qa.fast_plots \
+  --ms /scratch/.../2025-10-03T15:15:58.ms \
+  --output-dir /tmp/qa-auto
+
+# Calibration with catalog-driven auto fields and recommended refant
+PYTHONPATH=src:$PYTHONPATH \
+python -m dsa110_contimg.calibration.cli calibrate \
+  --ms /scratch/.../2025-10-03T15:15:58.ms \
+  --auto-fields \
+  --cal-catalog /data/dsa110-contimg/data-samples/catalogs/vlacalibrators.txt \
+  --cal-search-radius-deg 2.0 \
+  --bp-window 3 \
+  --refant-ranking /tmp/qa-auto/refant_ranking.json
+```
+
+Notes
+- The notebook plots the PB-weighted flux per field and highlights the selected field window.
+- Adjust `bp-window` and search radius to widen or tighten the selection.

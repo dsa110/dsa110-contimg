@@ -21,7 +21,6 @@ from dsa110_contimg.api.data_access import (
     fetch_recent_calibrator_matches,
 )
 from dsa110_contimg.api.models import PipelineStatus, ProductList, CalibratorMatchList, QAList, QAArtifact, GroupDetail, SystemMetrics
-from dsa110_contimg.api.config import ApiConfig
 from dsa110_contimg.api.data_access import _connect
 
 

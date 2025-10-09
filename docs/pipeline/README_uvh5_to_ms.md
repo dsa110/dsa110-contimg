@@ -16,3 +16,17 @@ Legacy tools (the dsacalib wrappers and the old `UnifiedHDF5Converter`) have bee
 ## Legacy Code
 
 The historical utilities (`dsa110_uvh5_to_ms.py`, `UnifiedHDF5Converter`, etc.) are preserved in `pipeline/legacy/conversion/` and `pipeline/legacy/scripts/`. They are no longer maintained and should not be used for new automation.
+
+## Staging & Storage Strategy
+
+The converter uses a two-tier staging approach to balance speed and safety when writing Measurement Sets (MS):
+
+- tmpfs (RAM) staging: When enabled (`stage_to_tmpfs=True`) and sufficient free space exists under `tmpfs_path` (default `/dev/shm`), the MS is written to RAM first, then atomically moved into the final output directory. A conservative 80% free-space threshold is used to avoid exhausting tmpfs.
+  - Relevant kwargs: `stage_to_tmpfs=True`, `tmpfs_path="/dev/shm"`.
+
+- Scratch SSD staging: For the per‑subband writer path, intermediate single‑subband MS parts are created under a scratch directory and concatenated. Set `scratch_dir` to a fast SSD (e.g., `/scratch`) to minimize I/O contention; otherwise the output directory is used.
+  - Relevant kwargs: `scratch_dir="/scratch"` (optional), `direct_ms=True/False`, `parallel_subband=True/False`.
+
+- Finalization: If tmpfs staging was used, the staged MS is moved (or copy‑fallback) to the final destination. Imaging columns are ensured post‑write, and optional MODEL_DATA initialization can be applied afterward.
+
+This strategy keeps write‑amplification low (concat parts locally, single move into place) and leverages RAM when available for best throughput, while remaining robust when tmpfs is constrained.

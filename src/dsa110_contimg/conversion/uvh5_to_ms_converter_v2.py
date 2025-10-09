@@ -44,6 +44,57 @@ from dsa110_contimg.calibration.catalogs import (
     nearest_calibrator_within_radius,
 )
 from pyuvdata import utils as uvutils
+# Prefer the phasing.calc_uvw entry point when available (pyuvdata>=3.2)
+try:  # pragma: no cover
+    from pyuvdata.utils.phasing import calc_uvw as _PU_CALC_UVW
+except Exception:  # pragma: no cover
+    _PU_CALC_UVW = None
+
+def _calc_uvw_fast(
+    *,
+    app_ra,
+    app_dec,
+    frame_pa,
+    lst_array,
+    antenna_positions,
+    antenna_numbers,
+    ant_1_array,
+    ant_2_array,
+    telescope_lat,
+    telescope_lon,
+):
+    """Vectorized UVW computation using pyuvdata if available.
+
+    Falls back to uvutils.calc_uvw if phasing.calc_uvw is not exposed.
+    """
+    if _PU_CALC_UVW is not None:
+        return _PU_CALC_UVW(
+            app_ra=app_ra,
+            app_dec=app_dec,
+            frame_pa=frame_pa,
+            lst_array=lst_array,
+            use_ant_pos=True,
+            antenna_positions=antenna_positions,
+            antenna_numbers=antenna_numbers,
+            ant_1_array=ant_1_array,
+            ant_2_array=ant_2_array,
+            telescope_lat=telescope_lat,
+            telescope_lon=telescope_lon,
+        )
+    # Fallback to uvutils.calc_uvw (older import path)
+    return uvutils.calc_uvw(
+        app_ra=app_ra,
+        app_dec=app_dec,
+        frame_pa=frame_pa,
+        lst_array=lst_array,
+        use_ant_pos=True,
+        antenna_positions=antenna_positions,
+        antenna_numbers=antenna_numbers,
+        ant_1_array=ant_1_array,
+        ant_2_array=ant_2_array,
+        telescope_lat=telescope_lat,
+        telescope_lon=telescope_lon,
+    )
 import shutil
 import csv
 
@@ -89,7 +140,8 @@ def _write_ms_with_daskms(
         ms_full_path: str,
         *,
         row_chunks: Optional[int] = None,
-        cube_row_chunks: Optional[int] = None) -> None:
+        cube_row_chunks: Optional[int] = None,
+        field_per_integration: bool = False) -> None:
     """Write an MS using dask-ms from a prepared UVData object.
 
     Assumes a single SPW and linear pols (XX/YY). This function writes
@@ -98,16 +150,30 @@ def _write_ms_with_daskms(
     if not HAVE_DASKMS:
         raise RuntimeError("dask-ms not importable in this environment")
 
-    import os
-    # Ensure MS root directory exists for subtable creates
-    os.makedirs(ms_full_path, exist_ok=True)
+    import os, shutil
+    # Do NOT pre-create the MS root directory; dask-ms will create proper tables.
+    # If a stale directory exists (not a proper table), remove it first.
+    try:
+        if os.path.isdir(ms_full_path):
+            shutil.rmtree(ms_full_path, ignore_errors=True)
+    except Exception:
+        pass
 
     # Allow tuning via env var DASKMS_ROW_CHUNKS
     try:
         _row_chunks = int(os.getenv('DASKMS_ROW_CHUNKS', '8192'))
     except Exception:
         _row_chunks = 8192
-    main_ds = _build_main_table_dataset(uv, row_chunks=_row_chunks)
+    # Basic shape logging
+    try:
+        nrow = int(getattr(uv, 'Nblts', 0))
+        nchan = int(getattr(uv, 'Nfreqs', 0))
+        npol = int(getattr(uv, 'Npols', 0))
+        logging.getLogger("uvh5_to_ms_converter_v2").info(
+            "dask-ms: preparing datasets (rows=%d, chans=%d, pols=%d)", nrow, nchan, npol)
+    except Exception:
+        pass
+    main_ds = _build_main_table_dataset(uv, row_chunks=_row_chunks, field_per_integration=field_per_integration)
     spw_ds = _build_spw_dataset(uv)
     pol_ds = _build_pol_dataset(uv)
     ant_ds = _build_antenna_dataset(uv)
@@ -119,7 +185,28 @@ def _write_ms_with_daskms(
                                    0.0) * u.rad if hasattr(uv,
                                                            'extra_keywords') else 0.0 * u.rad
     ra_icrs, dec_icrs = get_meridian_coords(pt_dec, mid_mjd)
-    field_ds = _build_field_dataset(ra_icrs, dec_icrs)
+    if field_per_integration:
+        # Build one FIELD row per unique integration time
+        from astropy.time import Time as _Time
+        utime, _, invert = np.unique(uv.time_array, return_index=True, return_inverse=True)
+        mjd_vec = _Time(utime, format='jd').mjd.astype(float)
+        try:
+            logging.getLogger("uvh5_to_ms_converter_v2").info(
+                "dask-ms: field-per-integration enabled (unique_times=%d)", len(utime))
+        except Exception:
+            pass
+        ra_list = []
+        dec_list = []
+        for mjd in mjd_vec:
+            ra_i, dec_i = get_meridian_coords(pt_dec, mjd)
+            ra_list.append(ra_i)
+            dec_list.append(dec_i)
+        field_ds = _build_field_dataset_multi(ra_list, dec_list)
+        # Update FIELD_ID mapping on main table
+        # Rebuild main_ds with explicit FIELD_ID set to per-row mapping
+        main_ds = _build_main_table_dataset(uv, row_chunks=_row_chunks, field_per_integration=True, field_id_map=invert.astype(np.int32))
+    else:
+        field_ds = _build_field_dataset(ra_icrs, dec_icrs)
 
     ddid_ds = _build_ddid_dataset()
 
@@ -142,6 +229,7 @@ def _write_ms_with_daskms(
                                     'FLAG',
                                     ],
                            )
+    logging.getLogger("uvh5_to_ms_converter_v2").info("dask-ms: MAIN table write graph built")
     # Then create and link subtables
     writes += xds_to_table(spw_ds,
                            f"{ms_full_path}::SPECTRAL_WINDOW",
@@ -155,10 +243,108 @@ def _write_ms_with_daskms(
                            f"{ms_full_path}::DATA_DESCRIPTION",
                            columns="ALL")
 
+    logging.getLogger("uvh5_to_ms_converter_v2").info(
+        "dask-ms: submitting %d write tasks", len(writes))
     dask.compute(writes)
+    logging.getLogger("uvh5_to_ms_converter_v2").info("dask-ms: write completed for %s", ms_full_path)
+
+    # Ensure FIELD table has one row per unique integration when requested
+    if field_per_integration:
+        try:
+            from casacore.tables import table as ctable
+            # Recompute unique times and RA/Dec lists
+            utime, _, invert = np.unique(uv.time_array, return_index=True, return_inverse=True)
+            ut_mjd = Time(utime, format='jd').mjd.astype(float)
+            ra_list = []
+            dec_list = []
+            for mjd in ut_mjd:
+                ra_i, dec_i = get_meridian_coords(pt_dec, mjd)
+                ra_list.append(ra_i)
+                dec_list.append(dec_i)
+            n = len(utime)
+            with ctable(f"{ms_full_path}::FIELD", readonly=False) as tf:
+                cur = tf.nrows()
+                if cur < n:
+                    tf.addrows(n - cur)
+                # Populate required columns
+                for i in range(n):
+                    try:
+                        tf.putcell('NAME', i, f'field{i:03d}')
+                    except Exception:
+                        pass
+                    try:
+                        tf.putcell('NUM_POLY', i, 1)
+                    except Exception:
+                        pass
+                    # PHASE_DIR / DELAY_DIR / REFERENCE_DIR: shape (1,1,2)
+                    ra = float(ra_list[i].to_value())
+                    dec = float(dec_list[i].to_value())
+                    arr = np.zeros((1, 1, 2), dtype=np.float64)
+                    arr[0, 0, 0] = ra
+                    arr[0, 0, 1] = dec
+                    for col in ('PHASE_DIR', 'DELAY_DIR', 'REFERENCE_DIR'):
+                        try:
+                            tf.putcell(col, i, arr)
+                        except Exception:
+                            # Try with (1,2) if (1,1,2) fails
+                            try:
+                                tf.putcell(col, i, arr.reshape(1, 2))
+                            except Exception:
+                                pass
+                    # TIME in MJD seconds
+                    try:
+                        tf.putcell('TIME', i, float(ut_mjd[i] * 86400.0))
+                    except Exception:
+                        pass
+        except Exception as e:
+            logging.getLogger("uvh5_to_ms_converter_v2").warning(
+                "dask-ms: FIELD table post-fix skipped: %s", e)
+
+    # Ensure OBSERVATION subtable exists with at least one row and main table IDs are valid
+    try:
+        from casacore.tables import table as ctable
+        with ctable(ms_full_path) as mt:
+            times = mt.getcol('TIME') if 'TIME' in mt.colnames() else None
+        nrows_obs = 0
+        with ctable(f"{ms_full_path}::OBSERVATION", ack=False, readonly=False) as tobs:
+            nrows_obs = tobs.nrows()
+            if nrows_obs == 0:
+                tobs.addrows(1)
+            # Populate columns best-effort
+            # TIME_RANGE in MJD seconds
+            if times is not None and times.size:
+                tr = np.array([float(times.min()), float(times.max())], dtype=np.float64)
+                try:
+                    tobs.putcell('TIME_RANGE', 0, tr)
+                except Exception:
+                    pass
+            # TELESCOPE_NAME
+            try:
+                telname = getattr(uv, 'telescope_name', None) or getattr(getattr(uv, 'telescope', None), 'name', None) or 'CARMA'
+                tobs.putcell('TELESCOPE_NAME', 0, str(telname))
+            except Exception:
+                pass
+            # OBSERVER / PROJECT / RELEASE_DATE
+            for col, val in [('OBSERVER', 'unknown'), ('PROJECT', ''), ('RELEASE_DATE', 0.0)]:
+                try:
+                    tobs.putcell(col, 0, val)
+                except Exception:
+                    pass
+        # Ensure main table OBSERVATION_ID column points to row 0
+        with ctable(ms_full_path, ack=False, readonly=False) as mt:
+            if 'OBSERVATION_ID' in mt.colnames():
+                try:
+                    obsid = mt.getcol('OBSERVATION_ID')
+                    if obsid is None or obsid.size == 0 or np.any(obsid != 0):
+                        mt.putcol('OBSERVATION_ID', np.zeros(mt.nrows(), dtype=np.int32))
+                except Exception:
+                    pass
+    except Exception as e:
+        logging.getLogger("uvh5_to_ms_converter_v2").warning(
+            "dask-ms: OBSERVATION table post-fix skipped: %s", e)
 
 
-def _build_main_table_dataset(uv: "UVData", *, row_chunks: int = 8192) -> "DMSDataset":
+def _build_main_table_dataset(uv: "UVData", *, row_chunks: int = 8192, field_per_integration: bool = False, field_id_map: Optional[np.ndarray] = None) -> "DMSDataset":
     import numpy as np
     from astropy.time import Time
 
@@ -206,7 +392,10 @@ def _build_main_table_dataset(uv: "UVData", *, row_chunks: int = 8192) -> "DMSDa
     scan = da.from_array(np.zeros(nrow, dtype=np.int32), chunks=chunks_row)
     arr_id = da.from_array(np.zeros(nrow, dtype=np.int32), chunks=chunks_row)
     obs_id = da.from_array(np.zeros(nrow, dtype=np.int32), chunks=chunks_row)
-    field_id = da.from_array(np.zeros(nrow, dtype=np.int32), chunks=chunks_row)
+    if field_per_integration and field_id_map is not None:
+        field_id = da.from_array(np.asarray(field_id_map, dtype=np.int32), chunks=chunks_row)
+    else:
+        field_id = da.from_array(np.zeros(nrow, dtype=np.int32), chunks=chunks_row)
     ddid = da.from_array(np.zeros(nrow, dtype=np.int32), chunks=chunks_row)
 
     data = da.from_array(np.asarray(uv.data_array), chunks=chunks_cube)
@@ -215,6 +404,10 @@ def _build_main_table_dataset(uv: "UVData", *, row_chunks: int = 8192) -> "DMSDa
             uv.flag_array,
             dtype=np.bool_),
         chunks=chunks_cube)
+
+    # Per-row SIGMA/WEIGHT (npol) initialized to ones
+    sigma = da.from_array(np.ones((nrow, npol), dtype=np.float32), chunks=(chunks_row[0], npol))
+    weight = sigma
 
     vars_main = {
         'ANTENNA1': (('row',), a1),
@@ -230,6 +423,8 @@ def _build_main_table_dataset(uv: "UVData", *, row_chunks: int = 8192) -> "DMSDa
         'DATA_DESC_ID': (('row',), ddid),
         'DATA': (('row', 'chan', 'corr'), data),
         'FLAG': (('row', 'chan', 'corr'), flag),
+        'SIGMA': (('row', 'corr'), sigma),
+        'WEIGHT': (('row', 'corr'), weight),
     }
     coords = {
         'row': (('row',), da.arange(nrow, chunks=chunks_row)),
@@ -254,10 +449,14 @@ def _build_spw_dataset(uv: "UVData") -> "DMSDataset":
         w = float(np.median(np.abs(df))) if df.size else 1.0
         chan_width = np.full(nchan, w, dtype=np.float64)
 
+    eff_bw = np.abs(chan_width)
+    resolution = np.abs(chan_width)
     vars_spw = {
         'NUM_CHAN': (('row',), da.from_array(np.array([nchan], dtype=np.int32), chunks=(1,))),
         'CHAN_FREQ': (('row', 'chan'), da.from_array(freq[np.newaxis, :], chunks=(1, nchan))),
         'CHAN_WIDTH': (('row', 'chan'), da.from_array(chan_width[np.newaxis, :], chunks=(1, nchan))),
+        'EFFECTIVE_BW': (('row', 'chan'), da.from_array(eff_bw[np.newaxis, :], chunks=(1, nchan))),
+        'RESOLUTION': (('row', 'chan'), da.from_array(resolution[np.newaxis, :], chunks=(1, nchan))),
         'MEAS_FREQ_REF': (('row',), da.from_array(np.array([5], dtype=np.int32), chunks=(1,))),
         'NAME': (('row',), da.from_array(np.array(['SPW1'], dtype=object), chunks=(1,))),
     }
@@ -270,12 +469,15 @@ def _build_spw_dataset(uv: "UVData") -> "DMSDataset":
 
 def _build_pol_dataset(uv: "UVData") -> "DMSDataset":
     import numpy as np
-    corr_types = np.asarray(getattr(uv, 'polarization_array', np.array(
-        [-5, -6], dtype=np.int32)), dtype=np.int32)
+    # UVData.polarization_array is in AIPS convention: -5=XX, -6=YY, -7=XY, -8=YX
+    # MS POLARIZATION::CORR_TYPE must use casacore Stokes enum (positive): 5,6,7,8
+    raw = np.asarray(getattr(uv, 'polarization_array', np.array([-5, -6], dtype=np.int32)))
+    aips_to_ms = {-5: 5, -6: 6, -7: 7, -8: 8}
+    corr_types = np.array([aips_to_ms.get(int(c), int(c)) for c in raw], dtype=np.int32)
     nc = int(corr_types.size)
-    prod_map = {-5: (0, 0), -6: (1, 1), -7: (0, 1), -8: (1, 0)}
-    corr_prod = np.array([prod_map.get(int(c), (0, 0))
-                         for c in corr_types], dtype=np.int32)
+    # CORR_PRODUCT maps receptors (0/1) for each correlation; stays the same
+    prod_map = {5: (0, 0), 6: (1, 1), 7: (0, 1), 8: (1, 0), -5: (0, 0), -6: (1, 1), -7: (0, 1), -8: (1, 0)}
+    corr_prod = np.array([prod_map.get(int(c), (0, 0)) for c in raw], dtype=np.int32)
 
     vars_pol = {
         'NUM_CORR': (('row',), da.from_array(np.array([nc], dtype=np.int32), chunks=(1,))),
@@ -353,6 +555,32 @@ def _build_field_dataset(
         'num_poly': (('num_poly',), da.arange(1, chunks=(1,))),
         'loc': (('loc',), da.arange(2, chunks=(2,))),
         'dir': (('dir',), da.arange(1, chunks=(1,))),
+    }
+    return DMSDataset(vars_field, coords=coords, attrs={})
+
+
+def _build_field_dataset_multi(phase_ra_list: List["u.Quantity"], phase_dec_list: List["u.Quantity"]) -> "DMSDataset":
+    import numpy as np
+    n = int(len(phase_ra_list))
+    if n == 0:
+        # Fallback to single dummy field
+        return _build_field_dataset(0.0 * u.rad, 0.0 * u.rad)
+    # Build PHASE_DIR with shape (row, num_poly=1, loc=2)
+    # casacore FIELD::PHASE_DIR per-row shape is (NUM_POLY, 2)
+    phase_dir = np.zeros((n, 1, 2), dtype=np.float64)
+    for i, (ra, dec) in enumerate(zip(phase_ra_list, phase_dec_list)):
+        phase_dir[i, 0, 0] = float(ra.to_value())
+        phase_dir[i, 0, 1] = float(dec.to_value())
+    names = np.array([f'field{i}' for i in range(n)], dtype=object)
+    vars_field = {
+        'NAME': (('row',), da.from_array(names, chunks=(n,))),
+        'NUM_POLY': (('row',), da.from_array(np.ones(n, dtype=np.int32), chunks=(n,))),
+        'PHASE_DIR': (('row', 'num_poly', 'loc'), da.from_array(phase_dir, chunks=(n, 1, 2))),
+    }
+    coords = {
+        'row': (('row',), da.arange(n, chunks=(n,))),
+        'num_poly': (('num_poly',), da.arange(1, chunks=(1,))),
+        'loc': (('loc',), da.arange(2, chunks=(2,))),
     }
     return DMSDataset(vars_field, coords=coords, attrs={})
 
@@ -480,28 +708,24 @@ def _write_calibrator_model_quick(
     sigma = (1.2 * wl / 4.7) / 2.355
     amp = np.exp(-0.5 * (sep / sigma) ** 2).astype(np.float32)  # (nchan,)
 
-    # Write MODEL_DATA in chunks
+    # Write MODEL_DATA in chunks and initialize CORRECTED_DATA safely
     with ctable(ms_path, readonly=False) as tb:
         data_shape = tb.getcol('DATA').shape  # (npol, nchan, nrow)
         npol, nchan, nrow = data_shape
         if nchan != amp.size:
-            raise RuntimeError(
-                "Frequency axis size mismatch for MODEL_DATA write")
+            raise RuntimeError("Frequency axis size mismatch for MODEL_DATA write")
         blk = 4096
         model_line = (flux_jy * amp.astype(np.complex64))  # (nchan,)
         for start in range(0, nrow, blk):
             end = min(start + blk, nrow)
             model = model_line[None, :, None]
             model = np.broadcast_to(model, (npol, nchan, end - start)).copy()
-            tb.putcolslice(
-                'MODEL_DATA', model, blc=[
-                    0, 0, start], trc=[
-                    npol - 1, nchan - 1, end - 1])
-    # Initialize CORRECTED_DATA
-    try:
-        tb.putcol('CORRECTED_DATA', tb.getcol('DATA'))
-    except Exception:
-        pass
+            tb.putcolslice('MODEL_DATA', model, blc=[0, 0, start], trc=[npol - 1, nchan - 1, end - 1])
+        # Initialize CORRECTED_DATA as a copy of DATA (best-effort)
+        try:
+            tb.putcol('CORRECTED_DATA', tb.getcol('DATA'))
+        except Exception:
+            pass
 
 
 def _write_calibrator_model_with_ft(
@@ -960,140 +1184,155 @@ def set_per_time_phase_centers(
     else:
         fmt = field_name + '_drift_ra{}'
 
-    # Telescope metadata used by uvutils
+    # Telescope metadata used by uvutils (prefer UVData.telescope in pyuvdata>=3.2.4)
     tel_latlonalt = getattr(uv, 'telescope_location_lat_lon_alt', None)
+    if tel_latlonalt is None and hasattr(uv, 'telescope'):
+        tel_latlonalt = getattr(uv.telescope, 'location_lat_lon_alt', None)
     tel_frame = getattr(uv, '_telescope_location', None)
     tel_frame = getattr(tel_frame, 'frame', None)
 
-    # Iterate over unique times and set phase center + UVW
-    for i, t_row in enumerate(utime):
-        t_obj = Time(t_row, format='jd')
-        # Meridian ICRS coords for the pointing declination at this time
-        ra_icrs, dec_icrs = get_meridian_coords(pt_dec, t_obj.mjd)
+    # Antenna metadata (positions & numbers)
+    ant_pos = getattr(uv, 'antenna_positions', None)
+    if ant_pos is None and hasattr(uv, 'telescope'):
+        ant_pos = getattr(uv.telescope, 'antenna_positions', None)
+    ant_nums = getattr(uv, 'antenna_numbers', None)
+    if ant_nums is None and hasattr(uv, 'telescope'):
+        ant_nums = getattr(uv.telescope, 'antenna_numbers', None)
+    ant_pos = np.asarray(ant_pos) if ant_pos is not None else None
+    ant_nums = np.asarray(ant_nums) if ant_nums is not None else None
 
-        # Create phase center catalog entry
+    # Vectorized fast path: compute apparent coords per unique time, map to rows, compute UVW once
+    mjd_unique = Time(utime, format='jd').mjd.astype(float)
+    ra_icrs_list = []
+    dec_icrs_list = []
+    for mjd in mjd_unique:
+        ra_icrs, dec_icrs = get_meridian_coords(pt_dec, mjd)
+        ra_icrs_list.append(ra_icrs)
+        dec_icrs_list.append(dec_icrs)
+
+    app_ra_unique = np.zeros(len(utime), dtype=float)
+    app_dec_unique = np.zeros(len(utime), dtype=float)
+    frame_pa_unique = np.zeros(len(utime), dtype=float)
+
+    for i in range(len(utime)):
+        sel = (uinvert == i)
+        if not np.any(sel):
+            continue
         try:
-            ra_hr = (ra_icrs.to(u.hourangle)).to_value(u.hourangle)
-            ra_hr_str = Time(ra_hr, format='hourangle').to_value(
-                'hourangle')  # not ideal, but string not critical
-        except Exception:
-            ra_hr_str = 'RA'
-
-        try:
-            cat_id = uv._add_phase_center(
-                cat_name=fmt.format(ra_hr_str),
-                cat_type='sidereal',
-                cat_lon=ra_icrs.to_value(u.rad),
-                cat_lat=dec_icrs.to_value(u.rad),
-                cat_frame='icrs',
-                force_update=False,
-            )
-        except Exception:
-            # Fallback: approximate catalog entry
-            cat_id = i
-
-        # Select rows for this time
-        selection = (uinvert == i)
-
-        # Apparent coords and frame position angle for this set of rows
-        try:
-            entry = uv.phase_center_catalog.get(
-                cat_id, {}) if hasattr(
-                uv, 'phase_center_catalog') else {}
+            ra0 = ra_icrs_list[i].to_value(u.rad)
+            dec0 = dec_icrs_list[i].to_value(u.rad)
             new_app_ra, new_app_dec = uvutils.calc_app_coords(
-                entry.get('cat_lon', ra_icrs.to_value(u.rad)),
-                entry.get('cat_lat', dec_icrs.to_value(u.rad)),
-                coord_frame=entry.get('cat_frame', 'icrs'),
-                coord_epoch=entry.get('cat_epoch', 2000.0),
-                coord_times=entry.get('cat_times'),
-                coord_type=entry.get('cat_type', 'sidereal'),
-                time_array=uv.time_array[selection],
-                lst_array=uv.lst_array[selection],
-                pm_ra=entry.get('cat_pm_ra'),
-                pm_dec=entry.get('cat_pm_dec'),
-                vrad=entry.get('cat_vrad'),
-                dist=entry.get('cat_dist'),
+                ra0,
+                dec0,
+                coord_frame='icrs',
+                coord_epoch=2000.0,
+                coord_times=None,
+                coord_type='sidereal',
+                time_array=uv.time_array[sel],
+                lst_array=uv.lst_array[sel],
+                pm_ra=None,
+                pm_dec=None,
+                vrad=None,
+                dist=None,
                 telescope_loc=tel_latlonalt,
                 telescope_frame=tel_frame,
             )
             new_frame_pa = uvutils.calc_frame_pos_angle(
-                uv.time_array[selection], new_app_ra, new_app_dec,
+                uv.time_array[sel], new_app_ra, new_app_dec,
                 tel_latlonalt,
-                entry.get('cat_frame', 'icrs'),
-                ref_epoch=entry.get('cat_epoch', 2000.0),
+                'icrs',
+                ref_epoch=2000.0,
                 telescope_frame=tel_frame,
             )
+            app_ra_unique[i] = float(new_app_ra[0])
+            app_dec_unique[i] = float(new_app_dec[0])
+            frame_pa_unique[i] = float(new_frame_pa[0])
         except Exception:
-            # Fallback to ICRS coordinates if app conversion unavailable
-            new_app_ra = np.full(
-                np.count_nonzero(selection),
-                ra_icrs.to_value(
-                    u.rad))
-            new_app_dec = np.full(
-                np.count_nonzero(selection),
-                dec_icrs.to_value(
-                    u.rad))
-            new_frame_pa = np.zeros_like(new_app_ra)
+            app_ra_unique[i] = float(ra_icrs_list[i].to_value(u.rad))
+            app_dec_unique[i] = float(dec_icrs_list[i].to_value(u.rad))
+            frame_pa_unique[i] = 0.0
 
-        # Compute UVW for these rows using antenna positions
-        try:
-            new_uvw = uvutils.calc_uvw(
-                app_ra=new_app_ra,
-                app_dec=new_app_dec,
-                frame_pa=new_frame_pa,
-                lst_array=uv.lst_array[selection],
-                use_ant_pos=True,
-                antenna_positions=np.asarray(uv.antenna_positions),
-                antenna_numbers=np.asarray(uv.antenna_numbers),
-                ant_1_array=uv.ant_1_array[selection],
-                ant_2_array=uv.ant_2_array[selection],
-                telescope_lat=tel_latlonalt[0],
-                telescope_lon=tel_latlonalt[1],
-            )
-            uv.uvw_array[selection] = new_uvw
-        except Exception as e:
-            # Fallback for pyuvdata versions without utils.calc_uvw
+    app_ra_all = app_ra_unique[uinvert]
+    app_dec_all = app_dec_unique[uinvert]
+    frame_pa_all = frame_pa_unique[uinvert]
+    try:
+        uvw_all = _calc_uvw_fast(
+            app_ra=app_ra_all,
+            app_dec=app_dec_all,
+            frame_pa=frame_pa_all,
+            lst_array=uv.lst_array,
+            antenna_positions=ant_pos,
+            antenna_numbers=ant_nums,
+            ant_1_array=uv.ant_1_array,
+            ant_2_array=uv.ant_2_array,
+            telescope_lat=tel_latlonalt[0],
+            telescope_lon=tel_latlonalt[1],
+        )
+        uv.uvw_array[:, :] = uvw_all
+    except Exception as e:
+        logger.warning("Vectorized UVW failed (%s); falling back to block-wise compute", e)
+        for i in range(len(utime)):
+            sel = (uinvert == i)
+            if not np.any(sel):
+                continue
             try:
-                row_idx = np.where(selection)[0]
-                ant_pos = np.asarray(uv.antenna_positions)
-                ant1 = np.asarray(uv.ant_1_array[row_idx], dtype=int)
-                ant2 = np.asarray(uv.ant_2_array[row_idx], dtype=int)
-                blen = ant_pos[ant2, :] - ant_pos[ant1, :]
-                times_mjd = Time(
-                    uv.time_array[row_idx],
-                    format='jd').mjd.astype(float)
-                # Use apparent coordinates per-row if available; otherwise ICRS
-                if new_app_ra is not None and np.size(
-                        new_app_ra) == row_idx.size:
-                    ra_arr = u.Quantity(new_app_ra, u.rad)
-                    dec_arr = u.Quantity(new_app_dec, u.rad)
-                else:
-                    ra_arr = ra_icrs
-                    dec_arr = dec_icrs
+                uvw = _calc_uvw_fast(
+                    app_ra=app_ra_all[sel],
+                    app_dec=app_dec_all[sel],
+                    frame_pa=frame_pa_all[sel],
+                    lst_array=uv.lst_array[sel],
+                    antenna_positions=ant_pos,
+                    antenna_numbers=ant_nums,
+                    ant_1_array=uv.ant_1_array[sel],
+                    ant_2_array=uv.ant_2_array[sel],
+                    telescope_lat=tel_latlonalt[0],
+                    telescope_lon=tel_latlonalt[1],
+                )
+                uv.uvw_array[sel, :] = uvw
+            except Exception:
+                row_idx = np.where(sel)[0]
+                blen = ant_pos[uv.ant_2_array[sel], :] - ant_pos[uv.ant_1_array[sel], :]
+                times_mjd = Time(uv.time_array[sel], format='jd').mjd.astype(float)
                 uvw_rows = calc_uvw_blt(
                     blen,
                     times_mjd,
                     'J2000',
-                    ra_arr,
-                    dec_arr,
+                    u.Quantity(app_ra_all[sel], u.rad),
+                    u.Quantity(app_dec_all[sel], u.rad),
                     obs='OVRO_MMA',
                 )
                 uv.uvw_array[row_idx, :] = uvw_rows
-            except Exception as e2:
-                logger.warning(
-                    "UVWs for time %s not updated (fallback failed): %s / %s",
-                    t_obj.isot,
-                    e,
-                    e2)
 
-        # Record per-row phase center metadata
+    # Per-row phase center metadata
+    try:
+        uv.phase_center_app_ra[:] = app_ra_all
+        uv.phase_center_app_dec[:] = app_dec_all
+        uv.phase_center_frame_pa[:] = frame_pa_all
+    except Exception:
+        pass
+
+    # Create phase center catalog entries and set IDs
+    pc_ids = np.zeros(len(utime), dtype=int)
+    for i in range(len(utime)):
         try:
-            uv.phase_center_app_ra[selection] = new_app_ra
-            uv.phase_center_app_dec[selection] = new_app_dec
-            uv.phase_center_frame_pa[selection] = new_frame_pa
-            uv.phase_center_id_array[selection] = cat_id
+            ra_str = ra_icrs_list[i].to_string(unit=u.hour, sep=':', precision=3, pad=True)
         except Exception:
-            pass
+            ra_str = 'RA'
+        try:
+            pc_ids[i] = uv._add_phase_center(
+                cat_name=f"{fmt.format(ra_str)}_t{i:03d}",
+                cat_type='sidereal',
+                cat_lon=ra_icrs_list[i].to_value(u.rad),
+                cat_lat=dec_icrs_list[i].to_value(u.rad),
+                cat_frame='icrs',
+                force_update=False,
+            )
+        except Exception:
+            pc_ids[i] = i
+    try:
+        uv.phase_center_id_array[:] = pc_ids[uinvert]
+    except Exception:
+        pass
 
     # Ensure all phase-center metadata use an equatorial frame and epoch
     try:
@@ -1107,6 +1346,14 @@ def set_per_time_phase_centers(
                 entry['cat_frame'] = 'icrs'
                 entry['cat_epoch'] = 2000.0
                 entry.setdefault('cat_name', f'phase{pc_id}')
+    except Exception:
+        pass
+
+    # Drop any unused phase centers (e.g., initial 'unprojected' entries) to
+    # avoid pyuvdata MS writer errors in SOURCE table writeout.
+    try:
+        if hasattr(uv, '_clear_unused_phase_centers'):
+            uv._clear_unused_phase_centers()
     except Exception:
         pass
 
@@ -1130,12 +1377,15 @@ def convert_subband_groups_to_ms(
     cal_output_dir: Optional[str] = None,
     checkpoint_dir: Optional[str] = None,
     scratch_dir: Optional[str] = None,
-    direct_ms: bool = True,
+    # Default to monolithic pyuvdata.write_ms so each integration can map
+    # to its own FIELD via per-time phase centers.
+    direct_ms: bool = False,
     stage_to_tmpfs: bool = True,
     tmpfs_path: str = "/dev/shm",
     parallel_subband: bool = False,
     max_workers: int = 4,
     dask_write: bool = False,
+    field_per_integration: bool = False,
     dask_failfast: bool = False,
     # dask-ms chunk tuning
     daskms_row_chunks: Optional[int] = None,
@@ -1286,6 +1536,19 @@ def convert_subband_groups_to_ms(
                             est_total / 1e9,
                             usage.free / 1e9,
                         )
+                # If tmpfs not selected, stage to scratch_dir when provided
+                if not stage_here and scratch_dir:
+                    try:
+                        os.makedirs(scratch_dir, exist_ok=True)
+                    except Exception:
+                        pass
+                    stage_here = True
+                    stage_dir = scratch_dir
+                    logger.info(
+                        "Staging MS to scratch (%s). est=%.2f GB",
+                        scratch_dir,
+                        est_total / 1e9,
+                    )
             except Exception:
                 stage_here = False
 
@@ -1311,6 +1574,10 @@ def convert_subband_groups_to_ms(
 
         # Writer selection
         writer_type = None
+        # If field-per-integration requested, prefer dask-ms writer
+        if field_per_integration and not dask_write:
+            dask_write = True
+
         if not skip_build and dask_write and HAVE_DASKMS:
             logger.info("dask-ms write -> %s", ms_stage_path)
             try:
@@ -1319,7 +1586,8 @@ def convert_subband_groups_to_ms(
                     uv,
                     ms_stage_path,
                     row_chunks=daskms_row_chunks,
-                    cube_row_chunks=daskms_cube_row_chunks)
+                    cube_row_chunks=daskms_cube_row_chunks,
+                    field_per_integration=bool(field_per_integration))
                 logger.info(
                     "Timing: dask-ms write took %.2fs",
                     time.perf_counter() - t3)
@@ -1341,8 +1609,12 @@ def convert_subband_groups_to_ms(
             else:
                 logger.warning("%s; falling back to direct path", msg)
                 dask_write = False
+                field_per_integration = False
 
-        if not skip_build and not dask_write and parallel_subband:
+        # If a writer already succeeded, skip further writers
+        wrote_already = writer_type is not None
+
+        if not skip_build and not wrote_already and not dask_write and parallel_subband:
             logger.info(
                 "Parallel per-subband write enabled (workers=%d)",
                 max_workers)
@@ -1388,7 +1660,7 @@ def convert_subband_groups_to_ms(
             except Exception as e:
                 raise RuntimeError(f"Concat failed: {e}")
             writer_type = 'direct-subband+concat'
-        elif not skip_build and not dask_write and direct_ms:
+        elif not skip_build and not wrote_already and not dask_write and direct_ms:
             logger.info(
                 "Direct per-subband writer (sequential) -> %s",
                 ms_stage_path)
@@ -1403,42 +1675,73 @@ def convert_subband_groups_to_ms(
                 "Timing: direct per-subband writer took %.2fs",
                 time.perf_counter() - t4)
             writer_type = 'direct-subband'
-        elif not skip_build:
+        elif not skip_build and not wrote_already:
             logger.info("Direct pyuvdata.write_ms -> %s", ms_stage_path)
-            # Direct pyuvdata write
-            t5 = time.perf_counter()
-            uv.write_ms(
-                ms_stage_path,
-                clobber=True,
-                run_check=False,
-                check_extra=False,
-                run_check_acceptability=False,
-                strict_uvw_antpos_check=False,
-                check_autos=False,
-                fix_autos=False,
-            )
-            logger.info(
-                "Timing: pyuvdata write took %.2fs",
-                time.perf_counter() - t5)
-            writer_type = 'pyuvdata'
+            # Direct pyuvdata write with resilience: fallback to dask-ms or direct-subband
+            try:
+                t5 = time.perf_counter()
+                uv.write_ms(
+                    ms_stage_path,
+                    clobber=True,
+                    run_check=False,
+                    check_extra=False,
+                    run_check_acceptability=False,
+                    strict_uvw_antpos_check=False,
+                    check_autos=False,
+                    fix_autos=False,
+                )
+                logger.info(
+                    "Timing: pyuvdata write took %.2fs",
+                    time.perf_counter() - t5)
+                writer_type = 'pyuvdata'
+            except Exception as e_py:
+                logger.error("pyuvdata.write_ms failed: %s", e_py)
+                # Attempt dask-ms writer if available
+                if HAVE_DASKMS:
+                    try:
+                        logger.info("Falling back to dask-ms writer -> %s", ms_stage_path)
+                        t3b = time.perf_counter()
+                        _write_ms_with_daskms(
+                            uv,
+                            ms_stage_path,
+                            row_chunks=daskms_row_chunks,
+                            cube_row_chunks=daskms_cube_row_chunks,
+                            field_per_integration=bool(field_per_integration))
+                        logger.info(
+                            "Timing: dask-ms fallback write took %.2fs",
+                            time.perf_counter() - t3b)
+                        writer_type = 'dask-ms'
+                    except Exception as e_dm:
+                        logger.error("dask-ms fallback failed: %s", e_dm)
+                # If still not written, fallback to direct subband writer
+                if writer_type is None:
+                    try:
+                        logger.info(
+                            "Falling back to direct per-subband writer (sequential) -> %s",
+                            ms_stage_path)
+                        t4b = time.perf_counter()
+                        write_ms_from_subbands(
+                            sorted(file_list),
+                            ms_stage_path,
+                            scratch_dir=stage_dir or scratch_dir)
+                        logger.info(
+                            "Timing: direct per-subband fallback took %.2fs",
+                            time.perf_counter() - t4b)
+                        writer_type = 'direct-subband'
+                    except Exception as e_ds:
+                        raise RuntimeError(
+                            f"All writer paths failed (pyuvdata/dask-ms/direct-subband). Last error: {e_ds}")
 
         # Move staged MS into final destination if needed
-        if not skip_build and stage_here and ms_stage_path != ms_final_path and not os.path.exists(
-                ms_final_path):
+        if not skip_build and stage_here and ms_stage_path != ms_final_path:
             try:
                 if os.path.exists(ms_final_path):
                     shutil.rmtree(ms_final_path, ignore_errors=True)
-                logger.info(
-                    "Moving staged MS %s -> %s",
-                    ms_stage_path,
-                    ms_final_path)
+                logger.info("Moving staged MS %s -> %s", ms_stage_path, ms_final_path)
                 shutil.move(ms_stage_path, ms_final_path)
             except Exception:
                 # Fallback to copytree
-                logger.info(
-                    "Copying staged MS %s -> %s (fallback)",
-                    ms_stage_path,
-                    ms_final_path)
+                logger.info("Copying staged MS %s -> %s (fallback)", ms_stage_path, ms_final_path)
                 shutil.copytree(ms_stage_path, ms_final_path)
                 shutil.rmtree(ms_stage_path, ignore_errors=True)
 
@@ -1608,6 +1911,11 @@ def main() -> int:
         action="store_true",
         default=False,
         help="Abort immediately if dask-ms write fails (no fallback)")
+    p.add_argument(
+        "--field-per-integration",
+        action="store_true",
+        default=False,
+        help="Create one FIELD row per integration time (requires dask-ms writer)")
     # dask-ms chunk tuning
     p.add_argument("--daskms-row-chunks", type=int, default=None,
                    help="Row chunk size for dask-ms Dataset (default: 8192)")
@@ -1671,13 +1979,14 @@ def main() -> int:
         cal_output_dir=args.cal_output_dir,
         checkpoint_dir=args.checkpoint_dir,
         scratch_dir=args.scratch_dir,
-        direct_ms=True,
+        direct_ms=bool(args.direct_ms),
         stage_to_tmpfs=args.stage_tmpfs,
         tmpfs_path=args.tmpfs_path,
         parallel_subband=args.parallel_subband,
         max_workers=args.max_workers,
         dask_write=bool(args.dask_write),
         dask_failfast=bool(args.dask_write_failfast),
+        field_per_integration=bool(args.field_per_integration),
         daskms_row_chunks=args.daskms_row_chunks,
         daskms_cube_row_chunks=args.daskms_cube_row_chunks,
         qa_shadems=bool(args.qa_shadems),

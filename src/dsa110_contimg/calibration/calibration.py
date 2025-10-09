@@ -1,7 +1,6 @@
 from typing import List, Optional
 
 import numpy as np
-from casatools import calibrater
 from casatasks import bandpass as casa_bandpass
 from casatasks import gaincal as casa_gaincal
 from casatasks import setjy as casa_setjy
@@ -17,38 +16,43 @@ def solve_delay(
     t_slow: str = "inf",
     t_fast: Optional[str] = "60s",
 ) -> List[str]:
-    """Solve delay (K) on slow and optional fast timescales using calibrater tool."""
-    combine = "field,scan,obs,spw" if combine_spw else "field,scan,obs"
+    """Solve delay (K) on slow and optional fast timescales using CASA gaincal.
+
+    Uses casatasks.gaincal with gaintype='K' to avoid explicit casatools calibrater
+    usage, which can be unstable in some Jupyter environments.
+    """
+    # Do not combine across fields during delay solving; it can destabilize
+    # metadata handling when multiple FIELD phase centers are present.
+    combine = "scan,obs,spw" if combine_spw else "scan,obs"
     if table_prefix is None:
         table_prefix = f"{ms.rstrip('.ms')}_{cal_field}"
 
-    tables = []
-    cb = calibrater()
-    try:
-        if not cb.open(ms):
-            raise RuntimeError(f"Failed to open MS {ms}")
-        if not cb.selectvis():
-            raise RuntimeError("selectvis failed")
-        if not cb.setsolve(type="K", t=t_slow, refant=refant, combine=combine, table=f"{table_prefix}_kcal"):
-            raise RuntimeError("setsolve K slow failed")
-        if not cb.solve():
-            raise RuntimeError("solve K slow failed")
-        tables.append(f"{table_prefix}_kcal")
-    finally:
-        cb.close()
+    tables: List[str] = []
 
+    # Slow (infinite) delay solve
+    casa_gaincal(
+        vis=ms,
+        caltable=f"{table_prefix}_kcal",
+        field=cal_field,
+        solint=t_slow,
+        refant=refant,
+        gaintype="K",
+        combine=combine,
+    )
+    tables.append(f"{table_prefix}_kcal")
+
+    # Optional fast (short) delay solve
     if t_fast:
-        cb = calibrater()
-        try:
-            cb.open(ms)
-            cb.selectvis()
-            if not cb.setsolve(type="K", t=t_fast, refant=refant, combine=combine, table=f"{table_prefix}_2kcal"):
-                raise RuntimeError("setsolve K fast failed")
-            if not cb.solve():
-                raise RuntimeError("solve K fast failed")
-            tables.append(f"{table_prefix}_2kcal")
-        finally:
-            cb.close()
+        casa_gaincal(
+            vis=ms,
+            caltable=f"{table_prefix}_2kcal",
+            field=cal_field,
+            solint=t_fast,
+            refant=refant,
+            gaintype="K",
+            combine=combine,
+        )
+        tables.append(f"{table_prefix}_2kcal")
 
     return tables
 
@@ -158,5 +162,3 @@ def solve_gains(
         out.append(f"{table_prefix}_flux.cal")
 
     return out
-
-

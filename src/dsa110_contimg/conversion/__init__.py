@@ -1,15 +1,11 @@
-"""Conversion stage for the DSA-110 continuum imaging pipeline."""
+"""Conversion stage for the DSA-110 continuum imaging pipeline.
 
-from . import helpers
-from . import streaming_converter
-from .uvh5_to_ms_converter_v2 import (
-    convert_subband_groups_to_ms,
-    find_subband_groups,
-)
+This package avoids importing heavy submodules at import time to prevent
+runpy warnings when executing modules via ``python -m``.
 
-__all__ = [
-    "convert_subband_groups_to_ms",
-    "find_subband_groups",
-    "helpers",
-    "streaming_converter",
-]
+Import submodules directly, e.g.:
+  - ``from dsa110_contimg.conversion import uvh5_to_ms_converter_v2 as v2``
+  - ``from dsa110_contimg.conversion import streaming_converter``
+"""
+
+__all__ = []

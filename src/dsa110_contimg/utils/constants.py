@@ -37,10 +37,9 @@ FREQ_START = 1311.25  # MHz
 FREQ_END = 1498.75  # MHz
 CHANNEL_WIDTH = 0.244140625  # MHz
 
-# Polarizations
+# Polarizations (MS CORR_TYPE codes: 5=XX, 6=YY)
 NPOL = 2
-POLARIZATION_ARRAY = np.array([-5, -6])  # XX, YY in CASA convention
+POLARIZATION_ARRAY = np.array([5, 6], dtype=np.int32)
 
 # Speed of light
 C_MS = 299792458.0  # m/s
-

@@ -13,11 +13,10 @@ Catalogs:
 
 Run calibration:
 ```bash
-python -m casa_cal.cli calibrate --ms <cal.ms> --field <cal_field> --refant <ant>
+python -m dsa110_contimg.calibration.cli calibrate --ms <cal.ms> --field <cal_field> --refant <ant>
 ```
 Apply to target:
 ```bash
-python -m casa_cal.cli apply --ms <target.ms> --field <field> --tables <ms_cal>_kcal <ms_cal>_bacal <ms_cal>_bpcal <ms_cal>_gacal <ms_cal>_gpcal
+python -m dsa110_contimg.calibration.cli apply --ms <target.ms> --field <field> --tables <ms_cal>_kcal <ms_cal>_bacal <ms_cal>_bpcal <ms_cal>_gacal <ms_cal>_gpcal
 ```
-
 

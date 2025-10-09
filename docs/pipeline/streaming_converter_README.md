@@ -158,6 +158,7 @@ CMD ["conda", "run", "-n", "casa6", "python", "streaming/streaming_converter.py"
 - `--chunk-duration N`: Duration of data chunks in minutes (default: 5.0)
 - `--omp-threads N`: Limit OpenMP/MKL threads (default: 4)
 - `--use-subprocess`: Launch converter in separate process (default: in-process)
+ - `--stage-inputs` / `--stage-workers N`: Optionally copy subband files into a local temp directory before conversion to reduce random I/O on networked disks.
 
 #### Monitoring & Logging
 - `--monitoring` / `--no-monitoring`: Enable or disable queue/resource monitoring (default: enabled)
@@ -294,3 +295,12 @@ The streaming converter is designed to replace the batch converter for real-time
 2. **Streaming converter**: Processes data as it arrives in 5-minute windows
 
 For historical data processing, continue using the batch converter. For real-time ingest, use the streaming converter.
+### Staging & Storage Strategy
+
+The streaming worker forwards scratch configuration to the batch converter and benefits from its tmpfs/SSD staging behavior:
+
+- Inputs: With `--stage-inputs`, subbands are copied (in parallel) into a local temp directory; otherwise they are symlinked. This can improve locality on systems where the ingest directory is remote.
+- Scratch: Set `--scratch-dir /scratch` to keep per‑subband MS parts on fast local SSD. The converter concatenates these parts into the staged MS.
+- tmpfs: When enabled by the converter (default), the final MS is staged in RAM (`/dev/shm`) when capacity allows and then moved into the output directory.
+
+See `docs/pipeline/README_uvh5_to_ms.md` for details on the converter’s tmpfs thresholding and finalization.
