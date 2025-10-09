@@ -1,0 +1,54 @@
+<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8" />
+  <title>Group Detail</title>
+  <style>
+    body { font-family: system-ui, sans-serif; margin: 16px; }
+    h2 { margin-bottom: 4px; }
+    .meta { color:#666; font-size: 13px; }
+    .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(240px, 1fr)); gap: 10px; }
+    img { width:100%; height:auto; border:1px solid #eee; }
+    table { border-collapse: collapse; width: 100%; margin: 8px 0; }
+    th, td { border: 1px solid #ddd; padding: 6px; font-size: 14px; }
+    th { background: #f4f4f4; text-align: left; }
+  </style>
+  <script>
+    function q(name){ return new URLSearchParams(window.location.search).get(name) }
+    async function load(){
+      const group = q('group'); if(!group){ document.body.innerHTML='Missing group'; return; }
+      const resp = await fetch(`/api/groups/${encodeURIComponent(group)}`);
+      if (!resp.ok) { document.body.innerHTML = 'Not found'; return; }
+      const g = await resp.json();
+      document.getElementById('title').textContent = g.group_id;
+      document.getElementById('meta').textContent = `${g.state} • ${g.subbands_present}/${g.expected_subbands} subbands • received ${g.received_at}`;
+      // Matches
+      const m = document.getElementById('matches');
+      m.innerHTML = (g.matches||[]).map(x=>`${x.name} (${x.sep_deg.toFixed(2)}°)`).join(', ') || '–';
+      // Perf
+      document.getElementById('perf').textContent = g.perf_total_time != null ? `${g.perf_total_time.toFixed(1)} s` : '–';
+      // QA
+      const grid = document.getElementById('qa');
+      grid.innerHTML = (g.qa||[]).map(it=>{
+        const url = `/api/qa/file/${encodeURIComponent(g.group_id)}/${encodeURIComponent(it.name)}`;
+        const ext = (it.name.split('.').pop()||'').toLowerCase();
+        if (ext === 'html') {
+          return `<a href="${url}" target="_blank" class="meta">${it.name}</a>`;
+        }
+        return `<a href="${url}" target="_blank"><img src="${url}" alt="${it.name}"/></a>`;
+      }).join('') || '<div class="meta">No quicklooks</div>';
+    }
+    window.addEventListener('DOMContentLoaded', load);
+  </script>
+</head>
+<body>
+  <h2 id="title">Group</h2>
+  <div class="meta" id="meta"></div>
+  <table>
+    <tr><th>Calibrator matches</th><td id="matches"></td></tr>
+    <tr><th>Total convert time</th><td id="perf"></td></tr>
+  </table>
+  <h3>Quicklooks</h3>
+  <div class="grid" id="qa"></div>
+</body>
+</html>

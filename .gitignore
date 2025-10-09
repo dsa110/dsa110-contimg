@@ -87,6 +87,11 @@ data/tmp/
 # Other files
 *.all
 .DS_Store
+references/
+
+# Nested Git repositories (belt-and-suspenders; Git won't descend into these, but ignore explicitly)
+**/.git
+**/.git/**
 
 # Virtual environment directories
 venv/
@@ -102,6 +107,7 @@ casalogs/
 casa-*.log
 
 # Data artifacts
+*fuse*
 data/ms/
 data/sky_models/
 data/tmp/
@@ -117,3 +123,7 @@ streaming_queue.sqlite3
 *.checkpoint.uvh5
 pipeline/checkpoints/
 pipeline/scratch/
+
+# Repository structure tracking
+state/
+!state/.gitkeep

@@ -1,0 +1,26 @@
+[Unit]
+Description=CASA Log Daemon - Monitors and moves casa-*.log files
+After=network.target
+
+[Service]
+Type=simple
+User=ubuntu
+Group=ubuntu
+WorkingDirectory=/data/dsa110-contimg
+ExecStart=/usr/bin/python3 /data/dsa110-contimg/scripts/casa_log_daemon.py
+Restart=always
+RestartSec=10
+StandardOutput=journal
+StandardError=journal
+
+# Environment variables
+Environment=PYTHONUNBUFFERED=1
+
+# Security settings
+NoNewPrivileges=true
+PrivateTmp=true
+ProtectSystem=strict
+ReadWritePaths=/data/dsa110-contimg
+
+[Install]
+WantedBy=multi-user.target
