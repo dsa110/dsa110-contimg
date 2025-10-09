@@ -160,6 +160,34 @@ export PIPELINE_STATE_DIR=state       # base dir for outputs
 
 Artifacts are written to `state/qa/<ms_stem>/` alongside the measurement set name (or under the directory provided via `--qa-state-dir`). The converter invokes `shadems` as a separate process; if it is not installed or on `PATH`, quicklooks are skipped with a warning.
 
+For existing Measurement Sets you can generate the same quicklooks without reconverting:
+
+```
+python -m dsa110_contimg.qa.quicklooks \
+  --ms /scratch/dsa110-contimg/data-samples/ms/run123/2025-10-03T15:15:58.ms \
+  --state-dir state \
+  --ragavi               # optional HTML inspector in addition to shadeMS plots
+
+# Fast Matplotlib quicklooks
+
+When shadeMS/ragavi are unavailable or you just need an ultra-fast view, use the built-in matplotlib helper:
+
+```
+python -m dsa110_contimg.qa.fast_plots \
+  --ms /scratch/dsa110-contimg/data-samples/ms/run123/2025-10-03T15:15:58.ms \
+  --output-dir /data/dsa110-contimg/state/qa/run123_fast
+```
+
+You can combine everything via the quicklooks wrapper:
+
+```
+python -m dsa110_contimg.qa.quicklooks \
+  --ms /scratch/.../2025-10-03T15:15:58.ms \
+  --state-dir /data/dsa110-contimg/state \
+  --fast-plots --fast-include-residual
+```
+```
+
 Streaming service flags
 
 You can enable quicklooks for the streaming path without environment variables by passing flags that are forwarded to the converter per group:

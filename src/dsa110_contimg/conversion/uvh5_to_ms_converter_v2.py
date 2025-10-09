@@ -29,7 +29,6 @@ import os
 import time
 import glob
 import logging
-import subprocess
 from pathlib import Path
 from typing import Dict, List, Optional, Sequence, Tuple
 
@@ -51,6 +50,10 @@ import csv
 from dsa110_contimg.conversion.strategies.direct_subband import (
     write_ms_from_subbands as _direct_write_ms,
     _write_ms_subband_part as _direct_write_subband,
+)
+from dsa110_contimg.qa.quicklooks import (
+    run_ragavi_vis,
+    run_shadems_quicklooks,
 )
 
 
@@ -370,162 +373,6 @@ def _build_ddid_dataset() -> "DMSDataset":
     return DMSDataset(vars_dd, coords=coords, attrs={})
 
 
-def _maybe_run_shadems_quicklooks(
-    ms_path: str,
-    *,
-    enable: bool = False,
-    resid: bool = False,
-    max_plots: int = 4,
-    timeout: int = 600,
-    state_dir: Optional[str] = None,
-) -> None:
-    """Run shadeMS to generate quicklook QA plots, if enabled.
-
-    Controlled by env:
-      - QA_SHADEMS_ENABLE: 1/true to enable
-      - QA_SHADEMS_MAX: maximum plots to attempt (default 4)
-      - QA_SHADEMS_RESID: 1/true to include residual plot (CORRECTED_DATA-MODEL_DATA)
-      - QA_SHADEMS_TIMEOUT: per-plot timeout seconds (default 600)
-      - PIPELINE_STATE_DIR: base state directory (default 'state')
-    Output is written under {state}/qa/<ms_stem>/.
-    """
-    if not enable:
-        return
-    state_dir = state_dir or os.getenv('PIPELINE_STATE_DIR', 'state')
-    base = os.path.basename(ms_path)
-    stem = base[:-3] if base.endswith('.ms') else base
-    out_dir = os.path.join(state_dir, 'qa', stem)
-    os.makedirs(out_dir, exist_ok=True)
-
-    plots = [('TIME', 'DATA:amp'), ('FREQ', 'DATA:amp'), ('u', 'v')]
-    if resid:
-        plots.append(('uv', 'CORRECTED_DATA-MODEL_DATA:amp'))
-
-    env = os.environ.copy()
-    env.setdefault('HDF5_USE_FILE_LOCKING', 'FALSE')
-    ran = 0
-    for x, y in plots:
-        if ran >= max_plots:
-            break
-        cmd = ['shadems', '--xaxis', x, '--yaxis', y, ms_path]
-        try:
-            subprocess.run(
-                cmd,
-                cwd=out_dir,
-                env=env,
-                capture_output=True,
-                text=True,
-                timeout=timeout)
-            ran += 1
-        except FileNotFoundError:
-            raise RuntimeError('shadems not found on PATH')
-        except Exception:
-            # keep going on individual plot failures
-            continue
-    try:
-        imgs = sorted([p for p in os.listdir(out_dir) if p.lower().endswith(
-            ('.png', '.jpg', '.jpeg', '.svg'))])
-    except Exception:
-        imgs = []
-    log = logging.getLogger('uvh5_to_ms_converter_v2')
-    log.info('shadeMS artifacts (%d) saved to %s', len(imgs), out_dir)
-    # Record into products DB if available
-    try:
-        from sqlite3 import connect
-        db_path = os.getenv('PIPELINE_PRODUCTS_DB', 'state/products.sqlite3')
-        os.makedirs(os.path.dirname(db_path), exist_ok=True)
-        conn = connect(db_path)
-        with conn:
-            conn.execute(
-                """
-                CREATE TABLE IF NOT EXISTS qa_artifacts (
-                    id INTEGER PRIMARY KEY AUTOINCREMENT,
-                    group_id TEXT NOT NULL,
-                    name TEXT NOT NULL,
-                    path TEXT NOT NULL,
-                    created_at REAL NOT NULL,
-                    UNIQUE(group_id, name)
-                )
-                """
-            )
-            for nm in imgs:
-                pth = os.path.join(out_dir, nm)
-                try:
-                    ts = os.path.getmtime(pth)
-                except Exception:
-                    ts = time.time()
-                conn.execute(
-                    "INSERT OR REPLACE INTO qa_artifacts(group_id,name,path,created_at) VALUES(?,?,?,?)",
-                    (stem, nm, pth, ts),
-                )
-    except Exception as e:
-        log.debug('QA DB record skipped: %s', e)
-
-
-def _maybe_run_ragavi_vis(
-        ms_path: str,
-        *,
-        enable: bool = False,
-        timeout: int = 600,
-        state_dir: Optional[str] = None) -> None:
-    """Run ragavi-vis to produce an HTML inspector for visibility data (optional)."""
-    if not enable:
-        return
-    base = os.path.basename(ms_path)
-    stem = base[:-3] if base.endswith('.ms') else base
-    out_dir = os.path.join(
-        state_dir or os.getenv(
-            'PIPELINE_STATE_DIR',
-            'state'),
-        'qa',
-        stem)
-    os.makedirs(out_dir, exist_ok=True)
-    env = os.environ.copy()
-    env.setdefault('HDF5_USE_FILE_LOCKING', 'FALSE')
-    html_name = f'ragavi_{stem}.html'
-    cmd = [
-        'ragavi-vis',
-        '--ms',
-        ms_path,
-        '--xaxis',
-        'time',
-        '--yaxis',
-        'amplitude',
-        '--output',
-        html_name]
-    try:
-        subprocess.run(
-            cmd,
-            cwd=out_dir,
-            env=env,
-            capture_output=True,
-            text=True,
-            timeout=timeout)
-    except FileNotFoundError:
-        raise RuntimeError('ragavi-vis not found on PATH')
-    except Exception:
-        return
-    # Record into products DB
-    try:
-        from sqlite3 import connect
-        db_path = os.getenv('PIPELINE_PRODUCTS_DB', 'state/products.sqlite3')
-        os.makedirs(os.path.dirname(db_path), exist_ok=True)
-        conn = connect(db_path)
-        with conn:
-            conn.execute(
-                "CREATE TABLE IF NOT EXISTS qa_artifacts (id INTEGER PRIMARY KEY AUTOINCREMENT, group_id TEXT NOT NULL, name TEXT NOT NULL, path TEXT NOT NULL, created_at REAL NOT NULL, UNIQUE(group_id,name))"
-            )
-            pth = os.path.join(out_dir, html_name)
-            try:
-                ts = os.path.getmtime(pth)
-            except Exception:
-                ts = time.time()
-            conn.execute(
-                "INSERT OR REPLACE INTO qa_artifacts(group_id,name,path,created_at) VALUES(?,?,?,?)",
-                (stem, html_name, pth, ts),
-            )
-    except Exception:
-        pass
 
 
 def _search_vla_calibrator(csv_path: str,
@@ -1682,28 +1529,28 @@ def convert_subband_groups_to_ms(
             logger.warning("Calibrator MS generation skipped: %s", e)
 
         # Optional quicklook QA plots via shadeMS
-        try:
-            _maybe_run_shadems_quicklooks(
-                ms_final_path,
-                enable=qa_shadems,
-                resid=qa_shadems_resid,
-                max_plots=qa_shadems_max,
-                timeout=qa_shadems_timeout,
-                state_dir=qa_state_dir,
-            )
-        except Exception as e:
-            logger.warning("shadeMS quicklooks failed or skipped: %s", e)
+        if qa_shadems:
+            try:
+                run_shadems_quicklooks(
+                    ms_final_path,
+                    state_dir=qa_state_dir,
+                    resid=qa_shadems_resid,
+                    max_plots=qa_shadems_max,
+                    timeout=qa_shadems_timeout,
+                )
+            except Exception as e:
+                logger.warning("shadeMS quicklooks failed or skipped: %s", e)
 
         # Optional ragavi-vis export (HTML)
-        try:
-            _maybe_run_ragavi_vis(
-                ms_final_path,
-                enable=qa_ragavi_vis,
-                timeout=qa_ragavi_timeout,
-                state_dir=qa_state_dir,
-            )
-        except Exception as e:
-            logger.warning("ragavi-vis export failed or skipped: %s", e)
+        if qa_ragavi_vis:
+            try:
+                run_ragavi_vis(
+                    ms_final_path,
+                    state_dir=qa_state_dir,
+                    timeout=qa_ragavi_timeout,
+                )
+            except Exception as e:
+                logger.warning("ragavi-vis export failed or skipped: %s", e)
 
 
 def main() -> int:

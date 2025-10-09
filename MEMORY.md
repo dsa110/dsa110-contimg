@@ -20,7 +20,7 @@
 3. **Python Environment**: The system requires:
    - `casa6` conda environment for `pyuvdata` and CASA tools
    - `PYTHONPATH=/data/dsa110-contimg/src` for package imports
-   - Python 3 (not Python 2.7) for modern syntax support
+   - Python 3.11 (not Python 2.7) for modern syntax support
 
 4. **Conversion Success**: The v2 converter successfully:
    - Groups subbands by timestamp (30s tolerance)
@@ -51,3 +51,5 @@
 - **Monitor space**: `scripts/scratch_sync.sh status` reports usage; keep at least ~100 GB free on the root filesystem.
 - **Workflow tip**: Run converters with output paths under `/scratch/dsa110-contimg`, validate results, then archive to `/data` once finalized.
 - **Hands-on**: `docs/notebooks/ms_staging_workflow.ipynb` walks through the staging workflow step by step (status, optional input staging, conversion, archiving, cleanup).
+- **Quicklooks**: Generate shadeMS / ragavi artifacts without reconversion via `python -m dsa110_contimg.qa.quicklooks --ms <path/to.ms> [--ragavi]`.
+- **Fast QA**: Use `python -m dsa110_contimg.qa.fast_plots --ms <ms>` for matplotlib-based amplitude/time/frequency/UV plots without CASA; integrate via `--fast-plots` when calling `qa.quicklooks`.
