@@ -5,36 +5,14 @@ from .flagging import reset_flags, flag_zeros, flag_rfi
 from .calibration import solve_delay, solve_bandpass, solve_gains
 from .applycal import apply_to_target
 from .selection import select_bandpass_fields, select_bandpass_from_catalog
-MSFIX_FUNCS = None  # Loaded lazily if --msfix is requested
 
 
 def run_calibrator(ms: str, cal_field: str, refant: str, *, do_flagging: bool = True) -> List[str]:
-    # Normalize FIELD::NUM_POLY to avoid casacore interpolateDirMeas crashes
-    try:
-        changed = False
-        if fix_field_num_poly(ms):
-            print("Patched FIELD::NUM_POLY -> 0 for constant DIR")
-            changed = True
-        if fix_spw_resolution(ms):
-            print("Filled SPW::RESOLUTION/EFFECTIVE_BW from CHAN_WIDTH")
-            changed = True
-        if fix_main_sigma_weight(ms):
-            print("Filled MAIN::SIGMA/WEIGHT for missing rows")
-            changed = True
-        if fix_observation_table(ms):
-            print("Ensured OBSERVATION row and MAIN::OBSERVATION_ID=0")
-            changed = True
-        if fix_main_interval(ms):
-            print("Filled MAIN::INTERVAL with median time spacing")
-            changed = True
-        if ensure_weight_spectrum(ms):
-            print("Ensured MAIN::WEIGHT_SPECTRUM (broadcast from WEIGHT)")
-            changed = True
-        if fix_scan_number(ms):
-            print("Set non-positive SCAN_NUMBER to 1")
-            changed = True
-    except Exception:
-        pass
+    """Run K, BP and G solves on a calibrator MS.
+
+    Note: On-the-fly MS metadata repair has been removed. If a dataset is
+    malformed, prefer reconversion with the current writer.
+    """
     if do_flagging:
         reset_flags(ms)
         flag_zeros(ms)
@@ -65,7 +43,7 @@ def main():
     pc.add_argument("--bp-min-pb", type=float, default=None, help="Primary-beam gain threshold [0-1] to auto-size field window around peak")
     pc.add_argument("--bp-combine-field", action="store_true", help="Combine across selected fields when solving bandpass/gains")
     pc.add_argument("--no-flagging", action="store_true", help="Disable pre-solve flagging to avoid crashes on nonstandard polarizations")
-    pc.add_argument("--msfix", action="store_true", help="Apply MS metadata repairs before solving (disabled by default)")
+    # On-the-fly MS repair has been removed; prefer reconversion if needed.
 
     pt = sub.add_parser("apply", help="Apply calibration to target MS")
     pt.add_argument("--ms", required=True)
@@ -126,35 +104,7 @@ def main():
         if refant is None:
             p.error("Provide --refant or --refant-ranking")
 
-        # Optional: apply MS repairs only when explicitly requested
-        if args.msfix:
-            global MSFIX_FUNCS
-            if MSFIX_FUNCS is None:
-                from .msfix import (
-                    fix_field_num_poly,
-                    fix_spw_resolution,
-                    fix_main_sigma_weight,
-                    fix_observation_table,
-                    fix_main_interval,
-                    ensure_weight_spectrum,
-                    fix_scan_number,
-                )
-                MSFIX_FUNCS = (
-                    fix_field_num_poly,
-                    fix_spw_resolution,
-                    fix_main_sigma_weight,
-                    fix_observation_table,
-                    fix_main_interval,
-                    ensure_weight_spectrum,
-                    fix_scan_number,
-                )
-            print("Applying MS repairs (--msfix)...")
-            for func in MSFIX_FUNCS:
-                try:
-                    if func(args.ms):
-                        print(f" - {func.__name__}: updated")
-                except Exception:
-                    pass
+        # MS repair flags removed.
         # Execute solves with a robust K step on the peak field only, then BP/G across the selected window
         from .flagging import reset_flags, flag_zeros, flag_rfi
         from .calibration import solve_delay, solve_bandpass, solve_gains

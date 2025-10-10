@@ -358,8 +358,7 @@ Overrides
 - `--min-pb <0-1>`, `--no-combine`, `--flagging`, `--radius <deg>`, `--window <int>`, `--catalog <path>`
 
 MS repair policy
-- By default, calibration does not patch Measurement Sets. If an MS is malformed, prefer reconversion with the updated writer (`--dask-write`, `--field-per-integration`).
-- For exceptional cases, you can enable best‑effort metadata repairs via the CLI flag `--msfix` (disabled by default). These repairs adjust only metadata columns (e.g., INTERVAL, SPW arrays, SIGMA/WEIGHT) and never touch visibilities.
+- Calibration does not patch Measurement Sets. If an MS is malformed, prefer reconversion with the updated writer (e.g., `--dask-write`, `--field-per-integration`). On‑the‑fly repair flags have been removed.
 
 Reconversion example
 ```
