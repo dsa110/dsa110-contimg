@@ -23,6 +23,12 @@ Repository overview for the DSA-110 continuum imaging pipeline.
   - Writer order: creates the main table first, then writes and links the required subtables (SPECTRAL_WINDOW, POLARIZATION, ANTENNA, FIELD, DATA_DESCRIPTION).
   - ANTENNA subtable builder is robust to missing `antenna_numbers`, synthesizing names (`pad1..padN`) when needed; positions are required.
 
+- MS consistency improvements
+  - POLARIZATION::CORR_TYPE is written using MS Stokes enums (XX=5, YY=6), avoiding negative AIPS codes.
+  - SPECTRAL_WINDOW::EFFECTIVE_BW and ::RESOLUTION are populated (per‑channel arrays).
+  - MAIN::SIGMA and ::WEIGHT are per‑row arrays of length Npol.
+  - Optional `--field-per-integration` writes one FIELD row per unique integration (useful for drift scans).
+
 - Quick downsampling knobs (for fast testing)
   - Frequency downsample: set environment `DS_FREQ=<int>` to average adjacent channels (updates `DATA`, `FLAG`, `NSAMPLE`, `freq_array`, `channel_width`).
   - Time downsample: set environment `DS_TIME=<int>` to combine adjacent time samples per baseline (averages `DATA/UVW/TIME/LST`, ORs `FLAG`, sums `NSAMPLE` and `integration_time`).
@@ -295,8 +301,8 @@ An end-to-end calibration test notebook is available at:
 
 What it does
 - Runs fast QA on the MS to generate `refant_ranking.json` and recommends a reference antenna.
-- Auto-selects the bandpass field range using the VLA calibrator catalog (primary-beam weighted).
-- Executes K/BA/BP/G solves via CASA tasks using pipeline helpers.
+- Auto-selects a contiguous FIELD window around the PB peak using a primary‑beam gain threshold.
+- Executes K/BA/BP/G solves; optional `combine='scan,field'` collapses the selected window into a single BP/G solution.
 
 Prerequisites
 - Run with a CASA 6 kernel (both `casatools` and `casatasks` importable).
@@ -308,7 +314,7 @@ Quick start
 3) Run the catalog auto-selection cell (defaults to `data-samples/catalogs/vlacalibrators.txt`, adjustable search radius and window).
 4) Run the calibration cell; it prints the produced calibration tables.
 
-CLI equivalent
+CLI equivalent (field auto‑selection + PB threshold)
 ```
 # Fast QA (reference antenna ranking)
 python -m dsa110_contimg.qa.fast_plots \
@@ -322,10 +328,45 @@ python -m dsa110_contimg.calibration.cli calibrate \
   --auto-fields \
   --cal-catalog /data/dsa110-contimg/data-samples/catalogs/vlacalibrators.txt \
   --cal-search-radius-deg 2.0 \
-  --bp-window 3 \
+  --bp-min-pb 0.99 \
+  --bp-combine-field \
   --refant-ranking /tmp/qa-auto/refant_ranking.json
 ```
 
 Notes
-- The notebook plots the PB-weighted flux per field and highlights the selected field window.
-- Adjust `bp-window` and search radius to widen or tighten the selection.
+- The notebook plots the PB‑weighted flux per field and highlights the selected window.
+- Use `--bp-min-pb` to size the window by PB gain; fall back to `--bp-window` to force a fixed width.
+- Add `--bp-combine-field` to produce a single BP/G solution across the selected fields.
+
+# Bandpass Calibration (Shell Script)
+
+To avoid Jupyter kernel instability, use the provided shell wrapper:
+
+```
+bash scripts/calibrate_bandpass.sh \
+  --ms /scratch/dsa110-contimg/data-samples/ms/0834_555_transit_reconv3/2025-10-03T15:15:58.ms
+```
+
+Defaults in the script
+- `--bp-min-pb 0.99` (PB threshold)
+- `--bp-combine-field` (combine fields for BP/G)
+- `--no-flagging` by default (enable with `--flagging`)
+- `--cal-search-radius-deg 2.0`, `--bp-window 3` (fallback)
+- Catalog path prefilled (`data-samples/catalogs/vlacalibrators.txt`)
+
+Overrides
+- `--min-pb <0-1>`, `--no-combine`, `--flagging`, `--radius <deg>`, `--window <int>`, `--catalog <path>`
+
+MS repair policy
+- By default, calibration does not patch Measurement Sets. If an MS is malformed, prefer reconversion with the updated writer (`--dask-write`, `--field-per-integration`).
+- For exceptional cases, you can enable best‑effort metadata repairs via the CLI flag `--msfix` (disabled by default). These repairs adjust only metadata columns (e.g., INTERVAL, SPW arrays, SIGMA/WEIGHT) and never touch visibilities.
+
+Reconversion example
+```
+PYTHONPATH=src:$PYTHONPATH \
+/opt/miniforge/envs/casa6/bin/python -m dsa110_contimg.conversion.uvh5_to_ms_converter_v2 \
+  /data/incoming/0834_555_transit \
+  /scratch/dsa110-contimg/data-samples/ms/0834_555_transit_reconv4 \
+  "2025-10-03 15:15:57" "2025-10-03 15:15:58" \
+  --dask-write --dask-write-failfast --field-per-integration --no-stage-tmpfs --log-level INFO
+```

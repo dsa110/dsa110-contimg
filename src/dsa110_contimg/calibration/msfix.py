@@ -134,3 +134,154 @@ def fix_main_sigma_weight(ms_path: str) -> bool:
     except Exception:
         return False
     return fixed
+
+
+def fix_observation_table(ms_path: str) -> bool:
+    """Ensure OBSERVATION subtable has at least one row and IDs are valid.
+
+    Populates minimal columns (TIME_RANGE, TELESCOPE_NAME, OBSERVER, PROJECT, RELEASE_DATE)
+    and sets MAIN::OBSERVATION_ID to 0 for all rows.
+    """
+    from casacore.tables import table
+    import numpy as np
+    changed = False
+    try:
+        # Create/ensure a single OBSERVATION row
+        with table(f"{ms_path}::OBSERVATION", ack=False, readonly=False) as tobs:
+            n = tobs.nrows()
+            if n == 0:
+                tobs.addrows(1)
+            # Attempt to infer TIME_RANGE from MAIN::TIME
+            try:
+                with table(ms_path) as mt:
+                    times = mt.getcol('TIME') if 'TIME' in mt.colnames() else None
+            except Exception:
+                times = None
+            if times is not None and times.size:
+                tr = np.array([float(times.min()), float(times.max())], dtype=np.float64)
+                try:
+                    tobs.putcell('TIME_RANGE', 0, tr)
+                except Exception:
+                    pass
+            # Minimal metadata
+            for col, val in (
+                ('TELESCOPE_NAME', 'CARMA'),
+                ('OBSERVER', 'unknown'),
+                ('PROJECT', ''),
+                ('RELEASE_DATE', 0.0),
+            ):
+                try:
+                    tobs.putcell(col, 0, val)
+                except Exception:
+                    pass
+            changed = True
+        # Set MAIN::OBSERVATION_ID to 0
+        with table(ms_path, ack=False, readonly=False) as mt:
+            if 'OBSERVATION_ID' in mt.colnames():
+                try:
+                    mt.putcol('OBSERVATION_ID', np.zeros(mt.nrows(), dtype=np.int32))
+                    changed = True
+                except Exception:
+                    pass
+    except Exception:
+        return False
+    return changed
+
+
+def fix_main_interval(ms_path: str) -> bool:
+    """Ensure MAIN::INTERVAL has positive values.
+
+    Some writers may leave INTERVAL as zeros, which can destabilize solvers.
+    This sets non-positive intervals to the median time-spacing derived from
+    MAIN::TIME (in seconds), or 1.0 if it cannot be inferred.
+    """
+    from casacore.tables import table
+    import numpy as np
+    try:
+        with table(ms_path, readonly=False, ack=False) as t:
+            if 'INTERVAL' not in t.colnames() or 'TIME' not in t.colnames():
+                return False
+            interval = t.getcol('INTERVAL')
+            # Determine a safe positive interval
+            times = t.getcol('TIME')
+            try:
+                ut = np.unique(times)
+                diffs = np.diff(np.sort(ut))
+                diffs = diffs[np.isfinite(diffs) & (diffs > 0)]
+                fallback = float(np.median(diffs)) if diffs.size else 1.0
+            except Exception:
+                fallback = 1.0
+            bad = ~np.isfinite(interval) | (interval <= 0)
+            if np.any(bad):
+                interval[bad] = fallback
+                t.putcol('INTERVAL', interval)
+                return True
+    except Exception:
+        return False
+    return False
+
+
+def ensure_weight_spectrum(ms_path: str) -> bool:
+    """Ensure MAIN::WEIGHT_SPECTRUM exists and matches DATA shape.
+
+    If absent or wrong-shaped, create/fill it by broadcasting WEIGHT across
+    channels: WEIGHT_SPECTRUM[row] = tile(WEIGHT[row], (nchan, 1)).
+    """
+    import numpy as np
+    from casacore.tables import table, makearrcoldesc, maketabdesc
+    try:
+        with table(ms_path, readonly=False, ack=False) as t:
+            cols = set(t.colnames())
+            # Determine per-row (nchan, ncorr) from DATA
+            try:
+                d0 = t.getcell('DATA', 0)
+                nchan, ncorr = int(d0.shape[0]), int(d0.shape[1])
+            except Exception:
+                # Fallback to SPW/POL shapes
+                with table(f"{ms_path}::SPECTRAL_WINDOW") as spw:
+                    nchan = int(np.asarray(spw.getcol('NUM_CHAN')).ravel()[0])
+                with table(f"{ms_path}::POLARIZATION") as pol:
+                    ncorr = int(np.asarray(pol.getcol('NUM_CORR')).ravel()[0])
+
+            # Create column if missing
+            if 'WEIGHT_SPECTRUM' not in cols:
+                desc = maketabdesc(makearrcoldesc('WEIGHT_SPECTRUM', 0.0, ndim=2))
+                t.addcols(desc)
+
+            # Fill in chunks to avoid large memory spikes
+            nrow = t.nrows()
+            chunk = 4096
+            w = None
+            for start in range(0, nrow, chunk):
+                end = min(start + chunk, nrow)
+                # Read WEIGHT for this block
+                wb = t.getcol('WEIGHT', startrow=start, nrow=end - start)
+                # wb shape: (nrow_block, ncorr)
+                for i in range(end - start):
+                    wr = wb[i]
+                    if wr is None or np.size(wr) != ncorr:
+                        wr = np.ones((ncorr,), dtype=np.float32)
+                    mat = np.broadcast_to(wr[None, :], (nchan, ncorr)).astype(np.float32, copy=False)
+                    t.putcell('WEIGHT_SPECTRUM', start + i, mat)
+            return True
+    except Exception:
+        return False
+
+
+def fix_scan_number(ms_path: str) -> bool:
+    """Ensure SCAN_NUMBER is positive (>=1). Sets to 1 if non-positive or NaN.
+    """
+    import numpy as np
+    try:
+        with table(ms_path, readonly=False, ack=False) as t:
+            if 'SCAN_NUMBER' not in t.colnames():
+                return False
+            sc = t.getcol('SCAN_NUMBER')
+            bad = ~np.isfinite(sc) | (sc <= 0)
+            if np.any(bad):
+                sc[bad] = 1
+                t.putcol('SCAN_NUMBER', sc)
+                return True
+    except Exception:
+        return False
+    return False

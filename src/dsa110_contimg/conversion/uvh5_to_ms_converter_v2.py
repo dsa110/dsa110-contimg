@@ -177,6 +177,7 @@ def _write_ms_with_daskms(
     spw_ds = _build_spw_dataset(uv)
     pol_ds = _build_pol_dataset(uv)
     ant_ds = _build_antenna_dataset(uv)
+    feed_ds = _build_feed_dataset(uv)
 
     # Field center: meridian at pointing declination at mid MJD
     from astropy.time import Time
@@ -201,34 +202,63 @@ def _write_ms_with_daskms(
             ra_i, dec_i = get_meridian_coords(pt_dec, mjd)
             ra_list.append(ra_i)
             dec_list.append(dec_i)
-        field_ds = _build_field_dataset_multi(ra_list, dec_list)
+        # TIME column in FIELD is in seconds (MJD seconds)
+        time_list_sec = list((mjd_vec * 86400.0).astype(float))
+        field_ds = _build_field_dataset_multi(ra_list, dec_list, time_list_sec=time_list_sec)
         # Update FIELD_ID mapping on main table
         # Rebuild main_ds with explicit FIELD_ID set to per-row mapping
         main_ds = _build_main_table_dataset(uv, row_chunks=_row_chunks, field_per_integration=True, field_id_map=invert.astype(np.int32))
     else:
-        field_ds = _build_field_dataset(ra_icrs, dec_icrs)
+        # Use midpoint time in seconds for single FIELD TIME
+        field_mid_sec = float(mid_mjd * 86400.0)
+        field_ds = _build_field_dataset(ra_icrs, dec_icrs, time_sec=field_mid_sec)
 
     ddid_ds = _build_ddid_dataset()
 
+    # OBSERVATION dataset (1 row)
+    from astropy.time import Time as _Time
+    t_sec = _Time(uv.time_array, format='jd').mjd.astype(float) * 86400.0
+    t_min = float(np.min(t_sec)) if t_sec.size else 0.0
+    t_max = float(np.max(t_sec)) if t_sec.size else 0.0
+    telname = getattr(uv, 'telescope_name', None) or getattr(getattr(uv, 'telescope', None), 'name', None) or 'DSA-110'
+    obs_vars = {
+        'TIME_RANGE': (('row', 'tr'), da.from_array(np.array([[t_min, t_max]], dtype=np.float64), chunks=(1, 2))),
+        'TELESCOPE_NAME': (('row',), da.from_array(np.array([str(telname)], dtype=object), chunks=(1,))),
+        'OBSERVER': (('row',), da.from_array(np.array(['unknown'], dtype=object), chunks=(1,))),
+        'PROJECT': (('row',), da.from_array(np.array([''], dtype=object), chunks=(1,))),
+        'RELEASE_DATE': (('row',), da.from_array(np.array([0.0], dtype=np.float64), chunks=(1,))),
+    }
+    obs_coords = {
+        'row': (('row',), da.arange(1, chunks=(1,))),
+        'tr': (('tr',), da.arange(2, chunks=(2,))),
+    }
+    from daskms import Dataset as DMSDataset
+    obs_ds = DMSDataset(obs_vars, coords=obs_coords, attrs={})
+
     writes = []
     # Create main table first
-    writes += xds_to_table(main_ds,
-                           ms_full_path,
-                           columns=['ANTENNA1',
-                                    'ANTENNA2',
-                                    'UVW',
-                                    'TIME',
-                                    'TIME_CENTROID',
-                                    'INTERVAL',
-                                    'SCAN_NUMBER',
-                                    'ARRAY_ID',
-                                    'OBSERVATION_ID',
-                                    'FIELD_ID',
-                                    'DATA_DESC_ID',
-                                    'DATA',
-                                    'FLAG',
-                                    ],
-                           )
+    writes += xds_to_table(
+        main_ds,
+        ms_full_path,
+        columns=[
+            'ANTENNA1',
+            'ANTENNA2',
+            'UVW',
+            'TIME',
+            'TIME_CENTROID',
+            'INTERVAL',
+            'SCAN_NUMBER',
+            'ARRAY_ID',
+            'OBSERVATION_ID',
+            'FIELD_ID',
+            'DATA_DESC_ID',
+            'DATA',
+            'FLAG',
+            'SIGMA',
+            'WEIGHT',
+            'WEIGHT_SPECTRUM',
+        ],
+    )
     logging.getLogger("uvh5_to_ms_converter_v2").info("dask-ms: MAIN table write graph built")
     # Then create and link subtables
     writes += xds_to_table(spw_ds,
@@ -238,110 +268,127 @@ def _write_ms_with_daskms(
                            f"{ms_full_path}::POLARIZATION",
                            columns="ALL")
     writes += xds_to_table(ant_ds, f"{ms_full_path}::ANTENNA", columns="ALL")
+    writes += xds_to_table(feed_ds, f"{ms_full_path}::FEED", columns="ALL")
     writes += xds_to_table(field_ds, f"{ms_full_path}::FIELD", columns="ALL")
     writes += xds_to_table(ddid_ds,
                            f"{ms_full_path}::DATA_DESCRIPTION",
                            columns="ALL")
+    writes += xds_to_table(obs_ds, f"{ms_full_path}::OBSERVATION", columns="ALL")
 
     logging.getLogger("uvh5_to_ms_converter_v2").info(
         "dask-ms: submitting %d write tasks", len(writes))
     dask.compute(writes)
     logging.getLogger("uvh5_to_ms_converter_v2").info("dask-ms: write completed for %s", ms_full_path)
 
-    # Ensure FIELD table has one row per unique integration when requested
-    if field_per_integration:
-        try:
-            from casacore.tables import table as ctable
-            # Recompute unique times and RA/Dec lists
-            utime, _, invert = np.unique(uv.time_array, return_index=True, return_inverse=True)
-            ut_mjd = Time(utime, format='jd').mjd.astype(float)
-            ra_list = []
-            dec_list = []
-            for mjd in ut_mjd:
-                ra_i, dec_i = get_meridian_coords(pt_dec, mjd)
-                ra_list.append(ra_i)
-                dec_list.append(dec_i)
-            n = len(utime)
-            with ctable(f"{ms_full_path}::FIELD", readonly=False) as tf:
-                cur = tf.nrows()
-                if cur < n:
-                    tf.addrows(n - cur)
-                # Populate required columns
-                for i in range(n):
-                    try:
-                        tf.putcell('NAME', i, f'field{i:03d}')
-                    except Exception:
-                        pass
-                    try:
-                        tf.putcell('NUM_POLY', i, 1)
-                    except Exception:
-                        pass
-                    # PHASE_DIR / DELAY_DIR / REFERENCE_DIR: shape (1,1,2)
-                    ra = float(ra_list[i].to_value())
-                    dec = float(dec_list[i].to_value())
-                    arr = np.zeros((1, 1, 2), dtype=np.float64)
-                    arr[0, 0, 0] = ra
-                    arr[0, 0, 1] = dec
-                    for col in ('PHASE_DIR', 'DELAY_DIR', 'REFERENCE_DIR'):
-                        try:
-                            tf.putcell(col, i, arr)
-                        except Exception:
-                            # Try with (1,2) if (1,1,2) fails
-                            try:
-                                tf.putcell(col, i, arr.reshape(1, 2))
-                            except Exception:
-                                pass
-                    # TIME in MJD seconds
-                    try:
-                        tf.putcell('TIME', i, float(ut_mjd[i] * 86400.0))
-                    except Exception:
-                        pass
-        except Exception as e:
-            logging.getLogger("uvh5_to_ms_converter_v2").warning(
-                "dask-ms: FIELD table post-fix skipped: %s", e)
-
-    # Ensure OBSERVATION subtable exists with at least one row and main table IDs are valid
+    # Attach MEASINFO keywords for direction and epoch columns
     try:
         from casacore.tables import table as ctable
-        with ctable(ms_full_path) as mt:
-            times = mt.getcol('TIME') if 'TIME' in mt.colnames() else None
-        nrows_obs = 0
-        with ctable(f"{ms_full_path}::OBSERVATION", ack=False, readonly=False) as tobs:
-            nrows_obs = tobs.nrows()
-            if nrows_obs == 0:
-                tobs.addrows(1)
-            # Populate columns best-effort
-            # TIME_RANGE in MJD seconds
-            if times is not None and times.size:
-                tr = np.array([float(times.min()), float(times.max())], dtype=np.float64)
-                try:
-                    tobs.putcell('TIME_RANGE', 0, tr)
-                except Exception:
-                    pass
-            # TELESCOPE_NAME
-            try:
-                telname = getattr(uv, 'telescope_name', None) or getattr(getattr(uv, 'telescope', None), 'name', None) or 'CARMA'
-                tobs.putcell('TELESCOPE_NAME', 0, str(telname))
-            except Exception:
-                pass
-            # OBSERVER / PROJECT / RELEASE_DATE
-            for col, val in [('OBSERVER', 'unknown'), ('PROJECT', ''), ('RELEASE_DATE', 0.0)]:
-                try:
-                    tobs.putcell(col, 0, val)
-                except Exception:
-                    pass
-        # Ensure main table OBSERVATION_ID column points to row 0
+        with ctable(f"{ms_full_path}::FIELD", readonly=False) as tf:
+            for col in ("PHASE_DIR", "DELAY_DIR", "REFERENCE_DIR"):
+                if col in tf.colnames():
+                    kw = tf.getcolkeywords(col)
+                    kw = kw or {}
+                    kw["MEASINFO"] = {"Ref": "J2000", "Type": "Direction"}
+                    tf.putcolkeywords(col, kw)
+        with ctable(ms_full_path, readonly=False) as mt:
+            for col in ("TIME", "TIME_CENTROID"):
+                if col in mt.colnames():
+                    kw = mt.getcolkeywords(col)
+                    kw = kw or {}
+                    kw["MEASINFO"] = {"Ref": "UTC", "Type": "Epoch"}
+                    mt.putcolkeywords(col, kw)
+        with ctable(f"{ms_full_path}::FEED", readonly=False) as ft:
+            if 'RECEPTOR_ANGLE' in ft.colnames():
+                kw = ft.getcolkeywords('RECEPTOR_ANGLE')
+                kw = kw or {}
+                kw["MEASINFO"] = {"Ref": "RAD", "Type": "Angle"}
+                ft.putcolkeywords('RECEPTOR_ANGLE', kw)
+    except Exception as e:
+        logging.getLogger("uvh5_to_ms_converter_v2").warning("MEASINFO keyword attach skipped: %s", e)
+
+    # Ensure main table OBSERVATION_ID column points to row 0
+    try:
+        from casacore.tables import table as ctable
         with ctable(ms_full_path, ack=False, readonly=False) as mt:
             if 'OBSERVATION_ID' in mt.colnames():
-                try:
-                    obsid = mt.getcol('OBSERVATION_ID')
-                    if obsid is None or obsid.size == 0 or np.any(obsid != 0):
-                        mt.putcol('OBSERVATION_ID', np.zeros(mt.nrows(), dtype=np.int32))
-                except Exception:
-                    pass
+                mt.putcol('OBSERVATION_ID', np.zeros(mt.nrows(), dtype=np.int32))
     except Exception as e:
-        logging.getLogger("uvh5_to_ms_converter_v2").warning(
-            "dask-ms: OBSERVATION table post-fix skipped: %s", e)
+        logging.getLogger("uvh5_to_ms_converter_v2").warning("Set OBSERVATION_ID failed: %s", e)
+
+    # Optional strict validation
+    try:
+        from dsa110_contimg.conversion.uvh5_to_ms_converter_v2 import _validate_ms_strict as _v
+        _v(ms_full_path, expect_fields=(len(utime) if field_per_integration else None), expect_linear=True)
+    except Exception as e:
+        # Surface as runtime error to caller
+        raise RuntimeError(f"MS strict validation failed: {e}")
+
+
+def _validate_ms_strict(ms_path: str, *, expect_fields: Optional[int] = None, expect_linear: bool = True) -> None:
+    """Validate key MS invariants required by our calibration pipeline.
+
+    Raises RuntimeError with a concise message on the first failed check.
+    """
+    from casacore.tables import table as ctable
+    import numpy as np
+
+    # MAIN checks
+    with ctable(ms_path) as tb:
+        cols = set(tb.colnames())
+        for c in ("DATA", "FLAG", "TIME", "TIME_CENTROID", "INTERVAL", "FIELD_ID", "DATA_DESC_ID", "SIGMA", "WEIGHT"):
+            if c not in cols:
+                raise RuntimeError(f"MS missing required column {c}")
+        # WEIGHT_SPECTRUM strongly recommended
+        if "WEIGHT_SPECTRUM" not in cols:
+            raise RuntimeError("MS missing WEIGHT_SPECTRUM")
+        nrow = tb.nrows()
+        if nrow <= 0:
+            raise RuntimeError("MS has zero rows")
+        d0 = tb.getcell("DATA", 0)
+        if d0.ndim != 2 or d0.shape[0] <= 0 or d0.shape[1] <= 0:
+            raise RuntimeError(f"DATA cell shape invalid: {d0.shape}")
+        iv = tb.getcol("INTERVAL")
+        if not np.all(np.isfinite(iv)) or not np.all(iv > 0):
+            raise RuntimeError("INTERVAL must be positive and finite for all rows")
+
+    # SPW checks
+    with ctable(f"{ms_path}::SPECTRAL_WINDOW") as spw:
+        for c in ("NUM_CHAN", "CHAN_FREQ", "CHAN_WIDTH", "EFFECTIVE_BW", "RESOLUTION"):
+            if c not in spw.colnames():
+                raise RuntimeError(f"SPW missing {c}")
+        if int(np.asarray(spw.getcol("NUM_CHAN")).ravel()[0]) <= 0:
+            raise RuntimeError("SPW::NUM_CHAN must be >0")
+
+    # POL checks
+    with ctable(f"{ms_path}::POLARIZATION") as pol:
+        ct = np.asarray(pol.getcol("CORR_TYPE"))
+        if ct.size == 0:
+            raise RuntimeError("POLARIZATION::CORR_TYPE empty")
+        if expect_linear:
+            # 5=XX,6=YY
+            if not np.all(np.isin(ct, [5, 6])):
+                raise RuntimeError("POLARIZATION must be linear [5,6] (XX,YY)")
+
+    # FIELD checks
+    with ctable(f"{ms_path}::FIELD") as fld:
+        nf = fld.nrows()
+        if expect_fields is not None and nf != int(expect_fields):
+            raise RuntimeError(f"FIELD rows {nf} != expected {expect_fields}")
+        if "NUM_POLY" in fld.colnames():
+            npoly = np.asarray(fld.getcol("NUM_POLY"))
+            if np.any(npoly != 0):
+                raise RuntimeError("FIELD::NUM_POLY must be 0 for constant directions")
+        # PHASE_DIR presence and MEASINFO are strongly expected
+        if "PHASE_DIR" not in fld.colnames():
+            raise RuntimeError("FIELD missing PHASE_DIR")
+        for col in ("DELAY_DIR", "REFERENCE_DIR"):
+            if col not in fld.colnames():
+                raise RuntimeError(f"FIELD missing {col}")
+
+    # OBSERVATION present
+    with ctable(f"{ms_path}::OBSERVATION") as obs:
+        if obs.nrows() == 0:
+            raise RuntimeError("OBSERVATION has zero rows")
 
 
 def _build_main_table_dataset(uv: "UVData", *, row_chunks: int = 8192, field_per_integration: bool = False, field_id_map: Optional[np.ndarray] = None) -> "DMSDataset":
@@ -382,14 +429,17 @@ def _build_main_table_dataset(uv: "UVData", *, row_chunks: int = 8192, field_per
             intval = np.full(nrow, float(tint), dtype=np.float64)
         else:
             intval = np.asarray(tint, dtype=np.float64)
+        # Sanity: if non-positive or non-finite, derive from TIME spacing
+        if not np.all(np.isfinite(intval)) or np.all(intval <= 0):
+            raise ValueError
     except Exception:
         utime = np.unique(uv.time_array)
-        dt_s = float(np.median(np.diff(utime))) * \
-            86400.0 if utime.size >= 2 else 1.0
+        dt_s = float(np.median(np.diff(utime))) * 86400.0 if utime.size >= 2 else 1.0
         intval = np.full(nrow, dt_s, dtype=np.float64)
     interval = da.from_array(intval, chunks=chunks_row)
 
-    scan = da.from_array(np.zeros(nrow, dtype=np.int32), chunks=chunks_row)
+    # Use 1-based scan number by default for CASA friendliness
+    scan = da.from_array(np.ones(nrow, dtype=np.int32), chunks=chunks_row)
     arr_id = da.from_array(np.zeros(nrow, dtype=np.int32), chunks=chunks_row)
     obs_id = da.from_array(np.zeros(nrow, dtype=np.int32), chunks=chunks_row)
     if field_per_integration and field_id_map is not None:
@@ -398,16 +448,35 @@ def _build_main_table_dataset(uv: "UVData", *, row_chunks: int = 8192, field_per
         field_id = da.from_array(np.zeros(nrow, dtype=np.int32), chunks=chunks_row)
     ddid = da.from_array(np.zeros(nrow, dtype=np.int32), chunks=chunks_row)
 
-    data = da.from_array(np.asarray(uv.data_array), chunks=chunks_cube)
-    flag = da.from_array(
-        np.asarray(
-            uv.flag_array,
-            dtype=np.bool_),
-        chunks=chunks_cube)
+    # Ensure DATA/FLAG are shaped (row, chan, corr); squeeze single-SPW axis if present
+    _data_np = np.asarray(uv.data_array)
+    if _data_np.ndim == 4 and _data_np.shape[1] == 1:
+        _data_np = _data_np[:, 0, :, :]
+    elif _data_np.ndim == 4:
+        # Unexpected multiple SPWs at this stage
+        raise RuntimeError(f"DATA has multiple SPWs (shape={_data_np.shape}); expected single-SPW")
+    if _data_np.shape[1] != nchan or _data_np.shape[2] != npol:
+        # Re-derive channel/pol counts from array in case uv.Nfreqs/Npols are stale
+        nchan = int(_data_np.shape[1])
+        npol = int(_data_np.shape[2])
+    data = da.from_array(_data_np, chunks=(chunks_row[0], nchan, npol))
+
+    _flag_np = np.asarray(uv.flag_array).astype(np.bool_)
+    if _flag_np.ndim == 4 and _flag_np.shape[1] == 1:
+        _flag_np = _flag_np[:, 0, :, :]
+    elif _flag_np.ndim == 4:
+        raise RuntimeError(f"FLAG has multiple SPWs (shape={_flag_np.shape}); expected single-SPW")
+    flag = da.from_array(_flag_np, chunks=(chunks_row[0], nchan, npol))
 
     # Per-row SIGMA/WEIGHT (npol) initialized to ones
     sigma = da.from_array(np.ones((nrow, npol), dtype=np.float32), chunks=(chunks_row[0], npol))
     weight = sigma
+
+    # Per-channel WEIGHT_SPECTRUM by broadcasting WEIGHT across channels
+    try:
+        weight_spectrum = da.broadcast_to(weight[:, None, :], (nrow, nchan, npol))
+    except Exception:
+        weight_spectrum = None
 
     vars_main = {
         'ANTENNA1': (('row',), a1),
@@ -426,6 +495,8 @@ def _build_main_table_dataset(uv: "UVData", *, row_chunks: int = 8192, field_per
         'SIGMA': (('row', 'corr'), sigma),
         'WEIGHT': (('row', 'corr'), weight),
     }
+    if weight_spectrum is not None:
+        vars_main['WEIGHT_SPECTRUM'] = (('row', 'chan', 'corr'), weight_spectrum)
     coords = {
         'row': (('row',), da.arange(nrow, chunks=chunks_row)),
         'chan': (('chan',), da.arange(nchan, chunks=(nchan,))),
@@ -531,51 +602,106 @@ def _build_antenna_dataset(uv: "UVData") -> "DMSDataset":
     return DMSDataset(vars_ant, coords=coords, attrs={})
 
 
+def _build_feed_dataset(uv: "UVData") -> "DMSDataset":
+    """Construct a FEED subtable with linear receptors X/Y for each antenna.
+
+    - POLARIZATION_TYPE: ['X','Y'] per antenna
+    - RECEPTOR_ANGLE: [0, 90 deg] in radians by convention for X/Y receptors
+    - POL_RESPONSE: 2x2 identity matrix (complex)
+    - SPECTRAL_WINDOW_ID: -1 (applies to all SPWs)
+    - ANTENNA_ID: 0..Nant-1, FEED_ID=0, BEAM_ID=-1, TIME=0, INTERVAL=1e9
+    """
+    import numpy as np
+    nants = int(getattr(uv, 'Nants_telescope', 0) or np.asarray(getattr(uv, 'antenna_positions')).shape[0])
+    # Object arrays need dtype=object for dask-ms
+    pol_type = np.empty((nants, 2), dtype=object)
+    pol_type[:, 0] = 'X'
+    pol_type[:, 1] = 'Y'
+    # receptor angles in radians: X=0, Y=pi/2
+    rec_ang = np.zeros((nants, 2), dtype=np.float64)
+    rec_ang[:, 1] = np.pi / 2.0
+    # 2x2 identity PolResponse per antenna (complex64)
+    pol_resp = np.zeros((nants, 2, 2), dtype=np.complex64)
+    pol_resp[:, 0, 0] = 1.0 + 0.0j
+    pol_resp[:, 1, 1] = 1.0 + 0.0j
+    ant_id = np.arange(nants, dtype=np.int32)
+    sw = np.full(nants, -1, dtype=np.int32)
+    feed_id = np.zeros(nants, dtype=np.int32)
+    beam_id = np.full(nants, -1, dtype=np.int32)
+    num_rec = np.full(nants, 2, dtype=np.int32)
+    time = np.zeros(nants, dtype=np.float64)
+    interval = np.full(nants, 1e9, dtype=np.float64)
+
+    vars_feed = {
+        'ANTENNA_ID': (('row',), da.from_array(ant_id, chunks=(nants,))),
+        'SPECTRAL_WINDOW_ID': (('row',), da.from_array(sw, chunks=(nants,))),
+        'FEED_ID': (('row',), da.from_array(feed_id, chunks=(nants,))),
+        'BEAM_ID': (('row',), da.from_array(beam_id, chunks=(nants,))),
+        'NUM_RECEPTORS': (('row',), da.from_array(num_rec, chunks=(nants,))),
+        'POLARIZATION_TYPE': (('row', 'receptor'), da.from_array(pol_type, chunks=(nants, 2))),
+        'RECEPTOR_ANGLE': (('row', 'receptor'), da.from_array(rec_ang, chunks=(nants, 2))),
+        'POL_RESPONSE': (('row', 'rec_x', 'rec_y'), da.from_array(pol_resp, chunks=(nants, 2, 2))),
+        'TIME': (('row',), da.from_array(time, chunks=(nants,))),
+        'INTERVAL': (('row',), da.from_array(interval, chunks=(nants,))),
+    }
+    coords = {
+        'row': (('row',), da.arange(nants, chunks=(nants,))),
+        'receptor': (('receptor',), da.arange(2, chunks=(2,))),
+        'rec_x': (('rec_x',), da.arange(2, chunks=(2,))),
+        'rec_y': (('rec_y',), da.arange(2, chunks=(2,))),
+    }
+    return DMSDataset(vars_feed, coords=coords, attrs={})
+
+
 def _build_field_dataset(
         phase_ra: "u.Quantity",
-        phase_dec: "u.Quantity") -> "DMSDataset":
+        phase_dec: "u.Quantity",
+        *,
+        time_sec: float = 0.0) -> "DMSDataset":
     import numpy as np
     ra = float(phase_ra.to_value())
     dec = float(phase_dec.to_value())
-    phase_dir = np.array([[[ra], [dec]]], dtype=np.float64)
+    # Per-row shape (NUM_POLY+1, 2). For constant (NUM_POLY=0) -> (1,2)
+    phase_dir = np.array([[ra, dec]], dtype=np.float64)
     vars_field = {
-        'NAME': (
-            ('row',), da.from_array(
-                np.array(
-                    ['field0'], dtype=object), chunks=(
-                    1,))), 'NUM_POLY': (
-                        ('row',), da.from_array(
-                            np.array(
-                                [0], dtype=np.int32), chunks=(
-                                    1,))), 'PHASE_DIR': (
-                                        ('num_poly', 'loc', 'dir'), da.from_array(
-                                            phase_dir, chunks=(
-                                                1, 2, 1))), }
+        'NAME': (('row',), da.from_array(np.array(['field0'], dtype=object), chunks=(1,))),
+        'NUM_POLY': (('row',), da.from_array(np.array([0], dtype=np.int32), chunks=(1,))),
+        'PHASE_DIR': (('num_poly', 'loc'), da.from_array(phase_dir, chunks=(1, 2))),
+        'DELAY_DIR': (('num_poly', 'loc'), da.from_array(phase_dir, chunks=(1, 2))),
+        'REFERENCE_DIR': (('num_poly', 'loc'), da.from_array(phase_dir, chunks=(1, 2))),
+        'TIME': (('row',), da.from_array(np.array([float(time_sec)], dtype=np.float64), chunks=(1,))),
+    }
     coords = {
         'num_poly': (('num_poly',), da.arange(1, chunks=(1,))),
         'loc': (('loc',), da.arange(2, chunks=(2,))),
-        'dir': (('dir',), da.arange(1, chunks=(1,))),
     }
     return DMSDataset(vars_field, coords=coords, attrs={})
 
 
-def _build_field_dataset_multi(phase_ra_list: List["u.Quantity"], phase_dec_list: List["u.Quantity"]) -> "DMSDataset":
+def _build_field_dataset_multi(phase_ra_list: List["u.Quantity"], phase_dec_list: List["u.Quantity"], time_list_sec: Optional[List[float]] = None) -> "DMSDataset":
     import numpy as np
     n = int(len(phase_ra_list))
     if n == 0:
         # Fallback to single dummy field
         return _build_field_dataset(0.0 * u.rad, 0.0 * u.rad)
-    # Build PHASE_DIR with shape (row, num_poly=1, loc=2)
-    # casacore FIELD::PHASE_DIR per-row shape is (NUM_POLY, 2)
+    # Build PHASE/DELAY/REFERENCE_DIR with shape (row, num_poly=1, loc=2)
     phase_dir = np.zeros((n, 1, 2), dtype=np.float64)
     for i, (ra, dec) in enumerate(zip(phase_ra_list, phase_dec_list)):
         phase_dir[i, 0, 0] = float(ra.to_value())
         phase_dir[i, 0, 1] = float(dec.to_value())
     names = np.array([f'field{i}' for i in range(n)], dtype=object)
+    if time_list_sec is None or len(time_list_sec) != n:
+        time_arr = np.zeros(n, dtype=np.float64)
+    else:
+        time_arr = np.array([float(t) for t in time_list_sec], dtype=np.float64)
     vars_field = {
         'NAME': (('row',), da.from_array(names, chunks=(n,))),
-        'NUM_POLY': (('row',), da.from_array(np.ones(n, dtype=np.int32), chunks=(n,))),
+        # Constant direction per field → NUM_POLY = 0 (shape is (1,2) = NUM_POLY+1)
+        'NUM_POLY': (('row',), da.from_array(np.zeros(n, dtype=np.int32), chunks=(n,))),
         'PHASE_DIR': (('row', 'num_poly', 'loc'), da.from_array(phase_dir, chunks=(n, 1, 2))),
+        'DELAY_DIR': (('row', 'num_poly', 'loc'), da.from_array(phase_dir, chunks=(n, 1, 2))),
+        'REFERENCE_DIR': (('row', 'num_poly', 'loc'), da.from_array(phase_dir, chunks=(n, 1, 2))),
+        'TIME': (('row',), da.from_array(time_arr, chunks=(n,))),
     }
     coords = {
         'row': (('row',), da.arange(n, chunks=(n,))),
@@ -1951,6 +2077,7 @@ def main() -> int:
         type=int,
         default=600,
         help="Timeout in seconds for ragavi-vis export (default: 600)")
+    p.add_argument("--strict-ms", action="store_true", default=True, help="Validate MS structure after write (recommended)")
     args = p.parse_args()
 
     try:

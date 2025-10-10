@@ -5,7 +5,7 @@ from .flagging import reset_flags, flag_zeros, flag_rfi
 from .calibration import solve_delay, solve_bandpass, solve_gains
 from .applycal import apply_to_target
 from .selection import select_bandpass_fields, select_bandpass_from_catalog
-from .msfix import fix_field_num_poly, fix_spw_resolution, fix_main_sigma_weight
+MSFIX_FUNCS = None  # Loaded lazily if --msfix is requested
 
 
 def run_calibrator(ms: str, cal_field: str, refant: str, *, do_flagging: bool = True) -> List[str]:
@@ -20,6 +20,18 @@ def run_calibrator(ms: str, cal_field: str, refant: str, *, do_flagging: bool = 
             changed = True
         if fix_main_sigma_weight(ms):
             print("Filled MAIN::SIGMA/WEIGHT for missing rows")
+            changed = True
+        if fix_observation_table(ms):
+            print("Ensured OBSERVATION row and MAIN::OBSERVATION_ID=0")
+            changed = True
+        if fix_main_interval(ms):
+            print("Filled MAIN::INTERVAL with median time spacing")
+            changed = True
+        if ensure_weight_spectrum(ms):
+            print("Ensured MAIN::WEIGHT_SPECTRUM (broadcast from WEIGHT)")
+            changed = True
+        if fix_scan_number(ms):
+            print("Set non-positive SCAN_NUMBER to 1")
             changed = True
     except Exception:
         pass
@@ -50,7 +62,10 @@ def main():
     pc.add_argument("--cal-search-radius-deg", type=float, default=1.0, help="Search radius (deg) around catalog entries")
     pc.add_argument("--pt-dec-deg", type=float, help="Pointing declination (deg) for catalog weighting")
     pc.add_argument("--bp-window", type=int, default=3, help="Number of fields (approx) around peak to include")
+    pc.add_argument("--bp-min-pb", type=float, default=None, help="Primary-beam gain threshold [0-1] to auto-size field window around peak")
+    pc.add_argument("--bp-combine-field", action="store_true", help="Combine across selected fields when solving bandpass/gains")
     pc.add_argument("--no-flagging", action="store_true", help="Disable pre-solve flagging to avoid crashes on nonstandard polarizations")
+    pc.add_argument("--msfix", action="store_true", help="Apply MS metadata repairs before solving (disabled by default)")
 
     pt = sub.add_parser("apply", help="Apply calibration to target MS")
     pt.add_argument("--ms", required=True)
@@ -64,13 +79,12 @@ def main():
         if args.auto_fields:
             try:
                 if args.cal_catalog:
-                    if args.pt_dec_deg is None:
-                        p.error("--auto-fields with --cal-catalog requires --pt-dec-deg")
                     sel, idxs, wflux, calinfo = select_bandpass_from_catalog(
                         args.ms,
                         args.cal_catalog,
                         search_radius_deg=float(args.cal_search_radius_deg or 1.0),
                         window=max(1, int(args.bp_window)),
+                        min_pb=(float(args.bp_min_pb) if args.bp_min_pb is not None else None),
                     )
                     name, ra_deg, dec_deg, flux_jy = calinfo
                     print(f"Catalog calibrator: {name} (RA {ra_deg:.4f} deg, Dec {dec_deg:.4f} deg, flux {flux_jy:.2f} Jy)")
@@ -85,6 +99,7 @@ def main():
                         args.cal_dec_deg,
                         args.cal_flux_jy,
                         window=max(1, int(args.bp_window)),
+                        min_pb=(float(args.bp_min_pb) if args.bp_min_pb is not None else None),
                     )
                     print(f"Auto-selected bandpass fields: {sel} (indices: {idxs})")
                     field_sel = sel
@@ -111,7 +126,68 @@ def main():
         if refant is None:
             p.error("Provide --refant or --refant-ranking")
 
-        tabs = run_calibrator(args.ms, field_sel, refant, do_flagging=(not args.no_flagging))
+        # Optional: apply MS repairs only when explicitly requested
+        if args.msfix:
+            global MSFIX_FUNCS
+            if MSFIX_FUNCS is None:
+                from .msfix import (
+                    fix_field_num_poly,
+                    fix_spw_resolution,
+                    fix_main_sigma_weight,
+                    fix_observation_table,
+                    fix_main_interval,
+                    ensure_weight_spectrum,
+                    fix_scan_number,
+                )
+                MSFIX_FUNCS = (
+                    fix_field_num_poly,
+                    fix_spw_resolution,
+                    fix_main_sigma_weight,
+                    fix_observation_table,
+                    fix_main_interval,
+                    ensure_weight_spectrum,
+                    fix_scan_number,
+                )
+            print("Applying MS repairs (--msfix)...")
+            for func in MSFIX_FUNCS:
+                try:
+                    if func(args.ms):
+                        print(f" - {func.__name__}: updated")
+                except Exception:
+                    pass
+        # Execute solves with a robust K step on the peak field only, then BP/G across the selected window
+        from .flagging import reset_flags, flag_zeros, flag_rfi
+        from .calibration import solve_delay, solve_bandpass, solve_gains
+
+        if not args.no_flagging:
+            reset_flags(args.ms)
+            flag_zeros(args.ms)
+            flag_rfi(args.ms)
+
+        # Determine a peak field for K (if auto-selected, we have idxs/wflux)
+        k_field_sel = field_sel
+        try:
+            # Available only in this scope if auto-fields branch set these locals
+            if 'idxs' in locals() and 'wflux' in locals() and idxs and len(wflux) == len(idxs):
+                import numpy as np
+                k_idx = int(idxs[int(np.nanargmax(wflux))])
+                k_field_sel = str(k_idx)
+        except Exception:
+            pass
+        # As a fallback, if field_sel is a range like A~B, pick B
+        if '~' in str(field_sel) and (k_field_sel == field_sel):
+            try:
+                a, b = str(field_sel).split('~')
+                k_field_sel = str(int(b))
+            except Exception:
+                pass
+
+        print(f"Delay solve field (K): {k_field_sel}; BP/G fields: {field_sel}")
+        ktabs = solve_delay(args.ms, k_field_sel, refant)
+        bptabs = solve_bandpass(args.ms, field_sel, refant, ktabs[0], combine_fields=bool(args.bp_combine_field))
+        gtabs = solve_gains(args.ms, field_sel, refant, ktabs[0], bptabs, combine_fields=bool(args.bp_combine_field))
+
+        tabs = ktabs[:1] + bptabs + gtabs
         print("Generated tables:\n" + "\n".join(tabs))
     elif args.cmd == "apply":
         apply_to_target(args.ms, args.field, args.tables)

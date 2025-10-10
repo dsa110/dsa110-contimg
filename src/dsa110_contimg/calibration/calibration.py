@@ -65,6 +65,7 @@ def solve_bandpass(
     table_prefix: Optional[str] = None,
     set_model: bool = True,
     model_standard: str = "Perley-Butler 2017",
+    combine_fields: bool = False,
 ) -> List[str]:
     """Solve bandpass in two stages: amplitude (bacal) then phase (bpcal)."""
     if table_prefix is None:
@@ -73,12 +74,13 @@ def solve_bandpass(
     if set_model:
         casa_setjy(vis=ms, field=cal_field, standard=model_standard)
 
+    comb = "scan,field" if combine_fields else "scan"
     casa_bandpass(
         vis=ms,
         caltable=f"{table_prefix}_bacal",
         field=cal_field,
         solint="inf",
-        combine="scan",
+        combine=comb,
         refant=refant,
         solnorm=True,
         bandtype="B",
@@ -90,7 +92,7 @@ def solve_bandpass(
         caltable=f"{table_prefix}_bpcal",
         field=cal_field,
         solint="inf",
-        combine="scan",
+        combine=comb,
         refant=refant,
         solnorm=True,
         bandtype="B",
@@ -109,12 +111,14 @@ def solve_gains(
     table_prefix: Optional[str] = None,
     t_short: str = "60s",
     do_fluxscale: bool = False,
+    combine_fields: bool = False,
 ) -> List[str]:
     """Solve gain amplitude and phase; optionally short-timescale and fluxscale."""
     if table_prefix is None:
         table_prefix = f"{ms.rstrip('.ms')}_{cal_field}"
 
     gaintable = [ktable] + bptables
+    comb = "scan,field" if combine_fields else None
     casa_gaincal(
         vis=ms,
         caltable=f"{table_prefix}_gacal",
@@ -124,6 +128,7 @@ def solve_gains(
         gaintype="G",
         calmode="a",
         gaintable=gaintable,
+        combine=comb,
     )
     gaintable2 = gaintable + [f"{table_prefix}_gacal"]
     casa_gaincal(
@@ -135,6 +140,7 @@ def solve_gains(
         gaintype="G",
         calmode="p",
         gaintable=gaintable2,
+        combine=comb,
     )
 
     out = [f"{table_prefix}_gacal", f"{table_prefix}_gpcal"]
@@ -149,6 +155,7 @@ def solve_gains(
             gaintype="G",
             calmode="ap",
             gaintable=gaintable2,
+            combine=comb,
         )
         out.append(f"{table_prefix}_2gcal")
 

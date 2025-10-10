@@ -45,6 +45,7 @@ def select_bandpass_fields(
     cal_flux_jy: float,
     *,
     window: int = 3,
+    min_pb: float | None = None,
     freq_GHz: float = 1.4,
 ) -> Tuple[str, List[int], np.ndarray]:
     """Pick optimal FIELD indices for bandpass solving based on PB-weighted flux.
@@ -62,15 +63,27 @@ def select_bandpass_fields(
 
     # Primary-beam weighted flux per field
     wflux = np.zeros(n, dtype=float)
+    resp = np.zeros(n, dtype=float)
     for i in range(n):
-        resp = airy_primary_beam_response(ra_f[i], dec_f[i], src_ra, src_dec, freq_GHz)
-        wflux[i] = resp * float(cal_flux_jy)
+        r = airy_primary_beam_response(ra_f[i], dec_f[i], src_ra, src_dec, freq_GHz)
+        resp[i] = r
+        wflux[i] = r * float(cal_flux_jy)
 
     # Pick best center and window
     idx = int(np.nanargmax(wflux))
-    half = max(1, int(window)) // 2
-    start = max(0, idx - half)
-    end = min(n - 1, idx + half)
+    if min_pb is not None and np.isfinite(min_pb):
+        thr = float(min_pb) * max(resp[idx], 1e-12)
+        # Expand contiguously around peak while resp >= thr
+        start = idx
+        end = idx
+        while start - 1 >= 0 and resp[start - 1] >= thr:
+            start -= 1
+        while end + 1 < n and resp[end + 1] >= thr:
+            end += 1
+    else:
+        half = max(1, int(window)) // 2
+        start = max(0, idx - half)
+        end = min(n - 1, idx + half)
 
     sel_str = f"{start}~{end}" if start != end else f"{start}"
     indices = list(range(start, end + 1))
@@ -84,6 +97,7 @@ def select_bandpass_from_catalog(
     search_radius_deg: float = 1.0,
     freq_GHz: float = 1.4,
     window: int = 3,
+    min_pb: float | None = None,
 ) -> Tuple[str, List[int], np.ndarray, Tuple[str, float, float, float]]:
     """Select bandpass fields by scanning a VLA calibrator catalog.
 
@@ -143,9 +157,19 @@ def select_bandpass_from_catalog(
 
     _, peak_idx, name, ra_deg, dec_deg, flux_jy = best
     wflux = best_wflux
-    half = max(1, int(window)) // 2
-    start = max(0, peak_idx - half)
-    end = min(len(wflux) - 1, peak_idx + half)
+    if min_pb is not None and np.isfinite(min_pb):
+        resp_peak = max(wflux[peak_idx] / max(flux_jy, 1e-12), 0.0)
+        thr = float(min_pb) * max(resp_peak, 1e-12)
+        start = peak_idx
+        end = peak_idx
+        while start - 1 >= 0 and (wflux[start - 1] / max(flux_jy, 1e-12)) >= thr:
+            start -= 1
+        while end + 1 < len(wflux) and (wflux[end + 1] / max(flux_jy, 1e-12)) >= thr:
+            end += 1
+    else:
+        half = max(1, int(window)) // 2
+        start = max(0, peak_idx - half)
+        end = min(len(wflux) - 1, peak_idx + half)
     sel_str = f"{start}~{end}" if start != end else f"{start}"
     indices = list(range(start, end + 1))
     cal_info = (name, ra_deg, dec_deg, flux_jy)

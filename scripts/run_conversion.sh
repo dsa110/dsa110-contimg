@@ -37,10 +37,26 @@ else
 fi
 
 # 4) Run the converter on the casa6 environment (or current python), outputting to scratch
+#    Enforce strict, calibration-grade MS structure (dask-ms writer, 24 FIELDs)
 PYTHONPATH=${PYTHONPATH:-}
 export PYTHONPATH="${REPO_ROOT}/src${PYTHONPATH:+:${PYTHONPATH}}"
 
+# CASA/dask stability: keep thread pools small and avoid HDF5 file locking
+export OMP_NUM_THREADS="1"
+export OPENBLAS_NUM_THREADS="1"
+export MKL_NUM_THREADS="1"
+export NUMEXPR_NUM_THREADS="1"
+export HDF5_USE_FILE_LOCKING="FALSE"
+
 echo "Running converter..."
+# Decide whether to stage to tmpfs based on free space (avoid OOM/kills)
+USE_TMPFS_FLAG=("--tmpfs-path" "/dev/shm")
+SHM_FREE_KB=$(df -Pk /dev/shm 2>/dev/null | awk 'NR==2{print $4}')
+if [[ -n "${SHM_FREE_KB}" ]] && (( SHM_FREE_KB < 8*1024*1024 )); then
+  echo "Low /dev/shm free ($((${SHM_FREE_KB}/1024)) MB) -> disabling tmpfs staging"
+  USE_TMPFS_FLAG=("--no-stage-tmpfs")
+fi
+
 "${PYTHON_BIN}" -m dsa110_contimg.conversion.uvh5_to_ms_converter_v2 \
     "${INPUT_DIR}" \
     "${SCRATCH_MS}" \
@@ -48,8 +64,9 @@ echo "Running converter..."
     "${END_TIME}" \
     --log-level INFO \
     --scratch-dir "${SCRATCH_ROOT}" \
-    --tmpfs-path /dev/shm \
+    "${USE_TMPFS_FLAG[@]}" \
     --field-per-integration \
+    --dask-write \
     --dask-write-failfast \
     --daskms-row-chunks 8192 \
     --daskms-cube-row-chunks 8192
@@ -83,6 +100,43 @@ with table(ms) as tb:
     print('Counts per FIELD_ID (first 10):', counts)
 with table(ms+'::SPECTRAL_WINDOW') as spw:
     print('SPW rows:', spw.nrows())
+with table(ms+'::POLARIZATION') as pol:
+    ct = np.asarray(pol.getcol('CORR_TYPE'))
+    print('POL CORR_TYPE:', ct.tolist())
+with table(ms) as tb:
+    cols = set(tb.colnames())
+    if 'INTERVAL' in cols:
+        iv = tb.getcol('INTERVAL')
+        print('INTERVAL min/max:', float(np.nanmin(iv)), float(np.nanmax(iv)))
+        assert np.all(iv > 0), 'INTERVAL must be > 0'
+    assert 'WEIGHT_SPECTRUM' in cols, 'WEIGHT_SPECTRUM missing'
+    # Basic shape check
+    d0 = tb.getcell('DATA', 0)
+    ws0 = tb.getcell('WEIGHT_SPECTRUM', 0)
+    assert d0.shape == ws0.shape, f'WEIGHT_SPECTRUM shape {ws0.shape} != DATA shape {d0.shape}'
+    # OBSERVATION_ID should be 0 for all rows
+    if 'OBSERVATION_ID' in cols:
+        oid = tb.getcol('OBSERVATION_ID')
+        u = np.unique(oid)
+        print('OBSERVATION_ID uniques:', u.tolist())
+        assert u.size == 1 and u[0] == 0, 'OBSERVATION_ID must be all zeros'
+    # SCAN_NUMBER should be >= 1
+    if 'SCAN_NUMBER' in cols:
+        sc = tb.getcol('SCAN_NUMBER')
+        print('SCAN_NUMBER min/max:', int(sc.min()), int(sc.max()))
+        assert sc.min() >= 1, 'SCAN_NUMBER must be >= 1'
+print('Strict MS checks passed.')
+with table(ms+'::FEED') as feed:
+    print('FEED rows:', feed.nrows())
+    if feed.nrows() > 0 and 'POLARIZATION_TYPE' in feed.colnames():
+        try:
+            print('FEED POLARIZATION_TYPE[0]:', feed.getcol('POLARIZATION_TYPE')[0].tolist())
+        except Exception:
+            pass
+with table(ms+'::FIELD') as tf:
+    if 'TIME' in tf.colnames():
+        tm = tf.getcol('TIME')
+        print('FIELD TIME min/max:', float(np.nanmin(tm)), float(np.nanmax(tm)))
 PY
 fi
 
