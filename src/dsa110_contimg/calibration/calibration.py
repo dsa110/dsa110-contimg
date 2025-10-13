@@ -20,7 +20,9 @@ def _resolve_field_ids(ms: str, field_sel: str) -> List[int]:
     sel = str(field_sel).strip()
     # Try numeric selections first: comma-separated tokens and A~B ranges
     ids: List[int] = []
-    numeric_tokens = [tok.strip() for tok in sel.replace(";", ",").split(",") if tok.strip()]
+    numeric_tokens = [
+        tok.strip() for tok in sel.replace(
+            ";", ",").split(",") if tok.strip()]
 
     def _add_numeric(tok: str) -> bool:
         if "~" in tok:
@@ -47,7 +49,8 @@ def _resolve_field_ids(ms: str, field_sel: str) -> List[int]:
 
     # Fall back to FIELD::NAME glob matching
     patterns = [p for p in numeric_tokens if p]
-    # If no separators were present, still try the full selector as a single pattern
+    # If no separators were present, still try the full selector as a single
+    # pattern
     if not patterns:
         patterns = [sel]
 
@@ -90,7 +93,9 @@ def solve_delay(
         target_ids = _resolve_field_ids(ms, str(cal_field))
         if not target_ids:
             raise ValueError(f"Unable to resolve field selection: {cal_field}")
-        field_mask = np.isin(field_ids, np.asarray(target_ids, dtype=field_ids.dtype))
+        field_mask = np.isin(
+            field_ids, np.asarray(
+                target_ids, dtype=field_ids.dtype))
         if not np.any(field_mask):
             raise ValueError(f"No data found for field selection {cal_field}")
 
@@ -114,7 +119,8 @@ def solve_delay(
                 f"Reference antenna {refant} not found in field {cal_field}")
 
         # Check for unflagged data
-        field_flags = np.stack([tb.getcell('FLAG', int(r)) for r in row_idx], axis=2)
+        field_flags = np.stack([tb.getcell('FLAG', int(r))
+                               for r in row_idx], axis=2)
         unflagged_count = int(np.sum(~field_flags))
         if unflagged_count == 0:
             raise ValueError(f"All data in field {cal_field} is flagged")
@@ -197,6 +203,7 @@ def solve_bandpass(
     set_model: bool = True,
     model_standard: str = "Perley-Butler 2017",
     combine_fields: bool = False,
+    minsnr: float = 5.0,
 ) -> List[str]:
     """Solve bandpass in two stages: amplitude (bacal) then phase (bpcal)."""
     if table_prefix is None:
@@ -231,7 +238,7 @@ def solve_bandpass(
         solnorm=True,
         bandtype="B",
         gaintable=[ktable],
-        minsnr=5.0,
+        minsnr=minsnr,
         selectdata=True
     )
     print(f"✓ Bandpass amplitude solve completed: {table_prefix}_bacal")
@@ -248,7 +255,7 @@ def solve_bandpass(
         solnorm=True,
         bandtype="B",
         gaintable=[ktable, f"{table_prefix}_bacal"],
-        minsnr=5.0,
+        minsnr=minsnr,
         selectdata=True
     )
     print(f"✓ Bandpass phase solve completed: {table_prefix}_bpcal")

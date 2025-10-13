@@ -25,7 +25,14 @@ from datetime import datetime, timedelta
 from pathlib import Path
 from typing import Dict, Iterator, List, Optional, Sequence, Set, Tuple
 
-from . import uvh5_to_ms_converter_v2 as converter
+from . import uvh5_to_ms as converter
+import sys
+from casatasks import concat as casa_concat  # noqa
+from casacore.tables import table  # noqa
+from dsa110_contimg.calibration.calibration import solve_delay, solve_bandpass, solve_gains  # noqa
+from dsa110_contimg.calibration.applycal import apply_to_target  # noqa
+from dsa110_contimg.imaging.cli import image_ms  # noqa
+from dsa110_contimg.database.registry import ensure_db as ensure_cal_db, register_set_from_prefix, get_active_applylist  # noqa
 
 try:  # Optional dependency for efficient file watching
     from watchdog.events import FileSystemEventHandler
@@ -152,7 +159,8 @@ class QueueDB:
 
             altered = False
             if "checkpoint_path" not in columns:
-                self._conn.execute("ALTER TABLE ingest_queue ADD COLUMN checkpoint_path TEXT")
+                self._conn.execute(
+                    "ALTER TABLE ingest_queue ADD COLUMN checkpoint_path TEXT")
                 altered = True
             if "processing_stage" not in columns:
                 self._conn.execute(
@@ -163,10 +171,12 @@ class QueueDB:
                 )
                 altered = True
             if "chunk_minutes" not in columns:
-                self._conn.execute("ALTER TABLE ingest_queue ADD COLUMN chunk_minutes REAL")
+                self._conn.execute(
+                    "ALTER TABLE ingest_queue ADD COLUMN chunk_minutes REAL")
                 altered = True
             if "expected_subbands" not in columns:
-                self._conn.execute("ALTER TABLE ingest_queue ADD COLUMN expected_subbands INTEGER")
+                self._conn.execute(
+                    "ALTER TABLE ingest_queue ADD COLUMN expected_subbands INTEGER")
                 # Fill default for existing rows to current config value
                 try:
                     self._conn.execute(
@@ -177,29 +187,39 @@ class QueueDB:
                     pass
 
             if "has_calibrator" not in columns:
-                self._conn.execute("ALTER TABLE ingest_queue ADD COLUMN has_calibrator INTEGER DEFAULT NULL")
+                self._conn.execute(
+                    "ALTER TABLE ingest_queue ADD COLUMN has_calibrator INTEGER DEFAULT NULL")
                 altered = True
             if "calibrators" not in columns:
-                self._conn.execute("ALTER TABLE ingest_queue ADD COLUMN calibrators TEXT")
+                self._conn.execute(
+                    "ALTER TABLE ingest_queue ADD COLUMN calibrators TEXT")
                 altered = True
 
             if altered:
-                logging.info("Updated ingest_queue schema with new metadata columns.")
+                logging.info(
+                    "Updated ingest_queue schema with new metadata columns.")
 
         # Migrate performance_metrics
         with self._lock, self._conn:
             try:
-                pcols = {row["name"] for row in self._conn.execute("PRAGMA table_info(performance_metrics)").fetchall()}
+                pcols = {row["name"] for row in self._conn.execute(
+                    "PRAGMA table_info(performance_metrics)").fetchall()}
             except sqlite3.DatabaseError:
                 pcols = set()
             if pcols and "writer_type" not in pcols:
                 try:
-                    self._conn.execute("ALTER TABLE performance_metrics ADD COLUMN writer_type TEXT")
-                    logging.info("Updated performance_metrics schema with writer_type column.")
+                    self._conn.execute(
+                        "ALTER TABLE performance_metrics ADD COLUMN writer_type TEXT")
+                    logging.info(
+                        "Updated performance_metrics schema with writer_type column.")
                 except sqlite3.DatabaseError:
                     pass
 
-    def record_subband(self, group_id: str, subband_idx: int, file_path: Path) -> None:
+    def record_subband(
+            self,
+            group_id: str,
+            subband_idx: int,
+            file_path: Path) -> None:
         now = time.time()
         normalized_group = self._normalize_group_id_datetime(group_id)
         with self._lock, self._conn:
@@ -241,7 +261,9 @@ class QueueDB:
                 )
 
     def bootstrap_directory(self, input_dir: Path) -> None:
-        logging.info("Bootstrapping queue from existing files in %s", input_dir)
+        logging.info(
+            "Bootstrapping queue from existing files in %s",
+            input_dir)
         for path in sorted(input_dir.glob('*_sb??.hdf5')):
             info = parse_subband_info(path)
             if info is None:
@@ -323,7 +345,8 @@ class QueueDB:
                 (next_state, retry_count, now, error, group_id),
             )
 
-    def recover_stale_in_progress(self, timeout_seconds: Optional[float]) -> List[str]:
+    def recover_stale_in_progress(
+            self, timeout_seconds: Optional[float]) -> List[str]:
         if timeout_seconds is None or timeout_seconds <= 0:
             return []
         cutoff = time.time() - timeout_seconds
@@ -353,7 +376,9 @@ class QueueDB:
                 recovered.append(group_id)
             return recovered
 
-    def list_stale_collecting(self, timeout_seconds: Optional[float]) -> List[str]:
+    def list_stale_collecting(
+            self,
+            timeout_seconds: Optional[float]) -> List[str]:
         if timeout_seconds is None or timeout_seconds <= 0:
             return []
         cutoff = time.time() - timeout_seconds
@@ -367,7 +392,10 @@ class QueueDB:
             ).fetchall()
         return [row[0] for row in rows]
 
-    def update_checkpoint_path(self, group_id: str, checkpoint_path: str) -> None:
+    def update_checkpoint_path(
+            self,
+            group_id: str,
+            checkpoint_path: str) -> None:
         """Update the checkpoint path for a group."""
         with self._lock, self._conn:
             self._conn.execute(
@@ -389,9 +417,10 @@ class QueueDB:
                  WHERE group_id = ?
                 """,
                 (stage, time.time(), group_id),
-        )
+            )
 
-    def get_checkpoint_info(self, group_id: str) -> Optional[Tuple[Optional[str], str]]:
+    def get_checkpoint_info(
+            self, group_id: str) -> Optional[Tuple[Optional[str], str]]:
         """Get checkpoint path and processing stage for a group."""
         with self._lock:
             row = self._conn.execute(
@@ -405,7 +434,11 @@ class QueueDB:
             return None
         return row[0], row[1]
 
-    def update_calibrator_match(self, group_id: str, has_cal: int, calibrators_json: str) -> None:
+    def update_calibrator_match(
+            self,
+            group_id: str,
+            has_cal: int,
+            calibrators_json: str) -> None:
         with self._lock, self._conn:
             self._conn.execute(
                 """
@@ -416,9 +449,14 @@ class QueueDB:
                 (has_cal, calibrators_json, time.time(), group_id),
             )
 
-    def record_performance_metrics(self, group_id: str, load_time: float, 
-                                 phase_time: float, write_time: float, 
-                                 total_time: float, writer_type: Optional[str] = None) -> None:
+    def record_performance_metrics(
+            self,
+            group_id: str,
+            load_time: float,
+            phase_time: float,
+            write_time: float,
+            total_time: float,
+            writer_type: Optional[str] = None) -> None:
         """Record performance metrics for a group."""
         with self._lock, self._conn:
             self._conn.execute(
@@ -523,7 +561,8 @@ def parse_subband_info(path: Path) -> Optional[Tuple[str, int]]:
 
 if HAVE_WATCHDOG:
 
-    class InotifyHandler(FileSystemEventHandler):  # pragma: no cover - requires watchdog
+    class InotifyHandler(
+            FileSystemEventHandler):  # pragma: no cover - requires watchdog
         def __init__(self, queue_db: QueueDB):
             super(InotifyHandler, self).__init__()
             self.queue_db = queue_db
@@ -536,14 +575,21 @@ if HAVE_WATCHDOG:
             if info is None:
                 return
             group_id, subband_idx = info
-            logging.info("Detected new subband %s (sb%02d)", group_id, subband_idx)
+            logging.info(
+                "Detected new subband %s (sb%02d)",
+                group_id,
+                subband_idx)
             self.queue_db.record_subband(group_id, subband_idx, path)
 
         on_moved = on_created
 
 
 class DirectoryWatcher(threading.Thread):
-    def __init__(self, input_dir: Path, queue_db: QueueDB, poll_interval: float = 5.0) -> None:
+    def __init__(
+            self,
+            input_dir: Path,
+            queue_db: QueueDB,
+            poll_interval: float = 5.0) -> None:
         super().__init__(daemon=True)
         self.input_dir = input_dir
         self.queue_db = queue_db
@@ -572,7 +618,9 @@ class DirectoryWatcher(threading.Thread):
                 observer.stop()
                 observer.join(timeout=5)
         else:
-            logging.info("Watchdog unavailable; falling back to polling every %.1f s", self.poll_interval)
+            logging.info(
+                "Watchdog unavailable; falling back to polling every %.1f s",
+                self.poll_interval)
             seen: Set[Path] = set()
             while not self._stop_event.wait(self.poll_interval):
                 for path in self.input_dir.glob('*_sb??.hdf5'):
@@ -582,7 +630,10 @@ class DirectoryWatcher(threading.Thread):
                     if info is None:
                         continue
                     group_id, subband_idx = info
-                    logging.info("Detected new subband %s (sb%02d)", group_id, subband_idx)
+                    logging.info(
+                        "Detected new subband %s (sb%02d)",
+                        group_id,
+                        subband_idx)
                     self.queue_db.record_subband(group_id, subband_idx, path)
                     seen.add(path)
 
@@ -595,7 +646,7 @@ class WorkerConfig(object):
         checkpoint_dir: Optional[Path],
         log_level: str,
         omp_threads: Optional[int],
-        converter_path: Path,
+        converter_path: Optional[Path],
         max_retries: int,
         cleanup_temp: bool,
         in_progress_timeout: Optional[float],
@@ -609,6 +660,7 @@ class WorkerConfig(object):
         stage_inputs: bool = False,
         stage_workers: int = 8,
         hdf5_noflock: bool = True,
+        registry_db: Optional[Path] = None,
         # QA quicklooks (shadeMS) forwarded to converter
         qa_shadems: bool = False,
         qa_shadems_resid: bool = False,
@@ -642,6 +694,7 @@ class WorkerConfig(object):
         self.stage_inputs = stage_inputs
         self.stage_workers = max(1, int(stage_workers))
         self.hdf5_noflock = hdf5_noflock
+        self.registry_db = registry_db
         # QA quicklooks (shadeMS)
         self.qa_shadems = qa_shadems
         self.qa_shadems_resid = qa_shadems_resid
@@ -657,27 +710,30 @@ class WorkerConfig(object):
 
 class MonitoringThread(threading.Thread):
     """Monitor queue health and system resources."""
-    
+
     def __init__(self, queue_db: QueueDB, config: WorkerConfig) -> None:
         super().__init__(daemon=True)
         self.queue_db = queue_db
         self.config = config
         self._stop_event = threading.Event()
         self._last_failed_count = 0
-        
+
         # Try to import psutil for system metrics
         try:
             import psutil
             self._psutil = psutil
         except ImportError:
             self._psutil = None
-            logging.warning("psutil not available; system metrics will be limited")
+            logging.warning(
+                "psutil not available; system metrics will be limited")
 
     def stop(self) -> None:
         self._stop_event.set()
 
     def run(self) -> None:
-        logging.info("Starting monitoring thread (interval: %.1f s)", self.config.monitor_interval)
+        logging.info(
+            "Starting monitoring thread (interval: %.1f s)",
+            self.config.monitor_interval)
         while not self._stop_event.is_set():
             try:
                 self._check_queue_health()
@@ -685,7 +741,7 @@ class MonitoringThread(threading.Thread):
                     self._log_system_metrics()
             except Exception as e:
                 logging.error("Error in monitoring thread: %s", e)
-            
+
             self._stop_event.wait(self.config.monitor_interval)
 
     def _check_queue_health(self) -> None:
@@ -694,7 +750,7 @@ class MonitoringThread(threading.Thread):
             # Get queue statistics
             stats = self.queue_db._conn.execute(
                 """
-                SELECT 
+                SELECT
                     COUNT(*) as total,
                     SUM(CASE WHEN state = 'pending' THEN 1 ELSE 0 END) as pending,
                     SUM(CASE WHEN state = 'in_progress' THEN 1 ELSE 0 END) as in_progress,
@@ -703,33 +759,43 @@ class MonitoringThread(threading.Thread):
                 FROM ingest_queue
                 """
             ).fetchone()
-            
+
             total, pending, in_progress, failed, completed = stats
-            
+
             # Log queue status
-            logging.info("Queue status: total=%d, pending=%d, in_progress=%d, failed=%d, completed=%d", 
-                       total, pending, in_progress, failed, completed)
-            
+            logging.info(
+                "Queue status: total=%d, pending=%d, in_progress=%d, failed=%d, completed=%d",
+                total,
+                pending,
+                in_progress,
+                failed,
+                completed)
+
             # Check for warnings
             if total > 10:
                 logging.warning("High queue depth: %d groups queued", total)
-            
+
             if failed > self._last_failed_count:
-                logging.warning("Failed count increased: %d (was %d)", failed, self._last_failed_count)
+                logging.warning(
+                    "Failed count increased: %d (was %d)",
+                    failed,
+                    self._last_failed_count)
             self._last_failed_count = failed
-            
+
             # Check for stale in-progress groups
             stale_cutoff = time.time() - 900  # 15 minutes
             stale_count = self.queue_db._conn.execute(
                 """
-                SELECT COUNT(*) FROM ingest_queue 
+                SELECT COUNT(*) FROM ingest_queue
                  WHERE state = 'in_progress' AND last_update < ?
                 """,
                 (stale_cutoff,)
             ).fetchone()[0]
-            
+
             if stale_count > 0:
-                logging.warning("Found %d stale in-progress groups (>15 min)", stale_count)
+                logging.warning(
+                    "Found %d stale in-progress groups (>15 min)",
+                    stale_count)
 
     def _log_system_metrics(self) -> None:
         """Log system resource usage."""
@@ -737,17 +803,26 @@ class MonitoringThread(threading.Thread):
             cpu_percent = self._psutil.cpu_percent(interval=1)
             memory = self._psutil.virtual_memory()
             disk = self._psutil.disk_usage('/')
-            
-            logging.info("System metrics: CPU=%.1f%%, RAM=%.1f%% (%.1fGB/%.1fGB), Disk=%.1f%% (%.1fGB/%.1fGB)",
-                       cpu_percent, 
-                       memory.percent, memory.used/1e9, memory.total/1e9,
-                       disk.percent, disk.used/1e9, disk.total/1e9)
+
+            logging.info(
+                "System metrics: CPU=%.1f%%, RAM=%.1f%% (%.1fGB/%.1fGB), Disk=%.1f%% (%.1fGB/%.1fGB)",
+                cpu_percent,
+                memory.percent,
+                memory.used / 1e9,
+                memory.total / 1e9,
+                disk.percent,
+                disk.used / 1e9,
+                disk.total / 1e9)
         except Exception as e:
             logging.debug("Failed to get system metrics: %s", e)
 
 
 class StreamingWorker(threading.Thread):
-    def __init__(self, queue_db: QueueDB, config: WorkerConfig, poll_interval: float = 5.0) -> None:
+    def __init__(
+            self,
+            queue_db: QueueDB,
+            config: WorkerConfig,
+            poll_interval: float = 5.0) -> None:
         super().__init__(daemon=True)
         self.queue_db = queue_db
         self.config = config
@@ -760,11 +835,15 @@ class StreamingWorker(threading.Thread):
 
     def run(self) -> None:
         while not self._stop_event.is_set():
-            recovered = self.queue_db.recover_stale_in_progress(self.config.in_progress_timeout)
+            recovered = self.queue_db.recover_stale_in_progress(
+                self.config.in_progress_timeout)
             for group_id in recovered:
-                logging.warning("Recovered stale in-progress group %s; re-queued for processing", group_id)
+                logging.warning(
+                    "Recovered stale in-progress group %s; re-queued for processing",
+                    group_id)
 
-            stale_collecting = self.queue_db.list_stale_collecting(self.config.collecting_timeout)
+            stale_collecting = self.queue_db.list_stale_collecting(
+                self.config.collecting_timeout)
             for group_id in stale_collecting:
                 if group_id in self._warned_collecting:
                     continue
@@ -784,19 +863,27 @@ class StreamingWorker(threading.Thread):
                 self._process_group(group_id, subband_paths)
             except Exception as exc:  # pragma: no cover - runtime path
                 logging.exception("Processing failed for %s", group_id)
-                self.queue_db.mark_retry(group_id, str(exc), self.config.max_retries)
+                self.queue_db.mark_retry(
+                    group_id, str(exc), self.config.max_retries)
             else:
                 logging.info("Completed group %s", group_id)
                 self.queue_db.mark_completed(group_id)
 
-    def _parse_converter_timings(self, stdout: str, stderr: str, total_time: float) -> Tuple[float, float, float]:
+    def _parse_converter_timings(self,
+                                 stdout: str,
+                                 stderr: str,
+                                 total_time: float) -> Tuple[float,
+                                                             float,
+                                                             float]:
         """Parse timing information from converter subprocess output."""
 
         output = stdout + "\n" + stderr
 
         try:
-            load_time = self._parse_single_timing(output, r"Loaded \d+ subbands in ([\d.]+) s")
-            phase_time = self._parse_single_timing(output, r"Phasing complete in ([\d.]+) s")
+            load_time = self._parse_single_timing(
+                output, r"Loaded \d+ subbands in ([\d.]+) s")
+            phase_time = self._parse_single_timing(
+                output, r"Phasing complete in ([\d.]+) s")
             # Support both UVFITS and direct-MS writer timing lines
             write_time = (
                 self._parse_single_timing(output, r"UVFITS write completed in ([\d.]+) s")
@@ -807,7 +894,8 @@ class StreamingWorker(threading.Thread):
             if all(value is not None for value in parsed_times):
                 return load_time, phase_time, write_time
 
-            accounted = sum(value for value in parsed_times if value is not None)
+            accounted = sum(
+                value for value in parsed_times if value is not None)
             remaining = max(0.0, total_time - accounted)
 
             ratios = {'load': 0.3, 'phase': 0.4, 'write': 0.3}
@@ -822,7 +910,8 @@ class StreamingWorker(threading.Thread):
 
             if missing:
                 if remaining <= 0.0:
-                    logging.warning("No remaining time for backfill, using estimates for missing timings")
+                    logging.warning(
+                        "No remaining time for backfill, using estimates for missing timings")
                     return total_time * 0.3, total_time * 0.4, total_time * 0.3
 
                 total_ratio = sum(ratios[name] for name in missing)
@@ -877,14 +966,22 @@ class StreamingWorker(threading.Thread):
         try:
             value = float(match.group(1))
             if value < 0:
-                logging.warning("Timing %s produced negative value %.2f; ignoring", pattern, value)
+                logging.warning(
+                    "Timing %s produced negative value %.2f; ignoring",
+                    pattern,
+                    value)
                 return None
             return value
         except ValueError:
-            logging.warning("Failed to parse timing value from '%s'", match.group(1))
+            logging.warning(
+                "Failed to parse timing value from '%s'",
+                match.group(1))
             return None
 
-    def _process_group(self, group_id: str, subband_paths: Sequence[Path]) -> None:
+    def _process_group(
+            self,
+            group_id: str,
+            subband_paths: Sequence[Path]) -> None:
         if not subband_paths:
             raise RuntimeError(f"No subband files queued for group {group_id}")
 
@@ -894,46 +991,73 @@ class StreamingWorker(threading.Thread):
         if checkpoint_info:
             checkpoint_path, stage = checkpoint_info
             if checkpoint_path and os.path.exists(checkpoint_path):
-                logging.info("Resuming from checkpoint for %s (stage: %s)", group_id, stage)
+                logging.info(
+                    "Resuming from checkpoint for %s (stage: %s)",
+                    group_id,
+                    stage)
                 # Update stage to indicate we're resuming
                 self.queue_db.update_processing_stage(group_id, 'resuming')
                 is_resuming = True
-        
+
         # Only set processing stage for fresh runs
         if not is_resuming:
             self.queue_db.update_processing_stage(group_id, 'processing_fresh')
 
-        # Calibrator match (optional): requires pointing declination and VLA catalog path
+        # Calibrator match (optional): requires pointing declination and VLA
+        # catalog path
         try:
             from dsa110_contimg.calibration.catalogs import read_vla_parsed_catalog_csv, calibrator_match
             from astropy.time import Time
-            vla_catalog_path = os.getenv('VLA_CALIBRATOR_CSV', 'references/dsa110-contimg-main-legacy/data/catalogs/vla_calibrators_parsed.csv')
+            vla_catalog_path = os.getenv(
+                'VLA_CALIBRATOR_CSV',
+                'references/dsa110-contimg-main-legacy/data/catalogs/vla_calibrators_parsed.csv')
             pt_dec_env = os.getenv('PIPELINE_POINTING_DEC_DEG')
             if pt_dec_env and os.path.exists(vla_catalog_path):
                 # mid time for this group
                 start_dt = datetime.strptime(group_id, "%Y-%m-%dT%H:%M:%S")
-                mid_dt = start_dt + timedelta(minutes=self.config.chunk_duration_minutes / 2.0)
+                mid_dt = start_dt + \
+                    timedelta(minutes=self.config.chunk_duration_minutes / 2.0)
                 df = read_vla_parsed_catalog_csv(vla_catalog_path)
                 import astropy.units as u
-                matches = calibrator_match(df, float(pt_dec_env) * u.deg, Time(mid_dt, format='datetime', scale='utc').mjd,
-                                           radius_deg=float(os.getenv('CAL_MATCH_RADIUS_DEG', '1.0')),
-                                           top_n=int(os.getenv('CAL_MATCH_TOPN', '3')))
+                matches = calibrator_match(
+                    df,
+                    float(pt_dec_env) * u.deg,
+                    Time(
+                        mid_dt,
+                        format='datetime',
+                        scale='utc').mjd,
+                    radius_deg=float(
+                        os.getenv(
+                            'CAL_MATCH_RADIUS_DEG',
+                            '1.0')),
+                    top_n=int(
+                        os.getenv(
+                            'CAL_MATCH_TOPN',
+                            '3')))
                 if matches:
-                    self.queue_db.update_calibrator_match(group_id, has_cal=1, calibrators_json=json.dumps(matches))
+                    self.queue_db.update_calibrator_match(
+                        group_id, has_cal=1, calibrators_json=json.dumps(matches))
                     logging.info("Calibrator(s) in beam: %s", matches)
                 else:
-                    self.queue_db.update_calibrator_match(group_id, has_cal=0, calibrators_json=json.dumps([]))
+                    self.queue_db.update_calibrator_match(
+                        group_id, has_cal=0, calibrators_json=json.dumps([]))
                     logging.info("No calibrators in beam for %s", group_id)
             else:
-                logging.debug("Calibrator match skipped (missing PIPELINE_POINTING_DEC_DEG or catalog)")
+                logging.debug(
+                    "Calibrator match skipped (missing PIPELINE_POINTING_DEC_DEG or catalog)")
         except Exception as e:
             logging.warning("Calibrator match failed: %s", e)
 
         temp_dir = Path(tempfile.mkdtemp(prefix=f"stream_{group_id}_"))
         try:
-            # Stage inputs: either symlink (default) or copy concurrently for faster local reads
+            # Stage inputs: either symlink (default) or copy concurrently for
+            # faster local reads
             if self.config.stage_inputs:
-                logging.info("Staging %d subbands to %s using %d workers", len(subband_paths), temp_dir, self.config.stage_workers)
+                logging.info(
+                    "Staging %d subbands to %s using %d workers",
+                    len(subband_paths),
+                    temp_dir,
+                    self.config.stage_workers)
                 from concurrent.futures import ThreadPoolExecutor, as_completed
 
                 def _copy_one(src: Path, dst: Path) -> Tuple[Path, float]:
@@ -952,7 +1076,13 @@ class StreamingWorker(threading.Thread):
                         src_path = futs[fut]
                         try:
                             dst_path, dt = fut.result()
-                            logging.info("Staged %s -> %s in %.2f s (%d/%d)", src_path.name, dst_path, dt, i, len(futs))
+                            logging.info(
+                                "Staged %s -> %s in %.2f s (%d/%d)",
+                                src_path.name,
+                                dst_path,
+                                dt,
+                                i,
+                                len(futs))
                         except Exception as e:
                             logging.error("Failed staging %s: %s", src_path, e)
                             raise
@@ -964,10 +1094,11 @@ class StreamingWorker(threading.Thread):
 
             start_dt = datetime.strptime(group_id, "%Y-%m-%dT%H:%M:%S")
             # Use configurable chunk duration (default: 5 minutes)
-            end_dt = start_dt + timedelta(minutes=self.config.chunk_duration_minutes)
+            end_dt = start_dt + \
+                timedelta(minutes=self.config.chunk_duration_minutes)
             start_time = start_dt.strftime('%Y-%m-%d %H:%M:%S')
             end_time = end_dt.strftime('%Y-%m-%d %H:%M:%S')
-            
+
             # Track timing for performance metrics
             total_start = time.perf_counter()
             load_time = 0.0
@@ -977,49 +1108,19 @@ class StreamingWorker(threading.Thread):
             if self.config.use_subprocess:
                 cmd = [
                     sys.executable,
-                    str(self.config.converter_path),
-                    str(temp_dir),
+                    '-m', 'dsa110_contimg.conversion.uvh5_to_ms',
+                    '--input-dir', str(temp_dir),
                     str(self.config.output_dir),
-                    start_time,
-                    end_time,
-                    '--log-level',
-                    self.config.log_level,
                 ]
-                if self.config.converter_dask_write:
-                    cmd.append('--dask-write')
-                    if self.config.converter_dask_failfast:
-                        cmd.append('--dask-write-failfast')
-                # Forward QA quicklooks flags to converter if enabled in worker config
-                enable_qa = bool(self.config.qa_shadems)
-                if self.config.qa_shadems_cal_only:
-                    try:
-                        hc = self.queue_db.get_has_calibrator(group_id)
-                        enable_qa = enable_qa and (hc == 1)
-                    except Exception:
-                        enable_qa = False
-                if enable_qa:
-                    cmd.append('--qa-shadems')
-                    if self.config.qa_shadems_resid:
-                        cmd.append('--qa-shadems-resid')
-                    if int(self.config.qa_shadems_max) != 4:
-                        cmd.extend(['--qa-shadems-max', str(int(self.config.qa_shadems_max))])
-                    if int(self.config.qa_shadems_timeout) != 600:
-                        cmd.extend(['--qa-shadems-timeout', str(int(self.config.qa_shadems_timeout))])
-                    if self.config.qa_state_dir is not None:
-                        cmd.extend(['--qa-state-dir', str(self.config.qa_state_dir)])
-                # Forward ragavi flags
-                if self.config.qa_ragavi_vis:
-                    cmd.append('--qa-ragavi-vis')
-                    if int(self.config.qa_ragavi_timeout) != 600:
-                        cmd.extend(['--qa-ragavi-timeout', str(int(self.config.qa_ragavi_timeout))])
-                if self.config.checkpoint_dir is not None:
-                    cmd.extend(['--checkpoint-dir', str(self.config.checkpoint_dir)])
-                if self.config.scratch_dir is not None:
-                    cmd.extend(['--scratch-dir', str(self.config.scratch_dir)])
-                if self.config.direct_ms:
-                    cmd.append('--direct-ms')
+                ll = (self.config.log_level or '').upper()
+                if ll == 'DEBUG':
+                    cmd.append('--verbose')
+                elif ll in ('ERROR', 'CRITICAL'):
+                    cmd.append('--quiet')
 
-                logging.info("Launching converter subprocess for %s", group_id)
+                logging.info(
+                    "Launching converter subprocess for %s via uvh5_to_ms",
+                    group_id)
                 env = os.environ.copy()
                 if self.config.omp_threads is not None:
                     env['OMP_NUM_THREADS'] = str(self.config.omp_threads)
@@ -1041,28 +1142,35 @@ class StreamingWorker(threading.Thread):
                     raise RuntimeError(
                         f"Converter returned {result.returncode}: {result.stderr or result.stdout}"
                     )
-                # Parse writer type marker from stdout (if present) and record total time
+                # Parse writer type marker from stdout (if present) and record
+                # total time
                 writer_type = None
                 if result.stdout:
                     for line in (result.stdout or '').splitlines():
                         if line.startswith('WRITER_TYPE:'):
-                            writer_type = line.split(':',1)[1].strip()
+                            writer_type = line.split(':', 1)[1].strip()
                             break
                 try:
                     total_time = time.perf_counter() - total_start
-                    self.queue_db.record_performance_metrics(group_id, 0.0, 0.0, 0.0, total_time, writer_type)
+                    self.queue_db.record_performance_metrics(
+                        group_id, 0.0, 0.0, 0.0, total_time, writer_type)
                 except Exception:
                     pass
                 if result.stdout:
-                    logging.debug("Converter stdout for %s:\n%s", group_id, result.stdout)
+                    logging.debug(
+                        "Converter stdout for %s:\n%s",
+                        group_id,
+                        result.stdout)
                 if result.stderr:
-                    logging.debug("Converter stderr for %s:\n%s", group_id, result.stderr)
-                
+                    logging.debug(
+                        "Converter stderr for %s:\n%s",
+                        group_id,
+                        result.stderr)
+
                 # Parse timing information from subprocess output
                 total_time = time.perf_counter() - total_start
                 load_time, phase_time, write_time = self._parse_converter_timings(
-                    result.stdout or "", result.stderr or "", total_time
-                )
+                    result.stdout or "", result.stderr or "", total_time)
             else:
                 env_overrides: Dict[str, str] = {}
                 if self.config.omp_threads is not None:
@@ -1076,122 +1184,547 @@ class StreamingWorker(threading.Thread):
                 if self.config.hdf5_noflock:
                     env_overrides['HDF5_USE_FILE_LOCKING'] = 'FALSE'
 
-                logging.info("Running converter in-process for %s", group_id)
+                logging.info(
+                    "Running converter in-process for %s via uvh5_to_ms",
+                    group_id)
                 t0 = time.perf_counter()
                 with override_env(env_overrides):
-                    converter.convert_subband_groups_to_ms(
+                    converter.convert_directory(
                         str(temp_dir),
                         str(self.config.output_dir),
-                        start_time,
-                        end_time,
-                        checkpoint_dir=str(self.config.checkpoint_dir) if self.config.checkpoint_dir is not None else None,
-                        scratch_dir=str(self.config.scratch_dir) if self.config.scratch_dir is not None else None,
-                        direct_ms=self.config.direct_ms,
+                        pattern='*.hdf5',
+                        add_imaging_columns=True,
+                        create_time_binned_fields=False,
+                        field_time_bin_minutes=self.config.chunk_duration_minutes,
+                        write_recommendations=True,
+                        enable_phasing=True,
+                        phase_reference_time=None,
                     )
                 duration = time.perf_counter() - t0
-                logging.info("In-process conversion for %s completed in %.1f s", group_id, duration)
-                
+                logging.info(
+                    "In-process conversion for %s completed in %.1f s",
+                    group_id,
+                    duration)
+
                 # For in-process, we can't easily separate timing, so estimate
                 load_time = duration * 0.3  # Estimate 30% for loading
                 phase_time = duration * 0.4  # Estimate 40% for phasing
                 write_time = duration * 0.3  # Estimate 30% for writing
-            
+
+            # After conversion, enumerate produced MS files
+            group_ms_list: List[str] = []
+            try:
+                for p in subband_paths:
+                    ms_name = (self.config.output_dir / f"{p.stem}.ms")
+                    if ms_name.exists():
+                        group_ms_list.append(os.fspath(ms_name))
+            except Exception:
+                group_ms_list = []
+
+            # Decide calibrator vs target
+            try:
+                is_cal = self.queue_db.get_has_calibrator(group_id) == 1
+            except Exception:
+                is_cal = False
+
+            # Concatenate subbands into multi-SPW MS for this group
+            group_ms_path = os.fspath(
+                self.config.output_dir / f"{group_id}.ms")
+            try:
+                if group_ms_list:
+                    if os.path.isdir(group_ms_path):
+                        import shutil as _sh
+                        _sh.rmtree(group_ms_path, ignore_errors=True)
+                    casa_concat(vis=group_ms_list, concatvis=group_ms_path)
+                    _msindex_update(
+                        group_ms_path,
+                        stage="concatenated",
+                        status="in_progress")
+            except Exception as e:
+                logging.error("concat failed for %s: %s", group_id, e)
+
+            # Helper to get all fields selector
+            def _all_fields_selector(ms: str) -> str:
+                try:
+                    with table(f"{ms}::FIELD") as tf:
+                        n = tf.nrows()
+                    return f"0~{max(0, n-1)}"
+                except Exception:
+                    return ""
+
+            # Helper to get mid-MJD
+            def _mid_mjd(ms: str) -> Optional[float]:
+                try:
+                    from casatools import msmetadata  # type: ignore
+                    msmd = msmetadata()
+                    msmd.open(ms)
+                    tr = msmd.timerangeforobs()
+                    msmd.close()
+                    if tr and isinstance(tr, (list, tuple)) and len(tr) >= 2:
+                        return 0.5 * (float(tr[0]) + float(tr[1]))
+                except Exception:
+                    return None
+                return None
+
+            def _timerange(
+                    ms: str) -> Tuple[Optional[float], Optional[float], Optional[float]]:
+                try:
+                    from casatools import msmetadata  # type: ignore
+                    msmd = msmetadata()
+                    msmd.open(ms)
+                    tr = msmd.timerangeforobs()
+                    msmd.close()
+                    if tr and isinstance(tr, (list, tuple)) and len(tr) >= 2:
+                        s = float(tr[0])
+                        e = float(tr[1])
+                        return s, e, 0.5 * (s + e)
+                except Exception:
+                    pass
+                return None, None, None
+
+            def _msindex_update(
+                    ms_path: str,
+                    *,
+                    stage: str,
+                    cal_applied: int = 0,
+                    imagename: Optional[str] = None,
+                    status: str = "in_progress") -> None:
+                db = os.getenv('PIPELINE_PRODUCTS_DB')
+                if not db:
+                    return
+                try:
+                    conn = sqlite3.connect(db)
+                    conn.execute(
+                        """
+                        CREATE TABLE IF NOT EXISTS ms_index (
+                            path TEXT PRIMARY KEY,
+                            start_mjd REAL,
+                            end_mjd REAL,
+                            mid_mjd REAL,
+                            processed_at REAL,
+                            status TEXT,
+                            stage TEXT,
+                            stage_updated_at REAL,
+                            cal_applied INTEGER DEFAULT 0,
+                            imagename TEXT
+                        )
+                        """
+                    )
+                    now = time.time()
+                    s, e, m = _timerange(ms_path)
+                    cur = conn.cursor()
+                    cur.execute(
+                        "SELECT path FROM ms_index WHERE path=?", (ms_path,))
+                    exists = cur.fetchone() is not None
+                    if not exists:
+                        conn.execute(
+                            "INSERT INTO ms_index(path, start_mjd, end_mjd, mid_mjd, processed_at, status, stage, stage_updated_at, cal_applied, imagename) VALUES(?,?,?,?,?,?,?,?,?,?)",
+                            (ms_path,
+                             s,
+                             e,
+                             m,
+                             None,
+                             status,
+                             stage,
+                             now,
+                             cal_applied,
+                             imagename),
+                        )
+                    else:
+                        conn.execute(
+                            "UPDATE ms_index SET start_mjd=COALESCE(start_mjd,?), end_mjd=COALESCE(end_mjd,?), mid_mjd=COALESCE(mid_mjd,?), status=?, stage=?, stage_updated_at=?, cal_applied=?, imagename=COALESCE(?, imagename) WHERE path=?",
+                            (s,
+                             e,
+                             m,
+                             status,
+                             stage,
+                             now,
+                             cal_applied,
+                             imagename,
+                             ms_path),
+                        )
+                    conn.commit()
+                    conn.close()
+                except Exception as ue:
+                    logging.debug("ms_index update failed: %s", ue)
+
+            # Calibrator: solve and register
+            if is_cal and os.path.isdir(group_ms_path):
+                cal_field = _all_fields_selector(group_ms_path)
+                # pick refant by median id present
+                try:
+                    with table(group_ms_path) as tb:
+                        import numpy as _np
+                        ants = _np.unique(_np.concatenate(
+                            [tb.getcol('ANTENNA1'), tb.getcol('ANTENNA2')]))
+                        refant = str(int(_np.median(ants))
+                                     ) if ants.size else '0'
+                except Exception:
+                    refant = '0'
+                prefix = os.path.splitext(group_ms_path)[0] + f"_{cal_field}"
+                ktabs = solve_delay(
+                    group_ms_path,
+                    cal_field=cal_field,
+                    refant=refant,
+                    table_prefix=prefix)
+                bp_minsnr = float(os.getenv('BP_MINSNR', '5.0'))
+                bptabs = solve_bandpass(
+                    group_ms_path,
+                    cal_field=cal_field,
+                    refant=refant,
+                    ktable=ktabs[0],
+                    table_prefix=prefix,
+                    combine_fields=True,
+                    minsnr=bp_minsnr)
+                gtabs = solve_gains(
+                    group_ms_path,
+                    cal_field=cal_field,
+                    refant=refant,
+                    ktable=ktabs[0],
+                    bptables=bptabs,
+                    table_prefix=prefix,
+                    t_short="60s",
+                    do_fluxscale=False,
+                    combine_fields=True)
+                _msindex_update(
+                    group_ms_path,
+                    stage="calibrated",
+                    status="in_progress")
+                if self.config.registry_db is not None:
+                    try:
+                        ensure_cal_db(self.config.registry_db)
+                        mid = _mid_mjd(group_ms_path)
+                        win = 30.0 / 1440.0
+                        register_set_from_prefix(
+                            self.config.registry_db,
+                            set_name=f"calset_{group_id}",
+                            prefix=Path(prefix),
+                            cal_field=cal_field,
+                            refant=refant,
+                            valid_start_mjd=None if mid is None else mid - win,
+                            valid_end_mjd=None if mid is None else mid + win,
+                            status="active",
+                        )
+                        # QA: fast_plots for MS and per-antenna BCAL plots
+                        try:
+                            qa_dir = os.fspath(
+                                Path(
+                                    os.getenv(
+                                        'PIPELINE_STATE_DIR',
+                                        'state')) /
+                                'qa' /
+                                group_id)
+                            os.makedirs(qa_dir, exist_ok=True)
+                            # Generate fast QA
+                            from dsa110_contimg.qa.fast_plots import run_fast_plots
+                            # The bandpass table is usually named with _bpcal
+                            # suffix
+                            bcal_guess = f"{prefix}_bpcal"
+                            run_fast_plots(
+                                group_ms_path,
+                                output_dir=qa_dir,
+                                max_uv_points=200000,
+                                include_residual=False,
+                                phase_per_antenna=False,
+                                refant_auto=None,
+                                unwrap_phase=False,
+                                bcal_path=bcal_guess,
+                            )
+                        except Exception as qe:
+                            logging.warning("QA generation failed: %s", qe)
+                    except Exception as e:
+                        logging.warning(
+                            "Calibration registry update failed: %s", e)
+
+            # Target: applycal + image (record artifacts to products DB if
+            # available)
+            if (not is_cal) and os.path.isdir(group_ms_path):
+                gaintables: List[str] = []
+                if self.config.registry_db is not None:
+                    mid = _mid_mjd(group_ms_path)
+                    if mid is not None:
+                        try:
+                            gaintables = get_active_applylist(
+                                self.config.registry_db, mid)
+                        except Exception as e:
+                            logging.warning(
+                                "Active applylist lookup failed: %s", e)
+                if gaintables:
+                    try:
+                        apply_to_target(
+                            group_ms_path,
+                            field="",
+                            gaintables=gaintables,
+                            calwt=True)
+                        _msindex_update(
+                            group_ms_path,
+                            stage="applycal_done",
+                            cal_applied=1,
+                            status="in_progress")
+                    except Exception as e:
+                        logging.warning("applycal failed: %s", e)
+                        _msindex_update(
+                            group_ms_path,
+                            stage="applycal_failed",
+                            cal_applied=0,
+                            status="failed")
+                try:
+                    out_prefix = os.fspath(
+                        self.config.output_dir / f"{group_id}.img")
+                    imsize = int(os.getenv('IMG_IMSIZE', '1024'))
+                    robust = float(os.getenv('IMG_ROBUST', '0.0'))
+                    niter = int(os.getenv('IMG_NITER', '1000'))
+                    thresh = os.getenv('IMG_THRESHOLD', '0.0Jy')
+                    image_ms(
+                        group_ms_path,
+                        imagename=out_prefix,
+                        imsize=imsize,
+                        robust=robust,
+                        niter=niter,
+                        threshold=thresh,
+                        pbcor=True)
+                    _msindex_update(
+                        group_ms_path,
+                        stage="imaged",
+                        cal_applied=1 if gaintables else 0,
+                        imagename=out_prefix,
+                        status="done")
+                    # Record products in products_db if configured via env
+                    products_db = os.getenv('PIPELINE_PRODUCTS_DB')
+                    if products_db:
+                        try:
+                            conn = sqlite3.connect(products_db)
+                            try:
+                                # ensure table exists (lightweight)
+                                conn.execute(
+                                    "CREATE TABLE IF NOT EXISTS images (id INTEGER PRIMARY KEY, path TEXT NOT NULL, ms_path TEXT NOT NULL, created_at REAL NOT NULL, type TEXT NOT NULL, beam_major_arcsec REAL, noise_jy REAL, pbcor INTEGER DEFAULT 0)")
+                            except Exception:
+                                pass
+                            # Insert known products if present
+                            now = time.time()
+                            for suf, pbc in [
+                                    (".image", 0), (".pb", 0), (".pbcor", 1), (".residual", 0), (".model", 0)]:
+                                pth = out_prefix + suf
+                                if os.path.isdir(pth):
+                                    conn.execute(
+                                        "INSERT INTO images(path, ms_path, created_at, type, pbcor) VALUES(?,?,?,?,?)",
+                                        (pth, group_ms_path, now, "5min", pbc),
+                                    )
+                            # update ms_index row if exists
+                            try:
+                                conn.execute(
+                                    "UPDATE ms_index SET stage=?, stage_updated_at=?, cal_applied=?, imagename=?, processed_at=?, status=? WHERE path=?",
+                                    ("imaged",
+                                     now,
+                                     1 if gaintables else 0,
+                                     out_prefix,
+                                     now,
+                                     "done",
+                                     group_ms_path),
+                                )
+                            except Exception:
+                                pass
+                            conn.commit()
+                            conn.close()
+                        except Exception as de:
+                            logging.debug(
+                                "Failed to write products DB: %s", de)
+                except Exception as e:
+                    logging.warning("imaging failed: %s", e)
+
             # Record performance metrics
             total_time = time.perf_counter() - total_start
-            # Keep existing load/phase/write estimates; preserve last known writer_type if any (subprocess path sets it above)
+            # Keep existing load/phase/write estimates; preserve last known
+            # writer_type if any (subprocess path sets it above)
             try:
-                self.queue_db.record_performance_metrics(group_id, load_time, phase_time, write_time, total_time)
+                self.queue_db.record_performance_metrics(
+                    group_id, load_time, phase_time, write_time, total_time)
             except Exception:
                 pass
-            
+
             # Check for performance warnings
             if total_time > 270:  # 4.5 minutes (90% of 5-min window)
-                logging.warning("Group %s took %.1f s (exceeds 4.5 min threshold)", group_id, total_time)
-            
+                logging.warning(
+                    "Group %s took %.1f s (exceeds 4.5 min threshold)",
+                    group_id,
+                    total_time)
+
             # Update processing stage
             self.queue_db.update_processing_stage(group_id, 'completed')
-            
+
             # Update checkpoint path if using checkpoints
             if self.config.checkpoint_dir is not None:
-                checkpoint_path = os.path.join(self.config.checkpoint_dir, f"{group_id}.checkpoint.uvh5")
+                checkpoint_path = os.path.join(
+                    self.config.checkpoint_dir,
+                    f"{group_id}.checkpoint.uvh5")
                 if os.path.exists(checkpoint_path):
-                    self.queue_db.update_checkpoint_path(group_id, checkpoint_path)
-                    
+                    self.queue_db.update_checkpoint_path(
+                        group_id, checkpoint_path)
+
         finally:
             if self.config.cleanup_temp:
                 shutil.rmtree(temp_dir, ignore_errors=True)
             else:
-                logging.info("Preserved temporary staging directory %s", temp_dir)
+                logging.info(
+                    "Preserved temporary staging directory %s",
+                    temp_dir)
 
 
 def create_arg_parser() -> argparse.ArgumentParser:
-    parser = argparse.ArgumentParser(description="Streaming UVH5 to MS converter service")
-    parser.add_argument('--input-dir', type=Path, default=Path('/data/incoming_data/'),
-                        help='Directory to watch for incoming *_sb??.hdf5 files (default: /data/incoming_data/)')
+    parser = argparse.ArgumentParser(
+        description="Streaming UVH5 to MS converter service")
+    parser.add_argument(
+        '--input-dir',
+        type=Path,
+        default=Path('/data/incoming_data/'),
+        help='Directory to watch for incoming *_sb??.hdf5 files (default: /data/incoming_data/)')
     parser.add_argument('--output-dir', type=Path, required=True,
                         help='Destination directory for measurement sets')
-    parser.add_argument('--queue-db', type=Path, default=Path('streaming_queue.sqlite3'),
-                        help='Path to the SQLite queue database (default: streaming_queue.sqlite3)')
-    parser.add_argument('--scratch-dir', type=Path,
-                        help='Scratch directory for staging UVFITS/MS during conversion')
+    parser.add_argument(
+        '--queue-db',
+        type=Path,
+        default=Path('streaming_queue.sqlite3'),
+        help='Path to the SQLite queue database (default: streaming_queue.sqlite3)')
+    parser.add_argument(
+        '--scratch-dir',
+        type=Path,
+        help='Scratch directory for staging UVFITS/MS during conversion')
     parser.add_argument('--checkpoint-dir', type=Path,
                         help='Directory for converter checkpoints')
-    parser.add_argument('--poll-interval', type=float, default=5.0,
-                        help='Polling interval in seconds when watchdog is unavailable (default: 5)')
-    parser.add_argument('--worker-poll-interval', type=float, default=5.0,
-                        help='Idle wait time in seconds between queue checks (default: 5)')
-    parser.add_argument('--expected-subbands', type=int, default=16,
-                        help='Expected number of subbands per group (default: 16)')
-    parser.add_argument('--max-retries', type=int, default=3,
-                        help='Maximum converter retries before marking a group failed (default: 3)')
-    parser.add_argument('--omp-threads', type=int,
-                        help='Set OMP_NUM_THREADS/MKL_NUM_THREADS for converter subprocess')
-    parser.add_argument('--use-subprocess', action='store_true', default=False,
-                        help='Launch the batch converter in a separate process instead of in-process')
-    parser.add_argument('--in-progress-timeout', type=float, default=900.0,
-                        help='Seconds before stale in-progress groups are re-queued (default: 900)')
-    parser.add_argument('--collecting-timeout', type=float, default=600.0,
-                        help='Warn if groups remain incomplete for more than this many seconds (default: 600)')
-    parser.add_argument('--monitoring', dest='monitoring', action='store_true', default=True,
-                        help='Enable queue/resource monitoring (default: enabled)')
-    parser.add_argument('--no-monitoring', dest='monitoring', action='store_false',
-                        help='Disable queue/resource monitoring for minimal footprint')
-    parser.add_argument('--monitor-interval', type=float, default=60.0,
-                        help='Monitoring check interval in seconds (default: 60)')
-    parser.add_argument('--profile', action='store_true', default=False,
-                        help='Enable detailed performance profiling and timing logs')
-    parser.add_argument('--chunk-duration', type=float, default=5.0,
-                        help='Duration of data chunks in minutes (default: 5.0)')
+    parser.add_argument(
+        '--registry-db',
+        type=Path,
+        help='Calibration registry database path for streaming cal/apply')
+    parser.add_argument(
+        '--poll-interval',
+        type=float,
+        default=5.0,
+        help='Polling interval in seconds when watchdog is unavailable (default: 5)')
+    parser.add_argument(
+        '--worker-poll-interval',
+        type=float,
+        default=5.0,
+        help='Idle wait time in seconds between queue checks (default: 5)')
+    parser.add_argument(
+        '--expected-subbands',
+        type=int,
+        default=16,
+        help='Expected number of subbands per group (default: 16)')
+    parser.add_argument(
+        '--max-retries',
+        type=int,
+        default=3,
+        help='Maximum converter retries before marking a group failed (default: 3)')
+    parser.add_argument(
+        '--omp-threads',
+        type=int,
+        help='Set OMP_NUM_THREADS/MKL_NUM_THREADS for converter subprocess')
+    parser.add_argument(
+        '--use-subprocess',
+        action='store_true',
+        default=False,
+        help='Launch the batch converter in a separate process instead of in-process')
+    parser.add_argument(
+        '--in-progress-timeout',
+        type=float,
+        default=900.0,
+        help='Seconds before stale in-progress groups are re-queued (default: 900)')
+    parser.add_argument(
+        '--collecting-timeout',
+        type=float,
+        default=600.0,
+        help='Warn if groups remain incomplete for more than this many seconds (default: 600)')
+    parser.add_argument(
+        '--monitoring',
+        dest='monitoring',
+        action='store_true',
+        default=True,
+        help='Enable queue/resource monitoring (default: enabled)')
+    parser.add_argument(
+        '--no-monitoring',
+        dest='monitoring',
+        action='store_false',
+        help='Disable queue/resource monitoring for minimal footprint')
+    parser.add_argument(
+        '--monitor-interval',
+        type=float,
+        default=60.0,
+        help='Monitoring check interval in seconds (default: 60)')
+    parser.add_argument(
+        '--profile',
+        action='store_true',
+        default=False,
+        help='Enable detailed performance profiling and timing logs')
+    parser.add_argument(
+        '--chunk-duration',
+        type=float,
+        default=5.0,
+        help='Duration of data chunks in minutes (default: 5.0)')
     parser.add_argument('--log-level', default='INFO',
                         help='Service log level (default: INFO)')
-    parser.add_argument('--cleanup-temp', action='store_true', default=False,
-                        help='Remove temporary staging directories after conversion')
-    parser.add_argument('--direct-ms', action='store_true', default=False,
-                        help='Instruct the converter to write MS directly (no UVFITS)')
-    parser.add_argument('--stage-inputs', action='store_true', default=False,
-                        help='Copy subband files to the per-group temp dir instead of symlinking')
-    parser.add_argument('--stage-workers', type=int, default=8,
-                        help='Number of concurrent workers for staging copies (default: 8)')
-    parser.add_argument('--hdf5-noflock', action='store_true', default=True,
-                        help='Set HDF5_USE_FILE_LOCKING=FALSE for converter execution (default: enabled)')
+    parser.add_argument(
+        '--cleanup-temp',
+        action='store_true',
+        default=False,
+        help='Remove temporary staging directories after conversion')
+    parser.add_argument(
+        '--direct-ms',
+        action='store_true',
+        default=False,
+        help='Instruct the converter to write MS directly (no UVFITS)')
+    parser.add_argument(
+        '--stage-inputs',
+        action='store_true',
+        default=False,
+        help='Copy subband files to the per-group temp dir instead of symlinking')
+    parser.add_argument(
+        '--stage-workers',
+        type=int,
+        default=8,
+        help='Number of concurrent workers for staging copies (default: 8)')
+    parser.add_argument(
+        '--hdf5-noflock',
+        action='store_true',
+        default=True,
+        help='Set HDF5_USE_FILE_LOCKING=FALSE for converter execution (default: enabled)')
     # Converter dask-ms flags (forwarded)
-    parser.add_argument('--converter-dask-write', action='store_true', default=False,
-                        help='Instruct the converter to use dask-ms writing path (experimental)')
-    parser.add_argument('--converter-dask-failfast', action='store_true', default=False,
-                        help='Fail immediately if dask-ms write fails (no fallback)')
+    parser.add_argument(
+        '--converter-dask-write',
+        action='store_true',
+        default=False,
+        help='Instruct the converter to use dask-ms writing path (experimental)')
+    parser.add_argument(
+        '--converter-dask-failfast',
+        action='store_true',
+        default=False,
+        help='Fail immediately if dask-ms write fails (no fallback)')
     # QA quicklooks (shadeMS) flags to forward to converter
-    parser.add_argument('--qa-shadems', action='store_true', default=False,
-                        help='Enable shadeMS quicklook plots after writing each MS')
-    parser.add_argument('--qa-shadems-resid', action='store_true', default=False,
-                        help='Include residual plot (CORRECTED_DATA-MODEL_DATA) if MODEL_DATA exists')
-    parser.add_argument('--qa-shadems-max', type=int, default=4,
-                        help='Maximum number of quicklook plots to produce (default: 4)')
+    parser.add_argument(
+        '--qa-shadems',
+        action='store_true',
+        default=False,
+        help='Enable shadeMS quicklook plots after writing each MS')
+    parser.add_argument(
+        '--qa-shadems-resid',
+        action='store_true',
+        default=False,
+        help='Include residual plot (CORRECTED_DATA-MODEL_DATA) if MODEL_DATA exists')
+    parser.add_argument(
+        '--qa-shadems-max',
+        type=int,
+        default=4,
+        help='Maximum number of quicklook plots to produce (default: 4)')
     parser.add_argument('--qa-shadems-timeout', type=int, default=600,
                         help='Per-plot timeout in seconds (default: 600)')
-    parser.add_argument('--qa-state-dir', type=Path,
-                        help='Base state directory for QA artifacts (default: $PIPELINE_STATE_DIR or "state")')
-    parser.add_argument('--qa-shadems-cal-only', action='store_true', default=False,
-                        help='Only enable quicklooks for groups with a matched calibrator')
+    parser.add_argument(
+        '--qa-state-dir',
+        type=Path,
+        help='Base state directory for QA artifacts (default: $PIPELINE_STATE_DIR or "state")')
+    parser.add_argument(
+        '--qa-shadems-cal-only',
+        action='store_true',
+        default=False,
+        help='Only enable quicklooks for groups with a matched calibrator')
     return parser
 
 
@@ -1213,7 +1746,8 @@ def main(argv: Optional[Sequence[str]] = None) -> int:
     if scratch_dir is not None:
         scratch_dir.mkdir(parents=True, exist_ok=True)
 
-    checkpoint_dir = args.checkpoint_dir.expanduser().resolve() if args.checkpoint_dir else None
+    checkpoint_dir = args.checkpoint_dir.expanduser(
+    ).resolve() if args.checkpoint_dir else None
     if checkpoint_dir is not None:
         checkpoint_dir.mkdir(parents=True, exist_ok=True)
 
@@ -1224,14 +1758,16 @@ def main(argv: Optional[Sequence[str]] = None) -> int:
     )
     queue_db.bootstrap_directory(input_dir)
 
-    converter_path = (Path(__file__).resolve().parent.parent / 'uvh5_to_ms_converter_v2.py').resolve()
+    converter_path = (
+        Path(__file__).resolve().parent.parent /
+        'uvh5_to_ms_converter_v2.py').resolve()
     config = WorkerConfig(
         output_dir=output_dir,
         scratch_dir=scratch_dir,
         checkpoint_dir=checkpoint_dir,
         log_level=args.log_level,
         omp_threads=args.omp_threads,
-        converter_path=converter_path,
+        converter_path=None,
         max_retries=args.max_retries,
         cleanup_temp=args.cleanup_temp,
         in_progress_timeout=args.in_progress_timeout,
@@ -1245,6 +1781,8 @@ def main(argv: Optional[Sequence[str]] = None) -> int:
         stage_inputs=args.stage_inputs,
         stage_workers=args.stage_workers,
         hdf5_noflock=args.hdf5_noflock,
+        registry_db=(
+            args.registry_db.expanduser().resolve() if args.registry_db else None),
         converter_dask_write=args.converter_dask_write,
         converter_dask_failfast=args.converter_dask_failfast,
         qa_shadems=args.qa_shadems,
@@ -1263,9 +1801,15 @@ def main(argv: Optional[Sequence[str]] = None) -> int:
         args.chunk_duration,
     )
 
-    watcher = DirectoryWatcher(input_dir, queue_db, poll_interval=args.poll_interval)
-    worker = StreamingWorker(queue_db, config, poll_interval=args.worker_poll_interval)
-    
+    watcher = DirectoryWatcher(
+        input_dir,
+        queue_db,
+        poll_interval=args.poll_interval)
+    worker = StreamingWorker(
+        queue_db,
+        config,
+        poll_interval=args.worker_poll_interval)
+
     # Start monitoring thread if enabled
     monitor = None
     if config.enable_monitoring:

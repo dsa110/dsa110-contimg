@@ -43,7 +43,11 @@ def ensure_products_db(path: Path) -> sqlite3.Connection:
             end_mjd REAL,
             mid_mjd REAL,
             processed_at REAL,
-            status TEXT
+            status TEXT,
+            stage TEXT,
+            stage_updated_at REAL,
+            cal_applied INTEGER DEFAULT 0,
+            imagename TEXT
         )
         """
     )
@@ -61,11 +65,30 @@ def ensure_products_db(path: Path) -> sqlite3.Connection:
         )
         """
     )
+    # Migrate ms_index to add missing columns for stage tracking
+    try:
+        cols = {r[1] for r in conn.execute(
+            "PRAGMA table_info(ms_index)").fetchall()}
+        cur = conn.cursor()
+        if 'stage' not in cols:
+            cur.execute("ALTER TABLE ms_index ADD COLUMN stage TEXT")
+        if 'stage_updated_at' not in cols:
+            cur.execute(
+                "ALTER TABLE ms_index ADD COLUMN stage_updated_at REAL")
+        if 'cal_applied' not in cols:
+            cur.execute(
+                "ALTER TABLE ms_index ADD COLUMN cal_applied INTEGER DEFAULT 0")
+        if 'imagename' not in cols:
+            cur.execute("ALTER TABLE ms_index ADD COLUMN imagename TEXT")
+        conn.commit()
+    except Exception:
+        pass
     conn.commit()
     return conn
 
 
-def _ms_time_range(ms_path: str) -> Tuple[Optional[float], Optional[float], Optional[float]]:
+def _ms_time_range(
+        ms_path: str) -> Tuple[Optional[float], Optional[float], Optional[float]]:
     """Best-effort extraction of (start, end, mid) MJD from an MS using casatools.
     Returns (None, None, None) if unavailable.
     """
@@ -106,7 +129,10 @@ def _ms_time_range(ms_path: str) -> Tuple[Optional[float], Optional[float], Opti
     return None, None, None
 
 
-def _apply_and_image(ms_path: str, out_dir: Path, gaintables: List[str]) -> List[str]:
+def _apply_and_image(
+        ms_path: str,
+        out_dir: Path,
+        gaintables: List[str]) -> List[str]:
     """Apply calibration and produce a quick image; returns artifact paths."""
     artifacts: List[str] = []
     # Apply to all fields by default
@@ -137,7 +163,10 @@ def process_once(
     conn = ensure_products_db(products_db)
     processed = 0
     for ms in sorted(ms_dir.glob("**/*.ms")):
-        row = conn.execute("SELECT status FROM ms_index WHERE path = ?", (os.fspath(ms),)).fetchone()
+        row = conn.execute(
+            "SELECT status FROM ms_index WHERE path = ?",
+            (os.fspath(ms),
+             )).fetchone()
         if row and row[0] == "done":
             continue
         start_mjd, end_mjd, mid_mjd = _ms_time_range(os.fspath(ms))
@@ -148,11 +177,19 @@ def process_once(
             mid_mjd = Time.now().mjd
         applylist = get_active_applylist(registry_db, mid_mjd)
         if not applylist:
-            logger.warning("No active caltables for %s (mid MJD %.5f)", ms, mid_mjd)
+            logger.warning(
+                "No active caltables for %s (mid MJD %.5f)",
+                ms,
+                mid_mjd)
             status = "skipped_no_caltables"
             conn.execute(
                 "INSERT OR REPLACE INTO ms_index(path, start_mjd, end_mjd, mid_mjd, processed_at, status) VALUES(?,?,?,?,?,?)",
-                (os.fspath(ms), start_mjd, end_mjd, mid_mjd, time.time(), status),
+                (os.fspath(ms),
+                 start_mjd,
+                 end_mjd,
+                 mid_mjd,
+                 time.time(),
+                    status),
             )
             conn.commit()
             continue
@@ -161,12 +198,21 @@ def process_once(
         status = "done" if artifacts else "failed"
         conn.execute(
             "INSERT OR REPLACE INTO ms_index(path, start_mjd, end_mjd, mid_mjd, processed_at, status) VALUES(?,?,?,?,?,?)",
-            (os.fspath(ms), start_mjd, end_mjd, mid_mjd, time.time(), status),
+            (os.fspath(ms),
+             start_mjd,
+             end_mjd,
+             mid_mjd,
+             time.time(),
+             status),
         )
         for art in artifacts:
             conn.execute(
                 "INSERT INTO images(path, ms_path, created_at, type, pbcor) VALUES(?,?,?,?,?)",
-                (art, os.fspath(ms), time.time(), "5min", 1 if art.endswith(".image.pbcor") else 0),
+                (art,
+                 os.fspath(ms),
+                    time.time(),
+                    "5min",
+                    1 if art.endswith(".image.pbcor") else 0),
             )
         conn.commit()
         processed += 1
@@ -176,7 +222,12 @@ def process_once(
 
 def cmd_scan(args: argparse.Namespace) -> int:
     setup_logging(args.log_level)
-    n = process_once(Path(args.ms_dir), Path(args.out_dir), Path(args.registry_db), Path(args.products_db))
+    n = process_once(
+        Path(
+            args.ms_dir), Path(
+            args.out_dir), Path(
+                args.registry_db), Path(
+                    args.products_db))
     logger.info("Scan complete: %d MS processed", n)
     return 0 if n >= 0 else 1
 

@@ -7,7 +7,7 @@
 1. **Circular Import Issues**: The `uvh5_to_ms_converter_v2.py` had circular import dependencies that were resolved by:
    - Implementing lazy imports in `dsa110_contimg.conversion.__init__.py`
    - Creating missing modules (`writers.py`) and functions (`write_ms_from_subbands`)
-   - Using direct imports from specific modules rather than package-level imports
+   - Using direcports from specific modules rather than package-level imports
 
 2. **FUSE Temporary Files**: Large `.fuse_hidden*` files (70+ GB each) are created during MS writing operations:
    - These are temporary files created by FUSE filesystems during large data operations
@@ -440,3 +440,62 @@ This structure supports the continuum imaging workflow where data flows from har
 - **Log Files**: Conversion, calibration, and analysis logs in structured directories
 - **Real-time Monitoring**: Progress tracking, resource usage, error detection
 - **Performance Metrics**: Collection and analysis of processing statistics
+
+## Streaming Pipeline Status (2025-10-13)
+
+This documents the current end-to-end streaming path and operational knobs.
+
+### Components and Entry Points
+- Conversion: `dsa110_contimg.conversion.uvh5_to_ms` (single/dir)
+- Streaming service: `dsa110_contimg.conversion.streaming_converter`
+- Calibration solves: `dsa110_contimg.calibration.calibration` (K/BP/G)
+- Apply calibration: `dsa110_contimg.calibration.applycal.apply_to_target`
+- Imaging: `dsa110_contimg.imaging.cli.image_ms`
+- QA: `dsa110_contimg.qa.fast_plots` (supports `--bcal`)
+- Registry: `dsa110_contimg.database.registry` (register/applylist)
+
+### Implemented Flow
+1. Detect complete 16‑subband group (via QueueDB). Stage subbands (symlink or copy).
+2. Convert all subbands to per‑subband `.ms` (uvh5_to_ms.convert_directory).
+3. Concatenate to `<group_id>.ms` (multi‑SPW) using CASA `concat`.
+4. Calibrator group:
+   - Solve delay (K), bandpass (BA+BP), gains (GA+GP, optional 2G).
+   - Register set in calibration registry with ±30 min window around mid‑MJD.
+   - Generate QA: fast plots for MS and per‑antenna Bcal plots (`_bpcal`).
+5. Target group:
+   - Lookup registry `get_active_applylist(mjd)` and `applycal` to `<group_id>.ms`.
+   - Image with `image_ms` (PB-corrected, FITS exported when present).
+
+### Stage Tracking (PIPELINE_PRODUCTS_DB)
+- If `PIPELINE_PRODUCTS_DB` is set, streaming upserts `ms_index` at each step:
+  - `concatenated`: after CASA concat.
+  - `calibrated`: after K/BP/G and registry registration.
+  - `applycal_done` / `applycal_failed`: after applying caltables.
+  - `imaged`: after imaging; sets `imagename`, `processed_at`, `status=done`.
+- `start_mjd`, `end_mjd`, `mid_mjd` are filled on first touch via `msmetadata`.
+- Image artifacts recorded in `images` for `.image`, `.pb`, `.pbcor`, `.residual`, `.model` when present.
+
+### Runtime Policies (Environment)
+- `PIPELINE_PRODUCTS_DB`: SQLite path for `ms_index`/`images` (optional).
+- `PIPELINE_STATE_DIR`: base for QA outputs (default `state`).
+- `BP_MINSNR`: bandpass min SNR (float; default 5.0).
+- Imaging params for `image_ms`:
+  - `IMG_IMSIZE` (int; default 1024)
+  - `IMG_ROBUST` (float; default 0.0)
+  - `IMG_NITER` (int; default 1000)
+  - `IMG_THRESHOLD` (str; default `0.0Jy`)
+
+### Converter Guarantees
+- Imaging columns (`MODEL_DATA`, `CORRECTED_DATA`) preallocated post‑write to prevent CASA concat/solver errors (TSM array issues).
+- Explicit midpoint phasing before MS write to ensure consistent phase center.
+
+### What’s Working
+- End‑to‑end streaming for both calibrator and target groups.
+- Calibration registry registration and applylist retrieval.
+- QA generation post‑calibration including Bcal per‑antenna pages.
+- Stage tracking and artifact cataloging when `PIPELINE_PRODUCTS_DB` is set.
+
+### Potential Next Steps
+- Add refant override from QA ranking.
+- Per‑stage timing metrics into `ms_index`.
+- Lightweight dashboard reading `ms_index`/`images` for live ops.
