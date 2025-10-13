@@ -1,0 +1,87 @@
+version: "3.8"
+
+services:
+  stream:
+    build:
+      context: ../..
+      dockerfile: ops/docker/Dockerfile
+    container_name: contimg-stream
+    command: >-
+      python -m dsa110_contimg.conversion.streaming_converter
+      --input-dir ${CONTIMG_INPUT_DIR}
+      --output-dir ${CONTIMG_OUTPUT_DIR}
+      --queue-db ${CONTIMG_QUEUE_DB}
+      --registry-db ${CONTIMG_REGISTRY_DB}
+      --scratch-dir ${CONTIMG_SCRATCH_DIR}
+      --log-level ${CONTIMG_LOG_LEVEL}
+      --use-subprocess
+      --expected-subbands ${CONTIMG_EXPECTED_SUBBANDS}
+      --chunk-duration ${CONTIMG_CHUNK_MINUTES}
+      --monitoring
+      --monitor-interval ${CONTIMG_MONITOR_INTERVAL}
+    env_file:
+      - .env
+    environment:
+      - PIPELINE_PRODUCTS_DB=${CONTIMG_PRODUCTS_DB}
+      - PIPELINE_STATE_DIR=${CONTIMG_STATE_DIR}
+      - HDF5_USE_FILE_LOCKING=${HDF5_USE_FILE_LOCKING}
+      - OMP_NUM_THREADS=${OMP_NUM_THREADS}
+      - MKL_NUM_THREADS=${MKL_NUM_THREADS}
+    user: "${UID}:${GID}"
+    ulimits:
+      nofile:
+        soft: 1048576
+        hard: 1048576
+    volumes:
+      - ${REPO_ROOT}:/app:rw
+      - ${CONTIMG_INPUT_DIR}:${CONTIMG_INPUT_DIR}:rw
+      - ${CONTIMG_OUTPUT_DIR}:${CONTIMG_OUTPUT_DIR}:rw
+      - ${CONTIMG_SCRATCH_DIR}:${CONTIMG_SCRATCH_DIR}:rw
+      - ${CONTIMG_STATE_DIR}:${CONTIMG_STATE_DIR}:rw
+    restart: unless-stopped
+
+  api:
+    build:
+      context: ../..
+      dockerfile: ops/docker/Dockerfile
+    container_name: contimg-api
+    command: >-
+      uvicorn dsa110_contimg.api.routes:create_app --factory --host 0.0.0.0 --port ${CONTIMG_API_PORT}
+    env_file:
+      - .env
+    environment:
+      - PIPELINE_QUEUE_DB=${CONTIMG_QUEUE_DB}
+      - PIPELINE_REGISTRY_DB=${CONTIMG_REGISTRY_DB}
+      - PIPELINE_PRODUCTS_DB=${CONTIMG_PRODUCTS_DB}
+      - PIPELINE_STATE_DIR=${CONTIMG_STATE_DIR}
+    user: "${UID}:${GID}"
+    ports:
+      - "${CONTIMG_API_PORT}:${CONTIMG_API_PORT}"
+    volumes:
+      - ${REPO_ROOT}:/app:rw
+      - ${CONTIMG_STATE_DIR}:${CONTIMG_STATE_DIR}:rw
+    restart: unless-stopped
+
+  scheduler:
+    build:
+      context: ../..
+      dockerfile: ops/docker/Dockerfile
+    container_name: contimg-scheduler
+    command: >-
+      python ops/pipeline/scheduler.py
+    env_file:
+      - .env
+    environment:
+      - PIPELINE_QUEUE_DB=${CONTIMG_QUEUE_DB}
+      - PIPELINE_PRODUCTS_DB=${CONTIMG_PRODUCTS_DB}
+      - CONTIMG_SCRATCH_DIR=${CONTIMG_SCRATCH_DIR}
+    user: "${UID}:${GID}"
+    volumes:
+      - ${REPO_ROOT}:/app:rw
+      - ${CONTIMG_STATE_DIR}:${CONTIMG_STATE_DIR}:rw
+      - ${CONTIMG_OUTPUT_DIR}:${CONTIMG_OUTPUT_DIR}:rw
+    restart: unless-stopped
+
+networks:
+  default:
+    name: contimg-net

@@ -15,6 +15,43 @@ Repository overview for the DSA-110 continuum imaging pipeline.
 - `data-samples/` – Curated measurement sets and UVH5 examples for QA
 - `archive/legacy/` – Historical scripts, notebooks, and deprecated code paths
 
+## Directory Map (Annotated)
+
+- Top level (curated)
+  - `src/` – all Python sources
+  - `ops/` – systemd units, docker, housekeeping and ops scripts
+  - `scripts/` – helper shell scripts (conversion/imaging/housekeeping)
+  - `state/` – SQLite DBs and QA artifacts at runtime
+  - `tests/`, `docs/`, `references/`, `data-samples/`, `tmp/` – support assets
+
+- Functional map: `src/dsa110_contimg` (depth 2)
+  - `src/dsa110_contimg/conversion/` – UVH5 → MS conversion
+    - `src/dsa110_contimg/conversion/streaming_converter.py` – ingest → convert → calibrate/apply → image daemon
+    - `src/dsa110_contimg/conversion/strategies/uvh5_to_ms_converter.py` – strategy orchestrator CLI
+    - `src/dsa110_contimg/conversion/strategies/direct_subband.py` – per-subband MS writer + concat
+    - `src/dsa110_contimg/conversion/uvh5_to_ms.py` – standalone converter (utility)
+    - `src/dsa110_contimg/conversion/helpers.py` – UVW, antenna positions, model/weights
+  - `src/dsa110_contimg/calibration/` – CASA calibration
+    - `src/dsa110_contimg/calibration/calibration.py` – K/BA/BP/GA/GP/2G solves
+    - `src/dsa110_contimg/calibration/applycal.py` – apply caltables
+    - `src/dsa110_contimg/calibration/selection.py`, `src/dsa110_contimg/calibration/catalogs.py` – field+catalog helpers
+  - `src/dsa110_contimg/imaging/` – tclean and imaging workers
+    - `src/dsa110_contimg/imaging/worker.py` – backfill scan/daemon
+    - `src/dsa110_contimg/imaging/cli.py` – tclean convenience CLI
+  - `src/dsa110_contimg/database/` – SQLite helpers
+    - `src/dsa110_contimg/database/registry.py` – caltable registry
+    - `src/dsa110_contimg/database/products.py` – ms_index/images helpers + indices
+  - `src/dsa110_contimg/api/` – monitoring API
+    - `src/dsa110_contimg/api/routes.py` – FastAPI app + endpoints
+    - `src/dsa110_contimg/api/models.py`, `src/dsa110_contimg/api/data_access.py`
+  - `src/dsa110_contimg/qa/` – quicklooks and plots
+  - `src/dsa110_contimg/mosaic/` – mosaic planner/builder CLI (skeleton)
+  - `src/dsa110_contimg/utils/` – coordinates, logging, antpos, constants
+
+- Optional tree commands
+  - `tree -L 2 -I '.git|env|tmp|state|__pycache__|*.pyc|.mypy_cache|.pytest_cache'`
+  - `find . -maxdepth 2 -type d | sed 's|^\./||' | sort`
+
 ## Recent Additions (MS Conversion)
 
 - Optional dask-ms writer (experimental)

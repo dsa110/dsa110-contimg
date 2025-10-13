@@ -44,9 +44,12 @@
 - **Missing modules**: Create required modules and functions as needed
 - **CASA Calibrater error (no array in MODEL_DATA row)**: If `MODEL_DATA` exists but arrays are uninitialized, CASA `gaincal`/`bandpass` can fail with "TSM: no array in row ... of column MODEL_DATA". Fix by preallocating `MODEL_DATA` (unity or zeros) and initializing `CORRECTED_DATA` across all rows after MS write. The converter now does this automatically.
 
-### Recent Fixes (2025-10-10)
+### Recent Fixes (2025-10-10 → 2025-10-13)
 - Field selection in delay solve now honors CASA-style names/ranges: numeric IDs, `A~B`, comma lists, and glob matches against `FIELD::NAME`. This removes a crash when `--field` is a name.
 - Calibration table prefixes now use `os.path.splitext(ms)[0]` instead of `rstrip('.ms')`, preventing accidental truncation (e.g., `runs.ms` → `runs`, not `run`).
+- Streaming converter now uses the strategy orchestrator (writer=`direct-subband`) in both subprocess and in‑process paths; writer type is recorded in metrics.
+- Products DB helpers added: centralized `ms_index`/`images` schema management, upserts, and indices.
+- API/monitoring integrates recent calibrator matches and QA discovery.
 
 # Currently Working On:
 
@@ -63,8 +66,8 @@ High‑Level Strategy
 
 Phase 1 — Rebuild MS without dask-ms
 - Why: Avoid the casatools/dask‑ms record incompatibility.
-- Action: Run `scripts/run_conversion.sh` (defaults to pyuvdata writer). The converter now preallocates imaging columns and `MODEL_DATA` to prevent CASA errors.
-- Outcome: casatools `msmetadata.open()` succeeds. Note: pyuvdata path currently writes per‑integration FIELDs (24 rows) by design; this is acceptable for calibration.
+- Action: Run `scripts/run_conversion.sh` (uses the strategy orchestrator with the `direct-subband` writer by default). The converter preallocates imaging columns and `MODEL_DATA` to prevent CASA errors.
+- Outcome: casatools `msmetadata.open()` succeeds.
 
 Phase 2 — Validate with casatools and run calibration (no combine)
 - Quick checks:
@@ -144,22 +147,13 @@ Next Actions (as of 2025‑10‑10)
 - **Environment Stability**: Uses single-threaded CASA execution to avoid stability issues in Jupyter environments
 
 ### MS Writing Strategies
-- **Multiple Writers**: The conversion system supports several MS writing approaches:
-  - **pyuvdata**: Direct monolithic MS writing via pyuvdata.write_ms
-  - **direct-subband**: Parallel per-subband writing followed by CASA concat
-  - Note: A dask-ms path exists historically but is avoided for CASA compatibility; prefer the pyuvdata-only converter
-- **Field-per-Integration**: Advanced mode creates separate FIELD entries for each integration time, enabling precise per-time phase center tracking
-- **Chunking Strategy**: dask-ms uses configurable row chunks (default 8192) for optimal memory usage
-- **Fallback Logic**: If primary writer fails, system automatically falls back to alternative writers
-- **Validation**: Strict MS structure validation ensures calibration-grade data quality
-- **Staging**: Intelligent tmpfs staging based on available memory to avoid OOM conditions
+- Primary: `direct-subband` writer via the strategy orchestrator (parallel per‑subband MS writes + CASA concat inside the writer).
+- Alternative: `pyuvdata` monolithic writer (`UVData.write_ms`) when needed.
+- Historical: dask‑ms writer path existed; avoid for CASA compatibility.
+- Validation: Post‑write checks and imaging‑column initialization are in place to keep CASA happy.
 
 ### Workflow Scripts
-- **run_conversion.sh**: End-to-end conversion script with:
-  - Automatic tmpfs staging based on available memory
-  - pyuvdata writer path preferred (use uvh5_to_ms_converter_pyuv)
-  - Comprehensive MS structure validation after conversion
-  - Scratch workflow integration
+- **run_conversion.sh**: End‑to‑end conversion with the strategy orchestrator (`direct-subband` by default), optional SSD staging, and validation helpers; see `scripts/run_conversion.sh`.
 - **calibrate_bandpass.sh**: End-to-end calibration script with:
   - Auto-field selection using VLA catalog
   - Reference antenna ranking via QA analysis
@@ -172,7 +166,7 @@ Next Actions (as of 2025‑10‑10)
   - "RecordInterface: field type is unknown" errors due to MS structure incompatibility
   - Poor SNR solutions when trying to solve for each field individually
 - **Solutions**:
-  - Use pyuvdata writer instead of dask-ms for better CASA compatibility
+  - Use the orchestrator `direct-subband` or pyuvdata writer; avoid dask‑ms for CASA workflows
   - Prefer catalog-driven MODEL_DATA via CASA ft: write a point-source model at the catalog calibrator (RA/Dec/flux) before bandpass
   - Keep `smodel=[]` only as a fallback if no calibrator match is available
   - Use peak field only as the reference for K/BP selection; select data over the requested window
@@ -189,15 +183,8 @@ Next Actions (as of 2025‑10‑10)
 - Gains: `solint='inf'` (plus optional short), `minsnr=5.0`, `selectdata=True`, `combine='scan,field'` only when requested.
 - Delay: robust K step on peak field; conservative retry path retained.
 
-### CalibratorSearch Tool (2025-10-11)
-- **Purpose**: Interactive web-based tool for calibrator selection and analysis
-- **Features**:
-  - Dual format support (MS and UVH5 files)
-  - Primary beam response calculation at 1.4 GHz
-  - Altitude track plotting with 24-hour visibility
-  - Comprehensive scoring (PB response, weighted flux, altitude timing)
-  - CLI command generation for calibration scripts
-  - JSON summary output for programmatic use
+### CalibratorSearch Tool (future)
+- Planned: web‑based calibrator selection dashboard building on existing API endpoints and catalog tools.
 - **Architecture**:
   - Main notebook: Interactive widgets and UI
   - Helper module: `calibrator_helper.py` with core functionality
@@ -459,6 +446,7 @@ This documents the current end-to-end streaming path and operational knobs.
 2. Convert all subbands to per‑subband `.ms` (uvh5_to_ms.convert_directory).
 3. Concatenate to `<group_id>.ms` (multi‑SPW) using CASA `concat`.
 4. Calibrator group:
+   - Use QA to auto-identify suitable refant.
    - Solve delay (K), bandpass (BA+BP), gains (GA+GP, optional 2G).
    - Register set in calibration registry with ±30 min window around mid‑MJD.
    - Generate QA: fast plots for MS and per‑antenna Bcal plots (`_bpcal`).

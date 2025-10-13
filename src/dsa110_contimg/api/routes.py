@@ -20,7 +20,7 @@ from dsa110_contimg.api.data_access import (
     fetch_recent_queue_groups,
     fetch_recent_calibrator_matches,
 )
-from dsa110_contimg.api.models import PipelineStatus, ProductList, CalibratorMatchList, QAList, QAArtifact, GroupDetail, SystemMetrics
+from dsa110_contimg.api.models import PipelineStatus, ProductList, CalibratorMatchList, QAList, QAArtifact, GroupDetail, SystemMetrics, MsIndexList, MsIndexEntry
 from dsa110_contimg.api.data_access import _connect
 
 
@@ -327,6 +327,58 @@ def create_app(config: ApiConfig | None = None) -> FastAPI:
         return HTMLResponse(content=html, status_code=200)
 
     app.include_router(router)
+    
+    # Additional endpoints: ms_index querying and reprocess trigger
+    @router.get("/ms_index", response_model=MsIndexList)
+    def ms_index(stage: str | None = None, status: str | None = None, limit: int = 100) -> MsIndexList:
+        db_path = Path(os.getenv("PIPELINE_PRODUCTS_DB", "state/products.sqlite3"))
+        items: list[MsIndexEntry] = []
+        if not db_path.exists():
+            return MsIndexList(items=items)
+        with _connect(db_path) as conn:
+            q = "SELECT path, start_mjd, end_mjd, mid_mjd, processed_at, status, stage, stage_updated_at, cal_applied, imagename FROM ms_index"
+            where = []
+            params: list[object] = []
+            if stage:
+                where.append("stage = ?")
+                params.append(stage)
+            if status:
+                where.append("status = ?")
+                params.append(status)
+            if where:
+                q += " WHERE " + " AND ".join(where)
+            q += " ORDER BY COALESCE(stage_updated_at, processed_at) DESC NULLS LAST LIMIT ?"
+            params.append(int(limit))
+            rows = conn.execute(q, params).fetchall()
+            for r in rows:
+                items.append(MsIndexEntry(
+                    path=r["path"],
+                    start_mjd=r["start_mjd"], end_mjd=r["end_mjd"], mid_mjd=r["mid_mjd"],
+                    processed_at=(datetime.fromtimestamp(r["processed_at"]) if r["processed_at"] else None),
+                    status=r["status"], stage=r["stage"],
+                    stage_updated_at=(datetime.fromtimestamp(r["stage_updated_at"]) if r["stage_updated_at"] else None),
+                    cal_applied=r["cal_applied"], imagename=r["imagename"],
+                ))
+        return MsIndexList(items=items)
+
+    @router.post("/reprocess/{group_id}")
+    def reprocess_group(group_id: str):
+        # Nudge the ingest_queue row back to 'pending' to trigger reprocessing
+        qdb = Path(os.getenv("PIPELINE_QUEUE_DB", os.getenv("PIPELINE_QUEUE_DB", "state/ingest.sqlite3")))
+        if not qdb.exists():
+            return {"ok": False, "error": "queue_db not found"}
+        with _connect(qdb) as conn:
+            now = datetime.utcnow().timestamp()
+            row = conn.execute("SELECT state, retry_count FROM ingest_queue WHERE group_id = ?", (group_id,)).fetchone()
+            if row is None:
+                return {"ok": False, "error": "group not found"}
+            new_retry = (row["retry_count"] or 0) + 1
+            conn.execute(
+                "UPDATE ingest_queue SET state='pending', last_update=?, retry_count=? WHERE group_id = ?",
+                (now, new_retry, group_id),
+            )
+            conn.commit()
+        return {"ok": True}
     # Mount basic static dir for simple JS/HTML views (optional)
     static_dir = Path(__file__).resolve().parent / 'static'
     if static_dir.exists():

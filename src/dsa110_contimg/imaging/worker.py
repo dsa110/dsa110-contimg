@@ -10,15 +10,14 @@ mosaicking.
 """
 
 import argparse
-import json
 import logging
 import os
-import sqlite3
 import time
 from pathlib import Path
 from typing import List, Optional, Tuple
 
 from dsa110_contimg.database.registry import get_active_applylist
+from dsa110_contimg.database.products import ensure_products_db, ms_index_upsert, images_insert
 
 
 logger = logging.getLogger("imaging_worker")
@@ -31,60 +30,6 @@ def setup_logging(level: str) -> None:
         datefmt="%Y-%m-%d %H:%M:%S",
     )
 
-
-def ensure_products_db(path: Path) -> sqlite3.Connection:
-    path.parent.mkdir(parents=True, exist_ok=True)
-    conn = sqlite3.connect(str(path))
-    conn.execute(
-        """
-        CREATE TABLE IF NOT EXISTS ms_index (
-            path TEXT PRIMARY KEY,
-            start_mjd REAL,
-            end_mjd REAL,
-            mid_mjd REAL,
-            processed_at REAL,
-            status TEXT,
-            stage TEXT,
-            stage_updated_at REAL,
-            cal_applied INTEGER DEFAULT 0,
-            imagename TEXT
-        )
-        """
-    )
-    conn.execute(
-        """
-        CREATE TABLE IF NOT EXISTS images (
-            id INTEGER PRIMARY KEY,
-            path TEXT NOT NULL,
-            ms_path TEXT NOT NULL,
-            created_at REAL NOT NULL,
-            type TEXT NOT NULL,
-            beam_major_arcsec REAL,
-            noise_jy REAL,
-            pbcor INTEGER DEFAULT 0
-        )
-        """
-    )
-    # Migrate ms_index to add missing columns for stage tracking
-    try:
-        cols = {r[1] for r in conn.execute(
-            "PRAGMA table_info(ms_index)").fetchall()}
-        cur = conn.cursor()
-        if 'stage' not in cols:
-            cur.execute("ALTER TABLE ms_index ADD COLUMN stage TEXT")
-        if 'stage_updated_at' not in cols:
-            cur.execute(
-                "ALTER TABLE ms_index ADD COLUMN stage_updated_at REAL")
-        if 'cal_applied' not in cols:
-            cur.execute(
-                "ALTER TABLE ms_index ADD COLUMN cal_applied INTEGER DEFAULT 0")
-        if 'imagename' not in cols:
-            cur.execute("ALTER TABLE ms_index ADD COLUMN imagename TEXT")
-        conn.commit()
-    except Exception:
-        pass
-    conn.commit()
-    return conn
 
 
 def _ms_time_range(
@@ -182,38 +127,15 @@ def process_once(
                 ms,
                 mid_mjd)
             status = "skipped_no_caltables"
-            conn.execute(
-                "INSERT OR REPLACE INTO ms_index(path, start_mjd, end_mjd, mid_mjd, processed_at, status) VALUES(?,?,?,?,?,?)",
-                (os.fspath(ms),
-                 start_mjd,
-                 end_mjd,
-                 mid_mjd,
-                 time.time(),
-                    status),
-            )
+            ms_index_upsert(conn, os.fspath(ms), start_mjd=start_mjd, end_mjd=end_mjd, mid_mjd=mid_mjd, processed_at=time.time(), status=status)
             conn.commit()
             continue
 
         artifacts = _apply_and_image(os.fspath(ms), out_dir, applylist)
         status = "done" if artifacts else "failed"
-        conn.execute(
-            "INSERT OR REPLACE INTO ms_index(path, start_mjd, end_mjd, mid_mjd, processed_at, status) VALUES(?,?,?,?,?,?)",
-            (os.fspath(ms),
-             start_mjd,
-             end_mjd,
-             mid_mjd,
-             time.time(),
-             status),
-        )
+        ms_index_upsert(conn, os.fspath(ms), start_mjd=start_mjd, end_mjd=end_mjd, mid_mjd=mid_mjd, processed_at=time.time(), status=status)
         for art in artifacts:
-            conn.execute(
-                "INSERT INTO images(path, ms_path, created_at, type, pbcor) VALUES(?,?,?,?,?)",
-                (art,
-                 os.fspath(ms),
-                    time.time(),
-                    "5min",
-                    1 if art.endswith(".image.pbcor") else 0),
-            )
+            images_insert(conn, art, os.fspath(ms), time.time(), "5min", 1 if art.endswith(".image.pbcor") else 0)
         conn.commit()
         processed += 1
         logger.info("Processed %s (artifacts: %d)", ms, len(artifacts))

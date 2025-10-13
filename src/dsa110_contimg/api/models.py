@@ -113,3 +113,20 @@ class SystemMetrics(BaseModel):
     load_1: float | None = None
     load_5: float | None = None
     load_15: float | None = None
+
+
+class MsIndexEntry(BaseModel):
+    path: str
+    start_mjd: float | None = None
+    end_mjd: float | None = None
+    mid_mjd: float | None = None
+    processed_at: datetime | None = None
+    status: str | None = None
+    stage: str | None = None
+    stage_updated_at: datetime | None = None
+    cal_applied: int | None = None
+    imagename: str | None = None
+
+
+class MsIndexList(BaseModel):
+    items: List[MsIndexEntry]

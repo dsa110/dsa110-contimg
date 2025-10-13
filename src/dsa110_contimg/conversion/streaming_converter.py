@@ -25,7 +25,6 @@ from datetime import datetime, timedelta
 from pathlib import Path
 from typing import Dict, Iterator, List, Optional, Sequence, Set, Tuple
 
-from . import uvh5_to_ms as converter
 import sys
 from casatasks import concat as casa_concat  # noqa
 from casacore.tables import table  # noqa
@@ -33,6 +32,7 @@ from dsa110_contimg.calibration.calibration import solve_delay, solve_bandpass, 
 from dsa110_contimg.calibration.applycal import apply_to_target  # noqa
 from dsa110_contimg.imaging.cli import image_ms  # noqa
 from dsa110_contimg.database.registry import ensure_db as ensure_cal_db, register_set_from_prefix, get_active_applylist  # noqa
+from dsa110_contimg.database.products import ensure_products_db, ms_index_upsert, images_insert  # noqa
 
 try:  # Optional dependency for efficient file watching
     from watchdog.events import FileSystemEventHandler
@@ -457,13 +457,20 @@ class QueueDB:
             write_time: float,
             total_time: float,
             writer_type: Optional[str] = None) -> None:
-        """Record performance metrics for a group."""
+        """Record performance metrics for a group, preserving writer_type when unknown."""
         with self._lock, self._conn:
             self._conn.execute(
                 """
-                INSERT OR REPLACE INTO performance_metrics
+                INSERT INTO performance_metrics
                 (group_id, load_time, phase_time, write_time, total_time, writer_type, recorded_at)
                 VALUES (?, ?, ?, ?, ?, ?, ?)
+                ON CONFLICT(group_id) DO UPDATE SET
+                  load_time=excluded.load_time,
+                  phase_time=excluded.phase_time,
+                  write_time=excluded.write_time,
+                  total_time=excluded.total_time,
+                  writer_type=COALESCE(excluded.writer_type, performance_metrics.writer_type),
+                  recorded_at=excluded.recorded_at
                 """,
                 (group_id, load_time, phase_time, write_time, total_time, writer_type, time.time()),
             )
@@ -1105,21 +1112,27 @@ class StreamingWorker(threading.Thread):
             phase_time = 0.0
             write_time = 0.0
 
+            writer_type: Optional[str] = None
             if self.config.use_subprocess:
                 cmd = [
                     sys.executable,
-                    '-m', 'dsa110_contimg.conversion.uvh5_to_ms',
-                    '--input-dir', str(temp_dir),
+                    '-m', 'dsa110_contimg.conversion.strategies.uvh5_to_ms_converter',
+                    str(temp_dir),
                     str(self.config.output_dir),
+                    start_time,
+                    end_time,
+                    '--writer', 'direct-subband',
+                    '--max-workers', str(self.config.stage_workers),
                 ]
-                ll = (self.config.log_level or '').upper()
-                if ll == 'DEBUG':
-                    cmd.append('--verbose')
-                elif ll in ('ERROR', 'CRITICAL'):
-                    cmd.append('--quiet')
+                if self.config.scratch_dir is not None:
+                    cmd.extend(['--scratch-dir', str(self.config.scratch_dir)])
+                ll = (self.config.log_level or 'INFO').upper()
+                if ll not in ('DEBUG', 'INFO', 'WARNING', 'ERROR'):
+                    ll = 'INFO'
+                cmd.extend(['--log-level', ll])
 
                 logging.info(
-                    "Launching converter subprocess for %s via uvh5_to_ms",
+                    "Launching converter subprocess for %s via strategy orchestrator",
                     group_id)
                 env = os.environ.copy()
                 if self.config.omp_threads is not None:
@@ -1185,21 +1198,23 @@ class StreamingWorker(threading.Thread):
                     env_overrides['HDF5_USE_FILE_LOCKING'] = 'FALSE'
 
                 logging.info(
-                    "Running converter in-process for %s via uvh5_to_ms",
+                    "Running converter in-process for %s via strategy orchestrator",
                     group_id)
                 t0 = time.perf_counter()
                 with override_env(env_overrides):
-                    converter.convert_directory(
-                        str(temp_dir),
-                        str(self.config.output_dir),
-                        pattern='*.hdf5',
-                        add_imaging_columns=True,
-                        create_time_binned_fields=False,
-                        field_time_bin_minutes=self.config.chunk_duration_minutes,
-                        write_recommendations=True,
-                        enable_phasing=True,
-                        phase_reference_time=None,
+                    from dsa110_contimg.conversion.strategies import uvh5_to_ms_converter as _strat
+                    _strat.convert_subband_groups_to_ms(
+                        input_dir=str(temp_dir),
+                        output_dir=str(self.config.output_dir),
+                        start_time=start_time,
+                        end_time=end_time,
+                        writer='direct-subband',
+                        writer_kwargs={
+                            'max_workers': self.config.stage_workers,
+                            'scratch_dir': str(self.config.scratch_dir) if self.config.scratch_dir else None,
+                        },
                     )
+                writer_type = 'direct-subband'
                 duration = time.perf_counter() - t0
                 logging.info(
                     "In-process conversion for %s completed in %.1f s",
@@ -1281,7 +1296,6 @@ class StreamingWorker(threading.Thread):
                 except Exception:
                     pass
                 return None, None, None
-
             def _msindex_update(
                     ms_path: str,
                     *,
@@ -1293,56 +1307,11 @@ class StreamingWorker(threading.Thread):
                 if not db:
                     return
                 try:
-                    conn = sqlite3.connect(db)
-                    conn.execute(
-                        """
-                        CREATE TABLE IF NOT EXISTS ms_index (
-                            path TEXT PRIMARY KEY,
-                            start_mjd REAL,
-                            end_mjd REAL,
-                            mid_mjd REAL,
-                            processed_at REAL,
-                            status TEXT,
-                            stage TEXT,
-                            stage_updated_at REAL,
-                            cal_applied INTEGER DEFAULT 0,
-                            imagename TEXT
-                        )
-                        """
-                    )
-                    now = time.time()
+                    conn = ensure_products_db(Path(db))
                     s, e, m = _timerange(ms_path)
-                    cur = conn.cursor()
-                    cur.execute(
-                        "SELECT path FROM ms_index WHERE path=?", (ms_path,))
-                    exists = cur.fetchone() is not None
-                    if not exists:
-                        conn.execute(
-                            "INSERT INTO ms_index(path, start_mjd, end_mjd, mid_mjd, processed_at, status, stage, stage_updated_at, cal_applied, imagename) VALUES(?,?,?,?,?,?,?,?,?,?)",
-                            (ms_path,
-                             s,
-                             e,
-                             m,
-                             None,
-                             status,
-                             stage,
-                             now,
-                             cal_applied,
-                             imagename),
-                        )
-                    else:
-                        conn.execute(
-                            "UPDATE ms_index SET start_mjd=COALESCE(start_mjd,?), end_mjd=COALESCE(end_mjd,?), mid_mjd=COALESCE(mid_mjd,?), status=?, stage=?, stage_updated_at=?, cal_applied=?, imagename=COALESCE(?, imagename) WHERE path=?",
-                            (s,
-                             e,
-                             m,
-                             status,
-                             stage,
-                             now,
-                             cal_applied,
-                             imagename,
-                             ms_path),
-                        )
+                    ms_index_upsert(conn, ms_path, start_mjd=s, end_mjd=e, mid_mjd=m,
+                                    status=status, stage=stage, cal_applied=cal_applied,
+                                    imagename=imagename)
                     conn.commit()
                     conn.close()
                 except Exception as ue:
@@ -1493,42 +1462,17 @@ class StreamingWorker(threading.Thread):
                     products_db = os.getenv('PIPELINE_PRODUCTS_DB')
                     if products_db:
                         try:
-                            conn = sqlite3.connect(products_db)
-                            try:
-                                # ensure table exists (lightweight)
-                                conn.execute(
-                                    "CREATE TABLE IF NOT EXISTS images (id INTEGER PRIMARY KEY, path TEXT NOT NULL, ms_path TEXT NOT NULL, created_at REAL NOT NULL, type TEXT NOT NULL, beam_major_arcsec REAL, noise_jy REAL, pbcor INTEGER DEFAULT 0)")
-                            except Exception:
-                                pass
-                            # Insert known products if present
+                            conn = ensure_products_db(Path(products_db))
                             now = time.time()
-                            for suf, pbc in [
-                                    (".image", 0), (".pb", 0), (".pbcor", 1), (".residual", 0), (".model", 0)]:
+                            for suf, pbc in [(".image", 0), (".pb", 0), (".pbcor", 1), (".residual", 0), (".model", 0)]:
                                 pth = out_prefix + suf
                                 if os.path.isdir(pth):
-                                    conn.execute(
-                                        "INSERT INTO images(path, ms_path, created_at, type, pbcor) VALUES(?,?,?,?,?)",
-                                        (pth, group_ms_path, now, "5min", pbc),
-                                    )
-                            # update ms_index row if exists
-                            try:
-                                conn.execute(
-                                    "UPDATE ms_index SET stage=?, stage_updated_at=?, cal_applied=?, imagename=?, processed_at=?, status=? WHERE path=?",
-                                    ("imaged",
-                                     now,
-                                     1 if gaintables else 0,
-                                     out_prefix,
-                                     now,
-                                     "done",
-                                     group_ms_path),
-                                )
-                            except Exception:
-                                pass
+                                    images_insert(conn, pth, group_ms_path, now, "5min", pbc)
+                            ms_index_upsert(conn, group_ms_path, status="done", stage="imaged", cal_applied=(1 if gaintables else 0), imagename=out_prefix, processed_at=now)
                             conn.commit()
                             conn.close()
                         except Exception as de:
-                            logging.debug(
-                                "Failed to write products DB: %s", de)
+                            logging.debug("Failed to write products DB: %s", de)
                 except Exception as e:
                     logging.warning("imaging failed: %s", e)
 
@@ -1538,7 +1482,7 @@ class StreamingWorker(threading.Thread):
             # writer_type if any (subprocess path sets it above)
             try:
                 self.queue_db.record_performance_metrics(
-                    group_id, load_time, phase_time, write_time, total_time)
+                    group_id, load_time, phase_time, write_time, total_time, writer_type)
             except Exception:
                 pass
 
