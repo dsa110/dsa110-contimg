@@ -18,6 +18,16 @@ The legacy converter remains available as
 `archive/legacy/core_conversion/uvh5_to_ms_converter`.
 """
 
+import shutil
+from dsa110_contimg.qa.quicklooks import (
+    run_ragavi_vis,
+    run_shadems_quicklooks,
+)
+from dsa110_contimg.conversion.strategies.direct_subband import (
+    write_ms_from_subbands as _direct_write_ms,
+    _write_ms_subband_part as _direct_write_subband,
+)
+import csv
 from dsa110_contimg.utils.fringestopping import calc_uvw_blt
 from dsa110_contimg.conversion.helpers import (
     set_antenna_positions,
@@ -49,6 +59,7 @@ try:  # pragma: no cover
     from pyuvdata.utils.phasing import calc_uvw as _PU_CALC_UVW
 except Exception:  # pragma: no cover
     _PU_CALC_UVW = None
+
 
 def _calc_uvw_fast(
     *,
@@ -95,17 +106,6 @@ def _calc_uvw_fast(
         telescope_lat=telescope_lat,
         telescope_lon=telescope_lon,
     )
-import shutil
-import csv
-
-from dsa110_contimg.conversion.strategies.direct_subband import (
-    write_ms_from_subbands as _direct_write_ms,
-    _write_ms_subband_part as _direct_write_subband,
-)
-from dsa110_contimg.qa.quicklooks import (
-    run_ragavi_vis,
-    run_shadems_quicklooks,
-)
 
 
 def write_ms_from_subbands(file_list, ms_path, scratch_dir=None):
@@ -150,7 +150,8 @@ def _write_ms_with_daskms(
     if not HAVE_DASKMS:
         raise RuntimeError("dask-ms not importable in this environment")
 
-    import os, shutil
+    import os
+    import shutil
     # Do NOT pre-create the MS root directory; dask-ms will create proper tables.
     # If a stale directory exists (not a proper table), remove it first.
     try:
@@ -173,7 +174,10 @@ def _write_ms_with_daskms(
             "dask-ms: preparing datasets (rows=%d, chans=%d, pols=%d)", nrow, nchan, npol)
     except Exception:
         pass
-    main_ds = _build_main_table_dataset(uv, row_chunks=_row_chunks, field_per_integration=field_per_integration)
+    main_ds = _build_main_table_dataset(
+        uv,
+        row_chunks=_row_chunks,
+        field_per_integration=field_per_integration)
     spw_ds = _build_spw_dataset(uv)
     pol_ds = _build_pol_dataset(uv)
     ant_ds = _build_antenna_dataset(uv)
@@ -189,7 +193,8 @@ def _write_ms_with_daskms(
     if field_per_integration:
         # Build one FIELD row per unique integration time
         from astropy.time import Time as _Time
-        utime, _, invert = np.unique(uv.time_array, return_index=True, return_inverse=True)
+        utime, _, invert = np.unique(
+            uv.time_array, return_index=True, return_inverse=True)
         mjd_vec = _Time(utime, format='jd').mjd.astype(float)
         try:
             logging.getLogger("uvh5_to_ms_converter_v2").info(
@@ -204,14 +209,21 @@ def _write_ms_with_daskms(
             dec_list.append(dec_i)
         # TIME column in FIELD is in seconds (MJD seconds)
         time_list_sec = list((mjd_vec * 86400.0).astype(float))
-        field_ds = _build_field_dataset_multi(ra_list, dec_list, time_list_sec=time_list_sec)
+        field_ds = _build_field_dataset_multi(
+            ra_list, dec_list, time_list_sec=time_list_sec)
         # Update FIELD_ID mapping on main table
         # Rebuild main_ds with explicit FIELD_ID set to per-row mapping
-        main_ds = _build_main_table_dataset(uv, row_chunks=_row_chunks, field_per_integration=True, field_id_map=invert.astype(np.int32))
+        main_ds = _build_main_table_dataset(
+            uv,
+            row_chunks=_row_chunks,
+            field_per_integration=True,
+            field_id_map=invert.astype(
+                np.int32))
     else:
         # Use midpoint time in seconds for single FIELD TIME
         field_mid_sec = float(mid_mjd * 86400.0)
-        field_ds = _build_field_dataset(ra_icrs, dec_icrs, time_sec=field_mid_sec)
+        field_ds = _build_field_dataset(
+            ra_icrs, dec_icrs, time_sec=field_mid_sec)
 
     ddid_ds = _build_ddid_dataset()
 
@@ -220,7 +232,16 @@ def _write_ms_with_daskms(
     t_sec = _Time(uv.time_array, format='jd').mjd.astype(float) * 86400.0
     t_min = float(np.min(t_sec)) if t_sec.size else 0.0
     t_max = float(np.max(t_sec)) if t_sec.size else 0.0
-    telname = getattr(uv, 'telescope_name', None) or getattr(getattr(uv, 'telescope', None), 'name', None) or 'DSA-110'
+    telname = getattr(
+        uv,
+        'telescope_name',
+        None) or getattr(
+        getattr(
+            uv,
+            'telescope',
+            None),
+        'name',
+        None) or 'DSA-110'
     obs_vars = {
         'TIME_RANGE': (('row', 'tr'), da.from_array(np.array([[t_min, t_max]], dtype=np.float64), chunks=(1, 2))),
         'TELESCOPE_NAME': (('row',), da.from_array(np.array([str(telname)], dtype=object), chunks=(1,))),
@@ -259,7 +280,8 @@ def _write_ms_with_daskms(
             'WEIGHT_SPECTRUM',
         ],
     )
-    logging.getLogger("uvh5_to_ms_converter_v2").info("dask-ms: MAIN table write graph built")
+    logging.getLogger("uvh5_to_ms_converter_v2").info(
+        "dask-ms: MAIN table write graph built")
     # Then create and link subtables
     writes += xds_to_table(spw_ds,
                            f"{ms_full_path}::SPECTRAL_WINDOW",
@@ -273,12 +295,15 @@ def _write_ms_with_daskms(
     writes += xds_to_table(ddid_ds,
                            f"{ms_full_path}::DATA_DESCRIPTION",
                            columns="ALL")
-    writes += xds_to_table(obs_ds, f"{ms_full_path}::OBSERVATION", columns="ALL")
+    writes += xds_to_table(obs_ds,
+                           f"{ms_full_path}::OBSERVATION",
+                           columns="ALL")
 
     logging.getLogger("uvh5_to_ms_converter_v2").info(
         "dask-ms: submitting %d write tasks", len(writes))
     dask.compute(writes)
-    logging.getLogger("uvh5_to_ms_converter_v2").info("dask-ms: write completed for %s", ms_full_path)
+    logging.getLogger("uvh5_to_ms_converter_v2").info(
+        "dask-ms: write completed for %s", ms_full_path)
 
     # Attach MEASINFO keywords for direction and epoch columns
     try:
@@ -304,27 +329,36 @@ def _write_ms_with_daskms(
                 kw["MEASINFO"] = {"Ref": "RAD", "Type": "Angle"}
                 ft.putcolkeywords('RECEPTOR_ANGLE', kw)
     except Exception as e:
-        logging.getLogger("uvh5_to_ms_converter_v2").warning("MEASINFO keyword attach skipped: %s", e)
+        logging.getLogger("uvh5_to_ms_converter_v2").warning(
+            "MEASINFO keyword attach skipped: %s", e)
 
     # Ensure main table OBSERVATION_ID column points to row 0
     try:
         from casacore.tables import table as ctable
         with ctable(ms_full_path, ack=False, readonly=False) as mt:
             if 'OBSERVATION_ID' in mt.colnames():
-                mt.putcol('OBSERVATION_ID', np.zeros(mt.nrows(), dtype=np.int32))
+                mt.putcol(
+                    'OBSERVATION_ID', np.zeros(
+                        mt.nrows(), dtype=np.int32))
     except Exception as e:
-        logging.getLogger("uvh5_to_ms_converter_v2").warning("Set OBSERVATION_ID failed: %s", e)
+        logging.getLogger("uvh5_to_ms_converter_v2").warning(
+            "Set OBSERVATION_ID failed: %s", e)
 
     # Optional strict validation
     try:
         from dsa110_contimg.conversion.uvh5_to_ms_converter_v2 import _validate_ms_strict as _v
-        _v(ms_full_path, expect_fields=(len(utime) if field_per_integration else None), expect_linear=True)
+        _v(ms_full_path, expect_fields=(len(utime)
+           if field_per_integration else None), expect_linear=True)
     except Exception as e:
         # Surface as runtime error to caller
         raise RuntimeError(f"MS strict validation failed: {e}")
 
 
-def _validate_ms_strict(ms_path: str, *, expect_fields: Optional[int] = None, expect_linear: bool = True) -> None:
+def _validate_ms_strict(
+        ms_path: str,
+        *,
+        expect_fields: Optional[int] = None,
+        expect_linear: bool = True) -> None:
     """Validate key MS invariants required by our calibration pipeline.
 
     Raises RuntimeError with a concise message on the first failed check.
@@ -335,7 +369,16 @@ def _validate_ms_strict(ms_path: str, *, expect_fields: Optional[int] = None, ex
     # MAIN checks
     with ctable(ms_path) as tb:
         cols = set(tb.colnames())
-        for c in ("DATA", "FLAG", "TIME", "TIME_CENTROID", "INTERVAL", "FIELD_ID", "DATA_DESC_ID", "SIGMA", "WEIGHT"):
+        for c in (
+            "DATA",
+            "FLAG",
+            "TIME",
+            "TIME_CENTROID",
+            "INTERVAL",
+            "FIELD_ID",
+            "DATA_DESC_ID",
+            "SIGMA",
+                "WEIGHT"):
             if c not in cols:
                 raise RuntimeError(f"MS missing required column {c}")
         # WEIGHT_SPECTRUM strongly recommended
@@ -349,11 +392,17 @@ def _validate_ms_strict(ms_path: str, *, expect_fields: Optional[int] = None, ex
             raise RuntimeError(f"DATA cell shape invalid: {d0.shape}")
         iv = tb.getcol("INTERVAL")
         if not np.all(np.isfinite(iv)) or not np.all(iv > 0):
-            raise RuntimeError("INTERVAL must be positive and finite for all rows")
+            raise RuntimeError(
+                "INTERVAL must be positive and finite for all rows")
 
     # SPW checks
     with ctable(f"{ms_path}::SPECTRAL_WINDOW") as spw:
-        for c in ("NUM_CHAN", "CHAN_FREQ", "CHAN_WIDTH", "EFFECTIVE_BW", "RESOLUTION"):
+        for c in (
+            "NUM_CHAN",
+            "CHAN_FREQ",
+            "CHAN_WIDTH",
+            "EFFECTIVE_BW",
+                "RESOLUTION"):
             if c not in spw.colnames():
                 raise RuntimeError(f"SPW missing {c}")
         if int(np.asarray(spw.getcol("NUM_CHAN")).ravel()[0]) <= 0:
@@ -377,7 +426,8 @@ def _validate_ms_strict(ms_path: str, *, expect_fields: Optional[int] = None, ex
         if "NUM_POLY" in fld.colnames():
             npoly = np.asarray(fld.getcol("NUM_POLY"))
             if np.any(npoly != 0):
-                raise RuntimeError("FIELD::NUM_POLY must be 0 for constant directions")
+                raise RuntimeError(
+                    "FIELD::NUM_POLY must be 0 for constant directions")
         # PHASE_DIR presence and MEASINFO are strongly expected
         if "PHASE_DIR" not in fld.colnames():
             raise RuntimeError("FIELD missing PHASE_DIR")
@@ -391,7 +441,11 @@ def _validate_ms_strict(ms_path: str, *, expect_fields: Optional[int] = None, ex
             raise RuntimeError("OBSERVATION has zero rows")
 
 
-def _build_main_table_dataset(uv: "UVData", *, row_chunks: int = 8192, field_per_integration: bool = False, field_id_map: Optional[np.ndarray] = None) -> "DMSDataset":
+def _build_main_table_dataset(uv: "UVData",
+                              *,
+                              row_chunks: int = 8192,
+                              field_per_integration: bool = False,
+                              field_id_map: Optional[np.ndarray] = None) -> "DMSDataset":
     import numpy as np
     from astropy.time import Time
 
@@ -434,7 +488,8 @@ def _build_main_table_dataset(uv: "UVData", *, row_chunks: int = 8192, field_per
             raise ValueError
     except Exception:
         utime = np.unique(uv.time_array)
-        dt_s = float(np.median(np.diff(utime))) * 86400.0 if utime.size >= 2 else 1.0
+        dt_s = float(np.median(np.diff(utime))) * \
+            86400.0 if utime.size >= 2 else 1.0
         intval = np.full(nrow, dt_s, dtype=np.float64)
     interval = da.from_array(intval, chunks=chunks_row)
 
@@ -443,20 +498,31 @@ def _build_main_table_dataset(uv: "UVData", *, row_chunks: int = 8192, field_per
     arr_id = da.from_array(np.zeros(nrow, dtype=np.int32), chunks=chunks_row)
     obs_id = da.from_array(np.zeros(nrow, dtype=np.int32), chunks=chunks_row)
     if field_per_integration and field_id_map is not None:
-        field_id = da.from_array(np.asarray(field_id_map, dtype=np.int32), chunks=chunks_row)
+        field_id = da.from_array(
+            np.asarray(
+                field_id_map,
+                dtype=np.int32),
+            chunks=chunks_row)
     else:
-        field_id = da.from_array(np.zeros(nrow, dtype=np.int32), chunks=chunks_row)
+        field_id = da.from_array(
+            np.zeros(
+                nrow,
+                dtype=np.int32),
+            chunks=chunks_row)
     ddid = da.from_array(np.zeros(nrow, dtype=np.int32), chunks=chunks_row)
 
-    # Ensure DATA/FLAG are shaped (row, chan, corr); squeeze single-SPW axis if present
+    # Ensure DATA/FLAG are shaped (row, chan, corr); squeeze single-SPW axis
+    # if present
     _data_np = np.asarray(uv.data_array)
     if _data_np.ndim == 4 and _data_np.shape[1] == 1:
         _data_np = _data_np[:, 0, :, :]
     elif _data_np.ndim == 4:
         # Unexpected multiple SPWs at this stage
-        raise RuntimeError(f"DATA has multiple SPWs (shape={_data_np.shape}); expected single-SPW")
+        raise RuntimeError(
+            f"DATA has multiple SPWs (shape={_data_np.shape}); expected single-SPW")
     if _data_np.shape[1] != nchan or _data_np.shape[2] != npol:
-        # Re-derive channel/pol counts from array in case uv.Nfreqs/Npols are stale
+        # Re-derive channel/pol counts from array in case uv.Nfreqs/Npols are
+        # stale
         nchan = int(_data_np.shape[1])
         npol = int(_data_np.shape[2])
     data = da.from_array(_data_np, chunks=(chunks_row[0], nchan, npol))
@@ -465,16 +531,21 @@ def _build_main_table_dataset(uv: "UVData", *, row_chunks: int = 8192, field_per
     if _flag_np.ndim == 4 and _flag_np.shape[1] == 1:
         _flag_np = _flag_np[:, 0, :, :]
     elif _flag_np.ndim == 4:
-        raise RuntimeError(f"FLAG has multiple SPWs (shape={_flag_np.shape}); expected single-SPW")
+        raise RuntimeError(
+            f"FLAG has multiple SPWs (shape={_flag_np.shape}); expected single-SPW")
     flag = da.from_array(_flag_np, chunks=(chunks_row[0], nchan, npol))
 
     # Per-row SIGMA/WEIGHT (npol) initialized to ones
-    sigma = da.from_array(np.ones((nrow, npol), dtype=np.float32), chunks=(chunks_row[0], npol))
+    sigma = da.from_array(
+        np.ones(
+            (nrow, npol), dtype=np.float32), chunks=(
+            chunks_row[0], npol))
     weight = sigma
 
     # Per-channel WEIGHT_SPECTRUM by broadcasting WEIGHT across channels
     try:
-        weight_spectrum = da.broadcast_to(weight[:, None, :], (nrow, nchan, npol))
+        weight_spectrum = da.broadcast_to(
+            weight[:, None, :], (nrow, nchan, npol))
     except Exception:
         weight_spectrum = None
 
@@ -496,7 +567,8 @@ def _build_main_table_dataset(uv: "UVData", *, row_chunks: int = 8192, field_per
         'WEIGHT': (('row', 'corr'), weight),
     }
     if weight_spectrum is not None:
-        vars_main['WEIGHT_SPECTRUM'] = (('row', 'chan', 'corr'), weight_spectrum)
+        vars_main['WEIGHT_SPECTRUM'] = (
+            ('row', 'chan', 'corr'), weight_spectrum)
     coords = {
         'row': (('row',), da.arange(nrow, chunks=chunks_row)),
         'chan': (('chan',), da.arange(nchan, chunks=(nchan,))),
@@ -541,14 +613,19 @@ def _build_spw_dataset(uv: "UVData") -> "DMSDataset":
 def _build_pol_dataset(uv: "UVData") -> "DMSDataset":
     import numpy as np
     # UVData.polarization_array is in AIPS convention: -5=XX, -6=YY, -7=XY, -8=YX
-    # MS POLARIZATION::CORR_TYPE must use casacore Stokes enum (positive): 5,6,7,8
-    raw = np.asarray(getattr(uv, 'polarization_array', np.array([-5, -6], dtype=np.int32)))
+    # MS POLARIZATION::CORR_TYPE must use casacore Stokes enum (positive):
+    # 5,6,7,8
+    raw = np.asarray(getattr(uv, 'polarization_array',
+                     np.array([-5, -6], dtype=np.int32)))
     aips_to_ms = {-5: 5, -6: 6, -7: 7, -8: 8}
-    corr_types = np.array([aips_to_ms.get(int(c), int(c)) for c in raw], dtype=np.int32)
+    corr_types = np.array([aips_to_ms.get(int(c), int(c))
+                          for c in raw], dtype=np.int32)
     nc = int(corr_types.size)
     # CORR_PRODUCT maps receptors (0/1) for each correlation; stays the same
-    prod_map = {5: (0, 0), 6: (1, 1), 7: (0, 1), 8: (1, 0), -5: (0, 0), -6: (1, 1), -7: (0, 1), -8: (1, 0)}
-    corr_prod = np.array([prod_map.get(int(c), (0, 0)) for c in raw], dtype=np.int32)
+    prod_map = {5: (0, 0), 6: (1, 1), 7: (0, 1), 8: (1, 0), -
+                5: (0, 0), -6: (1, 1), -7: (0, 1), -8: (1, 0)}
+    corr_prod = np.array([prod_map.get(int(c), (0, 0))
+                         for c in raw], dtype=np.int32)
 
     vars_pol = {
         'NUM_CORR': (('row',), da.from_array(np.array([nc], dtype=np.int32), chunks=(1,))),
@@ -585,7 +662,7 @@ def _build_antenna_dataset(uv: "UVData") -> "DMSDataset":
     names = np.array(names_list, dtype=object)
 
     diam = np.full(nants, 4.65, dtype=np.float32)
-    mount = np.array(['ALT-AZ'] * nants, dtype=object)
+    mount = np.array(['alt-az'] * nants, dtype=object)
     station = np.array(['DSA-110'] * nants, dtype=object)
 
     vars_ant = {
@@ -612,7 +689,14 @@ def _build_feed_dataset(uv: "UVData") -> "DMSDataset":
     - ANTENNA_ID: 0..Nant-1, FEED_ID=0, BEAM_ID=-1, TIME=0, INTERVAL=1e9
     """
     import numpy as np
-    nants = int(getattr(uv, 'Nants_telescope', 0) or np.asarray(getattr(uv, 'antenna_positions')).shape[0])
+    nants = int(
+        getattr(
+            uv,
+            'Nants_telescope',
+            0) or np.asarray(
+            getattr(
+                uv,
+                'antenna_positions')).shape[0])
     # Object arrays need dtype=object for dask-ms
     pol_type = np.empty((nants, 2), dtype=object)
     pol_type[:, 0] = 'X'
@@ -678,7 +762,9 @@ def _build_field_dataset(
     return DMSDataset(vars_field, coords=coords, attrs={})
 
 
-def _build_field_dataset_multi(phase_ra_list: List["u.Quantity"], phase_dec_list: List["u.Quantity"], time_list_sec: Optional[List[float]] = None) -> "DMSDataset":
+def _build_field_dataset_multi(phase_ra_list: List["u.Quantity"],
+                               phase_dec_list: List["u.Quantity"],
+                               time_list_sec: Optional[List[float]] = None) -> "DMSDataset":
     import numpy as np
     n = int(len(phase_ra_list))
     if n == 0:
@@ -693,10 +779,12 @@ def _build_field_dataset_multi(phase_ra_list: List["u.Quantity"], phase_dec_list
     if time_list_sec is None or len(time_list_sec) != n:
         time_arr = np.zeros(n, dtype=np.float64)
     else:
-        time_arr = np.array([float(t) for t in time_list_sec], dtype=np.float64)
+        time_arr = np.array([float(t)
+                            for t in time_list_sec], dtype=np.float64)
     vars_field = {
         'NAME': (('row',), da.from_array(names, chunks=(n,))),
-        # Constant direction per field → NUM_POLY = 0 (shape is (1,2) = NUM_POLY+1)
+        # Constant direction per field → NUM_POLY = 0 (shape is (1,2) =
+        # NUM_POLY+1)
         'NUM_POLY': (('row',), da.from_array(np.zeros(n, dtype=np.int32), chunks=(n,))),
         'PHASE_DIR': (('row', 'num_poly', 'loc'), da.from_array(phase_dir, chunks=(n, 1, 2))),
         'DELAY_DIR': (('row', 'num_poly', 'loc'), da.from_array(phase_dir, chunks=(n, 1, 2))),
@@ -725,8 +813,6 @@ def _build_ddid_dataset() -> "DMSDataset":
                                     1,))), }
     coords = {'row': (('row',), da.arange(1, chunks=(1,)))}
     return DMSDataset(vars_dd, coords=coords, attrs={})
-
-
 
 
 def _search_vla_calibrator(csv_path: str,
@@ -839,14 +925,18 @@ def _write_calibrator_model_quick(
         data_shape = tb.getcol('DATA').shape  # (npol, nchan, nrow)
         npol, nchan, nrow = data_shape
         if nchan != amp.size:
-            raise RuntimeError("Frequency axis size mismatch for MODEL_DATA write")
+            raise RuntimeError(
+                "Frequency axis size mismatch for MODEL_DATA write")
         blk = 4096
         model_line = (flux_jy * amp.astype(np.complex64))  # (nchan,)
         for start in range(0, nrow, blk):
             end = min(start + blk, nrow)
             model = model_line[None, :, None]
             model = np.broadcast_to(model, (npol, nchan, end - start)).copy()
-            tb.putcolslice('MODEL_DATA', model, blc=[0, 0, start], trc=[npol - 1, nchan - 1, end - 1])
+            tb.putcolslice(
+                'MODEL_DATA', model, blc=[
+                    0, 0, start], trc=[
+                    npol - 1, nchan - 1, end - 1])
         # Initialize CORRECTED_DATA as a copy of DATA (best-effort)
         try:
             tb.putcol('CORRECTED_DATA', tb.getcol('DATA'))
@@ -1203,10 +1293,16 @@ def _downsample_time(uv: "UVData", factor: int) -> None:
         nsamp_out = None
         have_ns = False
     try:
-        itime = np.asarray(uv.integration_time, dtype=float)
+        itime_raw = np.asarray(uv.integration_time)
+        if itime_raw.size == 1:
+            itime = np.full(uv.time_array.size, float(itime_raw.reshape(-1)[0]), dtype=float)
+        else:
+            itime = itime_raw.astype(float, copy=False)
+        itime_out = np.empty(nb_out, dtype=float)
         have_it = True
     except Exception:
         itime = None
+        itime_out = None
         have_it = False
 
     # Also prepare ant arrays (repeat base_pairs per output time)
@@ -1250,6 +1346,8 @@ def _downsample_time(uv: "UVData", factor: int) -> None:
         uvw_out[sl, :] = uvw_avg
         time_out[sl] = t_avg
         lst_out[sl] = l_avg
+        if have_it:
+            itime_out[sl] = it_sum
         out_row += nbls
 
     # Assign
@@ -1260,14 +1358,46 @@ def _downsample_time(uv: "UVData", factor: int) -> None:
     uv.uvw_array = uvw_out
     uv.time_array = time_out
     uv.lst_array = lst_out
-    if have_it:
-        uv.integration_time = np.repeat((itime[:nbls * factor].sum() / (
-            nbls * factor)), nb_out) if np.ndim(itime) == 0 else it_sum.repeat(nb_out // nbls)
+    if have_it and itime_out is not None:
+        uv.integration_time = itime_out
     # Ant arrays
-    uv.ant_1_array = np.tile(
+    ants_1 = np.tile(
         np.array([p[0] for p in base_pairs], dtype=uv.ant_1_array.dtype), nt // factor)
-    uv.ant_2_array = np.tile(
+    ants_2 = np.tile(
         np.array([p[1] for p in base_pairs], dtype=uv.ant_2_array.dtype), nt // factor)
+    uv.ant_1_array = ants_1
+    uv.ant_2_array = ants_2
+
+    # Baseline indices (requires telescope antenna count)
+    try:
+        nants_tel = getattr(uv, 'Nants_telescope', None)
+        if nants_tel is None:
+            nants_tel = int(np.max([ants_1.max(), ants_2.max()]) + 1)
+        uv.baseline_array = uvutils.antnums_to_baseline(
+            ants_1,
+            ants_2,
+            Nants_telescope=nants_tel,
+        )
+    except Exception:
+        pass
+
+    # Update cached counts used by writers
+    try:
+        uv.Nblts = int(nb_out)
+    except Exception:
+        pass
+    try:
+        uv.Ntimes = int(nt // factor)
+    except Exception:
+        pass
+    try:
+        uv.Nints = int(uv.Ntimes)
+    except Exception:
+        pass
+    try:
+        uv.Nbls = int(len(base_pairs))
+    except Exception:
+        pass
 
 
 def _ensure_phasecenter_arrays(uv: UVData) -> None:
@@ -1310,7 +1440,8 @@ def set_per_time_phase_centers(
     else:
         fmt = field_name + '_drift_ra{}'
 
-    # Telescope metadata used by uvutils (prefer UVData.telescope in pyuvdata>=3.2.4)
+    # Telescope metadata used by uvutils (prefer UVData.telescope in
+    # pyuvdata>=3.2.4)
     tel_latlonalt = getattr(uv, 'telescope_location_lat_lon_alt', None)
     if tel_latlonalt is None and hasattr(uv, 'telescope'):
         tel_latlonalt = getattr(uv.telescope, 'location_lat_lon_alt', None)
@@ -1327,7 +1458,8 @@ def set_per_time_phase_centers(
     ant_pos = np.asarray(ant_pos) if ant_pos is not None else None
     ant_nums = np.asarray(ant_nums) if ant_nums is not None else None
 
-    # Vectorized fast path: compute apparent coords per unique time, map to rows, compute UVW once
+    # Vectorized fast path: compute apparent coords per unique time, map to
+    # rows, compute UVW once
     mjd_unique = Time(utime, format='jd').mjd.astype(float)
     ra_icrs_list = []
     dec_icrs_list = []
@@ -1396,7 +1528,8 @@ def set_per_time_phase_centers(
         )
         uv.uvw_array[:, :] = uvw_all
     except Exception as e:
-        logger.warning("Vectorized UVW failed (%s); falling back to block-wise compute", e)
+        logger.warning(
+            "Vectorized UVW failed (%s); falling back to block-wise compute", e)
         for i in range(len(utime)):
             sel = (uinvert == i)
             if not np.any(sel):
@@ -1417,8 +1550,11 @@ def set_per_time_phase_centers(
                 uv.uvw_array[sel, :] = uvw
             except Exception:
                 row_idx = np.where(sel)[0]
-                blen = ant_pos[uv.ant_2_array[sel], :] - ant_pos[uv.ant_1_array[sel], :]
-                times_mjd = Time(uv.time_array[sel], format='jd').mjd.astype(float)
+                blen = ant_pos[uv.ant_2_array[sel], :] - \
+                    ant_pos[uv.ant_1_array[sel], :]
+                times_mjd = Time(
+                    uv.time_array[sel],
+                    format='jd').mjd.astype(float)
                 uvw_rows = calc_uvw_blt(
                     blen,
                     times_mjd,
@@ -1441,7 +1577,8 @@ def set_per_time_phase_centers(
     pc_ids = np.zeros(len(utime), dtype=int)
     for i in range(len(utime)):
         try:
-            ra_str = ra_icrs_list[i].to_string(unit=u.hour, sep=':', precision=3, pad=True)
+            ra_str = ra_icrs_list[i].to_string(
+                unit=u.hour, sep=':', precision=3, pad=True)
         except Exception:
             ra_str = 'RA'
         try:
@@ -1803,7 +1940,8 @@ def convert_subband_groups_to_ms(
             writer_type = 'direct-subband'
         elif not skip_build and not wrote_already:
             logger.info("Direct pyuvdata.write_ms -> %s", ms_stage_path)
-            # Direct pyuvdata write with resilience: fallback to dask-ms or direct-subband
+            # Direct pyuvdata write with resilience: fallback to dask-ms or
+            # direct-subband
             try:
                 t5 = time.perf_counter()
                 uv.write_ms(
@@ -1825,7 +1963,9 @@ def convert_subband_groups_to_ms(
                 # Attempt dask-ms writer if available
                 if HAVE_DASKMS:
                     try:
-                        logger.info("Falling back to dask-ms writer -> %s", ms_stage_path)
+                        logger.info(
+                            "Falling back to dask-ms writer -> %s",
+                            ms_stage_path)
                         t3b = time.perf_counter()
                         _write_ms_with_daskms(
                             uv,
@@ -1863,20 +2003,39 @@ def convert_subband_groups_to_ms(
             try:
                 if os.path.exists(ms_final_path):
                     shutil.rmtree(ms_final_path, ignore_errors=True)
-                logger.info("Moving staged MS %s -> %s", ms_stage_path, ms_final_path)
+                logger.info(
+                    "Moving staged MS %s -> %s",
+                    ms_stage_path,
+                    ms_final_path)
                 shutil.move(ms_stage_path, ms_final_path)
             except Exception:
                 # Fallback to copytree
-                logger.info("Copying staged MS %s -> %s (fallback)", ms_stage_path, ms_final_path)
+                logger.info(
+                    "Copying staged MS %s -> %s (fallback)",
+                    ms_stage_path,
+                    ms_final_path)
                 shutil.copytree(ms_stage_path, ms_final_path)
                 shutil.rmtree(ms_stage_path, ignore_errors=True)
 
-        # Ensure imaging columns exist after writing
+        # Ensure imaging columns exist after writing and preallocate model/scratch
         if not skip_build:
             try:
                 addImagingColumns(ms_final_path)
             except Exception:
                 pass
+            # Pre-populate MODEL_DATA (and initialize CORRECTED_DATA) with a unity model
+            # to avoid CASA calibrater accessing uninitialized cells.
+            try:
+                set_model_column(
+                    msname,
+                    uv,
+                    pt_dec,
+                    phase_ra_use,
+                    phase_dec_use,
+                    flux_jy=None,
+                )
+            except Exception as e:
+                logger.warning("Preallocating MODEL_DATA failed: %s", e)
 
         # Optional: populate MODEL_DATA (unity/beam) when a flux is specified
         if not skip_build and flux is not None and pt_dec is not None:
@@ -1887,7 +2046,7 @@ def convert_subband_groups_to_ms(
                     pt_dec,
                     phase_ra_use,
                     phase_dec_use,
-                    flux_Jy=flux)
+                    flux_jy=flux)
             except Exception as e:
                 logger.warning("MODEL_DATA write failed: %s", e)
 
@@ -2077,7 +2236,11 @@ def main() -> int:
         type=int,
         default=600,
         help="Timeout in seconds for ragavi-vis export (default: 600)")
-    p.add_argument("--strict-ms", action="store_true", default=True, help="Validate MS structure after write (recommended)")
+    p.add_argument(
+        "--strict-ms",
+        action="store_true",
+        default=True,
+        help="Validate MS structure after write (recommended)")
     args = p.parse_args()
 
     try:

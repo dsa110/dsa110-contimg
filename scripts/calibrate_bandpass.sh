@@ -24,6 +24,7 @@ RADIUS="2.0"            # Calibrator catalog search radius (deg)
 COMBINE=true            # Combine across selected fields for BP/G (single solution)
 DO_FLAGGING=false       # Flagging disabled by default (set --flagging to enable)
 QA_DIR="/tmp/qa-auto"
+MERGE_SPW=false         # Optional: combine all SPWs into one via mstransform
 
 while [[ $# -gt 0 ]]; do
   case "$1" in
@@ -37,6 +38,7 @@ while [[ $# -gt 0 ]]; do
     --no-flagging) DO_FLAGGING=false; shift 1;;
     --flagging) DO_FLAGGING=true; shift 1;;
     --qa-dir) QA_DIR="$2"; shift 2;;
+    --merge-spw) MERGE_SPW=true; shift 1;;
     -h|--help)
       sed -n '1,80p' "$0"; exit 0;;
     *) echo "Unknown arg: $1" >&2; exit 1;;
@@ -66,24 +68,114 @@ export PYTHONPATH="${REPO_ROOT}/src:${PYTHONPATH:-}"
 
 PY="/opt/miniforge/envs/casa6/bin/python"
 
+# Optional pre-step: merge all SPWs into a single SPW
+if [[ "$MERGE_SPW" == true ]]; then
+  echo "[0/3] Merging all SPWs into a single SPW (mstransform)"
+  MS_MERGED="${MS%/.ms}_spw1.ms"
+  # If the pattern above didn't match, fall back to appending suffix
+  if [[ "$MS_MERGED" == "$MS" ]]; then
+    MS_MERGED="${MS}_spw1.ms"
+  fi
+  # Run mstransform to combine SPWs and regrid to a contiguous band
+  MS_IN="$MS" MS_OUT="$MS_MERGED" "$PY" - <<'PY'
+import os, numpy as np
+from casacore.tables import table
+from casatasks import mstransform
+
+ms_in = os.environ['MS_IN']
+ms_out = os.environ['MS_OUT']
+
+# Build global frequency grid
+with table(ms_in+'::SPECTRAL_WINDOW') as spw:
+    cf = np.asarray(spw.getcol('CHAN_FREQ'))  # shape (nspw, nchan)
+
+all_freq = np.sort(cf.reshape(-1))
+dnu = float(np.median(np.diff(all_freq)))
+nchan = int(all_freq.size)
+start = float(all_freq[0])
+
+# Remove existing output if present
+import shutil
+if os.path.isdir(ms_out):
+    shutil.rmtree(ms_out, ignore_errors=True)
+
+mstransform(
+    vis=ms_in,
+    outputvis=ms_out,
+    datacolumn='DATA',
+    combinespws=True,
+    regridms=True,
+    mode='frequency',
+    nchan=nchan,
+    start=f'{start}Hz',
+    width=f'{dnu}Hz',
+    interpolation='linear',
+    keepflags=True,
+)
+print(f"Merged SPWs -> {ms_out}")
+PY
+  if [[ -d "$MS_MERGED" ]]; then
+    MS="$MS_MERGED"
+    echo "Using merged MS: $MS"
+  else
+    echo "SPW merge failed; continuing with original MS" >&2
+  fi
+fi
+
 echo "[1/3] Fast QA to rank refant -> $QA_DIR"
 "$PY" -m dsa110_contimg.qa.fast_plots --ms "$MS" --output-dir "$QA_DIR" >/dev/null || true
-if [[ ! -s "$QA_DIR/refant_ranking.json" ]]; then
-  echo "refant_ranking.json not found; QA step may have failed" >&2
-  exit 4
+
+# Reference antenna selection precedence:
+# 1) CAL_REFANT env var (explicit override)
+# 2) refant_ranking.json from QA
+# 3) Fallback median antenna from MS baselines
+REFANT_ARG=( )
+if [[ -n "${CAL_REFANT:-}" ]]; then
+  echo "Using CAL_REFANT override: ${CAL_REFANT}"
+  REFANT_ARG=( --refant "${CAL_REFANT}" )
+elif [[ ! -s "$QA_DIR/refant_ranking.json" ]]; then
+  echo "QA ranking not available; selecting a fallback reference antenna from MS"
+  # Fallback: choose a median antenna ID present in the MS baselines
+  REFANT_FALLBACK=$(MS="$MS" "$PY" - <<'PY'
+import os, numpy as np
+from casacore.tables import table
+ms = os.environ.get('MS')
+try:
+    with table(ms) as tb:
+        a1 = tb.getcol('ANTENNA1')
+        a2 = tb.getcol('ANTENNA2')
+    ants = np.unique(np.concatenate([a1, a2]))
+    if ants.size:
+        print(int(np.median(ants)))
+    else:
+        print(0)
+except Exception:
+    print(0)
+PY
+)
+  echo "Using fallback refant=${REFANT_FALLBACK}"
+  REFANT_ARG=( --refant "$REFANT_FALLBACK" )
+else
+  echo "✓ refant_ranking.json ready"
 fi
-echo "✓ refant_ranking.json ready"
 
 echo "[2/3] Calibrate with auto fields (PB-threshold) and auto refant"
 CAL_ARGS=(
   -m dsa110_contimg.calibration.cli calibrate
   --ms "$MS"
+  --field 0  # fallback if auto field selection fails
   --auto-fields
   --cal-catalog "$CATALOG"
   --cal-search-radius-deg "$RADIUS"
   --bp-window "$WINDOW"
-  --refant-ranking "$QA_DIR/refant_ranking.json"
 )
+if [[ -n "${CAL_REFANT:-}" ]]; then
+  CAL_ARGS+=( "${REFANT_ARG[@]}" )
+elif [[ -s "$QA_DIR/refant_ranking.json" ]]; then
+  CAL_ARGS+=( --refant-ranking "$QA_DIR/refant_ranking.json" )
+else
+  CAL_ARGS+=( "${REFANT_ARG[@]}" )
+fi
 ## Always provide PB threshold by default
 CAL_ARGS+=( --bp-min-pb "$MIN_PB" )
 

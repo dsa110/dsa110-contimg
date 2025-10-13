@@ -13,6 +13,8 @@ class PyuvdataMonolithicWriter(MSWriter):
 
     def write(self) -> str:
         """Execute the pyuvdata write."""
+        # Allow pyuvdata to force a projection if something upstream
+        # leaves the data in an unprojected state
         self.uv.write_ms(
             self.ms_path,
             clobber=True,
@@ -22,5 +24,6 @@ class PyuvdataMonolithicWriter(MSWriter):
             strict_uvw_antpos_check=False,
             check_autos=False,
             fix_autos=False,
+            force_phase=True,
         )
         return "pyuvdata"

@@ -12,12 +12,12 @@ Available writer strategies:
 - 'direct-subband': Writes per-subband MS files in parallel and concatenates.
 """
 
-from dsa110_contimg.utils.fringestopping import calc_uvw_blt
 from .writers import get_writer
 from dsa110_contimg.conversion.helpers import (
     _ensure_antenna_diameters,
     get_meridian_coords,
     set_antenna_positions,
+    compute_and_set_uvw,
     set_model_column,
 )
 import argparse
@@ -37,6 +37,52 @@ from pyuvdata import UVData
 
 
 logger = logging.getLogger("uvh5_to_ms_converter_v2_strat")
+
+
+def _peek_uvh5_phase_and_midtime(uvh5_path: str) -> tuple[u.Quantity, float]:
+    """Lightweight HDF5 peek: return (pt_dec [rad], mid_time [MJD]).
+
+    Avoids instantiating UVData for a metadata-only read to prevent premature
+    UVW checks and reduce overhead.
+    """
+    import h5py
+    import numpy as _np
+    pt_dec_val: float = 0.0
+    mid_jd: float = 0.0
+    with h5py.File(uvh5_path, "r") as f:
+        # time_array is standard in uvh5
+        if "time_array" in f:
+            d = f["time_array"]
+            # Read only the endpoints to estimate mid-time cheaply
+            n = d.shape[0]
+            if n >= 2:
+                t0 = float(d[0])
+                t1 = float(d[n - 1])
+                mid_jd = 0.5 * (t0 + t1)
+            elif n == 1:
+                mid_jd = float(d[0])
+        # extra_keywords often holds phase_center_dec (radians)
+        def _read_extra(name: str) -> Optional[float]:
+            try:
+                if "extra_keywords" in f and name in f["extra_keywords"]:
+                    return float(_np.asarray(f["extra_keywords"][name]))
+            except Exception:
+                pass
+            try:
+                if "Header" in f and "extra_keywords" in f["Header"] and name in f["Header"]["extra_keywords"]:
+                    return float(_np.asarray(f["Header"]["extra_keywords"][name]))
+            except Exception:
+                pass
+            try:
+                if name in f.attrs:
+                    return float(f.attrs[name])
+            except Exception:
+                pass
+            return None
+        val = _read_extra("phase_center_dec")
+        if val is not None and _np.isfinite(val):
+            pt_dec_val = float(val)
+    return pt_dec_val * u.rad, float(Time(mid_jd, format="jd").mjd) if mid_jd else float(mid_jd)
 
 
 def _parse_timestamp_from_filename(filename: str) -> Optional[Time]:
@@ -144,34 +190,44 @@ def find_subband_groups(
 
 def _load_and_merge_subbands(file_list: Sequence[str]) -> UVData:
     """Read a list of UVH5 subband files and merge along the frequency axis."""
+    import logging as _logging
     uv = UVData()
     acc: List[UVData] = []
-    for i, path in enumerate(file_list):
-        t_read0 = time.perf_counter()
-        logger.info(
-            "Reading subband %d/%d: %s",
-            i + 1,
-            len(file_list),
-            os.path.basename(path))
-        tmp = UVData()
-        tmp.read(
-            path,
-            file_type="uvh5",
-            run_check=False,
-            run_check_acceptability=False,
-            strict_uvw_antpos_check=False,
-            check_extra=False,
-        )
-        tmp.uvw_array = tmp.uvw_array.astype(np.float64)
-        acc.append(tmp)
-        logger.info(
-            "Read subband %d in %.2fs (Nblts=%s, Nfreqs=%s, Npols=%s)",
-            i + 1,
-            time.perf_counter() - t_read0,
-            tmp.Nblts,
-            tmp.Nfreqs,
-            tmp.Npols)
-
+    # Temporarily silence pyuvdata's UVW mismatch warnings during raw reads
+    _pyuv_lg = _logging.getLogger('pyuvdata')
+    _prev_level = _pyuv_lg.level
+    try:
+        _pyuv_lg.setLevel(_logging.ERROR)
+        for i, path in enumerate(file_list):
+            t_read0 = time.perf_counter()
+            logger.info(
+                "Reading subband %d/%d: %s",
+                i + 1,
+                len(file_list),
+                os.path.basename(path))
+            tmp = UVData()
+            tmp.read(
+                path,
+                file_type="uvh5",
+                run_check=False,
+                run_check_acceptability=False,
+                strict_uvw_antpos_check=False,
+                check_extra=False,
+            )
+            tmp.uvw_array = tmp.uvw_array.astype(np.float64)
+            acc.append(tmp)
+            logger.info(
+                "Read subband %d in %.2fs (Nblts=%s, Nfreqs=%s, Npols=%s)",
+                i + 1,
+                time.perf_counter() - t_read0,
+                tmp.Nblts,
+                tmp.Nfreqs,
+                tmp.Npols)
+    finally:
+        try:
+            _pyuv_lg.setLevel(_prev_level)
+        except Exception:
+            pass
     t_cat0 = time.perf_counter()
     uv = acc[0]
     if len(acc) > 1:
@@ -184,40 +240,34 @@ def _load_and_merge_subbands(file_list: Sequence[str]) -> UVData:
     return uv
 
 
-def _set_phase_and_uvw(
-        uv: UVData) -> tuple[u.Quantity, u.Quantity, u.Quantity]:
-    """
-    Set antenna geometry and recompute phase and UVW coordinates.
-
-    This function sets the antenna positions, calculates the phase center at the
-    meridian, and then recomputes the UVW coordinates for the observation.
-    """
-    # Set antenna positions from the package data
+def _set_phase_and_uvw(uv: UVData) -> tuple[u.Quantity, u.Quantity, u.Quantity]:
+    """Set antenna geometry, phase center and recompute UVW with pyuvdata utils."""
+    # Antenna geometry
     set_antenna_positions(uv)
     _ensure_antenna_diameters(uv)
 
-    # Determine phase center (meridian at pointing dec)
+    # Phase center = meridian at pointing dec (mid-time)
     pt_dec = uv.extra_keywords.get("phase_center_dec", 0.0) * u.rad
     phase_time = Time(float(np.mean(uv.time_array)), format="jd")
     phase_ra, phase_dec = get_meridian_coords(pt_dec, phase_time.mjd)
 
-    # Recompute UVW coordinates for the new phase center
-    ant_pos = np.asarray(uv.antenna_positions)
-    ant1 = np.asarray(uv.ant_1_array, dtype=int)
-    ant2 = np.asarray(uv.ant_2_array, dtype=int)
-    blen = ant_pos[ant2, :] - ant_pos[ant1, :]
-    times_mjd = Time(uv.time_array, format='jd').mjd.astype(float)
-
-    uv.uvw_array = calc_uvw_blt(
-        blen,
-        times_mjd,
-        'J2000',
-        phase_ra,
-        phase_dec,
-        obs='OVRO_MMA',
+    # Register an explicit phase center and recompute uvw using pyuvdata utils
+    uv.phase_center_catalog = {}
+    pc_id = uv._add_phase_center(
+        cat_name='meridian_icrs',
+        cat_type='sidereal',
+        cat_lon=float(phase_ra.to_value(u.rad)),
+        cat_lat=float(phase_dec.to_value(u.rad)),
+        cat_frame='icrs',
+        cat_epoch=2000.0,
     )
+    if getattr(uv, 'phase_center_id_array', None) is None:
+        uv.phase_center_id_array = np.zeros(uv.Nblts, dtype=int)
+    uv.phase_center_id_array[:] = pc_id
+    # Recompute uvw using pyuvdata utilities
+    compute_and_set_uvw(uv, pt_dec)
 
-    # Update UVData object with new phase info
+    # Update phase metadata
     uv.phase_type = 'phased'
     uv.phase_center_ra = phase_ra.to_value(u.rad)
     uv.phase_center_dec = phase_dec.to_value(u.rad)
@@ -285,14 +335,24 @@ def convert_subband_groups_to_ms(
                 "Phased and updated UVW in %.2fs",
                 time.perf_counter() - t1)
         else:
-            # Need these for the model column later
-            temp_uv = UVData()
-            temp_uv.read(file_list[0], read_data=False)
-            pt_dec = temp_uv.extra_keywords.get(
-                "phase_center_dec", 0.0) * u.rad
-            phase_time = Time(float(np.mean(temp_uv.time_array)), format="jd")
-            phase_ra, phase_dec = get_meridian_coords(pt_dec, phase_time.mjd)
-            del temp_uv
+            # Use a tiny HDF5 peek (no UVData) to get pt_dec and mid-time
+            pt_dec, mid_mjd = _peek_uvh5_phase_and_midtime(file_list[0])
+            if not np.isfinite(mid_mjd) or mid_mjd == 0.0:
+                # Fallback to reading minimal metadata via UVData if needed
+                temp_uv = UVData()
+                temp_uv.read(
+                    file_list[0],
+                    file_type='uvh5',
+                    read_data=False,
+                    run_check=False,
+                    check_extra=False,
+                    run_check_acceptability=False,
+                    strict_uvw_antpos_check=False,
+                )
+                pt_dec = temp_uv.extra_keywords.get("phase_center_dec", 0.0) * u.rad
+                mid_mjd = Time(float(np.mean(temp_uv.time_array)), format="jd").mjd
+                del temp_uv
+            phase_ra, phase_dec = get_meridian_coords(pt_dec, mid_mjd)
 
         # Select and execute the writer strategy
         try:
@@ -302,8 +362,8 @@ def convert_subband_groups_to_ms(
             current_writer_kwargs.setdefault("scratch_dir", scratch_dir)
             current_writer_kwargs.setdefault("file_list", file_list)
 
-            writer_instance = get_writer(
-                uv, ms_path, writer, **current_writer_kwargs)
+            writer_cls = get_writer(writer)
+            writer_instance = writer_cls(uv, ms_path, **current_writer_kwargs)
             writer_type = writer_instance.write()
 
             logger.info(
@@ -340,7 +400,7 @@ def convert_subband_groups_to_ms(
                     pt_dec,
                     phase_ra,
                     phase_dec,
-                    flux_Jy=flux)
+                    flux_jy=flux)
             except Exception as e:
                 logger.warning("Failed to set MODEL_DATA column: %s", e)
 
@@ -425,4 +485,5 @@ def main() -> int:
 
 
 if __name__ == "__main__":
+    import sys
     sys.exit(main())

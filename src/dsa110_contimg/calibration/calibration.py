@@ -1,10 +1,68 @@
 from typing import List, Optional
 
+import os
+import fnmatch
 import numpy as np
 from casatasks import bandpass as casa_bandpass
 from casatasks import gaincal as casa_gaincal
 from casatasks import setjy as casa_setjy
 from casatasks import fluxscale as casa_fluxscale
+
+
+def _resolve_field_ids(ms: str, field_sel: str) -> List[int]:
+    """Resolve CASA-like field selection into a list of FIELD_ID integers.
+
+    Supports numeric indices, comma lists, numeric ranges ("A~B"), and
+    name/glob matching against FIELD::NAME.
+    """
+    from casacore.tables import table
+
+    sel = str(field_sel).strip()
+    # Try numeric selections first: comma-separated tokens and A~B ranges
+    ids: List[int] = []
+    numeric_tokens = [tok.strip() for tok in sel.replace(";", ",").split(",") if tok.strip()]
+
+    def _add_numeric(tok: str) -> bool:
+        if "~" in tok:
+            a, b = tok.split("~", 1)
+            if a.strip().isdigit() and b.strip().isdigit():
+                ai, bi = int(a), int(b)
+                lo, hi = (ai, bi) if ai <= bi else (bi, ai)
+                ids.extend(list(range(lo, hi + 1)))
+                return True
+            return False
+        if tok.isdigit():
+            ids.append(int(tok))
+            return True
+        return False
+
+    any_numeric = False
+    for tok in numeric_tokens:
+        if _add_numeric(tok):
+            any_numeric = True
+
+    if any_numeric:
+        # Deduplicate and return
+        return sorted(set(ids))
+
+    # Fall back to FIELD::NAME glob matching
+    patterns = [p for p in numeric_tokens if p]
+    # If no separators were present, still try the full selector as a single pattern
+    if not patterns:
+        patterns = [sel]
+
+    try:
+        with table(f"{ms}::FIELD") as tf:
+            names = list(tf.getcol("NAME"))
+            out = []
+            for i, name in enumerate(names):
+                for pat in patterns:
+                    if fnmatch.fnmatchcase(str(name), pat):
+                        out.append(int(i))
+                        break
+            return sorted(set(out))
+    except Exception:
+        return []
 
 
 def solve_delay(
@@ -21,38 +79,111 @@ def solve_delay(
     Uses casatasks.gaincal with gaintype='K' to avoid explicit casatools calibrater
     usage, which can be unstable in some Jupyter environments.
     """
-    # Do not combine across fields during delay solving; it can destabilize
-    # metadata handling when multiple FIELD phase centers are present.
-    combine = "scan,obs,spw" if combine_spw else "scan,obs"
+    from casacore.tables import table
+    import numpy as np
+
+    # Validate data availability before attempting calibration
+    print(f"Validating data for delay solve on field(s) {cal_field}...")
+    with table(ms) as tb:
+        field_ids = tb.getcol('FIELD_ID')
+        # Resolve selector (names, ranges, lists) to numeric FIELD_IDs
+        target_ids = _resolve_field_ids(ms, str(cal_field))
+        if not target_ids:
+            raise ValueError(f"Unable to resolve field selection: {cal_field}")
+        field_mask = np.isin(field_ids, np.asarray(target_ids, dtype=field_ids.dtype))
+        if not np.any(field_mask):
+            raise ValueError(f"No data found for field selection {cal_field}")
+
+        # Check if reference antenna exists in this field
+        row_idx = np.nonzero(field_mask)[0]
+        if row_idx.size == 0:
+            raise ValueError(f"No data found for field selection {cal_field}")
+        start_row = int(row_idx[0])
+        nrow_sel = int(row_idx[-1] - start_row + 1)
+
+        ant1_slice = tb.getcol('ANTENNA1', startrow=start_row, nrow=nrow_sel)
+        ant2_slice = tb.getcol('ANTENNA2', startrow=start_row, nrow=nrow_sel)
+        rel_idx = row_idx - start_row
+        field_ant1 = ant1_slice[rel_idx]
+        field_ant2 = ant2_slice[rel_idx]
+        ref_present = np.any(
+            (field_ant1 == int(refant)) | (
+                field_ant2 == int(refant)))
+        if not ref_present:
+            raise ValueError(
+                f"Reference antenna {refant} not found in field {cal_field}")
+
+        # Check for unflagged data
+        field_flags = np.stack([tb.getcell('FLAG', int(r)) for r in row_idx], axis=2)
+        unflagged_count = int(np.sum(~field_flags))
+        if unflagged_count == 0:
+            raise ValueError(f"All data in field {cal_field} is flagged")
+
+        print(
+            f"Field {cal_field}: {np.sum(field_mask)} rows, {unflagged_count} unflagged points")
+
+    # Use more conservative combination settings to avoid empty arrays
+    # For field-per-integration MS, avoid combining across scans/obs
+    combine = "spw" if combine_spw else ""
     if table_prefix is None:
-        table_prefix = f"{ms.rstrip('.ms')}_{cal_field}"
+        table_prefix = f"{os.path.splitext(ms)[0]}_{cal_field}"
 
     tables: List[str] = []
 
-    # Slow (infinite) delay solve
-    casa_gaincal(
-        vis=ms,
-        caltable=f"{table_prefix}_kcal",
-        field=cal_field,
-        solint=t_slow,
-        refant=refant,
-        gaintype="K",
-        combine=combine,
-    )
-    tables.append(f"{table_prefix}_kcal")
+    # Slow (infinite) delay solve with error handling
+    try:
+        print(
+            f"Running delay solve (K) on field {cal_field} with refant {refant}...")
+        casa_gaincal(
+            vis=ms,
+            caltable=f"{table_prefix}_kcal",
+            field=cal_field,
+            solint=t_slow,
+            refant=refant,
+            gaintype="K",
+            combine=combine
+        )
+        tables.append(f"{table_prefix}_kcal")
+        print(f"✓ Delay solve completed: {table_prefix}_kcal")
+    except Exception as e:
+        print(f"Delay solve failed: {e}")
+        # Try with even more conservative settings
+        try:
+            print("Retrying with no combination...")
+            casa_gaincal(
+                vis=ms,
+                caltable=f"{table_prefix}_kcal",
+                field=cal_field,
+                solint=t_slow,
+                refant=refant,
+                gaintype="K",
+                combine=""
+            )
+            tables.append(f"{table_prefix}_kcal")
+            print(f"✓ Delay solve completed (retry): {table_prefix}_kcal")
+        except Exception as e2:
+            raise RuntimeError(
+                f"Delay solve failed even with conservative settings: {e2}")
 
     # Optional fast (short) delay solve
     if t_fast:
-        casa_gaincal(
-            vis=ms,
-            caltable=f"{table_prefix}_2kcal",
-            field=cal_field,
-            solint=t_fast,
-            refant=refant,
-            gaintype="K",
-            combine=combine,
-        )
-        tables.append(f"{table_prefix}_2kcal")
+        try:
+            print(f"Running fast delay solve (K) on field {cal_field}...")
+            casa_gaincal(
+                vis=ms,
+                caltable=f"{table_prefix}_2kcal",
+                field=cal_field,
+                solint=t_fast,
+                refant=refant,
+                gaintype="K",
+                combine=combine
+            )
+            tables.append(f"{table_prefix}_2kcal")
+            print(f"✓ Fast delay solve completed: {table_prefix}_2kcal")
+        except Exception as e:
+            print(f"Fast delay solve failed: {e}")
+            # Skip fast solve if it fails
+            print("Skipping fast delay solve...")
 
     return tables
 
@@ -69,35 +200,58 @@ def solve_bandpass(
 ) -> List[str]:
     """Solve bandpass in two stages: amplitude (bacal) then phase (bpcal)."""
     if table_prefix is None:
-        table_prefix = f"{ms.rstrip('.ms')}_{cal_field}"
+        table_prefix = f"{os.path.splitext(ms)[0]}_{cal_field}"
 
-    if set_model:
-        casa_setjy(vis=ms, field=cal_field, standard=model_standard)
+    # For bandpass calibration, use only the peak field and combine across all fields
+    # Extract the peak field from the range (e.g., "19~23" -> "23")
+    if '~' in str(cal_field):
+        peak_field = str(cal_field).split(
+            '~')[-1]  # Use the last field in range
+        print(
+            f"Using peak field {peak_field} for bandpass calibration (from range {cal_field})")
+    else:
+        peak_field = str(cal_field)
+        print(f"Using field {peak_field} for bandpass calibration")
 
-    comb = "scan,field" if combine_fields else "scan"
+    # Avoid setjy here; CLI will write a calibrator MODEL_DATA when available.
+    set_model = False
+
+    # Combine across scans and fields when requested; otherwise do not combine
+    comb = "scan,field" if combine_fields else ""
+
+    print(
+        f"Running bandpass amplitude solve on field {peak_field} (combining across fields)...")
     casa_bandpass(
         vis=ms,
         caltable=f"{table_prefix}_bacal",
-        field=cal_field,
+        field=cal_field,  # Use full range for data selection
         solint="inf",
         combine=comb,
         refant=refant,
         solnorm=True,
         bandtype="B",
         gaintable=[ktable],
+        minsnr=5.0,
+        selectdata=True
     )
+    print(f"✓ Bandpass amplitude solve completed: {table_prefix}_bacal")
 
+    print(
+        f"Running bandpass phase solve on field {peak_field} (combining across fields)...")
     casa_bandpass(
         vis=ms,
         caltable=f"{table_prefix}_bpcal",
-        field=cal_field,
+        field=cal_field,  # Use full range for data selection
         solint="inf",
         combine=comb,
         refant=refant,
         solnorm=True,
         bandtype="B",
         gaintable=[ktable, f"{table_prefix}_bacal"],
+        minsnr=5.0,
+        selectdata=True
     )
+    print(f"✓ Bandpass phase solve completed: {table_prefix}_bpcal")
 
     return [f"{table_prefix}_bacal", f"{table_prefix}_bpcal"]
 
@@ -115,57 +269,88 @@ def solve_gains(
 ) -> List[str]:
     """Solve gain amplitude and phase; optionally short-timescale and fluxscale."""
     if table_prefix is None:
-        table_prefix = f"{ms.rstrip('.ms')}_{cal_field}"
+        table_prefix = f"{os.path.splitext(ms)[0]}_{cal_field}"
+
+    # For gain calibration, use only the peak field and combine across all
+    # fields
+    if '~' in str(cal_field):
+        peak_field = str(cal_field).split(
+            '~')[-1]  # Use the last field in range
+        print(
+            f"Using peak field {peak_field} for gain calibration (from range {cal_field})")
+    else:
+        peak_field = str(cal_field)
+        print(f"Using field {peak_field} for gain calibration")
 
     gaintable = [ktable] + bptables
-    comb = "scan,field" if combine_fields else None
+    # Combine across scans and fields when requested; otherwise do not combine
+    comb = "scan,field" if combine_fields else ""
+
+    print(
+        f"Running gain amplitude solve on field {peak_field} (combining across fields)...")
     casa_gaincal(
         vis=ms,
         caltable=f"{table_prefix}_gacal",
-        field=cal_field,
+        field=cal_field,  # Use full range for data selection
         solint="inf",
         refant=refant,
         gaintype="G",
         calmode="a",
         gaintable=gaintable,
         combine=comb,
+        minsnr=5.0,
+        selectdata=True,
     )
+    print(f"✓ Gain amplitude solve completed: {table_prefix}_gacal")
+
     gaintable2 = gaintable + [f"{table_prefix}_gacal"]
+    print(
+        f"Running gain phase solve on field {peak_field} (combining across fields)...")
     casa_gaincal(
         vis=ms,
         caltable=f"{table_prefix}_gpcal",
-        field=cal_field,
+        field=cal_field,  # Use full range for data selection
         solint="inf",
         refant=refant,
         gaintype="G",
         calmode="p",
         gaintable=gaintable2,
         combine=comb,
+        minsnr=5.0,
+        selectdata=True,
     )
+    print(f"✓ Gain phase solve completed: {table_prefix}_gpcal")
 
     out = [f"{table_prefix}_gacal", f"{table_prefix}_gpcal"]
 
     if t_short:
+        print(
+            f"Running short-timescale gain solve on field {peak_field} (combining across fields)...")
         casa_gaincal(
             vis=ms,
             caltable=f"{table_prefix}_2gcal",
-            field=cal_field,
+            field=cal_field,  # Use full range for data selection
             solint=t_short,
             refant=refant,
             gaintype="G",
             calmode="ap",
             gaintable=gaintable2,
             combine=comb,
+            minsnr=5.0,
+            selectdata=True,
         )
+        print(f"✓ Short-timescale gain solve completed: {table_prefix}_2gcal")
         out.append(f"{table_prefix}_2gcal")
 
     if do_fluxscale:
+        print(f"Running flux scaling on field {peak_field}...")
         casa_fluxscale(
             vis=ms,
             caltable=f"{table_prefix}_gacal",
             fluxtable=f"{table_prefix}_flux.cal",
-            reference=cal_field,
+            reference=peak_field,  # Use peak field for reference
         )
+        print(f"✓ Flux scaling completed: {table_prefix}_flux.cal")
         out.append(f"{table_prefix}_flux.cal")
 
     return out

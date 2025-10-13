@@ -12,6 +12,12 @@ from pathlib import Path
 from typing import TYPE_CHECKING, Any, List, Optional
 
 from .base import MSWriter
+from dsa110_contimg.conversion.helpers import (
+    set_antenna_positions,
+    _ensure_antenna_diameters,
+    get_meridian_coords,
+    compute_and_set_uvw,
+)
 
 if TYPE_CHECKING:
     from pyuvdata import UVData
@@ -93,11 +99,6 @@ def _write_ms_subband_part(subband_file: str, part_out: str) -> str:
     from astropy.time import Time
     import numpy as np
     import astropy.units as u
-    from dsa110_contimg.conversion.helpers import (
-        set_antenna_positions,
-        _ensure_antenna_diameters,
-        get_meridian_coords,
-    )
 
     uv = UVData()
     uv.read(
@@ -142,6 +143,9 @@ def _write_ms_subband_part(subband_file: str, part_out: str) -> str:
     uv.phase_type = "phased"
     uv.phase_center_frame = "icrs"
     uv.phase_center_epoch = 2000.0
+
+    # Recompute UVW using pyuvdata utilities (meridian phasing)
+    compute_and_set_uvw(uv, pt_dec)
 
     # Write the single-subband MS
     uv.write_ms(

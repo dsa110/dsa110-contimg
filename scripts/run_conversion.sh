@@ -37,7 +37,9 @@ else
 fi
 
 # 4) Run the converter on the casa6 environment (or current python), outputting to scratch
-#    Enforce strict, calibration-grade MS structure (dask-ms writer, 24 FIELDs)
+#    Default path uses the strategies module with the direct-subband writer for
+#    parallel I/O and robust MS creation. Worker count is controlled by
+#    CONTIMG_MAX_WORKERS (default 8).
 PYTHONPATH=${PYTHONPATH:-}
 export PYTHONPATH="${REPO_ROOT}/src${PYTHONPATH:+:${PYTHONPATH}}"
 
@@ -48,28 +50,17 @@ export MKL_NUM_THREADS="1"
 export NUMEXPR_NUM_THREADS="1"
 export HDF5_USE_FILE_LOCKING="FALSE"
 
-echo "Running converter..."
-# Decide whether to stage to tmpfs based on free space (avoid OOM/kills)
-USE_TMPFS_FLAG=("--tmpfs-path" "/dev/shm")
-SHM_FREE_KB=$(df -Pk /dev/shm 2>/dev/null | awk 'NR==2{print $4}')
-if [[ -n "${SHM_FREE_KB}" ]] && (( SHM_FREE_KB < 8*1024*1024 )); then
-  echo "Low /dev/shm free ($((${SHM_FREE_KB}/1024)) MB) -> disabling tmpfs staging"
-  USE_TMPFS_FLAG=("--no-stage-tmpfs")
-fi
-
-"${PYTHON_BIN}" -m dsa110_contimg.conversion.uvh5_to_ms_converter_v2 \
+echo "Running converter (strategies: direct-subband)..."
+MAX_WORKERS="${CONTIMG_MAX_WORKERS:-8}"
+"${PYTHON_BIN}" -m dsa110_contimg.conversion.strategies.uvh5_to_ms_converter \
     "${INPUT_DIR}" \
     "${SCRATCH_MS}" \
     "${START_TIME}" \
     "${END_TIME}" \
     --log-level INFO \
     --scratch-dir "${SCRATCH_ROOT}" \
-    "${USE_TMPFS_FLAG[@]}" \
-    --field-per-integration \
-    --dask-write \
-    --dask-write-failfast \
-    --daskms-row-chunks 8192 \
-    --daskms-cube-row-chunks 8192
+    --writer direct-subband \
+    --max-workers "${MAX_WORKERS}"
 
 # 5) Validate results on scratch (QA / imaging as needed)
 echo "Verifying MS FIELD/SPW structure..."

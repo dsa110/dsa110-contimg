@@ -44,10 +44,13 @@ def write_point_model_with_ft(
     comp_path = os.path.join(os.path.dirname(ms_path), "cal_component.cl")
     cl = cltool()
     sc = SkyCoord(ra_deg * u.deg, dec_deg * u.deg, frame="icrs")
-    ra_hms = sc.ra.to_string(unit=u.hour, sep=":", precision=9)
-    dec_dms = sc.dec.to_string(unit=u.deg, sep=":", precision=9, alwayssign=True)
-    dir_str = f"J2000 {ra_hms} {dec_dms}"
-    cl.addcomponent(dir=dir_str, flux=float(flux_jy), fluxunit="Jy", freq=f"{reffreq_hz}Hz", shape="point")
+    dir_dict = {
+        "refer": "J2000",
+        "type": "direction",
+        "long": f"{sc.ra.deg}deg",
+        "lat": f"{sc.dec.deg}deg",
+    }
+    cl.addcomponent(dir=dir_dict, flux=float(flux_jy), fluxunit="Jy", freq=f"{reffreq_hz}Hz", shape="point")
     if spectral_index is not None:
         try:
             cl.setspectrum(which=0, type="spectral index", index=[float(spectral_index)], reffreq=f"{reffreq_hz}Hz")
@@ -104,4 +107,3 @@ def write_point_model_quick(
             t.putcol("CORRECTED_DATA", t.getcol("DATA"))
         except Exception:
             pass
-
