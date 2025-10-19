@@ -212,3 +212,26 @@ PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
 - Keep changes minimal and focused; prefer using the shared DB helpers
 - Add tests where practical; synthetic data tools are in `simulation/`
 - Follow existing logging styles and module structure
+## Git Hook: Commit Summaries to Knowledge Graph
+
+This repository includes a lightweight, non‑blocking Git post‑commit hook that records each commit as a short episode in the Graphiti knowledge graph (group_id `dsa110-contimg`). It helps long‑term recall of changes and decisions during development.
+
+- Hook location: `.githooks/post-commit`
+- Activation (already configured): `git config core.hooksPath .githooks`
+- Behavior: runs in the background after every `git commit`; failures never block your commit.
+- What it stores: commit short hash, branch, and commit message.
+- Where it goes: the `graphiti-memory` MCP server (Vertex/Gemini) via the Graphiti client.
+
+Disable later:
+
+```
+git config --unset core.hooksPath
+```
+
+Re‑enable:
+
+```
+git config core.hooksPath .githooks
+```
+
+If you need to customize the target group or episode format, edit `.githooks/post-commit`.

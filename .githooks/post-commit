@@ -1,0 +1,45 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+# Capture commit info
+MSG="$(git log -1 --pretty=%B)"
+HASH="$(git rev-parse --short HEAD)"
+BRANCH="$(git rev-parse --abbrev-ref HEAD)"
+
+# Fire-and-forget: do not block the commit if anything fails
+(
+  set +e
+  HOOK_MSG="$MSG" HOOK_HASH="$HASH" HOOK_BRANCH="$BRANCH" \
+  /home/ubuntu/.local/bin/uv run --isolated --directory /home/ubuntu/proj/mcps/graphiti/mcp_server python - <<'PY' >/dev/null 2>&1
+from dotenv import load_dotenv; load_dotenv('/home/ubuntu/proj/mcps/graphiti/mcp_server/.env')
+import os, asyncio
+from datetime import datetime, timezone
+from graphiti_core import Graphiti
+from graphiti_core.nodes import EpisodeType
+
+GROUP='dsa110-contimg'
+msg=os.environ.get('HOOK_MSG','').strip()
+hash_=os.environ.get('HOOK_HASH','').strip()
+branch=os.environ.get('HOOK_BRANCH','').strip()
+body=f"Commit {hash_} on {branch}\n\n{msg}"
+
+async def main():
+    g = Graphiti(
+        uri=os.environ['NEO4J_URI'],
+        user=os.environ['NEO4J_USER'],
+        password=os.environ['NEO4J_PASSWORD']
+    )
+    await g.add_episode(
+        name=f"Commit {hash_}",
+        episode_body=body,
+        source_description="git post-commit",
+        reference_time=datetime.now(timezone.utc),
+        source=EpisodeType.text,
+        group_id=GROUP
+    )
+asyncio.run(main())
+PY
+) & disown
+
+exit 0
+
