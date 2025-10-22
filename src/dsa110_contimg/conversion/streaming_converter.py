@@ -26,6 +26,15 @@ from pathlib import Path
 from typing import Dict, Iterator, List, Optional, Sequence, Set, Tuple
 
 import sys
+try:
+    from dsa110_contimg.utils.graphiti_logging import GraphitiRunLogger
+except Exception:  # pragma: no cover - optional helper
+    class GraphitiRunLogger:  # type: ignore
+        def __init__(self, *a, **k): pass
+        def __enter__(self): return self
+        def __exit__(self, *a): return False
+        def log_consumes(self, *a, **k): pass
+        def log_produces(self, *a, **k): pass
 from casatasks import concat as casa_concat  # noqa
 from casacore.tables import table  # noqa
 from dsa110_contimg.calibration.calibration import solve_delay, solve_bandpass, solve_gains  # noqa
@@ -1056,6 +1065,17 @@ class StreamingWorker(threading.Thread):
             logging.warning("Calibrator match failed: %s", e)
 
         temp_dir = Path(tempfile.mkdtemp(prefix=f"stream_{group_id}_"))
+        # Graphiti lineage logging
+        run_name = f"conversion-{group_id}"
+        _grlog = GraphitiRunLogger(run_name)
+        _grlog.__enter__()
+        try:
+            # Approximate dataset as common parent of subbands
+            try:
+                parent = os.path.commonpath([str(p.parent) for p in subband_paths])
+                _grlog.log_consumes(parent)
+            except Exception:
+                pass
         try:
             # Stage inputs: either symlink (default) or copy concurrently for
             # faster local reads
@@ -1233,6 +1253,10 @@ class StreamingWorker(threading.Thread):
                     ms_name = (self.config.output_dir / f"{p.stem}.ms")
                     if ms_name.exists():
                         group_ms_list.append(os.fspath(ms_name))
+                        try:
+                            _grlog.log_produces(os.fspath(ms_name))
+                        except Exception:
+                            pass
             except Exception:
                 group_ms_list = []
 
@@ -1255,6 +1279,10 @@ class StreamingWorker(threading.Thread):
                         group_ms_path,
                         stage="concatenated",
                         status="in_progress")
+                    try:
+                        _grlog.log_produces(group_ms_path)
+                    except Exception:
+                        pass
             except Exception as e:
                 logging.error("concat failed for %s: %s", group_id, e)
 
@@ -1468,6 +1496,10 @@ class StreamingWorker(threading.Thread):
                                 pth = out_prefix + suf
                                 if os.path.isdir(pth):
                                     images_insert(conn, pth, group_ms_path, now, "5min", pbc)
+                                    try:
+                                        _grlog.log_produces(pth)
+                                    except Exception:
+                                        pass
                             ms_index_upsert(conn, group_ms_path, status="done", stage="imaged", cal_applied=(1 if gaintables else 0), imagename=out_prefix, processed_at=now)
                             conn.commit()
                             conn.close()
@@ -1506,6 +1538,10 @@ class StreamingWorker(threading.Thread):
                         group_id, checkpoint_path)
 
         finally:
+            try:
+                _grlog.__exit__(None, None, None)
+            except Exception:
+                pass
             if self.config.cleanup_temp:
                 shutil.rmtree(temp_dir, ignore_errors=True)
             else:

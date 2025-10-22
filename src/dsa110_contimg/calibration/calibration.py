@@ -2,11 +2,10 @@ from typing import List, Optional
 
 import os
 import fnmatch
-import numpy as np
-from casatasks import bandpass as casa_bandpass
-from casatasks import gaincal as casa_gaincal
-from casatasks import setjy as casa_setjy
-from casatasks import fluxscale as casa_fluxscale
+from casatasks import bandpass as casa_bandpass  # type: ignore[import]
+from casatasks import gaincal as casa_gaincal  # type: ignore[import]
+# setjy imported elsewhere; avoid unused import here
+from casatasks import fluxscale as casa_fluxscale  # type: ignore[import]
 
 
 def _resolve_field_ids(ms: str, field_sel: str) -> List[int]:
@@ -77,13 +76,14 @@ def solve_delay(
     t_slow: str = "inf",
     t_fast: Optional[str] = "60s",
 ) -> List[str]:
-    """Solve delay (K) on slow and optional fast timescales using CASA gaincal.
-
-    Uses casatasks.gaincal with gaintype='K' to avoid explicit casatools calibrater
-    usage, which can be unstable in some Jupyter environments.
     """
-    from casacore.tables import table
-    import numpy as np
+    Solve delay (K) on slow and optional fast timescales using CASA gaincal.
+
+    Uses casatasks.gaincal with gaintype='K' to avoid explicit casatools
+    calibrater usage, which can be unstable in some notebook environments.
+    """
+    from casacore.tables import table  # type: ignore[import]
+    import numpy as np  # type: ignore[import]
 
     # Validate data availability before attempting calibration
     print(f"Validating data for delay solve on field(s) {cal_field}...")
@@ -125,8 +125,11 @@ def solve_delay(
         if unflagged_count == 0:
             raise ValueError(f"All data in field {cal_field} is flagged")
 
+        import numpy as _np  # type: ignore[import]
         print(
-            f"Field {cal_field}: {np.sum(field_mask)} rows, {unflagged_count} unflagged points")
+            f"Field {cal_field}: {_np.sum(field_mask)} rows, "
+            f"{unflagged_count} unflagged points"
+        )
 
     # Use more conservative combination settings to avoid empty arrays
     # For field-per-integration MS, avoid combining across scans/obs
@@ -139,7 +142,9 @@ def solve_delay(
     # Slow (infinite) delay solve with error handling
     try:
         print(
-            f"Running delay solve (K) on field {cal_field} with refant {refant}...")
+            f"Running delay solve (K) on field {cal_field} "
+            f"with refant {refant}..."
+        )
         casa_gaincal(
             vis=ms,
             caltable=f"{table_prefix}_kcal",
@@ -204,6 +209,7 @@ def solve_bandpass(
     model_standard: str = "Perley-Butler 2017",
     combine_fields: bool = False,
     minsnr: float = 5.0,
+    uvrange: str = "",
 ) -> List[str]:
     """Solve bandpass in two stages: amplitude (bacal) then phase (bpcal)."""
     if table_prefix is None:
@@ -221,14 +227,14 @@ def solve_bandpass(
         print(f"Using field {peak_field} for bandpass calibration")
 
     # Avoid setjy here; CLI will write a calibrator MODEL_DATA when available.
-    set_model = False
+    _unused = (set_model, model_standard)
 
     # Combine across scans and fields when requested; otherwise do not combine
     comb = "scan,field" if combine_fields else ""
 
     print(
         f"Running bandpass amplitude solve on field {peak_field} (combining across fields)...")
-    casa_bandpass(
+    kwargs = dict(
         vis=ms,
         caltable=f"{table_prefix}_bacal",
         field=cal_field,  # Use full range for data selection
@@ -239,13 +245,15 @@ def solve_bandpass(
         bandtype="B",
         gaintable=[ktable],
         minsnr=minsnr,
-        selectdata=True
-    )
+        selectdata=True)
+    if uvrange:
+        kwargs["uvrange"] = uvrange
+    casa_bandpass(**kwargs)
     print(f"✓ Bandpass amplitude solve completed: {table_prefix}_bacal")
 
     print(
         f"Running bandpass phase solve on field {peak_field} (combining across fields)...")
-    casa_bandpass(
+    kwargs = dict(
         vis=ms,
         caltable=f"{table_prefix}_bpcal",
         field=cal_field,  # Use full range for data selection
@@ -256,8 +264,10 @@ def solve_bandpass(
         bandtype="B",
         gaintable=[ktable, f"{table_prefix}_bacal"],
         minsnr=minsnr,
-        selectdata=True
-    )
+        selectdata=True)
+    if uvrange:
+        kwargs["uvrange"] = uvrange
+    casa_bandpass(**kwargs)
     print(f"✓ Bandpass phase solve completed: {table_prefix}_bpcal")
 
     return [f"{table_prefix}_bacal", f"{table_prefix}_bpcal"]
@@ -273,6 +283,9 @@ def solve_gains(
     t_short: str = "60s",
     do_fluxscale: bool = False,
     combine_fields: bool = False,
+    *,
+    phase_only: bool = False,
+    uvrange: str = "",
 ) -> List[str]:
     """Solve gain amplitude and phase; optionally short-timescale and fluxscale."""
     if table_prefix is None:
@@ -293,27 +306,31 @@ def solve_gains(
     # Combine across scans and fields when requested; otherwise do not combine
     comb = "scan,field" if combine_fields else ""
 
-    print(
-        f"Running gain amplitude solve on field {peak_field} (combining across fields)...")
-    casa_gaincal(
-        vis=ms,
-        caltable=f"{table_prefix}_gacal",
-        field=cal_field,  # Use full range for data selection
-        solint="inf",
-        refant=refant,
-        gaintype="G",
-        calmode="a",
-        gaintable=gaintable,
-        combine=comb,
-        minsnr=5.0,
-        selectdata=True,
-    )
-    print(f"✓ Gain amplitude solve completed: {table_prefix}_gacal")
+    if not phase_only:
+        print(
+            f"Running gain amplitude solve on field {peak_field} (combining across fields)...")
+        kwargs = dict(
+            vis=ms,
+            caltable=f"{table_prefix}_gacal",
+            field=cal_field,  # Use full range for data selection
+            solint="inf",
+            refant=refant,
+            gaintype="G",
+            calmode="a",
+            gaintable=gaintable,
+            combine=comb,
+            minsnr=5.0,
+            selectdata=True,
+        )
+        if uvrange:
+            kwargs["uvrange"] = uvrange
+        casa_gaincal(**kwargs)
+        print(f"✓ Gain amplitude solve completed: {table_prefix}_gacal")
 
     gaintable2 = gaintable + [f"{table_prefix}_gacal"]
     print(
         f"Running gain phase solve on field {peak_field} (combining across fields)...")
-    casa_gaincal(
+    kwargs = dict(
         vis=ms,
         caltable=f"{table_prefix}_gpcal",
         field=cal_field,  # Use full range for data selection
@@ -321,19 +338,23 @@ def solve_gains(
         refant=refant,
         gaintype="G",
         calmode="p",
-        gaintable=gaintable2,
+        gaintable=gaintable2 if not phase_only else gaintable,
         combine=comb,
         minsnr=5.0,
         selectdata=True,
     )
+    if uvrange:
+        kwargs["uvrange"] = uvrange
+    casa_gaincal(**kwargs)
     print(f"✓ Gain phase solve completed: {table_prefix}_gpcal")
 
-    out = [f"{table_prefix}_gacal", f"{table_prefix}_gpcal"]
+    out = [] if phase_only else [f"{table_prefix}_gacal"]
+    out.append(f"{table_prefix}_gpcal")
 
-    if t_short:
+    if t_short and not phase_only:
         print(
             f"Running short-timescale gain solve on field {peak_field} (combining across fields)...")
-        casa_gaincal(
+        kwargs = dict(
             vis=ms,
             caltable=f"{table_prefix}_2gcal",
             field=cal_field,  # Use full range for data selection
@@ -346,6 +367,9 @@ def solve_gains(
             minsnr=5.0,
             selectdata=True,
         )
+        if uvrange:
+            kwargs["uvrange"] = uvrange
+        casa_gaincal(**kwargs)
         print(f"✓ Short-timescale gain solve completed: {table_prefix}_2gcal")
         out.append(f"{table_prefix}_2gcal")
 

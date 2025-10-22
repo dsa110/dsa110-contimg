@@ -33,3 +33,24 @@ sudo systemctl enable --now contimg-stream.service contimg-api.service
 2) Verify
 - `journalctl -u contimg-stream -f`
 - API status at `/api/status`
+
+## One-page Quick-Look (sub-minute)
+
+1) Convert (auto writer, RAM staging):
+```bash
+scripts/run_conversion.sh /path/to/uvh5_dir /scratch/dsa110-contimg/ms \
+  2025-10-13T13:25:00 2025-10-13T13:30:00
+```
+
+2) Calibrate fast (optional subset + phase-only):
+```bash
+python -m dsa110_contimg.calibration.cli calibrate \
+  --ms /scratch/dsa110-contimg/ms/<obs>.ms \
+  --field 0~4 --refant 1 --fast --timebin 30s --chanbin 4 --uvrange '>1klambda'
+```
+
+3) Image quick (skip FITS for speed):
+```bash
+scripts/image_ms.sh /scratch/dsa110-contimg/ms/<obs>.ms /scratch/out/<obs> \
+  --quick --skip-fits --uvrange '>1klambda'
+```

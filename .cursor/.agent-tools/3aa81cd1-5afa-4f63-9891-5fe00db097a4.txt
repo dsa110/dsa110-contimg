@@ -1,0 +1,45 @@
+Installed 54 packages in 65ms
+Traceback (most recent call last):
+  File "<stdin>", line 14, in <module>
+  File "/home/ubuntu/.local/share/uv/python/cpython-3.10.18-linux-x86_64-gnu/lib/python3.10/asyncio/runners.py", line 44, in run
+    return loop.run_until_complete(main)
+  File "/home/ubuntu/.local/share/uv/python/cpython-3.10.18-linux-x86_64-gnu/lib/python3.10/asyncio/base_events.py", line 649, in run_until_complete
+    return future.result()
+  File "<stdin>", line 8, in main
+  File "/home/ubuntu/.cache/uv/builds-v0/.tmpOQRxGC/lib/python3.10/site-packages/google/genai/models.py", line 6757, in generate_content
+    response = await self._generate_content(
+  File "/home/ubuntu/.cache/uv/builds-v0/.tmpOQRxGC/lib/python3.10/site-packages/google/genai/models.py", line 5592, in _generate_content
+    response = await self._api_client.async_request(
+  File "/home/ubuntu/.cache/uv/builds-v0/.tmpOQRxGC/lib/python3.10/site-packages/google/genai/_api_client.py", line 1341, in async_request
+    result = await self._async_request(
+  File "/home/ubuntu/.cache/uv/builds-v0/.tmpOQRxGC/lib/python3.10/site-packages/google/genai/_api_client.py", line 1286, in _async_request
+    return await self._async_retry(  # type: ignore[no-any-return]
+  File "/home/ubuntu/.cache/uv/builds-v0/.tmpOQRxGC/lib/python3.10/site-packages/tenacity/asyncio/__init__.py", line 111, in __call__
+    do = await self.iter(retry_state=retry_state)
+  File "/home/ubuntu/.cache/uv/builds-v0/.tmpOQRxGC/lib/python3.10/site-packages/tenacity/asyncio/__init__.py", line 153, in iter
+    result = await action(retry_state)
+  File "/home/ubuntu/.cache/uv/builds-v0/.tmpOQRxGC/lib/python3.10/site-packages/tenacity/_utils.py", line 99, in inner
+    return call(*args, **kwargs)
+  File "/home/ubuntu/.cache/uv/builds-v0/.tmpOQRxGC/lib/python3.10/site-packages/tenacity/__init__.py", line 420, in exc_check
+    raise retry_exc.reraise()
+  File "/home/ubuntu/.cache/uv/builds-v0/.tmpOQRxGC/lib/python3.10/site-packages/tenacity/__init__.py", line 187, in reraise
+    raise self.last_attempt.result()
+  File "/home/ubuntu/.local/share/uv/python/cpython-3.10.18-linux-x86_64-gnu/lib/python3.10/concurrent/futures/_base.py", line 451, in result
+    return self.__get_result()
+  File "/home/ubuntu/.local/share/uv/python/cpython-3.10.18-linux-x86_64-gnu/lib/python3.10/concurrent/futures/_base.py", line 403, in __get_result
+    raise self._exception
+  File "/home/ubuntu/.cache/uv/builds-v0/.tmpOQRxGC/lib/python3.10/site-packages/tenacity/asyncio/__init__.py", line 114, in __call__
+    result = await fn(*args, **kwargs)
+  File "/home/ubuntu/.cache/uv/builds-v0/.tmpOQRxGC/lib/python3.10/site-packages/google/genai/_api_client.py", line 1153, in _async_request_once
+    f'Bearer {await self._async_access_token()}'
+  File "/home/ubuntu/.cache/uv/builds-v0/.tmpOQRxGC/lib/python3.10/site-packages/google/genai/_api_client.py", line 970, in _async_access_token
+    self._credentials, project = await asyncio.to_thread(
+  File "/home/ubuntu/.local/share/uv/python/cpython-3.10.18-linux-x86_64-gnu/lib/python3.10/asyncio/threads.py", line 25, in to_thread
+    return await loop.run_in_executor(None, func_call)
+  File "/home/ubuntu/.local/share/uv/python/cpython-3.10.18-linux-x86_64-gnu/lib/python3.10/concurrent/futures/thread.py", line 58, in run
+    result = self.fn(*self.args, **self.kwargs)
+  File "/home/ubuntu/.cache/uv/builds-v0/.tmpOQRxGC/lib/python3.10/site-packages/google/genai/_api_client.py", line 184, in load_auth
+    credentials, loaded_project_id = google.auth.default(  # type: ignore[no-untyped-call]
+  File "/home/ubuntu/.cache/uv/builds-v0/.tmpOQRxGC/lib/python3.10/site-packages/google/auth/_default.py", line 739, in default
+    raise exceptions.DefaultCredentialsError(_CLOUD_SDK_MISSING_CREDENTIALS)
+google.auth.exceptions.DefaultCredentialsError: Your default credentials were not found. To set up Application Default Credentials, see https://cloud.google.com/docs/authentication/external/set-up-adc for more information.

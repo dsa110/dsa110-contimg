@@ -1,0 +1,246 @@
+{
+  "data": [
+    {
+      "uuid": "81806a42-1d70-40e6-ad07-9a1a9da9e500",
+      "name": "Flawfinder",
+      "version": "2.0.19",
+      "shortName": "flawfinder",
+      "needsCompilation": false,
+      "configurationFilenames": [],
+      "dockerImage": "codacy/codacy-flawfinder:2.4.8",
+      "languages": [
+        "C",
+        "CPP"
+      ],
+      "clientSide": false,
+      "standalone": false,
+      "enabledByDefault": true,
+      "configurable": true,
+      "documentationUrl": "https://dwheeler.com/flawfinder/",
+      "sourceCodeUrl": "https://github.com/codacy/codacy-flawfinder",
+      "prefix": "flawfinder_",
+      "description": "Flawfinder examines C/C++ source code and reports possible security weaknesses. [Learn more](https://github.com/david-a-wheeler/flawfinder)"
+    },
+    {
+      "uuid": "d87d5570-a63c-4014-98ab-f446816ae67b",
+      "name": "CodeNarc",
+      "version": "3.6.0",
+      "shortName": "codenarc",
+      "needsCompilation": false,
+      "configurationFilenames": [
+        ".codenarcrc"
+      ],
+      "dockerImage": "codacy/codacy-codenarc:0.5.20",
+      "languages": [
+        "Groovy"
+      ],
+      "clientSide": false,
+      "standalone": false,
+      "enabledByDefault": true,
+      "configurable": true,
+      "documentationUrl": "https://codenarc.org/codenarc-rule-index.html",
+      "sourceCodeUrl": "https://github.com/codacy/codacy-codenarc",
+      "prefix": "CodeNarc_",
+      "description": "CodeNarc is a static analysis tool for Groovy source code, enabling monitoring and enforcement of many coding standards and best practices. [Learn more](https://github.com/CodeNarc/CodeNarc)"
+    },
+    {
+      "uuid": "f67f7669-fff1-4f28-8a37-b665e5ebd182",
+      "name": "PHP_CodeSniffer",
+      "version": "3.10.1",
+      "shortName": "phpcs",
+      "needsCompilation": false,
+      "configurationFilenames": [
+        "phpcs.xml",
+        "phpcs.xml.dist"
+      ],
+      "dockerImage": "codacy/codacy-codesniffer:2.6.12",
+      "languages": [
+        "PHP"
+      ],
+      "clientSide": false,
+      "standalone": false,
+      "enabledByDefault": true,
+      "configurable": true,
+      "documentationUrl": "https://github.com/squizlabs/PHP_CodeSniffer/wiki",
+      "sourceCodeUrl": "https://github.com/codacy/codacy-codesniffer",
+      "prefix": "PHPCS_",
+      "description": "PHP_CodeSniffer is a set of two PHP scripts; the main phpcs script that tokenizes PHP, JavaScript and CSS files to detect violations of a defined coding standard, and a second phpcbf script to automatically correct coding standard violations. [Learn more](https://github.com/squizlabs/PHP_CodeSniffer)"
+    },
+    {
+      "uuid": "eebd5ab6-3bef-4192-843c-f52bc4dce861",
+      "name": "SQLFluff (New)",
+      "version": "3.4.2",
+      "shortName": "sqlfluff",
+      "needsCompilation": false,
+      "configurationFilenames": [
+        "setup.cfg",
+        "tox.ini",
+        "pep8.ini",
+        ".sqlfluff",
+        "pyproject.toml"
+      ],
+      "dockerImage": "codacy/codacy-sqlfluff:0.0.10",
+      "languages": [
+        "SQL"
+      ],
+      "clientSide": false,
+      "standalone": false,
+      "enabledByDefault": false,
+      "configurable": true,
+      "documentationUrl": "https://github.com/sqlfluff/sqlfluff/blob/main/README.md",
+      "sourceCodeUrl": "https://github.com/codacy/codacy-sqlfluff",
+      "prefix": "SQLFluff_",
+      "description": "SQLFluff is an open-source SQL linter and formatter designed to help developers write consistent, clean, and error-free SQL code. It supports multiple SQL dialects and enforces style and syntax rules through customizable configurations. By analyzing SQL scripts, SQLFluff detects issues related to code style, syntax errors, ambiguous statements, and best practices, helping teams maintain high-quality SQL codebases and improve readability and maintainability."
+    },
+    {
+      "uuid": "29815f43-c1d4-40e9-a9ad-27423209fa7b",
+      "name": "Ameba",
+      "version": "1.6.4",
+      "shortName": "ameba",
+      "needsCompilation": false,
+      "configurationFilenames": [
+        ".ameba.yml"
+      ],
+      "dockerImage": "codacy/codacy-ameba:2.6.8",
+      "languages": [
+        "Crystal"
+      ],
+      "clientSide": false,
+      "standalone": false,
+      "enabledByDefault": true,
+      "configurable": true,
+      "documentationUrl": "https://crystal-ameba.github.io/",
+      "sourceCodeUrl": "https://github.com/codacy/codacy-ameba",
+      "prefix": "ameba_",
+      "description": "Ameba is a static code analysis tool for the Crystal language. It enforces a consistent code style and catches code smells and wrong code constructs. [Learn more](https://github.com/crystal-ameba/ameba)"
+    },
+    {
+      "uuid": "8fb0fb29-fa6e-43f2-9a73-9cd3873b4d8a",
+      "name": "PSScriptAnalyzer",
+      "version": "1.24.0",
+      "shortName": "psscriptanalyzer",
+      "needsCompilation": false,
+      "configurationFilenames": [],
+      "dockerImage": "codacy/codacy-psscriptanalyzer:2.3.7",
+      "languages": [
+        "Powershell"
+      ],
+      "clientSide": false,
+      "standalone": false,
+      "enabledByDefault": true,
+      "configurable": true,
+      "documentationUrl": "https://github.com/PowerShell/PSScriptAnalyzer#readme",
+      "sourceCodeUrl": "https://github.com/codacy/codacy-psscriptanalyzer",
+      "prefix": "psscriptanalyzer_",
+      "description": "PSScriptAnalyzer is a static code checker for PowerShell modules and scripts. The PSScriptAnalyzer rules are based on PowerShell best practices identified by PowerShell Team and the community. It generates DiagnosticResults (errors and warnings) to inform users about potential code defects and suggests possible solutions for improvements. [Learn more](https://github.com/PowerShell/PSScriptAnalyzer)"
+    },
+    {
+      "uuid": "2fd7fbe0-33f9-4ab3-ab73-e9b62404e2cb",
+      "name": "Trivy",
+      "version": "0.66.0",
+      "shortName": "trivy",
+      "needsCompilation": false,
+      "configurationFilenames": [],
+      "dockerImage": "codacy/codacy-trivy:1.7.14",
+      "languages": [
+        "Dart",
+        "XML",
+        "TypeScript",
+        "Python",
+        "Javascript",
+        "Elixir",
+        "PHP",
+        "C",
+        "CSharp",
+        "Swift",
+        "CPP",
+        "Scala",
+        "JSON",
+        "Rust",
+        "Ruby",
+        "Terraform",
+        "Go",
+        "Java",
+        "Dockerfile",
+        "YAML"
+      ],
+      "clientSide": false,
+      "standalone": false,
+      "enabledByDefault": true,
+      "configurable": true,
+      "documentationUrl": "https://aquasecurity.github.io/trivy/",
+      "sourceCodeUrl": "https://github.com/codacy/codacy-trivy",
+      "prefix": "Trivy_",
+      "description": "Trivy detects committed secrets, alerts of unsecure dependencies, and prevents cloud misconfigurations by analyzing Terraform, Cloudformation, Kubernetes, and other infrastructure-as-code languages. [Learn more](https://github.com/aquasecurity/trivy)"
+    },
+    {
+      "uuid": "997201eb-0907-4823-87c0-a8f7703531e7",
+      "name": "CSSLint (deprecated)",
+      "version": "1.0.5",
+      "shortName": "csslint",
+      "needsCompilation": false,
+      "configurationFilenames": [
+        ".csslintrc"
+      ],
+      "dockerImage": "codacy/codacy-csslint:3.2.5",
+      "languages": [
+        "CSS"
+      ],
+      "clientSide": false,
+      "standalone": false,
+      "enabledByDefault": false,
+      "configurable": true,
+      "documentationUrl": "https://github.com/CSSLint/csslint/wiki/Rules",
+      "sourceCodeUrl": "https://github.com/codacy/codacy-csslint",
+      "prefix": "CSSLint_",
+      "description": "CSSLint is a tool to help point out problems with your CSS code. It does basic syntax checking as well as applying a set of rules to the code that look for problematic patterns or signs of inefficiency. The rules are all pluggable, so you can easily write your own or omit ones you don't want. [Learn more](https://github.com/CSSLint/csslint)"
+    },
+    {
+      "uuid": "ec8f6265-18e8-478a-a295-7a4c09fa2171",
+      "name": "Reek (New)",
+      "version": "6.5.0",
+      "shortName": "reek",
+      "needsCompilation": false,
+      "configurationFilenames": [
+        ".reek.yml"
+      ],
+      "dockerImage": "codacy/codacy-reek:0.0.2",
+      "languages": [
+        "Ruby"
+      ],
+      "clientSide": false,
+      "standalone": false,
+      "enabledByDefault": false,
+      "configurable": true,
+      "documentationUrl": "https://github.com/troessner/reek",
+      "sourceCodeUrl": "https://github.com/troessner/reek",
+      "description": "Reek is a Ruby static code analyzer that enforces many of the guidelines outlined in the community Ruby Style Guide. [Learn more](https://github.com/troessner/reek)"
+    },
+    {
+      "uuid": "25b6766b-06c6-4625-9df1-561d28386b5f",
+      "name": "SQLint",
+      "version": "0.2.1",
+      "shortName": "SQLint",
+      "needsCompilation": false,
+      "configurationFilenames": [],
+      "dockerImage": "codacy/codacy-sqlint:2.4.1",
+      "languages": [
+        "SQL",
+        "PLSQL"
+      ],
+      "clientSide": false,
+      "standalone": false,
+      "enabledByDefault": true,
+      "configurable": true,
+      "documentationUrl": "https://github.com/purcell/sqlint/blob/master/README.md",
+      "sourceCodeUrl": "https://github.com/codacy/codacy-sqlint",
+      "prefix": "SQLint_",
+      "description": "SQLint is a simple command-line linter which reads your SQL files and reports any syntax errors or warnings it finds. [Learn more](https://github.com/purcell/sqlint)"
+    }
+  ],
+  "pagination": {
+    "cursor": "MTA=",
+    "limit": 10,
+    "total": 58
+  }
+}

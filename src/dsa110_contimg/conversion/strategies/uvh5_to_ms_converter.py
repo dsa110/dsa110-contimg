@@ -26,14 +26,13 @@ import logging
 import os
 import shutil
 import time
-from pathlib import Path
-from typing import List, Optional, Sequence
+from typing import Any, List, Optional, Sequence, cast
 
-import astropy.units as u
+import astropy.units as u  # type: ignore[import]
 import numpy as np
-from astropy.time import Time
-from casacore.tables import addImagingColumns
-from pyuvdata import UVData
+from astropy.time import Time  # type: ignore[import]
+from casacore.tables import addImagingColumns  # type: ignore[import]
+from pyuvdata import UVData  # type: ignore[import]
 
 
 logger = logging.getLogger("uvh5_to_ms_converter_v2_strat")
@@ -45,32 +44,42 @@ def _peek_uvh5_phase_and_midtime(uvh5_path: str) -> tuple[u.Quantity, float]:
     Avoids instantiating UVData for a metadata-only read to prevent premature
     UVW checks and reduce overhead.
     """
-    import h5py
-    import numpy as _np
+    import h5py  # type: ignore[import]
     pt_dec_val: float = 0.0
     mid_jd: float = 0.0
     with h5py.File(uvh5_path, "r") as f:
         # time_array is standard in uvh5
         if "time_array" in f:
-            d = f["time_array"]
+            d = cast(Any, f["time_array"])  # h5py dataset
             # Read only the endpoints to estimate mid-time cheaply
-            n = d.shape[0]
+            arr = np.asarray(d)
+            n = arr.shape[0]
             if n >= 2:
-                t0 = float(d[0])
-                t1 = float(d[n - 1])
+                t0 = float(arr[0])
+                t1 = float(arr[n - 1])
                 mid_jd = 0.5 * (t0 + t1)
             elif n == 1:
-                mid_jd = float(d[0])
+                mid_jd = float(arr[0])
         # extra_keywords often holds phase_center_dec (radians)
+
         def _read_extra(name: str) -> Optional[float]:
             try:
-                if "extra_keywords" in f and name in f["extra_keywords"]:
-                    return float(_np.asarray(f["extra_keywords"][name]))
+                if (
+                    "extra_keywords" in f
+                    and name in f["extra_keywords"]
+                ):
+                    return float(np.asarray(f["extra_keywords"][name]))
             except Exception:
                 pass
             try:
-                if "Header" in f and "extra_keywords" in f["Header"] and name in f["Header"]["extra_keywords"]:
-                    return float(_np.asarray(f["Header"]["extra_keywords"][name]))
+                if (
+                    "Header" in f
+                    and "extra_keywords" in f["Header"]
+                    and name in f["Header"]["extra_keywords"]
+                ):
+                    return float(np.asarray(
+                        f["Header"]["extra_keywords"][name]
+                    ))
             except Exception:
                 pass
             try:
@@ -80,13 +89,18 @@ def _peek_uvh5_phase_and_midtime(uvh5_path: str) -> tuple[u.Quantity, float]:
                 pass
             return None
         val = _read_extra("phase_center_dec")
-        if val is not None and _np.isfinite(val):
+        if val is not None and np.isfinite(val):
             pt_dec_val = float(val)
-    return pt_dec_val * u.rad, float(Time(mid_jd, format="jd").mjd) if mid_jd else float(mid_jd)
+    return (
+        pt_dec_val * u.rad,
+        float(Time(mid_jd, format="jd").mjd) if mid_jd else float(mid_jd),
+    )
 
 
 def _parse_timestamp_from_filename(filename: str) -> Optional[Time]:
-    """Extracts timestamp from a filename like '2022-01-01T12:34:56_sb00.hdf5'."""
+    """
+    Extract timestamp from a filename like '2022-01-01T12:34:56_sb00.hdf5'.
+    """
     base = os.path.splitext(filename)[0]
     if "_sb" not in base:
         return None
@@ -129,7 +143,8 @@ def find_subband_groups(
         tolerance_s: Time tolerance in seconds for grouping files.
 
     Returns:
-        A list of groups, where each group is a list of file paths sorted by subband index.
+        A list of groups, where each group is a list of file paths
+        sorted by subband index.
     """
     if spw is None:
         spw = [f"sb{idx:02d}" for idx in range(16)]
@@ -137,13 +152,24 @@ def find_subband_groups(
     tmin = Time(start_time)
     tmax = Time(end_time)
 
-    # Gather candidate files within the time window
+    # Gather candidate files within the time window.
+    # Optimization: restrict globbing to date prefixes covered by [tmin, tmax]
     candidates = []
-    for path in glob.glob(os.path.join(input_dir, "*_sb??.hdf5")):
-        fname = os.path.basename(path)
-        ts = _parse_timestamp_from_filename(fname)
-        if ts and tmin <= ts <= tmax:
-            candidates.append((path, ts))
+    days = set()
+    # Include days spanned by the window (start and end, inclusive)
+    from datetime import timedelta as _dt_timedelta
+    cur = tmin.to_datetime()
+    end_dt = tmax.to_datetime()
+    while cur.date() <= end_dt.date():
+        days.add(cur.strftime("%Y-%m-%d"))
+        cur = cur + _dt_timedelta(days=1)
+    for day in sorted(days):
+        pattern = os.path.join(input_dir, f"{day}T*_sb??.hdf5")
+        for path in glob.glob(pattern):
+            fname = os.path.basename(path)
+            ts = _parse_timestamp_from_filename(fname)
+            if ts and tmin <= ts <= tmax:
+                candidates.append((path, ts))
 
     if not candidates:
         logger.info(
@@ -190,14 +216,13 @@ def find_subband_groups(
 
 def _load_and_merge_subbands(file_list: Sequence[str]) -> UVData:
     """Read a list of UVH5 subband files and merge along the frequency axis."""
-    import logging as _logging
     uv = UVData()
     acc: List[UVData] = []
     # Temporarily silence pyuvdata's UVW mismatch warnings during raw reads
-    _pyuv_lg = _logging.getLogger('pyuvdata')
+    _pyuv_lg = logging.getLogger('pyuvdata')
     _prev_level = _pyuv_lg.level
     try:
-        _pyuv_lg.setLevel(_logging.ERROR)
+        _pyuv_lg.setLevel(logging.ERROR)
         for i, path in enumerate(file_list):
             t_read0 = time.perf_counter()
             logger.info(
@@ -224,24 +249,28 @@ def _load_and_merge_subbands(file_list: Sequence[str]) -> UVData:
                 tmp.Nfreqs,
                 tmp.Npols)
     finally:
-        try:
-            _pyuv_lg.setLevel(_prev_level)
-        except Exception:
-            pass
+        _pyuv_lg.setLevel(_prev_level)
     t_cat0 = time.perf_counter()
     uv = acc[0]
     if len(acc) > 1:
         uv.fast_concat(acc[1:], axis="freq", inplace=True, run_check=False)
-    logger.info("Concatenated %d subbands in %.2fs",
-                len(acc), time.perf_counter() - t_cat0)
+    logger.info(
+        "Concatenated %d subbands in %.2fs",
+        len(acc),
+        time.perf_counter() - t_cat0,
+    )
 
     # Ensure ascending frequency order for CASA compatibility
     uv.reorder_freqs(channel_order="freq", run_check=False)
     return uv
 
 
-def _set_phase_and_uvw(uv: UVData) -> tuple[u.Quantity, u.Quantity, u.Quantity]:
-    """Set antenna geometry, phase center and recompute UVW with pyuvdata utils."""
+def _set_phase_and_uvw(
+    uv: UVData,
+) -> tuple[u.Quantity, u.Quantity, u.Quantity]:
+    """
+    Set antenna geometry, phase center and recompute UVW with pyuvdata utils.
+    """
     # Antenna geometry
     set_antenna_positions(uv)
     _ensure_antenna_diameters(uv)
@@ -322,18 +351,36 @@ def convert_subband_groups_to_ms(
 
         # The 'direct-subband' writer reads files itself, so we pass the list.
         # Other writers expect a merged UVData object.
+        # If writer is set to 'auto', select per-group based on heuristics.
+        selected_writer = writer
         uv = None
-        if writer != "direct-subband":
+        if writer == "auto":
+            # Heuristic: small number of subbands -> monolithic; otherwise
+            # direct-subband. Threshold is intentionally modest to favor
+            # parallel subband writes.
+            try:
+                n_sb = len(file_list)
+            except Exception:
+                n_sb = 0
+            selected_writer = (
+                "pyuvdata" if n_sb and n_sb <= 2 else "direct-subband"
+            )
+
+        if selected_writer != "direct-subband":
             t0 = time.perf_counter()
             uv = _load_and_merge_subbands(file_list)
-            logger.info("Loaded and merged %d subbands in %.2fs",
-                        len(file_list), time.perf_counter() - t0)
+            logger.info(
+                "Loaded and merged %d subbands in %.2fs",
+                len(file_list),
+                time.perf_counter() - t0,
+            )
 
             t1 = time.perf_counter()
             pt_dec, phase_ra, phase_dec = _set_phase_and_uvw(uv)
             logger.info(
                 "Phased and updated UVW in %.2fs",
-                time.perf_counter() - t1)
+                time.perf_counter() - t1,
+            )
         else:
             # Use a tiny HDF5 peek (no UVData) to get pt_dec and mid-time
             pt_dec, mid_mjd = _peek_uvh5_phase_and_midtime(file_list[0])
@@ -349,8 +396,12 @@ def convert_subband_groups_to_ms(
                     run_check_acceptability=False,
                     strict_uvw_antpos_check=False,
                 )
-                pt_dec = temp_uv.extra_keywords.get("phase_center_dec", 0.0) * u.rad
-                mid_mjd = Time(float(np.mean(temp_uv.time_array)), format="jd").mjd
+                pt_dec = (
+                    temp_uv.extra_keywords.get("phase_center_dec", 0.0) * u.rad
+                )
+                mid_mjd = Time(
+                    float(np.mean(temp_uv.time_array)), format="jd"
+                ).mjd
                 del temp_uv
             phase_ra, phase_dec = get_meridian_coords(pt_dec, mid_mjd)
 
@@ -362,7 +413,7 @@ def convert_subband_groups_to_ms(
             current_writer_kwargs.setdefault("scratch_dir", scratch_dir)
             current_writer_kwargs.setdefault("file_list", file_list)
 
-            writer_cls = get_writer(writer)
+            writer_cls = get_writer(selected_writer)
             writer_instance = writer_cls(uv, ms_path, **current_writer_kwargs)
             writer_type = writer_instance.write()
 
@@ -373,7 +424,7 @@ def convert_subband_groups_to_ms(
             )
             print(f"WRITER_TYPE: {writer_type}")
 
-        except Exception as e:
+        except Exception:
             logger.exception("MS writing failed for group %s", base_name)
             # Clean up partially created MS
             if os.path.exists(ms_path):
@@ -383,14 +434,15 @@ def convert_subband_groups_to_ms(
         # Post-processing steps
         try:
             addImagingColumns(ms_path)
-        except Exception as e:
+        except Exception:
             logger.warning(
-                "Failed to add imaging columns to %s: %s", ms_path, e)
+                "Failed to add imaging columns to %s", ms_path
+            )
 
         if flux is not None:
             try:
-                # We need a UVData object to pass to set_model_column. If the writer
-                # didn't use one, load the metadata.
+                # We need a UVData object to pass to set_model_column.
+                # If the writer didn't use one, load the metadata.
                 if uv is None:
                     uv = UVData()
                     uv.read(file_list, read_data=False)
@@ -401,8 +453,8 @@ def convert_subband_groups_to_ms(
                     phase_ra,
                     phase_dec,
                     flux_jy=flux)
-            except Exception as e:
-                logger.warning("Failed to set MODEL_DATA column: %s", e)
+            except Exception:
+                logger.warning("Failed to set MODEL_DATA column")
 
         logger.info("✓ Successfully created %s", ms_path)
 
@@ -426,8 +478,8 @@ def create_parser() -> argparse.ArgumentParser:
     p.add_argument(
         "--writer",
         default="direct-subband",
-        choices=["direct-subband", "pyuvdata"],
-        help="The MS writing strategy to use.",
+        choices=["direct-subband", "pyuvdata", "auto"],
+        help="The MS writing strategy to use (or 'auto' to choose per group).",
     )
     p.add_argument(
         "--flux",
@@ -441,6 +493,19 @@ def create_parser() -> argparse.ArgumentParser:
         type=int,
         default=4,
         help="Number of parallel workers for the 'direct-subband' writer.",
+    )
+    p.add_argument(
+        "--stage-to-tmpfs",
+        action="store_true",
+        help=(
+            "Stage per-subband writes and concat to tmpfs (e.g., /dev/shm) "
+            "before moving atomically to final MS."
+        ),
+    )
+    p.add_argument(
+        "--tmpfs-path",
+        default="/dev/shm",
+        help="Path to tmpfs (RAM disk) when --stage-to-tmpfs is provided.",
     )
     p.add_argument(
         "--log-level",
@@ -470,6 +535,10 @@ def main() -> int:
     writer_kwargs = {
         "max_workers": args.max_workers,
     }
+    # Thread tmpfs staging flags to writers that support them
+    if getattr(args, "stage_to_tmpfs", False):
+        writer_kwargs["stage_to_tmpfs"] = True
+        writer_kwargs["tmpfs_path"] = getattr(args, "tmpfs_path", "/dev/shm")
 
     convert_subband_groups_to_ms(
         args.input_dir,

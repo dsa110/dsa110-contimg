@@ -1,0 +1,572 @@
+### Demonstrate React Hooks Rule Violation by Calling Hooks in Loops and Conditionally
+
+Source: https://github.com/facebook/react/blob/main/compiler/packages/babel-plugin-react-compiler/src/__tests__/fixtures/compiler/rules-of-hooks/error.invalid-rules-of-hooks-1b9527f967f3.expect.md
+
+This JavaScript function, `useHookInLoops`, is designed to show an invalid use of React Hooks. Calling Hooks inside `while` loops or conditionally (e.g., after an `if (b) return;`) violates the 'Rules of Hooks', which require Hooks to be called in the same order on every render. This example will produce errors warning about inconsistent hook calls.
+
+```javascript
+// Expected to fail
+
+// Invalid because it's dangerous and might not warn otherwise.
+// This *must* be invalid.
+function useHookInLoops() {
+  while (a) {
+    useHook1();
+    if (b) return;
+    useHook2();
+  }
+  while (c) {
+    useHook3();
+    if (d) return;
+    useHook4();
+  }
+}
+```
+
+--------------------------------
+
+### React Error: Hooks Referenced as Normal Values
+
+Source: https://github.com/facebook/react/blob/main/compiler/packages/babel-plugin-react-compiler/src/__tests__/fixtures/compiler/error.invalid-ternary-with-hook-values.expect.md
+
+This output shows the compilation or runtime error generated when React Hooks are referenced as normal values rather than being called directly. The error message 'Hooks may not be referenced as normal values, they must be called' clearly indicates the violation of React's Rules of Hooks, pointing to the lines where the hook functions are incorrectly assigned or accessed.
+
+```plaintext
+Found 4 errors:
+
+Error: Hooks may not be referenced as normal values, they must be called. See https://react.dev/reference/rules/react-calls-components-and-hooks#never-pass-around-hooks-as-regular-values
+
+error.invalid-ternary-with-hook-values.ts:2:25
+  1 | function Component(props) {
+> 2 |   const x = props.cond ? useA : useB;
+    |                          ^^^^ Hooks may not be referenced as normal values, they must be called. See https://react.dev/reference/rules/react-calls-components-and-hooks#never-pass-around-hooks-as-regular-values
+  3 |   return x();
+  4 | }
+  5 |
+
+Error: Hooks may not be referenced as normal values, they must be called. See https://react.dev/reference/rules/react-calls-components-and-hooks#never-pass-around-hooks-as-regular-values
+
+error.invalid-ternary-with-hook-values.ts:2:32
+  1 | function Component(props) {
+> 2 |   const x = props.cond ? useA : useB;
+    |                                 ^^^^ Hooks may not be referenced as normal values, they must be called. See https://react.dev/reference/rules/react-calls-components-and-hooks#never-pass-around-hooks-as-regular-values
+  3 |   return x();
+  4 | }
+  5 |
+
+Error: Hooks may not be referenced as normal values, they must be called. See https://react.dev/reference/rules/react-calls-components-and-hooks#never-pass-around-hooks-as-regular-values
+
+error.invalid-ternary-with-hook-values.ts:2:12
+  1 | function Component(props) {
+> 2 |   const x = props.cond ? useA : useB;
+    |             ^^^^^^^^^^^^^^^^^^^^^^^^ Hooks may not be referenced as normal values, they must be called. See https://react.dev/reference/rules/react-calls-components-and-hooks#never-pass-around-hooks-as-regular-values
+  3 |   return x();
+  4 | }
+  5 |
+
+Error: Hooks may not be referenced as normal values, they must be called. See https://react.dev/reference/rules/react-calls-components-and-hooks#never-pass-around-hooks-as-regular-values
+
+error.invalid-ternary-with-hook-values.ts:3:9
+  1 | function Component(props) {
+  2 |   const x = props.cond ? useA : useB;
+> 3 |   return x();
+    |          ^ Hooks may not be referenced as normal values, they must be called. See https://react.dev/reference/rules/react-calls-components-and-hooks#never-pass-around-hooks-as-regular-values
+  4 | }
+  5 |
+
+```
+
+--------------------------------
+
+### Incorrect Conditional React Hook Call in JavaScript
+
+Source: https://github.com/facebook/react/blob/main/compiler/packages/babel-plugin-react-compiler/src/__tests__/fixtures/compiler/error.invalid-ternary-with-hook-values.expect.md
+
+This JavaScript code snippet demonstrates an invalid way to conditionally use React Hooks. It attempts to assign hook functions (useA, useB) as values to a variable 'x' based on a condition, and then calls 'x' later. This violates React's Rules of Hooks, which state that hooks must be called directly and cannot be passed around or assigned as regular values.
+
+```javascript
+function Component(props) {
+  const x = props.cond ? useA : useB;
+  return x();
+}
+```
+
+--------------------------------
+
+### Incorrect React Hook Assignment (Input Code)
+
+Source: https://github.com/facebook/react/blob/main/compiler/packages/babel-plugin-react-compiler/src/__tests__/fixtures/compiler/error.propertyload-hook.expect.md
+
+This JavaScript code snippet demonstrates an improper way to use a React Hook. Instead of directly calling `Foo.useFoo`, it's assigned to a variable `x`, which violates React's rules regarding hook usage. Hooks must be called directly within a functional component or another custom hook.
+
+```javascript
+function Component() {
+  const x = Foo.useFoo;
+  return x();
+}
+```
+
+--------------------------------
+
+### Demonstrating Invalid React Hook Call in JavaScript
+
+Source: https://github.com/facebook/react/blob/main/compiler/packages/babel-plugin-react-compiler/src/__tests__/fixtures/compiler/rules-of-hooks/error.invalid.invalid-rules-of-hooks-d842d36db450.expect.md
+
+This JavaScript code snippet illustrates an incorrect usage of React Hooks where 'useConditionalHook' is called inside a nested function expression ('ComponentWithConditionalHook') and also conditionally. This setup violates the fundamental Rules of Hooks, which require hooks to be called at the top level of a function component or custom hook.
+
+```javascript
+// Invalid because it's dangerous and might not warn otherwise.
+// This *must* be invalid.
+function createComponent() {
+  return function ComponentWithConditionalHook() {
+    if (cond) {
+      useConditionalHook();
+    }
+  };
+}
+```
+
+--------------------------------
+
+### React Custom Hook Attempting Dynamic Hook Call
+
+Source: https://github.com/facebook/react/blob/main/compiler/packages/babel-plugin-react-compiler/src/__tests__/fixtures/compiler/rules-of-hooks/error.invalid-hook-from-property-of-other-hook.expect.md
+
+This JavaScript code defines a React custom hook `useFoo` that uses `useVideoPlayer` to get a `player` object, then attempts to call `player.useMedia()`. This dynamic call of a hook from a variable property violates React's Rules of Hooks, as hooks must be called consistently on every render.
+
+```javascript
+function useFoo({data}) {
+  const player = useVideoPlayer();
+  const foo = player.useMedia();
+  return foo;
+}
+```
+
+--------------------------------
+
+### Define React Hooks using various JavaScript syntaxes
+
+Source: https://github.com/facebook/react/blob/main/compiler/packages/babel-plugin-react-compiler/src/__tests__/fixtures/compiler/rules-of-hooks/todo.bail.rules-of-hooks-e0a5db3ae21e.expect.md
+
+This snippet illustrates multiple ways to define a React Hook in JavaScript, including function declarations, arrow functions, and object method syntax. All examples demonstrate valid hook definitions where one hook (e.g., useState) can be called within another.
+
+```javascript
+// Valid because hooks can call hooks.
+function useHook() {
+  useState();
+}
+
+const whatever = function useHook() {
+  useState();
+};
+
+const useHook1 = () => {
+  useState();
+};
+
+let useHook2 = () => {
+  return useState();
+};
+useHook2 = () => {
+  useState();
+};
+
+({
+  useHook: () => {
+    useState();
+  },
+});
+({
+  useHook() {
+    useState();
+  },
+});
+const {
+  useHook3 = () => {
+    useState();
+  },
+} = {};
+({
+  useHook = () => {
+    useState();
+  },
+} = {});
+Namespace.useHook = () => {
+  useState();
+};
+```
+
+--------------------------------
+
+### Demonstrate Invalid React Hook Usage in JavaScript Loops
+
+Source: https://github.com/facebook/react/blob/main/compiler/packages/babel-plugin-react-compiler/src/__tests__/fixtures/compiler/rules-of-hooks/error.invalid-rules-of-hooks-d85c144bdf40.expect.md
+
+This JavaScript code snippet illustrates an incorrect way to use React Hooks by calling them inside a `while` loop with conditional execution paths. React's Rules of Hooks dictate that hooks must be called in the same order on every render, which is violated here by the `continue` statement and the loop structure. This will lead to runtime errors and warnings indicating that hooks are called conditionally.
+
+```javascript
+// Expected to fail
+
+// Invalid because it's dangerous and might not warn otherwise.
+// This *must* be invalid.
+function useHookInLoops() {
+  while (a) {
+    useHook1();
+    if (b) continue;
+    useHook2();
+  }
+}
+```
+
+--------------------------------
+
+### Demonstrate Invalid React Hook Call in Loop (JavaScript)
+
+Source: https://github.com/facebook/react/blob/main/compiler/packages/babel-plugin-react-compiler/src/__tests__/fixtures/compiler/rules-of-hooks/error.invalid-rules-of-hooks-79128a755612.expect.md
+
+This JavaScript code snippet defines a React functional component, `ComponentWithHookInsideLoop`, which incorrectly calls a custom hook (`useHookInsideLoop`) inside a `while` loop. This setup is designed to fail because React's Rules of Hooks explicitly state that hooks must always be called in the same order and not conditionally (e.g., inside loops, if statements, or functions nested within the component). The accompanying error message highlights this violation, pointing to the line where the hook is called and referencing the official React documentation on the Rules of Hooks.
+
+```javascript
+// Expected to fail
+
+// Invalid because it's dangerous and might not warn otherwise.
+// This *must* be invalid.
+function ComponentWithHookInsideLoop() {
+  while (cond) {
+    useHookInsideLoop();
+  }
+}
+```
+
+--------------------------------
+
+### Invalid conditional React Hook calls in JavaScript
+
+Source: https://github.com/facebook/react/blob/main/compiler/packages/babel-plugin-react-compiler/src/__tests__/fixtures/compiler/rules-of-hooks/error.invalid-rules-of-hooks-9bf17c174134.expect.md
+
+This JavaScript code snippet shows a custom React Hook `useHook` that attempts to call other hooks (`useHook1`, `useHook2`) conditionally based on variables `a` and `b`. This pattern is invalid because it violates React's Rules of Hooks, which require hooks to be called in a consistent, non-conditional order across renders to ensure proper state management.
+
+```javascript
+// Expected to fail
+
+// Invalid because it's dangerous and might not warn otherwise.
+// This *must* be invalid.
+function useHook() {
+  a && useHook1();
+  b && useHook2();
+}
+```
+
+--------------------------------
+
+### Demonstrating a dynamic React Hook call in JavaScript
+
+Source: https://github.com/facebook/react/blob/main/compiler/packages/babel-plugin-react-compiler/src/__tests__/fixtures/compiler/rules-of-hooks/error.invalid-hook-from-hook-return.expect.md
+
+This JavaScript code snippet shows a custom React hook `useFoo` that attempts to call another hook, `useMedia`, which is dynamically returned from `useVideoPlayer`. This pattern violates the Rules of Hooks, as the hook call order might change between renders.
+
+```javascript
+function useFoo({data}) {
+  const useMedia = useVideoPlayer();
+  const foo = useMedia();
+  return foo;
+}
+```
+
+--------------------------------
+
+### Illustrate Invalid React Hook Call in JavaScript
+
+Source: https://github.com/facebook/react/blob/main/compiler/packages/babel-plugin-react-compiler/src/__tests__/fixtures/compiler/rules-of-hooks/todo.invalid.invalid-rules-of-hooks-c59788ef5676.expect.md
+
+This JavaScript code snippet demonstrates an incorrect pattern where a React hook (`useHookInsideNormalFunction`) is invoked within a regular JavaScript function (`normalFunctionWithHook`). According to React's Rules of Hooks, hooks must only be called from React function components or other custom hooks, not from arbitrary JavaScript functions. The accompanying comments explain that this setup, while potentially passing in some contexts, fundamentally breaks the convention of how hooks should 'taint' or propagate state, and maintaining its invalidity is crucial to prevent false positives in other scenarios like `renderItem`.
+
+```javascript
+// @skip
+// Passed but should have failed
+
+// Currently invalid because it violates the convention and removes the "taint"
+// from a hook. We *could* make it valid to avoid some false positives but let's
+// ensure that we don't break the "renderItem" and "normalFunctionWithConditionalHook"
+// cases which must remain invalid.
+function normalFunctionWithHook() {
+  useHookInsideNormalFunction();
+}
+```
+
+--------------------------------
+
+### Incorrect React Hook Assignment and Call in JavaScript
+
+Source: https://github.com/facebook/react/blob/main/compiler/packages/babel-plugin-react-compiler/src/__tests__/fixtures/compiler/rules-of-hooks/error.invalid-call-phi-possibly-hook.expect.md
+
+This JavaScript code snippet demonstrates a React component attempting to conditionally assign a hook (`useGetUser`) or a regular function (`emptyFunction`) to a variable. It then calls this variable, which is a violation of React's Rules of Hooks because hooks must be called unconditionally at the top level of a component.
+
+```javascript
+function Component(props) {
+  // This is a violation of using a hook as a normal value rule:
+  const getUser = props.cond ? useGetUser : emptyFunction;
+
+  // Ideally we would report a "conditional hook call" error here.
+  // It's an unconditional call, but the value may or may not be a hook.
+  // TODO: report a conditional hook call error here
+  return getUser();
+}
+```
+
+--------------------------------
+
+### React Error Message: Hooks Passed as Normal Values
+
+Source: https://github.com/facebook/react/blob/main/compiler/packages/babel-plugin-react-compiler/src/__tests__/fixtures/compiler/error.invalid-pass-hook-as-prop.expect.md
+
+This output shows the error message generated by React when a Hook is incorrectly passed as a normal value (e.g., as a prop). The error clearly states that hooks must be called and provides a link to the official React documentation for more details on the rules of hooks. The error typically points to the exact line where the incorrect usage occurs.
+
+```plaintext
+Found 1 error:
+
+Error: Hooks may not be referenced as normal values, they must be called. See https://react.dev/reference/rules/react-calls-components-and-hooks#never-pass-around-hooks-as-regular-values
+
+error.invalid-pass-hook-as-prop.ts:2:21
+  1 | function Component(props) {
+> 2 |   return <Child foo={useFoo} />;
+    |                      ^^^^^^ Hooks may not be referenced as normal values, they must be called. See https://react.dev/reference/rules/react-calls-components-and-hooks#never-pass-around-hooks-as-regular-values
+  3 | }
+  4 |
+```
+
+--------------------------------
+
+### React Error: Hooks Must Be Same Function on Every Render
+
+Source: https://github.com/facebook/react/blob/main/compiler/packages/babel-plugin-react-compiler/src/__tests__/fixtures/compiler/rules-of-hooks/error.invalid-hook-from-property-of-other-hook.expect.md
+
+This error message indicates a violation of React's Rules of Hooks. It specifically flags `player.useMedia()` because the hook is called from a property of an object (`player`) which might change between renders. React requires hooks to be called in the same order and from the same functions consistently across renders, providing a link to the official documentation for further explanation.
+
+```plaintext
+Found 1 error:
+
+Error: Hooks must be the same function on every render, but this value may change over time to a different function. See https://react.dev/reference/rules/react-calls-components-and-hooks#dont-dynamically-use-hooks
+
+error.invalid-hook-from-property-of-other-hook.ts:3:14
+  1 | function useFoo({data}) {
+  2 |   const player = useVideoPlayer();
+> 3 |   const foo = player.useMedia();
+    |               ^^^^^^^^^^^^^^^ Hooks must be the same function on every render, but this value may change over time to a different function. See https://react.dev/reference/rules/react-calls-components-and-hooks#dont-dynamically-use-hooks
+  4 |   return foo;
+  5 | }
+  6 |
+```
+
+--------------------------------
+
+### React: Component with Conditional Hook Call
+
+Source: https://github.com/facebook/react/blob/main/compiler/packages/babel-plugin-react-compiler/src/__tests__/fixtures/compiler/rules-of-hooks/error.invalid-hook-optionalcall.expect.md
+
+A React functional component demonstrating an incorrect pattern where a custom hook `useConditionalHook` is called conditionally using optional chaining (`?.`) and nullish coalescing (`??`). This setup violates the core 'Rules of Hooks', which state that hooks must always be called in the same order.
+
+```javascript
+function Component() {
+  const {result} = useConditionalHook?.() ?? {};
+  return result;
+}
+```
+
+--------------------------------
+
+### React Error: Dynamic Hook Usage Violation
+
+Source: https://github.com/facebook/react/blob/main/compiler/packages/babel-plugin-react-compiler/src/__tests__/fixtures/compiler/rules-of-hooks/error.invalid-hook-as-prop.expect.md
+
+This section displays a React error message indicating a violation of the 'Rules of Hooks'. The error states that 'Hooks must be the same function on every render', specifically when a hook is dynamically provided or changed, such as being passed as a prop. It references the official React documentation for more details on dynamic hook usage.
+
+```text
+Found 1 error:
+
+Error: Hooks must be the same function on every render, but this value may change over time to a different function. See https://react.dev/reference/rules/react-calls-components-and-hooks#dont-dynamically-use-hooks
+
+error.invalid-hook-as-prop.ts:2:2
+  1 | function Component({useFoo}) {
+> 2 |   useFoo();
+    |   ^^^^^^ Hooks must be the same function on every render, but this value may change over time to a different function. See https://react.dev/reference/rules/react-calls-components-and-hooks#dont-dynamically-use-hooks
+  3 | }
+  4 |
+```
+
+--------------------------------
+
+### React Hooks Linter Error for Conditional Call
+
+Source: https://github.com/facebook/react/blob/main/compiler/packages/babel-plugin-react-compiler/src/__tests__/fixtures/compiler/rules-of-hooks/todo.error.rules-of-hooks-e29c874aa913.expect.md
+
+This output shows the error message generated by a linter or React runtime when a Hook (e.g., `useState`) is called conditionally, such as within a `try...catch` block. The error explicitly states that 'Hooks must always be called in a consistent order, and may not be called conditionally,' referencing the official 'Rules of Hooks' for more information.
+
+```text
+Found 1 error:
+
+Error: Hooks must always be called in a consistent order, and may not be called conditionally. See the Rules of Hooks (https://react.dev/warnings/invalid-hook-call-warning)
+
+todo.error.rules-of-hooks-e29c874aa913.ts:9:4
+   7 |   try {
+   8 |     f();
+>  9 |     useState();
+     |     ^^^^^^^^ Hooks must always be called in a consistent order, and may not be called conditionally. See the Rules of Hooks (https://react.dev/warnings/invalid-hook-call-warning)
+  10 |   }
+  11 | }
+  12 |
+```
+
+--------------------------------
+
+### Invalid React Hook Conditional Call in JavaScript
+
+Source: https://github.com/facebook/react/blob/main/compiler/packages/babel-plugin-react-compiler/src/__tests__/fixtures/compiler/rules-of-hooks/error.invalid-rules-of-hooks-d740d54e9c21.expect.md
+
+This JavaScript code snippet demonstrates an incorrect usage pattern for React Hooks. The `useHookInsideNormalFunction` is called conditionally inside a standard function, which is a direct violation of the 'Rules of Hooks'. Hooks must always be called unconditionally and in the same order during every render cycle to ensure consistent behavior.
+
+```javascript
+// Expected to fail
+
+// Invalid because it's dangerous and might not warn otherwise.
+// This *must* be invalid.
+function normalFunctionWithConditionalHook() {
+  if (cond) {
+    useHookInsideNormalFunction();
+  }
+}
+```
+
+--------------------------------
+
+### JavaScript: Calling React Hook Conditionally in Nested Function
+
+Source: https://github.com/facebook/react/blob/main/compiler/packages/babel-plugin-react-compiler/src/__tests__/fixtures/compiler/rules-of-hooks/error.invalid.invalid-rules-of-hooks-0a1dbff27ba0.expect.md
+
+This JavaScript code illustrates an invalid pattern where a React Hook, `useConditionalHook`, is called conditionally within a nested function expression (`useHookWithConditionalHook`). This violates the React 'Rules of Hooks', which mandate that hooks must be called unconditionally at the top level of a function component or a custom hook. This pattern can lead to unpredictable behavior and runtime errors.
+
+```javascript
+// Invalid because it's dangerous and might not warn otherwise.
+// This *must* be invalid.
+function createHook() {
+  return function useHookWithConditionalHook() {
+    if (cond) {
+      useConditionalHook();
+    }
+  };
+}
+
+```
+
+--------------------------------
+
+### React Invalid Hook Call Warning Error Message
+
+Source: https://github.com/facebook/react/blob/main/compiler/packages/babel-plugin-react-compiler/src/__tests__/fixtures/compiler/rules-of-hooks/error.invalid-rules-of-hooks-f3d6c5e9c83d.expect.md
+
+This output displays the error message generated by React or its linter when the `useState` hook is called conditionally, as shown in the previous example. The error explicitly states that 'Hooks must always be called in a consistent order, and may not be called conditionally,' directing the developer to the official Rules of Hooks documentation.
+
+```plaintext
+Found 1 error:
+
+Error: Hooks must always be called in a consistent order, and may not be called conditionally. See the Rules of Hooks (https://react.dev/warnings/invalid-hook-call-warning)
+
+error.invalid-rules-of-hooks-f3d6c5e9c83d.ts:12:2
+  10 |   }
+  11 |   if (a) return;
+> 12 |   useState();
+     |   ^^^^^^^^ Hooks must always be called in a consistent order, and may not be called conditionally. See the Rules of Hooks (https://react.dev/warnings/invalid-hook-call-warning)
+  13 | }
+  14 |
+```
+
+--------------------------------
+
+### Define `useHook` React Hook (Original)
+
+Source: https://github.com/facebook/react/blob/main/compiler/packages/babel-plugin-react-compiler/src/__tests__/fixtures/compiler/object-shorthand-method-1.expect.md
+
+This snippet defines the initial `useHook` React hook. It takes properties `a` and `b`, returning an object with methods `x` and `y` that capture these values. It also includes a `FIXTURE_ENTRYPOINT` for testing the hook's behavior before compilation.
+
+```javascript
+import {createHookWrapper} from 'shared-runtime';
+function useHook({a, b}) {
+  return {
+    x: function () {
+      return [a];
+    },
+    y() {
+      return [b];
+    },
+  };
+}
+
+export const FIXTURE_ENTRYPOINT = {
+  fn: createHookWrapper(useHook),
+  params: [{a: 1, b: 2}],
+};
+```
+
+--------------------------------
+
+### React 'Hooks must be same function on every render' error message
+
+Source: https://github.com/facebook/react/blob/main/compiler/packages/babel-plugin-react-compiler/src/__tests__/fixtures/compiler/rules-of-hooks/error.invalid-hook-from-hook-return.expect.md
+
+This snippet displays the error message generated when a React hook is called dynamically or conditionally. The error highlights that hooks must be called in the same order on every render, and dynamic calls, such as calling a hook returned from another function, violate this rule. The message provides a link to the official React documentation for more details.
+
+```text
+Found 1 error:
+
+Error: Hooks must be the same function on every render, but this value may change over time to a different function. See https://react.dev/reference/rules/react-calls-components-and-hooks#dont-dynamically-use-hooks
+
+error.invalid-hook-from-hook-return.ts:3:14
+  1 | function useFoo({data}) {
+  2 |   const useMedia = useVideoPlayer();
+> 3 |   const foo = useMedia();
+    |               ^^^^^^^^ Hooks must be the same function on every render, but this value may change over time to a different function. See https://react.dev/reference/rules/react-calls-components-and-hooks#dont-dynamically-use-hooks
+  4 |   return foo;
+  5 | }
+  6 |
+```
+
+--------------------------------
+
+### Invalid React Hook Conditional Call Example in JavaScript
+
+Source: https://github.com/facebook/react/blob/main/compiler/packages/babel-plugin-react-compiler/src/__tests__/fixtures/compiler/rules-of-hooks/error.invalid-rules-of-hooks-b4dcda3d60ed.expect.md
+
+This JavaScript code demonstrates an incorrect usage of React Hooks. The `ComponentWithTernaryHook` attempts to call `useTernaryHook()` conditionally, which violates the fundamental 'Rules of Hooks' that require hooks to be called consistently and unconditionally. This pattern is designed to trigger an error due to its non-compliance with React's hook usage guidelines.
+
+```javascript
+// Expected to fail
+
+// Invalid because it's dangerous and might not warn otherwise.
+// This *must* be invalid.
+function ComponentWithTernaryHook() {
+  cond ? useTernaryHook() : null;
+}
+```
+
+--------------------------------
+
+### React error for invalid conditional Hook call
+
+Source: https://github.com/facebook/react/blob/main/compiler/packages/babel-plugin-react-compiler/src/__tests__/fixtures/compiler/rules-of-hooks/error.invalid-hook-if-consequent.expect.md
+
+This is the error message returned by React when a Hook is called conditionally. It explicitly states that 'Hooks must always be called in a consistent order, and may not be called conditionally,' directing the user to the official Rules of Hooks documentation for more information.
+
+```plaintext
+Found 1 error:
+
+Error: Hooks must always be called in a consistent order, and may not be called conditionally. See the Rules of Hooks (https://react.dev/warnings/invalid-hook-call-warning)
+
+error.invalid-hook-if-consequent.ts:4:8
+  2 |   let x = null;
+  3 |   if (props.cond) {
+> 4 |     x = useHook();
+    |         ^^^^^^^ Hooks must always be called in a consistent order, and may not be called conditionally. See the Rules of Hooks (https://react.dev/warnings/invalid-hook-call-warning)
+  5 |   }
+  6 |   return x;
+  7 | }
+```

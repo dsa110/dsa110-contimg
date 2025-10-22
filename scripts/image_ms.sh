@@ -8,7 +8,7 @@ set -euo pipefail
 #     /path/to/output/image_prefix \
 #     [--field ""] [--spw ""] [--imsize 1024] [--cell-arcsec 2.0] \
 #     [--weighting briggs] [--robust 0.0] [--niter 1000] [--threshold 0.0Jy] \
-#     [--no-pbcor]
+#     [--no-pbcor] [--quick] [--skip-fits] [--uvrange '>1klambda']
 
 MS_PATH=${1:?"Provide path to input MS as first argument"}
 OUT_PREFIX=${2:?"Provide output image prefix as second argument"}

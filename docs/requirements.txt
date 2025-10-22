@@ -1,5 +1,8 @@
-mkdocs>=1.5
-mkdocs-material>=9.5
-mkdocstrings>=0.24
-mkdocstrings-python>=1.10
-mkdocs-mermaid2-plugin>=1.1
+# Python 3.11-compatible docs stack (CASA6 env)
+mkdocs==1.6.1
+mkdocs-material==9.5.31
+pymdown-extensions==10.8.1
+mkdocs-mermaid2-plugin==0.6.1
+# mkdocstrings packages are optional; install if needed:
+# mkdocstrings==0.24.3
+# mkdocstrings-python==1.10.5

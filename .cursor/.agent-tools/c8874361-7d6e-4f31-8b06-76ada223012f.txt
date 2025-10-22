@@ -1,0 +1,98 @@
+[
+  {
+    "format": "hdf5",
+    "name": "2025-01-01T00:00:00_sb00.hdf5",
+    "entityType": "DataSample",
+    "path": "data-samples/sim_uvh5/2025-01-01T00:00:00_sb00.hdf5"
+  },
+  {
+    "name": "2025-01-01T00:00:00_sb01.hdf5",
+    "path": "data-samples/sim_uvh5/2025-01-01T00:00:00_sb01.hdf5",
+    "entityType": "DataSample",
+    "format": "hdf5"
+  },
+  {
+    "name": "2025-01-01T00:00:00_sb02.hdf5",
+    "format": "hdf5",
+    "entityType": "DataSample",
+    "path": "data-samples/sim_uvh5/2025-01-01T00:00:00_sb02.hdf5"
+  },
+  {
+    "format": "hdf5",
+    "path": "data-samples/sim_uvh5/2025-01-01T00:00:00_sb03.hdf5",
+    "entityType": "DataSample",
+    "name": "2025-01-01T00:00:00_sb03.hdf5"
+  },
+  {
+    "entityType": "DataSample",
+    "format": "hdf5",
+    "name": "2025-01-01T00:00:00_sb04.hdf5",
+    "path": "data-samples/sim_uvh5/2025-01-01T00:00:00_sb04.hdf5"
+  },
+  {
+    "name": "2025-01-01T00:00:00_sb05.hdf5",
+    "path": "data-samples/sim_uvh5/2025-01-01T00:00:00_sb05.hdf5",
+    "format": "hdf5",
+    "entityType": "DataSample"
+  },
+  {
+    "format": "hdf5",
+    "path": "data-samples/sim_uvh5/2025-01-01T00:00:00_sb06.hdf5",
+    "entityType": "DataSample",
+    "name": "2025-01-01T00:00:00_sb06.hdf5"
+  },
+  {
+    "format": "hdf5",
+    "path": "data-samples/sim_uvh5/2025-01-01T00:00:00_sb07.hdf5",
+    "name": "2025-01-01T00:00:00_sb07.hdf5",
+    "entityType": "DataSample"
+  },
+  {
+    "format": "hdf5",
+    "path": "data-samples/sim_uvh5/2025-01-01T00:00:00_sb08.hdf5",
+    "entityType": "DataSample",
+    "name": "2025-01-01T00:00:00_sb08.hdf5"
+  },
+  {
+    "name": "2025-01-01T00:00:00_sb09.hdf5",
+    "entityType": "DataSample",
+    "path": "data-samples/sim_uvh5/2025-01-01T00:00:00_sb09.hdf5",
+    "format": "hdf5"
+  },
+  {
+    "format": "hdf5",
+    "path": "data-samples/sim_uvh5/2025-01-01T00:00:00_sb10.hdf5",
+    "name": "2025-01-01T00:00:00_sb10.hdf5",
+    "entityType": "DataSample"
+  },
+  {
+    "entityType": "DataSample",
+    "format": "hdf5",
+    "path": "data-samples/sim_uvh5/2025-01-01T00:00:00_sb11.hdf5",
+    "name": "2025-01-01T00:00:00_sb11.hdf5"
+  },
+  {
+    "name": "2025-01-01T00:00:00_sb12.hdf5",
+    "path": "data-samples/sim_uvh5/2025-01-01T00:00:00_sb12.hdf5",
+    "format": "hdf5",
+    "entityType": "DataSample"
+  },
+  {
+    "entityType": "DataSample",
+    "path": "data-samples/sim_uvh5/2025-01-01T00:00:00_sb13.hdf5",
+    "name": "2025-01-01T00:00:00_sb13.hdf5",
+    "format": "hdf5"
+  },
+  {
+    "entityType": "DataSample",
+    "name": "2025-01-01T00:00:00_sb14.hdf5",
+    "format": "hdf5",
+    "path": "data-samples/sim_uvh5/2025-01-01T00:00:00_sb14.hdf5"
+  },
+  {
+    "path": "data-samples/sim_uvh5/2025-01-01T00:00:00_sb15.hdf5",
+    "entityType": "DataSample",
+    "format": "hdf5",
+    "name": "2025-01-01T00:00:00_sb15.hdf5"
+  }
+]

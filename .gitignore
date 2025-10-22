@@ -127,3 +127,11 @@ pipeline/scratch/
 # Repository structure tracking
 state/
 !state/.gitkeep
+
+
+.cursor/rules/kluster-code-verify.mdc
+.kluster
+
+
+#Ignore cursor AI rules
+.cursor/rules/codacy.mdc

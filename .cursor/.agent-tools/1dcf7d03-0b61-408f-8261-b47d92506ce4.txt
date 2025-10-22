@@ -1,0 +1,162 @@
+[
+  {
+    "from": "sim_uvh5",
+    "to": "2025-01-01T00:00:00_sb00.hdf5",
+    "relationType": "CONTAINS_FILE"
+  },
+  {
+    "relationType": "HAS_TYPE",
+    "from": "2025-01-01T00:00:00_sb00.hdf5",
+    "to": "hdf5"
+  },
+  {
+    "to": "2025-01-01T00:00:00_sb01.hdf5",
+    "from": "sim_uvh5",
+    "relationType": "CONTAINS_FILE"
+  },
+  {
+    "relationType": "HAS_TYPE",
+    "to": "hdf5",
+    "from": "2025-01-01T00:00:00_sb01.hdf5"
+  },
+  {
+    "from": "sim_uvh5",
+    "relationType": "CONTAINS_FILE",
+    "to": "2025-01-01T00:00:00_sb02.hdf5"
+  },
+  {
+    "to": "hdf5",
+    "from": "2025-01-01T00:00:00_sb02.hdf5",
+    "relationType": "HAS_TYPE"
+  },
+  {
+    "relationType": "CONTAINS_FILE",
+    "from": "sim_uvh5",
+    "to": "2025-01-01T00:00:00_sb03.hdf5"
+  },
+  {
+    "to": "hdf5",
+    "relationType": "HAS_TYPE",
+    "from": "2025-01-01T00:00:00_sb03.hdf5"
+  },
+  {
+    "from": "sim_uvh5",
+    "to": "2025-01-01T00:00:00_sb04.hdf5",
+    "relationType": "CONTAINS_FILE"
+  },
+  {
+    "to": "hdf5",
+    "from": "2025-01-01T00:00:00_sb04.hdf5",
+    "relationType": "HAS_TYPE"
+  },
+  {
+    "relationType": "CONTAINS_FILE",
+    "to": "2025-01-01T00:00:00_sb05.hdf5",
+    "from": "sim_uvh5"
+  },
+  {
+    "to": "hdf5",
+    "relationType": "HAS_TYPE",
+    "from": "2025-01-01T00:00:00_sb05.hdf5"
+  },
+  {
+    "from": "sim_uvh5",
+    "to": "2025-01-01T00:00:00_sb06.hdf5",
+    "relationType": "CONTAINS_FILE"
+  },
+  {
+    "relationType": "HAS_TYPE",
+    "from": "2025-01-01T00:00:00_sb06.hdf5",
+    "to": "hdf5"
+  },
+  {
+    "relationType": "CONTAINS_FILE",
+    "from": "sim_uvh5",
+    "to": "2025-01-01T00:00:00_sb07.hdf5"
+  },
+  {
+    "to": "hdf5",
+    "relationType": "HAS_TYPE",
+    "from": "2025-01-01T00:00:00_sb07.hdf5"
+  },
+  {
+    "from": "sim_uvh5",
+    "relationType": "CONTAINS_FILE",
+    "to": "2025-01-01T00:00:00_sb08.hdf5"
+  },
+  {
+    "from": "2025-01-01T00:00:00_sb08.hdf5",
+    "to": "hdf5",
+    "relationType": "HAS_TYPE"
+  },
+  {
+    "from": "sim_uvh5",
+    "relationType": "CONTAINS_FILE",
+    "to": "2025-01-01T00:00:00_sb09.hdf5"
+  },
+  {
+    "from": "2025-01-01T00:00:00_sb09.hdf5",
+    "to": "hdf5",
+    "relationType": "HAS_TYPE"
+  },
+  {
+    "from": "sim_uvh5",
+    "to": "2025-01-01T00:00:00_sb10.hdf5",
+    "relationType": "CONTAINS_FILE"
+  },
+  {
+    "relationType": "HAS_TYPE",
+    "from": "2025-01-01T00:00:00_sb10.hdf5",
+    "to": "hdf5"
+  },
+  {
+    "to": "2025-01-01T00:00:00_sb11.hdf5",
+    "relationType": "CONTAINS_FILE",
+    "from": "sim_uvh5"
+  },
+  {
+    "to": "hdf5",
+    "relationType": "HAS_TYPE",
+    "from": "2025-01-01T00:00:00_sb11.hdf5"
+  },
+  {
+    "to": "2025-01-01T00:00:00_sb12.hdf5",
+    "from": "sim_uvh5",
+    "relationType": "CONTAINS_FILE"
+  },
+  {
+    "to": "hdf5",
+    "from": "2025-01-01T00:00:00_sb12.hdf5",
+    "relationType": "HAS_TYPE"
+  },
+  {
+    "relationType": "CONTAINS_FILE",
+    "to": "2025-01-01T00:00:00_sb13.hdf5",
+    "from": "sim_uvh5"
+  },
+  {
+    "to": "hdf5",
+    "relationType": "HAS_TYPE",
+    "from": "2025-01-01T00:00:00_sb13.hdf5"
+  },
+  {
+    "from": "sim_uvh5",
+    "to": "2025-01-01T00:00:00_sb14.hdf5",
+    "relationType": "CONTAINS_FILE"
+  },
+  {
+    "from": "2025-01-01T00:00:00_sb14.hdf5",
+    "to": "hdf5",
+    "relationType": "HAS_TYPE"
+  },
+  {
+    "from": "sim_uvh5",
+    "relationType": "CONTAINS_FILE",
+    "to": "2025-01-01T00:00:00_sb15.hdf5"
+  },
+  {
+    "from": "2025-01-01T00:00:00_sb15.hdf5",
+    "to": "hdf5",
+    "relationType": "HAS_TYPE"
+  }
+]

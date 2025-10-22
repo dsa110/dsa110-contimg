@@ -1,0 +1,151 @@
+{
+  "success": true,
+  "result": [
+    {
+      "tool": {
+        "name": "Semgrep OSS",
+        "rules": null,
+        "semanticVersion": "1.78.0"
+      },
+      "results": []
+    },
+    {
+      "tool": {
+        "fullName": "Trivy Vulnerability Scanner",
+        "informationUri": "https://github.com/aquasecurity/trivy",
+        "name": "Trivy",
+        "rules": null,
+        "version": "0.66.0"
+      },
+      "results": []
+    },
+    {
+      "tool": {
+        "informationUri": "https://github.com/terryyin/lizard",
+        "name": "Lizard",
+        "rules": null,
+        "version": "1.17.10"
+      },
+      "results": [
+        {
+          "level": "warning",
+          "message": "Method _scan_repo has 75 lines of code (limit is 50)",
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "graphiti_import_cursor_memory.py"
+                },
+                "region": {
+                  "startColumn": 1,
+                  "startLine": 55
+                }
+              }
+            }
+          ],
+          "ruleId": "Lizard_nloc-medium"
+        },
+        {
+          "level": "warning",
+          "message": "Method _scan_repo has a cyclomatic complexity of 19 (limit is 8)",
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "graphiti_import_cursor_memory.py"
+                },
+                "region": {
+                  "startColumn": 1,
+                  "startLine": 55
+                }
+              }
+            }
+          ],
+          "ruleId": "Lizard_ccn-medium"
+        },
+        {
+          "level": "warning",
+          "message": "Method main.fast_import_async has a cyclomatic complexity of 10 (limit is 8)",
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "graphiti_import_cursor_memory.py"
+                },
+                "region": {
+                  "startColumn": 1,
+                  "startLine": 266
+                }
+              }
+            }
+          ],
+          "ruleId": "Lizard_ccn-medium"
+        },
+        {
+          "level": "warning",
+          "message": "Method main has 83 lines of code (limit is 50)",
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "graphiti_import_cursor_memory.py"
+                },
+                "region": {
+                  "startColumn": 1,
+                  "startLine": 153
+                }
+              }
+            }
+          ],
+          "ruleId": "Lizard_nloc-medium"
+        },
+        {
+          "level": "warning",
+          "message": "Method main has a cyclomatic complexity of 11 (limit is 8)",
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "graphiti_import_cursor_memory.py"
+                },
+                "region": {
+                  "startColumn": 1,
+                  "startLine": 153
+                }
+              }
+            }
+          ],
+          "ruleId": "Lizard_ccn-medium"
+        }
+      ]
+    },
+    {
+      "tool": {
+        "informationUri": "https://pylint.org",
+        "name": "Pylint",
+        "rules": null,
+        "version": "3.3.6"
+      },
+      "results": [
+        {
+          "level": "warning",
+          "message": "Unused variable 'summary'",
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "scripts/graphiti_import_cursor_memory.py"
+                },
+                "region": {
+                  "startColumn": 8,
+                  "startLine": 228
+                }
+              }
+            }
+          ],
+          "ruleId": "unused-variable"
+        }
+      ]
+    }
+  ]
+}

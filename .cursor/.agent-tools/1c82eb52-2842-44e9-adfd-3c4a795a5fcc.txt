@@ -1,0 +1,62 @@
+
+
+### Page state
+- Page URL: https://www.google.com/search?q=google+genai+python+client+vertex+ai+initialization&sei=3pzyaMO8OrLbkPIPn_zwqQM
+- Page Title: google genai python client vertex ai initialization - Google Search
+- Page Snapshot: Large snapshot (38719 bytes, 556 lines) written to file
+- Snapshot File: /Users/jakobfaber/.cursor/browser-logs/snapshot-2025-10-17T19-46-29-773Z.log
+- Preview (first 50 lines):
+```yaml
+- generic [active] [ref=e1]:
+  - heading "Accessibility Links" [level=1] [ref=e2]
+  - generic:
+    - generic:
+      - link "Skip to main content" [ref=e3] [cursor=pointer]
+      - link "Accessibility help" [ref=e4] [cursor=pointer]:
+        - /url: https://support.google.com/websearch/answer/181196?hl=en
+      - link "Accessibility feedback" [ref=e5] [cursor=pointer]
+  - generic [ref=e11]:
+    - search [ref=e12]:
+      - generic [ref=e14]:
+        - link "Go to Google Home" [ref=e16] [cursor=pointer]:
+          - /url: https://www.google.com/webhp?hl=en&sa=X&ved=0ahUKEwiDv_DU_6uQAxWNmO4BHfZuKCsQPAgJ
+          - img [ref=e17]
+        - generic [ref=e24]:
+          - generic [ref=e25]:
+            - combobox "Search" [ref=e28]: google genai python client vertex ai initialization google genai python client vertex ai initialization
+            - generic [ref=e29]:
+              - button "Clear" [ref=e31] [cursor=pointer]:
+                - img [ref=e33]
+              - generic [ref=e36]:
+                - button "Search by voice" [ref=e37] [cursor=pointer]:
+                  - img [ref=e38]
+                - button "Search by image" [ref=e40] [cursor=pointer]:
+                  - img [ref=e41]
+          - button "Search" [ref=e43] [cursor=pointer]:
+            - img [ref=e46]
+    - generic [ref=e48]:
+      - button "Settings" [ref=e50] [cursor=pointer]:
+        - img [ref=e53]
+      - generic [ref=e56]:
+        - button "Google apps" [ref=e58] [cursor=pointer]:
+          - img [ref=e59]
+        - link "Sign in" [ref=e63] [cursor=pointer]:
+          - /url: https://accounts.google.com/ServiceLogin?hl=en&passive=true&continue=https://www.google.com/search%3Fq%3Dgoogle%2Bgenai%2Bpython%2Bclient%2Bvertex%2Bai%2Binitialization%26sei%3D3pzyaMO8OrLbkPIPn_zwqQM&ec=futura_srp_og_si_72236_p
+  - generic [ref=e65]:
+    - generic [ref=e70]:
+      - heading "Filters and Topics" [level=1] [ref=e71]
+      - navigation [ref=e72]:
+        - generic [ref=e76]:
+          - list [ref=e77]:
+            - listitem [ref=e78]:
+              - link "AI Mode" [ref=e81] [cursor=pointer]:
+                - /url: /search?q=google+genai+python+client+vertex+ai+initialization&sca_esv=602bc0460517bd79&udm=50&fbs=AIIjpHxU7SXXniUZfeShr2fp4giZud1z6kQpMfoEdCJxnpm_3W-pLdZZVzNY_L9_ftx08kwv-_tUbRt8pOUS8_MjaceHuSAD6YvWZ0rfFzwmtmaBgLepZn2IJkVH-w3cPU5sPVz9l1Pp06apNShUnFfpGUJOF8p91U6HxH3ukND0OVTTVy0CGuHNdViLZqynGb0mLSRGeGVO46qnJ_2yk3F0uV6R6BW9rQ&aep=1&ntc=1&sa=X&ved=2ahUKEwiDv_DU_6uQAxWNmO4BHfZuKCsQ2J8OegQIEBAE
+                - generic [ref=e84]: AI Mode
+            - listitem [ref=e85]:
+              - link "All" [disabled] [ref=e86]:
+                - generic [ref=e88]: All
+            - listitem [ref=e89]:
+              - link "Videos" [ref=e90] [cursor=pointer]:
+```
+
+... (506 more lines in file)

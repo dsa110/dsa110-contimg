@@ -1,0 +1,163 @@
+{
+  "message": "Facts retrieved successfully",
+  "facts": [
+    {
+      "uuid": "2e0969df-19b2-4911-a80b-6cc36c794b42",
+      "group_id": "dsa110-contimg",
+      "source_node_uuid": "c4df37b8-4fe3-4672-aadb-92de6be097b1",
+      "target_node_uuid": "4668eae7-0a21-4bad-bf3b-ad2993b7cd15",
+      "created_at": "2025-10-17T22:27:27.991033Z",
+      "name": "CONTAINS_MODULE",
+      "fact": "testing CONTAINS_MODULE calib",
+      "episodes": [],
+      "expired_at": null,
+      "valid_at": "2025-10-17T22:27:27.991033Z",
+      "invalid_at": null,
+      "attributes": {
+        "target_uuid": "4668eae7-0a21-4bad-bf3b-ad2993b7cd15",
+        "source_uuid": "c4df37b8-4fe3-4672-aadb-92de6be097b1"
+      }
+    },
+    {
+      "uuid": "b0e57d7e-d59f-45bd-86d0-a5fd7e4b9797",
+      "group_id": "dsa110-contimg",
+      "source_node_uuid": "49f4f3f9-5dcd-44ba-93da-bc625e4d3635",
+      "target_node_uuid": "c963c4e1-ec88-4b10-b1a5-d5c768b26b8d",
+      "created_at": "2025-10-17T23:07:08.342000Z",
+      "name": "CONTAINS_FILE",
+      "fact": "utils CONTAINS_FILE graphiti_logging.py",
+      "episodes": [],
+      "expired_at": null,
+      "valid_at": "2025-10-17T23:07:08.342000Z",
+      "invalid_at": null,
+      "attributes": {}
+    },
+    {
+      "uuid": "595bab94-f120-4438-be85-8100885b52f7",
+      "group_id": "dsa110-contimg",
+      "source_node_uuid": "c4df37b8-4fe3-4672-aadb-92de6be097b1",
+      "target_node_uuid": "66fdc5a5-2d09-40aa-8a8c-54376a1c4732",
+      "created_at": "2025-10-17T22:27:27.991033Z",
+      "name": "CONTAINS_MODULE",
+      "fact": "testing CONTAINS_MODULE catalog",
+      "episodes": [],
+      "expired_at": null,
+      "valid_at": "2025-10-17T22:27:27.991033Z",
+      "invalid_at": null,
+      "attributes": {
+        "target_uuid": "66fdc5a5-2d09-40aa-8a8c-54376a1c4732",
+        "source_uuid": "c4df37b8-4fe3-4672-aadb-92de6be097b1"
+      }
+    },
+    {
+      "uuid": "5299b996-b0c4-4ce8-bb22-239ddbc9dddf",
+      "group_id": "dsa110-contimg",
+      "source_node_uuid": "857e8a4d-b1c2-4882-b1cf-1a6c4cf0d6e0",
+      "target_node_uuid": "119f832f-751c-45bc-afdd-81ea7975bb55",
+      "created_at": "2025-10-17T23:07:08.280000Z",
+      "name": "CONTAINS_FILE",
+      "fact": "scripts CONTAINS_FILE graphiti_import_cursor_memory.py",
+      "episodes": [],
+      "expired_at": null,
+      "valid_at": "2025-10-17T23:07:08.280000Z",
+      "invalid_at": null,
+      "attributes": {}
+    },
+    {
+      "uuid": "10e86884-8dae-4403-a4fb-8ec53924cd65",
+      "group_id": "dsa110-contimg",
+      "source_node_uuid": "c4df37b8-4fe3-4672-aadb-92de6be097b1",
+      "target_node_uuid": "0d79bd11-f354-44cc-b3be-9677fff8ee08",
+      "created_at": "2025-10-17T22:27:27.991033Z",
+      "name": "CONTAINS_MODULE",
+      "fact": "testing CONTAINS_MODULE fluxes",
+      "episodes": [],
+      "expired_at": null,
+      "valid_at": "2025-10-17T22:27:27.991033Z",
+      "invalid_at": null,
+      "attributes": {
+        "target_uuid": "0d79bd11-f354-44cc-b3be-9677fff8ee08",
+        "source_uuid": "c4df37b8-4fe3-4672-aadb-92de6be097b1"
+      }
+    },
+    {
+      "uuid": "7e5e3d38-5ea2-4941-a7d8-8a1db72a2516",
+      "group_id": "dsa110-contimg",
+      "source_node_uuid": "4f7bfe7f-4907-41ba-a260-7545c13434fe",
+      "target_node_uuid": "366ce1c3-fcd4-438d-b0b7-f62ad6d8c80b",
+      "created_at": "2025-10-17T23:07:08.280000Z",
+      "name": "CONTAINS_FILE",
+      "fact": "scabha_tests CONTAINS_FILE test_clickify.yaml",
+      "episodes": [],
+      "expired_at": null,
+      "valid_at": "2025-10-17T23:07:08.280000Z",
+      "invalid_at": null,
+      "attributes": {}
+    },
+    {
+      "uuid": "dde0e9e7-bee0-4d01-9b10-5b11f7fbc240",
+      "group_id": "dsa110-contimg",
+      "source_node_uuid": "c4df37b8-4fe3-4672-aadb-92de6be097b1",
+      "target_node_uuid": "cdbe9f20-5738-47f7-a69f-da75ef44a72b",
+      "created_at": "2025-10-17T22:27:27.991033Z",
+      "name": "CONTAINS_MODULE",
+      "fact": "testing CONTAINS_MODULE image",
+      "episodes": [],
+      "expired_at": null,
+      "valid_at": "2025-10-17T22:27:27.991033Z",
+      "invalid_at": null,
+      "attributes": {
+        "target_uuid": "cdbe9f20-5738-47f7-a69f-da75ef44a72b",
+        "source_uuid": "c4df37b8-4fe3-4672-aadb-92de6be097b1"
+      }
+    },
+    {
+      "uuid": "69a76b52-3324-46df-a1ff-e8b8b80643c9",
+      "group_id": "dsa110-contimg",
+      "source_node_uuid": "4f7bfe7f-4907-41ba-a260-7545c13434fe",
+      "target_node_uuid": "98fab51a-364d-4b2c-ad23-cfca6aa69f4b",
+      "created_at": "2025-10-17T23:07:08.280000Z",
+      "name": "CONTAINS_FILE",
+      "fact": "scabha_tests CONTAINS_FILE test_clickify.py",
+      "episodes": [],
+      "expired_at": null,
+      "valid_at": "2025-10-17T23:07:08.280000Z",
+      "invalid_at": null,
+      "attributes": {}
+    },
+    {
+      "uuid": "ba0e4a93-3e1b-4a43-aed3-d4973333ad6e",
+      "group_id": "dsa110-contimg",
+      "source_node_uuid": "c4df37b8-4fe3-4672-aadb-92de6be097b1",
+      "target_node_uuid": "1382c904-7d0b-4806-89c4-ce3e0b916673",
+      "created_at": "2025-10-17T22:27:27.991033Z",
+      "name": "CONTAINS_MODULE",
+      "fact": "testing CONTAINS_MODULE makems",
+      "episodes": [],
+      "expired_at": null,
+      "valid_at": "2025-10-17T22:27:27.991033Z",
+      "invalid_at": null,
+      "attributes": {
+        "target_uuid": "1382c904-7d0b-4806-89c4-ce3e0b916673",
+        "source_uuid": "c4df37b8-4fe3-4672-aadb-92de6be097b1"
+      }
+    },
+    {
+      "uuid": "408a870a-c4e3-48fd-9f83-aa4b0df44242",
+      "group_id": "dsa110-contimg",
+      "source_node_uuid": "b3e5501b-d3e8-42ac-a7cc-35b36b2128e9",
+      "target_node_uuid": "fbae2d2d-5f1d-4b24-ad6e-c81a4e3f9e88",
+      "created_at": "2025-10-17T23:07:07.407000Z",
+      "name": "CONTAINS_FILE",
+      "fact": "cursor_chats CONTAINS_FILE cursor_diagnostic_testing_plan_for_casa.md",
+      "episodes": [],
+      "expired_at": null,
+      "valid_at": "2025-10-17T23:07:07.407000Z",
+      "invalid_at": null,
+      "attributes": {
+        "target_uuid": "fbae2d2d-5f1d-4b24-ad6e-c81a4e3f9e88",
+        "source_uuid": "b3e5501b-d3e8-42ac-a7cc-35b36b2128e9"
+      }
+    }
+  ]
+}

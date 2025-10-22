@@ -1,0 +1,195 @@
+Available Libraries (top matches):
+
+Each result includes:
+- Library ID: Context7-compatible identifier (format: /org/project)
+- Name: Library or package name
+- Description: Short summary
+- Code Snippets: Number of available code examples
+- Trust Score: Authority indicator
+- Versions: List of versions if available. Use one of those versions if the user provides a version in their query. The format of the version is /org/project/version.
+
+For best results, select libraries based on name match, trust score, snippet coverage, and relevance to your use case.
+
+----------
+
+- Title: X6
+- Context7-compatible library ID: /antvis/x6
+- Description: X6 is a graph editing engine from AntV that provides easy-to-use node customization and out-of-the-box interaction components for quickly building graph applications like flowcharts, DAGs, and ER diagrams.
+- Code Snippets: 1168
+- Trust Score: 10
+- Versions: _antv_x6_1_34_6
+----------
+- Title: G6
+- Context7-compatible library ID: /antvis/g6-4.x-site
+- Description: G6 4.x 官网
+- Code Snippets: 537
+- Trust Score: 10
+----------
+- Title: G6
+- Context7-compatible library ID: /antvis/g6
+- Description: G6 is a graph visualization engine that provides capabilities for drawing, layout, analysis, interaction, and animation to build graph visualization and analysis applications.
+- Code Snippets: 2427
+- Trust Score: 10
+- Versions: 4.8.21
+----------
+- Title: G6 Graph Visualization Framework
+- Context7-compatible library ID: /websites/g6_antv_antgroup_en_manual
+- Description: G6 is a graph visualization engine that simplifies graph visualization and analysis, offering customizable solutions for building graph applications.
+- Code Snippets: 3407
+- Trust Score: 7.5
+----------
+- Title: Phoenix 6
+- Context7-compatible library ID: /websites/v6_ctr-electronics_en_stable
+- Description: Phoenix 6 is a robotics control system and firmware from CTR-Electronics, providing tools for installation, migration, configuration, control, and diagnostics for robotic hardware including CAN devices, with specific support for FRC applications.
+- Code Snippets: 553
+- Trust Score: 7.5
+----------
+- Title: Phoenix 6
+- Context7-compatible library ID: /crosstheroadelec/phoenix6-documentation
+- Description: Phoenix 6 is a software framework for CTR Electronics devices, offering new control requests, improved units support, and device time synchronization.
+- Code Snippets: 237
+- Trust Score: 8.9
+----------
+- Title: PySide6 Getting Started
+- Context7-compatible library ID: /erriez/pyside6-getting-started
+- Description: Qt PySide6 getting started with simple GUI examples using Python3.
+- Code Snippets: 36
+- Trust Score: 7.8
+----------
+- Title: AutoJs6
+- Context7-compatible library ID: /websites/autojs6
+- Description: AutoJs6 是一个安卓平台上的 JavaScript 自动化工具，用于实现脚本自动化任务。
+- Code Snippets: 12
+- Trust Score: 7.5
+----------
+- Title: CasaOS
+- Context7-compatible library ID: /icewhaletech/casaos
+- Description: CasaOS - A simple, easy-to-use, elegant open-source Personal Cloud system.
+- Code Snippets: 7
+- Trust Score: 8
+----------
+- Title: CMSIS Version 6
+- Context7-compatible library ID: /arm-software/cmsis_6
+- Description: CMSIS (Cortex Microcontroller Software Interface Standard) Version 6 provides a standardized framework for microcontroller software development, including core access, device configuration, and middleware components.
+- Code Snippets: 1046
+- Trust Score: 7.8
+----------
+- Title: PySide6
+- Context7-compatible library ID: /fernicar/pyside6_examples_doc_2025_v6.9.1
+- Description: PySide6 Examples Documentation Initiative for 6.9.1
+- Code Snippets: 998
+- Trust Score: 6.8
+----------
+- Title: k6 JSLib Testing
+- Context7-compatible library ID: /grafana/k6-jslib-testing
+- Description: k6-testing provides Playwright-compatible assertions for k6, enabling seamless functional testing with familiar APIs and clear error messages.
+- Code Snippets: 17
+- Trust Score: 9.7
+----------
+- Title: Auto.js
+- Context7-compatible library ID: /supermonster003/autojs6
+- Description: AutoJs6 is a JavaScript automation tool for Android that supports accessibility services, continuing development from the original Auto.js project.
+- Code Snippets: 1136
+- Trust Score: 8.4
+----------
+- Title: k6
+- Context7-compatible library ID: /grafana/k6-docs
+- Description: k6 is an open-source load testing tool that helps developers test the performance and reliability of their systems.
+- Code Snippets: 27079
+- Trust Score: 9.7
+----------
+- Title: K6 Operator
+- Context7-compatible library ID: /grafana/k6-operator
+- Description: The k6 Operator is a Kubernetes operator designed for running distributed k6 tests within a Kubernetes cluster, featuring TestRun and PrivateLoadZone CRDs for managing test executions and load zones.
+- Code Snippets: 15
+- Trust Score: 9.7
+----------
+- Title: PyP6Xer
+- Context7-compatible library ID: /websites/hassanemam_github_io-pyp6xer
+- Description: PyP6Xer is an open-source Python library for parsing, manipulating, and writing Primavera P6 XER files. It enables programmatic extraction and modification of project data, activities, resources, and relationships from P6 exports.
+- Code Snippets: 686
+- Trust Score: 7.5
+----------
+- Title: Rancher 1.6
+- Context7-compatible library ID: /websites/rancher_rancher_v1_6_en
+- Description: Rancher 1.6 is a comprehensive container management platform that simplifies the deployment and management of applications across various orchestration frameworks including Cattle, Kubernetes, Mesos, and Swarm.
+- Code Snippets: 2
+- Trust Score: 7.5
+----------
+- Title: k6 Studio
+- Context7-compatible library ID: /grafana/k6-studio
+- Description: Grafana k6 Studio is a desktop application for Mac, Windows, and Linux that helps users generate k6 test scripts by recording user flows, customizing scripts with rules, and testing them.
+- Code Snippets: 6
+- Trust Score: 9.7
+----------
+- Title: Backpack for Laravel Documentation Version 6
+- Context7-compatible library ID: /laravel-backpack/docs
+- Description: 
+- Code Snippets: 749
+- Trust Score: 8.1
+----------
+- Title: Shopware 6
+- Context7-compatible library ID: /shopware/shopware
+- Description: Shopware 6 is a modern, open-source, headless e-commerce platform built with Symfony and Vue.js, offering a flexible and extensible solution for online businesses.
+- Code Snippets: 5248
+- Trust Score: 9.7
+- Versions: v6.4.20.0, v6_5_8_0, v6_6_10_6
+----------
+- Title: PyQt6
+- Context7-compatible library ID: /websites/riverbankcomputing_static_pyqt6
+- Description: PyQt6 is a set of Python bindings for the Qt cross-platform application framework, providing modules for GUI development, networking, multimedia, database access, and more.
+- Code Snippets: 23331
+- Trust Score: 7.5
+----------
+- Title: Qt 6
+- Context7-compatible library ID: /websites/qt-6-docs
+- Description: QT 6.9 documentation
+- Code Snippets: 51708
+- Trust Score: 7.5
+----------
+- Title: PyP6XER
+- Context7-compatible library ID: /hassanemam/pyp6xer
+- Description: PyP6Xer is a Python library for parsing, analyzing, and manipulating Primavera P6 XER files, offering an object-oriented interface to project data and enabling schedule analysis, resource management, and data export.
+- Code Snippets: 100
+- Trust Score: 7.4
+----------
+- Title: The UK Intelligence Community UI Kit
+- Context7-compatible library ID: /mi6/ic-ui-kit
+- Description: This project provides UI Kit components for the UK Intelligence Community Design System, enabling MI6, GCHQ, MI5, and partners to quickly build accessible, usable, and consistent capabilities across various tech stacks.
+- Code Snippets: 377
+- Trust Score: 7.3
+----------
+- Title: openHAB JavaScript Library
+- Context7-compatible library ID: /openhab/openhab-js
+- Description: A high-level ES6 library for openHAB automation, providing convenient access to common functionalities like Items, Things, actions, and logging within rules.
+- Code Snippets: 99
+- Trust Score: 7.6
+----------
+- Title: P6Spy
+- Context7-compatible library ID: /p6spy/p6spy
+- Description: P6Spy is a framework that intercepts and logs database data for Java applications without requiring code changes, including P6Log for logging JDBC transactions.
+- Code Snippets: 123
+- Trust Score: 8
+----------
+- Title: Hacasa
+- Context7-compatible library ID: /damianeickhoff/hacasa
+- Description: HaCasa provides a modern, minimalistic, and user-friendly dashboard for Home Assistant, designed for easy customization and a professional look.
+- Code Snippets: 51
+- Trust Score: 6.6
+----------
+- Title: PyQt6
+- Context7-compatible library ID: /websites/www_riverbankcomputing_com-static-docs-pyqt6-module_index.html
+- Description: PyQt6 is a set of Python bindings for the cross-platform Qt application framework. It allows Python developers to create desktop applications with rich graphical user interfaces and access various Qt functionalities.
+- Code Snippets: 16891
+----------
+- Title: ExtendScript ES6 Shim
+- Context7-compatible library ID: /extendscript/extendscript-es6-shim
+- Description: 
+- Code Snippets: 2
+- Trust Score: 7.5
+----------
+- Title: P6XER MCP Server
+- Context7-compatible library ID: /osama-ata/p6xer-mcp-server
+- Description: The P6XER MCP Server exposes machine-readable Model Context Protocol (MCP) manifests for P6 XER files, enabling AI models to parse, analyze, and convert Primavera P6 project data.
+- Code Snippets: 4
+- Trust Score: 6.4

@@ -1,0 +1,195 @@
+Available Libraries (top matches):
+
+Each result includes:
+- Library ID: Context7-compatible identifier (format: /org/project)
+- Name: Library or package name
+- Description: Short summary
+- Code Snippets: Number of available code examples
+- Trust Score: Authority indicator
+- Versions: List of versions if available. Use one of those versions if the user provides a version in their query. The format of the version is /org/project/version.
+
+For best results, select libraries based on name match, trust score, snippet coverage, and relevance to your use case.
+
+----------
+
+- Title: react-window
+- Context7-compatible library ID: /websites/react-window_vercel_app
+- Description: react-window is a set of React components designed for efficiently rendering large lists and grids.
+- Code Snippets: 11
+- Trust Score: 7.5
+----------
+- Title: React
+- Context7-compatible library ID: /websites/18_react_dev
+- Description: React is a JavaScript library for building web and native user interfaces out of individual components, designed for creating interactive and dynamic applications.
+- Code Snippets: 199
+- Trust Score: 7.5
+----------
+- Title: React
+- Context7-compatible library ID: /websites/react_dev
+- Description: React is a JavaScript library for building user interfaces. It allows developers to create interactive web and native applications using reusable components, enabling efficient and scalable UI development.
+- Code Snippets: 928
+- Trust Score: 9
+----------
+- Title: React
+- Context7-compatible library ID: /websites/16_reactjs
+- Description: React is a JavaScript library for building user interfaces, designed for gradual adoption and creating interactive web applications.
+- Code Snippets: 650
+- Trust Score: 7.5
+----------
+- Title: React
+- Context7-compatible library ID: /jeanduplessis/react.dev
+- Description: This repository contains the source code and documentation for the official React website, react.dev, which is built using Next.js.
+- Code Snippets: 2562
+- Trust Score: 5.4
+----------
+- Title: React
+- Context7-compatible library ID: /websites/17_reactjs
+- Description: React is a JavaScript library for building user interfaces, enabling declarative, component-based, and efficient UI development.
+- Code Snippets: 934
+- Trust Score: 7.5
+----------
+- Title: React
+- Context7-compatible library ID: /websites/react_dev_reference
+- Description: React is a JavaScript library for building user interfaces, featuring a component-based architecture, hooks for managing state and side effects, and a virtual DOM for efficient rendering.
+- Code Snippets: 1100
+- Trust Score: 7.5
+----------
+- Title: React-admin
+- Context7-compatible library ID: /marmelab/react-admin
+- Description: A frontend Framework for building single-page applications running in the browser on top of REST/GraphQL APIs, using TypeScript, React, react-router, react-hook-form, react-query, and Material Design.
+- Code Snippets: 3537
+- Trust Score: 9.5
+- Versions: v2_9_9, v4.16.0, v2.9.0, v3.19.0, v5_10_2
+----------
+- Title: React
+- Context7-compatible library ID: /websites/react_dev_learn
+- Description: React is a JavaScript library for building user interfaces, focused on declarative components and efficient updates.
+- Code Snippets: 622
+- Trust Score: 7.5
+----------
+- Title: Mantle React
+- Context7-compatible library ID: /hey-mantle/react
+- Description: A react interface for interacting with the Mantle App API
+- Code Snippets: 3
+- Trust Score: 4.8
+----------
+- Title: React Spring Bottom Sheet
+- Context7-compatible library ID: /wh1teee/react-spring-bottom-sheet-updated
+- Description: A highly animated, accessible, and customizable bottom sheet component for React applications, built with react-spring and react-use-gesture.
+- Code Snippets: 26
+- Trust Score: 5.5
+----------
+- Title: React
+- Context7-compatible library ID: /websites/fr_legacy_reactjs
+- Description: React is a JavaScript library for building user interfaces (UI).
+- Code Snippets: 256
+- Trust Score: 7.5
+----------
+- Title: RA-Core
+- Context7-compatible library ID: /websites/marmelab_ra-core
+- Description: RA-Core is a headless framework for React, offering battle-tested hooks and components for building high-performance SPAs with react-query, react-hook-form, and react-router, compatible with any REST or GraphQL API.
+- Code Snippets: 513
+- Trust Score: 7.5
+----------
+- Title: Keep React
+- Context7-compatible library ID: /staticmania/keep-react
+- Description: Keep React is an open-source component library built on Tailwind CSS and React.js, offering pre-designed UI components to streamline the creation of modern, responsive web applications.
+- Code Snippets: 216
+----------
+- Title: React Remark
+- Context7-compatible library ID: /remarkjs/react-remark
+- Description: React Remark provides React hooks and components for rendering Markdown into React elements using the remark ecosystem.
+- Code Snippets: 9
+- Trust Score: 8.9
+----------
+- Title: React Select
+- Context7-compatible library ID: /jedwatson/react-select
+- Description: React Select is a flexible and extensible select control for React applications, offering customizable styling, component injection, and support for advanced features like option groups and portal support.
+- Code Snippets: 16
+- Trust Score: 8.1
+----------
+- Title: React Window
+- Context7-compatible library ID: /websites/react-window-v1_vercel_app
+- Description: React Window is a library for efficiently rendering large lists and grids in React applications, optimizing performance by only rendering visible items.
+- Code Snippets: 2
+- Trust Score: 7.5
+----------
+- Title: React Window
+- Context7-compatible library ID: /bvaughn/react-window
+- Description: React components for efficiently rendering large lists and tabular data by only rendering items within the viewport.
+- Code Snippets: 3
+- Trust Score: 10
+----------
+- Title: React Rainbow Components
+- Context7-compatible library ID: /nexxtway/react-rainbow
+- Description: React Rainbow is a collection of components designed to help developers build applications quickly, offering over 90 components with features like i18n support, accessibility, and TypeScript typing.
+- Code Snippets: 578
+- Trust Score: 7.3
+----------
+- Title: Atomize React
+- Context7-compatible library ID: /websites/atomizecode
+- Description: Atomize React is a UI framework and design system for React JS. It helps developers and designers collaborate to build consistent, responsive, and modern user interfaces effortlessly, offering a flexible grid, style guide, and a rich component library.
+- Code Snippets: 61
+- Trust Score: 7.5
+----------
+- Title: Atomic Router React
+- Context7-compatible library ID: /atomic-router/react
+- Description: React bindings for Atomic Router, a routing library for React applications, enabling navigation between different views.
+- Code Snippets: 2
+- Trust Score: 6.5
+----------
+- Title: 4Dev React
+- Context7-compatible library ID: /rmanguinho/clean-react
+- Description: A system built with ReactJs, Hooks, and Recoil, following TDD, Clean Architecture, and SOLID principles, designed for creating programmer surveys.
+- Code Snippets: 5
+- Trust Score: 8.9
+----------
+- Title: Primer React
+- Context7-compatible library ID: /primer/react
+- Description: Primer React is a React implementation of GitHub's Primer Design System, providing reusable components for building consistent user interfaces.
+- Code Snippets: 185
+- Trust Score: 9.2
+- Versions: v11.0.0
+----------
+- Title: React
+- Context7-compatible library ID: /reactjs/react.dev
+- Description: React.dev is the official documentation website for React, a JavaScript library for building user interfaces, providing guides, API references, and tutorials.
+- Code Snippets: 2404
+- Trust Score: 10
+----------
+- Title: React Email
+- Context7-compatible library ID: /resend/react-email
+- Description: React Email provides high-quality, unstyled components for creating responsive emails with dark mode support, simplifying email development across various clients.
+- Code Snippets: 218
+- Trust Score: 9.5
+----------
+- Title: React Router
+- Context7-compatible library ID: /remix-run/react-router
+- Description: React Router is a multi-strategy router for React, bridging React 18 to 19, usable as a framework or a library.
+- Code Snippets: 804
+- Trust Score: 7.5
+- Versions: 7.6.2, react-router@7.5.3, react_router_7_8_2
+----------
+- Title: React Keycloak
+- Context7-compatible library ID: /react-keycloak/react-keycloak
+- Description: React Keycloak provides React bindings for Keycloak, enabling authentication and authorization for React applications, including web, SSR, and React Native.
+- Code Snippets: 28
+- Trust Score: 7.1
+----------
+- Title: React Helmet
+- Context7-compatible library ID: /birdofpreyru/react-helmet
+- Description: Manages document head elements and body/html attributes in React 19+ applications, serving as a successor to react-helmet-async and react-helmet.
+- Code Snippets: 14
+- Trust Score: 9.7
+----------
+- Title: React Markdown
+- Context7-compatible library ID: /remarkjs/react-markdown
+- Description: A React component that safely renders markdown strings into React elements, supporting custom components and plugins for extended functionality.
+- Code Snippets: 38
+- Trust Score: 8.9
+----------
+- Title: React Activation
+- Context7-compatible library ID: /cjy0208/react-activation
+- Description: React Activation is a library that implements Vue's <keep-alive /> functionality for React, enabling component state persistence and caching.
+- Code Snippets: 26
+- Trust Score: 9.1

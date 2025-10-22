@@ -1,0 +1,695 @@
+2025-10-21 14:27:46,586 - INFO - Converting /scratch/dsa110-contimg/curated/0702_445/2025_10_13/2025-10-13T13:34:44/2025-10-13T13:34:44_sb00.hdf5 -> /scratch/dsa110-contimg/ms/central_cal_rebuild/2025-10-13T13:34:44.parts/2025-10-13T13:34:44.sb00.ms
+2025-10-21 14:27:46,586 - INFO - Reading UVH5 file: /scratch/dsa110-contimg/curated/0702_445/2025_10_13/2025-10-13T13:34:44/2025-10-13T13:34:44_sb00.hdf5
+2025-10-21 14:27:46,587 - INFO - File size: 138.6 MB
+2025-10-21 14:27:52,878 - INFO - Successfully loaded UVH5 file into UVData object
+2025-10-21 14:27:52,878 - INFO - Converting uvw_array from float32 to float64
+2025-10-21 14:27:52,878 - INFO - Converting nsample_array from float32 to float64
+2025-10-21 14:27:52,905 - INFO - Applied 2 data type fixes
+The uvw_array does not match the expected values given the antenna positions. The largest discrepancy is 292.3769703689339 meters. This is a fairly common situation but might indicate an error in the antenna positions, the uvws or the phasing.
+2025-10-21 14:27:52,998 - INFO - UVData validation passed
+2025-10-21 14:27:53,065 - INFO - Successfully read UVH5 file:
+2025-10-21 14:27:53,065 - INFO -   - Nblts: 111744
+2025-10-21 14:27:53,065 - INFO -   - Nfreqs: 48
+2025-10-21 14:27:53,065 - INFO -   - Npols: 2
+2025-10-21 14:27:53,065 - INFO -   - Ntimes: 24
+2025-10-21 14:27:53,065 - INFO -   - Nbls: 4656
+2025-10-21 14:27:53,065 - INFO -   - Nfields: 1
+2025-10-21 14:27:53,065 - INFO - Data quality assessment:
+2025-10-21 14:27:53,065 - INFO -   - Quality score: good
+2025-10-21 14:27:53,065 - INFO -   - Time span: 0.003 days
+2025-10-21 14:27:53,065 - INFO -   - Frequency span: 11.5 MHz
+2025-10-21 14:27:53,065 - INFO -   - Flag fraction: 0.0%
+2025-10-21 14:27:53,065 - INFO - Calibration recommendations:
+2025-10-21 14:27:53,065 - INFO -   - delay_calibration: solint=12s, minsnr=2.0, combine=spw
+2025-10-21 14:27:53,065 - INFO -   - bandpass_calibration: solint=inf, minsnr=2.0, combine=scan,field
+2025-10-21 14:27:53,065 - INFO -   - gain_calibration: solint=12s, minsnr=2.0, combine=scan,field
+2025-10-21 14:27:53,067 - WARNING - Using default OVRO location for phasing
+2025-10-21 14:27:53,077 - INFO - Phasing to reference center at 2025-10-13T13:37:13.620: RA(ICRS)=1.889359 rad, Dec(ICRS)=0.782760 rad (H0=0.0 h)
+2025-10-21 14:27:55,404 - INFO - Successfully phased data to midpoint reference
+2025-10-21 14:27:55,404 - INFO - Writing MS file: /scratch/dsa110-contimg/ms/central_cal_rebuild/2025-10-13T13:34:44.parts/2025-10-13T13:34:44.sb00.ms
+Fixing auto-correlations to be be real-only, after some imaginary values were detected in data_array. Largest imaginary component was 1.0176559437800534e-13, largest imaginary/real ratio was 1.4215843951019568e-15.
+UVData object contains a mix of baseline conjugation states, which is not uniformly supported in CASA -- forcing conjugation to be "ant2<ant1" on object.
+Writing in the MS file that the units of the data are uncalib, although some CASA process will ignore this and assume the units are all in Jy (or may not know how to handle data in these units).
+2025-10-21 14:27:56,808 - INFO - Successfully wrote MS: /scratch/dsa110-contimg/ms/central_cal_rebuild/2025-10-13T13:34:44.parts/2025-10-13T13:34:44.sb00.ms
+2025-10-21 14:27:56,809 - INFO - MS file size: 130.9 MB
+2025-10-21 14:27:56,816 - INFO - Fixed mount types in MS antenna table: /scratch/dsa110-contimg/ms/central_cal_rebuild/2025-10-13T13:34:44.parts/2025-10-13T13:34:44.sb00.ms
+2025-10-21 14:27:56,816 - INFO - Conversion completed successfully in 10.2 seconds
+2025-10-21 14:28:05,330 - INFO - Converting /scratch/dsa110-contimg/curated/0702_445/2025_10_13/2025-10-13T13:34:44/2025-10-13T13:34:44_sb02.hdf5 -> /scratch/dsa110-contimg/ms/central_cal_rebuild/2025-10-13T13:34:44.parts/2025-10-13T13:34:44.sb01.ms
+2025-10-21 14:28:05,330 - INFO - Reading UVH5 file: /scratch/dsa110-contimg/curated/0702_445/2025_10_13/2025-10-13T13:34:44/2025-10-13T13:34:44_sb02.hdf5
+2025-10-21 14:28:05,330 - INFO - File size: 138.6 MB
+2025-10-21 14:28:09,213 - INFO - Successfully loaded UVH5 file into UVData object
+2025-10-21 14:28:09,214 - INFO - Converting uvw_array from float32 to float64
+2025-10-21 14:28:09,214 - INFO - Converting nsample_array from float32 to float64
+2025-10-21 14:28:09,241 - INFO - Applied 2 data type fixes
+The uvw_array does not match the expected values given the antenna positions. The largest discrepancy is 292.3769703689339 meters. This is a fairly common situation but might indicate an error in the antenna positions, the uvws or the phasing.
+2025-10-21 14:28:09,332 - INFO - UVData validation passed
+2025-10-21 14:28:09,399 - INFO - Successfully read UVH5 file:
+2025-10-21 14:28:09,399 - INFO -   - Nblts: 111744
+2025-10-21 14:28:09,399 - INFO -   - Nfreqs: 48
+2025-10-21 14:28:09,399 - INFO -   - Npols: 2
+2025-10-21 14:28:09,399 - INFO -   - Ntimes: 24
+2025-10-21 14:28:09,399 - INFO -   - Nbls: 4656
+2025-10-21 14:28:09,399 - INFO -   - Nfields: 1
+2025-10-21 14:28:09,399 - INFO - Data quality assessment:
+2025-10-21 14:28:09,399 - INFO -   - Quality score: good
+2025-10-21 14:28:09,399 - INFO -   - Time span: 0.003 days
+2025-10-21 14:28:09,399 - INFO -   - Frequency span: 11.5 MHz
+2025-10-21 14:28:09,399 - INFO -   - Flag fraction: 0.0%
+2025-10-21 14:28:09,399 - INFO - Calibration recommendations:
+2025-10-21 14:28:09,399 - INFO -   - delay_calibration: solint=12s, minsnr=2.0, combine=spw
+2025-10-21 14:28:09,399 - INFO -   - bandpass_calibration: solint=inf, minsnr=2.0, combine=scan,field
+2025-10-21 14:28:09,399 - INFO -   - gain_calibration: solint=12s, minsnr=2.0, combine=scan,field
+2025-10-21 14:28:09,401 - WARNING - Using default OVRO location for phasing
+2025-10-21 14:28:09,410 - INFO - Phasing to reference center at 2025-10-13T13:37:13.620: RA(ICRS)=1.889359 rad, Dec(ICRS)=0.782760 rad (H0=0.0 h)
+2025-10-21 14:28:10,635 - INFO - Successfully phased data to midpoint reference
+2025-10-21 14:28:10,636 - INFO - Writing MS file: /scratch/dsa110-contimg/ms/central_cal_rebuild/2025-10-13T13:34:44.parts/2025-10-13T13:34:44.sb01.ms
+Fixing auto-correlations to be be real-only, after some imaginary values were detected in data_array. Largest imaginary component was 6.718818481177974e-14, largest imaginary/real ratio was 1.2432160911900279e-15.
+UVData object contains a mix of baseline conjugation states, which is not uniformly supported in CASA -- forcing conjugation to be "ant2<ant1" on object.
+Writing in the MS file that the units of the data are uncalib, although some CASA process will ignore this and assume the units are all in Jy (or may not know how to handle data in these units).
+2025-10-21 14:28:12,034 - INFO - Successfully wrote MS: /scratch/dsa110-contimg/ms/central_cal_rebuild/2025-10-13T13:34:44.parts/2025-10-13T13:34:44.sb01.ms
+2025-10-21 14:28:12,035 - INFO - MS file size: 130.9 MB
+2025-10-21 14:28:12,043 - INFO - Fixed mount types in MS antenna table: /scratch/dsa110-contimg/ms/central_cal_rebuild/2025-10-13T13:34:44.parts/2025-10-13T13:34:44.sb01.ms
+2025-10-21 14:28:12,043 - INFO - Conversion completed successfully in 6.7 seconds
+2025-10-21 14:28:20,296 - INFO - Converting /scratch/dsa110-contimg/curated/0702_445/2025_10_13/2025-10-13T13:34:44/2025-10-13T13:34:44_sb10.hdf5 -> /scratch/dsa110-contimg/ms/central_cal_rebuild/2025-10-13T13:34:44.parts/2025-10-13T13:34:44.sb02.ms
+2025-10-21 14:28:20,297 - INFO - Reading UVH5 file: /scratch/dsa110-contimg/curated/0702_445/2025_10_13/2025-10-13T13:34:44/2025-10-13T13:34:44_sb10.hdf5
+2025-10-21 14:28:20,297 - INFO - File size: 138.6 MB
+2025-10-21 14:28:24,173 - INFO - Successfully loaded UVH5 file into UVData object
+2025-10-21 14:28:24,174 - INFO - Converting uvw_array from float32 to float64
+2025-10-21 14:28:24,174 - INFO - Converting nsample_array from float32 to float64
+2025-10-21 14:28:24,200 - INFO - Applied 2 data type fixes
+The uvw_array does not match the expected values given the antenna positions. The largest discrepancy is 292.3769703689339 meters. This is a fairly common situation but might indicate an error in the antenna positions, the uvws or the phasing.
+2025-10-21 14:28:24,281 - INFO - UVData validation passed
+2025-10-21 14:28:24,338 - INFO - Successfully read UVH5 file:
+2025-10-21 14:28:24,339 - INFO -   - Nblts: 111744
+2025-10-21 14:28:24,339 - INFO -   - Nfreqs: 48
+2025-10-21 14:28:24,339 - INFO -   - Npols: 2
+2025-10-21 14:28:24,339 - INFO -   - Ntimes: 24
+2025-10-21 14:28:24,339 - INFO -   - Nbls: 4656
+2025-10-21 14:28:24,339 - INFO -   - Nfields: 1
+2025-10-21 14:28:24,339 - INFO - Data quality assessment:
+2025-10-21 14:28:24,339 - INFO -   - Quality score: good
+2025-10-21 14:28:24,339 - INFO -   - Time span: 0.003 days
+2025-10-21 14:28:24,339 - INFO -   - Frequency span: 11.5 MHz
+2025-10-21 14:28:24,339 - INFO -   - Flag fraction: 0.0%
+2025-10-21 14:28:24,339 - INFO - Calibration recommendations:
+2025-10-21 14:28:24,339 - INFO -   - delay_calibration: solint=12s, minsnr=2.0, combine=spw
+2025-10-21 14:28:24,339 - INFO -   - bandpass_calibration: solint=inf, minsnr=2.0, combine=scan,field
+2025-10-21 14:28:24,339 - INFO -   - gain_calibration: solint=12s, minsnr=2.0, combine=scan,field
+2025-10-21 14:28:24,340 - WARNING - Using default OVRO location for phasing
+2025-10-21 14:28:24,349 - INFO - Phasing to reference center at 2025-10-13T13:37:13.620: RA(ICRS)=1.889359 rad, Dec(ICRS)=0.782760 rad (H0=0.0 h)
+2025-10-21 14:28:25,273 - INFO - Successfully phased data to midpoint reference
+2025-10-21 14:28:25,273 - INFO - Writing MS file: /scratch/dsa110-contimg/ms/central_cal_rebuild/2025-10-13T13:34:44.parts/2025-10-13T13:34:44.sb02.ms
+Fixing auto-correlations to be be real-only, after some imaginary values were detected in data_array. Largest imaginary component was 2.090269147006496e-13, largest imaginary/real ratio was 2.387215401619897e-15.
+UVData object contains a mix of baseline conjugation states, which is not uniformly supported in CASA -- forcing conjugation to be "ant2<ant1" on object.
+Writing in the MS file that the units of the data are uncalib, although some CASA process will ignore this and assume the units are all in Jy (or may not know how to handle data in these units).
+2025-10-21 14:28:26,546 - INFO - Successfully wrote MS: /scratch/dsa110-contimg/ms/central_cal_rebuild/2025-10-13T13:34:44.parts/2025-10-13T13:34:44.sb02.ms
+2025-10-21 14:28:26,548 - INFO - MS file size: 130.9 MB
+2025-10-21 14:28:26,555 - INFO - Fixed mount types in MS antenna table: /scratch/dsa110-contimg/ms/central_cal_rebuild/2025-10-13T13:34:44.parts/2025-10-13T13:34:44.sb02.ms
+2025-10-21 14:28:26,555 - INFO - Conversion completed successfully in 6.3 seconds
+2025-10-21 14:28:35,101 - INFO - Converting /scratch/dsa110-contimg/curated/0702_445/2025_10_13/2025-10-13T13:34:44/2025-10-13T13:34:44_sb11.hdf5 -> /scratch/dsa110-contimg/ms/central_cal_rebuild/2025-10-13T13:34:44.parts/2025-10-13T13:34:44.sb03.ms
+2025-10-21 14:28:35,102 - INFO - Reading UVH5 file: /scratch/dsa110-contimg/curated/0702_445/2025_10_13/2025-10-13T13:34:44/2025-10-13T13:34:44_sb11.hdf5
+2025-10-21 14:28:35,103 - INFO - File size: 138.6 MB
+2025-10-21 14:28:39,031 - INFO - Successfully loaded UVH5 file into UVData object
+2025-10-21 14:28:39,031 - INFO - Converting uvw_array from float32 to float64
+2025-10-21 14:28:39,032 - INFO - Converting nsample_array from float32 to float64
+2025-10-21 14:28:39,059 - INFO - Applied 2 data type fixes
+The uvw_array does not match the expected values given the antenna positions. The largest discrepancy is 292.3769703689339 meters. This is a fairly common situation but might indicate an error in the antenna positions, the uvws or the phasing.
+2025-10-21 14:28:39,153 - INFO - UVData validation passed
+2025-10-21 14:28:39,220 - INFO - Successfully read UVH5 file:
+2025-10-21 14:28:39,220 - INFO -   - Nblts: 111744
+2025-10-21 14:28:39,220 - INFO -   - Nfreqs: 48
+2025-10-21 14:28:39,220 - INFO -   - Npols: 2
+2025-10-21 14:28:39,220 - INFO -   - Ntimes: 24
+2025-10-21 14:28:39,220 - INFO -   - Nbls: 4656
+2025-10-21 14:28:39,220 - INFO -   - Nfields: 1
+2025-10-21 14:28:39,220 - INFO - Data quality assessment:
+2025-10-21 14:28:39,221 - INFO -   - Quality score: good
+2025-10-21 14:28:39,221 - INFO -   - Time span: 0.003 days
+2025-10-21 14:28:39,221 - INFO -   - Frequency span: 11.5 MHz
+2025-10-21 14:28:39,221 - INFO -   - Flag fraction: 0.0%
+2025-10-21 14:28:39,221 - INFO - Calibration recommendations:
+2025-10-21 14:28:39,221 - INFO -   - delay_calibration: solint=12s, minsnr=2.0, combine=spw
+2025-10-21 14:28:39,221 - INFO -   - bandpass_calibration: solint=inf, minsnr=2.0, combine=scan,field
+2025-10-21 14:28:39,221 - INFO -   - gain_calibration: solint=12s, minsnr=2.0, combine=scan,field
+2025-10-21 14:28:39,222 - WARNING - Using default OVRO location for phasing
+2025-10-21 14:28:39,232 - INFO - Phasing to reference center at 2025-10-13T13:37:13.620: RA(ICRS)=1.889359 rad, Dec(ICRS)=0.782760 rad (H0=0.0 h)
+2025-10-21 14:28:41,829 - INFO - Successfully phased data to midpoint reference
+2025-10-21 14:28:41,829 - INFO - Writing MS file: /scratch/dsa110-contimg/ms/central_cal_rebuild/2025-10-13T13:34:44.parts/2025-10-13T13:34:44.sb03.ms
+Fixing auto-correlations to be be real-only, after some imaginary values were detected in data_array. Largest imaginary component was 5.5625548112982204e-14, largest imaginary/real ratio was 6.142916396944273e-16.
+UVData object contains a mix of baseline conjugation states, which is not uniformly supported in CASA -- forcing conjugation to be "ant2<ant1" on object.
+Writing in the MS file that the units of the data are uncalib, although some CASA process will ignore this and assume the units are all in Jy (or may not know how to handle data in these units).
+2025-10-21 14:28:43,120 - INFO - Successfully wrote MS: /scratch/dsa110-contimg/ms/central_cal_rebuild/2025-10-13T13:34:44.parts/2025-10-13T13:34:44.sb03.ms
+2025-10-21 14:28:43,121 - INFO - MS file size: 130.9 MB
+2025-10-21 14:28:43,128 - INFO - Fixed mount types in MS antenna table: /scratch/dsa110-contimg/ms/central_cal_rebuild/2025-10-13T13:34:44.parts/2025-10-13T13:34:44.sb03.ms
+2025-10-21 14:28:43,128 - INFO - Conversion completed successfully in 8.0 seconds
+2025-10-21 14:28:51,413 - INFO - Converting /scratch/dsa110-contimg/curated/0702_445/2025_10_13/2025-10-13T13:34:44/2025-10-13T13:34:44_sb12.hdf5 -> /scratch/dsa110-contimg/ms/central_cal_rebuild/2025-10-13T13:34:44.parts/2025-10-13T13:34:44.sb04.ms
+2025-10-21 14:28:51,414 - INFO - Reading UVH5 file: /scratch/dsa110-contimg/curated/0702_445/2025_10_13/2025-10-13T13:34:44/2025-10-13T13:34:44_sb12.hdf5
+2025-10-21 14:28:51,414 - INFO - File size: 138.6 MB
+2025-10-21 14:28:55,282 - INFO - Successfully loaded UVH5 file into UVData object
+2025-10-21 14:28:55,282 - INFO - Converting uvw_array from float32 to float64
+2025-10-21 14:28:55,283 - INFO - Converting nsample_array from float32 to float64
+2025-10-21 14:28:55,310 - INFO - Applied 2 data type fixes
+The uvw_array does not match the expected values given the antenna positions. The largest discrepancy is 292.3769703689339 meters. This is a fairly common situation but might indicate an error in the antenna positions, the uvws or the phasing.
+2025-10-21 14:28:55,405 - INFO - UVData validation passed
+2025-10-21 14:28:55,471 - INFO - Successfully read UVH5 file:
+2025-10-21 14:28:55,471 - INFO -   - Nblts: 111744
+2025-10-21 14:28:55,471 - INFO -   - Nfreqs: 48
+2025-10-21 14:28:55,472 - INFO -   - Npols: 2
+2025-10-21 14:28:55,472 - INFO -   - Ntimes: 24
+2025-10-21 14:28:55,472 - INFO -   - Nbls: 4656
+2025-10-21 14:28:55,472 - INFO -   - Nfields: 1
+2025-10-21 14:28:55,472 - INFO - Data quality assessment:
+2025-10-21 14:28:55,472 - INFO -   - Quality score: good
+2025-10-21 14:28:55,472 - INFO -   - Time span: 0.003 days
+2025-10-21 14:28:55,472 - INFO -   - Frequency span: 11.5 MHz
+2025-10-21 14:28:55,472 - INFO -   - Flag fraction: 0.0%
+2025-10-21 14:28:55,472 - INFO - Calibration recommendations:
+2025-10-21 14:28:55,472 - INFO -   - delay_calibration: solint=12s, minsnr=2.0, combine=spw
+2025-10-21 14:28:55,472 - INFO -   - bandpass_calibration: solint=inf, minsnr=2.0, combine=scan,field
+2025-10-21 14:28:55,472 - INFO -   - gain_calibration: solint=12s, minsnr=2.0, combine=scan,field
+2025-10-21 14:28:55,473 - WARNING - Using default OVRO location for phasing
+2025-10-21 14:28:55,483 - INFO - Phasing to reference center at 2025-10-13T13:37:13.620: RA(ICRS)=1.889359 rad, Dec(ICRS)=0.782760 rad (H0=0.0 h)
+2025-10-21 14:28:56,662 - INFO - Successfully phased data to midpoint reference
+2025-10-21 14:28:56,662 - INFO - Writing MS file: /scratch/dsa110-contimg/ms/central_cal_rebuild/2025-10-13T13:34:44.parts/2025-10-13T13:34:44.sb04.ms
+Fixing auto-correlations to be be real-only, after some imaginary values were detected in data_array. Largest imaginary component was 3.5379393913213125e-14, largest imaginary/real ratio was 5.708236558467903e-16.
+UVData object contains a mix of baseline conjugation states, which is not uniformly supported in CASA -- forcing conjugation to be "ant2<ant1" on object.
+Writing in the MS file that the units of the data are uncalib, although some CASA process will ignore this and assume the units are all in Jy (or may not know how to handle data in these units).
+2025-10-21 14:28:58,029 - INFO - Successfully wrote MS: /scratch/dsa110-contimg/ms/central_cal_rebuild/2025-10-13T13:34:44.parts/2025-10-13T13:34:44.sb04.ms
+2025-10-21 14:28:58,031 - INFO - MS file size: 130.9 MB
+2025-10-21 14:28:58,040 - INFO - Fixed mount types in MS antenna table: /scratch/dsa110-contimg/ms/central_cal_rebuild/2025-10-13T13:34:44.parts/2025-10-13T13:34:44.sb04.ms
+2025-10-21 14:28:58,041 - INFO - Conversion completed successfully in 6.6 seconds
+2025-10-21 14:29:06,554 - INFO - Converting /scratch/dsa110-contimg/curated/0702_445/2025_10_13/2025-10-13T13:34:44/2025-10-13T13:34:44_sb14.hdf5 -> /scratch/dsa110-contimg/ms/central_cal_rebuild/2025-10-13T13:34:44.parts/2025-10-13T13:34:44.sb05.ms
+2025-10-21 14:29:06,555 - INFO - Reading UVH5 file: /scratch/dsa110-contimg/curated/0702_445/2025_10_13/2025-10-13T13:34:44/2025-10-13T13:34:44_sb14.hdf5
+2025-10-21 14:29:06,555 - INFO - File size: 138.6 MB
+2025-10-21 14:29:10,422 - INFO - Successfully loaded UVH5 file into UVData object
+2025-10-21 14:29:10,422 - INFO - Converting uvw_array from float32 to float64
+2025-10-21 14:29:10,423 - INFO - Converting nsample_array from float32 to float64
+2025-10-21 14:29:10,451 - INFO - Applied 2 data type fixes
+The uvw_array does not match the expected values given the antenna positions. The largest discrepancy is 292.3769703689339 meters. This is a fairly common situation but might indicate an error in the antenna positions, the uvws or the phasing.
+2025-10-21 14:29:10,545 - INFO - UVData validation passed
+2025-10-21 14:29:10,612 - INFO - Successfully read UVH5 file:
+2025-10-21 14:29:10,612 - INFO -   - Nblts: 111744
+2025-10-21 14:29:10,612 - INFO -   - Nfreqs: 48
+2025-10-21 14:29:10,612 - INFO -   - Npols: 2
+2025-10-21 14:29:10,612 - INFO -   - Ntimes: 24
+2025-10-21 14:29:10,612 - INFO -   - Nbls: 4656
+2025-10-21 14:29:10,612 - INFO -   - Nfields: 1
+2025-10-21 14:29:10,612 - INFO - Data quality assessment:
+2025-10-21 14:29:10,612 - INFO -   - Quality score: good
+2025-10-21 14:29:10,612 - INFO -   - Time span: 0.003 days
+2025-10-21 14:29:10,612 - INFO -   - Frequency span: 11.5 MHz
+2025-10-21 14:29:10,612 - INFO -   - Flag fraction: 0.0%
+2025-10-21 14:29:10,612 - INFO - Calibration recommendations:
+2025-10-21 14:29:10,612 - INFO -   - delay_calibration: solint=12s, minsnr=2.0, combine=spw
+2025-10-21 14:29:10,612 - INFO -   - bandpass_calibration: solint=inf, minsnr=2.0, combine=scan,field
+2025-10-21 14:29:10,612 - INFO -   - gain_calibration: solint=12s, minsnr=2.0, combine=scan,field
+2025-10-21 14:29:10,613 - WARNING - Using default OVRO location for phasing
+2025-10-21 14:29:10,623 - INFO - Phasing to reference center at 2025-10-13T13:37:13.620: RA(ICRS)=1.889359 rad, Dec(ICRS)=0.782760 rad (H0=0.0 h)
+2025-10-21 14:29:12,100 - INFO - Successfully phased data to midpoint reference
+2025-10-21 14:29:12,100 - INFO - Writing MS file: /scratch/dsa110-contimg/ms/central_cal_rebuild/2025-10-13T13:34:44.parts/2025-10-13T13:34:44.sb05.ms
+Fixing auto-correlations to be be real-only, after some imaginary values were detected in data_array. Largest imaginary component was 5.5003280440479516e-14, largest imaginary/real ratio was 6.797383815178597e-16.
+UVData object contains a mix of baseline conjugation states, which is not uniformly supported in CASA -- forcing conjugation to be "ant2<ant1" on object.
+Writing in the MS file that the units of the data are uncalib, although some CASA process will ignore this and assume the units are all in Jy (or may not know how to handle data in these units).
+2025-10-21 14:29:13,466 - INFO - Successfully wrote MS: /scratch/dsa110-contimg/ms/central_cal_rebuild/2025-10-13T13:34:44.parts/2025-10-13T13:34:44.sb05.ms
+2025-10-21 14:29:13,468 - INFO - MS file size: 130.9 MB
+2025-10-21 14:29:13,474 - INFO - Fixed mount types in MS antenna table: /scratch/dsa110-contimg/ms/central_cal_rebuild/2025-10-13T13:34:44.parts/2025-10-13T13:34:44.sb05.ms
+2025-10-21 14:29:13,474 - INFO - Conversion completed successfully in 6.9 seconds
+2025-10-21 14:29:21,552 - INFO - Converting /scratch/dsa110-contimg/curated/0702_445/2025_10_13/2025-10-13T13:34:44/2025-10-13T13:34:44_sb15.hdf5 -> /scratch/dsa110-contimg/ms/central_cal_rebuild/2025-10-13T13:34:44.parts/2025-10-13T13:34:44.sb06.ms
+2025-10-21 14:29:21,553 - INFO - Reading UVH5 file: /scratch/dsa110-contimg/curated/0702_445/2025_10_13/2025-10-13T13:34:44/2025-10-13T13:34:44_sb15.hdf5
+2025-10-21 14:29:21,553 - INFO - File size: 138.6 MB
+2025-10-21 14:29:25,467 - INFO - Successfully loaded UVH5 file into UVData object
+2025-10-21 14:29:25,467 - INFO - Converting uvw_array from float32 to float64
+2025-10-21 14:29:25,467 - INFO - Converting nsample_array from float32 to float64
+2025-10-21 14:29:25,494 - INFO - Applied 2 data type fixes
+The uvw_array does not match the expected values given the antenna positions. The largest discrepancy is 292.3769703689339 meters. This is a fairly common situation but might indicate an error in the antenna positions, the uvws or the phasing.
+2025-10-21 14:29:25,584 - INFO - UVData validation passed
+2025-10-21 14:29:25,651 - INFO - Successfully read UVH5 file:
+2025-10-21 14:29:25,651 - INFO -   - Nblts: 111744
+2025-10-21 14:29:25,651 - INFO -   - Nfreqs: 48
+2025-10-21 14:29:25,651 - INFO -   - Npols: 2
+2025-10-21 14:29:25,651 - INFO -   - Ntimes: 24
+2025-10-21 14:29:25,651 - INFO -   - Nbls: 4656
+2025-10-21 14:29:25,651 - INFO -   - Nfields: 1
+2025-10-21 14:29:25,652 - INFO - Data quality assessment:
+2025-10-21 14:29:25,652 - INFO -   - Quality score: good
+2025-10-21 14:29:25,652 - INFO -   - Time span: 0.003 days
+2025-10-21 14:29:25,652 - INFO -   - Frequency span: 11.5 MHz
+2025-10-21 14:29:25,652 - INFO -   - Flag fraction: 0.0%
+2025-10-21 14:29:25,652 - INFO - Calibration recommendations:
+2025-10-21 14:29:25,652 - INFO -   - delay_calibration: solint=12s, minsnr=2.0, combine=spw
+2025-10-21 14:29:25,652 - INFO -   - bandpass_calibration: solint=inf, minsnr=2.0, combine=scan,field
+2025-10-21 14:29:25,652 - INFO -   - gain_calibration: solint=12s, minsnr=2.0, combine=scan,field
+2025-10-21 14:29:25,653 - WARNING - Using default OVRO location for phasing
+2025-10-21 14:29:25,662 - INFO - Phasing to reference center at 2025-10-13T13:37:13.620: RA(ICRS)=1.889359 rad, Dec(ICRS)=0.782760 rad (H0=0.0 h)
+2025-10-21 14:29:26,715 - INFO - Successfully phased data to midpoint reference
+2025-10-21 14:29:26,715 - INFO - Writing MS file: /scratch/dsa110-contimg/ms/central_cal_rebuild/2025-10-13T13:34:44.parts/2025-10-13T13:34:44.sb06.ms
+Fixing auto-correlations to be be real-only, after some imaginary values were detected in data_array. Largest imaginary component was 5.895959176611953e-14, largest imaginary/real ratio was 7.609474535776289e-16.
+UVData object contains a mix of baseline conjugation states, which is not uniformly supported in CASA -- forcing conjugation to be "ant2<ant1" on object.
+Writing in the MS file that the units of the data are uncalib, although some CASA process will ignore this and assume the units are all in Jy (or may not know how to handle data in these units).
+2025-10-21 14:29:28,102 - INFO - Successfully wrote MS: /scratch/dsa110-contimg/ms/central_cal_rebuild/2025-10-13T13:34:44.parts/2025-10-13T13:34:44.sb06.ms
+2025-10-21 14:29:28,103 - INFO - MS file size: 130.9 MB
+2025-10-21 14:29:28,109 - INFO - Fixed mount types in MS antenna table: /scratch/dsa110-contimg/ms/central_cal_rebuild/2025-10-13T13:34:44.parts/2025-10-13T13:34:44.sb06.ms
+2025-10-21 14:29:28,109 - INFO - Conversion completed successfully in 6.6 seconds
+2025-10-21 14:29:36,475 - INFO - Converting /scratch/dsa110-contimg/curated/0702_445/2025_10_13/2025-10-13T13:34:44/2025-10-13T13:34:45_sb01.hdf5 -> /scratch/dsa110-contimg/ms/central_cal_rebuild/2025-10-13T13:34:44.parts/2025-10-13T13:34:44.sb07.ms
+2025-10-21 14:29:36,476 - INFO - Reading UVH5 file: /scratch/dsa110-contimg/curated/0702_445/2025_10_13/2025-10-13T13:34:44/2025-10-13T13:34:45_sb01.hdf5
+2025-10-21 14:29:36,476 - INFO - File size: 138.6 MB
+2025-10-21 14:29:40,469 - INFO - Successfully loaded UVH5 file into UVData object
+2025-10-21 14:29:40,470 - INFO - Converting uvw_array from float32 to float64
+2025-10-21 14:29:40,470 - INFO - Converting nsample_array from float32 to float64
+2025-10-21 14:29:40,497 - INFO - Applied 2 data type fixes
+The uvw_array does not match the expected values given the antenna positions. The largest discrepancy is 292.3769703689339 meters. This is a fairly common situation but might indicate an error in the antenna positions, the uvws or the phasing.
+2025-10-21 14:29:40,588 - INFO - UVData validation passed
+2025-10-21 14:29:40,655 - INFO - Successfully read UVH5 file:
+2025-10-21 14:29:40,655 - INFO -   - Nblts: 111744
+2025-10-21 14:29:40,655 - INFO -   - Nfreqs: 48
+2025-10-21 14:29:40,655 - INFO -   - Npols: 2
+2025-10-21 14:29:40,655 - INFO -   - Ntimes: 24
+2025-10-21 14:29:40,655 - INFO -   - Nbls: 4656
+2025-10-21 14:29:40,655 - INFO -   - Nfields: 1
+2025-10-21 14:29:40,655 - INFO - Data quality assessment:
+2025-10-21 14:29:40,655 - INFO -   - Quality score: good
+2025-10-21 14:29:40,655 - INFO -   - Time span: 0.003 days
+2025-10-21 14:29:40,656 - INFO -   - Frequency span: 11.5 MHz
+2025-10-21 14:29:40,656 - INFO -   - Flag fraction: 0.0%
+2025-10-21 14:29:40,656 - INFO - Calibration recommendations:
+2025-10-21 14:29:40,656 - INFO -   - delay_calibration: solint=12s, minsnr=2.0, combine=spw
+2025-10-21 14:29:40,656 - INFO -   - bandpass_calibration: solint=inf, minsnr=2.0, combine=scan,field
+2025-10-21 14:29:40,656 - INFO -   - gain_calibration: solint=12s, minsnr=2.0, combine=scan,field
+2025-10-21 14:29:40,657 - WARNING - Using default OVRO location for phasing
+2025-10-21 14:29:40,666 - INFO - Phasing to reference center at 2025-10-13T13:37:13.620: RA(ICRS)=1.889359 rad, Dec(ICRS)=0.782760 rad (H0=0.0 h)
+2025-10-21 14:29:42,105 - INFO - Successfully phased data to midpoint reference
+2025-10-21 14:29:42,105 - INFO - Writing MS file: /scratch/dsa110-contimg/ms/central_cal_rebuild/2025-10-13T13:34:44.parts/2025-10-13T13:34:44.sb07.ms
+Fixing auto-correlations to be be real-only, after some imaginary values were detected in data_array. Largest imaginary component was 6.445731670851398e-14, largest imaginary/real ratio was 8.601631226070445e-16.
+UVData object contains a mix of baseline conjugation states, which is not uniformly supported in CASA -- forcing conjugation to be "ant2<ant1" on object.
+Writing in the MS file that the units of the data are uncalib, although some CASA process will ignore this and assume the units are all in Jy (or may not know how to handle data in these units).
+2025-10-21 14:29:43,371 - INFO - Successfully wrote MS: /scratch/dsa110-contimg/ms/central_cal_rebuild/2025-10-13T13:34:44.parts/2025-10-13T13:34:44.sb07.ms
+2025-10-21 14:29:43,372 - INFO - MS file size: 130.9 MB
+2025-10-21 14:29:43,459 - INFO - Fixed mount types in MS antenna table: /scratch/dsa110-contimg/ms/central_cal_rebuild/2025-10-13T13:34:44.parts/2025-10-13T13:34:44.sb07.ms
+2025-10-21 14:29:43,459 - INFO - Conversion completed successfully in 7.0 seconds
+2025-10-21 14:29:51,557 - INFO - Converting /scratch/dsa110-contimg/curated/0702_445/2025_10_13/2025-10-13T13:34:44/2025-10-13T13:34:45_sb03.hdf5 -> /scratch/dsa110-contimg/ms/central_cal_rebuild/2025-10-13T13:34:44.parts/2025-10-13T13:34:44.sb08.ms
+2025-10-21 14:29:51,557 - INFO - Reading UVH5 file: /scratch/dsa110-contimg/curated/0702_445/2025_10_13/2025-10-13T13:34:44/2025-10-13T13:34:45_sb03.hdf5
+2025-10-21 14:29:51,558 - INFO - File size: 138.6 MB
+2025-10-21 14:29:55,613 - INFO - Successfully loaded UVH5 file into UVData object
+2025-10-21 14:29:55,613 - INFO - Converting uvw_array from float32 to float64
+2025-10-21 14:29:55,613 - INFO - Converting nsample_array from float32 to float64
+2025-10-21 14:29:55,641 - INFO - Applied 2 data type fixes
+The uvw_array does not match the expected values given the antenna positions. The largest discrepancy is 292.3769703689339 meters. This is a fairly common situation but might indicate an error in the antenna positions, the uvws or the phasing.
+2025-10-21 14:29:55,734 - INFO - UVData validation passed
+2025-10-21 14:29:55,801 - INFO - Successfully read UVH5 file:
+2025-10-21 14:29:55,801 - INFO -   - Nblts: 111744
+2025-10-21 14:29:55,801 - INFO -   - Nfreqs: 48
+2025-10-21 14:29:55,801 - INFO -   - Npols: 2
+2025-10-21 14:29:55,801 - INFO -   - Ntimes: 24
+2025-10-21 14:29:55,801 - INFO -   - Nbls: 4656
+2025-10-21 14:29:55,801 - INFO -   - Nfields: 1
+2025-10-21 14:29:55,801 - INFO - Data quality assessment:
+2025-10-21 14:29:55,801 - INFO -   - Quality score: good
+2025-10-21 14:29:55,801 - INFO -   - Time span: 0.003 days
+2025-10-21 14:29:55,801 - INFO -   - Frequency span: 11.5 MHz
+2025-10-21 14:29:55,801 - INFO -   - Flag fraction: 0.0%
+2025-10-21 14:29:55,801 - INFO - Calibration recommendations:
+2025-10-21 14:29:55,801 - INFO -   - delay_calibration: solint=12s, minsnr=2.0, combine=spw
+2025-10-21 14:29:55,801 - INFO -   - bandpass_calibration: solint=inf, minsnr=2.0, combine=scan,field
+2025-10-21 14:29:55,801 - INFO -   - gain_calibration: solint=12s, minsnr=2.0, combine=scan,field
+2025-10-21 14:29:55,803 - WARNING - Using default OVRO location for phasing
+2025-10-21 14:29:55,812 - INFO - Phasing to reference center at 2025-10-13T13:37:13.620: RA(ICRS)=1.889359 rad, Dec(ICRS)=0.782760 rad (H0=0.0 h)
+2025-10-21 14:29:57,216 - INFO - Successfully phased data to midpoint reference
+2025-10-21 14:29:57,217 - INFO - Writing MS file: /scratch/dsa110-contimg/ms/central_cal_rebuild/2025-10-13T13:34:44.parts/2025-10-13T13:34:44.sb08.ms
+Fixing auto-correlations to be be real-only, after some imaginary values were detected in data_array. Largest imaginary component was 6.65871573374624e-14, largest imaginary/real ratio was 7.197020841835872e-16.
+UVData object contains a mix of baseline conjugation states, which is not uniformly supported in CASA -- forcing conjugation to be "ant2<ant1" on object.
+Writing in the MS file that the units of the data are uncalib, although some CASA process will ignore this and assume the units are all in Jy (or may not know how to handle data in these units).
+2025-10-21 14:29:58,580 - INFO - Successfully wrote MS: /scratch/dsa110-contimg/ms/central_cal_rebuild/2025-10-13T13:34:44.parts/2025-10-13T13:34:44.sb08.ms
+2025-10-21 14:29:58,582 - INFO - MS file size: 130.9 MB
+2025-10-21 14:29:58,595 - INFO - Fixed mount types in MS antenna table: /scratch/dsa110-contimg/ms/central_cal_rebuild/2025-10-13T13:34:44.parts/2025-10-13T13:34:44.sb08.ms
+2025-10-21 14:29:58,595 - INFO - Conversion completed successfully in 7.0 seconds
+2025-10-21 14:30:07,316 - INFO - Converting /scratch/dsa110-contimg/curated/0702_445/2025_10_13/2025-10-13T13:34:44/2025-10-13T13:34:45_sb04.hdf5 -> /scratch/dsa110-contimg/ms/central_cal_rebuild/2025-10-13T13:34:44.parts/2025-10-13T13:34:44.sb09.ms
+2025-10-21 14:30:07,317 - INFO - Reading UVH5 file: /scratch/dsa110-contimg/curated/0702_445/2025_10_13/2025-10-13T13:34:44/2025-10-13T13:34:45_sb04.hdf5
+2025-10-21 14:30:07,317 - INFO - File size: 138.6 MB
+2025-10-21 14:30:11,377 - INFO - Successfully loaded UVH5 file into UVData object
+2025-10-21 14:30:11,377 - INFO - Converting uvw_array from float32 to float64
+2025-10-21 14:30:11,377 - INFO - Converting nsample_array from float32 to float64
+2025-10-21 14:30:11,405 - INFO - Applied 2 data type fixes
+The uvw_array does not match the expected values given the antenna positions. The largest discrepancy is 292.3769703689339 meters. This is a fairly common situation but might indicate an error in the antenna positions, the uvws or the phasing.
+2025-10-21 14:30:11,504 - INFO - UVData validation passed
+2025-10-21 14:30:11,572 - INFO - Successfully read UVH5 file:
+2025-10-21 14:30:11,572 - INFO -   - Nblts: 111744
+2025-10-21 14:30:11,572 - INFO -   - Nfreqs: 48
+2025-10-21 14:30:11,572 - INFO -   - Npols: 2
+2025-10-21 14:30:11,572 - INFO -   - Ntimes: 24
+2025-10-21 14:30:11,572 - INFO -   - Nbls: 4656
+2025-10-21 14:30:11,572 - INFO -   - Nfields: 1
+2025-10-21 14:30:11,572 - INFO - Data quality assessment:
+2025-10-21 14:30:11,572 - INFO -   - Quality score: good
+2025-10-21 14:30:11,572 - INFO -   - Time span: 0.003 days
+2025-10-21 14:30:11,572 - INFO -   - Frequency span: 11.5 MHz
+2025-10-21 14:30:11,572 - INFO -   - Flag fraction: 0.0%
+2025-10-21 14:30:11,572 - INFO - Calibration recommendations:
+2025-10-21 14:30:11,572 - INFO -   - delay_calibration: solint=12s, minsnr=2.0, combine=spw
+2025-10-21 14:30:11,572 - INFO -   - bandpass_calibration: solint=inf, minsnr=2.0, combine=scan,field
+2025-10-21 14:30:11,572 - INFO -   - gain_calibration: solint=12s, minsnr=2.0, combine=scan,field
+2025-10-21 14:30:11,574 - WARNING - Using default OVRO location for phasing
+2025-10-21 14:30:11,583 - INFO - Phasing to reference center at 2025-10-13T13:37:13.620: RA(ICRS)=1.889359 rad, Dec(ICRS)=0.782760 rad (H0=0.0 h)
+2025-10-21 14:30:12,658 - INFO - Successfully phased data to midpoint reference
+2025-10-21 14:30:12,658 - INFO - Writing MS file: /scratch/dsa110-contimg/ms/central_cal_rebuild/2025-10-13T13:34:44.parts/2025-10-13T13:34:44.sb09.ms
+Fixing auto-correlations to be be real-only, after some imaginary values were detected in data_array. Largest imaginary component was 4.646262690452367e-14, largest imaginary/real ratio was 7.90060717128588e-16.
+UVData object contains a mix of baseline conjugation states, which is not uniformly supported in CASA -- forcing conjugation to be "ant2<ant1" on object.
+Writing in the MS file that the units of the data are uncalib, although some CASA process will ignore this and assume the units are all in Jy (or may not know how to handle data in these units).
+2025-10-21 14:30:14,022 - INFO - Successfully wrote MS: /scratch/dsa110-contimg/ms/central_cal_rebuild/2025-10-13T13:34:44.parts/2025-10-13T13:34:44.sb09.ms
+2025-10-21 14:30:14,023 - INFO - MS file size: 130.9 MB
+2025-10-21 14:30:14,030 - INFO - Fixed mount types in MS antenna table: /scratch/dsa110-contimg/ms/central_cal_rebuild/2025-10-13T13:34:44.parts/2025-10-13T13:34:44.sb09.ms
+2025-10-21 14:30:14,030 - INFO - Conversion completed successfully in 6.7 seconds
+2025-10-21 14:30:22,488 - INFO - Converting /scratch/dsa110-contimg/curated/0702_445/2025_10_13/2025-10-13T13:34:44/2025-10-13T13:34:45_sb05.hdf5 -> /scratch/dsa110-contimg/ms/central_cal_rebuild/2025-10-13T13:34:44.parts/2025-10-13T13:34:44.sb10.ms
+2025-10-21 14:30:22,488 - INFO - Reading UVH5 file: /scratch/dsa110-contimg/curated/0702_445/2025_10_13/2025-10-13T13:34:44/2025-10-13T13:34:45_sb05.hdf5
+2025-10-21 14:30:22,489 - INFO - File size: 138.6 MB
+2025-10-21 14:30:26,367 - INFO - Successfully loaded UVH5 file into UVData object
+2025-10-21 14:30:26,367 - INFO - Converting uvw_array from float32 to float64
+2025-10-21 14:30:26,367 - INFO - Converting nsample_array from float32 to float64
+2025-10-21 14:30:26,394 - INFO - Applied 2 data type fixes
+The uvw_array does not match the expected values given the antenna positions. The largest discrepancy is 292.3769703689339 meters. This is a fairly common situation but might indicate an error in the antenna positions, the uvws or the phasing.
+2025-10-21 14:30:26,485 - INFO - UVData validation passed
+2025-10-21 14:30:26,552 - INFO - Successfully read UVH5 file:
+2025-10-21 14:30:26,552 - INFO -   - Nblts: 111744
+2025-10-21 14:30:26,552 - INFO -   - Nfreqs: 48
+2025-10-21 14:30:26,552 - INFO -   - Npols: 2
+2025-10-21 14:30:26,552 - INFO -   - Ntimes: 24
+2025-10-21 14:30:26,553 - INFO -   - Nbls: 4656
+2025-10-21 14:30:26,553 - INFO -   - Nfields: 1
+2025-10-21 14:30:26,553 - INFO - Data quality assessment:
+2025-10-21 14:30:26,553 - INFO -   - Quality score: good
+2025-10-21 14:30:26,553 - INFO -   - Time span: 0.003 days
+2025-10-21 14:30:26,553 - INFO -   - Frequency span: 11.5 MHz
+2025-10-21 14:30:26,553 - INFO -   - Flag fraction: 0.0%
+2025-10-21 14:30:26,553 - INFO - Calibration recommendations:
+2025-10-21 14:30:26,553 - INFO -   - delay_calibration: solint=12s, minsnr=2.0, combine=spw
+2025-10-21 14:30:26,553 - INFO -   - bandpass_calibration: solint=inf, minsnr=2.0, combine=scan,field
+2025-10-21 14:30:26,553 - INFO -   - gain_calibration: solint=12s, minsnr=2.0, combine=scan,field
+2025-10-21 14:30:26,554 - WARNING - Using default OVRO location for phasing
+2025-10-21 14:30:26,563 - INFO - Phasing to reference center at 2025-10-13T13:37:13.620: RA(ICRS)=1.889359 rad, Dec(ICRS)=0.782760 rad (H0=0.0 h)
+2025-10-21 14:30:29,111 - INFO - Successfully phased data to midpoint reference
+2025-10-21 14:30:29,112 - INFO - Writing MS file: /scratch/dsa110-contimg/ms/central_cal_rebuild/2025-10-13T13:34:44.parts/2025-10-13T13:34:44.sb10.ms
+Fixing auto-correlations to be be real-only, after some imaginary values were detected in data_array. Largest imaginary component was 6.035033177408458e-14, largest imaginary/real ratio was 6.822453872834956e-16.
+UVData object contains a mix of baseline conjugation states, which is not uniformly supported in CASA -- forcing conjugation to be "ant2<ant1" on object.
+Writing in the MS file that the units of the data are uncalib, although some CASA process will ignore this and assume the units are all in Jy (or may not know how to handle data in these units).
+2025-10-21 14:30:30,483 - INFO - Successfully wrote MS: /scratch/dsa110-contimg/ms/central_cal_rebuild/2025-10-13T13:34:44.parts/2025-10-13T13:34:44.sb10.ms
+2025-10-21 14:30:30,485 - INFO - MS file size: 130.9 MB
+2025-10-21 14:30:30,501 - INFO - Fixed mount types in MS antenna table: /scratch/dsa110-contimg/ms/central_cal_rebuild/2025-10-13T13:34:44.parts/2025-10-13T13:34:44.sb10.ms
+2025-10-21 14:30:30,501 - INFO - Conversion completed successfully in 8.0 seconds
+2025-10-21 14:30:39,234 - INFO - Converting /scratch/dsa110-contimg/curated/0702_445/2025_10_13/2025-10-13T13:34:44/2025-10-13T13:34:45_sb06.hdf5 -> /scratch/dsa110-contimg/ms/central_cal_rebuild/2025-10-13T13:34:44.parts/2025-10-13T13:34:44.sb11.ms
+2025-10-21 14:30:39,234 - INFO - Reading UVH5 file: /scratch/dsa110-contimg/curated/0702_445/2025_10_13/2025-10-13T13:34:44/2025-10-13T13:34:45_sb06.hdf5
+2025-10-21 14:30:39,234 - INFO - File size: 138.6 MB
+2025-10-21 14:30:43,089 - INFO - Successfully loaded UVH5 file into UVData object
+2025-10-21 14:30:43,089 - INFO - Converting uvw_array from float32 to float64
+2025-10-21 14:30:43,090 - INFO - Converting nsample_array from float32 to float64
+2025-10-21 14:30:43,116 - INFO - Applied 2 data type fixes
+The uvw_array does not match the expected values given the antenna positions. The largest discrepancy is 292.3769703689339 meters. This is a fairly common situation but might indicate an error in the antenna positions, the uvws or the phasing.
+2025-10-21 14:30:43,208 - INFO - UVData validation passed
+2025-10-21 14:30:43,275 - INFO - Successfully read UVH5 file:
+2025-10-21 14:30:43,275 - INFO -   - Nblts: 111744
+2025-10-21 14:30:43,275 - INFO -   - Nfreqs: 48
+2025-10-21 14:30:43,275 - INFO -   - Npols: 2
+2025-10-21 14:30:43,275 - INFO -   - Ntimes: 24
+2025-10-21 14:30:43,275 - INFO -   - Nbls: 4656
+2025-10-21 14:30:43,275 - INFO -   - Nfields: 1
+2025-10-21 14:30:43,275 - INFO - Data quality assessment:
+2025-10-21 14:30:43,275 - INFO -   - Quality score: good
+2025-10-21 14:30:43,275 - INFO -   - Time span: 0.003 days
+2025-10-21 14:30:43,275 - INFO -   - Frequency span: 11.5 MHz
+2025-10-21 14:30:43,275 - INFO -   - Flag fraction: 0.0%
+2025-10-21 14:30:43,275 - INFO - Calibration recommendations:
+2025-10-21 14:30:43,275 - INFO -   - delay_calibration: solint=12s, minsnr=2.0, combine=spw
+2025-10-21 14:30:43,275 - INFO -   - bandpass_calibration: solint=inf, minsnr=2.0, combine=scan,field
+2025-10-21 14:30:43,275 - INFO -   - gain_calibration: solint=12s, minsnr=2.0, combine=scan,field
+2025-10-21 14:30:43,277 - WARNING - Using default OVRO location for phasing
+2025-10-21 14:30:43,286 - INFO - Phasing to reference center at 2025-10-13T13:37:13.620: RA(ICRS)=1.889359 rad, Dec(ICRS)=0.782760 rad (H0=0.0 h)
+2025-10-21 14:30:45,327 - INFO - Successfully phased data to midpoint reference
+2025-10-21 14:30:45,327 - INFO - Writing MS file: /scratch/dsa110-contimg/ms/central_cal_rebuild/2025-10-13T13:34:44.parts/2025-10-13T13:34:44.sb11.ms
+Fixing auto-correlations to be be real-only, after some imaginary values were detected in data_array. Largest imaginary component was 6.080578477795501e-14, largest imaginary/real ratio was 7.237138969195796e-16.
+UVData object contains a mix of baseline conjugation states, which is not uniformly supported in CASA -- forcing conjugation to be "ant2<ant1" on object.
+Writing in the MS file that the units of the data are uncalib, although some CASA process will ignore this and assume the units are all in Jy (or may not know how to handle data in these units).
+2025-10-21 14:30:46,695 - INFO - Successfully wrote MS: /scratch/dsa110-contimg/ms/central_cal_rebuild/2025-10-13T13:34:44.parts/2025-10-13T13:34:44.sb11.ms
+2025-10-21 14:30:46,697 - INFO - MS file size: 130.9 MB
+2025-10-21 14:30:46,704 - INFO - Fixed mount types in MS antenna table: /scratch/dsa110-contimg/ms/central_cal_rebuild/2025-10-13T13:34:44.parts/2025-10-13T13:34:44.sb11.ms
+2025-10-21 14:30:46,704 - INFO - Conversion completed successfully in 7.5 seconds
+2025-10-21 14:30:54,794 - INFO - Converting /scratch/dsa110-contimg/curated/0702_445/2025_10_13/2025-10-13T13:34:44/2025-10-13T13:34:45_sb07.hdf5 -> /scratch/dsa110-contimg/ms/central_cal_rebuild/2025-10-13T13:34:44.parts/2025-10-13T13:34:44.sb12.ms
+2025-10-21 14:30:54,794 - INFO - Reading UVH5 file: /scratch/dsa110-contimg/curated/0702_445/2025_10_13/2025-10-13T13:34:44/2025-10-13T13:34:45_sb07.hdf5
+2025-10-21 14:30:54,794 - INFO - File size: 138.6 MB
+2025-10-21 14:30:58,704 - INFO - Successfully loaded UVH5 file into UVData object
+2025-10-21 14:30:58,704 - INFO - Converting uvw_array from float32 to float64
+2025-10-21 14:30:58,705 - INFO - Converting nsample_array from float32 to float64
+2025-10-21 14:30:58,732 - INFO - Applied 2 data type fixes
+The uvw_array does not match the expected values given the antenna positions. The largest discrepancy is 292.3769703689339 meters. This is a fairly common situation but might indicate an error in the antenna positions, the uvws or the phasing.
+2025-10-21 14:30:58,823 - INFO - UVData validation passed
+2025-10-21 14:30:58,891 - INFO - Successfully read UVH5 file:
+2025-10-21 14:30:58,891 - INFO -   - Nblts: 111744
+2025-10-21 14:30:58,891 - INFO -   - Nfreqs: 48
+2025-10-21 14:30:58,891 - INFO -   - Npols: 2
+2025-10-21 14:30:58,891 - INFO -   - Ntimes: 24
+2025-10-21 14:30:58,891 - INFO -   - Nbls: 4656
+2025-10-21 14:30:58,891 - INFO -   - Nfields: 1
+2025-10-21 14:30:58,891 - INFO - Data quality assessment:
+2025-10-21 14:30:58,891 - INFO -   - Quality score: good
+2025-10-21 14:30:58,891 - INFO -   - Time span: 0.003 days
+2025-10-21 14:30:58,891 - INFO -   - Frequency span: 11.5 MHz
+2025-10-21 14:30:58,891 - INFO -   - Flag fraction: 0.0%
+2025-10-21 14:30:58,891 - INFO - Calibration recommendations:
+2025-10-21 14:30:58,892 - INFO -   - delay_calibration: solint=12s, minsnr=2.0, combine=spw
+2025-10-21 14:30:58,892 - INFO -   - bandpass_calibration: solint=inf, minsnr=2.0, combine=scan,field
+2025-10-21 14:30:58,892 - INFO -   - gain_calibration: solint=12s, minsnr=2.0, combine=scan,field
+2025-10-21 14:30:58,893 - WARNING - Using default OVRO location for phasing
+2025-10-21 14:30:58,902 - INFO - Phasing to reference center at 2025-10-13T13:37:13.620: RA(ICRS)=1.889359 rad, Dec(ICRS)=0.782760 rad (H0=0.0 h)
+2025-10-21 14:31:00,424 - INFO - Successfully phased data to midpoint reference
+2025-10-21 14:31:00,424 - INFO - Writing MS file: /scratch/dsa110-contimg/ms/central_cal_rebuild/2025-10-13T13:34:44.parts/2025-10-13T13:34:44.sb12.ms
+Fixing auto-correlations to be be real-only, after some imaginary values were detected in data_array. Largest imaginary component was 6.161949206093253e-14, largest imaginary/real ratio was 6.629043428450093e-16.
+UVData object contains a mix of baseline conjugation states, which is not uniformly supported in CASA -- forcing conjugation to be "ant2<ant1" on object.
+Writing in the MS file that the units of the data are uncalib, although some CASA process will ignore this and assume the units are all in Jy (or may not know how to handle data in these units).
+2025-10-21 14:31:01,774 - INFO - Successfully wrote MS: /scratch/dsa110-contimg/ms/central_cal_rebuild/2025-10-13T13:34:44.parts/2025-10-13T13:34:44.sb12.ms
+2025-10-21 14:31:01,775 - INFO - MS file size: 130.9 MB
+2025-10-21 14:31:01,782 - INFO - Fixed mount types in MS antenna table: /scratch/dsa110-contimg/ms/central_cal_rebuild/2025-10-13T13:34:44.parts/2025-10-13T13:34:44.sb12.ms
+2025-10-21 14:31:01,783 - INFO - Conversion completed successfully in 7.0 seconds
+2025-10-21 14:31:10,458 - INFO - Converting /scratch/dsa110-contimg/curated/0702_445/2025_10_13/2025-10-13T13:34:44/2025-10-13T13:34:45_sb08.hdf5 -> /scratch/dsa110-contimg/ms/central_cal_rebuild/2025-10-13T13:34:44.parts/2025-10-13T13:34:44.sb13.ms
+2025-10-21 14:31:10,458 - INFO - Reading UVH5 file: /scratch/dsa110-contimg/curated/0702_445/2025_10_13/2025-10-13T13:34:44/2025-10-13T13:34:45_sb08.hdf5
+2025-10-21 14:31:10,459 - INFO - File size: 138.6 MB
+2025-10-21 14:31:14,413 - INFO - Successfully loaded UVH5 file into UVData object
+2025-10-21 14:31:14,414 - INFO - Converting uvw_array from float32 to float64
+2025-10-21 14:31:14,414 - INFO - Converting nsample_array from float32 to float64
+2025-10-21 14:31:14,456 - INFO - Applied 2 data type fixes
+The uvw_array does not match the expected values given the antenna positions. The largest discrepancy is 292.3769703689339 meters. This is a fairly common situation but might indicate an error in the antenna positions, the uvws or the phasing.
+2025-10-21 14:31:14,552 - INFO - UVData validation passed
+2025-10-21 14:31:14,619 - INFO - Successfully read UVH5 file:
+2025-10-21 14:31:14,619 - INFO -   - Nblts: 111744
+2025-10-21 14:31:14,619 - INFO -   - Nfreqs: 48
+2025-10-21 14:31:14,619 - INFO -   - Npols: 2
+2025-10-21 14:31:14,619 - INFO -   - Ntimes: 24
+2025-10-21 14:31:14,619 - INFO -   - Nbls: 4656
+2025-10-21 14:31:14,619 - INFO -   - Nfields: 1
+2025-10-21 14:31:14,619 - INFO - Data quality assessment:
+2025-10-21 14:31:14,619 - INFO -   - Quality score: good
+2025-10-21 14:31:14,619 - INFO -   - Time span: 0.003 days
+2025-10-21 14:31:14,619 - INFO -   - Frequency span: 11.5 MHz
+2025-10-21 14:31:14,619 - INFO -   - Flag fraction: 0.0%
+2025-10-21 14:31:14,619 - INFO - Calibration recommendations:
+2025-10-21 14:31:14,619 - INFO -   - delay_calibration: solint=12s, minsnr=2.0, combine=spw
+2025-10-21 14:31:14,619 - INFO -   - bandpass_calibration: solint=inf, minsnr=2.0, combine=scan,field
+2025-10-21 14:31:14,619 - INFO -   - gain_calibration: solint=12s, minsnr=2.0, combine=scan,field
+2025-10-21 14:31:14,621 - WARNING - Using default OVRO location for phasing
+2025-10-21 14:31:14,629 - INFO - Phasing to reference center at 2025-10-13T13:37:13.620: RA(ICRS)=1.889359 rad, Dec(ICRS)=0.782760 rad (H0=0.0 h)
+2025-10-21 14:31:15,874 - INFO - Successfully phased data to midpoint reference
+2025-10-21 14:31:15,874 - INFO - Writing MS file: /scratch/dsa110-contimg/ms/central_cal_rebuild/2025-10-13T13:34:44.parts/2025-10-13T13:34:44.sb13.ms
+Fixing auto-correlations to be be real-only, after some imaginary values were detected in data_array. Largest imaginary component was 5.806147934401401e-14, largest imaginary/real ratio was 9.083094282410446e-16.
+UVData object contains a mix of baseline conjugation states, which is not uniformly supported in CASA -- forcing conjugation to be "ant2<ant1" on object.
+Writing in the MS file that the units of the data are uncalib, although some CASA process will ignore this and assume the units are all in Jy (or may not know how to handle data in these units).
+2025-10-21 14:31:17,301 - INFO - Successfully wrote MS: /scratch/dsa110-contimg/ms/central_cal_rebuild/2025-10-13T13:34:44.parts/2025-10-13T13:34:44.sb13.ms
+2025-10-21 14:31:17,302 - INFO - MS file size: 130.9 MB
+2025-10-21 14:31:17,309 - INFO - Fixed mount types in MS antenna table: /scratch/dsa110-contimg/ms/central_cal_rebuild/2025-10-13T13:34:44.parts/2025-10-13T13:34:44.sb13.ms
+2025-10-21 14:31:17,310 - INFO - Conversion completed successfully in 6.9 seconds
+2025-10-21 14:31:25,628 - INFO - Converting /scratch/dsa110-contimg/curated/0702_445/2025_10_13/2025-10-13T13:34:44/2025-10-13T13:34:45_sb09.hdf5 -> /scratch/dsa110-contimg/ms/central_cal_rebuild/2025-10-13T13:34:44.parts/2025-10-13T13:34:44.sb14.ms
+2025-10-21 14:31:25,629 - INFO - Reading UVH5 file: /scratch/dsa110-contimg/curated/0702_445/2025_10_13/2025-10-13T13:34:44/2025-10-13T13:34:45_sb09.hdf5
+2025-10-21 14:31:25,629 - INFO - File size: 138.6 MB
+2025-10-21 14:31:29,630 - INFO - Successfully loaded UVH5 file into UVData object
+2025-10-21 14:31:29,630 - INFO - Converting uvw_array from float32 to float64
+2025-10-21 14:31:29,631 - INFO - Converting nsample_array from float32 to float64
+2025-10-21 14:31:29,657 - INFO - Applied 2 data type fixes
+The uvw_array does not match the expected values given the antenna positions. The largest discrepancy is 292.3769703689339 meters. This is a fairly common situation but might indicate an error in the antenna positions, the uvws or the phasing.
+2025-10-21 14:31:29,765 - INFO - UVData validation passed
+2025-10-21 14:31:29,832 - INFO - Successfully read UVH5 file:
+2025-10-21 14:31:29,832 - INFO -   - Nblts: 111744
+2025-10-21 14:31:29,832 - INFO -   - Nfreqs: 48
+2025-10-21 14:31:29,832 - INFO -   - Npols: 2
+2025-10-21 14:31:29,832 - INFO -   - Ntimes: 24
+2025-10-21 14:31:29,832 - INFO -   - Nbls: 4656
+2025-10-21 14:31:29,832 - INFO -   - Nfields: 1
+2025-10-21 14:31:29,832 - INFO - Data quality assessment:
+2025-10-21 14:31:29,832 - INFO -   - Quality score: good
+2025-10-21 14:31:29,832 - INFO -   - Time span: 0.003 days
+2025-10-21 14:31:29,832 - INFO -   - Frequency span: 11.5 MHz
+2025-10-21 14:31:29,832 - INFO -   - Flag fraction: 0.0%
+2025-10-21 14:31:29,832 - INFO - Calibration recommendations:
+2025-10-21 14:31:29,832 - INFO -   - delay_calibration: solint=12s, minsnr=2.0, combine=spw
+2025-10-21 14:31:29,832 - INFO -   - bandpass_calibration: solint=inf, minsnr=2.0, combine=scan,field
+2025-10-21 14:31:29,833 - INFO -   - gain_calibration: solint=12s, minsnr=2.0, combine=scan,field
+2025-10-21 14:31:29,834 - WARNING - Using default OVRO location for phasing
+2025-10-21 14:31:29,843 - INFO - Phasing to reference center at 2025-10-13T13:37:13.620: RA(ICRS)=1.889359 rad, Dec(ICRS)=0.782760 rad (H0=0.0 h)
+2025-10-21 14:31:30,993 - INFO - Successfully phased data to midpoint reference
+2025-10-21 14:31:30,993 - INFO - Writing MS file: /scratch/dsa110-contimg/ms/central_cal_rebuild/2025-10-13T13:34:44.parts/2025-10-13T13:34:44.sb14.ms
+Fixing auto-correlations to be be real-only, after some imaginary values were detected in data_array. Largest imaginary component was 5.918737586629516e-14, largest imaginary/real ratio was 6.37736135245887e-16.
+UVData object contains a mix of baseline conjugation states, which is not uniformly supported in CASA -- forcing conjugation to be "ant2<ant1" on object.
+Writing in the MS file that the units of the data are uncalib, although some CASA process will ignore this and assume the units are all in Jy (or may not know how to handle data in these units).
+2025-10-21 14:31:32,302 - INFO - Successfully wrote MS: /scratch/dsa110-contimg/ms/central_cal_rebuild/2025-10-13T13:34:44.parts/2025-10-13T13:34:44.sb14.ms
+2025-10-21 14:31:32,303 - INFO - MS file size: 130.9 MB
+2025-10-21 14:31:32,310 - INFO - Fixed mount types in MS antenna table: /scratch/dsa110-contimg/ms/central_cal_rebuild/2025-10-13T13:34:44.parts/2025-10-13T13:34:44.sb14.ms
+2025-10-21 14:31:32,310 - INFO - Conversion completed successfully in 6.7 seconds
+2025-10-21 14:31:40,656 - INFO - Converting /scratch/dsa110-contimg/curated/0702_445/2025_10_13/2025-10-13T13:34:44/2025-10-13T13:34:45_sb13.hdf5 -> /scratch/dsa110-contimg/ms/central_cal_rebuild/2025-10-13T13:34:44.parts/2025-10-13T13:34:44.sb15.ms
+2025-10-21 14:31:40,657 - INFO - Reading UVH5 file: /scratch/dsa110-contimg/curated/0702_445/2025_10_13/2025-10-13T13:34:44/2025-10-13T13:34:45_sb13.hdf5
+2025-10-21 14:31:40,657 - INFO - File size: 138.6 MB
+2025-10-21 14:31:44,613 - INFO - Successfully loaded UVH5 file into UVData object
+2025-10-21 14:31:44,613 - INFO - Converting uvw_array from float32 to float64
+2025-10-21 14:31:44,614 - INFO - Converting nsample_array from float32 to float64
+2025-10-21 14:31:44,642 - INFO - Applied 2 data type fixes
+The uvw_array does not match the expected values given the antenna positions. The largest discrepancy is 292.3769703689339 meters. This is a fairly common situation but might indicate an error in the antenna positions, the uvws or the phasing.
+2025-10-21 14:31:44,735 - INFO - UVData validation passed
+2025-10-21 14:31:44,801 - INFO - Successfully read UVH5 file:
+2025-10-21 14:31:44,801 - INFO -   - Nblts: 111744
+2025-10-21 14:31:44,802 - INFO -   - Nfreqs: 48
+2025-10-21 14:31:44,802 - INFO -   - Npols: 2
+2025-10-21 14:31:44,802 - INFO -   - Ntimes: 24
+2025-10-21 14:31:44,802 - INFO -   - Nbls: 4656
+2025-10-21 14:31:44,802 - INFO -   - Nfields: 1
+2025-10-21 14:31:44,802 - INFO - Data quality assessment:
+2025-10-21 14:31:44,802 - INFO -   - Quality score: good
+2025-10-21 14:31:44,802 - INFO -   - Time span: 0.003 days
+2025-10-21 14:31:44,802 - INFO -   - Frequency span: 11.5 MHz
+2025-10-21 14:31:44,802 - INFO -   - Flag fraction: 0.0%
+2025-10-21 14:31:44,802 - INFO - Calibration recommendations:
+2025-10-21 14:31:44,802 - INFO -   - delay_calibration: solint=12s, minsnr=2.0, combine=spw
+2025-10-21 14:31:44,802 - INFO -   - bandpass_calibration: solint=inf, minsnr=2.0, combine=scan,field
+2025-10-21 14:31:44,802 - INFO -   - gain_calibration: solint=12s, minsnr=2.0, combine=scan,field
+2025-10-21 14:31:44,803 - WARNING - Using default OVRO location for phasing
+2025-10-21 14:31:44,812 - INFO - Phasing to reference center at 2025-10-13T13:37:13.620: RA(ICRS)=1.889359 rad, Dec(ICRS)=0.782760 rad (H0=0.0 h)
+2025-10-21 14:31:46,230 - INFO - Successfully phased data to midpoint reference
+2025-10-21 14:31:46,231 - INFO - Writing MS file: /scratch/dsa110-contimg/ms/central_cal_rebuild/2025-10-13T13:34:44.parts/2025-10-13T13:34:44.sb15.ms
+Fixing auto-correlations to be be real-only, after some imaginary values were detected in data_array. Largest imaginary component was 1.0121180423709047e-13, largest imaginary/real ratio was 1.1726762461338738e-15.
+UVData object contains a mix of baseline conjugation states, which is not uniformly supported in CASA -- forcing conjugation to be "ant2<ant1" on object.
+Writing in the MS file that the units of the data are uncalib, although some CASA process will ignore this and assume the units are all in Jy (or may not know how to handle data in these units).
+2025-10-21 14:31:47,483 - INFO - Successfully wrote MS: /scratch/dsa110-contimg/ms/central_cal_rebuild/2025-10-13T13:34:44.parts/2025-10-13T13:34:44.sb15.ms
+2025-10-21 14:31:47,484 - INFO - MS file size: 130.9 MB
+2025-10-21 14:31:47,491 - INFO - Fixed mount types in MS antenna table: /scratch/dsa110-contimg/ms/central_cal_rebuild/2025-10-13T13:34:44.parts/2025-10-13T13:34:44.sb15.ms
+2025-10-21 14:31:47,492 - INFO - Conversion completed successfully in 6.8 seconds
+Converting next group 2025-10-13T13:34:44 -> /scratch/dsa110-contimg/ms/central_cal_rebuild/2025-10-13T13:34:44.ms
+Successful read/write open of default-locked table /scratch/dsa110-contimg/ms/central_cal_rebuild/2025-10-13T13:34:44.parts/2025-10-13T13:34:44.sb00.ms/ANTENNA: 8 columns, 117 rows
+added column MODEL_DATA
+'added column CORRECTED_DATA
+added column IMAGING_WEIGHT
+defined keyword CHANNEL_SELECTION in column MODEL_DATA
+Successful read/write open of default-locked table /scratch/dsa110-contimg/ms/central_cal_rebuild/2025-10-13T13:34:44.parts/2025-10-13T13:34:44.sb00.ms: 26 columns, 111744 rows
+Successful read/write open of default-locked table /scratch/dsa110-contimg/ms/central_cal_rebuild/2025-10-13T13:34:44.parts/2025-10-13T13:34:44.sb01.ms/ANTENNA: 8 columns, 117 rows
+added column MODEL_DATA
+'added column CORRECTED_DATA
+added column IMAGING_WEIGHT
+defined keyword CHANNEL_SELECTION in column MODEL_DATA
+Successful read/write open of default-locked table /scratch/dsa110-contimg/ms/central_cal_rebuild/2025-10-13T13:34:44.parts/2025-10-13T13:34:44.sb01.ms: 26 columns, 111744 rows
+Successful read/write open of default-locked table /scratch/dsa110-contimg/ms/central_cal_rebuild/2025-10-13T13:34:44.parts/2025-10-13T13:34:44.sb02.ms/ANTENNA: 8 columns, 117 rows
+added column MODEL_DATA
+'added column CORRECTED_DATA
+added column IMAGING_WEIGHT
+defined keyword CHANNEL_SELECTION in column MODEL_DATA
+Successful read/write open of default-locked table /scratch/dsa110-contimg/ms/central_cal_rebuild/2025-10-13T13:34:44.parts/2025-10-13T13:34:44.sb02.ms: 26 columns, 111744 rows
+Successful read/write open of default-locked table /scratch/dsa110-contimg/ms/central_cal_rebuild/2025-10-13T13:34:44.parts/2025-10-13T13:34:44.sb03.ms/ANTENNA: 8 columns, 117 rows
+added column MODEL_DATA
+'added column CORRECTED_DATA
+added column IMAGING_WEIGHT
+defined keyword CHANNEL_SELECTION in column MODEL_DATA
+Successful read/write open of default-locked table /scratch/dsa110-contimg/ms/central_cal_rebuild/2025-10-13T13:34:44.parts/2025-10-13T13:34:44.sb03.ms: 26 columns, 111744 rows
+Successful read/write open of default-locked table /scratch/dsa110-contimg/ms/central_cal_rebuild/2025-10-13T13:34:44.parts/2025-10-13T13:34:44.sb04.ms/ANTENNA: 8 columns, 117 rows
+added column MODEL_DATA
+'added column CORRECTED_DATA
+added column IMAGING_WEIGHT
+defined keyword CHANNEL_SELECTION in column MODEL_DATA
+Successful read/write open of default-locked table /scratch/dsa110-contimg/ms/central_cal_rebuild/2025-10-13T13:34:44.parts/2025-10-13T13:34:44.sb04.ms: 26 columns, 111744 rows
+Successful read/write open of default-locked table /scratch/dsa110-contimg/ms/central_cal_rebuild/2025-10-13T13:34:44.parts/2025-10-13T13:34:44.sb05.ms/ANTENNA: 8 columns, 117 rows
+added column MODEL_DATA
+'added column CORRECTED_DATA
+added column IMAGING_WEIGHT
+defined keyword CHANNEL_SELECTION in column MODEL_DATA
+Successful read/write open of default-locked table /scratch/dsa110-contimg/ms/central_cal_rebuild/2025-10-13T13:34:44.parts/2025-10-13T13:34:44.sb05.ms: 26 columns, 111744 rows
+Successful read/write open of default-locked table /scratch/dsa110-contimg/ms/central_cal_rebuild/2025-10-13T13:34:44.parts/2025-10-13T13:34:44.sb06.ms/ANTENNA: 8 columns, 117 rows
+added column MODEL_DATA
+'added column CORRECTED_DATA
+added column IMAGING_WEIGHT
+defined keyword CHANNEL_SELECTION in column MODEL_DATA
+Successful read/write open of default-locked table /scratch/dsa110-contimg/ms/central_cal_rebuild/2025-10-13T13:34:44.parts/2025-10-13T13:34:44.sb06.ms: 26 columns, 111744 rows
+Successful read/write open of default-locked table /scratch/dsa110-contimg/ms/central_cal_rebuild/2025-10-13T13:34:44.parts/2025-10-13T13:34:44.sb07.ms/ANTENNA: 8 columns, 117 rows
+added column MODEL_DATA
+'added column CORRECTED_DATA
+added column IMAGING_WEIGHT
+defined keyword CHANNEL_SELECTION in column MODEL_DATA
+Successful read/write open of default-locked table /scratch/dsa110-contimg/ms/central_cal_rebuild/2025-10-13T13:34:44.parts/2025-10-13T13:34:44.sb07.ms: 26 columns, 111744 rows
+Successful read/write open of default-locked table /scratch/dsa110-contimg/ms/central_cal_rebuild/2025-10-13T13:34:44.parts/2025-10-13T13:34:44.sb08.ms/ANTENNA: 8 columns, 117 rows
+added column MODEL_DATA
+'added column CORRECTED_DATA
+added column IMAGING_WEIGHT
+defined keyword CHANNEL_SELECTION in column MODEL_DATA
+Successful read/write open of default-locked table /scratch/dsa110-contimg/ms/central_cal_rebuild/2025-10-13T13:34:44.parts/2025-10-13T13:34:44.sb08.ms: 26 columns, 111744 rows
+Successful read/write open of default-locked table /scratch/dsa110-contimg/ms/central_cal_rebuild/2025-10-13T13:34:44.parts/2025-10-13T13:34:44.sb09.ms/ANTENNA: 8 columns, 117 rows
+added column MODEL_DATA
+'added column CORRECTED_DATA
+added column IMAGING_WEIGHT
+defined keyword CHANNEL_SELECTION in column MODEL_DATA
+Successful read/write open of default-locked table /scratch/dsa110-contimg/ms/central_cal_rebuild/2025-10-13T13:34:44.parts/2025-10-13T13:34:44.sb09.ms: 26 columns, 111744 rows
+Successful read/write open of default-locked table /scratch/dsa110-contimg/ms/central_cal_rebuild/2025-10-13T13:34:44.parts/2025-10-13T13:34:44.sb10.ms/ANTENNA: 8 columns, 117 rows
+added column MODEL_DATA
+'added column CORRECTED_DATA
+added column IMAGING_WEIGHT
+defined keyword CHANNEL_SELECTION in column MODEL_DATA
+Successful read/write open of default-locked table /scratch/dsa110-contimg/ms/central_cal_rebuild/2025-10-13T13:34:44.parts/2025-10-13T13:34:44.sb10.ms: 26 columns, 111744 rows
+Successful read/write open of default-locked table /scratch/dsa110-contimg/ms/central_cal_rebuild/2025-10-13T13:34:44.parts/2025-10-13T13:34:44.sb11.ms/ANTENNA: 8 columns, 117 rows
+added column MODEL_DATA
+'added column CORRECTED_DATA
+added column IMAGING_WEIGHT
+defined keyword CHANNEL_SELECTION in column MODEL_DATA
+Successful read/write open of default-locked table /scratch/dsa110-contimg/ms/central_cal_rebuild/2025-10-13T13:34:44.parts/2025-10-13T13:34:44.sb11.ms: 26 columns, 111744 rows
+Successful read/write open of default-locked table /scratch/dsa110-contimg/ms/central_cal_rebuild/2025-10-13T13:34:44.parts/2025-10-13T13:34:44.sb12.ms/ANTENNA: 8 columns, 117 rows
+added column MODEL_DATA
+'added column CORRECTED_DATA
+added column IMAGING_WEIGHT
+defined keyword CHANNEL_SELECTION in column MODEL_DATA
+Successful read/write open of default-locked table /scratch/dsa110-contimg/ms/central_cal_rebuild/2025-10-13T13:34:44.parts/2025-10-13T13:34:44.sb12.ms: 26 columns, 111744 rows
+Successful read/write open of default-locked table /scratch/dsa110-contimg/ms/central_cal_rebuild/2025-10-13T13:34:44.parts/2025-10-13T13:34:44.sb13.ms/ANTENNA: 8 columns, 117 rows
+added column MODEL_DATA
+'added column CORRECTED_DATA
+added column IMAGING_WEIGHT
+defined keyword CHANNEL_SELECTION in column MODEL_DATA
+Successful read/write open of default-locked table /scratch/dsa110-contimg/ms/central_cal_rebuild/2025-10-13T13:34:44.parts/2025-10-13T13:34:44.sb13.ms: 26 columns, 111744 rows
+Successful read/write open of default-locked table /scratch/dsa110-contimg/ms/central_cal_rebuild/2025-10-13T13:34:44.parts/2025-10-13T13:34:44.sb14.ms/ANTENNA: 8 columns, 117 rows
+added column MODEL_DATA
+'added column CORRECTED_DATA
+added column IMAGING_WEIGHT
+defined keyword CHANNEL_SELECTION in column MODEL_DATA
+Successful read/write open of default-locked table /scratch/dsa110-contimg/ms/central_cal_rebuild/2025-10-13T13:34:44.parts/2025-10-13T13:34:44.sb14.ms: 26 columns, 111744 rows
+Successful read/write open of default-locked table /scratch/dsa110-contimg/ms/central_cal_rebuild/2025-10-13T13:34:44.parts/2025-10-13T13:34:44.sb15.ms/ANTENNA: 8 columns, 117 rows
+added column MODEL_DATA
+'added column CORRECTED_DATA
+added column IMAGING_WEIGHT
+defined keyword CHANNEL_SELECTION in column MODEL_DATA
+Successful read/write open of default-locked table /scratch/dsa110-contimg/ms/central_cal_rebuild/2025-10-13T13:34:44.parts/2025-10-13T13:34:44.sb15.ms: 26 columns, 111744 rows
+Column MODEL_DATA not added; it already exists
+Column CORRECTED_DATA not added; it already exists
+Column IMAGING_WEIGHT not added; it already exists
+defined keyword CHANNEL_SELECTION in column MODEL_DATA2025-10-21 14:33:47,119 - INFO - Imaging /scratch/dsa110-contimg/ms/central_cal_rebuild/2025-10-13T13:34:44.ms -> /scratch/dsa110-contimg/ms/central_cal_rebuild/2025-10-13T13:34:44.img
+2025-10-21 14:33:47,119 - INFO - datacolumn=corrected cell=2.000arcsec imsize=2048 quick=False
+
+0%....10....20....30....40....50....60....70....80....90....100%
+
+0%....10....20....30....40....50....60....70....80....90....100%
+
+0%....10....20....30....40....50....60....70....80....90....100%
+
+0%....10....20....30....40....50....60....70....80....90....100%
+
+0%....10....20....30....40....50....60....70....80....90....100%
+2025-10-21 14:39:22,070 - INFO - tclean completed in 334.95s
+
+Successful read/write open of default-locked table /scratch/dsa110-contimg/ms/central_cal_rebuild/2025-10-13T13:34:44.ms: 26 columns, 1787904 rows
+Applying calibration: /scratch/dsa110-contimg/ms/central_cal_rebuild/2025-10-13T13:28:03.shift_all_bpcal /scratch/dsa110-contimg/ms/central_cal_rebuild/2025-10-13T13:28:03.shift_all_gpcal
+Imaging /scratch/dsa110-contimg/ms/central_cal_rebuild/2025-10-13T13:34:44.ms -> /scratch/dsa110-contimg/ms/central_cal_rebuild/2025-10-13T13:34:44.img
+Successful readonly open of default-locked table /scratch/dsa110-contimg/ms/central_cal_rebuild/2025-10-13T13:34:44.ms: 26 columns, 1787904 rows
+Done: /scratch/dsa110-contimg/ms/central_cal_rebuild/2025-10-13T13:34:44.img

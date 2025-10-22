@@ -1,0 +1,123 @@
+{
+  "message": "Nodes retrieved successfully",
+  "nodes": [
+    {
+      "uuid": "c4df37b8-4fe3-4672-aadb-92de6be097b1",
+      "name": "testing",
+      "summary": "",
+      "labels": [
+        "Entity",
+        "Module"
+      ],
+      "group_id": "dsa110-contimg",
+      "created_at": "2025-10-17T22:27:27.991975+00:00",
+      "attributes": {
+        "entityType": "Module",
+        "source": "cursor-agent-memory"
+      }
+    },
+    {
+      "uuid": "c963c4e1-ec88-4b10-b1a5-d5c768b26b8d",
+      "name": "graphiti_logging.py",
+      "summary": "",
+      "labels": [
+        "Entity"
+      ],
+      "group_id": "dsa110-contimg",
+      "created_at": "2025-10-17T23:07:07.367000+00:00",
+      "attributes": {}
+    },
+    {
+      "uuid": "119f832f-751c-45bc-afdd-81ea7975bb55",
+      "name": "graphiti_import_cursor_memory.py",
+      "summary": "",
+      "labels": [
+        "Entity"
+      ],
+      "group_id": "dsa110-contimg",
+      "created_at": "2025-10-17T23:07:07.367000+00:00",
+      "attributes": {}
+    },
+    {
+      "uuid": "366ce1c3-fcd4-438d-b0b7-f62ad6d8c80b",
+      "name": "test_clickify.yaml",
+      "summary": "",
+      "labels": [
+        "Entity"
+      ],
+      "group_id": "dsa110-contimg",
+      "created_at": "2025-10-17T23:07:07.367000+00:00",
+      "attributes": {}
+    },
+    {
+      "uuid": "f69e5dc9-84e8-449e-abe1-7a5dc793ceba",
+      "name": "tests",
+      "summary": "",
+      "labels": [
+        "Entity",
+        "Module"
+      ],
+      "group_id": "dsa110-contimg",
+      "created_at": "2025-10-17T22:27:27.991624+00:00",
+      "attributes": {
+        "entityType": "Module",
+        "source": "cursor-agent-memory"
+      }
+    },
+    {
+      "uuid": "e9c229f0-f914-4dd0-8dfe-5bd8bb48ad24",
+      "name": "test_ragavi.py",
+      "summary": "",
+      "labels": [
+        "Entity"
+      ],
+      "group_id": "dsa110-contimg",
+      "created_at": "2025-10-17T23:07:07.330000+00:00",
+      "attributes": {}
+    },
+    {
+      "uuid": "98fab51a-364d-4b2c-ad23-cfca6aa69f4b",
+      "name": "test_clickify.py",
+      "summary": "",
+      "labels": [
+        "Entity"
+      ],
+      "group_id": "dsa110-contimg",
+      "created_at": "2025-10-17T23:07:07.367000+00:00",
+      "attributes": {}
+    },
+    {
+      "uuid": "a417f8db-fd05-4526-a1d6-aad2575b7a44",
+      "name": "testing.yaml",
+      "summary": "",
+      "labels": [
+        "Entity"
+      ],
+      "group_id": "dsa110-contimg",
+      "created_at": "2025-10-17T23:07:07.227000+00:00",
+      "attributes": {}
+    },
+    {
+      "uuid": "57f142fb-bdcc-49be-a9e0-b5433780bee5",
+      "name": "stimela_tests",
+      "summary": "",
+      "labels": [
+        "Entity"
+      ],
+      "group_id": "dsa110-contimg",
+      "created_at": "2025-10-17T23:07:07.367000+00:00",
+      "attributes": {}
+    },
+    {
+      "uuid": "9e9ca652-f3df-4144-bac7-3fc008db930f",
+      "name": "test_scatter.yml",
+      "summary": "",
+      "labels": [
+        "Entity"
+      ],
+      "group_id": "dsa110-contimg",
+      "created_at": "2025-10-17T23:07:07.367000+00:00",
+      "attributes": {}
+    }
+  ]
+}

@@ -14,7 +14,12 @@ fi
 # 1) Define run-specific variables
 RUN_ID=0834_555_transit
 INPUT_DIR=/data/incoming/${RUN_ID}
-SCRATCH_ROOT=/scratch/dsa110-contimg
+# Prefer RAM disk when available for fastest writes
+if mount | grep -q "/dev/shm"; then
+  SCRATCH_ROOT=/dev/shm/dsa110-contimg
+else
+  SCRATCH_ROOT=/scratch/dsa110-contimg
+fi
 SCRATCH_MS=${SCRATCH_ROOT}/data-samples/ms/${RUN_ID}
 # Use the group timestamp for tight selection
 START_TIME="2025-10-03 15:15:50"
@@ -50,7 +55,7 @@ export MKL_NUM_THREADS="1"
 export NUMEXPR_NUM_THREADS="1"
 export HDF5_USE_FILE_LOCKING="FALSE"
 
-echo "Running converter (strategies: direct-subband)..."
+echo "Running converter (strategies: auto; tmpfs staging when available)..."
 MAX_WORKERS="${CONTIMG_MAX_WORKERS:-8}"
 "${PYTHON_BIN}" -m dsa110_contimg.conversion.strategies.uvh5_to_ms_converter \
     "${INPUT_DIR}" \
@@ -59,7 +64,9 @@ MAX_WORKERS="${CONTIMG_MAX_WORKERS:-8}"
     "${END_TIME}" \
     --log-level INFO \
     --scratch-dir "${SCRATCH_ROOT}" \
-    --writer direct-subband \
+    --writer auto \
+    --stage-to-tmpfs \
+    --tmpfs-path /dev/shm \
     --max-workers "${MAX_WORKERS}"
 
 # 5) Validate results on scratch (QA / imaging as needed)

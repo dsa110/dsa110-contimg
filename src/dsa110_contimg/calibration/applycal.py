@@ -17,13 +17,14 @@ def apply_to_target(
     """
     if interp is None:
         interp = ["linear"] * len(gaintables)
-    casa_applycal(
+    kwargs = dict(
         vis=ms_target,
         field=field,
         gaintable=gaintables,
         interp=interp,
         calwt=calwt,
-        spwmap=spwmap,
     )
-
-
+    # Only pass spwmap if explicitly provided; CASA rejects explicit null
+    if spwmap is not None:
+        kwargs["spwmap"] = spwmap
+    casa_applycal(**kwargs)

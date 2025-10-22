@@ -266,7 +266,7 @@ def _phase_data_to_midpoint_reference(
     UVData
         Phased UVData object
     """
-    from astropy.coordinates import EarthLocation
+    from astropy.coordinates import EarthLocation, SkyCoord
     from astropy.time import Time
     import astropy.units as u
 
@@ -296,11 +296,8 @@ def _phase_data_to_midpoint_reference(
 
     tref = Time(reference_time, format='jd')
 
-    # Compute LST at reference time
-    lst_rad = tref.sidereal_time(
-        'apparent',
-        longitude=location.lon).to(
-        u.rad).value
+    # Compute apparent sidereal time at reference time
+    lst = tref.sidereal_time('apparent', longitude=location.lon)
 
     # Phase center declination from UVH5 metadata if available
     dec_rad = None
@@ -317,14 +314,28 @@ def _phase_data_to_midpoint_reference(
 
     # Hour angle offset H0 (hours) -> radians
     h0_rad = (hour_angle_offset_hours * u.hourangle).to(u.rad).value
-    ra_rad = lst_rad - h0_rad
-
-    # Normalize RA to [0, 2pi)
-    ra_rad = (ra_rad + 2 * np.pi) % (2 * np.pi)
+    # Compute apparent-of-date RA at meridian, then convert to ICRS (J2000)
+    ra_app = (lst.to(u.rad).value - h0_rad)
+    ra_app = (ra_app + 2 * np.pi) % (2 * np.pi)
+    # Transform apparent (CIRS) to ICRS to avoid arcsecond-level offsets
+    try:
+        cirs = SkyCoord(
+            ra=ra_app * u.rad,
+            dec=dec_rad * u.rad,
+            frame='cirs',
+            obstime=tref,
+            location=location)
+        icrs = cirs.transform_to('icrs')
+        ra_rad = icrs.ra.to_value(u.rad)
+        dec_rad = icrs.dec.to_value(u.rad)
+    except Exception as e:
+        logger.warning(
+            f"CIRS->ICRS transform failed ({e}); using apparent-of-date coordinates")
+        ra_rad = ra_app
 
     logger.info(
-        f"Phasing to reference center at {tref.isot}: RA={ra_rad:.6f} rad, "
-        f"Dec={dec_rad:.6f} rad (H0={hour_angle_offset_hours} h)")
+        f"Phasing to reference center at {tref.isot}: RA(ICRS)={ra_rad:.6f} rad, "
+        f"Dec(ICRS)={dec_rad:.6f} rad (H0={hour_angle_offset_hours} h)")
 
     try:
         # pyuvdata expects radians for phase(); cat_name is required
@@ -535,21 +546,9 @@ def read_uvh5_file(filepath: str, create_time_binned_fields: bool = False,
     calibration_recommendations = _generate_calibration_recommendations(
         quality_info)
 
-    # Fix mount type if present
-    if hasattr(uvd, 'telescope_name'):
-        # Map telescope-specific mount types to CASA standards
-        telescope_mount_mapping = {
-            'DSA110': 'alt-az',
-            'VLA': 'alt-az',
-            'ALMA': 'alt-az',
-            'GMRT': 'alt-az',
-            'LOFAR': 'alt-az'
-        }
-
-        if uvd.telescope_name in telescope_mount_mapping:
-            # Set a standardized mount type attribute for CASA
-            uvd.telescope_name = telescope_mount_mapping[uvd.telescope_name]
-            logger.info(f"Set telescope mount type to: {uvd.telescope_name}")
+    # Do not modify uvd.telescope_name (observatory id).
+    # Mount-type normalization is handled after MS write in
+    # _fix_mount_type_in_ms.
 
     logger.info("Successfully read UVH5 file:")
     logger.info(f"  - Nblts: {uvd.Nblts}")
@@ -557,7 +556,20 @@ def read_uvh5_file(filepath: str, create_time_binned_fields: bool = False,
     logger.info(f"  - Npols: {uvd.Npols}")
     logger.info(f"  - Ntimes: {uvd.Ntimes}")
     logger.info(f"  - Nbls: {uvd.Nbls}")
-    logger.info(f"  - Nfields: {uvd.Nfields}")
+    # Some pyuvdata versions do not expose Nfields; attempt a safe fallback
+    try:
+        nfields = getattr(uvd, 'Nfields', None)
+        if nfields is None:
+            nfields = getattr(uvd, 'Nphase', None)
+        if nfields is None and hasattr(uvd, 'phase_center_catalog'):
+            try:
+                nfields = len(uvd.phase_center_catalog)
+            except Exception:
+                nfields = None
+        if nfields is not None:
+            logger.info(f"  - Nfields: {nfields}")
+    except Exception:
+        pass
 
     # Log data quality assessment
     logger.info("Data quality assessment:")

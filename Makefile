@@ -1,7 +1,7 @@
 DC=docker compose -f ops/docker/docker-compose.yml
 .DEFAULT_GOAL := help
 
-.PHONY: help compose-build compose-up compose-down compose-logs compose-ps compose-restart compose-up-scheduler compose-up-stream compose-up-api compose-pull compose-down-service compose-stop docs-install docs-serve docs-build
+.PHONY: help compose-build compose-up compose-down compose-logs compose-ps compose-restart compose-up-scheduler compose-up-stream compose-up-api compose-pull compose-down-service compose-stop docs-install docs-serve docs-build docs-deploy
 
 help:
 	@echo "DSA-110 Continuum Pipeline - Docker Compose helper targets"
@@ -39,15 +39,19 @@ help:
 	@echo "Docs:"
 	@echo "  mkdocs.yml config present; to serve docs locally (if mkdocs installed):"
 	@echo "    pip install -r docs/requirements.txt && mkdocs serve -a 0.0.0.0:8001"
+	@echo "  build: make docs-build    | deploy to GitHub Pages: make docs-deploy"
 
 docs-install:
 	pip install -r docs/requirements.txt
 
 docs-serve:
-	mkdocs serve -a 0.0.0.0:8001
+	PYTHONPATH=$(PWD)/src mkdocs serve -a 0.0.0.0:8001
 
 docs-build:
-	mkdocs build -d site
+	PYTHONPATH=$(PWD)/src mkdocs build -d site
+
+docs-deploy:
+	mkdocs gh-deploy
 
 compose-build:
 	$(DC) build
@@ -77,7 +81,7 @@ compose-stop:
 
 # Bring up only the scheduler service
 compose-up-scheduler:
-	$(DC) up -d scheduler
+	$(DC) up -d schedulerProcee
 
 # Bring up only the stream service
 compose-up-stream:

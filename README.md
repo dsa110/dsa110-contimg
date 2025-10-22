@@ -9,6 +9,9 @@ This repository contains the streaming continuum-imaging pipeline for DSA-110:
 
 The pipeline can be run via systemd (recommended for the stream worker) or via Docker Compose (good for API and reproducible deployments). A simple mosaicking skeleton and housekeeping tool are also included.
 
+Quick look: see `docs/quicklook.md` for a sub-minute convert→calibrate→image flow using RAM staging, fast calibration, and quick imaging.
+Visual overview: see `docs/pipeline.md` for diagrams of the end-to-end pipeline and its sub-stages.
+
 
 ## Directory Layout
 

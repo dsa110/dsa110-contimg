@@ -1,0 +1,259 @@
+---
+globs:
+  # Jupyter notebooks
+  - *.ipynb
+  - **/*.ipynb
+  # Python
+  - *.py
+  - **/*.py
+  # Markdown / text
+  - *.md
+  - **/*.md
+  - *.txt
+  - **/*.txt
+  # Data / configs
+  - *.json
+  - **/*.json
+  - *.yaml
+  - **/*.yaml
+  - *.yml
+  - **/*.yml
+  - *.csv
+  - **/*.csv
+  # Web assets / scripts
+  - *.html
+  - **/*.html
+  - *.css
+  - **/*.css
+  - *.js
+  - **/*.js
+  # SQL / shell
+  - *.sql
+  - **/*.sql
+  - *.sh
+  - **/*.sh
+alwaysApply: false
+description: Use this rule when working specifically within the 'dsa110-contimg' project context to understand its unique entities, relationships, and extraction guidelines.
+---
+
+# Graphiti Schema: dsa110-contimg Project
+
+This document outlines the specific knowledge graph schema for the 'dsa110-contimg' project.
+
+**Core Rules Reference:** For general Graphiti tool usage and foundational entity extraction principles, refer to `@graphiti-mcp-core-rules.mdc`.
+
+**Maintenance:** For rules on how to update *this* schema file, refer to `@graphiti-knowledge-graph-maintenance.mdc`.
+
+---
+
+## 1. Defined Entities
+
+Add definitions for entities specific to the 'dsa110-contimg' project.
+
+- **`Project`**: Represents the overall `dsa110-contimg` project.
+  - Fields: `name` (string), `description` (string)
+- **`Module`**: Represents a Python module (directory containing `__init__.py`) or a logical grouping of files.
+  - Fields: `name` (string), `path` (string)
+- **`File`**: Represents a specific file within the project.
+  - Fields: `name` (string), `path` (string), `type` (enum: python|markdown|yaml|hdf5|ms|csv|shell|ipynb)
+- **`FileType`**: Enumerated file type categories used by `File`.
+  - Fields: `name` (enum: python|markdown|yaml|hdf5|ms|csv|shell|ipynb)
+- **`Documentation`**: Represents a documentation file or section (e.g., `.md` files in `docs/`).
+  - Fields: `name` (string), `path` (string), `topic` (string)
+- **`Script`**: Represents an executable script (e.g., `.sh` or Python scripts in `scripts/` or `ops/`).
+  - Fields: `name` (string), `path` (string), `language` (enum: python|shell)
+- **`DataSample`**: Represents a sample data file (e.g., Measurement Set, HDF5, CSV).
+  - Fields: `name` (string), `path` (string), `format` (enum: uvh5|hdf5|ms|csv|fits)
+- **`Configuration`**: Represents a configuration file (e.g., `.yaml`, `.json`).
+  - Fields: `name` (string), `path` (string), `format` (enum: json|yaml|yml)
+- **`Test`**: Represents a test file or a collection of tests (e.g., files in `tests/`).
+  - Fields: `name` (string), `path` (string)
+
+- **`Dataset`**: A logical collection of input data (e.g., UVH5/HDF5 bundles, Measurement Sets).
+  - Fields: `name` (string), `path` (string), `date_range` (string; ISO-8601 interval or start/stop), `band` (enum: subband_00|subband_01|subband_02|subband_03|subband_04|subband_05|subband_06|subband_07|subband_08|subband_09|subband_10|subband_11|subband_12|subband_13|subband_14|subband_15), `description` (string)
+
+- **`Run`**: A concrete execution of a pipeline step (e.g., conversion, calibration, imaging).
+  - Fields: `name` (string), `started_at` (datetime), `finished_at` (datetime), `status` (enum: queued|running|succeeded|failed|cancelled), `parameters` (object)
+
+- **`Artifact`**: Any output artifact produced by a Run (e.g., FITS image, MS, QC report).
+  - Fields: `name` (string), `path` (string), `type` (string), `created_at` (datetime)
+
+- **`Paper`**: A publication, preprint, or reference informing implementation choices.
+  - Fields: `title`, `authors`, `venue`, `year`, `url`
+
+- **`Procedure`**: A reproducible method or pipeline step (conversion, calibration, imaging).
+  - Fields: `name` (string), `description` (string), `scope` (enum: conversion|calibration|imaging), `parameters` (list[string])
+
+- **`Preference`**: A project- or procedure-level setting that guides default behavior.
+  - Fields: `name` (string), `key` (string), `value` (string), `category` (string), `applies_to` (enum: project|procedure|module|script)
+
+---
+
+## 2. Defined Relationships (Facts)
+
+Define key relationships for lineage, provenance, and documentation.
+
+- **Subject:** `Project`
+  - **Predicate:** `CONTAINS_MODULE`
+  - **Object:** `Module`
+    *Example Fact:* `(Project: 'dsa110-contimg') --[CONTAINS_MODULE]-> (Module: 'src/dsa110_contimg')`
+    *Extraction Rule:* Identify top-level directories or key subdirectories as modules of the project.
+
+- **Subject:** `Module`
+  - **Predicate:** `CONTAINS_FILE`
+  - **Object:** `File`
+    *Example Fact:* `(Module: 'src/dsa110_contimg') --[CONTAINS_FILE]-> (File: 'src/dsa110_contimg/pipeline.py')`
+    *Extraction Rule:* All files within a module directory are contained by that module.
+
+- **Subject:** `File`
+  - **Predicate:** `REFERENCES_FILE`
+  - **Object:** `File`
+    *Example Fact:* `(File: 'script.sh') --[REFERENCES_FILE]-> (File: 'config.yaml')`
+    *Extraction Rule:* Parse file contents for explicit file paths or import statements.
+
+- **Subject:** `Script`
+  - **Predicate:** `USES_CONFIGURATION`
+  - **Object:** `Configuration`
+    *Example Fact:* `(Script: 'run_conversion.sh') --[USES_CONFIGURATION]-> (Configuration: 'pipeline_config.yaml')`
+    *Extraction Rule:* Look for scripts that load or use configuration files.
+
+- **Subject:** `Script`
+  - **Predicate:** `PROCESSES_DATA_SAMPLE`
+  - **Object:** `DataSample`
+    *Example Fact:* `(Script: 'image_ms.sh') --[PROCESSES_DATA_SAMPLE]-> (DataSample: '2025-01-01T00:00:00.ms')`
+    *Extraction Rule:* Identify scripts that take data samples as input.
+
+- **Subject:** `Documentation`
+  - **Predicate:** `DOCUMENTS`
+  - **Object:** `Module` OR `File` OR `Script`
+    *Example Fact:* `(Documentation: 'quickstart.md') --[DOCUMENTS]-> (Script: 'calibrate_bandpass.sh')`
+    *Extraction Rule:* Infer from documentation content, file paths, or explicit links.
+
+- **Subject:** `File`
+  - **Predicate:** `HAS_TYPE`
+  - **Object:** `FileType` (e.g., 'python', 'markdown', 'yaml', 'hdf5', 'ms', 'csv', 'shell', 'ipynb')
+    *Example Fact:* `(File: 'pipeline.py') --[HAS_TYPE]-> (FileType: 'python')`
+    *Extraction Rule:* Determine file type from extension.
+
+- **Subject:** `Script`
+  - **Predicate:** `GENERATES_FILE`
+  - **Object:** `File`
+    *Example Fact:* `(Script: 'calibrate_bandpass.sh') --[GENERATES_FILE]-> (File: 'refant_ranking.json')`
+    *Extraction Rule:* Identify files created or output by a script.
+
+- `Run --CONSUMES--> Dataset`
+  - Example: `(Run: 'conversion-2025-01-01') --[CONSUMES]-> (Dataset: 'sim_uvh5/2025-01-01')`
+  - Extraction Rule: Infer from CLI args/logs indicating input dataset paths (e.g., `--input-dir`, `MSIn`). Link to a `Dataset` by matching path/time window.
+- `Run --PRODUCES--> Artifact`
+  - Example: `(Run: 'imaging-2025-01-01') --[PRODUCES]-> (Artifact: 'image_2025-01-01.fits')`
+  - Extraction Rule: Detect generated files from logs or filesystem events and create/link `Artifact` nodes.
+- `Run --EXECUTES--> Procedure`
+  - Example: `(Run: 'calibration-2025-01-01-fast') --[EXECUTES]-> (Procedure: 'calibration/fast-bandpass-gain')`
+  - Extraction Rule: Parse invoked task names/flags from logs to map each run to a known `Procedure`.
+- `Run --TRIGGERED_BY--> Script`
+  - Example: `(Run: 'conversion-2025-01-01') --[TRIGGERED_BY]-> (Script: 'scripts/run_conversion.sh')`
+  - Extraction Rule: When a script orchestrates a run, link the run to the script that launched it.
+- `Dataset --CONTAINS_SAMPLE--> DataSample`
+  - Example: `(Dataset: '2025-01-01T00:00:00') --[CONTAINS_SAMPLE]-> (DataSample: '2025-01-01T00:00:00_sb03.hdf5')`
+  - Extraction Rule: Directory scan or manifest files enumerate member subband files.
+- `Module/Script --IMPLEMENTS_PROCEDURE--> Procedure`
+- `Module/Script --INFORMED_BY--> Paper`
+
+- `Procedure --HAS_PREFERENCE--> Preference`
+  - Example: `(Procedure: 'conversion/auto-writer') --[HAS_PREFERENCE]-> (Preference: 'stage_to_tmpfs=true')`
+  - Extraction Rule: Link concrete defaults/flags used in code or scripts to the relevant procedure.
+
+- `Project --HAS_PREFERENCE--> Preference`
+  - Example: `(Project: 'dsa110-contimg') --[HAS_PREFERENCE]-> (Preference: 'tmpfs_enabled=true')`
+  - Extraction Rule: Project-wide defaults documented in README/config map to preferences.
+
+- `Module --HAS_PREFERENCE--> Preference`
+  - Example: `(Module: 'src/dsa110_contimg/imaging') --[HAS_PREFERENCE]-> (Preference: 'quick_default=true')`
+  - Extraction Rule: Defaults embedded in module-level constants/config are captured as preferences.
+
+- `Script --HAS_PREFERENCE--> Preference`
+  - Example: `(Script: 'scripts/image_ms.sh') --[HAS_PREFERENCE]-> (Preference: 'skip_fits=true')`
+  - Extraction Rule: Script flags/env defaults form preferences at script scope.
+
+- `Script --EXECUTES--> Procedure`
+  - Example: `(Script: 'scripts/run_conversion.sh') --[EXECUTES]-> (Procedure: 'conversion/uvh5-to-ms')`
+  - Extraction Rule: When a script invokes a CLI implementing a pipeline step, connect it to the corresponding procedure.
+
+---
+
+## 3. Project-Specific Extraction Guidelines
+
+*Add any extraction rules or nuances unique to the 'dsa110-contimg' project.*
+*These guidelines supplement or specialize instructions in entity definitions and core rules.*
+
+- **File Path Handling:** All file and module paths should be relative to the project root (`/data/dsa110-contimg`).
+- **Inference of Module/Script/Documentation:**
+  - Directories containing `__init__.py` are `Module`s.
+  - Files in `scripts/` or `ops/` with `.sh` or `.py` extensions are `Script`s.
+  - Files in `docs/` with `.md` or `.ipynb` extensions are `Documentation`.
+  - Other `.py` files are `File`s.
+  - Data in `data-samples/` are `DataSample`s.
+  - Files in `config/` are `Configuration`s.
+  - Files in `tests/` are `Test`s.
+
+### 3.2 Band/Subband Semantics
+
+- `Dataset.band` is instrument-centric and must be one of: `subband_00`, `subband_01`, `subband_02`, `subband_03`, `subband_04`, `subband_05`, `subband_06`, `subband_07`, `subband_08`, `subband_09`, `subband_10`, `subband_11`, `subband_12`, `subband_13`, `subband_14`, `subband_15`.
+- Extraction Rule: When dataset directories or filenames encode subband indices (e.g., suffix `_sb##`), map `##` to the corresponding `subband_##` value.
+- Note: Subband frequency ranges are defined by the telescope configuration; ordering may be ascending or descending by frequency depending on data products.
+
+---
+
+### 3.1 Pipeline Procedures and Preferences (Fast Path)
+
+Define the following Procedures and their default Preferences for extraction:
+
+- Procedure: `conversion/uvh5-to-ms`
+  - Description: Convert UVH5/HDF5 subbands to a full-band Measurement Set.
+  - Scope: conversion
+  - Parameters: [writer, stage_to_tmpfs, tmpfs_path, scratch_dir, max_workers]
+  - Preferences:
+    - `stage_to_tmpfs=true` when `/dev/shm` is mounted
+    - `writer=auto` (monolithic for ≤2 subbands else direct-subband)
+
+- Procedure: `calibration/fast-bandpass-gain`
+  - Description: Quick calibration using optional time/channel averaged subset, K on peak field, BP/G across window, phase-only by default.
+  - Scope: calibration
+  - Parameters: [timebin, chanbin, uvrange, bp_combine_field, phase_only]
+  - Preferences:
+    - `phase_only=true` when `--fast` is provided
+    - `uvrange='>1klambda'` if configured for speed
+
+- Procedure: `imaging/quick-tclean`
+  - Description: Quick-look tclean with reduced imsize and niter, optional FITS export skipping.
+  - Scope: imaging
+  - Parameters: [quick, skip_fits, imsize, niter, uvrange]
+  - Preferences:
+    - `quick=true` for streaming preview workflows
+    - `skip_fits=true` unless downstream requires FITS immediately
+
+Scripts that execute these procedures:
+
+- `scripts/run_conversion.sh` EXECUTES `conversion/uvh5-to-ms` and sets Preferences from environment/flags.
+- `scripts/image_ms.sh` EXECUTES `imaging/quick-tclean` when `--quick`/`--skip-fits` are passed.
+
+Extraction Notes:
+
+- When code or scripts pass flags like `--stage-to-tmpfs`, `--writer auto`, `--fast`, `--quick`, extract corresponding Preferences and attach to the relevant Procedure.
+- When logs record timing (e.g., tclean duration), attach a `Run` with parameters and link to the Procedure via `EXECUTES`/`IMPLEMENTS_PROCEDURE`.
+
+## 5. Change Log & Justifications
+
+- Added `FileType` entity and standardized enum-based typing across entities to improve consistency and queryability. Justification: `File --HAS_TYPE--> FileType` referenced a missing entity.
+- Renamed `ImagingProduct` to `Artifact` to cover all run outputs beyond images (e.g., MS, QC reports). Justification: Neutral term avoids scope mismatch.
+- Defined `Dataset.band` as an enum of `subband_00..subband_15` to align with instrument-centric subbanding. Justification: Chosen project convention; enables strict validation.
+- Added relations: `Run --EXECUTES--> Procedure`, `Run --TRIGGERED_BY--> Script`, and `Dataset --CONTAINS_SAMPLE--> DataSample`, with extraction rules. Justification: Strengthen lineage and provenance for runs and datasets.
+- Expanded preference edges to `Project`, `Module`, and `Script` scopes. Justification: Preferences exist beyond procedure scope in this project.
+- Augmented extraction guidelines for `Run --CONSUMES--> Dataset`, `Run --PRODUCES--> Artifact`, `IMPLEMENTS_PROCEDURE`, and `INFORMED_BY`. Justification: Make extraction deterministic and reproducible.
+
+## 4. Future Evolution
+
+*Briefly mention potential future directions or areas for schema expansion.*
+
+- **Detailed Code Entities:** Add entities for `Function`s, `Class`es, and `Variable`s within Python files.
+- **Dependency Relationships:** More granular dependency tracking between `Module`s and `File`s.

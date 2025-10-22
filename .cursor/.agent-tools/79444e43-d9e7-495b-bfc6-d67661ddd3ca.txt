@@ -1,0 +1,82 @@
+[
+  {
+    "entityType": "Module",
+    "name": "api",
+    "observations": [
+      "Contains API endpoints and models."
+    ],
+    "path": "src/dsa110_contimg/api/"
+  },
+  {
+    "observations": [
+      "Contains calibration-related modules and scripts."
+    ],
+    "path": "src/dsa110_contimg/calibration/",
+    "name": "calibration",
+    "entityType": "Module"
+  },
+  {
+    "observations": [
+      "Contains data conversion utilities."
+    ],
+    "path": "src/dsa110_contimg/conversion/",
+    "entityType": "Module",
+    "name": "conversion"
+  },
+  {
+    "observations": [
+      "Contains database interaction modules."
+    ],
+    "entityType": "Module",
+    "name": "database",
+    "path": "src/dsa110_contimg/database/"
+  },
+  {
+    "path": "src/dsa110_contimg/imaging/",
+    "observations": [
+      "Contains imaging-related modules."
+    ],
+    "name": "imaging",
+    "entityType": "Module"
+  },
+  {
+    "name": "mosaic",
+    "observations": [
+      "Contains mosaic-related modules."
+    ],
+    "path": "src/dsa110_contimg/mosaic/",
+    "entityType": "Module"
+  },
+  {
+    "path": "src/dsa110_contimg/notebooks/",
+    "observations": [
+      "Contains Jupyter notebooks for analysis and examples."
+    ],
+    "name": "notebooks",
+    "entityType": "Module"
+  },
+  {
+    "observations": [
+      "Contains quality assurance and plotting tools."
+    ],
+    "path": "src/dsa110_contimg/qa/",
+    "entityType": "Module",
+    "name": "qa"
+  },
+  {
+    "name": "simulation",
+    "observations": [
+      "Contains simulation-related modules."
+    ],
+    "path": "src/dsa110_contimg/simulation/",
+    "entityType": "Module"
+  },
+  {
+    "path": "src/dsa110_contimg/utils/",
+    "entityType": "Module",
+    "observations": [
+      "Contains utility functions and helper modules."
+    ],
+    "name": "utils"
+  }
+]

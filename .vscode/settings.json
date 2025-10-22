@@ -3,5 +3,6 @@
         "pipeline"
     ],
     "python.testing.unittestEnabled": false,
-    "python.testing.pytestEnabled": true
+    "python.testing.pytestEnabled": true,
+    "chatgpt.openOnStartup": true
 }

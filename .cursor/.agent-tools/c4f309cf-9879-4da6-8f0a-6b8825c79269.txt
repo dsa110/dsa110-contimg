@@ -1,0 +1,194 @@
+Available Libraries (top matches):
+
+Each result includes:
+- Library ID: Context7-compatible identifier (format: /org/project)
+- Name: Library or package name
+- Description: Short summary
+- Code Snippets: Number of available code examples
+- Trust Score: Authority indicator
+- Versions: List of versions if available. Use one of those versions if the user provides a version in their query. The format of the version is /org/project/version.
+
+For best results, select libraries based on name match, trust score, snippet coverage, and relevance to your use case.
+
+----------
+
+- Title: CasaOS
+- Context7-compatible library ID: /icewhaletech/casaos
+- Description: CasaOS - A simple, easy-to-use, elegant open-source Personal Cloud system.
+- Code Snippets: 7
+- Trust Score: 8
+----------
+- Title: Hacasa
+- Context7-compatible library ID: /damianeickhoff/hacasa
+- Description: HaCasa provides a modern, minimalistic, and user-friendly dashboard for Home Assistant, designed for easy customization and a professional look.
+- Code Snippets: 51
+- Trust Score: 6.6
+----------
+- Title: CloudCasa
+- Context7-compatible library ID: /websites/cloudcasa_io_help
+- Description: CloudCasa is a SaaS solution for data protection, recovery, and mobility for Kubernetes, cloud databases, and cloud-native applications, offering application-consistent data protection, disaster recovery, security, migration, and replication.
+- Code Snippets: 71
+- Trust Score: 7.5
+----------
+- Title: CaptainCasa
+- Context7-compatible library ID: /nettermensch/captaincasa_doc
+- Description: This project provides demos and code snippets for AI tools, offering direct access to examples and functionalities.
+- Code Snippets: 3009
+- Trust Score: 3.8
+----------
+- Title: Home Assistant
+- Context7-compatible library ID: /home-assistant/core
+- Description: :house_with_garden: Open source home automation that puts local control and privacy first.
+- Code Snippets: 1326
+- Trust Score: 10
+----------
+- Title: Rasa
+- Context7-compatible library ID: /rasahq/rasa
+- Description: Rasa is an open-source machine learning framework for building contextual AI assistants and chatbots that can handle complex, multi-turn conversations across various text and voice channels.
+- Code Snippets: 1057
+- Trust Score: 9
+----------
+- Title: Rasa
+- Context7-compatible library ID: /websites/legacy-docs-oss_rasa_com-docs-rasa-installation-environment-set-up
+- Description: Rasa is an open-source framework for building contextual AI assistants and chatbots. It provides tools for natural language understanding, dialogue management, and integrations for various messaging channels.
+- Code Snippets: 22792
+- Trust Score: 7.5
+----------
+- Title: Prima.cpp
+- Context7-compatible library ID: /lizonghang/prima.cpp
+- Description: prima.cpp: Speeding up 70B-scale LLM inference on low-resource everyday home clusters
+- Code Snippets: 772
+- Trust Score: 9.6
+----------
+- Title: CARLA Simulator
+- Context7-compatible library ID: /websites/carla_readthedocs_io-en
+- Description: CARLA is an open-source simulator for autonomous driving research, providing a realistic and flexible environment for developing and testing self-driving technologies.
+- Code Snippets: 1499
+- Trust Score: 7.5
+----------
+- Title: Domus API 3.0
+- Context7-compatible library ID: /websites/apiv3get_domus_la-3.0
+- Description: Domus API 3.0 integrates the Domus real estate commercial system with third-party web pages and applications. It provides a simple JSON response compatible with any programming language and library.
+- Code Snippets: 113
+- Trust Score: 7.5
+----------
+- Title: Mesa: Agent-based modeling in Python
+- Context7-compatible library ID: /websites/mesa_readthedocs_io
+- Description: Mesa is an Apache2 licensed agent-based modeling framework in Python. It allows users to quickly create, visualize, and analyze agent-based models using built-in components or custom implementations.
+- Code Snippets: 1253
+- Trust Score: 7.5
+----------
+- Title: CARLA Simulator
+- Context7-compatible library ID: /carla-simulator/carla
+- Description: CARLA is an open-source simulator for autonomous driving research, providing open digital assets and supporting flexible specification of sensor suites and environmental conditions.
+- Code Snippets: 1272
+- Trust Score: 7.2
+- Versions: 0_9_15_2
+----------
+- Title: COLA
+- Context7-compatible library ID: /alibaba/cola
+- Description: COLA (Clean Object-Oriented and Layered Architecture) is a Java framework providing a structured approach to application development, focusing on clean design, layered architecture, and reusable components to manage complexity and improve efficiency.
+- Code Snippets: 44
+- Trust Score: 9.1
+----------
+- Title: CSA
+- Context7-compatible library ID: /bhavesh-songara/csa
+- Description: An open-source customer service platform powered by Google's Gemini Stream API, enabling AI agents to handle support through voice and screen sharing 24/7.
+- Code Snippets: 4
+- Trust Score: 5.9
+----------
+- Title: Home Assistant VS Code Extension
+- Context7-compatible library ID: /keesschollaart81/vscode-home-assistant
+- Description: This VS Code extension provides auto-completion, validation, and navigation for Home Assistant configurations, including entity IDs, actions, scenes, triggers, and Lovelace schemas, enhancing the development experience.
+- Code Snippets: 10
+- Trust Score: 9.6
+----------
+- Title: CARLA Unreal Engine 5
+- Context7-compatible library ID: /websites/carla-ue5_readthedocs_io_en
+- Description: CARLA is an open-source urban driving simulator for autonomous driving research, with this version specifically built on Unreal Engine 5 to enable advanced simulations.
+- Code Snippets: 991
+- Trust Score: 7.5
+----------
+- Title: Clara
+- Context7-compatible library ID: /badboysm890/claraverse
+- Description: ClaraVerse is a fully local AI superstack offering a privacy-first, cloud-free ecosystem for AI chat, agents, automation, image generation, and app building.
+- Code Snippets: 71
+- Trust Score: 9.6
+----------
+- Title: CARLA Simulator
+- Context7-compatible library ID: /websites/carla_readthedocs_io_en
+- Description: CARLA Simulator is an open-source urban driving simulator for autonomous driving research, development, and validation, providing a realistic virtual environment and flexible API.
+- Code Snippets: 1281
+- Trust Score: 7.5
+----------
+- Title: ROSA
+- Context7-compatible library ID: /nasa-jpl/rosa
+- Description: ROSA (ROS Agent) is an AI-powered assistant built on Langchain that enables natural language interaction with ROS1 and ROS2 robotics systems.
+- Code Snippets: 29
+- Trust Score: 8.5
+----------
+- Title: Home Assistant
+- Context7-compatible library ID: /home-assistant/home-assistant.io
+- Description: :blue_book: Home Assistant User documentation
+- Code Snippets: 7101
+- Trust Score: 10
+----------
+- Title: Homebridge
+- Context7-compatible library ID: /homebridge/homebridge
+- Description: HomeKit support for the impatient.
+- Code Snippets: 4
+- Trust Score: 7.9
+----------
+- Title: llama-cpp-rs
+- Context7-compatible library ID: /utilityai/llama-cpp-rs
+- Description: Rust bindings for llama.cpp, providing a simple and up-to-date interface for interacting with the llama.cpp library for running large language models.
+- Code Snippets: 15
+- Trust Score: 7.1
+----------
+- Title: VILA
+- Context7-compatible library ID: /nvlabs/vila
+- Description: VILA is a family of open Vision Language Models optimized for efficient video and multi-image understanding, offering strong performance and deployability.
+- Code Snippets: 71
+- Trust Score: 8.8
+----------
+- Title: Exo
+- Context7-compatible library ID: /exo-explore/exo
+- Description: Run your own AI cluster at home with everyday devices 📱💻 🖥️⌚
+- Code Snippets: 14
+- Trust Score: 7.9
+----------
+- Title: Rasa Pro
+- Context7-compatible library ID: /websites/rasa_com-docs-learn-quickstart-pro
+- Description: A quickstart guide to using Rasa Pro, a platform for building conversational AI assistants, which can be accessed in-browser without installation.
+- Code Snippets: 23091
+- Trust Score: 7.5
+----------
+- Title: Paper-qa
+- Context7-compatible library ID: /future-house/paper-qa
+- Description: PaperQA2 is a package for high-accuracy retrieval augmented generation (RAG) on PDFs or text files, focusing on scientific literature, offering superhuman performance in tasks like question answering and summarization.
+- Code Snippets: 130
+- Trust Score: 7.2
+----------
+- Title: HC
+- Context7-compatible library ID: /java110/microcommunity
+- Description: HC is open source Property Management Software(saas)
+- Code Snippets: 55
+- Trust Score: 7.4
+----------
+- Title: C/UA
+- Context7-compatible library ID: /trycua/cua
+- Description: c/ua is the Docker Container for Computer-Use AI Agents.
+- Code Snippets: 563
+- Trust Score: 7.7
+----------
+- Title: HABApp
+- Context7-compatible library ID: /spacemanspiff2007/habapp
+- Description: HABApp is an asyncio/multithread application for easy home automation, allowing users to create Python rules that connect to openHAB instances and/or MQTT brokers to listen to and react to events.
+- Code Snippets: 185
+- Trust Score: 7
+----------
+- Title: Terraform RHCS ROSA HCP
+- Context7-compatible library ID: /terraform-redhat/terraform-rhcs-rosa-hcp
+- Description: Terraform module for deploying, configuring, and managing Red Hat OpenShift on AWS (ROSA) Hosted Control Plane (HCP) clusters.
+- Code Snippets: 89
+- Trust Score: 5.4

@@ -4,6 +4,23 @@ import os
 import astropy.units as u
 from astropy.coordinates import SkyCoord
 from casacore.tables import addImagingColumns
+import casacore.tables as tb
+
+
+def _ensure_imaging_columns(ms_path: str) -> None:
+    try:
+        addImagingColumns(ms_path)
+    except Exception:
+        pass
+
+
+def _initialize_corrected_from_data(ms_path: str) -> None:
+    try:
+        with tb.table(ms_path, readonly=False) as t:
+            if "DATA" in t.colnames() and "CORRECTED_DATA" in t.colnames():
+                t.putcol("CORRECTED_DATA", t.getcol("DATA"))
+    except Exception:
+        pass
 
 
 def write_point_model_with_ft(
@@ -15,32 +32,12 @@ def write_point_model_with_ft(
     reffreq_hz: float = 1.4e9,
     spectral_index: Optional[float] = None,
 ) -> None:
-    """Write a physically-correct complex point-source model into MODEL_DATA using CASA ft.
-
-    Parameters
-    ----------
-    ms_path : str
-        Path to Measurement Set directory.
-    ra_deg, dec_deg : float
-        Calibrator ICRS coordinates (degrees).
-    flux_jy : float
-        Flux density in Jy (at ``reffreq_hz`` unless spectral index provided).
-    reffreq_hz : float
-        Reference frequency for the component (default 1.4 GHz).
-    spectral_index : float, optional
-        If provided, sets a spectral-index spectrum on the component (single term).
-    """
+    """Write a physically-correct complex point-source model into MODEL_DATA using CASA ft."""
     from casatools import componentlist as cltool
     from casatasks import ft
-    import casacore.tables as tb
 
-    # Ensure imaging columns exist
-    try:
-        addImagingColumns(ms_path)
-    except Exception:
-        pass
+    _ensure_imaging_columns(ms_path)
 
-    # Build component list
     comp_path = os.path.join(os.path.dirname(ms_path), "cal_component.cl")
     cl = cltool()
     sc = SkyCoord(ra_deg * u.deg, dec_deg * u.deg, frame="icrs")
@@ -50,25 +47,27 @@ def write_point_model_with_ft(
         "long": f"{sc.ra.deg}deg",
         "lat": f"{sc.dec.deg}deg",
     }
-    cl.addcomponent(dir=dir_dict, flux=float(flux_jy), fluxunit="Jy", freq=f"{reffreq_hz}Hz", shape="point")
+    cl.addcomponent(
+        dir=dir_dict,
+        flux=float(flux_jy),
+        fluxunit="Jy",
+        freq=f"{reffreq_hz}Hz",
+        shape="point")
     if spectral_index is not None:
         try:
-            cl.setspectrum(which=0, type="spectral index", index=[float(spectral_index)], reffreq=f"{reffreq_hz}Hz")
+            cl.setspectrum(
+                which=0,
+                type="spectral index",
+                index=[
+                    float(spectral_index)],
+                reffreq=f"{reffreq_hz}Hz")
         except Exception:
             pass
     cl.rename(comp_path)
     cl.close()
 
-    # Fourier-transform the component into MODEL_DATA
     ft(vis=ms_path, complist=comp_path, usescratch=True)
-
-    # Initialize CORRECTED_DATA from DATA if present
-    try:
-        with tb.table(ms_path, readonly=False) as t:
-            if "CORRECTED_DATA" in t.colnames():
-                t.putcol("CORRECTED_DATA", t.getcol("DATA"))
-    except Exception:
-        pass
+    _initialize_corrected_from_data(ms_path)
 
 
 def write_point_model_quick(
@@ -77,21 +76,13 @@ def write_point_model_quick(
     dec_deg: float,
     flux_jy: float,
 ) -> None:
-    """Write a simple amplitude-only model line per frequency (testing only).
-
-    This is not phase-correct and should not be used for real solves; kept for fast tests.
-    """
+    """Write a simple amplitude-only model line per frequency (testing only)."""
     import numpy as np
-    import casacore.tables as tb
 
-    try:
-        addImagingColumns(ms_path)
-    except Exception:
-        pass
+    _ensure_imaging_columns(ms_path)
 
     with tb.table(f"{ms_path}::SPECTRAL_WINDOW") as ts:
         freqs = ts.getcol("CHAN_FREQ")[0]
-    # Flat spectrum
     amp = np.ones_like(freqs, dtype=np.float32)
 
     with tb.table(ms_path, readonly=False) as t:
@@ -102,8 +93,53 @@ def write_point_model_quick(
             end = min(start + blk, nrow)
             model = line[None, :, None]
             model = np.broadcast_to(model, (npol, nchan, end - start)).copy()
-            t.putcolslice("MODEL_DATA", model, blc=[0, 0, start], trc=[npol - 1, nchan - 1, end - 1])
-        try:
-            t.putcol("CORRECTED_DATA", t.getcol("DATA"))
-        except Exception:
-            pass
+            t.putcolslice(
+                "MODEL_DATA", model, blc=[
+                    0, 0, start], trc=[
+                    npol - 1, nchan - 1, end - 1])
+    _initialize_corrected_from_data(ms_path)
+
+
+def write_component_model_with_ft(ms_path: str, component_path: str) -> None:
+    """Apply an existing CASA component list (.cl) into MODEL_DATA using ft."""
+    from casatasks import ft
+
+    if not os.path.exists(component_path):
+        raise FileNotFoundError(f"Component list not found: {component_path}")
+
+    _ensure_imaging_columns(ms_path)
+    ft(vis=ms_path, complist=component_path, usescratch=True)
+    _initialize_corrected_from_data(ms_path)
+
+
+def write_image_model_with_ft(ms_path: str, image_path: str) -> None:
+    """Apply a CASA image model into MODEL_DATA using ft."""
+    from casatasks import ft
+
+    if not os.path.exists(image_path):
+        raise FileNotFoundError(f"Model image not found: {image_path}")
+
+    _ensure_imaging_columns(ms_path)
+    ft(vis=ms_path, model=image_path, usescratch=True)
+    _initialize_corrected_from_data(ms_path)
+
+
+def write_setjy_model(
+    ms_path: str,
+    field: str,
+    *,
+    standard: str = "Perley-Butler 2017",
+    spw: str = "",
+    usescratch: bool = True,
+) -> None:
+    """Populate MODEL_DATA via casatasks.setjy for standard calibrators."""
+    from casatasks import setjy
+
+    _ensure_imaging_columns(ms_path)
+    setjy(
+        vis=ms_path,
+        field=str(field),
+        spw=spw,
+        standard=standard,
+        usescratch=usescratch)
+    _initialize_corrected_from_data(ms_path)

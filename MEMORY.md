@@ -1,3 +1,10 @@
+# Project Memory – dsa110-contimg
+
+- Prefer RAM staging for per-subband MS writes and concat (`/dev/shm`) when available; fall back to SSD.
+- Auto writer heuristic: ≤2 subbands -> monolithic (pyuvdata), else direct-subband.
+- Fast calibration: use `--fast` with time/channel averaging; solve K on peak field, BP/G across window; phase-only by default; optional `--uvrange` cuts for speed.
+- Quick imaging: `--quick` to cap imsize/niter; `--skip-fits` to avoid export; auto-selects CORRECTED_DATA when valid.
+- Add concise timers around major steps to track drift (conversion concat, K/BP/G, tclean).
 # DSA-110 Continuum Imaging Project Memory
 
 ## Key Lessons and Principles
@@ -48,6 +55,13 @@
 - Field selection in delay solve now honors CASA-style names/ranges: numeric IDs, `A~B`, comma lists, and glob matches against `FIELD::NAME`. This removes a crash when `--field` is a name.
 - Calibration table prefixes now use `os.path.splitext(ms)[0]` instead of `rstrip('.ms')`, preventing accidental truncation (e.g., `runs.ms` → `runs`, not `run`).
 - Streaming converter now uses the strategy orchestrator (writer=`direct-subband`) in both subprocess and in‑process paths; writer type is recorded in metrics.
+
+### Integration Notes: Zapier MCP + Azure OpenAI (2025-10-20)
+- Use the Zapier Azure OpenAI actions only after configuring the action UI fields; runtime overrides via MCP may be ignored.
+- Required: set the exact Azure OpenAI `Deployment Name` (alias) in the Zapier action UI.
+- Ensure the Azure resource host configured in Zapier matches the actual resource (e.g., `jfaber-9261-resource.openai.azure.com` vs a stale `myoairesourced1ce90.openai.azure.com`).
+- If calls fail with “Deployment Name is missing,” confirm the action UI contains the alias (e.g., `gpt-5-codex`), not the model name.
+- Legacy action endpoints may reveal misconfigured hosts; fix in Zapier, then retry calls without passing `deployment` at runtime.
 - Products DB helpers added: centralized `ms_index`/`images` schema management, upserts, and indices.
 - API/monitoring integrates recent calibrator matches and QA discovery.
 
@@ -484,6 +498,19 @@ This documents the current end-to-end streaming path and operational knobs.
 - Stage tracking and artifact cataloging when `PIPELINE_PRODUCTS_DB` is set.
 
 ### Potential Next Steps
-- Add refant override from QA ranking.
+- Add refant override from QA ranking
 - Per‑stage timing metrics into `ms_index`.
 - Lightweight dashboard reading `ms_index`/`images` for live ops.
+
+### New Lesson: Calibration MODEL_DATA Strategies (2025-10-20)
+- `dsa110_contimg.calibration.cli` now supports `--model-source` to populate `MODEL_DATA` before bandpass solves.
+- Options:
+  - `catalog`: auto point-source via CASA `ft` using catalog RA/Dec/flux returned by auto-field selection.
+  - `setjy`: run `setjy` (default Perley-Butler 2017) on a specified field.
+  - `component`: apply a CASA component list via `ft`.
+  - `image`: apply a CASA image model via `ft`.
+- Helpers live in `dsa110_contimg.calibration.model`: new functions for setjy, component, and image models, plus refactored point-source writer.
+- Each helper ensures imaging columns exist and copies `DATA` → `CORRECTED_DATA` after writing `MODEL_DATA` to keep CASA solvers happy.
+- Use the CLI flags (`--model-component`, `--model-image`, `--model-field`, etc.) to point at external assets when not using the catalog auto mode.
+
+* Google application credentials can be found at `/home/ubuntu/.config/gcloud/application_default_credentials.json` (Primary) and `/home/ubuntu/.cache/google-vscode-extension/auth/application_default_credentials.json` (VS Code Extension)

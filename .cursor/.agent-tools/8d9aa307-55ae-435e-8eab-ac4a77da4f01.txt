@@ -1,0 +1,1684 @@
+{
+  "entities": [
+    {
+      "type": "entity",
+      "name": "dsa110-contimg",
+      "entityType": "Project",
+      "observations": [
+        "The main project repository for DSA-110 continuum imaging."
+      ]
+    },
+    {
+      "type": "entity",
+      "name": "src",
+      "entityType": "Module",
+      "observations": [
+        "Contains the main source code for the project."
+      ]
+    },
+    {
+      "type": "entity",
+      "name": "docs",
+      "entityType": "Module",
+      "observations": [
+        "Contains project documentation."
+      ]
+    },
+    {
+      "type": "entity",
+      "name": "scripts",
+      "entityType": "Module",
+      "observations": [
+        "Contains utility and automation scripts."
+      ]
+    },
+    {
+      "type": "entity",
+      "name": "ops",
+      "entityType": "Module",
+      "observations": [
+        "Contains operational scripts and configurations."
+      ]
+    },
+    {
+      "type": "entity",
+      "name": "config",
+      "entityType": "Module",
+      "observations": [
+        "Contains configuration files for the project."
+      ]
+    },
+    {
+      "type": "entity",
+      "name": "data-samples",
+      "entityType": "Module",
+      "observations": [
+        "Contains sample data files."
+      ]
+    },
+    {
+      "type": "entity",
+      "name": "tests",
+      "entityType": "Module",
+      "observations": [
+        "Contains test scripts and test data."
+      ]
+    },
+    {
+      "type": "entity",
+      "name": "examples",
+      "entityType": "Module",
+      "observations": [
+        "Contains example scripts and usage demonstrations."
+      ]
+    },
+    {
+      "type": "entity",
+      "name": "dsa110_contimg",
+      "entityType": "Module",
+      "observations": [
+        "The main Python package for dsa110-contimg."
+      ]
+    },
+    {
+      "type": "entity",
+      "name": "api",
+      "entityType": "Module",
+      "observations": [
+        "Contains API endpoints and models."
+      ]
+    },
+    {
+      "type": "entity",
+      "name": "calibration",
+      "entityType": "Module",
+      "observations": [
+        "Contains calibration-related modules and scripts."
+      ]
+    },
+    {
+      "type": "entity",
+      "name": "conversion",
+      "entityType": "Module",
+      "observations": [
+        "Contains data conversion utilities."
+      ]
+    },
+    {
+      "type": "entity",
+      "name": "database",
+      "entityType": "Module",
+      "observations": [
+        "Contains database interaction modules."
+      ]
+    },
+    {
+      "type": "entity",
+      "name": "imaging",
+      "entityType": "Module",
+      "observations": [
+        "Contains imaging-related modules."
+      ]
+    },
+    {
+      "type": "entity",
+      "name": "mosaic",
+      "entityType": "Module",
+      "observations": [
+        "Contains mosaic-related modules."
+      ]
+    },
+    {
+      "type": "entity",
+      "name": "notebooks",
+      "entityType": "Module",
+      "observations": [
+        "Contains Jupyter notebooks for analysis and examples."
+      ]
+    },
+    {
+      "type": "entity",
+      "name": "qa",
+      "entityType": "Module",
+      "observations": [
+        "Contains quality assurance and plotting tools."
+      ]
+    },
+    {
+      "type": "entity",
+      "name": "simulation",
+      "entityType": "Module",
+      "observations": [
+        "Contains simulation-related modules."
+      ]
+    },
+    {
+      "type": "entity",
+      "name": "utils",
+      "entityType": "Module",
+      "observations": [
+        "Contains utility functions and helper modules."
+      ]
+    },
+    {
+      "type": "entity",
+      "name": "uvh5_to_ms.py",
+      "entityType": "File"
+    },
+    {
+      "type": "entity",
+      "name": "streaming_converter.py",
+      "entityType": "File"
+    },
+    {
+      "type": "entity",
+      "name": "downsample_hdf5_batch.py",
+      "entityType": "File"
+    },
+    {
+      "type": "entity",
+      "name": "downsample_hdf5.py",
+      "entityType": "File"
+    },
+    {
+      "type": "entity",
+      "name": "downsample_hdf5_fast.py",
+      "entityType": "File"
+    },
+    {
+      "type": "entity",
+      "name": "helpers.py",
+      "entityType": "File"
+    },
+    {
+      "type": "entity",
+      "name": "strategies",
+      "entityType": "Module",
+      "observations": [
+        "Contains different data conversion strategies."
+      ]
+    },
+    {
+      "type": "entity",
+      "name": "uvh5_to_ms_converter.py",
+      "entityType": "File"
+    },
+    {
+      "type": "entity",
+      "name": "pyuvdata_monolithic.py",
+      "entityType": "File"
+    },
+    {
+      "type": "entity",
+      "name": "direct_subband.py",
+      "entityType": "File"
+    },
+    {
+      "type": "entity",
+      "name": "base.py",
+      "entityType": "File"
+    },
+    {
+      "type": "entity",
+      "name": "writers.py",
+      "entityType": "File"
+    },
+    {
+      "type": "entity",
+      "name": "cli.py",
+      "entityType": "File"
+    },
+    {
+      "type": "entity",
+      "name": "worker.py",
+      "entityType": "File"
+    },
+    {
+      "type": "entity",
+      "name": "legacy-overview.md",
+      "entityType": "Documentation"
+    },
+    {
+      "type": "entity",
+      "name": "troubleshooting.md",
+      "entityType": "Documentation"
+    },
+    {
+      "type": "entity",
+      "name": "quickstart.md",
+      "entityType": "Documentation"
+    },
+    {
+      "type": "entity",
+      "name": "index.md",
+      "entityType": "Documentation"
+    },
+    {
+      "type": "entity",
+      "name": "downsampling_guide.md",
+      "entityType": "Documentation"
+    },
+    {
+      "type": "entity",
+      "name": "reference",
+      "entityType": "Module",
+      "observations": [
+        "Contains reference documentation."
+      ]
+    },
+    {
+      "type": "entity",
+      "name": "modules.md",
+      "entityType": "Documentation"
+    },
+    {
+      "type": "entity",
+      "name": "env.md",
+      "entityType": "Documentation"
+    },
+    {
+      "type": "entity",
+      "name": "api.md",
+      "entityType": "Documentation"
+    },
+    {
+      "type": "entity",
+      "name": "cli.md",
+      "entityType": "Documentation"
+    },
+    {
+      "type": "entity",
+      "name": "image_ms.sh",
+      "entityType": "Script"
+    },
+    {
+      "type": "entity",
+      "name": "calibrate_bandpass.sh",
+      "entityType": "Script"
+    },
+    {
+      "type": "entity",
+      "name": "run_conversion.sh",
+      "entityType": "Script"
+    },
+    {
+      "type": "entity",
+      "name": "scratch_sync.sh",
+      "entityType": "Script"
+    },
+    {
+      "type": "entity",
+      "name": "move_casa_logs.sh",
+      "entityType": "Script"
+    },
+    {
+      "type": "entity",
+      "name": "docker",
+      "entityType": "Module",
+      "observations": [
+        "Contains Docker-related files."
+      ]
+    },
+    {
+      "type": "entity",
+      "name": "pipeline",
+      "entityType": "Module",
+      "observations": [
+        "Contains pipeline-related scripts and services."
+      ]
+    },
+    {
+      "type": "entity",
+      "name": "systemd",
+      "entityType": "Module",
+      "observations": [
+        "Contains systemd service files."
+      ]
+    },
+    {
+      "type": "entity",
+      "name": "backup_database.sh",
+      "entityType": "Script"
+    },
+    {
+      "type": "entity",
+      "name": "multi_observation.sh",
+      "entityType": "Script"
+    },
+    {
+      "type": "entity",
+      "name": "basic_generation.sh",
+      "entityType": "Script"
+    },
+    {
+      "type": "entity",
+      "name": "catalogs",
+      "entityType": "Module",
+      "observations": [
+        "Contains catalog files."
+      ]
+    },
+    {
+      "type": "entity",
+      "name": "bcal_candidates_vla.csv",
+      "entityType": "DataSample"
+    },
+    {
+      "type": "entity",
+      "name": "cals_94.csv",
+      "entityType": "DataSample"
+    },
+    {
+      "type": "entity",
+      "name": "vla_calibrators_parsed.csv",
+      "entityType": "DataSample"
+    },
+    {
+      "type": "entity",
+      "name": "vlacalibrators.txt",
+      "entityType": "DataSample"
+    },
+    {
+      "type": "entity",
+      "name": "vlacals.csv",
+      "entityType": "DataSample"
+    },
+    {
+      "type": "entity",
+      "name": "ms",
+      "entityType": "Module",
+      "observations": [
+        "Contains Measurement Set data."
+      ]
+    },
+    {
+      "type": "entity",
+      "name": "2025-01-01T00:00:00.ms",
+      "entityType": "DataSample"
+    },
+    {
+      "type": "entity",
+      "name": "sim_uvh5",
+      "entityType": "Module",
+      "observations": [
+        "Contains simulated UVH5 data."
+      ]
+    },
+    {
+      "type": "entity",
+      "name": "2025-01-01T00:00:00_sb00.hdf5",
+      "entityType": "DataSample"
+    },
+    {
+      "type": "entity",
+      "name": "2025-01-01T00:00:00_sb01.hdf5",
+      "entityType": "DataSample"
+    },
+    {
+      "type": "entity",
+      "name": "2025-01-01T00:00:00_sb02.hdf5",
+      "entityType": "DataSample"
+    },
+    {
+      "type": "entity",
+      "name": "2025-01-01T00:00:00_sb03.hdf5",
+      "entityType": "DataSample"
+    },
+    {
+      "type": "entity",
+      "name": "2025-01-01T00:00:00_sb04.hdf5",
+      "entityType": "DataSample"
+    },
+    {
+      "type": "entity",
+      "name": "2025-01-01T00:00:00_sb05.hdf5",
+      "entityType": "DataSample"
+    },
+    {
+      "type": "entity",
+      "name": "2025-01-01T00:00:00_sb06.hdf5",
+      "entityType": "DataSample"
+    },
+    {
+      "type": "entity",
+      "name": "2025-01-01T00:00:00_sb07.hdf5",
+      "entityType": "DataSample"
+    },
+    {
+      "type": "entity",
+      "name": "2025-01-01T00:00:00_sb08.hdf5",
+      "entityType": "DataSample"
+    },
+    {
+      "type": "entity",
+      "name": "2025-01-01T00:00:00_sb09.hdf5",
+      "entityType": "DataSample"
+    },
+    {
+      "type": "entity",
+      "name": "2025-01-01T00:00:00_sb10.hdf5",
+      "entityType": "DataSample"
+    },
+    {
+      "type": "entity",
+      "name": "2025-01-01T00:00:00_sb11.hdf5",
+      "entityType": "DataSample"
+    },
+    {
+      "type": "entity",
+      "name": "2025-01-01T00:00:00_sb12.hdf5",
+      "entityType": "DataSample"
+    },
+    {
+      "type": "entity",
+      "name": "2025-01-01T00:00:00_sb13.hdf5",
+      "entityType": "DataSample"
+    },
+    {
+      "type": "entity",
+      "name": "2025-01-01T00:00:00_sb14.hdf5",
+      "entityType": "DataSample"
+    },
+    {
+      "type": "entity",
+      "name": "2025-01-01T00:00:00_sb15.hdf5",
+      "entityType": "DataSample"
+    },
+    {
+      "type": "entity",
+      "name": "dsa110_contimg.conversion.strategies.uvh5_to_ms_converter",
+      "entityType": "PythonModule",
+      "observations": [
+        "A Python module for converting UVH5 to MS format."
+      ]
+    },
+    {
+      "type": "entity",
+      "name": "dsa110_contimg.imaging.cli",
+      "entityType": "PythonModule",
+      "observations": [
+        "The command-line interface for the imaging sub-package."
+      ]
+    },
+    {
+      "type": "entity",
+      "name": "dsa110_contimg.qa.fast_plots",
+      "entityType": "PythonModule",
+      "observations": [
+        "A module for generating fast QA plots from a Measurement Set."
+      ]
+    },
+    {
+      "type": "entity",
+      "name": "dsa110_contimg.calibration.cli",
+      "entityType": "PythonModule",
+      "observations": [
+        "The command-line interface for the calibration sub-package."
+      ]
+    },
+    {
+      "type": "entity",
+      "name": "refant_ranking.json",
+      "entityType": "File"
+    },
+    {
+      "type": "entity",
+      "name": "casalog_calibrate.log",
+      "entityType": "File"
+    },
+    {
+      "type": "entity",
+      "name": "flagging.py",
+      "entityType": "File"
+    },
+    {
+      "type": "entity",
+      "name": "calibration.py",
+      "entityType": "File"
+    },
+    {
+      "type": "entity",
+      "name": "applycal.py",
+      "entityType": "File"
+    },
+    {
+      "type": "entity",
+      "name": "selection.py",
+      "entityType": "File"
+    },
+    {
+      "type": "entity",
+      "name": "model.py",
+      "entityType": "File"
+    },
+    {
+      "type": "entity",
+      "name": "catalogs.py",
+      "entityType": "File"
+    },
+    {
+      "type": "entity",
+      "name": "schedule.py",
+      "entityType": "File"
+    },
+    {
+      "type": "entity",
+      "name": "antpos_local",
+      "entityType": "Module",
+      "observations": [
+        "A module for handling local antenna positions."
+      ]
+    },
+    {
+      "type": "entity",
+      "name": "__init__.py",
+      "entityType": "File"
+    },
+    {
+      "type": "entity",
+      "name": "minimal_test.yaml",
+      "entityType": "Configuration"
+    },
+    {
+      "type": "entity",
+      "name": "telescope.yaml",
+      "entityType": "Configuration"
+    },
+    {
+      "type": "entity",
+      "name": "beams.yaml",
+      "entityType": "Configuration"
+    },
+    {
+      "type": "entity",
+      "name": "pipeline_config_template.yaml",
+      "entityType": "Configuration"
+    },
+    {
+      "type": "entity",
+      "name": "pyuvsim",
+      "entityType": "Module",
+      "observations": [
+        "Contains pyuvsim-related configuration files."
+      ]
+    },
+    {
+      "type": "entity",
+      "name": "PHASE1_SUMMARY.md",
+      "entityType": "Documentation"
+    },
+    {
+      "type": "entity",
+      "name": "Makefile",
+      "entityType": "File"
+    },
+    {
+      "type": "entity",
+      "name": "contimg-stream.service",
+      "entityType": "File"
+    },
+    {
+      "type": "entity",
+      "name": "contimg-api.service",
+      "entityType": "File"
+    }
+  ],
+  "relations": [
+    {
+      "type": "relation",
+      "from": "dsa110-contimg",
+      "to": "src",
+      "relationType": "CONTAINS_MODULE"
+    },
+    {
+      "type": "relation",
+      "from": "dsa110-contimg",
+      "to": "docs",
+      "relationType": "CONTAINS_MODULE"
+    },
+    {
+      "type": "relation",
+      "from": "dsa110-contimg",
+      "to": "scripts",
+      "relationType": "CONTAINS_MODULE"
+    },
+    {
+      "type": "relation",
+      "from": "dsa110-contimg",
+      "to": "ops",
+      "relationType": "CONTAINS_MODULE"
+    },
+    {
+      "type": "relation",
+      "from": "dsa110-contimg",
+      "to": "config",
+      "relationType": "CONTAINS_MODULE"
+    },
+    {
+      "type": "relation",
+      "from": "dsa110-contimg",
+      "to": "data-samples",
+      "relationType": "CONTAINS_MODULE"
+    },
+    {
+      "type": "relation",
+      "from": "dsa110-contimg",
+      "to": "tests",
+      "relationType": "CONTAINS_MODULE"
+    },
+    {
+      "type": "relation",
+      "from": "dsa110-contimg",
+      "to": "examples",
+      "relationType": "CONTAINS_MODULE"
+    },
+    {
+      "type": "relation",
+      "from": "src",
+      "to": "dsa110_contimg",
+      "relationType": "CONTAINS_MODULE"
+    },
+    {
+      "type": "relation",
+      "from": "dsa110_contimg",
+      "to": "api",
+      "relationType": "CONTAINS_MODULE"
+    },
+    {
+      "type": "relation",
+      "from": "dsa110_contimg",
+      "to": "calibration",
+      "relationType": "CONTAINS_MODULE"
+    },
+    {
+      "type": "relation",
+      "from": "dsa110_contimg",
+      "to": "conversion",
+      "relationType": "CONTAINS_MODULE"
+    },
+    {
+      "type": "relation",
+      "from": "dsa110_contimg",
+      "to": "database",
+      "relationType": "CONTAINS_MODULE"
+    },
+    {
+      "type": "relation",
+      "from": "dsa110_contimg",
+      "to": "imaging",
+      "relationType": "CONTAINS_MODULE"
+    },
+    {
+      "type": "relation",
+      "from": "dsa110_contimg",
+      "to": "mosaic",
+      "relationType": "CONTAINS_MODULE"
+    },
+    {
+      "type": "relation",
+      "from": "dsa110_contimg",
+      "to": "notebooks",
+      "relationType": "CONTAINS_MODULE"
+    },
+    {
+      "type": "relation",
+      "from": "dsa110_contimg",
+      "to": "qa",
+      "relationType": "CONTAINS_MODULE"
+    },
+    {
+      "type": "relation",
+      "from": "dsa110_contimg",
+      "to": "simulation",
+      "relationType": "CONTAINS_MODULE"
+    },
+    {
+      "type": "relation",
+      "from": "dsa110_contimg",
+      "to": "utils",
+      "relationType": "CONTAINS_MODULE"
+    },
+    {
+      "type": "relation",
+      "from": "conversion",
+      "to": "uvh5_to_ms.py",
+      "relationType": "CONTAINS_FILE"
+    },
+    {
+      "type": "relation",
+      "from": "uvh5_to_ms.py",
+      "to": "python",
+      "relationType": "HAS_TYPE"
+    },
+    {
+      "type": "relation",
+      "from": "conversion",
+      "to": "streaming_converter.py",
+      "relationType": "CONTAINS_FILE"
+    },
+    {
+      "type": "relation",
+      "from": "streaming_converter.py",
+      "to": "python",
+      "relationType": "HAS_TYPE"
+    },
+    {
+      "type": "relation",
+      "from": "conversion",
+      "to": "downsample_hdf5_batch.py",
+      "relationType": "CONTAINS_FILE"
+    },
+    {
+      "type": "relation",
+      "from": "downsample_hdf5_batch.py",
+      "to": "python",
+      "relationType": "HAS_TYPE"
+    },
+    {
+      "type": "relation",
+      "from": "conversion",
+      "to": "downsample_hdf5.py",
+      "relationType": "CONTAINS_FILE"
+    },
+    {
+      "type": "relation",
+      "from": "downsample_hdf5.py",
+      "to": "python",
+      "relationType": "HAS_TYPE"
+    },
+    {
+      "type": "relation",
+      "from": "conversion",
+      "to": "downsample_hdf5_fast.py",
+      "relationType": "CONTAINS_FILE"
+    },
+    {
+      "type": "relation",
+      "from": "downsample_hdf5_fast.py",
+      "to": "python",
+      "relationType": "HAS_TYPE"
+    },
+    {
+      "type": "relation",
+      "from": "conversion",
+      "to": "helpers.py",
+      "relationType": "CONTAINS_FILE"
+    },
+    {
+      "type": "relation",
+      "from": "helpers.py",
+      "to": "python",
+      "relationType": "HAS_TYPE"
+    },
+    {
+      "type": "relation",
+      "from": "conversion",
+      "to": "strategies",
+      "relationType": "CONTAINS_MODULE"
+    },
+    {
+      "type": "relation",
+      "from": "strategies",
+      "to": "uvh5_to_ms_converter.py",
+      "relationType": "CONTAINS_FILE"
+    },
+    {
+      "type": "relation",
+      "from": "uvh5_to_ms_converter.py",
+      "to": "python",
+      "relationType": "HAS_TYPE"
+    },
+    {
+      "type": "relation",
+      "from": "strategies",
+      "to": "pyuvdata_monolithic.py",
+      "relationType": "CONTAINS_FILE"
+    },
+    {
+      "type": "relation",
+      "from": "pyuvdata_monolithic.py",
+      "to": "python",
+      "relationType": "HAS_TYPE"
+    },
+    {
+      "type": "relation",
+      "from": "strategies",
+      "to": "direct_subband.py",
+      "relationType": "CONTAINS_FILE"
+    },
+    {
+      "type": "relation",
+      "from": "direct_subband.py",
+      "to": "python",
+      "relationType": "HAS_TYPE"
+    },
+    {
+      "type": "relation",
+      "from": "strategies",
+      "to": "base.py",
+      "relationType": "CONTAINS_FILE"
+    },
+    {
+      "type": "relation",
+      "from": "base.py",
+      "to": "python",
+      "relationType": "HAS_TYPE"
+    },
+    {
+      "type": "relation",
+      "from": "strategies",
+      "to": "writers.py",
+      "relationType": "CONTAINS_FILE"
+    },
+    {
+      "type": "relation",
+      "from": "writers.py",
+      "to": "python",
+      "relationType": "HAS_TYPE"
+    },
+    {
+      "type": "relation",
+      "from": "imaging",
+      "to": "cli.py",
+      "relationType": "CONTAINS_FILE"
+    },
+    {
+      "type": "relation",
+      "from": "cli.py",
+      "to": "python",
+      "relationType": "HAS_TYPE"
+    },
+    {
+      "type": "relation",
+      "from": "imaging",
+      "to": "worker.py",
+      "relationType": "CONTAINS_FILE"
+    },
+    {
+      "type": "relation",
+      "from": "worker.py",
+      "to": "python",
+      "relationType": "HAS_TYPE"
+    },
+    {
+      "type": "relation",
+      "from": "docs",
+      "to": "legacy-overview.md",
+      "relationType": "CONTAINS_FILE"
+    },
+    {
+      "type": "relation",
+      "from": "legacy-overview.md",
+      "to": "markdown",
+      "relationType": "HAS_TYPE"
+    },
+    {
+      "type": "relation",
+      "from": "docs",
+      "to": "troubleshooting.md",
+      "relationType": "CONTAINS_FILE"
+    },
+    {
+      "type": "relation",
+      "from": "troubleshooting.md",
+      "to": "markdown",
+      "relationType": "HAS_TYPE"
+    },
+    {
+      "type": "relation",
+      "from": "docs",
+      "to": "quickstart.md",
+      "relationType": "CONTAINS_FILE"
+    },
+    {
+      "type": "relation",
+      "from": "quickstart.md",
+      "to": "markdown",
+      "relationType": "HAS_TYPE"
+    },
+    {
+      "type": "relation",
+      "from": "docs",
+      "to": "index.md",
+      "relationType": "CONTAINS_FILE"
+    },
+    {
+      "type": "relation",
+      "from": "index.md",
+      "to": "markdown",
+      "relationType": "HAS_TYPE"
+    },
+    {
+      "type": "relation",
+      "from": "docs",
+      "to": "downsampling_guide.md",
+      "relationType": "CONTAINS_FILE"
+    },
+    {
+      "type": "relation",
+      "from": "downsampling_guide.md",
+      "to": "markdown",
+      "relationType": "HAS_TYPE"
+    },
+    {
+      "type": "relation",
+      "from": "docs",
+      "to": "reference",
+      "relationType": "CONTAINS_MODULE"
+    },
+    {
+      "type": "relation",
+      "from": "reference",
+      "to": "modules.md",
+      "relationType": "CONTAINS_FILE"
+    },
+    {
+      "type": "relation",
+      "from": "modules.md",
+      "to": "markdown",
+      "relationType": "HAS_TYPE"
+    },
+    {
+      "type": "relation",
+      "from": "reference",
+      "to": "env.md",
+      "relationType": "CONTAINS_FILE"
+    },
+    {
+      "type": "relation",
+      "from": "env.md",
+      "to": "markdown",
+      "relationType": "HAS_TYPE"
+    },
+    {
+      "type": "relation",
+      "from": "reference",
+      "to": "api.md",
+      "relationType": "CONTAINS_FILE"
+    },
+    {
+      "type": "relation",
+      "from": "api.md",
+      "to": "markdown",
+      "relationType": "HAS_TYPE"
+    },
+    {
+      "type": "relation",
+      "from": "reference",
+      "to": "cli.md",
+      "relationType": "CONTAINS_FILE"
+    },
+    {
+      "type": "relation",
+      "from": "cli.md",
+      "to": "markdown",
+      "relationType": "HAS_TYPE"
+    },
+    {
+      "type": "relation",
+      "from": "scripts",
+      "to": "image_ms.sh",
+      "relationType": "CONTAINS_FILE"
+    },
+    {
+      "type": "relation",
+      "from": "image_ms.sh",
+      "to": "shell",
+      "relationType": "HAS_TYPE"
+    },
+    {
+      "type": "relation",
+      "from": "scripts",
+      "to": "calibrate_bandpass.sh",
+      "relationType": "CONTAINS_FILE"
+    },
+    {
+      "type": "relation",
+      "from": "calibrate_bandpass.sh",
+      "to": "shell",
+      "relationType": "HAS_TYPE"
+    },
+    {
+      "type": "relation",
+      "from": "scripts",
+      "to": "run_conversion.sh",
+      "relationType": "CONTAINS_FILE"
+    },
+    {
+      "type": "relation",
+      "from": "run_conversion.sh",
+      "to": "shell",
+      "relationType": "HAS_TYPE"
+    },
+    {
+      "type": "relation",
+      "from": "scripts",
+      "to": "scratch_sync.sh",
+      "relationType": "CONTAINS_FILE"
+    },
+    {
+      "type": "relation",
+      "from": "scratch_sync.sh",
+      "to": "shell",
+      "relationType": "HAS_TYPE"
+    },
+    {
+      "type": "relation",
+      "from": "scripts",
+      "to": "move_casa_logs.sh",
+      "relationType": "CONTAINS_FILE"
+    },
+    {
+      "type": "relation",
+      "from": "move_casa_logs.sh",
+      "to": "shell",
+      "relationType": "HAS_TYPE"
+    },
+    {
+      "type": "relation",
+      "from": "ops",
+      "to": "docker",
+      "relationType": "CONTAINS_MODULE"
+    },
+    {
+      "type": "relation",
+      "from": "ops",
+      "to": "pipeline",
+      "relationType": "CONTAINS_MODULE"
+    },
+    {
+      "type": "relation",
+      "from": "ops",
+      "to": "simulation",
+      "relationType": "CONTAINS_MODULE"
+    },
+    {
+      "type": "relation",
+      "from": "ops",
+      "to": "systemd",
+      "relationType": "CONTAINS_MODULE"
+    },
+    {
+      "type": "relation",
+      "from": "pipeline",
+      "to": "backup_database.sh",
+      "relationType": "CONTAINS_FILE"
+    },
+    {
+      "type": "relation",
+      "from": "backup_database.sh",
+      "to": "shell",
+      "relationType": "HAS_TYPE"
+    },
+    {
+      "type": "relation",
+      "from": "simulation",
+      "to": "examples",
+      "relationType": "CONTAINS_MODULE"
+    },
+    {
+      "type": "relation",
+      "from": "examples",
+      "to": "multi_observation.sh",
+      "relationType": "CONTAINS_FILE"
+    },
+    {
+      "type": "relation",
+      "from": "multi_observation.sh",
+      "to": "shell",
+      "relationType": "HAS_TYPE"
+    },
+    {
+      "type": "relation",
+      "from": "examples",
+      "to": "basic_generation.sh",
+      "relationType": "CONTAINS_FILE"
+    },
+    {
+      "type": "relation",
+      "from": "basic_generation.sh",
+      "to": "shell",
+      "relationType": "HAS_TYPE"
+    },
+    {
+      "type": "relation",
+      "from": "data-samples",
+      "to": "catalogs",
+      "relationType": "CONTAINS_MODULE"
+    },
+    {
+      "type": "relation",
+      "from": "catalogs",
+      "to": "bcal_candidates_vla.csv",
+      "relationType": "CONTAINS_FILE"
+    },
+    {
+      "type": "relation",
+      "from": "bcal_candidates_vla.csv",
+      "to": "csv",
+      "relationType": "HAS_TYPE"
+    },
+    {
+      "type": "relation",
+      "from": "catalogs",
+      "to": "cals_94.csv",
+      "relationType": "CONTAINS_FILE"
+    },
+    {
+      "type": "relation",
+      "from": "cals_94.csv",
+      "to": "csv",
+      "relationType": "HAS_TYPE"
+    },
+    {
+      "type": "relation",
+      "from": "catalogs",
+      "to": "vla_calibrators_parsed.csv",
+      "relationType": "CONTAINS_FILE"
+    },
+    {
+      "type": "relation",
+      "from": "vla_calibrators_parsed.csv",
+      "to": "csv",
+      "relationType": "HAS_TYPE"
+    },
+    {
+      "type": "relation",
+      "from": "catalogs",
+      "to": "vlacalibrators.txt",
+      "relationType": "CONTAINS_FILE"
+    },
+    {
+      "type": "relation",
+      "from": "vlacalibrators.txt",
+      "to": "txt",
+      "relationType": "HAS_TYPE"
+    },
+    {
+      "type": "relation",
+      "from": "catalogs",
+      "to": "vlacals.csv",
+      "relationType": "CONTAINS_FILE"
+    },
+    {
+      "type": "relation",
+      "from": "vlacals.csv",
+      "to": "csv",
+      "relationType": "HAS_TYPE"
+    },
+    {
+      "type": "relation",
+      "from": "data-samples",
+      "to": "ms",
+      "relationType": "CONTAINS_MODULE"
+    },
+    {
+      "type": "relation",
+      "from": "ms",
+      "to": "2025-01-01T00:00:00.ms",
+      "relationType": "CONTAINS_FILE"
+    },
+    {
+      "type": "relation",
+      "from": "2025-01-01T00:00:00.ms",
+      "to": "ms",
+      "relationType": "HAS_TYPE"
+    },
+    {
+      "type": "relation",
+      "from": "data-samples",
+      "to": "sim_uvh5",
+      "relationType": "CONTAINS_MODULE"
+    },
+    {
+      "type": "relation",
+      "from": "sim_uvh5",
+      "to": "2025-01-01T00:00:00_sb00.hdf5",
+      "relationType": "CONTAINS_FILE"
+    },
+    {
+      "type": "relation",
+      "from": "2025-01-01T00:00:00_sb00.hdf5",
+      "to": "hdf5",
+      "relationType": "HAS_TYPE"
+    },
+    {
+      "type": "relation",
+      "from": "sim_uvh5",
+      "to": "2025-01-01T00:00:00_sb01.hdf5",
+      "relationType": "CONTAINS_FILE"
+    },
+    {
+      "type": "relation",
+      "from": "2025-01-01T00:00:00_sb01.hdf5",
+      "to": "hdf5",
+      "relationType": "HAS_TYPE"
+    },
+    {
+      "type": "relation",
+      "from": "sim_uvh5",
+      "to": "2025-01-01T00:00:00_sb02.hdf5",
+      "relationType": "CONTAINS_FILE"
+    },
+    {
+      "type": "relation",
+      "from": "2025-01-01T00:00:00_sb02.hdf5",
+      "to": "hdf5",
+      "relationType": "HAS_TYPE"
+    },
+    {
+      "type": "relation",
+      "from": "sim_uvh5",
+      "to": "2025-01-01T00:00:00_sb03.hdf5",
+      "relationType": "CONTAINS_FILE"
+    },
+    {
+      "type": "relation",
+      "from": "2025-01-01T00:00:00_sb03.hdf5",
+      "to": "hdf5",
+      "relationType": "HAS_TYPE"
+    },
+    {
+      "type": "relation",
+      "from": "sim_uvh5",
+      "to": "2025-01-01T00:00:00_sb04.hdf5",
+      "relationType": "CONTAINS_FILE"
+    },
+    {
+      "type": "relation",
+      "from": "2025-01-01T00:00:00_sb04.hdf5",
+      "to": "hdf5",
+      "relationType": "HAS_TYPE"
+    },
+    {
+      "type": "relation",
+      "from": "sim_uvh5",
+      "to": "2025-01-01T00:00:00_sb05.hdf5",
+      "relationType": "CONTAINS_FILE"
+    },
+    {
+      "type": "relation",
+      "from": "2025-01-01T00:00:00_sb05.hdf5",
+      "to": "hdf5",
+      "relationType": "HAS_TYPE"
+    },
+    {
+      "type": "relation",
+      "from": "sim_uvh5",
+      "to": "2025-01-01T00:00:00_sb06.hdf5",
+      "relationType": "CONTAINS_FILE"
+    },
+    {
+      "type": "relation",
+      "from": "2025-01-01T00:00:00_sb06.hdf5",
+      "to": "hdf5",
+      "relationType": "HAS_TYPE"
+    },
+    {
+      "type": "relation",
+      "from": "sim_uvh5",
+      "to": "2025-01-01T00:00:00_sb07.hdf5",
+      "relationType": "CONTAINS_FILE"
+    },
+    {
+      "type": "relation",
+      "from": "2025-01-01T00:00:00_sb07.hdf5",
+      "to": "hdf5",
+      "relationType": "HAS_TYPE"
+    },
+    {
+      "type": "relation",
+      "from": "sim_uvh5",
+      "to": "2025-01-01T00:00:00_sb08.hdf5",
+      "relationType": "CONTAINS_FILE"
+    },
+    {
+      "type": "relation",
+      "from": "2025-01-01T00:00:00_sb08.hdf5",
+      "to": "hdf5",
+      "relationType": "HAS_TYPE"
+    },
+    {
+      "type": "relation",
+      "from": "sim_uvh5",
+      "to": "2025-01-01T00:00:00_sb09.hdf5",
+      "relationType": "CONTAINS_FILE"
+    },
+    {
+      "type": "relation",
+      "from": "2025-01-01T00:00:00_sb09.hdf5",
+      "to": "hdf5",
+      "relationType": "HAS_TYPE"
+    },
+    {
+      "type": "relation",
+      "from": "sim_uvh5",
+      "to": "2025-01-01T00:00:00_sb10.hdf5",
+      "relationType": "CONTAINS_FILE"
+    },
+    {
+      "type": "relation",
+      "from": "2025-01-01T00:00:00_sb10.hdf5",
+      "to": "hdf5",
+      "relationType": "HAS_TYPE"
+    },
+    {
+      "type": "relation",
+      "from": "sim_uvh5",
+      "to": "2025-01-01T00:00:00_sb11.hdf5",
+      "relationType": "CONTAINS_FILE"
+    },
+    {
+      "type": "relation",
+      "from": "2025-01-01T00:00:00_sb11.hdf5",
+      "to": "hdf5",
+      "relationType": "HAS_TYPE"
+    },
+    {
+      "type": "relation",
+      "from": "sim_uvh5",
+      "to": "2025-01-01T00:00:00_sb12.hdf5",
+      "relationType": "CONTAINS_FILE"
+    },
+    {
+      "type": "relation",
+      "from": "2025-01-01T00:00:00_sb12.hdf5",
+      "to": "hdf5",
+      "relationType": "HAS_TYPE"
+    },
+    {
+      "type": "relation",
+      "from": "sim_uvh5",
+      "to": "2025-01-01T00:00:00_sb13.hdf5",
+      "relationType": "CONTAINS_FILE"
+    },
+    {
+      "type": "relation",
+      "from": "2025-01-01T00:00:00_sb13.hdf5",
+      "to": "hdf5",
+      "relationType": "HAS_TYPE"
+    },
+    {
+      "type": "relation",
+      "from": "sim_uvh5",
+      "to": "2025-01-01T00:00:00_sb14.hdf5",
+      "relationType": "CONTAINS_FILE"
+    },
+    {
+      "type": "relation",
+      "from": "2025-01-01T00:00:00_sb14.hdf5",
+      "to": "hdf5",
+      "relationType": "HAS_TYPE"
+    },
+    {
+      "type": "relation",
+      "from": "sim_uvh5",
+      "to": "2025-01-01T00:00:00_sb15.hdf5",
+      "relationType": "CONTAINS_FILE"
+    },
+    {
+      "type": "relation",
+      "from": "2025-01-01T00:00:00_sb15.hdf5",
+      "to": "hdf5",
+      "relationType": "HAS_TYPE"
+    },
+    {
+      "type": "relation",
+      "from": "run_conversion.sh",
+      "to": "scratch_sync.sh",
+      "relationType": "REFERENCES_FILE"
+    },
+    {
+      "type": "relation",
+      "from": "run_conversion.sh",
+      "to": "dsa11_contimg.conversion.strategies.uvh5_to_ms_converter",
+      "relationType": "USES_PYTHON_MODULE"
+    },
+    {
+      "type": "relation",
+      "from": "image_ms.sh",
+      "to": "dsa110_contimg.imaging.cli",
+      "relationType": "USES_PYTHON_MODULE"
+    },
+    {
+      "type": "relation",
+      "from": "calibrate_bandpass.sh",
+      "to": "vlacalibrators.txt",
+      "relationType": "USES_DATA_SAMPLE"
+    },
+    {
+      "type": "relation",
+      "from": "calibrate_bandpass.sh",
+      "to": "dsa110_contimg.qa.fast_plots",
+      "relationType": "USES_PYTHON_MODULE"
+    },
+    {
+      "type": "relation",
+      "from": "calibrate_bandpass.sh",
+      "to": "dsa110_contimg.calibration.cli",
+      "relationType": "USES_PYTHON_MODULE"
+    },
+    {
+      "type": "relation",
+      "from": "calibrate_bandpass.sh",
+      "to": "refant_ranking.json",
+      "relationType": "GENERATES_FILE"
+    },
+    {
+      "type": "relation",
+      "from": "calibrate_bandpass.sh",
+      "to": "casalog_calibrate.log",
+      "relationType": "GENERATES_FILE"
+    },
+    {
+      "type": "relation",
+      "from": "uvh5_to_ms_converter.py",
+      "to": "writers.py",
+      "relationType": "REFERENCES_FILE"
+    },
+    {
+      "type": "relation",
+      "from": "uvh5_to_ms_converter.py",
+      "to": "helpers.py",
+      "relationType": "REFERENCES_FILE"
+    },
+    {
+      "type": "relation",
+      "from": "cli.py",
+      "to": "flagging.py",
+      "relationType": "REFERENCES_FILE"
+    },
+    {
+      "type": "relation",
+      "from": "cli.py",
+      "to": "calibration.py",
+      "relationType": "REFERENCES_FILE"
+    },
+    {
+      "type": "relation",
+      "from": "cli.py",
+      "to": "applycal.py",
+      "relationType": "REFERENCES_FILE"
+    },
+    {
+      "type": "relation",
+      "from": "cli.py",
+      "to": "selection.py",
+      "relationType": "REFERENCES_FILE"
+    },
+    {
+      "type": "relation",
+      "from": "cli.py",
+      "to": "model.py",
+      "relationType": "REFERENCES_FILE"
+    },
+    {
+      "type": "relation",
+      "from": "selection.py",
+      "to": "catalogs.py",
+      "relationType": "REFERENCES_FILE"
+    },
+    {
+      "type": "relation",
+      "from": "catalogs.py",
+      "to": "schedule.py",
+      "relationType": "REFERENCES_FILE"
+    },
+    {
+      "type": "relation",
+      "from": "utils",
+      "to": "antpos_local",
+      "relationType": "CONTAINS_MODULE"
+    },
+    {
+      "type": "relation",
+      "from": "antpos_local",
+      "to": "__init__.py",
+      "relationType": "CONTAINS_FILE"
+    },
+    {
+      "type": "relation",
+      "from": "helpers.py",
+      "to": "__init__.py",
+      "relationType": "REFERENCES_FILE"
+    },
+    {
+      "type": "relation",
+      "from": "simulation",
+      "to": "config",
+      "relationType": "CONTAINS_MODULE"
+    },
+    {
+      "type": "relation",
+      "from": "config",
+      "to": "minimal_test.yaml",
+      "relationType": "CONTAINS_FILE"
+    },
+    {
+      "type": "relation",
+      "from": "minimal_test.yaml",
+      "to": "yaml",
+      "relationType": "HAS_TYPE"
+    },
+    {
+      "type": "relation",
+      "from": "simulation",
+      "to": "pyuvsim",
+      "relationType": "CONTAINS_MODULE"
+    },
+    {
+      "type": "relation",
+      "from": "pyuvsim",
+      "to": "telescope.yaml",
+      "relationType": "CONTAINS_FILE"
+    },
+    {
+      "type": "relation",
+      "from": "telescope.yaml",
+      "to": "yaml",
+      "relationType": "HAS_TYPE"
+    },
+    {
+      "type": "relation",
+      "from": "pyuvsim",
+      "to": "beams.yaml",
+      "relationType": "CONTAINS_FILE"
+    },
+    {
+      "type": "relation",
+      "from": "beams.yaml",
+      "to": "yaml",
+      "relationType": "HAS_TYPE"
+    },
+    {
+      "type": "relation",
+      "from": "config",
+      "to": "pipeline_config_template.yaml",
+      "relationType": "CONTAINS_FILE"
+    },
+    {
+      "type": "relation",
+      "from": "pipeline_config_template.yaml",
+      "to": "yaml",
+      "relationType": "HAS_TYPE"
+    },
+    {
+      "type": "relation",
+      "from": "docs",
+      "to": "simulation",
+      "relationType": "CONTAINS_MODULE"
+    },
+    {
+      "type": "relation",
+      "from": "simulation",
+      "to": "PHASE1_SUMMARY.md",
+      "relationType": "CONTAINS_FILE"
+    },
+    {
+      "type": "relation",
+      "from": "PHASE1_SUMMARY.md",
+      "to": "markdown",
+      "relationType": "HAS_TYPE"
+    },
+    {
+      "type": "relation",
+      "from": "PHASE1_SUMMARY.md",
+      "to": "minimal_test.yaml",
+      "relationType": "DOCUMENTS"
+    },
+    {
+      "type": "relation",
+      "from": "dsa110-contimg",
+      "to": "Makefile",
+      "relationType": "CONTAINS_FILE"
+    },
+    {
+      "type": "relation",
+      "from": "Makefile",
+      "to": "makefile",
+      "relationType": "HAS_TYPE"
+    },
+    {
+      "type": "relation",
+      "from": "systemd",
+      "to": "contimg-stream.service",
+      "relationType": "CONTAINS_FILE"
+    },
+    {
+      "type": "relation",
+      "from": "contimg-stream.service",
+      "to": "service",
+      "relationType": "HAS_TYPE"
+    },
+    {
+      "type": "relation",
+      "from": "systemd",
+      "to": "contimg-api.service",
+      "relationType": "CONTAINS_FILE"
+    },
+    {
+      "type": "relation",
+      "from": "contimg-api.service",
+      "to": "service",
+      "relationType": "HAS_TYPE"
+    },
+    {
+      "type": "relation",
+      "from": "quickstart.md",
+      "to": "Makefile",
+      "relationType": "REFERENCES_FILE"
+    },
+    {
+      "type": "relation",
+      "from": "quickstart.md",
+      "to": "contimg-stream.service",
+      "relationType": "REFERENCES_FILE"
+    },
+    {
+      "type": "relation",
+      "from": "quickstart.md",
+      "to": "contimg-api.service",
+      "relationType": "REFERENCES_FILE"
+    }
+  ]
+}
