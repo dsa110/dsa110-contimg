@@ -53,7 +53,7 @@ python simulation/make_synthetic_uvh5.py \
     --start-time "2025-10-06T12:00:00"
 
 # Convert to Measurement Set
-python src/dsa110_contimg/conversion/uvh5_to_ms_converter.py \
+python src/dsa110_contimg/conversion/strategies/hdf5_orchestrator.py \
     /tmp/synthetic_subbands \
     /tmp/test_ms \
     "2025-10-06 12:00:00" \
@@ -208,7 +208,7 @@ The synthetic data is designed to work seamlessly with both converters:
 
 ### Batch Converter
 ```bash
-python src/dsa110_contimg/conversion/uvh5_to_ms_converter.py \
+python src/dsa110_contimg/conversion/strategies/hdf5_orchestrator.py \
     /path/to/synthetic/subbands \
     /path/to/output/ms \
     "2025-10-06 00:00:00" \

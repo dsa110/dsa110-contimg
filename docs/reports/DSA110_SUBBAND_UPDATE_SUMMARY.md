@@ -39,7 +39,7 @@ All three UVH5 to CASA Measurement Set converter scripts have been updated to pr
 - **Function**: `convert_subband_group()` - Converts subband group using pyuvdata
 - **Dependencies**: pyuvdata, CASA, astropy, numpy
 
-#### `uvh5_to_ms_converter.py` (Comprehensive)
+#### `hdf5_orchestrator.py` (Comprehensive)
 - **Function**: `find_subband_groups()` - Groups subband files by timestamp
 - **Function**: `convert_subband_groups_to_ms()` - Main orchestration function
 - **Dependencies**: pyuvdata, CASA, astropy, numpy
@@ -88,7 +88,7 @@ python dsa110_uvh5_to_ms.py /data/hdf5 /data/ms "2024-01-01 00:00:00" "2024-01-0
 ```bash
 conda activate casa6
 python simple_uvh5_to_ms.py /data/hdf5 /data/ms "2024-01-01 00:00:00" "2024-01-01 23:59:59"
-python uvh5_to_ms_converter.py /data/hdf5 /data/ms "2024-01-01 00:00:00" "2024-01-01 23:59:59"
+python hdf5_orchestrator.py /data/hdf5 /data/ms "2024-01-01 00:00:00" "2024-01-01 23:59:59"
 ```
 
 ## Key Features
@@ -149,7 +149,7 @@ python uvh5_to_ms_converter.py /data/hdf5 /data/ms "2024-01-01 00:00:00" "2024-0
 ```bash
 conda activate casa6
 python -c "import simple_uvh5_to_ms; print('✓ simple_uvh5_to_ms.py works')"
-python -c "import uvh5_to_ms_converter; print('✓ uvh5_to_ms_converter.py works')"
+python -c "import hdf5_orchestrator; print('✓ hdf5_orchestrator.py works')"
 python -c "import dsa110_uvh5_to_ms; print('✓ dsa110_uvh5_to_ms.py works')"
 ```
 

@@ -26,8 +26,8 @@ Repository overview for the DSA-110 continuum imaging pipeline.
 
 - Functional map: `src/dsa110_contimg` (depth 2)
   - `src/dsa110_contimg/conversion/` – UVH5 → MS conversion
-    - `src/dsa110_contimg/conversion/streaming_converter.py` – ingest → convert → calibrate/apply → image daemon
-    - `src/dsa110_contimg/conversion/strategies/uvh5_to_ms_converter.py` – strategy orchestrator CLI
+  - `src/dsa110_contimg/conversion/streaming/streaming_converter.py` – ingest → convert → calibrate/apply → image daemon
+  - `src/dsa110_contimg/conversion/strategies/hdf5_orchestrator.py` – strategy orchestrator CLI
     - `src/dsa110_contimg/conversion/strategies/direct_subband.py` – per-subband MS writer + concat
     - `src/dsa110_contimg/conversion/uvh5_to_ms.py` – standalone converter (utility)
     - `src/dsa110_contimg/conversion/helpers.py` – UVW, antenna positions, model/weights
@@ -76,7 +76,7 @@ Usage examples
 # Quick synthetic (2 subbands) → fast dask‑write with downsampling
 export PYTHONPATH=/data/dsa110-contimg/src:$PYTHONPATH
 export DS_TIME=2 DS_FREQ=4
-/opt/miniforge/envs/casa6/bin/python -u dsa110_contimg/conversion/uvh5_to_ms_converter_v2.py \
+/opt/miniforge/envs/casa6/bin/python -u -m dsa110_contimg.conversion.strategies.hdf5_orchestrator \
   /data/dsa110-contimg/synth_quick \
   /data/dsa110-contimg/out_dask_quick \
   "2025-10-08 00:12:59" "2025-10-08 00:12:59" \
@@ -183,7 +183,7 @@ Optional quicklook plots can be produced automatically after each MS is written 
 Enable via converter CLI flags (no env variables required):
 
 ```
-python -m dsa110_contimg.conversion.uvh5_to_ms_converter_v2 \
+python -m dsa110_contimg.conversion.strategies.hdf5_orchestrator \
   <input_dir> <output_dir> "YYYY-MM-DD HH:MM:SS" "YYYY-MM-DD HH:MM:SS" \
   --qa-shadems \
   --qa-shadems-resid \
@@ -237,7 +237,7 @@ Streaming service flags
 You can enable quicklooks for the streaming path without environment variables by passing flags that are forwarded to the converter per group:
 
 ```
-python -m dsa110_contimg.conversion.streaming_converter \
+python -m dsa110_contimg.conversion.streaming.streaming_converter \
   --input-dir /data/incoming \
   --output-dir state/ms \
   --use-subprocess \
@@ -400,7 +400,7 @@ MS repair policy
 Reconversion example
 ```
 PYTHONPATH=src:$PYTHONPATH \
-/opt/miniforge/envs/casa6/bin/python -m dsa110_contimg.conversion.uvh5_to_ms_converter_v2 \
+/opt/miniforge/envs/casa6/bin/python -m dsa110_contimg.conversion.strategies.hdf5_orchestrator \
   /data/incoming/0834_555_transit \
   /scratch/dsa110-contimg/data-samples/ms/0834_555_transit_reconv4 \
   "2025-10-03 15:15:57" "2025-10-03 15:15:58" \

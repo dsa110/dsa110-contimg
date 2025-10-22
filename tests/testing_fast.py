@@ -38,7 +38,11 @@ os.environ.setdefault("OMP_NUM_THREADS", "1")
 os.environ.setdefault("MKL_NUM_THREADS", "1")
 os.environ.setdefault("CASACORE_TABLE_LOCKING", "FALSE")
 
-from dsa110_contimg.conversion import uvh5_to_ms_converter_v2 as v2
+from dsa110_contimg.conversion.strategies import (  # type: ignore[import]
+    hdf5_orchestrator as orch,
+)
+from dsa110_contimg.conversion.helpers import get_meridian_coords  # type: ignore[import]
+from dsa110_contimg.utils.fringestopping import calc_uvw_blt  # type: ignore[import]
 from dsa110_contimg.conversion.helpers import (
     set_antenna_positions,
     _ensure_antenna_diameters,
@@ -46,8 +50,8 @@ from dsa110_contimg.conversion.helpers import (
 
 IN_DIR = os.environ.get("IN_DIR", "/data/incoming_test/2025-09-05T03-12-56_HDF5")
 OUT_MS = os.environ.get("OUT_MS", "/data/output/ms_quick_tiny/partial_tiny.ms")
-START  = os.environ.get("START",  "2025-09-05 03:12:00")
-END    = os.environ.get("END",    "2025-09-05 03:13:30")
+START = os.environ.get("START", "2025-09-05 03:12:00")
+END = os.environ.get("END", "2025-09-05 03:13:30")
 
 # Trim parameters
 N_TIMES_KEEP = int(os.environ.get("N_TIMES_KEEP", "1"))
@@ -73,7 +77,7 @@ def partial_read_merge(files, n_times_keep=1, n_chan_keep=16, n_ants_keep=8):
     keep_ants = None
 
     for i, path in enumerate(sorted(files)):
-        print("[read] %2d/%2d %s" % (i + 1, len(files), os.path.basename(path)))
+        print(f"[read] {i + 1:2d}/{len(files):2d} {os.path.basename(path)}")
         tmp = UVData()
         t0 = time.time()
         tmp.read(
@@ -105,7 +109,10 @@ def partial_read_merge(files, n_times_keep=1, n_chan_keep=16, n_ants_keep=8):
             except Exception:
                 pass
             acc.append(tmp)
-        print("       selected: Ntimes=%d Nchan=%d Nbls=%d" % (tmp.Ntimes, tmp.Nfreqs, tmp.Nbls))
+        print(
+            "       selected: Ntimes=%d Nchan=%d Nbls=%d"
+            % (tmp.Ntimes, tmp.Nfreqs, tmp.Nbls)
+        )
         print("       read dt=%.2fs" % (time.time() - t0))
 
     if acc:
@@ -124,7 +131,7 @@ def partial_read_merge(files, n_times_keep=1, n_chan_keep=16, n_ants_keep=8):
 
 
 def write_tiny_ms(in_dir, out_ms):
-    groups = v2.find_subband_groups(in_dir, START, END)
+    groups = orch.find_subband_groups(in_dir, START, END)
     if not groups:
         raise RuntimeError("No complete subband groups found")
     files = groups[0]
@@ -140,7 +147,7 @@ def write_tiny_ms(in_dir, out_ms):
     print("[phase] single-center ICRS/J2000 + UVW (no DATA rotation)")
     pt_dec = uv.extra_keywords.get("phase_center_dec", 0.0) * u.rad
     t_mid_mjd = Time(float(np.mean(uv.time_array)), format="jd").mjd
-    ra_icrs, dec_icrs = v2.get_meridian_coords(pt_dec, t_mid_mjd)
+    ra_icrs, dec_icrs = get_meridian_coords(pt_dec, t_mid_mjd)
 
     # Reset catalog and assign one equatorial center
     uv.phase_center_catalog = {}
@@ -162,7 +169,7 @@ def write_tiny_ms(in_dir, out_ms):
     except Exception:
         pass
     nbls = uv.Nbls
-    ant_pos = np.asarray(uv.antenna_positions)
+    ant_pos = np.asarray(uv.antenna_positions)  # type: ignore[attr-defined]
     ant1 = np.asarray(uv.ant_1_array[:nbls], dtype=int)
     ant2 = np.asarray(uv.ant_2_array[:nbls], dtype=int)
     blen = ant_pos[ant2, :] - ant_pos[ant1, :]
@@ -170,7 +177,7 @@ def write_tiny_ms(in_dir, out_ms):
     for i, tval in enumerate(times):
         row_slice = slice(i * nbls, (i + 1) * nbls)
         time_vec = np.full(nbls, float(Time(tval, format="jd").mjd), dtype=float)
-        uv.uvw_array[row_slice, :] = v2.calc_uvw_blt(
+        uv.uvw_array[row_slice, :] = calc_uvw_blt(
             blen,
             time_vec,
             'J2000',
@@ -204,8 +211,10 @@ def write_tiny_ms(in_dir, out_ms):
         fix_autos=False,
     )
     dt = time.time() - t0
-    print("[done] wrote tiny MS in %.2fs" % dt)
-    print("Dims: Ntimes=%d Nbls=%d Nblts=%d Nchan=%d Npols=%d" % (uv.Ntimes, uv.Nbls, uv.Nblts, uv.Nfreqs, uv.Npols))
+    print(f"[done] wrote tiny MS in {dt:.2f}s")
+    print(
+        f"Dims: Ntimes={uv.Ntimes} Nbls={uv.Nbls} Nblts={uv.Nblts} "
+        f"Nchan={uv.Nfreqs} Npols={uv.Npols}")
 
 
 if __name__ == "__main__":

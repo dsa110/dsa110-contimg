@@ -25,8 +25,12 @@ from astropy.coordinates import Angle  # type: ignore[import]
 from dsa110_contimg.calibration.catalogs import (  # type: ignore[import]
     read_vla_parsed_catalog_csv,
 )
-from dsa110_contimg.conversion.strategies.uvh5_to_ms_converter import (  # type: ignore[import]
+import sqlite3
+from dsa110_contimg.conversion.strategies.hdf5_orchestrator import (  # type: ignore[import]
     find_subband_groups,
+)
+from dsa110_contimg.conversion.ms_utils import (  # type: ignore[import]
+    configure_ms_for_imaging,
 )
 # type: ignore[import]
 from dsa110_contimg.conversion.uvh5_to_ms import convert_single_file
@@ -40,7 +44,25 @@ from dsa110_contimg.calibration.flagging import (  # type: ignore[import]
 )
 
 
-def _load_ra_dec(name: str, catalogs: List[str]) -> Tuple[float, float]:
+def _load_ra_dec_from_db(name: str, vla_db: Optional[str]) -> Optional[Tuple[float, float]]:
+    if not vla_db or not os.path.isfile(vla_db):
+        return None
+    try:
+        with sqlite3.connect(vla_db) as conn:
+            row = conn.execute(
+                "SELECT ra_deg, dec_deg FROM calibrators WHERE name=?", (name,)
+            ).fetchone()
+            if row:
+                return float(row[0]), float(row[1])
+    except Exception:
+        return None
+    return None
+
+
+def _load_ra_dec(name: str, catalogs: List[str], vla_db: Optional[str] = None) -> Tuple[float, float]:
+    dbv = _load_ra_dec_from_db(name, vla_db)
+    if dbv is not None:
+        return dbv
     for p in catalogs:
         try:
             df = read_vla_parsed_catalog_csv(p)
@@ -65,70 +87,6 @@ def _group_id_from_path(path: str) -> str:
     return base.split('_sb', 1)[0]
 
 
-def _ensure_flag_and_weight_spectrum(ms_path: str) -> None:
-    """Ensure FLAG and WEIGHT_SPECTRUM cells are defined for all rows.
-
-    - FLAG: boolean array shaped like DATA; fill with False when undefined
-    - WEIGHT_SPECTRUM: float array of shape like DATA; if present but any
-      row undefined, fill by repeating WEIGHT across channels.
-    """
-    try:
-        from casacore.tables import table as _tb
-    except Exception:
-        return
-    try:
-        with _tb(ms_path, readonly=False) as tb:
-            nrow = tb.nrows()
-            colnames = set(tb.colnames())
-            has_ws = 'WEIGHT_SPECTRUM' in colnames
-            ws_bad = False
-            for i in range(nrow):
-                # DATA shape drives target shapes
-                try:
-                    data = tb.getcell('DATA', i)
-                except Exception:
-                    continue
-                target_shape = getattr(data, 'shape', None)
-                if not target_shape or len(target_shape) != 2:
-                    continue
-                nchan, npol = int(target_shape[0]), int(target_shape[1])
-                # FLAG: create or fix shape
-                try:
-                    f = tb.getcell('FLAG', i)
-                    f_shape = getattr(f, 'shape', None)
-                    if f is None or f_shape != (nchan, npol):
-                        raise RuntimeError('FLAG shape mismatch')
-                except Exception:
-                    tb.putcell('FLAG', i, np.zeros((nchan, npol), dtype=bool))
-                # WEIGHT_SPECTRUM: create or fix shape
-                if has_ws:
-                    try:
-                        ws_val = tb.getcell('WEIGHT_SPECTRUM', i)
-                        ws_shape = getattr(ws_val, 'shape', None)
-                        if ws_val is None or ws_shape != (nchan, npol):
-                            raise RuntimeError('WS shape mismatch')
-                    except Exception:
-                        try:
-                            w = tb.getcell('WEIGHT', i)
-                            w = np.asarray(w).reshape(-1)  # npol
-                            if w.size != npol:
-                                w = np.ones((npol,), dtype=float)
-                        except Exception:
-                            w = np.ones((npol,), dtype=float)
-                        ws = np.repeat(w[np.newaxis, :], nchan, axis=0)
-                        tb.putcell('WEIGHT_SPECTRUM', i, ws)
-                        ws_bad = True
-            # If WEIGHT_SPECTRUM remains problematic in practice, drop it so
-            # CASA uses WEIGHT
-            if has_ws and ws_bad:
-                try:
-                    tb.removecols(['WEIGHT_SPECTRUM'])
-                except Exception:
-                    pass
-    except Exception:
-        return
-
-
 def _write_ms_group_via_uvh5_to_ms(
     file_list: List[str],
     ms_out: Path,
@@ -145,27 +103,13 @@ def _write_ms_group_via_uvh5_to_ms(
         convert_single_file(
             sb,
             os.fspath(part_out),
-            add_imaging_columns=False,
+            add_imaging_columns=True,
             create_time_binned_fields=False,
             field_time_bin_minutes=5.0,
             write_recommendations=False,
             enable_phasing=True,
             phase_reference_time=None,
         )
-        try:
-            from casacore.tables import addImagingColumns as _addImCols
-            _addImCols(os.fspath(part_out))
-        except Exception:
-            pass
-        # Ensure per-part imaging columns are populated (arrays not null)
-        try:
-            from dsa110_contimg.conversion.uvh5_to_ms import (
-                # type: ignore[import]
-                _ensure_imaging_columns_populated as _fill_cols,
-            )
-            _fill_cols(os.fspath(part_out))
-        except Exception:
-            pass
         parts.append(os.fspath(part_out))
     if ms_out.exists():
         import shutil as _sh
@@ -175,28 +119,8 @@ def _write_ms_group_via_uvh5_to_ms(
         concatvis=os.fspath(ms_out),
         copypointing=False,
     )
-    try:
-        from casacore.tables import addImagingColumns as _addImCols
-        _addImCols(os.fspath(ms_out))
-    except Exception:
-        pass
-    # Populate imaging columns on the concatenated MS as well
-    try:
-        from dsa110_contimg.conversion.uvh5_to_ms import (
-            # type: ignore[import]
-            _ensure_imaging_columns_populated as _fill_cols,
-        )
-        _fill_cols(os.fspath(ms_out))
-    except Exception:
-        pass
-    # Ensure FLAG and WEIGHT_SPECTRUM cell arrays are present
-    _ensure_flag_and_weight_spectrum(os.fspath(ms_out))
-    # Initialize weights to ensure WEIGHT_SPECTRUM consistency for tclean
-    try:
-        from casatasks import initweights as _initweights
-        _initweights(vis=os.fspath(ms_out), wtmode='weight', dowtsp=True)
-    except Exception:
-        pass
+    # Configure the final concatenated MS
+    configure_ms_for_imaging(os.fspath(ms_out))
     try:
         import shutil as _sh
         _sh.rmtree(part_base, ignore_errors=True)
@@ -237,6 +161,7 @@ def main() -> int:
         '--phasecenter',
         default=None,
         help='Explicit phasecenter, e.g., "J2000 01h23m45.6s +12d34m56s"')
+    ap.add_argument('--vla-db', default='state/catalogs/vla_calibrators.sqlite3')
     args = ap.parse_args()
 
     out_dir = Path(args.output_dir)
@@ -253,7 +178,7 @@ def main() -> int:
         phasecenter = args.phasecenter
     elif args.phasecenter_cal and args.name:
         try:
-            ra_deg, dec_deg = _load_ra_dec(args.name, args.catalog)
+            ra_deg, dec_deg = _load_ra_dec(args.name, args.catalog, vla_db=args.vla_db)
             ra_hms = (
                 Angle(ra_deg, unit='deg')
                 .to_string(
@@ -277,28 +202,10 @@ def main() -> int:
         if not ms_out.is_dir():
             print(f'Converting {gid} -> {ms_out}')
             _write_ms_group_via_uvh5_to_ms(g, ms_out)
-        # Ensure imaging columns and initialize CORRECTED_DATA
-        try:
-            from casacore.tables import table as _tb, addImagingColumns as _addImCols
-            with _tb(os.fspath(ms_out)) as t:
-                cols = set(t.colnames())
-            if 'MODEL_DATA' not in cols or 'CORRECTED_DATA' not in cols:
-                print('Adding imaging columns (MODEL_DATA, CORRECTED_DATA) ...')
-                _addImCols(os.fspath(ms_out))
-        except Exception as e:
-            print('addImagingColumns warning (group):', e)
-        # Ensure FLAG/WEIGHT_SPECTRUM arrays exist and are well-shaped BEFORE
-        # CASA flagging
-        try:
-            _ensure_flag_and_weight_spectrum(os.fspath(ms_out))
-        except Exception as e:
-            print('flag/weight spectrum ensure warning (group):', e)
-        # Initialize weights (including WEIGHT_SPECTRUM) prior to tclean
-        try:
-            from casatasks import initweights as _initweights
-            _initweights(vis=os.fspath(ms_out), wtmode='weight', dowtsp=True)
-        except Exception as e:
-            print('initweights warning (group):', e)
+        else:
+            print(f'Configuring existing MS for imaging: {ms_out}')
+            configure_ms_for_imaging(os.fspath(ms_out))
+
         # Mirror central flow: reset flags and perform basic RFI flagging
         try:
             qa_reset_flags(os.fspath(ms_out))
@@ -315,8 +222,17 @@ def main() -> int:
                 gaintables=[args.bpcal, args.gpcal],
                 calwt=True,
             )
+            # Verify that applycal did something
+            from casacore.tables import table
+            with table(os.fspath(ms_out), readonly=True) as t:
+                corrected = t.getcol('CORRECTED_DATA')
+            if np.all(corrected == 0):
+                raise RuntimeError(
+                    "CORRECTED_DATA is all zeros after applycal"
+                )
         except Exception as e:
-            print(f'applycal warning for {ms_out}:', e)
+            print(f'FATAL: applycal failed for {ms_out}: {e}')
+            continue
 
         # Image
         img_base = out_dir / f'{gid}.img'

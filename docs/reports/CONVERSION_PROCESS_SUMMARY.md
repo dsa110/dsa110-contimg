@@ -124,7 +124,7 @@ python simple_uvh5_to_ms.py <input_dir> <output_dir> <start_time> <end_time>
 - CASA >= 6.7
 - astropy, numpy
 
-### 3. `uvh5_to_ms_converter.py` (Comprehensive)
+### 3. `hdf5_orchestrator.py` (Comprehensive)
 
 **Features**:
 - Full-featured standalone converter
@@ -135,7 +135,7 @@ python simple_uvh5_to_ms.py <input_dir> <output_dir> <start_time> <end_time>
 
 **Usage**:
 ```bash
-python uvh5_to_ms_converter.py <input_dir> <output_dir> <start_time> <end_time> [options]
+python hdf5_orchestrator.py <input_dir> <output_dir> <start_time> <end_time> [options]
 ```
 
 ## Technical Details

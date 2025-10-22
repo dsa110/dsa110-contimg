@@ -247,7 +247,7 @@ To verify Phase 1 implementation:
 - [ ] Example scripts run successfully
 - [ ] Validation script correctly identifies valid/invalid files
 - [ ] Unit tests pass (`pytest pipeline/tests/unit/test_simulation.py`)
-- [ ] Generated data converts successfully with `uvh5_to_ms_converter.py`
+- [ ] Generated data converts successfully with `hdf5_orchestrator.py`
 - [ ] Generated data converts successfully with `streaming_converter.py`
 - [ ] Minimal config generates 4 subbands in <10 seconds
 - [ ] Schema validation catches malformed configs

@@ -57,7 +57,7 @@ export HDF5_USE_FILE_LOCKING="FALSE"
 
 echo "Running converter (strategies: auto; tmpfs staging when available)..."
 MAX_WORKERS="${CONTIMG_MAX_WORKERS:-8}"
-"${PYTHON_BIN}" -m dsa110_contimg.conversion.strategies.uvh5_to_ms_converter \
+"${PYTHON_BIN}" -m dsa110_contimg.conversion.strategies.hdf5_orchestrator \
     "${INPUT_DIR}" \
     "${SCRATCH_MS}" \
     "${START_TIME}" \

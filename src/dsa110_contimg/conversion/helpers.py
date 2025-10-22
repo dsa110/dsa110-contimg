@@ -202,6 +202,57 @@ def amplitude_sky_model(
     return (flux_jy * pb).astype(np.float32)
 
 
+def phase_to_meridian(uvdata, pt_dec: Optional[u.Quantity] = None) -> None:
+    """Phase a UVData object to the meridian at the midpoint of the observation.
+
+    This function sets a single phase center for the entire UVData object,
+    recomputes UVW coordinates, and updates all necessary metadata to reflect
+    the new phasing.
+
+    Parameters
+    ----------
+    uvdata : UVData
+        The UVData object to be phased.
+    pt_dec : astropy.units.Quantity, optional
+        The pointing declination. If not provided, it will be extracted from
+        the `phase_center_dec` keyword in the UVData object.
+    """
+    if pt_dec is None:
+        pt_dec = uvdata.extra_keywords.get("phase_center_dec", 0.0) * u.rad
+
+    phase_time = Time(float(np.mean(uvdata.time_array)), format="jd")
+    phase_ra, phase_dec = get_meridian_coords(pt_dec, phase_time.mjd)
+
+    # Set antenna positions and diameters first
+    set_antenna_positions(uvdata)
+    _ensure_antenna_diameters(uvdata)
+
+    # Set a single phase center for the entire observation
+    uvdata.phase_center_catalog = {}
+    pc_id = uvdata._add_phase_center(
+        cat_name='meridian_icrs',
+        cat_type='sidereal',
+        cat_lon=float(phase_ra.to_value(u.rad)),
+        cat_lat=float(phase_dec.to_value(u.rad)),
+        cat_frame='icrs',
+        cat_epoch=2000.0,
+    )
+    if getattr(uvdata, 'phase_center_id_array', None) is None:
+        uvdata.phase_center_id_array = np.zeros(uvdata.Nblts, dtype=int)
+    uvdata.phase_center_id_array[:] = pc_id
+
+    # Recompute UVW coordinates
+    compute_and_set_uvw(uvdata, pt_dec)
+
+    # Update metadata to reflect the new phasing
+    uvdata.phase_type = 'phased'
+    uvdata.phase_center_ra = phase_ra.to_value(u.rad)
+    uvdata.phase_center_dec = phase_dec.to_value(u.rad)
+    uvdata.phase_center_frame = 'icrs'
+    uvdata.phase_center_epoch = 2000.0
+    uvdata.reorder_freqs(channel_order="freq", run_check=False)
+
+
 def set_model_column(
     msname: str,
     uvdata,
@@ -368,4 +419,5 @@ __all__ = [
     "set_model_column",
     "amplitude_sky_model",
     "primary_beam_response",
+    "phase_to_meridian",
 ]

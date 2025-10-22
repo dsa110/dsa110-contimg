@@ -1,0 +1,31 @@
+Title: Master Catalog Builder (NVSS + VLASS + FIRST)
+
+Summary:
+- New CLI/module: `python -m dsa110_contimg.catalog.build_master` builds a master SQLite catalog at `state/catalogs/master_sources.sqlite3`.
+- Inputs: NVSS (required), optional VLASS and FIRST catalogs (CSV/TSV/FITS).
+- Crossmatch within a radius (default 7.5") and compute:
+  - Spectral index α from NVSS (1.4 GHz) and VLASS (3.0 GHz) peak fluxes (converted to Jy).
+  - Compactness and confusion flags via FIRST deconvolved sizes and multi-matches.
+- Outputs:
+  - Table `sources(source_id, ra_deg, dec_deg, s_nvss, snr_nvss, s_vlass, alpha, resolved_flag, confusion_flag)`
+  - View `good_references`: quality-filtered sources (SNR, α range, compact, non-confused).
+  - View `final_references`: stricter SNR + optional membership in long-term stable ID list.
+  - Optional table `final_references_table` (materialized snapshot of `final_references`).
+  - Table `meta`: thresholds, build time, input file hashes/sizes/mtimes/row counts.
+
+Key Flags:
+- `--nvss/--vlass/--first` input paths
+- `--match-radius-arcsec` (default 7.5)
+- `--nvss-flux-unit|--vlass-flux-unit` {jy|mjy|ujy}
+- `--goodref-snr-min --goodref-alpha-min --goodref-alpha-max`
+- `--finalref-snr-min --finalref-ids --materialize-final`
+- `--export-view {sources,good_references,final_references,final_references_table}`
+- `--export-csv <path>`
+
+Example:
+python -m dsa110_contimg.catalog.build_master \
+  --nvss NVSS.csv --vlass VLASS.csv --first FIRST.csv \
+  --nvss-flux-unit mjy --vlass-flux-unit mjy \
+  --goodref-snr-min 50 --finalref-snr-min 80 \
+  --export-view final_references --export-csv state/catalogs/final_refs.csv
+

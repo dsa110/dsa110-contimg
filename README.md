@@ -20,7 +20,7 @@ Visual overview: see `docs/pipeline.md` for diagrams of the end-to-end pipeline 
     - `streaming_converter.py`: stream daemon (ingest → convert → calibrate/apply → image)
     - `uvh5_to_ms.py`: standalone converter (legacy/utility)
     - `strategies/`: Strategy orchestrator and writer plugins
-      - `uvh5_to_ms_converter.py`: orchestrator CLI (primary entry for conversion)
+      - `hdf5_orchestrator.py`: orchestrator CLI (primary entry for conversion)
       - `direct_subband.py`: parallel per-subband writer, robust for CASA
       - `pyuvdata_monolithic.py`: single-shot writer via `UVData.write_ms`
     - `helpers.py`: antenna positions, meridian phasing, model/weights, etc.
@@ -131,13 +131,13 @@ Image:
 ## CLI Reference
 
 - Streaming worker (manual):
-  - `python -m dsa110_contimg.conversion.streaming_converter --input-dir /data/ingest --output-dir /data/ms --queue-db state/ingest.sqlite3 --registry-db state/cal_registry.sqlite3 --scratch-dir /data/scratch --log-level INFO --use-subprocess --expected-subbands 16 --chunk-duration 5 --monitoring`
+  - `python -m dsa110_contimg.conversion.streaming.streaming_converter --input-dir /data/ingest --output-dir /data/ms --queue-db state/ingest.sqlite3 --registry-db state/cal_registry.sqlite3 --scratch-dir /data/scratch --log-level INFO --use-subprocess --expected-subbands 16 --chunk-duration 5 --monitoring`
 - Backfill imaging worker:
   - Scan: `python -m dsa110_contimg.imaging.worker scan --ms-dir /data/ms --out-dir /data/ms --registry-db state/cal_registry.sqlite3 --products-db state/products.sqlite3 --log-level INFO`
 - Standalone converter (legacy/utility):
   - `python -m dsa110_contimg.conversion.uvh5_to_ms --help`
 - Orchestrator writer (preferred):
-  - `python -m dsa110_contimg.conversion.strategies.uvh5_to_ms_converter --help`
+  - `python -m dsa110_contimg.conversion.strategies.hdf5_orchestrator --help`
 - Registry CLI:
   - `python -m dsa110_contimg.database.registry_cli --help`
 - Mosaic CLI (new):
@@ -145,6 +145,27 @@ Image:
   - Build: `python -m dsa110_contimg.mosaic.cli build --products-db state/products.sqlite3 --name night_YYYYMMDD --output /data/ms/mosaics/night_YYYYMMDD.img`
 - Housekeeping:
   - `python ops/pipeline/housekeeping.py --queue-db state/ingest.sqlite3 --scratch-dir /data/scratch --in-progress-timeout 3600 --collecting-timeout 86400 --temp-age 86400`
+
+## Knowledge Graph Guardrails (Graphiti)
+
+Use these helper targets and scripts to keep the project’s Graphiti knowledge graph healthy and easy to navigate. See also: `docs/graphiti-guardrails.md`.
+
+- Quick checks and fixes (default group: `dsa110-contimg`):
+  - Check: `make guardrails-check [GROUP_ID=<group>]`
+  - Fix: `make guardrails-fix [GROUP_ID=<group>]`
+    - Backfills missing `uuid`/`summary`
+    - Re-embeds missing/mismatched vectors using your configured embedder
+    - Ensures a uniqueness constraint on `(:Entity {uuid})`
+
+- Ingest docs and link to scripts:
+  - `make ingest-docs [GROUP_ID=<group>]`
+  - Creates/updates `:Documentation` nodes for README/quickstart/quicklook/pipeline and adds `DOCUMENTS` edges to `run_conversion.sh`, `image_ms.sh`, `calibrate_bandpass.sh`.
+
+Implementation notes
+- Targets call `uv run --isolated` in the Graphiti MCP server directory to reuse its environment (`/home/ubuntu/proj/mcps/graphiti/mcp_server/.env`).
+- Scripts live under `scripts/`:
+  - `scripts/graphiti_guardrails_check.py`
+  - `scripts/graphiti_ingest_docs.py`
 
 ## Nightly Mosaic and Housekeeping
 

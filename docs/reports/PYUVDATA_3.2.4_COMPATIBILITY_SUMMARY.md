@@ -23,7 +23,7 @@ All three UVH5 to CASA Measurement Set converter scripts have been verified and 
 - ✅ Script imports successfully in casa6 environment
 - ✅ No other attribute changes needed
 
-### 2. uvh5_to_ms_converter.py
+### 2. hdf5_orchestrator.py
 
 **Changes**:
 - Updated `uvdata.Nants_data` → `uvdata.Nants_telescope` (line 198)
@@ -79,7 +79,7 @@ The following UVData attributes used in our scripts are all compatible with pyuv
 ```bash
 conda activate casa6
 python -c "import simple_uvh5_to_ms; print('✓ simple_uvh5_to_ms.py works')"
-python -c "import uvh5_to_ms_converter; print('✓ uvh5_to_ms_converter.py works')"
+python -c "import hdf5_orchestrator; print('✓ hdf5_orchestrator.py works')"
 python -c "import dsa110_uvh5_to_ms; print('✓ dsa110_uvh5_to_ms.py works')"
 ```
 
@@ -91,11 +91,11 @@ All UVData attributes used in the scripts are verified to exist in pyuvdata 3.2.
 
 ## Usage Instructions
 
-### For simple_uvh5_to_ms.py and uvh5_to_ms_converter.py:
+### For simple_uvh5_to_ms.py and hdf5_orchestrator.py:
 ```bash
 conda activate casa6
 python simple_uvh5_to_ms.py <input_dir> <output_dir> <start_time> <end_time>
-python uvh5_to_ms_converter.py <input_dir> <output_dir> <start_time> <end_time>
+python hdf5_orchestrator.py <input_dir> <output_dir> <start_time> <end_time>
 ```
 
 ### For dsa110_uvh5_to_ms.py (requires dsacalib):

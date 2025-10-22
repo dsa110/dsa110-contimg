@@ -1,0 +1,1145 @@
+[Terminal output truncated: ~150KB dropped from beginning]
+&&, size_t, std::binary_semaphore&)>&&
+      |       ^~~
+In file included from /usr/include/c++/10/functional:59,
+                 from /usr/include/c++/10/pstl/glue_algorithm_defs.h:13,
+                 from /usr/include/c++/10/algorithm:74,
+                 from /home/ubuntu/proj/wsclean/external/aocommon/include/aocommon/io/../uvector.h:4,
+                 from /home/ubuntu/proj/wsclean/external/aocommon/include/aocommon/io/serialostream.h:4,
+                 from /home/ubuntu/proj/wsclean/external/aocommon/include/aocommon/image.h:4,
+                 from /home/ubuntu/proj/wsclean/scheduling/griddingtask.h:5,
+                 from /home/ubuntu/proj/wsclean/scheduling/griddingtaskmanager.h:7,
+                 from /home/ubuntu/proj/wsclean/scheduling/griddingtaskmanager.cpp:1:
+/usr/include/c++/10/bits/std_function.h:113:11: note: ‘template<class _Signature> class std::function’ declared here
+  113 |     class function;
+      |           ^~~~~~~~
+In file included from /home/ubuntu/proj/wsclean/scheduling/../gridding/msgriddermanager.h:8,
+                 from /home/ubuntu/proj/wsclean/scheduling/griddingtaskmanager.cpp:13:
+/home/ubuntu/proj/wsclean/external/aocommon/include/aocommon/overlappingtaskprocessor.h:125:30: error: expected ‘)’ before ‘,’ token
+  125 |           processing_function,
+      |                              ^
+      |                              )
+/home/ubuntu/proj/wsclean/external/aocommon/include/aocommon/overlappingtaskprocessor.h:122:18: note: to match this ‘(’
+  122 |   void QueueChunk(
+      |                  ^
+/home/ubuntu/proj/wsclean/external/aocommon/include/aocommon/overlappingtaskprocessor.h:125:30: error: expected ‘;’ before ‘,’ token
+  125 |           processing_function,
+      |                              ^
+      |                              ;
+/home/ubuntu/proj/wsclean/external/aocommon/include/aocommon/overlappingtaskprocessor.h:153:8: error: ‘counting_semaphore’ in namespace ‘std’ does not name a template type
+  153 |   std::counting_semaphore<2> processing_count_semaphore_;
+      |        ^~~~~~~~~~~~~~~~~~
+/home/ubuntu/proj/wsclean/external/aocommon/include/aocommon/overlappingtaskprocessor.h:154:8: error: ‘binary_semaphore’ in namespace ‘std’ does not name a type; did you mean ‘binary_search’?
+  154 |   std::binary_semaphore processing_order_semaphore_;
+      |        ^~~~~~~~~~~~~~~~
+      |        binary_search
+/home/ubuntu/proj/wsclean/external/aocommon/include/aocommon/overlappingtaskprocessor.h:155:8: error: ‘binary_semaphore’ in namespace ‘std’ does not name a type; did you mean ‘binary_search’?
+  155 |   std::binary_semaphore lane_process_semaphore_;
+      |        ^~~~~~~~~~~~~~~~
+      |        binary_search
+/home/ubuntu/proj/wsclean/external/aocommon/include/aocommon/overlappingtaskprocessor.h: In constructor ‘aocommon::OverlappingTaskProcessor::OverlappingTaskProcessor(aocommon::TaskQueue<std::function<void()> >&)’:
+/home/ubuntu/proj/wsclean/external/aocommon/include/aocommon/overlappingtaskprocessor.h:47:9: error: class ‘aocommon::OverlappingTaskProcessor’ does not have any field named ‘processing_count_semaphore_’
+   47 |         processing_count_semaphore_(2),
+      |         ^~~~~~~~~~~~~~~~~~~~~~~~~~~
+/home/ubuntu/proj/wsclean/external/aocommon/include/aocommon/overlappingtaskprocessor.h:48:9: error: class ‘aocommon::OverlappingTaskProcessor’ does not have any field named ‘processing_order_semaphore_’
+   48 |         processing_order_semaphore_(1),
+      |         ^~~~~~~~~~~~~~~~~~~~~~~~~~~
+/home/ubuntu/proj/wsclean/external/aocommon/include/aocommon/overlappingtaskprocessor.h:49:9: error: class ‘aocommon::OverlappingTaskProcessor’ does not have any field named ‘lane_process_semaphore_’
+   49 |         lane_process_semaphore_(1){};
+      |         ^~~~~~~~~~~~~~~~~~~~~~~
+In file included from /home/ubuntu/proj/wsclean/gridding/../scheduling/griddingtask.h:11,
+                 from /home/ubuntu/proj/wsclean/gridding/../scheduling/griddingtaskmanager.h:7,
+                 from /home/ubuntu/proj/wsclean/gridding/msgridderdata.h:20,
+                 from /home/ubuntu/proj/wsclean/gridding/msgridder.h:8,
+                 from /home/ubuntu/proj/wsclean/gridding/wsmsgridder.h:4,
+                 from /home/ubuntu/proj/wsclean/gridding/wsmsgridder.cpp:1:
+/home/ubuntu/proj/wsclean/gridding/../scheduling/../system/completionsignal.h: In member function ‘void wsclean::CompletionSignal::SignalCompletion()’:
+/home/ubuntu/proj/wsclean/gridding/../scheduling/../system/completionsignal.h:59:13: error: ‘struct std::atomic<bool>’ has no member named ‘notify_all’
+   59 |     signal_.notify_all();
+      |             ^~~~~~~~~~
+/home/ubuntu/proj/wsclean/gridding/../scheduling/../system/completionsignal.h: In member function ‘void wsclean::CompletionSignal::WaitForCompletion()’:
+/home/ubuntu/proj/wsclean/gridding/../scheduling/../system/completionsignal.h:69:13: error: ‘struct std::atomic<bool>’ has no member named ‘wait’
+   69 |     signal_.wait(false);
+      |             ^~~~
+In file included from /home/ubuntu/proj/wsclean/wgridder/../gridding/../scheduling/griddingtask.h:11,
+                 from /home/ubuntu/proj/wsclean/wgridder/../gridding/../scheduling/griddingtaskmanager.h:7,
+                 from /home/ubuntu/proj/wsclean/wgridder/../gridding/msgridderdata.h:20,
+                 from /home/ubuntu/proj/wsclean/wgridder/../gridding/msgridder.h:8,
+                 from /home/ubuntu/proj/wsclean/wgridder/wgridder.h:13,
+                 from /home/ubuntu/proj/wsclean/wgridder/wgridder_implementation.h:4,
+                 from /home/ubuntu/proj/wsclean/wgridder/wgridder_float.cpp:1:
+/home/ubuntu/proj/wsclean/wgridder/../gridding/../scheduling/../system/completionsignal.h: In member function ‘void wsclean::CompletionSignal::SignalCompletion()’:
+/home/ubuntu/proj/wsclean/wgridder/../gridding/../scheduling/../system/completionsignal.h:59:13: error: ‘struct std::atomic<bool>’ has no member named ‘notify_all’
+   59 |     signal_.notify_all();
+      |             ^~~~~~~~~~
+/home/ubuntu/proj/wsclean/wgridder/../gridding/../scheduling/../system/completionsignal.h: In member function ‘void wsclean::CompletionSignal::WaitForCompletion()’:
+/home/ubuntu/proj/wsclean/wgridder/../gridding/../scheduling/../system/completionsignal.h:69:13: error: ‘struct std::atomic<bool>’ has no member named ‘wait’
+   69 |     signal_.wait(false);
+      |             ^~~~
+In file included from /home/ubuntu/proj/wsclean/main/../scheduling/griddingtask.h:11,
+                 from /home/ubuntu/proj/wsclean/main/../scheduling/griddingtaskfactory.h:16,
+                 from /home/ubuntu/proj/wsclean/main/wsclean.h:18,
+                 from /home/ubuntu/proj/wsclean/main/wsclean.cpp:1:
+/home/ubuntu/proj/wsclean/main/../scheduling/../system/completionsignal.h: In member function ‘void wsclean::CompletionSignal::SignalCompletion()’:
+/home/ubuntu/proj/wsclean/main/../scheduling/../system/completionsignal.h:59:13: error: ‘struct std::atomic<bool>’ has no member named ‘notify_all’
+   59 |     signal_.notify_all();
+      |             ^~~~~~~~~~
+/home/ubuntu/proj/wsclean/main/../scheduling/../system/completionsignal.h: In member function ‘void wsclean::CompletionSignal::WaitForCompletion()’:
+/home/ubuntu/proj/wsclean/main/../scheduling/../system/completionsignal.h:69:13: error: ‘struct std::atomic<bool>’ has no member named ‘wait’
+   69 |     signal_.wait(false);
+      |             ^~~~
+In file included from /home/ubuntu/proj/wsclean/gridding/wsmsgridder.h:4,
+                 from /home/ubuntu/proj/wsclean/gridding/wsmsgridder.cpp:1:
+/home/ubuntu/proj/wsclean/gridding/msgridder.h: At global scope:
+/home/ubuntu/proj/wsclean/gridding/msgridder.h:252:8: error: ‘binary_semaphore’ in namespace ‘std’ does not name a type; did you mean ‘binary_negate’?
+  252 |   std::binary_semaphore processing_semaphore_{1};
+      |        ^~~~~~~~~~~~~~~~
+      |        binary_negate
+In file included from /home/ubuntu/proj/wsclean/wgridder/../gridding/../scheduling/griddingtask.h:11,
+                 from /home/ubuntu/proj/wsclean/wgridder/../gridding/../scheduling/griddingtaskmanager.h:7,
+                 from /home/ubuntu/proj/wsclean/wgridder/../gridding/msgridderdata.h:20,
+                 from /home/ubuntu/proj/wsclean/wgridder/../gridding/msgridder.h:8,
+                 from /home/ubuntu/proj/wsclean/wgridder/wgriddingmsgridder.h:4,
+                 from /home/ubuntu/proj/wsclean/wgridder/wgriddingmsgridder.cpp:1:
+/home/ubuntu/proj/wsclean/wgridder/../gridding/../scheduling/../system/completionsignal.h: In member function ‘void wsclean::CompletionSignal::SignalCompletion()’:
+/home/ubuntu/proj/wsclean/wgridder/../gridding/../scheduling/../system/completionsignal.h:59:13: error: ‘struct std::atomic<bool>’ has no member named ‘notify_all’
+   59 |     signal_.notify_all();
+      |             ^~~~~~~~~~
+/home/ubuntu/proj/wsclean/wgridder/../gridding/../scheduling/../system/completionsignal.h: In member function ‘void wsclean::CompletionSignal::WaitForCompletion()’:
+/home/ubuntu/proj/wsclean/wgridder/../gridding/../scheduling/../system/completionsignal.h:69:13: error: ‘struct std::atomic<bool>’ has no member named ‘wait’
+   69 |     signal_.wait(false);
+      |             ^~~~
+In file included from /home/ubuntu/proj/wsclean/wgridder/wgridder.h:13,
+                 from /home/ubuntu/proj/wsclean/wgridder/wgridder_implementation.h:4,
+                 from /home/ubuntu/proj/wsclean/wgridder/wgridder_float.cpp:1:
+/home/ubuntu/proj/wsclean/wgridder/../gridding/msgridder.h: At global scope:
+/home/ubuntu/proj/wsclean/wgridder/../gridding/msgridder.h:252:8: error: ‘binary_semaphore’ in namespace ‘std’ does not name a type; did you mean ‘binary_search’?
+  252 |   std::binary_semaphore processing_semaphore_{1};
+      |        ^~~~~~~~~~~~~~~~
+      |        binary_search
+In file included from /home/ubuntu/proj/wsclean/scheduling/../gridding/msgriddermanager.h:12,
+                 from /home/ubuntu/proj/wsclean/scheduling/griddingtaskmanager.cpp:13:
+/home/ubuntu/proj/wsclean/scheduling/../gridding/msgridder.h: At global scope:
+/home/ubuntu/proj/wsclean/scheduling/../gridding/msgridder.h:252:8: error: ‘binary_semaphore’ in namespace ‘std’ does not name a type; did you mean ‘binary_search’?
+  252 |   std::binary_semaphore processing_semaphore_{1};
+      |        ^~~~~~~~~~~~~~~~
+      |        binary_search
+In file included from /home/ubuntu/proj/wsclean/scheduling/griddingtaskmanager.cpp:13:
+/home/ubuntu/proj/wsclean/scheduling/../gridding/msgriddermanager.h:134:7: error: ‘std::binary_semaphore’ has not been declared
+  134 |       std::binary_semaphore& first_operation_started, T&& operation);
+      |       ^~~
+/home/ubuntu/proj/wsclean/scheduling/../gridding/msgriddermanager.h:329:40: error: ‘std::binary_semaphore’ has not been declared
+  329 |                    size_t chunk_index, std::binary_semaphore& gridding_started);
+      |                                        ^~~
+/home/ubuntu/proj/wsclean/scheduling/../gridding/msgriddermanager.h:367:23: error: ‘std::binary_semaphore’ has not been declared
+  367 |                       std::binary_semaphore& first_predict_started);
+      |                       ^~~
+In file included from /home/ubuntu/proj/wsclean/gridding/msgriddermanager.h:8,
+                 from /home/ubuntu/proj/wsclean/gridding/wsmsgridder.cpp:3:
+/home/ubuntu/proj/wsclean/external/aocommon/include/aocommon/overlappingtaskprocessor.h:70:60: error: ‘binary_semaphore’ is not a member of ‘std’; did you mean ‘binary_negate’?
+   70 |                std::function<void(DataType&&, size_t, std::binary_semaphore&)>&&
+      |                                                            ^~~~~~~~~~~~~~~~
+      |                                                            binary_negate
+/home/ubuntu/proj/wsclean/external/aocommon/include/aocommon/overlappingtaskprocessor.h:70:78: error: template argument 1 is invalid
+   70 |                std::function<void(DataType&&, size_t, std::binary_semaphore&)>&&
+      |                                                                              ^
+/home/ubuntu/proj/wsclean/external/aocommon/include/aocommon/overlappingtaskprocessor.h:70:60: error: ‘binary_semaphore’ is not a member of ‘std’; did you mean ‘binary_negate’?
+   70 |                std::function<void(DataType&&, size_t, std::binary_semaphore&)>&&
+      |                                                            ^~~~~~~~~~~~~~~~
+      |                                                            binary_negate
+/home/ubuntu/proj/wsclean/external/aocommon/include/aocommon/overlappingtaskprocessor.h:70:78: error: template argument 1 is invalid
+   70 |                std::function<void(DataType&&, size_t, std::binary_semaphore&)>&&
+      |                                                                              ^
+/home/ubuntu/proj/wsclean/external/aocommon/include/aocommon/overlappingtaskprocessor.h:70:60: error: ‘binary_semaphore’ is not a member of ‘std’; did you mean ‘binary_negate’?
+   70 |                std::function<void(DataType&&, size_t, std::binary_semaphore&)>&&
+      |                                                            ^~~~~~~~~~~~~~~~
+      |                                                            binary_negate
+/home/ubuntu/proj/wsclean/external/aocommon/include/aocommon/overlappingtaskprocessor.h:70:78: error: template argument 1 is invalid
+   70 |                std::function<void(DataType&&, size_t, std::binary_semaphore&)>&&
+      |                                                                              ^
+/home/ubuntu/proj/wsclean/external/aocommon/include/aocommon/overlappingtaskprocessor.h:70:60: error: ‘binary_semaphore’ is not a member of ‘std’; did you mean ‘binary_negate’?
+   70 |                std::function<void(DataType&&, size_t, std::binary_semaphore&)>&&
+      |                                                            ^~~~~~~~~~~~~~~~
+      |                                                            binary_negate
+/home/ubuntu/proj/wsclean/external/aocommon/include/aocommon/overlappingtaskprocessor.h:70:78: error: template argument 1 is invalid
+   70 |                std::function<void(DataType&&, size_t, std::binary_semaphore&)>&&
+      |                                                                              ^
+/home/ubuntu/proj/wsclean/external/aocommon/include/aocommon/overlappingtaskprocessor.h:70:16: error: invalid template-id
+   70 |                std::function<void(DataType&&, size_t, std::binary_semaphore&)>&&
+      |                ^~~
+/home/ubuntu/proj/wsclean/external/aocommon/include/aocommon/overlappingtaskprocessor.h:70:60: error: ‘binary_semaphore’ is not a member of ‘std’; did you mean ‘binary_negate’?
+   70 |                std::function<void(DataType&&, size_t, std::binary_semaphore&)>&&
+      |                                                            ^~~~~~~~~~~~~~~~
+      |                                                            binary_negate
+/home/ubuntu/proj/wsclean/external/aocommon/include/aocommon/overlappingtaskprocessor.h:70:30: error: expected primary-expression before ‘void’
+   70 |                std::function<void(DataType&&, size_t, std::binary_semaphore&)>&&
+      |                              ^~~~
+/home/ubuntu/proj/wsclean/external/aocommon/include/aocommon/overlappingtaskprocessor.h:70:30: error: expected ‘>’ before ‘void’
+/home/ubuntu/proj/wsclean/external/aocommon/include/aocommon/overlappingtaskprocessor.h:70:16: error: template placeholder type ‘function<...auto...>’ must be followed by a simple declarator-id
+   70 |                std::function<void(DataType&&, size_t, std::binary_semaphore&)>&&
+      |                ^~~
+In file included from /usr/include/c++/10/functional:59,
+                 from /usr/include/c++/10/pstl/glue_algorithm_defs.h:13,
+                 from /usr/include/c++/10/algorithm:74,
+                 from /home/ubuntu/proj/wsclean/external/aocommon/include/aocommon/io/../uvector.h:4,
+                 from /home/ubuntu/proj/wsclean/external/aocommon/include/aocommon/io/serialostream.h:4,
+                 from /home/ubuntu/proj/wsclean/gridding/../structures/weightmode.h:4,
+                 from /home/ubuntu/proj/wsclean/gridding/msgridder.h:6,
+                 from /home/ubuntu/proj/wsclean/gridding/wsmsgridder.h:4,
+                 from /home/ubuntu/proj/wsclean/gridding/wsmsgridder.cpp:1:
+/usr/include/c++/10/bits/std_function.h:113:11: note: ‘template<class _Signature> class std::function’ declared here
+  113 |     class function;
+      |           ^~~~~~~~
+In file included from /home/ubuntu/proj/wsclean/gridding/msgriddermanager.h:8,
+                 from /home/ubuntu/proj/wsclean/gridding/wsmsgridder.cpp:3:
+/home/ubuntu/proj/wsclean/external/aocommon/include/aocommon/overlappingtaskprocessor.h:71:39: error: expected ‘)’ before ‘,’ token
+   71 |                    processing_function,
+      |                                       ^
+      |                                       )
+/home/ubuntu/proj/wsclean/external/aocommon/include/aocommon/overlappingtaskprocessor.h:69:15: note: to match this ‘(’
+   69 |   void Process(aocommon::Lane<DataType>& data_lane,
+      |               ^
+/home/ubuntu/proj/wsclean/external/aocommon/include/aocommon/overlappingtaskprocessor.h:71:39: error: expected ‘;’ before ‘,’ token
+   71 |                    processing_function,
+      |                                       ^
+      |                                       ;
+/home/ubuntu/proj/wsclean/external/aocommon/include/aocommon/overlappingtaskprocessor.h:94:51: error: ‘binary_semaphore’ is not a member of ‘std’; did you mean ‘binary_negate’?
+   94 |       std::function<void(DataType&&, size_t, std::binary_semaphore&)>&&
+      |                                                   ^~~~~~~~~~~~~~~~
+      |                                                   binary_negate
+/home/ubuntu/proj/wsclean/external/aocommon/include/aocommon/overlappingtaskprocessor.h:94:69: error: template argument 1 is invalid
+   94 |       std::function<void(DataType&&, size_t, std::binary_semaphore&)>&&
+      |                                                                     ^
+/home/ubuntu/proj/wsclean/external/aocommon/include/aocommon/overlappingtaskprocessor.h:94:51: error: ‘binary_semaphore’ is not a member of ‘std’; did you mean ‘binary_negate’?
+   94 |       std::function<void(DataType&&, size_t, std::binary_semaphore&)>&&
+      |                                                   ^~~~~~~~~~~~~~~~
+      |                                                   binary_negate
+/home/ubuntu/proj/wsclean/external/aocommon/include/aocommon/overlappingtaskprocessor.h:94:69: error: template argument 1 is invalid
+   94 |       std::function<void(DataType&&, size_t, std::binary_semaphore&)>&&
+      |                                                                     ^
+/home/ubuntu/proj/wsclean/external/aocommon/include/aocommon/overlappingtaskprocessor.h:94:51: error: ‘binary_semaphore’ is not a member of ‘std’; did you mean ‘binary_negate’?
+   94 |       std::function<void(DataType&&, size_t, std::binary_semaphore&)>&&
+      |                                                   ^~~~~~~~~~~~~~~~
+      |                                                   binary_negate
+/home/ubuntu/proj/wsclean/external/aocommon/include/aocommon/overlappingtaskprocessor.h:94:69: error: template argument 1 is invalid
+   94 |       std::function<void(DataType&&, size_t, std::binary_semaphore&)>&&
+      |                                                                     ^
+/home/ubuntu/proj/wsclean/external/aocommon/include/aocommon/overlappingtaskprocessor.h:94:51: error: ‘binary_semaphore’ is not a member of ‘std’; did you mean ‘binary_negate’?
+   94 |       std::function<void(DataType&&, size_t, std::binary_semaphore&)>&&
+      |                                                   ^~~~~~~~~~~~~~~~
+      |                                                   binary_negate
+/home/ubuntu/proj/wsclean/external/aocommon/include/aocommon/overlappingtaskprocessor.h:94:69: error: template argument 1 is invalid
+   94 |       std::function<void(DataType&&, size_t, std::binary_semaphore&)>&&
+      |                                                                     ^
+/home/ubuntu/proj/wsclean/external/aocommon/include/aocommon/overlappingtaskprocessor.h:94:7: error: invalid template-id
+   94 |       std::function<void(DataType&&, size_t, std::binary_semaphore&)>&&
+      |       ^~~
+/home/ubuntu/proj/wsclean/external/aocommon/include/aocommon/overlappingtaskprocessor.h:94:51: error: ‘binary_semaphore’ is not a member of ‘std’; did you mean ‘binary_negate’?
+   94 |       std::function<void(DataType&&, size_t, std::binary_semaphore&)>&&
+      |                                                   ^~~~~~~~~~~~~~~~
+      |                                                   binary_negate
+/home/ubuntu/proj/wsclean/external/aocommon/include/aocommon/overlappingtaskprocessor.h:94:21: error: expected primary-expression before ‘void’
+   94 |       std::function<void(DataType&&, size_t, std::binary_semaphore&)>&&
+      |                     ^~~~
+/home/ubuntu/proj/wsclean/external/aocommon/include/aocommon/overlappingtaskprocessor.h:94:21: error: expected ‘>’ before ‘void’
+/home/ubuntu/proj/wsclean/external/aocommon/include/aocommon/overlappingtaskprocessor.h:94:7: error: template placeholder type ‘function<...auto...>’ must be followed by a simple declarator-id
+   94 |       std::function<void(DataType&&, size_t, std::binary_semaphore&)>&&
+      |       ^~~
+In file included from /usr/include/c++/10/functional:59,
+                 from /usr/include/c++/10/pstl/glue_algorithm_defs.h:13,
+                 from /usr/include/c++/10/algorithm:74,
+                 from /home/ubuntu/proj/wsclean/external/aocommon/include/aocommon/io/../uvector.h:4,
+                 from /home/ubuntu/proj/wsclean/external/aocommon/include/aocommon/io/serialostream.h:4,
+                 from /home/ubuntu/proj/wsclean/gridding/../structures/weightmode.h:4,
+                 from /home/ubuntu/proj/wsclean/gridding/msgridder.h:6,
+                 from /home/ubuntu/proj/wsclean/gridding/wsmsgridder.h:4,
+                 from /home/ubuntu/proj/wsclean/gridding/wsmsgridder.cpp:1:
+/usr/include/c++/10/bits/std_function.h:113:11: note: ‘template<class _Signature> class std::function’ declared here
+  113 |     class function;
+      |           ^~~~~~~~
+In file included from /home/ubuntu/proj/wsclean/gridding/msgriddermanager.h:8,
+                 from /home/ubuntu/proj/wsclean/gridding/wsmsgridder.cpp:3:
+/home/ubuntu/proj/wsclean/external/aocommon/include/aocommon/overlappingtaskprocessor.h:95:30: error: expected ‘)’ before ‘,’ token
+   95 |           processing_function,
+      |                              ^
+      |                              )
+/home/ubuntu/proj/wsclean/external/aocommon/include/aocommon/overlappingtaskprocessor.h:92:31: note: to match this ‘(’
+   92 |   void ProcessAllChunksForLane(
+      |                               ^
+/home/ubuntu/proj/wsclean/external/aocommon/include/aocommon/overlappingtaskprocessor.h:95:30: error: expected ‘;’ before ‘,’ token
+   95 |           processing_function,
+      |                              ^
+      |                              ;
+/home/ubuntu/proj/wsclean/external/aocommon/include/aocommon/overlappingtaskprocessor.h:124:51: error: ‘binary_semaphore’ is not a member of ‘std’; did you mean ‘binary_negate’?
+  124 |       std::function<void(DataType&&, size_t, std::binary_semaphore&)>&&
+      |                                                   ^~~~~~~~~~~~~~~~
+      |                                                   binary_negate
+/home/ubuntu/proj/wsclean/external/aocommon/include/aocommon/overlappingtaskprocessor.h:124:69: error: template argument 1 is invalid
+  124 |       std::function<void(DataType&&, size_t, std::binary_semaphore&)>&&
+      |                                                                     ^
+/home/ubuntu/proj/wsclean/external/aocommon/include/aocommon/overlappingtaskprocessor.h:124:51: error: ‘binary_semaphore’ is not a member of ‘std’; did you mean ‘binary_negate’?
+  124 |       std::function<void(DataType&&, size_t, std::binary_semaphore&)>&&
+      |                                                   ^~~~~~~~~~~~~~~~
+      |                                                   binary_negate
+/home/ubuntu/proj/wsclean/external/aocommon/include/aocommon/overlappingtaskprocessor.h:124:69: error: template argument 1 is invalid
+  124 |       std::function<void(DataType&&, size_t, std::binary_semaphore&)>&&
+      |                                                                     ^
+/home/ubuntu/proj/wsclean/external/aocommon/include/aocommon/overlappingtaskprocessor.h:124:51: error: ‘binary_semaphore’ is not a member of ‘std’; did you mean ‘binary_negate’?
+  124 |       std::function<void(DataType&&, size_t, std::binary_semaphore&)>&&
+      |                                                   ^~~~~~~~~~~~~~~~
+      |                                                   binary_negate
+/home/ubuntu/proj/wsclean/external/aocommon/include/aocommon/overlappingtaskprocessor.h:124:69: error: template argument 1 is invalid
+  124 |       std::function<void(DataType&&, size_t, std::binary_semaphore&)>&&
+      |                                                                     ^
+/home/ubuntu/proj/wsclean/external/aocommon/include/aocommon/overlappingtaskprocessor.h:124:51: error: ‘binary_semaphore’ is not a member of ‘std’; did you mean ‘binary_negate’?
+  124 |       std::function<void(DataType&&, size_t, std::binary_semaphore&)>&&
+      |                                                   ^~~~~~~~~~~~~~~~
+      |                                                   binary_negate
+/home/ubuntu/proj/wsclean/external/aocommon/include/aocommon/overlappingtaskprocessor.h:124:69: error: template argument 1 is invalid
+  124 |       std::function<void(DataType&&, size_t, std::binary_semaphore&)>&&
+      |                                                                     ^
+/home/ubuntu/proj/wsclean/external/aocommon/include/aocommon/overlappingtaskprocessor.h:124:7: error: invalid template-id
+  124 |       std::function<void(DataType&&, size_t, std::binary_semaphore&)>&&
+      |       ^~~
+/home/ubuntu/proj/wsclean/external/aocommon/include/aocommon/overlappingtaskprocessor.h:124:51: error: ‘binary_semaphore’ is not a member of ‘std’; did you mean ‘binary_negate’?
+  124 |       std::function<void(DataType&&, size_t, std::binary_semaphore&)>&&
+      |                                                   ^~~~~~~~~~~~~~~~
+      |                                                   binary_negate
+/home/ubuntu/proj/wsclean/external/aocommon/include/aocommon/overlappingtaskprocessor.h:124:21: error: expected primary-expression before ‘void’
+  124 |       std::function<void(DataType&&, size_t, std::binary_semaphore&)>&&
+      |                     ^~~~
+/home/ubuntu/proj/wsclean/external/aocommon/include/aocommon/overlappingtaskprocessor.h:124:21: error: expected ‘>’ before ‘void’
+/home/ubuntu/proj/wsclean/external/aocommon/include/aocommon/overlappingtaskprocessor.h:124:7: error: template placeholder type ‘function<...auto...>’ must be followed by a simple declarator-id
+  124 |       std::function<void(DataType&&, size_t, std::binary_semaphore&)>&&
+      |       ^~~
+In file included from /usr/include/c++/10/functional:59,
+                 from /usr/include/c++/10/pstl/glue_algorithm_defs.h:13,
+                 from /usr/include/c++/10/algorithm:74,
+                 from /home/ubuntu/proj/wsclean/external/aocommon/include/aocommon/io/../uvector.h:4,
+                 from /home/ubuntu/proj/wsclean/external/aocommon/include/aocommon/io/serialostream.h:4,
+                 from /home/ubuntu/proj/wsclean/gridding/../structures/weightmode.h:4,
+                 from /home/ubuntu/proj/wsclean/gridding/msgridder.h:6,
+                 from /home/ubuntu/proj/wsclean/gridding/wsmsgridder.h:4,
+                 from /home/ubuntu/proj/wsclean/gridding/wsmsgridder.cpp:1:
+/usr/include/c++/10/bits/std_function.h:113:11: note: ‘template<class _Signature> class std::function’ declared here
+  113 |     class function;
+      |           ^~~~~~~~
+In file included from /home/ubuntu/proj/wsclean/gridding/msgriddermanager.h:8,
+                 from /home/ubuntu/proj/wsclean/gridding/wsmsgridder.cpp:3:
+/home/ubuntu/proj/wsclean/external/aocommon/include/aocommon/overlappingtaskprocessor.h:125:30: error: expected ‘)’ before ‘,’ token
+  125 |           processing_function,
+      |                              ^
+      |                              )
+/home/ubuntu/proj/wsclean/external/aocommon/include/aocommon/overlappingtaskprocessor.h:122:18: note: to match this ‘(’
+  122 |   void QueueChunk(
+      |                  ^
+/home/ubuntu/proj/wsclean/external/aocommon/include/aocommon/overlappingtaskprocessor.h:125:30: error: expected ‘;’ before ‘,’ token
+  125 |           processing_function,
+      |                              ^
+      |                              ;
+In file included from /home/ubuntu/proj/wsclean/gridding/../scheduling/griddingtask.h:11,
+                 from /home/ubuntu/proj/wsclean/gridding/../scheduling/griddingtaskmanager.h:7,
+                 from /home/ubuntu/proj/wsclean/gridding/msgridderdata.h:20,
+                 from /home/ubuntu/proj/wsclean/gridding/msgridder.h:8,
+                 from /home/ubuntu/proj/wsclean/gridding/msgridder.cpp:1:
+/home/ubuntu/proj/wsclean/gridding/../scheduling/../system/completionsignal.h: In member function ‘void wsclean::CompletionSignal::SignalCompletion()’:
+/home/ubuntu/proj/wsclean/gridding/../scheduling/../system/completionsignal.h:59:13: error: ‘struct std::atomic<bool>’ has no member named ‘notify_all’
+   59 |     signal_.notify_all();
+      |             ^~~~~~~~~~
+/home/ubuntu/proj/wsclean/gridding/../scheduling/../system/completionsignal.h: In member function ‘void wsclean::CompletionSignal::WaitForCompletion()’:
+/home/ubuntu/proj/wsclean/gridding/../scheduling/../system/completionsignal.h:69:13: error: ‘struct std::atomic<bool>’ has no member named ‘wait’
+   69 |     signal_.wait(false);
+      |             ^~~~
+/home/ubuntu/proj/wsclean/external/aocommon/include/aocommon/overlappingtaskprocessor.h:153:8: error: ‘counting_semaphore’ in namespace ‘std’ does not name a template type
+  153 |   std::counting_semaphore<2> processing_count_semaphore_;
+      |        ^~~~~~~~~~~~~~~~~~
+/home/ubuntu/proj/wsclean/external/aocommon/include/aocommon/overlappingtaskprocessor.h:154:8: error: ‘binary_semaphore’ in namespace ‘std’ does not name a type; did you mean ‘binary_negate’?
+  154 |   std::binary_semaphore processing_order_semaphore_;
+      |        ^~~~~~~~~~~~~~~~
+      |        binary_negate
+/home/ubuntu/proj/wsclean/external/aocommon/include/aocommon/overlappingtaskprocessor.h:155:8: error: ‘binary_semaphore’ in namespace ‘std’ does not name a type; did you mean ‘binary_negate’?
+  155 |   std::binary_semaphore lane_process_semaphore_;
+      |        ^~~~~~~~~~~~~~~~
+      |        binary_negate
+/home/ubuntu/proj/wsclean/external/aocommon/include/aocommon/overlappingtaskprocessor.h: In constructor ‘aocommon::OverlappingTaskProcessor::OverlappingTaskProcessor(aocommon::TaskQueue<std::function<void()> >&)’:
+/home/ubuntu/proj/wsclean/external/aocommon/include/aocommon/overlappingtaskprocessor.h:47:9: error: class ‘aocommon::OverlappingTaskProcessor’ does not have any field named ‘processing_count_semaphore_’
+   47 |         processing_count_semaphore_(2),
+      |         ^~~~~~~~~~~~~~~~~~~~~~~~~~~
+/home/ubuntu/proj/wsclean/external/aocommon/include/aocommon/overlappingtaskprocessor.h:48:9: error: class ‘aocommon::OverlappingTaskProcessor’ does not have any field named ‘processing_order_semaphore_’
+   48 |         processing_order_semaphore_(1),
+      |         ^~~~~~~~~~~~~~~~~~~~~~~~~~~
+/home/ubuntu/proj/wsclean/external/aocommon/include/aocommon/overlappingtaskprocessor.h:49:9: error: class ‘aocommon::OverlappingTaskProcessor’ does not have any field named ‘lane_process_semaphore_’
+   49 |         lane_process_semaphore_(1){};
+      |         ^~~~~~~~~~~~~~~~~~~~~~~
+/home/ubuntu/proj/wsclean/scheduling/../gridding/msgriddermanager.h:450:33: error: ‘std::binary_semaphore’ has not been declared
+  450 |     size_t n_cores_per_gridder, std::binary_semaphore& first_operation_started,
+      |                                 ^~~
+In file included from /home/ubuntu/proj/wsclean/gridding/wsmsgridder.cpp:3:
+/home/ubuntu/proj/wsclean/gridding/msgriddermanager.h: At global scope:
+/home/ubuntu/proj/wsclean/gridding/msgriddermanager.h:134:7: error: ‘std::binary_semaphore’ has not been declared
+  134 |       std::binary_semaphore& first_operation_started, T&& operation);
+      |       ^~~
+/home/ubuntu/proj/wsclean/scheduling/../gridding/msgriddermanager.h: In member function ‘void wsclean::MSGridderManager::ExecuteForAllGriddersWithNCores(size_t, int&, T&&)’:
+/home/ubuntu/proj/wsclean/scheduling/../gridding/msgriddermanager.h:461:14: error: ‘class wsclean::MsGridder’ has no member named ‘processing_semaphore_’
+  461 |     gridder->processing_semaphore_.acquire();
+      |              ^~~~~~~~~~~~~~~~~~~~~
+/home/ubuntu/proj/wsclean/scheduling/../gridding/msgriddermanager.h:468:31: error: request for member ‘release’ in ‘first_operation_started’, which is of non-class type ‘int’
+  468 |       first_operation_started.release();
+      |                               ^~~~~~~
+/home/ubuntu/proj/wsclean/scheduling/../gridding/msgriddermanager.h: In lambda function:
+/home/ubuntu/proj/wsclean/scheduling/../gridding/msgriddermanager.h:488:16: error: ‘class wsclean::MsGridder’ has no member named ‘processing_semaphore_’
+  488 |       gridder->processing_semaphore_.release();
+      |                ^~~~~~~~~~~~~~~~~~~~~
+In file included from /home/ubuntu/proj/wsclean/wgridder/wgriddingmsgridder.h:4,
+                 from /home/ubuntu/proj/wsclean/wgridder/wgriddingmsgridder.cpp:1:
+/home/ubuntu/proj/wsclean/wgridder/../gridding/msgridder.h: At global scope:
+/home/ubuntu/proj/wsclean/wgridder/../gridding/msgridder.h:252:8: error: ‘binary_semaphore’ in namespace ‘std’ does not name a type; did you mean ‘binary_negate’?
+  252 |   std::binary_semaphore processing_semaphore_{1};
+      |        ^~~~~~~~~~~~~~~~
+      |        binary_negate
+/home/ubuntu/proj/wsclean/gridding/msgriddermanager.h:329:40: error: ‘std::binary_semaphore’ has not been declared
+  329 |                    size_t chunk_index, std::binary_semaphore& gridding_started);
+      |                                        ^~~
+/home/ubuntu/proj/wsclean/gridding/msgriddermanager.h:367:23: error: ‘std::binary_semaphore’ has not been declared
+  367 |                       std::binary_semaphore& first_predict_started);
+      |                       ^~~
+/home/ubuntu/proj/wsclean/gridding/msgriddermanager.h:450:33: error: ‘std::binary_semaphore’ has not been declared
+  450 |     size_t n_cores_per_gridder, std::binary_semaphore& first_operation_started,
+      |                                 ^~~
+/home/ubuntu/proj/wsclean/gridding/msgriddermanager.h: In member function ‘void wsclean::MSGridderManager::ExecuteForAllGriddersWithNCores(size_t, int&, T&&)’:
+/home/ubuntu/proj/wsclean/gridding/msgriddermanager.h:461:14: error: ‘class wsclean::MsGridder’ has no member named ‘processing_semaphore_’
+  461 |     gridder->processing_semaphore_.acquire();
+      |              ^~~~~~~~~~~~~~~~~~~~~
+/home/ubuntu/proj/wsclean/gridding/msgriddermanager.h:468:31: error: request for member ‘release’ in ‘first_operation_started’, which is of non-class type ‘int’
+  468 |       first_operation_started.release();
+      |                               ^~~~~~~
+/home/ubuntu/proj/wsclean/gridding/msgriddermanager.h: In lambda function:
+/home/ubuntu/proj/wsclean/gridding/msgriddermanager.h:488:16: error: ‘class wsclean::MsGridder’ has no member named ‘processing_semaphore_’
+  488 |       gridder->processing_semaphore_.release();
+      |                ^~~~~~~~~~~~~~~~~~~~~
+In file included from /home/ubuntu/proj/wsclean/interface/../main/wsclean.h:29,
+                 from /home/ubuntu/proj/wsclean/interface/wscleaninterface.cpp:4:
+/home/ubuntu/proj/wsclean/interface/../main/../gridding/msgridder.h: At global scope:
+/home/ubuntu/proj/wsclean/interface/../main/../gridding/msgridder.h:252:8: error: ‘binary_semaphore’ in namespace ‘std’ does not name a type; did you mean ‘binary_search’?
+  252 |   std::binary_semaphore processing_semaphore_{1};
+      |        ^~~~~~~~~~~~~~~~
+      |        binary_search
+In file included from /home/ubuntu/proj/wsclean/gridding/msgridder.cpp:1:
+/home/ubuntu/proj/wsclean/gridding/msgridder.h: At global scope:
+/home/ubuntu/proj/wsclean/gridding/msgridder.h:252:8: error: ‘binary_semaphore’ in namespace ‘std’ does not name a type; did you mean ‘binary_negate’?
+  252 |   std::binary_semaphore processing_semaphore_{1};
+      |        ^~~~~~~~~~~~~~~~
+      |        binary_negate
+In file included from /home/ubuntu/proj/wsclean/wgridder/../gridding/../scheduling/griddingtask.h:11,
+                 from /home/ubuntu/proj/wsclean/wgridder/../gridding/../scheduling/griddingtaskmanager.h:7,
+                 from /home/ubuntu/proj/wsclean/wgridder/../gridding/msgridderdata.h:20,
+                 from /home/ubuntu/proj/wsclean/wgridder/../gridding/msgridder.h:8,
+                 from /home/ubuntu/proj/wsclean/wgridder/wgridder.h:13,
+                 from /home/ubuntu/proj/wsclean/wgridder/wgridder_implementation.h:4,
+                 from /home/ubuntu/proj/wsclean/wgridder/wgridder_double.cpp:1:
+/home/ubuntu/proj/wsclean/wgridder/../gridding/../scheduling/../system/completionsignal.h: In member function ‘void wsclean::CompletionSignal::SignalCompletion()’:
+/home/ubuntu/proj/wsclean/wgridder/../gridding/../scheduling/../system/completionsignal.h:59:13: error: ‘struct std::atomic<bool>’ has no member named ‘notify_all’
+   59 |     signal_.notify_all();
+      |             ^~~~~~~~~~
+/home/ubuntu/proj/wsclean/wgridder/../gridding/../scheduling/../system/completionsignal.h: In member function ‘void wsclean::CompletionSignal::WaitForCompletion()’:
+/home/ubuntu/proj/wsclean/wgridder/../gridding/../scheduling/../system/completionsignal.h:69:13: error: ‘struct std::atomic<bool>’ has no member named ‘wait’
+   69 |     signal_.wait(false);
+      |             ^~~~
+In file included from /home/ubuntu/proj/wsclean/wgridder/wgridder.h:13,
+                 from /home/ubuntu/proj/wsclean/wgridder/wgridder_implementation.h:4,
+                 from /home/ubuntu/proj/wsclean/wgridder/wgridder_double.cpp:1:
+/home/ubuntu/proj/wsclean/wgridder/../gridding/msgridder.h: At global scope:
+/home/ubuntu/proj/wsclean/wgridder/../gridding/msgridder.h:252:8: error: ‘binary_semaphore’ in namespace ‘std’ does not name a type; did you mean ‘binary_search’?
+  252 |   std::binary_semaphore processing_semaphore_{1};
+      |        ^~~~~~~~~~~~~~~~
+      |        binary_search
+In file included from /home/ubuntu/proj/wsclean/wgridder/../gridding/msgriddermanager.h:8,
+                 from /home/ubuntu/proj/wsclean/wgridder/wgriddingmsgridder.cpp:5:
+/home/ubuntu/proj/wsclean/external/aocommon/include/aocommon/overlappingtaskprocessor.h:70:60: error: ‘binary_semaphore’ is not a member of ‘std’; did you mean ‘binary_negate’?
+   70 |                std::function<void(DataType&&, size_t, std::binary_semaphore&)>&&
+      |                                                            ^~~~~~~~~~~~~~~~
+      |                                                            binary_negate
+/home/ubuntu/proj/wsclean/external/aocommon/include/aocommon/overlappingtaskprocessor.h:70:78: error: template argument 1 is invalid
+   70 |                std::function<void(DataType&&, size_t, std::binary_semaphore&)>&&
+      |                                                                              ^
+/home/ubuntu/proj/wsclean/external/aocommon/include/aocommon/overlappingtaskprocessor.h:70:60: error: ‘binary_semaphore’ is not a member of ‘std’; did you mean ‘binary_negate’?
+   70 |                std::function<void(DataType&&, size_t, std::binary_semaphore&)>&&
+      |                                                            ^~~~~~~~~~~~~~~~
+      |                                                            binary_negate
+/home/ubuntu/proj/wsclean/external/aocommon/include/aocommon/overlappingtaskprocessor.h:70:78: error: template argument 1 is invalid
+   70 |                std::function<void(DataType&&, size_t, std::binary_semaphore&)>&&
+      |                                                                              ^
+/home/ubuntu/proj/wsclean/external/aocommon/include/aocommon/overlappingtaskprocessor.h:70:60: error: ‘binary_semaphore’ is not a member of ‘std’; did you mean ‘binary_negate’?
+   70 |                std::function<void(DataType&&, size_t, std::binary_semaphore&)>&&
+      |                                                            ^~~~~~~~~~~~~~~~
+      |                                                            binary_negate
+/home/ubuntu/proj/wsclean/external/aocommon/include/aocommon/overlappingtaskprocessor.h:70:78: error: template argument 1 is invalid
+   70 |                std::function<void(DataType&&, size_t, std::binary_semaphore&)>&&
+      |                                                                              ^
+/home/ubuntu/proj/wsclean/external/aocommon/include/aocommon/overlappingtaskprocessor.h:70:60: error: ‘binary_semaphore’ is not a member of ‘std’; did you mean ‘binary_negate’?
+   70 |                std::function<void(DataType&&, size_t, std::binary_semaphore&)>&&
+      |                                                            ^~~~~~~~~~~~~~~~
+      |                                                            binary_negate
+/home/ubuntu/proj/wsclean/external/aocommon/include/aocommon/overlappingtaskprocessor.h:70:78: error: template argument 1 is invalid
+   70 |                std::function<void(DataType&&, size_t, std::binary_semaphore&)>&&
+      |                                                                              ^
+/home/ubuntu/proj/wsclean/external/aocommon/include/aocommon/overlappingtaskprocessor.h:70:16: error: invalid template-id
+   70 |                std::function<void(DataType&&, size_t, std::binary_semaphore&)>&&
+      |                ^~~
+/home/ubuntu/proj/wsclean/external/aocommon/include/aocommon/overlappingtaskprocessor.h:70:60: error: ‘binary_semaphore’ is not a member of ‘std’; did you mean ‘binary_negate’?
+   70 |                std::function<void(DataType&&, size_t, std::binary_semaphore&)>&&
+      |                                                            ^~~~~~~~~~~~~~~~
+      |                                                            binary_negate
+/home/ubuntu/proj/wsclean/external/aocommon/include/aocommon/overlappingtaskprocessor.h:70:30: error: expected primary-expression before ‘void’
+   70 |                std::function<void(DataType&&, size_t, std::binary_semaphore&)>&&
+      |                              ^~~~
+/home/ubuntu/proj/wsclean/external/aocommon/include/aocommon/overlappingtaskprocessor.h:70:30: error: expected ‘>’ before ‘void’
+/home/ubuntu/proj/wsclean/external/aocommon/include/aocommon/overlappingtaskprocessor.h:70:16: error: template placeholder type ‘function<...auto...>’ must be followed by a simple declarator-id
+   70 |                std::function<void(DataType&&, size_t, std::binary_semaphore&)>&&
+      |                ^~~
+In file included from /usr/include/c++/10/functional:59,
+                 from /usr/include/c++/10/pstl/glue_algorithm_defs.h:13,
+                 from /usr/include/c++/10/algorithm:74,
+                 from /home/ubuntu/proj/wsclean/external/aocommon/include/aocommon/io/../uvector.h:4,
+                 from /home/ubuntu/proj/wsclean/external/aocommon/include/aocommon/io/serialostream.h:4,
+                 from /home/ubuntu/proj/wsclean/wgridder/../gridding/../structures/weightmode.h:4,
+                 from /home/ubuntu/proj/wsclean/wgridder/../gridding/msgridder.h:6,
+                 from /home/ubuntu/proj/wsclean/wgridder/wgriddingmsgridder.h:4,
+                 from /home/ubuntu/proj/wsclean/wgridder/wgriddingmsgridder.cpp:1:
+/usr/include/c++/10/bits/std_function.h:113:11: note: ‘template<class _Signature> class std::function’ declared here
+  113 |     class function;
+      |           ^~~~~~~~
+In file included from /home/ubuntu/proj/wsclean/wgridder/../gridding/msgriddermanager.h:8,
+                 from /home/ubuntu/proj/wsclean/wgridder/wgriddingmsgridder.cpp:5:
+/home/ubuntu/proj/wsclean/external/aocommon/include/aocommon/overlappingtaskprocessor.h:71:39: error: expected ‘)’ before ‘,’ token
+   71 |                    processing_function,
+      |                                       ^
+      |                                       )
+/home/ubuntu/proj/wsclean/external/aocommon/include/aocommon/overlappingtaskprocessor.h:69:15: note: to match this ‘(’
+   69 |   void Process(aocommon::Lane<DataType>& data_lane,
+      |               ^
+/home/ubuntu/proj/wsclean/external/aocommon/include/aocommon/overlappingtaskprocessor.h:71:39: error: expected ‘;’ before ‘,’ token
+   71 |                    processing_function,
+      |                                       ^
+      |                                       ;
+/home/ubuntu/proj/wsclean/external/aocommon/include/aocommon/overlappingtaskprocessor.h:94:51: error: ‘binary_semaphore’ is not a member of ‘std’; did you mean ‘binary_negate’?
+   94 |       std::function<void(DataType&&, size_t, std::binary_semaphore&)>&&
+      |                                                   ^~~~~~~~~~~~~~~~
+      |                                                   binary_negate
+/home/ubuntu/proj/wsclean/external/aocommon/include/aocommon/overlappingtaskprocessor.h:94:69: error: template argument 1 is invalid
+   94 |       std::function<void(DataType&&, size_t, std::binary_semaphore&)>&&
+      |                                                                     ^
+/home/ubuntu/proj/wsclean/external/aocommon/include/aocommon/overlappingtaskprocessor.h:94:51: error: ‘binary_semaphore’ is not a member of ‘std’; did you mean ‘binary_negate’?
+   94 |       std::function<void(DataType&&, size_t, std::binary_semaphore&)>&&
+      |                                                   ^~~~~~~~~~~~~~~~
+      |                                                   binary_negate
+/home/ubuntu/proj/wsclean/external/aocommon/include/aocommon/overlappingtaskprocessor.h:94:69: error: template argument 1 is invalid
+   94 |       std::function<void(DataType&&, size_t, std::binary_semaphore&)>&&
+      |                                                                     ^
+/home/ubuntu/proj/wsclean/external/aocommon/include/aocommon/overlappingtaskprocessor.h:94:51: error: ‘binary_semaphore’ is not a member of ‘std’; did you mean ‘binary_negate’?
+   94 |       std::function<void(DataType&&, size_t, std::binary_semaphore&)>&&
+      |                                                   ^~~~~~~~~~~~~~~~
+      |                                                   binary_negate
+/home/ubuntu/proj/wsclean/external/aocommon/include/aocommon/overlappingtaskprocessor.h:94:69: error: template argument 1 is invalid
+   94 |       std::function<void(DataType&&, size_t, std::binary_semaphore&)>&&
+      |                                                                     ^
+/home/ubuntu/proj/wsclean/external/aocommon/include/aocommon/overlappingtaskprocessor.h:94:51: error: ‘binary_semaphore’ is not a member of ‘std’; did you mean ‘binary_negate’?
+   94 |       std::function<void(DataType&&, size_t, std::binary_semaphore&)>&&
+      |                                                   ^~~~~~~~~~~~~~~~
+      |                                                   binary_negate
+/home/ubuntu/proj/wsclean/external/aocommon/include/aocommon/overlappingtaskprocessor.h:94:69: error: template argument 1 is invalid
+   94 |       std::function<void(DataType&&, size_t, std::binary_semaphore&)>&&
+      |                                                                     ^
+/home/ubuntu/proj/wsclean/external/aocommon/include/aocommon/overlappingtaskprocessor.h:94:7: error: invalid template-id
+   94 |       std::function<void(DataType&&, size_t, std::binary_semaphore&)>&&
+      |       ^~~
+/home/ubuntu/proj/wsclean/external/aocommon/include/aocommon/overlappingtaskprocessor.h:94:51: error: ‘binary_semaphore’ is not a member of ‘std’; did you mean ‘binary_negate’?
+   94 |       std::function<void(DataType&&, size_t, std::binary_semaphore&)>&&
+      |                                                   ^~~~~~~~~~~~~~~~
+      |                                                   binary_negate
+/home/ubuntu/proj/wsclean/external/aocommon/include/aocommon/overlappingtaskprocessor.h:94:21: error: expected primary-expression before ‘void’
+   94 |       std::function<void(DataType&&, size_t, std::binary_semaphore&)>&&
+      |                     ^~~~
+/home/ubuntu/proj/wsclean/external/aocommon/include/aocommon/overlappingtaskprocessor.h:94:21: error: expected ‘>’ before ‘void’
+/home/ubuntu/proj/wsclean/external/aocommon/include/aocommon/overlappingtaskprocessor.h:94:7: error: template placeholder type ‘function<...auto...>’ must be followed by a simple declarator-id
+   94 |       std::function<void(DataType&&, size_t, std::binary_semaphore&)>&&
+      |       ^~~
+In file included from /usr/include/c++/10/functional:59,
+                 from /usr/include/c++/10/pstl/glue_algorithm_defs.h:13,
+                 from /usr/include/c++/10/algorithm:74,
+                 from /home/ubuntu/proj/wsclean/external/aocommon/include/aocommon/io/../uvector.h:4,
+                 from /home/ubuntu/proj/wsclean/external/aocommon/include/aocommon/io/serialostream.h:4,
+                 from /home/ubuntu/proj/wsclean/wgridder/../gridding/../structures/weightmode.h:4,
+                 from /home/ubuntu/proj/wsclean/wgridder/../gridding/msgridder.h:6,
+                 from /home/ubuntu/proj/wsclean/wgridder/wgriddingmsgridder.h:4,
+                 from /home/ubuntu/proj/wsclean/wgridder/wgriddingmsgridder.cpp:1:
+/usr/include/c++/10/bits/std_function.h:113:11: note: ‘template<class _Signature> class std::function’ declared here
+  113 |     class function;
+      |           ^~~~~~~~
+In file included from /home/ubuntu/proj/wsclean/wgridder/../gridding/msgriddermanager.h:8,
+                 from /home/ubuntu/proj/wsclean/wgridder/wgriddingmsgridder.cpp:5:
+/home/ubuntu/proj/wsclean/external/aocommon/include/aocommon/overlappingtaskprocessor.h:95:30: error: expected ‘)’ before ‘,’ token
+   95 |           processing_function,
+      |                              ^
+      |                              )
+/home/ubuntu/proj/wsclean/external/aocommon/include/aocommon/overlappingtaskprocessor.h:92:31: note: to match this ‘(’
+   92 |   void ProcessAllChunksForLane(
+      |                               ^
+/home/ubuntu/proj/wsclean/external/aocommon/include/aocommon/overlappingtaskprocessor.h:95:30: error: expected ‘;’ before ‘,’ token
+   95 |           processing_function,
+      |                              ^
+      |                              ;
+/home/ubuntu/proj/wsclean/external/aocommon/include/aocommon/overlappingtaskprocessor.h:124:51: error: ‘binary_semaphore’ is not a member of ‘std’; did you mean ‘binary_negate’?
+  124 |       std::function<void(DataType&&, size_t, std::binary_semaphore&)>&&
+      |                                                   ^~~~~~~~~~~~~~~~
+      |                                                   binary_negate
+/home/ubuntu/proj/wsclean/external/aocommon/include/aocommon/overlappingtaskprocessor.h:124:69: error: template argument 1 is invalid
+  124 |       std::function<void(DataType&&, size_t, std::binary_semaphore&)>&&
+      |                                                                     ^
+/home/ubuntu/proj/wsclean/external/aocommon/include/aocommon/overlappingtaskprocessor.h:124:51: error: ‘binary_semaphore’ is not a member of ‘std’; did you mean ‘binary_negate’?
+  124 |       std::function<void(DataType&&, size_t, std::binary_semaphore&)>&&
+      |                                                   ^~~~~~~~~~~~~~~~
+      |                                                   binary_negate
+/home/ubuntu/proj/wsclean/external/aocommon/include/aocommon/overlappingtaskprocessor.h:124:69: error: template argument 1 is invalid
+  124 |       std::function<void(DataType&&, size_t, std::binary_semaphore&)>&&
+      |                                                                     ^
+/home/ubuntu/proj/wsclean/external/aocommon/include/aocommon/overlappingtaskprocessor.h:124:51: error: ‘binary_semaphore’ is not a member of ‘std’; did you mean ‘binary_negate’?
+  124 |       std::function<void(DataType&&, size_t, std::binary_semaphore&)>&&
+      |                                                   ^~~~~~~~~~~~~~~~
+      |                                                   binary_negate
+/home/ubuntu/proj/wsclean/external/aocommon/include/aocommon/overlappingtaskprocessor.h:124:69: error: template argument 1 is invalid
+  124 |       std::function<void(DataType&&, size_t, std::binary_semaphore&)>&&
+      |                                                                     ^
+/home/ubuntu/proj/wsclean/external/aocommon/include/aocommon/overlappingtaskprocessor.h:124:51: error: ‘binary_semaphore’ is not a member of ‘std’; did you mean ‘binary_negate’?
+  124 |       std::function<void(DataType&&, size_t, std::binary_semaphore&)>&&
+      |                                                   ^~~~~~~~~~~~~~~~
+      |                                                   binary_negate
+/home/ubuntu/proj/wsclean/external/aocommon/include/aocommon/overlappingtaskprocessor.h:124:69: error: template argument 1 is invalid
+  124 |       std::function<void(DataType&&, size_t, std::binary_semaphore&)>&&
+      |                                                                     ^
+/home/ubuntu/proj/wsclean/external/aocommon/include/aocommon/overlappingtaskprocessor.h:124:7: error: invalid template-id
+  124 |       std::function<void(DataType&&, size_t, std::binary_semaphore&)>&&
+      |       ^~~
+/home/ubuntu/proj/wsclean/external/aocommon/include/aocommon/overlappingtaskprocessor.h:124:51: error: ‘binary_semaphore’ is not a member of ‘std’; did you mean ‘binary_negate’?
+  124 |       std::function<void(DataType&&, size_t, std::binary_semaphore&)>&&
+      |                                                   ^~~~~~~~~~~~~~~~
+      |                                                   binary_negate
+/home/ubuntu/proj/wsclean/external/aocommon/include/aocommon/overlappingtaskprocessor.h:124:21: error: expected primary-expression before ‘void’
+  124 |       std::function<void(DataType&&, size_t, std::binary_semaphore&)>&&
+      |                     ^~~~
+/home/ubuntu/proj/wsclean/external/aocommon/include/aocommon/overlappingtaskprocessor.h:124:21: error: expected ‘>’ before ‘void’
+/home/ubuntu/proj/wsclean/external/aocommon/include/aocommon/overlappingtaskprocessor.h:124:7: error: template placeholder type ‘function<...auto...>’ must be followed by a simple declarator-id
+  124 |       std::function<void(DataType&&, size_t, std::binary_semaphore&)>&&
+      |       ^~~
+In file included from /usr/include/c++/10/functional:59,
+                 from /usr/include/c++/10/pstl/glue_algorithm_defs.h:13,
+                 from /usr/include/c++/10/algorithm:74,
+                 from /home/ubuntu/proj/wsclean/external/aocommon/include/aocommon/io/../uvector.h:4,
+                 from /home/ubuntu/proj/wsclean/external/aocommon/include/aocommon/io/serialostream.h:4,
+                 from /home/ubuntu/proj/wsclean/wgridder/../gridding/../structures/weightmode.h:4,
+                 from /home/ubuntu/proj/wsclean/wgridder/../gridding/msgridder.h:6,
+                 from /home/ubuntu/proj/wsclean/wgridder/wgriddingmsgridder.h:4,
+                 from /home/ubuntu/proj/wsclean/wgridder/wgriddingmsgridder.cpp:1:
+/usr/include/c++/10/bits/std_function.h:113:11: note: ‘template<class _Signature> class std::function’ declared here
+  113 |     class function;
+      |           ^~~~~~~~
+In file included from /home/ubuntu/proj/wsclean/wgridder/../gridding/msgriddermanager.h:8,
+                 from /home/ubuntu/proj/wsclean/wgridder/wgriddingmsgridder.cpp:5:
+/home/ubuntu/proj/wsclean/external/aocommon/include/aocommon/overlappingtaskprocessor.h:125:30: error: expected ‘)’ before ‘,’ token
+  125 |           processing_function,
+      |                              ^
+      |                              )
+/home/ubuntu/proj/wsclean/external/aocommon/include/aocommon/overlappingtaskprocessor.h:122:18: note: to match this ‘(’
+  122 |   void QueueChunk(
+      |                  ^
+/home/ubuntu/proj/wsclean/external/aocommon/include/aocommon/overlappingtaskprocessor.h:125:30: error: expected ‘;’ before ‘,’ token
+  125 |           processing_function,
+      |                              ^
+      |                              ;
+/home/ubuntu/proj/wsclean/external/aocommon/include/aocommon/overlappingtaskprocessor.h:153:8: error: ‘counting_semaphore’ in namespace ‘std’ does not name a template type
+  153 |   std::counting_semaphore<2> processing_count_semaphore_;
+      |        ^~~~~~~~~~~~~~~~~~
+/home/ubuntu/proj/wsclean/external/aocommon/include/aocommon/overlappingtaskprocessor.h:154:8: error: ‘binary_semaphore’ in namespace ‘std’ does not name a type; did you mean ‘binary_negate’?
+  154 |   std::binary_semaphore processing_order_semaphore_;
+      |        ^~~~~~~~~~~~~~~~
+      |        binary_negate
+/home/ubuntu/proj/wsclean/external/aocommon/include/aocommon/overlappingtaskprocessor.h:155:8: error: ‘binary_semaphore’ in namespace ‘std’ does not name a type; did you mean ‘binary_negate’?
+  155 |   std::binary_semaphore lane_process_semaphore_;
+      |        ^~~~~~~~~~~~~~~~
+      |        binary_negate
+/home/ubuntu/proj/wsclean/external/aocommon/include/aocommon/overlappingtaskprocessor.h: In constructor ‘aocommon::OverlappingTaskProcessor::OverlappingTaskProcessor(aocommon::TaskQueue<std::function<void()> >&)’:
+/home/ubuntu/proj/wsclean/external/aocommon/include/aocommon/overlappingtaskprocessor.h:47:9: error: class ‘aocommon::OverlappingTaskProcessor’ does not have any field named ‘processing_count_semaphore_’
+   47 |         processing_count_semaphore_(2),
+      |         ^~~~~~~~~~~~~~~~~~~~~~~~~~~
+/home/ubuntu/proj/wsclean/external/aocommon/include/aocommon/overlappingtaskprocessor.h:48:9: error: class ‘aocommon::OverlappingTaskProcessor’ does not have any field named ‘processing_order_semaphore_’
+   48 |         processing_order_semaphore_(1),
+      |         ^~~~~~~~~~~~~~~~~~~~~~~~~~~
+/home/ubuntu/proj/wsclean/external/aocommon/include/aocommon/overlappingtaskprocessor.h:49:9: error: class ‘aocommon::OverlappingTaskProcessor’ does not have any field named ‘lane_process_semaphore_’
+   49 |         lane_process_semaphore_(1){};
+      |         ^~~~~~~~~~~~~~~~~~~~~~~
+In file included from /home/ubuntu/proj/wsclean/wgridder/wgriddingmsgridder.cpp:5:
+/home/ubuntu/proj/wsclean/wgridder/../gridding/msgriddermanager.h: At global scope:
+/home/ubuntu/proj/wsclean/wgridder/../gridding/msgriddermanager.h:134:7: error: ‘std::binary_semaphore’ has not been declared
+  134 |       std::binary_semaphore& first_operation_started, T&& operation);
+      |       ^~~
+In file included from /home/ubuntu/proj/wsclean/main/../scheduling/griddingtask.h:11,
+                 from /home/ubuntu/proj/wsclean/main/../scheduling/griddingtaskfactory.h:16,
+                 from /home/ubuntu/proj/wsclean/main/wsclean.h:18,
+                 from /home/ubuntu/proj/wsclean/main/commandline.cpp:2:
+/home/ubuntu/proj/wsclean/main/../scheduling/../system/completionsignal.h: In member function ‘void wsclean::CompletionSignal::SignalCompletion()’:
+/home/ubuntu/proj/wsclean/main/../scheduling/../system/completionsignal.h:59:13: error: ‘struct std::atomic<bool>’ has no member named ‘notify_all’
+   59 |     signal_.notify_all();
+      |             ^~~~~~~~~~
+/home/ubuntu/proj/wsclean/main/../scheduling/../system/completionsignal.h: In member function ‘void wsclean::CompletionSignal::WaitForCompletion()’:
+/home/ubuntu/proj/wsclean/main/../scheduling/../system/completionsignal.h:69:13: error: ‘struct std::atomic<bool>’ has no member named ‘wait’
+   69 |     signal_.wait(false);
+      |             ^~~~
+/home/ubuntu/proj/wsclean/wgridder/../gridding/msgriddermanager.h:329:40: error: ‘std::binary_semaphore’ has not been declared
+  329 |                    size_t chunk_index, std::binary_semaphore& gridding_started);
+      |                                        ^~~
+/home/ubuntu/proj/wsclean/wgridder/../gridding/msgriddermanager.h:367:23: error: ‘std::binary_semaphore’ has not been declared
+  367 |                       std::binary_semaphore& first_predict_started);
+      |                       ^~~
+/home/ubuntu/proj/wsclean/wgridder/../gridding/msgriddermanager.h:450:33: error: ‘std::binary_semaphore’ has not been declared
+  450 |     size_t n_cores_per_gridder, std::binary_semaphore& first_operation_started,
+      |                                 ^~~
+/home/ubuntu/proj/wsclean/wgridder/../gridding/msgriddermanager.h: In member function ‘void wsclean::MSGridderManager::ExecuteForAllGriddersWithNCores(size_t, int&, T&&)’:
+/home/ubuntu/proj/wsclean/wgridder/../gridding/msgriddermanager.h:461:14: error: ‘class wsclean::MsGridder’ has no member named ‘processing_semaphore_’
+  461 |     gridder->processing_semaphore_.acquire();
+      |              ^~~~~~~~~~~~~~~~~~~~~
+/home/ubuntu/proj/wsclean/wgridder/../gridding/msgriddermanager.h:468:31: error: request for member ‘release’ in ‘first_operation_started’, which is of non-class type ‘int’
+  468 |       first_operation_started.release();
+      |                               ^~~~~~~
+/home/ubuntu/proj/wsclean/wgridder/../gridding/msgriddermanager.h: In lambda function:
+/home/ubuntu/proj/wsclean/wgridder/../gridding/msgriddermanager.h:488:16: error: ‘class wsclean::MsGridder’ has no member named ‘processing_semaphore_’
+  488 |       gridder->processing_semaphore_.release();
+      |                ^~~~~~~~~~~~~~~~~~~~~
+In file included from /home/ubuntu/proj/wsclean/main/wsclean.h:29,
+                 from /home/ubuntu/proj/wsclean/main/wsclean.cpp:1:
+/home/ubuntu/proj/wsclean/main/../gridding/msgridder.h: At global scope:
+/home/ubuntu/proj/wsclean/main/../gridding/msgridder.h:252:8: error: ‘binary_semaphore’ in namespace ‘std’ does not name a type; did you mean ‘binary_search’?
+  252 |   std::binary_semaphore processing_semaphore_{1};
+      |        ^~~~~~~~~~~~~~~~
+      |        binary_search
+In file included from /home/ubuntu/proj/wsclean/gridding/../scheduling/griddingtask.h:11,
+                 from /home/ubuntu/proj/wsclean/gridding/../scheduling/griddingtaskmanager.h:7,
+                 from /home/ubuntu/proj/wsclean/gridding/msgridderdata.h:20,
+                 from /home/ubuntu/proj/wsclean/gridding/msgridderdata.cpp:1:
+/home/ubuntu/proj/wsclean/gridding/../scheduling/../system/completionsignal.h: In member function ‘void wsclean::CompletionSignal::SignalCompletion()’:
+/home/ubuntu/proj/wsclean/gridding/../scheduling/../system/completionsignal.h:59:13: error: ‘struct std::atomic<bool>’ has no member named ‘notify_all’
+   59 |     signal_.notify_all();
+      |             ^~~~~~~~~~
+/home/ubuntu/proj/wsclean/gridding/../scheduling/../system/completionsignal.h: In member function ‘void wsclean::CompletionSignal::WaitForCompletion()’:
+/home/ubuntu/proj/wsclean/gridding/../scheduling/../system/completionsignal.h:69:13: error: ‘struct std::atomic<bool>’ has no member named ‘wait’
+   69 |     signal_.wait(false);
+      |             ^~~~
+CMakeFiles/wsclean-object.dir/build.make:778: recipe for target 'CMakeFiles/wsclean-object.dir/scheduling/griddingtaskfactory.cpp.o' failed
+make[2]: *** [CMakeFiles/wsclean-object.dir/scheduling/griddingtaskfactory.cpp.o] Error 1
+In file included from /home/ubuntu/proj/wsclean/gridding/../scheduling/griddingtask.h:11,
+                 from /home/ubuntu/proj/wsclean/gridding/../scheduling/griddingtaskmanager.h:7,
+                 from /home/ubuntu/proj/wsclean/gridding/msgridderdata.h:20,
+                 from /home/ubuntu/proj/wsclean/gridding/msgridder.h:8,
+                 from /home/ubuntu/proj/wsclean/gridding/msgriddermanager.h:12,
+                 from /home/ubuntu/proj/wsclean/gridding/msgriddermanager.cpp:1:
+/home/ubuntu/proj/wsclean/gridding/../scheduling/../system/completionsignal.h: In member function ‘void wsclean::CompletionSignal::SignalCompletion()’:
+/home/ubuntu/proj/wsclean/gridding/../scheduling/../system/completionsignal.h:59:13: error: ‘struct std::atomic<bool>’ has no member named ‘notify_all’
+   59 |     signal_.notify_all();
+      |             ^~~~~~~~~~
+/home/ubuntu/proj/wsclean/gridding/../scheduling/../system/completionsignal.h: In member function ‘void wsclean::CompletionSignal::WaitForCompletion()’:
+/home/ubuntu/proj/wsclean/gridding/../scheduling/../system/completionsignal.h:69:13: error: ‘struct std::atomic<bool>’ has no member named ‘wait’
+   69 |     signal_.wait(false);
+      |             ^~~~
+In file included from /home/ubuntu/proj/wsclean/io/../gridding/../scheduling/griddingtask.h:11,
+                 from /home/ubuntu/proj/wsclean/io/../gridding/../scheduling/griddingtaskmanager.h:7,
+                 from /home/ubuntu/proj/wsclean/io/../gridding/msgridderdata.h:20,
+                 from /home/ubuntu/proj/wsclean/io/../gridding/msgridder.h:8,
+                 from /home/ubuntu/proj/wsclean/io/wscfitswriter.cpp:15:
+/home/ubuntu/proj/wsclean/io/../gridding/../scheduling/../system/completionsignal.h: In member function ‘void wsclean::CompletionSignal::SignalCompletion()’:
+/home/ubuntu/proj/wsclean/io/../gridding/../scheduling/../system/completionsignal.h:59:13: error: ‘struct std::atomic<bool>’ has no member named ‘notify_all’
+   59 |     signal_.notify_all();
+      |             ^~~~~~~~~~
+/home/ubuntu/proj/wsclean/io/../gridding/../scheduling/../system/completionsignal.h: In member function ‘void wsclean::CompletionSignal::WaitForCompletion()’:
+/home/ubuntu/proj/wsclean/io/../gridding/../scheduling/../system/completionsignal.h:69:13: error: ‘struct std::atomic<bool>’ has no member named ‘wait’
+   69 |     signal_.wait(false);
+      |             ^~~~
+In file included from /home/ubuntu/proj/wsclean/gridding/msgriddermanager.h:12,
+                 from /home/ubuntu/proj/wsclean/gridding/msgriddermanager.cpp:1:
+/home/ubuntu/proj/wsclean/gridding/msgridder.h: At global scope:
+/home/ubuntu/proj/wsclean/gridding/msgridder.h:252:8: error: ‘binary_semaphore’ in namespace ‘std’ does not name a type; did you mean ‘binary_search’?
+  252 |   std::binary_semaphore processing_semaphore_{1};
+      |        ^~~~~~~~~~~~~~~~
+      |        binary_search
+In file included from /home/ubuntu/proj/wsclean/io/wscfitswriter.cpp:15:
+/home/ubuntu/proj/wsclean/io/../gridding/msgridder.h: At global scope:
+/home/ubuntu/proj/wsclean/io/../gridding/msgridder.h:252:8: error: ‘binary_semaphore’ in namespace ‘std’ does not name a type; did you mean ‘binary_search’?
+  252 |   std::binary_semaphore processing_semaphore_{1};
+      |        ^~~~~~~~~~~~~~~~
+      |        binary_search
+In file included from /home/ubuntu/proj/wsclean/gridding/msgriddermanager.cpp:1:
+/home/ubuntu/proj/wsclean/gridding/msgriddermanager.h:134:7: error: ‘std::binary_semaphore’ has not been declared
+  134 |       std::binary_semaphore& first_operation_started, T&& operation);
+      |       ^~~
+CMakeFiles/wsclean-object.dir/build.make:988: recipe for target 'CMakeFiles/wsclean-object.dir/scheduling/mpiworkerscheduler.cpp.o' failed
+/home/ubuntu/proj/wsclean/gridding/msgriddermanager.h:329:40: error: ‘std::binary_semaphore’ has not been declared
+  329 |                    size_t chunk_index, std::binary_semaphore& gridding_started);
+      |                                        ^~~
+/home/ubuntu/proj/wsclean/gridding/msgriddermanager.h:367:23: error: ‘std::binary_semaphore’ has not been declared
+  367 |                       std::binary_semaphore& first_predict_started);
+      |                       ^~~
+make[2]: *** [CMakeFiles/wsclean-object.dir/scheduling/mpiworkerscheduler.cpp.o] Error 1
+/home/ubuntu/proj/wsclean/gridding/msgriddermanager.h:450:33: error: ‘std::binary_semaphore’ has not been declared
+  450 |     size_t n_cores_per_gridder, std::binary_semaphore& first_operation_started,
+      |                                 ^~~
+/home/ubuntu/proj/wsclean/gridding/msgriddermanager.h: In member function ‘void wsclean::MSGridderManager::ExecuteForAllGriddersWithNCores(size_t, int&, T&&)’:
+/home/ubuntu/proj/wsclean/gridding/msgriddermanager.h:461:14: error: ‘class wsclean::MsGridder’ has no member named ‘processing_semaphore_’
+  461 |     gridder->processing_semaphore_.acquire();
+      |              ^~~~~~~~~~~~~~~~~~~~~
+/home/ubuntu/proj/wsclean/gridding/msgriddermanager.h:468:31: error: request for member ‘release’ in ‘first_operation_started’, which is of non-class type ‘int’
+  468 |       first_operation_started.release();
+      |                               ^~~~~~~
+/home/ubuntu/proj/wsclean/gridding/msgriddermanager.h: In lambda function:
+/home/ubuntu/proj/wsclean/gridding/msgriddermanager.h:488:16: error: ‘class wsclean::MsGridder’ has no member named ‘processing_semaphore_’
+  488 |       gridder->processing_semaphore_.release();
+      |                ^~~~~~~~~~~~~~~~~~~~~
+In file included from /home/ubuntu/proj/wsclean/main/wsclean.h:29,
+                 from /home/ubuntu/proj/wsclean/main/commandline.cpp:2:
+/home/ubuntu/proj/wsclean/main/../gridding/msgridder.h: At global scope:
+/home/ubuntu/proj/wsclean/main/../gridding/msgridder.h:252:8: error: ‘binary_semaphore’ in namespace ‘std’ does not name a type; did you mean ‘binary_search’?
+  252 |   std::binary_semaphore processing_semaphore_{1};
+      |        ^~~~~~~~~~~~~~~~
+      |        binary_search
+In file included from /home/ubuntu/proj/wsclean/gridding/../scheduling/griddingtask.h:11,
+                 from /home/ubuntu/proj/wsclean/gridding/../scheduling/griddingtaskmanager.h:7,
+                 from /home/ubuntu/proj/wsclean/gridding/msgridderdata.h:20,
+                 from /home/ubuntu/proj/wsclean/gridding/msgridder.h:8,
+                 from /home/ubuntu/proj/wsclean/gridding/directmsgridder.h:7,
+                 from /home/ubuntu/proj/wsclean/gridding/directmsgridder.cpp:1:
+/home/ubuntu/proj/wsclean/gridding/../scheduling/../system/completionsignal.h: In member function ‘void wsclean::CompletionSignal::SignalCompletion()’:
+/home/ubuntu/proj/wsclean/gridding/../scheduling/../system/completionsignal.h:59:13: error: ‘struct std::atomic<bool>’ has no member named ‘notify_all’
+   59 |     signal_.notify_all();
+      |             ^~~~~~~~~~
+/home/ubuntu/proj/wsclean/gridding/../scheduling/../system/completionsignal.h: In member function ‘void wsclean::CompletionSignal::WaitForCompletion()’:
+/home/ubuntu/proj/wsclean/gridding/../scheduling/../system/completionsignal.h:69:13: error: ‘struct std::atomic<bool>’ has no member named ‘wait’
+   69 |     signal_.wait(false);
+      |             ^~~~
+In file included from /home/ubuntu/proj/wsclean/gridding/directmsgridder.h:7,
+                 from /home/ubuntu/proj/wsclean/gridding/directmsgridder.cpp:1:
+/home/ubuntu/proj/wsclean/gridding/msgridder.h: At global scope:
+/home/ubuntu/proj/wsclean/gridding/msgridder.h:252:8: error: ‘binary_semaphore’ in namespace ‘std’ does not name a type; did you mean ‘binary_negate’?
+  252 |   std::binary_semaphore processing_semaphore_{1};
+      |        ^~~~~~~~~~~~~~~~
+      |        binary_negate
+CMakeFiles/wsclean-object.dir/build.make:834: recipe for target 'CMakeFiles/wsclean-object.dir/scheduling/threadedscheduler.cpp.o' failed
+make[2]: *** [CMakeFiles/wsclean-object.dir/scheduling/threadedscheduler.cpp.o] Error 1
+In file included from /home/ubuntu/proj/wsclean/gridding/msgriddermanager.h:8,
+                 from /home/ubuntu/proj/wsclean/gridding/directmsgridder.cpp:3:
+/home/ubuntu/proj/wsclean/external/aocommon/include/aocommon/overlappingtaskprocessor.h:70:60: error: ‘binary_semaphore’ is not a member of ‘std’; did you mean ‘binary_negate’?
+   70 |                std::function<void(DataType&&, size_t, std::binary_semaphore&)>&&
+      |                                                            ^~~~~~~~~~~~~~~~
+      |                                                            binary_negate
+/home/ubuntu/proj/wsclean/external/aocommon/include/aocommon/overlappingtaskprocessor.h:70:78: error: template argument 1 is invalid
+   70 |                std::function<void(DataType&&, size_t, std::binary_semaphore&)>&&
+      |                                                                              ^
+/home/ubuntu/proj/wsclean/external/aocommon/include/aocommon/overlappingtaskprocessor.h:70:60: error: ‘binary_semaphore’ is not a member of ‘std’; did you mean ‘binary_negate’?
+   70 |                std::function<void(DataType&&, size_t, std::binary_semaphore&)>&&
+      |                                                            ^~~~~~~~~~~~~~~~
+      |                                                            binary_negate
+/home/ubuntu/proj/wsclean/external/aocommon/include/aocommon/overlappingtaskprocessor.h:70:78: error: template argument 1 is invalid
+   70 |                std::function<void(DataType&&, size_t, std::binary_semaphore&)>&&
+      |                                                                              ^
+/home/ubuntu/proj/wsclean/external/aocommon/include/aocommon/overlappingtaskprocessor.h:70:60: error: ‘binary_semaphore’ is not a member of ‘std’; did you mean ‘binary_negate’?
+   70 |                std::function<void(DataType&&, size_t, std::binary_semaphore&)>&&
+      |                                                            ^~~~~~~~~~~~~~~~
+      |                                                            binary_negate
+/home/ubuntu/proj/wsclean/external/aocommon/include/aocommon/overlappingtaskprocessor.h:70:78: error: template argument 1 is invalid
+   70 |                std::function<void(DataType&&, size_t, std::binary_semaphore&)>&&
+      |                                                                              ^
+/home/ubuntu/proj/wsclean/external/aocommon/include/aocommon/overlappingtaskprocessor.h:70:60: error: ‘binary_semaphore’ is not a member of ‘std’; did you mean ‘binary_negate’?
+   70 |                std::function<void(DataType&&, size_t, std::binary_semaphore&)>&&
+      |                                                            ^~~~~~~~~~~~~~~~
+      |                                                            binary_negate
+/home/ubuntu/proj/wsclean/external/aocommon/include/aocommon/overlappingtaskprocessor.h:70:78: error: template argument 1 is invalid
+   70 |                std::function<void(DataType&&, size_t, std::binary_semaphore&)>&&
+      |                                                                              ^
+/home/ubuntu/proj/wsclean/external/aocommon/include/aocommon/overlappingtaskprocessor.h:70:16: error: invalid template-id
+   70 |                std::function<void(DataType&&, size_t, std::binary_semaphore&)>&&
+      |                ^~~
+/home/ubuntu/proj/wsclean/external/aocommon/include/aocommon/overlappingtaskprocessor.h:70:60: error: ‘binary_semaphore’ is not a member of ‘std’; did you mean ‘binary_negate’?
+   70 |                std::function<void(DataType&&, size_t, std::binary_semaphore&)>&&
+      |                                                            ^~~~~~~~~~~~~~~~
+      |                                                            binary_negate
+/home/ubuntu/proj/wsclean/external/aocommon/include/aocommon/overlappingtaskprocessor.h:70:30: error: expected primary-expression before ‘void’
+   70 |                std::function<void(DataType&&, size_t, std::binary_semaphore&)>&&
+      |                              ^~~~
+/home/ubuntu/proj/wsclean/external/aocommon/include/aocommon/overlappingtaskprocessor.h:70:30: error: expected ‘>’ before ‘void’
+/home/ubuntu/proj/wsclean/external/aocommon/include/aocommon/overlappingtaskprocessor.h:70:16: error: template placeholder type ‘function<...auto...>’ must be followed by a simple declarator-id
+   70 |                std::function<void(DataType&&, size_t, std::binary_semaphore&)>&&
+      |                ^~~
+In file included from /usr/include/c++/10/functional:59,
+                 from /usr/include/c++/10/pstl/glue_algorithm_defs.h:13,
+                 from /usr/include/c++/10/algorithm:74,
+                 from /home/ubuntu/proj/wsclean/external/aocommon/include/aocommon/io/../uvector.h:4,
+                 from /home/ubuntu/proj/wsclean/external/aocommon/include/aocommon/io/serialostream.h:4,
+                 from /home/ubuntu/proj/wsclean/external/aocommon/include/aocommon/image.h:4,
+                 from /home/ubuntu/proj/wsclean/gridding/directmsgridder.h:4,
+                 from /home/ubuntu/proj/wsclean/gridding/directmsgridder.cpp:1:
+/usr/include/c++/10/bits/std_function.h:113:11: note: ‘template<class _Signature> class std::function’ declared here
+  113 |     class function;
+      |           ^~~~~~~~
+In file included from /home/ubuntu/proj/wsclean/gridding/msgriddermanager.h:8,
+                 from /home/ubuntu/proj/wsclean/gridding/directmsgridder.cpp:3:
+/home/ubuntu/proj/wsclean/external/aocommon/include/aocommon/overlappingtaskprocessor.h:71:39: error: expected ‘)’ before ‘,’ token
+   71 |                    processing_function,
+      |                                       ^
+      |                                       )
+/home/ubuntu/proj/wsclean/external/aocommon/include/aocommon/overlappingtaskprocessor.h:69:15: note: to match this ‘(’
+   69 |   void Process(aocommon::Lane<DataType>& data_lane,
+      |               ^
+/home/ubuntu/proj/wsclean/external/aocommon/include/aocommon/overlappingtaskprocessor.h:71:39: error: expected ‘;’ before ‘,’ token
+   71 |                    processing_function,
+      |                                       ^
+      |                                       ;
+/home/ubuntu/proj/wsclean/external/aocommon/include/aocommon/overlappingtaskprocessor.h:94:51: error: ‘binary_semaphore’ is not a member of ‘std’; did you mean ‘binary_negate’?
+   94 |       std::function<void(DataType&&, size_t, std::binary_semaphore&)>&&
+      |                                                   ^~~~~~~~~~~~~~~~
+      |                                                   binary_negate
+/home/ubuntu/proj/wsclean/external/aocommon/include/aocommon/overlappingtaskprocessor.h:94:69: error: template argument 1 is invalid
+   94 |       std::function<void(DataType&&, size_t, std::binary_semaphore&)>&&
+      |                                                                     ^
+/home/ubuntu/proj/wsclean/external/aocommon/include/aocommon/overlappingtaskprocessor.h:94:51: error: ‘binary_semaphore’ is not a member of ‘std’; did you mean ‘binary_negate’?
+   94 |       std::function<void(DataType&&, size_t, std::binary_semaphore&)>&&
+      |                                                   ^~~~~~~~~~~~~~~~
+      |                                                   binary_negate
+/home/ubuntu/proj/wsclean/external/aocommon/include/aocommon/overlappingtaskprocessor.h:94:69: error: template argument 1 is invalid
+   94 |       std::function<void(DataType&&, size_t, std::binary_semaphore&)>&&
+      |                                                                     ^
+/home/ubuntu/proj/wsclean/external/aocommon/include/aocommon/overlappingtaskprocessor.h:94:51: error: ‘binary_semaphore’ is not a member of ‘std’; did you mean ‘binary_negate’?
+   94 |       std::function<void(DataType&&, size_t, std::binary_semaphore&)>&&
+      |                                                   ^~~~~~~~~~~~~~~~
+      |                                                   binary_negate
+/home/ubuntu/proj/wsclean/external/aocommon/include/aocommon/overlappingtaskprocessor.h:94:69: error: template argument 1 is invalid
+   94 |       std::function<void(DataType&&, size_t, std::binary_semaphore&)>&&
+      |                                                                     ^
+/home/ubuntu/proj/wsclean/external/aocommon/include/aocommon/overlappingtaskprocessor.h:94:51: error: ‘binary_semaphore’ is not a member of ‘std’; did you mean ‘binary_negate’?
+   94 |       std::function<void(DataType&&, size_t, std::binary_semaphore&)>&&
+      |                                                   ^~~~~~~~~~~~~~~~
+      |                                                   binary_negate
+/home/ubuntu/proj/wsclean/external/aocommon/include/aocommon/overlappingtaskprocessor.h:94:69: error: template argument 1 is invalid
+   94 |       std::function<void(DataType&&, size_t, std::binary_semaphore&)>&&
+      |                                                                     ^
+/home/ubuntu/proj/wsclean/external/aocommon/include/aocommon/overlappingtaskprocessor.h:94:7: error: invalid template-id
+   94 |       std::function<void(DataType&&, size_t, std::binary_semaphore&)>&&
+      |       ^~~
+/home/ubuntu/proj/wsclean/external/aocommon/include/aocommon/overlappingtaskprocessor.h:94:51: error: ‘binary_semaphore’ is not a member of ‘std’; did you mean ‘binary_negate’?
+   94 |       std::function<void(DataType&&, size_t, std::binary_semaphore&)>&&
+      |                                                   ^~~~~~~~~~~~~~~~
+      |                                                   binary_negate
+/home/ubuntu/proj/wsclean/external/aocommon/include/aocommon/overlappingtaskprocessor.h:94:21: error: expected primary-expression before ‘void’
+   94 |       std::function<void(DataType&&, size_t, std::binary_semaphore&)>&&
+      |                     ^~~~
+/home/ubuntu/proj/wsclean/external/aocommon/include/aocommon/overlappingtaskprocessor.h:94:21: error: expected ‘>’ before ‘void’
+/home/ubuntu/proj/wsclean/external/aocommon/include/aocommon/overlappingtaskprocessor.h:94:7: error: template placeholder type ‘function<...auto...>’ must be followed by a simple declarator-id
+   94 |       std::function<void(DataType&&, size_t, std::binary_semaphore&)>&&
+      |       ^~~
+In file included from /usr/include/c++/10/functional:59,
+                 from /usr/include/c++/10/pstl/glue_algorithm_defs.h:13,
+                 from /usr/include/c++/10/algorithm:74,
+                 from /home/ubuntu/proj/wsclean/external/aocommon/include/aocommon/io/../uvector.h:4,
+                 from /home/ubuntu/proj/wsclean/external/aocommon/include/aocommon/io/serialostream.h:4,
+                 from /home/ubuntu/proj/wsclean/external/aocommon/include/aocommon/image.h:4,
+                 from /home/ubuntu/proj/wsclean/gridding/directmsgridder.h:4,
+                 from /home/ubuntu/proj/wsclean/gridding/directmsgridder.cpp:1:
+/usr/include/c++/10/bits/std_function.h:113:11: note: ‘template<class _Signature> class std::function’ declared here
+  113 |     class function;
+      |           ^~~~~~~~
+In file included from /home/ubuntu/proj/wsclean/gridding/msgriddermanager.h:8,
+                 from /home/ubuntu/proj/wsclean/gridding/directmsgridder.cpp:3:
+/home/ubuntu/proj/wsclean/external/aocommon/include/aocommon/overlappingtaskprocessor.h:95:30: error: expected ‘)’ before ‘,’ token
+   95 |           processing_function,
+      |                              ^
+      |                              )
+/home/ubuntu/proj/wsclean/external/aocommon/include/aocommon/overlappingtaskprocessor.h:92:31: note: to match this ‘(’
+   92 |   void ProcessAllChunksForLane(
+      |                               ^
+/home/ubuntu/proj/wsclean/external/aocommon/include/aocommon/overlappingtaskprocessor.h:95:30: error: expected ‘;’ before ‘,’ token
+   95 |           processing_function,
+      |                              ^
+      |                              ;
+CMakeFiles/wsclean-object.dir/build.make:302: recipe for target 'CMakeFiles/wsclean-object.dir/gridding/msprovidercollection.cpp.o' failed
+/home/ubuntu/proj/wsclean/external/aocommon/include/aocommon/overlappingtaskprocessor.h:124:51: error: ‘binary_semaphore’ is not a member of ‘std’; did you mean ‘binary_negate’?
+  124 |       std::function<void(DataType&&, size_t, std::binary_semaphore&)>&&
+      |                                                   ^~~~~~~~~~~~~~~~
+      |                                                   binary_negate
+/home/ubuntu/proj/wsclean/external/aocommon/include/aocommon/overlappingtaskprocessor.h:124:69: error: template argument 1 is invalid
+  124 |       std::function<void(DataType&&, size_t, std::binary_semaphore&)>&&
+      |                                                                     ^
+/home/ubuntu/proj/wsclean/external/aocommon/include/aocommon/overlappingtaskprocessor.h:124:51: error: ‘binary_semaphore’ is not a member of ‘std’; did you mean ‘binary_negate’?
+  124 |       std::function<void(DataType&&, size_t, std::binary_semaphore&)>&&
+      |                                                   ^~~~~~~~~~~~~~~~
+      |                                                   binary_negate
+/home/ubuntu/proj/wsclean/external/aocommon/include/aocommon/overlappingtaskprocessor.h:124:69: error: template argument 1 is invalid
+  124 |       std::function<void(DataType&&, size_t, std::binary_semaphore&)>&&
+      |                                                                     ^
+/home/ubuntu/proj/wsclean/external/aocommon/include/aocommon/overlappingtaskprocessor.h:124:51: error: ‘binary_semaphore’ is not a member of ‘std’; did you mean ‘binary_negate’?
+  124 |       std::function<void(DataType&&, size_t, std::binary_semaphore&)>&&
+      |                                                   ^~~~~~~~~~~~~~~~
+      |                                                   binary_negate
+/home/ubuntu/proj/wsclean/external/aocommon/include/aocommon/overlappingtaskprocessor.h:124:69: error: template argument 1 is invalid
+  124 |       std::function<void(DataType&&, size_t, std::binary_semaphore&)>&&
+      |                                                                     ^
+/home/ubuntu/proj/wsclean/external/aocommon/include/aocommon/overlappingtaskprocessor.h:124:51: error: ‘binary_semaphore’ is not a member of ‘std’; did you mean ‘binary_negate’?
+  124 |       std::function<void(DataType&&, size_t, std::binary_semaphore&)>&&
+      |                                                   ^~~~~~~~~~~~~~~~
+      |                                                   binary_negate
+/home/ubuntu/proj/wsclean/external/aocommon/include/aocommon/overlappingtaskprocessor.h:124:69: error: template argument 1 is invalid
+  124 |       std::function<void(DataType&&, size_t, std::binary_semaphore&)>&&
+      |                                                                     ^
+/home/ubuntu/proj/wsclean/external/aocommon/include/aocommon/overlappingtaskprocessor.h:124:7: error: invalid template-id
+  124 |       std::function<void(DataType&&, size_t, std::binary_semaphore&)>&&
+      |       ^~~
+/home/ubuntu/proj/wsclean/external/aocommon/include/aocommon/overlappingtaskprocessor.h:124:51: error: ‘binary_semaphore’ is not a member of ‘std’; did you mean ‘binary_negate’?
+  124 |       std::function<void(DataType&&, size_t, std::binary_semaphore&)>&&
+      |                                                   ^~~~~~~~~~~~~~~~
+      |                                                   binary_negate
+/home/ubuntu/proj/wsclean/external/aocommon/include/aocommon/overlappingtaskprocessor.h:124:21: error: expected primary-expression before ‘void’
+  124 |       std::function<void(DataType&&, size_t, std::binary_semaphore&)>&&
+      |                     ^~~~
+/home/ubuntu/proj/wsclean/external/aocommon/include/aocommon/overlappingtaskprocessor.h:124:21: error: expected ‘>’ before ‘void’
+/home/ubuntu/proj/wsclean/external/aocommon/include/aocommon/overlappingtaskprocessor.h:124:7: error: template placeholder type ‘function<...auto...>’ must be followed by a simple declarator-id
+  124 |       std::function<void(DataType&&, size_t, std::binary_semaphore&)>&&
+      |       ^~~
+In file included from /usr/include/c++/10/functional:59,
+                 from /usr/include/c++/10/pstl/glue_algorithm_defs.h:13,
+                 from /usr/include/c++/10/algorithm:74,
+                 from /home/ubuntu/proj/wsclean/external/aocommon/include/aocommon/io/../uvector.h:4,
+                 from /home/ubuntu/proj/wsclean/external/aocommon/include/aocommon/io/serialostream.h:4,
+                 from /home/ubuntu/proj/wsclean/external/aocommon/include/aocommon/image.h:4,
+                 from /home/ubuntu/proj/wsclean/gridding/directmsgridder.h:4,
+                 from /home/ubuntu/proj/wsclean/gridding/directmsgridder.cpp:1:
+/usr/include/c++/10/bits/std_function.h:113:11: note: ‘template<class _Signature> class std::function’ declared here
+  113 |     class function;
+      |           ^~~~~~~~
+In file included from /home/ubuntu/proj/wsclean/gridding/msgriddermanager.h:8,
+                 from /home/ubuntu/proj/wsclean/gridding/directmsgridder.cpp:3:
+/home/ubuntu/proj/wsclean/external/aocommon/include/aocommon/overlappingtaskprocessor.h:125:30: error: expected ‘)’ before ‘,’ token
+  125 |           processing_function,
+      |                              ^
+      |                              )
+/home/ubuntu/proj/wsclean/external/aocommon/include/aocommon/overlappingtaskprocessor.h:122:18: note: to match this ‘(’
+  122 |   void QueueChunk(
+      |                  ^
+/home/ubuntu/proj/wsclean/external/aocommon/include/aocommon/overlappingtaskprocessor.h:125:30: error: expected ‘;’ before ‘,’ token
+  125 |           processing_function,
+      |                              ^
+      |                              ;
+/home/ubuntu/proj/wsclean/external/aocommon/include/aocommon/overlappingtaskprocessor.h:153:8: error: ‘counting_semaphore’ in namespace ‘std’ does not name a template type
+  153 |   std::counting_semaphore<2> processing_count_semaphore_;
+      |        ^~~~~~~~~~~~~~~~~~
+/home/ubuntu/proj/wsclean/external/aocommon/include/aocommon/overlappingtaskprocessor.h:154:8: error: ‘binary_semaphore’ in namespace ‘std’ does not name a type; did you mean ‘binary_negate’?
+  154 |   std::binary_semaphore processing_order_semaphore_;
+      |        ^~~~~~~~~~~~~~~~
+      |        binary_negate
+/home/ubuntu/proj/wsclean/external/aocommon/include/aocommon/overlappingtaskprocessor.h:155:8: error: ‘binary_semaphore’ in namespace ‘std’ does not name a type; did you mean ‘binary_negate’?
+  155 |   std::binary_semaphore lane_process_semaphore_;
+      |        ^~~~~~~~~~~~~~~~
+      |        binary_negate
+/home/ubuntu/proj/wsclean/external/aocommon/include/aocommon/overlappingtaskprocessor.h: In constructor ‘aocommon::OverlappingTaskProcessor::OverlappingTaskProcessor(aocommon::TaskQueue<std::function<void()> >&)’:
+/home/ubuntu/proj/wsclean/external/aocommon/include/aocommon/overlappingtaskprocessor.h:47:9: error: class ‘aocommon::OverlappingTaskProcessor’ does not have any field named ‘processing_count_semaphore_’
+   47 |         processing_count_semaphore_(2),
+      |         ^~~~~~~~~~~~~~~~~~~~~~~~~~~
+/home/ubuntu/proj/wsclean/external/aocommon/include/aocommon/overlappingtaskprocessor.h:48:9: error: class ‘aocommon::OverlappingTaskProcessor’ does not have any field named ‘processing_order_semaphore_’
+   48 |         processing_order_semaphore_(1),
+      |         ^~~~~~~~~~~~~~~~~~~~~~~~~~~
+/home/ubuntu/proj/wsclean/external/aocommon/include/aocommon/overlappingtaskprocessor.h:49:9: error: class ‘aocommon::OverlappingTaskProcessor’ does not have any field named ‘lane_process_semaphore_’
+   49 |         lane_process_semaphore_(1){};
+      |         ^~~~~~~~~~~~~~~~~~~~~~~
+In file included from /home/ubuntu/proj/wsclean/gridding/directmsgridder.cpp:3:
+/home/ubuntu/proj/wsclean/gridding/msgriddermanager.h: At global scope:
+/home/ubuntu/proj/wsclean/gridding/msgriddermanager.h:134:7: error: ‘std::binary_semaphore’ has not been declared
+  134 |       std::binary_semaphore& first_operation_started, T&& operation);
+      |       ^~~
+/home/ubuntu/proj/wsclean/gridding/msgriddermanager.cpp: At global scope:
+/home/ubuntu/proj/wsclean/gridding/msgriddermanager.cpp:456:5: error: ‘std::binary_semaphore’ has not been declared
+  456 |     std::binary_semaphore& first_gridder_started) {
+      |     ^~~
+/home/ubuntu/proj/wsclean/gridding/msgriddermanager.cpp: In member function ‘void wsclean::MSGridderManager::GridChunks(aocommon::Lane<wsclean::MSGridderManager::InversionChunkData>&, bool, const aocommon::UVector<double, std::allocator<double> >&, const aocommon::MultiBandData&, wsclean::MsProviderCollection::MsData&, size_t)’:
+/home/ubuntu/proj/wsclean/gridding/msgriddermanager.cpp:590:11: error: ‘std::binary_semaphore’ has not been declared
+  590 |           std::binary_semaphore& first_gridder_started) mutable {
+      |           ^~~
+/home/ubuntu/proj/wsclean/gridding/msgriddermanager.cpp:597:17: error: use of deleted function ‘aocommon::Lane<Tp>::Lane(const aocommon::Lane<Tp>&) [with Tp = wsclean::MSGridderManager::InversionChunkData]’
+  597 |       "Gridding");
+      |                 ^
+In file included from /home/ubuntu/proj/wsclean/gridding/msgriddermanager.h:7,
+                 from /home/ubuntu/proj/wsclean/gridding/msgriddermanager.cpp:1:
+/home/ubuntu/proj/wsclean/external/aocommon/include/aocommon/lane.h:132:3: note: declared here
+  132 |   Lane(const Lane<Tp>& source) = delete;
+      |   ^~~~
+/home/ubuntu/proj/wsclean/gridding/msgriddermanager.cpp: At global scope:
+/home/ubuntu/proj/wsclean/gridding/msgriddermanager.cpp:812:5: error: ‘std::binary_semaphore’ has not been declared
+  812 |     std::binary_semaphore& first_predict_started) {
+      |     ^~~
+/home/ubuntu/proj/wsclean/gridding/msgriddermanager.cpp: In member function ‘void wsclean::MSGridderManager::PredictChunks(aocommon::Lane<wsclean::MSGridderManager::PredictionChunkData>&, const aocommon::UVector<double, std::allocator<double> >&, wsclean::MsProviderCollection::MsData&, size_t, bool)’:
+/home/ubuntu/proj/wsclean/gridding/msgriddermanager.cpp:881:11: error: ‘std::binary_semaphore’ has not been declared
+  881 |           std::binary_semaphore& first_predict_started) mutable {
+      |           ^~~
+make[2]: *** [CMakeFiles/wsclean-object.dir/gridding/msprovidercollection.cpp.o] Error 1
+/home/ubuntu/proj/wsclean/gridding/msgriddermanager.cpp:904:16: error: use of deleted function ‘aocommon::Lane<Tp>::Lane(const aocommon::Lane<Tp>&) [with Tp = wsclean::MSGridderManager::PredictionChunkData]’
+  904 |       "Predict");
+      |                ^
+In file included from /home/ubuntu/proj/wsclean/gridding/msgriddermanager.h:7,
+                 from /home/ubuntu/proj/wsclean/gridding/msgriddermanager.cpp:1:
+/home/ubuntu/proj/wsclean/external/aocommon/include/aocommon/lane.h:132:3: note: declared here
+  132 |   Lane(const Lane<Tp>& source) = delete;
+      |   ^~~~
+/home/ubuntu/proj/wsclean/gridding/msgriddermanager.h:329:40: error: ‘std::binary_semaphore’ has not been declared
+  329 |                    size_t chunk_index, std::binary_semaphore& gridding_started);
+      |                                        ^~~
+/home/ubuntu/proj/wsclean/gridding/msgriddermanager.h:367:23: error: ‘std::binary_semaphore’ has not been declared
+  367 |                       std::binary_semaphore& first_predict_started);
+      |                       ^~~
+/home/ubuntu/proj/wsclean/gridding/msgriddermanager.h:450:33: error: ‘std::binary_semaphore’ has not been declared
+  450 |     size_t n_cores_per_gridder, std::binary_semaphore& first_operation_started,
+      |                                 ^~~
+/home/ubuntu/proj/wsclean/gridding/msgriddermanager.h: In member function ‘void wsclean::MSGridderManager::ExecuteForAllGriddersWithNCores(size_t, int&, T&&)’:
+/home/ubuntu/proj/wsclean/gridding/msgriddermanager.h:461:14: error: ‘class wsclean::MsGridder’ has no member named ‘processing_semaphore_’
+  461 |     gridder->processing_semaphore_.acquire();
+      |              ^~~~~~~~~~~~~~~~~~~~~
+/home/ubuntu/proj/wsclean/gridding/msgriddermanager.h:468:31: error: request for member ‘release’ in ‘first_operation_started’, which is of non-class type ‘int’
+  468 |       first_operation_started.release();
+      |                               ^~~~~~~
+/home/ubuntu/proj/wsclean/gridding/msgriddermanager.h: In lambda function:
+/home/ubuntu/proj/wsclean/gridding/msgriddermanager.h:488:16: error: ‘class wsclean::MsGridder’ has no member named ‘processing_semaphore_’
+  488 |       gridder->processing_semaphore_.release();
+      |                ^~~~~~~~~~~~~~~~~~~~~
+CMakeFiles/wsclean-object.dir/build.make:792: recipe for target 'CMakeFiles/wsclean-object.dir/scheduling/griddingtaskmanager.cpp.o' failed
+make[2]: *** [CMakeFiles/wsclean-object.dir/scheduling/griddingtaskmanager.cpp.o] Error 1
+CMakeFiles/wsclean-object.dir/build.make:260: recipe for target 'CMakeFiles/wsclean-object.dir/gridding/msgridder.cpp.o' failed
+make[2]: *** [CMakeFiles/wsclean-object.dir/gridding/msgridder.cpp.o] Error 1
+CMakeFiles/wsclean-object.dir/build.make:330: recipe for target 'CMakeFiles/wsclean-object.dir/gridding/wsmsgridder.cpp.o' failed
+make[2]: *** [CMakeFiles/wsclean-object.dir/gridding/wsmsgridder.cpp.o] Error 1
+CMakeFiles/wsclean-object.dir/build.make:274: recipe for target 'CMakeFiles/wsclean-object.dir/gridding/msgridderdata.cpp.o' failed
+make[2]: *** [CMakeFiles/wsclean-object.dir/gridding/msgridderdata.cpp.o] Error 1
+CMakeFiles/wsclean-object.dir/build.make:78: recipe for target 'CMakeFiles/wsclean-object.dir/wgridder/wgriddingmsgridder.cpp.o' failed
+make[2]: *** [CMakeFiles/wsclean-object.dir/wgridder/wgriddingmsgridder.cpp.o] Error 1
+CMakeFiles/wsclean-object.dir/build.make:372: recipe for target 'CMakeFiles/wsclean-object.dir/interface/wscleaninterface.cpp.o' failed
+make[2]: *** [CMakeFiles/wsclean-object.dir/interface/wscleaninterface.cpp.o] Error 1
+CMakeFiles/wsclean-object.dir/build.make:974: recipe for target 'CMakeFiles/wsclean-object.dir/scheduling/mpischeduler.cpp.o' failed
+make[2]: *** [CMakeFiles/wsclean-object.dir/scheduling/mpischeduler.cpp.o] Error 1
+CMakeFiles/wsclean-object.dir/build.make:428: recipe for target 'CMakeFiles/wsclean-object.dir/io/wscfitswriter.cpp.o' failed
+make[2]: *** [CMakeFiles/wsclean-object.dir/io/wscfitswriter.cpp.o] Error 1
+CMakeFiles/wsclean-object.dir/build.make:232: recipe for target 'CMakeFiles/wsclean-object.dir/gridding/directmsgridder.cpp.o' failed
+make[2]: *** [CMakeFiles/wsclean-object.dir/gridding/directmsgridder.cpp.o] Error 1
+CMakeFiles/wsclean-object.dir/build.make:120: recipe for target 'CMakeFiles/wsclean-object.dir/main/commandline.cpp.o' failed
+make[2]: *** [CMakeFiles/wsclean-object.dir/main/commandline.cpp.o] Error 1
+CMakeFiles/wsclean-object.dir/build.make:204: recipe for target 'CMakeFiles/wsclean-object.dir/main/wsclean.cpp.o' failed
+make[2]: *** [CMakeFiles/wsclean-object.dir/main/wsclean.cpp.o] Error 1
+CMakeFiles/wsclean-object.dir/build.make:92: recipe for target 'CMakeFiles/wsclean-object.dir/wgridder/wgridder_float.cpp.o' failed
+make[2]: *** [CMakeFiles/wsclean-object.dir/wgridder/wgridder_float.cpp.o] Error 1
+CMakeFiles/wsclean-object.dir/build.make:106: recipe for target 'CMakeFiles/wsclean-object.dir/wgridder/wgridder_double.cpp.o' failed
+make[2]: *** [CMakeFiles/wsclean-object.dir/wgridder/wgridder_double.cpp.o] Error 1
+CMakeFiles/wsclean-object.dir/build.make:288: recipe for target 'CMakeFiles/wsclean-object.dir/gridding/msgriddermanager.cpp.o' failed
+CMakeFiles/Makefile2:301: recipe for target 'CMakeFiles/wsclean-object.dir/all' failed
+Makefile:135: recipe for target 'all' failed
+make[2]: *** [CMakeFiles/wsclean-object.dir/gridding/msgriddermanager.cpp.o] Error 1
+make[1]: *** [CMakeFiles/wsclean-object.dir/all] Error 2
+make: *** [all] Error 2

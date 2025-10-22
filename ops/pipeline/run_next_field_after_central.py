@@ -210,8 +210,11 @@ def main() -> int:
     out_dir = Path('/scratch/dsa110-contimg/ms/central_cal_rebuild')
     out_dir.mkdir(parents=True, exist_ok=True)
     ms_out = out_dir / f'{gid}.ms'
-    print(f'Converting next group {gid} -> {ms_out}')
-    write_ms_group_via_uvh5_to_ms(files, ms_out)
+    if not ms_out.exists():
+        print(f'Converting next group {gid} -> {ms_out}')
+        write_ms_group_via_uvh5_to_ms(files, ms_out)
+    else:
+        print(f'Using existing MS (skip conversion): {ms_out}')
     # Ensure downstream-safe columns
     try:
         _ensure_flag_and_weight_spectrum(os.fspath(ms_out))
@@ -341,13 +344,34 @@ def main() -> int:
     # image
     try:
         import shutil as _sh
+        from glob import glob as _glob
+        # Remove known tclean artifact directories
         for suf in [
             '.image', '.pb', '.pbcor', '.residual', '.model',
-            '.mask', '.psf', '.sumwt'
-        ]:
+                '.mask', '.psf', '.sumwt', '.image.pbcor']:
             p = img_base.as_posix() + suf
             if os.path.isdir(p):
                 _sh.rmtree(p, ignore_errors=True)
+        # Remove any pattern-matched artifacts (both dirs and files)
+        patterns = [
+            f"{img_base}.image*",
+            f"{img_base}.pb*",
+            f"{img_base}.residual*",
+            f"{img_base}.model*",
+            f"{img_base}.mask*",
+            f"{img_base}.psf*",
+            f"{img_base}.sumwt*",
+        ]
+        for pat in patterns:
+            for p in _glob(pat):
+                try:
+                    if os.path.isdir(p):
+                        _sh.rmtree(p, ignore_errors=True)
+                    elif os.path.isfile(p):
+                        os.remove(p)
+                except Exception:
+                    pass
+        # Remove FITS and overlay byproducts
         for suf in [
             '.image.fits',
             '.pb.fits',
@@ -366,7 +390,16 @@ def main() -> int:
         imagename=os.fspath(img_base),
         imsize=2048,
         pbcor=True,
-        phasecenter=None)
+        phasecenter=None,
+        gridder='wproject',
+        wprojplanes=128,
+        specmode='mfs',
+        deconvolver='mtmfs',
+        nterms=2,
+        uvrange='>1klambda',
+        robust=0.5,
+        pblimit=0.25,
+        threshold='0.005Jy')
     print('Done:', img_base)
     return 0
 

@@ -11,7 +11,7 @@
 
 ### UVH5 to MS Conversion Process
 
-1. **Circular Import Issues**: The `uvh5_to_ms_converter_v2.py` had circular import dependencies that were resolved by:
+1. **Circular Import Issues**: The historical `uvh5_to_ms_converter_v2.py` had circular import dependencies that were resolved by:
    - Implementing lazy imports in `dsa110_contimg.conversion.__init__.py`
    - Creating missing modules (`writers.py`) and functions (`write_ms_from_subbands`)
    - Using direcports from specific modules rather than package-level imports
@@ -64,6 +64,19 @@
 - Legacy action endpoints may reveal misconfigured hosts; fix in Zapier, then retry calls without passing `deployment` at runtime.
 - Products DB helpers added: centralized `ms_index`/`images` schema management, upserts, and indices.
 - API/monitoring integrates recent calibrator matches and QA discovery.
+
+### Catalog: Master Sources (NVSS + VLASS + FIRST)
+- New builder: `python -m dsa110_contimg.catalog.build_master` creates `state/catalogs/master_sources.sqlite3`.
+- Inputs: NVSS (required), optional VLASS and FIRST catalogs (CSV/TSV/FITS); auto column detection with optional explicit mappings.
+- Crossmatch radius: configurable (default 7.5"). Computes:
+  - Spectral index α from NVSS (1.4 GHz) and VLASS (3.0 GHz) peak fluxes (units converted to Jy).
+  - Compactness via FIRST deconvolved sizes; confusion when multiple matches within radius.
+- DB schema:
+  - `sources(source_id, ra_deg, dec_deg, s_nvss, snr_nvss, s_vlass, alpha, resolved_flag, confusion_flag)`
+  - Views: `good_references` (quality cuts), `final_references` (stricter SNR + optional stable IDs)
+  - Optional materialized snapshot: `final_references_table`
+  - `meta` records thresholds, build_time_iso, and input file provenance (sha256/size/mtime/rows)
+- Useful flags: `--nvss-flux-unit|--vlass-flux-unit {jy|mjy|ujy}`, `--goodref-snr-min|-alpha-min|-alpha-max`, `--finalref-snr-min|--finalref-ids|--materialize-final`, `--export-view|--export-csv`.
 
 # Currently Working On:
 
@@ -448,7 +461,7 @@ This documents the current end-to-end streaming path and operational knobs.
 
 ### Components and Entry Points
 - Conversion: `dsa110_contimg.conversion.uvh5_to_ms` (single/dir)
-- Streaming service: `dsa110_contimg.conversion.streaming_converter`
+- Streaming service: `dsa110_contimg.conversion.streaming.streaming_converter`
 - Calibration solves: `dsa110_contimg.calibration.calibration` (K/BP/G)
 - Apply calibration: `dsa110_contimg.calibration.applycal.apply_to_target`
 - Imaging: `dsa110_contimg.imaging.cli.image_ms`
@@ -512,5 +525,3 @@ This documents the current end-to-end streaming path and operational knobs.
 - Helpers live in `dsa110_contimg.calibration.model`: new functions for setjy, component, and image models, plus refactored point-source writer.
 - Each helper ensures imaging columns exist and copies `DATA` → `CORRECTED_DATA` after writing `MODEL_DATA` to keep CASA solvers happy.
 - Use the CLI flags (`--model-component`, `--model-image`, `--model-field`, etc.) to point at external assets when not using the catalog auto mode.
-
-* Google application credentials can be found at `/home/ubuntu/.config/gcloud/application_default_credentials.json` (Primary) and `/home/ubuntu/.cache/google-vscode-extension/auth/application_default_credentials.json` (VS Code Extension)

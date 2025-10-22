@@ -41,11 +41,20 @@ def _detect_datacolumn(ms_path: str) -> str:
             cols = set(t.colnames())
             if "CORRECTED_DATA" in cols:
                 try:
-                    # sample the first 1024 rows for any non-zero entries
                     import numpy as _np
-                    n = min(1024, t.nrows())
-                    if n > 0:
-                        cd = t.getcol("CORRECTED_DATA", 0, n)
+                    total = t.nrows()
+                    if total <= 0:
+                        return "data"
+                    # Sample up to 8 evenly spaced windows of up to 2048 rows
+                    windows = 8
+                    block = 2048
+                    indices = [max(0, int(i * total / max(1, windows)) - block // 2)
+                               for i in range(windows)]
+                    for start in indices:
+                        n = min(block, total - start)
+                        if n <= 0:
+                            continue
+                        cd = t.getcol("CORRECTED_DATA", start, n)
                         if _np.count_nonzero(_np.abs(cd) > 0) > 0:
                             return "corrected"
                 except Exception:
@@ -78,14 +87,31 @@ def _default_cell_arcsec(ms_path: str) -> float:
                 chan = spw.getcol("CHAN_FREQ")[spw_id]
             freq.append(float(np.nanmean(chan)))
         if umax <= 0 or not freq:
-            return 2.0
+            raise RuntimeError("bad umax or freq")
         c = 299_792_458.0
         lam = c / float(np.nanmean(freq))
         theta_rad = 0.5 * lam / umax
         cell = max(0.1, min(60.0, np.degrees(theta_rad) * 3600.0 / 5.0))
         return float(cell)
     except Exception:
-        return 2.0
+        # CASA-only fallback using casacore tables if daskms missing
+        try:
+            from casacore.tables import table as ctab
+            with ctab(f"{ms_path}::MAIN", readonly=True) as main:
+                uvw0 = main.getcol("UVW", 0, min(10000, main.nrows()))
+                umax = float(np.nanmax(np.abs(uvw0[:, 0])))
+            with ctab(f"{ms_path}::SPECTRAL_WINDOW", readonly=True) as spw:
+                chan = spw.getcol("CHAN_FREQ")
+                freq = float(np.nanmean(chan))
+            if umax <= 0 or not np.isfinite(freq):
+                return 2.0
+            c = 299_792_458.0
+            lam = c / freq
+            theta_rad = 0.5 * lam / umax
+            cell = max(0.1, min(60.0, np.degrees(theta_rad) * 3600.0 / 5.0))
+            return float(cell)
+        except Exception:
+            return 2.0
 
 
 def image_ms(
@@ -100,6 +126,7 @@ def image_ms(
     robust: float = 0.0,
     specmode: str = "mfs",
     deconvolver: str = "hogbom",
+    nterms: int = 1,
     niter: int = 1000,
     threshold: str = "0.0Jy",
     pbcor: bool = True,
@@ -146,6 +173,7 @@ def image_ms(
         robust=robust,
         specmode=specmode,
         deconvolver=deconvolver,
+        nterms=nterms,
         niter=niter,
         threshold=threshold,
         gridder=gridder,
@@ -210,6 +238,7 @@ def main(argv: Optional[list] = None) -> None:
         help="Alias of --robust (Briggs robust)")
     parser.add_argument("--specmode", default="mfs")
     parser.add_argument("--deconvolver", default="hogbom")
+    parser.add_argument("--nterms", type=int, default=1)
     parser.add_argument("--niter", type=int, default=1000)
     parser.add_argument("--threshold", default="0.0Jy")
     parser.add_argument("--no-pbcor", action="store_true")
@@ -265,6 +294,7 @@ def main(argv: Optional[list] = None) -> None:
         robust=robust,
         specmode=args.specmode,
         deconvolver=args.deconvolver,
+        nterms=args.nterms,
         niter=args.niter,
         threshold=args.threshold,
         pbcor=not args.no_pbcor,

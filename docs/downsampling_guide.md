@@ -84,7 +84,7 @@ python3 src/dsa110_contimg/conversion/downsample_hdf5_batch.py \
     --max-workers 8
 
 # Then convert to MS
-python3 src/dsa110_contimg/conversion/uvh5_to_ms_converter_v2.py \
+python -m dsa110_contimg.conversion.strategies.hdf5_orchestrator \
     --input-dir /data/downsampled_uvh5/ \
     --output-dir /data/ms_files/
 ```
@@ -160,7 +160,7 @@ python3 src/dsa110_contimg/conversion/downsample_hdf5_batch.py \
     --max-workers 8
 
 # 2. Convert to MS
-python3 src/dsa110_contimg/conversion/uvh5_to_ms_converter_v2.py \
+python -m dsa110_contimg.conversion.strategies.hdf5_orchestrator \
     --input-dir /data/downsampled_subbands/ \
     --output-dir /data/ms_files/
 

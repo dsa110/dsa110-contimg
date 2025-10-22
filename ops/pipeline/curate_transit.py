@@ -28,7 +28,7 @@ from astropy.time import Time
 
 from dsa110_contimg.calibration.schedule import previous_transits
 from dsa110_contimg.calibration.catalogs import read_vla_parsed_catalog_csv
-from dsa110_contimg.conversion.strategies.uvh5_to_ms_converter import find_subband_groups
+from dsa110_contimg.conversion.strategies.hdf5_orchestrator import find_subband_groups
 from pyuvdata import UVData
 
 

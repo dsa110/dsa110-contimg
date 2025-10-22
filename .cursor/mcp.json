@@ -1,0 +1,8 @@
+{
+  "mcpServers": {
+    "codex": {
+      "command": "/opt/miniforge/envs/casa6/bin/codex",
+      "args": ["mcp-server"]
+    }
+  }
+}

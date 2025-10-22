@@ -7,7 +7,7 @@ services:
       dockerfile: ops/docker/Dockerfile
     container_name: contimg-stream
     command: >-
-      python -m dsa110_contimg.conversion.streaming_converter
+      python -m dsa110_contimg.conversion.streaming.streaming_converter
       --input-dir ${CONTIMG_INPUT_DIR}
       --output-dir ${CONTIMG_OUTPUT_DIR}
       --queue-db ${CONTIMG_QUEUE_DB}

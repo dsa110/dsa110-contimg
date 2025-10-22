@@ -28,9 +28,11 @@ from astropy.time import Time
 
 from dsa110_contimg.calibration.schedule import previous_transits
 from dsa110_contimg.calibration.catalogs import read_vla_parsed_catalog_csv, read_vla_parsed_catalog_with_flux
-from dsa110_contimg.conversion.strategies.uvh5_to_ms_converter import find_subband_groups
+import sqlite3
+from dsa110_contimg.conversion.strategies.hdf5_orchestrator import find_subband_groups
 from dsa110_contimg.conversion.uvh5_to_ms import convert_single_file
 from dsa110_contimg.calibration.calibration import solve_delay, solve_bandpass, solve_gains
+from dsa110_contimg.calibration.skymodels import make_point_cl, ft_from_cl  # type: ignore[import]
 from dsa110_contimg.calibration.applycal import apply_to_target
 from dsa110_contimg.imaging.cli import image_ms
 from dsa110_contimg.database.products import ensure_products_db, images_insert
@@ -38,7 +40,26 @@ from dsa110_contimg.calibration import flagging as qa_flag
 from astropy.coordinates import Angle
 
 
-def _load_ra_dec(name: str, catalogs: List[str]) -> Tuple[float, float]:
+def _load_ra_dec_from_db(name: str, vla_db: Optional[str]) -> Optional[Tuple[float, float]]:
+    if not vla_db or not os.path.isfile(vla_db):
+        return None
+    try:
+        with sqlite3.connect(vla_db) as conn:
+            row = conn.execute(
+                "SELECT ra_deg, dec_deg FROM calibrators WHERE name=?", (name,)
+            ).fetchone()
+            if row:
+                return float(row[0]), float(row[1])
+    except Exception:
+        return None
+    return None
+
+
+def _load_ra_dec(name: str, catalogs: List[str], vla_db: Optional[str] = None) -> Tuple[float, float]:
+    # Prefer SQLite DB if available
+    db_val = _load_ra_dec_from_db(name, vla_db)
+    if db_val is not None:
+        return db_val
     for p in catalogs:
         try:
             df = read_vla_parsed_catalog_csv(p)
@@ -54,13 +75,34 @@ def _load_ra_dec(name: str, catalogs: List[str]) -> Tuple[float, float]:
                     return ra, dec
         except Exception:
             continue
-    raise RuntimeError(f'Calibrator {name} not found in catalogs: {catalogs}')
+    raise RuntimeError(f'Calibrator {name} not found in catalogs/DB: {catalogs} | {vla_db}')
+
+
+def _load_flux_jy_from_db(name: str, vla_db: Optional[str], band: str = '20cm') -> Optional[float]:
+    if not vla_db or not os.path.isfile(vla_db):
+        return None
+    try:
+        with sqlite3.connect(vla_db) as conn:
+            if band.lower() == '20cm':
+                row = conn.execute(
+                    "SELECT flux_jy FROM vla_20cm WHERE name=?", (name,)
+                ).fetchone()
+                if row and row[0] is not None:
+                    return float(row[0])
+    except Exception:
+        return None
+    return None
 
 
 def _load_flux_jy(
         name: str,
         catalogs: List[str],
-        band: str = '20cm') -> float | None:
+        band: str = '20cm',
+        vla_db: Optional[str] = None) -> float | None:
+    # Prefer SQLite DB if available
+    fx = _load_flux_jy_from_db(name, vla_db, band=band)
+    if fx is not None and np.isfinite(fx):
+        return fx
     for p in catalogs:
         try:
             df = read_vla_parsed_catalog_with_flux(p, band=band)
@@ -186,6 +228,7 @@ def main() -> int:
     ap.add_argument('--input-dir', default='/data/incoming')
     ap.add_argument('--output-dir', default='state/ms/central_cal')
     ap.add_argument('--products-db', default='state/products.sqlite3')
+    ap.add_argument('--vla-db', default='state/catalogs/vla_calibrators.sqlite3', help='Optional VLA calibrator SQLite DB')
     ap.add_argument('--name', default='0834+555')
     ap.add_argument('--catalog', action='append', default=[
         '/data/dsa110-contimg/data-samples/catalogs/vla_calibrators_parsed.csv'
@@ -211,7 +254,7 @@ def main() -> int:
     out_dir.mkdir(parents=True, exist_ok=True)
     pdb = Path(args.products_db)
 
-    ra_deg, dec_deg = _load_ra_dec(args.name, args.catalog)
+    ra_deg, dec_deg = _load_ra_dec(args.name, args.catalog, vla_db=args.vla_db)
     chosen_files: List[str]
     if args.curated_path:
         man = _load_curated_manifest(Path(args.curated_path))
@@ -341,7 +384,7 @@ def main() -> int:
     # Provide a simple point-source model (ft()) for the calibrator to
     # stabilize BP
     try:
-        flux = _load_flux_jy(args.name, args.catalog, band='20cm')
+        flux = _load_flux_jy(args.name, args.catalog, band='20cm', vla_db=args.vla_db)
         if flux is not None and flux > 0:
             # Prefer setjy(manual) for robustness; fallback to ft with
             # component list if needed
@@ -360,32 +403,18 @@ def main() -> int:
                     f'setjy(manual): flux={flux:.2f} Jy on field {cal_field}')
             except Exception as e_setjy:
                 print('setjy manual failed, falling back to ft():', e_setjy)
-                from casatools import componentlist as _cl
-                from casatasks import ft as casa_ft
                 clpath = os.fspath(ms_out.with_suffix('')) + '_pt.cl'
-                try:
-                    import shutil as _sh
-                    _sh.rmtree(clpath, ignore_errors=True)
-                except Exception:
-                    pass
-                cl = _cl()
-                cl.open()
-                cl.addcomponent(
-                    dir=f'J2000 {ra_deg}deg {dec_deg}deg',
-                    flux=float(flux),
-                    fluxunit='Jy',
-                    freq='1.4GHz',
-                    shape='point')
-                cl.rename(clpath)
-                cl.close()
-                cl.done()
+                clpath = make_point_cl(
+                    args.name,
+                    float(ra_deg),
+                    float(dec_deg),
+                    flux_jy=float(flux),
+                    freq_ghz=1.4,
+                    out_path=clpath,
+                )
                 print(
                     f'ft() point model at RA={ra_deg:.6f} deg, Dec={dec_deg:.6f} deg, flux={flux:.2f} Jy')
-                casa_ft(
-                    vis=os.fspath(ms_out),
-                    complist=clpath,
-                    field=cal_field,
-                    usescratch=True)
+                ft_from_cl(os.fspath(ms_out), clpath, field=cal_field, usescratch=True)
             # Verify MODEL_DATA nonzero
             try:
                 from casacore.tables import table as _tb

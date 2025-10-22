@@ -1,11 +1,19 @@
 # testing.py: partial read + tiny MS write
-from dsa110_contimg.conversion.helpers import set_antenna_positions, _ensure_antenna_diameters
-from dsa110_contimg.conversion import uvh5_to_ms_converter_v2 as v2
+from dsa110_contimg.conversion.helpers import (  # type: ignore[import]
+    set_antenna_positions,
+)
+from dsa110_contimg.conversion.helpers import (  # type: ignore[import]
+    _ensure_antenna_diameters,
+)
+from dsa110_contimg.conversion.strategies import (  # type: ignore[import]
+    hdf5_orchestrator as orch,
+)
+from dsa110_contimg.conversion.helpers import get_meridian_coords  # type: ignore[import]
+from dsa110_contimg.utils.fringestopping import calc_uvw_blt  # type: ignore[import]
 import os
 import sys
 import shutil
 import time
-import glob
 import numpy as np
 import h5py
 import astropy.units as u
@@ -78,7 +86,11 @@ def partial_read_merge(files, n_times_keep=1, n_chan_keep=16, n_ants_keep=8):
             # We will do a second selection pass on tmp to keep identical ants
             # across subbands.
             ant_ids = np.unique(
-                np.r_[tmp.ant_1_array[:tmp.Nbls], tmp.ant_2_array[:tmp.Nbls]]).astype(int)
+                np.r_[
+                    tmp.ant_1_array[:tmp.Nbls],
+                    tmp.ant_2_array[:tmp.Nbls],
+                ]
+            ).astype(int)
             keep_ants = ant_ids[:min(n_ants_keep, ant_ids.size)]
             tmp.select(antenna_nums=keep_ants, run_check=False)
             uv = tmp
@@ -102,7 +114,7 @@ def partial_read_merge(files, n_times_keep=1, n_chan_keep=16, n_ants_keep=8):
 
 
 def write_tiny_ms(in_dir, out_ms):
-    groups = v2.find_subband_groups(in_dir, START, END)
+    groups = orch.find_subband_groups(in_dir, START, END)
     if not groups:
         raise RuntimeError("No complete subband groups found")
     files = groups[0]
@@ -118,7 +130,43 @@ def write_tiny_ms(in_dir, out_ms):
     # Use the convenience function; it handles per-time UVW and ICRS/J2000
     # coercion
     pt_dec = uv.extra_keywords.get("phase_center_dec", 0.0) * u.rad
-    v2.set_per_time_phase_centers(uv, pt_dec)
+    # Set a single phase center at the meridian and recompute UVW via helpers
+    t_mid_mjd = Time(float(np.mean(uv.time_array)), format="jd").mjd
+    ra_icrs, dec_icrs = get_meridian_coords(pt_dec, t_mid_mjd)
+    uv.phase_center_catalog = {}
+    pc_id = uv._add_phase_center(
+        cat_name="FIELD_CENTER",
+        cat_type="sidereal",
+        cat_lon=float(ra_icrs.to_value(u.rad)),
+        cat_lat=float(dec_icrs.to_value(u.rad)),
+        cat_frame="icrs",
+        cat_epoch=2000.0,
+    )
+    if not hasattr(uv, "phase_center_id_array") or uv.phase_center_id_array is None:
+        uv.phase_center_id_array = np.zeros(uv.Nblts, dtype=int)
+    uv.phase_center_id_array[:] = pc_id
+    # Recompute UVW per unique time with CASA-backed utility
+    nbls = uv.Nbls
+    ant_pos = np.asarray(uv.antenna_positions)  # type: ignore[attr-defined]
+    ant1 = np.asarray(uv.ant_1_array[:nbls], dtype=int)
+    ant2 = np.asarray(uv.ant_2_array[:nbls], dtype=int)
+    blen = ant_pos[ant2, :] - ant_pos[ant1, :]
+    times = np.unique(uv.time_array)
+    for i, tval in enumerate(times):
+        row_slice = slice(i * nbls, (i + 1) * nbls)
+        time_vec = np.full(nbls, float(Time(tval, format="jd").mjd), dtype=float)
+        uv.uvw_array[row_slice, :] = calc_uvw_blt(
+            blen,
+            time_vec,
+            'J2000',
+            ra_icrs,
+            dec_icrs,
+            obs='OVRO_MMA',
+        )
+    uv.reorder_freqs(channel_order="freq", run_check=False)
+    uv.phase_type = "phased"
+    uv.phase_center_frame = "icrs"
+    uv.phase_center_epoch = 2000.0
 
     # Ascending frequency and mark as phased
     uv.reorder_freqs(channel_order="freq", run_check=False)
@@ -156,6 +204,6 @@ def write_tiny_ms(in_dir, out_ms):
 
 # Run
 if __name__ == "__main__":
-    groups = v2.find_subband_groups(IN_DIR, START, END)
+    groups = orch.find_subband_groups(IN_DIR, START, END)
     assert groups, "No groups found"
     write_tiny_ms(IN_DIR, OUT_MS)

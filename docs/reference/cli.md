@@ -2,7 +2,7 @@
 
 - Streaming worker
 ```
-python -m dsa110_contimg.conversion.streaming_converter --help
+python -m dsa110_contimg.conversion.streaming.streaming_converter --help
 ```
 - Imaging worker
 ```
@@ -10,7 +10,7 @@ python -m dsa110_contimg.imaging.worker --help
 ```
 - Converter orchestrator
 ```
-python -m dsa110_contimg.conversion.strategies.uvh5_to_ms_converter --help
+python -m dsa110_contimg.conversion.strategies.hdf5_orchestrator --help
 ```
 - Registry CLI
 ```

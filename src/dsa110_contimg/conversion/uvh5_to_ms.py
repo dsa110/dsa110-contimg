@@ -1,10 +1,12 @@
 #!/usr/bin/env python3
 """
-Simple UVH5 to CASA Measurement Set converter.
+UVH5 to CASA Measurement Set Converter.
 
-This is a clean, step-by-step rewrite of the UVH5 to MS conversion process
-using pyuvdata and CASA tools correctly.
+This module provides a single-file/directory writer for converting UVH5 data
+to a CASA Measurement Set (MS). It leverages shared helpers for phasing and
+finalization to ensure consistency with the main conversion pipeline.
 """
+from __future__ import annotations
 
 import argparse
 import logging
@@ -15,7 +17,15 @@ from typing import List, Optional
 
 import numpy as np
 from pyuvdata import UVData
-from casacore.tables import addImagingColumns
+from casacore.tables import addImagingColumns  # noqa: F401  (legacy import; avoided)
+from dsa110_contimg.conversion.ms_utils import configure_ms_for_imaging
+from dsa110_contimg.conversion.helpers import (
+    get_meridian_coords,
+    set_antenna_positions,
+    _ensure_antenna_diameters,
+    set_model_column,
+    phase_to_meridian,
+)
 
 # Configure logging
 logging.basicConfig(
@@ -499,14 +509,21 @@ def read_uvh5_file(filepath: str, create_time_binned_fields: bool = False,
             uvd.uvw_array = uvd.uvw_array.astype(np.float64)
             data_type_fixes += 1
 
-    # Fix other common float32 issues
-    for attr in ['data_array', 'flag_array', 'nsample_array']:
+    # Fix other common float32 issues (do NOT cast flags to float)
+    for attr in ['data_array', 'nsample_array']:
         if hasattr(uvd, attr):
             arr = getattr(uvd, attr)
             if arr is not None and arr.dtype == np.float32:
                 logger.info(f"Converting {attr} from float32 to float64")
                 setattr(uvd, attr, arr.astype(np.float64))
                 data_type_fixes += 1
+    # Ensure flag_array is boolean
+    if hasattr(uvd, 'flag_array'):
+        arr = getattr(uvd, 'flag_array')
+        if arr is not None and arr.dtype != np.bool_:
+            logger.warning(
+                f"Coercing flag_array from {arr.dtype} to boolean; verify upstream writer")
+            uvd.flag_array = arr.astype(np.bool_)
 
     if data_type_fixes > 0:
         logger.info(f"Applied {data_type_fixes} data type fixes")
@@ -672,85 +689,15 @@ def _create_time_binned_fields(uvd: UVData,
 # import astropy.units as u
 
     logger.info(
-        f"Creating time-binned fields with {field_time_bin_minutes} "
-        f"minute bins")
+        f"Creating time-binned fields with {field_time_bin_minutes} minute bins")
 
-    # Convert time bin to days (astropy time units)
-    field_time_bin_days = field_time_bin_minutes / (24 * 60)
-
-    # Get unique times and sort them
-    unique_times = np.unique(uvd.time_array)
-    logger.info(
-        f"Found {len(unique_times)} unique times spanning "
-        f"{unique_times[-1] - unique_times[0]:.6f} days")
-
-    # Create time bins
-    time_bins = np.arange(unique_times[0],
-                          unique_times[-1] + field_time_bin_days,
-                          field_time_bin_days)
-    logger.info(f"Created {len(time_bins)-1} time bins")
-
-    # Assign field IDs based on time bins
-    field_ids = np.digitize(uvd.time_array, time_bins) - 1
-    field_ids = np.clip(
-        field_ids,
-        0,
-        len(time_bins) -
-        2)  # Ensure valid field IDs
-
-    # Update field information
-    uvd.field_id_array = field_ids
-    uvd.Nfields = len(time_bins) - 1
-
-    # Create field names and phase centers
-    field_names = []
-    phase_centers = []
-
-    for i in range(uvd.Nfields):
-        # Get times for this field
-        field_mask = field_ids == i
-        field_times = uvd.time_array[field_mask]
-
-        if len(field_times) > 0:
-            # Use middle time for phase center
-            mid_time = np.mean(field_times)
-            field_name = f"field_{i:03d}_t{mid_time:.3f}"
-            field_names.append(field_name)
-
-            # For drift scans, phase center changes with time
-            # Use the original phase center as base
-            if hasattr(
-                    uvd,
-                    'phase_center_ra') and hasattr(
-                    uvd,
-                    'phase_center_dec'):
-                phase_centers.append(
-                    [uvd.phase_center_ra, uvd.phase_center_dec])
-            else:
-                # Default to zenith if no phase center info
-                if hasattr(uvd, 'telescope_location_lat_deg'):
-                    phase_centers.append([0.0, uvd.telescope_location_lat_deg])
-                else:
-                    phase_centers.append([0.0, 0.0])
-        else:
-            field_names.append(f"field_{i:03d}")
-            if hasattr(uvd, 'telescope_location_lat_deg'):
-                phase_centers.append([0.0, uvd.telescope_location_lat_deg])
-            else:
-                phase_centers.append([0.0, 0.0])
-
-    # Set field information
-    uvd.field_name_array = np.array(field_names)
-    uvd.phase_center_ra_array = np.array([pc[0] for pc in phase_centers])
-    uvd.phase_center_dec_array = np.array([pc[1] for pc in phase_centers])
-
-    logger.info(
-        f"Created {uvd.Nfields} fields:")
-    for i, name in enumerate(field_names):
-        logger.info(
-            f"  Field {i}: {name} (RA={uvd.phase_center_ra_array[i]:.3f}, "
-            f"Dec={uvd.phase_center_dec_array[i]:.3f})")
-
+    # Robust behavior: Disable custom time-binned FIELD generation until
+    # pyuvdata multi-phase center catalog is wired. Returning unmodified UVData
+    # avoids writing invalid MS FIELD rows. Use curated grouping and CASA
+    # rephasing downstream instead.
+    logger.warning(
+        "Time-binned FIELD generation is disabled pending proper "
+        "phase_center_catalog support; returning original UVData")
     return uvd
 
 
@@ -886,23 +833,21 @@ def write_ms_file(
         # Always clean up temporary files
         _cleanup_temp_files(temp_files)
 
-    # Add imaging columns if requested
-    if add_imaging_columns:
-        try:
-            logger.debug("Adding imaging columns...")
-            addImagingColumns(output_path)
-            logger.info(
-                "Added imaging columns (MODEL_DATA, CORRECTED_DATA)")
-            # Ensure imaging columns are fully populated per row for CASA
-            # concat
-            try:
-                _ensure_imaging_columns_populated(output_path)
-            except Exception as e:
-                logger.warning(
-                    f"Failed to fully populate imaging columns: {e}")
-        except Exception as e:
-            logger.warning(f"Failed to add imaging columns: {e}")
-            # This is not critical, so we don't raise an exception
+    # Make MS safe for imaging/calibration
+    try:
+        if add_imaging_columns:
+            configure_ms_for_imaging(output_path)
+        else:
+            # Still ensure FLAG/WEIGHT/WEIGHT_SPECTRUM and mount are sane
+            configure_ms_for_imaging(
+                output_path,
+                ensure_columns=False,
+                ensure_flag_and_weight=True,
+                do_initweights=True,
+                fix_mount=True,
+            )
+    except Exception as e:
+        logger.warning(f"MS imaging configuration warning: {e}")
 
     # Fix mount type in MS antenna table to prevent CASA warnings
     try:
@@ -1024,9 +969,8 @@ def convert_single_file(input_file: str, output_file: str,
 
         # Phase data to a single reference center (RA=LST(mid), Dec from UVH5)
         if enable_phasing:
-            logger.debug(
-                "Phasing data to RA=LST(mid), Dec=phase_center_dec...")
-            uvd = _phase_data_to_midpoint_reference(uvd, phase_reference_time)
+            logger.info("Phasing to meridian at midpoint of observation")
+            phase_to_meridian(uvd, phase_reference_time)
         else:
             logger.info("Skipping explicit phasing (using original phasing)")
 
@@ -1221,129 +1165,81 @@ def convert_directory(input_dir: str, output_dir: str,
     logger.info(f"Output directory: {output_dir}")
 
 
-def main():
-    """Main function for command-line interface."""
-    parser = argparse.ArgumentParser(
-        description="Convert UVH5 files to CASA Measurement Sets",
-        formatter_class=argparse.RawDescriptionHelpFormatter,
-        epilog="""
-Examples:
-  # Convert single file
-  python3 uvh5_to_ms.py input.uvh5 output.ms
-
-  # Convert all files in directory
-  python3 uvh5_to_ms.py --input-dir /path/to/uvh5/ --output-dir /path/to/ms/
-
-  # Convert with custom pattern
-  python3 uvh5_to_ms.py --input-dir /path/to/uvh5/ \
-    --output-dir /path/to/ms/ --pattern "*.hdf5"
-
-  # Convert drift scan with time-binned fields (5-minute bins)
-  python3 uvh5_to_ms.py input.uvh5 output.ms --create-time-binned-fields
-
-  # Convert drift scan with custom time bin size (2-minute bins)
-  python3 uvh5_to_ms.py input.uvh5 output.ms --create-time-binned-fields \
-    --field-time-bin-minutes 2.0
-        """
+def add_args(parser: argparse.ArgumentParser) -> None:
+    """Add arguments to the parser."""
+    parser.add_argument(
+        "input_path",
+        help="Path to a UVH5 file or a directory of UVH5 files.",
     )
-
-    # Input/output arguments
-    group = parser.add_mutually_exclusive_group(required=True)
-    group.add_argument('input_file', nargs='?', help='Input UVH5 file')
-    group.add_argument(
-        '--input-dir',
-        help='Input directory containing UVH5 files')
-
-    parser.add_argument('output', help='Output MS file or directory')
     parser.add_argument(
-        '--pattern',
-        default='*.hdf5',
-        help='File pattern for directory mode (default: *.hdf5)')
+        "output_path",
+        help="Path to the output Measurement Set.",
+    )
     parser.add_argument(
-        '--no-imaging-columns',
-        action='store_true',
-        help='Skip adding imaging columns (MODEL_DATA, CORRECTED_DATA)')
+        "--add-imaging-columns",
+        action="store_true",
+        help="Add MODEL_DATA and CORRECTED_DATA columns.",
+    )
     parser.add_argument(
-        '--create-time-binned-fields',
-        action='store_true',
-        help='Create time-binned fields for drift scans')
+        "--create-time-binned-fields",
+        action="store_true",
+        help="Create a new FIELD_ID for each 5-minute chunk of data.",
+    )
     parser.add_argument(
-        '--field-time-bin-minutes',
+        "--field-time-bin-minutes",
         type=float,
         default=5.0,
-        help='Time bin size in minutes for field creation (default: 5.0)')
+        help="Time bin size in minutes for creating new FIELD_IDs.",
+    )
     parser.add_argument(
-        '--no-recommendations',
-        action='store_true',
-        help='Skip writing calibration recommendations file')
-    # Always phase explicitly; expose optional reference time if needed
+        "--write-recommendations",
+        action="store_true",
+        help="Write recommendations to a file.",
+    )
     parser.add_argument(
-        '--phase-reference-time',
-        type=float,
-        help='Reference time in JD for phasing (default: midpoint)')
-    parser.add_argument('--verbose', '-v', action='store_true',
-                        help='Enable verbose logging')
-    parser.add_argument('--quiet', '-q', action='store_true',
-                        help='Suppress non-error output')
-
-    args = parser.parse_args()
-
-    # Set logging level
-    if args.quiet:
-        logging.getLogger().setLevel(logging.ERROR)
-    elif args.verbose:
-        logging.getLogger().setLevel(logging.DEBUG)
-    else:
-        logging.getLogger().setLevel(logging.INFO)
-
-    # Set environment variables for stability
-    os.environ.setdefault('HDF5_USE_FILE_LOCKING', 'FALSE')
-    os.environ.setdefault('OMP_NUM_THREADS', '1')
-
-    # Global exception handler
-    try:
-        if args.input_file:
-            # Single file mode
-            convert_single_file(args.input_file, args.output,
-                                not args.no_imaging_columns,
-                                args.create_time_binned_fields,
-                                args.field_time_bin_minutes,
-                                not args.no_recommendations,
-                                True,
-                                args.phase_reference_time)
-        else:
-            # Directory mode
-            convert_directory(args.input_dir, args.output, args.pattern,
-                              not args.no_imaging_columns,
-                              args.create_time_binned_fields,
-                              args.field_time_bin_minutes,
-                              not args.no_recommendations,
-                              True,
-                              args.phase_reference_time)
-
-        logger.info("All operations completed successfully")
-
-    except KeyboardInterrupt:
-        logger.error("Operation cancelled by user")
-        sys.exit(130)  # Standard exit code for SIGINT
-    except FileNotFoundError as e:
-        logger.error(f"File not found: {e}")
-        sys.exit(2)
-    except PermissionError as e:
-        logger.error(f"Permission denied: {e}")
-        sys.exit(3)
-    except ValueError as e:
-        logger.error(f"Invalid input: {e}")
-        sys.exit(4)
-    except RuntimeError as e:
-        logger.error(f"Runtime error: {e}")
-        sys.exit(5)
-    except Exception as e:
-        logger.error(f"Unexpected error: {e}")
-        if args.verbose:
-            logger.debug("Full traceback:", exc_info=True)
-        sys.exit(1)
+        "--enable-phasing",
+        action="store_true",
+        help="Enable phasing of the data.",
+    )
+    parser.add_argument(
+        "--phase-reference-time",
+        type=str,
+        default=None,
+        help="Reference time for phasing (YYYY-MM-DDTHH:MM:SS).",
+    )
 
 
-if __name__ == '__main__':
-    main()
+def create_parser() -> argparse.ArgumentParser:
+    """Create the parser for the converter."""
+    parser = argparse.ArgumentParser(
+        description="Convert UVH5 to MS",
+        formatter_class=argparse.ArgumentDefaultsHelpFormatter,
+    )
+    add_args(parser)
+    return parser
+
+
+def main(args: argparse.Namespace = None) -> int:
+    """Main function for the converter."""
+    if args is None:
+        parser = create_parser()
+        args = parser.parse_args()
+
+    # Configure logging
+    # Note: logging is now handled by the main CLI entrypoint
+
+    convert_single_file(
+        args.input_path,
+        args.output_path,
+        add_imaging_columns=args.add_imaging_columns,
+        create_time_binned_fields=args.create_time_binned_fields,
+        field_time_bin_minutes=args.field_time_bin_minutes,
+        write_recommendations=args.write_recommendations,
+        enable_phasing=args.enable_phasing,
+        phase_reference_time=args.phase_reference_time,
+    )
+    return 0
+
+
+if __name__ == "__main__":
+    sys.exit(main())

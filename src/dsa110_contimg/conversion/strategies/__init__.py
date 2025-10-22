@@ -5,6 +5,6 @@ This version uses a Strategy design pattern for creating Measurement Sets,
 making the system more modular and extensible.
 """
 
-from .uvh5_to_ms_converter import convert_subband_groups_to_ms, find_subband_groups
+from .hdf5_orchestrator import convert_subband_groups_to_ms, find_subband_groups
 
 __all__ = ["convert_subband_groups_to_ms", "find_subband_groups"]

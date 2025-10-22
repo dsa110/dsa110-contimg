@@ -15,7 +15,7 @@ if str(PROJECT_ROOT) not in sys.path:
     sys.path.insert(0, str(PROJECT_ROOT))
 
 from antpos_local import get_itrf
-from uvh5_to_ms_converter import OVRO_LAT, OVRO_LON, OVRO_ALT
+from dsa110_contimg.utils.constants import OVRO_LAT, OVRO_LON, OVRO_ALT
 
 
 def main() -> None:

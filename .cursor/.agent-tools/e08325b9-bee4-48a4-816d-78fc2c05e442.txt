@@ -1,0 +1,1388 @@
+[Terminal output truncated: ~269KB dropped from beginning]
+make[1]: Entering directory '/home/ubuntu/proj/wsclean/localdev/hdf5-hdf5-1_12_2/utils'
+Making all in test
+make[2]: Entering directory '/home/ubuntu/proj/wsclean/localdev/hdf5-hdf5-1_12_2/utils/test'
+  CC       swmr_check_compat_vfd.o
+  CCLD     swmr_check_compat_vfd
+make[2]: Leaving directory '/home/ubuntu/proj/wsclean/localdev/hdf5-hdf5-1_12_2/utils/test'
+make[2]: Entering directory '/home/ubuntu/proj/wsclean/localdev/hdf5-hdf5-1_12_2/utils'
+make[2]: Nothing to be done for 'all-am'.
+make[2]: Leaving directory '/home/ubuntu/proj/wsclean/localdev/hdf5-hdf5-1_12_2/utils'
+make[1]: Leaving directory '/home/ubuntu/proj/wsclean/localdev/hdf5-hdf5-1_12_2/utils'
+Making all in tools
+make[1]: Entering directory '/home/ubuntu/proj/wsclean/localdev/hdf5-hdf5-1_12_2/tools'
+Making all in lib
+make[2]: Entering directory '/home/ubuntu/proj/wsclean/localdev/hdf5-hdf5-1_12_2/tools/lib'
+  CC       h5tools.lo
+  CC       h5tools_dump.lo
+  CC       h5tools_utils.lo
+  CC       h5tools_str.lo
+  CC       h5diff.lo
+  CC       h5diff_dset.lo
+  CC       h5diff_attr.lo
+  CC       h5diff_array.lo
+  CC       h5trav.lo
+  CC       h5diff_util.lo
+  CC       h5tools_filters.lo
+  CC       h5tools_type.lo
+  CC       h5tools_ref.lo
+  CC       io_timer.lo
+h5diff_array.c: In function ‘character_compare_opt’:
+h5diff_array.c:1597:19: warning: variable ‘both_zero’ set but not used [-Wunused-but-set-variable]
+     hbool_t       both_zero = FALSE;
+                   ^~~~~~~~~
+  CCLD     libh5tools.la
+make[2]: Leaving directory '/home/ubuntu/proj/wsclean/localdev/hdf5-hdf5-1_12_2/tools/lib'
+Making all in src
+make[2]: Entering directory '/home/ubuntu/proj/wsclean/localdev/hdf5-hdf5-1_12_2/tools/src'
+Making all in h5diff
+make[3]: Entering directory '/home/ubuntu/proj/wsclean/localdev/hdf5-hdf5-1_12_2/tools/src/h5diff'
+  CC       h5diff_main.o
+  CC       h5diff_common.o
+h5diff_common.c: In function ‘parse_subset_params’:
+h5diff_common.c:166:16: warning: potential null pointer dereference [-Wnull-dereference]
+         while (*brace && *brace != ';')
+                ^~~~~~
+h5diff_common.c:174:16: warning: potential null pointer dereference [-Wnull-dereference]
+         while (*brace && *brace != ';')
+                ^~~~~~
+h5diff_common.c:182:16: warning: potential null pointer dereference [-Wnull-dereference]
+         while (*brace && *brace != ';')
+                ^~~~~~
+  CCLD     h5diff
+make[3]: Leaving directory '/home/ubuntu/proj/wsclean/localdev/hdf5-hdf5-1_12_2/tools/src/h5diff'
+Making all in h5ls
+make[3]: Entering directory '/home/ubuntu/proj/wsclean/localdev/hdf5-hdf5-1_12_2/tools/src/h5ls'
+  CC       h5ls.o
+  CCLD     h5ls
+make[3]: Leaving directory '/home/ubuntu/proj/wsclean/localdev/hdf5-hdf5-1_12_2/tools/src/h5ls'
+Making all in h5dump
+make[3]: Entering directory '/home/ubuntu/proj/wsclean/localdev/hdf5-hdf5-1_12_2/tools/src/h5dump'
+  CC       h5dump.o
+  CC       h5dump_ddl.o
+  CC       h5dump_xml.o
+  CCLD     h5dump
+make[3]: Leaving directory '/home/ubuntu/proj/wsclean/localdev/hdf5-hdf5-1_12_2/tools/src/h5dump'
+Making all in misc
+make[3]: Entering directory '/home/ubuntu/proj/wsclean/localdev/hdf5-hdf5-1_12_2/tools/src/misc'
+  CC       h5debug.o
+  CC       h5repart.o
+  CC       h5mkgrp.o
+  CC       h5clear.o
+  CCLD     h5clear
+  CCLD     h5mkgrp
+  CCLD     h5repart
+  CCLD     h5debug
+make[3]: Leaving directory '/home/ubuntu/proj/wsclean/localdev/hdf5-hdf5-1_12_2/tools/src/misc'
+Making all in h5import
+make[3]: Entering directory '/home/ubuntu/proj/wsclean/localdev/hdf5-hdf5-1_12_2/tools/src/h5import'
+  CC       h5import.o
+h5import.c: In function ‘processStrHDFData’:
+h5import.c:1126:19: warning: assuming signed overflow does not occur when simplifying range test [-Wstrict-overflow]
+             while (j < in->path.count - 1) {
+                   ^
+h5import.c: In function ‘processStrData’:
+h5import.c:1000:19: warning: assuming signed overflow does not occur when simplifying range test [-Wstrict-overflow]
+             while (j < in->path.count - 1) {
+                   ^
+h5import.c: In function ‘process’:
+h5import.c:4649:27: warning: assuming signed overflow does not occur when simplifying range test [-Wstrict-overflow]
+                     while (j < in->path.count - 1) {
+                           ^
+  CCLD     h5import
+make[3]: Leaving directory '/home/ubuntu/proj/wsclean/localdev/hdf5-hdf5-1_12_2/tools/src/h5import'
+Making all in h5repack
+make[3]: Entering directory '/home/ubuntu/proj/wsclean/localdev/hdf5-hdf5-1_12_2/tools/src/h5repack'
+  CC       h5repack.lo
+  CC       h5repack_filters.lo
+  CC       h5repack_copy.lo
+  CC       h5repack_parse.lo
+  CC       h5repack_opttable.lo
+  CC       h5repack_refs.lo
+  CC       h5repack_verify.lo
+  CC       h5repack_main.o
+h5repack.c: In function ‘h5repack_addfilter’:
+h5repack.c:939:1: warning: assuming signed overflow does not occur when changing X +- C1 cmp C2 to X cmp C2 -+ C1 [-Wstrict-overflow]
+ } /* end get_sfilter() */
+ ^
+h5repack_refs.c: In function ‘copy_refs_attr’:
+h5repack_refs.c:440:1: warning: assuming signed overflow does not occur when changing X +- C1 cmp C2 to X cmp C2 -+ C1 [-Wstrict-overflow]
+ copy_refs_attr(hid_t loc_in, hid_t loc_out, trav_table_t *travt, hid_t fidout) /* for saving references */
+ ^~~~~~~~~~~~~~
+  CCLD     libh5repack.la
+  CCLD     h5repack
+make[3]: Leaving directory '/home/ubuntu/proj/wsclean/localdev/hdf5-hdf5-1_12_2/tools/src/h5repack'
+Making all in h5jam
+make[3]: Entering directory '/home/ubuntu/proj/wsclean/localdev/hdf5-hdf5-1_12_2/tools/src/h5jam'
+  CC       h5jam.o
+  CC       h5unjam.o
+  CCLD     h5unjam
+  CCLD     h5jam
+make[3]: Leaving directory '/home/ubuntu/proj/wsclean/localdev/hdf5-hdf5-1_12_2/tools/src/h5jam'
+Making all in h5copy
+make[3]: Entering directory '/home/ubuntu/proj/wsclean/localdev/hdf5-hdf5-1_12_2/tools/src/h5copy'
+  CC       h5copy.o
+  CCLD     h5copy
+make[3]: Leaving directory '/home/ubuntu/proj/wsclean/localdev/hdf5-hdf5-1_12_2/tools/src/h5copy'
+Making all in h5format_convert
+make[3]: Entering directory '/home/ubuntu/proj/wsclean/localdev/hdf5-hdf5-1_12_2/tools/src/h5format_convert'
+  CC       h5format_convert.o
+  CCLD     h5format_convert
+make[3]: Leaving directory '/home/ubuntu/proj/wsclean/localdev/hdf5-hdf5-1_12_2/tools/src/h5format_convert'
+Making all in h5stat
+make[3]: Entering directory '/home/ubuntu/proj/wsclean/localdev/hdf5-hdf5-1_12_2/tools/src/h5stat'
+  CC       h5stat.o
+  CCLD     h5stat
+make[3]: Leaving directory '/home/ubuntu/proj/wsclean/localdev/hdf5-hdf5-1_12_2/tools/src/h5stat'
+Making all in h5perf
+make[3]: Entering directory '/home/ubuntu/proj/wsclean/localdev/hdf5-hdf5-1_12_2/tools/src/h5perf'
+  CC       sio_perf.o
+  CC       sio_engine.o
+sio_engine.c: In function ‘do_sio’:
+sio_engine.c:141:10: warning: size of ‘fname’ is 4096 bytes [-Wlarger-than=]
+     char fname[FILENAME_MAX]; /* test file name */
+          ^~~~~
+sio_engine.c: In function ‘set_vfd’:
+sio_engine.c:1169:21: warning: size of ‘sv’ is 7168 bytes [-Wlarger-than=]
+         char        sv[H5FD_MEM_NTYPES][1024];
+                     ^~
+sio_engine.c:1183:13: warning: assuming signed overflow does not occur when changing X +- C1 cmp C2 to X cmp C2 -+ C1 [-Wstrict-overflow]
+             memb_addr[mt] = (haddr_t)MAX(mt - 1, 0) * (HADDR_MAX / 10);
+             ^~~~~~~~~
+sio_engine.c: In function ‘dset_read’:
+sio_engine.c:1015:8: warning: assuming signed overflow does not occur when changing X +- C1 cmp C2 to X cmp C2 -+ C1 [-Wstrict-overflow]
+     if (local_dim < parms->rank - 1 && local_dim != cont_dim) {
+        ^
+sio_perf.c: In function ‘main’:
+sio_perf.c:188:1: warning: assuming signed overflow does not occur when changing X +- C1 cmp C2 to X cmp C2 -+ C1 [-Wstrict-overflow]
+ main(int argc, char *argv[])
+ ^~~~
+sio_perf.c:188:1: warning: assuming signed overflow does not occur when changing X +- C1 cmp C2 to X cmp C2 -+ C1 [-Wstrict-overflow]
+sio_perf.c:188:1: warning: assuming signed overflow does not occur when changing X +- C1 cmp C2 to X cmp C2 -+ C1 [-Wstrict-overflow]
+sio_perf.c:188:1: warning: assuming signed overflow does not occur when changing X +- C1 cmp C2 to X cmp C2 -+ C1 [-Wstrict-overflow]
+sio_perf.c:188:1: warning: assuming signed overflow does not occur when changing X +- C1 cmp C2 to X cmp C2 -+ C1 [-Wstrict-overflow]
+sio_perf.c:188:1: warning: assuming signed overflow does not occur when changing X +- C1 cmp C2 to X cmp C2 -+ C1 [-Wstrict-overflow]
+  CCLD     h5perf_serial
+make[3]: Leaving directory '/home/ubuntu/proj/wsclean/localdev/hdf5-hdf5-1_12_2/tools/src/h5perf'
+make[3]: Entering directory '/home/ubuntu/proj/wsclean/localdev/hdf5-hdf5-1_12_2/tools/src'
+make[3]: Nothing to be done for 'all-am'.
+make[3]: Leaving directory '/home/ubuntu/proj/wsclean/localdev/hdf5-hdf5-1_12_2/tools/src'
+make[2]: Leaving directory '/home/ubuntu/proj/wsclean/localdev/hdf5-hdf5-1_12_2/tools/src'
+Making all in test
+make[2]: Entering directory '/home/ubuntu/proj/wsclean/localdev/hdf5-hdf5-1_12_2/tools/test'
+Making all in h5diff
+make[3]: Entering directory '/home/ubuntu/proj/wsclean/localdev/hdf5-hdf5-1_12_2/tools/test/h5diff'
+  CC       dynlib_diff.lo
+  CC       h5diffgentest.o
+h5diffgentest.c: In function ‘write_attr_strings’:
+h5diffgentest.c:5672:13: warning: assuming signed overflow does not occur when reducing constant in comparison [-Wstrict-overflow]
+             for (l = 0; l < i + 1; l++)
+             ^~~
+h5diffgentest.c:6071:17: warning: assuming signed overflow does not occur when reducing constant in comparison [-Wstrict-overflow]
+                 for (l = 0; l < i + 1; l++)
+                 ^~~
+h5diffgentest.c: In function ‘write_attr_in’:
+h5diffgentest.c:6661:13: warning: assuming signed overflow does not occur when reducing constant in comparison [-Wstrict-overflow]
+             for (l = 0; l < i + 1; l++)
+             ^~~
+h5diffgentest.c:7061:17: warning: assuming signed overflow does not occur when reducing constant in comparison [-Wstrict-overflow]
+                 for (l = 0; l < i + 1; l++)
+                 ^~~
+h5diffgentest.c: In function ‘write_dset_in’:
+h5diffgentest.c:7552:13: warning: assuming signed overflow does not occur when reducing constant in comparison [-Wstrict-overflow]
+             for (l = 0; l < i + 1; l++) {
+             ^~~
+h5diffgentest.c:7731:17: warning: assuming signed overflow does not occur when reducing constant in comparison [-Wstrict-overflow]
+                 for (l = 0; l < i + 1; l++) {
+                 ^~~
+  CCLD     libdynlibdiff.la
+  CCLD     h5diffgentest
+make[3]: Leaving directory '/home/ubuntu/proj/wsclean/localdev/hdf5-hdf5-1_12_2/tools/test/h5diff'
+Making all in h5ls
+make[3]: Entering directory '/home/ubuntu/proj/wsclean/localdev/hdf5-hdf5-1_12_2/tools/test/h5ls'
+  CC       dynlib_ls.lo
+  CCLD     libdynlibls.la
+make[3]: Leaving directory '/home/ubuntu/proj/wsclean/localdev/hdf5-hdf5-1_12_2/tools/test/h5ls'
+Making all in h5dump
+make[3]: Entering directory '/home/ubuntu/proj/wsclean/localdev/hdf5-hdf5-1_12_2/tools/test/h5dump'
+  CC       dynlib_dump.lo
+  CC       h5dumpgentest.o
+  CC       binread.o
+  CCLD     binread
+h5dumpgentest.c: In function ‘gent_vldatatypes’:
+h5dumpgentest.c:2694:9: warning: assuming signed overflow does not occur when reducing constant in comparison [-Wstrict-overflow]
+         for (j = 0; j < i + 1; j++)
+         ^~~
+h5dumpgentest.c:2721:9: warning: assuming signed overflow does not occur when reducing constant in comparison [-Wstrict-overflow]
+         for (j = 0; j < i + 1; j++)
+         ^~~
+h5dumpgentest.c: In function ‘gent_vldatatypes5’:
+h5dumpgentest.c:2997:13: warning: assuming signed overflow does not occur when reducing constant in comparison [-Wstrict-overflow]
+             for (j = 0; j < i + 5; j++)
+             ^~~
+h5dumpgentest.c: In function ‘gent_array6’:
+h5dumpgentest.c:3445:13: warning: assuming signed overflow does not occur when reducing constant in comparison [-Wstrict-overflow]
+             for (k = 0; k < (i + j + 1); k++)
+             ^~~
+h5dumpgentest.c: In function ‘gent_array7’:
+h5dumpgentest.c:3507:13: warning: assuming signed overflow does not occur when reducing constant in comparison [-Wstrict-overflow]
+             for (k = 0; k < (i + j + 1); k++)
+             ^~~
+h5dumpgentest.c: In function ‘gent_multi’:
+h5dumpgentest.c:3885:9: warning: assuming signed overflow does not occur when changing X +- C1 cmp C2 to X cmp C2 -+ C1 [-Wstrict-overflow]
+         memb_addr[mt] = (haddr_t)MAX(mt - 1, 0) * (HADDR_MAX / 10);
+         ^~~~~~~~~
+h5dumpgentest.c: In function ‘write_attr_in’:
+h5dumpgentest.c:4264:13: warning: assuming signed overflow does not occur when reducing constant in comparison [-Wstrict-overflow]
+             for (l = 0; l < i + 1; l++)
+             ^~~
+h5dumpgentest.c:4394:17: warning: assuming signed overflow does not occur when reducing constant in comparison [-Wstrict-overflow]
+                 for (l = 0; l < i + 1; l++)
+                 ^~~
+h5dumpgentest.c: In function ‘write_dset_in’:
+h5dumpgentest.c:4693:13: warning: assuming signed overflow does not occur when reducing constant in comparison [-Wstrict-overflow]
+             for (l = 0; l < i + 1; l++)
+             ^~~
+h5dumpgentest.c:4830:17: warning: assuming signed overflow does not occur when reducing constant in comparison [-Wstrict-overflow]
+                 for (l = 0; l < i + 1; l++)
+                 ^~~
+h5dumpgentest.c: In function ‘gent_intsfourdims’:
+h5dumpgentest.c:10539:18: warning: size of ‘dset1’ is 7680 bytes [-Wlarger-than=]
+     uint32_t     dset1[F81_ZDIM][F81_YDIM][F81_XDIM][F81_WDIM];
+                  ^~~~~
+  CCLD     libdynlibdump.la
+h5dumpgentest.c: In function ‘main’:
+h5dumpgentest.c:2997:13: warning: assuming signed overflow does not occur when changing X +- C1 cmp C2 to X cmp C2 -+ C1 [-Wstrict-overflow]
+             for (j = 0; j < i + 5; j++)
+             ^~~
+h5dumpgentest.c:2997:13: warning: assuming signed overflow does not occur when changing X +- C1 cmp C2 to X cmp C2 -+ C1 [-Wstrict-overflow]
+h5dumpgentest.c:2997:13: warning: assuming signed overflow does not occur when changing X +- C1 cmp C2 to X cmp C2 -+ C1 [-Wstrict-overflow]
+h5dumpgentest.c:2997:13: warning: assuming signed overflow does not occur when changing X +- C1 cmp C2 to X cmp C2 -+ C1 [-Wstrict-overflow]
+h5dumpgentest.c:2997:13: warning: assuming signed overflow does not occur when changing X +- C1 cmp C2 to X cmp C2 -+ C1 [-Wstrict-overflow]
+h5dumpgentest.c:2997:13: warning: assuming signed overflow does not occur when changing X +- C1 cmp C2 to X cmp C2 -+ C1 [-Wstrict-overflow]
+h5dumpgentest.c:2997:13: warning: assuming signed overflow does not occur when changing X +- C1 cmp C2 to X cmp C2 -+ C1 [-Wstrict-overflow]
+h5dumpgentest.c:2997:13: warning: assuming signed overflow does not occur when changing X +- C1 cmp C2 to X cmp C2 -+ C1 [-Wstrict-overflow]
+  CCLD     h5dumpgentest
+make[3]: Leaving directory '/home/ubuntu/proj/wsclean/localdev/hdf5-hdf5-1_12_2/tools/test/h5dump'
+Making all in misc
+make[3]: Entering directory '/home/ubuntu/proj/wsclean/localdev/hdf5-hdf5-1_12_2/tools/test/misc'
+Making all in vds
+make[4]: Entering directory '/home/ubuntu/proj/wsclean/localdev/hdf5-hdf5-1_12_2/tools/test/misc/vds'
+  CC       UC_1_one_dim_gen.o
+  CC       UC_2_two_dims_gen.o
+  CC       UC_3_gaps_gen.o
+  CC       UC_4_printf_gen.o
+  CC       UC_5_stride_gen.o
+  CCLD     UC_3_gaps_gen
+  CCLD     UC_2_two_dims_gen
+  CCLD     UC_5_stride_gen
+  CCLD     UC_1_one_dim_gen
+  CCLD     UC_4_printf_gen
+make[4]: Leaving directory '/home/ubuntu/proj/wsclean/localdev/hdf5-hdf5-1_12_2/tools/test/misc/vds'
+make[4]: Entering directory '/home/ubuntu/proj/wsclean/localdev/hdf5-hdf5-1_12_2/tools/test/misc'
+  CC       h5repart_gentest.o
+  CC       h5clear_gentest.o
+  CC       talign.o
+  CC       repart_test.o
+  CC       clear_open_chk.o
+h5clear_gentest.c: In function ‘gen_enhance_files’:
+h5clear_gentest.c:205:5: warning: assuming signed overflow does not occur when reducing constant in comparison [-Wstrict-overflow]
+     for (i = 0 + u; i < 3 + u; i++) {
+     ^~~
+  CCLD     clear_open_chk
+  CCLD     repart_test
+  CCLD     h5repart_gentest
+  CCLD     talign
+  CCLD     h5clear_gentest
+make[4]: Leaving directory '/home/ubuntu/proj/wsclean/localdev/hdf5-hdf5-1_12_2/tools/test/misc'
+make[3]: Leaving directory '/home/ubuntu/proj/wsclean/localdev/hdf5-hdf5-1_12_2/tools/test/misc'
+Making all in h5import
+make[3]: Entering directory '/home/ubuntu/proj/wsclean/localdev/hdf5-hdf5-1_12_2/tools/test/h5import'
+  CC       h5importtest.o
+  CCLD     h5importtest
+make[3]: Leaving directory '/home/ubuntu/proj/wsclean/localdev/hdf5-hdf5-1_12_2/tools/test/h5import'
+Making all in h5repack
+make[3]: Entering directory '/home/ubuntu/proj/wsclean/localdev/hdf5-hdf5-1_12_2/tools/test/h5repack'
+  CC       dynlib_rpk.lo
+  CC       dynlib_vrpk.lo
+  CC       h5repacktst.o
+  CC       h5repackgentest.o
+  CC       testh5repack_detect_szip.o
+  CCLD     testh5repack_detect_szip
+  CCLD     h5repackgentest
+  CCLD     libdynlibadd.la
+  CCLD     libdynlibvers.la
+  CCLD     h5repacktst
+make[3]: Leaving directory '/home/ubuntu/proj/wsclean/localdev/hdf5-hdf5-1_12_2/tools/test/h5repack'
+Making all in h5jam
+make[3]: Entering directory '/home/ubuntu/proj/wsclean/localdev/hdf5-hdf5-1_12_2/tools/test/h5jam'
+  CC       tellub.o
+  CC       h5jamgentest.o
+  CC       getub.o
+  CCLD     getub
+  CCLD     tellub
+  CCLD     h5jamgentest
+make[3]: Leaving directory '/home/ubuntu/proj/wsclean/localdev/hdf5-hdf5-1_12_2/tools/test/h5jam'
+Making all in h5copy
+make[3]: Entering directory '/home/ubuntu/proj/wsclean/localdev/hdf5-hdf5-1_12_2/tools/test/h5copy'
+  CC       h5copygentest.o
+  CCLD     h5copygentest
+make[3]: Leaving directory '/home/ubuntu/proj/wsclean/localdev/hdf5-hdf5-1_12_2/tools/test/h5copy'
+Making all in h5format_convert
+make[3]: Entering directory '/home/ubuntu/proj/wsclean/localdev/hdf5-hdf5-1_12_2/tools/test/h5format_convert'
+  CC       h5fc_gentest.o
+  CC       h5fc_chk_idx.o
+  CCLD     h5fc_chk_idx
+  CCLD     h5fc_gentest
+make[3]: Leaving directory '/home/ubuntu/proj/wsclean/localdev/hdf5-hdf5-1_12_2/tools/test/h5format_convert'
+Making all in h5stat
+make[3]: Entering directory '/home/ubuntu/proj/wsclean/localdev/hdf5-hdf5-1_12_2/tools/test/h5stat'
+  CC       h5stat_gentest.o
+  CCLD     h5stat_gentest
+make[3]: Leaving directory '/home/ubuntu/proj/wsclean/localdev/hdf5-hdf5-1_12_2/tools/test/h5stat'
+Making all in perform
+make[3]: Entering directory '/home/ubuntu/proj/wsclean/localdev/hdf5-hdf5-1_12_2/tools/test/perform'
+  CC       iopipe.o
+  CC       chunk.o
+  CC       chunk_cache.o
+  CC       overhead.o
+  CC       zip_perf.o
+  CC       perf_meta.o
+  CCLD     iopipe
+  CCLD     chunk_cache
+  CCLD     chunk
+  CCLD     zip_perf
+  CCLD     overhead
+  CCLD     perf_meta
+make[3]: Leaving directory '/home/ubuntu/proj/wsclean/localdev/hdf5-hdf5-1_12_2/tools/test/perform'
+make[3]: Entering directory '/home/ubuntu/proj/wsclean/localdev/hdf5-hdf5-1_12_2/tools/test'
+make[3]: Nothing to be done for 'all-am'.
+make[3]: Leaving directory '/home/ubuntu/proj/wsclean/localdev/hdf5-hdf5-1_12_2/tools/test'
+make[2]: Leaving directory '/home/ubuntu/proj/wsclean/localdev/hdf5-hdf5-1_12_2/tools/test'
+make[2]: Entering directory '/home/ubuntu/proj/wsclean/localdev/hdf5-hdf5-1_12_2/tools'
+make[2]: Nothing to be done for 'all-am'.
+make[2]: Leaving directory '/home/ubuntu/proj/wsclean/localdev/hdf5-hdf5-1_12_2/tools'
+make[1]: Leaving directory '/home/ubuntu/proj/wsclean/localdev/hdf5-hdf5-1_12_2/tools'
+Making all in .
+make[1]: Entering directory '/home/ubuntu/proj/wsclean/localdev/hdf5-hdf5-1_12_2'
+make[1]: Nothing to be done for 'all-am'.
+make[1]: Leaving directory '/home/ubuntu/proj/wsclean/localdev/hdf5-hdf5-1_12_2'
+Making all in c++
+make[1]: Entering directory '/home/ubuntu/proj/wsclean/localdev/hdf5-hdf5-1_12_2/c++'
+Making all in src
+make[2]: Entering directory '/home/ubuntu/proj/wsclean/localdev/hdf5-hdf5-1_12_2/c++/src'
+  CXX      H5Exception.lo
+  CXX      H5IdComponent.lo
+  CXX      H5DataSpace.lo
+  CXX      H5PropList.lo
+  CXX      H5FaccProp.lo
+  CXX      H5Library.lo
+  CXX      H5FcreatProp.lo
+  CXX      H5LcreatProp.lo
+  CXX      H5LaccProp.lo
+  CXX      H5DaccProp.lo
+  CXX      H5DxferProp.lo
+  CXX      H5DcreatProp.lo
+  CXX      H5Attribute.lo
+  CXX      H5AbstractDs.lo
+  CXX      H5Location.lo
+  CXX      H5Object.lo
+  CXX      H5OcreatProp.lo
+  CXX      H5DataType.lo
+  CXX      H5AtomType.lo
+  CXX      H5EnumType.lo
+  CXX      H5IntType.lo
+  CXX      H5PredType.lo
+  CXX      H5FloatType.lo
+  CXX      H5StrType.lo
+  CXX      H5VarLenType.lo
+  CXX      H5ArrayType.lo
+  CXX      H5CompType.lo
+  CXX      H5DataSet.lo
+  CXX      H5File.lo
+  CXX      H5Group.lo
+  CXX      H5CommonFG.lo
+H5Exception.cpp: In constructor ‘H5::Exception::Exception()’:
+H5Exception.cpp:28:1: warning: ‘H5::Exception::detail_message’ should be initialized in the member initialization list [-Weffc++]
+ Exception::Exception()
+ ^~~~~~~~~
+H5Exception.cpp:28:1: warning: ‘H5::Exception::func_name’ should be initialized in the member initialization list [-Weffc++]
+H5File.cpp: In constructor ‘H5::H5File::H5File(hid_t)’:
+H5File.cpp:168:1: warning: ‘H5::H5File::id’ should be initialized in the member initialization list [-Weffc++]
+ H5File::H5File(hid_t existing_id) : Group()
+ ^~~~~~
+H5File.cpp: In copy constructor ‘H5::H5File::H5File(const H5::H5File&)’:
+H5File.cpp:183:1: warning: ‘H5::H5File::id’ should be initialized in the member initialization list [-Weffc++]
+ H5File::H5File(const H5File &original) : Group(original)
+ ^~~~~~
+H5DataType.cpp: In constructor ‘H5::DataType::DataType(H5T_class_t, size_t)’:
+H5DataType.cpp:79:1: warning: ‘H5::DataType::id’ should be initialized in the member initialization list [-Weffc++]
+ DataType::DataType(const H5T_class_t type_class, size_t size) : H5Object(), encoded_buf(NULL), buf_size(0)
+ ^~~~~~~~
+H5DataType.cpp: In constructor ‘H5::DataType::DataType(const H5::H5Location&, const void*, H5R_type_t, const H5::PropList&)’:
+H5DataType.cpp:98:1: warning: ‘H5::DataType::id’ should be initialized in the member initialization list [-Weffc++]
+ DataType::DataType(const H5Location &loc, const void *ref, H5R_type_t ref_type, const PropList &plist)
+ ^~~~~~~~
+H5DataType.cpp: In constructor ‘H5::DataType::DataType(const H5::PredType&)’:
+H5DataType.cpp:148:1: warning: ‘H5::DataType::id’ should be initialized in the member initialization list [-Weffc++]
+ DataType::DataType(const PredType &pred_type) : H5Object(), encoded_buf(NULL), buf_size(0)
+ ^~~~~~~~
+H5DataType.cpp: In constructor ‘H5::DataType::DataType(const H5::H5Location&, const char*)’:
+H5DataType.cpp:169:1: warning: ‘H5::DataType::id’ should be initialized in the member initialization list [-Weffc++]
+ DataType::DataType(const H5Location &loc, const char *dtype_name) : H5Object(), encoded_buf(NULL), buf_size(0)
+ ^~~~~~~~
+H5DataType.cpp: In constructor ‘H5::DataType::DataType(const H5::H5Location&, const string&)’:
+H5DataType.cpp:188:1: warning: ‘H5::DataType::id’ should be initialized in the member initialization list [-Weffc++]
+ DataType::DataType(const H5Location &loc, const H5std_string &dtype_name)
+ ^~~~~~~~
+H5DataType.cpp: In member function ‘void H5::DataType::encode()’:
+H5DataType.cpp:319:55: warning: use of old-style cast [-Wold-style-cast]
+         encoded_buf = (unsigned char *)calloc((size_t)1, buf_size);
+                                                       ^
+H5DataType.cpp:319:66: warning: use of old-style cast [-Wold-style-cast]
+         encoded_buf = (unsigned char *)calloc((size_t)1, buf_size);
+                                                                  ^
+In file included from ../../src/H5Ppublic.h:33:0,
+                 from ../../src/hdf5.h:35,
+                 from H5Include.h:15,
+                 from H5DataSpace.cpp:17:
+H5DataSpace.cpp: In static member function ‘static H5::DataSpace* H5::DataSpace::getConstant()’:
+../../src/H5Spublic.h:25:30: warning: use of old-style cast [-Wold-style-cast]
+ #define H5S_ALL       (hid_t)0
+                              ^
+H5DataSpace.cpp:57:30: note: in expansion of macro ‘H5S_ALL’
+         ALL_ = new DataSpace(H5S_ALL);
+                              ^~~~~~~
+H5DataSpace.cpp: In constructor ‘H5::DataSpace::DataSpace(H5S_class_t)’:
+H5DataSpace.cpp:91:1: warning: ‘H5::DataSpace::id’ should be initialized in the member initialization list [-Weffc++]
+ DataSpace::DataSpace(H5S_class_t type) : IdComponent()
+ ^~~~~~~~~
+H5DataSpace.cpp: In constructor ‘H5::DataSpace::DataSpace(int, const hsize_t*, const hsize_t*)’:
+H5DataSpace.cpp:108:1: warning: ‘H5::DataSpace::id’ should be initialized in the member initialization list [-Weffc++]
+ DataSpace::DataSpace(int rank, const hsize_t *dims, const hsize_t *maxdims) : IdComponent()
+ ^~~~~~~~~
+In file included from ../../src/H5Ppublic.h:33:0,
+                 from ../../src/hdf5.h:35,
+                 from H5Include.h:15,
+                 from H5DataSpace.cpp:17:
+H5DataSpace.cpp: In member function ‘void H5::DataSpace::copy(const H5::DataSpace&)’:
+../../src/H5Spublic.h:25:30: warning: use of old-style cast [-Wold-style-cast]
+ #define H5S_ALL       (hid_t)0
+                              ^
+H5DataSpace.cpp:156:15: note: in expansion of macro ‘H5S_ALL’
+     if (id != H5S_ALL) {
+               ^~~~~~~
+H5PropList.cpp: In constructor ‘H5::PropList::PropList(hid_t)’:
+H5PropList.cpp:115:1: warning: ‘H5::PropList::id’ should be initialized in the member initialization list [-Weffc++]
+ PropList::PropList(const hid_t plist_id) : IdComponent()
+ ^~~~~~~~
+  CXXLD    libhdf5_cpp.la
+make[2]: Leaving directory '/home/ubuntu/proj/wsclean/localdev/hdf5-hdf5-1_12_2/c++/src'
+Making all in test
+make[2]: Entering directory '/home/ubuntu/proj/wsclean/localdev/hdf5-hdf5-1_12_2/c++/test'
+  CXX      testhdf5.o
+  CXX      dsets.o
+  CXX      tattr.o
+  CXX      tcompound.o
+  CXX      tdspl.o
+  CXX      tarray.o
+  CXX      tfilter.o
+  CXX      tfile.o
+  CXX      th5s.o
+  CXX      tlinks.o
+  CXX      tobject.o
+  CXX      trefer.o
+  CXX      ttypes.o
+  CXX      tvlstr.o
+  CXX      titerate.o
+  CXX      h5cpputil.o
+In file included from ../../src/H5Lpublic.h:31:0,
+                 from ../../src/H5Opublic.h:31,
+                 from ../../src/H5Apublic.h:22,
+                 from ../../src/hdf5.h:23,
+                 from ../../c++/src/H5Include.h:15,
+                 from ../../c++/src/H5Cpp.h:18,
+                 from tvlstr.cpp:26:
+tvlstr.cpp: In function ‘void test_vlstring_dataset()’:
+../../src/H5Tpublic.h:248:34: warning: use of old-style cast [-Wold-style-cast]
+ #define H5T_VARIABLE ((size_t)(-1))
+                                  ^
+tvlstr.cpp:150:25: note: in expansion of macro ‘H5T_VARIABLE’
+         StrType vlst(0, H5T_VARIABLE);
+                         ^~~~~~~~~~~~
+tvlstr.cpp: In function ‘void test_vlstring_array_dataset()’:
+../../src/H5Tpublic.h:248:34: warning: use of old-style cast [-Wold-style-cast]
+ #define H5T_VARIABLE ((size_t)(-1))
+                                  ^
+tvlstr.cpp:255:25: note: in expansion of macro ‘H5T_VARIABLE’
+         StrType vlst(0, H5T_VARIABLE);
+                         ^~~~~~~~~~~~
+tvlstr.cpp: In function ‘void test_vlstrings_special()’:
+../../src/H5Tpublic.h:248:34: warning: use of old-style cast [-Wold-style-cast]
+ #define H5T_VARIABLE ((size_t)(-1))
+                                  ^
+tvlstr.cpp:351:25: note: in expansion of macro ‘H5T_VARIABLE’
+         StrType vlst(0, H5T_VARIABLE);
+                         ^~~~~~~~~~~~
+tvlstr.cpp: In function ‘void test_vlstring_type()’:
+../../src/H5Tpublic.h:248:34: warning: use of old-style cast [-Wold-style-cast]
+ #define H5T_VARIABLE ((size_t)(-1))
+                                  ^
+tvlstr.cpp:475:22: note: in expansion of macro ‘H5T_VARIABLE’
+         vlst.setSize(H5T_VARIABLE);
+                      ^~~~~~~~~~~~
+tvlstr.cpp: In function ‘void test_compact_vlstring()’:
+../../src/H5Tpublic.h:248:34: warning: use of old-style cast [-Wold-style-cast]
+ #define H5T_VARIABLE ((size_t)(-1))
+                                  ^
+tvlstr.cpp:566:25: note: in expansion of macro ‘H5T_VARIABLE’
+         StrType vlst(0, H5T_VARIABLE);
+                         ^~~~~~~~~~~~
+tvlstr.cpp: In function ‘void test_vlstring_attribute()’:
+../../src/H5Tpublic.h:248:34: warning: use of old-style cast [-Wold-style-cast]
+ #define H5T_VARIABLE ((size_t)(-1))
+                                  ^
+tvlstr.cpp:645:25: note: in expansion of macro ‘H5T_VARIABLE’
+         StrType vlst(0, H5T_VARIABLE);
+                         ^~~~~~~~~~~~
+In file included from ../../src/H5Lpublic.h:31:0,
+                 from ../../src/H5Opublic.h:31,
+                 from ../../src/H5Apublic.h:22,
+                 from ../../src/hdf5.h:23,
+                 from ../../c++/src/H5Include.h:15,
+                 from ../../c++/src/H5Cpp.h:18,
+                 from ttypes.cpp:24:
+ttypes.cpp: In function ‘void test_detect_type_class()’:
+../../src/H5Tpublic.h:248:34: warning: use of old-style cast [-Wold-style-cast]
+ #define H5T_VARIABLE ((size_t)(-1))
+                                  ^
+ttypes.cpp:317:29: note: in expansion of macro ‘H5T_VARIABLE’
+         StrType atom_vls(0, H5T_VARIABLE);
+                             ^~~~~~~~~~~~
+tvlstr.cpp: In function ‘void test_vlstring_array_attribute()’:
+../../src/H5Tpublic.h:248:34: warning: use of old-style cast [-Wold-style-cast]
+ #define H5T_VARIABLE ((size_t)(-1))
+                                  ^
+tvlstr.cpp:799:25: note: in expansion of macro ‘H5T_VARIABLE’
+         StrType vlst(0, H5T_VARIABLE);
+                         ^~~~~~~~~~~~
+tvlstr.cpp: In function ‘void test_vl_rewrite()’:
+../../src/H5Tpublic.h:248:34: warning: use of old-style cast [-Wold-style-cast]
+ #define H5T_VARIABLE ((size_t)(-1))
+                                  ^
+tvlstr.cpp:911:25: note: in expansion of macro ‘H5T_VARIABLE’
+         StrType type(0, H5T_VARIABLE);
+                         ^~~~~~~~~~~~
+dsets.cpp: In function ‘herr_t test_simple_io(H5::H5File&)’:
+dsets.cpp:194:24: warning: size of ‘points’ is 80000 bytes [-Wlarger-than=]
+     int points[100][200];
+                        ^
+dsets.cpp:195:23: warning: size of ‘check’ is 80000 bytes [-Wlarger-than=]
+     int check[100][200];
+                       ^
+ttypes.cpp: In function ‘void test_encode_decode()’:
+../../src/H5Tpublic.h:248:34: warning: use of old-style cast [-Wold-style-cast]
+ #define H5T_VARIABLE ((size_t)(-1))
+                                  ^
+ttypes.cpp:914:25: note: in expansion of macro ‘H5T_VARIABLE’
+         vlsttyp.setSize(H5T_VARIABLE);
+                         ^~~~~~~~~~~~
+dsets.cpp: In function ‘herr_t test_compression(H5::H5File&)’:
+dsets.cpp:442:28: warning: size of ‘points’ is 80000 bytes [-Wlarger-than=]
+     int     points[100][200];
+                            ^
+dsets.cpp:443:27: warning: size of ‘check’ is 80000 bytes [-Wlarger-than=]
+     int     check[100][200];
+                           ^
+In file included from ../../src/H5Lpublic.h:31:0,
+                 from ../../src/H5Opublic.h:31,
+                 from ../../src/H5Apublic.h:22,
+                 from ../../src/hdf5.h:23,
+                 from ../../c++/src/H5Include.h:15,
+                 from ../../c++/src/H5Cpp.h:18,
+                 from tattr.cpp:27:
+tattr.cpp: In function ‘void test_string_attr()’:
+../../src/H5Tpublic.h:248:34: warning: use of old-style cast [-Wold-style-cast]
+ #define H5T_VARIABLE ((size_t)(-1))
+                                  ^
+tattr.cpp:1626:29: note: in expansion of macro ‘H5T_VARIABLE’
+         StrType vls_type(0, H5T_VARIABLE);
+                             ^~~~~~~~~~~~
+In file included from ../../src/hdf5.h:25:0,
+                 from ../../c++/src/H5Include.h:15,
+                 from ../../c++/src/H5Cpp.h:18,
+                 from dsets.cpp:33:
+dsets.cpp: In function ‘herr_t test_chunk_cache(const H5::FileAccPropList&)’:
+../../src/H5Dpublic.h:32:50: warning: use of old-style cast [-Wold-style-cast]
+ #define H5D_CHUNK_CACHE_NBYTES_DEFAULT ((size_t)-1)
+                                                  ^
+dsets.cpp:1204:27: note: in expansion of macro ‘H5D_CHUNK_CACHE_NBYTES_DEFAULT’
+         size_t nbytes_3 = H5D_CHUNK_CACHE_NBYTES_DEFAULT;
+                           ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+titerate.cpp: In function ‘herr_t liter_cb(hid_t, const char*, const H5L_info2_t*, void*)’:
+titerate.cpp:481:1: warning: assuming signed overflow does not occur when changing X +- C1 cmp C2 to X cmp C2 -+ C1 [-Wstrict-overflow]
+ } // cleanup_iterate
+ ^
+titerate.cpp:481:1: warning: assuming signed overflow does not occur when changing X +- C1 cmp C2 to X cmp C2 -+ C1 [-Wstrict-overflow]
+dsets.cpp: In function ‘herr_t test_simple_io(H5::H5File&)’:
+dsets.cpp:189:1: warning: stack usage might be 160304 bytes [-Wstack-usage=]
+ test_simple_io(H5File &file)
+ ^~~~~~~~~~~~~~
+dsets.cpp:251:1: warning: the frame size of 160224 bytes is larger than 16384 bytes [-Wframe-larger-than=]
+ } // test_simple_io
+ ^
+dsets.cpp: In function ‘herr_t test_compression(H5::H5File&)’:
+dsets.cpp:436:1: warning: stack usage might be 160368 bytes [-Wstack-usage=]
+ test_compression(H5File &file)
+ ^~~~~~~~~~~~~~~~
+dsets.cpp:691:1: warning: the frame size of 160288 bytes is larger than 16384 bytes [-Wframe-larger-than=]
+ } // test_compression
+ ^
+  CXXLD    testhdf5
+make[2]: Leaving directory '/home/ubuntu/proj/wsclean/localdev/hdf5-hdf5-1_12_2/c++/test'
+make[2]: Entering directory '/home/ubuntu/proj/wsclean/localdev/hdf5-hdf5-1_12_2/c++'
+make[2]: Nothing to be done for 'all-am'.
+make[2]: Leaving directory '/home/ubuntu/proj/wsclean/localdev/hdf5-hdf5-1_12_2/c++'
+make[1]: Leaving directory '/home/ubuntu/proj/wsclean/localdev/hdf5-hdf5-1_12_2/c++'
+Making all in hl
+make[1]: Entering directory '/home/ubuntu/proj/wsclean/localdev/hdf5-hdf5-1_12_2/hl'
+Making all in src
+make[2]: Entering directory '/home/ubuntu/proj/wsclean/localdev/hdf5-hdf5-1_12_2/hl/src'
+  CC       H5DO.lo
+  CC       H5DS.lo
+  CC       H5IM.lo
+  CC       H5LT.lo
+  CC       H5LTanalyze.lo
+  CC       H5LTparse.lo
+  CC       H5PT.lo
+  CC       H5TB.lo
+  CC       H5LD.lo
+H5TB.c: In function ‘H5TBread_fields_name’:
+H5TB.c:975:8: warning: assuming signed overflow does not occur when simplifying conditional to constant [-Wstrict-overflow]
+     if (j == 0)
+        ^
+  CCLD     libhdf5_hl.la
+make[2]: Leaving directory '/home/ubuntu/proj/wsclean/localdev/hdf5-hdf5-1_12_2/hl/src'
+Making all in test
+make[2]: Entering directory '/home/ubuntu/proj/wsclean/localdev/hdf5-hdf5-1_12_2/hl/test'
+  CC       test_lite.o
+  CC       test_image.o
+  CC       test_file_image.o
+  CC       test_ds.o
+  CC       test_table.o
+  CC       test_packet.o
+  CC       test_packet_vlen.o
+  CC       test_ld.o
+  CC       test_h5do_compat.o
+  CC       test_dset_append.o
+test_image.c: In function ‘read_data’:
+test_image.c:840:5: warning: assuming signed overflow does not occur when simplifying conditional to constant [-Wstrict-overflow]
+     for (i = 0; i < n_elements; i++) {
+     ^~~
+  CCLD     test_h5do_compat
+  CCLD     test_image
+  CCLD     test_file_image
+  CCLD     test_table
+  CCLD     test_lite
+  CCLD     test_packet
+  CCLD     test_ld
+  CCLD     test_dset_append
+  CCLD     test_ds
+make[2]: Leaving directory '/home/ubuntu/proj/wsclean/localdev/hdf5-hdf5-1_12_2/hl/test'
+Making all in tools
+make[2]: Entering directory '/home/ubuntu/proj/wsclean/localdev/hdf5-hdf5-1_12_2/hl/tools'
+Making all in gif2h5
+make[3]: Entering directory '/home/ubuntu/proj/wsclean/localdev/hdf5-hdf5-1_12_2/hl/tools/gif2h5'
+  CC       gif2hdf.o
+  CC       gif2mem.o
+  CC       decompress.o
+  CC       writehdf.o
+  CC       gifread.o
+  CC       hdf2gif.o
+  CC       hdfgifwr.o
+  CC       h52gifgentst.o
+hdfgifwr.c: In function ‘char_out’:
+hdfgifwr.c:464:1: warning: assuming signed overflow does not occur when changing X +- C1 cmp C2 to X cmp C2 -+ C1 [-Wstrict-overflow]
+ }
+ ^
+  CCLD     h52gifgentst
+hdfgifwr.c: In function ‘hdfWriteGIF’:
+hdfgifwr.c:138:1: warning: assuming signed overflow does not occur when changing X +- C1 cmp C2 to X cmp C2 -+ C1 [-Wstrict-overflow]
+ hdfWriteGIF(FILE *fp, byte *pic, int ptype, int w, int h, const byte *rmap, const byte *gmap,
+ ^~~~~~~~~~~
+hdfgifwr.c:138:1: warning: assuming signed overflow does not occur when changing X +- C1 cmp C2 to X cmp C2 -+ C1 [-Wstrict-overflow]
+hdfgifwr.c:138:1: warning: assuming signed overflow does not occur when changing X +- C1 cmp C2 to X cmp C2 -+ C1 [-Wstrict-overflow]
+hdfgifwr.c:138:1: warning: assuming signed overflow does not occur when changing X +- C1 cmp C2 to X cmp C2 -+ C1 [-Wstrict-overflow]
+hdfgifwr.c:138:1: warning: assuming signed overflow does not occur when changing X +- C1 cmp C2 to X cmp C2 -+ C1 [-Wstrict-overflow]
+hdfgifwr.c:138:1: warning: assuming signed overflow does not occur when changing X +- C1 cmp C2 to X cmp C2 -+ C1 [-Wstrict-overflow]
+hdfgifwr.c:138:1: warning: assuming signed overflow does not occur when changing X +- C1 cmp C2 to X cmp C2 -+ C1 [-Wstrict-overflow]
+hdfgifwr.c:138:1: warning: assuming signed overflow does not occur when changing X +- C1 cmp C2 to X cmp C2 -+ C1 [-Wstrict-overflow]
+hdfgifwr.c:138:1: warning: assuming signed overflow does not occur when changing X +- C1 cmp C2 to X cmp C2 -+ C1 [-Wstrict-overflow]
+hdfgifwr.c:138:1: warning: assuming signed overflow does not occur when changing X +- C1 cmp C2 to X cmp C2 -+ C1 [-Wstrict-overflow]
+hdfgifwr.c:138:1: warning: assuming signed overflow does not occur when changing X +- C1 cmp C2 to X cmp C2 -+ C1 [-Wstrict-overflow]
+hdfgifwr.c:138:1: warning: assuming signed overflow does not occur when changing X +- C1 cmp C2 to X cmp C2 -+ C1 [-Wstrict-overflow]
+hdfgifwr.c:138:1: warning: assuming signed overflow does not occur when changing X +- C1 cmp C2 to X cmp C2 -+ C1 [-Wstrict-overflow]
+hdfgifwr.c:138:1: warning: assuming signed overflow does not occur when changing X +- C1 cmp C2 to X cmp C2 -+ C1 [-Wstrict-overflow]
+hdfgifwr.c:411:5: warning: assuming signed overflow does not occur when changing X +- C1 cmp C2 to X cmp C2 -+ C1 [-Wstrict-overflow]
+     for (i += 16; i > 0; i--)
+     ^~~
+hdfgifwr.c:411:5: warning: assuming signed overflow does not occur when changing X +- C1 cmp C2 to X cmp C2 -+ C1 [-Wstrict-overflow]
+hdfgifwr.c:411:5: warning: assuming signed overflow does not occur when changing X +- C1 cmp C2 to X cmp C2 -+ C1 [-Wstrict-overflow]
+hdfgifwr.c:411:5: warning: assuming signed overflow does not occur when changing X +- C1 cmp C2 to X cmp C2 -+ C1 [-Wstrict-overflow]
+hdfgifwr.c:411:5: warning: assuming signed overflow does not occur when changing X +- C1 cmp C2 to X cmp C2 -+ C1 [-Wstrict-overflow]
+hdfgifwr.c:411:5: warning: assuming signed overflow does not occur when changing X +- C1 cmp C2 to X cmp C2 -+ C1 [-Wstrict-overflow]
+hdfgifwr.c:411:5: warning: assuming signed overflow does not occur when changing X +- C1 cmp C2 to X cmp C2 -+ C1 [-Wstrict-overflow]
+hdfgifwr.c:411:5: warning: assuming signed overflow does not occur when changing X +- C1 cmp C2 to X cmp C2 -+ C1 [-Wstrict-overflow]
+hdfgifwr.c:411:5: warning: assuming signed overflow does not occur when changing X +- C1 cmp C2 to X cmp C2 -+ C1 [-Wstrict-overflow]
+hdfgifwr.c:411:5: warning: assuming signed overflow does not occur when changing X +- C1 cmp C2 to X cmp C2 -+ C1 [-Wstrict-overflow]
+hdfgifwr.c:411:5: warning: assuming signed overflow does not occur when changing X +- C1 cmp C2 to X cmp C2 -+ C1 [-Wstrict-overflow]
+hdfgifwr.c:411:5: warning: assuming signed overflow does not occur when changing X +- C1 cmp C2 to X cmp C2 -+ C1 [-Wstrict-overflow]
+hdfgifwr.c:411:5: warning: assuming signed overflow does not occur when changing X +- C1 cmp C2 to X cmp C2 -+ C1 [-Wstrict-overflow]
+  CCLD     gif2h5
+  CCLD     h52gif
+make[3]: Leaving directory '/home/ubuntu/proj/wsclean/localdev/hdf5-hdf5-1_12_2/hl/tools/gif2h5'
+Making all in h5watch
+make[3]: Entering directory '/home/ubuntu/proj/wsclean/localdev/hdf5-hdf5-1_12_2/hl/tools/h5watch'
+  CC       h5watch.o
+  CC       h5watchgentest.o
+  CC       extend_dset-extend_dset.o
+h5watch.c: In function ‘slicendump’:
+h5watch.c:239:5: warning: assuming signed overflow does not occur when changing X +- C1 cmp C2 to X cmp C2 -+ C1 [-Wstrict-overflow]
+     if ((subrank - 1) > 0) {
+     ^~
+  CCLD     extend_dset
+  CCLD     h5watchgentest
+  CCLD     h5watch
+make[3]: Leaving directory '/home/ubuntu/proj/wsclean/localdev/hdf5-hdf5-1_12_2/hl/tools/h5watch'
+make[3]: Entering directory '/home/ubuntu/proj/wsclean/localdev/hdf5-hdf5-1_12_2/hl/tools'
+make[3]: Nothing to be done for 'all-am'.
+make[3]: Leaving directory '/home/ubuntu/proj/wsclean/localdev/hdf5-hdf5-1_12_2/hl/tools'
+make[2]: Leaving directory '/home/ubuntu/proj/wsclean/localdev/hdf5-hdf5-1_12_2/hl/tools'
+Making all in c++
+make[2]: Entering directory '/home/ubuntu/proj/wsclean/localdev/hdf5-hdf5-1_12_2/hl/c++'
+Making all in src
+make[3]: Entering directory '/home/ubuntu/proj/wsclean/localdev/hdf5-hdf5-1_12_2/hl/c++/src'
+  CXX      H5PacketTable.lo
+H5PacketTable.cpp: In constructor ‘PacketTable::PacketTable()’:
+H5PacketTable.cpp:34:1: warning: ‘PacketTable::table_id’ should be initialized in the member initialization list [-Weffc++]
+ PacketTable::PacketTable()
+ ^~~~~~~~~~~
+H5PacketTable.cpp: In constructor ‘PacketTable::PacketTable(hid_t, const char*)’:
+H5PacketTable.cpp:43:1: warning: ‘PacketTable::table_id’ should be initialized in the member initialization list [-Weffc++]
+ PacketTable::PacketTable(hid_t fileID, const char *name)
+ ^~~~~~~~~~~
+H5PacketTable.cpp: In constructor ‘PacketTable::PacketTable(hid_t, char*)’:
+H5PacketTable.cpp:49:1: warning: ‘PacketTable::table_id’ should be initialized in the member initialization list [-Weffc++]
+ PacketTable::PacketTable(hid_t fileID, char *name)
+ ^~~~~~~~~~~
+  CXXLD    libhdf5_hl_cpp.la
+make[3]: Leaving directory '/home/ubuntu/proj/wsclean/localdev/hdf5-hdf5-1_12_2/hl/c++/src'
+Making all in test
+make[3]: Entering directory '/home/ubuntu/proj/wsclean/localdev/hdf5-hdf5-1_12_2/hl/c++/test'
+  CXX      ptableTest.o
+  CXXLD    ptableTest
+make[3]: Leaving directory '/home/ubuntu/proj/wsclean/localdev/hdf5-hdf5-1_12_2/hl/c++/test'
+make[3]: Entering directory '/home/ubuntu/proj/wsclean/localdev/hdf5-hdf5-1_12_2/hl/c++'
+make[3]: Nothing to be done for 'all-am'.
+make[3]: Leaving directory '/home/ubuntu/proj/wsclean/localdev/hdf5-hdf5-1_12_2/hl/c++'
+make[2]: Leaving directory '/home/ubuntu/proj/wsclean/localdev/hdf5-hdf5-1_12_2/hl/c++'
+make[2]: Entering directory '/home/ubuntu/proj/wsclean/localdev/hdf5-hdf5-1_12_2/hl'
+make[2]: Nothing to be done for 'all-am'.
+make[2]: Leaving directory '/home/ubuntu/proj/wsclean/localdev/hdf5-hdf5-1_12_2/hl'
+make[1]: Leaving directory '/home/ubuntu/proj/wsclean/localdev/hdf5-hdf5-1_12_2/hl'
+Making install in src
+make[1]: Entering directory '/home/ubuntu/proj/wsclean/localdev/hdf5-hdf5-1_12_2/src'
+make[2]: Entering directory '/home/ubuntu/proj/wsclean/localdev/hdf5-hdf5-1_12_2/src'
+ /bin/mkdir -p '/home/ubuntu/proj/wsclean/localdev/hdf5-1.12.2-install/lib'
+ /bin/bash ../libtool   --mode=install /usr/bin/install -c   libhdf5.la '/home/ubuntu/proj/wsclean/localdev/hdf5-1.12.2-install/lib'
+libtool: install: /usr/bin/install -c .libs/libhdf5.so.200.2.0 /home/ubuntu/proj/wsclean/localdev/hdf5-1.12.2-install/lib/libhdf5.so.200.2.0
+libtool: install: (cd /home/ubuntu/proj/wsclean/localdev/hdf5-1.12.2-install/lib && { ln -s -f libhdf5.so.200.2.0 libhdf5.so.200 || { rm -f libhdf5.so.200 && ln -s libhdf5.so.200.2.0 libhdf5.so.200; }; })
+libtool: install: (cd /home/ubuntu/proj/wsclean/localdev/hdf5-1.12.2-install/lib && { ln -s -f libhdf5.so.200.2.0 libhdf5.so || { rm -f libhdf5.so && ln -s libhdf5.so.200.2.0 libhdf5.so; }; })
+libtool: install: /usr/bin/install -c .libs/libhdf5.lai /home/ubuntu/proj/wsclean/localdev/hdf5-1.12.2-install/lib/libhdf5.la
+libtool: install: /usr/bin/install -c .libs/libhdf5.a /home/ubuntu/proj/wsclean/localdev/hdf5-1.12.2-install/lib/libhdf5.a
+libtool: install: chmod 644 /home/ubuntu/proj/wsclean/localdev/hdf5-1.12.2-install/lib/libhdf5.a
+libtool: install: ranlib /home/ubuntu/proj/wsclean/localdev/hdf5-1.12.2-install/lib/libhdf5.a
+libtool: finish: PATH="/home/ubuntu/.cursor-server/bin/4b8afa6ae1bf40ed5a755c1eec0a23740469d720/bin/remote-cli:/home/ubuntu/.cursor-server/bin/4b8afa6ae1bf40ed5a755c1eec0a23740469d720/bin/remote-cli:/opt/miniforge/condabin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:/usr/games:/usr/local/games:/snap/bin:/sbin" ldconfig -n /home/ubuntu/proj/wsclean/localdev/hdf5-1.12.2-install/lib
+----------------------------------------------------------------------
+Libraries have been installed in:
+   /home/ubuntu/proj/wsclean/localdev/hdf5-1.12.2-install/lib
+
+If you ever happen to want to link against installed libraries
+in a given directory, LIBDIR, you must either use libtool, and
+specify the full pathname of the library, or use the '-LLIBDIR'
+flag during linking and do at least one of the following:
+   - add LIBDIR to the 'LD_LIBRARY_PATH' environment variable
+     during execution
+   - add LIBDIR to the 'LD_RUN_PATH' environment variable
+     during linking
+   - use the '-Wl,-rpath -Wl,LIBDIR' linker flag
+   - have your system administrator add LIBDIR to '/etc/ld.so.conf'
+
+See any operating system documentation about shared libraries for
+more information, such as the ld(1) and ld.so(8) manual pages.
+----------------------------------------------------------------------
+ /bin/mkdir -p '/home/ubuntu/proj/wsclean/localdev/hdf5-1.12.2-install/include'
+ /usr/bin/install -c -m 644 hdf5.h H5api_adpt.h H5overflow.h H5pubconf.h H5public.h H5version.h H5Apublic.h H5ACpublic.h H5Cpublic.h H5Dpublic.h H5Epubgen.h H5Epublic.h H5ESpublic.h H5Fpublic.h H5FDpublic.h H5FDcore.h H5FDdirect.h H5FDfamily.h H5FDhdfs.h H5FDlog.h H5FDmirror.h H5FDmpi.h H5FDmpio.h H5FDmulti.h H5FDros3.h H5FDsec2.h H5FDsplitter.h H5FDstdio.h H5FDwindows.h H5Gpublic.h H5Ipublic.h H5Lpublic.h H5Mpublic.h H5MMpublic.h H5Opublic.h H5Ppublic.h H5PLextern.h H5PLpublic.h H5Rpublic.h H5Spublic.h '/home/ubuntu/proj/wsclean/localdev/hdf5-1.12.2-install/include'
+ /usr/bin/install -c -m 644 H5Tpublic.h H5VLconnector.h H5VLconnector_passthru.h H5VLnative.h H5VLpassthru.h H5VLpublic.h H5Zpublic.h '/home/ubuntu/proj/wsclean/localdev/hdf5-1.12.2-install/include'
+ /bin/mkdir -p '/home/ubuntu/proj/wsclean/localdev/hdf5-1.12.2-install/lib'
+ /usr/bin/install -c -m 644 libhdf5.settings '/home/ubuntu/proj/wsclean/localdev/hdf5-1.12.2-install/lib'
+make[2]: Leaving directory '/home/ubuntu/proj/wsclean/localdev/hdf5-hdf5-1_12_2/src'
+make[1]: Leaving directory '/home/ubuntu/proj/wsclean/localdev/hdf5-hdf5-1_12_2/src'
+Making install in test
+make[1]: Entering directory '/home/ubuntu/proj/wsclean/localdev/hdf5-hdf5-1_12_2/test'
+make[2]: Entering directory '/home/ubuntu/proj/wsclean/localdev/hdf5-hdf5-1_12_2/test'
+make[2]: Nothing to be done for 'install-exec-am'.
+make[2]: Nothing to be done for 'install-data-am'.
+make[2]: Leaving directory '/home/ubuntu/proj/wsclean/localdev/hdf5-hdf5-1_12_2/test'
+make[1]: Leaving directory '/home/ubuntu/proj/wsclean/localdev/hdf5-hdf5-1_12_2/test'
+Making install in bin
+make[1]: Entering directory '/home/ubuntu/proj/wsclean/localdev/hdf5-hdf5-1_12_2/bin'
+make[2]: Entering directory '/home/ubuntu/proj/wsclean/localdev/hdf5-hdf5-1_12_2/bin'
+ /bin/mkdir -p '/home/ubuntu/proj/wsclean/localdev/hdf5-1.12.2-install/bin'
+ /usr/bin/install -c h5redeploy '/home/ubuntu/proj/wsclean/localdev/hdf5-1.12.2-install/bin'
+make[2]: Nothing to be done for 'install-data-am'.
+make[2]: Leaving directory '/home/ubuntu/proj/wsclean/localdev/hdf5-hdf5-1_12_2/bin'
+make[1]: Leaving directory '/home/ubuntu/proj/wsclean/localdev/hdf5-hdf5-1_12_2/bin'
+Making install in utils
+make[1]: Entering directory '/home/ubuntu/proj/wsclean/localdev/hdf5-hdf5-1_12_2/utils'
+Making install in test
+make[2]: Entering directory '/home/ubuntu/proj/wsclean/localdev/hdf5-hdf5-1_12_2/utils/test'
+make[3]: Entering directory '/home/ubuntu/proj/wsclean/localdev/hdf5-hdf5-1_12_2/utils/test'
+make[3]: Nothing to be done for 'install-exec-am'.
+make[3]: Nothing to be done for 'install-data-am'.
+make[3]: Leaving directory '/home/ubuntu/proj/wsclean/localdev/hdf5-hdf5-1_12_2/utils/test'
+make[2]: Leaving directory '/home/ubuntu/proj/wsclean/localdev/hdf5-hdf5-1_12_2/utils/test'
+make[2]: Entering directory '/home/ubuntu/proj/wsclean/localdev/hdf5-hdf5-1_12_2/utils'
+make[3]: Entering directory '/home/ubuntu/proj/wsclean/localdev/hdf5-hdf5-1_12_2/utils'
+make[3]: Nothing to be done for 'install-exec-am'.
+make[3]: Nothing to be done for 'install-data-am'.
+make[3]: Leaving directory '/home/ubuntu/proj/wsclean/localdev/hdf5-hdf5-1_12_2/utils'
+make[2]: Leaving directory '/home/ubuntu/proj/wsclean/localdev/hdf5-hdf5-1_12_2/utils'
+make[1]: Leaving directory '/home/ubuntu/proj/wsclean/localdev/hdf5-hdf5-1_12_2/utils'
+Making install in tools
+make[1]: Entering directory '/home/ubuntu/proj/wsclean/localdev/hdf5-hdf5-1_12_2/tools'
+Making install in lib
+make[2]: Entering directory '/home/ubuntu/proj/wsclean/localdev/hdf5-hdf5-1_12_2/tools/lib'
+make[3]: Entering directory '/home/ubuntu/proj/wsclean/localdev/hdf5-hdf5-1_12_2/tools/lib'
+make[3]: Nothing to be done for 'install-exec-am'.
+make[3]: Nothing to be done for 'install-data-am'.
+make[3]: Leaving directory '/home/ubuntu/proj/wsclean/localdev/hdf5-hdf5-1_12_2/tools/lib'
+make[2]: Leaving directory '/home/ubuntu/proj/wsclean/localdev/hdf5-hdf5-1_12_2/tools/lib'
+Making install in src
+make[2]: Entering directory '/home/ubuntu/proj/wsclean/localdev/hdf5-hdf5-1_12_2/tools/src'
+Making install in h5diff
+make[3]: Entering directory '/home/ubuntu/proj/wsclean/localdev/hdf5-hdf5-1_12_2/tools/src/h5diff'
+make[4]: Entering directory '/home/ubuntu/proj/wsclean/localdev/hdf5-hdf5-1_12_2/tools/src/h5diff'
+ /bin/mkdir -p '/home/ubuntu/proj/wsclean/localdev/hdf5-1.12.2-install/bin'
+  /bin/bash ../../../libtool   --mode=install /usr/bin/install -c h5diff '/home/ubuntu/proj/wsclean/localdev/hdf5-1.12.2-install/bin'
+libtool: install: /usr/bin/install -c .libs/h5diff /home/ubuntu/proj/wsclean/localdev/hdf5-1.12.2-install/bin/h5diff
+make[4]: Nothing to be done for 'install-data-am'.
+make[4]: Leaving directory '/home/ubuntu/proj/wsclean/localdev/hdf5-hdf5-1_12_2/tools/src/h5diff'
+make[3]: Leaving directory '/home/ubuntu/proj/wsclean/localdev/hdf5-hdf5-1_12_2/tools/src/h5diff'
+Making install in h5ls
+make[3]: Entering directory '/home/ubuntu/proj/wsclean/localdev/hdf5-hdf5-1_12_2/tools/src/h5ls'
+make[4]: Entering directory '/home/ubuntu/proj/wsclean/localdev/hdf5-hdf5-1_12_2/tools/src/h5ls'
+ /bin/mkdir -p '/home/ubuntu/proj/wsclean/localdev/hdf5-1.12.2-install/bin'
+  /bin/bash ../../../libtool   --mode=install /usr/bin/install -c h5ls '/home/ubuntu/proj/wsclean/localdev/hdf5-1.12.2-install/bin'
+libtool: install: /usr/bin/install -c .libs/h5ls /home/ubuntu/proj/wsclean/localdev/hdf5-1.12.2-install/bin/h5ls
+make[4]: Nothing to be done for 'install-data-am'.
+make[4]: Leaving directory '/home/ubuntu/proj/wsclean/localdev/hdf5-hdf5-1_12_2/tools/src/h5ls'
+make[3]: Leaving directory '/home/ubuntu/proj/wsclean/localdev/hdf5-hdf5-1_12_2/tools/src/h5ls'
+Making install in h5dump
+make[3]: Entering directory '/home/ubuntu/proj/wsclean/localdev/hdf5-hdf5-1_12_2/tools/src/h5dump'
+make[4]: Entering directory '/home/ubuntu/proj/wsclean/localdev/hdf5-hdf5-1_12_2/tools/src/h5dump'
+ /bin/mkdir -p '/home/ubuntu/proj/wsclean/localdev/hdf5-1.12.2-install/bin'
+  /bin/bash ../../../libtool   --mode=install /usr/bin/install -c h5dump '/home/ubuntu/proj/wsclean/localdev/hdf5-1.12.2-install/bin'
+libtool: install: /usr/bin/install -c .libs/h5dump /home/ubuntu/proj/wsclean/localdev/hdf5-1.12.2-install/bin/h5dump
+make[4]: Nothing to be done for 'install-data-am'.
+make[4]: Leaving directory '/home/ubuntu/proj/wsclean/localdev/hdf5-hdf5-1_12_2/tools/src/h5dump'
+make[3]: Leaving directory '/home/ubuntu/proj/wsclean/localdev/hdf5-hdf5-1_12_2/tools/src/h5dump'
+Making install in misc
+make[3]: Entering directory '/home/ubuntu/proj/wsclean/localdev/hdf5-hdf5-1_12_2/tools/src/misc'
+make[4]: Entering directory '/home/ubuntu/proj/wsclean/localdev/hdf5-hdf5-1_12_2/tools/src/misc'
+ /bin/mkdir -p '/home/ubuntu/proj/wsclean/localdev/hdf5-1.12.2-install/bin'
+  /bin/bash ../../../libtool   --mode=install /usr/bin/install -c h5debug h5repart h5mkgrp h5clear '/home/ubuntu/proj/wsclean/localdev/hdf5-1.12.2-install/bin'
+libtool: install: /usr/bin/install -c .libs/h5debug /home/ubuntu/proj/wsclean/localdev/hdf5-1.12.2-install/bin/h5debug
+libtool: install: /usr/bin/install -c .libs/h5repart /home/ubuntu/proj/wsclean/localdev/hdf5-1.12.2-install/bin/h5repart
+libtool: install: /usr/bin/install -c .libs/h5mkgrp /home/ubuntu/proj/wsclean/localdev/hdf5-1.12.2-install/bin/h5mkgrp
+libtool: install: /usr/bin/install -c .libs/h5clear /home/ubuntu/proj/wsclean/localdev/hdf5-1.12.2-install/bin/h5clear
+make[4]: Nothing to be done for 'install-data-am'.
+make[4]: Leaving directory '/home/ubuntu/proj/wsclean/localdev/hdf5-hdf5-1_12_2/tools/src/misc'
+make[3]: Leaving directory '/home/ubuntu/proj/wsclean/localdev/hdf5-hdf5-1_12_2/tools/src/misc'
+Making install in h5import
+make[3]: Entering directory '/home/ubuntu/proj/wsclean/localdev/hdf5-hdf5-1_12_2/tools/src/h5import'
+make[4]: Entering directory '/home/ubuntu/proj/wsclean/localdev/hdf5-hdf5-1_12_2/tools/src/h5import'
+ /bin/mkdir -p '/home/ubuntu/proj/wsclean/localdev/hdf5-1.12.2-install/bin'
+  /bin/bash ../../../libtool   --mode=install /usr/bin/install -c h5import '/home/ubuntu/proj/wsclean/localdev/hdf5-1.12.2-install/bin'
+libtool: install: /usr/bin/install -c .libs/h5import /home/ubuntu/proj/wsclean/localdev/hdf5-1.12.2-install/bin/h5import
+make[4]: Nothing to be done for 'install-data-am'.
+make[4]: Leaving directory '/home/ubuntu/proj/wsclean/localdev/hdf5-hdf5-1_12_2/tools/src/h5import'
+make[3]: Leaving directory '/home/ubuntu/proj/wsclean/localdev/hdf5-hdf5-1_12_2/tools/src/h5import'
+Making install in h5repack
+make[3]: Entering directory '/home/ubuntu/proj/wsclean/localdev/hdf5-hdf5-1_12_2/tools/src/h5repack'
+make[4]: Entering directory '/home/ubuntu/proj/wsclean/localdev/hdf5-hdf5-1_12_2/tools/src/h5repack'
+ /bin/mkdir -p '/home/ubuntu/proj/wsclean/localdev/hdf5-1.12.2-install/bin'
+  /bin/bash ../../../libtool   --mode=install /usr/bin/install -c h5repack '/home/ubuntu/proj/wsclean/localdev/hdf5-1.12.2-install/bin'
+libtool: install: /usr/bin/install -c .libs/h5repack /home/ubuntu/proj/wsclean/localdev/hdf5-1.12.2-install/bin/h5repack
+make[4]: Nothing to be done for 'install-data-am'.
+make[4]: Leaving directory '/home/ubuntu/proj/wsclean/localdev/hdf5-hdf5-1_12_2/tools/src/h5repack'
+make[3]: Leaving directory '/home/ubuntu/proj/wsclean/localdev/hdf5-hdf5-1_12_2/tools/src/h5repack'
+Making install in h5jam
+make[3]: Entering directory '/home/ubuntu/proj/wsclean/localdev/hdf5-hdf5-1_12_2/tools/src/h5jam'
+make[4]: Entering directory '/home/ubuntu/proj/wsclean/localdev/hdf5-hdf5-1_12_2/tools/src/h5jam'
+ /bin/mkdir -p '/home/ubuntu/proj/wsclean/localdev/hdf5-1.12.2-install/bin'
+  /bin/bash ../../../libtool   --mode=install /usr/bin/install -c h5jam h5unjam '/home/ubuntu/proj/wsclean/localdev/hdf5-1.12.2-install/bin'
+libtool: install: /usr/bin/install -c .libs/h5jam /home/ubuntu/proj/wsclean/localdev/hdf5-1.12.2-install/bin/h5jam
+libtool: install: /usr/bin/install -c .libs/h5unjam /home/ubuntu/proj/wsclean/localdev/hdf5-1.12.2-install/bin/h5unjam
+make[4]: Nothing to be done for 'install-data-am'.
+make[4]: Leaving directory '/home/ubuntu/proj/wsclean/localdev/hdf5-hdf5-1_12_2/tools/src/h5jam'
+make[3]: Leaving directory '/home/ubuntu/proj/wsclean/localdev/hdf5-hdf5-1_12_2/tools/src/h5jam'
+Making install in h5copy
+make[3]: Entering directory '/home/ubuntu/proj/wsclean/localdev/hdf5-hdf5-1_12_2/tools/src/h5copy'
+make[4]: Entering directory '/home/ubuntu/proj/wsclean/localdev/hdf5-hdf5-1_12_2/tools/src/h5copy'
+ /bin/mkdir -p '/home/ubuntu/proj/wsclean/localdev/hdf5-1.12.2-install/bin'
+  /bin/bash ../../../libtool   --mode=install /usr/bin/install -c h5copy '/home/ubuntu/proj/wsclean/localdev/hdf5-1.12.2-install/bin'
+libtool: install: /usr/bin/install -c .libs/h5copy /home/ubuntu/proj/wsclean/localdev/hdf5-1.12.2-install/bin/h5copy
+make[4]: Nothing to be done for 'install-data-am'.
+make[4]: Leaving directory '/home/ubuntu/proj/wsclean/localdev/hdf5-hdf5-1_12_2/tools/src/h5copy'
+make[3]: Leaving directory '/home/ubuntu/proj/wsclean/localdev/hdf5-hdf5-1_12_2/tools/src/h5copy'
+Making install in h5format_convert
+make[3]: Entering directory '/home/ubuntu/proj/wsclean/localdev/hdf5-hdf5-1_12_2/tools/src/h5format_convert'
+make[4]: Entering directory '/home/ubuntu/proj/wsclean/localdev/hdf5-hdf5-1_12_2/tools/src/h5format_convert'
+ /bin/mkdir -p '/home/ubuntu/proj/wsclean/localdev/hdf5-1.12.2-install/bin'
+  /bin/bash ../../../libtool   --mode=install /usr/bin/install -c h5format_convert '/home/ubuntu/proj/wsclean/localdev/hdf5-1.12.2-install/bin'
+libtool: install: /usr/bin/install -c .libs/h5format_convert /home/ubuntu/proj/wsclean/localdev/hdf5-1.12.2-install/bin/h5format_convert
+make[4]: Nothing to be done for 'install-data-am'.
+make[4]: Leaving directory '/home/ubuntu/proj/wsclean/localdev/hdf5-hdf5-1_12_2/tools/src/h5format_convert'
+make[3]: Leaving directory '/home/ubuntu/proj/wsclean/localdev/hdf5-hdf5-1_12_2/tools/src/h5format_convert'
+Making install in h5stat
+make[3]: Entering directory '/home/ubuntu/proj/wsclean/localdev/hdf5-hdf5-1_12_2/tools/src/h5stat'
+make[4]: Entering directory '/home/ubuntu/proj/wsclean/localdev/hdf5-hdf5-1_12_2/tools/src/h5stat'
+ /bin/mkdir -p '/home/ubuntu/proj/wsclean/localdev/hdf5-1.12.2-install/bin'
+  /bin/bash ../../../libtool   --mode=install /usr/bin/install -c h5stat '/home/ubuntu/proj/wsclean/localdev/hdf5-1.12.2-install/bin'
+libtool: install: /usr/bin/install -c .libs/h5stat /home/ubuntu/proj/wsclean/localdev/hdf5-1.12.2-install/bin/h5stat
+make[4]: Nothing to be done for 'install-data-am'.
+make[4]: Leaving directory '/home/ubuntu/proj/wsclean/localdev/hdf5-hdf5-1_12_2/tools/src/h5stat'
+make[3]: Leaving directory '/home/ubuntu/proj/wsclean/localdev/hdf5-hdf5-1_12_2/tools/src/h5stat'
+Making install in h5perf
+make[3]: Entering directory '/home/ubuntu/proj/wsclean/localdev/hdf5-hdf5-1_12_2/tools/src/h5perf'
+make[4]: Entering directory '/home/ubuntu/proj/wsclean/localdev/hdf5-hdf5-1_12_2/tools/src/h5perf'
+ /bin/mkdir -p '/home/ubuntu/proj/wsclean/localdev/hdf5-1.12.2-install/bin'
+  /bin/bash ../../../libtool   --mode=install /usr/bin/install -c h5perf_serial '/home/ubuntu/proj/wsclean/localdev/hdf5-1.12.2-install/bin'
+libtool: install: /usr/bin/install -c .libs/h5perf_serial /home/ubuntu/proj/wsclean/localdev/hdf5-1.12.2-install/bin/h5perf_serial
+make[4]: Nothing to be done for 'install-data-am'.
+make[4]: Leaving directory '/home/ubuntu/proj/wsclean/localdev/hdf5-hdf5-1_12_2/tools/src/h5perf'
+make[3]: Leaving directory '/home/ubuntu/proj/wsclean/localdev/hdf5-hdf5-1_12_2/tools/src/h5perf'
+make[3]: Entering directory '/home/ubuntu/proj/wsclean/localdev/hdf5-hdf5-1_12_2/tools/src'
+make[4]: Entering directory '/home/ubuntu/proj/wsclean/localdev/hdf5-hdf5-1_12_2/tools/src'
+make[4]: Nothing to be done for 'install-exec-am'.
+make[4]: Nothing to be done for 'install-data-am'.
+make[4]: Leaving directory '/home/ubuntu/proj/wsclean/localdev/hdf5-hdf5-1_12_2/tools/src'
+make[3]: Leaving directory '/home/ubuntu/proj/wsclean/localdev/hdf5-hdf5-1_12_2/tools/src'
+make[2]: Leaving directory '/home/ubuntu/proj/wsclean/localdev/hdf5-hdf5-1_12_2/tools/src'
+Making install in test
+make[2]: Entering directory '/home/ubuntu/proj/wsclean/localdev/hdf5-hdf5-1_12_2/tools/test'
+Making install in h5diff
+make[3]: Entering directory '/home/ubuntu/proj/wsclean/localdev/hdf5-hdf5-1_12_2/tools/test/h5diff'
+make[4]: Entering directory '/home/ubuntu/proj/wsclean/localdev/hdf5-hdf5-1_12_2/tools/test/h5diff'
+make[4]: Nothing to be done for 'install-exec-am'.
+make[4]: Nothing to be done for 'install-data-am'.
+make[4]: Leaving directory '/home/ubuntu/proj/wsclean/localdev/hdf5-hdf5-1_12_2/tools/test/h5diff'
+make[3]: Leaving directory '/home/ubuntu/proj/wsclean/localdev/hdf5-hdf5-1_12_2/tools/test/h5diff'
+Making install in h5ls
+make[3]: Entering directory '/home/ubuntu/proj/wsclean/localdev/hdf5-hdf5-1_12_2/tools/test/h5ls'
+make[4]: Entering directory '/home/ubuntu/proj/wsclean/localdev/hdf5-hdf5-1_12_2/tools/test/h5ls'
+make[4]: Nothing to be done for 'install-exec-am'.
+make[4]: Nothing to be done for 'install-data-am'.
+make[4]: Leaving directory '/home/ubuntu/proj/wsclean/localdev/hdf5-hdf5-1_12_2/tools/test/h5ls'
+make[3]: Leaving directory '/home/ubuntu/proj/wsclean/localdev/hdf5-hdf5-1_12_2/tools/test/h5ls'
+Making install in h5dump
+make[3]: Entering directory '/home/ubuntu/proj/wsclean/localdev/hdf5-hdf5-1_12_2/tools/test/h5dump'
+make[4]: Entering directory '/home/ubuntu/proj/wsclean/localdev/hdf5-hdf5-1_12_2/tools/test/h5dump'
+make[4]: Nothing to be done for 'install-exec-am'.
+make[4]: Nothing to be done for 'install-data-am'.
+make[4]: Leaving directory '/home/ubuntu/proj/wsclean/localdev/hdf5-hdf5-1_12_2/tools/test/h5dump'
+make[3]: Leaving directory '/home/ubuntu/proj/wsclean/localdev/hdf5-hdf5-1_12_2/tools/test/h5dump'
+Making install in misc
+make[3]: Entering directory '/home/ubuntu/proj/wsclean/localdev/hdf5-hdf5-1_12_2/tools/test/misc'
+Making install in vds
+make[4]: Entering directory '/home/ubuntu/proj/wsclean/localdev/hdf5-hdf5-1_12_2/tools/test/misc/vds'
+make[5]: Entering directory '/home/ubuntu/proj/wsclean/localdev/hdf5-hdf5-1_12_2/tools/test/misc/vds'
+make[5]: Nothing to be done for 'install-exec-am'.
+make[5]: Nothing to be done for 'install-data-am'.
+make[5]: Leaving directory '/home/ubuntu/proj/wsclean/localdev/hdf5-hdf5-1_12_2/tools/test/misc/vds'
+make[4]: Leaving directory '/home/ubuntu/proj/wsclean/localdev/hdf5-hdf5-1_12_2/tools/test/misc/vds'
+make[4]: Entering directory '/home/ubuntu/proj/wsclean/localdev/hdf5-hdf5-1_12_2/tools/test/misc'
+make[5]: Entering directory '/home/ubuntu/proj/wsclean/localdev/hdf5-hdf5-1_12_2/tools/test/misc'
+make[5]: Nothing to be done for 'install-exec-am'.
+make[5]: Nothing to be done for 'install-data-am'.
+make[5]: Leaving directory '/home/ubuntu/proj/wsclean/localdev/hdf5-hdf5-1_12_2/tools/test/misc'
+make[4]: Leaving directory '/home/ubuntu/proj/wsclean/localdev/hdf5-hdf5-1_12_2/tools/test/misc'
+make[3]: Leaving directory '/home/ubuntu/proj/wsclean/localdev/hdf5-hdf5-1_12_2/tools/test/misc'
+Making install in h5import
+make[3]: Entering directory '/home/ubuntu/proj/wsclean/localdev/hdf5-hdf5-1_12_2/tools/test/h5import'
+make[4]: Entering directory '/home/ubuntu/proj/wsclean/localdev/hdf5-hdf5-1_12_2/tools/test/h5import'
+make[4]: Nothing to be done for 'install-exec-am'.
+make[4]: Nothing to be done for 'install-data-am'.
+make[4]: Leaving directory '/home/ubuntu/proj/wsclean/localdev/hdf5-hdf5-1_12_2/tools/test/h5import'
+make[3]: Leaving directory '/home/ubuntu/proj/wsclean/localdev/hdf5-hdf5-1_12_2/tools/test/h5import'
+Making install in h5repack
+make[3]: Entering directory '/home/ubuntu/proj/wsclean/localdev/hdf5-hdf5-1_12_2/tools/test/h5repack'
+make[4]: Entering directory '/home/ubuntu/proj/wsclean/localdev/hdf5-hdf5-1_12_2/tools/test/h5repack'
+make[4]: Nothing to be done for 'install-exec-am'.
+make[4]: Nothing to be done for 'install-data-am'.
+make[4]: Leaving directory '/home/ubuntu/proj/wsclean/localdev/hdf5-hdf5-1_12_2/tools/test/h5repack'
+make[3]: Leaving directory '/home/ubuntu/proj/wsclean/localdev/hdf5-hdf5-1_12_2/tools/test/h5repack'
+Making install in h5jam
+make[3]: Entering directory '/home/ubuntu/proj/wsclean/localdev/hdf5-hdf5-1_12_2/tools/test/h5jam'
+make[4]: Entering directory '/home/ubuntu/proj/wsclean/localdev/hdf5-hdf5-1_12_2/tools/test/h5jam'
+make[4]: Nothing to be done for 'install-exec-am'.
+make[4]: Nothing to be done for 'install-data-am'.
+make[4]: Leaving directory '/home/ubuntu/proj/wsclean/localdev/hdf5-hdf5-1_12_2/tools/test/h5jam'
+make[3]: Leaving directory '/home/ubuntu/proj/wsclean/localdev/hdf5-hdf5-1_12_2/tools/test/h5jam'
+Making install in h5copy
+make[3]: Entering directory '/home/ubuntu/proj/wsclean/localdev/hdf5-hdf5-1_12_2/tools/test/h5copy'
+make[4]: Entering directory '/home/ubuntu/proj/wsclean/localdev/hdf5-hdf5-1_12_2/tools/test/h5copy'
+make[4]: Nothing to be done for 'install-exec-am'.
+make[4]: Nothing to be done for 'install-data-am'.
+make[4]: Leaving directory '/home/ubuntu/proj/wsclean/localdev/hdf5-hdf5-1_12_2/tools/test/h5copy'
+make[3]: Leaving directory '/home/ubuntu/proj/wsclean/localdev/hdf5-hdf5-1_12_2/tools/test/h5copy'
+Making install in h5format_convert
+make[3]: Entering directory '/home/ubuntu/proj/wsclean/localdev/hdf5-hdf5-1_12_2/tools/test/h5format_convert'
+make[4]: Entering directory '/home/ubuntu/proj/wsclean/localdev/hdf5-hdf5-1_12_2/tools/test/h5format_convert'
+make[4]: Nothing to be done for 'install-exec-am'.
+make[4]: Nothing to be done for 'install-data-am'.
+make[4]: Leaving directory '/home/ubuntu/proj/wsclean/localdev/hdf5-hdf5-1_12_2/tools/test/h5format_convert'
+make[3]: Leaving directory '/home/ubuntu/proj/wsclean/localdev/hdf5-hdf5-1_12_2/tools/test/h5format_convert'
+Making install in h5stat
+make[3]: Entering directory '/home/ubuntu/proj/wsclean/localdev/hdf5-hdf5-1_12_2/tools/test/h5stat'
+make[4]: Entering directory '/home/ubuntu/proj/wsclean/localdev/hdf5-hdf5-1_12_2/tools/test/h5stat'
+make[4]: Nothing to be done for 'install-exec-am'.
+make[4]: Nothing to be done for 'install-data-am'.
+make[4]: Leaving directory '/home/ubuntu/proj/wsclean/localdev/hdf5-hdf5-1_12_2/tools/test/h5stat'
+make[3]: Leaving directory '/home/ubuntu/proj/wsclean/localdev/hdf5-hdf5-1_12_2/tools/test/h5stat'
+Making install in perform
+make[3]: Entering directory '/home/ubuntu/proj/wsclean/localdev/hdf5-hdf5-1_12_2/tools/test/perform'
+make[4]: Entering directory '/home/ubuntu/proj/wsclean/localdev/hdf5-hdf5-1_12_2/tools/test/perform'
+make[4]: Nothing to be done for 'install-exec-am'.
+make[4]: Nothing to be done for 'install-data-am'.
+make[4]: Leaving directory '/home/ubuntu/proj/wsclean/localdev/hdf5-hdf5-1_12_2/tools/test/perform'
+make[3]: Leaving directory '/home/ubuntu/proj/wsclean/localdev/hdf5-hdf5-1_12_2/tools/test/perform'
+make[3]: Entering directory '/home/ubuntu/proj/wsclean/localdev/hdf5-hdf5-1_12_2/tools/test'
+make[4]: Entering directory '/home/ubuntu/proj/wsclean/localdev/hdf5-hdf5-1_12_2/tools/test'
+make[4]: Nothing to be done for 'install-exec-am'.
+make[4]: Nothing to be done for 'install-data-am'.
+make[4]: Leaving directory '/home/ubuntu/proj/wsclean/localdev/hdf5-hdf5-1_12_2/tools/test'
+make[3]: Leaving directory '/home/ubuntu/proj/wsclean/localdev/hdf5-hdf5-1_12_2/tools/test'
+make[2]: Leaving directory '/home/ubuntu/proj/wsclean/localdev/hdf5-hdf5-1_12_2/tools/test'
+make[2]: Entering directory '/home/ubuntu/proj/wsclean/localdev/hdf5-hdf5-1_12_2/tools'
+make[3]: Entering directory '/home/ubuntu/proj/wsclean/localdev/hdf5-hdf5-1_12_2/tools'
+make[3]: Nothing to be done for 'install-exec-am'.
+make[3]: Nothing to be done for 'install-data-am'.
+make[3]: Leaving directory '/home/ubuntu/proj/wsclean/localdev/hdf5-hdf5-1_12_2/tools'
+make[2]: Leaving directory '/home/ubuntu/proj/wsclean/localdev/hdf5-hdf5-1_12_2/tools'
+make[1]: Leaving directory '/home/ubuntu/proj/wsclean/localdev/hdf5-hdf5-1_12_2/tools'
+Making install in .
+make[1]: Entering directory '/home/ubuntu/proj/wsclean/localdev/hdf5-hdf5-1_12_2'
+make[2]: Entering directory '/home/ubuntu/proj/wsclean/localdev/hdf5-hdf5-1_12_2'
+make[2]: Nothing to be done for 'install-exec-am'.
+make[2]: Nothing to be done for 'install-data-am'.
+make[2]: Leaving directory '/home/ubuntu/proj/wsclean/localdev/hdf5-hdf5-1_12_2'
+make[1]: Leaving directory '/home/ubuntu/proj/wsclean/localdev/hdf5-hdf5-1_12_2'
+Making install in c++
+make[1]: Entering directory '/home/ubuntu/proj/wsclean/localdev/hdf5-hdf5-1_12_2/c++'
+Making install in src
+make[2]: Entering directory '/home/ubuntu/proj/wsclean/localdev/hdf5-hdf5-1_12_2/c++/src'
+make[3]: Entering directory '/home/ubuntu/proj/wsclean/localdev/hdf5-hdf5-1_12_2/c++/src'
+ /bin/mkdir -p '/home/ubuntu/proj/wsclean/localdev/hdf5-1.12.2-install/bin'
+ /usr/bin/install -c h5c++ '/home/ubuntu/proj/wsclean/localdev/hdf5-1.12.2-install/bin'
+ /bin/mkdir -p '/home/ubuntu/proj/wsclean/localdev/hdf5-1.12.2-install/lib'
+ /bin/bash ../../libtool   --mode=install /usr/bin/install -c   libhdf5_cpp.la '/home/ubuntu/proj/wsclean/localdev/hdf5-1.12.2-install/lib'
+libtool: install: (cd /home/ubuntu/proj/wsclean/localdev/hdf5-hdf5-1_12_2/c++/src; /bin/bash "/home/ubuntu/proj/wsclean/localdev/hdf5-hdf5-1_12_2/libtool"  --silent --tag CXX --mode=relink g++ -Wall -Wcast-qual -Wconversion -Wctor-dtor-privacy -Weffc++ -Wextra -Wfloat-equal -Wformat=2 -Winit-self -Winvalid-pch -Wmissing-include-dirs -Wnon-virtual-dtor -Wold-style-cast -Woverloaded-virtual -Wreorder -Wshadow -Wsign-promo -Wundef -Wwrite-strings -pedantic -Wlarger-than=2560 -Wlogical-op -Wframe-larger-than=16384 -Wpacked-bitfield-compat -Wsync-nand -Wstrict-overflow=5 -Wdouble-promotion -Wtrampolines -Wstack-usage=8192 -Wmaybe-uninitialized -Wdate-time -Wopenmp-simd -Warray-bounds=2 -Wduplicated-cond -Whsa -Wnormalized -Wnull-dereference -Wunused-const-variable -Walloca -Walloc-zero -Wduplicated-branches -Wformat-overflow=2 -Wformat-truncation=1 -Wrestrict -fstdarg-opt -s -Wcast-align -Wmissing-declarations -Wpacked -Wredundant-decls -Wswitch -Wunused-but-set-variable -Wunused-function -Wunused-variable -Wunused-parameter -Wshadow -O3 -version-info 202:0:2 -o libhdf5_cpp.la -rpath /home/ubuntu/proj/wsclean/localdev/hdf5-1.12.2-install/lib H5Exception.lo H5IdComponent.lo H5DataSpace.lo H5PropList.lo H5Library.lo H5FaccProp.lo H5FcreatProp.lo H5LcreatProp.lo H5LaccProp.lo H5DaccProp.lo H5DxferProp.lo H5DcreatProp.lo H5Location.lo H5AbstractDs.lo H5Attribute.lo H5Object.lo H5OcreatProp.lo H5DataType.lo H5AtomType.lo H5PredType.lo H5EnumType.lo H5IntType.lo H5FloatType.lo H5StrType.lo H5ArrayType.lo H5VarLenType.lo H5CompType.lo H5DataSet.lo H5CommonFG.lo H5Group.lo H5File.lo ../../src/libhdf5.la -lz -ldl -lm )
+libtool: warning: relinking 'libhdf5_cpp.la'
+libtool: install: /usr/bin/install -c .libs/libhdf5_cpp.so.200.2.0T /home/ubuntu/proj/wsclean/localdev/hdf5-1.12.2-install/lib/libhdf5_cpp.so.200.2.0
+libtool: install: (cd /home/ubuntu/proj/wsclean/localdev/hdf5-1.12.2-install/lib && { ln -s -f libhdf5_cpp.so.200.2.0 libhdf5_cpp.so.200 || { rm -f libhdf5_cpp.so.200 && ln -s libhdf5_cpp.so.200.2.0 libhdf5_cpp.so.200; }; })
+libtool: install: (cd /home/ubuntu/proj/wsclean/localdev/hdf5-1.12.2-install/lib && { ln -s -f libhdf5_cpp.so.200.2.0 libhdf5_cpp.so || { rm -f libhdf5_cpp.so && ln -s libhdf5_cpp.so.200.2.0 libhdf5_cpp.so; }; })
+libtool: install: /usr/bin/install -c .libs/libhdf5_cpp.lai /home/ubuntu/proj/wsclean/localdev/hdf5-1.12.2-install/lib/libhdf5_cpp.la
+libtool: install: /usr/bin/install -c .libs/libhdf5_cpp.a /home/ubuntu/proj/wsclean/localdev/hdf5-1.12.2-install/lib/libhdf5_cpp.a
+libtool: install: chmod 644 /home/ubuntu/proj/wsclean/localdev/hdf5-1.12.2-install/lib/libhdf5_cpp.a
+libtool: install: ranlib /home/ubuntu/proj/wsclean/localdev/hdf5-1.12.2-install/lib/libhdf5_cpp.a
+libtool: finish: PATH="/home/ubuntu/.cursor-server/bin/4b8afa6ae1bf40ed5a755c1eec0a23740469d720/bin/remote-cli:/home/ubuntu/.cursor-server/bin/4b8afa6ae1bf40ed5a755c1eec0a23740469d720/bin/remote-cli:/opt/miniforge/condabin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:/usr/games:/usr/local/games:/snap/bin:/sbin" ldconfig -n /home/ubuntu/proj/wsclean/localdev/hdf5-1.12.2-install/lib
+----------------------------------------------------------------------
+Libraries have been installed in:
+   /home/ubuntu/proj/wsclean/localdev/hdf5-1.12.2-install/lib
+
+If you ever happen to want to link against installed libraries
+in a given directory, LIBDIR, you must either use libtool, and
+specify the full pathname of the library, or use the '-LLIBDIR'
+flag during linking and do at least one of the following:
+   - add LIBDIR to the 'LD_LIBRARY_PATH' environment variable
+     during execution
+   - add LIBDIR to the 'LD_RUN_PATH' environment variable
+     during linking
+   - use the '-Wl,-rpath -Wl,LIBDIR' linker flag
+   - have your system administrator add LIBDIR to '/etc/ld.so.conf'
+
+See any operating system documentation about shared libraries for
+more information, such as the ld(1) and ld.so(8) manual pages.
+----------------------------------------------------------------------
+ /bin/mkdir -p '/home/ubuntu/proj/wsclean/localdev/hdf5-1.12.2-install/include'
+ /usr/bin/install -c -m 644 H5Cpp.h H5AbstractDs.h H5AtomType.h H5Attribute.h H5Classes.h H5CommonFG.h H5CompType.h H5DataSet.h H5DataSpace.h H5DataType.h H5OcreatProp.h H5DaccProp.h H5DcreatProp.h H5DxferProp.h H5EnumType.h H5Exception.h H5FaccProp.h H5FcreatProp.h H5File.h H5FloatType.h H5Group.h H5IdComponent.h H5Include.h H5IntType.h H5LcreatProp.h H5LaccProp.h H5Library.h H5Location.h H5Object.h H5PredType.h H5PropList.h H5StrType.h H5CppDoc.h H5ArrayType.h H5VarLenType.h '/home/ubuntu/proj/wsclean/localdev/hdf5-1.12.2-install/include'
+make[3]: Leaving directory '/home/ubuntu/proj/wsclean/localdev/hdf5-hdf5-1_12_2/c++/src'
+make[2]: Leaving directory '/home/ubuntu/proj/wsclean/localdev/hdf5-hdf5-1_12_2/c++/src'
+Making install in test
+make[2]: Entering directory '/home/ubuntu/proj/wsclean/localdev/hdf5-hdf5-1_12_2/c++/test'
+make[3]: Entering directory '/home/ubuntu/proj/wsclean/localdev/hdf5-hdf5-1_12_2/c++/test'
+make[3]: Nothing to be done for 'install-exec-am'.
+make[3]: Nothing to be done for 'install-data-am'.
+make[3]: Leaving directory '/home/ubuntu/proj/wsclean/localdev/hdf5-hdf5-1_12_2/c++/test'
+make[2]: Leaving directory '/home/ubuntu/proj/wsclean/localdev/hdf5-hdf5-1_12_2/c++/test'
+make[2]: Entering directory '/home/ubuntu/proj/wsclean/localdev/hdf5-hdf5-1_12_2/c++'
+make[3]: Entering directory '/home/ubuntu/proj/wsclean/localdev/hdf5-hdf5-1_12_2/c++'
+make[3]: Nothing to be done for 'install-exec-am'.
+make[3]: Nothing to be done for 'install-data-am'.
+make[3]: Leaving directory '/home/ubuntu/proj/wsclean/localdev/hdf5-hdf5-1_12_2/c++'
+make[2]: Leaving directory '/home/ubuntu/proj/wsclean/localdev/hdf5-hdf5-1_12_2/c++'
+make[1]: Leaving directory '/home/ubuntu/proj/wsclean/localdev/hdf5-hdf5-1_12_2/c++'
+Making install in hl
+make[1]: Entering directory '/home/ubuntu/proj/wsclean/localdev/hdf5-hdf5-1_12_2/hl'
+Making install in src
+make[2]: Entering directory '/home/ubuntu/proj/wsclean/localdev/hdf5-hdf5-1_12_2/hl/src'
+make[3]: Entering directory '/home/ubuntu/proj/wsclean/localdev/hdf5-hdf5-1_12_2/hl/src'
+ /bin/mkdir -p '/home/ubuntu/proj/wsclean/localdev/hdf5-1.12.2-install/lib'
+ /bin/bash ../../libtool   --mode=install /usr/bin/install -c   libhdf5_hl.la '/home/ubuntu/proj/wsclean/localdev/hdf5-1.12.2-install/lib'
+libtool: install: (cd /home/ubuntu/proj/wsclean/localdev/hdf5-hdf5-1_12_2/hl/src; /bin/bash "/home/ubuntu/proj/wsclean/localdev/hdf5-hdf5-1_12_2/libtool"  --silent --tag CC --mode=relink gcc -std=c99 -Wall -Wcast-qual -Wconversion -Wextra -Wfloat-equal -Wformat=2 -Winit-self -Winvalid-pch -Wmissing-include-dirs -Wshadow -Wundef -Wwrite-strings -pedantic -Wno-c++-compat -Wlarger-than=2560 -Wlogical-op -Wframe-larger-than=16384 -Wpacked-bitfield-compat -Wsync-nand -Wstrict-overflow=5 -Wno-unsuffixed-float-constants -Wdouble-promotion -Wtrampolines -Wstack-usage=8192 -Wmaybe-uninitialized -Wdate-time -Warray-bounds=2 -Wc99-c11-compat -Wduplicated-cond -Whsa -Wnormalized -Wnull-dereference -Wunused-const-variable -Walloca -Walloc-zero -Wduplicated-branches -Wformat-overflow=2 -Wformat-truncation=1 -Wrestrict -fstdarg-opt -s -Wbad-function-cast -Wimplicit-function-declaration -Wmissing-declarations -Wmissing-prototypes -Wnested-externs -Wold-style-definition -Wpacked -Wpointer-sign -Wpointer-to-int-cast -Wint-to-pointer-cast -Wredundant-decls -Wstrict-prototypes -Wswitch -Wunused-function -Wunused-variable -Wunused-parameter -Wcast-align -Wunused-but-set-variable -Wformat -Wincompatible-pointer-types -Wint-conversion -Wshadow -Wno-aggregate-return -Wno-inline -Wno-missing-format-attribute -Wno-missing-noreturn -Wno-overlength-strings -Wno-jump-misses-init -Wno-suggest-attribute=const -Wno-suggest-attribute=noreturn -Wno-suggest-attribute=pure -Wno-suggest-attribute=format -O3 -version-info 201:0:1 -o libhdf5_hl.la -rpath /home/ubuntu/proj/wsclean/localdev/hdf5-1.12.2-install/lib H5DO.lo H5DS.lo H5IM.lo H5LT.lo H5LTanalyze.lo H5LTparse.lo H5PT.lo H5TB.lo H5LD.lo ../../src/libhdf5.la -lz -ldl -lm )
+libtool: warning: relinking 'libhdf5_hl.la'
+libtool: install: /usr/bin/install -c .libs/libhdf5_hl.so.200.1.0T /home/ubuntu/proj/wsclean/localdev/hdf5-1.12.2-install/lib/libhdf5_hl.so.200.1.0
+libtool: install: (cd /home/ubuntu/proj/wsclean/localdev/hdf5-1.12.2-install/lib && { ln -s -f libhdf5_hl.so.200.1.0 libhdf5_hl.so.200 || { rm -f libhdf5_hl.so.200 && ln -s libhdf5_hl.so.200.1.0 libhdf5_hl.so.200; }; })
+libtool: install: (cd /home/ubuntu/proj/wsclean/localdev/hdf5-1.12.2-install/lib && { ln -s -f libhdf5_hl.so.200.1.0 libhdf5_hl.so || { rm -f libhdf5_hl.so && ln -s libhdf5_hl.so.200.1.0 libhdf5_hl.so; }; })
+libtool: install: /usr/bin/install -c .libs/libhdf5_hl.lai /home/ubuntu/proj/wsclean/localdev/hdf5-1.12.2-install/lib/libhdf5_hl.la
+libtool: install: /usr/bin/install -c .libs/libhdf5_hl.a /home/ubuntu/proj/wsclean/localdev/hdf5-1.12.2-install/lib/libhdf5_hl.a
+libtool: install: chmod 644 /home/ubuntu/proj/wsclean/localdev/hdf5-1.12.2-install/lib/libhdf5_hl.a
+libtool: install: ranlib /home/ubuntu/proj/wsclean/localdev/hdf5-1.12.2-install/lib/libhdf5_hl.a
+libtool: finish: PATH="/home/ubuntu/.cursor-server/bin/4b8afa6ae1bf40ed5a755c1eec0a23740469d720/bin/remote-cli:/home/ubuntu/.cursor-server/bin/4b8afa6ae1bf40ed5a755c1eec0a23740469d720/bin/remote-cli:/opt/miniforge/condabin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:/usr/games:/usr/local/games:/snap/bin:/sbin" ldconfig -n /home/ubuntu/proj/wsclean/localdev/hdf5-1.12.2-install/lib
+----------------------------------------------------------------------
+Libraries have been installed in:
+   /home/ubuntu/proj/wsclean/localdev/hdf5-1.12.2-install/lib
+
+If you ever happen to want to link against installed libraries
+in a given directory, LIBDIR, you must either use libtool, and
+specify the full pathname of the library, or use the '-LLIBDIR'
+flag during linking and do at least one of the following:
+   - add LIBDIR to the 'LD_LIBRARY_PATH' environment variable
+     during execution
+   - add LIBDIR to the 'LD_RUN_PATH' environment variable
+     during linking
+   - use the '-Wl,-rpath -Wl,LIBDIR' linker flag
+   - have your system administrator add LIBDIR to '/etc/ld.so.conf'
+
+See any operating system documentation about shared libraries for
+more information, such as the ld(1) and ld.so(8) manual pages.
+----------------------------------------------------------------------
+ /bin/mkdir -p '/home/ubuntu/proj/wsclean/localdev/hdf5-1.12.2-install/include'
+ /usr/bin/install -c -m 644 hdf5_hl.h H5DOpublic.h H5IMpublic.h H5LTpublic.h H5TBpublic.h H5DSpublic.h H5PTpublic.h H5LDpublic.h '/home/ubuntu/proj/wsclean/localdev/hdf5-1.12.2-install/include'
+make[3]: Leaving directory '/home/ubuntu/proj/wsclean/localdev/hdf5-hdf5-1_12_2/hl/src'
+make[2]: Leaving directory '/home/ubuntu/proj/wsclean/localdev/hdf5-hdf5-1_12_2/hl/src'
+Making install in test
+make[2]: Entering directory '/home/ubuntu/proj/wsclean/localdev/hdf5-hdf5-1_12_2/hl/test'
+make[3]: Entering directory '/home/ubuntu/proj/wsclean/localdev/hdf5-hdf5-1_12_2/hl/test'
+make[3]: Nothing to be done for 'install-exec-am'.
+make[3]: Nothing to be done for 'install-data-am'.
+make[3]: Leaving directory '/home/ubuntu/proj/wsclean/localdev/hdf5-hdf5-1_12_2/hl/test'
+make[2]: Leaving directory '/home/ubuntu/proj/wsclean/localdev/hdf5-hdf5-1_12_2/hl/test'
+Making install in tools
+make[2]: Entering directory '/home/ubuntu/proj/wsclean/localdev/hdf5-hdf5-1_12_2/hl/tools'
+Making install in gif2h5
+make[3]: Entering directory '/home/ubuntu/proj/wsclean/localdev/hdf5-hdf5-1_12_2/hl/tools/gif2h5'
+make[4]: Entering directory '/home/ubuntu/proj/wsclean/localdev/hdf5-hdf5-1_12_2/hl/tools/gif2h5'
+ /bin/mkdir -p '/home/ubuntu/proj/wsclean/localdev/hdf5-1.12.2-install/bin'
+  /bin/bash ../../../libtool   --mode=install /usr/bin/install -c gif2h5 h52gif '/home/ubuntu/proj/wsclean/localdev/hdf5-1.12.2-install/bin'
+libtool: install: /usr/bin/install -c .libs/gif2h5 /home/ubuntu/proj/wsclean/localdev/hdf5-1.12.2-install/bin/gif2h5
+libtool: install: /usr/bin/install -c .libs/h52gif /home/ubuntu/proj/wsclean/localdev/hdf5-1.12.2-install/bin/h52gif
+make[4]: Nothing to be done for 'install-data-am'.
+make[4]: Leaving directory '/home/ubuntu/proj/wsclean/localdev/hdf5-hdf5-1_12_2/hl/tools/gif2h5'
+make[3]: Leaving directory '/home/ubuntu/proj/wsclean/localdev/hdf5-hdf5-1_12_2/hl/tools/gif2h5'
+Making install in h5watch
+make[3]: Entering directory '/home/ubuntu/proj/wsclean/localdev/hdf5-hdf5-1_12_2/hl/tools/h5watch'
+make[4]: Entering directory '/home/ubuntu/proj/wsclean/localdev/hdf5-hdf5-1_12_2/hl/tools/h5watch'
+ /bin/mkdir -p '/home/ubuntu/proj/wsclean/localdev/hdf5-1.12.2-install/bin'
+  /bin/bash ../../../libtool   --mode=install /usr/bin/install -c h5watch '/home/ubuntu/proj/wsclean/localdev/hdf5-1.12.2-install/bin'
+libtool: install: /usr/bin/install -c .libs/h5watch /home/ubuntu/proj/wsclean/localdev/hdf5-1.12.2-install/bin/h5watch
+make[4]: Nothing to be done for 'install-data-am'.
+make[4]: Leaving directory '/home/ubuntu/proj/wsclean/localdev/hdf5-hdf5-1_12_2/hl/tools/h5watch'
+make[3]: Leaving directory '/home/ubuntu/proj/wsclean/localdev/hdf5-hdf5-1_12_2/hl/tools/h5watch'
+make[3]: Entering directory '/home/ubuntu/proj/wsclean/localdev/hdf5-hdf5-1_12_2/hl/tools'
+make[4]: Entering directory '/home/ubuntu/proj/wsclean/localdev/hdf5-hdf5-1_12_2/hl/tools'
+make[4]: Nothing to be done for 'install-exec-am'.
+make[4]: Nothing to be done for 'install-data-am'.
+make[4]: Leaving directory '/home/ubuntu/proj/wsclean/localdev/hdf5-hdf5-1_12_2/hl/tools'
+make[3]: Leaving directory '/home/ubuntu/proj/wsclean/localdev/hdf5-hdf5-1_12_2/hl/tools'
+make[2]: Leaving directory '/home/ubuntu/proj/wsclean/localdev/hdf5-hdf5-1_12_2/hl/tools'
+Making install in c++
+make[2]: Entering directory '/home/ubuntu/proj/wsclean/localdev/hdf5-hdf5-1_12_2/hl/c++'
+Making install in src
+make[3]: Entering directory '/home/ubuntu/proj/wsclean/localdev/hdf5-hdf5-1_12_2/hl/c++/src'
+make[4]: Entering directory '/home/ubuntu/proj/wsclean/localdev/hdf5-hdf5-1_12_2/hl/c++/src'
+ /bin/mkdir -p '/home/ubuntu/proj/wsclean/localdev/hdf5-1.12.2-install/lib'
+ /bin/bash ../../../libtool   --mode=install /usr/bin/install -c   libhdf5_hl_cpp.la '/home/ubuntu/proj/wsclean/localdev/hdf5-1.12.2-install/lib'
+libtool: install: (cd /home/ubuntu/proj/wsclean/localdev/hdf5-hdf5-1_12_2/hl/c++/src; /bin/bash "/home/ubuntu/proj/wsclean/localdev/hdf5-hdf5-1_12_2/libtool"  --silent --tag CXX --mode=relink g++ -Wall -Wcast-qual -Wconversion -Wctor-dtor-privacy -Weffc++ -Wextra -Wfloat-equal -Wformat=2 -Winit-self -Winvalid-pch -Wmissing-include-dirs -Wnon-virtual-dtor -Wold-style-cast -Woverloaded-virtual -Wreorder -Wshadow -Wsign-promo -Wundef -Wwrite-strings -pedantic -Wlarger-than=2560 -Wlogical-op -Wframe-larger-than=16384 -Wpacked-bitfield-compat -Wsync-nand -Wstrict-overflow=5 -Wdouble-promotion -Wtrampolines -Wstack-usage=8192 -Wmaybe-uninitialized -Wdate-time -Wopenmp-simd -Warray-bounds=2 -Wduplicated-cond -Whsa -Wnormalized -Wnull-dereference -Wunused-const-variable -Walloca -Walloc-zero -Wduplicated-branches -Wformat-overflow=2 -Wformat-truncation=1 -Wrestrict -fstdarg-opt -s -Wcast-align -Wmissing-declarations -Wpacked -Wredundant-decls -Wswitch -Wunused-but-set-variable -Wunused-function -Wunused-variable -Wunused-parameter -Wshadow -O3 -version-info 201:0:1 -o libhdf5_hl_cpp.la -rpath /home/ubuntu/proj/wsclean/localdev/hdf5-1.12.2-install/lib H5PacketTable.lo ../../../hl/src/libhdf5_hl.la ../../../c++/src/libhdf5_cpp.la -lz -ldl -lm )
+libtool: warning: relinking 'libhdf5_hl_cpp.la'
+libtool: install: /usr/bin/install -c .libs/libhdf5_hl_cpp.so.200.1.0T /home/ubuntu/proj/wsclean/localdev/hdf5-1.12.2-install/lib/libhdf5_hl_cpp.so.200.1.0
+libtool: install: (cd /home/ubuntu/proj/wsclean/localdev/hdf5-1.12.2-install/lib && { ln -s -f libhdf5_hl_cpp.so.200.1.0 libhdf5_hl_cpp.so.200 || { rm -f libhdf5_hl_cpp.so.200 && ln -s libhdf5_hl_cpp.so.200.1.0 libhdf5_hl_cpp.so.200; }; })
+libtool: install: (cd /home/ubuntu/proj/wsclean/localdev/hdf5-1.12.2-install/lib && { ln -s -f libhdf5_hl_cpp.so.200.1.0 libhdf5_hl_cpp.so || { rm -f libhdf5_hl_cpp.so && ln -s libhdf5_hl_cpp.so.200.1.0 libhdf5_hl_cpp.so; }; })
+libtool: install: /usr/bin/install -c .libs/libhdf5_hl_cpp.lai /home/ubuntu/proj/wsclean/localdev/hdf5-1.12.2-install/lib/libhdf5_hl_cpp.la
+libtool: install: /usr/bin/install -c .libs/libhdf5_hl_cpp.a /home/ubuntu/proj/wsclean/localdev/hdf5-1.12.2-install/lib/libhdf5_hl_cpp.a
+libtool: install: chmod 644 /home/ubuntu/proj/wsclean/localdev/hdf5-1.12.2-install/lib/libhdf5_hl_cpp.a
+libtool: install: ranlib /home/ubuntu/proj/wsclean/localdev/hdf5-1.12.2-install/lib/libhdf5_hl_cpp.a
+libtool: finish: PATH="/home/ubuntu/.cursor-server/bin/4b8afa6ae1bf40ed5a755c1eec0a23740469d720/bin/remote-cli:/home/ubuntu/.cursor-server/bin/4b8afa6ae1bf40ed5a755c1eec0a23740469d720/bin/remote-cli:/opt/miniforge/condabin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:/usr/games:/usr/local/games:/snap/bin:/sbin" ldconfig -n /home/ubuntu/proj/wsclean/localdev/hdf5-1.12.2-install/lib
+----------------------------------------------------------------------
+Libraries have been installed in:
+   /home/ubuntu/proj/wsclean/localdev/hdf5-1.12.2-install/lib
+
+If you ever happen to want to link against installed libraries
+in a given directory, LIBDIR, you must either use libtool, and
+specify the full pathname of the library, or use the '-LLIBDIR'
+flag during linking and do at least one of the following:
+   - add LIBDIR to the 'LD_LIBRARY_PATH' environment variable
+     during execution
+   - add LIBDIR to the 'LD_RUN_PATH' environment variable
+     during linking
+   - use the '-Wl,-rpath -Wl,LIBDIR' linker flag
+   - have your system administrator add LIBDIR to '/etc/ld.so.conf'
+
+See any operating system documentation about shared libraries for
+more information, such as the ld(1) and ld.so(8) manual pages.
+----------------------------------------------------------------------
+ /bin/mkdir -p '/home/ubuntu/proj/wsclean/localdev/hdf5-1.12.2-install/include'
+ /usr/bin/install -c -m 644 H5PacketTable.h '/home/ubuntu/proj/wsclean/localdev/hdf5-1.12.2-install/include'
+make[4]: Leaving directory '/home/ubuntu/proj/wsclean/localdev/hdf5-hdf5-1_12_2/hl/c++/src'
+make[3]: Leaving directory '/home/ubuntu/proj/wsclean/localdev/hdf5-hdf5-1_12_2/hl/c++/src'
+Making install in test
+make[3]: Entering directory '/home/ubuntu/proj/wsclean/localdev/hdf5-hdf5-1_12_2/hl/c++/test'
+make[4]: Entering directory '/home/ubuntu/proj/wsclean/localdev/hdf5-hdf5-1_12_2/hl/c++/test'
+make[4]: Nothing to be done for 'install-exec-am'.
+make[4]: Nothing to be done for 'install-data-am'.
+make[4]: Leaving directory '/home/ubuntu/proj/wsclean/localdev/hdf5-hdf5-1_12_2/hl/c++/test'
+make[3]: Leaving directory '/home/ubuntu/proj/wsclean/localdev/hdf5-hdf5-1_12_2/hl/c++/test'
+make[3]: Entering directory '/home/ubuntu/proj/wsclean/localdev/hdf5-hdf5-1_12_2/hl/c++'
+make[4]: Entering directory '/home/ubuntu/proj/wsclean/localdev/hdf5-hdf5-1_12_2/hl/c++'
+make[4]: Nothing to be done for 'install-exec-am'.
+make[4]: Nothing to be done for 'install-data-am'.
+make[4]: Leaving directory '/home/ubuntu/proj/wsclean/localdev/hdf5-hdf5-1_12_2/hl/c++'
+make[3]: Leaving directory '/home/ubuntu/proj/wsclean/localdev/hdf5-hdf5-1_12_2/hl/c++'
+make[2]: Leaving directory '/home/ubuntu/proj/wsclean/localdev/hdf5-hdf5-1_12_2/hl/c++'
+make[2]: Entering directory '/home/ubuntu/proj/wsclean/localdev/hdf5-hdf5-1_12_2/hl'
+make[3]: Entering directory '/home/ubuntu/proj/wsclean/localdev/hdf5-hdf5-1_12_2/hl'
+make[3]: Nothing to be done for 'install-exec-am'.
+make[3]: Nothing to be done for 'install-data-am'.
+make[3]: Leaving directory '/home/ubuntu/proj/wsclean/localdev/hdf5-hdf5-1_12_2/hl'
+make[2]: Leaving directory '/home/ubuntu/proj/wsclean/localdev/hdf5-hdf5-1_12_2/hl'
+make[1]: Leaving directory '/home/ubuntu/proj/wsclean/localdev/hdf5-hdf5-1_12_2/hl'
+for d in examples c++ hl; do               \
+    (cd $d && make  install-examples) || exit 1;           \
+done
+make[1]: Entering directory '/home/ubuntu/proj/wsclean/localdev/hdf5-hdf5-1_12_2/examples'
+../bin/mkdirs /home/ubuntu/proj/wsclean/localdev/hdf5-1.12.2-install/share/hdf5_examples/c
++ /usr/bin/install -c ./h5_write.c /home/ubuntu/proj/wsclean/localdev/hdf5-1.12.2-install/share/hdf5_examples/c/.
++ /usr/bin/install -c ./h5_read.c /home/ubuntu/proj/wsclean/localdev/hdf5-1.12.2-install/share/hdf5_examples/c/.
++ /usr/bin/install -c ./h5_extend_write.c /home/ubuntu/proj/wsclean/localdev/hdf5-1.12.2-install/share/hdf5_examples/c/.
++ /usr/bin/install -c ./h5_chunk_read.c /home/ubuntu/proj/wsclean/localdev/hdf5-1.12.2-install/share/hdf5_examples/c/.
++ /usr/bin/install -c ./h5_compound.c /home/ubuntu/proj/wsclean/localdev/hdf5-1.12.2-install/share/hdf5_examples/c/.
++ /usr/bin/install -c ./h5_crtgrpd.c /home/ubuntu/proj/wsclean/localdev/hdf5-1.12.2-install/share/hdf5_examples/c/.
++ /usr/bin/install -c ./h5_subset.c /home/ubuntu/proj/wsclean/localdev/hdf5-1.12.2-install/share/hdf5_examples/c/.
++ /usr/bin/install -c ./h5_cmprss.c /home/ubuntu/proj/wsclean/localdev/hdf5-1.12.2-install/share/hdf5_examples/c/.
++ /usr/bin/install -c ./h5_rdwt.c /home/ubuntu/proj/wsclean/localdev/hdf5-1.12.2-install/share/hdf5_examples/c/.
++ /usr/bin/install -c ./h5_crtgrpar.c /home/ubuntu/proj/wsclean/localdev/hdf5-1.12.2-install/share/hdf5_examples/c/.
++ /usr/bin/install -c ./h5_extend.c /home/ubuntu/proj/wsclean/localdev/hdf5-1.12.2-install/share/hdf5_examples/c/.
++ /usr/bin/install -c ./h5_crtatt.c /home/ubuntu/proj/wsclean/localdev/hdf5-1.12.2-install/share/hdf5_examples/c/.
++ /usr/bin/install -c ./h5_crtgrp.c /home/ubuntu/proj/wsclean/localdev/hdf5-1.12.2-install/share/hdf5_examples/c/.
++ /usr/bin/install -c ./h5_crtdat.c /home/ubuntu/proj/wsclean/localdev/hdf5-1.12.2-install/share/hdf5_examples/c/.
++ /usr/bin/install -c ./h5_group.c /home/ubuntu/proj/wsclean/localdev/hdf5-1.12.2-install/share/hdf5_examples/c/.
++ /usr/bin/install -c ./h5_select.c /home/ubuntu/proj/wsclean/localdev/hdf5-1.12.2-install/share/hdf5_examples/c/.
++ /usr/bin/install -c ./h5_attribute.c /home/ubuntu/proj/wsclean/localdev/hdf5-1.12.2-install/share/hdf5_examples/c/.
++ /usr/bin/install -c ./h5_mount.c /home/ubuntu/proj/wsclean/localdev/hdf5-1.12.2-install/share/hdf5_examples/c/.
++ /usr/bin/install -c ./h5_drivers.c /home/ubuntu/proj/wsclean/localdev/hdf5-1.12.2-install/share/hdf5_examples/c/.
++ /usr/bin/install -c ./h5_reference_deprec.c /home/ubuntu/proj/wsclean/localdev/hdf5-1.12.2-install/share/hdf5_examples/c/.
++ /usr/bin/install -c ./h5_ref_extern.c /home/ubuntu/proj/wsclean/localdev/hdf5-1.12.2-install/share/hdf5_examples/c/.
++ /usr/bin/install -c ./h5_ref_compat.c /home/ubuntu/proj/wsclean/localdev/hdf5-1.12.2-install/share/hdf5_examples/c/.
++ /usr/bin/install -c ./h5_ref2reg_deprec.c /home/ubuntu/proj/wsclean/localdev/hdf5-1.12.2-install/share/hdf5_examples/c/.
++ /usr/bin/install -c ./h5_extlink.c /home/ubuntu/proj/wsclean/localdev/hdf5-1.12.2-install/share/hdf5_examples/c/.
++ /usr/bin/install -c ./h5_elink_unix2win.c /home/ubuntu/proj/wsclean/localdev/hdf5-1.12.2-install/share/hdf5_examples/c/.
++ /usr/bin/install -c ./h5_shared_mesg.c /home/ubuntu/proj/wsclean/localdev/hdf5-1.12.2-install/share/hdf5_examples/c/.
++ /usr/bin/install -c ./h5_debug_trace.c /home/ubuntu/proj/wsclean/localdev/hdf5-1.12.2-install/share/hdf5_examples/c/.
++ /usr/bin/install -c ./ph5example.c /home/ubuntu/proj/wsclean/localdev/hdf5-1.12.2-install/share/hdf5_examples/c/.
++ /usr/bin/install -c ./ph5_filtered_writes.c /home/ubuntu/proj/wsclean/localdev/hdf5-1.12.2-install/share/hdf5_examples/c/.
++ /usr/bin/install -c ./ph5_filtered_writes_no_sel.c /home/ubuntu/proj/wsclean/localdev/hdf5-1.12.2-install/share/hdf5_examples/c/.
++ /usr/bin/install -c ./h5_vds.c /home/ubuntu/proj/wsclean/localdev/hdf5-1.12.2-install/share/hdf5_examples/c/.
++ /usr/bin/install -c ./h5_vds-exc.c /home/ubuntu/proj/wsclean/localdev/hdf5-1.12.2-install/share/hdf5_examples/c/.
++ /usr/bin/install -c ./h5_vds-exclim.c /home/ubuntu/proj/wsclean/localdev/hdf5-1.12.2-install/share/hdf5_examples/c/.
++ /usr/bin/install -c ./h5_vds-eiger.c /home/ubuntu/proj/wsclean/localdev/hdf5-1.12.2-install/share/hdf5_examples/c/.
++ /usr/bin/install -c ./h5_vds-simpleIO.c /home/ubuntu/proj/wsclean/localdev/hdf5-1.12.2-install/share/hdf5_examples/c/.
+make[1]: Leaving directory '/home/ubuntu/proj/wsclean/localdev/hdf5-hdf5-1_12_2/examples'
+make[1]: Entering directory '/home/ubuntu/proj/wsclean/localdev/hdf5-hdf5-1_12_2/c++'
+make[2]: Entering directory '/home/ubuntu/proj/wsclean/localdev/hdf5-hdf5-1_12_2/c++/examples'
+../../bin/mkdirs /home/ubuntu/proj/wsclean/localdev/hdf5-1.12.2-install/share/hdf5_examples/c++
++ /usr/bin/install -c ./h5_vds-percival.c /home/ubuntu/proj/wsclean/localdev/hdf5-1.12.2-install/share/hdf5_examples/c/.
++ /usr/bin/install -c ./h5_vds-percival-unlim.c /home/ubuntu/proj/wsclean/localdev/hdf5-1.12.2-install/share/hdf5_examples/c/.
++ /usr/bin/install -c ./h5_vds-percival-unlim-maxmin.c /home/ubuntu/proj/wsclean/localdev/hdf5-1.12.2-install/share/hdf5_examples/c/.
++ /usr/bin/install -c run-c-ex.sh /home/ubuntu/proj/wsclean/localdev/hdf5-1.12.2-install/share/hdf5_examples/c/.
++ /usr/bin/install -c ./README /home/ubuntu/proj/wsclean/localdev/hdf5-1.12.2-install/share/hdf5_examples/.
++ /usr/bin/install -c ./run-all-ex.sh /home/ubuntu/proj/wsclean/localdev/hdf5-1.12.2-install/share/hdf5_examples/.
++ /usr/bin/install -c ./create.cpp /home/ubuntu/proj/wsclean/localdev/hdf5-1.12.2-install/share/hdf5_examples/c++/.
++ /usr/bin/install -c ./readdata.cpp /home/ubuntu/proj/wsclean/localdev/hdf5-1.12.2-install/share/hdf5_examples/c++/.
++ /usr/bin/install -c ./writedata.cpp /home/ubuntu/proj/wsclean/localdev/hdf5-1.12.2-install/share/hdf5_examples/c++/.
++ /usr/bin/install -c ./compound.cpp /home/ubuntu/proj/wsclean/localdev/hdf5-1.12.2-install/share/hdf5_examples/c++/.
++ /usr/bin/install -c ./extend_ds.cpp /home/ubuntu/proj/wsclean/localdev/hdf5-1.12.2-install/share/hdf5_examples/c++/.
++ /usr/bin/install -c ./chunks.cpp /home/ubuntu/proj/wsclean/localdev/hdf5-1.12.2-install/share/hdf5_examples/c++/.
++ /usr/bin/install -c ./h5group.cpp /home/ubuntu/proj/wsclean/localdev/hdf5-1.12.2-install/share/hdf5_examples/c++/.
++ /usr/bin/install -c ./h5tutr_cmprss.cpp /home/ubuntu/proj/wsclean/localdev/hdf5-1.12.2-install/share/hdf5_examples/c++/.
++ /usr/bin/install -c ./h5tutr_crtatt.cpp /home/ubuntu/proj/wsclean/localdev/hdf5-1.12.2-install/share/hdf5_examples/c++/.
++ /usr/bin/install -c ./h5tutr_crtdat.cpp /home/ubuntu/proj/wsclean/localdev/hdf5-1.12.2-install/share/hdf5_examples/c++/.
++ /usr/bin/install -c ./h5tutr_crtgrpar.cpp /home/ubuntu/proj/wsclean/localdev/hdf5-1.12.2-install/share/hdf5_examples/c++/.
++ /usr/bin/install -c ./h5tutr_crtgrp.cpp /home/ubuntu/proj/wsclean/localdev/hdf5-1.12.2-install/share/hdf5_examples/c++/.
++ /usr/bin/install -c ./h5tutr_crtgrpd.cpp /home/ubuntu/proj/wsclean/localdev/hdf5-1.12.2-install/share/hdf5_examples/c++/.
++ /usr/bin/install -c ./h5tutr_extend.cpp /home/ubuntu/proj/wsclean/localdev/hdf5-1.12.2-install/share/hdf5_examples/c++/.
++ /usr/bin/install -c ./h5tutr_rdwt.cpp /home/ubuntu/proj/wsclean/localdev/hdf5-1.12.2-install/share/hdf5_examples/c++/.
++ /usr/bin/install -c ./h5tutr_subset.cpp /home/ubuntu/proj/wsclean/localdev/hdf5-1.12.2-install/share/hdf5_examples/c++/.
++ /usr/bin/install -c run-c++-ex.sh /home/ubuntu/proj/wsclean/localdev/hdf5-1.12.2-install/share/hdf5_examples/c++/.
+make[2]: Leaving directory '/home/ubuntu/proj/wsclean/localdev/hdf5-hdf5-1_12_2/c++/examples'
+make[1]: Leaving directory '/home/ubuntu/proj/wsclean/localdev/hdf5-hdf5-1_12_2/c++'
+make[1]: Entering directory '/home/ubuntu/proj/wsclean/localdev/hdf5-hdf5-1_12_2/hl'
+for d in examples c++; do               \
+    (cd $d && make  install-examples) || exit 1;           \
+done
+make[2]: Entering directory '/home/ubuntu/proj/wsclean/localdev/hdf5-hdf5-1_12_2/hl/examples'
+../../bin/mkdirs /home/ubuntu/proj/wsclean/localdev/hdf5-1.12.2-install/share/hdf5_examples/hl/c
++ /usr/bin/install -c ./ex_lite1.c /home/ubuntu/proj/wsclean/localdev/hdf5-1.12.2-install/share/hdf5_examples/hl/c/.
++ /usr/bin/install -c ./ex_lite2.c /home/ubuntu/proj/wsclean/localdev/hdf5-1.12.2-install/share/hdf5_examples/hl/c/.
++ /usr/bin/install -c ./ex_lite3.c /home/ubuntu/proj/wsclean/localdev/hdf5-1.12.2-install/share/hdf5_examples/hl/c/.
++ /usr/bin/install -c ./ptExampleFL.c /home/ubuntu/proj/wsclean/localdev/hdf5-1.12.2-install/share/hdf5_examples/hl/c/.
++ /usr/bin/install -c ./ex_image1.c /home/ubuntu/proj/wsclean/localdev/hdf5-1.12.2-install/share/hdf5_examples/hl/c/.
++ /usr/bin/install -c ./ex_image2.c /home/ubuntu/proj/wsclean/localdev/hdf5-1.12.2-install/share/hdf5_examples/hl/c/.
++ /usr/bin/install -c ./ex_table_01.c /home/ubuntu/proj/wsclean/localdev/hdf5-1.12.2-install/share/hdf5_examples/hl/c/.
++ /usr/bin/install -c ./ex_table_02.c /home/ubuntu/proj/wsclean/localdev/hdf5-1.12.2-install/share/hdf5_examples/hl/c/.
++ /usr/bin/install -c ./ex_table_03.c /home/ubuntu/proj/wsclean/localdev/hdf5-1.12.2-install/share/hdf5_examples/hl/c/.
++ /usr/bin/install -c ./ex_table_04.c /home/ubuntu/proj/wsclean/localdev/hdf5-1.12.2-install/share/hdf5_examples/hl/c/.
++ /usr/bin/install -c ./ex_table_05.c /home/ubuntu/proj/wsclean/localdev/hdf5-1.12.2-install/share/hdf5_examples/hl/c/.
++ /usr/bin/install -c ./ex_table_06.c /home/ubuntu/proj/wsclean/localdev/hdf5-1.12.2-install/share/hdf5_examples/hl/c/.
++ /usr/bin/install -c ./ex_table_07.c /home/ubuntu/proj/wsclean/localdev/hdf5-1.12.2-install/share/hdf5_examples/hl/c/.
++ /usr/bin/install -c ./ex_table_08.c /home/ubuntu/proj/wsclean/localdev/hdf5-1.12.2-install/share/hdf5_examples/hl/c/.
++ /usr/bin/install -c ./ex_table_09.c /home/ubuntu/proj/wsclean/localdev/hdf5-1.12.2-install/share/hdf5_examples/hl/c/.
++ /usr/bin/install -c ./ex_table_10.c /home/ubuntu/proj/wsclean/localdev/hdf5-1.12.2-install/share/hdf5_examples/hl/c/.
++ /usr/bin/install -c ./ex_table_11.c /home/ubuntu/proj/wsclean/localdev/hdf5-1.12.2-install/share/hdf5_examples/hl/c/.
+make[2]: Leaving directory '/home/ubuntu/proj/wsclean/localdev/hdf5-hdf5-1_12_2/hl/examples'
+make[2]: Entering directory '/home/ubuntu/proj/wsclean/localdev/hdf5-hdf5-1_12_2/hl/c++'
++ /usr/bin/install -c ./ex_table_12.c /home/ubuntu/proj/wsclean/localdev/hdf5-1.12.2-install/share/hdf5_examples/hl/c/.
++ /usr/bin/install -c ./ex_ds1.c /home/ubuntu/proj/wsclean/localdev/hdf5-1.12.2-install/share/hdf5_examples/hl/c/.
++ /usr/bin/install -c ./image24pixel.txt /home/ubuntu/proj/wsclean/localdev/hdf5-1.12.2-install/share/hdf5_examples/hl/c/.
++ /usr/bin/install -c ./image8.txt /home/ubuntu/proj/wsclean/localdev/hdf5-1.12.2-install/share/hdf5_examples/hl/c/.
++ /usr/bin/install -c ./pal_rgb.h /home/ubuntu/proj/wsclean/localdev/hdf5-1.12.2-install/share/hdf5_examples/hl/c/.
++ /usr/bin/install -c run-hlc-ex.sh /home/ubuntu/proj/wsclean/localdev/hdf5-1.12.2-install/share/hdf5_examples/hl/c/.
++ /usr/bin/install -c ./run-hl-ex.sh /home/ubuntu/proj/wsclean/localdev/hdf5-1.12.2-install/share/hdf5_examples/hl/.
+make[3]: Entering directory '/home/ubuntu/proj/wsclean/localdev/hdf5-hdf5-1_12_2/hl/c++/examples'
+../../../bin/mkdirs /home/ubuntu/proj/wsclean/localdev/hdf5-1.12.2-install/share/hdf5_examples/hl/c++
+make[3]: Leaving directory '/home/ubuntu/proj/wsclean/localdev/hdf5-hdf5-1_12_2/hl/c++/examples'
+make[2]: Leaving directory '/home/ubuntu/proj/wsclean/localdev/hdf5-hdf5-1_12_2/hl/c++'
+make[1]: Leaving directory '/home/ubuntu/proj/wsclean/localdev/hdf5-hdf5-1_12_2/hl'
++ /usr/bin/install -c ./ptExampleFL.cpp /home/ubuntu/proj/wsclean/localdev/hdf5-1.12.2-install/share/hdf5_examples/hl/c++/.
++ /usr/bin/install -c run-hlc++-ex.sh /home/ubuntu/proj/wsclean/localdev/hdf5-1.12.2-install/share/hdf5_examples/hl/c++/.

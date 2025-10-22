@@ -46,12 +46,7 @@
         "NEO4J_PASSWORD": "demodemo",
         "EMBEDDING_DIM": "768",
         "PYTHONPATH": "/home/ubuntu/proj/mcps/graphiti",
-        "GEMINI_USE_VERTEX": "false",
-        "EMBEDDER_MODEL_NAME": "text-embedding-3-small",
-        "VERTEX_BATCH": "64",
-        "GOOGLE_APPLICATION_CREDENTIALS": "",
-        "GOOGLE_CLOUD_PROJECT": "",
-        "GCLOUD_PROJECT": ""
+        "VERTEX_BATCH": "64"
       }
     },
     "codacy": {

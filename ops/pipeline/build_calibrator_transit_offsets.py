@@ -34,8 +34,11 @@ from dsa110_contimg.calibration.catalogs import (  # type: ignore[import]
     read_vla_parsed_catalog_csv,
     read_vla_parsed_catalog_with_flux,
 )
-from dsa110_contimg.conversion.strategies.uvh5_to_ms_converter import (  # type: ignore[import]
+from dsa110_contimg.conversion.strategies.hdf5_orchestrator import (  # type: ignore[import]
     find_subband_groups,
+)
+from dsa110_contimg.conversion.ms_utils import (  # type: ignore[import]
+    configure_ms_for_imaging,
 )
 # type: ignore[import]
 from dsa110_contimg.conversion.uvh5_to_ms import convert_single_file
@@ -111,25 +114,13 @@ def _write_ms_group_via_uvh5_to_ms(
         convert_single_file(
             sb,
             os.fspath(part_out),
-            add_imaging_columns=False,
+            add_imaging_columns=True,  # Let the single converter handle it
             create_time_binned_fields=False,
             field_time_bin_minutes=5.0,
             write_recommendations=False,
             enable_phasing=True,
             phase_reference_time=None,
         )
-        try:
-            from casacore.tables import addImagingColumns as _addImCols
-            _addImCols(os.fspath(part_out))
-            try:
-                from dsa110_contimg.conversion.uvh5_to_ms import (
-                    _ensure_imaging_columns_populated as _fill_cols,
-                )
-                _fill_cols(os.fspath(part_out))
-            except Exception:
-                pass
-        except Exception:
-            pass
         parts.append(os.fspath(part_out))
 
     if ms_out.exists():
@@ -139,11 +130,8 @@ def _write_ms_group_via_uvh5_to_ms(
         vis=sorted(parts),
         concatvis=os.fspath(ms_out),
         copypointing=False)
-    try:
-        from casacore.tables import addImagingColumns as _addImCols
-        _addImCols(os.fspath(ms_out))
-    except Exception:
-        pass
+    # Final configuration on the concatenated MS
+    configure_ms_for_imaging(os.fspath(ms_out))
     try:
         import shutil as _sh
         _sh.rmtree(part_base, ignore_errors=True)
@@ -301,6 +289,9 @@ def main() -> int:
     try:
         flux = _load_flux_jy(args.name, args.catalog, band='20cm')
         if flux is not None and flux > 0:
+            # Run clearcal to ensure MODEL_DATA is writeable
+            from casatasks import clearcal
+            clearcal(vis=os.fspath(central_ms), addmodel=True)
             try:
                 from casatasks import setjy as casa_setjy
                 casa_setjy(
@@ -401,22 +392,11 @@ def main() -> int:
             if not ms_out.is_dir():
                 print(f'Converting {gid} -> {ms_out}')
                 _write_ms_group_via_uvh5_to_ms(g, ms_out)
+            else:
+                # Always re-configure if the MS exists to ensure it's ready
+                print(f'Configuring existing MS for imaging: {ms_out}')
+                configure_ms_for_imaging(os.fspath(ms_out))
 
-        # Ensure scratch columns exist and are initialized to avoid TSM errors
-        try:
-            from casacore.tables import table as _tb, addImagingColumns as _addImCols
-            with _tb(os.fspath(ms_out)) as t:
-                cols = set(t.colnames())
-            if 'MODEL_DATA' not in cols or 'CORRECTED_DATA' not in cols:
-                print('Adding imaging columns (MODEL_DATA, CORRECTED_DATA) ...')
-                _addImCols(os.fspath(ms_out))
-        except Exception as e:
-            print('addImagingColumns warning (group):', e)
-        try:
-            from casatasks import clearcal as _clearcal
-            _clearcal(vis=os.fspath(ms_out), addmodel=True)
-        except Exception as e:
-            print('clearcal warning (group):', e)
             print(f'Applying calibration to {ms_out} ...')
             try:
                 apply_to_target(
@@ -424,8 +404,18 @@ def main() -> int:
                     field='',
                     gaintables=apply_list,
                     calwt=True)
+                # Verify that applycal did something
+                from casacore.tables import table
+                with table(os.fspath(ms_out), readonly=True) as t:
+                    corrected = t.getcol('CORRECTED_DATA')
+                if np.all(corrected == 0):
+                    raise RuntimeError(
+                        "CORRECTED_DATA is all zeros after applycal"
+                    )
             except Exception as e:
-                print(f'applycal warning for {ms_out}: {e}')
+                print(f'FATAL: applycal failed for {ms_out}: {e}')
+                continue  # Skip to next group
+
             img_base = out_dir / f'{gid}.img'
             print(f'Imaging {ms_out} -> {img_base} ...')
             # Compute calibrator phasecenter if requested

@@ -119,6 +119,12 @@ def cmd_build(args: argparse.Namespace) -> int:
         from casatasks import immath
         expr = f"({'+'.join([f'IM{i}' for i in range(len(tiles))])})/{len(tiles)}"
         immath(imagename=tiles, expr=expr, outfile=str(out))
+        # Export FITS for the mosaic image for downstream photometry
+        try:
+            from casatasks import exportfits
+            exportfits(imagename=str(out), fitsimage=str(out) + ".fits", overwrite=True)
+        except Exception as exc:
+            print(f"exportfits warning: {exc}")
         with ensure_products_db(pdb) as conn:
             conn.execute("UPDATE mosaics SET status='built', output_path=? WHERE name=?", (str(out), name))
             conn.commit()
@@ -160,4 +166,3 @@ def main(argv: Optional[List[str]] = None) -> int:
 
 if __name__ == '__main__':  # pragma: no cover
     raise SystemExit(main())
-
