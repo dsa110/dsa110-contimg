@@ -299,4 +299,7 @@ class QueueDB:
                    SET state = 'in_progress',
                        last_update = ?
                  WHERE group_id = ?
-                """
+                """,
+                (now, group_id),
+            )
+            return group_id

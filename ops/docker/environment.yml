@@ -1,11 +1,12 @@
 name: contimg
 channels:
   - conda-forge
-  - casa-dev
 dependencies:
   - python=3.11
   - pip
-  - casa6
+  - casatools
+  - casatasks
+  - casaconfig
   - python-casacore
   - pyuvdata
   - astropy
