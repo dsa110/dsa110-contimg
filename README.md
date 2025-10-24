@@ -196,9 +196,10 @@ The DSA-110 pipeline has been transformed from a basic, monolithic system into a
 - Architecture
   - docs/architecture/README.md
   - docs/architecture/phase3_features.md
-- Development (MS creation)
+- Development
   - docs/development/ms_creation/README.md
   - docs/development/ms_creation/issues_and_fixes.md
+  - docs/development/GITHUB_WEBHOOKS.md - GitHub Webhooks Setup Guide
 - Organization
   - docs/organization/README.md
   - docs/organization/directory_structure.md
