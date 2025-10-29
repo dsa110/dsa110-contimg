@@ -1,5 +1,0 @@
-# CASA configuration for DSA-110 pipeline
-# Log directory: /data/jfaber/dsa110-contimg/casalogs
-logfile = '/data/jfaber/dsa110-contimg/casalogs/casa.log'
-logdir = '/data/jfaber/dsa110-contimg/casalogs'
-

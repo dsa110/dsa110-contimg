@@ -144,6 +144,12 @@ state/
 .gemini/
 .codacy/
 
+# Editor/tool-specific directories to ignore
+.codex/
+
+# CASA local cache/config
+.casa/
+
 # Python virtual environments
 .venv/
 venv/
