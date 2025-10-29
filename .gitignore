@@ -138,6 +138,8 @@ state/
 !.cursor/rules/
 .cursor/rules/codacy.mdc
 .cursor/rules/kluster-code-verify.mdc
+.cursorignore
+.cursorrules
 
 # Other AI tool directories
 .serena/
