@@ -186,3 +186,7 @@ site/
 
 # Process IDs and lock files
 *.pid
+
+# Top-level markdown files (keep only README.md in repo)
+/*.md
+!/README.md
