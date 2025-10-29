@@ -22,7 +22,7 @@ class ApiConfig:
 
         base_state = Path(os.getenv("PIPELINE_STATE_DIR", "state"))
         registry_default = base_state / "cal_registry.sqlite3"
-        queue_default = base_state / "streaming_queue.sqlite3"
+        queue_default = base_state / "ingest.sqlite3"
         products_default = base_state / "products.sqlite3"
 
         return cls(
@@ -31,5 +31,4 @@ class ApiConfig:
             products_db=Path(os.getenv("PIPELINE_PRODUCTS_DB", products_default)),
             expected_subbands=int(os.getenv("PIPELINE_EXPECTED_SUBBANDS", "16")),
         )
-
 

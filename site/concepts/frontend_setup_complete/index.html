@@ -1,0 +1,2237 @@
+
+<!doctype html>
+<html lang="en" class="no-js">
+  <head>
+    
+      <meta charset="utf-8">
+      <meta name="viewport" content="width=device-width,initial-scale=1">
+      
+      
+      
+        <link rel="canonical" href="https://dsa110-contimg.github.io/dsa110-contimg/concepts/frontend_setup_complete/">
+      
+      
+      
+      
+      <link rel="icon" href="../../assets/images/favicon.png">
+      <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.6.21">
+    
+    
+      
+        <title>DSA-110 Frontend Setup - Complete ✓ - DSA-110 Continuum Imaging Pipeline</title>
+      
+    
+    
+      <link rel="stylesheet" href="../../assets/stylesheets/main.2a3383ac.min.css">
+      
+      
+
+
+    
+    
+      
+    
+    
+      
+        
+        
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+        <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Roboto:300,300i,400,400i,700,700i%7CRoboto+Mono:400,400i,700,700i&display=fallback">
+        <style>:root{--md-text-font:"Roboto";--md-code-font:"Roboto Mono"}</style>
+      
+    
+    
+      <link rel="stylesheet" href="../../assets/_mkdocstrings.css">
+    
+    <script>__md_scope=new URL("../..",location),__md_hash=e=>[...e].reduce(((e,_)=>(e<<5)-e+_.charCodeAt(0)),0),__md_get=(e,_=localStorage,t=__md_scope)=>JSON.parse(_.getItem(t.pathname+"."+e)),__md_set=(e,_,t=localStorage,a=__md_scope)=>{try{t.setItem(a.pathname+"."+e,JSON.stringify(_))}catch(e){}}</script>
+    
+      
+
+    
+    
+    
+  </head>
+  
+  
+    <body dir="ltr">
+  
+    
+    <input class="md-toggle" data-md-toggle="drawer" type="checkbox" id="__drawer" autocomplete="off">
+    <input class="md-toggle" data-md-toggle="search" type="checkbox" id="__search" autocomplete="off">
+    <label class="md-overlay" for="__drawer"></label>
+    <div data-md-component="skip">
+      
+        
+        <a href="#dsa-110-frontend-setup-complete" class="md-skip">
+          Skip to content
+        </a>
+      
+    </div>
+    <div data-md-component="announce">
+      
+    </div>
+    
+    
+      
+
+  
+
+<header class="md-header md-header--shadow" data-md-component="header">
+  <nav class="md-header__inner md-grid" aria-label="Header">
+    <a href="../.." title="DSA-110 Continuum Imaging Pipeline" class="md-header__button md-logo" aria-label="DSA-110 Continuum Imaging Pipeline" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"/></svg>
+
+    </a>
+    <label class="md-header__button md-icon" for="__drawer">
+      
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M3 6h18v2H3zm0 5h18v2H3zm0 5h18v2H3z"/></svg>
+    </label>
+    <div class="md-header__title" data-md-component="header-title">
+      <div class="md-header__ellipsis">
+        <div class="md-header__topic">
+          <span class="md-ellipsis">
+            DSA-110 Continuum Imaging Pipeline
+          </span>
+        </div>
+        <div class="md-header__topic" data-md-component="header-topic">
+          <span class="md-ellipsis">
+            
+              DSA-110 Frontend Setup - Complete ✓
+            
+          </span>
+        </div>
+      </div>
+    </div>
+    
+    
+      <script>var palette=__md_get("__palette");if(palette&&palette.color){if("(prefers-color-scheme)"===palette.color.media){var media=matchMedia("(prefers-color-scheme: light)"),input=document.querySelector(media.matches?"[data-md-color-media='(prefers-color-scheme: light)']":"[data-md-color-media='(prefers-color-scheme: dark)']");palette.color.media=input.getAttribute("data-md-color-media"),palette.color.scheme=input.getAttribute("data-md-color-scheme"),palette.color.primary=input.getAttribute("data-md-color-primary"),palette.color.accent=input.getAttribute("data-md-color-accent")}for(var[key,value]of Object.entries(palette.color))document.body.setAttribute("data-md-color-"+key,value)}</script>
+    
+    
+    
+      
+      
+        <label class="md-header__button md-icon" for="__search">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        </label>
+        <div class="md-search" data-md-component="search" role="dialog">
+  <label class="md-search__overlay" for="__search"></label>
+  <div class="md-search__inner" role="search">
+    <form class="md-search__form" name="search">
+      <input type="text" class="md-search__input" name="query" aria-label="Search" placeholder="Search" autocapitalize="off" autocorrect="off" autocomplete="off" spellcheck="false" data-md-component="search-query" required>
+      <label class="md-search__icon md-icon" for="__search">
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11z"/></svg>
+      </label>
+      <nav class="md-search__options" aria-label="Search">
+        
+        <button type="reset" class="md-search__icon md-icon" title="Clear" aria-label="Clear" tabindex="-1">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M19 6.41 17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg>
+        </button>
+      </nav>
+      
+    </form>
+    <div class="md-search__output">
+      <div class="md-search__scrollwrap" tabindex="0" data-md-scrollfix>
+        <div class="md-search-result" data-md-component="search-result">
+          <div class="md-search-result__meta">
+            Initializing search
+          </div>
+          <ol class="md-search-result__list" role="presentation"></ol>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+      
+    
+    
+      <div class="md-header__source">
+        <a href="https://github.com/dsa110/dsa110-contimg" title="Go to repository" class="md-source" data-md-component="source">
+  <div class="md-source__icon md-icon">
+    
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><!--! Font Awesome Free 7.0.1 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2025 Fonticons, Inc.--><path d="M439.6 236.1 244 40.5c-5.4-5.5-12.8-8.5-20.4-8.5s-15 3-20.4 8.4L162.5 81l51.5 51.5c27.1-9.1 52.7 16.8 43.4 43.7l49.7 49.7c34.2-11.8 61.2 31 35.5 56.7-26.5 26.5-70.2-2.9-56-37.3L240.3 199v121.9c25.3 12.5 22.3 41.8 9.1 55-6.4 6.4-15.2 10.1-24.3 10.1s-17.8-3.6-24.3-10.1c-17.6-17.6-11.1-46.9 11.2-56v-123c-20.8-8.5-24.6-30.7-18.6-45L142.6 101 8.5 235.1C3 240.6 0 247.9 0 255.5s3 15 8.5 20.4l195.6 195.7c5.4 5.4 12.7 8.4 20.4 8.4s15-3 20.4-8.4l194.7-194.7c5.4-5.4 8.4-12.8 8.4-20.4s-3-15-8.4-20.4"/></svg>
+  </div>
+  <div class="md-source__repository">
+    GitHub
+  </div>
+</a>
+      </div>
+    
+  </nav>
+  
+</header>
+    
+    <div class="md-container" data-md-component="container">
+      
+      
+        
+          
+        
+      
+      <main class="md-main" data-md-component="main">
+        <div class="md-main__inner md-grid">
+          
+            
+              
+              <div class="md-sidebar md-sidebar--primary" data-md-component="sidebar" data-md-type="navigation" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+
+
+<nav class="md-nav md-nav--primary" aria-label="Navigation" data-md-level="0">
+  <label class="md-nav__title" for="__drawer">
+    <a href="../.." title="DSA-110 Continuum Imaging Pipeline" class="md-nav__button md-logo" aria-label="DSA-110 Continuum Imaging Pipeline" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"/></svg>
+
+    </a>
+    DSA-110 Continuum Imaging Pipeline
+  </label>
+  
+    <div class="md-nav__source">
+      <a href="https://github.com/dsa110/dsa110-contimg" title="Go to repository" class="md-source" data-md-component="source">
+  <div class="md-source__icon md-icon">
+    
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><!--! Font Awesome Free 7.0.1 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2025 Fonticons, Inc.--><path d="M439.6 236.1 244 40.5c-5.4-5.5-12.8-8.5-20.4-8.5s-15 3-20.4 8.4L162.5 81l51.5 51.5c27.1-9.1 52.7 16.8 43.4 43.7l49.7 49.7c34.2-11.8 61.2 31 35.5 56.7-26.5 26.5-70.2-2.9-56-37.3L240.3 199v121.9c25.3 12.5 22.3 41.8 9.1 55-6.4 6.4-15.2 10.1-24.3 10.1s-17.8-3.6-24.3-10.1c-17.6-17.6-11.1-46.9 11.2-56v-123c-20.8-8.5-24.6-30.7-18.6-45L142.6 101 8.5 235.1C3 240.6 0 247.9 0 255.5s3 15 8.5 20.4l195.6 195.7c5.4 5.4 12.7 8.4 20.4 8.4s15-3 20.4-8.4l194.7-194.7c5.4-5.4 8.4-12.8 8.4-20.4s-3-15-8.4-20.4"/></svg>
+  </div>
+  <div class="md-source__repository">
+    GitHub
+  </div>
+</a>
+    </div>
+  
+  <ul class="md-nav__list" data-md-scrollfix>
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../.." class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Home
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../quickstart/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Quick Start
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../quickstart_dashboard/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Dashboard Quick Start
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../pipeline/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Pipeline Visuals
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+      
+        
+      
+        
+      
+        
+      
+    
+    
+    
+      
+        
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--section md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_5" >
+        
+          
+          <label class="md-nav__link" for="__nav_5" id="__nav_5_label" tabindex="">
+            
+  
+  
+  <span class="md-ellipsis">
+    Tutorials
+    
+  </span>
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_5_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_5">
+            <span class="md-nav__icon md-icon"></span>
+            Tutorials
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../tutorials/streaming/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    End-to-End Streaming
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../tutorials/convert-standalone/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Convert UVH5 → MS (Standalone)
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../tutorials/calibrate-apply/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Calibrate + Apply
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+      
+        
+      
+        
+      
+    
+    
+    
+      
+        
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--section md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_6" >
+        
+          
+          <label class="md-nav__link" for="__nav_6" id="__nav_6_label" tabindex="">
+            
+  
+  
+  <span class="md-ellipsis">
+    How-To Guides
+    
+  </span>
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_6_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_6">
+            <span class="md-nav__icon md-icon"></span>
+            How-To Guides
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../howto/reprocess/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Reprocess a Group
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../howto/mosaic/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Build Nightly Mosaic
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+      
+        
+      
+    
+    
+    
+      
+        
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--section md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_7" >
+        
+          
+          <label class="md-nav__link" for="__nav_7" id="__nav_7_label" tabindex="">
+            
+  
+  
+  <span class="md-ellipsis">
+    Science
+    
+  </span>
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_7_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_7">
+            <span class="md-nav__icon md-icon"></span>
+            Science
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../science/photometry_normalization/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Photometry Normalization
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+    
+    
+    
+      
+        
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--section md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_8" >
+        
+          
+          <label class="md-nav__link" for="__nav_8" id="__nav_8_label" tabindex="">
+            
+  
+  
+  <span class="md-ellipsis">
+    Guides
+    
+  </span>
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_8_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_8">
+            <span class="md-nav__icon md-icon"></span>
+            Guides
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../downsampling_guide/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Downsampling Guide
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../pipeline/README_uvh5_to_ms/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Pipeline: UVH5 → MS
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../pipeline/streaming_converter_README/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Pipeline: Streaming Converter
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../guides/dashboard/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Dashboard User Guide
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../guides/dashboard_development/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Dashboard Development
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+      
+        
+      
+        
+      
+        
+      
+        
+      
+    
+    
+    
+      
+        
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--section md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_9" >
+        
+          
+          <label class="md-nav__link" for="__nav_9" id="__nav_9_label" tabindex="">
+            
+  
+  
+  <span class="md-ellipsis">
+    Concepts
+    
+  </span>
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_9_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_9">
+            <span class="md-nav__icon md-icon"></span>
+            Concepts
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../architecture/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Architecture
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../frontend_design/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Front-End Design Strategy
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../dashboard_mockups/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    UI Mockups & Specifications
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../frontend_next_steps/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Implementation Guide
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+      
+        
+      
+        
+      
+        
+      
+        
+      
+    
+    
+    
+      
+        
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--section md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_10" >
+        
+          
+          <label class="md-nav__link" for="__nav_10" id="__nav_10_label" tabindex="">
+            
+  
+  
+  <span class="md-ellipsis">
+    Reference
+    
+  </span>
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_10_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_10">
+            <span class="md-nav__icon md-icon"></span>
+            Reference
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../reference/cli/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    CLI
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../reference/api/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    API
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../reference/env/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Environment
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../reference/modules/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Modules
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+    
+    
+    
+      
+        
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--section md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_11" >
+        
+          
+          <label class="md-nav__link" for="__nav_11" id="__nav_11_label" tabindex="">
+            
+  
+  
+  <span class="md-ellipsis">
+    Reports
+    
+  </span>
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_11_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_11">
+            <span class="md-nav__icon md-icon"></span>
+            Reports
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../reports/CONTINUOUS_PIPELINE_ROADMAP/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Continuous Pipeline Roadmap
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../reports/CONVERSION_PROCESS_SUMMARY/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Conversion Process Summary
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../reports/DSA110_SUBBAND_UPDATE_SUMMARY/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Subband Update Summary
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../reports/PYUVDATA_3.2.4_COMPATIBILITY_SUMMARY/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    PyUVData 3.2.4 Compatibility
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../reports/REBUILD_CASA6_ENVIRONMENT/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Rebuild CASA6 Environment
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+      
+        
+          
+        
+      
+        
+      
+    
+    
+    
+      
+        
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--section md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_12" >
+        
+          
+          <div class="md-nav__link md-nav__container">
+            <a href="../../simulation/" class="md-nav__link ">
+              
+  
+  
+  <span class="md-ellipsis">
+    Simulation
+    
+  </span>
+  
+
+            </a>
+            
+              
+              <label class="md-nav__link " for="__nav_12" id="__nav_12_label" tabindex="">
+                <span class="md-nav__icon md-icon"></span>
+              </label>
+            
+          </div>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_12_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_12">
+            <span class="md-nav__icon md-icon"></span>
+            Simulation
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../simulation/PHASE1_SUMMARY/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Phase 1 Summary
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../troubleshooting/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Troubleshooting
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+      
+        
+      
+        
+      
+    
+    
+    
+      
+        
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--section md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_14" >
+        
+          
+          <label class="md-nav__link" for="__nav_14" id="__nav_14_label" tabindex="">
+            
+  
+  
+  <span class="md-ellipsis">
+    Operations
+    
+  </span>
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_14_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_14">
+            <span class="md-nav__icon md-icon"></span>
+            Operations
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../ops/deploy-systemd/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Deploy with systemd
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../ops/deploy-docker/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Deploy with Docker
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../legacy-overview/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Legacy Overview
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+    
+  </ul>
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+            
+              
+              <div class="md-sidebar md-sidebar--secondary" data-md-component="sidebar" data-md-type="toc" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#what-was-accomplished" class="md-nav__link">
+    <span class="md-ellipsis">
+      What Was Accomplished
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="What Was Accomplished">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#1-database-schema-design-migration" class="md-nav__link">
+    <span class="md-ellipsis">
+      1. Database Schema Design &amp; Migration ✓
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#2-react-typescript-project-structure" class="md-nav__link">
+    <span class="md-ellipsis">
+      2. React + TypeScript Project Structure ✓
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#3-functional-dashboard-page" class="md-nav__link">
+    <span class="md-ellipsis">
+      3. Functional Dashboard Page ✓
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#design-decisions-finalized" class="md-nav__link">
+    <span class="md-ellipsis">
+      Design Decisions Finalized
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#tech-stack-rationale" class="md-nav__link">
+    <span class="md-ellipsis">
+      Tech Stack Rationale
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Tech Stack Rationale">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#why-casa6-conda-environment" class="md-nav__link">
+    <span class="md-ellipsis">
+      Why casa6 conda environment?
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#why-stack-instead-of-grid" class="md-nav__link">
+    <span class="md-ellipsis">
+      Why Stack instead of Grid?
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#why-sqlite-over-postgresql" class="md-nav__link">
+    <span class="md-ellipsis">
+      Why SQLite over PostgreSQL?
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#next-steps-priority-order" class="md-nav__link">
+    <span class="md-ellipsis">
+      Next Steps (Priority Order)
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Next Steps (Priority Order)">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#phase-1-core-dashboards-this-week" class="md-nav__link">
+    <span class="md-ellipsis">
+      Phase 1: Core Dashboards (This Week)
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#phase-2-source-monitoring-weeks-2-3" class="md-nav__link">
+    <span class="md-ellipsis">
+      Phase 2: Source Monitoring (Weeks 2-3)
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#phase-3-advanced-features-weeks-4-6" class="md-nav__link">
+    <span class="md-ellipsis">
+      Phase 3: Advanced Features (Weeks 4-6)
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#how-to-run" class="md-nav__link">
+    <span class="md-ellipsis">
+      How to Run
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="How to Run">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#development" class="md-nav__link">
+    <span class="md-ellipsis">
+      Development
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#production-build" class="md-nav__link">
+    <span class="md-ellipsis">
+      Production Build
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#serve-with-fastapi" class="md-nav__link">
+    <span class="md-ellipsis">
+      Serve with FastAPI
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#troubleshooting" class="md-nav__link">
+    <span class="md-ellipsis">
+      Troubleshooting
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Troubleshooting">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#frontend-wont-build" class="md-nav__link">
+    <span class="md-ellipsis">
+      Frontend won't build
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#api-connection-errors" class="md-nav__link">
+    <span class="md-ellipsis">
+      API connection errors
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#database-migration-issues" class="md-nav__link">
+    <span class="md-ellipsis">
+      Database migration issues
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#files-createdmodified" class="md-nav__link">
+    <span class="md-ellipsis">
+      Files Created/Modified
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Files Created/Modified">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#documentation" class="md-nav__link">
+    <span class="md-ellipsis">
+      Documentation
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#database" class="md-nav__link">
+    <span class="md-ellipsis">
+      Database
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#frontend" class="md-nav__link">
+    <span class="md-ellipsis">
+      Frontend
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#success-metrics" class="md-nav__link">
+    <span class="md-ellipsis">
+      Success Metrics
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#ubuntu-18x-compatibility-notes" class="md-nav__link">
+    <span class="md-ellipsis">
+      Ubuntu 18.x Compatibility Notes
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#whats-left-to-build" class="md-nav__link">
+    <span class="md-ellipsis">
+      What's Left to Build
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="What&#39;s Left to Build">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#backend-api-endpoints-needed" class="md-nav__link">
+    <span class="md-ellipsis">
+      Backend API Endpoints Needed
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#frontend-components-needed" class="md-nav__link">
+    <span class="md-ellipsis">
+      Frontend Components Needed
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#summary" class="md-nav__link">
+    <span class="md-ellipsis">
+      Summary
+    </span>
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+          
+          
+            <div class="md-content" data-md-component="content">
+              <article class="md-content__inner md-typeset">
+                
+                  
+
+
+  
+  
+
+
+<h1 id="dsa-110-frontend-setup-complete">DSA-110 Frontend Setup - Complete ✓<a class="headerlink" href="#dsa-110-frontend-setup-complete" title="Permanent link">&para;</a></h1>
+<p><strong>Date</strong>: 2025-10-24<br />
+<strong>Status</strong>: Database schema migrated, React project initialized and building successfully</p>
+<hr />
+<h2 id="what-was-accomplished">What Was Accomplished<a class="headerlink" href="#what-was-accomplished" title="Permanent link">&para;</a></h2>
+<h3 id="1-database-schema-design-migration">1. Database Schema Design &amp; Migration ✓<a class="headerlink" href="#1-database-schema-design-migration" title="Permanent link">&para;</a></h3>
+<p><strong>Created comprehensive schema</strong> for frontend requirements in <code>products.sqlite3</code>:</p>
+<div class="highlight"><pre><span></span><code><span class="err">✓</span><span class="w"> </span><span class="n">variability_stats</span><span class="w">     </span><span class="o">-</span><span class="w"> </span><span class="n">Pre</span><span class="o">-</span><span class="n">computed</span><span class="w"> </span><span class="k">source</span><span class="w"> </span><span class="n">variability</span><span class="w"> </span><span class="k">statistics</span>
+<span class="err">✓</span><span class="w"> </span><span class="n">ese_candidates</span><span class="w">        </span><span class="o">-</span><span class="w"> </span><span class="n">Auto</span><span class="o">-</span><span class="n">flagged</span><span class="w"> </span><span class="n">ESE</span><span class="w"> </span><span class="n">candidates</span><span class="w"> </span><span class="p">(</span><span class="o">&gt;</span><span class="mi">5</span><span class="err">σ</span><span class="w"> </span><span class="n">threshold</span><span class="p">)</span>
+<span class="err">✓</span><span class="w"> </span><span class="n">mosaics</span><span class="w">               </span><span class="o">-</span><span class="w"> </span><span class="n">Metadata</span><span class="w"> </span><span class="k">for</span><span class="w"> </span><span class="n">hour</span><span class="o">-</span><span class="n">long</span><span class="w"> </span><span class="n">mosaic</span><span class="w"> </span><span class="n">images</span>
+<span class="err">✓</span><span class="w"> </span><span class="n">alert_history</span><span class="w">         </span><span class="o">-</span><span class="w"> </span><span class="n">Slack</span><span class="w"> </span><span class="n">alert</span><span class="w"> </span><span class="n">log</span>
+<span class="err">✓</span><span class="w"> </span><span class="n">photometry</span><span class="w">            </span><span class="o">-</span><span class="w"> </span><span class="n">Extended</span><span class="w"> </span><span class="k">with</span><span class="w"> </span><span class="n">source_id</span><span class="p">,</span><span class="w"> </span><span class="n">MJD</span><span class="p">,</span><span class="w"> </span><span class="n">SNR</span><span class="w"> </span><span class="n">fields</span>
+<span class="err">✓</span><span class="w"> </span><span class="n">images</span><span class="w">                </span><span class="o">-</span><span class="w"> </span><span class="n">Extended</span><span class="w"> </span><span class="k">with</span><span class="w"> </span><span class="n">format</span><span class="p">,</span><span class="w"> </span><span class="n">center</span><span class="w"> </span><span class="n">coords</span><span class="p">,</span><span class="w"> </span><span class="n">field_name</span>
+<span class="err">✓</span><span class="w"> </span><span class="n">ms_index</span><span class="w">              </span><span class="o">-</span><span class="w"> </span><span class="n">Extended</span><span class="w"> </span><span class="k">with</span><span class="w"> </span><span class="n">field_name</span><span class="p">,</span><span class="w"> </span><span class="n">pointing</span><span class="w"> </span><span class="n">coords</span>
+</code></pre></div>
+<p><strong>Migration script</strong> (<code>src/dsa110_contimg/database/migrations.py</code>):
+- Safe to run multiple times (IF NOT EXISTS)
+- Adds missing columns to existing tables
+- Creates indices for efficient queries
+- Successfully executed on <code>/data/dsa110-contimg/state/products.sqlite3</code></p>
+<p><strong>Documentation</strong>: <code>/docs/reference/database_schema.md</code> (complete schema reference)</p>
+<h3 id="2-react-typescript-project-structure">2. React + TypeScript Project Structure ✓<a class="headerlink" href="#2-react-typescript-project-structure" title="Permanent link">&para;</a></h3>
+<p><strong>Initialized with Vite</strong> using Node v22.6.0 from <code>casa6</code> conda environment:</p>
+<div class="highlight"><pre><span></span><code>Location:<span class="w"> </span>/data/dsa110-contimg/frontend/
+Build<span class="w"> </span>tool:<span class="w"> </span>Vite<span class="w"> </span><span class="m">7</span>
+Framework:<span class="w"> </span>React<span class="w"> </span><span class="m">18</span><span class="w"> </span>+<span class="w"> </span>TypeScript
+Status:<span class="w"> </span>✓<span class="w"> </span>Builds<span class="w"> </span>successfully<span class="w"> </span><span class="o">(</span>dist/<span class="w"> </span>created<span class="o">)</span>
+</code></pre></div>
+<p><strong>Dependencies installed</strong>:
+- Material-UI v7.3.4 (dark mode optimized)
+- TanStack React Query (API state management)
+- Axios (HTTP client)
+- React Router v6 (navigation)
+- Plotly.js, D3.js (visualization - ready for use)
+- AG Grid (tables - ready for use)</p>
+<p><strong>Project structure created</strong>:
+<div class="highlight"><pre><span></span><code>frontend/src/
+├── api/
+│   ├── client.ts       ✓ Axios instance configured
+│   ├── types.ts        ✓ TypeScript interfaces matching backend
+│   └── queries.ts      ✓ React Query hooks with 10s polling
+├── components/         ✓ Directory structure ready
+│   ├── Dashboard/
+│   ├── Sky/
+│   ├── Sources/
+│   ├── Observing/
+│   ├── Health/
+│   └── shared/
+├── pages/
+│   └── DashboardPage.tsx  ✓ Functional dashboard implemented
+├── theme/
+│   └── darkTheme.ts    ✓ Dark mode theme (optimized for astronomy)
+├── utils/              ✓ Ready for formatters, calculations
+├── App.tsx             ✓ Routing &amp; providers configured
+└── main.tsx            ✓ Entry point
+</code></pre></div></p>
+<h3 id="3-functional-dashboard-page">3. Functional Dashboard Page ✓<a class="headerlink" href="#3-functional-dashboard-page" title="Permanent link">&para;</a></h3>
+<p><strong>Implemented features</strong>:
+- Pipeline Status panel (queue stats, calibration sets)
+- System Health panel (CPU, memory, disk, load average)
+- Recent Observations table
+- Real-time polling (10s refresh via React Query)
+- Error handling &amp; loading states
+- Fully responsive layout (Stack-based, MUI)</p>
+<p><strong>API Integration</strong>:
+- <code>usePipelineStatus()</code> - Polls <code>/api/status</code>
+- <code>useSystemMetrics()</code> - Polls <code>/api/metrics/system</code>
+- Graceful error handling when API unavailable</p>
+<p><strong>View the dashboard</strong>:
+<div class="highlight"><pre><span></span><code><span class="c1"># Start dev server</span>
+<span class="nb">cd</span><span class="w"> </span>/data/dsa110-contimg/frontend
+conda<span class="w"> </span>run<span class="w"> </span>-n<span class="w"> </span>casa6<span class="w"> </span>npm<span class="w"> </span>run<span class="w"> </span>dev
+
+<span class="c1"># Access at http://localhost:5173</span>
+</code></pre></div></p>
+<hr />
+<h2 id="design-decisions-finalized">Design Decisions Finalized<a class="headerlink" href="#design-decisions-finalized" title="Permanent link">&para;</a></h2>
+<table>
+<thead>
+<tr>
+<th>Decision</th>
+<th>Choice</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>Source naming</strong></td>
+<td>NVSS IDs (e.g., "NVSS J123456.7+420312")</td>
+</tr>
+<tr>
+<td><strong>ESE threshold</strong></td>
+<td>5σ auto-flagging (χ²_ν &gt; 5 or flux deviation &gt; 5σ)</td>
+</tr>
+<tr>
+<td><strong>Alerts</strong></td>
+<td>In-app visual panel + Slack webhooks (Phase 2)</td>
+</tr>
+<tr>
+<td><strong>Data retention</strong></td>
+<td>Persistent (no expiration)</td>
+</tr>
+<tr>
+<td><strong>Mosaic UI</strong></td>
+<td>Display existing mosaics (no user generation UI for now)</td>
+</tr>
+<tr>
+<td><strong>Current priority</strong></td>
+<td>Query/display hour-long pre-generated mosaics</td>
+</tr>
+</tbody>
+</table>
+<hr />
+<h2 id="tech-stack-rationale">Tech Stack Rationale<a class="headerlink" href="#tech-stack-rationale" title="Permanent link">&para;</a></h2>
+<h3 id="why-casa6-conda-environment">Why casa6 conda environment?<a class="headerlink" href="#why-casa6-conda-environment" title="Permanent link">&para;</a></h3>
+<p><strong>Problem</strong>: Ubuntu 18.x (cannot upgrade OS)<br />
+<strong>Solution</strong>: casa6 has Node v22.6.0 - modern enough for React + Vite<br />
+<strong>Result</strong>: Builds successfully despite minor version warning</p>
+<h3 id="why-stack-instead-of-grid">Why Stack instead of Grid?<a class="headerlink" href="#why-stack-instead-of-grid" title="Permanent link">&para;</a></h3>
+<p><strong>Problem</strong>: MUI v7 changed Grid API, Grid2 not fully exported<br />
+<strong>Solution</strong>: Use Stack for flexible layouts (cleaner, modern API)<br />
+<strong>Result</strong>: Responsive, type-safe, simpler code</p>
+<h3 id="why-sqlite-over-postgresql">Why SQLite over PostgreSQL?<a class="headerlink" href="#why-sqlite-over-postgresql" title="Permanent link">&para;</a></h3>
+<p><strong>Current</strong>: Photometry data manageable in SQLite<br />
+<strong>Future</strong>: Migrate to Postgres if &gt;100M measurements or multi-user needs</p>
+<hr />
+<h2 id="next-steps-priority-order">Next Steps (Priority Order)<a class="headerlink" href="#next-steps-priority-order" title="Permanent link">&para;</a></h2>
+<h3 id="phase-1-core-dashboards-this-week">Phase 1: Core Dashboards (This Week)<a class="headerlink" href="#phase-1-core-dashboards-this-week" title="Permanent link">&para;</a></h3>
+<ol>
+<li><strong>ESE Candidates Panel</strong> - Query <code>ese_candidates</code> table, display &gt;5σ sources</li>
+<li><strong>Mosaic Gallery</strong> - Query <code>mosaics</code> table, display thumbnails</li>
+<li><strong>System Health Charts</strong> - Add Plotly time-series for CPU/mem/disk</li>
+</ol>
+<h3 id="phase-2-source-monitoring-weeks-2-3">Phase 2: Source Monitoring (Weeks 2-3)<a class="headerlink" href="#phase-2-source-monitoring-weeks-2-3" title="Permanent link">&para;</a></h3>
+<ol>
+<li><strong>Source Table</strong> - AG Grid with NVSS IDs, variability stats</li>
+<li><strong>Source Detail View</strong> - Flux timeseries plot (Plotly)</li>
+<li><strong>Backend endpoint</strong>: <code>GET /api/ese_candidates</code></li>
+<li><strong>Backend endpoint</strong>: <code>GET /api/mosaics?limit=20</code></li>
+<li><strong>Backend endpoint</strong>: <code>GET /api/sources?sort=variability&amp;limit=100</code></li>
+</ol>
+<h3 id="phase-3-advanced-features-weeks-4-6">Phase 3: Advanced Features (Weeks 4-6)<a class="headerlink" href="#phase-3-advanced-features-weeks-4-6" title="Permanent link">&para;</a></h3>
+<ol>
+<li><strong>Slack integration</strong> - Webhook alerts for &gt;5σ events</li>
+<li><strong>Sky page</strong> - Image gallery, FITS viewer</li>
+<li><strong>Observing page</strong> - Telescope status, pointing history</li>
+<li><strong>WebSocket</strong> - Real-time updates (replace polling)</li>
+</ol>
+<hr />
+<h2 id="how-to-run">How to Run<a class="headerlink" href="#how-to-run" title="Permanent link">&para;</a></h2>
+<h3 id="development">Development<a class="headerlink" href="#development" title="Permanent link">&para;</a></h3>
+<div class="highlight"><pre><span></span><code><span class="c1"># Terminal 1: Start backend (if not running)</span>
+<span class="nb">cd</span><span class="w"> </span>/data/dsa110-contimg
+conda<span class="w"> </span>run<span class="w"> </span>-n<span class="w"> </span>casa6<span class="w"> </span>uvicorn<span class="w"> </span>dsa110_contimg.api:app<span class="w"> </span>--reload<span class="w"> </span>--port<span class="w"> </span><span class="m">8000</span>
+
+<span class="c1"># Terminal 2: Start frontend</span>
+<span class="nb">cd</span><span class="w"> </span>/data/dsa110-contimg/frontend
+conda<span class="w"> </span>run<span class="w"> </span>-n<span class="w"> </span>casa6<span class="w"> </span>npm<span class="w"> </span>run<span class="w"> </span>dev
+
+<span class="c1"># Access UI at http://localhost:5173</span>
+<span class="c1"># Access API at http://localhost:8000/api/status</span>
+</code></pre></div>
+<h3 id="production-build">Production Build<a class="headerlink" href="#production-build" title="Permanent link">&para;</a></h3>
+<div class="highlight"><pre><span></span><code><span class="nb">cd</span><span class="w"> </span>/data/dsa110-contimg/frontend
+conda<span class="w"> </span>run<span class="w"> </span>-n<span class="w"> </span>casa6<span class="w"> </span>npm<span class="w"> </span>run<span class="w"> </span>build
+
+<span class="c1"># Outputs to dist/ directory</span>
+<span class="c1"># Serve with Nginx or FastAPI StaticFiles</span>
+</code></pre></div>
+<h3 id="serve-with-fastapi">Serve with FastAPI<a class="headerlink" href="#serve-with-fastapi" title="Permanent link">&para;</a></h3>
+<p>Add to <code>src/dsa110_contimg/api/routes.py</code>:</p>
+<div class="highlight"><pre><span></span><code><span class="kn">from</span><span class="w"> </span><span class="nn">fastapi.staticfiles</span><span class="w"> </span><span class="kn">import</span> <span class="n">StaticFiles</span>
+
+<span class="n">app</span><span class="o">.</span><span class="n">mount</span><span class="p">(</span><span class="s2">&quot;/ui&quot;</span><span class="p">,</span> <span class="n">StaticFiles</span><span class="p">(</span><span class="n">directory</span><span class="o">=</span><span class="s2">&quot;frontend/dist&quot;</span><span class="p">,</span> <span class="n">html</span><span class="o">=</span><span class="kc">True</span><span class="p">),</span> <span class="n">name</span><span class="o">=</span><span class="s2">&quot;ui&quot;</span><span class="p">)</span>
+</code></pre></div>
+<p>Access at: <code>http://your-server/ui</code></p>
+<hr />
+<h2 id="troubleshooting">Troubleshooting<a class="headerlink" href="#troubleshooting" title="Permanent link">&para;</a></h2>
+<h3 id="frontend-wont-build">Frontend won't build<a class="headerlink" href="#frontend-wont-build" title="Permanent link">&para;</a></h3>
+<div class="highlight"><pre><span></span><code><span class="c1"># Check Node version</span>
+conda<span class="w"> </span>run<span class="w"> </span>-n<span class="w"> </span>casa6<span class="w"> </span>node<span class="w"> </span>--version<span class="w">  </span><span class="c1"># Should be v22.6.0</span>
+
+<span class="c1"># Clean install</span>
+<span class="nb">cd</span><span class="w"> </span>/data/dsa110-contimg/frontend
+rm<span class="w"> </span>-rf<span class="w"> </span>node_modules<span class="w"> </span>package-lock.json
+conda<span class="w"> </span>run<span class="w"> </span>-n<span class="w"> </span>casa6<span class="w"> </span>npm<span class="w"> </span>install
+conda<span class="w"> </span>run<span class="w"> </span>-n<span class="w"> </span>casa6<span class="w"> </span>npm<span class="w"> </span>run<span class="w"> </span>build
+</code></pre></div>
+<h3 id="api-connection-errors">API connection errors<a class="headerlink" href="#api-connection-errors" title="Permanent link">&para;</a></h3>
+<div class="highlight"><pre><span></span><code><span class="c1"># Verify backend is running</span>
+curl<span class="w"> </span>http://localhost:8000/api/status
+
+<span class="c1"># Check CORS settings in FastAPI</span>
+<span class="c1"># Add to create_app():</span>
+from<span class="w"> </span>fastapi.middleware.cors<span class="w"> </span>import<span class="w"> </span>CORSMiddleware
+
+app.add_middleware<span class="o">(</span>
+<span class="w">    </span>CORSMiddleware,
+<span class="w">    </span><span class="nv">allow_origins</span><span class="o">=[</span><span class="s2">&quot;http://localhost:5173&quot;</span><span class="o">]</span>,
+<span class="w">    </span><span class="nv">allow_methods</span><span class="o">=[</span><span class="s2">&quot;*&quot;</span><span class="o">]</span>,
+<span class="w">    </span><span class="nv">allow_headers</span><span class="o">=[</span><span class="s2">&quot;*&quot;</span><span class="o">]</span>,
+<span class="o">)</span>
+</code></pre></div>
+<h3 id="database-migration-issues">Database migration issues<a class="headerlink" href="#database-migration-issues" title="Permanent link">&para;</a></h3>
+<div class="highlight"><pre><span></span><code><span class="c1"># Re-run migration</span>
+<span class="nb">cd</span><span class="w"> </span>/data/dsa110-contimg
+conda<span class="w"> </span>run<span class="w"> </span>-n<span class="w"> </span>casa6<span class="w"> </span>python<span class="w"> </span>src/dsa110_contimg/database/migrations.py
+
+<span class="c1"># Verify tables exist</span>
+sqlite3<span class="w"> </span>state/products.sqlite3<span class="w"> </span><span class="s2">&quot;.tables&quot;</span>
+<span class="c1"># Should see: variability_stats, ese_candidates, mosaics, alert_history</span>
+</code></pre></div>
+<hr />
+<h2 id="files-createdmodified">Files Created/Modified<a class="headerlink" href="#files-createdmodified" title="Permanent link">&para;</a></h2>
+<h3 id="documentation">Documentation<a class="headerlink" href="#documentation" title="Permanent link">&para;</a></h3>
+<ul>
+<li>✓ <code>/docs/reference/database_schema.md</code> - Complete schema reference</li>
+<li>✓ <code>/docs/concepts/frontend_design.md</code> - Updated with finalized decisions</li>
+<li>✓ <code>/docs/concepts/frontend_next_steps.md</code> - Implementation guide</li>
+<li>✓ <code>/docs/concepts/frontend_setup_complete.md</code> - This document</li>
+</ul>
+<h3 id="database">Database<a class="headerlink" href="#database" title="Permanent link">&para;</a></h3>
+<ul>
+<li>✓ <code>/src/dsa110_contimg/database/migrations.py</code> - Migration script</li>
+<li>✓ <code>/state/products.sqlite3</code> - Migrated with new tables</li>
+</ul>
+<h3 id="frontend">Frontend<a class="headerlink" href="#frontend" title="Permanent link">&para;</a></h3>
+<ul>
+<li>✓ <code>/frontend/</code> - Complete React project</li>
+<li>✓ <code>src/api/</code> - API client &amp; types</li>
+<li>✓ <code>src/theme/</code> - Dark mode theme</li>
+<li>✓ <code>src/pages/DashboardPage.tsx</code> - Functional dashboard</li>
+<li>✓ <code>src/App.tsx</code> - Main app with routing</li>
+<li>✓ <code>package.json</code> - Dependencies installed</li>
+<li>✓ <code>.env.development</code> - API URL configuration</li>
+<li>✓ <code>README.md</code> - Frontend documentation</li>
+</ul>
+<hr />
+<h2 id="success-metrics">Success Metrics<a class="headerlink" href="#success-metrics" title="Permanent link">&para;</a></h2>
+<p>✓ <strong>Database schema</strong>: 4 new tables, migrations successful<br />
+✓ <strong>React build</strong>: Compiles without errors, dist/ created<br />
+✓ <strong>Dashboard</strong>: Renders successfully, polls API every 10s<br />
+✓ <strong>TypeScript</strong>: All type errors resolved<br />
+✓ <strong>Dark mode</strong>: Optimized color palette for astronomy<br />
+✓ <strong>Documentation</strong>: Complete specs for development kickoff  </p>
+<hr />
+<h2 id="ubuntu-18x-compatibility-notes">Ubuntu 18.x Compatibility Notes<a class="headerlink" href="#ubuntu-18x-compatibility-notes" title="Permanent link">&para;</a></h2>
+<p><strong>Challenge</strong>: Ubuntu 18.x cannot upgrade OS, may have old system packages<br />
+<strong>Solution</strong>: Use <code>casa6</code> conda environment which provides:
+- Node.js v22.6.0 (modern enough for Vite/React)
+- Python 3.11+
+- All required dependencies isolated</p>
+<p><strong>Alternative if issues arise</strong>:
+<div class="highlight"><pre><span></span><code><span class="c1"># Use Docker for Node.js</span>
+docker<span class="w"> </span>run<span class="w"> </span>-it<span class="w"> </span>-v<span class="w"> </span>/data/dsa110-contimg:/workspace<span class="w"> </span>-w<span class="w"> </span>/workspace/frontend<span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>node:22<span class="w"> </span>npm<span class="w"> </span>install
+
+docker<span class="w"> </span>run<span class="w"> </span>-it<span class="w"> </span>-v<span class="w"> </span>/data/dsa110-contimg:/workspace<span class="w"> </span>-w<span class="w"> </span>/workspace/frontend<span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>node:22<span class="w"> </span>npm<span class="w"> </span>run<span class="w"> </span>dev
+</code></pre></div></p>
+<hr />
+<h2 id="whats-left-to-build">What's Left to Build<a class="headerlink" href="#whats-left-to-build" title="Permanent link">&para;</a></h2>
+<h3 id="backend-api-endpoints-needed">Backend API Endpoints Needed<a class="headerlink" href="#backend-api-endpoints-needed" title="Permanent link">&para;</a></h3>
+<div class="highlight"><pre><span></span><code><span class="c1"># In api/routes.py, add:</span>
+
+<span class="nd">@router</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;/api/ese_candidates&quot;</span><span class="p">)</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">get_ese_candidates</span><span class="p">(</span><span class="n">status</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s1">&#39;active&#39;</span><span class="p">,</span> <span class="n">limit</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">50</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Get ESE candidate sources (&gt;5σ variability).&quot;&quot;&quot;</span>
+    <span class="c1"># Query variability_stats JOIN ese_candidates</span>
+    <span class="k">pass</span>
+
+<span class="nd">@router</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;/api/mosaics&quot;</span><span class="p">)</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">get_mosaics</span><span class="p">(</span><span class="n">limit</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">20</span><span class="p">,</span> <span class="n">start_mjd</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span> <span class="n">end_mjd</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="kc">None</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Get mosaic metadata with optional time filtering.&quot;&quot;&quot;</span>
+    <span class="c1"># Query mosaics table</span>
+    <span class="k">pass</span>
+
+<span class="nd">@router</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;/api/sources&quot;</span><span class="p">)</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">get_sources</span><span class="p">(</span><span class="n">sort</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s1">&#39;variability&#39;</span><span class="p">,</span> <span class="n">limit</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">100</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Get source list with variability stats.&quot;&quot;&quot;</span>
+    <span class="c1"># Query variability_stats table</span>
+    <span class="k">pass</span>
+
+<span class="nd">@router</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;/api/sources/</span><span class="si">{source_id}</span><span class="s2">/timeseries&quot;</span><span class="p">)</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">get_source_timeseries</span><span class="p">(</span><span class="n">source_id</span><span class="p">:</span> <span class="nb">str</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Get flux measurements for a source.&quot;&quot;&quot;</span>
+    <span class="c1"># Query photometry table WHERE source_id = X</span>
+    <span class="k">pass</span>
+</code></pre></div>
+<h3 id="frontend-components-needed">Frontend Components Needed<a class="headerlink" href="#frontend-components-needed" title="Permanent link">&para;</a></h3>
+<ol>
+<li><strong>ESECandidatesPanel.tsx</strong> - Display &gt;5σ sources with links to detail</li>
+<li><strong>MosaicGallery.tsx</strong> - Grid of mosaic thumbnails</li>
+<li><strong>SourceTable.tsx</strong> - AG Grid with NVSS IDs, sortable by variability</li>
+<li><strong>SourceDetail.tsx</strong> - Flux vs. time plot with Plotly</li>
+</ol>
+<hr />
+<h2 id="summary">Summary<a class="headerlink" href="#summary" title="Permanent link">&para;</a></h2>
+<p><strong>✓ Database schema designed and migrated</strong><br />
+<strong>✓ React project initialized with all dependencies</strong><br />
+<strong>✓ Functional dashboard with real-time polling</strong><br />
+<strong>✓ Dark mode optimized for astronomy</strong><br />
+<strong>✓ TypeScript type-safe throughout</strong><br />
+<strong>✓ Builds successfully despite Ubuntu 18.x constraints</strong><br />
+<strong>✓ Ready for Phase 1 feature development</strong></p>
+<p><strong>Next</strong>: Implement ESE candidates panel and mosaic gallery (backend endpoints + frontend components).</p>
+<hr />
+<p><strong>Document Version</strong>: 1.0<br />
+<strong>Status</strong>: Setup Complete, Ready for Feature Development</p>
+
+
+
+
+
+
+
+
+
+
+
+
+                
+              </article>
+            </div>
+          
+          
+  <script>var tabs=__md_get("__tabs");if(Array.isArray(tabs))e:for(var set of document.querySelectorAll(".tabbed-set")){var labels=set.querySelector(".tabbed-labels");for(var tab of tabs)for(var label of labels.getElementsByTagName("label"))if(label.innerText.trim()===tab){var input=document.getElementById(label.htmlFor);input.checked=!0;continue e}}</script>
+
+<script>var target=document.getElementById(location.hash.slice(1));target&&target.name&&(target.checked=target.name.startsWith("__tabbed_"))</script>
+        </div>
+        
+      </main>
+      
+        <footer class="md-footer">
+  
+  <div class="md-footer-meta md-typeset">
+    <div class="md-footer-meta__inner md-grid">
+      <div class="md-copyright">
+  
+  
+    Made with
+    <a href="https://squidfunk.github.io/mkdocs-material/" target="_blank" rel="noopener">
+      Material for MkDocs
+    </a>
+  
+</div>
+      
+    </div>
+  </div>
+</footer>
+      
+    </div>
+    <div class="md-dialog" data-md-component="dialog">
+      <div class="md-dialog__inner md-typeset"></div>
+    </div>
+    
+    
+    
+      
+      <script id="__config" type="application/json">{"base": "../..", "features": ["navigation.sections", "navigation.indexes", "content.code.copy", "content.tabs.link"], "search": "../../assets/javascripts/workers/search.973d3a69.min.js", "tags": null, "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": null}</script>
+    
+    
+      <script src="../../assets/javascripts/bundle.f55a23d4.min.js"></script>
+      
+        <script src="https://unpkg.com/mermaid@10/dist/mermaid.min.js"></script>
+      
+        <script src="../../javascripts/mermaid-init.js"></script>
+      
+    
+  </body>
+</html>

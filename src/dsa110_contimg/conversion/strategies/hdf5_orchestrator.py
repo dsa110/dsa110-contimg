@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 """
-DSA-110 HDF5 → CASA MS orchestrator.
+DSA-110 UVH5 (in HDF5) → CASA MS orchestrator.
 
 This module discovers complete subband groups in a time window, delegates
 MS creation to a selected writer, and uses shared helpers to finalize the
@@ -17,8 +17,10 @@ from dsa110_contimg.conversion.helpers import (
     compute_and_set_uvw,
     set_model_column,
     phase_to_meridian,
+    set_telescope_identity,
 )
 from dsa110_contimg.conversion.ms_utils import configure_ms_for_imaging
+from dsa110_contimg.qa.pipeline_quality import check_ms_after_conversion
 import argparse
 import glob
 import logging
@@ -279,6 +281,17 @@ def convert_subband_groups_to_ms(
                         len(file_list), time.perf_counter() - t0)
 
             t1 = time.perf_counter()
+            # Ensure telescope name + location are set consistently before phasing
+            try:
+                set_telescope_identity(
+                    uv,
+                    os.getenv("PIPELINE_TELESCOPE_NAME", "OVRO_DSA"),
+                    -118.2817,
+                    37.2314,
+                    1222.0,
+                )
+            except Exception:
+                logger.debug("set_telescope_identity best-effort failed", exc_info=True)
             pt_dec, phase_ra, phase_dec = _set_phase_and_uvw(uv)
             logger.info(
                 "Phased and updated UVW in %.2fs",
@@ -352,13 +365,27 @@ def convert_subband_groups_to_ms(
                 logger.warning("Failed to set MODEL_DATA column")
 
         logger.info("✓ Successfully created %s", ms_path)
+        
+        # Run QA check on MS
+        try:
+            qa_passed, qa_metrics = check_ms_after_conversion(
+                ms_path=ms_path,
+                quick_check_only=False,
+                alert_on_issues=True,
+            )
+            if qa_passed:
+                logger.info("✓ MS passed quality checks")
+            else:
+                logger.warning("⚠ MS quality issues detected (see alerts)")
+        except Exception as e:
+            logger.warning(f"QA check failed (non-fatal): {e}")
 
 
 def add_args(p: argparse.ArgumentParser) -> None:
     """Add arguments to a parser."""
     p.add_argument(
         "input_dir",
-        help="Directory containing UVH5 subband files.")
+        help="Directory containing UVH5 (HDF5 container) subband files.")
     p.add_argument("output_dir", help="Directory to save Measurement Sets.")
     p.add_argument(
         "start_time",
@@ -384,10 +411,18 @@ def add_args(p: argparse.ArgumentParser) -> None:
     p.add_argument(
         "--stage-to-tmpfs",
         action="store_true",
+        default=True,
         help=(
             "Stage per-subband writes and concat to tmpfs (e.g., /dev/shm) "
-            "before moving atomically to final MS."
+            "before moving atomically to final MS. Default: enabled for optimal performance. "
+            "Use --no-stage-to-tmpfs to disable."
         ),
+    )
+    p.add_argument(
+        "--no-stage-to-tmpfs",
+        action="store_false",
+        dest="stage_to_tmpfs",
+        help="Disable tmpfs staging and use scratch directory only.",
     )
     p.add_argument(
         "--tmpfs-path",

@@ -53,7 +53,7 @@ ls -lh "${OUTPUT_DIR}"/*.hdf5 | head -5
 echo "... (${SUBBANDS} files total)"
 echo ""
 echo "To convert to Measurement Set:"
-echo "  python src/dsa110_contimg/conversion/uvh5_to_ms_converter.py \\"
+echo "  python -m dsa110_contimg.conversion.strategies.hdf5_orchestrator \\"
 echo "      ${OUTPUT_DIR} \\"
 echo "      /tmp/test_ms \\"
 echo "      \"${START_TIME:0:10} 00:00:00\" \\"

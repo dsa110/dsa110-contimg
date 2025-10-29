@@ -52,7 +52,15 @@ Repository overview for the DSA-110 continuum imaging pipeline.
   - `tree -L 2 -I '.git|env|tmp|state|__pycache__|*.pyc|.mypy_cache|.pytest_cache'`
   - `find . -maxdepth 2 -type d | sed 's|^\./||' | sort`
 
-## Recent Additions (MS Conversion)
+## Conversion: Current State
+- Orchestrator: `src/dsa110_contimg/conversion/strategies/hdf5_orchestrator.py` converts subband groups (5‑min by default) using writer strategies.
+- Writers: `direct-subband` (parallel per‑subband writes + concat) and `pyuvdata` (monolithic). `--writer auto` chooses based on subband count.
+- Staging: optional tmpfs (`/dev/shm`) staging and SSD scratch; see `pipeline/README_uvh5_to_ms.md` for details.
+
+## Historical Notes (deprecated)
+- An experimental dask‑ms writer was previously explored and referenced here. It is not part of the current tree and is unsupported.
+- Legacy scripts and older converters live under `archive/legacy/` for reference only; do not use for new automation.
+
 
 - Optional dask-ms writer (experimental)
   - Converter `dsa110_contimg/conversion/uvh5_to_ms_converter_v2.py` now supports `--dask-write` to write Measurement Sets via dask‑ms (python‑casacore backend) for improved parallel I/O.

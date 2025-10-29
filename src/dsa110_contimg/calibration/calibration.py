@@ -6,6 +6,10 @@ from casatasks import bandpass as casa_bandpass  # type: ignore[import]
 from casatasks import gaincal as casa_gaincal  # type: ignore[import]
 # setjy imported elsewhere; avoid unused import here
 from casatasks import fluxscale as casa_fluxscale  # type: ignore[import]
+from dsa110_contimg.qa.pipeline_quality import check_calibration_quality
+import logging
+
+logger = logging.getLogger(__name__)
 
 
 def _resolve_field_ids(ms: str, field_sel: str) -> List[int]:
@@ -196,6 +200,13 @@ def solve_delay(
             # Skip fast solve if it fails
             print("Skipping fast delay solve...")
 
+    # QA validation of delay calibration tables
+    try:
+        from dsa110_contimg.qa.pipeline_quality import check_calibration_quality
+        check_calibration_quality(tables, ms_path=ms, alert_on_issues=True)
+    except Exception as e:
+        print(f"Warning: QA validation failed: {e}")
+
     return tables
 
 
@@ -203,7 +214,7 @@ def solve_bandpass(
     ms: str,
     cal_field: str,
     refant: str,
-    ktable: str,
+    ktable: Optional[str],
     table_prefix: Optional[str] = None,
     set_model: bool = True,
     model_standard: str = "Perley-Butler 2017",
@@ -232,27 +243,34 @@ def solve_bandpass(
     # Combine across scans and fields when requested; otherwise do not combine
     comb = "scan,field" if combine_fields else ""
 
-    print(
-        f"Running bandpass amplitude solve on field {peak_field} (combining across fields)...")
-    kwargs = dict(
-        vis=ms,
-        caltable=f"{table_prefix}_bacal",
-        field=cal_field,  # Use full range for data selection
-        solint="inf",
-        combine=comb,
-        refant=refant,
-        solnorm=True,
-        bandtype="B",
-        gaintable=[ktable],
-        minsnr=minsnr,
-        selectdata=True)
-    if uvrange:
-        kwargs["uvrange"] = uvrange
-    casa_bandpass(**kwargs)
-    print(f"✓ Bandpass amplitude solve completed: {table_prefix}_bacal")
+    amplitude_ok = False
+    try:
+        print(
+            f"Running bandpass amplitude solve on field {peak_field} (combining across fields)...")
+        gaintable_list = [ktable] if ktable else []
+        kwargs = dict(
+            vis=ms,
+            caltable=f"{table_prefix}_bacal",
+            field=cal_field,  # Use full range for data selection
+            solint="inf",
+            combine=comb,
+            refant=refant,
+            solnorm=True,
+            bandtype="B",
+            gaintable=gaintable_list,
+            minsnr=minsnr,
+            selectdata=True)
+        if uvrange:
+            kwargs["uvrange"] = uvrange
+        casa_bandpass(**kwargs)
+        print(f"✓ Bandpass amplitude solve completed: {table_prefix}_bacal")
+        amplitude_ok = True
+    except Exception as exc:
+        print(f"Bandpass amplitude solve failed (continuing without bacal): {exc}")
 
     print(
         f"Running bandpass phase solve on field {peak_field} (combining across fields)...")
+    gaintable_list2 = ([ktable] if ktable else []) + ([f"{table_prefix}_bacal"] if amplitude_ok else [])
     kwargs = dict(
         vis=ms,
         caltable=f"{table_prefix}_bpcal",
@@ -262,7 +280,7 @@ def solve_bandpass(
         refant=refant,
         solnorm=True,
         bandtype="B",
-        gaintable=[ktable, f"{table_prefix}_bacal"],
+        gaintable=gaintable_list2,
         minsnr=minsnr,
         selectdata=True)
     if uvrange:
@@ -270,14 +288,26 @@ def solve_bandpass(
     casa_bandpass(**kwargs)
     print(f"✓ Bandpass phase solve completed: {table_prefix}_bpcal")
 
-    return [f"{table_prefix}_bacal", f"{table_prefix}_bpcal"]
+    out = []
+    if amplitude_ok:
+        out.append(f"{table_prefix}_bacal")
+    out.append(f"{table_prefix}_bpcal")
+    
+    # QA validation of bandpass calibration tables
+    try:
+        from dsa110_contimg.qa.pipeline_quality import check_calibration_quality
+        check_calibration_quality(out, ms_path=ms, alert_on_issues=True)
+    except Exception as e:
+        print(f"Warning: QA validation failed: {e}")
+    
+    return out
 
 
 def solve_gains(
     ms: str,
     cal_field: str,
     refant: str,
-    ktable: str,
+    ktable: Optional[str],
     bptables: List[str],
     table_prefix: Optional[str] = None,
     t_short: str = "60s",
@@ -286,6 +316,7 @@ def solve_gains(
     *,
     phase_only: bool = False,
     uvrange: str = "",
+    solint: str = "inf",
 ) -> List[str]:
     """Solve gain amplitude and phase; optionally short-timescale and fluxscale."""
     if table_prefix is None:
@@ -302,7 +333,7 @@ def solve_gains(
         peak_field = str(cal_field)
         print(f"Using field {peak_field} for gain calibration")
 
-    gaintable = [ktable] + bptables
+    gaintable = ([ktable] if ktable else []) + bptables
     # Combine across scans and fields when requested; otherwise do not combine
     comb = "scan,field" if combine_fields else ""
 
@@ -313,7 +344,7 @@ def solve_gains(
             vis=ms,
             caltable=f"{table_prefix}_gacal",
             field=cal_field,  # Use full range for data selection
-            solint="inf",
+            solint=solint,
             refant=refant,
             gaintype="G",
             calmode="a",
@@ -334,7 +365,7 @@ def solve_gains(
         vis=ms,
         caltable=f"{table_prefix}_gpcal",
         field=cal_field,  # Use full range for data selection
-        solint="inf",
+        solint=solint,
         refant=refant,
         gaintype="G",
         calmode="p",
@@ -383,5 +414,12 @@ def solve_gains(
         )
         print(f"✓ Flux scaling completed: {table_prefix}_flux.cal")
         out.append(f"{table_prefix}_flux.cal")
+
+    # QA validation of gain calibration tables
+    try:
+        from dsa110_contimg.qa.pipeline_quality import check_calibration_quality
+        check_calibration_quality(out, ms_path=ms, alert_on_issues=True)
+    except Exception as e:
+        print(f"Warning: QA validation failed: {e}")
 
     return out

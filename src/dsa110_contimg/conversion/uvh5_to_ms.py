@@ -25,6 +25,7 @@ from dsa110_contimg.conversion.helpers import (
     _ensure_antenna_diameters,
     set_model_column,
     phase_to_meridian,
+    set_telescope_identity,
 )
 
 # Configure logging
@@ -966,6 +967,19 @@ def convert_single_file(input_file: str, output_file: str,
             input_file,
             create_time_binned_fields,
             field_time_bin_minutes)
+
+        # Ensure telescope name + location are set before any downstream phasing/writes
+        try:
+            from os import getenv as _getenv
+            set_telescope_identity(
+                uvd,
+                _getenv("PIPELINE_TELESCOPE_NAME", "OVRO_DSA"),
+                -118.2817,
+                37.2314,
+                1222.0,
+            )
+        except Exception:
+            logger.debug("set_telescope_identity best-effort failed", exc_info=True)
 
         # Phase data to a single reference center (RA=LST(mid), Dec from UVH5)
         if enable_phasing:

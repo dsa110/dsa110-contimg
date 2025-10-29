@@ -1,0 +1,2799 @@
+
+<!doctype html>
+<html lang="en" class="no-js">
+  <head>
+    
+      <meta charset="utf-8">
+      <meta name="viewport" content="width=device-width,initial-scale=1">
+      
+      
+      
+        <link rel="canonical" href="https://dsa110-contimg.github.io/dsa110-contimg/guides/dashboard/">
+      
+      
+        <link rel="prev" href="../../pipeline/streaming_converter_README/">
+      
+      
+        <link rel="next" href="../dashboard_development/">
+      
+      
+      <link rel="icon" href="../../assets/images/favicon.png">
+      <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.6.21">
+    
+    
+      
+        <title>Dashboard User Guide - DSA-110 Continuum Imaging Pipeline</title>
+      
+    
+    
+      <link rel="stylesheet" href="../../assets/stylesheets/main.2a3383ac.min.css">
+      
+      
+
+
+    
+    
+      
+    
+    
+      
+        
+        
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+        <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Roboto:300,300i,400,400i,700,700i%7CRoboto+Mono:400,400i,700,700i&display=fallback">
+        <style>:root{--md-text-font:"Roboto";--md-code-font:"Roboto Mono"}</style>
+      
+    
+    
+      <link rel="stylesheet" href="../../assets/_mkdocstrings.css">
+    
+    <script>__md_scope=new URL("../..",location),__md_hash=e=>[...e].reduce(((e,_)=>(e<<5)-e+_.charCodeAt(0)),0),__md_get=(e,_=localStorage,t=__md_scope)=>JSON.parse(_.getItem(t.pathname+"."+e)),__md_set=(e,_,t=localStorage,a=__md_scope)=>{try{t.setItem(a.pathname+"."+e,JSON.stringify(_))}catch(e){}}</script>
+    
+      
+
+    
+    
+    
+  </head>
+  
+  
+    <body dir="ltr">
+  
+    
+    <input class="md-toggle" data-md-toggle="drawer" type="checkbox" id="__drawer" autocomplete="off">
+    <input class="md-toggle" data-md-toggle="search" type="checkbox" id="__search" autocomplete="off">
+    <label class="md-overlay" for="__drawer"></label>
+    <div data-md-component="skip">
+      
+        
+        <a href="#dsa-110-pipeline-dashboard" class="md-skip">
+          Skip to content
+        </a>
+      
+    </div>
+    <div data-md-component="announce">
+      
+    </div>
+    
+    
+      
+
+  
+
+<header class="md-header md-header--shadow" data-md-component="header">
+  <nav class="md-header__inner md-grid" aria-label="Header">
+    <a href="../.." title="DSA-110 Continuum Imaging Pipeline" class="md-header__button md-logo" aria-label="DSA-110 Continuum Imaging Pipeline" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"/></svg>
+
+    </a>
+    <label class="md-header__button md-icon" for="__drawer">
+      
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M3 6h18v2H3zm0 5h18v2H3zm0 5h18v2H3z"/></svg>
+    </label>
+    <div class="md-header__title" data-md-component="header-title">
+      <div class="md-header__ellipsis">
+        <div class="md-header__topic">
+          <span class="md-ellipsis">
+            DSA-110 Continuum Imaging Pipeline
+          </span>
+        </div>
+        <div class="md-header__topic" data-md-component="header-topic">
+          <span class="md-ellipsis">
+            
+              Dashboard User Guide
+            
+          </span>
+        </div>
+      </div>
+    </div>
+    
+    
+      <script>var palette=__md_get("__palette");if(palette&&palette.color){if("(prefers-color-scheme)"===palette.color.media){var media=matchMedia("(prefers-color-scheme: light)"),input=document.querySelector(media.matches?"[data-md-color-media='(prefers-color-scheme: light)']":"[data-md-color-media='(prefers-color-scheme: dark)']");palette.color.media=input.getAttribute("data-md-color-media"),palette.color.scheme=input.getAttribute("data-md-color-scheme"),palette.color.primary=input.getAttribute("data-md-color-primary"),palette.color.accent=input.getAttribute("data-md-color-accent")}for(var[key,value]of Object.entries(palette.color))document.body.setAttribute("data-md-color-"+key,value)}</script>
+    
+    
+    
+      
+      
+        <label class="md-header__button md-icon" for="__search">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        </label>
+        <div class="md-search" data-md-component="search" role="dialog">
+  <label class="md-search__overlay" for="__search"></label>
+  <div class="md-search__inner" role="search">
+    <form class="md-search__form" name="search">
+      <input type="text" class="md-search__input" name="query" aria-label="Search" placeholder="Search" autocapitalize="off" autocorrect="off" autocomplete="off" spellcheck="false" data-md-component="search-query" required>
+      <label class="md-search__icon md-icon" for="__search">
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11z"/></svg>
+      </label>
+      <nav class="md-search__options" aria-label="Search">
+        
+        <button type="reset" class="md-search__icon md-icon" title="Clear" aria-label="Clear" tabindex="-1">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M19 6.41 17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg>
+        </button>
+      </nav>
+      
+    </form>
+    <div class="md-search__output">
+      <div class="md-search__scrollwrap" tabindex="0" data-md-scrollfix>
+        <div class="md-search-result" data-md-component="search-result">
+          <div class="md-search-result__meta">
+            Initializing search
+          </div>
+          <ol class="md-search-result__list" role="presentation"></ol>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+      
+    
+    
+      <div class="md-header__source">
+        <a href="https://github.com/dsa110/dsa110-contimg" title="Go to repository" class="md-source" data-md-component="source">
+  <div class="md-source__icon md-icon">
+    
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><!--! Font Awesome Free 7.0.1 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2025 Fonticons, Inc.--><path d="M439.6 236.1 244 40.5c-5.4-5.5-12.8-8.5-20.4-8.5s-15 3-20.4 8.4L162.5 81l51.5 51.5c27.1-9.1 52.7 16.8 43.4 43.7l49.7 49.7c34.2-11.8 61.2 31 35.5 56.7-26.5 26.5-70.2-2.9-56-37.3L240.3 199v121.9c25.3 12.5 22.3 41.8 9.1 55-6.4 6.4-15.2 10.1-24.3 10.1s-17.8-3.6-24.3-10.1c-17.6-17.6-11.1-46.9 11.2-56v-123c-20.8-8.5-24.6-30.7-18.6-45L142.6 101 8.5 235.1C3 240.6 0 247.9 0 255.5s3 15 8.5 20.4l195.6 195.7c5.4 5.4 12.7 8.4 20.4 8.4s15-3 20.4-8.4l194.7-194.7c5.4-5.4 8.4-12.8 8.4-20.4s-3-15-8.4-20.4"/></svg>
+  </div>
+  <div class="md-source__repository">
+    GitHub
+  </div>
+</a>
+      </div>
+    
+  </nav>
+  
+</header>
+    
+    <div class="md-container" data-md-component="container">
+      
+      
+        
+          
+        
+      
+      <main class="md-main" data-md-component="main">
+        <div class="md-main__inner md-grid">
+          
+            
+              
+              <div class="md-sidebar md-sidebar--primary" data-md-component="sidebar" data-md-type="navigation" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+
+
+<nav class="md-nav md-nav--primary" aria-label="Navigation" data-md-level="0">
+  <label class="md-nav__title" for="__drawer">
+    <a href="../.." title="DSA-110 Continuum Imaging Pipeline" class="md-nav__button md-logo" aria-label="DSA-110 Continuum Imaging Pipeline" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"/></svg>
+
+    </a>
+    DSA-110 Continuum Imaging Pipeline
+  </label>
+  
+    <div class="md-nav__source">
+      <a href="https://github.com/dsa110/dsa110-contimg" title="Go to repository" class="md-source" data-md-component="source">
+  <div class="md-source__icon md-icon">
+    
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><!--! Font Awesome Free 7.0.1 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2025 Fonticons, Inc.--><path d="M439.6 236.1 244 40.5c-5.4-5.5-12.8-8.5-20.4-8.5s-15 3-20.4 8.4L162.5 81l51.5 51.5c27.1-9.1 52.7 16.8 43.4 43.7l49.7 49.7c34.2-11.8 61.2 31 35.5 56.7-26.5 26.5-70.2-2.9-56-37.3L240.3 199v121.9c25.3 12.5 22.3 41.8 9.1 55-6.4 6.4-15.2 10.1-24.3 10.1s-17.8-3.6-24.3-10.1c-17.6-17.6-11.1-46.9 11.2-56v-123c-20.8-8.5-24.6-30.7-18.6-45L142.6 101 8.5 235.1C3 240.6 0 247.9 0 255.5s3 15 8.5 20.4l195.6 195.7c5.4 5.4 12.7 8.4 20.4 8.4s15-3 20.4-8.4l194.7-194.7c5.4-5.4 8.4-12.8 8.4-20.4s-3-15-8.4-20.4"/></svg>
+  </div>
+  <div class="md-source__repository">
+    GitHub
+  </div>
+</a>
+    </div>
+  
+  <ul class="md-nav__list" data-md-scrollfix>
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../.." class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Home
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../quickstart/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Quick Start
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../quickstart_dashboard/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Dashboard Quick Start
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../pipeline/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Pipeline Visuals
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+      
+        
+      
+        
+      
+        
+      
+    
+    
+    
+      
+        
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--section md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_5" >
+        
+          
+          <label class="md-nav__link" for="__nav_5" id="__nav_5_label" tabindex="">
+            
+  
+  
+  <span class="md-ellipsis">
+    Tutorials
+    
+  </span>
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_5_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_5">
+            <span class="md-nav__icon md-icon"></span>
+            Tutorials
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../tutorials/streaming/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    End-to-End Streaming
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../tutorials/convert-standalone/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Convert UVH5 → MS (Standalone)
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../tutorials/calibrate-apply/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Calibrate + Apply
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+      
+        
+      
+        
+      
+    
+    
+    
+      
+        
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--section md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_6" >
+        
+          
+          <label class="md-nav__link" for="__nav_6" id="__nav_6_label" tabindex="">
+            
+  
+  
+  <span class="md-ellipsis">
+    How-To Guides
+    
+  </span>
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_6_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_6">
+            <span class="md-nav__icon md-icon"></span>
+            How-To Guides
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../howto/reprocess/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Reprocess a Group
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../howto/mosaic/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Build Nightly Mosaic
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+      
+        
+      
+    
+    
+    
+      
+        
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--section md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_7" >
+        
+          
+          <label class="md-nav__link" for="__nav_7" id="__nav_7_label" tabindex="">
+            
+  
+  
+  <span class="md-ellipsis">
+    Science
+    
+  </span>
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_7_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_7">
+            <span class="md-nav__icon md-icon"></span>
+            Science
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../science/photometry_normalization/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Photometry Normalization
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+    
+  
+  
+  
+    
+    
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+    
+    
+    
+      
+        
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--active md-nav__item--section md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_8" checked>
+        
+          
+          <label class="md-nav__link" for="__nav_8" id="__nav_8_label" tabindex="">
+            
+  
+  
+  <span class="md-ellipsis">
+    Guides
+    
+  </span>
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_8_label" aria-expanded="true">
+          <label class="md-nav__title" for="__nav_8">
+            <span class="md-nav__icon md-icon"></span>
+            Guides
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../downsampling_guide/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Downsampling Guide
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../pipeline/README_uvh5_to_ms/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Pipeline: UVH5 → MS
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../pipeline/streaming_converter_README/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Pipeline: Streaming Converter
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+    
+  
+  
+  
+    <li class="md-nav__item md-nav__item--active">
+      
+      <input class="md-nav__toggle md-toggle" type="checkbox" id="__toc">
+      
+      
+        
+      
+      
+        <label class="md-nav__link md-nav__link--active" for="__toc">
+          
+  
+  
+  <span class="md-ellipsis">
+    Dashboard User Guide
+    
+  </span>
+  
+
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
+      <a href="./" class="md-nav__link md-nav__link--active">
+        
+  
+  
+  <span class="md-ellipsis">
+    Dashboard User Guide
+    
+  </span>
+  
+
+      </a>
+      
+        
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#overview" class="md-nav__link">
+    <span class="md-ellipsis">
+      Overview
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#quick-start" class="md-nav__link">
+    <span class="md-ellipsis">
+      Quick Start
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Quick Start">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#starting-the-dashboard" class="md-nav__link">
+    <span class="md-ellipsis">
+      Starting the Dashboard
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#accessing-the-dashboard" class="md-nav__link">
+    <span class="md-ellipsis">
+      Accessing the Dashboard
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#features" class="md-nav__link">
+    <span class="md-ellipsis">
+      Features
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Features">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#1-dashboard-main-page" class="md-nav__link">
+    <span class="md-ellipsis">
+      1. Dashboard (Main Page)
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#2-mosaic-gallery" class="md-nav__link">
+    <span class="md-ellipsis">
+      2. Mosaic Gallery
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#3-source-monitoring" class="md-nav__link">
+    <span class="md-ellipsis">
+      3. Source Monitoring
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#4-sky-view" class="md-nav__link">
+    <span class="md-ellipsis">
+      4. Sky View
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#technology-stack" class="md-nav__link">
+    <span class="md-ellipsis">
+      Technology Stack
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Technology Stack">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#frontend" class="md-nav__link">
+    <span class="md-ellipsis">
+      Frontend
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#backend" class="md-nav__link">
+    <span class="md-ellipsis">
+      Backend
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#architecture" class="md-nav__link">
+    <span class="md-ellipsis">
+      Architecture
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#data-flow" class="md-nav__link">
+    <span class="md-ellipsis">
+      Data Flow
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Data Flow">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#real-time-updates" class="md-nav__link">
+    <span class="md-ellipsis">
+      Real-Time Updates
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#api-data-models" class="md-nav__link">
+    <span class="md-ellipsis">
+      API Data Models
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#development" class="md-nav__link">
+    <span class="md-ellipsis">
+      Development
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Development">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#project-structure" class="md-nav__link">
+    <span class="md-ellipsis">
+      Project Structure
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#adding-a-new-page" class="md-nav__link">
+    <span class="md-ellipsis">
+      Adding a New Page
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#adding-a-new-api-endpoint" class="md-nav__link">
+    <span class="md-ellipsis">
+      Adding a New API Endpoint
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#building-for-production" class="md-nav__link">
+    <span class="md-ellipsis">
+      Building for Production
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#configuration" class="md-nav__link">
+    <span class="md-ellipsis">
+      Configuration
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Configuration">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#environment-variables" class="md-nav__link">
+    <span class="md-ellipsis">
+      Environment Variables
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#vite-proxy-configuration" class="md-nav__link">
+    <span class="md-ellipsis">
+      Vite Proxy Configuration
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#troubleshooting" class="md-nav__link">
+    <span class="md-ellipsis">
+      Troubleshooting
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Troubleshooting">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#dashboard-not-loading" class="md-nav__link">
+    <span class="md-ellipsis">
+      Dashboard Not Loading
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#cors-errors" class="md-nav__link">
+    <span class="md-ellipsis">
+      CORS Errors
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#typescript-compilation-errors" class="md-nav__link">
+    <span class="md-ellipsis">
+      TypeScript Compilation Errors
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#port-already-in-use" class="md-nav__link">
+    <span class="md-ellipsis">
+      Port Already in Use
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#nodejs-version-issues" class="md-nav__link">
+    <span class="md-ellipsis">
+      Node.js Version Issues
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#next-steps" class="md-nav__link">
+    <span class="md-ellipsis">
+      Next Steps
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Next Steps">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#connecting-real-data" class="md-nav__link">
+    <span class="md-ellipsis">
+      Connecting Real Data
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#phase-2-features" class="md-nav__link">
+    <span class="md-ellipsis">
+      Phase 2 Features
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#fits-viewer-integration" class="md-nav__link">
+    <span class="md-ellipsis">
+      FITS Viewer Integration
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#support" class="md-nav__link">
+    <span class="md-ellipsis">
+      Support
+    </span>
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+      
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../dashboard_development/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Dashboard Development
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+      
+        
+      
+        
+      
+        
+      
+        
+      
+    
+    
+    
+      
+        
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--section md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_9" >
+        
+          
+          <label class="md-nav__link" for="__nav_9" id="__nav_9_label" tabindex="">
+            
+  
+  
+  <span class="md-ellipsis">
+    Concepts
+    
+  </span>
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_9_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_9">
+            <span class="md-nav__icon md-icon"></span>
+            Concepts
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../concepts/architecture/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Architecture
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../concepts/frontend_design/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Front-End Design Strategy
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../concepts/dashboard_mockups/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    UI Mockups & Specifications
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../concepts/frontend_next_steps/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Implementation Guide
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+      
+        
+      
+        
+      
+        
+      
+        
+      
+    
+    
+    
+      
+        
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--section md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_10" >
+        
+          
+          <label class="md-nav__link" for="__nav_10" id="__nav_10_label" tabindex="">
+            
+  
+  
+  <span class="md-ellipsis">
+    Reference
+    
+  </span>
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_10_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_10">
+            <span class="md-nav__icon md-icon"></span>
+            Reference
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../reference/cli/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    CLI
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../reference/api/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    API
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../reference/env/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Environment
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../reference/modules/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Modules
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+    
+    
+    
+      
+        
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--section md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_11" >
+        
+          
+          <label class="md-nav__link" for="__nav_11" id="__nav_11_label" tabindex="">
+            
+  
+  
+  <span class="md-ellipsis">
+    Reports
+    
+  </span>
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_11_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_11">
+            <span class="md-nav__icon md-icon"></span>
+            Reports
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../reports/CONTINUOUS_PIPELINE_ROADMAP/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Continuous Pipeline Roadmap
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../reports/CONVERSION_PROCESS_SUMMARY/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Conversion Process Summary
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../reports/DSA110_SUBBAND_UPDATE_SUMMARY/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Subband Update Summary
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../reports/PYUVDATA_3.2.4_COMPATIBILITY_SUMMARY/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    PyUVData 3.2.4 Compatibility
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../reports/REBUILD_CASA6_ENVIRONMENT/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Rebuild CASA6 Environment
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+      
+        
+          
+        
+      
+        
+      
+    
+    
+    
+      
+        
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--section md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_12" >
+        
+          
+          <div class="md-nav__link md-nav__container">
+            <a href="../../simulation/" class="md-nav__link ">
+              
+  
+  
+  <span class="md-ellipsis">
+    Simulation
+    
+  </span>
+  
+
+            </a>
+            
+              
+              <label class="md-nav__link " for="__nav_12" id="__nav_12_label" tabindex="">
+                <span class="md-nav__icon md-icon"></span>
+              </label>
+            
+          </div>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_12_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_12">
+            <span class="md-nav__icon md-icon"></span>
+            Simulation
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../simulation/PHASE1_SUMMARY/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Phase 1 Summary
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../troubleshooting/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Troubleshooting
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+      
+        
+      
+        
+      
+    
+    
+    
+      
+        
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--section md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_14" >
+        
+          
+          <label class="md-nav__link" for="__nav_14" id="__nav_14_label" tabindex="">
+            
+  
+  
+  <span class="md-ellipsis">
+    Operations
+    
+  </span>
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_14_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_14">
+            <span class="md-nav__icon md-icon"></span>
+            Operations
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../ops/deploy-systemd/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Deploy with systemd
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../ops/deploy-docker/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Deploy with Docker
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../legacy-overview/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Legacy Overview
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+    
+  </ul>
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+            
+              
+              <div class="md-sidebar md-sidebar--secondary" data-md-component="sidebar" data-md-type="toc" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#overview" class="md-nav__link">
+    <span class="md-ellipsis">
+      Overview
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#quick-start" class="md-nav__link">
+    <span class="md-ellipsis">
+      Quick Start
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Quick Start">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#starting-the-dashboard" class="md-nav__link">
+    <span class="md-ellipsis">
+      Starting the Dashboard
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#accessing-the-dashboard" class="md-nav__link">
+    <span class="md-ellipsis">
+      Accessing the Dashboard
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#features" class="md-nav__link">
+    <span class="md-ellipsis">
+      Features
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Features">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#1-dashboard-main-page" class="md-nav__link">
+    <span class="md-ellipsis">
+      1. Dashboard (Main Page)
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#2-mosaic-gallery" class="md-nav__link">
+    <span class="md-ellipsis">
+      2. Mosaic Gallery
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#3-source-monitoring" class="md-nav__link">
+    <span class="md-ellipsis">
+      3. Source Monitoring
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#4-sky-view" class="md-nav__link">
+    <span class="md-ellipsis">
+      4. Sky View
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#technology-stack" class="md-nav__link">
+    <span class="md-ellipsis">
+      Technology Stack
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Technology Stack">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#frontend" class="md-nav__link">
+    <span class="md-ellipsis">
+      Frontend
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#backend" class="md-nav__link">
+    <span class="md-ellipsis">
+      Backend
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#architecture" class="md-nav__link">
+    <span class="md-ellipsis">
+      Architecture
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#data-flow" class="md-nav__link">
+    <span class="md-ellipsis">
+      Data Flow
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Data Flow">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#real-time-updates" class="md-nav__link">
+    <span class="md-ellipsis">
+      Real-Time Updates
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#api-data-models" class="md-nav__link">
+    <span class="md-ellipsis">
+      API Data Models
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#development" class="md-nav__link">
+    <span class="md-ellipsis">
+      Development
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Development">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#project-structure" class="md-nav__link">
+    <span class="md-ellipsis">
+      Project Structure
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#adding-a-new-page" class="md-nav__link">
+    <span class="md-ellipsis">
+      Adding a New Page
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#adding-a-new-api-endpoint" class="md-nav__link">
+    <span class="md-ellipsis">
+      Adding a New API Endpoint
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#building-for-production" class="md-nav__link">
+    <span class="md-ellipsis">
+      Building for Production
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#configuration" class="md-nav__link">
+    <span class="md-ellipsis">
+      Configuration
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Configuration">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#environment-variables" class="md-nav__link">
+    <span class="md-ellipsis">
+      Environment Variables
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#vite-proxy-configuration" class="md-nav__link">
+    <span class="md-ellipsis">
+      Vite Proxy Configuration
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#troubleshooting" class="md-nav__link">
+    <span class="md-ellipsis">
+      Troubleshooting
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Troubleshooting">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#dashboard-not-loading" class="md-nav__link">
+    <span class="md-ellipsis">
+      Dashboard Not Loading
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#cors-errors" class="md-nav__link">
+    <span class="md-ellipsis">
+      CORS Errors
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#typescript-compilation-errors" class="md-nav__link">
+    <span class="md-ellipsis">
+      TypeScript Compilation Errors
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#port-already-in-use" class="md-nav__link">
+    <span class="md-ellipsis">
+      Port Already in Use
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#nodejs-version-issues" class="md-nav__link">
+    <span class="md-ellipsis">
+      Node.js Version Issues
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#next-steps" class="md-nav__link">
+    <span class="md-ellipsis">
+      Next Steps
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Next Steps">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#connecting-real-data" class="md-nav__link">
+    <span class="md-ellipsis">
+      Connecting Real Data
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#phase-2-features" class="md-nav__link">
+    <span class="md-ellipsis">
+      Phase 2 Features
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#fits-viewer-integration" class="md-nav__link">
+    <span class="md-ellipsis">
+      FITS Viewer Integration
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#support" class="md-nav__link">
+    <span class="md-ellipsis">
+      Support
+    </span>
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+          
+          
+            <div class="md-content" data-md-component="content">
+              <article class="md-content__inner md-typeset">
+                
+                  
+
+
+  
+  
+
+
+<h1 id="dsa-110-pipeline-dashboard">DSA-110 Pipeline Dashboard<a class="headerlink" href="#dsa-110-pipeline-dashboard" title="Permanent link">&para;</a></h1>
+<h2 id="overview">Overview<a class="headerlink" href="#overview" title="Permanent link">&para;</a></h2>
+<p>The DSA-110 Pipeline Dashboard is a modern React-based web interface for monitoring the continuum imaging pipeline in real-time. It provides comprehensive views of pipeline health, data quality, source monitoring, and extreme scattering event (ESE) detection.</p>
+<h2 id="quick-start">Quick Start<a class="headerlink" href="#quick-start" title="Permanent link">&para;</a></h2>
+<h3 id="starting-the-dashboard">Starting the Dashboard<a class="headerlink" href="#starting-the-dashboard" title="Permanent link">&para;</a></h3>
+<div class="highlight"><pre><span></span><code><span class="c1"># Terminal 1: Start the backend API</span>
+<span class="nb">cd</span><span class="w"> </span>/data/dsa110-contimg
+conda<span class="w"> </span>activate<span class="w"> </span>casa6
+uvicorn<span class="w"> </span>dsa110_contimg.api:app<span class="w"> </span>--host<span class="w"> </span><span class="m">0</span>.0.0.0<span class="w"> </span>--port<span class="w"> </span><span class="m">8000</span><span class="w"> </span>--reload
+
+<span class="c1"># Terminal 2: Start the frontend</span>
+<span class="nb">cd</span><span class="w"> </span>/data/dsa110-contimg/frontend
+conda<span class="w"> </span>activate<span class="w"> </span>casa6
+npm<span class="w"> </span>run<span class="w"> </span>dev<span class="w"> </span>--<span class="w"> </span>--host<span class="w"> </span><span class="m">0</span>.0.0.0<span class="w"> </span>--port<span class="w"> </span><span class="m">5173</span>
+</code></pre></div>
+<h3 id="accessing-the-dashboard">Accessing the Dashboard<a class="headerlink" href="#accessing-the-dashboard" title="Permanent link">&para;</a></h3>
+<p>Open your browser to:</p>
+<div class="highlight"><pre><span></span><code>http://localhost:5173
+</code></pre></div>
+<p>The dashboard will automatically redirect to <code>/dashboard</code>.</p>
+<h2 id="features">Features<a class="headerlink" href="#features" title="Permanent link">&para;</a></h2>
+<h3 id="1-dashboard-main-page">1. Dashboard (Main Page)<a class="headerlink" href="#1-dashboard-main-page" title="Permanent link">&para;</a></h3>
+<p><strong>URL:</strong> <code>/dashboard</code></p>
+<p>The main dashboard provides an at-a-glance view of pipeline health and system status:</p>
+<ul>
+<li><strong>Pipeline Status Panel</strong></li>
+<li>Queue statistics (total, pending, in-progress, completed, failed, collecting)</li>
+<li>Active calibration sets</li>
+<li>
+<p>Recent observations table with group IDs and processing state</p>
+</li>
+<li>
+<p><strong>System Health Panel</strong></p>
+</li>
+<li>CPU usage percentage</li>
+<li>Memory usage percentage</li>
+<li>Disk usage percentage</li>
+<li>System load (1-minute average)</li>
+<li>
+<p>Last update timestamp</p>
+</li>
+<li>
+<p><strong>ESE Candidates Panel</strong> (New!)</p>
+</li>
+<li>Real-time variability alerts with 5σ threshold</li>
+<li>Source ID (NVSS naming convention)</li>
+<li>Maximum σ deviation</li>
+<li>Status indicators (active, resolved, false_positive)</li>
+<li>Last detection timestamp</li>
+<li>Auto-refresh every 10 seconds</li>
+</ul>
+<h3 id="2-mosaic-gallery">2. Mosaic Gallery<a class="headerlink" href="#2-mosaic-gallery" title="Permanent link">&para;</a></h3>
+<p><strong>URL:</strong> <code>/mosaics</code></p>
+<p>Time-range query interface for hour-long mosaics:</p>
+<ul>
+<li><strong>Time Range Selection</strong></li>
+<li>Start/End DateTime pickers (UTC timezone)</li>
+<li>MJD conversion support</li>
+<li>
+<p>Default: last 1 hour</p>
+</li>
+<li>
+<p><strong>Mosaic Query</strong></p>
+</li>
+<li>Query existing mosaics by time range</li>
+<li>View mosaic metadata (source count, noise level, image count)</li>
+<li>
+<p>Status tracking (pending, in_progress, completed, failed)</p>
+</li>
+<li>
+<p><strong>Mosaic Generation</strong></p>
+</li>
+<li>Create new mosaics from time ranges</li>
+<li>Background processing with status updates</li>
+<li>
+<p>Progress tracking</p>
+</li>
+<li>
+<p><strong>Mosaic Grid View</strong></p>
+</li>
+<li>Thumbnail previews (when available)</li>
+<li>Download options (FITS, PNG)</li>
+<li>Quick view button</li>
+<li>Responsive grid layout (1-3 columns based on screen size)</li>
+</ul>
+<h3 id="3-source-monitoring">3. Source Monitoring<a class="headerlink" href="#3-source-monitoring" title="Permanent link">&para;</a></h3>
+<p><strong>URL:</strong> <code>/sources</code></p>
+<p>Per-source flux timeseries monitoring with high-performance data table:</p>
+<ul>
+<li><strong>Source Search</strong></li>
+<li>Search by NVSS ID (e.g., <code>NVSS J123456.7+420312</code>)</li>
+<li>
+<p>Support for other survey IDs (future)</p>
+</li>
+<li>
+<p><strong>Flux Time Series Chart</strong></p>
+</li>
+<li>Interactive Plotly.js visualization</li>
+<li>Flux measurements with error bars</li>
+<li>Mean flux reference line</li>
+<li>Zoom, pan, and export capabilities</li>
+<li>
+<p>Dark theme optimized for astronomy</p>
+</li>
+<li>
+<p><strong>Data Table (AG Grid)</strong></p>
+</li>
+<li>High-performance rendering (handles 10,000+ rows)</li>
+<li>Sortable columns</li>
+<li>Filterable columns</li>
+<li>Pagination (10 rows per page)</li>
+<li>Columns:<ul>
+<li>Time (UTC)</li>
+<li>Flux (Jy)</li>
+<li>Flux Error (Jy)</li>
+<li>χ²/ν (variability indicator)</li>
+<li>σ deviation (highlight if &gt;5)</li>
+</ul>
+</li>
+</ul>
+<h3 id="4-sky-view">4. Sky View<a class="headerlink" href="#4-sky-view" title="Permanent link">&para;</a></h3>
+<p><strong>URL:</strong> <code>/sky</code></p>
+<p>FITS image viewer and sky navigation (integration in progress):</p>
+<ul>
+<li><strong>Coordinate Navigation</strong></li>
+<li>RA/Dec input (J2000 coordinates)</li>
+<li>Image path loading</li>
+<li>
+<p>Go to coordinate functionality</p>
+</li>
+<li>
+<p><strong>Image Controls</strong></p>
+</li>
+<li>Zoom controls</li>
+<li>Pan/Reset buttons</li>
+<li>Colormap selection</li>
+<li>
+<p>Image statistics display</p>
+</li>
+<li>
+<p><strong>FITS Viewer Placeholder</strong></p>
+</li>
+<li>Prepared for JS9 integration</li>
+<li>Prepared for Aladin Lite integration</li>
+<li>See <a href="https://js9.si.edu/">JS9 Documentation</a> for integration details</li>
+</ul>
+<h2 id="technology-stack">Technology Stack<a class="headerlink" href="#technology-stack" title="Permanent link">&para;</a></h2>
+<h3 id="frontend">Frontend<a class="headerlink" href="#frontend" title="Permanent link">&para;</a></h3>
+<ul>
+<li><strong>Framework:</strong> React 18 with TypeScript</li>
+<li><strong>Build Tool:</strong> Vite (development server with HMR)</li>
+<li><strong>UI Library:</strong> Material-UI v5 (MUI)</li>
+<li><strong>Data Fetching:</strong> TanStack Query (React Query)</li>
+<li><strong>Routing:</strong> React Router v6</li>
+<li><strong>Charts:</strong> Plotly.js with react-plotly.js</li>
+<li><strong>Data Tables:</strong> AG Grid Community</li>
+<li><strong>Date Pickers:</strong> MUI X Date Pickers</li>
+<li><strong>Theme:</strong> Custom dark theme optimized for astronomy</li>
+</ul>
+<h3 id="backend">Backend<a class="headerlink" href="#backend" title="Permanent link">&para;</a></h3>
+<ul>
+<li><strong>API Framework:</strong> FastAPI</li>
+<li><strong>CORS:</strong> Enabled for localhost development</li>
+<li><strong>Endpoints:</strong> RESTful JSON API</li>
+<li><strong>Database:</strong> SQLite3 (ingest.sqlite3, products.sqlite3, master_sources.sqlite3)</li>
+</ul>
+<h2 id="architecture">Architecture<a class="headerlink" href="#architecture" title="Permanent link">&para;</a></h2>
+<div class="highlight"><pre><span></span><code>┌─────────────────────────────────────────────────────────────┐
+│                      Browser (localhost:5173)                │
+│  ┌───────────────────────────────────────────────────────┐  │
+│  │  React App (TypeScript)                               │  │
+│  │  ├── Navigation (React Router)                        │  │
+│  │  ├── Theme Provider (MUI Dark Theme)                  │  │
+│  │  ├── Query Client (React Query)                       │  │
+│  │  └── Pages                                            │  │
+│  │      ├── DashboardPage                                │  │
+│  │      ├── MosaicGalleryPage                            │  │
+│  │      ├── SourceMonitoringPage                         │  │
+│  │      └── SkyViewPage                                  │  │
+│  └───────────────────────────────────────────────────────┘  │
+└─────────────────────────────────────────────────────────────┘
+                             │
+                             ▼ HTTP/JSON (port 5173 → 8000)
+┌─────────────────────────────────────────────────────────────┐
+│                 FastAPI Backend (localhost:8000)             │
+│  ┌───────────────────────────────────────────────────────┐  │
+│  │  API Routes                                           │  │
+│  │  ├── /api/status                                      │  │
+│  │  ├── /api/metrics/system                              │  │
+│  │  ├── /api/ese/candidates                              │  │
+│  │  ├── /api/mosaics/query                               │  │
+│  │  ├── /api/mosaics/create                              │  │
+│  │  ├── /api/sources/search                              │  │
+│  │  └── /api/alerts/history                              │  │
+│  └───────────────────────────────────────────────────────┘  │
+└─────────────────────────────────────────────────────────────┘
+                             │
+                             ▼ SQLite
+┌─────────────────────────────────────────────────────────────┐
+│                        Databases                             │
+│  ├── ingest.sqlite3 (queue management)                      │
+│  ├── products.sqlite3 (images, photometry, mosaics)         │
+│  ├── master_sources.sqlite3 (source catalog)                │
+│  └── cal_registry.sqlite3 (calibration)                     │
+└─────────────────────────────────────────────────────────────┘
+</code></pre></div>
+<h2 id="data-flow">Data Flow<a class="headerlink" href="#data-flow" title="Permanent link">&para;</a></h2>
+<h3 id="real-time-updates">Real-Time Updates<a class="headerlink" href="#real-time-updates" title="Permanent link">&para;</a></h3>
+<p>The dashboard uses polling to fetch updates every 10 seconds:</p>
+<ol>
+<li><strong>React Query</strong> manages data fetching and caching</li>
+<li><strong>Polling interval:</strong> 10s for pipeline status, system metrics, ESE candidates</li>
+<li><strong>On-demand queries:</strong> Triggered by user actions (search, time range selection)</li>
+<li><strong>Automatic retry:</strong> 1 retry on failure, no refetch on window focus</li>
+</ol>
+<h3 id="api-data-models">API Data Models<a class="headerlink" href="#api-data-models" title="Permanent link">&para;</a></h3>
+<p>See <a href="../../reference/dashboard_api/">API Reference</a> for detailed endpoint documentation.</p>
+<h2 id="development">Development<a class="headerlink" href="#development" title="Permanent link">&para;</a></h2>
+<h3 id="project-structure">Project Structure<a class="headerlink" href="#project-structure" title="Permanent link">&para;</a></h3>
+<div class="highlight"><pre><span></span><code>frontend/
+├── src/
+│   ├── api/                    # API client and hooks
+│   │   ├── client.ts           # Axios configuration
+│   │   ├── types.ts            # TypeScript interfaces
+│   │   └── queries.ts          # React Query hooks
+│   ├── components/             # Reusable components
+│   │   ├── Navigation.tsx      # Top navigation bar
+│   │   ├── ESECandidatesPanel.tsx
+│   │   └── FluxChartPanel.tsx
+│   ├── pages/                  # Route components
+│   │   ├── DashboardPage.tsx
+│   │   ├── MosaicGalleryPage.tsx
+│   │   ├── SourceMonitoringPage.tsx
+│   │   └── SkyViewPage.tsx
+│   ├── theme/                  # MUI theme configuration
+│   │   └── darkTheme.ts
+│   ├── App.tsx                 # Root component
+│   └── main.tsx                # Entry point
+├── package.json
+├── tsconfig.json
+└── vite.config.ts
+</code></pre></div>
+<h3 id="adding-a-new-page">Adding a New Page<a class="headerlink" href="#adding-a-new-page" title="Permanent link">&para;</a></h3>
+<ol>
+<li>
+<p><strong>Create page component:</strong>
+   <div class="highlight"><pre><span></span><code><span class="c1">// src/pages/NewPage.tsx</span>
+<span class="k">export</span><span class="w"> </span><span class="k">default</span><span class="w"> </span><span class="kd">function</span><span class="w"> </span><span class="nx">NewPage</span><span class="p">()</span><span class="w"> </span><span class="p">{</span>
+<span class="w">  </span><span class="k">return</span><span class="w"> </span><span class="p">(</span>
+<span class="w">    </span><span class="o">&lt;</span><span class="nx">Container</span><span class="w"> </span><span class="nx">maxWidth</span><span class="o">=</span><span class="s2">&quot;xl&quot;</span><span class="w"> </span><span class="nx">sx</span><span class="o">=</span><span class="p">{{</span><span class="w"> </span><span class="nx">py</span><span class="o">:</span><span class="w"> </span><span class="kt">4</span><span class="w"> </span><span class="p">}}</span><span class="o">&gt;</span>
+<span class="w">      </span><span class="o">&lt;</span><span class="nx">Typography</span><span class="w"> </span><span class="nx">variant</span><span class="o">=</span><span class="s2">&quot;h3&quot;</span><span class="w"> </span><span class="nx">gutterBottom</span><span class="o">&gt;</span>
+<span class="w">        </span><span class="nx">New</span><span class="w"> </span><span class="nx">Feature</span>
+<span class="w">      </span><span class="o">&lt;</span><span class="err">/Typography&gt;</span>
+<span class="w">    </span><span class="o">&lt;</span><span class="err">/Container&gt;</span>
+<span class="w">  </span><span class="p">);</span>
+<span class="p">}</span>
+</code></pre></div></p>
+</li>
+<li>
+<p><strong>Add route in App.tsx:</strong>
+   <div class="highlight"><pre><span></span><code><span class="k">import</span><span class="w"> </span><span class="nx">NewPage</span><span class="w"> </span><span class="kr">from</span><span class="w"> </span><span class="s1">&#39;./pages/NewPage&#39;</span><span class="p">;</span>
+
+<span class="c1">// In Routes:</span>
+<span class="o">&lt;</span><span class="nx">Route</span><span class="w"> </span><span class="nx">path</span><span class="o">=</span><span class="s2">&quot;/new&quot;</span><span class="w"> </span><span class="nx">element</span><span class="o">=</span><span class="p">{</span><span class="o">&lt;</span><span class="nx">NewPage</span><span class="w"> </span><span class="o">/&gt;</span><span class="p">}</span><span class="w"> </span><span class="o">/&gt;</span>
+</code></pre></div></p>
+</li>
+<li>
+<p><strong>Add navigation link:</strong>
+   <div class="highlight"><pre><span></span><code><span class="c1">// In Navigation.tsx</span>
+<span class="o">&lt;</span><span class="nx">Button</span><span class="w"> </span><span class="nx">component</span><span class="o">=</span><span class="p">{</span><span class="nx">NavLink</span><span class="p">}</span><span class="w"> </span><span class="nx">to</span><span class="o">=</span><span class="s2">&quot;/new&quot;</span><span class="o">&gt;</span>
+<span class="w">  </span><span class="nx">New</span><span class="w"> </span><span class="nx">Feature</span>
+<span class="o">&lt;</span><span class="err">/Button&gt;</span>
+</code></pre></div></p>
+</li>
+</ol>
+<h3 id="adding-a-new-api-endpoint">Adding a New API Endpoint<a class="headerlink" href="#adding-a-new-api-endpoint" title="Permanent link">&para;</a></h3>
+<ol>
+<li>
+<p><strong>Define TypeScript interface:</strong>
+   <div class="highlight"><pre><span></span><code><span class="c1">// src/api/types.ts</span>
+<span class="k">export</span><span class="w"> </span><span class="kd">interface</span><span class="w"> </span><span class="nx">NewData</span><span class="w"> </span><span class="p">{</span>
+<span class="w">  </span><span class="nx">id</span><span class="o">:</span><span class="w"> </span><span class="kt">number</span><span class="p">;</span>
+<span class="w">  </span><span class="nx">name</span><span class="o">:</span><span class="w"> </span><span class="kt">string</span><span class="p">;</span>
+<span class="p">}</span>
+</code></pre></div></p>
+</li>
+<li>
+<p><strong>Create React Query hook:</strong>
+   <div class="highlight"><pre><span></span><code><span class="c1">// src/api/queries.ts</span>
+<span class="k">export</span><span class="w"> </span><span class="kd">function</span><span class="w"> </span><span class="nx">useNewData</span><span class="p">()</span><span class="w"> </span><span class="p">{</span>
+<span class="w">  </span><span class="k">return</span><span class="w"> </span><span class="nx">useQuery</span><span class="p">({</span>
+<span class="w">    </span><span class="nx">queryKey</span><span class="o">:</span><span class="w"> </span><span class="p">[</span><span class="s1">&#39;newdata&#39;</span><span class="p">],</span>
+<span class="w">    </span><span class="nx">queryFn</span><span class="o">:</span><span class="w"> </span><span class="kt">async</span><span class="w"> </span><span class="p">()</span><span class="w"> </span><span class="p">=&gt;</span><span class="w"> </span><span class="p">{</span>
+<span class="w">      </span><span class="kd">const</span><span class="w"> </span><span class="nx">response</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="k">await</span><span class="w"> </span><span class="nx">apiClient</span><span class="p">.</span><span class="nx">get</span><span class="o">&lt;</span><span class="nx">NewData</span><span class="p">[]</span><span class="o">&gt;</span><span class="p">(</span><span class="s1">&#39;/new&#39;</span><span class="p">);</span>
+<span class="w">      </span><span class="k">return</span><span class="w"> </span><span class="nx">response</span><span class="p">.</span><span class="nx">data</span><span class="p">;</span>
+<span class="w">    </span><span class="p">},</span>
+<span class="w">  </span><span class="p">});</span>
+<span class="p">}</span>
+</code></pre></div></p>
+</li>
+<li>
+<p><strong>Use in component:</strong>
+   <div class="highlight"><pre><span></span><code><span class="kd">const</span><span class="w"> </span><span class="p">{</span><span class="w"> </span><span class="nx">data</span><span class="p">,</span><span class="w"> </span><span class="nx">isLoading</span><span class="p">,</span><span class="w"> </span><span class="nx">error</span><span class="w"> </span><span class="p">}</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="nx">useNewData</span><span class="p">();</span>
+</code></pre></div></p>
+</li>
+</ol>
+<h3 id="building-for-production">Building for Production<a class="headerlink" href="#building-for-production" title="Permanent link">&para;</a></h3>
+<div class="highlight"><pre><span></span><code><span class="nb">cd</span><span class="w"> </span>/data/dsa110-contimg/frontend
+npm<span class="w"> </span>run<span class="w"> </span>build
+</code></pre></div>
+<p>Output will be in <code>frontend/dist/</code>. Serve with:</p>
+<div class="highlight"><pre><span></span><code>npm<span class="w"> </span>run<span class="w"> </span>preview
+</code></pre></div>
+<p>Or use a static file server:</p>
+<div class="highlight"><pre><span></span><code>python<span class="w"> </span>-m<span class="w"> </span>http.server<span class="w"> </span>-d<span class="w"> </span>dist<span class="w"> </span><span class="m">5173</span>
+</code></pre></div>
+<h2 id="configuration">Configuration<a class="headerlink" href="#configuration" title="Permanent link">&para;</a></h2>
+<h3 id="environment-variables">Environment Variables<a class="headerlink" href="#environment-variables" title="Permanent link">&para;</a></h3>
+<p>Create <code>frontend/.env.local</code>:</p>
+<div class="highlight"><pre><span></span><code><span class="c1"># API base URL</span>
+<span class="nv">VITE_API_URL</span><span class="o">=</span>http://localhost:8000
+
+<span class="c1"># Or use proxy (set to /api to enable Vite proxy)</span>
+<span class="nv">VITE_API_URL</span><span class="o">=</span>/api
+</code></pre></div>
+<h3 id="vite-proxy-configuration">Vite Proxy Configuration<a class="headerlink" href="#vite-proxy-configuration" title="Permanent link">&para;</a></h3>
+<p>For development environments with SSH port forwarding, use the proxy:</p>
+<div class="highlight"><pre><span></span><code><span class="c1">// vite.config.ts</span>
+<span class="k">export</span><span class="w"> </span><span class="k">default</span><span class="w"> </span><span class="nx">defineConfig</span><span class="p">({</span>
+<span class="w">  </span><span class="nx">server</span><span class="o">:</span><span class="w"> </span><span class="p">{</span>
+<span class="w">    </span><span class="nx">proxy</span><span class="o">:</span><span class="w"> </span><span class="p">{</span>
+<span class="w">      </span><span class="s1">&#39;/api&#39;</span><span class="o">:</span><span class="w"> </span><span class="p">{</span>
+<span class="w">        </span><span class="nx">target</span><span class="o">:</span><span class="w"> </span><span class="s1">&#39;http://localhost:8000&#39;</span><span class="p">,</span>
+<span class="w">        </span><span class="nx">changeOrigin</span><span class="o">:</span><span class="w"> </span><span class="kt">true</span><span class="p">,</span>
+<span class="w">      </span><span class="p">}</span>
+<span class="w">    </span><span class="p">}</span>
+<span class="w">  </span><span class="p">}</span>
+<span class="p">})</span>
+</code></pre></div>
+<h2 id="troubleshooting">Troubleshooting<a class="headerlink" href="#troubleshooting" title="Permanent link">&para;</a></h2>
+<h3 id="dashboard-not-loading">Dashboard Not Loading<a class="headerlink" href="#dashboard-not-loading" title="Permanent link">&para;</a></h3>
+<ol>
+<li>
+<p><strong>Check both services are running:</strong>
+   <div class="highlight"><pre><span></span><code>ps<span class="w"> </span>aux<span class="w"> </span><span class="p">|</span><span class="w"> </span>grep<span class="w"> </span>-E<span class="w"> </span><span class="s2">&quot;node.*vite|uvicorn.*dsa110&quot;</span>
+</code></pre></div></p>
+</li>
+<li>
+<p><strong>Test backend API:</strong>
+   <div class="highlight"><pre><span></span><code>curl<span class="w"> </span>http://localhost:8000/api/status
+</code></pre></div></p>
+</li>
+<li>
+<p><strong>Test frontend:</strong>
+   <div class="highlight"><pre><span></span><code>curl<span class="w"> </span>http://localhost:5173
+</code></pre></div></p>
+</li>
+<li>
+<p><strong>Check browser console (F12) for errors</strong></p>
+</li>
+</ol>
+<h3 id="cors-errors">CORS Errors<a class="headerlink" href="#cors-errors" title="Permanent link">&para;</a></h3>
+<p>If you see CORS errors in the browser console:</p>
+<ol>
+<li><strong>Verify CORS middleware is enabled</strong> in <code>src/dsa110_contimg/api/routes.py</code></li>
+<li><strong>Check allowed origins</strong> include your frontend URL</li>
+<li><strong>Try using the Vite proxy</strong> instead of direct API calls</li>
+</ol>
+<h3 id="typescript-compilation-errors">TypeScript Compilation Errors<a class="headerlink" href="#typescript-compilation-errors" title="Permanent link">&para;</a></h3>
+<div class="highlight"><pre><span></span><code><span class="nb">cd</span><span class="w"> </span>/data/dsa110-contimg/frontend
+npm<span class="w"> </span>run<span class="w"> </span>build
+</code></pre></div>
+<p>Fix any type errors before running the dev server.</p>
+<h3 id="port-already-in-use">Port Already in Use<a class="headerlink" href="#port-already-in-use" title="Permanent link">&para;</a></h3>
+<div class="highlight"><pre><span></span><code><span class="c1"># Kill existing Vite process</span>
+pkill<span class="w"> </span>-f<span class="w"> </span><span class="s2">&quot;node.*vite.*5173&quot;</span>
+
+<span class="c1"># Kill existing uvicorn process</span>
+pkill<span class="w"> </span>-f<span class="w"> </span><span class="s2">&quot;uvicorn.*dsa110&quot;</span>
+</code></pre></div>
+<h3 id="nodejs-version-issues">Node.js Version Issues<a class="headerlink" href="#nodejs-version-issues" title="Permanent link">&para;</a></h3>
+<p>The project requires Node.js ≥20.19.0 or ≥22.12.0. Check version:</p>
+<div class="highlight"><pre><span></span><code>conda<span class="w"> </span>activate<span class="w"> </span>casa6
+node<span class="w"> </span>--version
+</code></pre></div>
+<h2 id="next-steps">Next Steps<a class="headerlink" href="#next-steps" title="Permanent link">&para;</a></h2>
+<h3 id="connecting-real-data">Connecting Real Data<a class="headerlink" href="#connecting-real-data" title="Permanent link">&para;</a></h3>
+<p>The dashboard currently uses mock data. To connect real data:</p>
+<ol>
+<li><strong>Implement database queries</strong> in <code>src/dsa110_contimg/api/routes.py</code></li>
+<li><strong>Replace mock generators</strong> with actual SQLite queries</li>
+<li><strong>Update data models</strong> if schema differs from mock data</li>
+<li><strong>Test with real pipeline data</strong></li>
+</ol>
+<p>See <a href="dashboard_real_data.md">Connecting Real Data</a> for detailed instructions.</p>
+<h3 id="phase-2-features">Phase 2 Features<a class="headerlink" href="#phase-2-features" title="Permanent link">&para;</a></h3>
+<ul>
+<li><strong>Slack Alerting:</strong> Webhook integration for ESE candidate notifications</li>
+<li><strong>VO Cone Search:</strong> External API for TOPCAT/Aladin integration</li>
+<li><strong>User Authentication:</strong> Login system for multi-user access</li>
+<li><strong>Custom Thresholds:</strong> User-configurable ESE detection parameters</li>
+<li><strong>Advanced Filtering:</strong> More query options for mosaics and sources</li>
+</ul>
+<h3 id="fits-viewer-integration">FITS Viewer Integration<a class="headerlink" href="#fits-viewer-integration" title="Permanent link">&para;</a></h3>
+<p>To integrate JS9 or Aladin Lite:</p>
+<ol>
+<li><strong>JS9:</strong> See <a href="https://js9.si.edu/js9/help/install.html">JS9 Integration Guide</a></li>
+<li><strong>Aladin Lite:</strong> See <a href="https://aladin.cds.unistra.fr/AladinLite/doc/">Aladin Lite API</a></li>
+</ol>
+<p>Placeholder is ready in <code>src/pages/SkyViewPage.tsx</code>.</p>
+<h2 id="support">Support<a class="headerlink" href="#support" title="Permanent link">&para;</a></h2>
+<p>For issues or questions:</p>
+<ul>
+<li>Check <a href="../../troubleshooting/">Troubleshooting</a></li>
+<li>See <a href="../../reference/dashboard_api/">API Reference</a></li>
+<li>Consult <a href="../../concepts/frontend_design/">Frontend Design</a></li>
+</ul>
+
+
+
+
+
+
+
+
+
+
+
+
+                
+              </article>
+            </div>
+          
+          
+  <script>var tabs=__md_get("__tabs");if(Array.isArray(tabs))e:for(var set of document.querySelectorAll(".tabbed-set")){var labels=set.querySelector(".tabbed-labels");for(var tab of tabs)for(var label of labels.getElementsByTagName("label"))if(label.innerText.trim()===tab){var input=document.getElementById(label.htmlFor);input.checked=!0;continue e}}</script>
+
+<script>var target=document.getElementById(location.hash.slice(1));target&&target.name&&(target.checked=target.name.startsWith("__tabbed_"))</script>
+        </div>
+        
+      </main>
+      
+        <footer class="md-footer">
+  
+  <div class="md-footer-meta md-typeset">
+    <div class="md-footer-meta__inner md-grid">
+      <div class="md-copyright">
+  
+  
+    Made with
+    <a href="https://squidfunk.github.io/mkdocs-material/" target="_blank" rel="noopener">
+      Material for MkDocs
+    </a>
+  
+</div>
+      
+    </div>
+  </div>
+</footer>
+      
+    </div>
+    <div class="md-dialog" data-md-component="dialog">
+      <div class="md-dialog__inner md-typeset"></div>
+    </div>
+    
+    
+    
+      
+      <script id="__config" type="application/json">{"base": "../..", "features": ["navigation.sections", "navigation.indexes", "content.code.copy", "content.tabs.link"], "search": "../../assets/javascripts/workers/search.973d3a69.min.js", "tags": null, "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": null}</script>
+    
+    
+      <script src="../../assets/javascripts/bundle.f55a23d4.min.js"></script>
+      
+        <script src="https://unpkg.com/mermaid@10/dist/mermaid.min.js"></script>
+      
+        <script src="../../javascripts/mermaid-init.js"></script>
+      
+    
+  </body>
+</html>

@@ -1,0 +1,3454 @@
+
+<!doctype html>
+<html lang="en" class="no-js">
+  <head>
+    
+      <meta charset="utf-8">
+      <meta name="viewport" content="width=device-width,initial-scale=1">
+      
+      
+      
+        <link rel="canonical" href="https://dsa110-contimg.github.io/dsa110-contimg/concepts/frontend_design/">
+      
+      
+        <link rel="prev" href="../architecture/">
+      
+      
+        <link rel="next" href="../dashboard_mockups/">
+      
+      
+      <link rel="icon" href="../../assets/images/favicon.png">
+      <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.6.21">
+    
+    
+      
+        <title>Front-End Design Strategy - DSA-110 Continuum Imaging Pipeline</title>
+      
+    
+    
+      <link rel="stylesheet" href="../../assets/stylesheets/main.2a3383ac.min.css">
+      
+      
+
+
+    
+    
+      
+    
+    
+      
+        
+        
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+        <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Roboto:300,300i,400,400i,700,700i%7CRoboto+Mono:400,400i,700,700i&display=fallback">
+        <style>:root{--md-text-font:"Roboto";--md-code-font:"Roboto Mono"}</style>
+      
+    
+    
+      <link rel="stylesheet" href="../../assets/_mkdocstrings.css">
+    
+    <script>__md_scope=new URL("../..",location),__md_hash=e=>[...e].reduce(((e,_)=>(e<<5)-e+_.charCodeAt(0)),0),__md_get=(e,_=localStorage,t=__md_scope)=>JSON.parse(_.getItem(t.pathname+"."+e)),__md_set=(e,_,t=localStorage,a=__md_scope)=>{try{t.setItem(a.pathname+"."+e,JSON.stringify(_))}catch(e){}}</script>
+    
+      
+
+    
+    
+    
+  </head>
+  
+  
+    <body dir="ltr">
+  
+    
+    <input class="md-toggle" data-md-toggle="drawer" type="checkbox" id="__drawer" autocomplete="off">
+    <input class="md-toggle" data-md-toggle="search" type="checkbox" id="__search" autocomplete="off">
+    <label class="md-overlay" for="__drawer"></label>
+    <div data-md-component="skip">
+      
+        
+        <a href="#dsa-110-continuum-imaging-pipeline-front-end-design-strategy" class="md-skip">
+          Skip to content
+        </a>
+      
+    </div>
+    <div data-md-component="announce">
+      
+    </div>
+    
+    
+      
+
+  
+
+<header class="md-header md-header--shadow" data-md-component="header">
+  <nav class="md-header__inner md-grid" aria-label="Header">
+    <a href="../.." title="DSA-110 Continuum Imaging Pipeline" class="md-header__button md-logo" aria-label="DSA-110 Continuum Imaging Pipeline" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"/></svg>
+
+    </a>
+    <label class="md-header__button md-icon" for="__drawer">
+      
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M3 6h18v2H3zm0 5h18v2H3zm0 5h18v2H3z"/></svg>
+    </label>
+    <div class="md-header__title" data-md-component="header-title">
+      <div class="md-header__ellipsis">
+        <div class="md-header__topic">
+          <span class="md-ellipsis">
+            DSA-110 Continuum Imaging Pipeline
+          </span>
+        </div>
+        <div class="md-header__topic" data-md-component="header-topic">
+          <span class="md-ellipsis">
+            
+              Front-End Design Strategy
+            
+          </span>
+        </div>
+      </div>
+    </div>
+    
+    
+      <script>var palette=__md_get("__palette");if(palette&&palette.color){if("(prefers-color-scheme)"===palette.color.media){var media=matchMedia("(prefers-color-scheme: light)"),input=document.querySelector(media.matches?"[data-md-color-media='(prefers-color-scheme: light)']":"[data-md-color-media='(prefers-color-scheme: dark)']");palette.color.media=input.getAttribute("data-md-color-media"),palette.color.scheme=input.getAttribute("data-md-color-scheme"),palette.color.primary=input.getAttribute("data-md-color-primary"),palette.color.accent=input.getAttribute("data-md-color-accent")}for(var[key,value]of Object.entries(palette.color))document.body.setAttribute("data-md-color-"+key,value)}</script>
+    
+    
+    
+      
+      
+        <label class="md-header__button md-icon" for="__search">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        </label>
+        <div class="md-search" data-md-component="search" role="dialog">
+  <label class="md-search__overlay" for="__search"></label>
+  <div class="md-search__inner" role="search">
+    <form class="md-search__form" name="search">
+      <input type="text" class="md-search__input" name="query" aria-label="Search" placeholder="Search" autocapitalize="off" autocorrect="off" autocomplete="off" spellcheck="false" data-md-component="search-query" required>
+      <label class="md-search__icon md-icon" for="__search">
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11z"/></svg>
+      </label>
+      <nav class="md-search__options" aria-label="Search">
+        
+        <button type="reset" class="md-search__icon md-icon" title="Clear" aria-label="Clear" tabindex="-1">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M19 6.41 17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg>
+        </button>
+      </nav>
+      
+    </form>
+    <div class="md-search__output">
+      <div class="md-search__scrollwrap" tabindex="0" data-md-scrollfix>
+        <div class="md-search-result" data-md-component="search-result">
+          <div class="md-search-result__meta">
+            Initializing search
+          </div>
+          <ol class="md-search-result__list" role="presentation"></ol>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+      
+    
+    
+      <div class="md-header__source">
+        <a href="https://github.com/dsa110/dsa110-contimg" title="Go to repository" class="md-source" data-md-component="source">
+  <div class="md-source__icon md-icon">
+    
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><!--! Font Awesome Free 7.0.1 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2025 Fonticons, Inc.--><path d="M439.6 236.1 244 40.5c-5.4-5.5-12.8-8.5-20.4-8.5s-15 3-20.4 8.4L162.5 81l51.5 51.5c27.1-9.1 52.7 16.8 43.4 43.7l49.7 49.7c34.2-11.8 61.2 31 35.5 56.7-26.5 26.5-70.2-2.9-56-37.3L240.3 199v121.9c25.3 12.5 22.3 41.8 9.1 55-6.4 6.4-15.2 10.1-24.3 10.1s-17.8-3.6-24.3-10.1c-17.6-17.6-11.1-46.9 11.2-56v-123c-20.8-8.5-24.6-30.7-18.6-45L142.6 101 8.5 235.1C3 240.6 0 247.9 0 255.5s3 15 8.5 20.4l195.6 195.7c5.4 5.4 12.7 8.4 20.4 8.4s15-3 20.4-8.4l194.7-194.7c5.4-5.4 8.4-12.8 8.4-20.4s-3-15-8.4-20.4"/></svg>
+  </div>
+  <div class="md-source__repository">
+    GitHub
+  </div>
+</a>
+      </div>
+    
+  </nav>
+  
+</header>
+    
+    <div class="md-container" data-md-component="container">
+      
+      
+        
+          
+        
+      
+      <main class="md-main" data-md-component="main">
+        <div class="md-main__inner md-grid">
+          
+            
+              
+              <div class="md-sidebar md-sidebar--primary" data-md-component="sidebar" data-md-type="navigation" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+
+
+<nav class="md-nav md-nav--primary" aria-label="Navigation" data-md-level="0">
+  <label class="md-nav__title" for="__drawer">
+    <a href="../.." title="DSA-110 Continuum Imaging Pipeline" class="md-nav__button md-logo" aria-label="DSA-110 Continuum Imaging Pipeline" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"/></svg>
+
+    </a>
+    DSA-110 Continuum Imaging Pipeline
+  </label>
+  
+    <div class="md-nav__source">
+      <a href="https://github.com/dsa110/dsa110-contimg" title="Go to repository" class="md-source" data-md-component="source">
+  <div class="md-source__icon md-icon">
+    
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><!--! Font Awesome Free 7.0.1 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2025 Fonticons, Inc.--><path d="M439.6 236.1 244 40.5c-5.4-5.5-12.8-8.5-20.4-8.5s-15 3-20.4 8.4L162.5 81l51.5 51.5c27.1-9.1 52.7 16.8 43.4 43.7l49.7 49.7c34.2-11.8 61.2 31 35.5 56.7-26.5 26.5-70.2-2.9-56-37.3L240.3 199v121.9c25.3 12.5 22.3 41.8 9.1 55-6.4 6.4-15.2 10.1-24.3 10.1s-17.8-3.6-24.3-10.1c-17.6-17.6-11.1-46.9 11.2-56v-123c-20.8-8.5-24.6-30.7-18.6-45L142.6 101 8.5 235.1C3 240.6 0 247.9 0 255.5s3 15 8.5 20.4l195.6 195.7c5.4 5.4 12.7 8.4 20.4 8.4s15-3 20.4-8.4l194.7-194.7c5.4-5.4 8.4-12.8 8.4-20.4s-3-15-8.4-20.4"/></svg>
+  </div>
+  <div class="md-source__repository">
+    GitHub
+  </div>
+</a>
+    </div>
+  
+  <ul class="md-nav__list" data-md-scrollfix>
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../.." class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Home
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../quickstart/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Quick Start
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../quickstart_dashboard/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Dashboard Quick Start
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../pipeline/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Pipeline Visuals
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+      
+        
+      
+        
+      
+        
+      
+    
+    
+    
+      
+        
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--section md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_5" >
+        
+          
+          <label class="md-nav__link" for="__nav_5" id="__nav_5_label" tabindex="">
+            
+  
+  
+  <span class="md-ellipsis">
+    Tutorials
+    
+  </span>
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_5_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_5">
+            <span class="md-nav__icon md-icon"></span>
+            Tutorials
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../tutorials/streaming/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    End-to-End Streaming
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../tutorials/convert-standalone/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Convert UVH5 → MS (Standalone)
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../tutorials/calibrate-apply/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Calibrate + Apply
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+      
+        
+      
+        
+      
+    
+    
+    
+      
+        
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--section md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_6" >
+        
+          
+          <label class="md-nav__link" for="__nav_6" id="__nav_6_label" tabindex="">
+            
+  
+  
+  <span class="md-ellipsis">
+    How-To Guides
+    
+  </span>
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_6_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_6">
+            <span class="md-nav__icon md-icon"></span>
+            How-To Guides
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../howto/reprocess/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Reprocess a Group
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../howto/mosaic/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Build Nightly Mosaic
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+      
+        
+      
+    
+    
+    
+      
+        
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--section md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_7" >
+        
+          
+          <label class="md-nav__link" for="__nav_7" id="__nav_7_label" tabindex="">
+            
+  
+  
+  <span class="md-ellipsis">
+    Science
+    
+  </span>
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_7_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_7">
+            <span class="md-nav__icon md-icon"></span>
+            Science
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../science/photometry_normalization/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Photometry Normalization
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+    
+    
+    
+      
+        
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--section md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_8" >
+        
+          
+          <label class="md-nav__link" for="__nav_8" id="__nav_8_label" tabindex="">
+            
+  
+  
+  <span class="md-ellipsis">
+    Guides
+    
+  </span>
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_8_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_8">
+            <span class="md-nav__icon md-icon"></span>
+            Guides
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../downsampling_guide/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Downsampling Guide
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../pipeline/README_uvh5_to_ms/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Pipeline: UVH5 → MS
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../pipeline/streaming_converter_README/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Pipeline: Streaming Converter
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../guides/dashboard/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Dashboard User Guide
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../guides/dashboard_development/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Dashboard Development
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+    
+  
+  
+  
+    
+    
+      
+        
+      
+        
+      
+        
+      
+        
+      
+    
+    
+    
+      
+        
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--active md-nav__item--section md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_9" checked>
+        
+          
+          <label class="md-nav__link" for="__nav_9" id="__nav_9_label" tabindex="">
+            
+  
+  
+  <span class="md-ellipsis">
+    Concepts
+    
+  </span>
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_9_label" aria-expanded="true">
+          <label class="md-nav__title" for="__nav_9">
+            <span class="md-nav__icon md-icon"></span>
+            Concepts
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../architecture/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Architecture
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+    
+  
+  
+  
+    <li class="md-nav__item md-nav__item--active">
+      
+      <input class="md-nav__toggle md-toggle" type="checkbox" id="__toc">
+      
+      
+        
+      
+      
+        <label class="md-nav__link md-nav__link--active" for="__toc">
+          
+  
+  
+  <span class="md-ellipsis">
+    Front-End Design Strategy
+    
+  </span>
+  
+
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
+      <a href="./" class="md-nav__link md-nav__link--active">
+        
+  
+  
+  <span class="md-ellipsis">
+    Front-End Design Strategy
+    
+  </span>
+  
+
+      </a>
+      
+        
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#executive-summary" class="md-nav__link">
+    <span class="md-ellipsis">
+      Executive Summary
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#1-current-state-analysis" class="md-nav__link">
+    <span class="md-ellipsis">
+      1. Current State Analysis
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="1. Current State Analysis">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#11-existing-infrastructure" class="md-nav__link">
+    <span class="md-ellipsis">
+      1.1 Existing Infrastructure
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#12-key-api-endpoints-available" class="md-nav__link">
+    <span class="md-ellipsis">
+      1.2 Key API Endpoints Available
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#13-data-model-highlights" class="md-nav__link">
+    <span class="md-ellipsis">
+      1.3 Data Model Highlights
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#2-strategic-vision-information-architecture" class="md-nav__link">
+    <span class="md-ellipsis">
+      2. Strategic Vision: Information Architecture
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="2. Strategic Vision: Information Architecture">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#21-core-user-personas" class="md-nav__link">
+    <span class="md-ellipsis">
+      2.1 Core User Personas
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#22-primary-navigation-structure" class="md-nav__link">
+    <span class="md-ellipsis">
+      2.2 Primary Navigation Structure
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#23-design-philosophy-high-density-information-display" class="md-nav__link">
+    <span class="md-ellipsis">
+      2.3 Design Philosophy: High-Density Information Display
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#3-detailed-page-specifications" class="md-nav__link">
+    <span class="md-ellipsis">
+      3. Detailed Page Specifications
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="3. Detailed Page Specifications">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#31-dashboard-home-page" class="md-nav__link">
+    <span class="md-ellipsis">
+      3.1 Dashboard (Home Page)
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#32-sky-page" class="md-nav__link">
+    <span class="md-ellipsis">
+      3.2 Sky Page
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#33-sources-page" class="md-nav__link">
+    <span class="md-ellipsis">
+      3.3 Sources Page
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#34-observing-page" class="md-nav__link">
+    <span class="md-ellipsis">
+      3.4 Observing Page
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#35-health-page" class="md-nav__link">
+    <span class="md-ellipsis">
+      3.5 Health Page
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#4-technology-stack-recommendations" class="md-nav__link">
+    <span class="md-ellipsis">
+      4. Technology Stack Recommendations
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="4. Technology Stack Recommendations">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#41-core-framework-modern-web-stack" class="md-nav__link">
+    <span class="md-ellipsis">
+      4.1 Core Framework: Modern Web Stack
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#42-backend-integration" class="md-nav__link">
+    <span class="md-ellipsis">
+      4.2 Backend Integration
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#43-development-deployment" class="md-nav__link">
+    <span class="md-ellipsis">
+      4.3 Development &amp; Deployment
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#44-alternative-streamlit-for-rapid-prototyping" class="md-nav__link">
+    <span class="md-ellipsis">
+      4.4 Alternative: Streamlit for Rapid Prototyping
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#5-data-visualization-design-patterns" class="md-nav__link">
+    <span class="md-ellipsis">
+      5. Data Visualization Design Patterns
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="5. Data Visualization Design Patterns">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#51-high-information-density-techniques" class="md-nav__link">
+    <span class="md-ellipsis">
+      5.1 High-Information-Density Techniques
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#52-interactive-features-priority-list" class="md-nav__link">
+    <span class="md-ellipsis">
+      5.2 Interactive Features Priority List
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#6-implementation-roadmap" class="md-nav__link">
+    <span class="md-ellipsis">
+      6. Implementation Roadmap
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="6. Implementation Roadmap">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#phase-1-core-infrastructure-weeks-1-3" class="md-nav__link">
+    <span class="md-ellipsis">
+      Phase 1: Core Infrastructure (Weeks 1-3)
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#phase-2-science-features-weeks-4-6" class="md-nav__link">
+    <span class="md-ellipsis">
+      Phase 2: Science Features (Weeks 4-6)
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#phase-3-advanced-features-weeks-7-9" class="md-nav__link">
+    <span class="md-ellipsis">
+      Phase 3: Advanced Features (Weeks 7-9)
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#phase-4-polish-optimization-weeks-10-12" class="md-nav__link">
+    <span class="md-ellipsis">
+      Phase 4: Polish &amp; Optimization (Weeks 10-12)
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#phase-5-future-enhancements-ongoing" class="md-nav__link">
+    <span class="md-ellipsis">
+      Phase 5: Future Enhancements (Ongoing)
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#7-key-design-decisions-rationale" class="md-nav__link">
+    <span class="md-ellipsis">
+      7. Key Design Decisions &amp; Rationale
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="7. Key Design Decisions &amp; Rationale">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#71-why-react-over-alternatives" class="md-nav__link">
+    <span class="md-ellipsis">
+      7.1 Why React over alternatives?
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#72-separation-of-concerns-documentation-vs-dashboard" class="md-nav__link">
+    <span class="md-ellipsis">
+      7.2 Separation of Concerns: Documentation vs. Dashboard
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#73-data-refresh-strategy" class="md-nav__link">
+    <span class="md-ellipsis">
+      7.3 Data Refresh Strategy
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#74-mobile-responsiveness" class="md-nav__link">
+    <span class="md-ellipsis">
+      7.4 Mobile Responsiveness
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#75-dark-mode" class="md-nav__link">
+    <span class="md-ellipsis">
+      7.5 Dark Mode
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#8-metrics-for-success" class="md-nav__link">
+    <span class="md-ellipsis">
+      8. Metrics for Success
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="8. Metrics for Success">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#81-user-experience" class="md-nav__link">
+    <span class="md-ellipsis">
+      8.1 User Experience
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#82-performance" class="md-nav__link">
+    <span class="md-ellipsis">
+      8.2 Performance
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#83-operational" class="md-nav__link">
+    <span class="md-ellipsis">
+      8.3 Operational
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#9-design-decisions-specifications" class="md-nav__link">
+    <span class="md-ellipsis">
+      9. Design Decisions &amp; Specifications
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="9. Design Decisions &amp; Specifications">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#91-source-naming-convention" class="md-nav__link">
+    <span class="md-ellipsis">
+      9.1 Source Naming Convention
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#92-ese-candidate-auto-flagging" class="md-nav__link">
+    <span class="md-ellipsis">
+      9.2 ESE Candidate Auto-Flagging
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#93-alert-system-architecture" class="md-nav__link">
+    <span class="md-ellipsis">
+      9.3 Alert System Architecture
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#94-mosaic-query-system" class="md-nav__link">
+    <span class="md-ellipsis">
+      9.4 Mosaic Query System
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#95-data-retention-policy" class="md-nav__link">
+    <span class="md-ellipsis">
+      9.5 Data Retention Policy
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#96-multi-user-features" class="md-nav__link">
+    <span class="md-ellipsis">
+      9.6 Multi-User Features
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#10-next-steps" class="md-nav__link">
+    <span class="md-ellipsis">
+      10. Next Steps
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#appendix-a-technology-alternatives-considered" class="md-nav__link">
+    <span class="md-ellipsis">
+      Appendix A: Technology Alternatives Considered
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#appendix-b-existing-projects-for-inspiration" class="md-nav__link">
+    <span class="md-ellipsis">
+      Appendix B: Existing Projects for Inspiration
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#appendix-c-accessibility-considerations" class="md-nav__link">
+    <span class="md-ellipsis">
+      Appendix C: Accessibility Considerations
+    </span>
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+      
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../dashboard_mockups/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    UI Mockups & Specifications
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../frontend_next_steps/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Implementation Guide
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+      
+        
+      
+        
+      
+        
+      
+        
+      
+    
+    
+    
+      
+        
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--section md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_10" >
+        
+          
+          <label class="md-nav__link" for="__nav_10" id="__nav_10_label" tabindex="">
+            
+  
+  
+  <span class="md-ellipsis">
+    Reference
+    
+  </span>
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_10_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_10">
+            <span class="md-nav__icon md-icon"></span>
+            Reference
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../reference/cli/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    CLI
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../reference/api/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    API
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../reference/env/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Environment
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../reference/modules/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Modules
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+    
+    
+    
+      
+        
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--section md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_11" >
+        
+          
+          <label class="md-nav__link" for="__nav_11" id="__nav_11_label" tabindex="">
+            
+  
+  
+  <span class="md-ellipsis">
+    Reports
+    
+  </span>
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_11_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_11">
+            <span class="md-nav__icon md-icon"></span>
+            Reports
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../reports/CONTINUOUS_PIPELINE_ROADMAP/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Continuous Pipeline Roadmap
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../reports/CONVERSION_PROCESS_SUMMARY/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Conversion Process Summary
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../reports/DSA110_SUBBAND_UPDATE_SUMMARY/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Subband Update Summary
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../reports/PYUVDATA_3.2.4_COMPATIBILITY_SUMMARY/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    PyUVData 3.2.4 Compatibility
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../reports/REBUILD_CASA6_ENVIRONMENT/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Rebuild CASA6 Environment
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+      
+        
+          
+        
+      
+        
+      
+    
+    
+    
+      
+        
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--section md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_12" >
+        
+          
+          <div class="md-nav__link md-nav__container">
+            <a href="../../simulation/" class="md-nav__link ">
+              
+  
+  
+  <span class="md-ellipsis">
+    Simulation
+    
+  </span>
+  
+
+            </a>
+            
+              
+              <label class="md-nav__link " for="__nav_12" id="__nav_12_label" tabindex="">
+                <span class="md-nav__icon md-icon"></span>
+              </label>
+            
+          </div>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_12_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_12">
+            <span class="md-nav__icon md-icon"></span>
+            Simulation
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../simulation/PHASE1_SUMMARY/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Phase 1 Summary
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../troubleshooting/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Troubleshooting
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+      
+        
+      
+        
+      
+    
+    
+    
+      
+        
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--section md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_14" >
+        
+          
+          <label class="md-nav__link" for="__nav_14" id="__nav_14_label" tabindex="">
+            
+  
+  
+  <span class="md-ellipsis">
+    Operations
+    
+  </span>
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_14_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_14">
+            <span class="md-nav__icon md-icon"></span>
+            Operations
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../ops/deploy-systemd/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Deploy with systemd
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../ops/deploy-docker/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Deploy with Docker
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../legacy-overview/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Legacy Overview
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+    
+  </ul>
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+            
+              
+              <div class="md-sidebar md-sidebar--secondary" data-md-component="sidebar" data-md-type="toc" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#executive-summary" class="md-nav__link">
+    <span class="md-ellipsis">
+      Executive Summary
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#1-current-state-analysis" class="md-nav__link">
+    <span class="md-ellipsis">
+      1. Current State Analysis
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="1. Current State Analysis">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#11-existing-infrastructure" class="md-nav__link">
+    <span class="md-ellipsis">
+      1.1 Existing Infrastructure
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#12-key-api-endpoints-available" class="md-nav__link">
+    <span class="md-ellipsis">
+      1.2 Key API Endpoints Available
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#13-data-model-highlights" class="md-nav__link">
+    <span class="md-ellipsis">
+      1.3 Data Model Highlights
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#2-strategic-vision-information-architecture" class="md-nav__link">
+    <span class="md-ellipsis">
+      2. Strategic Vision: Information Architecture
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="2. Strategic Vision: Information Architecture">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#21-core-user-personas" class="md-nav__link">
+    <span class="md-ellipsis">
+      2.1 Core User Personas
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#22-primary-navigation-structure" class="md-nav__link">
+    <span class="md-ellipsis">
+      2.2 Primary Navigation Structure
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#23-design-philosophy-high-density-information-display" class="md-nav__link">
+    <span class="md-ellipsis">
+      2.3 Design Philosophy: High-Density Information Display
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#3-detailed-page-specifications" class="md-nav__link">
+    <span class="md-ellipsis">
+      3. Detailed Page Specifications
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="3. Detailed Page Specifications">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#31-dashboard-home-page" class="md-nav__link">
+    <span class="md-ellipsis">
+      3.1 Dashboard (Home Page)
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#32-sky-page" class="md-nav__link">
+    <span class="md-ellipsis">
+      3.2 Sky Page
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#33-sources-page" class="md-nav__link">
+    <span class="md-ellipsis">
+      3.3 Sources Page
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#34-observing-page" class="md-nav__link">
+    <span class="md-ellipsis">
+      3.4 Observing Page
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#35-health-page" class="md-nav__link">
+    <span class="md-ellipsis">
+      3.5 Health Page
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#4-technology-stack-recommendations" class="md-nav__link">
+    <span class="md-ellipsis">
+      4. Technology Stack Recommendations
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="4. Technology Stack Recommendations">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#41-core-framework-modern-web-stack" class="md-nav__link">
+    <span class="md-ellipsis">
+      4.1 Core Framework: Modern Web Stack
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#42-backend-integration" class="md-nav__link">
+    <span class="md-ellipsis">
+      4.2 Backend Integration
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#43-development-deployment" class="md-nav__link">
+    <span class="md-ellipsis">
+      4.3 Development &amp; Deployment
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#44-alternative-streamlit-for-rapid-prototyping" class="md-nav__link">
+    <span class="md-ellipsis">
+      4.4 Alternative: Streamlit for Rapid Prototyping
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#5-data-visualization-design-patterns" class="md-nav__link">
+    <span class="md-ellipsis">
+      5. Data Visualization Design Patterns
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="5. Data Visualization Design Patterns">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#51-high-information-density-techniques" class="md-nav__link">
+    <span class="md-ellipsis">
+      5.1 High-Information-Density Techniques
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#52-interactive-features-priority-list" class="md-nav__link">
+    <span class="md-ellipsis">
+      5.2 Interactive Features Priority List
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#6-implementation-roadmap" class="md-nav__link">
+    <span class="md-ellipsis">
+      6. Implementation Roadmap
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="6. Implementation Roadmap">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#phase-1-core-infrastructure-weeks-1-3" class="md-nav__link">
+    <span class="md-ellipsis">
+      Phase 1: Core Infrastructure (Weeks 1-3)
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#phase-2-science-features-weeks-4-6" class="md-nav__link">
+    <span class="md-ellipsis">
+      Phase 2: Science Features (Weeks 4-6)
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#phase-3-advanced-features-weeks-7-9" class="md-nav__link">
+    <span class="md-ellipsis">
+      Phase 3: Advanced Features (Weeks 7-9)
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#phase-4-polish-optimization-weeks-10-12" class="md-nav__link">
+    <span class="md-ellipsis">
+      Phase 4: Polish &amp; Optimization (Weeks 10-12)
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#phase-5-future-enhancements-ongoing" class="md-nav__link">
+    <span class="md-ellipsis">
+      Phase 5: Future Enhancements (Ongoing)
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#7-key-design-decisions-rationale" class="md-nav__link">
+    <span class="md-ellipsis">
+      7. Key Design Decisions &amp; Rationale
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="7. Key Design Decisions &amp; Rationale">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#71-why-react-over-alternatives" class="md-nav__link">
+    <span class="md-ellipsis">
+      7.1 Why React over alternatives?
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#72-separation-of-concerns-documentation-vs-dashboard" class="md-nav__link">
+    <span class="md-ellipsis">
+      7.2 Separation of Concerns: Documentation vs. Dashboard
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#73-data-refresh-strategy" class="md-nav__link">
+    <span class="md-ellipsis">
+      7.3 Data Refresh Strategy
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#74-mobile-responsiveness" class="md-nav__link">
+    <span class="md-ellipsis">
+      7.4 Mobile Responsiveness
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#75-dark-mode" class="md-nav__link">
+    <span class="md-ellipsis">
+      7.5 Dark Mode
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#8-metrics-for-success" class="md-nav__link">
+    <span class="md-ellipsis">
+      8. Metrics for Success
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="8. Metrics for Success">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#81-user-experience" class="md-nav__link">
+    <span class="md-ellipsis">
+      8.1 User Experience
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#82-performance" class="md-nav__link">
+    <span class="md-ellipsis">
+      8.2 Performance
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#83-operational" class="md-nav__link">
+    <span class="md-ellipsis">
+      8.3 Operational
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#9-design-decisions-specifications" class="md-nav__link">
+    <span class="md-ellipsis">
+      9. Design Decisions &amp; Specifications
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="9. Design Decisions &amp; Specifications">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#91-source-naming-convention" class="md-nav__link">
+    <span class="md-ellipsis">
+      9.1 Source Naming Convention
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#92-ese-candidate-auto-flagging" class="md-nav__link">
+    <span class="md-ellipsis">
+      9.2 ESE Candidate Auto-Flagging
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#93-alert-system-architecture" class="md-nav__link">
+    <span class="md-ellipsis">
+      9.3 Alert System Architecture
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#94-mosaic-query-system" class="md-nav__link">
+    <span class="md-ellipsis">
+      9.4 Mosaic Query System
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#95-data-retention-policy" class="md-nav__link">
+    <span class="md-ellipsis">
+      9.5 Data Retention Policy
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#96-multi-user-features" class="md-nav__link">
+    <span class="md-ellipsis">
+      9.6 Multi-User Features
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#10-next-steps" class="md-nav__link">
+    <span class="md-ellipsis">
+      10. Next Steps
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#appendix-a-technology-alternatives-considered" class="md-nav__link">
+    <span class="md-ellipsis">
+      Appendix A: Technology Alternatives Considered
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#appendix-b-existing-projects-for-inspiration" class="md-nav__link">
+    <span class="md-ellipsis">
+      Appendix B: Existing Projects for Inspiration
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#appendix-c-accessibility-considerations" class="md-nav__link">
+    <span class="md-ellipsis">
+      Appendix C: Accessibility Considerations
+    </span>
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+          
+          
+            <div class="md-content" data-md-component="content">
+              <article class="md-content__inner md-typeset">
+                
+                  
+
+
+  
+  
+
+
+<h1 id="dsa-110-continuum-imaging-pipeline-front-end-design-strategy">DSA-110 Continuum Imaging Pipeline: Front-End Design Strategy<a class="headerlink" href="#dsa-110-continuum-imaging-pipeline-front-end-design-strategy" title="Permanent link">&para;</a></h1>
+<h2 id="executive-summary">Executive Summary<a class="headerlink" href="#executive-summary" title="Permanent link">&para;</a></h2>
+<p>This document outlines the strategic design for a comprehensive web-based user interface for the DSA-110 continuum imaging pipeline. The pipeline is a fully automated, streaming survey system designed to be the most sensitive and comprehensive search for extreme scattering events (ESE) ever conducted, monitoring 10³-10⁴ sources per day.</p>
+<p><strong>Core Design Principles:</strong>
+- <strong>Information density over volume</strong>: One excellent, information-rich figure beats 100 individual diagnostics
+- <strong>Ease of use</strong>: Radio astronomers should quickly find what they need
+- <strong>Real-time monitoring</strong>: Pipeline health and data quality at a glance
+- <strong>Science-first</strong>: Direct access to the "good stuff" - images and variability detection
+- <strong>Professional aesthetic</strong>: Clean, modern, data-dense interfaces for working scientists</p>
+<hr />
+<h2 id="1-current-state-analysis">1. Current State Analysis<a class="headerlink" href="#1-current-state-analysis" title="Permanent link">&para;</a></h2>
+<h3 id="11-existing-infrastructure">1.1 Existing Infrastructure<a class="headerlink" href="#11-existing-infrastructure" title="Permanent link">&para;</a></h3>
+<p><strong>Backend API</strong> (<code>/data/dsa110-contimg/src/dsa110_contimg/api/</code>)
+- FastAPI application with comprehensive REST endpoints
+- Real-time system metrics (CPU, memory, disk, load)
+- Queue management and status tracking
+- Calibration registry monitoring
+- Products database with MS index, images, photometry
+- QA artifact serving</p>
+<p><strong>Data Sources</strong>
+- <code>/state/ingest.sqlite3</code> - Ingest queue, subband files, performance metrics
+- <code>/state/cal_registry.sqlite3</code> - Calibration tables and validity windows
+- <code>/state/products.sqlite3</code> - MS index, images, photometry, pointing history
+- <code>/state/catalogs/master_sources.sqlite3</code> - NVSS/VLASS/FIRST crossmatch catalog
+- <code>/state/qa/</code> - Quality assurance plots (per-group subdirectories)</p>
+<p><strong>Existing Documentation</strong>
+- MkDocs static site for technical documentation
+- Some basic HTML endpoints (calibrator matches view)
+- Empty dashboard scaffolding at <code>/var/www/contimg_dashboard/</code></p>
+<h3 id="12-key-api-endpoints-available">1.2 Key API Endpoints Available<a class="headerlink" href="#12-key-api-endpoints-available" title="Permanent link">&para;</a></h3>
+<div class="highlight"><pre><span></span><code>GET  /api/status                     # Queue stats, recent groups, cal sets
+GET  /api/products?limit=50          # Recent image products
+GET  /api/calibrator_matches         # Calibrator detection history
+GET  /api/pointing_history           # Telescope pointing over time
+GET  /api/qa?limit=100               # QA artifacts list
+GET  /api/qa/file/{group}/{name}    # Serve QA image/plot
+GET  /api/qa/thumbs                  # Latest QA artifact per group
+GET  /api/groups/{group_id}          # Detailed group information
+GET  /api/ms_index                   # MS processing stage tracking
+POST /api/reprocess/{group_id}       # Trigger reprocessing
+GET  /api/metrics/system             # Current system metrics
+GET  /api/metrics/system/history     # Historical system metrics
+</code></pre></div>
+<h3 id="13-data-model-highlights">1.3 Data Model Highlights<a class="headerlink" href="#13-data-model-highlights" title="Permanent link">&para;</a></h3>
+<p><strong>Pipeline States</strong>: <code>collecting</code> → <code>pending</code> → <code>in_progress</code> → <code>processing_fresh</code> → <code>completed</code></p>
+<p><strong>MS Processing Stages</strong>: <code>converted</code> → <code>calibrated</code> → <code>imaged</code> → <code>photometry_complete</code></p>
+<p><strong>Photometry Schema</strong>:
+- Per-image, per-source measurements
+- NVSS reference flux, measured peak (Jy/beam), error estimate
+- RA/Dec coordinates for each source</p>
+<p><strong>Pointing History</strong>: Timestamp-indexed RA/Dec telescope pointings</p>
+<hr />
+<h2 id="2-strategic-vision-information-architecture">2. Strategic Vision: Information Architecture<a class="headerlink" href="#2-strategic-vision-information-architecture" title="Permanent link">&para;</a></h2>
+<h3 id="21-core-user-personas">2.1 Core User Personas<a class="headerlink" href="#21-core-user-personas" title="Permanent link">&para;</a></h3>
+<ol>
+<li><strong>Operations Monitor</strong> - Needs to know: "Is the pipeline healthy?"</li>
+<li><strong>Data Quality Scientist</strong> - Needs to know: "Is the data good?"</li>
+<li><strong>Science User</strong> - Needs to know: "Did we detect any interesting variability?"</li>
+</ol>
+<h3 id="22-primary-navigation-structure">2.2 Primary Navigation Structure<a class="headerlink" href="#22-primary-navigation-structure" title="Permanent link">&para;</a></h3>
+<div class="highlight"><pre><span></span><code>┌─────────────────────────────────────────────────────┐
+│  DSA-110 Continuum Imaging Pipeline                 │
+├─────────────────────────────────────────────────────┤
+│                                                      │
+│  [Dashboard] [Sky] [Sources] [Observing] [Health]  │
+│                                                      │
+└─────────────────────────────────────────────────────┘
+
+Dashboard  - Executive summary (pipeline status, latest images, alerts)
+Sky        - Image gallery, mosaics, sky coverage visualization
+Sources    - Source monitoring, flux timeseries, variability detection
+Observing  - Telescope status, pointing history, calibrator tracking
+Health     - System metrics, queue monitoring, diagnostic plots
+</code></pre></div>
+<h3 id="23-design-philosophy-high-density-information-display">2.3 Design Philosophy: High-Density Information Display<a class="headerlink" href="#23-design-philosophy-high-density-information-display" title="Permanent link">&para;</a></h3>
+<p><strong>Inspiration</strong>: Trading dashboards, mission control centers, astronomical observatories</p>
+<p><strong>Key Techniques</strong>:
+- <strong>Small multiples</strong>: Show many sources/images in compact, comparable grids
+- <strong>Sparklines</strong>: Inline flux trends without taking full-figure space
+- <strong>Color coding</strong>: Quick visual status (green=healthy, yellow=warning, red=critical)
+- <strong>Drill-down</strong>: Summary → Detail → Deep Dive on demand
+- <strong>Live updates</strong>: WebSocket or polling for real-time status changes</p>
+<hr />
+<h2 id="3-detailed-page-specifications">3. Detailed Page Specifications<a class="headerlink" href="#3-detailed-page-specifications" title="Permanent link">&para;</a></h2>
+<h3 id="31-dashboard-home-page">3.1 Dashboard (Home Page)<a class="headerlink" href="#31-dashboard-home-page" title="Permanent link">&para;</a></h3>
+<p><strong>Purpose</strong>: At-a-glance pipeline health and recent activity</p>
+<p><strong>Key Requirements</strong>:
+- Real-time alert panel showing ESE candidates (5σ threshold)
+- Auto-refresh every 10 seconds
+- Direct links to flagged sources</p>
+<p><strong>Layout</strong> (4 major sections):</p>
+<div class="highlight"><pre><span></span><code>┌──────────────────────────────────────────────────────────────────┐
+│  Pipeline Status          System Health                          │
+│  ● Running (72h uptime)  CPU: ███████░░░ 75%  Disk: █████░░░░░ 45%│
+│  Queue: 3 pending        Mem: ████████░ 82%  Load: 2.3/4.1/3.8  │
+│  Latest: 2025-10-24T...  Cal: 12 active sets                     │
+└──────────────────────────────────────────────────────────────────┘
+
+┌──────────────────────────────────────────────────────────────────┐
+│  Recent Observations (last 24h)                                  │
+│  [Time] [Field] [Dec] [Cal?] [Sources] [Quality] [Quicklook]   │
+│  13:28  J1234  +42.3   ✓     1,247     0.92 Jy   [Image]        │
+│  12:56  J1142  +38.7   ✓     1,103     0.88 Jy   [Image]        │
+│  ...                                                             │
+└──────────────────────────────────────────────────────────────────┘
+
+┌──────────────────────────────────────────────────────────────────┐
+│  Recent Images (thumbnails + metadata)                           │
+│  [Thumb] [Thumb] [Thumb] [Thumb] [Thumb] [Thumb]                │
+│  Click for full resolution and analysis                          │
+└──────────────────────────────────────────────────────────────────┘
+
+┌──────────────────────────────────────────────────────────────────┐
+│  ESE CANDIDATES &amp; ACTIVE ALERTS                    [Live Update] │
+│  ───────────────────────────────────                             │
+│                                                                  │
+│  🔴 HIGH PRIORITY (3) - Auto-flagged &gt;5σ variability             │
+│                                                                  │
+│  • NVSS J123456.7+420312  |  6.2σ  |  +36% flux  |  3h ago      │
+│    [View Source] [Dismiss] [Slack: Sent ✓]                      │
+│                                                                  │
+│  • NVSS J092334.5+315609  |  8.9σ  |  -60% flux  |  5h ago      │
+│    [View Source] [Dismiss] [Slack: Sent ✓]                      │
+│                                                                  │
+│  • NVSS J145623.2+442156  |  5.4σ  |  Rapid var  |  8h ago      │
+│    [View Source] [Dismiss] [Slack: Sent ✓]                      │
+│                                                                  │
+│  🟡 MEDIUM PRIORITY (1) - System warnings                        │
+│                                                                  │
+│  • Calibrator 3C286 not detected in last 2h                     │
+│    Possible pointing drift or weather issue                      │
+│    [Check Telescope Status]                                      │
+│                                                                  │
+│  🟢 NO CRITICAL ISSUES                                           │
+│  • All systems operational                                       │
+│  • No failed observations in 24h                                 │
+│                                                                  │
+└──────────────────────────────────────────────────────────────────┘
+</code></pre></div>
+<p><strong>Key Metrics Display</strong>:
+- Total sources monitored (cumulative)
+- Detection rate (sources with good SNR measurements)
+- Calibration success rate (% of observations with valid caltables)
+- System uptime
+- Data throughput (TB/day, images/hour)</p>
+<h3 id="32-sky-page">3.2 Sky Page<a class="headerlink" href="#32-sky-page" title="Permanent link">&para;</a></h3>
+<p><strong>Purpose</strong>: Visual exploration of sky coverage and images</p>
+<p><strong>Primary View</strong>: Interactive sky map showing:
+- Observed fields (color-coded by observation time)
+- Source density heatmap
+- Calibrator positions
+- Current/upcoming telescope pointing</p>
+<p><strong>Secondary Views</strong>:</p>
+<p><strong>Mosaic Builder</strong> (High Priority):
+<div class="highlight"><pre><span></span><code>┌────────────────────────────────────────────────────────────┐
+│  Time Range Mosaic Generator                               │
+├────────────────────────────────────────────────────────────┤
+│                                                             │
+│  Time Range (UTC):                                          │
+│  Start: [2025-10-24 13:00:00 ▾]                            │
+│  End:   [2025-10-24 14:00:00 ▾]   (~1 hour)                │
+│                                                             │
+│  Or specify in MJD:                                         │
+│  Start MJD: [60238.541667]  End MJD: [60238.583333]        │
+│                                                             │
+│  [Generate Mosaic]                                          │
+│                                                             │
+│  Status: Generating mosaic from 12 individual images...    │
+│  Progress: ████████████░░░░░░░░ 60%                        │
+│                                                             │
+│  Existing Mosaics:                                          │
+│  [List of previously generated mosaics with thumbnails]    │
+│  - 2025-10-24 13:00-14:00 (142 sources, 0.85 mJy noise)    │
+│  - 2025-10-24 12:00-13:00 (138 sources, 0.91 mJy noise)    │
+│  [View] [Download FITS] [Download PNG]                     │
+└────────────────────────────────────────────────────────────┘
+</code></pre></div></p>
+<p><strong>Image Gallery</strong>:
+<div class="highlight"><pre><span></span><code>┌────────────────────────────────────────────────────────────┐
+│  Filters: [Date Range] [Declination] [Quality] [Search]   │
+├────────────────────────────────────────────────────────────┤
+│                                                             │
+│  [Grid of thumbnails, 4-6 per row]                         │
+│  Each with: timestamp, field ID, noise level, # sources    │
+│  Click → full-res image + metadata + NVSS overlay          │
+│                                                             │
+└────────────────────────────────────────────────────────────┘
+</code></pre></div></p>
+<p><strong>Mosaic Builder</strong>:
+- Time-range query (start/end UTC or MJD)
+- Declination range filter (+40° to +45° for current pointing)
+- Preview coverage map before generation
+- Generate stitched mosaic (async job)
+- Download FITS/PNG when complete
+- Status polling for long-running jobs</p>
+<p><strong>VO Cone Search</strong> (future):
+- Simple Cone Search protocol endpoint
+- VOTable output format
+- Integration with Aladin, TOPCAT
+- Enables external tool queries</p>
+<p><strong>Image Detail View</strong>:
+<div class="highlight"><pre><span></span><code>┌─────────────────────────────────────────────────────────────┐
+│  Image: 2025-10-24T13:28:03 | Field J1234+42              │
+├─────────────────────────────────────────────────────────────┤
+│  [Large image display with zoom/pan]                        │
+│  Overlays: NVSS sources, measured sources, noise contours   │
+│                                                              │
+│  Metadata Panel:                                             │
+│    Noise: 0.92 mJy/beam | Beam: 12.3&quot; x 11.8&quot; PA 45°      │
+│    Freq: 1.405 GHz | Integration: 300s | MJD 60240.56      │
+│    Sources detected: 1,247 (1,203 NVSS matches)            │
+│    Calibrator: 3C286 (sep 0.45°, flux 15.2 Jy)            │
+│                                                              │
+│  Actions:                                                    │
+│    [Download FITS] [Download PNG] [View Source List]       │
+│    [Reprocess with different params]                        │
+└─────────────────────────────────────────────────────────────┘
+</code></pre></div></p>
+<h3 id="33-sources-page">3.3 Sources Page<a class="headerlink" href="#33-sources-page" title="Permanent link">&para;</a></h3>
+<p><strong>Purpose</strong>: Monitor source flux variability and identify ESE candidates</p>
+<p><strong>Top Section</strong>: Source Search &amp; Filters
+<div class="highlight"><pre><span></span><code>┌──────────────────────────────────────────────────────────────┐
+│  Search: [Source name or RA/Dec]                             │
+│  Filters: [Variability &gt; 3σ] [Dec range] [Flux &gt; X mJy]     │
+│           [NVSS match quality] [Observation count &gt; N]        │
+└──────────────────────────────────────────────────────────────┘
+</code></pre></div></p>
+<p><strong>Main View</strong>: Source Table (sortable, paginated)
+<div class="highlight"><pre><span></span><code>┌──────────────────────────────────────────────────────────────────────┐
+│  Source ID          │ RA/Dec    │ NVSS  │ Latest │ Variability │ Trend      │
+│  (NVSS catalog)     │           │ (mJy) │ (mJy)  │ σ / χ²     │            │
+├─────────────────────┼───────────┼───────┼────────┼─────────────┼────────────┤
+│ NVSS J123456+420312 │ 12:34:56  │ 145   │ 198    │ 6.2σ / 8.3 │ ╱━━━━ [↗]  │
+│                     │ +42:03:12 │       │        │            │            │
+│ NVSS J114233+384709 │ 11:42:33  │ 89    │ 87     │ 0.8σ / 1.1 │ ━━━━━ [─] │
+│                     │ +38:47:09 │       │        │            │            │
+│ ...                 │           │       │        │            │            │
+└─────────────────────┴───────────┴───────┴────────┴─────────────┴────────────┘
+
+Column descriptions:
+- Variability σ: Deviation from mean / σ units
+- Variability χ²: Reduced chi-square (χ²_ν) for constant model
+- Trend: Sparkline of last 20 observations
+</code></pre></div></p>
+<p><strong>Source Detail View</strong> (click on any source):
+<div class="highlight"><pre><span></span><code>┌─────────────────────────────────────────────────────────────┐
+│  Source: J1234+4203 | NVSS J123456.7+420312                │
+├─────────────────────────────────────────────────────────────┤
+│  [Large flux vs. time plot]                                 │
+│  X-axis: MJD or UTC time | Y-axis: Flux density (mJy)      │
+│  Error bars, color-coded by image noise                     │
+│                                                              │
+│  Statistics Panel:                                           │
+│    Observations: 142                                         │
+│    Mean flux: 153 ± 12 mJy                                  │
+│    NVSS flux: 145 mJy (α = -0.7 ± 0.2 from VLASS)         │
+│    Variability: χ²_ν = 8.3 (6.2σ from constant)            │
+│    Max deviation: +45 mJy on MJD 60235.3                    │
+│                                                              │
+│  Catalog Info:                                               │
+│    RA: 12:34:56.7, Dec: +42:03:12 (J2000)                  │
+│    NVSS: 145 mJy, VLASS: 98 mJy (α=-0.7), FIRST: resolved  │
+│    Confusion flag: No                                        │
+│                                                              │
+│  Recent Measurements (table):                                │
+│    [MJD] [Image] [Flux] [Error] [Separation from phase ctr]│
+│    ...                                                       │
+│                                                              │
+│  Actions:                                                    │
+│    [Export data (CSV/JSON)] [Flag as candidate]             │
+│    [View all images containing this source]                 │
+│    [Literature search (SIMBAD/NED links)]                   │
+└─────────────────────────────────────────────────────────────┘
+</code></pre></div></p>
+<p><strong>ESE Candidate Dashboard</strong> (high priority):
+- Automatically flagged sources with strong variability
+- "Extreme" defined as: &gt;5σ deviation OR flux change &gt;50% on &lt;1 day timescale
+- Sort by significance, recency, or deviation magnitude
+- Quick-approve or dismiss interface</p>
+<h3 id="34-observing-page">3.4 Observing Page<a class="headerlink" href="#34-observing-page" title="Permanent link">&para;</a></h3>
+<p><strong>Purpose</strong>: Real-time telescope status and observing plan</p>
+<p><strong>Current Status Panel</strong>:
+<div class="highlight"><pre><span></span><code>┌──────────────────────────────────────────────────────────────┐
+│  Telescope Pointing                                          │
+│  Current: RA 12:45:32, Dec +42:15:00                        │
+│  LST: 13:12:45 | Alt 67.2° | Az 145.3°                      │
+│  Next transit: 3C286 in 42 minutes                           │
+└──────────────────────────────────────────────────────────────┘
+
+┌──────────────────────────────────────────────────────────────┐
+│  Antenna Status (simplified)                                 │
+│  Online: 110/110 | Flagged: 2 (high RFI) | Offline: 0      │
+│  [Antenna map with color-coded status markers]              │
+└──────────────────────────────────────────────────────────────┘
+
+┌──────────────────────────────────────────────────────────────┐
+│  Calibrator Tracking                                         │
+│  Active calibrators (last 6h):                               │
+│    3C286: 8 detections, avg flux 15.3 Jy (expected 15.5)   │
+│    3C48:  3 detections, avg flux 16.8 Jy (expected 16.4)   │
+│  [Plot: calibrator flux vs. elevation over time]            │
+└──────────────────────────────────────────────────────────────┘
+</code></pre></div></p>
+<p><strong>Pointing History Visualization</strong>:
+- Sky map showing pointing centers over last 24h/7d/30d
+- Color-coded by time
+- Declination strip coverage overlay
+- Interactive: click pointing → show observation details</p>
+<p><strong>Calibrator Plan</strong>:
+- Upcoming calibrator transits (next 6h)
+- Expected elevation, parallactic angle coverage
+- Visibility windows for standard calibrators</p>
+<h3 id="35-health-page">3.5 Health Page<a class="headerlink" href="#35-health-page" title="Permanent link">&para;</a></h3>
+<p><strong>Purpose</strong>: Deep diagnostics for pipeline and data quality monitoring</p>
+<p><strong>System Monitoring</strong>:
+<div class="highlight"><pre><span></span><code>┌──────────────────────────────────────────────────────────────┐
+│  Resource Usage (last 6h)                                    │
+│  [Time-series plots for CPU, Memory, Disk I/O, Load]        │
+│  Thresholds marked, color-coded zones                        │
+└──────────────────────────────────────────────────────────────┘
+
+┌──────────────────────────────────────────────────────────────┐
+│  Processing Queue Status                                     │
+│  Total groups: 245 | Pending: 3 | In Progress: 1           │
+│  Failed: 2 (retry available) | Completed (24h): 142         │
+│                                                              │
+│  Recent Groups (detailed table):                             │
+│  [Group ID] [State] [Subbands] [Calibrator] [Time] [Action]│
+│  2025-10-24T13:28 | completed | 16/16 | 3C286 | 3.2m | View│
+│  2025-10-24T13:23 | pending   | 16/16 | -     | -    | ...  │
+│  ...                                                         │
+└──────────────────────────────────────────────────────────────┘
+
+┌──────────────────────────────────────────────────────────────┐
+│  Calibration Registry                                        │
+│  Active calibration sets: 12                                 │
+│  [Set Name] [Tables] [Valid MJD Range] [Last Used]          │
+│  bp_3c286_60240 | K,BP,G | 60240.2-60240.8 | 3 min ago     │
+│  ...                                                         │
+└──────────────────────────────────────────────────────────────┘
+</code></pre></div></p>
+<p><strong>Data Quality Metrics</strong>:
+<div class="highlight"><pre><span></span><code>┌──────────────────────────────────────────────────────────────┐
+│  Image Quality Trends (last 7 days)                         │
+│  [Plot: Image noise vs. time]                               │
+│  Expected thermal noise marked                               │
+│  Ratio: observed/thermal (should be ~1.0-1.2)               │
+│                                                              │
+│  [Plot: Source detection rate vs. time]                     │
+│  Expected from NVSS catalog density                          │
+│                                                              │
+│  [Plot: Calibration solution success rate]                  │
+│  % of observations with valid K, BP, G tables                │
+└──────────────────────────────────────────────────────────────┘
+
+┌──────────────────────────────────────────────────────────────┐
+│  QA Diagnostic Gallery                                       │
+│  Recent QA plots (amplitude, phase, UVW coverage)            │
+│  [Thumbnail grid, click to expand]                           │
+│  Filter by: [All] [Calibrators only] [Failed groups]        │
+└──────────────────────────────────────────────────────────────┘
+</code></pre></div></p>
+<p><strong>Performance Metrics</strong>:
+- Conversion time (UVH5 → MS): mean, p50, p95
+- Calibration time (K+BP+G): mean, p50, p95
+- Imaging time (tclean): mean, p50, p95
+- End-to-end latency (data arrival → final image)
+- Throughput: images/hour, sources measured/hour</p>
+<hr />
+<h2 id="4-technology-stack-recommendations">4. Technology Stack Recommendations<a class="headerlink" href="#4-technology-stack-recommendations" title="Permanent link">&para;</a></h2>
+<h3 id="41-core-framework-modern-web-stack">4.1 Core Framework: Modern Web Stack<a class="headerlink" href="#41-core-framework-modern-web-stack" title="Permanent link">&para;</a></h3>
+<p><strong>Frontend Framework</strong>: <strong>React</strong> (or Vue.js)
+- Component-based architecture
+- Large ecosystem for scientific visualization
+- Well-supported, mature, excellent performance</p>
+<p><strong>State Management</strong>: <strong>Redux Toolkit</strong> (or Zustand for simplicity)
+- Centralized state for pipeline status, filters, user preferences
+- Time-travel debugging for complex interactions</p>
+<p><strong>Visualization Libraries</strong>:
+- <strong>Plotly.js</strong> - Interactive scientific plots (flux vs. time, system metrics)
+- <strong>D3.js</strong> - Custom visualizations (sky maps, antenna arrays)
+- <strong>React-Grid-Layout</strong> - Responsive dashboard grid system
+- <strong>Leaflet</strong> or <strong>Aladin Lite</strong> - Sky coordinate projections</p>
+<p><strong>Data Tables</strong>: <strong>AG Grid</strong> or <strong>TanStack Table</strong>
+- High-performance virtual scrolling for 10k+ source tables
+- Sorting, filtering, pagination out-of-box
+- Export to CSV</p>
+<p><strong>UI Component Library</strong>: <strong>Material-UI (MUI)</strong> or <strong>Ant Design</strong>
+- Professional, consistent look
+- Accessibility baked in
+- Dark mode support</p>
+<h3 id="42-backend-integration">4.2 Backend Integration<a class="headerlink" href="#42-backend-integration" title="Permanent link">&para;</a></h3>
+<p><strong>API Communication</strong>: <strong>Axios</strong> or <strong>Fetch API</strong>
+- REST API calls to FastAPI backend
+- Request caching with React Query</p>
+<p><strong>Real-Time Updates</strong>: <strong>WebSockets</strong> or <strong>Server-Sent Events (SSE)</strong>
+- Live pipeline status updates
+- System metrics streaming
+- Alert notifications</p>
+<p><strong>FITS Image Display</strong>: <strong>JS9</strong> or <strong>Aladin Lite</strong>
+- In-browser FITS rendering
+- Zoom, pan, colormap adjustments
+- Overlay support (catalog sources, regions)</p>
+<h3 id="43-development-deployment">4.3 Development &amp; Deployment<a class="headerlink" href="#43-development-deployment" title="Permanent link">&para;</a></h3>
+<p><strong>Build Tool</strong>: <strong>Vite</strong> (fast, modern)</p>
+<p><strong>Styling</strong>: <strong>Tailwind CSS</strong> + CSS Modules
+- Utility-first for rapid prototyping
+- Scoped styles for components</p>
+<p><strong>Testing</strong>: <strong>Vitest</strong> + <strong>React Testing Library</strong></p>
+<p><strong>Deployment</strong>:
+- Static build served via Nginx or Apache
+- Docker container for full-stack deployment
+- Optional: serve via FastAPI StaticFiles mount (already partially implemented)</p>
+<p><strong>CI/CD</strong>: GitHub Actions for build + deploy</p>
+<p><strong>Environment Variables</strong>:
+<div class="highlight"><pre><span></span><code><span class="c1"># Frontend (.env)</span>
+<span class="nv">VITE_API_BASE_URL</span><span class="o">=</span>https://dsa110-pipeline.caltech.edu/api
+<span class="nv">VITE_WS_URL</span><span class="o">=</span>wss://dsa110-pipeline.caltech.edu/ws
+<span class="nv">VITE_ESE_THRESHOLD_SIGMA</span><span class="o">=</span><span class="m">5</span>.0
+<span class="nv">VITE_REFRESH_INTERVAL_MS</span><span class="o">=</span><span class="m">10000</span>
+
+<span class="c1"># Backend (already in contimg.env)</span>
+<span class="nv">SLACK_WEBHOOK_URL</span><span class="o">=</span>https://hooks.slack.com/services/...
+<span class="nv">SLACK_ALERT_CHANNEL</span><span class="o">=</span><span class="c1">#dsa110-alerts</span>
+<span class="nv">ALERT_RATE_LIMIT_SECONDS</span><span class="o">=</span><span class="m">3600</span>
+<span class="nv">ESE_THRESHOLD_SIGMA</span><span class="o">=</span><span class="m">5</span>.0
+</code></pre></div></p>
+<h3 id="44-alternative-streamlit-for-rapid-prototyping">4.4 Alternative: Streamlit for Rapid Prototyping<a class="headerlink" href="#44-alternative-streamlit-for-rapid-prototyping" title="Permanent link">&para;</a></h3>
+<p>If speed-to-deployment is critical, consider <strong>Streamlit</strong> (Python-native):
+- Python backend directly (no separate React app)
+- Rapid iteration, less boilerplate
+- Good for internal/scientist users
+- Limitations: less customizable, heavier server load</p>
+<p><strong>Hybrid Approach</strong>:
+- Use Streamlit for internal "power user" diagnostics
+- Build React app for polished, public-facing interface</p>
+<hr />
+<h2 id="5-data-visualization-design-patterns">5. Data Visualization Design Patterns<a class="headerlink" href="#5-data-visualization-design-patterns" title="Permanent link">&para;</a></h2>
+<h3 id="51-high-information-density-techniques">5.1 High-Information-Density Techniques<a class="headerlink" href="#51-high-information-density-techniques" title="Permanent link">&para;</a></h3>
+<p><strong>1. Small Multiples for Source Monitoring</strong>
+<div class="highlight"><pre><span></span><code>Grid of 20-50 sources per page, each showing:
+- Thumbnail flux timeseries (sparkline)
+- Color-coded variability indicator
+- Latest flux value
+- NVSS comparison
+</code></pre></div></p>
+<p><strong>2. Heatmaps for Sky Coverage</strong>
+<div class="highlight"><pre><span></span><code>RA-Dec grid colored by:
+- Observation count
+- Average image noise
+- Number of variable sources detected
+- Time since last observation
+</code></pre></div></p>
+<p><strong>3. Horizon Plots for Dense Time-Series</strong>
+<div class="highlight"><pre><span></span><code>Compact representation of system metrics over days/weeks
+- Layers of color bands for different value ranges
+- Fits many metrics in small vertical space
+</code></pre></div></p>
+<p><strong>4. Parallel Coordinates for Multi-Parameter Source Selection</strong>
+<div class="highlight"><pre><span></span><code>Filter sources simultaneously by:
+- NVSS flux
+- Variability
+- Observation count
+- Spectral index
+Interactive brushing to select candidates
+</code></pre></div></p>
+<h3 id="52-interactive-features-priority-list">5.2 Interactive Features Priority List<a class="headerlink" href="#52-interactive-features-priority-list" title="Permanent link">&para;</a></h3>
+<p><strong>Must-Have</strong> (Phase 1):
+- Click-to-drill-down (table row → detail view)
+- Hover tooltips on all plots
+- Time range selection for mosaics (MJD or UTC)
+- Real-time status updates (polling every 10s)
+- Live ESE candidate panel (auto-refreshing list of &gt;5σ sources)</p>
+<p><strong>Should-Have</strong> (Phase 2):
+- Zoom/pan on sky maps and images
+- Cross-filtering (select sources in plot → highlight in table)
+- Export data/plots (CSV, PNG, PDF)
+- Mosaic generation by time range
+- Slack webhook integration for alerts</p>
+<p><strong>Nice-to-Have</strong> (Phase 3):
+- User-configurable alert thresholds (per-user database table)
+- Comparison mode (show two images/mosaics side-by-side)
+- Integration with external catalogs (SIMBAD, NED queries)
+- VO cone search protocol support (IVOA compliance)</p>
+<hr />
+<h2 id="6-implementation-roadmap">6. Implementation Roadmap<a class="headerlink" href="#6-implementation-roadmap" title="Permanent link">&para;</a></h2>
+<h3 id="phase-1-core-infrastructure-weeks-1-3">Phase 1: Core Infrastructure (Weeks 1-3)<a class="headerlink" href="#phase-1-core-infrastructure-weeks-1-3" title="Permanent link">&para;</a></h3>
+<p><strong>Goals</strong>: Functional monitoring dashboard, basic image gallery, source table</p>
+<p><strong>Deliverables</strong>:
+1. Project setup (React + Vite + MUI)
+2. API client layer (Axios + React Query)
+3. Dashboard page (pipeline status, system metrics, recent obs)
+4. <strong>ESE Alert Panel</strong> (real-time, 5σ auto-flagging)
+5. Sky page - image gallery with thumbnails
+6. Health page - queue status, system metrics plots
+7. Basic navigation and routing</p>
+<p><strong>Technical Focus</strong>:
+- Establish design system (colors, typography, spacing)
+- Set up mock data for development
+- Implement responsive layout grid
+- <strong>Configure polling for real-time alerts (10s interval)</strong></p>
+<h3 id="phase-2-science-features-weeks-4-6">Phase 2: Science Features (Weeks 4-6)<a class="headerlink" href="#phase-2-science-features-weeks-4-6" title="Permanent link">&para;</a></h3>
+<p><strong>Goals</strong>: Source monitoring, flux timeseries, variability detection</p>
+<p><strong>Deliverables</strong>:
+1. Sources page - searchable/sortable table (NVSS ID naming)
+2. Source detail view - flux vs. time plots
+3. Photometry data API integration
+4. Variability statistics display (χ²_ν, σ-deviation)
+5. ESE candidate filtering and export
+6. Image detail view with metadata
+7. <strong>Slack notification integration</strong> (webhook-based)
+8. <strong>Mosaic query by time range</strong> (start/end UTC)</p>
+<p><strong>Technical Focus</strong>:
+- Plotly.js integration for scientific plots
+- Efficient data loading (pagination, virtual scrolling)
+- NVSS catalog crossmatch queries
+- <strong>Backend: Add Slack webhook endpoint</strong>
+- <strong>Backend: Add mosaic query API</strong></p>
+<h3 id="phase-3-advanced-features-weeks-7-9">Phase 3: Advanced Features (Weeks 7-9)<a class="headerlink" href="#phase-3-advanced-features-weeks-7-9" title="Permanent link">&para;</a></h3>
+<p><strong>Goals</strong>: Real-time updates, sky visualization, advanced filtering</p>
+<p><strong>Deliverables</strong>:
+1. WebSocket integration for live status
+2. Sky map with pointing history (D3.js or Leaflet)
+3. Observing page - telescope status, calibrator tracking
+4. Advanced source filtering (multi-parameter)
+5. FITS image viewer (JS9 or Aladin Lite)
+6. QA diagnostic plot gallery
+7. <strong>User-configurable alert thresholds</strong> (admin panel)
+8. <strong>VO Cone Search endpoint</strong> (Simple Cone Search protocol)</p>
+<p><strong>Technical Focus</strong>:
+- Real-time data streaming
+- Sky coordinate projections (RA/Dec → pixel)
+- FITS file handling in browser
+- <strong>VOTable generation for VO compliance</strong></p>
+<h3 id="phase-4-polish-optimization-weeks-10-12">Phase 4: Polish &amp; Optimization (Weeks 10-12)<a class="headerlink" href="#phase-4-polish-optimization-weeks-10-12" title="Permanent link">&para;</a></h3>
+<p><strong>Goals</strong>: Performance tuning, user feedback integration, documentation</p>
+<p><strong>Deliverables</strong>:
+1. Performance optimization (code splitting, lazy loading)
+2. Accessibility improvements (WCAG 2.1 AA compliance)
+3. User documentation (inline help, tooltips)
+4. Export features (CSV, PNG, PDF downloads)
+5. Responsive design refinement (mobile-friendly)
+6. Automated testing suite</p>
+<p><strong>Technical Focus</strong>:
+- Bundle size optimization
+- Lighthouse performance audits
+- User acceptance testing (UAT)</p>
+<h3 id="phase-5-future-enhancements-ongoing">Phase 5: Future Enhancements (Ongoing)<a class="headerlink" href="#phase-5-future-enhancements-ongoing" title="Permanent link">&para;</a></h3>
+<ul>
+<li>Mosaic builder and stitcher</li>
+<li>Machine learning variability classifier</li>
+<li>Multi-user collaboration features</li>
+<li>Integration with external archives (VizieR, SIMBAD, NED)</li>
+<li>Custom alerting and email notifications</li>
+<li>API rate limiting and caching strategies</li>
+</ul>
+<hr />
+<h2 id="7-key-design-decisions-rationale">7. Key Design Decisions &amp; Rationale<a class="headerlink" href="#7-key-design-decisions-rationale" title="Permanent link">&para;</a></h2>
+<h3 id="71-why-react-over-alternatives">7.1 Why React over alternatives?<a class="headerlink" href="#71-why-react-over-alternatives" title="Permanent link">&para;</a></h3>
+<p><strong>Pros</strong>:
+- Massive ecosystem for scientific viz (Plotly, D3 wrappers)
+- Component reusability
+- Strong TypeScript support
+- Easy integration with FastAPI (REST + WS)</p>
+<p><strong>Cons</strong>:
+- Steeper learning curve than Streamlit
+- More boilerplate than Vue</p>
+<p><strong>Decision</strong>: React for production UI, consider Streamlit prototype for internal tools</p>
+<h3 id="72-separation-of-concerns-documentation-vs-dashboard">7.2 Separation of Concerns: Documentation vs. Dashboard<a class="headerlink" href="#72-separation-of-concerns-documentation-vs-dashboard" title="Permanent link">&para;</a></h3>
+<p><strong>MkDocs</strong> (technical documentation):
+- Installation guides
+- API reference
+- Troubleshooting
+- Scientific background</p>
+<p><strong>React Dashboard</strong> (operational monitoring):
+- Real-time status
+- Data visualization
+- Interactive exploration
+- Science products</p>
+<p>These serve different audiences and should remain separate.</p>
+<h3 id="73-data-refresh-strategy">7.3 Data Refresh Strategy<a class="headerlink" href="#73-data-refresh-strategy" title="Permanent link">&para;</a></h3>
+<p><strong>Dashboard/Health</strong>: Poll every 5-10s or WebSocket
+<strong>Sources page</strong>: Lazy load on demand, cache aggressively
+<strong>Image gallery</strong>: Paginated, load thumbnails first
+<strong>Detail views</strong>: Fetch on-demand, cache in React Query</p>
+<h3 id="74-mobile-responsiveness">7.4 Mobile Responsiveness<a class="headerlink" href="#74-mobile-responsiveness" title="Permanent link">&para;</a></h3>
+<p><strong>Priority</strong>: Desktop-first (working scientists use large monitors)
+<strong>But</strong>: Ensure responsive breakpoints for tablet/mobile (on-call monitoring)</p>
+<h3 id="75-dark-mode">7.5 Dark Mode<a class="headerlink" href="#75-dark-mode" title="Permanent link">&para;</a></h3>
+<p><strong>Importance</strong>: High (astronomers work at night, screen glare)
+<strong>Implementation</strong>: Use MUI's built-in dark mode, store preference in localStorage</p>
+<hr />
+<h2 id="8-metrics-for-success">8. Metrics for Success<a class="headerlink" href="#8-metrics-for-success" title="Permanent link">&para;</a></h2>
+<h3 id="81-user-experience">8.1 User Experience<a class="headerlink" href="#81-user-experience" title="Permanent link">&para;</a></h3>
+<ul>
+<li>Time to find a specific source: &lt;30 seconds</li>
+<li>Time to assess pipeline health: &lt;10 seconds (at-a-glance dashboard)</li>
+<li>Ease of identifying variable sources: "I know within 5 seconds if something interesting happened today"</li>
+</ul>
+<h3 id="82-performance">8.2 Performance<a class="headerlink" href="#82-performance" title="Permanent link">&para;</a></h3>
+<ul>
+<li>Initial page load: &lt;2 seconds</li>
+<li>Data refresh latency: &lt;1 second</li>
+<li>Source table with 10k entries: &lt;1 second filter/sort</li>
+<li>Image thumbnail load: &lt;500ms per image</li>
+</ul>
+<h3 id="83-operational">8.3 Operational<a class="headerlink" href="#83-operational" title="Permanent link">&para;</a></h3>
+<ul>
+<li>Uptime: 99.9% (matches API uptime)</li>
+<li>No data loss on refresh (state persistence)</li>
+<li>Cross-browser compatibility (Chrome, Firefox, Safari)</li>
+</ul>
+<hr />
+<h2 id="9-design-decisions-specifications">9. Design Decisions &amp; Specifications<a class="headerlink" href="#9-design-decisions-specifications" title="Permanent link">&para;</a></h2>
+<h3 id="91-source-naming-convention">9.1 Source Naming Convention<a class="headerlink" href="#91-source-naming-convention" title="Permanent link">&para;</a></h3>
+<p><strong>Decision</strong>: Use NVSS IDs (e.g., "NVSS J123456.7+420312")
+- Primary survey for current declination pointings
+- Future: Add support for VLASS, FIRST, and other surveys as telescope repoints
+- Database schema should include survey_id field for future extensibility</p>
+<h3 id="92-ese-candidate-auto-flagging">9.2 ESE Candidate Auto-Flagging<a class="headerlink" href="#92-ese-candidate-auto-flagging" title="Permanent link">&para;</a></h3>
+<p><strong>Decision</strong>: 5σ variability threshold for auto-flagging
+- χ²_ν &gt; 5 OR flux deviation &gt; 5σ from mean triggers ESE candidate flag
+- User-configurable thresholds planned for future phase (store in user preferences)
+- UI should clearly indicate auto-flagged vs. user-flagged sources</p>
+<h3 id="93-alert-system-architecture">9.3 Alert System Architecture<a class="headerlink" href="#93-alert-system-architecture" title="Permanent link">&para;</a></h3>
+<p><strong>In-App Alerts</strong> (Phase 1 - Immediate):
+- Real-time visual alert panel on Dashboard
+- Color-coded severity: Red (&gt;5σ), Yellow (3-5σ), Green (normal)
+- Continuously updating list of flagged sources
+- Click alert → navigate to source detail page</p>
+<p><strong>Slack Integration</strong> (Phase 2):
+<div class="highlight"><pre><span></span><code><span class="c1"># Backend implementation (simplified)</span>
+<span class="n">webhook_url</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">getenv</span><span class="p">(</span><span class="s1">&#39;SLACK_WEBHOOK_URL&#39;</span><span class="p">)</span>
+<span class="n">alert_payload</span> <span class="o">=</span> <span class="p">{</span>
+    <span class="s2">&quot;text&quot;</span><span class="p">:</span> <span class="s2">&quot;ESE Candidate Detected!&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;attachments&quot;</span><span class="p">:</span> <span class="p">[{</span>
+        <span class="s2">&quot;color&quot;</span><span class="p">:</span> <span class="s2">&quot;danger&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;fields&quot;</span><span class="p">:</span> <span class="p">[</span>
+            <span class="p">{</span><span class="s2">&quot;title&quot;</span><span class="p">:</span> <span class="s2">&quot;Source&quot;</span><span class="p">,</span> <span class="s2">&quot;value&quot;</span><span class="p">:</span> <span class="s2">&quot;NVSS J123456.7+420312&quot;</span><span class="p">,</span> <span class="s2">&quot;short&quot;</span><span class="p">:</span> <span class="kc">True</span><span class="p">},</span>
+            <span class="p">{</span><span class="s2">&quot;title&quot;</span><span class="p">:</span> <span class="s2">&quot;Significance&quot;</span><span class="p">,</span> <span class="s2">&quot;value&quot;</span><span class="p">:</span> <span class="s2">&quot;6.2σ&quot;</span><span class="p">,</span> <span class="s2">&quot;short&quot;</span><span class="p">:</span> <span class="kc">True</span><span class="p">},</span>
+            <span class="p">{</span><span class="s2">&quot;title&quot;</span><span class="p">:</span> <span class="s2">&quot;Flux Change&quot;</span><span class="p">,</span> <span class="s2">&quot;value&quot;</span><span class="p">:</span> <span class="s2">&quot;+36% (145→198 mJy)&quot;</span><span class="p">,</span> <span class="s2">&quot;short&quot;</span><span class="p">:</span> <span class="kc">True</span><span class="p">},</span>
+            <span class="p">{</span><span class="s2">&quot;title&quot;</span><span class="p">:</span> <span class="s2">&quot;Last Obs&quot;</span><span class="p">,</span> <span class="s2">&quot;value&quot;</span><span class="p">:</span> <span class="s2">&quot;2025-10-24 13:28 UTC&quot;</span><span class="p">,</span> <span class="s2">&quot;short&quot;</span><span class="p">:</span> <span class="kc">True</span><span class="p">}</span>
+        <span class="p">],</span>
+        <span class="s2">&quot;actions&quot;</span><span class="p">:</span> <span class="p">[{</span>
+            <span class="s2">&quot;type&quot;</span><span class="p">:</span> <span class="s2">&quot;button&quot;</span><span class="p">,</span>
+            <span class="s2">&quot;text&quot;</span><span class="p">:</span> <span class="s2">&quot;View Source&quot;</span><span class="p">,</span>
+            <span class="s2">&quot;url&quot;</span><span class="p">:</span> <span class="sa">f</span><span class="s2">&quot;https://dsa110-pipeline.caltech.edu/sources/</span><span class="si">{</span><span class="n">source_id</span><span class="si">}</span><span class="s2">&quot;</span>
+        <span class="p">}]</span>
+    <span class="p">}]</span>
+<span class="p">}</span>
+</code></pre></div></p>
+<p><strong>Configuration</strong>:
+- Environment variable: <code>SLACK_WEBHOOK_URL</code>
+- Admin panel to set notification thresholds per channel
+- Rate limiting: Max 1 alert per source per hour (avoid spam)</p>
+<h3 id="94-mosaic-query-system">9.4 Mosaic Query System<a class="headerlink" href="#94-mosaic-query-system" title="Permanent link">&para;</a></h3>
+<p><strong>Primary Feature</strong>: Time-range mosaic query
+<div class="highlight"><pre><span></span><code>User Interface:
+┌─────────────────────────────────────────────┐
+│  Mosaic Builder                             │
+│  ───────────────                            │
+│                                             │
+│  Start Time: [2025-10-24 00:00 UTC ▾]      │
+│  End Time:   [2025-10-24 01:00 UTC ▾]      │
+│  Dec Range:  [+40° ▾] to [+45° ▾]          │
+│                                             │
+│  [Preview Coverage] [Generate Mosaic]       │
+└─────────────────────────────────────────────┘
+</code></pre></div></p>
+<p><strong>API Endpoint</strong>:
+<div class="highlight"><pre><span></span><code><span class="n">GET</span> <span class="o">/</span><span class="n">api</span><span class="o">/</span><span class="n">mosaic</span><span class="o">/</span><span class="n">query</span>
+  <span class="err">?</span><span class="n">start_mjd</span><span class="o">=</span><span class="mf">60238.0</span>
+  <span class="o">&amp;</span><span class="n">end_mjd</span><span class="o">=</span><span class="mf">60238.042</span>  <span class="c1"># ~1 hour</span>
+  <span class="o">&amp;</span><span class="n">dec_min</span><span class="o">=</span><span class="mi">40</span>
+  <span class="o">&amp;</span><span class="n">dec_max</span><span class="o">=</span><span class="mi">45</span>
+
+<span class="n">Response</span><span class="p">:</span>
+<span class="p">{</span>
+  <span class="s2">&quot;images&quot;</span><span class="p">:</span> <span class="p">[</span><span class="o">...</span><span class="p">],</span>
+  <span class="s2">&quot;coverage&quot;</span><span class="p">:</span> <span class="p">{</span><span class="s2">&quot;ra_range&quot;</span><span class="p">:</span> <span class="p">[</span><span class="mi">180</span><span class="p">,</span> <span class="mi">195</span><span class="p">],</span> <span class="s2">&quot;dec_range&quot;</span><span class="p">:</span> <span class="p">[</span><span class="mi">40</span><span class="p">,</span> <span class="mi">45</span><span class="p">]},</span>
+  <span class="s2">&quot;mosaic_url&quot;</span><span class="p">:</span> <span class="s2">&quot;/api/mosaic/generate&quot;</span><span class="p">,</span>  <span class="c1"># async job</span>
+  <span class="s2">&quot;job_id&quot;</span><span class="p">:</span> <span class="s2">&quot;mosaic_20251024_001&quot;</span>
+<span class="p">}</span>
+</code></pre></div></p>
+<p><strong>VO Cone Search</strong> (Future - Phase 3):
+- Implement Simple Cone Search (SCS) protocol
+- Endpoint: <code>/api/vo/conesearch?RA=188.5&amp;DEC=42.0&amp;SR=0.5</code>
+- Return VOTable format for external tool compatibility
+- Enable queries from Aladin, TOPCAT, etc.</p>
+<h3 id="95-data-retention-policy">9.5 Data Retention Policy<a class="headerlink" href="#95-data-retention-policy" title="Permanent link">&para;</a></h3>
+<p><strong>Decision</strong>: Persistent storage, no expiration for now
+- All photometry measurements retained indefinitely
+- Future: Implement archival strategy (move old data to cold storage after N months)
+- Database should support efficient time-range queries</p>
+<h3 id="96-multi-user-features">9.6 Multi-User Features<a class="headerlink" href="#96-multi-user-features" title="Permanent link">&para;</a></h3>
+<p><strong>Phase 1</strong>: Single-user focus
+- User authentication not required for initial deployment
+- Flags and notes stored per-session (localStorage)</p>
+<p><strong>Future</strong>: Collaborative features
+- Shared candidate lists
+- User comments and classifications
+- Role-based access (admin, observer, viewer)</p>
+<hr />
+<h2 id="10-next-steps">10. Next Steps<a class="headerlink" href="#10-next-steps" title="Permanent link">&para;</a></h2>
+<ol>
+<li><strong>Review this document</strong> with the team and prioritize features</li>
+<li><strong>Create UI mockups/wireframes</strong> for top 3 pages (Dashboard, Sky, Sources)</li>
+<li><strong>Set up development environment</strong> (React + Vite + MUI)</li>
+<li><strong>Implement Phase 1 deliverables</strong> (core infrastructure)</li>
+<li><strong>User testing</strong> with domain scientists after each phase</li>
+<li><strong>Iterate based on feedback</strong></li>
+</ol>
+<hr />
+<h2 id="appendix-a-technology-alternatives-considered">Appendix A: Technology Alternatives Considered<a class="headerlink" href="#appendix-a-technology-alternatives-considered" title="Permanent link">&para;</a></h2>
+<table>
+<thead>
+<tr>
+<th>Component</th>
+<th>Primary Choice</th>
+<th>Alternative</th>
+<th>Reason for Primary</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Framework</td>
+<td>React</td>
+<td>Vue.js</td>
+<td>Larger ecosystem, better TypeScript support</td>
+</tr>
+<tr>
+<td>Viz Library</td>
+<td>Plotly.js</td>
+<td>Matplotlib (static)</td>
+<td>Interactivity, browser-native</td>
+</tr>
+<tr>
+<td>Table</td>
+<td>AG Grid</td>
+<td>TanStack Table</td>
+<td>Performance at scale, enterprise features</td>
+</tr>
+<tr>
+<td>UI Library</td>
+<td>Material-UI</td>
+<td>Ant Design</td>
+<td>Maturity, community size, astronomy precedents</td>
+</tr>
+<tr>
+<td>Sky Map</td>
+<td>Aladin Lite</td>
+<td>D3.js custom</td>
+<td>Built for astronomy, FITS-aware</td>
+</tr>
+<tr>
+<td>State Mgmt</td>
+<td>Redux Toolkit</td>
+<td>Zustand</td>
+<td>Team familiarity, debugging tools</td>
+</tr>
+<tr>
+<td>Build Tool</td>
+<td>Vite</td>
+<td>Webpack</td>
+<td>Speed, modern defaults</td>
+</tr>
+</tbody>
+</table>
+<h2 id="appendix-b-existing-projects-for-inspiration">Appendix B: Existing Projects for Inspiration<a class="headerlink" href="#appendix-b-existing-projects-for-inspiration" title="Permanent link">&para;</a></h2>
+<ul>
+<li><strong>LOFAR Quality &amp; Pipeline Dashboard</strong>: Real-time observing system monitoring</li>
+<li><strong>Gaia Archive Interface</strong>: High-density source catalog exploration</li>
+<li><strong>NRAO VLA/ALMA Observing Tools</strong>: Telescope status and proposal planning</li>
+<li><strong>ZTF Fritz</strong>: Transient classification and real-time alerts (similar variability use case)</li>
+<li><strong>Bloomberg Terminal</strong>: Information-dense, professional trading interfaces</li>
+</ul>
+<h2 id="appendix-c-accessibility-considerations">Appendix C: Accessibility Considerations<a class="headerlink" href="#appendix-c-accessibility-considerations" title="Permanent link">&para;</a></h2>
+<ul>
+<li><strong>WCAG 2.1 AA</strong> compliance minimum</li>
+<li>Keyboard navigation for all interactive elements</li>
+<li>Screen reader compatibility (ARIA labels)</li>
+<li>Color-blind friendly palettes (use ColorBrewer schemes)</li>
+<li>Sufficient contrast ratios (4.5:1 for text)</li>
+<li>Zoom support up to 200% without breaking layout</li>
+</ul>
+<hr />
+<p><strong>Document Version</strong>: 1.0<br />
+<strong>Last Updated</strong>: 2025-10-24<br />
+<strong>Authors</strong>: AI Assistant (Strategic Design), DSA-110 Team (Domain Expertise)<br />
+<strong>Status</strong>: Draft for Review</p>
+
+
+
+
+
+
+
+
+
+
+
+
+                
+              </article>
+            </div>
+          
+          
+  <script>var tabs=__md_get("__tabs");if(Array.isArray(tabs))e:for(var set of document.querySelectorAll(".tabbed-set")){var labels=set.querySelector(".tabbed-labels");for(var tab of tabs)for(var label of labels.getElementsByTagName("label"))if(label.innerText.trim()===tab){var input=document.getElementById(label.htmlFor);input.checked=!0;continue e}}</script>
+
+<script>var target=document.getElementById(location.hash.slice(1));target&&target.name&&(target.checked=target.name.startsWith("__tabbed_"))</script>
+        </div>
+        
+      </main>
+      
+        <footer class="md-footer">
+  
+  <div class="md-footer-meta md-typeset">
+    <div class="md-footer-meta__inner md-grid">
+      <div class="md-copyright">
+  
+  
+    Made with
+    <a href="https://squidfunk.github.io/mkdocs-material/" target="_blank" rel="noopener">
+      Material for MkDocs
+    </a>
+  
+</div>
+      
+    </div>
+  </div>
+</footer>
+      
+    </div>
+    <div class="md-dialog" data-md-component="dialog">
+      <div class="md-dialog__inner md-typeset"></div>
+    </div>
+    
+    
+    
+      
+      <script id="__config" type="application/json">{"base": "../..", "features": ["navigation.sections", "navigation.indexes", "content.code.copy", "content.tabs.link"], "search": "../../assets/javascripts/workers/search.973d3a69.min.js", "tags": null, "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": null}</script>
+    
+    
+      <script src="../../assets/javascripts/bundle.f55a23d4.min.js"></script>
+      
+        <script src="https://unpkg.com/mermaid@10/dist/mermaid.min.js"></script>
+      
+        <script src="../../javascripts/mermaid-init.js"></script>
+      
+    
+  </body>
+</html>

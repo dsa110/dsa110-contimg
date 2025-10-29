@@ -13,6 +13,10 @@ from pathlib import Path
 from typing import List, Optional, Tuple
 
 from dsa110_contimg.database.products import ensure_products_db
+try:
+    from dsa110_contimg.utils.tempdirs import prepare_temp_environment
+except Exception:  # pragma: no cover
+    prepare_temp_environment = None  # type: ignore
 
 
 def _ensure_mosaics_table(conn: sqlite3.Connection) -> None:
@@ -116,6 +120,12 @@ def cmd_build(args: argparse.Namespace) -> int:
         return 2
 
     try:
+        # Keep immath temp products under scratch and avoid polluting CWD
+        try:
+            if prepare_temp_environment is not None:
+                prepare_temp_environment(os.getenv('CONTIMG_SCRATCH_DIR') or '/scratch/dsa110-contimg', cwd_to=out.parent)
+        except Exception:
+            pass
         from casatasks import immath
         expr = f"({'+'.join([f'IM{i}' for i in range(len(tiles))])})/{len(tiles)}"
         immath(imagename=tiles, expr=expr, outfile=str(out))

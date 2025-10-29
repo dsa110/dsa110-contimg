@@ -53,7 +53,7 @@ python simulation/make_synthetic_uvh5.py \
     --start-time "2025-10-06T12:00:00"
 
 # Convert to Measurement Set
-python src/dsa110_contimg/conversion/strategies/hdf5_orchestrator.py \
+python -m dsa110_contimg.conversion.strategies.hdf5_orchestrator \
     /tmp/synthetic_subbands \
     /tmp/test_ms \
     "2025-10-06 12:00:00" \
@@ -145,7 +145,7 @@ python simulation/make_synthetic_uvh5.py \
     --start-time "2025-10-06T20:00:00"
 
 # Streaming converter should handle any arrival order
-python src/dsa110_contimg/conversion/streaming_converter.py \
+python -m dsa110_contimg.conversion.streaming.streaming_converter \
     --input-dir /tmp/shuffle_test \
     --output-dir /tmp/test_ms
 ```
@@ -208,7 +208,7 @@ The synthetic data is designed to work seamlessly with both converters:
 
 ### Batch Converter
 ```bash
-python src/dsa110_contimg/conversion/strategies/hdf5_orchestrator.py \
+python -m dsa110_contimg.conversion.strategies.hdf5_orchestrator \
     /path/to/synthetic/subbands \
     /path/to/output/ms \
     "2025-10-06 00:00:00" \
@@ -217,7 +217,7 @@ python src/dsa110_contimg/conversion/strategies/hdf5_orchestrator.py \
 
 ### Streaming Converter
 ```bash
-python src/dsa110_contimg/conversion/streaming_converter.py \
+python -m dsa110_contimg.conversion.streaming.streaming_converter \
     --input-dir /path/to/synthetic/subbands \
     --output-dir /path/to/output/ms \
     --chunk-duration 5.0
@@ -357,8 +357,8 @@ Future enhancements could add:
 
 ## See Also
 
-- [Conversion Pipeline Documentation](../pipeline/docs/README_uvh5_to_ms.md)
-- [Streaming Converter Guide](../pipeline/docs/streaming_converter_README.md)
+- [Conversion Pipeline Documentation](../pipeline/README_uvh5_to_ms.md)
+- [Streaming Converter Guide](../pipeline/streaming_converter_README.md)
 - [DSA-110 Subband Architecture](../reports/DSA110_SUBBAND_UPDATE_SUMMARY.md)
 - [PyUVData Documentation](https://pyuvdata.readthedocs.io/)
 

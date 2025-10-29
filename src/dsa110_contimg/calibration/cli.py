@@ -6,6 +6,11 @@ from .flagging import reset_flags, flag_zeros, flag_rfi
 from .calibration import solve_delay, solve_bandpass, solve_gains
 from .applycal import apply_to_target
 from .selection import select_bandpass_fields, select_bandpass_from_catalog
+try:
+    # Ensure casacore temp files go to scratch, not the repo root
+    from dsa110_contimg.utils.tempdirs import prepare_temp_environment
+except Exception:  # pragma: no cover
+    prepare_temp_environment = None  # type: ignore
 
 
 def run_calibrator(ms: str, cal_field: str, refant: str, *,
@@ -26,6 +31,12 @@ def run_calibrator(ms: str, cal_field: str, refant: str, *,
 
 
 def main():
+    # Best-effort: route TempLattice and similar to scratch
+    try:
+        if prepare_temp_environment is not None:
+            prepare_temp_environment(os.getenv('CONTIMG_SCRATCH_DIR') or '/scratch/dsa110-contimg')
+    except Exception:
+        pass
     p = argparse.ArgumentParser(
         description="CASA 6.7 calibration runner (no dsacalib)")
     sub = p.add_subparsers(dest="cmd", required=True)
@@ -91,6 +102,32 @@ def main():
             "Enable fast path: subset MS (time/channel avg), "
             "phase-only gains, uvrange cuts"
         ),
+    )
+    pc.add_argument(
+        "--skip-k",
+        action="store_true",
+        help="Skip delay (K) solve; solve only BP/GP",
+    )
+    pc.add_argument(
+        "--skip-bp",
+        action="store_true",
+        help="Skip bandpass (BP) solve",
+    )
+    pc.add_argument(
+        "--skip-g",
+        action="store_true",
+        help="Skip gain (G) solve",
+    )
+    pc.add_argument(
+        "--gain-solint",
+        default="inf",
+        help="Gain solution interval (e.g., 'inf', '60s', '10min')",
+    )
+    pc.add_argument(
+        "--gain-calmode",
+        default="ap",
+        choices=["ap", "p", "a"],
+        help="Gain calibration mode: ap (amp+phase), p (phase-only), a (amp-only)",
     )
     pc.add_argument(
         "--timebin",
@@ -317,13 +354,15 @@ def main():
                 k_field_sel, field_sel
             )
         )
-        t_k0 = time.perf_counter()
-        ktabs = solve_delay(ms_in, k_field_sel, refant)
-        print(
-            "K (delay) solve completed in {:.2f}s".format(
-                time.perf_counter() - t_k0
+        ktabs = []
+        if not args.skip_k:
+            t_k0 = time.perf_counter()
+            ktabs = solve_delay(ms_in, k_field_sel, refant)
+            print(
+                "K (delay) solve completed in {:.2f}s".format(
+                    time.perf_counter() - t_k0
+                )
             )
-        )
 
         # Populate MODEL_DATA according to requested strategy.
         try:
@@ -390,40 +429,48 @@ def main():
                 "MODEL_DATA population failed: {}".format(e)
             )
 
-        t_bp0 = time.perf_counter()
-        bptabs = solve_bandpass(
-            ms_in,
-            field_sel,
-            refant,
-            ktabs[0],
-            combine_fields=bool(args.bp_combine_field),
-            uvrange=(
-                (args.uvrange or "")
-                if args.fast
-                else ""
-            ),
-        )
-        elapsed_bp = time.perf_counter() - t_bp0
-        print("Bandpass solve completed in {:.2f}s".format(elapsed_bp))
-        t_g0 = time.perf_counter()
-        gtabs = solve_gains(
-            ms_in,
-            field_sel,
-            refant,
-            ktabs[0],
-            bptabs,
-            combine_fields=bool(args.bp_combine_field),
-            phase_only=bool(args.fast),
-            uvrange=(
-                (args.uvrange or "")
-                if args.fast
-                else ""
-            ),
-        )
-        elapsed_g = time.perf_counter() - t_g0
-        print("Gain solve completed in {:.2f}s".format(elapsed_g))
+        bptabs = []
+        if not args.skip_bp:
+            t_bp0 = time.perf_counter()
+            bptabs = solve_bandpass(
+                ms_in,
+                field_sel,
+                refant,
+                ktabs[0] if ktabs else None,
+                combine_fields=bool(args.bp_combine_field),
+                uvrange=(
+                    (args.uvrange or "")
+                    if args.fast
+                    else ""
+                ),
+            )
+            elapsed_bp = time.perf_counter() - t_bp0
+            print("Bandpass solve completed in {:.2f}s".format(elapsed_bp))
+        
+        gtabs = []
+        if not args.skip_g:
+            t_g0 = time.perf_counter()
+            # Determine phase_only based on gain_calmode
+            phase_only = (args.gain_calmode == "p") or bool(args.fast)
+            gtabs = solve_gains(
+                ms_in,
+                field_sel,
+                refant,
+                ktabs[0] if ktabs else None,
+                bptabs,
+                combine_fields=bool(args.bp_combine_field),
+                phase_only=phase_only,
+                uvrange=(
+                    (args.uvrange or "")
+                    if args.fast
+                    else ""
+                ),
+                solint=args.gain_solint,
+            )
+            elapsed_g = time.perf_counter() - t_g0
+            print("Gain solve completed in {:.2f}s".format(elapsed_g))
 
-        tabs = ktabs[:1] + bptabs + gtabs
+        tabs = (ktabs[:1] if ktabs else []) + bptabs + gtabs
         print("Generated tables:\n" + "\n".join(tabs))
     elif args.cmd == "apply":
         apply_to_target(args.ms, args.field, args.tables)

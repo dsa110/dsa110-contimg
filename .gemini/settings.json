@@ -1,0 +1,106 @@
+{
+  "mcpServers": {
+    "context7": {
+      "url": "https://mcp.context7.com/mcp",
+      "headers": {
+        "CONTEXT7_API_KEY": "ctx7sk-1c773c19-d788-4a85-9850-9a21ab0800d4"
+      }
+    },
+    "sequential-thinking": {
+      "command": "docker",
+      "args": [
+        "run",
+        "--rm",
+        "-i",
+        "mcp/sequentialthinking"
+      ]
+    },
+    "memory": {
+      "command": "docker",
+      "args": [
+        "run",
+        "--rm",
+        "-i",
+        "mcp/memory"
+      ]
+    },
+    "fetch": {
+      "command": "docker",
+      "args": [
+        "run",
+        "-i",
+        "--rm",
+        "mcp/fetch"
+      ]
+    },
+    "graphiti-memory": {
+      "transport": "stdio",
+      "command": "/home/ubuntu/.local/bin/uv",
+      "args": [
+        "-q",
+        "run",
+        "--isolated",
+        "--directory",
+        "/home/ubuntu/proj/mcps/graphiti/mcp_server",
+        "graphiti_mcp_server.py",
+        "--transport",
+        "stdio",
+        "--group-id",
+        "dsa110-contimg"
+      ],
+      "env": {
+        "NEO4J_URI": "bolt://localhost:7687",
+        "NEO4J_USER": "neo4j",
+        "NEO4J_PASSWORD": "demodemo",
+        "EMBEDDING_DIM": "768",
+        "PYTHONPATH": "/home/ubuntu/proj/mcps/graphiti",
+        "GEMINI_USE_VERTEX": "true",
+        "VERTEX_BATCH": "64"
+      }
+    },
+    "codacy": {
+      "command": "npx",
+      "args": [
+        "-y",
+        "@codacy/codacy-mcp@latest"
+      ]
+    },
+    "filesystem": {
+      "command": "npx",
+      "args": [
+        "-y",
+        "@modelcontextprotocol/server-filesystem",
+        "${workspaceFolder}"
+      ]
+    },
+    "Hugging Face": {
+      "url": "https://hf.co/mcp",
+      "headers": {}
+    },
+    "arxiv-latex-mcp": {
+      "command": "/home/ubuntu/.local/bin/uv",
+      "args": [
+        "--directory",
+        "/home/ubuntu/proj/mcps/arxiv-latex-mcp",
+        "run",
+        "arxiv_latex_mcp.py"
+      ]
+    },
+    "codex": {
+      "command": "/opt/miniforge/envs/casa6/bin/codex",
+      "args": ["mcp-server"]
+    },
+    "Linear": {
+      "url": "https://mcp.linear.app/sse",
+      "headers": {}
+    },
+    "Zapier": {
+      "url": "https://mcp.zapier.com/api/mcp/s/MGUyMmUxYzAtYWFmNi00ZTE1LWJhY2MtZmMzN2Q3NzI5YjI2OjdhMTgzY2IyLTRmNDktNDkwZi05M2QyLTUzMTlmZWVkODU4NA==/mcp",
+      "headers": {}
+    },
+    "Notion": {
+      "url": "https://mcp.notion.com/mcp",
+      "headers": {}
+    }
+  }
+}

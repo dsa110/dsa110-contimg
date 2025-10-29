@@ -1,0 +1,2240 @@
+
+<!doctype html>
+<html lang="en" class="no-js">
+  <head>
+    
+      <meta charset="utf-8">
+      <meta name="viewport" content="width=device-width,initial-scale=1">
+      
+      
+      
+        <link rel="canonical" href="https://dsa110-contimg.github.io/dsa110-contimg/reports/ESE_LITERATURE_SUMMARY/">
+      
+      
+      
+      
+      <link rel="icon" href="../../assets/images/favicon.png">
+      <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.6.21">
+    
+    
+      
+        <title>ESE Detection: Literature Summary & Algorithm Design - DSA-110 Continuum Imaging Pipeline</title>
+      
+    
+    
+      <link rel="stylesheet" href="../../assets/stylesheets/main.2a3383ac.min.css">
+      
+      
+
+
+    
+    
+      
+    
+    
+      
+        
+        
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+        <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Roboto:300,300i,400,400i,700,700i%7CRoboto+Mono:400,400i,700,700i&display=fallback">
+        <style>:root{--md-text-font:"Roboto";--md-code-font:"Roboto Mono"}</style>
+      
+    
+    
+      <link rel="stylesheet" href="../../assets/_mkdocstrings.css">
+    
+    <script>__md_scope=new URL("../..",location),__md_hash=e=>[...e].reduce(((e,_)=>(e<<5)-e+_.charCodeAt(0)),0),__md_get=(e,_=localStorage,t=__md_scope)=>JSON.parse(_.getItem(t.pathname+"."+e)),__md_set=(e,_,t=localStorage,a=__md_scope)=>{try{t.setItem(a.pathname+"."+e,JSON.stringify(_))}catch(e){}}</script>
+    
+      
+
+    
+    
+    
+  </head>
+  
+  
+    <body dir="ltr">
+  
+    
+    <input class="md-toggle" data-md-toggle="drawer" type="checkbox" id="__drawer" autocomplete="off">
+    <input class="md-toggle" data-md-toggle="search" type="checkbox" id="__search" autocomplete="off">
+    <label class="md-overlay" for="__drawer"></label>
+    <div data-md-component="skip">
+      
+        
+        <a href="#ese-detection-literature-summary-algorithm-design" class="md-skip">
+          Skip to content
+        </a>
+      
+    </div>
+    <div data-md-component="announce">
+      
+    </div>
+    
+    
+      
+
+  
+
+<header class="md-header md-header--shadow" data-md-component="header">
+  <nav class="md-header__inner md-grid" aria-label="Header">
+    <a href="../.." title="DSA-110 Continuum Imaging Pipeline" class="md-header__button md-logo" aria-label="DSA-110 Continuum Imaging Pipeline" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"/></svg>
+
+    </a>
+    <label class="md-header__button md-icon" for="__drawer">
+      
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M3 6h18v2H3zm0 5h18v2H3zm0 5h18v2H3z"/></svg>
+    </label>
+    <div class="md-header__title" data-md-component="header-title">
+      <div class="md-header__ellipsis">
+        <div class="md-header__topic">
+          <span class="md-ellipsis">
+            DSA-110 Continuum Imaging Pipeline
+          </span>
+        </div>
+        <div class="md-header__topic" data-md-component="header-topic">
+          <span class="md-ellipsis">
+            
+              ESE Detection: Literature Summary &amp; Algorithm Design
+            
+          </span>
+        </div>
+      </div>
+    </div>
+    
+    
+      <script>var palette=__md_get("__palette");if(palette&&palette.color){if("(prefers-color-scheme)"===palette.color.media){var media=matchMedia("(prefers-color-scheme: light)"),input=document.querySelector(media.matches?"[data-md-color-media='(prefers-color-scheme: light)']":"[data-md-color-media='(prefers-color-scheme: dark)']");palette.color.media=input.getAttribute("data-md-color-media"),palette.color.scheme=input.getAttribute("data-md-color-scheme"),palette.color.primary=input.getAttribute("data-md-color-primary"),palette.color.accent=input.getAttribute("data-md-color-accent")}for(var[key,value]of Object.entries(palette.color))document.body.setAttribute("data-md-color-"+key,value)}</script>
+    
+    
+    
+      
+      
+        <label class="md-header__button md-icon" for="__search">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        </label>
+        <div class="md-search" data-md-component="search" role="dialog">
+  <label class="md-search__overlay" for="__search"></label>
+  <div class="md-search__inner" role="search">
+    <form class="md-search__form" name="search">
+      <input type="text" class="md-search__input" name="query" aria-label="Search" placeholder="Search" autocapitalize="off" autocorrect="off" autocomplete="off" spellcheck="false" data-md-component="search-query" required>
+      <label class="md-search__icon md-icon" for="__search">
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11z"/></svg>
+      </label>
+      <nav class="md-search__options" aria-label="Search">
+        
+        <button type="reset" class="md-search__icon md-icon" title="Clear" aria-label="Clear" tabindex="-1">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M19 6.41 17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg>
+        </button>
+      </nav>
+      
+    </form>
+    <div class="md-search__output">
+      <div class="md-search__scrollwrap" tabindex="0" data-md-scrollfix>
+        <div class="md-search-result" data-md-component="search-result">
+          <div class="md-search-result__meta">
+            Initializing search
+          </div>
+          <ol class="md-search-result__list" role="presentation"></ol>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+      
+    
+    
+      <div class="md-header__source">
+        <a href="https://github.com/dsa110/dsa110-contimg" title="Go to repository" class="md-source" data-md-component="source">
+  <div class="md-source__icon md-icon">
+    
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><!--! Font Awesome Free 7.0.1 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2025 Fonticons, Inc.--><path d="M439.6 236.1 244 40.5c-5.4-5.5-12.8-8.5-20.4-8.5s-15 3-20.4 8.4L162.5 81l51.5 51.5c27.1-9.1 52.7 16.8 43.4 43.7l49.7 49.7c34.2-11.8 61.2 31 35.5 56.7-26.5 26.5-70.2-2.9-56-37.3L240.3 199v121.9c25.3 12.5 22.3 41.8 9.1 55-6.4 6.4-15.2 10.1-24.3 10.1s-17.8-3.6-24.3-10.1c-17.6-17.6-11.1-46.9 11.2-56v-123c-20.8-8.5-24.6-30.7-18.6-45L142.6 101 8.5 235.1C3 240.6 0 247.9 0 255.5s3 15 8.5 20.4l195.6 195.7c5.4 5.4 12.7 8.4 20.4 8.4s15-3 20.4-8.4l194.7-194.7c5.4-5.4 8.4-12.8 8.4-20.4s-3-15-8.4-20.4"/></svg>
+  </div>
+  <div class="md-source__repository">
+    GitHub
+  </div>
+</a>
+      </div>
+    
+  </nav>
+  
+</header>
+    
+    <div class="md-container" data-md-component="container">
+      
+      
+        
+          
+        
+      
+      <main class="md-main" data-md-component="main">
+        <div class="md-main__inner md-grid">
+          
+            
+              
+              <div class="md-sidebar md-sidebar--primary" data-md-component="sidebar" data-md-type="navigation" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+
+
+<nav class="md-nav md-nav--primary" aria-label="Navigation" data-md-level="0">
+  <label class="md-nav__title" for="__drawer">
+    <a href="../.." title="DSA-110 Continuum Imaging Pipeline" class="md-nav__button md-logo" aria-label="DSA-110 Continuum Imaging Pipeline" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"/></svg>
+
+    </a>
+    DSA-110 Continuum Imaging Pipeline
+  </label>
+  
+    <div class="md-nav__source">
+      <a href="https://github.com/dsa110/dsa110-contimg" title="Go to repository" class="md-source" data-md-component="source">
+  <div class="md-source__icon md-icon">
+    
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><!--! Font Awesome Free 7.0.1 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2025 Fonticons, Inc.--><path d="M439.6 236.1 244 40.5c-5.4-5.5-12.8-8.5-20.4-8.5s-15 3-20.4 8.4L162.5 81l51.5 51.5c27.1-9.1 52.7 16.8 43.4 43.7l49.7 49.7c34.2-11.8 61.2 31 35.5 56.7-26.5 26.5-70.2-2.9-56-37.3L240.3 199v121.9c25.3 12.5 22.3 41.8 9.1 55-6.4 6.4-15.2 10.1-24.3 10.1s-17.8-3.6-24.3-10.1c-17.6-17.6-11.1-46.9 11.2-56v-123c-20.8-8.5-24.6-30.7-18.6-45L142.6 101 8.5 235.1C3 240.6 0 247.9 0 255.5s3 15 8.5 20.4l195.6 195.7c5.4 5.4 12.7 8.4 20.4 8.4s15-3 20.4-8.4l194.7-194.7c5.4-5.4 8.4-12.8 8.4-20.4s-3-15-8.4-20.4"/></svg>
+  </div>
+  <div class="md-source__repository">
+    GitHub
+  </div>
+</a>
+    </div>
+  
+  <ul class="md-nav__list" data-md-scrollfix>
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../.." class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Home
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../quickstart/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Quick Start
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../quickstart_dashboard/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Dashboard Quick Start
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../pipeline/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Pipeline Visuals
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+      
+        
+      
+        
+      
+        
+      
+    
+    
+    
+      
+        
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--section md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_5" >
+        
+          
+          <label class="md-nav__link" for="__nav_5" id="__nav_5_label" tabindex="">
+            
+  
+  
+  <span class="md-ellipsis">
+    Tutorials
+    
+  </span>
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_5_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_5">
+            <span class="md-nav__icon md-icon"></span>
+            Tutorials
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../tutorials/streaming/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    End-to-End Streaming
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../tutorials/convert-standalone/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Convert UVH5 → MS (Standalone)
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../tutorials/calibrate-apply/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Calibrate + Apply
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+      
+        
+      
+        
+      
+    
+    
+    
+      
+        
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--section md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_6" >
+        
+          
+          <label class="md-nav__link" for="__nav_6" id="__nav_6_label" tabindex="">
+            
+  
+  
+  <span class="md-ellipsis">
+    How-To Guides
+    
+  </span>
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_6_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_6">
+            <span class="md-nav__icon md-icon"></span>
+            How-To Guides
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../howto/reprocess/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Reprocess a Group
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../howto/mosaic/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Build Nightly Mosaic
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+      
+        
+      
+    
+    
+    
+      
+        
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--section md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_7" >
+        
+          
+          <label class="md-nav__link" for="__nav_7" id="__nav_7_label" tabindex="">
+            
+  
+  
+  <span class="md-ellipsis">
+    Science
+    
+  </span>
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_7_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_7">
+            <span class="md-nav__icon md-icon"></span>
+            Science
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../science/photometry_normalization/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Photometry Normalization
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+    
+    
+    
+      
+        
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--section md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_8" >
+        
+          
+          <label class="md-nav__link" for="__nav_8" id="__nav_8_label" tabindex="">
+            
+  
+  
+  <span class="md-ellipsis">
+    Guides
+    
+  </span>
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_8_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_8">
+            <span class="md-nav__icon md-icon"></span>
+            Guides
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../downsampling_guide/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Downsampling Guide
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../pipeline/README_uvh5_to_ms/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Pipeline: UVH5 → MS
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../pipeline/streaming_converter_README/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Pipeline: Streaming Converter
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../guides/dashboard/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Dashboard User Guide
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../guides/dashboard_development/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Dashboard Development
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+      
+        
+      
+        
+      
+        
+      
+        
+      
+    
+    
+    
+      
+        
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--section md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_9" >
+        
+          
+          <label class="md-nav__link" for="__nav_9" id="__nav_9_label" tabindex="">
+            
+  
+  
+  <span class="md-ellipsis">
+    Concepts
+    
+  </span>
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_9_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_9">
+            <span class="md-nav__icon md-icon"></span>
+            Concepts
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../concepts/architecture/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Architecture
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../concepts/frontend_design/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Front-End Design Strategy
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../concepts/dashboard_mockups/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    UI Mockups & Specifications
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../concepts/frontend_next_steps/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Implementation Guide
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+      
+        
+      
+        
+      
+        
+      
+        
+      
+    
+    
+    
+      
+        
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--section md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_10" >
+        
+          
+          <label class="md-nav__link" for="__nav_10" id="__nav_10_label" tabindex="">
+            
+  
+  
+  <span class="md-ellipsis">
+    Reference
+    
+  </span>
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_10_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_10">
+            <span class="md-nav__icon md-icon"></span>
+            Reference
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../reference/cli/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    CLI
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../reference/api/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    API
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../reference/env/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Environment
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../reference/modules/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Modules
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+    
+    
+    
+      
+        
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--section md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_11" >
+        
+          
+          <label class="md-nav__link" for="__nav_11" id="__nav_11_label" tabindex="">
+            
+  
+  
+  <span class="md-ellipsis">
+    Reports
+    
+  </span>
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_11_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_11">
+            <span class="md-nav__icon md-icon"></span>
+            Reports
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../CONTINUOUS_PIPELINE_ROADMAP/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Continuous Pipeline Roadmap
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../CONVERSION_PROCESS_SUMMARY/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Conversion Process Summary
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../DSA110_SUBBAND_UPDATE_SUMMARY/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Subband Update Summary
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../PYUVDATA_3.2.4_COMPATIBILITY_SUMMARY/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    PyUVData 3.2.4 Compatibility
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../REBUILD_CASA6_ENVIRONMENT/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Rebuild CASA6 Environment
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+      
+        
+          
+        
+      
+        
+      
+    
+    
+    
+      
+        
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--section md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_12" >
+        
+          
+          <div class="md-nav__link md-nav__container">
+            <a href="../../simulation/" class="md-nav__link ">
+              
+  
+  
+  <span class="md-ellipsis">
+    Simulation
+    
+  </span>
+  
+
+            </a>
+            
+              
+              <label class="md-nav__link " for="__nav_12" id="__nav_12_label" tabindex="">
+                <span class="md-nav__icon md-icon"></span>
+              </label>
+            
+          </div>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_12_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_12">
+            <span class="md-nav__icon md-icon"></span>
+            Simulation
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../simulation/PHASE1_SUMMARY/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Phase 1 Summary
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../troubleshooting/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Troubleshooting
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+      
+        
+      
+        
+      
+    
+    
+    
+      
+        
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--section md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_14" >
+        
+          
+          <label class="md-nav__link" for="__nav_14" id="__nav_14_label" tabindex="">
+            
+  
+  
+  <span class="md-ellipsis">
+    Operations
+    
+  </span>
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_14_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_14">
+            <span class="md-nav__icon md-icon"></span>
+            Operations
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../ops/deploy-systemd/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Deploy with systemd
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../ops/deploy-docker/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Deploy with Docker
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../legacy-overview/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Legacy Overview
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+    
+  </ul>
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+            
+              
+              <div class="md-sidebar md-sidebar--secondary" data-md-component="sidebar" data-md-type="toc" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#executive-summary" class="md-nav__link">
+    <span class="md-ellipsis">
+      Executive Summary
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#ese-characteristics-from-literature" class="md-nav__link">
+    <span class="md-ellipsis">
+      ESE Characteristics (from Literature)
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="ESE Characteristics (from Literature)">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#physical-phenomenon" class="md-nav__link">
+    <span class="md-ellipsis">
+      Physical Phenomenon
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#observational-signatures" class="md-nav__link">
+    <span class="md-ellipsis">
+      Observational Signatures
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#detection-challenges" class="md-nav__link">
+    <span class="md-ellipsis">
+      Detection Challenges
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#differential-photometry-theory-practice" class="md-nav__link">
+    <span class="md-ellipsis">
+      Differential Photometry: Theory &amp; Practice
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Differential Photometry: Theory &amp; Practice">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#core-principle" class="md-nav__link">
+    <span class="md-ellipsis">
+      Core Principle
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#reference-source-selection-criteria" class="md-nav__link">
+    <span class="md-ellipsis">
+      Reference Source Selection Criteria
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#normalization-algorithm-options" class="md-nav__link">
+    <span class="md-ellipsis">
+      Normalization Algorithm Options
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Normalization Algorithm Options">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#option-1-simple-ensemble-entry-level" class="md-nav__link">
+    <span class="md-ellipsis">
+      Option 1: Simple Ensemble (Entry-Level)
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#option-2-differential-flux-ratios-recommended" class="md-nav__link">
+    <span class="md-ellipsis">
+      Option 2: Differential Flux Ratios (Recommended)
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#option-3-per-reference-tracking-advanced" class="md-nav__link">
+    <span class="md-ellipsis">
+      Option 3: Per-Reference Tracking (Advanced)
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#recommended-implementation-for-dsa-110" class="md-nav__link">
+    <span class="md-ellipsis">
+      Recommended Implementation for DSA-110
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Recommended Implementation for DSA-110">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#strategy-hybrid-approach" class="md-nav__link">
+    <span class="md-ellipsis">
+      Strategy: Hybrid Approach
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#baseline-establishment-options" class="md-nav__link">
+    <span class="md-ellipsis">
+      Baseline Establishment Options
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#error-propagation" class="md-nav__link">
+    <span class="md-ellipsis">
+      Error Propagation
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#variability-detection-metrics" class="md-nav__link">
+    <span class="md-ellipsis">
+      Variability Detection Metrics
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Variability Detection Metrics">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#standard-statistical-tests" class="md-nav__link">
+    <span class="md-ellipsis">
+      Standard Statistical Tests
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#ese-specific-morphology-tests" class="md-nav__link">
+    <span class="md-ellipsis">
+      ESE-Specific Morphology Tests
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#combined-ese-score" class="md-nav__link">
+    <span class="md-ellipsis">
+      Combined ESE Score
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#algorithm-design-for-dsa-110" class="md-nav__link">
+    <span class="md-ellipsis">
+      Algorithm Design for DSA-110
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Algorithm Design for DSA-110">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#workflow" class="md-nav__link">
+    <span class="md-ellipsis">
+      Workflow
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#reference-source-management" class="md-nav__link">
+    <span class="md-ellipsis">
+      Reference Source Management
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#testing-plan-for-0702445-field" class="md-nav__link">
+    <span class="md-ellipsis">
+      Testing Plan for 0702+445 Field
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Testing Plan for 0702+445 Field">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#test-sequence" class="md-nav__link">
+    <span class="md-ellipsis">
+      Test Sequence
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#expected-results" class="md-nav__link">
+    <span class="md-ellipsis">
+      Expected Results
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#implementation-checklist" class="md-nav__link">
+    <span class="md-ellipsis">
+      Implementation Checklist
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#references-general-principles" class="md-nav__link">
+    <span class="md-ellipsis">
+      References (General Principles)
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#next-steps" class="md-nav__link">
+    <span class="md-ellipsis">
+      Next Steps
+    </span>
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+          
+          
+            <div class="md-content" data-md-component="content">
+              <article class="md-content__inner md-typeset">
+                
+                  
+
+
+  
+  
+
+
+<h1 id="ese-detection-literature-summary-algorithm-design">ESE Detection: Literature Summary &amp; Algorithm Design<a class="headerlink" href="#ese-detection-literature-summary-algorithm-design" title="Permanent link">&para;</a></h1>
+<p><strong>Author:</strong> AI Assistant<br />
+<strong>Date:</strong> 2025-10-24<br />
+<strong>Purpose:</strong> Synthesize ESE detection methods from literature and design normalization algorithm</p>
+<hr />
+<h2 id="executive-summary">Executive Summary<a class="headerlink" href="#executive-summary" title="Permanent link">&para;</a></h2>
+<p>Based on established radio astronomy principles and variability detection methods, this document outlines the normalization strategy for detecting Extreme Scattering Events (ESEs) in DSA-110 forced photometry data.</p>
+<p><strong>Key Finding:</strong> Differential photometry using an ensemble of stable reference sources is the gold standard for detecting subtle (10-50%) flux variations on week-month timescales.</p>
+<hr />
+<h2 id="ese-characteristics-from-literature">ESE Characteristics (from Literature)<a class="headerlink" href="#ese-characteristics-from-literature" title="Permanent link">&para;</a></h2>
+<h3 id="physical-phenomenon">Physical Phenomenon<a class="headerlink" href="#physical-phenomenon" title="Permanent link">&para;</a></h3>
+<ul>
+<li><strong>Cause:</strong> Plasma lensing by ionized structures in the interstellar medium</li>
+<li><strong>Mechanism:</strong> Time-varying magnification/demagnification as Earth moves relative to ISM lens</li>
+<li><strong>Frequency dependence:</strong> Nearly achromatic (ν^0 to ν^-0.2) - distinguishes from intrinsic variability</li>
+</ul>
+<h3 id="observational-signatures">Observational Signatures<a class="headerlink" href="#observational-signatures" title="Permanent link">&para;</a></h3>
+<p><strong>Timescales:</strong>
+- Event duration: weeks to months (typical: 30-90 days)
+- Rise/fall asymmetry: sharp peaks (caustic crossings) vs gradual dips
+- Recurrence: rare (0.5-1 per source per century)</p>
+<p><strong>Morphology:</strong>
+- <strong>Phase 1:</strong> Gradual flux decrease (lens approaching)
+- <strong>Phase 2:</strong> Sharp caustic-crossing peaks (lens in beam, magnification events)
+- <strong>Phase 3:</strong> Gradual recovery (lens departing)
+- <strong>Amplitude:</strong> 10-50% typical, can reach factors of 2-3</p>
+<p><strong>Spectral behavior:</strong>
+- Achromatic or very weak frequency dependence
+- Distinguishes from intrinsic source variability (typically steep spectrum)
+- Consistent with scattering (not emission process changes)</p>
+<h3 id="detection-challenges">Detection Challenges<a class="headerlink" href="#detection-challenges" title="Permanent link">&para;</a></h3>
+<p><strong>Systematic Effects:</strong>
+1. <strong>Atmospheric variations:</strong> 5-10% daily (water vapor, pressure)
+2. <strong>Instrumental drifts:</strong> 1-3% weekly (gain, temperature)
+3. <strong>Calibration uncertainties:</strong> 2-5% (flux scale, beam model)</p>
+<p><strong>Result:</strong> Absolute photometry precision ~ 5-7% at best<br />
+<strong>Required for ESE:</strong> 1-2% relative precision</p>
+<p><strong>Solution:</strong> Differential photometry normalizes out systematics</p>
+<hr />
+<h2 id="differential-photometry-theory-practice">Differential Photometry: Theory &amp; Practice<a class="headerlink" href="#differential-photometry-theory-practice" title="Permanent link">&para;</a></h2>
+<h3 id="core-principle">Core Principle<a class="headerlink" href="#core-principle" title="Permanent link">&para;</a></h3>
+<p><strong>Observation:</strong> All sources in the same field experience identical:
+- Atmospheric absorption
+- Instrumental gain variations<br />
+- Beam pattern effects
+- Calibration errors</p>
+<p><strong>Method:</strong> Measure target flux relative to ensemble of stable references</p>
+<h3 id="reference-source-selection-criteria">Reference Source Selection Criteria<a class="headerlink" href="#reference-source-selection-criteria" title="Permanent link">&para;</a></h3>
+<p><strong>From radio variability surveys (Lovell et al., MNRAS; Intema et al., A&amp;A):</strong></p>
+<ol>
+<li><strong>High signal-to-noise:</strong> SNR &gt; 50 (σ_phot ~ 1/SNR ~ 2%)</li>
+<li><strong>Flat spectrum:</strong> -1.2 &lt; α &lt; 0.2 (likely AGN core, not steep-spectrum extended)</li>
+<li><strong>Spatial distribution:</strong> Well-spread across FoV (average out spatial systematics)</li>
+<li><strong>Ensemble size:</strong> N=10-20 (√N improves precision)</li>
+<li><strong>Known stability:</strong> Not known variables (pulsars, flare stars, ESE sources themselves)</li>
+</ol>
+<p><strong>Your advantage:</strong> <code>master_sources.sqlite3</code> already has <code>final_references</code> view with these properties!</p>
+<h3 id="normalization-algorithm-options">Normalization Algorithm Options<a class="headerlink" href="#normalization-algorithm-options" title="Permanent link">&para;</a></h3>
+<h4 id="option-1-simple-ensemble-entry-level">Option 1: Simple Ensemble (Entry-Level)<a class="headerlink" href="#option-1-simple-ensemble-entry-level" title="Permanent link">&para;</a></h4>
+<div class="highlight"><pre><span></span><code><span class="n">F_norm</span><span class="p">(</span><span class="n">t</span><span class="p">)</span> <span class="o">=</span> <span class="n">S_target</span><span class="p">(</span><span class="n">t</span><span class="p">)</span> <span class="o">/</span> <span class="n">median</span><span class="p">(</span><span class="n">R_1</span><span class="p">(</span><span class="n">t</span><span class="p">),</span> <span class="n">R_2</span><span class="p">(</span><span class="n">t</span><span class="p">),</span> <span class="o">...</span><span class="p">,</span> <span class="n">R_N</span><span class="p">(</span><span class="n">t</span><span class="p">))</span>
+</code></pre></div>
+<p><strong>Pros:</strong><br />
+- Very simple
+- Robust to outliers (median)
+- Works if references are truly constant</p>
+<p><strong>Cons:</strong><br />
+- Assumes reference ensemble flux is constant
+- Doesn't track systematic drifts over weeks-months
+- No baseline establishment</p>
+<h4 id="option-2-differential-flux-ratios-recommended">Option 2: Differential Flux Ratios (Recommended)<a class="headerlink" href="#option-2-differential-flux-ratios-recommended" title="Permanent link">&para;</a></h4>
+<div class="highlight"><pre><span></span><code><span class="c1"># Establish baseline (first 10 epochs or dedicated calibrator scan)</span>
+<span class="n">R_baseline</span> <span class="o">=</span> <span class="n">median</span><span class="p">(</span><span class="n">R_1_0</span><span class="p">,</span> <span class="n">R_2_0</span><span class="p">,</span> <span class="o">...</span><span class="p">,</span> <span class="n">R_N_0</span><span class="p">)</span>
+
+<span class="c1"># Per epoch correction</span>
+<span class="n">R_current</span><span class="p">(</span><span class="n">t</span><span class="p">)</span> <span class="o">=</span> <span class="n">median</span><span class="p">(</span><span class="n">R_1_t</span><span class="p">,</span> <span class="n">R_2_t</span><span class="p">,</span> <span class="o">...</span><span class="p">,</span> <span class="n">R_N_t</span><span class="p">)</span>
+<span class="n">correction</span><span class="p">(</span><span class="n">t</span><span class="p">)</span> <span class="o">=</span> <span class="n">R_current</span><span class="p">(</span><span class="n">t</span><span class="p">)</span> <span class="o">/</span> <span class="n">R_baseline</span>
+
+<span class="c1"># Normalize target</span>
+<span class="n">F_norm</span><span class="p">(</span><span class="n">t</span><span class="p">)</span> <span class="o">=</span> <span class="n">S_target</span><span class="p">(</span><span class="n">t</span><span class="p">)</span> <span class="o">/</span> <span class="n">correction</span><span class="p">(</span><span class="n">t</span><span class="p">)</span>
+</code></pre></div>
+<p><strong>Pros:</strong><br />
+- Self-calibrating: tracks systematic drifts
+- Preserves true variability in target
+- Median is robust to individual reference variability
+- Handles long-term atmospheric/instrumental trends</p>
+<p><strong>Cons:</strong><br />
+- Requires baseline establishment
+- Slightly more complex implementation</p>
+<p><strong>Performance:</strong> Achieves 1-2% relative precision in practice</p>
+<h4 id="option-3-per-reference-tracking-advanced">Option 3: Per-Reference Tracking (Advanced)<a class="headerlink" href="#option-3-per-reference-tracking-advanced" title="Permanent link">&para;</a></h4>
+<div class="highlight"><pre><span></span><code><span class="c1"># Track each reference individually</span>
+<span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">N_ref</span><span class="p">):</span>
+    <span class="n">ratio_i</span><span class="p">(</span><span class="n">t</span><span class="p">)</span> <span class="o">=</span> <span class="n">R_i</span><span class="p">(</span><span class="n">t</span><span class="p">)</span> <span class="o">/</span> <span class="n">R_i_baseline</span>
+
+<span class="c1"># Robust ensemble statistic</span>
+<span class="n">correction</span><span class="p">(</span><span class="n">t</span><span class="p">)</span> <span class="o">=</span> <span class="n">median</span><span class="p">(</span><span class="n">ratio_i</span><span class="p">(</span><span class="n">t</span><span class="p">))</span>
+<span class="n">correction_rms</span><span class="p">(</span><span class="n">t</span><span class="p">)</span> <span class="o">=</span> <span class="n">MAD</span><span class="p">(</span><span class="n">ratio_i</span><span class="p">(</span><span class="n">t</span><span class="p">))</span>  <span class="c1"># Median absolute deviation</span>
+
+<span class="c1"># Apply to target</span>
+<span class="n">F_norm</span><span class="p">(</span><span class="n">t</span><span class="p">)</span> <span class="o">=</span> <span class="n">S_target</span><span class="p">(</span><span class="n">t</span><span class="p">)</span> <span class="o">/</span> <span class="n">correction</span><span class="p">(</span><span class="n">t</span><span class="p">)</span>
+<span class="n">F_norm_err</span><span class="p">(</span><span class="n">t</span><span class="p">)</span> <span class="o">=</span> <span class="n">sqrt</span><span class="p">(</span><span class="n">F_err</span><span class="p">(</span><span class="n">t</span><span class="p">)</span><span class="o">^</span><span class="mi">2</span> <span class="o">+</span> <span class="p">(</span><span class="n">F</span> <span class="o">*</span> <span class="n">correction_rms</span><span class="p">(</span><span class="n">t</span><span class="p">))</span><span class="o">^</span><span class="mi">2</span><span class="p">)</span>
+</code></pre></div>
+<p><strong>Pros:</strong><br />
+- Individual reference variability doesn't corrupt ensemble
+- Provides quality metric (correction_rms)
+- Can flag bad references automatically
+- Most robust to outliers</p>
+<p><strong>Cons:</strong><br />
+- More complex tracking
+- Requires per-source baseline storage</p>
+<p><strong>Performance:</strong> Best achievable precision (~1%)</p>
+<hr />
+<h2 id="recommended-implementation-for-dsa-110">Recommended Implementation for DSA-110<a class="headerlink" href="#recommended-implementation-for-dsa-110" title="Permanent link">&para;</a></h2>
+<h3 id="strategy-hybrid-approach">Strategy: Hybrid Approach<a class="headerlink" href="#strategy-hybrid-approach" title="Permanent link">&para;</a></h3>
+<p><strong>Phase 1 (Immediate):</strong> Implement Option 2 (Differential Flux Ratios)
+- Sufficient for initial ESE detection
+- Straightforward implementation
+- Proven in radio surveys</p>
+<p><strong>Phase 2 (Future):</strong> Upgrade to Option 3 (Per-Reference Tracking)
+- Once baseline system validated
+- Add individual reference QA
+- Improve error propagation</p>
+<h3 id="baseline-establishment-options">Baseline Establishment Options<a class="headerlink" href="#baseline-establishment-options" title="Permanent link">&para;</a></h3>
+<p><strong>Option A: Running Median</strong> (Recommended for start)
+<div class="highlight"><pre><span></span><code><span class="c1"># Use first N epochs (N=10 typical)</span>
+<span class="k">for</span> <span class="n">each</span> <span class="n">reference</span> <span class="n">i</span><span class="p">:</span>
+    <span class="n">R_i_baseline</span> <span class="o">=</span> <span class="n">median</span><span class="p">(</span><span class="n">R_i</span><span class="p">[</span><span class="mi">0</span><span class="p">:</span><span class="mi">10</span><span class="p">])</span>
+</code></pre></div></p>
+<p><strong>Rationale:</strong><br />
+- Robust to early outliers
+- Simple to implement
+- Works if first ~10 days are normal</p>
+<p><strong>Option B: Dedicated Calibrator Scan</strong>
+<div class="highlight"><pre><span></span><code><span class="c1"># Single deep integration on calibrator field</span>
+<span class="n">R_i_baseline</span> <span class="o">=</span> <span class="n">peak_flux</span><span class="p">(</span><span class="n">calibrator_scan</span><span class="p">)</span>
+</code></pre></div></p>
+<p><strong>Rationale:</strong><br />
+- Higher SNR baseline
+- Not contaminated by early ESE events
+- Requires dedicated observing time</p>
+<p><strong>For DSA-110:</strong> Option A is practical since you observe daily</p>
+<h3 id="error-propagation">Error Propagation<a class="headerlink" href="#error-propagation" title="Permanent link">&para;</a></h3>
+<p><strong>Measurement error:</strong>
+<div class="highlight"><pre><span></span><code><span class="n">σ_meas</span> <span class="o">=</span> <span class="n">RMS_local</span>  <span class="c1"># From annulus</span>
+</code></pre></div></p>
+<p><strong>Correction uncertainty:</strong>
+<div class="highlight"><pre><span></span><code><span class="n">σ_corr</span> <span class="o">=</span> <span class="n">correction</span> <span class="o">*</span> <span class="n">MAD</span><span class="p">(</span><span class="n">ratio_i</span><span class="p">)</span> <span class="o">/</span> <span class="n">sqrt</span><span class="p">(</span><span class="n">N_ref</span><span class="p">)</span>
+</code></pre></div></p>
+<p><strong>Propagated error:</strong>
+<div class="highlight"><pre><span></span><code><span class="n">σ_norm</span> <span class="o">=</span> <span class="n">sqrt</span><span class="p">((</span><span class="n">σ_meas</span> <span class="o">/</span> <span class="n">correction</span><span class="p">)</span><span class="o">^</span><span class="mi">2</span> <span class="o">+</span> <span class="p">(</span><span class="n">F_raw</span> <span class="o">*</span> <span class="n">σ_corr</span> <span class="o">/</span> <span class="n">correction</span><span class="o">^</span><span class="mi">2</span><span class="p">)</span><span class="o">^</span><span class="mi">2</span><span class="p">)</span>
+</code></pre></div></p>
+<hr />
+<h2 id="variability-detection-metrics">Variability Detection Metrics<a class="headerlink" href="#variability-detection-metrics" title="Permanent link">&para;</a></h2>
+<h3 id="standard-statistical-tests">Standard Statistical Tests<a class="headerlink" href="#standard-statistical-tests" title="Permanent link">&para;</a></h3>
+<p><strong>1. Reduced χ²</strong>
+<div class="highlight"><pre><span></span><code><span class="n">χ</span><span class="err">²</span><span class="n">_ν</span> <span class="o">=</span> <span class="p">(</span><span class="mi">1</span> <span class="o">/</span> <span class="p">(</span><span class="n">N</span><span class="o">-</span><span class="mi">1</span><span class="p">))</span> <span class="o">*</span> <span class="n">Σ</span><span class="p">((</span><span class="n">F_i</span> <span class="o">-</span> <span class="o">&lt;</span><span class="n">F</span><span class="o">&gt;</span><span class="p">)</span><span class="o">^</span><span class="mi">2</span> <span class="o">/</span> <span class="n">σ_i</span><span class="o">^</span><span class="mi">2</span><span class="p">)</span>
+</code></pre></div></p>
+<p><strong>Interpretation:</strong><br />
+- χ²_ν ~ 1: Consistent with non-variable
+- χ²_ν &gt; 3: Significant variability (3σ)
+- χ²_ν &gt; 5: Strong variability (5σ)</p>
+<p><strong>Threshold for ESE flag:</strong> χ²_ν &gt; 5</p>
+<p><strong>2. Fractional Variability (Intrinsic RMS)</strong>
+<div class="highlight"><pre><span></span><code><span class="n">V</span> <span class="o">=</span> <span class="n">sqrt</span><span class="p">(</span><span class="nb">max</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="n">s</span><span class="o">^</span><span class="mi">2</span> <span class="o">-</span> <span class="o">&lt;</span><span class="n">σ</span><span class="err">²</span><span class="o">&gt;</span><span class="p">))</span> <span class="o">/</span> <span class="o">&lt;</span><span class="n">F</span><span class="o">&gt;</span>
+</code></pre></div>
+where s^2 = sample variance of F_i</p>
+<p><strong>Interpretation:</strong><br />
+- V &lt; 0.03: Effectively non-variable (3%)
+- V &gt; 0.10: Significant intrinsic variability
+- V &gt; 0.30: Strong variability (ESE-level)</p>
+<p><strong>Threshold for ESE flag:</strong> V &gt; 0.10</p>
+<p><strong>3. Significance of Variability</strong>
+<div class="highlight"><pre><span></span><code><span class="n">σ_V</span> <span class="o">=</span> <span class="n">V</span> <span class="o">*</span> <span class="n">sqrt</span><span class="p">(</span><span class="mi">2</span> <span class="o">/</span> <span class="n">N</span><span class="p">)</span>  <span class="c1"># Uncertainty on V</span>
+<span class="n">significance</span> <span class="o">=</span> <span class="n">V</span> <span class="o">/</span> <span class="n">σ_V</span>
+</code></pre></div></p>
+<p><strong>Threshold for ESE flag:</strong> significance &gt; 5</p>
+<h3 id="ese-specific-morphology-tests">ESE-Specific Morphology Tests<a class="headerlink" href="#ese-specific-morphology-tests" title="Permanent link">&para;</a></h3>
+<p><strong>1. Asymmetry Index</strong>
+<div class="highlight"><pre><span></span><code><span class="c1"># Fit rising and falling exponentials</span>
+<span class="n">τ_rise</span> <span class="o">=</span> <span class="n">fit_exp_rise</span><span class="p">(</span><span class="n">lightcurve</span><span class="p">)</span>
+<span class="n">τ_fall</span> <span class="o">=</span> <span class="n">fit_exp_fall</span><span class="p">(</span><span class="n">lightcurve</span><span class="p">)</span>
+
+<span class="n">asymmetry</span> <span class="o">=</span> <span class="nb">abs</span><span class="p">(</span><span class="n">τ_rise</span> <span class="o">-</span> <span class="n">τ_fall</span><span class="p">)</span> <span class="o">/</span> <span class="p">(</span><span class="n">τ_rise</span> <span class="o">+</span> <span class="n">τ_fall</span><span class="p">)</span>
+</code></pre></div></p>
+<p><strong>ESE characteristic:</strong> asymmetry &gt; 0.3 (sharp rise, slow fall or vice versa)</p>
+<p><strong>2. Timescale Check</strong>
+<div class="highlight"><pre><span></span><code><span class="c1"># Characteristic timescale from autocorrelation</span>
+<span class="n">ACF</span> <span class="o">=</span> <span class="n">autocorrelation</span><span class="p">(</span><span class="n">F_norm</span><span class="p">)</span>
+<span class="n">τ_char</span> <span class="o">=</span> <span class="n">first_zero_crossing</span><span class="p">(</span><span class="n">ACF</span><span class="p">)</span>
+</code></pre></div></p>
+<p><strong>ESE range:</strong> 14 days &lt; τ_char &lt; 180 days</p>
+<p><strong>3. Peak-to-Trough Amplitude</strong>
+<div class="highlight"><pre><span></span><code><span class="n">amplitude</span> <span class="o">=</span> <span class="p">(</span><span class="nb">max</span><span class="p">(</span><span class="n">F_norm</span><span class="p">)</span> <span class="o">-</span> <span class="nb">min</span><span class="p">(</span><span class="n">F_norm</span><span class="p">))</span> <span class="o">/</span> <span class="n">median</span><span class="p">(</span><span class="n">F_norm</span><span class="p">)</span>
+</code></pre></div></p>
+<p><strong>ESE typical:</strong> 0.2 &lt; amplitude &lt; 2.0 (20% to factor of 2)</p>
+<h3 id="combined-ese-score">Combined ESE Score<a class="headerlink" href="#combined-ese-score" title="Permanent link">&para;</a></h3>
+<div class="highlight"><pre><span></span><code><span class="n">score_stat</span> <span class="o">=</span> <span class="p">(</span><span class="n">χ</span><span class="err">²</span><span class="n">_ν</span> <span class="o">-</span> <span class="mi">1</span><span class="p">)</span> <span class="o">/</span> <span class="mi">4</span>  <span class="c1"># Normalize to ~1 for strong variable</span>
+<span class="n">score_frac</span> <span class="o">=</span> <span class="nb">min</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="n">V</span> <span class="o">/</span> <span class="mf">0.3</span><span class="p">)</span>  <span class="c1"># Normalize to 1 at V=30%</span>
+<span class="n">score_asym</span> <span class="o">=</span> <span class="nb">min</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="n">asymmetry</span> <span class="o">/</span> <span class="mf">0.5</span><span class="p">)</span>  <span class="c1"># Normalize to 1 at asym=50%</span>
+<span class="n">score_time</span> <span class="o">=</span> <span class="mi">1</span> <span class="k">if</span> <span class="p">(</span><span class="mi">14</span> <span class="o">&lt;</span> <span class="n">τ_char</span> <span class="o">&lt;</span> <span class="mi">180</span><span class="p">)</span> <span class="k">else</span> <span class="mi">0</span>  <span class="c1"># Boolean</span>
+<span class="n">score_amp</span> <span class="o">=</span> <span class="mi">1</span> <span class="k">if</span> <span class="p">(</span><span class="mf">0.1</span> <span class="o">&lt;</span> <span class="n">amplitude</span> <span class="o">&lt;</span> <span class="mf">3.0</span><span class="p">)</span> <span class="k">else</span> <span class="mi">0</span>  <span class="c1"># Boolean</span>
+
+<span class="n">ESE_score</span> <span class="o">=</span> <span class="mf">0.3</span><span class="o">*</span><span class="n">score_stat</span> <span class="o">+</span> <span class="mf">0.3</span><span class="o">*</span><span class="n">score_frac</span> <span class="o">+</span> <span class="mf">0.2</span><span class="o">*</span><span class="n">score_asym</span> <span class="o">+</span> <span class="mf">0.1</span><span class="o">*</span><span class="n">score_time</span> <span class="o">+</span> <span class="mf">0.1</span><span class="o">*</span><span class="n">score_amp</span>
+</code></pre></div>
+<p><strong>Threshold:</strong> ESE_score &gt; 0.6 flags as candidate</p>
+<hr />
+<h2 id="algorithm-design-for-dsa-110">Algorithm Design for DSA-110<a class="headerlink" href="#algorithm-design-for-dsa-110" title="Permanent link">&para;</a></h2>
+<h3 id="workflow">Workflow<a class="headerlink" href="#workflow" title="Permanent link">&para;</a></h3>
+<p><strong>Per-Image Processing:</strong>
+<div class="highlight"><pre><span></span><code>1. Load FITS image (.pbcor.fits)
+2. Query reference sources from master_sources.final_references within FoV
+3. Perform forced photometry on N_ref references
+4. Check if baselines exist:
+   - If no: store measurements, flag as baseline establishment
+   - If yes: compute correction factor
+5. Perform forced photometry on target sources (all NVSS in FoV)
+6. Apply normalization to targets
+7. Store in photometry_timeseries table
+</code></pre></div></p>
+<p><strong>Nightly/Weekly Variability Analysis:</strong>
+<div class="highlight"><pre><span></span><code>1. For each source with N_epochs &gt; 20:
+   2. Compute χ²_ν, V, significance
+   3. If variable (χ²_ν &gt; 3 or V &gt; 0.05):
+      - Fit morphology (asymmetry, timescale, amplitude)
+      - Compute ESE_score
+      - Flag if ESE_score &gt; 0.6
+   4. Update photometry_variability table
+</code></pre></div></p>
+<h3 id="reference-source-management">Reference Source Management<a class="headerlink" href="#reference-source-management" title="Permanent link">&para;</a></h3>
+<p><strong>Selection (one-time setup):</strong>
+<div class="highlight"><pre><span></span><code><span class="k">def</span><span class="w"> </span><span class="nf">select_references_for_pointing</span><span class="p">(</span><span class="n">ra_center</span><span class="p">,</span> <span class="n">dec_center</span><span class="p">,</span> <span class="n">fov_radius</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Query master_sources for references in FoV&quot;&quot;&quot;</span>
+    <span class="n">query</span> <span class="o">=</span> <span class="s2">&quot;&quot;&quot;</span>
+<span class="s2">    SELECT source_id, ra_deg, dec_deg, s_nvss, snr_nvss</span>
+<span class="s2">    FROM final_references</span>
+<span class="s2">    WHERE ra_deg BETWEEN ? AND ?</span>
+<span class="s2">      AND dec_deg BETWEEN ? AND ?</span>
+<span class="s2">      AND snr_nvss &gt; 50</span>
+<span class="s2">    ORDER BY snr_nvss DESC</span>
+<span class="s2">    LIMIT 20</span>
+<span class="s2">    &quot;&quot;&quot;</span>
+    <span class="c1"># Return top 20 highest-SNR references in FoV</span>
+</code></pre></div></p>
+<p><strong>Baseline Establishment (first 10 epochs):</strong>
+<div class="highlight"><pre><span></span><code><span class="k">def</span><span class="w"> </span><span class="nf">establish_baselines</span><span class="p">(</span><span class="n">ref_sources</span><span class="p">,</span> <span class="n">n_baseline</span><span class="o">=</span><span class="mi">10</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Use first N epochs to set reference baselines&quot;&quot;&quot;</span>
+    <span class="k">for</span> <span class="n">ref</span> <span class="ow">in</span> <span class="n">ref_sources</span><span class="p">:</span>
+        <span class="n">epochs</span> <span class="o">=</span> <span class="n">query_first_n_epochs</span><span class="p">(</span><span class="n">ref</span><span class="o">.</span><span class="n">source_id</span><span class="p">,</span> <span class="n">n_baseline</span><span class="p">)</span>
+        <span class="n">ref</span><span class="o">.</span><span class="n">flux_baseline</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">median</span><span class="p">(</span><span class="n">epochs</span><span class="o">.</span><span class="n">peak_jyb</span><span class="p">)</span>
+        <span class="n">ref</span><span class="o">.</span><span class="n">baseline_rms</span> <span class="o">=</span> <span class="mf">1.4826</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">median</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">abs</span><span class="p">(</span><span class="n">epochs</span><span class="o">.</span><span class="n">peak_jyb</span> <span class="o">-</span> <span class="n">ref</span><span class="o">.</span><span class="n">flux_baseline</span><span class="p">))</span>
+</code></pre></div></p>
+<p><strong>Quality Control:</strong>
+<div class="highlight"><pre><span></span><code><span class="k">def</span><span class="w"> </span><span class="nf">check_reference_stability</span><span class="p">(</span><span class="n">ref_sources</span><span class="p">,</span> <span class="n">time_window_days</span><span class="o">=</span><span class="mi">30</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Flag references that show variability&quot;&quot;&quot;</span>
+    <span class="k">for</span> <span class="n">ref</span> <span class="ow">in</span> <span class="n">ref_sources</span><span class="p">:</span>
+        <span class="n">recent</span> <span class="o">=</span> <span class="n">query_recent_epochs</span><span class="p">(</span><span class="n">ref</span><span class="o">.</span><span class="n">source_id</span><span class="p">,</span> <span class="n">time_window_days</span><span class="p">)</span>
+        <span class="n">chi2</span> <span class="o">=</span> <span class="n">compute_chi2</span><span class="p">(</span><span class="n">recent</span><span class="o">.</span><span class="n">peak_norm</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">chi2</span> <span class="o">&gt;</span> <span class="mf">2.0</span><span class="p">:</span>
+            <span class="n">ref</span><span class="o">.</span><span class="n">flag_variable</span> <span class="o">=</span> <span class="kc">True</span>  <span class="c1"># Exclude from ensemble</span>
+</code></pre></div></p>
+<hr />
+<h2 id="testing-plan-for-0702445-field">Testing Plan for 0702+445 Field<a class="headerlink" href="#testing-plan-for-0702445-field" title="Permanent link">&para;</a></h2>
+<h3 id="test-sequence">Test Sequence<a class="headerlink" href="#test-sequence" title="Permanent link">&para;</a></h3>
+<p><strong>Day 1:</strong>
+1. Image 0702+445 transit (bandpass calibration)
+2. Perform forced photometry on all NVSS sources in field
+3. Select 10-20 high-SNR references, establish baselines
+4. Normalize all source measurements
+5. Store in database</p>
+<p><strong>Day 2:</strong>
+1. Image 0702+445 next transit (regenerate bandpass)
+2. Perform forced photometry on same sources
+3. Compute correction from references
+4. Normalize target measurements
+5. Compare:
+   - Raw flux variations (should be 5-10%)
+   - Normalized flux variations (should be &lt;2-3%)</p>
+<p><strong>Success Criteria:</strong>
+- References show &lt;3% normalized RMS scatter
+- Target sources (if truly stable) show &lt;3% normalized RMS
+- Correction factor tracks any systematic offset between days</p>
+<h3 id="expected-results">Expected Results<a class="headerlink" href="#expected-results" title="Permanent link">&para;</a></h3>
+<p><strong>Scenario 1: Good normalization</strong>
+- Raw fluxes vary 5-10% day-to-day
+- Normalized fluxes show &lt;2% scatter for stable sources
+- Correction factor ~ 0.95-1.05 (accounts for atmospheric/gain differences)</p>
+<p><strong>Scenario 2: Problems</strong>
+- Normalized fluxes still show &gt;5% scatter → Investigate:
+  - Reference source selection (are they actually stable?)
+  - Baseline establishment (was first epoch anomalous?)
+  - Beam model errors (spatial systematics not fully corrected)</p>
+<hr />
+<h2 id="implementation-checklist">Implementation Checklist<a class="headerlink" href="#implementation-checklist" title="Permanent link">&para;</a></h2>
+<ul>
+<li>[ ] Add photometry_sources, photometry_timeseries, photometry_variability tables</li>
+<li>[ ] Create photometry/normalize.py module</li>
+<li>[ ] Implement reference selection from master_sources</li>
+<li>[ ] Implement baseline establishment (running median)</li>
+<li>[ ] Implement differential flux ratio normalization</li>
+<li>[ ] Implement error propagation</li>
+<li>[ ] Add quality control (reference stability checks)</li>
+<li>[ ] Implement variability metrics (χ², V, significance)</li>
+<li>[ ] Implement ESE morphology scoring</li>
+<li>[ ] Add photometry to imaging pipeline (after .pbcor.fits creation)</li>
+<li>[ ] Create test script for 0702+445 validation</li>
+<li>[ ] Add API endpoints for light curves and ESE candidates</li>
+</ul>
+<hr />
+<h2 id="references-general-principles">References (General Principles)<a class="headerlink" href="#references-general-principles" title="Permanent link">&para;</a></h2>
+<p><strong>Differential Photometry:</strong>
+- Honeycutt 1992, PASP, 104, 435 - "CCD ensemble photometry"
+- Howell 2006, "Handbook of CCD Astronomy", Chapter 6</p>
+<p><strong>Radio Variability Surveys:</strong>
+- Lovell et al. 2008, ApJ, 689, 108 - "VLA variability survey techniques"
+- Mooley et al. 2016, ApJ, 818, 105 - "Radio transient detection methods"</p>
+<p><strong>ESE Detection (Conceptual):</strong>
+- Known characteristics: weeks-months timescales, asymmetric morphology, achromatic
+- Differential photometry with stable references is gold standard
+- Ensemble of 10-20 refs achieves 1-2% precision</p>
+<hr />
+<h2 id="next-steps">Next Steps<a class="headerlink" href="#next-steps" title="Permanent link">&para;</a></h2>
+<ol>
+<li><strong>Implement normalization module</strong> based on Option 2 (Differential Flux Ratios)</li>
+<li><strong>Test on 0702+445 field</strong> with 24h cadence</li>
+<li><strong>Validate</strong> that normalized scatter &lt; 3% for stable sources</li>
+<li><strong>Deploy</strong> to pipeline if validation successful</li>
+<li><strong>Upgrade to Option 3</strong> once baseline system proven</li>
+</ol>
+<p><strong>Ready to proceed with implementation.</strong></p>
+
+
+
+
+
+
+
+
+
+
+
+
+                
+              </article>
+            </div>
+          
+          
+  <script>var tabs=__md_get("__tabs");if(Array.isArray(tabs))e:for(var set of document.querySelectorAll(".tabbed-set")){var labels=set.querySelector(".tabbed-labels");for(var tab of tabs)for(var label of labels.getElementsByTagName("label"))if(label.innerText.trim()===tab){var input=document.getElementById(label.htmlFor);input.checked=!0;continue e}}</script>
+
+<script>var target=document.getElementById(location.hash.slice(1));target&&target.name&&(target.checked=target.name.startsWith("__tabbed_"))</script>
+        </div>
+        
+      </main>
+      
+        <footer class="md-footer">
+  
+  <div class="md-footer-meta md-typeset">
+    <div class="md-footer-meta__inner md-grid">
+      <div class="md-copyright">
+  
+  
+    Made with
+    <a href="https://squidfunk.github.io/mkdocs-material/" target="_blank" rel="noopener">
+      Material for MkDocs
+    </a>
+  
+</div>
+      
+    </div>
+  </div>
+</footer>
+      
+    </div>
+    <div class="md-dialog" data-md-component="dialog">
+      <div class="md-dialog__inner md-typeset"></div>
+    </div>
+    
+    
+    
+      
+      <script id="__config" type="application/json">{"base": "../..", "features": ["navigation.sections", "navigation.indexes", "content.code.copy", "content.tabs.link"], "search": "../../assets/javascripts/workers/search.973d3a69.min.js", "tags": null, "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": null}</script>
+    
+    
+      <script src="../../assets/javascripts/bundle.f55a23d4.min.js"></script>
+      
+        <script src="https://unpkg.com/mermaid@10/dist/mermaid.min.js"></script>
+      
+        <script src="../../javascripts/mermaid-init.js"></script>
+      
+    
+  </body>
+</html>

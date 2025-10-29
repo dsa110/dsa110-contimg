@@ -5,16 +5,16 @@ This page illustrates the streaming continuum imaging pipeline from ingest to pr
 ## End-to-end Flow
 
 ```mermaid
-flowchart TD
+flowchart TB
   Ingest[Ingest watcher] --> Group[Group subbands by time window]
-  Group --> Convert[Convert UVH5 → MS (strategy orchestrator)]
+  Group --> Convert[Convert UVH5 to MS - strategy orchestrator]
   Convert --> CalSel{Calibrator?}
-  CalSel -->|yes| Cal[Calibrate: K → BP → G]
+  CalSel -->|yes| Cal[Calibrate: K, BP, G]
   CalSel -->|no| Apply[Apply latest caltables]
   Cal --> Reg[Register caltables]
   Reg --> Apply
   Apply --> Image[tclean image]
-  Image --> Index[Record in products DB]
+  Image --> Index[Record in products DB: ms_index, images, qa_artifacts]
   Index --> API[API/QA views]
 ```
 
@@ -27,13 +27,13 @@ Notes:
 
 ```mermaid
 flowchart LR
-  Auto[--writer auto] --> N{n_subbands ≤ 2?}
+  Auto[--writer auto] --> N{n_subbands <= 2?}
   N -->|yes| Mono[pyuvdata monolithic write]
   N -->|no| Par[direct-subband: parallel per-subband writes]
   Par --> Stage{--stage-to-tmpfs?}
-  Stage -->|yes| Tmp[/dev/shm staging]
-  Stage -->|no| Disk[SSD/NVMe scratch]
-  Tmp --> Concat[CASA concat → full-band MS]
+  Stage -->|yes| Tmp[dev-shm staging]
+  Stage -->|no| Disk[SSD NVMe scratch]
+  Tmp --> Concat[CASA concat to full-band MS]
   Disk --> Concat
   Mono --> MS[Final full-band MS]
   Concat --> MS
@@ -64,7 +64,7 @@ flowchart LR
 ```mermaid
 flowchart LR
   CMS[Calibrated MS] --> Tclean[tclean]
-  Quick{--quick?} -->|yes| Small[imsize ≤ 512, niter ≤ 300, robust ~ 0]
+  Quick{--quick?} -->|yes| Small[imsize <= 512, niter <= 300, robust ~ 0]
   Quick -->|no| Def[use requested defaults]
   Small --> Tclean
   Def --> Tclean

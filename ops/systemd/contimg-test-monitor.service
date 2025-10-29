@@ -1,0 +1,21 @@
+[Unit]
+Description=DSA-110 Automated Test Monitoring
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=simple
+EnvironmentFile=/data/dsa110-contimg/ops/systemd/contimg.env
+WorkingDirectory=/data/dsa110-contimg
+ExecStart=/usr/bin/python3 scripts/test_monitor_daemon.py \
+  --db ${PIPELINE_STATE_DIR}/testing/test_results.sqlite3 \
+  --interval 3600 \
+  --log-level ${CONTIMG_LOG_LEVEL}
+Restart=always
+RestartSec=60
+NoNewPrivileges=true
+StandardOutput=append:/data/dsa110-contimg/state/logs/test-monitor.out
+StandardError=append:/data/dsa110-contimg/state/logs/test-monitor.err
+
+[Install]
+WantedBy=multi-user.target

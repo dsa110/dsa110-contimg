@@ -55,6 +55,9 @@ def _write_ms_from_files(file_list: List[Path], ms_out: Path) -> None:
 def _image_ms(ms_path: Path, imagename: Path, imsize: int = 2048, cell_arcsec: float | None = None) -> None:
     from dsa110_contimg.imaging.cli import image_ms
     imagename.parent.mkdir(parents=True, exist_ok=True)
+    # Imaging for each group:
+    # - Seed MODEL_DATA with NVSS (>10 mJy) sources inside the FoV so cleaning
+    #   starts with a known sky model; tclean leaves MODEL_DATA untouched.
     image_ms(
         os.fspath(ms_path),
         imagename=os.fspath(imagename),
@@ -63,6 +66,7 @@ def _image_ms(ms_path: Path, imagename: Path, imsize: int = 2048, cell_arcsec: f
         niter=1000,
         threshold='0.0Jy',
         pbcor=True,
+        nvss_min_mjy=10.0,
     )
 
 

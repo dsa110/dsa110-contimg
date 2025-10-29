@@ -10,7 +10,7 @@ Legacy tools (the dsacalib wrappers and the old `UnifiedHDF5Converter`) have bee
 ## Supported Entry Points
 
 - `python -m dsa110_contimg.conversion.streaming.streaming_converter ...` – run the streaming daemon directly for manual testing or non-systemd environments.
-- `systemctl enable --now dsa110-streaming-converter` – deploy via the unit in `pipeline/scripts/dsa110-streaming-converter.service` (adjust ExecStart paths as needed).
+- `systemctl enable --now contimg-stream.service contimg-api.service` – deploy via the units in `ops/systemd/contimg-stream.service` and `ops/systemd/contimg-api.service` (adjust ExecStart paths as needed).
 - `from dsa110_contimg.conversion import convert_subband_groups_to_ms` – programmatic access to the batch converter used by the streaming worker.
 
 ## Legacy Code

@@ -443,12 +443,21 @@ def main() -> int:
                     phasecenter = f"J2000 {ra_hms} {dec_dms}"
                 except Exception:
                     phasecenter = None
+            # Imaging:
+            # - Prefer a calibrator point-source model (if within FoV) using
+            #   the RA/Dec/Flux from the catalogs/DB; otherwise seed a
+            #   multi-source NVSS model (>10 mJy) within the FoV.
+            # - tclean preserves the seeded MODEL_DATA (savemodel='none').
             image_ms(
                 os.fspath(ms_out),
                 imagename=os.fspath(img_base),
                 imsize=args.imsize,
                 pbcor=True,
                 phasecenter=phasecenter,
+                nvss_min_mjy=10.0,
+                calib_ra_deg=float(ra_deg),
+                calib_dec_deg=float(dec_deg),
+                calib_flux_jy=float(fx) if (fx:=_load_flux_jy(args.name, args.catalog, band='20cm', vla_db=args.vla_db)) is not None else None,
             )
             # Optional NVSS overlay generation
             if args.overlay:

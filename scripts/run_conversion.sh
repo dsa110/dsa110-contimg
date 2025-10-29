@@ -47,6 +47,7 @@ fi
 #    CONTIMG_MAX_WORKERS (default 8).
 PYTHONPATH=${PYTHONPATH:-}
 export PYTHONPATH="${REPO_ROOT}/src${PYTHONPATH:+:${PYTHONPATH}}"
+export CONTIMG_SCRATCH_DIR="${SCRATCH_ROOT}"
 
 # CASA/dask stability: keep thread pools small and avoid HDF5 file locking
 export OMP_NUM_THREADS="1"
@@ -54,6 +55,9 @@ export OPENBLAS_NUM_THREADS="1"
 export MKL_NUM_THREADS="1"
 export NUMEXPR_NUM_THREADS="1"
 export HDF5_USE_FILE_LOCKING="FALSE"
+# Ensure temporary files from casacore/CASA go to scratch
+mkdir -p "${SCRATCH_ROOT%/}/tmp"
+export TMPDIR="${SCRATCH_ROOT%/}/tmp" TMP="${SCRATCH_ROOT%/}/tmp" TEMP="${SCRATCH_ROOT%/}/tmp" CASA_TMPDIR="${SCRATCH_ROOT%/}/tmp"
 
 echo "Running converter (strategies: auto; tmpfs staging when available)..."
 MAX_WORKERS="${CONTIMG_MAX_WORKERS:-8}"

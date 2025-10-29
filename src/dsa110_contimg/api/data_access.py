@@ -11,6 +11,7 @@ import json as _json
 
 from dsa110_contimg.api.config import ApiConfig
 from dsa110_contimg.api.models import CalibrationSet, ProductEntry, QueueGroup, QueueStats, CalibratorMatch, CalibratorMatchGroup
+from .models import PointingHistoryEntry
 
 
 QUEUE_COLUMNS = [
@@ -220,3 +221,20 @@ def fetch_recent_calibrator_matches(queue_db: Path, limit: int = 50, matched_onl
             )
         )
     return groups
+
+
+def fetch_pointing_history(db_path: str, start_mjd: float, end_mjd: float) -> List[PointingHistoryEntry]:
+    """Fetch pointing history from the database."""
+    with _connect(db_path) as conn:
+        rows = conn.execute(
+            "SELECT timestamp, ra_deg, dec_deg FROM pointing_history WHERE timestamp BETWEEN ? AND ? ORDER BY timestamp",
+            (start_mjd, end_mjd),
+        ).fetchall()
+    return [
+        PointingHistoryEntry(
+            timestamp=r["timestamp"],
+            ra_deg=r["ra_deg"],
+            dec_deg=r["dec_deg"],
+        )
+        for r in rows
+    ]

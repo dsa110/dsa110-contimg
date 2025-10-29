@@ -18,13 +18,14 @@ make compose-logs SERVICE=stream
 3) Verify
 - Output MS under `${CONTIMG_OUTPUT_DIR}`
 - Products DB `images` and `ms_index` in `${CONTIMG_PRODUCTS_DB}`
-- API at `http://localhost:${CONTIMG_API_PORT}/api/status`
+- API at `http://localhost:${CONTIMG_API_PORT}/api/status` (dashboard at `/ui`, QA at `/api/qa`)
 
 ## systemd
 
 1) Edit env and install units
 ```
 vi ops/systemd/contimg.env
+# Add PIPELINE_TELESCOPE_NAME=OVRO_DSA (and optional CASACORE_DATA overlay path)
 sudo mkdir -p /data/dsa110-contimg/state/logs
 sudo cp ops/systemd/*.service /etc/systemd/system/
 sudo systemctl daemon-reload
@@ -33,6 +34,12 @@ sudo systemctl enable --now contimg-stream.service contimg-api.service
 2) Verify
 - `journalctl -u contimg-stream -f`
 - API status at `/api/status`
+
+Telescope Identity
+
+- The pipeline stamps `UVData.telescope_name` and `MS::OBSERVATION.TELESCOPE_NAME` with `PIPELINE_TELESCOPE_NAME` (default `OVRO_DSA`).
+- Coordinates used (OVRO): lon −118.2817°, lat 37.2314°, alt 1222 m.
+- Optional: to make casacore resolve `OVRO_DSA` by name, create a Measures overlay (`geodetic/Observatories`) and set `CASACORE_DATA` to that directory in `ops/systemd/contimg.env`.
 
 ## One-page Quick-Look (sub-minute)
 

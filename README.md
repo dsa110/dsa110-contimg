@@ -12,6 +12,8 @@ The pipeline can be run via systemd (recommended for the stream worker) or via D
 Quick look: see `docs/quicklook.md` for a sub-minute convert→calibrate→image flow using RAM staging, fast calibration, and quick imaging.
 Visual overview: see `docs/pipeline.md` for diagrams of the end-to-end pipeline and its sub-stages.
 
+- Consolidated docs hub: see Project Handbook at `docs/handbook/index.md` for links to previously root-level documents (Control Panel, Operations notes, Reports, Reference).
+
 
 ## Directory Layout
 
@@ -217,6 +219,22 @@ PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
 - Legacy and historical
   - dask-ms writing path exists historically but is avoided for CASA workflows
   - Older imports from `dsa110_contimg.core.conversion.*` are deprecated; use `dsa110_contimg.conversion.*`
+
+### Frontend: Switch API (dev)
+
+If you brought up the API container on a different port (e.g., 8010 via `ops/docker/.env` → `CONTIMG_API_PORT=8010`), point the frontend at it during development:
+
+- Quick run with env var (recommended):
+  - `cd frontend && conda run -n casa6 VITE_API_URL=http://localhost:8010 npm run dev`
+- Or set a persistent override:
+  - Edit `frontend/.env.local` and set: `VITE_API_URL=http://localhost:8010`
+- Or use the Vite proxy:
+  - Edit `frontend/vite.config.ts` and set `server.proxy['/api'].target = 'http://localhost:8010'`
+
+Notes
+- Vite requires Node.js 20.19+ or 22.12+; use the provided casa6 environment as in `frontend/README.md`.
+- Verify API availability: `curl http://localhost:8010/api/ese/candidates` should return JSON.
+- After switching, the Dashboard’s ESE panel and other enhanced endpoints will populate.
 
 
 ## Troubleshooting

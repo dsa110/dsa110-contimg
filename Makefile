@@ -108,7 +108,7 @@ compose-stop:
 
 # Bring up only the scheduler service
 compose-up-scheduler:
-	$(DC) up -d schedulerProcee
+	$(DC) up -d scheduler
 
 # Bring up only the stream service
 compose-up-stream:

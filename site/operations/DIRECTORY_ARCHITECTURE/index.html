@@ -1,0 +1,2549 @@
+
+<!doctype html>
+<html lang="en" class="no-js">
+  <head>
+    
+      <meta charset="utf-8">
+      <meta name="viewport" content="width=device-width,initial-scale=1">
+      
+      
+      
+        <link rel="canonical" href="https://dsa110-contimg.github.io/dsa110-contimg/operations/DIRECTORY_ARCHITECTURE/">
+      
+      
+      
+      
+      <link rel="icon" href="../../assets/images/favicon.png">
+      <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.6.21">
+    
+    
+      
+        <title>DSA-110 Directory Architecture - DSA-110 Continuum Imaging Pipeline</title>
+      
+    
+    
+      <link rel="stylesheet" href="../../assets/stylesheets/main.2a3383ac.min.css">
+      
+      
+
+
+    
+    
+      
+    
+    
+      
+        
+        
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+        <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Roboto:300,300i,400,400i,700,700i%7CRoboto+Mono:400,400i,700,700i&display=fallback">
+        <style>:root{--md-text-font:"Roboto";--md-code-font:"Roboto Mono"}</style>
+      
+    
+    
+      <link rel="stylesheet" href="../../assets/_mkdocstrings.css">
+    
+    <script>__md_scope=new URL("../..",location),__md_hash=e=>[...e].reduce(((e,_)=>(e<<5)-e+_.charCodeAt(0)),0),__md_get=(e,_=localStorage,t=__md_scope)=>JSON.parse(_.getItem(t.pathname+"."+e)),__md_set=(e,_,t=localStorage,a=__md_scope)=>{try{t.setItem(a.pathname+"."+e,JSON.stringify(_))}catch(e){}}</script>
+    
+      
+
+    
+    
+    
+  </head>
+  
+  
+    <body dir="ltr">
+  
+    
+    <input class="md-toggle" data-md-toggle="drawer" type="checkbox" id="__drawer" autocomplete="off">
+    <input class="md-toggle" data-md-toggle="search" type="checkbox" id="__search" autocomplete="off">
+    <label class="md-overlay" for="__drawer"></label>
+    <div data-md-component="skip">
+      
+        
+        <a href="#dsa-110-directory-architecture" class="md-skip">
+          Skip to content
+        </a>
+      
+    </div>
+    <div data-md-component="announce">
+      
+    </div>
+    
+    
+      
+
+  
+
+<header class="md-header md-header--shadow" data-md-component="header">
+  <nav class="md-header__inner md-grid" aria-label="Header">
+    <a href="../.." title="DSA-110 Continuum Imaging Pipeline" class="md-header__button md-logo" aria-label="DSA-110 Continuum Imaging Pipeline" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"/></svg>
+
+    </a>
+    <label class="md-header__button md-icon" for="__drawer">
+      
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M3 6h18v2H3zm0 5h18v2H3zm0 5h18v2H3z"/></svg>
+    </label>
+    <div class="md-header__title" data-md-component="header-title">
+      <div class="md-header__ellipsis">
+        <div class="md-header__topic">
+          <span class="md-ellipsis">
+            DSA-110 Continuum Imaging Pipeline
+          </span>
+        </div>
+        <div class="md-header__topic" data-md-component="header-topic">
+          <span class="md-ellipsis">
+            
+              DSA-110 Directory Architecture
+            
+          </span>
+        </div>
+      </div>
+    </div>
+    
+    
+      <script>var palette=__md_get("__palette");if(palette&&palette.color){if("(prefers-color-scheme)"===palette.color.media){var media=matchMedia("(prefers-color-scheme: light)"),input=document.querySelector(media.matches?"[data-md-color-media='(prefers-color-scheme: light)']":"[data-md-color-media='(prefers-color-scheme: dark)']");palette.color.media=input.getAttribute("data-md-color-media"),palette.color.scheme=input.getAttribute("data-md-color-scheme"),palette.color.primary=input.getAttribute("data-md-color-primary"),palette.color.accent=input.getAttribute("data-md-color-accent")}for(var[key,value]of Object.entries(palette.color))document.body.setAttribute("data-md-color-"+key,value)}</script>
+    
+    
+    
+      
+      
+        <label class="md-header__button md-icon" for="__search">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        </label>
+        <div class="md-search" data-md-component="search" role="dialog">
+  <label class="md-search__overlay" for="__search"></label>
+  <div class="md-search__inner" role="search">
+    <form class="md-search__form" name="search">
+      <input type="text" class="md-search__input" name="query" aria-label="Search" placeholder="Search" autocapitalize="off" autocorrect="off" autocomplete="off" spellcheck="false" data-md-component="search-query" required>
+      <label class="md-search__icon md-icon" for="__search">
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11z"/></svg>
+      </label>
+      <nav class="md-search__options" aria-label="Search">
+        
+        <button type="reset" class="md-search__icon md-icon" title="Clear" aria-label="Clear" tabindex="-1">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M19 6.41 17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg>
+        </button>
+      </nav>
+      
+    </form>
+    <div class="md-search__output">
+      <div class="md-search__scrollwrap" tabindex="0" data-md-scrollfix>
+        <div class="md-search-result" data-md-component="search-result">
+          <div class="md-search-result__meta">
+            Initializing search
+          </div>
+          <ol class="md-search-result__list" role="presentation"></ol>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+      
+    
+    
+      <div class="md-header__source">
+        <a href="https://github.com/dsa110/dsa110-contimg" title="Go to repository" class="md-source" data-md-component="source">
+  <div class="md-source__icon md-icon">
+    
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><!--! Font Awesome Free 7.0.1 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2025 Fonticons, Inc.--><path d="M439.6 236.1 244 40.5c-5.4-5.5-12.8-8.5-20.4-8.5s-15 3-20.4 8.4L162.5 81l51.5 51.5c27.1-9.1 52.7 16.8 43.4 43.7l49.7 49.7c34.2-11.8 61.2 31 35.5 56.7-26.5 26.5-70.2-2.9-56-37.3L240.3 199v121.9c25.3 12.5 22.3 41.8 9.1 55-6.4 6.4-15.2 10.1-24.3 10.1s-17.8-3.6-24.3-10.1c-17.6-17.6-11.1-46.9 11.2-56v-123c-20.8-8.5-24.6-30.7-18.6-45L142.6 101 8.5 235.1C3 240.6 0 247.9 0 255.5s3 15 8.5 20.4l195.6 195.7c5.4 5.4 12.7 8.4 20.4 8.4s15-3 20.4-8.4l194.7-194.7c5.4-5.4 8.4-12.8 8.4-20.4s-3-15-8.4-20.4"/></svg>
+  </div>
+  <div class="md-source__repository">
+    GitHub
+  </div>
+</a>
+      </div>
+    
+  </nav>
+  
+</header>
+    
+    <div class="md-container" data-md-component="container">
+      
+      
+        
+          
+        
+      
+      <main class="md-main" data-md-component="main">
+        <div class="md-main__inner md-grid">
+          
+            
+              
+              <div class="md-sidebar md-sidebar--primary" data-md-component="sidebar" data-md-type="navigation" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+
+
+<nav class="md-nav md-nav--primary" aria-label="Navigation" data-md-level="0">
+  <label class="md-nav__title" for="__drawer">
+    <a href="../.." title="DSA-110 Continuum Imaging Pipeline" class="md-nav__button md-logo" aria-label="DSA-110 Continuum Imaging Pipeline" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"/></svg>
+
+    </a>
+    DSA-110 Continuum Imaging Pipeline
+  </label>
+  
+    <div class="md-nav__source">
+      <a href="https://github.com/dsa110/dsa110-contimg" title="Go to repository" class="md-source" data-md-component="source">
+  <div class="md-source__icon md-icon">
+    
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><!--! Font Awesome Free 7.0.1 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2025 Fonticons, Inc.--><path d="M439.6 236.1 244 40.5c-5.4-5.5-12.8-8.5-20.4-8.5s-15 3-20.4 8.4L162.5 81l51.5 51.5c27.1-9.1 52.7 16.8 43.4 43.7l49.7 49.7c34.2-11.8 61.2 31 35.5 56.7-26.5 26.5-70.2-2.9-56-37.3L240.3 199v121.9c25.3 12.5 22.3 41.8 9.1 55-6.4 6.4-15.2 10.1-24.3 10.1s-17.8-3.6-24.3-10.1c-17.6-17.6-11.1-46.9 11.2-56v-123c-20.8-8.5-24.6-30.7-18.6-45L142.6 101 8.5 235.1C3 240.6 0 247.9 0 255.5s3 15 8.5 20.4l195.6 195.7c5.4 5.4 12.7 8.4 20.4 8.4s15-3 20.4-8.4l194.7-194.7c5.4-5.4 8.4-12.8 8.4-20.4s-3-15-8.4-20.4"/></svg>
+  </div>
+  <div class="md-source__repository">
+    GitHub
+  </div>
+</a>
+    </div>
+  
+  <ul class="md-nav__list" data-md-scrollfix>
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../.." class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Home
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../quickstart/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Quick Start
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../quickstart_dashboard/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Dashboard Quick Start
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../pipeline/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Pipeline Visuals
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+      
+        
+      
+        
+      
+        
+      
+    
+    
+    
+      
+        
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--section md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_5" >
+        
+          
+          <label class="md-nav__link" for="__nav_5" id="__nav_5_label" tabindex="">
+            
+  
+  
+  <span class="md-ellipsis">
+    Tutorials
+    
+  </span>
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_5_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_5">
+            <span class="md-nav__icon md-icon"></span>
+            Tutorials
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../tutorials/streaming/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    End-to-End Streaming
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../tutorials/convert-standalone/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Convert UVH5 → MS (Standalone)
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../tutorials/calibrate-apply/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Calibrate + Apply
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+      
+        
+      
+        
+      
+    
+    
+    
+      
+        
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--section md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_6" >
+        
+          
+          <label class="md-nav__link" for="__nav_6" id="__nav_6_label" tabindex="">
+            
+  
+  
+  <span class="md-ellipsis">
+    How-To Guides
+    
+  </span>
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_6_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_6">
+            <span class="md-nav__icon md-icon"></span>
+            How-To Guides
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../howto/reprocess/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Reprocess a Group
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../howto/mosaic/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Build Nightly Mosaic
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+      
+        
+      
+    
+    
+    
+      
+        
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--section md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_7" >
+        
+          
+          <label class="md-nav__link" for="__nav_7" id="__nav_7_label" tabindex="">
+            
+  
+  
+  <span class="md-ellipsis">
+    Science
+    
+  </span>
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_7_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_7">
+            <span class="md-nav__icon md-icon"></span>
+            Science
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../science/photometry_normalization/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Photometry Normalization
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+    
+    
+    
+      
+        
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--section md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_8" >
+        
+          
+          <label class="md-nav__link" for="__nav_8" id="__nav_8_label" tabindex="">
+            
+  
+  
+  <span class="md-ellipsis">
+    Guides
+    
+  </span>
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_8_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_8">
+            <span class="md-nav__icon md-icon"></span>
+            Guides
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../downsampling_guide/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Downsampling Guide
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../pipeline/README_uvh5_to_ms/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Pipeline: UVH5 → MS
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../pipeline/streaming_converter_README/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Pipeline: Streaming Converter
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../guides/dashboard/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Dashboard User Guide
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../guides/dashboard_development/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Dashboard Development
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+      
+        
+      
+        
+      
+        
+      
+        
+      
+    
+    
+    
+      
+        
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--section md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_9" >
+        
+          
+          <label class="md-nav__link" for="__nav_9" id="__nav_9_label" tabindex="">
+            
+  
+  
+  <span class="md-ellipsis">
+    Concepts
+    
+  </span>
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_9_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_9">
+            <span class="md-nav__icon md-icon"></span>
+            Concepts
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../concepts/architecture/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Architecture
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../concepts/frontend_design/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Front-End Design Strategy
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../concepts/dashboard_mockups/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    UI Mockups & Specifications
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../concepts/frontend_next_steps/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Implementation Guide
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+      
+        
+      
+        
+      
+        
+      
+        
+      
+    
+    
+    
+      
+        
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--section md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_10" >
+        
+          
+          <label class="md-nav__link" for="__nav_10" id="__nav_10_label" tabindex="">
+            
+  
+  
+  <span class="md-ellipsis">
+    Reference
+    
+  </span>
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_10_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_10">
+            <span class="md-nav__icon md-icon"></span>
+            Reference
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../reference/cli/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    CLI
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../reference/api/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    API
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../reference/env/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Environment
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../reference/modules/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Modules
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+    
+    
+    
+      
+        
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--section md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_11" >
+        
+          
+          <label class="md-nav__link" for="__nav_11" id="__nav_11_label" tabindex="">
+            
+  
+  
+  <span class="md-ellipsis">
+    Reports
+    
+  </span>
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_11_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_11">
+            <span class="md-nav__icon md-icon"></span>
+            Reports
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../reports/CONTINUOUS_PIPELINE_ROADMAP/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Continuous Pipeline Roadmap
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../reports/CONVERSION_PROCESS_SUMMARY/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Conversion Process Summary
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../reports/DSA110_SUBBAND_UPDATE_SUMMARY/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Subband Update Summary
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../reports/PYUVDATA_3.2.4_COMPATIBILITY_SUMMARY/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    PyUVData 3.2.4 Compatibility
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../reports/REBUILD_CASA6_ENVIRONMENT/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Rebuild CASA6 Environment
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+      
+        
+          
+        
+      
+        
+      
+    
+    
+    
+      
+        
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--section md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_12" >
+        
+          
+          <div class="md-nav__link md-nav__container">
+            <a href="../../simulation/" class="md-nav__link ">
+              
+  
+  
+  <span class="md-ellipsis">
+    Simulation
+    
+  </span>
+  
+
+            </a>
+            
+              
+              <label class="md-nav__link " for="__nav_12" id="__nav_12_label" tabindex="">
+                <span class="md-nav__icon md-icon"></span>
+              </label>
+            
+          </div>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_12_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_12">
+            <span class="md-nav__icon md-icon"></span>
+            Simulation
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../simulation/PHASE1_SUMMARY/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Phase 1 Summary
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../troubleshooting/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Troubleshooting
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+      
+        
+      
+        
+      
+    
+    
+    
+      
+        
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--section md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_14" >
+        
+          
+          <label class="md-nav__link" for="__nav_14" id="__nav_14_label" tabindex="">
+            
+  
+  
+  <span class="md-ellipsis">
+    Operations
+    
+  </span>
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_14_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_14">
+            <span class="md-nav__icon md-icon"></span>
+            Operations
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../ops/deploy-systemd/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Deploy with systemd
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../ops/deploy-docker/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Deploy with Docker
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../legacy-overview/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Legacy Overview
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+    
+  </ul>
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+            
+              
+              <div class="md-sidebar md-sidebar--secondary" data-md-component="sidebar" data-md-type="toc" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#current-state-analysis" class="md-nav__link">
+    <span class="md-ellipsis">
+      Current State Analysis
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Current State Analysis">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#configuration-vs-reality-mismatch" class="md-nav__link">
+    <span class="md-ellipsis">
+      Configuration vs. Reality Mismatch
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#current-scratchdsa110-contimg-structure" class="md-nav__link">
+    <span class="md-ellipsis">
+      Current /scratch/dsa110-contimg/ Structure
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#recommended-persistent-architecture" class="md-nav__link">
+    <span class="md-ellipsis">
+      Recommended Persistent Architecture
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Recommended Persistent Architecture">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#philosophy" class="md-nav__link">
+    <span class="md-ellipsis">
+      Philosophy
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#proposed-structure" class="md-nav__link">
+    <span class="md-ellipsis">
+      Proposed Structure
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#devshm-tmpfs-usage" class="md-nav__link">
+    <span class="md-ellipsis">
+      /dev/shm/ (tmpfs) Usage
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#naming-conventions" class="md-nav__link">
+    <span class="md-ellipsis">
+      Naming Conventions
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Naming Conventions">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#timestamps" class="md-nav__link">
+    <span class="md-ellipsis">
+      Timestamps
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#group-ids" class="md-nav__link">
+    <span class="md-ellipsis">
+      Group IDs
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#calibrator-names" class="md-nav__link">
+    <span class="md-ellipsis">
+      Calibrator Names
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#date-directories" class="md-nav__link">
+    <span class="md-ellipsis">
+      Date Directories
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#data-retention-policy" class="md-nav__link">
+    <span class="md-ellipsis">
+      Data Retention Policy
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Data Retention Policy">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#current-policy-indefinite-retention" class="md-nav__link">
+    <span class="md-ellipsis">
+      Current Policy: INDEFINITE RETENTION
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#disk-space-management" class="md-nav__link">
+    <span class="md-ellipsis">
+      Disk Space Management
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#database-organization" class="md-nav__link">
+    <span class="md-ellipsis">
+      Database Organization
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Database Organization">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#sqlite-files-location" class="md-nav__link">
+    <span class="md-ellipsis">
+      SQLite Files Location
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#database-files" class="md-nav__link">
+    <span class="md-ellipsis">
+      Database Files
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#migration-plan-current-recommended" class="md-nav__link">
+    <span class="md-ellipsis">
+      Migration Plan (Current → Recommended)
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Migration Plan (Current → Recommended)">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#phase-1-align-configuration-with-reality" class="md-nav__link">
+    <span class="md-ellipsis">
+      Phase 1: Align Configuration with Reality
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#phase-2-reorganize-scratchdsa110-contimgms" class="md-nav__link">
+    <span class="md-ellipsis">
+      Phase 2: Reorganize /scratch/dsa110-contimg/ms/
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#phase-3-move-databases-to-persistent-storage" class="md-nav__link">
+    <span class="md-ellipsis">
+      Phase 3: Move Databases to Persistent Storage
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#phase-4-implement-retention-policy" class="md-nav__link">
+    <span class="md-ellipsis">
+      Phase 4: Implement Retention Policy
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#phase-5-setup-archival" class="md-nav__link">
+    <span class="md-ellipsis">
+      Phase 5: Setup Archival
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#api-implications" class="md-nav__link">
+    <span class="md-ellipsis">
+      API Implications
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="API Implications">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#path-resolution" class="md-nav__link">
+    <span class="md-ellipsis">
+      Path Resolution
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#file-discovery" class="md-nav__link">
+    <span class="md-ellipsis">
+      File Discovery
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#monitoring-observability" class="md-nav__link">
+    <span class="md-ellipsis">
+      Monitoring &amp; Observability
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Monitoring &amp; Observability">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#disk-usage-metrics" class="md-nav__link">
+    <span class="md-ellipsis">
+      Disk Usage Metrics
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#directory-statistics" class="md-nav__link">
+    <span class="md-ellipsis">
+      Directory Statistics
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#cleanup-alerts" class="md-nav__link">
+    <span class="md-ellipsis">
+      Cleanup Alerts
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#best-practices" class="md-nav__link">
+    <span class="md-ellipsis">
+      Best Practices
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#current-issues-to-address" class="md-nav__link">
+    <span class="md-ellipsis">
+      Current Issues to Address
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#next-steps" class="md-nav__link">
+    <span class="md-ellipsis">
+      Next Steps
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#calibration-strategy" class="md-nav__link">
+    <span class="md-ellipsis">
+      Calibration Strategy
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Calibration Strategy">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#schedule" class="md-nav__link">
+    <span class="md-ellipsis">
+      Schedule
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#sky-model-strategy" class="md-nav__link">
+    <span class="md-ellipsis">
+      Sky Model Strategy
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#calibration-organization" class="md-nav__link">
+    <span class="md-ellipsis">
+      Calibration Organization
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#active-calibration-registry" class="md-nav__link">
+    <span class="md-ellipsis">
+      Active Calibration Registry
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#system-specifications" class="md-nav__link">
+    <span class="md-ellipsis">
+      System Specifications
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="System Specifications">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#storage-capacity" class="md-nav__link">
+    <span class="md-ellipsis">
+      Storage Capacity
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#current-data-distribution" class="md-nav__link">
+    <span class="md-ellipsis">
+      Current Data Distribution
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#answers-to-architecture-questions" class="md-nav__link">
+    <span class="md-ellipsis">
+      Answers to Architecture Questions
+    </span>
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+          
+          
+            <div class="md-content" data-md-component="content">
+              <article class="md-content__inner md-typeset">
+                
+                  
+
+
+  
+  
+
+
+<h1 id="dsa-110-directory-architecture">DSA-110 Directory Architecture<a class="headerlink" href="#dsa-110-directory-architecture" title="Permanent link">&para;</a></h1>
+<p><strong>Purpose:</strong> Persistent storage organization for streaming pipeline operations</p>
+<p><strong>Last Updated:</strong> 2025-10-24</p>
+<hr />
+<h2 id="current-state-analysis">Current State Analysis<a class="headerlink" href="#current-state-analysis" title="Permanent link">&para;</a></h2>
+<h3 id="configuration-vs-reality-mismatch">Configuration vs. Reality Mismatch<a class="headerlink" href="#configuration-vs-reality-mismatch" title="Permanent link">&para;</a></h3>
+<p><strong>Environment Configuration</strong> (<code>ops/systemd/contimg.env</code>):
+<div class="highlight"><pre><span></span><code><span class="nv">CONTIMG_INPUT_DIR</span><span class="o">=</span>/data/ingest
+<span class="nv">CONTIMG_OUTPUT_DIR</span><span class="o">=</span>/data/ms
+<span class="nv">CONTIMG_SCRATCH_DIR</span><span class="o">=</span>/data/scratch
+</code></pre></div></p>
+<p><strong>Actual Data Location:</strong>
+- Everything is currently under <code>/scratch/dsa110-contimg/</code>
+- Configuration points to non-existent <code>/data/ingest</code>, <code>/data/ms</code>, etc.</p>
+<h3 id="current-scratchdsa110-contimg-structure">Current <code>/scratch/dsa110-contimg/</code> Structure<a class="headerlink" href="#current-scratchdsa110-contimg-structure" title="Permanent link">&para;</a></h3>
+<div class="highlight"><pre><span></span><code>/scratch/dsa110-contimg/
+├── incoming/           7.0 GB   - Raw UVH5 files awaiting conversion
+├── ms/                76  GB   - Measurement Sets (MS), calibration tables, images
+├── images/            12  KB   - (unclear purpose, nearly empty)
+├── curated/          156  KB   - Hand-selected high-quality products
+├── out/               40  MB   - Test/validation outputs
+├── state/            2.2  MB   - SQLite databases (should be in /data/)
+├── dsa110-beam-model/ 517 MB   - Static beam model files
+└── vp/               5.0  MB   - Voltage pattern cache
+</code></pre></div>
+<hr />
+<h2 id="recommended-persistent-architecture">Recommended Persistent Architecture<a class="headerlink" href="#recommended-persistent-architecture" title="Permanent link">&para;</a></h2>
+<h3 id="philosophy">Philosophy<a class="headerlink" href="#philosophy" title="Permanent link">&para;</a></h3>
+<ol>
+<li><strong>Separate code from data</strong>: Code in <code>/data/dsa110-contimg/</code>, data in <code>/scratch/dsa110-contimg/</code></li>
+<li><strong>Separate fast from slow</strong>: Hot data on <code>/scratch/</code> (fast SSD), cold/persistent on <code>/data/</code> or archive</li>
+<li><strong>Clear lifecycle</strong>: Incoming → Processing → Archive → Purge</li>
+<li><strong>Predictable paths</strong>: Standard naming conventions for automated discovery</li>
+<li><strong>Production-ready</strong>: Support 24/7 streaming operations with minimal human intervention</li>
+</ol>
+<h3 id="proposed-structure">Proposed Structure<a class="headerlink" href="#proposed-structure" title="Permanent link">&para;</a></h3>
+<div class="highlight"><pre><span></span><code>/data/dsa110-contimg/                    # Code repository &amp; persistent state
+├── src/                                 # Python package
+├── ops/                                 # Deployment configs
+├── state/                               # SQLite databases (persistent!)
+│   ├── ingest.sqlite3                   # Queue state
+│   ├── cal_registry.sqlite3             # Calibration table registry
+│   ├── products.sqlite3                 # Image products catalog
+│   └── master_sources.sqlite3           # Source catalog for photometry
+├── config/                              # Configuration files
+├── logs/                                # Application logs (or journald)
+└── docs/                                # Documentation
+
+/scratch/dsa110-contimg/                 # Fast SSD for active data
+├── incoming/                            # Raw UVH5 files (ingest point)
+│   ├── YYYY-MM-DD_HH_MM_SS_sb00.hdf5    # Individual subband files
+│   ├── YYYY-MM-DD_HH_MM_SS_sb01.hdf5    # Grouped by timestamp
+│   └── ...                              # Auto-purged after conversion (retention: 1-7 days)
+│
+├── ms/                                  # Measurement Sets &amp; products
+│   ├── calibrators/                     # Calibrator observations
+│   │   ├── YYYY-MM-DD/                  # Organized by date
+│   │   │   ├── &lt;timestamp&gt;.ms           # MS file
+│   │   │   ├── &lt;timestamp&gt;.kcal         # Delay calibration table
+│   │   │   ├── &lt;timestamp&gt;.bpcal        # Bandpass calibration table
+│   │   │   └── &lt;timestamp&gt;.gpcal        # Gain calibration table
+│   │   └── ...                          # Retention: 30 days or until superseded
+│   │
+│   ├── science/                         # Science observations
+│   │   ├── YYYY-MM-DD/                  # Organized by date
+│   │   │   ├── &lt;timestamp&gt;.ms           # MS with CORRECTED_DATA
+│   │   │   └── ...
+│   │   └── ...                          # Retention: 7 days after imaging
+│   │
+│   └── failed/                          # Failed conversions (quarantine)
+│       ├── YYYY-MM-DD/
+│       │   ├── &lt;timestamp&gt;.ms           # Partial/corrupted MS
+│       │   └── &lt;timestamp&gt;.log          # Error log
+│       └── ...                          # Manual review, purge after 14 days
+│
+├── images/                              # Final image products
+│   ├── single/                          # Single-epoch images
+│   │   ├── YYYY-MM-DD/                  # Organized by observation date
+│   │   │   ├── &lt;timestamp&gt;.image.pbcor  # Primary beam corrected image
+│   │   │   ├── &lt;timestamp&gt;.residual     # Residual image
+│   │   │   ├── &lt;timestamp&gt;.psf          # PSF
+│   │   │   └── &lt;timestamp&gt;.pb           # Primary beam
+│   │   └── ...                          # Retention: 90 days, then archive
+│   │
+│   ├── mosaics/                         # Time-range mosaics
+│   │   ├── &lt;start&gt;_&lt;end&gt;_&lt;dec&gt;.image   # Combined images
+│   │   └── ...                          # Retention: indefinite (archive to tape)
+│   │
+│   └── qa/                              # QA plots and diagnostics
+│       ├── YYYY-MM-DD/
+│       │   ├── &lt;timestamp&gt;.qa.png       # Quick-look plots
+│       │   └── &lt;timestamp&gt;.metrics.json # QA metrics
+│       └── ...                          # Retention: 30 days
+│
+├── static/                              # Static reference data
+│   ├── beam-model/                      # DSA-110 beam model (517 MB)
+│   ├── catalogs/                        # Reference catalogs (NVSS, VLASS, etc.)
+│   └── config/                          # Imaging configs, masks
+│
+├── tmp/                                 # Transient files
+│   ├── staging/                         # In-progress conversions
+│   ├── parts/                           # Per-subband MS parts (direct-subband writer)
+│   └── cache/                           # Voltage pattern cache, etc.
+│
+└── archive/                             # Long-term storage staging
+    ├── ms/                              # Old MS files pending tape archive
+    ├── images/                          # Old images pending tape archive
+    └── catalogs/                        # Compressed CSV/FITS tables
+</code></pre></div>
+<h3 id="devshm-tmpfs-usage"><code>/dev/shm/</code> (tmpfs) Usage<a class="headerlink" href="#devshm-tmpfs-usage" title="Permanent link">&para;</a></h3>
+<div class="highlight"><pre><span></span><code>/dev/shm/
+└── dsa110-contimg/                      # Automatic staging (47 GB available)
+    └── &lt;timestamp&gt;/                     # Per-conversion workspace
+        ├── sb00.ms/                     # Per-subband MS (parallel creation)
+        ├── sb01.ms/
+        └── concat.ms/                   # Final concatenated MS
+        # Auto-cleaned after atomic move to /scratch/dsa110-contimg/ms/
+</code></pre></div>
+<p><strong>Note:</strong> tmpfs staging is now default, provides 3-5x speedup over SSD-only writes.</p>
+<hr />
+<h2 id="naming-conventions">Naming Conventions<a class="headerlink" href="#naming-conventions" title="Permanent link">&para;</a></h2>
+<h3 id="timestamps">Timestamps<a class="headerlink" href="#timestamps" title="Permanent link">&para;</a></h3>
+<p><strong>Standard format:</strong> <code>YYYY-MM-DDTHH:MM:SS</code> (ISO 8601)
+- Example: <code>2025-10-13T13:28:03</code>
+- Sortable, unambiguous, globally recognized
+- Used for MS files, images, calibration tables</p>
+<h3 id="group-ids">Group IDs<a class="headerlink" href="#group-ids" title="Permanent link">&para;</a></h3>
+<p><strong>Format:</strong> <code>YYYY-MM-DD_HH_MM_SS</code> or <code>YYYY-MM-DDTHH:MM:SS</code>
+- Used internally in queue database
+- Normalized to remove colons for filesystem compatibility
+- Maps directly to timestamp in filename</p>
+<h3 id="calibrator-names">Calibrator Names<a class="headerlink" href="#calibrator-names" title="Permanent link">&para;</a></h3>
+<p><strong>Format:</strong> <code>&lt;source&gt;_&lt;hhmmss&gt;_&lt;dec&gt;</code>
+- Example: <code>0834_555_transit</code> (08h34m, +55.5 dec)
+- Matches standard radio astronomy conventions
+- Easy identification in directory listings</p>
+<h3 id="date-directories">Date Directories<a class="headerlink" href="#date-directories" title="Permanent link">&para;</a></h3>
+<p><strong>Format:</strong> <code>YYYY-MM-DD</code>
+- Example: <code>2025-10-13</code>
+- Keeps listings manageable (max ~365 subdirs/year)
+- Easy navigation and automated cleanup</p>
+<hr />
+<h2 id="data-retention-policy">Data Retention Policy<a class="headerlink" href="#data-retention-policy" title="Permanent link">&para;</a></h2>
+<h3 id="current-policy-indefinite-retention">Current Policy: INDEFINITE RETENTION<a class="headerlink" href="#current-policy-indefinite-retention" title="Permanent link">&para;</a></h3>
+<p><strong>CRITICAL:</strong> No automatic deletion of data at this time. All data retained indefinitely until archival/backup strategy finalized.</p>
+<table>
+<thead>
+<tr>
+<th>Data Type</th>
+<th>Location</th>
+<th>Retention</th>
+<th>Status</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Raw UVH5</td>
+<td><code>incoming/</code></td>
+<td>Indefinite</td>
+<td>Manual cleanup only</td>
+</tr>
+<tr>
+<td>Science MS</td>
+<td><code>ms/science/</code></td>
+<td>Indefinite</td>
+<td>Manual cleanup only</td>
+</tr>
+<tr>
+<td>Calibrator MS</td>
+<td><code>ms/calibrators/</code></td>
+<td>Indefinite</td>
+<td>Keep all</td>
+</tr>
+<tr>
+<td>Calibration tables</td>
+<td><code>ms/calibrators/</code></td>
+<td>Indefinite</td>
+<td>Keep all (24h BP, 1h G)</td>
+</tr>
+<tr>
+<td>Failed MS</td>
+<td><code>ms/failed/</code></td>
+<td>Indefinite</td>
+<td>Manual review</td>
+</tr>
+<tr>
+<td>Single images</td>
+<td><code>images/single/</code></td>
+<td>Indefinite</td>
+<td>Manual cleanup only</td>
+</tr>
+<tr>
+<td>Mosaics</td>
+<td><code>images/mosaics/</code></td>
+<td>Indefinite</td>
+<td>Manual cleanup only</td>
+</tr>
+<tr>
+<td>QA plots</td>
+<td><code>images/qa/</code></td>
+<td>Indefinite</td>
+<td>Manual cleanup only</td>
+</tr>
+<tr>
+<td>Staging (tmpfs)</td>
+<td><code>/dev/shm/</code></td>
+<td>Minutes</td>
+<td>Auto-cleaned after move (OK)</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Note:</strong> Once archival strategy to <code>/data/</code> or external storage is established, retention policies can be re-evaluated.</p>
+<h3 id="disk-space-management">Disk Space Management<a class="headerlink" href="#disk-space-management" title="Permanent link">&para;</a></h3>
+<p><strong>Current Capacity:</strong>
+- Total: ~1 TB (916 GB)
+- Used: 492 GB (57%)
+- Available: 378 GB (43%)
+- Comfortable headroom for operations</p>
+<p><strong>Monitoring:</strong>
+- Alert when <code>/scratch/</code> free space &lt; 100 GB (CRITICAL) - ~10% free
+- Alert when <code>/scratch/</code> free space &lt; 200 GB (WARNING) - ~20% free
+- Alert when <code>/dev/shm/</code> usage &gt; 95% (CRITICAL)
+- Track growth rate (GB/day) to predict when intervention needed</p>
+<p><strong>Manual Cleanup Protocol:</strong>
+1. Identify oldest/low-priority data via <code>products.sqlite3</code> queries
+2. Archive to <code>/data/</code> or external storage
+3. Verify archive integrity
+4. Remove from <code>/scratch/</code> only after archive confirmed
+5. Update database with archive location</p>
+<p><strong>Future Archive Strategy:</strong>
+- Primary: Copy to <code>/data/</code> (details TBD)
+- Compress images: FITS → FITS.fz (rice compression, ~50% reduction)
+- Tar mosaics: <code>.tar.gz</code> of related products
+- Keep database entries for discoverability
+- External backup (cloud/tape) TBD</p>
+<hr />
+<h2 id="database-organization">Database Organization<a class="headerlink" href="#database-organization" title="Permanent link">&para;</a></h2>
+<h3 id="sqlite-files-location">SQLite Files Location<a class="headerlink" href="#sqlite-files-location" title="Permanent link">&para;</a></h3>
+<p><strong>Current:</strong> <code>/scratch/dsa110-contimg/state/</code> (BAD - SSD wear, not backed up)<br />
+<strong>Recommended:</strong> <code>/data/dsa110-contimg/state/</code> (GOOD - persistent, backed up)</p>
+<h3 id="database-files">Database Files<a class="headerlink" href="#database-files" title="Permanent link">&para;</a></h3>
+<div class="highlight"><pre><span></span><code>/data/dsa110-contimg/state/
+├── ingest.sqlite3                # Conversion queue
+├── cal_registry.sqlite3          # Calibration table tracking
+├── products.sqlite3              # Image product catalog
+└── master_sources.sqlite3        # Source catalog (photometry, variability)
+</code></pre></div>
+<p><strong>Backup Strategy:</strong>
+- Daily SQLite <code>.backup</code> to <code>/data/backups/contimg/</code>
+- 14-day local retention
+- Ship to remote storage (rclone)
+- Restore procedure documented in disaster recovery</p>
+<hr />
+<h2 id="migration-plan-current-recommended">Migration Plan (Current → Recommended)<a class="headerlink" href="#migration-plan-current-recommended" title="Permanent link">&para;</a></h2>
+<h3 id="phase-1-align-configuration-with-reality">Phase 1: Align Configuration with Reality<a class="headerlink" href="#phase-1-align-configuration-with-reality" title="Permanent link">&para;</a></h3>
+<p><strong>Action:</strong> Update <code>ops/systemd/contimg.env</code> to match actual paths:</p>
+<div class="highlight"><pre><span></span><code><span class="c1"># Current (incorrect)</span>
+<span class="nv">CONTIMG_INPUT_DIR</span><span class="o">=</span>/data/ingest
+<span class="nv">CONTIMG_OUTPUT_DIR</span><span class="o">=</span>/data/ms
+<span class="nv">CONTIMG_SCRATCH_DIR</span><span class="o">=</span>/data/scratch
+
+<span class="c1"># Corrected</span>
+<span class="nv">CONTIMG_INPUT_DIR</span><span class="o">=</span>/scratch/dsa110-contimg/incoming
+<span class="nv">CONTIMG_OUTPUT_DIR</span><span class="o">=</span>/scratch/dsa110-contimg/ms
+<span class="nv">CONTIMG_SCRATCH_DIR</span><span class="o">=</span>/scratch/dsa110-contimg/tmp
+</code></pre></div>
+<p><strong>Impact:</strong> Configuration matches reality, no surprises</p>
+<h3 id="phase-2-reorganize-scratchdsa110-contimgms">Phase 2: Reorganize <code>/scratch/dsa110-contimg/ms/</code><a class="headerlink" href="#phase-2-reorganize-scratchdsa110-contimgms" title="Permanent link">&para;</a></h3>
+<p><strong>Action:</strong> Split flat MS directory into organized structure:</p>
+<div class="highlight"><pre><span></span><code><span class="c1"># Create new structure</span>
+mkdir<span class="w"> </span>-p<span class="w"> </span>/scratch/dsa110-contimg/ms/<span class="o">{</span>calibrators,science,failed<span class="o">}</span>
+mkdir<span class="w"> </span>-p<span class="w"> </span>/scratch/dsa110-contimg/images/<span class="o">{</span>single,mosaics,qa<span class="o">}</span>
+
+<span class="c1"># Move existing MS files (requires logic to classify as calibrator vs science)</span>
+<span class="c1"># Can be done gradually via pipeline, no immediate action needed</span>
+</code></pre></div>
+<p><strong>Impact:</strong> Better organization, easier automated cleanup</p>
+<h3 id="phase-3-move-databases-to-persistent-storage">Phase 3: Move Databases to Persistent Storage<a class="headerlink" href="#phase-3-move-databases-to-persistent-storage" title="Permanent link">&para;</a></h3>
+<p><strong>Action:</strong> Migrate SQLite databases from <code>/scratch/</code> to <code>/data/</code>:</p>
+<div class="highlight"><pre><span></span><code><span class="c1"># Stop services</span>
+sudo<span class="w"> </span>systemctl<span class="w"> </span>stop<span class="w"> </span>contimg-stream<span class="w"> </span>contimg-api
+
+<span class="c1"># Move databases</span>
+mv<span class="w"> </span>/scratch/dsa110-contimg/state/*.sqlite3<span class="w"> </span>/data/dsa110-contimg/state/
+
+<span class="c1"># Update symlink or config</span>
+ln<span class="w"> </span>-s<span class="w"> </span>/data/dsa110-contimg/state<span class="w"> </span>/scratch/dsa110-contimg/state
+
+<span class="c1"># Restart services</span>
+sudo<span class="w"> </span>systemctl<span class="w"> </span>start<span class="w"> </span>contimg-stream<span class="w"> </span>contimg-api
+</code></pre></div>
+<p><strong>Impact:</strong> Databases survive SSD failures, backed up properly</p>
+<h3 id="phase-4-implement-retention-policy">Phase 4: Implement Retention Policy<a class="headerlink" href="#phase-4-implement-retention-policy" title="Permanent link">&para;</a></h3>
+<p><strong>Action:</strong> Add cleanup cron job:</p>
+<div class="highlight"><pre><span></span><code><span class="c1"># /etc/cron.daily/contimg-cleanup</span>
+<span class="c1">#!/bin/bash</span>
+python<span class="w"> </span>-m<span class="w"> </span>dsa110_contimg.ops.cleanup<span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>--incoming-retention-days<span class="w"> </span><span class="m">7</span><span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>--science-ms-retention-days<span class="w"> </span><span class="m">7</span><span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>--image-retention-days<span class="w"> </span><span class="m">90</span><span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>--min-free-gb<span class="w"> </span><span class="m">100</span>
+</code></pre></div>
+<p><strong>Impact:</strong> Automatic disk space management, no manual intervention</p>
+<h3 id="phase-5-setup-archival">Phase 5: Setup Archival<a class="headerlink" href="#phase-5-setup-archival" title="Permanent link">&para;</a></h3>
+<p><strong>Action:</strong> Configure <code>rclone</code> to ship old data to tape/cloud:</p>
+<div class="highlight"><pre><span></span><code><span class="c1"># /etc/cron.weekly/contimg-archive</span>
+rclone<span class="w"> </span>sync<span class="w"> </span>/scratch/dsa110-contimg/archive/<span class="w"> </span>remote:dsa110-archive/
+</code></pre></div>
+<p><strong>Impact:</strong> Long-term data preservation, free up local disk</p>
+<hr />
+<h2 id="api-implications">API Implications<a class="headerlink" href="#api-implications" title="Permanent link">&para;</a></h2>
+<h3 id="path-resolution">Path Resolution<a class="headerlink" href="#path-resolution" title="Permanent link">&para;</a></h3>
+<p>The API should:
+1. Check environment variables for actual paths (not assume <code>/data/</code>)
+2. Use <code>pathlib.Path</code> for cross-platform compatibility
+3. Support path overrides via config file
+4. Validate paths exist on startup</p>
+<h3 id="file-discovery">File Discovery<a class="headerlink" href="#file-discovery" title="Permanent link">&para;</a></h3>
+<p><strong>Pattern matching:</strong>
+- Use glob patterns: <code>images/single/*/YYYY-MM-DD/*.image.pbcor</code>
+- Walk directories recursively with filters
+- Query <code>products.sqlite3</code> for fast lookups (preferred)</p>
+<p><strong>Example:</strong>
+<div class="highlight"><pre><span></span><code><span class="kn">from</span><span class="w"> </span><span class="nn">pathlib</span><span class="w"> </span><span class="kn">import</span> <span class="n">Path</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">os</span>
+
+<span class="n">OUTPUT_DIR</span> <span class="o">=</span> <span class="n">Path</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">getenv</span><span class="p">(</span><span class="s2">&quot;CONTIMG_OUTPUT_DIR&quot;</span><span class="p">,</span> <span class="s2">&quot;/scratch/dsa110-contimg/ms&quot;</span><span class="p">))</span>
+<span class="n">IMAGES_DIR</span> <span class="o">=</span> <span class="n">Path</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">getenv</span><span class="p">(</span><span class="s2">&quot;CONTIMG_IMAGES_DIR&quot;</span><span class="p">,</span> <span class="s2">&quot;/scratch/dsa110-contimg/images&quot;</span><span class="p">))</span>
+
+<span class="k">def</span><span class="w"> </span><span class="nf">find_image</span><span class="p">(</span><span class="n">timestamp</span><span class="p">:</span> <span class="nb">str</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Find image by timestamp.&quot;&quot;&quot;</span>
+    <span class="c1"># Option 1: Query database (fast)</span>
+    <span class="n">result</span> <span class="o">=</span> <span class="n">products_db</span><span class="o">.</span><span class="n">query</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;SELECT path FROM images WHERE timestamp=&#39;</span><span class="si">{</span><span class="n">timestamp</span><span class="si">}</span><span class="s2">&#39;&quot;</span><span class="p">)</span>
+
+    <span class="c1"># Option 2: Filesystem search (fallback)</span>
+    <span class="n">pattern</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">&quot;single/*/</span><span class="si">{</span><span class="n">timestamp</span><span class="si">}</span><span class="s2">.image.pbcor&quot;</span>
+    <span class="n">matches</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">IMAGES_DIR</span><span class="o">.</span><span class="n">glob</span><span class="p">(</span><span class="n">pattern</span><span class="p">))</span>
+    <span class="k">return</span> <span class="n">matches</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="k">if</span> <span class="n">matches</span> <span class="k">else</span> <span class="kc">None</span>
+</code></pre></div></p>
+<hr />
+<h2 id="monitoring-observability">Monitoring &amp; Observability<a class="headerlink" href="#monitoring-observability" title="Permanent link">&para;</a></h2>
+<h3 id="disk-usage-metrics">Disk Usage Metrics<a class="headerlink" href="#disk-usage-metrics" title="Permanent link">&para;</a></h3>
+<p><strong>Export via Prometheus:</strong>
+<div class="highlight"><pre><span></span><code><span class="n">scratch_disk_free_gb</span> <span class="o">=</span> <span class="n">Gauge</span><span class="p">(</span><span class="s1">&#39;contimg_scratch_disk_free_gb&#39;</span><span class="p">,</span> <span class="s1">&#39;Free space on /scratch/&#39;</span><span class="p">)</span>
+<span class="n">tmpfs_usage_percent</span> <span class="o">=</span> <span class="n">Gauge</span><span class="p">(</span><span class="s1">&#39;contimg_tmpfs_usage_percent&#39;</span><span class="p">,</span> <span class="s1">&#39;tmpfs usage percentage&#39;</span><span class="p">)</span>
+<span class="n">incoming_file_count</span> <span class="o">=</span> <span class="n">Gauge</span><span class="p">(</span><span class="s1">&#39;contimg_incoming_file_count&#39;</span><span class="p">,</span> <span class="s1">&#39;Files in incoming/&#39;</span><span class="p">)</span>
+</code></pre></div></p>
+<h3 id="directory-statistics">Directory Statistics<a class="headerlink" href="#directory-statistics" title="Permanent link">&para;</a></h3>
+<p><strong>Track in API:</strong>
+- Count of files per directory
+- Total size per directory
+- Oldest file age per directory
+- Growth rate (files/hour, GB/day)</p>
+<h3 id="cleanup-alerts">Cleanup Alerts<a class="headerlink" href="#cleanup-alerts" title="Permanent link">&para;</a></h3>
+<p><strong>Slack notifications:</strong>
+- When automatic cleanup triggered
+- When manual intervention needed
+- When archive job completes
+- When disk usage exceeds thresholds</p>
+<hr />
+<h2 id="best-practices">Best Practices<a class="headerlink" href="#best-practices" title="Permanent link">&para;</a></h2>
+<ol>
+<li><strong>Never write directly to final location</strong>: Stage in <code>tmp/</code>, then atomic move</li>
+<li><strong>Use atomic operations</strong>: <code>os.rename()</code> for moving complete files only</li>
+<li><strong>Clean up on failure</strong>: Remove partial files in except blocks</li>
+<li><strong>Validate after write</strong>: Check file size, run quick quality check</li>
+<li><strong>Log all moves</strong>: Audit trail for debugging</li>
+<li><strong>Symlinks carefully</strong>: Absolute paths, validate targets exist</li>
+<li><strong>Permissions</strong>: Pipeline user owns all data, group-readable for analysis</li>
+<li><strong>Metadata first</strong>: Write to database before deleting files</li>
+</ol>
+<hr />
+<h2 id="current-issues-to-address">Current Issues to Address<a class="headerlink" href="#current-issues-to-address" title="Permanent link">&para;</a></h2>
+<ol>
+<li><strong>State databases in wrong location</strong>: Move from <code>/scratch/</code> to <code>/data/</code></li>
+<li><strong>Flat directory structure</strong>: Organize MS files by date and type</li>
+<li><strong>No retention policy</strong>: Implement automatic cleanup</li>
+<li><strong>Config path mismatch</strong>: Align environment variables with reality</li>
+<li><strong>Missing directories</strong>: Create <code>science/</code>, <code>calibrators/</code>, <code>failed/</code> structure</li>
+<li><strong>No archive mechanism</strong>: Set up tape/cold storage workflow</li>
+</ol>
+<hr />
+<h2 id="next-steps">Next Steps<a class="headerlink" href="#next-steps" title="Permanent link">&para;</a></h2>
+<ol>
+<li><strong>Immediate</strong> (today):</li>
+<li>Document current paths in environment config</li>
+<li>Create missing directory structure</li>
+<li>
+<p>Verify all services use correct paths</p>
+</li>
+<li>
+<p><strong>Short-term</strong> (this week):</p>
+</li>
+<li>Migrate databases to <code>/data/dsa110-contimg/state/</code></li>
+<li>Implement date-based organization for new files</li>
+<li>
+<p>Add disk space monitoring alerts</p>
+</li>
+<li>
+<p><strong>Medium-term</strong> (this month):</p>
+</li>
+<li>Implement retention policy and cleanup automation</li>
+<li>Set up database backup cron jobs</li>
+<li>
+<p>Configure archival to tape/cloud</p>
+</li>
+<li>
+<p><strong>Long-term</strong> (ongoing):</p>
+</li>
+<li>Migrate existing flat files to organized structure</li>
+<li>Tune retention windows based on usage patterns</li>
+<li>Optimize for science case requirements</li>
+</ol>
+<hr />
+<h2 id="calibration-strategy">Calibration Strategy<a class="headerlink" href="#calibration-strategy" title="Permanent link">&para;</a></h2>
+<h3 id="schedule">Schedule<a class="headerlink" href="#schedule" title="Permanent link">&para;</a></h3>
+<p><strong>Bandpass + Full Calibration:</strong> Every 24 hours
+- Delay calibration (K table)
+- Bandpass calibration (BP table)
+- Gain calibration (G table)</p>
+<p><strong>Gain Recalibration:</strong> Every 1 hour
+- Gain calibration only (G table)
+- Interpolate/apply BP from most recent 24h solve</p>
+<h3 id="sky-model-strategy">Sky Model Strategy<a class="headerlink" href="#sky-model-strategy" title="Permanent link">&para;</a></h3>
+<p><strong>Component List Generation:</strong>
+1. Query NVSS catalog for brightest sources in current field
+2. Build component list (point sources with flux, position)
+3. Use <code>ft()</code> to Fourier transform into MODEL_DATA column
+4. Use populated MODEL_DATA for gaincal solving</p>
+<p><strong>Advantages:</strong>
+- No need for pre-existing calibrator observations
+- Leverage full-sky NVSS catalog
+- Accurate flux scale from NVSS measurements
+- Automated sky model generation per pointing</p>
+<h3 id="calibration-organization">Calibration Organization<a class="headerlink" href="#calibration-organization" title="Permanent link">&para;</a></h3>
+<div class="highlight"><pre><span></span><code>/scratch/dsa110-contimg/ms/calibrators/
+├── YYYY-MM-DD/
+│   ├── &lt;timestamp&gt;_24h.ms           # Full calibration observation
+│   ├── &lt;timestamp&gt;_24h.kcal         # Delay table
+│   ├── &lt;timestamp&gt;_24h.bpcal        # Bandpass table
+│   ├── &lt;timestamp&gt;_24h.gpcal        # Gain table (24h)
+│   ├── &lt;timestamp&gt;_1h.ms            # Hourly gain cal
+│   ├── &lt;timestamp&gt;_1h.gpcal         # Gain table (1h)
+│   └── ...
+</code></pre></div>
+<p><strong>Naming convention:</strong> <code>_24h</code> suffix for full calibration, <code>_1h</code> for hourly gain updates</p>
+<h3 id="active-calibration-registry">Active Calibration Registry<a class="headerlink" href="#active-calibration-registry" title="Permanent link">&para;</a></h3>
+<p>The <code>cal_registry.sqlite3</code> tracks:
+- Most recent 24h BP table (valid for 24 hours)
+- Most recent 1h G table (valid for 1 hour)
+- Validity windows (start/end MJD)
+- Per-antenna/SPW flagging status</p>
+<p><strong>Apply logic:</strong>
+1. For each science observation, find active BP + G tables
+2. Apply BP from most recent 24h solve
+3. Apply G from most recent 1h solve
+4. If gap &gt; validity window, alert for missing calibration</p>
+<h2 id="system-specifications">System Specifications<a class="headerlink" href="#system-specifications" title="Permanent link">&para;</a></h2>
+<h3 id="storage-capacity">Storage Capacity<a class="headerlink" href="#storage-capacity" title="Permanent link">&para;</a></h3>
+<p><strong><code>/scratch/</code> (fast SSD):</strong>
+- Total: ~1 TB (916 GB)
+- Used: 492 GB (57%)
+- Available: 378 GB (43%)
+- Growth rate: ~TBD GB/day (monitor)</p>
+<p><strong><code>/data/</code> (persistent storage):</strong>
+- Details TBD
+- Primary target for archival
+- Backup strategy under development</p>
+<p><strong><code>/dev/shm/</code> (tmpfs RAM disk):</strong>
+- Total: 47 GB
+- Used for conversion staging (3-5x speedup)
+- Auto-cleaned after atomic move to <code>/scratch/</code></p>
+<h3 id="current-data-distribution">Current Data Distribution<a class="headerlink" href="#current-data-distribution" title="Permanent link">&para;</a></h3>
+<div class="highlight"><pre><span></span><code>/scratch/dsa110-contimg/:
+  incoming/        7.0 GB   (raw UVH5 awaiting conversion)
+  ms/             76  GB   (MS files, calibration tables)
+  images/         12  KB   (nearly empty, future growth)
+  state/         2.2  MB   (SQLite DBs - to be moved to /data/)
+  static/        522  MB   (beam models, catalogs)
+  ────────────────────────
+  Total:        ~83  GB
+
+Headroom:      ~410 GB available for growth
+</code></pre></div>
+<h2 id="answers-to-architecture-questions">Answers to Architecture Questions<a class="headerlink" href="#answers-to-architecture-questions" title="Permanent link">&para;</a></h2>
+<ol>
+<li><strong>Archive strategy:</strong> <code>/data/</code> primary target, external backup TBD</li>
+<li><strong>Retention policy:</strong> INDEFINITE - no automatic deletion until archive established</li>
+<li><strong>Calibration frequency:</strong> BP/full every 24h, gain every 1h using NVSS sky models</li>
+<li><strong>Storage capacity:</strong> 1TB total, 378GB free (57% usage, healthy headroom)</li>
+<li><strong>Backup infrastructure:</strong> Under development for <code>/data/</code></li>
+</ol>
+<hr />
+<p><strong>Summary:</strong> The current directory structure is functional but lacks organization for automated operations. The recommended architecture provides clear data lifecycle, automated cleanup, and production-ready organization for 24/7 streaming operations.</p>
+
+
+
+
+
+
+
+
+
+
+
+
+                
+              </article>
+            </div>
+          
+          
+  <script>var tabs=__md_get("__tabs");if(Array.isArray(tabs))e:for(var set of document.querySelectorAll(".tabbed-set")){var labels=set.querySelector(".tabbed-labels");for(var tab of tabs)for(var label of labels.getElementsByTagName("label"))if(label.innerText.trim()===tab){var input=document.getElementById(label.htmlFor);input.checked=!0;continue e}}</script>
+
+<script>var target=document.getElementById(location.hash.slice(1));target&&target.name&&(target.checked=target.name.startsWith("__tabbed_"))</script>
+        </div>
+        
+      </main>
+      
+        <footer class="md-footer">
+  
+  <div class="md-footer-meta md-typeset">
+    <div class="md-footer-meta__inner md-grid">
+      <div class="md-copyright">
+  
+  
+    Made with
+    <a href="https://squidfunk.github.io/mkdocs-material/" target="_blank" rel="noopener">
+      Material for MkDocs
+    </a>
+  
+</div>
+      
+    </div>
+  </div>
+</footer>
+      
+    </div>
+    <div class="md-dialog" data-md-component="dialog">
+      <div class="md-dialog__inner md-typeset"></div>
+    </div>
+    
+    
+    
+      
+      <script id="__config" type="application/json">{"base": "../..", "features": ["navigation.sections", "navigation.indexes", "content.code.copy", "content.tabs.link"], "search": "../../assets/javascripts/workers/search.973d3a69.min.js", "tags": null, "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": null}</script>
+    
+    
+      <script src="../../assets/javascripts/bundle.f55a23d4.min.js"></script>
+      
+        <script src="https://unpkg.com/mermaid@10/dist/mermaid.min.js"></script>
+      
+        <script src="../../javascripts/mermaid-init.js"></script>
+      
+    
+  </body>
+</html>

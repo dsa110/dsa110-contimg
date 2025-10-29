@@ -79,12 +79,12 @@ Add definitions for entities specific to the 'dsa110-contimg' project.
   - Fields: `name` (string), `path` (string), `type` (string), `created_at` (datetime)
 
 - **`Paper`**: A publication, preprint, or reference informing implementation choices.
-  - Fields: `title`, `authors`, `venue`, `year`, `url`
+  - Fields: `title` (string), `authors` (list[string]), `venue` (string), `year` (integer), `url` (string)
 
 - **`Procedure`**: A reproducible method or pipeline step (conversion, calibration, imaging).
   - Fields: `name` (string), `description` (string), `scope` (enum: conversion|calibration|imaging), `parameters` (list[string])
 
-- **`Preference`**: A project- or procedure-level setting that guides default behavior.
+- **`Preference`**: A project-, procedure-, module-, or script-level setting that guides default behavior.
   - Fields: `name` (string), `key` (string), `value` (string), `category` (string), `applies_to` (enum: project|procedure|module|script)
 
 ---

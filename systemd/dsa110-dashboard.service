@@ -1,0 +1,20 @@
+[Unit]
+Description=DSA-110 Dashboard Frontend
+After=network.target dsa110-api.service
+
+[Service]
+Type=simple
+User=ubuntu
+Group=ubuntu
+WorkingDirectory=/data/dsa110-contimg/frontend
+Environment="PORT=3000"
+Environment="REACT_APP_API_URL=http://localhost:8000"
+ExecStart=/usr/bin/npm start
+Restart=always
+RestartSec=10
+StandardOutput=append:/var/log/dsa110/dashboard.log
+StandardError=append:/var/log/dsa110/dashboard-error.log
+
+[Install]
+WantedBy=multi-user.target
+

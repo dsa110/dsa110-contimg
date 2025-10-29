@@ -1,0 +1,31 @@
+# DSA-110 Agent Workflow: The Combined-Memory Learning Loop
+
+## 1. Guiding Principle
+
+This workspace utilizes a **Combined-Memory System** consisting of Serena's deep analysis capabilities and Graphiti's structured knowledge graph. All agent activities must support and enhance this system to ensure continuous learning and knowledge retention for the DSA-110 project.
+
+## 2. Mandatory Agent Workflow
+
+Every non-trivial task undertaken by an agent in this workspace **must** follow this sequence:
+
+### **Step A: Knowledge Retrieval (Consult the Graph)**
+
+1.  **Query Graphiti First:** Before beginning any analysis or development, the agent **must** perform a `mcp_graphiti-memory_search_memory_facts` or `mcp_graphiti-memory_search_memory_nodes` query.
+2.  **Formulate a Relevant Query:** The query must be related to the user's request to retrieve the current state of knowledge on the topic.
+3.  **Incorporate Findings:** The agent must explicitly state how the retrieved knowledge from Graphiti will inform its plan.
+
+### **Step B: Analysis and Development (Use the Tools)**
+
+1.  **Utilize Serena and Other Tools:** The agent should use Serena for deep code analysis, and other available tools as needed to complete the user's request.
+2.  **Execute the Task:** Perform the required development, analysis, or refactoring.
+
+### **Step C: Knowledge Synthesis and Ingestion (Feed the Graph)**
+
+1.  **Summarize New Knowledge:** Upon completion of the task, the agent **must** synthesize the key findings, new procedures, or important discoveries into a concise summary.
+2.  **Structure for Ingestion:** This summary must be structured as a JSON payload containing new entities and relationships that are not already present in Graphiti.
+3.  **Ingest into Graphiti:** The agent **must** use the `mcp_graphiti-memory_add_memory` tool with the `source='json'` parameter to ingest this new structured knowledge back into the graph.
+4.  **Verify Ingestion (Optional but Recommended):** The agent should perform a follow-up query to confirm the new knowledge has been successfully indexed.
+
+## 3. Rationale
+
+This closed-loop process ensures that the project's "brain" (Graphiti) is continuously enriched by the work performed by any agent. It prevents knowledge silos, ensures that all agents build upon prior work, and creates a persistent, evolving understanding of the DSA-110 scientific pipeline. Adherence to this workflow is mandatory.

@@ -1,0 +1,2518 @@
+
+<!doctype html>
+<html lang="en" class="no-js">
+  <head>
+    
+      <meta charset="utf-8">
+      <meta name="viewport" content="width=device-width,initial-scale=1">
+      
+      
+      
+        <link rel="canonical" href="https://dsa110-contimg.github.io/dsa110-contimg/reports/STREAMING_AUTOMATION_AUDIT/">
+      
+      
+      
+      
+      <link rel="icon" href="../../assets/images/favicon.png">
+      <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.6.21">
+    
+    
+      
+        <title>DSA-110 Streaming Pipeline: Automation Audit & Recommendations - DSA-110 Continuum Imaging Pipeline</title>
+      
+    
+    
+      <link rel="stylesheet" href="../../assets/stylesheets/main.2a3383ac.min.css">
+      
+      
+
+
+    
+    
+      
+    
+    
+      
+        
+        
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+        <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Roboto:300,300i,400,400i,700,700i%7CRoboto+Mono:400,400i,700,700i&display=fallback">
+        <style>:root{--md-text-font:"Roboto";--md-code-font:"Roboto Mono"}</style>
+      
+    
+    
+      <link rel="stylesheet" href="../../assets/_mkdocstrings.css">
+    
+    <script>__md_scope=new URL("../..",location),__md_hash=e=>[...e].reduce(((e,_)=>(e<<5)-e+_.charCodeAt(0)),0),__md_get=(e,_=localStorage,t=__md_scope)=>JSON.parse(_.getItem(t.pathname+"."+e)),__md_set=(e,_,t=localStorage,a=__md_scope)=>{try{t.setItem(a.pathname+"."+e,JSON.stringify(_))}catch(e){}}</script>
+    
+      
+
+    
+    
+    
+  </head>
+  
+  
+    <body dir="ltr">
+  
+    
+    <input class="md-toggle" data-md-toggle="drawer" type="checkbox" id="__drawer" autocomplete="off">
+    <input class="md-toggle" data-md-toggle="search" type="checkbox" id="__search" autocomplete="off">
+    <label class="md-overlay" for="__drawer"></label>
+    <div data-md-component="skip">
+      
+        
+        <a href="#dsa-110-streaming-pipeline-automation-audit-recommendations" class="md-skip">
+          Skip to content
+        </a>
+      
+    </div>
+    <div data-md-component="announce">
+      
+    </div>
+    
+    
+      
+
+  
+
+<header class="md-header md-header--shadow" data-md-component="header">
+  <nav class="md-header__inner md-grid" aria-label="Header">
+    <a href="../.." title="DSA-110 Continuum Imaging Pipeline" class="md-header__button md-logo" aria-label="DSA-110 Continuum Imaging Pipeline" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"/></svg>
+
+    </a>
+    <label class="md-header__button md-icon" for="__drawer">
+      
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M3 6h18v2H3zm0 5h18v2H3zm0 5h18v2H3z"/></svg>
+    </label>
+    <div class="md-header__title" data-md-component="header-title">
+      <div class="md-header__ellipsis">
+        <div class="md-header__topic">
+          <span class="md-ellipsis">
+            DSA-110 Continuum Imaging Pipeline
+          </span>
+        </div>
+        <div class="md-header__topic" data-md-component="header-topic">
+          <span class="md-ellipsis">
+            
+              DSA-110 Streaming Pipeline: Automation Audit &amp; Recommendations
+            
+          </span>
+        </div>
+      </div>
+    </div>
+    
+    
+      <script>var palette=__md_get("__palette");if(palette&&palette.color){if("(prefers-color-scheme)"===palette.color.media){var media=matchMedia("(prefers-color-scheme: light)"),input=document.querySelector(media.matches?"[data-md-color-media='(prefers-color-scheme: light)']":"[data-md-color-media='(prefers-color-scheme: dark)']");palette.color.media=input.getAttribute("data-md-color-media"),palette.color.scheme=input.getAttribute("data-md-color-scheme"),palette.color.primary=input.getAttribute("data-md-color-primary"),palette.color.accent=input.getAttribute("data-md-color-accent")}for(var[key,value]of Object.entries(palette.color))document.body.setAttribute("data-md-color-"+key,value)}</script>
+    
+    
+    
+      
+      
+        <label class="md-header__button md-icon" for="__search">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        </label>
+        <div class="md-search" data-md-component="search" role="dialog">
+  <label class="md-search__overlay" for="__search"></label>
+  <div class="md-search__inner" role="search">
+    <form class="md-search__form" name="search">
+      <input type="text" class="md-search__input" name="query" aria-label="Search" placeholder="Search" autocapitalize="off" autocorrect="off" autocomplete="off" spellcheck="false" data-md-component="search-query" required>
+      <label class="md-search__icon md-icon" for="__search">
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11z"/></svg>
+      </label>
+      <nav class="md-search__options" aria-label="Search">
+        
+        <button type="reset" class="md-search__icon md-icon" title="Clear" aria-label="Clear" tabindex="-1">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M19 6.41 17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg>
+        </button>
+      </nav>
+      
+    </form>
+    <div class="md-search__output">
+      <div class="md-search__scrollwrap" tabindex="0" data-md-scrollfix>
+        <div class="md-search-result" data-md-component="search-result">
+          <div class="md-search-result__meta">
+            Initializing search
+          </div>
+          <ol class="md-search-result__list" role="presentation"></ol>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+      
+    
+    
+      <div class="md-header__source">
+        <a href="https://github.com/dsa110/dsa110-contimg" title="Go to repository" class="md-source" data-md-component="source">
+  <div class="md-source__icon md-icon">
+    
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><!--! Font Awesome Free 7.0.1 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2025 Fonticons, Inc.--><path d="M439.6 236.1 244 40.5c-5.4-5.5-12.8-8.5-20.4-8.5s-15 3-20.4 8.4L162.5 81l51.5 51.5c27.1-9.1 52.7 16.8 43.4 43.7l49.7 49.7c34.2-11.8 61.2 31 35.5 56.7-26.5 26.5-70.2-2.9-56-37.3L240.3 199v121.9c25.3 12.5 22.3 41.8 9.1 55-6.4 6.4-15.2 10.1-24.3 10.1s-17.8-3.6-24.3-10.1c-17.6-17.6-11.1-46.9 11.2-56v-123c-20.8-8.5-24.6-30.7-18.6-45L142.6 101 8.5 235.1C3 240.6 0 247.9 0 255.5s3 15 8.5 20.4l195.6 195.7c5.4 5.4 12.7 8.4 20.4 8.4s15-3 20.4-8.4l194.7-194.7c5.4-5.4 8.4-12.8 8.4-20.4s-3-15-8.4-20.4"/></svg>
+  </div>
+  <div class="md-source__repository">
+    GitHub
+  </div>
+</a>
+      </div>
+    
+  </nav>
+  
+</header>
+    
+    <div class="md-container" data-md-component="container">
+      
+      
+        
+          
+        
+      
+      <main class="md-main" data-md-component="main">
+        <div class="md-main__inner md-grid">
+          
+            
+              
+              <div class="md-sidebar md-sidebar--primary" data-md-component="sidebar" data-md-type="navigation" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+
+
+<nav class="md-nav md-nav--primary" aria-label="Navigation" data-md-level="0">
+  <label class="md-nav__title" for="__drawer">
+    <a href="../.." title="DSA-110 Continuum Imaging Pipeline" class="md-nav__button md-logo" aria-label="DSA-110 Continuum Imaging Pipeline" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"/></svg>
+
+    </a>
+    DSA-110 Continuum Imaging Pipeline
+  </label>
+  
+    <div class="md-nav__source">
+      <a href="https://github.com/dsa110/dsa110-contimg" title="Go to repository" class="md-source" data-md-component="source">
+  <div class="md-source__icon md-icon">
+    
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><!--! Font Awesome Free 7.0.1 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2025 Fonticons, Inc.--><path d="M439.6 236.1 244 40.5c-5.4-5.5-12.8-8.5-20.4-8.5s-15 3-20.4 8.4L162.5 81l51.5 51.5c27.1-9.1 52.7 16.8 43.4 43.7l49.7 49.7c34.2-11.8 61.2 31 35.5 56.7-26.5 26.5-70.2-2.9-56-37.3L240.3 199v121.9c25.3 12.5 22.3 41.8 9.1 55-6.4 6.4-15.2 10.1-24.3 10.1s-17.8-3.6-24.3-10.1c-17.6-17.6-11.1-46.9 11.2-56v-123c-20.8-8.5-24.6-30.7-18.6-45L142.6 101 8.5 235.1C3 240.6 0 247.9 0 255.5s3 15 8.5 20.4l195.6 195.7c5.4 5.4 12.7 8.4 20.4 8.4s15-3 20.4-8.4l194.7-194.7c5.4-5.4 8.4-12.8 8.4-20.4s-3-15-8.4-20.4"/></svg>
+  </div>
+  <div class="md-source__repository">
+    GitHub
+  </div>
+</a>
+    </div>
+  
+  <ul class="md-nav__list" data-md-scrollfix>
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../.." class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Home
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../quickstart/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Quick Start
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../quickstart_dashboard/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Dashboard Quick Start
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../pipeline/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Pipeline Visuals
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+      
+        
+      
+        
+      
+        
+      
+    
+    
+    
+      
+        
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--section md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_5" >
+        
+          
+          <label class="md-nav__link" for="__nav_5" id="__nav_5_label" tabindex="">
+            
+  
+  
+  <span class="md-ellipsis">
+    Tutorials
+    
+  </span>
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_5_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_5">
+            <span class="md-nav__icon md-icon"></span>
+            Tutorials
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../tutorials/streaming/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    End-to-End Streaming
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../tutorials/convert-standalone/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Convert UVH5 → MS (Standalone)
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../tutorials/calibrate-apply/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Calibrate + Apply
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+      
+        
+      
+        
+      
+    
+    
+    
+      
+        
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--section md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_6" >
+        
+          
+          <label class="md-nav__link" for="__nav_6" id="__nav_6_label" tabindex="">
+            
+  
+  
+  <span class="md-ellipsis">
+    How-To Guides
+    
+  </span>
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_6_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_6">
+            <span class="md-nav__icon md-icon"></span>
+            How-To Guides
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../howto/reprocess/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Reprocess a Group
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../howto/mosaic/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Build Nightly Mosaic
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+      
+        
+      
+    
+    
+    
+      
+        
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--section md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_7" >
+        
+          
+          <label class="md-nav__link" for="__nav_7" id="__nav_7_label" tabindex="">
+            
+  
+  
+  <span class="md-ellipsis">
+    Science
+    
+  </span>
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_7_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_7">
+            <span class="md-nav__icon md-icon"></span>
+            Science
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../science/photometry_normalization/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Photometry Normalization
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+    
+    
+    
+      
+        
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--section md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_8" >
+        
+          
+          <label class="md-nav__link" for="__nav_8" id="__nav_8_label" tabindex="">
+            
+  
+  
+  <span class="md-ellipsis">
+    Guides
+    
+  </span>
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_8_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_8">
+            <span class="md-nav__icon md-icon"></span>
+            Guides
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../downsampling_guide/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Downsampling Guide
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../pipeline/README_uvh5_to_ms/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Pipeline: UVH5 → MS
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../pipeline/streaming_converter_README/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Pipeline: Streaming Converter
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../guides/dashboard/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Dashboard User Guide
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../guides/dashboard_development/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Dashboard Development
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+      
+        
+      
+        
+      
+        
+      
+        
+      
+    
+    
+    
+      
+        
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--section md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_9" >
+        
+          
+          <label class="md-nav__link" for="__nav_9" id="__nav_9_label" tabindex="">
+            
+  
+  
+  <span class="md-ellipsis">
+    Concepts
+    
+  </span>
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_9_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_9">
+            <span class="md-nav__icon md-icon"></span>
+            Concepts
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../concepts/architecture/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Architecture
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../concepts/frontend_design/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Front-End Design Strategy
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../concepts/dashboard_mockups/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    UI Mockups & Specifications
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../concepts/frontend_next_steps/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Implementation Guide
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+      
+        
+      
+        
+      
+        
+      
+        
+      
+    
+    
+    
+      
+        
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--section md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_10" >
+        
+          
+          <label class="md-nav__link" for="__nav_10" id="__nav_10_label" tabindex="">
+            
+  
+  
+  <span class="md-ellipsis">
+    Reference
+    
+  </span>
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_10_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_10">
+            <span class="md-nav__icon md-icon"></span>
+            Reference
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../reference/cli/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    CLI
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../reference/api/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    API
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../reference/env/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Environment
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../reference/modules/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Modules
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+    
+    
+    
+      
+        
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--section md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_11" >
+        
+          
+          <label class="md-nav__link" for="__nav_11" id="__nav_11_label" tabindex="">
+            
+  
+  
+  <span class="md-ellipsis">
+    Reports
+    
+  </span>
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_11_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_11">
+            <span class="md-nav__icon md-icon"></span>
+            Reports
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../CONTINUOUS_PIPELINE_ROADMAP/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Continuous Pipeline Roadmap
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../CONVERSION_PROCESS_SUMMARY/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Conversion Process Summary
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../DSA110_SUBBAND_UPDATE_SUMMARY/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Subband Update Summary
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../PYUVDATA_3.2.4_COMPATIBILITY_SUMMARY/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    PyUVData 3.2.4 Compatibility
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../REBUILD_CASA6_ENVIRONMENT/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Rebuild CASA6 Environment
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+      
+        
+          
+        
+      
+        
+      
+    
+    
+    
+      
+        
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--section md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_12" >
+        
+          
+          <div class="md-nav__link md-nav__container">
+            <a href="../../simulation/" class="md-nav__link ">
+              
+  
+  
+  <span class="md-ellipsis">
+    Simulation
+    
+  </span>
+  
+
+            </a>
+            
+              
+              <label class="md-nav__link " for="__nav_12" id="__nav_12_label" tabindex="">
+                <span class="md-nav__icon md-icon"></span>
+              </label>
+            
+          </div>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_12_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_12">
+            <span class="md-nav__icon md-icon"></span>
+            Simulation
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../simulation/PHASE1_SUMMARY/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Phase 1 Summary
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../troubleshooting/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Troubleshooting
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+      
+        
+      
+        
+      
+    
+    
+    
+      
+        
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--section md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_14" >
+        
+          
+          <label class="md-nav__link" for="__nav_14" id="__nav_14_label" tabindex="">
+            
+  
+  
+  <span class="md-ellipsis">
+    Operations
+    
+  </span>
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_14_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_14">
+            <span class="md-nav__icon md-icon"></span>
+            Operations
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../ops/deploy-systemd/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Deploy with systemd
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../ops/deploy-docker/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Deploy with Docker
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../legacy-overview/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Legacy Overview
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+    
+  </ul>
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+            
+              
+              <div class="md-sidebar md-sidebar--secondary" data-md-component="sidebar" data-md-type="toc" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#executive-summary" class="md-nav__link">
+    <span class="md-ellipsis">
+      Executive Summary
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#changes-implemented" class="md-nav__link">
+    <span class="md-ellipsis">
+      Changes Implemented
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Changes Implemented">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#1-tmpfs-staging-now-default-completed" class="md-nav__link">
+    <span class="md-ellipsis">
+      1. ✓ tmpfs Staging Now Default (COMPLETED)
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#architectural-recommendations-for-full-automation" class="md-nav__link">
+    <span class="md-ellipsis">
+      Architectural Recommendations for Full Automation
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Architectural Recommendations for Full Automation">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#priority-1-critical-for-lights-out-operation" class="md-nav__link">
+    <span class="md-ellipsis">
+      Priority 1: Critical for Lights-Out Operation
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Priority 1: Critical for Lights-Out Operation">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#11-automatic-calibrator-selection-fallback" class="md-nav__link">
+    <span class="md-ellipsis">
+      1.1 Automatic Calibrator Selection &amp; Fallback
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#12-intelligent-retry-with-backoff" class="md-nav__link">
+    <span class="md-ellipsis">
+      1.2 Intelligent Retry with Backoff
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#13-self-healing-mechanisms" class="md-nav__link">
+    <span class="md-ellipsis">
+      1.3 Self-Healing Mechanisms
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#14-comprehensive-alerting" class="md-nav__link">
+    <span class="md-ellipsis">
+      1.4 Comprehensive Alerting
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#priority-2-enhanced-observability" class="md-nav__link">
+    <span class="md-ellipsis">
+      Priority 2: Enhanced Observability
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Priority 2: Enhanced Observability">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#21-prometheus-metrics-export" class="md-nav__link">
+    <span class="md-ellipsis">
+      2.1 Prometheus Metrics Export
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#22-distributed-tracing" class="md-nav__link">
+    <span class="md-ellipsis">
+      2.2 Distributed Tracing
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#priority-3-operational-resilience" class="md-nav__link">
+    <span class="md-ellipsis">
+      Priority 3: Operational Resilience
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Priority 3: Operational Resilience">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#31-configuration-hot-reload" class="md-nav__link">
+    <span class="md-ellipsis">
+      3.1 Configuration Hot-Reload
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#32-blue-green-deployments" class="md-nav__link">
+    <span class="md-ellipsis">
+      3.2 Blue-Green Deployments
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#33-backup-disaster-recovery" class="md-nav__link">
+    <span class="md-ellipsis">
+      3.3 Backup &amp; Disaster Recovery
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#priority-4-performance-optimization" class="md-nav__link">
+    <span class="md-ellipsis">
+      Priority 4: Performance Optimization
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Priority 4: Performance Optimization">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#41-parallel-pipeline-stages" class="md-nav__link">
+    <span class="md-ellipsis">
+      4.1 Parallel Pipeline Stages
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#42-caching-precomputation" class="md-nav__link">
+    <span class="md-ellipsis">
+      4.2 Caching &amp; Precomputation
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#implementation-roadmap" class="md-nav__link">
+    <span class="md-ellipsis">
+      Implementation Roadmap
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Implementation Roadmap">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#phase-1-critical-automation-weeks-1-2" class="md-nav__link">
+    <span class="md-ellipsis">
+      Phase 1: Critical Automation (Weeks 1-2)
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#phase-2-observability-weeks-3-4" class="md-nav__link">
+    <span class="md-ellipsis">
+      Phase 2: Observability (Weeks 3-4)
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#phase-3-resilience-weeks-5-6" class="md-nav__link">
+    <span class="md-ellipsis">
+      Phase 3: Resilience (Weeks 5-6)
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#phase-4-optimization-weeks-7-8" class="md-nav__link">
+    <span class="md-ellipsis">
+      Phase 4: Optimization (Weeks 7-8)
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#success-metrics" class="md-nav__link">
+    <span class="md-ellipsis">
+      Success Metrics
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Success Metrics">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#automation-goals" class="md-nav__link">
+    <span class="md-ellipsis">
+      Automation Goals
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#reliability-goals" class="md-nav__link">
+    <span class="md-ellipsis">
+      Reliability Goals
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#performance-goals" class="md-nav__link">
+    <span class="md-ellipsis">
+      Performance Goals
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#monitoring-dashboard-requirements" class="md-nav__link">
+    <span class="md-ellipsis">
+      Monitoring Dashboard Requirements
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Monitoring Dashboard Requirements">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#real-time-view" class="md-nav__link">
+    <span class="md-ellipsis">
+      Real-Time View
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#historical-analysis" class="md-nav__link">
+    <span class="md-ellipsis">
+      Historical Analysis
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#alert-status" class="md-nav__link">
+    <span class="md-ellipsis">
+      Alert Status
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#configuration-management" class="md-nav__link">
+    <span class="md-ellipsis">
+      Configuration Management
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Configuration Management">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#recommended-environment-variables-add-to-contimgenv" class="md-nav__link">
+    <span class="md-ellipsis">
+      Recommended Environment Variables (Add to contimg.env)
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#conclusion" class="md-nav__link">
+    <span class="md-ellipsis">
+      Conclusion
+    </span>
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+          
+          
+            <div class="md-content" data-md-component="content">
+              <article class="md-content__inner md-typeset">
+                
+                  
+
+
+  
+  
+
+
+<h1 id="dsa-110-streaming-pipeline-automation-audit-recommendations">DSA-110 Streaming Pipeline: Automation Audit &amp; Recommendations<a class="headerlink" href="#dsa-110-streaming-pipeline-automation-audit-recommendations" title="Permanent link">&para;</a></h1>
+<p><strong>Date:</strong> 2025-10-24<br />
+<strong>Purpose:</strong> Architectural review for fully automated streaming operations with minimal human intervention</p>
+<h2 id="executive-summary">Executive Summary<a class="headerlink" href="#executive-summary" title="Permanent link">&para;</a></h2>
+<p>The pipeline is well-designed for streaming operations with good fault tolerance. This audit identifies opportunities to enhance automation, reliability, and observability for lights-out operations.</p>
+<h2 id="changes-implemented">Changes Implemented<a class="headerlink" href="#changes-implemented" title="Permanent link">&para;</a></h2>
+<h3 id="1-tmpfs-staging-now-default-completed">1. ✓ tmpfs Staging Now Default (COMPLETED)<a class="headerlink" href="#1-tmpfs-staging-now-default-completed" title="Permanent link">&para;</a></h3>
+<p><strong>Change:</strong> Made <code>--stage-to-tmpfs</code> default to <code>True</code> in conversion orchestrator</p>
+<p><strong>File:</strong> <code>src/dsa110_contimg/conversion/strategies/hdf5_orchestrator.py</code></p>
+<p><strong>Rationale:</strong>
+- System has 47GB tmpfs (plenty of headroom for typical 5-10GB MS files)
+- 3-5x I/O performance improvement over SSD-only
+- Conservative 2× safety margin prevents OOM
+- Explicit <code>--no-stage-to-tmpfs</code> flag available if needed</p>
+<p><strong>Impact:</strong> Maximum throughput for real-time streaming with automatic fallback to SSD</p>
+<hr />
+<h2 id="architectural-recommendations-for-full-automation">Architectural Recommendations for Full Automation<a class="headerlink" href="#architectural-recommendations-for-full-automation" title="Permanent link">&para;</a></h2>
+<h3 id="priority-1-critical-for-lights-out-operation">Priority 1: Critical for Lights-Out Operation<a class="headerlink" href="#priority-1-critical-for-lights-out-operation" title="Permanent link">&para;</a></h3>
+<h4 id="11-automatic-calibrator-selection-fallback">1.1 Automatic Calibrator Selection &amp; Fallback<a class="headerlink" href="#11-automatic-calibrator-selection-fallback" title="Permanent link">&para;</a></h4>
+<p><strong>Current State:</strong>
+- Imaging worker skips MS if no caltables found (<code>status='skipped_no_caltables'</code>)
+- No automatic calibrator identification
+- Manual calibrator observation scheduling</p>
+<p><strong>Recommendation:</strong>
+<div class="highlight"><pre><span></span><code><span class="c1"># In imaging/worker.py - add calibrator fallback chain</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">get_or_create_caltables</span><span class="p">(</span><span class="n">ms_path</span><span class="p">,</span> <span class="n">mid_mjd</span><span class="p">,</span> <span class="n">registry_db</span><span class="p">,</span> <span class="n">cal_catalog_db</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Priority chain:</span>
+<span class="sd">    1. Check registry for active caltables within time window</span>
+<span class="sd">    2. If none, find nearest calibrator transit from catalog</span>
+<span class="sd">    3. Auto-schedule calibrator observation if gap &gt; threshold</span>
+<span class="sd">    4. Use last-known-good caltables with staleness warning</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">applylist</span> <span class="o">=</span> <span class="n">get_active_applylist</span><span class="p">(</span><span class="n">registry_db</span><span class="p">,</span> <span class="n">mid_mjd</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">applylist</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">applylist</span>
+
+    <span class="c1"># Fallback: find nearest calibrator</span>
+    <span class="n">nearest_cal</span> <span class="o">=</span> <span class="n">find_nearest_calibrator_observation</span><span class="p">(</span><span class="n">mid_mjd</span><span class="p">,</span> <span class="n">threshold_hours</span><span class="o">=</span><span class="mi">6</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">nearest_cal</span><span class="p">:</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Using calibrator from </span><span class="si">{</span><span class="n">nearest_cal</span><span class="o">.</span><span class="n">age_hours</span><span class="si">}</span><span class="s2">h ago&quot;</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">nearest_cal</span><span class="o">.</span><span class="n">caltables</span>
+
+    <span class="c1"># Last resort: use last known good</span>
+    <span class="n">last_good</span> <span class="o">=</span> <span class="n">get_last_valid_caltables</span><span class="p">(</span><span class="n">registry_db</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">last_good</span><span class="p">:</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Using stale caltables from </span><span class="si">{</span><span class="n">last_good</span><span class="o">.</span><span class="n">age_hours</span><span class="si">}</span><span class="s2">h ago&quot;</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">last_good</span><span class="o">.</span><span class="n">caltables</span>
+
+    <span class="k">raise</span> <span class="ne">RuntimeError</span><span class="p">(</span><span class="s2">&quot;No calibration solutions available&quot;</span><span class="p">)</span>
+</code></pre></div></p>
+<p><strong>Implementation:</strong>
+- Add <code>calibrator_scheduler.py</code> module
+- Track calibrator transit times from VLA/NVSS catalogs
+- Auto-trigger calibrator observations when validity window expires
+- Add staleness metrics to API</p>
+<h4 id="12-intelligent-retry-with-backoff">1.2 Intelligent Retry with Backoff<a class="headerlink" href="#12-intelligent-retry-with-backoff" title="Permanent link">&para;</a></h4>
+<p><strong>Current State:</strong>
+- Queue has <code>retry_count</code> field but basic retry logic
+- No exponential backoff
+- No error classification (transient vs permanent)</p>
+<p><strong>Recommendation:</strong>
+<div class="highlight"><pre><span></span><code><span class="c1"># Enhanced retry strategy in streaming_converter.py</span>
+<span class="n">RETRY_STRATEGIES</span> <span class="o">=</span> <span class="p">{</span>
+    <span class="s2">&quot;disk_full&quot;</span><span class="p">:</span> <span class="p">{</span><span class="s2">&quot;max_retries&quot;</span><span class="p">:</span> <span class="mi">3</span><span class="p">,</span> <span class="s2">&quot;backoff&quot;</span><span class="p">:</span> <span class="s2">&quot;exponential&quot;</span><span class="p">,</span> <span class="s2">&quot;base_delay&quot;</span><span class="p">:</span> <span class="mi">300</span><span class="p">},</span>
+    <span class="s2">&quot;casa_timeout&quot;</span><span class="p">:</span> <span class="p">{</span><span class="s2">&quot;max_retries&quot;</span><span class="p">:</span> <span class="mi">5</span><span class="p">,</span> <span class="s2">&quot;backoff&quot;</span><span class="p">:</span> <span class="s2">&quot;exponential&quot;</span><span class="p">,</span> <span class="s2">&quot;base_delay&quot;</span><span class="p">:</span> <span class="mi">60</span><span class="p">},</span>
+    <span class="s2">&quot;memory_error&quot;</span><span class="p">:</span> <span class="p">{</span><span class="s2">&quot;max_retries&quot;</span><span class="p">:</span> <span class="mi">2</span><span class="p">,</span> <span class="s2">&quot;backoff&quot;</span><span class="p">:</span> <span class="s2">&quot;linear&quot;</span><span class="p">,</span> <span class="s2">&quot;base_delay&quot;</span><span class="p">:</span> <span class="mi">600</span><span class="p">},</span>
+    <span class="s2">&quot;corrupt_input&quot;</span><span class="p">:</span> <span class="p">{</span><span class="s2">&quot;max_retries&quot;</span><span class="p">:</span> <span class="mi">0</span><span class="p">,</span> <span class="s2">&quot;backoff&quot;</span><span class="p">:</span> <span class="kc">None</span><span class="p">,</span> <span class="s2">&quot;action&quot;</span><span class="p">:</span> <span class="s2">&quot;quarantine&quot;</span><span class="p">},</span>
+    <span class="s2">&quot;missing_calibration&quot;</span><span class="p">:</span> <span class="p">{</span><span class="s2">&quot;max_retries&quot;</span><span class="p">:</span> <span class="mi">10</span><span class="p">,</span> <span class="s2">&quot;backoff&quot;</span><span class="p">:</span> <span class="s2">&quot;constant&quot;</span><span class="p">,</span> <span class="s2">&quot;base_delay&quot;</span><span class="p">:</span> <span class="mi">1800</span><span class="p">},</span>
+<span class="p">}</span>
+
+<span class="k">def</span><span class="w"> </span><span class="nf">should_retry</span><span class="p">(</span><span class="n">error_type</span><span class="p">,</span> <span class="n">retry_count</span><span class="p">):</span>
+    <span class="n">strategy</span> <span class="o">=</span> <span class="n">RETRY_STRATEGIES</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">error_type</span><span class="p">,</span> <span class="n">DEFAULT_STRATEGY</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">retry_count</span> <span class="o">&gt;=</span> <span class="n">strategy</span><span class="p">[</span><span class="s2">&quot;max_retries&quot;</span><span class="p">]:</span>
+        <span class="k">return</span> <span class="kc">False</span><span class="p">,</span> <span class="kc">None</span>
+
+    <span class="k">if</span> <span class="n">strategy</span><span class="p">[</span><span class="s2">&quot;backoff&quot;</span><span class="p">]</span> <span class="o">==</span> <span class="s2">&quot;exponential&quot;</span><span class="p">:</span>
+        <span class="n">delay</span> <span class="o">=</span> <span class="n">strategy</span><span class="p">[</span><span class="s2">&quot;base_delay&quot;</span><span class="p">]</span> <span class="o">*</span> <span class="p">(</span><span class="mi">2</span> <span class="o">**</span> <span class="n">retry_count</span><span class="p">)</span>
+    <span class="k">elif</span> <span class="n">strategy</span><span class="p">[</span><span class="s2">&quot;backoff&quot;</span><span class="p">]</span> <span class="o">==</span> <span class="s2">&quot;linear&quot;</span><span class="p">:</span>
+        <span class="n">delay</span> <span class="o">=</span> <span class="n">strategy</span><span class="p">[</span><span class="s2">&quot;base_delay&quot;</span><span class="p">]</span> <span class="o">*</span> <span class="p">(</span><span class="n">retry_count</span> <span class="o">+</span> <span class="mi">1</span><span class="p">)</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">delay</span> <span class="o">=</span> <span class="n">strategy</span><span class="p">[</span><span class="s2">&quot;base_delay&quot;</span><span class="p">]</span>
+
+    <span class="k">return</span> <span class="kc">True</span><span class="p">,</span> <span class="n">delay</span>
+</code></pre></div></p>
+<p><strong>Implementation:</strong>
+- Add error classification in queue DB
+- Implement backoff scheduler
+- Add <code>error_category</code> column to <code>ingest_queue</code>
+- Quarantine corrupt files to separate directory</p>
+<h4 id="13-self-healing-mechanisms">1.3 Self-Healing Mechanisms<a class="headerlink" href="#13-self-healing-mechanisms" title="Permanent link">&para;</a></h4>
+<p><strong>Current State:</strong>
+- Manual intervention required for stuck processes
+- No automatic resource cleanup
+- Limited health monitoring</p>
+<p><strong>Recommendation:</strong></p>
+<p><strong>A. Watchdog for Stuck Conversions</strong>
+<div class="highlight"><pre><span></span><code><span class="c1"># Add to streaming_converter.py monitoring thread</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">check_stuck_jobs</span><span class="p">(</span><span class="n">queue_db</span><span class="p">,</span> <span class="n">timeout_minutes</span><span class="o">=</span><span class="mi">30</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Detect and recover from stuck conversions&quot;&quot;&quot;</span>
+    <span class="n">stuck</span> <span class="o">=</span> <span class="n">queue_db</span><span class="o">.</span><span class="n">get_stuck_jobs</span><span class="p">(</span><span class="n">timeout_minutes</span><span class="p">)</span>
+    <span class="k">for</span> <span class="n">job</span> <span class="ow">in</span> <span class="n">stuck</span><span class="p">:</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Job </span><span class="si">{</span><span class="n">job</span><span class="o">.</span><span class="n">group_id</span><span class="si">}</span><span class="s2"> stuck for </span><span class="si">{</span><span class="n">job</span><span class="o">.</span><span class="n">age_minutes</span><span class="si">}</span><span class="s2">m&quot;</span><span class="p">)</span>
+
+        <span class="c1"># Check if process is alive</span>
+        <span class="k">if</span> <span class="n">job</span><span class="o">.</span><span class="n">pid</span> <span class="ow">and</span> <span class="ow">not</span> <span class="n">psutil</span><span class="o">.</span><span class="n">pid_exists</span><span class="p">(</span><span class="n">job</span><span class="o">.</span><span class="n">pid</span><span class="p">):</span>
+            <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Dead process detected, resetting </span><span class="si">{</span><span class="n">job</span><span class="o">.</span><span class="n">group_id</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+            <span class="n">queue_db</span><span class="o">.</span><span class="n">reset_job</span><span class="p">(</span><span class="n">job</span><span class="o">.</span><span class="n">group_id</span><span class="p">)</span>
+            <span class="k">continue</span>
+
+        <span class="c1"># Check if tmpfs is full</span>
+        <span class="k">if</span> <span class="n">shutil</span><span class="o">.</span><span class="n">disk_usage</span><span class="p">(</span><span class="s2">&quot;/dev/shm&quot;</span><span class="p">)</span><span class="o">.</span><span class="n">free</span> <span class="o">&lt;</span> <span class="n">MIN_TMPFS_FREE</span><span class="p">:</span>
+            <span class="n">logger</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span><span class="s2">&quot;tmpfs full, cleaning up old staged files&quot;</span><span class="p">)</span>
+            <span class="n">cleanup_tmpfs_staging</span><span class="p">()</span>
+
+        <span class="c1"># Force kill and retry</span>
+        <span class="k">if</span> <span class="n">job</span><span class="o">.</span><span class="n">age_minutes</span> <span class="o">&gt;</span> <span class="mi">2</span> <span class="o">*</span> <span class="n">timeout_minutes</span><span class="p">:</span>
+            <span class="n">logger</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Killing stuck job </span><span class="si">{</span><span class="n">job</span><span class="o">.</span><span class="n">group_id</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+            <span class="n">kill_job_process</span><span class="p">(</span><span class="n">job</span><span class="o">.</span><span class="n">pid</span><span class="p">)</span>
+            <span class="n">queue_db</span><span class="o">.</span><span class="n">mark_failed</span><span class="p">(</span><span class="n">job</span><span class="o">.</span><span class="n">group_id</span><span class="p">,</span> <span class="s2">&quot;timeout_killed&quot;</span><span class="p">)</span>
+</code></pre></div></p>
+<p><strong>B. Automatic Disk Space Management</strong>
+<div class="highlight"><pre><span></span><code><span class="k">def</span><span class="w"> </span><span class="nf">enforce_retention_policy</span><span class="p">(</span><span class="n">output_dir</span><span class="p">,</span> <span class="n">products_db</span><span class="p">,</span> <span class="n">min_free_gb</span><span class="o">=</span><span class="mi">100</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Auto-cleanup old MS files when disk fills&quot;&quot;&quot;</span>
+    <span class="n">du</span> <span class="o">=</span> <span class="n">shutil</span><span class="o">.</span><span class="n">disk_usage</span><span class="p">(</span><span class="n">output_dir</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">du</span><span class="o">.</span><span class="n">free</span> <span class="o">/</span> <span class="p">(</span><span class="mi">1024</span><span class="o">**</span><span class="mi">3</span><span class="p">)</span> <span class="o">&lt;</span> <span class="n">min_free_gb</span><span class="p">:</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Low disk space: </span><span class="si">{</span><span class="n">du</span><span class="o">.</span><span class="n">free</span><span class="w"> </span><span class="o">/</span><span class="w"> </span><span class="p">(</span><span class="mi">1024</span><span class="o">**</span><span class="mi">3</span><span class="p">)</span><span class="si">:</span><span class="s2">.1f</span><span class="si">}</span><span class="s2">GB free&quot;</span><span class="p">)</span>
+
+        <span class="c1"># Find old, already-imaged MS files</span>
+        <span class="n">candidates</span> <span class="o">=</span> <span class="n">products_db</span><span class="o">.</span><span class="n">get_old_completed_ms</span><span class="p">(</span><span class="n">age_days</span><span class="o">=</span><span class="mi">7</span><span class="p">)</span>
+        <span class="k">for</span> <span class="n">ms_path</span><span class="p">,</span> <span class="n">age_days</span> <span class="ow">in</span> <span class="n">candidates</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">du</span><span class="o">.</span><span class="n">free</span> <span class="o">/</span> <span class="p">(</span><span class="mi">1024</span><span class="o">**</span><span class="mi">3</span><span class="p">)</span> <span class="o">&gt;=</span> <span class="n">min_free_gb</span><span class="p">:</span>
+                <span class="k">break</span>
+            <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Archiving </span><span class="si">{</span><span class="n">ms_path</span><span class="si">}</span><span class="s2"> (age: </span><span class="si">{</span><span class="n">age_days</span><span class="si">}</span><span class="s2">d)&quot;</span><span class="p">)</span>
+            <span class="n">archive_and_delete</span><span class="p">(</span><span class="n">ms_path</span><span class="p">)</span>
+            <span class="n">du</span> <span class="o">=</span> <span class="n">shutil</span><span class="o">.</span><span class="n">disk_usage</span><span class="p">(</span><span class="n">output_dir</span><span class="p">)</span>
+</code></pre></div></p>
+<p><strong>Implementation:</strong>
+- Add <code>stuck_job_monitor</code> thread to streaming converter
+- Implement PID tracking in queue DB
+- Add retention policy configuration to <code>contimg.env</code>
+- Create archive mechanism (compress + move to cold storage)</p>
+<h4 id="14-comprehensive-alerting">1.4 Comprehensive Alerting<a class="headerlink" href="#14-comprehensive-alerting" title="Permanent link">&para;</a></h4>
+<p><strong>Current State:</strong>
+- Logging to files/journald
+- No proactive alerting
+- Manual log monitoring required</p>
+<p><strong>Recommendation:</strong></p>
+<p><strong>A. Alert Conditions</strong>
+<div class="highlight"><pre><span></span><code><span class="n">ALERT_CONDITIONS</span> <span class="o">=</span> <span class="p">{</span>
+    <span class="s2">&quot;critical&quot;</span><span class="p">:</span> <span class="p">[</span>
+        <span class="s2">&quot;No calibration tables for &gt; 6 hours&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;Conversion failure rate &gt; 20</span><span class="si">% o</span><span class="s2">ver 1 hour&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;Disk space &lt; 50GB&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;Queue depth &gt; 100 groups&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;API endpoint down&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;tmpfs full (&gt; 95%)&quot;</span><span class="p">,</span>
+    <span class="p">],</span>
+    <span class="s2">&quot;warning&quot;</span><span class="p">:</span> <span class="p">[</span>
+        <span class="s2">&quot;Calibration tables &gt; 3 hours old&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;Conversion failure rate &gt; 10</span><span class="si">% o</span><span class="s2">ver 1 hour&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;Disk space &lt; 200GB&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;Queue depth &gt; 50 groups&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;Single group retry count &gt; 3&quot;</span><span class="p">,</span>
+    <span class="p">],</span>
+    <span class="s2">&quot;info&quot;</span><span class="p">:</span> <span class="p">[</span>
+        <span class="s2">&quot;New calibration tables registered&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;Successful mosaic completion&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;Queue fully processed (depth = 0)&quot;</span><span class="p">,</span>
+    <span class="p">],</span>
+<span class="p">}</span>
+</code></pre></div></p>
+<p><strong>B. Alert Channels</strong>
+<div class="highlight"><pre><span></span><code><span class="c1"># Add alerting module: utils/alerting.py</span>
+<span class="k">class</span><span class="w"> </span><span class="nc">AlertManager</span><span class="p">:</span>
+    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">config</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">channels</span> <span class="o">=</span> <span class="p">{</span>
+            <span class="s2">&quot;slack&quot;</span><span class="p">:</span> <span class="n">SlackChannel</span><span class="p">(</span><span class="n">config</span><span class="o">.</span><span class="n">slack_webhook</span><span class="p">)</span> <span class="k">if</span> <span class="n">config</span><span class="o">.</span><span class="n">slack_webhook</span> <span class="k">else</span> <span class="kc">None</span><span class="p">,</span>
+            <span class="s2">&quot;email&quot;</span><span class="p">:</span> <span class="n">EmailChannel</span><span class="p">(</span><span class="n">config</span><span class="o">.</span><span class="n">smtp_config</span><span class="p">)</span> <span class="k">if</span> <span class="n">config</span><span class="o">.</span><span class="n">smtp_config</span> <span class="k">else</span> <span class="kc">None</span><span class="p">,</span>
+            <span class="s2">&quot;pagerduty&quot;</span><span class="p">:</span> <span class="n">PagerDutyChannel</span><span class="p">(</span><span class="n">config</span><span class="o">.</span><span class="n">pd_key</span><span class="p">)</span> <span class="k">if</span> <span class="n">config</span><span class="o">.</span><span class="n">pd_key</span> <span class="k">else</span> <span class="kc">None</span><span class="p">,</span>
+            <span class="s2">&quot;grafana&quot;</span><span class="p">:</span> <span class="n">GrafanaChannel</span><span class="p">(</span><span class="n">config</span><span class="o">.</span><span class="n">grafana_url</span><span class="p">)</span> <span class="k">if</span> <span class="n">config</span><span class="o">.</span><span class="n">grafana_url</span> <span class="k">else</span> <span class="kc">None</span><span class="p">,</span>
+        <span class="p">}</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">send_alert</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">severity</span><span class="p">,</span> <span class="n">message</span><span class="p">,</span> <span class="n">context</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+        <span class="k">for</span> <span class="n">name</span><span class="p">,</span> <span class="n">channel</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">channels</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+            <span class="k">if</span> <span class="n">channel</span> <span class="ow">and</span> <span class="n">channel</span><span class="o">.</span><span class="n">enabled_for_severity</span><span class="p">(</span><span class="n">severity</span><span class="p">):</span>
+                <span class="n">channel</span><span class="o">.</span><span class="n">send</span><span class="p">(</span><span class="n">severity</span><span class="p">,</span> <span class="n">message</span><span class="p">,</span> <span class="n">context</span><span class="p">)</span>
+</code></pre></div></p>
+<p><strong>Implementation:</strong>
+- Add <code>CONTIMG_ALERT_WEBHOOK</code> to environment
+- Integrate with monitoring thread
+- Add <code>/api/alerts</code> endpoint for query/acknowledge
+- Support multiple channels (Slack, email, PagerDuty)</p>
+<hr />
+<h3 id="priority-2-enhanced-observability">Priority 2: Enhanced Observability<a class="headerlink" href="#priority-2-enhanced-observability" title="Permanent link">&para;</a></h3>
+<h4 id="21-prometheus-metrics-export">2.1 Prometheus Metrics Export<a class="headerlink" href="#21-prometheus-metrics-export" title="Permanent link">&para;</a></h4>
+<p><strong>Recommendation:</strong>
+<div class="highlight"><pre><span></span><code><span class="c1"># Add to api/routes.py</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">prometheus_client</span><span class="w"> </span><span class="kn">import</span> <span class="n">Counter</span><span class="p">,</span> <span class="n">Histogram</span><span class="p">,</span> <span class="n">Gauge</span><span class="p">,</span> <span class="n">generate_latest</span>
+
+<span class="c1"># Metrics</span>
+<span class="n">conversion_duration</span> <span class="o">=</span> <span class="n">Histogram</span><span class="p">(</span><span class="s1">&#39;contimg_conversion_duration_seconds&#39;</span><span class="p">,</span> 
+                                <span class="s1">&#39;Time to convert UVH5 group&#39;</span><span class="p">,</span>
+                                <span class="n">buckets</span><span class="o">=</span><span class="p">[</span><span class="mi">10</span><span class="p">,</span> <span class="mi">30</span><span class="p">,</span> <span class="mi">60</span><span class="p">,</span> <span class="mi">120</span><span class="p">,</span> <span class="mi">300</span><span class="p">,</span> <span class="mi">600</span><span class="p">,</span> <span class="mi">1200</span><span class="p">])</span>
+<span class="n">calibration_duration</span> <span class="o">=</span> <span class="n">Histogram</span><span class="p">(</span><span class="s1">&#39;contimg_calibration_duration_seconds&#39;</span><span class="p">,</span>
+                                 <span class="s1">&#39;Time to calibrate MS&#39;</span><span class="p">)</span>
+<span class="n">imaging_duration</span> <span class="o">=</span> <span class="n">Histogram</span><span class="p">(</span><span class="s1">&#39;contimg_imaging_duration_seconds&#39;</span><span class="p">,</span>
+                            <span class="s1">&#39;Time to produce image&#39;</span><span class="p">)</span>
+<span class="n">queue_depth</span> <span class="o">=</span> <span class="n">Gauge</span><span class="p">(</span><span class="s1">&#39;contimg_queue_depth&#39;</span><span class="p">,</span> <span class="s1">&#39;Number of pending groups&#39;</span><span class="p">)</span>
+<span class="n">active_conversions</span> <span class="o">=</span> <span class="n">Gauge</span><span class="p">(</span><span class="s1">&#39;contimg_active_conversions&#39;</span><span class="p">,</span> <span class="s1">&#39;Groups in progress&#39;</span><span class="p">)</span>
+<span class="n">failure_rate</span> <span class="o">=</span> <span class="n">Counter</span><span class="p">(</span><span class="s1">&#39;contimg_failures_total&#39;</span><span class="p">,</span> <span class="s1">&#39;Total failures&#39;</span><span class="p">,</span> <span class="p">[</span><span class="s1">&#39;stage&#39;</span><span class="p">,</span> <span class="s1">&#39;error_type&#39;</span><span class="p">])</span>
+<span class="n">tmpfs_usage_bytes</span> <span class="o">=</span> <span class="n">Gauge</span><span class="p">(</span><span class="s1">&#39;contimg_tmpfs_usage_bytes&#39;</span><span class="p">,</span> <span class="s1">&#39;tmpfs utilization&#39;</span><span class="p">)</span>
+
+<span class="nd">@app</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;/metrics&quot;</span><span class="p">)</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">metrics</span><span class="p">():</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Prometheus-compatible metrics endpoint&quot;&quot;&quot;</span>
+    <span class="k">return</span> <span class="n">Response</span><span class="p">(</span><span class="n">content</span><span class="o">=</span><span class="n">generate_latest</span><span class="p">(),</span> <span class="n">media_type</span><span class="o">=</span><span class="s2">&quot;text/plain&quot;</span><span class="p">)</span>
+</code></pre></div></p>
+<p><strong>Implementation:</strong>
+- Add <code>prometheus-client</code> dependency
+- Instrument all major operations
+- Configure Grafana dashboards
+- Set up retention policies</p>
+<h4 id="22-distributed-tracing">2.2 Distributed Tracing<a class="headerlink" href="#22-distributed-tracing" title="Permanent link">&para;</a></h4>
+<p><strong>Recommendation:</strong>
+<div class="highlight"><pre><span></span><code><span class="c1"># Add OpenTelemetry spans for end-to-end tracing</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">opentelemetry</span><span class="w"> </span><span class="kn">import</span> <span class="n">trace</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">opentelemetry.exporter.jaeger</span><span class="w"> </span><span class="kn">import</span> <span class="n">JaegerExporter</span>
+
+<span class="n">tracer</span> <span class="o">=</span> <span class="n">trace</span><span class="o">.</span><span class="n">get_tracer</span><span class="p">(</span><span class="vm">__name__</span><span class="p">)</span>
+
+<span class="nd">@tracer</span><span class="o">.</span><span class="n">start_as_current_span</span><span class="p">(</span><span class="s2">&quot;convert_group&quot;</span><span class="p">)</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">process_group</span><span class="p">(</span><span class="n">group_id</span><span class="p">):</span>
+    <span class="k">with</span> <span class="n">tracer</span><span class="o">.</span><span class="n">start_as_current_span</span><span class="p">(</span><span class="s2">&quot;read_uvh5&quot;</span><span class="p">):</span>
+        <span class="n">uvdata</span> <span class="o">=</span> <span class="n">read_subbands</span><span class="p">(</span><span class="n">group_id</span><span class="p">)</span>
+
+    <span class="k">with</span> <span class="n">tracer</span><span class="o">.</span><span class="n">start_as_current_span</span><span class="p">(</span><span class="s2">&quot;write_ms&quot;</span><span class="p">):</span>
+        <span class="n">ms_path</span> <span class="o">=</span> <span class="n">write_ms</span><span class="p">(</span><span class="n">uvdata</span><span class="p">)</span>
+
+    <span class="k">with</span> <span class="n">tracer</span><span class="o">.</span><span class="n">start_as_current_span</span><span class="p">(</span><span class="s2">&quot;calibrate&quot;</span><span class="p">):</span>
+        <span class="n">caltables</span> <span class="o">=</span> <span class="n">calibrate_ms</span><span class="p">(</span><span class="n">ms_path</span><span class="p">)</span>
+
+    <span class="k">return</span> <span class="n">ms_path</span><span class="p">,</span> <span class="n">caltables</span>
+</code></pre></div></p>
+<p><strong>Implementation:</strong>
+- Add OpenTelemetry instrumentation
+- Deploy Jaeger or Tempo for trace collection
+- Add trace IDs to all log messages
+- Correlate traces with queue entries</p>
+<hr />
+<h3 id="priority-3-operational-resilience">Priority 3: Operational Resilience<a class="headerlink" href="#priority-3-operational-resilience" title="Permanent link">&para;</a></h3>
+<h4 id="31-configuration-hot-reload">3.1 Configuration Hot-Reload<a class="headerlink" href="#31-configuration-hot-reload" title="Permanent link">&para;</a></h4>
+<p><strong>Current State:</strong>
+- Requires service restart for config changes
+- No dynamic parameter adjustment</p>
+<p><strong>Recommendation:</strong>
+<div class="highlight"><pre><span></span><code><span class="c1"># Add config watcher in streaming_converter.py</span>
+<span class="k">class</span><span class="w"> </span><span class="nc">ConfigWatcher</span><span class="p">:</span>
+    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">config_path</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">config_path</span> <span class="o">=</span> <span class="n">config_path</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">last_mtime</span> <span class="o">=</span> <span class="mi">0</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">reload_callbacks</span> <span class="o">=</span> <span class="p">[]</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">check_for_updates</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="n">current_mtime</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">getmtime</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">config_path</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">current_mtime</span> <span class="o">&gt;</span> <span class="bp">self</span><span class="o">.</span><span class="n">last_mtime</span><span class="p">:</span>
+            <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;Config file changed, reloading...&quot;</span><span class="p">)</span>
+            <span class="n">new_config</span> <span class="o">=</span> <span class="n">load_config</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">config_path</span><span class="p">)</span>
+            <span class="k">for</span> <span class="n">callback</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">reload_callbacks</span><span class="p">:</span>
+                <span class="n">callback</span><span class="p">(</span><span class="n">new_config</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">last_mtime</span> <span class="o">=</span> <span class="n">current_mtime</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">register_callback</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">func</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">reload_callbacks</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">func</span><span class="p">)</span>
+</code></pre></div></p>
+<p><strong>Implementation:</strong>
+- Add config reload endpoint: <code>POST /api/admin/reload-config</code>
+- Support hot-reload for non-critical settings (log level, thresholds)
+- Validate config before applying
+- Log all config changes</p>
+<h4 id="32-blue-green-deployments">3.2 Blue-Green Deployments<a class="headerlink" href="#32-blue-green-deployments" title="Permanent link">&para;</a></h4>
+<p><strong>Recommendation:</strong>
+<div class="highlight"><pre><span></span><code><span class="c1"># Deployment strategy for zero-downtime updates</span>
+./ops/scripts/deploy.sh<span class="w"> </span>--strategy<span class="o">=</span>blue-green
+
+<span class="c1"># Steps:</span>
+<span class="c1"># 1. Deploy new version as &quot;green&quot; service</span>
+<span class="c1"># 2. Run health checks</span>
+<span class="c1"># 3. Switch load balancer to green</span>
+<span class="c1"># 4. Drain blue service queue</span>
+<span class="c1"># 5. Stop blue service</span>
+<span class="c1"># 6. Promote green to blue for next deployment</span>
+</code></pre></div></p>
+<p><strong>Implementation:</strong>
+- Add deployment automation scripts
+- Implement graceful shutdown (drain queue first)
+- Add API readiness/liveness probes
+- Support rolling updates for API service</p>
+<h4 id="33-backup-disaster-recovery">3.3 Backup &amp; Disaster Recovery<a class="headerlink" href="#33-backup-disaster-recovery" title="Permanent link">&para;</a></h4>
+<p><strong>Current State:</strong>
+- No automated backups
+- Manual DB management
+- No documented recovery procedures</p>
+<p><strong>Recommendation:</strong></p>
+<p><strong>A. Automated Backups</strong>
+<div class="highlight"><pre><span></span><code><span class="c1"># Add to cron: /etc/cron.daily/contimg-backup</span>
+<span class="c1">#!/bin/bash</span>
+<span class="nv">BACKUP_DIR</span><span class="o">=</span>/data/backups/contimg/<span class="k">$(</span>date<span class="w"> </span>+%Y%m%d<span class="k">)</span>
+mkdir<span class="w"> </span>-p<span class="w"> </span><span class="nv">$BACKUP_DIR</span>
+
+<span class="c1"># Backup SQLite databases</span>
+sqlite3<span class="w"> </span>/data/dsa110-contimg/state/ingest.sqlite3<span class="w"> </span><span class="s2">&quot;.backup </span><span class="nv">$BACKUP_DIR</span><span class="s2">/ingest.sqlite3&quot;</span>
+sqlite3<span class="w"> </span>/data/dsa110-contimg/state/cal_registry.sqlite3<span class="w"> </span><span class="s2">&quot;.backup </span><span class="nv">$BACKUP_DIR</span><span class="s2">/cal_registry.sqlite3&quot;</span>
+sqlite3<span class="w"> </span>/data/dsa110-contimg/state/products.sqlite3<span class="w"> </span><span class="s2">&quot;.backup </span><span class="nv">$BACKUP_DIR</span><span class="s2">/products.sqlite3&quot;</span>
+
+<span class="c1"># Backup critical calibration tables (recent 7 days)</span>
+find<span class="w"> </span>/scratch/dsa110-contimg/ms<span class="w"> </span>-name<span class="w"> </span><span class="s2">&quot;*cal&quot;</span><span class="w"> </span>-mtime<span class="w"> </span>-7<span class="w"> </span>-exec<span class="w"> </span>cp<span class="w"> </span>-r<span class="w"> </span><span class="o">{}</span><span class="w"> </span><span class="nv">$BACKUP_DIR</span>/caltables/<span class="w"> </span><span class="se">\;</span>
+
+<span class="c1"># Compress and ship to remote storage</span>
+tar<span class="w"> </span>-czf<span class="w"> </span><span class="nv">$BACKUP_DIR</span>.tar.gz<span class="w"> </span><span class="nv">$BACKUP_DIR</span>
+rclone<span class="w"> </span>copy<span class="w"> </span><span class="nv">$BACKUP_DIR</span>.tar.gz<span class="w"> </span>remote:dsa110-backups/
+
+<span class="c1"># Cleanup old local backups (keep 14 days)</span>
+find<span class="w"> </span>/data/backups/contimg<span class="w"> </span>-type<span class="w"> </span>d<span class="w"> </span>-mtime<span class="w"> </span>+14<span class="w"> </span>-exec<span class="w"> </span>rm<span class="w"> </span>-rf<span class="w"> </span><span class="o">{}</span><span class="w"> </span><span class="se">\;</span>
+</code></pre></div></p>
+<p><strong>B. Recovery Procedures</strong>
+<div class="highlight"><pre><span></span><code><span class="gu">### Recovery Scenarios</span>
+
+<span class="gs">**Scenario 1: Queue DB Corruption**</span>
+<span class="k">1.</span> Stop streaming service: <span class="sb">`systemctl stop contimg-stream`</span>
+<span class="k">2.</span> Restore DB: <span class="sb">`cp /data/backups/contimg/latest/ingest.sqlite3 /data/dsa110-contimg/state/`</span>
+<span class="k">3.</span> Bootstrap from incoming files: <span class="sb">`--bootstrap-directory /data/incoming/`</span>
+<span class="k">4.</span> Restart service: <span class="sb">`systemctl start contimg-stream`</span>
+
+<span class="gs">**Scenario 2: Lost Calibration Tables**</span>
+<span class="k">1.</span> Restore from backup: <span class="sb">`rclone sync remote:dsa110-backups/latest/caltables/ /scratch/dsa110-contimg/ms/`</span>
+<span class="k">2.</span> Re-register in cal_registry: <span class="sb">`python -m dsa110_contimg.database.registry_cli scan-and-register`</span>
+<span class="k">3.</span> Verify active tables: <span class="sb">`python -m dsa110_contimg.database.registry_cli active --mjd &lt;current_mjd&gt;`</span>
+
+<span class="gs">**Scenario 3: Full System Recovery**</span>
+<span class="k">1.</span> Restore all databases from backup
+<span class="k">2.</span> Restore recent caltables
+<span class="k">3.</span> Clear queue of incomplete conversions
+<span class="k">4.</span> Restart all services
+<span class="k">5.</span> Bootstrap queue from /data/incoming/
+<span class="k">6.</span> Monitor for 1 hour to ensure stable operation
+</code></pre></div></p>
+<p><strong>Implementation:</strong>
+- Add backup scripts to <code>ops/scripts/</code>
+- Document recovery in <code>docs/operations/disaster-recovery.md</code>
+- Test recovery procedures monthly
+- Set up monitoring for backup success/failure</p>
+<hr />
+<h3 id="priority-4-performance-optimization">Priority 4: Performance Optimization<a class="headerlink" href="#priority-4-performance-optimization" title="Permanent link">&para;</a></h3>
+<h4 id="41-parallel-pipeline-stages">4.1 Parallel Pipeline Stages<a class="headerlink" href="#41-parallel-pipeline-stages" title="Permanent link">&para;</a></h4>
+<p><strong>Current State:</strong>
+- Sequential: convert → calibrate → image
+- Single conversion at a time in streaming mode</p>
+<p><strong>Recommendation:</strong>
+<div class="highlight"><pre><span></span><code><span class="c1"># Pipeline parallelization in streaming_converter.py</span>
+<span class="k">class</span><span class="w"> </span><span class="nc">PipelineStageManager</span><span class="p">:</span>
+    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">max_concurrent_conversions</span><span class="o">=</span><span class="mi">2</span><span class="p">,</span> <span class="n">max_concurrent_images</span><span class="o">=</span><span class="mi">4</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">conversion_pool</span> <span class="o">=</span> <span class="n">ThreadPoolExecutor</span><span class="p">(</span><span class="n">max_concurrent_conversions</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">imaging_pool</span> <span class="o">=</span> <span class="n">ThreadPoolExecutor</span><span class="p">(</span><span class="n">max_concurrent_images</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">calibration_queue</span> <span class="o">=</span> <span class="n">Queue</span><span class="p">()</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">process_pipeline</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">group_id</span><span class="p">):</span>
+        <span class="c1"># Stage 1: Conversion (I/O bound, limit concurrency)</span>
+        <span class="n">future_ms</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">conversion_pool</span><span class="o">.</span><span class="n">submit</span><span class="p">(</span><span class="n">convert_group</span><span class="p">,</span> <span class="n">group_id</span><span class="p">)</span>
+
+        <span class="c1"># Stage 2: Calibration (CPU bound, can run while converting next group)</span>
+        <span class="n">ms_path</span> <span class="o">=</span> <span class="n">future_ms</span><span class="o">.</span><span class="n">result</span><span class="p">()</span>
+        <span class="k">if</span> <span class="n">is_calibrator</span><span class="p">(</span><span class="n">ms_path</span><span class="p">):</span>
+            <span class="n">caltables</span> <span class="o">=</span> <span class="n">calibrate</span><span class="p">(</span><span class="n">ms_path</span><span class="p">)</span>
+            <span class="n">register_caltables</span><span class="p">(</span><span class="n">caltables</span><span class="p">)</span>
+
+        <span class="c1"># Stage 3: Imaging (CPU + I/O bound, highly parallel)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">imaging_pool</span><span class="o">.</span><span class="n">submit</span><span class="p">(</span><span class="n">apply_and_image</span><span class="p">,</span> <span class="n">ms_path</span><span class="p">)</span>
+</code></pre></div></p>
+<p><strong>Implementation:</strong>
+- Add concurrent conversion support (respect tmpfs limits)
+- Parallelize imaging across multiple MS files
+- Add resource throttling (CPU, memory, disk I/O)
+- Monitor resource contention</p>
+<h4 id="42-caching-precomputation">4.2 Caching &amp; Precomputation<a class="headerlink" href="#42-caching-precomputation" title="Permanent link">&para;</a></h4>
+<p><strong>Recommendation:</strong>
+<div class="highlight"><pre><span></span><code><span class="c1"># Cache frequently accessed data</span>
+<span class="nd">@lru_cache</span><span class="p">(</span><span class="n">maxsize</span><span class="o">=</span><span class="mi">128</span><span class="p">)</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">get_nvss_sources_in_fov</span><span class="p">(</span><span class="n">ra_deg</span><span class="p">,</span> <span class="n">dec_deg</span><span class="p">,</span> <span class="n">radius_deg</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Cache NVSS catalog queries&quot;&quot;&quot;</span>
+    <span class="k">return</span> <span class="n">query_nvss_catalog</span><span class="p">(</span><span class="n">ra_deg</span><span class="p">,</span> <span class="n">dec_deg</span><span class="p">,</span> <span class="n">radius_deg</span><span class="p">)</span>
+
+<span class="nd">@lru_cache</span><span class="p">(</span><span class="n">maxsize</span><span class="o">=</span><span class="mi">32</span><span class="p">)</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">get_primary_beam_model</span><span class="p">(</span><span class="n">freq_hz</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Cache beam models&quot;&quot;&quot;</span>
+    <span class="k">return</span> <span class="n">load_beam_model</span><span class="p">(</span><span class="n">freq_hz</span><span class="p">)</span>
+
+<span class="c1"># Precompute common calibrator models</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">build_calibrator_model_cache</span><span class="p">():</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Precompute models for common calibrators&quot;&quot;&quot;</span>
+    <span class="k">for</span> <span class="n">cal</span> <span class="ow">in</span> <span class="n">STANDARD_CALIBRATORS</span><span class="p">:</span>
+        <span class="n">model</span> <span class="o">=</span> <span class="n">build_component_list</span><span class="p">(</span><span class="n">cal</span><span class="p">)</span>
+        <span class="n">cache</span><span class="o">.</span><span class="n">set</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;cal_model_</span><span class="si">{</span><span class="n">cal</span><span class="o">.</span><span class="n">name</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">,</span> <span class="n">model</span><span class="p">)</span>
+</code></pre></div></p>
+<p><strong>Implementation:</strong>
+- Add Redis or in-memory cache
+- Precompute calibrator models at startup
+- Cache catalog queries
+- Add cache hit/miss metrics</p>
+<hr />
+<h2 id="implementation-roadmap">Implementation Roadmap<a class="headerlink" href="#implementation-roadmap" title="Permanent link">&para;</a></h2>
+<h3 id="phase-1-critical-automation-weeks-1-2">Phase 1: Critical Automation (Weeks 1-2)<a class="headerlink" href="#phase-1-critical-automation-weeks-1-2" title="Permanent link">&para;</a></h3>
+<ul>
+<li>[ ] Deploy tmpfs staging as default</li>
+<li>[ ] Implement automatic calibrator fallback</li>
+<li>[ ] Add intelligent retry with error classification</li>
+<li>[ ] Set up basic alerting (Slack webhook)</li>
+<li>[ ] Add stuck job watchdog</li>
+</ul>
+<h3 id="phase-2-observability-weeks-3-4">Phase 2: Observability (Weeks 3-4)<a class="headerlink" href="#phase-2-observability-weeks-3-4" title="Permanent link">&para;</a></h3>
+<ul>
+<li>[ ] Prometheus metrics export</li>
+<li>[ ] Grafana dashboards</li>
+<li>[ ] Enhanced logging with trace IDs</li>
+<li>[ ] API metrics endpoints</li>
+<li>[ ] Alert manager integration</li>
+</ul>
+<h3 id="phase-3-resilience-weeks-5-6">Phase 3: Resilience (Weeks 5-6)<a class="headerlink" href="#phase-3-resilience-weeks-5-6" title="Permanent link">&para;</a></h3>
+<ul>
+<li>[ ] Automated backup system</li>
+<li>[ ] Disaster recovery documentation</li>
+<li>[ ] Configuration hot-reload</li>
+<li>[ ] Graceful shutdown handling</li>
+<li>[ ] Health check endpoints</li>
+</ul>
+<h3 id="phase-4-optimization-weeks-7-8">Phase 4: Optimization (Weeks 7-8)<a class="headerlink" href="#phase-4-optimization-weeks-7-8" title="Permanent link">&para;</a></h3>
+<ul>
+<li>[ ] Parallel pipeline stages</li>
+<li>[ ] Catalog caching</li>
+<li>[ ] Distributed tracing</li>
+<li>[ ] Performance profiling</li>
+<li>[ ] Resource optimization</li>
+</ul>
+<hr />
+<h2 id="success-metrics">Success Metrics<a class="headerlink" href="#success-metrics" title="Permanent link">&para;</a></h2>
+<h3 id="automation-goals">Automation Goals<a class="headerlink" href="#automation-goals" title="Permanent link">&para;</a></h3>
+<ul>
+<li><strong>Zero-touch operation:</strong> 99.5% of observations processed without human intervention</li>
+<li><strong>Recovery time:</strong> &lt; 5 minutes for automatic recovery from transient failures</li>
+<li><strong>Calibration coverage:</strong> &gt; 95% of observations have valid caltables within 6 hours</li>
+</ul>
+<h3 id="reliability-goals">Reliability Goals<a class="headerlink" href="#reliability-goals" title="Permanent link">&para;</a></h3>
+<ul>
+<li><strong>Conversion success rate:</strong> &gt; 99%</li>
+<li><strong>Imaging success rate:</strong> &gt; 95% (excluding missing calibration cases)</li>
+<li><strong>Uptime:</strong> &gt; 99.9% for streaming service</li>
+<li><strong>Data loss:</strong> 0% (all ingested data eventually processed or quarantined with reason)</li>
+</ul>
+<h3 id="performance-goals">Performance Goals<a class="headerlink" href="#performance-goals" title="Permanent link">&para;</a></h3>
+<ul>
+<li><strong>End-to-end latency:</strong> &lt; 10 minutes from file arrival to image product</li>
+<li><strong>Queue depth:</strong> &lt; 10 groups during normal operations</li>
+<li><strong>Resource utilization:</strong> CPU &lt; 80%, Memory &lt; 75%, Disk I/O &lt; 60%</li>
+</ul>
+<hr />
+<h2 id="monitoring-dashboard-requirements">Monitoring Dashboard Requirements<a class="headerlink" href="#monitoring-dashboard-requirements" title="Permanent link">&para;</a></h2>
+<h3 id="real-time-view">Real-Time View<a class="headerlink" href="#real-time-view" title="Permanent link">&para;</a></h3>
+<ul>
+<li>Queue depth trend (last 24h)</li>
+<li>Active conversions / imaging jobs</li>
+<li>Success/failure rates by stage</li>
+<li>System resource utilization</li>
+<li>Calibration table freshness</li>
+<li>Alert status</li>
+</ul>
+<h3 id="historical-analysis">Historical Analysis<a class="headerlink" href="#historical-analysis" title="Permanent link">&para;</a></h3>
+<ul>
+<li>Processing throughput (groups/hour)</li>
+<li>Failure distribution by error type</li>
+<li>Performance trends (latency percentiles)</li>
+<li>Resource usage patterns</li>
+<li>Data volume trends</li>
+</ul>
+<h3 id="alert-status">Alert Status<a class="headerlink" href="#alert-status" title="Permanent link">&para;</a></h3>
+<ul>
+<li>Active alerts by severity</li>
+<li>Alert history (last 7 days)</li>
+<li>Acknowledged vs unacknowledged</li>
+<li>Time to resolution</li>
+<li>False positive rate</li>
+</ul>
+<hr />
+<h2 id="configuration-management">Configuration Management<a class="headerlink" href="#configuration-management" title="Permanent link">&para;</a></h2>
+<h3 id="recommended-environment-variables-add-to-contimgenv">Recommended Environment Variables (Add to contimg.env)<a class="headerlink" href="#recommended-environment-variables-add-to-contimgenv" title="Permanent link">&para;</a></h3>
+<div class="highlight"><pre><span></span><code><span class="c1"># Automation</span>
+<span class="nv">CONTIMG_AUTO_CALIBRATOR_FALLBACK</span><span class="o">=</span><span class="nb">true</span>
+<span class="nv">CONTIMG_CALIBRATOR_STALENESS_HOURS</span><span class="o">=</span><span class="m">6</span>
+<span class="nv">CONTIMG_MAX_RETRY_ATTEMPTS</span><span class="o">=</span><span class="m">5</span>
+<span class="nv">CONTIMG_STUCK_JOB_TIMEOUT_MINUTES</span><span class="o">=</span><span class="m">30</span>
+
+<span class="c1"># Alerting</span>
+<span class="nv">CONTIMG_SLACK_WEBHOOK_URL</span><span class="o">=</span>https://hooks.slack.com/services/YOUR/WEBHOOK/URL
+<span class="nv">CONTIMG_ALERT_CRITICAL_EMAIL</span><span class="o">=</span>ops@dsa110.example.com
+<span class="nv">CONTIMG_ALERT_LEVEL</span><span class="o">=</span>warning
+
+<span class="c1"># Resource Management</span>
+<span class="nv">CONTIMG_MIN_FREE_DISK_GB</span><span class="o">=</span><span class="m">100</span>
+<span class="nv">CONTIMG_TMPFS_MIN_FREE_PERCENT</span><span class="o">=</span><span class="m">20</span>
+<span class="nv">CONTIMG_MAX_CONCURRENT_CONVERSIONS</span><span class="o">=</span><span class="m">2</span>
+<span class="nv">CONTIMG_MAX_CONCURRENT_IMAGES</span><span class="o">=</span><span class="m">4</span>
+
+<span class="c1"># Retention</span>
+<span class="nv">CONTIMG_MS_RETENTION_DAYS</span><span class="o">=</span><span class="m">7</span>
+<span class="nv">CONTIMG_IMAGE_RETENTION_DAYS</span><span class="o">=</span><span class="m">30</span>
+<span class="nv">CONTIMG_LOG_RETENTION_DAYS</span><span class="o">=</span><span class="m">14</span>
+
+<span class="c1"># Performance</span>
+<span class="nv">CONTIMG_ENABLE_CACHING</span><span class="o">=</span><span class="nb">true</span>
+<span class="nv">CONTIMG_CACHE_TTL_SECONDS</span><span class="o">=</span><span class="m">3600</span>
+<span class="nv">CONTIMG_PARALLEL_IMAGING</span><span class="o">=</span><span class="nb">true</span>
+</code></pre></div>
+<hr />
+<h2 id="conclusion">Conclusion<a class="headerlink" href="#conclusion" title="Permanent link">&para;</a></h2>
+<p>The DSA-110 pipeline has a solid foundation for streaming operations. Implementing these recommendations will significantly enhance automation, reduce operational burden, and improve reliability for lights-out operations.</p>
+<p><strong>Immediate Actions:</strong>
+1. ✓ Enable tmpfs staging by default (DONE)
+2. Implement automatic calibrator fallback
+3. Set up basic alerting
+4. Add stuck job recovery
+5. Document disaster recovery procedures</p>
+<p><strong>Next Steps:</strong>
+1. Review and prioritize recommendations with operations team
+2. Establish success metrics baseline
+3. Implement Phase 1 changes
+4. Monitor and iterate based on operational experience</p>
+
+
+
+
+
+
+
+
+
+
+
+
+                
+              </article>
+            </div>
+          
+          
+  <script>var tabs=__md_get("__tabs");if(Array.isArray(tabs))e:for(var set of document.querySelectorAll(".tabbed-set")){var labels=set.querySelector(".tabbed-labels");for(var tab of tabs)for(var label of labels.getElementsByTagName("label"))if(label.innerText.trim()===tab){var input=document.getElementById(label.htmlFor);input.checked=!0;continue e}}</script>
+
+<script>var target=document.getElementById(location.hash.slice(1));target&&target.name&&(target.checked=target.name.startsWith("__tabbed_"))</script>
+        </div>
+        
+      </main>
+      
+        <footer class="md-footer">
+  
+  <div class="md-footer-meta md-typeset">
+    <div class="md-footer-meta__inner md-grid">
+      <div class="md-copyright">
+  
+  
+    Made with
+    <a href="https://squidfunk.github.io/mkdocs-material/" target="_blank" rel="noopener">
+      Material for MkDocs
+    </a>
+  
+</div>
+      
+    </div>
+  </div>
+</footer>
+      
+    </div>
+    <div class="md-dialog" data-md-component="dialog">
+      <div class="md-dialog__inner md-typeset"></div>
+    </div>
+    
+    
+    
+      
+      <script id="__config" type="application/json">{"base": "../..", "features": ["navigation.sections", "navigation.indexes", "content.code.copy", "content.tabs.link"], "search": "../../assets/javascripts/workers/search.973d3a69.min.js", "tags": null, "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": null}</script>
+    
+    
+      <script src="../../assets/javascripts/bundle.f55a23d4.min.js"></script>
+      
+        <script src="https://unpkg.com/mermaid@10/dist/mermaid.min.js"></script>
+      
+        <script src="../../javascripts/mermaid-init.js"></script>
+      
+    
+  </body>
+</html>

@@ -385,6 +385,9 @@ def main() -> int:
     except Exception:
         pass
     print(f'Imaging {ms_out} -> {img_base}')
+    # Imaging:
+    # - Seed NVSS sources (>10 mJy) into MODEL_DATA when calibrator is not
+    #   explicitly provided; tclean preserves the seeded model.
     image_ms(
         os.fspath(ms_out),
         imagename=os.fspath(img_base),
@@ -399,7 +402,8 @@ def main() -> int:
         uvrange='>1klambda',
         robust=0.5,
         pblimit=0.25,
-        threshold='0.005Jy')
+        threshold='0.005Jy',
+        nvss_min_mjy=10.0)
     print('Done:', img_base)
     return 0
 

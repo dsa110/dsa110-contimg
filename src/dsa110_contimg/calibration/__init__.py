@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 """Lightweight CASA 6.7 calibration helpers (no dsacalib runtime deps).
 
 Modules:

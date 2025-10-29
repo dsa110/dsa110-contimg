@@ -16,6 +16,7 @@ from dsa110_contimg.conversion.helpers import (
     _ensure_antenna_diameters,
     get_meridian_coords,
     compute_and_set_uvw,
+    set_telescope_identity,
 )
 
 if TYPE_CHECKING:
@@ -180,6 +181,18 @@ def _write_ms_subband_part(subband_file: str, part_out: str) -> str:
         strict_uvw_antpos_check=False,
         check_extra=False,
     )
+
+    # Stamp telescope identity prior to phasing/UVW
+    try:
+        set_telescope_identity(
+            uv,
+            os.getenv("PIPELINE_TELESCOPE_NAME", "OVRO_DSA"),
+            -118.2817,
+            37.2314,
+            1222.0,
+        )
+    except Exception:
+        pass
 
     part_out_path = Path(part_out)
     if part_out_path.exists():
