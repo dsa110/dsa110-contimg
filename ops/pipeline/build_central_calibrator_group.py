@@ -498,12 +498,22 @@ def main() -> int:
             phasecenter = f"J2000 {ra_hms} {dec_dms}"
         except Exception:
             phasecenter = None
+        # Imaging:
+        # - Seeds MODEL_DATA with a single-component calibrator model if the
+        #   calibrator is inside the FoV; otherwise falls back to a
+        #   multi-component NVSS model (>10 mJy) within the FoV.
+        # - tclean is called with savemodel='none' so the seeded model is
+        #   preserved and used during deconvolution.
         image_ms(
             os.fspath(ms_out),
             imagename=os.fspath(img_base),
             imsize=args.imsize,
             pbcor=True,
             phasecenter=phasecenter,
+            nvss_min_mjy=10.0,
+            calib_ra_deg=float(ra_deg),
+            calib_dec_deg=float(dec_deg),
+            calib_flux_jy=float(flux) if flux is not None else None,
         )
 
     # Auto-generate NVSS overlay PNG for the primary image FITS

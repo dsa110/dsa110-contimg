@@ -16,23 +16,23 @@ The downsampling tools provide three levels of functionality:
 
 ```bash
 # Time downsampling by factor of 2
-python3 src/dsa110_contimg/conversion/downsample_hdf5_fast.py input.uvh5 output.uvh5 --time-factor 2
+python -m dsa110_contimg.conversion.downsample_uvh5.cli single input.uvh5 output.uvh5 --time-factor 2
 
 # Frequency downsampling by factor of 4
-python3 src/dsa110_contimg/conversion/downsample_hdf5_fast.py input.uvh5 output.uvh5 --freq-factor 4
+python -m dsa110_contimg.conversion.downsample_uvh5.cli single input.uvh5 output.uvh5 --freq-factor 4
 
 # Combined downsampling
-python3 src/dsa110_contimg/conversion/downsample_hdf5_fast.py input.uvh5 output.uvh5 --time-factor 2 --freq-factor 4
+python -m dsa110_contimg.conversion.downsample_uvh5.cli single input.uvh5 output.uvh5 --time-factor 2 --freq-factor 4
 ```
 
 ### Batch Processing
 
 ```bash
 # Process all UVH5 files in a directory
-python3 src/dsa110_contimg/conversion/downsample_hdf5_batch.py input_dir/ output_dir/ --time-factor 2
+python -m dsa110_contimg.conversion.downsample_uvh5.cli batch input_dir/ output_dir/ --time-factor 2
 
 # Process with parallel workers
-python3 src/dsa110_contimg/conversion/downsample_hdf5_batch.py input_dir/ output_dir/ --time-factor 2 --freq-factor 4 --max-workers 4
+python -m dsa110_contimg.conversion.downsample_uvh5.cli batch input_dir/ output_dir/ --time-factor 2 --freq-factor 4 --max-workers 4
 ```
 
 ## Performance Results
@@ -76,7 +76,7 @@ The batch processor automatically creates descriptive output filenames:
 
 ```bash
 # Downsample before MS conversion to reduce processing time
-python3 src/dsa110_contimg/conversion/downsample_hdf5_batch.py \
+python -m dsa110_contimg.conversion.downsample_uvh5.cli batch \
     /data/raw_uvh5/ \
     /data/downsampled_uvh5/ \
     --time-factor 2 \
@@ -95,7 +95,7 @@ For very large files, adjust chunk size:
 
 ```bash
 # For files with >1M integrations
-python3 src/dsa110_contimg/conversion/downsample_hdf5_fast.py \
+python -m dsa110_contimg.conversion.downsample_uvh5.cli single \
     large_file.uvh5 output.uvh5 \
     --time-factor 2 \
     --chunk-size 5000
@@ -152,7 +152,7 @@ python3 src/dsa110_contimg/conversion/downsample_hdf5_fast.py \
 
 ```bash
 # 1. Downsample all subbands
-python3 src/dsa110_contimg/conversion/downsample_hdf5_batch.py \
+python -m dsa110_contimg.conversion.downsample_uvh5.cli batch \
     /data/raw_subbands/ \
     /data/downsampled_subbands/ \
     --time-factor 2 \
@@ -175,7 +175,7 @@ bash scripts/calibrate_bandpass.sh \
 
 ```bash
 # Aggressive downsampling for quick testing
-python3 src/dsa110_contimg/conversion/downsample_hdf5_fast.py \
+python -m dsa110_contimg.conversion.downsample_uvh5.cli single \
     input.uvh5 output.uvh5 \
     --time-factor 4 \
     --freq-factor 8 \

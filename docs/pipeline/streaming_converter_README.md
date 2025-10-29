@@ -61,7 +61,13 @@ sudo chown -R $USER:$USER /data/incoming_data /data/output /data/scratch /data/c
 chmod 755 /data/incoming_data /data/output /data/scratch /data/checkpoints
 ```
 
-## Deployment Examples
+## Deployment Examples (superseded)
+
+Note: Prefer the consolidated references:
+- `docs/reference/cli.md` for module entrypoints
+- `docs/ops/deploy-systemd.md` for systemd
+- `docs/ops/deploy-docker.md` for docker-compose
+
 
 ### 1. Systemd Service (Recommended)
 
@@ -78,7 +84,7 @@ User=ubuntu
 Group=ubuntu
 WorkingDirectory=/data/dsa110-contimg
 Environment=PATH=/opt/conda/envs/casa6/bin:/usr/local/bin:/usr/bin:/bin
-ExecStart=/opt/conda/envs/casa6/bin/python streaming/streaming_converter.py \
+ExecStart=/opt/conda/envs/casa6/bin/python -m dsa110_contimg.conversion.streaming.streaming_converter \
     --input-dir /data/incoming_data \
     --output-dir /data/output/ms \
     --scratch-dir /data/scratch \
@@ -112,7 +118,7 @@ sudo systemctl status dsa110-streaming-converter
 screen -S streaming-converter
 cd /data/dsa110-contimg
 conda activate casa6
-python streaming/streaming_converter.py \
+python -m dsa110_contimg.conversion.streaming.streaming_converter \
     --input-dir /data/incoming_data \
     --output-dir /data/output/ms \
     --scratch-dir /data/scratch \
@@ -135,7 +141,7 @@ RUN conda activate casa6 && pip install watchdog psutil
 COPY . /app
 WORKDIR /app
 
-CMD ["conda", "run", "-n", "casa6", "python", "streaming/streaming_converter.py", \
+CMD ["conda", "run", "-n", "casa6", "python", "-m", "dsa110_contimg.conversion.streaming.streaming_converter", \
      "--input-dir", "/data/incoming_data", \
      "--output-dir", "/data/output/ms", \
      "--scratch-dir", "/data/scratch", \

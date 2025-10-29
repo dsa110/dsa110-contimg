@@ -25,7 +25,7 @@ def run_downsampling_example():
     # Example 1: Time downsampling by factor of 2
     print("Example 1: Time downsampling by factor of 2")
     cmd1 = [
-        "python3", "src/dsa110_contimg/conversion/downsample_hdf5.py",
+        "python3", "-m", "dsa110_contimg.conversion.downsample_uvh5.cli", "single",
         input_file, "output_time_ds2.uvh5",
         "--time-factor", "2"
     ]
@@ -34,7 +34,7 @@ def run_downsampling_example():
     # Example 2: Frequency downsampling by factor of 4
     print("\nExample 2: Frequency downsampling by factor of 4")
     cmd2 = [
-        "python3", "src/dsa110_contimg/conversion/downsample_hdf5.py",
+        "python3", "-m", "dsa110_contimg.conversion.downsample_uvh5.cli", "single",
         input_file, "output_freq_ds4.uvh5",
         "--freq-factor", "4"
     ]
@@ -43,7 +43,7 @@ def run_downsampling_example():
     # Example 3: Combined downsampling
     print("\nExample 3: Combined time and frequency downsampling")
     cmd3 = [
-        "python3", "src/dsa110_contimg/conversion/downsample_hdf5.py",
+        "python3", "-m", "dsa110_contimg.conversion.downsample_uvh5.cli", "single",
         input_file, "output_combined_ds.uvh5",
         "--time-factor", "2", "--freq-factor", "4",
         "--method", "weighted"

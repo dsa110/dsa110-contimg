@@ -237,12 +237,17 @@ def main() -> int:
         # Image
         img_base = out_dir / f'{gid}.img'
         print(f'Imaging {ms_out} -> {img_base} ...')
+        # Imaging:
+        # - Seed NVSS point sources (>10 mJy) within the FoV into MODEL_DATA
+        #   via ft() so deconvolution starts with known sources.
+        # - tclean is configured to preserve the seeded model.
         image_ms(
             os.fspath(ms_out),
             imagename=os.fspath(img_base),
             imsize=args.imsize,
             pbcor=True,
             phasecenter=phasecenter,
+            nvss_min_mjy=10.0,
         )
 
     print('Done.')

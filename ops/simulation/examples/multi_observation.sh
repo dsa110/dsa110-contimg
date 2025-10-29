@@ -54,7 +54,7 @@ for timestamp in "2025-10-06T12:00:00" "2025-10-06T12:05:00" "2025-10-06T12:10:0
 done
 echo ""
 echo "To test with streaming converter:"
-echo "  python src/dsa110_contimg/conversion/streaming_converter.py \\"
+echo "  python -m dsa110_contimg.conversion.streaming.streaming_converter \\"
 echo "      --input-dir ${OUTPUT_DIR} \\"
 echo "      --output-dir /tmp/test_ms \\"
 echo "      --chunk-duration 5.0"

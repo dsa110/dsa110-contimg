@@ -21,6 +21,10 @@ from dsa110_contimg.database.products import ensure_products_db, ms_index_upsert
 
 
 logger = logging.getLogger("imaging_worker")
+try:
+    from dsa110_contimg.utils.tempdirs import prepare_temp_environment
+except Exception:  # pragma: no cover
+    prepare_temp_environment = None  # type: ignore
 
 
 def setup_logging(level: str) -> None:
@@ -80,6 +84,12 @@ def _apply_and_image(
         gaintables: List[str]) -> List[str]:
     """Apply calibration and produce a quick image; returns artifact paths."""
     artifacts: List[str] = []
+    # Route temp files to scratch and chdir to output directory to avoid repo pollution
+    try:
+        if prepare_temp_environment is not None:
+            prepare_temp_environment(os.getenv('CONTIMG_SCRATCH_DIR') or '/scratch/dsa110-contimg', cwd_to=os.fspath(out_dir))
+    except Exception:
+        pass
     # Apply to all fields by default
     try:
         from dsa110_contimg.calibration.applycal import apply_to_target

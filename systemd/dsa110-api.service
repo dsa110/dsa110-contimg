@@ -1,0 +1,22 @@
+[Unit]
+Description=DSA-110 Continuum Imaging Pipeline API
+After=network.target
+
+[Service]
+Type=simple
+User=ubuntu
+Group=ubuntu
+WorkingDirectory=/data/dsa110-contimg
+Environment="PYTHONPATH=/data/dsa110-contimg/src"
+Environment="PIPELINE_PRODUCTS_DB=/data/dsa110-contimg/state/products.sqlite3"
+Environment="PIPELINE_QUEUE_DB=/data/dsa110-contimg/state/ingest_queue.sqlite3"
+Environment="PIPELINE_STATE_DIR=/data/dsa110-contimg/state"
+ExecStart=/opt/miniforge/envs/casa6/bin/uvicorn dsa110_contimg.api.routes:create_app --factory --host 0.0.0.0 --port 8000
+Restart=always
+RestartSec=10
+StandardOutput=append:/var/log/dsa110/api.log
+StandardError=append:/var/log/dsa110/api-error.log
+
+[Install]
+WantedBy=multi-user.target
+

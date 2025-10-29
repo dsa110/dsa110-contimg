@@ -191,6 +191,7 @@ def configure_ms_for_imaging(
     ensure_flag_and_weight: bool = True,
     do_initweights: bool = True,
     fix_mount: bool = True,
+    stamp_observation_telescope: bool = True,
 ) -> None:
     """
     Make a Measurement Set safe and ready for imaging and calibration.
@@ -220,6 +221,18 @@ def configure_ms_for_imaging(
         _initialize_weights(ms_path)
     if fix_mount:
         _fix_mount_type_in_ms(ms_path)
+    if stamp_observation_telescope:
+        try:
+            from casacore.tables import table as _tb  # type: ignore
+            import os as _os
+            name = _os.getenv("PIPELINE_TELESCOPE_NAME", "OVRO_DSA")
+            with _tb(ms_path + '::OBSERVATION', readonly=False) as tb:
+                n = tb.nrows()
+                if n:
+                    tb.putcol('TELESCOPE_NAME', [name] * n)
+        except Exception:
+            # Non-fatal best-effort stamping
+            pass
 
 
 __all__ = [

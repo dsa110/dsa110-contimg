@@ -3,8 +3,7 @@
 ```mermaid
 flowchart LR
   A[UVH5 Subbands] --> B(Grouping)
-  B --> C(Converter
-Orchestrator)
+  B --> C(Converter<br/>Orchestrator)
   C -->|direct-subband| D[Group MS]
   D --> E{Calibrator?}
   E -->|Yes| F[Solve Cal Tables]
@@ -12,7 +11,6 @@ Orchestrator)
   E -->|No| H[Apply Cal]
   G --> H
   H --> I[tclean Image]
-  I --> J[Products DB
-ms_index + images]
+  I --> J[Products DB<br/>ms_index + images + qa_artifacts]
   J --> K[Monitoring API]
 ```

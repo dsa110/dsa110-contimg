@@ -1,93 +1,70 @@
-# DSA-110 UVH5 to CASA Measurement Set Conversion Process
+# DSA-110 UVH5 → CASA Measurement Set (Current Process)
+
+This document reflects the current supported conversion flow used by the pipeline.
 
 ## Overview
 
-This document provides a comprehensive guide for converting UVH5 (HDF5) visibility files from the DSA-110 radio telescope into CASA Measurement Sets (MS) for further analysis and calibration.
+- Input: DSA-110 UVH5 subband files (`*_sb??.hdf5`) grouped in 5‑minute windows
+- Converter: Strategy orchestrator (`dsa110_contimg.conversion.strategies.hdf5_orchestrator`)
+- Writers: `direct-subband` (parallel per‑subband + concat) or `pyuvdata` (monolithic)
+- Outputs: CASA Measurement Sets prepared for imaging
 
 ## Step-by-Step Process
 
-### 1. File Discovery and Time Filtering
+### 1. Group Discovery (Time Window)
 
-**Purpose**: Identify UVH5 files within the specified time range
+- Identify complete 16‑subband groups between `start_time` and `end_time`
+- Parse timestamps from filenames (e.g., `YYYY-MM-DDTHH:MM:SS_sbNN.hdf5`)
+- Function: `find_subband_groups(input_dir, start_time, end_time)`
 
-**Process**:
-- Scan the input directory for files with `.uvh5` extension
-- Parse timestamps from filenames using common DSA-110 naming conventions:
-  - `YYYY-MM-DDTHH:MM:SS.uvh5`
-  - `YYYY-MM-DD HH:MM:SS.uvh5`
-- Filter files based on the requested time range
-- Return list of matching files
+### 2. Write Strategy Selection
 
-**Key Functions**:
-- `find_uvh5_files_in_time_range()` - Main discovery function
-- Timestamp parsing with multiple format support
-- Time range validation
+- `--writer auto` selects `pyuvdata` for very small subband counts (≤2), else `direct-subband`
+- `direct-subband`: per‑subband MS parts written in parallel, then concatenated
+- Optional staging: tmpfs (`/dev/shm`) or SSD scratch for speed
 
-### 2. UVH5 File Loading
+### 3. Phasing and UVW
 
-**Purpose**: Load visibility data from UVH5 files using pyuvdata
-
-**Process**:
-- Initialize UVData object from pyuvdata
-- Read UVH5 file with appropriate parameters:
-  - `file_type='uvh5'`
-  - `run_check_acceptability=False` (for DSA-110 compatibility)
-  - `strict_uvw_antpos_check=False`
-- Handle antenna selection if specified
-- Apply time filtering if duration is specified
-
-**Key Functions**:
-- `load_uvh5_file()` - Core loading function
-- `extract_times()` - Time-based data extraction
-
-### 3. Data Processing and Phasing
-
-**Purpose**: Apply necessary corrections and phasing for DSA-110 data
-
-**Process**:
-- Set antenna positions using DSA-110 configuration
-- Apply fringestopping to phase the data to a specific direction
-- Handle coordinate system transformations
-- Apply frequency and time axis corrections
-
-**Key Functions**:
-- `set_antenna_positions()` - Set ITRF antenna coordinates
-- `phase_visibilities()` - Apply fringestopping
-- `calc_uvw_interpolate()` - Calculate UVW coordinates
+- Set telescope identity (`PIPELINE_TELESCOPE_NAME`, default `OVRO_DSA`)
+- Phase to meridian at group midpoint; compute/update UVW
+- Functions: `set_telescope_identity`, `phase_to_meridian`, `compute_and_set_uvw`
 
 ### 4. Measurement Set Creation
 
-**Purpose**: Convert processed data to CASA Measurement Set format
+- Write a full‑band MS (concat for `direct-subband`, monolithic for `pyuvdata`)
+- Ensure and populate imaging columns: `MODEL_DATA`, `CORRECTED_DATA`, `WEIGHT_SPECTRUM`
+- Function: `configure_ms_for_imaging(ms_path)`
 
-**Process**:
-- Write UVData to UVFITS intermediate format
-- Use CASA's `importuvfits` task to create the MS
-- Update antenna positions in the MS
-- Add imaging columns for CASA compatibility
-- Clean up intermediate files
+### 5. Optional Model Setup
 
-**Key Functions**:
-- `write_UV_to_ms()` - Main conversion function
-- `importuvfits()` - CASA task for UVFITS to MS conversion
-- `addImagingColumns()` - Add CASA imaging columns
+- Initialize `MODEL_DATA` with simple sky model if flux is provided
+- Copy DATA → CORRECTED_DATA if appropriate
+- Function: `set_model_column(...)`
 
-### 5. Model Column Setup
+## CLI Usage
 
-**Purpose**: Initialize model data in the Measurement Set
+- Strategy orchestrator:
+```bash
+python -m dsa110_contimg.conversion.strategies.hdf5_orchestrator \
+  /data/incoming_dir /data/ms_out \
+  "2025-10-13 13:25:00" "2025-10-13 13:30:00" \
+  --writer auto --scratch-dir /scratch --stage-to-tmpfs --tmpfs-path /dev/shm
+```
 
-**Process**:
-- Create MODEL_DATA column with appropriate dimensions
-- Copy DATA to CORRECTED_DATA column
-- Set up primary beam model if flux information is available
-- Ensure proper data types and shapes
+- Standalone single‑file converter:
+```bash
+python -m dsa110_contimg.conversion.uvh5_to_ms /path/to/input.uvh5 /path/to/output.ms \
+  --add-imaging-columns --enable-phasing
+```
 
-**Key Functions**:
-- `set_ms_model_column()` - Model column initialization
-- `amplitude_sky_model()` - Primary beam modeling
+## Troubleshooting (Current)
+- Ensure `HDF5_USE_FILE_LOCKING=FALSE`, limit BLAS threads (`OMP/MKL/OPENBLAS/NUMEXPR` set to 1) for stability
+- If concat fails, verify imaging columns exist and are populated
+- Use SSD or tmpfs for scratch to reduce I/O latency
+- Confirm `PIPELINE_TELESCOPE_NAME` is set (defaults to `OVRO_DSA`)
 
-## Available Scripts
-
-### 1. `dsa110_uvh5_to_ms.py` (Recommended)
+## Notes
+- The previous UVFITS → importuvfits workflow and dsacalib‑based scripts are deprecated and not part of the current converter path.
 
 **Features**:
 - Uses specialized dsacalib functions

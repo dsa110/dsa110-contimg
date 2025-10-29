@@ -7,7 +7,7 @@ Wants=network-online.target
 Type=simple
 EnvironmentFile=/data/dsa110-contimg/ops/systemd/contimg.env
 WorkingDirectory=/data/dsa110-contimg
-ExecStart=/usr/bin/uvicorn dsa110_contimg.api.routes:create_app --factory --host 0.0.0.0 --port ${CONTIMG_API_PORT}
+ExecStart=/usr/bin/uvicorn dsa110_contimg.api:app --host 0.0.0.0 --port ${CONTIMG_API_PORT}
 Restart=always
 RestartSec=5
 NoNewPrivileges=true
@@ -16,4 +16,3 @@ StandardError=append:/data/dsa110-contimg/state/logs/contimg-api.err
 
 [Install]
 WantedBy=multi-user.target
-

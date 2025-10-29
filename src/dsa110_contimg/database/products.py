@@ -16,9 +16,9 @@ def ensure_products_db(path: Path) -> sqlite3.Connection:
 
     Tables:
       - ms_index(path PRIMARY KEY, start_mjd, end_mjd, mid_mjd, processed_at,
-                 status, stage, stage_updated_at, cal_applied, imagename)
-      - images(id PRIMARY KEY, path, ms_path, created_at, type, beam_major_arcsec,
-               noise_jy, pbcor)
+        status, stage, stage_updated_at, cal_applied, imagename)
+      - images(id PRIMARY KEY, path, ms_path, created_at, type,
+        beam_major_arcsec, noise_jy, pbcor)
     """
     path = Path(path)
     path.parent.mkdir(parents=True, exist_ok=True)
@@ -54,21 +54,148 @@ def ensure_products_db(path: Path) -> sqlite3.Connection:
         )
         """
     )
+    # Photometry results table (forced photometry on images)
+    conn.execute(
+        """
+        CREATE TABLE IF NOT EXISTS photometry (
+            id INTEGER PRIMARY KEY,
+            image_path TEXT NOT NULL,
+            ra_deg REAL NOT NULL,
+            dec_deg REAL NOT NULL,
+            nvss_flux_mjy REAL,
+            peak_jyb REAL NOT NULL,
+            peak_err_jyb REAL,
+            measured_at REAL NOT NULL
+        )
+        """
+    )
     # Minimal index to speed lookups by Measurement Set
     try:
-        conn.execute("CREATE INDEX IF NOT EXISTS idx_images_ms_path ON images(ms_path)")
+        conn.execute(
+            "CREATE INDEX IF NOT EXISTS idx_images_ms_path ON images(ms_path)"
+        )
+    except Exception:
+        pass
+    # Index for photometry lookups by image
+    try:
+        conn.execute(
+            "CREATE INDEX IF NOT EXISTS idx_photometry_image ON photometry(image_path)"
+        )
     except Exception:
         pass
     # Index for stage filtering and path lookups
     try:
-        conn.execute("CREATE INDEX IF NOT EXISTS idx_ms_index_stage_path ON ms_index(stage, path)")
+        conn.execute(
+            "CREATE INDEX IF NOT EXISTS idx_ms_index_stage_path ON ms_index(stage, path)"
+        )
     except Exception:
         pass
     # Optional: index to speed up status filters
     try:
-        conn.execute("CREATE INDEX IF NOT EXISTS idx_ms_index_status ON ms_index(status)")
+        conn.execute(
+            "CREATE INDEX IF NOT EXISTS idx_ms_index_status ON ms_index(status)"
+        )
     except Exception:
         pass
+    
+    # Batch jobs table
+    conn.execute(
+        """
+        CREATE TABLE IF NOT EXISTS batch_jobs (
+            id INTEGER PRIMARY KEY,
+            type TEXT NOT NULL,
+            created_at REAL NOT NULL,
+            status TEXT NOT NULL,
+            total_items INTEGER NOT NULL,
+            completed_items INTEGER DEFAULT 0,
+            failed_items INTEGER DEFAULT 0,
+            params TEXT
+        )
+        """
+    )
+    
+    # Batch job items table
+    conn.execute(
+        """
+        CREATE TABLE IF NOT EXISTS batch_job_items (
+            id INTEGER PRIMARY KEY,
+            batch_id INTEGER NOT NULL,
+            ms_path TEXT NOT NULL,
+            job_id INTEGER,
+            status TEXT NOT NULL,
+            error TEXT,
+            started_at REAL,
+            completed_at REAL,
+            FOREIGN KEY (batch_id) REFERENCES batch_jobs(id)
+        )
+        """
+    )
+    
+    # Calibration QA metrics table
+    conn.execute(
+        """
+        CREATE TABLE IF NOT EXISTS calibration_qa (
+            id INTEGER PRIMARY KEY,
+            ms_path TEXT NOT NULL,
+            job_id INTEGER NOT NULL,
+            k_metrics TEXT,
+            bp_metrics TEXT,
+            g_metrics TEXT,
+            overall_quality TEXT,
+            flags_total REAL,
+            timestamp REAL NOT NULL
+        )
+        """
+    )
+    
+    # Image QA metrics table
+    conn.execute(
+        """
+        CREATE TABLE IF NOT EXISTS image_qa (
+            id INTEGER PRIMARY KEY,
+            ms_path TEXT NOT NULL,
+            job_id INTEGER NOT NULL,
+            image_path TEXT NOT NULL,
+            rms_noise REAL,
+            peak_flux REAL,
+            dynamic_range REAL,
+            beam_major REAL,
+            beam_minor REAL,
+            beam_pa REAL,
+            num_sources INTEGER,
+            thumbnail_path TEXT,
+            overall_quality TEXT,
+            timestamp REAL NOT NULL
+        )
+        """
+    )
+    
+    # Indices for batch jobs
+    try:
+        conn.execute(
+            "CREATE INDEX IF NOT EXISTS idx_batch_items_batch_id ON batch_job_items(batch_id)"
+        )
+        conn.execute(
+            "CREATE INDEX IF NOT EXISTS idx_batch_items_ms_path ON batch_job_items(ms_path)"
+        )
+        conn.execute(
+            "CREATE INDEX IF NOT EXISTS idx_cal_qa_ms_path ON calibration_qa(ms_path)"
+        )
+        conn.execute(
+            "CREATE INDEX IF NOT EXISTS idx_img_qa_ms_path ON image_qa(ms_path)"
+        )
+    except Exception:
+        pass
+    # Table for pointing history
+    conn.execute(
+        """
+        CREATE TABLE IF NOT EXISTS pointing_history (
+            timestamp REAL PRIMARY KEY,
+            ra_deg REAL,
+            dec_deg REAL
+        )
+        """
+    )
     # Lightweight migrations to add missing columns
     try:
         cols = {r[1] for r in conn.execute('PRAGMA table_info(ms_index)').fetchall()}
@@ -107,7 +234,9 @@ def ms_index_upsert(
     NULL entries.
     """
     now = time.time()
-    stage_updated_at = stage_updated_at if stage_updated_at is not None else (now if stage is not None else None)
+    stage_updated_at = (
+        stage_updated_at if stage_updated_at is not None else (now if stage is not None else None)
+    )
     conn.execute(
         """
         INSERT INTO ms_index(path, start_mjd, end_mjd, mid_mjd, processed_at, status, stage, stage_updated_at, cal_applied, imagename)
@@ -151,9 +280,45 @@ def images_insert(
 ) -> None:
     """Insert an image artifact record."""
     conn.execute(
-        'INSERT INTO images(path, ms_path, created_at, type, beam_major_arcsec, noise_jy, pbcor) VALUES(?,?,?,?,?,?,?)',
-        (path, ms_path, created_at, img_type, beam_major_arcsec, noise_jy, pbcor),
+        'INSERT INTO images(path, ms_path, created_at, type, beam_major_arcsec, noise_jy, pbcor) '
+        'VALUES(?,?,?,?,?,?,?)',
+        (
+            path,
+            ms_path,
+            created_at,
+            img_type,
+            beam_major_arcsec,
+            noise_jy,
+            pbcor,
+        ),
     )
 
 
-__all__ = ['ensure_products_db', 'ms_index_upsert', 'images_insert']
+def photometry_insert(
+    conn: sqlite3.Connection,
+    *,
+    image_path: str,
+    ra_deg: float,
+    dec_deg: float,
+    nvss_flux_mjy: float | None,
+    peak_jyb: float,
+    peak_err_jyb: float | None,
+    measured_at: float,
+) -> None:
+    """Insert a forced photometry measurement."""
+    conn.execute(
+        'INSERT INTO photometry(image_path, ra_deg, dec_deg, nvss_flux_mjy, peak_jyb, peak_err_jyb, measured_at) '
+        'VALUES(?,?,?,?,?,?,?)',
+        (
+            image_path,
+            ra_deg,
+            dec_deg,
+            nvss_flux_mjy,
+            peak_jyb,
+            peak_err_jyb,
+            measured_at,
+        ),
+    )
+
+
+__all__ = ['ensure_products_db', 'ms_index_upsert', 'images_insert', 'photometry_insert']

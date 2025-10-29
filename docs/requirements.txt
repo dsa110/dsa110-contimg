@@ -2,7 +2,9 @@
 mkdocs==1.6.1
 mkdocs-material==9.5.31
 pymdown-extensions==10.8.1
-mkdocs-mermaid2-plugin==0.6.1
+mkdocs-mermaid2-plugin==1.2.3
+regex==2024.11.6
+jsbeautifier
 # mkdocstrings packages are optional; install if needed:
 # mkdocstrings==0.24.3
 # mkdocstrings-python==1.10.5

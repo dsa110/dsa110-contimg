@@ -1,0 +1,46 @@
+version: '3.8'
+
+services:
+  api:
+    image: continuumdevs/dsa110-api:latest
+    container_name: dsa110-api
+    ports:
+      - "8000:8000"
+    volumes:
+      - ./src:/app/src
+      - ./state:/app/state
+      - /scratch:/scratch
+    environment:
+      - PYTHONPATH=/app/src
+      - PIPELINE_PRODUCTS_DB=/app/state/products.sqlite3
+      - PIPELINE_QUEUE_DB=/app/state/ingest_queue.sqlite3
+      - PIPELINE_STATE_DIR=/app/state
+    restart: unless-stopped
+    command: uvicorn dsa110_contimg.api.server:app --host 0.0.0.0 --port 8000
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/api/status"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+  dashboard:
+    image: continuumdevs/dsa110-dashboard:latest
+    container_name: dsa110-dashboard
+    ports:
+      - "3000:3000"
+    environment:
+      - REACT_APP_API_URL=http://localhost:8000
+    restart: unless-stopped
+    depends_on:
+      - api
+    command: serve -s /app/build -l 3000
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:3000"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+networks:
+  default:
+    name: dsa110-network
+

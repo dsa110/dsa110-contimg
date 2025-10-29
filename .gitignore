@@ -133,5 +133,48 @@ state/
 .kluster
 
 
-#Ignore cursor AI rules
+# Cursor editor configuration
+.cursor/
+!.cursor/rules/
 .cursor/rules/codacy.mdc
+.cursor/rules/kluster-code-verify.mdc
+
+# Other AI tool directories
+.serena/
+.gemini/
+.codacy/
+
+# Python virtual environments
+.venv/
+venv/
+env/
+ENV/
+
+# Node.js dependencies (should never be committed)
+node_modules/
+
+# Package lock files (keep package-lock.json but ignore others)
+yarn.lock
+pnpm-lock.yaml
+
+# Build outputs
+dist/
+build/
+site/
+
+# Environment files
+.env
+.env.local
+.env.*.local
+
+# IDE and editor files
+.vscode/
+.idea/
+*.sublime-project
+*.sublime-workspace
+
+# Kluster
+.kluster
+
+# Process IDs and lock files
+*.pid
