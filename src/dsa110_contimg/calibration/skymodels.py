@@ -46,7 +46,6 @@ def make_point_cl(
 
     cl = casa_cl()
     try:
-        cl.open()
         cl.addcomponent(
             dir=f"J2000 {ra_deg}deg {dec_deg}deg",
             flux=float(flux_jy),
@@ -71,8 +70,58 @@ def ft_from_cl(
     field: str = "0",
     usescratch: bool = True,
 ) -> None:
-    """Apply a component-list skymodel to MODEL_DATA via CASA ft()."""
+    """Apply a component-list skymodel to MODEL_DATA via CASA ft().
+    
+    WARNING: This function should be called BEFORE running WSClean or other
+    imaging tools that modify MODEL_DATA. CASA's ft() has a known bug where
+    it crashes with "double free or corruption" when MODEL_DATA already contains
+    data written by WSClean or other external tools.
+    
+    If MODEL_DATA is already populated, this function will attempt to clear it
+    first, but if the MS has been corrupted by WSClean, even clearing may fail.
+    
+    The correct workflow is:
+    1. Seed MODEL_DATA with CASA ft() (this function)
+    2. Run WSClean for imaging (reads seeded MODEL_DATA)
+    """
     from casatasks import ft as casa_ft  # type: ignore
+    from casacore.tables import table  # type: ignore
+    import numpy as np
+    
+    # Ensure MODEL_DATA column exists before calling ft()
+    # This is required for ft() to work properly
+    try:
+        from casacore.tables import addImagingColumns  # type: ignore
+        addImagingColumns(ms_target)
+    except Exception:
+        pass  # Non-fatal if columns already exist
+
+    # Clear existing MODEL_DATA to avoid CASA ft() crashes
+    # CASA's ft() has a bug where it crashes with "double free or corruption"
+    # when MODEL_DATA already contains data (e.g., from WSClean)
+    try:
+        t = table(ms_target, readonly=False)
+        if "MODEL_DATA" in t.colnames() and t.nrows() > 0:
+            # Get DATA shape to match MODEL_DATA shape
+            if "DATA" in t.colnames():
+                data_sample = t.getcell("DATA", 0)
+                data_shape = getattr(data_sample, "shape", None)
+                data_dtype = getattr(data_sample, "dtype", None)
+                if data_shape and data_dtype:
+                    # Clear MODEL_DATA with zeros matching DATA shape (use putcol for speed)
+                    zeros = np.zeros((t.nrows(),) + data_shape, dtype=data_dtype)
+                    t.putcol("MODEL_DATA", zeros)
+        t.close()
+    except Exception as e:
+        # If clearing fails, the MS may be corrupted by WSClean
+        # We'll still try ft() but it will likely crash
+        import warnings
+        warnings.warn(
+            f"Failed to clear MODEL_DATA before ft(): {e}. "
+            "This MS may have been corrupted by WSClean. "
+            "Consider using a fresh MS or ensure ft() runs before WSClean.",
+            RuntimeWarning
+        )
 
     casa_ft(
         vis=os.fspath(ms_target),
@@ -103,11 +152,15 @@ def make_multi_point_cl(
     except Exception:
         pass
 
+    # Convert to list to check if empty
+    points_list = list(points)
+    if not points_list:
+        raise ValueError(f"Cannot create componentlist: no points provided")
+
     freq_str = f"{float(freq_ghz)}GHz" if isinstance(freq_ghz, (int, float)) else str(freq_ghz)
     cl = casa_cl()
     try:
-        cl.open()
-        for ra_deg, dec_deg, flux_jy in points:
+        for ra_deg, dec_deg, flux_jy in points_list:
             cl.addcomponent(
                 dir=f"J2000 {float(ra_deg)}deg {float(dec_deg)}deg",
                 flux=float(flux_jy),
@@ -116,9 +169,13 @@ def make_multi_point_cl(
                 shape="point",
             )
         cl.rename(os.fspath(out))
+        # Verify the rename succeeded
+        if not out.exists():
+            raise RuntimeError(f"Componentlist rename failed: {out} does not exist")
     finally:
         try:
-            cl.close(); cl.done()
+            cl.close()
+            cl.done()
         except Exception:
             pass
     return os.fspath(out)

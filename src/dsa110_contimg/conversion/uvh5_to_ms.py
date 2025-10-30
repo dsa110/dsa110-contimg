@@ -973,7 +973,7 @@ def convert_single_file(input_file: str, output_file: str,
             from os import getenv as _getenv
             set_telescope_identity(
                 uvd,
-                _getenv("PIPELINE_TELESCOPE_NAME", "OVRO_DSA"),
+                _getenv("PIPELINE_TELESCOPE_NAME", "DSA_110"),
                 -118.2817,
                 37.2314,
                 1222.0,

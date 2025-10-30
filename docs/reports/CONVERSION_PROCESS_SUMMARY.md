@@ -25,7 +25,7 @@ This document reflects the current supported conversion flow used by the pipelin
 
 ### 3. Phasing and UVW
 
-- Set telescope identity (`PIPELINE_TELESCOPE_NAME`, default `OVRO_DSA`)
+- Set telescope identity (`PIPELINE_TELESCOPE_NAME`, default `DSA_110`)
 - Phase to meridian at group midpoint; compute/update UVW
 - Functions: `set_telescope_identity`, `phase_to_meridian`, `compute_and_set_uvw`
 
@@ -61,7 +61,7 @@ python -m dsa110_contimg.conversion.uvh5_to_ms /path/to/input.uvh5 /path/to/outp
 - Ensure `HDF5_USE_FILE_LOCKING=FALSE`, limit BLAS threads (`OMP/MKL/OPENBLAS/NUMEXPR` set to 1) for stability
 - If concat fails, verify imaging columns exist and are populated
 - Use SSD or tmpfs for scratch to reduce I/O latency
-- Confirm `PIPELINE_TELESCOPE_NAME` is set (defaults to `OVRO_DSA`)
+- Confirm `PIPELINE_TELESCOPE_NAME` is set (defaults to `DSA_110`)
 
 ## Notes
 - The previous UVFITS → importuvfits workflow and dsacalib‑based scripts are deprecated and not part of the current converter path.

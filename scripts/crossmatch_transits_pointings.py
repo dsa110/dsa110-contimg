@@ -12,7 +12,7 @@ import h5py  # type: ignore
 from astropy.time import Time  # type: ignore
 import astropy.units as u  # type: ignore
 
-from dsa110_contimg.calibration.schedule import OVRO, previous_transits
+from dsa110_contimg.calibration.schedule import DSA110_LOCATION, previous_transits
 from dsa110_contimg.calibration.catalogs import read_vla_parsed_catalog_csv
 from dsa110_contimg.database.products import ensure_products_db
 
@@ -104,7 +104,7 @@ def _write_transits(conn: sqlite3.Connection, name: str, ra_deg: float, *, days_
 
 
 def _ingest_pointing_from_groups(conn: sqlite3.Connection, groups: Dict[str, List[str]]) -> None:
-    """Populate pointing_history from UVH5 groups (midpoint RA=LST at OVRO, DEC from header)."""
+    """Populate pointing_history from UVH5 groups (midpoint RA=LST at DSA-110, DEC from header)."""
     # ensure_products_db already created pointing_history table
     with conn:
         for gid, files in groups.items():
@@ -113,7 +113,7 @@ def _ingest_pointing_from_groups(conn: sqlite3.Connection, groups: Dict[str, Lis
                 continue
             mid = 0.5 * (jd0 + jd1)
             t = Time(mid, format="jd")
-            ra_deg = t.sidereal_time("apparent", OVRO.lon).deg
+            ra_deg = t.sidereal_time("apparent", DSA110_LOCATION.lon).deg
             # upsert by timestamp
             conn.execute(
                 "INSERT OR REPLACE INTO pointing_history(timestamp, ra_deg, dec_deg) VALUES(?,?,?)",

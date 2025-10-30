@@ -240,6 +240,8 @@ export interface MSListFilters {
   sort_by?: 'time_desc' | 'time_asc' | 'name_asc' | 'name_desc' | 'size_asc' | 'size_desc';
   limit?: number;                     // Pagination limit (default: 100)
   offset?: number;                    // Pagination offset (default: 0)
+  scan?: boolean;                     // If true, scan filesystem before listing
+  scan_dir?: string;                  // Directory to scan (defaults to configured MS directory)
 }
 
 // UVH5 file discovery types
@@ -283,6 +285,24 @@ export interface CalTableList {
 }
 
 // MS metadata models
+export interface FieldInfo {
+  field_id: number;
+  name: string;
+  ra_deg: number;
+  dec_deg: number;
+}
+
+export interface AntennaInfo {
+  antenna_id: number;
+  name: string;
+}
+
+export interface FlaggingStats {
+  total_fraction: number;
+  per_antenna?: Record<string, number>;
+  per_field?: Record<string, number>;
+}
+
 export interface MSMetadata {
   path: string;
   start_time?: string;
@@ -290,13 +310,30 @@ export interface MSMetadata {
   duration_sec?: number;
   num_fields?: number;
   field_names?: string[];
+  fields?: FieldInfo[];
   freq_min_ghz?: number;
   freq_max_ghz?: number;
   num_channels?: number;
   num_antennas?: number;
+  antennas?: AntennaInfo[];
   data_columns: string[];
   size_gb?: number;
   calibrated: boolean;
+  flagging_stats?: FlaggingStats;
+}
+
+export interface CalTableCompatibility {
+  is_compatible: boolean;
+  caltable_path: string;
+  ms_path: string;
+  issues: string[];
+  warnings: string[];
+  ms_antennas: number[];
+  caltable_antennas: number[];
+  ms_freq_min_ghz?: number;
+  ms_freq_max_ghz?: number;
+  caltable_freq_min_ghz?: number;
+  caltable_freq_max_ghz?: number;
 }
 
 // MS Calibrator match models
@@ -372,6 +409,135 @@ export interface ExistingCalTables {
   has_k: boolean;
   has_bp: boolean;
   has_g: boolean;
+}
+
+/**
+ * Quality Assessment (QA) metrics types.
+ * These mirror the backend Pydantic models for QA data.
+ */
+
+/**
+ * Calibration QA metrics for a single MS.
+ * Contains metrics for K, BP, and G calibration tables.
+ */
+export interface CalibrationQA {
+  ms_path: string;
+  job_id: number;
+  k_metrics?: {
+    flag_fraction?: number;
+    avg_snr?: number;
+  };
+  bp_metrics?: {
+    flag_fraction?: number;
+    amp_mean?: number;
+    amp_std?: number;
+  };
+  g_metrics?: {
+    flag_fraction?: number;
+    amp_mean?: number;
+  };
+  overall_quality: 'excellent' | 'good' | 'marginal' | 'poor' | 'unknown';
+  flags_total?: number;
+  timestamp: string;
+}
+
+/**
+ * Image QA metrics for a single MS.
+ * Contains image statistics and quality assessment.
+ */
+export interface ImageQA {
+  ms_path: string;
+  job_id: number;
+  image_path: string;
+  rms_noise?: number;          // Jy/beam
+  peak_flux?: number;           // Jy/beam
+  dynamic_range?: number;      // peak_flux / rms_noise
+  beam_major?: number;          // arcsec
+  beam_minor?: number;          // arcsec
+  beam_pa?: number;             // degrees
+  num_sources?: number;
+  thumbnail_path?: string;
+  overall_quality: 'excellent' | 'good' | 'marginal' | 'poor' | 'unknown';
+  timestamp: string;
+}
+
+/**
+ * Combined QA metrics (calibration + image) for an MS.
+ */
+export interface QAMetrics {
+  ms_path: string;
+  calibration_qa?: CalibrationQA;
+  image_qa?: ImageQA;
+}
+
+/**
+ * Batch job types for processing multiple MS files.
+ */
+
+/**
+ * Status of a single item within a batch job.
+ */
+export interface BatchJobStatus {
+  ms_path: string;
+  job_id?: number;
+  status: 'pending' | 'running' | 'done' | 'failed' | 'cancelled';
+  error?: string;
+  started_at?: string;
+  completed_at?: string;
+}
+
+/**
+ * Batch job containing multiple MS processing tasks.
+ */
+export interface BatchJob {
+  id: number;
+  type: string;
+  created_at: string;
+  status: 'pending' | 'running' | 'done' | 'failed' | 'cancelled';
+  total_items: number;
+  completed_items: number;
+  failed_items: number;
+  params: Record<string, any>;
+  items: BatchJobStatus[];
+}
+
+/**
+ * List of batch jobs.
+ */
+export interface BatchJobList {
+  items: BatchJob[];
+}
+
+/**
+ * Parameters for batch calibration.
+ */
+export interface BatchCalibrateParams {
+  ms_paths: string[];
+  params: CalibrateJobParams;
+}
+
+/**
+ * Parameters for batch apply.
+ */
+export interface BatchApplyParams {
+  ms_paths: string[];
+  params: JobParams;
+}
+
+/**
+ * Parameters for batch imaging.
+ */
+export interface BatchImageParams {
+  ms_paths: string[];
+  params: JobParams;
+}
+
+/**
+ * Request to create a batch job.
+ */
+export interface BatchJobCreateRequest {
+  job_type: 'calibrate' | 'apply' | 'image';
+  params: BatchCalibrateParams | BatchApplyParams | BatchImageParams;
 }
 
 // Workflow models

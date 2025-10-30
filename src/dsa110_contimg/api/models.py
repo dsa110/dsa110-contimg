@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 from datetime import datetime
-from typing import List, Optional, Union
+from typing import List, Optional, Union, Dict
 
 from pydantic import BaseModel, Field
 
@@ -306,7 +306,43 @@ class ExistingCalTables(BaseModel):
     has_g: bool = False
 
 
+class CalTableCompatibility(BaseModel):
+    """Compatibility check result for a calibration table."""
+    is_compatible: bool
+    caltable_path: str
+    ms_path: str
+    issues: List[str] = []
+    warnings: List[str] = []
+    ms_antennas: List[int] = []
+    caltable_antennas: List[int] = []
+    ms_freq_min_ghz: Optional[float] = None
+    ms_freq_max_ghz: Optional[float] = None
+    caltable_freq_min_ghz: Optional[float] = None
+    caltable_freq_max_ghz: Optional[float] = None
+
+
 # MS metadata models
+class FieldInfo(BaseModel):
+    """Field information with coordinates."""
+    field_id: int
+    name: str
+    ra_deg: float
+    dec_deg: float
+
+
+class AntennaInfo(BaseModel):
+    """Antenna information."""
+    antenna_id: int
+    name: str
+
+
+class FlaggingStats(BaseModel):
+    """Flagging statistics for an MS."""
+    total_fraction: float  # Overall fraction flagged
+    per_antenna: Optional[Dict[str, float]] = None  # Antenna ID -> fraction flagged
+    per_field: Optional[Dict[str, float]] = None  # Field ID -> fraction flagged
+
+
 class MSMetadata(BaseModel):
     path: str
     start_time: Optional[str] = None
@@ -314,13 +350,16 @@ class MSMetadata(BaseModel):
     duration_sec: Optional[float] = None
     num_fields: Optional[int] = None
     field_names: Optional[List[str]] = None
+    fields: Optional[List[FieldInfo]] = None  # Enhanced: includes RA/Dec
     freq_min_ghz: Optional[float] = None
     freq_max_ghz: Optional[float] = None
     num_channels: Optional[int] = None
     num_antennas: Optional[int] = None
+    antennas: Optional[List[AntennaInfo]] = None  # Enhanced: antenna list
     data_columns: List[str] = []
     size_gb: Optional[float] = None
     calibrated: bool = False
+    flagging_stats: Optional[FlaggingStats] = None  # Enhanced: flagging statistics
 
 
 # MS Calibrator match models

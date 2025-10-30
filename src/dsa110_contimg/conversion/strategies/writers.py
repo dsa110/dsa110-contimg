@@ -14,7 +14,7 @@ def get_writer(strategy: str) -> type:
     """Get a writer strategy class by name.
 
     Args:
-        strategy: Name of the strategy ('pyuvdata' or 'direct-subband')
+        strategy: Name of the strategy ('pyuvdata', 'parallel-subband', or 'direct-subband' for backward compatibility)
 
     Returns:
         MSWriter class
@@ -24,7 +24,8 @@ def get_writer(strategy: str) -> type:
     """
     strategies = {
         'pyuvdata': PyuvdataMonolithicWriter,
-        'direct-subband': DirectSubbandWriter,
+        'parallel-subband': DirectSubbandWriter,
+        'direct-subband': DirectSubbandWriter,  # Backward compatibility alias
     }
 
     if strategy not in strategies:

@@ -13,18 +13,19 @@ Queue/Registry/Products DB
 
 Telescope Identity
 
-- `PIPELINE_TELESCOPE_NAME` (default: `OVRO_DSA`)
+- `PIPELINE_TELESCOPE_NAME` (default: `DSA_110`)
   - Used by converters to set `UVData.telescope_name` and populate MS `OBSERVATION::TELESCOPE_NAME`.
   - Coordinates used (authoritative for OVRO): lon −118.2817°, lat 37.2314°, alt 1222 m.
   - These are applied to every write path so imaging/calibration do not depend on casacore observatory lookup.
+  - **Important**: `DSA_110` is recognized by EveryBeam 0.7.4+ for automatic beam model detection.
 
 Optional Measures Overlay
 
-- Some tools call casacore Measures to resolve an observatory by name (e.g., `measures().observatory('OVRO_DSA')`).
+- Some tools call casacore Measures to resolve an observatory by name (e.g., `measures().observatory('DSA_110')`).
 - To make the name resolvable without system-wide changes, you can provide a local overlay for casacore data and point `CASACORE_DATA` at it.
 - Steps:
   - Locate current casacore data root: `python -c "from casatools import ctsys; print(ctsys.resolve('data'))"` (or check `$CASACORE_DATA`).
-  - Copy its `geodetic/Observatories` file and append an entry for `OVRO_DSA` using the coordinates above.
+  - Copy its `geodetic/Observatories` file and append an entry for `DSA_110` using the coordinates above.
   - Place it under `<repo>/data/measures/geodetic/Observatories`, then set `CASACORE_DATA=<repo>/data/measures` in the service env.
   - Services should be restarted for the change to take effect.
   - Guardrail: even without this overlay, the MS carries full positions and pipeline tasks work; only explicit name→location lookups depend on the catalog.
@@ -32,11 +33,11 @@ Optional Measures Overlay
 Backfill Existing MS (one-time)
 
 - Stamp the `OBSERVATION::TELESCOPE_NAME` column on existing products:
-  - `python - <<'PY'\nfrom casacore.tables import table; import glob, os\nname=os.getenv('PIPELINE_TELESCOPE_NAME','OVRO_DSA')\nfor ms in glob.glob('/data/ms/**/*.ms', recursive=True):\n  try:\n    with table(ms+'::OBSERVATION', readonly=False) as tb:\n      tb.putcol('TELESCOPE_NAME', [name]*tb.nrows())\n    print('Stamped', ms)\n  except Exception as e:\n    print('Skip', ms, e)\nPY`
+  - `python - <<'PY'\nfrom casacore.tables import table; import glob, os\nname=os.getenv('PIPELINE_TELESCOPE_NAME','DSA_110')\nfor ms in glob.glob('/data/ms/**/*.ms', recursive=True):\n  try:\n    with table(ms+'::OBSERVATION', readonly=False) as tb:\n      tb.putcol('TELESCOPE_NAME', [name]*tb.nrows())\n    print('Stamped', ms)\n  except Exception as e:\n    print('Skip', ms, e)\nPY`
 
 Validation
 
 - PyUVData roundtrip:
   - `python - <<'PY'\nfrom pyuvdata import UVData\nu=UVData(); u.read('/path/to.ms', file_type='ms')\nprint(u.telescope_name, getattr(u,'telescope_location_lat_lon_alt_deg',None))\nPY`
 - casacore Measures lookup (requires overlay):
-  - `python - <<'PY'\nfrom casacore.measures import measures\nm=measures(); print(m.observatory('OVRO_DSA'))\nPY`
+  - `python - <<'PY'\nfrom casacore.measures import measures\nm=measures(); print(m.observatory('DSA_110'))\nPY`

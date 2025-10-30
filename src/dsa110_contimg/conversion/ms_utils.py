@@ -225,7 +225,7 @@ def configure_ms_for_imaging(
         try:
             from casacore.tables import table as _tb  # type: ignore
             import os as _os
-            name = _os.getenv("PIPELINE_TELESCOPE_NAME", "OVRO_DSA")
+            name = _os.getenv("PIPELINE_TELESCOPE_NAME", "DSA_110")
             with _tb(ms_path + '::OBSERVATION', readonly=False) as tb:
                 n = tb.nrows()
                 if n:

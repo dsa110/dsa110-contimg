@@ -10,11 +10,176 @@ from astropy.coordinates import Angle, SkyCoord
 import astropy.units as u
 from astropy.time import Time
 
-from .schedule import OVRO
+from .schedule import DSA110_LOCATION
 
 NVSS_URL = (
     "https://heasarc.gsfc.nasa.gov/FTP/heasarc/dbase/tdat_files/heasarc_nvss.tdat.gz"
 )
+
+# FIRST catalog URLs (if available)
+# Note: FIRST catalog is typically available as FITS files from NRAO
+# Users may need to download manually or provide path
+FIRST_CATALOG_BASE_URL = "https://third.ucllnl.org/first/catalogs/"  # Example, verify actual URL
+
+# RAX catalog URL (DSA-110 specific, may need to be provided manually)
+# RAX catalog location to be determined based on DSA-110 data access
+
+
+def resolve_vla_catalog_path(
+    explicit_path: Optional[str | os.PathLike[str]] = None,
+    prefer_sqlite: bool = True
+) -> Path:
+    """Resolve the path to the VLA calibrator catalog using a consistent precedence order.
+    
+    This function provides a single source of truth for locating the VLA calibrator catalog,
+    following this precedence:
+    1. Explicit path provided as argument (highest priority)
+    2. VLA_CATALOG environment variable
+    3. If prefer_sqlite=True (default), try SQLite database first:
+       - state/catalogs/vla_calibrators.sqlite3 (relative to project root)
+       - /data/dsa110-contimg/state/catalogs/vla_calibrators.sqlite3
+    4. Standard CSV locations relative to project root:
+       - /data/dsa110-contimg/data/catalogs/VLA_calibrators_parsed.csv
+       - /data/dsa110-contimg/data/catalogs/vla_calibrators_parsed.csv
+       - references/dsa110-contimg-main-legacy/data/catalogs/vla_calibrators_parsed.csv
+       - data-samples/catalogs/vla_calibrators_parsed.csv
+       - sim-data-samples/catalogs/vla_calibrators_parsed.csv
+    
+    Args:
+        explicit_path: Optional explicit path to catalog (overrides all defaults)
+        prefer_sqlite: If True, prefer SQLite database over CSV (default: True)
+        
+    Returns:
+        Path object pointing to the catalog file (CSV or SQLite)
+        
+    Raises:
+        FileNotFoundError: If no catalog file can be found at any location
+        
+    Examples:
+        >>> # Use default resolution (prefers SQLite)
+        >>> path = resolve_vla_catalog_path()
+        
+        >>> # Override with explicit path
+        >>> path = resolve_vla_catalog_path("/custom/path/to/catalog.csv")
+        
+        >>> # Prefer CSV instead of SQLite
+        >>> path = resolve_vla_catalog_path(prefer_sqlite=False)
+        
+        >>> # Override with environment variable
+        >>> import os
+        >>> os.environ["VLA_CATALOG"] = "/custom/path.csv"
+        >>> path = resolve_vla_catalog_path()
+    """
+    # 1. Explicit path takes highest priority
+    if explicit_path:
+        path = Path(explicit_path)
+        if path.exists():
+            return path
+        raise FileNotFoundError(
+            f"Explicit catalog path does not exist: {explicit_path}"
+        )
+    
+    # 2. Check environment variable
+    env_path = os.getenv("VLA_CATALOG")
+    if env_path:
+        path = Path(env_path)
+        if path.exists():
+            return path
+        # Don't raise here - fall through to standard locations as fallback
+    
+    # 3. Try SQLite database first if preferred
+    if prefer_sqlite:
+        sqlite_candidates = []
+        try:
+            # Try to find project root
+            current_file = Path(__file__).resolve()
+            potential_root = current_file.parents[3]
+            if (potential_root / "src" / "dsa110_contimg").exists():
+                sqlite_candidates.append(potential_root / "state" / "catalogs" / "vla_calibrators.sqlite3")
+        except Exception:
+            pass
+        
+        # Also try common absolute paths
+        for root_str in ["/data/dsa110-contimg", "/app"]:
+            root_path = Path(root_str)
+            if root_path.exists():
+                sqlite_candidates.append(root_path / "state" / "catalogs" / "vla_calibrators.sqlite3")
+        
+        # Try relative to current working directory
+        sqlite_candidates.append(Path.cwd() / "state" / "catalogs" / "vla_calibrators.sqlite3")
+        
+        # Try absolute path
+        sqlite_candidates.append(Path("/data/dsa110-contimg/state/catalogs/vla_calibrators.sqlite3"))
+        
+        for candidate in sqlite_candidates:
+            if candidate.exists():
+                return candidate
+    
+    # 4. Try standard CSV locations (relative to common project roots)
+    # Try to find project root by looking for known markers
+    candidates = []
+    
+    # Try to find project root
+    project_roots = []
+    try:
+        # If we're in the package, try to find project root
+        # catalogs.py → calibration → dsa110_contimg → src → project root
+        current_file = Path(__file__).resolve()
+        # Go up from catalogs.py to src/dsa110_contimg/calibration/catalogs.py
+        # This gets us to: src/dsa110_contimg/calibration/
+        # We want to go up 3 levels to reach project root
+        potential_root = current_file.parents[3]
+        if (potential_root / "src" / "dsa110_contimg").exists():
+            project_roots.append(potential_root)
+    except Exception:
+        pass
+    
+    # Also try common absolute paths
+    for root_str in ["/data/dsa110-contimg", "/app"]:
+        root_path = Path(root_str)
+        if root_path.exists():
+            project_roots.append(root_path)
+    
+    # Build candidate paths
+    for root in project_roots:
+        candidates.extend([
+            root / "data" / "catalogs" / "VLA_calibrators_parsed.csv",
+            root / "data" / "catalogs" / "vla_calibrators_parsed.csv",
+            root / "references" / "dsa110-contimg-main-legacy" / "data" / "catalogs" / "vla_calibrators_parsed.csv",
+            root / "data-samples" / "catalogs" / "vla_calibrators_parsed.csv",
+            root / "sim-data-samples" / "catalogs" / "vla_calibrators_parsed.csv",
+        ])
+    
+    # Also try relative to current working directory
+    cwd = Path.cwd()
+    candidates.extend([
+        cwd / "data" / "catalogs" / "VLA_calibrators_parsed.csv",
+        cwd / "data" / "catalogs" / "vla_calibrators_parsed.csv",
+        cwd / "references" / "dsa110-contimg-main-legacy" / "data" / "catalogs" / "vla_calibrators_parsed.csv",
+        cwd / "data-samples" / "catalogs" / "vla_calibrators_parsed.csv",
+        cwd / "sim-data-samples" / "catalogs" / "vla_calibrators_parsed.csv",
+    ])
+    
+    # Try absolute paths directly
+    candidates.extend([
+        Path("/data/dsa110-contimg/data/catalogs/VLA_calibrators_parsed.csv"),
+        Path("/data/dsa110-contimg/data/catalogs/vla_calibrators_parsed.csv"),
+        Path("/data/dsa110-contimg/references/dsa110-contimg-main-legacy/data/catalogs/vla_calibrators_parsed.csv"),
+    ])
+    
+    # Find first existing candidate
+    for candidate in candidates:
+        if candidate.exists():
+            return candidate
+    
+    # If nothing found, raise with helpful error
+    raise FileNotFoundError(
+        f"VLA calibrator catalog not found. Searched:\n"
+        f"  - Environment variable VLA_CATALOG: {env_path or '(not set)'}\n"
+        f"  - {len(candidates)} standard locations\n"
+        f"  - Current working directory: {cwd}\n"
+        f"Set VLA_CATALOG environment variable or provide explicit path."
+    )
 
 
 def read_nvss_catalog(cache_dir: str = ".cache/catalogs") -> pd.DataFrame:
@@ -70,6 +235,154 @@ def read_nvss_catalog(cache_dir: str = ".cache/catalogs") -> pd.DataFrame:
     if "extra" in df.columns:
         df = df.drop(columns=["extra"])  # trailing blank
     return df
+
+
+def read_first_catalog(
+    cache_dir: str = ".cache/catalogs",
+    first_catalog_path: Optional[str] = None,
+    use_astroquery: bool = True,
+) -> pd.DataFrame:
+    """Download (if needed) and parse the FIRST catalog to a DataFrame.
+    
+    If first_catalog_path is provided, reads from that file directly.
+    Otherwise, attempts to download via astroquery (Vizier) or uses cached file.
+    
+    Args:
+        cache_dir: Directory to cache downloaded catalog files
+        first_catalog_path: Optional explicit path to FIRST catalog file (CSV/FITS)
+        use_astroquery: If True, try astroquery.vizier first (default: True)
+        
+    Returns:
+        DataFrame with FIRST catalog data
+        
+    Note:
+        FIRST catalog is available via Vizier. If astroquery is not available,
+        falls back to cached file or raises error with instructions.
+    """
+    from dsa110_contimg.catalog.build_master import _read_table
+    
+    # If explicit path provided, use it directly
+    if first_catalog_path:
+        if not os.path.exists(first_catalog_path):
+            raise FileNotFoundError(f"FIRST catalog file not found: {first_catalog_path}")
+        return _read_table(first_catalog_path)
+    
+    # Try astroquery first if enabled
+    if use_astroquery:
+        try:
+            from astroquery.vizier import Vizier
+            from astropy.coordinates import SkyCoord
+            import astropy.units as u
+            
+            # Configure Vizier for large queries
+            Vizier.ROW_LIMIT = -1  # No row limit
+            Vizier.TIMEOUT = 300  # 5 minute timeout for large catalogs
+            
+            # Query FIRST catalog from Vizier
+            # FIRST catalog name in Vizier: "VIII/92/first14"
+            print("Querying FIRST catalog via Vizier...")
+            catalog_list = Vizier.query_catalog("VIII/92/first14")
+            
+            if catalog_list:
+                # Convert first catalog to DataFrame
+                df = catalog_list[0].to_pandas()
+                print(f"Downloaded {len(df)} sources from FIRST via Vizier")
+                
+                # Cache the result
+                os.makedirs(cache_dir, exist_ok=True)
+                cache_path = Path(cache_dir) / "first_catalog_from_vizier.csv"
+                df.to_csv(cache_path, index=False)
+                print(f"Cached FIRST catalog to: {cache_path}")
+                
+                return df
+        except ImportError:
+            if use_astroquery:
+                print("Warning: astroquery not available. Install with: pip install astroquery")
+                print("Falling back to cached file...")
+        except Exception as e:
+            print(f"Warning: Failed to query FIRST via Vizier: {e}")
+            print("Falling back to cached file...")
+    
+    # Try to find cached FIRST catalog
+    os.makedirs(cache_dir, exist_ok=True)
+    cache_path = Path(cache_dir) / "first_catalog"
+    
+    # Try common extensions (check vizier cache first)
+    for ext in [".csv", ".fits", ".fits.gz", ".csv.gz"]:
+        cached_file = cache_path.with_suffix(ext)
+        if cached_file.exists():
+            return _read_table(str(cached_file))
+    
+    # Also check for vizier cache
+    vizier_cache = Path(cache_dir) / "first_catalog_from_vizier.csv"
+    if vizier_cache.exists():
+        return _read_table(str(vizier_cache))
+    
+    # If not found, raise error with helpful message
+    raise FileNotFoundError(
+        f"FIRST catalog not found. Options:\n"
+        f"  1. Install astroquery: pip install astroquery\n"
+        f"  2. Provide path via first_catalog_path argument\n"
+        f"  3. Download FIRST catalog and place it in {cache_dir}/first_catalog.fits\n"
+        f"FIRST catalog can be obtained from: https://third.ucllnl.org/first/catalogs/"
+    )
+
+
+def read_rax_catalog(
+    cache_dir: str = ".cache/catalogs",
+    rax_catalog_path: Optional[str] = None,
+    use_astroquery: bool = False,
+) -> pd.DataFrame:
+    """Download (if needed) and parse the RAX catalog to a DataFrame.
+    
+    If rax_catalog_path is provided, reads from that file directly.
+    Otherwise, attempts to find cached file or raises error.
+    
+    Args:
+        cache_dir: Directory to cache downloaded catalog files
+        rax_catalog_path: Optional explicit path to RAX catalog file (CSV/FITS)
+        use_astroquery: If True, try astroquery.vizier (default: False, RAX not in Vizier)
+        
+    Returns:
+        DataFrame with RAX catalog data
+        
+    Note:
+        RAX catalog is DSA-110 specific and not available via Vizier.
+        Provide the path manually or ensure the catalog is cached in the cache_dir.
+    """
+    from dsa110_contimg.catalog.build_master import _read_table
+    
+    # If explicit path provided, use it directly
+    if rax_catalog_path:
+        if not os.path.exists(rax_catalog_path):
+            raise FileNotFoundError(f"RAX catalog file not found: {rax_catalog_path}")
+        return _read_table(rax_catalog_path)
+    
+    # Try astroquery if enabled (though RAX is unlikely to be in Vizier)
+    if use_astroquery:
+        try:
+            from astroquery.vizier import Vizier
+            print("Warning: RAX catalog is DSA-110 specific and not available via Vizier.")
+            print("Falling back to cached file...")
+        except ImportError:
+            pass
+    
+    # Try to find cached RAX catalog
+    os.makedirs(cache_dir, exist_ok=True)
+    cache_path = Path(cache_dir) / "rax_catalog"
+    
+    # Try common extensions
+    for ext in [".fits", ".csv", ".fits.gz", ".csv.gz"]:
+        cached_file = cache_path.with_suffix(ext)
+        if cached_file.exists():
+            return _read_table(str(cached_file))
+    
+    # If not found, raise error with helpful message
+    raise FileNotFoundError(
+        f"RAX catalog not found. Please provide path via rax_catalog_path argument, "
+        f"or place RAX catalog file in {cache_dir}/rax_catalog.fits or .csv\n"
+        f"RAX catalog is DSA-110 specific and should be obtained from DSA-110 data sources."
+    )
 
 
 def read_vla_calibrator_catalog(
@@ -154,6 +467,73 @@ def read_vla_calibrator_catalog(
     if not df.empty:
         df = df.set_index("source")
     return df
+
+
+def load_vla_catalog(
+    explicit_path: Optional[str | os.PathLike[str]] = None,
+    prefer_sqlite: bool = True
+) -> pd.DataFrame:
+    """Load the VLA calibrator catalog using automatic path resolution.
+    
+    This is a convenience wrapper that automatically finds and loads the catalog using
+    the standard resolution order. Supports both SQLite database and CSV formats.
+    
+    Args:
+        explicit_path: Optional explicit path to catalog (overrides all defaults)
+        prefer_sqlite: If True, prefer SQLite database over CSV (default: True)
+        
+    Returns:
+        DataFrame with calibrator catalog (indexed by J2000_NAME, columns include ra_deg, dec_deg, etc.)
+        
+    Examples:
+        >>> # Use default resolution (prefers SQLite)
+        >>> df = load_vla_catalog()
+        
+        >>> # Override with explicit path
+        >>> df = load_vla_catalog("/custom/path/to/catalog.csv")
+        
+        >>> # Force CSV instead of SQLite
+        >>> df = load_vla_catalog(prefer_sqlite=False)
+    """
+    catalog_path = resolve_vla_catalog_path(explicit_path, prefer_sqlite=prefer_sqlite)
+    
+    # Load from SQLite if it's a .sqlite3 file
+    if str(catalog_path).endswith('.sqlite3'):
+        return load_vla_catalog_from_sqlite(str(catalog_path))
+    else:
+        return read_vla_parsed_catalog_csv(str(catalog_path))
+
+
+def load_vla_catalog_from_sqlite(db_path: str) -> pd.DataFrame:
+    """Load VLA calibrator catalog from SQLite database.
+    
+    Args:
+        db_path: Path to SQLite database
+        
+    Returns:
+        DataFrame with calibrator catalog (indexed by name, columns include ra_deg, dec_deg, flux_jy)
+    """
+    import sqlite3
+    conn = sqlite3.connect(db_path)
+    try:
+        # Load from calibrators table (or vla_20cm view if available)
+        try:
+            df = pd.read_sql_query(
+                "SELECT name, ra_deg, dec_deg, flux_jy FROM vla_20cm",
+                conn
+            )
+        except Exception:
+            # Fallback to calibrators table if view doesn't exist
+            df = pd.read_sql_query(
+                "SELECT name, ra_deg, dec_deg FROM calibrators",
+                conn
+            )
+            df['flux_jy'] = None
+        
+        df = df.set_index('name')
+        return df
+    finally:
+        conn.close()
 
 
 def read_vla_parsed_catalog_csv(path: str) -> pd.DataFrame:
@@ -292,13 +672,32 @@ def get_calibrator_radec(df: pd.DataFrame, name: str) -> Tuple[float, float]:
     """Lookup a calibrator by name (index) and return (ra_deg, dec_deg)."""
     if name in df.index:
         row = df.loc[name]
-        return float(row['ra_deg']), float(row['dec_deg'])
+        # Handle case where multiple rows match (duplicates) - take first
+        if isinstance(row, pd.DataFrame):
+            row = row.iloc[0]
+        # Handle Series - extract scalar value
+        ra_val = row['ra_deg']
+        dec_val = row['dec_deg']
+        if isinstance(ra_val, pd.Series):
+            ra_val = ra_val.iloc[0]
+        if isinstance(dec_val, pd.Series):
+            dec_val = dec_val.iloc[0]
+        return float(ra_val), float(dec_val)
     # Fallback: try case-insensitive and stripped
     key = name.strip().upper()
     for idx in df.index:
         if str(idx).strip().upper() == key:
             row = df.loc[idx]
-            return float(row['ra_deg']), float(row['dec_deg'])
+            # Handle case where multiple rows match (duplicates) - take first
+            if isinstance(row, pd.DataFrame):
+                row = row.iloc[0]
+            ra_val = row['ra_deg']
+            dec_val = row['dec_deg']
+            if isinstance(ra_val, pd.Series):
+                ra_val = ra_val.iloc[0]
+            if isinstance(dec_val, pd.Series):
+                dec_val = dec_val.iloc[0]
+            return float(ra_val), float(dec_val)
     raise KeyError(f"Calibrator '{name}' not found in catalog")
 
 
@@ -316,10 +715,10 @@ def calibrator_match(
     Input catalog must have columns 'ra_deg' and 'dec_deg' (see read_vla_parsed_catalog_csv).
     Results sorted by weighted_flux (primary beam at freq_ghz) descending, then separation.
     """
-    # Compute meridian RA at OVRO (HA=0) and fixed pointing declination
+    # Compute meridian RA at DSA-110 (HA=0) and fixed pointing declination
     # Use simple LST→RA equivalence; rely on existing helper in schedule via next_transit_time logic
     # For robustness, we compute LST from astropy Time directly here
-    t = Time(mid_mjd, format='mjd', scale='utc', location=OVRO)
+    t = Time(mid_mjd, format='mjd', scale='utc', location=DSA110_LOCATION)
     ra_meridian = t.sidereal_time('apparent').to_value(u.deg)
     dec_meridian = float(pt_dec.to_value(u.deg))
 

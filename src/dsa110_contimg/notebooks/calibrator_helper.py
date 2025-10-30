@@ -41,7 +41,7 @@ from dsa110_contimg.calibration.catalogs import (
     airy_primary_beam_response,
     read_vla_calibrator_catalog,
 )
-from dsa110_contimg.calibration.schedule import OVRO
+from dsa110_contimg.calibration.schedule import DSA110_LOCATION
 
 # Configure logging
 logger = logging.getLogger(__name__)
@@ -244,7 +244,7 @@ def load_pointing(path: Union[str, Path], field_id: Optional[int] = None) -> Dic
                     logger.warning("No phase_center_dec found in UVH5 extra_keywords")
                 
                 if info["mid_time"] is not None and ha_val is not None:
-                    lst = info["mid_time"].sidereal_time("apparent", longitude=OVRO.lon)
+                    lst = info["mid_time"].sidereal_time("apparent", longitude=DSA110_LOCATION.lon)
                     ra = (lst - ha_val * u.rad).wrap_at(360 * u.deg)
                     info["ra_deg"] = float(ra.deg)
                 else:
@@ -389,7 +389,7 @@ def score_calibrators(
         # Calculate altitude at observation time
         if obs_time is not None:
             try:
-                altaz_frame = AltAz(obstime=obs_time, location=OVRO)
+                altaz_frame = AltAz(obstime=obs_time, location=DSA110_LOCATION)
                 
                 def calc_altitude(row):
                     try:
@@ -425,7 +425,7 @@ def plot_altitude_tracks(
     *,
     top_n: int = 5,
     obs_time: Optional[Time] = None,
-    location=OVRO,
+    location=DSA110_LOCATION,
 ) -> pd.DataFrame:
     """Plot altitude tracks and return summary DataFrame.
     
@@ -499,7 +499,7 @@ def plot_altitude_tracks(
                    label='30° horizon')
         plt.ylabel('Altitude [deg]')
         plt.xlabel('UTC time')
-        plt.title(f'Top {min(top_n, len(subset))} calibrator altitude tracks (OVRO)')
+        plt.title(f'Top {min(top_n, len(subset))} calibrator altitude tracks (DSA-110)')
         plt.legend(loc='best', fontsize=8)
         plt.grid(True, alpha=0.3)
         plt.tight_layout()

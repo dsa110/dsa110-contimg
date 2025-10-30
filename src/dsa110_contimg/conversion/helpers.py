@@ -446,13 +446,13 @@ def set_telescope_identity(
     uv : UVData-like
         The in-memory UVData object.
     name : str, optional
-        Telescope name. Defaults to ENV PIPELINE_TELESCOPE_NAME or 'OVRO_DSA'.
+        Telescope name. Defaults to ENV PIPELINE_TELESCOPE_NAME or 'DSA_110'.
     lon_deg, lat_deg, alt_m : float
         Observatory geodetic coordinates (WGS84). Defaults correspond to OVRO.
     """
     import os as _os
 
-    tel_name = name or _os.getenv("PIPELINE_TELESCOPE_NAME", "OVRO_DSA")
+    tel_name = name or _os.getenv("PIPELINE_TELESCOPE_NAME", "DSA_110")
     try:
         setattr(uv, "telescope_name", tel_name)
     except Exception:

@@ -9,7 +9,7 @@ import asyncio
 import logging
 from pathlib import Path
 from datetime import datetime
-from fastapi import APIRouter, FastAPI, BackgroundTasks, HTTPException
+from fastapi import APIRouter, FastAPI, BackgroundTasks, HTTPException, Body
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import HTMLResponse, FileResponse, StreamingResponse
 from typing import List
@@ -35,7 +35,11 @@ from dsa110_contimg.api.models import (
     CalTableInfo,
     ExistingCalTables,
     ExistingCalTable,
+    CalTableCompatibility,
     MSMetadata,
+    FieldInfo,
+    AntennaInfo,
+    FlaggingStats,
     MSCalibratorMatchList,
     MSCalibratorMatch,
     WorkflowJobCreateRequest,
@@ -60,6 +64,13 @@ from dsa110_contimg.api.models import (
     CalibrationQA,
     ImageQA,
     QAMetrics,
+    BatchJob,
+    BatchJobStatus,
+    BatchJobList,
+    BatchCalibrateParams,
+    BatchApplyParams,
+    BatchImageParams,
+    BatchJobCreateRequest,
 )
 from dsa110_contimg.api.data_access import _connect
 from dsa110_contimg.api.mock_data import (
@@ -541,13 +552,31 @@ def create_app(config: ApiConfig | None = None) -> FastAPI:
         sort_by: str = "time_desc",
         limit: int = 100,
         offset: int = 0,
+        scan: bool = False,
+        scan_dir: str | None = None,
     ) -> MSList:
-        """List available Measurement Sets with filtering and sorting."""
-        from dsa110_contimg.database.products import ensure_products_db
+        """List available Measurement Sets with filtering and sorting.
+        
+        Args:
+            scan: If True, scan filesystem for MS files before listing
+            scan_dir: Directory to scan (defaults to CONTIMG_OUTPUT_DIR or /scratch/dsa110-contimg/ms)
+        """
+        from dsa110_contimg.database.products import ensure_products_db, discover_ms_files
         from astropy.time import Time
         import astropy.units as u
         
         db_path = Path(os.getenv("PIPELINE_PRODUCTS_DB", "state/products.sqlite3"))
+        
+        # Optionally scan filesystem for MS files
+        if scan:
+            if scan_dir is None:
+                scan_dir = os.getenv("CONTIMG_OUTPUT_DIR", "/scratch/dsa110-contimg/ms")
+            try:
+                discovered = discover_ms_files(db_path, scan_dir, recursive=True)
+                logger.info(f"Discovered {len(discovered)} MS files from {scan_dir}")
+            except Exception as e:
+                logger.warning(f"Failed to scan for MS files: {e}")
+        
         entries: list[MSListEntry] = []
         
         try:
@@ -613,34 +642,23 @@ def create_app(config: ApiConfig | None = None) -> FastAPI:
             order_by = sort_mapping.get(sort_by, "m.mid_mjd DESC")
             
             # Get total count (before pagination)
+            # Simplified query - pointing_history doesn't have ms_path or calibrator columns
             count_query = f"""
                 SELECT COUNT(*) FROM ms_index m
-                LEFT JOIN (
-                    SELECT ms_path, 
-                           MAX(CASE WHEN has_calibrator = 1 THEN 1 ELSE 0 END) as has_calibrator,
-                           MAX(calibrator_name) as calibrator_name,
-                           MAX(calibrator_quality) as calibrator_quality
-                    FROM (
-                        SELECT ms_path, 1 as has_calibrator, name as calibrator_name, quality as calibrator_quality
-                        FROM pointing_history
-                        WHERE calibrator_name IS NOT NULL
-                    )
-                    GROUP BY ms_path
-                ) cm ON m.path = cm.ms_path
                 WHERE {where_sql}
             """
             total_count = conn.execute(count_query, params).fetchone()[0]
             
-            # Main query with joins
+            # Main query with joins (simplified - no calibrator info from pointing_history)
             query = f"""
                 SELECT 
                     m.path,
                     m.mid_mjd,
                     m.status,
                     m.cal_applied,
-                    COALESCE(cm.has_calibrator, 0) as has_calibrator,
-                    cm.calibrator_name,
-                    cm.calibrator_quality,
+                    0 as has_calibrator,
+                    NULL as calibrator_name,
+                    NULL as calibrator_quality,
                     CASE WHEN m.cal_applied = 1 THEN 1 ELSE 0 END as is_calibrated,
                     CASE WHEN m.imagename IS NOT NULL AND m.imagename != '' THEN 1 ELSE 0 END as is_imaged,
                     cq.overall_quality as calibration_quality,
@@ -648,18 +666,6 @@ def create_app(config: ApiConfig | None = None) -> FastAPI:
                     m.start_mjd,
                     m.end_mjd
                 FROM ms_index m
-                LEFT JOIN (
-                    SELECT ms_path, 
-                           MAX(CASE WHEN has_calibrator = 1 THEN 1 ELSE 0 END) as has_calibrator,
-                           MAX(calibrator_name) as calibrator_name,
-                           MAX(calibrator_quality) as calibrator_quality
-                    FROM (
-                        SELECT ms_path, 1 as has_calibrator, name as calibrator_name, quality as calibrator_quality
-                        FROM pointing_history
-                        WHERE calibrator_name IS NOT NULL
-                    )
-                    GROUP BY ms_path
-                ) cm ON m.path = cm.ms_path
                 LEFT JOIN (
                     SELECT ms_path, overall_quality
                     FROM calibration_qa
@@ -718,6 +724,42 @@ def create_app(config: ApiConfig | None = None) -> FastAPI:
             return MSList(items=[], total=0, filtered=0)
         
         return MSList(items=entries, total=total_count, filtered=len(entries))
+
+    @router.post("/ms/discover")
+    def discover_ms(request: dict | None = None) -> dict:
+        """Scan filesystem for MS files and register them in the database.
+        
+        Request body (optional):
+            scan_dir: Directory to scan (defaults to CONTIMG_OUTPUT_DIR or /scratch/dsa110-contimg/ms)
+            recursive: If True, scan subdirectories recursively (default: True)
+            
+        Returns:
+            Dictionary with count of discovered MS files and list of paths
+        """
+        from dsa110_contimg.database.products import ensure_products_db, discover_ms_files
+        
+        db_path = Path(os.getenv("PIPELINE_PRODUCTS_DB", "state/products.sqlite3"))
+        
+        if request is None:
+            request = {}
+        
+        scan_dir = request.get("scan_dir")
+        recursive = request.get("recursive", True)
+        
+        if scan_dir is None:
+            scan_dir = os.getenv("CONTIMG_OUTPUT_DIR", "/scratch/dsa110-contimg/ms")
+        
+        try:
+            discovered = discover_ms_files(db_path, scan_dir, recursive=recursive)
+            return {
+                "success": True,
+                "count": len(discovered),
+                "scan_dir": scan_dir,
+                "discovered": discovered,
+            }
+        except Exception as e:
+            logger.error(f"Failed to discover MS files: {e}", exc_info=True)
+            raise HTTPException(status_code=500, detail=f"Discovery failed: {str(e)}")
 
     @router.get("/jobs", response_model=JobList)
     def list_jobs(limit: int = 50, status: str | None = None) -> JobList:
@@ -1066,8 +1108,9 @@ def create_app(config: ApiConfig | None = None) -> FastAPI:
     @router.get("/ms/{ms_path:path}/metadata", response_model=MSMetadata)
     def get_ms_metadata(ms_path: str) -> MSMetadata:
         """Get metadata for an MS file."""
-        from dsa110_contimg.api.models import MSMetadata
+        from dsa110_contimg.api.models import MSMetadata, FieldInfo, AntennaInfo, FlaggingStats
         from casatools import table, ms as casams
+        import numpy as np
         
         # Decode path
         ms_full_path = f"/{ms_path}" if not ms_path.startswith('/') else ms_path
@@ -1096,13 +1139,83 @@ def create_app(config: ApiConfig | None = None) -> FastAPI:
             metadata.data_columns = data_cols
             metadata.calibrated = 'CORRECTED_DATA' in data_cols
             
+            # Get flagging statistics
+            try:
+                flags = tb.getcol("FLAG")
+                if flags.size > 0:
+                    total_flagged = np.sum(flags)
+                    total_data = flags.size
+                    flag_fraction = float(total_flagged / total_data) if total_data > 0 else 0.0
+                    
+                    # Per-antenna flagging
+                    ant1 = tb.getcol("ANTENNA1")
+                    ant2 = tb.getcol("ANTENNA2")
+                    per_antenna = {}
+                    unique_ants = np.unique(np.concatenate([ant1, ant2]))
+                    for ant_id in unique_ants:
+                        ant_mask = (ant1 == ant_id) | (ant2 == ant_id)
+                        if np.any(ant_mask):
+                            ant_flags = flags[ant_mask]
+                            ant_frac = float(np.sum(ant_flags) / ant_flags.size) if ant_flags.size > 0 else 0.0
+                            per_antenna[str(int(ant_id))] = ant_frac
+                    
+                    # Per-field flagging
+                    field_ids = tb.getcol("FIELD_ID")
+                    per_field = {}
+                    unique_fields = np.unique(field_ids)
+                    for field_id in unique_fields:
+                        field_mask = field_ids == field_id
+                        if np.any(field_mask):
+                            field_flags = flags[field_mask]
+                            field_frac = float(np.sum(field_flags) / field_flags.size) if field_flags.size > 0 else 0.0
+                            per_field[str(int(field_id))] = field_frac
+                    
+                    metadata.flagging_stats = FlaggingStats(
+                        total_fraction=flag_fraction,
+                        per_antenna=per_antenna if per_antenna else None,
+                        per_field=per_field if per_field else None
+                    )
+            except Exception as e:
+                logger.warning(f"Could not extract flagging stats: {e}")
+            
             tb.close()
             
-            # Get field info
+            # Get field info with coordinates
             tb.open(f"{ms_full_path}/FIELD", nomodify=True)
             field_names = tb.getcol("NAME").tolist()
+            phase_dir = tb.getcol("PHASE_DIR")
+            
+            fields = []
+            for i, name in enumerate(field_names):
+                # Extract RA/Dec from PHASE_DIR (handles various shapes)
+                pd = np.asarray(phase_dir[i])
+                if pd.ndim == 3 and pd.shape[-1] == 2:
+                    ra_rad = float(pd[0, 0, 0])
+                    dec_rad = float(pd[0, 0, 1])
+                elif pd.ndim == 2 and pd.shape[-1] == 2:
+                    ra_rad = float(pd[0, 0])
+                    dec_rad = float(pd[0, 1])
+                elif pd.ndim == 1 and pd.shape[0] == 2:
+                    ra_rad = float(pd[0])
+                    dec_rad = float(pd[1])
+                else:
+                    ra_rad = float(pd.ravel()[-2])
+                    dec_rad = float(pd.ravel()[-1])
+                
+                # Convert radians to degrees
+                ra_deg = np.degrees(ra_rad)
+                dec_deg = np.degrees(dec_rad)
+                
+                fields.append(FieldInfo(
+                    field_id=i,
+                    name=str(name),
+                    ra_deg=ra_deg,
+                    dec_deg=dec_deg
+                ))
+            
             metadata.num_fields = len(field_names)
             metadata.field_names = field_names
+            metadata.fields = fields
             tb.close()
             
             # Get spectral window info
@@ -1114,9 +1227,17 @@ def create_app(config: ApiConfig | None = None) -> FastAPI:
                 metadata.num_channels = int(chan_freqs.shape[0])
             tb.close()
             
-            # Get antenna info
+            # Get antenna info with names
             tb.open(f"{ms_full_path}/ANTENNA", nomodify=True)
-            metadata.num_antennas = tb.nrows()
+            antenna_names = tb.getcol("NAME").tolist()
+            antennas = []
+            for i, name in enumerate(antenna_names):
+                antennas.append(AntennaInfo(
+                    antenna_id=i,
+                    name=str(name)
+                ))
+            metadata.num_antennas = len(antennas)
+            metadata.antennas = antennas
             tb.close()
             
             # Get size
@@ -1128,6 +1249,7 @@ def create_app(config: ApiConfig | None = None) -> FastAPI:
             metadata.size_gb = round(size_bytes / (1024**3), 2)
             
         except Exception as e:
+            logger.error(f"Error extracting MS metadata: {e}")
             # Return partial metadata if some operations fail
             pass
         
@@ -1172,10 +1294,11 @@ def create_app(config: ApiConfig | None = None) -> FastAPI:
             
             # Load catalog
             if catalog == "vla":
-                cat_path = os.getenv("VLA_CATALOG", "/data/dsa110-contimg/data/catalogs/VLA_calibrators_parsed.csv")
-                if not os.path.exists(cat_path):
-                    raise HTTPException(status_code=500, detail=f"Catalog not found: {cat_path}")
-                df = read_vla_parsed_catalog_csv(cat_path)
+                from dsa110_contimg.calibration.catalogs import load_vla_catalog
+                try:
+                    df = load_vla_catalog()
+                except FileNotFoundError as e:
+                    raise HTTPException(status_code=500, detail=f"VLA catalog not found: {e}")
             else:
                 raise HTTPException(status_code=400, detail="Unknown catalog")
             
@@ -1292,6 +1415,134 @@ def create_app(config: ApiConfig | None = None) -> FastAPI:
             has_k=len(k_tables) > 0,
             has_bp=len(bp_tables) > 0,
             has_g=len(g_tables) > 0
+        )
+
+    @router.post("/ms/{ms_path:path}/validate-caltable", response_model=CalTableCompatibility)
+    def validate_caltable_compatibility(
+        ms_path: str,
+        caltable_path: str = Body(..., embed=True)
+    ) -> CalTableCompatibility:
+        """Validate that a calibration table is compatible with an MS file.
+        
+        Checks:
+        - Antennas match
+        - Frequency ranges overlap
+        - Table structure is valid
+        """
+        from casatools import table
+        import numpy as np
+        
+        # Decode paths
+        ms_full_path = f"/{ms_path}" if not ms_path.startswith('/') else ms_path
+        cal_full_path = f"/{caltable_path}" if not caltable_path.startswith('/') else caltable_path
+        
+        if not os.path.exists(ms_full_path):
+            raise HTTPException(status_code=404, detail="MS not found")
+        if not os.path.exists(cal_full_path):
+            raise HTTPException(status_code=404, detail="Calibration table not found")
+        
+        issues = []
+        warnings = []
+        is_compatible = True
+        
+        ms_antennas = []
+        caltable_antennas = []
+        ms_freq_min_ghz = None
+        ms_freq_max_ghz = None
+        caltable_freq_min_ghz = None
+        caltable_freq_max_ghz = None
+        
+        try:
+            # Get MS antennas
+            tb = table()
+            tb.open(f"{ms_full_path}/ANTENNA", nomodify=True)
+            ms_antennas = list(range(tb.nrows()))
+            tb.close()
+            
+            # Get MS frequency range
+            tb.open(f"{ms_full_path}/SPECTRAL_WINDOW", nomodify=True)
+            chan_freqs = tb.getcol("CHAN_FREQ")
+            if len(chan_freqs) > 0:
+                ms_freq_min_ghz = float(chan_freqs.min() / 1e9)
+                ms_freq_max_ghz = float(chan_freqs.max() / 1e9)
+            tb.close()
+            
+            # Get calibration table antennas and frequencies
+            tb.open(cal_full_path, nomodify=True)
+            if tb.nrows() == 0:
+                issues.append("Calibration table has no solutions")
+                is_compatible = False
+            else:
+                # Get antennas from cal table
+                if "ANTENNA1" in tb.colnames():
+                    cal_ant1 = tb.getcol("ANTENNA1")
+                    caltable_antennas = sorted(list(set(cal_ant1.tolist())))
+                
+                # Get spectral window from cal table
+                if "SPECTRAL_WINDOW_ID" in tb.colnames():
+                    spw_ids = tb.getcol("SPECTRAL_WINDOW_ID")
+                    unique_spws = np.unique(spw_ids)
+                    
+                    # Try to get frequency info from cal table's SPECTRAL_WINDOW subtable
+                    try:
+                        tb_spw = table()
+                        tb_spw.open(f"{cal_full_path}/SPECTRAL_WINDOW", nomodify=True)
+                        if tb_spw.nrows() > 0:
+                            cal_chan_freqs = tb_spw.getcol("CHAN_FREQ")
+                            if len(cal_chan_freqs) > 0:
+                                caltable_freq_min_ghz = float(cal_chan_freqs.min() / 1e9)
+                                caltable_freq_max_ghz = float(cal_chan_freqs.max() / 1e9)
+                        tb_spw.close()
+                    except Exception:
+                        warnings.append("Could not extract frequency range from calibration table")
+            tb.close()
+            
+            # Validate antenna compatibility
+            if caltable_antennas:
+                missing_ants = set(caltable_antennas) - set(ms_antennas)
+                if missing_ants:
+                    issues.append(f"Calibration table contains antennas not in MS: {sorted(missing_ants)}")
+                    is_compatible = False
+                
+                extra_ants = set(ms_antennas) - set(caltable_antennas)
+                if extra_ants:
+                    warnings.append(f"MS contains antennas not in calibration table: {sorted(extra_ants)}")
+            
+            # Validate frequency compatibility
+            if ms_freq_min_ghz and ms_freq_max_ghz and caltable_freq_min_ghz and caltable_freq_max_ghz:
+                # Check if frequency ranges overlap
+                freq_overlap = not (ms_freq_max_ghz < caltable_freq_min_ghz or caltable_freq_max_ghz < ms_freq_min_ghz)
+                if not freq_overlap:
+                    issues.append(
+                        f"Frequency ranges do not overlap: "
+                        f"MS={ms_freq_min_ghz:.3f}-{ms_freq_max_ghz:.3f} GHz, "
+                        f"Cal={caltable_freq_min_ghz:.3f}-{caltable_freq_max_ghz:.3f} GHz"
+                    )
+                    is_compatible = False
+                else:
+                    # Check if ranges are significantly different
+                    ms_range = ms_freq_max_ghz - ms_freq_min_ghz
+                    cal_range = caltable_freq_max_ghz - caltable_freq_min_ghz
+                    if abs(ms_range - cal_range) / max(ms_range, cal_range) > 0.2:
+                        warnings.append("Frequency ranges have different widths (may indicate different observations)")
+            
+        except Exception as e:
+            logger.error(f"Error validating calibration table compatibility: {e}")
+            issues.append(f"Validation error: {e}")
+            is_compatible = False
+        
+        return CalTableCompatibility(
+            is_compatible=is_compatible,
+            caltable_path=caltable_path,
+            ms_path=ms_path,
+            issues=issues,
+            warnings=warnings,
+            ms_antennas=ms_antennas,
+            caltable_antennas=caltable_antennas,
+            ms_freq_min_ghz=ms_freq_min_ghz,
+            ms_freq_max_ghz=ms_freq_max_ghz,
+            caltable_freq_min_ghz=caltable_freq_min_ghz,
+            caltable_freq_max_ghz=caltable_freq_max_ghz
         )
 
     @router.get("/qa/calibration/{ms_path:path}", response_model=CalibrationQA)
@@ -1544,6 +1795,201 @@ def create_app(config: ApiConfig | None = None) -> FastAPI:
         finally:
             conn.close()
 
+    @router.get("/plots/caltable/{caltable_path:path}")
+    def get_caltable_plot(
+        caltable_path: str,
+        plot_type: str = "amp_vs_freq",  # amp_vs_freq, phase_vs_time, phase_vs_freq
+        antenna: int | None = None
+    ):
+        """Generate and serve a calibration solution plot for a calibration table.
+        
+        Plot types:
+        - amp_vs_freq: Amplitude vs frequency (for bandpass tables)
+        - phase_vs_time: Phase vs time (for gain tables)
+        - phase_vs_freq: Phase vs frequency (for bandpass tables)
+        """
+        from casatools import table
+        import numpy as np
+        import matplotlib
+        matplotlib.use("Agg")
+        import matplotlib.pyplot as plt
+        from io import BytesIO
+        
+        # Decode path
+        cal_full_path = f"/{caltable_path}" if not caltable_path.startswith('/') else caltable_path
+        
+        if not os.path.exists(cal_full_path):
+            raise HTTPException(status_code=404, detail="Calibration table not found")
+        
+        try:
+            tb = table()
+            tb.open(cal_full_path, nomodify=True)
+            
+            if tb.nrows() == 0:
+                raise HTTPException(status_code=400, detail="Calibration table has no solutions")
+            
+            # Get data columns
+            antenna_ids = tb.getcol("ANTENNA1") if "ANTENNA1" in tb.colnames() else None
+            spw_ids = tb.getcol("SPECTRAL_WINDOW_ID") if "SPECTRAL_WINDOW_ID" in tb.colnames() else None
+            times = tb.getcol("TIME") if "TIME" in tb.colnames() else None
+            gains = tb.getcol("CPARAM") if "CPARAM" in tb.colnames() else None
+            flags = tb.getcol("FLAG") if "FLAG" in tb.colnames() else None
+            
+            if gains is None:
+                raise HTTPException(status_code=400, detail="Calibration table does not contain CPARAM column")
+            
+            # Convert to numpy arrays
+            antenna_ids = np.asarray(antenna_ids) if antenna_ids is not None else None
+            spw_ids = np.asarray(spw_ids) if spw_ids is not None else None
+            times = np.asarray(times) if times is not None else None
+            gains = np.asarray(gains)
+            flags = np.asarray(flags) if flags is not None else np.zeros(gains.shape, dtype=bool)
+            
+            # Mask flagged values
+            gains_masked = np.where(flags, np.nan + 0j, gains)
+            
+            # Filter by antenna if specified
+            if antenna is not None and antenna_ids is not None:
+                ant_mask = antenna_ids == antenna
+                if not np.any(ant_mask):
+                    raise HTTPException(status_code=404, detail=f"Antenna {antenna} not found in calibration table")
+                gains_masked = gains_masked[ant_mask]
+                if spw_ids is not None:
+                    spw_ids = spw_ids[ant_mask]
+                if times is not None:
+                    times = times[ant_mask]
+            
+            # Generate plot based on type
+            fig, ax = plt.subplots(figsize=(10, 6))
+            
+            if plot_type == "amp_vs_freq":
+                # For bandpass: amplitude vs frequency
+                if spw_ids is None:
+                    raise HTTPException(status_code=400, detail="Cannot plot amplitude vs frequency: no SPW information")
+                
+                # Get frequencies from SPW subtable
+                try:
+                    tb_spw = table()
+                    tb_spw.open(f"{cal_full_path}/SPECTRAL_WINDOW", nomodify=True)
+                    chan_freqs = tb_spw.getcol("CHAN_FREQ")
+                    tb_spw.close()
+                    
+                    # Flatten gains and create frequency array
+                    amplitudes = np.abs(gains_masked)
+                    if amplitudes.ndim > 1:
+                        # Average over polarization if needed
+                        amplitudes = np.nanmean(amplitudes, axis=-1) if amplitudes.ndim > 1 else amplitudes
+                    
+                    # Create frequency array matching the data
+                    unique_spws = np.unique(spw_ids)
+                    freq_data = []
+                    amp_data = []
+                    
+                    for spw in unique_spws:
+                        spw_mask = spw_ids == spw
+                        if np.any(spw_mask):
+                            spw_freqs = chan_freqs[int(spw)] / 1e9  # Convert to GHz
+                            spw_amps = amplitudes[spw_mask]
+                            if spw_amps.ndim > 1:
+                                spw_amps = np.nanmean(spw_amps, axis=-1)
+                            freq_data.extend(spw_freqs.tolist())
+                            amp_data.extend(spw_amps.tolist())
+                    
+                    ax.plot(freq_data, amp_data, 'b-', alpha=0.7, linewidth=0.5)
+                    ax.set_xlabel('Frequency (GHz)')
+                    ax.set_ylabel('Amplitude')
+                    ax.set_title(f'Bandpass Amplitude vs Frequency{(" (Antenna " + str(antenna) + ")") if antenna is not None else ""}')
+                    ax.grid(True, alpha=0.3)
+                    
+                except Exception as e:
+                    logger.error(f"Error plotting amplitude vs frequency: {e}")
+                    raise HTTPException(status_code=500, detail=f"Error generating plot: {e}")
+                    
+            elif plot_type == "phase_vs_time":
+                # For gain: phase vs time
+                if times is None:
+                    raise HTTPException(status_code=400, detail="Cannot plot phase vs time: no TIME column")
+                
+                phases = np.angle(gains_masked)
+                if phases.ndim > 1:
+                    phases = np.nanmean(phases, axis=-1)
+                
+                # Convert CASA time to hours since start
+                time_hours = (times - times.min()) / 3600.0
+                phases_deg = np.degrees(phases)
+                
+                ax.plot(time_hours, phases_deg, 'b-', alpha=0.7, linewidth=0.5)
+                ax.set_xlabel('Time (hours since start)')
+                ax.set_ylabel('Phase (degrees)')
+                ax.set_title(f'Gain Phase vs Time{(" (Antenna " + str(antenna) + ")") if antenna is not None else ""}')
+                ax.grid(True, alpha=0.3)
+                
+            elif plot_type == "phase_vs_freq":
+                # For bandpass: phase vs frequency
+                if spw_ids is None:
+                    raise HTTPException(status_code=400, detail="Cannot plot phase vs frequency: no SPW information")
+                
+                try:
+                    tb_spw = table()
+                    tb_spw.open(f"{cal_full_path}/SPECTRAL_WINDOW", nomodify=True)
+                    chan_freqs = tb_spw.getcol("CHAN_FREQ")
+                    tb_spw.close()
+                    
+                    phases = np.angle(gains_masked)
+                    if phases.ndim > 1:
+                        phases = np.nanmean(phases, axis=-1)
+                    
+                    unique_spws = np.unique(spw_ids)
+                    freq_data = []
+                    phase_data = []
+                    
+                    for spw in unique_spws:
+                        spw_mask = spw_ids == spw
+                        if np.any(spw_mask):
+                            spw_freqs = chan_freqs[int(spw)] / 1e9  # Convert to GHz
+                            spw_phases = phases[spw_mask]
+                            if spw_phases.ndim > 1:
+                                spw_phases = np.nanmean(spw_phases, axis=-1)
+                            freq_data.extend(spw_freqs.tolist())
+                            phase_data.extend(np.degrees(spw_phases).tolist())
+                    
+                    ax.plot(freq_data, phase_data, 'b-', alpha=0.7, linewidth=0.5)
+                    ax.set_xlabel('Frequency (GHz)')
+                    ax.set_ylabel('Phase (degrees)')
+                    ax.set_title(f'Bandpass Phase vs Frequency{(" (Antenna " + str(antenna) + ")") if antenna is not None else ""}')
+                    ax.grid(True, alpha=0.3)
+                    
+                except Exception as e:
+                    logger.error(f"Error plotting phase vs frequency: {e}")
+                    raise HTTPException(status_code=500, detail=f"Error generating plot: {e}")
+            else:
+                raise HTTPException(status_code=400, detail=f"Unknown plot type: {plot_type}")
+            
+            tb.close()
+            
+            # Save plot to BytesIO
+            buf = BytesIO()
+            plt.savefig(buf, format='png', dpi=100, bbox_inches='tight')
+            plt.close(fig)
+            buf.seek(0)
+            
+            return FileResponse(
+                buf,
+                media_type="image/png",
+                filename=f"{os.path.basename(cal_full_path)}_{plot_type}.png"
+            )
+            
+        except HTTPException:
+            raise
+        except Exception as e:
+            logger.error(f"Error generating calibration plot: {e}")
+            raise HTTPException(status_code=500, detail=f"Error generating plot: {str(e)}")
+        finally:
+            try:
+                tb.close()
+            except:
+                pass
+
     @router.post("/jobs/workflow", response_model=Job)
     def create_workflow_job(request: WorkflowJobCreateRequest, background_tasks: BackgroundTasks) -> Job:
         """Create and run a full pipeline workflow (Convert → Calibrate → Image)."""
@@ -1580,6 +2026,393 @@ def create_app(config: ApiConfig | None = None) -> FastAPI:
             started_at=datetime.fromtimestamp(jd["started_at"]) if jd["started_at"] else None,
             finished_at=datetime.fromtimestamp(jd["finished_at"]) if jd["finished_at"] else None,
         )
+
+    # Batch job endpoints
+    @router.post("/batch/calibrate", response_model=BatchJob)
+    def create_batch_calibrate_job(request: BatchJobCreateRequest, background_tasks: BackgroundTasks) -> BatchJob:
+        """Create a batch calibration job for multiple MS files."""
+        from dsa110_contimg.database.products import ensure_products_db
+        from dsa110_contimg.api.batch_jobs import create_batch_job
+        from dsa110_contimg.api.job_runner import run_batch_calibrate_job
+        
+        if request.job_type != "calibrate":
+            raise HTTPException(status_code=400, detail="Job type must be 'calibrate'")
+        
+        if not isinstance(request.params, BatchCalibrateParams):
+            raise HTTPException(status_code=400, detail="Invalid params type for batch calibrate")
+        
+        db_path = Path(os.getenv("PIPELINE_PRODUCTS_DB", "state/products.sqlite3"))
+        conn = ensure_products_db(db_path)
+        
+        try:
+            batch_id = create_batch_job(
+                conn,
+                "batch_calibrate",
+                request.params.ms_paths,
+                request.params.params.model_dump()
+            )
+            
+            # Start batch processing in background
+            background_tasks.add_task(
+                run_batch_calibrate_job,
+                batch_id,
+                request.params.ms_paths,
+                request.params.params.model_dump(),
+                db_path
+            )
+            
+            # Get batch job details
+            cursor = conn.execute(
+                """
+                SELECT id, type, created_at, status, total_items, completed_items, failed_items, params
+                FROM batch_jobs WHERE id = ?
+                """,
+                (batch_id,)
+            )
+            row = cursor.fetchone()
+            
+            # Get batch items
+            items_cursor = conn.execute(
+                """
+                SELECT ms_path, job_id, status, error, started_at, completed_at
+                FROM batch_job_items WHERE batch_id = ?
+                """,
+                (batch_id,)
+            )
+            items = []
+            for item_row in items_cursor.fetchall():
+                items.append(BatchJobStatus(
+                    ms_path=item_row[0],
+                    job_id=item_row[1],
+                    status=item_row[2],
+                    error=item_row[3],
+                    started_at=datetime.fromtimestamp(item_row[4]) if item_row[4] else None,
+                    completed_at=datetime.fromtimestamp(item_row[5]) if item_row[5] else None,
+                ))
+            
+            return BatchJob(
+                id=row[0],
+                type=row[1],
+                created_at=datetime.fromtimestamp(row[2]),
+                status=row[3],
+                total_items=row[4],
+                completed_items=row[5],
+                failed_items=row[6],
+                params=json.loads(row[7]) if row[7] else {},
+                items=items
+            )
+        finally:
+            conn.close()
+
+    @router.post("/batch/apply", response_model=BatchJob)
+    def create_batch_apply_job(request: BatchJobCreateRequest, background_tasks: BackgroundTasks) -> BatchJob:
+        """Create a batch apply job for multiple MS files."""
+        from dsa110_contimg.database.products import ensure_products_db
+        from dsa110_contimg.api.batch_jobs import create_batch_job
+        from dsa110_contimg.api.job_runner import run_batch_apply_job
+        
+        if request.job_type != "apply":
+            raise HTTPException(status_code=400, detail="Job type must be 'apply'")
+        
+        if not isinstance(request.params, BatchApplyParams):
+            raise HTTPException(status_code=400, detail="Invalid params type for batch apply")
+        
+        db_path = Path(os.getenv("PIPELINE_PRODUCTS_DB", "state/products.sqlite3"))
+        conn = ensure_products_db(db_path)
+        
+        try:
+            batch_id = create_batch_job(
+                conn,
+                "batch_apply",
+                request.params.ms_paths,
+                request.params.params.model_dump()
+            )
+            
+            background_tasks.add_task(
+                run_batch_apply_job,
+                batch_id,
+                request.params.ms_paths,
+                request.params.params.model_dump(),
+                db_path
+            )
+            
+            # Get batch job details (same as calibrate)
+            cursor = conn.execute(
+                """
+                SELECT id, type, created_at, status, total_items, completed_items, failed_items, params
+                FROM batch_jobs WHERE id = ?
+                """,
+                (batch_id,)
+            )
+            row = cursor.fetchone()
+            
+            items_cursor = conn.execute(
+                """
+                SELECT ms_path, job_id, status, error, started_at, completed_at
+                FROM batch_job_items WHERE batch_id = ?
+                """,
+                (batch_id,)
+            )
+            items = []
+            for item_row in items_cursor.fetchall():
+                items.append(BatchJobStatus(
+                    ms_path=item_row[0],
+                    job_id=item_row[1],
+                    status=item_row[2],
+                    error=item_row[3],
+                    started_at=datetime.fromtimestamp(item_row[4]) if item_row[4] else None,
+                    completed_at=datetime.fromtimestamp(item_row[5]) if item_row[5] else None,
+                ))
+            
+            return BatchJob(
+                id=row[0],
+                type=row[1],
+                created_at=datetime.fromtimestamp(row[2]),
+                status=row[3],
+                total_items=row[4],
+                completed_items=row[5],
+                failed_items=row[6],
+                params=json.loads(row[7]) if row[7] else {},
+                items=items
+            )
+        finally:
+            conn.close()
+
+    @router.post("/batch/image", response_model=BatchJob)
+    def create_batch_image_job(request: BatchJobCreateRequest, background_tasks: BackgroundTasks) -> BatchJob:
+        """Create a batch imaging job for multiple MS files."""
+        from dsa110_contimg.database.products import ensure_products_db
+        from dsa110_contimg.api.batch_jobs import create_batch_job
+        from dsa110_contimg.api.job_runner import run_batch_image_job
+        
+        if request.job_type != "image":
+            raise HTTPException(status_code=400, detail="Job type must be 'image'")
+        
+        if not isinstance(request.params, BatchImageParams):
+            raise HTTPException(status_code=400, detail="Invalid params type for batch image")
+        
+        db_path = Path(os.getenv("PIPELINE_PRODUCTS_DB", "state/products.sqlite3"))
+        conn = ensure_products_db(db_path)
+        
+        try:
+            batch_id = create_batch_job(
+                conn,
+                "batch_image",
+                request.params.ms_paths,
+                request.params.params.model_dump()
+            )
+            
+            background_tasks.add_task(
+                run_batch_image_job,
+                batch_id,
+                request.params.ms_paths,
+                request.params.params.model_dump(),
+                db_path
+            )
+            
+            # Get batch job details (same as calibrate)
+            cursor = conn.execute(
+                """
+                SELECT id, type, created_at, status, total_items, completed_items, failed_items, params
+                FROM batch_jobs WHERE id = ?
+                """,
+                (batch_id,)
+            )
+            row = cursor.fetchone()
+            
+            items_cursor = conn.execute(
+                """
+                SELECT ms_path, job_id, status, error, started_at, completed_at
+                FROM batch_job_items WHERE batch_id = ?
+                """,
+                (batch_id,)
+            )
+            items = []
+            for item_row in items_cursor.fetchall():
+                items.append(BatchJobStatus(
+                    ms_path=item_row[0],
+                    job_id=item_row[1],
+                    status=item_row[2],
+                    error=item_row[3],
+                    started_at=datetime.fromtimestamp(item_row[4]) if item_row[4] else None,
+                    completed_at=datetime.fromtimestamp(item_row[5]) if item_row[5] else None,
+                ))
+            
+            return BatchJob(
+                id=row[0],
+                type=row[1],
+                created_at=datetime.fromtimestamp(row[2]),
+                status=row[3],
+                total_items=row[4],
+                completed_items=row[5],
+                failed_items=row[6],
+                params=json.loads(row[7]) if row[7] else {},
+                items=items
+            )
+        finally:
+            conn.close()
+
+    @router.get("/batch", response_model=BatchJobList)
+    def list_batch_jobs(limit: int = 50, status: str | None = None) -> BatchJobList:
+        """List batch jobs with optional status filter."""
+        from dsa110_contimg.database.products import ensure_products_db
+        
+        db_path = Path(os.getenv("PIPELINE_PRODUCTS_DB", "state/products.sqlite3"))
+        conn = ensure_products_db(db_path)
+        
+        try:
+            query = """
+                SELECT id, type, created_at, status, total_items, completed_items, failed_items, params
+                FROM batch_jobs
+            """
+            params: list[object] = []
+            
+            if status:
+                query += " WHERE status = ?"
+                params.append(status)
+            
+            query += " ORDER BY created_at DESC LIMIT ?"
+            params.append(limit)
+            
+            cursor = conn.execute(query, params)
+            batches = []
+            
+            for row in cursor.fetchall():
+                batch_id = row[0]
+                
+                # Get items for this batch
+                items_cursor = conn.execute(
+                    """
+                    SELECT ms_path, job_id, status, error, started_at, completed_at
+                    FROM batch_job_items WHERE batch_id = ?
+                    """,
+                    (batch_id,)
+                )
+                items = []
+                for item_row in items_cursor.fetchall():
+                    items.append(BatchJobStatus(
+                        ms_path=item_row[0],
+                        job_id=item_row[1],
+                        status=item_row[2],
+                        error=item_row[3],
+                        started_at=datetime.fromtimestamp(item_row[4]) if item_row[4] else None,
+                        completed_at=datetime.fromtimestamp(item_row[5]) if item_row[5] else None,
+                    ))
+                
+                batches.append(BatchJob(
+                    id=row[0],
+                    type=row[1],
+                    created_at=datetime.fromtimestamp(row[2]),
+                    status=row[3],
+                    total_items=row[4],
+                    completed_items=row[5],
+                    failed_items=row[6],
+                    params=json.loads(row[7]) if row[7] else {},
+                    items=items
+                ))
+            
+            return BatchJobList(items=batches)
+        finally:
+            conn.close()
+
+    @router.get("/batch/{batch_id}", response_model=BatchJob)
+    def get_batch_job(batch_id: int) -> BatchJob:
+        """Get batch job details by ID."""
+        from dsa110_contimg.database.products import ensure_products_db
+        
+        db_path = Path(os.getenv("PIPELINE_PRODUCTS_DB", "state/products.sqlite3"))
+        conn = ensure_products_db(db_path)
+        
+        try:
+            cursor = conn.execute(
+                """
+                SELECT id, type, created_at, status, total_items, completed_items, failed_items, params
+                FROM batch_jobs WHERE id = ?
+                """,
+                (batch_id,)
+            )
+            row = cursor.fetchone()
+            
+            if not row:
+                raise HTTPException(status_code=404, detail="Batch job not found")
+            
+            # Get items
+            items_cursor = conn.execute(
+                """
+                SELECT ms_path, job_id, status, error, started_at, completed_at
+                FROM batch_job_items WHERE batch_id = ?
+                ORDER BY id
+                """,
+                (batch_id,)
+            )
+            items = []
+            for item_row in items_cursor.fetchall():
+                items.append(BatchJobStatus(
+                    ms_path=item_row[0],
+                    job_id=item_row[1],
+                    status=item_row[2],
+                    error=item_row[3],
+                    started_at=datetime.fromtimestamp(item_row[4]) if item_row[4] else None,
+                    completed_at=datetime.fromtimestamp(item_row[5]) if item_row[5] else None,
+                ))
+            
+            return BatchJob(
+                id=row[0],
+                type=row[1],
+                created_at=datetime.fromtimestamp(row[2]),
+                status=row[3],
+                total_items=row[4],
+                completed_items=row[5],
+                failed_items=row[6],
+                params=json.loads(row[7]) if row[7] else {},
+                items=items
+            )
+        finally:
+            conn.close()
+
+    @router.post("/batch/{batch_id}/cancel")
+    def cancel_batch_job(batch_id: int):
+        """Cancel a running batch job."""
+        from dsa110_contimg.database.products import ensure_products_db
+        
+        db_path = Path(os.getenv("PIPELINE_PRODUCTS_DB", "state/products.sqlite3"))
+        conn = ensure_products_db(db_path)
+        
+        try:
+            # Check if batch exists
+            cursor = conn.execute(
+                "SELECT status FROM batch_jobs WHERE id = ?",
+                (batch_id,)
+            )
+            row = cursor.fetchone()
+            
+            if not row:
+                raise HTTPException(status_code=404, detail="Batch job not found")
+            
+            if row[0] not in ("pending", "running"):
+                raise HTTPException(status_code=400, detail=f"Cannot cancel batch job in status: {row[0]}")
+            
+            # Update batch status to cancelled
+            conn.execute(
+                "UPDATE batch_jobs SET status = 'cancelled' WHERE id = ?",
+                (batch_id,)
+            )
+            
+            # Update pending/running items to cancelled
+            conn.execute(
+                """
+                UPDATE batch_job_items
+                SET status = 'cancelled'
+                WHERE batch_id = ? AND status IN ('pending', 'running')
+                """,
+                (batch_id,)
+            )
+            
+            conn.commit()
+            
+            return {"message": f"Batch job {batch_id} cancelled", "batch_id": batch_id}
+        finally:
+            conn.close()
 
     @router.get("/jobs/healthz")
     def jobs_health():
@@ -1689,3 +2522,9 @@ def create_app(config: ApiConfig | None = None) -> FastAPI:
             "db_error": db_error,
             "disk_ok": disk_ok,
             "disk": disk,
+        }
+
+    # Include router after all routes are defined
+    app.include_router(router)
+    
+    return app

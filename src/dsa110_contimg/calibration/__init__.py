@@ -10,7 +10,7 @@ Modules:
 - cli: command-line interface to run the pipeline
 
 Notes
-- Transit utilities (meridian/HA=0) live in `schedule.py` (e.g., `previous_transits`, `next_transit_time`, `OVRO`).
+- Transit utilities (meridian/HA=0) live in `schedule.py` (e.g., `previous_transits`, `next_transit_time`, `DSA110_LOCATION`).
 - Calibrator matching integrates with the streaming pipeline and monitoring API; see docs/README.md “Calibrator Matching & Transits”.
 """
 

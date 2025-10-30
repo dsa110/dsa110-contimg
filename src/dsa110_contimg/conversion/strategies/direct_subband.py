@@ -1,8 +1,8 @@
 """
-Direct MS writer for DSA-110 subband UVH5 files.
+Parallel MS writer for DSA-110 subband UVH5 files.
 
-This strategy creates per-subband MS files in parallel and then concatenates
-them into a single multi-SPW Measurement Set.
+This strategy creates per-subband MS files in parallel, concatenates them,
+and then merges all SPWs into a single SPW Measurement Set.
 """
 
 import os
@@ -24,7 +24,11 @@ if TYPE_CHECKING:
 
 
 class DirectSubbandWriter(MSWriter):
-    """Writes an MS by creating and concatenating per-subband parts."""
+    """Writes an MS by creating and concatenating per-subband parts, then merging SPWs.
+    
+    This writer creates per-subband MS files in parallel, concatenates them into
+    a multi-SPW MS, and then automatically merges all SPWs into a single SPW.
+    """
 
     def __init__(self, uv: "UVData", ms_path: str, **kwargs: Any) -> None:
         super().__init__(uv, ms_path, **kwargs)
@@ -39,6 +43,10 @@ class DirectSubbandWriter(MSWriter):
             self.kwargs.get("stage_to_tmpfs", False)
         )
         self.tmpfs_path: str = str(self.kwargs.get("tmpfs_path", "/dev/shm"))
+        # Optional: disable SPW merging (for backward compatibility)
+        self.merge_spws: bool = bool(
+            self.kwargs.get("merge_spws", True)  # Default: merge SPWs
+        )
 
     def get_files_to_process(self) -> Optional[List[str]]:
         return self.file_list
@@ -150,6 +158,39 @@ class DirectSubbandWriter(MSWriter):
                     f"Copied staged MS to final location: {ms_final_path}"
                 )
 
+        # Merge SPWs into a single SPW if requested
+        if self.merge_spws:
+            try:
+                from dsa110_contimg.conversion.merge_spws import merge_spws, get_spw_count
+                
+                n_spw_before = get_spw_count(str(ms_stage_path))
+                if n_spw_before and n_spw_before > 1:
+                    print(f"Merging {n_spw_before} SPWs into a single SPW...")
+                    ms_multi_spw = str(ms_stage_path)
+                    ms_single_spw = str(ms_stage_path) + ".merged"
+                    
+                    merge_spws(
+                        ms_in=ms_multi_spw,
+                        ms_out=ms_single_spw,
+                        datacolumn="DATA",
+                        regridms=True,
+                        keepflags=True,
+                    )
+                    
+                    # Replace multi-SPW MS with single-SPW MS
+                    shutil.rmtree(ms_multi_spw, ignore_errors=True)
+                    shutil.move(ms_single_spw, ms_multi_spw)
+                    
+                    n_spw_after = get_spw_count(str(ms_stage_path))
+                    if n_spw_after == 1:
+                        print(f"✓ Successfully merged SPWs: {n_spw_before} → 1")
+                    else:
+                        print(f"⚠ Warning: Expected 1 SPW after merge, got {n_spw_after}")
+            except Exception as merge_err:
+                print(f"Warning: SPW merging failed (non-fatal): {merge_err}")
+                import traceback
+                traceback.print_exc()
+
         # Clean up temporary per-subband Measurement Sets and staging dir.
         try:
             for part in parts:
@@ -158,7 +199,7 @@ class DirectSubbandWriter(MSWriter):
         except Exception as cleanup_err:
             print(f"Warning: failed to clean subband parts: {cleanup_err}")
 
-        return "direct-subband"
+        return "parallel-subband"
 
 
 def _write_ms_subband_part(subband_file: str, part_out: str) -> str:
@@ -186,7 +227,7 @@ def _write_ms_subband_part(subband_file: str, part_out: str) -> str:
     try:
         set_telescope_identity(
             uv,
-            os.getenv("PIPELINE_TELESCOPE_NAME", "OVRO_DSA"),
+            os.getenv("PIPELINE_TELESCOPE_NAME", "DSA_110"),
             -118.2817,
             37.2314,
             1222.0,
@@ -297,4 +338,4 @@ def write_ms_from_subbands(file_list, ms_path, scratch_dir=None):
     except Exception as cleanup_err:
         print(f"Warning: failed to clean subband parts: {cleanup_err}")
 
-    return "direct-subband"
+    return "parallel-subband"

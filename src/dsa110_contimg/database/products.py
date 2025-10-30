@@ -8,7 +8,7 @@ import os
 import sqlite3
 import time
 from pathlib import Path
-from typing import Optional
+from typing import Optional, Tuple, List
 
 
 def ensure_products_db(path: Path) -> sqlite3.Connection:
@@ -321,4 +321,117 @@ def photometry_insert(
     )
 
 
-__all__ = ['ensure_products_db', 'ms_index_upsert', 'images_insert', 'photometry_insert']
+def _ms_time_range(ms_path: str) -> Tuple[Optional[float], Optional[float], Optional[float]]:
+    """Best-effort extraction of (start, end, mid) MJD from an MS using casatools.
+    Returns (None, None, None) if unavailable.
+    """
+    try:
+        from casatools import msmetadata  # type: ignore
+
+        msmd = msmetadata()
+        msmd.open(ms_path)
+        # Preferred: explicit observation timerange in MJD days
+        try:
+            tr = msmd.timerangeforobs()
+            if tr and isinstance(tr, (list, tuple)) and len(tr) >= 2:
+                start_mjd = float(tr[0])
+                end_mjd = float(tr[1])
+                msmd.close()
+                return start_mjd, end_mjd, 0.5 * (start_mjd + end_mjd)
+        except Exception:
+            pass
+
+        # Fallback: derive from timesforscans() (seconds, MJD seconds offset)
+        try:
+            tmap = msmd.timesforscans()
+            msmd.close()
+            if isinstance(tmap, dict) and tmap:
+                all_ts = [t for arr in tmap.values() for t in arr]
+                if all_ts:
+                    t0 = min(all_ts)
+                    t1 = max(all_ts)
+                    # Convert seconds to MJD days if needed
+                    start_mjd = float(t0) / 86400.0
+                    end_mjd = float(t1) / 86400.0
+                    return start_mjd, end_mjd, 0.5 * (start_mjd + end_mjd)
+        except Exception:
+            pass
+        msmd.close()
+    except Exception:
+        pass
+    return None, None, None
+
+
+def discover_ms_files(
+    db_path: Path,
+    scan_dir: str | Path,
+    *,
+    recursive: bool = True,
+    status: str = "discovered",
+    stage: str = "discovered",
+) -> List[str]:
+    """Scan filesystem for MS files and register them in the database.
+    
+    Args:
+        db_path: Path to products database
+        scan_dir: Directory to scan for MS files
+        recursive: If True, scan subdirectories recursively
+        status: Status to assign to newly discovered MS files
+        stage: Stage to assign to newly discovered MS files
+        
+    Returns:
+        List of MS file paths that were registered (new or updated)
+    """
+    scan_path = Path(scan_dir)
+    if not scan_path.exists():
+        return []
+    
+    conn = ensure_products_db(db_path)
+    registered = []
+    
+    # Find all MS files
+    if recursive:
+        ms_files = list(scan_path.rglob("*.ms"))
+    else:
+        ms_files = list(scan_path.glob("*.ms"))
+    
+    # Filter to only directories (MS files are directories)
+    ms_files = [ms for ms in ms_files if ms.is_dir()]
+    
+    for ms_path in ms_files:
+        ms_path_str = os.fspath(ms_path)
+        
+        # Check if already registered
+        existing = conn.execute(
+            "SELECT path FROM ms_index WHERE path = ?",
+            (ms_path_str,)
+        ).fetchone()
+        
+        # Extract time range from MS
+        start_mjd, end_mjd, mid_mjd = _ms_time_range(ms_path_str)
+        
+        # Use current time in MJD as fallback if extraction failed
+        if mid_mjd is None:
+            from astropy.time import Time
+            mid_mjd = Time.now().mjd
+        
+        # Register/update in database
+        ms_index_upsert(
+            conn,
+            ms_path_str,
+            start_mjd=start_mjd,
+            end_mjd=end_mjd,
+            mid_mjd=mid_mjd,
+            status=status,
+            stage=stage,
+            processed_at=time.time(),
+        )
+        registered.append(ms_path_str)
+    
+    conn.commit()
+    conn.close()
+    
+    return registered
+
+
+__all__ = ['ensure_products_db', 'ms_index_upsert', 'images_insert', 'photometry_insert', 'discover_ms_files']

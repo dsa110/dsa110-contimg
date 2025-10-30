@@ -18,12 +18,22 @@ import argparse
 from astropy.time import Time
 import astropy.units as u
 
-from .catalogs import read_vla_parsed_catalog_csv, get_calibrator_radec, calibrator_match
+from .catalogs import (
+    read_vla_parsed_catalog_csv,
+    get_calibrator_radec,
+    calibrator_match,
+    load_vla_catalog,
+    resolve_vla_catalog_path,
+)
 from .schedule import previous_transits
 
 
 def cmd_transit(args: argparse.Namespace) -> int:
-    df = read_vla_parsed_catalog_csv(args.catalog)
+    # Use centralized catalog resolution if --catalog not provided
+    if args.catalog:
+        df = read_vla_parsed_catalog_csv(args.catalog)
+    else:
+        df = load_vla_catalog()
     ra_deg, dec_deg = get_calibrator_radec(df, args.name)
     start = Time.now() if args.start is None else Time(args.start)
     times = previous_transits(ra_deg=ra_deg, start_time=start, n=args.n)
@@ -34,7 +44,11 @@ def cmd_transit(args: argparse.Namespace) -> int:
 
 
 def cmd_inbeam(args: argparse.Namespace) -> int:
-    df = read_vla_parsed_catalog_csv(args.catalog)
+    # Use centralized catalog resolution if --catalog not provided
+    if args.catalog:
+        df = read_vla_parsed_catalog_csv(args.catalog)
+    else:
+        df = load_vla_catalog()
     t = Time(args.time)
     pt_dec = float(args.pt_dec) * u.deg
     matches = calibrator_match(df, pt_dec, t.mjd, radius_deg=float(args.radius), top_n=int(args.top))
@@ -51,14 +65,14 @@ def main(argv=None) -> int:
     sub = p.add_subparsers(dest='cmd', required=True)
 
     sp = sub.add_parser('transit', help='Previous N transits for a calibrator by name')
-    sp.add_argument('--catalog', required=True)
+    sp.add_argument('--catalog', default=None, help='Catalog path (optional, uses automatic resolution if not provided)')
     sp.add_argument('--name', required=True)
     sp.add_argument('--n', type=int, default=3)
     sp.add_argument('--start', help='UTC start time (default: now)')
     sp.set_defaults(func=cmd_transit)
 
     sp = sub.add_parser('inbeam', help='List in-beam calibrator matches for a drift strip')
-    sp.add_argument('--catalog', required=True)
+    sp.add_argument('--catalog', default=None, help='Catalog path (optional, uses automatic resolution if not provided)')
     sp.add_argument('--pt-dec', required=True, help='Pointing declination (deg)')
     sp.add_argument('--time', required=True, help='UTC time of group midpoint')
     sp.add_argument('--radius', default='1.0', help='Search radius (deg)')

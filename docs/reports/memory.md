@@ -1,6 +1,6 @@
 ## VP table construction (DSA-110)
 
-- Canonical telescope: `OVRO_DSA` (PIPELINE_TELESCOPE_NAME; helpers stamp MS)
+- Canonical telescope: `DSA_110` (PIPELINE_TELESCOPE_NAME; helpers stamp MS)
 - Source H5: `/scratch/dsa110-contimg/dsa110-beam-model/DSA110_beam_1.h5`
 - Output VP: `/scratch/dsa110-contimg/vp/dsa110.vp` (temp complex image `/scratch/dsa110-contimg/vp/dsa110_vp_tmp.im`)
 
@@ -9,7 +9,7 @@ CLI
 python -m dsa110_contimg.beam.cli \
   --h5 /scratch/dsa110-contimg/dsa110-beam-model/DSA110_beam_1.h5 \
   --out /scratch/dsa110-contimg/vp/dsa110.vp \
-  --telescope OVRO_DSA \
+  --telescope DSA_110 \
   --freq-hz 1.4e9
 ```
 
@@ -143,9 +143,10 @@ sudo fuser -k 8000/tcp  # Kill port conflicts
 
 ## 2025-10-22/23 – Telescope Identity + API/service fixes
 
-Telescope identity standardization (OVRO_DSA)
+Telescope identity standardization (DSA_110)
 
-- Single source of truth: `PIPELINE_TELESCOPE_NAME=OVRO_DSA` added to `ops/systemd/contimg.env`. Default OVRO coords: lon −118.2817°, lat 37.2314°, alt 1222 m.
+- Single source of truth: `PIPELINE_TELESCOPE_NAME=DSA_110` set in `ops/systemd/contimg.env`. Default OVRO coords: lon −118.2817°, lat 37.2314°, alt 1222 m.
+- **Important**: `DSA_110` is recognized by EveryBeam 0.7.4+ for automatic beam model detection (Airy disc).
 - Helper `set_telescope_identity` added in `src/dsa110_contimg/conversion/helpers.py`.
   - Sets `uv.telescope_name` and location in ITRF + geodetic (rad/deg); mirrors onto `uv.telescope` when present.
 - Applied on all write paths:
@@ -177,7 +178,7 @@ Systemd + API service hardening
 Operational notes / next steps
 
 - Backfill existing MS telescope names if needed (stamp `OBSERVATION::TELESCOPE_NAME`).
-- Optional casacore Measures overlay only needed for code calling `measures().observatory('OVRO_DSA')`.
+- Optional casacore Measures overlay only needed for code calling `measures().observatory('DSA_110')`.
 - Streamer (`contimg-stream`) populates `ingest.sqlite3`; API reads DB paths from env.
 
 ## 2025-10-23 – NVSS Sky Model Seeding in Imaging
@@ -987,7 +988,7 @@ The DSA-110 continuum imaging pipeline processes radio interferometer data throu
    - Otherwise → `direct-subband` (parallel per-subband + concat)
 3. **Per-Subband Processing:**
    - Read UVH5 → UVData object via pyuvdata
-   - Set telescope identity (`PIPELINE_TELESCOPE_NAME=OVRO_DSA`)
+   - Set telescope identity (`PIPELINE_TELESCOPE_NAME`, default `DSA_110`)
    - Phase to meridian at observation midpoint
    - Compute/update UVW coordinates
 4. **Staging Strategy:**

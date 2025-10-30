@@ -1,16 +1,26 @@
-from typing import List, Tuple
+from typing import List, Tuple, Optional
 
 import numpy as np
 from astropy.time import Time
 from astropy.coordinates import EarthLocation, Angle
 import astropy.units as u
 
+# Use precise DSA-110 coordinates
+# These match constants.OVRO_LOCATION values but defined here to avoid import issues
+DSA110_LON_DEG = -118.283405115
+DSA110_LAT_DEG = 37.233386982
+DSA110_ALT_M = 1188.0519
 
-OVRO = EarthLocation.from_geodetic(lon=Angle(-118.2817, u.deg), lat=Angle(37.2314, u.deg), height=1222 * u.m)
+DSA110_LOCATION = EarthLocation.from_geodetic(
+    lon=Angle(DSA110_LON_DEG, u.deg),
+    lat=Angle(DSA110_LAT_DEG, u.deg),
+    height=DSA110_ALT_M * u.m
+)
+
 SIDEREAL_RATE = 1.002737909350795  # sidereal days per solar day
 
 
-def next_transit_time(ra_deg: float, start_time_mjd: float, location: EarthLocation = OVRO, max_iter: int = 4) -> Time:
+def next_transit_time(ra_deg: float, start_time_mjd: float, location: EarthLocation = DSA110_LOCATION, max_iter: int = 4) -> Time:
     """Compute next transit (HA=0) after start_time_mjd for a source with RA=ra_deg."""
     ra_hours = Angle(ra_deg, u.deg).to(u.hourangle).value
     t = Time(start_time_mjd, format="mjd", scale="utc", location=location)
@@ -27,9 +37,9 @@ def next_transit_time(ra_deg: float, start_time_mjd: float, location: EarthLocat
 def previous_transits(
     ra_deg: float,
     *,
-    start_time: Time | None = None,
+    start_time: Optional[Time] = None,
     n: int = 3,
-    location: EarthLocation = OVRO,
+    location: EarthLocation = DSA110_LOCATION,
 ) -> List[Time]:
     """Return the previous n meridian transits (UTC) for a source with RA=ra_deg.
 

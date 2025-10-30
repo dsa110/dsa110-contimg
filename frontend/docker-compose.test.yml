@@ -1,0 +1,42 @@
+services:
+  frontend-dev:
+    build:
+      context: .
+      dockerfile: Dockerfile.dev
+    container_name: dsa110-frontend-dev
+    ports:
+      - "5173:5173"
+    volumes:
+      - .:/app
+      - /app/node_modules
+    environment:
+      - VITE_API_URL=http://host.docker.internal:8000
+    command: npm run dev
+    stdin_open: true
+    tty: true
+
+  frontend-test:
+    build:
+      context: .
+      dockerfile: Dockerfile.dev
+    container_name: dsa110-frontend-test
+    volumes:
+      - .:/app
+      - /app/node_modules
+    command: npm test
+    profiles:
+      - test
+
+  frontend-build:
+    build:
+      context: .
+      dockerfile: Dockerfile.dev
+    container_name: dsa110-frontend-build
+    volumes:
+      - .:/app
+      - /app/node_modules
+    command: npm run build
+    profiles:
+      - build
+
+

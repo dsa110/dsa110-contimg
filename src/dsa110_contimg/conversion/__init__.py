@@ -10,9 +10,13 @@ This package provides a public API for the main conversion entry points.
 from .uvh5_to_ms import convert_single_file
 from .strategies.hdf5_orchestrator import convert_subband_groups_to_ms
 from .ms_utils import configure_ms_for_imaging
+from .merge_spws import merge_spws, merge_spws_simple, get_spw_count
 
 __all__ = [
     "convert_single_file",
     "convert_subband_groups_to_ms",
     "configure_ms_for_imaging",
+    "merge_spws",
+    "merge_spws_simple",
+    "get_spw_count",
 ]

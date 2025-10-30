@@ -22,7 +22,7 @@ def main(argv: Optional[list] = None) -> int:
     p.add_argument(
         "--telescope",
         default=None,
-        help="Optional telescope name to bind as default (e.g., OVRO_DSA)",
+        help="Optional telescope name to bind as default (e.g., DSA_110)",
     )
     p.add_argument(
         "--freq-hz",

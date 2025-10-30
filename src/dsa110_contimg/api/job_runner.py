@@ -14,6 +14,7 @@ from dsa110_contimg.database.jobs import (
     update_job_status,
     append_job_log,
     get_job,
+    create_job,
 )
 from dsa110_contimg.database.products import ensure_products_db
 
@@ -225,10 +226,15 @@ def run_calibrate_job(job_id: int, ms_path: str, params: dict, products_db: Path
         cmd.append("--auto-fields")
         cal_catalog = params.get("cal_catalog", "vla")
         if cal_catalog:
-            # Use environment variable or default path
-            import os
-            cat_path = os.getenv("VLA_CATALOG", "/data/dsa110-contimg/data/catalogs/VLA_calibrators_parsed.csv")
-            cmd.extend(["--cal-catalog", cat_path])
+            # Use centralized catalog resolution
+            from dsa110_contimg.calibration.catalogs import resolve_vla_catalog_path
+            try:
+                cat_path = str(resolve_vla_catalog_path())
+                cmd.extend(["--cal-catalog", cat_path])
+            except FileNotFoundError as e:
+                # Non-fatal: job will fail if catalog is needed but missing
+                import warnings
+                warnings.warn(f"VLA catalog not found for calibration job: {e}")
         
         search_radius = params.get("search_radius_deg", 1.0)
         if search_radius != 1.0:
@@ -283,6 +289,34 @@ def run_calibrate_job(job_id: int, ms_path: str, params: dict, products_db: Path
                 finished_at=time.time(),
                 artifacts=json.dumps(artifacts),
             )
+            
+            # Extract QA metrics from calibration tables
+            try:
+                # Build caltables dict from artifacts
+                caltables = {}
+                ms_dir = Path(ms_path).parent
+                ms_stem = Path(ms_path).stem
+                
+                for artifact in artifacts:
+                    artifact_path = Path(artifact)
+                    if artifact_path.exists():
+                        if '.kcal' in artifact or '_kcal' in artifact:
+                            caltables['k'] = str(artifact_path)
+                        elif '.bpcal' in artifact or '_bpcal' in artifact:
+                            caltables['bp'] = str(artifact_path)
+                        elif '.gpcal' in artifact or '_gpcal' in artifact or '.gacal' in artifact:
+                            caltables['g'] = str(artifact_path)
+                
+                if caltables:
+                    append_job_log(conn, job_id, "\nExtracting QA metrics from calibration tables...\n")
+                    conn.commit()
+                    _store_calibration_qa(conn, ms_path, job_id, caltables)
+                    append_job_log(conn, job_id, "QA metrics extracted successfully\n")
+                    conn.commit()
+            except Exception as e:
+                # Don't fail the job if QA extraction fails
+                append_job_log(conn, job_id, f"\nWARNING: QA extraction failed: {e}\n")
+                conn.commit()
         else:
             update_job_status(conn, job_id, "failed", finished_at=time.time())
 
@@ -446,6 +480,25 @@ def run_image_job(job_id: int, ms_path: str, params: dict, products_db: Path):
                 finished_at=time.time(),
                 artifacts=json.dumps(artifacts),
             )
+            
+            # Extract QA metrics from primary image
+            try:
+                primary_image = None
+                for artifact in artifacts:
+                    if artifact.endswith('.image') and '.pbcor' not in artifact:
+                        primary_image = artifact
+                        break
+                
+                if primary_image and Path(primary_image).exists():
+                    append_job_log(conn, job_id, "\nExtracting QA metrics from image...\n")
+                    conn.commit()
+                    _store_image_qa(conn, ms_path, job_id, primary_image)
+                    append_job_log(conn, job_id, "QA metrics and thumbnail extracted successfully\n")
+                    conn.commit()
+            except Exception as e:
+                # Don't fail the job if QA extraction fails
+                append_job_log(conn, job_id, f"\nWARNING: QA extraction failed: {e}\n")
+                conn.commit()
         else:
             update_job_status(conn, job_id, "failed", finished_at=time.time())
 
@@ -639,5 +692,147 @@ def run_workflow_job(job_id: int, params: dict, products_db: Path):
         append_job_log(conn, job_id, f"\n=== Workflow Failed ===\n")
         append_job_log(conn, job_id, f"ERROR: {e}\n")
         update_job_status(conn, job_id, "failed", finished_at=time.time())
+        conn.commit()
+        conn.close()
+
+
+def run_batch_calibrate_job(batch_id: int, ms_paths: List[str], params: dict, products_db: Path):
+    """Process batch calibration job - runs calibration on each MS sequentially."""
+    from dsa110_contimg.api.batch_jobs import update_batch_item
+    
+    conn = ensure_products_db(products_db)
+    
+    try:
+        # Update batch status to running
+        conn.execute("UPDATE batch_jobs SET status = 'running' WHERE id = ?", (batch_id,))
+        conn.commit()
+        
+        for ms_path in ms_paths:
+            # Check if batch was cancelled
+            cursor = conn.execute("SELECT status FROM batch_jobs WHERE id = ?", (batch_id,))
+            batch_status = cursor.fetchone()[0]
+            if batch_status == "cancelled":
+                break
+            
+            try:
+                # Create individual calibration job
+                individual_job_id = create_job(conn, "calibrate", ms_path, params)
+                conn.commit()
+                
+                # Update batch item status
+                update_batch_item(conn, batch_id, ms_path, individual_job_id, "running")
+                conn.commit()
+                
+                # Run calibration job
+                run_calibrate_job(individual_job_id, ms_path, params, products_db)
+                
+                # Check job result
+                jd = get_job(conn, individual_job_id)
+                if jd["status"] == "done":
+                    update_batch_item(conn, batch_id, ms_path, individual_job_id, "done")
+                else:
+                    update_batch_item(conn, batch_id, ms_path, individual_job_id, "failed", error=jd.get("logs", "")[-500:])  # Last 500 chars
+                conn.commit()
+                
+            except Exception as e:
+                update_batch_item(conn, batch_id, ms_path, None, "failed", error=str(e))
+                conn.commit()
+        
+        # Batch is complete - status already updated by update_batch_item
+        conn.close()
+        
+    except Exception as e:
+        conn = ensure_products_db(products_db)
+        conn.execute("UPDATE batch_jobs SET status = 'failed' WHERE id = ?", (batch_id,))
+        conn.commit()
+        conn.close()
+
+
+def run_batch_apply_job(batch_id: int, ms_paths: List[str], params: dict, products_db: Path):
+    """Process batch apply job - runs applycal on each MS sequentially."""
+    from dsa110_contimg.api.batch_jobs import update_batch_item
+    
+    conn = ensure_products_db(products_db)
+    
+    try:
+        conn.execute("UPDATE batch_jobs SET status = 'running' WHERE id = ?", (batch_id,))
+        conn.commit()
+        
+        for ms_path in ms_paths:
+            cursor = conn.execute("SELECT status FROM batch_jobs WHERE id = ?", (batch_id,))
+            batch_status = cursor.fetchone()[0]
+            if batch_status == "cancelled":
+                break
+            
+            try:
+                individual_job_id = create_job(conn, "apply", ms_path, params)
+                conn.commit()
+                
+                update_batch_item(conn, batch_id, ms_path, individual_job_id, "running")
+                conn.commit()
+                
+                run_apply_job(individual_job_id, ms_path, params, products_db)
+                
+                jd = get_job(conn, individual_job_id)
+                if jd["status"] == "done":
+                    update_batch_item(conn, batch_id, ms_path, individual_job_id, "done")
+                else:
+                    update_batch_item(conn, batch_id, ms_path, individual_job_id, "failed", error=jd.get("logs", "")[-500:])
+                conn.commit()
+                
+            except Exception as e:
+                update_batch_item(conn, batch_id, ms_path, None, "failed", error=str(e))
+                conn.commit()
+        
+        conn.close()
+        
+    except Exception as e:
+        conn = ensure_products_db(products_db)
+        conn.execute("UPDATE batch_jobs SET status = 'failed' WHERE id = ?", (batch_id,))
+        conn.commit()
+        conn.close()
+
+
+def run_batch_image_job(batch_id: int, ms_paths: List[str], params: dict, products_db: Path):
+    """Process batch imaging job - runs imaging on each MS sequentially."""
+    from dsa110_contimg.api.batch_jobs import update_batch_item
+    
+    conn = ensure_products_db(products_db)
+    
+    try:
+        conn.execute("UPDATE batch_jobs SET status = 'running' WHERE id = ?", (batch_id,))
+        conn.commit()
+        
+        for ms_path in ms_paths:
+            cursor = conn.execute("SELECT status FROM batch_jobs WHERE id = ?", (batch_id,))
+            batch_status = cursor.fetchone()[0]
+            if batch_status == "cancelled":
+                break
+            
+            try:
+                individual_job_id = create_job(conn, "image", ms_path, params)
+                conn.commit()
+                
+                update_batch_item(conn, batch_id, ms_path, individual_job_id, "running")
+                conn.commit()
+                
+                run_image_job(individual_job_id, ms_path, params, products_db)
+                
+                jd = get_job(conn, individual_job_id)
+                if jd["status"] == "done":
+                    update_batch_item(conn, batch_id, ms_path, individual_job_id, "done")
+                else:
+                    update_batch_item(conn, batch_id, ms_path, individual_job_id, "failed", error=jd.get("logs", "")[-500:])
+                conn.commit()
+                
+            except Exception as e:
+                update_batch_item(conn, batch_id, ms_path, None, "failed", error=str(e))
+                conn.commit()
+        
+        conn.close()
+        
+    except Exception as e:
+        conn = ensure_products_db(products_db)
+        conn.execute("UPDATE batch_jobs SET status = 'failed' WHERE id = ?", (batch_id,))
         conn.commit()
         conn.close()

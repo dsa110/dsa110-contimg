@@ -243,7 +243,7 @@ def convert_subband_groups_to_ms(
     *,
     flux: Optional[float] = None,
     scratch_dir: Optional[str] = None,
-    writer: str = "direct-subband",
+    writer: str = "parallel-subband",
     writer_kwargs: Optional[dict] = None,
 ) -> None:
     os.makedirs(output_dir, exist_ok=True)
@@ -272,9 +272,9 @@ def convert_subband_groups_to_ms(
                 n_sb = len(file_list)
             except Exception:
                 n_sb = 0
-            selected_writer = "pyuvdata" if n_sb and n_sb <= 2 else "direct-subband"
+            selected_writer = "pyuvdata" if n_sb and n_sb <= 2 else "parallel-subband"
 
-        if selected_writer != "direct-subband":
+        if selected_writer not in ("parallel-subband", "direct-subband"):
             t0 = time.perf_counter()
             uv = _load_and_merge_subbands(file_list)
             logger.info("Loaded and merged %d subbands in %.2fs",
@@ -285,7 +285,7 @@ def convert_subband_groups_to_ms(
             try:
                 set_telescope_identity(
                     uv,
-                    os.getenv("PIPELINE_TELESCOPE_NAME", "OVRO_DSA"),
+                    os.getenv("PIPELINE_TELESCOPE_NAME", "DSA_110"),
                     -118.2817,
                     37.2314,
                     1222.0,
@@ -395,9 +395,9 @@ def add_args(p: argparse.ArgumentParser) -> None:
         help="End of processing window (YYYY-MM-DD HH:MM:SS).")
     p.add_argument(
         "--writer",
-        default="direct-subband",
-        choices=["direct-subband", "pyuvdata", "auto"],
-        help="The MS writing strategy to use (or 'auto' to choose per group).",
+        default="parallel-subband",
+        choices=["parallel-subband", "direct-subband", "pyuvdata", "auto"],
+        help="The MS writing strategy to use (or 'auto' to choose per group). 'direct-subband' is an alias for 'parallel-subband'.",
     )
     p.add_argument(
         "--flux",
@@ -407,7 +407,7 @@ def add_args(p: argparse.ArgumentParser) -> None:
         "--scratch-dir",
         help="Scratch directory for temporary files.")
     p.add_argument("--max-workers", type=int, default=4,
-                   help="Parallel workers for direct-subband.")
+                   help="Parallel workers for parallel-subband writer.")
     p.add_argument(
         "--stage-to-tmpfs",
         action="store_true",

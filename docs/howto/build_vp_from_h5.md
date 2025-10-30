@@ -9,7 +9,7 @@ This guide documents exactly how we generate a CASA VP table from the DSA-110 be
   - `X_pol_Efields/ephi`, `X_pol_Efields/etheta` (nfreq, ntheta, nphi)
   - `Y-pol_Efields/ephi`, `Y-pol_Efields/etheta` (nfreq, ntheta, nphi)
 - Optional: preferred frequency slice (Hz)
-- Optional: telescope name (e.g., `OVRO_DSA`)
+- Optional: telescope name (e.g., `DSA_110`)
 
 ### Mapping (E-Jones → feed Jones)
 - Jxx = X.ephi
@@ -39,7 +39,7 @@ We expose a CLI that wraps the builder in `dsa110_contimg`:
 python -m dsa110_contimg.beam.cli \
   --h5 /scratch/dsa110-contimg/dsa110-beam-model/DSA110_beam_1.h5 \
   --out /scratch/dsa110-contimg/vp/dsa110.vp \
-  --telescope OVRO_DSA \
+  --telescope DSA_110 \
   --freq-hz 1.4e9
 ```
 
@@ -57,7 +57,7 @@ Under the hood (`vp_builder.py`):
 from casatools import vpmanager
 vp = vpmanager()
 # Optionally bind a default telescope for UI inspection
-vp.setuserdefault(telescope='OVRO_DSA')
+vp.setuserdefault(telescope='DSA_110')
 # The VP table is referenced via tclean(vptable=...)
 ```
 

@@ -15,16 +15,23 @@ import type {
   AlertHistory,
   MSList,
   MSListFilters,
+  MSMetadata,
+  CalTableCompatibility,
   JobList,
   Job,
   JobCreateRequest,
   UVH5FileList,
   ConversionJobCreateRequest,
   CalTableList,
-  MSMetadata,
   MSCalibratorMatchList,
   ExistingCalTables,
   WorkflowJobCreateRequest,
+  CalibrationQA,
+  ImageQA,
+  QAMetrics,
+  BatchJob,
+  BatchJobList,
+  BatchJobCreateRequest,
 } from './types';
 
 export function usePipelineStatus(): UseQueryResult<PipelineStatus> {
@@ -152,12 +159,30 @@ export function useMSList(filters?: MSListFilters): UseQueryResult<MSList> {
       if (filters?.sort_by) params.append('sort_by', filters.sort_by);
       if (filters?.limit !== undefined) params.append('limit', String(filters.limit));
       if (filters?.offset !== undefined) params.append('offset', String(filters.offset));
+      if (filters?.scan) params.append('scan', String(filters.scan));
+      if (filters?.scan_dir) params.append('scan_dir', filters.scan_dir);
       
       const url = `/api/ms${params.toString() ? `?${params.toString()}` : ''}`;
       const response = await apiClient.get<MSList>(url);
       return response.data;
     },
     refetchInterval: 30000, // Refresh every 30s
+  });
+}
+
+export function useDiscoverMS() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: async (params?: { scan_dir?: string; recursive?: boolean }) => {
+      const body: any = {};
+      if (params?.scan_dir) body.scan_dir = params.scan_dir;
+      if (params?.recursive !== undefined) body.recursive = params.recursive;
+      const response = await apiClient.post<{ success: boolean; count: number; scan_dir: string; discovered: string[] }>('/api/ms/discover', body);
+      return response.data;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['ms'] });
+    },
   });
 }
 
@@ -323,6 +348,114 @@ export function useExistingCalTables(msPath: string | null): UseQueryResult<Exis
   });
 }
 
+export function useValidateCalTable() {
+  return useMutation({
+    mutationFn: async ({ msPath, caltablePath }: { msPath: string; caltablePath: string }) => {
+      const encodedMsPath = msPath.startsWith('/') ? msPath.slice(1) : msPath;
+      const response = await apiClient.post<CalTableCompatibility>(
+        `/api/ms/${encodedMsPath}/validate-caltable`,
+        { caltable_path: caltablePath }
+      );
+      return response.data;
+    },
+  });
+}
+
+/**
+ * Hook to fetch calibration QA metrics for an MS.
+ * 
+ * @param msPath - Path to the MS file
+ * @returns Calibration QA metrics including K/BP/G table statistics
+ * 
+ * @example
+ * const { data: calQA } = useCalibrationQA('/path/to/ms');
+ * if (calQA) {
+ *   console.log('Overall quality:', calQA.overall_quality);
+ *   console.log('Flag fraction:', calQA.flags_total);
+ * }
+ */
+export function useCalibrationQA(msPath: string | null): UseQueryResult<CalibrationQA> {
+  return useQuery({
+    queryKey: ['qa', 'calibration', msPath],
+    queryFn: async () => {
+      if (!msPath) throw new Error('MS path required');
+      // Remove leading slash and encode
+      const encodedPath = msPath.startsWith('/') ? msPath.slice(1) : msPath;
+      const response = await apiClient.get<CalibrationQA>(
+        `/api/qa/calibration/${encodedPath}`
+      );
+      return response.data;
+    },
+    enabled: !!msPath,
+    staleTime: 300000, // Cache for 5 minutes (QA doesn't change unless recalibrated)
+    retry: false, // Don't retry on 404 (no QA yet)
+  });
+}
+
+/**
+ * Hook to fetch image QA metrics for an MS.
+ * 
+ * @param msPath - Path to the MS file
+ * @returns Image QA metrics including RMS, dynamic range, beam parameters
+ * 
+ * @example
+ * const { data: imgQA } = useImageQA('/path/to/ms');
+ * if (imgQA) {
+ *   console.log('RMS noise:', imgQA.rms_noise, 'Jy/beam');
+ *   console.log('Dynamic range:', imgQA.dynamic_range);
+ * }
+ */
+export function useImageQA(msPath: string | null): UseQueryResult<ImageQA> {
+  return useQuery({
+    queryKey: ['qa', 'image', msPath],
+    queryFn: async () => {
+      if (!msPath) throw new Error('MS path required');
+      // Remove leading slash and encode
+      const encodedPath = msPath.startsWith('/') ? msPath.slice(1) : msPath;
+      const response = await apiClient.get<ImageQA>(
+        `/api/qa/image/${encodedPath}`
+      );
+      return response.data;
+    },
+    enabled: !!msPath,
+    staleTime: 300000, // Cache for 5 minutes
+    retry: false, // Don't retry on 404 (no QA yet)
+  });
+}
+
+/**
+ * Hook to fetch combined QA metrics (calibration + image) for an MS.
+ * 
+ * @param msPath - Path to the MS file
+ * @returns Combined QA metrics with both calibration and image data
+ * 
+ * @example
+ * const { data: qa } = useQAMetrics('/path/to/ms');
+ * if (qa?.calibration_qa) {
+ *   console.log('Cal quality:', qa.calibration_qa.overall_quality);
+ * }
+ * if (qa?.image_qa) {
+ *   console.log('Image quality:', qa.image_qa.overall_quality);
+ * }
+ */
+export function useQAMetrics(msPath: string | null): UseQueryResult<QAMetrics> {
+  return useQuery({
+    queryKey: ['qa', 'combined', msPath],
+    queryFn: async () => {
+      if (!msPath) throw new Error('MS path required');
+      // Remove leading slash and encode
+      const encodedPath = msPath.startsWith('/') ? msPath.slice(1) : msPath;
+      const response = await apiClient.get<QAMetrics>(
+        `/api/qa/${encodedPath}`
+      );
+      return response.data;
+    },
+    enabled: !!msPath,
+    staleTime: 300000, // Cache for 5 minutes
+    retry: false, // Don't retry on 404 (no QA yet)
+  });
+}
+
 // Workflow job mutation
 export function useCreateWorkflowJob() {
   const queryClient = useQueryClient();
@@ -334,6 +467,134 @@ export function useCreateWorkflowJob() {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['jobs'] });
       queryClient.invalidateQueries({ queryKey: ['ms'] });
+    },
+  });
+}
+
+/**
+ * Batch job hooks for processing multiple MS files.
+ */
+
+/**
+ * Hook to fetch list of batch jobs.
+ * 
+ * @param limit - Maximum number of batch jobs to return
+ * @param status - Optional status filter (pending, running, done, failed, cancelled)
+ * @returns List of batch jobs
+ */
+export function useBatchJobs(limit = 50, status?: string): UseQueryResult<BatchJobList> {
+  return useQuery({
+    queryKey: ['batch', 'jobs', limit, status],
+    queryFn: async () => {
+      const params = new URLSearchParams();
+      if (status) params.append('status', status);
+      params.append('limit', String(limit));
+      
+      const url = `/api/batch${params.toString() ? `?${params.toString()}` : ''}`;
+      const response = await apiClient.get<BatchJobList>(url);
+      return response.data;
+    },
+    refetchInterval: 5000, // Poll every 5 seconds for running batches
+  });
+}
+
+/**
+ * Hook to fetch a single batch job by ID.
+ * 
+ * @param batchId - Batch job ID
+ * @returns Batch job details with per-item status
+ */
+export function useBatchJob(batchId: number | null): UseQueryResult<BatchJob> {
+  return useQuery({
+    queryKey: ['batch', 'job', batchId],
+    queryFn: async () => {
+      if (!batchId) throw new Error('Batch ID required');
+      const response = await apiClient.get<BatchJob>(`/api/batch/${batchId}`);
+      return response.data;
+    },
+    enabled: !!batchId,
+    refetchInterval: (query) => {
+      // Poll frequently if batch is still running
+      const data = query.state.data;
+      if (data?.status === 'running' || data?.status === 'pending') {
+        return 2000; // Poll every 2 seconds
+      }
+      return false; // Don't poll completed batches
+    },
+  });
+}
+
+/**
+ * Hook to create a batch calibration job.
+ * 
+ * @returns Mutation hook for creating batch calibration jobs
+ */
+export function useCreateBatchCalibrateJob() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: async (request: BatchJobCreateRequest) => {
+      const response = await apiClient.post<BatchJob>('/api/batch/calibrate', request);
+      return response.data;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['batch'] });
+      queryClient.invalidateQueries({ queryKey: ['jobs'] });
+    },
+  });
+}
+
+/**
+ * Hook to create a batch apply job.
+ * 
+ * @returns Mutation hook for creating batch apply jobs
+ */
+export function useCreateBatchApplyJob() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: async (request: BatchJobCreateRequest) => {
+      const response = await apiClient.post<BatchJob>('/api/batch/apply', request);
+      return response.data;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['batch'] });
+      queryClient.invalidateQueries({ queryKey: ['jobs'] });
+    },
+  });
+}
+
+/**
+ * Hook to create a batch imaging job.
+ * 
+ * @returns Mutation hook for creating batch imaging jobs
+ */
+export function useCreateBatchImageJob() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: async (request: BatchJobCreateRequest) => {
+      const response = await apiClient.post<BatchJob>('/api/batch/image', request);
+      return response.data;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['batch'] });
+      queryClient.invalidateQueries({ queryKey: ['jobs'] });
+    },
+  });
+}
+
+/**
+ * Hook to cancel a batch job.
+ * 
+ * @returns Mutation hook for cancelling batch jobs
+ */
+export function useCancelBatchJob() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: async (batchId: number) => {
+      const response = await apiClient.post(`/api/batch/${batchId}/cancel`);
+      return response.data;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['batch'] });
     },
   });
 }

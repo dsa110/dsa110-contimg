@@ -11,7 +11,7 @@
  * @module components/MSTable
  */
 
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useEffect } from 'react';
 import {
   Box,
   Table,
@@ -130,6 +130,11 @@ export default function MSTable({
   const [page, setPage] = useState(1);
   const [rowsPerPage] = useState(25);
 
+  // Reset to page 1 when filters change
+  useEffect(() => {
+    setPage(1);
+  }, [searchText, filterCalibrator, filterStatus, sortField, sortDirection]);
+
   // Apply local filters and sorting
   const filteredAndSortedData = useMemo(() => {
     let result = [...data];
@@ -164,8 +169,8 @@ export default function MSTable({
 
     // Sort
     result.sort((a, b) => {
-      let aVal: any;
-      let bVal: any;
+      let aVal: string | number;
+      let bVal: string | number;
 
       switch (sortField) {
         case 'path':
@@ -218,6 +223,8 @@ export default function MSTable({
     if (isSelected) {
       onSelectionChange(selected.filter(p => p !== path));
     } else {
+      // When selecting via checkbox, only call onSelectionChange
+      // It will handle updating both selectedMSList and selectedMS
       onSelectionChange([...selected, path]);
     }
   };

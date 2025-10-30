@@ -1,0 +1,24 @@
+# Frontend development and testing Docker container
+FROM node:22-alpine
+
+WORKDIR /app
+
+# Copy package files first (for better caching)
+COPY package*.json ./
+
+# Install dependencies
+RUN npm ci
+
+# Copy source code and config
+COPY . .
+
+# Expose dev server port (for watch mode)
+EXPOSE 5173
+
+# Expose Vitest UI port
+EXPOSE 51204
+
+# Default command (can be overridden)
+CMD ["npm", "run", "dev"]
+
+

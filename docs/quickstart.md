@@ -25,7 +25,7 @@ make compose-logs SERVICE=stream
 1) Edit env and install units
 ```
 vi ops/systemd/contimg.env
-# Add PIPELINE_TELESCOPE_NAME=OVRO_DSA (and optional CASACORE_DATA overlay path)
+# Add PIPELINE_TELESCOPE_NAME=DSA_110 (and optional CASACORE_DATA overlay path)
 sudo mkdir -p /data/dsa110-contimg/state/logs
 sudo cp ops/systemd/*.service /etc/systemd/system/
 sudo systemctl daemon-reload
@@ -37,9 +37,10 @@ sudo systemctl enable --now contimg-stream.service contimg-api.service
 
 Telescope Identity
 
-- The pipeline stamps `UVData.telescope_name` and `MS::OBSERVATION.TELESCOPE_NAME` with `PIPELINE_TELESCOPE_NAME` (default `OVRO_DSA`).
+- The pipeline stamps `UVData.telescope_name` and `MS::OBSERVATION.TELESCOPE_NAME` with `PIPELINE_TELESCOPE_NAME` (default `DSA_110`).
 - Coordinates used (OVRO): lon −118.2817°, lat 37.2314°, alt 1222 m.
-- Optional: to make casacore resolve `OVRO_DSA` by name, create a Measures overlay (`geodetic/Observatories`) and set `CASACORE_DATA` to that directory in `ops/systemd/contimg.env`.
+- **Important**: `DSA_110` is recognized by EveryBeam 0.7.4+ for automatic beam model detection.
+- Optional: to make casacore resolve `DSA_110` by name, create a Measures overlay (`geodetic/Observatories`) and set `CASACORE_DATA` to that directory in `ops/systemd/contimg.env`.
 
 ## One-page Quick-Look (sub-minute)
 
