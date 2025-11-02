@@ -5,12 +5,24 @@ This package provides a public API for the main conversion entry points.
 - `convert_single_uvh5`: convert a single UVH5 file or directory of files.
 - `convert_subband_groups_to_ms`: discover and convert complete subband groups.
 - `configure_ms_for_imaging`: prepare a Measurement Set for imaging.
+- `CalibratorMSGenerator`: service for generating MS from calibrator transits.
 """
 
 from .uvh5_to_ms import convert_single_file
 from .strategies.hdf5_orchestrator import convert_subband_groups_to_ms
 from .ms_utils import configure_ms_for_imaging
 from .merge_spws import merge_spws, merge_spws_simple, get_spw_count
+from .calibrator_ms_service import CalibratorMSGenerator, CalibratorMSResult
+from .config import CalibratorMSConfig
+from .exceptions import (
+    CalibratorMSError,
+    CalibratorNotFoundError,
+    ConversionError,
+    GroupNotFoundError,
+    TransitNotFoundError,
+    ValidationError,
+)
+from .progress import ProgressReporter
 
 __all__ = [
     "convert_single_file",
@@ -19,4 +31,14 @@ __all__ = [
     "merge_spws",
     "merge_spws_simple",
     "get_spw_count",
+    "CalibratorMSGenerator",
+    "CalibratorMSResult",
+    "CalibratorMSConfig",
+    "ProgressReporter",
+    "CalibratorMSError",
+    "CalibratorNotFoundError",
+    "ConversionError",
+    "GroupNotFoundError",
+    "TransitNotFoundError",
+    "ValidationError",
 ]

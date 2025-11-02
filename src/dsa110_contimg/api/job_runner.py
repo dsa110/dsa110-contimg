@@ -17,6 +17,7 @@ from dsa110_contimg.database.jobs import (
     create_job,
 )
 from dsa110_contimg.database.products import ensure_products_db
+from dsa110_contimg.utils.tempdirs import derive_casa_log_dir
 
 
 def _store_calibration_qa(conn, ms_path: str, job_id: int, caltables: dict) -> None:
@@ -252,6 +253,10 @@ def run_calibrate_job(job_id: int, ms_path: str, params: dict, products_db: Path
     src_path = _src_path_for_env()
     if src_path:
         env["PYTHONPATH"] = src_path
+    
+    # Set CASA log directory - CASA writes logs to CWD
+    casa_log_dir = derive_casa_log_dir()
+    env.setdefault("CASALOGFILE", str(casa_log_dir / "casa.log"))
 
     try:
         proc = subprocess.Popen(
@@ -260,6 +265,7 @@ def run_calibrate_job(job_id: int, ms_path: str, params: dict, products_db: Path
             stderr=subprocess.STDOUT,
             text=True,
             env=env,
+            cwd=str(casa_log_dir),  # CASA writes logs to current working directory
             bufsize=1,
         )
 
@@ -368,6 +374,10 @@ print("Apply complete", flush=True)
     src_path = _src_path_for_env()
     if src_path:
         env["PYTHONPATH"] = src_path
+    
+    # Set CASA log directory - CASA writes logs to CWD
+    casa_log_dir = derive_casa_log_dir()
+    env.setdefault("CASALOGFILE", str(casa_log_dir / "casa.log"))
 
     try:
         proc = subprocess.Popen(
@@ -376,6 +386,7 @@ print("Apply complete", flush=True)
             stderr=subprocess.STDOUT,
             text=True,
             env=env,
+            cwd=str(casa_log_dir),  # CASA writes logs to current working directory
             bufsize=1,
         )
 
@@ -445,6 +456,10 @@ def run_image_job(job_id: int, ms_path: str, params: dict, products_db: Path):
     src_path = _src_path_for_env()
     if src_path:
         env["PYTHONPATH"] = src_path
+    
+    # Set CASA log directory - CASA writes logs to CWD
+    casa_log_dir = derive_casa_log_dir()
+    env.setdefault("CASALOGFILE", str(casa_log_dir / "casa.log"))
 
     try:
         proc = subprocess.Popen(
@@ -453,6 +468,7 @@ def run_image_job(job_id: int, ms_path: str, params: dict, products_db: Path):
             stderr=subprocess.STDOUT,
             text=True,
             env=env,
+            cwd=str(casa_log_dir),  # CASA writes logs to current working directory
             bufsize=1,
         )
 
@@ -563,6 +579,10 @@ def run_convert_job(job_id: int, params: dict, products_db: Path):
     env.setdefault("HDF5_USE_FILE_LOCKING", "FALSE")
     env.setdefault("OMP_NUM_THREADS", "4")
     env.setdefault("MKL_NUM_THREADS", "4")
+    
+    # Set CASA log directory - CASA writes logs to CWD
+    casa_log_dir = derive_casa_log_dir()
+    env.setdefault("CASALOGFILE", str(casa_log_dir / "casa.log"))
 
     try:
         proc = subprocess.Popen(
@@ -571,6 +591,7 @@ def run_convert_job(job_id: int, params: dict, products_db: Path):
             stderr=subprocess.STDOUT,
             text=True,
             env=env,
+            cwd=str(casa_log_dir),  # CASA writes logs to current working directory
             bufsize=1,
         )
 

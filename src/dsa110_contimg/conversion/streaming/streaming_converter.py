@@ -614,6 +614,13 @@ def build_parser() -> argparse.ArgumentParser:
 
 
 def main(argv: Optional[List[str]] = None) -> int:
+    # Set CASA log directory before any CASA task calls - CASA writes logs to CWD
+    try:
+        from dsa110_contimg.utils.tempdirs import derive_casa_log_dir
+        casa_log_dir = derive_casa_log_dir()
+        os.chdir(str(casa_log_dir))
+    except Exception:
+        pass
     parser = build_parser()
     args = parser.parse_args(argv)
     setup_logging(args.log_level)

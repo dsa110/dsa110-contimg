@@ -1,0 +1,18 @@
+[Unit]
+Description=CASA Log Cleanup - Continuously move casa-*.log files to logs directory
+After=network.target
+
+[Service]
+Type=simple
+User=ubuntu
+Group=ubuntu
+WorkingDirectory=/data/dsa110-contimg
+ExecStart=/bin/bash -c 'while true; do find /data/dsa110-contimg -maxdepth 1 -type f -name "casa-*.log" -exec mv {} /data/dsa110-contimg/state/logs/ \; 2>/dev/null; sleep 30; done'
+Restart=always
+RestartSec=10
+StandardOutput=journal
+StandardError=journal
+
+[Install]
+WantedBy=multi-user.target
+

@@ -10,10 +10,19 @@ Supports hybrid workflow: CASA ft() for model seeding + WSClean for fast imaging
 import argparse
 import logging
 import os
+import sys
 from typing import Optional
 import time
 import subprocess
 import shutil
+
+# Set CASA log directory BEFORE any CASA imports - CASA writes logs to CWD
+try:
+    from dsa110_contimg.utils.tempdirs import derive_casa_log_dir
+    casa_log_dir = derive_casa_log_dir()
+    os.chdir(str(casa_log_dir))
+except Exception:
+    pass
 
 import numpy as np
 from casacore.tables import table  # type: ignore[import]

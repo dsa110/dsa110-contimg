@@ -6,6 +6,7 @@ Goals:
   under a fast scratch path (e.g., /scratch/dsa110-contimg), not the repo.
 - Optionally change the working directory to the intended output directory so
   libraries that default to CWD for temp files do not pollute the repo.
+- Configure CASA to write log files to a centralized location.
 
 Usage:
     from dsa110_contimg.utils.tempdirs import prepare_temp_environment
@@ -20,6 +21,7 @@ from __future__ import annotations
 import os
 from pathlib import Path
 from typing import Optional
+from contextlib import contextmanager
 
 
 def derive_default_scratch_root() -> Path:
@@ -83,5 +85,71 @@ def prepare_temp_environment(
     return tmp
 
 
-__all__ = ["prepare_temp_environment", "derive_default_scratch_root"]
+def derive_casa_log_dir() -> Path:
+    """Return the directory where CASA log files should be written.
+    
+    Order of precedence:
+    - ENV CONTIMG_STATE_DIR/logs (if CONTIMG_STATE_DIR is set)
+    - /data/dsa110-contimg/state/logs
+    - /tmp (last resort)
+    """
+    state_dir = os.getenv("CONTIMG_STATE_DIR") or os.getenv("PIPELINE_STATE_DIR")
+    if state_dir:
+        log_dir = Path(state_dir) / "logs"
+    else:
+        log_dir = Path("/data/dsa110-contimg/state/logs")
+    
+    try:
+        log_dir.mkdir(parents=True, exist_ok=True)
+        return log_dir
+    except Exception:
+        # Fallback to /tmp if we can't create the preferred directory
+        return Path("/tmp")
+
+
+@contextmanager
+def casa_log_environment():
+    """Context manager that sets up CASA logging environment.
+    
+    CASA writes log files (casa-YYYYMMDD-HHMMSS.log) to the current working
+    directory. This context manager temporarily changes the working directory
+    to the centralized logs directory while CASA tasks execute.
+    
+    Usage:
+        with casa_log_environment():
+            from casatasks import tclean
+            tclean(...)
+    """
+    log_dir = derive_casa_log_dir()
+    old_cwd = os.getcwd()
+    try:
+        os.chdir(log_dir)
+        yield log_dir
+    finally:
+        os.chdir(old_cwd)
+
+
+def setup_casa_logging() -> Path:
+    """Set up CASA logging environment variables.
+    
+    This sets the CASALOGFILE environment variable and ensures the log
+    directory exists. Note that CASA primarily uses the current working
+    directory for log files, so this should be used in conjunction with
+    changing CWD or using casa_log_environment() context manager.
+    
+    Returns the path to the log directory.
+    """
+    log_dir = derive_casa_log_dir()
+    # Set CASALOGFILE - some CASA versions may respect this
+    os.environ["CASALOGFILE"] = str(log_dir / "casa.log")
+    return log_dir
+
+
+__all__ = [
+    "prepare_temp_environment",
+    "derive_default_scratch_root",
+    "derive_casa_log_dir",
+    "casa_log_environment",
+    "setup_casa_logging",
+]
 

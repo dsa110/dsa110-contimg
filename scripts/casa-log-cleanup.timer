@@ -1,0 +1,12 @@
+[Unit]
+Description=Run CASA log cleanup every 6 hours
+Requires=casa-log-cleanup.service
+
+[Timer]
+OnBootSec=1min
+OnUnitActiveSec=6h
+AccuracySec=1min
+
+[Install]
+WantedBy=timers.target
+

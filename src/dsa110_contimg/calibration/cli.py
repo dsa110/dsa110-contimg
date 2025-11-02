@@ -1,6 +1,16 @@
 import argparse
 import time
+import os
+import sys
 from typing import List
+
+# Set CASA log directory BEFORE any CASA imports - CASA writes logs to CWD
+try:
+    from dsa110_contimg.utils.tempdirs import derive_casa_log_dir
+    casa_log_dir = derive_casa_log_dir()
+    os.chdir(str(casa_log_dir))
+except Exception:
+    pass
 
 from .flagging import reset_flags, flag_zeros, flag_rfi
 from .calibration import solve_delay, solve_bandpass, solve_gains

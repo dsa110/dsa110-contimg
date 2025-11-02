@@ -7,8 +7,8 @@
 set -e  # Exit on any error
 
 # Configuration
-SOURCE_ROOT="/data"
-TARGET_ROOT="/data/dsa110-contimg/state"
+SOURCE_ROOT="/data/dsa110-contimg"
+TARGET_ROOT="/data/dsa110-contimg/state/logs"
 LOG_PATTERN="casa-*.log"
 
 # Colors for output
@@ -43,8 +43,8 @@ show_usage() {
     echo "  -d, --dry-run    Show what would be moved without actually moving files"
     echo "  -h, --help       Show this help message"
     echo ""
-    echo "This script moves all casa-*.log files from /data/ subdirectories to /data/dsa110-contimg/state/"
-    echo "while preserving the original subdirectory structure."
+    echo "This script moves all casa-*.log files from /data/dsa110-contimg/ to /data/dsa110-contimg/state/logs/"
+    echo "All log files will be moved directly to the logs directory (no subdirectory structure preserved)."
 }
 
 # Parse command line arguments
@@ -87,7 +87,7 @@ fi
 
 # Find all casa-*.log files, excluding the target directory
 print_info "Searching for casa-*.log files in $SOURCE_ROOT..."
-FILES_TO_MOVE=$(find "$SOURCE_ROOT/dsa110-contimg" -maxdepth 3 -type f -name "$LOG_PATTERN" -not -path "*/state/*" 2>/dev/null)
+FILES_TO_MOVE=$(find "$SOURCE_ROOT" -type f -name "$LOG_PATTERN" -not -path "*/state/logs/*" 2>/dev/null)
 
 if [ -z "$FILES_TO_MOVE" ]; then
     print_warning "No casa-*.log files found in $SOURCE_ROOT"
@@ -103,9 +103,9 @@ if [ "$DRY_RUN" = true ]; then
     print_info "Files that would be moved:"
     echo "$FILES_TO_MOVE" | while read -r file; do
         if [ -n "$file" ]; then
-            # Get relative path from SOURCE_ROOT
-            rel_path="${file#$SOURCE_ROOT/}"
-            target_path="$TARGET_ROOT/$rel_path"
+            # Extract just the filename
+            filename=$(basename "$file")
+            target_path="$TARGET_ROOT/$filename"
             echo "  $file -> $target_path"
         fi
     done
@@ -121,14 +121,18 @@ FAILED_COUNT=0
 # Use process substitution instead of pipe to avoid subshell issues
 while IFS= read -r file; do
     if [ -n "$file" ]; then
-        # Get relative path from SOURCE_ROOT
-        rel_path="${file#$SOURCE_ROOT/}"
-        target_path="$TARGET_ROOT/$rel_path"
-        target_dir=$(dirname "$target_path")
+        # Extract just the filename
+        filename=$(basename "$file")
+        target_path="$TARGET_ROOT/$filename"
         
-        # Create target directory if it doesn't exist
-        if [ ! -d "$target_dir" ]; then
-            mkdir -p "$target_dir"
+        # Handle filename collisions by appending a number
+        if [ -f "$target_path" ]; then
+            base="${filename%.log}"
+            counter=1
+            while [ -f "$TARGET_ROOT/${base}_${counter}.log" ]; do
+                ((counter++))
+            done
+            target_path="$TARGET_ROOT/${base}_${counter}.log"
         fi
         
         # Move the file
@@ -151,4 +155,3 @@ if [ $FAILED_COUNT -gt 0 ]; then
 fi
 
 print_info "All casa-*.log files have been moved to $TARGET_ROOT"
-print_info "Original directory structure has been preserved"

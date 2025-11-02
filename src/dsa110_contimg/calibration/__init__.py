@@ -19,6 +19,7 @@ __all__ = [
     "flagging",
     "calibration",
     "applycal",
+    "apply_service",
     "qa",
 ]
 

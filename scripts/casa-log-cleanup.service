@@ -1,0 +1,16 @@
+[Unit]
+Description=CASA Log Cleanup - Delete logs older than 6 hours
+After=network.target
+
+[Service]
+Type=oneshot
+User=ubuntu
+Group=ubuntu
+WorkingDirectory=/data/dsa110-contimg
+ExecStart=/data/dsa110-contimg/scripts/cleanup_casa_logs.sh --keep-hours 6
+StandardOutput=journal
+StandardError=journal
+
+[Install]
+WantedBy=multi-user.target
+
