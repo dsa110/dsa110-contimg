@@ -10,8 +10,17 @@ archive/
 
 # Ignore CASA calibration tables (.bcal, .pcal, etc.)
 *.bcal/
+*bcal*/
+*.bpcal/
+*bpcal*/
+*.kcal/
+*kcal*/
 *.pcal/
+*pcal*/
 *.gcal/
+*gcal*/
+*.gpcal/
+*gpcal*/
 
 # Ignore images and component lists (.cl)
 *.image

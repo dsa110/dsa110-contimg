@@ -359,6 +359,21 @@ def _ms_time_range(ms_path: str) -> Tuple[Optional[float], Optional[float], Opti
         msmd.close()
     except Exception:
         pass
+    
+    # Final fallback: read directly from MAIN table TIME column
+    try:
+        from casacore.tables import table as _tb
+        with _tb(ms_path, readonly=True) as _main:
+            if 'TIME' in _main.colnames():
+                times = _main.getcol('TIME')
+                if len(times) > 0:
+                    # TIME is in seconds (MJD seconds)
+                    t0 = float(times.min()) / 86400.0
+                    t1 = float(times.max()) / 86400.0
+                    return t0, t1, 0.5 * (t0 + t1)
+    except Exception:
+        pass
+    
     return None, None, None
 
 

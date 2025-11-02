@@ -503,6 +503,9 @@ class CalibratorMSGenerator:
         available_transits = []
         filelength = 5 * u.min  # Typical observation file length
         
+        # Calculate cutoff time for filtering old groups
+        cutoff_time = Time.now() - max_days_back * u.day
+        
         for transit in transits:
             # Search for groups in a window around the transit
             half_window = window_minutes // 2
@@ -531,8 +534,14 @@ class CalibratorMSGenerator:
                     try:
                         from dsa110_contimg.conversion.strategies.hdf5_orchestrator import _peek_uvh5_phase_and_midtime
                         pt_dec_rad, mid_mjd = _peek_uvh5_phase_and_midtime(group_files[0])
-                        pt_dec_deg = pt_dec_rad.to(u.deg).value
-                        group_mid = Time(mid_mjd, format='mjd')
+                        # Check if mid_mjd is valid (not None and not 0.0)
+                        if mid_mjd is not None and mid_mjd > 0:
+                            pt_dec_deg = pt_dec_rad.to(u.deg).value if pt_dec_rad is not None else None
+                            group_mid = Time(mid_mjd, format='mjd')
+                        else:
+                            # Invalid mid_mjd, fallback to group_start
+                            group_mid = group_start
+                            pt_dec_deg = pt_dec_rad.to(u.deg).value if pt_dec_rad is not None else None
                     except Exception:
                         # Fallback: use group_start as mid-time, skip dec check
                         group_mid = group_start
@@ -557,7 +566,9 @@ class CalibratorMSGenerator:
                     
                     # Verify complete 16-subband group
                     sb_codes = sorted(os.path.basename(p).rsplit('_sb', 1)[1].split('.')[0] for p in group_files)
-                    full = len(group_files) == 16 and all(code.startswith('sb') for code in sb_codes)
+                    # Check that we have exactly 16 files and all subband codes are valid (00-15)
+                    expected_codes = {f"{i:02d}" for i in range(16)}
+                    full = len(group_files) == 16 and set(sb_codes) == expected_codes
                     
                     if not full:
                         continue
