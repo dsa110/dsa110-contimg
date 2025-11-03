@@ -206,9 +206,37 @@ class DirectSubbandWriter(MSWriter):
                         group_pt_dec))
 
             parts = []
+            failed_parts = []
             for i, future in enumerate(as_completed(futures)):
                 try:
-                    parts.append(future.result())
+                    part_path = future.result()
+                    # Validate that the file actually exists and is readable
+                    if not os.path.exists(part_path):
+                        failed_parts.append(part_path)
+                        raise RuntimeError(
+                            f"Subband writer returned path but file does not exist: {part_path}"
+                        )
+                    if not os.path.isdir(part_path):
+                        failed_parts.append(part_path)
+                        raise RuntimeError(
+                            f"Subband writer returned path but it's not a directory: {part_path}"
+                        )
+                    # Verify MS is readable by CASA (quick check)
+                    try:
+                        from casacore.tables import table
+                        with table(part_path, readonly=True) as tb:
+                            if tb.nrows() == 0:
+                                failed_parts.append(part_path)
+                                raise RuntimeError(
+                                    f"Subband MS has no data rows: {part_path}"
+                                )
+                    except Exception as check_err:
+                        failed_parts.append(part_path)
+                        raise RuntimeError(
+                            f"Subband MS validation failed for {part_path}: {check_err}"
+                        ) from check_err
+                    
+                    parts.append(part_path)
                     if (i + 1) % 4 == 0 or (i + 1) == len(futures):
                         msg = (
                             f"Per-subband writes completed: {i + 1}/"
@@ -216,9 +244,49 @@ class DirectSubbandWriter(MSWriter):
                         )
                         print(msg)
                 except Exception as e:
-                    raise RuntimeError(
-                        f"A subband writer process failed: {e}"
-                    )
+                    logger.error(f"Subband writer process failed: {e}", exc_info=True)
+                    # Continue collecting other parts but track failures
+                    failed_parts.append(f"future_{i}")
+
+            # Verify we have exactly the expected number of parts
+            expected_parts = len(self.file_list)
+            if len(parts) != expected_parts:
+                raise RuntimeError(
+                    f"Expected {expected_parts} subband MS files, but only {len(parts)} were created successfully. "
+                    f"Failed parts: {failed_parts}"
+                )
+
+        # Small delay to ensure all file handles are released and filesystem is synced
+        import time
+        time.sleep(0.5)
+        
+        # Final validation: verify all parts exist and are readable before concat
+        missing_parts = [p for p in parts if not os.path.exists(p)]
+        if missing_parts:
+            raise RuntimeError(
+                f"Some subband MS files are missing before concat: {missing_parts}"
+            )
+        
+        unreadable_parts = []
+        for p in parts:
+            try:
+                from casacore.tables import table
+                # Try to open for readonly first (less aggressive)
+                with table(p, readonly=True) as tb:
+                    # Verify it's actually readable and has data
+                    if tb.nrows() == 0:
+                        unreadable_parts.append((p, "MS has no data rows"))
+                        continue
+                    # Quick check: ensure we can read at least one column
+                    _ = tb.getcol("ANTENNA1", startrow=0, nrow=1)
+            except Exception as e:
+                unreadable_parts.append((p, str(e)))
+        
+        if unreadable_parts:
+            raise RuntimeError(
+                f"Some subband MS files cannot be opened or validated (may be locked or corrupted): "
+                f"{unreadable_parts}"
+            )
 
         # Concatenate parts into the final MS
         print(
@@ -409,6 +477,27 @@ def _write_ms_subband_part(
         check_autos=False,
         fix_autos=False,
     )
+    
+    # Explicitly delete UVData object to ensure file handles are released
+    del uv
+    
+    # Verify the MS was created successfully before returning
+    if not part_out_path.exists():
+        raise RuntimeError(f"MS write completed but file does not exist: {part_out_path}")
+    if not part_out_path.is_dir():
+        raise RuntimeError(f"MS write completed but path is not a directory: {part_out_path}")
+    
+    # Verify MS has data
+    try:
+        from casacore.tables import table
+        with table(str(part_out_path), readonly=True) as tb:
+            if tb.nrows() == 0:
+                raise RuntimeError(f"MS was created but has no data rows: {part_out_path}")
+    except Exception as verify_err:
+        raise RuntimeError(
+            f"MS write verification failed for {part_out_path}: {verify_err}"
+        ) from verify_err
+    
     return str(part_out_path)
 
 
