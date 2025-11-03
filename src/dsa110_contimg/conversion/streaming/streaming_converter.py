@@ -205,6 +205,19 @@ class QueueDB:
                     )
                 except sqlite3.DatabaseError:
                     pass
+            if "has_calibrator" not in columns:
+                self._conn.execute(
+                    "ALTER TABLE ingest_queue ADD COLUMN has_calibrator INTEGER DEFAULT NULL")
+                altered = True
+            if "calibrators" not in columns:
+                self._conn.execute(
+                    "ALTER TABLE ingest_queue ADD COLUMN calibrators TEXT")
+                altered = True
+
+            if altered:
+                self._conn.commit()
+                logging.info(
+                    "Updated ingest_queue schema with new metadata columns.")
 
     def _normalize_group_id_datetime(self, group_id: str) -> str:
         """Normalize group_id to 'YYYY-MM-DDTHH:MM:SS'. Accept 'T' or space."""
@@ -232,19 +245,6 @@ class QueueDB:
                         self._conn.execute("UPDATE performance_metrics SET group_id = ? WHERE group_id = ?", (norm, gid))
                     except sqlite3.DatabaseError:
                         continue
-
-            if "has_calibrator" not in columns:
-                self._conn.execute(
-                    "ALTER TABLE ingest_queue ADD COLUMN has_calibrator INTEGER DEFAULT NULL")
-                altered = True
-            if "calibrators" not in columns:
-                self._conn.execute(
-                    "ALTER TABLE ingest_queue ADD COLUMN calibrators TEXT")
-                altered = True
-
-            if altered:
-                logging.info(
-                    "Updated ingest_queue schema with new metadata columns.")
 
         with self._lock, self._conn:
             try:
@@ -707,7 +707,7 @@ def main(argv: Optional[List[str]] = None) -> int:
             log.error(f"Scratch directory is not writable: {args.scratch_dir}")
             return 1
     
-    log.info("✓ Directory validation passed")
+    log.info("? Directory validation passed")
 
     qdb = QueueDB(Path(args.queue_db), expected_subbands=int(args.expected_subbands), chunk_duration_minutes=float(args.chunk_duration))
     try:

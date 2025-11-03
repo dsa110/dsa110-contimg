@@ -7,6 +7,7 @@ and then merges all SPWs into a single SPW Measurement Set.
 
 import os
 import shutil
+import logging
 from pathlib import Path
 from typing import TYPE_CHECKING, Any, List, Optional
 
@@ -15,6 +16,8 @@ import astropy.units as u
 from astropy.time import Time
 
 from .base import MSWriter
+
+logger = logging.getLogger(__name__)
 from dsa110_contimg.conversion.helpers import (
     set_antenna_positions,
     _ensure_antenna_diameters,
