@@ -20,7 +20,7 @@ import subprocess
 import tempfile
 import threading
 import time
-from contextlib import contextmanager
+from contextlib import contextmanager, closing
 from datetime import datetime, timedelta
 from pathlib import Path
 from typing import Dict, Iterator, List, Optional, Sequence, Set, Tuple
@@ -292,20 +292,22 @@ class QueueDB:
                 """,
                 (now, normalized_group),
             )
-            count = self._conn.execute(
-                "SELECT COUNT(*) FROM subband_files WHERE group_id = ?",
-                (normalized_group,),
-            ).fetchone()[0]
-            if count >= self.expected_subbands:
-                self._conn.execute(
-                    """
-                    UPDATE ingest_queue
-                       SET state = CASE WHEN state = 'completed' THEN state ELSE 'pending' END,
-                           last_update = ?
-                     WHERE group_id = ?
-                    """,
-                    (now, normalized_group),
-                )
+            # Atomic check-and-update: use subquery to avoid race condition
+            # This ensures the count check and state update happen atomically
+            self._conn.execute(
+                """
+                UPDATE ingest_queue
+                   SET state = CASE 
+                       WHEN state = 'completed' THEN state 
+                       WHEN (SELECT COUNT(*) FROM subband_files WHERE group_id = ingest_queue.group_id) >= ? 
+                       THEN 'pending' 
+                       ELSE state 
+                   END,
+                       last_update = ?
+                 WHERE group_id = ?
+                """,
+                (self.expected_subbands, now, normalized_group),
+            )
 
     def bootstrap_directory(self, input_dir: Path) -> None:
         logging.info(
@@ -499,34 +501,34 @@ def _worker_loop(args: argparse.Namespace, queue: QueueDB) -> None:
             # Record conversion in products DB (stage=converted)
             try:
                 products_db_path = os.getenv("PIPELINE_PRODUCTS_DB", "state/products.sqlite3")
-                conn = ensure_products_db(Path(products_db_path))
-                # Extract time range
-                start_mjd = end_mjd = mid_mjd = None
-                try:
-                    from casatools import msmetadata  # type: ignore
-                    msmd = msmetadata()
-                    msmd.open(ms_path)
+                with closing(ensure_products_db(Path(products_db_path))) as conn:
+                    # Extract time range
+                    start_mjd = end_mjd = mid_mjd = None
                     try:
-                        tr = msmd.timerangeforobs()
-                        if tr and isinstance(tr, (list, tuple)) and len(tr) >= 2:
-                            start_mjd = float(tr[0])
-                            end_mjd = float(tr[1])
-                            mid_mjd = 0.5 * (start_mjd + end_mjd)
-                    finally:
-                        msmd.close()
-                except Exception:
-                    pass
-                ms_index_upsert(
-                    conn,
-                    ms_path,
-                    start_mjd=start_mjd,
-                    end_mjd=end_mjd,
-                    mid_mjd=mid_mjd,
-                    processed_at=time.time(),
-                    status="converted",
-                    stage="converted",
-                )
-                conn.commit()
+                        from casatools import msmetadata  # type: ignore
+                        msmd = msmetadata()
+                        msmd.open(ms_path)
+                        try:
+                            tr = msmd.timerangeforobs()
+                            if tr and isinstance(tr, (list, tuple)) and len(tr) >= 2:
+                                start_mjd = float(tr[0])
+                                end_mjd = float(tr[1])
+                                mid_mjd = 0.5 * (start_mjd + end_mjd)
+                        finally:
+                            msmd.close()
+                    except Exception:
+                        pass
+                    ms_index_upsert(
+                        conn,
+                        ms_path,
+                        start_mjd=start_mjd,
+                        end_mjd=end_mjd,
+                        mid_mjd=mid_mjd,
+                        processed_at=time.time(),
+                        status="converted",
+                        stage="converted",
+                    )
+                    conn.commit()
             except Exception:
                 log.debug("ms_index conversion upsert failed", exc_info=True)
 
@@ -546,7 +548,14 @@ def _worker_loop(args: argparse.Namespace, queue: QueueDB) -> None:
 
                 applylist = []
                 try:
-                    applylist = get_active_applylist(Path(args.registry_db), float(mid_mjd) if mid_mjd is not None else time.time()/86400.0)
+                    # Use astropy Time for proper UTC-to-MJD conversion
+                    from astropy.time import Time
+                    if mid_mjd is not None:
+                        mjd_for_cal = float(mid_mjd)
+                    else:
+                        # Convert current UTC time to MJD properly
+                        mjd_for_cal = Time.now().mjd
+                    applylist = get_active_applylist(Path(args.registry_db), mjd_for_cal)
                 except Exception:
                     applylist = []
 
@@ -568,22 +577,22 @@ def _worker_loop(args: argparse.Namespace, queue: QueueDB) -> None:
                 # Update products DB with imaging artifacts and stage
                 try:
                     products_db_path = os.getenv("PIPELINE_PRODUCTS_DB", "state/products.sqlite3")
-                    conn = ensure_products_db(Path(products_db_path))
-                    ms_index_upsert(
-                        conn,
-                        ms_path,
-                        status="done",
-                        stage="imaged",
-                        cal_applied=cal_applied,
-                        imagename=imgroot,
-                    )
-                    # Insert images
-                    now_ts = time.time()
-                    for suffix, pbcor in [(".image", 0), (".pb", 0), (".pbcor", 1), (".residual", 0), (".model", 0)]:
-                        p = f"{imgroot}{suffix}"
-                        if os.path.isdir(p) or os.path.isfile(p):
-                            images_insert(conn, p, ms_path, now_ts, "5min", pbcor)
-                    conn.commit()
+                    with closing(ensure_products_db(Path(products_db_path))) as conn:
+                        ms_index_upsert(
+                            conn,
+                            ms_path,
+                            status="done",
+                            stage="imaged",
+                            cal_applied=cal_applied,
+                            imagename=imgroot,
+                        )
+                        # Insert images
+                        now_ts = time.time()
+                        for suffix, pbcor in [(".image", 0), (".pb", 0), (".pbcor", 1), (".residual", 0), (".model", 0)]:
+                            p = f"{imgroot}{suffix}"
+                            if os.path.isdir(p) or os.path.isfile(p):
+                                images_insert(conn, p, ms_path, now_ts, "5min", pbcor)
+                        conn.commit()
                 except Exception:
                     log.debug("products DB update failed", exc_info=True)
             except Exception:
