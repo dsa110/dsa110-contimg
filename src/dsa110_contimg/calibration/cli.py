@@ -4,6 +4,11 @@ import os
 import sys
 from typing import List
 
+# Ensure headless operation before any CASA imports (prevents casaplotserver X server errors)
+os.environ.setdefault("QT_QPA_PLATFORM", "offscreen")
+if os.environ.get("DISPLAY"):
+    os.environ.pop("DISPLAY", None)
+
 # Use shared CLI utilities
 from dsa110_contimg.utils.cli_helpers import (
     setup_casa_environment,
@@ -111,7 +116,12 @@ def main():
         help="Calibrator flux (Jy) for weighting in auto selection")
     pc.add_argument(
         "--cal-catalog",
-        help="Path to VLA calibrator catalog for auto field selection")
+        help=(
+            "Path to VLA calibrator catalog for auto field selection. "
+            "If not provided, auto-resolves to SQLite database at "
+            "state/catalogs/vla_calibrators.sqlite3 (preferred). "
+            "Accepts both SQLite (.sqlite3) and CSV formats."
+        ))
     pc.add_argument(
         "--cal-search-radius-deg",
         type=float,
@@ -477,20 +487,31 @@ def main():
                         for error in e.errors:
                             logger.error(f"  - {error}")
                         sys.exit(1)
-                    
-                    sel, idxs, wflux, calinfo = select_bandpass_from_catalog(
-                        args.ms,
-                        args.cal_catalog,
-                        search_radius_deg=float(
-                            args.cal_search_radius_deg or 1.0
-                        ),
-                        window=max(1, int(args.bp_window)),
-                        min_pb=(
-                            float(args.bp_min_pb)
-                            if args.bp_min_pb is not None
-                            else None
-                        ),
-                    )
+                    catalog_path = args.cal_catalog
+                else:
+                    # Auto-resolve to SQLite database (preferred) or CSV fallback
+                    try:
+                        from dsa110_contimg.calibration.catalogs import resolve_vla_catalog_path
+                        catalog_path = str(resolve_vla_catalog_path(prefer_sqlite=True))
+                        logger.info(f"Auto-resolved catalog to: {catalog_path}")
+                    except FileNotFoundError as e:
+                        logger.error(f"Catalog auto-resolution failed: {e}")
+                        logger.error("Provide --cal-catalog explicitly or ensure SQLite catalog exists at state/catalogs/vla_calibrators.sqlite3")
+                        sys.exit(1)
+                
+                sel, idxs, wflux, calinfo = select_bandpass_from_catalog(
+                    args.ms,
+                    catalog_path,
+                    search_radius_deg=float(
+                        args.cal_search_radius_deg or 1.0
+                    ),
+                    window=max(1, int(args.bp_window)),
+                    min_pb=(
+                        float(args.bp_min_pb)
+                        if args.bp_min_pb is not None
+                        else None
+                    ),
+                )
                     name, ra_deg, dec_deg, flux_jy = calinfo
                     print(
                         (
@@ -1260,11 +1281,22 @@ def main():
             logger.info("=" * 70)
         
         # Report flagging statistics after flagging (except for summary mode)
+        # Use direct table access instead of flag_summary() to avoid casaplotserver launch
         if mode != "summary":
             try:
-                stats = flag_summary(args.ms)
-                flagged_pct = stats.get('total_fraction_flagged', 0.0) * 100
-                logger.info(f"\nFlagging complete. Total flagged: {flagged_pct:.2f}%")
+                from casacore.tables import table
+                import numpy as np
+                
+                with table(args.ms, readonly=True) as tb:
+                    n_rows = tb.nrows()
+                    if n_rows > 0:
+                        # Sample a reasonable number of rows for performance
+                        sample_size = min(10000, n_rows)
+                        flags = tb.getcol("FLAG", startrow=0, nrow=sample_size)
+                        total_points = flags.size
+                        flagged_points = np.sum(flags)
+                        flagged_pct = (flagged_points / total_points * 100) if total_points > 0 else 0.0
+                        logger.info(f"\nFlagging complete. Total flagged: {flagged_pct:.2f}% (sampled {sample_size:,} rows)")
             except Exception as e:
                 logger.debug(f"Could not compute flagging statistics: {e}")
 

@@ -1,47 +1,98 @@
 from typing import List, Optional
+import os
+import sys
+from contextlib import contextmanager
+
+# Ensure headless operation to prevent casaplotserver X server errors
+# Set multiple environment variables to prevent CASA from launching plotting servers
+os.environ.setdefault("QT_QPA_PLATFORM", "offscreen")
+os.environ.setdefault("CASA_NO_X", "1")  # Additional CASA-specific flag
+if os.environ.get("DISPLAY"):
+    os.environ.pop("DISPLAY", None)
 
 from casatasks import flagdata
 
 
+@contextmanager
+def suppress_subprocess_stderr():
+    """Context manager to suppress stderr from subprocesses (like casaplotserver).
+    
+    Redirects stderr at the file descriptor level to suppress casaplotserver errors.
+    Note: This only suppresses output to stderr; CASA operations still complete normally.
+    """
+    devnull_fd = None
+    old_stderr = None
+    old_stderr_fd = None
+    try:
+        old_stderr_fd = sys.stderr.fileno()
+        # Save original stderr
+        old_stderr = os.dup(old_stderr_fd)
+        # Open devnull and redirect stderr to it
+        devnull_fd = os.open(os.devnull, os.O_WRONLY)
+        os.dup2(devnull_fd, old_stderr_fd)
+        yield
+    except (AttributeError, OSError):
+        # Fallback if fd manipulation fails (e.g., in tests or non-standard environments)
+        yield
+    finally:
+        # Restore original stderr
+        if old_stderr is not None and old_stderr_fd is not None:
+            try:
+                os.dup2(old_stderr, old_stderr_fd)
+                os.close(old_stderr)
+            except OSError:
+                pass
+        if devnull_fd is not None:
+            try:
+                os.close(devnull_fd)
+            except OSError:
+                pass
+
+
 def reset_flags(ms: str) -> None:
-    flagdata(vis=ms, mode="unflag")
+    with suppress_subprocess_stderr():
+        flagdata(vis=ms, mode="unflag")
 
 
 def flag_zeros(ms: str, datacolumn: str = "data") -> None:
-    flagdata(vis=ms, mode="clip", datacolumn=datacolumn, clipzeros=True)
+    with suppress_subprocess_stderr():
+        flagdata(vis=ms, mode="clip", datacolumn=datacolumn, clipzeros=True)
 
 
 def flag_rfi(ms: str, datacolumn: str = "data") -> None:
     # Two-stage RFI flagging using flagdata modes (tfcrop then rflag)
-    flagdata(
-        vis=ms,
-        mode="tfcrop",
-        datacolumn=datacolumn,
-        timecutoff=4.0,
-        freqcutoff=4.0,
-        timefit="line",
-        freqfit="poly",
-        maxnpieces=5,
-        winsize=3,
-        extendflags=False,
-    )
-    flagdata(
-        vis=ms,
-        mode="rflag",
-        datacolumn=datacolumn,
-        timedevscale=4.0,
-        freqdevscale=4.0,
-        extendflags=False,
-    )
+    with suppress_subprocess_stderr():
+        flagdata(
+            vis=ms,
+            mode="tfcrop",
+            datacolumn=datacolumn,
+            timecutoff=4.0,
+            freqcutoff=4.0,
+            timefit="line",
+            freqfit="poly",
+            maxnpieces=5,
+            winsize=3,
+            extendflags=False,
+        )
+        flagdata(
+            vis=ms,
+            mode="rflag",
+            datacolumn=datacolumn,
+            timedevscale=4.0,
+            freqdevscale=4.0,
+            extendflags=False,
+        )
 
 
 def flag_antenna(ms: str, antenna: str, datacolumn: str = "data", pol: Optional[str] = None) -> None:
     antenna_sel = antenna if pol is None else f"{antenna}&{pol}"
-    flagdata(vis=ms, mode="manual", antenna=antenna_sel, datacolumn=datacolumn)
+    with suppress_subprocess_stderr():
+        flagdata(vis=ms, mode="manual", antenna=antenna_sel, datacolumn=datacolumn)
 
 
 def flag_baselines(ms: str, uvrange: str = "2~50m", datacolumn: str = "data") -> None:
-    flagdata(vis=ms, mode="manual", uvrange=uvrange, datacolumn=datacolumn)
+    with suppress_subprocess_stderr():
+        flagdata(vis=ms, mode="manual", uvrange=uvrange, datacolumn=datacolumn)
 
 
 def flag_manual(ms: str, antenna: Optional[str] = None,
@@ -87,7 +138,8 @@ def flag_manual(ms: str, antenna: Optional[str] = None,
     if len([k for k in [antenna, scan, spw, field, uvrange, timerange, correlation] if k]) == 0:
         raise ValueError("At least one selection parameter must be provided for manual flagging")
     
-    flagdata(**kwargs)
+    with suppress_subprocess_stderr():
+        flagdata(**kwargs)
 
 
 def flag_shadow(ms: str, tolerance: float = 0.0) -> None:
@@ -101,7 +153,8 @@ def flag_shadow(ms: str, tolerance: float = 0.0) -> None:
         ms: Path to Measurement Set
         tolerance: Shadowing tolerance in degrees (default: 0.0)
     """
-    flagdata(vis=ms, mode="shadow", tolerance=tolerance)
+    with suppress_subprocess_stderr():
+        flagdata(vis=ms, mode="shadow", tolerance=tolerance)
 
 
 def flag_quack(ms: str, quackinterval: float = 2.0, 
@@ -118,8 +171,9 @@ def flag_quack(ms: str, quackinterval: float = 2.0,
         quackmode: 'beg' (beginning), 'end', 'tail', or 'endb' (default: 'beg')
         datacolumn: Data column to use (default: 'data')
     """
-    flagdata(vis=ms, mode="quack", datacolumn=datacolumn,
-             quackinterval=quackinterval, quackmode=quackmode)
+    with suppress_subprocess_stderr():
+        flagdata(vis=ms, mode="quack", datacolumn=datacolumn,
+                 quackinterval=quackinterval, quackmode=quackmode)
 
 
 def flag_elevation(ms: str, lowerlimit: Optional[float] = None,
@@ -142,7 +196,8 @@ def flag_elevation(ms: str, lowerlimit: Optional[float] = None,
         kwargs["lowerlimit"] = lowerlimit
     if upperlimit is not None:
         kwargs["upperlimit"] = upperlimit
-    flagdata(**kwargs)
+    with suppress_subprocess_stderr():
+        flagdata(**kwargs)
 
 
 def flag_clip(ms: str, clipminmax: List[float],
@@ -182,7 +237,8 @@ def flag_clip(ms: str, clipminmax: List[float],
         kwargs["timeavg"] = timeavg
         if timebin:
             kwargs["timebin"] = timebin
-    flagdata(**kwargs)
+    with suppress_subprocess_stderr():
+        flagdata(**kwargs)
 
 
 def flag_extend(ms: str, growtime: float = 0.0, growfreq: float = 0.0,
@@ -205,10 +261,11 @@ def flag_extend(ms: str, growtime: float = 0.0, growfreq: float = 0.0,
         extendpols: Extend flags across polarization products
         datacolumn: Data column to use (default: 'data')
     """
-    flagdata(vis=ms, mode="extend", datacolumn=datacolumn,
-             growtime=growtime, growfreq=growfreq, growaround=growaround,
-             flagneartime=flagneartime, flagnearfreq=flagnearfreq,
-             extendpols=extendpols)
+    with suppress_subprocess_stderr():
+        flagdata(vis=ms, mode="extend", datacolumn=datacolumn,
+                 growtime=growtime, growfreq=growfreq, growaround=growaround,
+                 flagneartime=flagneartime, flagnearfreq=flagnearfreq,
+                 extendpols=extendpols)
 
 
 def flag_summary(ms: str, spw: str = "", field: str = "", 
@@ -251,11 +308,13 @@ def flag_summary(ms: str, spw: str = "", field: str = "",
     if reason:
         kwargs["reason"] = reason
     
-    # flagdata in summary mode prints to stdout, returns None
-    # We'll capture the statistics by parsing the output or using CASA table access
-    flagdata(**kwargs)
+    # Skip calling flagdata in summary mode - it triggers casaplotserver which hangs
+    # Instead, directly read flags from the MS using casacore.tables
+    # This is faster and avoids subprocess issues
+    # with suppress_subprocess_stderr():
+    #     flagdata(**kwargs)
     
-    # Parse summary statistics from MS
+    # Parse summary statistics directly from MS (faster and avoids casaplotserver)
     try:
         from casacore.tables import table
         import numpy as np
