@@ -205,6 +205,22 @@ def main():
     args = p.parse_args()
 
     if args.cmd == "calibrate":
+        # PRECONDITION CHECK: Validate MS exists and is readable before proceeding
+        # This ensures we follow "measure twice, cut once" - establish requirements upfront
+        # before any expensive operations (field selection, flagging, subset creation).
+        if not os.path.exists(args.ms):
+            p.error(f"MS does not exist: {args.ms}")
+        
+        # Verify MS is readable and not empty
+        try:
+            from casacore.tables import table
+            with table(args.ms, readonly=True) as tb:
+                nrows = tb.nrows()
+                if nrows == 0:
+                    p.error(f"MS is empty: {args.ms}")
+        except Exception as e:
+            p.error(f"MS is not readable: {args.ms}. Error: {e}")
+        
         field_sel = args.field
         # Defaults to ensure variables exist for later logic
         idxs = []  # type: ignore[assignment]
@@ -212,6 +228,11 @@ def main():
         if args.auto_fields:
             try:
                 if args.cal_catalog:
+                    # PRECONDITION CHECK: Validate catalog file exists before field selection
+                    # This ensures we follow "measure twice, cut once" - establish requirements upfront.
+                    if not os.path.exists(args.cal_catalog):
+                        p.error(f"Calibrator catalog not found: {args.cal_catalog}")
+                    
                     sel, idxs, wflux, calinfo = select_bandpass_from_catalog(
                         args.ms,
                         args.cal_catalog,
@@ -284,6 +305,31 @@ def main():
                     )
         if field_sel is None:
             p.error("--field is required when --auto-fields is not used")
+        
+        # PRECONDITION CHECK: Validate selected field(s) exist in MS before proceeding
+        # This ensures we follow "measure twice, cut once" - establish requirements upfront
+        # before expensive operations (flagging, MODEL_DATA population, subset creation).
+        try:
+            from casacore.tables import table
+            from .calibration import _resolve_field_ids
+            
+            with table(args.ms, readonly=True) as tb:
+                field_ids = tb.getcol('FIELD_ID')
+                available_fields = sorted(set(field_ids))
+            
+            # Resolve field selection
+            target_ids = _resolve_field_ids(args.ms, field_sel)
+            if not target_ids:
+                p.error(f"Unable to resolve field selection: {field_sel}")
+            
+            missing_fields = set(target_ids) - set(available_fields)
+            if missing_fields:
+                p.error(
+                    f"Selected fields not found in MS: {sorted(missing_fields)}. "
+                    f"Available fields: {available_fields}"
+                )
+        except Exception as e:
+            p.error(f"Failed to validate fields in MS: {args.ms}. Error: {e}")
 
         # Determine reference antenna
         refant = args.refant
@@ -298,20 +344,70 @@ def main():
                     refant = str(rec['antenna_id'])
                     print(f"Reference antenna (from ranking): {refant}")
             except Exception as e:
+                # PRECONDITION CHECK: If refant ranking fails and --refant not provided, fail fast
+                # This ensures we follow "measure twice, cut once" - establish requirements upfront.
+                if args.refant is None:
+                    p.error(
+                        f"Failed to read refant ranking ({e}) and --refant not provided. "
+                        f"Provide one or the other."
+                    )
                 print(
-                    (
-                        "Failed to read refant ranking ({}); "
-                        "falling back to --refant"
-                    ).format(e)
+                    f"Failed to read refant ranking ({e}); using --refant={args.refant}"
                 )
         if refant is None:
             p.error("Provide --refant or --refant-ranking")
+        
+        # PRECONDITION CHECK: Validate reference antenna exists in MS before proceeding
+        # This ensures we follow "measure twice, cut once" - establish requirements upfront
+        # before expensive operations (flagging, MODEL_DATA population, subset creation).
+        try:
+            from casacore.tables import table
+            
+            with table(args.ms, readonly=True) as tb:
+                ant1 = tb.getcol('ANTENNA1')
+                ant2 = tb.getcol('ANTENNA2')
+                all_antennas = set(ant1) | set(ant2)
+            
+            refant_int = int(refant) if isinstance(refant, str) else refant
+            if refant_int not in all_antennas:
+                from dsa110_contimg.utils.antenna_classification import (
+                    select_outrigger_refant,
+                    get_outrigger_antennas,
+                )
+                
+                # Try to suggest an outrigger antenna
+                outrigger_refant = select_outrigger_refant(
+                    list(all_antennas),
+                    preferred_refant=refant_int
+                )
+                
+                if outrigger_refant is not None:
+                    error_msg = (
+                        f"Reference antenna {refant} not found in MS. "
+                        f"Available antennas: {sorted(all_antennas)}. "
+                        f"Suggested outrigger reference antenna: {outrigger_refant}. "
+                        f"Outriggers are preferred for reference antenna due to better "
+                        f"phase stability. Available outriggers: {get_outrigger_antennas(list(all_antennas))}"
+                    )
+                else:
+                    suggested_refant = sorted(all_antennas)[0]
+                    error_msg = (
+                        f"Reference antenna {refant} not found in MS. "
+                        f"Available antennas: {sorted(all_antennas)}. "
+                        f"Consider using refant={suggested_refant} instead."
+                    )
+                
+                p.error(error_msg)
+        except Exception as e:
+            p.error(f"Failed to validate reference antenna in MS: {args.ms}. Error: {e}")
 
         # MS repair flags removed.
         # Optionally create a fast subset MS
         ms_in = args.ms
         if args.fast and (args.timebin or args.chanbin):
             from .subset import make_subset
+            from casacore.tables import table
+            
             base = ms_in.rstrip('/').rstrip('.ms')
             ms_fast = f"{base}.fast.ms"
             print(
@@ -326,6 +422,21 @@ def main():
                 chanbin=args.chanbin,
                 combinespws=False,
             )
+            
+            # PRECONDITION CHECK: Validate fast subset MS was created successfully
+            # This ensures we follow "measure twice, cut once" - establish requirements upfront
+            # before proceeding with calibration on potentially wrong MS.
+            if not os.path.exists(ms_fast):
+                p.error(f"Fast subset MS creation failed: {ms_fast}")
+            
+            # Verify subset is readable and not empty
+            try:
+                with table(ms_fast, readonly=True) as tb:
+                    if tb.nrows() == 0:
+                        p.error(f"Fast subset MS is empty: {ms_fast}")
+            except Exception as e:
+                p.error(f"Fast subset MS is not readable: {ms_fast}. Error: {e}")
+            
             ms_in = ms_fast
 
         # Execute solves with a robust K step on the peak field only, then BP/G
@@ -335,6 +446,40 @@ def main():
             reset_flags(ms_in)
             flag_zeros(ms_in)
             flag_rfi(ms_in)
+            
+            # PRECONDITION CHECK: Verify sufficient unflagged data remains after flagging
+            # This ensures we follow "measure twice, cut once" - verify data quality
+            # before proceeding with expensive calibration operations.
+            try:
+                from casacore.tables import table
+                import numpy as np
+                with table(ms_in, readonly=True) as tb:
+                    flags = tb.getcol('FLAG')
+                    total_points = flags.size
+                    unflagged_points = np.sum(~flags)
+                    unflagged_fraction = unflagged_points / total_points if total_points > 0 else 0.0
+                    
+                    if unflagged_fraction < 0.1:  # Less than 10% unflagged
+                        p.error(
+                            f"Insufficient unflagged data after flagging: {unflagged_fraction*100:.1f}%. "
+                            f"Calibration requires at least 10% unflagged data. "
+                            f"Consider adjusting flagging parameters or checking data quality."
+                        )
+                    elif unflagged_fraction < 0.3:  # Less than 30% unflagged
+                        print(
+                            f"Warning: Only {unflagged_fraction*100:.1f}% of data remains unflagged "
+                            f"after flagging. Calibration may be less reliable."
+                        )
+                    else:
+                        print(
+                            f"✓ Flagging complete: {unflagged_fraction*100:.1f}% data remains unflagged "
+                            f"({unflagged_points:,}/{total_points:,} points)"
+                        )
+            except Exception as e:
+                p.error(
+                    f"Failed to validate unflagged data after flagging: {e}. "
+                    f"Cannot proceed with calibration."
+                )
 
         # Determine a peak field for K (if auto-selected, we have idxs/wflux)
         k_field_sel = field_sel
@@ -364,17 +509,11 @@ def main():
                 k_field_sel, field_sel
             )
         )
-        ktabs = []
-        if not args.skip_k:
-            t_k0 = time.perf_counter()
-            ktabs = solve_delay(ms_in, k_field_sel, refant)
-            print(
-                "K (delay) solve completed in {:.2f}s".format(
-                    time.perf_counter() - t_k0
-                )
-            )
-
-        # Populate MODEL_DATA according to requested strategy.
+        
+        # CRITICAL: Populate MODEL_DATA BEFORE K-calibration
+        # K-calibration requires MODEL_DATA to be populated so it knows what signal
+        # to calibrate against. Without MODEL_DATA, solutions are unreliable or may fail.
+        # Populate MODEL_DATA according to requested strategy BEFORE solving delays.
         try:
             from . import model as model_helpers
             if args.model_source == "catalog":
@@ -388,7 +527,7 @@ def main():
                     name, ra_deg, dec_deg, flux_jy = calinfo
                     print(
                         (
-                            "Writing catalog point model: {n} @ ("
+                            "Writing catalog point model BEFORE K-calibration: {n} @ ("
                             "{ra:.4f},{de:.4f}) deg, {fl:.2f} Jy"
                         ).format(n=name, ra=ra_deg, de=dec_deg, fl=flux_jy)
                     )
@@ -406,7 +545,7 @@ def main():
                     p.error("--model-source=setjy requires --model-field")
                 print(
                     (
-                        "Running setjy on field {} (standard {})"
+                        "Running setjy BEFORE K-calibration on field {} (standard {})"
                     ).format(args.model_field, args.model_setjy_standard)
                 )
                 model_helpers.write_setjy_model(
@@ -421,7 +560,7 @@ def main():
                         "--model-source=component requires --model-component"
                     )
                 print(
-                    "Applying component list model: {}"
+                    "Applying component list model BEFORE K-calibration: {}"
                     .format(args.model_component)
                 )
                 model_helpers.write_component_model_with_ft(
@@ -430,13 +569,93 @@ def main():
                 if not args.model_image:
                     p.error("--model-source=image requires --model-image")
                 print(
-                    "Applying image model: {}".format(args.model_image)
+                    "Applying image model BEFORE K-calibration: {}".format(args.model_image)
                 )
                 model_helpers.write_image_model_with_ft(
                     args.ms, args.model_image)
+            elif args.model_source is None:
+                # No model source specified - this violates "measure twice, cut once"
+                # We require MODEL_DATA to be populated before K-calibration for consistent,
+                # reliable results across all calibrators (bright or faint).
+                # This ensures the calibration approach works generally, not just "sometimes"
+                # for bright sources.
+                p.error(
+                    "--model-source is REQUIRED for K-calibration. "
+                    "This ensures consistent, reliable calibration results. "
+                    "Use --model-source=setjy (for standard calibrators) or "
+                    "--model-source=catalog (for catalog-based models)."
+                )
         except Exception as e:
+            # PRECONDITION CHECK: MODEL_DATA population failure is a hard error if K-calibration is enabled
+            # This ensures we follow "measure twice, cut once" - establish requirements upfront
+            # before expensive calibration operations.
+            if not args.skip_k:
+                p.error(
+                    f"MODEL_DATA population failed: {e}. "
+                    f"This is required for K-calibration. Fix the error and retry."
+                )
+            else:
+                print(
+                    f"MODEL_DATA population failed: {e}. Skipping K-calibration as requested."
+                )
+        
+        # PRECONDITION CHECK: Validate MODEL_DATA flux values are reasonable
+        # This ensures we follow "measure twice, cut once" - verify MODEL_DATA quality
+        # before proceeding with calibration.
+        if not args.skip_k and args.model_source is not None:
+            try:
+                from casacore.tables import table
+                import numpy as np
+                with table(ms_in, readonly=True) as tb:
+                    if "MODEL_DATA" in tb.colnames():
+                        n_rows = tb.nrows()
+                        if n_rows > 0:
+                            # Sample MODEL_DATA to check flux values
+                            sample_size = min(10000, n_rows)
+                            model_sample = tb.getcol("MODEL_DATA", startrow=0, nrow=sample_size)
+                            flags_sample = tb.getcol("FLAG", startrow=0, nrow=sample_size)
+                            
+                            # Check unflagged model data
+                            unflagged_model = model_sample[~flags_sample]
+                            if len(unflagged_model) > 0:
+                                model_amps = np.abs(unflagged_model)
+                                model_amps = model_amps[model_amps > 1e-10]  # Filter out near-zero
+                                
+                                if len(model_amps) > 0:
+                                    median_flux = np.median(model_amps)
+                                    min_flux = np.min(model_amps)
+                                    max_flux = np.max(model_amps)
+                                    
+                                    # Warn if flux values seem unrealistic
+                                    if median_flux < 1e-6:  # Less than 1 microJy
+                                        print(
+                                            f"Warning: MODEL_DATA has very low median flux: "
+                                            f"{median_flux:.2e} Jy. This may indicate an issue with "
+                                            f"the model population."
+                                        )
+                                    elif median_flux > 1e6:  # More than 1 MJy
+                                        print(
+                                            f"Warning: MODEL_DATA has very high median flux: "
+                                            f"{median_flux:.2e} Jy. This may indicate an issue with "
+                                            f"the model population."
+                                        )
+                                    else:
+                                        print(
+                                            f"✓ MODEL_DATA validated: median flux {median_flux:.3f} Jy "
+                                            f"(range: {min_flux:.3e} - {max_flux:.3e} Jy)"
+                                        )
+            except Exception as e:
+                # Non-fatal: log warning but don't fail
+                print(f"Warning: MODEL_DATA flux validation failed: {e}")
+        
+        ktabs = []
+        if not args.skip_k:
+            t_k0 = time.perf_counter()
+            ktabs = solve_delay(ms_in, k_field_sel, refant)
             print(
-                "MODEL_DATA population failed: {}".format(e)
+                "K (delay) solve completed in {:.2f}s".format(
+                    time.perf_counter() - t_k0
+                )
             )
 
         bptabs = []

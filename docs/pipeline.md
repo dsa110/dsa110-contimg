@@ -28,8 +28,8 @@ Notes:
 ```mermaid
 flowchart LR
   Auto[--writer auto] --> N{n_subbands <= 2?}
-  N -->|yes| Mono[pyuvdata monolithic write]
-  N -->|no| Par[direct-subband: parallel per-subband writes]
+  N -->|yes| Mono[pyuvdata monolithic write<br/>TESTING ONLY]
+  N -->|no| Par[parallel-subband: parallel per-subband writes<br/>PRODUCTION]
   Par --> Stage{--stage-to-tmpfs?}
   Stage -->|yes| Tmp[dev-shm staging]
   Stage -->|no| Disk[SSD NVMe scratch]
@@ -39,7 +39,9 @@ flowchart LR
   Concat --> MS
 ```
 
-- Auto is faster because it avoids concat overhead for very small N and exploits parallelism + RAM for larger N.
+- **Production**: Always uses `parallel-subband` writer for 16 subbands (default).
+- **Testing**: `pyuvdata` writer is available for testing scenarios with ≤2 subbands only.
+- `auto` mode selects `parallel-subband` for production (16 subbands) or `pyuvdata` for testing (≤2 subbands).
 - tmpfs staging reduces filesystem latency for part writes and final concat.
 
 ## Calibration: Fast Path

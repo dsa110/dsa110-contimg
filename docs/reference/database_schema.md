@@ -64,7 +64,7 @@ Processing performance per group.
 CREATE TABLE IF NOT EXISTS performance_metrics (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
     group_id TEXT NOT NULL UNIQUE,
-    writer_type TEXT,                      -- 'direct-subband' | 'pyuvdata' | 'auto'
+    writer_type TEXT,                      -- 'parallel-subband' (production) | 'pyuvdata' (testing only) | 'auto'
     conversion_time REAL,                  -- Seconds
     concat_time REAL,
     k_solve_time REAL,

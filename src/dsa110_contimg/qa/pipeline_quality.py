@@ -189,21 +189,32 @@ def check_calibration_quality(
                     context={"caltable": os.path.basename(caltable), "exception": str(e)},
                 )
     
-    # Check CORRECTED_DATA if MS path provided
+    # Check CORRECTED_DATA if MS path provided and calibration has been applied
+    # CORRECTED_DATA only exists after calibration is applied, so check if it exists first
     if ms_path and os.path.exists(ms_path):
         try:
-            passed, metrics_dict, issues = check_corrected_data_quality(ms_path)
-            results["corrected_data"] = metrics_dict
+            from casacore.tables import table
+            with table(ms_path, readonly=True, ack=False) as tb:
+                has_corrected_data = "CORRECTED_DATA" in tb.colnames()
             
-            if not passed:
-                all_passed = False
-                logger.error(f"CORRECTED_DATA quality check failed: {', '.join(issues)}")
-                if alert_on_issues:
-                    alerting.error(
-                        "calibration",
-                        f"CORRECTED_DATA has quality issues",
-                        context={"ms_path": os.path.basename(ms_path), "issues": issues},
-                    )
+            if has_corrected_data:
+                # Calibration has been applied, check CORRECTED_DATA quality
+                passed, metrics_dict, issues = check_corrected_data_quality(ms_path)
+                results["corrected_data"] = metrics_dict
+                
+                if not passed:
+                    all_passed = False
+                    logger.error(f"CORRECTED_DATA quality check failed: {', '.join(issues)}")
+                    if alert_on_issues:
+                        alerting.error(
+                            "calibration",
+                            f"CORRECTED_DATA has quality issues",
+                            context={"ms_path": os.path.basename(ms_path), "issues": issues},
+                        )
+            else:
+                # CORRECTED_DATA doesn't exist yet - this is expected if calibration hasn't been applied
+                logger.info(f"CORRECTED_DATA column not present - calibration not yet applied (expected)")
+                results["corrected_data"] = {"status": "not_applied", "message": "Calibration tables created but not yet applied to MS"}
         
         except Exception as e:
             all_passed = False

@@ -43,7 +43,7 @@ class ConversionJobParams(BaseModel):
     output_dir: str                   # e.g., "/scratch/dsa110-contimg/ms"
     start_time: str                   # "YYYY-MM-DD HH:MM:SS"
     end_time: str                     # "YYYY-MM-DD HH:MM:SS"
-    writer: str = "auto"              # "auto" | "direct-subband" | "pyuvdata"
+    writer: str = "auto"              # "parallel-subband" (production) | "pyuvdata" (testing only) | "auto"
     stage_to_tmpfs: bool = True       # RAM staging for performance
     max_workers: int = 4              # Parallel workers
 

@@ -355,6 +355,47 @@ class _FSHandler(FileSystemEventHandler):
         if info is None:
             return
         gid, sb = info
+        
+        # PRECONDITION CHECK: Validate file is readable before queuing
+        # This ensures we follow "measure twice, cut once" - establish requirements upfront
+        # before recording file in queue and attempting conversion.
+        log = logging.getLogger("stream")
+        
+        # Check file exists
+        if not p.exists():
+            log.warning(f"File does not exist (may have been deleted): {path}")
+            return
+        
+        # Check file is readable
+        if not os.access(path, os.R_OK):
+            log.warning(f"File is not readable: {path}")
+            return
+        
+        # Check file size (basic sanity check)
+        try:
+            file_size = p.stat().st_size
+            if file_size == 0:
+                log.warning(f"File is empty (0 bytes): {path}")
+                return
+            if file_size < 1024:  # Less than 1KB is suspicious
+                log.warning(f"File is suspiciously small ({file_size} bytes): {path}")
+        except OSError as e:
+            log.warning(f"Failed to check file size: {path}. Error: {e}")
+            return
+        
+        # Quick HDF5 structure check
+        try:
+            import h5py
+            with h5py.File(path, 'r') as f:
+                # Verify file has required structure (Header or Data group)
+                if 'Header' not in f and 'Data' not in f:
+                    log.warning(f"File does not appear to be valid HDF5/UVH5: {path}")
+                    return
+        except Exception as e:
+            log.warning(f"File is not readable HDF5: {path}. Error: {e}")
+            return
+        
+        # File passed all checks, record in queue
         try:
             self.queue.record_subband(gid, sb, p)
         except Exception:
@@ -624,6 +665,49 @@ def main(argv: Optional[List[str]] = None) -> int:
     parser = build_parser()
     args = parser.parse_args(argv)
     setup_logging(args.log_level)
+    
+    # PRECONDITION CHECK: Validate input/output directories before proceeding
+    # This ensures we follow "measure twice, cut once" - establish requirements upfront
+    # before starting file watching and processing.
+    log = logging.getLogger("stream")
+    
+    # Validate input directory
+    input_path = Path(args.input_dir)
+    if not input_path.exists():
+        log.error(f"Input directory does not exist: {args.input_dir}")
+        return 1
+    if not input_path.is_dir():
+        log.error(f"Input path is not a directory: {args.input_dir}")
+        return 1
+    if not os.access(args.input_dir, os.R_OK):
+        log.error(f"Input directory is not readable: {args.input_dir}")
+        return 1
+    
+    # Validate output directory
+    output_path = Path(args.output_dir)
+    output_path.mkdir(parents=True, exist_ok=True)
+    if not output_path.exists():
+        log.error(f"Failed to create output directory: {args.output_dir}")
+        return 1
+    if not output_path.is_dir():
+        log.error(f"Output path is not a directory: {args.output_dir}")
+        return 1
+    if not os.access(args.output_dir, os.W_OK):
+        log.error(f"Output directory is not writable: {args.output_dir}")
+        return 1
+    
+    # Validate scratch directory if provided
+    if hasattr(args, 'scratch_dir') and args.scratch_dir:
+        scratch_path = Path(args.scratch_dir)
+        scratch_path.mkdir(parents=True, exist_ok=True)
+        if not scratch_path.exists():
+            log.error(f"Failed to create scratch directory: {args.scratch_dir}")
+            return 1
+        if not os.access(args.scratch_dir, os.W_OK):
+            log.error(f"Scratch directory is not writable: {args.scratch_dir}")
+            return 1
+    
+    log.info("✓ Directory validation passed")
 
     qdb = QueueDB(Path(args.queue_db), expected_subbands=int(args.expected_subbands), chunk_duration_minutes=float(args.chunk_duration))
     try:

@@ -30,10 +30,19 @@ Imaging guidance
 # Project Memory – dsa110-contimg
 
 - Prefer RAM staging for per-subband MS writes and concat (`/dev/shm`) when available; fall back to SSD.
-- Auto writer heuristic: ≤2 subbands -> monolithic (pyuvdata), else direct-subband.
+- Auto writer heuristic: ≤2 subbands -> pyuvdata (testing only), else parallel-subband (production).
+- Production processing always uses 16 subbands and should use parallel-subband writer.
+- **Always prefer SQLite databases for any relevant pipeline stage/function if they exist** - SQLite provides faster, more reliable access than CSV/JSON files and is the standard storage format used throughout the pipeline (e.g., `state/catalogs/vla_calibrators.sqlite3`, `state/catalogs/master_sources.sqlite3`, `products.sqlite3`, `cal_registry.sqlite3`). Functions like `load_vla_catalog()` automatically prefer SQLite when available.
 - Fast calibration: use `--fast` with time/channel averaging; solve K on peak field, BP/G across window; phase-only by default; optional `--uvrange` cuts for speed.
 - Quick imaging: `--quick` to cap imsize/niter; `--skip-fits` to avoid export; auto-selects CORRECTED_DATA when valid.
 - Add concise timers around major steps to track drift (conversion concat, K/BP/G, tclean).
+- **Phase coherence fix (2025-11-02)**: Direct-subband writer now computes a single shared phase center for the entire group before parallel processing. This ensures all subbands reference the same ICRS phase center (`meridian_icrs`), preventing phase discontinuities when concatenated. The fix averages all subband midpoint times to compute group midpoint, then passes shared `(ra, dec, pt_dec)` to all subband writers. UVW coordinates remain correct as they're computed per-time using `compute_and_set_uvw()`. Backward compatible via optional parameters.
+- **Test MS creation utility (2025-11-02)**: `scripts/create_test_ms.py` creates smaller representative MS files for faster testing (e.g., K-calibration verification). Uses CASA `split` to reduce antennas/baselines while preserving full bandwidth (all SPWs), calibrator field, and reference antenna. Typical reduction: ~6-7x smaller (2.1 GB → 316 MB), still suitable for delay testing since delays are frequency-independent and solved per-antenna. Usage: `python scripts/create_test_ms.py <ms_in> <ms_out> --max-baselines 15 --max-times 50`. See `scripts/README.md` for details.
+- **Upstream delay checking utility (2025-11-02)**: `scripts/check_upstream_delays.py` analyzes phase vs frequency slopes in raw DATA to determine if instrumental delays are already corrected upstream. Provides recommendation: <1 ns = likely corrected, 1-5 ns = partial, >5 ns = needs K-calibration. Usage: `python scripts/check_upstream_delays.py <ms_path> --n-baselines 50`.
+- **Consequences of skipping K-calibration (2025-11-02)**: Documented in `docs/reports/CONSEQUENCES_OF_SKIPPING_K_CALIBRATION.md`. Key consequences: (1) decorrelation of continuum signal when averaging frequencies, (2) reduced SNR and dynamic range, (3) loss of coherence across frequency channels, (4) degraded bandpass calibration accuracy (bandpass cannot compensate for delays), (5) affected gain calibration accuracy, (6) compromised flux measurement accuracy. K-calibration is essential - skipping it results in scientifically unreliable data. Verified via Perplexity reasoning model with radio interferometry literature.
+- **DSA-110 specific K-calibration need assessment (2025-11-02)**: Documented in `docs/reports/DSA110_K_CAL_NEED_ASSESSMENT.md`. Investigated via Perplexity whether DSA-110 has special characteristics (correlator delay correction, common LO, synchronized clocks) that would exempt it from K-calibration. Result: **No exemptions found**. DSA-110 documentation shows it follows standard calibration practices (phase calibrators, bandpass calibration, gain calibration). No evidence of automatic delay correction in correlator. Recommendation: Perform K-calibration for DSA-110 continuum imaging as standard practice. Verified via Perplexity reasoning model with DSA-110 literature search.
+- **VLA calibrator catalog access (2025-11-02)**: The VLA calibrator catalog is available as a SQLite database at `state/catalogs/vla_calibrators.sqlite3`. **Always use `load_vla_catalog()` from `dsa110_contimg.calibration.catalogs`** - it automatically prefers SQLite (faster, more reliable) and falls back to CSV if needed. Never manually construct paths or use `read_vla_parsed_catalog_csv()` directly unless you have a specific reason. Example: `from dsa110_contimg.calibration.catalogs import load_vla_catalog; df = load_vla_catalog(); ra_deg = float(df.loc['0834+555']['ra_deg'])`. This is the canonical method used throughout the pipeline.
+- **Proper transit time calculation (2025-11-02)**: For end-to-end testing that reflects production pipeline behavior, always use the proper transit finding method: (1) Load calibrator coordinates via `load_vla_catalog()` (SQLite preferred), (2) Calculate transit times using `previous_transits(ra_deg=..., start_time=Time.now(), n=5)` from `dsa110_contimg.calibration.schedule`, (3) Calculate search window (±30-60 minutes around transit), (4) **CRITICAL: Verify data exists on disk** using `find_subband_groups()` from `dsa110_contimg.conversion.strategies.hdf5_orchestrator` - this must be part of the default workflow before proceeding to MS generation, (5) Use `hdf5_orchestrator` CLI with `--start-time` and `--end-time` flags (this is what the streaming pipeline uses). **Never use simplified time-based searches** (e.g., assuming 0834 transits at 08:34 UTC) - this bypasses actual pipeline components and doesn't test production workflow. The proper method verifies coordinates, uses astronomical calculations, verifies data availability, and aligns with streaming pipeline components (`hdf5_orchestrator.find_subband_groups()`).
 
 ## 2025-10-27 – Control Panel & Service Management
 
@@ -94,7 +103,7 @@ Imaging guidance
 - Note: API uses factory pattern `create_app()` in routes.py, not server.py
 
 **Method 2: Systemd Services** (Production)
-- Files: `systemd/dsa110-api.service`, `systemd/dsa110-dashboard.service`
+- Files: `ops/systemd/contimg-api.service`, `ops/systemd/contimg-stream.service`
 - Installation: `systemd/INSTALL.md`
 - Benefits: Auto-start on boot, automatic restart on crash, system logging
 - Setup: `sudo cp systemd/*.service /etc/systemd/system/ && sudo systemctl enable dsa110-api.service`
@@ -322,7 +331,7 @@ Operational notes / next steps
   - Systemd unit path references: use `ops/systemd/contimg-stream.service` and `contimg-api.service` (not historical `pipeline/scripts/...`).
   - API endpoints: include `/api/qa`, `/api/qa/file/{group}/{name}`, `/api/metrics/system`, `/api/metrics/system/history` in `reference/api.md`.
   - Downsampling examples: prefer unified CLI `python -m dsa110_contimg.conversion.downsample_uvh5.cli` over direct script paths.
-  - Legacy conversion docs: avoid UVFITS/importuvfits flow and historical scripts; reflect current orchestrator + writers (`direct-subband`, `pyuvdata`, `auto`).
+  - Legacy conversion docs: avoid UVFITS/importuvfits flow and historical scripts; reflect current orchestrator + writers (`parallel-subband` for production, `pyuvdata` for testing only, `auto`).
   - Env variables: document `CONTIMG_*` and `PIPELINE_*` across systemd/docker (`QUEUE_DB`, `REGISTRY_DB`, `PRODUCTS_DB`, `STATE_DIR`, `LOG_LEVEL`, `EXPECTED_SUBBANDS`, `CHUNK_MINUTES`, `MONITOR_INTERVAL`).
 - Keep `reference/cli.md` aligned with actual CLIs: streaming converter, imaging worker, orchestrator, downsample CLI, registry CLI, mosaic CLI, calibration CLI.
 

@@ -110,61 +110,175 @@ def validate_caltable_quality(caltable_path: str) -> CalibrationQualityMetrics:
             if n_solutions == 0:
                 issues.append("Calibration table has zero solutions")
             
-            # Get gain/phase solutions
-            gains = tb.getcol("CPARAM")  # Complex gains
-            flags = tb.getcol("FLAG")
-            
-            # Get antenna and SPW info
+            # Get antenna and SPW info first (needed for all cal types)
             antenna_ids = tb.getcol("ANTENNA1")
             spw_ids = tb.getcol("SPECTRAL_WINDOW_ID")
             n_antennas = len(np.unique(antenna_ids))
             n_spws = len(np.unique(spw_ids))
             
-            # Compute statistics on unflagged solutions
-            unflagged_gains = gains[~flags]
+            flags = tb.getcol("FLAG")
             
-            if len(unflagged_gains) == 0:
-                issues.append("All solutions are flagged")
-                fraction_flagged = 1.0
-                median_amplitude = 0.0
-                rms_amplitude = 0.0
-                amplitude_scatter = 0.0
-                median_phase_deg = 0.0
-                rms_phase_deg = 0.0
-                phase_scatter_deg = 0.0
+            # K-calibration tables store delays in FPARAM (float), not CPARAM (complex)
+            # BP and G tables store gains in CPARAM (complex)
+            colnames = tb.colnames()
+            
+            if cal_type == "K":
+                # K-calibration: delays stored in FPARAM as float values
+                if "FPARAM" not in colnames:
+                    issues.append("K-calibration table missing FPARAM column")
+                    raise ValueError("FPARAM column not found in K-calibration table")
+                
+                fparam = tb.getcol("FPARAM")  # Shape: (n_rows, n_channels, n_pols)
+                # FPARAM interpretation: According to CASA documentation, FPARAM contains
+                # delays in seconds. However, some CASA versions may store unwrapped
+                # phase values instead. We handle both cases:
+                # 1. If values are < 1e-3: treat as delays in seconds
+                # 2. If values are larger: treat as unwrapped phase (radians) and convert
+                unflagged_fparam = fparam[~flags]
+                
+                if len(unflagged_fparam) == 0:
+                    issues.append("All solutions are flagged")
+                    fraction_flagged = 1.0
+                    median_amplitude = 0.0  # Not applicable for delays
+                    rms_amplitude = 0.0
+                    amplitude_scatter = 0.0
+                    median_phase_deg = 0.0  # Not applicable for delays
+                    rms_phase_deg = 0.0
+                    phase_scatter_deg = 0.0
+                else:
+                    fraction_flagged = float(np.mean(flags))
+                    
+                    # Determine if FPARAM contains delays or unwrapped phase
+                    # Delays should be < 1e-6 seconds (nanoseconds)
+                    # Phase values are typically in radians, potentially unwrapped
+                    median_fparam = float(np.abs(np.median(unflagged_fparam)))
+                    
+                    if median_fparam < 1e-3:
+                        # Likely delays in seconds (per CASA documentation)
+                        delays_ns = unflagged_fparam * 1e9  # Convert seconds to nanoseconds
+                    else:
+                        # Likely unwrapped phase (radians) - convert to delays
+                        # Get reference frequency from MS if available
+                        # delay = phase / (2π × frequency)
+                        ref_freq_hz = 1400e6  # Default L-band fallback
+                        try:
+                            # Try to infer MS path from caltable path
+                            # Caltable path format: <ms_path>_<field>_kcal
+                            caltable_dir = os.path.dirname(caltable_path)
+                            caltable_basename = os.path.basename(caltable_path)
+                            
+                            # Try to find MS in same directory
+                            # Pattern: remove suffixes like "_0_kcal" to get MS name
+                            ms_candidates = []
+                            if "_kcal" in caltable_basename:
+                                ms_base = caltable_basename.split("_kcal")[0]
+                                # Try different MS name patterns
+                                ms_candidates.extend([
+                                    os.path.join(caltable_dir, ms_base + ".ms"),
+                                    os.path.join(caltable_dir, ms_base.rsplit("_", 1)[0] + ".ms"),
+                                ])
+                            
+                            # Also try globbing for .ms files in same directory
+                            import glob
+                            ms_files = glob.glob(os.path.join(caltable_dir, "*.ms"))
+                            ms_candidates.extend(ms_files)
+                            
+                            # Try to open first valid MS
+                            for ms_candidate in ms_candidates:
+                                if os.path.exists(ms_candidate) and os.path.isdir(ms_candidate):
+                                    try:
+                                        with table(f"{ms_candidate}::SPECTRAL_WINDOW", readonly=True, ack=False) as spw_tb:
+                                            ref_freqs = spw_tb.getcol("REF_FREQUENCY")
+                                            if len(ref_freqs) > 0:
+                                                # Use median reference frequency across SPWs
+                                                ref_freq_hz = float(np.median(ref_freqs))
+                                                logger.debug(f"Extracted reference frequency {ref_freq_hz/1e6:.1f} MHz from MS {os.path.basename(ms_candidate)}")
+                                                break
+                                    except Exception:
+                                        continue
+                            
+                            delays_sec = unflagged_fparam / (2 * np.pi * ref_freq_hz)
+                            delays_ns = delays_sec * 1e9
+                            # Log that we're interpreting as phase
+                            logger.debug(f"Interpreting FPARAM as unwrapped phase (radians) for K-calibration, using {ref_freq_hz/1e6:.1f} MHz")
+                        except Exception as e:
+                            # Fallback: treat as delays in seconds
+                            logger.warning(f"Could not extract reference frequency from MS: {e}. Using default {ref_freq_hz/1e6:.1f} MHz")
+                            delays_ns = unflagged_fparam * 1e9
+                    
+                    median_delay_ns = float(np.median(delays_ns))
+                    rms_delay_ns = float(np.sqrt(np.mean(delays_ns**2)))
+                    
+                    # For K-cal, use delay statistics as "amplitude" metrics
+                    median_amplitude = median_delay_ns  # Store as delay in ns
+                    rms_amplitude = rms_delay_ns
+                    amplitude_scatter = float(np.std(delays_ns))
+                    
+                    # Phase metrics not applicable for delays
+                    median_phase_deg = 0.0
+                    rms_phase_deg = 0.0
+                    phase_scatter_deg = 0.0
+                    
+                    # Quality checks for delays
+                    # Instrumental delays should be < 1 microsecond (< 1000 ns)
+                    if abs(median_delay_ns) > 1000:  # > 1 microsecond
+                        warnings.append(f"Large median delay: {median_delay_ns:.1f} ns")
+                    if amplitude_scatter > 100:  # > 100 ns scatter
+                        warnings.append(f"High delay scatter: {amplitude_scatter:.1f} ns")
+            
             else:
-                fraction_flagged = float(np.mean(flags))
+                # BP and G calibration: complex gains stored in CPARAM
+                if "CPARAM" not in colnames:
+                    issues.append(f"{cal_type}-calibration table missing CPARAM column")
+                    raise ValueError("CPARAM column not found in calibration table")
                 
-                # Amplitude statistics
-                amplitudes = np.abs(unflagged_gains)
-                median_amplitude = float(np.median(amplitudes))
-                rms_amplitude = float(np.sqrt(np.mean(amplitudes**2)))
-                amplitude_scatter = float(np.std(amplitudes))
+                gains = tb.getcol("CPARAM")  # Complex gains
                 
-                # Phase statistics
-                phases_rad = np.angle(unflagged_gains)
-                phases_deg = np.degrees(phases_rad)
-                median_phase_deg = float(np.median(phases_deg))
-                rms_phase_deg = float(np.sqrt(np.mean(phases_deg**2)))
-                phase_scatter_deg = float(np.std(phases_deg))
+                # Compute statistics on unflagged solutions
+                unflagged_gains = gains[~flags]
                 
-                # Quality checks
-                if fraction_flagged > 0.3:
-                    warnings.append(f"High fraction of flagged solutions: {fraction_flagged:.1%}")
+                if len(unflagged_gains) == 0:
+                    issues.append("All solutions are flagged")
+                    fraction_flagged = 1.0
+                    median_amplitude = 0.0
+                    rms_amplitude = 0.0
+                    amplitude_scatter = 0.0
+                    median_phase_deg = 0.0
+                    rms_phase_deg = 0.0
+                    phase_scatter_deg = 0.0
+                else:
+                    fraction_flagged = float(np.mean(flags))
+                    
+                    # Amplitude statistics
+                    amplitudes = np.abs(unflagged_gains)
+                    median_amplitude = float(np.median(amplitudes))
+                    rms_amplitude = float(np.sqrt(np.mean(amplitudes**2)))
+                    amplitude_scatter = float(np.std(amplitudes))
+                    
+                    # Phase statistics
+                    phases_rad = np.angle(unflagged_gains)
+                    phases_deg = np.degrees(phases_rad)
+                    median_phase_deg = float(np.median(phases_deg))
+                    rms_phase_deg = float(np.sqrt(np.mean(phases_deg**2)))
+                    phase_scatter_deg = float(np.std(phases_deg))
                 
-                # Check for bad amplitudes (too close to zero or too large)
-                if median_amplitude < 0.1:
-                    warnings.append(f"Very low median amplitude: {median_amplitude:.3f}")
-                elif median_amplitude > 10.0:
-                    warnings.append(f"Very high median amplitude: {median_amplitude:.3f}")
-                
-                # Check amplitude scatter (should be relatively stable)
-                if amplitude_scatter / median_amplitude > 0.5:
-                    warnings.append(f"High amplitude scatter: {amplitude_scatter/median_amplitude:.1%} of median")
-                
-                # Check for large phase jumps
-                if phase_scatter_deg > 90:
-                    warnings.append(f"Large phase scatter: {phase_scatter_deg:.1f} degrees")
+                    # Quality checks for gain/phase tables
+                    if fraction_flagged > 0.3:
+                        warnings.append(f"High fraction of flagged solutions: {fraction_flagged:.1%}")
+                    
+                    # Check for bad amplitudes (too close to zero or too large)
+                    if median_amplitude < 0.1:
+                        warnings.append(f"Very low median amplitude: {median_amplitude:.3f}")
+                    elif median_amplitude > 10.0:
+                        warnings.append(f"Very high median amplitude: {median_amplitude:.3f}")
+                    
+                    # Check amplitude scatter (should be relatively stable)
+                    if median_amplitude > 0 and amplitude_scatter / median_amplitude > 0.5:
+                        warnings.append(f"High amplitude scatter: {amplitude_scatter/median_amplitude:.1%} of median")
+                    
+                    # Check for large phase jumps
+                    if phase_scatter_deg > 90:
+                        warnings.append(f"Large phase scatter: {phase_scatter_deg:.1f} degrees")
                 
                 # Check for antennas with all solutions flagged
                 for ant_id in np.unique(antenna_ids):

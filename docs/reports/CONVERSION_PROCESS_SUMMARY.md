@@ -6,7 +6,7 @@ This document reflects the current supported conversion flow used by the pipelin
 
 - Input: DSA-110 UVH5 subband files (`*_sb??.hdf5`) grouped in 5‑minute windows
 - Converter: Strategy orchestrator (`dsa110_contimg.conversion.strategies.hdf5_orchestrator`)
-- Writers: `direct-subband` (parallel per‑subband + concat) or `pyuvdata` (monolithic)
+- Writers: `parallel-subband` (production, 16 subbands) or `pyuvdata` (testing only, ≤2 subbands)
 - Outputs: CASA Measurement Sets prepared for imaging
 
 ## Step-by-Step Process
@@ -19,8 +19,10 @@ This document reflects the current supported conversion flow used by the pipelin
 
 ### 2. Write Strategy Selection
 
-- `--writer auto` selects `pyuvdata` for very small subband counts (≤2), else `direct-subband`
-- `direct-subband`: per‑subband MS parts written in parallel, then concatenated
+- **Production**: `parallel-subband` writer (default) for 16 subbands
+- **Testing**: `pyuvdata` writer available for ≤2 subbands only
+- `--writer auto` selects `parallel-subband` for production (16 subbands) or `pyuvdata` for testing (≤2 subbands)
+- `parallel-subband`: per‑subband MS parts written in parallel, then concatenated
 - Optional staging: tmpfs (`/dev/shm`) or SSD scratch for speed
 
 ### 3. Phasing and UVW

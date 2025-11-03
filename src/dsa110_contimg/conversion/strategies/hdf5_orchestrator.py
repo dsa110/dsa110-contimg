@@ -44,8 +44,15 @@ def _peek_uvh5_phase_and_midtime(uvh5_path: str) -> tuple[u.Quantity, float]:
     pt_dec_val: float = 0.0
     mid_jd: float = 0.0
     with h5py.File(uvh5_path, "r") as f:
+        # Check for time_array at root or in Header group
+        time_arr = None
         if "time_array" in f:
-            d = cast(Any, f["time_array"])  # h5py dataset
+            time_arr = f["time_array"]
+        elif "Header" in f and "time_array" in f["Header"]:
+            time_arr = f["Header"]["time_array"]
+        
+        if time_arr is not None:
+            d = cast(Any, time_arr)  # h5py dataset
             arr = np.asarray(d)
             n = arr.shape[0]
             if n >= 2:
@@ -188,6 +195,24 @@ def _load_and_merge_subbands(file_list: Sequence[str]) -> UVData:
     try:
         _pyuv_lg.setLevel(logging.ERROR)
         for i, path in enumerate(file_list):
+            # PRECONDITION CHECK: Validate file is readable before reading
+            # This ensures we follow "measure twice, cut once" - establish requirements upfront
+            # before expensive file reading operations.
+            if not os.path.exists(path):
+                raise FileNotFoundError(f"Subband file does not exist: {path}")
+            if not os.access(path, os.R_OK):
+                raise PermissionError(f"Subband file is not readable: {path}")
+            
+            # Quick HDF5 structure check
+            try:
+                import h5py
+                with h5py.File(path, 'r') as f:
+                    # Verify file has required structure (Header or Data group)
+                    if 'Header' not in f and 'Data' not in f:
+                        raise ValueError(f"Invalid HDF5 structure: {path}")
+            except Exception as e:
+                raise ValueError(f"File {path} is not a valid HDF5 file: {e}") from e
+            
             t_read0 = time.perf_counter()
             logger.info(
                 "Reading subband %d/%d: %s",
@@ -246,9 +271,48 @@ def convert_subband_groups_to_ms(
     writer: str = "parallel-subband",
     writer_kwargs: Optional[dict] = None,
 ) -> None:
+    # PRECONDITION CHECK: Validate input/output directories before proceeding
+    # This ensures we follow "measure twice, cut once" - establish requirements upfront
+    # before any expensive operations.
+    if not os.path.exists(input_dir):
+        raise ValueError(f"Input directory does not exist: {input_dir}")
+    if not os.path.isdir(input_dir):
+        raise ValueError(f"Input path is not a directory: {input_dir}")
+    if not os.access(input_dir, os.R_OK):
+        raise ValueError(f"Input directory is not readable: {input_dir}")
+    
+    # Validate output directory
     os.makedirs(output_dir, exist_ok=True)
+    if not os.path.exists(output_dir):
+        raise ValueError(f"Failed to create output directory: {output_dir}")
+    if not os.path.isdir(output_dir):
+        raise ValueError(f"Output path is not a directory: {output_dir}")
+    if not os.access(output_dir, os.W_OK):
+        raise ValueError(f"Output directory is not writable: {output_dir}")
+    
+    # Validate scratch directory if provided
     if scratch_dir:
         os.makedirs(scratch_dir, exist_ok=True)
+        if not os.path.exists(scratch_dir):
+            raise ValueError(f"Failed to create scratch directory: {scratch_dir}")
+        if not os.access(scratch_dir, os.W_OK):
+            raise ValueError(f"Scratch directory is not writable: {scratch_dir}")
+    
+    # PRECONDITION CHECK: Validate time range before processing
+    # This ensures we follow "measure twice, cut once" - establish requirements upfront.
+    try:
+        from astropy.time import Time
+        t_start = Time(start_time)
+        t_end = Time(end_time)
+        if t_start >= t_end:
+            raise ValueError(
+                f"Invalid time range: start_time ({start_time}) must be before "
+                f"end_time ({end_time})"
+            )
+    except Exception as e:
+        if isinstance(e, ValueError) and "Invalid time range" in str(e):
+            raise
+        logger.warning(f"Failed to validate time range (proceeding anyway): {e}")
 
     groups = find_subband_groups(input_dir, start_time, end_time)
     if not groups:
@@ -256,6 +320,25 @@ def convert_subband_groups_to_ms(
         return
 
     for file_list in groups:
+        # PRECONDITION CHECK: Validate all files exist before conversion
+        # This ensures we follow "measure twice, cut once" - establish requirements upfront
+        # before expensive conversion operations.
+        missing_files = [f for f in file_list if not os.path.exists(f)]
+        if missing_files:
+            logger.error(
+                f"Group has missing files (may have been deleted): {missing_files}. "
+                f"Skipping group."
+            )
+            continue
+        
+        # Verify all files are readable
+        unreadable_files = [f for f in file_list if not os.access(f, os.R_OK)]
+        if unreadable_files:
+            logger.error(
+                f"Group has unreadable files: {unreadable_files}. Skipping group."
+            )
+            continue
+        
         first_file = os.path.basename(file_list[0])
         base_name = os.path.splitext(first_file)[0].split("_sb")[0]
         ms_path = os.path.join(output_dir, f"{base_name}.ms")
@@ -264,15 +347,87 @@ def convert_subband_groups_to_ms(
         if os.path.exists(ms_path):
             logger.info("MS already exists, skipping: %s", ms_path)
             continue
+        
+        # PRECONDITION CHECK: Estimate disk space requirement and verify availability
+        # This ensures we follow "measure twice, cut once" - establish requirements upfront
+        # before starting conversion that may fail partway through.
+        try:
+            import shutil
+            total_input_size = sum(os.path.getsize(f) for f in file_list)
+            # Estimate MS size: roughly 2x input size for safety (includes overhead)
+            estimated_ms_size = total_input_size * 2
+            
+            # Check available space in output directory
+            free_space = shutil.disk_usage(output_dir).free
+            if free_space < estimated_ms_size:
+                logger.error(
+                    f"Insufficient disk space for conversion. "
+                    f"Estimated need: {estimated_ms_size / 1e9:.1f}GB, "
+                    f"Available: {free_space / 1e9:.1f}GB. "
+                    f"Skipping group."
+                )
+                continue
+            
+            # Also check scratch directory if provided
+            if scratch_dir and os.path.exists(scratch_dir):
+                scratch_free = shutil.disk_usage(scratch_dir).free
+                # Scratch may need more space for intermediate files
+                scratch_required = estimated_ms_size * 1.5
+                if scratch_free < scratch_required:
+                    logger.warning(
+                        f"Limited scratch space. "
+                        f"Estimated need: {scratch_required / 1e9:.1f}GB, "
+                        f"Available: {scratch_free / 1e9:.1f}GB. "
+                        f"Proceeding but may fail."
+                    )
+            
+            # PRECONDITION CHECK: Validate staging directories are writable
+            # This ensures we follow "measure twice, cut once" - establish requirements upfront
+            # before staging operations.
+            if scratch_dir and os.path.exists(scratch_dir):
+                if not os.access(scratch_dir, os.W_OK):
+                    logger.error(
+                        f"Scratch directory is not writable: {scratch_dir}. "
+                        f"Skipping group."
+                    )
+                    continue
+            
+            # Validate tmpfs if staging is enabled
+            if writer_kwargs and writer_kwargs.get("stage_to_tmpfs", False):
+                tmpfs_path = writer_kwargs.get("tmpfs_path", "/dev/shm")
+                if os.path.exists(tmpfs_path):
+                    if not os.access(tmpfs_path, os.W_OK):
+                        logger.warning(
+                            f"Tmpfs staging directory is not writable: {tmpfs_path}. "
+                            f"Falling back to scratch directory."
+                        )
+                        # Disable tmpfs staging for this group
+                        current_writer_kwargs = writer_kwargs.copy()
+                        current_writer_kwargs["stage_to_tmpfs"] = False
+                        writer_kwargs = current_writer_kwargs
+        except Exception as e:
+            logger.warning(f"Disk space check failed (proceeding anyway): {e}")
 
         selected_writer = writer
         uv = None
         if writer == "auto":
+            # Production processing always uses 16 subbands, so default to parallel-subband.
+            # pyuvdata writer is only for testing scenarios with ≤2 subbands.
             try:
                 n_sb = len(file_list)
             except Exception:
                 n_sb = 0
-            selected_writer = "pyuvdata" if n_sb and n_sb <= 2 else "parallel-subband"
+            # Only use pyuvdata for testing scenarios (≤2 subbands)
+            # Production always uses parallel-subband for 16 subbands
+            if n_sb and n_sb <= 2:
+                logger.warning(
+                    f"Auto-selected pyuvdata writer for {n_sb} subband(s). "
+                    f"This is intended for testing only. Production uses 16 subbands "
+                    f"and should use parallel-subband writer."
+                )
+                selected_writer = "pyuvdata"
+            else:
+                selected_writer = "parallel-subband"
 
         if selected_writer not in ("parallel-subband", "direct-subband"):
             t0 = time.perf_counter()
@@ -326,6 +481,7 @@ def convert_subband_groups_to_ms(
             current_writer_kwargs.setdefault("file_list", file_list)
 
             writer_cls = get_writer(selected_writer)
+            # get_writer raises ValueError if writer not found, so no need to check for None
             writer_instance = writer_cls(uv, ms_path, **current_writer_kwargs)
             writer_type = writer_instance.write()
 
@@ -335,6 +491,44 @@ def convert_subband_groups_to_ms(
                 time.perf_counter() -
                 t_write_start)
             print(f"WRITER_TYPE: {writer_type}")
+            
+            # PRECONDITION CHECK: Validate MS was written successfully
+            # This ensures we follow "measure twice, cut once" - verify output before
+            # marking conversion as complete.
+            if not os.path.exists(ms_path):
+                raise RuntimeError(f"MS was not created: {ms_path}")
+            
+            # Verify MS is readable and has required structure
+            try:
+                from casacore.tables import table
+                with table(ms_path, readonly=True) as tb:
+                    if tb.nrows() == 0:
+                        raise RuntimeError(f"MS has no data rows: {ms_path}")
+                    
+                    # Verify required columns exist
+                    required_cols = ['DATA', 'ANTENNA1', 'ANTENNA2', 'TIME', 'UVW']
+                    missing_cols = [c for c in required_cols if c not in tb.colnames()]
+                    if missing_cols:
+                        raise RuntimeError(
+                            f"MS missing required columns: {missing_cols}. "
+                            f"Path: {ms_path}"
+                        )
+                    
+                    logger.info(
+                        f"✓ MS validation passed: {tb.nrows()} rows, "
+                        f"{len(tb.colnames())} columns"
+                    )
+            except Exception as e:
+                logger.error(f"MS validation failed: {e}")
+                # Clean up partial/corrupted MS
+                try:
+                    import shutil
+                    if os.path.exists(ms_path):
+                        shutil.rmtree(ms_path, ignore_errors=True)
+                        logger.info(f"Cleaned up partial MS: {ms_path}")
+                except Exception:
+                    pass
+                raise
 
         except Exception:
             logger.exception("MS writing failed for group %s", base_name)
@@ -397,7 +591,13 @@ def add_args(p: argparse.ArgumentParser) -> None:
         "--writer",
         default="parallel-subband",
         choices=["parallel-subband", "direct-subband", "pyuvdata", "auto"],
-        help="The MS writing strategy to use (or 'auto' to choose per group). 'direct-subband' is an alias for 'parallel-subband'.",
+        help=(
+            "MS writing strategy. "
+            "'parallel-subband' (default) is for production use with 16 subbands. "
+            "'direct-subband' is an alias for 'parallel-subband'. "
+            "'pyuvdata' is for testing only (≤2 subbands). "
+            "'auto' selects 'parallel-subband' for production (16 subbands) or 'pyuvdata' for testing (≤2 subbands)."
+        ),
     )
     p.add_argument(
         "--flux",

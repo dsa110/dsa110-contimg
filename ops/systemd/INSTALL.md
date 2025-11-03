@@ -20,7 +20,7 @@ which conda
 
 ```bash
 # Copy service file
-sudo cp /data/dsa110-contimg/systemd/dsa110-api.service /etc/systemd/system/
+sudo cp /data/dsa110-contimg/ops/systemd/contimg-api.service /etc/systemd/system/
 
 # Reload systemd
 sudo systemctl daemon-reload
@@ -51,7 +51,7 @@ sudo nano /etc/systemd/system/dsa110-dashboard.service
 # ExecStart=/usr/local/bin/serve -s /data/dsa110-contimg/frontend/build -l 3000
 
 # Copy and enable
-sudo cp /data/dsa110-contimg/systemd/dsa110-dashboard.service /etc/systemd/system/
+sudo cp /data/dsa110-contimg/ops/systemd/contimg-dashboard.service /etc/systemd/system/
 sudo systemctl daemon-reload
 sudo systemctl enable dsa110-dashboard.service
 sudo systemctl start dsa110-dashboard.service

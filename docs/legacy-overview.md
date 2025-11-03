@@ -54,7 +54,7 @@ Repository overview for the DSA-110 continuum imaging pipeline.
 
 ## Conversion: Current State
 - Orchestrator: `src/dsa110_contimg/conversion/strategies/hdf5_orchestrator.py` converts subband groups (5‑min by default) using writer strategies.
-- Writers: `direct-subband` (parallel per‑subband writes + concat) and `pyuvdata` (monolithic). `--writer auto` chooses based on subband count.
+- Writers: `parallel-subband` (production, 16 subbands) and `pyuvdata` (testing only, ≤2 subbands). `--writer auto` selects `parallel-subband` for production or `pyuvdata` for testing.
 - Staging: optional tmpfs (`/dev/shm`) staging and SSD scratch; see `pipeline/README_uvh5_to_ms.md` for details.
 
 ## Historical Notes (deprecated)

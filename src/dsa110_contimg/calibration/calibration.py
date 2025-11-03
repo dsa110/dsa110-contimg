@@ -1,4 +1,4 @@
-from typing import List, Optional
+from typing import List, Optional, Union
 
 import os
 import fnmatch
@@ -6,8 +6,71 @@ from casatasks import bandpass as casa_bandpass  # type: ignore[import]
 from casatasks import gaincal as casa_gaincal  # type: ignore[import]
 # setjy imported elsewhere; avoid unused import here
 from casatasks import fluxscale as casa_fluxscale  # type: ignore[import]
-from dsa110_contimg.qa.pipeline_quality import check_calibration_quality
 import logging
+
+from dsa110_contimg.calibration.validate import (
+    validate_caltable_exists,
+    validate_caltable_compatibility,
+    validate_caltables_for_use,
+)
+
+
+def _validate_solve_success(caltable_path: str, refant: Optional[Union[int, str]] = None) -> None:
+    """Validate that a calibration solve completed successfully.
+    
+    This ensures we follow "measure twice, cut once" - verify solutions exist
+    immediately after each solve completes, before proceeding to the next step.
+    
+    Args:
+        caltable_path: Path to calibration table
+        refant: Optional reference antenna ID to verify has solutions
+    
+    Raises:
+        RuntimeError: If table doesn't exist, has no solutions, or refant missing
+    """
+    from casacore.tables import table  # type: ignore[import]
+    
+    # Verify table exists
+    if not os.path.exists(caltable_path):
+        raise RuntimeError(
+            f"Calibration solve failed: table was not created: {caltable_path}"
+        )
+    
+    # Verify table has solutions
+    try:
+        with table(caltable_path, readonly=True) as tb:
+            if tb.nrows() == 0:
+                raise RuntimeError(
+                    f"Calibration solve failed: table has no solutions: {caltable_path}"
+                )
+            
+            # Verify refant has solutions if provided
+            if refant is not None:
+                refant_int = int(refant) if isinstance(refant, str) else refant
+                antennas = tb.getcol('ANTENNA1')
+                
+                # For antenna-based calibration, check ANTENNA1
+                # For baseline-based calibration, check both ANTENNA1 and ANTENNA2
+                if 'ANTENNA2' in tb.colnames():
+                    ant2 = tb.getcol('ANTENNA2')
+                    # Filter out -1 values (baseline-based calibration uses -1 for antenna-based entries)
+                    ant2_valid = ant2[ant2 != -1]
+                    all_antennas = set(antennas) | set(ant2_valid)
+                else:
+                    all_antennas = set(antennas)
+                
+                if refant_int not in all_antennas:
+                    raise RuntimeError(
+                        f"Calibration solve failed: reference antenna {refant} has no solutions "
+                        f"in table: {caltable_path}. Available antennas: {sorted(all_antennas)}"
+                    )
+    except RuntimeError:
+        raise
+    except Exception as e:
+        raise RuntimeError(
+            f"Calibration solve validation failed: unable to read table {caltable_path}. "
+            f"Error: {e}"
+        ) from e
 
 logger = logging.getLogger(__name__)
 
@@ -85,13 +148,40 @@ def solve_delay(
 
     Uses casatasks.gaincal with gaintype='K' to avoid explicit casatools
     calibrater usage, which can be unstable in some notebook environments.
+    
+    **PRECONDITION**: MODEL_DATA must be populated before calling this function.
+    This ensures consistent, reliable calibration results across all calibrators
+    (bright or faint). The calling code should verify MODEL_DATA exists and is
+    populated before invoking solve_delay().
     """
     from casacore.tables import table  # type: ignore[import]
     import numpy as np  # type: ignore[import]
 
     # Validate data availability before attempting calibration
     print(f"Validating data for delay solve on field(s) {cal_field}...")
+    
+    # PRECONDITION CHECK: Verify MODEL_DATA exists and is populated
+    # This ensures we follow "measure twice, cut once" - establish requirements upfront
+    # for consistent, reliable calibration across all calibrators (bright or faint).
     with table(ms) as tb:
+        if "MODEL_DATA" not in tb.colnames():
+            raise ValueError(
+                f"MODEL_DATA column does not exist in MS. "
+                f"This is a required precondition for K-calibration. "
+                f"Populate MODEL_DATA using setjy, ft(), or a catalog model before "
+                f"calling solve_delay()."
+            )
+        
+        # Check if MODEL_DATA is populated (not all zeros)
+        model_sample = tb.getcol("MODEL_DATA", startrow=0, nrow=min(100, tb.nrows()))
+        if np.all(np.abs(model_sample) < 1e-10):
+            raise ValueError(
+                f"MODEL_DATA column exists but is all zeros (unpopulated). "
+                f"This is a required precondition for K-calibration. "
+                f"Populate MODEL_DATA using setjy, ft(), or a catalog model before "
+                f"calling solve_delay()."
+            )
+        
         field_ids = tb.getcol('FIELD_ID')
         # Resolve selector (names, ranges, lists) to numeric FIELD_IDs
         target_ids = _resolve_field_ids(ms, str(cal_field))
@@ -158,6 +248,10 @@ def solve_delay(
             gaintype="K",
             combine=combine
         )
+        # PRECONDITION CHECK: Verify K-calibration solve completed successfully
+        # This ensures we follow "measure twice, cut once" - verify solutions exist
+        # immediately after solve completes, before proceeding.
+        _validate_solve_success(f"{table_prefix}_kcal", refant=refant)
         tables.append(f"{table_prefix}_kcal")
         print(f"✓ Delay solve completed: {table_prefix}_kcal")
     except Exception as e:
@@ -174,6 +268,10 @@ def solve_delay(
                 gaintype="K",
                 combine=""
             )
+            # PRECONDITION CHECK: Verify K-calibration solve completed successfully
+            # This ensures we follow "measure twice, cut once" - verify solutions exist
+            # immediately after solve completes, before proceeding.
+            _validate_solve_success(f"{table_prefix}_kcal", refant=refant)
             tables.append(f"{table_prefix}_kcal")
             print(f"✓ Delay solve completed (retry): {table_prefix}_kcal")
         except Exception as e2:
@@ -193,6 +291,10 @@ def solve_delay(
                 gaintype="K",
                 combine=combine
             )
+            # PRECONDITION CHECK: Verify fast K-calibration solve completed successfully
+            # This ensures we follow "measure twice, cut once" - verify solutions exist
+            # immediately after solve completes, before proceeding.
+            _validate_solve_success(f"{table_prefix}_2kcal", refant=refant)
             tables.append(f"{table_prefix}_2kcal")
             print(f"✓ Fast delay solve completed: {table_prefix}_2kcal")
         except Exception as e:
@@ -222,10 +324,34 @@ def solve_bandpass(
     minsnr: float = 5.0,
     uvrange: str = "",
 ) -> List[str]:
-    """Solve bandpass in two stages: amplitude (bacal) then phase (bpcal)."""
+    """Solve bandpass in two stages: amplitude (bacal) then phase (bpcal).
+    
+    **PRECONDITION**: If `ktable` is provided, it must exist and be compatible
+    with the MS. This ensures consistent, reliable calibration results.
+    """
     if table_prefix is None:
         table_prefix = f"{os.path.splitext(ms)[0]}_{cal_field}"
-
+    
+    # PRECONDITION CHECK: Validate K-table if provided
+    # This ensures we follow "measure twice, cut once" - establish requirements upfront
+    # for consistent, reliable calibration across all calibrators.
+    if ktable:
+        print(f"Validating K-table before bandpass calibration: {ktable}")
+        try:
+            validate_caltable_exists(ktable)
+            # Convert refant string to int for validation
+            refant_int = int(refant) if isinstance(refant, str) else refant
+            warnings = validate_caltable_compatibility(
+                ktable, ms, refant=refant_int
+            )
+            if warnings:
+                print(f"Warnings for K-table compatibility: {warnings}")
+        except (FileNotFoundError, ValueError) as e:
+            raise ValueError(
+                f"K-table validation failed. This is a required precondition for "
+                f"bandpass calibration. Error: {e}"
+            ) from e
+    
     # For bandpass calibration, use only the peak field and combine across all fields
     # Extract the peak field from the range (e.g., "19~23" -> "23")
     if '~' in str(cal_field):
@@ -263,6 +389,10 @@ def solve_bandpass(
         if uvrange:
             kwargs["uvrange"] = uvrange
         casa_bandpass(**kwargs)
+        # PRECONDITION CHECK: Verify bandpass amplitude solve completed successfully
+        # This ensures we follow "measure twice, cut once" - verify solutions exist
+        # immediately after solve completes, before proceeding.
+        _validate_solve_success(f"{table_prefix}_bacal", refant=refant)
         print(f"✓ Bandpass amplitude solve completed: {table_prefix}_bacal")
         amplitude_ok = True
     except Exception as exc:
@@ -286,6 +416,10 @@ def solve_bandpass(
     if uvrange:
         kwargs["uvrange"] = uvrange
     casa_bandpass(**kwargs)
+    # PRECONDITION CHECK: Verify bandpass phase solve completed successfully
+    # This ensures we follow "measure twice, cut once" - verify solutions exist
+    # immediately after solve completes, before proceeding.
+    _validate_solve_success(f"{table_prefix}_bpcal", refant=refant)
     print(f"✓ Bandpass phase solve completed: {table_prefix}_bpcal")
 
     out = []
@@ -318,10 +452,36 @@ def solve_gains(
     uvrange: str = "",
     solint: str = "inf",
 ) -> List[str]:
-    """Solve gain amplitude and phase; optionally short-timescale and fluxscale."""
+    """Solve gain amplitude and phase; optionally short-timescale and fluxscale.
+    
+    **PRECONDITION**: If `ktable` or `bptables` are provided, they must exist and be
+    compatible with the MS. This ensures consistent, reliable calibration results.
+    """
     if table_prefix is None:
         table_prefix = f"{os.path.splitext(ms)[0]}_{cal_field}"
-
+    
+    # PRECONDITION CHECK: Validate all required calibration tables
+    # This ensures we follow "measure twice, cut once" - establish requirements upfront
+    # for consistent, reliable calibration across all calibrators.
+    required_tables = []
+    if ktable:
+        required_tables.append(ktable)
+    required_tables.extend(bptables)
+    
+    if required_tables:
+        print(f"Validating {len(required_tables)} calibration table(s) before gain calibration...")
+        try:
+            # Convert refant string to int for validation
+            refant_int = int(refant) if isinstance(refant, str) else refant
+            validate_caltables_for_use(
+                required_tables, ms, require_all=True, refant=refant_int
+            )
+        except (FileNotFoundError, ValueError) as e:
+            raise ValueError(
+                f"Calibration table validation failed. This is a required precondition for "
+                f"gain calibration. Error: {e}"
+            ) from e
+    
     # For gain calibration, use only the peak field and combine across all
     # fields
     if '~' in str(cal_field):
@@ -356,6 +516,10 @@ def solve_gains(
         if uvrange:
             kwargs["uvrange"] = uvrange
         casa_gaincal(**kwargs)
+        # PRECONDITION CHECK: Verify gain amplitude solve completed successfully
+        # This ensures we follow "measure twice, cut once" - verify solutions exist
+        # immediately after solve completes, before proceeding.
+        _validate_solve_success(f"{table_prefix}_gacal", refant=refant)
         print(f"✓ Gain amplitude solve completed: {table_prefix}_gacal")
 
     gaintable2 = gaintable + [f"{table_prefix}_gacal"]
@@ -377,6 +541,10 @@ def solve_gains(
     if uvrange:
         kwargs["uvrange"] = uvrange
     casa_gaincal(**kwargs)
+    # PRECONDITION CHECK: Verify gain phase solve completed successfully
+    # This ensures we follow "measure twice, cut once" - verify solutions exist
+    # immediately after solve completes, before proceeding.
+    _validate_solve_success(f"{table_prefix}_gpcal", refant=refant)
     print(f"✓ Gain phase solve completed: {table_prefix}_gpcal")
 
     out = [] if phase_only else [f"{table_prefix}_gacal"]
@@ -401,6 +569,10 @@ def solve_gains(
         if uvrange:
             kwargs["uvrange"] = uvrange
         casa_gaincal(**kwargs)
+        # PRECONDITION CHECK: Verify short-timescale gain solve completed successfully
+        # This ensures we follow "measure twice, cut once" - verify solutions exist
+        # immediately after solve completes, before proceeding.
+        _validate_solve_success(f"{table_prefix}_2gcal", refant=refant)
         print(f"✓ Short-timescale gain solve completed: {table_prefix}_2gcal")
         out.append(f"{table_prefix}_2gcal")
 

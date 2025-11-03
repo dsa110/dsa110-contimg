@@ -72,6 +72,7 @@ nav:
       - CLI: reference/cli.md
       - API: reference/api.md
       - Environment: reference/env.md
+      - Database Schema: reference/database_schema.md
       - Modules: reference/modules.md
       - Rules: reference/rules.md
       - Graphiti Schema: reference/graphiti-dsa110-contimg-schema.md

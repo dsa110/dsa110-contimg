@@ -27,7 +27,7 @@ uvicorn dsa110_contimg.api.routes:create_app --factory
 
 3. **For production**, use the NEW systemd service:
    ```bash
-   sudo cp /data/dsa110-contimg/systemd/dsa110-api.service /etc/systemd/system/
+   sudo cp /data/dsa110-contimg/ops/systemd/contimg-api.service /etc/systemd/system/
    sudo systemctl daemon-reload
    sudo systemctl enable dsa110-api.service
    sudo systemctl start dsa110-api.service
@@ -67,7 +67,7 @@ If you want to migrate to the new systemd service:
 
 2. **Install new service**:
    ```bash
-   sudo cp /data/dsa110-contimg/systemd/dsa110-api.service /etc/systemd/system/
+   sudo cp /data/dsa110-contimg/ops/systemd/contimg-api.service /etc/systemd/system/
    sudo systemctl daemon-reload
    ```
 

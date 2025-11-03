@@ -267,7 +267,7 @@ def apply_calibration(
     # Apply calibration
     try:
         logger.info(f"Applying {len(caltables)} calibration tables to {ms_path_str}")
-        apply_to_target(ms_path_str, field=field, gaintables=caltables, calwt=True)
+        apply_to_target(ms_path_str, field=field, gaintables=caltables, calwt=True, verify=False)
         logger.info(f"Successfully applied calibration to {ms_path_str}")
     except Exception as e:
         error_msg = f"applycal failed: {e}"

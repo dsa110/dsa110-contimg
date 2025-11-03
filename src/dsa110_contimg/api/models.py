@@ -261,11 +261,16 @@ class UVH5FileList(BaseModel):
 
 # Conversion job models
 class ConversionJobParams(BaseModel):
+    """Parameters for UVH5 → MS conversion job.
+    
+    Production processing always uses 16 subbands and should use 'parallel-subband' writer.
+    The 'pyuvdata' writer is available for testing scenarios with ≤2 subbands only.
+    """
     input_dir: str
     output_dir: str
     start_time: str
     end_time: str
-    writer: str = "auto"
+    writer: str = "auto"  # 'parallel-subband' (production), 'pyuvdata' (testing only), or 'auto'
     stage_to_tmpfs: bool = True
     max_workers: int = 4
 
@@ -387,11 +392,16 @@ class MSCalibratorMatchList(BaseModel):
 
 # Workflow models
 class WorkflowParams(BaseModel):
+    """Parameters for full workflow job (convert → calibrate → image).
+    
+    Production processing always uses 16 subbands and should use 'parallel-subband' writer.
+    The 'pyuvdata' writer is available for testing scenarios with ≤2 subbands only.
+    """
     start_time: str
     end_time: str
     input_dir: str = "/data/incoming"
     output_dir: str = "/scratch/dsa110-contimg/ms"
-    writer: str = "auto"
+    writer: str = "auto"  # 'parallel-subband' (production), 'pyuvdata' (testing only), or 'auto'
     stage_to_tmpfs: bool = True
     max_workers: int = 4
     field: Optional[str] = None

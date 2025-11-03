@@ -359,6 +359,101 @@ def image_ms(
     backend: str = "tclean",
     wsclean_path: Optional[str] = None,
 ) -> None:
+    # PRECONDITION CHECK: Validate MS exists and is readable before imaging
+    # This ensures we follow "measure twice, cut once" - establish requirements upfront
+    # before expensive imaging operations.
+    if not os.path.exists(ms_path):
+        raise RuntimeError(f"MS does not exist: {ms_path}")
+    
+    if not os.path.isdir(ms_path):
+        raise RuntimeError(f"MS path is not a directory: {ms_path}")
+    
+    try:
+        with table(ms_path, readonly=True) as tb:
+            if tb.nrows() == 0:
+                raise RuntimeError(f"MS is empty: {ms_path}")
+            
+            # Verify required columns exist
+            required_cols = ['DATA', 'ANTENNA1', 'ANTENNA2', 'TIME', 'UVW']
+            missing_cols = [c for c in required_cols if c not in tb.colnames()]
+            if missing_cols:
+                raise RuntimeError(
+                    f"MS missing required columns: {missing_cols}. "
+                    f"Path: {ms_path}"
+                )
+    except RuntimeError:
+        raise
+    except Exception as e:
+        raise RuntimeError(
+            f"MS is not readable: {ms_path}. Error: {e}"
+        ) from e
+    
+    # PRECONDITION CHECK: Validate CORRECTED_DATA quality if present
+    # This ensures we follow "measure twice, cut once" - verify calibration was
+    # applied successfully before imaging.
+    try:
+        with table(ms_path, readonly=True) as tb:
+            if "CORRECTED_DATA" in tb.colnames():
+                # Sample CORRECTED_DATA to verify it's populated
+                n_rows = tb.nrows()
+                sample_size = min(10000, n_rows)
+                corrected_data = tb.getcol("CORRECTED_DATA", startrow=0, nrow=sample_size)
+                flags = tb.getcol("FLAG", startrow=0, nrow=sample_size)
+                
+                unflagged = corrected_data[~flags]
+                if len(unflagged) > 0:
+                    nonzero_count = np.count_nonzero(np.abs(unflagged) > 1e-10)
+                    nonzero_fraction = nonzero_count / len(unflagged)
+                    
+                    if nonzero_fraction < 0.01:  # Less than 1% non-zero
+                        LOG.warning(
+                            "CORRECTED_DATA appears unpopulated: only %.1f%% non-zero. "
+                            "Imaging may use DATA column instead.",
+                            nonzero_fraction * 100
+                        )
+                    else:
+                        LOG.info(
+                            "CORRECTED_DATA verified: %.1f%% non-zero",
+                            nonzero_fraction * 100
+                        )
+    except Exception as e:
+        LOG.warning(f"Failed to validate CORRECTED_DATA quality: {e}")
+    
+    # PRECONDITION CHECK: Verify sufficient disk space for images
+    # This ensures we follow "measure twice, cut once" - verify resources upfront
+    # before expensive imaging operations.
+    try:
+        import shutil
+        output_dir = os.path.dirname(os.path.abspath(imagename))
+        os.makedirs(output_dir, exist_ok=True)
+        
+        # Estimate image size: rough estimate based on imsize and number of images
+        # Each image is approximately: imsize^2 * 4 bytes (float32) * number of images
+        # We create: .image, .model, .residual, .pb, .pbcor = 5 images
+        # Plus weights, etc. Use 10x safety margin for overhead
+        bytes_per_pixel = 4  # float32
+        num_images = 10  # Conservative estimate (.image, .model, .residual, .pb, .pbcor, weights, etc.)
+        image_size_estimate = imsize * imsize * bytes_per_pixel * num_images * 10  # 10x safety margin
+        
+        available_space = shutil.disk_usage(output_dir).free
+        
+        if available_space < image_size_estimate:
+            LOG.warning(
+                "Insufficient disk space for images: need ~%.1f GB, available %.1f GB. "
+                "Imaging may fail. Consider freeing space or using a different output directory.",
+                image_size_estimate / 1e9,
+                available_space / 1e9
+            )
+        else:
+            LOG.info(
+                "✓ Disk space check passed: %.1f GB available (need ~%.1f GB)",
+                available_space / 1e9,
+                image_size_estimate / 1e9
+            )
+    except Exception as e:
+        # Non-fatal: log warning but don't fail
+        LOG.warning(f"Failed to check disk space: {e}")
+    
     # Prepare temp dirs and working directory to keep TempLattice* off the repo
     try:
         if prepare_temp_environment is not None:
