@@ -70,6 +70,7 @@ nav:
       - Implementation Guide: concepts/frontend_next_steps.md
   - Reference:
       - CLI: reference/cli.md
+      - Calibration: reference/calibration.md
       - API: reference/api.md
       - Environment: reference/env.md
       - Database Schema: reference/database_schema.md

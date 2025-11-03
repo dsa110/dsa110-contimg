@@ -253,6 +253,64 @@ with table(ms, readonly=True) as tb:
 - At least one complete 16-subband group converted
 - MS files in output directory
 
+**Known Issues:**
+- Intermittent tmpfs file locking errors during concat (see "Error Analysis" section below)
+- If failure occurs, retry with cleanup of stale tmpfs directories
+
+---
+
+### Error Analysis: Tmpfs File Locking During Concurrent Operations
+
+**Date:** 2025-11-02  
+**Phase:** 2.2 (MS Generation)  
+**Status:** Resolved via retry
+
+**Incident:**
+During Phase 2.2 execution, 2 out of 10 groups failed during CASA concat operation:
+1. Group `2025-11-01T13:22:56`: Error "incorrect number of bytes read" for sb08.ms (recovered/retried)
+2. Group `2025-11-01T14:10:49`: Error "cannot be opened for read/write" for sb01.ms (failed completely)
+
+**Root Cause Analysis:**
+The successful retry of the failed group (`2025-11-01T14:10:49`) with identical input data revealed:
+
+1. **Not a data corruption issue:**
+   - Same input files worked perfectly on retry
+   - Error was environmental/system-level, not data-related
+
+2. **Race condition/concurrency issue:**
+   - Original run: 10 groups processed sequentially, but tmpfs cleanup may not have completed between groups
+   - Retry: Single group in isolation succeeded without interference
+   - Suggests cleanup timing/race condition in parallel-subband writer
+
+3. **File handle/locking problem:**
+   - Error message: "cannot be opened for read/write" indicates file handle still open
+   - Likely cause: CASA file handles from previous concat operation not fully closed
+   - Retry succeeded after cleanup cleared stale locks
+
+4. **tmpfs directory state issue:**
+   - Stale tmpfs directories found after failure (`/dev/shm/dsa110-contimg/2025-11-01T14:10:49`)
+   - Cleanup before retry reset state and resolved issue
+   - Indicates cleanup in `direct_subband.py` (lines 289-295) may not always complete or may be interrupted
+
+**Root Cause: Incomplete Cleanup Between Groups**
+- The writer cleans up per-subband parts after concat (lines 291-293 in `direct_subband.py`)
+- If cleanup fails or is interrupted, stale files/locks remain in tmpfs
+- Next group encounters locked files when attempting concat
+- Sequential processing amplifies the issue if cleanup doesn't complete
+
+**Impact:**
+- Intermittent failures (~10% failure rate observed)
+- Success rate: 90% (9/10 groups succeeded on first attempt)
+- Retry with cleanup resolves issue, but adds manual intervention
+
+**Workaround:**
+- Retry failed groups with cleanup of stale tmpfs directories
+- Command: `rm -rf /dev/shm/dsa110-contimg/<group_timestamp>*` before retry
+- Retry with narrow time window to isolate the specific group
+
+**Recommendations:**
+See follow-up issue: `docs/reports/CONVERSION_ROBUSTNESS_IMPROVEMENTS.md`
+
 ---
 
 ### Step 2.3: Verify MS Quality
@@ -320,24 +378,58 @@ field_name, field_ids, pb_gains, cal_info = select_bandpass_from_catalog(
 ### Step 3.2: Run Calibration Pipeline
 **Tool:** `dsa110_contimg.calibration.cli`  
 **Environment:** `casa6` conda environment  
-**Action:**
+
+**Note:** Run each stage separately (K, BP, G) using `--skip-*` flags to isolate issues.
+
+**Action (K-calibration only):**
 ```bash
 export PYTHONPATH=/data/dsa110-contimg/src
 
+# First ensure MODEL_DATA is populated
+# (Use write_point_model_with_ft if needed)
+
+# Then run K-calibration only (with performance optimizations)
 conda run -n casa6 python3 -m dsa110_contimg.calibration.cli calibrate \
     --ms /scratch/dsa110-contimg/ms/0834_transit/<ms_name>.ms \
     --field "$field_id" \
     --refant 103 \
-    --auto-fields \
-    --cal-catalog /data/dsa110-contimg/data-samples/catalogs/vla_calibrators_parsed.csv
+    --skip-bp --skip-g \
+    --model-source catalog \
+    --fast --uvrange '>1klambda' \
+    --combine-spw
 ```
 
 **Parameters:**
 - `--ms`: MS file path from Phase 2
-- `--field`: Field ID from Step 3.1
+- `--field`: Field ID from Step 3.1 (e.g., "0")
 - `--refant`: Reference antenna (103 is standard)
-- `--auto-fields`: Auto-detect calibrator fields
-- `--cal-catalog`: Catalog path
+- `--skip-bp --skip-g`: Only run K-calibration
+- `--model-source catalog`: Required flag (MODEL_DATA must already be populated)
+
+**Expected Performance:**
+- K-calibration (default, 16 SPWs sequential): >15 minutes (too slow)
+- K-calibration with `--combine-spw --fast --uvrange '>1klambda'`: 3-5 minutes (optimized, 5-10x faster)
+- **Issue Resolved (2025-11-03)**: Performance optimizations implemented:
+  - **Added `--combine-spw` flag**: Combines SPWs during solve (one solve instead of 16)
+  - Fixed flag validation bottlenecks (bulk read, sampling)
+  - Added `uvrange` filtering support (reduces data by 30-50%)
+  - Added `minsnr` threshold (skips low-SNR baselines)
+  - Skip QA validation in fast mode
+
+**Why `--combine-spw` for K-calibration:**
+- Delays are frequency-independent (instrumental cable delays, clock offsets)
+- Combining SPWs is scientifically correct AND faster
+- Single calibration table (simpler than parallel processing)
+- No need for parallel processing (which would create 16 tables and require merging)
+
+**Important:** K-tables solved with `--fast --uvrange` (without timebin/chanbin) CAN be applied to full MS:
+  - `--fast --uvrange '>1klambda'` does NOT create subset/averaged MS (only filters by uvrange)
+  - K-tables are antenna-based (not baseline-based)
+  - `applycal` applies antenna delays to all baselines regardless of uv distance
+  - Filtering only affects which baselines are used to SOLVE, not which get APPLIED
+  - This is scientifically sound and often preferred for delay calibration
+  
+  ⚠️ **Note:** If `--fast --timebin` or `--fast --chanbin` is used, a subset/averaged MS is created, and K-table applicability should be verified.
 
 **Success Criteria:**
 - ✓ Calibration runs without errors

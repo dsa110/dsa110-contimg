@@ -168,7 +168,8 @@ def run_calibrate_job(job_id: int, ms_path: str, params: dict, products_db: Path
         ms_base = os.path.basename(ms_path).replace('.ms', '')
         
         # Find latest K table if not solving K
-        if not params.get("solve_delay", True) and not existing_k:
+        # Note: solve_delay defaults to False (K-cal disabled by default)
+        if not params.get("solve_delay", False) and not existing_k:
             k_pattern = os.path.join(ms_dir, f"{ms_base}*kcal")
             k_tables = sorted([p for p in glob.glob(k_pattern) if os.path.isdir(p)], 
                             key=os.path.getmtime, reverse=True)
@@ -206,8 +207,10 @@ def run_calibrate_job(job_id: int, ms_path: str, params: dict, products_db: Path
     ]
     
     # Add flexible cal table selection flags
-    if not params.get("solve_delay", True):
-        cmd.append("--skip-k")
+    # Note: K-calibration is disabled by default (DSA-110 connected-element array practice)
+    # Use --do-k to enable, not --skip-k to disable
+    if params.get("solve_delay", False):
+        cmd.append("--do-k")
     if not params.get("solve_bandpass", True):
         cmd.append("--skip-bp")
     if not params.get("solve_gains", True):

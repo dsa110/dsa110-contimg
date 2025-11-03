@@ -1,13 +1,19 @@
 from __future__ import annotations
 
 import numpy as np
-from typing import Tuple, List
+import pandas as pd
+from typing import Tuple, List, Optional
 
 from casacore.tables import table
 import astropy.units as u
 from astropy.coordinates import Angle
 
-from .catalogs import airy_primary_beam_response, read_vla_calibrator_catalog
+from .catalogs import (
+    airy_primary_beam_response,
+    read_vla_calibrator_catalog,
+    load_vla_catalog,
+    resolve_vla_catalog_path,
+)
 
 
 def _read_field_dirs(ms_path: str) -> Tuple[np.ndarray, np.ndarray]:
@@ -92,7 +98,7 @@ def select_bandpass_fields(
 
 def select_bandpass_from_catalog(
     ms_path: str,
-    catalog_path: str,
+    catalog_path: Optional[str] = None,
     *,
     search_radius_deg: float = 1.0,
     freq_GHz: float = 1.4,
@@ -100,13 +106,26 @@ def select_bandpass_from_catalog(
     min_pb: float | None = None,
 ) -> Tuple[str, List[int], np.ndarray, Tuple[str, float, float, float]]:
     """Select bandpass fields by scanning a VLA calibrator catalog.
+    
+    Automatically prefers SQLite catalog if available, falls back to CSV.
+    If catalog_path is None, uses automatic resolution (prefers SQLite).
 
     Returns (field_sel_str, indices, weighted_flux_per_field, calibrator_info)
     where calibrator_info = (name, ra_deg, dec_deg, flux_jy).
     """
-    df = read_vla_calibrator_catalog(catalog_path)
+    # Use load_vla_catalog for SQLite support (preferred method per memory)
+    if catalog_path is None:
+        df = load_vla_catalog()  # Auto-resolves to SQLite if available
+    else:
+        # Check if it's SQLite or CSV
+        if str(catalog_path).endswith('.sqlite3'):
+            df = load_vla_catalog(catalog_path)
+        else:
+            # CSV format - use old function
+            df = read_vla_calibrator_catalog(catalog_path)
+    
     if df.empty:
-        raise RuntimeError(f"Catalog {catalog_path} contains no entries")
+        raise RuntimeError(f"Catalog contains no entries")
 
     ra_field, dec_field = _read_field_dirs(ms_path)
     if ra_field.size == 0:
@@ -121,14 +140,27 @@ def select_bandpass_from_catalog(
 
     for name, row in df.iterrows():
         try:
-            ra_deg = float(row.get('ra', row.get('RA', np.nan)))
-            dec_deg = float(row.get('dec', row.get('DEC', np.nan)))
-            flux_mJy = float(row.get('flux_20_cm', row.get('flux', np.nan)))
+            # Handle both SQLite (ra_deg, dec_deg) and CSV (ra, dec) formats
+            ra_deg = float(row.get('ra_deg', row.get('ra', row.get('RA', np.nan))))
+            dec_deg = float(row.get('dec_deg', row.get('dec', row.get('DEC', np.nan))))
+            # Flux: try flux_jy first (SQLite), then flux_20_cm (CSV), then flux
+            flux_jy = None
+            if 'flux_jy' in row.index and pd.notna(row.get('flux_jy')):
+                flux_jy = float(row['flux_jy'])
+            elif 'flux_20_cm' in row.index and pd.notna(row.get('flux_20_cm')):
+                flux_mJy = float(row['flux_20_cm'])
+                flux_jy = flux_mJy / 1000.0
+            elif 'flux' in row.index and pd.notna(row.get('flux')):
+                # Assume flux is in mJy if > 1, otherwise Jy
+                flux_val = float(row['flux'])
+                flux_jy = flux_val / 1000.0 if flux_val > 1.0 else flux_val
+            else:
+                # Default flux if not available (use 1 Jy as fallback)
+                flux_jy = 1.0
         except Exception:
             continue
-        if not np.isfinite(ra_deg) or not np.isfinite(dec_deg) or not np.isfinite(flux_mJy):
+        if not np.isfinite(ra_deg) or not np.isfinite(dec_deg) or flux_jy is None or not np.isfinite(flux_jy):
             continue
-        flux_jy = flux_mJy / 1000.0
         src_ra = Angle(ra_deg, unit=u.deg).rad
         src_dec = Angle(dec_deg, unit=u.deg).rad
 

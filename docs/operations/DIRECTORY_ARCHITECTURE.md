@@ -451,9 +451,9 @@ incoming_file_count = Gauge('contimg_incoming_file_count', 'Files in incoming/')
 ### Schedule
 
 **Bandpass + Full Calibration:** Every 24 hours
-- Delay calibration (K table)
 - Bandpass calibration (BP table)
 - Gain calibration (G table)
+- Delay calibration (K table) - **Optional**, disabled by default for DSA-110 (use `--do-k` to enable)
 
 **Gain Recalibration:** Every 1 hour
 - Gain calibration only (G table)
@@ -479,9 +479,9 @@ incoming_file_count = Gauge('contimg_incoming_file_count', 'Files in incoming/')
 /scratch/dsa110-contimg/ms/calibrators/
 ├── YYYY-MM-DD/
 │   ├── <timestamp>_24h.ms           # Full calibration observation
-│   ├── <timestamp>_24h.kcal         # Delay table
 │   ├── <timestamp>_24h.bpcal        # Bandpass table
 │   ├── <timestamp>_24h.gpcal        # Gain table (24h)
+│   ├── <timestamp>_24h.kcal         # Delay table (optional, use --do-k)
 │   ├── <timestamp>_1h.ms            # Hourly gain cal
 │   ├── <timestamp>_1h.gpcal         # Gain table (1h)
 │   └── ...

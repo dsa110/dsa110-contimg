@@ -15,6 +15,7 @@ from dataclasses import dataclass
 from pathlib import Path
 from typing import List, Optional, Tuple
 
+import pandas as pd
 import astropy.units as u
 from astropy.time import Time
 
@@ -126,22 +127,40 @@ class CalibratorMSGenerator:
             raise ValidationError(f"Input directory is not a directory: {self.input_dir}")
     
     def _load_radec(self, name: str) -> Tuple[float, float]:
-        """Load RA/Dec for calibrator from catalogs."""
+        """Load RA/Dec for calibrator from catalogs.
+        
+        Always prefers SQLite database over CSV files. Iterates through catalogs
+        in order until the calibrator is found.
+        """
         import numpy as np
+        from dsa110_contimg.calibration.catalogs import (
+            load_vla_catalog_from_sqlite,
+            read_vla_parsed_catalog_csv,
+        )
         
         for catalog_path in self.catalogs:
             if not catalog_path.exists():
                 continue
             try:
-                df = read_vla_parsed_catalog_csv(catalog_path)
+                # Handle SQLite database (preferred)
+                if str(catalog_path).endswith('.sqlite3'):
+                    df = load_vla_catalog_from_sqlite(str(catalog_path))
+                else:
+                    # Handle CSV file
+                    df = read_vla_parsed_catalog_csv(catalog_path)
+                
                 if name in df.index:
                     row = df.loc[name]
+                    # Handle both Series and DataFrame cases
+                    if isinstance(row, pd.DataFrame):
+                        row = row.iloc[0]
                     try:
-                        ra = float(getattr(row, 'ra_deg').iloc[0])
-                        dec = float(getattr(row, 'dec_deg').iloc[0])
-                    except Exception:
                         ra = float(row['ra_deg'])
                         dec = float(row['dec_deg'])
+                    except (TypeError, KeyError):
+                        # Try attribute access for Series
+                        ra = float(row.ra_deg)
+                        dec = float(row.dec_deg)
                     if np.isfinite(ra) and np.isfinite(dec):
                         return ra, dec
             except Exception as e:
@@ -181,9 +200,43 @@ class CalibratorMSGenerator:
             t0 = (t - half * u.min).to_datetime().strftime('%Y-%m-%d %H:%M:%S')
             t1 = (t + half * u.min).to_datetime().strftime('%Y-%m-%d %H:%M:%S')
             
-            groups = find_subband_groups(os.fspath(self.input_dir), t0, t1)
+            # Use 1-second tolerance to match pipeline standard (filename precision is to the second)
+            # This matches the streaming converter's timestamp string grouping (same second = same group)
+            groups = find_subband_groups(
+                os.fspath(self.input_dir),
+                t0,
+                t1,
+                tolerance_s=1.0  # 1-second tolerance matches filename precision (YYYY-MM-DDTHH:MM:SS)
+            )
+            
             if not groups:
+                # No groups found - find_subband_groups already logged this
                 continue
+            
+            # Count total files found (not groups) for clearer logging
+            total_files = sum(len(g) for g in groups)
+            logger.info(
+                f"Found {len(groups)} complete 16-subband group(s) ({total_files} total files) "
+                f"for transit {t.isot}"
+            )
+            # Format search window more clearly to show it's a time range, not date range
+            t0_date = t0.split()[0]  # Extract date part
+            t0_time = t0.split()[1] if len(t0.split()) > 1 else ""
+            t1_time = t1.split()[1] if len(t1.split()) > 1 else ""
+            
+            if t0.split()[0] == t1.split()[0]:
+                # Same day - show time range more clearly
+                logger.info(
+                    f"Search window: {t0_date} {t0_time} to {t1_time} "
+                    f"(±{window_minutes//2} minutes around transit at {t.to_datetime().strftime('%H:%M:%S')}). "
+                    f"Selecting group closest to transit time..."
+                )
+            else:
+                # Different days - show full date/time
+                logger.info(
+                    f"Search window: {t0} to {t1} (±{window_minutes//2} minutes around transit). "
+                    f"Selecting group closest to transit time..."
+                )
             
             # Prefer groups whose mid-time is closest to transit
             candidates = []
@@ -204,10 +257,18 @@ class CalibratorMSGenerator:
                 dt_min, gbest, mid = candidates[0]
                 
                 # Check for complete 16-subband group
-                sb_codes = sorted(os.path.basename(p).rsplit('_sb', 1)[1].split('.')[0] for p in gbest)
-                full = len(gbest) == 16 and all(code.startswith('sb') for code in sb_codes)
+                # Use _extract_subband_code to match the grouping algorithm's logic
+                from dsa110_contimg.conversion.strategies.hdf5_orchestrator import _extract_subband_code
+                sb_codes = sorted(_extract_subband_code(os.path.basename(p)) for p in gbest)
+                full = len(gbest) == 16 and all(code and code.startswith('sb') for code in sb_codes)
                 
                 if full:
+                    # Success! Found complete group
+                    logger.info(
+                        f"✓ Found complete 16-subband group for transit {t.isot}: "
+                        f"{os.path.basename(gbest[0]).split('_sb')[0]} "
+                        f"({dt_min:.1f} min from transit)"
+                    )
                     return {
                         'name': calibrator_name,
                         'transit_iso': t.isot,
@@ -218,6 +279,12 @@ class CalibratorMSGenerator:
                         'delta_minutes': dt_min,
                         'files': sorted(gbest),
                     }
+                else:
+                    # Groups found but incomplete - log this as a skip reason
+                    logger.info(
+                        f"Skipping transit {t.isot}: found group with {len(gbest)} subbands "
+                        f"(need 16 complete), best candidate: {os.path.basename(gbest[0])}"
+                    )
         
         return None
     
@@ -456,7 +523,17 @@ class CalibratorMSGenerator:
             window_minutes: Not used for matching, but kept for API compatibility
         
         Returns:
-            List of transit info dicts with available data, sorted by most recent first
+            List of transit info dicts with available data, sorted by most recent first.
+            Each dict includes:
+            - 'transit_iso': Transit time (ISO format)
+            - 'transit_mjd': Transit time (MJD)
+            - 'group_id': Group timestamp (YYYY-MM-DDTHH:MM:SS)
+            - 'group_mid_iso': Group mid-time (ISO format)
+            - 'delta_minutes': Time difference between group mid and transit
+            - 'subband_count': Number of subbands (should be 16)
+            - 'files': List of 16 HDF5 file paths (complete subband group)
+            - 'days_ago': Days since transit
+            - 'has_ms': Boolean indicating if MS already exists
         """
         import numpy as np
         from collections import defaultdict
@@ -513,7 +590,13 @@ class CalibratorMSGenerator:
             t1 = (transit + half_window * u.min).to_datetime().strftime('%Y-%m-%d %H:%M:%S')
             
             # Find groups in this window
-            groups = find_subband_groups(os.fspath(self.input_dir), t0, t1)
+            # Use 1-second tolerance to match pipeline standard (filename precision is to the second)
+            groups = find_subband_groups(
+                os.fspath(self.input_dir),
+                t0,
+                t1,
+                tolerance_s=1.0  # 1-second tolerance matches filename precision (YYYY-MM-DDTHH:MM:SS)
+            )
             if not groups:
                 continue
             
@@ -547,12 +630,6 @@ class CalibratorMSGenerator:
                         group_mid = group_start
                         pt_dec_deg = None
                     
-                    # Check declination match
-                    if pt_dec_deg is not None:
-                        dec_match = abs(pt_dec_deg - dec_deg) <= 2.0
-                        if not dec_match:
-                            continue
-                    
                     # Check if this transit falls within group's observation window
                     transit_in_window = cal_in_datetime(
                         group_id, 
@@ -563,6 +640,19 @@ class CalibratorMSGenerator:
                     
                     if not transit_in_window:
                         continue
+                    
+                    # Check declination match (only if transit time matches)
+                    # Transit time matching is the primary indicator; declination is secondary
+                    if pt_dec_deg is not None:
+                        dec_match = abs(pt_dec_deg - dec_deg) <= 2.0
+                        if not dec_match:
+                            # Log warning but don't filter out - transit time match is more reliable
+                            logger.warning(
+                                f"Group {group_id} transit time matches but declination mismatch: "
+                                f"file dec={pt_dec_deg:.2f}°, expected {dec_deg:.2f}° "
+                                f"(diff={abs(pt_dec_deg - dec_deg):.2f}°). "
+                                f"Trusting transit time match."
+                            )
                     
                     # Verify complete 16-subband group
                     sb_codes = sorted(os.path.basename(p).rsplit('_sb', 1)[1].split('.')[0] for p in group_files)
@@ -582,6 +672,7 @@ class CalibratorMSGenerator:
                         'group_mid_iso': group_mid.isot,
                         'delta_minutes': dt_min,
                         'subband_count': len(group_files),
+                        'files': group_files,  # List of 16 HDF5 file paths
                         'days_ago': (Time.now() - transit).to(u.day).value,
                         'has_ms': self.has_ms_for_transit(
                             calibrator_name, 
@@ -621,10 +712,12 @@ class CalibratorMSGenerator:
             return transit_info['files']
         
         # Fallback: search using transit time window
+        # Use 1-second tolerance to match pipeline standard (filename precision is to the second)
         groups = find_subband_groups(
             os.fspath(self.input_dir),
             transit_info['start_iso'],
-            transit_info['end_iso']
+            transit_info['end_iso'],
+            tolerance_s=1.0  # 1-second tolerance matches filename precision (YYYY-MM-DDTHH:MM:SS)
         )
         
         if not groups:

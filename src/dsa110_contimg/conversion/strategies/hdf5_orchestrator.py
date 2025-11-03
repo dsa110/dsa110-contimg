@@ -27,6 +27,7 @@ import logging
 import os
 import shutil
 import time
+from pathlib import Path
 from typing import Any, List, Optional, Sequence, cast
 
 import astropy.units as u  # type: ignore[import]
@@ -187,14 +188,26 @@ def find_subband_groups(
     return groups
 
 
-def _load_and_merge_subbands(file_list: Sequence[str]) -> UVData:
+def _load_and_merge_subbands(file_list: Sequence[str], 
+                             show_progress: bool = True) -> UVData:
     uv = UVData()
     acc: List[UVData] = []
     _pyuv_lg = logging.getLogger('pyuvdata')
     _prev_level = _pyuv_lg.level
     try:
         _pyuv_lg.setLevel(logging.ERROR)
-        for i, path in enumerate(file_list):
+        
+        # Use progress bar for file reading
+        from dsa110_contimg.utils.progress import get_progress_bar
+        file_iter = get_progress_bar(
+            enumerate(file_list),
+            total=len(file_list),
+            desc="Reading subbands",
+            disable=not show_progress,
+            mininterval=0.5  # Update every 0.5s max
+        )
+        
+        for i, path in file_iter:
             # PRECONDITION CHECK: Validate file is readable before reading
             # This ensures we follow "measure twice, cut once" - establish requirements upfront
             # before expensive file reading operations.
@@ -214,11 +227,10 @@ def _load_and_merge_subbands(file_list: Sequence[str]) -> UVData:
                 raise ValueError(f"File {path} is not a valid HDF5 file: {e}") from e
             
             t_read0 = time.perf_counter()
-            logger.info(
-                "Reading subband %d/%d: %s",
-                i + 1,
-                len(file_list),
-                os.path.basename(path))
+            # Update progress bar description with current file
+            if hasattr(file_iter, 'set_description'):
+                file_iter.set_description(f"Reading {os.path.basename(path)}")
+            
             tmp = UVData()
             tmp.read(
                 path,
@@ -230,7 +242,9 @@ def _load_and_merge_subbands(file_list: Sequence[str]) -> UVData:
             )
             tmp.uvw_array = tmp.uvw_array.astype(np.float64)
             acc.append(tmp)
-            logger.info(
+            
+            # Log details at debug level to avoid cluttering progress bar output
+            logger.debug(
                 "Read subband %d in %.2fs (Nblts=%s, Nfreqs=%s, Npols=%s)",
                 i + 1,
                 time.perf_counter() - t_read0,
@@ -270,6 +284,8 @@ def convert_subband_groups_to_ms(
     scratch_dir: Optional[str] = None,
     writer: str = "parallel-subband",
     writer_kwargs: Optional[dict] = None,
+    skip_existing: bool = False,
+    checkpoint_file: Optional[str] = None,
 ) -> None:
     # PRECONDITION CHECK: Validate input/output directories before proceeding
     # This ensures we follow "measure twice, cut once" - establish requirements upfront
@@ -319,7 +335,71 @@ def convert_subband_groups_to_ms(
         logger.info("No complete subband groups to convert.")
         return
 
-    for file_list in groups:
+    # Solution 1: Cleanup verification before starting new groups
+    # Check for and remove stale tmpfs directories to prevent file locking issues
+    if writer_kwargs and writer_kwargs.get("stage_to_tmpfs", False):
+        tmpfs_path = writer_kwargs.get("tmpfs_path", "/dev/shm")
+        tmpfs_base = Path(tmpfs_path) / "dsa110-contimg"
+        if tmpfs_base.exists():
+            try:
+                # Check for stale directories older than 1 hour
+                current_time = time.time()
+                stale_dirs = []
+                for stale_dir in tmpfs_base.iterdir():
+                    if stale_dir.is_dir():
+                        try:
+                            mtime = stale_dir.stat().st_mtime
+                            if current_time - mtime > 3600:  # 1 hour
+                                stale_dirs.append(stale_dir)
+                        except Exception:
+                            pass
+                
+                # Remove stale directories and verify removal
+                if stale_dirs:
+                    logger.debug(
+                        f"Found {len(stale_dirs)} stale tmpfs directory(s) (>1 hour old), removing..."
+                    )
+                    removed_count = 0
+                    for stale_dir in stale_dirs:
+                        try:
+                            if stale_dir.exists():
+                                shutil.rmtree(stale_dir, ignore_errors=False)
+                                # Verify it's actually gone
+                                if stale_dir.exists():
+                                    logger.warning(
+                                        f"Failed to remove stale tmpfs directory: {stale_dir}"
+                                    )
+                                else:
+                                    removed_count += 1
+                        except Exception as e:
+                            logger.debug(
+                                f"Failed to remove stale tmpfs directory {stale_dir}: {e}"
+                            )
+                    
+                    if removed_count > 0:
+                        logger.info(
+                            f"Cleaned up {removed_count} stale tmpfs director"
+                            f"{'y' if removed_count == 1 else 'ies'}"
+                        )
+            except Exception as cleanup_err:
+                logger.debug(f"Stale tmpfs cleanup check failed (non-fatal): {cleanup_err}")
+
+    # Add progress indicator for group processing
+    from dsa110_contimg.utils.progress import get_progress_bar, should_disable_progress
+    show_progress = not should_disable_progress(
+        None,  # No args in this function scope - use env var
+        env_var="CONTIMG_DISABLE_PROGRESS"
+    )
+    
+    groups_iter = get_progress_bar(
+        groups,
+        total=len(groups),
+        desc="Converting groups",
+        disable=not show_progress,
+        mininterval=1.0  # Update every 1s max for groups
+    )
+    
+    for file_list in groups_iter:
         # PRECONDITION CHECK: Validate all files exist before conversion
         # This ensures we follow "measure twice, cut once" - establish requirements upfront
         # before expensive conversion operations.
@@ -344,9 +424,14 @@ def convert_subband_groups_to_ms(
         ms_path = os.path.join(output_dir, f"{base_name}.ms")
         logger.info("Converting group %s -> %s", base_name, ms_path)
 
+        # Check if MS already exists
         if os.path.exists(ms_path):
-            logger.info("MS already exists, skipping: %s", ms_path)
-            continue
+            if getattr(args, 'skip_existing', False):
+                logger.info("MS already exists (--skip-existing), skipping: %s", ms_path)
+                continue
+            else:
+                logger.info("MS already exists, skipping: %s", ms_path)
+                continue
         
         # PRECONDITION CHECK: Estimate disk space requirement and verify availability
         # This ensures we follow "measure twice, cut once" - establish requirements upfront
@@ -431,7 +516,14 @@ def convert_subband_groups_to_ms(
 
         if selected_writer not in ("parallel-subband", "direct-subband"):
             t0 = time.perf_counter()
-            uv = _load_and_merge_subbands(file_list)
+            # Determine if progress should be shown
+            from dsa110_contimg.utils.progress import should_disable_progress
+            show_progress = not should_disable_progress(
+                None,  # No args in this function scope
+                env_var="CONTIMG_DISABLE_PROGRESS"
+            )
+            
+            uv = _load_and_merge_subbands(file_list, show_progress=show_progress)
             logger.info("Loaded and merged %d subbands in %.2fs",
                         len(file_list), time.perf_counter() - t0)
 
@@ -560,6 +652,35 @@ def convert_subband_groups_to_ms(
 
         logger.info("✓ Successfully created %s", ms_path)
         
+        # Save checkpoint if checkpoint file provided
+        if checkpoint_file:
+            try:
+                import json
+                checkpoint_path = Path(checkpoint_file)
+                checkpoint_path.parent.mkdir(parents=True, exist_ok=True)
+                
+                # Load existing checkpoint or create new
+                checkpoint_data = {'completed_groups': [], 'groups': {}}
+                if checkpoint_path.exists():
+                    with open(checkpoint_path, 'r') as f:
+                        checkpoint_data = json.load(f)
+                
+                # Add this group to completed list
+                if 'completed_groups' not in checkpoint_data:
+                    checkpoint_data['completed_groups'] = []
+                checkpoint_data['completed_groups'].append(base_name)
+                checkpoint_data['groups'][base_name] = {
+                    'ms_path': ms_path,
+                    'timestamp': time.time(),
+                    'files': file_list,
+                }
+                
+                with open(checkpoint_path, 'w') as f:
+                    json.dump(checkpoint_data, f, indent=2)
+                logger.debug(f"Checkpoint saved: {checkpoint_file}")
+            except Exception as e:
+                logger.warning(f"Failed to save checkpoint: {e}")
+        
         # Run QA check on MS
         try:
             qa_passed, qa_metrics = check_ms_after_conversion(
@@ -576,17 +697,76 @@ def convert_subband_groups_to_ms(
 
 
 def add_args(p: argparse.ArgumentParser) -> None:
-    """Add arguments to a parser."""
+    """Add arguments to a parser.
+    
+    Example usage:
+        # Convert using explicit time window
+        python -m dsa110_contimg.conversion.cli groups /data/incoming /data/ms \\
+            "2025-10-30 10:00:00" "2025-10-30 11:00:00"
+        
+        # Convert using calibrator transit mode
+        python -m dsa110_contimg.conversion.cli groups /data/incoming /data/ms \\
+            --calibrator 0834+555 --transit-date 2025-10-30
+        
+        # Find transit without converting
+        python -m dsa110_contimg.conversion.cli groups /data/incoming /data/ms \\
+            --calibrator 0834+555 --find-only
+    """
     p.add_argument(
         "input_dir",
         help="Directory containing UVH5 (HDF5 container) subband files.")
-    p.add_argument("output_dir", help="Directory to save Measurement Sets.")
     p.add_argument(
+        "output_dir",
+        nargs="?",
+        default="/data/dsa110-contimg/ms",
+        help="Directory to save Measurement Sets (default: /data/dsa110-contimg/ms)."
+    )
+    
+    # Time window arguments (required unless using calibrator mode)
+    time_group = p.add_argument_group(
+        "time_window",
+        "Time window specification (required unless --calibrator is used)"
+    )
+    time_group.add_argument(
         "start_time",
-        help="Start of processing window (YYYY-MM-DD HH:MM:SS).")
-    p.add_argument(
+        nargs="?",
+        help="Start of processing window (YYYY-MM-DD HH:MM:SS). Required unless --calibrator is specified.")
+    time_group.add_argument(
         "end_time",
-        help="End of processing window (YYYY-MM-DD HH:MM:SS).")
+        nargs="?",
+        help="End of processing window (YYYY-MM-DD HH:MM:SS). Required unless --calibrator is specified.")
+    
+    # Calibrator transit mode (alternative to explicit time window)
+    calibrator_group = p.add_argument_group(
+        "calibrator",
+        "Calibrator transit mode (alternative to explicit time window)"
+    )
+    calibrator_group.add_argument(
+        "--calibrator",
+        help="Calibrator name (e.g., '0834+555'). When specified, finds transit and calculates time window automatically."
+    )
+    calibrator_group.add_argument(
+        "--transit-date",
+        help="Specific transit date (YYYY-MM-DD) or transit time (YYYY-MM-DDTHH:MM:SS). If not specified, uses most recent transit."
+    )
+    calibrator_group.add_argument(
+        "--window-minutes",
+        type=int,
+        default=60,
+        help="Search window in minutes around transit (default: 60, i.e., ±30 minutes)."
+    )
+    calibrator_group.add_argument(
+        "--max-days-back",
+        type=int,
+        default=30,
+        help="Maximum days to search back for transit (default: 30)."
+    )
+    calibrator_group.add_argument(
+        "--dec-tolerance-deg",
+        type=float,
+        default=2.0,
+        help="Declination tolerance in degrees for matching observations (default: 2.0)."
+    )
     p.add_argument(
         "--writer",
         default="parallel-subband",
@@ -629,10 +809,51 @@ def add_args(p: argparse.ArgumentParser) -> None:
         default="/dev/shm",
         help="Path to tmpfs (RAM disk).")
     p.add_argument(
+        "--merge-spws",
+        action="store_true",
+        default=False,
+        help=(
+            "Merge all SPWs into a single SPW after concatenation. "
+            "Uses CASA mstransform to combine 16 SPWs into 1 SPW with regridded frequency grid. "
+            "Note: Merges raw DATA column during conversion. For best results, merge CORRECTED_DATA "
+            "after calibration using the standalone merge_spws tool instead."
+        ),
+    )
+    p.add_argument(
         "--log-level",
         default="INFO",
         choices=["DEBUG", "INFO", "WARNING", "ERROR"],
         help="Logging level.",
+    )
+    # Utility flags
+    utility_group = p.add_argument_group(
+        "utility",
+        "Utility and debugging options"
+    )
+    utility_group.add_argument(
+        "--find-only",
+        action="store_true",
+        help="Find transit and list files without converting to MS. Useful for verifying data availability before conversion."
+    )
+    utility_group.add_argument(
+        "--dry-run",
+        action="store_true",
+        help="Simulate conversion without writing files. Validates inputs and reports what would be converted."
+    )
+    utility_group.add_argument(
+        "--disable-progress",
+        action="store_true",
+        help="Disable progress bars. Useful for non-interactive environments or scripts."
+    )
+    utility_group.add_argument(
+        "--skip-existing",
+        action="store_true",
+        help="Skip groups that already have MS files. Faster iteration during testing."
+    )
+    utility_group.add_argument(
+        "--checkpoint-file",
+        type=str,
+        help="Path to checkpoint file for resumable conversion. Saves progress after each group."
     )
 
 
@@ -645,7 +866,7 @@ def create_parser() -> argparse.ArgumentParser:
     return p
 
 
-def main(args: argparse.Namespace = None) -> int:
+def main(args: Optional[argparse.Namespace] = None) -> int:
     if args is None:
         parser = create_parser()
         args = parser.parse_args()
@@ -661,20 +882,253 @@ def main(args: argparse.Namespace = None) -> int:
     os.environ.setdefault("OMP_NUM_THREADS", "4")
     os.environ.setdefault("MKL_NUM_THREADS", "4")
 
+    # Determine start_time and end_time
+    start_time = args.start_time
+    end_time = args.end_time
+    
+    # If calibrator mode is specified, find transit and calculate time window
+    if args.calibrator:
+        if start_time or end_time:
+            logger.warning(
+                "Both --calibrator and explicit time window provided. "
+                "Ignoring explicit time window in favor of calibrator transit mode."
+            )
+        
+        try:
+            from dsa110_contimg.conversion.calibrator_ms_service import CalibratorMSGenerator
+            from dsa110_contimg.conversion.config import CalibratorMSConfig
+            
+            logger.info(f"Finding transit for calibrator: {args.calibrator}")
+            
+            # Initialize service
+            config = CalibratorMSConfig.from_env()
+            if hasattr(args, 'input_dir') and args.input_dir:
+                config.input_dir = Path(args.input_dir)
+            service = CalibratorMSGenerator.from_config(config, verbose=True)
+            
+            # Find transit
+            transit_info = None
+            transit_time = None
+            
+            if args.transit_date:
+                # Check if it's just a date (YYYY-MM-DD) or a full ISO time
+                # If it parses as a time but is at midnight and has no time component, treat as date
+                is_date_only = False
+                transit_time_parsed = None
+                
+                try:
+                    transit_time_parsed = Time(args.transit_date)
+                    # Check if input was just a date (no time component)
+                    # If it parses to midnight and input has no 'T' or ':', it's likely just a date
+                    if 'T' not in args.transit_date and ':' not in args.transit_date:
+                        is_date_only = True
+                    elif transit_time_parsed.isot.endswith('T00:00:00.000'):
+                        # Check if hours/minutes/seconds are all zero (midnight)
+                        is_date_only = True
+                except Exception:
+                    is_date_only = True
+                
+                if is_date_only:
+                    # Optimize: Calculate transit for specific date instead of searching all dates
+                    logger.info(f"Calculating transit for date: {args.transit_date}")
+                    
+                    # Load RA/Dec for calibrator
+                    ra_deg, dec_deg = service._load_radec(args.calibrator)
+                    
+                    # Calculate transit time for that specific date
+                    # Use end of target date as search start, then find previous transit
+                    from dsa110_contimg.calibration.schedule import previous_transits
+                    target_date_end = Time(f"{args.transit_date}T23:59:59")
+                    
+                    # Get transit around that date (search a small window)
+                    candidate_transits = previous_transits(
+                        ra_deg,
+                        start_time=target_date_end,
+                        n=3  # Check a few transits around the date
+                    )
+                    
+                    # Find the transit that falls on the target date
+                    target_transit_time = None
+                    for candidate in candidate_transits:
+                        if candidate.isot.startswith(args.transit_date):
+                            target_transit_time = candidate
+                            logger.info(f"Calculated transit time: {target_transit_time.isot}")
+                            break
+                    
+                    if target_transit_time is None:
+                        raise ValueError(
+                            f"No transit calculated for calibrator {args.calibrator} on {args.transit_date}"
+                        )
+                    
+                    # Now find the data group for this specific transit
+                    transit_info = service.find_transit(
+                        args.calibrator,
+                        transit_time=target_transit_time,
+                        window_minutes=args.window_minutes,
+                        max_days_back=args.max_days_back  # Use configured search window
+                    )
+                    
+                    if transit_info is None:
+                        # If find_transit fails, try list_available_transits as fallback
+                        logger.warning(
+                            f"Direct transit search failed, trying broader search for {args.transit_date}..."
+                        )
+                        all_transits = service.list_available_transits(
+                            args.calibrator,
+                            max_days_back=args.max_days_back
+                        )
+                        for transit in all_transits:
+                            if transit['transit_iso'].startswith(args.transit_date):
+                                transit_info = {
+                                    'transit_iso': transit['transit_iso'],
+                                    'group_id': transit['group_id'],
+                                    'files': transit['files'],
+                                    'delta_minutes': transit['delta_minutes'],
+                                    'start_iso': (Time(transit['transit_iso']) - (args.window_minutes // 2) * u.min).isot,
+                                    'end_iso': (Time(transit['transit_iso']) + (args.window_minutes // 2) * u.min).isot,
+                                }
+                                break
+                        
+                        if transit_info is None:
+                            raise ValueError(
+                                f"No data found for calibrator {args.calibrator} transit on {args.transit_date} "
+                                f"(transit time: {target_transit_time.isot})"
+                            )
+                else:
+                    # Full ISO time provided, use it directly
+                    transit_time = transit_time_parsed
+                    logger.info(f"Using provided transit time: {transit_time.isot}")
+            
+            # If we don't have transit_info yet, call find_transit
+            if transit_info is None:
+                transit_info = service.find_transit(
+                    args.calibrator,
+                    transit_time=transit_time,
+                    window_minutes=args.window_minutes,
+                    max_days_back=args.max_days_back
+                )
+                
+                if not transit_info:
+                    raise ValueError(
+                        f"No transit found for calibrator {args.calibrator} "
+                        f"(searched last {args.max_days_back} days)"
+                    )
+            
+            # Extract time window from transit info
+            start_time = transit_info['start_iso']
+            end_time = transit_info['end_iso']
+            
+            logger.info("Calibrator transit found:")
+            logger.info(f"  Transit time: {transit_info['transit_iso']}")
+            logger.info(f"  Group ID: {transit_info['group_id']}")
+            logger.info(f"  Search window: {start_time} to {end_time}")
+            logger.info(f"  Files: {len(transit_info.get('files', []))} subband files")
+            
+            # If --find-only, print file list and exit without converting
+            if getattr(args, 'find_only', False):
+                logger.info("\n" + "="*60)
+                logger.info("FIND-ONLY MODE: Not converting to MS")
+                logger.info("="*60)
+                logger.info(f"\nTransit Information:")
+                logger.info(f"  Calibrator: {args.calibrator}")
+                logger.info(f"  Transit Time: {transit_info['transit_iso']}")
+                logger.info(f"  Group ID: {transit_info['group_id']}")
+                logger.info(f"  Delta from transit: {transit_info.get('delta_minutes', 'N/A')} minutes")
+                logger.info(f"\nHDF5 Files ({len(transit_info.get('files', []))} subbands):")
+                for i, fpath in enumerate(sorted(transit_info.get('files', [])), 1):
+                    logger.info(f"  {i:2d}. {os.path.basename(fpath)}")
+                logger.info(f"\nTime Window:")
+                logger.info(f"  Start: {start_time}")
+                logger.info(f"  End: {end_time}")
+                return 0
+            
+        except ImportError as e:
+            logger.error(
+                f"Calibrator transit mode requires CalibratorMSGenerator: {e}\n"
+                f"Please ensure the conversion package is properly installed."
+            )
+            return 1
+        except Exception as e:
+            logger.error(f"Failed to find calibrator transit: {e}")
+            return 1
+    
+    # Validate that we have time window
+    if not start_time or not end_time:
+        logger.error(
+            "Either explicit time window (start_time end_time) or "
+            "--calibrator must be provided."
+        )
+        return 1
+    
+    # If --find-only mode and we have transit info, we've already printed it and returned above
+    # This check handles the case where explicit time window is used with --find-only
+    if getattr(args, 'find_only', False):
+        logger.info("\n" + "="*60)
+        logger.info("FIND-ONLY MODE: Not converting to MS")
+        logger.info("="*60)
+        logger.info(f"\nTime Window:")
+        logger.info(f"  Start: {start_time}")
+        logger.info(f"  End: {end_time}")
+        logger.info(f"\nTo convert, run without --find-only flag")
+        return 0
+    
+    # Check for dry-run mode
+    if getattr(args, 'dry_run', False):
+        logger.info("="*60)
+        logger.info("DRY-RUN MODE: No files will be written")
+        logger.info("="*60)
+        
+        # Find groups that would be converted
+        groups = find_subband_groups(args.input_dir, start_time, end_time)
+        logger.info(f"\nWould convert {len(groups)} group(s):")
+        for i, file_list in enumerate(groups, 1):
+            first_file = os.path.basename(file_list[0]) if file_list else "unknown"
+            base_name = os.path.splitext(first_file)[0].split("_sb")[0]
+            ms_path = os.path.join(args.output_dir, f"{base_name}.ms")
+            logger.info(f"  {i}. Group {base_name} ({len(file_list)} subbands) -> {ms_path}")
+        
+        logger.info("\nValidation:")
+        # Perform validation checks
+        try:
+            from dsa110_contimg.utils.validation import validate_directory
+            validate_directory(args.output_dir, must_exist=False, must_writable=True)
+            if args.scratch_dir:
+                validate_directory(args.scratch_dir, must_exist=False, must_writable=True)
+            logger.info("  ✓ Directory validation passed")
+        except Exception as e:
+            from dsa110_contimg.utils.validation import ValidationError
+            if isinstance(e, ValidationError):
+                logger.error(f"  ✗ Validation failed: {', '.join(e.errors)}")
+            else:
+                logger.error(f"  ✗ Validation failed: {e}")
+        logger.info("\nDry-run complete. Use without --dry-run to perform conversion.")
+        return 0
+    
     writer_kwargs = {"max_workers": args.max_workers}
     if getattr(args, "stage_to_tmpfs", False):
         writer_kwargs["stage_to_tmpfs"] = True
         writer_kwargs["tmpfs_path"] = getattr(args, "tmpfs_path", "/dev/shm")
+    
+    # Enable SPW merging if requested
+    if getattr(args, "merge_spws", False):
+        writer_kwargs["merge_spws"] = True
+        logger.warning(
+            "SPW merging enabled: MS will have 1 SPW with merged DATA column. "
+            "If calibration issues occur, consider: (1) Calibrate on 16-SPW MS first, "
+            "(2) Then merge CORRECTED_DATA using: python -m dsa110_contimg.conversion.merge_spws"
+        )
 
     convert_subband_groups_to_ms(
         args.input_dir,
         args.output_dir,
-        args.start_time,
-        args.end_time,
+        start_time,
+        end_time,
         flux=args.flux,
         scratch_dir=args.scratch_dir,
         writer=args.writer,
         writer_kwargs=writer_kwargs,
+        skip_existing=getattr(args, 'skip_existing', False),
+        checkpoint_file=getattr(args, 'checkpoint_file', None),
     )
     return 0
 

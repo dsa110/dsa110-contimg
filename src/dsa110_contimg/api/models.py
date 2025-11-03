@@ -159,7 +159,7 @@ class CalibrateJobParams(BaseModel):
     refant: str = "103"
     
     # Cal table selection
-    solve_delay: bool = True  # K-cal
+    solve_delay: bool = False  # K-cal (disabled by default for DSA-110, use --do-k to enable)
     solve_bandpass: bool = True  # BP-cal
     solve_gains: bool = True  # G-cal
     

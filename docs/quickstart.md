@@ -52,6 +52,8 @@ scripts/run_conversion.sh /path/to/uvh5_dir /scratch/dsa110-contimg/ms \
 
 2) Calibrate fast (optional subset + phase-only):
 ```bash
+# Note: K-calibration is skipped by default for DSA-110 (connected-element array)
+# Use --do-k to explicitly enable if needed
 python -m dsa110_contimg.calibration.cli calibrate \
   --ms /scratch/dsa110-contimg/ms/<obs>.ms \
   --field 0~4 --refant 1 --fast --timebin 30s --chanbin 4 --uvrange '>1klambda'

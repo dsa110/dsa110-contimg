@@ -16,13 +16,20 @@ import time
 import subprocess
 import shutil
 
+# Use shared CLI utilities
+from dsa110_contimg.utils.cli_helpers import (
+    setup_casa_environment,
+    add_common_logging_args,
+    configure_logging_from_args,
+)
+from dsa110_contimg.utils.validation import (
+    validate_ms,
+    validate_corrected_data_quality,
+    ValidationError,
+)
+
 # Set CASA log directory BEFORE any CASA imports - CASA writes logs to CWD
-try:
-    from dsa110_contimg.utils.tempdirs import derive_casa_log_dir
-    casa_log_dir = derive_casa_log_dir()
-    os.chdir(str(casa_log_dir))
-except Exception:
-    pass
+setup_casa_environment()
 
 import numpy as np
 from casacore.tables import table  # type: ignore[import]
@@ -44,7 +51,10 @@ except Exception:  # pragma: no cover - defensive import
     derive_default_scratch_root = None  # type: ignore
 
 
+# Logging configuration now handled by configure_logging_from_args()
+# This function kept for backward compatibility but delegates to shared utility
 def _configure_logging(verbose: bool = False) -> None:
+    """Deprecated: Use configure_logging_from_args() instead."""
     level = logging.DEBUG if verbose else logging.INFO
     logging.basicConfig(
         level=level,
@@ -359,65 +369,19 @@ def image_ms(
     backend: str = "tclean",
     wsclean_path: Optional[str] = None,
 ) -> None:
-    # PRECONDITION CHECK: Validate MS exists and is readable before imaging
-    # This ensures we follow "measure twice, cut once" - establish requirements upfront
-    # before expensive imaging operations.
-    if not os.path.exists(ms_path):
-        raise RuntimeError(f"MS does not exist: {ms_path}")
-    
-    if not os.path.isdir(ms_path):
-        raise RuntimeError(f"MS path is not a directory: {ms_path}")
-    
+    # Validate MS using shared validation module
     try:
-        with table(ms_path, readonly=True) as tb:
-            if tb.nrows() == 0:
-                raise RuntimeError(f"MS is empty: {ms_path}")
-            
-            # Verify required columns exist
-            required_cols = ['DATA', 'ANTENNA1', 'ANTENNA2', 'TIME', 'UVW']
-            missing_cols = [c for c in required_cols if c not in tb.colnames()]
-            if missing_cols:
-                raise RuntimeError(
-                    f"MS missing required columns: {missing_cols}. "
-                    f"Path: {ms_path}"
-                )
-    except RuntimeError:
-        raise
-    except Exception as e:
+        validate_ms(ms_path, check_empty=True,
+                   check_columns=['DATA', 'ANTENNA1', 'ANTENNA2', 'TIME', 'UVW'])
+    except ValidationError as e:
         raise RuntimeError(
-            f"MS is not readable: {ms_path}. Error: {e}"
+            f"MS validation failed: {', '.join(e.errors)}"
         ) from e
     
-    # PRECONDITION CHECK: Validate CORRECTED_DATA quality if present
-    # This ensures we follow "measure twice, cut once" - verify calibration was
-    # applied successfully before imaging.
-    try:
-        with table(ms_path, readonly=True) as tb:
-            if "CORRECTED_DATA" in tb.colnames():
-                # Sample CORRECTED_DATA to verify it's populated
-                n_rows = tb.nrows()
-                sample_size = min(10000, n_rows)
-                corrected_data = tb.getcol("CORRECTED_DATA", startrow=0, nrow=sample_size)
-                flags = tb.getcol("FLAG", startrow=0, nrow=sample_size)
-                
-                unflagged = corrected_data[~flags]
-                if len(unflagged) > 0:
-                    nonzero_count = np.count_nonzero(np.abs(unflagged) > 1e-10)
-                    nonzero_fraction = nonzero_count / len(unflagged)
-                    
-                    if nonzero_fraction < 0.01:  # Less than 1% non-zero
-                        LOG.warning(
-                            "CORRECTED_DATA appears unpopulated: only %.1f%% non-zero. "
-                            "Imaging may use DATA column instead.",
-                            nonzero_fraction * 100
-                        )
-                    else:
-                        LOG.info(
-                            "CORRECTED_DATA verified: %.1f%% non-zero",
-                            nonzero_fraction * 100
-                        )
-    except Exception as e:
-        LOG.warning(f"Failed to validate CORRECTED_DATA quality: {e}")
+    # Validate CORRECTED_DATA quality if present
+    warnings = validate_corrected_data_quality(ms_path)
+    for warning in warnings:
+        LOG.warning(warning)
     
     # PRECONDITION CHECK: Verify sufficient disk space for images
     # This ensures we follow "measure twice, cut once" - verify resources upfront
@@ -709,61 +673,77 @@ def image_ms(
 
 def main(argv: Optional[list] = None) -> None:
     parser = argparse.ArgumentParser(
-        description="Image an MS with tclean or WSClean"
+        description="DSA-110 Imaging CLI"
     )
-    parser.add_argument("--ms", required=True, help="Path to input MS")
-    parser.add_argument(
+    sub = parser.add_subparsers(dest="cmd", required=True)
+    
+    # image subcommand (main imaging functionality)
+    img_parser = sub.add_parser(
+        "image",
+        help="Image an MS with tclean or WSClean",
+        description=(
+            "Create images from a Measurement Set using CASA tclean or WSClean. "
+            "Automatically selects CORRECTED_DATA when present, otherwise uses DATA.\n\n"
+            "Example:\n"
+            "  python -m dsa110_contimg.imaging.cli image \\\n"
+            "    --ms /data/ms/target.ms --imagename /data/images/target \\\n"
+            "    --imsize 2048 --cell-arcsec 1.0 --quick"
+        ),
+        formatter_class=argparse.RawDescriptionHelpFormatter,
+    )
+    img_parser.add_argument("--ms", required=True, help="Path to input MS")
+    img_parser.add_argument(
         "--imagename", required=True, help="Output image name prefix"
     )
-    parser.add_argument("--field", default="", help="Field selection")
-    parser.add_argument("--spw", default="", help="SPW selection")
-    parser.add_argument("--imsize", type=int, default=1024)
-    parser.add_argument("--cell-arcsec", type=float, default=None)
-    parser.add_argument("--weighting", default="briggs")
-    parser.add_argument("--robust", type=float, default=0.0)
+    img_parser.add_argument("--field", default="", help="Field selection")
+    img_parser.add_argument("--spw", default="", help="SPW selection")
+    img_parser.add_argument("--imsize", type=int, default=1024)
+    img_parser.add_argument("--cell-arcsec", type=float, default=None)
+    img_parser.add_argument("--weighting", default="briggs")
+    img_parser.add_argument("--robust", type=float, default=0.0)
     # Friendly synonyms matching user vocabulary
-    parser.add_argument(
+    img_parser.add_argument(
         "--weighttype",
         dest="weighting_alias",
         default=None,
         help="Alias of --weighting",
     )
-    parser.add_argument(
+    img_parser.add_argument(
         "--weight",
         dest="robust_alias",
         type=float,
         default=None,
         help="Alias of --robust (Briggs robust)",
     )
-    parser.add_argument("--specmode", default="mfs")
-    parser.add_argument("--deconvolver", default="hogbom")
-    parser.add_argument("--nterms", type=int, default=1)
-    parser.add_argument("--niter", type=int, default=1000)
-    parser.add_argument("--threshold", default="0.0Jy")
-    parser.add_argument("--no-pbcor", action="store_true")
-    parser.add_argument(
+    img_parser.add_argument("--specmode", default="mfs")
+    img_parser.add_argument("--deconvolver", default="hogbom")
+    img_parser.add_argument("--nterms", type=int, default=1)
+    img_parser.add_argument("--niter", type=int, default=1000)
+    img_parser.add_argument("--threshold", default="0.0Jy")
+    img_parser.add_argument("--no-pbcor", action="store_true")
+    img_parser.add_argument(
         "--quick",
         action="store_true",
         help="Quick-look imaging: smaller imsize and lower niter",
     )
-    parser.add_argument(
+    img_parser.add_argument(
         "--skip-fits",
         action="store_true",
         help="Do not export FITS products after tclean",
     )
-    parser.add_argument(
+    img_parser.add_argument(
         "--phasecenter",
         default=None,
         help=(
             "CASA phasecenter string (e.g., 'J2000 08h34m54.9 +55d34m21.1')"
         ),
     )
-    parser.add_argument(
+    img_parser.add_argument(
         "--gridder",
         default="standard",
         help="tclean gridder (standard|wproject|mosaic|awproject)",
     )
-    parser.add_argument(
+    img_parser.add_argument(
         "--wprojplanes",
         type=int,
         default=0,
@@ -772,16 +752,16 @@ def main(argv: Optional[list] = None) -> None:
             "(-1 for auto)"
         ),
     )
-    parser.add_argument(
+    img_parser.add_argument(
         "--uvrange",
         default="",
         help="uvrange selection, e.g. '>1klambda'",
     )
-    parser.add_argument("--pblimit", type=float, default=0.2)
-    parser.add_argument("--psfcutoff", type=float, default=None)
-    parser.add_argument("--verbose", action="store_true")
+    img_parser.add_argument("--pblimit", type=float, default=0.2)
+    img_parser.add_argument("--psfcutoff", type=float, default=None)
+    img_parser.add_argument("--verbose", action="store_true")
     # NVSS skymodel seeding
-    parser.add_argument(
+    img_parser.add_argument(
         "--nvss-min-mjy",
         type=float,
         default=None,
@@ -792,97 +772,161 @@ def main(argv: Optional[list] = None) -> None:
         ),
     )
     # A-Projection related options
-    parser.add_argument(
+    img_parser.add_argument(
         "--vptable",
         default=None,
         help="Path to CASA VP table (vpmanager.saveastable)",
     )
-    parser.add_argument(
+    img_parser.add_argument(
         "--wbawp",
         action="store_true",
         help="Enable wideband A-Projection approximation",
     )
-    parser.add_argument(
+    img_parser.add_argument(
         "--cfcache",
         default=None,
         help="Convolution function cache directory",
     )
     # Backend selection
-    parser.add_argument(
+    img_parser.add_argument(
         "--backend",
         choices=["tclean", "wsclean"],
         default="tclean",
         help="Imaging backend: tclean (CASA) or wsclean (default: tclean)",
     )
-    parser.add_argument(
+    img_parser.add_argument(
         "--wsclean-path",
         default=None,
         help="Path to WSClean executable (or 'docker' for Docker container). "
         "If not set, searches PATH or uses Docker if available.",
     )
     # Calibrator seeding
-    parser.add_argument(
+    img_parser.add_argument(
         "--calib-ra-deg",
         type=float,
         default=None,
         help="Calibrator RA (degrees) for single-component model seeding",
     )
-    parser.add_argument(
+    img_parser.add_argument(
         "--calib-dec-deg",
         type=float,
         default=None,
         help="Calibrator Dec (degrees) for single-component model seeding",
     )
-    parser.add_argument(
+    img_parser.add_argument(
         "--calib-flux-jy",
         type=float,
         default=None,
         help="Calibrator flux (Jy) for single-component model seeding",
     )
+    
+    # export subcommand
+    exp_parser = sub.add_parser("export", help="Export CASA images to FITS and PNG")
+    exp_parser.add_argument("--source", required=True, help="Directory containing CASA images")
+    exp_parser.add_argument("--prefix", required=True, help="Prefix of image set")
+    exp_parser.add_argument("--make-fits", action="store_true", help="Export FITS from CASA images")
+    exp_parser.add_argument("--make-png", action="store_true", help="Convert FITS to PNGs")
+    
+    # create-nvss-mask subcommand
+    mask_parser = sub.add_parser("create-nvss-mask", help="Create CRTF mask around NVSS sources")
+    mask_parser.add_argument("--image", required=True, help="CASA-exported FITS image path")
+    mask_parser.add_argument("--min-mjy", type=float, default=1.0, help="Minimum NVSS flux (mJy)")
+    mask_parser.add_argument("--radius-arcsec", type=float, default=6.0, help="Mask circle radius (arcsec)")
+    mask_parser.add_argument("--out", help="Output CRTF path (defaults to <image>.nvss_mask.crtf)")
+    
+    # create-nvss-overlay subcommand
+    overlay_parser = sub.add_parser("create-nvss-overlay", help="Overlay NVSS sources on FITS image")
+    overlay_parser.add_argument("--image", required=True, help="Input FITS image (CASA export)")
+    overlay_parser.add_argument("--pb", help="Primary beam FITS to mask detections (optional)")
+    overlay_parser.add_argument("--pblimit", type=float, default=0.2, help="PB cutoff when --pb is provided")
+    overlay_parser.add_argument("--min-mjy", type=float, default=10.0, help="Minimum NVSS flux (mJy) to plot")
+    overlay_parser.add_argument("--out", required=True, help="Output PNG path")
+    
     args = parser.parse_args(argv)
 
-    _configure_logging(args.verbose)
-    # Apply aliases if provided
-    weighting = (
-        args.weighting_alias if args.weighting_alias else args.weighting
-    )
-    robust = (
-        args.robust_alias if args.robust_alias is not None else args.robust
-    )
+    # Configure logging using shared utility
+    configure_logging_from_args(args)
 
-    image_ms(
-        args.ms,
-        imagename=args.imagename,
-        field=args.field,
-        spw=args.spw,
-        imsize=args.imsize,
-        cell_arcsec=args.cell_arcsec,
-        weighting=weighting,
-        robust=robust,
-        specmode=args.specmode,
-        deconvolver=args.deconvolver,
-        nterms=args.nterms,
-        niter=args.niter,
-        threshold=args.threshold,
-        pbcor=not args.no_pbcor,
-        phasecenter=args.phasecenter,
-        gridder=args.gridder,
-        wprojplanes=args.wprojplanes,
-        uvrange=args.uvrange,
-        pblimit=args.pblimit,
-        psfcutoff=args.psfcutoff,
-        quick=bool(args.quick),
-        skip_fits=bool(args.skip_fits),
-        vptable=args.vptable,
-        wbawp=bool(args.wbawp),
-        cfcache=args.cfcache,
-        nvss_min_mjy=args.nvss_min_mjy,
-        calib_ra_deg=args.calib_ra_deg,
-        calib_dec_deg=args.calib_dec_deg,
-        calib_flux_jy=args.calib_flux_jy,
-        backend=args.backend,
-        wsclean_path=args.wsclean_path,
-    )
+    if args.cmd == "image":
+        # Apply aliases if provided
+        weighting = (
+            args.weighting_alias if args.weighting_alias else args.weighting
+        )
+        robust = (
+            args.robust_alias if args.robust_alias is not None else args.robust
+        )
+
+        image_ms(
+            args.ms,
+            imagename=args.imagename,
+            field=args.field,
+            spw=args.spw,
+            imsize=args.imsize,
+            cell_arcsec=args.cell_arcsec,
+            weighting=weighting,
+            robust=robust,
+            specmode=args.specmode,
+            deconvolver=args.deconvolver,
+            nterms=args.nterms,
+            niter=args.niter,
+            threshold=args.threshold,
+            pbcor=not args.no_pbcor,
+            phasecenter=args.phasecenter,
+            gridder=args.gridder,
+            wprojplanes=args.wprojplanes,
+            uvrange=args.uvrange,
+            pblimit=args.pblimit,
+            psfcutoff=args.psfcutoff,
+            quick=bool(args.quick),
+            skip_fits=bool(args.skip_fits),
+            vptable=args.vptable,
+            wbawp=bool(args.wbawp),
+            cfcache=args.cfcache,
+            nvss_min_mjy=args.nvss_min_mjy,
+            calib_ra_deg=args.calib_ra_deg,
+            calib_dec_deg=args.calib_dec_deg,
+            calib_flux_jy=args.calib_flux_jy,
+            backend=args.backend,
+            wsclean_path=args.wsclean_path,
+        )
+    
+    elif args.cmd == "export":
+        from glob import glob
+        from typing import List
+        from dsa110_contimg.imaging.export import export_fits, save_png_from_fits, _find_casa_images
+        
+        casa_images = _find_casa_images(args.source, args.prefix)
+        if not casa_images:
+            print("No CASA image directories found for prefix", args.prefix, "under", args.source)
+            return
+        
+        fits_paths: List[str] = []
+        if args.make_fits:
+            fits_paths = export_fits(casa_images)
+            if not fits_paths:
+                print("No FITS files exported (check casatasks and inputs)")
+        if args.make_png:
+            # If FITS were not just created, try to discover existing ones
+            if not fits_paths:
+                patt = os.path.join(args.source, args.prefix + "*.fits")
+                fits_paths = sorted(glob(patt))
+            if not fits_paths:
+                print("No FITS files found to convert for", args.prefix)
+            else:
+                save_png_from_fits(fits_paths)
+    
+    elif args.cmd == "create-nvss-mask":
+        from dsa110_contimg.imaging.nvss_tools import create_nvss_mask
+        
+        out_path = args.out or os.path.splitext(args.image)[0] + f".nvss_{args.min_mjy:g}mJy_{args.radius_arcsec:g}as_mask.crtf"
+        create_nvss_mask(args.image, args.min_mjy, args.radius_arcsec, out_path)
+        print(f"Wrote mask: {out_path}")
+    
+    elif args.cmd == "create-nvss-overlay":
+        from dsa110_contimg.imaging.nvss_tools import create_nvss_overlay
+        
+        create_nvss_overlay(args.image, args.out, args.pb, args.pblimit, args.min_mjy)
+        print(f"Wrote overlay: {args.out}")
 
 
 if __name__ == "__main__":  # pragma: no cover

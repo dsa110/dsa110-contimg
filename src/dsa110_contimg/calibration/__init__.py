@@ -21,5 +21,6 @@ __all__ = [
     "applycal",
     "apply_service",
     "qa",
+    "diagnostics",
 ]
 

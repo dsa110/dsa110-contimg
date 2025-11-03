@@ -2,6 +2,12 @@
 
 Solve on a calibrator and apply to a target using the registry.
 
+## Quick Note: K-Calibration
+
+**K-calibration (delay) is skipped by default for DSA-110** (connected-element array with 2.6 km max baseline). This follows VLA/ALMA practice - residual delays are absorbed into gain calibration. Use `--do-k` to explicitly enable if needed.
+
+## Workflow
+
 - Use streaming or generate a calibrator MS
 - Register a set from a prefix:
 ```

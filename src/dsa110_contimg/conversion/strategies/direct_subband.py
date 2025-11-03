@@ -7,12 +7,17 @@ and then merges all SPWs into a single SPW Measurement Set.
 
 import os
 import shutil
+import time
+import uuid
+import logging
 from pathlib import Path
 from typing import TYPE_CHECKING, Any, List, Optional
 
 import numpy as np
 import astropy.units as u
 from astropy.time import Time
+
+logger = logging.getLogger(__name__)
 
 from .base import MSWriter
 from dsa110_contimg.conversion.helpers import (
@@ -105,7 +110,9 @@ class DirectSubbandWriter(MSWriter):
 
         if use_tmpfs:
             # Stage parts and final concat under tmpfs
-            part_base = tmpfs_root / "dsa110-contimg" / ms_final_path.stem
+            # Solution 2: Use unique identifier to avoid conflicts between groups
+            unique_id = f"{ms_final_path.stem}_{uuid.uuid4().hex[:8]}"
+            part_base = tmpfs_root / "dsa110-contimg" / unique_id
             part_base.mkdir(parents=True, exist_ok=True)
             ms_stage_path = part_base.parent / (
                 ms_final_path.stem + ".staged.ms"
@@ -217,14 +224,59 @@ class DirectSubbandWriter(MSWriter):
                         f"A subband writer process failed: {e}"
                     )
 
-        # Concatenate parts into the final MS
+        # Solution 4: Ensure subband write processes fully terminate before concat
+        # Allow processes to fully terminate and release file handles
+        time.sleep(0.5)
+
+        # Solution 3: Retry logic for concat failures
+        # Concatenate parts into the final MS with retry on file locking errors
         print(
             f"Concatenating {len(parts)} parts into {ms_stage_path}"
         )
-        casa_concat(
-            vis=sorted(parts),
-            concatvis=str(ms_stage_path),
-            copypointing=False)
+        max_retries = 2
+        concat_success = False
+        for attempt in range(max_retries):
+            try:
+                casa_concat(
+                    vis=sorted(parts),
+                    concatvis=str(ms_stage_path),
+                    copypointing=False)
+                concat_success = True
+                break
+            except RuntimeError as e:
+                error_msg = str(e)
+                if ("cannot be opened" in error_msg or 
+                    "readBlock" in error_msg or 
+                    "read/write" in error_msg):
+                    if attempt < max_retries - 1:
+                        logger.warning(
+                            f"Concat failed (attempt {attempt + 1}/{max_retries}), "
+                            f"retrying after cleanup: {e}"
+                        )
+                        # Cleanup and retry
+                        for part in parts:
+                            try:
+                                shutil.rmtree(part, ignore_errors=True)
+                            except Exception:
+                                pass
+                        time.sleep(1.0)
+                        continue
+                raise
+        
+        if not concat_success:
+            raise RuntimeError("Concat failed after all retry attempts")
+
+        # Solution 1: Explicit cleanup verification after concat
+        # Close any CASA handles that might still be open
+        try:
+            import casatools
+            ms_tool = casatools.ms()
+            try:
+                ms_tool.close()
+            except Exception:
+                pass
+        except ImportError:
+            pass
 
         # If staged on tmpfs, move final MS atomically (or via copy on
         # cross-device)
@@ -286,13 +338,46 @@ class DirectSubbandWriter(MSWriter):
                 import traceback
                 traceback.print_exc()
 
-        # Clean up temporary per-subband Measurement Sets and staging dir.
-        try:
-            for part in parts:
-                shutil.rmtree(part, ignore_errors=True)
-            shutil.rmtree(part_base, ignore_errors=True)
-        except Exception as cleanup_err:
-            print(f"Warning: failed to clean subband parts: {cleanup_err}")
+        # Solution 1: Clean up temporary per-subband Measurement Sets and staging dir
+        # with verification that cleanup completed
+        cleanup_attempts = 0
+        max_cleanup_attempts = 3
+        while cleanup_attempts < max_cleanup_attempts:
+            try:
+                for part in parts:
+                    if Path(part).exists():
+                        shutil.rmtree(part, ignore_errors=True)
+                if part_base.exists():
+                    shutil.rmtree(part_base, ignore_errors=True)
+                
+                # Verify cleanup completed
+                if part_base.exists():
+                    cleanup_attempts += 1
+                    if cleanup_attempts < max_cleanup_attempts:
+                        logger.warning(
+                            f"Cleanup incomplete (attempt {cleanup_attempts}), "
+                            f"retrying: {part_base}"
+                        )
+                        time.sleep(0.5)
+                        continue
+                    else:
+                        logger.warning(
+                            f"Cleanup incomplete after {max_cleanup_attempts} attempts: "
+                            f"{part_base}"
+                        )
+                break
+            except Exception as cleanup_err:
+                cleanup_attempts += 1
+                if cleanup_attempts < max_cleanup_attempts:
+                    logger.warning(
+                        f"Cleanup failed (attempt {cleanup_attempts}), retrying: {cleanup_err}"
+                    )
+                    time.sleep(0.5)
+                else:
+                    logger.warning(
+                        f"Failed to clean subband parts after {max_cleanup_attempts} attempts: "
+                        f"{cleanup_err}"
+                    )
 
         return "parallel-subband"
 

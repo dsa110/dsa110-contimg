@@ -1,10 +1,11 @@
 # Consequences of Not Performing K-Calibration (Delay Calibration)
 
-**Investigated via Perplexity: 2025-11-02**
+**Investigated via Perplexity: 2025-11-02**  
+**Important Note (2025-11-03)**: This document describes consequences for **VLBI arrays** (very long baselines, thousands of km). For **connected-element arrays** like DSA-110 (2.6 km max baseline), VLA, or ALMA, K-calibration is typically **not required** and residual delays (< 0.5 ns) are absorbed into complex gain calibration. See `docs/reports/K_CALIBRATION_NEED_REASSESSMENT.md` for DSA-110 specific analysis.
 
 ## Summary
 
-Skipping K-calibration (delay calibration) has **severe consequences** for radio interferometric observations. The effects cascade through all subsequent calibration steps and ultimately degrade image quality, sensitivity, and scientific accuracy.
+Skipping K-calibration (delay calibration) has **severe consequences** for VLBI radio interferometric observations with very long baselines. The effects cascade through all subsequent calibration steps and ultimately degrade image quality, sensitivity, and scientific accuracy. **For connected-element arrays with short baselines (< 100 km), these consequences do not apply** as residual delays are below the decorrelation threshold.
 
 ## Primary Consequences
 

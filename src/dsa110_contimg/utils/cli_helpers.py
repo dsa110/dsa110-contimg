@@ -1,0 +1,192 @@
+"""
+Shared utilities for CLI modules to reduce duplication and ensure consistency.
+
+This module provides common CLI patterns:
+- CASA environment setup
+- Common argument parsers
+- Logging configuration
+- Context managers for operations
+
+All CLIs should use these utilities to ensure consistent behavior.
+"""
+
+from contextlib import contextmanager
+from pathlib import Path
+from typing import Optional
+import argparse
+import logging
+import os
+import sys
+
+
+def setup_casa_environment() -> None:
+    """
+    Configure CASA logging directory. Call at the start of CLI main() functions.
+    
+    This is a convenience function for backward compatibility.
+    For new code,
+    prefer using `casa_log_environment()` context manager.
+    """
+    try:
+        from dsa110_contimg.utils.tempdirs import derive_casa_log_dir
+        casa_log_dir = derive_casa_log_dir()
+        os.chdir(str(casa_log_dir))
+    except Exception:
+        pass  # Best-effort; continue if setup fails
+
+
+@contextmanager
+def casa_log_environment():
+    """
+    Context manager for CASA operations that need log directory.
+    
+    This is the preferred method for CASA operations as it:
+    - Properly manages CWD changes (restores after operation)
+    - Doesn't pollute global state
+    - Can be nested safely
+    
+    Usage:
+        with casa_log_environment():
+            from casatasks import tclean
+            tclean(...)
+    """
+    try:
+        from dsa110_contimg.utils.tempdirs import derive_casa_log_dir
+        log_dir = derive_casa_log_dir()
+    except Exception:
+        # Fallback to current directory if setup fails
+        log_dir = Path.cwd()
+    
+    old_cwd = os.getcwd()
+    try:
+        os.chdir(str(log_dir))
+        yield log_dir
+    finally:
+        os.chdir(old_cwd)
+
+
+def add_common_ms_args(parser: argparse.ArgumentParser, 
+                       ms_required: bool = True) -> None:
+    """
+    Add common MS-related arguments to a parser.
+    
+    Args:
+        parser: ArgumentParser instance to add arguments to
+        ms_required: Whether --ms argument is required
+    """
+    parser.add_argument(
+        "--ms", required=ms_required,
+        help="Path to Measurement Set"
+    )
+
+
+def add_common_field_args(parser: argparse.ArgumentParser) -> None:
+    """Add common field selection arguments."""
+    parser.add_argument(
+        "--field", default="",
+        help="Field selection (name, index, or range)"
+    )
+
+
+def add_common_logging_args(parser: argparse.ArgumentParser) -> None:
+    """
+    Add common logging arguments to a parser.
+    
+    Adds:
+        --verbose, -v: Enable verbose logging
+        --log-level: Set logging level (DEBUG, INFO, WARNING, ERROR)
+    """
+    parser.add_argument(
+        "--verbose", "-v", action="store_true",
+        help="Enable verbose logging"
+    )
+    parser.add_argument(
+        "--log-level", default="INFO",
+        choices=["DEBUG", "INFO", "WARNING", "ERROR"],
+        help="Set logging level"
+    )
+
+
+def configure_logging_from_args(args) -> logging.Logger:
+    """
+    Configure logging based on CLI arguments.
+    
+    Args:
+        args: Parsed arguments object (should have 'verbose' and/or 'log_level' attributes)
+    
+    Returns:
+        Configured logger instance
+    """
+    # Determine log level
+    level = logging.INFO
+    
+    # Check verbose flag first (takes precedence)
+    if getattr(args, 'verbose', False):
+        level = logging.DEBUG
+    
+    # Override with explicit log-level if provided
+    if hasattr(args, 'log_level'):
+        level = getattr(logging, args.log_level.upper(), level)
+    
+    # Configure logging
+    logging.basicConfig(
+        level=level,
+        format="%(asctime)s [%(levelname)s] %(message)s",
+        datefmt="%Y-%m-%d %H:%M:%S",
+    )
+    
+    return logging.getLogger(__name__)
+
+
+def add_ms_group(parser: argparse.ArgumentParser, required: bool = True) -> argparse._ArgumentGroup:
+    """
+    Add MS-related arguments as a group for better help organization.
+    
+    Args:
+        parser: ArgumentParser instance
+        required: Whether --ms argument is required
+    
+    Returns:
+        The argument group (for further customization if needed)
+    """
+    group = parser.add_argument_group('Measurement Set')
+    group.add_argument(
+        "--ms", required=required,
+        help="Path to Measurement Set"
+    )
+    return group
+
+
+def add_progress_flag(parser: argparse.ArgumentParser) -> None:
+    """
+    Add progress bar control flag.
+    
+    Adds:
+        --disable-progress: Disable progress bars (useful for non-interactive environments)
+        --quiet, -q: Alias for --disable-progress
+    """
+    parser.add_argument(
+        "--disable-progress", action="store_true",
+        help="Disable progress bars (useful for non-interactive environments)"
+    )
+    parser.add_argument(
+        "--quiet", "-q", action="store_true",
+        help="Alias for --disable-progress"
+    )
+
+
+def should_show_progress(args) -> bool:
+    """
+    Determine if progress indicators should be shown based on args.
+    
+    Args:
+        args: Parsed arguments (should have 'disable_progress' and/or 'quiet' attributes)
+    
+    Returns:
+        True if progress should be shown, False otherwise
+    """
+    if getattr(args, 'disable_progress', False) or getattr(args, 'quiet', False):
+        return False
+    # Check if output is to a TTY
+    return sys.stdout.isatty()
+
