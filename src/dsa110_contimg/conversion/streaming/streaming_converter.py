@@ -292,22 +292,47 @@ class QueueDB:
                 """,
                 (now, normalized_group),
             )
+            # Validate subband indices are correct (0 to expected_subbands-1)
+            subbands_present = {row[0] for row in self._conn.execute(
+                "SELECT subband_idx FROM subband_files WHERE group_id = ?",
+                (normalized_group,)
+            ).fetchall()}
+            expected_set = set(range(self.expected_subbands))
+            
+            # Check if we have exactly the expected subbands with correct indices
+            has_valid_complete_set = (
+                len(subbands_present) == self.expected_subbands and
+                subbands_present == expected_set
+            )
+            
             # Atomic check-and-update: use subquery to avoid race condition
             # This ensures the count check and state update happen atomically
+            # Only mark as pending if we have the correct number AND valid indices
             self._conn.execute(
                 """
                 UPDATE ingest_queue
                    SET state = CASE 
                        WHEN state = 'completed' THEN state 
                        WHEN (SELECT COUNT(*) FROM subband_files WHERE group_id = ingest_queue.group_id) >= ? 
+                            AND (SELECT COUNT(DISTINCT subband_idx) FROM subband_files WHERE group_id = ingest_queue.group_id) = ?
                        THEN 'pending' 
                        ELSE state 
                    END,
                        last_update = ?
                  WHERE group_id = ?
                 """,
-                (self.expected_subbands, now, normalized_group),
+                (self.expected_subbands, self.expected_subbands, now, normalized_group),
             )
+            
+            # Log warning if we have unexpected subband indices
+            if len(subbands_present) > 0 and not has_valid_complete_set:
+                unexpected = subbands_present - expected_set
+                missing = expected_set - subbands_present
+                if unexpected or missing:
+                    logging.warning(
+                        "Group %s has invalid subband indices. Expected: %s, Present: %s, Unexpected: %s, Missing: %s",
+                        normalized_group, expected_set, subbands_present, unexpected, missing
+                    )
 
     def bootstrap_directory(self, input_dir: Path) -> None:
         logging.info(
@@ -344,6 +369,60 @@ class QueueDB:
                 (now, group_id),
             )
             return group_id
+
+    def update_state(self, group_id: str, state: str, error: Optional[str] = None) -> None:
+        """Update the state of a group in the queue."""
+        now = time.time()
+        normalized_group = self._normalize_group_id_datetime(group_id)
+        with self._lock, self._conn:
+            if error is not None:
+                self._conn.execute(
+                    """
+                    UPDATE ingest_queue
+                       SET state = ?, last_update = ?, error = ?
+                     WHERE group_id = ?
+                    """,
+                    (state, now, error, normalized_group),
+                )
+            else:
+                self._conn.execute(
+                    """
+                    UPDATE ingest_queue
+                       SET state = ?, last_update = ?
+                     WHERE group_id = ?
+                    """,
+                    (state, now, normalized_group),
+                )
+            self._conn.commit()
+
+    def group_files(self, group_id: str) -> List[str]:
+        """Get list of file paths for a group, ordered by subband index."""
+        normalized_group = self._normalize_group_id_datetime(group_id)
+        with self._lock:
+            rows = self._conn.execute(
+                """
+                SELECT path FROM subband_files
+                 WHERE group_id = ?
+                 ORDER BY subband_idx ASC
+                """,
+                (normalized_group,),
+            ).fetchall()
+            return [row[0] for row in rows]
+
+    def record_metrics(self, group_id: str, total_time: float, writer_type: Optional[str] = None) -> None:
+        """Record performance metrics for a group."""
+        normalized_group = self._normalize_group_id_datetime(group_id)
+        now = time.time()
+        with self._lock, self._conn:
+            self._conn.execute(
+                """
+                INSERT OR REPLACE INTO performance_metrics
+                    (group_id, total_time, writer_type, recorded_at)
+                VALUES (?, ?, ?, ?)
+                """,
+                (normalized_group, total_time, writer_type, now),
+            )
+            self._conn.commit()
 
 class _FSHandler(FileSystemEventHandler):
     """Watchdog handler to record arriving subband files."""
@@ -476,12 +555,36 @@ def _worker_loop(args: argparse.Namespace, queue: QueueDB) -> None:
                     writer_type = "auto"
             except Exception as exc:
                 log.error("Conversion failed for %s: %s", gid, exc)
+                # Clean up any partial MS files that may have been created
+                try:
+                    files = queue.group_files(gid)
+                    if files:
+                        first = os.path.basename(files[0])
+                        base = os.path.splitext(first)[0].split("_sb")[0]
+                        ms_path = os.path.join(args.output_dir, base + ".ms")
+                        if os.path.exists(ms_path):
+                            log.warning("Cleaning up partial MS file: %s", ms_path)
+                            shutil.rmtree(ms_path, ignore_errors=True)
+                except Exception as cleanup_exc:
+                    log.debug("Cleanup of partial MS failed: %s", cleanup_exc, exc_info=True)
                 queue.update_state(gid, "failed", error=str(exc))
                 continue
 
             total = time.perf_counter() - t0
             queue.record_metrics(gid, total_time=total, writer_type=writer_type)
             if ret != 0:
+                # Clean up any partial MS files that may have been created
+                try:
+                    files = queue.group_files(gid)
+                    if files:
+                        first = os.path.basename(files[0])
+                        base = os.path.splitext(first)[0].split("_sb")[0]
+                        ms_path = os.path.join(args.output_dir, base + ".ms")
+                        if os.path.exists(ms_path):
+                            log.warning("Cleaning up partial MS file: %s", ms_path)
+                            shutil.rmtree(ms_path, ignore_errors=True)
+                except Exception as cleanup_exc:
+                    log.debug("Cleanup of partial MS failed: %s", cleanup_exc, exc_info=True)
                 queue.update_state(gid, "failed", error=f"orchestrator exit={ret}")
                 continue
 
@@ -529,8 +632,10 @@ def _worker_loop(args: argparse.Namespace, queue: QueueDB) -> None:
                         stage="converted",
                     )
                     conn.commit()
-            except Exception:
-                log.debug("ms_index conversion upsert failed", exc_info=True)
+            except Exception as db_exc:
+                log.warning("ms_index conversion upsert failed for %s: %s", ms_path, db_exc, exc_info=True)
+                # Don't fail the entire conversion - the MS was created successfully
+                # The DB issue can be recovered later via backfill
 
             # Apply calibration from registry if available, then quick image
             try:
@@ -593,8 +698,10 @@ def _worker_loop(args: argparse.Namespace, queue: QueueDB) -> None:
                             if os.path.isdir(p) or os.path.isfile(p):
                                 images_insert(conn, p, ms_path, now_ts, "5min", pbcor)
                         conn.commit()
-                except Exception:
-                    log.debug("products DB update failed", exc_info=True)
+                except Exception as db_exc:
+                    log.warning("products DB update failed for %s: %s", ms_path, db_exc, exc_info=True)
+                    # Note: Don't mark as failed here since conversion and imaging succeeded
+                    # The DB issue can be recovered later
             except Exception:
                 log.exception("post-conversion processing failed for %s", gid)
 
