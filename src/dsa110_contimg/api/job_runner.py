@@ -215,6 +215,22 @@ def run_calibrate_job(job_id: int, ms_path: str, params: dict, products_db: Path
         cmd.append("--skip-bp")
     if not params.get("solve_gains", True):
         cmd.append("--skip-g")
+
+    # Model population is required for calibration steps; default to catalog-based model
+    model_source = params.get("model_source", "catalog")
+    if model_source:
+        cmd.extend(["--model-source", model_source])
+
+    # Reference antenna ranking file
+    refant_ranking = params.get("refant_ranking")
+    if refant_ranking:
+        cmd.extend(["--refant-ranking", str(refant_ranking)])
+
+    # Optional: pre-bandpass phase and autocorr flag control
+    if params.get("prebp_phase", False):
+        cmd.append("--prebp-phase")
+    if params.get("flag_autocorr", True) is False:
+        cmd.append("--no-flag-autocorr")
     
     # Add gain parameters
     gain_solint = params.get("gain_solint", "inf")
@@ -224,6 +240,23 @@ def run_calibrate_job(job_id: int, ms_path: str, params: dict, products_db: Path
     gain_calmode = params.get("gain_calmode", "ap")
     if gain_calmode != "ap":
         cmd.extend(["--gain-calmode", gain_calmode])
+
+    # Bandpass options: combine across fields, min SNR, UV range, smoothing
+    # Default to False to match CLI store_true behavior
+    if params.get("bp_combine_field", False):
+        cmd.append("--bp-combine-field")
+    bp_minsnr = params.get("bp_minsnr", None)
+    if bp_minsnr is not None:
+        cmd.extend(["--bp-minsnr", str(bp_minsnr)])
+    uvrange = params.get("uvrange")
+    if uvrange:
+        cmd.extend(["--uvrange", str(uvrange)])
+    bp_smooth_type = params.get("bp_smooth_type")
+    if bp_smooth_type:
+        cmd.extend(["--bp-smooth-type", str(bp_smooth_type)])
+    bp_smooth_window = params.get("bp_smooth_window")
+    if bp_smooth_window:
+        cmd.extend(["--bp-smooth-window", str(bp_smooth_window)])
     
     # Add catalog matching parameters
     if params.get("auto_fields", True):
@@ -251,6 +284,25 @@ def run_calibrate_job(job_id: int, ms_path: str, params: dict, products_db: Path
     # Add flagging control
     if not params.get("do_flagging", False):
         cmd.append("--no-flagging")
+    flagging_mode = params.get("flagging_mode")
+    if flagging_mode:
+        cmd.extend(["--flagging-mode", str(flagging_mode)])
+
+    # Pre-bandpass phase-only solve knobs
+    prebp_solint = params.get("prebp_solint")
+    if prebp_solint:
+        cmd.extend(["--prebp-solint", str(prebp_solint)])
+    prebp_minsnr = params.get("prebp_minsnr")
+    if prebp_minsnr is not None:
+        cmd.extend(["--prebp-minsnr", str(prebp_minsnr)])
+    prebp_uvrange = params.get("prebp_uvrange")
+    if prebp_uvrange:
+        cmd.extend(["--prebp-uvrange", str(prebp_uvrange)])
+
+    # Gain solve SNR control
+    gain_minsnr = params.get("gain_minsnr")
+    if gain_minsnr is not None:
+        cmd.extend(["--gain-minsnr", str(gain_minsnr)])
 
     env = os.environ.copy()
     src_path = _src_path_for_env()
@@ -713,7 +765,7 @@ def run_workflow_job(job_id: int, params: dict, products_db: Path):
         
     except Exception as e:
         conn = ensure_products_db(products_db)
-        append_job_log(conn, job_id, f"\n=== Workflow Failed ===\n")
+        append_job_log(conn, job_id, "\n=== Workflow Failed ===\n")
         append_job_log(conn, job_id, f"ERROR: {e}\n")
         update_job_status(conn, job_id, "failed", finished_at=time.time())
         conn.commit()

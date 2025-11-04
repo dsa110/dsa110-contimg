@@ -332,12 +332,27 @@ def main() -> int:
     except Exception as e:
         print('skymodel warning:', e)
 
-    # Calibration solves on central MS: bandpass, then phase-only gains
+    # Calibration solves on central MS: pre-phase, bandpass, then phase-only gains
     from casatasks import bandpass as casa_bandpass, gaincal as casa_gaincal
     prefix = os.fspath(central_ms.with_suffix('')) + '_all'
+    prebp_path = Path(prefix + '_prebp_phase')
+    if not prebp_path.is_dir():
+        print('Solving pre-bandpass phase-only (no uvrange cut)...')
+        casa_gaincal(
+            vis=os.fspath(central_ms),
+            caltable=os.fspath(prebp_path),
+            field='0',
+            solint='inf',
+            refant='103',
+            gaintype='G',
+            calmode='p',
+            combine='scan',
+            minsnr=3.0,
+            selectdata=True,
+        )
     bpcal_path = Path(prefix + '_bpcal')
     if not bpcal_path.is_dir():
-        print('Solving bandpass (uvrange >1klambda)...')
+        print('Solving bandpass (no uvrange cut, with pre-phase)...')
         casa_bandpass(
             vis=os.fspath(central_ms),
             caltable=os.fspath(bpcal_path),
@@ -347,8 +362,9 @@ def main() -> int:
             combine='scan',
             solnorm=True,
             bandtype='B',
-            uvrange='>1klambda',
             selectdata=True,
+            minsnr=3.0,
+            gaintable=[os.fspath(prebp_path)],
         )
     gpcal_path = Path(prefix + '_gpcal')
     if not gpcal_path.is_dir():

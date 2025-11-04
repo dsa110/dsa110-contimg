@@ -25,7 +25,7 @@ Created a comprehensive shared utilities module providing:
 
 - **Progress Control**:
   - `add_progress_flag()`: Add `--disable-progress` and `--quiet` flags
-  - `should_show_progress()`: Determine if progress should be shown
+  - Note: Use `should_disable_progress()` from `utils.progress` to check if progress should be shown
 
 **Expert Recommendation Followed**: Context managers are the primary method, with `setup_casa_environment()` for backward compatibility.
 

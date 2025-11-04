@@ -17,7 +17,7 @@ import astropy.units as u
 from pyuvdata import UVData
 
 from dsa110_contimg.utils.fringestopping import calc_uvw_blt
-from dsa110_contimg.utils.antpos import get_itrf
+from dsa110_contimg.utils.antpos_local import get_itrf
 from dsa110_contimg.utils.constants import OVRO_LAT, OVRO_LON, OVRO_ALT
 
 

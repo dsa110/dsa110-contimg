@@ -428,13 +428,30 @@ def main() -> int:
     except Exception as e:
         print('skymodel warning:', e)
 
-    # Bandpass first, with uvrange >1klambda
+    # Pre-bandpass phase-only solve, then bandpass
     from casatasks import bandpass as casa_bandpass, gaincal as casa_gaincal
+    prebp_path = Path(prefix + '_prebp_phase')
+    if prebp_path.is_dir():
+        print('Pre-bandpass phase table exists; skipping solve')
+    else:
+        print('Solving pre-bandpass phase-only (no uvrange cut)...')
+        casa_gaincal(
+            vis=os.fspath(ms_out),
+            caltable=os.fspath(prebp_path),
+            field=cal_field,
+            solint='inf',
+            refant=refant,
+            gaintype='G',
+            calmode='p',
+            combine='scan',
+            minsnr=3.0,
+            selectdata=True,
+        )
     bpcal_path = Path(prefix + '_bpcal')
     if bpcal_path.is_dir():
         print('Bandpass table exists; skipping solve')
     else:
-        print('Solving bandpass (uvrange >1klambda)...')
+        print('Solving bandpass (no uvrange cut, with pre-phase)...')
         casa_bandpass(
             vis=os.fspath(ms_out),
             caltable=os.fspath(bpcal_path),
@@ -444,8 +461,9 @@ def main() -> int:
             combine='scan',
             solnorm=True,
             bandtype='B',
-            uvrange='>1klambda',
             selectdata=True,
+            minsnr=3.0,
+            gaintable=[os.fspath(prebp_path)],
         )
 
     # Phase-only gains, with uvrange >1klambda, referencing bandpass

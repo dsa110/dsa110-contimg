@@ -387,7 +387,7 @@ UVH5 Files → Conversion → RFI Flagging → Calibration → Apply → Sky Mod
 
 **Utilities (`utils/`):**
 - `alerting.py`: Multi-channel alerting (Slack/email/logging)
-- `antpos.py`: Antenna position utilities
+- `antpos_local/`: Antenna position utilities (consolidated from antpos)
 - `graphiti_logging.py`: Graphiti integration
 
 **Mosaicking (`mosaic/`):**

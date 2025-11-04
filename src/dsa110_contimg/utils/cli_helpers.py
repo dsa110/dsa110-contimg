@@ -12,11 +12,9 @@ All CLIs should use these utilities to ensure consistent behavior.
 
 from contextlib import contextmanager
 from pathlib import Path
-from typing import Optional
 import argparse
 import logging
 import os
-import sys
 
 
 def setup_casa_environment() -> None:
@@ -175,18 +173,7 @@ def add_progress_flag(parser: argparse.ArgumentParser) -> None:
     )
 
 
-def should_show_progress(args) -> bool:
-    """
-    Determine if progress indicators should be shown based on args.
-    
-    Args:
-        args: Parsed arguments (should have 'disable_progress' and/or 'quiet' attributes)
-    
-    Returns:
-        True if progress should be shown, False otherwise
-    """
-    if getattr(args, 'disable_progress', False) or getattr(args, 'quiet', False):
-        return False
-    # Check if output is to a TTY
-    return sys.stdout.isatty()
-
+# Note: Use should_disable_progress() from utils.progress instead
+# This function was removed to consolidate progress control logic.
+# Use: from dsa110_contimg.utils.progress import should_disable_progress
+# Then: show_progress = not should_disable_progress(args)

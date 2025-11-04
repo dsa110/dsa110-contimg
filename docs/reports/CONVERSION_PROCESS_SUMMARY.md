@@ -65,65 +65,32 @@ python -m dsa110_contimg.conversion.uvh5_to_ms /path/to/input.uvh5 /path/to/outp
 - Use SSD or tmpfs for scratch to reduce I/O latency
 - Confirm `PIPELINE_TELESCOPE_NAME` is set (defaults to `DSA_110`)
 
-## Notes
-- The previous UVFITS → importuvfits workflow and dsacalib‑based scripts are deprecated and not part of the current converter path.
+## Historical Note
+⚠️ **This document has been updated to reflect current conversion tools only.**
 
-**Features**:
-- Uses specialized dsacalib functions
-- Full DSA-110 data processing pipeline
-- Handles fringestopping and antenna positioning
-- Comprehensive error handling
+The following scripts mentioned in older versions of this document are **no longer available**:
+- `dsa110_uvh5_to_ms.py` (deprecated)
+- `simple_uvh5_to_ms.py` (deprecated)
 
-**Usage**:
+**Current conversion path:** Use the orchestrator CLI (see "CLI Usage" section above) or the conversion CLI:
 ```bash
-python dsa110_uvh5_to_ms.py <input_dir> <output_dir> <start_time> <end_time>
-```
-
-**Dependencies**:
-- dsacalib library
-- pyuvdata >= 3.2.4
-- CASA >= 6.7
-- astropy, numpy, scipy
-
-### 2. `simple_uvh5_to_ms.py` (Standalone)
-
-**Features**:
-- Minimal dependencies
-- Simplified conversion process
-- Good for basic conversions
-- No dsacalib dependency
-
-**Usage**:
-```bash
-python simple_uvh5_to_ms.py <input_dir> <output_dir> <start_time> <end_time>
-```
-
-**Dependencies**:
-- pyuvdata >= 3.2.4
-- CASA >= 6.7
-- astropy, numpy
-
-### 3. `hdf5_orchestrator.py` (Comprehensive)
-
-**Features**:
-- Full-featured standalone converter
-- Advanced time filtering
-- Antenna selection support
-- Duration limiting
-- Comprehensive error handling
-
-**Usage**:
-```bash
-python hdf5_orchestrator.py <input_dir> <output_dir> <start_time> <end_time> [options]
+python -m dsa110_contimg.conversion.cli groups \
+  --input-dir /data/incoming \
+  --output-dir /data/ms_out \
+  --start-time "2025-10-13 13:25:00" \
+  --end-time "2025-10-13 13:30:00" \
+  --writer auto
 ```
 
 ## Technical Details
 
-### Data Flow
+### Data Flow (Current)
 
 ```
-UVH5 Files → pyuvdata.UVData → UVFITS → CASA importuvfits → Measurement Set
+UVH5 Files → Strategy Orchestrator → Writer (parallel-subband or pyuvdata) → Measurement Set
 ```
+
+**Note:** The previous UVFITS intermediate format is no longer used. Direct conversion to MS is now standard.
 
 ### Key Parameters
 
@@ -218,13 +185,13 @@ Each UVH5 file produces a Measurement Set directory containing:
 
 - **Minimum**: 2x file size in RAM
 - **Recommended**: 4x file size in RAM
-- **Large files**: Consider processing in chunks
+- **Large files**: Consider processing in chunks or using tmpfs staging (`/dev/shm`)
 
 ### Disk Space
 
 - **Measurement Sets**: Typically 1.5-2x larger than UVH5 files
-- **Temporary files**: Additional space for UVFITS intermediate files
-- **Cleanup**: Automatic cleanup of intermediate files
+- **Temporary files**: Staging area (tmpfs or SSD scratch) for parallel-subband writer
+- **Cleanup**: Automatic cleanup of intermediate files after concatenation
 
 ## Integration with CASA
 

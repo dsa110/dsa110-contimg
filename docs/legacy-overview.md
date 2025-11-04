@@ -58,49 +58,8 @@ Repository overview for the DSA-110 continuum imaging pipeline.
 - Staging: optional tmpfs (`/dev/shm`) staging and SSD scratch; see `pipeline/README_uvh5_to_ms.md` for details.
 
 ## Historical Notes (deprecated)
-- An experimental dask‑ms writer was previously explored and referenced here. It is not part of the current tree and is unsupported.
+- An experimental dask‑ms writer was previously explored but is not part of the current tree and is unsupported. References to `--dask-write` flags and `uvh5_to_ms_converter_v2.py` are historical only.
 - Legacy scripts and older converters live under `archive/legacy/` for reference only; do not use for new automation.
-
-
-- Optional dask-ms writer (experimental)
-  - Converter `dsa110_contimg/conversion/uvh5_to_ms_converter_v2.py` now supports `--dask-write` to write Measurement Sets via dask‑ms (python‑casacore backend) for improved parallel I/O.
-  - Use `--dask-write-failfast` to abort immediately on any dask‑ms error (no fallback to the direct writer) to speed up debugging.
-  - Writer order: creates the main table first, then writes and links the required subtables (SPECTRAL_WINDOW, POLARIZATION, ANTENNA, FIELD, DATA_DESCRIPTION).
-  - ANTENNA subtable builder is robust to missing `antenna_numbers`, synthesizing names (`pad1..padN`) when needed; positions are required.
-
-- MS consistency improvements
-  - POLARIZATION::CORR_TYPE is written using MS Stokes enums (XX=5, YY=6), avoiding negative AIPS codes.
-  - SPECTRAL_WINDOW::EFFECTIVE_BW and ::RESOLUTION are populated (per‑channel arrays).
-  - MAIN::SIGMA and ::WEIGHT are per‑row arrays of length Npol.
-  - Optional `--field-per-integration` writes one FIELD row per unique integration (useful for drift scans).
-
-- Quick downsampling knobs (for fast testing)
-  - Frequency downsample: set environment `DS_FREQ=<int>` to average adjacent channels (updates `DATA`, `FLAG`, `NSAMPLE`, `freq_array`, `channel_width`).
-  - Time downsample: set environment `DS_TIME=<int>` to combine adjacent time samples per baseline (averages `DATA/UVW/TIME/LST`, ORs `FLAG`, sums `NSAMPLE` and `integration_time`).
-  - Both operate in‑memory on the merged UVData object prior to writing and reduce write volume substantially (e.g., `DS_TIME=2`, `DS_FREQ=4` → ~8× reduction).
-
-Usage examples
-```
-# Quick synthetic (2 subbands) → fast dask‑write with downsampling
-export PYTHONPATH=/data/dsa110-contimg/src:$PYTHONPATH
-export DS_TIME=2 DS_FREQ=4
-/opt/miniforge/envs/casa6/bin/python -u -m dsa110_contimg.conversion.strategies.hdf5_orchestrator \
-  /data/dsa110-contimg/synth_quick \
-  /data/dsa110-contimg/out_dask_quick \
-  "2025-10-08 00:12:59" "2025-10-08 00:12:59" \
-  --dask-write --dask-write-failfast --no-stage-tmpfs --log-level INFO
-
-# Validate in CASA
-python - <<'PY'
-from casatools import ms
-m=ms(); m.open('/data/dsa110-contimg/out_dask_quick/2025-10-08T00:12:59.ms');
-print(m.summary().get('nrow')); m.close()
-PY
-```
-
-Notes
-- Keep dask/distributed pinned to versions compatible with dask‑ms (currently dask 2024.10.x).
-- The default converter path (pyuvdata write) remains unchanged; `--dask-write` is optional and can be toggled per run.
 
 # Monitoring API
 

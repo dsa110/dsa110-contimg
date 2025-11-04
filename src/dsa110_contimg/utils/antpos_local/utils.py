@@ -44,7 +44,7 @@ class _AntennaCatalog:
 
 def tee_centers() -> tuple[u.Quantity, u.Quantity, u.Quantity]:
     """Return the location of the DSA-110 tee centre in WGS84."""
-    # Values taken from antpos.utils.tee_centers
+    # Values from DSA-110 array reference
     tc_longitude = -2.064427799136453 * u.rad
     tc_latitude = 0.6498455107238486 * u.rad
     tc_height = 1188.0519 * u.m

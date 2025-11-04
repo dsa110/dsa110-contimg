@@ -440,8 +440,10 @@ def solve_bandpass(
     combine_fields: bool = False,
     combine_spw: bool = False,
     minsnr: float = 5.0,
-    uvrange: str = ">1klambda",  # Default: exclude short baselines
+    uvrange: str = "",  # No implicit UV cut; caller/CLI may provide
     prebandpass_phase_table: Optional[str] = None,
+    bp_smooth_type: Optional[str] = None,
+    bp_smooth_window: Optional[int] = None,
 ) -> List[str]:
     """Solve bandpass using CASA bandpass task with bandtype='B'.
     
@@ -490,29 +492,31 @@ def solve_bandpass(
     # NOTE: K-table is NOT used for bandpass solve (K-calibration is applied in gain step, not before bandpass)
     # K-table parameter is kept for API compatibility but is not applied to bandpass solve
     
-    # For bandpass calibration, use only the peak field and combine across all fields
-    # Extract the peak field from the range (e.g., "19~23" -> "23")
+    # Determine CASA field selector based on combine_fields setting
+    # - If combining across fields: use the full selection string to maximize SNR
+    # - Otherwise: use a single peak field from the range (last index as heuristic)
     if '~' in str(cal_field):
-        peak_field = str(cal_field).split(
-            '~')[-1]  # Use the last field in range
-        print(
-            f"Using peak field {peak_field} for bandpass calibration (from range {cal_field})")
+        peak_field = str(cal_field).split('~')[-1]
     else:
         peak_field = str(cal_field)
-        print(f"Using field {peak_field} for bandpass calibration")
+    field_selector = str(cal_field) if combine_fields else peak_field
+    print(
+        f"Using field selector '{field_selector}' for bandpass calibration"
+        + (f" (combined from range {cal_field})" if combine_fields else "")
+    )
 
     # Avoid setjy here; CLI will write a calibrator MODEL_DATA when available.
     # Note: set_model and model_standard are kept for API compatibility but not used
     # (bandpass task uses MODEL_DATA column directly, not setjy)
 
-    # Always combine 'scan' for bandpass (default for performance)
-    # NOTE: Do NOT combine across 'spw' for bandpass calibration when SPWs have
-    # non-overlapping frequency ranges. Each SPW must be solved separately.
-    # Combining across scans improves SNR by using all available data.
+    # Combine across scans by default to improve SNR; optionally across fields and SPWs
+    # Only include 'spw' when explicitly requested and scientifically justified
+    # (i.e., similar bandpass behavior across SPWs and appropriate spwmap on apply)
     comb_parts = ["scan"]
     if combine_fields:
         comb_parts.append("field")
-    # Note: combine_spw parameter is ignored for bandpass - each SPW is solved separately
+    if combine_spw:
+        comb_parts.append("spw")
     comb = ",".join(comb_parts)
 
     # Use bandpass task with bandtype='B' for proper bandpass calibration
@@ -530,7 +534,7 @@ def solve_bandpass(
     kwargs = dict(
         vis=ms,
         caltable=f"{table_prefix}_bpcal",
-        field=peak_field,  # Use peak field (not full range) for bandpass solve
+        field=field_selector,
         solint="inf",  # Per-channel solution (bandpass)
         refant=refant,
         combine=comb,
@@ -554,6 +558,30 @@ def solve_bandpass(
     # immediately after solve completes, before proceeding.
     _validate_solve_success(f"{table_prefix}_bpcal", refant=refant)
     print(f"✓ Bandpass solve completed: {table_prefix}_bpcal")
+
+    # Optional smoothing of bandpass table (post-solve), off by default
+    try:
+        if bp_smooth_type and str(bp_smooth_type).lower() != "none" and bp_smooth_window and int(bp_smooth_window) > 1:
+            try:
+                # Prefer CASA smoothcal if available
+                from casatasks import smoothcal as casa_smoothcal  # type: ignore[import]
+                print(
+                    f"Smoothing bandpass table '{table_prefix}_bpcal' with {bp_smooth_type} (window={bp_smooth_window})..."
+                )
+                # Best-effort: in-place smoothing using same output table
+                casa_smoothcal(
+                    vis=ms,
+                    tablein=f"{table_prefix}_bpcal",
+                    tableout=f"{table_prefix}_bpcal",
+                    smoothtype=str(bp_smooth_type).lower(),
+                    smoothwindow=int(bp_smooth_window),
+                )
+                print("✓ Bandpass table smoothing complete")
+            except Exception as e:
+                print(f"WARNING: Could not smooth bandpass table via CASA smoothcal: {e}")
+    except Exception:
+        # Do not fail calibration if smoothing parameters are malformed
+        pass
 
     out = [f"{table_prefix}_bpcal"]
     
@@ -581,6 +609,7 @@ def solve_gains(
     phase_only: bool = False,
     uvrange: str = "",
     solint: str = "inf",
+    minsnr: float = 5.0,
 ) -> List[str]:
     """Solve gain amplitude and phase; optionally short-timescale and fluxscale.
     
@@ -642,16 +671,16 @@ def solve_gains(
                 f"gain calibration. Error: {e}"
             ) from e
     
-    # For gain calibration, use only the peak field and combine across all
-    # fields
+    # Determine CASA field selector based on combine_fields setting
     if '~' in str(cal_field):
-        peak_field = str(cal_field).split(
-            '~')[-1]  # Use the last field in range
-        print(
-            f"Using peak field {peak_field} for gain calibration (from range {cal_field})")
+        peak_field = str(cal_field).split('~')[-1]
     else:
         peak_field = str(cal_field)
-        print(f"Using field {peak_field} for gain calibration")
+    field_selector = str(cal_field) if combine_fields else peak_field
+    print(
+        f"Using field selector '{field_selector}' for gain calibration"
+        + (f" (combined from range {cal_field})" if combine_fields else "")
+    )
 
     # NOTE: K-table is NOT used for gain calibration (K-calibration not used for DSA-110)
     # Only apply bandpass tables to gain solve
@@ -662,18 +691,20 @@ def solve_gains(
     # Always run phase-only gains (calmode='p') after bandpass
     # This corrects for time-dependent phase variations
     print(
-        f"Running phase-only gain solve on field {peak_field} (combining across fields)...")
+        f"Running phase-only gain solve on field {field_selector}"
+        + (" (combining across fields)..." if combine_fields else "...")
+    )
     kwargs = dict(
         vis=ms,
         caltable=f"{table_prefix}_gpcal",
-        field=peak_field,  # Use peak field (not full range) for gain solve
+        field=field_selector,
         solint=solint,
         refant=refant,
         gaintype="G",
         calmode="p",  # Phase-only mode
         gaintable=gaintable,
         combine=comb,
-        minsnr=5.0,
+        minsnr=minsnr,
         selectdata=True,
     )
     if uvrange:
@@ -690,18 +721,20 @@ def solve_gains(
 
     if t_short:
         print(
-            f"Running short-timescale phase-only gain solve on field {peak_field} (combining across fields)...")
+            f"Running short-timescale phase-only gain solve on field {field_selector}"
+            + (" (combining across fields)..." if combine_fields else "...")
+        )
         kwargs = dict(
             vis=ms,
             caltable=f"{table_prefix}_2gcal",
-            field=peak_field,  # Use peak field (not full range) for gain solve
+            field=field_selector,
             solint=t_short,
             refant=refant,
             gaintype="G",
             calmode="p",  # Phase-only mode
             gaintable=gaintable2,
             combine=comb,
-            minsnr=5.0,
+            minsnr=minsnr,
             selectdata=True,
         )
         if uvrange:

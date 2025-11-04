@@ -22,8 +22,8 @@ from dsa110_contimg.utils.validation import (
     ValidationError,
 )
 
-# Set CASA log directory BEFORE any CASA imports - CASA writes logs to CWD
-setup_casa_environment()
+# Note: CASA environment setup moved to main() to avoid import-time side effects
+# CASA imports deferred until needed
 
 from .flagging import (
     reset_flags, flag_zeros, flag_rfi, flag_antenna, flag_baselines,
@@ -67,6 +67,15 @@ _calibrator_info_printed_global = False
 
 def main():
     global _calibrator_info_printed_global
+    
+    # Set CASA log directory BEFORE any CASA operations (not at import time)
+    # This avoids global side effects when module is imported
+    try:
+        # Use context manager for CASA operations - will be used in calibrate subcommand
+        # For now, set up CWD for CASA log files
+        setup_casa_environment()
+    except Exception:
+        pass  # Best-effort; continue if setup fails
     
     # Best-effort: route TempLattice and similar to scratch
     try:
@@ -154,6 +163,37 @@ def main():
         action="store_true",
         help="Combine across selected fields when solving bandpass/gains")
     pc.add_argument(
+        "--flagging-mode",
+        choices=["none", "zeros", "rfi"],
+        default="zeros",
+        help=(
+            "Pre-solve flagging mode: none (no flagging), zeros (clip zeros), rfi (zeros + tfcrop+rflag). "
+            "Recommended for calibrators: zeros"
+        ),
+    )
+    pc.add_argument(
+        "--bp-minsnr",
+        type=float,
+        default=float(os.getenv("CONTIMG_CAL_BP_MINSNR", "3.0")),
+        help=(
+            "Minimum SNR threshold for bandpass solutions (default: 3.0; "
+            "override with CONTIMG_CAL_BP_MINSNR)."
+        ),
+    )
+    pc.add_argument(
+        "--bp-smooth-type",
+        choices=["none", "hanning", "boxcar", "gaussian"],
+        default="none",
+        help=(
+            "Optional smoothing of bandpass table after solve (off by default)."
+        ),
+    )
+    pc.add_argument(
+        "--bp-smooth-window",
+        type=int,
+        help="Smoothing window (channels) for bandpass smoothing",
+    )
+    pc.add_argument(
         "--fast",
         action="store_true",
         help=(
@@ -185,6 +225,12 @@ def main():
         "--gain-solint",
         default="inf",
         help="Gain solution interval (e.g., 'inf', '60s', '10min')",
+    )
+    pc.add_argument(
+        "--gain-minsnr",
+        type=float,
+        default=3.0,
+        help="Minimum SNR threshold for gain solutions (default: 3.0)",
     )
     pc.add_argument(
         "--gain-calmode",
@@ -236,6 +282,36 @@ def main():
         ),
     )
     pc.add_argument(
+        "--prebp-solint",
+        default="inf",
+        help="Solution interval for pre-bandpass phase-only solve (default: inf)",
+    )
+    pc.add_argument(
+        "--prebp-minsnr",
+        type=float,
+        default=5.0,
+        help="Minimum SNR for pre-bandpass phase-only solve (default: 5.0)",
+    )
+    pc.add_argument(
+        "--prebp-uvrange",
+        default="",
+        help="uvrange selection for pre-bandpass phase-only solve (default: none)",
+    )
+    pc.add_argument(
+        "--no-flag-autocorr",
+        action="store_true",
+        help=(
+            "Skip flagging autocorrelations before solves (default: flag autos)."
+        ),
+    )
+    pc.add_argument(
+        "--prebp-phase",
+        action="store_true",
+        help=(
+            "Run a phase-only solve before bandpass to stabilize time variability (default: off)."
+        ),
+    )
+    pc.add_argument(
         "--dry-run",
         action="store_true",
         help=(
@@ -259,6 +335,28 @@ def main():
             "Uses minimal subset: 1 baseline, 4 channels, 1 time integration. "
             "For quick iteration only - not for production use."
         ),
+    )
+    pc.add_argument(
+        "--preset",
+        choices=["fast", "standard", "production", "test"],
+        help=(
+            "Use preset calibration configuration to simplify common workflows.\n"
+            "  fast: Fast subset mode (timebin=30s, chanbin=4, phase-only gains, uvrange cuts)\n"
+            "  standard: Full MS, amp+phase gains, no subset (recommended for production)\n"
+            "  production: Full MS, optimized for quality\n"
+            "  test: Minimal mode for quick tests\n"
+            "Individual flags override preset values."
+        ),
+    )
+    pc.add_argument(
+        "--cleanup-subset",
+        action="store_true",
+        help="Remove subset MS files (e.g., .fast.ms, .minimal.ms) after calibration completes",
+    )
+    pc.add_argument(
+        "--no-subset",
+        action="store_true",
+        help="Disable automatic subset creation even when --fast or --minimal is used",
     )
     pc.add_argument(
         "--model-source",
@@ -475,6 +573,49 @@ def main():
             logger.error(error_msg)
             sys.exit(1)
         
+        # Apply preset if specified (presets can be overridden by individual flags)
+        if args.preset:
+            logger.info(f"Applying preset: {args.preset}")
+            if args.preset == "fast":
+                if not args.timebin:
+                    args.timebin = "30s"
+                if not args.chanbin:
+                    args.chanbin = 4
+                if not args.uvrange:
+                    args.uvrange = ">1klambda"
+                if args.gain_calmode == "ap":  # Only override if not explicitly set
+                    args.gain_calmode = "p"
+                # Enable fast mode for preset
+                args.fast = True
+                logger.info("Fast preset: timebin=30s, chanbin=4, phase-only gains, uvrange cuts")
+            elif args.preset == "standard":
+                args.fast = False
+                args.minimal = False
+                if args.gain_calmode == "p":  # Only override if not explicitly set
+                    args.gain_calmode = "ap"
+                logger.info("Standard preset: full MS, amp+phase gains, no subset")
+            elif args.preset == "production":
+                args.fast = False
+                args.minimal = False
+                args.gain_calmode = "ap"
+                if not args.gain_solint or args.gain_solint == "inf":
+                    args.gain_solint = "int"  # Per-integration for production
+                logger.info("Production preset: full MS, optimized for quality")
+            elif args.preset == "test":
+                args.minimal = True
+                args.fast = False
+                logger.info("Test preset: minimal mode for quick tests")
+        
+        # Handle --no-subset flag (disables automatic subset creation)
+        if args.no_subset:
+            args.fast = False
+            args.minimal = False
+            logger.info("Subset creation disabled by --no-subset")
+        
+        # Store original MS path for cleanup later
+        original_ms = args.ms
+        subset_ms_created = None
+        
         field_sel = args.field
         # Defaults to ensure variables exist for later logic
         idxs = []  # type: ignore[assignment]
@@ -600,12 +741,21 @@ def main():
         # Handle minimal mode (very fast test calibration)
         if args.minimal:
             # Minimal mode overrides fast mode settings
-            logger.info("Minimal mode: creating ultra-fast subset (1 baseline, 4 channels, 1 time)")
             from .subset import make_subset
             from casacore.tables import table
             
             base = ms_in.rstrip('/').rstrip('.ms')
             ms_minimal = f"{base}.minimal.ms"
+            
+            logger.warning(
+                "=" * 70 + "\n"
+                f"MINIMAL MODE: Creating ultra-fast subset MS\n"
+                f"  - Creates: {ms_minimal}\n"
+                "  - Original MS unchanged\n"
+                "  - Use --cleanup-subset to remove after calibration\n"
+                "  - For quick iteration only - NOT for production use\n"
+                "=" * 70
+            )
             logger.info(f"Creating minimal subset -> {ms_minimal}")
             
             # Create subset with extreme downsampling
@@ -630,6 +780,7 @@ def main():
                 sys.exit(1)
             
             ms_in = ms_minimal
+            subset_ms_created = ms_minimal
             # Set fast mode parameters if not already set
             if not args.timebin:
                 args.timebin = "inf"
@@ -644,11 +795,17 @@ def main():
             
             base = ms_in.rstrip('/').rstrip('.ms')
             ms_fast = f"{base}.fast.ms"
-            print(
-                (
-                    "Creating fast subset: timebin={tb} chanbin={cb} -> {out}"
-                ).format(tb=args.timebin, cb=args.chanbin, out=ms_fast)
+            
+            logger.warning(
+                "=" * 70 + "\n"
+                f"FAST MODE: Creating subset MS for faster calibration\n"
+                f"  - Creates: {ms_fast}\n"
+                "  - Original MS unchanged\n"
+                f"  - Uses time/channel binning: timebin={args.timebin}, chanbin={args.chanbin}\n"
+                "  - Use --cleanup-subset to remove after calibration\n"
+                "=" * 70
             )
+            logger.info(f"Creating fast subset: timebin={args.timebin} chanbin={args.chanbin} -> {ms_fast}")
             make_subset(
                 ms_in,
                 ms_fast,
@@ -668,6 +825,7 @@ def main():
                 sys.exit(1)
             
             ms_in = ms_fast
+            subset_ms_created = ms_fast
 
         # Execute solves with a robust K step on the peak field only, then BP/G
         # across the selected window
@@ -729,9 +887,14 @@ def main():
             return 0
         
         if not args.no_flagging:
-            reset_flags(ms_in)
-            flag_zeros(ms_in)
-            flag_rfi(ms_in)
+            mode = getattr(args, 'flagging_mode', 'zeros') or 'zeros'
+            if mode == 'zeros':
+                reset_flags(ms_in)
+                flag_zeros(ms_in)
+            elif mode == 'rfi':
+                reset_flags(ms_in)
+                flag_zeros(ms_in)
+                flag_rfi(ms_in)
             
             # PRECONDITION CHECK: Verify sufficient unflagged data remains after flagging
             # This ensures we follow "measure twice, cut once" - verify data quality
@@ -805,17 +968,15 @@ def main():
         # Following VLA/ALMA practice: residual delays are absorbed into complex gain calibration
         # K-calibration is primarily needed for VLBI arrays (thousands of km baselines)
         # Use --do-k flag to explicitly enable K-calibration if needed
-        
         if not args.do_k:
-            print(
-                "Skipping delay (K) calibration by default (connected-element array practice). "
-                "Use --do-k to enable if explicitly needed."
+            logger.info(
+                "K-calibration skipped by default for DSA-110 "
+                "(short baselines <2.6 km, delays <0.5 ns absorbed into gains). "
+                "Use --do-k to enable if needed."
             )
         else:
-            print(
-                "Delay solve field (K): {}; BP/G fields: {}".format(
-                    k_field_sel, field_sel
-                )
+            logger.info(
+                f"Delay solve field (K): {k_field_sel}; BP/G fields: {field_sel}"
             )
         
         # CRITICAL: Populate MODEL_DATA BEFORE calibration (K, BP, or G)
@@ -1136,10 +1297,20 @@ def main():
                 )
             )
 
-        # CRITICAL: Solve phase-only calibration BEFORE bandpass for raw uncalibrated data
-        # This corrects phase drifts that cause decorrelation and low SNR in bandpass calibration
+        # Flag autocorrelations before any solves unless disabled
+        if not args.no_flagging and not getattr(args, 'no_flag_autocorr', False):
+            try:
+                from casatasks import flagdata  # type: ignore
+                print("Flagging autocorrelations prior to calibration...")
+                flagdata(vis=ms_in, autocorr=True, flagbackup=False)
+                print("\u2713 Autocorrelations flagged")
+            except Exception as e:
+                print(f"Warning: autocorrelation flagging failed: {e}")
+                logger.warning(f"Autocorrelation flagging failed: {e}")
+
+        # Optional: pre-bandpass phase-only solve if requested
         prebp_phase_table = None
-        if not args.skip_bp:
+        if not args.skip_bp and bool(getattr(args, 'prebp_phase', False)):
             print(f"DEBUG: Starting pre-bandpass phase-only solve...")
             t_prebp0 = time.perf_counter()
             try:
@@ -1148,9 +1319,9 @@ def main():
                     field_sel,
                     refant,
                     combine_fields=bool(args.bp_combine_field),
-                    uvrange="",  # No uvrange filter for phase-only precalibration
-                    solint="inf",  # Single solution per scan
-                    minsnr=5.0,
+                    uvrange=str(getattr(args, 'prebp_uvrange', '') or ''),
+                    solint=str(getattr(args, 'prebp_solint', 'inf') or 'inf'),
+                    minsnr=float(getattr(args, 'prebp_minsnr', 5.0)),
                 )
                 elapsed_prebp = time.perf_counter() - t_prebp0
                 print(f"DEBUG: Pre-bandpass phase solve completed in {elapsed_prebp:.2f}s")
@@ -1164,9 +1335,10 @@ def main():
         if not args.skip_bp:
             print(f"DEBUG: Starting bandpass solve...")
             t_bp0 = time.perf_counter()
-            # Default uvrange='>1klambda' for bandpass (unless explicitly overridden)
+            # No implicit UV range cut; use CLI or env default if provided
             # NOTE: K-table is NOT passed to bandpass (K-calibration not used for DSA-110)
-            bp_uvrange = args.uvrange if args.uvrange else ">1klambda"  # Default uvrange for bandpass
+            import os as _os
+            bp_uvrange = args.uvrange if args.uvrange else _os.getenv("CONTIMG_CAL_BP_UVRANGE", "")
             print(f"DEBUG: Calling solve_bandpass with uvrange='{bp_uvrange}', field={field_sel}, refant={refant}")
             if prebp_phase_table:
                 print(f"DEBUG: Using pre-bandpass phase table: {prebp_phase_table}")
@@ -1179,11 +1351,24 @@ def main():
                 combine_fields=bool(args.bp_combine_field),
                 combine_spw=args.combine_spw,
                 uvrange=bp_uvrange,
+                minsnr=float(args.bp_minsnr),
                 prebandpass_phase_table=prebp_phase_table,  # Apply pre-bandpass phase correction
+                bp_smooth_type=(getattr(args, 'bp_smooth_type', 'none') or 'none'),
+                bp_smooth_window=(int(getattr(args, 'bp_smooth_window')) if getattr(args, 'bp_smooth_window', None) is not None else None),
             )
             elapsed_bp = time.perf_counter() - t_bp0
             print(f"DEBUG: Bandpass solve completed in {elapsed_bp:.2f}s")
             print("Bandpass solve completed in {:.2f}s".format(elapsed_bp))
+            # Always report bandpass flagged fraction
+            try:
+                if bptabs:
+                    from dsa110_contimg.qa.calibration_quality import validate_caltable_quality
+                    _bp_metrics = validate_caltable_quality(bptabs[0])
+                    print(
+                        f"Bandpass flagged solutions: {_bp_metrics.fraction_flagged*100:.1f}%"
+                    )
+            except Exception as e:
+                logger.warning(f"Could not compute bandpass flagged fraction: {e}")
         
         gtabs = []
         if not args.skip_g:
@@ -1205,12 +1390,23 @@ def main():
                     else ""
                 ),
                 solint=args.gain_solint,
+                minsnr=float(getattr(args, 'gain_minsnr', 3.0)),
             )
             elapsed_g = time.perf_counter() - t_g0
             print("Gain solve completed in {:.2f}s".format(elapsed_g))
 
         tabs = (ktabs[:1] if ktabs else []) + bptabs + gtabs
         print("Generated tables:\n" + "\n".join(tabs))
+        
+        # Cleanup subset MS if requested
+        if args.cleanup_subset and subset_ms_created:
+            import shutil
+            try:
+                logger.info(f"Cleaning up subset MS: {subset_ms_created}")
+                shutil.rmtree(subset_ms_created, ignore_errors=True)
+                logger.info("✓ Subset MS removed")
+            except Exception as e:
+                logger.warning(f"Failed to remove subset MS {subset_ms_created}: {e}")
         
         # Generate diagnostics if requested
         if args.diagnostics:

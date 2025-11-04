@@ -224,7 +224,7 @@ src/dsa110_contimg/
 │   ├── products.py       # Products DB schema
 │   └── registry.py       # Calibration registry
 ├── utils/                # Utilities
-│   ├── antpos.py         # Antenna positions
+│   ├── antpos_local/     # Antenna positions (consolidated)
 │   ├── alerting.py       # Alert system
 │   └── tempdirs.py       # Temporary directory management
 └── catalog/              # Source catalogs

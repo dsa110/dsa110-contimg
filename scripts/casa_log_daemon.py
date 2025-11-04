@@ -50,7 +50,7 @@ class CasaLogHandler(FileSystemEventHandler):
             self.move_file(file_path)
     
     def move_file(self, file_path):
-        """Move a casa-*.log file to the target directory preserving structure"""
+        """Move a casa-*.log file to the target directory (logs subdirectory)"""
         try:
             # Calculate relative path from source root
             try:
@@ -60,16 +60,22 @@ class CasaLogHandler(FileSystemEventHandler):
                 self.logger.warning(f"File {file_path} is not under source root {self.source_root}")
                 return
             
-            # Skip files already in the target directory
-            if str(rel_path).startswith('state/'):
+            # Skip files already in the target logs directory
+            if str(rel_path).startswith('state/logs/'):
                 return
             
-            # Create target path
-            target_path = self.target_root / rel_path
-            target_dir = target_path.parent
+            # Move all logs directly to target_root (which is already /state/logs/)
+            target_path = self.target_root / file_path.name
             
             # Create target directory if it doesn't exist
-            target_dir.mkdir(parents=True, exist_ok=True)
+            target_path.parent.mkdir(parents=True, exist_ok=True)
+            
+            # Handle filename collisions by appending timestamp if file exists
+            if target_path.exists():
+                from datetime import datetime
+                timestamp = datetime.now().strftime('%Y%m%d-%H%M%S')
+                stem = target_path.stem
+                target_path = target_path.parent / f"{stem}_{timestamp}{target_path.suffix}"
             
             # Wait a moment to ensure file is fully written
             time.sleep(1)
@@ -89,7 +95,7 @@ class CasaLogHandler(FileSystemEventHandler):
 class CasaLogDaemon:
     """Main daemon class for monitoring casa-*.log files"""
     
-    def __init__(self, source_root="/data/dsa110-contimg", target_root="/data/dsa110-contimg/state"):
+    def __init__(self, source_root="/data/dsa110-contimg", target_root="/data/dsa110-contimg/state/logs"):
         self.source_root = Path(source_root)
         self.target_root = Path(target_root)
         self.observer = None
@@ -105,7 +111,8 @@ class CasaLogDaemon:
         
     def setup_logging(self):
         """Setup logging configuration"""
-        log_dir = self.target_root / "logs"
+        # target_root is already /state/logs/, so use it directly
+        log_dir = self.target_root
         log_dir.mkdir(parents=True, exist_ok=True)
         
         log_file = log_dir / f"casa_log_daemon_{datetime.now().strftime('%Y%m%d')}.log"
@@ -203,8 +210,9 @@ class CasaLogDaemon:
                 
             # Search only in this directory (non-recursive initially, then one level deep)
             for file_path in list(search_dir.glob("casa-*.log")) + list(search_dir.glob("*/*casa-*.log")):
-                # Skip files in the target directory
-                if str(file_path.relative_to(self.source_root)).startswith('state/'):
+                # Skip files already in state/logs/
+                rel_path = file_path.relative_to(self.source_root)
+                if str(rel_path).startswith('state/logs/'):
                     continue
                     
                 self.logger.info(f"Moving existing file: {file_path}")
@@ -228,8 +236,8 @@ def main():
     parser = argparse.ArgumentParser(description='CASA Log Daemon - Monitor and move casa-*.log files')
     parser.add_argument('--source', default='/data/dsa110-contimg',
                        help='Source directory to monitor (default: /data/dsa110-contimg)')
-    parser.add_argument('--target', default='/data/dsa110-contimg/state',
-                       help='Target directory for moved files (default: /data/dsa110-contimg/state)')
+    parser.add_argument('--target', default='/data/dsa110-contimg/state/logs',
+                       help='Target directory for moved files (default: /data/dsa110-contimg/state/logs)')
     parser.add_argument('--daemon', action='store_true',
                        help='Run as daemon (fork to background)')
     

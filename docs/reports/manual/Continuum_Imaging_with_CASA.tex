@@ -93,11 +93,11 @@ The DSA-110 system uses sophisticated antenna position tracking and management:
 
 \begin{lstlisting}[language=Python]
 # Example: Loading DSA-110 antenna positions
-from antpos import utils
+from dsa110_contimg.utils.antpos_local import get_itrf
 import numpy as np
 
 # Get ITRF coordinates for all antennas
-df = utils.get_itrf()
+df = get_itrf()
 print(f"Number of antennas: {len(df)}")
 print(f"Position range: X={df['x_m'].min():.1f} to {df['x_m'].max():.1f} m")
 

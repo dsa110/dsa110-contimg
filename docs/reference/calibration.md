@@ -65,7 +65,7 @@ By default, the calibration CLI performs:
 - ✓ Gain calibration
 - ✗ K-calibration (skipped)
 
-This matches VLA/ALMA practice for connected-element arrays.
+This matches VLA/ALMA practice for connected-element arrays. For bandpass, no implicit UV range cut is applied; provide `--uvrange` explicitly or set a site-wide default via `CONTIMG_CAL_BP_UVRANGE`.
 
 ## Command-Line Flags
 
@@ -76,6 +76,19 @@ This matches VLA/ALMA practice for connected-element arrays.
 | `--skip-g` | Skip gain calibration | Enabled |
 | `--combine-spw` | Combine SPWs during calibration | Separate SPWs |
 | `--fast` | Fast path: subset MS, phase-only gains | Full calibration |
+| `--bp-combine-field` | Combine selected fields when solving BP/G | Off |
+| `--bp-minsnr` | Bandpass min SNR threshold | 3.0 (env `CONTIMG_CAL_BP_MINSNR`) |
+| `--uvrange` | UV range selection for solves | none (env `CONTIMG_CAL_BP_UVRANGE` if set) |
+| `--bp-smooth-type` | Post-solve BP smoothing type | none |
+| `--bp-smooth-window` | Smoothing window (channels) | — |
+| `--flagging-mode` | Pre-solve flagging: none, zeros, rfi | zeros |
+| `--prebp-phase` | Run phase-only solve before bandpass | Off |
+| `--prebp-solint` | Pre-BP phase solint | inf |
+| `--prebp-minsnr` | Pre-BP phase min SNR | 5.0 |
+| `--prebp-uvrange` | Pre-BP phase uvrange | none |
+| `--gain-solint` | Gain solution interval | inf |
+| `--gain-calmode` | Gain cal mode: ap, p, a | ap |
+| `--gain-minsnr` | Gain min SNR threshold | 3.0 |
 
 ## Scientific Background
 
