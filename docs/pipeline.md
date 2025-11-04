@@ -2,6 +2,8 @@
 
 This page illustrates the streaming continuum imaging pipeline from ingest to products, plus decision points and fast-path options for speed.
 
+**For a comprehensive, detailed workflow visualization with complete stage breakdowns, see [Pipeline Workflow Visualization](pipeline_workflow_visualization.md).**
+
 ## End-to-end Flow
 
 ```mermaid

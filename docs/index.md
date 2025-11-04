@@ -9,6 +9,7 @@ Welcome. This pipeline turns incoming UVH5 subband data into calibrated, quick-l
 Get started fast in the Quick Start.
 
 - [Quick Start](quickstart.md)
-- [Pipeline Visuals](pipeline.md)
+- [Pipeline Visuals](pipeline.md) - Overview with decision points
+- [Pipeline Workflow Visualization](pipeline_workflow_visualization.md) - Comprehensive workflow guide
 - [Quick-Look Pipeline (sub-minute)](quicklook.md)
 - [CLI Reference](reference/cli.md)

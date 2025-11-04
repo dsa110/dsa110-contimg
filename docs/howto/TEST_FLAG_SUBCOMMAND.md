@@ -233,6 +233,22 @@ conda activate contimg  # or your CASA environment
 source /path/to/casa/bin/thisinit.sh
 ```
 
+### casaplotserver: cannot connect to X server
+
+**Status:** Fixed in the implementation
+
+**Previous issue:** CASA's `flagdata` in summary mode would attempt to launch `casaplotserver`, causing harmless error messages in headless environments like:
+```
+casaplotserver: cannot connect to X server localhost:10.0
+exited, status=1
+```
+
+**Solution:** The flag subcommand now:
+1. Sets headless environment variables (`QT_QPA_PLATFORM=offscreen`, unsets `DISPLAY`) before importing CASA
+2. Suppresses `casaplotserver` stderr errors when computing flagging statistics
+
+These errors are now automatically suppressed and do not appear in the output. Flagging operations complete successfully regardless of X server availability.
+
 ### ValidationError: MS validation failed
 
 **Solution:** Check that the MS path is correct and the MS is readable:

@@ -123,7 +123,7 @@ def validate_hdf5_file(file_path: str, check_readable: bool = True) -> HDF5Valid
             
             # Try to get phase center declination
             try:
-                pt_dec, mid_time = _peek_uvh5_phase_and_midtime(file_path)
+                _, pt_dec, mid_time = _peek_uvh5_phase_and_midtime(file_path)
                 phase_center_dec_deg = float(pt_dec.to_value(u.deg))
             except Exception as e:
                 warnings.append(f"Could not read phase center declination: {e}")
@@ -296,7 +296,7 @@ def validate_calibrator_transit(
             
             # Get actual declination from first file
             if files and expected_dec is not None:
-                pt_dec, _ = _peek_uvh5_phase_and_midtime(files[0])
+                _, pt_dec, _ = _peek_uvh5_phase_and_midtime(files[0])
                 actual_dec = float(pt_dec.to_value(u.deg))
                 dec_diff_deg = abs(actual_dec - expected_dec)
                 if dec_diff_deg > dec_tolerance_deg:
@@ -428,7 +428,7 @@ def find_calibrator_sources_in_data(
                         # Check declination match
                         for group_files in groups:
                             try:
-                                pt_dec, _ = _peek_uvh5_phase_and_midtime(group_files[0])
+                                _, pt_dec, _ = _peek_uvh5_phase_and_midtime(group_files[0])
                                 actual_dec = float(pt_dec.to_value(u.deg))
                                 dec_diff = abs(actual_dec - dec_deg)
                                 

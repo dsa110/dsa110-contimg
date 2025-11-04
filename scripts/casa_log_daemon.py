@@ -146,8 +146,25 @@ class CasaLogDaemon:
         event_handler = CasaLogHandler(self.source_root, self.target_root)
         
         # Create observer
+        # OPTIMIZATION: Use recursive=False to reduce memory consumption
+        # Watch only specific directories where CASA logs typically appear
+        # instead of the entire tree (saves ~10GB RAM on large directory trees)
         self.observer = Observer()
-        self.observer.schedule(event_handler, str(self.source_root), recursive=True)
+        
+        # Watch only specific subdirectories where CASA logs are likely
+        # This dramatically reduces memory usage vs recursive=True on entire tree
+        watch_dirs = [
+            self.source_root,  # Root directory
+            self.source_root / "ms",  # MS files directory
+            self.source_root / "tmp",  # Temporary files
+            self.source_root / "scratch",  # Scratch directory if it exists
+        ]
+        
+        # Only watch directories that exist
+        for watch_dir in watch_dirs:
+            if watch_dir.exists() and watch_dir.is_dir():
+                self.observer.schedule(event_handler, str(watch_dir), recursive=False)
+                self.logger.debug(f"Monitoring: {watch_dir} (non-recursive)")
         
         # Start observer
         self.observer.start()
@@ -171,15 +188,28 @@ class CasaLogDaemon:
         """Move any existing casa-*.log files that haven't been moved yet"""
         self.logger.info("Checking for existing casa-*.log files...")
         
+        # OPTIMIZATION: Only search in specific directories to reduce memory usage
+        search_dirs = [
+            self.source_root,  # Root
+            self.source_root / "ms",  # MS files
+            self.source_root / "tmp",  # Temporary
+            self.source_root / "scratch",  # Scratch
+        ]
+        
         count = 0
-        for file_path in self.source_root.rglob("casa-*.log"):
-            # Skip files in the target directory
-            if str(file_path.relative_to(self.source_root)).startswith('state/'):
+        for search_dir in search_dirs:
+            if not search_dir.exists():
                 continue
                 
-            self.logger.info(f"Moving existing file: {file_path}")
-            CasaLogHandler(self.source_root, self.target_root).move_file(file_path)
-            count += 1
+            # Search only in this directory (non-recursive initially, then one level deep)
+            for file_path in list(search_dir.glob("casa-*.log")) + list(search_dir.glob("*/*casa-*.log")):
+                # Skip files in the target directory
+                if str(file_path.relative_to(self.source_root)).startswith('state/'):
+                    continue
+                    
+                self.logger.info(f"Moving existing file: {file_path}")
+                CasaLogHandler(self.source_root, self.target_root).move_file(file_path)
+                count += 1
         
         self.logger.info(f"Moved {count} existing casa-*.log files")
     

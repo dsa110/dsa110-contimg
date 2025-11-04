@@ -347,6 +347,88 @@ def solve_delay(
     return tables
 
 
+def solve_prebandpass_phase(
+    ms: str,
+    cal_field: str,
+    refant: str,
+    table_prefix: Optional[str] = None,
+    combine_fields: bool = False,
+    uvrange: str = "",
+    solint: str = "inf",
+    minsnr: float = 5.0,
+) -> str:
+    """Solve phase-only calibration before bandpass to correct phase drifts in raw data.
+    
+    This phase-only calibration step is critical for uncalibrated raw data. It corrects
+    for time-dependent phase variations that cause decorrelation and low SNR in bandpass
+    calibration. This should be run BEFORE bandpass calibration.
+    
+    **PRECONDITION**: MODEL_DATA must be populated before calling this function.
+    
+    Returns:
+        Path to phase-only calibration table (to be passed to bandpass via gaintable)
+    """
+    from casacore.tables import table  # type: ignore[import]
+    import numpy as np  # type: ignore[import]
+    
+    if table_prefix is None:
+        table_prefix = f"{os.path.splitext(ms)[0]}_{cal_field}"
+    
+    # PRECONDITION CHECK: Verify MODEL_DATA exists and is populated
+    print(f"Validating MODEL_DATA for pre-bandpass phase solve on field(s) {cal_field}...")
+    with table(ms) as tb:
+        if "MODEL_DATA" not in tb.colnames():
+            raise ValueError(
+                f"MODEL_DATA column does not exist in MS. "
+                f"This is a required precondition for phase-only calibration. "
+                f"Populate MODEL_DATA before calling solve_prebandpass_phase()."
+            )
+        
+        model_sample = tb.getcol("MODEL_DATA", startrow=0, nrow=min(100, tb.nrows()))
+        if np.all(np.abs(model_sample) < 1e-10):
+            raise ValueError(
+                f"MODEL_DATA column exists but is all zeros (unpopulated). "
+                f"This is a required precondition for phase-only calibration. "
+                f"Populate MODEL_DATA before calling solve_prebandpass_phase()."
+            )
+    
+    # Use peak field for phase-only solve
+    if '~' in str(cal_field):
+        peak_field = str(cal_field).split('~')[-1]
+        print(f"Using peak field {peak_field} for pre-bandpass phase solve (from range {cal_field})")
+    else:
+        peak_field = str(cal_field)
+        print(f"Using field {peak_field} for pre-bandpass phase solve")
+    
+    # Combine across scans and fields when requested
+    comb_parts = ["scan"]
+    if combine_fields:
+        comb_parts.append("field")
+    comb = ",".join(comb_parts) if comb_parts else ""
+    
+    # Solve phase-only calibration (no previous calibrations applied)
+    print(f"Running pre-bandpass phase-only solve on field {peak_field}...")
+    kwargs = dict(
+        vis=ms,
+        caltable=f"{table_prefix}_prebp_phase",
+        field=peak_field,
+        solint=solint,
+        refant=refant,
+        calmode="p",  # Phase-only mode
+        combine=comb,
+        minsnr=minsnr,
+        selectdata=True,
+    )
+    if uvrange:
+        kwargs["uvrange"] = uvrange
+    
+    casa_gaincal(**kwargs)
+    _validate_solve_success(f"{table_prefix}_prebp_phase", refant=refant)
+    print(f"✓ Pre-bandpass phase-only solve completed: {table_prefix}_prebp_phase")
+    
+    return f"{table_prefix}_prebp_phase"
+
+
 def solve_bandpass(
     ms: str,
     cal_field: str,
@@ -358,24 +440,26 @@ def solve_bandpass(
     combine_fields: bool = False,
     combine_spw: bool = False,
     minsnr: float = 5.0,
-    uvrange: str = "",
+    uvrange: str = ">1klambda",  # Default: exclude short baselines
+    prebandpass_phase_table: Optional[str] = None,
 ) -> List[str]:
-    """Solve bandpass using gaincal in 'G' mode (polarization/time-dependent).
+    """Solve bandpass using CASA bandpass task with bandtype='B'.
     
-    This solves for frequency-dependent gains using gaincal with gaintype='G',
-    which handles polarization and time-dependent effects. Per-channel solutions
-    (solint='inf' per channel) provide bandpass correction.
+    This solves for frequency-dependent bandpass correction using the dedicated
+    bandpass task, which properly handles per-channel solutions. The bandpass task
+    requires a source model (smodel) which is provided via MODEL_DATA column.
     
     **PRECONDITION**: MODEL_DATA must be populated before calling this function.
     This ensures consistent, reliable calibration results across all calibrators
     (bright or faint). The calling code should verify MODEL_DATA exists and is
     populated before invoking solve_bandpass().
     
-    **PRECONDITION**: If `ktable` is provided, it must exist and be compatible
-    with the MS. This ensures consistent, reliable calibration results.
+    **NOTE**: `ktable` parameter is kept for API compatibility but is NOT used
+    (K-calibration is not used for DSA-110 connected-element array).
     """
     from casacore.tables import table  # type: ignore[import]
     import numpy as np  # type: ignore[import]
+    from casatasks import bandpass as casa_bandpass  # type: ignore[import]
     
     if table_prefix is None:
         table_prefix = f"{os.path.splitext(ms)[0]}_{cal_field}"
@@ -403,25 +487,8 @@ def solve_bandpass(
                 f"calling solve_bandpass()."
             )
     
-    # PRECONDITION CHECK: Validate K-table if provided
-    # This ensures we follow "measure twice, cut once" - establish requirements upfront
-    # for consistent, reliable calibration across all calibrators.
-    if ktable:
-        print(f"Validating K-table before bandpass calibration: {ktable}")
-        try:
-            validate_caltable_exists(ktable)
-            # Convert refant string to int for validation
-            refant_int = int(refant) if isinstance(refant, str) else refant
-            warnings = validate_caltable_compatibility(
-                ktable, ms, refant=refant_int
-            )
-            if warnings:
-                print(f"Warnings for K-table compatibility: {warnings}")
-        except (FileNotFoundError, ValueError) as e:
-            raise ValueError(
-                f"K-table validation failed. This is a required precondition for "
-                f"bandpass calibration. Error: {e}"
-            ) from e
+    # NOTE: K-table is NOT used for bandpass solve (K-calibration is applied in gain step, not before bandpass)
+    # K-table parameter is kept for API compatibility but is not applied to bandpass solve
     
     # For bandpass calibration, use only the peak field and combine across all fields
     # Extract the peak field from the range (e.g., "19~23" -> "23")
@@ -435,38 +502,53 @@ def solve_bandpass(
         print(f"Using field {peak_field} for bandpass calibration")
 
     # Avoid setjy here; CLI will write a calibrator MODEL_DATA when available.
-    _unused = (set_model, model_standard)
+    # Note: set_model and model_standard are kept for API compatibility but not used
+    # (bandpass task uses MODEL_DATA column directly, not setjy)
 
-    # Combine across scans, fields, and SPWs when requested
-    # This significantly improves performance for multi-SPW MS files
-    comb_parts = []
+    # Always combine 'scan' for bandpass (default for performance)
+    # NOTE: Do NOT combine across 'spw' for bandpass calibration when SPWs have
+    # non-overlapping frequency ranges. Each SPW must be solved separately.
+    # Combining across scans improves SNR by using all available data.
+    comb_parts = ["scan"]
     if combine_fields:
-        comb_parts.append("scan,field")
-    if combine_spw:
-        comb_parts.append("spw")
-    comb = ",".join(comb_parts) if comb_parts else ""
+        comb_parts.append("field")
+    # Note: combine_spw parameter is ignored for bandpass - each SPW is solved separately
+    comb = ",".join(comb_parts)
 
-    # Use gaincal with gaintype='G' for bandpass (solves per channel for frequency-dependent gains)
-    # This handles polarization and time-dependent effects properly
+    # Use bandpass task with bandtype='B' for proper bandpass calibration
+    # The bandpass task requires MODEL_DATA to be populated (smodel source model)
+    # uvrange='>1klambda' is the default to avoid short baselines
+    # NOTE: Do NOT apply K-table to bandpass solve. K-calibration (delay correction)
+    # should be applied AFTER bandpass, not before. Applying K-table before bandpass
+    # can corrupt the frequency structure and cause low SNR/flagging.
+    # CRITICAL: Apply pre-bandpass phase-only calibration if provided. This corrects
+    # phase drifts in raw uncalibrated data that cause decorrelation and low SNR.
     combine_desc = f" (combining across {comb})" if comb else ""
+    phase_desc = f" with pre-bandpass phase correction" if prebandpass_phase_table else ""
     print(
-        f"Running bandpass solve using gaincal (G mode) on field {peak_field}{combine_desc}...")
-    gaintable_list = [ktable] if ktable else []
+        f"Running bandpass solve using bandpass task (bandtype='B') on field {peak_field}{combine_desc}{phase_desc}...")
     kwargs = dict(
         vis=ms,
         caltable=f"{table_prefix}_bpcal",
-        field=cal_field,  # Use full range for data selection
+        field=peak_field,  # Use peak field (not full range) for bandpass solve
         solint="inf",  # Per-channel solution (bandpass)
-        combine=comb,
         refant=refant,
-        gaintype="G",  # G Jones matrix (handles polarization/time-dependent)
+        combine=comb,
         solnorm=True,
-        gaintable=gaintable_list,
-        minsnr=minsnr,
-        selectdata=True)
+        bandtype="B",  # Bandpass type B (per-channel)
+        selectdata=True,  # Required to use uvrange parameter
+        minsnr=minsnr,  # Minimum SNR threshold for solutions
+    )
+    # Set uvrange (default: '>1klambda' to avoid short baselines)
     if uvrange:
         kwargs["uvrange"] = uvrange
-    casa_gaincal(**kwargs)
+    # Apply pre-bandpass phase-only calibration if provided
+    # This corrects phase drifts that cause decorrelation in raw uncalibrated data
+    if prebandpass_phase_table:
+        kwargs["gaintable"] = [prebandpass_phase_table]
+        print(f"  Applying pre-bandpass phase-only calibration: {prebandpass_phase_table}")
+    # Do NOT apply K-table to bandpass solve (K-table is applied in gain calibration step)
+    casa_bandpass(**kwargs)
     # PRECONDITION CHECK: Verify bandpass solve completed successfully
     # This ensures we follow "measure twice, cut once" - verify solutions exist
     # immediately after solve completes, before proceeding.
@@ -507,8 +589,11 @@ def solve_gains(
     (bright or faint). The calling code should verify MODEL_DATA exists and is
     populated before invoking solve_gains().
     
-    **PRECONDITION**: If `ktable` or `bptables` are provided, they must exist and be
+    **PRECONDITION**: If `bptables` are provided, they must exist and be
     compatible with the MS. This ensures consistent, reliable calibration results.
+    
+    **NOTE**: `ktable` parameter is kept for API compatibility but is NOT used
+    (K-calibration is not used for DSA-110 connected-element array).
     """
     from casacore.tables import table  # type: ignore[import]
     import numpy as np  # type: ignore[import]
@@ -542,18 +627,14 @@ def solve_gains(
     # PRECONDITION CHECK: Validate all required calibration tables
     # This ensures we follow "measure twice, cut once" - establish requirements upfront
     # for consistent, reliable calibration across all calibrators.
-    required_tables = []
-    if ktable:
-        required_tables.append(ktable)
-    required_tables.extend(bptables)
-    
-    if required_tables:
-        print(f"Validating {len(required_tables)} calibration table(s) before gain calibration...")
+    # NOTE: K-table is NOT used for gain calibration (K-calibration not used for DSA-110)
+    if bptables:
+        print(f"Validating {len(bptables)} bandpass table(s) before gain calibration...")
         try:
             # Convert refant string to int for validation
             refant_int = int(refant) if isinstance(refant, str) else refant
             validate_caltables_for_use(
-                required_tables, ms, require_all=True, refant=refant_int
+                bptables, ms, require_all=True, refant=refant_int
             )
         except (FileNotFoundError, ValueError) as e:
             raise ValueError(
@@ -572,7 +653,9 @@ def solve_gains(
         peak_field = str(cal_field)
         print(f"Using field {peak_field} for gain calibration")
 
-    gaintable = ([ktable] if ktable else []) + bptables
+    # NOTE: K-table is NOT used for gain calibration (K-calibration not used for DSA-110)
+    # Only apply bandpass tables to gain solve
+    gaintable = bptables
     # Combine across scans and fields when requested; otherwise do not combine
     comb = "scan,field" if combine_fields else ""
 
@@ -583,7 +666,7 @@ def solve_gains(
     kwargs = dict(
         vis=ms,
         caltable=f"{table_prefix}_gpcal",
-        field=cal_field,  # Use full range for data selection
+        field=peak_field,  # Use peak field (not full range) for gain solve
         solint=solint,
         refant=refant,
         gaintype="G",
@@ -611,7 +694,7 @@ def solve_gains(
         kwargs = dict(
             vis=ms,
             caltable=f"{table_prefix}_2gcal",
-            field=cal_field,  # Use full range for data selection
+            field=peak_field,  # Use peak field (not full range) for gain solve
             solint=t_short,
             refant=refant,
             gaintype="G",

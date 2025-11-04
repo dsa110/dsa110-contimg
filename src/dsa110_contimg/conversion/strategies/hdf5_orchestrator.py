@@ -39,9 +39,10 @@ from pyuvdata import UVData  # type: ignore[import]
 logger = logging.getLogger("hdf5_orchestrator")
 
 
-def _peek_uvh5_phase_and_midtime(uvh5_path: str) -> tuple[u.Quantity, float]:
-    """Lightweight HDF5 peek: return (pt_dec [rad], mid_time [MJD])."""
+def _peek_uvh5_phase_and_midtime(uvh5_path: str) -> tuple[u.Quantity, u.Quantity, float]:
+    """Lightweight HDF5 peek: return (pt_ra [rad], pt_dec [rad], mid_time [MJD])."""
     import h5py  # type: ignore[import]
+    pt_ra_val: float = 0.0
     pt_dec_val: float = 0.0
     mid_jd: float = 0.0
     with h5py.File(uvh5_path, "r") as f:
@@ -90,10 +91,47 @@ def _peek_uvh5_phase_and_midtime(uvh5_path: str) -> tuple[u.Quantity, float]:
                 pass
             return None
 
-        val = _read_extra("phase_center_dec")
-        if val is not None and np.isfinite(val):
-            pt_dec_val = float(val)
+        val_ra = _read_extra("phase_center_ra")
+        if val_ra is not None and np.isfinite(val_ra):
+            pt_ra_val = float(val_ra)
+        else:
+            # If phase_center_ra is missing, calculate from HA and LST
+            # RA = LST - HA (when HA=0, RA=LST, i.e., meridian transit)
+            val_ha = _read_extra("ha_phase_center")
+            if val_ha is not None and np.isfinite(val_ha) and mid_jd > 0:
+                try:
+                    from astropy.coordinates import EarthLocation
+                    from astropy.time import Time
+                    # Get longitude from Header (default to DSA-110 location)
+                    lon_deg = -118.2817  # DSA-110 default
+                    if "Header" in f and "longitude" in f["Header"]:
+                        lon_val = np.asarray(f["Header"]["longitude"])
+                        if lon_val.size == 1:
+                            lon_deg = float(lon_val)
+                    
+                    # Calculate LST at mid_time
+                    location = EarthLocation(lat=37.2314 * u.deg, lon=lon_deg * u.deg, height=1222.0 * u.m)
+                    tref = Time(mid_jd, format='jd')
+                    lst = tref.sidereal_time('apparent', longitude=location.lon)
+                    
+                    # Calculate RA: RA = LST - HA
+                    ha_rad = float(val_ha)  # HA is in radians
+                    ra_rad = (lst.to(u.rad).value - ha_rad) % (2 * np.pi)
+                    pt_ra_val = ra_rad
+                    logger.debug(
+                        f"Calculated RA from HA and LST: {ra_rad:.2f} rad "
+                        f"(LST={lst.to(u.rad).value:.2f} rad, HA={ha_rad:.2f} rad) "
+                        f"({np.rad2deg(ra_rad):.2f}°)"
+                    )
+                except Exception as e:
+                    logger.warning(f"Could not calculate RA from HA: {e}. Using default 0.0")
+                    pt_ra_val = 0.0
+        
+        val_dec = _read_extra("phase_center_dec")
+        if val_dec is not None and np.isfinite(val_dec):
+            pt_dec_val = float(val_dec)
     return (
+        pt_ra_val * u.rad,
         pt_dec_val * u.rad,
         float(Time(mid_jd, format="jd").mjd) if mid_jd else float(mid_jd),
     )
@@ -426,7 +464,7 @@ def convert_subband_groups_to_ms(
 
         # Check if MS already exists
         if os.path.exists(ms_path):
-            if getattr(args, 'skip_existing', False):
+            if skip_existing:
                 logger.info("MS already exists (--skip-existing), skipping: %s", ms_path)
                 continue
             else:
@@ -544,7 +582,7 @@ def convert_subband_groups_to_ms(
                 "Phased and updated UVW in %.2fs",
                 time.perf_counter() - t1)
         else:
-            pt_dec, mid_mjd = _peek_uvh5_phase_and_midtime(file_list[0])
+            _, pt_dec, mid_mjd = _peek_uvh5_phase_and_midtime(file_list[0])
             if not np.isfinite(mid_mjd) or mid_mjd == 0.0:
                 temp_uv = UVData()
                 temp_uv.read(
@@ -762,6 +800,16 @@ def add_args(p: argparse.ArgumentParser) -> None:
         help="Maximum days to search back for transit (default: 30)."
     )
     calibrator_group.add_argument(
+        "--min-pb-response",
+        type=float,
+        default=0.3,
+        help=(
+            "Minimum primary beam response (0-1) required for calibrator to be in beam. "
+            "IRON-CLAD SAFEGUARD: Only converts data where calibrator is actually in primary beam. "
+            "Default: 0.3 (30%% PB response)."
+        )
+    )
+    calibrator_group.add_argument(
         "--dec-tolerance-deg",
         type=float,
         default=2.0,
@@ -965,7 +1013,8 @@ def main(args: Optional[argparse.Namespace] = None) -> int:
                         args.calibrator,
                         transit_time=target_transit_time,
                         window_minutes=args.window_minutes,
-                        max_days_back=args.max_days_back  # Use configured search window
+                        max_days_back=args.max_days_back,  # Use configured search window
+                        min_pb_response=getattr(args, 'min_pb_response', 0.3)
                     )
                     
                     if transit_info is None:
@@ -1005,7 +1054,8 @@ def main(args: Optional[argparse.Namespace] = None) -> int:
                     args.calibrator,
                     transit_time=transit_time,
                     window_minutes=args.window_minutes,
-                    max_days_back=args.max_days_back
+                    max_days_back=args.max_days_back,
+                    min_pb_response=getattr(args, 'min_pb_response', 0.3)
                 )
                 
                 if not transit_info:

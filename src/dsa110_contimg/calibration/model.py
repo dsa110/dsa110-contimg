@@ -31,14 +31,30 @@ def write_point_model_with_ft(
     *,
     reffreq_hz: float = 1.4e9,
     spectral_index: Optional[float] = None,
+    field: Optional[str] = None,
 ) -> None:
-    """Write a physically-correct complex point-source model into MODEL_DATA using CASA ft."""
+    """Write a physically-correct complex point-source model into MODEL_DATA using CASA ft.
+    
+    Args:
+        ms_path: Path to Measurement Set
+        ra_deg: Right ascension in degrees
+        dec_deg: Declination in degrees
+        flux_jy: Flux in Jy
+        reffreq_hz: Reference frequency in Hz (default: 1.4 GHz)
+        spectral_index: Optional spectral index for frequency-dependent flux
+        field: Optional field selection (default: all fields). If specified, MODEL_DATA
+              will only be written to the selected field(s).
+    """
     from casatools import componentlist as cltool
     from casatasks import ft
 
     _ensure_imaging_columns(ms_path)
 
     comp_path = os.path.join(os.path.dirname(ms_path), "cal_component.cl")
+    # Remove existing component list if it exists (cl.rename() will fail if it exists)
+    if os.path.exists(comp_path):
+        import shutil
+        shutil.rmtree(comp_path, ignore_errors=True)
     cl = cltool()
     sc = SkyCoord(ra_deg * u.deg, dec_deg * u.deg, frame="icrs")
     dir_dict = {
@@ -66,7 +82,38 @@ def write_point_model_with_ft(
     cl.rename(comp_path)
     cl.close()
 
-    ft(vis=ms_path, complist=comp_path, usescratch=True)
+    # CRITICAL: Explicitly clear MODEL_DATA with zeros before calling ft()
+    # This matches the approach in ft_from_cl() and ensures MODEL_DATA is properly cleared
+    # clearcal() may not fully clear MODEL_DATA, especially after rephasing
+    try:
+        import numpy as np
+        from casacore.tables import table
+        t = table(ms_path, readonly=False)
+        if "MODEL_DATA" in t.colnames() and t.nrows() > 0:
+            # Get DATA shape to match MODEL_DATA shape
+            if "DATA" in t.colnames():
+                data_sample = t.getcell("DATA", 0)
+                data_shape = getattr(data_sample, "shape", None)
+                data_dtype = getattr(data_sample, "dtype", None)
+                if data_shape and data_dtype:
+                    # Clear MODEL_DATA with zeros matching DATA shape
+                    zeros = np.zeros((t.nrows(),) + data_shape, dtype=data_dtype)
+                    t.putcol("MODEL_DATA", zeros)
+        t.close()
+    except Exception as e:
+        # Non-fatal: log warning but continue
+        import warnings
+        warnings.warn(
+            f"Failed to explicitly clear MODEL_DATA before ft(): {e}. "
+            "Continuing with ft() call, but MODEL_DATA may not be properly cleared.",
+            RuntimeWarning
+        )
+
+    # Pass field parameter to ensure MODEL_DATA is written to the correct field
+    ft_kwargs = {"vis": ms_path, "complist": comp_path, "usescratch": True}
+    if field is not None:
+        ft_kwargs["field"] = field
+    ft(**ft_kwargs)
     _initialize_corrected_from_data(ms_path)
 
 

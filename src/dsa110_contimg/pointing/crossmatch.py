@@ -119,7 +119,7 @@ def _ingest_pointing_from_groups(conn: sqlite3.Connection, groups: Dict[str, Lis
                 continue
             mid = 0.5 * (jd0 + jd1)
             t = Time(mid, format="jd")
-            ra_deg = t.sidereal_time("apparent", DSA110_LOCATION.lon).deg
+            ra_deg = t.sidereal_time("apparent", longitude=DSA110_LOCATION.lon).deg
             # upsert by timestamp
             conn.execute(
                 "INSERT OR REPLACE INTO pointing_history(timestamp, ra_deg, dec_deg) VALUES(?,?,?)",

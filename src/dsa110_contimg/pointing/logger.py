@@ -13,7 +13,7 @@ from dsa110_contimg.database.products import ensure_products_db
 def log_pointing(conn: sqlite3.Connection, pt_dec_deg: float):
     """Logs the current pointing to the database."""
     now = Time.now()
-    ra_deg = now.sidereal_time('apparent', DSA110_LOCATION.lon).deg
+    ra_deg = now.sidereal_time('apparent', longitude=DSA110_LOCATION.lon).deg
     conn.execute(
         "INSERT OR REPLACE INTO pointing_history (timestamp, ra_deg, dec_deg) VALUES (?, ?, ?)",
         (now.mjd, ra_deg, pt_dec_deg)

@@ -139,7 +139,7 @@ class DirectSubbandWriter(MSWriter):
                     from dsa110_contimg.conversion.strategies.hdf5_orchestrator import (
                         _peek_uvh5_phase_and_midtime
                     )
-                    pt_dec, mid_mjd = _peek_uvh5_phase_and_midtime(sb_file)
+                    _, pt_dec, mid_mjd = _peek_uvh5_phase_and_midtime(sb_file)
                     if group_pt_dec is None:
                         group_pt_dec = pt_dec
                     if np.isfinite(mid_mjd) and mid_mjd > 0:
@@ -529,7 +529,7 @@ def write_ms_from_subbands(file_list, ms_path, scratch_dir=None):
                 from dsa110_contimg.conversion.strategies.hdf5_orchestrator import (
                     _peek_uvh5_phase_and_midtime
                 )
-                pt_dec, mid_mjd = _peek_uvh5_phase_and_midtime(sb_file)
+                _, pt_dec, mid_mjd = _peek_uvh5_phase_and_midtime(sb_file)
                 if group_pt_dec is None:
                     group_pt_dec = pt_dec
                 if np.isfinite(mid_mjd) and mid_mjd > 0:

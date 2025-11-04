@@ -175,18 +175,25 @@ class CalibratorMSGenerator:
         *,
         transit_time: Optional[Time] = None,
         window_minutes: int = 60,
-        max_days_back: int = 14
+        max_days_back: int = 14,
+        min_pb_response: float = 0.3,
+        freq_ghz: float = 1.4
     ) -> Optional[dict]:
         """Find transit for calibrator.
+        
+        **IRON-CLAD SAFEGUARD**: Validates BOTH transit time AND pointing declination.
+        Only returns transit info if calibrator is actually in the primary beam.
         
         Args:
             calibrator_name: Name of calibrator (e.g., "0834+555")
             transit_time: Optional specific transit time to use
             window_minutes: Search window around transit
             max_days_back: Maximum days to search back
+            min_pb_response: Minimum primary beam response (0-1) required [default: 0.3]
+            freq_ghz: Frequency in GHz for PB calculation [default: 1.4]
         
         Returns:
-            Transit info dict or None if not found
+            Transit info dict or None if not found (or calibrator not in beam)
         """
         ra_deg, dec_deg = self._load_radec(calibrator_name)
         
@@ -263,11 +270,60 @@ class CalibratorMSGenerator:
                 full = len(gbest) == 16 and all(code and code.startswith('sb') for code in sb_codes)
                 
                 if full:
-                    # Success! Found complete group
+                    # IRON-CLAD SAFEGUARD: Verify calibrator is in primary beam
+                    # Extract ACTUAL pointing RA and Dec from first file (not assumed)
+                    from dsa110_contimg.conversion.strategies.hdf5_orchestrator import _peek_uvh5_phase_and_midtime
+                    from dsa110_contimg.calibration.catalogs import airy_primary_beam_response
+                    import numpy as np
+                    
+                    pt_ra_rad, pt_dec_rad, _ = _peek_uvh5_phase_and_midtime(gbest[0])
+                    pt_ra_deg = float(pt_ra_rad.to_value(u.deg))
+                    pt_dec_deg = float(pt_dec_rad.to_value(u.deg))
+                    
+                    # Calculate primary beam response using ACTUAL pointing coordinates
+                    # This fixes the bug where we assumed pointing RA = calibrator RA at transit
+                    cal_ra_rad = np.deg2rad(ra_deg)
+                    cal_dec_rad = np.deg2rad(dec_deg)
+                    pt_ra_rad_val = float(pt_ra_rad.to_value(u.rad))
+                    pt_dec_rad_val = float(pt_dec_rad.to_value(u.rad))
+                    
+                    pb_response = airy_primary_beam_response(
+                        pt_ra_rad_val, pt_dec_rad_val,
+                        cal_ra_rad, cal_dec_rad,
+                        freq_ghz
+                    )
+                    
+                    # Calculate angular separation
+                    from astropy.coordinates import SkyCoord
+                    pt_coord = SkyCoord(ra=pt_ra_rad_val*u.rad, dec=pt_dec_rad_val*u.rad)
+                    cal_coord = SkyCoord(ra=cal_ra_rad*u.rad, dec=cal_dec_rad*u.rad)
+                    sep = pt_coord.separation(cal_coord)
+                    sep_deg = float(sep.to_value(u.deg))
+                    
+                    if pb_response < min_pb_response:
+                        logger.warning(
+                            f"REJECTING transit {t.isot}: Calibrator {calibrator_name} "
+                            f"is NOT in primary beam\n"
+                            f"  Calibrator: RA={ra_deg:.4f}°, Dec={dec_deg:.4f}°\n"
+                            f"  Pointing: RA={pt_ra_deg:.4f}°, Dec={pt_dec_deg:.4f}°\n"
+                            f"  Separation: {sep_deg:.4f}° ({sep_deg*60:.1f} arcmin)\n"
+                            f"  Primary beam response: {pb_response:.4f} (minimum required: {min_pb_response:.2f})\n"
+                            f"  This group will be skipped - calibrator is outside usable beam."
+                        )
+                        continue
+                    
+                    # Success! Calibrator is in beam
                     logger.info(
                         f"✓ Found complete 16-subband group for transit {t.isot}: "
                         f"{os.path.basename(gbest[0]).split('_sb')[0]} "
                         f"({dt_min:.1f} min from transit)"
+                    )
+                    logger.info(
+                        f"✓ Pointing validation PASSED: Calibrator in primary beam\n"
+                        f"  Pointing: RA={pt_ra_deg:.4f}°, Dec={pt_dec_deg:.4f}°\n"
+                        f"  Calibrator: RA={ra_deg:.4f}°, Dec={dec_deg:.4f}°\n"
+                        f"  Separation: {sep_deg:.4f}° ({sep_deg*60:.1f} arcmin)\n"
+                        f"  Primary beam response: {pb_response:.4f}"
                     )
                     return {
                         'name': calibrator_name,
@@ -278,6 +334,10 @@ class CalibratorMSGenerator:
                         'mid_iso': mid.isot,
                         'delta_minutes': dt_min,
                         'files': sorted(gbest),
+                        'pointing_dec_deg': pt_dec_deg,
+                        'calibrator_dec_deg': dec_deg,
+                        'separation_deg': sep_deg,
+                        'pb_response': pb_response,
                     }
                 else:
                     # Groups found but incomplete - log this as a skip reason
@@ -616,7 +676,7 @@ class CalibratorMSGenerator:
                     # Get actual mid-time and declination from file
                     try:
                         from dsa110_contimg.conversion.strategies.hdf5_orchestrator import _peek_uvh5_phase_and_midtime
-                        pt_dec_rad, mid_mjd = _peek_uvh5_phase_and_midtime(group_files[0])
+                        _, pt_dec_rad, mid_mjd = _peek_uvh5_phase_and_midtime(group_files[0])
                         # Check if mid_mjd is valid (not None and not 0.0)
                         if mid_mjd is not None and mid_mjd > 0:
                             pt_dec_deg = pt_dec_rad.to(u.deg).value if pt_dec_rad is not None else None

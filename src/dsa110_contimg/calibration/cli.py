@@ -30,7 +30,7 @@ from .flagging import (
     flag_manual, flag_shadow, flag_quack, flag_elevation, flag_clip,
     flag_extend, flag_summary,
 )
-from .calibration import solve_delay, solve_bandpass, solve_gains
+from .calibration import solve_delay, solve_bandpass, solve_gains, solve_prebandpass_phase
 from .applycal import apply_to_target
 from .selection import select_bandpass_fields, select_bandpass_from_catalog
 from . import qa
@@ -40,7 +40,6 @@ try:
     from dsa110_contimg.utils.tempdirs import prepare_temp_environment
 except Exception:  # pragma: no cover
     prepare_temp_environment = None  # type: ignore
-
 
 def run_calibrator(ms: str, cal_field: str, refant: str, *,
                    do_flagging: bool = True, do_k: bool = False) -> List[str]:
@@ -63,7 +62,12 @@ def run_calibrator(ms: str, cal_field: str, refant: str, *,
     return ktabs[:1] + bptabs + gtabs
 
 
+# Module-level flag for calibrator info printing (prevents duplicates)
+_calibrator_info_printed_global = False
+
 def main():
+    global _calibrator_info_printed_global
+    
     # Best-effort: route TempLattice and similar to scratch
     try:
         if prepare_temp_environment is not None:
@@ -499,6 +503,7 @@ def main():
                         logger.error("Provide --cal-catalog explicitly or ensure SQLite catalog exists at state/catalogs/vla_calibrators.sqlite3")
                         sys.exit(1)
                 
+                print(f"Selecting bandpass fields from catalog...")
                 sel, idxs, wflux, calinfo = select_bandpass_from_catalog(
                     args.ms,
                     catalog_path,
@@ -512,52 +517,29 @@ def main():
                         else None
                     ),
                 )
-                    name, ra_deg, dec_deg, flux_jy = calinfo
-                    print(
-                        (
-                            "Catalog calibrator: {name} (RA {ra_deg:.4f} deg, "
-                            "Dec {dec_deg:.4f} deg, flux {flux_jy:.2f} Jy)"
-                        ).format(
-                            name=name,
-                            ra_deg=ra_deg,
-                            dec_deg=dec_deg,
-                            flux_jy=flux_jy,
-                        )
-                    )
-                    print(
-                        "Auto-selected bandpass fields: {} (indices: {})"
-                        .format(sel, idxs)
-                    )
-                    field_sel = sel
-                else:
-                    if (
-                        args.cal_ra_deg is None
-                        or args.cal_dec_deg is None
-                        or args.cal_flux_jy is None
-                    ):
-                        p.error(
-                            (
-                                "--auto-fields requires --cal-ra-deg/"
-                                "--cal-dec-deg/--cal-flux-jy or --cal-catalog"
-                            )
-                        )
-                    sel, idxs, wflux = select_bandpass_fields(
-                        args.ms,
-                        args.cal_ra_deg,
-                        args.cal_dec_deg,
-                        args.cal_flux_jy,
-                        window=max(1, int(args.bp_window)),
-                        min_pb=(
-                            float(args.bp_min_pb)
-                            if args.bp_min_pb is not None
-                            else None
-                        ),
-                    )
-                    print(
-                        "Auto-selected bandpass fields: {} (indices: {})"
-                        .format(sel, idxs)
-                    )
-                    field_sel = sel
+                print(f"Catalog selection complete: sel={sel}, calinfo={calinfo}")
+                name, ra_deg, dec_deg, flux_jy = calinfo
+                # Store catalog path and calinfo for later use in MODEL_DATA population
+                resolved_catalog_path = catalog_path
+                # Print calibrator info only once (prevent duplicate output)
+                global _calibrator_info_printed_global
+                if not _calibrator_info_printed_global:
+                    # Write directly to stdout to avoid any logging interference
+                    import sys
+                    sys.stdout.write("=" * 60 + "\n")
+                    sys.stdout.write(f"CALIBRATOR SELECTED: {name}\n")
+                    sys.stdout.write(f"  RA: {ra_deg:.4f} deg\n")
+                    sys.stdout.write(f"  Dec: {dec_deg:.4f} deg\n")
+                    sys.stdout.write(f"  Flux: {flux_jy:.2f} Jy\n")
+                    sys.stdout.write("=" * 60 + "\n")
+                    sys.stdout.flush()
+                    _calibrator_info_printed_global = True
+                print(
+                    "Auto-selected bandpass fields: {} (indices: {})"
+                    .format(sel, idxs)
+                )
+                field_sel = sel
+                print(f"DEBUG: Field selection complete, field_sel={field_sel}")
             except Exception as e:
                 print(
                     (
@@ -836,43 +818,204 @@ def main():
                 )
             )
         
-        # CRITICAL: Populate MODEL_DATA BEFORE K-calibration (if enabled)
-        # K-calibration requires MODEL_DATA to be populated so it knows what signal
+        # CRITICAL: Populate MODEL_DATA BEFORE calibration (K, BP, or G)
+        # All calibration steps require MODEL_DATA to be populated so they know what signal
         # to calibrate against. Without MODEL_DATA, solutions are unreliable or may fail.
-        # Populate MODEL_DATA according to requested strategy BEFORE solving delays.
-        if args.do_k:
+        # Populate MODEL_DATA according to requested strategy BEFORE solving.
+        # NOTE: MODEL_DATA is required for bandpass calibration even when K-calibration is skipped.
+        print(f"DEBUG: Checking if MODEL_DATA needs to be populated...")
+        needs_model = args.do_k or not args.skip_bp or not args.skip_g
+        print(f"DEBUG: needs_model={needs_model}, skip_bp={args.skip_bp}, skip_g={args.skip_g}, do_k={args.do_k}")
+        print(f"DEBUG: model_source={args.model_source}")
+        if needs_model and args.model_source is not None:
+            print(f"DEBUG: Entering MODEL_DATA population section...")
             try:
+                print(f"DEBUG: Importing model helpers...")
                 from . import model as model_helpers
+                print(f"DEBUG: Model helpers imported successfully")
                 if args.model_source == "catalog":
+                    print(f"DEBUG: Using catalog model source")
+                    # Check if we have calibrator info from auto_fields
+                    # calinfo is set when --auto-fields is used (regardless of whether --cal-catalog was explicit)
                     if (
                         args.auto_fields
-                        and args.cal_catalog
                         and 'calinfo' in locals()
                         and isinstance(calinfo, (list, tuple))
                         and len(calinfo) >= 4
                     ):
                         name, ra_deg, dec_deg, flux_jy = calinfo
+                        print(f"DEBUG: Found calibrator info, proceeding with MODEL_DATA population for {name}...")
+                        print(f"Populating MODEL_DATA for {name}...")
+                        
+                        # CRITICAL: Rephase MS to calibrator position before writing MODEL_DATA
+                        # The MS is phased to meridian (RA=LST, Dec=pointing), but we need it
+                        # phased to the calibrator position for proper calibration SNR
+                        # Check if already phased to calibrator (within 1 arcmin tolerance)
+                        print("DEBUG: Starting rephasing check...")
+                        print("Checking if MS needs rephasing...")
+                        needs_rephasing = True
+                        try:
+                            from casacore.tables import table
+                            import numpy as np
+                            from astropy.coordinates import SkyCoord
+                            from astropy import units as u
+                            
+                            print("Reading MS phase center...")
+                            with table(f"{args.ms}::FIELD") as tf:
+                                phase_dir = tf.getcol("PHASE_DIR")
+                                ms_ra_rad = float(np.array(phase_dir[0]).ravel()[0])
+                                ms_dec_rad = float(np.array(phase_dir[0]).ravel()[1])
+                                ms_ra_deg = np.rad2deg(ms_ra_rad)
+                                ms_dec_deg = np.rad2deg(ms_dec_rad)
+                            
+                            print(f"MS phase center: RA={ms_ra_deg:.4f}°, Dec={ms_dec_deg:.4f}°")
+                            ms_coord = SkyCoord(ra=ms_ra_deg*u.deg, dec=ms_dec_deg*u.deg)
+                            cal_coord = SkyCoord(ra=ra_deg*u.deg, dec=dec_deg*u.deg)
+                            sep_arcmin = ms_coord.separation(cal_coord).to(u.arcmin).value
+                            
+                            print(f"Separation: {sep_arcmin:.2f} arcmin")
+                            if sep_arcmin < 1.0:
+                                print(f"✓ MS already phased to calibrator position (offset: {sep_arcmin:.2f} arcmin)")
+                                needs_rephasing = False
+                            else:
+                                print(f"Rephasing MS to calibrator position: {name} @ ({ra_deg:.4f}°, {dec_deg:.4f}°)")
+                                print(f"  Current phase center offset: {sep_arcmin:.2f} arcmin")
+                        except Exception as e:
+                            print(f"WARNING: Could not check phase center: {e}. Assuming rephasing needed.")
+                            logger.warning(f"Could not check phase center: {e}. Assuming rephasing needed.")
+                        
+                        if needs_rephasing:
+                            print(f"DEBUG: Rephasing needed, starting phaseshift...")
+                            try:
+                                print(f"DEBUG: Importing phaseshift...")
+                                from casatasks import phaseshift as casa_phaseshift
+                                from astropy.coordinates import Angle
+                                import shutil
+                                import tempfile
+                                print(f"DEBUG: Imports complete, formatting phase center...")
+                                
+                                # Format phase center string for CASA
+                                ra_hms = Angle(ra_deg, unit='deg').to_string(
+                                    unit='hourangle', sep='hms', precision=2, pad=True
+                                ).replace(' ', '')
+                                dec_dms = Angle(dec_deg, unit='deg').to_string(
+                                    unit='deg', sep='dms', precision=2, alwayssign=True, pad=True
+                                ).replace(' ', '')
+                                phasecenter_str = f"J2000 {ra_hms} {dec_dms}"
+                                print(f"DEBUG: Phase center string: {phasecenter_str}")
+                                
+                                # Create temporary MS for rephased data
+                                ms_phased = args.ms.rstrip('/').rstrip('.ms') + '.phased.ms'
+                                if os.path.exists(ms_phased):
+                                    print(f"DEBUG: Removing existing phased MS: {ms_phased}")
+                                    shutil.rmtree(ms_phased)
+                                
+                                print(f"DEBUG: Running phaseshift (this may take a while)...")
+                                casa_phaseshift(
+                                    vis=args.ms,
+                                    outputvis=ms_phased,
+                                    phasecenter=phasecenter_str
+                                )
+                                print(f"DEBUG: Phaseshift complete, replacing MS...")
+                                
+                                # Replace original MS with rephased version
+                                shutil.rmtree(args.ms, ignore_errors=True)
+                                shutil.move(ms_phased, args.ms)
+                                print(f"✓ MS rephased to calibrator position")
+                                
+                            except ImportError:
+                                # Fallback to fixvis if phaseshift not available
+                                try:
+                                    from casatasks import fixvis as casa_fixvis
+                                    import shutil
+                                    
+                                    ms_phased = args.ms.rstrip('/').rstrip('.ms') + '.phased.ms'
+                                    if os.path.exists(ms_phased):
+                                        shutil.rmtree(ms_phased)
+                                    
+                                    casa_fixvis(
+                                        vis=args.ms,
+                                        outputvis=ms_phased,
+                                        phasecenter=f'J2000 {ra_deg}deg {dec_deg}deg'
+                                    )
+                                    
+                                    shutil.rmtree(args.ms, ignore_errors=True)
+                                    shutil.move(ms_phased, args.ms)
+                                    print(f"✓ MS rephased to calibrator position (using fixvis)")
+                                except Exception as e:
+                                    logger.warning(
+                                        f"Could not rephase MS to calibrator position: {e}. "
+                                        f"Calibration may have low SNR due to phase center offset."
+                                    )
+                            except Exception as e:
+                                logger.warning(
+                                    f"Could not rephase MS to calibrator position: {e}. "
+                                    f"Calibration may have low SNR due to phase center offset."
+                                )
+                        
                         print(
                             (
-                                "Writing catalog point model BEFORE K-calibration: {n} @ ("
+                                "Writing catalog point model: {n} @ ("
                                 "{ra:.4f},{de:.4f}) deg, {fl:.2f} Jy"
                             ).format(n=name, ra=ra_deg, de=dec_deg, fl=flux_jy)
                         )
+                        print(f"DEBUG: Calling MODEL_DATA population (this may take a while)...")
+                        # CRITICAL: Clear MODEL_DATA before writing, especially after rephasing
+                        # Old MODEL_DATA may have been written for wrong phase center
+                        try:
+                            from casatasks import clearcal
+                            clearcal(vis=args.ms, addmodel=True)
+                            print(f"DEBUG: Cleared existing MODEL_DATA before writing new model")
+                        except Exception as e:
+                            logger.warning(f"Could not clear MODEL_DATA before writing: {e}")
+                        
+                        # Use ft() with component list to properly calculate MODEL_DATA with correct phase structure
+                        # setjy(manual) only sets amplitude (phase=0), which doesn't work for calibration
+                        # ft() calculates the correct phase structure based on source position and baselines
+                        print(f"DEBUG: Using ft() with component list to populate MODEL_DATA with correct phase structure...")
+                        # Pass field parameter to ensure MODEL_DATA is written to the correct field
+                        # Use field_sel (the calibrator field) for MODEL_DATA population
                         model_helpers.write_point_model_with_ft(
-                            args.ms, float(ra_deg), float(dec_deg), float(flux_jy))
+                            args.ms, float(ra_deg), float(dec_deg), float(flux_jy),
+                            field=field_sel)
+                        print(f"DEBUG: write_point_model_with_ft completed")
+                        
+                        print(f"DEBUG: MODEL_DATA population completed")
+                        # Rename field to calibrator name
+                        try:
+                            from casacore.tables import table
+                            with table(f"{args.ms}::FIELD", readonly=False) as field_tb:
+                                # Get current field names
+                                field_names = field_tb.getcol("NAME")
+                                # Rename field 0 (the calibrator field) to calibrator name
+                                if len(field_names) > 0:
+                                    field_names[0] = name
+                                    field_tb.putcol("NAME", field_names)
+                                    print(f"✓ Renamed field 0 to '{name}'")
+                        except Exception as e:
+                            logger.warning(f"Could not rename field to calibrator name: {e}")
                     else:
-                        print(
-                            (
-                                "Catalog model requested but calibrator info "
-                                "unavailable; skipping model write"
+                        # PRECONDITION CHECK: If calibrator info is unavailable, we cannot populate MODEL_DATA
+                        # This is a required precondition for calibration - fail fast rather than silently skip
+                        if needs_model:
+                            p.error(
+                                "Catalog model requested (--model-source=catalog) but calibrator info "
+                                "unavailable. This is required for MODEL_DATA population. "
+                                "Ensure --auto-fields is used and a calibrator is found in the MS field of view."
                             )
-                        )
+                        else:
+                            print(
+                                (
+                                    "Catalog model requested but calibrator info "
+                                    "unavailable; skipping model write"
+                                )
+                            )
                 elif args.model_source == "setjy":
                     if not args.model_field:
                         p.error("--model-source=setjy requires --model-field")
                     print(
                         (
-                            "Running setjy BEFORE K-calibration on field {} (standard {})"
+                            "Running setjy on field {} (standard {})"
                         ).format(args.model_field, args.model_setjy_standard)
                     )
                     model_helpers.write_setjy_model(
@@ -887,7 +1030,7 @@ def main():
                             "--model-source=component requires --model-component"
                         )
                     print(
-                        "Applying component list model BEFORE K-calibration: {}"
+                        "Applying component list model: {}"
                         .format(args.model_component)
                     )
                     model_helpers.write_component_model_with_ft(
@@ -896,79 +1039,80 @@ def main():
                     if not args.model_image:
                         p.error("--model-source=image requires --model-image")
                     print(
-                        "Applying image model BEFORE K-calibration: {}".format(args.model_image)
+                        "Applying image model: {}".format(args.model_image)
                     )
                     model_helpers.write_image_model_with_ft(
                         args.ms, args.model_image)
                 elif args.model_source is None:
                     # No model source specified - this violates "measure twice, cut once"
-                    # We require MODEL_DATA to be populated before K-calibration for consistent,
+                    # We require MODEL_DATA to be populated before calibration for consistent,
                     # reliable results across all calibrators (bright or faint).
                     # This ensures the calibration approach works generally, not just "sometimes"
                     # for bright sources.
-                    p.error(
-                        "--model-source is REQUIRED for K-calibration. "
-                        "This ensures consistent, reliable calibration results. "
-                        "Use --model-source=setjy (for standard calibrators) or "
-                        "--model-source=catalog (for catalog-based models)."
-                    )
+                    if needs_model:
+                        p.error(
+                            "--model-source is REQUIRED for calibration (K, BP, or G). "
+                            "This ensures consistent, reliable calibration results. "
+                            "Use --model-source=setjy (for standard calibrators) or "
+                            "--model-source=catalog (for catalog-based models)."
+                        )
             except Exception as e:
-                # PRECONDITION CHECK: MODEL_DATA population failure is a hard error if K-calibration is enabled
+                # PRECONDITION CHECK: MODEL_DATA population failure is a hard error
                 # This ensures we follow "measure twice, cut once" - establish requirements upfront
                 # before expensive calibration operations.
                 p.error(
                     f"MODEL_DATA population failed: {e}. "
-                    f"This is required for K-calibration. Fix the error and retry."
+                    f"This is required for calibration. Fix the error and retry."
                 )
-            
-            # PRECONDITION CHECK: Validate MODEL_DATA flux values are reasonable
-            # This ensures we follow "measure twice, cut once" - verify MODEL_DATA quality
-            # before proceeding with calibration.
-            if args.model_source is not None:
-                try:
-                    from casacore.tables import table
-                    import numpy as np
-                    with table(ms_in, readonly=True) as tb:
-                        if "MODEL_DATA" in tb.colnames():
-                            n_rows = tb.nrows()
-                            if n_rows > 0:
-                                # Sample MODEL_DATA to check flux values
-                                sample_size = min(10000, n_rows)
-                                model_sample = tb.getcol("MODEL_DATA", startrow=0, nrow=sample_size)
-                                flags_sample = tb.getcol("FLAG", startrow=0, nrow=sample_size)
+        
+        # PRECONDITION CHECK: Validate MODEL_DATA flux values are reasonable
+        # This ensures we follow "measure twice, cut once" - verify MODEL_DATA quality
+        # before proceeding with calibration.
+        if needs_model and args.model_source is not None:
+            try:
+                from casacore.tables import table
+                import numpy as np
+                with table(ms_in, readonly=True) as tb:
+                    if "MODEL_DATA" in tb.colnames():
+                        n_rows = tb.nrows()
+                        if n_rows > 0:
+                            # Sample MODEL_DATA to check flux values
+                            sample_size = min(10000, n_rows)
+                            model_sample = tb.getcol("MODEL_DATA", startrow=0, nrow=sample_size)
+                            flags_sample = tb.getcol("FLAG", startrow=0, nrow=sample_size)
+                            
+                            # Check unflagged model data
+                            unflagged_model = model_sample[~flags_sample]
+                            if len(unflagged_model) > 0:
+                                model_amps = np.abs(unflagged_model)
+                                model_amps = model_amps[model_amps > 1e-10]  # Filter out near-zero
                                 
-                                # Check unflagged model data
-                                unflagged_model = model_sample[~flags_sample]
-                                if len(unflagged_model) > 0:
-                                    model_amps = np.abs(unflagged_model)
-                                    model_amps = model_amps[model_amps > 1e-10]  # Filter out near-zero
+                                if len(model_amps) > 0:
+                                    median_flux = np.median(model_amps)
+                                    min_flux = np.min(model_amps)
+                                    max_flux = np.max(model_amps)
                                     
-                                    if len(model_amps) > 0:
-                                        median_flux = np.median(model_amps)
-                                        min_flux = np.min(model_amps)
-                                        max_flux = np.max(model_amps)
-                                        
-                                        # Warn if flux values seem unrealistic
-                                        if median_flux < 1e-6:  # Less than 1 microJy
-                                            print(
-                                                f"Warning: MODEL_DATA has very low median flux: "
-                                                f"{median_flux:.2e} Jy. This may indicate an issue with "
-                                                f"the model population."
-                                            )
-                                        elif median_flux > 1e6:  # More than 1 MJy
-                                            print(
-                                                f"Warning: MODEL_DATA has very high median flux: "
-                                                f"{median_flux:.2e} Jy. This may indicate an issue with "
-                                                f"the model population."
-                                            )
-                                        else:
-                                            print(
-                                                f"✓ MODEL_DATA validated: median flux {median_flux:.3f} Jy "
-                                                f"(range: {min_flux:.3e} - {max_flux:.3e} Jy)"
-                                            )
-                except Exception as e:
-                    # Non-fatal: log warning but don't fail
-                    print(f"Warning: MODEL_DATA flux validation failed: {e}")
+                                    # Warn if flux values seem unrealistic
+                                    if median_flux < 1e-6:  # Less than 1 microJy
+                                        print(
+                                            f"Warning: MODEL_DATA has very low median flux: "
+                                            f"{median_flux:.2e} Jy. This may indicate an issue with "
+                                            f"the model population."
+                                        )
+                                    elif median_flux > 1e6:  # More than 1 MJy
+                                        print(
+                                            f"Warning: MODEL_DATA has very high median flux: "
+                                            f"{median_flux:.2e} Jy. This may indicate an issue with "
+                                            f"the model population."
+                                        )
+                                    else:
+                                        print(
+                                            f"✓ MODEL_DATA validated: median flux {median_flux:.3f} Jy "
+                                            f"(range: {min_flux:.3e} - {max_flux:.3e} Jy)"
+                                        )
+            except Exception as e:
+                # Non-fatal: log warning but don't fail
+                print(f"Warning: MODEL_DATA flux validation failed: {e}")
         
         ktabs = []
         if args.do_k:
@@ -992,35 +1136,66 @@ def main():
                 )
             )
 
+        # CRITICAL: Solve phase-only calibration BEFORE bandpass for raw uncalibrated data
+        # This corrects phase drifts that cause decorrelation and low SNR in bandpass calibration
+        prebp_phase_table = None
+        if not args.skip_bp:
+            print(f"DEBUG: Starting pre-bandpass phase-only solve...")
+            t_prebp0 = time.perf_counter()
+            try:
+                prebp_phase_table = solve_prebandpass_phase(
+                    ms_in,
+                    field_sel,
+                    refant,
+                    combine_fields=bool(args.bp_combine_field),
+                    uvrange="",  # No uvrange filter for phase-only precalibration
+                    solint="inf",  # Single solution per scan
+                    minsnr=5.0,
+                )
+                elapsed_prebp = time.perf_counter() - t_prebp0
+                print(f"DEBUG: Pre-bandpass phase solve completed in {elapsed_prebp:.2f}s")
+                print("Pre-bandpass phase-only solve completed in {:.2f}s".format(elapsed_prebp))
+            except Exception as e:
+                print(f"WARNING: Pre-bandpass phase solve failed: {e}")
+                print("Continuing with bandpass solve without pre-bandpass phase correction...")
+                logger.warning(f"Pre-bandpass phase solve failed: {e}")
+        
         bptabs = []
         if not args.skip_bp:
+            print(f"DEBUG: Starting bandpass solve...")
             t_bp0 = time.perf_counter()
+            # Default uvrange='>1klambda' for bandpass (unless explicitly overridden)
+            # NOTE: K-table is NOT passed to bandpass (K-calibration not used for DSA-110)
+            bp_uvrange = args.uvrange if args.uvrange else ">1klambda"  # Default uvrange for bandpass
+            print(f"DEBUG: Calling solve_bandpass with uvrange='{bp_uvrange}', field={field_sel}, refant={refant}")
+            if prebp_phase_table:
+                print(f"DEBUG: Using pre-bandpass phase table: {prebp_phase_table}")
+            print(f"DEBUG: This may take several minutes - bandpass solve is running...")
             bptabs = solve_bandpass(
                 ms_in,
                 field_sel,
                 refant,
-                ktabs[0] if ktabs else None,
+                None,  # K-table not used for DSA-110
                 combine_fields=bool(args.bp_combine_field),
                 combine_spw=args.combine_spw,
-                uvrange=(
-                    (args.uvrange or "")
-                    if args.fast
-                    else ""
-                ),
+                uvrange=bp_uvrange,
+                prebandpass_phase_table=prebp_phase_table,  # Apply pre-bandpass phase correction
             )
             elapsed_bp = time.perf_counter() - t_bp0
+            print(f"DEBUG: Bandpass solve completed in {elapsed_bp:.2f}s")
             print("Bandpass solve completed in {:.2f}s".format(elapsed_bp))
         
         gtabs = []
         if not args.skip_g:
             t_g0 = time.perf_counter()
             # Determine phase_only based on gain_calmode
+            # NOTE: K-table is NOT passed to gains (K-calibration not used for DSA-110)
             phase_only = (args.gain_calmode == "p") or bool(args.fast)
             gtabs = solve_gains(
                 ms_in,
                 field_sel,
                 refant,
-                ktabs[0] if ktabs else None,
+                None,  # K-table not used for DSA-110
                 bptabs,
                 combine_fields=bool(args.bp_combine_field),
                 phase_only=phase_only,

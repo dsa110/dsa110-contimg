@@ -43,6 +43,7 @@ nav:
   - Quick Start: quickstart.md
   - Dashboard Quick Start: quickstart_dashboard.md
   - Pipeline Visuals: pipeline.md
+  - Pipeline Workflow Visualization: pipeline_workflow_visualization.md
   - Tutorials:
       - End-to-End Streaming: tutorials/streaming.md
       - Convert UVH5 → MS (Standalone): tutorials/convert-standalone.md

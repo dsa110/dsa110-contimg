@@ -49,7 +49,7 @@ python -m dsa110_contimg.conversion.cli groups \
 - Calculates when calibrator 0834+555 transited on the specified date
 - Finds the observation group containing that transit
 - Uses a ±30 minute window around the transit (configurable)
-- Converts only the group that matches the calibrator's declination
+- Converts only the group that git addmatches the calibrator's declination
 
 **Use this when:** You want to process calibrator data for calibration pipeline.
 

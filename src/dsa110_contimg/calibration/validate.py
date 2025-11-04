@@ -21,6 +21,8 @@ logger = logging.getLogger(__name__)
 def validate_caltable_exists(caltable_path: str) -> None:
     """Verify that a calibration table exists and is readable.
     
+    CASA calibration tables are directories (like Measurement Sets), not files.
+    
     Raises:
         FileNotFoundError: If table doesn't exist
         ValueError: If table is empty or unreadable
@@ -30,9 +32,11 @@ def validate_caltable_exists(caltable_path: str) -> None:
             f"Calibration table does not exist: {caltable_path}"
         )
     
-    if not os.path.isfile(caltable_path):
+    # CASA calibration tables are directories, not files (like MS files)
+    if not os.path.isdir(caltable_path):
         raise ValueError(
-            f"Calibration table path is not a file: {caltable_path}"
+            f"Calibration table path is not a directory: {caltable_path}. "
+            f"CASA calibration tables must be directories."
         )
     
     # Try to open the table to verify it's readable
