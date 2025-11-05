@@ -1018,12 +1018,13 @@ def main():
             try:
                 from casatasks import initweights
                 print("Updating weights to match flags after flagging...")
+                # NOTE: When wtmode='weight', initweights initializes WEIGHT_SPECTRUM from WEIGHT column
+                # dowtsp=True creates/updates WEIGHT_SPECTRUM column
+                # CASA's initweights does NOT have doweight or doflag parameters
                 initweights(
                     vis=ms_in,
-                    wtmode='weight',
-                    doweight=True,
-                    dowtsp=True,
-                    doflag=False  # Respect existing flags, don't add new ones
+                    wtmode='weight',  # Initialize WEIGHT_SPECTRUM from existing WEIGHT
+                    dowtsp=True      # Create/update WEIGHT_SPECTRUM column
                 )
                 print("✓ Weights updated to match flags")
             except Exception as e:
