@@ -195,6 +195,9 @@ def configure_ms_for_imaging(
 ) -> None:
     """
     Make a Measurement Set safe and ready for imaging and calibration.
+    
+    This function uses consistent error handling: critical failures raise
+    exceptions, while non-critical issues log warnings and continue.
 
     Parameters
     ----------
@@ -208,19 +211,65 @@ def configure_ms_for_imaging(
         Run casatasks.initweights with WEIGHT_SPECTRUM initialization enabled.
     fix_mount : bool
         Normalize ANTENNA.MOUNT values.
+        
+    Raises
+    ------
+    RuntimeError
+        If MS path does not exist or is not readable (critical failure)
     """
     if not isinstance(ms_path, str):
         ms_path = os.fspath(ms_path)
 
+    # CRITICAL: Validate MS exists and is readable
+    if not os.path.exists(ms_path):
+        raise RuntimeError(f"MS does not exist: {ms_path}")
+    if not os.path.isdir(ms_path):
+        raise RuntimeError(f"MS path is not a directory: {ms_path}")
+    if not os.access(ms_path, os.R_OK):
+        raise RuntimeError(f"MS is not readable: {ms_path}")
+
+    # Track which operations succeeded for summary logging
+    operations_status = {
+        'columns': 'skipped',
+        'flag_weight': 'skipped', 
+        'initweights': 'skipped',
+        'mount_fix': 'skipped',
+        'telescope_stamp': 'skipped'
+    }
+
     if ensure_columns:
-        _ensure_imaging_columns_exist(ms_path)
-        _ensure_imaging_columns_populated(ms_path)
+        try:
+            _ensure_imaging_columns_exist(ms_path)
+            _ensure_imaging_columns_populated(ms_path)
+            operations_status['columns'] = 'success'
+        except Exception as e:
+            operations_status['columns'] = f'failed: {e}'
+            # Non-fatal: continue with other operations
+            
     if ensure_flag_and_weight:
-        _ensure_flag_and_weight_spectrum(ms_path)
+        try:
+            _ensure_flag_and_weight_spectrum(ms_path)
+            operations_status['flag_weight'] = 'success'
+        except Exception as e:
+            operations_status['flag_weight'] = f'failed: {e}'
+            # Non-fatal: continue with other operations
+            
     if do_initweights:
-        _initialize_weights(ms_path)
+        try:
+            _initialize_weights(ms_path)
+            operations_status['initweights'] = 'success'
+        except Exception as e:
+            operations_status['initweights'] = f'failed: {e}'
+            # Non-fatal: initweights often fails on edge cases
+            
     if fix_mount:
-        _fix_mount_type_in_ms(ms_path)
+        try:
+            _fix_mount_type_in_ms(ms_path)
+            operations_status['mount_fix'] = 'success'
+        except Exception as e:
+            operations_status['mount_fix'] = f'failed: {e}'
+            # Non-fatal: mount type normalization is optional
+            
     if stamp_observation_telescope:
         try:
             from casacore.tables import table as _tb  # type: ignore
@@ -230,9 +279,32 @@ def configure_ms_for_imaging(
                 n = tb.nrows()
                 if n:
                     tb.putcol('TELESCOPE_NAME', [name] * n)
-        except Exception:
-            # Non-fatal best-effort stamping
-            pass
+            operations_status['telescope_stamp'] = 'success'
+        except Exception as e:
+            operations_status['telescope_stamp'] = f'failed: {e}'
+            # Non-fatal: telescope name stamping is optional
+    
+    # Summary logging - report what worked and what didn't
+    import logging
+    logger = logging.getLogger(__name__)
+    
+    success_ops = [op for op, status in operations_status.items() if status == 'success']
+    failed_ops = [f"{op}({status.split(': ')[1]})" for op, status in operations_status.items() 
+                  if status.startswith('failed')]
+    
+    if success_ops:
+        logger.info(f"✓ MS configuration completed: {', '.join(success_ops)}")
+    if failed_ops:
+        logger.warning(f"⚠ MS configuration partial failures: {'; '.join(failed_ops)}")
+    
+    # Final validation: verify MS is still readable after all operations
+    try:
+        from casacore.tables import table as _tb
+        with _tb(ms_path, readonly=True) as tb:
+            if tb.nrows() == 0:
+                raise RuntimeError(f"MS has no data after configuration: {ms_path}")
+    except Exception as e:
+        raise RuntimeError(f"MS became unreadable after configuration: {e}")
 
 
 __all__ = [

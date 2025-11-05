@@ -26,6 +26,7 @@ from dsa110_contimg.conversion.helpers import (
     get_meridian_coords,
     compute_and_set_uvw,
     set_telescope_identity,
+    cleanup_casa_file_handles,
 )
 
 if TYPE_CHECKING:
@@ -258,16 +259,27 @@ class DirectSubbandWriter(MSWriter):
         # Solution 4: Ensure subband write processes fully terminate before concat
         # Allow processes to fully terminate and release file handles
         time.sleep(0.5)
+        
+        # CRITICAL: Clean up any lingering CASA file handles before concat
+        # This prevents file locking issues during concatenation
+        cleanup_casa_file_handles()
 
         # Solution 3: Retry logic for concat failures
         # Concatenate parts into the final MS with retry on file locking errors
         print(
             f"Concatenating {len(parts)} parts into {ms_stage_path}"
         )
-        max_retries = 2
+        max_retries = 3  # Increased from 2 to 3 for better reliability
         concat_success = False
+        last_error = None
+        
         for attempt in range(max_retries):
             try:
+                # Additional cleanup before each concat attempt
+                if attempt > 0:
+                    cleanup_casa_file_handles()
+                    time.sleep(1.0)  # Give more time for handles to close
+                
                 # CRITICAL: Parts are already in correct subband order (0-15)
                 # Do NOT sort here - parts are already ordered by subband number
                 # from the futures collection above. Sorting would break spectral order.
@@ -278,39 +290,32 @@ class DirectSubbandWriter(MSWriter):
                 concat_success = True
                 break
             except RuntimeError as e:
+                last_error = e
                 error_msg = str(e)
                 if ("cannot be opened" in error_msg or 
                     "readBlock" in error_msg or 
-                    "read/write" in error_msg):
+                    "read/write" in error_msg or
+                    "lock" in error_msg.lower()):
                     if attempt < max_retries - 1:
                         logger.warning(
                             f"Concat failed (attempt {attempt + 1}/{max_retries}), "
                             f"retrying after cleanup: {e}"
                         )
-                        # Cleanup and retry
-                        for part in parts:
-                            try:
-                                shutil.rmtree(part, ignore_errors=True)
-                            except Exception:
-                                pass
-                        time.sleep(1.0)
+                        # Enhanced cleanup and retry
+                        cleanup_casa_file_handles()
+                        time.sleep(2.0)  # Longer wait for file handles to release
                         continue
                 raise
         
         if not concat_success:
-            raise RuntimeError("Concat failed after all retry attempts")
+            cleanup_casa_file_handles()  # Final cleanup attempt
+            raise RuntimeError(
+                f"Concat failed after {max_retries} attempts. Last error: {last_error}"
+            )
 
         # Solution 1: Explicit cleanup verification after concat
         # Close any CASA handles that might still be open
-        try:
-            import casatools
-            ms_tool = casatools.ms()
-            try:
-                ms_tool.close()
-            except Exception:
-                pass
-        except ImportError:
-            pass
+        cleanup_casa_file_handles()
 
         # If staged on tmpfs, move final MS atomically (or via copy on
         # cross-device)

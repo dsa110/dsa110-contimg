@@ -233,6 +233,16 @@ class QueueDB:
                     except sqlite3.DatabaseError:
                         continue
 
+            # Check which columns exist in current schema
+            try:
+                columns = {
+                    row["name"]
+                    for row in self._conn.execute("PRAGMA table_info(ingest_queue)").fetchall()
+                }
+            except sqlite3.DatabaseError:
+                columns = set()
+            
+            altered = False
             if "has_calibrator" not in columns:
                 self._conn.execute(
                     "ALTER TABLE ingest_queue ADD COLUMN has_calibrator INTEGER DEFAULT NULL")
@@ -342,6 +352,64 @@ class QueueDB:
                 (now, group_id),
             )
             return group_id
+
+    def update_state(self, group_id: str, state: str, error: Optional[str] = None) -> None:
+        """Update the state of a group in the queue."""
+        normalized_group = self._normalize_group_id_datetime(group_id)
+        now = time.time()
+        with self._lock, self._conn:
+            if error is not None:
+                self._conn.execute(
+                    """
+                    UPDATE ingest_queue
+                       SET state = ?, last_update = ?, error = ?
+                     WHERE group_id = ?
+                    """,
+                    (state, now, error, normalized_group),
+                )
+            else:
+                self._conn.execute(
+                    """
+                    UPDATE ingest_queue
+                       SET state = ?, last_update = ?
+                     WHERE group_id = ?
+                    """,
+                    (state, now, normalized_group),
+                )
+
+    def record_metrics(self, group_id: str, **kwargs) -> None:
+        """Record performance metrics for a group."""
+        normalized_group = self._normalize_group_id_datetime(group_id)
+        now = time.time()
+        with self._lock, self._conn:
+            # Build column list and values dynamically
+            columns = ["group_id", "recorded_at"]
+            values = [normalized_group, now]
+            placeholders = ["?", "?"]
+            
+            for key, value in kwargs.items():
+                columns.append(key)
+                values.append(value)
+                placeholders.append("?")
+            
+            self._conn.execute(
+                f"""
+                INSERT OR REPLACE INTO performance_metrics ({', '.join(columns)})
+                VALUES ({', '.join(placeholders)})
+                """,
+                values,
+            )
+
+    def group_files(self, group_id: str) -> List[str]:
+        """Get list of file paths for a group."""
+        normalized_group = self._normalize_group_id_datetime(group_id)
+        with self._lock:
+            rows = self._conn.execute(
+                "SELECT path FROM subband_files WHERE group_id = ? ORDER BY subband_idx",
+                (normalized_group,),
+            ).fetchall()
+            return [row[0] for row in rows]
+
 
 class _FSHandler(FileSystemEventHandler):
     """Watchdog handler to record arriving subband files."""

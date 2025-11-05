@@ -18,6 +18,13 @@ from dsa110_contimg.conversion.helpers import (
     set_model_column,
     phase_to_meridian,
     set_telescope_identity,
+    validate_ms_frequency_order,
+    cleanup_casa_file_handles,
+    validate_phase_center_coherence,
+    validate_uvw_precision,
+    validate_antenna_positions,
+    validate_model_data_quality,
+    validate_reference_antenna_stability,
 )
 from dsa110_contimg.conversion.ms_utils import configure_ms_for_imaging
 from dsa110_contimg.qa.pipeline_quality import check_ms_after_conversion
@@ -676,11 +683,66 @@ def convert_subband_groups_to_ms(
                 t_write_start)
             print(f"WRITER_TYPE: {writer_type}")
             
+            # CRITICAL: Clean up CASA file handles before validation
+            # This prevents file locking issues when accessing the MS
+            cleanup_casa_file_handles()
+            
             # PRECONDITION CHECK: Validate MS was written successfully
             # This ensures we follow "measure twice, cut once" - verify output before
             # marking conversion as complete.
             if not os.path.exists(ms_path):
                 raise RuntimeError(f"MS was not created: {ms_path}")
+            
+            # CRITICAL: Validate frequency order to prevent imaging artifacts
+            # DSA-110 subbands must be in ascending frequency order after conversion
+            try:
+                validate_ms_frequency_order(ms_path)
+            except RuntimeError as e:
+                # Frequency order error is critical - clean up and fail
+                logger.error(f"CRITICAL: {e}")
+                try:
+                    if os.path.exists(ms_path):
+                        shutil.rmtree(ms_path, ignore_errors=True)
+                        logger.info(f"Cleaned up MS with incorrect frequency order: {ms_path}")
+                except Exception:
+                    pass
+                raise
+            
+            # CRITICAL: Validate phase center coherence to prevent imaging artifacts
+            # All subbands should have coherent phase centers after conversion
+            try:
+                validate_phase_center_coherence(ms_path, tolerance_arcsec=2.0)
+            except RuntimeError as e:
+                # Phase center incoherence is serious - warn but don't fail
+                logger.error(f"WARNING: {e}")
+                # Don't clean up MS for phase center issues - data may still be usable
+            
+            # CRITICAL: Validate UVW coordinate precision to prevent calibration decorrelation
+            # Inaccurate UVW coordinates cause phase errors and flagged solutions
+            try:
+                validate_uvw_precision(ms_path, tolerance_lambda=0.1)
+            except RuntimeError as e:
+                # UVW precision errors are critical for calibration
+                logger.error(f"CRITICAL: {e}")
+                # Continue anyway - user may need to check antenna positions
+            
+            # CRITICAL: Validate antenna positions to prevent calibration decorrelation
+            # Position errors cause systematic phase errors and flagged solutions
+            try:
+                validate_antenna_positions(ms_path, position_tolerance_m=0.05)
+            except RuntimeError as e:
+                # Position errors are critical for calibration
+                logger.error(f"CRITICAL: {e}")
+                # Continue anyway - user may need to update antenna positions
+            
+            # CRITICAL: Validate MODEL_DATA quality for calibrator sources
+            # Poor calibrator models lead to decorrelation and flagged solutions
+            try:
+                validate_model_data_quality(ms_path)
+            except RuntimeError as e:
+                # MODEL_DATA issues affect calibration quality
+                logger.error(f"WARNING: {e}")
+                # Continue anyway - user may proceed with caution
             
             # Verify MS is readable and has required structure
             try:
