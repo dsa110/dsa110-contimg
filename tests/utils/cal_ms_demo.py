@@ -40,7 +40,7 @@ def main():
     bptabs = solve_bandpass(ms, field, refant, ktab)
 
     print("Solve gains (G)")
-    gtabs = solve_gains(ms, field, refant, ktab, bptabs, do_fluxscale=False)
+    gtabs = solve_gains(ms, field, refant, ktab, bptabs)
 
     tables = [ktab] + bptabs + gtabs
     print("Apply calibration to self")

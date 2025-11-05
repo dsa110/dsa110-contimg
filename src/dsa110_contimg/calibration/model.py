@@ -38,9 +38,9 @@ def _calculate_manual_model_data(
     
     This bypasses ft() which may use incorrect phase center information.
     
-    **CRITICAL**: Uses each field's own REFERENCE_DIR to ensure correct phase structure
-    after rephasing. This is essential because rephasing may update REFERENCE_DIR
-    differently for different fields, and using the wrong REFERENCE_DIR causes phase errors.
+    **CRITICAL**: Uses each field's own PHASE_DIR (falls back to REFERENCE_DIR if unavailable)
+    to ensure correct phase structure. PHASE_DIR matches the DATA column phasing (updated by
+    phaseshift), ensuring MODEL_DATA phase structure matches DATA column exactly.
     
     Args:
         ms_path: Path to Measurement Set
@@ -73,10 +73,16 @@ def _calculate_manual_model_data(
             field_indices = [int(field)]
         # If field is a name or invalid, field_indices stays None (use all fields)
     
-    # Read MS phase center from REFERENCE_DIR for all fields
+    # Read MS phase center from PHASE_DIR for all fields
+    # PHASE_DIR matches the actual phase center used for DATA column phasing
+    # (updated by phaseshift). This ensures MODEL_DATA matches DATA column phase structure.
     with casa_table(f"{ms_path}::FIELD", readonly=True) as field_tb:
-        ref_dir = field_tb.getcol("REFERENCE_DIR")  # Shape: (nfields, 1, 2)
-        nfields = len(ref_dir)
+        if "PHASE_DIR" in field_tb.colnames():
+            phase_dir = field_tb.getcol("PHASE_DIR")  # Shape: (nfields, 1, 2)
+        else:
+            # Fallback to REFERENCE_DIR if PHASE_DIR not available
+            phase_dir = field_tb.getcol("REFERENCE_DIR")  # Shape: (nfields, 1, 2)
+        nfields = len(phase_dir)
     
     # Read spectral window information for frequencies
     with casa_table(f"{ms_path}::SPECTRAL_WINDOW", readonly=True) as spw_tb:
@@ -112,7 +118,7 @@ def _calculate_manual_model_data(
         # Initialize MODEL_DATA array with correct shape (nrows, nchan, npol)
         model_data = np.zeros((nrows, nchan, npol), dtype=np.complex64)
         
-        # Calculate MODEL_DATA for each row using that row's field's REFERENCE_DIR
+        # Calculate MODEL_DATA for each row using that row's field's PHASE_DIR
         for row_idx in range(nrows):
             if not field_mask[row_idx]:
                 continue  # Skip rows not in selected field
@@ -122,9 +128,9 @@ def _calculate_manual_model_data(
             if row_field_idx >= nfields:
                 continue  # Skip invalid field indices
             
-            # Use this field's REFERENCE_DIR (critical for correct phase after rephasing)
-            phase_center_ra_rad = ref_dir[row_field_idx][0][0]
-            phase_center_dec_rad = ref_dir[row_field_idx][0][1]
+            # Use this field's PHASE_DIR (matches DATA column phasing, updated by phaseshift)
+            phase_center_ra_rad = phase_dir[row_field_idx][0][0]
+            phase_center_dec_rad = phase_dir[row_field_idx][0][1]
             phase_center_ra_deg = phase_center_ra_rad * 180.0 / np.pi
             phase_center_dec_deg = phase_center_dec_rad * 180.0 / np.pi
             
