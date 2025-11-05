@@ -1,0 +1,17 @@
+{
+  "ms_path": "--help",
+  "caltable_path": null,
+  "timestamp": "2025-11-05",
+  "ms_structure": {
+    "error": "casacore not available"
+  },
+  "model_data": {
+    "error": "casacore not available"
+  },
+  "spw_analysis": {
+    "error": "casacore not available"
+  },
+  "recommendations": [
+    "No obvious issues detected - further investigation needed"
+  ]
+}

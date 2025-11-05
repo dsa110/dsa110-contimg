@@ -1,0 +1,36 @@
+# Testing requirements for DSA-110 continuum imaging pipeline validation
+# These tests require the full casa6 environment with DSA-110 dependencies
+
+# Core testing framework
+pytest>=7.0.0
+pytest-cov>=4.0.0
+pytest-mock>=3.10.0
+pytest-xdist>=3.0.0  # Parallel testing
+
+# Mocking and test utilities
+unittest-mock>=1.0.0
+
+# For test data generation and validation
+numpy>=1.20.0
+scipy>=1.8.0
+matplotlib>=3.5.0  # For test result visualization
+
+# Documentation testing
+sphinx>=5.0.0
+sphinx-rtd-theme>=1.0.0
+
+# Code quality
+flake8>=5.0.0
+black>=22.0.0
+isort>=5.10.0
+mypy>=0.991
+
+# Performance testing
+pytest-benchmark>=4.0.0
+
+# Test data management
+h5py>=3.6.0  # For synthetic HDF5 file creation/modification
+
+# CI/CD specific
+coverage>=6.0.0
+codecov>=2.1.0

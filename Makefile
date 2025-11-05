@@ -1,7 +1,7 @@
 DC=docker compose -f ops/docker/docker-compose.yml
 .DEFAULT_GOAL := help
 
-.PHONY: help compose-build compose-up compose-down compose-logs compose-ps compose-restart compose-up-scheduler compose-up-stream compose-up-api compose-pull compose-down-service compose-stop docs-install docs-serve docs-build docs-deploy guardrails-check guardrails-fix ingest-docs test-catalog test-vla-catalog
+.PHONY: help compose-build compose-up compose-down compose-logs compose-ps compose-restart compose-up-scheduler compose-up-stream compose-up-api compose-pull compose-down-service compose-stop docs-install docs-serve docs-build docs-deploy guardrails-check guardrails-fix ingest-docs test-catalog test-vla-catalog test-unit test-validation test-integration test-all test-quality
 
 help:
 	@echo "DSA-110 Continuum Pipeline - Docker Compose helper targets"
@@ -29,12 +29,19 @@ help:
 	@echo "  make compose-up-api                Start only the api service"
 	@echo "  make compose-up-scheduler          Start only the scheduler service"
 	@echo ""
+	@echo "Testing & Validation:"
+	@echo "  make test-help                     Show detailed testing help"
+	@echo "  make test-unit                     Unit tests (mocked, no dependencies)"
+	@echo "  make test-validation               Validation tests (requires casa6)"
+	@echo "  make test-all                      Run all tests"
+	@echo ""
 	@echo "Examples:"
 	@echo "  make compose-build"
 	@echo "  make compose-up"
 	@echo "  make compose-logs SERVICE=stream"
 	@echo "  make compose-restart SERVICE=api"
 	@echo "  make compose-up-scheduler"
+	@echo "  make test-validation               # Test enhanced pipeline"
 	@echo ""
 	@echo "Docs:"
 	@echo "  mkdocs.yml config present; to serve docs locally (if mkdocs installed):"
@@ -129,3 +136,106 @@ test-catalog:
 # VLA catalog ingestion smoke test (requires casa6)
 test-vla-catalog:
 	PYTHONPATH=$(PWD)/src /opt/miniforge/envs/casa6/bin/python scripts/test_ingest_vla_catalog.py
+
+# ============================================================================
+# Testing and Validation Targets for Enhanced Pipeline
+# ============================================================================
+
+# Unit tests (mocked, no dependencies)
+test-unit:
+	@echo "Running unit tests with mocking..."
+	@if command -v pytest >/dev/null 2>&1; then \
+		PYTHONPATH=$(PWD)/src pytest tests/unit/test_validation_functions.py -v; \
+	else \
+		echo "ERROR: pytest not found. Install with: pip install pytest"; \
+		exit 1; \
+	fi
+
+# Validation tests (requires casa6 environment)
+test-validation:
+	@echo "Running validation tests in casa6 environment..."
+	@if [ -f ./test_enhanced_pipeline_production.sh ]; then \
+		chmod +x ./test_enhanced_pipeline_production.sh; \
+		./test_enhanced_pipeline_production.sh; \
+	else \
+		echo "ERROR: test_enhanced_pipeline_production.sh not found"; \
+		exit 1; \
+	fi
+
+# Integration tests (synthetic data + conversion)
+test-integration:
+	@echo "Running integration tests with synthetic data..."
+	@if [ -d "/opt/miniforge/envs/casa6" ]; then \
+		export PYTHONPATH=$(PWD)/src; \
+		/opt/miniforge/envs/casa6/bin/python -m pytest tests/validation/test_pipeline_validation_integration.py -v; \
+	else \
+		echo "ERROR: casa6 environment not found at /opt/miniforge/envs/casa6"; \
+		echo "Please install casa6 environment or modify path in Makefile"; \
+		exit 1; \
+	fi
+
+# Code quality checks
+test-quality:
+	@echo "Running code quality checks..."
+	@echo "Checking validation function formatting..."
+	@if command -v flake8 >/dev/null 2>&1; then \
+		flake8 src/dsa110_contimg/conversion/helpers.py --max-line-length=79 --extend-ignore=E203,W503; \
+	else \
+		echo "WARNING: flake8 not found. Install with: pip install flake8"; \
+	fi
+	@echo "Checking for TODO/FIXME markers in validation code..."
+	@grep -n "TODO\|FIXME" src/dsa110_contimg/conversion/helpers.py || echo "No TODO/FIXME found in validation code"
+
+# Run all tests
+test-all: test-quality test-unit test-validation test-integration
+	@echo "All validation tests completed!"
+
+# Install test dependencies
+test-deps:
+	@echo "Installing test dependencies..."
+	pip install -r requirements-test.txt
+
+# Clean test artifacts
+test-clean:
+	@echo "Cleaning test artifacts..."
+	rm -rf /tmp/dsa110_validation_test_*
+	rm -rf /tmp/test_scenarios
+	rm -rf .pytest_cache
+	rm -rf tests/__pycache__
+	rm -rf tests/unit/__pycache__
+	rm -rf tests/validation/__pycache__
+	find . -name "*.pyc" -delete
+	find . -name "__pycache__" -type d -exec rm -rf {} + 2>/dev/null || true
+
+# Display test help
+test-help:
+	@echo "DSA-110 Pipeline Testing and Validation"
+	@echo "========================================"
+	@echo ""
+	@echo "Test Types:"
+	@echo "  make test-unit        Unit tests with mocking (no dependencies)"
+	@echo "  make test-validation  Validation tests with synthetic data (requires casa6)"
+	@echo "  make test-integration Integration tests (requires casa6)"
+	@echo "  make test-quality     Code quality and style checks"
+	@echo "  make test-all         Run all tests (unit -> validation -> integration)"
+	@echo ""
+	@echo "Utilities:"
+	@echo "  make test-deps        Install test dependencies"
+	@echo "  make test-clean       Clean test artifacts and cache files"
+	@echo "  make test-help        Show this help message"
+	@echo ""
+	@echo "Requirements:"
+	@echo "  - Unit tests: pytest (pip install pytest)"
+	@echo "  - Validation/Integration tests: casa6 environment at /opt/miniforge/envs/casa6"
+	@echo "  - Quality checks: flake8 (pip install flake8)"
+	@echo ""
+	@echo "Enhanced validation functions test:"
+	@echo "  - Frequency ordering validation"
+	@echo "  - UVW coordinate precision checks"
+	@echo "  - Antenna position accuracy validation"
+	@echo "  - MODEL_DATA quality assessment"
+	@echo "  - Reference antenna stability analysis"
+	@echo "  - CASA file handle cleanup verification"
+	@echo ""
+	@echo "CI/CD Integration:"
+	@echo "  Tests are configured for GitHub Actions in .github/workflows/validation-tests.yml"
