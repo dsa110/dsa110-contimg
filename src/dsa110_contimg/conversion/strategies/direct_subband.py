@@ -194,35 +194,66 @@ class DirectSubbandWriter(MSWriter):
 
         # Use processes, not threads: casatools/casacore are not thread-safe
         # for concurrent Simulator usage.
+        # CRITICAL: DSA-110 subbands use DESCENDING frequency order:
+        #   sb00 = highest frequency (~1498 MHz)
+        #   sb15 = lowest frequency (~1311 MHz)
+        # For MFS imaging, we need ASCENDING frequency order (low to high).
+        # Therefore, we must REVERSE the subband number sort.
+        from dsa110_contimg.conversion.strategies.hdf5_orchestrator import _extract_subband_code
+        def sort_by_subband(fpath):
+            fname = os.path.basename(fpath)
+            sb = _extract_subband_code(fname)
+            sb_num = int(sb.replace('sb', '')) if sb else 999
+            return sb_num
+        
+        # CRITICAL: Sort in REVERSE subband order (15, 14, ..., 1, 0) to get
+        # ascending frequency order (lowest to highest) for proper MFS imaging
+        # and bandpass calibration. If frequencies are out of order, imaging will
+        # produce fringes and bandpass calibration will fail.
+        sorted_files = sorted(self.file_list, key=sort_by_subband, reverse=True)
+        
         futures = []
         with ProcessPoolExecutor(max_workers=self.max_workers) as ex:
-            for idx, sb_file in enumerate(sorted(self.file_list)):
+            for idx, sb_file in enumerate(sorted_files):
                 part_out = (
                     part_base / f"{Path(ms_stage_path).stem}.sb{idx:02d}.ms"
                 )
-                futures.append(
+                futures.append((
+                    idx,
                     ex.submit(
                         _write_ms_subband_part,
                         sb_file,
                         str(part_out),
                         group_phase_ra,  # Pass shared phase center
                         group_phase_dec,
-                        group_pt_dec))
+                        group_pt_dec)
+                ))
 
-            parts = []
-            for i, future in enumerate(as_completed(futures)):
-                try:
-                    parts.append(future.result())
-                    if (i + 1) % 4 == 0 or (i + 1) == len(futures):
-                        msg = (
-                            f"Per-subband writes completed: {i + 1}/"
-                            f"{len(futures)}"
-                        )
-                        print(msg)
-                except Exception as e:
-                    raise RuntimeError(
-                        f"A subband writer process failed: {e}"
+        # Collect results in order (idx 0, 1, 2, ..., 15) to maintain spectral order
+        parts = [None] * len(futures)
+        completed = 0
+        for future in as_completed([f for _, f in futures]):
+            try:
+                result = future.result()
+                # Find which idx this future corresponds to
+                for orig_idx, orig_future in futures:
+                    if orig_future == future:
+                        parts[orig_idx] = result
+                        completed += 1
+                        break
+                if completed % 4 == 0 or completed == len(futures):
+                    msg = (
+                        f"Per-subband writes completed: {completed}/"
+                        f"{len(futures)}"
                     )
+                    print(msg)
+            except Exception as e:
+                raise RuntimeError(
+                    f"A subband writer process failed: {e}"
+                )
+        
+        # Remove None entries (shouldn't happen, but safety check)
+        parts = [p for p in parts if p is not None]
 
         # Solution 4: Ensure subband write processes fully terminate before concat
         # Allow processes to fully terminate and release file handles
@@ -237,8 +268,11 @@ class DirectSubbandWriter(MSWriter):
         concat_success = False
         for attempt in range(max_retries):
             try:
+                # CRITICAL: Parts are already in correct subband order (0-15)
+                # Do NOT sort here - parts are already ordered by subband number
+                # from the futures collection above. Sorting would break spectral order.
                 casa_concat(
-                    vis=sorted(parts),
+                    vis=parts,  # Already in correct subband order
                     concatvis=str(ms_stage_path),
                     copypointing=False)
                 concat_success = True
@@ -577,8 +611,17 @@ def write_ms_from_subbands(file_list, ms_path, scratch_dir=None):
         pass
 
     # Create per-subband MS files
+    # CRITICAL: DSA-110 subbands use DESCENDING frequency order (sb00=highest, sb15=lowest).
+    # For MFS imaging, we need ASCENDING frequency order, so REVERSE the sort.
+    from dsa110_contimg.conversion.strategies.hdf5_orchestrator import _extract_subband_code
+    def sort_by_subband(fpath):
+        fname = os.path.basename(fpath)
+        sb = _extract_subband_code(fname)
+        sb_num = int(sb.replace('sb', '')) if sb else 999
+        return sb_num
+    
     parts = []
-    for idx, sb in enumerate(sorted(file_list)):
+    for idx, sb in enumerate(sorted(file_list, key=sort_by_subband, reverse=True)):
         part_out = part_base / f"{Path(ms_stage_path).stem}.sb{idx:02d}.ms"
         try:
             result = _write_ms_subband_part(
@@ -596,11 +639,14 @@ def write_ms_from_subbands(file_list, ms_path, scratch_dir=None):
         raise RuntimeError("No subband MS files were created successfully")
 
     # Concatenate parts into the final MS
+    # CRITICAL: Parts are already in correct subband order (0-15) from the sorted
+    # file_list iteration above. Do NOT sort here - sorting would break spectral order
+    # and cause frequency channels to be scrambled, leading to incorrect bandpass calibration.
     print(
         f"Concatenating {len(parts)} parts into {ms_stage_path}"
     )
     casa_concat(
-        vis=sorted(parts),
+        vis=parts,  # Already in correct subband order
         concatvis=ms_stage_path,
         copypointing=False)
 

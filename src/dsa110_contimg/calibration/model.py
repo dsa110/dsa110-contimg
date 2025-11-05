@@ -5,6 +5,7 @@ import astropy.units as u
 from astropy.coordinates import SkyCoord
 from casacore.tables import addImagingColumns
 import casacore.tables as tb
+import numpy as np
 
 
 def _ensure_imaging_columns(ms_path: str) -> None:
@@ -23,6 +24,136 @@ def _initialize_corrected_from_data(ms_path: str) -> None:
         pass
 
 
+def _calculate_manual_model_data(
+    ms_path: str,
+    ra_deg: float,
+    dec_deg: float,
+    flux_jy: float,
+    field: Optional[str] = None,
+) -> None:
+    """Manually calculate MODEL_DATA phase structure using correct phase center.
+    
+    This function calculates MODEL_DATA directly using the formula:
+        phase = 2π * (u*ΔRA + v*ΔDec) / λ
+    
+    This bypasses ft() which may use incorrect phase center information.
+    
+    Args:
+        ms_path: Path to Measurement Set
+        ra_deg: Right ascension in degrees (component position)
+        dec_deg: Declination in degrees (component position)
+        flux_jy: Flux in Jy
+        field: Optional field selection (default: all fields)
+    """
+    from casacore.tables import table as casa_table
+    
+    _ensure_imaging_columns(ms_path)
+    
+    # Read MS phase center from REFERENCE_DIR (the authoritative phase center)
+    with casa_table(f"{ms_path}::FIELD", readonly=True) as field_tb:
+        ref_dir = field_tb.getcol("REFERENCE_DIR")
+        if field is not None:
+            # If field is specified, use that field's REFERENCE_DIR
+            try:
+                field_idx = int(field) if field.isdigit() else None
+                if field_idx is not None:
+                    phase_center_ra_rad = ref_dir[field_idx][0][0]
+                    phase_center_dec_rad = ref_dir[field_idx][0][1]
+                else:
+                    # Field name lookup (simplified - assumes first matching field)
+                    phase_center_ra_rad = ref_dir[0][0][0]
+                    phase_center_dec_rad = ref_dir[0][0][1]
+            except (ValueError, IndexError):
+                phase_center_ra_rad = ref_dir[0][0][0]
+                phase_center_dec_rad = ref_dir[0][0][1]
+        else:
+            # Use first field's phase center
+            phase_center_ra_rad = ref_dir[0][0][0]
+            phase_center_dec_rad = ref_dir[0][0][1]
+        
+        phase_center_ra_deg = phase_center_ra_rad * 180.0 / np.pi
+        phase_center_dec_deg = phase_center_dec_rad * 180.0 / np.pi
+    
+    # Calculate offset from phase center to component
+    offset_ra_rad = (ra_deg - phase_center_ra_deg) * np.pi / 180.0 * np.cos(phase_center_dec_rad)
+    offset_dec_rad = (dec_deg - phase_center_dec_deg) * np.pi / 180.0
+    
+    # Read spectral window information for frequencies
+    with casa_table(f"{ms_path}::SPECTRAL_WINDOW", readonly=True) as spw_tb:
+        chan_freq = spw_tb.getcol("CHAN_FREQ")  # Shape: (nspw, nchan)
+        nspw = len(chan_freq)
+    
+    # Read main table data
+    with casa_table(ms_path, readonly=False) as main_tb:
+        nrows = main_tb.nrows()
+        
+        # Read UVW coordinates
+        uvw = main_tb.getcol("UVW")  # Shape: (nrows, 3)
+        u = uvw[:, 0]
+        v = uvw[:, 1]
+        
+        # Read SPECTRAL_WINDOW_ID to map rows to spectral windows
+        spw_id = main_tb.getcol("DATA_DESC_ID")  # Shape: (nrows,)
+        
+        # Read FIELD_ID to apply field selection
+        field_id = main_tb.getcol("FIELD_ID")  # Shape: (nrows,)
+        
+        # Apply field selection if specified
+        if field is not None:
+            try:
+                field_idx = int(field) if field.isdigit() else None
+                if field_idx is not None:
+                    field_mask = field_id == field_idx
+                else:
+                    # Field name lookup (simplified - use first field)
+                    field_mask = field_id == 0
+            except ValueError:
+                field_mask = np.ones(nrows, dtype=bool)
+        else:
+            field_mask = np.ones(nrows, dtype=bool)
+        
+        # Read DATA shape to create MODEL_DATA with matching shape
+        data_sample = main_tb.getcell("DATA", 0)
+        data_shape = data_sample.shape  # (npol, nchan, ...)
+        npol, nchan = data_shape[0], data_shape[1]
+        
+        # Initialize MODEL_DATA array
+        model_data = np.zeros((nrows, npol, nchan), dtype=np.complex64)
+        
+        # Calculate MODEL_DATA for each row
+        for row_idx in range(nrows):
+            if not field_mask[row_idx]:
+                continue  # Skip rows not in selected field
+            
+            spw_idx = spw_id[row_idx]
+            if spw_idx >= nspw:
+                continue  # Skip invalid spectral window
+            
+            # Get frequencies for this spectral window
+            freqs = chan_freq[spw_idx]  # Shape: (nchan,)
+            wavelengths = 3e8 / freqs  # Shape: (nchan,)
+            
+            # Calculate phase for each channel
+            # phase = 2π * (u*ΔRA + v*ΔDec) / λ
+            phase = 2 * np.pi * (u[row_idx] * offset_ra_rad + v[row_idx] * offset_dec_rad) / wavelengths
+            phase = np.mod(phase + np.pi, 2*np.pi) - np.pi  # Wrap to [-π, π]
+            
+            # Amplitude is constant (flux_jy)
+            amplitude = float(flux_jy)
+            
+            # Create complex model: amplitude * exp(i*phase)
+            model_complex = amplitude * (np.cos(phase) + 1j * np.sin(phase))  # Shape: (nchan,)
+            
+            # Broadcast to all polarizations
+            for pol_idx in range(npol):
+                model_data[row_idx, pol_idx, :] = model_complex
+        
+        # Write MODEL_DATA column
+        main_tb.putcol("MODEL_DATA", model_data)
+    
+    _initialize_corrected_from_data(ms_path)
+
+
 def write_point_model_with_ft(
     ms_path: str,
     ra_deg: float,
@@ -32,8 +163,12 @@ def write_point_model_with_ft(
     reffreq_hz: float = 1.4e9,
     spectral_index: Optional[float] = None,
     field: Optional[str] = None,
+    use_manual: bool = False,
 ) -> None:
-    """Write a physically-correct complex point-source model into MODEL_DATA using CASA ft.
+    """Write a physically-correct complex point-source model into MODEL_DATA.
+    
+    By default, uses CASA ft() task. If use_manual=True, uses manual calculation
+    which bypasses ft() and ensures correct phase center usage.
     
     Args:
         ms_path: Path to Measurement Set
@@ -44,7 +179,13 @@ def write_point_model_with_ft(
         spectral_index: Optional spectral index for frequency-dependent flux
         field: Optional field selection (default: all fields). If specified, MODEL_DATA
               will only be written to the selected field(s).
+        use_manual: If True, use manual calculation instead of ft() (default: False)
     """
+    if use_manual:
+        # Use manual calculation to bypass ft() phase center issues
+        _calculate_manual_model_data(ms_path, ra_deg, dec_deg, flux_jy, field=field)
+        return
+    
     from casatools import componentlist as cltool
     from casatasks import ft
 
@@ -87,8 +228,7 @@ def write_point_model_with_ft(
     # clearcal() may not fully clear MODEL_DATA, especially after rephasing
     try:
         import numpy as np
-        from casacore.tables import table
-        t = table(ms_path, readonly=False)
+        t = tb.table(ms_path, readonly=False)
         if "MODEL_DATA" in t.colnames() and t.nrows() > 0:
             # Get DATA shape to match MODEL_DATA shape
             if "DATA" in t.colnames():
@@ -124,8 +264,6 @@ def write_point_model_quick(
     flux_jy: float,
 ) -> None:
     """Write a simple amplitude-only model line per frequency (testing only)."""
-    import numpy as np
-
     _ensure_imaging_columns(ms_path)
 
     with tb.table(f"{ms_path}::SPECTRAL_WINDOW") as ts:

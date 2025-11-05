@@ -267,6 +267,17 @@ class CalibratorMSGenerator:
                 # Use _extract_subband_code to match the grouping algorithm's logic
                 from dsa110_contimg.conversion.strategies.hdf5_orchestrator import _extract_subband_code
                 sb_codes = sorted(_extract_subband_code(os.path.basename(p)) for p in gbest)
+                
+                # CRITICAL: DSA-110 subbands use DESCENDING frequency order (sb00=highest, sb15=lowest).
+                # For proper frequency ordering (ascending, low to high), REVERSE the sort.
+                # This ensures files are in correct order even if they have different timestamps
+                def sort_by_subband(fpath):
+                    sb_code = _extract_subband_code(os.path.basename(fpath))
+                    if sb_code:
+                        sb_num = int(sb_code.replace('sb', ''))
+                        return sb_num
+                    return 999  # Put files without subband code at end
+                gbest_sorted = sorted(gbest, key=sort_by_subband, reverse=True)
                 full = len(gbest) == 16 and all(code and code.startswith('sb') for code in sb_codes)
                 
                 if full:
@@ -333,7 +344,7 @@ class CalibratorMSGenerator:
                         'group_id': os.path.basename(gbest[0]).split('_sb')[0],
                         'mid_iso': mid.isot,
                         'delta_minutes': dt_min,
-                        'files': sorted(gbest),
+                        'files': gbest_sorted,
                         'pointing_dec_deg': pt_dec_deg,
                         'calibrator_dec_deg': dec_deg,
                         'separation_deg': sep_deg,
@@ -723,6 +734,22 @@ class CalibratorMSGenerator:
                     if not full:
                         continue
                     
+                    # Sort files by subband number (0-15) for proper spectral order
+                    # This ensures files are in correct order even if they have different timestamps
+                    def sort_by_subband(fpath):
+                        fname = os.path.basename(fpath)
+                        # Extract subband number from filename (e.g., "2025-10-29T13:54:17_sb03.hdf5" -> 3)
+                        if '_sb' in fname:
+                            sb_part = fname.rsplit('_sb', 1)[1].split('.')[0]
+                            try:
+                                return int(sb_part)
+                            except ValueError:
+                                pass
+                        return 999  # Put files without subband code at end
+                    # CRITICAL: DSA-110 subbands use DESCENDING frequency order (sb00=highest, sb15=lowest).
+                    # For proper frequency ordering (ascending, low to high), REVERSE the sort.
+                    group_files_sorted = sorted(group_files, key=sort_by_subband, reverse=True)
+                    
                     dt_min = abs((group_mid - transit).to(u.min).value)
                     
                     available_transits.append({
@@ -731,8 +758,8 @@ class CalibratorMSGenerator:
                         'group_id': group_id,
                         'group_mid_iso': group_mid.isot,
                         'delta_minutes': dt_min,
-                        'subband_count': len(group_files),
-                        'files': group_files,  # List of 16 HDF5 file paths
+                        'subband_count': len(group_files_sorted),
+                        'files': group_files_sorted,  # List of 16 HDF5 file paths sorted by subband number
                         'days_ago': (Time.now() - transit).to(u.day).value,
                         'has_ms': self.has_ms_for_transit(
                             calibrator_name, 

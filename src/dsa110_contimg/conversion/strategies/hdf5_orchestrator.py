@@ -218,7 +218,14 @@ def find_subband_groups(
                 os.path.basename(p)): p for p in selected_files}
 
         if set(subband_map.keys()) == set(spw):
-            sorted_group = [subband_map[s] for s in sorted(spw)]
+            # CRITICAL: DSA-110 subbands use DESCENDING frequency order (sb00=highest, sb15=lowest).
+            # For proper frequency ordering (ascending, low to high), REVERSE the sort.
+            # Files with slightly different timestamps should still be ordered by frequency.
+            def sort_key_for_group(sb_code):
+                sb_num = int(sb_code.replace('sb', ''))
+                return sb_num
+            
+            sorted_group = [subband_map[s] for s in sorted(spw, key=sort_key_for_group, reverse=True)]
             groups.append(sorted_group)
             for idx in group_indices:
                 used[idx] = True
@@ -228,6 +235,27 @@ def find_subband_groups(
 
 def _load_and_merge_subbands(file_list: Sequence[str], 
                              show_progress: bool = True) -> UVData:
+    """Load and merge subband files into a single UVData object.
+    
+    CRITICAL: Files are sorted by subband number (0-15) to ensure correct
+    spectral order. If files are out of order, frequency channels will be
+    scrambled, leading to incorrect bandpass calibration solutions.
+    """
+    # CRITICAL: DSA-110 subbands use DESCENDING frequency order:
+    #   sb00 = highest frequency (~1498 MHz)
+    #   sb15 = lowest frequency (~1311 MHz)
+    # For proper frequency channel ordering (ascending, low to high), we must
+    # REVERSE the subband number sort. This is essential for MFS imaging and
+    # bandpass calibration. If frequencies are out of order, imaging will produce
+    # fringes and bandpass calibration will fail.
+    def sort_by_subband(fpath):
+        fname = os.path.basename(fpath)
+        sb = _extract_subband_code(fname)
+        sb_num = int(sb.replace('sb', '')) if sb else 999
+        return sb_num
+    
+    sorted_file_list = sorted(file_list, key=sort_by_subband, reverse=True)
+    
     uv = UVData()
     acc: List[UVData] = []
     _pyuv_lg = logging.getLogger('pyuvdata')
@@ -238,8 +266,8 @@ def _load_and_merge_subbands(file_list: Sequence[str],
         # Use progress bar for file reading
         from dsa110_contimg.utils.progress import get_progress_bar
         file_iter = get_progress_bar(
-            enumerate(file_list),
-            total=len(file_list),
+            enumerate(sorted_file_list),
+            total=len(sorted_file_list),
             desc="Reading subbands",
             disable=not show_progress,
             mininterval=0.5  # Update every 0.5s max
@@ -372,6 +400,20 @@ def convert_subband_groups_to_ms(
     if not groups:
         logger.info("No complete subband groups to convert.")
         return
+    
+    # Print group filenames for visibility
+    logger.info(f"Found {len(groups)} complete subband group(s) ({len(groups)*16} total files)")
+    for i, group in enumerate(groups, 1):
+        logger.info(f"  Group {i}:")
+        # Sort by subband number ONLY (0-15) to show correct spectral order
+        # Groups from find_subband_groups are already sorted, but display them correctly
+        def sort_key(fpath):
+            fname = os.path.basename(fpath)
+            sb = _extract_subband_code(fname)
+            sb_num = int(sb.replace('sb', '')) if sb else 999
+            return sb_num
+        for f in sorted(group, key=sort_key):
+            logger.info(f"    {os.path.basename(f)}")
 
     # Solution 1: Cleanup verification before starting new groups
     # Check for and remove stale tmpfs directories to prevent file locking issues
@@ -475,7 +517,6 @@ def convert_subband_groups_to_ms(
         # This ensures we follow "measure twice, cut once" - establish requirements upfront
         # before starting conversion that may fail partway through.
         try:
-            import shutil
             total_input_size = sum(os.path.getsize(f) for f in file_list)
             # Estimate MS size: roughly 2x input size for safety (includes overhead)
             estimated_ms_size = total_input_size * 2
@@ -606,9 +647,22 @@ def convert_subband_groups_to_ms(
 
         try:
             t_write_start = time.perf_counter()
+            # CRITICAL: DSA-110 subbands use DESCENDING frequency order (sb00=highest, sb15=lowest).
+            # For proper frequency ordering (ascending, low to high), REVERSE the sort.
+            # This ensures correct spectral order in the MS, which is essential for
+            # proper MFS imaging and bandpass calibration. If files are out of order,
+            # frequency channels will be scrambled, imaging will produce fringes,
+            # and bandpass calibration will be incorrect.
+            def sort_by_subband(fpath):
+                fname = os.path.basename(fpath)
+                sb = _extract_subband_code(fname)
+                sb_num = int(sb.replace('sb', '')) if sb else 999
+                return sb_num
+            sorted_file_list = sorted(file_list, key=sort_by_subband, reverse=True)
+            
             current_writer_kwargs = writer_kwargs or {}
             current_writer_kwargs.setdefault("scratch_dir", scratch_dir)
-            current_writer_kwargs.setdefault("file_list", file_list)
+            current_writer_kwargs.setdefault("file_list", sorted_file_list)
 
             writer_cls = get_writer(selected_writer)
             # get_writer raises ValueError if writer not found, so no need to check for None
@@ -652,7 +706,6 @@ def convert_subband_groups_to_ms(
                 logger.error(f"MS validation failed: {e}")
                 # Clean up partial/corrupted MS
                 try:
-                    import shutil
                     if os.path.exists(ms_path):
                         shutil.rmtree(ms_path, ignore_errors=True)
                         logger.info(f"Cleaned up partial MS: {ms_path}")
@@ -1072,7 +1125,20 @@ def main(args: Optional[argparse.Namespace] = None) -> int:
             logger.info(f"  Transit time: {transit_info['transit_iso']}")
             logger.info(f"  Group ID: {transit_info['group_id']}")
             logger.info(f"  Search window: {start_time} to {end_time}")
-            logger.info(f"  Files: {len(transit_info.get('files', []))} subband files")
+            
+            # Print subband filenames (sorted by subband number for spectral order)
+            transit_files = transit_info.get('files', [])
+            logger.info(f"  Files: {len(transit_files)} subband files")
+            if transit_files:
+                # Sort by subband number ONLY (0-15) to show correct spectral order
+                # This matches the actual file order used for concatenation
+                def sort_key(fpath):
+                    fname = os.path.basename(fpath)
+                    sb = _extract_subband_code(fname)
+                    sb_num = int(sb.replace('sb', '')) if sb else 999
+                    return sb_num
+                for i, fpath in enumerate(sorted(transit_files, key=sort_key), 1):
+                    logger.info(f"    {i:2d}. {os.path.basename(fpath)}")
             
             # If --find-only, print file list and exit without converting
             if getattr(args, 'find_only', False):
@@ -1085,7 +1151,14 @@ def main(args: Optional[argparse.Namespace] = None) -> int:
                 logger.info(f"  Group ID: {transit_info['group_id']}")
                 logger.info(f"  Delta from transit: {transit_info.get('delta_minutes', 'N/A')} minutes")
                 logger.info(f"\nHDF5 Files ({len(transit_info.get('files', []))} subbands):")
-                for i, fpath in enumerate(sorted(transit_info.get('files', [])), 1):
+                # Sort by subband number ONLY (0-15) to show correct spectral order
+                # Files from find_transit are already sorted, but ensure correct order here too
+                def sort_key(fpath):
+                    fname = os.path.basename(fpath)
+                    sb = _extract_subband_code(fname)
+                    sb_num = int(sb.replace('sb', '')) if sb else 999
+                    return sb_num
+                for i, fpath in enumerate(sorted(transit_info.get('files', []), key=sort_key), 1):
                     logger.info(f"  {i:2d}. {os.path.basename(fpath)}")
                 logger.info(f"\nTime Window:")
                 logger.info(f"  Start: {start_time}")
