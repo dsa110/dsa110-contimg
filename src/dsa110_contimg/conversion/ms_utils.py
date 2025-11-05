@@ -142,11 +142,16 @@ def _ensure_flag_and_weight_spectrum(ms_path: str) -> None:
 
 
 def _initialize_weights(ms_path: str) -> None:
-    """Initialize WEIGHT and WEIGHT_SPECTRUM via casatasks.initweights."""
+    """Initialize WEIGHT_SPECTRUM via casatasks.initweights.
+    
+    NOTE: CASA's initweights does NOT have doweight or doflag parameters.
+    When wtmode='weight', it initializes WEIGHT_SPECTRUM from the existing WEIGHT column.
+    """
     try:
         from casatasks import initweights as _initweights  # type: ignore
-        _initweights(vis=ms_path, wtmode='weight', doweight=True,
-                     dowtsp=True, doflag=False)
+        # NOTE: When wtmode='weight', initweights initializes WEIGHT_SPECTRUM from WEIGHT column
+        # dowtsp=True creates/updates WEIGHT_SPECTRUM column
+        _initweights(vis=ms_path, wtmode='weight', dowtsp=True)
     except Exception:
         # Non-fatal: initweights can fail on edge cases; downstream tools may
         # still work

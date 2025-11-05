@@ -774,7 +774,7 @@ def main():
                 global _calibrator_info_printed_global
                 if not _calibrator_info_printed_global:
                     # Write directly to stdout to avoid any logging interference
-                    import sys
+                    # sys is already imported at module level (line 4)
                     sys.stdout.write("=" * 60 + "\n")
                     sys.stdout.write(f"CALIBRATOR SELECTED: {name}\n")
                     sys.stdout.write(f"  RA: {ra_deg:.4f} deg\n")
@@ -1012,6 +1012,27 @@ def main():
                 flag_zeros(ms_in)
                 flag_rfi(ms_in)
             
+            # ENHANCEMENT: Update weights after flagging to keep weights consistent with flags
+            # This ensures flagged data has zero weights, following CASA best practices.
+            # Non-fatal: CASA calibration tasks respect FLAG column regardless of weights.
+            try:
+                from casatasks import initweights
+                print("Updating weights to match flags after flagging...")
+                # NOTE: When wtmode='weight', initweights initializes WEIGHT_SPECTRUM from WEIGHT column
+                # dowtsp=True creates/updates WEIGHT_SPECTRUM column
+                # CASA's initweights does NOT have doweight or doflag parameters
+                initweights(
+                    vis=ms_in,
+                    wtmode='weight',  # Initialize WEIGHT_SPECTRUM from existing WEIGHT
+                    dowtsp=True      # Create/update WEIGHT_SPECTRUM column
+                )
+                print("✓ Weights updated to match flags")
+            except Exception as e:
+                # Non-fatal: CASA calibration tasks respect FLAG column automatically
+                # Even if weights aren't updated, calibration will still work correctly
+                logger.warning(f"Could not update weights after flagging: {e}. "
+                             f"Calibration will proceed (CASA tasks respect FLAG column automatically).")
+            
             # PRECONDITION CHECK: Verify sufficient unflagged data remains after flagging
             # This ensures we follow "measure twice, cut once" - verify data quality
             # before proceeding with expensive calibration operations.
@@ -1139,9 +1160,12 @@ def main():
                             
                             print("Reading MS phase center...")
                             with table(f"{args.ms}::FIELD") as tf:
-                                # CRITICAL: Check REFERENCE_DIR, not PHASE_DIR
-                                # REFERENCE_DIR is what CASA actually uses for phase center calculations
-                                # PHASE_DIR may be updated by phaseshift but REFERENCE_DIR may not be
+                                # CRITICAL: Check REFERENCE_DIR for phase center verification
+                                # NOTE: CASA calibration tasks (gaincal/bandpass) use PHASE_DIR for phase calculations,
+                                # but REFERENCE_DIR is used for primary beam correction and imaging.
+                                # phaseshift updates PHASE_DIR automatically, but we check REFERENCE_DIR here
+                                # to verify consistency and ensure proper imaging workflows.
+                                # We also update REFERENCE_DIR after phaseshift to keep both in sync.
                                 if "REFERENCE_DIR" in tf.colnames():
                                     ref_dir = tf.getcol("REFERENCE_DIR")
                                     ms_ra_rad = float(np.array(ref_dir[0]).ravel()[0])
@@ -1162,238 +1186,158 @@ def main():
                             print(f"Separation: {sep_arcmin:.2f} arcmin")
                             if sep_arcmin < 1.0:
                                 print(f"✓ MS already phased to calibrator position (offset: {sep_arcmin:.2f} arcmin)")
-                                # CRITICAL: Even if phase center matches, UVW might be in wrong frame
-                                # Check UVW alignment - U and V means should be near zero for correctly phased MS
-                                try:
-                                    from dsa110_contimg.calibration.uvw_verification import get_uvw_statistics
-                                    uvw_stats = get_uvw_statistics(args.ms, n_sample=1000)
-                                    u_mean_abs = abs(uvw_stats['u_mean'])
-                                    v_mean_abs = abs(uvw_stats['v_mean'])
-                                    max_offset = max(u_mean_abs, v_mean_abs)
-                                    
-                                    # For correctly phased MS, U/V means should be < 100 m
-                                    # If offset is > 100 m, UVW is likely in wrong frame
-                                    if max_offset > 100.0:
-                                        print(f"⚠ WARNING: UVW coordinates appear misaligned:")
-                                        print(f"  U mean: {uvw_stats['u_mean']:.1f} m (should be near 0)")
-                                        print(f"  V mean: {uvw_stats['v_mean']:.1f} m (should be near 0)")
-                                        print(f"  Maximum offset: {max_offset:.1f} m exceeds threshold (100 m)")
-                                        print(f"  This suggests UVW is in wrong phase center frame despite phase center match")
-                                        print(f"  Rephasing to ensure UVW is correctly aligned...")
-                                        needs_rephasing = True  # Force rephasing to fix UVW
-                                    else:
-                                        needs_rephasing = False
-                                        print(f"DEBUG: Phase center matches and UVW is aligned (U={uvw_stats['u_mean']:.1f}m, V={uvw_stats['v_mean']:.1f}m)")
-                                except Exception as uvw_check_error:
-                                    print(f"WARNING: Could not verify UVW alignment: {uvw_check_error}")
-                                    print(f"WARNING: Proceeding assuming UVW is correct, but MODEL_DATA may be wrong")
-                                    needs_rephasing = False  # Fallback: assume OK if we can't check
+                                needs_rephasing = False
                             else:
                                 print(f"Rephasing MS to calibrator position: {name} @ ({ra_deg:.4f}°, {dec_deg:.4f}°)")
                                 print(f"  Current phase center offset: {sep_arcmin:.2f} arcmin")
+                                needs_rephasing = True
                         except Exception as e:
                             print(f"WARNING: Could not check phase center: {e}. Assuming rephasing needed.")
                             logger.warning(f"Could not check phase center: {e}. Assuming rephasing needed.")
-                        
-                        # CRITICAL: Check UVW alignment regardless of whether rephasing is triggered
-                        # UVW must be aligned with phase center, even if phase center appears correct
-                        uvw_misaligned = False
-                        try:
-                            from dsa110_contimg.calibration.uvw_verification import get_uvw_statistics
-                            uvw_stats = get_uvw_statistics(args.ms, n_sample=1000)
-                            u_mean_abs = abs(uvw_stats['u_mean'])
-                            v_mean_abs = abs(uvw_stats['v_mean'])
-                            max_uvw_offset = max(u_mean_abs, v_mean_abs)
-
-                            # For correctly phased MS, U/V means should be < 100 m
-                            if max_uvw_offset > 100.0:
-                                print(f"⚠ WARNING: UVW coordinates are misaligned before any rephasing:")
-                                print(f"  U mean: {uvw_stats['u_mean']:.1f} m (should be near 0)")
-                                print(f"  V mean: {uvw_stats['v_mean']:.1f} m (should be near 0)")
-                                print(f"  Maximum offset: {max_uvw_offset:.1f} m exceeds threshold (100 m)")
-                                uvw_misaligned = True
-                                needs_rephasing = True  # Force rephasing to fix UVW
-                                print(f"  Forcing rephasing to correct UVW misalignment...")
-                            else:
-                                print(f"DEBUG: UVW coordinates are aligned (max offset: {max_uvw_offset:.1f} m)")
-                        except Exception as uvw_check_error:
-                            print(f"WARNING: Could not check UVW alignment: {uvw_check_error}")
-                            print(f"WARNING: Proceeding, but UVW may be misaligned")
+                            needs_rephasing = True
 
                         if needs_rephasing:
                             print(f"DEBUG: Rephasing needed, starting rephasing workflow...")
+                            
+                            # CRITICAL: UVW coordinates cannot be corrected by simple addition/subtraction.
+                            # When phase center changes, UVW must be rotated/transformed using coordinate rotation.
+                            # phaseshift correctly transforms both UVW coordinates AND visibility phases together.
+                            # Direct UVW modification would leave DATA column phased to wrong center, causing
+                            # DATA/MODEL misalignment and calibration failures.
+                            # Therefore, we always use phaseshift for rephasing, which handles the full transformation.
+                            
+                            try:
+                                print(f"DEBUG: Importing rephasing tasks...")
+                                from casatasks import phaseshift as casa_phaseshift
+                                from astropy.coordinates import Angle
+                                import shutil
+                                from dsa110_contimg.calibration.uvw_verification import (
+                                    verify_uvw_transformation,
+                                    get_phase_center_from_ms,
+                                )
+                                print(f"DEBUG: Imports complete, formatting phase center...")
 
-                            # Check if this is a UVW-only correction (phase center matches but UVW is wrong)
-                            phase_center_matches = sep_arcmin < 1.0
-                            if phase_center_matches and uvw_misaligned:
-                                print(f"DEBUG: Phase center matches but UVW is misaligned - applying direct UVW correction")
+                                # Capture old phase center for UVW verification
                                 try:
-                                    # Directly correct UVW coordinates by centering them
-                                    from casacore.tables import table as casa_table
-                                    import numpy as np
-
-                                    with casa_table(args.ms, readonly=False) as ms_tb:
-                                        uvw_data = ms_tb.getcol("UVW")
-                                        print(f"DEBUG: Original UVW means - U: {np.mean(uvw_data[:, 0]):.3f}, V: {np.mean(uvw_data[:, 1]):.3f} m")
-
-                                        # Apply correction to center UVW on zero
-                                        uvw_data[:, 0] += uvw_correction_u  # Center U
-                                        uvw_data[:, 1] += uvw_correction_v  # Center V
-                                        # W correction typically not needed for phase center alignment
-
-                                        ms_tb.putcol("UVW", uvw_data)
-                                        print(f"DEBUG: Applied UVW correction - U: {uvw_correction_u:+.3f}, V: {uvw_correction_v:+.3f} m")
-                                        print(f"DEBUG: New UVW means - U: {np.mean(uvw_data[:, 0]):.3f}, V: {np.mean(uvw_data[:, 1]):.3f} m")
-
-                                    # Verify the correction worked
-                                    corrected_uvw_stats = get_uvw_statistics(args.ms, n_sample=1000)
-                                    corrected_max_offset = max(abs(corrected_uvw_stats['u_mean']), abs(corrected_uvw_stats['v_mean']))
-
-                                    if corrected_max_offset < 10.0:  # Much stricter threshold after correction
-                                        print(f"✓ UVW correction successful (max offset: {corrected_max_offset:.3f} m)")
-                                        needs_rephasing = False  # No need for phaseshift
-                                    else:
-                                        print(f"⚠ UVW correction incomplete (max offset: {corrected_max_offset:.3f} m > 10 m)")
-                                        print(f"  Falling back to phaseshift rephasing...")
-                                        # Continue with normal rephasing
-
-                                except Exception as uvw_correct_error:
-                                    print(f"WARNING: Direct UVW correction failed: {uvw_correct_error}")
-                                    print(f"  Falling back to phaseshift rephasing...")
-
-                            if needs_rephasing:
-                                try:
-                                    print(f"DEBUG: Importing rephasing tasks...")
-                                    from casatasks import phaseshift as casa_phaseshift
-                                    from astropy.coordinates import Angle
-                                    import shutil
-                                    from dsa110_contimg.calibration.uvw_verification import (
-                                        verify_uvw_transformation,
-                                        get_phase_center_from_ms,
-                                    )
-                                    print(f"DEBUG: Imports complete, formatting phase center...")
-
-                                    # Capture old phase center for UVW verification
-                                    try:
-                                        old_phase_center = get_phase_center_from_ms(args.ms, field=0)
-                                        new_phase_center = (ra_deg, dec_deg)
-                                    except Exception:
-                                        old_phase_center = None
-                                        new_phase_center = (ra_deg, dec_deg)
+                                    old_phase_center = get_phase_center_from_ms(args.ms, field=0)
+                                    new_phase_center = (ra_deg, dec_deg)
+                                except Exception:
+                                    old_phase_center = None
+                                    new_phase_center = (ra_deg, dec_deg)
                                 
-                                    # Format phase center string for CASA
-                                    ra_hms = Angle(ra_deg, unit='deg').to_string(
-                                        unit='hourangle', sep='hms', precision=2, pad=True
-                                    ).replace(' ', '')
-                                    dec_dms = Angle(dec_deg, unit='deg').to_string(
-                                        unit='deg', sep='dms', precision=2, alwayssign=True, pad=True
-                                    ).replace(' ', '')
-                                    phasecenter_str = f"J2000 {ra_hms} {dec_dms}"
-                                    print(f"DEBUG: Phase center string: {phasecenter_str}")
+                                # Format phase center string for CASA
+                                ra_hms = Angle(ra_deg, unit='deg').to_string(
+                                    unit='hourangle', sep='hms', precision=2, pad=True
+                                ).replace(' ', '')
+                                dec_dms = Angle(dec_deg, unit='deg').to_string(
+                                    unit='deg', sep='dms', precision=2, alwayssign=True, pad=True
+                                ).replace(' ', '')
+                                phasecenter_str = f"J2000 {ra_hms} {dec_dms}"
+                                print(f"DEBUG: Phase center string: {phasecenter_str}")
+                                
+                                # Create temporary MS for rephased data
+                                ms_phased = args.ms.rstrip('/').rstrip('.ms') + '.phased.ms'
+                                
+                                # Clean up any existing temporary files
+                                if os.path.exists(ms_phased):
+                                    print(f"DEBUG: Removing existing phased MS: {ms_phased}")
+                                    shutil.rmtree(ms_phased, ignore_errors=True)
+                                
+                                # Calculate phase shift magnitude to determine method
+                                from astropy.coordinates import SkyCoord
+                                from astropy import units as u
+                                old_coord = SkyCoord(ra=old_phase_center[0]*u.deg, dec=old_phase_center[1]*u.deg, frame='icrs')
+                                new_coord = SkyCoord(ra=new_phase_center[0]*u.deg, dec=new_phase_center[1]*u.deg, frame='icrs')
+                                phase_shift_arcmin = old_coord.separation(new_coord).to(u.arcmin).value
+                                
+                                print(f"DEBUG: Phase shift magnitude: {phase_shift_arcmin:.1f} arcmin")
+                                
+                                # Try phaseshift first (preferred method)
+                                print(f"DEBUG: Running phaseshift (this may take a while)...")
+                                uv_transformation_valid = False
+                                
+                                try:
+                                    casa_phaseshift(
+                                        vis=args.ms,
+                                        outputvis=ms_phased,
+                                        phasecenter=phasecenter_str
+                                    )
+                                    print(f"DEBUG: phaseshift complete, verifying UVW transformation...")
                                     
-                                    # Create temporary MS for rephased data
-                                    ms_phased = args.ms.rstrip('/').rstrip('.ms') + '.phased.ms'
+                                    # Verify UVW transformation
+                                    is_valid, error_msg = verify_uvw_transformation(
+                                        args.ms,
+                                        ms_phased,
+                                        old_phase_center,
+                                        new_phase_center,
+                                        tolerance_meters=0.1 if phase_shift_arcmin < 30.0 else 1.0,
+                                        min_change_meters=0.01 if phase_shift_arcmin < 30.0 else 0.1,
+                                    )
                                     
-                                    # Clean up any existing temporary files
-                                    if os.path.exists(ms_phased):
-                                        print(f"DEBUG: Removing existing phased MS: {ms_phased}")
-                                        shutil.rmtree(ms_phased, ignore_errors=True)
-                                    
-                                    # Calculate phase shift magnitude to determine method
-                                    from astropy.coordinates import SkyCoord
-                                    from astropy import units as u
-                                    old_coord = SkyCoord(ra=old_phase_center[0]*u.deg, dec=old_phase_center[1]*u.deg, frame='icrs')
-                                    new_coord = SkyCoord(ra=new_phase_center[0]*u.deg, dec=new_phase_center[1]*u.deg, frame='icrs')
-                                    phase_shift_arcmin = old_coord.separation(new_coord).to(u.arcmin).value
-                                    
-                                    print(f"DEBUG: Phase shift magnitude: {phase_shift_arcmin:.1f} arcmin")
-                                    
-                                    # Try phaseshift first (preferred method)
-                                    print(f"DEBUG: Running phaseshift (this may take a while)...")
+                                    if is_valid:
+                                        print(f"✓ UVW transformation verified: phaseshift correctly transformed UVW")
+                                        uv_transformation_valid = True
+                                    else:
+                                        print(f"ERROR: UVW transformation verification failed: {error_msg}")
+                                        print(f"ERROR: Cannot proceed - DATA is phased to wrong center")
+                                        
+                                except Exception as phaseshift_error:
+                                    print(f"ERROR: phaseshift failed: {phaseshift_error}")
+                                    print(f"ERROR: Cannot proceed - rephasing failed")
                                     uv_transformation_valid = False
-                                    
-                                    try:
-                                        casa_phaseshift(
-                                            vis=args.ms,
-                                            outputvis=ms_phased,
-                                            phasecenter=phasecenter_str
-                                        )
-                                        print(f"DEBUG: phaseshift complete, verifying UVW transformation...")
-                                        
-                                        # Verify UVW transformation
-                                        is_valid, error_msg = verify_uvw_transformation(
-                                            args.ms,
-                                            ms_phased,
-                                            old_phase_center,
-                                            new_phase_center,
-                                            tolerance_meters=0.1 if phase_shift_arcmin < 30.0 else 1.0,
-                                            min_change_meters=0.01 if phase_shift_arcmin < 30.0 else 0.1,
-                                        )
-                                        
-                                        if is_valid:
-                                            print(f"✓ UVW transformation verified: phaseshift correctly transformed UVW")
-                                            uv_transformation_valid = True
-                                        else:
-                                            print(f"ERROR: UVW transformation verification failed: {error_msg}")
-                                            print(f"ERROR: Cannot proceed - DATA is phased to wrong center")
-                                            
-                                    except Exception as phaseshift_error:
-                                        print(f"ERROR: phaseshift failed: {phaseshift_error}")
-                                        print(f"ERROR: Cannot proceed - rephasing failed")
-                                        uv_transformation_valid = False
-                                    
-                                    # CRITICAL: UVW transformation MUST succeed
-                                    # If UVW is wrong, DATA is phased to wrong center, so MODEL_DATA won't match
-                                    # This would cause calibration to fail regardless of MODEL_DATA calculation method
-                                    if not uv_transformation_valid:
-                                        # Get error message safely (may not be defined if phaseshift raised exception)
-                                        error_detail = error_msg if 'error_msg' in locals() else (
-                                            "phaseshift raised exception before verification"
-                                        )
-                                        error_msg_final = (
-                                            f"CRITICAL: UVW transformation verification failed. "
-                                            f"DATA is phased to wrong center. Cannot proceed with calibration. "
-                                            f"Original error: {error_detail}"
-                                        )
-                                        print(f"ERROR: {error_msg_final}")
-                                        logger.error(error_msg_final)
-                                        raise RuntimeError(
-                                            "UVW transformation failed. Cannot calibrate MS with incorrect phase center. "
-                                            "This may indicate a bug in phaseshift for large phase shifts, or incorrect "
-                                            "MS phasing from conversion. Please check the MS phase center and re-run conversion "
-                                            "or rephasing manually."
-                                        )
-                                    
-                                    print(f"✓ UVW transformation verified - DATA is correctly phased")
+                                
+                                # CRITICAL: UVW transformation MUST succeed
+                                # If UVW is wrong, DATA is phased to wrong center, so MODEL_DATA won't match
+                                # This would cause calibration to fail regardless of MODEL_DATA calculation method
+                                if not uv_transformation_valid:
+                                    # Get error message safely (may not be defined if phaseshift raised exception)
+                                    error_detail = error_msg if 'error_msg' in locals() else (
+                                        "phaseshift raised exception before verification"
+                                    )
+                                    error_msg_final = (
+                                        f"CRITICAL: UVW transformation verification failed. "
+                                        f"DATA is phased to wrong center. Cannot proceed with calibration. "
+                                        f"Original error: {error_detail}"
+                                    )
+                                    print(f"ERROR: {error_msg_final}")
+                                    logger.error(error_msg_final)
+                                    raise RuntimeError(
+                                        "UVW transformation failed. Cannot calibrate MS with incorrect phase center. "
+                                        "This may indicate a bug in phaseshift for large phase shifts, or incorrect "
+                                        "MS phasing from conversion. Please check the MS phase center and re-run conversion "
+                                        "or rephasing manually."
+                                    )
+                                
+                                print(f"✓ UVW transformation verified - DATA is correctly phased")
 
-                                    # CRITICAL: Double-check UVW alignment after rephasing
-                                    # The verification above may have bugs, so verify the final UVW
-                                    try:
-                                        final_uvw_stats = get_uvw_statistics(ms_phased, n_sample=1000)
-                                        final_u_abs = abs(final_uvw_stats['u_mean'])
-                                        final_v_abs = abs(final_uvw_stats['v_mean'])
-                                        final_max_offset = max(final_u_abs, final_v_abs)
+                                # CRITICAL: Double-check UVW alignment after rephasing
+                                # The verification above may have bugs, so verify the final UVW
+                                try:
+                                    final_uvw_stats = get_uvw_statistics(ms_phased, n_sample=1000)
+                                    final_u_abs = abs(final_uvw_stats['u_mean'])
+                                    final_v_abs = abs(final_uvw_stats['v_mean'])
+                                    final_max_offset = max(final_u_abs, final_v_abs)
 
-                                        if final_max_offset > 100.0:
-                                            print(f"ERROR: UVW still misaligned after rephasing!")
-                                            print(f"  Final U mean: {final_uvw_stats['u_mean']:.1f} m")
-                                            print(f"  Final V mean: {final_uvw_stats['v_mean']:.1f} m")
-                                            print(f"  Final max offset: {final_max_offset:.1f} m > 100 m threshold")
-                                            # Don't raise error here - let the verification handle it
-                                            # But log the issue clearly
-                                        else:
-                                            print(f"DEBUG: UVW correctly aligned after rephasing (max offset: {final_max_offset:.1f} m)")
-                                    except Exception as final_uvw_error:
-                                        print(f"WARNING: Could not verify final UVW alignment: {final_uvw_error}")
+                                    if final_max_offset > 100.0:
+                                        print(f"ERROR: UVW still misaligned after rephasing!")
+                                        print(f"  Final U mean: {final_uvw_stats['u_mean']:.1f} m")
+                                        print(f"  Final V mean: {final_uvw_stats['v_mean']:.1f} m")
+                                        print(f"  Final max offset: {final_max_offset:.1f} m > 100 m threshold")
+                                        # Don't raise error here - let the verification handle it
+                                        # But log the issue clearly
+                                    else:
+                                        print(f"DEBUG: UVW correctly aligned after rephasing (max offset: {final_max_offset:.1f} m)")
+                                except Exception as final_uvw_error:
+                                    print(f"WARNING: Could not verify final UVW alignment: {final_uvw_error}")
 
-                                    print(f"DEBUG: Checking REFERENCE_DIR...")
-                                    
-                                    # CRITICAL: phaseshift may update PHASE_DIR but not REFERENCE_DIR
-                                    # CASA calibration tasks use REFERENCE_DIR, so we must ensure it's correct
-                                    # Manually update REFERENCE_DIR for ALL fields if phaseshift didn't update it
-                                    try:
-                                        from casacore.tables import table as casa_table
-                                        with casa_table(f"{ms_phased}::FIELD", readonly=False) as tf:
+                                print(f"DEBUG: Checking REFERENCE_DIR...")
+                                
+                                # CRITICAL: phaseshift may update PHASE_DIR but not REFERENCE_DIR
+                                # CASA calibration tasks use REFERENCE_DIR, so we must ensure it's correct
+                                # Manually update REFERENCE_DIR for ALL fields if phaseshift didn't update it
+                                try:
+                                    from casacore.tables import table as casa_table
+                                    with casa_table(f"{ms_phased}::FIELD", readonly=False) as tf:
                                             if "REFERENCE_DIR" in tf.colnames() and "PHASE_DIR" in tf.colnames():
                                                 ref_dir_all = tf.getcol("REFERENCE_DIR")  # Shape: (nfields, 1, 2)
                                                 phase_dir_all = tf.getcol("PHASE_DIR")  # Shape: (nfields, 1, 2)
@@ -1417,60 +1361,60 @@ def main():
                                                     print(f"DEBUG: REFERENCE_DIR updated to match PHASE_DIR for all {nfields} fields")
                                                 else:
                                                     print(f"DEBUG: REFERENCE_DIR already correct (matches PHASE_DIR for all fields)")
-                                    except Exception as refdir_error:
-                                        print(f"WARNING: Could not verify/update REFERENCE_DIR: {refdir_error}")
-                                        print(f"WARNING: Calibration may fail if REFERENCE_DIR is incorrect")
-                                    print(f"DEBUG: Rephasing complete, verifying phase center...")
-                                    
-                                    # Verify REFERENCE_DIR is correct after rephasing
-                                    try:
-                                        from casacore.tables import table as casa_table
-                                        with casa_table(f"{ms_phased}::FIELD", readonly=True) as tf:
-                                            if "REFERENCE_DIR" in tf.colnames():
-                                                ref_dir = tf.getcol("REFERENCE_DIR")[0][0]
-                                                ref_ra_deg = ref_dir[0] * 180.0 / np.pi
-                                                ref_dec_deg = ref_dir[1] * 180.0 / np.pi
-                                                
-                                                # Check separation from calibrator
-                                                from astropy.coordinates import SkyCoord
-                                                from astropy import units as u
-                                                ms_coord = SkyCoord(ra=ref_ra_deg*u.deg, dec=ref_dec_deg*u.deg, frame='icrs')
-                                                cal_coord = SkyCoord(ra=ra_deg*u.deg, dec=dec_deg*u.deg, frame='icrs')
-                                                separation = ms_coord.separation(cal_coord)
-                                                
-                                                print(f"DEBUG: Final REFERENCE_DIR: RA={ref_ra_deg:.6f}°, Dec={ref_dec_deg:.6f}°")
-                                                print(f"DEBUG: Separation from calibrator: {separation.to(u.arcmin):.4f}")
-                                                
-                                                if separation.to(u.arcmin).value > 1.0:
-                                                    print(f"WARNING: REFERENCE_DIR still offset by {separation.to(u.arcmin):.4f} - calibration may fail")
-                                                else:
-                                                    print(f"✓ REFERENCE_DIR correctly aligned (separation < 1 arcmin)")
-                                    except Exception as verify_error:
-                                        print(f"WARNING: Could not verify phase center: {verify_error}")
+                                except Exception as refdir_error:
+                                    print(f"WARNING: Could not verify/update REFERENCE_DIR: {refdir_error}")
+                                    print(f"WARNING: Calibration may fail if REFERENCE_DIR is incorrect")
+                                print(f"DEBUG: Rephasing complete, verifying phase center...")
                                 
-                                    # Replace original MS with rephased version
-                                    print(f"DEBUG: Replacing original MS with rephased version...")
-                                    shutil.rmtree(args.ms, ignore_errors=True)
-                                    shutil.move(ms_phased, args.ms)
-                                    print(f"✓ MS rephased to calibrator position")
-                                    
-                                except ImportError:
-                                    # phaseshift not available - cannot rephase
-                                    error_msg_import = (
-                                        f"phaseshift task not available. Cannot rephase MS to calibrator position. "
-                                        f"Calibration cannot proceed without proper MS phasing."
-                                    )
-                                    logger.error(error_msg_import)
-                                    raise RuntimeError(error_msg_import)
-                                except Exception as e:
-                                    # Rephasing failed - cannot proceed
-                                    error_msg_rephase = (
-                                        f"Could not rephase MS to calibrator position: {e}. "
-                                        f"Calibration cannot proceed without proper MS phasing. "
-                                        f"Please check MS phase center and re-run conversion or rephasing manually."
-                                    )
-                                    logger.error(error_msg_rephase)
-                                    raise RuntimeError(error_msg_rephase)
+                                # Verify REFERENCE_DIR is correct after rephasing
+                                try:
+                                    from casacore.tables import table as casa_table
+                                    with casa_table(f"{ms_phased}::FIELD", readonly=True) as tf:
+                                        if "REFERENCE_DIR" in tf.colnames():
+                                            ref_dir = tf.getcol("REFERENCE_DIR")[0][0]
+                                            ref_ra_deg = ref_dir[0] * 180.0 / np.pi
+                                            ref_dec_deg = ref_dir[1] * 180.0 / np.pi
+                                            
+                                            # Check separation from calibrator
+                                            from astropy.coordinates import SkyCoord
+                                            from astropy import units as u
+                                            ms_coord = SkyCoord(ra=ref_ra_deg*u.deg, dec=ref_dec_deg*u.deg, frame='icrs')
+                                            cal_coord = SkyCoord(ra=ra_deg*u.deg, dec=dec_deg*u.deg, frame='icrs')
+                                            separation = ms_coord.separation(cal_coord)
+                                            
+                                            print(f"DEBUG: Final REFERENCE_DIR: RA={ref_ra_deg:.6f}°, Dec={ref_dec_deg:.6f}°")
+                                            print(f"DEBUG: Separation from calibrator: {separation.to(u.arcmin):.4f}")
+                                            
+                                            if separation.to(u.arcmin).value > 1.0:
+                                                print(f"WARNING: REFERENCE_DIR still offset by {separation.to(u.arcmin):.4f} - calibration may fail")
+                                            else:
+                                                print(f"✓ REFERENCE_DIR correctly aligned (separation < 1 arcmin)")
+                                except Exception as verify_error:
+                                    print(f"WARNING: Could not verify phase center: {verify_error}")
+                                
+                                # Replace original MS with rephased version
+                                print(f"DEBUG: Replacing original MS with rephased version...")
+                                shutil.rmtree(args.ms, ignore_errors=True)
+                                shutil.move(ms_phased, args.ms)
+                                print(f"✓ MS rephased to calibrator position")
+                                
+                            except ImportError:
+                                # phaseshift not available - cannot rephase
+                                error_msg_import = (
+                                    f"phaseshift task not available. Cannot rephase MS to calibrator position. "
+                                    f"Calibration cannot proceed without proper MS phasing."
+                                )
+                                logger.error(error_msg_import)
+                                raise RuntimeError(error_msg_import)
+                            except Exception as e:
+                                # Rephasing failed - cannot proceed
+                                error_msg_rephase = (
+                                    f"Could not rephase MS to calibrator position: {e}. "
+                                    f"Calibration cannot proceed without proper MS phasing. "
+                                    f"Please check MS phase center and re-run conversion or rephasing manually."
+                                )
+                                logger.error(error_msg_rephase)
+                                raise RuntimeError(error_msg_rephase)
                         
                         print(
                             (

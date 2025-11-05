@@ -4,7 +4,6 @@ import os
 import fnmatch
 from casatasks import gaincal as casa_gaincal  # type: ignore[import]
 # setjy imported elsewhere; avoid unused import here
-from casatasks import fluxscale as casa_fluxscale  # type: ignore[import]
 import logging
 
 from dsa110_contimg.calibration.validate import (
@@ -608,7 +607,6 @@ def solve_gains(
     bptables: List[str],
     table_prefix: Optional[str] = None,
     t_short: str = "60s",
-    do_fluxscale: bool = False,
     combine_fields: bool = False,
     *,
     phase_only: bool = False,
@@ -616,7 +614,7 @@ def solve_gains(
     solint: str = "inf",
     minsnr: float = 5.0,
 ) -> List[str]:
-    """Solve gain amplitude and phase; optionally short-timescale and fluxscale.
+    """Solve gain amplitude and phase; optionally short-timescale.
     
     **PRECONDITION**: MODEL_DATA must be populated before calling this function.
     This ensures consistent, reliable calibration results across all calibrators
@@ -751,8 +749,6 @@ def solve_gains(
         _validate_solve_success(f"{table_prefix}_2gcal", refant=refant)
         print(f"✓ Short-timescale phase-only gain solve completed: {table_prefix}_2gcal")
         out.append(f"{table_prefix}_2gcal")
-
-    # Note: Flux scaling removed - not used in phase-only calibration workflow
 
     # QA validation of gain calibration tables
     try:
