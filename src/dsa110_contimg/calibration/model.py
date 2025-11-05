@@ -38,45 +38,45 @@ def _calculate_manual_model_data(
     
     This bypasses ft() which may use incorrect phase center information.
     
+    **CRITICAL**: Uses each field's own REFERENCE_DIR to ensure correct phase structure
+    after rephasing. This is essential because rephasing may update REFERENCE_DIR
+    differently for different fields, and using the wrong REFERENCE_DIR causes phase errors.
+    
     Args:
         ms_path: Path to Measurement Set
         ra_deg: Right ascension in degrees (component position)
         dec_deg: Declination in degrees (component position)
         flux_jy: Flux in Jy
-        field: Optional field selection (default: all fields)
+        field: Optional field selection (default: all fields). Can be:
+              - Single field index: "0"
+              - Field range: "0~15"
+              - Field name: "MyField"
     """
     from casacore.tables import table as casa_table
     
     _ensure_imaging_columns(ms_path)
     
-    # Read MS phase center from REFERENCE_DIR (the authoritative phase center)
-    with casa_table(f"{ms_path}::FIELD", readonly=True) as field_tb:
-        ref_dir = field_tb.getcol("REFERENCE_DIR")
-        if field is not None:
-            # If field is specified, use that field's REFERENCE_DIR
+    # Parse field selection to get list of field indices
+    field_indices = None
+    if field is not None:
+        if '~' in str(field):
+            # Field range: "0~15"
             try:
-                field_idx = int(field) if field.isdigit() else None
-                if field_idx is not None:
-                    phase_center_ra_rad = ref_dir[field_idx][0][0]
-                    phase_center_dec_rad = ref_dir[field_idx][0][1]
-                else:
-                    # Field name lookup (simplified - assumes first matching field)
-                    phase_center_ra_rad = ref_dir[0][0][0]
-                    phase_center_dec_rad = ref_dir[0][0][1]
+                parts = str(field).split('~')
+                start_idx = int(parts[0])
+                end_idx = int(parts[1])
+                field_indices = list(range(start_idx, end_idx + 1))
             except (ValueError, IndexError):
-                phase_center_ra_rad = ref_dir[0][0][0]
-                phase_center_dec_rad = ref_dir[0][0][1]
-        else:
-            # Use first field's phase center
-            phase_center_ra_rad = ref_dir[0][0][0]
-            phase_center_dec_rad = ref_dir[0][0][1]
-        
-        phase_center_ra_deg = phase_center_ra_rad * 180.0 / np.pi
-        phase_center_dec_deg = phase_center_dec_rad * 180.0 / np.pi
+                field_indices = None
+        elif field.isdigit():
+            # Single field index: "0"
+            field_indices = [int(field)]
+        # If field is a name or invalid, field_indices stays None (use all fields)
     
-    # Calculate offset from phase center to component
-    offset_ra_rad = (ra_deg - phase_center_ra_deg) * np.pi / 180.0 * np.cos(phase_center_dec_rad)
-    offset_dec_rad = (dec_deg - phase_center_dec_deg) * np.pi / 180.0
+    # Read MS phase center from REFERENCE_DIR for all fields
+    with casa_table(f"{ms_path}::FIELD", readonly=True) as field_tb:
+        ref_dir = field_tb.getcol("REFERENCE_DIR")  # Shape: (nfields, 1, 2)
+        nfields = len(ref_dir)
     
     # Read spectral window information for frequencies
     with casa_table(f"{ms_path}::SPECTRAL_WINDOW", readonly=True) as spw_tb:
@@ -95,35 +95,42 @@ def _calculate_manual_model_data(
         # Read SPECTRAL_WINDOW_ID to map rows to spectral windows
         spw_id = main_tb.getcol("DATA_DESC_ID")  # Shape: (nrows,)
         
-        # Read FIELD_ID to apply field selection
+        # Read FIELD_ID to apply field selection and get per-field phase centers
         field_id = main_tb.getcol("FIELD_ID")  # Shape: (nrows,)
         
         # Apply field selection if specified
-        if field is not None:
-            try:
-                field_idx = int(field) if field.isdigit() else None
-                if field_idx is not None:
-                    field_mask = field_id == field_idx
-                else:
-                    # Field name lookup (simplified - use first field)
-                    field_mask = field_id == 0
-            except ValueError:
-                field_mask = np.ones(nrows, dtype=bool)
+        if field_indices is not None:
+            field_mask = np.isin(field_id, field_indices)
         else:
             field_mask = np.ones(nrows, dtype=bool)
         
         # Read DATA shape to create MODEL_DATA with matching shape
         data_sample = main_tb.getcell("DATA", 0)
-        data_shape = data_sample.shape  # (npol, nchan, ...)
-        npol, nchan = data_shape[0], data_shape[1]
+        data_shape = data_sample.shape  # In CASA: (nchan, npol)
+        nchan, npol = data_shape[0], data_shape[1]
         
-        # Initialize MODEL_DATA array
-        model_data = np.zeros((nrows, npol, nchan), dtype=np.complex64)
+        # Initialize MODEL_DATA array with correct shape (nrows, nchan, npol)
+        model_data = np.zeros((nrows, nchan, npol), dtype=np.complex64)
         
-        # Calculate MODEL_DATA for each row
+        # Calculate MODEL_DATA for each row using that row's field's REFERENCE_DIR
         for row_idx in range(nrows):
             if not field_mask[row_idx]:
                 continue  # Skip rows not in selected field
+            
+            # Get the field index for this row
+            row_field_idx = field_id[row_idx]
+            if row_field_idx >= nfields:
+                continue  # Skip invalid field indices
+            
+            # Use this field's REFERENCE_DIR (critical for correct phase after rephasing)
+            phase_center_ra_rad = ref_dir[row_field_idx][0][0]
+            phase_center_dec_rad = ref_dir[row_field_idx][0][1]
+            phase_center_ra_deg = phase_center_ra_rad * 180.0 / np.pi
+            phase_center_dec_deg = phase_center_dec_rad * 180.0 / np.pi
+            
+            # Calculate offset from this field's phase center to component
+            offset_ra_rad = (ra_deg - phase_center_ra_deg) * np.pi / 180.0 * np.cos(phase_center_dec_rad)
+            offset_dec_rad = (dec_deg - phase_center_dec_deg) * np.pi / 180.0
             
             spw_idx = spw_id[row_idx]
             if spw_idx >= nspw:
@@ -133,7 +140,7 @@ def _calculate_manual_model_data(
             freqs = chan_freq[spw_idx]  # Shape: (nchan,)
             wavelengths = 3e8 / freqs  # Shape: (nchan,)
             
-            # Calculate phase for each channel
+            # Calculate phase for each channel using this field's phase center
             # phase = 2π * (u*ΔRA + v*ΔDec) / λ
             phase = 2 * np.pi * (u[row_idx] * offset_ra_rad + v[row_idx] * offset_dec_rad) / wavelengths
             phase = np.mod(phase + np.pi, 2*np.pi) - np.pi  # Wrap to [-π, π]
@@ -142,11 +149,12 @@ def _calculate_manual_model_data(
             amplitude = float(flux_jy)
             
             # Create complex model: amplitude * exp(i*phase)
-            model_complex = amplitude * (np.cos(phase) + 1j * np.sin(phase))  # Shape: (nchan,)
+            # Shape: (nchan,)
+            model_complex = amplitude * (np.cos(phase) + 1j * np.sin(phase))
             
-            # Broadcast to all polarizations
-            for pol_idx in range(npol):
-                model_data[row_idx, pol_idx, :] = model_complex
+            # Broadcast to all polarizations: (nchan,) -> (nchan, npol)
+            # Use broadcasting: model_complex[:, np.newaxis] creates (nchan, 1) which broadcasts to (nchan, npol)
+            model_data[row_idx, :, :] = model_complex[:, np.newaxis]
         
         # Write MODEL_DATA column
         main_tb.putcol("MODEL_DATA", model_data)

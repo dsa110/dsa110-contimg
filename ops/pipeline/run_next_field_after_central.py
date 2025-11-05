@@ -397,8 +397,8 @@ def main() -> int:
         gridder='wproject',
         wprojplanes=128,
         specmode='mfs',
-        deconvolver='mtmfs',
-        nterms=2,
+        deconvolver='hogbom',  # Single-term imaging (no multi-term)
+        nterms=1,
         uvrange='>1klambda',
         robust=0.5,
         pblimit=0.25,

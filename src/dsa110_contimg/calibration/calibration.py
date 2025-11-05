@@ -354,8 +354,8 @@ def solve_prebandpass_phase(
     table_prefix: Optional[str] = None,
     combine_fields: bool = False,
     uvrange: str = "",
-    solint: str = "inf",
-    minsnr: float = 5.0,
+    solint: str = "30s",  # Default to 30s for time-variable phase drifts (inf causes decorrelation)
+    minsnr: float = 3.0,  # Default to 3.0 to match bandpass threshold (phase-only is more robust)
 ) -> str:
     """Solve phase-only calibration before bandpass to correct phase drifts in raw data.
     
@@ -392,13 +392,18 @@ def solve_prebandpass_phase(
                 f"Populate MODEL_DATA before calling solve_prebandpass_phase()."
             )
     
-    # Use peak field for phase-only solve
+    # Determine field selector based on combine_fields setting
+    # - If combining across fields: use the full selection string to maximize SNR
+    # - Otherwise: use a single peak field from the range (last index as heuristic)
     if '~' in str(cal_field):
         peak_field = str(cal_field).split('~')[-1]
-        print(f"Using peak field {peak_field} for pre-bandpass phase solve (from range {cal_field})")
     else:
         peak_field = str(cal_field)
-        print(f"Using field {peak_field} for pre-bandpass phase solve")
+    field_selector = str(cal_field) if combine_fields else peak_field
+    print(
+        f"Using field selector '{field_selector}' for pre-bandpass phase solve"
+        + (f" (combined from range {cal_field})" if combine_fields else "")
+    )
     
     # Combine across scans and fields when requested
     comb_parts = ["scan"]
@@ -407,11 +412,11 @@ def solve_prebandpass_phase(
     comb = ",".join(comb_parts) if comb_parts else ""
     
     # Solve phase-only calibration (no previous calibrations applied)
-    print(f"Running pre-bandpass phase-only solve on field {peak_field}...")
+    print(f"Running pre-bandpass phase-only solve on field {field_selector}...")
     kwargs = dict(
         vis=ms,
         caltable=f"{table_prefix}_prebp_phase",
-        field=peak_field,
+        field=field_selector,
         solint=solint,
         refant=refant,
         calmode="p",  # Phase-only mode
@@ -530,7 +535,7 @@ def solve_bandpass(
     combine_desc = f" (combining across {comb})" if comb else ""
     phase_desc = f" with pre-bandpass phase correction" if prebandpass_phase_table else ""
     print(
-        f"Running bandpass solve using bandpass task (bandtype='B') on field {peak_field}{combine_desc}{phase_desc}...")
+        f"Running bandpass solve using bandpass task (bandtype='B') on field {field_selector}{combine_desc}{phase_desc}...")
     kwargs = dict(
         vis=ms,
         caltable=f"{table_prefix}_bpcal",

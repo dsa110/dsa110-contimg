@@ -75,6 +75,10 @@ def select_bandpass_fields(
         resp[i] = r
         wflux[i] = r * float(cal_flux_jy)
 
+    # If only one field exists, return it directly (no range needed)
+    if n == 1:
+        return "0", [0], wflux
+    
     # Pick best center and window
     idx = int(np.nanargmax(wflux))
     if min_pb is not None and np.isfinite(min_pb):
@@ -189,6 +193,13 @@ def select_bandpass_from_catalog(
 
     _, peak_idx, name, ra_deg, dec_deg, flux_jy = best
     wflux = best_wflux
+    nfields = len(wflux)
+    
+    # If only one field exists, return it directly (no range needed)
+    if nfields == 1:
+        cal_info = (name, ra_deg, dec_deg, flux_jy)
+        return "0", [0], wflux, cal_info
+    
     if min_pb is not None and np.isfinite(min_pb):
         resp_peak = max(wflux[peak_idx] / max(flux_jy, 1e-12), 0.0)
         thr = float(min_pb) * max(resp_peak, 1e-12)

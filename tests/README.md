@@ -7,13 +7,19 @@ This directory contains the unified test suite for the DSA-110 continuum imaging
 ```
 tests/
 ├── pytest.ini                    # Pytest configuration
+├── README.md                     # This file
+├── README_CALIBRATION_TESTING.md # Comprehensive calibration testing guide
 ├── unit/                          # Pytest unit tests
 │   ├── api/                      # API route tests
 │   │   └── test_routes.py
-│   └── simulation/               # Synthetic data validation tests
-│       └── test_validate_synthetic.py
+│   ├── simulation/               # Synthetic data validation tests
+│   │   └── test_validate_synthetic.py
+│   ├── test_calibration_comprehensive.py  # Comprehensive calibration tests
+│   ├── test_subband_ordering.py  # Subband ordering tests
+│   └── test_cli_calibration_args.py
 ├── integration/                  # Integration tests
-│   └── test_pipeline_end_to_end.sh  # End-to-end pipeline test (bash)
+│   ├── test_pipeline_end_to_end.sh  # End-to-end pipeline test (bash)
+│   └── test_calibration_workflow.py  # Calibration workflow integration
 ├── scripts/                      # Standalone test/diagnostic scripts
 │   ├── README.md                 # Documentation for standalone scripts
 │   ├── test_suite_comprehensive.py
@@ -85,12 +91,14 @@ bash tests/integration/test_pipeline_end_to_end.sh --use-existing-ms /path/to/ms
 ### Unit Tests (`tests/unit/`)
 - **Purpose**: Test individual modules and functions in isolation
 - **Style**: Pytest with fixtures and assertions
-- **Examples**: API routes, data validation
+- **Examples**: API routes, data validation, calibration components
+- **New**: Comprehensive calibration tests (`test_calibration_comprehensive.py`, `test_subband_ordering.py`)
 
 ### Integration Tests (`tests/integration/`)
 - **Purpose**: Test full pipeline workflows end-to-end
 - **Style**: Pytest or standalone scripts
-- **Examples**: Full pipeline execution, component integration
+- **Examples**: Full pipeline execution, component integration, calibration workflow
+- **New**: Calibration workflow integration tests (`test_calibration_workflow.py`)
 
 ### Standalone Scripts (`tests/scripts/`)
 - **Purpose**: Diagnostic, validation, and comprehensive testing scripts
