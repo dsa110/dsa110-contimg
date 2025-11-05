@@ -32,6 +32,7 @@ import sqlite3
 from dsa110_contimg.conversion.strategies.hdf5_orchestrator import find_subband_groups
 from dsa110_contimg.conversion.uvh5_to_ms import convert_single_file
 from dsa110_contimg.calibration.calibration import solve_delay, solve_bandpass, solve_gains
+from dsa110_contimg.calibration.refant_selection import get_default_outrigger_refants
 from dsa110_contimg.calibration.skymodels import make_point_cl, ft_from_cl  # type: ignore[import]
 from dsa110_contimg.calibration.applycal import apply_to_target
 from dsa110_contimg.imaging.cli import image_ms
@@ -359,17 +360,21 @@ def main() -> int:
     except Exception as e:
         print('addImagingColumns warning:', e)
 
-    # Solve chain (Flagging -> BP first with skymodel via ft, then phase-only gains)
-    # Determine field selection and set requested refant=103
+    # Solve chain (Flagging -> BP first with skymodel via ft, then gains)
+    # Determine field selection and use outrigger refant chain
     try:
         from casacore.tables import table
         with table(os.fspath(ms_out) + '::FIELD') as tf:
             nfields = tf.nrows()
         cal_field = '0' if nfields <= 1 else f'0~{nfields-1}'
-        refant = '103'
     except Exception:
         cal_field = '0'
-        refant = '103'
+    
+    # Use outrigger antenna chain for reference antenna selection
+    # This ensures CASA falls back through healthy outriggers if first fails
+    refant = get_default_outrigger_refants()
+    print(f'Using outrigger refant chain: {refant}')
+    
     prefix = os.fspath(ms_out.with_suffix('')) + '_all'
     # Flagging: reset → zero-amplitude → RFI (tfcrop + rflag)
     try:

@@ -49,6 +49,10 @@ from dsa110_contimg.database.products import (  # type: ignore[import]
     ensure_products_db,
     images_insert,
 )
+# type: ignore[import]
+from dsa110_contimg.calibration.refant_selection import (
+    get_default_outrigger_refants,
+)
 
 
 def _load_ra_dec(name: str, catalogs: List[str]) -> Tuple[float, float]:
@@ -332,18 +336,24 @@ def main() -> int:
     except Exception as e:
         print('skymodel warning:', e)
 
-    # Calibration solves on central MS: pre-phase, bandpass, then phase-only gains
+    # Calibration solves on central MS: pre-phase, bandpass, then gains
     from casatasks import bandpass as casa_bandpass, gaincal as casa_gaincal
+    
+    # Use outrigger antenna chain for reference antenna selection
+    # This ensures CASA falls back through healthy outriggers if first fails
+    refant = get_default_outrigger_refants()
+    
     prefix = os.fspath(central_ms.with_suffix('')) + '_all'
     prebp_path = Path(prefix + '_prebp_phase')
     if not prebp_path.is_dir():
         print('Solving pre-bandpass phase-only (no uvrange cut)...')
+        print(f'Using outrigger refant chain: {refant}')
         casa_gaincal(
             vis=os.fspath(central_ms),
             caltable=os.fspath(prebp_path),
             field='0',
             solint='inf',
-            refant='103',
+            refant=refant,
             gaintype='G',
             calmode='p',
             combine='scan',
@@ -358,7 +368,7 @@ def main() -> int:
             caltable=os.fspath(bpcal_path),
             field='0',
             solint='inf',
-            refant='103',
+            refant=refant,
             combine='scan',
             solnorm=True,
             bandtype='B',
@@ -374,7 +384,7 @@ def main() -> int:
             caltable=os.fspath(gpcal_path),
             field='0',
             solint='inf',
-            refant='103',
+            refant=refant,
             gaintype='G',
             calmode='p',
             gaintable=[os.fspath(bpcal_path)],
