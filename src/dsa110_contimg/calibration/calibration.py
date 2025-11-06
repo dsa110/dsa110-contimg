@@ -11,6 +11,71 @@ from dsa110_contimg.calibration.validate import (
     validate_caltable_compatibility,
     validate_caltables_for_use,
 )
+from dsa110_contimg.conversion.merge_spws import get_spw_count
+
+
+def _get_caltable_spw_count(caltable_path: str) -> Optional[int]:
+    """Get the number of unique spectral windows in a calibration table.
+    
+    Args:
+        caltable_path: Path to calibration table
+        
+    Returns:
+        Number of unique SPWs, or None if unable to read
+    """
+    from casacore.tables import table  # type: ignore[import]
+    import numpy as np  # type: ignore[import]
+    
+    try:
+        with table(caltable_path, readonly=True) as tb:
+            if "SPECTRAL_WINDOW_ID" not in tb.colnames():
+                return None
+            spw_ids = tb.getcol("SPECTRAL_WINDOW_ID")
+            return len(np.unique(spw_ids))
+    except Exception:
+        return None
+
+
+def _determine_spwmap_for_bptables(
+    bptables: List[str],
+    ms_path: str,
+) -> Optional[List[int]]:
+    """Determine spwmap parameter for bandpass tables when combine_spw was used.
+    
+    When a bandpass table is created with combine_spw=True, it contains solutions
+    only for SPW=0 (the aggregate SPW). When applying this table during gain
+    calibration, we need to map all MS SPWs to SPW 0 in the bandpass table.
+    
+    Args:
+        bptables: List of bandpass table paths
+        ms_path: Path to Measurement Set
+        
+    Returns:
+        List of SPW mappings [0, 0, 0, ...] if needed, or None if not needed.
+        The length of the list equals the number of SPWs in the MS.
+    """
+    if not bptables:
+        return None
+    
+    # Get number of SPWs in MS
+    n_ms_spw = get_spw_count(ms_path)
+    if n_ms_spw is None or n_ms_spw <= 1:
+        return None
+    
+    # Check if any bandpass table has only 1 SPW (indicating combine_spw was used)
+    for bptable in bptables:
+        n_bp_spw = _get_caltable_spw_count(bptable)
+        print(f"DEBUG: Checking table {os.path.basename(bptable)}: {n_bp_spw} SPW(s), MS has {n_ms_spw} SPWs")
+        if n_bp_spw == 1:
+            # This bandpass table was created with combine_spw=True
+            # Map all MS SPWs to SPW 0 in the bandpass table
+            print(
+                f"Detected calibration table {os.path.basename(bptable)} has only 1 SPW (from combine_spw), "
+                f"while MS has {n_ms_spw} SPWs. Setting spwmap to map all MS SPWs to SPW 0."
+            )
+            return [0] * n_ms_spw
+    
+    return None
 
 
 def _validate_solve_success(caltable_path: str, refant: Optional[Union[int, str]] = None) -> None:
@@ -352,9 +417,14 @@ def solve_prebandpass_phase(
     refant: str,
     table_prefix: Optional[str] = None,
     combine_fields: bool = False,
+    combine_spw: bool = False,
     uvrange: str = "",
     solint: str = "30s",  # Default to 30s for time-variable phase drifts (inf causes decorrelation)
     minsnr: float = 3.0,  # Default to 3.0 to match bandpass threshold (phase-only is more robust)
+    peak_field_idx: Optional[int] = None,
+    minblperant: Optional[int] = None,  # Minimum baselines per antenna
+    spw: Optional[str] = None,  # SPW selection (e.g., "4~11" for central 8 SPWs)
+    table_name: Optional[str] = None,  # Custom table name (e.g., ".bpphase.gcal")
 ) -> str:
     """Solve phase-only calibration before bandpass to correct phase drifts in raw data.
     
@@ -393,29 +463,100 @@ def solve_prebandpass_phase(
     
     # Determine field selector based on combine_fields setting
     # - If combining across fields: use the full selection string to maximize SNR
-    # - Otherwise: use a single peak field from the range (last index as heuristic)
-    if '~' in str(cal_field):
-        peak_field = str(cal_field).split('~')[-1]
+    # - Otherwise: use the peak field (closest to calibrator) if provided, otherwise parse from range
+    #   The peak field is the one with maximum PB-weighted flux (closest to calibrator position)
+    if combine_fields:
+        field_selector = str(cal_field)
     else:
-        peak_field = str(cal_field)
-    field_selector = str(cal_field) if combine_fields else peak_field
+        if peak_field_idx is not None:
+            field_selector = str(peak_field_idx)
+        elif '~' in str(cal_field):
+            # Fallback: use first field in range (should be peak when peak_idx=0)
+            field_selector = str(cal_field).split('~')[0]
+        else:
+            field_selector = str(cal_field)
     print(
         f"Using field selector '{field_selector}' for pre-bandpass phase solve"
-        + (f" (combined from range {cal_field})" if combine_fields else "")
+        + (f" (combined from range {cal_field})" if combine_fields else f" (peak field: {field_selector})")
     )
     
-    # Combine across scans and fields when requested
+    # Combine across scans, fields, and SPWs when requested
+    # Combining SPWs improves SNR by using all 16 subbands simultaneously
     comb_parts = ["scan"]
     if combine_fields:
         comb_parts.append("field")
+    if combine_spw:
+        comb_parts.append("spw")
     comb = ",".join(comb_parts) if comb_parts else ""
     
+    # VERIFICATION: Check which SPWs are available and will be used
+    print("\n" + "=" * 70)
+    print("SPW SELECTION VERIFICATION")
+    print("=" * 70)
+    with table(f"{ms}::SPECTRAL_WINDOW", ack=False) as tspw:
+        n_spws = tspw.nrows()
+        spw_ids = list(range(n_spws))
+        ref_freqs = tspw.getcol("REF_FREQUENCY")
+        num_chan = tspw.getcol("NUM_CHAN")
+        print(f"MS contains {n_spws} spectral windows: SPW {spw_ids[0]} to SPW {spw_ids[-1]}")
+        print(f"  Frequency range: {ref_freqs[0]/1e9:.4f} - {ref_freqs[-1]/1e9:.4f} GHz")
+        print(f"  Total channels across all SPWs: {np.sum(num_chan)}")
+    
+    # Check data selection for the specified field
+    with table(ms, ack=False) as tb:
+        # Get unique SPW IDs in data for the selected field
+        # We need to query the actual data to see which SPWs have data
+        field_ids = tb.getcol("FIELD_ID")
+        spw_ids_in_data = tb.getcol("DATA_DESC_ID")
+        
+        # Get unique SPW IDs (need to map DATA_DESC_ID to SPW)
+        with table(f"{ms}::DATA_DESCRIPTION", ack=False) as tdd:
+            data_desc_to_spw = tdd.getcol("SPECTRAL_WINDOW_ID")
+        
+        # Filter by field if field_selector is a single number
+        if '~' not in str(field_selector):
+            try:
+                field_idx = int(field_selector)
+                field_mask = field_ids == field_idx
+                spw_ids_with_data = np.unique(data_desc_to_spw[spw_ids_in_data[field_mask]])
+            except ValueError:
+                # Field selector might be a name, use all data
+                spw_ids_with_data = np.unique(data_desc_to_spw[spw_ids_in_data])
+        else:
+            # Range of fields, use all data
+            spw_ids_with_data = np.unique(data_desc_to_spw[spw_ids_in_data])
+        
+        spw_ids_with_data = sorted([int(x) for x in spw_ids_with_data])  # Convert to plain ints for cleaner output
+        print(f"\nSPWs with data for field(s) '{field_selector}': {spw_ids_with_data}")
+        print(f"  Total SPWs to be processed: {len(spw_ids_with_data)}")
+        
+        if combine_spw:
+            print(f"\n  COMBINE='spw' is ENABLED:")
+            print(f"    → All {len(spw_ids_with_data)} SPWs will be used together in a single solve")
+            print(f"    → Solution will be stored in SPW ID 0 (aggregate SPW)")
+            print(f"    → This improves SNR by using all {len(spw_ids_with_data)} subbands simultaneously")
+        else:
+            print(f"\n  COMBINE='spw' is DISABLED:")
+            print(f"    → Each of the {len(spw_ids_with_data)} SPWs will be solved separately")
+            print(f"    → Solutions will be stored in SPW IDs {spw_ids_with_data}")
+    
+    print("=" * 70 + "\n")
+    
+    # Determine table name
+    if table_name:
+        caltable_name = table_name
+    else:
+        caltable_name = f"{table_prefix}_prebp_phase"
+    
     # Solve phase-only calibration (no previous calibrations applied)
-    print(f"Running pre-bandpass phase-only solve on field {field_selector}...")
+    combine_desc = f" (combining across {comb})" if comb else ""
+    spw_desc = f" (SPW: {spw})" if spw else ""
+    print(f"Running pre-bandpass phase-only solve on field {field_selector}{combine_desc}{spw_desc}...")
     kwargs = dict(
         vis=ms,
-        caltable=f"{table_prefix}_prebp_phase",
+        caltable=caltable_name,
         field=field_selector,
+        spw=spw if spw else "",  # Use provided SPW selection or all SPWs
         solint=solint,
         refant=refant,
         calmode="p",  # Phase-only mode
@@ -425,12 +566,14 @@ def solve_prebandpass_phase(
     )
     if uvrange:
         kwargs["uvrange"] = uvrange
+    if minblperant is not None:
+        kwargs["minblperant"] = minblperant
     
     casa_gaincal(**kwargs)
-    _validate_solve_success(f"{table_prefix}_prebp_phase", refant=refant)
-    print(f"✓ Pre-bandpass phase-only solve completed: {table_prefix}_prebp_phase")
+    _validate_solve_success(caltable_name, refant=refant)
+    print(f"✓ Pre-bandpass phase-only solve completed: {caltable_name}")
     
-    return f"{table_prefix}_prebp_phase"
+    return caltable_name
 
 
 def solve_bandpass(
@@ -448,6 +591,8 @@ def solve_bandpass(
     prebandpass_phase_table: Optional[str] = None,
     bp_smooth_type: Optional[str] = None,
     bp_smooth_window: Optional[int] = None,
+    peak_field_idx: Optional[int] = None,
+    combine: Optional[str] = None,  # Custom combine string (e.g., "scan,obs,field")
 ) -> List[str]:
     """Solve bandpass using CASA bandpass task with bandtype='B'.
     
@@ -498,30 +643,89 @@ def solve_bandpass(
     
     # Determine CASA field selector based on combine_fields setting
     # - If combining across fields: use the full selection string to maximize SNR
-    # - Otherwise: use a single peak field from the range (last index as heuristic)
-    if '~' in str(cal_field):
-        peak_field = str(cal_field).split('~')[-1]
+    # - Otherwise: use the peak field (closest to calibrator) if provided, otherwise parse from range
+    #   The peak field is the one with maximum PB-weighted flux (closest to calibrator position)
+    if combine_fields:
+        field_selector = str(cal_field)
     else:
-        peak_field = str(cal_field)
-    field_selector = str(cal_field) if combine_fields else peak_field
+        if peak_field_idx is not None:
+            field_selector = str(peak_field_idx)
+        elif '~' in str(cal_field):
+            # Fallback: use first field in range (should be peak when peak_idx=0)
+            field_selector = str(cal_field).split('~')[0]
+        else:
+            field_selector = str(cal_field)
     print(
         f"Using field selector '{field_selector}' for bandpass calibration"
-        + (f" (combined from range {cal_field})" if combine_fields else "")
+        + (f" (combined from range {cal_field})" if combine_fields else f" (peak field: {field_selector})")
     )
 
     # Avoid setjy here; CLI will write a calibrator MODEL_DATA when available.
     # Note: set_model and model_standard are kept for API compatibility but not used
     # (bandpass task uses MODEL_DATA column directly, not setjy)
 
-    # Combine across scans by default to improve SNR; optionally across fields and SPWs
+    # Combine across scans by default to improve SNR; optionally across fields, SPWs, and obs
     # Only include 'spw' when explicitly requested and scientifically justified
     # (i.e., similar bandpass behavior across SPWs and appropriate spwmap on apply)
-    comb_parts = ["scan"]
-    if combine_fields:
-        comb_parts.append("field")
-    if combine_spw:
-        comb_parts.append("spw")
-    comb = ",".join(comb_parts)
+    # Note: 'obs' is unusual but can be specified if needed
+    # If custom combine string is provided, use it directly
+    if combine:
+        comb = combine
+        print(f"Using custom combine string: {comb}")
+    else:
+        comb_parts = ["scan"]
+        if combine_fields:
+            comb_parts.append("field")
+        if combine_spw:
+            comb_parts.append("spw")
+        comb = ",".join(comb_parts)
+
+    # VERIFICATION: Check which SPWs are available and will be used
+    print("\n" + "=" * 70)
+    print("SPW SELECTION VERIFICATION")
+    print("=" * 70)
+    with table(f"{ms}::SPECTRAL_WINDOW", ack=False) as tspw:
+        n_spws = tspw.nrows()
+        spw_ids = list(range(n_spws))
+        ref_freqs = tspw.getcol("REF_FREQUENCY")
+        num_chan = tspw.getcol("NUM_CHAN")
+        print(f"MS contains {n_spws} spectral windows: SPW {spw_ids[0]} to SPW {spw_ids[-1]}")
+        print(f"  Frequency range: {ref_freqs[0]/1e9:.4f} - {ref_freqs[-1]/1e9:.4f} GHz")
+        print(f"  Total channels across all SPWs: {np.sum(num_chan)}")
+    
+    # Check data selection for the specified field
+    with table(ms, ack=False) as tb:
+        field_ids = tb.getcol("FIELD_ID")
+        spw_ids_in_data = tb.getcol("DATA_DESC_ID")
+        
+        with table(f"{ms}::DATA_DESCRIPTION", ack=False) as tdd:
+            data_desc_to_spw = tdd.getcol("SPECTRAL_WINDOW_ID")
+        
+        if '~' not in str(field_selector):
+            try:
+                field_idx = int(field_selector)
+                field_mask = field_ids == field_idx
+                spw_ids_with_data = np.unique(data_desc_to_spw[spw_ids_in_data[field_mask]])
+            except ValueError:
+                spw_ids_with_data = np.unique(data_desc_to_spw[spw_ids_in_data])
+        else:
+            spw_ids_with_data = np.unique(data_desc_to_spw[spw_ids_in_data])
+        
+        spw_ids_with_data = sorted(spw_ids_with_data)
+        print(f"\nSPWs with data for field(s) '{field_selector}': {spw_ids_with_data}")
+        print(f"  Total SPWs to be processed: {len(spw_ids_with_data)}")
+        
+        if combine_spw:
+            print(f"\n  COMBINE='spw' is ENABLED:")
+            print(f"    → All {len(spw_ids_with_data)} SPWs will be used together in a single solve")
+            print(f"    → Solution will be stored in SPW ID 0 (aggregate SPW)")
+            print(f"    → This improves SNR by using all {len(spw_ids_with_data)} subbands simultaneously")
+        else:
+            print(f"\n  COMBINE='spw' is DISABLED:")
+            print(f"    → Each of the {len(spw_ids_with_data)} SPWs will be solved separately")
+            print(f"    → Solutions will be stored in SPW IDs {spw_ids_with_data}")
+    
+    print("=" * 70 + "\n")
 
     # Use bandpass task with bandtype='B' for proper bandpass calibration
     # The bandpass task requires MODEL_DATA to be populated (smodel source model)
@@ -555,6 +759,16 @@ def solve_bandpass(
     if prebandpass_phase_table:
         kwargs["gaintable"] = [prebandpass_phase_table]
         print(f"  Applying pre-bandpass phase-only calibration: {prebandpass_phase_table}")
+        
+        # CRITICAL FIX: Determine spwmap if pre-bandpass phase table was created with combine_spw=True
+        # When combine_spw is used, the pre-bandpass phase table has solutions only for SPW=0 (aggregate).
+        # We need to map all MS SPWs to SPW 0 in the pre-bandpass phase table.
+        spwmap = _determine_spwmap_for_bptables([prebandpass_phase_table], ms)
+        if spwmap:
+            kwargs["spwmap"] = [spwmap]  # spwmap is a list of lists (one per gaintable)
+            # For phase-only calibration, use linear interpolation (frequency-independent phase)
+            kwargs["interp"] = ["linear"]  # One interpolation string per gaintable
+            print(f"  Setting spwmap={spwmap} and interp=['linear'] to map all MS SPWs to SPW 0")
     # Do NOT apply K-table to bandpass solve (K-table is applied in gain calibration step)
     casa_bandpass(**kwargs)
     # PRECONDITION CHECK: Verify bandpass solve completed successfully
@@ -613,6 +827,7 @@ def solve_gains(
     uvrange: str = "",
     solint: str = "inf",
     minsnr: float = 5.0,
+    peak_field_idx: Optional[int] = None,
 ) -> List[str]:
     """Solve gain amplitude and phase; optionally short-timescale.
     
@@ -675,14 +890,22 @@ def solve_gains(
             ) from e
     
     # Determine CASA field selector based on combine_fields setting
-    if '~' in str(cal_field):
-        peak_field = str(cal_field).split('~')[-1]
+    # - If combining across fields: use the full selection string to maximize SNR
+    # - Otherwise: use the peak field (closest to calibrator) if provided, otherwise parse from range
+    #   The peak field is the one with maximum PB-weighted flux (closest to calibrator position)
+    if combine_fields:
+        field_selector = str(cal_field)
     else:
-        peak_field = str(cal_field)
-    field_selector = str(cal_field) if combine_fields else peak_field
+        if peak_field_idx is not None:
+            field_selector = str(peak_field_idx)
+        elif '~' in str(cal_field):
+            # Fallback: use first field in range (should be peak when peak_idx=0)
+            field_selector = str(cal_field).split('~')[0]
+        else:
+            field_selector = str(cal_field)
     print(
         f"Using field selector '{field_selector}' for gain calibration"
-        + (f" (combined from range {cal_field})" if combine_fields else "")
+        + (f" (combined from range {cal_field})" if combine_fields else f" (peak field: {field_selector})")
     )
 
     # NOTE: K-table is NOT used for gain calibration (K-calibration not used for DSA-110)
@@ -690,6 +913,11 @@ def solve_gains(
     gaintable = bptables
     # Combine across scans and fields when requested; otherwise do not combine
     comb = "scan,field" if combine_fields else ""
+    
+    # CRITICAL FIX: Determine spwmap if bandpass table was created with combine_spw=True
+    # When combine_spw is used, the bandpass table has solutions only for SPW=0 (aggregate).
+    # We need to map all MS SPWs to SPW 0 in the bandpass table.
+    spwmap = _determine_spwmap_for_bptables(bptables, ms)
 
     # Always run phase-only gains (calmode='p') after bandpass
     # This corrects for time-dependent phase variations
@@ -712,6 +940,8 @@ def solve_gains(
     )
     if uvrange:
         kwargs["uvrange"] = uvrange
+    if spwmap:
+        kwargs["spwmap"] = spwmap
     casa_gaincal(**kwargs)
     # PRECONDITION CHECK: Verify phase-only gain solve completed successfully
     # This ensures we follow "measure twice, cut once" - verify solutions exist
@@ -742,6 +972,10 @@ def solve_gains(
         )
         if uvrange:
             kwargs["uvrange"] = uvrange
+        # CRITICAL FIX: Apply spwmap to second gaincal call as well
+        # Note: spwmap applies to bandpass tables in gaintable2; the gain table doesn't need it
+        if spwmap:
+            kwargs["spwmap"] = spwmap
         casa_gaincal(**kwargs)
         # PRECONDITION CHECK: Verify short-timescale phase-only gain solve completed successfully
         # This ensures we follow "measure twice, cut once" - verify solutions exist

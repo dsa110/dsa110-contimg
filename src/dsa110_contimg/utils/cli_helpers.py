@@ -177,3 +177,52 @@ def add_progress_flag(parser: argparse.ArgumentParser) -> None:
 # This function was removed to consolidate progress control logic.
 # Use: from dsa110_contimg.utils.progress import should_disable_progress
 # Then: show_progress = not should_disable_progress(args)
+
+
+def ensure_scratch_dirs() -> dict[str, Path]:
+    """
+    Ensure scratch directory structure exists and create if missing.
+    
+    Creates the following directory structure under CONTIMG_SCRATCH_DIR:
+    - ms/          # Measurement Sets
+    - caltables/   # Calibration tables
+    - images/       # Per-group images
+    - mosaics/      # Final mosaics
+    - logs/         # Processing logs
+    - tmp/          # Temporary staging (auto-cleaned)
+    
+    Returns:
+        Dictionary mapping directory names to Path objects:
+        {
+            'scratch': Path to base scratch directory,
+            'ms': Path to MS directory,
+            'caltables': Path to caltables directory,
+            'images': Path to images directory,
+            'mosaics': Path to mosaics directory,
+            'logs': Path to logs directory,
+            'tmp': Path to tmp directory,
+        }
+    """
+    scratch_base = os.getenv('CONTIMG_SCRATCH_DIR', '/scratch/dsa110-contimg')
+    scratch_base_path = Path(scratch_base)
+    
+    # Get subdirectory paths from env vars or default to scratch_base/{name}
+    dirs = {
+        'scratch': scratch_base_path,
+        'ms': Path(os.getenv('CONTIMG_MS_DIR', str(scratch_base_path / 'ms'))),
+        'caltables': Path(os.getenv('CONTIMG_CALTABLES_DIR', str(scratch_base_path / 'caltables'))),
+        'images': Path(os.getenv('CONTIMG_IMAGES_DIR', str(scratch_base_path / 'images'))),
+        'mosaics': Path(os.getenv('CONTIMG_MOSAICS_DIR', str(scratch_base_path / 'mosaics'))),
+        'logs': Path(os.getenv('CONTIMG_LOGS_DIR', str(scratch_base_path / 'logs'))),
+        'tmp': Path(scratch_base_path / 'tmp'),
+    }
+    
+    # Create all directories if they don't exist
+    for name, path in dirs.items():
+        try:
+            path.mkdir(parents=True, exist_ok=True)
+        except Exception as e:
+            # Log warning but don't fail - some operations may work without all dirs
+            logging.warning(f"Failed to create scratch directory {name} at {path}: {e}")
+    
+    return dirs

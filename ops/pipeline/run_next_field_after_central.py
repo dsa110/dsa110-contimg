@@ -9,10 +9,8 @@ import numpy as np  # type: ignore[import]
 
 from astropy.time import Time  # type: ignore[import]
 
-from dsa110_contimg.conversion.uvh5_to_ms import (  # type: ignore[import]
-    convert_single_file,
-    _ensure_imaging_columns_populated,
-)
+# Shared helpers (consolidated from duplicate code)
+from helpers_ms_conversion import write_ms_group_via_uvh5_to_ms
 # type: ignore[import]
 from dsa110_contimg.calibration.applycal import apply_to_target
 from dsa110_contimg.imaging.cli import image_ms  # type: ignore[import]
@@ -105,59 +103,8 @@ def _ensure_flag_and_weight_spectrum(ms_path: str) -> None:
         return
 
 
-def write_ms_group_via_uvh5_to_ms(file_list: List[str], ms_out: Path) -> None:
-    from casatasks import concat as casa_concat  # type: ignore[import]
-    part_base = ms_out.parent / (ms_out.stem + '.parts')
-    part_base.mkdir(parents=True, exist_ok=True)
-    parts: List[str] = []
-    for idx, sb in enumerate(sorted(file_list)):
-        part_out = part_base / f"{ms_out.stem}.sb{idx:02d}.ms"
-        if part_out.exists():
-            import shutil as _sh
-            _sh.rmtree(part_out, ignore_errors=True)
-        convert_single_file(
-            sb,
-            os.fspath(part_out),
-            add_imaging_columns=False,
-            create_time_binned_fields=False,
-            field_time_bin_minutes=5.0,
-            write_recommendations=False,
-            enable_phasing=True,
-            phase_reference_time=None,
-        )
-        try:
-            # type: ignore[import]
-            from casacore.tables import addImagingColumns as _addImCols
-            _addImCols(os.fspath(part_out))
-        except Exception:
-            pass
-        try:
-            _ensure_imaging_columns_populated(os.fspath(part_out))
-        except Exception:
-            pass
-        parts.append(os.fspath(part_out))
-    if ms_out.exists():
-        import shutil as _sh
-        _sh.rmtree(ms_out, ignore_errors=True)
-    casa_concat(
-        vis=sorted(parts),
-        concatvis=os.fspath(ms_out),
-        copypointing=False)
-    try:
-        # type: ignore[import]
-        from casacore.tables import addImagingColumns as _addImCols
-        _addImCols(os.fspath(ms_out))
-    except Exception:
-        pass
-    try:
-        _ensure_imaging_columns_populated(os.fspath(ms_out))
-    except Exception:
-        pass
-    try:
-        import shutil as _sh
-        _sh.rmtree(part_base, ignore_errors=True)
-    except Exception:
-        pass
+# Removed duplicate function - now using shared helper:
+# - write_ms_group_via_uvh5_to_ms() from helpers_ms_conversion
 
 
 def main() -> int:
@@ -212,7 +159,7 @@ def main() -> int:
     ms_out = out_dir / f'{gid}.ms'
     if not ms_out.exists():
         print(f'Converting next group {gid} -> {ms_out}')
-        write_ms_group_via_uvh5_to_ms(files, ms_out)
+        write_ms_group_via_uvh5_to_ms(files, ms_out, add_imaging_columns=False, configure_final_ms=False)
     else:
         print(f'Using existing MS (skip conversion): {ms_out}')
     # Ensure downstream-safe columns

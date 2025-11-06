@@ -27,8 +27,9 @@ import astropy.units as u
 from astropy.time import Time
 
 from dsa110_contimg.calibration.schedule import previous_transits
-from dsa110_contimg.calibration.catalogs import read_vla_parsed_catalog_csv
 from dsa110_contimg.conversion.strategies.hdf5_orchestrator import find_subband_groups
+# Shared helpers (consolidated from duplicate code)
+from helpers_catalog import load_ra_dec
 from pyuvdata import UVData
 
 
@@ -52,23 +53,8 @@ class CuratedTransit:
     groups: List[CuratedGroup]
 
 
-def _load_ra_dec(name: str, catalogs: List[str]) -> Tuple[float, float]:
-    for p in catalogs:
-        try:
-            df = read_vla_parsed_catalog_csv(p)
-            if name in df.index:
-                row = df.loc[name]
-                try:
-                    ra = float(row['ra_deg'].iloc[0])
-                    dec = float(row['dec_deg'].iloc[0])
-                except Exception:
-                    ra = float(row['ra_deg'])
-                    dec = float(row['dec_deg'])
-                if np.isfinite(ra) and np.isfinite(dec):
-                    return ra, dec
-        except Exception:
-            continue
-    raise RuntimeError(f'Calibrator {name} not found in catalogs: {catalogs}')
+# Removed duplicate function - now using shared helper:
+# - load_ra_dec() from helpers_catalog
 
 
 def _iso_window(center: Time, minutes: int) -> Tuple[str, str]:
@@ -122,7 +108,7 @@ def curate_transit(
     method: str = 'symlink',  # or 'copy'
     dec_tolerance_deg: float = 2.0,
 ) -> CuratedTransit:
-    ra_deg, dec_deg = _load_ra_dec(name, catalogs)
+    ra_deg, dec_deg = load_ra_dec(name, catalogs)
     # Look back in transits
     transits = previous_transits(ra_deg, start_time=Time.now(), n=max_days_back)
     chosen = None

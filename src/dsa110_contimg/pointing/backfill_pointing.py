@@ -7,7 +7,7 @@ from typing import List, Tuple
 import os
 import pandas as pd
 
-from dsa110_contimg.notebooks.calibrator_helper import load_pointing
+from dsa110_contimg.pointing.utils import load_pointing
 from dsa110_contimg.database.products import ensure_products_db
 
 # Configure logging

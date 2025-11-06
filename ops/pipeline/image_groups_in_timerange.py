@@ -22,18 +22,16 @@ from typing import List, Tuple, Optional
 import numpy as np
 from astropy.coordinates import Angle  # type: ignore[import]
 
-from dsa110_contimg.calibration.catalogs import (  # type: ignore[import]
-    read_vla_parsed_catalog_csv,
-)
-import sqlite3
 from dsa110_contimg.conversion.strategies.hdf5_orchestrator import (  # type: ignore[import]
     find_subband_groups,
 )
 from dsa110_contimg.conversion.ms_utils import (  # type: ignore[import]
     configure_ms_for_imaging,
 )
-# type: ignore[import]
-from dsa110_contimg.conversion.uvh5_to_ms import convert_single_file
+# Shared helpers (consolidated from duplicate code)
+from helpers_catalog import load_ra_dec
+from helpers_group import group_id_from_path
+from helpers_ms_conversion import write_ms_group_via_uvh5_to_ms
 # type: ignore[import]
 from dsa110_contimg.calibration.applycal import apply_to_target
 from dsa110_contimg.imaging.cli import image_ms  # type: ignore[import]
@@ -44,88 +42,10 @@ from dsa110_contimg.calibration.flagging import (  # type: ignore[import]
 )
 
 
-def _load_ra_dec_from_db(name: str, vla_db: Optional[str]) -> Optional[Tuple[float, float]]:
-    if not vla_db or not os.path.isfile(vla_db):
-        return None
-    try:
-        with sqlite3.connect(vla_db) as conn:
-            row = conn.execute(
-                "SELECT ra_deg, dec_deg FROM calibrators WHERE name=?", (name,)
-            ).fetchone()
-            if row:
-                return float(row[0]), float(row[1])
-    except Exception:
-        return None
-    return None
-
-
-def _load_ra_dec(name: str, catalogs: List[str], vla_db: Optional[str] = None) -> Tuple[float, float]:
-    dbv = _load_ra_dec_from_db(name, vla_db)
-    if dbv is not None:
-        return dbv
-    for p in catalogs:
-        try:
-            df = read_vla_parsed_catalog_csv(p)
-            if name in df.index:
-                row = df.loc[name]
-                try:
-                    ra = float(row['ra_deg'].iloc[0])
-                    dec = float(row['dec_deg'].iloc[0])
-                except Exception:
-                    ra = float(row['ra_deg'])
-                    dec = float(row['dec_deg'])
-                if np.isfinite(ra) and np.isfinite(dec):
-                    return ra, dec
-        except Exception:
-            continue
-    raise RuntimeError(
-        f'Calibrator {name} not found in catalogs: {catalogs}')
-
-
-def _group_id_from_path(path: str) -> str:
-    base = os.path.basename(path)
-    return base.split('_sb', 1)[0]
-
-
-def _write_ms_group_via_uvh5_to_ms(
-    file_list: List[str],
-    ms_out: Path,
-) -> None:
-    from casatasks import concat as casa_concat
-    part_base = ms_out.parent / (ms_out.stem + '.parts')
-    part_base.mkdir(parents=True, exist_ok=True)
-    parts: List[str] = []
-    for idx, sb in enumerate(sorted(file_list)):
-        part_out = part_base / f"{ms_out.stem}.sb{idx:02d}.ms"
-        if part_out.exists():
-            import shutil as _sh
-            _sh.rmtree(part_out, ignore_errors=True)
-        convert_single_file(
-            sb,
-            os.fspath(part_out),
-            add_imaging_columns=True,
-            create_time_binned_fields=False,
-            field_time_bin_minutes=5.0,
-            write_recommendations=False,
-            enable_phasing=True,
-            phase_reference_time=None,
-        )
-        parts.append(os.fspath(part_out))
-    if ms_out.exists():
-        import shutil as _sh
-        _sh.rmtree(ms_out, ignore_errors=True)
-    casa_concat(
-        vis=sorted(parts),
-        concatvis=os.fspath(ms_out),
-        copypointing=False,
-    )
-    # Configure the final concatenated MS
-    configure_ms_for_imaging(os.fspath(ms_out))
-    try:
-        import shutil as _sh
-        _sh.rmtree(part_base, ignore_errors=True)
-    except Exception:
-        pass
+# Removed duplicate functions - now using shared helpers:
+# - load_ra_dec() from helpers_catalog
+# - group_id_from_path() from helpers_group
+# - write_ms_group_via_uvh5_to_ms() from helpers_ms_conversion
 
 
 def main() -> int:
@@ -178,7 +98,7 @@ def main() -> int:
         phasecenter = args.phasecenter
     elif args.phasecenter_cal and args.name:
         try:
-            ra_deg, dec_deg = _load_ra_dec(args.name, args.catalog, vla_db=args.vla_db)
+            ra_deg, dec_deg = load_ra_dec(args.name, args.catalog, vla_db=args.vla_db)
             ra_hms = (
                 Angle(ra_deg, unit='deg')
                 .to_string(
@@ -197,11 +117,11 @@ def main() -> int:
             phasecenter = None
 
     for g in groups:
-        gid = _group_id_from_path(g[0])
+        gid = group_id_from_path(g[0])
         ms_out = out_dir / f'{gid}.ms'
         if not ms_out.is_dir():
             print(f'Converting {gid} -> {ms_out}')
-            _write_ms_group_via_uvh5_to_ms(g, ms_out)
+            write_ms_group_via_uvh5_to_ms(g, ms_out, add_imaging_columns=True, configure_final_ms=True)
         else:
             print(f'Configuring existing MS for imaging: {ms_out}')
             configure_ms_for_imaging(os.fspath(ms_out))

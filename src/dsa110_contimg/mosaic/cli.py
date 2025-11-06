@@ -20,6 +20,7 @@ from pathlib import Path
 from typing import List, Optional, Tuple
 
 from dsa110_contimg.database.products import ensure_products_db
+from dsa110_contimg.utils.cli_helpers import ensure_scratch_dirs
 try:
     from dsa110_contimg.utils.tempdirs import prepare_temp_environment
 except Exception:  # pragma: no cover
@@ -1209,6 +1210,12 @@ def build_parser() -> argparse.ArgumentParser:
 
 
 def main(argv: Optional[List[str]] = None) -> int:
+    # Ensure scratch directory structure exists
+    try:
+        ensure_scratch_dirs()
+    except Exception:
+        pass  # Best-effort; continue if setup fails
+    
     p = build_parser()
     args = p.parse_args(argv)
     if not hasattr(args, 'func'):

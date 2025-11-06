@@ -8,6 +8,129 @@ helps users understand and fix issues quickly.
 from typing import List, Dict, Any, Optional
 
 
+# Error code definitions with help URLs and suggestions
+ERROR_CODES = {
+    'MODEL_DATA_UNPOPULATED': {
+        'message': 'MODEL_DATA column exists but is unpopulated (all zeros)',
+        'help_url': 'docs/troubleshooting/model_data.md',
+        'code': 'E001',
+        'suggestions': [
+            'Use --model-source=catalog (recommended, default)',
+            'Use --model-source=setjy if calibrator at phase center (no rephasing)',
+            'Use --model-source=component with --model-component=<path>',
+            'Use --model-source=image with --model-image=<path>',
+        ]
+    },
+    'FIELD_NOT_FOUND': {
+        'message': 'Specified field not found in MS',
+        'help_url': 'docs/troubleshooting/field_selection.md',
+        'code': 'E002',
+        'suggestions': [
+            'List available fields: python -m dsa110_contimg.calibration.cli validate --ms <ms>',
+            'Use --auto-fields to auto-select fields',
+            'Check field selection syntax (index, name, or range like "10~12")',
+        ]
+    },
+    'REFANT_NOT_FOUND': {
+        'message': 'Reference antenna not found or has no unflagged data',
+        'help_url': 'docs/troubleshooting/refant_selection.md',
+        'code': 'E003',
+        'suggestions': [
+            'Use --refant-ranking to auto-select reference antenna',
+            'Check available antennas: python -m dsa110_contimg.calibration.cli validate --ms <ms>',
+            'Select an antenna with unflagged data throughout the observation',
+        ]
+    },
+    'MS_EMPTY': {
+        'message': 'Measurement Set is empty (no data rows)',
+        'help_url': 'docs/troubleshooting/ms_empty.md',
+        'code': 'E004',
+        'suggestions': [
+            'Check if conversion completed successfully',
+            'Verify input data files were not empty',
+            'Re-run conversion from source data',
+        ]
+    },
+    'MS_MISSING_COLUMNS': {
+        'message': 'MS missing required columns',
+        'help_url': 'docs/troubleshooting/ms_structure.md',
+        'code': 'E005',
+        'suggestions': [
+            'MS may be corrupted or incomplete',
+            'Try reconverting from source data',
+            'Check conversion logs for errors',
+        ]
+    },
+    'INSUFFICIENT_UNFLAGGED_DATA': {
+        'message': 'Insufficient unflagged data after flagging',
+        'help_url': 'docs/troubleshooting/flagging.md',
+        'code': 'E006',
+        'suggestions': [
+            'Adjust flagging parameters (--flagging-mode)',
+            'Check data quality and RFI conditions',
+            'Consider using --fast mode for faster processing',
+            'Review flagging statistics: python -m dsa110_contimg.calibration.cli flag --ms <ms> --mode summary',
+        ]
+    },
+    'SETJY_WITH_REPHASING': {
+        'message': 'setjy cannot be used with rephasing (phase center bugs)',
+        'help_url': 'docs/reports/USER_SAFEGUARDS_PROPOSAL.md',
+        'code': 'E007',
+        'suggestions': [
+            'Use --model-source=catalog (default, recommended)',
+            'Use --skip-rephase if calibrator is at meridian phase center',
+            'Manual MODEL_DATA calculation is used automatically with catalog model',
+        ]
+    },
+}
+
+
+def get_error_code_info(error_type: str) -> Optional[Dict[str, Any]]:
+    """
+    Get error code information for a given error type.
+    
+    Args:
+        error_type: Error type string (e.g., 'MODEL_DATA_UNPOPULATED')
+    
+    Returns:
+        Dictionary with error code info, or None if not found
+    """
+    return ERROR_CODES.get(error_type)
+
+
+def format_error_with_code(error_type: str, details: Dict[str, Any]) -> str:
+    """
+    Format error message with error code and suggestions.
+    
+    Args:
+        error_type: Error type (key from ERROR_CODES)
+        details: Additional error details
+    
+    Returns:
+        Formatted error message with code and suggestions
+    """
+    error_info = ERROR_CODES.get(error_type)
+    if not error_info:
+        return f"Error: {error_type}\n"
+    
+    code = error_info.get('code', 'E000')
+    message = error_info.get('message', error_type)
+    suggestions = error_info.get('suggestions', [])
+    help_url = error_info.get('help_url', '')
+    
+    msg = f"[{code}] {message}\n"
+    
+    if suggestions:
+        msg += "\nSuggested fixes:\n"
+        for i, suggestion in enumerate(suggestions, 1):
+            msg += f"  {i}. {suggestion}\n"
+    
+    if help_url:
+        msg += f"\nFor more information, see: {help_url}\n"
+    
+    return msg
+
+
 def format_validation_error(errors: List[str], warnings: Optional[List[str]] = None,
                            context: str = "") -> str:
     """

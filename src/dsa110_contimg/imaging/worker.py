@@ -93,11 +93,12 @@ def _apply_and_image(
     # Apply to all fields by default
     try:
         from dsa110_contimg.calibration.applycal import apply_to_target
-        from dsa110_contimg.calibration.imaging import quick_image
+        from dsa110_contimg.imaging.cli import image_ms
 
         apply_to_target(ms_path, field="", gaintables=gaintables, calwt=True)
         imgroot = out_dir / (Path(ms_path).stem + ".img")
-        quick_image(ms_path, imagename=str(imgroot), field="")
+        # Use image_ms with quick=True for quick imaging (replaces calibration/imaging.py quick_image)
+        image_ms(ms_path, imagename=str(imgroot), field="", quick=True, skip_fits=True)
         # Return whatever CASA produced
         for ext in [".image", ".image.pbcor", ".residual", ".psf", ".pb"]:
             p = f"{imgroot}{ext}"

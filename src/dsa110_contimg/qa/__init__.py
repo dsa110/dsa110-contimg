@@ -9,6 +9,9 @@ from dsa110_contimg.qa.ms_quality import validate_ms_quality, quick_ms_check
 from dsa110_contimg.qa.calibration_quality import (
     validate_caltable_quality,
     check_corrected_data_quality,
+    check_upstream_delay_correction,
+    verify_kcal_delays,
+    inspect_kcal_simple,
 )
 from dsa110_contimg.qa.image_quality import validate_image_quality, quick_image_check
 from dsa110_contimg.qa.pipeline_quality import (
@@ -25,6 +28,10 @@ __all__ = [
     # Calibration quality
     "validate_caltable_quality",
     "check_corrected_data_quality",
+    # Delay-specific QA
+    "check_upstream_delay_correction",
+    "verify_kcal_delays",
+    "inspect_kcal_simple",
     # Image quality
     "validate_image_quality",
     "quick_image_check",

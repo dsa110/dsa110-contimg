@@ -981,10 +981,10 @@ def convert_single_file(input_file: str, output_file: str,
         except Exception:
             logger.debug("set_telescope_identity best-effort failed", exc_info=True)
 
-        # Phase data to a single reference center (RA=LST(mid), Dec from UVH5)
+        # Phase data to meridian with time-dependent phase centers (RA=LST(t), Dec from UVH5)
         if enable_phasing:
-            logger.info("Phasing to meridian at midpoint of observation")
-            phase_to_meridian(uvd, phase_reference_time)
+            logger.info("Phasing to meridian with time-dependent phase centers")
+            phase_to_meridian(uvd)
         else:
             logger.info("Skipping explicit phasing (using original phasing)")
 

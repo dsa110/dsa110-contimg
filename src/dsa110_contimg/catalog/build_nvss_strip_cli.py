@@ -14,7 +14,7 @@ import argparse
 from pathlib import Path
 
 from dsa110_contimg.catalog.builders import build_nvss_strip_db
-from dsa110_contimg.notebooks.calibrator_helper import load_pointing
+from dsa110_contimg.pointing.utils import load_pointing
 
 
 def main(argv: list[str] | None = None) -> int:

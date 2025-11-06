@@ -108,14 +108,19 @@ def select_bandpass_from_catalog(
     freq_GHz: float = 1.4,
     window: int = 3,
     min_pb: float | None = None,
-) -> Tuple[str, List[int], np.ndarray, Tuple[str, float, float, float]]:
+) -> Tuple[str, List[int], np.ndarray, Tuple[str, float, float, float], int]:
     """Select bandpass fields by scanning a VLA calibrator catalog.
     
     Automatically prefers SQLite catalog if available, falls back to CSV.
     If catalog_path is None, uses automatic resolution (prefers SQLite).
 
-    Returns (field_sel_str, indices, weighted_flux_per_field, calibrator_info)
-    where calibrator_info = (name, ra_deg, dec_deg, flux_jy).
+    Returns (field_sel_str, indices, weighted_flux_per_field, calibrator_info, peak_field_idx)
+    where:
+        - field_sel_str: CASA field selection string (e.g., "0~1")
+        - indices: List of field indices in the range
+        - weighted_flux_per_field: Array of PB-weighted flux per field
+        - calibrator_info: (name, ra_deg, dec_deg, flux_jy)
+        - peak_field_idx: The field index closest to the calibrator (maximum weighted flux)
     """
     # Use load_vla_catalog for SQLite support (preferred method per memory)
     if catalog_path is None:
@@ -134,6 +139,27 @@ def select_bandpass_from_catalog(
     ra_field, dec_field = _read_field_dirs(ms_path)
     if ra_field.size == 0:
         raise RuntimeError("MS has no FIELD rows")
+    
+    # Filter out time-dependent phase center fields (meridian_icrs_t*)
+    # These are created during conversion but aren't separate observational fields
+    # NOTE: Field 0 (meridian_icrs_t0) is special - it's the first time sample and contains
+    # the calibrator data, so we keep it even though it has the meridian phase center name
+    with table(f"{ms_path}::FIELD") as tf:
+        field_names = tf.getcol("NAME")
+    # Keep only fields that don't match meridian phase center pattern, EXCEPT field 0
+    # Field 0 is the first time sample and contains the actual calibrator data
+    valid_field_mask = np.array([
+        (i == 0) or not (isinstance(name, str) and name.startswith('meridian_icrs_t'))
+        for i, name in enumerate(field_names)
+    ])
+    valid_field_indices = np.where(valid_field_mask)[0]
+    
+    if len(valid_field_indices) == 0:
+        raise RuntimeError("No valid calibrator fields found (all fields are time-dependent phase centers)")
+    
+    # Filter field coordinates to only valid fields
+    ra_field = ra_field[valid_field_indices]
+    dec_field = dec_field[valid_field_indices]
 
     field_coords = Angle(ra_field, unit=u.rad), Angle(dec_field, unit=u.rad)
     field_ra = field_coords[0].rad
@@ -191,29 +217,37 @@ def select_bandpass_from_catalog(
     if best is None:
         raise RuntimeError("No calibrator candidates found within search radius")
 
-    _, peak_idx, name, ra_deg, dec_deg, flux_jy = best
+    _, peak_idx_filtered, name, ra_deg, dec_deg, flux_jy = best
     wflux = best_wflux
     nfields = len(wflux)
     
-    # If only one field exists, return it directly (no range needed)
+    # Map filtered index back to original MS field index
+    peak_idx_original = int(valid_field_indices[peak_idx_filtered])
+    
+    # If only one valid field exists, return it directly (no range needed)
     if nfields == 1:
         cal_info = (name, ra_deg, dec_deg, flux_jy)
-        return "0", [0], wflux, cal_info
+        return str(peak_idx_original), [peak_idx_original], wflux, cal_info, peak_idx_original
     
     if min_pb is not None and np.isfinite(min_pb):
-        resp_peak = max(wflux[peak_idx] / max(flux_jy, 1e-12), 0.0)
+        resp_peak = max(wflux[peak_idx_filtered] / max(flux_jy, 1e-12), 0.0)
         thr = float(min_pb) * max(resp_peak, 1e-12)
-        start = peak_idx
-        end = peak_idx
-        while start - 1 >= 0 and (wflux[start - 1] / max(flux_jy, 1e-12)) >= thr:
-            start -= 1
-        while end + 1 < len(wflux) and (wflux[end + 1] / max(flux_jy, 1e-12)) >= thr:
-            end += 1
+        start_filtered = peak_idx_filtered
+        end_filtered = peak_idx_filtered
+        while start_filtered - 1 >= 0 and (wflux[start_filtered - 1] / max(flux_jy, 1e-12)) >= thr:
+            start_filtered -= 1
+        while end_filtered + 1 < len(wflux) and (wflux[end_filtered + 1] / max(flux_jy, 1e-12)) >= thr:
+            end_filtered += 1
     else:
         half = max(1, int(window)) // 2
-        start = max(0, peak_idx - half)
-        end = min(len(wflux) - 1, peak_idx + half)
-    sel_str = f"{start}~{end}" if start != end else f"{start}"
-    indices = list(range(start, end + 1))
+        start_filtered = max(0, peak_idx_filtered - half)
+        end_filtered = min(len(wflux) - 1, peak_idx_filtered + half)
+    
+    # Map filtered indices back to original MS field indices
+    start_original = int(valid_field_indices[start_filtered])
+    end_original = int(valid_field_indices[end_filtered])
+    
+    sel_str = f"{start_original}~{end_original}" if start_original != end_original else f"{start_original}"
+    indices = [int(valid_field_indices[i]) for i in range(start_filtered, end_filtered + 1)]
     cal_info = (name, ra_deg, dec_deg, flux_jy)
-    return sel_str, indices, wflux, cal_info
+    return sel_str, indices, wflux, cal_info, peak_idx_original

@@ -1,6 +1,10 @@
 from typing import List, Optional
 import os
 import sys
+import subprocess
+import shutil
+import logging
+import time
 from contextlib import contextmanager
 
 # Ensure headless operation to prevent casaplotserver X server errors
@@ -59,29 +63,186 @@ def flag_zeros(ms: str, datacolumn: str = "data") -> None:
         flagdata(vis=ms, mode="clip", datacolumn=datacolumn, clipzeros=True)
 
 
-def flag_rfi(ms: str, datacolumn: str = "data") -> None:
-    # Two-stage RFI flagging using flagdata modes (tfcrop then rflag)
-    with suppress_subprocess_stderr():
-        flagdata(
-            vis=ms,
-            mode="tfcrop",
-            datacolumn=datacolumn,
-            timecutoff=4.0,
-            freqcutoff=4.0,
-            timefit="line",
-            freqfit="poly",
-            maxnpieces=5,
-            winsize=3,
-            extendflags=False,
+def flag_rfi(ms: str, datacolumn: str = "data", backend: str = "casa",
+             aoflagger_path: Optional[str] = None, strategy: Optional[str] = None,
+             extend_flags: bool = True) -> None:
+    """Flag RFI using CASA or AOFlagger.
+    
+    Args:
+        ms: Path to Measurement Set
+        datacolumn: Data column to use (default: "data")
+        backend: Backend to use - "casa" (default) or "aoflagger"
+        aoflagger_path: Path to aoflagger executable or "docker" (for AOFlagger backend)
+        strategy: Optional path to custom Lua strategy file (for AOFlagger backend)
+        extend_flags: If True, extend flags to adjacent channels/times after flagging (default: True)
+    """
+    if backend == "aoflagger":
+        flag_rfi_aoflagger(ms, datacolumn=datacolumn, aoflagger_path=aoflagger_path, strategy=strategy)
+        # Extend flags after AOFlagger (if enabled)
+        # Note: Flag extension may fail when using Docker due to permission issues
+        # (AOFlagger writes as root, making subsequent writes fail). This is non-fatal.
+        if extend_flags:
+            time.sleep(2)  # Allow file locks to clear
+            try:
+                flag_extend(ms, flagnearfreq=True, flagneartime=True, extendpols=True, datacolumn=datacolumn)
+                logger = logging.getLogger(__name__)
+                logger.debug("Flag extension completed successfully")
+            except (RuntimeError, PermissionError, OSError) as e:
+                # If file lock or permission issue, log warning but don't fail
+                logger = logging.getLogger(__name__)
+                error_str = str(e).lower()
+                if any(term in error_str for term in ["cannot be opened", "not writable", "permission denied", "permission"]):
+                    logger.warning(
+                        f"Flag extension skipped due to file permission/lock issue (common when using Docker AOFlagger). "
+                        f"RFI flags from AOFlagger are still applied. Error: {e}"
+                    )
+                else:
+                    logger.warning(f"Flag extension failed: {e}. RFI flags from AOFlagger are still applied.")
+    else:
+        # Two-stage RFI flagging using flagdata modes (tfcrop then rflag)
+        with suppress_subprocess_stderr():
+            flagdata(
+                vis=ms,
+                mode="tfcrop",
+                datacolumn=datacolumn,
+                timecutoff=4.0,
+                freqcutoff=4.0,
+                timefit="line",
+                freqfit="poly",
+                maxnpieces=5,
+                winsize=3,
+                extendflags=False,
+            )
+            flagdata(
+                vis=ms,
+                mode="rflag",
+                datacolumn=datacolumn,
+                timedevscale=4.0,
+                freqdevscale=4.0,
+                extendflags=False,
+            )
+        # Extend flags to adjacent channels/times after flagging (if enabled)
+        if extend_flags:
+            try:
+                flag_extend(ms, flagnearfreq=True, flagneartime=True, extendpols=True, datacolumn=datacolumn)
+            except RuntimeError as e:
+                # If file lock or permission issue, log warning but don't fail
+                logger = logging.getLogger(__name__)
+                if "cannot be opened" in str(e) or "not writable" in str(e):
+                    logger.warning(f"Could not extend flags due to file lock/permission: {e}. Flags from tfcrop+rflag are still applied.")
+                else:
+                    raise
+
+
+def flag_rfi_aoflagger(ms: str, datacolumn: str = "data", aoflagger_path: Optional[str] = None, strategy: Optional[str] = None) -> None:
+    """Flag RFI using AOFlagger (faster alternative to CASA tfcrop).
+    
+    AOFlagger uses the SumThreshold algorithm which is typically 2-5x faster
+    than CASA's tfcrop+rflag combination for large datasets.
+    
+    **Note:** On Ubuntu 18.x systems, Docker is required due to CMake/pybind11
+    compatibility issues. The default behavior is to use Docker if available.
+    
+    Args:
+        ms: Path to Measurement Set
+        datacolumn: Data column to use (default: "data")
+        aoflagger_path: Path to aoflagger executable, "docker" to force Docker, or None to auto-detect
+        strategy: Optional path to custom Lua strategy file (default: auto-detect)
+    
+    Raises:
+        RuntimeError: If AOFlagger is not available
+        subprocess.CalledProcessError: If AOFlagger execution fails
+    """
+    logger = logging.getLogger(__name__)
+    
+    # Determine AOFlagger command
+    # Default to Docker since AOFlagger was built for Docker on Ubuntu 18.x
+    use_docker = False
+    if aoflagger_path:
+        if aoflagger_path == "docker":
+            # Force Docker usage
+            docker_cmd = shutil.which("docker")
+            if not docker_cmd:
+                suggestions = [
+                    "Install Docker",
+                    "Verify Docker is in PATH",
+                    "Check Docker service is running",
+                    "Use --aoflagger-path to specify native AOFlagger location"
+                ]
+                error_msg = format_ms_error_with_suggestions(
+                    RuntimeError("Docker not found but --aoflagger-path=docker was specified"),
+                    ms, "AOFlagger setup", suggestions
+                )
+                raise RuntimeError(error_msg)
+            use_docker = True
+            aoflagger_cmd = [docker_cmd, "run", "--rm", "-v", "/scratch:/scratch", "-v", "/data:/data",
+                            "aoflagger:latest", "aoflagger"]
+        else:
+            # Explicit path provided - use it directly
+            aoflagger_cmd = [aoflagger_path]
+            logger.info(f"Using AOFlagger from explicit path: {aoflagger_path}")
+    else:
+        # Auto-detect: prefer Docker (since that's what we built) but check for native
+        docker_cmd = shutil.which("docker")
+        native_aoflagger = shutil.which("aoflagger")
+        
+        if docker_cmd:
+            # Docker is available - use it by default (works on Ubuntu 18.x)
+            use_docker = True
+            aoflagger_cmd = [docker_cmd, "run", "--rm", "-v", "/scratch:/scratch", "-v", "/data:/data",
+                            "aoflagger:latest", "aoflagger"]
+            if native_aoflagger:
+                logger.debug("Both Docker and native AOFlagger available; using Docker (Ubuntu 18.x compatible)")
+            else:
+                logger.debug("Using Docker for AOFlagger (native not found)")
+        elif native_aoflagger:
+            # Fall back to native if Docker not available
+            aoflagger_cmd = [native_aoflagger]
+            logger.info("Using native AOFlagger (Docker not available)")
+        else:
+            suggestions = [
+                "Install Docker and build aoflagger:latest image",
+                "Install native AOFlagger and ensure it's in PATH",
+                "Use --aoflagger-path to specify AOFlagger location",
+                "Check AOFlagger installation documentation"
+            ]
+            error_msg = format_ms_error_with_suggestions(
+                RuntimeError("AOFlagger not found. Docker is required on Ubuntu 18.x systems."),
+                ms, "AOFlagger setup", suggestions
+            )
+            raise RuntimeError(error_msg)
+    
+    # Build command
+    cmd = aoflagger_cmd.copy()
+    
+    # Add strategy if provided (otherwise uses default auto-detected strategy)
+    if strategy:
+        cmd.extend(["-strategy", strategy])
+    
+    # Add MS path (required - AOFlagger will auto-detect strategy if not specified)
+    cmd.append(ms)
+    
+    # Execute AOFlagger
+    logger.info(f"Running AOFlagger: {' '.join(cmd)}")
+    try:
+        subprocess.run(cmd, check=True, capture_output=False)
+        logger.info("✓ AOFlagger RFI flagging complete")
+    except subprocess.CalledProcessError as e:
+        logger.error(f"AOFlagger failed with exit code {e.returncode}")
+        raise
+    except FileNotFoundError:
+        suggestions = [
+            "Check AOFlagger installation",
+            "Verify AOFlagger is in PATH",
+            "Use --aoflagger-path to specify AOFlagger location",
+            "Check Docker image is available (if using Docker)"
+        ]
+        error_msg = format_ms_error_with_suggestions(
+            FileNotFoundError(f"AOFlagger executable not found: {aoflagger_cmd[0]}"),
+            ms, "AOFlagger execution", suggestions
         )
-        flagdata(
-            vis=ms,
-            mode="rflag",
-            datacolumn=datacolumn,
-            timedevscale=4.0,
-            freqdevscale=4.0,
-            extendflags=False,
-        )
+        logger.error(error_msg)
+        raise RuntimeError(error_msg)
 
 
 def flag_antenna(ms: str, antenna: str, datacolumn: str = "data", pol: Optional[str] = None) -> None:
@@ -136,7 +297,16 @@ def flag_manual(ms: str, antenna: Optional[str] = None,
         kwargs["correlation"] = correlation
     
     if len([k for k in [antenna, scan, spw, field, uvrange, timerange, correlation] if k]) == 0:
-        raise ValueError("At least one selection parameter must be provided for manual flagging")
+        suggestions = [
+            "Provide at least one selection parameter (antenna, time, baseline, etc.)",
+            "Check manual flagging command syntax",
+            "Review flagging documentation for parameter requirements"
+        ]
+        error_msg = format_ms_error_with_suggestions(
+            ValueError("At least one selection parameter must be provided for manual flagging"),
+            ms, "manual flagging", suggestions
+        )
+        raise ValueError(error_msg)
     
     with suppress_subprocess_stderr():
         flagdata(**kwargs)
@@ -261,11 +431,89 @@ def flag_extend(ms: str, growtime: float = 0.0, growfreq: float = 0.0,
         extendpols: Extend flags across polarization products
         datacolumn: Data column to use (default: 'data')
     """
-    with suppress_subprocess_stderr():
-        flagdata(vis=ms, mode="extend", datacolumn=datacolumn,
-                 growtime=growtime, growfreq=growfreq, growaround=growaround,
-                 flagneartime=flagneartime, flagnearfreq=flagnearfreq,
-                 extendpols=extendpols)
+    # Try using CASA flagdata first
+    try:
+        with suppress_subprocess_stderr():
+            flagdata(vis=ms, mode="extend", datacolumn=datacolumn,
+                     growtime=growtime, growfreq=growfreq, growaround=growaround,
+                     flagneartime=flagneartime, flagnearfreq=flagnearfreq,
+                     extendpols=extendpols, flagbackup=False)
+    except RuntimeError as e:
+        # If CASA fails due to file lock, try direct casacore approach for simple extension
+        if ("cannot be opened" in str(e) or "not writable" in str(e)) and (flagneartime or flagnearfreq):
+            logger = logging.getLogger(__name__)
+            logger.debug("CASA flagdata failed, trying direct casacore flag extension")
+            try:
+                _extend_flags_direct(ms, flagneartime=flagneartime, flagnearfreq=flagnearfreq, extendpols=extendpols)
+            except Exception as e2:
+                logger.warning(f"Direct flag extension also failed: {e2}. Flag extension skipped.")
+                raise RuntimeError(f"Flag extension failed: {e}") from e
+        else:
+            raise
+
+
+def _extend_flags_direct(ms: str, flagneartime: bool = False,
+                         flagnearfreq: bool = False, extendpols: bool = True) -> None:
+    """Extend flags directly using casacore.tables (fallback when CASA flagdata fails).
+    
+    This is a simpler implementation that only handles adjacent channel/time extension.
+    For more complex extension (growaround, growtime, etc.), use CASA flagdata.
+    """
+    try:
+        from casacore.tables import table
+        import numpy as np
+        
+        with table(ms, readonly=False, ack=False) as tb:
+            flags = tb.getcol("FLAG")
+            
+            if flags.size == 0:
+                return
+            
+            # Create extended flags
+            extended_flags = flags.copy()
+            
+            # Extend in frequency direction (adjacent channels)
+            if flagnearfreq:
+                # Shape: (nrows, nchans, npols)
+                nrows, nchans, npols = flags.shape
+                for row in range(nrows):
+                    for pol in range(npols):
+                        row_flags = flags[row, :, pol]
+                        # Flag channels adjacent to flagged channels
+                        flagged_chans = np.where(row_flags)[0]
+                        for chan in flagged_chans:
+                            if chan > 0:
+                                extended_flags[row, chan - 1, pol] = True
+                            if chan < nchans - 1:
+                                extended_flags[row, chan + 1, pol] = True
+            
+            # Extend in time direction (adjacent time samples)
+            if flagneartime:
+                # Flag time samples adjacent to flagged samples
+                nrows, nchans, npols = flags.shape
+                for row in range(nrows):
+                    if np.any(flags[row]):
+                        # Flag adjacent rows (time samples)
+                        if row > 0:
+                            extended_flags[row - 1] = extended_flags[row - 1] | flags[row]
+                        if row < nrows - 1:
+                            extended_flags[row + 1] = extended_flags[row + 1] | flags[row]
+            
+            # Extend across polarizations
+            if extendpols:
+                # If any pol is flagged, flag all pols
+                nrows, nchans, npols = flags.shape
+                for row in range(nrows):
+                    for chan in range(nchans):
+                        if np.any(flags[row, chan]):
+                            extended_flags[row, chan, :] = True
+            
+            # Write extended flags back
+            tb.putcol("FLAG", extended_flags)
+    except Exception as e:
+        logger = logging.getLogger(__name__)
+        logger.debug(f"Direct flag extension failed: {e}")
+        raise
 
 
 def flag_summary(ms: str, spw: str = "", field: str = "", 

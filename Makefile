@@ -1,7 +1,7 @@
 DC=docker compose -f ops/docker/docker-compose.yml
 .DEFAULT_GOAL := help
 
-.PHONY: help compose-build compose-up compose-down compose-logs compose-ps compose-restart compose-up-scheduler compose-up-stream compose-up-api compose-pull compose-down-service compose-stop docs-install docs-serve docs-build docs-deploy guardrails-check guardrails-fix ingest-docs test-catalog test-vla-catalog test-unit test-validation test-integration test-all test-quality
+.PHONY: help compose-build compose-up compose-down compose-logs compose-ps compose-restart compose-up-scheduler compose-up-stream compose-up-api compose-pull compose-down-service compose-stop docs-install docs-serve docs-build docs-deploy guardrails-check guardrails-fix ingest-docs test-catalog test-vla-catalog test-unit test-validation test-integration test-all test-quality update-todo-date
 
 help:
 	@echo "DSA-110 Continuum Pipeline - Docker Compose helper targets"
@@ -48,45 +48,14 @@ help:
 	@echo "    pip install -r docs/requirements.txt && mkdocs serve -a 0.0.0.0:8001"
 	@echo "  build: make docs-build    | deploy to GitHub Pages: make docs-deploy"
 	@echo ""
-	@echo "Graphiti guardrails & docs ingestion:"
-	@echo "  make guardrails-check            Check uuid/summary/embeddings for the graph group (default: dsa110-contimg)"
-	@echo "  make guardrails-fix              Backfill uuid/summary, re-embed missing/mismatched vectors"
-	@echo "  make ingest-docs                 Ingest README/quickstart/quicklook/pipeline and link to scripts"
-	@echo "    Vars: GROUP_ID=<group> (default dsa110-contimg)"
+	@echo "CI/CD Integration:"
+	@echo "  Tests are configured for GitHub Actions in .github/workflows/validation-tests.yml"
 	@echo ""
-	@echo "Catalog builder smoke test (run in casa6):"
-	@echo "  make test-catalog                Run scripts/test_catalog_builder.py using casa6"
-	@echo "  make test-vla-catalog            Run scripts/test_ingest_vla_catalog.py using casa6"
+	@echo "Maintenance:"
+	@echo "  make update-todo-date              Update TODO.md date to today (auto-runs on commit)"
+	@echo "  make sync-linear                   Sync TODO.md items to Linear (see docs/LINEAR_INTEGRATION.md)"
 
-docs-install:
-	pip install -r docs/requirements.txt
-
-docs-serve:
-	PYTHONPATH=$(PWD)/src mkdocs serve -a 0.0.0.0:8001
-
-docs-build:
-	PYTHONPATH=$(PWD)/src mkdocs build -d site
-
-docs-deploy:
-	mkdocs gh-deploy
-
-# Graphiti guardrails / ingestion helpers
-UV?=/home/ubuntu/.local/bin/uv
-GRAPHITI_SERVER_DIR?=/home/ubuntu/proj/mcps/graphiti/mcp_server
-GROUP_ID?=dsa110-contimg
-
-guardrails-check:
-	$(UV) -q run --isolated --directory $(GRAPHITI_SERVER_DIR) \
-	  python scripts/graphiti_guardrails_check.py --group-id $(GROUP_ID)
-
-guardrails-fix:
-	$(UV) -q run --isolated --directory $(GRAPHITI_SERVER_DIR) \
-	  python scripts/graphiti_guardrails_check.py --group-id $(GROUP_ID) --fix
-
-ingest-docs:
-	$(UV) -q run --isolated --directory $(GRAPHITI_SERVER_DIR) \
-	  python scripts/graphiti_ingest_docs.py --root $(PWD) --group-id $(GROUP_ID)
-
+# Docker Compose targets
 compose-build:
 	$(DC) build
 
@@ -96,85 +65,103 @@ compose-up:
 compose-down:
 	$(DC) down
 
-# Pull images (optionally for a single service)
-compose-pull:
-	$(DC) pull $(SERVICE)
-
 compose-logs:
-	$(DC) logs -f $(SERVICE)
+	@if [ -z "$(SERVICE)" ]; then \
+		$(DC) logs -f; \
+	else \
+		$(DC) logs -f $(SERVICE); \
+	fi
 
 compose-ps:
 	$(DC) ps
 
-compose-restart:
-	$(DC) restart $(SERVICE)
+compose-pull:
+	@if [ -z "$(SERVICE)" ]; then \
+		$(DC) pull; \
+	else \
+		$(DC) pull $(SERVICE); \
+	fi
 
-# Stop (optionally) a single service without removing containers
 compose-stop:
-	$(DC) stop $(SERVICE)
+	@if [ -z "$(SERVICE)" ]; then \
+		$(DC) stop; \
+	else \
+		$(DC) stop $(SERVICE); \
+	fi
 
-# Bring up only the scheduler service
-compose-up-scheduler:
-	$(DC) up -d scheduler
+compose-restart:
+	@if [ -z "$(SERVICE)" ]; then \
+		$(DC) restart; \
+	else \
+		$(DC) restart $(SERVICE); \
+	fi
 
-# Bring up only the stream service
+compose-down-service:
+	@if [ -z "$(SERVICE)" ]; then \
+		echo "Error: SERVICE variable required. Usage: make compose-down-service SERVICE=name"; \
+		exit 1; \
+	fi
+	$(DC) rm -f -s $(SERVICE)
+
+# Service-specific up targets
 compose-up-stream:
 	$(DC) up -d stream
 
-# Bring up only the api service
 compose-up-api:
 	$(DC) up -d api
 
-# Remove a single service's container(s)
-compose-down-service:
-	$(DC) rm -f $(SERVICE)
+compose-up-scheduler:
+	$(DC) up -d scheduler
 
-# Catalog builder smoke test (requires casa6 at /opt/miniforge/envs/casa6)
+# Docs targets
+docs-install:
+	pip install -r docs/requirements.txt
+
+docs-serve:
+	mkdocs serve -a 0.0.0.0:8001
+
+docs-build:
+	mkdocs build
+
+docs-deploy:
+	mkdocs gh-deploy
+
+# Guardrails targets
+guardrails-check:
+	@echo "Checking guardrails..."
+	@python3 -m dsa110_contimg.guardrails.check
+
+guardrails-fix:
+	@echo "Fixing guardrails..."
+	@python3 -m dsa110_contimg.guardrails.fix
+
+# Ingest docs
+ingest-docs:
+	@echo "Ingesting documentation..."
+	@python3 -m dsa110_contimg.ingest.docs
+
+# Test targets
 test-catalog:
-	PYTHONPATH=$(PWD)/src /opt/miniforge/envs/casa6/bin/python scripts/test_catalog_builder.py
+	@echo "Testing catalog..."
+	@python3 -m pytest tests/unit/test_catalog.py -v
 
-# VLA catalog ingestion smoke test (requires casa6)
 test-vla-catalog:
-	PYTHONPATH=$(PWD)/src /opt/miniforge/envs/casa6/bin/python scripts/test_ingest_vla_catalog.py
+	@echo "Testing VLA catalog..."
+	@python3 -m pytest tests/unit/test_vla_catalog.py -v
 
-# ============================================================================
-# Testing and Validation Targets for Enhanced Pipeline
-# ============================================================================
-
-# Unit tests (mocked, no dependencies)
 test-unit:
-	@echo "Running unit tests with mocking..."
-	@if command -v pytest >/dev/null 2>&1; then \
-		PYTHONPATH=$(PWD)/src pytest tests/unit/test_validation_functions.py -v; \
-	else \
-		echo "ERROR: pytest not found. Install with: pip install pytest"; \
-		exit 1; \
-	fi
+	@echo "Running unit tests..."
+	@python3 -m pytest tests/unit/ -v
 
-# Validation tests (requires casa6 environment)
 test-validation:
-	@echo "Running validation tests in casa6 environment..."
-	@if [ -f ./test_enhanced_pipeline_production.sh ]; then \
-		chmod +x ./test_enhanced_pipeline_production.sh; \
-		./test_enhanced_pipeline_production.sh; \
-	else \
-		echo "ERROR: test_enhanced_pipeline_production.sh not found"; \
-		exit 1; \
-	fi
+	@echo "Running validation tests..."
+	@echo "Note: These tests require casa6 to be installed and available"
+	@python3 -m pytest tests/validation/ -v
 
-# Integration tests (synthetic data + conversion)
 test-integration:
-	@echo "Running integration tests with synthetic data..."
-	@if [ -d "/opt/miniforge/envs/casa6" ]; then \
-		export PYTHONPATH=$(PWD)/src; \
-		/opt/miniforge/envs/casa6/bin/python -m pytest tests/validation/test_pipeline_validation_integration.py -v; \
-	else \
-		echo "ERROR: casa6 environment not found at /opt/miniforge/envs/casa6"; \
-		echo "Please install casa6 environment or modify path in Makefile"; \
-		exit 1; \
-	fi
+	@echo "Running integration tests..."
+	@python3 -m pytest tests/integration/ -v
 
-# Code quality checks
 test-quality:
 	@echo "Running code quality checks..."
 	@echo "Checking validation function formatting..."
@@ -193,49 +180,45 @@ test-all: test-quality test-unit test-validation test-integration
 # Install test dependencies
 test-deps:
 	@echo "Installing test dependencies..."
-	pip install -r requirements-test.txt
+	@pip install -r requirements-test.txt 2>/dev/null || echo "requirements-test.txt not found, skipping..."
 
-# Clean test artifacts
-test-clean:
-	@echo "Cleaning test artifacts..."
-	rm -rf /tmp/dsa110_validation_test_*
-	rm -rf /tmp/test_scenarios
-	rm -rf .pytest_cache
-	rm -rf tests/__pycache__
-	rm -rf tests/unit/__pycache__
-	rm -rf tests/validation/__pycache__
-	find . -name "*.pyc" -delete
-	find . -name "__pycache__" -type d -exec rm -rf {} + 2>/dev/null || true
-
-# Display test help
+# Test help
 test-help:
-	@echo "DSA-110 Pipeline Testing and Validation"
-	@echo "========================================"
+	@echo "Testing Help:"
 	@echo ""
-	@echo "Test Types:"
-	@echo "  make test-unit        Unit tests with mocking (no dependencies)"
-	@echo "  make test-validation  Validation tests with synthetic data (requires casa6)"
-	@echo "  make test-integration Integration tests (requires casa6)"
-	@echo "  make test-quality     Code quality and style checks"
-	@echo "  make test-all         Run all tests (unit -> validation -> integration)"
+	@echo "Unit Tests (test-unit):"
+	@echo "  - Fast, isolated tests with mocked dependencies"
+	@echo "  - No external dependencies required"
+	@echo "  - Run with: make test-unit"
 	@echo ""
-	@echo "Utilities:"
-	@echo "  make test-deps        Install test dependencies"
-	@echo "  make test-clean       Clean test artifacts and cache files"
-	@echo "  make test-help        Show this help message"
+	@echo "Validation Tests (test-validation):"
+	@echo "  - Tests that require casa6 installation"
+	@echo "  - May take longer to run"
+	@echo "  - Run with: make test-validation"
 	@echo ""
-	@echo "Requirements:"
-	@echo "  - Unit tests: pytest (pip install pytest)"
-	@echo "  - Validation/Integration tests: casa6 environment at /opt/miniforge/envs/casa6"
-	@echo "  - Quality checks: flake8 (pip install flake8)"
+	@echo "Integration Tests (test-integration):"
+	@echo "  - End-to-end workflow tests"
+	@echo "  - May require external services"
+	@echo "  - Run with: make test-integration"
 	@echo ""
-	@echo "Enhanced validation functions test:"
-	@echo "  - Frequency ordering validation"
-	@echo "  - UVW coordinate precision checks"
-	@echo "  - Antenna position accuracy validation"
-	@echo "  - MODEL_DATA quality assessment"
-	@echo "  - Reference antenna stability analysis"
-	@echo "  - CASA file handle cleanup verification"
+	@echo "Quality Checks (test-quality):"
+	@echo "  - Code formatting and style checks"
+	@echo "  - Run with: make test-quality"
+	@echo ""
+	@echo "All Tests (test-all):"
+	@echo "  - Runs all test suites"
+	@echo "  - Run with: make test-all"
 	@echo ""
 	@echo "CI/CD Integration:"
 	@echo "  Tests are configured for GitHub Actions in .github/workflows/validation-tests.yml"
+
+# Update TODO.md date automatically
+update-todo-date:
+	@python3 scripts/update_todo_date.py
+
+# Sync TODO.md to Linear
+sync-linear:
+	@python3 scripts/linear_sync.py
+
+sync-linear-dry-run:
+	@python3 scripts/linear_sync.py --dry-run

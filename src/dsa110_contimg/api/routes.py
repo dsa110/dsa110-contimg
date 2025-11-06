@@ -1916,7 +1916,8 @@ def create_app(config: ApiConfig | None = None) -> FastAPI:
                 
                 # Convert CASA time to hours since start
                 time_hours = (times - times.min()) / 3600.0
-                phases_deg = np.degrees(phases)
+                from dsa110_contimg.utils.angles import wrap_phase_deg
+                phases_deg = wrap_phase_deg(np.degrees(phases))
                 
                 ax.plot(time_hours, phases_deg, 'b-', alpha=0.7, linewidth=0.5)
                 ax.set_xlabel('Time (hours since start)')
@@ -1950,8 +1951,9 @@ def create_app(config: ApiConfig | None = None) -> FastAPI:
                             spw_phases = phases[spw_mask]
                             if spw_phases.ndim > 1:
                                 spw_phases = np.nanmean(spw_phases, axis=-1)
+                            from dsa110_contimg.utils.angles import wrap_phase_deg
                             freq_data.extend(spw_freqs.tolist())
-                            phase_data.extend(np.degrees(spw_phases).tolist())
+                            phase_data.extend(wrap_phase_deg(np.degrees(spw_phases)).tolist())
                     
                     ax.plot(freq_data, phase_data, 'b-', alpha=0.7, linewidth=0.5)
                     ax.set_xlabel('Frequency (GHz)')

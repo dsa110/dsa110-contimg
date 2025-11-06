@@ -333,23 +333,37 @@ def validate_corrected_data_quality(ms_path: str, sample_size: int = 10000) -> L
     """
     Validate CORRECTED_DATA column quality.
     
+    **CRITICAL**: If CORRECTED_DATA exists but is unpopulated (all zeros), this indicates
+    calibration was attempted but failed. Returns warnings that should cause the caller
+    to FAIL rather than proceed with uncalibrated data.
+    
     Args:
         ms_path: Path to Measurement Set
         sample_size: Number of rows to sample for validation
     
     Returns:
-        List of warning messages (empty if no issues)
+        List of warning messages (empty if no issues). If CORRECTED_DATA exists but is
+        unpopulated, returns warnings that should cause the caller to raise an error.
     """
     warnings = []
     
     try:
         from casacore.tables import table
+        import numpy as np
         
         with table(ms_path, readonly=True) as tb:
             if 'CORRECTED_DATA' not in tb.colnames():
-                return warnings  # No corrected data is fine, just return empty warnings
+                # No corrected data column - calibration never attempted, this is fine
+                return warnings  # Return empty warnings
             
+            # CORRECTED_DATA exists - calibration was attempted, must verify it worked
             n_rows = tb.nrows()
+            if n_rows == 0:
+                warnings.append(
+                    "CORRECTED_DATA column exists but MS has zero rows - calibration may have failed"
+                )
+                return warnings
+            
             sample_size = min(sample_size, n_rows)
             
             if sample_size > 0:
@@ -357,17 +371,24 @@ def validate_corrected_data_quality(ms_path: str, sample_size: int = 10000) -> L
                 flags = tb.getcol('FLAG', startrow=0, nrow=sample_size)
                 
                 unflagged = corrected_data[~flags]
-                if len(unflagged) > 0:
+                if len(unflagged) == 0:
+                    warnings.append(
+                        "CORRECTED_DATA column exists but all sampled data is flagged - "
+                        "calibration may have failed"
+                    )
+                else:
                     nonzero_count = np.count_nonzero(np.abs(unflagged) > 1e-10)
                     nonzero_fraction = nonzero_count / len(unflagged)
                     
                     if nonzero_fraction < 0.01:
                         warnings.append(
-                            f"CORRECTED_DATA appears unpopulated "
-                            f"({nonzero_fraction*100:.1f}% non-zero)"
+                            f"CORRECTED_DATA column exists but appears unpopulated "
+                            f"({nonzero_fraction*100:.1f}% non-zero in sampled data) - "
+                            f"calibration appears to have failed"
                         )
-    except Exception:
-        pass  # Non-fatal check
+    except Exception as e:
+        # If we can't check, that's a problem - return a warning
+        warnings.append(f"Error validating CORRECTED_DATA: {e}")
     
     return warnings
 

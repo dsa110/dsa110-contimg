@@ -7,6 +7,13 @@ from casacore.tables import addImagingColumns
 import casacore.tables as tb
 import numpy as np
 
+# Import cached MS metadata helper
+try:
+    from dsa110_contimg.utils.ms_helpers import get_ms_metadata
+except ImportError:
+    # Fallback if helper not available
+    get_ms_metadata = None
+
 
 def _ensure_imaging_columns(ms_path: str) -> None:
     try:
@@ -73,21 +80,41 @@ def _calculate_manual_model_data(
             field_indices = [int(field)]
         # If field is a name or invalid, field_indices stays None (use all fields)
     
-    # Read MS phase center from PHASE_DIR for all fields
-    # PHASE_DIR matches the actual phase center used for DATA column phasing
-    # (updated by phaseshift). This ensures MODEL_DATA matches DATA column phase structure.
-    with casa_table(f"{ms_path}::FIELD", readonly=True) as field_tb:
-        if "PHASE_DIR" in field_tb.colnames():
-            phase_dir = field_tb.getcol("PHASE_DIR")  # Shape: (nfields, 1, 2)
-        else:
-            # Fallback to REFERENCE_DIR if PHASE_DIR not available
-            phase_dir = field_tb.getcol("REFERENCE_DIR")  # Shape: (nfields, 1, 2)
-        nfields = len(phase_dir)
+    # OPTIMIZATION: Use cached MS metadata if available to avoid redundant table reads
+    # This is especially beneficial when MODEL_DATA is calculated multiple times
+    # for the same MS (e.g., during calibration iteration).
+    if get_ms_metadata is not None:
+        try:
+            metadata = get_ms_metadata(ms_path)
+            phase_dir = metadata.get('phase_dir')
+            chan_freq = metadata.get('chan_freq')
+            if phase_dir is not None and chan_freq is not None:
+                nfields = len(phase_dir)
+                nspw = len(chan_freq)
+                # Use cached metadata
+            else:
+                # Fallback to direct read if cache doesn't have required fields
+                raise ValueError("Cached metadata incomplete")
+        except Exception:
+            # Fallback to direct read if cache fails
+            get_ms_metadata = None
     
-    # Read spectral window information for frequencies
-    with casa_table(f"{ms_path}::SPECTRAL_WINDOW", readonly=True) as spw_tb:
-        chan_freq = spw_tb.getcol("CHAN_FREQ")  # Shape: (nspw, nchan)
-        nspw = len(chan_freq)
+    if get_ms_metadata is None:
+        # Fallback: Read MS phase center from PHASE_DIR for all fields
+        # PHASE_DIR matches the actual phase center used for DATA column phasing
+        # (updated by phaseshift). This ensures MODEL_DATA matches DATA column phase structure.
+        with casa_table(f"{ms_path}::FIELD", readonly=True) as field_tb:
+            if "PHASE_DIR" in field_tb.colnames():
+                phase_dir = field_tb.getcol("PHASE_DIR")  # Shape: (nfields, 1, 2)
+            else:
+                # Fallback to REFERENCE_DIR if PHASE_DIR not available
+                phase_dir = field_tb.getcol("REFERENCE_DIR")  # Shape: (nfields, 1, 2)
+            nfields = len(phase_dir)
+        
+        # Read spectral window information for frequencies
+        with casa_table(f"{ms_path}::SPECTRAL_WINDOW", readonly=True) as spw_tb:
+            chan_freq = spw_tb.getcol("CHAN_FREQ")  # Shape: (nspw, nchan)
+            nspw = len(chan_freq)
     
     # Read main table data
     with casa_table(ms_path, readonly=False) as main_tb:
@@ -177,12 +204,16 @@ def write_point_model_with_ft(
     reffreq_hz: float = 1.4e9,
     spectral_index: Optional[float] = None,
     field: Optional[str] = None,
-    use_manual: bool = False,
+    use_manual: bool = True,
 ) -> None:
     """Write a physically-correct complex point-source model into MODEL_DATA.
     
-    By default, uses CASA ft() task. If use_manual=True, uses manual calculation
-    which bypasses ft() and ensures correct phase center usage.
+    By default, uses manual calculation which handles per-field phase centers correctly.
+    If use_manual=False, uses CASA ft() task, which reads phase center from FIELD parameters
+    but uses ONE phase center for ALL fields. This causes phase errors when fields have
+    different phase centers (e.g., each field phased to its own meridian). ft() works correctly
+    when all fields share the same phase center (after rephasing), but manual calculation
+    is more robust and handles per-field phase centers correctly in all scenarios.
     
     Args:
         ms_path: Path to Measurement Set
@@ -193,7 +224,9 @@ def write_point_model_with_ft(
         spectral_index: Optional spectral index for frequency-dependent flux
         field: Optional field selection (default: all fields). If specified, MODEL_DATA
               will only be written to the selected field(s).
-        use_manual: If True, use manual calculation instead of ft() (default: False)
+        use_manual: If True (default), use manual calculation (recommended).
+                   If False, use ft() which uses one phase center for all fields.
+                   Use False only when all fields share the same phase center.
     """
     if use_manual:
         # Use manual calculation to bypass ft() phase center issues
@@ -264,6 +297,11 @@ def write_point_model_with_ft(
         )
 
     # Pass field parameter to ensure MODEL_DATA is written to the correct field
+    # NOTE: ft() reads phase center from FIELD parameters, but uses ONE phase center for ALL fields.
+    # If fields have different phase centers (e.g., each field phased to its own meridian),
+    # ft() will use the phase center from one field (typically field 0) for all fields,
+    # causing phase errors for fields with different phase centers.
+    # Manual calculation (use_manual=True) handles per-field phase centers correctly.
     ft_kwargs = {"vis": ms_path, "complist": comp_path, "usescratch": True}
     if field is not None:
         ft_kwargs["field"] = field
@@ -271,36 +309,38 @@ def write_point_model_with_ft(
     _initialize_corrected_from_data(ms_path)
 
 
-def write_point_model_quick(
-    ms_path: str,
-    ra_deg: float,
-    dec_deg: float,
-    flux_jy: float,
-) -> None:
-    """Write a simple amplitude-only model line per frequency (testing only)."""
-    _ensure_imaging_columns(ms_path)
-
-    with tb.table(f"{ms_path}::SPECTRAL_WINDOW") as ts:
-        freqs = ts.getcol("CHAN_FREQ")[0]
-    amp = np.ones_like(freqs, dtype=np.float32)
-
-    with tb.table(ms_path, readonly=False) as t:
-        npol, nchan, nrow = t.getcol("DATA").shape
-        blk = 4096
-        line = (float(flux_jy) * amp.astype(np.complex64))
-        for start in range(0, nrow, blk):
-            end = min(start + blk, nrow)
-            model = line[None, :, None]
-            model = np.broadcast_to(model, (npol, nchan, end - start)).copy()
-            t.putcolslice(
-                "MODEL_DATA", model, blc=[
-                    0, 0, start], trc=[
-                    npol - 1, nchan - 1, end - 1])
-    _initialize_corrected_from_data(ms_path)
+# NOTE: write_point_model_quick() has been archived to archive/legacy/calibration/model_quick.py
+# This function was testing-only and not used in production. It did not calculate
+# phase structure (amplitude-only), making it unsuitable for calibration workflows.
+# Use write_point_model_with_ft(use_manual=True) instead.
 
 
 def write_component_model_with_ft(ms_path: str, component_path: str) -> None:
-    """Apply an existing CASA component list (.cl) into MODEL_DATA using ft."""
+    """Apply an existing CASA component list (.cl) into MODEL_DATA using ft.
+    
+    .. deprecated:: 2025-11-05
+        This function uses ft() which has known phase center bugs.
+        For point sources, use :func:`write_point_model_with_ft` with ``use_manual=True`` instead.
+        
+        Known Issues:
+        - Uses ft() which does not use PHASE_DIR correctly after rephasing
+        - May cause phase scatter when MS is rephased
+        
+        This function is kept for component list support (no manual alternative available).
+        Use with caution and only when component list is required.
+    
+    Args:
+        ms_path: Path to Measurement Set
+        component_path: Path to CASA component list (.cl)
+    """
+    import warnings
+    warnings.warn(
+        "write_component_model_with_ft() uses ft() which has known phase center bugs. "
+        "For point sources, use write_point_model_with_ft(use_manual=True) instead. "
+        "See docs/reports/FT_PHASE_CENTER_FIX.md",
+        DeprecationWarning,
+        stacklevel=2
+    )
     from casatasks import ft
 
     if not os.path.exists(component_path):
@@ -312,7 +352,31 @@ def write_component_model_with_ft(ms_path: str, component_path: str) -> None:
 
 
 def write_image_model_with_ft(ms_path: str, image_path: str) -> None:
-    """Apply a CASA image model into MODEL_DATA using ft."""
+    """Apply a CASA image model into MODEL_DATA using ft.
+    
+    .. deprecated:: 2025-11-05
+        This function uses ft() which has known phase center bugs.
+        For point sources, use :func:`write_point_model_with_ft` with ``use_manual=True`` instead.
+        
+        Known Issues:
+        - Uses ft() which does not use PHASE_DIR correctly after rephasing
+        - May cause phase scatter when MS is rephased
+        
+        This function is kept for image model support (no manual alternative available).
+        Use with caution and only when image model is required.
+    
+    Args:
+        ms_path: Path to Measurement Set
+        image_path: Path to CASA image model
+    """
+    import warnings
+    warnings.warn(
+        "write_image_model_with_ft() uses ft() which has known phase center bugs. "
+        "For point sources, use write_point_model_with_ft(use_manual=True) instead. "
+        "See docs/reports/FT_PHASE_CENTER_FIX.md",
+        DeprecationWarning,
+        stacklevel=2
+    )
     from casatasks import ft
 
     if not os.path.exists(image_path):
@@ -323,6 +387,70 @@ def write_image_model_with_ft(ms_path: str, image_path: str) -> None:
     _initialize_corrected_from_data(ms_path)
 
 
+def export_model_as_fits(
+    ms_path: str,
+    output_path: str,
+    field: Optional[str] = None,
+    imsize: int = 512,
+    cell_arcsec: float = 1.0,
+) -> None:
+    """Export MODEL_DATA as a FITS image.
+    
+    Creates a CASA image from MODEL_DATA column and exports it to FITS format.
+    This is useful for visualizing the sky model used during calibration (NVSS sources
+    or calibrator model) and for debugging calibration issues.
+    
+    Args:
+        ms_path: Path to Measurement Set
+        output_path: Output FITS file path (without .fits extension)
+        field: Optional field selection (default: all fields)
+        imsize: Image size in pixels (default: 512)
+        cell_arcsec: Cell size in arcseconds (default: 1.0)
+    """
+    from casatasks import tclean, exportfits
+    from casatools import image as imtool
+    import logging
+    
+    LOG = logging.getLogger(__name__)
+    
+    # Ensure imaging columns exist
+    _ensure_imaging_columns(ms_path)
+    
+    # Create image name (CASA will add .image suffix)
+    image_name = f"{output_path}.model"
+    
+    try:
+        # Use tclean to create image from MODEL_DATA
+        # Use niter=0 to just grid without deconvolution
+        tclean_kwargs = {
+            "vis": ms_path,
+            "imagename": image_name,
+            "datacolumn": "model",
+            "imsize": [imsize, imsize],
+            "cell": [f"{cell_arcsec}arcsec", f"{cell_arcsec}arcsec"],
+            "specmode": "mfs",
+            "niter": 0,  # No deconvolution, just grid the model
+            "weighting": "natural",
+            "stokes": "I",
+        }
+        if field is not None:
+            tclean_kwargs["field"] = field
+        
+        LOG.info(f"Creating model image from {ms_path} MODEL_DATA...")
+        tclean(**tclean_kwargs)
+        
+        # Export to FITS
+        fits_path = f"{output_path}.fits"
+        LOG.info(f"Exporting model image to {fits_path}...")
+        exportfits(imagename=f"{image_name}.image", fitsimage=fits_path, overwrite=True)
+        
+        LOG.info(f"✓ Model image exported to {fits_path}")
+        
+    except Exception as e:
+        LOG.error(f"Failed to export model image: {e}")
+        raise
+
+
 def write_setjy_model(
     ms_path: str,
     field: str,
@@ -331,7 +459,34 @@ def write_setjy_model(
     spw: str = "",
     usescratch: bool = True,
 ) -> None:
-    """Populate MODEL_DATA via casatasks.setjy for standard calibrators."""
+    """Populate MODEL_DATA via casatasks.setjy for standard calibrators.
+    
+    .. deprecated:: 2025-11-05
+        This function has known phase center bugs when used with rephased MS.
+        Use :func:`write_point_model_with_ft` with ``use_manual=True`` instead.
+        
+        Known Issues:
+        - Uses setjy() which internally calls ft() with phase center bugs
+        - Causes 100°+ phase scatter when MS is rephased
+        - Does not use PHASE_DIR correctly after rephasing
+        
+        The CLI now prevents problematic usage, but this function is deprecated
+        for new code.
+    
+    Args:
+        ms_path: Path to Measurement Set
+        field: Field selection
+        standard: Flux standard name (default: "Perley-Butler 2017")
+        spw: SPW selection
+        usescratch: Whether to use scratch column
+    """
+    import warnings
+    warnings.warn(
+        "write_setjy_model() is deprecated. Use write_point_model_with_ft(use_manual=True) instead. "
+        "This function has known phase center bugs. See docs/reports/FT_PHASE_CENTER_FIX.md",
+        DeprecationWarning,
+        stacklevel=2
+    )
     from casatasks import setjy
 
     _ensure_imaging_columns(ms_path)

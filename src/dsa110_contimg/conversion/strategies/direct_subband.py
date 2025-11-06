@@ -23,8 +23,7 @@ from .base import MSWriter
 from dsa110_contimg.conversion.helpers import (
     set_antenna_positions,
     _ensure_antenna_diameters,
-    get_meridian_coords,
-    compute_and_set_uvw,
+    phase_to_meridian,
     set_telescope_identity,
     cleanup_casa_file_handles,
 )
@@ -125,10 +124,8 @@ class DirectSubbandWriter(MSWriter):
             ) / ms_final_path.stem
         part_base.mkdir(parents=True, exist_ok=True)
 
-        # Compute single phase center for entire group to ensure phase coherence
-        # This prevents phase discontinuities when subbands are concatenated
-        group_phase_ra = None
-        group_phase_dec = None
+        # Compute shared pointing declination for entire group
+        # Time-dependent phase centers will be set per-subband via phase_to_meridian()
         group_pt_dec = None
         
         try:
@@ -147,7 +144,7 @@ class DirectSubbandWriter(MSWriter):
                         mid_times.append(mid_mjd)
                 except Exception:
                     # Fallback: read first file fully if peek fails
-                    if group_phase_ra is None:
+                    if group_pt_dec is None:
                         try:
                             from pyuvdata import UVData
                             temp_uv = UVData()
@@ -175,22 +172,14 @@ class DirectSubbandWriter(MSWriter):
             if group_pt_dec is not None and len(mid_times) > 0:
                 # Compute group midpoint time (average of all subband midpoints)
                 group_mid_mjd = float(np.mean(mid_times))
-                
-                # Compute shared phase center coordinates at group midpoint
-                group_phase_ra, group_phase_dec = get_meridian_coords(
-                    group_pt_dec, group_mid_mjd
-                )
                 print(
-                    f"Computed shared phase center for group: "
-                    f"RA={group_phase_ra.to(u.deg).value:.6f}°, "
-                    f"Dec={group_phase_dec.to(u.deg).value:.6f}° "
+                    f"Using shared pointing declination for group: "
+                    f"Dec={group_pt_dec.to(u.deg).value:.6f}° "
                     f"(MJD={group_mid_mjd:.6f})"
                 )
         except Exception as e:
-            print(f"Warning: Failed to compute shared phase center: {e}")
-            print("Falling back to per-subband phase center calculation")
-            group_phase_ra = None
-            group_phase_dec = None
+            print(f"Warning: Failed to compute shared pointing declination: {e}")
+            print("Falling back to per-subband pointing declination")
             group_pt_dec = None
 
         # Use processes, not threads: casatools/casacore are not thread-safe
@@ -225,9 +214,7 @@ class DirectSubbandWriter(MSWriter):
                         _write_ms_subband_part,
                         sb_file,
                         str(part_out),
-                        group_phase_ra,  # Pass shared phase center
-                        group_phase_dec,
-                        group_pt_dec)
+                        group_pt_dec)  # Pass shared pointing declination
                 ))
 
         # Collect results in order (idx 0, 1, 2, ..., 15) to maintain spectral order
@@ -264,6 +251,18 @@ class DirectSubbandWriter(MSWriter):
         # This prevents file locking issues during concatenation
         cleanup_casa_file_handles()
 
+        # CRITICAL: Remove existing staged MS if it exists (from previous failed run)
+        # CASA's concat doesn't handle existing output directories well
+        if ms_stage_path.exists():
+            logger.warning(
+                f"Removing existing staged MS before concatenation: {ms_stage_path}"
+            )
+            cleanup_casa_file_handles()
+            shutil.rmtree(ms_stage_path, ignore_errors=True)
+            # Ensure the directory is fully removed
+            time.sleep(0.5)
+            cleanup_casa_file_handles()
+
         # Solution 3: Retry logic for concat failures
         # Concatenate parts into the final MS with retry on file locking errors
         print(
@@ -277,6 +276,14 @@ class DirectSubbandWriter(MSWriter):
             try:
                 # Additional cleanup before each concat attempt
                 if attempt > 0:
+                    # Clean up any partial MS from previous failed attempt
+                    if ms_stage_path.exists():
+                        logger.warning(
+                            f"Removing partial staged MS from failed attempt: {ms_stage_path}"
+                        )
+                        cleanup_casa_file_handles()
+                        shutil.rmtree(ms_stage_path, ignore_errors=True)
+                        time.sleep(1.0)
                     cleanup_casa_file_handles()
                     time.sleep(1.0)  # Give more time for handles to close
                 
@@ -289,22 +296,31 @@ class DirectSubbandWriter(MSWriter):
                     copypointing=False)
                 concat_success = True
                 break
-            except RuntimeError as e:
+            except (RuntimeError, OSError) as e:
                 last_error = e
                 error_msg = str(e)
-                if ("cannot be opened" in error_msg or 
+                # Check for retryable errors
+                retryable = (
+                    "cannot be opened" in error_msg or 
                     "readBlock" in error_msg or 
                     "read/write" in error_msg or
-                    "lock" in error_msg.lower()):
-                    if attempt < max_retries - 1:
-                        logger.warning(
-                            f"Concat failed (attempt {attempt + 1}/{max_retries}), "
-                            f"retrying after cleanup: {e}"
-                        )
-                        # Enhanced cleanup and retry
-                        cleanup_casa_file_handles()
-                        time.sleep(2.0)  # Longer wait for file handles to release
-                        continue
+                    "lock" in error_msg.lower() or
+                    "Directory not empty" in error_msg or
+                    "Invalid cross-device link" in error_msg or
+                    "Errno 39" in error_msg or
+                    "Errno 18" in error_msg
+                )
+                if retryable and attempt < max_retries - 1:
+                    logger.warning(
+                        f"Concat failed (attempt {attempt + 1}/{max_retries}), "
+                        f"retrying after cleanup: {e}"
+                    )
+                    # Enhanced cleanup and retry
+                    if ms_stage_path.exists():
+                        shutil.rmtree(ms_stage_path, ignore_errors=True)
+                    cleanup_casa_file_handles()
+                    time.sleep(2.0)  # Longer wait for file handles to release
+                    continue
                 raise
         
         if not concat_success:
@@ -424,27 +440,23 @@ class DirectSubbandWriter(MSWriter):
 def _write_ms_subband_part(
     subband_file: str,
     part_out: str,
-    shared_phase_ra: Optional[u.Quantity] = None,
-    shared_phase_dec: Optional[u.Quantity] = None,
     shared_pt_dec: Optional[u.Quantity] = None,
 ) -> str:
     """
     Write a single-subband MS using pyuvdata.write_ms.
 
     This is a top-level function to be safely used with multiprocessing.
+    Uses time-dependent phase centers that track LST throughout the observation.
 
     Args:
         subband_file: Path to input UVH5 subband file
         part_out: Path to output MS file
-        shared_phase_ra: Optional shared phase center RA (for phase coherence)
-        shared_phase_dec: Optional shared phase center Dec (for phase coherence)
         shared_pt_dec: Optional shared pointing declination (for UVW computation)
 
     Returns:
         Path to created MS file
     """
     from pyuvdata import UVData
-    from astropy.time import Time
 
     uv = UVData()
     uv.read(
@@ -480,44 +492,16 @@ def _write_ms_subband_part(
     set_antenna_positions(uv)
     _ensure_antenna_diameters(uv)
 
-    # Use shared phase center if provided (for phase coherence across subbands),
-    # otherwise compute per-subband (fallback for backward compatibility)
-    if shared_phase_ra is not None and shared_phase_dec is not None:
-        # Use shared phase center coordinates
-        ra_icrs = shared_phase_ra
-        dec_icrs = shared_phase_dec
-        pt_dec = shared_pt_dec if shared_pt_dec is not None else uv.extra_keywords.get("phase_center_dec", 0.0) * u.rad
-        phase_center_name = "meridian_icrs"  # Same name for all subbands
+    # Determine pointing declination
+    if shared_pt_dec is not None:
+        pt_dec = shared_pt_dec
     else:
-        # Fallback: compute per-subband phase center (old behavior)
         pt_dec = uv.extra_keywords.get("phase_center_dec", 0.0) * u.rad
-        t_mid = Time(float(np.mean(uv.time_array)), format="jd").mjd
-        ra_icrs, dec_icrs = get_meridian_coords(pt_dec, t_mid)
-        phase_center_name = os.path.basename(part_out_path)  # Unique per subband
 
-    # Set phase center catalog with shared or per-subband coordinates
-    uv.phase_center_catalog = {}
-    pc_id = uv._add_phase_center(
-        cat_name=phase_center_name,
-        cat_type="sidereal",
-        cat_lon=float(ra_icrs.to_value(u.rad)),
-        cat_lat=float(dec_icrs.to_value(u.rad)),
-        cat_frame="icrs",
-        cat_epoch=2000.0,
-    )
-    if not hasattr(
-            uv,
-            "phase_center_id_array") or uv.phase_center_id_array is None:
-        uv.phase_center_id_array = np.zeros(uv.Nblts, dtype=int)
-    uv.phase_center_id_array[:] = pc_id
-    uv.phase_type = "phased"
-    uv.phase_center_frame = "icrs"
-    uv.phase_center_epoch = 2000.0
-
-    # Recompute UVW using pyuvdata utilities (meridian phasing)
-    # UVW computation uses actual observation times, so it's correct even with
-    # shared phase center metadata
-    compute_and_set_uvw(uv, pt_dec)
+    # Use phase_to_meridian() to set time-dependent phase centers
+    # This ensures phase center RA tracks LST throughout the observation,
+    # following interferometry best practices for continuous phase tracking
+    phase_to_meridian(uv, pt_dec)
 
     # Write the single-subband MS
     uv.write_ms(
@@ -555,9 +539,7 @@ def write_ms_from_subbands(file_list, ms_path, scratch_dir=None):
     ) / Path(ms_stage_path).stem
     part_base.mkdir(parents=True, exist_ok=True)
 
-    # Compute single phase center for entire group to ensure phase coherence
-    group_phase_ra = None
-    group_phase_dec = None
+    # Compute shared pointing declination for entire group
     group_pt_dec = None
     
     try:
@@ -602,17 +584,13 @@ def write_ms_from_subbands(file_list, ms_path, scratch_dir=None):
         
         if group_pt_dec is not None and len(mid_times) > 0:
             group_mid_mjd = float(np.mean(mid_times))
-            group_phase_ra, group_phase_dec = get_meridian_coords(
-                group_pt_dec, group_mid_mjd
-            )
             print(
-                f"Computed shared phase center for group: "
-                f"RA={group_phase_ra.to(u.deg).value:.6f}°, "
-                f"Dec={group_phase_dec.to(u.deg).value:.6f}° "
+                f"Using shared pointing declination for group: "
+                f"Dec={group_pt_dec.to(u.deg).value:.6f}° "
                 f"(MJD={group_mid_mjd:.6f})"
             )
     except Exception:
-        # Fallback: per-subband phase centers
+        # Fallback: per-subband pointing declination
         pass
 
     # Create per-subband MS files
@@ -631,9 +609,7 @@ def write_ms_from_subbands(file_list, ms_path, scratch_dir=None):
         try:
             result = _write_ms_subband_part(
                 sb, str(part_out),
-                group_phase_ra,  # Pass shared phase center
-                group_phase_dec,
-                group_pt_dec
+                group_pt_dec  # Pass shared pointing declination
             )
             parts.append(result)
         except Exception as e:

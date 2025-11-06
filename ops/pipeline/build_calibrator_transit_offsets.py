@@ -30,10 +30,10 @@ from astropy.coordinates import Angle  # type: ignore[import]
 
 # type: ignore[import]
 from dsa110_contimg.calibration.schedule import previous_transits
-from dsa110_contimg.calibration.catalogs import (  # type: ignore[import]
-    read_vla_parsed_catalog_csv,
-    read_vla_parsed_catalog_with_flux,
-)
+# Shared helpers (consolidated from duplicate code)
+from helpers_catalog import load_ra_dec, load_flux_jy
+from helpers_group import group_id_from_path
+from helpers_ms_conversion import write_ms_group_via_uvh5_to_ms
 from dsa110_contimg.conversion.strategies.hdf5_orchestrator import (  # type: ignore[import]
     find_subband_groups,
 )
@@ -55,92 +55,11 @@ from dsa110_contimg.calibration.refant_selection import (
 )
 
 
-def _load_ra_dec(name: str, catalogs: List[str]) -> Tuple[float, float]:
-    for p in catalogs:
-        try:
-            df = read_vla_parsed_catalog_csv(p)
-            if name in df.index:
-                row = df.loc[name]
-                try:
-                    ra = float(row['ra_deg'].iloc[0])
-                    dec = float(row['dec_deg'].iloc[0])
-                except Exception:
-                    ra = float(row['ra_deg'])
-                    dec = float(row['dec_deg'])
-                if np.isfinite(ra) and np.isfinite(dec):
-                    return ra, dec
-        except Exception:
-            continue
-    raise RuntimeError(f'Calibrator {name} not found in catalogs: {catalogs}')
-
-
-def _load_flux_jy(
-        name: str,
-        catalogs: List[str],
-        band: str = '20cm') -> float | None:
-    for p in catalogs:
-        try:
-            df = read_vla_parsed_catalog_with_flux(p, band=band)
-            if name in df.index:
-                row = df.loc[name]
-                try:
-                    fx = float(row['flux_jy'].iloc[0])
-                except Exception:
-                    fx = float(row['flux_jy'])
-                if np.isfinite(fx):
-                    return fx
-        except Exception:
-            continue
-    return None
-
-
-def _group_id_from_path(path: str) -> str:
-    base = os.path.basename(path)
-    return base.split('_sb', 1)[0]
-
-
-def _write_ms_group_via_uvh5_to_ms(
-    file_list: List[str], ms_out: Path
-) -> None:
-    """Convert each subband UVH5 to a per-subband MS via uvh5_to_ms, then concat.
-
-    Mirrors the central pipeline approach and ensures imaging columns exist.
-    """
-    from casatasks import concat as casa_concat
-    part_base = ms_out.parent / (ms_out.stem + '.parts')
-    part_base.mkdir(parents=True, exist_ok=True)
-    parts: List[str] = []
-    for idx, sb in enumerate(sorted(file_list)):
-        part_out = part_base / f"{ms_out.stem}.sb{idx:02d}.ms"
-        if part_out.exists():
-            import shutil as _sh
-            _sh.rmtree(part_out, ignore_errors=True)
-        convert_single_file(
-            sb,
-            os.fspath(part_out),
-            add_imaging_columns=True,  # Let the single converter handle it
-            create_time_binned_fields=False,
-            field_time_bin_minutes=5.0,
-            write_recommendations=False,
-            enable_phasing=True,
-            phase_reference_time=None,
-        )
-        parts.append(os.fspath(part_out))
-
-    if ms_out.exists():
-        import shutil as _sh
-        _sh.rmtree(ms_out, ignore_errors=True)
-    casa_concat(
-        vis=sorted(parts),
-        concatvis=os.fspath(ms_out),
-        copypointing=False)
-    # Final configuration on the concatenated MS
-    configure_ms_for_imaging(os.fspath(ms_out))
-    try:
-        import shutil as _sh
-        _sh.rmtree(part_base, ignore_errors=True)
-    except Exception:
-        pass
+# Removed duplicate functions - now using shared helpers:
+# - load_ra_dec() from helpers_catalog
+# - load_flux_jy() from helpers_catalog
+# - group_id_from_path() from helpers_group
+# - write_ms_group_via_uvh5_to_ms() from helpers_ms_conversion
 
 
 def main() -> int:
@@ -181,7 +100,7 @@ def main() -> int:
     pdb = Path(args.products_db)
 
     # Find the most recent transit window with data
-    ra_deg, dec_deg = _load_ra_dec(args.name, args.catalog)
+    ra_deg, dec_deg = load_ra_dec(args.name, args.catalog)
     transits = previous_transits(
         ra_deg, start_time=Time.now(), n=args.max_days_back
     )
@@ -209,11 +128,11 @@ def main() -> int:
 
     # Identify central group (closest to transit) to solve on
     def _mid_of_group(file_list: List[str]) -> Time:
-        gid = _group_id_from_path(file_list[0])
+        gid = group_id_from_path(file_list[0])
         return Time(gid)
     mid_times = [(_mid_of_group(g), g) for g in chosen_groups]
     central_group = min(mid_times, key=lambda x: abs(x[0] - center_t))[1]
-    central_gid = _group_id_from_path(central_group[0])
+    central_gid = group_id_from_path(central_group[0])
     central_ms = out_dir / f'{central_gid}.ms'
 
     # Optionally restrict groups to those strictly before or after the central
@@ -229,7 +148,7 @@ def main() -> int:
 
     # Convert central group first (needed for calibration tables)
     print(f'Converting central group {central_gid} -> {central_ms}')
-    _write_ms_group_via_uvh5_to_ms(central_group, central_ms)
+    write_ms_group_via_uvh5_to_ms(central_group, central_ms, add_imaging_columns=True, configure_final_ms=True)
 
     # Phase-shift the central MS to the calibrator center
     try:
@@ -291,7 +210,7 @@ def main() -> int:
 
     # Provide a simple point-source model for the calibrator
     try:
-        flux = _load_flux_jy(args.name, args.catalog, band='20cm')
+        flux = load_flux_jy(args.name, args.catalog, band='20cm')
         if flux is not None and flux > 0:
             # Run clearcal to ensure MODEL_DATA is writeable
             from casatasks import clearcal
@@ -413,11 +332,11 @@ def main() -> int:
     # Imaging loop
     with ensure_products_db(pdb) as conn:
         for g in targets:
-            gid = _group_id_from_path(g[0])
+            gid = group_id_from_path(g[0])
             ms_out = out_dir / f'{gid}.ms'
             if not ms_out.is_dir():
                 print(f'Converting {gid} -> {ms_out}')
-                _write_ms_group_via_uvh5_to_ms(g, ms_out)
+                write_ms_group_via_uvh5_to_ms(g, ms_out, add_imaging_columns=True, configure_final_ms=True)
             else:
                 # Always re-configure if the MS exists to ensure it's ready
                 print(f'Configuring existing MS for imaging: {ms_out}')
@@ -483,7 +402,7 @@ def main() -> int:
                 nvss_min_mjy=10.0,
                 calib_ra_deg=float(ra_deg),
                 calib_dec_deg=float(dec_deg),
-                calib_flux_jy=float(fx) if (fx:=_load_flux_jy(args.name, args.catalog, band='20cm', vla_db=args.vla_db)) is not None else None,
+                calib_flux_jy=float(fx) if (fx:=load_flux_jy(args.name, args.catalog, band='20cm', vla_db=args.vla_db)) is not None else None,
             )
             # Optional NVSS overlay generation
             if args.overlay:

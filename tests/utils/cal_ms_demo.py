@@ -10,7 +10,7 @@ sys.path.insert(0, str(Path(__file__).parent.parent.parent / 'src'))
 from dsa110_contimg.calibration.flagging import reset_flags, flag_zeros, flag_rfi
 from dsa110_contimg.calibration.calibration import solve_delay, solve_bandpass, solve_gains
 from dsa110_contimg.calibration.applycal import apply_to_target
-from dsa110_contimg.calibration.imaging import quick_image
+from dsa110_contimg.imaging.cli import image_ms  # Replaces calibration.imaging.quick_image
 
 
 def main():
@@ -47,10 +47,9 @@ def main():
     apply_to_target(ms, field, tables)
 
     print("Image calibrated data (3 arcsec pixels)")
-    # Override imaging with 3" pixels via tclean defaults in quick_image; adjust via cell parameter
-    # quick_image has fixed cell. We'll call tclean directly through it and accept default cell.
-    # For explicit 3" cell and imsize, we can re-run tclean parameters inside quick_image in future.
-    quick_image(ms, imagename=imagename, field=field, niter=1000, threshold="0.1mJy", cell='3arcsec', imsize=args.imsize)
+    # Use image_ms with explicit parameters (replaces calibration.imaging.quick_image)
+    image_ms(ms, imagename=imagename, field=field, niter=1000, threshold="0.1mJy", 
+             cell_arcsec=3.0, imsize=args.imsize, quick=False, skip_fits=True)
 
     # Report peak and its world position
     stats = imstat(imagename + ".image")

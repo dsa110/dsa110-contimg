@@ -72,17 +72,28 @@ def ft_from_cl(
 ) -> None:
     """Apply a component-list skymodel to MODEL_DATA via CASA ft().
     
-    WARNING: This function should be called BEFORE running WSClean or other
-    imaging tools that modify MODEL_DATA. CASA's ft() has a known bug where
-    it crashes with "double free or corruption" when MODEL_DATA already contains
-    data written by WSClean or other external tools.
+    **CRITICAL**: This function is essential for multi-component models (e.g., NVSS
+    catalogs with multiple sources). For single point sources, prefer
+    :func:`write_point_model_with_ft` with ``use_manual=True``.
     
-    If MODEL_DATA is already populated, this function will attempt to clear it
-    first, but if the MS has been corrupted by WSClean, even clearing may fail.
+    **Known Issues:**
     
-    The correct workflow is:
-    1. Seed MODEL_DATA with CASA ft() (this function)
+    1. **Phase Center Bugs**: Uses ft() which does not use PHASE_DIR correctly after
+       rephasing. If the MS has been rephased, MODEL_DATA may have incorrect phase
+       structure, causing phase scatter in calibration. See docs/reports/FT_PHASE_CENTER_FIX.md.
+    
+    2. **WSClean Compatibility**: This function should be called BEFORE running WSClean
+       or other imaging tools that modify MODEL_DATA. CASA's ft() has a known bug where
+       it crashes with "double free or corruption" when MODEL_DATA already contains
+       data written by WSClean or other external tools.
+    
+    **Workflow:**
+    1. Seed MODEL_DATA with CASA ft() (this function) - BEFORE WSClean
     2. Run WSClean for imaging (reads seeded MODEL_DATA)
+    
+    **For Single Point Sources:**
+    Use :func:`write_point_model_with_ft` with ``use_manual=True`` instead, which
+    bypasses ft() phase center bugs.
     """
     from casatasks import ft as casa_ft  # type: ignore
     from casacore.tables import table  # type: ignore

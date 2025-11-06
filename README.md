@@ -15,6 +15,12 @@ Visual overview: see `docs/pipeline.md` for diagrams of the end-to-end pipeline 
 - Consolidated docs hub: see Project Handbook at `docs/handbook/index.md` for links to previously root-level documents (Control Panel, Operations notes, Reports, Reference).
 
 
+## Data Paths
+
+- **Incoming UVH5 files:** `/data/incoming/` (watched by streaming converter)
+  - The streaming worker monitors this directory for new `*_sb??.hdf5` files
+  - Files are grouped by time windows and converted to Measurement Sets
+
 ## Directory Layout
 
 - `src/dsa110_contimg/`
@@ -44,7 +50,7 @@ Visual overview: see `docs/pipeline.md` for diagrams of the end-to-end pipeline 
 ## Services and Components
 
 - Streaming Worker (core)
-  - Watches `*_sb??.hdf5`, groups by time, converts via strategy orchestrator
+  - Watches `/data/incoming/` for `*_sb??.hdf5` files, groups by time, converts via strategy orchestrator
   - Calibrator matching (optional); solves calibrator MS and registers caltables
   - Applies active caltables to targets and runs tclean quick images
   - Writes artifacts (CASA images) and updates `ms_index` in products DB
