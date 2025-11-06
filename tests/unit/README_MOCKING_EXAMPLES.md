@@ -41,11 +41,35 @@ def test_something(minimal_test_ms):
 ```
 
 ### `mock_table_factory`
-Provides mock CASA table structures:
+Provides mock CASA table structures based on table name in path:
 ```python
 def test_something(mock_table_factory):
     with patch('casacore.tables.table', side_effect=mock_table_factory):
         # Your test code
+        # Handles paths like "ms::FIELD", "ms::SPECTRAL_WINDOW", etc.
+```
+
+### `mock_ms_structure`
+Provides a dictionary of mock MS table data:
+```python
+def test_something(mock_ms_structure):
+    # Access mock data: mock_ms_structure['MAIN'], mock_ms_structure['FIELD'], etc.
+```
+
+### `temp_work_dir`
+Provides a temporary directory for test outputs:
+```python
+def test_something(temp_work_dir):
+    ms_path = str(temp_work_dir / "test.ms")
+    # Use temp_work_dir for creating test files
+```
+
+### `sample_calibration_tables`
+Provides mock calibration table paths:
+```python
+def test_something(sample_calibration_tables):
+    bp_table = sample_calibration_tables['bandpass']
+    gain_table = sample_calibration_tables['gain']
 ```
 
 ### `mock_wsclean_subprocess`

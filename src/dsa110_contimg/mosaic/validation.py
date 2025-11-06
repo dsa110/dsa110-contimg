@@ -728,13 +728,13 @@ def check_calibration_consistency(
             if registry_db and registry_db.exists():
                 try:
                     from dsa110_contimg.calibration.apply_service import get_active_caltables
-                    from dsa110_contimg.calibration.apply_service import _ms_time_range
+                    from dsa110_contimg.utils.time_utils import extract_ms_time_range
                     
                     # Get calibration tables for each MS
                     for tile, ms_path in tile_to_ms.items():
                         try:
-                            # Get observation time range for MS
-                            start_mjd, end_mjd, mid_mjd = _ms_time_range(ms_path)
+                            # Get observation time range for MS using standardized utility
+                            start_mjd, end_mjd, mid_mjd = extract_ms_time_range(ms_path)
                             
                             if mid_mjd is not None:
                                 # Get active calibration tables for this observation

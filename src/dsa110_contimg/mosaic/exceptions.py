@@ -3,41 +3,37 @@ Custom exceptions for mosaic building operations.
 
 Provides specific exception types for different failure modes with
 actionable error messages and recovery suggestions.
+
+All exceptions inherit from the unified DSA110Error hierarchy.
 """
 
-from typing import Optional
+from typing import Optional, Dict, Any
+from dsa110_contimg.utils.exceptions import DSA110Error
 
 
-class MosaicError(Exception):
-    """Base exception for mosaic building operations."""
+class MosaicError(DSA110Error):
+    """
+    Base exception for mosaic building operations.
     
-    def __init__(self, message: str, recovery_hint: str = None, context: Optional[dict] = None):
+    Maintains backward compatibility with existing MosaicError interface.
+    """
+    
+    def __init__(
+        self,
+        message: str,
+        recovery_hint: Optional[str] = None,
+        context: Optional[Dict[str, Any]] = None
+    ):
         """
         Args:
             message: Error message describing what went wrong
-            recovery_hint: Optional suggestion for how to recover
+            recovery_hint: Optional suggestion for how to recover (alias for suggestion)
             context: Optional dictionary with additional context (e.g., {'tile': path, 'operation': 'read'})
         """
-        super().__init__(message)
-        self.message = message
+        # Map recovery_hint to suggestion for consistency with DSA110Error
+        super().__init__(message, context=context, suggestion=recovery_hint)
+        # Keep recovery_hint for backward compatibility
         self.recovery_hint = recovery_hint
-        self.context = context or {}
-    
-    def __str__(self) -> str:
-        msg = self.message
-        if self.context:
-            ctx_parts = []
-            if 'tile' in self.context:
-                ctx_parts.append(f"Tile: {self.context['tile']}")
-            if 'operation' in self.context:
-                ctx_parts.append(f"Operation: {self.context['operation']}")
-            if 'tool' in self.context:
-                ctx_parts.append(f"Tool: {self.context['tool']}")
-            if ctx_parts:
-                msg = f"{msg}\nContext: {', '.join(ctx_parts)}"
-        if self.recovery_hint:
-            msg = f"{msg}\n\nRecovery suggestion: {self.recovery_hint}"
-        return msg
 
 
 class ImageReadError(MosaicError):

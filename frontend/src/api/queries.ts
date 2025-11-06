@@ -621,3 +621,151 @@ export function useImages(filters?: ImageFilters): UseQueryResult<ImageList> {
     refetchInterval: 30000, // Refresh every 30 seconds
   });
 }
+
+/**
+ * Streaming Service Hooks
+ */
+export interface StreamingStatus {
+  running: boolean;
+  pid?: number;
+  started_at?: string;
+  uptime_seconds?: number;
+  cpu_percent?: number;
+  memory_mb?: number;
+  last_heartbeat?: string;
+  config?: Record<string, any>;
+  error?: string;
+}
+
+export interface StreamingHealth {
+  healthy: boolean;
+  running: boolean;
+  uptime_seconds?: number;
+  cpu_percent?: number;
+  memory_mb?: number;
+  error?: string;
+}
+
+export interface StreamingConfig {
+  input_dir: string;
+  output_dir: string;
+  queue_db?: string;
+  registry_db?: string;
+  scratch_dir?: string;
+  expected_subbands: number;
+  chunk_duration: number;
+  log_level: string;
+  use_subprocess: boolean;
+  monitoring: boolean;
+  monitor_interval: number;
+  poll_interval: number;
+  worker_poll_interval: number;
+  max_workers: number;
+  stage_to_tmpfs: boolean;
+  tmpfs_path: string;
+}
+
+export interface StreamingMetrics {
+  service_running: boolean;
+  uptime_seconds?: number;
+  cpu_percent?: number;
+  memory_mb?: number;
+  queue_stats?: Record<string, number>;
+  processing_rate_per_hour?: number;
+  queue_error?: string;
+}
+
+export function useStreamingStatus(): UseQueryResult<StreamingStatus> {
+  return useQuery({
+    queryKey: ['streaming', 'status'],
+    queryFn: async () => {
+      const response = await apiClient.get<StreamingStatus>('/api/streaming/status');
+      return response.data;
+    },
+    refetchInterval: 5000, // Refresh every 5 seconds
+  });
+}
+
+export function useStreamingHealth(): UseQueryResult<StreamingHealth> {
+  return useQuery({
+    queryKey: ['streaming', 'health'],
+    queryFn: async () => {
+      const response = await apiClient.get<StreamingHealth>('/api/streaming/health');
+      return response.data;
+    },
+    refetchInterval: 10000, // Refresh every 10 seconds
+  });
+}
+
+export function useStreamingConfig(): UseQueryResult<StreamingConfig> {
+  return useQuery({
+    queryKey: ['streaming', 'config'],
+    queryFn: async () => {
+      const response = await apiClient.get<StreamingConfig>('/api/streaming/config');
+      return response.data;
+    },
+  });
+}
+
+export function useStreamingMetrics(): UseQueryResult<StreamingMetrics> {
+  return useQuery({
+    queryKey: ['streaming', 'metrics'],
+    queryFn: async () => {
+      const response = await apiClient.get<StreamingMetrics>('/api/streaming/metrics');
+      return response.data;
+    },
+    refetchInterval: 30000, // Refresh every 30 seconds
+  });
+}
+
+export function useStartStreaming() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: async (config?: StreamingConfig) => {
+      const response = await apiClient.post('/api/streaming/start', config || {});
+      return response.data;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['streaming'] });
+    },
+  });
+}
+
+export function useStopStreaming() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: async () => {
+      const response = await apiClient.post('/api/streaming/stop');
+      return response.data;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['streaming'] });
+    },
+  });
+}
+
+export function useRestartStreaming() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: async (config?: StreamingConfig) => {
+      const response = await apiClient.post('/api/streaming/restart', config || {});
+      return response.data;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['streaming'] });
+    },
+  });
+}
+
+export function useUpdateStreamingConfig() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: async (config: StreamingConfig) => {
+      const response = await apiClient.post('/api/streaming/config', config);
+      return response.data;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['streaming'] });
+    },
+  });
+}

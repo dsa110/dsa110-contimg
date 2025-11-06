@@ -28,7 +28,7 @@ DISH_DIAMETER = 4.65  # meters
 # Observation parameters
 TSAMP = 0.134217728  # Sample time in seconds
 NINT = 93  # Number of integrations
-CASA_TIME_OFFSET = 2400000.5  # MJD offset for CASA
+# Note: CASA_TIME_OFFSET removed - use time_utils.CASA_TIME_EPOCH_MJD instead
 
 # Frequency parameters
 NCHAN = 48  # Number of channels per subband

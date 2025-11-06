@@ -1,0 +1,4 @@
+# Ignore any local test files
+*.log
+*.tmp
+test_output/

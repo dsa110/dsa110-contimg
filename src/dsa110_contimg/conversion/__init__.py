@@ -2,10 +2,30 @@
 
 This package provides a public API for the main conversion entry points.
 
-- `convert_single_uvh5`: convert a single UVH5 file or directory of files.
-- `convert_subband_groups_to_ms`: discover and convert complete subband groups.
-- `configure_ms_for_imaging`: prepare a Measurement Set for imaging.
-- `CalibratorMSGenerator`: service for generating MS from calibrator transits.
+**Main Entry Points:**
+
+- `convert_single_file`: Convert a single UVH5 file to MS format
+- `convert_subband_groups_to_ms`: Discover and convert complete subband groups
+- `configure_ms_for_imaging`: Prepare a Measurement Set for imaging
+- `CalibratorMSGenerator`: Service for generating MS from calibrator transits
+
+**Quick Start:**
+
+```python
+from dsa110_contimg.conversion import convert_single_file, configure_ms_for_imaging
+
+# Convert a single UVH5 file
+convert_single_file("observation.uvh5", "observation.ms")
+
+# Configure MS for imaging (usually done automatically)
+configure_ms_for_imaging("observation.ms")
+```
+
+**For More Information:**
+
+- See `DEVELOPER_GUIDE.md` for development guidelines
+- See function docstrings for detailed usage examples
+- See `ARCHITECTURE_OPTIMIZATION_RECOMMENDATIONS.md` for design decisions
 """
 
 from .uvh5_to_ms import convert_single_file

@@ -22,8 +22,20 @@ def main(argv: list = None) -> int:
         argv = sys.argv[1:]
 
     parser = argparse.ArgumentParser(
-        description="DSA-110 Continuum Imaging Conversion CLI",
-        formatter_class=argparse.ArgumentDefaultsHelpFormatter,
+        description=(
+            "DSA-110 Continuum Imaging Conversion CLI\n\n"
+            "Convert UVH5 files to CASA Measurement Set (MS) format.\n\n"
+            "Examples:\n"
+            "  # Convert a single UVH5 file\n"
+            "  python -m dsa110_contimg.conversion.cli single \\\n"
+            "    --input observation.uvh5 --output observation.ms\n\n"
+            "  # Convert complete subband groups in a time window\n"
+            "  python -m dsa110_contimg.conversion.cli groups \\\n"
+            "    --input-dir /data/incoming --output-dir /scratch/ms \\\n"
+            "    --start-time 2024-01-01T00:00:00 --end-time 2024-01-01T01:00:00\n\n"
+            "For more information, see DEVELOPER_GUIDE.md"
+        ),
+        formatter_class=argparse.RawDescriptionHelpFormatter,
     )
     # Add common logging arguments
     add_common_logging_args(parser)

@@ -44,9 +44,9 @@ def cleanup_casa_file_handles() -> None:
 def set_telescope_identity(
     uv,
     name: Optional[str] = None,
-    lon_deg: float = -118.283405115,
-    lat_deg: float = 37.233386982,
-    alt_m: float = 1188.0519,
+    lon_deg: Optional[float] = None,
+    lat_deg: Optional[float] = None,
+    alt_m: Optional[float] = None,
 ) -> None:
     """Set a consistent telescope identity and location on a UVData object.
 
@@ -65,10 +65,21 @@ def set_telescope_identity(
         The in-memory UVData object.
     name : str, optional
         Telescope name. Defaults to ENV PIPELINE_TELESCOPE_NAME or 'DSA_110'.
-    lon_deg, lat_deg, alt_m : float
-        Observatory geodetic coordinates (WGS84). Defaults correspond to DSA-110.
+    lon_deg, lat_deg, alt_m : float, optional
+        Observatory geodetic coordinates (WGS84). If not provided, uses OVRO_LOCATION
+        from constants.py (single source of truth for DSA-110 coordinates).
     """
     import os as _os
+
+    # Use constants if coordinates not provided (single source of truth)
+    if lon_deg is None or lat_deg is None or alt_m is None:
+        from dsa110_contimg.utils.constants import OVRO_LOCATION
+        if lon_deg is None:
+            lon_deg = OVRO_LOCATION.lon.to(u.deg).value
+        if lat_deg is None:
+            lat_deg = OVRO_LOCATION.lat.to(u.deg).value
+        if alt_m is None:
+            alt_m = OVRO_LOCATION.height.to(u.m).value
 
     tel_name = name or _os.getenv("PIPELINE_TELESCOPE_NAME", "DSA_110")
     try:

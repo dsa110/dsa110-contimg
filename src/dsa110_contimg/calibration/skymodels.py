@@ -6,6 +6,13 @@ Usage:
   cl = make_point_cl('0834+555', ra_deg, dec_deg, flux_jy=2.3, freq_ghz=1.4,
                      out_path='/scratch/0834+555_pt.cl')
   ft_from_cl('/path/to/obs.ms', cl, field='0', usescratch=True)
+  
+  # With pyradiosky:
+  from pyradiosky import SkyModel
+  from dsa110_contimg.calibration.skymodels import convert_skymodel_to_componentlist, ft_from_cl
+  sky = SkyModel.from_votable_catalog('nvss.vot')
+  cl = convert_skymodel_to_componentlist(sky, out_path='model.cl')
+  ft_from_cl('/path/to/obs.ms', cl)
 """
 from __future__ import annotations
 
@@ -76,7 +83,7 @@ def ft_from_cl(
     catalogs with multiple sources). For single point sources, prefer
     :func:`write_point_model_with_ft` with ``use_manual=True``.
     
-    **Known Issues:**
+    **Known Issues**:
     
     1. **Phase Center Bugs**: Uses ft() which does not use PHASE_DIR correctly after
        rephasing. If the MS has been rephased, MODEL_DATA may have incorrect phase
@@ -87,11 +94,11 @@ def ft_from_cl(
        it crashes with "double free or corruption" when MODEL_DATA already contains
        data written by WSClean or other external tools.
     
-    **Workflow:**
+    **Workflow**:
     1. Seed MODEL_DATA with CASA ft() (this function) - BEFORE WSClean
     2. Run WSClean for imaging (reads seeded MODEL_DATA)
     
-    **For Single Point Sources:**
+    **For Single Point Sources**:
     Use :func:`write_point_model_with_ft` with ``use_manual=True`` instead, which
     bypasses ft() phase center bugs.
     """
@@ -189,6 +196,73 @@ def make_multi_point_cl(
             cl.done()
         except Exception:
             pass
+    return os.fspath(out)
+
+
+def convert_skymodel_to_componentlist(
+    sky: "SkyModel",
+    *,
+    out_path: str,
+    freq_ghz: float | str = 1.4,
+) -> str:
+    """Convert pyradiosky SkyModel to CASA componentlist.
+    
+    Args:
+        sky: pyradiosky SkyModel object
+        out_path: Path to output componentlist (.cl directory)
+        freq_ghz: Reference frequency if not specified in SkyModel
+        
+    Returns:
+        Path to created componentlist
+    """
+    try:
+        from pyradiosky import SkyModel
+    except ImportError:
+        raise ImportError(
+            "pyradiosky is required for convert_skymodel_to_componentlist(). "
+            "Install with: pip install pyradiosky"
+        )
+    
+    from casatools import componentlist as casa_cl  # type: ignore
+    
+    out = Path(out_path)
+    try:
+        import shutil as _sh
+        _sh.rmtree(out, ignore_errors=True)
+    except Exception:
+        pass
+    
+    # Get reference frequency
+    if sky.freq_array is not None and len(sky.freq_array) > 0:
+        ref_freq_ghz = sky.freq_array[0].to('GHz').value
+        freq_str = f"{ref_freq_ghz}GHz"
+    else:
+        freq_str = f"{float(freq_ghz)}GHz" if isinstance(freq_ghz, (int, float)) else str(freq_ghz)
+    
+    cl = casa_cl()
+    try:
+        for i in range(sky.Ncomponents):
+            ra = sky.skycoord[i].ra.deg
+            dec = sky.skycoord[i].dec.deg
+            flux_jy = sky.stokes[0, 0, i].to('Jy').value  # I stokes, first frequency
+            
+            cl.addcomponent(
+                dir=f"J2000 {ra}deg {dec}deg",
+                flux=float(flux_jy),
+                fluxunit="Jy",
+                freq=freq_str,
+                shape="point",
+            )
+        cl.rename(os.fspath(out))
+        if not out.exists():
+            raise RuntimeError(f"Componentlist rename failed: {out} does not exist")
+    finally:
+        try:
+            cl.close()
+            cl.done()
+        except Exception:
+            pass
+    
     return os.fspath(out)
 
 

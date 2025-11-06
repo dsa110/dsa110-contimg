@@ -62,7 +62,7 @@ class ImageInfo(BaseModel):
     id: int
     path: str
     ms_path: str
-    created_at: datetime
+    created_at: Optional[datetime] = None
     type: str = Field(..., description="Image type: image, pbcor, residual, psf, pb")
     beam_major_arcsec: Optional[float] = None
     beam_minor_arcsec: Optional[float] = None
@@ -617,3 +617,54 @@ class AlertHistory(BaseModel):
     message: str
     triggered_at: str  # ISO format datetime
     resolved_at: Optional[str] = None  # ISO format datetime
+
+
+# Streaming Service Models
+class StreamingConfigRequest(BaseModel):
+    """Request model for streaming service configuration."""
+    input_dir: str
+    output_dir: str
+    queue_db: Optional[str] = None
+    registry_db: Optional[str] = None
+    scratch_dir: Optional[str] = None
+    expected_subbands: int = 16
+    chunk_duration: float = 5.0  # minutes
+    log_level: str = "INFO"
+    use_subprocess: bool = True
+    monitoring: bool = True
+    monitor_interval: float = 60.0
+    poll_interval: float = 5.0
+    worker_poll_interval: float = 5.0
+    max_workers: int = 4
+    stage_to_tmpfs: bool = False
+    tmpfs_path: str = "/dev/shm"
+
+
+class StreamingStatusResponse(BaseModel):
+    """Response model for streaming service status."""
+    running: bool
+    pid: Optional[int] = None
+    started_at: Optional[str] = None  # ISO format
+    uptime_seconds: Optional[float] = None
+    cpu_percent: Optional[float] = None
+    memory_mb: Optional[float] = None
+    last_heartbeat: Optional[str] = None  # ISO format
+    config: Optional[dict] = None
+    error: Optional[str] = None
+
+
+class StreamingHealthResponse(BaseModel):
+    """Response model for streaming service health check."""
+    healthy: bool
+    running: bool
+    uptime_seconds: Optional[float] = None
+    cpu_percent: Optional[float] = None
+    memory_mb: Optional[float] = None
+    error: Optional[str] = None
+
+
+class StreamingControlResponse(BaseModel):
+    """Response model for streaming service control operations."""
+    success: bool
+    message: str
+    pid: Optional[int] = None

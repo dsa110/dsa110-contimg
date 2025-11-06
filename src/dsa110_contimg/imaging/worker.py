@@ -36,46 +36,6 @@ def setup_logging(level: str) -> None:
 
 
 
-def _ms_time_range(
-        ms_path: str) -> Tuple[Optional[float], Optional[float], Optional[float]]:
-    """Best-effort extraction of (start, end, mid) MJD from an MS using casatools.
-    Returns (None, None, None) if unavailable.
-    """
-    try:
-        from casatools import msmetadata  # type: ignore
-
-        msmd = msmetadata()
-        msmd.open(ms_path)
-        # Preferred: explicit observation timerange in MJD days
-        try:
-            tr = msmd.timerangeforobs()
-            if tr and isinstance(tr, (list, tuple)) and len(tr) >= 2:
-                start_mjd = float(tr[0])
-                end_mjd = float(tr[1])
-                msmd.close()
-                return start_mjd, end_mjd, 0.5 * (start_mjd + end_mjd)
-        except Exception:
-            pass
-
-        # Fallback: derive from timesforscans() (seconds, MJD seconds offset)
-        try:
-            tmap = msmd.timesforscans()
-            msmd.close()
-            if isinstance(tmap, dict) and tmap:
-                all_ts = [t for arr in tmap.values() for t in arr]
-                if all_ts:
-                    t0 = min(all_ts)
-                    t1 = max(all_ts)
-                    # Convert seconds to MJD days if needed
-                    start_mjd = float(t0) / 86400.0
-                    end_mjd = float(t1) / 86400.0
-                    return start_mjd, end_mjd, 0.5 * (start_mjd + end_mjd)
-        except Exception:
-            pass
-        msmd.close()
-    except Exception as e:
-        logger.debug("Failed to extract time range from %s: %s", ms_path, e)
-    return None, None, None
 
 
 def _apply_and_image(
@@ -125,7 +85,8 @@ def process_once(
              )).fetchone()
         if row and row[0] == "done":
             continue
-        start_mjd, end_mjd, mid_mjd = _ms_time_range(os.fspath(ms))
+        from dsa110_contimg.utils.time_utils import extract_ms_time_range
+        start_mjd, end_mjd, mid_mjd = extract_ms_time_range(os.fspath(ms))
         if mid_mjd is None:
             # Fallback: use current time in MJD
             from astropy.time import Time

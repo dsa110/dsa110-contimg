@@ -42,49 +42,6 @@ class CalibrationApplicationResult:
     metrics: Optional[dict] = None
 
 
-def _ms_time_range(ms_path: str) -> Tuple[Optional[float], Optional[float], Optional[float]]:
-    """Extract time range from MS. Returns (start_mjd, end_mjd, mid_mjd)."""
-    try:
-        from casatools import msmetadata
-        msmd = msmetadata()
-        msmd.open(ms_path)
-        try:
-            tr = msmd.timerangeforobs()
-            if tr and isinstance(tr, (list, tuple)) and len(tr) >= 2:
-                start_mjd = float(tr[0])
-                end_mjd = float(tr[1])
-                msmd.close()
-                return start_mjd, end_mjd, 0.5 * (start_mjd + end_mjd)
-        except Exception:
-            pass
-        
-        # Fallback: derive from timesforscans()
-        try:
-            tmap = msmd.timesforscans()
-            msmd.close()
-            if isinstance(tmap, dict) and tmap:
-                all_ts = [t for arr in tmap.values() for t in arr]
-                if all_ts:
-                    t0 = min(all_ts) / 86400.0
-                    t1 = max(all_ts) / 86400.0
-                    return float(t0), float(t1), 0.5 * (t0 + t1)
-        except Exception:
-            pass
-        msmd.close()
-    except Exception:
-        pass
-    
-    # Final fallback: use current time
-    try:
-        from casacore.tables import table as _tb
-        with _tb(f"{ms_path}::OBSERVATION", readonly=True) as _obs:
-            t0 = _obs.getcol("TIME_RANGE")[0][0] / 86400.0
-            t1 = _obs.getcol("TIME_RANGE")[0][1] / 86400.0
-            return float(t0), float(t1), 0.5 * (t0 + t1)
-    except Exception:
-        pass
-    
-    return None, None, None
 
 
 def get_active_caltables(
@@ -110,7 +67,8 @@ def get_active_caltables(
         ValueError: If mid_mjd cannot be determined and set_name not provided
     """
     if mid_mjd is None:
-        _, _, mid_mjd = _ms_time_range(ms_path)
+        from dsa110_contimg.utils.time_utils import extract_ms_time_range
+        _, _, mid_mjd = extract_ms_time_range(ms_path)
         if mid_mjd is None:
             if set_name is None:
                 raise ValueError(
@@ -300,7 +258,8 @@ def apply_calibration(
     if update_db and products_db is not None:
         try:
             conn = ensure_products_db(products_db)
-            start_mjd, end_mjd, mid_mjd = _ms_time_range(ms_path_str)
+            from dsa110_contimg.utils.time_utils import extract_ms_time_range
+            start_mjd, end_mjd, mid_mjd = extract_ms_time_range(ms_path_str)
             ms_index_upsert(
                 conn,
                 ms_path_str,

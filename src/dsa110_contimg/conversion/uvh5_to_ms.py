@@ -17,13 +17,8 @@ from typing import List, Optional
 
 import numpy as np
 from pyuvdata import UVData
-from casacore.tables import addImagingColumns  # noqa: F401  (legacy import; avoided)
 from dsa110_contimg.conversion.ms_utils import configure_ms_for_imaging
 from dsa110_contimg.conversion.helpers import (
-    get_meridian_coords,
-    set_antenna_positions,
-    _ensure_antenna_diameters,
-    set_model_column,
     phase_to_meridian,
     set_telescope_identity,
 )
@@ -298,11 +293,9 @@ def _phase_data_to_midpoint_reference(
             lon=lon * u.deg,
             height=alt * u.m)
     else:
-        # OVRO fallback
-        location = EarthLocation(
-            lat=37.233 * u.deg,
-            lon=-118.287 * u.deg,
-            height=1200 * u.m)
+        # OVRO fallback - use constants.py (single source of truth)
+        from dsa110_contimg.utils.constants import OVRO_LOCATION
+        location = OVRO_LOCATION
         logger.warning("Using default OVRO location for phasing")
 
     tref = Time(reference_time, format='jd')
@@ -867,7 +860,6 @@ def _ensure_imaging_columns_populated(ms_path: str) -> None:
     cells in these columns.
     """
     from casacore.tables import table
-    import numpy as _np
 
     with table(ms_path, readonly=False) as tb:
         nrow = tb.nrows()
@@ -878,8 +870,7 @@ def _ensure_imaging_columns_populated(ms_path: str) -> None:
         data_dtype = data0.dtype
 
         for col in ('MODEL_DATA', 'CORRECTED_DATA'):
-            # If the column does not exist (unlikely after addImagingColumns),
-            # skip
+            # If the column does not exist, skip
             if col not in tb.colnames():
                 continue
             fixed = 0
@@ -890,11 +881,11 @@ def _ensure_imaging_columns_populated(ms_path: str) -> None:
                     if (val is None) or (hasattr(val, 'shape')
                                          and val.shape != data_shape):
                         tb.putcell(
-                            col, r, _np.zeros(
+                            col, r, np.zeros(
                                 data_shape, dtype=data_dtype))
                         fixed += 1
                 except Exception:
-                    tb.putcell(col, r, _np.zeros(data_shape, dtype=data_dtype))
+                    tb.putcell(col, r, np.zeros(data_shape, dtype=data_dtype))
                     fixed += 1
             if fixed > 0:
                 logger.debug(
@@ -909,29 +900,90 @@ def convert_single_file(input_file: str, output_file: str,
                         enable_phasing: bool = True,
                         phase_reference_time: Optional[float] = None) -> None:
     """
-    Convert a single UVH5 file to MS format.
+    Convert a single UVH5 file to CASA Measurement Set (MS) format.
+    
+    This is the main entry point for converting individual UVH5 files to MS
+    format. The function handles the complete conversion pipeline including
+    phasing, antenna position setup, and MS configuration.
+    
+    **Conversion Process:**
+    
+    1. Reads UVH5 file using pyuvdata
+    2. Sets antenna positions and telescope metadata
+    3. Phases data to meridian (if enabled)
+    4. Writes to CASA MS format
+    5. Configures MS for imaging (if add_imaging_columns=True)
 
     Parameters
     ----------
     input_file : str
-        Path to input UVH5 file
+        Path to input UVH5 file. Must exist and be readable.
     output_file : str
-        Path to output MS file
-    add_imaging_columns : bool
-        Whether to add imaging columns
-    create_time_binned_fields : bool
-        Whether to create time-binned fields for drift scans
-    field_time_bin_minutes : float
-        Time bin size in minutes for field creation
+        Path to output MS file (directory). Will be created if it doesn't
+        exist. Parent directory must exist.
+    add_imaging_columns : bool, optional
+        Whether to add imaging columns (MODEL_DATA, CORRECTED_DATA) and
+        configure MS for imaging. Default: True
+    create_time_binned_fields : bool, optional
+        Whether to create time-binned fields for drift scans. If True,
+        creates separate fields for each time bin. Default: False
+    field_time_bin_minutes : float, optional
+        Time bin size in minutes for field creation (if
+        create_time_binned_fields=True). Default: 5.0
+    write_recommendations : bool, optional
+        Whether to write conversion recommendations to a file.
+        Default: True
+    enable_phasing : bool, optional
+        Whether to phase data to meridian. Default: True
+    phase_reference_time : float, optional
+        Reference time for phasing (MJD). If None, uses observation mid-time.
+        Default: None
 
     Raises
     ------
     ValueError
-        If input parameters are invalid
+        If input parameters are invalid (e.g., negative time bin size)
     FileNotFoundError
         If input file does not exist
-    RuntimeError
-        If conversion fails
+    PermissionError
+        If input file is not readable or output directory is not writable
+    ConversionError
+        If conversion fails (e.g., invalid UVH5 format, write errors)
+        
+    Examples
+    --------
+    Basic conversion:
+    
+    >>> from dsa110_contimg.conversion import convert_single_file
+    >>> convert_single_file(
+    ...     "observation.uvh5",
+    ...     "observation.ms"
+    ... )
+    
+    Convert with time-binned fields for drift scan:
+    
+    >>> convert_single_file(
+    ...     "drift_scan.uvh5",
+    ...     "drift_scan.ms",
+    ...     create_time_binned_fields=True,
+    ...     field_time_bin_minutes=10.0
+    ... )
+    
+    Convert without phasing (for testing):
+    
+    >>> convert_single_file(
+    ...     "test.uvh5",
+    ...     "test.ms",
+    ...     enable_phasing=False
+    ... )
+    
+    Notes
+    -----
+    - The output MS will be a directory, not a single file
+    - If the output directory already exists, it will be overwritten
+    - For production use, prefer `convert_subband_groups_to_ms()` which
+      handles complete subband groups
+    - After conversion, the MS is ready for calibration and imaging
     """
     logger.info(f"Converting {input_file} -> {output_file}")
 
@@ -974,9 +1026,6 @@ def convert_single_file(input_file: str, output_file: str,
             set_telescope_identity(
                 uvd,
                 _getenv("PIPELINE_TELESCOPE_NAME", "DSA_110"),
-                -118.2817,
-                37.2314,
-                1222.0,
             )
         except Exception:
             logger.debug("set_telescope_identity best-effort failed", exc_info=True)

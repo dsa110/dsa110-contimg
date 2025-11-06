@@ -8,65 +8,25 @@ Validation functions raise ValidationError when validation fails,
 ensuring type safety and enforcing the "parse, don't validate" principle.
 """
 
-from typing import Optional, List, Dict, Any
+from typing import Optional, List
 from pathlib import Path
 import os
 import shutil
 import numpy as np
 
+# Import ValidationError from unified exception hierarchy
+from dsa110_contimg.utils.exceptions import ValidationError
 
-class ValidationError(Exception):
-    """
-    Raised when validation fails.
-    
-    This exception includes both errors (which prevent operation) and
-    warnings (which are informational but don't block execution).
-    
-    Attributes:
-        errors: List of error messages (operations should fail)
-        warnings: List of warning messages (informational)
-        error_types: Optional list of error types for suggestion lookup
-    """
-    
-    def __init__(self, errors: List[str], warnings: Optional[List[str]] = None,
-                 error_types: Optional[List[str]] = None,
-                 error_details: Optional[List[Dict[str, Any]]] = None):
-        """
-        Initialize validation error.
-        
-        Args:
-            errors: List of error messages (required)
-            warnings: Optional list of warning messages
-            error_types: Optional list of error type strings for suggestion lookup
-            error_details: Optional list of dicts with error details for suggestions
-        """
-        self.errors = errors
-        self.warnings = warnings or []
-        self.error_types = error_types or []
-        self.error_details = error_details or []
-        error_msg = ", ".join(errors) if errors else "Unknown validation error"
-        super().__init__(f"Validation failed: {error_msg}")
-    
-    def format_with_suggestions(self) -> str:
-        """
-        Format error message with suggestions.
-        
-        Returns:
-            Formatted error message with suggestions
-        """
-        from dsa110_contimg.utils.error_messages import format_validation_error, suggest_fix
-        
-        msg = format_validation_error(self.errors, self.warnings)
-        
-        # Add suggestions if available
-        if self.error_types and self.error_details:
-            msg += "\n\nSuggestions:\n"
-            for error_type, details in zip(self.error_types, self.error_details):
-                suggestion = suggest_fix(error_type, details)
-                if suggestion:
-                    msg += f"  - {suggestion.split(chr(10))[0]}\n"  # First line only
-        
-        return msg
+# Re-export for backward compatibility
+__all__ = [
+    'ValidationError',
+    'validate_file_path',
+    'validate_directory',
+    'validate_ms',
+    'validate_ms_for_calibration',
+    'validate_corrected_data_quality',
+    'check_disk_space',
+]
 
 
 def validate_file_path(path: str, must_exist: bool = True, 
@@ -136,8 +96,8 @@ def validate_directory(path: str, must_exist: bool = True,
             # Try to create it
             try:
                 p.mkdir(parents=True, exist_ok=True)
-            except Exception as e:
-                raise ValidationError([f"Cannot create directory {path}: {e}"])
+            except Exception as exc:
+                raise ValidationError([f"Cannot create directory {path}: {exc}"])
         
         if not p.is_dir():
             raise ValidationError([f"Path is not a directory: {path}"])
@@ -165,10 +125,7 @@ def validate_ms(ms_path: str, check_empty: bool = True,
         ValidationError: If validation fails
     """
     # MS files are directories, not files - validate as directory
-    try:
-        validate_directory(ms_path, must_exist=True, must_readable=True)
-    except ValidationError as e:
-        raise
+    validate_directory(ms_path, must_exist=True, must_readable=True)
     
     # Validate MS structure (lazy import CASA dependency)
     try:
@@ -349,7 +306,6 @@ def validate_corrected_data_quality(ms_path: str, sample_size: int = 10000) -> L
     
     try:
         from casacore.tables import table
-        import numpy as np
         
         with table(ms_path, readonly=True) as tb:
             if 'CORRECTED_DATA' not in tb.colnames():

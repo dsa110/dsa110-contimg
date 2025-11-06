@@ -1,9 +1,26 @@
 """
 Custom exceptions for calibrator MS generation.
+
+All exceptions inherit from the unified DSA110Error hierarchy.
 """
 
+from dsa110_contimg.utils.exceptions import DSA110Error, ConversionError, ValidationError
 
-class CalibratorMSError(Exception):
+# Re-export for backward compatibility
+__all__ = [
+    'DSA110Error',
+    'ConversionError',
+    'ValidationError',
+    'CalibratorMSError',
+    'TransitNotFoundError',
+    'GroupNotFoundError',
+    'CalibratorConversionError',
+    'CalibratorNotFoundError',
+    'CalibratorValidationError',
+]
+
+
+class CalibratorMSError(DSA110Error):
     """Base exception for calibrator MS generation."""
     pass
 
@@ -18,8 +35,8 @@ class GroupNotFoundError(CalibratorMSError):
     pass
 
 
-class ConversionError(CalibratorMSError):
-    """Raised when MS conversion fails."""
+class CalibratorConversionError(ConversionError):
+    """Raised when MS conversion fails during calibrator processing."""
     pass
 
 
@@ -28,7 +45,9 @@ class CalibratorNotFoundError(CalibratorMSError):
     pass
 
 
-class ValidationError(CalibratorMSError):
-    """Raised when input validation fails."""
+# Note: ValidationError is imported from utils.exceptions for consistency
+# CalibratorValidationError can be used if calibrator-specific validation is needed
+class CalibratorValidationError(ValidationError):
+    """Raised when input validation fails during calibrator processing."""
     pass
 

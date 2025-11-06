@@ -1,7 +1,7 @@
 /**
  * Control Page - Manual job execution interface
  */
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef, useCallback } from 'react';
 import {
   Box,
   Paper,
@@ -164,8 +164,14 @@ export default function ControlPage() {
     return 'An unknown error occurred';
   };
   
-  // Handlers with error handling
-  const handleCalibrateSubmit = () => {
+  // Store handlers in refs to avoid recreating the keyboard shortcuts effect
+  const handleCalibrateSubmitRef = useRef<() => void>();
+  const handleApplySubmitRef = useRef<() => void>();
+  const handleImageSubmitRef = useRef<() => void>();
+  const handleConvertSubmitRef = useRef<() => void>();
+
+  // Handlers with error handling - wrapped in useCallback to prevent unnecessary re-renders
+  const handleCalibrateSubmit = useCallback(() => {
     if (!selectedMS) return;
     setErrorMessage(null);
     calibrateMutation.mutate(
@@ -183,9 +189,9 @@ export default function ControlPage() {
         },
       }
     );
-  };
+  }, [selectedMS, calibParams, calibrateMutation, refetchJobs]);
   
-  const handleApplySubmit = () => {
+  const handleApplySubmit = useCallback(() => {
     if (!selectedMS) return;
     setErrorMessage(null);
     applyMutation.mutate(
@@ -203,9 +209,9 @@ export default function ControlPage() {
         },
       }
     );
-  };
+  }, [selectedMS, applyParams, applyMutation, refetchJobs]);
   
-  const handleImageSubmit = () => {
+  const handleImageSubmit = useCallback(() => {
     if (!selectedMS) return;
     setErrorMessage(null);
     imageMutation.mutate(
@@ -223,9 +229,9 @@ export default function ControlPage() {
         },
       }
     );
-  };
+  }, [selectedMS, imageParams, imageMutation, refetchJobs]);
   
-  const handleConvertSubmit = () => {
+  const handleConvertSubmit = useCallback(() => {
     setErrorMessage(null);
     convertMutation.mutate(
       { params: convertParams },
@@ -242,7 +248,13 @@ export default function ControlPage() {
         },
       }
     );
-  };
+  }, [convertParams, convertMutation, refetchJobs]);
+
+  // Update refs whenever handlers change
+  handleCalibrateSubmitRef.current = handleCalibrateSubmit;
+  handleApplySubmitRef.current = handleApplySubmit;
+  handleImageSubmitRef.current = handleImageSubmit;
+  handleConvertSubmitRef.current = handleConvertSubmit;
   
   const handleWorkflowSubmit = () => {
     if (!workflowParams.start_time || !workflowParams.end_time) return;
@@ -308,16 +320,16 @@ export default function ControlPage() {
         e.preventDefault();
         if (activeTab === 0) {
           if (!convertParams.start_time || !convertParams.end_time || convertMutation.isPending) return;
-          handleConvertSubmit();
+          handleConvertSubmitRef.current?.();
         } else if (activeTab === 1) {
           if (!selectedMS || selectedMSList.length !== 1 || calibrateMutation.isPending || (!calibParams.solve_delay && !calibParams.solve_bandpass && !calibParams.solve_gains)) return;
-          handleCalibrateSubmit();
+          handleCalibrateSubmitRef.current?.();
         } else if (activeTab === 2) {
           if (!selectedMS || !applyParams.gaintables?.length || applyMutation.isPending) return;
-          handleApplySubmit();
+          handleApplySubmitRef.current?.();
         } else if (activeTab === 3) {
           if (!selectedMS || imageMutation.isPending) return;
-          handleImageSubmit();
+          handleImageSubmitRef.current?.();
         }
       }
       // Ctrl/Cmd + R to refresh (but prevent page reload)
@@ -335,7 +347,26 @@ export default function ControlPage() {
     
     window.addEventListener('keydown', handleKeyPress);
     return () => window.removeEventListener('keydown', handleKeyPress);
-  }, [activeTab, convertParams, selectedMS, selectedMSList, calibParams, applyParams, convertMutation.isPending, calibrateMutation.isPending, applyMutation.isPending, imageMutation.isPending, handleConvertSubmit, handleCalibrateSubmit, handleApplySubmit, handleImageSubmit, refetchMS, refetchJobs]);
+  }, [
+    activeTab,
+    // Only include specific values from params objects, not the entire objects
+    convertParams.start_time,
+    convertParams.end_time,
+    calibParams.solve_delay,
+    calibParams.solve_bandpass,
+    calibParams.solve_gains,
+    applyParams.gaintables?.length,
+    selectedMS,
+    selectedMSList,
+    convertMutation.isPending,
+    calibrateMutation.isPending,
+    applyMutation.isPending,
+    imageMutation.isPending,
+    // Handlers are accessed via refs, so they don't need to be in the dependency array
+    // This prevents the effect from re-running when handlers are recreated
+    refetchMS,
+    refetchJobs,
+  ]);
   
   return (
     <Box sx={{ p: 3 }}>

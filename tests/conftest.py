@@ -8,15 +8,8 @@ This module provides reusable fixtures for:
 - Common test data patterns
 """
 
-import os
 import sys
-import tempfile
 from pathlib import Path
-try:
-    from typing import Dict, Any, Optional
-except ImportError:
-    # Python 2.7 compatibility
-    pass
 from unittest.mock import MagicMock, Mock
 
 import numpy as np
@@ -72,7 +65,7 @@ def minimal_test_ms(tmp_path_factory):
     except ImportError:
         pytest.skip("test_utils not available")
     except Exception as e:
-        pytest.skip(f"Could not create minimal MS: {e}")
+        pytest.skip("Could not create minimal MS: {}".format(e))
 
 
 @pytest.fixture
@@ -112,7 +105,7 @@ def mock_ms_structure():
         'FIELD': {
             'nrows': 1,
             'colnames': ['PHASE_DIR', 'NAME'],
-            'PHASE_DIR': np.array([[[np.radians(120.0), np.radians(45.0)]]]),  # RA=120°, Dec=45°
+            'PHASE_DIR': np.array([[[np.radians(120.0), np.radians(45.0)]]]),  # RA=120 deg, Dec=45 deg
             'NAME': np.array(['TEST_FIELD']),
         },
         'ANTENNA': {
@@ -141,7 +134,7 @@ def mock_table_factory(mock_ms_structure):
                 # Your test code that uses table()
                 ...
     """
-    def _create_mock_table(path, readonly=True):
+    def _create_mock_table(path, readonly=True, **kwargs):
         """Create a mock table based on the path."""
         # Parse table name from path (e.g., "ms::SPECTRAL_WINDOW" -> "SPECTRAL_WINDOW")
         if "::" in path:
@@ -169,10 +162,27 @@ def mock_table_factory(mock_ms_structure):
                 return np.array([[[np.radians(120.0), np.radians(45.0)]]])
             if colname == 'FLAG':
                 return np.zeros((1000, 1, 4), dtype=bool)
+            if colname == 'DATA':
+                return np.random.random((1000, 1, 4)) + 1j * np.random.random((1000, 1, 4))
+            if colname == 'ANTENNA1':
+                return np.random.randint(0, 10, 1000)
+            if colname == 'ANTENNA2':
+                return np.random.randint(0, 10, 1000)
+            if colname == 'TIME':
+                return np.linspace(60000, 61000, 1000)
+            if colname == 'UVW':
+                return np.random.random((1000, 3)) * 1000
             return np.array([])
         
         ctx.mock_table.getcol = Mock(side_effect=mock_getcol)
-        ctx.mock_table.colnames = Mock(return_value=mock_data.get('colnames', []))
+        # Always return required columns for MAIN table (for validate_ms)
+        if table_name == "MAIN" or "::" not in path:
+            ctx.mock_table.colnames = Mock(return_value=[
+                'DATA', 'CORRECTED_DATA', 'MODEL_DATA', 'FLAG',
+                'ANTENNA1', 'ANTENNA2', 'TIME', 'UVW'
+            ])
+        else:
+            ctx.mock_table.colnames = Mock(return_value=mock_data.get('colnames', []))
         ctx.mock_table.nrows = Mock(return_value=mock_data.get('nrows', 1000))
         
         return ctx

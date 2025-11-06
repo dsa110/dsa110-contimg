@@ -10,11 +10,13 @@ import {
   Public,
   ShowChart,
   Settings,
+  PlayArrow,
 } from '@mui/icons-material';
 
 const navItems = [
   { path: '/dashboard', label: 'Dashboard', icon: Dashboard },
   { path: '/control', label: 'Control', icon: Settings },
+  { path: '/streaming', label: 'Streaming', icon: PlayArrow },
   { path: '/mosaics', label: 'Mosaics', icon: Image },
   { path: '/sources', label: 'Sources', icon: TableChart },
   { path: '/sky', label: 'Sky View', icon: Public },

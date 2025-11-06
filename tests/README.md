@@ -16,7 +16,10 @@ tests/
 │   │   └── test_validate_synthetic.py
 │   ├── test_calibration_comprehensive.py  # Comprehensive calibration tests
 │   ├── test_subband_ordering.py  # Subband ordering tests
-│   └── test_cli_calibration_args.py
+│   ├── test_cli_calibration_args.py
+│   ├── test_imaging_mocked.py  # Imaging logic tests with mocking (see README_MOCKING_EXAMPLES.md)
+│   ├── test_quality_tier.py  # Quality tier behavior tests
+│   └── test_nvss_seeding.py  # NVSS seeding logic tests
 ├── integration/                  # Integration tests
 │   ├── test_pipeline_end_to_end.sh  # End-to-end pipeline test (bash)
 │   └── test_calibration_workflow.py  # Calibration workflow integration
@@ -91,6 +94,8 @@ bash tests/integration/test_pipeline_end_to_end.sh --use-existing-ms /path/to/ms
 ### Unit Tests (`tests/unit/`)
 - **Purpose**: Test individual modules and functions in isolation
 - **Style**: Pytest with fixtures and assertions
+- **Mocking Examples**: See `tests/unit/README_MOCKING_EXAMPLES.md` for comprehensive examples of unit testing with mocked dependencies
+- **Fixtures**: Shared fixtures are defined in `tests/conftest.py` (mock tables, temporary directories, etc.)
 - **Examples**: API routes, data validation, calibration components
 - **New**: Comprehensive calibration tests (`test_calibration_comprehensive.py`, `test_subband_ordering.py`)
 

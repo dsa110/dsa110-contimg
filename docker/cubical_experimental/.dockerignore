@@ -1,0 +1,16 @@
+# Ignore unnecessary files when building
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+.Python
+*.so
+*.egg
+*.egg-info/
+dist/
+build/
+.git/
+.gitignore
+*.md
+tests/
+*.log

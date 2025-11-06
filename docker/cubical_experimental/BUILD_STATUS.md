@@ -1,0 +1,62 @@
+# Docker Build Status
+
+## Build Results
+
+**Image Built Successfully**: `dsa110-cubical:experimental`
+
+### What Works:
+- ✓ Ubuntu 20.04 base image
+- ✓ Miniconda installation
+- ✓ Python 3.9 environment
+- ✓ CUDA toolkit 11.1
+- ✓ CuPy (GPU NumPy) installed
+- ✓ NumPy, SciPy, Astropy installed
+- ✓ Volume mounting works
+- ✓ GPU access available
+
+### What Needs Work:
+- ✗ CubiCal installation failed (complex dependency issue)
+  - Issue: `sharedarray` dependency build failure
+  - This is a known issue with CubiCal's dependencies
+  - May need to install dependencies manually or use different approach
+
+## Next Steps
+
+### Option 1: Manual CubiCal Installation
+Install CubiCal manually inside the container after it's running:
+```bash
+docker run -it --rm --gpus all \
+  -v /scratch:/scratch:ro \
+  -v /scratch/calibration_test:/workspace/output:rw \
+  dsa110-cubical:experimental bash
+
+# Inside container:
+conda activate cubical
+# Try installing CubiCal dependencies manually
+pip install future argparse
+# Then try CubiCal again
+```
+
+### Option 2: Use Pre-built CubiCal Image
+Look for existing CubiCal Docker images or use their installation instructions.
+
+### Option 3: Simplify Dependencies
+Install CubiCal without Montblanc first (CPU-only), then add GPU support.
+
+## Testing Commands
+
+```bash
+# Test GPU access
+docker run --rm --gpus all dsa110-cubical:experimental \
+  bash -c "source /opt/conda/etc/profile.d/conda.sh && conda activate cubical && python -c 'import cupy; print(cupy.cuda.runtime.getDeviceCount())'"
+
+# Test volume mounting
+docker run --rm --gpus all \
+  -v /scratch:/scratch:ro \
+  dsa110-cubical:experimental \
+  ls /scratch/ms/timesetv3/ | head -5
+```
+
+## Conclusion
+
+The Docker environment is set up correctly and can access GPUs. The CubiCal installation needs additional work, but the foundation is solid.

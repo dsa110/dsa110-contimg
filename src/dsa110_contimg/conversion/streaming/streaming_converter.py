@@ -571,17 +571,8 @@ def _worker_loop(args: argparse.Namespace, queue: QueueDB) -> None:
                 # Extract time range
                 start_mjd = end_mjd = mid_mjd = None
                 try:
-                    from casatools import msmetadata  # type: ignore
-                    msmd = msmetadata()
-                    msmd.open(ms_path)
-                    try:
-                        tr = msmd.timerangeforobs()
-                        if tr and isinstance(tr, (list, tuple)) and len(tr) >= 2:
-                            start_mjd = float(tr[0])
-                            end_mjd = float(tr[1])
-                            mid_mjd = 0.5 * (start_mjd + end_mjd)
-                    finally:
-                        msmd.close()
+                    from dsa110_contimg.utils.time_utils import extract_ms_time_range
+                    start_mjd, end_mjd, mid_mjd = extract_ms_time_range(ms_path)
                 except Exception:
                     pass
                 ms_index_upsert(
@@ -602,13 +593,10 @@ def _worker_loop(args: argparse.Namespace, queue: QueueDB) -> None:
             try:
                 # Determine mid_mjd for applylist
                 if mid_mjd is None:
-                    # fallback quick mid time via casacore tables
+                    # fallback: try extract_ms_time_range again (it has multiple fallbacks)
                     try:
-                        from casacore.tables import table as _tb
-                        with _tb(f"{ms_path}::OBSERVATION") as _obs:
-                            t0 = _obs.getcol("TIME_RANGE")[0][0] / 86400.0
-                            t1 = _obs.getcol("TIME_RANGE")[0][1] / 86400.0
-                            mid_mjd = 0.5 * (float(t0) + float(t1))
+                        from dsa110_contimg.utils.time_utils import extract_ms_time_range
+                        _, _, mid_mjd = extract_ms_time_range(ms_path)
                     except Exception:
                         pass
 

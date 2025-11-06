@@ -24,26 +24,28 @@ sys.path.insert(0, str(Path(__file__).parent.parent.parent / "src"))
 class TestNVSSRadiusCalculation:
     """Test NVSS seeding radius calculation logic."""
     
-    def test_nvss_radius_without_pbcor(self, mock_table_factory):
+    def test_nvss_radius_without_pbcor(self, mock_table_factory, temp_work_dir):
         """Test that NVSS radius equals image radius when pbcor=False."""
         from dsa110_contimg.imaging.cli_imaging import image_ms
         
-        ms_path = "/fake/test.ms"
-        imagename = "/fake/test.img"
+        ms_path = str(temp_work_dir / "test.ms")
+        imagename = str(temp_work_dir / "test.img")
+        Path(ms_path).mkdir(parents=True, exist_ok=True)
         
-        with patch('casacore.tables.table',
-                   side_effect=mock_table_factory), \
+        with patch('casacore.tables.table', side_effect=mock_table_factory), \
+             patch('dsa110_contimg.imaging.cli_imaging.table', side_effect=mock_table_factory), \
              patch('dsa110_contimg.imaging.cli_utils.default_cell_arcsec',
                    return_value=2.0), \
              patch('dsa110_contimg.imaging.cli_utils.detect_datacolumn',
                    return_value='data'), \
+             patch('dsa110_contimg.imaging.cli_utils.table', side_effect=mock_table_factory), \
+             patch('dsa110_contimg.imaging.cli_imaging.default_cell_arcsec', return_value=2.0), \
+             patch('dsa110_contimg.imaging.cli_imaging.detect_datacolumn', return_value='data'), \
              patch('dsa110_contimg.imaging.cli_imaging.run_wsclean'), \
-             patch('dsa110_contimg.utils.validation.validate_ms'), \
-             patch('dsa110_contimg.utils.validation.'
-                   'validate_corrected_data_quality'), \
-             patch('dsa110_contimg.calibration.skymodels.'
-                   'make_nvss_component_cl') as mock_make_cl, \
-             patch('dsa110_contimg.calibration.skymodels.ft_from_cl'):
+             patch('dsa110_contimg.imaging.cli_imaging.validate_ms', return_value=None), \
+             patch('dsa110_contimg.utils.validation.validate_corrected_data_quality', return_value=[]), \
+             patch('dsa110_contimg.calibration.skymodels.make_nvss_component_cl') as mock_make_cl, \
+                 patch('dsa110_contimg.calibration.skymodels.ft_from_cl'):
             
             image_ms(
                 ms_path,
@@ -62,12 +64,13 @@ class TestNVSSRadiusCalculation:
             # Should use full image radius (not limited by primary beam)
             assert radius_deg > 1.0  # Should be close to image radius
     
-    def test_nvss_radius_with_pbcor_limited(self, mock_table_factory):
+    def test_nvss_radius_with_pbcor_limited(self, temp_work_dir):
         """Test that NVSS radius is limited to primary beam when pbcor=True."""
         from dsa110_contimg.imaging.cli_imaging import image_ms
         
-        ms_path = "/fake/test.ms"
-        imagename = "/fake/test.img"
+        ms_path = str(temp_work_dir / "test.ms")
+        imagename = str(temp_work_dir / "test.img")
+        Path(ms_path).mkdir(parents=True, exist_ok=True)
         
         # Mock frequency for primary beam calculation
         def mock_table_with_freq(path, readonly=True):  # noqa: ARG001
@@ -78,22 +81,34 @@ class TestNVSSRadiusCalculation:
             if "SPECTRAL_WINDOW" in path:
                 # 1.4 GHz frequency
                 ctx.getcol.return_value = np.array([[1.4e9, 1.41e9, 1.42e9, 1.43e9]])
+                ctx.colnames.return_value = ['CHAN_FREQ', 'CHAN_WIDTH']
+                ctx.nrows.return_value = 1
             elif "FIELD" in path:
                 # Phase center
                 ctx.getcol.return_value = np.array([[[np.radians(120.0), np.radians(45.0)]]])
+                ctx.colnames.return_value = ['PHASE_DIR', 'NAME']
+                ctx.nrows.return_value = 1
             else:
-                ctx.colnames.return_value = []
+                # MAIN table - must have required columns for validate_ms
+                ctx.colnames.return_value = [
+                    'DATA', 'CORRECTED_DATA', 'MODEL_DATA', 'FLAG',
+                    'ANTENNA1', 'ANTENNA2', 'TIME', 'UVW'
+                ]
                 ctx.nrows.return_value = 1000
             return ctx
         
         with patch('casacore.tables.table', side_effect=mock_table_with_freq), \
+             patch('dsa110_contimg.imaging.cli_imaging.table', side_effect=mock_table_with_freq), \
+             patch('dsa110_contimg.imaging.cli_utils.table', side_effect=mock_table_with_freq), \
              patch('dsa110_contimg.imaging.cli_utils.default_cell_arcsec', return_value=2.0), \
+             patch('dsa110_contimg.imaging.cli_imaging.default_cell_arcsec', return_value=2.0), \
              patch('dsa110_contimg.imaging.cli_utils.detect_datacolumn', return_value='data'), \
+             patch('dsa110_contimg.imaging.cli_imaging.detect_datacolumn', return_value='data'), \
              patch('dsa110_contimg.imaging.cli_imaging.run_wsclean'), \
-             patch('dsa110_contimg.utils.validation.validate_ms'), \
-             patch('dsa110_contimg.utils.validation.validate_corrected_data_quality'), \
+             patch('dsa110_contimg.imaging.cli_imaging.validate_ms', return_value=None), \
+             patch('dsa110_contimg.utils.validation.validate_corrected_data_quality', return_value=[]), \
              patch('dsa110_contimg.calibration.skymodels.make_nvss_component_cl') as mock_make_cl, \
-             patch('dsa110_contimg.calibration.skymodels.ft_from_cl'):
+                 patch('dsa110_contimg.calibration.skymodels.ft_from_cl'):
             
             image_ms(
                 ms_path,
@@ -179,19 +194,23 @@ class TestNVSSRadiusCalculation:
 class TestNVSSSeedingIntegration:
     """Test NVSS seeding integration with mocked dependencies."""
     
-    def test_nvss_seeding_skipped_when_not_requested(self, mock_table_factory):
+    def test_nvss_seeding_skipped_when_not_requested(self, mock_table_factory, temp_work_dir):
         """Test that NVSS seeding is skipped when nvss_min_mjy is None."""
         from dsa110_contimg.imaging.cli_imaging import image_ms
         
-        ms_path = "/fake/test.ms"
-        imagename = "/fake/test.img"
+        ms_path = str(temp_work_dir / "test.ms")
+        imagename = str(temp_work_dir / "test.img")
+        Path(ms_path).mkdir(parents=True, exist_ok=True)
         
         with patch('casacore.tables.table', side_effect=mock_table_factory), \
+             patch('dsa110_contimg.imaging.cli_utils.table', side_effect=mock_table_factory), \
              patch('dsa110_contimg.imaging.cli_utils.default_cell_arcsec', return_value=2.0), \
+             patch('dsa110_contimg.imaging.cli_imaging.default_cell_arcsec', return_value=2.0), \
              patch('dsa110_contimg.imaging.cli_utils.detect_datacolumn', return_value='data'), \
+             patch('dsa110_contimg.imaging.cli_imaging.detect_datacolumn', return_value='data'), \
              patch('dsa110_contimg.imaging.cli_imaging.run_wsclean'), \
-             patch('dsa110_contimg.utils.validation.validate_ms'), \
-             patch('dsa110_contimg.utils.validation.validate_corrected_data_quality'), \
+             patch('dsa110_contimg.imaging.cli_imaging.validate_ms', return_value=None), \
+             patch('dsa110_contimg.utils.validation.validate_corrected_data_quality', return_value=[]), \
              patch('dsa110_contimg.calibration.skymodels.make_nvss_component_cl') as mock_make_cl:
             
             image_ms(
@@ -203,12 +222,13 @@ class TestNVSSSeedingIntegration:
             # NVSS seeding should not be called
             assert not mock_make_cl.called
     
-    def test_nvss_seeding_called_with_correct_parameters(self, mock_table_factory):
+    def test_nvss_seeding_called_with_correct_parameters(self, temp_work_dir):
         """Test that NVSS seeding is called with correct parameters."""
         from dsa110_contimg.imaging.cli_imaging import image_ms
         
-        ms_path = "/fake/test.ms"
-        imagename = "/fake/test.img"
+        ms_path = str(temp_work_dir / "test.ms")
+        imagename = str(temp_work_dir / "test.img")
+        Path(ms_path).mkdir(parents=True, exist_ok=True)
         
         def mock_table_with_phase_center(path, readonly=True):  # noqa: ARG001
             ctx = MagicMock()
@@ -218,22 +238,34 @@ class TestNVSSSeedingIntegration:
             if "FIELD" in path:
                 # Phase center: RA=120°, Dec=45°
                 ctx.getcol.return_value = np.array([[[np.radians(120.0), np.radians(45.0)]]])
+                ctx.colnames.return_value = ['PHASE_DIR', 'NAME']
+                ctx.nrows.return_value = 1
             elif "SPECTRAL_WINDOW" in path:
                 ctx.getcol.return_value = np.array([[1.4e9, 1.41e9, 1.42e9, 1.43e9]])
+                ctx.colnames.return_value = ['CHAN_FREQ', 'CHAN_WIDTH']
+                ctx.nrows.return_value = 1
             else:
-                ctx.colnames.return_value = []
+                # MAIN table - must have required columns for validate_ms
+                ctx.colnames.return_value = [
+                    'DATA', 'CORRECTED_DATA', 'MODEL_DATA', 'FLAG',
+                    'ANTENNA1', 'ANTENNA2', 'TIME', 'UVW'
+                ]
                 ctx.nrows.return_value = 1000
             return ctx
         
         with patch('casacore.tables.table', side_effect=mock_table_with_phase_center), \
+             patch('dsa110_contimg.imaging.cli_imaging.table', side_effect=mock_table_with_phase_center), \
+             patch('dsa110_contimg.imaging.cli_utils.table', side_effect=mock_table_with_phase_center), \
              patch('dsa110_contimg.imaging.cli_utils.default_cell_arcsec', return_value=2.0), \
+             patch('dsa110_contimg.imaging.cli_imaging.default_cell_arcsec', return_value=2.0), \
              patch('dsa110_contimg.imaging.cli_utils.detect_datacolumn', return_value='data'), \
+             patch('dsa110_contimg.imaging.cli_imaging.detect_datacolumn', return_value='data'), \
              patch('dsa110_contimg.imaging.cli_imaging.run_wsclean'), \
-             patch('dsa110_contimg.utils.validation.validate_ms'), \
-             patch('dsa110_contimg.utils.validation.validate_corrected_data_quality'), \
+             patch('dsa110_contimg.imaging.cli_imaging.validate_ms', return_value=None), \
+             patch('dsa110_contimg.utils.validation.validate_corrected_data_quality', return_value=[]), \
              patch('dsa110_contimg.calibration.skymodels.make_nvss_component_cl') as mock_make_cl, \
              patch('dsa110_contimg.calibration.skymodels.ft_from_cl'), \
-             patch('os.path.exists', return_value=True):  # Component list exists
+              patch('os.path.exists', return_value=True):  # Component list exists
             
             image_ms(
                 ms_path,

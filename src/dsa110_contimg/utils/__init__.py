@@ -13,6 +13,7 @@ from . import antpos_local
 from . import coordinates
 from . import fringestopping
 from . import logging
+from . import exceptions
 
 __all__ = [
     'constants',
@@ -20,4 +21,5 @@ __all__ = [
     'coordinates',
     'fringestopping',
     'logging',
+    'exceptions',
 ]

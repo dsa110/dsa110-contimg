@@ -271,16 +271,21 @@ def _fix_field_phase_centers_from_times(ms_path: str) -> None:
             
             # Fix each field's phase center
             updated = False
+            # Import time conversion utilities for proper format detection
+            from dsa110_contimg.utils.time_utils import detect_casa_time_format
+            
             for field_idx in range(nfields):
-                # Get time for this field (CASA TIME is seconds since MJD epoch)
+                # Get time for this field (CASA TIME format varies: seconds since MJD 0 or MJD 51544.0)
                 if field_idx in field_times:
                     time_sec = field_times[field_idx]
-                    # Convert CASA TIME to MJD
-                    # CASA TIME = (MJD - 51544.0) * 86400.0 (MJD epoch is 2000-01-01)
-                    time_mjd = 51544.0 + time_sec / 86400.0
+                    # Use format detection to handle both TIME formats correctly
+                    # This is critical: pyuvdata.write_ms() uses seconds since MJD 0,
+                    # but standard CASA uses seconds since MJD 51544.0
+                    _, time_mjd = detect_casa_time_format(time_sec)
                 else:
-                    # Fallback: use mean time from main table
-                    time_mjd = 51544.0 + _np.mean(times) / 86400.0
+                    # Fallback: use mean time from main table with format detection
+                    mean_time_sec = _np.mean(times)
+                    _, time_mjd = detect_casa_time_format(mean_time_sec)
                 
                 # Calculate correct RA = LST(time) at meridian
                 phase_ra, phase_dec = get_meridian_coords(pt_dec, time_mjd)
@@ -433,37 +438,108 @@ def configure_ms_for_imaging(
     """
     Make a Measurement Set safe and ready for imaging and calibration.
     
-    This function uses consistent error handling: critical failures raise
-    exceptions, while non-critical issues log warnings and continue.
+    This function performs essential post-conversion setup to ensure an MS is
+    ready for downstream processing (calibration, imaging). It uses consistent
+    error handling: critical failures raise exceptions, while non-critical issues
+    log warnings and continue.
+    
+    **What this function does:**
+    
+    1. **Ensures imaging columns exist**: Creates MODEL_DATA and CORRECTED_DATA
+       columns if missing, and populates them with properly-shaped arrays
+    2. **Ensures flag/weight arrays**: Creates FLAG and WEIGHT_SPECTRUM arrays
+       with correct shapes matching the DATA column
+    3. **Initializes weights**: Runs CASA's initweights task to set proper
+       weight values based on data quality
+    4. **Fixes antenna mount types**: Normalizes ANTENNA.MOUNT values to
+       CASA-compatible format
+    5. **Stamps telescope identity**: Sets consistent telescope name and location
+    6. **Fixes phase centers**: Updates FIELD table phase centers based on
+       observation times
+    7. **Fixes observation time range**: Updates OBSERVATION table with correct
+       time range
 
     Parameters
     ----------
     ms_path : str
         Path to the Measurement Set (directory path).
-    ensure_columns : bool
-        Ensure MODEL_DATA and CORRECTED_DATA columns exist.
-    ensure_flag_and_weight : bool
+    ensure_columns : bool, optional
+        Ensure MODEL_DATA and CORRECTED_DATA columns exist and are populated.
+        Default: True
+    ensure_flag_and_weight : bool, optional
         Ensure FLAG and WEIGHT_SPECTRUM arrays exist and are well-shaped.
-    do_initweights : bool
+        Default: True
+    do_initweights : bool, optional
         Run casatasks.initweights with WEIGHT_SPECTRUM initialization enabled.
-    fix_mount : bool
-        Normalize ANTENNA.MOUNT values.
+        Default: True
+    fix_mount : bool, optional
+        Normalize ANTENNA.MOUNT values to CASA-compatible format.
+        Default: True
+    stamp_observation_telescope : bool, optional
+        Set consistent telescope name and location metadata.
+        Default: True
         
     Raises
     ------
-    RuntimeError
-        If MS path does not exist or is not readable (critical failure)
+    ConversionError
+        If MS path does not exist, is not readable, or becomes unreadable
+        after configuration (critical failures)
+        
+    Examples
+    --------
+    Basic usage after converting UVH5 to MS:
+    
+    >>> from dsa110_contimg.conversion.ms_utils import configure_ms_for_imaging
+    >>> configure_ms_for_imaging("/path/to/observation.ms")
+    
+    Configure only essential columns (skip weight initialization):
+    
+    >>> configure_ms_for_imaging(
+    ...     "/path/to/observation.ms",
+    ...     do_initweights=False
+    ... )
+    
+    Minimal configuration (only columns and flags):
+    
+    >>> configure_ms_for_imaging(
+    ...     "/path/to/observation.ms",
+    ...     do_initweights=False,
+    ...     fix_mount=False,
+    ...     stamp_observation_telescope=False
+    ... )
+    
+    Notes
+    -----
+    - This function should be called after converting UVH5 to MS format
+    - All operations are idempotent (safe to call multiple times)
+    - Non-critical failures (e.g., column population issues) are logged as
+      warnings but don't stop execution
+    - Critical failures (e.g., MS not found) raise ConversionError with
+      context and suggestions
     """
     if not isinstance(ms_path, str):
         ms_path = os.fspath(ms_path)
 
     # CRITICAL: Validate MS exists and is readable
+    from dsa110_contimg.utils.exceptions import ConversionError
     if not os.path.exists(ms_path):
-        raise RuntimeError(f"MS does not exist: {ms_path}")
+        raise ConversionError(
+            f"MS does not exist: {ms_path}",
+            context={'ms_path': ms_path, 'operation': 'configure_ms_for_imaging'},
+            suggestion='Check that the MS path is correct and the file exists'
+        )
     if not os.path.isdir(ms_path):
-        raise RuntimeError(f"MS path is not a directory: {ms_path}")
+        raise ConversionError(
+            f"MS path is not a directory: {ms_path}",
+            context={'ms_path': ms_path, 'operation': 'configure_ms_for_imaging'},
+            suggestion='Measurement Sets are directories, not files. Check the path.'
+        )
     if not os.access(ms_path, os.R_OK):
-        raise RuntimeError(f"MS is not readable: {ms_path}")
+        raise ConversionError(
+            f"MS is not readable: {ms_path}",
+            context={'ms_path': ms_path, 'operation': 'configure_ms_for_imaging'},
+            suggestion='Check file permissions: ls -ld ' + ms_path
+        )
 
     # Track which operations succeeded for summary logging
     operations_status = {

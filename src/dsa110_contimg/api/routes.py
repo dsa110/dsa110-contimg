@@ -32,6 +32,7 @@ from dsa110_contimg.api.data_access import (
     fetch_source_timeseries,
     fetch_alert_history,
 )
+from dsa110_contimg.api.streaming_service import StreamingServiceManager, StreamingConfig
 from dsa110_contimg.api.models import (
     PipelineStatus,
     ProductList,
@@ -84,6 +85,10 @@ from dsa110_contimg.api.models import (
     SourceTimeseries,
     SourceSearchResponse,
     AlertHistory,
+    StreamingConfigRequest,
+    StreamingStatusResponse,
+    StreamingHealthResponse,
+    StreamingControlResponse,
 )
 from dsa110_contimg.api.data_access import _connect
 from dsa110_contimg.api.image_utils import get_fits_path, convert_casa_to_fits
@@ -218,7 +223,7 @@ def create_app(config: ApiConfig | None = None) -> FastAPI:
                     id=r["id"],
                     path=r["path"],
                     ms_path=r["ms_path"],
-                    created_at=datetime.fromtimestamp(r["created_at"]) if r["created_at"] else datetime.now(),
+                    created_at=datetime.fromtimestamp(r["created_at"]) if r["created_at"] else None,
                     type=r["type"],
                     beam_major_arcsec=r["beam_major_arcsec"],
                     beam_minor_arcsec=None,  # Not in current schema
@@ -1300,13 +1305,16 @@ def create_app(config: ApiConfig | None = None) -> FastAPI:
             tb = table()
             tb.open(ms_full_path, nomodify=True)
             
-            times = tb.getcol("TIME")
-            if len(times) > 0:
-                start_time = datetime.fromtimestamp(times.min()).isoformat()
-                end_time = datetime.fromtimestamp(times.max()).isoformat()
-                metadata.start_time = start_time
-                metadata.end_time = end_time
-                metadata.duration_sec = float(times.max() - times.min())
+            # Extract time range using standardized utility (handles format detection)
+            from dsa110_contimg.utils.time_utils import extract_ms_time_range
+            start_mjd, end_mjd, _ = extract_ms_time_range(str(ms_path))
+            if start_mjd is not None and end_mjd is not None:
+                from astropy.time import Time
+                start_time_obj = Time(start_mjd, format='mjd')
+                end_time_obj = Time(end_mjd, format='mjd')
+                metadata.start_time = start_time_obj.isot
+                metadata.end_time = end_time_obj.isot
+                metadata.duration_sec = (end_mjd - start_mjd) * 86400.0
             
             # Get available data columns
             colnames = tb.colnames()
@@ -1454,19 +1462,13 @@ def create_app(config: ApiConfig | None = None) -> FastAPI:
             # Get pointing declination
             pt_dec = read_pointing_from_ms(ms_full_path)
             
-            # Get mid MJD from MS
-            tb = table()
-            tb.open(ms_full_path, nomodify=True)
-            times = tb.getcol("TIME")
-            tb.close()
+            # Get mid MJD from MS using standardized utility function
+            # This handles both TIME formats (seconds since MJD 0 vs MJD 51544.0)
+            from dsa110_contimg.utils.time_utils import extract_ms_time_range
+            start_mjd, end_mjd, mid_mjd = extract_ms_time_range(ms_full_path)
             
-            if len(times) == 0:
-                raise HTTPException(status_code=400, detail="MS has no data")
-            
-            mid_time = (times.min() + times.max()) / 2.0
-            # CASA times are in seconds since MJD epoch (51544.0 = 2000-01-01)
-            # CASA TIME = (MJD - 51544.0) * 86400.0
-            mid_mjd = 51544.0 + mid_time / 86400.0
+            if mid_mjd is None:
+                raise HTTPException(status_code=400, detail="MS has no valid time data")
             
             # Load catalog
             if catalog == "vla":
@@ -2591,6 +2593,169 @@ def create_app(config: ApiConfig | None = None) -> FastAPI:
             return {"message": f"Batch job {batch_id} cancelled", "batch_id": batch_id}
         finally:
             conn.close()
+
+    # Streaming Service Control Endpoints
+    _streaming_manager = StreamingServiceManager()
+
+    @router.get("/streaming/status", response_model=StreamingStatusResponse)
+    def get_streaming_status() -> StreamingStatusResponse:
+        """Get current status of the streaming service."""
+        status = _streaming_manager.get_status()
+        return StreamingStatusResponse(**status.to_dict())
+
+    @router.get("/streaming/health", response_model=StreamingHealthResponse)
+    def get_streaming_health() -> StreamingHealthResponse:
+        """Get health check information for the streaming service."""
+        health = _streaming_manager.get_health()
+        return StreamingHealthResponse(**health)
+
+    @router.get("/streaming/config", response_model=StreamingConfigRequest)
+    def get_streaming_config() -> StreamingConfigRequest:
+        """Get current streaming service configuration."""
+        status = _streaming_manager.get_status()
+        if status.config:
+            return StreamingConfigRequest(**status.config.to_dict())
+        else:
+            # Return defaults
+            return StreamingConfigRequest(
+                input_dir=os.getenv("CONTIMG_INPUT_DIR", "/data/incoming"),
+                output_dir=os.getenv("CONTIMG_OUTPUT_DIR", "/scratch/dsa110-contimg/ms"),
+                queue_db=os.getenv("CONTIMG_QUEUE_DB", "state/ingest.sqlite3"),
+                registry_db=os.getenv("CONTIMG_REGISTRY_DB", "state/cal_registry.sqlite3"),
+                scratch_dir=os.getenv("CONTIMG_SCRATCH_DIR", "/scratch/dsa110-contimg"),
+            )
+
+    @router.post("/streaming/config", response_model=StreamingControlResponse)
+    def update_streaming_config(request: StreamingConfigRequest) -> StreamingControlResponse:
+        """Update streaming service configuration."""
+        config = StreamingConfig(
+            input_dir=request.input_dir,
+            output_dir=request.output_dir,
+            queue_db=request.queue_db or os.getenv("CONTIMG_QUEUE_DB", "state/ingest.sqlite3"),
+            registry_db=request.registry_db or os.getenv("CONTIMG_REGISTRY_DB", "state/cal_registry.sqlite3"),
+            scratch_dir=request.scratch_dir or os.getenv("CONTIMG_SCRATCH_DIR", "/scratch/dsa110-contimg"),
+            expected_subbands=request.expected_subbands,
+            chunk_duration=request.chunk_duration,
+            log_level=request.log_level,
+            use_subprocess=request.use_subprocess,
+            monitoring=request.monitoring,
+            monitor_interval=request.monitor_interval,
+            poll_interval=request.poll_interval,
+            worker_poll_interval=request.worker_poll_interval,
+            max_workers=request.max_workers,
+            stage_to_tmpfs=request.stage_to_tmpfs,
+            tmpfs_path=request.tmpfs_path,
+        )
+        result = _streaming_manager.update_config(config)
+        return StreamingControlResponse(**result)
+
+    @router.post("/streaming/start", response_model=StreamingControlResponse)
+    def start_streaming_service(request: Optional[StreamingConfigRequest] = None) -> StreamingControlResponse:
+        """Start the streaming service."""
+        config = None
+        if request:
+            config = StreamingConfig(
+                input_dir=request.input_dir,
+                output_dir=request.output_dir,
+                queue_db=request.queue_db or os.getenv("CONTIMG_QUEUE_DB", "state/ingest.sqlite3"),
+                registry_db=request.registry_db or os.getenv("CONTIMG_REGISTRY_DB", "state/cal_registry.sqlite3"),
+                scratch_dir=request.scratch_dir or os.getenv("CONTIMG_SCRATCH_DIR", "/scratch/dsa110-contimg"),
+                expected_subbands=request.expected_subbands,
+                chunk_duration=request.chunk_duration,
+                log_level=request.log_level,
+                use_subprocess=request.use_subprocess,
+                monitoring=request.monitoring,
+                monitor_interval=request.monitor_interval,
+                poll_interval=request.poll_interval,
+                worker_poll_interval=request.worker_poll_interval,
+                max_workers=request.max_workers,
+                stage_to_tmpfs=request.stage_to_tmpfs,
+                tmpfs_path=request.tmpfs_path,
+            )
+        result = _streaming_manager.start(config)
+        return StreamingControlResponse(**result)
+
+    @router.post("/streaming/stop", response_model=StreamingControlResponse)
+    def stop_streaming_service() -> StreamingControlResponse:
+        """Stop the streaming service."""
+        result = _streaming_manager.stop()
+        return StreamingControlResponse(**result)
+
+    @router.post("/streaming/restart", response_model=StreamingControlResponse)
+    def restart_streaming_service(request: Optional[StreamingConfigRequest] = None) -> StreamingControlResponse:
+        """Restart the streaming service."""
+        config = None
+        if request:
+            config = StreamingConfig(
+                input_dir=request.input_dir,
+                output_dir=request.output_dir,
+                queue_db=request.queue_db or os.getenv("CONTIMG_QUEUE_DB", "state/ingest.sqlite3"),
+                registry_db=request.registry_db or os.getenv("CONTIMG_REGISTRY_DB", "state/cal_registry.sqlite3"),
+                scratch_dir=request.scratch_dir or os.getenv("CONTIMG_SCRATCH_DIR", "/scratch/dsa110-contimg"),
+                expected_subbands=request.expected_subbands,
+                chunk_duration=request.chunk_duration,
+                log_level=request.log_level,
+                use_subprocess=request.use_subprocess,
+                monitoring=request.monitoring,
+                monitor_interval=request.monitor_interval,
+                poll_interval=request.poll_interval,
+                worker_poll_interval=request.worker_poll_interval,
+                max_workers=request.max_workers,
+                stage_to_tmpfs=request.stage_to_tmpfs,
+                tmpfs_path=request.tmpfs_path,
+            )
+        result = _streaming_manager.restart(config)
+        return StreamingControlResponse(**result)
+
+    @router.get("/streaming/metrics")
+    def get_streaming_metrics():
+        """Get processing metrics for the streaming service."""
+        import time
+        from dsa110_contimg.api.data_access import _connect
+        from dsa110_contimg.api.config import ApiConfig
+        
+        cfg = ApiConfig.from_env()
+        status = _streaming_manager.get_status()
+        
+        metrics = {
+            "service_running": status.running,
+            "uptime_seconds": status.uptime_seconds,
+            "cpu_percent": status.cpu_percent,
+            "memory_mb": status.memory_mb,
+        }
+        
+        # Get queue statistics
+        if cfg.queue_db and Path(cfg.queue_db).exists():
+            try:
+                with _connect(Path(cfg.queue_db)) as conn:
+                    # Count by state
+                    queue_stats = conn.execute(
+                        """
+                        SELECT state, COUNT(*) as count
+                        FROM ingest_queue
+                        GROUP BY state
+                        """
+                    ).fetchall()
+                    
+                    metrics["queue_stats"] = {row["state"]: row["count"] for row in queue_stats}
+                    
+                    # Get processing rate (groups processed in last hour)
+                    one_hour_ago = time.time() - 3600
+                    recent_completed = conn.execute(
+                        """
+                        SELECT COUNT(*) as count
+                        FROM ingest_queue
+                        WHERE state = 'completed' AND last_update > ?
+                        """,
+                        (one_hour_ago,)
+                    ).fetchone()
+                    
+                    metrics["processing_rate_per_hour"] = recent_completed["count"] if recent_completed else 0
+            except Exception as e:
+                log.warning(f"Failed to get queue metrics: {e}")
+                metrics["queue_error"] = str(e)
+        
+        return metrics
 
     @router.get("/jobs/healthz")
     def jobs_health():

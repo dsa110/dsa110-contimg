@@ -29,6 +29,7 @@ import subprocess
 import logging
 from typing import List, Optional
 from pathlib import Path
+import shutil
 
 LOG = logging.getLogger(__name__)
 
@@ -45,18 +46,21 @@ def _find_dp3_executable() -> Optional[str]:
     # Try Docker
     docker_cmd = shutil.which("docker")
     if docker_cmd:
-        # Check if DP3 Docker image exists
-        try:
-            result = subprocess.run(
-                [docker_cmd, "images", "-q", "dp3:latest"],
-                capture_output=True,
-                text=True,
-                check=False,
-            )
-            if result.stdout.strip():
-                return f"{docker_cmd} run --rm -v /scratch:/scratch -v /data:/data dp3:latest DP3"
-        except Exception:
-            pass
+        # Check if DP3 Docker image exists (try multiple possible names)
+        for image_name in ["dp3:latest", "dp3-everybeam-0.7.4:latest", "dp3-everybeam-0.7.4"]:
+            try:
+                result = subprocess.run(
+                    [docker_cmd, "images", "-q", image_name],
+                    capture_output=True,
+                    text=True,
+                    check=False,
+                )
+                if result.stdout.strip():
+                    # Use the image name that was found
+                    # Mount /tmp as well for temporary files
+                    return f"{docker_cmd} run --rm -v /scratch:/scratch -v /data:/data -v /tmp:/tmp {image_name} DP3"
+            except Exception:
+                continue
     
     return None
 
@@ -128,6 +132,222 @@ def convert_nvss_to_dp3_skymodel(
         radius_deg,
     )
     return os.fspath(out_file)
+
+
+def concatenate_fields_in_ms(ms_path: str, output_ms_path: str) -> str:
+    """Concatenate all fields in an MS into a single field.
+    
+    After rephasing all fields to a common phase center, concatenate them
+    into a single field so DP3 can process the MS.
+    
+    Args:
+        ms_path: Path to multi-field MS (all fields should have same phase center)
+        output_ms_path: Path for output single-field MS
+        
+    Returns:
+        Path to concatenated MS
+    """
+    from casatasks import concat
+    from casacore.tables import table
+    
+    # Check field count
+    field_table = table(ms_path + "/FIELD", readonly=True)
+    nfields = field_table.nrows()
+    field_table.close()
+    
+    if nfields == 1:
+        LOG.info("MS already has single field, copying to output")
+        if os.path.exists(output_ms_path):
+            shutil.rmtree(output_ms_path)
+        shutil.copytree(ms_path, output_ms_path)
+        return output_ms_path
+    
+    LOG.info(f"Concatenating {nfields} fields into single field")
+    
+    # Use manual concatenation (CASA concat may not work as expected for this)
+    return _concatenate_fields_manual(ms_path, output_ms_path)
+
+
+def _concatenate_fields_manual(ms_path: str, output_ms_path: str) -> str:
+    """Manually concatenate fields by setting all FIELD_ID to 0.
+    
+    This is simpler than using CASA concat and works for our use case.
+    """
+    from casacore.tables import table
+    import numpy as np
+    
+    LOG.info("Using manual field concatenation")
+    
+    # Copy entire MS first
+    if os.path.exists(output_ms_path):
+        shutil.rmtree(output_ms_path)
+    shutil.copytree(ms_path, output_ms_path)
+    
+    # Open output for writing
+    output_table = table(output_ms_path, readonly=False)
+    
+    # Update all FIELD_ID to 0 (single field)
+    field_ids = output_table.getcol("FIELD_ID")
+    nrows = output_table.nrows()
+    new_field_ids = np.zeros(nrows, dtype=field_ids.dtype)
+    output_table.putcol("FIELD_ID", new_field_ids)
+    output_table.close()
+    
+    # Update FIELD table to have single entry
+    field_table = table(output_ms_path + "/FIELD", readonly=False)
+    if field_table.nrows() > 1:
+        # Keep first field entry, remove others
+        field_table.removerows(range(1, field_table.nrows()))
+        # Update name to indicate concatenated
+        if "NAME" in field_table.colnames():
+            field_table.putcell("NAME", 0, "CONCATENATED")
+    field_table.close()
+    
+    LOG.info(f"Manually concatenated MS created: {output_ms_path}")
+    return output_ms_path
+
+
+def prepare_ms_for_dp3(
+    ms_path: str,
+    target_ra_deg: float,
+    target_dec_deg: float,
+    *,
+    output_ms_path: Optional[str] = None,
+    keep_copy: bool = True,
+) -> str:
+    """Prepare multi-field MS for DP3 by rephasing and concatenating.
+    
+    This function:
+    1. Creates a copy of the MS (if keep_copy=True)
+    2. Rephases all fields to a common phase center
+    3. Concatenates fields into a single field
+    4. Returns path to prepared MS ready for DP3
+    
+    Args:
+        ms_path: Path to input MS (may be multi-field)
+        target_ra_deg: Target RA in degrees for rephasing
+        target_dec_deg: Target Dec in degrees for rephasing
+        output_ms_path: Optional output path (default: ms_path + "_dp3_prepared")
+        keep_copy: If True, work on copy; if False, modify in place
+        
+    Returns:
+        Path to prepared single-field MS
+    """
+    from dsa110_contimg.calibration.cli_utils import rephase_ms_to_calibrator
+    import logging
+    
+    logger = logging.getLogger(__name__)
+    
+    # Determine output path
+    if output_ms_path is None:
+        if keep_copy:
+            output_ms_path = ms_path + "_dp3_prepared"
+        else:
+            output_ms_path = ms_path
+    
+    # Step 1: Copy MS if needed
+    if keep_copy and output_ms_path != ms_path:
+        LOG.info(f"Copying MS for DP3 preparation: {ms_path} -> {output_ms_path}")
+        if os.path.exists(output_ms_path):
+            shutil.rmtree(output_ms_path)
+        shutil.copytree(ms_path, output_ms_path)
+        work_ms = output_ms_path
+    else:
+        work_ms = ms_path
+    
+    # Step 2: Rephase all fields to common phase center
+    LOG.info(f"Rephasing all fields to ({target_ra_deg:.6f}°, {target_dec_deg:.6f}°)")
+    rephase_success = rephase_ms_to_calibrator(
+        work_ms,
+        target_ra_deg,
+        target_dec_deg,
+        "DP3_target",
+        logger,
+    )
+    
+    if not rephase_success:
+        LOG.warning("Rephasing may have failed, but continuing...")
+    
+    # Step 3: Concatenate fields into single field
+    concat_ms_path = work_ms + "_concat"
+    LOG.info("Concatenating fields into single field")
+    concatenate_fields_in_ms(work_ms, concat_ms_path)
+    
+    # If we created a working copy, clean it up
+    if keep_copy and work_ms != ms_path and work_ms != concat_ms_path:
+        if os.path.exists(work_ms):
+            shutil.rmtree(work_ms)
+    
+    return concat_ms_path
+
+
+def convert_skymodel_to_dp3(
+    sky: "SkyModel",
+    *,
+    out_path: str,
+    spectral_index: float = -0.7,
+) -> str:
+    """Convert pyradiosky SkyModel to DP3 sky model format.
+    
+    Args:
+        sky: pyradiosky SkyModel object
+        out_path: Path to output DP3 sky model file (.skymodel)
+        spectral_index: Default spectral index if not specified in SkyModel
+    
+    Returns:
+        Path to created DP3 sky model file
+    
+    DP3 format: Name, Type, Ra, Dec, I, SpectralIndex, LogarithmicSI, 
+                ReferenceFrequency, MajorAxis, MinorAxis, Orientation
+    Example: s0c0,POINT,07:02:53.6790,+44:31:11.940,2.4,[-0.7],false,1400000000.0,,,
+    """
+    try:
+        from pyradiosky import SkyModel
+    except ImportError:
+        raise ImportError(
+            "pyradiosky is required for convert_skymodel_to_dp3(). "
+            "Install with: pip install pyradiosky"
+        )
+    
+    from astropy.coordinates import Angle
+    import astropy.units as u
+    
+    with open(out_path, 'w') as f:
+        # Write header
+        f.write("Format = Name, Type, Ra, Dec, I, SpectralIndex, LogarithmicSI, ReferenceFrequency='1400000000.0', MajorAxis, MinorAxis, Orientation\n")
+        
+        for i in range(sky.Ncomponents):
+            # Get component data
+            ra = sky.skycoord[i].ra
+            dec = sky.skycoord[i].dec
+            flux_jy = sky.stokes[0, 0, i].to('Jy').value  # I stokes, first frequency
+            
+            # Format RA/Dec
+            ra_str = Angle(ra).to_string(unit='hour', precision=3, pad=True)
+            dec_str = Angle(dec).to_string(unit='deg', precision=3, alwayssign=True, pad=True)
+            
+            # Get reference frequency
+            if sky.spectral_type == 'spectral_index':
+                ref_freq_hz = sky.reference_frequency[i].to('Hz').value
+                spec_idx = sky.spectral_index[i]
+            else:
+                # Use first frequency as reference
+                if sky.freq_array is not None and len(sky.freq_array) > 0:
+                    ref_freq_hz = sky.freq_array[0].to('Hz').value
+                else:
+                    ref_freq_hz = 1.4e9  # Default 1.4 GHz
+                spec_idx = spectral_index
+            
+            # Get name
+            if sky.name is not None and i < len(sky.name):
+                name = sky.name[i]
+            else:
+                name = f"s{i}c{i}"
+            
+            # Write DP3 format line
+            f.write(f"{name},POINT,{ra_str},{dec_str},{flux_jy:.6f},[{spec_idx:.2f}],false,{ref_freq_hz:.1f},,,\n")
+    
+    return out_path
 
 
 def convert_calibrator_to_dp3_skymodel(

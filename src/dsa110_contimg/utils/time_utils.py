@@ -4,11 +4,28 @@ This module provides robust TIME conversion utilities that leverage astropy.Time
 for validation and conversion. It standardizes CASA TIME format handling across
 the codebase to ensure consistency and correctness.
 
-CASA TIME Format:
-- CASA TIME is stored in seconds since MJD 51544.0 (2000-01-01 00:00:00 UTC)
-- Conversion: mjd = 51544.0 + casa_time_sec / 86400.0
+IMPORTANT: CASA TIME Format Inconsistency
+
+There are TWO different TIME formats in use:
+
+1. **CASA Standard Format:**
+   - TIME in seconds since MJD 51544.0 (2000-01-01 00:00:00 UTC)
+   - Conversion: mjd = 51544.0 + casa_time_sec / 86400.0
+   - This is the "official" CASA Measurement Set format
+
+2. **pyuvdata Format (Actual MS Files):**
+   - TIME in seconds since MJD 0 (not MJD 51544.0)
+   - Conversion: mjd = casa_time_sec / 86400.0
+   - This is what pyuvdata.write_ms() actually writes
+
+**This module handles BOTH formats automatically using format detection.**
+
+Functions like `detect_casa_time_format()` and `extract_ms_time_range()` 
+automatically detect which format is used by validating the resulting date.
+
+Additional Notes:
 - msmetadata.timerangeforobs() returns MJD days directly (no conversion needed)
-- msmetadata.timesforscans() returns seconds (needs conversion with epoch offset)
+- msmetadata.timesforscans() returns seconds (needs format detection)
 - Main table TIME column is in seconds (needs conversion with epoch offset)
 - OBSERVATION table TIME_RANGE is in seconds (needs conversion with epoch offset)
 """
@@ -20,7 +37,6 @@ from typing import Optional, Tuple, Union
 
 import numpy as np
 from astropy.time import Time
-import astropy.units as u
 
 logger = logging.getLogger(__name__)
 
@@ -35,13 +51,17 @@ DEFAULT_YEAR_RANGE = (2000, 2100)
 def casa_time_to_mjd(time_sec: Union[float, np.ndarray]) -> Union[float, np.ndarray]:
     """Convert CASA TIME (seconds since MJD 51544.0) to MJD days using astropy.
     
-    This function uses astropy for robust time conversion and validation.
-    CASA TIME is defined as seconds since MJD 51544.0 (2000-01-01).
+    This function assumes the CASA standard format (seconds since MJD 51544.0).
+    For automatic format detection, use `detect_casa_time_format()` instead.
+    
+    WARNING: Our actual MS files use seconds since MJD 0 (pyuvdata format),
+    not the CASA standard. Use `extract_ms_time_range()` or `detect_casa_time_format()`
+    for automatic format detection.
     
     Parameters
     ----------
     time_sec : float or array-like
-        CASA TIME in seconds since MJD 51544.0
+        CASA TIME in seconds since MJD 51544.0 (CASA standard format)
         
     Returns
     -------
@@ -317,7 +337,7 @@ def extract_ms_time_range(
                     t1_sec = float(times.max())
                     
                     # Detect format and convert
-                    needs_offset, start_mjd = detect_casa_time_format(t0_sec, year_range)
+                    _, start_mjd = detect_casa_time_format(t0_sec, year_range)
                     _, end_mjd = detect_casa_time_format(t1_sec, year_range)
                     mid_mjd = 0.5 * (start_mjd + end_mjd)
                     

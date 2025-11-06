@@ -111,9 +111,14 @@ def create_test_ms(ms_in: str, ms_out: str,
     print(f"\nCreating subset MS...")
     
     # Build time selection
+    # Use format detection to handle both TIME formats (seconds since MJD 0 vs MJD 51544.0)
     from astropy.time import Time
-    t_start = Time(time_start / 86400.0, format='mjd')
-    t_end = Time(time_end / 86400.0, format='mjd')
+    from dsa110_contimg.utils.time_utils import detect_casa_time_format
+    
+    _, mjd_start = detect_casa_time_format(time_start)
+    _, mjd_end = detect_casa_time_format(time_end)
+    t_start = Time(mjd_start, format='mjd')
+    t_end = Time(mjd_end, format='mjd')
     
     # Format for CASA: YYYY/MM/DD/HH:MM:SS
     timerange_str = f"{t_start.datetime.strftime('%Y/%m/%d/%H:%M:%S')}~{t_end.datetime.strftime('%Y/%m/%d/%H:%M:%S')}"

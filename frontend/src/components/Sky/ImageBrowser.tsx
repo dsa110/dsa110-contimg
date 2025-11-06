@@ -149,7 +149,7 @@ export default function ImageBrowser({ onSelectImage, selectedImageId }: ImageBr
                   >
                     <ListItemText
                       primary={
-                        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                        <Box component="span" sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
                           <Typography variant="body2" component="span" noWrap sx={{ flexGrow: 1 }}>
                             {image.path.split('/').pop()}
                           </Typography>
@@ -169,21 +169,21 @@ export default function ImageBrowser({ onSelectImage, selectedImageId }: ImageBr
                         </Box>
                       }
                       secondary={
-                        <Box>
-                          <Typography variant="caption" display="block">
+                        <>
+                          <Typography variant="caption" component="span" display="block">
                             {dayjs(image.created_at).format('YYYY-MM-DD HH:mm:ss')}
                           </Typography>
                           {image.noise_jy && (
-                            <Typography variant="caption" display="block" color="text.secondary">
+                            <Typography variant="caption" component="span" display="block" color="text.secondary">
                               Noise: {(image.noise_jy * 1000).toFixed(2)} mJy
                             </Typography>
                           )}
                           {image.beam_major_arcsec && (
-                            <Typography variant="caption" display="block" color="text.secondary">
+                            <Typography variant="caption" component="span" display="block" color="text.secondary">
                               Beam: {image.beam_major_arcsec.toFixed(1)}"
                             </Typography>
                           )}
-                        </Box>
+                        </>
                       }
                     />
                   </ListItemButton>

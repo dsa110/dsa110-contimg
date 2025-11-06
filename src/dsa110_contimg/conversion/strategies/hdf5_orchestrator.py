@@ -110,17 +110,22 @@ def _peek_uvh5_phase_and_midtime(uvh5_path: str) -> tuple[u.Quantity, u.Quantity
             val_ha = _read_extra("ha_phase_center")
             if val_ha is not None and np.isfinite(val_ha) and mid_jd > 0:
                 try:
-                    from astropy.coordinates import EarthLocation
                     from astropy.time import Time
-                    # Get longitude from Header (default to DSA-110 location)
-                    lon_deg = -118.2817  # DSA-110 default
+                    from dsa110_contimg.utils.constants import OVRO_LOCATION
+                    # Get longitude from Header (default to DSA-110 location from constants)
+                    lon_deg = OVRO_LOCATION.lon.to(u.deg).value
                     if "Header" in f and "longitude" in f["Header"]:
                         lon_val = np.asarray(f["Header"]["longitude"])
                         if lon_val.size == 1:
                             lon_deg = float(lon_val)
                     
-                    # Calculate LST at mid_time
-                    location = EarthLocation(lat=37.2314 * u.deg, lon=lon_deg * u.deg, height=1222.0 * u.m)
+                    # Calculate LST at mid_time using OVRO_LOCATION as base (single source of truth)
+                    # If Header provides longitude, use it but keep lat/height from constants
+                    location = EarthLocation(
+                        lat=OVRO_LOCATION.lat,
+                        lon=lon_deg * u.deg,
+                        height=OVRO_LOCATION.height
+                    )
                     tref = Time(mid_jd, format='jd')
                     lst = tref.sidereal_time('apparent', longitude=location.lon)
                     
@@ -792,13 +797,11 @@ def convert_subband_groups_to_ms(
 
             t1 = time.perf_counter()
             # Ensure telescope name + location are set consistently before phasing
+            # Uses OVRO_LOCATION from constants.py (single source of truth)
             try:
                 set_telescope_identity(
                     uv,
                     os.getenv("PIPELINE_TELESCOPE_NAME", "DSA_110"),
-                    -118.2817,
-                    37.2314,
-                    1222.0,
                 )
             except Exception:
                 logger.debug("set_telescope_identity best-effort failed", exc_info=True)
@@ -844,9 +847,13 @@ def convert_subband_groups_to_ms(
                 return sb_num
             sorted_file_list = sorted(file_list, key=sort_by_subband, reverse=True)
             
-            current_writer_kwargs = writer_kwargs or {}
+            # CRITICAL FIX: Create a copy of writer_kwargs for each iteration
+            # to prevent file_list from being shared between groups.
+            # Without this, all MS files would use the file_list from the first group,
+            # causing duplicate TIME values across different MS files.
+            current_writer_kwargs = (writer_kwargs or {}).copy()
             current_writer_kwargs.setdefault("scratch_dir", scratch_dir)
-            current_writer_kwargs.setdefault("file_list", sorted_file_list)
+            current_writer_kwargs["file_list"] = sorted_file_list  # Use assignment, not setdefault
 
             writer_cls = get_writer(selected_writer)
             # get_writer raises ValueError if writer not found, so no need to check for None

@@ -8,7 +8,7 @@ import os
 import sqlite3
 import time
 from pathlib import Path
-from typing import Optional, Tuple, List
+from typing import Optional, List
 
 
 def ensure_products_db(path: Path) -> sqlite3.Connection:
@@ -321,60 +321,6 @@ def photometry_insert(
     )
 
 
-def _ms_time_range(ms_path: str) -> Tuple[Optional[float], Optional[float], Optional[float]]:
-    """Best-effort extraction of (start, end, mid) MJD from an MS using casatools.
-    Returns (None, None, None) if unavailable.
-    """
-    try:
-        from casatools import msmetadata  # type: ignore
-
-        msmd = msmetadata()
-        msmd.open(ms_path)
-        # Preferred: explicit observation timerange in MJD days
-        try:
-            tr = msmd.timerangeforobs()
-            if tr and isinstance(tr, (list, tuple)) and len(tr) >= 2:
-                start_mjd = float(tr[0])
-                end_mjd = float(tr[1])
-                msmd.close()
-                return start_mjd, end_mjd, 0.5 * (start_mjd + end_mjd)
-        except Exception:
-            pass
-
-        # Fallback: derive from timesforscans() (seconds, MJD seconds offset)
-        try:
-            tmap = msmd.timesforscans()
-            msmd.close()
-            if isinstance(tmap, dict) and tmap:
-                all_ts = [t for arr in tmap.values() for t in arr]
-                if all_ts:
-                    t0 = min(all_ts)
-                    t1 = max(all_ts)
-                    # Convert seconds to MJD days if needed
-                    start_mjd = float(t0) / 86400.0
-                    end_mjd = float(t1) / 86400.0
-                    return start_mjd, end_mjd, 0.5 * (start_mjd + end_mjd)
-        except Exception:
-            pass
-        msmd.close()
-    except Exception:
-        pass
-    
-    # Final fallback: read directly from MAIN table TIME column
-    try:
-        from casacore.tables import table as _tb
-        with _tb(ms_path, readonly=True) as _main:
-            if 'TIME' in _main.colnames():
-                times = _main.getcol('TIME')
-                if len(times) > 0:
-                    # TIME is in seconds (MJD seconds)
-                    t0 = float(times.min()) / 86400.0
-                    t1 = float(times.max()) / 86400.0
-                    return t0, t1, 0.5 * (t0 + t1)
-    except Exception:
-        pass
-    
-    return None, None, None
 
 
 def discover_ms_files(
@@ -422,8 +368,9 @@ def discover_ms_files(
             (ms_path_str,)
         ).fetchone()
         
-        # Extract time range from MS
-        start_mjd, end_mjd, mid_mjd = _ms_time_range(ms_path_str)
+        # Extract time range from MS using standardized utility
+        from dsa110_contimg.utils.time_utils import extract_ms_time_range
+        start_mjd, end_mjd, mid_mjd = extract_ms_time_range(ms_path_str)
         
         # Use current time in MJD as fallback if extraction failed
         if mid_mjd is None:

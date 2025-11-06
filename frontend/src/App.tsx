@@ -9,6 +9,7 @@ import ControlPage from './pages/ControlPage';
 import MosaicGalleryPage from './pages/MosaicGalleryPage';
 import SourceMonitoringPage from './pages/SourceMonitoringPage';
 import SkyViewPage from './pages/SkyViewPage';
+import StreamingPage from './pages/StreamingPage';
 
 // Create React Query client
 const queryClient = new QueryClient({
@@ -38,6 +39,7 @@ function App() {
                     <Route path="/mosaics" element={<MosaicGalleryPage />} />
                     <Route path="/sources" element={<SourceMonitoringPage />} />
                     <Route path="/sky" element={<SkyViewPage />} />
+                    <Route path="/streaming" element={<StreamingPage />} />
                   </Routes>
                 </ErrorBoundary>
               </Box>

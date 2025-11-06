@@ -33,7 +33,7 @@ from dsa110_contimg.conversion.ms_utils import configure_ms_for_imaging
 from dsa110_contimg.conversion.progress import ProgressReporter
 from dsa110_contimg.conversion.strategies.direct_subband import write_ms_from_subbands
 from dsa110_contimg.conversion.strategies.hdf5_orchestrator import find_subband_groups
-from dsa110_contimg.database.products import ensure_products_db, ms_index_upsert, _ms_time_range
+from dsa110_contimg.database.products import ensure_products_db, ms_index_upsert
 
 logger = logging.getLogger(__name__)
 
@@ -865,8 +865,9 @@ class CalibratorMSGenerator:
         """Register MS in products database."""
         conn = ensure_products_db(self.products_db)
         
-        # Extract time range from MS
-        start_mjd, end_mjd, mid_mjd = _ms_time_range(os.fspath(ms_path))
+        # Extract time range from MS using standardized utility
+        from dsa110_contimg.utils.time_utils import extract_ms_time_range
+        start_mjd, end_mjd, mid_mjd = extract_ms_time_range(os.fspath(ms_path))
         
         # Use transit time if MS extraction fails
         if mid_mjd is None:

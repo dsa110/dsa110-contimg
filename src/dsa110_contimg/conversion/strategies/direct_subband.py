@@ -469,13 +469,11 @@ def _write_ms_subband_part(
     )
 
     # Stamp telescope identity prior to phasing/UVW
+    # Uses OVRO_LOCATION from constants.py (single source of truth)
     try:
         set_telescope_identity(
             uv,
             os.getenv("PIPELINE_TELESCOPE_NAME", "DSA_110"),
-            -118.2817,
-            37.2314,
-            1222.0,
         )
     except Exception:
         pass

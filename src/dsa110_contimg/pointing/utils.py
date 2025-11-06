@@ -18,14 +18,17 @@ logger = logging.getLogger(__name__)
 
 
 def _time_from_seconds(seconds: Optional[np.ndarray]) -> Optional[Time]:
-    """Convert seconds since MJD epoch to astropy Time object.
+    """Convert seconds to astropy Time object with automatic format detection.
 
-    Uses the standardized CASA TIME conversion utility for consistency.
+    Automatically detects whether seconds are relative to MJD 0 or MJD 51544.0
+    by validating the resulting date. This handles both formats:
+    - Seconds since MJD 0 (pyuvdata format)
+    - Seconds since MJD 51544.0 (CASA standard)
 
     Parameters
     ----------
     seconds : array-like or None
-        Seconds since MJD epoch (51544.0 days)
+        Time in seconds (format auto-detected)
 
     Returns
     -------
@@ -34,8 +37,10 @@ def _time_from_seconds(seconds: Optional[np.ndarray]) -> Optional[Time]:
     """
     if seconds is None or len(seconds) == 0:
         return None
-    from dsa110_contimg.utils.time_utils import casa_time_to_astropy_time
-    return casa_time_to_astropy_time(np.mean(seconds))
+    from dsa110_contimg.utils.time_utils import detect_casa_time_format, DEFAULT_YEAR_RANGE
+    time_sec = float(np.mean(seconds))
+    _, mjd = detect_casa_time_format(time_sec, DEFAULT_YEAR_RANGE)
+    return Time(mjd, format='mjd', scale='utc')
 
 
 def load_pointing(path: str | Path, field_id: Optional[int] = None) -> Dict[str, Any]:

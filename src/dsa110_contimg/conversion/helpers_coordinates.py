@@ -31,12 +31,9 @@ logger = logging.getLogger("dsa110_contimg.conversion.helpers")
 
 def get_meridian_coords(pt_dec: u.Quantity, time_mjd: float) -> Tuple[u.Quantity, u.Quantity]:
     """Compute the right ascension/declination of the meridian at DSA-110."""
-    # DSA-110 precise coordinates (from constants.py)
-    dsa110_loc = EarthLocation.from_geodetic(
-        lon=-118.283405115 * u.deg,
-        lat=37.233386982 * u.deg,
-        height=1188.0519 * u.m,
-    )
+    # Use DSA-110 coordinates from constants.py (single source of truth)
+    from dsa110_contimg.utils.constants import OVRO_LOCATION
+    dsa110_loc = OVRO_LOCATION
     obstime = Time(time_mjd, format="mjd")
     hadec_coord = SkyCoord(
         ha=0 * u.hourangle,
