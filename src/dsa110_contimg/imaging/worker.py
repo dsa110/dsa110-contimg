@@ -97,8 +97,8 @@ def _apply_and_image(
 
         apply_to_target(ms_path, field="", gaintables=gaintables, calwt=True)
         imgroot = out_dir / (Path(ms_path).stem + ".img")
-        # Use image_ms with quick=True for quick imaging (replaces calibration/imaging.py quick_image)
-        image_ms(ms_path, imagename=str(imgroot), field="", quick=True, skip_fits=True)
+        # Use image_ms with development tier for fast imaging in streaming workflow
+        image_ms(ms_path, imagename=str(imgroot), field="", quality_tier="development", skip_fits=True)
         # Return whatever CASA produced
         for ext in [".image", ".image.pbcor", ".residual", ".psf", ".pb"]:
             p = f"{imgroot}{ext}"

@@ -71,9 +71,9 @@ def add_flag_parser(subparsers: argparse._SubParsersAction) -> argparse.Argument
     )
     parser.add_argument(
         "--rfi-backend",
-        default="casa",
+        default="aoflagger",
         choices=["casa", "aoflagger"],
-        help="RFI flagging backend (default: casa). Use 'aoflagger' for faster SumThreshold algorithm.",
+        help="RFI flagging backend (default: aoflagger). Use 'casa' for CASA tfcrop+rflag algorithm.",
     )
     parser.add_argument(
         "--aoflagger-path",

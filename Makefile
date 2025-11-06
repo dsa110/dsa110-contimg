@@ -1,7 +1,15 @@
 DC=docker compose -f ops/docker/docker-compose.yml
 .DEFAULT_GOAL := help
 
-.PHONY: help compose-build compose-up compose-down compose-logs compose-ps compose-restart compose-up-scheduler compose-up-stream compose-up-api compose-pull compose-down-service compose-stop docs-install docs-serve docs-build docs-deploy guardrails-check guardrails-fix ingest-docs test-catalog test-vla-catalog test-unit test-validation test-integration test-all test-quality update-todo-date
+# CRITICAL: All Python execution MUST use casa6 environment
+# This is the ONLY Python environment used by the DSA-110 pipeline
+# Path: /opt/miniforge/envs/casa6/bin/python
+# Python version: 3.11.13
+# Never use system python3 - it will fail due to missing CASA dependencies
+CASA6_PYTHON := /opt/miniforge/envs/casa6/bin/python
+CASA6_PYTHON_CHECK := $(shell test -x $(CASA6_PYTHON) && echo "ok" || echo "missing")
+
+.PHONY: help compose-build compose-up compose-down compose-logs compose-ps compose-restart compose-up-scheduler compose-up-stream compose-up-api compose-pull compose-down-service compose-stop docs-install docs-serve docs-build docs-deploy guardrails-check guardrails-fix ingest-docs test-unit test-validation test-integration test-all test-quality update-todo-date
 
 help:
 	@echo "DSA-110 Continuum Pipeline - Docker Compose helper targets"
@@ -31,9 +39,14 @@ help:
 	@echo ""
 	@echo "Testing & Validation:"
 	@echo "  make test-help                     Show detailed testing help"
-	@echo "  make test-unit                     Unit tests (mocked, no dependencies)"
+	@echo "  make test-unit                     Unit tests (requires casa6)"
 	@echo "  make test-validation               Validation tests (requires casa6)"
 	@echo "  make test-all                      Run all tests"
+	@echo ""
+	@echo "CRITICAL: All Python execution uses casa6 environment:"
+	@echo "  Python path: /opt/miniforge/envs/casa6/bin/python"
+	@echo "  Python version: 3.11.13"
+	@echo "  Never use system python3 - it will fail!"
 	@echo ""
 	@echo "Examples:"
 	@echo "  make compose-build"
@@ -128,39 +141,63 @@ docs-deploy:
 
 # Guardrails targets
 guardrails-check:
+	@if [ "$(CASA6_PYTHON_CHECK)" != "ok" ]; then \
+		echo "ERROR: casa6 Python not found at $(CASA6_PYTHON)"; \
+		echo "Please ensure casa6 conda environment is installed at /opt/miniforge/envs/casa6"; \
+		exit 1; \
+	fi
 	@echo "Checking guardrails..."
-	@python3 -m dsa110_contimg.guardrails.check
+	@$(CASA6_PYTHON) scripts/graphiti_guardrails_check.py --check
 
 guardrails-fix:
+	@if [ "$(CASA6_PYTHON_CHECK)" != "ok" ]; then \
+		echo "ERROR: casa6 Python not found at $(CASA6_PYTHON)"; \
+		echo "Please ensure casa6 conda environment is installed at /opt/miniforge/envs/casa6"; \
+		exit 1; \
+	fi
 	@echo "Fixing guardrails..."
-	@python3 -m dsa110_contimg.guardrails.fix
+	@$(CASA6_PYTHON) scripts/graphiti_guardrails_check.py --fix
 
-# Ingest docs
 ingest-docs:
-	@echo "Ingesting documentation..."
-	@python3 -m dsa110_contimg.ingest.docs
+	@if [ "$(CASA6_PYTHON_CHECK)" != "ok" ]; then \
+		echo "ERROR: casa6 Python not found at $(CASA6_PYTHON)"; \
+		echo "Please ensure casa6 conda environment is installed at /opt/miniforge/envs/casa6"; \
+		exit 1; \
+	fi
+	@echo "Ingesting documentation into Graphiti..."
+	@$(CASA6_PYTHON) scripts/graphiti_ingest_docs.py
 
 # Test targets
-test-catalog:
-	@echo "Testing catalog..."
-	@python3 -m pytest tests/unit/test_catalog.py -v
-
-test-vla-catalog:
-	@echo "Testing VLA catalog..."
-	@python3 -m pytest tests/unit/test_vla_catalog.py -v
+# Note: test-catalog and test-vla-catalog removed - test files do not exist
+# Use test-unit to run all unit tests instead
 
 test-unit:
+	@if [ "$(CASA6_PYTHON_CHECK)" != "ok" ]; then \
+		echo "ERROR: casa6 Python not found at $(CASA6_PYTHON)"; \
+		echo "Please ensure casa6 conda environment is installed at /opt/miniforge/envs/casa6"; \
+		exit 1; \
+	fi
 	@echo "Running unit tests..."
-	@python3 -m pytest tests/unit/ -v
+	@$(CASA6_PYTHON) -m pytest tests/unit/ -v
 
 test-validation:
+	@if [ "$(CASA6_PYTHON_CHECK)" != "ok" ]; then \
+		echo "ERROR: casa6 Python not found at $(CASA6_PYTHON)"; \
+		echo "Please ensure casa6 conda environment is installed at /opt/miniforge/envs/casa6"; \
+		exit 1; \
+	fi
 	@echo "Running validation tests..."
-	@echo "Note: These tests require casa6 to be installed and available"
-	@python3 -m pytest tests/validation/ -v
+	@echo "Using casa6 environment: $(CASA6_PYTHON)"
+	@$(CASA6_PYTHON) -m pytest tests/validation/ -v
 
 test-integration:
+	@if [ "$(CASA6_PYTHON_CHECK)" != "ok" ]; then \
+		echo "ERROR: casa6 Python not found at $(CASA6_PYTHON)"; \
+		echo "Please ensure casa6 conda environment is installed at /opt/miniforge/envs/casa6"; \
+		exit 1; \
+	fi
 	@echo "Running integration tests..."
-	@python3 -m pytest tests/integration/ -v
+	@$(CASA6_PYTHON) -m pytest tests/integration/ -v
 
 test-quality:
 	@echo "Running code quality checks..."
@@ -214,11 +251,26 @@ test-help:
 
 # Update TODO.md date automatically
 update-todo-date:
-	@python3 scripts/update_todo_date.py
+	@if [ "$(CASA6_PYTHON_CHECK)" != "ok" ]; then \
+		echo "ERROR: casa6 Python not found at $(CASA6_PYTHON)"; \
+		echo "Please ensure casa6 conda environment is installed at /opt/miniforge/envs/casa6"; \
+		exit 1; \
+	fi
+	@$(CASA6_PYTHON) scripts/update_todo_date.py
 
 # Sync TODO.md to Linear
 sync-linear:
-	@python3 scripts/linear_sync.py
+	@if [ "$(CASA6_PYTHON_CHECK)" != "ok" ]; then \
+		echo "ERROR: casa6 Python not found at $(CASA6_PYTHON)"; \
+		echo "Please ensure casa6 conda environment is installed at /opt/miniforge/envs/casa6"; \
+		exit 1; \
+	fi
+	@$(CASA6_PYTHON) scripts/linear_sync.py
 
 sync-linear-dry-run:
-	@python3 scripts/linear_sync.py --dry-run
+	@if [ "$(CASA6_PYTHON_CHECK)" != "ok" ]; then \
+		echo "ERROR: casa6 Python not found at $(CASA6_PYTHON)"; \
+		echo "Please ensure casa6 conda environment is installed at /opt/miniforge/envs/casa6"; \
+		exit 1; \
+	fi
+	@$(CASA6_PYTHON) scripts/linear_sync.py --dry-run

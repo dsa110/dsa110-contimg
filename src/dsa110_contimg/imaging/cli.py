@@ -81,7 +81,7 @@ def main(argv: Optional[list] = None) -> None:
             "Example:\n"
             "  python -m dsa110_contimg.imaging.cli image \\\n"
             "    --ms /data/ms/target.ms --imagename /data/images/target \\\n"
-            "    --imsize 2048 --cell-arcsec 1.0 --quick"
+            "    --imsize 2048 --cell-arcsec 1.0 --quality-tier standard"
         ),
         formatter_class=argparse.RawDescriptionHelpFormatter,
     )
@@ -116,9 +116,16 @@ def main(argv: Optional[list] = None) -> None:
     img_parser.add_argument("--threshold", default="0.0Jy")
     img_parser.add_argument("--no-pbcor", action="store_true")
     img_parser.add_argument(
-        "--quick",
-        action="store_true",
-        help="Quick-look imaging: smaller imsize and lower niter",
+        "--quality-tier",
+        choices=["development", "standard", "high_precision"],
+        default="standard",
+        help=(
+            "Imaging quality tier with explicit trade-offs.\n"
+            "  development: ⚠️  NON-SCIENCE - coarser resolution, fewer iterations\n"
+            "  standard: Recommended for all science observations (full quality)\n"
+            "  high_precision: Enhanced settings for maximum quality (slower)\n"
+            "Default: standard"
+        ),
     )
     img_parser.add_argument(
         "--skip-fits",
@@ -161,8 +168,8 @@ def main(argv: Optional[list] = None) -> None:
         default=None,
         help=(
             "If set, seed MODEL_DATA by ft() of NVSS point sources above this flux. "
-            "In --quick mode, defaults to 10.0 mJy unless specified or overridden by "
-            "CONTIMG_QUICK_NVSS_MIN_MJY."
+            "In development quality tier, defaults to 10.0 mJy. "
+            "In high_precision tier, defaults to 5.0 mJy."
         ),
     )
     img_parser.add_argument(
@@ -286,7 +293,7 @@ def main(argv: Optional[list] = None) -> None:
             uvrange=args.uvrange,
             pblimit=args.pblimit,
             psfcutoff=args.psfcutoff,
-            quick=bool(args.quick),
+            quality_tier=args.quality_tier,
             skip_fits=bool(args.skip_fits),
             vptable=args.vptable,
             wbawp=bool(args.wbawp),

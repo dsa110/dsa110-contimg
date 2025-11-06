@@ -32,6 +32,8 @@ import type {
   BatchJob,
   BatchJobList,
   BatchJobCreateRequest,
+  ImageList,
+  ImageFilters,
 } from './types';
 
 export function usePipelineStatus(): UseQueryResult<PipelineStatus> {
@@ -596,5 +598,26 @@ export function useCancelBatchJob() {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['batch'] });
     },
+  });
+}
+
+/**
+ * Query hook for fetching images for SkyView.
+ */
+export function useImages(filters?: ImageFilters): UseQueryResult<ImageList> {
+  return useQuery({
+    queryKey: ['images', filters],
+    queryFn: async () => {
+      const params = new URLSearchParams();
+      if (filters?.limit) params.append('limit', filters.limit.toString());
+      if (filters?.offset) params.append('offset', filters.offset.toString());
+      if (filters?.ms_path) params.append('ms_path', filters.ms_path);
+      if (filters?.image_type) params.append('image_type', filters.image_type);
+      if (filters?.pbcor !== undefined) params.append('pbcor', filters.pbcor.toString());
+      
+      const response = await apiClient.get<ImageList>(`/api/images?${params.toString()}`);
+      return response.data;
+    },
+    refetchInterval: 30000, // Refresh every 30 seconds
   });
 }

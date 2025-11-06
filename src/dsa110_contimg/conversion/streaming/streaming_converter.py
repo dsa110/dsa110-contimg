@@ -598,7 +598,7 @@ def _worker_loop(args: argparse.Namespace, queue: QueueDB) -> None:
             except Exception:
                 log.debug("ms_index conversion upsert failed", exc_info=True)
 
-            # Apply calibration from registry if available, then quick image
+            # Apply calibration from registry if available, then image (development tier)
             try:
                 # Determine mid_mjd for applylist
                 if mid_mjd is None:
@@ -626,10 +626,11 @@ def _worker_loop(args: argparse.Namespace, queue: QueueDB) -> None:
                     except Exception:
                         log.warning("applycal failed for %s", ms_path, exc_info=True)
 
-                # Quick image
+                # Development tier imaging (4x coarser cell size, faster processing)
+                # Note: Data is always reordered for correct multi-SPW processing
                 imgroot = os.path.join(args.output_dir, base + ".img")
                 try:
-                    image_ms(ms_path, imagename=imgroot, field="", quick=True, skip_fits=False)
+                    image_ms(ms_path, imagename=imgroot, field="", quality_tier="development", skip_fits=False)
                 except Exception:
                     log.error("imaging failed for %s", ms_path, exc_info=True)
 

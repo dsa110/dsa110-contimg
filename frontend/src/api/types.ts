@@ -558,3 +558,34 @@ export interface WorkflowParams {
 export interface WorkflowJobCreateRequest {
   params: WorkflowParams;
 }
+
+export interface ImageInfo {
+  id: number;
+  path: string;
+  ms_path: string;
+  created_at: string;
+  type: string;
+  beam_major_arcsec?: number;
+  beam_minor_arcsec?: number;
+  beam_pa_deg?: number;
+  noise_jy?: number;
+  peak_flux_jy?: number;
+  pbcor: boolean;
+  center_ra_deg?: number;
+  center_dec_deg?: number;
+  image_size_deg?: number;
+  pixel_size_arcsec?: number;
+}
+
+export interface ImageList {
+  items: ImageInfo[];
+  total: number;
+}
+
+export interface ImageFilters {
+  limit?: number;
+  offset?: number;
+  ms_path?: string;
+  image_type?: string;
+  pbcor?: boolean;
+}

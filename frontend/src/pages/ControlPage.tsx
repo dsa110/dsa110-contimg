@@ -31,6 +31,9 @@ import {
   Radio,
   Divider,
   Alert,
+  Tooltip,
+  CircularProgress,
+  Snackbar,
 } from '@mui/material';
 import {
   PlayArrow,
@@ -62,6 +65,10 @@ export default function ControlPage() {
   const [activeTab, setActiveTab] = useState(0);
   const [selectedJobId, setSelectedJobId] = useState<number | null>(null);
   const [logContent, setLogContent] = useState('');
+  
+  // Error state for user-facing error messages
+  const [errorMessage, setErrorMessage] = useState<string | null>(null);
+  const [errorSnackbarOpen, setErrorSnackbarOpen] = useState(false);
   
   // Compatibility check state
   const [compatibilityChecks, setCompatibilityChecks] = useState<Record<string, {
@@ -141,30 +148,26 @@ export default function ControlPage() {
   // SSE for job logs
   const eventSourceRef = useRef<EventSource | null>(null);
   
-  useEffect(() => {
-    if (selectedJobId !== null) {
-      const url = `http://localhost:8000/api/jobs/id/${selectedJobId}/logs`;
-      const eventSource = new EventSource(url);
-      
-      eventSource.onmessage = (event) => {
-        setLogContent((prev) => prev + event.data);
-      };
-      
-      eventSource.onerror = () => {
-        eventSource.close();
-      };
-      
-      eventSourceRef.current = eventSource;
-      
-      return () => {
-        eventSource.close();
-      };
+  // Helper function to extract error message from API error
+  const getErrorMessage = (error: any): string => {
+    if (error?.response?.data?.detail) {
+      return typeof error.response.data.detail === 'string' 
+        ? error.response.data.detail 
+        : JSON.stringify(error.response.data.detail);
     }
-  }, [selectedJobId]);
+    if (error?.response?.data?.message) {
+      return error.response.data.message;
+    }
+    if (error?.message) {
+      return error.message;
+    }
+    return 'An unknown error occurred';
+  };
   
-  // Handlers
+  // Handlers with error handling
   const handleCalibrateSubmit = () => {
     if (!selectedMS) return;
+    setErrorMessage(null);
     calibrateMutation.mutate(
       { ms_path: selectedMS, params: calibParams },
       {
@@ -173,12 +176,18 @@ export default function ControlPage() {
           setLogContent('');
           refetchJobs();
         },
+        onError: (error: any) => {
+          const message = `Calibration failed: ${getErrorMessage(error)}`;
+          setErrorMessage(message);
+          setErrorSnackbarOpen(true);
+        },
       }
     );
   };
   
   const handleApplySubmit = () => {
     if (!selectedMS) return;
+    setErrorMessage(null);
     applyMutation.mutate(
       { ms_path: selectedMS, params: applyParams },
       {
@@ -187,12 +196,18 @@ export default function ControlPage() {
           setLogContent('');
           refetchJobs();
         },
+        onError: (error: any) => {
+          const message = `Apply calibration failed: ${getErrorMessage(error)}`;
+          setErrorMessage(message);
+          setErrorSnackbarOpen(true);
+        },
       }
     );
   };
   
   const handleImageSubmit = () => {
     if (!selectedMS) return;
+    setErrorMessage(null);
     imageMutation.mutate(
       { ms_path: selectedMS, params: imageParams },
       {
@@ -201,11 +216,17 @@ export default function ControlPage() {
           setLogContent('');
           refetchJobs();
         },
+        onError: (error: any) => {
+          const message = `Imaging failed: ${getErrorMessage(error)}`;
+          setErrorMessage(message);
+          setErrorSnackbarOpen(true);
+        },
       }
     );
   };
   
   const handleConvertSubmit = () => {
+    setErrorMessage(null);
     convertMutation.mutate(
       { params: convertParams },
       {
@@ -214,9 +235,107 @@ export default function ControlPage() {
           setLogContent('');
           refetchJobs();
         },
+        onError: (error: any) => {
+          const message = `Conversion failed: ${getErrorMessage(error)}`;
+          setErrorMessage(message);
+          setErrorSnackbarOpen(true);
+        },
       }
     );
   };
+  
+  const handleWorkflowSubmit = () => {
+    if (!workflowParams.start_time || !workflowParams.end_time) return;
+    setErrorMessage(null);
+    workflowMutation.mutate(
+      { params: workflowParams },
+      {
+        onSuccess: (job) => {
+          setSelectedJobId(job.id);
+          setLogContent('');
+          refetchJobs();
+        },
+        onError: (error: any) => {
+          const message = `Workflow failed: ${getErrorMessage(error)}`;
+          setErrorMessage(message);
+          setErrorSnackbarOpen(true);
+        },
+      }
+    );
+  };
+  
+  useEffect(() => {
+    // Clean up any existing EventSource connection
+    if (eventSourceRef.current) {
+      eventSourceRef.current.close();
+      eventSourceRef.current = null;
+    }
+    
+    if (selectedJobId !== null) {
+      // Use relative URL to leverage Vite proxy configuration
+      // In Docker, Vite proxy handles /api -> backend service
+      const url = `/api/jobs/id/${selectedJobId}/logs`;
+      const eventSource = new EventSource(url);
+      
+      eventSource.onmessage = (event) => {
+        setLogContent((prev) => prev + event.data);
+      };
+      
+      eventSource.onerror = () => {
+        eventSource.close();
+        eventSourceRef.current = null;
+      };
+      
+      eventSourceRef.current = eventSource;
+      
+      return () => {
+        if (eventSourceRef.current) {
+          eventSourceRef.current.close();
+          eventSourceRef.current = null;
+        }
+      };
+    } else {
+      // Clear log content when no job is selected
+      setLogContent('');
+    }
+  }, [selectedJobId]);
+  
+  // Keyboard shortcuts
+  useEffect(() => {
+    const handleKeyPress = (e: KeyboardEvent) => {
+      // Ctrl/Cmd + Enter to run current tab's action
+      if ((e.ctrlKey || e.metaKey) && e.key === 'Enter') {
+        e.preventDefault();
+        if (activeTab === 0) {
+          if (!convertParams.start_time || !convertParams.end_time || convertMutation.isPending) return;
+          handleConvertSubmit();
+        } else if (activeTab === 1) {
+          if (!selectedMS || selectedMSList.length !== 1 || calibrateMutation.isPending || (!calibParams.solve_delay && !calibParams.solve_bandpass && !calibParams.solve_gains)) return;
+          handleCalibrateSubmit();
+        } else if (activeTab === 2) {
+          if (!selectedMS || !applyParams.gaintables?.length || applyMutation.isPending) return;
+          handleApplySubmit();
+        } else if (activeTab === 3) {
+          if (!selectedMS || imageMutation.isPending) return;
+          handleImageSubmit();
+        }
+      }
+      // Ctrl/Cmd + R to refresh (but prevent page reload)
+      if ((e.ctrlKey || e.metaKey) && e.key === 'r' && !e.shiftKey) {
+        // Only prevent if we're in a form field (to allow normal refresh elsewhere)
+        const target = e.target as HTMLElement;
+        if (target.tagName === 'INPUT' || target.tagName === 'TEXTAREA') {
+          return; // Allow normal refresh
+        }
+        e.preventDefault();
+        refetchMS();
+        refetchJobs();
+      }
+    };
+    
+    window.addEventListener('keydown', handleKeyPress);
+    return () => window.removeEventListener('keydown', handleKeyPress);
+  }, [activeTab, convertParams, selectedMS, selectedMSList, calibParams, applyParams, convertMutation.isPending, calibrateMutation.isPending, applyMutation.isPending, imageMutation.isPending, handleConvertSubmit, handleCalibrateSubmit, handleApplySubmit, handleImageSubmit, refetchMS, refetchJobs]);
   
   return (
     <Box sx={{ p: 3 }}>
@@ -532,33 +651,32 @@ export default function ControlPage() {
                   '& .MuiInputLabel-root': { color: '#666' },
                 }}
               />
-              <Button
-                variant="contained"
-                startIcon={<PlayArrow />}
-                onClick={() => {
-                  if (workflowParams.start_time && workflowParams.end_time) {
-                    workflowMutation.mutate(
-                      { params: workflowParams },
-                      {
-                        onSuccess: (job) => {
-                          setSelectedJobId(job.id);
-                          setLogContent('');
-                          refetchJobs();
-                        },
-                      }
-                    );
-                  }
-                }}
-                disabled={!workflowParams.start_time || !workflowParams.end_time || workflowMutation.isPending}
-                sx={{ 
-                  bgcolor: '#fff', 
-                  color: '#1565c0',
-                  '&:hover': { bgcolor: '#f5f5f5' },
-                  whiteSpace: 'nowrap',
-                }}
+              <Tooltip
+                title={
+                  !workflowParams.start_time || !workflowParams.end_time
+                    ? 'Enter start and end times to run the full pipeline'
+                    : workflowMutation.isPending
+                    ? 'Pipeline workflow in progress...'
+                    : 'Run full pipeline workflow (Ctrl/Cmd + Enter)'
+                }
               >
-                Run Full Pipeline
-              </Button>
+                <span>
+                  <Button
+                    variant="contained"
+                    startIcon={workflowMutation.isPending ? <CircularProgress size={20} color="inherit" /> : <PlayArrow />}
+                    onClick={handleWorkflowSubmit}
+                    disabled={!workflowParams.start_time || !workflowParams.end_time || workflowMutation.isPending}
+                    sx={{ 
+                      bgcolor: '#fff', 
+                      color: '#1565c0',
+                      '&:hover': { bgcolor: '#f5f5f5' },
+                      whiteSpace: 'nowrap',
+                    }}
+                  >
+                    {workflowMutation.isPending ? 'Running...' : 'Run Full Pipeline'}
+                  </Button>
+                </span>
+              </Tooltip>
             </Stack>
           </Paper>
           
@@ -710,15 +828,27 @@ export default function ControlPage() {
                   </Box>
                 )}
                 
-                <Button
-                  variant="contained"
-                  startIcon={<PlayArrow />}
-                  onClick={handleConvertSubmit}
-                  disabled={!convertParams.start_time || !convertParams.end_time || convertMutation.isPending}
-                  fullWidth
+                <Tooltip
+                  title={
+                    !convertParams.start_time || !convertParams.end_time
+                      ? 'Enter start and end times to run conversion'
+                      : convertMutation.isPending
+                      ? 'Conversion job in progress...'
+                      : 'Run conversion (Ctrl/Cmd + Enter)'
+                  }
                 >
-                  Run Conversion
-                </Button>
+                  <span>
+                    <Button
+                      variant="contained"
+                      startIcon={convertMutation.isPending ? <CircularProgress size={20} color="inherit" /> : <PlayArrow />}
+                      onClick={handleConvertSubmit}
+                      disabled={!convertParams.start_time || !convertParams.end_time || convertMutation.isPending}
+                      fullWidth
+                    >
+                      {convertMutation.isPending ? 'Running...' : 'Run Conversion'}
+                    </Button>
+                  </span>
+                </Tooltip>
               </Box>
             )}
             
@@ -1286,15 +1416,31 @@ export default function ControlPage() {
                   </AccordionDetails>
                 </Accordion>
                 
-                <Button
-                  variant="contained"
-                  startIcon={<PlayArrow />}
-                  onClick={handleCalibrateSubmit}
-                  disabled={!selectedMS || selectedMSList.length !== 1 || calibrateMutation.isPending || (!calibParams.solve_delay && !calibParams.solve_bandpass && !calibParams.solve_gains)}
-                  fullWidth
+                <Tooltip
+                  title={
+                    !selectedMS
+                      ? 'Select a measurement set first'
+                      : selectedMSList.length !== 1
+                      ? 'Select exactly one measurement set'
+                      : (!calibParams.solve_delay && !calibParams.solve_bandpass && !calibParams.solve_gains)
+                      ? 'Select at least one calibration table type (K, BP, or G)'
+                      : calibrateMutation.isPending
+                      ? 'Calibration job in progress...'
+                      : 'Run calibration (Ctrl/Cmd + Enter)'
+                  }
                 >
-                  Run Calibration
-                </Button>
+                  <span>
+                    <Button
+                      variant="contained"
+                      startIcon={calibrateMutation.isPending ? <CircularProgress size={20} color="inherit" /> : <PlayArrow />}
+                      onClick={handleCalibrateSubmit}
+                      disabled={!selectedMS || selectedMSList.length !== 1 || calibrateMutation.isPending || (!calibParams.solve_delay && !calibParams.solve_bandpass && !calibParams.solve_gains)}
+                      fullWidth
+                    >
+                      {calibrateMutation.isPending ? 'Running...' : 'Run Calibration'}
+                    </Button>
+                  </span>
+                </Tooltip>
                 {(!calibParams.solve_delay && !calibParams.solve_bandpass && !calibParams.solve_gains) && (
                   <Typography variant="caption" sx={{ color: 'error.main', mt: 1, display: 'block' }}>
                     Select at least one calibration table type
@@ -1379,15 +1525,29 @@ export default function ControlPage() {
                   </Box>
                 )}
                 
-                <Button
-                  variant="contained"
-                  startIcon={<PlayArrow />}
-                  onClick={handleApplySubmit}
-                  disabled={!selectedMS || !applyParams.gaintables?.length || applyMutation.isPending}
-                  fullWidth
+                <Tooltip
+                  title={
+                    !selectedMS
+                      ? 'Select a measurement set first'
+                      : !applyParams.gaintables?.length
+                      ? 'Enter at least one calibration table path'
+                      : applyMutation.isPending
+                      ? 'Apply calibration job in progress...'
+                      : 'Apply calibration tables (Ctrl/Cmd + Enter)'
+                  }
                 >
-                  Apply Calibration
-                </Button>
+                  <span>
+                    <Button
+                      variant="contained"
+                      startIcon={applyMutation.isPending ? <CircularProgress size={20} color="inherit" /> : <PlayArrow />}
+                      onClick={handleApplySubmit}
+                      disabled={!selectedMS || !applyParams.gaintables?.length || applyMutation.isPending}
+                      fullWidth
+                    >
+                      {applyMutation.isPending ? 'Running...' : 'Apply Calibration'}
+                    </Button>
+                  </span>
+                </Tooltip>
               </Box>
             )}
             
@@ -1509,15 +1669,27 @@ export default function ControlPage() {
                   sx={{ mb: 2 }}
                 />
                 
-                <Button
-                  variant="contained"
-                  startIcon={<PlayArrow />}
-                  onClick={handleImageSubmit}
-                  disabled={!selectedMS || imageMutation.isPending}
-                  fullWidth
+                <Tooltip
+                  title={
+                    !selectedMS
+                      ? 'Select a measurement set first'
+                      : imageMutation.isPending
+                      ? 'Imaging job in progress...'
+                      : 'Create image (Ctrl/Cmd + Enter)'
+                  }
                 >
-                  Create Image
-                </Button>
+                  <span>
+                    <Button
+                      variant="contained"
+                      startIcon={imageMutation.isPending ? <CircularProgress size={20} color="inherit" /> : <PlayArrow />}
+                      onClick={handleImageSubmit}
+                      disabled={!selectedMS || imageMutation.isPending}
+                      fullWidth
+                    >
+                      {imageMutation.isPending ? 'Running...' : 'Create Image'}
+                    </Button>
+                  </span>
+                </Tooltip>
               </Box>
             )}
           </Paper>
@@ -1580,6 +1752,20 @@ export default function ControlPage() {
             </TableContainer>
           </Paper>
           
+          {/* Error Alert */}
+          {errorMessage && (
+            <Alert 
+              severity="error" 
+              onClose={() => {
+                setErrorMessage(null);
+                setErrorSnackbarOpen(false);
+              }}
+              sx={{ mb: 2 }}
+            >
+              {errorMessage}
+            </Alert>
+          )}
+          
           <Paper sx={{ p: 2 }}>
             <Typography variant="h6" gutterBottom>
               Job Logs
@@ -1604,6 +1790,22 @@ export default function ControlPage() {
           </Paper>
         </Box>
       </Box>
+      
+      {/* Error Snackbar */}
+      <Snackbar
+        open={errorSnackbarOpen}
+        autoHideDuration={6000}
+        onClose={() => setErrorSnackbarOpen(false)}
+        anchorOrigin={{ vertical: 'bottom', horizontal: 'right' }}
+      >
+        <Alert 
+          onClose={() => setErrorSnackbarOpen(false)} 
+          severity="error" 
+          sx={{ width: '100%' }}
+        >
+          {errorMessage}
+        </Alert>
+      </Snackbar>
     </Box>
   );
 }

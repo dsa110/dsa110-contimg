@@ -57,6 +57,31 @@ class ProductList(BaseModel):
     items: List[ProductEntry]
 
 
+class ImageInfo(BaseModel):
+    """Detailed image information for SkyView."""
+    id: int
+    path: str
+    ms_path: str
+    created_at: datetime
+    type: str = Field(..., description="Image type: image, pbcor, residual, psf, pb")
+    beam_major_arcsec: Optional[float] = None
+    beam_minor_arcsec: Optional[float] = None
+    beam_pa_deg: Optional[float] = None
+    noise_jy: Optional[float] = None
+    peak_flux_jy: Optional[float] = None
+    pbcor: bool = Field(False, description="Primary-beam corrected")
+    center_ra_deg: Optional[float] = None
+    center_dec_deg: Optional[float] = None
+    image_size_deg: Optional[float] = None
+    pixel_size_arcsec: Optional[float] = None
+
+
+class ImageList(BaseModel):
+    """List of images with pagination."""
+    items: List[ImageInfo]
+    total: int
+
+
 class CalibratorMatch(BaseModel):
     name: str
     ra_deg: float
@@ -149,7 +174,7 @@ class JobParams(BaseModel):
     gridder: str = "wproject"
     wprojplanes: int = -1
     datacolumn: str = "corrected"
-    quick: bool = False
+    quality_tier: str = "standard"
     skip_fits: bool = True
 
 
@@ -507,3 +532,88 @@ class QAMetrics(BaseModel):
     ms_path: str
     calibration_qa: Optional[CalibrationQA] = None
     image_qa: Optional[ImageQA] = None
+
+
+# Enhanced dashboard feature models
+
+class ESECandidate(BaseModel):
+    """ESE (Extreme Scattering Event) candidate source."""
+    id: Optional[int] = None
+    source_id: str
+    ra_deg: float
+    dec_deg: float
+    first_detection_at: str  # ISO format datetime
+    last_detection_at: str  # ISO format datetime
+    max_sigma_dev: float
+    current_flux_jy: float
+    baseline_flux_jy: float
+    status: str = Field(..., description="active, investigated, dismissed")
+    notes: Optional[str] = None
+
+
+class ESECandidatesResponse(BaseModel):
+    """Response for ESE candidates endpoint."""
+    candidates: List[ESECandidate]
+    total: int
+
+
+class Mosaic(BaseModel):
+    """Mosaic image metadata."""
+    id: Optional[int] = None
+    name: str
+    path: str
+    start_mjd: float
+    end_mjd: float
+    start_time: str  # ISO format datetime
+    end_time: str  # ISO format datetime
+    created_at: str  # ISO format datetime
+    status: str = Field(..., description="pending, in_progress, completed, failed")
+    image_count: Optional[int] = None
+    noise_jy: Optional[float] = None
+    source_count: Optional[int] = None
+    thumbnail_path: Optional[str] = None
+
+
+class MosaicQueryResponse(BaseModel):
+    """Response for mosaic query endpoint."""
+    mosaics: List[Mosaic]
+    total: int
+
+
+class SourceFluxPoint(BaseModel):
+    """Single flux measurement point."""
+    mjd: float
+    time: str  # ISO format datetime
+    flux_jy: float
+    flux_err_jy: Optional[float] = None
+    image_id: Optional[str] = None
+
+
+class SourceTimeseries(BaseModel):
+    """Source flux timeseries with variability statistics."""
+    source_id: str
+    ra_deg: float
+    dec_deg: float
+    catalog: str = "NVSS"
+    flux_points: List[SourceFluxPoint]
+    mean_flux_jy: float
+    std_flux_jy: float
+    chi_sq_nu: float
+    is_variable: bool
+
+
+class SourceSearchResponse(BaseModel):
+    """Response for source search endpoint."""
+    sources: List[SourceTimeseries]
+    total: int
+
+
+class AlertHistory(BaseModel):
+    """Alert history entry."""
+    id: int
+    source_id: str
+    alert_type: str = Field(..., description="ese_candidate, calibrator_missing, system_error")
+    severity: str = Field(..., description="info, warning, critical")
+    message: str
+    triggered_at: str  # ISO format datetime
+    resolved_at: Optional[str] = None  # ISO format datetime

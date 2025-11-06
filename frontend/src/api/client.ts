@@ -3,10 +3,11 @@
  */
 import axios from 'axios';
 
-// Use current origin when served from API at /ui, otherwise use localhost:8000
+// Use current origin when served from API at /ui, otherwise use relative URL (proxied by Vite)
+// In Docker, Vite proxy handles /api -> backend service
 const API_BASE_URL = (typeof window !== 'undefined' && window.location.pathname.startsWith('/ui')) 
   ? window.location.origin 
-  : 'http://localhost:8000';
+  : ''; // Empty string = relative URL, uses Vite proxy in dev mode
 
 export const apiClient = axios.create({
   baseURL: API_BASE_URL,

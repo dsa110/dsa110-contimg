@@ -346,7 +346,7 @@ def image_ms(ms_path: Path, output_dir: Path, imsize: int = 2048,
         "--weighting", "briggs",
         "--robust", str(robust),
         "--pbcor",
-        "--quick"  # Use quick imaging for speed
+        "--quality-tier", "development"  # Use development tier for speed
     ]
     
     result = subprocess.run(cmd, capture_output=True, text=True)

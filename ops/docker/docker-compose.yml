@@ -1,4 +1,4 @@
-version: "3.8"
+version: "2.0"
 
 services:
   stream:
@@ -45,8 +45,9 @@ services:
       context: ../..
       dockerfile: ops/docker/Dockerfile
     container_name: contimg-api
-    command: >-
-      uvicorn dsa110_contimg.api.routes:create_app --factory --host 0.0.0.0 --port ${CONTIMG_API_PORT}
+    # Use --reload only in development (set UVICORN_RELOAD=1 in .env)
+    # For production, omit UVICORN_RELOAD or set it to empty/0
+    command: sh -c "if [ \"$$UVICORN_RELOAD\" = \"1\" ]; then uvicorn dsa110_contimg.api.routes:create_app --factory --host 0.0.0.0 --port ${CONTIMG_API_PORT} --reload; else uvicorn dsa110_contimg.api.routes:create_app --factory --host 0.0.0.0 --port ${CONTIMG_API_PORT}; fi"
     env_file:
       - .env
     environment:
@@ -82,6 +83,23 @@ services:
       - ${CONTIMG_OUTPUT_DIR}:${CONTIMG_OUTPUT_DIR}:rw
     restart: unless-stopped
 
+  frontend:
+    image: node:20-alpine
+    container_name: contimg-frontend
+    working_dir: /app/frontend
+    command: sh -c "npm install && npm run dev -- --host"
+    ports:
+      - "5173:5173"
+    volumes:
+      - ${REPO_ROOT}/frontend:/app/frontend:rw
+    environment:
+      - API_PROXY_TARGET=http://contimg-api:${CONTIMG_API_PORT}
+      - VITE_API_URL=http://localhost:${CONTIMG_API_PORT}
+    depends_on:
+      - api
+    networks:
+      - default
+    restart: unless-stopped
+
 networks:
   default:
-    name: contimg-net

@@ -6,7 +6,6 @@ making it easier to manage, document, and validate defaults.
 """
 
 import os
-from typing import Optional
 
 
 # ============================================================================
@@ -14,12 +13,18 @@ from typing import Optional
 # ============================================================================
 
 # Bandpass calibration defaults
+# NOTE: For streaming mode, bandpass calibration should be performed
+# once every 24 hours. Bandpass solutions are relatively stable and
+# can be reused for extended periods.
 CAL_BP_MINSNR = 3.0
 CAL_BP_SOLINT = "inf"  # Entire scan
 CAL_BP_SMOOTH_TYPE = "none"  # No smoothing by default
 CAL_BP_SMOOTH_WINDOW = None  # No smoothing window by default
 
 # Gain calibration defaults
+# NOTE: For streaming mode, gain calibration should be performed
+# every hour. Gain solutions vary with time and atmospheric
+# conditions, requiring more frequent updates.
 CAL_GAIN_MINSNR = 3.0
 CAL_GAIN_SOLINT = "inf"  # Entire scan (per-integration for production)
 CAL_GAIN_CALMODE = "ap"  # Amplitude+phase (phase-only for fast mode)
@@ -124,26 +129,28 @@ def get_conv_max_workers() -> int:
 def validate_defaults() -> list[str]:
     """
     Validate default values are reasonable.
-    
+
     Returns:
         List of warning messages (empty if all defaults are valid)
     """
     warnings = []
-    
+
     if CAL_BP_MINSNR < 2.0:
-        warnings.append("CAL_BP_MINSNR < 2.0 may produce unreliable solutions")
-    
+        msg = "CAL_BP_MINSNR < 2.0 may produce unreliable solutions"
+        warnings.append(msg)
+
     if CAL_GAIN_MINSNR < 2.0:
-        warnings.append("CAL_GAIN_MINSNR < 2.0 may produce unreliable solutions")
-    
+        msg = "CAL_GAIN_MINSNR < 2.0 may produce unreliable solutions"
+        warnings.append(msg)
+
     if IMG_IMSIZE < 256:
         warnings.append("IMG_IMSIZE < 256 may have poor resolution")
-    
+
     if IMG_IMSIZE > 8192:
         warnings.append("IMG_IMSIZE > 8192 may be very slow")
-    
-    if IMG_ROBUST < -2.0 or IMG_ROBUST > 2.0:
-        warnings.append("IMG_ROBUST should be between -2.0 and 2.0")
-    
-    return warnings
 
+    if IMG_ROBUST < -2.0 or IMG_ROBUST > 2.0:
+        msg = "IMG_ROBUST should be between -2.0 and 2.0"
+        warnings.append(msg)
+
+    return warnings

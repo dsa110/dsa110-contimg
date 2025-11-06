@@ -106,6 +106,17 @@ def apply_to_target(
         raise ValueError("No calibration tables provided for applycal")
     
     print(f"Validating {len(gaintables)} calibration table(s) before applying...")
+
+    # STRICT SEPARATION: Reject NON_SCIENCE calibration tables for production use
+    for gaintable in gaintables:
+        if "NON_SCIENCE" in gaintable:
+            raise ValueError(
+                f"⚠️  STRICT SEPARATION VIOLATION: Attempting to apply NON_SCIENCE calibration table '{gaintable}' to production data.\n"
+                f"   NON_SCIENCE tables (prefixed with 'NON_SCIENCE_*') are created by development tier calibration.\n"
+                f"   These tables CANNOT be applied to production/science data due to time-channel binning mismatches.\n"
+                f"   Use standard or high_precision tier calibration for production data."
+            )
+
     try:
         validate_caltables_for_use(gaintables, ms_target, require_all=True)
     except (FileNotFoundError, ValueError) as e:

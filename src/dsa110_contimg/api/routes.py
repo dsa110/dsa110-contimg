@@ -27,6 +27,10 @@ from dsa110_contimg.api.data_access import (
     fetch_recent_queue_groups,
     fetch_recent_calibrator_matches,
     fetch_pointing_history,
+    fetch_ese_candidates,
+    fetch_mosaics,
+    fetch_source_timeseries,
+    fetch_alert_history,
 )
 from dsa110_contimg.api.models import (
     PipelineStatus,
@@ -71,14 +75,18 @@ from dsa110_contimg.api.models import (
     BatchApplyParams,
     BatchImageParams,
     BatchJobCreateRequest,
+    ImageInfo,
+    ImageList,
+    ESECandidate,
+    ESECandidatesResponse,
+    Mosaic,
+    MosaicQueryResponse,
+    SourceTimeseries,
+    SourceSearchResponse,
+    AlertHistory,
 )
 from dsa110_contimg.api.data_access import _connect
-from dsa110_contimg.api.mock_data import (
-    generate_mock_ese_candidates,
-    generate_mock_mosaics,
-    generate_mock_source_timeseries,
-    generate_mock_alert_history,
-)
+from dsa110_contimg.api.image_utils import get_fits_path, convert_casa_to_fits
 
 
 def create_app(config: ApiConfig | None = None) -> FastAPI:
@@ -139,6 +147,130 @@ def create_app(config: ApiConfig | None = None) -> FastAPI:
     def products(limit: int = 50) -> ProductList:
         items = fetch_recent_products(cfg.products_db, limit=limit)
         return ProductList(items=items)
+
+    @router.get("/images", response_model=ImageList)
+    def images(
+        limit: int = 100,
+        offset: int = 0,
+        ms_path: str | None = None,
+        image_type: str | None = None,
+        pbcor: bool | None = None,
+    ) -> ImageList:
+        """List available images for SkyView.
+        
+        Args:
+            limit: Maximum number of images to return (1-1000, default: 100)
+            offset: Offset for pagination (>= 0, default: 0)
+            ms_path: Filter by MS path (partial match)
+            image_type: Filter by image type (image, pbcor, residual, psf, pb)
+            pbcor: Filter by primary beam correction status
+        """
+        # Validate and clamp parameters
+        limit = max(1, min(limit, 1000)) if limit > 0 else 100
+        offset = max(0, offset) if offset >= 0 else 0
+        
+        db_path = cfg.products_db
+        items: list[ImageInfo] = []
+        total = 0
+        
+        if not db_path.exists():
+            return ImageList(items=items, total=0)
+        
+        with _connect(db_path) as conn:
+            # Build query
+            where_clauses = []
+            params: list[object] = []
+            
+            if ms_path:
+                where_clauses.append("ms_path LIKE ?")
+                params.append(f"%{ms_path}%")
+            
+            if image_type:
+                where_clauses.append("type = ?")
+                params.append(image_type)
+            
+            if pbcor is not None:
+                where_clauses.append("pbcor = ?")
+                params.append(1 if pbcor else 0)
+            
+            where_sql = " WHERE " + " AND ".join(where_clauses) if where_clauses else ""
+            
+            # Get total count
+            count_query = f"SELECT COUNT(*) as total FROM images{where_sql}"
+            total_row = conn.execute(count_query, params).fetchone()
+            total = total_row["total"] if total_row else 0
+            
+            # Get images
+            query = f"""
+                SELECT id, path, ms_path, created_at, type, beam_major_arcsec, noise_jy, pbcor
+                FROM images
+                {where_sql}
+                ORDER BY created_at DESC
+                LIMIT ? OFFSET ?
+            """
+            params.extend([limit, offset])
+            rows = conn.execute(query, params).fetchall()
+            
+            for r in rows:
+                # For now, we'll use the basic fields. WCS and additional metadata
+                # can be extracted from FITS headers in a future enhancement
+                items.append(ImageInfo(
+                    id=r["id"],
+                    path=r["path"],
+                    ms_path=r["ms_path"],
+                    created_at=datetime.fromtimestamp(r["created_at"]) if r["created_at"] else datetime.now(),
+                    type=r["type"],
+                    beam_major_arcsec=r["beam_major_arcsec"],
+                    beam_minor_arcsec=None,  # Not in current schema
+                    beam_pa_deg=None,  # Not in current schema
+                    noise_jy=r["noise_jy"],
+                    peak_flux_jy=None,  # Not in current schema
+                    pbcor=bool(r["pbcor"]),
+                    center_ra_deg=None,  # Will extract from FITS in future
+                    center_dec_deg=None,  # Will extract from FITS in future
+                    image_size_deg=None,  # Will extract from FITS in future
+                    pixel_size_arcsec=None,  # Will extract from FITS in future
+                ))
+        
+        return ImageList(items=items, total=total)
+
+    @router.get("/images/{image_id}/fits")
+    def get_image_fits(image_id: int):
+        """Serve FITS file for an image.
+        
+        Converts CASA images to FITS on-demand if needed.
+        """
+        db_path = cfg.products_db
+        
+        if not db_path.exists():
+            return HTMLResponse(status_code=404, content="Database not found")
+        
+        with _connect(db_path) as conn:
+            row = conn.execute(
+                "SELECT path FROM images WHERE id = ?",
+                (image_id,)
+            ).fetchone()
+            
+            if not row:
+                return HTMLResponse(status_code=404, content="Image not found")
+            
+            image_path = row["path"]
+        
+        # Get FITS file path (convert if needed)
+        fits_path = get_fits_path(image_path)
+        
+        if not fits_path or not Path(fits_path).exists():
+            return HTMLResponse(
+                status_code=404,
+                content=f"FITS file not found for image {image_id}. Conversion may have failed."
+            )
+        
+        # Serve FITS file
+        return FileResponse(
+            fits_path,
+            media_type="application/fits",
+            filename=Path(fits_path).name,
+        )
 
     @router.get("/calibrator_matches", response_model=CalibratorMatchList)
     def calibrator_matches(limit: int = 50, matched_only: bool = False) -> CalibratorMatchList:
@@ -496,48 +628,85 @@ def create_app(config: ApiConfig | None = None) -> FastAPI:
             conn.commit()
         return {"ok": True}
     # Enhanced API endpoints for new dashboard features
-    @router.get("/ese/candidates")
-    def ese_candidates():
-        """Get ESE candidate sources (mock data)."""
-        return {
-            'candidates': generate_mock_ese_candidates(5),
-            'total': 5,
-        }
+    @router.get("/ese/candidates", response_model=ESECandidatesResponse)
+    def ese_candidates(limit: int = 50, min_sigma: float = 5.0):
+        """Get ESE candidate sources from database."""
+        candidates_data = fetch_ese_candidates(cfg.products_db, limit=limit, min_sigma=min_sigma)
+        candidates = [ESECandidate(**c) for c in candidates_data]
+        return ESECandidatesResponse(
+            candidates=candidates,
+            total=len(candidates),
+        )
 
-    @router.post("/mosaics/query")
+    @router.post("/mosaics/query", response_model=MosaicQueryResponse)
     def mosaics_query(request: dict):
-        """Query mosaics by time range (mock data)."""
+        """Query mosaics by time range from database."""
         start_time = request.get('start_time', '')
         end_time = request.get('end_time', '')
-        mosaics = generate_mock_mosaics(start_time, end_time)
-        return {
-            'mosaics': mosaics,
-            'total': len(mosaics),
-        }
+        
+        if not start_time or not end_time:
+            return MosaicQueryResponse(mosaics=[], total=0)
+        
+        mosaics_data = fetch_mosaics(cfg.products_db, start_time, end_time)
+        mosaics = [Mosaic(**m) for m in mosaics_data]
+        return MosaicQueryResponse(
+            mosaics=mosaics,
+            total=len(mosaics),
+        )
 
     @router.post("/mosaics/create")
     def mosaics_create(request: dict):
-        """Create a new mosaic (mock response)."""
+        """Create a new mosaic (queue mosaic generation job).
+        
+        Note: This is a placeholder for future mosaic generation pipeline integration.
+        For now, returns a response indicating the feature is not yet implemented.
+        """
         return {
-            'status': 'pending',
-            'message': 'Mosaic generation queued',
-            'mosaic_id': 'mosaic_new_001',
+            'status': 'not_implemented',
+            'message': 'Mosaic creation via API is not yet implemented. Use the mosaic CLI tools.',
+            'mosaic_id': None,
         }
 
-    @router.post("/sources/search")
+    @router.post("/sources/search", response_model=SourceSearchResponse)
     def sources_search(request: dict):
-        """Search for sources (mock data)."""
-        source_id = request.get('source_id', 'NVSS J123456+420312')
-        source = generate_mock_source_timeseries(source_id)
-        return {
-            'sources': [source],
-            'total': 1,
-        }
+        """Search for sources and return flux timeseries from photometry database."""
+        source_id = request.get('source_id', '')
+        
+        if not source_id:
+            return SourceSearchResponse(sources=[], total=0)
+        
+        source_data = fetch_source_timeseries(cfg.products_db, source_id)
+        
+        if source_data is None:
+            return SourceSearchResponse(sources=[], total=0)
+        
+        # Convert flux points to SourceFluxPoint models
+        from dsa110_contimg.api.models import SourceFluxPoint
+        flux_points = [SourceFluxPoint(**fp) for fp in source_data['flux_points']]
+        
+        source = SourceTimeseries(
+            source_id=source_data['source_id'],
+            ra_deg=source_data['ra_deg'],
+            dec_deg=source_data['dec_deg'],
+            catalog=source_data['catalog'],
+            flux_points=flux_points,
+            mean_flux_jy=source_data['mean_flux_jy'],
+            std_flux_jy=source_data['std_flux_jy'],
+            chi_sq_nu=source_data['chi_sq_nu'],
+            is_variable=source_data['is_variable'],
+        )
+        
+        return SourceSearchResponse(
+            sources=[source],
+            total=1,
+        )
 
-    @router.get("/alerts/history")
+    @router.get("/alerts/history", response_model=List[AlertHistory])
     def alerts_history(limit: int = 50):
-        """Get alert history (mock data)."""
-        return generate_mock_alert_history(limit)
+        """Get alert history from database."""
+        alerts_data = fetch_alert_history(cfg.products_db, limit=limit)
+        alerts = [AlertHistory(**a) for a in alerts_data]
+        return alerts
 
     # Control panel routes
     @router.get("/ms", response_model=MSList)
@@ -560,7 +729,13 @@ def create_app(config: ApiConfig | None = None) -> FastAPI:
         Args:
             scan: If True, scan filesystem for MS files before listing
             scan_dir: Directory to scan (defaults to CONTIMG_OUTPUT_DIR or /scratch/dsa110-contimg/ms)
+            limit: Maximum number of results (1-1000, default: 100)
+            offset: Offset for pagination (>= 0, default: 0)
         """
+        # Validate and clamp parameters
+        limit = max(1, min(limit, 1000)) if limit > 0 else 100
+        offset = max(0, offset) if offset >= 0 else 0
+        
         from dsa110_contimg.database.products import ensure_products_db, discover_ms_files
         from astropy.time import Time
         import astropy.units as u
@@ -1289,8 +1464,9 @@ def create_app(config: ApiConfig | None = None) -> FastAPI:
                 raise HTTPException(status_code=400, detail="MS has no data")
             
             mid_time = (times.min() + times.max()) / 2.0
-            # CASA times are in seconds since MJD 0
-            mid_mjd = mid_time / 86400.0
+            # CASA times are in seconds since MJD epoch (51544.0 = 2000-01-01)
+            # CASA TIME = (MJD - 51544.0) * 86400.0
+            mid_mjd = 51544.0 + mid_time / 86400.0
             
             # Load catalog
             if catalog == "vla":

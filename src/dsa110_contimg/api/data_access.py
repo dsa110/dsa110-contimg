@@ -6,7 +6,7 @@ import sqlite3
 from contextlib import closing
 from datetime import datetime
 from pathlib import Path
-from typing import List
+from typing import List, Optional
 import json as _json
 
 from dsa110_contimg.api.config import ApiConfig
@@ -225,7 +225,7 @@ def fetch_recent_calibrator_matches(queue_db: Path, limit: int = 50, matched_onl
 
 def fetch_pointing_history(db_path: str, start_mjd: float, end_mjd: float) -> List[PointingHistoryEntry]:
     """Fetch pointing history from the database."""
-    with _connect(db_path) as conn:
+    with closing(_connect(Path(db_path))) as conn:
         rows = conn.execute(
             "SELECT timestamp, ra_deg, dec_deg FROM pointing_history WHERE timestamp BETWEEN ? AND ? ORDER BY timestamp",
             (start_mjd, end_mjd),
@@ -238,3 +238,317 @@ def fetch_pointing_history(db_path: str, start_mjd: float, end_mjd: float) -> Li
         )
         for r in rows
     ]
+
+
+def fetch_ese_candidates(products_db: Path, limit: int = 50, min_sigma: float = 5.0) -> List[dict]:
+    """Fetch ESE candidates from the database.
+    
+    Returns list of ESE candidates with variability stats joined.
+    """
+    if not products_db.exists():
+        return []
+    
+    with closing(_connect(products_db)) as conn:
+        # Check if tables exist
+        tables = {row[0] for row in conn.execute(
+            "SELECT name FROM sqlite_master WHERE type='table'"
+        ).fetchall()}
+        
+        if 'ese_candidates' not in tables or 'variability_stats' not in tables:
+            return []
+        
+        # Query ESE candidates joined with variability stats
+        rows = conn.execute(
+            """
+            SELECT 
+                e.id,
+                e.source_id,
+                e.flagged_at,
+                e.flagged_by,
+                e.significance,
+                e.flag_type,
+                e.notes,
+                e.status,
+                e.investigated_at,
+                e.dismissed_at,
+                v.ra_deg,
+                v.dec_deg,
+                v.nvss_flux_mjy,
+                v.mean_flux_mjy,
+                v.std_flux_mjy,
+                v.chi2_nu,
+                v.sigma_deviation,
+                v.last_measured_at,
+                v.last_mjd,
+                v.updated_at,
+                MIN(p.measured_at) as first_measured_at
+            FROM ese_candidates e
+            LEFT JOIN variability_stats v ON e.source_id = v.source_id
+            LEFT JOIN photometry p ON e.source_id = p.source_id
+            WHERE e.status = 'active' AND e.significance >= ?
+            GROUP BY e.id, e.source_id
+            ORDER BY e.significance DESC, e.flagged_at DESC
+            LIMIT ?
+            """,
+            (min_sigma, limit),
+        ).fetchall()
+    
+    candidates = []
+    for r in rows:
+        # Convert timestamps
+        flagged_at = datetime.fromtimestamp(r["flagged_at"]) if r["flagged_at"] else datetime.utcnow()
+        last_measured = datetime.fromtimestamp(r["last_measured_at"]) if r["last_measured_at"] else flagged_at
+        first_measured = datetime.fromtimestamp(r["first_measured_at"]) if r["first_measured_at"] else flagged_at
+        
+        # Calculate current and baseline flux
+        current_flux_jy = (r["mean_flux_mjy"] / 1000.0) if r["mean_flux_mjy"] else 0.0
+        baseline_flux_jy = (r["nvss_flux_mjy"] / 1000.0) if r["nvss_flux_mjy"] else current_flux_jy
+        
+        candidates.append({
+            'id': r["id"],
+            'source_id': r["source_id"],
+            'ra_deg': r["ra_deg"] or 0.0,
+            'dec_deg': r["dec_deg"] or 0.0,
+            'first_detection_at': first_measured.isoformat(),
+            'last_detection_at': last_measured.isoformat(),
+            'max_sigma_dev': r["sigma_deviation"] or r["significance"] or 0.0,
+            'current_flux_jy': current_flux_jy,
+            'baseline_flux_jy': baseline_flux_jy,
+            'status': r["status"] or 'active',
+            'notes': r["notes"],
+        })
+    
+    return candidates
+
+
+def fetch_mosaics(products_db: Path, start_time: str, end_time: str) -> List[dict]:
+    """Fetch mosaics from the database for a time range.
+    
+    Args:
+        products_db: Path to products database
+        start_time: ISO format datetime string
+        end_time: ISO format datetime string
+    
+    Returns:
+        List of mosaic dictionaries
+    """
+    if not products_db.exists():
+        return []
+    
+    from astropy.time import Time
+    
+    try:
+        start_dt = datetime.fromisoformat(start_time.replace('Z', '+00:00'))
+        end_dt = datetime.fromisoformat(end_time.replace('Z', '+00:00'))
+        start_mjd = Time(start_dt).mjd
+        end_mjd = Time(end_dt).mjd
+    except Exception:
+        return []
+    
+    with closing(_connect(products_db)) as conn:
+        # Check if mosaics table exists
+        tables = {row[0] for row in conn.execute(
+            "SELECT name FROM sqlite_master WHERE type='table'"
+        ).fetchall()}
+        
+        if 'mosaics' not in tables:
+            return []
+        
+        rows = conn.execute(
+            """
+            SELECT 
+                id, name, path, created_at, start_mjd, end_mjd,
+                integration_sec, n_images, center_ra_deg, center_dec_deg,
+                dec_min_deg, dec_max_deg, noise_jy,
+                beam_major_arcsec, beam_minor_arcsec, beam_pa_deg,
+                n_sources, thumbnail_path
+            FROM mosaics
+            WHERE (start_mjd <= ? AND end_mjd >= ?) OR (start_mjd >= ? AND start_mjd <= ?)
+            ORDER BY created_at DESC
+            """,
+            (end_mjd, start_mjd, start_mjd, end_mjd),
+        ).fetchall()
+    
+    mosaics = []
+    for r in rows:
+        # Convert MJD to ISO datetime
+        start_dt = Time(r["start_mjd"], format='mjd').datetime
+        end_dt = Time(r["end_mjd"], format='mjd').datetime
+        created_dt = datetime.fromtimestamp(r["created_at"]) if r["created_at"] else datetime.utcnow()
+        
+        mosaics.append({
+            'id': r["id"],
+            'name': r["name"],
+            'path': r["path"],
+            'start_mjd': r["start_mjd"],
+            'end_mjd': r["end_mjd"],
+            'start_time': start_dt.isoformat(),
+            'end_time': end_dt.isoformat(),
+            'created_at': created_dt.isoformat(),
+            'status': 'completed',  # Assume completed if in database
+            'image_count': r["n_images"],
+            'noise_jy': r["noise_jy"],
+            'source_count': r["n_sources"],
+            'thumbnail_path': r["thumbnail_path"],
+        })
+    
+    return mosaics
+
+
+def fetch_source_timeseries(products_db: Path, source_id: str) -> Optional[dict]:
+    """Fetch flux timeseries for a source from photometry table.
+    
+    Args:
+        products_db: Path to products database
+        source_id: Source ID (e.g., NVSS J123456+420312)
+    
+    Returns:
+        Dictionary with source timeseries data or None if not found
+    """
+    if not products_db.exists():
+        return None
+    
+    from astropy.time import Time
+    import statistics
+    
+    with closing(_connect(products_db)) as conn:
+        # Check if tables exist
+        tables = {row[0] for row in conn.execute(
+            "SELECT name FROM sqlite_master WHERE type='table'"
+        ).fetchall()}
+        
+        if 'photometry' not in tables:
+            return None
+        
+        # Get photometry measurements for this source
+        # Try to match by source_id first, then by name pattern if source_id column exists
+        # Check if source_id column exists
+        columns = {row[1] for row in conn.execute(
+            "PRAGMA table_info(photometry)"
+        ).fetchall()}
+        
+        if 'source_id' in columns:
+            rows = conn.execute(
+                """
+                SELECT 
+                    ra_deg, dec_deg, nvss_flux_mjy,
+                    peak_jyb, peak_err_jyb, measured_at, mjd, image_path, source_id
+                FROM photometry
+                WHERE source_id = ? OR source_id LIKE ?
+                ORDER BY measured_at ASC
+                """,
+                (source_id, f"%{source_id}%"),
+            ).fetchall()
+        else:
+            # Fallback: if source_id column doesn't exist, return empty
+            # (photometry table might not have source matching yet)
+            return None
+        
+        if not rows:
+            return None
+        
+        # Get first row for coordinates
+        first_row = rows[0]
+        ra_deg = first_row["ra_deg"]
+        dec_deg = first_row["dec_deg"]
+        
+        # Build flux points
+        flux_points = []
+        fluxes = []
+        
+        for r in rows:
+            mjd = r["mjd"] if r["mjd"] else Time(datetime.fromtimestamp(r["measured_at"])).mjd
+            flux_jy = r["peak_jyb"] if r["peak_jyb"] else 0.0
+            flux_err_jy = r["peak_err_jyb"] if r["peak_err_jyb"] else None
+            
+            time_dt = datetime.fromtimestamp(r["measured_at"]) if r["measured_at"] else Time(mjd, format='mjd').datetime
+            
+            flux_points.append({
+                'mjd': mjd,
+                'time': time_dt.isoformat(),
+                'flux_jy': flux_jy,
+                'flux_err_jy': flux_err_jy,
+                'image_id': r["image_path"] or '',
+            })
+            fluxes.append(flux_jy)
+        
+        # Calculate statistics
+        if len(fluxes) > 0:
+            mean_flux = statistics.mean(fluxes)
+            std_flux = statistics.stdev(fluxes) if len(fluxes) > 1 else 0.0
+            
+            # Calculate chi-square for constant model
+            if std_flux > 0:
+                chi_sq_nu = sum(((f - mean_flux) / std_flux) ** 2 for f in fluxes) / max(1, len(fluxes) - 1)
+            else:
+                chi_sq_nu = 0.0
+            
+            is_variable = chi_sq_nu > 3.0
+        else:
+            mean_flux = 0.0
+            std_flux = 0.0
+            chi_sq_nu = 0.0
+            is_variable = False
+        
+        return {
+            'source_id': source_id,
+            'ra_deg': ra_deg,
+            'dec_deg': dec_deg,
+            'catalog': 'NVSS',
+            'flux_points': flux_points,
+            'mean_flux_jy': mean_flux,
+            'std_flux_jy': std_flux,
+            'chi_sq_nu': chi_sq_nu,
+            'is_variable': is_variable,
+        }
+
+
+def fetch_alert_history(products_db: Path, limit: int = 50) -> List[dict]:
+    """Fetch alert history from the database.
+    
+    Args:
+        products_db: Path to products database
+        limit: Maximum number of alerts to return
+    
+    Returns:
+        List of alert dictionaries
+    """
+    if not products_db.exists():
+        return []
+    
+    with closing(_connect(products_db)) as conn:
+        # Check if alert_history table exists
+        tables = {row[0] for row in conn.execute(
+            "SELECT name FROM sqlite_master WHERE type='table'"
+        ).fetchall()}
+        
+        if 'alert_history' not in tables:
+            return []
+        
+        rows = conn.execute(
+            """
+            SELECT 
+                id, source_id, alert_type, severity, message,
+                sent_at, channel, success, error_msg
+            FROM alert_history
+            ORDER BY sent_at DESC
+            LIMIT ?
+            """,
+            (limit,),
+        ).fetchall()
+    
+    alerts = []
+    for r in rows:
+        sent_at = datetime.fromtimestamp(r["sent_at"]) if r["sent_at"] else datetime.utcnow()
+        
+        alerts.append({
+            'id': r["id"],
+            'source_id': r["source_id"],
+            'alert_type': r["alert_type"],
+            'severity': r["severity"],
+            'message': r["message"],
+            'triggered_at': sent_at.isoformat(),
+            'resolved_at': None,  # Alert history doesn't track resolution
+        })
+    
+    return alerts

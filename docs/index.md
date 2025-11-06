@@ -2,14 +2,9 @@
 
 Welcome. This pipeline turns incoming UVH5 subband data into calibrated, quick-look continuum images and exposes a monitoring API.
 
-- Stream: ingest → convert → calibrate/apply → image
-- Data stores: queue (ingest), calibration registry, products (images + index)
-- Deploy: systemd (worker) or Docker Compose (worker + API)
+This documentation is organized to help you understand and use the pipeline effectively.
 
-Get started fast in the Quick Start.
-
-- [Quick Start](quickstart.md)
-- [Pipeline Visuals](pipeline.md) - Overview with decision points
-- [Pipeline Workflow Visualization](pipeline_workflow_visualization.md) - Comprehensive workflow guide
-- [Quick-Look Pipeline (sub-minute)](quicklook.md)
-- [CLI Reference](reference/cli.md)
+- **[Documentation Overview](README.md)**: Start here for an overview of the documentation structure.
+- **[Concepts](concepts/index.md)**: Understand the high-level architecture and design.
+- **[Tutorials](tutorials/)**: Follow step-by-step guides for common tasks.
+- **[How-To Guides](how-to/)**: Find instructions for specific procedures.

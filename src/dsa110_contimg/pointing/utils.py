@@ -20,6 +20,8 @@ logger = logging.getLogger(__name__)
 def _time_from_seconds(seconds: Optional[np.ndarray]) -> Optional[Time]:
     """Convert seconds since MJD epoch to astropy Time object.
 
+    Uses the standardized CASA TIME conversion utility for consistency.
+
     Parameters
     ----------
     seconds : array-like or None
@@ -32,9 +34,8 @@ def _time_from_seconds(seconds: Optional[np.ndarray]) -> Optional[Time]:
     """
     if seconds is None or len(seconds) == 0:
         return None
-    mjd_base = 51544.0  # CASA MS epoch
-    mjd = mjd_base + (np.mean(seconds) / 86400.0)
-    return Time(mjd, format="mjd")
+    from dsa110_contimg.utils.time_utils import casa_time_to_astropy_time
+    return casa_time_to_astropy_time(np.mean(seconds))
 
 
 def load_pointing(path: str | Path, field_id: Optional[int] = None) -> Dict[str, Any]:

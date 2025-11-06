@@ -1,6 +1,0 @@
-<CRITICAL_INSTRUCTIONS>
-
-As you work on code, if you discover any lessons or principles about this project which in any way may help you in future coding sessions then be sure to note those lessons in the MEMORY.md file which is yours to freely edit as you see fit. Refer to this MEMORY.md file for guidance during all coding sessions with this project.
-
-</CRITICAL_INSTRUCTIONS>
-

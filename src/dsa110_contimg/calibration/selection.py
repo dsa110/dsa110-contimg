@@ -142,17 +142,29 @@ def select_bandpass_from_catalog(
     
     # Filter out time-dependent phase center fields (meridian_icrs_t*)
     # These are created during conversion but aren't separate observational fields
-    # NOTE: Field 0 (meridian_icrs_t0) is special - it's the first time sample and contains
-    # the calibrator data, so we keep it even though it has the meridian phase center name
+    # NOTE: When ALL fields are meridian phase centers (drift-scan), we must check ALL fields
+    # because the calibrator could be in any field during the drift-scan, not just field 0.
+    # When only some fields are meridian phase centers, we keep non-meridian fields plus field 0.
     with table(f"{ms_path}::FIELD") as tf:
         field_names = tf.getcol("NAME")
-    # Keep only fields that don't match meridian phase center pattern, EXCEPT field 0
-    # Field 0 is the first time sample and contains the actual calibrator data
-    valid_field_mask = np.array([
-        (i == 0) or not (isinstance(name, str) and name.startswith('meridian_icrs_t'))
-        for i, name in enumerate(field_names)
-    ])
-    valid_field_indices = np.where(valid_field_mask)[0]
+    
+    # Check if ALL fields are meridian phase centers
+    all_meridian = all(
+        isinstance(name, str) and name.startswith('meridian_icrs_t')
+        for name in field_names
+    )
+    
+    if all_meridian:
+        # In drift-scan mode: check ALL fields to find which one contains the calibrator
+        valid_field_indices = np.arange(len(field_names))
+    else:
+        # Mixed mode: keep only fields that don't match meridian phase center pattern, EXCEPT field 0
+        # Field 0 is kept as a fallback even if it's a meridian phase center
+        valid_field_mask = np.array([
+            (i == 0) or not (isinstance(name, str) and name.startswith('meridian_icrs_t'))
+            for i, name in enumerate(field_names)
+        ])
+        valid_field_indices = np.where(valid_field_mask)[0]
     
     if len(valid_field_indices) == 0:
         raise RuntimeError("No valid calibrator fields found (all fields are time-dependent phase centers)")

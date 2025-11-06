@@ -5,6 +5,7 @@ import subprocess
 import shutil
 import logging
 import time
+from pathlib import Path
 from contextlib import contextmanager
 
 # Ensure headless operation to prevent casaplotserver X server errors
@@ -15,6 +16,8 @@ if os.environ.get("DISPLAY"):
     os.environ.pop("DISPLAY", None)
 
 from casatasks import flagdata
+
+from dsa110_contimg.utils.error_context import format_ms_error_with_suggestions
 
 
 @contextmanager
@@ -63,7 +66,7 @@ def flag_zeros(ms: str, datacolumn: str = "data") -> None:
         flagdata(vis=ms, mode="clip", datacolumn=datacolumn, clipzeros=True)
 
 
-def flag_rfi(ms: str, datacolumn: str = "data", backend: str = "casa",
+def flag_rfi(ms: str, datacolumn: str = "data", backend: str = "aoflagger",
              aoflagger_path: Optional[str] = None, strategy: Optional[str] = None,
              extend_flags: bool = True) -> None:
     """Flag RFI using CASA or AOFlagger.
@@ -71,7 +74,7 @@ def flag_rfi(ms: str, datacolumn: str = "data", backend: str = "casa",
     Args:
         ms: Path to Measurement Set
         datacolumn: Data column to use (default: "data")
-        backend: Backend to use - "casa" (default) or "aoflagger"
+        backend: Backend to use - "aoflagger" (default) or "casa"
         aoflagger_path: Path to aoflagger executable or "docker" (for AOFlagger backend)
         strategy: Optional path to custom Lua strategy file (for AOFlagger backend)
         extend_flags: If True, extend flags to adjacent channels/times after flagging (default: True)
@@ -134,6 +137,26 @@ def flag_rfi(ms: str, datacolumn: str = "data", backend: str = "casa",
                     raise
 
 
+def _get_default_aoflagger_strategy() -> Optional[str]:
+    """Get the default DSA-110 AOFlagger strategy file path.
+    
+    Returns:
+        Path to dsa110-default.lua if it exists, None otherwise
+    """
+    # Try multiple possible locations for the strategy file
+    possible_paths = [
+        Path("/data/dsa110-contimg/config/dsa110-default.lua"),
+        Path(__file__).parent.parent.parent.parent / "config" / "dsa110-default.lua",
+        Path(os.getcwd()) / "config" / "dsa110-default.lua",
+    ]
+    
+    for strategy_path in possible_paths:
+        if strategy_path.exists():
+            return str(strategy_path.resolve())
+    
+    return None
+
+
 def flag_rfi_aoflagger(ms: str, datacolumn: str = "data", aoflagger_path: Optional[str] = None, strategy: Optional[str] = None) -> None:
     """Flag RFI using AOFlagger (faster alternative to CASA tfcrop).
     
@@ -147,7 +170,8 @@ def flag_rfi_aoflagger(ms: str, datacolumn: str = "data", aoflagger_path: Option
         ms: Path to Measurement Set
         datacolumn: Data column to use (default: "data")
         aoflagger_path: Path to aoflagger executable, "docker" to force Docker, or None to auto-detect
-        strategy: Optional path to custom Lua strategy file (default: auto-detect)
+        strategy: Optional path to custom Lua strategy file. If None, uses DSA-110 default strategy
+                 from config/dsa110-default.lua if available, otherwise uses AOFlagger auto-detection.
     
     Raises:
         RuntimeError: If AOFlagger is not available
@@ -215,9 +239,36 @@ def flag_rfi_aoflagger(ms: str, datacolumn: str = "data", aoflagger_path: Option
     # Build command
     cmd = aoflagger_cmd.copy()
     
-    # Add strategy if provided (otherwise uses default auto-detected strategy)
-    if strategy:
-        cmd.extend(["-strategy", strategy])
+    # Determine strategy to use
+    strategy_to_use = strategy
+    if strategy_to_use is None:
+        # Try to use DSA-110 default strategy
+        default_strategy = _get_default_aoflagger_strategy()
+        if default_strategy:
+            strategy_to_use = default_strategy
+            logger.info(f"Using DSA-110 default AOFlagger strategy: {strategy_to_use}")
+        else:
+            logger.debug("No default strategy found; AOFlagger will auto-detect strategy")
+    
+    # Add strategy if we have one
+    if strategy_to_use:
+        # When using Docker, ensure the strategy path is accessible inside the container
+        if use_docker:
+            # Strategy file must be under /data or /scratch (mounted volumes)
+            strategy_path = Path(strategy_to_use)
+            if not str(strategy_path).startswith(("/data", "/scratch")):
+                # Try to find it under /data
+                strategy_name = strategy_path.name
+                docker_strategy_path = f"/data/dsa110-contimg/config/{strategy_name}"
+                if Path("/data/dsa110-contimg/config/dsa110-default.lua").exists():
+                    strategy_to_use = docker_strategy_path
+                    logger.debug(f"Using Docker-accessible strategy path: {strategy_to_use}")
+                else:
+                    logger.warning(
+                        f"Strategy file {strategy_to_use} may not be accessible in Docker container. "
+                        f"Ensure it's under /data or /scratch, or mount it explicitly."
+                    )
+        cmd.extend(["-strategy", strategy_to_use])
     
     # Add MS path (required - AOFlagger will auto-detect strategy if not specified)
     cmd.append(ms)

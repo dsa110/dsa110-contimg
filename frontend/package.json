@@ -10,7 +10,10 @@
     "preview": "vite preview",
     "test": "vitest",
     "test:ui": "vitest --ui",
-    "test:coverage": "vitest --coverage"
+    "test:coverage": "vitest --coverage",
+    "check:imports": "node scripts/check-imports.js",
+    "verify:build": "./scripts/verify-build.sh",
+    "test:skyview": "./scripts/test-skyview.sh"
   },
   "dependencies": {
     "@emotion/react": "^11.14.0",

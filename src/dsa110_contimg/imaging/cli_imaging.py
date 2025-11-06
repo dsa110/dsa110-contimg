@@ -51,7 +51,7 @@ def run_wsclean(
     pbcor: bool,
     uvrange: str,
     pblimit: float,
-    quick: bool,
+    quality_tier: str,
     wsclean_path: Optional[str] = None,
     gridder: str = "standard",
 ) -> None:
@@ -60,6 +60,13 @@ def run_wsclean(
     This function builds a WSClean command-line that matches the tclean
     parameters as closely as possible. MODEL_DATA seeding should be done
     before calling this function via CASA ft().
+    
+    Args:
+        quality_tier: Imaging quality tier ("development", "standard", or
+            "high_precision"). Development tier uses 4x coarser cell size
+            and fewer iterations for faster processing (non-science quality).
+            Data is always reordered regardless of quality tier to ensure
+            correct multi-SPW processing.
     """
     # Find WSClean executable
     # Priority: Prefer native WSClean over Docker for better performance (2-5x faster)
@@ -189,14 +196,9 @@ def run_wsclean(
         LOG.debug("Enabled wide-field gridding (WGridder)")
     
     # Reordering (required for multi-spw, but can be slow - only if needed)
-    # For single-spw or already-ordered MS, skip to save time
-    if quick:
-        # In quick mode, skip reorder if not absolutely necessary (faster)
-        # Reorder is only needed if MS has multiple SPWs with different channel ordering
-        # For most cases, we can skip it for speed
-        pass  # Skip reorder in quick mode
-    else:
-        cmd.append("-reorder")
+    # CRITICAL: Always reorder data - required for correct multi-SPW processing
+    # Reorder ensures proper channel ordering across subbands
+    cmd.append("-reorder")
     
     # Auto-masking (helps with convergence)
     cmd.extend(["-auto-mask", "3"])
@@ -210,10 +212,10 @@ def run_wsclean(
     LOG.debug(f"Using {num_threads} threads for WSClean")
     
     # Memory limit (optimized for performance)
-    # Quick mode: Use more memory for faster gridding/FFT (16GB default)
+    # Development tier: Use more memory for faster gridding/FFT (16GB default)
     # Production mode: Scale with image size (16-32GB)
-    if quick:
-        # Quick mode: Allow more memory for speed (10-30% faster gridding)
+    if quality_tier == "development":
+        # Development tier: Allow more memory for speed (10-30% faster gridding)
         abs_mem = os.getenv("WSCLEAN_ABS_MEM", "16")
     else:
         # Production mode: Scale with image size
@@ -292,7 +294,7 @@ def image_ms(
     uvrange: str = "",
     pblimit: float = 0.2,
     psfcutoff: Optional[float] = None,
-    quick: bool = False,
+    quality_tier: str = "standard",
     skip_fits: bool = False,
     vptable: Optional[str] = None,
     wbawp: Optional[bool] = None,
@@ -309,6 +311,17 @@ def image_ms(
     
     Supports both CASA tclean and WSClean backends. WSClean is the default.
     Automatically selects CORRECTED_DATA when present, otherwise uses DATA.
+    
+    Quality Tiers:
+        - development: 4x coarser cell size, max 300 iterations, NVSS threshold 10 mJy.
+          NON-SCIENCE QUALITY - for code testing only. Data is always reordered.
+        - standard: Full quality imaging (recommended for science).
+        - high_precision: Enhanced settings with 2000+ iterations, NVSS threshold 5 mJy.
+    
+    NVSS Seeding:
+        When pbcor=True, NVSS sources are limited to the primary beam extent
+        (based on pblimit) to avoid including sources beyond the corrected region.
+        The seeding radius is calculated from the primary beam FWHM and pblimit.
     """
     from dsa110_contimg.utils.validation import validate_corrected_data_quality
     
@@ -459,12 +472,21 @@ def image_ms(
     imsize = calculated_imsize
     cell = f"{cell_arcsec:.3f}arcsec"
     
-    if quick:
-        # Quick mode: maintain 3.5° extent but use coarser cell size (2x default)
-        # This reduces computational cost while maintaining field of view
+    # Apply quality tier settings
+    if quality_tier == "development":
+        # ⚠️  NON-SCIENCE QUALITY - For code testing only
+        LOG.warning(
+            "=" * 80 + "\n"
+            "⚠️  DEVELOPMENT TIER: NON-SCIENCE QUALITY\n"
+            "   This tier uses coarser resolution and fewer iterations.\n"
+            "   NEVER use for actual science observations or ESE detection.\n"
+            "   Results will have reduced angular resolution and deconvolution quality.\n"
+            "=" * 80
+        )
+        # Coarser resolution (4x default cell size)
         default_cell = default_cell_arcsec(ms_path)
         if abs(cell_arcsec - default_cell) < 0.01:  # Only adjust if using default cell size
-            cell_arcsec = cell_arcsec * 2.0
+            cell_arcsec = cell_arcsec * 4.0
             # Recalculate imsize for new cell size
             calculated_imsize = int(np.ceil(desired_extent_arcsec / cell_arcsec))
             if calculated_imsize % 2 != 0:
@@ -472,31 +494,34 @@ def image_ms(
             imsize = calculated_imsize
             cell = f"{cell_arcsec:.3f}arcsec"
             LOG.info(
-                "Quick mode: using coarser cell size (%.3f arcsec) to maintain 3.5° extent with reduced resolution",
+                "Development tier: using coarser cell size (%.3f arcsec) - NON-SCIENCE QUALITY",
                 cell_arcsec
             )
-        niter = min(niter, 300)
-        threshold = threshold or "0.0Jy"
-        weighting = weighting or "briggs"
-        robust = robust if robust is not None else 0.0
-        # Default NVSS seeding threshold in quick mode when not explicitly provided
+        niter = min(niter, 300)  # Fewer iterations
+        # Lower NVSS seeding threshold for faster convergence
         if nvss_min_mjy is None:
-            try:
-                env_val = os.getenv("CONTIMG_QUICK_NVSS_MIN_MJY")
-                nvss_min_mjy = float(env_val) if env_val is not None else 10.0
-            except Exception:
-                nvss_min_mjy = 10.0
-            LOG.info(
-                "Quick mode: defaulting NVSS seeding threshold to %s mJy",
-                nvss_min_mjy,
-            )
+            nvss_min_mjy = 10.0
+            LOG.info("Development tier: NVSS seeding threshold set to %s mJy (NON-SCIENCE)", nvss_min_mjy)
+
+    elif quality_tier == "standard":
+        # Recommended for all science observations - no compromises
+        LOG.info("Standard tier: full quality imaging (recommended for science)")
+        # Use default settings optimized for science quality
+
+    elif quality_tier == "high_precision":
+        # Enhanced quality for critical observations
+        LOG.info("High precision tier: enhanced quality settings (slower)")
+        niter = max(niter, 2000)  # More iterations for better deconvolution
+        if nvss_min_mjy is None:
+            nvss_min_mjy = 5.0  # Lower threshold for cleaner sky model
+            LOG.info("High precision tier: NVSS seeding threshold set to %s mJy", nvss_min_mjy)
     LOG.info("Imaging %s -> %s", ms_path, imagename)
     LOG.info(
-        "datacolumn=%s cell=%s imsize=%d quick=%s",
+        "datacolumn=%s cell=%s imsize=%d quality_tier=%s",
         datacolumn,
         cell,
         imsize,
-        quick,
+        quality_tier,
     )
 
     # Build common kwargs for tclean, adding optional params only when needed
@@ -592,7 +617,10 @@ def image_ms(
                     pass
             if ra0_deg is None or dec0_deg is None:
                 raise RuntimeError("FIELD::PHASE_DIR not available")
-            # radius_deg computed above
+            
+            # Limit NVSS seeding radius to primary beam extent when pbcor is enabled
+            # Primary beam FWHM at 1.4 GHz: ~3.2 degrees (1.22 * lambda / D)
+            # Use pblimit to determine effective radius (typically 20% of peak = ~1.6 deg radius)
             # Mean observing frequency
             freq_ghz = 1.4
             try:
@@ -601,18 +629,43 @@ def image_ms(
                     freq_ghz = float(np.nanmean(ch)) / 1e9
             except Exception:
                 pass
+            
+            # Calculate primary beam radius based on pblimit
+            # Primary beam FWHM = 1.22 * lambda / D
+            # For DSA-110: D = 4.7 m, lambda = c / (freq_ghz * 1e9)
+            # At pblimit=0.2, effective radius is approximately FWHM * sqrt(-ln(0.2)) / sqrt(-ln(0.5))
+            import math
+            c_mps = 299792458.0
+            dish_dia_m = 4.7
+            lambda_m = c_mps / (freq_ghz * 1e9)
+            fwhm_rad = 1.22 * lambda_m / dish_dia_m
+            fwhm_deg = math.degrees(fwhm_rad)
+            
+            # Calculate radius at pblimit (Airy pattern: PB = (2*J1(x)/x)^2, solve for PB = pblimit)
+            # Approximate: radius at pblimit ≈ FWHM * sqrt(-ln(pblimit)) / sqrt(-ln(0.5))
+            if pbcor and pblimit > 0:
+                pb_radius_deg = fwhm_deg * math.sqrt(-math.log(pblimit)) / math.sqrt(-math.log(0.5))
+                # Use the smaller of image radius or primary beam radius
+                nvss_radius_deg = min(radius_deg, pb_radius_deg)
+                LOG.info(
+                    "Limiting NVSS seeding to primary beam extent: %.2f deg (pblimit=%.2f, FWHM=%.2f deg)",
+                    nvss_radius_deg, pblimit, fwhm_deg
+                )
+            else:
+                nvss_radius_deg = radius_deg
+            
             cl_path = f"{imagename}.nvss_{float(nvss_min_mjy):g}mJy.cl"
             LOG.info(
                 "Creating NVSS componentlist (>%s mJy, radius %.2f deg, center RA=%.6f° Dec=%.6f°)",
                 nvss_min_mjy,
-                radius_deg,
+                nvss_radius_deg,
                 ra0_deg,
                 dec0_deg,
             )
             make_nvss_component_cl(
                 ra0_deg,
                 dec0_deg,
-                radius_deg,
+                nvss_radius_deg,
                 min_mjy=float(nvss_min_mjy),
                 freq_ghz=freq_ghz,
                 out_path=cl_path,
@@ -625,7 +678,7 @@ def image_ms(
             LOG.info(
                 "Seeded MODEL_DATA with NVSS skymodel (>%s mJy, radius %.2f deg)",
                 nvss_min_mjy,
-                radius_deg,
+                nvss_radius_deg,
             )
             
             # Export MODEL_DATA as FITS image if requested
@@ -689,7 +742,7 @@ def image_ms(
             pbcor=pbcor,
             uvrange=uvrange,
             pblimit=pblimit,
-            quick=quick,
+            quality_tier=quality_tier,
             wsclean_path=wsclean_path,
             gridder=gridder,
         )

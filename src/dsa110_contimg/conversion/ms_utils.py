@@ -15,7 +15,6 @@ readiness across the pipeline.
 from __future__ import annotations
 
 import os
-from typing import Optional  # noqa: F401 (imported for potential future use)
 
 
 def _ensure_imaging_columns_exist(ms_path: str) -> None:
@@ -189,6 +188,239 @@ def _fix_mount_type_in_ms(ms_path: str) -> None:
         pass
 
 
+def _fix_field_phase_centers_from_times(ms_path: str) -> None:
+    """Fix FIELD table PHASE_DIR/REFERENCE_DIR with correct time-dependent RA values.
+    
+    This function corrects a bug where pyuvdata.write_ms() may assign incorrect RA
+    values to fields when using time-dependent phase centers. For meridian-tracking
+    phasing (RA = LST), each field should have RA corresponding to LST at that field's
+    time, not a single midpoint RA.
+    
+    The function:
+    1. Reads the main table to determine which times correspond to which FIELD_ID
+    2. For each field, calculates the correct RA = LST(time) at that field's time
+    3. Updates PHASE_DIR and REFERENCE_DIR in the FIELD table with correct values
+    
+    Args:
+        ms_path: Path to Measurement Set
+    """
+    try:
+        from casacore.tables import table as _tb  # type: ignore
+        import numpy as _np
+        import astropy.units as u  # type: ignore
+        from dsa110_contimg.conversion.helpers_coordinates import get_meridian_coords
+    except ImportError:
+        # Non-fatal: if dependencies aren't available, skip this fix
+        return
+    
+    try:
+        # Read main table to get FIELD_ID and TIME mapping
+        with _tb(ms_path, readonly=True, ack=False) as main_table:
+            if main_table.nrows() == 0:
+                return
+            
+            field_ids = main_table.getcol('FIELD_ID')
+            times = main_table.getcol('TIME')  # CASA TIME is in seconds since MJD epoch
+            
+            # Get unique field IDs and their corresponding times
+            unique_field_ids = _np.unique(field_ids)
+            field_times = {}
+            for fid in unique_field_ids:
+                mask = field_ids == fid
+                field_times[int(fid)] = _np.mean(times[mask])  # Use mean time for the field
+        
+        # Read FIELD table
+        with _tb(ms_path + '::FIELD', readonly=False) as field_table:
+            nfields = field_table.nrows()
+            if nfields == 0:
+                return
+            
+            # Get current PHASE_DIR and REFERENCE_DIR
+            has_phase_dir = 'PHASE_DIR' in field_table.colnames()
+            has_ref_dir = 'REFERENCE_DIR' in field_table.colnames()
+            
+            if not has_phase_dir and not has_ref_dir:
+                return  # Can't fix if neither column exists
+            
+            phase_dir = field_table.getcol('PHASE_DIR') if has_phase_dir else None
+            ref_dir = field_table.getcol('REFERENCE_DIR') if has_ref_dir else None
+            
+            # Get pointing declination from first field (should be constant)
+            if phase_dir is not None:
+                pt_dec_rad = phase_dir[0, 0, 1]  # Dec from first field
+            elif ref_dir is not None:
+                pt_dec_rad = ref_dir[0, 0, 1]
+            else:
+                return
+            
+            pt_dec = pt_dec_rad * u.rad
+            
+            # Get telescope location from OBSERVATION table or use DSA-110 default
+            # Note: location is used implicitly by get_meridian_coords() which uses
+            # DSA-110 coordinates internally, so we don't need to store it here
+            try:
+                with _tb(ms_path + '::OBSERVATION', readonly=True) as obs_table:
+                    # Check telescope name for potential future use, but get_meridian_coords
+                    # already uses correct DSA-110 coordinates internally
+                    if obs_table.nrows() > 0 and 'TELESCOPE_NAME' in obs_table.colnames():
+                        _tel_name = obs_table.getcol('TELESCOPE_NAME')[0]
+                        # get_meridian_coords() uses DSA-110 coordinates internally
+            except Exception:
+                # get_meridian_coords() uses DSA-110 coordinates internally, so no action needed
+                pass
+            
+            # Fix each field's phase center
+            updated = False
+            for field_idx in range(nfields):
+                # Get time for this field (CASA TIME is seconds since MJD epoch)
+                if field_idx in field_times:
+                    time_sec = field_times[field_idx]
+                    # Convert CASA TIME to MJD
+                    # CASA TIME = (MJD - 51544.0) * 86400.0 (MJD epoch is 2000-01-01)
+                    time_mjd = 51544.0 + time_sec / 86400.0
+                else:
+                    # Fallback: use mean time from main table
+                    time_mjd = 51544.0 + _np.mean(times) / 86400.0
+                
+                # Calculate correct RA = LST(time) at meridian
+                phase_ra, phase_dec = get_meridian_coords(pt_dec, time_mjd)
+                ra_rad = float(phase_ra.to_value(u.rad))
+                dec_rad = float(phase_dec.to_value(u.rad))
+                
+                # Update PHASE_DIR if it exists
+                if has_phase_dir:
+                    current_ra = phase_dir[field_idx, 0, 0]
+                    current_dec = phase_dir[field_idx, 0, 1]
+                    # Only update if significantly different (more than 1 arcsec)
+                    ra_diff_rad = abs(ra_rad - current_ra)
+                    dec_diff_rad = abs(dec_rad - current_dec)
+                    if ra_diff_rad > _np.deg2rad(1.0 / 3600.0) or dec_diff_rad > _np.deg2rad(1.0 / 3600.0):
+                        phase_dir[field_idx, 0, 0] = ra_rad
+                        phase_dir[field_idx, 0, 1] = dec_rad
+                        updated = True
+                
+                # Update REFERENCE_DIR if it exists
+                if has_ref_dir:
+                    current_ra = ref_dir[field_idx, 0, 0]
+                    current_dec = ref_dir[field_idx, 0, 1]
+                    # Only update if significantly different (more than 1 arcsec)
+                    ra_diff_rad = abs(ra_rad - current_ra)
+                    dec_diff_rad = abs(dec_rad - current_dec)
+                    if ra_diff_rad > _np.deg2rad(1.0 / 3600.0) or dec_diff_rad > _np.deg2rad(1.0 / 3600.0):
+                        ref_dir[field_idx, 0, 0] = ra_rad
+                        ref_dir[field_idx, 0, 1] = dec_rad
+                        updated = True
+            
+            # Write back updated values
+            if updated:
+                if has_phase_dir:
+                    field_table.putcol('PHASE_DIR', phase_dir)
+                if has_ref_dir:
+                    field_table.putcol('REFERENCE_DIR', ref_dir)
+    except Exception:
+        # Non-fatal: if fixing fails, log warning but don't crash
+        import logging
+        logger = logging.getLogger(__name__)
+        logger.warning("Could not fix FIELD table phase centers (non-fatal)", exc_info=True)
+
+
+def _fix_observation_time_range(ms_path: str) -> None:
+    """
+    Fix OBSERVATION table TIME_RANGE by reading from main table TIME column.
+    
+    This corrects MS files where OBSERVATION table TIME_RANGE is [0, 0] or invalid.
+    The TIME column in the main table is the authoritative source.
+    
+    Uses the same format detection logic as extract_ms_time_range() to handle
+    both TIME formats (seconds since MJD 0 vs seconds since MJD 51544.0).
+    
+    Parameters
+    ----------
+    ms_path : str
+        Path to Measurement Set
+    """
+    try:
+        from casacore.tables import table as _tb
+        from dsa110_contimg.utils.time_utils import (
+            detect_casa_time_format, validate_time_mjd, DEFAULT_YEAR_RANGE
+        )
+        import numpy as _np
+    except Exception:
+        return
+    
+    try:
+        # Read TIME column from main table (authoritative source)
+        with _tb(ms_path, readonly=True) as main_tb:
+            if 'TIME' not in main_tb.colnames() or main_tb.nrows() == 0:
+                return
+            
+            times = main_tb.getcol('TIME')
+            if len(times) == 0:
+                return
+            
+            t0_sec = float(_np.min(times))
+            t1_sec = float(_np.max(times))
+        
+        # Detect correct format using the same logic as extract_ms_time_range()
+        # This handles both formats: seconds since MJD 0 vs seconds since MJD 51544.0
+        _, start_mjd = detect_casa_time_format(t0_sec, DEFAULT_YEAR_RANGE)
+        _, end_mjd = detect_casa_time_format(t1_sec, DEFAULT_YEAR_RANGE)
+        
+        # Validate using astropy
+        if not (validate_time_mjd(start_mjd, DEFAULT_YEAR_RANGE) and
+                validate_time_mjd(end_mjd, DEFAULT_YEAR_RANGE)):
+            # Invalid dates, skip update
+            return
+        
+        # OBSERVATION table TIME_RANGE should be in the same format as the main table TIME
+        # (seconds, not MJD days). Use the raw seconds values directly.
+        # Shape should be [2] (start, end), not [1, 2]
+        time_range_sec = _np.array([t0_sec, t1_sec], dtype=_np.float64)
+        
+        # Update OBSERVATION table
+        with _tb(f"{ms_path}::OBSERVATION", readonly=False) as obs_tb:
+            if obs_tb.nrows() == 0:
+                return
+            
+            if 'TIME_RANGE' not in obs_tb.colnames():
+                return
+            
+            # Check if TIME_RANGE is invalid (all zeros or very small)
+            existing_tr = obs_tb.getcol('TIME_RANGE')
+            if existing_tr is not None and len(existing_tr) > 0:
+                # Handle both shapes: (2, 1) and (2,)
+                if existing_tr.shape[0] >= 2:
+                    # Shape is (2, 1) or (2, N) - access as [row][col]
+                    existing_t0 = float(_np.asarray(existing_tr[0]).flat[0])
+                    existing_t1 = float(_np.asarray(existing_tr[1]).flat[0])
+                else:
+                    # Shape is (2,) - flat array
+                    existing_t0 = float(_np.asarray(existing_tr).flat[0])
+                    existing_t1 = float(_np.asarray(existing_tr).flat[1]) if len(existing_tr) > 1 else existing_t0
+                
+                # Only update if TIME_RANGE is invalid (zero or very small)
+                if existing_t0 > 1.0 and existing_t1 > existing_t0:
+                    # TIME_RANGE is already valid, don't overwrite
+                    return
+            
+            # Update TIME_RANGE for all observation rows
+            for row in range(obs_tb.nrows()):
+                obs_tb.putcell('TIME_RANGE', row, time_range_sec)
+        
+        import logging
+        logger = logging.getLogger(__name__)
+        logger.debug(
+            f"Fixed OBSERVATION table TIME_RANGE for {ms_path}: "
+            f"{t0_sec:.1f} to {t1_sec:.1f} seconds "
+            f"({start_mjd:.8f} to {end_mjd:.8f} MJD)"
+        )
+    except Exception:
+        # Non-fatal: best-effort fix only
+        import logging
+        logger = logging.getLogger(__name__)
+        logger.warning("Could not fix OBSERVATION table TIME_RANGE (non-fatal)", exc_info=True)
+
+
 def configure_ms_for_imaging(
     ms_path: str,
     *,
@@ -239,7 +471,9 @@ def configure_ms_for_imaging(
         'flag_weight': 'skipped', 
         'initweights': 'skipped',
         'mount_fix': 'skipped',
-        'telescope_stamp': 'skipped'
+        'telescope_stamp': 'skipped',
+        'field_phase_centers': 'skipped',
+        'observation_time_range': 'skipped'
     }
 
     if ensure_columns:
@@ -278,8 +512,7 @@ def configure_ms_for_imaging(
     if stamp_observation_telescope:
         try:
             from casacore.tables import table as _tb  # type: ignore
-            import os as _os
-            name = _os.getenv("PIPELINE_TELESCOPE_NAME", "DSA_110")
+            name = os.getenv("PIPELINE_TELESCOPE_NAME", "DSA_110")
             with _tb(ms_path + '::OBSERVATION', readonly=False) as tb:
                 n = tb.nrows()
                 if n:
@@ -288,6 +521,22 @@ def configure_ms_for_imaging(
         except Exception as e:
             operations_status['telescope_stamp'] = f'failed: {e}'
             # Non-fatal: telescope name stamping is optional
+    
+    # Fix FIELD table phase centers (corrects RA assignment bug)
+    try:
+        _fix_field_phase_centers_from_times(ms_path)
+        operations_status['field_phase_centers'] = 'success'
+    except Exception as e:
+        operations_status['field_phase_centers'] = f'failed: {e}'
+        # Non-fatal: field phase center fix is best-effort
+    
+    # Fix OBSERVATION table TIME_RANGE (corrects missing/invalid time range)
+    try:
+        _fix_observation_time_range(ms_path)
+        operations_status['observation_time_range'] = 'success'
+    except Exception as e:
+        operations_status['observation_time_range'] = f'failed: {e}'
+        # Non-fatal: observation time range fix is best-effort
     
     # Summary logging - report what worked and what didn't
     import logging
@@ -319,4 +568,6 @@ __all__ = [
     '_ensure_flag_and_weight_spectrum',
     '_initialize_weights',
     '_fix_mount_type_in_ms',
+    '_fix_field_phase_centers_from_times',
+    '_fix_observation_time_range',
 ]

@@ -488,6 +488,7 @@ def run_image_job(job_id: int, ms_path: str, params: dict, products_db: Path):
     gridder = params.get("gridder", "wproject")
     wprojplanes = params.get("wprojplanes", -1)
     datacolumn = params.get("datacolumn", "corrected")
+    quality_tier = params.get("quality_tier", "standard")
     skip_fits = params.get("skip_fits", True)
 
     py = _python_cmd_for_jobs()
@@ -502,6 +503,8 @@ def run_image_job(job_id: int, ms_path: str, params: dict, products_db: Path):
         gridder,
         "--wprojplanes",
         str(wprojplanes),
+        "--quality-tier",
+        quality_tier,
         "--verbose",
     ]
     if skip_fits:

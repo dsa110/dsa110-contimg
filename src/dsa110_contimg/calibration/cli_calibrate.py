@@ -22,7 +22,7 @@ from dsa110_contimg.utils.validation import (
 )
 from dsa110_contimg.utils.cli_helpers import configure_logging_from_args
 from dsa110_contimg.utils.performance import track_performance
-from dsa110_contimg.utils.error_context import format_ms_error_with_suggestions
+from dsa110_contimg.utils.error_context import format_ms_error_with_suggestions, format_error_with_context
 from .flagging import (
     reset_flags, flag_zeros, flag_rfi, flag_antenna, flag_baselines,
     flag_manual, flag_shadow, flag_quack, flag_elevation, flag_clip,
@@ -144,10 +144,10 @@ def add_calibrate_parser(subparsers: argparse._SubParsersAction) -> argparse.Arg
     parser.add_argument(
     "--flagging-mode",
     choices=["none", "zeros", "rfi"],
-    default="zeros",
+    default="rfi",
     help=(
-    "Pre-solve flagging mode: none (no flagging), zeros (clip zeros), rfi (zeros + tfcrop+rflag). "
-    "Recommended for calibrators: zeros"
+    "Pre-solve flagging mode: none (no flagging), zeros (clip zeros), rfi (zeros + AOFlagger). "
+    "Default: rfi (uses AOFlagger for RFI detection)"
     ),
     )
     parser.add_argument(
@@ -387,13 +387,12 @@ def add_calibrate_parser(subparsers: argparse._SubParsersAction) -> argparse.Arg
     )
     parser.add_argument(
     "--preset",
-    choices=["fast", "standard", "production", "test"],
+    choices=["development", "standard", "high_precision"],
     help=(
-    "Use preset calibration configuration to simplify common workflows.\n"
-    "  fast: Fast subset mode (timebin=30s, chanbin=4, phase-only gains, uvrange cuts)\n"
-    "  standard: Full MS, amp+phase gains, no subset (recommended for production)\n"
-    "  production: Full MS, optimized for quality\n"
-    "  test: Minimal mode for quick tests\n"
+    "Use preset calibration quality tiers with explicit trade-offs.\n"
+    "  development: ⚠️  NON-SCIENCE - aggressive subsetting for code testing only\n"
+    "  standard: Recommended for all science observations (full quality)\n"
+    "  high_precision: Enhanced settings for maximum quality (slower)\n"
     "Individual flags override preset values."
     ),
     )
@@ -508,8 +507,17 @@ def handle_calibrate(args: argparse.Namespace) -> int:
         
     # Apply preset if specified (presets can be overridden by individual flags)
     if args.preset:
-        logger.info(f"Applying preset: {args.preset}")
-        if args.preset == "fast":
+        logger.info(f"Applying quality tier: {args.preset}")
+        if args.preset == "development":
+            # ⚠️  NON-SCIENCE QUALITY - For code testing only
+            logger.warning(
+                "=" * 80 + "\n"
+                "⚠️  DEVELOPMENT TIER: NON-SCIENCE QUALITY\n"
+                "   This tier uses aggressive subsetting and compromises calibration quality.\n"
+                "   NEVER use for actual science observations or ESE detection.\n"
+                "   Results will have reduced SNR, resolution, and accuracy.\n"
+                "=" * 80
+            )
             if not args.timebin:
                 args.timebin = "30s"
             if not args.chanbin:
@@ -518,27 +526,38 @@ def handle_calibrate(args: argparse.Namespace) -> int:
                 args.uvrange = ">1klambda"
             if args.gain_calmode == "ap":  # Only override if not explicitly set
                 args.gain_calmode = "p"
-            # Enable fast mode for preset
             args.fast = True
-            logger.info("Fast preset: timebin=30s, chanbin=4, phase-only gains, uvrange cuts")
+            logger.info("Development tier: timebin=30s, chanbin=4, phase-only gains, uvrange cuts (NON-SCIENCE)")
         elif args.preset == "standard":
+            # Recommended for all science observations
             args.fast = False
             args.minimal = False
             if args.gain_calmode == "p":  # Only override if not explicitly set
                 args.gain_calmode = "ap"
-            logger.info("Standard preset: full MS, amp+phase gains, no subset")
-        elif args.preset == "production":
+            logger.info("Standard tier: full MS, amp+phase gains, no subset (recommended for science)")
+        elif args.preset == "high_precision":
+            # Enhanced quality for critical observations
             args.fast = False
             args.minimal = False
             args.gain_calmode = "ap"
             if not args.gain_solint or args.gain_solint == "inf":
-                args.gain_solint = "int"  # Per-integration for production
-            logger.info("Production preset: full MS, optimized for quality")
-        elif args.preset == "test":
-            args.minimal = True
-            args.fast = False
-            logger.info("Test preset: minimal mode for quick tests")
-        
+                args.gain_solint = "int"  # Per-integration for maximum quality
+            if not args.gain_minsnr:
+                args.gain_minsnr = 5.0  # Higher SNR threshold
+            logger.info("High precision tier: full MS, per-integration solutions, enhanced quality (slower)")
+
+    # STRICT SEPARATION: Development tier produces NON_SCIENCE calibration tables
+    # that cannot be applied to production data
+    if args.preset == "development":
+        # Force unique naming to prevent accidental application to production data
+        args.table_prefix_override = "NON_SCIENCE_DEVELOPMENT"
+        logger.warning(
+            "⚠️  STRICT SEPARATION: Development tier calibration tables will be prefixed with 'NON_SCIENCE_DEVELOPMENT'"
+        )
+        logger.warning(
+            "   These tables CANNOT and MUST NOT be applied to production/science data"
+        )
+
     # Handle --no-subset flag (disables automatic subset creation)
     if args.no_subset:
         args.fast = False
@@ -1632,6 +1651,7 @@ def handle_calibrate(args: argparse.Namespace) -> int:
             ms_in,
             k_field_sel,
             refant,
+            table_prefix=getattr(args, 'table_prefix_override', None),
             combine_spw=args.combine_spw,
             uvrange=(
                 (args.uvrange or "")
@@ -1700,6 +1720,7 @@ def handle_calibrate(args: argparse.Namespace) -> int:
             field_sel,
             refant,
             None,  # K-table not used for DSA-110
+            table_prefix=getattr(args, 'table_prefix_override', None),
             combine_fields=bool(args.bp_combine_field),
             combine_spw=args.combine_spw,
             uvrange=bp_uvrange,
@@ -1741,31 +1762,44 @@ def handle_calibrate(args: argparse.Namespace) -> int:
                 logger.warning(f"Failed to export model image: {e}")
         
     gtabs = []
-    if not args.skip_g:
-        logger.info(f"[{step_num}/6] Solving gain (G) calibration...")
-        t_g0 = time.perf_counter()
-        # Determine phase_only based on gain_calmode
-        # NOTE: K-table is NOT passed to gains (K-calibration not used for DSA-110)
-        phase_only = (args.gain_calmode == "p") or bool(args.fast)
-        gtabs = solve_gains(
-            ms_in,
-            field_sel,
-            refant,
-            None,  # K-table not used for DSA-110
-            bptabs,
-            combine_fields=bool(args.bp_combine_field),
-            phase_only=phase_only,
-            uvrange=(
-                (args.uvrange or "")
-                if args.fast
-                else ""
-            ),
-            solint=args.gain_solint,
-            minsnr=float(getattr(args, 'gain_minsnr', 3.0)),
-            peak_field_idx=peak_field_idx if 'peak_field_idx' in locals() else None,
-        )
-        elapsed_g = time.perf_counter() - t_g0
-        logger.info(f"✓ [{step_num}/6] Gain solve completed in {elapsed_g:.2f}s")
+    try:
+        if not args.skip_g:
+            logger.info(f"[{step_num}/6] Solving gain (G) calibration...")
+            t_g0 = time.perf_counter()
+            # Determine phase_only based on gain_calmode
+            # NOTE: K-table is NOT passed to gains (K-calibration not used for DSA-110)
+            phase_only = (args.gain_calmode == "p") or bool(args.fast)
+            gtabs = solve_gains(
+                ms_in,
+                field_sel,
+                refant,
+                None,  # K-table not used for DSA-110
+                bptabs,
+                table_prefix=getattr(args, 'table_prefix_override', None),
+                combine_fields=bool(args.bp_combine_field),
+                phase_only=phase_only,
+                uvrange=(
+                    (args.uvrange or "")
+                    if args.fast
+                    else ""
+                ),
+                solint=args.gain_solint,
+                minsnr=float(getattr(args, 'gain_minsnr', 3.0)),
+                peak_field_idx=peak_field_idx if 'peak_field_idx' in locals() else None,
+            )
+            elapsed_g = time.perf_counter() - t_g0
+            logger.info(f"✓ [{step_num}/6] Gain solve completed in {elapsed_g:.2f}s")
+    except Exception as e:
+        from dsa110_contimg.utils.error_context import format_error_with_context
+        context = {
+            'operation': 'calibration solves',
+            'ms_path': ms_in,
+            'field': field_sel,
+            'refant': refant
+        }
+        error_msg = format_error_with_context(e, context)
+        logger.error(error_msg)
+        sys.exit(1)
 
     tabs = (ktabs[:1] if ktabs else []) + bptabs + gtabs
     logger.info(f"[6/6] Calibration complete!")
