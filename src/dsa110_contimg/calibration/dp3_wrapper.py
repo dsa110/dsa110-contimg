@@ -48,18 +48,18 @@ def _find_dp3_executable() -> Optional[str]:
     if docker_cmd:
         # Check if DP3 Docker image exists (try multiple possible names)
         for image_name in ["dp3:latest", "dp3-everybeam-0.7.4:latest", "dp3-everybeam-0.7.4"]:
-            try:
-                result = subprocess.run(
+        try:
+            result = subprocess.run(
                     [docker_cmd, "images", "-q", image_name],
-                    capture_output=True,
-                    text=True,
-                    check=False,
-                )
-                if result.stdout.strip():
+                capture_output=True,
+                text=True,
+                check=False,
+            )
+            if result.stdout.strip():
                     # Use the image name that was found
                     # Mount /tmp as well for temporary files
                     return f"{docker_cmd} run --rm -v /scratch:/scratch -v /data:/data -v /tmp:/tmp {image_name} DP3"
-            except Exception:
+        except Exception:
                 continue
     
     return None

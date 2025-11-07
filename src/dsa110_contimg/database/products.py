@@ -143,6 +143,7 @@ def ensure_products_db(path: Path) -> sqlite3.Connection:
             g_metrics TEXT,
             overall_quality TEXT,
             flags_total REAL,
+            per_spw_stats TEXT,
             timestamp REAL NOT NULL
         )
         """

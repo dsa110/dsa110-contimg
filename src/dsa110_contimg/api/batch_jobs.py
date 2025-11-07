@@ -154,6 +154,27 @@ def extract_calibration_qa(ms_path: str, job_id: int, caltables: Dict[str, str])
                     "amp_mean": float(amp_mean) if amp_mean is not None else None,
                     "amp_std": float(amp_std) if amp_std is not None else None,
                 }
+                
+                # Extract per-SPW statistics
+                try:
+                    from dsa110_contimg.qa.calibration_quality import analyze_per_spw_flagging
+                    spw_stats = analyze_per_spw_flagging(caltables["bp"])
+                    qa_metrics["per_spw_stats"] = [
+                        {
+                            "spw_id": s.spw_id,
+                            "total_solutions": s.total_solutions,
+                            "flagged_solutions": s.flagged_solutions,
+                            "fraction_flagged": s.fraction_flagged,
+                            "n_channels": s.n_channels,
+                            "channels_with_high_flagging": s.channels_with_high_flagging,
+                            "avg_flagged_per_channel": s.avg_flagged_per_channel,
+                            "max_flagged_in_channel": s.max_flagged_in_channel,
+                            "is_problematic": bool(s.is_problematic),
+                        }
+                        for s in spw_stats
+                    ]
+                except Exception as e:
+                    logger.warning(f"Failed to extract per-SPW statistics for {ms_path}: {e}")
             except Exception as e:
                 logger.warning(f"Failed to extract BP QA for {ms_path}: {e}")
         

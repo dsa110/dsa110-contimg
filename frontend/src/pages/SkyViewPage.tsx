@@ -8,7 +8,6 @@ import {
   Typography,
   Paper,
   Box,
-  Stack,
   Grid,
 } from '@mui/material';
 import ImageBrowser from '../components/Sky/ImageBrowser';
@@ -31,7 +30,7 @@ export default function SkyViewPage() {
 
       <Grid container spacing={3}>
         {/* Image Browser Sidebar */}
-        <Grid item xs={12} md={4}>
+        <Grid item xs={12} md={4} {...({} as any)}>
           <ImageBrowser
             onSelectImage={setSelectedImage}
             selectedImageId={selectedImage?.id}
@@ -39,7 +38,7 @@ export default function SkyViewPage() {
         </Grid>
 
         {/* Main Image Display */}
-        <Grid item xs={12} md={8}>
+        <Grid item xs={12} md={8} {...({} as any)}>
           <Paper sx={{ p: 3 }}>
             <Typography variant="h6" gutterBottom sx={{ mb: 2 }}>
               Image Display

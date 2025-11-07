@@ -97,8 +97,16 @@ Visual overview: see `docs/pipeline.md` for diagrams of the end-to-end pipeline 
   - `PIPELINE_STATE_DIR` (e.g., `state`)
   - `HDF5_USE_FILE_LOCKING=FALSE` (recommended)
   - `OMP_NUM_THREADS`, `MKL_NUM_THREADS` (e.g., 4)
+- PIPELINE FRAMEWORK
+  - The new pipeline orchestration framework is now the default and only implementation
+    - All job execution uses direct function calls (no subprocess overhead)
+    - Declarative pipeline with dependency resolution, retry policies, and improved error handling
+    - Legacy subprocess-based code has been archived to `archive/legacy/api/job_runner_legacy.py`
+    - See `src/dsa110_contimg/pipeline/` for the framework implementation
+    - See `docs/migration/LEGACY_CLEANUP_PLAN.md` for details on the cleanup
 - STREAMING
-  - `PIPELINE_POINTING_DEC_DEG`, `VLA_CALIBRATOR_CSV`, `CAL_MATCH_RADIUS_DEG`, `CAL_MATCH_TOPN` (optional calibrator matching)
+  - `PIPELINE_POINTING_DEC_DEG`, `VLA_CATALOG`, `CAL_MATCH_RADIUS_DEG`, `CAL_MATCH_TOPN` (optional calibrator matching)
+  - Note: `VLA_CATALOG` can point to SQLite database (preferred) or CSV file. System automatically prefers SQLite at `state/catalogs/vla_calibrators.sqlite3` if available.
 - IMAGING
   - `IMG_IMSIZE`, `IMG_ROBUST`, `IMG_NITER`, `IMG_THRESHOLD`
 

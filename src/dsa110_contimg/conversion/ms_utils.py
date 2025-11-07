@@ -18,40 +18,129 @@ import os
 
 
 def _ensure_imaging_columns_exist(ms_path: str) -> None:
-    """Add MODEL_DATA and CORRECTED_DATA columns if missing."""
+    """Add MODEL_DATA and CORRECTED_DATA columns if missing.
+    
+    Raises:
+        RuntimeError: If column creation fails and columns don't already exist
+    """
+    import logging
+    logger = logging.getLogger(__name__)
+    
     try:
         from casacore.tables import addImagingColumns as _addImCols  # type: ignore
+        from casacore.tables import table as _tb
+        
+        # Check if columns already exist before attempting creation
+        with _tb(ms_path, readonly=True) as tb:
+            colnames = set(tb.colnames())
+            has_model = 'MODEL_DATA' in colnames
+            has_corrected = 'CORRECTED_DATA' in colnames
+            
+            if has_model and has_corrected:
+                logger.debug(f"Imaging columns already exist in {ms_path}")
+                return
+        
+        # Attempt to create columns
         _addImCols(ms_path)
-    except Exception:
-        # Non-fatal: column creation can fail on already-populated tables
-        pass
+        logger.debug(f"Created imaging columns in {ms_path}")
+        
+        # Verify columns were actually created
+        with _tb(ms_path, readonly=True) as tb:
+            colnames = set(tb.colnames())
+            if 'MODEL_DATA' not in colnames or 'CORRECTED_DATA' not in colnames:
+                missing = []
+                if 'MODEL_DATA' not in colnames:
+                    missing.append('MODEL_DATA')
+                if 'CORRECTED_DATA' not in colnames:
+                    missing.append('CORRECTED_DATA')
+                raise RuntimeError(
+                    f"addImagingColumns() succeeded but columns still missing: {missing}"
+                )
+                
+    except ImportError as e:
+        error_msg = f"Failed to import casacore.tables.addImagingColumns: {e}"
+        logger.error(error_msg)
+        raise RuntimeError(error_msg) from e
+    except Exception as e:
+        # Check if columns exist despite the error (might have been created)
+        try:
+            from casacore.tables import table as _tb
+            with _tb(ms_path, readonly=True) as tb:
+                colnames = set(tb.colnames())
+                has_model = 'MODEL_DATA' in colnames
+                has_corrected = 'CORRECTED_DATA' in colnames
+                
+                if has_model and has_corrected:
+                    logger.warning(
+                        f"addImagingColumns() raised exception but columns exist: {e}. "
+                        "Continuing with existing columns."
+                    )
+                    return
+        except Exception:
+            pass
+        
+        # Columns don't exist - this is a critical failure
+        error_msg = f"Failed to create imaging columns in {ms_path}: {e}"
+        logger.error(error_msg, exc_info=True)
+        raise RuntimeError(error_msg) from e
 
 
 def _ensure_imaging_columns_populated(ms_path: str) -> None:
     """
     Ensure MODEL_DATA and CORRECTED_DATA contain array values for every
     row, with shapes/dtypes matching the DATA column cells.
+    
+    Raises:
+        RuntimeError: If columns exist but cannot be populated
     """
+    import logging
+    logger = logging.getLogger(__name__)
+    
     try:
         from casacore.tables import table as _tb  # type: ignore
         import numpy as _np
-    except Exception:
-        return
+    except ImportError as e:
+        error_msg = f"Failed to import required modules for column population: {e}"
+        logger.error(error_msg)
+        raise RuntimeError(error_msg) from e
 
     try:
         with _tb(ms_path, readonly=False) as tb:
             nrow = tb.nrows()
             if nrow == 0:
+                logger.warning(f"MS {ms_path} has no rows - cannot populate columns")
                 return
-            data0 = tb.getcell('DATA', 0)
-            data_shape = getattr(data0, 'shape', None)
-            data_dtype = getattr(data0, 'dtype', None)
-            if not data_shape or data_dtype is None:
-                return
+            
+            colnames = set(tb.colnames())
+            if 'MODEL_DATA' not in colnames or 'CORRECTED_DATA' not in colnames:
+                missing = []
+                if 'MODEL_DATA' not in colnames:
+                    missing.append('MODEL_DATA')
+                if 'CORRECTED_DATA' not in colnames:
+                    missing.append('CORRECTED_DATA')
+                raise RuntimeError(
+                    f"Cannot populate columns - they don't exist: {missing}"
+                )
+            
+            # Get DATA shape and dtype from first row
+            try:
+                data0 = tb.getcell('DATA', 0)
+                data_shape = getattr(data0, 'shape', None)
+                data_dtype = getattr(data0, 'dtype', None)
+                if not data_shape or data_dtype is None:
+                    raise RuntimeError("Cannot determine DATA column shape/dtype")
+            except Exception as e:
+                error_msg = f"Failed to read DATA column from {ms_path}: {e}"
+                logger.error(error_msg)
+                raise RuntimeError(error_msg) from e
+            
+            # Populate each column
             for col in ('MODEL_DATA', 'CORRECTED_DATA'):
                 if col not in tb.colnames():
                     continue
                 fixed = 0
+                errors = 0
+                error_examples = []  # Store first few error messages
                 for r in range(nrow):
                     try:
                         val = tb.getcell(col, r)
@@ -62,15 +151,33 @@ def _ensure_imaging_columns_populated(ms_path: str) -> None:
                                 col, r, _np.zeros(data_shape, dtype=data_dtype)
                             )
                             fixed += 1
-                    except Exception:
-                        tb.putcell(
-                            col, r, _np.zeros(data_shape, dtype=data_dtype)
-                        )
-                        fixed += 1
-                # Optional: could log fixed count; keep silent here
-    except Exception:
-        # Non-fatal: best-effort population only
-        return
+                    except Exception as e:
+                        try:
+                            tb.putcell(
+                                col, r, _np.zeros(data_shape, dtype=data_dtype)
+                            )
+                            fixed += 1
+                        except Exception as e2:
+                            errors += 1
+                            if len(error_examples) < 5:  # Store first few errors
+                                error_examples.append(f"row {r}: {e2}")
+                
+                # Log summary with examples
+                if fixed > 0:
+                    logger.debug(f"Populated {fixed} rows in {col} column for {ms_path}")
+                if errors > 0:
+                    error_summary = f"Failed to populate {errors} out of {nrow} rows in {col} column for {ms_path}"
+                    if error_examples:
+                        error_summary += f". Examples: {'; '.join(error_examples)}"
+                    logger.warning(error_summary)
+                    
+    except RuntimeError:
+        # Re-raise RuntimeError (our own errors)
+        raise
+    except Exception as e:
+        error_msg = f"Failed to populate imaging columns in {ms_path}: {e}"
+        logger.error(error_msg, exc_info=True)
+        raise RuntimeError(error_msg) from e
 
 
 def _ensure_flag_and_weight_spectrum(ms_path: str) -> None:
@@ -434,6 +541,7 @@ def configure_ms_for_imaging(
     do_initweights: bool = True,
     fix_mount: bool = True,
     stamp_observation_telescope: bool = True,
+    validate_columns: bool = True,
 ) -> None:
     """
     Make a Measurement Set safe and ready for imaging and calibration.
@@ -478,6 +586,10 @@ def configure_ms_for_imaging(
     stamp_observation_telescope : bool, optional
         Set consistent telescope name and location metadata.
         Default: True
+    validate_columns : bool, optional
+        Validate that columns exist and contain data after creation.
+        Set to False for high-throughput scenarios where validation overhead
+        is a concern. Default: True
         
     Raises
     ------
@@ -541,6 +653,10 @@ def configure_ms_for_imaging(
             suggestion='Check file permissions: ls -ld ' + ms_path
         )
 
+    # Initialize logger early for use in error handling
+    import logging
+    logger = logging.getLogger(__name__)
+    
     # Track which operations succeeded for summary logging
     operations_status = {
         'columns': 'skipped',
@@ -556,10 +672,65 @@ def configure_ms_for_imaging(
         try:
             _ensure_imaging_columns_exist(ms_path)
             _ensure_imaging_columns_populated(ms_path)
+            
+            # CRITICAL: Validate columns actually exist and are populated (if enabled)
+            if validate_columns:
+                from casacore.tables import table as _tb
+                with _tb(ms_path, readonly=True) as tb:
+                    colnames = set(tb.colnames())
+                    missing = []
+                    if 'MODEL_DATA' not in colnames:
+                        missing.append('MODEL_DATA')
+                    if 'CORRECTED_DATA' not in colnames:
+                        missing.append('CORRECTED_DATA')
+                    
+                    if missing:
+                        error_msg = (
+                            f"CRITICAL: Required imaging columns missing after creation: {missing}. "
+                            f"MS {ms_path} is not ready for calibration/imaging."
+                        )
+                        logger.error(error_msg)
+                        raise ConversionError(
+                            error_msg,
+                            context={'ms_path': ms_path, 'missing_columns': missing},
+                            suggestion='Check MS file permissions and disk space. '
+                                      'Try recreating the MS if the issue persists.'
+                        )
+                    
+                    # Verify columns have data (at least one row)
+                    if tb.nrows() > 0:
+                        try:
+                            model_sample = tb.getcell('MODEL_DATA', 0)
+                            corrected_sample = tb.getcell('CORRECTED_DATA', 0)
+                            if model_sample is None or corrected_sample is None:
+                                logger.warning(
+                                    f"Imaging columns exist but contain None values in {ms_path}"
+                                )
+                        except Exception as e:
+                            logger.warning(
+                                f"Could not verify column data in {ms_path}: {e}"
+                            )
+                    logger.info(f"✓ Imaging columns verified in {ms_path}")
+            else:
+                logger.debug(f"Imaging columns created (validation skipped) in {ms_path}")
+            
             operations_status['columns'] = 'success'
+        except ConversionError:
+            # Re-raise ConversionError (critical failures)
+            raise
         except Exception as e:
             operations_status['columns'] = f'failed: {e}'
-            # Non-fatal: continue with other operations
+            error_msg = (
+                f"CRITICAL: Failed to create/verify imaging columns in {ms_path}: {e}. "
+                "MS is not ready for calibration/imaging."
+            )
+            logger.error(error_msg, exc_info=True)
+            raise ConversionError(
+                error_msg,
+                context={'ms_path': ms_path, 'error': str(e)},
+                suggestion='Check MS file permissions, disk space, and CASA installation. '
+                          'Try recreating the MS if the issue persists.'
+            ) from e
             
     if ensure_flag_and_weight:
         try:
@@ -615,9 +786,6 @@ def configure_ms_for_imaging(
         # Non-fatal: observation time range fix is best-effort
     
     # Summary logging - report what worked and what didn't
-    import logging
-    logger = logging.getLogger(__name__)
-    
     success_ops = [op for op, status in operations_status.items() if status == 'success']
     failed_ops = [f"{op}({status.split(': ')[1]})" for op, status in operations_status.items() 
                   if status.startswith('failed')]

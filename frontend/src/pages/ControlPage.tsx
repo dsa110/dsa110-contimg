@@ -54,9 +54,11 @@ import {
   useCalTables, 
   useCreateWorkflowJob,
   useValidateCalTable,
+  useCalibrationQA,
 } from '../api/queries';
 import type { JobParams, ConversionJobParams, CalibrateJobParams, MSListEntry } from '../api/types';
 import MSTable from '../components/MSTable';
+import { CalibrationSPWPanel } from '../components/CalibrationSPWPanel';
 import { computeSelectedMS } from '../utils/selectionLogic';
 
 export default function ControlPage() {
@@ -132,6 +134,7 @@ export default function ControlPage() {
   const { data: existingTables } = useExistingCalTables(selectedMS);
   const { data: calTables } = useCalTables();
   const { data: uvh5Files } = useUVH5Files(convertParams.input_dir);
+  const { data: calibrationQA, isLoading: calibrationQALoading } = useCalibrationQA(selectedMS);
   const workflowMutation = useCreateWorkflowJob();
   
   // Clear compatibility checks when MS changes
@@ -165,10 +168,36 @@ export default function ControlPage() {
   };
   
   // Store handlers in refs to avoid recreating the keyboard shortcuts effect
-  const handleCalibrateSubmitRef = useRef<() => void>();
-  const handleApplySubmitRef = useRef<() => void>();
-  const handleImageSubmitRef = useRef<() => void>();
-  const handleConvertSubmitRef = useRef<() => void>();
+  const handleCalibrateSubmitRef = useRef<(() => void) | undefined>(undefined);
+  const handleApplySubmitRef = useRef<(() => void) | undefined>(undefined);
+  const handleImageSubmitRef = useRef<(() => void) | undefined>(undefined);
+  const handleConvertSubmitRef = useRef<(() => void) | undefined>(undefined);
+  
+  // Refs for frequently changing values to avoid excessive useEffect re-runs
+  const convertParamsRef = useRef<ConversionJobParams>(convertParams);
+  const calibParamsRef = useRef<CalibrateJobParams>(calibParams);
+  const applyParamsRef = useRef<JobParams>(applyParams);
+  const selectedMSRef = useRef<string>(selectedMS);
+  const selectedMSListRef = useRef<string[]>(selectedMSList);
+  const convertMutationRef = useRef(convertMutation);
+  const calibrateMutationRef = useRef(calibrateMutation);
+  const applyMutationRef = useRef(applyMutation);
+  const imageMutationRef = useRef(imageMutation);
+  const refetchMSRef = useRef(refetchMS);
+  const refetchJobsRef = useRef(refetchJobs);
+  
+  // Update refs whenever values change (runs on every render to keep refs current)
+  convertParamsRef.current = convertParams;
+  calibParamsRef.current = calibParams;
+  applyParamsRef.current = applyParams;
+  selectedMSRef.current = selectedMS;
+  selectedMSListRef.current = selectedMSList;
+  convertMutationRef.current = convertMutation;
+  calibrateMutationRef.current = calibrateMutation;
+  applyMutationRef.current = applyMutation;
+  imageMutationRef.current = imageMutation;
+  refetchMSRef.current = refetchMS;
+  refetchJobsRef.current = refetchJobs;
 
   // Handlers with error handling - wrapped in useCallback to prevent unnecessary re-renders
   const handleCalibrateSubmit = useCallback(() => {
@@ -318,17 +347,28 @@ export default function ControlPage() {
       // Ctrl/Cmd + Enter to run current tab's action
       if ((e.ctrlKey || e.metaKey) && e.key === 'Enter') {
         e.preventDefault();
+        // Use refs to access current values without causing effect re-runs
+        const currentConvertParams = convertParamsRef.current;
+        const currentCalibParams = calibParamsRef.current;
+        const currentApplyParams = applyParamsRef.current;
+        const currentSelectedMS = selectedMSRef.current;
+        const currentSelectedMSList = selectedMSListRef.current;
+        const currentConvertMutation = convertMutationRef.current;
+        const currentCalibrateMutation = calibrateMutationRef.current;
+        const currentApplyMutation = applyMutationRef.current;
+        const currentImageMutation = imageMutationRef.current;
+        
         if (activeTab === 0) {
-          if (!convertParams.start_time || !convertParams.end_time || convertMutation.isPending) return;
+          if (!currentConvertParams.start_time || !currentConvertParams.end_time || currentConvertMutation.isPending) return;
           handleConvertSubmitRef.current?.();
         } else if (activeTab === 1) {
-          if (!selectedMS || selectedMSList.length !== 1 || calibrateMutation.isPending || (!calibParams.solve_delay && !calibParams.solve_bandpass && !calibParams.solve_gains)) return;
+          if (!currentSelectedMS || currentSelectedMSList.length !== 1 || currentCalibrateMutation.isPending || (!currentCalibParams.solve_delay && !currentCalibParams.solve_bandpass && !currentCalibParams.solve_gains)) return;
           handleCalibrateSubmitRef.current?.();
         } else if (activeTab === 2) {
-          if (!selectedMS || !applyParams.gaintables?.length || applyMutation.isPending) return;
+          if (!currentSelectedMS || !currentApplyParams.gaintables?.length || currentApplyMutation.isPending) return;
           handleApplySubmitRef.current?.();
         } else if (activeTab === 3) {
-          if (!selectedMS || imageMutation.isPending) return;
+          if (!currentSelectedMS || currentImageMutation.isPending) return;
           handleImageSubmitRef.current?.();
         }
       }
@@ -340,33 +380,14 @@ export default function ControlPage() {
           return; // Allow normal refresh
         }
         e.preventDefault();
-        refetchMS();
-        refetchJobs();
+        refetchMSRef.current();
+        refetchJobsRef.current();
       }
     };
     
     window.addEventListener('keydown', handleKeyPress);
     return () => window.removeEventListener('keydown', handleKeyPress);
-  }, [
-    activeTab,
-    // Only include specific values from params objects, not the entire objects
-    convertParams.start_time,
-    convertParams.end_time,
-    calibParams.solve_delay,
-    calibParams.solve_bandpass,
-    calibParams.solve_gains,
-    applyParams.gaintables?.length,
-    selectedMS,
-    selectedMSList,
-    convertMutation.isPending,
-    calibrateMutation.isPending,
-    applyMutation.isPending,
-    imageMutation.isPending,
-    // Handlers are accessed via refs, so they don't need to be in the dependency array
-    // This prevents the effect from re-running when handlers are recreated
-    refetchMS,
-    refetchJobs,
-  ]);
+  }, [activeTab]); // Only activeTab in dependencies - all other values accessed via refs
   
   return (
     <Box sx={{ p: 3 }}>
@@ -1477,6 +1498,18 @@ export default function ControlPage() {
                     Select at least one calibration table type
                   </Typography>
                 )}
+              </Box>
+            )}
+            
+            {/* Per-SPW Flagging Analysis Section */}
+            {activeTab === 1 && selectedMS && (
+              <Box sx={{ mt: 4 }}>
+                <Divider sx={{ mb: 2 }} />
+                <CalibrationSPWPanel
+                  spwStats={calibrationQA?.per_spw_stats}
+                  msPath={selectedMS}
+                  loading={calibrationQALoading}
+                />
               </Box>
             )}
             

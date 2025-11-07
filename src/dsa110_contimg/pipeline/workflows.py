@@ -68,7 +68,13 @@ class WorkflowBuilder:
 
 
 def standard_imaging_workflow(config: PipelineConfig) -> PipelineOrchestrator:
-    """Standard workflow: Convert → Calibrate → Image.
+    """Standard workflow: Convert → Solve Calibration → Apply Calibration → Image.
+    
+    This workflow performs a complete end-to-end pipeline:
+    1. Convert UVH5 files to Measurement Sets
+    2. Solve calibration tables (delay/K, bandpass/BP, gains/G)
+    3. Apply calibration solutions to the MS
+    4. Image the calibrated MS
     
     Args:
         config: Pipeline configuration
@@ -94,15 +100,21 @@ def standard_imaging_workflow(config: PipelineConfig) -> PipelineOrchestrator:
             retry_policy=retry_policy,
         )
         .add_stage(
-            "calibrate",
-            stages_impl.CalibrationStage(config),
+            "calibrate_solve",
+            stages_impl.CalibrationSolveStage(config),
             depends_on=["convert"],
+            retry_policy=retry_policy,
+        )
+        .add_stage(
+            "calibrate_apply",
+            stages_impl.CalibrationStage(config),
+            depends_on=["calibrate_solve"],
             retry_policy=retry_policy,
         )
         .add_stage(
             "image",
             stages_impl.ImagingStage(config),
-            depends_on=["calibrate"],
+            depends_on=["calibrate_apply"],
             retry_policy=retry_policy,
         )
         .build())

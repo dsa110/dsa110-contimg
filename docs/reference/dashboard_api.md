@@ -2,13 +2,15 @@
 
 ## Overview
 
-The DSA-110 Pipeline Dashboard API provides RESTful JSON endpoints for monitoring pipeline status, system health, and data products.
+The DSA-110 Pipeline Dashboard API provides RESTful JSON endpoints for monitoring pipeline status, system health, data products, and streaming service control.
 
-**Base URL:** `http://localhost:8000/api`
+**Base URL:** `http://localhost:8010/api`
 
 **Authentication:** None (currently)
 
 **Content-Type:** `application/json`
+
+**Note:** For detailed streaming service API documentation, see [Streaming API Reference](./streaming-api.md).
 
 ## Core Endpoints
 
@@ -480,6 +482,38 @@ The API allows cross-origin requests from:
 - `http://10.42.0.148:5173` (SSH tunnel)
 
 For production deployment, update CORS origins in `src/dsa110_contimg/api/routes.py`.
+
+---
+
+## Streaming Service Endpoints
+
+The streaming service API provides endpoints for controlling and monitoring the streaming converter service. For complete documentation with detailed examples, see [Streaming API Reference](./streaming-api.md).
+
+### Quick Reference
+
+- `GET /api/streaming/status` - Get current service status
+- `GET /api/streaming/health` - Health check information
+- `GET /api/streaming/config` - Get current configuration
+- `POST /api/streaming/config` - Update configuration (restarts if running)
+- `POST /api/streaming/start` - Start the service
+- `POST /api/streaming/stop` - Stop the service
+- `POST /api/streaming/restart` - Restart the service
+- `GET /api/streaming/metrics` - Get processing metrics and queue stats
+
+**Example:**
+
+```bash
+# Get service status
+curl http://localhost:8010/api/streaming/status
+
+# Start service
+curl -X POST http://localhost:8010/api/streaming/start
+
+# Get metrics
+curl http://localhost:8010/api/streaming/metrics
+```
+
+**See Also:** [Streaming API Reference](./streaming-api.md) for complete documentation with request/response examples, error handling, and code samples.
 
 ---
 

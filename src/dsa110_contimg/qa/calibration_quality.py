@@ -335,6 +335,373 @@ def validate_caltable_quality(caltable_path: str) -> CalibrationQualityMetrics:
     return metrics
 
 
+@dataclass
+class PerSPWFlaggingStats:
+    """Per-spectral-window flagging statistics."""
+    spw_id: int
+    total_solutions: int
+    flagged_solutions: int
+    fraction_flagged: float
+    n_channels: int
+    channels_with_high_flagging: int  # Channels with >50% solutions flagged
+    avg_flagged_per_channel: float
+    max_flagged_in_channel: int
+    is_problematic: bool  # True if SPW exceeds thresholds
+
+
+def analyze_per_spw_flagging(
+    caltable_path: str,
+    high_flagging_threshold: float = 0.5,
+    problematic_spw_threshold: float = 0.8,
+) -> List[PerSPWFlaggingStats]:
+    """
+    Analyze flagged solutions per spectral window in a calibration table.
+    
+    This function provides per-SPW statistics to identify problematic spectral windows
+    with high flagging rates. This is primarily a DIAGNOSTIC tool to understand which
+    SPWs have systematic issues.
+    
+    **Note on Flagging Philosophy:**
+    - The pipeline uses per-channel flagging BEFORE calibration (preserves good channels)
+    - Per-SPW analysis is diagnostic - helps identify problematic SPWs
+    - Flagging entire SPWs should be a LAST RESORT if per-channel flagging is insufficient
+    - Prefer reviewing per-channel flagging statistics first
+    
+    **Multi-field Bandpass:**
+    - Works correctly with multi-field bandpass solutions (combine_fields=True)
+    - Analyzes the combined solutions across all fields
+    
+    Args:
+        caltable_path: Path to calibration table
+        high_flagging_threshold: Fraction threshold for considering a channel as having
+            high flagging (default: 0.5 = 50%)
+        problematic_spw_threshold: Average flagged fraction threshold for considering
+            an entire SPW as problematic (default: 0.8 = 80%)
+    
+    Returns:
+        List of PerSPWFlaggingStats objects, one per SPW
+    
+    References:
+        - NRAO VLA/VLBA calibration guides recommend per-SPW evaluation for diagnostics
+        - Best practice: Use per-channel flagging first, SPW-level flagging as last resort
+    """
+    from casacore.tables import table
+    import numpy as np
+    
+    if not os.path.exists(caltable_path):
+        raise FileNotFoundError(f"Calibration table not found: {caltable_path}")
+    
+    stats_list = []
+    
+    with table(caltable_path, readonly=True, ack=False) as tb:
+        if "SPECTRAL_WINDOW_ID" not in tb.colnames():
+            logger.warning("Calibration table does not have SPECTRAL_WINDOW_ID column")
+            return stats_list
+        
+        spw_ids = tb.getcol("SPECTRAL_WINDOW_ID")  # Shape: (n_solutions,)
+        flags = tb.getcol("FLAG")  # Shape: (n_solutions, n_channels, n_pols) for BP/G tables
+        
+        # Get shape information
+        if flags.ndim == 3:  # (n_solutions, n_channels, n_pols)
+            n_channels = flags.shape[1]
+            n_pols = flags.shape[2]
+        elif flags.ndim == 2:  # (n_solutions, n_channels) or (n_solutions, n_pols)
+            # For some tables, might be 2D
+            n_channels = flags.shape[1]  # Assume second dimension is channels
+            n_pols = 1
+        else:
+            logger.warning(f"Unexpected FLAG shape: {flags.shape}")
+            return stats_list
+        
+        unique_spws = np.unique(spw_ids)
+        
+        for spw_id in unique_spws:
+            spw_mask = spw_ids == spw_id  # Boolean mask for solutions in this SPW
+            spw_flags = flags[spw_mask]  # Shape: (n_solutions_in_spw, n_channels, n_pols)
+            
+            # Calculate total flagged solutions (across all channels and pols)
+            total_solutions = spw_flags.size
+            flagged_solutions = np.sum(spw_flags)
+            fraction_flagged = float(flagged_solutions / total_solutions) if total_solutions > 0 else 0.0
+            
+            # Analyze per-channel flagging
+            # For per-channel analysis, we look at flagging across all solutions and pols for each channel
+            if spw_flags.ndim == 3:
+                # Collapse polarization dimension: (n_solutions, n_channels, n_pols) -> (n_solutions, n_channels)
+                # A channel is considered flagged if ANY polarization is flagged
+                spw_flags_2d = np.any(spw_flags, axis=2)  # Shape: (n_solutions, n_channels)
+            else:
+                spw_flags_2d = spw_flags  # Shape: (n_solutions, n_channels)
+            
+            # For each channel, count how many solutions are flagged
+            n_solutions_per_channel = spw_flags_2d.shape[0]
+            flagged_per_channel = np.sum(spw_flags_2d, axis=0)  # Sum over solutions: (n_channels,)
+            fraction_flagged_per_channel = flagged_per_channel / n_solutions_per_channel if n_solutions_per_channel > 0 else np.zeros(n_channels)
+            
+            channels_with_high_flagging = np.sum(fraction_flagged_per_channel > high_flagging_threshold)
+            avg_flagged_per_channel = float(np.mean(fraction_flagged_per_channel))
+            max_flagged_in_channel = int(np.max(flagged_per_channel))
+            
+            # Determine if SPW is problematic
+            # An SPW is problematic if:
+            # 1. Average flagged fraction exceeds threshold, OR
+            # 2. More than 50% of channels have high flagging
+            is_problematic = (
+                avg_flagged_per_channel > problematic_spw_threshold or
+                channels_with_high_flagging > (n_channels * 0.5)
+            )
+            
+            stats = PerSPWFlaggingStats(
+                spw_id=int(spw_id),
+                total_solutions=int(np.sum(spw_mask)),
+                flagged_solutions=int(flagged_solutions),
+                fraction_flagged=fraction_flagged,
+                n_channels=n_channels,
+                channels_with_high_flagging=int(channels_with_high_flagging),
+                avg_flagged_per_channel=avg_flagged_per_channel,
+                max_flagged_in_channel=max_flagged_in_channel,
+                is_problematic=is_problematic,
+            )
+            stats_list.append(stats)
+    
+    return stats_list
+
+
+def flag_problematic_spws(
+    ms_path: str,
+    caltable_path: str,
+    high_flagging_threshold: float = 0.5,
+    problematic_spw_threshold: float = 0.8,
+    datacolumn: str = "data",
+) -> List[int]:
+    """
+    Flag data in problematic spectral windows based on bandpass calibration quality.
+    
+    **WARNING: This flags entire SPWs, which may remove good channels.**
+    
+    **Recommended Approach:**
+    1. First, review per-channel flagging statistics (done pre-calibration)
+    2. Use per-channel flagging to preserve good channels in "bad" SPWs
+    3. Only use this function as a LAST RESORT if per-channel flagging is insufficient
+    
+    This function identifies SPWs with consistently high flagging rates in bandpass
+    solutions and flags the corresponding data in the MS, following NRAO/VLBA best
+    practices for handling low S/N spectral windows.
+    
+    Args:
+        ms_path: Path to Measurement Set
+        caltable_path: Path to bandpass calibration table
+        high_flagging_threshold: Fraction threshold for considering a channel as having
+            high flagging (default: 0.5 = 50%)
+        problematic_spw_threshold: Average flagged fraction threshold for considering
+            an entire SPW as problematic (default: 0.8 = 80%)
+        datacolumn: Data column to flag (default: "data")
+    
+    Returns:
+        List of SPW IDs that were flagged
+    
+    References:
+        - NRAO/VLBA calibration guides recommend flagging or excluding SPWs with
+          consistently high flagging rates that cannot be effectively calibrated
+    """
+    from dsa110_contimg.calibration.flagging import flag_manual
+    
+    # Analyze per-SPW flagging
+    spw_stats = analyze_per_spw_flagging(
+        caltable_path,
+        high_flagging_threshold=high_flagging_threshold,
+        problematic_spw_threshold=problematic_spw_threshold,
+    )
+    
+    problematic_spws = [s.spw_id for s in spw_stats if s.is_problematic]
+    
+    if not problematic_spws:
+        logger.info("No problematic SPWs found - no flagging needed")
+        return []
+    
+    # Flag each problematic SPW
+    flagged_spws = []
+    for spw_id in problematic_spws:
+        try:
+            spw_str = str(spw_id)
+            flag_manual(ms_path, spw=spw_str, datacolumn=datacolumn)
+            flagged_spws.append(spw_id)
+            logger.info(f"Flagged SPW {spw_id} due to high bandpass solution flagging rate")
+        except Exception as e:
+            logger.warning(f"Failed to flag SPW {spw_id}: {e}")
+    
+    return flagged_spws
+
+
+def export_per_spw_stats(
+    spw_stats: List[PerSPWFlaggingStats],
+    output_path: str,
+    format: str = "json",
+) -> str:
+    """
+    Export per-SPW flagging statistics to a file.
+    
+    Args:
+        spw_stats: List of PerSPWFlaggingStats objects
+        output_path: Output file path (extension will be added if not present)
+        format: Output format - "json" or "csv" (default: "json")
+    
+    Returns:
+        Path to the created file
+    """
+    import json
+    import csv
+    from pathlib import Path
+    
+    output = Path(output_path)
+    
+    if format.lower() == "json":
+        if not output.suffix:
+            output = output.with_suffix(".json")
+        
+        # Convert dataclass to dict for JSON serialization
+        stats_dict = {
+            "per_spw_statistics": [
+                {
+                    "spw_id": s.spw_id,
+                    "total_solutions": s.total_solutions,
+                    "flagged_solutions": s.flagged_solutions,
+                    "fraction_flagged": s.fraction_flagged,
+                    "n_channels": s.n_channels,
+                    "channels_with_high_flagging": s.channels_with_high_flagging,
+                    "avg_flagged_per_channel": s.avg_flagged_per_channel,
+                    "max_flagged_in_channel": s.max_flagged_in_channel,
+                    "is_problematic": bool(s.is_problematic),
+                }
+                for s in spw_stats
+            ],
+            "summary": {
+                "total_spws": len(spw_stats),
+                "problematic_spws": [s.spw_id for s in spw_stats if s.is_problematic],
+                "n_problematic": len([s for s in spw_stats if s.is_problematic]),
+            },
+        }
+        
+        with open(output, "w") as f:
+            json.dump(stats_dict, f, indent=2)
+    
+    elif format.lower() == "csv":
+        if not output.suffix:
+            output = output.with_suffix(".csv")
+        
+        with open(output, "w", newline="") as f:
+            writer = csv.writer(f)
+            writer.writerow([
+                "SPW_ID",
+                "Total_Solutions",
+                "Flagged_Solutions",
+                "Fraction_Flagged",
+                "N_Channels",
+                "Channels_With_High_Flagging",
+                "Avg_Flagged_Per_Channel",
+                "Max_Flagged_In_Channel",
+                "Is_Problematic",
+            ])
+            for s in sorted(spw_stats, key=lambda x: x.spw_id):
+                writer.writerow([
+                    s.spw_id,
+                    s.total_solutions,
+                    s.flagged_solutions,
+                    f"{s.fraction_flagged:.6f}",
+                    s.n_channels,
+                    s.channels_with_high_flagging,
+                    f"{s.avg_flagged_per_channel:.6f}",
+                    s.max_flagged_in_channel,
+                    s.is_problematic,
+                ])
+    else:
+        raise ValueError(f"Unsupported format: {format}. Use 'json' or 'csv'")
+    
+    return str(output)
+
+
+def plot_per_spw_flagging(
+    spw_stats: List[PerSPWFlaggingStats],
+    output_path: str,
+    title: str = "Per-Spectral-Window Flagging Analysis",
+) -> str:
+    """
+    Create a visualization of per-SPW flagging statistics.
+    
+    Args:
+        spw_stats: List of PerSPWFlaggingStats objects
+        output_path: Output file path (extension will be added if not present)
+        title: Plot title (default: "Per-Spectral-Window Flagging Analysis")
+    
+    Returns:
+        Path to the created plot file
+    """
+    import matplotlib
+    matplotlib.use("Agg", force=True)
+    import matplotlib.pyplot as plt
+    import numpy as np
+    from pathlib import Path
+    
+    output = Path(output_path)
+    if not output.suffix:
+        output = output.with_suffix(".png")
+    
+    # Sort by SPW ID
+    sorted_stats = sorted(spw_stats, key=lambda x: x.spw_id)
+    spw_ids = [s.spw_id for s in sorted_stats]
+    fractions = [s.fraction_flagged * 100 for s in sorted_stats]
+    avg_per_channel = [s.avg_flagged_per_channel * 100 for s in sorted_stats]
+    problematic = [s.is_problematic for s in sorted_stats]
+    
+    # Create figure with subplots
+    fig, (ax1, ax2) = plt.subplots(2, 1, figsize=(12, 8), sharex=True)
+    
+    # Plot 1: Overall flagged fraction per SPW
+    colors = ['#d62728' if p else '#2ca02c' for p in problematic]
+    bars1 = ax1.bar(spw_ids, fractions, color=colors, alpha=0.7, edgecolor='black', linewidth=0.5)
+    ax1.axhline(y=80, color='red', linestyle='--', linewidth=1, label='Problematic threshold (80%)')
+    ax1.set_ylabel('Flagged Fraction (%)', fontsize=11)
+    ax1.set_title(f'{title}\nOverall Flagged Fraction per SPW', fontsize=12, fontweight='bold')
+    ax1.grid(True, alpha=0.3, axis='y')
+    ax1.legend()
+    ax1.set_ylim(0, max(fractions) * 1.1 if fractions else 100)
+    
+    # Add value labels on bars
+    for bar, frac in zip(bars1, fractions):
+        height = bar.get_height()
+        ax1.text(bar.get_x() + bar.get_width()/2., height,
+                f'{frac:.1f}%', ha='center', va='bottom', fontsize=8)
+    
+    # Plot 2: Average flagged per channel
+    bars2 = ax2.bar(spw_ids, avg_per_channel, color=colors, alpha=0.7, edgecolor='black', linewidth=0.5)
+    ax2.axhline(y=80, color='red', linestyle='--', linewidth=1, label='Problematic threshold (80%)')
+    ax2.set_xlabel('Spectral Window ID', fontsize=11)
+    ax2.set_ylabel('Avg Flagged per Channel (%)', fontsize=11)
+    ax2.set_title('Average Flagged Fraction per Channel', fontsize=11)
+    ax2.grid(True, alpha=0.3, axis='y')
+    ax2.legend()
+    ax2.set_ylim(0, max(avg_per_channel) * 1.1 if avg_per_channel else 100)
+    
+    # Add value labels on bars
+    for bar, avg in zip(bars2, avg_per_channel):
+        height = bar.get_height()
+        ax2.text(bar.get_x() + bar.get_width()/2., height,
+                f'{avg:.1f}%', ha='center', va='bottom', fontsize=8)
+    
+    # Add problematic SPW labels
+    problematic_spws = [s.spw_id for s in sorted_stats if s.is_problematic]
+    if problematic_spws:
+        ax2.text(0.02, 0.98, f'Problematic SPWs: {", ".join(map(str, problematic_spws))}',
+                transform=ax2.transAxes, fontsize=10, verticalalignment='top',
+                bbox=dict(boxstyle='round', facecolor='yellow', alpha=0.5))
+    
+    plt.tight_layout()
+    plt.savefig(output, dpi=150, bbox_inches='tight')
+    plt.close()
+    
+    return str(output)
+
+
 def check_corrected_data_quality(
     ms_path: str,
     sample_fraction: float = 0.1,

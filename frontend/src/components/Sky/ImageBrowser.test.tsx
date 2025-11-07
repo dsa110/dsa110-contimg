@@ -11,6 +11,7 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { render, screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
+import '@testing-library/jest-dom';
 import ImageBrowser from './ImageBrowser';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 
@@ -184,7 +185,6 @@ describe('ImageBrowser', () => {
 
   it('should apply filters when search is performed', async () => {
     const user = userEvent.setup();
-    const mockSetFilters = vi.fn();
 
     vi.mocked(useImages).mockReturnValue({
       data: { items: [], total: 0 },

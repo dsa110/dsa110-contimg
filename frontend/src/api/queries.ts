@@ -29,6 +29,7 @@ import type {
   CalibrationQA,
   ImageQA,
   QAMetrics,
+  BandpassPlotsList,
   BatchJob,
   BatchJobList,
   BatchJobCreateRequest,
@@ -391,6 +392,30 @@ export function useCalibrationQA(msPath: string | null): UseQueryResult<Calibrat
     enabled: !!msPath,
     staleTime: 300000, // Cache for 5 minutes (QA doesn't change unless recalibrated)
     retry: false, // Don't retry on 404 (no QA yet)
+  });
+}
+
+/**
+ * Fetch list of available bandpass plots for an MS.
+ * 
+ * @example
+ * const { data: plots } = useBandpassPlots('/path/to/ms');
+ */
+export function useBandpassPlots(msPath: string | null): UseQueryResult<BandpassPlotsList> {
+  return useQuery({
+    queryKey: ['qa', 'bandpass-plots', msPath],
+    queryFn: async () => {
+      if (!msPath) throw new Error('MS path required');
+      // Remove leading slash and encode
+      const encodedPath = msPath.startsWith('/') ? msPath.slice(1) : msPath;
+      const response = await apiClient.get<BandpassPlotsList>(
+        `/api/qa/calibration/${encodedPath}/bandpass-plots`
+      );
+      return response.data;
+    },
+    enabled: !!msPath,
+    staleTime: 300000, // Cache for 5 minutes
+    retry: false, // Don't retry on 404 (no plots yet)
   });
 }
 

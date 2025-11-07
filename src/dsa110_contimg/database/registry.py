@@ -310,3 +310,162 @@ def get_active_applylist(db_path: Path, mjd: float, set_name: Optional[str] = No
         (chosen,),
     ).fetchall()
     return [r[0] for r in out]
+
+
+def register_and_verify_caltables(
+    registry_db: Path,
+    set_name: str,
+    table_prefix: Path,
+    *,
+    cal_field: Optional[str],
+    refant: Optional[str],
+    valid_start_mjd: Optional[float],
+    valid_end_mjd: Optional[float],
+    mid_mjd: Optional[float] = None,
+    status: str = "active",
+    verify_discoverable: bool = True,
+) -> List[str]:
+    """Register calibration tables and verify they are discoverable.
+
+    This is a robust wrapper around register_set_from_prefix that:
+    1. Registers tables (idempotent via upsert)
+    2. Verifies tables are discoverable after registration
+    3. Returns list of registered table paths
+
+    Args:
+        registry_db: Path to calibration registry database
+        set_name: Logical calibration set name
+        table_prefix: Filesystem prefix for calibration tables
+        cal_field: Field used for calibration solve
+        refant: Reference antenna used
+        valid_start_mjd: Start of validity window (MJD)
+        valid_end_mjd: End of validity window (MJD)
+        mid_mjd: Optional MJD midpoint for verification (if None, uses valid window midpoint)
+        status: Status for registered tables (default: "active")
+        verify_discoverable: Whether to verify tables are discoverable after registration
+
+    Returns:
+        List of registered calibration table paths (ordered by apply order)
+
+    Raises:
+        RuntimeError: If registration fails or tables are not discoverable
+        ValueError: If no tables found with prefix
+    """
+    import logging
+    logger = logging.getLogger(__name__)
+
+    # Ensure registry DB exists
+    ensure_db(registry_db)
+
+    # Register tables (idempotent via upsert=True)
+    try:
+        registered_rows = register_set_from_prefix(
+            registry_db,
+            set_name,
+            table_prefix,
+            cal_field=cal_field,
+            refant=refant,
+            valid_start_mjd=valid_start_mjd,
+            valid_end_mjd=valid_end_mjd,
+            status=status,
+        )
+    except Exception as e:
+        error_msg = (
+            f"Failed to register calibration tables with prefix {table_prefix}: {e}"
+        )
+        logger.error(error_msg, exc_info=True)
+        raise RuntimeError(error_msg) from e
+
+    if not registered_rows:
+        error_msg = (
+            f"No calibration tables found with prefix {table_prefix}. "
+            f"Cannot register empty set."
+        )
+        logger.error(error_msg)
+        raise ValueError(error_msg)
+
+    registered_paths = [row.path for row in registered_rows]
+    logger.info(
+        f"Registered {len(registered_paths)} calibration tables in set '{set_name}'"
+    )
+
+    # Verify tables are discoverable if requested
+    if verify_discoverable:
+        try:
+            # Use mid_mjd if provided, otherwise use midpoint of validity window
+            if mid_mjd is None:
+                if valid_start_mjd is not None and valid_end_mjd is not None:
+                    mid_mjd = (valid_start_mjd + valid_end_mjd) / 2.0
+                else:
+                    # Fallback: use current time
+                    from astropy.time import Time
+                    mid_mjd = Time.now().mjd
+                    logger.warning(
+                        f"Using current time ({mid_mjd:.6f}) for verification "
+                        "since validity window not fully specified"
+                    )
+
+            # Verify tables are discoverable via registry lookup
+            discovered = get_active_applylist(
+                registry_db, mid_mjd, set_name=set_name
+            )
+
+            if not discovered:
+                error_msg = (
+                    f"Registered tables are not discoverable: "
+                    f"get_active_applylist returned empty list for set '{set_name}' "
+                    f"at MJD {mid_mjd:.6f}"
+                )
+                logger.error(error_msg)
+                raise RuntimeError(error_msg)
+
+            # Verify all registered tables are in discovered list
+            discovered_set = set(discovered)
+            registered_set = set(registered_paths)
+            missing = registered_set - discovered_set
+            if missing:
+                error_msg = (
+                    f"Some registered tables are not discoverable: {missing}. "
+                    f"Registered: {registered_set}, Discovered: {discovered_set}"
+                )
+                logger.error(error_msg)
+                raise RuntimeError(error_msg)
+
+            # Verify discovered tables exist on filesystem
+            missing_files = [p for p in discovered if not Path(p).exists()]
+            if missing_files:
+                error_msg = (
+                    f"Discovered calibration tables do not exist on filesystem: "
+                    f"{missing_files}"
+                )
+                logger.error(error_msg)
+                raise RuntimeError(error_msg)
+
+            logger.info(
+                f"✓ Verified {len(discovered)} calibration tables are discoverable "
+                f"and exist on filesystem"
+            )
+
+        except Exception as e:
+            # Registration succeeded but verification failed
+            # Rollback: retire the set so it's not used
+            try:
+                retire_set(registry_db, set_name, reason=f"Verification failed: {e}")
+                logger.warning(
+                    f"Retired calibration set '{set_name}' due to verification failure"
+                )
+            except Exception as rollback_error:
+                logger.error(
+                    f"Failed to rollback registration after verification failure: "
+                    f"{rollback_error}",
+                    exc_info=True,
+                )
+
+            error_msg = (
+                f"Calibration tables registered but not discoverable: {e}. "
+                f"Set '{set_name}' has been retired."
+            )
+            logger.error(error_msg, exc_info=True)
+            raise RuntimeError(error_msg) from e
+
+    return registered_paths

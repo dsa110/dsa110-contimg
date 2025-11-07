@@ -498,6 +498,19 @@ class BatchJobCreateRequest(BaseModel):
 # Quality Assessment Models
 # ============================================================================
 
+class PerSPWStats(BaseModel):
+    """Per-spectral-window flagging statistics."""
+    spw_id: int
+    total_solutions: int
+    flagged_solutions: int
+    fraction_flagged: float
+    n_channels: int
+    channels_with_high_flagging: int
+    avg_flagged_per_channel: float
+    max_flagged_in_channel: int
+    is_problematic: bool
+
+
 class CalibrationQA(BaseModel):
     """Quality assessment metrics for calibration."""
     ms_path: str
@@ -507,6 +520,7 @@ class CalibrationQA(BaseModel):
     g_metrics: Optional[dict] = None
     overall_quality: str = "unknown"  # excellent, good, marginal, poor, unknown
     flags_total: Optional[float] = None  # Fraction of flagged solutions
+    per_spw_stats: Optional[List[PerSPWStats]] = None  # Per-SPW flagging statistics
     timestamp: datetime = Field(default_factory=datetime.utcnow)
 
 

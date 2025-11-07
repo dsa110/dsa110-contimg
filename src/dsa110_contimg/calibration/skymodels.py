@@ -1,13 +1,24 @@
 """
 Skymodel helpers: create CASA component lists (.cl) and apply via ft().
 
+This module now uses pyradiosky as the default for sky model construction,
+providing better sky model management, support for multiple catalog formats,
+and advanced spectral modeling capabilities.
+
 Usage:
+  # Single point source (uses pyradiosky internally)
   from dsa110_contimg.calibration.skymodels import make_point_cl, ft_from_cl
   cl = make_point_cl('0834+555', ra_deg, dec_deg, flux_jy=2.3, freq_ghz=1.4,
                      out_path='/scratch/0834+555_pt.cl')
   ft_from_cl('/path/to/obs.ms', cl, field='0', usescratch=True)
   
-  # With pyradiosky:
+  # NVSS sources (uses pyradiosky internally)
+  from dsa110_contimg.calibration.skymodels import make_nvss_component_cl, ft_from_cl
+  cl = make_nvss_component_cl(ra_deg, dec_deg, radius_deg=0.2, min_mjy=10.0,
+                               freq_ghz=1.4, out_path='nvss.cl')
+  ft_from_cl('/path/to/obs.ms', cl)
+  
+  # Direct pyradiosky usage:
   from pyradiosky import SkyModel
   from dsa110_contimg.calibration.skymodels import convert_skymodel_to_componentlist, ft_from_cl
   sky = SkyModel.from_votable_catalog('nvss.vot')
@@ -21,6 +32,64 @@ from pathlib import Path
 from typing import Optional, Iterable, Tuple
 
 
+def make_point_skymodel(
+    name: str,
+    ra_deg: float,
+    dec_deg: float,
+    *,
+    flux_jy: float,
+    freq_ghz: float | str = 1.4,
+) -> "SkyModel":
+    """Create a pyradiosky SkyModel for a single point source.
+
+    Args:
+        name: Source name
+        ra_deg: RA in degrees
+        dec_deg: Dec in degrees
+        flux_jy: Flux in Jy
+        freq_ghz: Reference frequency in GHz (default: 1.4)
+
+    Returns:
+        pyradiosky SkyModel object
+    """
+    try:
+        from pyradiosky import SkyModel
+    except ImportError:
+        raise ImportError(
+            "pyradiosky is required for make_point_skymodel(). "
+            "Install with: pip install pyradiosky"
+        )
+    
+    from astropy.coordinates import SkyCoord
+    import astropy.units as u
+    import numpy as np
+
+    # Get reference frequency
+    if isinstance(freq_ghz, (int, float)):
+        ref_freq = freq_ghz * u.GHz
+    else:
+        ref_freq = 1.4 * u.GHz  # Default
+
+    # Create SkyCoord
+    skycoord = SkyCoord(ra=ra_deg * u.deg, dec=dec_deg * u.deg, frame='icrs')
+
+    # Create stokes array: (4, Nfreqs, Ncomponents)
+    stokes = np.zeros((4, 1, 1)) * u.Jy
+    stokes[0, 0, 0] = flux_jy * u.Jy  # I stokes
+
+    # Create SkyModel
+    sky = SkyModel(
+        name=[name],
+        skycoord=skycoord,
+        stokes=stokes,
+        spectral_type='flat',
+        component_type='point',
+        freq_array=np.array([ref_freq.to('Hz').value]) * u.Hz,
+    )
+
+    return sky
+
+
 def make_point_cl(
     name: str,
     ra_deg: float,
@@ -32,42 +101,21 @@ def make_point_cl(
 ) -> str:
     """Create a CASA component list (.cl) for a single point source.
 
+    This function now uses pyradiosky internally for better sky model management.
+
     Returns the path to the created component list.
     """
-    # Lazy import CASA tools to avoid module import during docs/tests
-    from casatools import componentlist as casa_cl  # type: ignore
-
-    out = Path(out_path)
-    # Remove pre-existing path
-    try:
-        import shutil as _sh
-        _sh.rmtree(out, ignore_errors=True)
-    except Exception:
-        pass
-
-    # Normalize frequency
-    if isinstance(freq_ghz, (int, float)):
-        freq_str = f"{float(freq_ghz)}GHz"
-    else:
-        freq_str = str(freq_ghz)
-
-    cl = casa_cl()
-    try:
-        cl.addcomponent(
-            dir=f"J2000 {ra_deg}deg {dec_deg}deg",
-            flux=float(flux_jy),
-            fluxunit="Jy",
-            freq=freq_str,
-            shape="point",
-        )
-        cl.rename(os.fspath(out))
-    finally:
-        try:
-            cl.close()
-            cl.done()
-        except Exception:
-            pass
-    return os.fspath(out)
+    # Use pyradiosky to create SkyModel, then convert to componentlist
+    sky = make_point_skymodel(
+        name,
+        ra_deg,
+        dec_deg,
+        flux_jy=flux_jy,
+        freq_ghz=freq_ghz,
+    )
+    
+    # Convert to componentlist
+    return convert_skymodel_to_componentlist(sky, out_path=out_path, freq_ghz=freq_ghz)
 
 
 def ft_from_cl(
@@ -239,20 +287,58 @@ def convert_skymodel_to_componentlist(
     else:
         freq_str = f"{float(freq_ghz)}GHz" if isinstance(freq_ghz, (int, float)) else str(freq_ghz)
     
+    from astropy.coordinates import Angle
+    
+    # Handle empty sky model
+    if sky.Ncomponents == 0:
+        # Create empty componentlist
+        cl = casa_cl()
+        try:
+            cl.rename(os.fspath(out))
+        finally:
+            try:
+                cl.close()
+                cl.done()
+            except Exception:
+                pass
+        return os.fspath(out)
+    
     cl = casa_cl()
     try:
         for i in range(sky.Ncomponents):
-            ra = sky.skycoord[i].ra.deg
-            dec = sky.skycoord[i].dec.deg
+            ra = sky.skycoord[i].ra
+            dec = sky.skycoord[i].dec
             flux_jy = sky.stokes[0, 0, i].to('Jy').value  # I stokes, first frequency
             
-            cl.addcomponent(
-                dir=f"J2000 {ra}deg {dec}deg",
-                flux=float(flux_jy),
-                fluxunit="Jy",
-                freq=freq_str,
-                shape="point",
-            )
+            # Format RA/Dec as CASA expects (HH:MM:SS.sss, DD:MM:SS.sss)
+            ra_str = Angle(ra).to_string(unit='hour', precision=3, pad=True)
+            dec_str = Angle(dec).to_string(unit='deg', precision=3, alwayssign=True, pad=True)
+            
+            # Get spectral index if available
+            if sky.spectral_type == 'spectral_index' and hasattr(sky, 'spectral_index'):
+                spec_idx = float(sky.spectral_index[i]) if sky.spectral_index is not None else -0.7
+                ref_freq_hz = sky.reference_frequency[i].to('Hz').value if hasattr(sky, 'reference_frequency') and sky.reference_frequency is not None else None
+                if ref_freq_hz is None:
+                    ref_freq_hz = float(freq_str.replace('GHz', '')) * 1e9
+                
+                cl.addcomponent(
+                    dir=f"J2000 {ra_str} {dec_str}",
+                    flux=float(flux_jy),
+                    fluxunit="Jy",
+                    freq=freq_str,
+                    shape="point",
+                    spectrumtype="spectral index",
+                    index=spec_idx,
+                    referencerefreq=f"{ref_freq_hz}Hz",
+                )
+            else:
+                cl.addcomponent(
+                    dir=f"J2000 {ra_str} {dec_str}",
+                    flux=float(flux_jy),
+                    fluxunit="Jy",
+                    freq=freq_str,
+                    shape="point",
+                )
         cl.rename(os.fspath(out))
         if not out.exists():
             raise RuntimeError(f"Componentlist rename failed: {out} does not exist")
@@ -264,6 +350,94 @@ def convert_skymodel_to_componentlist(
             pass
     
     return os.fspath(out)
+
+
+def make_nvss_skymodel(
+    center_ra_deg: float,
+    center_dec_deg: float,
+    radius_deg: float,
+    *,
+    min_mjy: float = 10.0,
+    freq_ghz: float | str = 1.4,
+) -> "SkyModel":
+    """Create a pyradiosky SkyModel from NVSS sources in a sky region.
+
+    Selects NVSS sources with flux >= min_mjy within radius_deg of (RA,Dec)
+    and returns a pyradiosky SkyModel object.
+
+    Args:
+        center_ra_deg: Center RA in degrees
+        center_dec_deg: Center Dec in degrees
+        radius_deg: Search radius in degrees
+        min_mjy: Minimum flux in mJy (default: 10.0)
+        freq_ghz: Reference frequency in GHz (default: 1.4)
+
+    Returns:
+        pyradiosky SkyModel object
+    """
+    try:
+        from pyradiosky import SkyModel
+    except ImportError:
+        raise ImportError(
+            "pyradiosky is required for make_nvss_skymodel(). "
+            "Install with: pip install pyradiosky"
+        )
+    
+    from dsa110_contimg.calibration.catalogs import read_nvss_catalog  # type: ignore
+    from astropy.coordinates import SkyCoord
+    import astropy.units as u
+    import numpy as np
+
+    df = read_nvss_catalog()
+    sc_all = SkyCoord(df["ra"].to_numpy() * u.deg, df["dec"].to_numpy() * u.deg, frame="icrs")
+    ctr = SkyCoord(center_ra_deg * u.deg, center_dec_deg * u.deg, frame="icrs")
+    sep = sc_all.separation(ctr).deg
+    flux_mjy = np.asarray(df["flux_20_cm"].to_numpy(), float)
+    keep = (sep <= float(radius_deg)) & (flux_mjy >= float(min_mjy))
+    
+    if keep.sum() == 0:
+        # Return empty SkyModel
+        return SkyModel(
+            name=[],
+            skycoord=SkyCoord([], [], unit=u.deg, frame='icrs'),
+            stokes=np.zeros((4, 1, 0)) * u.Jy,
+            spectral_type='flat',
+            component_type='point',
+        )
+    
+    # Extract sources
+    ras = df.loc[keep, "ra"].to_numpy()
+    decs = df.loc[keep, "dec"].to_numpy()
+    fluxes = flux_mjy[keep] / 1000.0  # Convert to Jy
+    
+    # Create SkyCoord
+    ra = ras * u.deg
+    dec = decs * u.deg
+    skycoord = SkyCoord(ra=ra, dec=dec, frame='icrs')
+    
+    # Create stokes array: (4, Nfreqs, Ncomponents)
+    # For flat spectrum, we use a single frequency
+    n_components = len(ras)
+    stokes = np.zeros((4, 1, n_components)) * u.Jy
+    stokes[0, 0, :] = fluxes * u.Jy  # I stokes
+    
+    # Get reference frequency
+    if isinstance(freq_ghz, (int, float)):
+        ref_freq = freq_ghz * u.GHz
+    else:
+        ref_freq = 1.4 * u.GHz  # Default
+    
+    # Create SkyModel
+    sky = SkyModel(
+        name=[f"nvss_{i}" for i in range(n_components)],
+        skycoord=skycoord,
+        stokes=stokes,
+        spectral_type='flat',
+        component_type='point',
+        freq_array=np.array([ref_freq.to('Hz').value]) * u.Hz,
+    )
+    
+    return sky
 
 
 def make_nvss_component_cl(
@@ -279,24 +453,28 @@ def make_nvss_component_cl(
 
     Selects NVSS sources with flux >= min_mjy within radius_deg of (RA,Dec)
     and writes them as point components at freq_ghz.
-    """
-    from dsa110_contimg.calibration.catalogs import read_nvss_catalog  # type: ignore
-    from astropy.coordinates import SkyCoord
-    import astropy.units as u
-    import numpy as _np
+    
+    This function now uses pyradiosky internally for better sky model management.
 
-    df = read_nvss_catalog()
-    sc_all = SkyCoord(df["ra"].to_numpy() * u.deg, df["dec"].to_numpy() * u.deg, frame="icrs")
-    ctr = SkyCoord(center_ra_deg * u.deg, center_dec_deg * u.deg, frame="icrs")
-    sep = sc_all.separation(ctr).deg
-    flux_mjy = _np.asarray(df["flux_20_cm"].to_numpy(), float)
-    keep = (sep <= float(radius_deg)) & (flux_mjy >= float(min_mjy))
-    pts = [
-        (float(ra), float(dec), float(fx) / 1000.0)
-        for ra, dec, fx in zip(
-            df.loc[keep, "ra"].to_numpy(),
-            df.loc[keep, "dec"].to_numpy(),
-            flux_mjy[keep],
+    Args:
+        center_ra_deg: Center RA in degrees
+        center_dec_deg: Center Dec in degrees
+        radius_deg: Search radius in degrees
+        min_mjy: Minimum flux in mJy (default: 10.0)
+        freq_ghz: Reference frequency in GHz (default: 1.4)
+        out_path: Path to output componentlist (.cl directory)
+
+    Returns:
+        Path to created componentlist
+    """
+    # Use pyradiosky to create SkyModel, then convert to componentlist
+    sky = make_nvss_skymodel(
+        center_ra_deg,
+        center_dec_deg,
+        radius_deg,
+        min_mjy=min_mjy,
+        freq_ghz=freq_ghz,
         )
-    ]
-    return make_multi_point_cl(pts, freq_ghz=freq_ghz, out_path=out_path)
+    
+    # Convert to componentlist
+    return convert_skymodel_to_componentlist(sky, out_path=out_path, freq_ghz=freq_ghz)

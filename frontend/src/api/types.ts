@@ -420,6 +420,34 @@ export interface ExistingCalTables {
  * Calibration QA metrics for a single MS.
  * Contains metrics for K, BP, and G calibration tables.
  */
+export interface BandpassPlot {
+  filename: string;
+  path: string;
+  type: 'amplitude' | 'phase' | 'unknown';
+  spw: number | null;
+  url: string;
+}
+
+export interface BandpassPlotsList {
+  ms_path: string;
+  plot_dir: string;
+  plots: BandpassPlot[];
+  count: number;
+  message?: string;
+}
+
+export interface PerSPWStats {
+  spw_id: number;
+  total_solutions: number;
+  flagged_solutions: number;
+  fraction_flagged: number;
+  n_channels: number;
+  channels_with_high_flagging: number;
+  avg_flagged_per_channel: number;
+  max_flagged_in_channel: number;
+  is_problematic: boolean;
+}
+
 export interface CalibrationQA {
   ms_path: string;
   job_id: number;
@@ -438,6 +466,7 @@ export interface CalibrationQA {
   };
   overall_quality: 'excellent' | 'good' | 'marginal' | 'poor' | 'unknown';
   flags_total?: number;
+  per_spw_stats?: PerSPWStats[];
   timestamp: string;
 }
 

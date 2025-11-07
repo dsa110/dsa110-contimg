@@ -20,6 +20,8 @@ from typing import Optional, Dict, Any
 
 import psutil
 
+from dsa110_contimg.api.docker_client import get_docker_client, DockerClient
+
 log = logging.getLogger(__name__)
 
 
@@ -98,6 +100,13 @@ class StreamingServiceManager:
         self.config_file = config_file or Path(os.getenv("PIPELINE_STATE_DIR", "state")) / "streaming_config.json"
         self.pid_file.parent.mkdir(parents=True, exist_ok=True)
         self.config_file.parent.mkdir(parents=True, exist_ok=True)
+        self._docker_client: Optional[DockerClient] = None
+
+    def _get_docker_client(self) -> DockerClient:
+        """Get or create the cached Docker client instance."""
+        if self._docker_client is None:
+            self._docker_client = get_docker_client()
+        return self._docker_client
 
     def get_status(self) -> StreamingStatus:
         """Get current status of streaming service."""
@@ -141,8 +150,31 @@ class StreamingServiceManager:
         except psutil.NoSuchProcess:
             self._clear_pid()
             return StreamingStatus(running=False, config=self._load_config())
+        except FileNotFoundError as e:
+            # Handle missing commands gracefully
+            error_msg = str(e)
+            if "docker-compose" in error_msg.lower():
+                log.warning("docker-compose not available")
+                return StreamingStatus(
+                    running=False,
+                    error="Docker control unavailable: docker-compose not found. Use Docker SDK or direct docker commands.",
+                    config=self._load_config(),
+                )
+            return StreamingStatus(
+                running=False,
+                error=f"Command not found: {error_msg}",
+                config=self._load_config(),
+            )
         except Exception as e:
             log.error(f"Error getting streaming status: {e}")
+            # Filter docker-compose errors for cleaner messages
+            error_msg = str(e)
+            if "docker-compose" in error_msg.lower():
+                return StreamingStatus(
+                    running=False,
+                    error="Docker control unavailable. Please use Docker SDK or direct docker commands.",
+                    config=self._load_config(),
+                )
             return StreamingStatus(
                 running=False,
                 error=str(e),
@@ -152,111 +184,83 @@ class StreamingServiceManager:
     def _get_status_via_docker(self) -> StreamingStatus:
         """Get streaming service status via Docker."""
         try:
-            docker_compose_dir = Path(__file__).parent.parent.parent.parent / "ops" / "docker"
+            docker_client = self._get_docker_client()
+            container_name = "contimg-stream"
             
             # Check if container is running
-            result = subprocess.run(
-                ["docker-compose", "ps", "-q", "stream"],
-                cwd=docker_compose_dir,
-                capture_output=True,
-                text=True,
-                timeout=10,
-            )
-            
-            container_id = result.stdout.strip()
-            
-            if not container_id:
+            if not docker_client.is_container_running(container_name):
                 return StreamingStatus(running=False, config=self._load_config())
             
-            # Get container status
-            inspect_result = subprocess.run(
-                ["docker", "inspect", "-f", "{{.State.Running}}", container_id],
-                capture_output=True,
-                text=True,
-                timeout=10,
-            )
-            
-            if inspect_result.returncode != 0 or inspect_result.stdout.strip() != "true":
+            # Get container info
+            info = docker_client.get_container_info(container_name)
+            if not info:
                 return StreamingStatus(running=False, config=self._load_config())
             
-            # Container is running - get stats
-            stats_result = subprocess.run(
-                ["docker", "stats", "--no-stream", "--format", "{{.CPUPerc}},{{.MemUsage}}", container_id],
-                capture_output=True,
-                text=True,
-                timeout=10,
-            )
+            # Get stats
+            stats = docker_client.get_container_stats(container_name)
             
-            cpu_percent = None
-            memory_mb = None
-            
-            if stats_result.returncode == 0:
-                parts = stats_result.stdout.strip().split(",")
-                if len(parts) == 2:
-                    try:
-                        cpu_percent = float(parts[0].replace("%", ""))
-                        # Parse memory (e.g., "123.45MiB" or "1.23GiB")
-                        mem_str = parts[1].strip()
-                        mem_str_upper = mem_str.upper()
-                        if mem_str_upper.endswith("MIB"):
-                            memory_mb = float(mem_str.replace("MiB", "").replace("miB", "").strip())
-                        elif mem_str_upper.endswith("GIB"):
-                            memory_mb = float(mem_str.replace("GiB", "").replace("giB", "").strip()) * 1024
-                    except (ValueError, AttributeError):
-                        pass
-            
-            # Get start time
-            started_result = subprocess.run(
-                ["docker", "inspect", "-f", "{{.State.StartedAt}}", container_id],
-                capture_output=True,
-                text=True,
-                timeout=10,
-            )
-            
+            # Parse start time
             started_at = None
             uptime = None
-            
-            if started_result.returncode == 0:
+            if info.get("started_at"):
                 try:
-                    started_at_str = started_result.stdout.strip()
+                    started_at_str = info["started_at"]
                     started_at = datetime.fromisoformat(started_at_str.replace("Z", "+00:00"))
                     uptime = (datetime.now() - started_at.replace(tzinfo=None)).total_seconds()
                 except (ValueError, AttributeError):
                     pass
             
             # Get PID
-            pid_result = subprocess.run(
-                ["docker", "inspect", "-f", "{{.State.Pid}}", container_id],
-                capture_output=True,
-                text=True,
-                timeout=10,
-            )
-            
-            pid = None
-            if pid_result.returncode == 0:
-                try:
-                    pid = int(pid_result.stdout.strip())
-                    self._save_pid(pid)
-                except ValueError:
-                    pass
+            pid = info.get("pid")
+            if pid:
+                self._save_pid(pid)
             
             return StreamingStatus(
                 running=True,
                 pid=pid,
                 started_at=started_at,
                 uptime_seconds=uptime,
-                cpu_percent=cpu_percent,
-                memory_mb=memory_mb,
+                cpu_percent=stats.get("cpu_percent") if stats else None,
+                memory_mb=stats.get("memory_mb") if stats else (stats.get("memory_usage", 0) / 1024 / 1024 if stats else None),
                 config=self._load_config(),
             )
+        except FileNotFoundError as e:
+            # Handle missing docker-compose or docker command gracefully
+            error_msg = str(e)
+            if "docker-compose" in error_msg:
+                # Don't log as error - this is expected when docker-compose isn't available
+                log.debug("docker-compose not available (expected), using Docker SDK or direct docker commands")
+                return StreamingStatus(
+                    running=False,
+                    error="Docker control unavailable: docker-compose not found. Use Docker SDK or direct docker commands.",
+                    config=self._load_config(),
+                )
+            else:
+                log.warning(f"Docker command not found (handled gracefully): {e}")
+                return StreamingStatus(
+                    running=False,
+                    error=f"Docker command not found: {error_msg}",
+                    config=self._load_config(),
+                )
         except Exception as e:
-            log.error(f"Error getting Docker status: {e}")
+            # Filter out docker-compose related errors for cleaner user messages
+            error_msg = str(e)
+            if "docker-compose" in error_msg.lower():
+                # Don't log this as an error - it's expected when docker-compose isn't available
+                log.debug(f"Docker-compose not available (expected): {e}")
+                return StreamingStatus(
+                    running=False,
+                    error="Docker control unavailable. Please use Docker SDK or direct docker commands.",
+                    config=self._load_config(),
+                )
+            # Log other errors as warnings/info since we handle them gracefully
+            log.warning(f"Error getting Docker status (handled gracefully): {e}")
             return StreamingStatus(
                 running=False,
                 error=str(e),
                 config=self._load_config(),
             )
-
+    
     def _is_docker_environment(self) -> bool:
         """Check if we're running in a Docker environment."""
         # Check if we're in a container
@@ -265,7 +269,7 @@ class StreamingServiceManager:
         # Check if docker-compose.yml exists nearby
         docker_compose = Path(__file__).parent.parent.parent.parent / "ops" / "docker" / "docker-compose.yml"
         return docker_compose.exists()
-
+    
     def start(self, config: Optional[StreamingConfig] = None) -> Dict[str, Any]:
         """
         Start the streaming service.
@@ -350,57 +354,21 @@ class StreamingServiceManager:
             }
 
     def _start_via_docker(self) -> Dict[str, Any]:
-        """Start streaming service via docker-compose."""
+        """Start streaming service via Docker."""
         try:
-            docker_compose_dir = Path(__file__).parent.parent.parent.parent / "ops" / "docker"
-            result = subprocess.run(
-                ["docker-compose", "up", "-d", "stream"],
-                cwd=docker_compose_dir,
-                capture_output=True,
-                text=True,
-                timeout=30,
-            )
+            docker_client = self._get_docker_client()
+            container_name = "contimg-stream"
             
-            if result.returncode == 0:
-                # Get container PID
-                pid_result = subprocess.run(
-                    ["docker-compose", "ps", "-q", "stream"],
-                    cwd=docker_compose_dir,
-                    capture_output=True,
-                    text=True,
-                    timeout=10,
-                )
-                container_id = pid_result.stdout.strip()
-                
-                if container_id:
-                    # Get actual process PID from container
-                    inspect_result = subprocess.run(
-                        ["docker", "inspect", "-f", "{{.State.Pid}}", container_id],
-                        capture_output=True,
-                        text=True,
-                        timeout=10,
-                    )
-                    if inspect_result.returncode == 0:
-                        try:
-                            pid = int(inspect_result.stdout.strip())
-                            self._save_pid(pid)
-                        except ValueError:
-                            pass
-                
-                return {
-                    "success": True,
-                    "message": "Streaming service started via Docker",
-                }
-            else:
-                return {
-                    "success": False,
-                    "message": f"Failed to start via Docker: {result.stderr}",
-                }
-        except subprocess.TimeoutExpired:
-            return {
-                "success": False,
-                "message": "Timeout starting streaming service via Docker",
-            }
+            # Try to start the container directly
+            result = docker_client.start_container(container_name)
+            
+            if result["success"]:
+                # Get container info to save PID
+                info = docker_client.get_container_info(container_name)
+                if info and info.get("pid"):
+                    self._save_pid(info["pid"])
+            
+            return result
         except Exception as e:
             log.error(f"Error starting streaming service via Docker: {e}")
             return {
@@ -409,36 +377,18 @@ class StreamingServiceManager:
             }
 
     def _stop_via_docker(self) -> Dict[str, Any]:
-        """Stop streaming service via docker-compose."""
+        """Stop streaming service via Docker."""
         try:
-            docker_compose_dir = Path(__file__).parent.parent.parent.parent / "ops" / "docker"
-            result = subprocess.run(
-                ["docker-compose", "stop", "stream"],
-                cwd=docker_compose_dir,
-                capture_output=True,
-                text=True,
-                timeout=30,
-            )
+            docker_client = self._get_docker_client()
+            container_name = "contimg-stream"
             
+            result = docker_client.stop_container(container_name)
             self._clear_pid()
             
-            if result.returncode == 0:
-                return {
-                    "success": True,
-                    "message": "Streaming service stopped via Docker",
-                }
-            else:
-                return {
-                    "success": False,
-                    "message": f"Failed to stop via Docker: {result.stderr}",
-                }
-        except subprocess.TimeoutExpired:
-            return {
-                "success": False,
-                "message": "Timeout stopping streaming service via Docker",
-            }
+            return result
         except Exception as e:
             log.error(f"Error stopping streaming service via Docker: {e}")
+            self._clear_pid()
             return {
                 "success": False,
                 "message": f"Failed to stop via Docker: {str(e)}",
@@ -506,6 +456,25 @@ class StreamingServiceManager:
         Returns:
             Dictionary with status information
         """
+        # Check if we should use Docker
+        if self._is_docker_environment():
+            try:
+                docker_client = self._get_docker_client()
+                container_name = "contimg-stream"
+                result = docker_client.restart_container(container_name)
+                
+                # Update config if provided
+                if config:
+                    self._save_config(config)
+                
+                return result
+            except Exception as e:
+                log.error(f"Error restarting streaming service via Docker: {e}")
+                return {
+                    "success": False,
+                    "message": f"Failed to restart via Docker: {str(e)}",
+                }
+        
         stop_result = self.stop()
         if not stop_result.get("success") and "not running" not in stop_result.get("message", ""):
             return {

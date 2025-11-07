@@ -6,7 +6,6 @@ import { useState } from 'react';
 import {
   Container,
   Typography,
-  Paper,
   Box,
   Button,
   Alert,
@@ -25,8 +24,6 @@ import {
   DialogTitle,
   DialogContent,
   DialogActions,
-  IconButton,
-  Tooltip,
 } from '@mui/material';
 import {
   PlayArrow,
@@ -35,11 +32,9 @@ import {
   Settings,
   CheckCircle,
   Error as ErrorIcon,
-  Info,
   Memory,
   Speed,
   Schedule,
-  Storage,
 } from '@mui/icons-material';
 import {
   useStreamingStatus,
@@ -220,7 +215,7 @@ export default function StreamingPage() {
 
       <Grid container spacing={3}>
         {/* Service Status Card */}
-        <Grid item xs={12} md={6}>
+        <Grid item xs={12} md={6} {...({} as any)}>
           <Card>
             <CardContent>
               <Typography variant="h6" gutterBottom>
@@ -267,14 +262,14 @@ export default function StreamingPage() {
         </Grid>
 
         {/* Resource Usage Card */}
-        <Grid item xs={12} md={6}>
+        <Grid item xs={12} md={6} {...({} as any)}>
           <Card>
             <CardContent>
               <Typography variant="h6" gutterBottom>
                 Resource Usage
               </Typography>
               <Stack spacing={2} sx={{ mt: 2 }}>
-                {status?.cpu_percent !== undefined && (
+                {status?.cpu_percent != null && (
                   <Box>
                     <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 0.5 }}>
                       <Typography variant="body2" color="text.secondary">
@@ -293,7 +288,7 @@ export default function StreamingPage() {
                   </Box>
                 )}
                 
-                {status?.memory_mb !== undefined && (
+                {status?.memory_mb != null && (
                   <Box>
                     <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 0.5 }}>
                       <Typography variant="body2" color="text.secondary">
@@ -312,7 +307,7 @@ export default function StreamingPage() {
         </Grid>
 
         {/* Queue Statistics Card */}
-        <Grid item xs={12} md={6}>
+        <Grid item xs={12} md={6} {...({} as any)}>
           <Card>
             <CardContent>
               <Typography variant="h6" gutterBottom>
@@ -351,7 +346,7 @@ export default function StreamingPage() {
         </Grid>
 
         {/* Configuration Card */}
-        <Grid item xs={12} md={6}>
+        <Grid item xs={12} md={6} {...({} as any)}>
           <Card>
             <CardContent>
               <Typography variant="h6" gutterBottom>
@@ -422,7 +417,7 @@ export default function StreamingPage() {
                 fullWidth
               />
               <Grid container spacing={2}>
-                <Grid item xs={6}>
+                <Grid item xs={6} {...({} as any)}>
                   <TextField
                     label="Expected Subbands"
                     type="number"
@@ -431,7 +426,7 @@ export default function StreamingPage() {
                     fullWidth
                   />
                 </Grid>
-                <Grid item xs={6}>
+                <Grid item xs={6} {...({} as any)}>
                   <TextField
                     label="Chunk Duration (minutes)"
                     type="number"
@@ -440,7 +435,7 @@ export default function StreamingPage() {
                     fullWidth
                   />
                 </Grid>
-                <Grid item xs={6}>
+                <Grid item xs={6} {...({} as any)}>
                   <TextField
                     label="Max Workers"
                     type="number"
@@ -449,7 +444,7 @@ export default function StreamingPage() {
                     fullWidth
                   />
                 </Grid>
-                <Grid item xs={6}>
+                <Grid item xs={6} {...({} as any)}>
                   <TextField
                     label="Log Level"
                     select

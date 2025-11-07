@@ -1,8 +1,15 @@
-# Streaming Service Deployment & Control
+# Streaming Service Control
 
 ## Overview
 
-This document describes the complete streaming service deployment and control system that provides full dashboard-based management of the DSA-110 continuum imaging pipeline streaming service.
+This guide explains how to deploy, control, and monitor the DSA-110 streaming converter service through the dashboard interface. The streaming service automatically processes incoming UVH5 subband files and converts them to CASA Measurement Sets.
+
+**Related Documentation:**
+- [Streaming Converter Architecture](./streaming_converter_guide.md) - Technical details of the converter
+- [Streaming Troubleshooting Guide](./streaming-troubleshooting.md) - Comprehensive troubleshooting
+- [Docker Deployment](../operations/deploy-docker.md) - Docker setup and configuration
+- [Streaming API Reference](../reference/streaming-api.md) - Complete API documentation
+- [Streaming Architecture](../concepts/streaming-architecture.md) - System architecture
 
 ## Features
 
@@ -156,24 +163,27 @@ Health endpoint returns:
 
 ## Troubleshooting
 
-### Service Won't Start
+For comprehensive troubleshooting procedures, see the [Streaming Troubleshooting Guide](./streaming-troubleshooting.md).
 
-1. Check logs: `docker-compose logs stream`
-2. Verify configuration in dashboard
-3. Check directory permissions
+**Quick Fixes:**
+
+### Service Won't Start
+1. Check logs: `docker-compose logs stream | tail -50`
+2. Verify configuration: `curl http://localhost:8010/api/streaming/config`
+3. Check directory permissions and existence
 4. Verify CASA6 Python is available
 
 ### Service Status Not Updating
-
 1. Check API connectivity: `curl http://localhost:8010/api/streaming/status`
 2. Verify Docker container is running: `docker-compose ps`
-3. Check API logs: `docker-compose logs api`
+3. Check API logs: `docker-compose logs api | grep streaming`
 
 ### Configuration Not Saving
-
 1. Verify `PIPELINE_STATE_DIR` is writable
-2. Check disk space
+2. Check disk space: `df -h`
 3. Review API logs for errors
+
+For detailed troubleshooting, see [Streaming Troubleshooting Guide](./streaming-troubleshooting.md).
 
 ## Future Enhancements
 

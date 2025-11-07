@@ -8,6 +8,11 @@ and image products with integrated alerting.
 from dsa110_contimg.qa.ms_quality import validate_ms_quality, quick_ms_check
 from dsa110_contimg.qa.calibration_quality import (
     validate_caltable_quality,
+    analyze_per_spw_flagging,
+    PerSPWFlaggingStats,
+    flag_problematic_spws,
+    export_per_spw_stats,
+    plot_per_spw_flagging,
     check_corrected_data_quality,
     check_upstream_delay_correction,
     verify_kcal_delays,
@@ -27,6 +32,11 @@ __all__ = [
     "quick_ms_check",
     # Calibration quality
     "validate_caltable_quality",
+    "analyze_per_spw_flagging",
+    "PerSPWFlaggingStats",
+    "flag_problematic_spws",
+    "export_per_spw_stats",
+    "plot_per_spw_flagging",
     "check_corrected_data_quality",
     # Delay-specific QA
     "check_upstream_delay_correction",

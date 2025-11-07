@@ -247,6 +247,7 @@ class TestPipelineOrchestrator:
             paths=PathsConfig(
                 input_dir=Path("/input"),
                 output_dir=Path("/output"),
+            )
         )
         context = PipelineContext(config=config)
         

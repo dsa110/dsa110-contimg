@@ -27,10 +27,12 @@ from .flagging import (
     reset_flags, flag_zeros, flag_rfi, flag_antenna, flag_baselines,
     flag_manual, flag_shadow, flag_quack, flag_elevation, flag_clip,
     flag_extend, flag_summary,
+    analyze_channel_flagging_stats, flag_problematic_channels,
 )
 from .calibration import solve_delay, solve_bandpass, solve_gains, solve_prebandpass_phase
 from .selection import select_bandpass_fields, select_bandpass_from_catalog
 from .diagnostics import generate_calibration_diagnostics
+from .plotting import generate_bandpass_plots
 from .cli_utils import (
     rephase_ms_to_calibrator as _rephase_ms_to_calibrator,
     clear_all_calibration_artifacts as _clear_all_calibration_artifacts,
@@ -217,6 +219,80 @@ def add_calibrate_parser(subparsers: argparse._SubParsersAction) -> argparse.Arg
             "Useful for visualizing the calibrator sky model used during calibration. "
             "Output will be saved as {ms_path}.calibrator_model.fits"
         ),
+    )
+    parser.add_argument(
+        "--auto-flag-channels",
+        action="store_true",
+        default=True,
+        help=(
+            "Automatically flag problematic channels after RFI flagging (default: True). "
+            "Channels with >50%% flagged data (configurable via --channel-flag-threshold) "
+            "will be flagged entirely before calibration. This is more precise than SPW-level flagging."
+        ),
+    )
+    parser.add_argument(
+        "--channel-flag-threshold",
+        type=float,
+        default=0.5,
+        help=(
+            "Fraction of flagged data to flag channel entirely (default: 0.5). "
+            "Channels with flagging rate above this threshold will be flagged before calibration."
+        ),
+    )
+    parser.add_argument(
+        "--auto-flag-problematic-spws",
+        action="store_true",
+        help=(
+            "Automatically flag problematic spectral windows after bandpass calibration. "
+            "SPWs with >80% average flagging or >50% of channels with high flagging will be flagged. "
+            "WARNING: This flags entire SPWs, which may remove good channels. "
+            "Per-channel flagging (done pre-calibration) is preferred. "
+            "Use this only as a last resort if per-channel flagging is insufficient."
+        )
+    )
+    parser.add_argument(
+        "--export-spw-stats",
+        type=str,
+        metavar="PATH",
+        help=(
+            "Export per-SPW flagging statistics to JSON and CSV files. "
+            "Path should be base filename (extensions .json and .csv will be added). "
+            "Example: --export-spw-stats /path/to/spw_stats"
+        )
+    )
+    parser.add_argument(
+        "--plot-bandpass",
+        action="store_true",
+        default=True,
+        help=(
+            "Generate bandpass amplitude and phase plots after bandpass calibration (default: True). "
+            "Plots are saved in a 'calibration_plots' directory next to the MS and are accessible via the dashboard."
+        ),
+    )
+    parser.add_argument(
+        "--no-plot-bandpass",
+        dest="plot_bandpass",
+        action="store_false",
+        help="Disable bandpass plot generation.",
+    )
+    parser.add_argument(
+        "--bandpass-plot-dir",
+        type=str,
+        default=None,
+        help=(
+            "Directory to save bandpass plots (default: {ms_dir}/calibration_plots/bandpass). "
+            "Plots are organized by calibration table name."
+        ),
+    )
+    parser.add_argument(
+        "--plot-spw-flagging",
+        type=str,
+        metavar="PATH",
+        help=(
+            "Generate visualization of per-SPW flagging statistics. "
+            "Path should be output filename (extension .png will be added if not present). "
+            "Example: --plot-spw-flagging /path/to/spw_plot"
+        )
     )
     parser.add_argument(
         "--gain-solint",
@@ -661,15 +737,21 @@ def handle_calibrate(args: argparse.Namespace) -> int:
                     logger.warning("Rephasing failed, but continuing with calibration")
                     ms_was_rephased = False  # Explicitly set to False when rephasing fails
                 else:
-                    # After rephasing, all fields have the same phase center, so we can simplify
-                    # field selection to just use field 0 (or combine all fields)
+                    # After rephasing, all fields have the same phase center, so we can combine
+                    # all fields for better SNR (instead of just using field 0)
                     print(f"DEBUG: After rephasing, all fields share the same phase center")
-                    # Update field_sel to use field 0 (simplified after rephasing)
-                    if '~' in field_sel:
-                        # If we had a range, now we can just use field 0
-                        field_sel = "0"
-                        peak_field_idx = 0
-                        print(f"DEBUG: Simplified field selection to field 0 after rephasing")
+                    # Get total number of fields from MS
+                    from casacore.tables import table
+                    with table(f"{args.ms}::FIELD", readonly=True) as tb:
+                        nfields = tb.nrows()
+                    # Update field_sel to use all fields (0~N-1) for maximum integration time
+                    field_sel = f"0~{nfields-1}"
+                    peak_field_idx = peak_field  # Keep peak field for reference
+                    print(f"DEBUG: Updated field selection to all {nfields} fields after rephasing: {field_sel}")
+                    # Enable field combining by default when rephasing (all fields point at calibrator)
+                    # This maximizes integration time and SNR for calibration solutions
+                    args.bp_combine_field = True
+                    print(f"DEBUG: Enabled --bp-combine-field by default (rephased MS with all fields at same phase center)")
             else:
                 print(f"DEBUG: Skipping rephasing (--skip-rephase specified)")
                 print(f"DEBUG: Using original meridian phase center (ft() will work correctly)")
@@ -1042,6 +1124,37 @@ def handle_calibrate(args: argparse.Namespace) -> int:
                     f"✓ [2/6] Flagging complete: {unflagged_fraction*100:.1f}% data remains unflagged "
                     f"({unflagged_points:,}/{total_points:,} points, estimated)"
                 )
+            
+            # Channel-level flagging: Analyze and flag problematic channels after RFI flagging
+            # This is more precise than SPW-level flagging since SPWs are arbitrary subdivisions
+            if getattr(args, 'auto_flag_channels', True):
+                logger.info("[2/6] Analyzing channel-level flagging statistics...")
+                try:
+                    problematic_channels = analyze_channel_flagging_stats(
+                        args.ms,
+                        threshold=getattr(args, 'channel_flag_threshold', 0.5)
+                    )
+                    
+                    if problematic_channels:
+                        total_flagged_channels = sum(len(chans) for chans in problematic_channels.values())
+                        logger.info(
+                            f"Found {total_flagged_channels} problematic channel(s) across "
+                            f"{len(problematic_channels)} SPW(s):"
+                        )
+                        flag_problematic_channels(
+                            args.ms,
+                            problematic_channels,
+                            datacolumn=args.datacolumn
+                        )
+                        logger.info(
+                            f"✓ [2/6] Channel-level flagging complete: {total_flagged_channels} "
+                            f"channel(s) flagged before calibration"
+                        )
+                    else:
+                        logger.info("✓ [2/6] No problematic channels detected")
+                except Exception as e:
+                    logger.warning(f"Channel-level flagging analysis failed: {e}")
+                    logger.warning("Continuing with calibration (channel-level flagging skipped)")
         except Exception as e:
             logger.error(
                 f"Failed to validate unflagged data after flagging: {e}. "
@@ -1734,14 +1847,133 @@ def handle_calibrate(args: argparse.Namespace) -> int:
         elapsed_bp = time.perf_counter() - t_bp0
         logger.info(f"✓ [{step_num}/6] Bandpass solve completed in {elapsed_bp:.2f}s")
         step_num += 1
-        # Always report bandpass flagged fraction
+        # Always report bandpass flagged fraction and per-SPW statistics
         try:
             if bptabs:
-                from dsa110_contimg.qa.calibration_quality import validate_caltable_quality
+                from dsa110_contimg.qa.calibration_quality import (
+                    validate_caltable_quality,
+                    analyze_per_spw_flagging,
+                )
                 _bp_metrics = validate_caltable_quality(bptabs[0])
                 print(
                     f"Bandpass flagged solutions: {_bp_metrics.fraction_flagged*100:.1f}%"
                 )
+                
+                # Generate bandpass plots if requested
+                if getattr(args, 'plot_bandpass', True) and bptabs:
+                    try:
+                        # Determine plot output directory
+                        if getattr(args, 'bandpass_plot_dir', None):
+                            plot_dir = args.bandpass_plot_dir
+                        else:
+                            # Default: {ms_dir}/calibration_plots/bandpass
+                            ms_dir = os.path.dirname(os.path.abspath(args.ms))
+                            plot_dir = os.path.join(ms_dir, 'calibration_plots', 'bandpass')
+                        
+                        logger.info("Generating bandpass plots...")
+                        plot_files = generate_bandpass_plots(
+                            bptabs[0],
+                            output_dir=plot_dir,
+                            plot_amplitude=True,
+                            plot_phase=True,
+                        )
+                        if plot_files:
+                            logger.info(f"✓ Generated {len(plot_files)} bandpass plot(s) in {plot_dir}")
+                            print(f"✓ Bandpass plots: {len(plot_files)} file(s) in {plot_dir}")
+                    except Exception as e:
+                        logger.warning(f"Failed to generate bandpass plots: {e}")
+                        logger.warning("Continuing without plots (calibration completed successfully)")
+                
+                # Per-SPW analysis (following NRAO/VLBA best practices)
+                try:
+                    from dsa110_contimg.qa.calibration_quality import (
+                        export_per_spw_stats,
+                        plot_per_spw_flagging,
+                        flag_problematic_spws,
+                    )
+                    
+                    spw_stats = analyze_per_spw_flagging(bptabs[0])
+                    if spw_stats:
+                        problematic_spws = [s for s in spw_stats if s.is_problematic]
+                        
+                        print("\n" + "="*70)
+                        print("PER-SPECTRAL-WINDOW FLAGGING ANALYSIS")
+                        print("="*70)
+                        print(f"{'SPW':<6} {'Flagged':<25} {'Avg/Ch':<10} {'High-Flag Ch':<15} {'Status':<12}")
+                        print("-"*70)
+                        
+                        for stats in sorted(spw_stats, key=lambda x: x.spw_id):
+                            status = "⚠ PROBLEMATIC" if stats.is_problematic else "✓ OK"
+                            flagged_str = f"{stats.fraction_flagged*100:>5.1f}% ({stats.flagged_solutions}/{stats.total_solutions})"
+                            avg_str = f"{stats.avg_flagged_per_channel*100:>5.1f}%"
+                            channels_str = f"{stats.channels_with_high_flagging}/{stats.n_channels}"
+                            print(
+                                f"{stats.spw_id:<6} "
+                                f"{flagged_str:<25} "
+                                f"{avg_str:<10} "
+                                f"{channels_str:<15} "
+                                f"{status:<12}"
+                            )
+                        
+                        if problematic_spws:
+                            print("\n" + "="*70)
+                            print("⚠ WARNING: Problematic Spectral Windows Detected")
+                            print("="*70)
+                            for stats in problematic_spws:
+                                logger.warning(
+                                    f"SPW {stats.spw_id}: {stats.fraction_flagged*100:.1f}% flagged "
+                                    f"(avg {stats.avg_flagged_per_channel*100:.1f}% per channel, "
+                                    f"{stats.channels_with_high_flagging}/{stats.n_channels} channels with >50% flagging). "
+                                    f"Note: Per-channel flagging is preferred. Flag entire SPW only as last resort."
+                                )
+                            print(
+                                f"\nRecommendation: {len(problematic_spws)} SPW(s) show consistently high flagging rates. "
+                                f"These may indicate low S/N, RFI, or instrumental issues. "
+                                f"Note: Per-channel flagging is preferred (already done pre-calibration). "
+                                f"Consider flagging entire SPWs only if per-channel flagging is insufficient."
+                            )
+                            
+                            # Auto-flag problematic SPWs if requested
+                            auto_flag = getattr(args, 'auto_flag_problematic_spws', False)
+                            if auto_flag:
+                                logger.info(f"Auto-flagging {len(problematic_spws)} problematic SPW(s)...")
+                                try:
+                                    flagged_spws = flag_problematic_spws(ms_in, bptabs[0])
+                                    if flagged_spws:
+                                        logger.info(f"✓ Flagged SPWs: {flagged_spws}")
+                                        print(f"\n✓ Automatically flagged {len(flagged_spws)} problematic SPW(s): {flagged_spws}")
+                                except Exception as e:
+                                    logger.warning(f"Failed to auto-flag problematic SPWs: {e}")
+                        else:
+                            print("\n✓ All spectral windows show acceptable flagging rates")
+                        print("="*70 + "\n")
+                        
+                        # Export statistics if requested
+                        export_stats = getattr(args, 'export_spw_stats', None)
+                        if export_stats:
+                            try:
+                                json_path = export_per_spw_stats(spw_stats, export_stats, format="json")
+                                csv_path = export_per_spw_stats(spw_stats, export_stats, format="csv")
+                                logger.info(f"Exported per-SPW statistics: {json_path}, {csv_path}")
+                                print(f"✓ Exported per-SPW statistics: {json_path}, {csv_path}")
+                            except Exception as e:
+                                logger.warning(f"Failed to export per-SPW statistics: {e}")
+                        
+                        # Generate visualization if requested
+                        plot_path = getattr(args, 'plot_spw_flagging', None)
+                        if plot_path:
+                            try:
+                                plot_file = plot_per_spw_flagging(
+                                    spw_stats,
+                                    plot_path,
+                                    title=f"Bandpass Calibration - Per-SPW Flagging Analysis\n{os.path.basename(ms_in)}"
+                                )
+                                logger.info(f"Generated per-SPW flagging plot: {plot_file}")
+                                print(f"✓ Generated visualization: {plot_file}")
+                            except Exception as e:
+                                logger.warning(f"Failed to generate per-SPW flagging plot: {e}")
+                except Exception as e:
+                    logger.warning(f"Could not compute per-SPW flagging statistics: {e}")
         except Exception as e:
             logger.warning(f"Could not compute bandpass flagged fraction: {e}")
         
@@ -1810,6 +2042,78 @@ def handle_calibrate(args: argparse.Namespace) -> int:
     total_time = time.time() - start_time
     logger.info(f"Total calibration time: {total_time:.1f}s ({total_time/60:.1f} min)")
     logger.info("=" * 70)
+    
+    # Register calibration tables in registry database (if not dry-run)
+    if not args.dry_run and tabs:
+        try:
+            from pathlib import Path
+            from dsa110_contimg.database.registry import register_set_from_prefix, ensure_db
+            from dsa110_contimg.utils.time_utils import extract_ms_time_range
+            import re
+            
+            # Determine registry DB path (same logic as apply_service)
+            # Try CAL_REGISTRY_DB env var first, then PIPELINE_STATE_DIR, then default
+            registry_db_env = os.environ.get("CAL_REGISTRY_DB")
+            if registry_db_env:
+                registry_db = Path(registry_db_env)
+            else:
+                state_dir = Path(os.environ.get("PIPELINE_STATE_DIR", "/data/dsa110-contimg/state"))
+                registry_db = state_dir / "cal_registry.sqlite3"
+            
+            # Ensure registry DB exists (creates if missing)
+            ensure_db(registry_db)
+            
+            # Extract time range from MS for validity window
+            start_mjd, end_mjd, mid_mjd = extract_ms_time_range(ms_in)
+            if mid_mjd is None:
+                logger.warning(f"Could not extract time range from {ms_in}, using current time")
+                from astropy.time import Time
+                mid_mjd = Time.now().mjd
+                start_mjd = mid_mjd - 0.5  # 12 hour window
+                end_mjd = mid_mjd + 0.5
+            
+            # Generate set name from MS filename and time
+            ms_base = Path(ms_in).stem
+            set_name = f"{ms_base}_{mid_mjd:.6f}"
+            
+            # Determine table prefix
+            # If table_prefix_override was used, extract it from the first table
+            # Otherwise, extract common prefix from all tables
+            if tabs:
+                table_dir = Path(tabs[0]).parent
+                first_table_name = Path(tabs[0]).stem
+                
+                # Remove table type suffixes to get base prefix
+                prefix_base = re.sub(r'_(bpcal|gpcal|gacal|2gcal|kcal|bacal|flux)$', '', first_table_name, flags=re.IGNORECASE)
+                table_prefix = table_dir / prefix_base
+                
+                logger.info(f"Registering calibration tables in registry: {set_name}")
+                logger.debug(f"Using table prefix: {table_prefix}")
+                registered = register_set_from_prefix(
+                    registry_db,
+                    set_name,
+                    table_prefix,
+                    cal_field=field_sel,
+                    refant=refant,
+                    valid_start_mjd=start_mjd,
+                    valid_end_mjd=end_mjd,
+                    status="active",
+                )
+                if registered:
+                    logger.info(f"✓ Registered {len(registered)} calibration tables in registry")
+                else:
+                    logger.warning(
+                        f"Warning: No tables found with prefix {table_prefix} for registration. "
+                        f"Tables may not be discoverable by apply_calibration via registry lookup."
+                    )
+        except Exception as e:
+            # Registration failure is non-fatal for CLI (user can register manually if needed)
+            logger.warning(
+                f"Failed to register calibration tables in registry: {e}. "
+                f"Tables were created but not registered. You can register them manually using "
+                f"the registry CLI or provide tables explicitly to apply_calibration.",
+                exc_info=True
+            )
     
     # Cleanup subset MS if requested
     if args.cleanup_subset and subset_ms_created:

@@ -223,10 +223,10 @@ class SQLiteStateRepository(StateRepository):
         metadata: Dict[str, Any]
     ) -> None:
         """Upsert MS index entry."""
-        from dsa110_contimg.database.products import upsert_ms_index
+        from dsa110_contimg.database.products import ms_index_upsert
         
         conn = self._get_conn()
-        upsert_ms_index(
+        ms_index_upsert(
             conn,
             ms_path,
             start_mjd=metadata.get("start_mjd"),

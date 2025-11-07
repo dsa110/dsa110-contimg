@@ -6,9 +6,11 @@ This module provides reusable fixtures for:
 - Minimal test MS creation
 - Calibration table mocks
 - Common test data patterns
+- Pipeline framework fixtures
 """
 
 import sys
+import tempfile
 from pathlib import Path
 from unittest.mock import MagicMock, Mock
 
@@ -297,6 +299,64 @@ def sample_calibration_tables(temp_work_dir):
         'g_table': str(cal_dir / "test_gacal"),
         'gp_table': str(cal_dir / "test_gpcal"),
     }
+
+
+# Pipeline framework fixtures
+@pytest.fixture
+def test_config():
+    """Standard test configuration for pipeline tests."""
+    from dsa110_contimg.pipeline.config import PipelineConfig, PathsConfig
+    return PipelineConfig(
+        paths=PathsConfig(
+            input_dir=Path("/test/input"),
+            output_dir=Path("/test/output"),
+        )
+    )
+
+
+@pytest.fixture
+def test_context(test_config):
+    """Standard test context for pipeline tests."""
+    from dsa110_contimg.pipeline.context import PipelineContext
+    return PipelineContext(
+        config=test_config,
+        job_id=1,
+        inputs={
+            "start_time": "2024-01-01T00:00:00",
+            "end_time": "2024-01-01T01:00:00",
+        }
+    )
+
+
+@pytest.fixture
+def in_memory_repo():
+    """In-memory state repository for fast pipeline tests."""
+    from dsa110_contimg.pipeline.state import InMemoryStateRepository
+    return InMemoryStateRepository()
+
+
+@pytest.fixture
+def sqlite_repo(tmp_path):
+    """SQLite state repository with temporary database."""
+    from dsa110_contimg.pipeline.state import SQLiteStateRepository
+    db_path = tmp_path / "test.db"
+    repo = SQLiteStateRepository(db_path)
+    yield repo
+    repo.close()
+
+
+@pytest.fixture
+def context_with_repo(test_context, in_memory_repo):
+    """Context with in-memory state repository."""
+    from dsa110_contimg.pipeline.context import PipelineContext
+    return PipelineContext(
+        config=test_context.config,
+        job_id=test_context.job_id,
+        inputs=test_context.inputs,
+        outputs=test_context.outputs,
+        metadata=test_context.metadata,
+        state_repository=in_memory_repo,
+    )
 
 
 # Pytest configuration

@@ -109,7 +109,19 @@ def _validate_solve_success(caltable_path: str, refant: Optional[Union[int, str]
             
             # Verify refant has solutions if provided
             if refant is not None:
-                refant_int = int(refant) if isinstance(refant, str) else refant
+                # Handle comma-separated refant string (e.g., "103,111,113,115,104")
+                # Use the first antenna in the chain for validation
+                if isinstance(refant, str):
+                    if ',' in refant:
+                        # Comma-separated list: use first antenna
+                        refant_str = refant.split(',')[0].strip()
+                        refant_int = int(refant_str)
+                    else:
+                        # Single antenna ID as string
+                        refant_int = int(refant)
+                else:
+                    refant_int = refant
+                
                 antennas = tb.getcol('ANTENNA1')
                 
                 # For antenna-based calibration, check ANTENNA1
@@ -879,7 +891,18 @@ def solve_gains(
         print(f"Validating {len(bptables)} bandpass table(s) before gain calibration...")
         try:
             # Convert refant string to int for validation
-            refant_int = int(refant) if isinstance(refant, str) else refant
+            # Handle comma-separated refant string (e.g., "113,114,103,106,112")
+            # Use the first antenna in the chain for validation
+            if isinstance(refant, str):
+                if ',' in refant:
+                    # Comma-separated list: use first antenna
+                    refant_str = refant.split(',')[0].strip()
+                    refant_int = int(refant_str)
+                else:
+                    # Single antenna ID as string
+                    refant_int = int(refant)
+            else:
+                refant_int = refant
             validate_caltables_for_use(
                 bptables, ms, require_all=True, refant=refant_int
             )

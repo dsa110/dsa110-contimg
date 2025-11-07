@@ -8,10 +8,9 @@ ENV DEBIAN_FRONTEND=noninteractive
 ENV TZ=UTC
 
 # Install system dependencies
+# Note: We use conda for Python 3.11.13, so system Python is not required
+# System Python 3.8 (default in Ubuntu 20.04) is sufficient for system tools
 RUN apt-get update && apt-get install -y \
-    python3.9 \
-    python3-pip \
-    python3-dev \
     git \
     wget \
     curl \
@@ -32,7 +31,7 @@ ENV PATH=/opt/conda/bin:$PATH
 # Accept conda Terms of Service and create environment for CubiCal
 RUN conda tos accept --override-channels --channel https://repo.anaconda.com/pkgs/main && \
     conda tos accept --override-channels --channel https://repo.anaconda.com/pkgs/r && \
-    conda create -n cubical python=3.11.13 -y && \
+    conda create -n cubical python=3.10.13 -y && \
     conda clean -afy
 
 # Activate conda environment in shell

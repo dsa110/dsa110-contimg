@@ -27,6 +27,7 @@ from dsa110_contimg.pipeline.orchestrator import (
     PipelineOrchestrator,
     StageDefinition,
     PipelineResult,
+    PipelineStatus,
 )
 from dsa110_contimg.pipeline.workflows import (
     WorkflowBuilder,
@@ -34,13 +35,17 @@ from dsa110_contimg.pipeline.workflows import (
     quicklook_workflow,
     reprocessing_workflow,
 )
+from dsa110_contimg.pipeline.observability import PipelineObserver, StageMetrics
+from dsa110_contimg.pipeline.adapter import LegacyWorkflowAdapter
+from dsa110_contimg.pipeline.resilience import RetryPolicy, RetryStrategy
 
 # Import stages_impl lazily to avoid circular dependencies
 def __getattr__(name: str):
     """Lazy import for stage implementations."""
-    if name in ("ConversionStage", "CalibrationStage", "ImagingStage"):
+    if name in ("ConversionStage", "CalibrationSolveStage", "CalibrationStage", "ImagingStage"):
         from dsa110_contimg.pipeline.stages_impl import (
             ConversionStage,
+            CalibrationSolveStage,
             CalibrationStage,
             ImagingStage,
         )
@@ -59,9 +64,15 @@ __all__ = [
     "PipelineOrchestrator",
     "StageDefinition",
     "PipelineResult",
+    "PipelineStatus",
     "WorkflowBuilder",
     "standard_imaging_workflow",
     "quicklook_workflow",
     "reprocessing_workflow",
+    "PipelineObserver",
+    "StageMetrics",
+    "LegacyWorkflowAdapter",
+    "RetryPolicy",
+    "RetryStrategy",
 ]
 

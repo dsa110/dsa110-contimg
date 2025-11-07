@@ -42,6 +42,33 @@ The calibration procedure corrects for instrumental and atmospheric effects that
        - `timedevscale=4.0`, `freqdevscale=4.0`
    - **Recommended for calibrators** - ensures clean solutions
 
+4. **Channel-Level Flagging** (`--auto-flag-channels`, default: enabled)
+   - **Purpose**: After RFI flagging, analyzes flagging statistics per channel and flags channels with high flagging rates before calibration
+   - **How it works**: 
+     - Calculates flagging fraction per channel across all SPWs
+     - Flags channels where >50% of data is flagged (configurable via `--channel-flag-threshold`)
+     - More precise than SPW-level flagging since SPWs are arbitrary subdivisions
+   - **When to use**: Enabled by default. Use `--no-auto-flag-channels` to disable.
+   - **Benefits**: 
+     - Preserves good channels even in "bad" SPWs
+     - Reduces data loss compared to flagging entire SPWs
+     - Improves calibration quality by using maximum available data
+   - **Example**:
+     ```bash
+     # Use default threshold (50%)
+     python -m dsa110_contimg.calibration.cli calibrate \
+         --ms /path/to/ms \
+         --auto-fields \
+         --flagging-mode rfi
+     
+     # Custom threshold (40%)
+     python -m dsa110_contimg.calibration.cli calibrate \
+         --ms /path/to/ms \
+         --auto-fields \
+         --flagging-mode rfi \
+         --channel-flag-threshold 0.4
+     ```
+
 **Flagging Modes:**
 - `--flagging-mode zeros` (default): Only zeros flagging
 - `--flagging-mode rfi`: Zeros + RFI flagging
@@ -227,6 +254,20 @@ python -m dsa110_contimg.calibration.cli calibrate \
   - Single field: `--field 0`
   - Field range: `--field 0~15` (combines with `--bp-combine-field`)
   - Auto-select: `--auto-fields` (finds calibrator fields automatically)
+  
+  **Default Field Combining** (when using `--auto-fields`):
+  - After rephasing MS to calibrator position, automatically selects **all fields** (0~N-1) instead of just the peak field
+  - Automatically enables `--bp-combine-field` to combine all fields for better SNR
+  - **Rationale**: For drift-scan instruments like DSA-110, all fields share the same phase center after rephasing, so combining them maximizes integration time (e.g., 300 seconds vs 12.5 seconds)
+  - **When to use**: Default behavior. Manually specify `--field` to override.
+  - **Example**:
+    ```bash
+    # Automatically combines all fields after rephasing
+    python -m dsa110_contimg.calibration.cli calibrate \
+        --ms /path/to/ms \
+        --auto-fields \
+        --preset standard
+    ```
 
 - **UV Range Cuts:**
   - Default: No cut (processes all baselines)
@@ -257,6 +298,11 @@ python -m dsa110_contimg.calibration.cli calibrate \
 **Output:**
 - Calibration table: `<ms_prefix>_bpcal`
 - Format: CASA table directory
+- **Plots** (if `--plot-bandpass` enabled, default: True):
+  - Bandpass amplitude plots: `{ms_dir}/calibration_plots/bandpass/{table_name}_plot_amp*.png`
+  - Bandpass phase plots: `{ms_dir}/calibration_plots/bandpass/{table_name}_plot_phase*.png`
+  - One plot per SPW, showing all antennas overlaid
+  - Accessible via dashboard API endpoints
 
 **Example:**
 ```bash

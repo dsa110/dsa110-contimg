@@ -256,18 +256,12 @@ export default function SkyViewer({
     setError(null);
     imageLoadedRef.current = false;
 
-    try {
-      // Load image into JS9 display
-      // Ensure the div exists and is visible before loading
-      const targetDiv = document.getElementById(displayId);
-      if (!targetDiv) {
-        setError(`Display div with id "${displayId}" not found`);
-        setLoading(false);
-        return;
-      }
-
-      // Hide any JS9 loading indicators that might appear
-      const hideJS9Loading = () => {
+    // Define variables outside try/catch so they're accessible everywhere
+    let hideInterval: NodeJS.Timeout | null = null;
+    let observer: MutationObserver | null = null;
+    let targetDiv: HTMLElement | null = null;
+    
+    const hideJS9Loading = () => {
         // Try multiple selectors to catch JS9 loading indicators
         const selectors = [
           '.JS9Loading',
@@ -355,13 +349,35 @@ export default function SkyViewer({
           });
         }
       };
+    
+    // Cleanup interval and observer when loading completes
+    const cleanupInterval = () => {
+      if (hideInterval) {
+        clearInterval(hideInterval);
+        hideInterval = null;
+      }
+      if (observer) {
+        observer.disconnect();
+        observer = null;
+      }
+    };
+    
+    try {
+      // Load image into JS9 display
+      // Ensure the div exists and is visible before loading
+      targetDiv = document.getElementById(displayId);
+      if (!targetDiv) {
+        setError(`Display div with id "${displayId}" not found`);
+        setLoading(false);
+        return;
+      }
       
       // Hide immediately and set up interval to catch dynamically created elements
       hideJS9Loading();
-      const hideInterval = setInterval(hideJS9Loading, 50); // Check more frequently
+      hideInterval = setInterval(hideJS9Loading, 50); // Check more frequently
       
       // Also use MutationObserver to catch elements as they're added
-      const observer = new MutationObserver(() => {
+      observer = new MutationObserver(() => {
         hideJS9Loading();
       });
       
@@ -373,12 +389,6 @@ export default function SkyViewer({
           attributeFilter: ['class', 'id', 'style'],
         });
       }
-      
-      // Cleanup interval and observer when loading completes
-      const cleanupInterval = () => {
-        clearInterval(hideInterval);
-        observer.disconnect();
-      };
 
       // Clear any existing image from the display before loading a new one
       const display = window.JS9.displays?.find((d: any) => {

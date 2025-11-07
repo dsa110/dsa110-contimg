@@ -1,0 +1,187 @@
+#!/usr/bin/env python3
+"""
+End-to-end test script for the new pipeline framework.
+
+This script tests the new pipeline framework with USE_NEW_PIPELINE=true
+by creating a workflow job and executing it.
+
+Usage:
+    export USE_NEW_PIPELINE=true
+    python scripts/test_new_pipeline_e2e.py \
+        --input-dir /data/incoming \
+        --output-dir /scratch/test-pipeline \
+        --start-time 2025-01-15T10:00:00 \
+        --end-time 2025-01-15T10:05:00
+"""
+
+import argparse
+import os
+import sys
+import time
+from pathlib import Path
+
+# Add src to path
+sys.path.insert(0, str(Path(__file__).parent.parent / "src"))
+
+from dsa110_contimg.database.jobs import create_job, get_job
+from dsa110_contimg.database.products import ensure_products_db
+from dsa110_contimg.api.job_runner import run_workflow_job
+
+
+def main():
+    parser = argparse.ArgumentParser(
+        description="Test new pipeline framework end-to-end"
+    )
+    parser.add_argument(
+        "--input-dir",
+        type=str,
+        default="/data/incoming",
+        help="Input directory with UVH5 files",
+    )
+    parser.add_argument(
+        "--output-dir",
+        type=str,
+        default="/scratch/test-pipeline",
+        help="Output directory for MS and images",
+    )
+    parser.add_argument(
+        "--start-time",
+        type=str,
+        required=True,
+        help="Start time (ISO format, e.g., 2025-01-15T10:00:00)",
+    )
+    parser.add_argument(
+        "--end-time",
+        type=str,
+        required=True,
+        help="End time (ISO format, e.g., 2025-01-15T10:05:00)",
+    )
+    parser.add_argument(
+        "--products-db",
+        type=str,
+        default="state/products.sqlite3",
+        help="Products database path",
+    )
+    parser.add_argument(
+        "--writer",
+        type=str,
+        default="auto",
+        help="Writer strategy (auto, direct-subband, pyuvdata-monolithic)",
+    )
+    parser.add_argument(
+        "--max-workers",
+        type=int,
+        default=4,
+        help="Maximum number of workers",
+    )
+    
+    args = parser.parse_args()
+    
+    # Ensure USE_NEW_PIPELINE is set
+    if os.getenv("USE_NEW_PIPELINE", "false").lower() != "true":
+        print("⚠️  WARNING: USE_NEW_PIPELINE is not set to 'true'")
+        print("   Setting USE_NEW_PIPELINE=true for this test...")
+        os.environ["USE_NEW_PIPELINE"] = "true"
+    
+    print("=" * 70)
+    print("End-to-End Test: New Pipeline Framework")
+    print("=" * 70)
+    print(f"Input directory: {args.input_dir}")
+    print(f"Output directory: {args.output_dir}")
+    print(f"Time range: {args.start_time} to {args.end_time}")
+    print(f"Products DB: {args.products_db}")
+    print(f"USE_NEW_PIPELINE: {os.getenv('USE_NEW_PIPELINE')}")
+    print()
+    
+    # Ensure output directory exists
+    Path(args.output_dir).mkdir(parents=True, exist_ok=True)
+    
+    # Prepare job parameters
+    params = {
+        "input_dir": args.input_dir,
+        "output_dir": args.output_dir,
+        "start_time": args.start_time,
+        "end_time": args.end_time,
+        "writer": args.writer,
+        "max_workers": args.max_workers,
+        "stage_to_tmpfs": True,
+        "gridder": "wproject",
+        "wprojplanes": -1,
+    }
+    
+    # Create job in database
+    products_db = Path(args.products_db)
+    products_db.parent.mkdir(parents=True, exist_ok=True)
+    conn = ensure_products_db(products_db)
+    
+    try:
+        job_id = create_job(conn, "workflow", "", params)
+        conn.commit()
+        print(f"✓ Created workflow job: {job_id}")
+        print()
+        
+        # Run workflow
+        print("Starting workflow execution...")
+        print("-" * 70)
+        start_time = time.time()
+        
+        run_workflow_job(job_id, params, products_db)
+        
+        elapsed = time.time() - start_time
+        print("-" * 70)
+        print(f"Workflow completed in {elapsed:.2f} seconds")
+        print()
+        
+        # Check job status
+        job_data = get_job(conn, job_id)
+        print("Job Status:")
+        print(f"  Status: {job_data['status']}")
+        print(f"  Created: {time.ctime(job_data['created_at'])}")
+        if job_data.get('started_at'):
+            print(f"  Started: {time.ctime(job_data['started_at'])}")
+        if job_data.get('finished_at'):
+            print(f"  Finished: {time.ctime(job_data['finished_at'])}")
+        
+        if job_data.get('artifacts'):
+            import json
+            artifacts_str = job_data['artifacts']
+            # Handle both string (JSON) and list formats
+            if isinstance(artifacts_str, str):
+                artifacts = json.loads(artifacts_str)
+            else:
+                artifacts = artifacts_str
+            print(f"  Artifacts: {len(artifacts)}")
+            for artifact in artifacts:
+                print(f"    - {artifact}")
+        
+        print()
+        if job_data['logs']:
+            print("Last 20 lines of logs:")
+            print("-" * 70)
+            log_lines = job_data['logs'].split('\n')
+            for line in log_lines[-20:]:
+                print(line)
+        
+        # Return exit code based on status
+        if job_data['status'] == 'done':
+            print()
+            print("✓ Test PASSED: Workflow completed successfully")
+            return 0
+        else:
+            print()
+            print(f"✗ Test FAILED: Workflow status is '{job_data['status']}'")
+            return 1
+            
+    except Exception as e:
+        print()
+        print(f"✗ Test FAILED with exception: {e}")
+        import traceback
+        traceback.print_exc()
+        return 1
+    finally:
+        conn.close()
+
+
+if __name__ == "__main__":
+    sys.exit(main())
+

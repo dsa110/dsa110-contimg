@@ -42,9 +42,11 @@ class ConversionConfig(BaseModel):
     """Configuration for conversion stage (UVH5 → MS)."""
     
     writer: str = Field(default="auto", description="Writer strategy: 'auto', 'parallel-subband', or 'pyuvdata'")
-    max_workers: int = Field(default=4, ge=1, le=32, description="Maximum number of parallel workers")
+    max_workers: int = Field(default=16, ge=1, le=32, description="Maximum number of parallel workers")
     stage_to_tmpfs: bool = Field(default=True, description="Stage files to tmpfs for faster I/O")
     expected_subbands: int = Field(default=16, ge=1, le=32, description="Expected number of subbands")
+    skip_validation_during_conversion: bool = Field(default=True, description="Skip validation checks during conversion (do after)")
+    skip_calibration_recommendations: bool = Field(default=True, description="Skip writing calibration recommendations JSON files")
 
 
 class CalibrationConfig(BaseModel):

@@ -153,7 +153,7 @@ def test_with_nvss_region():
         ra = ras * u.deg
         dec = decs * u.deg
         stokes = np.zeros((4, 1, len(ras))) * u.Jy
-        stokes[0, 0, :] = fluxes
+        stokes[0, 0, :] = fluxes * u.Jy
         
         skycoord = SkyCoord(ra=ra, dec=dec, frame='icrs')
         

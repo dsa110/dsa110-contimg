@@ -31,6 +31,7 @@ from dsa110_contimg.qa.pipeline_quality import check_ms_after_conversion
 from dsa110_contimg.utils.performance import track_performance
 from dsa110_contimg.utils.error_context import format_file_error_with_suggestions
 from dsa110_contimg.utils.cli_helpers import ensure_scratch_dirs
+from dsa110_contimg.utils.exceptions import ConversionError
 import argparse
 import glob
 import logging
@@ -121,6 +122,7 @@ def _peek_uvh5_phase_and_midtime(uvh5_path: str) -> tuple[u.Quantity, u.Quantity
                     
                     # Calculate LST at mid_time using OVRO_LOCATION as base (single source of truth)
                     # If Header provides longitude, use it but keep lat/height from constants
+                    from astropy.coordinates import EarthLocation
                     location = EarthLocation(
                         lat=OVRO_LOCATION.lat,
                         lon=lon_deg * u.deg,
@@ -902,41 +904,46 @@ def convert_subband_groups_to_ms(
                     pass
                 raise
             
-            # CRITICAL: Validate phase center coherence to prevent imaging artifacts
-            # All subbands should have coherent phase centers after conversion
-            try:
-                validate_phase_center_coherence(ms_path, tolerance_arcsec=2.0)
-            except RuntimeError as e:
-                # Phase center incoherence is serious - warn but don't fail
-                logger.error(f"WARNING: {e}")
-                # Don't clean up MS for phase center issues - data may still be usable
-            
-            # CRITICAL: Validate UVW coordinate precision to prevent calibration decorrelation
-            # Inaccurate UVW coordinates cause phase errors and flagged solutions
-            try:
-                validate_uvw_precision(ms_path, tolerance_lambda=0.1)
-            except RuntimeError as e:
-                # UVW precision errors are critical for calibration
-                logger.error(f"CRITICAL: {e}")
-                # Continue anyway - user may need to check antenna positions
-            
-            # CRITICAL: Validate antenna positions to prevent calibration decorrelation
-            # Position errors cause systematic phase errors and flagged solutions
-            try:
-                validate_antenna_positions(ms_path, position_tolerance_m=0.05)
-            except RuntimeError as e:
-                # Position errors are critical for calibration
-                logger.error(f"CRITICAL: {e}")
-                # Continue anyway - user may need to update antenna positions
-            
-            # CRITICAL: Validate MODEL_DATA quality for calibrator sources
-            # Poor calibrator models lead to decorrelation and flagged solutions
-            try:
-                validate_model_data_quality(ms_path)
-            except RuntimeError as e:
-                # MODEL_DATA issues affect calibration quality
-                logger.error(f"WARNING: {e}")
-                # Continue anyway - user may proceed with caution
+            # Skip validation checks during conversion if requested (do after conversion)
+            skip_validation = writer_kwargs and writer_kwargs.get("skip_validation_during_conversion", False)
+            if not skip_validation:
+                # CRITICAL: Validate phase center coherence to prevent imaging artifacts
+                # All subbands should have coherent phase centers after conversion
+                try:
+                    validate_phase_center_coherence(ms_path, tolerance_arcsec=2.0)
+                except RuntimeError as e:
+                    # Phase center incoherence is serious - warn but don't fail
+                    logger.error(f"WARNING: {e}")
+                    # Don't clean up MS for phase center issues - data may still be usable
+                
+                # CRITICAL: Validate UVW coordinate precision to prevent calibration decorrelation
+                # Inaccurate UVW coordinates cause phase errors and flagged solutions
+                try:
+                    validate_uvw_precision(ms_path, tolerance_lambda=0.1)
+                except RuntimeError as e:
+                    # UVW precision errors are critical for calibration
+                    logger.error(f"CRITICAL: {e}")
+                    # Continue anyway - user may need to check antenna positions
+                
+                # CRITICAL: Validate antenna positions to prevent calibration decorrelation
+                # Position errors cause systematic phase errors and flagged solutions
+                try:
+                    validate_antenna_positions(ms_path, position_tolerance_m=0.05)
+                except RuntimeError as e:
+                    # Position errors are critical for calibration
+                    logger.error(f"CRITICAL: {e}")
+                    # Continue anyway - user may need to update antenna positions
+                
+                # CRITICAL: Validate MODEL_DATA quality for calibrator sources
+                # Poor calibrator models lead to decorrelation and flagged solutions
+                try:
+                    validate_model_data_quality(ms_path)
+                except RuntimeError as e:
+                    # MODEL_DATA issues affect calibration quality
+                    logger.error(f"WARNING: {e}")
+                    # Continue anyway - user may proceed with caution
+            else:
+                logger.debug("Skipping validation checks during conversion (will be done after)")
             
             # Verify MS is readable and has required structure
             try:
@@ -992,12 +999,42 @@ def convert_subband_groups_to_ms(
                 shutil.rmtree(ms_path, ignore_errors=True)
             continue
 
+        # CRITICAL: Configure MS for imaging (creates MODEL_DATA and CORRECTED_DATA columns)
+        # This is required for downstream calibration and imaging stages
         try:
             configure_ms_for_imaging(ms_path)
-        except Exception:
-            logger.warning(
-                "MS configuration for imaging failed for %s",
-                ms_path)
+            logger.info(f"✓ MS configured for imaging: {ms_path}")
+        except ConversionError as e:
+            # ConversionError already has context and suggestions
+            error_msg = (
+                f"CRITICAL: MS configuration for imaging failed for {ms_path}: {e}. "
+                "The MS may be missing required MODEL_DATA and CORRECTED_DATA columns."
+            )
+            logger.error(error_msg, exc_info=True)
+            # Don't silently continue - this is a critical failure
+            # Clean up the incomplete MS and re-raise
+            try:
+                if os.path.exists(ms_path):
+                    logger.info(f"Cleaning up incomplete MS: {ms_path}")
+                    shutil.rmtree(ms_path, ignore_errors=True)
+            except Exception:
+                pass
+            raise RuntimeError(error_msg) from e
+        except Exception as e:
+            error_msg = (
+                f"CRITICAL: MS configuration for imaging failed for {ms_path}: {e}. "
+                "The MS may be missing required MODEL_DATA and CORRECTED_DATA columns."
+            )
+            logger.error(error_msg, exc_info=True)
+            # Don't silently continue - this is a critical failure
+            # Clean up the incomplete MS and re-raise
+            try:
+                if os.path.exists(ms_path):
+                    logger.info(f"Cleaning up incomplete MS: {ms_path}")
+                    shutil.rmtree(ms_path, ignore_errors=True)
+            except Exception:
+                pass
+            raise RuntimeError(error_msg) from e
 
         if flux is not None:
             try:
@@ -1045,19 +1082,23 @@ def convert_subband_groups_to_ms(
             except Exception as e:
                 logger.warning(f"Failed to save checkpoint: {e}")
         
-        # Run QA check on MS
-        try:
-            qa_passed, qa_metrics = check_ms_after_conversion(
-                ms_path=ms_path,
-                quick_check_only=False,
-                alert_on_issues=True,
-            )
-            if qa_passed:
-                logger.info("✓ MS passed quality checks")
-            else:
-                logger.warning("⚠ MS quality issues detected (see alerts)")
-        except Exception as e:
-            logger.warning(f"QA check failed (non-fatal): {e}")
+        # Run QA check on MS (skip if requested - will be done after conversion stage)
+        skip_qa = writer_kwargs and writer_kwargs.get("skip_validation_during_conversion", False)
+        if not skip_qa:
+            try:
+                qa_passed, qa_metrics = check_ms_after_conversion(
+                    ms_path=ms_path,
+                    quick_check_only=False,
+                    alert_on_issues=True,
+                )
+                if qa_passed:
+                    logger.info("✓ MS passed quality checks")
+                else:
+                    logger.warning("⚠ MS quality issues detected (see alerts)")
+            except Exception as e:
+                logger.warning(f"QA check failed (non-fatal): {e}")
+        else:
+            logger.debug("Skipping QA check during conversion (will be done after conversion stage)")
 
 
 def add_args(p: argparse.ArgumentParser) -> None:

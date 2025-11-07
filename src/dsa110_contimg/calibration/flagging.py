@@ -1,4 +1,4 @@
-from typing import List, Optional
+from typing import Dict, List, Optional
 import os
 import sys
 import subprocess
@@ -199,7 +199,11 @@ def flag_rfi_aoflagger(ms: str, datacolumn: str = "data", aoflagger_path: Option
                 )
                 raise RuntimeError(error_msg)
             use_docker = True
-            aoflagger_cmd = [docker_cmd, "run", "--rm", "-v", "/scratch:/scratch", "-v", "/data:/data",
+            # Use current user ID to avoid permission issues
+            user_id = os.getuid()
+            group_id = os.getgid()
+            aoflagger_cmd = [docker_cmd, "run", "--rm", "--user", f"{user_id}:{group_id}",
+                            "-v", "/scratch:/scratch", "-v", "/data:/data",
                             "aoflagger:latest", "aoflagger"]
         else:
             # Explicit path provided - use it directly
@@ -213,7 +217,11 @@ def flag_rfi_aoflagger(ms: str, datacolumn: str = "data", aoflagger_path: Option
         if docker_cmd:
             # Docker is available - use it by default (works on Ubuntu 18.x)
             use_docker = True
-            aoflagger_cmd = [docker_cmd, "run", "--rm", "-v", "/scratch:/scratch", "-v", "/data:/data",
+            # Use current user ID to avoid permission issues
+            user_id = os.getuid()
+            group_id = os.getgid()
+            aoflagger_cmd = [docker_cmd, "run", "--rm", "--user", f"{user_id}:{group_id}",
+                            "-v", "/scratch:/scratch", "-v", "/data:/data",
                             "aoflagger:latest", "aoflagger"]
             if native_aoflagger:
                 logger.debug("Both Docker and native AOFlagger available; using Docker (Ubuntu 18.x compatible)")
@@ -565,6 +573,135 @@ def _extend_flags_direct(ms: str, flagneartime: bool = False,
         logger = logging.getLogger(__name__)
         logger.debug(f"Direct flag extension failed: {e}")
         raise
+
+
+def analyze_channel_flagging_stats(
+    ms_path: str, threshold: float = 0.5
+) -> Dict[int, List[int]]:
+    """Analyze flagging statistics per channel across all SPWs.
+    
+    After RFI flagging, this function identifies channels that have high flagging
+    rates and should be flagged entirely before calibration. This is more precise
+    than SPW-level flagging since SPWs are arbitrary subdivisions for data processing.
+    
+    Args:
+        ms_path: Path to Measurement Set
+        threshold: Fraction of flagged data to consider channel problematic (default: 0.5)
+    
+    Returns:
+        Dict mapping SPW ID -> list of problematic channel indices
+    
+    Example:
+        >>> problematic = analyze_channel_flagging_stats('data.ms', threshold=0.5)
+        >>> # Returns: {1: [5, 10, 15, 20], 12: [3, 7, 11]}
+    """
+    from casacore.tables import table
+    import numpy as np
+    
+    logger = logging.getLogger(__name__)
+    problematic_channels = {}
+    
+    try:
+        with table(ms_path, readonly=True) as tb:
+            flags = tb.getcol('FLAG')  # Shape: (nrows, nchannels, npol)
+            data_desc_id = tb.getcol('DATA_DESC_ID')
+            
+            # Get SPW mapping from DATA_DESCRIPTION table
+            with table(f"{ms_path}::DATA_DESCRIPTION", readonly=True) as dd:
+                spw_ids = dd.getcol('SPECTRAL_WINDOW_ID')
+            
+            # Get unique SPWs present in data
+            unique_ddids = np.unique(data_desc_id)
+            unique_spws = np.unique([spw_ids[ddid] for ddid in unique_ddids])
+            
+            logger.debug(f"Analyzing channel flagging for {len(unique_spws)} SPW(s)")
+            
+            for spw in unique_spws:
+                # Get rows for this SPW
+                spw_mask = np.array([spw_ids[ddid] == spw for ddid in data_desc_id])
+                spw_flags = flags[spw_mask]
+                
+                if len(spw_flags) == 0:
+                    continue
+                
+                # Calculate flagging fraction per channel
+                # flags shape: (nrows, nchannels, npol)
+                # Average across rows and polarizations
+                channel_flagging = np.mean(spw_flags, axis=(0, 2))
+                
+                # Find channels above threshold
+                problematic = np.where(channel_flagging > threshold)[0].tolist()
+                
+                if problematic:
+                    problematic_channels[int(spw)] = problematic
+                    logger.debug(
+                        f"SPW {spw}: {len(problematic)}/{len(channel_flagging)} channels "
+                        f"above {threshold*100:.1f}% flagging threshold"
+                    )
+    
+    except Exception as e:
+        logger.warning(f"Failed to analyze channel flagging statistics: {e}")
+        logger.warning("Skipping channel-level flagging analysis")
+    
+    return problematic_channels
+
+
+def flag_problematic_channels(
+    ms_path: str, problematic_channels: Dict[int, List[int]], datacolumn: str = "data"
+) -> None:
+    """Flag problematic channels using CASA flagdata.
+    
+    Args:
+        ms_path: Path to Measurement Set
+        problematic_channels: Dict mapping SPW ID -> list of channel indices
+        datacolumn: Data column to flag (default: "data")
+    
+    Raises:
+        RuntimeError: If flagdata fails
+    """
+    from casatasks import flagdata
+    
+    logger = logging.getLogger(__name__)
+    
+    if not problematic_channels:
+        logger.debug("No problematic channels to flag")
+        return
+    
+    # Build SPW selection string for CASA flagdata
+    # Format: "spw:chan1,chan2,chan3;spw:chan1,chan2"
+    spw_selections = []
+    total_channels = 0
+    
+    for spw, channels in sorted(problematic_channels.items()):
+        # Sort channels for cleaner output
+        channels_sorted = sorted(channels)
+        chan_str = ','.join(map(str, channels_sorted))
+        spw_selections.append(f"{spw}:{chan_str}")
+        total_channels += len(channels_sorted)
+        logger.info(
+            f"  SPW {spw}: {len(channels_sorted)} problematic channels "
+            f"({channels_sorted[:5]}{'...' if len(channels_sorted) > 5 else ''})"
+        )
+    
+    spw_sel = ';'.join(spw_selections)
+    
+    logger.info(
+        f"Flagging {total_channels} problematic channel(s) across "
+        f"{len(problematic_channels)} SPW(s) before calibration"
+    )
+    
+    try:
+        flagdata(
+            vis=ms_path,
+            spw=spw_sel,
+            mode='manual',
+            datacolumn=datacolumn,
+            flagbackup=False,
+        )
+        logger.info(f"✓ Flagged {total_channels} problematic channel(s) before calibration")
+    except Exception as e:
+        logger.error(f"Failed to flag problematic channels: {e}")
+        raise RuntimeError(f"Channel flagging failed: {e}") from e
 
 
 def flag_summary(ms: str, spw: str = "", field: str = "", 

@@ -1446,7 +1446,7 @@ def create_app(config: ApiConfig | None = None) -> FastAPI:
             read_vla_parsed_catalog_csv,
             airy_primary_beam_response
         )
-        from dsa110_contimg.pointing import read_pointing_from_ms
+        from dsa110_contimg.pointing.utils import load_pointing
         from casatools import table
         import numpy as np
         import astropy.units as u
@@ -1460,7 +1460,8 @@ def create_app(config: ApiConfig | None = None) -> FastAPI:
         
         try:
             # Get pointing declination
-            pt_dec = read_pointing_from_ms(ms_full_path)
+            pointing_info = load_pointing(ms_full_path)
+            pt_dec = pointing_info['dec_deg'] * u.deg
             
             # Get mid MJD from MS using standardized utility function
             # This handles both TIME formats (seconds since MJD 0 vs MJD 51544.0)
@@ -1723,6 +1724,203 @@ def create_app(config: ApiConfig | None = None) -> FastAPI:
             caltable_freq_max_ghz=caltable_freq_max_ghz
         )
 
+    @router.get("/qa/calibration/{ms_path:path}/bandpass-plots")
+    def list_bandpass_plots(ms_path: str):
+        """List available bandpass plots for an MS."""
+        from dsa110_contimg.calibration.caltables import discover_caltables
+        import glob
+        import urllib.parse
+        
+        # FastAPI automatically URL-decodes path parameters, but we need to handle
+        # cases where the path might not start with / and ensure proper decoding
+        # Handle URL-encoded colons and other special characters
+        decoded_path = urllib.parse.unquote(ms_path)
+        ms_full_path = f"/{decoded_path}" if not decoded_path.startswith('/') else decoded_path
+        
+        # Log for debugging
+        logger.debug(f"Bandpass plots request - received: {ms_path}, decoded: {decoded_path}, full: {ms_full_path}")
+        
+        if not os.path.exists(ms_full_path):
+            logger.warning(f"MS not found at path: {ms_full_path} (received: {ms_path}, decoded: {decoded_path})")
+            # Try alternative path constructions
+            alt_paths = [
+                ms_full_path,
+                decoded_path,
+                f"/{decoded_path}",
+                ms_path if ms_path.startswith('/') else f"/{ms_path}",
+            ]
+            logger.debug(f"Tried paths: {alt_paths}")
+            for alt in alt_paths:
+                if os.path.exists(alt):
+                    logger.info(f"Found MS at alternative path: {alt}")
+                    ms_full_path = alt
+                    break
+            else:
+                # Return detailed error with all attempted paths for debugging
+                error_detail = (
+                    f"MS not found. Received: '{ms_path}', "
+                    f"Decoded: '{decoded_path}', "
+                    f"Full path: '{ms_full_path}'. "
+                    f"Tried: {alt_paths}"
+                )
+                logger.error(error_detail)
+                raise HTTPException(status_code=404, detail=error_detail)
+        
+        # Find bandpass table
+        caltables = discover_caltables(ms_full_path)
+        if "bp" not in caltables or not caltables["bp"]:
+            return {"plots": [], "message": "No bandpass calibration table found"}
+        
+        # Determine plot directory
+        ms_dir = os.path.dirname(ms_full_path)
+        plot_dir = os.path.join(ms_dir, 'calibration_plots', 'bandpass')
+        
+        if not os.path.exists(plot_dir):
+            return {"plots": [], "message": "No bandpass plots directory found"}
+        
+        # Find all plot files
+        bp_table_name = os.path.basename(caltables["bp"].rstrip('/'))
+        plot_pattern = os.path.join(plot_dir, f"{bp_table_name}_plot_*.png")
+        plot_files = sorted(glob.glob(plot_pattern))
+        
+        # Organize by type and SPW
+        plots = []
+        for plot_file in plot_files:
+            filename = os.path.basename(plot_file)
+            # Parse filename: {table}_plot_{type}.spw{XX}.t{YY}.png
+            if '_plot_amp.' in filename:
+                plot_type = 'amplitude'
+            elif '_plot_phase.' in filename:
+                plot_type = 'phase'
+            else:
+                plot_type = 'unknown'
+            
+            # Extract SPW number
+            spw_match = None
+            if '.spw' in filename:
+                try:
+                    spw_part = filename.split('.spw')[1].split('.')[0]
+                    spw_match = int(spw_part)
+                except (ValueError, IndexError):
+                    pass
+            
+            plots.append({
+                "filename": filename,
+                "path": plot_file,
+                "type": plot_type,
+                "spw": spw_match,
+                "url": f"/api/qa/calibration/{ms_path}/bandpass-plots/{os.path.basename(plot_file)}"
+            })
+        
+        return {
+            "ms_path": ms_full_path,
+            "plot_dir": plot_dir,
+            "plots": plots,
+            "count": len(plots)
+        }
+    
+    @router.get("/qa/calibration/{ms_path:path}/bandpass-plots/{filename}")
+    def get_bandpass_plot(ms_path: str, filename: str):
+        """Serve a specific bandpass plot file."""
+        import urllib.parse
+        
+        # FastAPI automatically URL-decodes path parameters, but we need to handle
+        # cases where the path might not start with / and ensure proper decoding
+        decoded_path = urllib.parse.unquote(ms_path)
+        ms_full_path = f"/{decoded_path}" if not decoded_path.startswith('/') else decoded_path
+        
+        if not os.path.exists(ms_full_path):
+            # Try alternative path constructions
+            alt_paths = [
+                ms_full_path,
+                decoded_path,
+                f"/{decoded_path}",
+                ms_path if ms_path.startswith('/') else f"/{ms_path}",
+            ]
+            for alt in alt_paths:
+                if os.path.exists(alt):
+                    ms_full_path = alt
+                    break
+            else:
+                raise HTTPException(status_code=404, detail=f"MS not found: {ms_full_path}")
+        
+        # Determine plot directory
+        ms_dir = os.path.dirname(ms_full_path)
+        plot_dir = os.path.join(ms_dir, 'calibration_plots', 'bandpass')
+        plot_path = os.path.join(plot_dir, filename)
+        
+        if not os.path.exists(plot_path):
+            raise HTTPException(status_code=404, detail="Plot file not found")
+        
+        # Security: ensure filename doesn't contain path traversal
+        if '..' in filename or '/' in filename or '\\' in filename:
+            raise HTTPException(status_code=400, detail="Invalid filename")
+        
+        from fastapi.responses import FileResponse
+        return FileResponse(
+            plot_path,
+            media_type="image/png",
+            filename=filename
+        )
+    
+    @router.get("/qa/calibration/{ms_path:path}/spw-plot")
+    def get_calibration_spw_plot(ms_path: str):
+        """Generate and return per-SPW flagging visualization for an MS."""
+        from dsa110_contimg.qa.calibration_quality import analyze_per_spw_flagging, plot_per_spw_flagging
+        import tempfile
+        
+        # Decode path
+        ms_full_path = f"/{ms_path}" if not ms_path.startswith('/') else ms_path
+        
+        if not os.path.exists(ms_full_path):
+            raise HTTPException(status_code=404, detail="MS not found")
+        
+        try:
+            # Find the bandpass table for this MS
+            from dsa110_contimg.calibration.caltables import discover_caltables
+            caltables = discover_caltables(ms_full_path)
+            
+            if "bp" not in caltables or not caltables["bp"] or not Path(caltables["bp"]).exists():
+                raise HTTPException(status_code=404, detail="No bandpass calibration table found for this MS")
+            
+            # Generate per-SPW statistics
+            spw_stats = analyze_per_spw_flagging(caltables["bp"])
+            
+            if not spw_stats:
+                raise HTTPException(status_code=404, detail="No SPW statistics found in calibration table")
+            
+            # Generate plot in temporary file
+            with tempfile.NamedTemporaryFile(suffix=".png", delete=False) as tmp:
+                plot_path = tmp.name
+            
+            try:
+                plot_file = plot_per_spw_flagging(
+                    spw_stats,
+                    plot_path,
+                    title=f"Bandpass Calibration - Per-SPW Flagging Analysis\n{os.path.basename(ms_full_path)}"
+                )
+                
+                # Return the plot file
+                from fastapi.responses import FileResponse
+                return FileResponse(
+                    plot_file,
+                    media_type="image/png",
+                    filename=f"spw_flagging_{os.path.basename(ms_full_path)}.png"
+                )
+            except Exception as e:
+                # Clean up temp file on error
+                if os.path.exists(plot_path):
+                    try:
+                        os.unlink(plot_path)
+                    except Exception:
+                        pass
+                raise
+        except HTTPException:
+            raise
+        except Exception as e:
+            logger.error(f"Error generating per-SPW plot: {e}")
+            raise HTTPException(status_code=500, detail=f"Error generating per-SPW plot: {str(e)}")
+    
     @router.get("/qa/calibration/{ms_path:path}", response_model=CalibrationQA)
     def get_calibration_qa(ms_path: str) -> CalibrationQA:
         """Get calibration QA metrics for an MS."""
@@ -1743,7 +1941,7 @@ def create_app(config: ApiConfig | None = None) -> FastAPI:
             cursor = conn.execute(
                 """
                 SELECT id, ms_path, job_id, k_metrics, bp_metrics, g_metrics, 
-                       overall_quality, flags_total, timestamp
+                       overall_quality, flags_total, per_spw_stats, timestamp
                 FROM calibration_qa
                 WHERE ms_path = ?
                 ORDER BY timestamp DESC
@@ -1760,6 +1958,13 @@ def create_app(config: ApiConfig | None = None) -> FastAPI:
             k_metrics = json.loads(row[3]) if row[3] else None
             bp_metrics = json.loads(row[4]) if row[4] else None
             g_metrics = json.loads(row[5]) if row[5] else None
+            per_spw_stats_json = json.loads(row[8]) if row[8] else None
+            
+            # Convert per-SPW stats to Pydantic models
+            per_spw_stats = None
+            if per_spw_stats_json:
+                from dsa110_contimg.api.models import PerSPWStats
+                per_spw_stats = [PerSPWStats(**s) for s in per_spw_stats_json]
             
             return CalibrationQA(
                 ms_path=row[1],
@@ -1769,7 +1974,8 @@ def create_app(config: ApiConfig | None = None) -> FastAPI:
                 g_metrics=g_metrics,
                 overall_quality=row[6] or "unknown",
                 flags_total=row[7],
-                timestamp=datetime.fromtimestamp(row[8])
+                per_spw_stats=per_spw_stats,
+                timestamp=datetime.fromtimestamp(row[9])
             )
         except HTTPException:
             raise
