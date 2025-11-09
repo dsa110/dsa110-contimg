@@ -14,6 +14,13 @@ from typing import Any, Dict, List, Optional
 from dsa110_contimg.pipeline.context import PipelineContext
 from dsa110_contimg.pipeline.stages import StageStatus
 
+# Try to import psutil for resource metrics
+try:
+    import psutil
+    _PSUTIL_AVAILABLE = True
+except ImportError:
+    _PSUTIL_AVAILABLE = False
+
 
 @dataclass
 class StageMetrics:
@@ -36,15 +43,18 @@ class PipelineObserver:
     Can be extended to integrate with monitoring systems (Prometheus, etc.).
     """
     
-    def __init__(self, logger_name: str = "pipeline"):
+    def __init__(self, logger_name: str = "pipeline", collect_resource_metrics: bool = True):
         """Initialize pipeline observer.
         
         Args:
             logger_name: Name for the logger
+            collect_resource_metrics: Whether to collect memory/CPU metrics
         """
         self.logger = logging.getLogger(logger_name)
         self.metrics: List[StageMetrics] = []
         self._stage_start_times: Dict[str, float] = {}
+        self._collect_resource_metrics = collect_resource_metrics and _PSUTIL_AVAILABLE
+        self._stage_start_resources: Dict[str, Dict[str, float]] = {}
     
     def stage_started(self, stage_name: str, context: PipelineContext) -> None:
         """Called when a stage starts execution.
@@ -54,6 +64,20 @@ class PipelineObserver:
             context: Pipeline context
         """
         self._stage_start_times[stage_name] = time.time()
+        
+        # Collect resource metrics at start
+        if self._collect_resource_metrics:
+            try:
+                process = psutil.Process()
+                mem_info = process.memory_info()
+                cpu_percent = process.cpu_percent()
+                
+                self._stage_start_resources[stage_name] = {
+                    "memory_mb": mem_info.rss / (1024 * 1024),
+                    "cpu_percent": cpu_percent,
+                }
+            except Exception as e:
+                self.logger.debug(f"Could not collect start resources for {stage_name}: {e}")
         
         self.logger.info(
             "stage_started",
@@ -77,22 +101,49 @@ class PipelineObserver:
             context: Pipeline context after stage execution
             duration: Duration in seconds
         """
+        # Collect resource metrics at completion
+        memory_peak_mb = None
+        cpu_time_seconds = None
+        
+        if self._collect_resource_metrics:
+            try:
+                process = psutil.Process()
+                mem_info = process.memory_info()
+                memory_peak_mb = mem_info.rss / (1024 * 1024)
+                
+                # Calculate CPU time (approximate)
+                cpu_percent = process.cpu_percent()
+                cpu_time_seconds = (cpu_percent / 100.0) * duration
+                
+                # Get peak memory if we have start metrics
+                if stage_name in self._stage_start_resources:
+                    start_mem = self._stage_start_resources[stage_name]["memory_mb"]
+                    memory_peak_mb = max(memory_peak_mb, start_mem)
+            except Exception as e:
+                self.logger.debug(f"Could not collect completion resources for {stage_name}: {e}")
+        
         metrics = StageMetrics(
             stage_name=stage_name,
             duration_seconds=duration,
             status=StageStatus.COMPLETED,
+            memory_peak_mb=memory_peak_mb,
+            cpu_time_seconds=cpu_time_seconds,
         )
         self.metrics.append(metrics)
         
-        self.logger.info(
-            "stage_completed",
-            extra={
-                "stage": stage_name,
-                "job_id": context.job_id,
-                "duration_seconds": duration,
-                "outputs": context.outputs,
-            }
-        )
+        extra_data = {
+            "stage": stage_name,
+            "job_id": context.job_id,
+            "duration_seconds": duration,
+            "outputs": context.outputs,
+        }
+        
+        if memory_peak_mb is not None:
+            extra_data["memory_peak_mb"] = memory_peak_mb
+        if cpu_time_seconds is not None:
+            extra_data["cpu_time_seconds"] = cpu_time_seconds
+        
+        self.logger.info("stage_completed", extra=extra_data)
     
     def stage_failed(
         self,

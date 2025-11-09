@@ -84,12 +84,28 @@ class PipelineStage(ABC):
         """Cleanup resources after execution (optional).
         
         This method is called after stage execution (success or failure)
-        to perform any necessary cleanup.
+        to perform any necessary cleanup. On failure, this should clean up
+        any partial outputs to prevent accumulation of corrupted files.
         
         Args:
             context: Context used during execution
         """
         pass
+    
+    def validate_outputs(self, context: PipelineContext) -> Tuple[bool, Optional[str]]:
+        """Validate stage outputs after execution (optional).
+        
+        This method is called after successful execution to validate that
+        outputs are correct and complete before proceeding to next stage.
+        
+        Args:
+            context: Context with outputs to validate
+            
+        Returns:
+            Tuple of (is_valid, error_message). If is_valid is False,
+            error_message should explain what validation failed.
+        """
+        return True, None
     
     def get_name(self) -> str:
         """Get stage name for logging and tracking.

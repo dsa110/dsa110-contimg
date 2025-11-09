@@ -10,13 +10,18 @@ from pydantic import BaseModel, Field
 
 class QueueGroup(BaseModel):
     group_id: str = Field(..., description="Normalized observation timestamp")
-    state: str = Field(..., description="Queue state (collecting|pending|in_progress|completed|failed)")
+    state: str = Field(...,
+                       description="Queue state (collecting|pending|in_progress|completed|failed)")
     received_at: datetime
     last_update: datetime
-    subbands_present: int = Field(..., description="Number of subbands ingested for this group")
-    expected_subbands: int = Field(..., description="Expected subbands per group")
-    has_calibrator: bool | None = Field(None, description="True if any calibrator was matched in beam")
-    matches: list[CalibratorMatch] | None = Field(None, description="Top matched calibrators for this group")
+    subbands_present: int = Field(...,
+                                  description="Number of subbands ingested for this group")
+    expected_subbands: int = Field(...,
+                                   description="Expected subbands per group")
+    has_calibrator: bool | None = Field(
+        None, description="True if any calibrator was matched in beam")
+    matches: list[CalibratorMatch] | None = Field(
+        None, description="Top matched calibrators for this group")
 
 
 class QueueStats(BaseModel):
@@ -39,7 +44,8 @@ class PipelineStatus(BaseModel):
     queue: QueueStats
     recent_groups: List[QueueGroup]
     calibration_sets: List[CalibrationSet]
-    matched_recent: int = Field(0, description="Number of recent groups with calibrator matches")
+    matched_recent: int = Field(
+        0, description="Number of recent groups with calibrator matches")
 
 
 class ProductEntry(BaseModel):
@@ -63,7 +69,8 @@ class ImageInfo(BaseModel):
     path: str
     ms_path: str
     created_at: Optional[datetime] = None
-    type: str = Field(..., description="Image type: image, pbcor, residual, psf, pb")
+    type: str = Field(...,
+                      description="Image type: image, pbcor, residual, psf, pb")
     beam_major_arcsec: Optional[float] = None
     beam_minor_arcsec: Optional[float] = None
     beam_pa_deg: Optional[float] = None
@@ -162,6 +169,7 @@ class PointingHistoryEntry(BaseModel):
     ra_deg: float
     dec_deg: float
 
+
 class PointingHistoryList(BaseModel):
     items: List[PointingHistoryEntry]
 
@@ -176,36 +184,40 @@ class JobParams(BaseModel):
     datacolumn: str = "corrected"
     quality_tier: str = "standard"
     skip_fits: bool = True
+    use_nvss_mask: bool = True
+    mask_radius_arcsec: float = 60.0
 
 
 class CalibrateJobParams(BaseModel):
     """Enhanced calibration job parameters with flexible cal table selection."""
     field: Optional[str] = None
     refant: str = "103"
-    
+
     # Cal table selection
-    solve_delay: bool = False  # K-cal (disabled by default for DSA-110, use --do-k to enable)
+    # K-cal (disabled by default for DSA-110, use --do-k to enable)
+    solve_delay: bool = False
     solve_bandpass: bool = True  # BP-cal
     solve_gains: bool = True  # G-cal
-    
+
     # Advanced options
     delay_solint: str = "inf"
     bandpass_solint: str = "inf"
     gain_solint: str = "inf"
-    gain_calmode: str = "ap"  # "ap" (amp+phase), "p" (phase-only), "a" (amp-only)
-    
+    # "ap" (amp+phase), "p" (phase-only), "a" (amp-only)
+    gain_calmode: str = "ap"
+
     # Field selection
     auto_fields: bool = True
     manual_fields: Optional[List[int]] = None
-    
+
     # Catalog matching
     cal_catalog: str = "vla"
     search_radius_deg: float = 1.0
     min_pb: float = 0.5
-    
+
     # Flagging
     do_flagging: bool = False
-    
+
     # Existing table handling
     use_existing_tables: str = "auto"  # "auto", "manual", "none"
     existing_k_table: Optional[str] = None
@@ -267,7 +279,8 @@ class MSListFilters(BaseModel):
     calibrator_quality: Optional[str] = None  # excellent, good, marginal, poor
     start_date: Optional[str] = None  # YYYY-MM-DD
     end_date: Optional[str] = None  # YYYY-MM-DD
-    sort_by: str = "time_desc"  # time_asc, time_desc, name_asc, name_desc, size_asc, size_desc
+    # time_asc, time_desc, name_asc, name_desc, size_asc, size_desc
+    sort_by: str = "time_desc"
     limit: int = 100
     offset: int = 0
 
@@ -287,7 +300,7 @@ class UVH5FileList(BaseModel):
 # Conversion job models
 class ConversionJobParams(BaseModel):
     """Parameters for UVH5 → MS conversion job.
-    
+
     Production processing always uses 16 subbands and should use 'parallel-subband' writer.
     The 'pyuvdata' writer is available for testing scenarios with ≤2 subbands only.
     """
@@ -295,7 +308,8 @@ class ConversionJobParams(BaseModel):
     output_dir: str
     start_time: str
     end_time: str
-    writer: str = "auto"  # 'parallel-subband' (production), 'pyuvdata' (testing only), or 'auto'
+    # 'parallel-subband' (production), 'pyuvdata' (testing only), or 'auto'
+    writer: str = "auto"
     stage_to_tmpfs: bool = True
     max_workers: int = 4
 
@@ -369,8 +383,10 @@ class AntennaInfo(BaseModel):
 class FlaggingStats(BaseModel):
     """Flagging statistics for an MS."""
     total_fraction: float  # Overall fraction flagged
-    per_antenna: Optional[Dict[str, float]] = None  # Antenna ID -> fraction flagged
-    per_field: Optional[Dict[str, float]] = None  # Field ID -> fraction flagged
+    # Antenna ID -> fraction flagged
+    per_antenna: Optional[Dict[str, float]] = None
+    # Field ID -> fraction flagged
+    per_field: Optional[Dict[str, float]] = None
 
 
 class MSMetadata(BaseModel):
@@ -389,7 +405,8 @@ class MSMetadata(BaseModel):
     data_columns: List[str] = []
     size_gb: Optional[float] = None
     calibrated: bool = False
-    flagging_stats: Optional[FlaggingStats] = None  # Enhanced: flagging statistics
+    # Enhanced: flagging statistics
+    flagging_stats: Optional[FlaggingStats] = None
 
 
 # MS Calibrator match models
@@ -418,15 +435,16 @@ class MSCalibratorMatchList(BaseModel):
 # Workflow models
 class WorkflowParams(BaseModel):
     """Parameters for full workflow job (convert → calibrate → image).
-    
+
     Production processing always uses 16 subbands and should use 'parallel-subband' writer.
     The 'pyuvdata' writer is available for testing scenarios with ≤2 subbands only.
     """
     start_time: str
     end_time: str
     input_dir: str = "/data/incoming"
-    output_dir: str = "/scratch/dsa110-contimg/ms"
-    writer: str = "auto"  # 'parallel-subband' (production), 'pyuvdata' (testing only), or 'auto'
+    output_dir: str = "/stage/dsa110-contimg/ms"
+    # 'parallel-subband' (production), 'pyuvdata' (testing only), or 'auto'
+    writer: str = "auto"
     stage_to_tmpfs: bool = True
     max_workers: int = 4
     field: Optional[str] = None
@@ -520,7 +538,8 @@ class CalibrationQA(BaseModel):
     g_metrics: Optional[dict] = None
     overall_quality: str = "unknown"  # excellent, good, marginal, poor, unknown
     flags_total: Optional[float] = None  # Fraction of flagged solutions
-    per_spw_stats: Optional[List[PerSPWStats]] = None  # Per-SPW flagging statistics
+    # Per-SPW flagging statistics
+    per_spw_stats: Optional[List[PerSPWStats]] = None
     timestamp: datetime = Field(default_factory=datetime.utcnow)
 
 
@@ -581,7 +600,8 @@ class Mosaic(BaseModel):
     start_time: str  # ISO format datetime
     end_time: str  # ISO format datetime
     created_at: str  # ISO format datetime
-    status: str = Field(..., description="pending, in_progress, completed, failed")
+    status: str = Field(...,
+                        description="pending, in_progress, completed, failed")
     image_count: Optional[int] = None
     noise_jy: Optional[float] = None
     source_count: Optional[int] = None
@@ -626,7 +646,8 @@ class AlertHistory(BaseModel):
     """Alert history entry."""
     id: int
     source_id: str
-    alert_type: str = Field(..., description="ese_candidate, calibrator_missing, system_error")
+    alert_type: str = Field(...,
+                            description="ese_candidate, calibrator_missing, system_error")
     severity: str = Field(..., description="info, warning, critical")
     message: str
     triggered_at: str  # ISO format datetime

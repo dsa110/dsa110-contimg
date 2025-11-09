@@ -26,6 +26,7 @@ Notes:
 from __future__ import annotations
 
 import argparse
+import logging
 import math
 import os
 import sqlite3
@@ -40,6 +41,8 @@ import pandas as pd
 from astropy.coordinates import SkyCoord
 from astropy.table import Table
 import astropy.units as u
+
+logger = logging.getLogger(__name__)
 
 
 # ----------------------------- IO helpers ---------------------------------
@@ -594,12 +597,26 @@ def main(argv: Optional[list[str]] = None) -> int:
             finalref_ids_file=args.finalref_ids,
             materialize_final=args.materialize_final,
         )
-        print(f"Wrote master catalog to: {outp}")
+        logger.info(f"Wrote master catalog to: {outp}")
+        print(f"Wrote master catalog to: {outp}")  # User-facing output
         # Optional export
         if args.export_view:
+            # CRITICAL: Whitelist allowed view/table names to prevent SQL injection
+            ALLOWED_EXPORT_VIEWS = {
+                "sources",
+                "good_references",
+                "final_references",
+                "final_references_table",
+            }
+            if args.export_view not in ALLOWED_EXPORT_VIEWS:
+                raise ValueError(
+                    f"Invalid export view: {args.export_view}. "
+                    f"Allowed views: {', '.join(sorted(ALLOWED_EXPORT_VIEWS))}"
+                )
             try:
                 import pandas as _pd
                 with sqlite3.connect(os.fspath(outp)) as _conn:
+                    # Safe: view name is whitelisted, query is parameterized
                     df = _pd.read_sql_query(f"SELECT * FROM {args.export_view}", _conn)
                 export_path = (
                     Path(args.export_csv)
@@ -609,12 +626,15 @@ def main(argv: Optional[list[str]] = None) -> int:
                 )
                 export_path.parent.mkdir(parents=True, exist_ok=True)
                 df.to_csv(export_path, index=False)
-                print(f"Exported {args.export_view} to: {export_path}")
+                logger.info(f"Exported {args.export_view} to: {export_path}")
+                print(f"Exported {args.export_view} to: {export_path}")  # User-facing output
             except Exception as _e:
-                print(f"Export failed: {_e}")
+                logger.error(f"Export failed: {_e}", exc_info=True)
+                print(f"Export failed: {_e}")  # User-facing error
         return 0
     except Exception as e:
-        print(f"Failed to build master catalog: {e}")
+        logger.error(f"Failed to build master catalog: {e}", exc_info=True)
+        print(f"Failed to build master catalog: {e}")  # User-facing error
         return 1
 
 

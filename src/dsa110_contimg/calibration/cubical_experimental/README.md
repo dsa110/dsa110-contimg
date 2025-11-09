@@ -21,9 +21,9 @@ pip install "cubical[lsm-support]@git+https://github.com/ratt-ru/CubiCal.git@1.4
 ```bash
 # Run CubiCal calibration (completely independent)
 python -m dsa110_contimg.calibration.cubical_experimental.cubical_cli \
-    --ms /scratch/ms/timesetv3/caltables/2025-10-29T13:54:17.cal.ms \
+    --ms /stage/dsa110-contimg/ms/timesetv3/caltables/2025-10-29T13:54:17.cal.ms \
     --auto-fields \
-    --output-dir /scratch/calibration_test/cubical
+    --output-dir /stage/dsa110-contimg/calibration_test/cubical
 ```
 
 ### Compare with CASA Results
@@ -31,14 +31,14 @@ python -m dsa110_contimg.calibration.cubical_experimental.cubical_cli \
 ```bash
 # Run CASA calibration (existing pipeline)
 python -m dsa110_contimg.calibration.cli calibrate \
-    --ms /scratch/ms/timesetv3/caltables/2025-10-29T13:54:17.cal.ms \
+    --ms /stage/dsa110-contimg/ms/timesetv3/caltables/2025-10-29T13:54:17.cal.ms \
     --auto-fields \
     --preset standard
 
 # Compare results
 python scripts/compare_calibration_results.py \
-    --casa-dir /scratch/calibration_test/casa \
-    --cubical-dir /scratch/calibration_test/cubical
+    --casa-dir /stage/dsa110-contimg/calibration_test/casa \
+    --cubical-dir /stage/dsa110-contimg/calibration_test/cubical
 ```
 
 ## Module Structure

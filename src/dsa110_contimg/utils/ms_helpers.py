@@ -40,9 +40,14 @@ def sample_ms_column(ms_path: str, column: str, sample_size: int = 10000,
     except ImportError:
         raise ImportError("casacore.tables required for MS operations")
     
-    with table(ms_path, readonly=True) as tb:
+    with table(ms_path, readonly=True) as tb:  # type: ignore[import]
         if column not in tb.colnames():
-            raise ValueError(f"Column '{column}' not found in MS: {ms_path}")
+            from dsa110_contimg.utils.exceptions import ValidationError
+            raise ValidationError(
+                errors=[f"Column '{column}' not found in MS: {ms_path}"],
+                context={'ms_path': ms_path, 'column': column, 'operation': 'sample_column'},
+                suggestion="Check that the column name is correct and the MS is valid"
+            )
         
         n_rows = tb.nrows()
         if n_rows == 0:

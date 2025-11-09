@@ -55,7 +55,7 @@ class CalibratorMSConfig:
         
         return cls(
             input_dir=Path(os.getenv("CONTIMG_INPUT_DIR", "/data/incoming")),
-            output_dir=Path(os.getenv("CONTIMG_OUTPUT_DIR", "/scratch/dsa110-contimg/ms")),
+            output_dir=Path(os.getenv("CONTIMG_OUTPUT_DIR", "/stage/dsa110-contimg/ms")),
             products_db=Path(os.getenv("PIPELINE_PRODUCTS_DB", str(products_default))),
             catalogs=catalogs,
             # scratch_dir=None means "let service decide" - will use tmpfs if available, 

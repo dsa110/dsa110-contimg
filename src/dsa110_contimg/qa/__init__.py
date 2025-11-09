@@ -17,6 +17,7 @@ from dsa110_contimg.qa.calibration_quality import (
     check_upstream_delay_correction,
     verify_kcal_delays,
     inspect_kcal_simple,
+    check_caltable_completeness,
 )
 from dsa110_contimg.qa.image_quality import validate_image_quality, quick_image_check
 from dsa110_contimg.qa.pipeline_quality import (
@@ -38,6 +39,7 @@ __all__ = [
     "export_per_spw_stats",
     "plot_per_spw_flagging",
     "check_corrected_data_quality",
+    "check_caltable_completeness",
     # Delay-specific QA
     "check_upstream_delay_correction",
     "verify_kcal_delays",
@@ -45,6 +47,8 @@ __all__ = [
     # Image quality
     "validate_image_quality",
     "quick_image_check",
+    # Catalog validation
+    "catalog_validation",
     # Integrated pipeline QA
     "check_ms_after_conversion",
     "check_calibration_quality",

@@ -22,6 +22,7 @@ from dsa110_contimg.conversion.helpers import (
     phase_to_meridian,
     set_telescope_identity,
 )
+from dsa110_contimg.utils.exceptions import ConversionError, ValidationError
 
 # Configure logging
 logging.basicConfig(
@@ -442,28 +443,48 @@ def read_uvh5_file(filepath: str, create_time_binned_fields: bool = False,
     logger.info(f"Reading UVH5 file: {filepath}")
 
     # Validate input parameters
+    validation_errors = []
     if not isinstance(filepath, str) or not filepath.strip():
-        raise ValueError("filepath must be a non-empty string")
+        validation_errors.append("filepath must be a non-empty string")
 
     if not isinstance(create_time_binned_fields, bool):
-        raise ValueError("create_time_binned_fields must be a boolean")
+        validation_errors.append("create_time_binned_fields must be a boolean")
 
-    if not isinstance(field_time_bin_minutes, (int, float)
-                      ) or field_time_bin_minutes <= 0:
-        raise ValueError("field_time_bin_minutes must be a positive number")
+    if not isinstance(field_time_bin_minutes, (int, float)) or field_time_bin_minutes <= 0:
+        validation_errors.append(
+            "field_time_bin_minutes must be a positive number")
+
+    if validation_errors:
+        raise ValidationError(
+            errors=validation_errors,
+            context={'filepath': filepath, 'operation': 'read_uvh5'},
+            suggestion="Check input parameters and file path"
+        )
 
     # Check if file exists
     if not os.path.exists(filepath):
-        raise FileNotFoundError(f"UVH5 file not found: {filepath}")
+        raise ConversionError(
+            message=f"UVH5 file not found: {filepath}",
+            context={'filepath': filepath, 'operation': 'read'},
+            suggestion="Verify the file path is correct and the file exists"
+        )
 
     # Check if file is readable
     if not os.access(filepath, os.R_OK):
-        raise PermissionError(f"Cannot read UVH5 file: {filepath}")
+        raise ConversionError(
+            message=f"Cannot read UVH5 file: {filepath}",
+            context={'filepath': filepath, 'operation': 'read'},
+            suggestion="Check file permissions"
+        )
 
     # Check file size (basic sanity check)
     file_size = os.path.getsize(filepath)
     if file_size == 0:
-        raise ValueError(f"UVH5 file is empty: {filepath}")
+        raise ConversionError(
+            message=f"UVH5 file is empty: {filepath}",
+            context={'filepath': filepath, 'file_size': file_size},
+            suggestion="Check that the file was written correctly"
+        )
 
     logger.info(f"File size: {file_size / (1024*1024):.1f} MB")
 
@@ -475,23 +496,32 @@ def read_uvh5_file(filepath: str, create_time_binned_fields: bool = False,
         uvd.read_uvh5(filepath, run_check=False)
         logger.info("Successfully loaded UVH5 file into UVData object")
     except Exception as e:
-        raise ValueError(f"Failed to read UVH5 file: {e}") from e
+        raise ConversionError(
+            message=f"Failed to read UVH5 file: {e}",
+            context={'filepath': filepath, 'operation': 'read_uvh5'},
+            suggestion="Check that the file is a valid UVH5 file and not corrupted"
+        ) from e
 
     # Validate basic structure
+    structure_errors = []
     if uvd.Nblts == 0:
-        raise ValueError("UVH5 file contains no baseline-time integrations")
-
+        structure_errors.append(
+            "UVH5 file contains no baseline-time integrations")
     if uvd.Nfreqs == 0:
-        raise ValueError("UVH5 file contains no frequency channels")
-
+        structure_errors.append("UVH5 file contains no frequency channels")
     if uvd.Npols == 0:
-        raise ValueError("UVH5 file contains no polarizations")
-
+        structure_errors.append("UVH5 file contains no polarizations")
     if uvd.Ntimes == 0:
-        raise ValueError("UVH5 file contains no time samples")
-
+        structure_errors.append("UVH5 file contains no time samples")
     if uvd.Nbls == 0:
-        raise ValueError("UVH5 file contains no baselines")
+        structure_errors.append("UVH5 file contains no baselines")
+
+    if structure_errors:
+        raise ValidationError(
+            errors=structure_errors,
+            context={'filepath': filepath, 'operation': 'validate_structure'},
+            suggestion="Check that the UVH5 file contains valid data"
+        )
 
     # Fix common data type issues before validation
     data_type_fixes = 0
@@ -532,8 +562,12 @@ def read_uvh5_file(filepath: str, create_time_binned_fields: bool = False,
         try:
             uvd = _create_time_binned_fields(uvd, field_time_bin_minutes)
         except Exception as e:
-            raise RuntimeError(
-                f"Failed to create time-binned fields: {e}") from e
+            raise ConversionError(
+                message=f"Failed to create time-binned fields: {e}",
+                context={'filepath': filepath, 'field_time_bin_minutes': field_time_bin_minutes,
+                         'operation': 'create_time_binned_fields'},
+                suggestion="Check field_time_bin_minutes parameter and UVData structure"
+            ) from e
 
     # Now run the check with corrected data types
     try:
@@ -545,7 +579,11 @@ def read_uvh5_file(filepath: str, create_time_binned_fields: bool = False,
         error_str = str(e).lower()
         critical_errors = ['no data', 'empty', 'invalid', 'corrupt']
         if any(crit in error_str for crit in critical_errors):
-            raise ValueError(f"Critical UVData validation error: {e}") from e
+            raise ValidationError(
+                errors=[f"Critical UVData validation error: {e}"],
+                context={'filepath': filepath, 'operation': 'validate_uvdata'},
+                suggestion="Check that the UVH5 file contains valid, uncorrupted data"
+            ) from e
         # Continue anyway - some issues might not be critical
         logger.warning("Continuing despite validation warnings")
 
@@ -625,7 +663,12 @@ def _validate_data_quality(uvd: UVData) -> None:
         if flag_fraction > 0.95:
             logger.warning(f"High flagging fraction: {flag_fraction:.1%}")
         elif flag_fraction == 1.0:
-            raise ValueError("All data is flagged - no usable data")
+            raise ValidationError(
+                errors=["All data is flagged - no usable data"],
+                context={'flag_fraction': flag_fraction,
+                         'operation': 'validate_data_quality'},
+                suggestion="Check data quality and flagging criteria"
+            )
 
     # Check for NaN or infinite values in data
     if hasattr(uvd, 'data_array') and uvd.data_array is not None:
@@ -723,18 +766,28 @@ def write_ms_file(
     logger.info(f"Writing MS file: {output_path}")
 
     # Validate input parameters
+    validation_errors = []
     if not isinstance(uvd, UVData):
-        raise ValueError("uvd must be a UVData object")
-
+        validation_errors.append("uvd must be a UVData object")
     if not isinstance(output_path, str) or not output_path.strip():
-        raise ValueError("output_path must be a non-empty string")
-
+        validation_errors.append("output_path must be a non-empty string")
     if not isinstance(add_imaging_columns, bool):
-        raise ValueError("add_imaging_columns must be a boolean")
+        validation_errors.append("add_imaging_columns must be a boolean")
+
+    if validation_errors:
+        raise ValidationError(
+            errors=validation_errors,
+            context={'output_path': output_path, 'operation': 'write_ms'},
+            suggestion="Check input parameters"
+        )
 
     # Validate UVData object
     if uvd.Nblts == 0:
-        raise ValueError("UVData object contains no data to write")
+        raise ValidationError(
+            errors=["UVData object contains no data to write"],
+            context={'output_path': output_path, 'operation': 'write_ms'},
+            suggestion="Ensure the UVData object contains valid data"
+        )
 
     # Ensure output directory exists
     output_dir = os.path.dirname(output_path)
@@ -795,7 +848,11 @@ def write_ms_file(
 
         # Verify the MS was created successfully
         if not os.path.exists(output_path):
-            raise RuntimeError("MS file was not created despite no error")
+            raise ConversionError(
+                message="MS file was not created despite no error",
+                context={'output_path': output_path, 'operation': 'write_ms'},
+                suggestion="Check disk space and write permissions"
+            )
 
         # Check MS size
         if os.path.isfile(output_path):
@@ -821,7 +878,11 @@ def write_ms_file(
                 logger.warning("Could not clean up partial MS file")
         # Clean up any temporary files
         _cleanup_temp_files(temp_files)
-        raise RuntimeError(f"MS writing failed: {e}") from e
+        raise ConversionError(
+            message=f"MS writing failed: {e}",
+            context={'output_path': output_path, 'operation': 'write_ms'},
+            suggestion="Check disk space, permissions, and CASA installation"
+        ) from e
 
     finally:
         # Always clean up temporary files
@@ -901,13 +962,13 @@ def convert_single_file(input_file: str, output_file: str,
                         phase_reference_time: Optional[float] = None) -> None:
     """
     Convert a single UVH5 file to CASA Measurement Set (MS) format.
-    
+
     This is the main entry point for converting individual UVH5 files to MS
     format. The function handles the complete conversion pipeline including
     phasing, antenna position setup, and MS configuration.
-    
+
     **Conversion Process:**
-    
+
     1. Reads UVH5 file using pyuvdata
     2. Sets antenna positions and telescope metadata
     3. Phases data to meridian (if enabled)
@@ -949,34 +1010,34 @@ def convert_single_file(input_file: str, output_file: str,
         If input file is not readable or output directory is not writable
     ConversionError
         If conversion fails (e.g., invalid UVH5 format, write errors)
-        
+
     Examples
     --------
     Basic conversion:
-    
+
     >>> from dsa110_contimg.conversion import convert_single_file
     >>> convert_single_file(
     ...     "observation.uvh5",
     ...     "observation.ms"
     ... )
-    
+
     Convert with time-binned fields for drift scan:
-    
+
     >>> convert_single_file(
     ...     "drift_scan.uvh5",
     ...     "drift_scan.ms",
     ...     create_time_binned_fields=True,
     ...     field_time_bin_minutes=10.0
     ... )
-    
+
     Convert without phasing (for testing):
-    
+
     >>> convert_single_file(
     ...     "test.uvh5",
     ...     "test.ms",
     ...     enable_phasing=False
     ... )
-    
+
     Notes
     -----
     - The output MS will be a directory, not a single file
@@ -988,25 +1049,35 @@ def convert_single_file(input_file: str, output_file: str,
     logger.info(f"Converting {input_file} -> {output_file}")
 
     # Validate input parameters
+    validation_errors = []
     if not isinstance(input_file, str) or not input_file.strip():
-        raise ValueError("input_file must be a non-empty string")
-
+        validation_errors.append("input_file must be a non-empty string")
     if not isinstance(output_file, str) or not output_file.strip():
-        raise ValueError("output_file must be a non-empty string")
-
+        validation_errors.append("output_file must be a non-empty string")
     if not isinstance(add_imaging_columns, bool):
-        raise ValueError("add_imaging_columns must be a boolean")
-
+        validation_errors.append("add_imaging_columns must be a boolean")
     if not isinstance(create_time_binned_fields, bool):
-        raise ValueError("create_time_binned_fields must be a boolean")
+        validation_errors.append("create_time_binned_fields must be a boolean")
+    if not isinstance(field_time_bin_minutes, (int, float)) or field_time_bin_minutes <= 0:
+        validation_errors.append(
+            "field_time_bin_minutes must be a positive number")
 
-    if not isinstance(field_time_bin_minutes, (int, float)
-                      ) or field_time_bin_minutes <= 0:
-        raise ValueError("field_time_bin_minutes must be a positive number")
+    if validation_errors:
+        raise ValidationError(
+            errors=validation_errors,
+            context={'input_file': input_file, 'output_file': output_file,
+                     'operation': 'convert_single_file'},
+            suggestion="Check input parameters"
+        )
 
     # Check if input and output are the same file
     if os.path.abspath(input_file) == os.path.abspath(output_file):
-        raise ValueError("Input and output files cannot be the same")
+        raise ValidationError(
+            errors=["Input and output files cannot be the same"],
+            context={'input_file': input_file, 'output_file': output_file,
+                     'operation': 'convert_single_file'},
+            suggestion="Use different paths for input and output files"
+        )
 
     # Track conversion start time
     import time
@@ -1028,11 +1099,13 @@ def convert_single_file(input_file: str, output_file: str,
                 _getenv("PIPELINE_TELESCOPE_NAME", "DSA_110"),
             )
         except Exception:
-            logger.debug("set_telescope_identity best-effort failed", exc_info=True)
+            logger.debug(
+                "set_telescope_identity best-effort failed", exc_info=True)
 
         # Phase data to meridian with time-dependent phase centers (RA=LST(t), Dec from UVH5)
         if enable_phasing:
-            logger.info("Phasing to meridian with time-dependent phase centers")
+            logger.info(
+                "Phasing to meridian with time-dependent phase centers")
             phase_to_meridian(uvd)
         else:
             logger.info("Skipping explicit phasing (using original phasing)")
@@ -1130,24 +1203,28 @@ def convert_directory(input_dir: str, output_dir: str,
         If directory conversion fails
     """
     # Validate input parameters
+    validation_errors = []
     if not isinstance(input_dir, str) or not input_dir.strip():
-        raise ValueError("input_dir must be a non-empty string")
-
+        validation_errors.append("input_dir must be a non-empty string")
     if not isinstance(output_dir, str) or not output_dir.strip():
-        raise ValueError("output_dir must be a non-empty string")
-
+        validation_errors.append("output_dir must be a non-empty string")
     if not isinstance(pattern, str) or not pattern.strip():
-        raise ValueError("pattern must be a non-empty string")
-
+        validation_errors.append("pattern must be a non-empty string")
     if not isinstance(add_imaging_columns, bool):
-        raise ValueError("add_imaging_columns must be a boolean")
-
+        validation_errors.append("add_imaging_columns must be a boolean")
     if not isinstance(create_time_binned_fields, bool):
-        raise ValueError("create_time_binned_fields must be a boolean")
+        validation_errors.append("create_time_binned_fields must be a boolean")
+    if not isinstance(field_time_bin_minutes, (int, float)) or field_time_bin_minutes <= 0:
+        validation_errors.append(
+            "field_time_bin_minutes must be a positive number")
 
-    if not isinstance(field_time_bin_minutes, (int, float)
-                      ) or field_time_bin_minutes <= 0:
-        raise ValueError("field_time_bin_minutes must be a positive number")
+    if validation_errors:
+        raise ValidationError(
+            errors=validation_errors,
+            context={'input_dir': input_dir, 'output_dir': output_dir,
+                     'operation': 'convert_directory'},
+            suggestion="Check input parameters"
+        )
 
     # Check if input directory exists
     if not os.path.exists(input_dir):
@@ -1223,7 +1300,12 @@ def convert_directory(input_dir: str, output_dir: str,
             f"Failed conversions: {failed_conversions}/"
             f"{len(uvh5_files)} files")
         if failed_conversions == len(uvh5_files):
-            raise RuntimeError("All file conversions failed")
+            raise ConversionError(
+                message="All file conversions failed",
+                context={'input_dir': input_dir, 'total_files': len(
+                    uvh5_files), 'failed_files': failed_conversions, 'operation': 'convert_directory'},
+                suggestion="Check input files, disk space, and CASA installation"
+            )
 
     logger.info(f"Output directory: {output_dir}")
 

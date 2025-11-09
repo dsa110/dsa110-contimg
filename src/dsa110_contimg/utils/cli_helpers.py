@@ -12,6 +12,7 @@ All CLIs should use these utilities to ensure consistent behavior.
 
 from contextlib import contextmanager
 from pathlib import Path
+from typing import Any
 import argparse
 import logging
 import os
@@ -34,7 +35,7 @@ def setup_casa_environment() -> None:
 
 
 @contextmanager
-def casa_log_environment():
+def casa_log_environment() -> Path:
     """
     Context manager for CASA operations that need log directory.
     
@@ -105,7 +106,7 @@ def add_common_logging_args(parser: argparse.ArgumentParser) -> None:
     )
 
 
-def configure_logging_from_args(args) -> logging.Logger:
+def configure_logging_from_args(args: argparse.Namespace) -> logging.Logger:
     """
     Configure logging based on CLI arguments.
     
@@ -203,7 +204,7 @@ def ensure_scratch_dirs() -> dict[str, Path]:
             'tmp': Path to tmp directory,
         }
     """
-    scratch_base = os.getenv('CONTIMG_SCRATCH_DIR', '/scratch/dsa110-contimg')
+    scratch_base = os.getenv('CONTIMG_SCRATCH_DIR', '/stage/dsa110-contimg')
     scratch_base_path = Path(scratch_base)
     
     # Get subdirectory paths from env vars or default to scratch_base/{name}

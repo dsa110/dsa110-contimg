@@ -1,11 +1,12 @@
-from typing import List, Optional, Union
+import logging
+from typing import Optional, List, Union
+
+logger = logging.getLogger(__name__)
 
 import os
 import fnmatch
 from casatasks import gaincal as casa_gaincal  # type: ignore[import]
 # setjy imported elsewhere; avoid unused import here
-import logging
-
 from dsa110_contimg.calibration.validate import (
     validate_caltable_exists,
     validate_caltable_compatibility,
@@ -65,11 +66,11 @@ def _determine_spwmap_for_bptables(
     # Check if any bandpass table has only 1 SPW (indicating combine_spw was used)
     for bptable in bptables:
         n_bp_spw = _get_caltable_spw_count(bptable)
-        print(f"DEBUG: Checking table {os.path.basename(bptable)}: {n_bp_spw} SPW(s), MS has {n_ms_spw} SPWs")
+        logger.debug(f"Checking table {os.path.basename(bptable)}: {n_bp_spw} SPW(s), MS has {n_ms_spw} SPWs")
         if n_bp_spw == 1:
             # This bandpass table was created with combine_spw=True
             # Map all MS SPWs to SPW 0 in the bandpass table
-            print(
+            logger.info(
                 f"Detected calibration table {os.path.basename(bptable)} has only 1 SPW (from combine_spw), "
                 f"while MS has {n_ms_spw} SPWs. Setting spwmap to map all MS SPWs to SPW 0."
             )
@@ -236,7 +237,7 @@ def solve_delay(
     import numpy as np  # type: ignore[import]
 
     # Validate data availability before attempting calibration
-    print(f"Validating data for delay solve on field(s) {cal_field}...")
+    logger.info(f"Validating data for delay solve on field(s) {cal_field}...")
     
     # PRECONDITION CHECK: Verify MODEL_DATA exists and is populated
     # This ensures we follow "measure twice, cut once" - establish requirements upfront
@@ -297,9 +298,8 @@ def solve_delay(
         if unflagged_count == 0:
             raise ValueError(f"All data in field {cal_field} is flagged")
 
-        import numpy as _np  # type: ignore[import]
-        print(
-            f"Field {cal_field}: {_np.sum(field_mask)} rows, "
+        logger.debug(
+            f"Field {cal_field}: {np.sum(field_mask)} rows, "
             f"{unflagged_count} unflagged points"
         )
 
@@ -315,7 +315,7 @@ def solve_delay(
     # OPTIMIZATION: Allow skipping slow solve in fast mode for speed
     if not skip_slow:
         try:
-            print(
+            logger.info(
                 f"Running delay solve (K) on field {cal_field} "
                 f"with refant {refant}..."
             )
@@ -332,19 +332,19 @@ def solve_delay(
             )
             if uvrange:
                 kwargs["uvrange"] = uvrange
-                print(f"  Using uvrange filter: {uvrange}")
+                logger.debug(f"Using uvrange filter: {uvrange}")
             casa_gaincal(**kwargs)
             # PRECONDITION CHECK: Verify K-calibration solve completed successfully
             # This ensures we follow "measure twice, cut once" - verify solutions exist
             # immediately after solve completes, before proceeding.
             _validate_solve_success(f"{table_prefix}_kcal", refant=refant)
             tables.append(f"{table_prefix}_kcal")
-            print(f"✓ Delay solve completed: {table_prefix}_kcal")
+            logger.info(f"✓ Delay solve completed: {table_prefix}_kcal")
         except Exception as e:
-            print(f"Delay solve failed: {e}")
+            logger.error(f"Delay solve failed: {e}")
             # Try with even more conservative settings
             try:
-                print("Retrying with no combination...")
+                logger.info("Retrying with no combination...")
                 kwargs = dict(
                     vis=ms,
                     caltable=f"{table_prefix}_kcal",
@@ -364,12 +364,12 @@ def solve_delay(
                 # immediately after solve completes, before proceeding.
                 _validate_solve_success(f"{table_prefix}_kcal", refant=refant)
                 tables.append(f"{table_prefix}_kcal")
-                print(f"✓ Delay solve completed (retry): {table_prefix}_kcal")
+                logger.info(f"✓ Delay solve completed (retry): {table_prefix}_kcal")
             except Exception as e2:
                 raise RuntimeError(
                     f"Delay solve failed even with conservative settings: {e2}")
     else:
-        print("  Skipping slow delay solve (fast mode optimization)")
+        logger.debug("Skipping slow delay solve (fast mode optimization)")
 
     # Optional fast (short) delay solve
     # In skip_slow mode, fast solve is required (not optional)
@@ -377,9 +377,9 @@ def solve_delay(
         if skip_slow and not t_fast:
             # If skip_slow but no t_fast specified, use default
             t_fast = "60s"
-            print(f"  Using default fast solution interval: {t_fast}")
+            logger.debug(f"Using default fast solution interval: {t_fast}")
         try:
-            print(f"Running fast delay solve (K) on field {cal_field}...")
+            logger.info(f"Running fast delay solve (K) on field {cal_field}...")
             kwargs = dict(
                 vis=ms,
                 caltable=f"{table_prefix}_2kcal",
@@ -399,11 +399,10 @@ def solve_delay(
             # immediately after solve completes, before proceeding.
             _validate_solve_success(f"{table_prefix}_2kcal", refant=refant)
             tables.append(f"{table_prefix}_2kcal")
-            print(f"✓ Fast delay solve completed: {table_prefix}_2kcal")
+            logger.info(f"✓ Fast delay solve completed: {table_prefix}_2kcal")
         except Exception as e:
-            print(f"Fast delay solve failed: {e}")
-            # Skip fast solve if it fails
-            print("Skipping fast delay solve...")
+            logger.error(f"Fast delay solve failed: {e}")
+            logger.info("Skipping fast delay solve...")
 
     # QA validation of delay calibration tables (non-blocking: errors are warnings)
     # OPTIMIZATION: Only run QA validation if not in fast mode to avoid performance overhead
@@ -416,9 +415,9 @@ def solve_delay(
             from dsa110_contimg.qa.pipeline_quality import check_calibration_quality
             check_calibration_quality(tables, ms_path=ms, alert_on_issues=True)
         except Exception as e:
-            print(f"Warning: QA validation failed: {e}")
+            logger.warning(f"QA validation failed: {e}")
     else:
-        print("  Skipping QA validation (fast mode)")
+        logger.debug("Skipping QA validation (fast mode)")
 
     return tables
 
@@ -456,7 +455,7 @@ def solve_prebandpass_phase(
         table_prefix = f"{os.path.splitext(ms)[0]}_{cal_field}"
     
     # PRECONDITION CHECK: Verify MODEL_DATA exists and is populated
-    print(f"Validating MODEL_DATA for pre-bandpass phase solve on field(s) {cal_field}...")
+    logger.info(f"Validating MODEL_DATA for pre-bandpass phase solve on field(s) {cal_field}...")
     with table(ms) as tb:
         if "MODEL_DATA" not in tb.colnames():
             raise ValueError(
@@ -487,7 +486,7 @@ def solve_prebandpass_phase(
             field_selector = str(cal_field).split('~')[0]
         else:
             field_selector = str(cal_field)
-    print(
+    logger.debug(
         f"Using field selector '{field_selector}' for pre-bandpass phase solve"
         + (f" (combined from range {cal_field})" if combine_fields else f" (peak field: {field_selector})")
     )
@@ -502,17 +501,17 @@ def solve_prebandpass_phase(
     comb = ",".join(comb_parts) if comb_parts else ""
     
     # VERIFICATION: Check which SPWs are available and will be used
-    print("\n" + "=" * 70)
-    print("SPW SELECTION VERIFICATION")
-    print("=" * 70)
+    logger.info("\n" + "=" * 70)
+    logger.info("SPW SELECTION VERIFICATION")
+    logger.info("=" * 70)
     with table(f"{ms}::SPECTRAL_WINDOW", ack=False) as tspw:
         n_spws = tspw.nrows()
         spw_ids = list(range(n_spws))
         ref_freqs = tspw.getcol("REF_FREQUENCY")
         num_chan = tspw.getcol("NUM_CHAN")
-        print(f"MS contains {n_spws} spectral windows: SPW {spw_ids[0]} to SPW {spw_ids[-1]}")
-        print(f"  Frequency range: {ref_freqs[0]/1e9:.4f} - {ref_freqs[-1]/1e9:.4f} GHz")
-        print(f"  Total channels across all SPWs: {np.sum(num_chan)}")
+        logger.info(f"MS contains {n_spws} spectral windows: SPW {spw_ids[0]} to SPW {spw_ids[-1]}")
+        logger.info(f"  Frequency range: {ref_freqs[0]/1e9:.4f} - {ref_freqs[-1]/1e9:.4f} GHz")
+        logger.info(f"  Total channels across all SPWs: {np.sum(num_chan)}")
     
     # Check data selection for the specified field
     with table(ms, ack=False) as tb:
@@ -539,20 +538,20 @@ def solve_prebandpass_phase(
             spw_ids_with_data = np.unique(data_desc_to_spw[spw_ids_in_data])
         
         spw_ids_with_data = sorted([int(x) for x in spw_ids_with_data])  # Convert to plain ints for cleaner output
-        print(f"\nSPWs with data for field(s) '{field_selector}': {spw_ids_with_data}")
-        print(f"  Total SPWs to be processed: {len(spw_ids_with_data)}")
+        logger.info(f"\nSPWs with data for field(s) '{field_selector}': {spw_ids_with_data}")
+        logger.info(f"  Total SPWs to be processed: {len(spw_ids_with_data)}")
         
         if combine_spw:
-            print(f"\n  COMBINE='spw' is ENABLED:")
-            print(f"    → All {len(spw_ids_with_data)} SPWs will be used together in a single solve")
-            print(f"    → Solution will be stored in SPW ID 0 (aggregate SPW)")
-            print(f"    → This improves SNR by using all {len(spw_ids_with_data)} subbands simultaneously")
+            logger.info(f"\n  COMBINE='spw' is ENABLED:")
+            logger.info(f"    → All {len(spw_ids_with_data)} SPWs will be used together in a single solve")
+            logger.info(f"    → Solution will be stored in SPW ID 0 (aggregate SPW)")
+            logger.info(f"    → This improves SNR by using all {len(spw_ids_with_data)} subbands simultaneously")
         else:
-            print(f"\n  COMBINE='spw' is DISABLED:")
-            print(f"    → Each of the {len(spw_ids_with_data)} SPWs will be solved separately")
-            print(f"    → Solutions will be stored in SPW IDs {spw_ids_with_data}")
+            logger.info(f"\n  COMBINE='spw' is DISABLED:")
+            logger.info(f"    → Each of the {len(spw_ids_with_data)} SPWs will be solved separately")
+            logger.info(f"    → Solutions will be stored in SPW IDs {spw_ids_with_data}")
     
-    print("=" * 70 + "\n")
+    logger.info("=" * 70 + "\n")
     
     # Determine table name
     if table_name:
@@ -563,7 +562,7 @@ def solve_prebandpass_phase(
     # Solve phase-only calibration (no previous calibrations applied)
     combine_desc = f" (combining across {comb})" if comb else ""
     spw_desc = f" (SPW: {spw})" if spw else ""
-    print(f"Running pre-bandpass phase-only solve on field {field_selector}{combine_desc}{spw_desc}...")
+    logger.info(f"Running pre-bandpass phase-only solve on field {field_selector}{combine_desc}{spw_desc}...")
     kwargs = dict(
         vis=ms,
         caltable=caltable_name,
@@ -583,7 +582,7 @@ def solve_prebandpass_phase(
     
     casa_gaincal(**kwargs)
     _validate_solve_success(caltable_name, refant=refant)
-    print(f"✓ Pre-bandpass phase-only solve completed: {caltable_name}")
+    logger.info(f"✓ Pre-bandpass phase-only solve completed: {caltable_name}")
     
     return caltable_name
 
@@ -630,7 +629,7 @@ def solve_bandpass(
     # PRECONDITION CHECK: Verify MODEL_DATA exists and is populated
     # This ensures we follow "measure twice, cut once" - establish requirements upfront
     # for consistent, reliable calibration across all calibrators (bright or faint).
-    print(f"Validating MODEL_DATA for bandpass solve on field(s) {cal_field}...")
+    logger.info(f"Validating MODEL_DATA for bandpass solve on field(s) {cal_field}...")
     with table(ms) as tb:
         if "MODEL_DATA" not in tb.colnames():
             raise ValueError(
@@ -667,7 +666,7 @@ def solve_bandpass(
             field_selector = str(cal_field).split('~')[0]
         else:
             field_selector = str(cal_field)
-    print(
+    logger.debug(
         f"Using field selector '{field_selector}' for bandpass calibration"
         + (f" (combined from range {cal_field})" if combine_fields else f" (peak field: {field_selector})")
     )
@@ -683,7 +682,7 @@ def solve_bandpass(
     # If custom combine string is provided, use it directly
     if combine:
         comb = combine
-        print(f"Using custom combine string: {comb}")
+        logger.debug(f"Using custom combine string: {comb}")
     else:
         comb_parts = ["scan"]
         if combine_fields:
@@ -693,17 +692,17 @@ def solve_bandpass(
         comb = ",".join(comb_parts)
 
     # VERIFICATION: Check which SPWs are available and will be used
-    print("\n" + "=" * 70)
-    print("SPW SELECTION VERIFICATION")
-    print("=" * 70)
+    logger.info("\n" + "=" * 70)
+    logger.info("SPW SELECTION VERIFICATION")
+    logger.info("=" * 70)
     with table(f"{ms}::SPECTRAL_WINDOW", ack=False) as tspw:
         n_spws = tspw.nrows()
         spw_ids = list(range(n_spws))
         ref_freqs = tspw.getcol("REF_FREQUENCY")
         num_chan = tspw.getcol("NUM_CHAN")
-        print(f"MS contains {n_spws} spectral windows: SPW {spw_ids[0]} to SPW {spw_ids[-1]}")
-        print(f"  Frequency range: {ref_freqs[0]/1e9:.4f} - {ref_freqs[-1]/1e9:.4f} GHz")
-        print(f"  Total channels across all SPWs: {np.sum(num_chan)}")
+        logger.info(f"MS contains {n_spws} spectral windows: SPW {spw_ids[0]} to SPW {spw_ids[-1]}")
+        logger.info(f"  Frequency range: {ref_freqs[0]/1e9:.4f} - {ref_freqs[-1]/1e9:.4f} GHz")
+        logger.info(f"  Total channels across all SPWs: {np.sum(num_chan)}")
     
     # Check data selection for the specified field
     with table(ms, ack=False) as tb:
@@ -724,20 +723,20 @@ def solve_bandpass(
             spw_ids_with_data = np.unique(data_desc_to_spw[spw_ids_in_data])
         
         spw_ids_with_data = sorted(spw_ids_with_data)
-        print(f"\nSPWs with data for field(s) '{field_selector}': {spw_ids_with_data}")
-        print(f"  Total SPWs to be processed: {len(spw_ids_with_data)}")
+        logger.info(f"\nSPWs with data for field(s) '{field_selector}': {spw_ids_with_data}")
+        logger.info(f"  Total SPWs to be processed: {len(spw_ids_with_data)}")
         
         if combine_spw:
-            print(f"\n  COMBINE='spw' is ENABLED:")
-            print(f"    → All {len(spw_ids_with_data)} SPWs will be used together in a single solve")
-            print(f"    → Solution will be stored in SPW ID 0 (aggregate SPW)")
-            print(f"    → This improves SNR by using all {len(spw_ids_with_data)} subbands simultaneously")
+            logger.info(f"\n  COMBINE='spw' is ENABLED:")
+            logger.info(f"    → All {len(spw_ids_with_data)} SPWs will be used together in a single solve")
+            logger.info(f"    → Solution will be stored in SPW ID 0 (aggregate SPW)")
+            logger.info(f"    → This improves SNR by using all {len(spw_ids_with_data)} subbands simultaneously")
         else:
-            print(f"\n  COMBINE='spw' is DISABLED:")
-            print(f"    → Each of the {len(spw_ids_with_data)} SPWs will be solved separately")
-            print(f"    → Solutions will be stored in SPW IDs {spw_ids_with_data}")
+            logger.info(f"\n  COMBINE='spw' is DISABLED:")
+            logger.info(f"    → Each of the {len(spw_ids_with_data)} SPWs will be solved separately")
+            logger.info(f"    → Solutions will be stored in SPW IDs {spw_ids_with_data}")
     
-    print("=" * 70 + "\n")
+    logger.info("=" * 70 + "\n")
 
     # Use bandpass task with bandtype='B' for proper bandpass calibration
     # The bandpass task requires MODEL_DATA to be populated (smodel source model)
@@ -749,7 +748,7 @@ def solve_bandpass(
     # phase drifts in raw uncalibrated data that cause decorrelation and low SNR.
     combine_desc = f" (combining across {comb})" if comb else ""
     phase_desc = f" with pre-bandpass phase correction" if prebandpass_phase_table else ""
-    print(
+    logger.info(
         f"Running bandpass solve using bandpass task (bandtype='B') on field {field_selector}{combine_desc}{phase_desc}...")
     kwargs = dict(
         vis=ms,
@@ -770,7 +769,7 @@ def solve_bandpass(
     # This corrects phase drifts that cause decorrelation in raw uncalibrated data
     if prebandpass_phase_table:
         kwargs["gaintable"] = [prebandpass_phase_table]
-        print(f"  Applying pre-bandpass phase-only calibration: {prebandpass_phase_table}")
+        logger.debug(f"  Applying pre-bandpass phase-only calibration: {prebandpass_phase_table}")
         
         # CRITICAL FIX: Determine spwmap if pre-bandpass phase table was created with combine_spw=True
         # When combine_spw is used, the pre-bandpass phase table has solutions only for SPW=0 (aggregate).
@@ -780,14 +779,14 @@ def solve_bandpass(
             kwargs["spwmap"] = [spwmap]  # spwmap is a list of lists (one per gaintable)
             # For phase-only calibration, use linear interpolation (frequency-independent phase)
             kwargs["interp"] = ["linear"]  # One interpolation string per gaintable
-            print(f"  Setting spwmap={spwmap} and interp=['linear'] to map all MS SPWs to SPW 0")
+            logger.debug(f"  Setting spwmap={spwmap} and interp=['linear'] to map all MS SPWs to SPW 0")
     # Do NOT apply K-table to bandpass solve (K-table is applied in gain calibration step)
     casa_bandpass(**kwargs)
     # PRECONDITION CHECK: Verify bandpass solve completed successfully
     # This ensures we follow "measure twice, cut once" - verify solutions exist
     # immediately after solve completes, before proceeding.
     _validate_solve_success(f"{table_prefix}_bpcal", refant=refant)
-    print(f"✓ Bandpass solve completed: {table_prefix}_bpcal")
+    logger.info(f"✓ Bandpass solve completed: {table_prefix}_bpcal")
 
     # Optional smoothing of bandpass table (post-solve), off by default
     try:
@@ -795,7 +794,7 @@ def solve_bandpass(
             try:
                 # Prefer CASA smoothcal if available
                 from casatasks import smoothcal as casa_smoothcal  # type: ignore[import]
-                print(
+                logger.info(
                     f"Smoothing bandpass table '{table_prefix}_bpcal' with {bp_smooth_type} (window={bp_smooth_window})..."
                 )
                 # Best-effort: in-place smoothing using same output table
@@ -806,9 +805,9 @@ def solve_bandpass(
                     smoothtype=str(bp_smooth_type).lower(),
                     smoothwindow=int(bp_smooth_window),
                 )
-                print("✓ Bandpass table smoothing complete")
+                logger.info("✓ Bandpass table smoothing complete")
             except Exception as e:
-                print(f"WARNING: Could not smooth bandpass table via CASA smoothcal: {e}")
+                logger.warning(f"Could not smooth bandpass table via CASA smoothcal: {e}")
     except Exception:
         # Do not fail calibration if smoothing parameters are malformed
         pass
@@ -820,7 +819,7 @@ def solve_bandpass(
         from dsa110_contimg.qa.pipeline_quality import check_calibration_quality
         check_calibration_quality(out, ms_path=ms, alert_on_issues=True)
     except Exception as e:
-        print(f"Warning: QA validation failed: {e}")
+        logger.warning(f"QA validation failed: {e}")
     
     return out
 
@@ -863,7 +862,7 @@ def solve_gains(
     # PRECONDITION CHECK: Verify MODEL_DATA exists and is populated
     # This ensures we follow "measure twice, cut once" - establish requirements upfront
     # for consistent, reliable calibration across all calibrators (bright or faint).
-    print(f"Validating MODEL_DATA for gain solve on field(s) {cal_field}...")
+    logger.info(f"Validating MODEL_DATA for gain solve on field(s) {cal_field}...")
     with table(ms) as tb:
         if "MODEL_DATA" not in tb.colnames():
             raise ValueError(
@@ -888,7 +887,7 @@ def solve_gains(
     # for consistent, reliable calibration across all calibrators.
     # NOTE: K-table is NOT used for gain calibration (K-calibration not used for DSA-110)
     if bptables:
-        print(f"Validating {len(bptables)} bandpass table(s) before gain calibration...")
+        logger.info(f"Validating {len(bptables)} bandpass table(s) before gain calibration...")
         try:
             # Convert refant string to int for validation
             # Handle comma-separated refant string (e.g., "113,114,103,106,112")
@@ -926,7 +925,7 @@ def solve_gains(
             field_selector = str(cal_field).split('~')[0]
         else:
             field_selector = str(cal_field)
-    print(
+    logger.debug(
         f"Using field selector '{field_selector}' for gain calibration"
         + (f" (combined from range {cal_field})" if combine_fields else f" (peak field: {field_selector})")
     )
@@ -944,7 +943,7 @@ def solve_gains(
 
     # Always run phase-only gains (calmode='p') after bandpass
     # This corrects for time-dependent phase variations
-    print(
+    logger.info(
         f"Running phase-only gain solve on field {field_selector}"
         + (" (combining across fields)..." if combine_fields else "...")
     )
@@ -970,13 +969,13 @@ def solve_gains(
     # This ensures we follow "measure twice, cut once" - verify solutions exist
     # immediately after solve completes, before proceeding.
     _validate_solve_success(f"{table_prefix}_gpcal", refant=refant)
-    print(f"✓ Phase-only gain solve completed: {table_prefix}_gpcal")
+    logger.info(f"✓ Phase-only gain solve completed: {table_prefix}_gpcal")
 
     out = [f"{table_prefix}_gpcal"]
     gaintable2 = gaintable + [f"{table_prefix}_gpcal"]
 
     if t_short:
-        print(
+        logger.info(
             f"Running short-timescale phase-only gain solve on field {field_selector}"
             + (" (combining across fields)..." if combine_fields else "...")
         )
@@ -1004,7 +1003,7 @@ def solve_gains(
         # This ensures we follow "measure twice, cut once" - verify solutions exist
         # immediately after solve completes, before proceeding.
         _validate_solve_success(f"{table_prefix}_2gcal", refant=refant)
-        print(f"✓ Short-timescale phase-only gain solve completed: {table_prefix}_2gcal")
+        logger.info(f"✓ Short-timescale phase-only gain solve completed: {table_prefix}_2gcal")
         out.append(f"{table_prefix}_2gcal")
 
     # QA validation of gain calibration tables
@@ -1012,6 +1011,6 @@ def solve_gains(
         from dsa110_contimg.qa.pipeline_quality import check_calibration_quality
         check_calibration_quality(out, ms_path=ms, alert_on_issues=True)
     except Exception as e:
-        print(f"Warning: QA validation failed: {e}")
+        logger.warning(f"QA validation failed: {e}")
 
     return out

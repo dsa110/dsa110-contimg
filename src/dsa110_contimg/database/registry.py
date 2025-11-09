@@ -6,6 +6,26 @@ calibration tables (K/B/G, etc.), their validity windows, and ordered
 apply lists, so workers can consistently pick the right tables for a
 given observation time.
 
+**Registry Database Path Determination:**
+
+The registry database path is determined consistently across CLI and pipeline
+code using the following precedence order:
+
+1. **CAL_REGISTRY_DB environment variable** (highest priority)
+   - If set, uses this exact path
+   - Example: `export CAL_REGISTRY_DB=/custom/path/cal_registry.sqlite3`
+
+2. **PIPELINE_STATE_DIR environment variable**
+   - If set, uses `{PIPELINE_STATE_DIR}/cal_registry.sqlite3`
+   - Example: `export PIPELINE_STATE_DIR=/data/pipeline/state`
+
+3. **Default path** (lowest priority)
+   - Pipeline: `{config.paths.state_dir}/cal_registry.sqlite3` (defaults to `state/cal_registry.sqlite3`)
+   - CLI: `/data/dsa110-contimg/state/cal_registry.sqlite3`
+
+This ensures that CLI and pipeline use the same registry database when
+environment variables are set consistently.
+
 Schema (tables):
 - caltables: one row per calibration table file
     id                INTEGER PRIMARY KEY
@@ -28,12 +48,11 @@ Convenience:
 """
 
 import os
-import re
 import sqlite3
 import time
 from dataclasses import dataclass
 from pathlib import Path
-from typing import Iterable, List, Optional, Sequence, Tuple
+from typing import List, Optional, Sequence, Tuple
 
 
 DEFAULT_ORDER = [
@@ -86,7 +105,8 @@ def ensure_db(path: Path) -> sqlite3.Connection:
         "CREATE INDEX IF NOT EXISTS idx_caltables_set ON caltables(set_name)"
     )
     conn.execute(
-        "CREATE INDEX IF NOT EXISTS idx_caltables_valid ON caltables(valid_start_mjd, valid_end_mjd)"
+        "CREATE INDEX IF NOT EXISTS idx_caltables_valid "
+        "ON caltables(valid_start_mjd, valid_end_mjd)"
     )
     conn.commit()
     return conn
@@ -128,8 +148,10 @@ def register_set(
             if upsert:
                 conn.execute(
                     """
-                    INSERT OR REPLACE INTO caltables(set_name, path, table_type, order_index, cal_field, refant,
-                                                    created_at, valid_start_mjd, valid_end_mjd, status, notes)
+                    INSERT OR REPLACE INTO caltables(
+                        set_name, path, table_type, order_index, cal_field, refant,
+                        created_at, valid_start_mjd, valid_end_mjd, status, notes
+                    )
                     VALUES(?,?,?,?,?,?,?,?,?,?,?)
                     """,
                     (
@@ -149,8 +171,10 @@ def register_set(
             else:
                 conn.execute(
                     """
-                    INSERT OR IGNORE INTO caltables(set_name, path, table_type, order_index, cal_field, refant,
-                                                    created_at, valid_start_mjd, valid_end_mjd, status, notes)
+                    INSERT OR IGNORE INTO caltables(
+                        set_name, path, table_type, order_index, cal_field, refant,
+                        created_at, valid_start_mjd, valid_end_mjd, status, notes
+                    )
                     VALUES(?,?,?,?,?,?,?,?,?,?,?)
                     """,
                     (
@@ -244,11 +268,14 @@ def register_set_from_prefix(
     return rows
 
 
-def retire_set(db_path: Path, set_name: str, *, reason: Optional[str] = None) -> None:
+def retire_set(
+    db_path: Path, set_name: str, *, reason: Optional[str] = None
+) -> None:
     conn = ensure_db(db_path)
     with conn:
         conn.execute(
-            "UPDATE caltables SET status = 'retired', notes = COALESCE(notes,'') || ? WHERE set_name = ?",
+            "UPDATE caltables SET status = 'retired', "
+            "notes = COALESCE(notes,'') || ? WHERE set_name = ?",
             (f" Retired: {reason or ''}", set_name),
         )
 
@@ -275,7 +302,19 @@ def get_active_applylist(db_path: Path, mjd: float, set_name: Optional[str] = No
     When set_name is provided, restrict to that group; otherwise choose among
     active sets whose validity window includes mjd. If multiple sets match,
     pick the most recently created set (by created_at max) as winner.
+    
+    **Compatibility Validation:**
+    
+    When multiple sets overlap, this function validates compatibility by checking:
+    - Same reference antenna (refant)
+    - Same calibration field (cal_field)
+    
+    If incompatible sets overlap, a warning is logged and the newest set is still
+    selected, but users should be aware of potential calibration inconsistencies.
     """
+    import logging
+    logger = logging.getLogger(__name__)
+    
     conn = ensure_db(db_path)
     if set_name:
         rows = conn.execute(
@@ -288,23 +327,73 @@ def get_active_applylist(db_path: Path, mjd: float, set_name: Optional[str] = No
         ).fetchall()
         return [r[0] for r in rows]
 
-    # Select winner set by created_at among sets that cover mjd
-    rows = conn.execute(
+    # Select all sets that cover mjd (for compatibility checking)
+    all_matching_sets = conn.execute(
         """
-        SELECT set_name, MAX(created_at) AS t
+        SELECT DISTINCT set_name, MAX(created_at) AS t
           FROM caltables
          WHERE status = 'active'
            AND (valid_start_mjd IS NULL OR valid_start_mjd <= ?)
            AND (valid_end_mjd   IS NULL OR valid_end_mjd   >= ?)
       GROUP BY set_name
       ORDER BY t DESC
-         LIMIT 1
         """,
         (mjd, mjd),
     ).fetchall()
-    if not rows:
+    
+    if not all_matching_sets:
         return []
-    chosen = rows[0][0]
+    
+    # If multiple sets match, check compatibility
+    if len(all_matching_sets) > 1:
+        # Get metadata for all matching sets
+        set_metadata = {}
+        for set_name_row, _ in all_matching_sets:
+            rows = conn.execute(
+                """
+                SELECT DISTINCT cal_field, refant
+                  FROM caltables
+                 WHERE set_name = ? AND status = 'active'
+                 LIMIT 1
+                """,
+                (set_name_row,),
+            ).fetchone()
+            if rows:
+                set_metadata[set_name_row] = {
+                    'cal_field': rows[0],
+                    'refant': rows[1],
+                }
+        
+        # Check compatibility between sets
+        set_names = [s[0] for s in all_matching_sets]
+        newest_set = set_names[0]
+        newest_metadata = set_metadata.get(newest_set, {})
+        
+        for other_set in set_names[1:]:
+            other_metadata = set_metadata.get(other_set, {})
+            
+            # Check refant compatibility
+            if (newest_metadata.get('refant') and other_metadata.get('refant') and
+                newest_metadata['refant'] != other_metadata['refant']):
+                logger.warning(
+                    f"Overlapping calibration sets have different reference antennas: "
+                    f"'{newest_set}' uses refant={newest_metadata['refant']}, "
+                    f"'{other_set}' uses refant={other_metadata['refant']}. "
+                    f"Selecting newest set '{newest_set}' but calibration may be inconsistent."
+                )
+            
+            # Check cal_field compatibility
+            if (newest_metadata.get('cal_field') and other_metadata.get('cal_field') and
+                newest_metadata['cal_field'] != other_metadata['cal_field']):
+                logger.warning(
+                    f"Overlapping calibration sets have different calibration fields: "
+                    f"'{newest_set}' uses field={newest_metadata['cal_field']}, "
+                    f"'{other_set}' uses field={other_metadata['cal_field']}. "
+                    f"Selecting newest set '{newest_set}' but calibration may be inconsistent."
+                )
+    
+    # Select winner set by created_at (most recent)
+    chosen = all_matching_sets[0][0]
     out = conn.execute(
         "SELECT path FROM caltables WHERE set_name = ? AND status='active' ORDER BY order_index ASC",
         (chosen,),
@@ -386,7 +475,9 @@ def register_and_verify_caltables(
 
     registered_paths = [row.path for row in registered_rows]
     logger.info(
-        f"Registered {len(registered_paths)} calibration tables in set '{set_name}'"
+        "Registered %d calibration tables in set '%s'",
+        len(registered_paths),
+        set_name,
     )
 
     # Verify tables are discoverable if requested
@@ -401,8 +492,9 @@ def register_and_verify_caltables(
                     from astropy.time import Time
                     mid_mjd = Time.now().mjd
                     logger.warning(
-                        f"Using current time ({mid_mjd:.6f}) for verification "
-                        "since validity window not fully specified"
+                        "Using current time (%.6f) for verification "
+                        "since validity window not fully specified",
+                        mid_mjd,
                     )
 
             # Verify tables are discoverable via registry lookup
@@ -442,8 +534,9 @@ def register_and_verify_caltables(
                 raise RuntimeError(error_msg)
 
             logger.info(
-                f"✓ Verified {len(discovered)} calibration tables are discoverable "
-                f"and exist on filesystem"
+                "✓ Verified %d calibration tables are discoverable "
+                "and exist on filesystem",
+                len(discovered),
             )
 
         except Exception as e:
@@ -452,7 +545,8 @@ def register_and_verify_caltables(
             try:
                 retire_set(registry_db, set_name, reason=f"Verification failed: {e}")
                 logger.warning(
-                    f"Retired calibration set '{set_name}' due to verification failure"
+                    "Retired calibration set '%s' due to verification failure",
+                    set_name,
                 )
             except Exception as rollback_error:
                 logger.error(

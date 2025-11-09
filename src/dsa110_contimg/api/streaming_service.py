@@ -296,19 +296,53 @@ class StreamingServiceManager:
         if config is None:
             config = self._load_config()
         if config is None:
-            # Use defaults from environment
+            # Use defaults from environment with validation
+            def safe_int(env_var: str, default: str, min_val: int = 1, max_val: int = 32) -> int:
+                """Safely convert environment variable to integer with validation."""
+                value_str = os.getenv(env_var, default)
+                try:
+                    value = int(value_str)
+                    if value < min_val or value > max_val:
+                        raise ValueError(
+                            f"{env_var}={value} must be between {min_val} and {max_val}"
+                        )
+                    return value
+                except ValueError as e:
+                    if "invalid literal" in str(e) or "could not convert" in str(e):
+                        raise ValueError(
+                            f"Invalid integer value for {env_var}: '{value_str}'. "
+                            f"Expected integer between {min_val} and {max_val}."
+                        ) from e
+                    raise
+            
+            def safe_float(env_var: str, default: str, min_val: float = 0.0) -> float:
+                """Safely convert environment variable to float with validation."""
+                value_str = os.getenv(env_var, default)
+                try:
+                    value = float(value_str)
+                    if value < min_val:
+                        raise ValueError(f"{env_var}={value} must be >= {min_val}")
+                    return value
+                except ValueError as e:
+                    if "invalid literal" in str(e) or "could not convert" in str(e):
+                        raise ValueError(
+                            f"Invalid float value for {env_var}: '{value_str}'. "
+                            f"Expected float >= {min_val}."
+                        ) from e
+                    raise
+            
             config = StreamingConfig(
                 input_dir=os.getenv("CONTIMG_INPUT_DIR", "/data/incoming"),
-                output_dir=os.getenv("CONTIMG_OUTPUT_DIR", "/scratch/dsa110-contimg/ms"),
+                output_dir=os.getenv("CONTIMG_OUTPUT_DIR", "/stage/dsa110-contimg/ms"),
                 queue_db=os.getenv("CONTIMG_QUEUE_DB", "state/ingest.sqlite3"),
                 registry_db=os.getenv("CONTIMG_REGISTRY_DB", "state/cal_registry.sqlite3"),
-                scratch_dir=os.getenv("CONTIMG_SCRATCH_DIR", "/scratch/dsa110-contimg"),
-                expected_subbands=int(os.getenv("CONTIMG_EXPECTED_SUBBANDS", "16")),
-                chunk_duration=float(os.getenv("CONTIMG_CHUNK_MINUTES", "5.0")),
+                scratch_dir=os.getenv("CONTIMG_SCRATCH_DIR", "/stage/dsa110-contimg"),
+                expected_subbands=safe_int("CONTIMG_EXPECTED_SUBBANDS", "16"),
+                chunk_duration=safe_float("CONTIMG_CHUNK_MINUTES", "5.0", min_val=0.1),
                 log_level=os.getenv("CONTIMG_LOG_LEVEL", "INFO"),
                 use_subprocess=True,
                 monitoring=True,
-                monitor_interval=float(os.getenv("CONTIMG_MONITOR_INTERVAL", "60.0")),
+                monitor_interval=safe_float("CONTIMG_MONITOR_INTERVAL", "60.0", min_val=1.0),
             )
 
         # Save config

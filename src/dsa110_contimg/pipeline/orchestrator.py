@@ -174,8 +174,26 @@ class PipelineOrchestrator:
                     attempt=attempt,
                 )
 
-            # Execute stage
-            result_context = stage_def.stage.execute(context)
+            # Execute stage with timeout if specified
+            if stage_def.timeout:
+                from dsa110_contimg.pipeline.timeout import stage_timeout
+                with stage_timeout(stage_def.timeout, stage_def.name):
+                    result_context = stage_def.stage.execute(context)
+            else:
+                result_context = stage_def.stage.execute(context)
+
+            # CRITICAL: Validate outputs after successful execution
+            # This catches issues early before downstream stages depend on invalid outputs
+            try:
+                is_valid, validation_msg = stage_def.stage.validate_outputs(result_context)
+                if not is_valid:
+                    raise ValueError(f"Output validation failed for stage '{stage_def.name}': {validation_msg}")
+            except AttributeError:
+                # Stage doesn't implement validate_outputs - that's OK, skip validation
+                pass
+            except Exception as validation_error:
+                # Validation failed - treat as execution failure
+                raise RuntimeError(f"Output validation failed: {validation_error}") from validation_error
 
             # Cleanup
             try:
@@ -196,8 +214,22 @@ class PipelineOrchestrator:
                 attempt=attempt,
             )
 
-        except Exception as e:
+        except (ValueError, RuntimeError, OSError, FileNotFoundError, PermissionError) as e:
+            # Catch specific exceptions that can occur during stage execution
+            # These are recoverable errors that may benefit from retry
             duration = time.time() - start_time
+
+            # CRITICAL: Cleanup partial outputs on failure
+            # This prevents accumulation of partial/corrupted files
+            try:
+                stage_def.stage.cleanup(context)
+            except Exception as cleanup_error:
+                import logging
+                logger = logging.getLogger(__name__)
+                logger.warning(
+                    f"Cleanup failed after stage '{stage_def.name}' error: {cleanup_error}",
+                    exc_info=True
+                )
 
             # Check if we should retry
             if stage_def.retry_policy and stage_def.retry_policy.should_retry(attempt, e):
@@ -210,6 +242,32 @@ class PipelineOrchestrator:
                 return self._execute_with_retry(stage_def, context, attempt + 1)
 
             # No retry or max attempts reached
+            return StageResult(
+                status=StageStatus.FAILED,
+                context=context,
+                error=e,
+                duration_seconds=duration,
+                attempt=attempt,
+            )
+        except Exception as e:
+            # Catch-all for unexpected exceptions (preserves original behavior)
+            # This includes KeyboardInterrupt, SystemExit, etc. which should propagate
+            duration = time.time() - start_time
+
+            # CRITICAL: Cleanup partial outputs on failure
+            # This prevents accumulation of partial/corrupted files
+            try:
+                stage_def.stage.cleanup(context)
+            except Exception as cleanup_error:
+                import logging
+                logger = logging.getLogger(__name__)
+                logger.warning(
+                    f"Cleanup failed after stage '{stage_def.name}' error: {cleanup_error}",
+                    exc_info=True
+                )
+
+            # Don't retry unexpected exceptions (KeyboardInterrupt, SystemExit, etc.)
+            # These should propagate immediately
             return StageResult(
                 status=StageStatus.FAILED,
                 context=context,
@@ -230,71 +288,100 @@ class PipelineOrchestrator:
         import time
 
         start_time = time.time()
-        self.observer.pipeline_started(initial_context)
-
-        execution_order = self._topological_sort()
-        context = initial_context
-        results: Dict[str, StageResult] = {}
-        pipeline_status = PipelineStatus.RUNNING
-
-        for stage_name in execution_order:
-            stage_def = self.stages[stage_name]
-
-            # Check if prerequisites met
-            if not self._prerequisites_met(stage_name, results):
-                results[stage_name] = StageResult(
-                    status=StageStatus.SKIPPED,
-                    context=context,
-                )
-                self.observer.stage_skipped(stage_name, context, "Prerequisites not met")
-                continue
-
-            # Notify observer of stage start
-            self.observer.stage_started(stage_name, context)
-
-            # Execute with retry policy
-            result = self._execute_with_retry(stage_def, context)
-            results[stage_name] = result
-
-            # Notify observer of stage completion/failure
-            if result.status == StageStatus.COMPLETED:
-                self.observer.stage_completed(
-                    stage_name,
-                    result.context,
-                    result.duration_seconds or 0.0
-                )
-                context = result.context
-            elif result.status == StageStatus.FAILED:
-                self.observer.stage_failed(
-                    stage_name,
-                    context,
-                    result.error or Exception("Unknown error"),
-                    result.duration_seconds or 0.0,
-                    result.attempt
-                )
-                # Handle failure based on retry policy
-                if stage_def.retry_policy and stage_def.retry_policy.should_continue():
-                    pipeline_status = PipelineStatus.PARTIAL
-                    continue
-                else:
-                    pipeline_status = PipelineStatus.FAILED
-                    break
-
-        # Determine final status
-        if pipeline_status == PipelineStatus.RUNNING:
-            # Check if all stages completed
-            all_completed = all(
-                r.status == StageStatus.COMPLETED
-                for r in results.values()
+        
+        # CRITICAL: Health check before starting pipeline
+        # This catches configuration and system issues early
+        try:
+            from dsa110_contimg.pipeline.health import validate_pipeline_health
+            validate_pipeline_health(initial_context.config)
+        except Exception as health_error:
+            # Log health check failure but don't fail pipeline
+            # (allows override for testing/debugging)
+            import logging
+            logger = logging.getLogger(__name__)
+            logger.warning(
+                f"Pipeline health check failed: {health_error}. "
+                "Proceeding anyway - this may cause failures.",
+                exc_info=True
             )
-            pipeline_status = PipelineStatus.COMPLETED if all_completed else PipelineStatus.PARTIAL
+        
+        # CRITICAL: Register graceful shutdown handlers
+        # This allows pipelines to clean up resources when interrupted
+        from dsa110_contimg.pipeline.signals import graceful_shutdown
+        
+        def cleanup_on_shutdown():
+            """Cleanup function called on shutdown."""
+            import logging
+            logger = logging.getLogger(__name__)
+            logger.info("Cleaning up pipeline resources due to shutdown signal...")
+            # Cleanup is handled by individual stage cleanup methods
+        
+        with graceful_shutdown(cleanup_on_shutdown):
+            self.observer.pipeline_started(initial_context)
 
-        total_duration = time.time() - start_time
-        self.observer.pipeline_completed(context, total_duration, pipeline_status.value)
+            execution_order = self._topological_sort()
+            context = initial_context
+            results: Dict[str, StageResult] = {}
+            pipeline_status = PipelineStatus.RUNNING
 
-        return PipelineResult(
-            status=pipeline_status,
-            context=context,
-            stage_results=results,
-            total_duration_seconds=total_duration,
-        )
+            for stage_name in execution_order:
+                stage_def = self.stages[stage_name]
+
+                # Check if prerequisites met
+                if not self._prerequisites_met(stage_name, results):
+                    results[stage_name] = StageResult(
+                        status=StageStatus.SKIPPED,
+                        context=context,
+                    )
+                    self.observer.stage_skipped(stage_name, context, "Prerequisites not met")
+                    continue
+
+                # Notify observer of stage start
+                self.observer.stage_started(stage_name, context)
+
+                # Execute with retry policy
+                result = self._execute_with_retry(stage_def, context)
+                results[stage_name] = result
+
+                # Notify observer of stage completion/failure
+                if result.status == StageStatus.COMPLETED:
+                    self.observer.stage_completed(
+                        stage_name,
+                        result.context,
+                        result.duration_seconds or 0.0
+                    )
+                    context = result.context
+                elif result.status == StageStatus.FAILED:
+                    self.observer.stage_failed(
+                        stage_name,
+                        context,
+                        result.error or Exception("Unknown error"),
+                        result.duration_seconds or 0.0,
+                        result.attempt
+                    )
+                    # Handle failure based on retry policy
+                    if stage_def.retry_policy and stage_def.retry_policy.should_continue():
+                        pipeline_status = PipelineStatus.PARTIAL
+                        continue
+                    else:
+                        pipeline_status = PipelineStatus.FAILED
+                        break
+
+            # Determine final status
+            if pipeline_status == PipelineStatus.RUNNING:
+                # Check if all stages completed
+                all_completed = all(
+                    r.status == StageStatus.COMPLETED
+                    for r in results.values()
+                )
+                pipeline_status = PipelineStatus.COMPLETED if all_completed else PipelineStatus.PARTIAL
+
+            total_duration = time.time() - start_time
+            self.observer.pipeline_completed(context, total_duration, pipeline_status.value)
+
+            return PipelineResult(
+                status=pipeline_status,
+                context=context,
+                stage_results=results,
+                total_duration_seconds=total_duration,
+            )

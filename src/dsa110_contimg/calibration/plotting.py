@@ -1,4 +1,4 @@
-"""Bandpass plot generation for calibration quality assessment."""
+"""Bandpass and gain plot generation for calibration quality assessment."""
 
 import logging
 import os
@@ -108,4 +108,84 @@ def _find_generated_plots(plot_prefix: str) -> List[str]:
                 generated.append(os.path.join(plot_dir, filename))
     
     return sorted(generated)
+
+
+def generate_gain_plots(
+    gcal_table: str,
+    output_dir: Optional[str] = None,
+    plot_amplitude: bool = True,
+    plot_phase: bool = True,
+) -> List[str]:
+    """Generate gain calibration amplitude and phase plots using CASA plotcal.
+    
+    Generates plots showing amplitude and phase vs time for all antennas.
+    Plots are saved as PNG files suitable for dashboard display.
+    
+    Args:
+        gcal_table: Path to gain calibration table
+        output_dir: Directory to save plots (default: same directory as table)
+        plot_amplitude: Generate amplitude plots (default: True)
+        plot_phase: Generate phase plots (default: True)
+    
+    Returns:
+        List of generated plot file paths
+    
+    Raises:
+        RuntimeError: If plot generation fails
+    """
+    from casatasks import plotcal
+    
+    if output_dir is None:
+        output_dir = os.path.dirname(gcal_table) or '.'
+    
+    # Create output directory if needed
+    os.makedirs(output_dir, exist_ok=True)
+    
+    # Base filename from table name
+    table_basename = os.path.basename(gcal_table.rstrip('/'))
+    plot_prefix = os.path.join(output_dir, f"{table_basename}_plot")
+    
+    generated_plots = []
+    
+    try:
+        if plot_amplitude:
+            amp_plot = f"{plot_prefix}_amp"
+            plotcal(
+                caltable=gcal_table,
+                xaxis='time',
+                yaxis='amp',
+                figfile=amp_plot,
+                interactive=False,
+                showflagged=False,
+                overlay='antenna',
+                plotrange=[0, 0, 0, 0],  # Auto range
+            )
+            # CASA generates multiple files (per SPW), find them
+            amp_files = _find_generated_plots(amp_plot)
+            generated_plots.extend(amp_files)
+            logger.info(f"Generated {len(amp_files)} gain amplitude plot(s)")
+        
+        if plot_phase:
+            phase_plot = f"{plot_prefix}_phase"
+            plotcal(
+                caltable=gcal_table,
+                xaxis='time',
+                yaxis='phase',
+                figfile=phase_plot,
+                interactive=False,
+                showflagged=False,
+                overlay='antenna',
+                plotrange=[0, 0, -180, 180],  # Phase range
+            )
+            # CASA generates multiple files (per SPW), find them
+            phase_files = _find_generated_plots(phase_plot)
+            generated_plots.extend(phase_files)
+            logger.info(f"Generated {len(phase_files)} gain phase plot(s)")
+        
+        logger.info(f"✓ Gain plots generated: {len(generated_plots)} file(s) in {output_dir}")
+        return generated_plots
+    
+    except Exception as e:
+        logger.error(f"Failed to generate gain plots: {e}")
+        raise RuntimeError(f"Gain plot generation failed: {e}") from e
 

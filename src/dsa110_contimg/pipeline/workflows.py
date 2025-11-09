@@ -93,7 +93,7 @@ def standard_imaging_workflow(config: PipelineConfig) -> PipelineOrchestrator:
         max_delay=30.0,
     )
     
-    return (WorkflowBuilder()
+    builder = (WorkflowBuilder()
         .add_stage(
             "convert",
             stages_impl.ConversionStage(config),
@@ -116,8 +116,18 @@ def standard_imaging_workflow(config: PipelineConfig) -> PipelineOrchestrator:
             stages_impl.ImagingStage(config),
             depends_on=["calibrate_apply"],
             retry_policy=retry_policy,
+        ))
+    
+    # Add validation stage if enabled
+    if config.validation.enabled:
+        builder = builder.add_stage(
+            "validate",
+            stages_impl.ValidationStage(config),
+            depends_on=["image"],
+            retry_policy=retry_policy,
         )
-        .build())
+    
+    return builder.build()
 
 
 def quicklook_workflow(config: PipelineConfig) -> PipelineOrchestrator:
@@ -131,10 +141,19 @@ def quicklook_workflow(config: PipelineConfig) -> PipelineOrchestrator:
     """
     from dsa110_contimg.pipeline import stages_impl
     
-    return (WorkflowBuilder()
+    builder = (WorkflowBuilder()
         .add_stage("convert", stages_impl.ConversionStage(config))
-        .add_stage("image", stages_impl.ImagingStage(config), depends_on=["convert"])
-        .build())
+        .add_stage("image", stages_impl.ImagingStage(config), depends_on=["convert"]))
+    
+    # Add validation stage if enabled
+    if config.validation.enabled:
+        builder = builder.add_stage(
+            "validate",
+            stages_impl.ValidationStage(config),
+            depends_on=["image"],
+        )
+    
+    return builder.build()
 
 
 def reprocessing_workflow(config: PipelineConfig) -> PipelineOrchestrator:
@@ -148,8 +167,17 @@ def reprocessing_workflow(config: PipelineConfig) -> PipelineOrchestrator:
     """
     from dsa110_contimg.pipeline import stages_impl
     
-    return (WorkflowBuilder()
+    builder = (WorkflowBuilder()
         .add_stage("calibrate", stages_impl.CalibrationStage(config))
-        .add_stage("image", stages_impl.ImagingStage(config), depends_on=["calibrate"])
-        .build())
+        .add_stage("image", stages_impl.ImagingStage(config), depends_on=["calibrate"]))
+    
+    # Add validation stage if enabled
+    if config.validation.enabled:
+        builder = builder.add_stage(
+            "validate",
+            stages_impl.ValidationStage(config),
+            depends_on=["image"],
+        )
+    
+    return builder.build()
 

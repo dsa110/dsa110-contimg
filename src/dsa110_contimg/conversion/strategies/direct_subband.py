@@ -5,6 +5,14 @@ This strategy creates per-subband MS files in parallel, concatenates them,
 and then merges all SPWs into a single SPW Measurement Set.
 """
 
+from dsa110_contimg.conversion.helpers import (
+    set_antenna_positions,
+    _ensure_antenna_diameters,
+    phase_to_meridian,
+    set_telescope_identity,
+    cleanup_casa_file_handles,
+)
+from .base import MSWriter
 import os
 import shutil
 import time
@@ -19,14 +27,6 @@ from astropy.time import Time
 
 logger = logging.getLogger(__name__)
 
-from .base import MSWriter
-from dsa110_contimg.conversion.helpers import (
-    set_antenna_positions,
-    _ensure_antenna_diameters,
-    phase_to_meridian,
-    set_telescope_identity,
-    cleanup_casa_file_handles,
-)
 
 if TYPE_CHECKING:
     from pyuvdata import UVData
@@ -34,10 +34,10 @@ if TYPE_CHECKING:
 
 class DirectSubbandWriter(MSWriter):
     """Writes an MS by creating and concatenating per-subband parts, optionally merging SPWs.
-    
+
     This writer creates per-subband MS files in parallel, concatenates them into
     a multi-SPW MS, and optionally merges all SPWs into a single SPW.
-    
+
     Note: By default, SPW merging is disabled (merge_spws=False) to avoid
     mstransform incompatibility with CASA gaincal. Calibration should be performed
     on the multi-SPW MS before merging if needed.
@@ -63,7 +63,8 @@ class DirectSubbandWriter(MSWriter):
         )
         # Optional: control SIGMA_SPECTRUM removal after merge
         self.remove_sigma_spectrum: bool = bool(
-            self.kwargs.get("remove_sigma_spectrum", True)  # Default: remove to save space
+            # Default: remove to save space
+            self.kwargs.get("remove_sigma_spectrum", True)
         )
 
     def get_files_to_process(self) -> Optional[List[str]]:
@@ -127,7 +128,7 @@ class DirectSubbandWriter(MSWriter):
         # Compute shared pointing declination for entire group
         # Time-dependent phase centers will be set per-subband via phase_to_meridian()
         group_pt_dec = None
-        
+
         try:
             # Calculate group midpoint time by averaging all subband midpoints
             mid_times = []
@@ -168,18 +169,19 @@ class DirectSubbandWriter(MSWriter):
                             del temp_uv
                         except Exception:
                             pass
-            
+
             if group_pt_dec is not None and len(mid_times) > 0:
                 # Compute group midpoint time (average of all subband midpoints)
                 group_mid_mjd = float(np.mean(mid_times))
-                print(
+                logger.info(
                     f"Using shared pointing declination for group: "
                     f"Dec={group_pt_dec.to(u.deg).value:.6f}° "
                     f"(MJD={group_mid_mjd:.6f})"
                 )
         except Exception as e:
-            print(f"Warning: Failed to compute shared pointing declination: {e}")
-            print("Falling back to per-subband pointing declination")
+            logger.warning(
+                f"Failed to compute shared pointing declination: {e}")
+            logger.info("Falling back to per-subband pointing declination")
             group_pt_dec = None
 
         # Use processes, not threads: casatools/casacore are not thread-safe
@@ -190,18 +192,20 @@ class DirectSubbandWriter(MSWriter):
         # For MFS imaging, we need ASCENDING frequency order (low to high).
         # Therefore, we must REVERSE the subband number sort.
         from dsa110_contimg.conversion.strategies.hdf5_orchestrator import _extract_subband_code
+
         def sort_by_subband(fpath):
             fname = os.path.basename(fpath)
             sb = _extract_subband_code(fname)
             sb_num = int(sb.replace('sb', '')) if sb else 999
             return sb_num
-        
+
         # CRITICAL: Sort in REVERSE subband order (15, 14, ..., 1, 0) to get
         # ascending frequency order (lowest to highest) for proper MFS imaging
         # and bandpass calibration. If frequencies are out of order, imaging will
         # produce fringes and bandpass calibration will fail.
-        sorted_files = sorted(self.file_list, key=sort_by_subband, reverse=True)
-        
+        sorted_files = sorted(
+            self.file_list, key=sort_by_subband, reverse=True)
+
         futures = []
         with ProcessPoolExecutor(max_workers=self.max_workers) as ex:
             for idx, sb_file in enumerate(sorted_files):
@@ -234,19 +238,19 @@ class DirectSubbandWriter(MSWriter):
                         f"Per-subband writes completed: {completed}/"
                         f"{len(futures)}"
                     )
-                    print(msg)
+                    logger.info(msg)
             except Exception as e:
                 raise RuntimeError(
                     f"A subband writer process failed: {e}"
                 )
-        
+
         # Remove None entries (shouldn't happen, but safety check)
         parts = [p for p in parts if p is not None]
 
         # Solution 4: Ensure subband write processes fully terminate before concat
         # Allow processes to fully terminate and release file handles
         time.sleep(0.5)
-        
+
         # CRITICAL: Clean up any lingering CASA file handles before concat
         # This prevents file locking issues during concatenation
         cleanup_casa_file_handles()
@@ -265,13 +269,11 @@ class DirectSubbandWriter(MSWriter):
 
         # Solution 3: Retry logic for concat failures
         # Concatenate parts into the final MS with retry on file locking errors
-        print(
-            f"Concatenating {len(parts)} parts into {ms_stage_path}"
-        )
+        logger.info(f"Concatenating {len(parts)} parts into {ms_stage_path}")
         max_retries = 3  # Increased from 2 to 3 for better reliability
         concat_success = False
         last_error = None
-        
+
         for attempt in range(max_retries):
             try:
                 # Additional cleanup before each concat attempt
@@ -286,7 +288,7 @@ class DirectSubbandWriter(MSWriter):
                         time.sleep(1.0)
                     cleanup_casa_file_handles()
                     time.sleep(1.0)  # Give more time for handles to close
-                
+
                 # CRITICAL: Parts are already in correct subband order (0-15)
                 # Do NOT sort here - parts are already ordered by subband number
                 # from the futures collection above. Sorting would break spectral order.
@@ -301,8 +303,8 @@ class DirectSubbandWriter(MSWriter):
                 error_msg = str(e)
                 # Check for retryable errors
                 retryable = (
-                    "cannot be opened" in error_msg or 
-                    "readBlock" in error_msg or 
+                    "cannot be opened" in error_msg or
+                    "readBlock" in error_msg or
                     "read/write" in error_msg or
                     "lock" in error_msg.lower() or
                     "Directory not empty" in error_msg or
@@ -318,20 +320,29 @@ class DirectSubbandWriter(MSWriter):
                     # Enhanced cleanup and retry
                     if ms_stage_path.exists():
                         shutil.rmtree(ms_stage_path, ignore_errors=True)
-                    cleanup_casa_file_handles()
+                    from dsa110_contimg.conversion.helpers_telescope import casa_operation
+                    with casa_operation():
+                        # Cleanup happens automatically
+                        pass
                     time.sleep(2.0)  # Longer wait for file handles to release
                     continue
                 raise
-        
+
         if not concat_success:
-            cleanup_casa_file_handles()  # Final cleanup attempt
+            from dsa110_contimg.conversion.helpers_telescope import casa_operation
+            with casa_operation():
+                # Final cleanup attempt - automatic cleanup
+                pass
             raise RuntimeError(
                 f"Concat failed after {max_retries} attempts. Last error: {last_error}"
             )
 
-        # Solution 1: Explicit cleanup verification after concat
-        # Close any CASA handles that might still be open
-        cleanup_casa_file_handles()
+        # Explicit cleanup verification after concat
+        # Use context manager for guaranteed cleanup
+        from dsa110_contimg.conversion.helpers_telescope import casa_operation
+        with casa_operation():
+            # Cleanup happens automatically
+            pass
 
         # If staged on tmpfs, move final MS atomically (or via copy on
         # cross-device)
@@ -343,9 +354,8 @@ class DirectSubbandWriter(MSWriter):
                 dst_path = str(ms_final_path)
                 shutil.move(src_path, dst_path)
                 ms_stage_path = ms_final_path
-                print(
-                    f"Moved staged MS to final location: {ms_final_path}"
-                )
+                logger.info(
+                    f"Moved staged MS to final location: {ms_final_path}")
             except Exception:
                 # If move failed, try copytree (for directory MS)
                 if ms_final_path.exists():
@@ -355,21 +365,21 @@ class DirectSubbandWriter(MSWriter):
                 shutil.copytree(src_path, dst_path)
                 shutil.rmtree(ms_stage_path, ignore_errors=True)
                 ms_stage_path = ms_final_path
-                print(
-                    f"Copied staged MS to final location: {ms_final_path}"
-                )
+                logger.info(
+                    f"Copied staged MS to final location: {ms_final_path}")
 
         # Merge SPWs into a single SPW if requested
         if self.merge_spws:
             try:
                 from dsa110_contimg.conversion.merge_spws import merge_spws, get_spw_count
-                
+
                 n_spw_before = get_spw_count(str(ms_stage_path))
                 if n_spw_before and n_spw_before > 1:
-                    print(f"Merging {n_spw_before} SPWs into a single SPW...")
+                    logger.info(
+                        f"Merging {n_spw_before} SPWs into a single SPW...")
                     ms_multi_spw = str(ms_stage_path)
                     ms_single_spw = str(ms_stage_path) + ".merged"
-                    
+
                     merge_spws(
                         ms_in=ms_multi_spw,
                         ms_out=ms_single_spw,
@@ -378,20 +388,21 @@ class DirectSubbandWriter(MSWriter):
                         keepflags=True,
                         remove_sigma_spectrum=self.remove_sigma_spectrum,
                     )
-                    
+
                     # Replace multi-SPW MS with single-SPW MS
                     shutil.rmtree(ms_multi_spw, ignore_errors=True)
                     shutil.move(ms_single_spw, ms_multi_spw)
-                    
+
                     n_spw_after = get_spw_count(str(ms_stage_path))
                     if n_spw_after == 1:
-                        print(f"✓ Successfully merged SPWs: {n_spw_before} → 1")
+                        logger.info(
+                            f"Successfully merged SPWs: {n_spw_before} → 1")
                     else:
-                        print(f"⚠ Warning: Expected 1 SPW after merge, got {n_spw_after}")
+                        logger.warning(
+                            f"Expected 1 SPW after merge, got {n_spw_after}")
             except Exception as merge_err:
-                print(f"Warning: SPW merging failed (non-fatal): {merge_err}")
-                import traceback
-                traceback.print_exc()
+                logger.warning(
+                    f"SPW merging failed (non-fatal): {merge_err}", exc_info=True)
 
         # Solution 1: Clean up temporary per-subband Measurement Sets and staging dir
         # with verification that cleanup completed
@@ -404,7 +415,7 @@ class DirectSubbandWriter(MSWriter):
                         shutil.rmtree(part, ignore_errors=True)
                 if part_base.exists():
                     shutil.rmtree(part_base, ignore_errors=True)
-                
+
                 # Verify cleanup completed
                 if part_base.exists():
                     cleanup_attempts += 1
@@ -520,6 +531,19 @@ def write_ms_from_subbands(file_list, ms_path, scratch_dir=None):
 
     This function creates per-subband MS files and then concatenates them.
 
+    **When to use this function vs convert_subband_groups_to_ms():**
+
+    - Use `write_ms_from_subbands()` when you have an explicit list of subband
+      files and want to bypass group discovery. This is useful when:
+      - You've already discovered/validated the file list
+      - Time ranges from filenames don't match actual observation times
+      - You want to avoid the internal group re-discovery logic
+
+    - Use `convert_subband_groups_to_ms()` when you want automatic group
+      discovery based on time ranges. This function internally calls
+      `discover_subband_groups()` which may not find groups if filename
+      timestamps don't match the provided time range.
+
     Args:
         file_list: List of subband file paths
         ms_path: Output MS path
@@ -539,7 +563,7 @@ def write_ms_from_subbands(file_list, ms_path, scratch_dir=None):
 
     # Compute shared pointing declination for entire group
     group_pt_dec = None
-    
+
     try:
         # Calculate group midpoint time by averaging all subband midpoints
         mid_times = []
@@ -579,7 +603,7 @@ def write_ms_from_subbands(file_list, ms_path, scratch_dir=None):
                     del temp_uv
                 except Exception:
                     pass
-        
+
         if group_pt_dec is not None and len(mid_times) > 0:
             group_mid_mjd = float(np.mean(mid_times))
             print(
@@ -595,12 +619,13 @@ def write_ms_from_subbands(file_list, ms_path, scratch_dir=None):
     # CRITICAL: DSA-110 subbands use DESCENDING frequency order (sb00=highest, sb15=lowest).
     # For MFS imaging, we need ASCENDING frequency order, so REVERSE the sort.
     from dsa110_contimg.conversion.strategies.hdf5_orchestrator import _extract_subband_code
+
     def sort_by_subband(fpath):
         fname = os.path.basename(fpath)
         sb = _extract_subband_code(fname)
         sb_num = int(sb.replace('sb', '')) if sb else 999
         return sb_num
-    
+
     parts = []
     for idx, sb in enumerate(sorted(file_list, key=sort_by_subband, reverse=True)):
         part_out = part_base / f"{Path(ms_stage_path).stem}.sb{idx:02d}.ms"
@@ -611,7 +636,7 @@ def write_ms_from_subbands(file_list, ms_path, scratch_dir=None):
             )
             parts.append(result)
         except Exception as e:
-            print(f"Failed to write subband {idx}: {e}")
+            logger.error(f"Failed to write subband {idx}: {e}")
             continue
 
     if not parts:
@@ -621,9 +646,7 @@ def write_ms_from_subbands(file_list, ms_path, scratch_dir=None):
     # CRITICAL: Parts are already in correct subband order (0-15) from the sorted
     # file_list iteration above. Do NOT sort here - sorting would break spectral order
     # and cause frequency channels to be scrambled, leading to incorrect bandpass calibration.
-    print(
-        f"Concatenating {len(parts)} parts into {ms_stage_path}"
-    )
+    logger.info(f"Concatenating {len(parts)} parts into {ms_stage_path}")
     casa_concat(
         vis=parts,  # Already in correct subband order
         concatvis=ms_stage_path,

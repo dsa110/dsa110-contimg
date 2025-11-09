@@ -364,7 +364,8 @@ def check_disk_space(
     path: str,
     required_bytes: Optional[int] = None,
     required_gb: Optional[float] = None,
-    operation: str = "unknown"
+    operation: str = "unknown",
+    fatal: bool = False,
 ) -> Tuple[bool, str]:
     """
     Check available disk space at a given path.
@@ -374,9 +375,14 @@ def check_disk_space(
         required_bytes: Required space in bytes
         required_gb: Required space in GB (alternative to required_bytes)
         operation: Operation being performed (for error messages)
+        fatal: If True, raise RuntimeError on insufficient space instead of returning False
         
     Returns:
         (has_space, message) where has_space is True if sufficient space available
+        If fatal=True and space insufficient, raises RuntimeError instead
+    
+    Raises:
+        RuntimeError: If fatal=True and insufficient disk space available
     """
     try:
         path_obj = Path(path)
@@ -404,15 +410,26 @@ def check_disk_space(
         required_gb_actual = required_bytes / (1024**3)
         
         if free_bytes < required_bytes:
-            return False, (
+            error_msg = (
                 f"Insufficient disk space: {free_gb:.2f} GB free, "
                 f"{required_gb_actual:.2f} GB required. Operation: {operation}"
             )
+            if fatal:
+                logger.error(error_msg)
+                raise RuntimeError(error_msg)
+            return False, error_msg
         
         return True, f"Disk space OK: {free_gb:.2f} GB free (required: {required_gb_actual:.2f} GB)"
     
+    except RuntimeError:
+        # Re-raise RuntimeError (from fatal=True case)
+        raise
     except Exception as e:
-        logger.warning(f"Failed to check disk space: {e}")
-        # Don't fail on disk space check errors, just warn
+        error_msg = f"Failed to check disk space: {e}"
+        if fatal:
+            logger.error(error_msg)
+            raise RuntimeError(error_msg) from e
+        logger.warning(error_msg)
+        # Don't fail on disk space check errors if not fatal, just warn
         return True, f"Could not check disk space: {e}"
 

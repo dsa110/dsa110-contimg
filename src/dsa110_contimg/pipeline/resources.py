@@ -67,6 +67,8 @@ class ResourceManager:
     def temp_file(self, suffix: str = "", prefix: str = "dsa110_") -> Iterator[Path]:
         """Create temporary file, cleanup on exit.
         
+        CRITICAL: Ensures file descriptor is always closed, even if exception occurs.
+        
         Args:
             suffix: File suffix (e.g., '.ms')
             prefix: File prefix
@@ -74,24 +76,33 @@ class ResourceManager:
         Yields:
             Path to temporary file
         """
-        fd, tmp = tempfile.mkstemp(suffix=suffix, prefix=prefix)
-        tmp_path = Path(tmp)
-        self._temp_files.append(tmp_path)
+        import os
+        fd = None
+        tmp_path = None
         try:
+            fd, tmp = tempfile.mkstemp(suffix=suffix, prefix=prefix)
+            tmp_path = Path(tmp)
+            self._temp_files.append(tmp_path)
             yield tmp_path
         finally:
-            if tmp_path.exists():
+            # CRITICAL: Always close file descriptor first, then remove file
+            # This ensures we don't leak file descriptors even if unlink fails
+            if fd is not None:
+                try:
+                    os.close(fd)
+                except Exception:
+                    pass  # Best effort - fd may already be closed
+            
+            # Remove file if it exists
+            if tmp_path is not None and tmp_path.exists():
                 try:
                     tmp_path.unlink()
                 except Exception:
-                    pass
-                if tmp_path in self._temp_files:
-                    self._temp_files.remove(tmp_path)
-            try:
-                import os
-                os.close(fd)
-            except Exception:
-                pass
+                    pass  # Best effort - file may already be deleted
+            
+            # Remove from tracking list
+            if tmp_path is not None and tmp_path in self._temp_files:
+                self._temp_files.remove(tmp_path)
     
     @contextmanager
     def scratch_dir(self) -> Iterator[Path]:

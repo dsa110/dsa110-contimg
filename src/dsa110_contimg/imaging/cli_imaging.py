@@ -54,13 +54,14 @@ def run_wsclean(
     quality_tier: str,
     wsclean_path: Optional[str] = None,
     gridder: str = "standard",
+    mask_path: Optional[str] = None,
 ) -> None:
     """Run WSClean with parameters mapped from tclean equivalents.
-    
+
     This function builds a WSClean command-line that matches the tclean
     parameters as closely as possible. MODEL_DATA seeding should be done
     before calling this function via CASA ft().
-    
+
     Args:
         quality_tier: Imaging quality tier ("development", "standard", or
             "high_precision"). Development tier uses 4x coarser cell size
@@ -83,10 +84,11 @@ def run_wsclean(
                 # Fall back to Docker if native not available
                 docker_cmd = shutil.which("docker")
                 if not docker_cmd:
-                    raise RuntimeError("Docker not found but --wsclean-path=docker was specified")
+                    raise RuntimeError(
+                        "Docker not found but --wsclean-path=docker was specified")
                 use_docker = True
-                wsclean_cmd = [docker_cmd, "run", "--rm", "-v", "/scratch:/scratch", "-v", "/data:/data",
-                              "wsclean-everybeam-0.7.4", "wsclean"]
+                wsclean_cmd = [docker_cmd, "run", "--rm", "-v", "/scratch:/scratch", "-v", "/data:/data", "-v", "/stage:/stage",
+                               "wsclean-everybeam-0.7.4", "wsclean"]
         else:
             wsclean_cmd = [wsclean_path]
     else:
@@ -97,8 +99,8 @@ def run_wsclean(
             docker_cmd = shutil.which("docker")
             if docker_cmd:
                 use_docker = True
-                wsclean_cmd = [docker_cmd, "run", "--rm", "-v", "/scratch:/scratch", "-v", "/data:/data",
-                              "wsclean-everybeam-0.7.4", "wsclean"]
+                wsclean_cmd = [docker_cmd, "run", "--rm", "-v", "/scratch:/scratch", "-v", "/data:/data", "-v", "/stage:/stage",
+                               "wsclean-everybeam-0.7.4", "wsclean"]
             else:
                 raise RuntimeError(
                     "WSClean not found. Install WSClean or set WSCLEAN_PATH environment variable, "
@@ -107,25 +109,25 @@ def run_wsclean(
         else:
             wsclean_cmd = [wsclean_cmd]
             LOG.debug("Using native WSClean (faster than Docker)")
-    
+
     # Build command
     cmd = wsclean_cmd.copy()
-    
+
     # Output name (use same path for Docker since volumes are mounted)
     cmd.extend(["-name", imagename])
-    
+
     # Image size and pixel scale
     cmd.extend(["-size", str(imsize), str(imsize)])
     cmd.extend(["-scale", f"{cell_arcsec:.3f}arcsec"])
-    
+
     # Data column
     if datacolumn == "corrected":
         cmd.extend(["-data-column", "CORRECTED_DATA"])
-    
+
     # Field selection (if specified)
     if field:
         cmd.extend(["-field", field])
-    
+
     # Weighting
     if weighting.lower() == "briggs":
         cmd.extend(["-weight", "briggs", str(robust)])
@@ -133,13 +135,13 @@ def run_wsclean(
         cmd.extend(["-weight", "natural"])
     elif weighting.lower() == "uniform":
         cmd.extend(["-weight", "uniform"])
-    
+
     # Multi-term deconvolution (mtmfs equivalent)
     if specmode == "mfs" and nterms > 1:
         cmd.extend(["-fit-spectral-pol", str(nterms)])
         cmd.extend(["-channels-out", "8"])  # Reasonable default for multi-term
         cmd.extend(["-join-channels"])
-    
+
     # Deconvolver
     if deconvolver == "multiscale":
         cmd.append("-multiscale")
@@ -148,10 +150,10 @@ def run_wsclean(
     elif deconvolver == "hogbom":
         # Default is hogbom, no flag needed
         pass
-    
+
     # Iterations and threshold
     cmd.extend(["-niter", str(niter)])
-    
+
     # Parse threshold string (e.g., "0.005Jy" or "0.1mJy")
     threshold_lower = threshold.lower().strip()
     if threshold_lower.endswith("jy"):
@@ -162,16 +164,17 @@ def run_wsclean(
         threshold_val = float(threshold_lower[:-3]) / 1000.0  # Convert to Jy
         if threshold_val > 0:
             cmd.extend(["-abs-threshold", f"{threshold_val:.6f}Jy"])
-    
+
     # Primary beam correction
     if pbcor:
         cmd.append("-apply-primary-beam")
-    
+
     # UV range filtering
     if uvrange:
         # Parse ">1klambda" format
         import re
-        match = re.match(r"([<>]?)(\d+(?:\.\d+)?)(?:\.)?(k?lambda)", uvrange.lower())
+        match = re.match(
+            r"([<>]?)(\d+(?:\.\d+)?)(?:\.)?(k?lambda)", uvrange.lower())
         if match:
             op, val, unit = match.groups()
             val_float = float(val)
@@ -181,11 +184,11 @@ def run_wsclean(
                 cmd.extend(["-minuv-l", str(int(val_float))])
             elif op == "<":
                 cmd.extend(["-maxuv-l", str(int(val_float))])
-    
+
     # Primary beam limit
     if pblimit > 0:
         cmd.extend(["-primary-beam-limit", str(pblimit)])
-    
+
     # Wide-field gridding (wproject equivalent)
     # WGridder is WSClean's optimized wide-field gridding algorithm
     # Enable when wproject is requested OR for large images
@@ -194,23 +197,31 @@ def run_wsclean(
         # Note: wprojplanes parameter is not directly supported by WSClean's WGridder
         # WGridder automatically optimizes the number of planes based on image size and frequency
         LOG.debug("Enabled wide-field gridding (WGridder)")
-    
+
     # Reordering (required for multi-spw, but can be slow - only if needed)
     # CRITICAL: Always reorder data - required for correct multi-SPW processing
     # Reorder ensures proper channel ordering across subbands
     cmd.append("-reorder")
-    
+
+    # Mask file (if provided)
+    if mask_path:
+        cmd.extend(["-fits-mask", mask_path])
+        LOG.info("Using mask file: %s", mask_path)
+
     # Auto-masking (helps with convergence)
+    # Note: Auto-masking can be combined with user-provided mask
+    # WSClean will use the user mask as initial constraint and auto-expand if needed
     cmd.extend(["-auto-mask", "3"])
     cmd.extend(["-auto-threshold", "0.5"])
     cmd.extend(["-mgain", "0.8"])
-    
+
     # Threading: use all available CPU cores (critical for performance!)
     import multiprocessing
-    num_threads = os.getenv("WSCLEAN_THREADS", str(multiprocessing.cpu_count()))
+    num_threads = os.getenv(
+        "WSCLEAN_THREADS", str(multiprocessing.cpu_count()))
     cmd.extend(["-j", num_threads])
     LOG.debug(f"Using {num_threads} threads for WSClean")
-    
+
     # Memory limit (optimized for performance)
     # Development tier: Use more memory for faster gridding/FFT (16GB default)
     # Production mode: Scale with image size (16-32GB)
@@ -222,17 +233,17 @@ def run_wsclean(
         abs_mem = os.getenv("WSCLEAN_ABS_MEM", "32" if imsize > 2048 else "16")
     cmd.extend(["-abs-mem", abs_mem])
     LOG.debug(f"WSClean memory allocation: {abs_mem}GB")
-    
+
     # Polarity
     cmd.extend(["-pol", "I"])
-    
+
     # Input MS (use same path for Docker since volumes are mounted)
     cmd.append(ms_path)
-    
+
     # Log command
     cmd_str = " ".join(cmd)
     LOG.info("Running WSClean: %s", cmd_str)
-    
+
     # Execute
     t0 = time.perf_counter()
     try:
@@ -306,29 +317,36 @@ def image_ms(
     backend: str = "wsclean",
     wsclean_path: Optional[str] = None,
     export_model_image: bool = False,
+    use_nvss_mask: bool = True,
+    mask_radius_arcsec: float = 60.0,
 ) -> None:
     """Main imaging function for Measurement Sets.
-    
+
     Supports both CASA tclean and WSClean backends. WSClean is the default.
     Automatically selects CORRECTED_DATA when present, otherwise uses DATA.
-    
+
     Quality Tiers:
         - development: 4x coarser cell size, max 300 iterations, NVSS threshold 10 mJy.
           NON-SCIENCE QUALITY - for code testing only. Data is always reordered.
         - standard: Full quality imaging (recommended for science).
         - high_precision: Enhanced settings with 2000+ iterations, NVSS threshold 5 mJy.
-    
+
     NVSS Seeding:
         When pbcor=True, NVSS sources are limited to the primary beam extent
         (based on pblimit) to avoid including sources beyond the corrected region.
         The seeding radius is calculated from the primary beam FWHM and pblimit.
+
+    Masking:
+        When use_nvss_mask=True and nvss_min_mjy is provided, generates a FITS mask
+        from NVSS sources for WSClean. This provides 2-4x faster imaging by restricting
+        cleaning to known source locations. Masking is only supported for WSClean backend.
     """
     from dsa110_contimg.utils.validation import validate_corrected_data_quality
-    
+
     # Validate MS using shared validation module
     try:
         validate_ms(ms_path, check_empty=True,
-                   check_columns=['DATA', 'ANTENNA1', 'ANTENNA2', 'TIME', 'UVW'])
+                    check_columns=['DATA', 'ANTENNA1', 'ANTENNA2', 'TIME', 'UVW'])
     except ValidationError as e:
         suggestions = [
             "Check MS path is correct and file exists",
@@ -340,21 +358,21 @@ def image_ms(
             e, ms_path, "MS validation", suggestions
         )
         raise RuntimeError(error_msg) from e
-    
+
     # Validate CORRECTED_DATA quality if present - FAIL if calibration appears unapplied
     warnings = validate_corrected_data_quality(ms_path)
     if warnings:
         # Distinguish between unpopulated data warnings and validation errors
         unpopulated_warnings = [
-            w for w in warnings 
-            if "appears unpopulated" in w.lower() or "zero rows" in w.lower() 
+            w for w in warnings
+            if "appears unpopulated" in w.lower() or "zero rows" in w.lower()
             or "all sampled data is flagged" in w.lower()
         ]
         validation_errors = [
-            w for w in warnings 
+            w for w in warnings
             if w.startswith("Error validating CORRECTED_DATA:")
         ]
-        
+
         if unpopulated_warnings:
             # CORRECTED_DATA exists but is unpopulated - calibration failed
             suggestions = [
@@ -364,7 +382,8 @@ def image_ms(
                 "Use --datacolumn=DATA to image uncalibrated data (not recommended)"
             ]
             error_msg = format_ms_error_with_suggestions(
-                RuntimeError("CORRECTED_DATA column exists but appears unpopulated"),
+                RuntimeError(
+                    "CORRECTED_DATA column exists but appears unpopulated"),
                 ms_path, "calibration validation", suggestions
             )
             error_msg += f"\nDetails: {'; '.join(unpopulated_warnings)}"
@@ -399,46 +418,45 @@ def image_ms(
             error_msg += f"\nDetails: {'; '.join(warnings)}"
             LOG.error(error_msg)
             raise RuntimeError(error_msg)
-    
+
     # PRECONDITION CHECK: Verify sufficient disk space for images
     # This ensures we follow "measure twice, cut once" - verify resources upfront
     # before expensive imaging operations.
     try:
         output_dir = os.path.dirname(os.path.abspath(imagename))
         os.makedirs(output_dir, exist_ok=True)
-        
+
         # Estimate image size: rough estimate based on imsize and number of images
         # Each image is approximately: imsize^2 * 4 bytes (float32) * number of images
         # We create: .image, .model, .residual, .pb, .pbcor = 5 images
         # Plus weights, etc. Use 10x safety margin for overhead
         bytes_per_pixel = 4  # float32
-        num_images = 10  # Conservative estimate (.image, .model, .residual, .pb, .pbcor, weights, etc.)
-        image_size_estimate = imsize * imsize * bytes_per_pixel * num_images * 10  # 10x safety margin
-        
-        available_space = shutil.disk_usage(output_dir).free
-        
-        if available_space < image_size_estimate:
-            LOG.warning(
-                "Insufficient disk space for images: need ~%.1f GB, available %.1f GB. "
-                "Imaging may fail. Consider freeing space or using a different output directory.",
-                image_size_estimate / 1e9,
-                available_space / 1e9
-            )
-        else:
-            LOG.info(
-                "✓ Disk space check passed: %.1f GB available (need ~%.1f GB)",
-                available_space / 1e9,
-                image_size_estimate / 1e9
-            )
+        # Conservative estimate (.image, .model, .residual, .pb, .pbcor, weights, etc.)
+        num_images = 10
+        image_size_estimate = imsize * imsize * \
+            bytes_per_pixel * num_images * 10  # 10x safety margin
+
+        # CRITICAL: Check disk space (fatal check for imaging operations)
+        from dsa110_contimg.mosaic.error_handling import check_disk_space
+        has_space, space_msg = check_disk_space(
+            imagename,
+            required_bytes=image_size_estimate,
+            operation=f"imaging of {ms_path}",
+            fatal=True,  # Fail fast if insufficient space
+        )
+        LOG.info(space_msg)
+    except RuntimeError:
+        # Re-raise RuntimeError from fatal disk space check
+        raise
     except Exception as e:
-        # Non-fatal: log warning but don't fail
+        # Other exceptions: log warning but don't fail (may be permission issues, etc.)
         LOG.warning(f"Failed to check disk space: {e}")
-    
+
     # Prepare temp dirs and working directory to keep TempLattice* off the repo
     try:
         if prepare_temp_environment is not None:
             out_dir = os.path.dirname(os.path.abspath(imagename))
-            root = os.getenv("CONTIMG_SCRATCH_DIR") or "/scratch/dsa110-contimg"
+            root = os.getenv("CONTIMG_SCRATCH_DIR") or "/stage/dsa110-contimg"
             prepare_temp_environment(root, cwd_to=out_dir)
     except Exception:
         # Best-effort; continue even if temp prep fails
@@ -449,17 +467,17 @@ def image_ms(
 
     # Enforce 3.5° x 3.5° image extent
     desired_extent_arcsec = FIXED_IMAGE_EXTENT_DEG * 3600.0  # 12600 arcsec
-    
+
     # Store original imsize for warning if user overrode it
     user_imsize = imsize
-    
+
     # Calculate imsize to maintain 3.5° extent
     # If user specified both imsize and cell_arcsec, use cell_arcsec and recalculate imsize
     calculated_imsize = int(np.ceil(desired_extent_arcsec / cell_arcsec))
     # Ensure even number (CASA requirement)
     if calculated_imsize % 2 != 0:
         calculated_imsize += 1
-    
+
     # Warn if user specified imsize but we're overriding it
     if user_imsize != 1024:  # 1024 is the default, so only warn if user explicitly set it
         if calculated_imsize != user_imsize:
@@ -468,10 +486,10 @@ def image_ms(
                 "calculated imsize=%d from cell_arcsec=%.3f arcsec",
                 user_imsize, calculated_imsize, cell_arcsec
             )
-    
+
     imsize = calculated_imsize
     cell = f"{cell_arcsec:.3f}arcsec"
-    
+
     # Apply quality tier settings
     if quality_tier == "development":
         # ⚠️  NON-SCIENCE QUALITY - For code testing only
@@ -488,7 +506,8 @@ def image_ms(
         if abs(cell_arcsec - default_cell) < 0.01:  # Only adjust if using default cell size
             cell_arcsec = cell_arcsec * 4.0
             # Recalculate imsize for new cell size
-            calculated_imsize = int(np.ceil(desired_extent_arcsec / cell_arcsec))
+            calculated_imsize = int(
+                np.ceil(desired_extent_arcsec / cell_arcsec))
             if calculated_imsize % 2 != 0:
                 calculated_imsize += 1
             imsize = calculated_imsize
@@ -501,7 +520,8 @@ def image_ms(
         # Lower NVSS seeding threshold for faster convergence
         if nvss_min_mjy is None:
             nvss_min_mjy = 10.0
-            LOG.info("Development tier: NVSS seeding threshold set to %s mJy (NON-SCIENCE)", nvss_min_mjy)
+            LOG.info(
+                "Development tier: NVSS seeding threshold set to %s mJy (NON-SCIENCE)", nvss_min_mjy)
 
     elif quality_tier == "standard":
         # Recommended for all science observations - no compromises
@@ -514,7 +534,8 @@ def image_ms(
         niter = max(niter, 2000)  # More iterations for better deconvolution
         if nvss_min_mjy is None:
             nvss_min_mjy = 5.0  # Lower threshold for cleaner sky model
-            LOG.info("High precision tier: NVSS seeding threshold set to %s mJy", nvss_min_mjy)
+            LOG.info(
+                "High precision tier: NVSS seeding threshold set to %s mJy", nvss_min_mjy)
     LOG.info("Imaging %s -> %s", ms_path, imagename)
     LOG.info(
         "datacolumn=%s cell=%s imsize=%d quality_tier=%s",
@@ -570,6 +591,18 @@ def image_ms(
     fov_y = (cell_arcsec * imsize) / 3600.0
     radius_deg = 0.5 * float(_math.hypot(fov_x, fov_y))
 
+    # Get phase center from MS (needed for mask generation and NVSS seeding)
+    ra0_deg = dec0_deg = None
+    with table(f"{ms_path}::FIELD", readonly=True) as fld:
+        try:
+            ph = fld.getcol("PHASE_DIR")[0]
+            ra0_deg = float(ph[0][0]) * (180.0 / np.pi)
+            dec0_deg = float(ph[0][1]) * (180.0 / np.pi)
+        except Exception:
+            pass
+    if ra0_deg is None or dec0_deg is None:
+        LOG.warning("Could not determine phase center from MS FIELD table")
+
     # Optional: seed a single-component calibrator model if provided and in FoV
     did_seed = False
     if (calib_ra_deg is not None and calib_dec_deg is not None and calib_flux_jy is not None and calib_flux_jy > 0):
@@ -579,7 +612,8 @@ def image_ms(
                 ra0_deg = float(ph[0][0]) * (180.0 / np.pi)
                 dec0_deg = float(ph[0][1]) * (180.0 / np.pi)
             # crude small-angle separation in deg
-            d_ra = (float(calib_ra_deg) - ra0_deg) * np.cos(np.deg2rad(dec0_deg))
+            d_ra = (float(calib_ra_deg) - ra0_deg) * \
+                np.cos(np.deg2rad(dec0_deg))
             d_dec = (float(calib_dec_deg) - dec0_deg)
             sep_deg = float(_math.hypot(d_ra, d_dec))
             if sep_deg <= radius_deg * 1.05:
@@ -593,8 +627,10 @@ def image_ms(
                     freq_ghz=1.4,
                     out_path=cl_path,
                 )
-                ft_from_cl(ms_path, cl_path, field=field or "0", usescratch=True)
-                LOG.info("Seeded MODEL_DATA with calibrator point model (flux=%.3f Jy)", calib_flux_jy)
+                ft_from_cl(ms_path, cl_path,
+                           field=field or "0", usescratch=True)
+                LOG.info(
+                    "Seeded MODEL_DATA with calibrator point model (flux=%.3f Jy)", calib_flux_jy)
                 did_seed = True
         except Exception as exc:
             LOG.debug("Calibrator seeding skipped: %s", exc)
@@ -606,18 +642,10 @@ def image_ms(
                 make_nvss_component_cl,
                 ft_from_cl,
             )  # type: ignore
-            # Determine phase center from FIELD table
-            ra0_deg = dec0_deg = None
-            with table(f"{ms_path}::FIELD", readonly=True) as fld:
-                try:
-                    ph = fld.getcol("PHASE_DIR")[0]
-                    ra0_deg = float(ph[0][0]) * (180.0 / np.pi)
-                    dec0_deg = float(ph[0][1]) * (180.0 / np.pi)
-                except Exception:
-                    pass
+            # Use phase center already determined above
             if ra0_deg is None or dec0_deg is None:
                 raise RuntimeError("FIELD::PHASE_DIR not available")
-            
+
             # Limit NVSS seeding radius to primary beam extent when pbcor is enabled
             # Primary beam FWHM at 1.4 GHz: ~3.2 degrees (1.22 * lambda / D)
             # Use pblimit to determine effective radius (typically 20% of peak = ~1.6 deg radius)
@@ -629,7 +657,7 @@ def image_ms(
                     freq_ghz = float(np.nanmean(ch)) / 1e9
             except Exception:
                 pass
-            
+
             # Calculate primary beam radius based on pblimit
             # Primary beam FWHM = 1.22 * lambda / D
             # For DSA-110: D = 4.7 m, lambda = c / (freq_ghz * 1e9)
@@ -640,11 +668,12 @@ def image_ms(
             lambda_m = c_mps / (freq_ghz * 1e9)
             fwhm_rad = 1.22 * lambda_m / dish_dia_m
             fwhm_deg = math.degrees(fwhm_rad)
-            
+
             # Calculate radius at pblimit (Airy pattern: PB = (2*J1(x)/x)^2, solve for PB = pblimit)
             # Approximate: radius at pblimit ≈ FWHM * sqrt(-ln(pblimit)) / sqrt(-ln(0.5))
             if pbcor and pblimit > 0:
-                pb_radius_deg = fwhm_deg * math.sqrt(-math.log(pblimit)) / math.sqrt(-math.log(0.5))
+                pb_radius_deg = fwhm_deg * \
+                    math.sqrt(-math.log(pblimit)) / math.sqrt(-math.log(0.5))
                 # Use the smaller of image radius or primary beam radius
                 nvss_radius_deg = min(radius_deg, pb_radius_deg)
                 LOG.info(
@@ -653,7 +682,7 @@ def image_ms(
                 )
             else:
                 nvss_radius_deg = radius_deg
-            
+
             cl_path = f"{imagename}.nvss_{float(nvss_min_mjy):g}mJy.cl"
             LOG.info(
                 "Creating NVSS componentlist (>%s mJy, radius %.2f deg, center RA=%.6f° Dec=%.6f°)",
@@ -672,7 +701,8 @@ def image_ms(
             )
             # Verify componentlist was created
             if not os.path.exists(cl_path):
-                raise RuntimeError(f"NVSS componentlist was not created: {cl_path}")
+                raise RuntimeError(
+                    f"NVSS componentlist was not created: {cl_path}")
             LOG.info("NVSS componentlist created: %s", cl_path)
             ft_from_cl(ms_path, cl_path, field=field or "0", usescratch=True)
             LOG.info(
@@ -680,13 +710,14 @@ def image_ms(
                 nvss_min_mjy,
                 nvss_radius_deg,
             )
-            
+
             # Export MODEL_DATA as FITS image if requested
             if export_model_image:
                 try:
                     from dsa110_contimg.calibration.model import export_model_as_fits
                     output_path = f"{imagename}.nvss_model"
-                    LOG.info(f"Exporting NVSS model image to {output_path}.fits...")
+                    LOG.info(
+                        f"Exporting NVSS model image to {output_path}.fits...")
                     export_model_as_fits(
                         ms_path,
                         output_path,
@@ -719,9 +750,38 @@ def image_ms(
                     vp.setuserdefault(telescope=tname)
                 except Exception:
                     pass
-            LOG.debug("Registered VP table %s for telescope(s): %s", vptable, [telname, "DSA_110"]) 
+            LOG.debug("Registered VP table %s for telescope(s): %s",
+                      vptable, [telname, "DSA_110"])
         except Exception as exc:
             LOG.debug("VP preload skipped: %s", exc)
+
+    # Generate mask if requested (before imaging)
+    mask_path = None
+    if use_nvss_mask and nvss_min_mjy is not None and backend == "wsclean":
+        if ra0_deg is not None and dec0_deg is not None:
+            try:
+                from dsa110_contimg.imaging.nvss_tools import create_nvss_fits_mask
+
+                mask_path = create_nvss_fits_mask(
+                    imagename=imagename,
+                    imsize=imsize,
+                    cell_arcsec=cell_arcsec,
+                    ra0_deg=ra0_deg,
+                    dec0_deg=dec0_deg,
+                    nvss_min_mjy=nvss_min_mjy,
+                    radius_arcsec=mask_radius_arcsec,
+                )
+                LOG.info("Generated NVSS mask: %s (radius=%.1f arcsec, sources >= %.1f mJy)",
+                         mask_path, mask_radius_arcsec, nvss_min_mjy)
+            except Exception as exc:
+                LOG.warning(
+                    "Failed to generate NVSS mask, continuing without mask: %s", exc)
+                import traceback
+                LOG.debug("Mask generation traceback: %s",
+                          traceback.format_exc())
+                mask_path = None
+        else:
+            LOG.warning("Cannot generate mask: phase center not available")
 
     # Route to appropriate backend
     if backend == "wsclean":
@@ -745,8 +805,13 @@ def image_ms(
             quality_tier=quality_tier,
             wsclean_path=wsclean_path,
             gridder=gridder,
+            mask_path=mask_path,
         )
     else:
+        # CASA tclean doesn't support FITS masks directly
+        if mask_path:
+            LOG.warning(
+                "Masking not supported for CASA tclean backend, ignoring mask")
         t0 = time.perf_counter()
         tclean(**kwargs)
         LOG.info("tclean completed in %.2fs", time.perf_counter() - t0)
@@ -778,4 +843,3 @@ def image_ms(
                     )
                 except Exception as exc:
                     LOG.debug("exportfits failed for %s: %s", img, exc)
-

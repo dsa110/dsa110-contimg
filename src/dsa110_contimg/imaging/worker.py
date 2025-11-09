@@ -47,7 +47,7 @@ def _apply_and_image(
     # Route temp files to scratch and chdir to output directory to avoid repo pollution
     try:
         if prepare_temp_environment is not None:
-            prepare_temp_environment(os.getenv('CONTIMG_SCRATCH_DIR') or '/scratch/dsa110-contimg', cwd_to=os.fspath(out_dir))
+            prepare_temp_environment(os.getenv('CONTIMG_SCRATCH_DIR') or '/stage/dsa110-contimg', cwd_to=os.fspath(out_dir))
     except Exception:
         pass
     # Apply to all fields by default
@@ -57,8 +57,8 @@ def _apply_and_image(
 
         apply_to_target(ms_path, field="", gaintables=gaintables, calwt=True)
         imgroot = out_dir / (Path(ms_path).stem + ".img")
-        # Use image_ms with development tier for fast imaging in streaming workflow
-        image_ms(ms_path, imagename=str(imgroot), field="", quality_tier="development", skip_fits=True)
+        # Use image_ms with standard tier for production quality imaging
+        image_ms(ms_path, imagename=str(imgroot), field="", quality_tier="standard", skip_fits=True)
         # Return whatever CASA produced
         for ext in [".image", ".image.pbcor", ".residual", ".psf", ".pb"]:
             p = f"{imgroot}{ext}"

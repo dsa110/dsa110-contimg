@@ -20,7 +20,10 @@ __all__ = [
     "calibration",
     "applycal",
     "apply_service",
-    "qa",
     "plotting",
+    "performance",
+    "units",
+    "model_validation",
+    "caltable_paths",
 ]
 

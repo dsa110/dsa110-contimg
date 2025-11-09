@@ -9,7 +9,7 @@ Usage:
   # Single point source (uses pyradiosky internally)
   from dsa110_contimg.calibration.skymodels import make_point_cl, ft_from_cl
   cl = make_point_cl('0834+555', ra_deg, dec_deg, flux_jy=2.3, freq_ghz=1.4,
-                     out_path='/scratch/0834+555_pt.cl')
+                     out_path='/stage/dsa110-contimg/0834+555_pt.cl')
   ft_from_cl('/path/to/obs.ms', cl, field='0', usescratch=True)
   
   # NVSS sources (uses pyradiosky internally)

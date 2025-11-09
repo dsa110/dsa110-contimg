@@ -42,12 +42,13 @@ from dsa110_contimg.pipeline.resilience import RetryPolicy, RetryStrategy
 # Import stages_impl lazily to avoid circular dependencies
 def __getattr__(name: str):
     """Lazy import for stage implementations."""
-    if name in ("ConversionStage", "CalibrationSolveStage", "CalibrationStage", "ImagingStage"):
+    if name in ("ConversionStage", "CalibrationSolveStage", "CalibrationStage", "ImagingStage", "OrganizationStage"):
         from dsa110_contimg.pipeline.stages_impl import (
             ConversionStage,
             CalibrationSolveStage,
             CalibrationStage,
             ImagingStage,
+            OrganizationStage,
         )
         return globals()[name]
     raise AttributeError(f"module {__name__!r} has no attribute {name!r}")

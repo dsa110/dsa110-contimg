@@ -738,7 +738,17 @@ def calibrator_match(
     # Compute separation and primary-beam weighted flux if flux column present
     sep = np.hypot((sel['ra_deg'] - ra_meridian) * cosd, (sel['dec_deg'] - dec_meridian))
     sel['sep_deg'] = sep
+    
+    # Determine flux column to use (prefer flux_20_cm, fallback to flux_jy)
+    flux_col = None
     if 'flux_20_cm' in sel.columns:
+        flux_col = 'flux_20_cm'
+        flux_scale = 1e-3  # Convert mJy to Jy
+    elif 'flux_jy' in sel.columns:
+        flux_col = 'flux_jy'
+        flux_scale = 1.0  # Already in Jy
+    
+    if flux_col is not None:
         # weighted flux ~ PB(resp)*flux (Jy)
         w = []
         for _, r in sel.iterrows():
@@ -747,7 +757,8 @@ def calibrator_match(
                 np.deg2rad(r['ra_deg']), np.deg2rad(r['dec_deg']),
                 freq_ghz,
             )
-            w.append(resp * float(r['flux_20_cm']) / 1e3)
+            flux_val = float(r[flux_col]) if pd.notna(r[flux_col]) else 0.0
+            w.append(resp * flux_val * flux_scale)
         sel['weighted_flux'] = w
         sel = sel.sort_values(['weighted_flux', 'sep_deg'], ascending=[False, True])
     else:
@@ -776,11 +787,17 @@ def airy_primary_beam_response(
     dra = (src_ra - ant_ra) * np.cos(ant_dec)
     ddec = src_dec - ant_dec
     theta = np.sqrt(dra * dra + ddec * ddec)
+    
+    # Handle zero separation case (source at phase center)
+    if theta == 0.0 or theta < 1e-10:
+        return 1.0
+    
     # First-null approximation: 1.22 * lambda / D
     lam_m = (3e8 / (freq_GHz * 1e9))
     x = np.pi * dish_dia_m * np.sin(theta) / lam_m
-    # Avoid division by zero
-    x = np.where(x == 0, 1e-12, x)
+    # Avoid division by zero (but we already handled theta == 0 above)
+    if x == 0.0 or x < 1e-10:
+        return 1.0
     resp = (2 * (np.sin(x) - x * np.cos(x)) / (x * x)) ** 2
     # Clamp numeric noise
     return float(np.clip(resp, 0.0, 1.0))

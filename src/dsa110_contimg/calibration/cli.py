@@ -106,7 +106,7 @@ def main():
     # Best-effort: route TempLattice and similar to scratch
     try:
         if prepare_temp_environment is not None:
-            prepare_temp_environment(os.getenv('CONTIMG_SCRATCH_DIR') or '/scratch/dsa110-contimg')
+            prepare_temp_environment(os.getenv('CONTIMG_SCRATCH_DIR') or '/stage/dsa110-contimg')
     except Exception:
         pass
     

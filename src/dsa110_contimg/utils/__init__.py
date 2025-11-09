@@ -14,6 +14,7 @@ from . import coordinates
 from . import fringestopping
 from . import logging
 from . import exceptions
+from . import ms_organization
 
 __all__ = [
     'constants',
@@ -22,4 +23,5 @@ __all__ = [
     'fringestopping',
     'logging',
     'exceptions',
+    'ms_organization',
 ]

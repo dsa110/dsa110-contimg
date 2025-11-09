@@ -395,6 +395,68 @@ def fetch_mosaics(products_db: Path, start_time: str, end_time: str) -> List[dic
     return mosaics
 
 
+def fetch_mosaic_by_id(products_db: Path, mosaic_id: int) -> Optional[dict]:
+    """Fetch a single mosaic by ID.
+    
+    Args:
+        products_db: Path to products database
+        mosaic_id: Mosaic ID
+    
+    Returns:
+        Mosaic dictionary or None if not found
+    """
+    if not products_db.exists():
+        return None
+    
+    with closing(_connect(products_db)) as conn:
+        # Check if mosaics table exists
+        tables = {row[0] for row in conn.execute(
+            "SELECT name FROM sqlite_master WHERE type='table'"
+        ).fetchall()}
+        
+        if 'mosaics' not in tables:
+            return None
+        
+        row = conn.execute(
+            """
+            SELECT 
+                id, name, path, created_at, start_mjd, end_mjd,
+                integration_sec, n_images, center_ra_deg, center_dec_deg,
+                dec_min_deg, dec_max_deg, noise_jy,
+                beam_major_arcsec, beam_minor_arcsec, beam_pa_deg,
+                n_sources, thumbnail_path
+            FROM mosaics
+            WHERE id = ?
+            """,
+            (mosaic_id,),
+        ).fetchone()
+        
+        if not row:
+            return None
+        
+        # Convert MJD to ISO datetime
+        from astropy.time import Time
+        start_dt = Time(row["start_mjd"], format='mjd').datetime
+        end_dt = Time(row["end_mjd"], format='mjd').datetime
+        created_dt = datetime.fromtimestamp(row["created_at"]) if row["created_at"] else datetime.utcnow()
+        
+        return {
+            'id': row["id"],
+            'name': row["name"],
+            'path': row["path"],
+            'start_mjd': row["start_mjd"],
+            'end_mjd': row["end_mjd"],
+            'start_time': start_dt.isoformat(),
+            'end_time': end_dt.isoformat(),
+            'created_at': created_dt.isoformat(),
+            'status': 'completed',  # Assume completed if in database
+            'image_count': row["n_images"],
+            'noise_jy': row["noise_jy"],
+            'source_count': row["n_sources"],
+            'thumbnail_path': row["thumbnail_path"],
+        }
+
+
 def fetch_source_timeseries(products_db: Path, source_id: str) -> Optional[dict]:
     """Fetch flux timeseries for a source from photometry table.
     

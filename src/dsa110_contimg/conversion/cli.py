@@ -1,6 +1,7 @@
 """Unified command-line interface for UVH5 to MS conversion."""
 
 import argparse
+import logging
 import sys
 
 from dsa110_contimg.utils.cli_helpers import (
@@ -8,6 +9,8 @@ from dsa110_contimg.utils.cli_helpers import (
     add_common_logging_args,
     configure_logging_from_args,
 )
+
+logger = logging.getLogger(__name__)
 
 from . import uvh5_to_ms
 from .strategies import hdf5_orchestrator  # noqa: E402
@@ -31,7 +34,7 @@ def main(argv: list = None) -> int:
             "    --input observation.uvh5 --output observation.ms\n\n"
             "  # Convert complete subband groups in a time window\n"
             "  python -m dsa110_contimg.conversion.cli groups \\\n"
-            "    --input-dir /data/incoming --output-dir /scratch/ms \\\n"
+            "    --input-dir /data/incoming --output-dir /stage/dsa110-contimg/ms \\\n"
             "    --start-time 2024-01-01T00:00:00 --end-time 2024-01-01T01:00:00\n\n"
             "For more information, see DEVELOPER_GUIDE.md"
         ),
@@ -312,7 +315,9 @@ def main(argv: list = None) -> int:
         )
         
         if args.json:
+            # JSON output is user-facing, keep print() for stdout
             print(json.dumps(results, indent=2, default=str))
+            logger.debug(f"Found {len(results)} calibrator(s) with available data (JSON output)")
         else:
             logger.info(f"Found {len(results)} calibrator(s) with available data:\n")
             for result in results:

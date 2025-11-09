@@ -55,29 +55,48 @@ def update_job_status(
     status: str,
     **kwargs
 ) -> None:
-    """Update job status and optional fields (started_at, finished_at, artifacts)."""
-    updates = ["status = ?"]
-    values = [status]
+    """Update job status and optional fields (started_at, finished_at, artifacts).
     
-    if "started_at" in kwargs:
+    CRITICAL: Column names are whitelisted to prevent SQL injection.
+    Only explicitly allowed columns can be updated.
+    """
+    # CRITICAL: Whitelist allowed column names to prevent SQL injection
+    ALLOWED_UPDATE_COLUMNS = {
+        "status",
+        "started_at",
+        "finished_at",
+        "artifacts",
+    }
+    
+    updates = []
+    values = []
+    
+    # Always update status
+    updates.append("status = ?")
+    values.append(status)
+    
+    # Add optional updates only if column is whitelisted
+    if "started_at" in kwargs and "started_at" in ALLOWED_UPDATE_COLUMNS:
         updates.append("started_at = ?")
         values.append(kwargs["started_at"])
     
-    if "finished_at" in kwargs:
+    if "finished_at" in kwargs and "finished_at" in ALLOWED_UPDATE_COLUMNS:
         updates.append("finished_at = ?")
         values.append(kwargs["finished_at"])
     
-    if "artifacts" in kwargs:
+    if "artifacts" in kwargs and "artifacts" in ALLOWED_UPDATE_COLUMNS:
         updates.append("artifacts = ?")
         values.append(kwargs["artifacts"])
     
+    # Add job_id for WHERE clause
     values.append(job_id)
     
-    conn.execute(
-        f"UPDATE jobs SET {', '.join(updates)} WHERE id = ?",
-        values
-    )
-    conn.commit()
+    if updates:
+        conn.execute(
+            f"UPDATE jobs SET {', '.join(updates)} WHERE id = ?",
+            values
+        )
+        conn.commit()
 
 
 def append_job_log(conn: sqlite3.Connection, job_id: int, line: str) -> None:

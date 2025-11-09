@@ -162,8 +162,15 @@ def _calculate_manual_model_data(
         u = uvw[:, 0]
         v = uvw[:, 1]
         
-        # Read SPECTRAL_WINDOW_ID to map rows to spectral windows
-        spw_id = main_tb.getcol("DATA_DESC_ID")  # Shape: (nrows,)
+        # Read DATA_DESC_ID and map to SPECTRAL_WINDOW_ID
+        # DATA_DESC_ID indexes the DATA_DESCRIPTION table, not SPECTRAL_WINDOW directly
+        data_desc_id = main_tb.getcol("DATA_DESC_ID")  # Shape: (nrows,)
+        
+        # Read DATA_DESCRIPTION table to get SPECTRAL_WINDOW_ID mapping
+        with casa_table(f"{ms_path}::DATA_DESCRIPTION", readonly=True) as dd_tb:
+            dd_spw_id = dd_tb.getcol("SPECTRAL_WINDOW_ID")  # Shape: (ndd,)
+            # Map DATA_DESC_ID -> SPECTRAL_WINDOW_ID
+            spw_id = dd_spw_id[data_desc_id]  # Shape: (nrows,)
         
         # Read FIELD_ID to apply field selection and get per-field phase centers
         field_id = main_tb.getcol("FIELD_ID")  # Shape: (nrows,)
@@ -241,7 +248,8 @@ def _calculate_manual_model_data(
         
         # Get frequencies for all selected rows
         # chan_freq shape: (nspw, nchan)
-        # We need to index: chan_freq[selected_spw_id] -> (nselected, nchan)
+        # selected_spw_id contains SPECTRAL_WINDOW_ID values (mapped from DATA_DESC_ID)
+        # We index: chan_freq[selected_spw_id] -> (nselected, nchan)
         selected_freqs = chan_freq[selected_spw_id]  # (nselected, nchan)
         selected_wavelengths = 3e8 / selected_freqs  # (nselected, nchan)
         

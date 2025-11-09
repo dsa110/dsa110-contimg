@@ -8,6 +8,11 @@ Performs primary-beam correction and exports FITS products.
 Supports hybrid workflow: CASA ft() for model seeding + WSClean for fast imaging.
 """
 
+from .cli_imaging import image_ms, run_wsclean as _run_wsclean
+from .cli_utils import detect_datacolumn as _detect_datacolumn, default_cell_arcsec as _default_cell_arcsec
+from casatasks import tclean, exportfits  # type: ignore[import]
+from casacore.tables import table  # type: ignore[import]
+import numpy as np
 import argparse
 import logging
 import os
@@ -16,6 +21,8 @@ from typing import Optional
 import time
 import subprocess
 import shutil
+
+logger = logging.getLogger(__name__)
 
 # Use shared CLI utilities
 from dsa110_contimg.utils.cli_helpers import (
@@ -33,9 +40,6 @@ from dsa110_contimg.utils.validation import (
 # Set CASA log directory BEFORE any CASA imports - CASA writes logs to CWD
 setup_casa_environment()
 
-import numpy as np
-from casacore.tables import table  # type: ignore[import]
-from casatasks import tclean, exportfits  # type: ignore[import]
 try:
     from casatools import vpmanager as _vpmanager  # type: ignore[import]
     from casatools import msmetadata as _msmd  # type: ignore[import]
@@ -58,10 +62,8 @@ except Exception:  # pragma: no cover - defensive import
 
 
 # Utility functions moved to cli_utils.py
-from .cli_utils import detect_datacolumn as _detect_datacolumn, default_cell_arcsec as _default_cell_arcsec
 
 # Core imaging functions moved to cli_imaging.py
-from .cli_imaging import image_ms, run_wsclean as _run_wsclean
 
 
 def main(argv: Optional[list] = None) -> None:
@@ -69,7 +71,7 @@ def main(argv: Optional[list] = None) -> None:
         description="DSA-110 Imaging CLI"
     )
     sub = parser.add_subparsers(dest="cmd", required=True)
-    
+
     # image subcommand (main imaging functionality)
     img_parser = sub.add_parser(
         "image",
@@ -181,6 +183,18 @@ def main(argv: Optional[list] = None) -> None:
             "Output will be saved as {imagename}.nvss_model.fits"
         ),
     )
+    # Masking parameters
+    img_parser.add_argument(
+        "--no-nvss-mask",
+        action="store_true",
+        help="Disable NVSS-based masking (masking is enabled by default for 2-4x faster imaging)",
+    )
+    img_parser.add_argument(
+        "--mask-radius-arcsec",
+        type=float,
+        default=60.0,
+        help="Mask radius around NVSS sources in arcseconds (default: 60.0, ~2-3× beam)",
+    )
     # A-Projection related options
     img_parser.add_argument(
         "--vptable",
@@ -229,29 +243,44 @@ def main(argv: Optional[list] = None) -> None:
         default=None,
         help="Calibrator flux (Jy) for single-component model seeding",
     )
-    
+
     # export subcommand
-    exp_parser = sub.add_parser("export", help="Export CASA images to FITS and PNG")
-    exp_parser.add_argument("--source", required=True, help="Directory containing CASA images")
-    exp_parser.add_argument("--prefix", required=True, help="Prefix of image set")
-    exp_parser.add_argument("--make-fits", action="store_true", help="Export FITS from CASA images")
-    exp_parser.add_argument("--make-png", action="store_true", help="Convert FITS to PNGs")
-    
+    exp_parser = sub.add_parser(
+        "export", help="Export CASA images to FITS and PNG")
+    exp_parser.add_argument("--source", required=True,
+                            help="Directory containing CASA images")
+    exp_parser.add_argument("--prefix", required=True,
+                            help="Prefix of image set")
+    exp_parser.add_argument(
+        "--make-fits", action="store_true", help="Export FITS from CASA images")
+    exp_parser.add_argument(
+        "--make-png", action="store_true", help="Convert FITS to PNGs")
+
     # create-nvss-mask subcommand
-    mask_parser = sub.add_parser("create-nvss-mask", help="Create CRTF mask around NVSS sources")
-    mask_parser.add_argument("--image", required=True, help="CASA-exported FITS image path")
-    mask_parser.add_argument("--min-mjy", type=float, default=1.0, help="Minimum NVSS flux (mJy)")
-    mask_parser.add_argument("--radius-arcsec", type=float, default=6.0, help="Mask circle radius (arcsec)")
-    mask_parser.add_argument("--out", help="Output CRTF path (defaults to <image>.nvss_mask.crtf)")
-    
+    mask_parser = sub.add_parser(
+        "create-nvss-mask", help="Create CRTF mask around NVSS sources")
+    mask_parser.add_argument("--image", required=True,
+                             help="CASA-exported FITS image path")
+    mask_parser.add_argument("--min-mjy", type=float,
+                             default=1.0, help="Minimum NVSS flux (mJy)")
+    mask_parser.add_argument(
+        "--radius-arcsec", type=float, default=6.0, help="Mask circle radius (arcsec)")
+    mask_parser.add_argument(
+        "--out", help="Output CRTF path (defaults to <image>.nvss_mask.crtf)")
+
     # create-nvss-overlay subcommand
-    overlay_parser = sub.add_parser("create-nvss-overlay", help="Overlay NVSS sources on FITS image")
-    overlay_parser.add_argument("--image", required=True, help="Input FITS image (CASA export)")
-    overlay_parser.add_argument("--pb", help="Primary beam FITS to mask detections (optional)")
-    overlay_parser.add_argument("--pblimit", type=float, default=0.2, help="PB cutoff when --pb is provided")
-    overlay_parser.add_argument("--min-mjy", type=float, default=10.0, help="Minimum NVSS flux (mJy) to plot")
+    overlay_parser = sub.add_parser(
+        "create-nvss-overlay", help="Overlay NVSS sources on FITS image")
+    overlay_parser.add_argument(
+        "--image", required=True, help="Input FITS image (CASA export)")
+    overlay_parser.add_argument(
+        "--pb", help="Primary beam FITS to mask detections (optional)")
+    overlay_parser.add_argument(
+        "--pblimit", type=float, default=0.2, help="PB cutoff when --pb is provided")
+    overlay_parser.add_argument(
+        "--min-mjy", type=float, default=10.0, help="Minimum NVSS flux (mJy) to plot")
     overlay_parser.add_argument("--out", required=True, help="Output PNG path")
-    
+
     args = parser.parse_args(argv)
 
     # Configure logging using shared utility
@@ -305,22 +334,27 @@ def main(argv: Optional[list] = None) -> None:
             backend=args.backend,
             wsclean_path=args.wsclean_path,
             export_model_image=args.export_model_image,
+            use_nvss_mask=not args.no_nvss_mask,
+            mask_radius_arcsec=args.mask_radius_arcsec,
         )
-    
+
     elif args.cmd == "export":
         from glob import glob
         from typing import List
         from dsa110_contimg.imaging.export import export_fits, save_png_from_fits, _find_casa_images
-        
+
         casa_images = _find_casa_images(args.source, args.prefix)
         if not casa_images:
-            print("No CASA image directories found for prefix", args.prefix, "under", args.source)
+            logger.warning(f"No CASA image directories found for prefix {args.prefix} under {args.source}")
+            print("No CASA image directories found for prefix",
+                  args.prefix, "under", args.source)
             return
-        
+
         fits_paths: List[str] = []
         if args.make_fits:
             fits_paths = export_fits(casa_images)
             if not fits_paths:
+                logger.warning("No FITS files exported (check casatasks and inputs)")
                 print("No FITS files exported (check casatasks and inputs)")
         if args.make_png:
             # If FITS were not just created, try to discover existing ones
@@ -328,21 +362,25 @@ def main(argv: Optional[list] = None) -> None:
                 patt = os.path.join(args.source, args.prefix + "*.fits")
                 fits_paths = sorted(glob(patt))
             if not fits_paths:
+                logger.warning(f"No FITS files found to convert for {args.prefix}")
                 print("No FITS files found to convert for", args.prefix)
             else:
                 save_png_from_fits(fits_paths)
-    
+
     elif args.cmd == "create-nvss-mask":
         from dsa110_contimg.imaging.nvss_tools import create_nvss_mask
-        
-        out_path = args.out or os.path.splitext(args.image)[0] + f".nvss_{args.min_mjy:g}mJy_{args.radius_arcsec:g}as_mask.crtf"
-        create_nvss_mask(args.image, args.min_mjy, args.radius_arcsec, out_path)
+
+        out_path = args.out or os.path.splitext(
+            args.image)[0] + f".nvss_{args.min_mjy:g}mJy_{args.radius_arcsec:g}as_mask.crtf"
+        create_nvss_mask(args.image, args.min_mjy,
+                         args.radius_arcsec, out_path)
         print(f"Wrote mask: {out_path}")
-    
+
     elif args.cmd == "create-nvss-overlay":
         from dsa110_contimg.imaging.nvss_tools import create_nvss_overlay
-        
-        create_nvss_overlay(args.image, args.out, args.pb, args.pblimit, args.min_mjy)
+
+        create_nvss_overlay(args.image, args.out, args.pb,
+                            args.pblimit, args.min_mjy)
         print(f"Wrote overlay: {args.out}")
 
 

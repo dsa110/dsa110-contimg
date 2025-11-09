@@ -50,12 +50,36 @@ def measure_forced_peak(
     - error estimated from sigma-clipped RMS in annulus [r_in, r_out] pixels
     """
     p = Path(fits_path)
+    if not p.exists():
+        return ForcedPhotometryResult(
+            ra_deg=ra_deg,
+            dec_deg=dec_deg,
+            peak_jyb=float("nan"),
+            peak_err_jyb=float("nan"),
+            pix_x=float("nan"),
+            pix_y=float("nan"),
+            box_size_pix=box_size_pix,
+        )
+    
     # Load data/header with helpers to avoid HDU typing confusion for linters
     hdr = fits.getheader(p)
     data = np.asarray(fits.getdata(p)).squeeze()
     # Use celestial 2D WCS even if the header encodes extra axes
     wcs = WCS(hdr).celestial
     x0, y0 = _world_to_pixel(wcs, ra_deg, dec_deg)
+    
+    # Check for invalid coordinates (NaN from WCS conversion failure)
+    if not (np.isfinite(x0) and np.isfinite(y0)):
+        return ForcedPhotometryResult(
+            ra_deg=ra_deg,
+            dec_deg=dec_deg,
+            peak_jyb=float("nan"),
+            peak_err_jyb=float("nan"),
+            pix_x=x0,
+            pix_y=y0,
+            box_size_pix=box_size_pix,
+        )
+    
     # Define integer box centered at nearest pixel
     cx, cy = int(round(x0)), int(round(y0))
     half = max(1, box_size_pix // 2)

@@ -1,6 +1,7 @@
 """Telescope utility helper functions for conversion."""
 import logging
 from typing import Optional
+from contextlib import contextmanager
 
 import numpy as np
 import astropy.units as u
@@ -39,6 +40,32 @@ def cleanup_casa_file_handles() -> None:
         pass
     except Exception as e:
         logger.debug(f"CASA cleanup failed (non-fatal): {e}")
+
+
+@contextmanager
+def casa_operation():
+    """Context manager for CASA operations with automatic cleanup.
+    
+    Ensures CASA file handles are cleaned up after operations complete,
+    even if exceptions occur. This prevents file locking issues in parallel
+    operations and tmpfs staging scenarios.
+    
+    Example:
+        with casa_operation():
+            # CASA operations here
+            ms.open("observation.ms")
+            # ... do work ...
+            ms.close()
+        # cleanup_casa_file_handles() is automatically called here
+    
+    Note:
+        This is a best-effort cleanup. Individual tool cleanup failures
+        are logged but don't raise exceptions.
+    """
+    try:
+        yield
+    finally:
+        cleanup_casa_file_handles()
 
 
 def set_telescope_identity(

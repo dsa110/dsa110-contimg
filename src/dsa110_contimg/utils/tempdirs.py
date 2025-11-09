@@ -3,14 +3,14 @@ Temporary directory helpers for CASA/casacore workflows.
 
 Goals:
 - Ensure casacore TempLattice* files and other scratch artifacts are written
-  under a fast scratch path (e.g., /scratch/dsa110-contimg), not the repo.
+  under a fast scratch path (e.g., /stage/dsa110-contimg), not the repo.
 - Optionally change the working directory to the intended output directory so
   libraries that default to CWD for temp files do not pollute the repo.
 - Configure CASA to write log files to a centralized location.
 
 Usage:
     from dsa110_contimg.utils.tempdirs import prepare_temp_environment
-    prepare_temp_environment(preferred_root='/scratch/dsa110-contimg', cwd_to=out_dir)
+    prepare_temp_environment(preferred_root='/stage/dsa110-contimg', cwd_to=out_dir)
 
 This sets common temp environment variables (TMPDIR, TMP, TEMP, CASA_TMPDIR)
 and creates the directories if needed. It also changes CWD to `cwd_to` when
@@ -29,14 +29,14 @@ def derive_default_scratch_root() -> Path:
 
     Order of precedence:
     - ENV CONTIMG_SCRATCH_DIR (if set)
-    - /scratch/dsa110-contimg
+    - /stage/dsa110-contimg
     - /tmp (last resort)
     """
     env = os.getenv("CONTIMG_SCRATCH_DIR")
     if env:
         return Path(env)
     # Prefer project scratch, fall back to /tmp if not writable
-    p = Path("/scratch/dsa110-contimg")
+    p = Path("/stage/dsa110-contimg")
     try:
         p.mkdir(parents=True, exist_ok=True)
         return p

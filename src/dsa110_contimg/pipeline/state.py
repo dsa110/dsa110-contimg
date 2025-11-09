@@ -139,6 +139,14 @@ class SQLiteStateRepository(StateRepository):
         self.products_db = products_db
         self._conn: Optional[sqlite3.Connection] = None
     
+    def __enter__(self) -> "SQLiteStateRepository":
+        """Enter context manager."""
+        return self
+    
+    def __exit__(self, exc_type, exc_val, exc_tb) -> None:
+        """Exit context manager, ensure connection is closed."""
+        self.close()
+    
     def _get_conn(self) -> sqlite3.Connection:
         """Get database connection, creating if necessary."""
         if self._conn is None:
