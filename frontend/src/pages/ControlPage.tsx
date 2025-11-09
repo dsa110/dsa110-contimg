@@ -24,6 +24,7 @@ import {
   Stack,
   FormControlLabel,
   Checkbox,
+  Switch,
   Accordion,
   AccordionSummary,
   AccordionDetails,
@@ -33,7 +34,6 @@ import {
   Alert,
   Tooltip,
   CircularProgress,
-  Snackbar,
 } from '@mui/material';
 import {
   PlayArrow,
@@ -59,7 +59,9 @@ import {
 import type { JobParams, ConversionJobParams, CalibrateJobParams, MSListEntry } from '../api/types';
 import MSTable from '../components/MSTable';
 import { CalibrationSPWPanel } from '../components/CalibrationSPWPanel';
+import CalibrationQAPanel from '../components/CalibrationQAPanel';
 import { computeSelectedMS } from '../utils/selectionLogic';
+import { useNotifications } from '../contexts/NotificationContext';
 
 export default function ControlPage() {
   const [selectedMS, setSelectedMS] = useState('');
@@ -68,9 +70,8 @@ export default function ControlPage() {
   const [selectedJobId, setSelectedJobId] = useState<number | null>(null);
   const [logContent, setLogContent] = useState('');
   
-  // Error state for user-facing error messages
-  const [errorMessage, setErrorMessage] = useState<string | null>(null);
-  const [errorSnackbarOpen, setErrorSnackbarOpen] = useState(false);
+  // Use notification context for error messages
+  const { showError, showSuccess } = useNotifications();
   
   // Compatibility check state
   const [compatibilityChecks, setCompatibilityChecks] = useState<Record<string, {
@@ -108,6 +109,8 @@ export default function ControlPage() {
     datacolumn: 'corrected',
     quick: false,
     skip_fits: true,
+    use_nvss_mask: true,
+    mask_radius_arcsec: 60.0,
   });
   
   const [convertParams, setConvertParams] = useState<ConversionJobParams>({
@@ -121,7 +124,10 @@ export default function ControlPage() {
   });
 
   // Queries and mutations
-  const { data: msList, refetch: refetchMS } = useMSList();
+  const { data: msList, refetch: refetchMS } = useMSList({ 
+    scan: true, 
+    scan_dir: '/scratch/dsa110-contimg/ms' 
+  });
   const { data: jobsList, refetch: refetchJobs } = useJobs();
   const calibrateMutation = useCreateCalibrateJob();
   const applyMutation = useCreateApplyJob();
@@ -152,57 +158,33 @@ export default function ControlPage() {
   const eventSourceRef = useRef<EventSource | null>(null);
   
   // Helper function to extract error message from API error
-  const getErrorMessage = (error: any): string => {
-    if (error?.response?.data?.detail) {
-      return typeof error.response.data.detail === 'string' 
-        ? error.response.data.detail 
-        : JSON.stringify(error.response.data.detail);
-    }
-    if (error?.response?.data?.message) {
-      return error.response.data.message;
-    }
-    if (error?.message) {
-      return error.message;
+  const getErrorMessage = (error: unknown): string => {
+    if (error && typeof error === 'object') {
+      // Handle axios errors
+      if ('response' in error) {
+        const apiError = error as { response?: { data?: { detail?: unknown; message?: string } } };
+        if (apiError.response?.data?.detail) {
+          return typeof apiError.response.data.detail === 'string' 
+            ? apiError.response.data.detail 
+            : JSON.stringify(apiError.response.data.detail);
+        }
+        if (apiError.response?.data?.message) {
+          return apiError.response.data.message;
+        }
+      }
+      // Handle standard Error objects
+      if ('message' in error && typeof error.message === 'string') {
+        return error.message;
+      }
     }
     return 'An unknown error occurred';
   };
   
-  // Store handlers in refs to avoid recreating the keyboard shortcuts effect
-  const handleCalibrateSubmitRef = useRef<(() => void) | undefined>(undefined);
-  const handleApplySubmitRef = useRef<(() => void) | undefined>(undefined);
-  const handleImageSubmitRef = useRef<(() => void) | undefined>(undefined);
-  const handleConvertSubmitRef = useRef<(() => void) | undefined>(undefined);
-  
-  // Refs for frequently changing values to avoid excessive useEffect re-runs
-  const convertParamsRef = useRef<ConversionJobParams>(convertParams);
-  const calibParamsRef = useRef<CalibrateJobParams>(calibParams);
-  const applyParamsRef = useRef<JobParams>(applyParams);
-  const selectedMSRef = useRef<string>(selectedMS);
-  const selectedMSListRef = useRef<string[]>(selectedMSList);
-  const convertMutationRef = useRef(convertMutation);
-  const calibrateMutationRef = useRef(calibrateMutation);
-  const applyMutationRef = useRef(applyMutation);
-  const imageMutationRef = useRef(imageMutation);
-  const refetchMSRef = useRef(refetchMS);
-  const refetchJobsRef = useRef(refetchJobs);
-  
-  // Update refs whenever values change (runs on every render to keep refs current)
-  convertParamsRef.current = convertParams;
-  calibParamsRef.current = calibParams;
-  applyParamsRef.current = applyParams;
-  selectedMSRef.current = selectedMS;
-  selectedMSListRef.current = selectedMSList;
-  convertMutationRef.current = convertMutation;
-  calibrateMutationRef.current = calibrateMutation;
-  applyMutationRef.current = applyMutation;
-  imageMutationRef.current = imageMutation;
-  refetchMSRef.current = refetchMS;
-  refetchJobsRef.current = refetchJobs;
+  // Note: Handlers are already memoized with useCallback, so they can be used directly in effects
 
   // Handlers with error handling - wrapped in useCallback to prevent unnecessary re-renders
   const handleCalibrateSubmit = useCallback(() => {
     if (!selectedMS) return;
-    setErrorMessage(null);
     calibrateMutation.mutate(
       { ms_path: selectedMS, params: calibParams },
       {
@@ -210,19 +192,18 @@ export default function ControlPage() {
           setSelectedJobId(job.id);
           setLogContent('');
           refetchJobs();
+          showSuccess(`Calibration job #${job.id} started successfully`);
         },
-        onError: (error: any) => {
+        onError: (error: unknown) => {
           const message = `Calibration failed: ${getErrorMessage(error)}`;
-          setErrorMessage(message);
-          setErrorSnackbarOpen(true);
+          showError(message);
         },
       }
     );
-  }, [selectedMS, calibParams, calibrateMutation, refetchJobs]);
+  }, [selectedMS, calibParams, calibrateMutation, refetchJobs, showError, showSuccess]);
   
   const handleApplySubmit = useCallback(() => {
     if (!selectedMS) return;
-    setErrorMessage(null);
     applyMutation.mutate(
       { ms_path: selectedMS, params: applyParams },
       {
@@ -230,19 +211,18 @@ export default function ControlPage() {
           setSelectedJobId(job.id);
           setLogContent('');
           refetchJobs();
+          showSuccess(`Apply calibration job #${job.id} started successfully`);
         },
-        onError: (error: any) => {
+        onError: (error: unknown) => {
           const message = `Apply calibration failed: ${getErrorMessage(error)}`;
-          setErrorMessage(message);
-          setErrorSnackbarOpen(true);
+          showError(message);
         },
       }
     );
-  }, [selectedMS, applyParams, applyMutation, refetchJobs]);
+  }, [selectedMS, applyParams, applyMutation, refetchJobs, showError, showSuccess]);
   
   const handleImageSubmit = useCallback(() => {
     if (!selectedMS) return;
-    setErrorMessage(null);
     imageMutation.mutate(
       { ms_path: selectedMS, params: imageParams },
       {
@@ -250,18 +230,17 @@ export default function ControlPage() {
           setSelectedJobId(job.id);
           setLogContent('');
           refetchJobs();
+          showSuccess(`Imaging job #${job.id} started successfully`);
         },
-        onError: (error: any) => {
+        onError: (error: unknown) => {
           const message = `Imaging failed: ${getErrorMessage(error)}`;
-          setErrorMessage(message);
-          setErrorSnackbarOpen(true);
+          showError(message);
         },
       }
     );
-  }, [selectedMS, imageParams, imageMutation, refetchJobs]);
+  }, [selectedMS, imageParams, imageMutation, refetchJobs, showError, showSuccess]);
   
   const handleConvertSubmit = useCallback(() => {
-    setErrorMessage(null);
     convertMutation.mutate(
       { params: convertParams },
       {
@@ -269,25 +248,18 @@ export default function ControlPage() {
           setSelectedJobId(job.id);
           setLogContent('');
           refetchJobs();
+          showSuccess(`Conversion job #${job.id} started successfully`);
         },
-        onError: (error: any) => {
+        onError: (error: unknown) => {
           const message = `Conversion failed: ${getErrorMessage(error)}`;
-          setErrorMessage(message);
-          setErrorSnackbarOpen(true);
+          showError(message);
         },
       }
     );
-  }, [convertParams, convertMutation, refetchJobs]);
-
-  // Update refs whenever handlers change
-  handleCalibrateSubmitRef.current = handleCalibrateSubmit;
-  handleApplySubmitRef.current = handleApplySubmit;
-  handleImageSubmitRef.current = handleImageSubmit;
-  handleConvertSubmitRef.current = handleConvertSubmit;
+  }, [convertParams, convertMutation, refetchJobs, showError, showSuccess]);
   
   const handleWorkflowSubmit = () => {
     if (!workflowParams.start_time || !workflowParams.end_time) return;
-    setErrorMessage(null);
     workflowMutation.mutate(
       { params: workflowParams },
       {
@@ -295,11 +267,11 @@ export default function ControlPage() {
           setSelectedJobId(job.id);
           setLogContent('');
           refetchJobs();
+          showSuccess(`Workflow job #${job.id} started successfully`);
         },
-        onError: (error: any) => {
+        onError: (error: unknown) => {
           const message = `Workflow failed: ${getErrorMessage(error)}`;
-          setErrorMessage(message);
-          setErrorSnackbarOpen(true);
+          showError(message);
         },
       }
     );
@@ -347,29 +319,19 @@ export default function ControlPage() {
       // Ctrl/Cmd + Enter to run current tab's action
       if ((e.ctrlKey || e.metaKey) && e.key === 'Enter') {
         e.preventDefault();
-        // Use refs to access current values without causing effect re-runs
-        const currentConvertParams = convertParamsRef.current;
-        const currentCalibParams = calibParamsRef.current;
-        const currentApplyParams = applyParamsRef.current;
-        const currentSelectedMS = selectedMSRef.current;
-        const currentSelectedMSList = selectedMSListRef.current;
-        const currentConvertMutation = convertMutationRef.current;
-        const currentCalibrateMutation = calibrateMutationRef.current;
-        const currentApplyMutation = applyMutationRef.current;
-        const currentImageMutation = imageMutationRef.current;
         
         if (activeTab === 0) {
-          if (!currentConvertParams.start_time || !currentConvertParams.end_time || currentConvertMutation.isPending) return;
-          handleConvertSubmitRef.current?.();
+          if (!convertParams.start_time || !convertParams.end_time || convertMutation.isPending) return;
+          handleConvertSubmit();
         } else if (activeTab === 1) {
-          if (!currentSelectedMS || currentSelectedMSList.length !== 1 || currentCalibrateMutation.isPending || (!currentCalibParams.solve_delay && !currentCalibParams.solve_bandpass && !currentCalibParams.solve_gains)) return;
-          handleCalibrateSubmitRef.current?.();
+          if (!selectedMS || selectedMSList.length !== 1 || calibrateMutation.isPending || (!calibParams.solve_delay && !calibParams.solve_bandpass && !calibParams.solve_gains)) return;
+          handleCalibrateSubmit();
         } else if (activeTab === 2) {
-          if (!currentSelectedMS || !currentApplyParams.gaintables?.length || currentApplyMutation.isPending) return;
-          handleApplySubmitRef.current?.();
+          if (!selectedMS || !applyParams.gaintables?.length || applyMutation.isPending) return;
+          handleApplySubmit();
         } else if (activeTab === 3) {
-          if (!currentSelectedMS || currentImageMutation.isPending) return;
-          handleImageSubmitRef.current?.();
+          if (!selectedMS || imageMutation.isPending) return;
+          handleImageSubmit();
         }
       }
       // Ctrl/Cmd + R to refresh (but prevent page reload)
@@ -380,14 +342,31 @@ export default function ControlPage() {
           return; // Allow normal refresh
         }
         e.preventDefault();
-        refetchMSRef.current();
-        refetchJobsRef.current();
+        refetchMS();
+        refetchJobs();
       }
     };
     
     window.addEventListener('keydown', handleKeyPress);
     return () => window.removeEventListener('keydown', handleKeyPress);
-  }, [activeTab]); // Only activeTab in dependencies - all other values accessed via refs
+  }, [
+    activeTab,
+    convertParams,
+    calibParams,
+    applyParams,
+    selectedMS,
+    selectedMSList,
+    convertMutation,
+    calibrateMutation,
+    applyMutation,
+    imageMutation,
+    handleConvertSubmit,
+    handleCalibrateSubmit,
+    handleApplySubmit,
+    handleImageSubmit,
+    refetchMS,
+    refetchJobs,
+  ]);
   
   return (
     <Box sx={{ p: 3 }}>
@@ -1503,14 +1482,21 @@ export default function ControlPage() {
             
             {/* Per-SPW Flagging Analysis Section */}
             {activeTab === 1 && selectedMS && (
-              <Box sx={{ mt: 4 }}>
-                <Divider sx={{ mb: 2 }} />
-                <CalibrationSPWPanel
-                  spwStats={calibrationQA?.per_spw_stats}
-                  msPath={selectedMS}
-                  loading={calibrationQALoading}
-                />
-              </Box>
+              <>
+                <Box sx={{ mt: 4 }}>
+                  <Divider sx={{ mb: 2 }} />
+                  <CalibrationSPWPanel
+                    spwStats={calibrationQA?.per_spw_stats}
+                    msPath={selectedMS}
+                    loading={calibrationQALoading}
+                  />
+                </Box>
+
+                {/* Calibration QA Panel */}
+                <Box sx={{ mt: 3 }}>
+                  <CalibrationQAPanel msPath={selectedMS || null} />
+                </Box>
+              </>
             )}
             
             {/* Apply Tab */}
@@ -1733,6 +1719,52 @@ export default function ControlPage() {
                   sx={{ mb: 2 }}
                 />
                 
+                <FormControlLabel
+                  control={
+                    <Switch
+                      checked={imageParams.use_nvss_mask ?? true}
+                      onChange={(e) => setImageParams({ 
+                        ...imageParams, 
+                        use_nvss_mask: e.target.checked 
+                      })}
+                      color="primary"
+                    />
+                  }
+                  label={
+                    <Box>
+                      <Typography variant="body2">
+                        Use NVSS Masking
+                      </Typography>
+                      <Typography variant="caption" color="text.secondary" display="block">
+                        Enable masked imaging (2-4x faster, recommended)
+                      </Typography>
+                    </Box>
+                  }
+                  sx={{ mb: 2 }}
+                />
+                
+                {imageParams.use_nvss_mask && (
+                  <TextField
+                    fullWidth
+                    label="Mask Radius (arcsec)"
+                    type="number"
+                    value={imageParams.mask_radius_arcsec ?? 60.0}
+                    onChange={(e) => {
+                      const val = parseFloat(e.target.value);
+                      if (!isNaN(val) && val >= 10 && val <= 300) {
+                        setImageParams({ 
+                          ...imageParams, 
+                          mask_radius_arcsec: val 
+                        });
+                      }
+                    }}
+                    sx={{ mb: 2 }}
+                    size="small"
+                    helperText="Radius around NVSS sources (default: 60 arcsec, ~2-3× beam)"
+                    inputProps={{ min: 10, max: 300, step: 5 }}
+                  />
+                )}
+                
                 <Tooltip
                   title={
                     !selectedMS
@@ -1817,19 +1849,6 @@ export default function ControlPage() {
           </Paper>
           
           {/* Error Alert */}
-          {errorMessage && (
-            <Alert 
-              severity="error" 
-              onClose={() => {
-                setErrorMessage(null);
-                setErrorSnackbarOpen(false);
-              }}
-              sx={{ mb: 2 }}
-            >
-              {errorMessage}
-            </Alert>
-          )}
-          
           <Paper sx={{ p: 2 }}>
             <Typography variant="h6" gutterBottom>
               Job Logs
@@ -1854,22 +1873,6 @@ export default function ControlPage() {
           </Paper>
         </Box>
       </Box>
-      
-      {/* Error Snackbar */}
-      <Snackbar
-        open={errorSnackbarOpen}
-        autoHideDuration={6000}
-        onClose={() => setErrorSnackbarOpen(false)}
-        anchorOrigin={{ vertical: 'bottom', horizontal: 'right' }}
-      >
-        <Alert 
-          onClose={() => setErrorSnackbarOpen(false)} 
-          severity="error" 
-          sx={{ width: '100%' }}
-        >
-          {errorMessage}
-        </Alert>
-      </Snackbar>
     </Box>
   );
 }

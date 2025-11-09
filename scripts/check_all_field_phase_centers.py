@@ -6,7 +6,7 @@ Usage:
     python check_all_field_phase_centers.py <ms_path> <cal_ra_deg> <cal_dec_deg>
     
 Example:
-    python check_all_field_phase_centers.py /scratch/dsa110-contimg/ms/2025-10-29T13:54:17.ms 128.7287 55.5725
+    python check_all_field_phase_centers.py /stage/dsa110-contimg/ms/2025-10-29T13:54:17.ms 128.7287 55.5725
 """
 
 import sys

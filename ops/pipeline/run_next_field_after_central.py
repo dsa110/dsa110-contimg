@@ -109,7 +109,7 @@ def _ensure_flag_and_weight_spectrum(ms_path: str) -> None:
 
 def main() -> int:
     curated_manifests = sorted(
-        glob.glob('/scratch/dsa110-contimg/curated/0702_445/*/manifest.json'))
+        glob.glob('/stage/dsa110-contimg/curated/0702_445/*/manifest.json'))
     if not curated_manifests:
         print('No curated manifests found for 0702_445')
         return 1
@@ -154,7 +154,7 @@ def main() -> int:
         print('Next group has no files')
         return 1
 
-    out_dir = Path('/scratch/dsa110-contimg/ms/central_cal_rebuild')
+    out_dir = Path('/stage/dsa110-contimg/ms/central_cal_rebuild')
     out_dir.mkdir(parents=True, exist_ok=True)
     ms_out = out_dir / f'{gid}.ms'
     if not ms_out.exists():
@@ -184,13 +184,13 @@ def main() -> int:
 
     # Locate calibration tables from central_cal_rebuild
     bp_opts = sorted(
-        glob.glob('/scratch/dsa110-contimg/ms/central_cal_rebuild/*bpcal'))
+        glob.glob('/stage/dsa110-contimg/ms/central_cal_rebuild/*bpcal'))
     gp_opts = sorted(
-        glob.glob('/scratch/dsa110-contimg/ms/central_cal_rebuild/*gpcal'))
+        glob.glob('/stage/dsa110-contimg/ms/central_cal_rebuild/*gpcal'))
     if not bp_opts or not gp_opts:
         print(
             'Calibration tables not found under '
-            '/scratch/dsa110-contimg/ms/central_cal_rebuild'
+            '/stage/dsa110-contimg/ms/central_cal_rebuild'
         )
         return 1
     # Prefer shift_all_* if present; otherwise most recent by mtime

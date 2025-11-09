@@ -11,7 +11,7 @@ Usage:
     python check_ms_rephase_status.py <ms_path> [cal_ra_deg] [cal_dec_deg]
     
 Example:
-    python check_ms_rephase_status.py /scratch/dsa110-contimg/ms/2025-10-29T13:54:17.ms 128.7287 55.5725
+    python check_ms_rephase_status.py /stage/dsa110-contimg/ms/2025-10-29T13:54:17.ms 128.7287 55.5725
 """
 
 import sys

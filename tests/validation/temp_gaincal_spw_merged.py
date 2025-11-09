@@ -4,7 +4,7 @@ import sys
 import os
 from casatasks import gaincal
 
-ms_path = '/scratch/dsa110-contimg/ms/0834_20251029/2025-10-29T13:54:17.phased_concat_spws.ms'
+ms_path = '/stage/dsa110-contimg/ms/0834_20251029/2025-10-29T13:54:17.phased_concat_spws.ms'
 
 # Use a common refant
 refant = '59'

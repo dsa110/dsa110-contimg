@@ -1,33 +1,83 @@
+import { useState } from 'react';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
+import { ReactQueryDevtools } from '@tanstack/react-query-devtools';
 import { ThemeProvider, CssBaseline, Box } from '@mui/material';
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import { darkTheme } from './theme/darkTheme';
+import { NotificationProvider } from './contexts/NotificationContext';
 import Navigation from './components/Navigation';
 import ErrorBoundary from './components/ErrorBoundary';
 import DashboardPage from './pages/DashboardPage';
 import ControlPage from './pages/ControlPage';
 import MosaicGalleryPage from './pages/MosaicGalleryPage';
+import MosaicViewPage from './pages/MosaicViewPage';
 import SourceMonitoringPage from './pages/SourceMonitoringPage';
 import SkyViewPage from './pages/SkyViewPage';
 import StreamingPage from './pages/StreamingPage';
+import DataBrowserPage from './pages/DataBrowserPage';
+import DataDetailPage from './pages/DataDetailPage';
+import { isRetryableError } from './utils/errorUtils';
 
-// Create React Query client
-const queryClient = new QueryClient({
-  defaultOptions: {
-    queries: {
-      retry: 1,
-      refetchOnWindowFocus: false,
+// Create React Query client factory function
+function makeQueryClient() {
+  return new QueryClient({
+    defaultOptions: {
+      queries: {
+        retry: (failureCount, error) => {
+          // Retry up to 3 times, but only for retryable errors
+          if (failureCount >= 3) {
+            return false;
+          }
+          return isRetryableError(error);
+        },
+        retryDelay: (attemptIndex) => {
+          // Exponential backoff: 1s, 2s, 4s
+          return Math.min(1000 * Math.pow(2, attemptIndex), 10000);
+        },
+        refetchOnWindowFocus: false,
+        staleTime: 30000, // 30 seconds default stale time
+      },
+      mutations: {
+        retry: (failureCount, error) => {
+          // Mutations: retry once for retryable errors
+          if (failureCount >= 1) {
+            return false;
+          }
+          return isRetryableError(error);
+        },
+        retryDelay: 1000,
+      },
     },
-  },
-});
+  });
+}
 
-function App() {
+let browserQueryClient: QueryClient | undefined = undefined;
+
+function getQueryClient() {
+  if (typeof window === 'undefined') {
+    // Server: always make a new query client
+    return makeQueryClient();
+  }
+  // Browser: make a new query client if we don't already have one
+  if (!browserQueryClient) browserQueryClient = makeQueryClient();
+  return browserQueryClient;
+}
+
+function AppContent() {
+  // Use useState with lazy initialization to ensure QueryClient is only created once
+  const [queryClient] = useState(() => getQueryClient());
+  
+  // Set basename for production builds served from /ui/
+  const basename = import.meta.env.PROD ? '/ui' : undefined;
+
   return (
     <ErrorBoundary>
       <QueryClientProvider client={queryClient}>
+        {import.meta.env.DEV && <ReactQueryDevtools initialIsOpen={false} />}
         <ThemeProvider theme={darkTheme}>
           <CssBaseline />
-          <BrowserRouter>
+          <NotificationProvider>
+            <BrowserRouter basename={basename}>
             <Box sx={{ display: 'flex', flexDirection: 'column', minHeight: '100vh' }}>
               <Navigation />
               <Box component="main" sx={{ flexGrow: 1 }}>
@@ -37,18 +87,26 @@ function App() {
                     <Route path="/dashboard" element={<DashboardPage />} />
                     <Route path="/control" element={<ControlPage />} />
                     <Route path="/mosaics" element={<MosaicGalleryPage />} />
+                    <Route path="/mosaics/:mosaicId" element={<MosaicViewPage />} />
                     <Route path="/sources" element={<SourceMonitoringPage />} />
                     <Route path="/sky" element={<SkyViewPage />} />
                     <Route path="/streaming" element={<StreamingPage />} />
+                    <Route path="/data" element={<DataBrowserPage />} />
+                    <Route path="/data/:type/:id" element={<DataDetailPage />} />
                   </Routes>
                 </ErrorBoundary>
               </Box>
             </Box>
           </BrowserRouter>
+          </NotificationProvider>
         </ThemeProvider>
       </QueryClientProvider>
     </ErrorBoundary>
   );
+}
+
+function App() {
+  return <AppContent />;
 }
 
 export default App;

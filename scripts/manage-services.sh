@@ -7,6 +7,7 @@ set -e
 API_PORT="${CONTIMG_API_PORT:-8000}"
 DASHBOARD_PORT="${CONTIMG_DASHBOARD_PORT:-3210}"
 DOCS_PORT="${CONTIMG_DOCS_PORT:-8001}"
+UVICORN_RELOAD="${UVICORN_RELOAD:-1}"  # Enable auto-reload by default for development
 PROJECT_DIR="/data/dsa110-contimg"
 LOG_DIR="/var/log/dsa110"
 PID_DIR="/var/run/dsa110"
@@ -137,16 +138,20 @@ start_api() {
     
     cd "$PROJECT_DIR"
     
+    # Build uvicorn command with optional reload flag
+    UVICORN_CMD="uvicorn dsa110_contimg.api.routes:create_app --factory --host 0.0.0.0 --port $API_PORT"
+    if [ "$UVICORN_RELOAD" = "1" ]; then
+        UVICORN_CMD="$UVICORN_CMD --reload"
+        echo -e "${YELLOW}Auto-reload enabled (set UVICORN_RELOAD=0 to disable)${NC}"
+    fi
+    
     # Start in background (avoid nested conda run if already in casa6)
     if [ "${CONDA_DEFAULT_ENV:-}" = "casa6" ] || [[ "${CONDA_PREFIX:-}" == *"/envs/casa6"* ]]; then
         nohup env PYTHONPATH="$PROJECT_DIR/src" \
             PIPELINE_PRODUCTS_DB="$PROJECT_DIR/state/products.sqlite3" \
             PIPELINE_QUEUE_DB="$PROJECT_DIR/state/ingest.sqlite3" \
             PIPELINE_STATE_DIR="$PROJECT_DIR/state" \
-        uvicorn dsa110_contimg.api.routes:create_app \
-            --factory \
-            --host 0.0.0.0 \
-            --port $API_PORT \
+        $UVICORN_CMD \
         > "$LOG_DIR/api.log" 2>&1 &
     else
         nohup conda run -n casa6 \
@@ -154,10 +159,7 @@ start_api() {
                 PIPELINE_PRODUCTS_DB="$PROJECT_DIR/state/products.sqlite3" \
                 PIPELINE_QUEUE_DB="$PROJECT_DIR/state/ingest.sqlite3" \
                 PIPELINE_STATE_DIR="$PROJECT_DIR/state" \
-            uvicorn dsa110_contimg.api.routes:create_app \
-                --factory \
-                --host 0.0.0.0 \
-                --port $API_PORT \
+            $UVICORN_CMD \
             > "$LOG_DIR/api.log" 2>&1 &
     fi
     

@@ -3,7 +3,9 @@
  */
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import type { UseQueryResult } from '@tanstack/react-query';
+import { useEffect, useRef } from 'react';
 import { apiClient } from './client';
+import { createWebSocketClient, WebSocketClient } from './websocket';
 import type {
   PipelineStatus,
   SystemMetrics,
@@ -28,6 +30,8 @@ import type {
   WorkflowJobCreateRequest,
   CalibrationQA,
   ImageQA,
+  CatalogValidationResults,
+  CatalogOverlayData,
   QAMetrics,
   BandpassPlotsList,
   BatchJob,
@@ -35,39 +39,130 @@ import type {
   BatchJobCreateRequest,
   ImageList,
   ImageFilters,
+  DataInstance,
+  DataInstanceDetail,
+  AutoPublishStatus,
+  DataLineage,
+  PointingHistoryList,
+  Mosaic,
 } from './types';
 
-export function usePipelineStatus(): UseQueryResult<PipelineStatus> {
+/**
+ * Hook to use WebSocket for real-time updates with polling fallback
+ */
+function useRealtimeQuery<T>(
+  queryKey: string[],
+  queryFn: () => Promise<T>,
+  wsClient: WebSocketClient | null,
+  pollInterval: number = 10000
+): UseQueryResult<T> {
+  const queryClient = useQueryClient();
+  const wsSubscribed = useRef(false);
+
+  // Set up WebSocket subscription
+  useEffect(() => {
+    if (!wsClient || !wsClient.connected || wsSubscribed.current) {
+      return;
+    }
+
+    wsSubscribed.current = true;
+    const unsubscribe = wsClient.on('status_update', (data: any) => {
+      if (data.data?.pipeline_status) {
+        queryClient.setQueryData(['pipeline', 'status'], data.data.pipeline_status);
+      }
+      if (data.data?.metrics) {
+        queryClient.setQueryData(['system', 'metrics'], data.data.metrics);
+      }
+      if (data.data?.ese_candidates) {
+        queryClient.setQueryData(['ese', 'candidates'], data.data.ese_candidates);
+      }
+    });
+
+    return () => {
+      unsubscribe();
+      wsSubscribed.current = false;
+    };
+  }, [wsClient, queryClient]);
+
+  // Use polling as fallback or if WebSocket unavailable
+  const shouldPoll = !wsClient || !wsClient.connected;
+  
   return useQuery({
-    queryKey: ['pipeline', 'status'],
-    queryFn: async () => {
+    queryKey,
+    queryFn,
+    refetchInterval: shouldPoll ? pollInterval : false,
+  });
+}
+
+// Create WebSocket client instance (singleton)
+let wsClientInstance: WebSocketClient | null = null;
+
+function getWebSocketClient(): WebSocketClient | null {
+  if (typeof window === 'undefined') {
+    return null;
+  }
+
+  if (!wsClientInstance) {
+    const apiUrl = import.meta.env.VITE_API_URL || 'http://localhost:8000';
+    const wsUrl = `${apiUrl}/api/ws/status`;
+    
+    try {
+      wsClientInstance = createWebSocketClient({
+        url: wsUrl,
+        reconnectInterval: 3000,
+        maxReconnectAttempts: 10,
+        useSSE: false, // Try WebSocket first, fallback handled in client
+      });
+      wsClientInstance.connect();
+    } catch (error) {
+      console.warn('Failed to create WebSocket client, using polling:', error);
+      return null;
+    }
+  }
+
+  return wsClientInstance;
+}
+
+export function usePipelineStatus(): UseQueryResult<PipelineStatus> {
+  const wsClient = getWebSocketClient();
+  
+  return useRealtimeQuery(
+    ['pipeline', 'status'],
+    async () => {
       const response = await apiClient.get<PipelineStatus>('/api/status');
       return response.data;
     },
-    refetchInterval: 10000, // Poll every 10 seconds
-  });
+    wsClient,
+    10000 // Fallback polling interval
+  );
 }
 
 export function useSystemMetrics(): UseQueryResult<SystemMetrics> {
-  return useQuery({
-    queryKey: ['system', 'metrics'],
-    queryFn: async () => {
+  const wsClient = getWebSocketClient();
+  
+  return useRealtimeQuery(
+    ['system', 'metrics'],
+    async () => {
       const response = await apiClient.get<SystemMetrics>('/api/metrics/system');
       return response.data;
     },
-    refetchInterval: 10000,
-  });
+    wsClient,
+    10000
+  );
 }
 
 export function useESECandidates(): UseQueryResult<ESECandidatesResponse> {
-  return useQuery({
-    queryKey: ['ese', 'candidates'],
-    queryFn: async () => {
+  const wsClient = getWebSocketClient();
+  
+  return useRealtimeQuery(
+    ['ese', 'candidates'],
+    async () => {
       const response = await apiClient.get<ESECandidatesResponse>('/api/ese/candidates');
       return response.data;
     },
-    refetchInterval: 10000, // Live updates
-  });
+    wsClient,
+    10000
+  );
 }
 
 export function useMosaicQuery(
@@ -83,6 +178,18 @@ export function useMosaicQuery(
       return response.data;
     },
     enabled: !!request,
+  });
+}
+
+export function useMosaic(mosaicId: number | null): UseQueryResult<Mosaic> {
+  return useQuery({
+    queryKey: ['mosaics', mosaicId],
+    queryFn: async () => {
+      if (!mosaicId) throw new Error('Mosaic ID required');
+      const response = await apiClient.get<Mosaic>(`/api/mosaics/${mosaicId}`);
+      return response.data;
+    },
+    enabled: !!mosaicId,
   });
 }
 
@@ -177,7 +284,7 @@ export function useDiscoverMS() {
   const queryClient = useQueryClient();
   return useMutation({
     mutationFn: async (params?: { scan_dir?: string; recursive?: boolean }) => {
-      const body: any = {};
+      const body: Record<string, unknown> = {};
       if (params?.scan_dir) body.scan_dir = params.scan_dir;
       if (params?.recursive !== undefined) body.recursive = params.recursive;
       const response = await apiClient.post<{ success: boolean; count: number; scan_dir: string; discovered: string[] }>('/api/ms/discover', body);
@@ -373,8 +480,8 @@ export function useValidateCalTable() {
  * @example
  * const { data: calQA } = useCalibrationQA('/path/to/ms');
  * if (calQA) {
- *   console.log('Overall quality:', calQA.overall_quality);
- *   console.log('Flag fraction:', calQA.flags_total);
+ *   logger.info('Overall quality:', calQA.overall_quality);
+ *   logger.info('Flag fraction:', calQA.flags_total);
  * }
  */
 export function useCalibrationQA(msPath: string | null): UseQueryResult<CalibrationQA> {
@@ -406,8 +513,9 @@ export function useBandpassPlots(msPath: string | null): UseQueryResult<Bandpass
     queryKey: ['qa', 'bandpass-plots', msPath],
     queryFn: async () => {
       if (!msPath) throw new Error('MS path required');
-      // Remove leading slash and encode
-      const encodedPath = msPath.startsWith('/') ? msPath.slice(1) : msPath;
+      // Remove leading slash and URL-encode the path (handles colons and other special chars)
+      const pathWithoutLeadingSlash = msPath.startsWith('/') ? msPath.slice(1) : msPath;
+      const encodedPath = encodeURIComponent(pathWithoutLeadingSlash);
       const response = await apiClient.get<BandpassPlotsList>(
         `/api/qa/calibration/${encodedPath}/bandpass-plots`
       );
@@ -428,8 +536,8 @@ export function useBandpassPlots(msPath: string | null): UseQueryResult<Bandpass
  * @example
  * const { data: imgQA } = useImageQA('/path/to/ms');
  * if (imgQA) {
- *   console.log('RMS noise:', imgQA.rms_noise, 'Jy/beam');
- *   console.log('Dynamic range:', imgQA.dynamic_range);
+ *   logger.info('RMS noise:', imgQA.rms_noise, 'Jy/beam');
+ *   logger.info('Dynamic range:', imgQA.dynamic_range);
  * }
  */
 export function useImageQA(msPath: string | null): UseQueryResult<ImageQA> {
@@ -459,10 +567,10 @@ export function useImageQA(msPath: string | null): UseQueryResult<ImageQA> {
  * @example
  * const { data: qa } = useQAMetrics('/path/to/ms');
  * if (qa?.calibration_qa) {
- *   console.log('Cal quality:', qa.calibration_qa.overall_quality);
+ *   logger.info('Cal quality:', qa.calibration_qa.overall_quality);
  * }
  * if (qa?.image_qa) {
- *   console.log('Image quality:', qa.image_qa.overall_quality);
+ *   logger.info('Image quality:', qa.image_qa.overall_quality);
  * }
  */
 export function useQAMetrics(msPath: string | null): UseQueryResult<QAMetrics> {
@@ -658,7 +766,7 @@ export interface StreamingStatus {
   cpu_percent?: number;
   memory_mb?: number;
   last_heartbeat?: string;
-  config?: Record<string, any>;
+  config?: Record<string, unknown>;
   error?: string;
 }
 
@@ -743,6 +851,62 @@ export function useStreamingMetrics(): UseQueryResult<StreamingMetrics> {
   });
 }
 
+export interface PointingMonitorMetrics {
+  files_processed: number;
+  files_succeeded: number;
+  files_failed: number;
+  success_rate_percent: number;
+  uptime_seconds: number;
+  last_processed_time?: number;
+  last_success_time?: number;
+  last_error_time?: number;
+  last_error_message?: string;
+  recent_error_count: number;
+}
+
+export interface PointingMonitorStatus {
+  running: boolean;
+  healthy: boolean;
+  stale?: boolean;
+  issues: string[];
+  watch_dir: string;
+  products_db: string;
+  metrics: PointingMonitorMetrics;
+  timestamp: number;
+  timestamp_iso: string;
+  status_file_age_seconds?: number;
+  error?: string;
+  status_file?: string;
+}
+
+export function usePointingMonitorStatus(): UseQueryResult<PointingMonitorStatus> {
+  return useQuery({
+    queryKey: ['pointing-monitor', 'status'],
+    queryFn: async () => {
+      const response = await apiClient.get<PointingMonitorStatus>('/api/pointing-monitor/status');
+      return response.data;
+    },
+    refetchInterval: 30000, // Refresh every 30 seconds
+  });
+}
+
+export function usePointingHistory(
+  startMjd: number,
+  endMjd: number
+): UseQueryResult<PointingHistoryList> {
+  return useQuery({
+    queryKey: ['pointing-history', startMjd, endMjd],
+    queryFn: async () => {
+      const response = await apiClient.get<PointingHistoryList>(
+        `/api/pointing_history?start_mjd=${startMjd}&end_mjd=${endMjd}`
+      );
+      return response.data;
+    },
+    refetchInterval: 60000, // Refresh every minute
+    staleTime: 30000, // Consider stale after 30 seconds
+  });
+}
+
 export function useStartStreaming() {
   const queryClient = useQueryClient();
   return useMutation({
@@ -791,6 +955,414 @@ export function useUpdateStreamingConfig() {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['streaming'] });
+    },
+  });
+}
+
+// Data Registry Queries
+export function useDataInstances(
+  dataType?: string,
+  status?: 'staging' | 'published'
+): UseQueryResult<DataInstance[]> {
+  return useQuery({
+    queryKey: ['data', 'instances', dataType, status],
+    queryFn: async () => {
+      const params = new URLSearchParams();
+      if (dataType) params.append('data_type', dataType);
+      if (status) params.append('status', status);
+      const response = await apiClient.get<DataInstance[]>(`/api/data?${params.toString()}`);
+      return response.data;
+    },
+  });
+}
+
+export function useDataInstance(dataId: string): UseQueryResult<DataInstanceDetail> {
+  return useQuery({
+    queryKey: ['data', 'instance', dataId],
+    queryFn: async () => {
+      const encodedId = encodeURIComponent(dataId);
+      const response = await apiClient.get<DataInstanceDetail>(`/api/data/${encodedId}`);
+      return response.data;
+    },
+    enabled: !!dataId,
+  });
+}
+
+export function useAutoPublishStatus(dataId: string): UseQueryResult<AutoPublishStatus> {
+  return useQuery({
+    queryKey: ['data', 'auto-publish', dataId],
+    queryFn: async () => {
+      const encodedId = encodeURIComponent(dataId);
+      const response = await apiClient.get<AutoPublishStatus>(`/api/data/${encodedId}/auto-publish/status`);
+      return response.data;
+    },
+    enabled: !!dataId,
+  });
+}
+
+export function useDataLineage(dataId: string): UseQueryResult<DataLineage> {
+  return useQuery({
+    queryKey: ['data', 'lineage', dataId],
+    queryFn: async () => {
+      const encodedId = encodeURIComponent(dataId);
+      const response = await apiClient.get<DataLineage>(`/api/data/${encodedId}/lineage`);
+      return response.data;
+    },
+    enabled: !!dataId,
+  });
+}
+
+// Catalog Validation Queries
+export function useCatalogValidation(
+  imageId: string | null,
+  catalog: 'nvss' | 'vlass' = 'nvss',
+  validationType: 'astrometry' | 'flux_scale' | 'source_counts' | 'all' = 'all'
+): UseQueryResult<CatalogValidationResults> {
+  return useQuery({
+    queryKey: ['qa', 'catalog-validation', imageId, catalog, validationType],
+    queryFn: async () => {
+      if (!imageId) throw new Error('Image ID required');
+      const encodedId = encodeURIComponent(imageId);
+      const response = await apiClient.get<CatalogValidationResults>(
+        `/api/qa/images/${encodedId}/catalog-validation?catalog=${catalog}&validation_type=${validationType}`
+      );
+      return response.data;
+    },
+    enabled: !!imageId,
+    staleTime: 300000, // Cache for 5 minutes
+  });
+}
+
+export function useCatalogOverlay(
+  imageId: string | null,
+  catalog: 'nvss' | 'vlass' = 'nvss',
+  minFluxJy?: number
+): UseQueryResult<CatalogOverlayData> {
+  return useQuery({
+    queryKey: ['qa', 'catalog-overlay', imageId, catalog, minFluxJy],
+    queryFn: async () => {
+      if (!imageId) throw new Error('Image ID required');
+      const encodedId = encodeURIComponent(imageId);
+      const params = new URLSearchParams({ catalog });
+      if (minFluxJy !== undefined) params.append('min_flux_jy', minFluxJy.toString());
+      const response = await apiClient.get<CatalogOverlayData>(
+        `/api/qa/images/${encodedId}/catalog-overlay?${params.toString()}`
+      );
+      return response.data;
+    },
+    enabled: !!imageId,
+    staleTime: 300000, // Cache for 5 minutes
+  });
+}
+
+export function useRunCatalogValidation() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: async ({
+      imageId,
+      catalog = 'nvss',
+      validationTypes = ['astrometry', 'flux_scale', 'source_counts'],
+    }: {
+      imageId: string;
+      catalog?: 'nvss' | 'vlass';
+      validationTypes?: string[];
+    }) => {
+      const encodedId = encodeURIComponent(imageId);
+      const response = await apiClient.post<CatalogValidationResults>(
+        `/api/qa/images/${encodedId}/catalog-validation/run`,
+        { catalog, validation_types: validationTypes }
+      );
+      return response.data;
+    },
+    onSuccess: (_data, variables) => {
+      // Invalidate validation queries to refetch
+      queryClient.invalidateQueries({
+        queryKey: ['qa', 'catalog-validation', variables.imageId],
+      });
+    },
+  });
+}
+
+
+/**
+ * Query hook for catalog overlay using RA/Dec/radius (new endpoint)
+ */
+export interface CatalogOverlaySource {
+  ra_deg: number;
+  dec_deg: number;
+  flux_mjy: number | null;
+  source_id: string | null;
+  catalog_type: string;
+}
+
+export interface CatalogOverlayResponse {
+  sources: CatalogOverlaySource[];
+  count: number;
+  ra_center: number;
+  dec_center: number;
+  radius_deg: number;
+}
+
+export function useCatalogOverlayByCoords(
+  ra: number | null,
+  dec: number | null,
+  radius: number = 1.5,
+  catalog: string = 'all'
+): UseQueryResult<CatalogOverlayResponse> {
+  return useQuery({
+    queryKey: ['catalog-overlay', ra, dec, radius, catalog],
+    queryFn: async () => {
+      if (ra === null || dec === null) throw new Error('RA and Dec required');
+      const params = new URLSearchParams({
+        ra: ra.toString(),
+        dec: dec.toString(),
+        radius: radius.toString(),
+        catalog,
+      });
+      const response = await apiClient.get<CatalogOverlayResponse>(
+        `/api/catalog/overlay?${params.toString()}`
+      );
+      return response.data;
+    },
+    enabled: ra !== null && dec !== null,
+    staleTime: 300000, // Cache for 5 minutes
+  });
+}
+
+/**
+ * Region management query hooks
+ */
+export interface Region {
+  id: number;
+  name: string;
+  type: 'circle' | 'rectangle' | 'polygon';
+  coordinates: Record<string, any>;
+  image_path: string;
+  created_at: number;
+  created_by?: string;
+  updated_at?: number;
+}
+
+export interface RegionListResponse {
+  regions: Region[];
+  count: number;
+}
+
+export function useRegions(
+  imagePath?: string | null,
+  regionType?: string
+): UseQueryResult<RegionListResponse> {
+  return useQuery({
+    queryKey: ['regions', imagePath, regionType],
+    queryFn: async () => {
+      const params = new URLSearchParams();
+      if (imagePath) params.append('image_path', imagePath);
+      if (regionType) params.append('region_type', regionType);
+      const response = await apiClient.get<RegionListResponse>(
+        `/api/regions?${params.toString()}`
+      );
+      return response.data;
+    },
+    staleTime: 60000, // Cache for 1 minute
+  });
+}
+
+export function useCreateRegion() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: async (regionData: {
+      name: string;
+      type: string;
+      coordinates: Record<string, any>;
+      image_path: string;
+      created_by?: string;
+    }) => {
+      const response = await apiClient.post<{ id: number; region: Region }>(
+        '/api/regions',
+        regionData
+      );
+      return response.data;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['regions'] });
+    },
+  });
+}
+
+export function useUpdateRegion() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: async ({
+      regionId,
+      regionData,
+    }: {
+      regionId: number;
+      regionData: Partial<Region>;
+    }) => {
+      const response = await apiClient.put<{ id: number; updated: boolean }>(
+        `/api/regions/${regionId}`,
+        regionData
+      );
+      return response.data;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['regions'] });
+    },
+  });
+}
+
+export function useDeleteRegion() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: async (regionId: number) => {
+      const response = await apiClient.delete<{ id: number; deleted: boolean }>(
+        `/api/regions/${regionId}`
+      );
+      return response.data;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['regions'] });
+    },
+  });
+}
+
+export function useRegionStatistics(regionId: number | null) {
+  return useQuery({
+    queryKey: ['region-statistics', regionId],
+    queryFn: async () => {
+      if (!regionId) throw new Error('Region ID required');
+      const response = await apiClient.get<{
+        region_id: number;
+        statistics: Record<string, number>;
+      }>(`/api/regions/${regionId}/statistics`);
+      return response.data;
+    },
+    enabled: regionId !== null,
+    staleTime: 60000, // Cache for 1 minute
+  });
+}
+
+export interface ProfileExtractionRequest {
+  imageId: number;
+  profileType: 'line' | 'polyline' | 'point';
+  coordinates: number[][];
+  coordinateSystem?: 'wcs' | 'pixel';
+  width?: number;
+  radius?: number;
+  fitModel?: 'gaussian' | 'moffat';
+}
+
+export interface ProfileExtractionResponse {
+  profile_type: string;
+  distance: number[];
+  flux: number[];
+  error?: number[];
+  coordinates: number[][];
+  units: {
+    distance: string;
+    flux: string;
+  };
+  fit?: {
+    model: string;
+    parameters: Record<string, number>;
+    statistics: {
+      chi_squared: number;
+      reduced_chi_squared: number;
+      r_squared: number;
+    };
+    fitted_flux: number[];
+    parameter_errors?: Record<string, number>;
+  };
+}
+
+export function useProfileExtraction() {
+  return useMutation({
+    mutationFn: async (request: ProfileExtractionRequest) => {
+      const params = new URLSearchParams({
+        profile_type: request.profileType,
+        coordinates: JSON.stringify(request.coordinates),
+        coordinate_system: request.coordinateSystem || 'wcs',
+        width: (request.width || 1).toString(),
+      });
+
+      if (request.profileType === 'point' && request.radius !== undefined) {
+        params.append('radius', request.radius.toString());
+      }
+
+      if (request.fitModel) {
+        params.append('fit_model', request.fitModel);
+      }
+
+      const response = await apiClient.get<ProfileExtractionResponse>(
+        `/api/images/${request.imageId}/profile?${params.toString()}`
+      );
+      return response.data;
+    },
+  });
+}
+
+export interface ImageFittingRequest {
+  imageId: number;
+  model: 'gaussian' | 'moffat';
+  regionId?: number;
+  initialGuess?: Record<string, number>;
+  fitBackground?: boolean;
+}
+
+export interface ImageFittingResponse {
+  model: string;
+  parameters: {
+    amplitude: number;
+    center: {
+      x: number;
+      y: number;
+      ra?: number;
+      dec?: number;
+    };
+    major_axis: number;
+    minor_axis: number;
+    pa: number;
+    background: number;
+    gamma?: number;
+    alpha?: number;
+  };
+  statistics: {
+    chi_squared: number;
+    reduced_chi_squared: number;
+    r_squared: number;
+  };
+  residuals: {
+    mean: number;
+    std: number;
+    max: number;
+  };
+  center_wcs?: {
+    ra: number;
+    dec: number;
+  };
+}
+
+export function useImageFitting() {
+  return useMutation({
+    mutationFn: async (request: ImageFittingRequest) => {
+      const body: any = {
+        model: request.model,
+        fit_background: request.fitBackground !== false,
+      };
+
+      if (request.regionId !== undefined) {
+        body.region_id = request.regionId;
+      }
+
+      if (request.initialGuess) {
+        body.initial_guess = JSON.stringify(request.initialGuess);
+      }
+
+      const response = await apiClient.post<ImageFittingResponse>(
+        `/api/images/${request.imageId}/fit`,
+        body
+      );
+      return response.data;
     },
   });
 }

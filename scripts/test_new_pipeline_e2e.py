@@ -9,7 +9,7 @@ Usage:
     export USE_NEW_PIPELINE=true
     python scripts/test_new_pipeline_e2e.py \
         --input-dir /data/incoming \
-        --output-dir /scratch/test-pipeline \
+        --output-dir /stage/test-pipeline \
         --start-time 2025-01-15T10:00:00 \
         --end-time 2025-01-15T10:05:00
 """
@@ -41,7 +41,7 @@ def main():
     parser.add_argument(
         "--output-dir",
         type=str,
-        default="/scratch/test-pipeline",
+        default="/stage/test-pipeline",
         help="Output directory for MS and images",
     )
     parser.add_argument(

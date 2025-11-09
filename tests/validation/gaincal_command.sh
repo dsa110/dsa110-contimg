@@ -5,7 +5,7 @@ conda run -n casa6 python3 -c "
 from casatasks import gaincal
 import os
 
-ms_path = '/scratch/dsa110-contimg/ms/0834_20251029/2025-10-29T13:54:17.phased.ms'
+ms_path = '/stage/dsa110-contimg/ms/0834_20251029/2025-10-29T13:54:17.phased.ms'
 refant = '59'
 # Use .gcal extension for gain calibration table (standard CASA convention)
 # This table can be passed to bandpass() via gaintable parameter

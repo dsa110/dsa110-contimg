@@ -317,7 +317,7 @@ def test_with_real_data():
     print("="*70)
     
     # Find any existing data
-    ms_dir = Path("/scratch/dsa110-contimg/ms/central_cal_rebuild")
+    ms_dir = Path("/stage/dsa110-contimg/ms/central_cal_rebuild")
     
     if not ms_dir.exists():
         results.add_pass("No real data available (skipped)")

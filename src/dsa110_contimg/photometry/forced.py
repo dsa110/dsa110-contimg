@@ -13,6 +13,9 @@ from typing import Tuple, List
 import numpy as np
 from astropy.io import fits  # type: ignore[reportMissingTypeStubs]
 from astropy.wcs import WCS  # type: ignore[reportMissingTypeStubs]
+from dsa110_contimg.utils.runtime_safeguards import (
+    filter_non_finite_2d,
+)
 
 
 @dataclass
@@ -89,7 +92,9 @@ def measure_forced_peak(
     x1c, x2c = max(0, x1), min(w - 1, x2)
     y1c, y2c = max(0, y1), min(h - 1, y2)
     cut = data[y1c:y2c + 1, x1c:x2c + 1]
-    peak = float(np.nanmax(cut)) if cut.size else float("nan")
+    # Filter non-finite values (NaN/Inf) before peak calculation
+    finite_cut = cut[np.isfinite(cut)]
+    peak = float(np.max(finite_cut)) if finite_cut.size > 0 else float("nan")
 
     # Local RMS in annulus
     rin, rout = annulus_pix
@@ -97,11 +102,16 @@ def measure_forced_peak(
     r = np.sqrt((xx - cx) ** 2 + (yy - cy) ** 2)
     ann = (r >= rin) & (r <= rout)
     vals = data[ann]
-    # sigma-clip (3-sigma, simple)
-    m = np.nanmedian(vals)
-    s = 1.4826 * np.nanmedian(np.abs(vals - m))
-    mask = (vals > (m - 3 * s)) & (vals < (m + 3 * s))
-    rms = float(np.nanstd(vals[mask])) if np.any(mask) else float("nan")
+    # Filter non-finite values before RMS calculation
+    finite_vals = vals[np.isfinite(vals)]
+    if finite_vals.size == 0:
+        rms = float("nan")
+    else:
+        # sigma-clip (3-sigma, simple) on finite values only
+        m = np.median(finite_vals)
+        s = 1.4826 * np.median(np.abs(finite_vals - m))
+        mask = (finite_vals > (m - 3 * s)) & (finite_vals < (m + 3 * s))
+        rms = float(np.std(finite_vals[mask])) if np.any(mask) else float("nan")
 
     return ForcedPhotometryResult(
         ra_deg=ra_deg,

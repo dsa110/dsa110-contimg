@@ -9,6 +9,7 @@ import {
 } from '@mui/material';
 import { usePipelineStatus, useSystemMetrics } from '../api/queries';
 import ESECandidatesPanel from '../components/ESECandidatesPanel';
+import PointingVisualization from '../components/PointingVisualization';
 
 export default function DashboardPage() {
   const { data: status, isLoading: statusLoading, error: statusError } = usePipelineStatus();
@@ -168,6 +169,9 @@ export default function DashboardPage() {
               )}
             </Box>
           </Paper>
+
+        {/* Pointing Visualization */}
+        <PointingVisualization height={500} showHistory={true} historyDays={7} />
 
         {/* ESE Candidates Panel */}
         <ESECandidatesPanel />

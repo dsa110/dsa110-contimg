@@ -1,6 +1,7 @@
 /**
  * Clipboard utilities for copying text to clipboard
  */
+import { logger } from './logger';
 
 /**
  * Copy text to clipboard with user feedback
@@ -33,7 +34,7 @@ export async function copyToClipboard(text: string): Promise<boolean> {
       }
     }
   } catch (err) {
-    console.error('Failed to copy text:', err);
+    logger.error('Failed to copy text:', err);
     return false;
   }
 }

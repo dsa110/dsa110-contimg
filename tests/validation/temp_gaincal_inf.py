@@ -4,7 +4,7 @@ import sys
 import os
 from casatasks import gaincal, listobs
 
-ms_path = '/scratch/dsa110-contimg/ms/0834_20251029/2025-10-29T13:54:17.phased_concat_spws_fields.ms'
+ms_path = '/stage/dsa110-contimg/ms/0834_20251029/2025-10-29T13:54:17.phased_concat_spws_fields.ms'
 
 # Use a common refant (middle antenna, typically around 59 for 117 antennas)
 # Or we could parse from listobs output if needed

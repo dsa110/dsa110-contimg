@@ -9,18 +9,38 @@ import {
   Paper,
   Box,
   Grid,
+  Switch,
+  FormControlLabel,
 } from '@mui/material';
 import ImageBrowser from '../components/Sky/ImageBrowser';
 import SkyViewer from '../components/Sky/SkyViewer';
+import ImageControls from '../components/Sky/ImageControls';
+import ImageMetadata from '../components/Sky/ImageMetadata';
+import CatalogOverlayJS9 from '../components/Sky/CatalogOverlayJS9';
+import RegionTools from '../components/Sky/RegionTools';
+import RegionList from '../components/Sky/RegionList';
+import ProfileTool from '../components/Sky/ProfileTool';
+import ImageFittingTool from '../components/Sky/ImageFittingTool';
 import type { ImageInfo } from '../api/types';
 
 export default function SkyViewPage() {
   const [selectedImage, setSelectedImage] = useState<ImageInfo | null>(null);
+  const [catalogOverlayVisible, setCatalogOverlayVisible] = useState(false);
+  const [selectedRegionId, setSelectedRegionId] = useState<number | null>(null);
 
   // Construct FITS URL for selected image
   const fitsUrl = selectedImage
     ? `/api/images/${selectedImage.id}/fits`
     : null;
+
+  // Extract image center coordinates for catalog overlay
+  // Note: This would ideally come from image WCS, but for now use center coordinates if available
+  const imageCenter = selectedImage
+    ? {
+        ra: selectedImage.center_ra_deg || null,
+        dec: selectedImage.center_dec_deg || null,
+      }
+    : { ra: null, dec: null };
 
   return (
     <Container maxWidth="xl" sx={{ py: 4 }}>
@@ -44,26 +64,80 @@ export default function SkyViewPage() {
               Image Display
             </Typography>
             
-            {selectedImage && (
+            {/* Image Controls */}
+            <ImageControls displayId="skyViewDisplay" />
+            
+            {/* Catalog Overlay Toggle */}
+            {selectedImage && imageCenter.ra !== null && imageCenter.dec !== null && (
               <Box sx={{ mb: 2 }}>
-                <Typography variant="body2" color="text.secondary">
-                  <strong>Image:</strong> {selectedImage.path.split('/').pop()}
-                </Typography>
-                <Typography variant="body2" color="text.secondary">
-                  <strong>Type:</strong> {selectedImage.type}
-                  {selectedImage.pbcor && ' (PB Corrected)'}
-                </Typography>
-                {selectedImage.noise_jy && (
-                  <Typography variant="body2" color="text.secondary">
-                    <strong>Noise:</strong> {(selectedImage.noise_jy * 1000).toFixed(2)} mJy
-                  </Typography>
-                )}
-                {selectedImage.beam_major_arcsec && (
-                  <Typography variant="body2" color="text.secondary">
-                    <strong>Beam:</strong> {selectedImage.beam_major_arcsec.toFixed(1)}"
-                  </Typography>
+                <FormControlLabel
+                  control={
+                    <Switch
+                      checked={catalogOverlayVisible}
+                      onChange={(e) => setCatalogOverlayVisible(e.target.checked)}
+                    />
+                  }
+                  label="Show Catalog Overlay"
+                />
+                {catalogOverlayVisible && (
+                  <CatalogOverlayJS9
+                    displayId="skyViewDisplay"
+                    ra={imageCenter.ra}
+                    dec={imageCenter.dec}
+                    radius={1.5}
+                    catalog="all"
+                    visible={catalogOverlayVisible}
+                  />
                 )}
               </Box>
+            )}
+
+            {/* Region Tools */}
+            {selectedImage && (
+              <Box sx={{ mb: 2 }}>
+                <RegionTools
+                  displayId="skyViewDisplay"
+                  imagePath={selectedImage.path}
+                  onRegionCreated={(region) => {
+                    // Refresh region list
+                    setSelectedRegionId(region.id);
+                  }}
+                />
+              </Box>
+            )}
+
+            {selectedImage && (
+              <Box sx={{ mb: 2 }}>
+                <ProfileTool
+                  displayId="skyViewDisplay"
+                  imageId={selectedImage.id}
+                />
+              </Box>
+            )}
+
+            {selectedImage && (
+              <Box sx={{ mb: 2 }}>
+                <ImageFittingTool
+                  displayId="skyViewDisplay"
+                  imageId={selectedImage.id}
+                  imagePath={selectedImage.path}
+                />
+              </Box>
+            )}
+            
+            {/* Image Metadata */}
+            {selectedImage && (
+              <ImageMetadata
+                displayId="skyViewDisplay"
+                imageInfo={{
+                  path: selectedImage.path,
+                  type: selectedImage.type,
+                  noise_jy: selectedImage.noise_jy,
+                  beam_major_arcsec: selectedImage.beam_major_arcsec,
+                  beam_minor_arcsec: selectedImage.beam_minor_arcsec,
+                  beam_pa_deg: selectedImage.beam_pa_deg,
+                }}
+              />
             )}
 
             <SkyViewer
@@ -71,6 +145,17 @@ export default function SkyViewPage() {
               displayId="skyViewDisplay"
               height={600}
             />
+
+            {/* Region List */}
+            {selectedImage && (
+              <Box sx={{ mt: 2 }}>
+                <RegionList
+                  imagePath={selectedImage.path}
+                  onRegionSelect={(region) => setSelectedRegionId(region.id)}
+                  selectedRegionId={selectedRegionId}
+                />
+              </Box>
+            )}
           </Paper>
         </Grid>
       </Grid>

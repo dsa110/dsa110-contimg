@@ -1,0 +1,19 @@
+[Unit]
+Description=CASA Log Daemon Watchdog - Monitors and restarts daemon if unhealthy
+After=network.target casa-log-daemon-inotify.service
+Requires=casa-log-daemon-inotify.service
+
+[Service]
+Type=oneshot
+User=ubuntu
+Group=ubuntu
+WorkingDirectory=/data/dsa110-contimg
+ExecStart=/bin/bash /data/dsa110-contimg/scripts/casa_log_daemon_health_check.sh
+# If health check fails, try to restart the daemon
+ExecStartPost=/bin/bash -c 'if [ $? -ne 0 ]; then systemctl restart casa-log-daemon-inotify.service; fi'
+StandardOutput=journal
+StandardError=journal
+
+[Install]
+WantedBy=multi-user.target
+

@@ -8,7 +8,7 @@ import sys
 sys.path.insert(0, 'src')
 from dsa110_contimg.calibration.catalogs import load_vla_catalog, get_calibrator_radec
 
-ms_path = '/scratch/dsa110-contimg/ms/0834_20251029/2025-10-29T13:54:17.phased.ms'
+ms_path = '/stage/dsa110-contimg/ms/0834_20251029/2025-10-29T13:54:17.phased.ms'
 
 # Get 0834+555 coordinates (expected phase center)
 catalog = load_vla_catalog()

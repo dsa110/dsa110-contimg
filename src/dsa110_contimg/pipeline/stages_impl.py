@@ -19,6 +19,11 @@ from dsa110_contimg.utils.time_utils import extract_ms_time_range
 from dsa110_contimg.utils.ms_organization import (
     organize_ms_file, determine_ms_type, create_path_mapper, extract_date_from_filename
 )
+from dsa110_contimg.utils.runtime_safeguards import (
+    require_casa6_python,
+    progress_monitor,
+    log_progress,
+)
 
 logger = logging.getLogger(__name__)
 
@@ -58,8 +63,13 @@ class ConversionStage(PipelineStage):
 
         return True, None
 
+    @progress_monitor(operation_name="UVH5 to MS Conversion", warn_threshold=300.0)
     def execute(self, context: PipelineContext) -> PipelineContext:
         """Execute conversion stage."""
+        import time
+        start_time_sec = time.time()
+        log_progress("Starting UVH5 to MS conversion stage...")
+        
         from dsa110_contimg.conversion.strategies.hdf5_orchestrator import (
             convert_subband_groups_to_ms,
         )
@@ -81,8 +91,9 @@ class ConversionStage(PipelineStage):
 
         # Create path mapper for organized output (default to science)
         ms_base_dir = Path(context.config.paths.output_dir)
-        path_mapper = create_path_mapper(ms_base_dir, is_calibrator=False, is_failed=False)
-        
+        path_mapper = create_path_mapper(
+            ms_base_dir, is_calibrator=False, is_failed=False)
+
         # Execute conversion (function returns None, creates MS files in organized locations)
         convert_subband_groups_to_ms(
             str(context.config.paths.input_dir),
@@ -99,7 +110,7 @@ class ConversionStage(PipelineStage):
         pattern = re.compile(
             r'^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}\.ms$'
         )
-        
+
         output_path = Path(context.config.paths.output_dir)
         ms_files = []
         if output_path.exists():
@@ -113,7 +124,7 @@ class ConversionStage(PipelineStage):
                             for ms in date_dir.glob("*.ms"):
                                 if ms.is_dir() and pattern.match(ms.name):
                                     ms_files.append(str(ms))
-            
+
             # Also check flat location for backward compatibility (legacy files)
             for ms in output_path.glob("*.ms"):
                 if ms.is_dir():
@@ -151,6 +162,8 @@ class ConversionStage(PipelineStage):
                     logger.warning("⚠ MS quality issues detected (see alerts)")
             except Exception as e:
                 logger.warning(f"Quality check failed (non-fatal): {e}")
+        
+        log_progress(f"Completed UVH5 to MS conversion stage. Created {len(ms_files)} MS file(s).", start_time_sec)
 
         # MS files are already in organized locations (written directly via path_mapper)
         # No need to move them - they're already organized
@@ -186,7 +199,8 @@ class ConversionStage(PipelineStage):
                 # Extract metadata from MS if available
                 metadata = {}
                 try:
-                    start_mjd, end_mjd, mid_mjd = extract_ms_time_range(ms_file)
+                    start_mjd, end_mjd, mid_mjd = extract_ms_time_range(
+                        ms_file)
                     if start_mjd:
                         metadata["start_mjd"] = start_mjd
                     if end_mjd:
@@ -194,8 +208,9 @@ class ConversionStage(PipelineStage):
                     if mid_mjd:
                         metadata["mid_mjd"] = mid_mjd
                 except Exception as e:
-                    logger.debug(f"Could not extract MS time range for metadata: {e}")
-                
+                    logger.debug(
+                        f"Could not extract MS time range for metadata: {e}")
+
                 register_pipeline_data(
                     data_type="ms",
                     data_id=data_id,
@@ -205,7 +220,8 @@ class ConversionStage(PipelineStage):
                 )
                 logger.info(f"Registered MS in data registry: {ms_file}")
         except Exception as e:
-            logger.warning(f"Failed to register MS files in data registry: {e}")
+            logger.warning(
+                f"Failed to register MS files in data registry: {e}")
 
         # Return both single MS path (for backward compatibility) and all MS paths
         return context.with_outputs({
@@ -284,8 +300,14 @@ class CalibrationSolveStage(PipelineStage):
 
         return True, None
 
+    @require_casa6_python
+    @progress_monitor(operation_name="Calibration Solving", warn_threshold=600.0)
     def execute(self, context: PipelineContext) -> PipelineContext:
         """Execute calibration solve stage."""
+        import time
+        start_time_sec = time.time()
+        log_progress("Starting calibration solve stage...")
+        
         from dsa110_contimg.calibration.calibration import (
             solve_delay,
             solve_bandpass,
@@ -645,6 +667,7 @@ class CalibrationSolveStage(PipelineStage):
             except Exception as e:
                 logger.warning(f"Failed to update MS index: {e}")
 
+        log_progress(f"Completed calibration solve stage. Generated {len(all_tables)} calibration table(s).", start_time_sec)
         return context.with_output("calibration_tables", all_tables)
 
     def validate_outputs(self, context: PipelineContext) -> Tuple[bool, Optional[str]]:
@@ -711,6 +734,8 @@ class CalibrationStage(PipelineStage):
 
         return True, None
 
+    @require_casa6_python
+    @progress_monitor(operation_name="Calibration Application", warn_threshold=300.0)
     def execute(self, context: PipelineContext) -> PipelineContext:
         """Execute calibration stage.
 
@@ -718,11 +743,14 @@ class CalibrationStage(PipelineStage):
         Uses get_active_applylist() to lookup calibration tables by observation time,
         then applies them using apply_to_target() directly.
         """
+        import time
+        start_time_sec = time.time()
+        log_progress("Starting calibration application stage...")
+        
         from dsa110_contimg.calibration.applycal import apply_to_target
         from dsa110_contimg.database.registry import get_active_applylist
         from dsa110_contimg.utils.time_utils import extract_ms_time_range
         from pathlib import Path
-        import time
 
         ms_path = context.outputs["ms_path"]
         logger.info(f"Calibration stage: {ms_path}")
@@ -825,7 +853,8 @@ class CalibrationStage(PipelineStage):
                     "calibration_tables": applylist,  # applylist is defined earlier in this function
                 }
                 try:
-                    start_mjd, end_mjd, mid_mjd = extract_ms_time_range(ms_path)
+                    start_mjd, end_mjd, mid_mjd = extract_ms_time_range(
+                        ms_path)
                     if start_mjd:
                         metadata["start_mjd"] = start_mjd
                     if end_mjd:
@@ -833,8 +862,9 @@ class CalibrationStage(PipelineStage):
                     if mid_mjd:
                         metadata["mid_mjd"] = mid_mjd
                 except Exception as e:
-                    logger.debug(f"Could not extract MS time range for metadata: {e}")
-                
+                    logger.debug(
+                        f"Could not extract MS time range for metadata: {e}")
+
                 register_pipeline_data(
                     data_type="calib_ms",
                     data_id=data_id,
@@ -842,10 +872,13 @@ class CalibrationStage(PipelineStage):
                     metadata=metadata,
                     auto_publish=True,
                 )
-                logger.info(f"Registered calibrated MS in data registry: {ms_path}")
+                logger.info(
+                    f"Registered calibrated MS in data registry: {ms_path}")
             except Exception as e:
-                logger.warning(f"Failed to register calibrated MS in data registry: {e}")
+                logger.warning(
+                    f"Failed to register calibrated MS in data registry: {e}")
 
+        log_progress("Completed calibration application stage.", start_time_sec)
         return context
 
     def validate_outputs(self, context: PipelineContext) -> Tuple[bool, Optional[str]]:
@@ -909,8 +942,14 @@ class ImagingStage(PipelineStage):
 
         return True, None
 
+    @require_casa6_python
+    @progress_monitor(operation_name="Imaging", warn_threshold=1800.0)
     def execute(self, context: PipelineContext) -> PipelineContext:
         """Execute imaging stage."""
+        import time
+        start_time_sec = time.time()
+        log_progress("Starting imaging stage...")
+        
         from dsa110_contimg.imaging.cli_imaging import image_ms
         from casacore.tables import table
         import numpy as np
@@ -1026,10 +1065,11 @@ class ImagingStage(PipelineStage):
                 with image(str(primary_image)) as img:
                     shape = img.shape()
                     metadata["shape"] = list(shape)
-                    metadata["has_data"] = len(shape) > 0 and all(s > 0 for s in shape)
+                    metadata["has_data"] = len(
+                        shape) > 0 and all(s > 0 for s in shape)
             except Exception as e:
                 logger.debug(f"Could not extract image metadata: {e}")
-            
+
             register_pipeline_data(
                 data_type="image",
                 data_id=data_id,
@@ -1041,6 +1081,7 @@ class ImagingStage(PipelineStage):
         except Exception as e:
             logger.warning(f"Failed to register image in data registry: {e}")
 
+        log_progress(f"Completed imaging stage. Created image: {primary_image}", start_time_sec)
         return context.with_output("image_path", primary_image)
 
     def validate_outputs(self, context: PipelineContext) -> Tuple[bool, Optional[str]]:
@@ -1171,53 +1212,56 @@ class ImagingStage(PipelineStage):
 
 class OrganizationStage(PipelineStage):
     """Organization stage: Organize MS files into date-based directory structure.
-    
+
     Moves MS files into organized subdirectories:
     - Calibrator MS → ms/calibrators/YYYY-MM-DD/
     - Science MS → ms/science/YYYY-MM-DD/
     - Failed MS → ms/failed/YYYY-MM-DD/
-    
+
     Updates database paths to reflect new locations.
     """
-    
+
     def __init__(self, config: PipelineConfig):
         super().__init__(config)
         self.stage_name = "organization"
-    
+
     def validate(self, context: PipelineContext) -> Tuple[bool, Optional[str]]:
         """Validate organization stage prerequisites."""
         if "ms_paths" not in context.outputs and "ms_path" not in context.outputs:
             return False, "No MS files found in context outputs"
-        
+
         ms_base_dir = Path(context.config.paths.output_dir)
         if not ms_base_dir.exists():
             return False, f"MS base directory does not exist: {ms_base_dir}"
-        
-        products_db_path = Path(context.config.paths.products_db) if hasattr(context.config.paths, 'products_db') else None
+
+        products_db_path = Path(context.config.paths.products_db) if hasattr(
+            context.config.paths, 'products_db') else None
         if products_db_path and not products_db_path.exists():
             return False, f"Products database does not exist: {products_db_path}"
-        
+
         return True, None
-    
+
     def execute(self, context: PipelineContext) -> PipelineContext:
         """Execute organization stage."""
         ms_files = context.outputs.get("ms_paths", [])
         if not ms_files and "ms_path" in context.outputs:
             ms_files = [context.outputs["ms_path"]]
-        
+
         if not ms_files:
             logger.warning("No MS files to organize")
             return context
-        
+
         ms_base_dir = Path(context.config.paths.output_dir)
-        products_db_path = Path(context.config.paths.products_db) if hasattr(context.config.paths, 'products_db') else None
-        
+        products_db_path = Path(context.config.paths.products_db) if hasattr(
+            context.config.paths, 'products_db') else None
+
         if not products_db_path or not products_db_path.exists():
-            logger.warning("Products database not available, skipping database updates")
+            logger.warning(
+                "Products database not available, skipping database updates")
             products_db_path = None
-        
+
         organized_ms_files = []
-        
+
         for ms_file in ms_files:
             try:
                 ms_path_obj = Path(ms_file)
@@ -1225,9 +1269,9 @@ class OrganizationStage(PipelineStage):
                     logger.warning(f"MS file does not exist: {ms_file}")
                     organized_ms_files.append(ms_file)
                     continue
-                
+
                 is_calibrator, is_failed = determine_ms_type(ms_path_obj)
-                
+
                 if products_db_path:
                     organized_path = organize_ms_file(
                         ms_path_obj,
@@ -1249,35 +1293,39 @@ class OrganizationStage(PipelineStage):
                     # Move file manually
                     import shutil
                     if ms_path_obj.resolve() != organized_path.resolve():
-                        organized_path.parent.mkdir(parents=True, exist_ok=True)
+                        organized_path.parent.mkdir(
+                            parents=True, exist_ok=True)
                         shutil.move(str(ms_path_obj), str(organized_path))
-                        logger.info(f"Moved MS file: {ms_file} → {organized_path}")
-                
+                        logger.info(
+                            f"Moved MS file: {ms_file} → {organized_path}")
+
                 organized_ms_files.append(str(organized_path))
-                
+
             except Exception as e:
-                logger.error(f"Failed to organize MS file {ms_file}: {e}", exc_info=True)
+                logger.error(
+                    f"Failed to organize MS file {ms_file}: {e}", exc_info=True)
                 organized_ms_files.append(ms_file)
-        
-        organized_ms_path = organized_ms_files[0] if organized_ms_files else context.outputs.get("ms_path")
-        
+
+        organized_ms_path = organized_ms_files[0] if organized_ms_files else context.outputs.get(
+            "ms_path")
+
         return context.with_outputs({
             "ms_path": organized_ms_path,
             "ms_paths": organized_ms_files,
         })
-    
+
     def validate_outputs(self, context: PipelineContext) -> Tuple[bool, Optional[str]]:
         """Validate organization outputs."""
         ms_paths = context.outputs.get("ms_paths", [])
         if not ms_paths:
             return False, "No organized MS paths in outputs"
-        
+
         for ms_path in ms_paths:
             if not Path(ms_path).exists():
                 return False, f"Organized MS file does not exist: {ms_path}"
-        
+
         return True, None
-    
+
     def get_name(self) -> str:
         """Get stage name."""
         return "organization"
@@ -1285,18 +1333,18 @@ class OrganizationStage(PipelineStage):
 
 class ValidationStage(PipelineStage):
     """Validation stage: Run catalog-based validation on images.
-    
+
     This stage performs comprehensive validation of images including:
     - Astrometry validation (positional accuracy)
     - Flux scale validation (calibration accuracy)
     - Source counts completeness analysis
-    
+
     Optionally generates HTML validation reports with diagnostic plots.
     """
 
     def __init__(self, config: PipelineConfig):
         """Initialize validation stage.
-        
+
         Args:
             config: Pipeline configuration
         """
@@ -1306,7 +1354,7 @@ class ValidationStage(PipelineStage):
         """Validate prerequisites for validation."""
         if not self.config.validation.enabled:
             return False, "Validation stage is disabled"
-        
+
         if "image_path" not in context.outputs:
             return False, "image_path required in context.outputs"
 
@@ -1316,8 +1364,13 @@ class ValidationStage(PipelineStage):
 
         return True, None
 
+    @progress_monitor(operation_name="Image Validation", warn_threshold=300.0)
     def execute(self, context: PipelineContext) -> PipelineContext:
         """Execute validation stage."""
+        import time
+        start_time_sec = time.time()
+        log_progress("Starting image validation stage...")
+        
         from dsa110_contimg.qa.catalog_validation import (
             validate_astrometry,
             validate_flux_scale,
@@ -1351,6 +1404,7 @@ class ValidationStage(PipelineStage):
                 f"Validation skipped: FITS image not found for {image_path}. "
                 "Validation requires FITS format."
             )
+            log_progress("Validation stage skipped (no FITS image found).", start_time_sec)
             return context
 
         validation_config = self.config.validation
@@ -1366,11 +1420,13 @@ class ValidationStage(PipelineStage):
             # Prepare HTML report path if needed
             html_report_path = None
             if validation_config.generate_html_report:
-                output_dir = Path(context.config.paths.output_dir) / "qa" / "reports"
+                output_dir = Path(
+                    context.config.paths.output_dir) / "qa" / "reports"
                 output_dir.mkdir(parents=True, exist_ok=True)
                 image_name = Path(fits_image).stem
-                html_report_path = str(output_dir / f"{image_name}_validation_report.html")
-            
+                html_report_path = str(
+                    output_dir / f"{image_name}_validation_report.html")
+
             # Run full validation (all types) and optionally generate HTML report
             astrometry_result, flux_scale_result, source_counts_result = run_full_validation(
                 image_path=fits_image,
@@ -1379,10 +1435,12 @@ class ValidationStage(PipelineStage):
                 generate_html=validation_config.generate_html_report,
                 html_output_path=html_report_path
             )
-            
+
             if html_report_path:
-                logger.info(f"HTML validation report generated: {html_report_path}")
-                context = context.with_output("validation_report_path", html_report_path)
+                logger.info(
+                    f"HTML validation report generated: {html_report_path}")
+                context = context.with_output(
+                    "validation_report_path", html_report_path)
 
             # Log validation results
             if astrometry_result:
@@ -1391,7 +1449,7 @@ class ValidationStage(PipelineStage):
                     f"RMS offset: {astrometry_result.rms_offset_arcsec:.2f}\""
                     if astrometry_result.rms_offset_arcsec else "N/A"
                 )
-            
+
             if flux_scale_result:
                 logger.info(
                     f"Flux scale validation: Mean ratio: {flux_scale_result.mean_flux_ratio:.3f}, "
@@ -1399,7 +1457,7 @@ class ValidationStage(PipelineStage):
                     if flux_scale_result.mean_flux_ratio and flux_scale_result.flux_scale_error
                     else "N/A"
                 )
-            
+
             if source_counts_result:
                 logger.info(
                     f"Source counts validation: Completeness: {source_counts_result.completeness*100:.1f}%"
@@ -1409,18 +1467,260 @@ class ValidationStage(PipelineStage):
 
             # Store validation results in context
             if astrometry_result:
-                context = context.with_output("astrometry_result", astrometry_result)
+                context = context.with_output(
+                    "astrometry_result", astrometry_result)
             if flux_scale_result:
-                context = context.with_output("flux_scale_result", flux_scale_result)
+                context = context.with_output(
+                    "flux_scale_result", flux_scale_result)
             if source_counts_result:
-                context = context.with_output("source_counts_result", source_counts_result)
+                context = context.with_output(
+                    "source_counts_result", source_counts_result)
 
         except Exception as e:
             # Validation failures are non-fatal - log warning but continue
             logger.warning(f"Validation failed: {e}", exc_info=True)
 
+        log_progress("Completed image validation stage.", start_time_sec)
         return context
 
     def get_name(self) -> str:
         """Get stage name."""
         return "validation"
+
+
+class AdaptivePhotometryStage(PipelineStage):
+    """Adaptive binning photometry stage: Measure photometry using adaptive channel binning.
+
+    This stage runs adaptive binning photometry on sources in the field, either
+    from a provided list of coordinates or by querying the NVSS catalog.
+    """
+
+    def __init__(self, config: PipelineConfig):
+        """Initialize adaptive photometry stage.
+
+        Args:
+            config: Pipeline configuration
+        """
+        self.config = config
+
+    def validate(self, context: PipelineContext) -> Tuple[bool, Optional[str]]:
+        """Validate prerequisites for adaptive photometry."""
+        if "ms_path" not in context.outputs:
+            return False, "ms_path required in context.outputs"
+
+        ms_path = context.outputs["ms_path"]
+        if not Path(ms_path).exists():
+            return False, f"MS file not found: {ms_path}"
+
+        if not self.config.photometry.enabled:
+            return False, "Adaptive photometry stage is disabled in configuration"
+
+        return True, None
+
+    @require_casa6_python
+    @progress_monitor(operation_name="Adaptive Photometry", warn_threshold=600.0)
+    def execute(self, context: PipelineContext) -> PipelineContext:
+        """Execute adaptive photometry stage."""
+        import time
+        start_time_sec = time.time()
+        log_progress("Starting adaptive photometry stage...")
+        
+        from dsa110_contimg.photometry.adaptive_photometry import measure_with_adaptive_binning
+        from dsa110_contimg.photometry.adaptive_binning import AdaptiveBinningConfig
+        from dsa110_contimg.calibration.catalogs import read_nvss_catalog
+        from casacore.tables import table
+        import astropy.coordinates as acoords
+        import numpy as np
+
+        ms_path = context.outputs["ms_path"]
+        logger.info(f"Adaptive photometry stage: {ms_path}")
+
+        # Get source coordinates
+        sources = self._get_source_coordinates(context, ms_path)
+        if not sources:
+            logger.warning("No sources found for adaptive photometry - skipping stage")
+            return context
+
+        # Create adaptive binning config
+        config = AdaptiveBinningConfig(
+            target_snr=self.config.photometry.target_snr,
+            max_width=self.config.photometry.max_width,
+        )
+
+        # Prepare imaging kwargs
+        imaging_kwargs = {
+            "imsize": self.config.photometry.imsize,
+            "quality_tier": self.config.photometry.quality_tier,
+            "backend": self.config.photometry.backend,
+            "parallel": self.config.photometry.parallel,
+            "max_workers": self.config.photometry.max_workers,
+            "serialize_ms_access": self.config.photometry.serialize_ms_access,
+        }
+
+        # Create output directory for adaptive photometry results
+        output_dir = Path(context.config.paths.output_dir) / "adaptive_photometry"
+        output_dir.mkdir(parents=True, exist_ok=True)
+
+        # Run adaptive binning for each source
+        results = []
+        for i, (ra_deg, dec_deg) in enumerate(sources):
+            logger.info(f"Running adaptive binning for source {i+1}/{len(sources)}: RA={ra_deg:.6f}, Dec={dec_deg:.6f}")
+
+            source_output_dir = output_dir / f"source_{i+1:03d}"
+            source_output_dir.mkdir(parents=True, exist_ok=True)
+
+            try:
+                result = measure_with_adaptive_binning(
+                    ms_path=ms_path,
+                    ra_deg=ra_deg,
+                    dec_deg=dec_deg,
+                    output_dir=source_output_dir,
+                    config=config,
+                    **imaging_kwargs,
+                )
+
+                if result.success:
+                    logger.info(
+                        f"Source {i+1}: Found {len(result.detections)} detection(s) "
+                        f"(best SNR: {max([d.snr for d in result.detections], default=0.0):.2f})"
+                    )
+                    results.append({
+                        "ra_deg": ra_deg,
+                        "dec_deg": dec_deg,
+                        "n_detections": len(result.detections),
+                        "detections": [
+                            {
+                                "spw_ids": det.channels,
+                                "flux_jy": det.flux_jy,
+                                "rms_jy": det.rms_jy,
+                                "snr": det.snr,
+                                "center_freq_mhz": det.center_freq_mhz,
+                                "bin_width": det.bin_width,
+                            }
+                            for det in result.detections
+                        ],
+                        "output_dir": str(source_output_dir),
+                    })
+                else:
+                    logger.warning(
+                        f"Source {i+1}: Adaptive binning failed: {result.error_message}"
+                    )
+            except Exception as e:
+                logger.error(f"Source {i+1}: Error during adaptive binning: {e}", exc_info=True)
+
+        # Store results in context
+        photometry_results = {
+            "n_sources": len(sources),
+            "n_successful": len(results),
+            "results": results,
+            "output_dir": str(output_dir),
+        }
+
+        logger.info(
+            f"Adaptive photometry complete: {len(results)}/{len(sources)} sources successful"
+        )
+
+        log_progress(f"Completed adaptive photometry stage. Measured {len(photometry_results)} source(s).", start_time_sec)
+        return context.with_output("adaptive_photometry_results", photometry_results)
+
+    def _get_source_coordinates(
+        self, context: PipelineContext, ms_path: str
+    ) -> List[Tuple[float, float]]:
+        """Get source coordinates for adaptive photometry.
+
+        Args:
+            context: Pipeline context
+            ms_path: Path to Measurement Set
+
+        Returns:
+            List of (ra_deg, dec_deg) tuples
+        """
+        # If sources are provided in config, use them
+        if self.config.photometry.sources:
+            return [
+                (src["ra"], src["dec"])
+                for src in self.config.photometry.sources
+            ]
+
+        # Otherwise, query NVSS catalog for sources in the field
+        try:
+            from casacore.tables import table
+            import astropy.coordinates as acoords
+            import numpy as np
+
+            # Get field center from MS
+            with table(ms_path) as t:
+                field_table = t.getkeyword("FIELD")
+                if isinstance(field_table, dict) and "PHASE_DIR" in field_table:
+                    phase_dir = field_table["PHASE_DIR"]
+                    if len(phase_dir) > 0 and len(phase_dir[0]) > 0:
+                        # Phase direction is in radians, convert to degrees
+                        ra_rad = phase_dir[0][0]
+                        dec_rad = phase_dir[0][1]
+                        ra_deg = np.degrees(ra_rad)
+                        dec_deg = np.degrees(dec_rad)
+                    else:
+                        logger.warning("Could not extract field center from MS - using default")
+                        return []
+                else:
+                    logger.warning("Could not extract field center from MS - using default")
+                    return []
+
+            # Query NVSS catalog
+            df = read_nvss_catalog()
+            sc = acoords.SkyCoord(
+                df['ra'].to_numpy(),
+                df['dec'].to_numpy(),
+                unit='deg',
+                frame='icrs',
+            )
+            center = acoords.SkyCoord(ra_deg, dec_deg, unit='deg', frame='icrs')
+            sep_deg = sc.separation(center).deg
+            flux_mjy = df['flux_20_cm'].to_numpy()
+
+            # Filter: sources within reasonable radius (1 degree), flux >= min_flux_mjy
+            max_radius_deg = 1.0
+            keep = (sep_deg <= max_radius_deg) & (flux_mjy >= self.config.photometry.min_flux_mjy)
+            ra_sel = df['ra'].to_numpy()[keep]
+            dec_sel = df['dec'].to_numpy()[keep]
+
+            sources = list(zip(ra_sel, dec_sel))
+            logger.info(
+                f"Found {len(sources)} NVSS sources in field "
+                f"(center: RA={ra_deg:.6f}, Dec={dec_deg:.6f}, "
+                f"radius={max_radius_deg} deg, min_flux={self.config.photometry.min_flux_mjy} mJy)"
+            )
+            return sources
+
+        except Exception as e:
+            logger.error(f"Error querying NVSS catalog: {e}", exc_info=True)
+            return []
+
+    def validate_outputs(self, context: PipelineContext) -> Tuple[bool, Optional[str]]:
+        """Validate adaptive photometry outputs."""
+        if "adaptive_photometry_results" not in context.outputs:
+            return False, "adaptive_photometry_results not found in outputs"
+
+        results = context.outputs["adaptive_photometry_results"]
+        if not isinstance(results, dict) or "n_sources" not in results:
+            return False, "Invalid adaptive_photometry_results format"
+
+        return True, None
+
+    def cleanup(self, context: PipelineContext) -> None:
+        """Cleanup partial adaptive photometry outputs on failure."""
+        if "adaptive_photometry_results" in context.outputs:
+            results = context.outputs["adaptive_photometry_results"]
+            if isinstance(results, dict) and "output_dir" in results:
+                output_dir = Path(results["output_dir"])
+                if output_dir.exists():
+                    try:
+                        import shutil
+                        shutil.rmtree(output_dir, ignore_errors=True)
+                        logger.info(f"Cleaned up partial adaptive photometry output: {output_dir}")
+                    except Exception as e:
+                        logger.warning(f"Failed to cleanup adaptive photometry output: {e}")
+
+    def get_name(self) -> str:
+        """Get stage name."""
+        return "adaptive_photometry"

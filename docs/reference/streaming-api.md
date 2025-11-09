@@ -29,7 +29,7 @@ Get the current status of the streaming service.
   "last_heartbeat": "2025-11-06T15:30:00Z",
   "config": {
     "input_dir": "/data/incoming",
-    "output_dir": "/scratch/dsa110-contimg/ms",
+    "output_dir": "/stage/dsa110-contimg/ms",
     "expected_subbands": 16,
     "chunk_duration": 5.0,
     "max_workers": 4
@@ -100,10 +100,10 @@ Get the current streaming service configuration.
 ```json
 {
   "input_dir": "/data/incoming",
-  "output_dir": "/scratch/dsa110-contimg/ms",
+  "output_dir": "/stage/dsa110-contimg/ms",
   "queue_db": "state/ingest.sqlite3",
   "registry_db": "state/cal_registry.sqlite3",
-  "scratch_dir": "/scratch/dsa110-contimg",
+  "scratch_dir": "/stage/dsa110-contimg",
   "expected_subbands": 16,
   "chunk_duration": 5.0,
   "log_level": "INFO",
@@ -135,7 +135,7 @@ Update the streaming service configuration. If the service is running, it will b
 ```json
 {
   "input_dir": "/data/incoming",
-  "output_dir": "/scratch/dsa110-contimg/ms",
+  "output_dir": "/stage/dsa110-contimg/ms",
   "expected_subbands": 16,
   "chunk_duration": 5.0,
   "log_level": "INFO",
@@ -160,7 +160,7 @@ curl -X POST http://localhost:8010/api/streaming/config \
   -H "Content-Type: application/json" \
   -d '{
     "input_dir": "/data/incoming",
-    "output_dir": "/scratch/dsa110-contimg/ms",
+    "output_dir": "/stage/dsa110-contimg/ms",
     "expected_subbands": 16,
     "chunk_duration": 5.0,
     "max_workers": 4
@@ -178,7 +178,7 @@ Start the streaming service.
 ```json
 {
   "input_dir": "/data/incoming",
-  "output_dir": "/scratch/dsa110-contimg/ms",
+  "output_dir": "/stage/dsa110-contimg/ms",
   "expected_subbands": 16,
   "chunk_duration": 5.0
 }
@@ -207,7 +207,7 @@ curl -X POST http://localhost:8010/api/streaming/start \
   -H "Content-Type: application/json" \
   -d '{
     "input_dir": "/data/incoming",
-    "output_dir": "/scratch/dsa110-contimg/ms",
+    "output_dir": "/stage/dsa110-contimg/ms",
     "expected_subbands": 16
   }'
 ```
@@ -245,7 +245,7 @@ Restart the streaming service.
 ```json
 {
   "input_dir": "/data/incoming",
-  "output_dir": "/scratch/dsa110-contimg/ms",
+  "output_dir": "/stage/dsa110-contimg/ms",
   "expected_subbands": 16
 }
 ```
@@ -352,7 +352,7 @@ print(f"Start result: {result['message']}")
 # Update configuration
 config = {
     "input_dir": "/data/incoming",
-    "output_dir": "/scratch/dsa110-contimg/ms",
+    "output_dir": "/stage/dsa110-contimg/ms",
     "expected_subbands": 16,
     "max_workers": 4
 }

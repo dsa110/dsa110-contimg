@@ -4,7 +4,7 @@
 
 - Backend running: FastAPI server on port 8000
 - Frontend running: React dev server on port 3000
-- At least one MS in `ms_index` table (or in `/scratch/dsa110-contimg/ms/`)
+- At least one MS in `ms_index` table (or in `/stage/dsa110-contimg/ms/`)
 - CASA environment configured (`casa6` conda environment)
 
 ## Starting the Services
@@ -57,7 +57,7 @@ You can now view dsa110-dashboard in the browser.
 ### Step 1: Calibrate a Calibrator MS
 
 1. **Select MS**: Choose a calibrator MS from dropdown
-   - Example: `/scratch/dsa110-contimg/ms/range_2025-10-13_13_14/2025-10-13T13:28:03.ms`
+   - Example: `/stage/dsa110-contimg/ms/range_2025-10-13_13_14/2025-10-13T13:28:03.ms`
 
 2. **Go to "Calibrate" tab**
 
@@ -89,9 +89,9 @@ You can now view dsa110-dashboard in the browser.
 
 3. **Enter gaintable paths** (copy from previous job artifacts):
    ```
-   /scratch/dsa110-contimg/ms/range_2025-10-13_13_14/2025-10-13T13:28:03.kcal,
-   /scratch/dsa110-contimg/ms/range_2025-10-13_13_14/2025-10-13T13:28:03.bpcal,
-   /scratch/dsa110-contimg/ms/range_2025-10-13_13_14/2025-10-13T13:28:03.gpcal
+   /stage/dsa110-contimg/ms/range_2025-10-13_13_14/2025-10-13T13:28:03.kcal,
+   /stage/dsa110-contimg/ms/range_2025-10-13_13_14/2025-10-13T13:28:03.bpcal,
+   /stage/dsa110-contimg/ms/range_2025-10-13_13_14/2025-10-13T13:28:03.gpcal
    ```
 
 4. **Click "Apply Calibration"**
@@ -166,7 +166,7 @@ Calibrators typically have:
 ### Discovering Existing Caltables
 Check the MS directory:
 ```bash
-ls /scratch/dsa110-contimg/ms/range_*/2025-*/*cal
+ls /stage/dsa110-contimg/ms/range_*/2025-*/*cal
 ```
 
 ### Checking Job Status from CLI

@@ -14,7 +14,7 @@ markdown_extensions:
       custom_fences:
         - name: mermaid
           class: mermaid
-          format: !!python/name:pymdownx.superfences.fence_code_format
+          format: !!python/name:pymdownx.superfences.fence_div_format
   - pymdownx.arithmatex:
       generic: true
   - admonition
@@ -32,6 +32,17 @@ extra_javascript:
   - javascripts/mermaid-init.js
 plugins:
   - search
+  - mermaid2:
+      javascript: https://unpkg.com/mermaid@10/dist/mermaid.min.js
+      arguments:
+        theme: default
+        themeVariables:
+          primaryColor: '#2196F3'
+          primaryTextColor: '#fff'
+          primaryBorderColor: '#1976D2'
+          lineColor: '#424242'
+          secondaryColor: '#FFC107'
+          tertiaryColor: '#4CAF50'
   - mkdocstrings:
       handlers:
         python:
@@ -66,6 +77,8 @@ nav:
       - Calibrator Search: tutorials/notebooks/CalibratorSearch.ipynb
       - MS Staging Workflow: tutorials/notebooks/ms_staging_workflow.ipynb
   - How-To Guides:
+    - Mosaic Quickstart: how-to/mosaic_quickstart.md
+    - Fast Testing: how-to/FAST_TESTING.md
     - Build VP from h5: how-to/build-vp-from-h5.md
     - Calibration Detailed Procedure: how-to/CALIBRATION_DETAILED_PROCEDURE.md
     - Find Calibrator Transit Data: how-to/FIND_CALIBRATOR_TRANSIT_DATA.md

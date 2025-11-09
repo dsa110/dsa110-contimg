@@ -35,7 +35,29 @@ sudo systemctl start dsa110-api.service
 sudo systemctl status dsa110-api.service
 ```
 
-### 2. Install Dashboard Service (Optional - for production)
+### 2. Install Pointing Monitor Service
+
+```bash
+# Copy service file
+sudo cp /data/dsa110-contimg/ops/systemd/contimg-pointing-monitor.service /etc/systemd/system/
+
+# Reload systemd
+sudo systemctl daemon-reload
+
+# Enable service (start on boot)
+sudo systemctl enable contimg-pointing-monitor.service
+
+# Start service
+sudo systemctl start contimg-pointing-monitor.service
+
+# Check status
+sudo systemctl status contimg-pointing-monitor.service
+
+# Check status file
+cat /data/dsa110-contimg/state/pointing-monitor-status.json
+```
+
+### 3. Install Dashboard Service (Optional - for production)
 
 ```bash
 # First, build the production frontend
@@ -65,36 +87,44 @@ sudo systemctl status dsa110-dashboard.service
 # API logs
 sudo journalctl -u dsa110-api.service -f
 
+# Pointing monitor logs
+sudo journalctl -u contimg-pointing-monitor.service -f
+
 # Dashboard logs
 sudo journalctl -u dsa110-dashboard.service -f
 
 # Or view log files directly
-tail -f /var/log/dsa110/api.log
-tail -f /var/log/dsa110/dashboard.log
+tail -f /data/dsa110-contimg/state/logs/pointing-monitor.out
+tail -f /data/dsa110-contimg/state/logs/pointing-monitor.err
 ```
 
 ### Control Services
 ```bash
 # Start
 sudo systemctl start dsa110-api.service
+sudo systemctl start contimg-pointing-monitor.service
 sudo systemctl start dsa110-dashboard.service
 
 # Stop
 sudo systemctl stop dsa110-api.service
+sudo systemctl stop contimg-pointing-monitor.service
 sudo systemctl stop dsa110-dashboard.service
 
 # Restart
 sudo systemctl restart dsa110-api.service
+sudo systemctl restart contimg-pointing-monitor.service
 sudo systemctl restart dsa110-dashboard.service
 
 # Check status
 sudo systemctl status dsa110-api.service
+sudo systemctl status contimg-pointing-monitor.service
 sudo systemctl status dsa110-dashboard.service
 ```
 
 ### Disable Auto-Start
 ```bash
 sudo systemctl disable dsa110-api.service
+sudo systemctl disable contimg-pointing-monitor.service
 sudo systemctl disable dsa110-dashboard.service
 ```
 
@@ -158,17 +188,38 @@ export PYTHONPATH=/data/dsa110-contimg/src
 uvicorn dsa110_contimg.api.server:app --host 0.0.0.0 --port 8000
 ```
 
+### Pointing Monitor Status
+
+The pointing monitor writes a status JSON file for external monitoring:
+
+```bash
+# View current status
+cat /data/dsa110-contimg/state/pointing-monitor-status.json | jq
+
+# Monitor status changes
+watch -n 5 'cat /data/dsa110-contimg/state/pointing-monitor-status.json | jq .metrics'
+```
+
+Status file includes:
+- `running`: Whether monitor is active
+- `healthy`: Health check status
+- `issues`: List of health issues (if any)
+- `metrics`: Processing statistics (files processed, success rate, etc.)
+
 ## Uninstall
 
 ```bash
 # Stop and disable services
 sudo systemctl stop dsa110-api.service
 sudo systemctl disable dsa110-api.service
+sudo systemctl stop contimg-pointing-monitor.service
+sudo systemctl disable contimg-pointing-monitor.service
 sudo systemctl stop dsa110-dashboard.service
 sudo systemctl disable dsa110-dashboard.service
 
 # Remove service files
 sudo rm /etc/systemd/system/dsa110-api.service
+sudo rm /etc/systemd/system/contimg-pointing-monitor.service
 sudo rm /etc/systemd/system/dsa110-dashboard.service
 
 # Reload systemd

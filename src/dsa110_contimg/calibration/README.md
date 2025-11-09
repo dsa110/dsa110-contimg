@@ -2,9 +2,8 @@
 
 Install environment:
 ```bash
-conda create -n casa6-67 python=3.10 -y
-conda activate casa6-67
-conda install -c conda-forge casatools=6.7.0 casatasks=6.7.0 casadata pyuvdata=3.2.4 astropy=6 pandas=2.2 numpy scipy matplotlib pyyaml -y
+conda activate casa6
+# The casa6 environment is defined in env/environment.yml and includes all required dependencies
 ```
 
 Catalogs:

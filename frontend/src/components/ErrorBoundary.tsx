@@ -4,8 +4,10 @@
  */
 import { Component } from 'react';
 import type { ErrorInfo, ReactNode } from 'react';
-import { Box, Typography, Button, Paper, Alert } from '@mui/material';
-import { ErrorOutline, Refresh } from '@mui/icons-material';
+import { Box, Typography, Button, Paper, Alert, Stack } from '@mui/material';
+import { ErrorOutline, Refresh, Home } from '@mui/icons-material';
+import { useNavigate } from 'react-router-dom';
+import { classifyError, getUserFriendlyMessage } from '../utils/errorUtils';
 
 interface Props {
   children: ReactNode;
@@ -18,8 +20,8 @@ interface State {
   errorInfo: ErrorInfo | null;
 }
 
-class ErrorBoundary extends Component<Props, State> {
-  constructor(props: Props) {
+class ErrorBoundaryInner extends Component<Props & { navigate: (path: string) => void }, State> {
+  constructor(props: Props & { navigate: (path: string) => void }) {
     super(props);
     this.state = {
       hasError: false,
@@ -28,7 +30,7 @@ class ErrorBoundary extends Component<Props, State> {
     };
   }
 
-  static getDerivedStateFromError(error: Error): State {
+  static getDerivedStateFromError(error: Error): Partial<State> {
     return {
       hasError: true,
       error,
@@ -37,6 +39,7 @@ class ErrorBoundary extends Component<Props, State> {
   }
 
   componentDidCatch(error: Error, errorInfo: ErrorInfo) {
+    // Use console.error here since logger might not be available if error occurs early
     console.error('ErrorBoundary caught an error:', error, errorInfo);
     this.setState({
       error,
@@ -52,11 +55,20 @@ class ErrorBoundary extends Component<Props, State> {
     });
   };
 
+  handleGoHome = () => {
+    this.handleReset();
+    this.props.navigate('/dashboard');
+  };
+
   render() {
     if (this.state.hasError) {
       if (this.props.fallback) {
         return this.props.fallback;
       }
+
+      const error = this.state.error;
+      const classified = error ? classifyError(error) : null;
+      const userMessage = error ? getUserFriendlyMessage(error) : 'An unexpected error occurred';
 
       return (
         <Box sx={{ p: 3 }}>
@@ -66,12 +78,34 @@ class ErrorBoundary extends Component<Props, State> {
                 Something went wrong
               </Typography>
               <Typography variant="body2">
-                An unexpected error occurred. Please try refreshing the page or contact support if the problem persists.
+                {userMessage}
               </Typography>
+              {classified && classified.type === 'network' && (
+                <Typography variant="body2" sx={{ mt: 1, fontStyle: 'italic' }}>
+                  Please check your internet connection and try again.
+                </Typography>
+              )}
             </Alert>
 
-            {import.meta.env.DEV && this.state.error && (
-              <Box sx={{ mt: 2 }}>
+            <Stack direction="row" spacing={2} sx={{ mt: 2 }}>
+              <Button
+                variant="contained"
+                startIcon={<Refresh />}
+                onClick={this.handleReset}
+              >
+                Try Again
+              </Button>
+              <Button
+                variant="outlined"
+                startIcon={<Home />}
+                onClick={this.handleGoHome}
+              >
+                Go to Dashboard
+              </Button>
+            </Stack>
+
+            {import.meta.env.DEV && error && (
+              <Box sx={{ mt: 3 }}>
                 <Typography variant="subtitle2" gutterBottom>
                   Error Details (Development Mode):
                 </Typography>
@@ -85,9 +119,10 @@ class ErrorBoundary extends Component<Props, State> {
                     fontSize: '0.75rem',
                     fontFamily: 'monospace',
                     color: '#ff6b6b',
+                    maxHeight: '400px',
                   }}
                 >
-                  {this.state.error.toString()}
+                  {error.toString()}
                   {this.state.errorInfo?.componentStack && (
                     <>
                       {'\n\nComponent Stack:'}
@@ -95,17 +130,16 @@ class ErrorBoundary extends Component<Props, State> {
                     </>
                   )}
                 </Box>
+                {classified && (
+                  <Box sx={{ mt: 1 }}>
+                    <Typography variant="caption" color="text.secondary">
+                      Error Type: {classified.type} | Retryable: {classified.retryable ? 'Yes' : 'No'}
+                      {classified.statusCode && ` | Status: ${classified.statusCode}`}
+                    </Typography>
+                  </Box>
+                )}
               </Box>
             )}
-
-            <Button
-              variant="contained"
-              startIcon={<Refresh />}
-              onClick={this.handleReset}
-              sx={{ mt: 2 }}
-            >
-              Try Again
-            </Button>
           </Paper>
         </Box>
       );
@@ -113,6 +147,25 @@ class ErrorBoundary extends Component<Props, State> {
 
     return this.props.children;
   }
+}
+
+// Wrapper to use hooks
+function ErrorBoundary(props: Props) {
+  // Try to get navigate, but handle case where Router context might not be available
+  let navigate: ((path: string) => void) | null = null;
+  try {
+    navigate = useNavigate();
+  } catch (e) {
+    // Router context not available, navigate will be null
+    navigate = null;
+  }
+  
+  const safeNavigate = navigate || ((path: string) => {
+    // Fallback: use window.location if navigate not available
+    window.location.href = path;
+  });
+  
+  return <ErrorBoundaryInner {...props} navigate={safeNavigate} />;
 }
 
 export default ErrorBoundary;

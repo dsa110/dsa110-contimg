@@ -3,63 +3,63 @@
 This diagram shows high-level dependencies among actively used modules, ops scripts, and docs.
 
 ```mermaid
-graph LR
-  subgraph Ops
-    OPS_STREAM[ops/systemd/contimg-stream.service]
-    OPS_DOCKER[ops/docker/docker-compose.yml]
-    OPS_PIPE_BUILD[ops/pipeline/build_central_calibrator_group.py]
-    OPS_PIPE_IMAGE[ops/pipeline/image_groups_in_timerange.py]
-    OPS_PIPE_OFFSETS[ops/pipeline/build_calibrator_transit_offsets.py]
-    OPS_PIPE_CURATE[ops/pipeline/curate_transit.py]
-    OPS_RUN_CONV[scripts/run_conversion.sh]
-    OPS_CAL_BP[scripts/calibrate_bandpass.sh]
-    OPS_IMAGE_MS[scripts/image_ms.sh]
+graph TB
+  subgraph Ops["Operations & Scripts"]
+    OPS_STREAM["contimg-stream.service"]
+    OPS_DOCKER["docker-compose.yml"]
+    OPS_PIPE_BUILD["build_central_calibrator_group.py"]
+    OPS_PIPE_IMAGE["image_groups_in_timerange.py"]
+    OPS_PIPE_OFFSETS["build_calibrator_transit_offsets.py"]
+    OPS_PIPE_CURATE["curate_transit.py"]
+    OPS_RUN_CONV["run_conversion.sh"]
+    OPS_CAL_BP["calibrate_bandpass.sh"]
+    OPS_IMAGE_MS["image_ms.sh"]
   end
 
-  subgraph Conversion
-    CLI_CONV[conversion/cli.py]
-    UVH5_TO_MS[conversion/uvh5_to_ms.py]
-    HDF5_ORCH[conversion/strategies/hdf5_orchestrator.py]
-    STREAMING[conversion/streaming/streaming_converter.py]
-    MS_UTILS[conversion/ms_utils.py]
-    HELPERS[conversion/helpers.py]
-    DS_FAST[conversion/downsample_uvh5/downsample_hdf5_fast.py]
-    DS_SINGLE[conversion/downsample_uvh5/downsample_hdf5.py]
-    DS_BATCH[conversion/downsample_uvh5/downsample_hdf5_batch.py]
+  subgraph Conversion["Conversion Module"]
+    CLI_CONV["cli.py"]
+    UVH5_TO_MS["uvh5_to_ms.py"]
+    HDF5_ORCH["hdf5_orchestrator.py"]
+    STREAMING["streaming_converter.py"]
+    MS_UTILS["ms_utils.py"]
+    HELPERS["helpers.py"]
+    DS_FAST["downsample_hdf5_fast.py"]
+    DS_SINGLE["downsample_hdf5.py"]
+    DS_BATCH["downsample_hdf5_batch.py"]
   end
 
-  subgraph Calibration
-    CAL_CLI[calibration/cli.py]
-    CAL_CORE[calibration/calibration.py]
-    CAL_MODEL[calibration/model.py]
+  subgraph Calibration["Calibration Module"]
+    CAL_CLI["cli.py"]
+    CAL_CORE["calibration.py"]
+    CAL_MODEL["model.py"]
   end
 
-  subgraph Imaging
-    IMG_CLI[imaging/cli.py]
-    IMG_WORKER[imaging/worker.py]
+  subgraph Imaging["Imaging Module"]
+    IMG_CLI["cli.py"]
+    IMG_WORKER["worker.py"]
   end
 
-  subgraph DB
-    DB_REG[database/registry.py]
-    DB_REG_CLI[database/registry_cli.py]
-    DB_PRODUCTS[database/products_db.py]
+  subgraph DB["Database Module"]
+    DB_REG["registry.py"]
+    DB_REG_CLI["registry_cli.py"]
+    DB_PRODUCTS["products_db.py"]
   end
 
-  subgraph QA
-    QA_FAST[qa/fast_plots.py]
+  subgraph QA["QA Module"]
+    QA_FAST["fast_plots.py"]
   end
 
-  subgraph API
-    API_ROUTES[api/routes.py]
-    API_MODELS[api/models.py]
-    API_DA[data_access]
+  subgraph API["API Module"]
+    API_ROUTES["routes.py"]
+    API_MODELS["models.py"]
+    API_DA["data_access"]
   end
 
-  subgraph Docs
-    DOCS_CLI[docs/reference/cli.md]
-    DOCS_PIPE[docs/pipeline/README_uvh5_to_ms.md]
-    DOCS_DEP_SYS[docs/ops/deploy-systemd.md]
-    DOCS_DEP_DOCK[docs/ops/deploy-docker.md]
+  subgraph Docs["Documentation"]
+    DOCS_CLI["cli.md"]
+    DOCS_PIPE["README_uvh5_to_ms.md"]
+    DOCS_DEP_SYS["deploy-systemd.md"]
+    DOCS_DEP_DOCK["deploy-docker.md"]
   end
 
   %% Ops -> Modules
@@ -108,4 +108,13 @@ graph LR
   API_ROUTES --> DB_PRODUCTS
   API_ROUTES --> DB_REG
   API_ROUTES --> STREAMING
+
+  style Ops fill:#FFF3E0,stroke:#F57C00,stroke-width:2px,color:#000
+  style Conversion fill:#F3E5F5,stroke:#7B1FA2,stroke-width:2px,color:#000
+  style Calibration fill:#E8F5E9,stroke:#388E3C,stroke-width:2px,color:#000
+  style Imaging fill:#FCE4EC,stroke:#C2185B,stroke-width:2px,color:#000
+  style DB fill:#E0F2F1,stroke:#00796B,stroke-width:2px,color:#000
+  style QA fill:#FFF9C4,stroke:#F57F17,stroke-width:2px,color:#000
+  style API fill:#E1F5FE,stroke:#0277BD,stroke-width:2px,color:#000
+  style Docs fill:#F5F5F5,stroke:#616161,stroke-width:2px,color:#000
 ```

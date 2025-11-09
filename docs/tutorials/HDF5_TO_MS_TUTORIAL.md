@@ -26,8 +26,14 @@ python -m dsa110_contimg.conversion.cli groups \
 **What happens:**
 - Finds all complete 16-subband groups between the start and end times
 - Converts each group to a separate MS file
+- Writes MS files directly to organized locations: `/stage/dsa110-contimg/ms/science/YYYY-MM-DD/<timestamp>.ms`
 - Skips incomplete groups (missing subbands)
 - Names MS files based on the group timestamp
+
+**Output location:** MS files are automatically written to date-organized subdirectories:
+- Science MS → `ms/science/YYYY-MM-DD/<timestamp>.ms`
+- Calibrator MS → `ms/calibrators/YYYY-MM-DD/<timestamp>.ms`
+- Failed MS → `ms/failed/YYYY-MM-DD/<timestamp>.ms`
 
 **Use this when:** You know the exact time window you want to process.
 
@@ -49,7 +55,8 @@ python -m dsa110_contimg.conversion.cli groups \
 - Calculates when calibrator 0834+555 transited on the specified date
 - Finds the observation group containing that transit
 - Uses a ±30 minute window around the transit (configurable)
-- Converts only the group that git addmatches the calibrator's declination
+- Converts only the group that matches the calibrator's declination
+- Writes MS file directly to organized location: `/stage/dsa110-contimg/ms/calibrators/YYYY-MM-DD/<timestamp>.ms`
 
 **Use this when:** You want to process calibrator data for calibration pipeline.
 
@@ -545,7 +552,7 @@ python -m dsa110_contimg.conversion.cli groups \
 ### Scratch Directory
 
 ```bash
---scratch-dir /scratch/dsa110-contimg  # Use fast SSD for intermediate files
+--scratch-dir /stage/dsa110-contimg  # Use fast SSD for intermediate files
 ```
 
 ### Flux Model

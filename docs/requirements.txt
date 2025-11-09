@@ -1,4 +1,4 @@
-# Python 3.11-compatible docs stack (CASA6 env)
+# Python 3.11-compatible docs stack (requires casa6 conda environment)
 mkdocs==1.6.1
 mkdocs-material==9.5.31
 pymdown-extensions==10.8.1

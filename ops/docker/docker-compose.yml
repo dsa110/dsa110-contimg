@@ -43,7 +43,7 @@ services:
   api:
     # API Service Configuration
     # For restart procedures and troubleshooting, see: docs/operations/API_RESTART_GUIDE.md
-    # IMPORTANT: Uses casa6 conda environment, requires /scratch mount for MS file access
+    # IMPORTANT: Uses casa6 conda environment, requires /stage mount for MS file access
     build:
       context: ../..
       dockerfile: ops/docker/Dockerfile

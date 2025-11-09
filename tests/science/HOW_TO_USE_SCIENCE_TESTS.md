@@ -22,10 +22,10 @@ These tests validate:
 
 ```bash
 # Set environment variables pointing to your calibration products
-export TEST_MS_PATH="/scratch/dsa110-contimg/ms/0834_20251029/2025-10-29T13:54:17.ms"
-export TEST_BP_TABLE="/scratch/dsa110-contimg/ms/0834_20251029/2025-10-29T13:54:17_0_bpcal"
-export TEST_PREBP_TABLE="/scratch/dsa110-contimg/ms/0834_20251029/2025-10-29T13:54:17_0_prebp_phase"
-export TEST_G_TABLE="/scratch/dsa110-contimg/ms/0834_20251029/2025-10-29T13:54:17_0_gcal"
+export TEST_MS_PATH="/stage/dsa110-contimg/ms/0834_20251029/2025-10-29T13:54:17.ms"
+export TEST_BP_TABLE="/stage/dsa110-contimg/ms/0834_20251029/2025-10-29T13:54:17_0_bpcal"
+export TEST_PREBP_TABLE="/stage/dsa110-contimg/ms/0834_20251029/2025-10-29T13:54:17_0_prebp_phase"
+export TEST_G_TABLE="/stage/dsa110-contimg/ms/0834_20251029/2025-10-29T13:54:17_0_gcal"
 
 # Run integration tests
 pytest tests/science/test_calibration_integration_validation.py -v
@@ -84,9 +84,9 @@ After running calibration:
 
 ```bash
 # 1. Set paths to your calibration products
-export TEST_MS_PATH="/scratch/dsa110-contimg/ms/0834_20251029/2025-10-29T13:54:17.ms"
-export TEST_BP_TABLE="/scratch/dsa110-contimg/ms/0834_20251029/2025-10-29T13:54:17_0_bpcal"
-export TEST_PREBP_TABLE="/scratch/dsa110-contimg/ms/0834_20251029/2025-10-29T13:54:17_0_prebp_phase"
+export TEST_MS_PATH="/stage/dsa110-contimg/ms/0834_20251029/2025-10-29T13:54:17.ms"
+export TEST_BP_TABLE="/stage/dsa110-contimg/ms/0834_20251029/2025-10-29T13:54:17_0_bpcal"
+export TEST_PREBP_TABLE="/stage/dsa110-contimg/ms/0834_20251029/2025-10-29T13:54:17_0_prebp_phase"
 
 # 2. Run integration tests
 pytest tests/science/test_calibration_integration_validation.py -v

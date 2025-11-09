@@ -384,7 +384,7 @@ def main():
     parser.add_argument("--date", default="2025-11-02", help="Target date (YYYY-MM-DD)")
     parser.add_argument("--incoming-dir", default="/data/incoming", help="Input HDF5 directory")
     parser.add_argument("--output-dir", default="/data/output", help="Output directory")
-    parser.add_argument("--scratch-dir", default="/scratch/dsa110-contimg", help="Scratch directory")
+    parser.add_argument("--scratch-dir", default="/stage/dsa110-contimg", help="Scratch directory")
     parser.add_argument("--products-db", help="Products database path (default: state/products.sqlite3)")
     parser.add_argument("--window-minutes", type=int, default=30, help="Window around transit (minutes)")
     parser.add_argument("--imsize", type=int, default=2048, help="Image size (pixels)")

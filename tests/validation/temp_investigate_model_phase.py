@@ -8,7 +8,7 @@ import sys
 sys.path.insert(0, 'src')
 from dsa110_contimg.calibration.catalogs import load_vla_catalog, get_calibrator_radec
 
-ms_path = '/scratch/dsa110-contimg/ms/0834_20251029/2025-10-29T13:54:17.phased.ms'
+ms_path = '/stage/dsa110-contimg/ms/0834_20251029/2025-10-29T13:54:17.phased.ms'
 
 print('=' * 70)
 print('INVESTIGATING MODEL_DATA PHASE CENTER vs FIELD PHASE CENTERS')
@@ -43,7 +43,7 @@ with table(ms_path + '/FIELD', readonly=True) as field:
         print(f'REFERENCE_DIR vs PHASE_DIR offset: {ref_phase_sep:.6f} arcsec')
 
 # Check component list phase center
-cl_path = '/scratch/dsa110-contimg/ms/0834_20251029/0834+555.cl'
+cl_path = '/stage/dsa110-contimg/ms/0834_20251029/0834+555.cl'
 
 print(f'\n{"="*70}')
 print('Checking component list phase center:')

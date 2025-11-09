@@ -29,7 +29,6 @@ import {
   IconButton,
   Tabs,
   Tab,
-  Grid,
   Card,
   CardMedia,
   CardContent,
@@ -39,10 +38,11 @@ import {
   CheckCircle as CheckIcon,
   BarChart as BarChartIcon,
   Download as DownloadIcon,
-  Image as ImageIcon,
 } from '@mui/icons-material';
 import type { PerSPWStats } from '../api/types';
 import { useBandpassPlots } from '../api/queries';
+import { apiClient } from '../api/client';
+import { useNotifications } from '../contexts/NotificationContext';
 
 interface CalibrationSPWPanelProps {
   /** Per-SPW statistics to display */
@@ -63,6 +63,7 @@ export function CalibrationSPWPanel({
   const [bandpassPlotTab, setBandpassPlotTab] = useState(0); // 0 = amplitude, 1 = phase
   
   const { data: bandpassPlots, isLoading: plotsLoading } = useBandpassPlots(msPath || null);
+  const { showError } = useNotifications();
 
   // Cleanup object URLs on unmount
   useEffect(() => {
@@ -79,23 +80,34 @@ export function CalibrationSPWPanel({
     setPlotLoading(true);
     try {
       const encodedPath = encodeURIComponent(msPath.replace(/^\//, ''));
-      const response = await fetch(`/api/qa/calibration/${encodedPath}/spw-plot`);
-      if (response.ok) {
-        const blob = await response.blob();
-        // Clean up previous URL if it exists
-        if (plotUrl) {
-          URL.revokeObjectURL(plotUrl);
-        }
-        const url = URL.createObjectURL(blob);
-        setPlotUrl(url);
-      } else {
-        const errorText = await response.text().catch(() => 'Unknown error');
-        console.error('Failed to generate plot:', response.status, errorText);
-        // Could add user-facing error notification here
+      const response = await apiClient.get(`/api/qa/calibration/${encodedPath}/spw-plot`, {
+        responseType: 'blob',
+      });
+      
+      // Clean up previous URL if it exists
+      if (plotUrl) {
+        URL.revokeObjectURL(plotUrl);
       }
-    } catch (error) {
-      console.error('Error generating plot:', error);
-      // Could add user-facing error notification here
+      const blob = response.data;
+      const url = URL.createObjectURL(blob);
+      setPlotUrl(url);
+    } catch (error: unknown) {
+      // Error is already logged by apiClient interceptor
+      let errorMessage = 'Failed to generate plot';
+      if (error && typeof error === 'object') {
+        if ('response' in error) {
+          const apiError = error as { response?: { data?: { detail?: unknown } } };
+          if (apiError.response?.data?.detail) {
+            errorMessage = typeof apiError.response.data.detail === 'string' 
+              ? apiError.response.data.detail 
+              : String(apiError.response.data.detail);
+          }
+        }
+        if ('message' in error && typeof error.message === 'string') {
+          errorMessage = error.message;
+        }
+      }
+      showError(`Failed to generate SPW plot: ${errorMessage}`);
     } finally {
       setPlotLoading(false);
     }
@@ -190,39 +202,37 @@ export function CalibrationSPWPanel({
               <Tab label="Amplitude" />
               <Tab label="Phase" />
             </Tabs>
-            <Grid container spacing={2}>
+            <Box sx={{ display: 'grid', gridTemplateColumns: { xs: '1fr', sm: 'repeat(2, 1fr)', md: 'repeat(3, 1fr)' }, gap: 2 }}>
               {bandpassPlots.plots
                 .filter(p => (bandpassPlotTab === 0 && p.type === 'amplitude') || (bandpassPlotTab === 1 && p.type === 'phase'))
                 .map((plot) => (
-                  <Grid item xs={12} sm={6} md={4} key={plot.filename}>
-                    <Card>
-                      <CardMedia
-                        component="img"
-                        height="200"
-                        image={plot.url.startsWith('/') ? `/api${plot.url}` : plot.url}
-                        alt={`${plot.type} SPW ${plot.spw !== null ? plot.spw : 'unknown'}`}
-                        sx={{ objectFit: 'contain', bgcolor: 'background.paper' }}
-                      />
-                      <CardContent>
-                        <Typography variant="caption" display="block">
-                          SPW {plot.spw !== null ? plot.spw : '?'} - {plot.type}
-                        </Typography>
-                        <IconButton
-                          size="small"
-                          onClick={() => {
-                            const link = document.createElement('a');
-                            link.href = plot.url.startsWith('/') ? `/api${plot.url}` : plot.url;
-                            link.download = plot.filename;
-                            link.click();
-                          }}
-                        >
-                          <DownloadIcon fontSize="small" />
-                        </IconButton>
-                      </CardContent>
-                    </Card>
-                  </Grid>
+                  <Card key={plot.filename}>
+                    <CardMedia
+                      component="img"
+                      height="200"
+                      image={plot.url.startsWith('/') ? `/api${plot.url}` : plot.url}
+                      alt={`${plot.type} SPW ${plot.spw !== null ? plot.spw : 'unknown'}`}
+                      sx={{ objectFit: 'contain', bgcolor: 'background.paper' }}
+                    />
+                    <CardContent>
+                      <Typography variant="caption" display="block">
+                        SPW {plot.spw !== null ? plot.spw : '?'} - {plot.type}
+                      </Typography>
+                      <IconButton
+                        size="small"
+                        onClick={() => {
+                          const link = document.createElement('a');
+                          link.href = plot.url.startsWith('/') ? `/api${plot.url}` : plot.url;
+                          link.download = plot.filename;
+                          link.click();
+                        }}
+                      >
+                        <DownloadIcon fontSize="small" />
+                      </IconButton>
+                    </CardContent>
+                  </Card>
                 ))}
-            </Grid>
+            </Box>
             {bandpassPlots.plots.filter(p => (bandpassPlotTab === 0 && p.type === 'amplitude') || (bandpassPlotTab === 1 && p.type === 'phase')).length === 0 && (
               <Typography variant="body2" color="text.secondary" sx={{ textAlign: 'center', py: 2 }}>
                 No {bandpassPlotTab === 0 ? 'amplitude' : 'phase'} plots available

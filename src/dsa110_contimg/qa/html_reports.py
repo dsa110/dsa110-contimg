@@ -5,22 +5,30 @@ Generates comprehensive HTML validation reports similar to ASKAP's validation
 framework, with pass/fail indicators, tables, and integrated visualization.
 """
 
+from dsa110_contimg.qa.validation_plots import (
+    plot_astrometry_scatter,
+    plot_flux_ratio_histogram,
+    plot_completeness_curve,
+    plot_spatial_distribution,
+    plot_flux_vs_offset,
+    plot_validation_summary
+)
+from dsa110_contimg.qa.catalog_validation import CatalogValidationResult
+from astropy.io import fits
+import numpy as np
+from dsa110_contimg.utils.runtime_safeguards import validate_image_shape
+import matplotlib.pyplot as plt
 import base64
+import io
 import logging
 from dataclasses import dataclass, field
 from datetime import datetime
 from pathlib import Path
 from typing import Dict, List, Optional, Tuple
 
-import numpy as np
-from astropy.io import fits
+import matplotlib
+matplotlib.use("Agg", force=True)  # Headless backend
 
-from dsa110_contimg.qa.catalog_validation import CatalogValidationResult
-from dsa110_contimg.qa.validation_plots import (
-    plot_astrometry_scatter,
-    plot_flux_ratio_histogram,
-    plot_completeness_curve
-)
 
 logger = logging.getLogger(__name__)
 
@@ -394,6 +402,149 @@ def _generate_source_counts_section(result: CatalogValidationResult) -> str:
     return html
 
 
+def _generate_image_visualization(image_path: str, output_format: str = "png", dpi: int = 100) -> Optional[str]:
+    """
+    Generate base64-encoded visualization of FITS image.
+
+    Args:
+        image_path: Path to FITS image
+        output_format: Image format ("png", "svg", "pdf")
+        dpi: Resolution for raster formats
+
+    Returns:
+        Base64-encoded image string, or None if generation fails
+    """
+    try:
+        with fits.open(image_path, memmap=False) as hdul:
+            data = None
+            for hdu in hdul:
+                if getattr(hdu, "data", None) is not None and getattr(hdu.data, "ndim", 0) >= 2:
+                    # Validate image shape before processing
+                    try:
+                        validate_image_shape(hdu.data, min_size=1)
+                    except ValueError as e:
+                        logger.warning(f"Invalid image shape in {image_path} (HDU {hdu.name}): {e}")
+                        continue
+                    data = hdu.data
+                    break
+
+            if data is None:
+                logger.warning(f"No 2D image data found in {image_path}")
+                return None
+
+            arr = np.array(data, dtype=float)
+            # Collapse extra dimensions (e.g., frequency, stokes)
+            while arr.ndim > 2:
+                arr = arr[0]
+
+            # Handle NaN/inf values
+            m = np.isfinite(arr)
+            if not np.any(m):
+                logger.warning(f"All values are NaN/inf in {image_path}")
+                return None
+
+            # Calculate percentiles for scaling
+            vals = arr[m]
+            lo, hi = np.percentile(vals, [1.0, 99.5])
+
+            # Scale image using arcsinh stretch
+            img = np.clip(arr, lo, hi)
+            img = np.arcsinh((img - lo) / max(1e-12, (hi - lo)))
+            img[~m] = np.nan
+
+            # Create figure
+            fig, ax = plt.subplots(figsize=(8, 7), dpi=dpi)
+            im = ax.imshow(img, origin="lower", cmap="inferno",
+                           interpolation="nearest")
+            ax.set_xlabel("Pixel X", fontsize=11)
+            ax.set_ylabel("Pixel Y", fontsize=11)
+            ax.set_title(f"Image: {Path(image_path).name}",
+                         fontsize=12, fontweight="bold")
+
+            # Add colorbar
+            cbar = plt.colorbar(im, ax=ax, fraction=0.046, pad=0.04)
+            cbar.set_label("Intensity (arcsinh scaled)", fontsize=10)
+
+            plt.tight_layout()
+
+            # Convert to base64
+            buf = io.BytesIO()
+            plt.savefig(buf, format=output_format,
+                        dpi=dpi, bbox_inches='tight')
+            buf.seek(0)
+            img_base64 = base64.b64encode(buf.read()).decode('utf-8')
+            plt.close(fig)
+
+            return f"data:image/{output_format};base64,{img_base64}"
+
+    except Exception as e:
+        logger.error(
+            f"Error generating image visualization: {e}", exc_info=True)
+        return None
+
+
+def _verify_real_observation(image_path: str) -> Tuple[bool, List[str]]:
+    """
+    Verify if a FITS file is a real observation or test/synthetic data.
+
+    Returns:
+        Tuple of (is_real_observation, indicators)
+        indicators: List of strings explaining why it's classified as test/real
+    """
+    path_obj = Path(image_path)
+    indicators = []
+
+    # Check file location
+    path_str = str(path_obj).lower()
+    is_test_dir = (
+        'test' in path_str or
+        'tests/' in path_str or
+        'notebooks/' in path_str or
+        path_str.endswith('_test_')
+    )
+
+    if is_test_dir:
+        indicators.append("File located in test directory")
+
+    # Check filename
+    filename_lower = path_obj.name.lower()
+    if filename_lower.startswith('test_') or 'test' in filename_lower:
+        indicators.append("Filename indicates test data")
+
+    # Check FITS header metadata
+    has_date = False
+    has_telescope = False
+    has_object = False
+
+    try:
+        with fits.open(image_path) as hdul:
+            header = hdul[0].header
+            has_date = 'DATE-OBS' in header or 'DATE' in header
+            has_telescope = 'TELESCOP' in header
+            has_object = 'OBJECT' in header
+
+            if has_date:
+                indicators.append(
+                    "Has DATE-OBS field (real observation indicator)")
+            if has_telescope:
+                indicators.append(
+                    f"Has TELESCOP field: {header.get('TELESCOP', 'N/A')}")
+            if has_object:
+                indicators.append(
+                    f"Has OBJECT field: {header.get('OBJECT', 'N/A')}")
+    except Exception:
+        pass
+
+    # Real observations should have DATE-OBS and not be in test directories
+    is_real = has_date and not is_test_dir
+
+    if not is_real:
+        if not has_date:
+            indicators.append("Missing DATE-OBS field (typical of test data)")
+
+    return is_real, indicators
+
+
 def _get_image_metadata(image_path: str) -> Dict[str, str]:
     """Extract basic metadata from image."""
     try:
@@ -419,6 +570,16 @@ def _get_image_metadata(image_path: str) -> Dict[str, str]:
             if "CDELT1" in header:
                 cell_size = abs(header["CDELT1"]) * 3600  # Convert to arcsec
                 metadata["cell_size"] = f"{cell_size:.2f} arcsec/pixel"
+
+            # Add observation date if available
+            if "DATE-OBS" in header:
+                metadata["observation_date"] = header["DATE-OBS"]
+            elif "DATE" in header:
+                metadata["observation_date"] = header["DATE"]
+
+            # Add telescope if available
+            if "TELESCOP" in header:
+                metadata["telescope"] = header["TELESCOP"]
 
             return metadata
     except Exception as e:
@@ -448,13 +609,19 @@ def generate_html_report(
     # Get image metadata
     image_metadata = _get_image_metadata(report.image_path)
 
+    # Verify if this is real observation or test data
+    is_real_observation, data_indicators = _verify_real_observation(
+        report.image_path)
+    data_type_label = "Real Observation" if is_real_observation else "Test/Synthetic Data"
+    data_type_color = "#28a745" if is_real_observation else "#ffc107"
+
     # Build HTML
     html = f"""<!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>DSA-110 Validation Report: {report.image_name}</title>
+    <title>DSA-110 Validation Report: {report.image_name} [{data_type_label}]</title>
     <style>
         body {{
             font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
@@ -480,6 +647,32 @@ def generate_html_report(
         .header p {{
             margin: 5px 0;
             opacity: 0.9;
+        }}
+        .data-type-banner {{
+            background-color: #fff3cd;
+            border-left: 4px solid #ffc107;
+            padding: 15px;
+            margin: 20px 0;
+            border-radius: 4px;
+        }}
+        .data-type-banner.real {{
+            background-color: #d4edda;
+            border-left-color: #28a745;
+        }}
+        .data-type-banner h3 {{
+            margin: 0 0 10px 0;
+            color: #856404;
+        }}
+        .data-type-banner.real h3 {{
+            color: #155724;
+        }}
+        .data-type-banner ul {{
+            margin: 10px 0 0 0;
+            padding-left: 20px;
+        }}
+        .data-type-banner li {{
+            margin: 5px 0;
+            font-size: 0.9em;
         }}
         .summary {{
             background: white;
@@ -616,9 +809,27 @@ def generate_html_report(
         <p><strong>Image:</strong> {report.image_name}</p>
         <p><strong>Generated:</strong> {report.generated_at}</p>
     </div>
-    
+"""
+
+    # Close the initial HTML string and add summary section
+    real_class = 'real' if is_real_observation else ''
+
+    html += f"""
     <div class="summary">
         <h2>Summary</h2>
+        
+        <!-- Data Type Banner -->
+        <div class="data-type-banner {real_class}">
+            <h3>Data Type: {data_type_label}</h3>
+            <ul>
+"""
+
+    for indicator in data_indicators:
+        html += f"                <li>{indicator}</li>\n"
+
+    html += f"""            </ul>
+        </div>
+        
         <div class="status-overall">
             {status_icon} Overall Status: {report.overall_status}
         </div>
@@ -634,6 +845,10 @@ def generate_html_report(
             <tr>
                 <td>Image Path</td>
                 <td><code>{report.image_path}</code></td>
+            </tr>
+            <tr>
+                <td>Data Type</td>
+                <td><strong style="color: {data_type_color};">{data_type_label}</strong></td>
             </tr>
 """
 
@@ -653,6 +868,16 @@ def generate_html_report(
             </tr>
         </table>
 """
+
+    # Add image visualization
+    image_viz = _generate_image_visualization(report.image_path)
+    if image_viz:
+        html += """
+        <h4>Image Visualization</h4>
+        <div style="text-align: center; margin: 20px 0;">
+            <img src="{}" alt="FITS image visualization" style="max-width: 100%; height: auto; border: 1px solid #ddd; border-radius: 4px; box-shadow: 0 2px 4px rgba(0,0,0,0.1);">
+        </div>
+""".format(image_viz)
 
     # Add overall issues and warnings
     if report.issues:
@@ -678,6 +903,42 @@ def generate_html_report(
         html += """            </ul>
         </div>
 """
+
+    # Add enhanced visualization: validation summary dashboard
+    summary_plot = plot_validation_summary(
+        report.astrometry,
+        report.flux_scale,
+        report.source_counts
+    )
+    if summary_plot:
+        html += """
+        <h4>Validation Summary Dashboard</h4>
+        <div style="text-align: center; margin: 20px 0;">
+            <img src="{}" alt="Validation summary dashboard" style="max-width: 100%; height: auto; border: 1px solid #ddd; border-radius: 4px; box-shadow: 0 2px 4px rgba(0,0,0,0.1);">
+        </div>
+""".format(summary_plot)
+    
+    # Add enhanced visualization: spatial distribution (if astrometry available)
+    if report.astrometry:
+        spatial_plot = plot_spatial_distribution(report.astrometry)
+        if spatial_plot:
+            html += """
+        <h4>Spatial Distribution Analysis</h4>
+        <div style="text-align: center; margin: 20px 0;">
+            <img src="{}" alt="Spatial distribution plot" style="max-width: 100%; height: auto; border: 1px solid #ddd; border-radius: 4px; box-shadow: 0 2px 4px rgba(0,0,0,0.1);">
+        </div>
+""".format(spatial_plot)
+    
+    # Add enhanced visualization: flux vs offset correlation (if both available)
+    if report.astrometry and report.flux_scale:
+        flux_offset_plot = plot_flux_vs_offset(report.astrometry, report.flux_scale)
+        if flux_offset_plot:
+            html += """
+        <h4>Flux vs Astrometric Offset Correlation</h4>
+        <div style="text-align: center; margin: 20px 0;">
+            <img src="{}" alt="Flux vs offset plot" style="max-width: 100%; height: auto; border: 1px solid #ddd; border-radius: 4px; box-shadow: 0 2px 4px rgba(0,0,0,0.1);">
+        </div>
+""".format(flux_offset_plot)
 
     html += """    </div>
 """

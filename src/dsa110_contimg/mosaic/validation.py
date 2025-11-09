@@ -9,6 +9,7 @@ Uses caching to avoid redundant expensive operations.
 
 import logging
 import os
+import sys
 import sqlite3
 from dataclasses import dataclass, asdict
 from pathlib import Path
@@ -269,11 +270,16 @@ def validate_tiles_consistency(
     Returns:
         (is_valid, issues, metrics_dict)
     """
+    print(f"[DEBUG] validate_tiles_consistency: Starting for {len(tiles)} tiles", file=sys.stderr, flush=True)
+    print(f"[DEBUG] validate_tiles_consistency: Starting for {len(tiles)} tiles", flush=True)
+    
     cache = get_cache()
+    print(f"[DEBUG] validate_tiles_consistency: Cache obtained", file=sys.stderr, flush=True)
     all_issues = []
     metrics_dict = {}
 
     # Batch database query for all tiles
+    print(f"[DEBUG] validate_tiles_consistency: Starting database query", file=sys.stderr, flush=True)
     db_data = {}
     ms_paths = set()
     if products_db:
@@ -303,9 +309,13 @@ def validate_tiles_consistency(
                                   for row in cal_rows}
         except Exception as e:
             logger.debug(f"Batch DB query failed: {e}")
+            print(f"[DEBUG] validate_tiles_consistency: Database query exception: {e}", file=sys.stderr, flush=True)
+    
+    print(f"[DEBUG] validate_tiles_consistency: Database query complete, validating {len(tiles)} tiles", file=sys.stderr, flush=True)
 
     # Validate each tile
-    for tile in tiles:
+    for i, tile in enumerate(tiles):
+        print(f"[DEBUG] validate_tiles_consistency: Validating tile {i+1}/{len(tiles)}: {Path(tile).name}", file=sys.stderr, flush=True)
         metrics = validate_tile_quality(
             tile, products_db=None)  # Skip DB query here
 
@@ -1044,7 +1054,11 @@ def check_primary_beam_consistency(
             try:
                 pb_img = casaimage(str(pb_path))
                 pb_data = pb_img.getdata()
-                coord_sys = pb_img.coordsys()
+                # Try coordsys() first, fallback to coordinates() for FITS files
+                try:
+                    coord_sys = pb_img.coordsys()
+                except AttributeError:
+                    coord_sys = pb_img.coordinates()
 
                 # Extract frequency information from coordinate system
                 try:
@@ -1073,11 +1087,14 @@ def check_primary_beam_consistency(
                     logger.debug(
                         f"Failed to extract frequency from PB image {pb_path}")
 
-                # Extract PB response statistics
+                # Extract PB response statistics (filter non-finite values)
                 valid_pb = pb_data[np.isfinite(pb_data) & (pb_data > 0)]
                 if len(valid_pb) > 0:
                     pb_info['pb_response_min'] = float(valid_pb.min())
                     pb_info['pb_response_max'] = float(valid_pb.max())
+                else:
+                    import logging
+                    logging.warning(f"No valid PB data found for {pb_path} (all NaN/Inf or <= 0)")
 
                     # Basic pattern check: verify PB has reasonable shape
                     # (should peak near center, decrease toward edges)
@@ -1103,7 +1120,10 @@ def check_primary_beam_consistency(
                                     f"edge/center ratio = {edge_ratio:.3f} (expected <0.5)"
                                 )
 
-                pb_img.close()
+                try:
+                    pb_img.close()
+                except AttributeError:
+                    pass  # FITS images don't have close() method
 
             except Exception as e:
                 issues.append(f"Failed to read PB image {pb_path}: {e}")

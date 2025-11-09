@@ -23,12 +23,17 @@ This is the default mode used by the streaming pipeline:
 ```bash
 python -m dsa110_contimg.conversion.strategies.hdf5_orchestrator \
     /data/incoming \
-    /scratch/dsa110-contimg/ms \
+    /stage/dsa110-contimg/ms \
     "2025-10-30 13:00:00" \
     "2025-10-30 14:00:00" \
     --writer parallel-subband \
     --stage-to-tmpfs
 ```
+
+**Output**: MS files are written directly to organized locations:
+- `ms/science/YYYY-MM-DD/<timestamp>.ms` (default)
+- `ms/calibrators/YYYY-MM-DD/<timestamp>.ms` (if calibrator detected)
+- `ms/failed/YYYY-MM-DD/<timestamp>.ms` (if conversion fails)
 
 **When to use**: Processing all groups in a time window (streaming pipeline, batch processing)
 
@@ -39,7 +44,7 @@ This mode finds the calibrator transit and calculates the time window automatica
 ```bash
 python -m dsa110_contimg.conversion.strategies.hdf5_orchestrator \
     /data/incoming \
-    /scratch/dsa110-contimg/ms \
+    /stage/dsa110-contimg/ms \
     --calibrator 0834+555 \
     --writer parallel-subband \
     --stage-to-tmpfs
@@ -54,7 +59,7 @@ To target a specific transit date:
 ```bash
 python -m dsa110_contimg.conversion.strategies.hdf5_orchestrator \
     /data/incoming \
-    /scratch/dsa110-contimg/ms \
+    /stage/dsa110-contimg/ms \
     --calibrator 0834+555 \
     --transit-date 2025-10-30 \
     --writer parallel-subband \
@@ -70,7 +75,7 @@ For a known transit time:
 ```bash
 python -m dsa110_contimg.conversion.strategies.hdf5_orchestrator \
     /data/incoming \
-    /scratch/dsa110-contimg/ms \
+    /stage/dsa110-contimg/ms \
     --calibrator 0834+555 \
     --transit-date 2025-10-30T13:51:30 \
     --writer parallel-subband \
@@ -92,7 +97,7 @@ Example with custom window:
 ```bash
 python -m dsa110_contimg.conversion.strategies.hdf5_orchestrator \
     /data/incoming \
-    /scratch/dsa110-contimg/ms \
+    /stage/dsa110-contimg/ms \
     --calibrator 0834+555 \
     --transit-date 2025-10-30 \
     --window-minutes 120 \
@@ -139,7 +144,7 @@ python -m dsa110_contimg.conversion.strategies.hdf5_orchestrator \
 # Process most recent 0834+555 transit (no date specified)
 python -m dsa110_contimg.conversion.strategies.hdf5_orchestrator \
     /data/incoming \
-    /scratch/dsa110-contimg/ms \
+    /stage/dsa110-contimg/ms \
     --calibrator 0834+555 \
     --writer parallel-subband
 ```
@@ -150,7 +155,7 @@ python -m dsa110_contimg.conversion.strategies.hdf5_orchestrator \
 # Process all groups in time window (streaming pipeline style)
 python -m dsa110_contimg.conversion.strategies.hdf5_orchestrator \
     /data/incoming \
-    /scratch/dsa110-contimg/ms \
+    /stage/dsa110-contimg/ms \
     "2025-10-30 00:00:00" \
     "2025-10-31 00:00:00" \
     --writer parallel-subband \

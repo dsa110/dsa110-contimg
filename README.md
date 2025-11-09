@@ -1,5 +1,9 @@
 # DSA-110 Continuum Imaging Pipeline
 
+**⚠️ For AI Agents:** Before creating any markdown documentation, see [`docs/DOCUMENTATION_QUICK_REFERENCE.md`](docs/DOCUMENTATION_QUICK_REFERENCE.md). **Do NOT create markdown files in the root directory** - use the `docs/` structure instead.
+
+---
+
 This repository contains the streaming continuum-imaging pipeline for DSA-110:
 - Watches incoming UVH5 subband files and converts them to CASA Measurement Sets (MS)
 - Calibrates calibrator groups and registers calibration tables
@@ -147,7 +151,7 @@ Image:
 ## CLI Reference
 
 - Streaming worker (manual):
-  - `python -m dsa110_contimg.conversion.streaming.streaming_converter --input-dir /data/ingest --output-dir /data/ms --queue-db state/ingest.sqlite3 --registry-db state/cal_registry.sqlite3 --scratch-dir /data/scratch --log-level INFO --use-subprocess --expected-subbands 16 --chunk-duration 5 --monitoring`
+  - `python -m dsa110_contimg.conversion.streaming.streaming_converter --input-dir /data/incoming --output-dir /stage/dsa110-contimg/ms --queue-db state/ingest.sqlite3 --registry-db state/cal_registry.sqlite3 --scratch-dir /stage/dsa110-contimg --log-level INFO --use-subprocess --expected-subbands 16 --chunk-duration 5 --monitoring`
 - Backfill imaging worker:
   - Scan: `python -m dsa110_contimg.imaging.worker scan --ms-dir /data/ms --out-dir /data/ms --registry-db state/cal_registry.sqlite3 --products-db state/products.sqlite3 --log-level INFO`
 - Standalone converter (legacy/utility):
@@ -160,7 +164,7 @@ Image:
   - Plan: `python -m dsa110_contimg.mosaic.cli plan --products-db state/products.sqlite3 --name night_YYYYMMDD --since <epoch> --until <epoch>`
   - Build: `python -m dsa110_contimg.mosaic.cli build --products-db state/products.sqlite3 --name night_YYYYMMDD --output /data/ms/mosaics/night_YYYYMMDD.img`
 - Housekeeping:
-  - `python ops/pipeline/housekeeping.py --queue-db state/ingest.sqlite3 --scratch-dir /data/scratch --in-progress-timeout 3600 --collecting-timeout 86400 --temp-age 86400`
+  - `python ops/pipeline/housekeeping.py --queue-db state/ingest.sqlite3 --scratch-dir /stage/dsa110-contimg --in-progress-timeout 3600 --collecting-timeout 86400 --temp-age 86400`
 
 ## Knowledge Graph Guardrails (Graphiti)
 

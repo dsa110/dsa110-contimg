@@ -13,9 +13,9 @@ from astropy.coordinates import SkyCoord, Angle
 import astropy.units as u
 
 # Paths
-ms_path = '/scratch/dsa110-contimg/ms/0834_20251029/2025-10-29T13:54:17.phased.ms'
-cl_path = '/scratch/dsa110-contimg/ms/0834_20251029/0834+555.cl'
-output_dir = '/scratch/dsa110-contimg/ms/0834_20251029'
+ms_path = '/stage/dsa110-contimg/ms/0834_20251029/2025-10-29T13:54:17.phased.ms'
+cl_path = '/stage/dsa110-contimg/ms/0834_20251029/0834+555.cl'
+output_dir = '/stage/dsa110-contimg/ms/0834_20251029'
 imagename = os.path.join(output_dir, '0834+555_component_only')
 
 print('=' * 70)

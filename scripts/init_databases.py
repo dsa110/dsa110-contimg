@@ -11,7 +11,7 @@ sys.path.insert(0, str(Path(__file__).parent.parent / "src"))
 from dsa110_contimg.database.registry import ensure_db as ensure_registry_db
 from dsa110_contimg.database.products import ensure_products_db
 from dsa110_contimg.conversion.streaming.streaming_converter import QueueDB
-from dsa110_contimg.database.migrations import migrate_all
+from dsa110_contimg.database.schema_evolution import evolve_all_schemas
 
 
 def init_all(state_dir: Path = Path("/data/dsa110-contimg/state")):
@@ -51,9 +51,9 @@ def init_all(state_dir: Path = Path("/data/dsa110-contimg/state")):
         print(f"  ✗ Failed: {e}\n")
         return False
     
-    # 4. Run migrations to add any missing columns/tables
-    print("Running migrations...")
-    migrate_all(state_dir, verbose=True)
+    # 4. Evolve schemas to add any missing columns/tables
+    print("Evolving database schemas...")
+    evolve_all_schemas(state_dir, verbose=True)
     
     print("\n=== Database Initialization Complete ===")
     return True

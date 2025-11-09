@@ -21,11 +21,13 @@ import { DateTimePicker } from '@mui/x-date-pickers/DateTimePicker';
 import { LocalizationProvider } from '@mui/x-date-pickers/LocalizationProvider';
 import { AdapterDayjs } from '@mui/x-date-pickers/AdapterDayjs';
 import { Download, ImageSearch } from '@mui/icons-material';
+import { useNavigate } from 'react-router-dom';
 import dayjs, { Dayjs } from 'dayjs';
 import { useMosaicQuery, useCreateMosaic } from '../api/queries';
 import type { Mosaic } from '../api/types';
 
 export default function MosaicGalleryPage() {
+  const navigate = useNavigate();
   const [startTime, setStartTime] = useState<Dayjs | null>(dayjs().subtract(1, 'hour'));
   const [endTime, setEndTime] = useState<Dayjs | null>(dayjs());
   const [queryRequest, setQueryRequest] = useState<{ start_time: string; end_time: string } | null>(
@@ -210,7 +212,12 @@ export default function MosaicGalleryPage() {
                         <Button size="small" startIcon={<Download />}>
                           PNG
                         </Button>
-                        <Button size="small">View</Button>
+                        <Button 
+                          size="small"
+                          onClick={() => mosaic.id && navigate(`/mosaics/${mosaic.id}`)}
+                        >
+                          View
+                        </Button>
                       </CardActions>
                     </Card>
                   </Box>

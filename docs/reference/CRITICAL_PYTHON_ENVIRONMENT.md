@@ -81,7 +81,7 @@ test -x /opt/miniforge/envs/casa6/bin/python && echo "OK" || echo "MISSING"
 
 # Check Python version
 /opt/miniforge/envs/casa6/bin/python --version
-# Should output: Python 3.11.13
+# Should output: Python 3.11.13 (from casa6 conda environment)
 
 # Check CASA is available
 /opt/miniforge/envs/casa6/bin/python -c "import casatools; print('CASA OK')"

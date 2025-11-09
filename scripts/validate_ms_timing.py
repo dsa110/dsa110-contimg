@@ -24,18 +24,18 @@ def main():
         epilog="""
 Examples:
   # Basic validation
-  python validate_ms_timing.py /scratch/ms/2025-10-29T13:32:03.ms
+  python validate_ms_timing.py /stage/dsa110-contimg/ms/science/2025-10-29/2025-10-29T13:32:03.ms
 
   # With UVH5 source file
-  python validate_ms_timing.py /scratch/ms/2025-10-29T13:32:03.ms \\
+  python validate_ms_timing.py /stage/dsa110-contimg/ms/science/2025-10-29/2025-10-29T13:32:03.ms \\
     --uvh5 /data/incoming/2025-10-29T13:30:00/2025-10-29T13:32:03.uvh5
 
   # With pointing RA for LST validation
-  python validate_ms_timing.py /scratch/ms/2025-10-29T13:32:03.ms \\
+  python validate_ms_timing.py /stage/dsa110-contimg/ms/science/2025-10-29/2025-10-29T13:32:03.ms \\
     --pointing-ra 123.45
 
   # JSON output
-  python validate_ms_timing.py /scratch/ms/2025-10-29T13:32:03.ms --json
+  python validate_ms_timing.py /stage/dsa110-contimg/ms/science/2025-10-29/2025-10-29T13:32:03.ms --json
         """
     )
     parser.add_argument(

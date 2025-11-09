@@ -6,14 +6,364 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>DSA-110 Continuum Imaging Pipeline</title>
     <!-- JS9 FITS Image Viewer Dependencies -->
+    <!-- Configure JS9 paths BEFORE loading JS9 scripts -->
+    <!-- JS9 files are served locally from /js9/ (dev) or /ui/js9/ (production) -->
+    <script>
+      // Initialize JS9 object and set file paths to local paths before js9support.js loads
+      // Files are in public/js9/ and served at /js9/ (dev) or /ui/js9/ (production)
+      window.JS9 = window.JS9 || {};
+      // Set base path and worker file early to prevent JS9 from using default paths
+      // WORKERFILE and PREFSFILE must be absolute paths to prevent JS9 from resolving relative to current page URL
+      // Set these BEFORE js9support.js loads so JS9 uses them during initialization
+      const js9Base = '/ui/js9';
+      window.JS9.INSTALLDIR = js9Base + '/';
+      window.JS9.WORKERFILE = js9Base + '/js9worker.js';
+      window.JS9.PREFSFILE = js9Base + '/js9Prefs.json';
+      
+      // Prevent JS9 from overwriting PREFSFILE and WORKERFILE with relative paths
+      // Use Proxy to intercept property assignments and always return absolute paths
+      const js9Proxy = new Proxy(window.JS9, {
+        set: function(target, property, value) {
+          if (property === 'PREFSFILE' || property === 'WORKERFILE') {
+            // If JS9 tries to set a relative path, convert it to absolute
+            if (typeof value === 'string' && !value.startsWith('/')) {
+              if (property === 'PREFSFILE') {
+                value = js9Base + '/js9Prefs.json';
+              } else if (property === 'WORKERFILE') {
+                value = js9Base + '/js9worker.js';
+              }
+            }
+          }
+          target[property] = value;
+          return true;
+        },
+        get: function(target, property) {
+          // Always return absolute paths for PREFSFILE and WORKERFILE
+          if (property === 'PREFSFILE') {
+            return js9Base + '/js9Prefs.json';
+          } else if (property === 'WORKERFILE') {
+            return js9Base + '/js9worker.js';
+          }
+          return target[property];
+        }
+      });
+      // Replace window.JS9 with the proxy
+      window.JS9 = js9Proxy;
+      
+      // Set Module.wasmBinaryFile BEFORE astroemw.js loads
+      // This ensures astroemw.wasm is loaded from the correct absolute path
+      if (typeof window.Module === 'undefined') {
+        window.Module = {};
+      }
+      window.Module.wasmBinaryFile = js9Base + '/astroemw.wasm';
+      
+      // Override InstallDir BEFORE js9support.js loads to ensure all paths are absolute
+      // This prevents JS9 from resolving relative paths based on current page URL
+      Object.defineProperty(window.JS9, 'InstallDir', {
+        value: function(path) {
+          // If path is already absolute, return as-is
+          if (path && path.startsWith('/')) {
+            return path;
+          }
+          // If path contains js9 files, ensure it's from /ui/js9/
+          if (path && (path.includes('js9') || path.includes('astroemw') || path.includes('js9worker') || path.includes('js9Prefs'))) {
+            return js9Base + '/' + path.replace(/^.*\//, ''); // Extract filename and prepend js9Base
+          }
+          // Return absolute path
+          return js9Base + '/' + (path || '');
+        },
+        writable: false,
+        configurable: true
+      });
+    </script>
     <!-- jQuery is required by JS9 -->
     <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
     <!-- dhtmlwindow is required by JS9 for window management -->
-    <script src="https://cdn.jsdelivr.net/gh/ericmandel/js9@latest/js9support.js"></script>
+    <!-- Load JS9 support first (served locally) -->
+    <script>
+      // CRITICAL: Intercept JS9 assignment using Object.defineProperty on window
+      // This allows us to patch JS9 immediately when it's assigned, before initialization completes
+      (function() {
+        const basePath = window.location.pathname.startsWith('/ui/') ? '/ui' : '';
+        const js9Base = basePath + '/js9';
+        
+        // Store the original JS9 value descriptor if it exists
+        const originalDescriptor = Object.getOwnPropertyDescriptor(window, 'JS9');
+        let js9Value = window.JS9;
+        let isPatching = false;
+        
+        // Define a property descriptor that intercepts get/set
+        Object.defineProperty(window, 'JS9', {
+          get: function() {
+            return js9Value;
+          },
+          set: function(value) {
+            js9Value = value;
+            
+            // Patch JS9 SYNCHRONOUSLY when it's assigned
+            // CRITICAL: JS9 executes synchronously, so we must patch immediately, not in a microtask
+            // However, JS9's IIFE completes before assignment, so InstallDir() has already been called
+            // The solution: Patch InstallDir to handle future calls, and fix PREFSFILE/WORKERFILE for reference
+            if (value && typeof value === 'object' && !isPatching) {
+              isPatching = true;
+              
+              try {
+                // Override InstallDir - this handles future calls and any that haven't happened yet
+                const originalInstallDir = value.InstallDir;
+                if (typeof originalInstallDir === 'function') {
+                  value.InstallDir = function(path) {
+                    // If path is already absolute, return as-is
+                    if (path && path.startsWith('/')) {
+                      return path;
+                    }
+                    // Special handling for JS9 core files - these are the problematic ones
+                    if (path === 'js9Prefs.json' || path === 'js9worker.js' || path === 'astroemw.js') {
+                      return js9Base + '/' + path;
+                    }
+                    // If path contains js9 files, ensure it's from /ui/js9/
+                    if (path && (path.includes('js9') || path.includes('astroemw'))) {
+                      return js9Base + '/' + path.replace(/^.*\//, '');
+                    }
+                    // Use original InstallDir for other paths
+                    return originalInstallDir.call(this, path);
+                  };
+                }
+                
+                // Force absolute paths for PREFSFILE and WORKERFILE
+                // Even though JS9 may have already used them, this ensures future references are correct
+                Object.defineProperty(value, 'PREFSFILE', {
+                  value: js9Base + '/js9Prefs.json',
+                  writable: false,
+                  configurable: true,
+                  enumerable: true
+                });
+                Object.defineProperty(value, 'WORKERFILE', {
+                  value: js9Base + '/js9worker.js',
+                  writable: false,
+                  configurable: true,
+                  enumerable: true
+                });
+                
+                // Ensure INSTALLDIR is set correctly
+                value.INSTALLDIR = js9Base + '/';
+                
+                console.debug('JS9 intercepted and patched synchronously:', {
+                  PREFSFILE: value.PREFSFILE,
+                  WORKERFILE: value.WORKERFILE,
+                  INSTALLDIR: value.INSTALLDIR
+                });
+              } catch (e) {
+                console.warn('Failed to patch JS9 synchronously:', e);
+              }
+            }
+          },
+          configurable: true,
+          enumerable: true
+        });
+      })();
+    </script>
+    <script>
+      // Load JS9 support script with correct base path
+      // Must wait for js9support.js to finish loading before loading js9.min.js
+      (function() {
+        const basePath = window.location.pathname.startsWith('/ui/') ? '/ui' : '';
+        const js9Base = basePath + '/js9';
+        
+        const script = document.createElement('script');
+        script.src = basePath + '/js9/js9support.js';
+        script.onload = function() {
+          // CRITICAL: Load js9.min.js as text, patch it, then execute it
+          // This allows us to modify JS9's hardcoded relative paths before execution
+          fetch(basePath + '/js9/js9.min.js')
+            .then(response => response.text())
+            .then(js9Source => {
+              // Patch the hardcoded relative paths in js9.min.js
+              // Replace: a.PREFSFILE="js9Prefs.json" with a.PREFSFILE="/ui/js9/js9Prefs.json"
+              // Replace: a.WORKERFILE="js9worker.js" with a.WORKERFILE="/ui/js9/js9worker.js"
+              // Use regex to find and replace the hardcoded paths
+              const patchedSource = js9Source
+                .replace(/a\.PREFSFILE="js9Prefs\.json"/g, `a.PREFSFILE="${js9Base}/js9Prefs.json"`)
+                .replace(/a\.WORKERFILE="js9worker\.js"/g, `a.WORKERFILE="${js9Base}/js9worker.js"`);
+              
+              // Execute the patched source
+              const scriptElement = document.createElement('script');
+              scriptElement.textContent = patchedSource;
+              document.head.appendChild(scriptElement);
+              
+              console.debug('JS9 source patched and executed with absolute paths');
+            })
+            .catch(error => {
+              console.error('Failed to load and patch js9.min.js:', error);
+              // Fallback: load js9.min.js normally
+              const js9Script = document.createElement('script');
+              js9Script.src = basePath + '/js9/js9.min.js';
+              document.head.appendChild(js9Script);
+            });
+        };
+        script.onerror = function() {
+          console.error('Failed to load js9support.js');
+        };
+        document.head.appendChild(script);
+      })();
+    </script>
     <!-- Fabric.js is required by JS9 for canvas rendering -->
-    <script src="https://cdn.jsdelivr.net/npm/fabric@5.3.0/dist/fabric.min.js"></script>
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/ericmandel/js9@latest/js9support.css" />
-    <script src="https://cdn.jsdelivr.net/gh/ericmandel/js9@latest/js9.min.js"></script>
+    <!-- js9support.js loads Fabric.js internally, so we suppress duplicate warnings -->
+    <script>
+      (function() {
+        // Suppress Fabric.js duplicate definition warnings
+        // js9support.js loads Fabric.js from CDN, which logs warnings when redefining classes
+        const originalWarn = console.warn;
+        const fabricWarnings = [
+          'fabric.Point is already defined',
+          'fabric.Intersection is already defined',
+          'fabric.Color is already defined',
+          'fabric.Shadow is already defined',
+          'fabric.StaticCanvas is already defined',
+          'fabric.Line is already defined',
+          'fabric.Circle is already defined',
+          'fabric.Triangle is already defined',
+          'fabric.Ellipse is already defined',
+          'fabric.Rect is already defined',
+          'fabric.Polyline is already defined',
+          'fabric.Polygon is already defined',
+          'fabric.Path is already defined',
+          'fabric.Image is already defined',
+          'fabric.Text is already defined'
+        ];
+        
+        console.warn = function(...args) {
+          const message = args.join(' ');
+          // Suppress Fabric.js duplicate definition warnings
+          if (fabricWarnings.some(warning => message.includes(warning))) {
+            return; // Suppress this warning
+          }
+          // Allow all other warnings
+          originalWarn.apply(console, args);
+        };
+        
+        // Restore original console.warn after a delay to allow JS9 to load
+        setTimeout(function() {
+          console.warn = originalWarn;
+        }, 5000);
+      })();
+    </script>
+    <script>
+      // Load JS9 CSS and main script with correct base path
+      (function() {
+        const basePath = window.location.pathname.startsWith('/ui/') ? '/ui' : '';
+        // Load CSS
+        const link = document.createElement('link');
+        link.rel = 'stylesheet';
+        link.href = basePath + '/js9/js9support.css';
+        document.head.appendChild(link);
+        // js9.min.js is now loaded by js9support.js's onload callback above
+        // Don't load it here to avoid duplicate loading
+      })();
+    </script>
+    <!-- Configure JS9 to use local paths for supporting files -->
+    <script>
+      (function() {
+        // Wait for JS9 to load, then configure paths
+        function configureJS9Paths() {
+          if (typeof window.JS9 !== 'undefined') {
+            try {
+              // Set JS9 to use local paths for supporting files
+              // Files are served from /js9/ (dev) or /ui/js9/ (production)
+              const basePath = window.location.pathname.startsWith('/ui/') ? '/ui' : '';
+              const js9Base = basePath + '/js9';
+              
+              // Set INSTALLDIR - JS9 uses this as the base directory
+              window.JS9.INSTALLDIR = js9Base + '/';
+              
+              // InstallDir override was already set before js9support.js loaded
+              // Re-apply it here in case JS9 overwrote it during initialization
+              if (typeof window.JS9.InstallDir === 'function') {
+                Object.defineProperty(window.JS9, 'InstallDir', {
+                  value: function(path) {
+                    // If path is already absolute, return as-is
+                    if (path && path.startsWith('/')) {
+                      return path;
+                    }
+                    // If path contains js9 files, ensure it's from /ui/js9/
+                    if (path && (path.includes('js9') || path.includes('astroemw') || path.includes('js9worker') || path.includes('js9Prefs'))) {
+                      return js9Base + '/' + path.replace(/^.*\//, ''); // Extract filename and prepend js9Base
+                    }
+                    // Return absolute path
+                    return js9Base + '/' + (path || '');
+                  },
+                  writable: false,
+                  configurable: true
+                });
+              }
+              
+              // Ensure PREFSFILE and WORKERFILE remain absolute (they were set before js9support.js loaded)
+              // Re-apply non-writable properties in case JS9 tried to overwrite them
+              Object.defineProperty(window.JS9, 'PREFSFILE', {
+                value: js9Base + '/js9Prefs.json',
+                writable: false,
+                configurable: true
+              });
+              Object.defineProperty(window.JS9, 'WORKERFILE', {
+                value: js9Base + '/js9worker.js',
+                writable: false,
+                configurable: true
+              });
+              
+              // Use absolute paths for SetOptions to avoid INSTALLDIR prepending
+              const workerPath = js9Base + '/js9worker.js';
+              const wasmPath = js9Base + '/astroemw.wasm';
+              const wasmJSPath = js9Base + '/astroemw.js';
+              const prefsPath = js9Base + '/js9Prefs.json';
+              
+              // Set Module.wasmBinaryFile for astroemw.js BEFORE it loads
+              // This ensures astroemw.wasm is loaded from the correct absolute path
+              if (typeof window.Module === 'undefined') {
+                window.Module = {};
+              }
+              window.Module.wasmBinaryFile = wasmPath;
+              
+              if (typeof window.JS9.SetOptions === 'function') {
+                window.JS9.SetOptions({
+                  InstallDir: js9Base + '/',
+                  workerPath: workerPath,
+                  wasmPath: wasmPath,
+                  wasmJS: wasmJSPath,
+                  prefsPath: prefsPath,
+                  // Disable automatic image loading to prevent duplicate spinners
+                  loadImage: false,
+                  helperType: 'none',
+                  helperPort: 0,
+                  loadProxy: false
+                });
+                console.debug('JS9 paths configured to use local files:', {INSTALLDIR: window.JS9.INSTALLDIR, PREFSFILE: window.JS9.PREFSFILE, WORKERFILE: window.JS9.WORKERFILE});
+              } else if (window.JS9.opts) {
+                // Fallback: set options directly if SetOptions not available
+                window.JS9.opts.InstallDir = js9Base + '/';
+                window.JS9.opts.workerPath = workerPath;
+                window.JS9.opts.wasmPath = wasmPath;
+                window.JS9.opts.wasmJS = wasmJSPath;
+                window.JS9.opts.prefsPath = prefsPath;
+                window.JS9.opts.loadImage = false;
+                window.JS9.opts.helperType = 'none';
+                window.JS9.opts.helperPort = 0;
+                window.JS9.opts.loadProxy = false;
+                console.debug('JS9 paths configured via opts');
+              }
+            } catch (e) {
+              console.warn('Failed to configure JS9 paths:', e);
+            }
+          } else {
+            // JS9 not loaded yet, try again after a short delay
+            setTimeout(configureJS9Paths, 100);
+          }
+        }
+        
+        // Start configuration check immediately and after JS9 loads
+        configureJS9Paths();
+        // Also try after a delay to ensure JS9.min.js has loaded
+        setTimeout(configureJS9Paths, 500);
+      })();
+    </script>
   </head>
   <body>
     <div id="root"></div>

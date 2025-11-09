@@ -4,7 +4,7 @@
 
 set -e
 
-MS_PATH="/scratch/dsa110-contimg/ms/0834_20251029/2025-10-29T13:54:17.ms"
+MS_PATH="/stage/dsa110-contimg/ms/0834_20251029/2025-10-29T13:54:17.ms"
 FIELD="0"
 REFANT="103"
 

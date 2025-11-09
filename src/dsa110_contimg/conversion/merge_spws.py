@@ -13,6 +13,7 @@ from typing import Optional
 import numpy as np
 from casacore.tables import table  # type: ignore[import]
 from casatasks import mstransform  # type: ignore[import]
+from dsa110_contimg.utils.runtime_safeguards import require_casa6_python
 
 try:
     from astropy.coordinates import angular_separation  # type: ignore[import]
@@ -27,6 +28,7 @@ except ImportError:
         return 2 * np.arcsin(np.sqrt(a))
 
 
+@require_casa6_python
 def merge_spws(
     ms_in: str,
     ms_out: str,
@@ -140,6 +142,7 @@ def merge_spws(
     return ms_out
 
 
+@require_casa6_python
 def merge_spws_simple(
     ms_in: str,
     ms_out: str,

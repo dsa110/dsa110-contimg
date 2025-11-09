@@ -1,0 +1,49 @@
+# Dockerfile for E2E Testing with Playwright
+# Uses Node.js 22 Alpine for compatibility with Ubuntu 18.x host
+FROM node:22-alpine
+
+WORKDIR /app
+
+# Install system dependencies needed for Chromium
+RUN apk add --no-cache \
+    chromium \
+    nss \
+    freetype \
+    freetype-dev \
+    harfbuzz \
+    ca-certificates \
+    ttf-freefont \
+    font-noto-emoji \
+    bash \
+    && rm -rf /var/cache/apk/*
+
+# Copy test configuration and files
+COPY playwright.config.ts ./
+COPY tests/ ./tests/
+
+# Create package.json for Playwright installation
+RUN echo '{ \
+  "name": "dsa110-e2e-tests", \
+  "version": "1.0.0", \
+  "private": true, \
+  "scripts": { \
+    "test": "playwright test" \
+  }, \
+  "devDependencies": { \
+    "@playwright/test": "^1.56.1" \
+  } \
+}' > package.json
+
+# Install Playwright
+RUN npm install
+
+# Install Playwright browsers (Chromium only for faster builds)
+# Note: Playwright requires its own browser binaries, system Chromium may not work
+RUN npx playwright install chromium
+
+# Verify installation
+RUN npx playwright --version || echo "Playwright installed"
+
+# Default command
+CMD ["npx", "playwright", "test"]
+

@@ -10,8 +10,14 @@ WorkingDirectory=/data/dsa110-contimg
 ExecStart=/bin/bash /data/dsa110-contimg/scripts/casa_log_daemon_inotify.sh
 Restart=always
 RestartSec=10
-StandardOutput=journal
-StandardError=journal
+# Restart on failure, but wait longer if it keeps failing
+StartLimitInterval=300
+StartLimitBurst=5
+# Watchdog: if service doesn't respond, restart it
+WatchdogSec=600
+# Log to file for easier debugging
+StandardOutput=append:/data/dsa110-contimg/state/logs/casa-log-daemon.out
+StandardError=append:/data/dsa110-contimg/state/logs/casa-log-daemon.err
 
 # Environment variables
 Environment=PYTHONUNBUFFERED=1

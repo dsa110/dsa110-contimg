@@ -18,7 +18,7 @@ print("="*70)
 print("\n1. MS FILE ACCESS")
 print("-"*70)
 
-ms_dir = Path("/scratch/dsa110-contimg/ms/central_cal_rebuild")
+ms_dir = Path("/stage/dsa110-contimg/ms/central_cal_rebuild")
 if ms_dir.exists():
     ms_files = list(ms_dir.glob("*.ms"))
     print(f"  ✓ MS directory exists: {ms_dir}")
@@ -46,9 +46,9 @@ print("\n2. CALTABLE ACCESS")
 print("-"*70)
 
 cal_patterns = [
-    "/scratch/dsa110-contimg/caltables/*.K",
-    "/scratch/dsa110-contimg/caltables/*.B", 
-    "/scratch/dsa110-contimg/caltables/*.G",
+    "/stage/dsa110-contimg/caltables/*.K",
+    "/stage/dsa110-contimg/caltables/*.B", 
+    "/stage/dsa110-contimg/caltables/*.G",
 ]
 
 found_any = False
@@ -85,7 +85,7 @@ print("-"*70)
 
 test_dirs = [
     "/dev/shm/dsa110-contimg-test",
-    "/scratch/dsa110-contimg-test",
+    "/stage/dsa110-contimg-test",
     "/tmp/dsa110-contimg-test",
 ]
 

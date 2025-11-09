@@ -22,7 +22,7 @@
 
 ### Current Dependencies in casa6
 ```
-Python: 3.11.13
+Python: 3.11.13 (casa6 conda environment)
 astropy: 7.1.0
 numpy: 2.0.2
 pandas: 2.3.3
@@ -34,7 +34,7 @@ scipy: 1.16.2
 
 ### pyradiosky Requirements
 According to PyPI, pyradiosky requires:
-- Python >= 3.11 ✓ (we have 3.11.13)
+- Python >= 3.11 ✓ (we have 3.11.13 in casa6 conda environment)
 - astropy ✓ (we have 7.1.0)
 - numpy ✓ (we have 2.0.2)
 - scipy ✓ (we have 1.16.2)
@@ -87,7 +87,7 @@ According to PyPI, pyradiosky requires:
 ### Risk Assessment
 
 **Low Risk**:
-- ✓ Python 3.11.13 is compatible
+- ✓ Python 3.11.13 (in casa6 conda environment) is compatible
 - ✓ All pyradiosky dependencies are already installed (astropy, numpy, pandas, h5py, scipy, pyuvdata)
 - ✓ pyuvdata 3.2.4 is already working with CASA in the pipeline
 - ✓ DP3 Docker image exists and is recent

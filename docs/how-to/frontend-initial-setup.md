@@ -412,7 +412,7 @@ async def generate_mosaic(req: MosaicRequest, background_tasks: BackgroundTasks)
         start_mjd=req.start_mjd,
         end_mjd=req.end_mjd,
         dec_range=(req.dec_min, req.dec_max),
-        output_dir=Path(f"/scratch/dsa110-contimg/mosaics/{job_id}"),
+        output_dir=Path(f"/stage/dsa110-contimg/mosaics/{job_id}"),
     )
     
     return {"job_id": job_id, "status": "queued"}

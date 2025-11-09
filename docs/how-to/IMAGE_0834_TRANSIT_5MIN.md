@@ -18,7 +18,7 @@ The orchestrator CLI automatically finds the transit time and converts the match
 ```bash
 python -m dsa110_contimg.conversion.strategies.hdf5_orchestrator \
     /data/incoming \
-    /scratch/dsa110-contimg/ms \
+    /stage/dsa110-contimg/ms \
     --calibrator 0834+555 \
     --writer parallel-subband \
     --stage-to-tmpfs
@@ -29,13 +29,13 @@ python -m dsa110_contimg.conversion.strategies.hdf5_orchestrator \
 - Locates the 5-minute group containing that transit time
 - Verifies all 16 subband files exist
 - Converts UVH5 → MS using the production writer
-- Outputs MS to `/scratch/dsa110-contimg/ms/<group_id>.ms`
+- Outputs MS to `/stage/dsa110-contimg/ms/<group_id>.ms`
 
 **For a specific date:**
 ```bash
 python -m dsa110_contimg.conversion.strategies.hdf5_orchestrator \
     /data/incoming \
-    /scratch/dsa110-contimg/ms \
+    /stage/dsa110-contimg/ms \
     --calibrator 0834+555 \
     --transit-date 2025-10-30 \
     --writer parallel-subband \
@@ -47,14 +47,14 @@ python -m dsa110_contimg.conversion.strategies.hdf5_orchestrator \
 ```bash
 python -m dsa110_contimg.conversion.cli groups \
     /data/incoming \
-    /scratch/dsa110-contimg/ms \
+    /stage/dsa110-contimg/ms \
     --calibrator 0834+555 \
     --writer parallel-subband \
     --stage-to-tmpfs
 ```
 
 **Expected output:**
-- MS file path: `/scratch/dsa110-contimg/ms/2025-10-30T13:34:54.ms` (example)
+- MS file path: `/stage/dsa110-contimg/ms/2025-10-30T13:34:54.ms` (example)
 - Group ID corresponds to the 5-minute window containing the transit
 
 ---
@@ -69,7 +69,7 @@ For a quick 5-minute image, use development quality tier:
 
 ```bash
 python -m dsa110_contimg.calibration.cli calibrate \
-    --ms /scratch/dsa110-contimg/ms/2025-10-30T13:34:54.ms \
+    --ms /stage/dsa110-contimg/ms/2025-10-30T13:34:54.ms \
     --field 0 \
     --refant 103 \
     --auto-fields \
@@ -95,15 +95,15 @@ For higher quality (slower):
 
 ```bash
 python -m dsa110_contimg.calibration.cli calibrate \
-    --ms /scratch/dsa110-contimg/ms/2025-10-30T13:34:54.ms \
+    --ms /stage/dsa110-contimg/ms/2025-10-30T13:34:54.ms \
     --field 0 \
     --refant 103 \
     --auto-fields
 ```
 
 **Calibration tables created:**
-- `/scratch/dsa110-contimg/ms/2025-10-30T13:34:54.ms.bpcal`
-- `/scratch/dsa110-contimg/ms/2025-10-30T13:34:54.ms.gpcal`
+- `/stage/dsa110-contimg/ms/2025-10-30T13:34:54.ms.bpcal`
+- `/stage/dsa110-contimg/ms/2025-10-30T13:34:54.ms.gpcal`
 
 **Note:** If calibration tables already exist from a previous calibration run, you can skip this step if you're satisfied with the existing calibration.
 
@@ -120,8 +120,8 @@ Create a quick-look image optimized for speed:
 
 ```bash
 python -m dsa110_contimg.imaging.cli image \
-    --ms /scratch/dsa110-contimg/ms/2025-10-30T13:34:54.ms \
-    --imagename /scratch/dsa110-contimg/images/0834_transit_5min \
+    --ms /stage/dsa110-contimg/ms/2025-10-30T13:34:54.ms \
+    --imagename /stage/dsa110-contimg/images/0834_transit_5min \
     --quick \
     --imsize 512 \
     --niter 300 \
@@ -140,8 +140,8 @@ python -m dsa110_contimg.imaging.cli image \
 
 ```bash
 scripts/image_ms.sh \
-    /scratch/dsa110-contimg/ms/2025-10-30T13:34:54.ms \
-    /scratch/dsa110-contimg/images/0834_transit_5min \
+    /stage/dsa110-contimg/ms/2025-10-30T13:34:54.ms \
+    /stage/dsa110-contimg/images/0834_transit_5min \
     --quick \
     --skip-fits \
     --uvrange '>1klambda'
@@ -152,15 +152,15 @@ scripts/image_ms.sh \
 ## Step 4: Verify Output
 
 **Image files created:**
-- `/scratch/dsa110-contimg/images/0834_transit_5min.image/` - Cleaned image
-- `/scratch/dsa110-contimg/images/0834_transit_5min.pbcor/` - Primary beam corrected image
-- `/scratch/dsa110-contimg/images/0834_transit_5min.pbcor.fits` - FITS export (if not skipped)
+- `/stage/dsa110-contimg/images/0834_transit_5min.image/` - Cleaned image
+- `/stage/dsa110-contimg/images/0834_transit_5min.pbcor/` - Primary beam corrected image
+- `/stage/dsa110-contimg/images/0834_transit_5min.pbcor.fits` - FITS export (if not skipped)
 
 **Check image quality:**
 ```bash
 # View image statistics
 python -m dsa110_contimg.qa.image_quality \
-    /scratch/dsa110-contimg/images/0834_transit_5min.pbcor.fits
+    /stage/dsa110-contimg/images/0834_transit_5min.pbcor.fits
 ```
 
 ---
@@ -173,14 +173,14 @@ Here's a complete end-to-end example:
 # 1. Find and convert transit data
 python -m dsa110_contimg.conversion.strategies.hdf5_orchestrator \
     /data/incoming \
-    /scratch/dsa110-contimg/ms \
+    /stage/dsa110-contimg/ms \
     --calibrator 0834+555 \
     --transit-date 2025-10-30 \
     --writer parallel-subband \
     --stage-to-tmpfs
 
-# Note the MS path from output (e.g., /scratch/dsa110-contimg/ms/2025-10-30T13:34:54.ms)
-MS_PATH="/scratch/dsa110-contimg/ms/2025-10-30T13:34:54.ms"
+# Note the MS path from output (e.g., /stage/dsa110-contimg/ms/2025-10-30T13:34:54.ms)
+MS_PATH="/stage/dsa110-contimg/ms/2025-10-30T13:34:54.ms"
 
 # 2. Calibrate (development tier)
 python -m dsa110_contimg.calibration.cli calibrate \
@@ -193,7 +193,7 @@ python -m dsa110_contimg.calibration.cli calibrate \
 # 3. Image (development tier)
 python -m dsa110_contimg.imaging.cli image \
     --ms "$MS_PATH" \
-    --imagename /scratch/dsa110-contimg/images/0834_transit_5min \
+    --imagename /stage/dsa110-contimg/images/0834_transit_5min \
     --quality-tier development \
     --imsize 512 \
     --niter 300 \
@@ -212,8 +212,8 @@ For convenience, you can use a script that combines these steps:
 # Quick 5-minute image of 0834+555 transit
 
 INPUT_DIR="/data/incoming"
-OUTPUT_MS_DIR="/scratch/dsa110-contimg/ms"
-OUTPUT_IMAGE_DIR="/scratch/dsa110-contimg/images"
+OUTPUT_MS_DIR="/stage/dsa110-contimg/ms"
+OUTPUT_IMAGE_DIR="/stage/dsa110-contimg/images"
 TRANSIT_DATE="${1:-$(date +%Y-%m-%d)}"  # Use today if not specified
 
 # Step 1: Convert
@@ -288,7 +288,7 @@ echo "Complete! Image: $OUTPUT_IMAGE_DIR/${GROUP_ID}_0834.pbcor.fits"
 
 **Imaging fails:**
 - Verify MS has data: `python -m dsa110_contimg.qa.ms_quality <ms_path>`
-- Check disk space: `df -h /scratch/dsa110-contimg`
+- Check disk space: `df -h /stage/dsa110-contimg`
 - Reduce image size: `--imsize 256`
 
 ---

@@ -17,7 +17,10 @@ The streaming converter consists of four main components:
 2. **Group Assembly**: When all 16 subbands for a 5-minute window arrive, group becomes `pending`
 3. **Processing**: Worker picks up pending groups, stages files, and invokes converter
 4. **Checkpointing**: Progress is saved at each major stage for fault tolerance
-5. **Output**: Final Measurement Sets are written to output directory
+5. **Output**: Final Measurement Sets are written directly to organized locations:
+   - Science MS → `ms/science/YYYY-MM-DD/<timestamp>.ms`
+   - Calibrator MS → `ms/calibrators/YYYY-MM-DD/<timestamp>.ms`
+   - Failed MS → `ms/failed/YYYY-MM-DD/<timestamp>.ms`
 
 ### Queue States & Stages
 
@@ -46,12 +49,22 @@ pip install watchdog psutil  # Optional: for file watching and system metrics
 ### Directory Structure
 
 ```
-/data/
-├── incoming_data/          # Watched directory for new subband files
-├── output/ms/             # Final Measurement Sets
-├── scratch/               # Optional: fast storage for staging
-└── checkpoints/           # Optional: persistent checkpoints
+/stage/dsa110-contimg/
+├── incoming/              # Watched directory for new subband files
+├── ms/                    # Final Measurement Sets (organized)
+│   ├── science/           # Science observations
+│   │   └── YYYY-MM-DD/    # Organized by date
+│   │       └── <timestamp>.ms/
+│   ├── calibrators/       # Calibrator observations
+│   │   └── YYYY-MM-DD/    # Organized by date
+│   │       └── <timestamp>.ms/
+│   └── failed/            # Failed conversions
+│       └── YYYY-MM-DD/    # Organized by date
+│           └── <timestamp>.ms/
+└── state/                 # SQLite databases (queue, products, registry)
 ```
+
+**Note**: MS files are written directly to organized locations during conversion. See `docs/how-to/ms_organization.md` for details.
 
 ### Permissions
 

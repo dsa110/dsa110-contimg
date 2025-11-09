@@ -11,6 +11,7 @@ import os
 from pathlib import Path
 from typing import Any, Dict, List, Optional
 
+import yaml
 from pydantic import BaseModel, Field
 
 
@@ -111,6 +112,34 @@ class ValidationConfig(BaseModel):
         default=0.95, description="Completeness threshold for source counts analysis")
 
 
+class PhotometryConfig(BaseModel):
+    """Configuration for adaptive binning photometry stage."""
+
+    enabled: bool = Field(
+        default=False, description="Enable adaptive binning photometry stage")
+    target_snr: float = Field(
+        default=5.0, ge=1.0, description="Target SNR threshold for detections")
+    max_width: int = Field(
+        default=16, ge=1, le=32, description="Maximum bin width in channels")
+    sources: Optional[List[Dict[str, float]]] = Field(
+        default=None, description="List of source coordinates [{'ra': 124.526, 'dec': 54.620}, ...]. "
+        "If None, queries NVSS catalog for sources in field.")
+    min_flux_mjy: float = Field(
+        default=10.0, description="Minimum NVSS flux (mJy) for catalog sources")
+    parallel: bool = Field(
+        default=True, description="Image SPWs in parallel for faster processing")
+    max_workers: Optional[int] = Field(
+        default=None, description="Maximum number of parallel workers (default: CPU count)")
+    serialize_ms_access: bool = Field(
+        default=True, description="Serialize MS access using file locking when processing multiple sources")
+    imsize: int = Field(
+        default=1024, ge=256, description="Image size in pixels")
+    quality_tier: str = Field(
+        default="standard", description="Imaging quality tier: 'development', 'standard', or 'high_precision'")
+    backend: str = Field(
+        default="tclean", description="Imaging backend: 'tclean' or 'wsclean'")
+
+
 class PipelineConfig(BaseModel):
     """Complete pipeline configuration.
 
@@ -123,6 +152,7 @@ class PipelineConfig(BaseModel):
     calibration: CalibrationConfig = Field(default_factory=CalibrationConfig)
     imaging: ImagingConfig = Field(default_factory=ImagingConfig)
     validation: ValidationConfig = Field(default_factory=ValidationConfig)
+    photometry: PhotometryConfig = Field(default_factory=PhotometryConfig)
 
     @classmethod
     def from_env(cls, validate_paths: bool = True, required_disk_gb: float = 50.0) -> PipelineConfig:
@@ -277,9 +307,10 @@ class PipelineConfig(BaseModel):
 
         # Handle nested imaging config
         # Extract imaging parameters if they exist at top level
-        imaging_keys = ["field", "refant", "gridder", "wprojplanes", "use_nvss_mask", "mask_radius_arcsec"]
+        imaging_keys = ["field", "refant", "gridder",
+                        "wprojplanes", "use_nvss_mask", "mask_radius_arcsec"]
         has_imaging_params = any(key in data for key in imaging_keys)
-        
+
         if has_imaging_params and "imaging" not in data:
             imaging_data = {
                 "field": data.pop("field", None),
@@ -292,6 +323,104 @@ class PipelineConfig(BaseModel):
             data["imaging"] = imaging_data
 
         return cls.model_validate(data)
+
+    @classmethod
+    def from_yaml(cls, yaml_path: Path | str, validate_paths: bool = True, required_disk_gb: float = 50.0) -> PipelineConfig:
+        """Load configuration from YAML file.
+
+        The YAML file should have a structure matching PipelineConfig:
+
+        ```yaml
+        paths:
+          input_dir: "/data/incoming"
+          output_dir: "/stage/dsa110-contimg/ms"
+          scratch_dir: "/tmp"
+          state_dir: "state"
+
+        validation:
+          enabled: true
+          catalog: "nvss"
+          validation_types:
+            - "astrometry"
+            - "flux_scale"
+            - "source_counts"
+          generate_html_report: true
+          min_snr: 5.0
+          search_radius_arcsec: 10.0
+          completeness_threshold: 0.95
+        ```
+
+        Args:
+            yaml_path: Path to YAML configuration file
+            validate_paths: If True, validate paths exist and are accessible
+            required_disk_gb: Required disk space in GB for validation
+
+        Returns:
+            PipelineConfig instance
+
+        Raises:
+            FileNotFoundError: If YAML file doesn't exist
+            ValueError: If YAML is invalid or missing required fields
+            HealthCheckError: If path validation fails (when validate_paths=True)
+        """
+        yaml_path = Path(yaml_path)
+        if not yaml_path.exists():
+            raise FileNotFoundError(
+                f"Configuration file not found: {yaml_path}")
+
+        try:
+            with open(yaml_path, 'r') as f:
+                data = yaml.safe_load(f)
+        except yaml.YAMLError as e:
+            raise ValueError(f"Invalid YAML in configuration file: {e}") from e
+
+        if not isinstance(data, dict):
+            raise ValueError("YAML file must contain a dictionary/mapping")
+
+        # Convert string paths to Path objects for paths section
+        if "paths" in data:
+            for key in ["input_dir", "output_dir", "scratch_dir", "state_dir"]:
+                if key in data["paths"] and isinstance(data["paths"][key], str):
+                    data["paths"][key] = Path(data["paths"][key])
+
+        # Create config from dictionary
+        config = cls.from_dict(data)
+
+        # Validate paths if requested
+        if validate_paths:
+            from dsa110_contimg.pipeline.health import validate_pipeline_health
+            validate_pipeline_health(config, required_disk_gb=required_disk_gb)
+
+        return config
+
+    def to_yaml(self, yaml_path: Path | str) -> None:
+        """Save configuration to YAML file.
+
+        Args:
+            yaml_path: Path where YAML file should be written
+        """
+        yaml_path = Path(yaml_path)
+        yaml_path.parent.mkdir(parents=True, exist_ok=True)
+
+        # Convert to dict and handle Path objects
+        data = self.to_dict()
+
+        # Convert Path objects to strings for YAML serialization
+        def convert_paths(obj):
+            if isinstance(obj, dict):
+                return {k: convert_paths(v) for k, v in obj.items()}
+            elif isinstance(obj, list):
+                return [convert_paths(item) for item in obj]
+            elif isinstance(obj, Path):
+                return str(obj)
+            else:
+                return obj
+
+        data = convert_paths(data)
+
+        with open(yaml_path, 'w') as f:
+            yaml.dump(data, f, default_flow_style=False,
+                      sort_keys=False, indent=2)
 
     def to_dict(self) -> Dict[str, Any]:
         """Convert configuration to dictionary.

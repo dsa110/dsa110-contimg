@@ -227,6 +227,7 @@ def cmd_adaptive(args: argparse.Namespace) -> int:
         backend=args.backend,
         parallel=args.parallel,
         max_workers=args.max_workers,
+        serialize_ms_access=args.serialize_ms_access,
     )
 
     # Format output
@@ -480,6 +481,12 @@ def build_parser() -> argparse.ArgumentParser:
         '--max-workers', type=int, default=None,
         help='Maximum number of parallel workers (default: CPU count)'
     )
+    sp.add_argument(
+        '--serialize-ms-access', action='store_true',
+        help='Serialize MS access using file locking to prevent CASA table '
+             'lock conflicts when multiple processes access the same MS. '
+             'Recommended when processing multiple sources in parallel.'
+    )
     sp.set_defaults(func=cmd_adaptive)
 
     return p
@@ -488,6 +495,21 @@ def build_parser() -> argparse.ArgumentParser:
 def main(argv: list[str] | None = None) -> int:
     p = build_parser()
     args = p.parse_args(argv)
+    
+    # Input validation
+    if hasattr(args, 'fits') and args.fits:
+        if not os.path.exists(args.fits):
+            raise FileNotFoundError(f"FITS file not found: {args.fits}")
+    if hasattr(args, 'ms') and args.ms:
+        if not os.path.exists(args.ms):
+            raise FileNotFoundError(f"MS file not found: {args.ms}")
+    if hasattr(args, 'ra') and args.ra is not None:
+        if not (-180 <= args.ra <= 360):
+            raise ValueError(f"RA must be between -180 and 360 degrees, got {args.ra}")
+    if hasattr(args, 'dec') and args.dec is not None:
+        if not (-90 <= args.dec <= 90):
+            raise ValueError(f"Dec must be between -90 and 90 degrees, got {args.dec}")
+    
     if not hasattr(args, 'func'):
         p.print_help()
         return 2

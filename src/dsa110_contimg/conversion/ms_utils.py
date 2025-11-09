@@ -16,6 +16,8 @@ from __future__ import annotations
 
 import os
 
+from dsa110_contimg.utils.runtime_safeguards import require_casa6_python
+
 
 def _ensure_imaging_columns_exist(ms_path: str) -> None:
     """Add MODEL_DATA and CORRECTED_DATA columns if missing.
@@ -247,6 +249,7 @@ def _ensure_flag_and_weight_spectrum(ms_path: str) -> None:
         return
 
 
+@require_casa6_python
 def _initialize_weights(ms_path: str) -> None:
     """Initialize WEIGHT_SPECTRUM via casatasks.initweights.
     
@@ -533,6 +536,7 @@ def _fix_observation_time_range(ms_path: str) -> None:
         logger.warning("Could not fix OBSERVATION table TIME_RANGE (non-fatal)", exc_info=True)
 
 
+@require_casa6_python
 def configure_ms_for_imaging(
     ms_path: str,
     *,

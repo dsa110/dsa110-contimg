@@ -8,6 +8,7 @@ This documentation is organized to help you understand and use the pipeline effe
 
 - **[Documentation Overview](README.md)**: Start here for an overview of the documentation structure.
 - **[Quick Start Guide](how-to/quickstart.md)**: Get up and running quickly.
+- **[Mosaic Quickstart](how-to/mosaic_quickstart.md)**: Plan and build a basic sky mosaic.
 - **[Dashboard Development](how-to/dashboard-development.md)**: Set up the development environment.
 
 ## Documentation Sections
@@ -34,4 +35,5 @@ This documentation is organized to help you understand and use the pipeline effe
 ### Pipeline Operations
 - **[Docker Deployment](operations/deploy-docker.md)**: Deploy with Docker
 - **[Systemd Deployment](operations/deploy-systemd.md)**: Deploy as system service
+- **[CASA Log Daemon](operations/CASA_LOG_DAEMON_PROTECTION_SUMMARY.md)**: Automated log file management and monitoring
 - **[Streaming Converter](how-to/streaming_converter_guide.md)**: Streaming converter architecture

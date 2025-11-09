@@ -1,15 +1,19 @@
+SHELL := bash
+# Enforce strict error handling and pipefail across all recipes
+.SHELLFLAGS := -eu -o pipefail -c
+
 DC=docker compose -f ops/docker/docker-compose.yml
 .DEFAULT_GOAL := help
 
 # CRITICAL: All Python execution MUST use casa6 environment
 # This is the ONLY Python environment used by the DSA-110 pipeline
 # Path: /opt/miniforge/envs/casa6/bin/python
-# Python version: 3.11.13
+# Python version: 3.11.13 (in casa6 conda environment)
 # Never use system python3 - it will fail due to missing CASA dependencies
 CASA6_PYTHON := /opt/miniforge/envs/casa6/bin/python
 CASA6_PYTHON_CHECK := $(shell test -x $(CASA6_PYTHON) && echo "ok" || echo "missing")
 
-.PHONY: help compose-build compose-up compose-down compose-logs compose-ps compose-restart compose-up-scheduler compose-up-stream compose-up-api compose-pull compose-down-service compose-stop docs-install docs-serve docs-build docs-deploy guardrails-check guardrails-fix ingest-docs test-unit test-validation test-integration test-all test-quality update-todo-date
+.PHONY: help compose-build compose-up compose-down compose-logs compose-ps compose-restart compose-up-scheduler compose-up-stream compose-up-api compose-pull compose-down-service compose-stop docs-install docs-serve docs-build docs-deploy docs-test-mermaid guardrails-check guardrails-fix ingest-docs test-unit test-fast test-impacted test-validation test-integration test-all test-quality update-todo-date frontend-build frontend-build-docker
 
 help:
 	@echo "DSA-110 Continuum Pipeline - Docker Compose helper targets"
@@ -39,13 +43,14 @@ help:
 	@echo ""
 	@echo "Testing & Validation:"
 	@echo "  make test-help                     Show detailed testing help"
+	@echo "  make test-fast                     Fast unit subset (fail-fast)"
 	@echo "  make test-unit                     Unit tests (requires casa6)"
 	@echo "  make test-validation               Validation tests (requires casa6)"
 	@echo "  make test-all                      Run all tests"
 	@echo ""
 	@echo "CRITICAL: All Python execution uses casa6 environment:"
 	@echo "  Python path: /opt/miniforge/envs/casa6/bin/python"
-	@echo "  Python version: 3.11.13"
+	@echo "  Python version: 3.11.13 (in casa6 conda environment)"
 	@echo "  Never use system python3 - it will fail!"
 	@echo ""
 	@echo "Examples:"
@@ -60,6 +65,7 @@ help:
 	@echo "  mkdocs.yml config present; to serve docs locally (if mkdocs installed):"
 	@echo "    pip install -r docs/requirements.txt && mkdocs serve -a 0.0.0.0:8001"
 	@echo "  build: make docs-build    | deploy to GitHub Pages: make docs-deploy"
+	@echo "  test Mermaid diagrams: make docs-test-mermaid"
 	@echo ""
 	@echo "CI/CD Integration:"
 	@echo "  Tests are configured for GitHub Actions in .github/workflows/validation-tests.yml"
@@ -67,6 +73,10 @@ help:
 	@echo "Maintenance:"
 	@echo "  make update-todo-date              Update TODO.md date to today (auto-runs on commit)"
 	@echo "  make sync-linear                   Sync TODO.md items to Linear (see docs/LINEAR_INTEGRATION.md)"
+	@echo ""
+	@echo "Frontend:"
+	@echo "  make frontend-build                 Build frontend using casa6 Node.js (preferred)"
+	@echo "  make frontend-build-docker         Build frontend using Docker (fallback if casa6 unavailable)"
 
 # Docker Compose targets
 compose-build:
@@ -139,6 +149,15 @@ docs-build:
 docs-deploy:
 	mkdocs gh-deploy
 
+docs-test-mermaid:
+	@echo "Testing Mermaid diagram rendering..."
+	@if ! command -v playwright > /dev/null 2>&1; then \
+		echo "Installing Playwright..."; \
+		pip install playwright; \
+		playwright install chromium; \
+	fi
+	@python3 tests/docs/test_mermaid_diagrams.py
+
 # Guardrails targets
 guardrails-check:
 	@if [ "$(CASA6_PYTHON_CHECK)" != "ok" ]; then \
@@ -179,6 +198,21 @@ test-unit:
 	fi
 	@echo "Running unit tests..."
 	@$(CASA6_PYTHON) -m pytest tests/unit/ -v
+
+# Fast unit tests (fail fast, minimal scope)
+test-fast:
+	@if [ "$(CASA6_PYTHON_CHECK)" != "ok" ]; then \
+		echo "ERROR: casa6 Python not found at $(CASA6_PYTHON)"; \
+		echo "Please ensure casa6 conda environment is installed at /opt/miniforge/envs/casa6"; \
+		exit 1; \
+	fi
+	@echo "Running fast unit test subset (fail-fast, minimal logging)..."
+	@$(CASA6_PYTHON) -m pytest tests/unit -q -x --maxfail=1 -m "unit and not slow and not integration and not casa"
+
+# Impacted tests runner (maps changes to tests)
+test-impacted:
+	@echo "Running impacted tests via scripts/test-impacted.sh (BASE_REF=$${BASE_REF:-HEAD~1})..."
+	@bash scripts/test-impacted.sh "$${BASE_REF:-}" || bash scripts/test-impacted.sh
 
 test-validation:
 	@if [ "$(CASA6_PYTHON_CHECK)" != "ok" ]; then \
@@ -223,10 +257,20 @@ test-deps:
 test-help:
 	@echo "Testing Help:"
 	@echo ""
+	@echo "Fast Tests (test-fast):"
+	@echo "  - Unit-only, fail-fast subset"
+	@echo "  - Excludes slow/integration/casa markers"
+	@echo "  - Run with: make test-fast"
+	@echo ""
 	@echo "Unit Tests (test-unit):"
 	@echo "  - Fast, isolated tests with mocked dependencies"
 	@echo "  - No external dependencies required"
 	@echo "  - Run with: make test-unit"
+	@echo ""
+	@echo "Impacted Tests (test-impacted):"
+	@echo "  - Maps changed files to relevant tests"
+	@echo "  - Uses scripts/test-impacted.sh; set BASE_REF to compare against"
+	@echo "  - Run with: make test-impacted or BASE_REF=origin/main make test-impacted"
 	@echo ""
 	@echo "Validation Tests (test-validation):"
 	@echo "  - Tests that require casa6 installation"
@@ -274,3 +318,13 @@ sync-linear-dry-run:
 		exit 1; \
 	fi
 	@$(CASA6_PYTHON) scripts/linear_sync.py --dry-run
+
+# Frontend build using casa6 Node.js (preferred) or Docker (fallback)
+# casa6 has Node.js v22.6.0 which meets all requirements
+frontend-build:
+	@echo "Building frontend (using casa6 Node.js if available, Docker otherwise)..."
+	@bash scripts/build-frontend-docker.sh
+
+# Alias for backward compatibility
+frontend-build-docker: frontend-build
+	@echo "(Note: This target now uses casa6 Node.js when available)"

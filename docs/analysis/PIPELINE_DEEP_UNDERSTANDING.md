@@ -459,8 +459,8 @@ The pipeline includes a **declarative orchestration framework** for dependency-b
 - Type-safe context passing
 
 **Usage:**
-- Enabled via `USE_NEW_PIPELINE=true` environment variable
-- Legacy subprocess-based code in `api/job_runner.py` (still default)
+- The new pipeline framework is now the default and only execution mode
+- Legacy subprocess-based code has been archived to `archive/legacy/api/job_runner_legacy.py`
 
 ---
 

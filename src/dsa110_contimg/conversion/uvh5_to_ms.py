@@ -23,6 +23,10 @@ from dsa110_contimg.conversion.helpers import (
     set_telescope_identity,
 )
 from dsa110_contimg.utils.exceptions import ConversionError, ValidationError
+from dsa110_contimg.utils.runtime_safeguards import (
+    progress_monitor,
+    log_progress,
+)
 
 # Configure logging
 logging.basicConfig(
@@ -953,6 +957,7 @@ def _ensure_imaging_columns_populated(ms_path: str) -> None:
                     f"Populated {fixed} rows in {col} for {ms_path}")
 
 
+@progress_monitor(operation_name="UVH5 File Conversion", warn_threshold=60.0)
 def convert_single_file(input_file: str, output_file: str,
                         add_imaging_columns: bool = True,
                         create_time_binned_fields: bool = False,
@@ -1046,6 +1051,9 @@ def convert_single_file(input_file: str, output_file: str,
       handles complete subband groups
     - After conversion, the MS is ready for calibration and imaging
     """
+    import time
+    start_time_sec = time.time()
+    log_progress(f"Starting conversion of {input_file}...")
     logger.info(f"Converting {input_file} -> {output_file}")
 
     # Validate input parameters
@@ -1131,6 +1139,7 @@ def convert_single_file(input_file: str, output_file: str,
         logger.info(
             f"Conversion completed successfully in "
             f"{conversion_time:.1f} seconds")
+        log_progress(f"Completed conversion of {input_file} -> {output_file}", start_time_sec)
 
     except Exception as e:
         conversion_time = time.time() - start_time
@@ -1167,6 +1176,7 @@ def find_uvh5_files(input_dir: str, pattern: str = "*.hdf5") -> List[str]:
     return [str(f) for f in files]
 
 
+@progress_monitor(operation_name="UVH5 Directory Conversion", warn_threshold=600.0)
 def convert_directory(input_dir: str, output_dir: str,
                       pattern: str = "*.hdf5",
                       add_imaging_columns: bool = True,
@@ -1239,6 +1249,10 @@ def convert_directory(input_dir: str, output_dir: str,
     except Exception as e:
         raise RuntimeError(f"Failed to find UVH5 files: {e}") from e
 
+    import time
+    start_time_sec = time.time()
+    log_progress(f"Starting directory conversion: {input_dir} -> {output_dir}...")
+    
     if not uvh5_files:
         logger.warning(
             f"No UVH5 files found in {input_dir} with pattern '{pattern}'")
@@ -1288,12 +1302,13 @@ def convert_directory(input_dir: str, output_dir: str,
             continue
 
     # Report final statistics
-    total_time = time.time() - start_time
+    total_time = time.time() - start_time_sec
     logger.info(
         f"Directory conversion completed in {total_time:.1f} seconds")
     logger.info(
         f"Successfully converted: {successful_conversions}/"
         f"{len(uvh5_files)} files")
+    log_progress(f"Completed directory conversion: {successful_conversions}/{len(uvh5_files)} files processed", start_time_sec)
 
     if failed_conversions > 0:
         logger.warning(

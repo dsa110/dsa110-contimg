@@ -6,12 +6,12 @@ This guide summarizes the fast path to convert, calibrate, and image a 5‑minut
 
 - Writer: `--writer auto` (monolithic for ≤2 subbands, else direct-subband)
 - RAM staging: `--stage-to-tmpfs --tmpfs-path /dev/shm` (enabled by default in `scripts/run_conversion.sh` when `/dev/shm` is mounted)
-- Scratch: `SCRATCH_ROOT=/dev/shm/dsa110-contimg` fallback to `/scratch/dsa110-contimg`.
+- Scratch: `SCRATCH_ROOT=/dev/shm/dsa110-contimg` fallback to `/stage/dsa110-contimg`.
 
 Example:
 
 ```bash
-scripts/run_conversion.sh /path/to/uvh5_dir /scratch/dsa110-contimg/ms \
+scripts/run_conversion.sh /path/to/uvh5_dir /stage/dsa110-contimg/ms \
   2025-10-13T13:25:00 2025-10-13T13:30:00
 ```
 
@@ -25,7 +25,7 @@ Example:
 
 ```bash
 python -m dsa110_contimg.calibration.cli calibrate \
-  --ms /scratch/dsa110-contimg/ms/<obs>.ms \
+  --ms /stage/dsa110-contimg/ms/<obs>.ms \
   --field 0~4 --refant 1 --preset development
 ```
 
@@ -38,7 +38,7 @@ python -m dsa110_contimg.calibration.cli calibrate \
 Example:
 
 ```bash
-scripts/image_ms.sh /scratch/dsa110-contimg/ms/<obs>.ms /scratch/out/<obs> \
+scripts/image_ms.sh /stage/dsa110-contimg/ms/<obs>.ms /scratch/out/<obs> \
   --quality-tier development --skip-fits
 ```
 

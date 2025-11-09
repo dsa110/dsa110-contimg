@@ -18,6 +18,7 @@ from concurrent.futures import ProcessPoolExecutor, ThreadPoolExecutor, as_compl
 from typing import List, Callable, Any, Optional, TypeVar, Dict
 import logging
 from functools import partial
+from dsa110_contimg.utils.runtime_safeguards import log_progress
 
 logger = logging.getLogger(__name__)
 
@@ -26,7 +27,7 @@ R = TypeVar('R')
 
 
 def process_parallel(
-    items: List[T], 
+    items: List[T],
     func: Callable[[T], R],
     max_workers: int = 4,
     use_processes: bool = True,
@@ -35,10 +36,10 @@ def process_parallel(
 ) -> List[R]:
     """
     Process items in parallel with progress feedback.
-    
+
     OPTIMIZATION: Use parallel processing for independent operations to
     achieve 2-4x speedup on multi-core systems (depending on workload).
-    
+
     Args:
         items: List of items to process
         func: Function to apply to each item (must be pickleable if use_processes=True)
@@ -47,42 +48,46 @@ def process_parallel(
                       If False, use ThreadPoolExecutor (faster but CASA tools may not be thread-safe)
         show_progress: Whether to show progress bar
         desc: Progress bar description
-    
+
     Returns:
         List of results (order preserved)
-    
+
     Example:
         # Process multiple MS files in parallel
         def validate_ms(ms_path: str) -> dict:
             return {'ms_path': ms_path, 'valid': True}
-        
+
         ms_paths = ['ms1.ms', 'ms2.ms', 'ms3.ms']
         results = process_parallel(ms_paths, validate_ms, max_workers=4)
     """
     if not items:
         return []
-    
+
     if len(items) == 1:
         # No need for parallelization for single item
         return [func(items[0])]
-    
+
+    log_progress(
+        f"Starting parallel processing: {len(items)} items with {max_workers} workers ({'processes' if use_processes else 'threads'})", flush=True)
+
     results = []
     executor_class = ProcessPoolExecutor if use_processes else ThreadPoolExecutor
-    
+
     try:
         from dsa110_contimg.utils.progress import get_progress_bar
         has_progress = True
     except ImportError:
         has_progress = False
         show_progress = False
-    
+
     with executor_class(max_workers=max_workers) as executor:
         # Submit all tasks
-        futures = {executor.submit(func, item): i for i, item in enumerate(items)}
-        
+        futures = {executor.submit(func, item): i for i,
+                   item in enumerate(items)}
+
         # Collect results in order
         results = [None] * len(items)
-        
+
         if show_progress and has_progress:
             # Use progress bar
             with get_progress_bar(total=len(items), desc=desc) as pbar:
@@ -103,7 +108,9 @@ def process_parallel(
                 except Exception as e:
                     logger.error(f"Error processing item {idx}: {e}")
                     results[idx] = None
-    
+
+    log_progress(
+        f"Completed parallel processing: {len([r for r in results if r is not None])}/{len(items)} items succeeded", flush=True)
     return results
 
 
@@ -118,10 +125,10 @@ def process_batch_parallel(
 ) -> List[R]:
     """
     Process items in batches with parallel execution within each batch.
-    
+
     Useful for very large item lists where submitting all at once would
     consume too much memory or create too many concurrent operations.
-    
+
     Args:
         items: List of items to process
         func: Function to apply to each item
@@ -130,21 +137,25 @@ def process_batch_parallel(
         use_processes: Use ProcessPoolExecutor (True) or ThreadPoolExecutor (False)
         show_progress: Whether to show progress
         desc: Progress bar description
-    
+
     Returns:
         List of results (order preserved)
     """
+    log_progress(
+        f"Starting batch parallel processing: {len(items)} items in batches of {batch_size}", flush=True)
+
     all_results = []
     total_batches = (len(items) + batch_size - 1) // batch_size
-    
+
     for batch_num in range(total_batches):
         start_idx = batch_num * batch_size
         end_idx = min(start_idx + batch_size, len(items))
         batch = items[start_idx:end_idx]
-        
+
         if show_progress:
-            logger.info(f"Processing batch {batch_num + 1}/{total_batches} ({len(batch)} items)...")
-        
+            logger.info(
+                f"Processing batch {batch_num + 1}/{total_batches} ({len(batch)} items)...")
+
         batch_results = process_parallel(
             batch,
             func,
@@ -154,7 +165,9 @@ def process_batch_parallel(
             desc=f"{desc} (batch {batch_num + 1}/{total_batches})"
         )
         all_results.extend(batch_results)
-    
+
+    log_progress(
+        f"Completed batch parallel processing: {len([r for r in all_results if r is not None])}/{len(items)} items succeeded", flush=True)
     return all_results
 
 
@@ -168,7 +181,7 @@ def map_parallel(
 ) -> List[R]:
     """
     Parallel version of map() function.
-    
+
     Args:
         func: Function to apply
         *iterables: Iterables to map over (must be same length)
@@ -176,12 +189,11 @@ def map_parallel(
         use_processes: Use ProcessPoolExecutor (True) or ThreadPoolExecutor (False)
         show_progress: Whether to show progress
         desc: Progress bar description
-    
+
     Returns:
         List of results
     """
     items = list(zip(*iterables))
-    func_wrapper = lambda args: func(*args)
+    def func_wrapper(args): return func(*args)
     return process_parallel(items, func_wrapper, max_workers=max_workers,
-                           use_processes=use_processes, show_progress=show_progress, desc=desc)
-
+                            use_processes=use_processes, show_progress=show_progress, desc=desc)

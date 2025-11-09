@@ -14,16 +14,16 @@ Queue/Registry/Products DB
 
 Pipeline Framework
 
-- `USE_NEW_PIPELINE` (default: `false`): Enable the new pipeline orchestration framework
-  - When `true`: Uses the new declarative pipeline framework with dependency resolution, retry policies, and improved error handling (see `src/dsa110_contimg/pipeline/`)
-  - When `false` (default): Uses the legacy subprocess-based execution for workflow jobs
-  - Applies to `run_workflow_job()` in `api/job_runner.py`
-  - The new framework provides:
-    - Declarative stage definitions with dependency graphs
-    - Automatic retry policies with exponential backoff
-    - Immutable context passing between stages
-    - Structured observability and metrics
-    - Better testability and error recovery
+The pipeline uses a declarative orchestration framework with dependency resolution, retry policies, and improved error handling (see `src/dsa110_contimg/pipeline/`).
+
+The framework provides:
+- Declarative stage definitions with dependency graphs
+- Automatic retry policies with exponential backoff
+- Immutable context passing between stages
+- Structured observability and metrics
+- Better testability and error recovery
+
+**Note:** Legacy subprocess-based execution has been removed. All pipeline execution now uses the new framework.
 
 Calibrator Catalog
 

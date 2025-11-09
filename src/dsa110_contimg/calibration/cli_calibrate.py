@@ -575,6 +575,20 @@ def handle_calibrate(args: argparse.Namespace) -> int:
     global _calibrator_info_printed_global
     start_time = time.time()
 
+    # Input validation
+    if not hasattr(args, 'ms') or not args.ms:
+        raise ValueError("MS file path is required")
+    if not isinstance(args.ms, str) or not args.ms.strip():
+        raise ValueError("MS file path must be a non-empty string")
+    if not os.path.exists(args.ms):
+        raise FileNotFoundError(f"MS file not found: {args.ms}")
+    if hasattr(args, 'refant') and args.refant is not None:
+        if not isinstance(args.refant, (str, int)):
+            raise ValueError("refant must be a string or integer")
+    if hasattr(args, 'field') and args.field is not None:
+        if not isinstance(args.field, str):
+            raise ValueError("field must be a string")
+
     # Performance optimization: memory management
     if getattr(args, 'memory_limit_gb', None):
         os.environ['CASA_MEMORY_LIMIT_GB'] = str(args.memory_limit_gb)

@@ -3,6 +3,7 @@
  */
 import { useEffect, useLayoutEffect, useRef, useState } from 'react';
 import { Box, CircularProgress, Alert, Typography } from '@mui/material';
+import { logger } from '../../utils/logger';
 
 declare global {
   interface Window {
@@ -28,18 +29,35 @@ export default function SkyViewer({
   const [error, setError] = useState<string | null>(null);
   const [initialized, setInitialized] = useState(false);
 
+  // Prevent JS9 from modifying page title
+  useEffect(() => {
+    const originalTitle = document.title;
+    const titleObserver = new MutationObserver(() => {
+      if (document.title !== originalTitle && document.title.includes(':')) {
+        document.title = originalTitle;
+      }
+    });
+    titleObserver.observe(document.querySelector('title') || document.head, {
+      childList: true,
+      subtree: true,
+      characterData: true
+    });
+    return () => titleObserver.disconnect();
+  }, []);
+
   // Initialize JS9 display (only once)
   useEffect(() => {
     if (!containerRef.current) return;
     
-    // Check if JS9 display already exists for this div
-    if (window.JS9) {
+    // Check if JS9 is fully loaded (js9.min.js must have finished loading)
+    // window.JS9 exists before js9.min.js loads, so check for JS9.Load function
+    if (window.JS9 && typeof window.JS9.Load === 'function') {
       const existingDisplay = window.JS9.displays?.find((d: any) => {
         const divId = d.id || d.display || d.divID;
         return divId === displayId;
       });
       if (existingDisplay) {
-        console.debug('JS9 display already exists for:', displayId);
+        logger.debug('JS9 display already exists for:', displayId);
         setInitialized(true);
         return;
       }
@@ -62,7 +80,7 @@ export default function SkyViewer({
           }
         });
       } catch (e) {
-        console.debug('Could not disable JS9 loading indicator:', e);
+        logger.debug('Could not disable JS9 loading indicator:', e);
       }
     }
     
@@ -70,9 +88,10 @@ export default function SkyViewer({
 
     // Wait for JS9 to be available
     if (!window.JS9) {
-      // JS9 might not be loaded yet, wait a bit
+      // JS9 might not be loaded yet, wait for js9.min.js to finish loading
+      // Check for JS9.Load function, not just window.JS9 (which exists before js9.min.js loads)
       const checkJS9 = setInterval(() => {
-        if (window.JS9) {
+        if (window.JS9 && typeof window.JS9.Load === 'function') {
           clearInterval(checkJS9);
           // Check again if display exists
           const existingDisplay = window.JS9.displays?.find((d: any) => {
@@ -86,6 +105,15 @@ export default function SkyViewer({
           }
         }
       }, 100);
+      
+      // Timeout after 10 seconds
+      setTimeout(() => {
+        clearInterval(checkJS9);
+        if (!(window.JS9 && typeof window.JS9.Load === 'function')) {
+          logger.error('JS9 failed to load after 10 seconds');
+          setError('JS9 library failed to load. Please refresh the page.');
+        }
+      }, 10000);
 
       return () => clearInterval(checkJS9);
     }
@@ -133,6 +161,59 @@ export default function SkyViewer({
             containerRef.current.style.height = `${height}px`;
           }
           
+                 // Configure JS9 paths to use local files (already configured in index.html)
+                 // Use the same paths as index.html to avoid conflicts
+                 const js9Base = '/ui/js9';
+                 try {
+                   // Set InstallDir first so JS9 uses correct base path
+                   // Must be absolute path starting with / to avoid relative path resolution
+                   if (window.JS9) {
+                     // Set INSTALLDIR to absolute path
+                     window.JS9.INSTALLDIR = js9Base + '/';
+                     // Also set InstallDir function if it exists
+                     if (typeof window.JS9.InstallDir === 'function') {
+                       // Override InstallDir to always return absolute path
+                       window.JS9.InstallDir = function(path: string) {
+                         if (path && path.startsWith('/')) {
+                           return path; // Already absolute
+                         }
+                         // Return absolute path
+                         return js9Base + '/' + (path || '');
+                       };
+                     }
+                   }
+                   
+                   if (typeof window.JS9.SetOptions === 'function') {
+                     window.JS9.SetOptions({
+                       InstallDir: js9Base,
+                       workerPath: js9Base + '/js9worker.js',
+                       wasmPath: js9Base + '/astroemw.wasm',
+                       wasmJS: js9Base + '/astroemw.js',
+                       prefsPath: js9Base + '/js9Prefs.json',
+                       loadImage: false,
+                       helperType: 'none',
+                       helperPort: 0,
+                       loadProxy: false
+                     });
+                     logger.debug('JS9 paths configured to use local files:', js9Base);
+                   } else if (window.JS9.opts) {
+                     // Fallback: set options directly
+                     window.JS9.INSTALLDIR = js9Base;
+                     window.JS9.opts.InstallDir = js9Base;
+                     window.JS9.opts.workerPath = js9Base + '/js9worker.js';
+                     window.JS9.opts.wasmPath = js9Base + '/astroemw.wasm';
+                     window.JS9.opts.wasmJS = js9Base + '/astroemw.js';
+                     window.JS9.opts.prefsPath = js9Base + '/js9Prefs.json';
+                     window.JS9.opts.loadImage = false;
+                     window.JS9.opts.helperType = 'none';
+                     window.JS9.opts.helperPort = 0;
+                     window.JS9.opts.loadProxy = false;
+                     logger.debug('JS9 paths configured via opts:', js9Base);
+                   }
+                 } catch (configErr) {
+                   logger.debug('JS9 path configuration failed:', configErr);
+                 }
+                 
                  // Initialize JS9 globally if needed (only once)
                  if (typeof window.JS9.Init === 'function') {
                    try {
@@ -145,7 +226,7 @@ export default function SkyViewer({
                          window.JS9.SetOptions({ loadImage: false });
                        }
                      } catch (optErr) {
-                       console.debug('JS9 Init and SetOptions failed:', initErr, optErr);
+                       logger.debug('JS9 Init and SetOptions failed:', initErr, optErr);
                      }
                    }
                  }
@@ -155,9 +236,9 @@ export default function SkyViewer({
           if (typeof window.JS9.AddDivs === 'function') {
             try {
               window.JS9.AddDivs(displayId);
-              console.debug('JS9 div registered:', displayId);
+              logger.debug('JS9 div registered:', displayId);
             } catch (addDivsErr) {
-              console.debug('JS9 AddDivs:', addDivsErr);
+              logger.debug('JS9 AddDivs:', addDivsErr);
               // Continue anyway - JS9 might auto-detect the div
             }
           }
@@ -165,7 +246,7 @@ export default function SkyViewer({
           setInitialized(true);
         }
       } catch (err) {
-        console.error('JS9 initialization error:', err);
+        logger.error('JS9 initialization error:', err);
         setError('Failed to initialize JS9 display');
       }
     }
@@ -185,17 +266,17 @@ export default function SkyViewer({
     // If JS9 has an image loaded but the div is empty, restore it
     // Only restore if we have a valid image and we're not loading a new one
     if (display && display.im && div.children.length === 0 && imagePath) {
-      console.debug('Restoring JS9 display after React render');
+      logger.debug('Restoring JS9 display after React render');
       // Use requestAnimationFrame to ensure this happens after React's render
       requestAnimationFrame(() => {
         try {
           // Reload the image into the display using the current imagePath
           // This ensures we restore the correct image, not an old one
-          if (imagePath) {
+          if (imagePath && window.JS9 && typeof window.JS9.Load === 'function') {
             window.JS9.Load(imagePath, { divID: displayId });
           }
         } catch (e) {
-          console.debug('Failed to restore JS9 display:', e);
+          logger.debug('Failed to restore JS9 display:', e);
         }
       });
     }
@@ -216,15 +297,15 @@ export default function SkyViewer({
           return divId === displayId;
         });
         if (display && display.im) {
-          console.debug('React cleared JS9 content, restoring...');
+          logger.debug('React cleared JS9 content, restoring...');
           // Force JS9 to redraw using the current imagePath to ensure we restore the correct image
           setTimeout(() => {
             try {
-              if (imagePath) {
+              if (imagePath && window.JS9 && typeof window.JS9.Load === 'function') {
                 window.JS9.Load(imagePath, { divID: displayId });
               }
             } catch (e) {
-              console.debug('Failed to restore JS9 display:', e);
+              logger.debug('Failed to restore JS9 display:', e);
             }
           }, 100);
         }
@@ -407,7 +488,7 @@ export default function SkyViewer({
           }
         } catch (e) {
           // Ignore errors when closing - image might not exist
-          console.debug('Error closing previous image:', e);
+          logger.debug('Error closing previous image:', e);
         }
       }
       
@@ -445,14 +526,16 @@ export default function SkyViewer({
           try {
             window.JS9.CloseImage(existingDisplay.im.id);
           } catch (e) {
-            console.debug('Error closing existing image:', e);
+            logger.debug('Error closing existing image:', e);
           }
         }
         
         // JS9.Load with divID should automatically create a display in that div
         // Use a small delay after closing to ensure cleanup
         timeoutRef.current = setTimeout(() => {
-          if (!imagePath || !window.JS9) {
+          if (!imagePath || !window.JS9 || typeof window.JS9.Load !== 'function') {
+            logger.error('JS9.Load not available when trying to load image');
+            setError('JS9 library not fully loaded. Please refresh the page.');
             setLoading(false);
             return;
           }
@@ -463,11 +546,18 @@ export default function SkyViewer({
               scale: 'linear',
               colormap: 'grey',
               onload: (im: any) => {
-                console.log('FITS image loaded:', im, 'Display:', displayId);
+                logger.debug('FITS image loaded:', im, 'Display:', displayId);
                 imageLoadedRef.current = true;
                 setLoading(false);
                 cleanupInterval();
                 hideJS9Loading();
+                
+                // Restore page title (JS9 modifies it when loading images)
+                const originalTitle = document.title.split(':')[0].trim();
+                if (document.title !== originalTitle) {
+                  document.title = originalTitle;
+                }
+                
                 // Force JS9 to display the image in the correct div
                 try {
                   // Use SetDisplay to ensure the image is shown in the correct display
@@ -480,20 +570,20 @@ export default function SkyViewer({
                     return divId === displayId;
                   });
                   if (display && display.im && display.im.id === im.id) {
-                    console.log('Image confirmed in display:', displayId);
+                    logger.debug('Image confirmed in display:', displayId);
                   } else {
-                    console.warn('Image loaded but not in expected display, attempting to fix...');
+                    logger.debug('Image loaded but not in expected display, attempting to fix...');
                     // Try to move the image to the correct display
                     if (typeof window.JS9.SetDisplay === 'function') {
                       window.JS9.SetDisplay(displayId, im.id);
                     }
                   }
                 } catch (e) {
-                  console.debug('Error verifying display:', e);
+                  logger.debug('Error verifying display:', e);
                 }
               },
               onerror: (err: any) => {
-                console.error('JS9 load error:', err);
+                logger.error('JS9 load error:', err);
                 setError(`Failed to load image: ${err.message || 'Unknown error'}`);
                 setLoading(false);
                 imageLoadedRef.current = false;
@@ -503,28 +593,38 @@ export default function SkyViewer({
             });
           } catch (loadErr: any) {
             // If divID doesn't work, try without specifying display
-            console.warn('JS9.Load with divID failed, trying without display parameter:', loadErr);
+            logger.warn('JS9.Load with divID failed, trying without display parameter:', loadErr);
             try {
+              if (!window.JS9 || typeof window.JS9.Load !== 'function') {
+                throw new Error('JS9.Load not available');
+              }
               window.JS9.Load(imageUrlWithCacheBuster, {
                 scale: 'linear',
                 colormap: 'grey',
                 onload: (im: any) => {
-                  console.log('FITS image loaded (fallback):', im);
+                  logger.debug('FITS image loaded (fallback):', im);
                   imageLoadedRef.current = true;
                   setLoading(false);
                   cleanupInterval();
                   hideJS9Loading();
+                  
+                  // Restore page title (JS9 modifies it when loading images)
+                  const originalTitle = document.title.split(':')[0].trim();
+                  if (document.title !== originalTitle) {
+                    document.title = originalTitle;
+                  }
+                  
                   // Try to move to correct display after loading
                   try {
                     if (typeof window.JS9.SetDisplay === 'function') {
                       window.JS9.SetDisplay(displayId, im.id);
                     }
                   } catch (e) {
-                    console.debug('Error setting display (fallback):', e);
+                    logger.debug('Error setting display (fallback):', e);
                   }
                 },
                 onerror: (err: any) => {
-                  console.error('JS9 load error (fallback):', err);
+                  logger.error('JS9 load error (fallback):', err);
                   setError(`Failed to load image: ${err.message || 'Unknown error'}`);
                   setLoading(false);
                   imageLoadedRef.current = false;
@@ -553,7 +653,7 @@ export default function SkyViewer({
         hideJS9Loading();
       };
     } catch (err: any) {
-      console.error('Error loading image:', err);
+      logger.error('Error loading image:', err);
       setError(`Error: ${err.message || 'Unknown error'}`);
       setLoading(false);
       imageLoadedRef.current = false;
@@ -588,7 +688,7 @@ export default function SkyViewer({
           // Force JS9 to redraw if content was cleared
           if (imageLoadedRef.current && window.JS9) {
             const display = window.JS9.displays?.find((d: any) => d.id === displayId || d.display === displayId);
-            if (display && display.im) {
+            if (display && display.im && window.JS9 && typeof window.JS9.Load === 'function') {
               // Image is loaded, ensure it's displayed
               try {
                 window.JS9.Load(display.im.id, { display: displayId });

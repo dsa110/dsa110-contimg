@@ -170,10 +170,10 @@ def _image_spw_parallel_wrapper(
     args: Tuple[str, int, Path, str, dict]
 ) -> Tuple[int, Path]:
     """Wrapper function for parallel SPW imaging (must be at module level for pickling).
-    
+
     Args:
         args: Tuple of (ms_path, spw_id, output_dir, base_name, imaging_kwargs)
-    
+
     Returns:
         Tuple of (spw_id, image_path)
     """
@@ -200,6 +200,7 @@ def image_all_spws(
     spw_ids: Optional[List[int]] = None,
     parallel: bool = False,
     max_workers: Optional[int] = None,
+    serialize_ms_access: bool = False,
     **imaging_kwargs,
 ) -> List[Tuple[int, Path]]:
     """Image all SPWs (or specified subset) and return paths.
@@ -211,6 +212,9 @@ def image_all_spws(
         spw_ids: Optional list of SPW IDs to image. If None, images all SPWs.
         parallel: If True, image SPWs in parallel (default: False)
         max_workers: Maximum number of parallel workers (default: CPU count)
+        serialize_ms_access: If True, serialize MS access using file locking to
+                           prevent CASA table lock conflicts when multiple
+                           processes access the same MS (default: False)
         **imaging_kwargs: Additional arguments passed to image_ms()
 
     Returns:
@@ -224,10 +228,58 @@ def image_all_spws(
         ...     quality_tier="standard",
         ...     parallel=True,
         ...     max_workers=4,
+        ...     serialize_ms_access=True,
         ... )
         >>> print(f"Imaged {len(spw_images)} SPWs")
         >>> for spw_id, img_path in spw_images:
         ...     print(f"SPW {spw_id}: {img_path}")
+    """
+    # Import MS locking utility if serialization is enabled
+    if serialize_ms_access:
+        from dsa110_contimg.utils.ms_locking import (
+            ms_lock, cleanup_stale_locks
+        )
+
+        # Clean up any stale locks before starting
+        cleanup_stale_locks(ms_path)
+
+        # Use lock context manager for entire SPW imaging operation
+        with ms_lock(ms_path, timeout=3600.0):
+            return _image_all_spws_impl(
+                ms_path=ms_path,
+                output_dir=output_dir,
+                base_name=base_name,
+                spw_ids=spw_ids,
+                parallel=parallel,
+                max_workers=max_workers,
+                **imaging_kwargs,
+            )
+    else:
+        # No locking, proceed directly
+        return _image_all_spws_impl(
+            ms_path=ms_path,
+            output_dir=output_dir,
+            base_name=base_name,
+            spw_ids=spw_ids,
+            parallel=parallel,
+            max_workers=max_workers,
+            **imaging_kwargs,
+        )
+
+
+def _image_all_spws_impl(
+    ms_path: str,
+    output_dir: Path,
+    base_name: str = "spw",
+    spw_ids: Optional[List[int]] = None,
+    parallel: bool = False,
+    max_workers: Optional[int] = None,
+    **imaging_kwargs,
+) -> List[Tuple[int, Path]]:
+    """Internal implementation of image_all_spws (without locking).
+
+    This function is separated out so that locking can be applied at the
+    outer level when serialize_ms_access=True.
     """
     # Get SPW information
     spw_info_list = get_spw_info(ms_path)
@@ -256,12 +308,12 @@ def image_all_spws(
         # Parallel imaging
         from concurrent.futures import ProcessPoolExecutor, as_completed
         import multiprocessing as mp
-        
+
         if max_workers is None:
             max_workers = min(mp.cpu_count(), len(spw_ids_to_image))
-        
+
         LOG.info(f"Using parallel imaging with {max_workers} worker(s)")
-        
+
         results = []
         with ProcessPoolExecutor(max_workers=max_workers) as executor:
             # Prepare arguments for each SPW
@@ -270,7 +322,7 @@ def image_all_spws(
                 args = (ms_path, spw_id, output_dir, base_name, imaging_kwargs)
                 future = executor.submit(_image_spw_parallel_wrapper, args)
                 futures[future] = spw_id
-            
+
             for future in as_completed(futures):
                 spw_id = futures[future]
                 try:

@@ -28,7 +28,7 @@ def test_ms_quality():
     print("="*70)
     
     # Find an existing MS file
-    ms_dir = Path("/scratch/dsa110-contimg/ms/central_cal_rebuild")
+    ms_dir = Path("/stage/dsa110-contimg/ms/central_cal_rebuild")
     ms_files = list(ms_dir.glob("2025-10-13T13:28:03.ms"))
     
     if not ms_files:
@@ -97,7 +97,7 @@ def test_calibration_quality():
     print("="*70)
     
     # Find calibration tables
-    cal_dir = Path("/scratch/dsa110-contimg/ms/central_cal_rebuild")
+    cal_dir = Path("/stage/dsa110-contimg/ms/central_cal_rebuild")
     caltables = list(cal_dir.glob("2025-10-13T13:28:03.shift_all_*cal"))
     
     if not caltables:
@@ -150,7 +150,7 @@ def test_image_quality():
     print("="*70)
     
     # Find image files
-    img_dir = Path("/scratch/dsa110-contimg/ms/central_cal_rebuild")
+    img_dir = Path("/stage/dsa110-contimg/ms/central_cal_rebuild")
     images = list(img_dir.glob("2025-10-13T13:28:03.wproj.image.pbcor"))
     
     if not images:

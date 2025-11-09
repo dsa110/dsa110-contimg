@@ -21,6 +21,11 @@ from dsa110_contimg.photometry.adaptive_binning import (
 )
 from dsa110_contimg.photometry.forced import measure_forced_peak
 from dsa110_contimg.imaging.spw_imaging import get_spw_info, image_all_spws
+from dsa110_contimg.utils.runtime_safeguards import (
+    progress_monitor,
+    log_progress,
+    filter_non_finite_2d,
+)
 
 LOG = logging.getLogger(__name__)
 
@@ -37,6 +42,7 @@ class AdaptivePhotometryResult:
     error_message: Optional[str] = None
 
 
+@progress_monitor(operation_name="Adaptive Photometry", warn_threshold=300.0)
 def measure_with_adaptive_binning(
     ms_path: str,
     ra_deg: float,
@@ -49,6 +55,10 @@ def measure_with_adaptive_binning(
     **imaging_kwargs,
 ) -> AdaptivePhotometryResult:
     """Measure photometry using adaptive channel binning.
+    
+    import time
+    start_time_sec = time.time()
+    log_progress(f"Starting adaptive photometry at ({ra_deg:.6f}, {dec_deg:.6f})...")
 
     This function:
     1. Images all SPWs individually
@@ -105,7 +115,8 @@ def measure_with_adaptive_binning(
         # Limit SPWs if requested
         if max_spws is not None and max_spws < n_spws:
             LOG.info(f"Limiting to first {max_spws} SPW(s) (out of {n_spws})")
-            spw_ids_to_image = [info.spw_id for info in spw_info_list[:max_spws]]
+            spw_ids_to_image = [
+                info.spw_id for info in spw_info_list[:max_spws]]
             n_spws_used = max_spws
         else:
             spw_ids_to_image = None
@@ -119,7 +130,8 @@ def measure_with_adaptive_binning(
         # Extract parallel imaging parameters if provided
         parallel = imaging_kwargs.pop('parallel', False)
         max_workers = imaging_kwargs.pop('max_workers', None)
-        
+        serialize_ms_access = imaging_kwargs.pop('serialize_ms_access', False)
+
         spw_image_paths = image_all_spws(
             ms_path=ms_path,
             output_dir=spw_images_dir,
@@ -127,6 +139,7 @@ def measure_with_adaptive_binning(
             spw_ids=spw_ids_to_image,
             parallel=parallel,
             max_workers=max_workers,
+            serialize_ms_access=serialize_ms_access,
             **imaging_kwargs,
         )
 
@@ -154,7 +167,11 @@ def measure_with_adaptive_binning(
                 # Convert from Jy/beam to Jy (approximate)
                 flux_jy = result.peak_jyb
                 rms_jy = result.peak_err_jyb if result.peak_err_jyb is not None else result.local_rms_jy
+                # Filter non-finite values from RMS calculation
                 if rms_jy is None or not np.isfinite(rms_jy):
+                    # Use safe filtering if rms_jy is invalid
+                    if hasattr(measure_result, 'rms_jy') and measure_result.rms_jy is not None:
+                        rms_jy = measure_result.rms_jy if np.isfinite(measure_result.rms_jy) else None
                     rms_jy = 0.001  # Default RMS if not available
                 return flux_jy, rms_jy
 
@@ -169,7 +186,8 @@ def measure_with_adaptive_binning(
         # Get channel frequencies for center frequency calculation
         # Use only the SPWs that were actually imaged
         spw_ids_imaged = [spw_id for spw_id, _ in spw_image_paths]
-        spw_info_used = [info for info in spw_info_list if info.spw_id in spw_ids_imaged]
+        spw_info_used = [
+            info for info in spw_info_list if info.spw_id in spw_ids_imaged]
         channel_freqs_mhz = [info.center_freq_mhz for info in spw_info_used]
 
         # Run adaptive binning
@@ -183,6 +201,7 @@ def measure_with_adaptive_binning(
 
         LOG.info(f"Found {len(detections)} detection(s) with adaptive binning")
 
+        log_progress(f"Completed adaptive photometry: {len(detections)} detection(s) found", start_time_sec)
         return AdaptivePhotometryResult(
             ra_deg=ra_deg,
             dec_deg=dec_deg,
@@ -194,6 +213,7 @@ def measure_with_adaptive_binning(
 
     except Exception as e:
         LOG.error(f"Adaptive binning photometry failed: {e}", exc_info=True)
+        log_progress(f"Adaptive photometry failed: {e}", start_time_sec)
         return AdaptivePhotometryResult(
             ra_deg=ra_deg,
             dec_deg=dec_deg,

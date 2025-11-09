@@ -1,0 +1,65 @@
+version: '3.8'
+
+services:
+  # E2E Test Runner
+  test-runner:
+    build:
+      context: ..
+      dockerfile: docker/Dockerfile.test
+    container_name: dsa110-test-runner
+    volumes:
+      - ..:/app
+      - test-results:/app/test-results
+      - playwright-report:/app/playwright-report
+    environment:
+      - BASE_URL=http://host.docker.internal:5173
+      - API_URL=http://host.docker.internal:8010
+      - CI=false
+    network_mode: host
+    # Override command for interactive use
+    # command: ["npx", "playwright", "test", "--ui"]
+    depends_on:
+      - frontend-test
+      - api-test
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+
+  # Frontend service for testing (if not already running)
+  frontend-test:
+    image: node:22-alpine
+    container_name: dsa110-frontend-test
+    working_dir: /app/frontend
+    volumes:
+      - ../frontend:/app/frontend
+    ports:
+      - "5173:5173"
+    command: sh -c "npm ci && npm run dev -- --host 0.0.0.0"
+    environment:
+      - NODE_ENV=development
+    profiles:
+      - test-frontend
+
+  # API service for testing (if not already running)
+  api-test:
+    image: continuumdevs/dsa110-api:latest
+    container_name: dsa110-api-test
+    ports:
+      - "8010:8000"
+    volumes:
+      - ../src:/app/src
+      - ../state:/app/state
+      - /scratch:/scratch
+    environment:
+      - PYTHONPATH=/app/src
+      - PIPELINE_PRODUCTS_DB=/app/state/products.sqlite3
+    profiles:
+      - test-api
+
+volumes:
+  test-results:
+  playwright-report:
+
+networks:
+  default:
+    name: dsa110-test-network
+

@@ -152,7 +152,7 @@ def diagnose_model_data_phase(ms_path: str, cal_ra_deg: float, cal_dec_deg: floa
 
 
 if __name__ == "__main__":
-    ms_path = "/scratch/dsa110-contimg/ms/0834_20251029/2025-10-29T13:54:17.ms"
+    ms_path = "/stage/dsa110-contimg/ms/0834_20251029/2025-10-29T13:54:17.ms"
     cal_ra = 128.7287
     cal_dec = 55.5725
     

@@ -467,7 +467,7 @@ python -m dsa110_contimg.calibration.cli calibrate \
 
 ```bash
 python -m dsa110_contimg.calibration.cli calibrate \
-    --ms /scratch/dsa110-contimg/ms/2025-10-30T13:34:54.ms \
+    --ms /stage/dsa110-contimg/ms/2025-10-30T13:34:54.ms \
     --field 0 \
     --refant 103 \
     --auto-fields \
@@ -490,7 +490,7 @@ python -m dsa110_contimg.calibration.cli calibrate \
 
 ```bash
 python -m dsa110_contimg.calibration.cli calibrate \
-    --ms /scratch/dsa110-contimg/ms/2025-10-30T13:34:54.ms \
+    --ms /stage/dsa110-contimg/ms/2025-10-30T13:34:54.ms \
     --field 0 \
     --refant 103 \
     --auto-fields \
@@ -516,7 +516,7 @@ python -m dsa110_contimg.calibration.cli calibrate \
 
 ```bash
 python -m dsa110_contimg.calibration.cli calibrate \
-    --ms /scratch/dsa110-contimg/ms/2025-10-30T13:34:54.ms \
+    --ms /stage/dsa110-contimg/ms/2025-10-30T13:34:54.ms \
     --field 0 \
     --refant 103 \
     --auto-fields \

@@ -20,6 +20,7 @@ from dsa110_contimg.utils.validation import validate_ms, ValidationError
 from dsa110_contimg.imaging.cli_utils import detect_datacolumn, default_cell_arcsec
 from dsa110_contimg.utils.performance import track_performance
 from dsa110_contimg.utils.error_context import format_ms_error_with_suggestions
+from dsa110_contimg.utils.runtime_safeguards import require_casa6_python
 
 LOG = logging.getLogger(__name__)
 
@@ -283,6 +284,7 @@ def run_wsclean(
 
 
 @track_performance("imaging", log_result=True)
+@require_casa6_python
 def image_ms(
     ms_path: str,
     *,

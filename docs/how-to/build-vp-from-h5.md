@@ -37,15 +37,15 @@ We expose a CLI that wraps the builder in `dsa110_contimg`:
 
 ```bash
 python -m dsa110_contimg.beam.cli \
-  --h5 /scratch/dsa110-contimg/dsa110-beam-model/DSA110_beam_1.h5 \
-  --out /scratch/dsa110-contimg/vp/dsa110.vp \
+  --h5 /stage/dsa110-contimg/dsa110-beam-model/DSA110_beam_1.h5 \
+  --out /stage/dsa110-contimg/vp/dsa110.vp \
   --telescope DSA_110 \
   --freq-hz 1.4e9
 ```
 
 This writes:
-- VP table: `/scratch/dsa110-contimg/vp/dsa110.vp`
-- Temp complex image used to create it: `/scratch/dsa110-contimg/vp/dsa110_vp_tmp.im`
+- VP table: `/stage/dsa110-contimg/vp/dsa110.vp`
+- Temp complex image used to create it: `/stage/dsa110-contimg/vp/dsa110_vp_tmp.im`
 
 Under the hood (`vp_builder.py`):
 - Converts angles to degrees; computes elevation from `theta`.

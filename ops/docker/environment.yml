@@ -1,4 +1,10 @@
-name: contimg
+# Minimal runtime environment for Docker containers
+# Matches the casa6 environment name for consistency, but contains only
+# essential runtime dependencies. The host casa6 environment includes
+# additional development tools (black, flake8, pytest), documentation
+# tools (mkdocs), Jupyter/IPython, and visualization packages that are
+# not needed in Docker containers.
+name: casa6
 channels:
   - conda-forge
 dependencies:

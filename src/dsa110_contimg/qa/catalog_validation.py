@@ -14,6 +14,11 @@ import numpy as np
 import pandas as pd
 from astropy.coordinates import SkyCoord, match_coordinates_sky
 from astropy.wcs import WCS
+from dsa110_contimg.utils.runtime_safeguards import (
+    validate_wcs_4d,
+    wcs_pixel_to_world_safe,
+    wcs_world_to_pixel_safe,
+)
 from astropy.io import fits
 import astropy.units as u
 
@@ -198,7 +203,8 @@ def extract_sources_from_image(
                     y_center = np.average(y_coords, weights=data[y_coords, x_coords])
                     
                     # Convert to RA/Dec
-                    ra, dec = wcs.wcs_pix2world(x_center, y_center, 0)
+                    wcs_validated, is_4d, defaults = validate_wcs_4d(wcs)
+                    ra, dec = wcs_pixel_to_world_safe(wcs_validated, x_center, y_center, is_4d, defaults)
                     
                     # Integrated flux (sum of pixels above threshold)
                     flux = np.sum(data[y_coords, x_coords])
@@ -271,7 +277,8 @@ def get_catalog_overlay_pixels(
             dec = row["dec_deg"]
             
             # Convert to pixel coordinates
-            x, y = wcs.wcs_world2pix(ra, dec, 0)
+            wcs_validated, is_4d, defaults = validate_wcs_4d(wcs)
+            x, y = wcs_world_to_pixel_safe(wcs_validated, ra, dec, is_4d, defaults)
             
             source_dict = {
                 "x": float(x),
@@ -338,7 +345,8 @@ def validate_astrometry(
         ny = header.get("NAXIS2", 0)
         center_x = nx / 2
         center_y = ny / 2
-        center_ra, center_dec = wcs.wcs_pix2world(center_x, center_y, 0)
+        wcs_validated, is_4d, defaults = validate_wcs_4d(wcs)
+        center_ra, center_dec = wcs_pixel_to_world_safe(wcs_validated, center_x, center_y, is_4d, defaults)
         
         # Estimate field size
         radius_deg = max(nx, ny) * abs(header.get("CDELT1", 0.001)) / 2 + 0.01
@@ -502,7 +510,8 @@ def validate_flux_scale(
         ny = header.get("NAXIS2", 0)
         center_x = nx / 2
         center_y = ny / 2
-        center_ra, center_dec = wcs.wcs_pix2world(center_x, center_y, 0)
+        wcs_validated, is_4d, defaults = validate_wcs_4d(wcs)
+        center_ra, center_dec = wcs_pixel_to_world_safe(wcs_validated, center_x, center_y, is_4d, defaults)
         radius_deg = max(nx, ny) * abs(header.get("CDELT1", 0.001)) / 2 + 0.01
     
     # Query catalog sources
@@ -737,7 +746,8 @@ def validate_source_counts(
         ny = header.get("NAXIS2", 0)
         center_x = nx / 2
         center_y = ny / 2
-        center_ra, center_dec = wcs.wcs_pix2world(center_x, center_y, 0)
+        wcs_validated, is_4d, defaults = validate_wcs_4d(wcs)
+        center_ra, center_dec = wcs_pixel_to_world_safe(wcs_validated, center_x, center_y, is_4d, defaults)
         radius_deg = max(nx, ny) * abs(header.get("CDELT1", 0.001)) / 2 + 0.01
     
     # Get image frequency for flux scaling

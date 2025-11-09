@@ -22,6 +22,29 @@ on:
         - full
 
 jobs:
+  fast-tests:
+    name: Fast Tests (Impacted/Fail-Fast)
+    runs-on: ubuntu-latest
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+
+    - name: Set up Python
+      uses: actions/setup-python@v5
+      with:
+        python-version: '3.11'
+
+    - name: Install test dependencies
+      run: |
+        set -euo pipefail
+        python -m pip install --upgrade pip
+        if [ -f requirements-test.txt ]; then pip install -r requirements-test.txt; fi
+
+    - name: Run impacted tests (fail-fast)
+      run: |
+        set -euo pipefail
+        bash scripts/test-impacted.sh
+
   unit-tests:
     name: Unit Tests (Mocked)
     runs-on: ubuntu-latest
@@ -38,11 +61,13 @@ jobs:
         
     - name: Install test dependencies
       run: |
+        set -euo pipefail
         python -m pip install --upgrade pip
         pip install -r requirements-test.txt
         
     - name: Run unit tests with mocking
       run: |
+        set -euo pipefail
         export PYTHONPATH="${GITHUB_WORKSPACE}/src:$PYTHONPATH"
         pytest tests/unit/test_validation_functions.py -v \
           --cov=src/dsa110_contimg/conversion/helpers \
@@ -78,6 +103,7 @@ jobs:
     - name: Activate environment and run validation tests
       shell: bash -l {0}
       run: |
+        set -euo pipefail
         conda activate casa6
         export PYTHONPATH="${GITHUB_WORKSPACE}/src:$PYTHONPATH"
         
@@ -114,6 +140,7 @@ jobs:
     - name: Generate synthetic test data
       shell: bash -l {0}
       run: |
+        set -euo pipefail
         conda activate casa6
         export PYTHONPATH="${GITHUB_WORKSPACE}/src:$PYTHONPATH"
         
@@ -143,6 +170,7 @@ jobs:
     - name: Test pipeline with different scenarios
       shell: bash -l {0}
       run: |
+        set -euo pipefail
         conda activate casa6
         export PYTHONPATH="${GITHUB_WORKSPACE}/src:$PYTHONPATH"
         
@@ -187,6 +215,7 @@ jobs:
     - name: Run performance benchmarks
       shell: bash -l {0}
       run: |
+        set -euo pipefail
         conda activate casa6
         export PYTHONPATH="${GITHUB_WORKSPACE}/src:$PYTHONPATH"
         
@@ -222,11 +251,13 @@ jobs:
         
     - name: Install quality tools
       run: |
+        set -euo pipefail
         python -m pip install --upgrade pip
         pip install flake8 black isort mypy
         
     - name: Run code quality checks
       run: |
+        set -euo pipefail
         # Check code formatting
         black --check --diff src/ tests/
         

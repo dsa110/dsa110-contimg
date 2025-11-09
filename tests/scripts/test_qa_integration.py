@@ -18,7 +18,7 @@ print("="*70)
 
 # Test 1: MS QA on existing MS
 print("\n1. Testing MS QA on production data...")
-ms_path = "/scratch/dsa110-contimg/ms/central_cal_rebuild/2025-10-13T13:28:03.ms"
+ms_path = "/stage/dsa110-contimg/ms/central_cal_rebuild/2025-10-13T13:28:03.ms"
 
 if Path(ms_path).exists():
     try:
@@ -40,7 +40,7 @@ else:
 
 # Test 2: Image QA on existing image
 print("\n2. Testing Image QA on production data...")
-image_path = "/scratch/dsa110-contimg/ms/central_cal_rebuild/2025-10-13T13:28:03.wproj.image"
+image_path = "/stage/dsa110-contimg/ms/central_cal_rebuild/2025-10-13T13:28:03.wproj.image"
 
 if Path(image_path).exists():
     try:
@@ -64,7 +64,7 @@ else:
 print("\n3. Testing Calibration QA...")
 # Look for any caltables
 import glob
-caltables = glob.glob("/scratch/dsa110-contimg/caltables/*.G")[:3]
+caltables = glob.glob("/stage/dsa110-contimg/caltables/*.G")[:3]
 
 if caltables:
     try:

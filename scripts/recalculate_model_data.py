@@ -8,7 +8,7 @@ Usage:
     python recalculate_model_data.py <ms_path> <cal_ra_deg> <cal_dec_deg> <flux_jy>
     
 Example:
-    python recalculate_model_data.py /scratch/dsa110-contimg/ms/2025-10-29T13:54:17.ms 128.7287 55.5725 2.5
+    python recalculate_model_data.py /stage/dsa110-contimg/ms/2025-10-29T13:54:17.ms 128.7287 55.5725 2.5
 """
 
 import sys

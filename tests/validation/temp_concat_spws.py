@@ -8,7 +8,7 @@ from dsa110_contimg.conversion.merge_spws import merge_spws
 from casacore.tables import table
 
 # Paths
-ms_path = '/scratch/dsa110-contimg/ms/0834_20251029/2025-10-29T13:54:17.phased.ms'
+ms_path = '/stage/dsa110-contimg/ms/0834_20251029/2025-10-29T13:54:17.phased.ms'
 ms_dir = os.path.dirname(ms_path)
 ms_base = os.path.basename(ms_path).rstrip('.ms')
 ms_copy = os.path.join(ms_dir, f'{ms_base}_concat.ms')

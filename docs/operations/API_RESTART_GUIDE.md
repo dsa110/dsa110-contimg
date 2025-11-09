@@ -22,7 +22,7 @@ docker logs contimg-api --tail 50 -f
 - **Container**: `contimg-api`
 - **Port**: 8010 (configurable via `CONTIMG_API_PORT`)
 - **Conda Environment**: `casa6` (NOT `contimg`)
-- **Python**: 3.11.13
+- **Python**: 3.11.13 (in `casa6` conda environment)
 - **Framework**: FastAPI with uvicorn
 - **Management**: Docker Compose (`/data/dsa110-contimg/ops/docker/docker-compose.yml`)
 

@@ -321,3 +321,291 @@ def plot_completeness_curve(
     except Exception as e:
         logger.error(f"Error generating completeness plot: {e}", exc_info=True)
         return None
+
+
+def plot_spatial_distribution(
+    result: CatalogValidationResult,
+    output_format: str = "png",
+    dpi: int = 100
+) -> Optional[str]:
+    """
+    Generate spatial distribution plot showing matched sources on the sky.
+    
+    Useful for identifying systematic spatial biases in astrometry or flux scale.
+    
+    Args:
+        result: CatalogValidationResult (works with astrometry or flux scale)
+        output_format: Image format ("png", "svg", "pdf")
+        dpi: Resolution for raster formats
+        
+    Returns:
+        Base64-encoded image string, or None if no matched pairs available
+    """
+    if not result.matched_pairs or len(result.matched_pairs) == 0:
+        return None
+    
+    try:
+        # Extract RA/Dec positions
+        detected_ras = []
+        detected_decs = []
+        offsets = []
+        
+        for pair in result.matched_pairs:
+            if len(pair) >= 5:
+                detected_ra, detected_dec = pair[0], pair[1]
+                offset_arcsec = pair[4]
+                detected_ras.append(detected_ra)
+                detected_decs.append(detected_dec)
+                offsets.append(offset_arcsec)
+        
+        if len(detected_ras) == 0:
+            return None
+        
+        # Create figure with subplots
+        fig, (ax1, ax2) = plt.subplots(1, 2, figsize=(14, 6))
+        
+        # Plot 1: Spatial distribution colored by offset
+        scatter = ax1.scatter(detected_ras, detected_decs, c=offsets, 
+                             cmap='viridis', s=50, alpha=0.7, 
+                             edgecolors='black', linewidths=0.5)
+        ax1.set_xlabel('RA (degrees)', fontsize=11)
+        ax1.set_ylabel('Dec (degrees)', fontsize=11)
+        ax1.set_title('Spatial Distribution of Matched Sources\n(colored by offset)', 
+                      fontsize=12, fontweight='bold')
+        ax1.grid(True, alpha=0.3)
+        cbar1 = plt.colorbar(scatter, ax=ax1)
+        cbar1.set_label('Offset (arcsec)', fontsize=10)
+        
+        # Plot 2: Offset vs RA (to check for systematic trends)
+        ax2.scatter(detected_ras, offsets, alpha=0.6, s=50, 
+                   edgecolors='black', linewidths=0.5)
+        ax2.axhline(y=0, color='red', linestyle='--', linewidth=1, alpha=0.5)
+        ax2.set_xlabel('RA (degrees)', fontsize=11)
+        ax2.set_ylabel('Offset (arcsec)', fontsize=11)
+        ax2.set_title('Offset vs RA\n(check for systematic trends)', 
+                      fontsize=12, fontweight='bold')
+        ax2.grid(True, alpha=0.3)
+        
+        plt.tight_layout()
+        
+        # Convert to base64
+        buf = io.BytesIO()
+        plt.savefig(buf, format=output_format, dpi=dpi, bbox_inches='tight')
+        buf.seek(0)
+        img_base64 = base64.b64encode(buf.read()).decode('utf-8')
+        plt.close(fig)
+        
+        return f"data:image/{output_format};base64,{img_base64}"
+    
+    except Exception as e:
+        logger.error(f"Error generating spatial distribution plot: {e}", exc_info=True)
+        return None
+
+
+def plot_flux_vs_offset(
+    astrometry_result: CatalogValidationResult,
+    flux_scale_result: CatalogValidationResult,
+    output_format: str = "png",
+    dpi: int = 100
+) -> Optional[str]:
+    """
+    Generate plot showing correlation between flux and astrometric offset.
+    
+    Useful for identifying if brighter sources have better/worse astrometry.
+    
+    Args:
+        astrometry_result: CatalogValidationResult from astrometry validation
+        flux_scale_result: CatalogValidationResult from flux scale validation
+        output_format: Image format ("png", "svg", "pdf")
+        dpi: Resolution for raster formats
+        
+    Returns:
+        Base64-encoded image string, or None if insufficient data
+    """
+    if (not astrometry_result.matched_pairs or 
+        not flux_scale_result.matched_fluxes or
+        len(astrometry_result.matched_pairs) == 0 or
+        len(flux_scale_result.matched_fluxes) == 0):
+        return None
+    
+    try:
+        # Extract offsets and fluxes
+        # Match sources by position (simplified - assumes same sources)
+        offsets = []
+        fluxes = []
+        
+        # Get offsets from astrometry
+        for pair in astrometry_result.matched_pairs:
+            if len(pair) >= 5:
+                offsets.append(pair[4])  # offset in arcsec
+        
+        # Get fluxes from flux scale
+        for flux_pair in flux_scale_result.matched_fluxes:
+            if len(flux_pair) >= 2:
+                # Use catalog flux as reference
+                fluxes.append(flux_pair[1])  # catalog flux in Jy
+        
+        # Match lengths (take minimum)
+        min_len = min(len(offsets), len(fluxes))
+        offsets = offsets[:min_len]
+        fluxes = fluxes[:min_len]
+        
+        if len(offsets) == 0 or len(fluxes) == 0:
+            return None
+        
+        # Create figure
+        fig, ax = plt.subplots(figsize=(8, 6))
+        
+        # Scatter plot
+        ax.scatter(fluxes, offsets, alpha=0.6, s=50, 
+                  edgecolors='black', linewidths=0.5)
+        ax.axhline(y=0, color='red', linestyle='--', linewidth=1, alpha=0.5)
+        
+        # Add trend line if enough points
+        if len(fluxes) > 5:
+            z = np.polyfit(fluxes, offsets, 1)
+            p = np.poly1d(z)
+            flux_sorted = sorted(fluxes)
+            ax.plot(flux_sorted, p(flux_sorted), "r--", alpha=0.8, 
+                   linewidth=2, label=f'Trend: {z[0]:.3f}x + {z[1]:.3f}')
+            ax.legend()
+        
+        ax.set_xlabel('Flux Density (Jy)', fontsize=11)
+        ax.set_ylabel('Astrometric Offset (arcsec)', fontsize=11)
+        ax.set_title('Flux vs Astrometric Offset\n(check for flux-dependent bias)', 
+                     fontsize=12, fontweight='bold')
+        ax.grid(True, alpha=0.3)
+        ax.set_xscale('log')
+        
+        plt.tight_layout()
+        
+        # Convert to base64
+        buf = io.BytesIO()
+        plt.savefig(buf, format=output_format, dpi=dpi, bbox_inches='tight')
+        buf.seek(0)
+        img_base64 = base64.b64encode(buf.read()).decode('utf-8')
+        plt.close(fig)
+        
+        return f"data:image/{output_format};base64,{img_base64}"
+    
+    except Exception as e:
+        logger.error(f"Error generating flux vs offset plot: {e}", exc_info=True)
+        return None
+
+
+def plot_validation_summary(
+    astrometry_result: Optional[CatalogValidationResult],
+    flux_scale_result: Optional[CatalogValidationResult],
+    source_counts_result: Optional[CatalogValidationResult],
+    output_format: str = "png",
+    dpi: int = 100
+) -> Optional[str]:
+    """
+    Generate a summary plot showing key metrics from all validation tests.
+    
+    Args:
+        astrometry_result: Optional astrometry validation result
+        flux_scale_result: Optional flux scale validation result
+        source_counts_result: Optional source counts validation result
+        output_format: Image format ("png", "svg", "pdf")
+        dpi: Resolution for raster formats
+        
+    Returns:
+        Base64-encoded image string
+    """
+    try:
+        fig, axes = plt.subplots(2, 2, figsize=(12, 10))
+        fig.suptitle('Validation Summary Dashboard', fontsize=14, fontweight='bold')
+        
+        # Plot 1: Astrometry metrics
+        ax1 = axes[0, 0]
+        if astrometry_result and astrometry_result.mean_offset_ra is not None:
+            metrics = [
+                ('Mean RA Offset', astrometry_result.mean_offset_ra * 3600),  # Convert to arcsec
+                ('Mean Dec Offset', astrometry_result.mean_offset_dec * 3600),
+                ('RMS Offset', astrometry_result.rms_offset_arcsec),
+                ('Max Offset', astrometry_result.max_offset_arcsec)
+            ]
+            names, values = zip(*metrics)
+            bars = ax1.barh(names, values, color=['steelblue', 'steelblue', 'orange', 'red'])
+            ax1.axvline(x=0, color='black', linestyle='-', linewidth=0.5)
+            ax1.set_xlabel('Offset (arcsec)', fontsize=10)
+            ax1.set_title('Astrometry Metrics', fontsize=11, fontweight='bold')
+            ax1.grid(True, alpha=0.3, axis='x')
+        else:
+            ax1.text(0.5, 0.5, 'No astrometry data', 
+                    ha='center', va='center', transform=ax1.transAxes)
+            ax1.set_title('Astrometry Metrics', fontsize=11, fontweight='bold')
+        
+        # Plot 2: Flux scale metrics
+        ax2 = axes[0, 1]
+        if flux_scale_result and flux_scale_result.mean_flux_ratio is not None:
+            metrics = [
+                ('Mean Ratio', flux_scale_result.mean_flux_ratio),
+                ('RMS Ratio', flux_scale_result.rms_flux_ratio),
+                ('Error %', abs(flux_scale_result.flux_scale_error * 100) if flux_scale_result.flux_scale_error else 0)
+            ]
+            names, values = zip(*metrics)
+            bars = ax2.barh(names, values, color=['green', 'orange', 'red'])
+            ax2.axvline(x=1.0, color='black', linestyle='--', linewidth=1, alpha=0.5)
+            ax2.set_xlabel('Value', fontsize=10)
+            ax2.set_title('Flux Scale Metrics', fontsize=11, fontweight='bold')
+            ax2.grid(True, alpha=0.3, axis='x')
+        else:
+            ax2.text(0.5, 0.5, 'No flux scale data', 
+                    ha='center', va='center', transform=ax2.transAxes)
+            ax2.set_title('Flux Scale Metrics', fontsize=11, fontweight='bold')
+        
+        # Plot 3: Completeness metrics
+        ax3 = axes[1, 0]
+        if source_counts_result and source_counts_result.completeness is not None:
+            metrics = [
+                ('Overall Completeness', source_counts_result.completeness * 100),
+                ('Completeness Limit (mJy)', source_counts_result.completeness_limit_jy * 1000 if source_counts_result.completeness_limit_jy else 0),
+                ('Matched Sources', source_counts_result.n_matched),
+                ('Catalog Sources', source_counts_result.n_catalog)
+            ]
+            names, values = zip(*metrics)
+            bars = ax3.barh(names, values, color=['green', 'orange', 'steelblue', 'steelblue'])
+            ax3.set_xlabel('Value', fontsize=10)
+            ax3.set_title('Source Counts Metrics', fontsize=11, fontweight='bold')
+            ax3.grid(True, alpha=0.3, axis='x')
+        else:
+            ax3.text(0.5, 0.5, 'No source counts data', 
+                    ha='center', va='center', transform=ax3.transAxes)
+            ax3.set_title('Source Counts Metrics', fontsize=11, fontweight='bold')
+        
+        # Plot 4: Overall status
+        ax4 = axes[1, 1]
+        ax4.axis('off')
+        
+        status_text = "Validation Summary\n\n"
+        if astrometry_result:
+            status = "PASS" if not astrometry_result.has_issues else "FAIL"
+            status_text += f"Astrometry: {status}\n"
+        if flux_scale_result:
+            status = "PASS" if not flux_scale_result.has_issues else "FAIL"
+            status_text += f"Flux Scale: {status}\n"
+        if source_counts_result:
+            status = "PASS" if not source_counts_result.has_issues else "FAIL"
+            status_text += f"Source Counts: {status}\n"
+        
+        ax4.text(0.5, 0.5, status_text, ha='center', va='center', 
+                transform=ax4.transAxes, fontsize=12, 
+                bbox=dict(boxstyle='round', facecolor='wheat', alpha=0.8))
+        ax4.set_title('Overall Status', fontsize=11, fontweight='bold')
+        
+        plt.tight_layout()
+        
+        # Convert to base64
+        buf = io.BytesIO()
+        plt.savefig(buf, format=output_format, dpi=dpi, bbox_inches='tight')
+        buf.seek(0)
+        img_base64 = base64.b64encode(buf.read()).decode('utf-8')
+        plt.close(fig)
+        
+        return f"data:image/{output_format};base64,{img_base64}"
+    
+    except Exception as e:
+        logger.error(f"Error generating validation summary plot: {e}", exc_info=True)
+        return None

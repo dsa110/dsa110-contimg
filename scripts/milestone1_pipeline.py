@@ -386,9 +386,9 @@ def main():
     config = PipelineConfig(
         paths=PathsConfig(
             input_dir=Path("/data/incoming"),
-            output_dir=Path("/scratch/dsa110-contimg/ms"),
-            scratch_dir=Path("/scratch/dsa110-contimg"),
-            state_dir=Path("/scratch/dsa110-contimg/state"),
+            output_dir=Path("/stage/dsa110-contimg/ms"),
+            scratch_dir=Path("/stage/dsa110-contimg"),
+            state_dir=Path("/stage/dsa110-contimg/state"),
         ),
         conversion=ConversionConfig(
             writer="parallel-subband",

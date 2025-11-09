@@ -53,7 +53,11 @@ def resolve_catalog_path(
     # 3. Try per-declination SQLite database (if dec_strip provided)
     if dec_strip is not None:
         # Round to 0.1 degree precision for filename
-        dec_rounded = round(dec_strip, 1)
+        # Handle both scalar and array inputs
+        if isinstance(dec_strip, np.ndarray):
+            # Extract scalar from array (take first element if array)
+            dec_strip = float(dec_strip.flat[0])
+        dec_rounded = round(float(dec_strip), 1)
         db_name = f"{catalog_type}_dec{dec_rounded:+.1f}.sqlite3"
         
         # Try standard locations
@@ -132,7 +136,11 @@ def query_sources(
     """
     # Auto-detect dec_strip from dec_center if not provided
     if dec_strip is None:
-        dec_strip = dec_center
+        # Ensure dec_center is a scalar (handle numpy arrays)
+        if isinstance(dec_center, np.ndarray):
+            dec_strip = float(dec_center.flat[0])
+        else:
+            dec_strip = float(dec_center)
     
     # Resolve catalog path
     try:

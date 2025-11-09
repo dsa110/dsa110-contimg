@@ -8,6 +8,17 @@ Performs primary-beam correction and exports FITS products.
 Supports hybrid workflow: CASA ft() for model seeding + WSClean for fast imaging.
 """
 
+from dsa110_contimg.utils.validation import (
+    validate_ms,
+    validate_corrected_data_quality,
+    ValidationError,
+)
+from dsa110_contimg.utils.cli_helpers import (
+    setup_casa_environment,
+    add_common_logging_args,
+    configure_logging_from_args,
+    ensure_scratch_dirs,
+)
 from .cli_imaging import image_ms, run_wsclean as _run_wsclean
 from .cli_utils import detect_datacolumn as _detect_datacolumn, default_cell_arcsec as _default_cell_arcsec
 from casatasks import tclean, exportfits  # type: ignore[import]
@@ -25,17 +36,6 @@ import shutil
 logger = logging.getLogger(__name__)
 
 # Use shared CLI utilities
-from dsa110_contimg.utils.cli_helpers import (
-    setup_casa_environment,
-    add_common_logging_args,
-    configure_logging_from_args,
-    ensure_scratch_dirs,
-)
-from dsa110_contimg.utils.validation import (
-    validate_ms,
-    validate_corrected_data_quality,
-    ValidationError,
-)
 
 # Set CASA log directory BEFORE any CASA imports - CASA writes logs to CWD
 setup_casa_environment()
@@ -67,6 +67,8 @@ except Exception:  # pragma: no cover - defensive import
 
 
 def main(argv: Optional[list] = None) -> None:
+    from dsa110_contimg.utils.runtime_safeguards import validate_image_shape
+
     parser = argparse.ArgumentParser(
         description="DSA-110 Imaging CLI"
     )
@@ -283,6 +285,16 @@ def main(argv: Optional[list] = None) -> None:
 
     args = parser.parse_args(argv)
 
+    # Input validation
+    if hasattr(args, 'ms') and args.ms:
+        if not os.path.exists(args.ms):
+            raise FileNotFoundError(f"MS file not found: {args.ms}")
+    if hasattr(args, 'imagename') and args.imagename:
+        output_dir = os.path.dirname(
+            args.imagename) if os.path.dirname(args.imagename) else '.'
+        if not os.path.exists(output_dir):
+            raise ValueError(f"Output directory does not exist: {output_dir}")
+
     # Configure logging using shared utility
     configure_logging_from_args(args)
 
@@ -345,7 +357,8 @@ def main(argv: Optional[list] = None) -> None:
 
         casa_images = _find_casa_images(args.source, args.prefix)
         if not casa_images:
-            logger.warning(f"No CASA image directories found for prefix {args.prefix} under {args.source}")
+            logger.warning(
+                f"No CASA image directories found for prefix {args.prefix} under {args.source}")
             print("No CASA image directories found for prefix",
                   args.prefix, "under", args.source)
             return
@@ -354,7 +367,8 @@ def main(argv: Optional[list] = None) -> None:
         if args.make_fits:
             fits_paths = export_fits(casa_images)
             if not fits_paths:
-                logger.warning("No FITS files exported (check casatasks and inputs)")
+                logger.warning(
+                    "No FITS files exported (check casatasks and inputs)")
                 print("No FITS files exported (check casatasks and inputs)")
         if args.make_png:
             # If FITS were not just created, try to discover existing ones
@@ -362,7 +376,8 @@ def main(argv: Optional[list] = None) -> None:
                 patt = os.path.join(args.source, args.prefix + "*.fits")
                 fits_paths = sorted(glob(patt))
             if not fits_paths:
-                logger.warning(f"No FITS files found to convert for {args.prefix}")
+                logger.warning(
+                    f"No FITS files found to convert for {args.prefix}")
                 print("No FITS files found to convert for", args.prefix)
             else:
                 save_png_from_fits(fits_paths)

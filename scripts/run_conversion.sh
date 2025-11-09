@@ -18,7 +18,7 @@ INPUT_DIR=/data/incoming/${RUN_ID}
 if mount | grep -q "/dev/shm"; then
   SCRATCH_ROOT=/dev/shm/dsa110-contimg
 else
-  SCRATCH_ROOT=/scratch/dsa110-contimg
+  SCRATCH_ROOT=/stage/dsa110-contimg
 fi
 SCRATCH_MS=${SCRATCH_ROOT}/data-samples/ms/${RUN_ID}
 # Use the group timestamp for tight selection

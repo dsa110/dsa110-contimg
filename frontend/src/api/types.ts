@@ -163,6 +163,8 @@ export interface JobParams {
   datacolumn?: string;
   quick?: boolean;
   skip_fits?: boolean;
+  use_nvss_mask?: boolean;
+  mask_radius_arcsec?: number;
 }
 
 export interface Job {
@@ -617,4 +619,103 @@ export interface ImageFilters {
   ms_path?: string;
   image_type?: string;
   pbcor?: boolean;
+}
+
+// Data Registry Types
+export interface DataInstance {
+  id: string;
+  data_type: 'ms' | 'calib_ms' | 'caltable' | 'image' | 'mosaic' | 'catalog' | 'qa' | 'metadata';
+  status: 'staging' | 'published';
+  stage_path: string;
+  published_path?: string;
+  created_at: number;
+  published_at?: number;
+  publish_mode?: 'auto' | 'manual';
+  qa_status?: 'pending' | 'passed' | 'failed' | 'warning';
+  validation_status?: 'pending' | 'validated' | 'invalid';
+  finalization_status: 'pending' | 'finalized' | 'failed';
+  auto_publish_enabled: boolean;
+  metadata?: Record<string, any>;
+}
+
+export interface DataInstanceDetail extends DataInstance {
+  staged_at: number;
+}
+
+export interface AutoPublishStatus {
+  enabled: boolean;
+  criteria_met: boolean;
+  reasons?: string[];
+  qa_status?: string;
+  validation_status?: string;
+  finalization_status?: string;
+}
+
+export interface DataLineage {
+  parents: Record<string, string[]>;  // relationship_type -> [data_ids]
+  children: Record<string, string[]>;  // relationship_type -> [data_ids]
+}
+
+// Catalog Validation Types
+export interface CatalogSource {
+  x: number;
+  y: number;
+  ra: number;
+  dec: number;
+  flux_jy: number;
+  name?: string;
+}
+
+export interface CatalogOverlayData {
+  sources: CatalogSource[];
+  image_info: {
+    center_ra: number;
+    center_dec: number;
+    width_deg: number;
+    height_deg: number;
+    nx: number;
+    ny: number;
+    pixel_scale_arcsec: number;
+  };
+  catalog_used: 'nvss' | 'vlass';
+}
+
+export interface CatalogValidationResult {
+  validation_type: 'astrometry' | 'flux_scale' | 'source_counts';
+  image_path: string;
+  catalog_used: string;
+  n_matched: number;
+  n_catalog: number;
+  n_detected: number;
+  mean_offset_arcsec?: number;
+  rms_offset_arcsec?: number;
+  max_offset_arcsec?: number;
+  offset_ra_arcsec?: number;
+  offset_dec_arcsec?: number;
+  mean_flux_ratio?: number;
+  rms_flux_ratio?: number;
+  flux_scale_error?: number;
+  completeness?: number;
+  has_issues: boolean;
+  has_warnings: boolean;
+  issues: string[];
+  warnings: string[];
+  matched_pairs?: Array<[number, number, number, number, number]>; // [ra_det, dec_det, ra_cat, dec_cat, offset]
+  matched_fluxes?: Array<[number, number, number]>; // [image_flux, catalog_flux, ratio]
+}
+
+export interface CatalogValidationResults {
+  astrometry?: CatalogValidationResult;
+  flux_scale?: CatalogValidationResult;
+  source_counts?: CatalogValidationResult;
+}
+
+export interface PointingHistoryEntry {
+  timestamp: number;
+  ra_deg: number;
+  dec_deg: number;
+}
+
+export interface PointingHistoryList {
+  items: PointingHistoryEntry[];
 }

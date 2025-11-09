@@ -68,8 +68,8 @@ sufficient for solving delay solutions, as long as:
 ```bash
 # Create test MS from full MS
 python scripts/create_test_ms.py \
-  /scratch/dsa110-contimg/ms/0834_555_single/sequential/0834_555_2025-10-30_134913.ms \
-  /scratch/dsa110-contimg/ms/0834_555_single/sequential/0834_555_2025-10-30_134913_test.ms \
+  /stage/dsa110-contimg/ms/0834_555_single/sequential/0834_555_2025-10-30_134913.ms \
+  /stage/dsa110-contimg/ms/0834_555_single/sequential/0834_555_2025-10-30_134913_test.ms \
   --max-baselines 15 \
   --max-times 24
 
@@ -120,7 +120,7 @@ itself is a standard technique for detecting delays.
 **Example:**
 ```bash
 python scripts/check_upstream_delays.py \
-  /scratch/dsa110-contimg/ms/0834_555_single/sequential/0834_555_2025-10-30_134913_test.ms \
+  /stage/dsa110-contimg/ms/0834_555_single/sequential/0834_555_2025-10-30_134913_test.ms \
   --n-baselines 30
 ```
 

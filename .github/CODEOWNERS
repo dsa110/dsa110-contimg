@@ -1,0 +1,22 @@
+# CODEOWNERS for documentation
+#
+# This file assigns reviewers for documentation-related changes. It is intentionally
+# general to include both human developer teams and AI agent accounts/teams.
+# Replace placeholders with your real teams/usernames when available.
+
+# Primary docs surfaces
+/mkdocs.yml                          @docs-team @maintainers @ai-agents
+/docs/javascripts/**                 @frontend-team @docs-team @maintainers @ai-agents
+
+# All documentation content (fallback)
+/docs/**                             @docs-team @maintainers @ai-agents
+
+# Optional: sub-area ownership (customize as teams exist)
+/docs/reference/**                   @reference-owners @docs-team @ai-agents
+/docs/operations/**                  @ops-owners @docs-team @ai-agents
+
+# If your org does not yet have these teams, temporarily set a real user here
+# to avoid GitHub ignoring CODEOWNERS lines with unknown owners.
+# Example:
+# /docs/**                             @your-username
+# /mkdocs.yml                          @your-username

@@ -1,13 +1,25 @@
 /**
  * API client configuration for DSA-110 pipeline backend.
  */
-import axios from 'axios';
+import axios, { AxiosError } from 'axios';
+import type { InternalAxiosRequestConfig } from 'axios';
+import { logger } from '../utils/logger';
+import { classifyError, getUserFriendlyMessage } from '../utils/errorUtils';
+import { createCircuitBreaker } from './circuitBreaker';
 
 // Use current origin when served from API at /ui, otherwise use relative URL (proxied by Vite)
 // In Docker, Vite proxy handles /api -> backend service
+// For dev mode, use direct backend URL if proxy fails
 const API_BASE_URL = (typeof window !== 'undefined' && window.location.pathname.startsWith('/ui')) 
   ? window.location.origin 
-  : ''; // Empty string = relative URL, uses Vite proxy in dev mode
+  : (import.meta.env.DEV ? 'http://127.0.0.1:8000' : ''); // Direct backend URL in dev mode to bypass proxy issues
+
+// Create circuit breaker for API calls
+const circuitBreaker = createCircuitBreaker({
+  failureThreshold: 5,
+  resetTimeout: 30000, // 30 seconds
+  monitoringPeriod: 60000, // 1 minute
+});
 
 export const apiClient = axios.create({
   baseURL: API_BASE_URL,
@@ -17,16 +29,66 @@ export const apiClient = axios.create({
   },
 });
 
-// Response interceptor for error handling
-apiClient.interceptors.response.use(
-  (response) => response,
-  (error) => {
-    console.error('API Error:', error.message);
-    if (error.response) {
-      console.error('Response status:', error.response.status);
-      console.error('Response data:', error.response.data);
+// Request interceptor: Check circuit breaker
+apiClient.interceptors.request.use(
+  (config) => {
+    if (!circuitBreaker.canAttempt()) {
+      const error = new Error('Service temporarily unavailable. Please try again later.');
+      (error as { isCircuitBreakerOpen?: boolean }).isCircuitBreakerOpen = true;
+      return Promise.reject(error);
     }
+    return config;
+  },
+  (error) => Promise.reject(error)
+);
+
+// Response interceptor: Handle errors with retry and circuit breaker
+apiClient.interceptors.response.use(
+  (response) => {
+    // Record success for circuit breaker
+    circuitBreaker.recordSuccess();
+    return response;
+  },
+  async (error: AxiosError) => {
+    const classified = classifyError(error);
+    
+    logger.apiError('API request failed', error);
+
+    // Record failure for circuit breaker if retryable
+    if (classified.retryable) {
+      circuitBreaker.recordFailure();
+    }
+
+    // Add user-friendly message to error
+    const userMessage = getUserFriendlyMessage(error);
+    (error as { userMessage?: string }).userMessage = userMessage;
+    (error as { errorType?: string }).errorType = classified.type;
+
+    // Retry logic for retryable errors
+    const config = error.config as InternalAxiosRequestConfig & { _retryCount?: number };
+    const retryCount = config._retryCount || 0;
+    const maxRetries = 3;
+
+    if (classified.retryable && retryCount < maxRetries && circuitBreaker.canAttempt()) {
+      config._retryCount = retryCount + 1;
+      
+      // Exponential backoff: 1s, 2s, 4s
+      const delay = Math.min(1000 * Math.pow(2, retryCount), 10000);
+      
+      await new Promise((resolve) => setTimeout(resolve, delay));
+      
+      try {
+        return await apiClient.request(config);
+      } catch (retryError) {
+        // If retry also fails, fall through to reject
+        return Promise.reject(retryError);
+      }
+    }
+
     return Promise.reject(error);
   }
 );
+
+// Export circuit breaker for monitoring
+export { circuitBreaker };
 

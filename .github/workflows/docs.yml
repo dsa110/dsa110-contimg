@@ -1,0 +1,91 @@
+name: Docs Build and Test
+
+on:
+  pull_request:
+    paths:
+      - 'docs/**'
+      - 'mkdocs.yml'
+      - '.github/workflows/docs.yml'
+  workflow_dispatch:
+
+jobs:
+  build:
+    name: Build MkDocs (strict)
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Install dependencies
+        run: |
+          set -euo pipefail
+          python -m pip install --upgrade pip
+          pip install -r docs/requirements.txt
+
+      - name: Build site (strict)
+        run: |
+          set -euo pipefail
+          mkdocs build --strict
+
+  link-check:
+    name: Check Markdown links
+    needs: build
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Link check with lychee
+        uses: lycheeverse/lychee-action@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          # Check all Markdown files under docs; adjust as needed
+          args: >-
+            --no-progress --verbose --retry-wait 2 --timeout 20 --max-concurrency 4
+            docs/**/*.md
+
+  mermaid-visual:
+    name: Mermaid visual checks (optional)
+    needs: build
+    if: ${{ hashFiles('tests/docs/test_mermaid_diagrams.py') != '' }}
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Install Python dependencies
+        run: |
+          set -euo pipefail
+          python -m pip install --upgrade pip
+          pip install -r docs/requirements.txt
+          pip install playwright pytest pyyaml
+
+      - name: Install Playwright browser
+        run: |
+          set -euo pipefail
+          python -m playwright install --with-deps chromium
+
+      - name: Start MkDocs server
+        run: |
+          set -euo pipefail
+          nohup mkdocs serve -a 127.0.0.1:8001 >/dev/null 2>&1 &
+          # Wait until server is ready
+          for i in {1..30}; do
+            if curl -sf http://127.0.0.1:8001 >/dev/null; then
+              echo "MkDocs is up"; break; fi; sleep 1; done
+
+      - name: Run Mermaid diagram tests
+        run: |
+          set -euo pipefail
+          python -m pytest -q tests/docs/test_mermaid_diagrams.py

@@ -23,151 +23,147 @@
 
 ```mermaid
 flowchart TB
-    subgraph INGEST["Stage 1: Ingest & Grouping"]
-        Files[UVH5 Subband Files<br/>*_sb??.hdf5<br/>16 subbands per group]
-        Watch[Directory Watcher<br/>streaming_converter.py]
-        Queue[Queue DB<br/>ingest.sqlite3]
-        Files --> Watch
-        Watch --> Queue
-    end
-    
-    subgraph CONVERT["Stage 2: Conversion (UVH5 → MS)"]
-        Group[Group Assembly<br/>5-minute time windows<br/>16 subbands required]
-        Orch[Orchestrator<br/>hdf5_orchestrator.py]
-        Writer{Writer Selection<br/>--writer auto}
-        Par[parallel-subband<br/>PRODUCTION]
-        Mono[pyuvdata<br/>TESTING ONLY]
-        Stage[Staging<br/>tmpfs /dev/shm<br/>or SSD scratch]
-        Concat[CASA concat<br/>to full-band MS]
-        MS[Measurement Set<br/>with all columns]
-        Queue --> Group
-        Group --> Orch
-        Orch --> Writer
-        Writer -->|>2 subbands| Par
-        Writer -->|≤2 subbands| Mono
-        Par --> Stage
-        Stage --> Concat
-        Mono --> MS
-        Concat --> MS
-    end
-    
-    subgraph PREP["Stage 3: MS Preparation"]
-        Validate[Validate MS<br/>readable, not empty]
-        Config[Configure for Imaging<br/>MODEL_DATA, CORRECTED_DATA<br/>WEIGHT_SPECTRUM]
-        Flag[RFI Flagging<br/>reset, zeros, statistical]
-        MS --> Validate
-        Validate --> Config
-        Config --> Flag
-    end
-    
-    subgraph CAL["Stage 4: Calibration"]
-        CalSel{Calibrator<br/>Field?}
-        SkyModel[Sky Model Seeding<br/>NVSS sources ≥10 mJy]
-        KCal[K-Calibration<br/>Delay/Phase<br/>SKIPPED by default]
-        BPCal[BP-Calibration<br/>Bandpass<br/>Frequency-dependent]
-        GCal[G-Calibration<br/>Gains<br/>Time-variable]
-        Reg[Register Caltables<br/>cal_registry.sqlite3]
-        Flag --> CalSel
-        CalSel -->|Yes| SkyModel
-        CalSel -->|No| Apply
-        SkyModel --> KCal
-        KCal --> BPCal
-        BPCal --> GCal
-        GCal --> Reg
-        Reg --> Apply
-    end
-    
-    subgraph APPLY["Stage 5: Apply Calibration"]
-        Apply[Apply Caltables<br/>to CORRECTED_DATA]
-        Verify[Verify Corrected Data<br/>non-zero values]
-        Apply --> Verify
-    end
-    
-    subgraph IMAGE["Stage 6: Imaging"]
-        Clean[tclean<br/>CASA deconvolution]
-        Quick{Quick Mode?}
-        Full[Full Quality<br/>imsize, niter from config]
-        QuickImg[Quick Look<br/>imsize≤512, niter≤300]
-        Fits{Export FITS?}
-        FITS[FITS Export<br/>.pbcor.fits]
-        Verify --> Clean
-        Clean --> Quick
-        Quick -->|Yes| QuickImg
-        Quick -->|No| Full
-        QuickImg --> Fits
-        Full --> Fits
-        Fits -->|Yes| FITS
-        Fits -->|No| ImgFiles[CASA Image Files<br/>.image, .pb, etc.]
-    end
-    
-    subgraph PRODUCT["Stage 7: Products & Indexing"]
-        Products[Products DB<br/>products.sqlite3]
-        MSIdx[MS Index<br/>ms_index table]
-        ImgIdx[Image Index<br/>images table]
-        QA[QA Artifacts<br/>plots, thumbnails]
-        Products --> MSIdx
-        Products --> ImgIdx
-        Products --> QA
-        FITS --> Products
-        ImgFiles --> Products
-    end
-    
-    subgraph API["Stage 8: Monitoring & Access"]
-        FastAPI[FastAPI Server<br/>Monitoring endpoints]
-        Status[Status Endpoints<br/>queue, calibration, products]
-        QAView[QA Views<br/>thumbnails, plots]
-        Products --> FastAPI
-        FastAPI --> Status
-        FastAPI --> QAView
-    end
-    
-    style INGEST fill:#e1f5ff
-    style CONVERT fill:#fff4e1
-    style PREP fill:#f0f0f0
-    style CAL fill:#e1ffe1
-    style APPLY fill:#ffe1f5
-    style IMAGE fill:#f5e1ff
-    style PRODUCT fill:#ffe1e1
-    style API fill:#e1e1ff
+ subgraph INGEST["Stage 1: Ingest & Grouping"]
+ Files["UVH5 Files<br/>16 subbands per group"]
+ Watch["Directory Watcher<br/>streaming_converter.py"]
+ Queue["Queue DB<br/>ingest.sqlite3"]
+ Files --> Watch
+ Watch --> Queue
+ end
+ 
+ subgraph CONVERT["Stage 2: Conversion"]
+ Group["Group Assembly<br/>5-min windows"]
+ Orch["Orchestrator<br/>hdf5_orchestrator.py"]
+ Writer{"Writer<br/>Selection"}
+ Par["parallel-subband<br/>PRODUCTION"]
+ Mono["pyuvdata<br/>TESTING ONLY"]
+ Stage["Staging<br/>tmpfs or SSD"]
+ Concat["CASA concat<br/>full-band MS"]
+ Config["Configure MS<br/>MODEL_DATA, CORRECTED_DATA<br/>WEIGHT_SPECTRUM"]
+ Validate["Validate MS<br/>readable, not empty"]
+ MS["Measurement Set<br/>ready for calibration"]
+ Queue --> Group
+ Group --> Orch
+ Orch --> Writer
+ Writer -->|>2 subbands| Par
+ Writer -->|<=2 subbands| Mono
+ Par --> Stage
+ Stage --> Concat
+ Mono --> Config
+ Concat --> Config
+ Config --> Validate
+ Validate --> MS
+ end
+ 
+ subgraph CAL["Stage 3: Calibration"]
+ Flag["Pre-Cal Flagging<br/>reset, zeros, RFI<br/>(optional)"]
+ CalSel{"Calibrator<br/>Field?"}
+ SkyModel["Sky Model<br/>NVSS >=10 mJy"]
+ KCal["K-Calibration<br/>SKIPPED by default"]
+ BPCal["BP-Calibration<br/>Bandpass"]
+ GCal["G-Calibration<br/>Time-variable gains"]
+ Reg["Register Caltables<br/>cal_registry.sqlite3"]
+ MS --> Flag
+ Flag --> CalSel
+ CalSel -->|Yes| SkyModel
+ CalSel -->|No| Apply
+ SkyModel --> KCal
+ KCal --> BPCal
+ BPCal --> GCal
+ GCal --> Reg
+ Reg --> Apply
+ end
+ 
+ subgraph APPLY["Stage 4: Apply Calibration"]
+ Apply["Apply Caltables<br/>to CORRECTED_DATA"]
+ Verify["Verify Data<br/>non-zero values"]
+ Apply --> Verify
+ end
+ 
+ subgraph IMAGE["Stage 5: Imaging"]
+ Clean["WSClean<br/>default backend"]
+ Quick{"Quick<br/>Mode?"}
+ Full["Full Quality<br/>config params"]
+ QuickImg["Quick Look<br/>imsize<=512"]
+ Fits{"Export<br/>FITS?"}
+ FITS["FITS Export<br/>.pbcor.fits"]
+ Verify --> Clean
+ Clean --> Quick
+ Quick -->|Yes| QuickImg
+ Quick -->|No| Full
+ QuickImg --> Fits
+ Full --> Fits
+ Fits -->|Yes| FITS
+ Fits -->|No| ImgFiles["CASA Images<br/>.image, .pb"]
+ end
+ 
+ subgraph PRODUCT["Stage 6: Products & Indexing"]
+ Products["Products DB<br/>products.sqlite3"]
+ MSIdx["MS Index<br/>ms_index table"]
+ ImgIdx["Image Index<br/>images table"]
+ QA["QA Artifacts<br/>plots, thumbnails"]
+ Products --> MSIdx
+ Products --> ImgIdx
+ Products --> QA
+ FITS --> Products
+ ImgFiles --> Products
+ end
+ 
+ subgraph API["Stage 7: Monitoring & Access"]
+ FastAPI["FastAPI Server<br/>monitoring endpoints"]
+ Status["Status Endpoints<br/>queue, calibration"]
+ QAView["QA Views<br/>thumbnails, plots"]
+ Products --> FastAPI
+ FastAPI --> Status
+ FastAPI --> QAView
+ end
+ 
+ style INGEST fill:#E3F2FD,stroke:#1976D2,stroke-width:2px,color:#000
+ style CONVERT fill:#F3E5F5,stroke:#7B1FA2,stroke-width:2px,color:#000
+ style CAL fill:#E8F5E9,stroke:#388E3C,stroke-width:2px,color:#000
+ style APPLY fill:#FFF3E0,stroke:#F57C00,stroke-width:2px,color:#000
+ style IMAGE fill:#FCE4EC,stroke:#C2185B,stroke-width:2px,color:#000
+ style PRODUCT fill:#E0F2F1,stroke:#00796B,stroke-width:2px,color:#000
+ style API fill:#E1F5FE,stroke:#0277BD,stroke-width:2px,color:#000
 ```
 
 **Key Points:**
 - **Stage 1**: Continuous monitoring of incoming UVH5 files, grouping by timestamp
-- **Stage 2**: Conversion uses strategy pattern with automatic writer selection
-- **Stage 3**: MS must be properly configured before calibration
-- **Stage 4**: Calibration is optional (calibrator field required) or uses existing caltables
-- **Stage 5**: Applies calibration to create CORRECTED_DATA column
-- **Stage 6**: Imaging with optional development tier for speed (⚠️ NON-SCIENCE)
-- **Stage 7**: All products indexed in SQLite database
-- **Stage 8**: API provides monitoring and access to all products
+- **Stage 2**: Conversion includes MS configuration (MODEL_DATA, CORRECTED_DATA, WEIGHT_SPECTRUM) - MS is ready for calibration after conversion
+- **Stage 3**: Calibration includes optional pre-calibration flagging, then solves K/BP/G or uses existing caltables
+- **Stage 4**: Applies calibration to create CORRECTED_DATA column
+- **Stage 5**: Imaging with optional development tier for speed (⚠️ NON-SCIENCE)
+- **Stage 6**: All products indexed in SQLite database
+- **Stage 7**: API provides monitoring and access to all products
 
 ---
 
 ## Detailed Stage Breakdown
 
-### Stage 1: Ingest & Grouping
+### Stage 1: Ingest and Grouping
 
 ```mermaid
 flowchart LR
-    subgraph INGEST_DETAIL["Ingest Process"]
-        Files[UVH5 Files<br/>*_sb00.hdf5<br/>*_sb01.hdf5<br/>...<br/>*_sb15.hdf5]
-        Watch[File System Watcher<br/>watchdog or polling]
-        Parse[Parse Timestamp<br/>YYYY-MM-DDTHH:MM:SS]
-        Group[Group by Time<br/>5-minute windows]
-        Check[Check Completeness<br/>16 subbands required]
-        State[Update Queue State<br/>collecting → pending]
-    end
-    
-    Files --> Watch
-    Watch --> Parse
-    Parse --> Group
-    Group --> Check
-    Check -->|Complete| State
-    Check -->|Incomplete| Wait[Wait for more subbands]
-    Wait --> Check
-    
-    style State fill:#90EE90
-    style Wait fill:#FFB6C1
+ subgraph INGEST_DETAIL["Ingest Process"]
+ Files["UVH5 Files<br/>*_sb00 to *_sb15"]
+ Watch["File System Watcher<br/>watchdog or polling"]
+ Parse["Parse Timestamp<br/>YYYY-MM-DDTHH:MM:SS"]
+ Group["Group by Time<br/>5-minute windows"]
+ Check["Check Completeness<br/>16 subbands required"]
+ State["Update Queue State<br/>collecting to pending"]
+ end
+ 
+ Files --> Watch
+ Watch --> Parse
+ Parse --> Group
+ Group --> Check
+ Check -->|Complete| State
+ Check -->|Incomplete| Wait["Wait for<br/>more subbands"]
+ Wait --> Check
+ 
+ style INGEST_DETAIL fill:#E3F2FD,stroke:#1976D2,stroke-width:2px,color:#000
+ style State fill:#C8E6C9,stroke:#388E3C,stroke-width:2px,color:#000
+ style Wait fill:#FFCDD2,stroke:#D32F2F,stroke-width:2px,color:#000
 ```
 
 **Details:**
@@ -179,153 +175,139 @@ flowchart LR
 
 ---
 
-### Stage 2: Conversion (UVH5 → MS)
+### Stage 2: Conversion (UVH5 to MS)
 
 ```mermaid
 flowchart TB
-    subgraph CONVERT_DETAIL["Conversion Process"]
-        Start[Group Acquired<br/>state: pending → in_progress]
-        Orch[Orchestrator CLI<br/>hdf5_orchestrator.py]
-        WriterSel{Writer Selection}
-        Auto[Auto Mode<br/>--writer auto]
-        
-        subgraph PROD_PATH["Production Path (>2 subbands)"]
-            Par[parallel-subband Writer]
-            Subbands[Parallel Per-Subband Writes<br/>16 concurrent workers]
-            Staging[Staging Decision]
-            Tmpfs[tmpfs /dev/shm<br/>3-5x speedup]
-            Disk[SSD Scratch<br/>fallback]
-            Concat[CASA concat<br/>combine subbands]
-        end
-        
-        subgraph TEST_PATH["Testing Path (≤2 subbands)"]
-            Mono[pyuvdata Writer<br/>monolithic write]
-        end
-        
-        Ops[Operations Applied]
-        Identity[Set Telescope Identity<br/>DSA_110]
-        Phase[Meridian Phasing<br/>at midpoint]
-        UVW[Compute UVW Coordinates]
-        Init[Initialize Columns<br/>MODEL_DATA<br/>CORRECTED_DATA<br/>WEIGHT_SPECTRUM]
-        
-        Output[Full-Band MS<br/>all 16 subbands<br/>all columns]
-    end
-    
-    Start --> Orch
-    Orch --> WriterSel
-    WriterSel -->|Auto| Auto
-    Auto -->|>2 subbands| Par
-    Auto -->|≤2 subbands| Mono
-    Par --> Subbands
-    Subbands --> Staging
-    Staging -->|tmpfs available| Tmpfs
-    Staging -->|fallback| Disk
-    Tmpfs --> Concat
-    Disk --> Concat
-    Mono --> Ops
-    Concat --> Ops
-    Ops --> Identity
-    Identity --> Phase
-    Phase --> UVW
-    UVW --> Init
-    Init --> Output
-    
-    style PROD_PATH fill:#E6F3FF
-    style TEST_PATH fill:#FFF4E1
-    style Output fill:#90EE90
+ subgraph CONVERT_DETAIL["Conversion Process"]
+ Start["Group Acquired<br/>pending to in_progress"]
+ Orch["Orchestrator CLI<br/>hdf5_orchestrator.py"]
+ WriterSel{"Writer<br/>Selection"}
+ Auto["Auto Mode<br/>--writer auto"]
+ 
+ subgraph PROD_PATH["Production Path (>2 subbands)"]
+ Par["parallel-subband<br/>Writer"]
+ Subbands["Parallel Writes<br/>16 concurrent workers"]
+ Staging{"Staging<br/>Decision"}
+ Tmpfs["tmpfs /dev/shm<br/>3-5x speedup"]
+ Disk["SSD Scratch<br/>fallback"]
+ Concat["CASA concat<br/>combine subbands"]
+ end
+ 
+ subgraph TEST_PATH["Testing Path (<=2 subbands)"]
+ Mono["pyuvdata Writer<br/>monolithic write"]
+ end
+ 
+ Ops["Operations<br/>Applied"]
+ Identity["Set Telescope<br/>DSA_110"]
+ Phase["Meridian Phasing<br/>at midpoint"]
+ UVW["Compute UVW<br/>Coordinates"]
+ Init["Initialize Columns<br/>MODEL_DATA, CORRECTED_DATA"]
+ 
+ Output["Full-Band MS<br/>16 subbands, all columns"]
+ end
+ 
+ Start --> Orch
+ Orch --> WriterSel
+ WriterSel -->|Auto| Auto
+ Auto -->|>2 subbands| Par
+ Auto -->|<=2 subbands| Mono
+ Par --> Subbands
+ Subbands --> Staging
+ Staging -->|tmpfs available| Tmpfs
+ Staging -->|fallback| Disk
+ Tmpfs --> Concat
+ Disk --> Concat
+ Mono --> Ops
+ Concat --> Ops
+ Ops --> Identity
+ Identity --> Phase
+ Phase --> UVW
+ UVW --> Init
+ Init --> Output
+ 
+ style CONVERT_DETAIL fill:#F3E5F5,stroke:#7B1FA2,stroke-width:2px,color:#000
+ style PROD_PATH fill:#E1BEE7,stroke:#7B1FA2,stroke-width:2px,color:#000
+ style TEST_PATH fill:#FFF9C4,stroke:#F57F17,stroke-width:2px,color:#000
+ style Output fill:#C8E6C9,stroke:#388E3C,stroke-width:2px,color:#000
 ```
 
 **Details:**
 - **Entry Point**: `hdf5_orchestrator.py` CLI (called by streaming worker)
 - **Writer Selection**:
   - Production: `parallel-subband` (16 subbands) - default
-  - Testing: `pyuvdata` (≤2 subbands only)
+  - Testing: `pyuvdata` (<=2 subbands only)
 - **Staging**: tmpfs (`/dev/shm`) preferred for 3-5x speedup
 - **Operations**: All applied during conversion to ensure MS is ready for imaging
 - **Output**: Single full-band MS with all columns preallocated
 
 ---
 
-### Stage 3: MS Preparation
+### Stage 2: Conversion (includes MS Configuration)
 
-```mermaid
-flowchart LR
-    subgraph PREP_DETAIL["MS Preparation"]
-        MSIn[MS from Conversion]
-        Validate[Validate MS<br/>- Readable<br/>- Not empty<br/>- Required columns exist]
-        Config[Configure for Imaging<br/>- MODEL_DATA<br/>- CORRECTED_DATA<br/>- WEIGHT_SPECTRUM]
-        Flag[RFI Flagging<br/>1. Reset flags<br/>2. Flag zeros<br/>3. Statistical RFI]
-        MSOut[Ready MS]
-    end
-    
-    MSIn --> Validate
-    Validate -->|Pass| Config
-    Validate -->|Fail| Error[Error: Invalid MS]
-    Config --> Flag
-    Flag --> MSOut
-    
-    style Validate fill:#FFE4E1
-    style Config fill:#E6F3FF
-    style Flag fill:#FFF4E1
-    style MSOut fill:#90EE90
-```
+**Note:** MS configuration happens during conversion finalization, not as a separate stage.
 
 **Details:**
-- **Validation**: Ensures MS is readable and contains required data
-- **Configuration**: Initializes imaging columns (CASA requirement)
-- **Flagging**: Removes bad data before calibration
-- **Critical**: MS must pass all checks before proceeding
+- **Configuration**: `configure_ms_for_imaging()` is called after MS creation to initialize MODEL_DATA, CORRECTED_DATA, WEIGHT_SPECTRUM columns
+- **Validation**: MS is validated to ensure it's readable and contains required data
+- **Output**: MS is ready for calibration after conversion completes
 
 ---
 
-### Stage 4: Calibration
+### Stage 3: Calibration
 
 ```mermaid
 flowchart TB
-    subgraph CAL_DETAIL["Calibration Process"]
-        MSIn[Prepared MS]
-        Check{Has Calibrator<br/>Field?}
-        
-        subgraph CAL_PATH["Calibrator Path"]
-            SkyModel[NVSS Sky Model<br/>≥10 mJy sources<br/>0.2 deg radius]
-            FT[ft: Populate MODEL_DATA<br/>with sky model]
-            K{K-Calibration?<br/>--do-k flag}
-            KCal[K-Calibration<br/>Delay/Phase<br/>Frequency-independent]
-            SkipK[Skip K-Cal<br/>Default for DSA-110<br/>short baselines]
-            BPCal[BP-Calibration<br/>Bandpass<br/>Frequency-dependent<br/>uvrange cut optional]
-            GCal[G-Calibration<br/>Gains<br/>Time-variable<br/>phase-only in fast mode]
-            Reg[Register Caltables<br/>cal_registry.sqlite3<br/>validity windows]
-        end
-        
-        subgraph NO_CAL_PATH["No Calibrator Path"]
-            Query[Query Active Caltables<br/>by MS mid-MJD]
-            UseExisting[Use Existing Caltables]
-        end
-        
-        MSIn --> Check
-        Check -->|Yes| SkyModel
-        Check -->|No| Query
-        SkyModel --> FT
-        FT --> K
-        K -->|--do-k| KCal
-        K -->|Default| SkipK
-        KCal --> BPCal
-        SkipK --> BPCal
-        BPCal --> GCal
-        GCal --> Reg
-        Query --> UseExisting
-        Reg --> Apply
-        UseExisting --> Apply
-        
-        style CAL_PATH fill:#E6F3FF
-        style NO_CAL_PATH fill:#FFF4E1
-    end
-    
-    Apply[Apply Caltables]
-    style Apply fill:#90EE90
+ subgraph CAL_DETAIL["Calibration Process"]
+ MSIn["MS from<br/>Conversion"]
+ Flag{"Pre-Cal<br/>Flagging?"}
+ Check{"Has Calibrator<br/>Field?"}
+ 
+ subgraph CAL_PATH["Calibrator Path"]
+ SkyModel["NVSS Sky Model<br/>>=10 mJy sources<br/>0.2 deg radius"]
+ FT["ft: Populate<br/>MODEL_DATA"]
+ K{"K-Calibration?<br/>--do-k flag"}
+ KCal["K-Calibration<br/>Delay/Phase"]
+ SkipK["Skip K-Cal<br/>Default for DSA-110"]
+ BPCal["BP-Calibration<br/>Bandpass"]
+ GCal["G-Calibration<br/>Time-variable gains"]
+ Reg["Register Caltables<br/>cal_registry.sqlite3"]
+ end
+ 
+ subgraph NO_CAL_PATH["No Calibrator Path"]
+ Query["Query Active Caltables<br/>by MS mid-MJD"]
+ UseExisting["Use Existing<br/>Caltables"]
+ end
+ 
+ MSIn --> Flag
+ Flag -->|Optional| Check
+ Flag -->|Skip| Check
+ Check -->|Yes| SkyModel
+ Check -->|No| Query
+ SkyModel --> FT
+ FT --> K
+ K -->|--do-k| KCal
+ K -->|Default| SkipK
+ KCal --> BPCal
+ SkipK --> BPCal
+ BPCal --> GCal
+ GCal --> Reg
+ Query --> UseExisting
+ Reg --> Apply
+ UseExisting --> Apply
+ 
+ style CAL_DETAIL fill:#E8F5E9,stroke:#388E3C,stroke-width:2px,color:#000
+ style CAL_PATH fill:#C8E6C9,stroke:#388E3C,stroke-width:2px,color:#000
+ style NO_CAL_PATH fill:#FFF9C4,stroke:#F57F17,stroke-width:2px,color:#000
+ style Flag fill:#FFF9C4,stroke:#F57F17,stroke-width:2px,color:#000
+ end
+ 
+ Apply["Apply<br/>Caltables"]
+ style Apply fill:#C8E6C9,stroke:#388E3C,stroke-width:2px,color:#000
 ```
 
 **Details:**
+- **Pre-Calibration Flagging**: Optional step that resets flags, flags zeros, and optionally flags RFI (tfcrop + rflag). May be skipped in streaming mode when using existing caltables.
 - **K-Calibration**: Skipped by default (short baselines, delays <0.5 ns absorbed into gains)
 - **BP-Calibration**: Frequency-dependent gains, uses "G" mode
 - **G-Calibration**: Time-variable atmospheric effects, uses "p" (phase-only) mode in development tier
@@ -334,25 +316,27 @@ flowchart TB
 
 ---
 
-### Stage 5: Apply Calibration
+### Stage 4: Apply Calibration
 
 ```mermaid
 flowchart LR
-    subgraph APPLY_DETAIL["Apply Calibration"]
-        MSIn[MS with Caltables]
-        Apply[applycal<br/>Apply to CORRECTED_DATA]
-        Verify[Verify CORRECTED_DATA<br/>non-zero values]
-        MSOut[Calibrated MS]
-    end
-    
-    MSIn --> Apply
-    Apply --> Verify
-    Verify -->|Valid| MSOut
-    Verify -->|Invalid| Warn[Warning: All zeros]
-    
-    style Apply fill:#E6F3FF
-    style Verify fill:#FFE4E1
-    style MSOut fill:#90EE90
+ subgraph APPLY_DETAIL["Apply Calibration"]
+ MSIn["MS with<br/>Caltables"]
+ Apply["applycal<br/>Apply to CORRECTED_DATA"]
+ Verify["Verify CORRECTED_DATA<br/>non-zero values"]
+ MSOut["Calibrated MS"]
+ end
+ 
+ MSIn --> Apply
+ Apply --> Verify
+ Verify -->|Valid| MSOut
+ Verify -->|Invalid| Warn["Warning:<br/>All zeros"]
+ 
+ style APPLY_DETAIL fill:#FFF3E0,stroke:#F57C00,stroke-width:2px,color:#000
+ style Apply fill:#FFE0B2,stroke:#F57C00,stroke-width:2px,color:#000
+ style Verify fill:#FFE0B2,stroke:#F57C00,stroke-width:2px,color:#000
+ style MSOut fill:#C8E6C9,stroke:#388E3C,stroke-width:2px,color:#000
+ style Warn fill:#FFCDD2,stroke:#D32F2F,stroke-width:2px,color:#000
 ```
 
 **Details:**
@@ -362,44 +346,46 @@ flowchart LR
 
 ---
 
-### Stage 6: Imaging
+### Stage 5: Imaging
 
 ```mermaid
 flowchart TB
-    subgraph IMAGE_DETAIL["Imaging Process"]
-        MSIn[Calibrated MS<br/>CORRECTED_DATA]
-        Clean[tclean<br/>CASA deconvolution]
-        Mode{Imaging Mode}
-        
-        subgraph QUICK_MODE["Quick Mode (--quick)"]
-            Quick[Quick Imaging<br/>- imsize ≤ 512<br/>- niter ≤ 300<br/>- robust ~ 0<br/>- PB correction]
-        end
-        
-        subgraph FULL_MODE["Full Mode"]
-            Full[Full Quality<br/>- imsize from config<br/>- niter from config<br/>- robust from config<br/>- PB correction]
-        end
-        
-        Fits{Export FITS?<br/>--skip-fits}
-        FITS[FITS Export<br/>.pbcor.fits]
-        CASA[CASA Images<br/>.image, .pb, etc.]
-    end
-    
-    MSIn --> Clean
-    Clean --> Mode
-    Mode -->|--quick| Quick
-    Mode -->|Default| Full
-    Quick --> Fits
-    Full --> Fits
-    Fits -->|No| CASA
-    Fits -->|Yes| FITS
-    
-    style QUICK_MODE fill:#FFF4E1
-    style FULL_MODE fill:#E6F3FF
-    style FITS fill:#90EE90
-    style CASA fill:#90EE90
+ subgraph IMAGE_DETAIL["Imaging Process"]
+ MSIn["Calibrated MS<br/>CORRECTED_DATA"]
+ Clean["WSClean<br/>default backend"]
+ Mode{"Imaging<br/>Mode"}
+ 
+ subgraph QUICK_MODE["Quick Mode (--quick)"]
+ Quick["Quick Imaging<br/>imsize <= 512<br/>niter <= 300<br/>robust ~ 0"]
+ end
+ 
+ subgraph FULL_MODE["Full Mode"]
+ Full["Full Quality<br/>imsize from config<br/>niter from config<br/>robust from config"]
+ end
+ 
+ Fits{"Export<br/>FITS?"}
+ FITS["FITS Export<br/>.pbcor.fits"]
+ CASA["CASA Images<br/>.image, .pb"]
+ 
+ MSIn --> Clean
+ Clean --> Mode
+ Mode -->|--quick| Quick
+ Mode -->|Default| Full
+ Quick --> Fits
+ Full --> Fits
+ Fits -->|No| CASA
+ Fits -->|Yes| FITS
+ end
+ 
+ style IMAGE_DETAIL fill:#FCE4EC,stroke:#C2185B,stroke-width:2px,color:#000
+ style QUICK_MODE fill:#FFF9C4,stroke:#F57F17,stroke-width:2px,color:#000
+ style FULL_MODE fill:#F8BBD0,stroke:#C2185B,stroke-width:2px,color:#000
+ style FITS fill:#C8E6C9,stroke:#388E3C,stroke-width:2px,color:#000
+ style CASA fill:#C8E6C9,stroke:#388E3C,stroke-width:2px,color:#000
 ```
 
 **Details:**
+- **Backend**: WSClean is the default (2-5x faster than tclean). tclean available via `--backend tclean`.
 - **Quick Mode**: For speed and operator QA, reduced parameters
 - **Full Mode**: Production quality with full deconvolution
 - **PB Correction**: Primary beam correction always applied
@@ -407,28 +393,29 @@ flowchart TB
 
 ---
 
-### Stage 7: Products & Indexing
+### Stage 6: Products and Indexing
 
 ```mermaid
 flowchart TB
-    subgraph PRODUCT_DETAIL["Products & Indexing"]
-        Images[Image Files<br/>.image, .pb, .pbcor.fits]
-        MSFiles[MS Files<br/>.ms directory]
-        QAArt[QA Artifacts<br/>plots, thumbnails]
-        
-        subgraph DB["Products DB (products.sqlite3)"]
-            MSIdx[ms_index Table<br/>- path (PRIMARY KEY)<br/>- start_mjd, end_mjd, mid_mjd<br/>- processed_at, status, stage<br/>- cal_applied, imagename]
-            ImgIdx[images Table<br/>- id, path, ms_path<br/>- created_at, type<br/>- beam_major_arcsec<br/>- noise_jy, pbcor]
-            QAIdx[QA Index<br/>- qa_artifacts table<br/>- links to images]
-        end
-        
-        Images --> MSIdx
-        MSFiles --> MSIdx
-        Images --> ImgIdx
-        QAArt --> QAIdx
-    end
-    
-    style DB fill:#E6F3FF
+ subgraph PRODUCT_DETAIL["Products and Indexing"]
+ Images["Image Files<br/>.image, .pb, .pbcor.fits"]
+ MSFiles["MS Files<br/>.ms directory"]
+ QAArt["QA Artifacts<br/>plots, thumbnails"]
+ 
+ subgraph DB["Products DB<br/>products.sqlite3"]
+ MSIdx["ms_index Table<br/>path, timestamps<br/>status, stage"]
+ ImgIdx["images Table<br/>id, path, ms_path<br/>quality metrics"]
+ QAIdx["QA Index<br/>qa_artifacts table<br/>links to images"]
+ end
+ 
+ Images --> MSIdx
+ MSFiles --> MSIdx
+ Images --> ImgIdx
+ QAArt --> QAIdx
+ end
+ 
+ style PRODUCT_DETAIL fill:#E0F2F1,stroke:#00796B,stroke-width:2px,color:#000
+ style DB fill:#B2DFDB,stroke:#00796B,stroke-width:2px,color:#000
 ```
 
 **Details:**
@@ -439,28 +426,29 @@ flowchart TB
 
 ---
 
-### Stage 8: Monitoring & Access
+### Stage 7: Monitoring & Access
 
 ```mermaid
 flowchart LR
-    subgraph API_DETAIL["FastAPI Monitoring"]
-        Products[Products DB]
-        FastAPI[FastAPI Server<br/>uvicorn]
-        
-        subgraph ENDPOINTS["API Endpoints"]
-            Status[/api/status<br/>queue, calibration, products]
-            ProductsEP[/api/ms_index<br/>filtered MS index]
-            ImagesEP[/api/images<br/>image metadata]
-            QAEP[/api/qa<br/>QA artifacts]
-            Reprocess[/api/reprocess/{group_id}<br/>reprocess group]
-        end
-        
-        Products --> FastAPI
-        FastAPI --> ENDPOINTS
-    end
-    
-    style FastAPI fill:#E6F3FF
-    style ENDPOINTS fill:#90EE90
+ subgraph API_DETAIL["FastAPI Monitoring"]
+ Products["Products DB"]
+ FastAPI["FastAPI Server<br/>uvicorn"]
+ 
+ subgraph ENDPOINTS["API Endpoints"]
+ Status["/api/status<br/>queue, calibration"]
+ ProductsEP["/api/ms_index<br/>filtered MS index"]
+ ImagesEP["/api/images<br/>image metadata"]
+ QAEP["/api/qa<br/>QA artifacts"]
+ Reprocess["/api/reprocess<br/>/{group_id}"]
+ end
+ 
+ Products --> FastAPI
+ FastAPI --> ENDPOINTS
+ end
+ 
+ style API_DETAIL fill:#E1F5FE,stroke:#0277BD,stroke-width:2px,color:#000
+ style FastAPI fill:#B3E5FC,stroke:#0277BD,stroke-width:2px,color:#000
+ style ENDPOINTS fill:#C8E6C9,stroke:#388E3C,stroke-width:2px,color:#000
 ```
 
 **Details:**
@@ -477,48 +465,44 @@ flowchart LR
 
 ```mermaid
 stateDiagram-v2
-    [*] --> collecting: New subband file detected
-    
-    collecting --> collecting: More subbands arriving (waiting for 16)
-    collecting --> pending: All 16 subbands arrived (complete group)
-    collecting --> failed: Timeout exceeded (collecting_timeout)
-    
-    pending --> in_progress: Worker acquires group
-    pending --> failed: Max retries exceeded
-    
-    in_progress --> processing_fresh: First conversion attempt
-    in_progress --> resuming: Recovery from checkpoint
-    
-    processing_fresh --> processing_fresh: Checkpoint saved
-    processing_fresh --> completed: Conversion successful
-    processing_fresh --> failed: Conversion failed
-    
-    resuming --> resuming: Checkpoint saved
-    resuming --> completed: Conversion successful
-    resuming --> failed: Conversion failed
-    
-    completed --> [*]
-    failed --> [*]
-    
-    note right of collecting
-        Waiting for all 16 subbands
-        in 5-minute time window
-    end note
-    
-    note right of pending
-        Ready for processing
-        Worker will pick up
-    end note
-    
-    note right of in_progress
-        Worker claimed group
-        Processing starting
-    end note
-    
-    note right of completed
-        MS written successfully
-        Products indexed
-    end note
+ [*] --> collecting: New subband file detected
+ 
+ collecting --> collecting: More subbands arriving<br/>(waiting for 16)
+ collecting --> pending: All 16 subbands arrived<br/>(complete group)
+ collecting --> failed: Timeout exceeded<br/>(collecting_timeout)
+ 
+ pending --> in_progress: Worker acquires group
+ pending --> failed: Max retries exceeded
+ 
+ in_progress --> processing_fresh: First conversion attempt
+ in_progress --> resuming: Recovery from checkpoint
+ 
+ processing_fresh --> processing_fresh: Checkpoint saved
+ processing_fresh --> completed: Conversion successful
+ processing_fresh --> failed: Conversion failed
+ 
+ resuming --> resuming: Checkpoint saved
+ resuming --> completed: Conversion successful
+ resuming --> failed: Conversion failed
+ 
+ completed --> [*]
+ failed --> [*]
+ 
+ note right of collecting
+ Waiting for all 16 subbands<br/>in 5-minute time window
+ end note
+ 
+ note right of pending
+ Ready for processing<br/>Worker will pick up
+ end note
+ 
+ note right of in_progress
+ Worker claimed group<br/>Processing starting
+ end note
+ 
+ note right of completed
+ MS written successfully<br/>Products indexed
+ end note
 ```
 
 **State Details:**
@@ -534,35 +518,34 @@ stateDiagram-v2
 
 ```mermaid
 flowchart LR
-    subgraph STAGES["Processing Stages"]
-        S1[Stage 1: Ingest]
-        S2[Stage 2: Conversion]
-        S3[Stage 3: MS Prep]
-        S4[Stage 4: Calibration]
-        S5[Stage 5: Apply Cal]
-        S6[Stage 6: Imaging]
-        S7[Stage 7: Indexing]
-    end
-    
-    S1 --> S2
-    S2 --> S3
-    S3 --> S4
-    S4 --> S5
-    S5 --> S6
-    S6 --> S7
-    S7 --> Done[Complete]
-    
-    style S1 fill:#E6F3FF
-    style S2 fill:#FFF4E1
-    style S3 fill:#F0F0F0
-    style S4 fill:#E1FFE1
-    style S5 fill:#FFE1F5
-    style S6 fill:#F5E1FF
-    style S7 fill:#FFE1E1
-    style Done fill:#90EE90
+ subgraph STAGES["Processing Stages"]
+ S1["Stage 1:<br/>Ingest"]
+ S2["Stage 2:<br/>Conversion<br/>(includes MS config)"]
+ S3["Stage 3:<br/>Calibration"]
+ S4["Stage 4:<br/>Apply Cal"]
+ S5["Stage 5:<br/>Imaging"]
+ S6["Stage 6:<br/>Indexing"]
+ end
+ 
+ S1 --> S2
+ S2 --> S3
+ S3 --> S4
+ S4 --> S5
+ S5 --> S6
+ S6 --> Done["Complete"]
+ 
+ style S1 fill:#E3F2FD,stroke:#1976D2,stroke-width:2px,color:#000
+ style S2 fill:#F3E5F5,stroke:#7B1FA2,stroke-width:2px,color:#000
+ style S3 fill:#E8F5E9,stroke:#388E3C,stroke-width:2px,color:#000
+ style S4 fill:#FFF3E0,stroke:#F57C00,stroke-width:2px,color:#000
+ style S5 fill:#FCE4EC,stroke:#C2185B,stroke-width:2px,color:#000
+ style S6 fill:#E0F2F1,stroke:#00796B,stroke-width:2px,color:#000
+ style Done fill:#C8E6C9,stroke:#388E3C,stroke-width:3px,color:#000
 ```
 
 **Stage Field**: Tracks current processing stage in `ms_index` table for monitoring and debugging.
+
+**Note:** MS configuration (MODEL_DATA, CORRECTED_DATA, WEIGHT_SPECTRUM initialization) happens during Stage 2 conversion finalization, not as a separate stage.
 
 ---
 
@@ -611,32 +594,32 @@ flowchart LR
 
 ```mermaid
 flowchart TB
-    subgraph QUEUE["Queue DB (ingest.sqlite3)"]
-        Queue[ingest_queue<br/>Group state tracking]
-        Files[subband_files<br/>File arrival tracking]
-        Perf[performance_metrics<br/>Timing metrics]
-    end
-    
-    subgraph REGISTRY["Cal Registry DB (cal_registry.sqlite3)"]
-        CalReg[caltables<br/>Calibration table registry<br/>Validity windows]
-    end
-    
-    subgraph PRODUCTS["Products DB (products.sqlite3)"]
-        MSIdx[ms_index<br/>MS metadata<br/>Processing status]
-        ImgIdx[images<br/>Image metadata<br/>Quality metrics]
-        QAIdx[qa_artifacts<br/>QA plots/thumbnails]
-    end
-    
-    Queue --> MSIdx
-    Files --> Queue
-    Perf --> Queue
-    CalReg --> MSIdx
-    MSIdx --> ImgIdx
-    ImgIdx --> QAIdx
-    
-    style QUEUE fill:#E6F3FF
-    style REGISTRY fill:#FFF4E1
-    style PRODUCTS fill:#E1FFE1
+ subgraph QUEUE["Queue DB<br/>ingest.sqlite3"]
+ Queue["ingest_queue<br/>Group state tracking"]
+ Files["subband_files<br/>File arrival tracking"]
+ Perf["performance_metrics<br/>Timing metrics"]
+ end
+ 
+ subgraph REGISTRY["Cal Registry DB<br/>cal_registry.sqlite3"]
+ CalReg["caltables<br/>Calibration registry<br/>Validity windows"]
+ end
+ 
+ subgraph PRODUCTS["Products DB<br/>products.sqlite3"]
+ MSIdx["ms_index<br/>MS metadata<br/>Processing status"]
+ ImgIdx["images<br/>Image metadata<br/>Quality metrics"]
+ QAIdx["qa_artifacts<br/>QA plots/thumbnails"]
+ end
+ 
+ Queue --> MSIdx
+ Files --> Queue
+ Perf --> Queue
+ CalReg --> MSIdx
+ MSIdx --> ImgIdx
+ ImgIdx --> QAIdx
+ 
+ style QUEUE fill:#E3F2FD,stroke:#1976D2,stroke-width:2px,color:#000
+ style REGISTRY fill:#FFF9C4,stroke:#F57F17,stroke-width:2px,color:#000
+ style PRODUCTS fill:#E8F5E9,stroke:#388E3C,stroke-width:2px,color:#000
 ```
 
 **Key Interactions:**
@@ -652,49 +635,50 @@ flowchart TB
 
 ```mermaid
 flowchart TB
-    subgraph OPTIMIZATIONS["Performance Optimization Options"]
-        Start[Pipeline Start]
-        
-        subgraph CONVERT_OPT["Conversion Optimizations"]
-            Tmpfs[tmpfs Staging<br/>/dev/shm<br/>3-5x speedup]
-            Par[Parallel Writes<br/>16 concurrent workers]
-        end
-        
-        subgraph CAL_OPT["Calibration Optimizations"]
-            Fast[Fast Mode<br/>--fast flag]
-            Timebin[Time Binning<br/>--timebin 30s]
-            Chanbin[Channel Binning<br/>--chanbin 4]
-            UVRange[UV Range Cut<br/>--uvrange >1klambda]
-            PhaseOnly[Phase-Only Gains<br/>--phase-only]
-        end
-        
-        subgraph IMAGE_OPT["Imaging Optimizations"]
-            Quick[Quick Mode<br/>--quick flag]
-            SmallImg[Small Image Size<br/>imsize ≤ 512]
-            FewIter[Fewer Iterations<br/>niter ≤ 300]
-            SkipFITS[Skip FITS Export<br/>--skip-fits]
-        end
-        
-        Start --> Tmpfs
-        Start --> Par
-        Tmpfs --> Fast
-        Par --> Fast
-        Fast --> Timebin
-        Fast --> Chanbin
-        Fast --> UVRange
-        Fast --> PhaseOnly
-        Timebin --> Quick
-        Chanbin --> Quick
-        UVRange --> Quick
-        PhaseOnly --> Quick
-        Quick --> SmallImg
-        Quick --> FewIter
-        Quick --> SkipFITS
-    end
-    
-    style CONVERT_OPT fill:#E6F3FF
-    style CAL_OPT fill:#FFF4E1
-    style IMAGE_OPT fill:#E1FFE1
+ subgraph OPTIMIZATIONS["Performance Optimization Options"]
+ Start["Pipeline<br/>Start"]
+ 
+ subgraph CONVERT_OPT["Conversion Optimizations"]
+ Tmpfs["tmpfs Staging<br/>/dev/shm<br/>3-5x speedup"]
+ Par["Parallel Writes<br/>16 concurrent workers"]
+ end
+ 
+ subgraph CAL_OPT["Calibration Optimizations"]
+ Fast["Fast Mode<br/>--fast flag"]
+ Timebin["Time Binning<br/>--timebin 30s"]
+ Chanbin["Channel Binning<br/>--chanbin 4"]
+ UVRange["UV Range Cut<br/>--uvrange >1klambda"]
+ PhaseOnly["Phase-Only Gains<br/>--phase-only"]
+ end
+ 
+ subgraph IMAGE_OPT["Imaging Optimizations"]
+ Quick["Quick Mode<br/>--quick flag"]
+ SmallImg["Small Image Size<br/>imsize <= 512"]
+ FewIter["Fewer Iterations<br/>niter <= 300"]
+ SkipFITS["Skip FITS Export<br/>--skip-fits"]
+ end
+ 
+ Start --> Tmpfs
+ Start --> Par
+ Tmpfs --> Fast
+ Par --> Fast
+ Fast --> Timebin
+ Fast --> Chanbin
+ Fast --> UVRange
+ Fast --> PhaseOnly
+ Timebin --> Quick
+ Chanbin --> Quick
+ UVRange --> Quick
+ PhaseOnly --> Quick
+ Quick --> SmallImg
+ Quick --> FewIter
+ Quick --> SkipFITS
+ end
+ 
+ style OPTIMIZATIONS fill:#F5F5F5,stroke:#616161,stroke-width:2px,color:#000
+ style CONVERT_OPT fill:#E3F2FD,stroke:#1976D2,stroke-width:2px,color:#000
+ style CAL_OPT fill:#FFF9C4,stroke:#F57F17,stroke-width:2px,color:#000
+ style IMAGE_OPT fill:#E8F5E9,stroke:#388E3C,stroke-width:2px,color:#000
 ```
 
 **Optimization Summary:**

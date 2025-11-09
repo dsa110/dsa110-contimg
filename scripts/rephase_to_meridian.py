@@ -12,8 +12,8 @@ If uvh5_path is provided, it will use the pointing declination from the UVH5 fil
 Otherwise, it will attempt to infer from MS metadata or use the first field's declination.
 
 Example:
-    python rephase_to_meridian.py /scratch/dsa110-contimg/ms/2025-10-29T13:54:17.ms \
-        /scratch/dsa110-contimg/uvh5/2025-10-29T13:54:17.uvh5
+    python rephase_to_meridian.py /stage/dsa110-contimg/ms/2025-10-29T13:54:17.ms \
+        /stage/dsa110-contimg/uvh5/2025-10-29T13:54:17.uvh5
 """
 
 import sys

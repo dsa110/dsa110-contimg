@@ -1,0 +1,328 @@
+/**
+ * ImageControls Component
+ * Provides controls for JS9 image viewer (zoom, colormap, grid, coordinates)
+ */
+import { useState, useEffect } from 'react';
+import {
+  Box,
+  Button,
+  ButtonGroup,
+  Select,
+  MenuItem,
+  FormControl,
+  InputLabel,
+  TextField,
+  Dialog,
+  DialogTitle,
+  DialogContent,
+  DialogActions,
+  Typography,
+} from '@mui/material';
+import {
+  ZoomIn,
+  ZoomOut,
+  FitScreen,
+  GridOn,
+  GridOff,
+  Palette,
+  LocationOn,
+} from '@mui/icons-material';
+import { logger } from '../../utils/logger';
+
+declare global {
+  interface Window {
+    JS9: any;
+  }
+}
+
+interface ImageControlsProps {
+  displayId?: string;
+  onImageLoad?: (imagePath: string) => void;
+}
+
+export default function ImageControls({ 
+  displayId = 'js9Display',
+  onImageLoad 
+}: ImageControlsProps) {
+  const [colormap, setColormap] = useState('grey');
+  const [gridVisible, setGridVisible] = useState(false);
+  const [zoomLevel, setZoomLevel] = useState(1);
+  const [coordDialogOpen, setCoordDialogOpen] = useState(false);
+  const [raInput, setRaInput] = useState('');
+  const [decInput, setDecInput] = useState('');
+
+  // Update zoom level when JS9 zoom changes
+  useEffect(() => {
+    if (!window.JS9) return;
+
+    const updateZoom = () => {
+      try {
+        const display = window.JS9.displays?.find((d: any) => {
+          const divId = d.id || d.display || d.divID;
+          return divId === displayId;
+        });
+        if (display?.im) {
+          const currentZoom = window.JS9.GetZoom(display.im.id) || 1;
+          setZoomLevel(currentZoom);
+        }
+      } catch (e) {
+        logger.debug('Error getting zoom level:', e);
+      }
+    };
+
+    // Poll for zoom changes (JS9 doesn't have a zoom event)
+    const interval = setInterval(updateZoom, 500);
+    return () => clearInterval(interval);
+  }, [displayId]);
+
+  const handleZoomIn = () => {
+    if (!window.JS9) return;
+    try {
+      const display = window.JS9.displays?.find((d: any) => {
+        const divId = d.id || d.display || d.divID;
+        return divId === displayId;
+      });
+      if (display?.im) {
+        const currentZoom = window.JS9.GetZoom(display.im.id) || 1;
+        window.JS9.SetZoom(display.im.id, currentZoom * 1.5);
+        setZoomLevel(currentZoom * 1.5);
+      }
+    } catch (e) {
+      logger.error('Error zooming in:', e);
+    }
+  };
+
+  const handleZoomOut = () => {
+    if (!window.JS9) return;
+    try {
+      const display = window.JS9.displays?.find((d: any) => {
+        const divId = d.id || d.display || d.divID;
+        return divId === displayId;
+      });
+      if (display?.im) {
+        const currentZoom = window.JS9.GetZoom(display.im.id) || 1;
+        window.JS9.SetZoom(display.im.id, currentZoom / 1.5);
+        setZoomLevel(currentZoom / 1.5);
+      }
+    } catch (e) {
+      logger.error('Error zooming out:', e);
+    }
+  };
+
+  const handleZoomReset = () => {
+    if (!window.JS9) return;
+    try {
+      const display = window.JS9.displays?.find((d: any) => {
+        const divId = d.id || d.display || d.divID;
+        return divId === displayId;
+      });
+      if (display?.im) {
+        window.JS9.SetZoom(display.im.id, 'fit');
+        setZoomLevel(1);
+      }
+    } catch (e) {
+      logger.error('Error resetting zoom:', e);
+    }
+  };
+
+  const handleColormapChange = (newColormap: string) => {
+    if (!window.JS9) return;
+    setColormap(newColormap);
+    try {
+      const display = window.JS9.displays?.find((d: any) => {
+        const divId = d.id || d.display || d.divID;
+        return divId === displayId;
+      });
+      if (display?.im) {
+        window.JS9.SetColormap(display.im.id, newColormap);
+        // Store preference
+        localStorage.setItem('js9_colormap', newColormap);
+      }
+    } catch (e) {
+      logger.error('Error changing colormap:', e);
+    }
+  };
+
+  const handleGridToggle = () => {
+    if (!window.JS9) return;
+    const newGridVisible = !gridVisible;
+    setGridVisible(newGridVisible);
+    try {
+      const display = window.JS9.displays?.find((d: any) => {
+        const divId = d.id || d.display || d.divID;
+        return divId === displayId;
+      });
+      if (display?.im) {
+        if (newGridVisible) {
+          window.JS9.SetGrid(display.im.id, true);
+        } else {
+          window.JS9.SetGrid(display.im.id, false);
+        }
+      }
+    } catch (e) {
+      logger.error('Error toggling grid:', e);
+    }
+  };
+
+  const handleGoToCoordinates = () => {
+    setCoordDialogOpen(true);
+  };
+
+  const handleCoordSubmit = () => {
+    if (!window.JS9 || !raInput || !decInput) return;
+    
+    try {
+      // Parse RA/Dec input (accept various formats)
+      const ra = parseCoordinate(raInput, 'ra');
+      const dec = parseCoordinate(decInput, 'dec');
+      
+      if (ra === null || dec === null) {
+        alert('Invalid coordinate format. Please use format like "12:34:56.7" or "188.5"');
+        return;
+      }
+
+      const display = window.JS9.displays?.find((d: any) => {
+        const divId = d.id || d.display || d.divID;
+        return divId === displayId;
+      });
+      if (display?.im) {
+        // Convert RA/Dec to pixel coordinates and pan
+        window.JS9.SetPan(display.im.id, ra, dec);
+        setCoordDialogOpen(false);
+        setRaInput('');
+        setDecInput('');
+      }
+    } catch (e) {
+      logger.error('Error going to coordinates:', e);
+      alert('Error navigating to coordinates. Please check the format.');
+    }
+  };
+
+  // Parse coordinate string (RA or Dec) to degrees
+  const parseCoordinate = (coord: string, type: 'ra' | 'dec'): number | null => {
+    try {
+      // Try decimal degrees first
+      const decimal = parseFloat(coord);
+      if (!isNaN(decimal)) {
+        return decimal;
+      }
+      
+      // Try sexagesimal format (HH:MM:SS or DD:MM:SS)
+      const parts = coord.split(':').map(p => parseFloat(p.trim()));
+      if (parts.length === 3 && parts.every(p => !isNaN(p))) {
+        if (type === 'ra') {
+          // RA: hours to degrees
+          return (parts[0] + parts[1] / 60 + parts[2] / 3600) * 15;
+        } else {
+          // Dec: degrees
+          const sign = coord.trim().startsWith('-') ? -1 : 1;
+          return sign * (Math.abs(parts[0]) + parts[1] / 60 + parts[2] / 3600);
+        }
+      }
+      
+      return null;
+    } catch (e) {
+      return null;
+    }
+  };
+
+  // Load saved colormap preference
+  useEffect(() => {
+    const savedColormap = localStorage.getItem('js9_colormap');
+    if (savedColormap) {
+      setColormap(savedColormap);
+      handleColormapChange(savedColormap);
+    }
+  }, []);
+
+  return (
+    <Box sx={{ display: 'flex', gap: 1, flexWrap: 'wrap', alignItems: 'center', mb: 2 }}>
+      {/* Zoom Controls */}
+      <ButtonGroup size="small" variant="outlined">
+        <Button onClick={handleZoomOut} title="Zoom Out">
+          <ZoomOut />
+        </Button>
+        <Button onClick={handleZoomReset} title="Zoom to Fit">
+          <FitScreen />
+        </Button>
+        <Button onClick={handleZoomIn} title="Zoom In">
+          <ZoomIn />
+        </Button>
+      </ButtonGroup>
+
+      {/* Zoom Level Display */}
+      <Typography variant="body2" sx={{ minWidth: '60px' }}>
+        {zoomLevel.toFixed(1)}x
+      </Typography>
+
+      {/* Colormap Selector */}
+      <FormControl size="small" sx={{ minWidth: 120 }}>
+        <InputLabel>Colormap</InputLabel>
+        <Select
+          value={colormap}
+          label="Colormap"
+          onChange={(e) => handleColormapChange(e.target.value)}
+        >
+          <MenuItem value="grey">Grey</MenuItem>
+          <MenuItem value="hot">Hot</MenuItem>
+          <MenuItem value="cool">Cool</MenuItem>
+          <MenuItem value="rainbow">Rainbow</MenuItem>
+          <MenuItem value="red">Red</MenuItem>
+          <MenuItem value="green">Green</MenuItem>
+          <MenuItem value="blue">Blue</MenuItem>
+        </Select>
+      </FormControl>
+
+      {/* Grid Toggle */}
+      <Button
+        size="small"
+        variant={gridVisible ? 'contained' : 'outlined'}
+        onClick={handleGridToggle}
+        title="Toggle Grid"
+      >
+        {gridVisible ? <GridOn /> : <GridOff />}
+      </Button>
+
+      {/* Go To Coordinates */}
+      <Button
+        size="small"
+        variant="outlined"
+        onClick={handleGoToCoordinates}
+        title="Go To Coordinates"
+        startIcon={<LocationOn />}
+      >
+        Go To
+      </Button>
+
+      {/* Coordinate Dialog */}
+      <Dialog open={coordDialogOpen} onClose={() => setCoordDialogOpen(false)}>
+        <DialogTitle>Go To Coordinates</DialogTitle>
+        <DialogContent>
+          <Typography variant="body2" sx={{ mb: 2 }}>
+            Enter coordinates in decimal degrees (e.g., 188.5) or sexagesimal format (e.g., 12:34:56.7)
+          </Typography>
+          <TextField
+            label="RA (degrees or HH:MM:SS)"
+            value={raInput}
+            onChange={(e) => setRaInput(e.target.value)}
+            fullWidth
+            sx={{ mb: 2 }}
+            placeholder="12:34:56.7 or 188.5"
+          />
+          <TextField
+            label="Dec (degrees or DD:MM:SS)"
+            value={decInput}
+            onChange={(e) => setDecInput(e.target.value)}
+            fullWidth
+            placeholder="+42:03:12 or 42.05"
+          />
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={() => setCoordDialogOpen(false)}>Cancel</Button>
+          <Button onClick={handleCoordSubmit} variant="contained">Go</Button>
+        </DialogActions>
+      </Dialog>
+    </Box>
+  );
+}
+

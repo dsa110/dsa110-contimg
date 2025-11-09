@@ -4,7 +4,7 @@
 
 set -euo pipefail
 
-SCRATCH_ROOT=${SCRATCH_ROOT:-/scratch/dsa110-contimg}
+SCRATCH_ROOT=${SCRATCH_ROOT:-/stage/dsa110-contimg}
 DATA_ROOT=${DATA_ROOT:-/data}
 
 usage() {
@@ -28,7 +28,7 @@ Options:
   --dry-run  Show the actions rsync/clean would take without making changes.
 
 Environment overrides:
-  SCRATCH_ROOT  Location to use for fast staging (default: /scratch/dsa110-contimg).
+  SCRATCH_ROOT  Location to use for fast staging (default: /stage/dsa110-contimg).
   DATA_ROOT     Repository/data root on the large volume (default: /data).
 
 Examples:

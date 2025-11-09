@@ -2,7 +2,7 @@
 
 **Purpose:** Persistent storage organization for streaming pipeline operations
 
-**Last Updated:** 2025-10-24
+**Last Updated:** 2025-11-08
 
 ---
 
@@ -18,16 +18,31 @@ CONTIMG_SCRATCH_DIR=/data/scratch
 ```
 
 **Actual Data Location:**
-- Everything is currently under `/scratch/dsa110-contimg/`
+- Everything is currently under `/stage/dsa110-contimg/`
 - Configuration points to non-existent `/data/ingest`, `/data/ms`, etc.
 
-### Current `/scratch/dsa110-contimg/` Structure
+### Current `/stage/dsa110-contimg/` Structure
 
 ```
-/scratch/dsa110-contimg/
+/stage/dsa110-contimg/
 ├── incoming/           7.0 GB   - Raw UVH5 files awaiting conversion
-├── ms/                76  GB   - Measurement Sets (MS), calibration tables, images
-├── images/            12  KB   - (unclear purpose, nearly empty)
+├── ms/                76  GB   - Measurement Sets (MS), calibration tables
+│   ├── calibrators/              - Calibrator observations (organized by date)
+│   │   └── YYYY-MM-DD/           - Date-organized subdirectories
+│   │       ├── <timestamp>.ms/  - Calibrator MS files
+│   │       ├── <timestamp>_bpcal/ - Bandpass calibration tables
+│   │       ├── <timestamp>_gpcal/ - Gain phase calibration tables
+│   │       └── <timestamp>_2gcal/ - Short-timescale gain tables
+│   ├── science/                  - Science observations (organized by date)
+│   │   └── YYYY-MM-DD/           - Date-organized subdirectories
+│   │       └── <timestamp>.ms/   - Science MS files with CORRECTED_DATA
+│   └── failed/                   - Failed conversions (quarantine)
+│       └── YYYY-MM-DD/           - Date-organized subdirectories
+│           └── <timestamp>.ms/   - Partial/corrupted MS files
+├── images/                       - Individual image products
+│   └── <timestamp>.img-*/        - Image files (WSClean/CASA format)
+├── mosaics/                      - Mosaic images
+│   └── <mosaic_name>.fits        - Combined mosaic images
 ├── curated/          156  KB   - Hand-selected high-quality products
 ├── out/               40  MB   - Test/validation outputs
 ├── state/            2.2  MB   - SQLite databases (should be in /data/)
@@ -41,8 +56,8 @@ CONTIMG_SCRATCH_DIR=/data/scratch
 
 ### Philosophy
 
-1. **Separate code from data**: Code in `/data/dsa110-contimg/`, data in `/scratch/dsa110-contimg/`
-2. **Separate fast from slow**: Hot data on `/scratch/` (fast SSD), cold/persistent on `/data/` or archive
+1. **Separate code from data**: Code in `/data/dsa110-contimg/`, data in `/stage/dsa110-contimg/`
+2. **Separate fast from slow**: Hot data on `/stage/` (fast SSD), cold/persistent on `/data/` or archive
 3. **Clear lifecycle**: Incoming → Processing → Archive → Purge
 4. **Predictable paths**: Standard naming conventions for automated discovery
 5. **Production-ready**: Support 24/7 streaming operations with minimal human intervention
@@ -62,7 +77,7 @@ CONTIMG_SCRATCH_DIR=/data/scratch
 ├── logs/                                # Application logs (or journald)
 └── docs/                                # Documentation
 
-/scratch/dsa110-contimg/                 # Fast SSD for active data
+/stage/dsa110-contimg/                   # Fast SSD for active data
 ├── incoming/                            # Raw UVH5 files (ingest point)
 │   ├── YYYY-MM-DD_HH_MM_SS_sb00.hdf5    # Individual subband files
 │   ├── YYYY-MM-DD_HH_MM_SS_sb01.hdf5    # Grouped by timestamp
@@ -70,43 +85,31 @@ CONTIMG_SCRATCH_DIR=/data/scratch
 │
 ├── ms/                                  # Measurement Sets & products
 │   ├── calibrators/                     # Calibrator observations
-│   │   ├── YYYY-MM-DD/                  # Organized by date
-│   │   │   ├── <timestamp>.ms           # MS file
-│   │   │   ├── <timestamp>.kcal         # Delay calibration table
-│   │   │   ├── <timestamp>.bpcal        # Bandpass calibration table
-│   │   │   └── <timestamp>.gpcal        # Gain calibration table
-│   │   └── ...                          # Retention: 30 days or until superseded
+│   │   └── YYYY-MM-DD/                  # Organized by date
+│   │       ├── <timestamp>.ms/          # MS file (CASA directory) - written directly here
+│   │       ├── <timestamp>_bpcal/        # Bandpass calibration table (CASA directory)
+│   │       ├── <timestamp>_gpcal/        # Gain phase calibration table (CASA directory)
+│   │       └── <timestamp>_2gcal/        # Short-timescale gain table (CASA directory)
 │   │
 │   ├── science/                         # Science observations
-│   │   ├── YYYY-MM-DD/                  # Organized by date
-│   │   │   ├── <timestamp>.ms           # MS with CORRECTED_DATA
-│   │   │   └── ...
-│   │   └── ...                          # Retention: 7 days after imaging
+│   │   └── YYYY-MM-DD/                  # Organized by date
+│   │       └── <timestamp>.ms/          # MS with CORRECTED_DATA (CASA directory) - written directly here
 │   │
 │   └── failed/                          # Failed conversions (quarantine)
-│       ├── YYYY-MM-DD/
-│       │   ├── <timestamp>.ms           # Partial/corrupted MS
-│       │   └── <timestamp>.log          # Error log
-│       └── ...                          # Manual review, purge after 14 days
+│       └── YYYY-MM-DD/                  # Organized by date
+│           └── <timestamp>.ms/          # Partial/corrupted MS (CASA directory) - written directly here
 │
-├── images/                              # Final image products
-│   ├── single/                          # Single-epoch images
-│   │   ├── YYYY-MM-DD/                  # Organized by observation date
-│   │   │   ├── <timestamp>.image.pbcor  # Primary beam corrected image
-│   │   │   ├── <timestamp>.residual     # Residual image
-│   │   │   ├── <timestamp>.psf          # PSF
-│   │   │   └── <timestamp>.pb           # Primary beam
-│   │   └── ...                          # Retention: 90 days, then archive
-│   │
-│   ├── mosaics/                         # Time-range mosaics
-│   │   ├── <start>_<end>_<dec>.image   # Combined images
-│   │   └── ...                          # Retention: indefinite (archive to tape)
-│   │
-│   └── qa/                              # QA plots and diagnostics
-│       ├── YYYY-MM-DD/
-│       │   ├── <timestamp>.qa.png       # Quick-look plots
-│       │   └── <timestamp>.metrics.json # QA metrics
-│       └── ...                          # Retention: 30 days
+│   Note: MS files are written directly to organized locations during conversion
+│   (not moved afterward). See docs/how-to/ms_organization.md for details.
+│
+├── images/                              # Individual image products
+│   └── <timestamp>.img-*/               # Image files (WSClean/CASA format)
+│       ├── <timestamp>.img-image-pb.fits # Primary beam corrected image (WSClean)
+│       ├── <timestamp>.img.pbcor        # Primary beam corrected image (CASA)
+│       └── <timestamp>.img.image        # Image (CASA)
+│
+├── mosaics/                              # Mosaic images
+│   └── <mosaic_name>.fits               # Combined mosaic images
 │
 ├── static/                              # Static reference data
 │   ├── beam-model/                      # DSA-110 beam model (517 MB)
@@ -133,7 +136,7 @@ CONTIMG_SCRATCH_DIR=/data/scratch
         ├── sb00.ms/                     # Per-subband MS (parallel creation)
         ├── sb01.ms/
         └── concat.ms/                   # Final concatenated MS
-        # Auto-cleaned after atomic move to /scratch/dsa110-contimg/ms/
+        # Auto-cleaned after atomic move to organized location (ms/science/YYYY-MM-DD/)
 ```
 
 **Note:** tmpfs staging is now default, provides 3-5x speedup over SSD-only writes.
@@ -201,8 +204,8 @@ CONTIMG_SCRATCH_DIR=/data/scratch
 - Comfortable headroom for operations
 
 **Monitoring:**
-- Alert when `/scratch/` free space < 100 GB (CRITICAL) - ~10% free
-- Alert when `/scratch/` free space < 200 GB (WARNING) - ~20% free
+- Alert when `/stage/` free space < 100 GB (CRITICAL) - ~10% free
+- Alert when `/stage/` free space < 200 GB (WARNING) - ~20% free
 - Alert when `/dev/shm/` usage > 95% (CRITICAL)
 - Track growth rate (GB/day) to predict when intervention needed
 
@@ -210,7 +213,7 @@ CONTIMG_SCRATCH_DIR=/data/scratch
 1. Identify oldest/low-priority data via `products.sqlite3` queries
 2. Archive to `/data/` or external storage
 3. Verify archive integrity
-4. Remove from `/scratch/` only after archive confirmed
+4. Remove from `/stage/` only after archive confirmed
 5. Update database with archive location
 
 **Future Archive Strategy:**
@@ -226,7 +229,7 @@ CONTIMG_SCRATCH_DIR=/data/scratch
 
 ### SQLite Files Location
 
-**Current:** `/scratch/dsa110-contimg/state/` (BAD - SSD wear, not backed up)  
+**Current:** `/stage/dsa110-contimg/state/` (BAD - SSD wear, not backed up)  
 **Recommended:** `/data/dsa110-contimg/state/` (GOOD - persistent, backed up)
 
 ### Database Files
@@ -260,41 +263,43 @@ CONTIMG_OUTPUT_DIR=/data/ms
 CONTIMG_SCRATCH_DIR=/data/scratch
 
 # Corrected
-CONTIMG_INPUT_DIR=/scratch/dsa110-contimg/incoming
-CONTIMG_OUTPUT_DIR=/scratch/dsa110-contimg/ms
-CONTIMG_SCRATCH_DIR=/scratch/dsa110-contimg/tmp
+CONTIMG_INPUT_DIR=/stage/dsa110-contimg/incoming
+CONTIMG_OUTPUT_DIR=/stage/dsa110-contimg/ms
+CONTIMG_STAGE_DIR=/stage/dsa110-contimg/tmp
 ```
 
 **Impact:** Configuration matches reality, no surprises
 
-### Phase 2: Reorganize `/scratch/dsa110-contimg/ms/`
+### Phase 2: Reorganize `/stage/dsa110-contimg/ms/` (COMPLETED)
 
 **Action:** Split flat MS directory into organized structure:
 
 ```bash
-# Create new structure
-mkdir -p /scratch/dsa110-contimg/ms/{calibrators,science,failed}
-mkdir -p /scratch/dsa110-contimg/images/{single,mosaics,qa}
+# Structure created and actively used by pipeline
+/stage/dsa110-contimg/ms/
+├── calibrators/YYYY-MM-DD/    # Calibrator MS and calibration tables
+├── science/YYYY-MM-DD/       # Science MS files
+└── failed/YYYY-MM-DD/         # Failed conversions
 
-# Move existing MS files (requires logic to classify as calibrator vs science)
-# Can be done gradually via pipeline, no immediate action needed
+# Files are automatically organized by date and type during pipeline execution
+# Storage locations registered in products.sqlite3 storage_locations table
 ```
 
 **Impact:** Better organization, easier automated cleanup
 
 ### Phase 3: Move Databases to Persistent Storage
 
-**Action:** Migrate SQLite databases from `/scratch/` to `/data/`:
+**Action:** Migrate SQLite databases from `/stage/` to `/data/`:
 
 ```bash
 # Stop services
 sudo systemctl stop contimg-stream contimg-api
 
 # Move databases
-mv /scratch/dsa110-contimg/state/*.sqlite3 /data/dsa110-contimg/state/
+mv /stage/dsa110-contimg/state/*.sqlite3 /data/dsa110-contimg/state/
 
 # Update symlink or config
-ln -s /data/dsa110-contimg/state /scratch/dsa110-contimg/state
+ln -s /data/dsa110-contimg/state /stage/dsa110-contimg/state
 
 # Restart services
 sudo systemctl start contimg-stream contimg-api
@@ -324,7 +329,7 @@ python -m dsa110_contimg.ops.cleanup \
 
 ```bash
 # /etc/cron.weekly/contimg-archive
-rclone sync /scratch/dsa110-contimg/archive/ remote:dsa110-archive/
+rclone sync /stage/dsa110-contimg/archive/ remote:dsa110-archive/
 ```
 
 **Impact:** Long-term data preservation, free up local disk
@@ -353,8 +358,8 @@ The API should:
 from pathlib import Path
 import os
 
-OUTPUT_DIR = Path(os.getenv("CONTIMG_OUTPUT_DIR", "/scratch/dsa110-contimg/ms"))
-IMAGES_DIR = Path(os.getenv("CONTIMG_IMAGES_DIR", "/scratch/dsa110-contimg/images"))
+OUTPUT_DIR = Path(os.getenv("CONTIMG_OUTPUT_DIR", "/stage/dsa110-contimg/ms"))
+IMAGES_DIR = Path(os.getenv("CONTIMG_IMAGES_DIR", "/stage/dsa110-contimg/images"))
 
 def find_image(timestamp: str):
     """Find image by timestamp."""
@@ -375,7 +380,7 @@ def find_image(timestamp: str):
 
 **Export via Prometheus:**
 ```python
-scratch_disk_free_gb = Gauge('contimg_scratch_disk_free_gb', 'Free space on /scratch/')
+stage_disk_free_gb = Gauge('contimg_stage_disk_free_gb', 'Free space on /stage/')
 tmpfs_usage_percent = Gauge('contimg_tmpfs_usage_percent', 'tmpfs usage percentage')
 incoming_file_count = Gauge('contimg_incoming_file_count', 'Files in incoming/')
 ```
@@ -413,12 +418,13 @@ incoming_file_count = Gauge('contimg_incoming_file_count', 'Files in incoming/')
 
 ## Current Issues to Address
 
-1. **State databases in wrong location**: Move from `/scratch/` to `/data/`
-2. **Flat directory structure**: Organize MS files by date and type
-3. **No retention policy**: Implement automatic cleanup
-4. **Config path mismatch**: Align environment variables with reality
-5. **Missing directories**: Create `science/`, `calibrators/`, `failed/` structure
-6. **No archive mechanism**: Set up tape/cold storage workflow
+1. **State databases in wrong location**: Move from `/stage/` to `/data/` (TODO)
+2. **Flat directory structure**: ✅ COMPLETED - Organized MS files by date and type (`calibrators/`, `science/`, `failed/`)
+3. **No retention policy**: Implement automatic cleanup (TODO)
+4. **Config path mismatch**: Align environment variables with reality (TODO)
+5. **Missing directories**: ✅ COMPLETED - Created `science/`, `calibrators/`, `failed/` structure
+6. **No archive mechanism**: Set up tape/cold storage workflow (TODO)
+7. **Storage location registration**: ✅ COMPLETED - Base directories registered in `storage_locations` table, individual paths tracked in `ms_index` and `cal_registry`
 
 ---
 
@@ -476,18 +482,18 @@ incoming_file_count = Gauge('contimg_incoming_file_count', 'Files in incoming/')
 ### Calibration Organization
 
 ```
-/scratch/dsa110-contimg/ms/calibrators/
-├── YYYY-MM-DD/
-│   ├── <timestamp>_24h.ms           # Full calibration observation
-│   ├── <timestamp>_24h.bpcal        # Bandpass table
-│   ├── <timestamp>_24h.gpcal        # Gain table (24h)
-│   ├── <timestamp>_24h.kcal         # Delay table (optional, use --do-k)
-│   ├── <timestamp>_1h.ms            # Hourly gain cal
-│   ├── <timestamp>_1h.gpcal         # Gain table (1h)
-│   └── ...
+/stage/dsa110-contimg/ms/calibrators/
+└── YYYY-MM-DD/
+    ├── <timestamp>.ms/              # Calibrator observation MS
+    ├── <timestamp>_bpcal/           # Bandpass calibration table (CASA directory)
+    ├── <timestamp>_gpcal/           # Gain phase calibration table (CASA directory)
+    └── <timestamp>_2gcal/           # Short-timescale gain table (CASA directory)
 ```
 
-**Naming convention:** `_24h` suffix for full calibration, `_1h` for hourly gain updates
+**Naming convention:** 
+- Calibration tables use underscore suffixes (`_bpcal`, `_gpcal`, `_2gcal`) because CASA tables are directories, not files
+- Tables are stored alongside their corresponding calibrator MS files
+- Organized by date (`YYYY-MM-DD/`) for easy management and cleanup
 
 ### Active Calibration Registry
 
@@ -507,7 +513,7 @@ The `cal_registry.sqlite3` tracks:
 
 ### Storage Capacity
 
-**`/scratch/` (fast SSD):**
+**`/stage/` (fast SSD):**
 - Total: ~1 TB (916 GB)
 - Used: 492 GB (57%)
 - Available: 378 GB (43%)
@@ -521,15 +527,19 @@ The `cal_registry.sqlite3` tracks:
 **`/dev/shm/` (tmpfs RAM disk):**
 - Total: 47 GB
 - Used for conversion staging (3-5x speedup)
-- Auto-cleaned after atomic move to `/scratch/`
+- Auto-cleaned after atomic move to organized location (ms/science/YYYY-MM-DD/)
 
 ### Current Data Distribution
 
 ```
-/scratch/dsa110-contimg/:
+/stage/dsa110-contimg/:
   incoming/        7.0 GB   (raw UVH5 awaiting conversion)
   ms/             76  GB   (MS files, calibration tables)
-  images/         12  KB   (nearly empty, future growth)
+  │   ├── calibrators/YYYY-MM-DD/  (calibrator MS + calibration tables)
+  │   ├── science/YYYY-MM-DD/      (science MS files)
+  │   └── failed/YYYY-MM-DD/        (failed conversions)
+  images/         12  KB   (individual image products)
+  mosaics/        TBD      (mosaic images)
   state/         2.2  MB   (SQLite DBs - to be moved to /data/)
   static/        522  MB   (beam models, catalogs)
   ────────────────────────
@@ -537,6 +547,50 @@ The `cal_registry.sqlite3` tracks:
   
 Headroom:      ~410 GB available for growth
 ```
+
+## Storage Location Registration
+
+The pipeline maintains a two-level registry system for tracking file locations:
+
+### 1. Base Directory Registration (`storage_locations` table in `products.sqlite3`)
+
+Tracks where different file types are stored:
+- `ms_files` → `/stage/dsa110-contimg/ms/`
+- `calibration_tables` → `/stage/dsa110-contimg/ms/calibrators/`
+- `science_ms` → `/stage/dsa110-contimg/ms/science/`
+- `failed_ms` → `/stage/dsa110-contimg/ms/failed/`
+- `images` → `/stage/dsa110-contimg/images/`
+- `mosaics` → `/stage/dsa110-contimg/mosaics/`
+
+Registered automatically when `StreamingMosaicManager` initializes.
+
+### 2. Individual File Path Tracking
+
+**MS Files** (`ms_index` table in `products.sqlite3`):
+- Tracks full path of each MS file
+- Path updated when files are moved via `_organize_ms_file()`
+- Example: `/stage/dsa110-contimg/ms/science/2025-10-29/2025-10-29T13:54:17.ms`
+
+**Calibration Tables** (`cal_registry.sqlite3`):
+- Tracks individual calibration table paths
+- Uses `register_set_from_prefix()` which finds tables matching prefix pattern
+- Stores full organized path: `/stage/dsa110-contimg/ms/calibrators/2025-10-29/2025-10-29T13:54:17_0~23_bpcal`
+
+### File Organization Flow
+
+1. **When calibration tables are created:**
+   - Created in organized location via `_get_calibration_table_prefix()`
+   - Registered with full organized path via `register_set_from_prefix()`
+
+2. **When MS files are organized:**
+   - Moved via `_organize_ms_file()` to date-organized subdirectories
+   - Path updated in `ms_index` via `ms_index_upsert()`
+
+3. **Recovery:**
+   - Query `storage_locations` to find base directories
+   - Query `ms_index` for individual MS file paths
+   - Query `cal_registry` for calibration table paths
+   - All paths reflect the organized directory structure
 
 ## Answers to Architecture Questions
 

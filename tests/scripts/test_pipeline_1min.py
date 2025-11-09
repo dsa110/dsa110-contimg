@@ -98,7 +98,7 @@ def test_pipeline_stages(ms_path, output_dir, skip_calibration=False):
     
     # Prepare temp environment
     try:
-        scratch_dir = os.getenv("CONTIMG_SCRATCH_DIR") or "/scratch/dsa110-contimg"
+        scratch_dir = os.getenv("CONTIMG_SCRATCH_DIR") or "/stage/dsa110-contimg"
         prepare_temp_environment(scratch_dir, cwd_to=str(output_dir))
     except Exception as e:
         LOG.warning(f"Temp environment prep failed: {e}")

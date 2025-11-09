@@ -37,6 +37,7 @@ class TestImageMSLogic:
         # Mock MS structure with default cell size calculation
         with patch('casacore.tables.table', side_effect=mock_table_factory), \
              patch('dsa110_contimg.imaging.cli_utils.table', side_effect=mock_table_factory), \
+             patch('dsa110_contimg.imaging.cli_imaging.table', side_effect=mock_table_factory), \
              patch('dsa110_contimg.imaging.cli_utils.default_cell_arcsec', return_value=2.0), \
              patch('dsa110_contimg.imaging.cli_imaging.default_cell_arcsec', return_value=2.0), \
              patch('dsa110_contimg.imaging.cli_utils.detect_datacolumn', return_value='data'), \
@@ -70,6 +71,7 @@ class TestImageMSLogic:
         
         with patch('casacore.tables.table', side_effect=mock_table_factory), \
              patch('dsa110_contimg.imaging.cli_utils.table', side_effect=mock_table_factory), \
+             patch('dsa110_contimg.imaging.cli_imaging.table', side_effect=mock_table_factory), \
              patch('dsa110_contimg.imaging.cli_utils.default_cell_arcsec', return_value=2.0), \
              patch('dsa110_contimg.imaging.cli_imaging.default_cell_arcsec', return_value=2.0), \
              patch('dsa110_contimg.imaging.cli_utils.detect_datacolumn', return_value='data'), \
@@ -102,6 +104,7 @@ class TestImageMSLogic:
         
         with patch('casacore.tables.table', side_effect=mock_table_factory), \
              patch('dsa110_contimg.imaging.cli_utils.table', side_effect=mock_table_factory), \
+             patch('dsa110_contimg.imaging.cli_imaging.table', side_effect=mock_table_factory), \
              patch('dsa110_contimg.imaging.cli_utils.default_cell_arcsec', return_value=2.0), \
              patch('dsa110_contimg.imaging.cli_imaging.default_cell_arcsec', return_value=2.0), \
              patch('dsa110_contimg.imaging.cli_utils.detect_datacolumn', return_value='data'), \
@@ -136,6 +139,7 @@ class TestImageMSLogic:
         
         with patch('casacore.tables.table', side_effect=mock_table_factory), \
              patch('dsa110_contimg.imaging.cli_utils.table', side_effect=mock_table_factory), \
+             patch('dsa110_contimg.imaging.cli_imaging.table', side_effect=mock_table_factory), \
              patch('dsa110_contimg.imaging.cli_utils.default_cell_arcsec', return_value=2.0), \
              patch('dsa110_contimg.imaging.cli_imaging.default_cell_arcsec', return_value=2.0), \
              patch('dsa110_contimg.imaging.cli_utils.detect_datacolumn', return_value='corrected'), \
@@ -162,6 +166,7 @@ class TestImageMSLogic:
         
         with patch('casacore.tables.table', side_effect=mock_table_factory), \
              patch('dsa110_contimg.imaging.cli_utils.table', side_effect=mock_table_factory), \
+             patch('dsa110_contimg.imaging.cli_imaging.table', side_effect=mock_table_factory), \
              patch('dsa110_contimg.imaging.cli_utils.default_cell_arcsec', return_value=2.0), \
              patch('dsa110_contimg.imaging.cli_imaging.default_cell_arcsec', return_value=2.0), \
              patch('dsa110_contimg.imaging.cli_utils.detect_datacolumn', return_value='data'), \
@@ -400,4 +405,3 @@ class TestImagingUtils:
 
 if __name__ == "__main__":
     pytest.main([__file__, "-v"])
-

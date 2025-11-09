@@ -87,7 +87,7 @@ curl -X POST http://localhost:8010/api/streaming/config \
   -H "Content-Type: application/json" \
   -d '{
     "input_dir": "/data/incoming",
-    "output_dir": "/scratch/dsa110-contimg/ms",
+    "output_dir": "/stage/dsa110-contimg/ms",
     "expected_subbands": 16,
     "chunk_duration": 5.0
   }'
@@ -97,9 +97,9 @@ curl -X POST http://localhost:8010/api/streaming/config \
 ```bash
 # Create missing directories
 mkdir -p /data/incoming
-mkdir -p /scratch/dsa110-contimg/ms
-mkdir -p /scratch/dsa110-contimg
-chmod 755 /data/incoming /scratch/dsa110-contimg/ms /scratch/dsa110-contimg
+mkdir -p /stage/dsa110-contimg/ms
+mkdir -p /stage/dsa110-contimg
+chmod 755 /data/incoming /stage/dsa110-contimg/ms /stage/dsa110-contimg
 ```
 
 **Issue: Python Not Found**
@@ -116,11 +116,11 @@ python --version
 **Issue: Permission Denied**
 ```bash
 # Check directory permissions
-ls -ld /data/incoming /scratch/dsa110-contimg
+ls -ld /data/incoming /stage/dsa110-contimg
 
 # Fix permissions (adjust UID/GID as needed)
 sudo chown -R $USER:$USER /data/incoming
-sudo chown -R $USER:$USER /scratch/dsa110-contimg
+sudo chown -R $USER:$USER /stage/dsa110-contimg
 ```
 
 ### 2. Service Starts But Stops Immediately
@@ -168,7 +168,7 @@ docker-compose exec stream python -c "import dsa110_contimg.conversion.streaming
 df -h
 
 # Clean up old files
-find /scratch/dsa110-contimg -type f -mtime +30 -delete
+find /stage/dsa110-contimg -type f -mtime +30 -delete
 
 # Or increase disk space
 ```
@@ -752,7 +752,7 @@ rm -f state/streaming.pid
 rm -f state/streaming_config.json
 
 # 4. Verify directories
-mkdir -p /data/incoming /scratch/dsa110-contimg/ms /scratch/dsa110-contimg
+mkdir -p /data/incoming /stage/dsa110-contimg/ms /stage/dsa110-contimg
 
 # 5. Start with defaults
 curl -X POST http://localhost:8010/api/streaming/start
