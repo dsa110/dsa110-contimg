@@ -1,0 +1,26 @@
+# DSA-110 Continuum Imaging Pipeline - Test Dependencies
+# Install with: pip install -r requirements-test.txt
+
+# Core testing framework
+pytest>=7.4.0
+pytest-cov>=4.1.0
+pytest-xdist>=3.3.0  # Parallel test execution
+pytest-timeout>=2.1.0  # Test timeouts
+pytest-mock>=3.11.0  # Mocking support
+
+# Coverage reporting
+coverage>=7.2.0
+codecov>=2.1.13
+
+# Code quality tools (used in code-quality job)
+black>=23.0.0
+isort>=5.12.0
+flake8>=6.0.0
+mypy>=1.4.0
+
+# Performance testing (used in performance-tests job if enabled)
+pytest-benchmark>=4.0.0
+memory-profiler>=0.61.0
+
+# Additional utilities for testing
+pyyaml>=6.0  # For config file handling in tests
