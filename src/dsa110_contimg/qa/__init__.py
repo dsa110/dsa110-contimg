@@ -27,6 +27,19 @@ from dsa110_contimg.qa.pipeline_quality import (
     QualityThresholds,
 )
 
+# Visualization framework
+from dsa110_contimg.qa.visualization import (
+    FITSFile,
+    CasaTable,
+    ls,
+    generate_qa_notebook,
+    generate_fits_viewer_notebook,
+    generate_ms_explorer_notebook,
+    browse_qa_outputs,
+    display_qa_summary,
+)
+from dsa110_contimg.qa.visualization_qa import run_ms_qa_with_visualization
+
 __all__ = [
     # MS quality
     "validate_ms_quality",
@@ -54,5 +67,15 @@ __all__ = [
     "check_calibration_quality",
     "check_image_quality",
     "QualityThresholds",
+    # Visualization framework
+    "FITSFile",
+    "CasaTable",
+    "ls",
+    "generate_qa_notebook",
+    "generate_fits_viewer_notebook",
+    "generate_ms_explorer_notebook",
+    "browse_qa_outputs",
+    "display_qa_summary",
+    "run_ms_qa_with_visualization",
 ]
 

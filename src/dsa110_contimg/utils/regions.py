@@ -289,7 +289,9 @@ def calculate_region_statistics(
             try:
                 from astropy.wcs import WCS
                 wcs = WCS(header)
-            except Exception:
+            except (ImportError, ValueError, RuntimeError) as e:
+                # WCS creation failed - fallback to None
+                LOG.debug("Could not create WCS from header: %s", e)
                 wcs = None
 
             # Create mask for region
@@ -341,7 +343,7 @@ def create_region_mask(
         try:
             ra = region.coordinates.get("ra_deg", 0)
             dec = region.coordinates.get("dec_deg", 0)
-            
+
             # Handle 4D WCS (common in radio astronomy: RA, Dec, Frequency, Stokes)
             if hasattr(wcs, 'naxis') and wcs.naxis == 4:
                 # Use all_pix2world for 4D WCS
@@ -353,12 +355,15 @@ def create_region_mask(
                 # Standard 2D WCS
                 x, y = wcs.wcs_world2pix([[ra, dec]], 0)[0]
                 x, y = float(x), float(y)
-            
+
             x, y = int(x), int(y)
-        except Exception as e:
-            # Fallback to center
+        except (ValueError, RuntimeError, AttributeError) as e:
+            # Fallback to center if WCS conversion fails
             import logging
-            logging.warning(f"Could not convert WCS coordinates: {e}, using image center")
+            logging.warning(
+                "Could not convert WCS coordinates: %s, using image center",
+                e,
+            )
             x, y = nx // 2, ny // 2
     else:
         # Fallback to center

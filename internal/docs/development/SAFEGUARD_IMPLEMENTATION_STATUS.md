@@ -89,14 +89,13 @@
   - `log_progress()` calls at start and end of both functions
 - **Impact**: Progress visibility for long-running conversions
 
-### 9. `mosaic/streaming_mosaic.py` ⏳
-- **Status**: **IN PROGRESS**
-- **Needs**: Progress monitoring on long-running methods
-- **Target Methods**:
-  - `create_mosaic()` - Line ~1369
-  - `process_next_group()` - Line ~1774
-  - `solve_calibration_for_group()` - Line ~755
-  - `image_group()` - Line ~1292
+### 9. `mosaic/streaming_mosaic.py` ✅
+- **Status**: Complete
+- **Safeguards Added**:
+  - `@progress_monitor` decorator on `solve_calibration_for_group()` (line ~755, 600s threshold)
+  - `@progress_monitor` decorator on `image_group()` (line ~1292, 1800s threshold)
+  - `@progress_monitor` decorator on `create_mosaic()` (line ~1369, 600s threshold)
+  - `@progress_monitor` decorator on `process_next_group()` (line ~1520, 3600s threshold)
 - **Impact**: Progress visibility for streaming mosaic workflow
 
 ---

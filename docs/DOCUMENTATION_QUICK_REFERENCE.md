@@ -36,25 +36,25 @@
 
 ### Development Notes
 
-**`docs/dev/status/YYYY-MM/`** - Status reports (temporal)
+**`internal/docs/dev/status/YYYY-MM/`** - Status reports (temporal)
 - ✅ "Dashboard implementation status"
 - ✅ "Testing summary for sprint X"
 - ✅ "Endpoint verification results"
 - ⚠️ Archive when complete (>1 month old)
 
-**`docs/dev/analysis/`** - Investigation reports
+**`internal/docs/dev/analysis/`** - Investigation reports
 - ✅ "Time handling issues analysis"
 - ✅ "RA calculation bug investigation"
 - ✅ "Performance analysis"
 - ⚠️ Move to `docs/dev/history/` when complete
 
-**`docs/dev/notes/`** - Agent notes and brainstorming
+**`internal/docs/dev/notes/`** - Development notes and brainstorming
 - ✅ Architectural brainstorming
 - ✅ Design considerations
 - ✅ Implementation notes
 - ⚠️ Extract insights to permanent docs periodically
 
-**`docs/dev/history/`** - Completed investigations
+**`internal/docs/dev/history/`** - Completed investigations
 - ✅ Completed analysis reports
 - ✅ Development history
 - ✅ Changelog entries
@@ -132,11 +132,11 @@ Is this documentation for end users?
 │           └─ NO → docs/tutorials/
 │
 └─ NO → Is this a status update?
-    ├─ YES → docs/dev/status/YYYY-MM/
+    ├─ YES → internal/docs/dev/status/YYYY-MM/
     └─ NO → Is this an investigation?
-        ├─ YES → docs/dev/analysis/
+        ├─ YES → internal/docs/dev/analysis/
         └─ NO → Is this agent notes?
-            ├─ YES → docs/dev/notes/
+            ├─ YES → internal/docs/dev/notes/
             └─ NO → Is this historical?
                 └─ YES → docs/archive/
 ```
@@ -145,7 +145,7 @@ Is this documentation for end users?
 
 ## Common Mistakes to Avoid
 
-1. **Putting status reports in root** → Use `docs/dev/status/`
+1. **Putting status reports in root** → Use `internal/docs/dev/status/`
 2. **Creating duplicate docs** → Check if similar doc exists first
 3. **Using UPPERCASE filenames** → Use lowercase_with_underscores
 4. **Not linking related docs** → Add "See also" section
@@ -162,18 +162,18 @@ Is this documentation for end users?
 **Content:** Step-by-step instructions for users
 
 ### ✅ Good: Status Report
-**Location:** `docs/dev/status/2025-01/dashboard_implementation.md`
+**Location:** `internal/docs/dev/status/2025-01/dashboard_implementation.md`
 **Name:** `dashboard_implementation.md` (not `DASHBOARD_STATUS_2025-01-15.md`)
 **Content:** Current status, next steps, blockers
 
 ### ✅ Good: Analysis Report
-**Location:** `docs/dev/analysis/time_handling_issues.md`
+**Location:** `internal/docs/dev/analysis/time_handling_issues.md`
 **Name:** `time_handling_issues.md` (not `TIME_HANDLING_ISSUES.md`)
 **Content:** Investigation findings, root cause, fix
 
 ### ❌ Bad: Root Directory Status Report
 **Location:** `/data/dsa110-contimg/DASHBOARD_STATUS.md`
-**Should be:** `docs/dev/status/2025-01/dashboard_status.md`
+**Should be:** `internal/docs/dev/status/2025-01/dashboard_status.md`
 
 ### ❌ Bad: UPPERCASE Filename
 **Name:** `CALIBRATION_PROCEDURE.md`
@@ -186,4 +186,3 @@ Is this documentation for end users?
 - Check `docs/DOCUMENTATION_CONSOLIDATION_STRATEGY.md` for full strategy
 - Review existing docs in target directory for examples
 - When in doubt, ask before creating new docs
-

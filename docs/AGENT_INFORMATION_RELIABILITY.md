@@ -10,13 +10,13 @@
 - **What:** Rules configured at workspace level, shown in `<always_applied_workspace_rules>` section
 - **Reliability:** Always loaded, agents see these first
 - **Limitation:** Requires workspace configuration, not easily editable
-- **Current:** Graphiti rules, Python environment requirements, critical instructions
+ - **Current:** Knowledge graph rules, Python environment requirements, critical instructions
 
 ### 2. ⭐⭐⭐⭐⭐ **Cursor Rules** (`.cursor/rules/*.mdc`) (95% reliable)
 - **What:** Markdown files in `.cursor/rules/` directory
 - **Reliability:** Automatically loaded by Cursor, available to agents
 - **Advantage:** Easy to create, edit, version control, organize by topic
-- **Current:** `documentation-location.mdc`, `dsa110_agent_workflow.mdc`, Graphiti rules
+- **Current:** `documentation-location.mdc`, `dsa110_agent_workflow.mdc`, knowledge graph rules
 
 ### 3. ⭐⭐⭐ **README.md** (60% reliable)
 - **What:** Standard project README
@@ -51,7 +51,7 @@
 **Current critical rules in `.cursor/rules/`:**
 - `documentation-location.mdc` - Documentation location policy
 - `dsa110_agent_workflow.mdc` - Mandatory agent workflow
-- `graphiti/*.mdc` - Graphiti-specific rules
+- Knowledge graph rule files (tooling-specific)
 
 ---
 
@@ -73,15 +73,15 @@ For **maximum reliability**, use multiple layers:
 When I (as an agent) first enter this workspace, I see:
 
 1. **Always Applied Workspace Rules** (automatic)
-   - Graphiti knowledge graph maintenance rules
-   - Graphiti MCP core rules
+   - Knowledge graph maintenance rules
+   - MCP core rules
    - Python environment requirements
    - Critical instructions
 
 2. **Cursor Rules** (automatic)
    - `.cursor/rules/documentation-location.mdc`
    - `.cursor/rules/dsa110_agent_workflow.mdc`
-   - `.cursor/rules/graphiti/*.mdc`
+   - Knowledge graph rules (tooling-specific)
 
 3. **Summary/Context** (automatic)
    - Conversation summary

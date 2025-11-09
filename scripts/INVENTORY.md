@@ -182,8 +182,8 @@ Scripts for system management, monitoring, and operational tasks. These should s
   - Purpose: Sync scratch directory
   - **Action**: Keep in `scripts/` (operational tool)
 
-### 5. GRAPHITI SCRIPTS (Keep Separately)
-Graphiti-specific scripts for knowledge graph management. These should stay in `scripts/` but could be organized into a subdirectory.
+### 5. Knowledge Graph Scripts (Keep Separately)
+Knowledge graph–specific scripts for graph management. These should stay in `scripts/` but could be organized into a subdirectory.
 
 - **`graphiti_ingest_docs.py`** ✓ **KEEP (Maybe move to scripts/graphiti/)**
 - **`graphiti_guardrails_check.py`** ✓ **KEEP (Maybe move to scripts/graphiti/)**
@@ -192,7 +192,7 @@ Graphiti-specific scripts for knowledge graph management. These should stay in `
 - **`graphiti_reembed_all.py`** ✓ **KEEP (Maybe move to scripts/graphiti/)**
 - **`graphiti_reembed_mismatched.py`** ✓ **KEEP (Maybe move to scripts/graphiti/)**
 
-**Action**: Consider organizing into `scripts/graphiti/` subdirectory for clarity.
+**Action**: Consider organizing into `scripts/graph/` subdirectory for clarity.
 
 ### 6. DOCUMENTATION FILES
 - **`README.md`** ✓ **KEEP**
@@ -238,7 +238,7 @@ Graphiti-specific scripts for knowledge graph management. These should stay in `
 
 ### Phase 4: Organize Operational Scripts
 1. Keep operational scripts in `scripts/`
-2. Consider organizing Graphiti scripts into `scripts/graphiti/`
+2. Consider organizing knowledge graph scripts into `scripts/graph/`
 3. Update `scripts/README.md` to reflect new structure
 
 ---
@@ -264,7 +264,6 @@ Graphiti-specific scripts for knowledge graph management. These should stay in `
 | All `test_*.py` | ✅ Move | → `tests/` |
 | `test_pipeline_end_to_end.sh` | ✅ Move | → `tests/` |
 | `comprehensive_test_suite.py` | ✅ Move | → `tests/` |
-| Graphiti scripts | ✅ Keep | → `scripts/graphiti/` (organize) |
+| Knowledge graph scripts | ✅ Keep | → `scripts/graph/` (organize) |
 | CASA log scripts | ✅ Keep | Stay in `scripts/` |
 | System management scripts | ✅ Keep | Stay in `scripts/` |
-

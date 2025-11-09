@@ -46,6 +46,7 @@ from dsa110_contimg.imaging.cli import image_ms
 # from dsa110_contimg.mosaic.cli import _build_weighted_mosaic, _ensure_mosaics_table
 from dsa110_contimg.utils.time_utils import extract_ms_time_range
 from dsa110_contimg.utils.ms_organization import organize_ms_file, get_organized_ms_path, determine_ms_type
+from dsa110_contimg.utils.runtime_safeguards import progress_monitor, log_progress
 
 logger = logging.getLogger(__name__)
 
@@ -752,6 +753,7 @@ class StreamingMosaicManager:
         
         return False, last_error
 
+    @progress_monitor(operation_name="Solve Calibration for Group", warn_threshold=600.0)
     def solve_calibration_for_group(
         self, group_id: str, calibration_ms_path: str
     ) -> Tuple[bool, bool, Optional[str]]:
@@ -1289,6 +1291,7 @@ class StreamingMosaicManager:
                 f"Only {success_count}/{len(ms_paths)} MS files calibrated successfully")
             return False
 
+    @progress_monitor(operation_name="Image Group", warn_threshold=1800.0)
     def image_group(self, group_id: str) -> bool:
         """Image all MS files in group individually.
 
@@ -1366,6 +1369,7 @@ class StreamingMosaicManager:
                 f"Only {success_count}/{len(ms_paths)} MS files imaged successfully")
             return False
 
+    @progress_monitor(operation_name="Create Mosaic", warn_threshold=600.0)
     def create_mosaic(self, group_id: str) -> Optional[str]:
         """Create mosaic from group of 10 images.
 
@@ -1517,6 +1521,7 @@ class StreamingMosaicManager:
             logger.error(f"Failed to create mosaic: {e}", exc_info=True)
             return None
 
+    @progress_monitor(operation_name="Process Next Group", warn_threshold=3600.0)
     def process_next_group(self) -> bool:
         """Process next available group through full workflow.
 

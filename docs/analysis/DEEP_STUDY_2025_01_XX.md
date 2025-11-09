@@ -553,7 +553,7 @@ CREATE TABLE caltables (
 - **Development History:** `docs/analysis/CURSOR_CHAT_DEVELOPMENT_HISTORY.md`
 - **ESE Literature Summary:** `docs/reports/ESE_LITERATURE_SUMMARY.md`
 - **Photometry Normalization:** `docs/science/photometry_normalization.md`
-- **Project Schema:** `.cursor/rules/graphiti/graphiti-dsa110-contimg-schema.mdc`
+- **Project Knowledge Graph Schema:** `docs/reference/knowledge-graph-schema.md`
 - **Complete Project Review:** `docs/reports/COMPLETE_PROJECT_REVIEW.md`
 - **Robustness Analysis:** `docs/reports/PIPELINE_ROBUSTNESS_ANALYSIS.md`
 
@@ -576,4 +576,3 @@ The DSA-110 continuum imaging pipeline is a sophisticated, production-ready syst
 - Consolidate redundant code in ops/pipeline/
 - Complete pipeline robustness improvements (6-week plan)
 - Expand test coverage (unit, integration, end-to-end)
-

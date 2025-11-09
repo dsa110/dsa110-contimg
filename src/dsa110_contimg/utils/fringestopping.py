@@ -4,6 +4,7 @@ Fringestopping utilities for DSA-110.
 Adapted from dsamfs and dsacalib
 """
 
+import logging
 import numpy as np
 import astropy.units as u
 import casatools as cc
@@ -12,6 +13,8 @@ from numba import jit
 from scipy.special import j1
 
 from . import constants as ct
+
+logger = logging.getLogger(__name__)
 
 
 def calc_uvw_blt(blen, tobs, src_epoch, src_lon, src_lat, obs='OVRO_MMA'):
@@ -87,7 +90,9 @@ def calc_uvw_blt(blen, tobs, src_epoch, src_lon, src_lat, obs='OVRO_MMA'):
             buvw[i, :] = np.ones(3) * np.nan
     
     if contains_nans:
-        print('Warning: some solutions not found for u, v, w coordinates')
+        logger.warning(
+            "Some solutions not found for u, v, w coordinates"
+        )
     
     return buvw
 
@@ -182,7 +187,9 @@ def calc_uvw(blen, tobs, src_epoch, src_lon, src_lat, obs="OVRO_MMA"):
                 bu[i, j], bv[i, j], bw[i, j] = np.nan, np.nan, np.nan
     
     if contains_nans:
-        print("Warning: some solutions not found for u, v, w coordinates")
+        logger.warning(
+            "Some solutions not found for u, v, w coordinates"
+        )
     
     return bu.T, bv.T, bw.T
 

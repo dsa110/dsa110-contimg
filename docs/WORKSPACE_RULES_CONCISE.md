@@ -80,7 +80,7 @@ Add this concise version to the workspace configuration's "Always Applied Worksp
 ## Implementation Steps
 
 1. **Copy the concise version above** into workspace "Always Applied Workspace Rules"
-2. **Place casa6 requirement FIRST** (before Graphiti rules, before everything)
+2. **Place casa6 requirement FIRST** (before other rules, before everything)
 3. **Test:** Have an agent run a Python script - they should use casa6 automatically
 4. **Monitor:** If agents still use wrong Python, make the rule even more explicit
 
@@ -90,4 +90,3 @@ Add this concise version to the workspace configuration's "Always Applied Worksp
 - `.cursor/rules/critical-requirements-short.mdc` - Concise version for always-applied rules
 - `.cursor/rules/critical-requirements.mdc` - Full detailed version (reference)
 - `docs/concepts/DIRECTORY_ARCHITECTURE.md` - Full organizational layout details
-

@@ -40,7 +40,8 @@ def derive_default_scratch_root() -> Path:
     try:
         p.mkdir(parents=True, exist_ok=True)
         return p
-    except Exception:
+    except (OSError, IOError, PermissionError) as e:
+        # Fallback to /tmp if preferred directory cannot be created
         return Path("/tmp")
 
 
@@ -57,14 +58,19 @@ def prepare_temp_environment(
 
     Returns the path to the temp directory used.
     """
-    root = Path(preferred_root) if preferred_root else derive_default_scratch_root()
+    root = Path(
+        preferred_root) if preferred_root else derive_default_scratch_root()
     tmp = root / "tmp"
     try:
         tmp.mkdir(parents=True, exist_ok=True)
-    except Exception:
+    except (OSError, IOError, PermissionError) as e:
         # Best effort: fall back to /tmp
         tmp = Path("/tmp")
-        tmp.mkdir(parents=True, exist_ok=True)
+        try:
+            tmp.mkdir(parents=True, exist_ok=True)
+        except (OSError, IOError, PermissionError):
+            # Last resort - /tmp should always exist
+            pass
 
     # Set common temp envs used by Python and (some) casacore paths
     os.environ.setdefault("TMPDIR", str(tmp))
@@ -78,7 +84,7 @@ def prepare_temp_environment(
         outdir.mkdir(parents=True, exist_ok=True)
         try:
             os.chdir(outdir)
-        except Exception:
+        except (OSError, IOError, PermissionError) as e:
             # If chdir fails, continue; env vars will still help
             pass
 
@@ -87,22 +93,23 @@ def prepare_temp_environment(
 
 def derive_casa_log_dir() -> Path:
     """Return the directory where CASA log files should be written.
-    
+
     Order of precedence:
     - ENV CONTIMG_STATE_DIR/logs (if CONTIMG_STATE_DIR is set)
     - /data/dsa110-contimg/state/logs
     - /tmp (last resort)
     """
-    state_dir = os.getenv("CONTIMG_STATE_DIR") or os.getenv("PIPELINE_STATE_DIR")
+    state_dir = os.getenv("CONTIMG_STATE_DIR") or os.getenv(
+        "PIPELINE_STATE_DIR")
     if state_dir:
         log_dir = Path(state_dir) / "logs"
     else:
         log_dir = Path("/data/dsa110-contimg/state/logs")
-    
+
     try:
         log_dir.mkdir(parents=True, exist_ok=True)
         return log_dir
-    except Exception:
+    except (OSError, IOError, PermissionError) as e:
         # Fallback to /tmp if we can't create the preferred directory
         return Path("/tmp")
 
@@ -110,11 +117,11 @@ def derive_casa_log_dir() -> Path:
 @contextmanager
 def casa_log_environment():
     """Context manager that sets up CASA logging environment.
-    
+
     CASA writes log files (casa-YYYYMMDD-HHMMSS.log) to the current working
     directory. This context manager temporarily changes the working directory
     to the centralized logs directory while CASA tasks execute.
-    
+
     Usage:
         with casa_log_environment():
             from casatasks import tclean
@@ -131,12 +138,12 @@ def casa_log_environment():
 
 def setup_casa_logging() -> Path:
     """Set up CASA logging environment variables.
-    
+
     This sets the CASALOGFILE environment variable and ensures the log
     directory exists. Note that CASA primarily uses the current working
     directory for log files, so this should be used in conjunction with
     changing CWD or using casa_log_environment() context manager.
-    
+
     Returns the path to the log directory.
     """
     log_dir = derive_casa_log_dir()
@@ -152,4 +159,3 @@ __all__ = [
     "casa_log_environment",
     "setup_casa_logging",
 ]
-

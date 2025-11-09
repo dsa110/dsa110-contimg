@@ -30,9 +30,19 @@ from .render import (
 from .fitsfile import FITSFile
 from .casatable import CasaTable
 from .js9 import init_js9, is_js9_available
-
-# Placeholder imports - will be uncommented as modules are implemented
-# from .notebook import generate_qa_notebook
+from .notebook import (
+    generate_qa_notebook,
+    generate_fits_viewer_notebook,
+    generate_ms_explorer_notebook,
+    add_cell_to_notebook,
+)
+from .integration import (
+    generate_qa_notebook_from_result,
+    browse_qa_outputs,
+    display_qa_summary,
+    enhance_qa_with_notebook,
+    create_qa_explorer_notebook,
+)
 
 __all__ = [
     'FITSFile',
@@ -48,5 +58,13 @@ __all__ = [
     'display_html',
     'init_js9',
     'is_js9_available',
-    # 'generate_qa_notebook',
+    'generate_qa_notebook',
+    'generate_fits_viewer_notebook',
+    'generate_ms_explorer_notebook',
+    'add_cell_to_notebook',
+    'generate_qa_notebook_from_result',
+    'browse_qa_outputs',
+    'display_qa_summary',
+    'enhance_qa_with_notebook',
+    'create_qa_explorer_notebook',
 ]

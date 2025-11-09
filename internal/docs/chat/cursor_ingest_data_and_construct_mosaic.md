@@ -747,7 +747,7 @@ UVH5 Files → Conversion → Calibration → Imaging → Photometry → ESE Det
 
 ## Important Notes for Future Work
 
-1. **Always check Graphiti schema** (`@graphiti-dsa110-contimg-schema.mdc`) for project-specific entities and relationships before extracting knowledge
+1. **Always check the project knowledge graph schema** (`docs/reference/knowledge-graph-schema.md`) for project-specific entities and relationships before extracting knowledge
 
 2. **Database migrations**: Run `python -m dsa110_contimg.database.migrations migrate_all` to ensure schema is up-to-date
 
@@ -931,7 +931,7 @@ CASA calibration tables (`.bpcal`, `.gpcal`, `.kcal`, etc.) are **directories**,
 - **Development History**: `docs/analysis/CURSOR_CHAT_DEVELOPMENT_HISTORY.md` - Key development decisions, bug fixes, and implementation details from AI-assisted development sessions
 - **ESE Literature Summary**: `docs/reports/ESE_LITERATURE_SUMMARY.md`
 - **Photometry Normalization**: `docs/science/photometry_normalization.md`
-- **Project Schema**: `.cursor/rules/graphiti/graphiti-dsa110-contimg-schema.mdc`
+- **Project Knowledge Graph Schema**: `docs/reference/knowledge-graph-schema.md`
 - **Control Panel**: `docs/guides/control-panel/`
 - **Complete Project Review**: `docs/reports/COMPLETE_PROJECT_REVIEW.md`
 - **Test Suite**: `tests/README.md`
@@ -11262,4 +11262,3 @@ Checking available data and planning the workflow:
 I made a mistake. You said we're staging in /scratch/ this is not the correct workflow plan.
 
 pause
-

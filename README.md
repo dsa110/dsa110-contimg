@@ -166,26 +166,9 @@ Image:
 - Housekeeping:
   - `python ops/pipeline/housekeeping.py --queue-db state/ingest.sqlite3 --scratch-dir /stage/dsa110-contimg --in-progress-timeout 3600 --collecting-timeout 86400 --temp-age 86400`
 
-## Knowledge Graph Guardrails (Graphiti)
+## Knowledge Graph Guardrails
 
-Use these helper targets and scripts to keep the project’s Graphiti knowledge graph healthy and easy to navigate. See also: `docs/graphiti-guardrails.md`.
-
-- Quick checks and fixes (default group: `dsa110-contimg`):
-  - Check: `make guardrails-check [GROUP_ID=<group>]`
-  - Fix: `make guardrails-fix [GROUP_ID=<group>]`
-    - Backfills missing `uuid`/`summary`
-    - Re-embeds missing/mismatched vectors using your configured embedder
-    - Ensures a uniqueness constraint on `(:Entity {uuid})`
-
-- Ingest docs and link to scripts:
-  - `make ingest-docs [GROUP_ID=<group>]`
-  - Creates/updates `:Documentation` nodes for README/quickstart/quicklook/pipeline and adds `DOCUMENTS` edges to `run_conversion.sh`, `image_ms.sh`, `calibrate_bandpass.sh`.
-
-Implementation notes
-- Targets call `uv run --isolated` in the Graphiti MCP server directory to reuse its environment (`/home/ubuntu/proj/mcps/graphiti/mcp_server/.env`).
-- Scripts live under `scripts/`:
-  - `scripts/graphiti_guardrails_check.py`
-  - `scripts/graphiti_ingest_docs.py`
+Use project-specific guardrails and maintenance scripts to keep any external knowledge graph healthy and easy to navigate. Internal details and scripts are documented in the contributor resources.
 
 ## Nightly Mosaic and Housekeeping
 
@@ -274,13 +257,13 @@ Notes
 - Follow existing logging styles and module structure
 ## Git Hook: Commit Summaries to Knowledge Graph
 
-This repository includes a lightweight, non‑blocking Git post‑commit hook that records each commit as a short episode in the Graphiti knowledge graph (group_id `dsa110-contimg`). It helps long‑term recall of changes and decisions during development.
+This repository includes a lightweight, non‑blocking Git post‑commit hook that can record each commit as a short episode in an external knowledge graph (optional). It helps long‑term recall of changes and decisions during development.
 
 - Hook location: `.githooks/post-commit`
 - Activation (already configured): `git config core.hooksPath .githooks`
 - Behavior: runs in the background after every `git commit`; failures never block your commit.
 - What it stores: commit short hash, branch, and commit message.
-- Where it goes: the `graphiti-memory` MCP server (Vertex/Gemini) via the Graphiti client.
+- Where it goes: the configured knowledge graph service/client.
 
 Disable later:
 
