@@ -66,6 +66,16 @@
    - Local file support (when JS9 files are bundled)
    - Integration with FITSFile
 
+7. **`casatable.py`** ✅
+   - `CasaTable` class (extends `FileBase`)
+   - CASA MS table browsing using `casacore.tables`
+   - Column access with slicing support
+   - Flag handling (FLAG_ROW, FLAG columns)
+   - Subtable access
+   - Table summary and sample row display
+   - Column proxy objects for easy access
+   - Context manager for table locking
+
 ---
 
 ## 🚧 In Progress
@@ -122,9 +132,9 @@
 4. ✅ `filelist.py` - File list management
 5. ✅ `datadir.py` - Directory browsing
 
-### Phase 2: File Type Support ✅ (Partial)
+### Phase 2: File Type Support ✅ (Complete)
 6. ✅ `fitsfile.py` - FITS file handling
-7. ⏳ `casatable.py` - CASA table browsing
+7. ✅ `casatable.py` - CASA table browsing
 8. ✅ `js9/` - JS9 integration
 
 ### Phase 3: Notebook Generation

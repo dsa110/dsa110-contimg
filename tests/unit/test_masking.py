@@ -45,12 +45,18 @@ class TestCreateNVSSFitsMask:
 
         # Mock NVSS catalog to return sources
         mock_nvss_df = MagicMock()
+        def _series(values):
+            s = MagicMock()
+            s.values = np.asarray(values)
+            return s
         mock_nvss_df.__getitem__ = Mock(side_effect=lambda key: {
-            'ra': np.array([120.0, 120.1, 120.2]),
-            'dec': np.array([45.0, 45.1, 45.2]),
-            'flux_20_cm': np.array([50.0, 30.0, 15.0])  # All above 10 mJy
+            'ra': _series([120.0, 120.1, 120.2]),
+            'dec': _series([45.0, 45.1, 45.2]),
+            'flux_20_cm': _series([50.0, 30.0, 15.0])  # All above 10 mJy
         }[key])
-        mock_nvss_df.loc = Mock(return_value=mock_nvss_df)
+        # Pandas-like .loc indexer that returns a subset via __getitem__
+        mock_nvss_df.loc = MagicMock()
+        mock_nvss_df.loc.__getitem__ = Mock(return_value=mock_nvss_df)
         mock_nvss_df.iterrows = Mock(return_value=[
             (0, {'ra': 120.0, 'dec': 45.0, 'flux_20_cm': 50.0}),
             (1, {'ra': 120.1, 'dec': 45.1, 'flux_20_cm': 30.0}),
@@ -78,7 +84,8 @@ class TestCreateNVSSFitsMask:
             assert len(hdul) > 0
             mask_data = hdul[0].data
             assert mask_data.shape == (imsize, imsize)
-            assert mask_data.dtype == np.float32
+            # FITS may read as big-endian float32 (">f4"); accept any float32
+            assert np.issubdtype(mask_data.dtype, np.floating) and mask_data.dtype.itemsize == 4
 
             # Verify WCS header
             header = hdul[0].header
@@ -101,12 +108,19 @@ class TestCreateNVSSFitsMask:
 
         # Mock NVSS catalog with no matching sources
         mock_nvss_df = MagicMock()
+        def _series(values):
+            s = MagicMock()
+            s.values = np.asarray(values)
+            return s
         mock_nvss_df.__getitem__ = Mock(side_effect=lambda key: {
-            'ra': np.array([120.0]),
-            'dec': np.array([45.0]),
-            'flux_20_cm': np.array([5.0])  # Below threshold
+            'ra': _series([120.0]),
+            'dec': _series([45.0]),
+            'flux_20_cm': _series([5.0])  # Below threshold
         }[key])
-        mock_nvss_df.loc = Mock(return_value=MagicMock(__len__=Mock(return_value=0)))
+        empty_sel = MagicMock()
+        empty_sel.__len__ = Mock(return_value=0)
+        mock_nvss_df.loc = MagicMock()
+        mock_nvss_df.loc.__getitem__ = Mock(return_value=empty_sel)
 
         with patch('dsa110_contimg.calibration.catalogs.read_nvss_catalog', return_value=mock_nvss_df):
             mask_path = create_nvss_fits_mask(
@@ -140,12 +154,17 @@ class TestCreateNVSSFitsMask:
 
         # Mock NVSS catalog with one source at image center
         mock_nvss_df = MagicMock()
+        def _series(values):
+            s = MagicMock()
+            s.values = np.asarray(values)
+            return s
         mock_nvss_df.__getitem__ = Mock(side_effect=lambda key: {
-            'ra': np.array([ra0_deg]),
-            'dec': np.array([dec0_deg]),
-            'flux_20_cm': np.array([50.0])
+            'ra': _series([ra0_deg]),
+            'dec': _series([dec0_deg]),
+            'flux_20_cm': _series([50.0])
         }[key])
-        mock_nvss_df.loc = Mock(return_value=mock_nvss_df)
+        mock_nvss_df.loc = MagicMock()
+        mock_nvss_df.loc.__getitem__ = Mock(return_value=mock_nvss_df)
         mock_nvss_df.iterrows = Mock(return_value=[
             (0, {'ra': ra0_deg, 'dec': dec0_deg, 'flux_20_cm': 50.0}),
         ])
@@ -198,12 +217,19 @@ class TestCreateNVSSFitsMask:
 
         # Mock empty catalog
         mock_nvss_df = MagicMock()
+        def _series(values):
+            s = MagicMock()
+            s.values = np.asarray(values)
+            return s
         mock_nvss_df.__getitem__ = Mock(side_effect=lambda key: {
-            'ra': np.array([]),
-            'dec': np.array([]),
-            'flux_20_cm': np.array([])
+            'ra': _series([]),
+            'dec': _series([]),
+            'flux_20_cm': _series([])
         }[key])
-        mock_nvss_df.loc = Mock(return_value=MagicMock(__len__=Mock(return_value=0)))
+        empty_sel = MagicMock()
+        empty_sel.__len__ = Mock(return_value=0)
+        mock_nvss_df.loc = MagicMock()
+        mock_nvss_df.loc.__getitem__ = Mock(return_value=empty_sel)
 
         with patch('dsa110_contimg.calibration.catalogs.read_nvss_catalog', return_value=mock_nvss_df):
             mask_path = create_nvss_fits_mask(

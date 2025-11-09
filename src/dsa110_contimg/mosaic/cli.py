@@ -1241,10 +1241,11 @@ def _build_weighted_mosaic(
                         raise FileNotFoundError(f"Template image does not exist: {template}")
                     if template.endswith('.fits'):
                         raise ValueError(f"Template must be CASA format, not FITS: {template}")
-                    # CRITICAL: Pass shape parameter to ensure correct output dimensions
-                    # common_shape is available in closure scope
+                    # When using a template, imregrid uses the template's shape automatically
+                    # Do NOT pass shape parameter - it causes errors with non-spatial axes
+                    # The template already has the correct spatial dimensions
                     imregrid(imagename=imagename, template=template,
-                             output=output, overwrite=overwrite, shape=common_shape)
+                             output=output, overwrite=overwrite)
                     print(f"[DEBUG] imregrid completed for {output}", file=sys.stderr, flush=True)
 
                 regridded_pb = cache.get_regridded_image(

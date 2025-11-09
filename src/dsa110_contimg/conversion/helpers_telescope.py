@@ -6,10 +6,12 @@ from contextlib import contextmanager
 import numpy as np
 import astropy.units as u
 from astropy.coordinates import EarthLocation
+from dsa110_contimg.utils.runtime_safeguards import require_casa6_python
 
 logger = logging.getLogger("dsa110_contimg.conversion.helpers")
 
 
+@require_casa6_python
 def cleanup_casa_file_handles() -> None:
     """Force close any open CASA file handles to prevent locking issues.
     

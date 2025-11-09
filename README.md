@@ -1,6 +1,6 @@
 # DSA-110 Continuum Imaging Pipeline
 
-**⚠️ For AI Agents:** Before creating any markdown documentation, see [`docs/DOCUMENTATION_QUICK_REFERENCE.md`](docs/DOCUMENTATION_QUICK_REFERENCE.md). **Do NOT create markdown files in the root directory** - use the `docs/` structure instead.
+Note: Before creating any markdown documentation, see [`docs/DOCUMENTATION_QUICK_REFERENCE.md`](docs/DOCUMENTATION_QUICK_REFERENCE.md). Do not create markdown files in the repository root — use the `docs/` structure instead.
 
 ---
 

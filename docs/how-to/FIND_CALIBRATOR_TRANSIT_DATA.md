@@ -1,6 +1,6 @@
 # Finding Calibrator Transit Data with HDF5 File Lists
 
-**CRITICAL**: This document explains the **canonical method** for finding calibrator transit data and obtaining the list of 16 subband HDF5 files. This is frequently misunderstood by AI agents, so read carefully.
+**CRITICAL**: This document explains the **canonical method** for finding calibrator transit data and obtaining the list of 16 subband HDF5 files. This is frequently misunderstood, so read carefully.
 
 **Location**: `docs/howto/FIND_CALIBRATOR_TRANSIT_DATA.md`  
 **Related**: See also `docs/reports/memory.md` line 45 for the underlying method.
@@ -310,4 +310,3 @@ else:
 - **Canonical Method**: `docs/reports/memory.md` line 45
 - **Service Implementation**: `src/dsa110_contimg/conversion/calibrator_ms_service.py`
 - **Config**: `src/dsa110_contimg/conversion/config.py`
-

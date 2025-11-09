@@ -14,6 +14,7 @@ try:
 except ImportError:
     HAS_IPYTHON = False
     # Dummy implementations for non-Jupyter environments
+
     def display(*args, **kwargs):
         pass
     HTML = str
@@ -299,7 +300,8 @@ class FileList(FileBase, list):
         self.mark_shown()
 
         if len(self) == 0:
-            display(HTML(f'<p class="qa-status-message">No files found in {self.title}</p>'))
+            display(
+                HTML(f'<p class="qa-status-message">No files found in {self.title}</p>'))
             return
 
         # Prepare table data
@@ -369,4 +371,3 @@ class FileList(FileBase, list):
         """HTML representation for Jupyter."""
         self.show()
         return ""
-

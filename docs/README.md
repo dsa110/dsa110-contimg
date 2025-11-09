@@ -7,7 +7,7 @@ This directory contains all documentation for the DSA-110 continuum imaging pipe
 - **[How-To Guides](how-to/)**: Detailed instructions for specific procedures.
 - **[Reference](reference/)**: Technical reference material, such as API endpoints, database schemas, and CLI commands.
 - **[Operations](operations/)**: Deployment, operations, and troubleshooting guides.
-- **[Development Notes](dev/)**: Development notes, status reports, analysis, and history (for developers and AI agents).
+- **[Development Notes](dev/)**: Development notes, status reports, analysis, and history (for developers and maintainers).
 - **[Contributing](contributing/)**: Guidelines for contributing to the project.
 
 ## Quick Start

@@ -14,10 +14,13 @@ For CASA operations, use ProcessPoolExecutor (separate processes) rather than
 ThreadPoolExecutor (shared memory) to avoid thread-safety issues.
 """
 
-from concurrent.futures import ProcessPoolExecutor, ThreadPoolExecutor, as_completed
-from typing import List, Callable, Any, Optional, TypeVar, Dict
+from concurrent.futures import (
+    ProcessPoolExecutor,
+    ThreadPoolExecutor,
+    as_completed,
+)
+from typing import List, Callable, TypeVar, Union
 import logging
-from functools import partial
 from dsa110_contimg.utils.runtime_safeguards import log_progress
 
 logger = logging.getLogger(__name__)
@@ -32,8 +35,8 @@ def process_parallel(
     max_workers: int = 4,
     use_processes: bool = True,
     show_progress: bool = True,
-    desc: str = "Processing"
-) -> List[R]:
+    desc: str = "Processing",
+) -> List[Union[R, None]]:
     """
     Process items in parallel with progress feedback.
 
@@ -42,15 +45,17 @@ def process_parallel(
 
     Args:
         items: List of items to process
-        func: Function to apply to each item (must be pickleable if use_processes=True)
+        func: Function to apply to each item (must be pickleable if
+            use_processes=True)
         max_workers: Maximum number of parallel workers
         use_processes: If True, use ProcessPoolExecutor (safe for CASA tools).
-                      If False, use ThreadPoolExecutor (faster but CASA tools may not be thread-safe)
+            If False, use ThreadPoolExecutor (faster but CASA tools may not
+            be thread-safe)
         show_progress: Whether to show progress bar
         desc: Progress bar description
 
     Returns:
-        List of results (order preserved)
+        List of results (order preserved). Failed items are None.
 
     Example:
         # Process multiple MS files in parallel
@@ -90,23 +95,49 @@ def process_parallel(
 
         if show_progress and has_progress:
             # Use progress bar
-            with get_progress_bar(total=len(items), desc=desc) as pbar:
+            try:
+                with get_progress_bar(total=len(items), desc=desc) as pbar:
+                    for future in as_completed(futures):
+                        idx = futures[future]
+                        try:
+                            results[idx] = future.result()
+                        except (OSError, IOError, ValueError, RuntimeError, MemoryError) as e:
+                            logger.error(
+                                f"Error processing item {idx}: {e}", exc_info=True)
+                            results[idx] = None
+                        except Exception as e:
+                            logger.error(
+                                f"Unexpected error processing item {idx}: {type(e).__name__}: {e}", exc_info=True)
+                            results[idx] = None
+                        pbar.update(1)
+            except (OSError, IOError, RuntimeError) as e:
+                logger.warning(
+                    f"Progress bar failed, continuing without progress display: {e}")
                 for future in as_completed(futures):
                     idx = futures[future]
                     try:
                         results[idx] = future.result()
-                    except Exception as e:
-                        logger.error(f"Error processing item {idx}: {e}")
+                    except (OSError, IOError, ValueError, RuntimeError, MemoryError) as e:
+                        logger.error(
+                            f"Error processing item {idx}: {e}", exc_info=True)
                         results[idx] = None
-                    pbar.update(1)
+                    except Exception as e:
+                        logger.error(
+                            f"Unexpected error processing item {idx}: {type(e).__name__}: {e}", exc_info=True)
+                        results[idx] = None
         else:
             # No progress bar
             for future in as_completed(futures):
                 idx = futures[future]
                 try:
                     results[idx] = future.result()
+                except (OSError, IOError, ValueError, RuntimeError, MemoryError) as e:
+                    logger.error(
+                        f"Error processing item {idx}: {e}", exc_info=True)
+                    results[idx] = None
                 except Exception as e:
-                    logger.error(f"Error processing item {idx}: {e}")
+                    logger.error(
+                        f"Unexpected error processing item {idx}: {type(e).__name__}: {e}", exc_info=True)
                     results[idx] = None
 
     log_progress(
@@ -172,7 +203,7 @@ def process_batch_parallel(
 
 
 def map_parallel(
-    func: Callable[[T], R],
+    func: Callable[..., R],
     *iterables,
     max_workers: int = 4,
     use_processes: bool = True,
@@ -183,7 +214,7 @@ def map_parallel(
     Parallel version of map() function.
 
     Args:
-        func: Function to apply
+        func: Function to apply (must accept same number of arguments as iterables)
         *iterables: Iterables to map over (must be same length)
         max_workers: Maximum number of parallel workers
         use_processes: Use ProcessPoolExecutor (True) or ThreadPoolExecutor (False)
@@ -192,8 +223,28 @@ def map_parallel(
 
     Returns:
         List of results
+
+    Raises:
+        ValueError: If iterables have different lengths
+
+    Example:
+        # Process multiple MS files with different parameters
+        def validate_ms(ms_path: str, threshold: float) -> dict:
+            return {'ms_path': ms_path, 'valid': True, 'threshold': threshold}
+
+        ms_paths = ['ms1.ms', 'ms2.ms', 'ms3.ms']
+        thresholds = [0.1, 0.2, 0.3]
+        results = map_parallel(validate_ms, ms_paths, thresholds, max_workers=4)
     """
-    items = list(zip(*iterables))
-    def func_wrapper(args): return func(*args)
-    return process_parallel(items, func_wrapper, max_workers=max_workers,
+    if not iterables:
+        raise ValueError("At least one iterable must be provided")
+
+    items_list = list(zip(*iterables))
+    if not items_list:
+        return []
+
+    def func_wrapper(args: tuple) -> R:
+        return func(*args)
+
+    return process_parallel(items_list, func_wrapper, max_workers=max_workers,
                             use_processes=use_processes, show_progress=show_progress, desc=desc)

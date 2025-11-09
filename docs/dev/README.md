@@ -1,7 +1,7 @@
 # Development Documentation
 
 **Purpose:** Development notes, status reports, analysis, and history  
-**Audience:** Developers, AI agents, maintainers
+**Audience:** Developers and maintainers
 
 ---
 
@@ -67,4 +67,3 @@ Completed investigations, development history, and changelog entries.
 ---
 
 **Last Updated:** 2025-01-XX
-
