@@ -15,6 +15,7 @@ log = logging.getLogger(__name__)
 
 try:
     import docker
+
     HAVE_DOCKER_SDK = True
 except ImportError:
     HAVE_DOCKER_SDK = False
@@ -23,11 +24,11 @@ except ImportError:
 
 class DockerClient:
     """Wrapper for Docker operations."""
-    
+
     def __init__(self):
         self._client: Optional[Any] = None
         self._sdk_available = False
-        
+
         if HAVE_DOCKER_SDK:
             try:
                 # Try to connect to Docker socket
@@ -39,16 +40,16 @@ class DockerClient:
                 log.warning(f"Docker SDK not available: {e}")
                 self._client = None
                 self._sdk_available = False
-    
+
     def is_available(self) -> bool:
         """Check if Docker client is available."""
         return self._sdk_available
-    
+
     def get_container(self, container_name: str):
         """Get a container by name."""
         if not self._sdk_available or not self._client:
             return None
-        
+
         try:
             return self._client.containers.get(container_name)
         except docker.errors.NotFound:
@@ -56,14 +57,14 @@ class DockerClient:
         except Exception as e:
             log.error(f"Error getting container {container_name}: {e}")
             return None
-    
+
     def is_container_running(self, container_name: str) -> bool:
         """Check if a container is running."""
         if self._sdk_available and self._client:
             container = self.get_container(container_name)
             if container:
                 return container.status == "running"
-        
+
         # Fallback to subprocess
         try:
             result = subprocess.run(
@@ -75,7 +76,7 @@ class DockerClient:
             return result.returncode == 0 and result.stdout.strip() == "true"
         except Exception:
             return False
-    
+
     def start_container(self, container_name: str) -> Dict[str, Any]:
         """Start a container."""
         if self._sdk_available and self._client:
@@ -83,12 +84,18 @@ class DockerClient:
             if container:
                 try:
                     container.start()
-                    return {"success": True, "message": f"Container {container_name} started"}
+                    return {
+                        "success": True,
+                        "message": f"Container {container_name} started",
+                    }
                 except Exception as e:
                     return {"success": False, "message": f"Failed to start: {str(e)}"}
             else:
-                return {"success": False, "message": f"Container {container_name} not found"}
-        
+                return {
+                    "success": False,
+                    "message": f"Container {container_name} not found",
+                }
+
         # Fallback to subprocess
         try:
             result = subprocess.run(
@@ -98,12 +105,15 @@ class DockerClient:
                 timeout=30,
             )
             if result.returncode == 0:
-                return {"success": True, "message": f"Container {container_name} started"}
+                return {
+                    "success": True,
+                    "message": f"Container {container_name} started",
+                }
             else:
                 return {"success": False, "message": result.stderr or "Unknown error"}
         except Exception as e:
             return {"success": False, "message": f"Failed to start: {str(e)}"}
-    
+
     def stop_container(self, container_name: str, timeout: int = 10) -> Dict[str, Any]:
         """Stop a container."""
         if self._sdk_available and self._client:
@@ -111,12 +121,18 @@ class DockerClient:
             if container:
                 try:
                     container.stop(timeout=timeout)
-                    return {"success": True, "message": f"Container {container_name} stopped"}
+                    return {
+                        "success": True,
+                        "message": f"Container {container_name} stopped",
+                    }
                 except Exception as e:
                     return {"success": False, "message": f"Failed to stop: {str(e)}"}
             else:
-                return {"success": False, "message": f"Container {container_name} not found"}
-        
+                return {
+                    "success": False,
+                    "message": f"Container {container_name} not found",
+                }
+
         # Fallback to subprocess
         try:
             result = subprocess.run(
@@ -126,25 +142,36 @@ class DockerClient:
                 timeout=timeout + 5,
             )
             if result.returncode == 0:
-                return {"success": True, "message": f"Container {container_name} stopped"}
+                return {
+                    "success": True,
+                    "message": f"Container {container_name} stopped",
+                }
             else:
                 return {"success": False, "message": result.stderr or "Unknown error"}
         except Exception as e:
             return {"success": False, "message": f"Failed to stop: {str(e)}"}
-    
-    def restart_container(self, container_name: str, timeout: int = 10) -> Dict[str, Any]:
+
+    def restart_container(
+        self, container_name: str, timeout: int = 10
+    ) -> Dict[str, Any]:
         """Restart a container."""
         if self._sdk_available and self._client:
             container = self.get_container(container_name)
             if container:
                 try:
                     container.restart(timeout=timeout)
-                    return {"success": True, "message": f"Container {container_name} restarted"}
+                    return {
+                        "success": True,
+                        "message": f"Container {container_name} restarted",
+                    }
                 except Exception as e:
                     return {"success": False, "message": f"Failed to restart: {str(e)}"}
             else:
-                return {"success": False, "message": f"Container {container_name} not found"}
-        
+                return {
+                    "success": False,
+                    "message": f"Container {container_name} not found",
+                }
+
         # Fallback to subprocess
         try:
             result = subprocess.run(
@@ -154,12 +181,15 @@ class DockerClient:
                 timeout=timeout + 5,
             )
             if result.returncode == 0:
-                return {"success": True, "message": f"Container {container_name} restarted"}
+                return {
+                    "success": True,
+                    "message": f"Container {container_name} restarted",
+                }
             else:
                 return {"success": False, "message": result.stderr or "Unknown error"}
         except Exception as e:
             return {"success": False, "message": f"Failed to restart: {str(e)}"}
-    
+
     def get_container_stats(self, container_name: str) -> Optional[Dict[str, Any]]:
         """Get container statistics."""
         if self._sdk_available and self._client:
@@ -176,11 +206,18 @@ class DockerClient:
                 except Exception as e:
                     log.error(f"Error getting stats: {e}")
                     return None
-        
+
         # Fallback to subprocess
         try:
             result = subprocess.run(
-                ["docker", "stats", "--no-stream", "--format", "{{.CPUPerc}},{{.MemUsage}}", container_name],
+                [
+                    "docker",
+                    "stats",
+                    "--no-stream",
+                    "--format",
+                    "{{.CPUPerc}},{{.MemUsage}}",
+                    container_name,
+                ],
                 capture_output=True,
                 text=True,
                 timeout=10,
@@ -200,9 +237,9 @@ class DockerClient:
                         pass
         except Exception as e:
             log.error(f"Error getting stats via subprocess: {e}")
-        
+
         return None
-    
+
     def get_container_info(self, container_name: str) -> Optional[Dict[str, Any]]:
         """Get container information."""
         if self._sdk_available and self._client:
@@ -222,10 +259,11 @@ class DockerClient:
                 except Exception as e:
                     log.error(f"Error getting container info: {e}")
                     return None
-        
+
         # Fallback to subprocess
         try:
             import json
+
             result = subprocess.run(
                 ["docker", "inspect", container_name],
                 capture_output=True,
@@ -245,26 +283,32 @@ class DockerClient:
                     }
         except Exception as e:
             log.error(f"Error getting container info via subprocess: {e}")
-        
+
         return None
-    
+
     @staticmethod
     def _calculate_cpu_percent(stats: Dict[str, Any]) -> Optional[float]:
         """Calculate CPU percentage from Docker stats."""
         try:
             cpu_stats = stats.get("cpu_stats", {})
             precpu_stats = stats.get("precpu_stats", {})
-            
-            cpu_delta = cpu_stats.get("cpu_usage", {}).get("total_usage", 0) - precpu_stats.get("cpu_usage", {}).get("total_usage", 0)
-            system_delta = cpu_stats.get("system_cpu_usage", 0) - precpu_stats.get("system_cpu_usage", 0)
-            
+
+            cpu_delta = cpu_stats.get("cpu_usage", {}).get(
+                "total_usage", 0
+            ) - precpu_stats.get("cpu_usage", {}).get("total_usage", 0)
+            system_delta = cpu_stats.get("system_cpu_usage", 0) - precpu_stats.get(
+                "system_cpu_usage", 0
+            )
+
             if system_delta > 0 and cpu_delta > 0:
-                num_cpus = len(cpu_stats.get("cpu_usage", {}).get("percpu_usage", [])) or 1
+                num_cpus = (
+                    len(cpu_stats.get("cpu_usage", {}).get("percpu_usage", [])) or 1
+                )
                 return (cpu_delta / system_delta) * num_cpus * 100.0
         except Exception:
             pass
         return None
-    
+
     @staticmethod
     def _calculate_memory_percent(stats: Dict[str, Any]) -> Optional[float]:
         """Calculate memory percentage from Docker stats."""
@@ -277,7 +321,7 @@ class DockerClient:
         except Exception:
             pass
         return None
-    
+
     @staticmethod
     def _parse_memory(mem_str: str) -> Optional[float]:
         """Parse memory string (e.g., '123.45MiB' or '1.23GiB') to MB."""
@@ -286,7 +330,9 @@ class DockerClient:
             if mem_str_upper.endswith("MIB"):
                 return float(mem_str.replace("MiB", "").replace("miB", "").strip())
             elif mem_str_upper.endswith("GIB"):
-                return float(mem_str.replace("GiB", "").replace("giB", "").strip()) * 1024
+                return (
+                    float(mem_str.replace("GiB", "").replace("giB", "").strip()) * 1024
+                )
         except (ValueError, AttributeError):
             pass
         return None
@@ -302,4 +348,3 @@ def get_docker_client() -> DockerClient:
     if _docker_client is None:
         _docker_client = DockerClient()
     return _docker_client
-

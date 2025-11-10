@@ -11,10 +11,10 @@ import sys
 class DsaSyslogger:
     """
     Simplified logger for DSA-110 continuum imaging pipeline.
-    
+
     This is a lightweight adapter that provides a compatible interface
     with dsautils.dsa_syslog.DsaSyslogger but uses standard Python logging.
-    
+
     Parameters
     ----------
     proj_name : str
@@ -28,63 +28,65 @@ class DsaSyslogger:
     log_stream : file-like, optional
         Output stream (default: sys.stdout)
     """
-    
-    def __init__(self,
-                 proj_name='dsa110-contimg',
-                 subsystem_name='conversion',
-                 log_level=logging.INFO,
-                 logger_name=__name__,
-                 log_stream=None):
-        
+
+    def __init__(
+        self,
+        proj_name="dsa110-contimg",
+        subsystem_name="conversion",
+        log_level=logging.INFO,
+        logger_name=__name__,
+        log_stream=None,
+    ):
+
         self.proj_name = proj_name
         self.subsystem_name = subsystem_name
         self._log_level = log_level
-        
+
         # Create logger
         self.logger = logging.getLogger(logger_name)
         self.logger.setLevel(log_level)
-        
+
         # Add handler if not already present
         if not self.logger.handlers:
             if log_stream is None:
                 log_stream = sys.stdout
-            
+
             handler = logging.StreamHandler(log_stream)
             handler.setLevel(log_level)
-            
+
             # Create formatter
             formatter = logging.Formatter(
-                f'%(asctime)s - {proj_name}/{subsystem_name} - '
-                '%(levelname)s - %(message)s'
+                f"%(asctime)s - {proj_name}/{subsystem_name} - "
+                "%(levelname)s - %(message)s"
             )
             handler.setFormatter(formatter)
             self.logger.addHandler(handler)
-    
+
     def subsystem(self, name):
         """Set the subsystem name."""
         self.subsystem_name = name
-    
+
     def level(self, level):
         """Set the logging level."""
         self._log_level = level
         self.logger.setLevel(level)
-    
+
     def debug(self, event):
         """Log a debug message."""
         self.logger.debug(event)
-    
+
     def info(self, event):
         """Log an info message."""
         self.logger.info(event)
-    
+
     def warning(self, event):
         """Log a warning message."""
         self.logger.warning(event)
-    
+
     def error(self, event):
         """Log an error message."""
         self.logger.error(event)
-    
+
     def critical(self, event):
         """Log a critical message."""
         self.logger.critical(event)
@@ -93,7 +95,7 @@ class DsaSyslogger:
 def exception_logger(logger, task, exception, throw):
     """
     Log an exception and optionally re-raise it.
-    
+
     Parameters
     ----------
     logger : DsaSyslogger or logging.Logger
@@ -105,13 +107,15 @@ def exception_logger(logger, task, exception, throw):
     throw : bool
         Whether to re-raise the exception
     """
-    error_msg = f"{task} failed with exception: {type(exception).__name__}: {str(exception)}"
-    
-    if hasattr(logger, 'error'):
+    error_msg = (
+        f"{task} failed with exception: {type(exception).__name__}: {str(exception)}"
+    )
+
+    if hasattr(logger, "error"):
         logger.error(error_msg)
     else:
         logging.error(error_msg)
-    
+
     if throw:
         raise exception
 
@@ -119,7 +123,7 @@ def exception_logger(logger, task, exception, throw):
 def warning_logger(logger, message):
     """
     Log a warning message.
-    
+
     Parameters
     ----------
     logger : DsaSyslogger or logging.Logger
@@ -127,8 +131,7 @@ def warning_logger(logger, message):
     message : str
         Warning message
     """
-    if hasattr(logger, 'warning'):
+    if hasattr(logger, "warning"):
         logger.warning(message)
     else:
         logging.warning(message)
-

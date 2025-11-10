@@ -39,10 +39,17 @@ from dsa110_contimg.pipeline.observability import PipelineObserver, StageMetrics
 from dsa110_contimg.pipeline.adapter import LegacyWorkflowAdapter
 from dsa110_contimg.pipeline.resilience import RetryPolicy, RetryStrategy
 
+
 # Import stages_impl lazily to avoid circular dependencies
 def __getattr__(name: str):
     """Lazy import for stage implementations."""
-    if name in ("ConversionStage", "CalibrationSolveStage", "CalibrationStage", "ImagingStage", "OrganizationStage"):
+    if name in (
+        "ConversionStage",
+        "CalibrationSolveStage",
+        "CalibrationStage",
+        "ImagingStage",
+        "OrganizationStage",
+    ):
         from dsa110_contimg.pipeline.stages_impl import (
             ConversionStage,
             CalibrationSolveStage,
@@ -50,8 +57,10 @@ def __getattr__(name: str):
             ImagingStage,
             OrganizationStage,
         )
+
         return globals()[name]
     raise AttributeError(f"module {__name__!r} has no attribute {name!r}")
+
 
 __all__ = [
     "PipelineContext",
@@ -76,4 +85,3 @@ __all__ = [
     "RetryPolicy",
     "RetryStrategy",
 ]
-

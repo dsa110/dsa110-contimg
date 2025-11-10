@@ -33,13 +33,14 @@ __all__ = [
 
 def __getattr__(name: str):
     """Lazy import for hdf5_orchestrator functions and module.
-    
+
     This lazy import prevents RuntimeWarning when running as module:
     python -m dsa110_contimg.conversion.strategies.hdf5_orchestrator
     """
     if name == "hdf5_orchestrator":
         # Lazy import to avoid RuntimeWarning when running as module
         from . import hdf5_orchestrator
+
         return hdf5_orchestrator
     elif name in __all__:
         from .hdf5_orchestrator import (
@@ -49,6 +50,7 @@ def __getattr__(name: str):
             _extract_subband_code,
             _load_and_merge_subbands,
         )
+
         # Create a mapping of names to functions
         _exports = {
             "convert_subband_groups_to_ms": convert_subband_groups_to_ms,

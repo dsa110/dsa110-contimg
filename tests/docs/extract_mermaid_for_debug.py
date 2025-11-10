@@ -7,29 +7,31 @@ import re
 import sys
 from pathlib import Path
 
+
 def extract_mermaid_blocks(file_path):
     """Extract all Mermaid code blocks from a markdown file."""
-    with open(file_path, 'r') as f:
+    with open(file_path, "r") as f:
         content = f.read()
-    
+
     # Find all mermaid blocks
-    pattern = r'```mermaid\n(.*?)```'
+    pattern = r"```mermaid\n(.*?)```"
     blocks = re.findall(pattern, content, re.DOTALL)
-    
+
     return blocks
+
 
 def main():
     if len(sys.argv) < 2:
         print("Usage: extract_mermaid_for_debug.py <markdown_file> [diagram_index]")
         sys.exit(1)
-    
+
     file_path = Path(sys.argv[1])
     if not file_path.exists():
         print(f"Error: File not found: {file_path}")
         sys.exit(1)
-    
+
     blocks = extract_mermaid_blocks(file_path)
-    
+
     if len(sys.argv) >= 3:
         # Extract specific diagram
         idx = int(sys.argv[2])
@@ -49,9 +51,9 @@ def main():
         print("  3. SimpleMermaid: https://simplemermaid.com")
         print("\nDiagram indices:")
         for i, block in enumerate(blocks):
-            first_line = block.strip().split('\n')[0] if block.strip() else ''
+            first_line = block.strip().split("\n")[0] if block.strip() else ""
             print(f"  {i}: {first_line[:60]}...")
 
-if __name__ == '__main__':
-    main()
 
+if __name__ == "__main__":
+    main()

@@ -49,13 +49,15 @@ class WorkflowBuilder:
         Returns:
             Self for method chaining
         """
-        self.stages.append(StageDefinition(
-            name=name,
-            stage=stage,
-            dependencies=depends_on or [],
-            retry_policy=retry_policy,
-            timeout=timeout,
-        ))
+        self.stages.append(
+            StageDefinition(
+                name=name,
+                stage=stage,
+                dependencies=depends_on or [],
+                retry_policy=retry_policy,
+                timeout=timeout,
+            )
+        )
         return self
 
     def build(self) -> PipelineOrchestrator:
@@ -93,30 +95,32 @@ def standard_imaging_workflow(config: PipelineConfig) -> PipelineOrchestrator:
         max_delay=30.0,
     )
 
-    builder = (WorkflowBuilder()
-               .add_stage(
-        "convert",
-        stages_impl.ConversionStage(config),
-        retry_policy=retry_policy,
-    )
+    builder = (
+        WorkflowBuilder()
+        .add_stage(
+            "convert",
+            stages_impl.ConversionStage(config),
+            retry_policy=retry_policy,
+        )
         .add_stage(
             "calibrate_solve",
             stages_impl.CalibrationSolveStage(config),
             depends_on=["convert"],
             retry_policy=retry_policy,
-    )
+        )
         .add_stage(
             "calibrate_apply",
             stages_impl.CalibrationStage(config),
             depends_on=["calibrate_solve"],
             retry_policy=retry_policy,
-    )
+        )
         .add_stage(
             "image",
             stages_impl.ImagingStage(config),
             depends_on=["calibrate_apply"],
             retry_policy=retry_policy,
-    ))
+        )
+    )
 
     # Add validation stage if enabled
     if config.validation.enabled:
@@ -150,9 +154,11 @@ def quicklook_workflow(config: PipelineConfig) -> PipelineOrchestrator:
     """
     from dsa110_contimg.pipeline import stages_impl
 
-    builder = (WorkflowBuilder()
-               .add_stage("convert", stages_impl.ConversionStage(config))
-               .add_stage("image", stages_impl.ImagingStage(config), depends_on=["convert"]))
+    builder = (
+        WorkflowBuilder()
+        .add_stage("convert", stages_impl.ConversionStage(config))
+        .add_stage("image", stages_impl.ImagingStage(config), depends_on=["convert"])
+    )
 
     # Add validation stage if enabled
     if config.validation.enabled:
@@ -176,9 +182,11 @@ def reprocessing_workflow(config: PipelineConfig) -> PipelineOrchestrator:
     """
     from dsa110_contimg.pipeline import stages_impl
 
-    builder = (WorkflowBuilder()
-               .add_stage("calibrate", stages_impl.CalibrationStage(config))
-               .add_stage("image", stages_impl.ImagingStage(config), depends_on=["calibrate"]))
+    builder = (
+        WorkflowBuilder()
+        .add_stage("calibrate", stages_impl.CalibrationStage(config))
+        .add_stage("image", stages_impl.ImagingStage(config), depends_on=["calibrate"])
+    )
 
     # Add validation stage if enabled
     if config.validation.enabled:

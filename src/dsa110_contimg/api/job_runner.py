@@ -32,7 +32,7 @@ import sys
 
 def _python_cmd_for_jobs() -> list[str]:
     """Decide how to invoke Python for job subprocesses.
-    
+
     This is a utility function used by health checks and other diagnostic tools.
     It's not part of the legacy job runner - it's a general utility.
 
@@ -52,7 +52,7 @@ def _python_cmd_for_jobs() -> list[str]:
 
 def _src_path_for_env() -> str:
     """Compute repository src path to export into PYTHONPATH for child processes.
-    
+
     This is a utility function used by health checks and other diagnostic tools.
     It's not part of the legacy job runner - it's a general utility.
     """
@@ -70,7 +70,7 @@ def _src_path_for_env() -> str:
 def list_caltables(ms_path: str) -> List[str]:
     """Discover calibration tables associated with an MS."""
     from pathlib import Path
-    
+
     ms_dir = Path(ms_path).parent
     ms_stem = Path(ms_path).stem
 
@@ -85,11 +85,11 @@ def list_caltables(ms_path: str) -> List[str]:
 
 def run_workflow_job(job_id: int, params: dict, products_db: Path) -> None:
     """Run full pipeline workflow: Convert → Calibrate → Image.
-    
+
     This function uses the new pipeline framework by default.
     The new framework provides better error handling, retry policies,
     and observability compared to the legacy subprocess-based execution.
-    
+
     Args:
         job_id: Job ID from database
         params: Job parameters

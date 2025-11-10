@@ -15,7 +15,7 @@ from .pyuvdata_monolithic import PyuvdataMonolithicWriter
 
 def get_writer(strategy: str) -> type:
     """Get a writer strategy class by name.
-    
+
     Production processing always uses 16 subbands and should use 'parallel-subband'.
     The 'pyuvdata' writer is available for testing scenarios with ≤2 subbands only.
 
@@ -32,13 +32,14 @@ def get_writer(strategy: str) -> type:
         ValueError: If strategy is not recognized
     """
     strategies = {
-        'pyuvdata': PyuvdataMonolithicWriter,  # Testing only: ≤2 subbands
-        'parallel-subband': DirectSubbandWriter,  # Production: 16 subbands
-        'direct-subband': DirectSubbandWriter,  # Backward compatibility alias
+        "pyuvdata": PyuvdataMonolithicWriter,  # Testing only: ≤2 subbands
+        "parallel-subband": DirectSubbandWriter,  # Production: 16 subbands
+        "direct-subband": DirectSubbandWriter,  # Backward compatibility alias
     }
 
     if strategy not in strategies:
         raise ValueError(
-            f"Unknown writer strategy: {strategy}. Available: {list(strategies.keys())}")
+            f"Unknown writer strategy: {strategy}. Available: {list(strategies.keys())}"
+        )
 
     return strategies[strategy]

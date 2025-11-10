@@ -33,7 +33,7 @@ def calibration_table_paths():
     bp_table = os.environ.get("TEST_BP_TABLE", "")
     prebp_table = os.environ.get("TEST_PREBP_TABLE", "")
     g_table = os.environ.get("TEST_G_TABLE", "")
-    
+
     return {
         "bandpass": bp_table,
         "prebandpass": prebp_table,
@@ -190,7 +190,7 @@ class TestActualCalibrationPhaseQuality:
                 UserWarning,
                 f"Bandpass flagged fraction {fraction_flagged:.1%} exceeds "
                 f"target {target_flagged:.1%} (though below maximum). "
-                f"Consider improving calibration parameters."
+                f"Consider improving calibration parameters.",
             )
 
 
@@ -227,7 +227,9 @@ class TestActualMSStructure:
         cal_ra = known_calibrator_info["ra_deg"]
         cal_dec = known_calibrator_info["dec_deg"]
 
-        ms_coord = SkyCoord(ra=ref_ra_deg * u.deg, dec=ref_dec_deg * u.deg, frame="icrs")
+        ms_coord = SkyCoord(
+            ra=ref_ra_deg * u.deg, dec=ref_dec_deg * u.deg, frame="icrs"
+        )
         cal_coord = SkyCoord(ra=cal_ra * u.deg, dec=cal_dec * u.deg, frame="icrs")
         separation = ms_coord.separation(cal_coord)
 
@@ -350,4 +352,3 @@ class TestActualCASACompliance:
 
 if __name__ == "__main__":
     pytest.main([__file__, "-v"])
-

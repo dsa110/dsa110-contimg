@@ -16,7 +16,7 @@ from datetime import datetime, timezone
 from pathlib import Path
 
 # Add src to path
-sys.path.insert(0, os.path.join(os.path.dirname(__file__), '..', '..', 'src'))
+sys.path.insert(0, os.path.join(os.path.dirname(__file__), "..", "..", "src"))
 
 from dsa110_contimg.testing.monitor import TestMonitor, run_comprehensive_tests
 from dsa110_contimg.utils import alerting
@@ -63,7 +63,7 @@ class TestMonitorDaemon:
                         alerting.critical(
                             "test_monitoring",
                             f"Test monitoring daemon failed {self.failure_count} times",
-                            {"error": str(e), "failure_count": self.failure_count}
+                            {"error": str(e), "failure_count": self.failure_count},
                         )
                         break
 
@@ -86,7 +86,9 @@ class TestMonitorDaemon:
 
             # Record results
             run_id = self.test_monitor.record_suite_run(suite_run)
-            logger.info(f"Test run {run_id} completed: {suite_run.passed}/{suite_run.total_tests} passed")
+            logger.info(
+                f"Test run {run_id} completed: {suite_run.passed}/{suite_run.total_tests} passed"
+            )
 
             # Check for regressions
             if self.alert_on_regression:
@@ -110,14 +112,18 @@ class TestMonitorDaemon:
                         "total_tests": suite_run.total_tests,
                         "commit": suite_run.commit_hash,
                         "branch": suite_run.branch,
-                        "run_id": run_id
-                    }
+                        "run_id": run_id,
+                    },
                 )
             else:
                 alerting.info(
                     "test_monitoring",
                     f"All tests passed: {suite_run.passed}/{suite_run.total_tests}",
-                    {"passed": suite_run.passed, "total": suite_run.total_tests, "run_id": run_id}
+                    {
+                        "passed": suite_run.passed,
+                        "total": suite_run.total_tests,
+                        "run_id": run_id,
+                    },
                 )
 
         except Exception as e:
@@ -137,8 +143,8 @@ class TestMonitorDaemon:
                         {
                             "timestamp": regression["timestamp"],
                             "tests_lost": regression["tests_lost"],
-                            "total_runs": analysis["total_runs"]
-                        }
+                            "total_runs": analysis["total_runs"],
+                        },
                     )
 
             if analysis["improvements"]:
@@ -148,8 +154,8 @@ class TestMonitorDaemon:
                         f"Test improvement: gained {improvement['tests_gained']} tests",
                         {
                             "timestamp": improvement["timestamp"],
-                            "tests_gained": improvement["tests_gained"]
-                        }
+                            "tests_gained": improvement["tests_gained"],
+                        },
                     )
 
         except Exception as e:
@@ -166,18 +172,39 @@ def main():
     import argparse
 
     parser = argparse.ArgumentParser(description="DSA-110 Automated Test Monitoring")
-    parser.add_argument("--db", default="state/testing/test_results.sqlite3",
-                       help="Test results database path")
-    parser.add_argument("--interval", type=int, default=3600,
-                       help="Check interval in seconds (default: 1 hour)")
-    parser.add_argument("--max-failures", type=int, default=3,
-                       help="Max consecutive failures before critical alert")
-    parser.add_argument("--no-regression-alerts", action="store_true",
-                       help="Disable regression detection alerts")
-    parser.add_argument("--run-once", action="store_true",
-                       help="Run tests once and exit (no daemon mode)")
-    parser.add_argument("--log-level", choices=["DEBUG", "INFO", "WARNING", "ERROR"],
-                       default="INFO", help="Logging level")
+    parser.add_argument(
+        "--db",
+        default="state/testing/test_results.sqlite3",
+        help="Test results database path",
+    )
+    parser.add_argument(
+        "--interval",
+        type=int,
+        default=3600,
+        help="Check interval in seconds (default: 1 hour)",
+    )
+    parser.add_argument(
+        "--max-failures",
+        type=int,
+        default=3,
+        help="Max consecutive failures before critical alert",
+    )
+    parser.add_argument(
+        "--no-regression-alerts",
+        action="store_true",
+        help="Disable regression detection alerts",
+    )
+    parser.add_argument(
+        "--run-once",
+        action="store_true",
+        help="Run tests once and exit (no daemon mode)",
+    )
+    parser.add_argument(
+        "--log-level",
+        choices=["DEBUG", "INFO", "WARNING", "ERROR"],
+        default="INFO",
+        help="Logging level",
+    )
 
     args = parser.parse_args()
 

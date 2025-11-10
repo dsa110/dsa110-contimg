@@ -14,12 +14,14 @@ from typing import Dict, List, Optional, Tuple
 
 try:
     from casacore.images import image as casaimage
+
     HAVE_CASACORE_IMAGES = True
 except ImportError:
     HAVE_CASACORE_IMAGES = False
     logger = logging.getLogger(__name__)
     logger.warning(
-        "casacore.images not available, image quality checks will be limited")
+        "casacore.images not available, image quality checks will be limited"
+    )
 
 logger = logging.getLogger(__name__)
 
@@ -89,10 +91,14 @@ class ImageQualityMetrics:
                 "peak_snr": self.peak_snr,
                 "n_pixels_above_5sigma": self.n_pixels_above_5sigma,
             },
-            "residuals": {
-                "rms": self.residual_rms,
-                "mean": self.residual_mean,
-            } if self.residual_rms is not None else None,
+            "residuals": (
+                {
+                    "rms": self.residual_rms,
+                    "mean": self.residual_mean,
+                }
+                if self.residual_rms is not None
+                else None
+            ),
             "quality": {
                 "has_issues": self.has_issues,
                 "has_warnings": self.has_warnings,
@@ -160,8 +166,7 @@ def validate_image_quality(image_path: str) -> ImageQualityMetrics:
             elif len(shape) == 3:
                 # Could be [ny, nx, channel] or [stokes, ny, nx]
                 # Assume spatial dimensions are largest
-                sorted_dims = sorted(
-                    enumerate(shape), key=lambda x: x[1], reverse=True)
+                sorted_dims = sorted(enumerate(shape), key=lambda x: x[1], reverse=True)
                 spatial_indices = [sorted_dims[0][0], sorted_dims[1][0]]
                 nx, ny = sorted_dims[0][1], sorted_dims[1][1]
                 n_channels = shape[sorted_dims[2][0]]
@@ -174,8 +179,7 @@ def validate_image_quality(image_path: str) -> ImageQualityMetrics:
             elif len(shape) == 4:
                 # Typical: [stokes, channel, ny, nx] or [nx, ny, stokes, channel]
                 # Spatial dimensions are typically the largest two
-                sorted_dims = sorted(
-                    enumerate(shape), key=lambda x: x[1], reverse=True)
+                sorted_dims = sorted(enumerate(shape), key=lambda x: x[1], reverse=True)
                 spatial_idx = [sorted_dims[0][0], sorted_dims[1][0]]
                 nx, ny = sorted_dims[0][1], sorted_dims[1][1]
 
@@ -186,8 +190,11 @@ def validate_image_quality(image_path: str) -> ImageQualityMetrics:
 
                 # Extract first stokes, first channel, all spatial
                 # The spatial dimensions should be preserved
-                pixels = full_data[0, 0, :, :] if spatial_idx == [
-                    2, 3] else full_data[:, :, 0, 0]
+                pixels = (
+                    full_data[0, 0, :, :]
+                    if spatial_idx == [2, 3]
+                    else full_data[:, :, 0, 0]
+                )
             else:
                 nx = ny = n_channels = n_stokes = 0
                 pixels = np.array([])
@@ -201,9 +208,9 @@ def validate_image_quality(image_path: str) -> ImageQualityMetrics:
         else:
             # Fallback: try to read with CASA table interface
             from casacore.tables import table
+
             with table(image_path, readonly=True, ack=False) as tb:
-                shape_col = tb.getcol(
-                    "shape") if "shape" in tb.colnames() else None
+                shape_col = tb.getcol("shape") if "shape" in tb.colnames() else None
                 if shape_col is not None and len(shape_col) > 0:
                     shape = tuple(shape_col[0])
                     if len(shape) >= 2:
@@ -257,22 +264,23 @@ def validate_image_quality(image_path: str) -> ImageQualityMetrics:
                 # Count pixels above 5-sigma
                 if rms_pixel > 0:
                     n_pixels_above_5sigma = int(
-                        np.sum(np.abs(valid_pixels) > 5 * rms_pixel))
+                        np.sum(np.abs(valid_pixels) > 5 * rms_pixel)
+                    )
                 else:
                     n_pixels_above_5sigma = 0
 
                 # Quality checks
                 if image_type in ["image", "pbcor"]:
                     if dynamic_range < 5:
-                        warnings.append(
-                            f"Low dynamic range: {dynamic_range:.1f}")
+                        warnings.append(f"Low dynamic range: {dynamic_range:.1f}")
 
                     if peak_snr < 5:
                         warnings.append(f"Low peak SNR: {peak_snr:.1f}")
 
                     if n_pixels_above_5sigma < 10:
                         warnings.append(
-                            f"Few pixels above 5-sigma: {n_pixels_above_5sigma}")
+                            f"Few pixels above 5-sigma: {n_pixels_above_5sigma}"
+                        )
 
                 # Check for all-zero image
                 if np.all(np.abs(valid_pixels) < 1e-20):
@@ -297,7 +305,8 @@ def validate_image_quality(image_path: str) -> ImageQualityMetrics:
                 # Residuals should have mean close to zero
                 if abs(residual_mean) > 3 * residual_rms:
                     warnings.append(
-                        f"Residual mean far from zero: {residual_mean:.3e} (rms={residual_rms:.3e})")
+                        f"Residual mean far from zero: {residual_mean:.3e} (rms={residual_rms:.3e})"
+                    )
 
     except Exception as e:
         logger.error(f"Error validating image: {e}")
@@ -342,7 +351,8 @@ def validate_image_quality(image_path: str) -> ImageQualityMetrics:
         logger.warning(f"Image has warnings: {', '.join(warnings)}")
     if not metrics.has_issues and not metrics.has_warnings:
         logger.info(
-            f"Image passed quality checks: peak_snr={peak_snr:.1f}, dynamic_range={dynamic_range:.1f}")
+            f"Image passed quality checks: peak_snr={peak_snr:.1f}, dynamic_range={dynamic_range:.1f}"
+        )
 
     return metrics
 

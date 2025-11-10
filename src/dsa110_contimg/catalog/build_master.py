@@ -62,7 +62,9 @@ def _read_table(path: str) -> pd.DataFrame:
     return pd.read_csv(path, sep=None, engine="python")
 
 
-def _normalize_columns(df: pd.DataFrame, mapping: Dict[str, Iterable[str]]) -> Dict[str, str]:
+def _normalize_columns(
+    df: pd.DataFrame, mapping: Dict[str, Iterable[str]]
+) -> Dict[str, str]:
     """Return a mapping of canonical->actual column names found in df.
 
     mapping: {canonical: [candidate1, candidate2, ...]}
@@ -82,7 +84,9 @@ def _normalize_columns(df: pd.DataFrame, mapping: Dict[str, Iterable[str]]) -> D
 
 
 def _skycoord_from_df(df: pd.DataFrame, ra_col: str, dec_col: str) -> SkyCoord:
-    return SkyCoord(ra=df[ra_col].values * u.deg, dec=df[dec_col].values * u.deg, frame="icrs")
+    return SkyCoord(
+        ra=df[ra_col].values * u.deg, dec=df[dec_col].values * u.deg, frame="icrs"
+    )
 
 
 # ---------------------------- Crossmatching --------------------------------
@@ -100,7 +104,9 @@ class SourceRow:
     confusion_flag: int
 
 
-def _compute_alpha(s1: Optional[float], nu1_hz: float, s2: Optional[float], nu2_hz: float) -> Optional[float]:
+def _compute_alpha(
+    s1: Optional[float], nu1_hz: float, s2: Optional[float], nu2_hz: float
+) -> Optional[float]:
     if s1 is None or s2 is None:
         return None
     if s1 <= 0 or s2 <= 0:
@@ -140,15 +146,29 @@ def _crossmatch(
     # Prepare VLASS coord and flux if provided
     vlass_sc = None
     v_flux_col = None
-    if df_vlass is not None and "vlass" in maps and "ra" in maps["vlass"] and "dec" in maps["vlass"]:
-        vlass_sc = _skycoord_from_df(df_vlass, maps["vlass"]["ra"], maps["vlass"]["dec"])
+    if (
+        df_vlass is not None
+        and "vlass" in maps
+        and "ra" in maps["vlass"]
+        and "dec" in maps["vlass"]
+    ):
+        vlass_sc = _skycoord_from_df(
+            df_vlass, maps["vlass"]["ra"], maps["vlass"]["dec"]
+        )
         v_flux_col = maps["vlass"].get("flux")
 
     # Prepare FIRST coord and morphology if provided
     first_sc = None
     f_maj = f_min = None
-    if df_first is not None and "first" in maps and "ra" in maps["first"] and "dec" in maps["first"]:
-        first_sc = _skycoord_from_df(df_first, maps["first"]["ra"], maps["first"]["dec"])
+    if (
+        df_first is not None
+        and "first" in maps
+        and "ra" in maps["first"]
+        and "dec" in maps["first"]
+    ):
+        first_sc = _skycoord_from_df(
+            df_first, maps["first"]["ra"], maps["first"]["dec"]
+        )
         f_maj = maps["first"].get("maj")
         f_min = maps["first"].get("min")
 
@@ -194,11 +214,15 @@ def _crossmatch(
                 confusion = 1
             if len(cand) >= 1:
                 # pick closest by angular sep
-                seps = SkyCoord(ra=ra * u.deg, dec=dec * u.deg).separation(vlass_sc[cand])
+                seps = SkyCoord(ra=ra * u.deg, dec=dec * u.deg).separation(
+                    vlass_sc[cand]
+                )
                 j = int(cand[int(np.argmin(seps.to_value(u.arcsec)))])
                 if v_flux_col and v_flux_col in df_vlass.columns:
                     try:
-                        s_vl = float(df_vlass.at[j, v_flux_col]) * float(scale_vlass_to_jy)
+                        s_vl = float(df_vlass.at[j, v_flux_col]) * float(
+                            scale_vlass_to_jy
+                        )
                     except Exception:
                         s_vl = None
 
@@ -209,7 +233,9 @@ def _crossmatch(
             if len(cand) > 1:
                 confusion = 1
             if len(cand) >= 1 and (f_maj or f_min):
-                seps = SkyCoord(ra=ra * u.deg, dec=dec * u.deg).separation(first_sc[cand])
+                seps = SkyCoord(ra=ra * u.deg, dec=dec * u.deg).separation(
+                    first_sc[cand]
+                )
                 j = int(cand[int(np.argmin(seps.to_value(u.arcsec)))])
                 maj = None
                 mn = None
@@ -294,7 +320,9 @@ def _write_sqlite(
             )
             """
         )
-        conn.execute("CREATE INDEX IF NOT EXISTS idx_sources_radec ON sources(ra_deg, dec_deg)")
+        conn.execute(
+            "CREATE INDEX IF NOT EXISTS idx_sources_radec ON sources(ra_deg, dec_deg)"
+        )
         # Overwrite (replace on conflict by recreating contents)
         conn.execute("DELETE FROM sources")
         out.to_sql("sources", conn, if_exists="append", index=False)
@@ -308,14 +336,32 @@ def _write_sqlite(
             """
         )
         # Persist thresholds and provenance in meta
-        conn.execute("INSERT OR REPLACE INTO meta(key, value) VALUES('goodref_snr_min', ?)", (str(goodref_snr_min),))
-        conn.execute("INSERT OR REPLACE INTO meta(key, value) VALUES('goodref_alpha_min', ?)", (str(goodref_alpha_min),))
-        conn.execute("INSERT OR REPLACE INTO meta(key, value) VALUES('goodref_alpha_max', ?)", (str(goodref_alpha_max),))
-        conn.execute("INSERT OR REPLACE INTO meta(key, value) VALUES('finalref_snr_min', ?)", (str(finalref_snr_min),))
-        conn.execute("INSERT OR REPLACE INTO meta(key, value) VALUES('build_time_iso', ?)", (datetime.now(timezone.utc).isoformat(),))
+        conn.execute(
+            "INSERT OR REPLACE INTO meta(key, value) VALUES('goodref_snr_min', ?)",
+            (str(goodref_snr_min),),
+        )
+        conn.execute(
+            "INSERT OR REPLACE INTO meta(key, value) VALUES('goodref_alpha_min', ?)",
+            (str(goodref_alpha_min),),
+        )
+        conn.execute(
+            "INSERT OR REPLACE INTO meta(key, value) VALUES('goodref_alpha_max', ?)",
+            (str(goodref_alpha_max),),
+        )
+        conn.execute(
+            "INSERT OR REPLACE INTO meta(key, value) VALUES('finalref_snr_min', ?)",
+            (str(finalref_snr_min),),
+        )
+        conn.execute(
+            "INSERT OR REPLACE INTO meta(key, value) VALUES('build_time_iso', ?)",
+            (datetime.now(timezone.utc).isoformat(),),
+        )
         if meta_extra:
             for k, v in meta_extra.items():
-                conn.execute("INSERT OR REPLACE INTO meta(key, value) VALUES(?, ?)", (str(k), str(v)))
+                conn.execute(
+                    "INSERT OR REPLACE INTO meta(key, value) VALUES(?, ?)",
+                    (str(k), str(v)),
+                )
         # Create/replace a view for good reference sources
         try:
             conn.execute("DROP VIEW IF EXISTS good_references")
@@ -336,13 +382,22 @@ def _write_sqlite(
                 conn.execute("DROP TABLE IF EXISTS stable_ids")
             except Exception:
                 pass
-            conn.execute("CREATE TABLE IF NOT EXISTS stable_ids(source_id INTEGER PRIMARY KEY)")
+            conn.execute(
+                "CREATE TABLE IF NOT EXISTS stable_ids(source_id INTEGER PRIMARY KEY)"
+            )
             rows = [(int(i),) for i in finalref_ids if i is not None]
             if rows:
-                conn.executemany("INSERT OR IGNORE INTO stable_ids(source_id) VALUES(?)", rows)
-            conn.execute("INSERT OR REPLACE INTO meta(key, value) VALUES('finalref_ids_count', ?)", (str(len(rows)),))
+                conn.executemany(
+                    "INSERT OR IGNORE INTO stable_ids(source_id) VALUES(?)", rows
+                )
+            conn.execute(
+                "INSERT OR REPLACE INTO meta(key, value) VALUES('finalref_ids_count', ?)",
+                (str(len(rows)),),
+            )
         else:
-            conn.execute("INSERT OR REPLACE INTO meta(key, value) VALUES('finalref_ids_count', '0')")
+            conn.execute(
+                "INSERT OR REPLACE INTO meta(key, value) VALUES('finalref_ids_count', '0')"
+            )
         # Create final_references view: stricter SNR and (optionally) membership in stable_ids
         try:
             conn.execute("DROP VIEW IF EXISTS final_references")
@@ -468,6 +523,7 @@ def build_master(
         scale_nvss_to_jy=_scale(nvss_flux_unit),
         scale_vlass_to_jy=_scale(vlass_flux_unit),
     )
+
     # Build meta provenance: file hashes and row counts
     def _hash(path: Optional[str]) -> Tuple[str, int, int]:
         if not path:
@@ -485,38 +541,48 @@ def build_master(
 
     meta_extra: Dict[str, str] = {}
     hv, sv, mv = _hash(nvss_path)
-    meta_extra.update({
-        "nvss_path": os.fspath(nvss_path),
-        "nvss_sha256": hv,
-        "nvss_size": str(sv),
-        "nvss_mtime": str(mv),
-        "nvss_rows": str(len(df_nvss)),
-    })
+    meta_extra.update(
+        {
+            "nvss_path": os.fspath(nvss_path),
+            "nvss_sha256": hv,
+            "nvss_size": str(sv),
+            "nvss_mtime": str(mv),
+            "nvss_rows": str(len(df_nvss)),
+        }
+    )
     if vlass_path:
         hv, sv, mv = _hash(vlass_path)
-        meta_extra.update({
-            "vlass_path": os.fspath(vlass_path),
-            "vlass_sha256": hv,
-            "vlass_size": str(sv),
-            "vlass_mtime": str(mv),
-            "vlass_rows": str(len(df_vlass) if df_vlass is not None else 0),
-        })
+        meta_extra.update(
+            {
+                "vlass_path": os.fspath(vlass_path),
+                "vlass_sha256": hv,
+                "vlass_size": str(sv),
+                "vlass_mtime": str(mv),
+                "vlass_rows": str(len(df_vlass) if df_vlass is not None else 0),
+            }
+        )
     if first_path:
         hv, sv, mv = _hash(first_path)
-        meta_extra.update({
-            "first_path": os.fspath(first_path),
-            "first_sha256": hv,
-            "first_size": str(sv),
-            "first_mtime": str(mv),
-            "first_rows": str(len(df_first) if df_first is not None else 0),
-        })
+        meta_extra.update(
+            {
+                "first_path": os.fspath(first_path),
+                "first_sha256": hv,
+                "first_size": str(sv),
+                "first_mtime": str(mv),
+                "first_rows": str(len(df_first) if df_first is not None else 0),
+            }
+        )
 
     # Optional final reference IDs
     final_ids: Optional[list[int]] = None
     if finalref_ids_file:
         try:
             with open(finalref_ids_file, "r", encoding="utf-8") as f:
-                final_ids = [int(x.strip()) for x in f if x.strip() and not x.strip().startswith("#")]
+                final_ids = [
+                    int(x.strip())
+                    for x in f
+                    if x.strip() and not x.strip().startswith("#")
+                ]
         except Exception:
             final_ids = None
 
@@ -545,24 +611,72 @@ def _add_map_args(p: argparse.ArgumentParser, prefix: str) -> None:
 
 
 def main(argv: Optional[list[str]] = None) -> int:
-    ap = argparse.ArgumentParser(description="Build master catalog (NVSS + VLASS/FIRST)")
+    ap = argparse.ArgumentParser(
+        description="Build master catalog (NVSS + VLASS/FIRST)"
+    )
     ap.add_argument("--nvss", required=True, help="Path to NVSS catalog (CSV/FITS)")
     ap.add_argument("--vlass", help="Path to VLASS catalog (CSV/FITS)")
     ap.add_argument("--first", help="Path to FIRST catalog (CSV/FITS)")
-    ap.add_argument("--out", default="state/catalogs/master_sources.sqlite3", help="Output SQLite DB path")
+    ap.add_argument(
+        "--out",
+        default="state/catalogs/master_sources.sqlite3",
+        help="Output SQLite DB path",
+    )
     ap.add_argument("--match-radius-arcsec", type=float, default=7.5)
-    ap.add_argument("--nvss-flux-unit", choices=["jy", "mjy", "ujy"], default="jy", help="Units of NVSS flux column (converted to Jy)")
-    ap.add_argument("--vlass-flux-unit", choices=["jy", "mjy", "ujy"], default="jy", help="Units of VLASS flux column (converted to Jy)")
-    ap.add_argument("--goodref-snr-min", type=float, default=50.0, help="SNR threshold for good reference view")
-    ap.add_argument("--goodref-alpha-min", type=float, default=-1.2, help="Min alpha for good reference view")
-    ap.add_argument("--goodref-alpha-max", type=float, default=0.2, help="Max alpha for good reference view")
-    ap.add_argument("--finalref-snr-min", type=float, default=80.0, help="SNR threshold for final references view")
-    ap.add_argument("--finalref-ids", help="Optional file with source_id list (one per line) to define long-term stable set")
-    ap.add_argument("--materialize-final", action="store_true", help="Create final_references_table materialized from view")
+    ap.add_argument(
+        "--nvss-flux-unit",
+        choices=["jy", "mjy", "ujy"],
+        default="jy",
+        help="Units of NVSS flux column (converted to Jy)",
+    )
+    ap.add_argument(
+        "--vlass-flux-unit",
+        choices=["jy", "mjy", "ujy"],
+        default="jy",
+        help="Units of VLASS flux column (converted to Jy)",
+    )
+    ap.add_argument(
+        "--goodref-snr-min",
+        type=float,
+        default=50.0,
+        help="SNR threshold for good reference view",
+    )
+    ap.add_argument(
+        "--goodref-alpha-min",
+        type=float,
+        default=-1.2,
+        help="Min alpha for good reference view",
+    )
+    ap.add_argument(
+        "--goodref-alpha-max",
+        type=float,
+        default=0.2,
+        help="Max alpha for good reference view",
+    )
+    ap.add_argument(
+        "--finalref-snr-min",
+        type=float,
+        default=80.0,
+        help="SNR threshold for final references view",
+    )
+    ap.add_argument(
+        "--finalref-ids",
+        help="Optional file with source_id list (one per line) to define long-term stable set",
+    )
+    ap.add_argument(
+        "--materialize-final",
+        action="store_true",
+        help="Create final_references_table materialized from view",
+    )
     # Optional export helpers
     ap.add_argument(
         "--export-view",
-        choices=["sources", "good_references", "final_references", "final_references_table"],
+        choices=[
+            "sources",
+            "good_references",
+            "final_references",
+            "final_references_table",
+        ],
         help="Optionally export a table/view to CSV after building the DB",
     )
     ap.add_argument(
@@ -574,9 +688,21 @@ def main(argv: Optional[list[str]] = None) -> int:
     _add_map_args(ap, "first")
     args = ap.parse_args(argv)
 
-    map_nv = {k.split("map_nvss_")[1]: v for k, v in vars(args).items() if k.startswith("map_nvss_") and v}
-    map_vl = {k.split("map_vlass_")[1]: v for k, v in vars(args).items() if k.startswith("map_vlass_") and v}
-    map_fi = {k.split("map_first_")[1]: v for k, v in vars(args).items() if k.startswith("map_first_") and v}
+    map_nv = {
+        k.split("map_nvss_")[1]: v
+        for k, v in vars(args).items()
+        if k.startswith("map_nvss_") and v
+    }
+    map_vl = {
+        k.split("map_vlass_")[1]: v
+        for k, v in vars(args).items()
+        if k.startswith("map_vlass_") and v
+    }
+    map_fi = {
+        k.split("map_first_")[1]: v
+        for k, v in vars(args).items()
+        if k.startswith("map_first_") and v
+    }
 
     try:
         outp = build_master(
@@ -615,19 +741,23 @@ def main(argv: Optional[list[str]] = None) -> int:
                 )
             try:
                 import pandas as _pd
+
                 with sqlite3.connect(os.fspath(outp)) as _conn:
                     # Safe: view name is whitelisted, query is parameterized
                     df = _pd.read_sql_query(f"SELECT * FROM {args.export_view}", _conn)
                 export_path = (
                     Path(args.export_csv)
                     if args.export_csv
-                    else Path(outp).with_suffix("")
+                    else Path(outp)
+                    .with_suffix("")
                     .with_name(f"{Path(outp).stem}_{args.export_view}.csv")
                 )
                 export_path.parent.mkdir(parents=True, exist_ok=True)
                 df.to_csv(export_path, index=False)
                 logger.info(f"Exported {args.export_view} to: {export_path}")
-                print(f"Exported {args.export_view} to: {export_path}")  # User-facing output
+                print(
+                    f"Exported {args.export_view} to: {export_path}"
+                )  # User-facing output
             except Exception as _e:
                 logger.error(f"Export failed: {_e}", exc_info=True)
                 print(f"Export failed: {_e}")  # User-facing error

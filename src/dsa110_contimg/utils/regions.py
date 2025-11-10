@@ -19,6 +19,7 @@ try:
     )
     from astropy.coordinates import SkyCoord
     import astropy.units as u
+
     HAVE_ASTROPY_REGIONS = True
 except ImportError:
     HAVE_ASTROPY_REGIONS = False
@@ -29,6 +30,7 @@ LOG = logging.getLogger(__name__)
 @dataclass
 class RegionData:
     """Region data structure."""
+
     name: str
     type: str  # 'circle', 'rectangle', 'polygon'
     coordinates: Dict[str, Any]  # JSON-serializable coordinate data
@@ -48,7 +50,7 @@ def parse_casa_region(region_text: str) -> Optional[RegionData]:
     """
     # If it's a file path, read it
     if Path(region_text).exists():
-        with open(region_text, 'r') as f:
+        with open(region_text, "r") as f:
             region_text = f.read()
 
     # CASA region format is typically:
@@ -57,25 +59,26 @@ def parse_casa_region(region_text: str) -> Optional[RegionData]:
     # or
     # circle[[188.5deg, 42.05deg], 0.5arcmin]
 
-    lines = region_text.strip().split('\n')
+    lines = region_text.strip().split("\n")
     regions = []
 
     for line in lines:
         line = line.strip()
-        if not line or line.startswith('#'):
+        if not line or line.startswith("#"):
             continue
 
         # Parse circle
-        if line.startswith('circle'):
+        if line.startswith("circle"):
             # Extract coordinates
             import re
-            match = re.search(r'circle\[\[(.*?)\],\s*(.*?)\]', line)
+
+            match = re.search(r"circle\[\[(.*?)\],\s*(.*?)\]", line)
             if match:
                 coords_str = match.group(1)
                 size_str = match.group(2)
 
                 # Parse coordinates (handle both sexagesimal and decimal)
-                coords = coords_str.split(',')
+                coords = coords_str.split(",")
                 if len(coords) == 2:
                     ra = parse_coordinate(coords[0].strip())
                     dec = parse_coordinate(coords[1].strip())
@@ -84,19 +87,21 @@ def parse_casa_region(region_text: str) -> Optional[RegionData]:
                     radius = parse_size(size_str)
 
                     if ra is not None and dec is not None and radius is not None:
-                        regions.append(RegionData(
-                            name=f"circle_{len(regions)}",
-                            type="circle",
-                            coordinates={
-                                "ra_deg": ra,
-                                "dec_deg": dec,
-                                "radius_deg": radius,
-                            },
-                            image_path="",  # Will be set by caller
-                        ))
+                        regions.append(
+                            RegionData(
+                                name=f"circle_{len(regions)}",
+                                type="circle",
+                                coordinates={
+                                    "ra_deg": ra,
+                                    "dec_deg": dec,
+                                    "radius_deg": radius,
+                                },
+                                image_path="",  # Will be set by caller
+                            )
+                        )
 
         # Parse rectangle/box
-        elif line.startswith('box') or line.startswith('rectangle'):
+        elif line.startswith("box") or line.startswith("rectangle"):
             # Similar parsing for box/rectangle
             # Implementation similar to circle
             pass
@@ -115,15 +120,15 @@ def parse_ds9_region(region_text: str) -> Optional[List[RegionData]]:
     """
     # If it's a file path, read it
     if Path(region_text).exists():
-        with open(region_text, 'r') as f:
+        with open(region_text, "r") as f:
             region_text = f.read()
 
-    lines = region_text.strip().split('\n')
+    lines = region_text.strip().split("\n")
     regions = []
 
     for line in lines:
         line = line.strip()
-        if not line or line.startswith('#'):
+        if not line or line.startswith("#"):
             continue
 
         # DS9 format: circle(188.5,42.05,0.5) # color=red
@@ -131,10 +136,10 @@ def parse_ds9_region(region_text: str) -> Optional[List[RegionData]]:
         import re
 
         # Parse circle
-        match = re.search(r'circle\((.*?)\)', line)
+        match = re.search(r"circle\((.*?)\)", line)
         if match:
             coords_str = match.group(1)
-            parts = [p.strip() for p in coords_str.split(',')]
+            parts = [p.strip() for p in coords_str.split(",")]
 
             if len(parts) >= 3:
                 ra = parse_coordinate(parts[0])
@@ -142,22 +147,24 @@ def parse_ds9_region(region_text: str) -> Optional[List[RegionData]]:
                 radius = parse_size(parts[2])
 
                 if ra is not None and dec is not None and radius is not None:
-                    regions.append(RegionData(
-                        name=f"circle_{len(regions)}",
-                        type="circle",
-                        coordinates={
-                            "ra_deg": ra,
-                            "dec_deg": dec,
-                            "radius_deg": radius,
-                        },
-                        image_path="",  # Will be set by caller
-                    ))
+                    regions.append(
+                        RegionData(
+                            name=f"circle_{len(regions)}",
+                            type="circle",
+                            coordinates={
+                                "ra_deg": ra,
+                                "dec_deg": dec,
+                                "radius_deg": radius,
+                            },
+                            image_path="",  # Will be set by caller
+                        )
+                    )
 
         # Parse box/rectangle
-        match = re.search(r'box\((.*?)\)', line)
+        match = re.search(r"box\((.*?)\)", line)
         if match:
             coords_str = match.group(1)
-            parts = [p.strip() for p in coords_str.split(',')]
+            parts = [p.strip() for p in coords_str.split(",")]
 
             if len(parts) >= 4:
                 ra = parse_coordinate(parts[0])
@@ -167,18 +174,20 @@ def parse_ds9_region(region_text: str) -> Optional[List[RegionData]]:
                 angle = float(parts[4]) if len(parts) > 4 else 0.0
 
                 if ra is not None and dec is not None:
-                    regions.append(RegionData(
-                        name=f"rectangle_{len(regions)}",
-                        type="rectangle",
-                        coordinates={
-                            "ra_deg": ra,
-                            "dec_deg": dec,
-                            "width_deg": width or 0.01,
-                            "height_deg": height or 0.01,
-                            "angle_deg": angle,
-                        },
-                        image_path="",  # Will be set by caller
-                    ))
+                    regions.append(
+                        RegionData(
+                            name=f"rectangle_{len(regions)}",
+                            type="rectangle",
+                            coordinates={
+                                "ra_deg": ra,
+                                "dec_deg": dec,
+                                "width_deg": width or 0.01,
+                                "height_deg": height or 0.01,
+                                "angle_deg": angle,
+                            },
+                            image_path="",  # Will be set by caller
+                        )
+                    )
 
     return regions
 
@@ -194,7 +203,7 @@ def parse_coordinate(coord_str: str) -> Optional[float]:
     coord_str = coord_str.strip().lower()
 
     # Remove units
-    coord_str = coord_str.replace('deg', '').replace('d', '')
+    coord_str = coord_str.replace("deg", "").replace("d", "")
 
     # Try decimal first
     try:
@@ -206,13 +215,13 @@ def parse_coordinate(coord_str: str) -> Optional[float]:
     import re
 
     # Handle HH:MM:SS format
-    match = re.match(r'([+-]?\d+):(\d+):([\d.]+)', coord_str)
+    match = re.match(r"([+-]?\d+):(\d+):([\d.]+)", coord_str)
     if match:
         h, m, s = map(float, match.groups())
         return h + m / 60.0 + s / 3600.0
 
     # Handle HHhMMmSSs format
-    match = re.match(r'([+-]?\d+)h(\d+)m([\d.]+)s', coord_str)
+    match = re.match(r"([+-]?\d+)h(\d+)m([\d.]+)s", coord_str)
     if match:
         h, m, s = map(float, match.groups())
         return h + m / 60.0 + s / 3600.0
@@ -228,22 +237,22 @@ def parse_size(size_str: str) -> Optional[float]:
     size_str = size_str.strip().lower()
 
     # Remove units and convert
-    if 'arcmin' in size_str or "'" in size_str:
-        size_str = size_str.replace('arcmin', '').replace("'", '')
+    if "arcmin" in size_str or "'" in size_str:
+        size_str = size_str.replace("arcmin", "").replace("'", "")
         try:
             return float(size_str) / 60.0
         except ValueError:
             pass
 
-    if 'arcsec' in size_str or '"' in size_str:
-        size_str = size_str.replace('arcsec', '').replace('"', '')
+    if "arcsec" in size_str or '"' in size_str:
+        size_str = size_str.replace("arcsec", "").replace('"', "")
         try:
             return float(size_str) / 3600.0
         except ValueError:
             pass
 
-    if 'deg' in size_str or 'd' in size_str:
-        size_str = size_str.replace('deg', '').replace('d', '')
+    if "deg" in size_str or "d" in size_str:
+        size_str = size_str.replace("deg", "").replace("d", "")
 
     try:
         return float(size_str)
@@ -288,6 +297,7 @@ def calculate_region_statistics(
             header = hdul[0].header
             try:
                 from astropy.wcs import WCS
+
                 wcs = WCS(header)
             except Exception:
                 wcs = None
@@ -341,9 +351,9 @@ def create_region_mask(
         try:
             ra = region.coordinates.get("ra_deg", 0)
             dec = region.coordinates.get("dec_deg", 0)
-            
+
             # Handle 4D WCS (common in radio astronomy: RA, Dec, Frequency, Stokes)
-            if hasattr(wcs, 'naxis') and wcs.naxis == 4:
+            if hasattr(wcs, "naxis") and wcs.naxis == 4:
                 # Use all_pix2world for 4D WCS
                 # For world2pix, we need to provide all 4 dimensions
                 # Use frequency=0, stokes=0 as defaults
@@ -353,12 +363,15 @@ def create_region_mask(
                 # Standard 2D WCS
                 x, y = wcs.wcs_world2pix([[ra, dec]], 0)[0]
                 x, y = float(x), float(y)
-            
+
             x, y = int(x), int(y)
         except Exception as e:
             # Fallback to center
             import logging
-            logging.warning(f"Could not convert WCS coordinates: {e}, using image center")
+
+            logging.warning(
+                f"Could not convert WCS coordinates: {e}, using image center"
+            )
             x, y = nx // 2, ny // 2
     else:
         # Fallback to center
@@ -366,16 +379,23 @@ def create_region_mask(
 
     # Create mask based on region type
     if region.type == "circle":
-        radius_pix = region.coordinates.get(
-            "radius_deg", 0.01) * 3600.0 / get_pixel_scale(header)
+        radius_pix = (
+            region.coordinates.get("radius_deg", 0.01)
+            * 3600.0
+            / get_pixel_scale(header)
+        )
         y_coords, x_coords = np.ogrid[:ny, :nx]
-        mask = (x_coords - x)**2 + (y_coords - y)**2 <= radius_pix**2
+        mask = (x_coords - x) ** 2 + (y_coords - y) ** 2 <= radius_pix**2
 
     elif region.type == "rectangle":
-        width_pix = region.coordinates.get(
-            "width_deg", 0.01) * 3600.0 / get_pixel_scale(header)
-        height_pix = region.coordinates.get(
-            "height_deg", 0.01) * 3600.0 / get_pixel_scale(header)
+        width_pix = (
+            region.coordinates.get("width_deg", 0.01) * 3600.0 / get_pixel_scale(header)
+        )
+        height_pix = (
+            region.coordinates.get("height_deg", 0.01)
+            * 3600.0
+            / get_pixel_scale(header)
+        )
         angle = region.coordinates.get("angle_deg", 0.0)
 
         # Simple rectangular mask (ignoring rotation for now)
@@ -399,9 +419,9 @@ def get_pixel_scale(header: Optional[Any]) -> float:
         return 1.0  # Default
 
     # Try CDELT or CDELT1/CDELT2
-    if 'CDELT1' in header:
-        return abs(header['CDELT1']) * 3600.0
-    elif 'CDELT' in header:
-        return abs(header['CDELT']) * 3600.0
+    if "CDELT1" in header:
+        return abs(header["CDELT1"]) * 3600.0
+    elif "CDELT" in header:
+        return abs(header["CDELT"]) * 3600.0
 
     return 1.0  # Default

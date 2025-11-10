@@ -74,7 +74,7 @@ def generate_uvh5(
     # Pack baselines by time
     idx = 0
     for t in times:
-        for (a1, a2) in ant_pairs:
+        for a1, a2 in ant_pairs:
             ant1_array[idx] = a1
             ant2_array[idx] = a2
             time_array[idx] = t
@@ -111,8 +111,14 @@ def generate_uvh5(
     # Telescope and phase center metadata
     uvd.telescope_name = "DSA_110_SYNTH"
     # ECEF coordinates approx. (OVRO-like); not critical for this synthetic dataset
-    uvd.telescope_location = np.array([-2514818.0, -3959582.0, 4389076.0], dtype=float)  # OVRO ITRF
-    uvd.telescope_location_lat_lon_alt = (0.650, -2.064, 1222.0)  # OVRO approx (rad, rad, m)
+    uvd.telescope_location = np.array(
+        [-2514818.0, -3959582.0, 4389076.0], dtype=float
+    )  # OVRO ITRF
+    uvd.telescope_location_lat_lon_alt = (
+        0.650,
+        -2.064,
+        1222.0,
+    )  # OVRO approx (rad, rad, m)
     uvd.phase_type = "phased"
     uvd.object_name = "SYNTH_CAL"
     uvd.vis_units = "Jy"
@@ -130,10 +136,11 @@ def generate_uvh5(
     # Set phase center (ICRS coordinates)
     import astropy.units as u
     from astropy.coordinates import SkyCoord
-    coord = SkyCoord(ra=ra_deg*u.deg, dec=dec_deg*u.deg, frame='icrs')
+
+    coord = SkyCoord(ra=ra_deg * u.deg, dec=dec_deg * u.deg, frame="icrs")
     uvd.phase_center_ra = coord.ra.rad
     uvd.phase_center_dec = coord.dec.rad
-    uvd.phase_center_frame = 'icrs'
+    uvd.phase_center_frame = "icrs"
     uvd.phase_center_epoch = 2000.0
     uvd.phase_center_id_array = np.zeros(nblts, dtype=int)
 
@@ -143,7 +150,9 @@ def generate_uvh5(
 
 
 def main() -> int:
-    ap = argparse.ArgumentParser(description="Generate synthetic calibrator UVH5 dataset")
+    ap = argparse.ArgumentParser(
+        description="Generate synthetic calibrator UVH5 dataset"
+    )
     ap.add_argument("--output", required=True, help="Output .uvh5 path")
     ap.add_argument("--n-ants", type=int, default=16)
     ap.add_argument("--n-times", type=int, default=4)
@@ -176,5 +185,3 @@ def main() -> int:
 
 if __name__ == "__main__":
     raise SystemExit(main())
-
-

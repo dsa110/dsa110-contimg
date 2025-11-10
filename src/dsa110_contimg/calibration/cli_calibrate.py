@@ -7,16 +7,34 @@ from .cli_utils import (
 from .model_validation import comprehensive_model_data_validation
 from .diagnostics import generate_calibration_diagnostics
 from .selection import select_bandpass_fields, select_bandpass_from_catalog
-from .calibration import solve_delay, solve_bandpass, solve_gains, solve_prebandpass_phase
+from .calibration import (
+    solve_delay,
+    solve_bandpass,
+    solve_gains,
+    solve_prebandpass_phase,
+)
 from .plotting import generate_bandpass_plots, generate_gain_plots
 from .flagging import (
-    reset_flags, flag_zeros, flag_rfi, flag_antenna, flag_baselines,
-    flag_manual, flag_shadow, flag_quack, flag_elevation, flag_clip,
-    flag_extend, flag_summary,
-    analyze_channel_flagging_stats, flag_problematic_channels,
+    reset_flags,
+    flag_zeros,
+    flag_rfi,
+    flag_antenna,
+    flag_baselines,
+    flag_manual,
+    flag_shadow,
+    flag_quack,
+    flag_elevation,
+    flag_clip,
+    flag_extend,
+    flag_summary,
+    analyze_channel_flagging_stats,
+    flag_problematic_channels,
 )
 from dsa110_contimg.calibration.performance import optimize_memory_usage
-from dsa110_contimg.utils.error_context import format_ms_error_with_suggestions, format_error_with_context
+from dsa110_contimg.utils.error_context import (
+    format_ms_error_with_suggestions,
+    format_error_with_context,
+)
 from dsa110_contimg.utils.performance import track_performance
 from dsa110_contimg.utils.cli_helpers import configure_logging_from_args
 from dsa110_contimg.utils.validation import (
@@ -46,7 +64,9 @@ logger = logging.getLogger(__name__)
 _calibrator_info_printed_global = False
 
 
-def add_calibrate_parser(subparsers: argparse._SubParsersAction) -> argparse.ArgumentParser:
+def add_calibrate_parser(
+    subparsers: argparse._SubParsersAction,
+) -> argparse.ArgumentParser:
     """Add 'calibrate' subcommand parser."""
     parser = subparsers.add_parser(
         "calibrate",
@@ -62,28 +82,38 @@ def add_calibrate_parser(subparsers: argparse._SubParsersAction) -> argparse.Arg
         ),
         formatter_class=argparse.RawDescriptionHelpFormatter,
     )
-    parser.add_argument("--ms", required=True,
-                        help="Path to Measurement Set (required)")
-    parser.add_argument("--field", required=False, default=None,
-                        help=(
-                            "Calibrator field name/index or range (e.g., '0', '10~12', 'calibrator'). "
-                            "Required unless --auto-fields is used. "
-                            "Use --auto-fields to automatically select fields from VLA catalog."
-                        ))
-    parser.add_argument("--refant", required=False, default=None,
-                        help=(
-                            "Reference antenna ID (e.g., '103'). "
-                            "If not provided, auto-selects using outrigger-priority chain. "
-                            "Reference antenna must have unflagged data for all calibration steps. "
-                            "Use --refant-ranking to provide a JSON file with antenna rankings."
-                        ))
+    parser.add_argument(
+        "--ms", required=True, help="Path to Measurement Set (required)"
+    )
+    parser.add_argument(
+        "--field",
+        required=False,
+        default=None,
+        help=(
+            "Calibrator field name/index or range (e.g., '0', '10~12', 'calibrator'). "
+            "Required unless --auto-fields is used. "
+            "Use --auto-fields to automatically select fields from VLA catalog."
+        ),
+    )
+    parser.add_argument(
+        "--refant",
+        required=False,
+        default=None,
+        help=(
+            "Reference antenna ID (e.g., '103'). "
+            "If not provided, auto-selects using outrigger-priority chain. "
+            "Reference antenna must have unflagged data for all calibration steps. "
+            "Use --refant-ranking to provide a JSON file with antenna rankings."
+        ),
+    )
     parser.add_argument(
         "--refant-ranking",
         help=(
             "Path to refant_ranking.json file for automatic reference antenna selection. "
             "File should contain JSON with 'recommended' field containing 'antenna_id'. "
             "If not provided, uses default outrigger-priority selection."
-        ))
+        ),
+    )
     parser.add_argument(
         "--auto-fields",
         action="store_true",
@@ -92,19 +122,21 @@ def add_calibrate_parser(subparsers: argparse._SubParsersAction) -> argparse.Arg
             "Searches for calibrator in MS field of view and selects fields around peak signal. "
             "Requires --cal-catalog (or auto-resolves to SQLite database) or --cal-ra-deg/--cal-dec-deg. "
             "Recommended for production use. Automatically phases MS to calibrator position."
-        ))
+        ),
+    )
     parser.add_argument(
-        "--cal-ra-deg",
-        type=float,
-        help="Calibrator RA (deg) for auto field selection")
+        "--cal-ra-deg", type=float, help="Calibrator RA (deg) for auto field selection"
+    )
     parser.add_argument(
         "--cal-dec-deg",
         type=float,
-        help="Calibrator Dec (deg) for auto field selection")
+        help="Calibrator Dec (deg) for auto field selection",
+    )
     parser.add_argument(
         "--cal-flux-jy",
         type=float,
-        help="Calibrator flux (Jy) for weighting in auto selection")
+        help="Calibrator flux (Jy) for weighting in auto selection",
+    )
     parser.add_argument(
         "--cal-catalog",
         help=(
@@ -112,28 +144,31 @@ def add_calibrate_parser(subparsers: argparse._SubParsersAction) -> argparse.Arg
             "If not provided, auto-resolves to SQLite database at "
             "state/catalogs/vla_calibrators.sqlite3 (preferred). "
             "Accepts both SQLite (.sqlite3) and CSV formats."
-        ))
+        ),
+    )
     parser.add_argument(
         "--cal-search-radius-deg",
         type=float,
         default=1.0,
-        help="Search radius (deg) around catalog entries")
+        help="Search radius (deg) around catalog entries",
+    )
     parser.add_argument(
         "--pt-dec-deg",
         type=float,
-        help="Pointing declination (deg) for catalog weighting")
+        help="Pointing declination (deg) for catalog weighting",
+    )
     parser.add_argument(
         "--bp-window",
         type=int,
         default=3,
-        help="Number of fields (approx) around peak to include")
+        help="Number of fields (approx) around peak to include",
+    )
     parser.add_argument(
         "--bp-min-pb",
         type=float,
         default=None,
         help=(
-            "Primary-beam gain threshold [0-1] to auto-size field window "
-            "around peak"
+            "Primary-beam gain threshold [0-1] to auto-size field window " "around peak"
         ),
     )
     parser.add_argument(
@@ -144,7 +179,8 @@ def add_calibrate_parser(subparsers: argparse._SubParsersAction) -> argparse.Arg
             "Increases SNR by using data from multiple fields. "
             "Recommended for weak calibrators (<5 Jy). "
             "Requires --auto-fields or multiple fields in --field (e.g., '0~5')."
-        ))
+        ),
+    )
     parser.add_argument(
         "--flagging-mode",
         choices=["none", "zeros", "rfi"],
@@ -176,9 +212,7 @@ def add_calibrate_parser(subparsers: argparse._SubParsersAction) -> argparse.Arg
         "--bp-smooth-type",
         choices=["none", "hanning", "boxcar", "gaussian"],
         default="none",
-        help=(
-            "Optional smoothing of bandpass table after solve (off by default)."
-        ),
+        help=("Optional smoothing of bandpass table after solve (off by default)."),
     )
     parser.add_argument(
         "--bp-smooth-window",
@@ -250,7 +284,7 @@ def add_calibrate_parser(subparsers: argparse._SubParsersAction) -> argparse.Arg
             "WARNING: This flags entire SPWs, which may remove good channels. "
             "Per-channel flagging (done pre-calibration) is preferred. "
             "Use this only as a last resort if per-channel flagging is insufficient."
-        )
+        ),
     )
     parser.add_argument(
         "--export-spw-stats",
@@ -260,7 +294,7 @@ def add_calibrate_parser(subparsers: argparse._SubParsersAction) -> argparse.Arg
             "Export per-SPW flagging statistics to JSON and CSV files. "
             "Path should be base filename (extensions .json and .csv will be added). "
             "Example: --export-spw-stats /path/to/spw_stats"
-        )
+        ),
     )
     parser.add_argument(
         "--plot-bandpass",
@@ -338,7 +372,7 @@ def add_calibrate_parser(subparsers: argparse._SubParsersAction) -> argparse.Arg
             "Generate visualization of per-SPW flagging statistics. "
             "Path should be output filename (extension .png will be added if not present). "
             "Example: --plot-spw-flagging /path/to/spw_plot"
-        )
+        ),
     )
     parser.add_argument(
         "--gain-solint",
@@ -441,9 +475,7 @@ def add_calibrate_parser(subparsers: argparse._SubParsersAction) -> argparse.Arg
     parser.add_argument(
         "--no-flag-autocorr",
         action="store_true",
-        help=(
-            "Skip flagging autocorrelations before solves (default: flag autos)."
-        ),
+        help=("Skip flagging autocorrelations before solves (default: flag autos)."),
     )
     parser.add_argument(
         "--prebp-phase",
@@ -542,13 +574,11 @@ def add_calibrate_parser(subparsers: argparse._SubParsersAction) -> argparse.Arg
     )
     parser.add_argument(
         "--model-component",
-        help=(
-            "Path to CASA component list (.cl) when --model-source=component"
-        ),
+        help=("Path to CASA component list (.cl) when --model-source=component"),
     )
     parser.add_argument(
-        "--model-image",
-        help="Path to CASA image when --model-source=image")
+        "--model-image", help="Path to CASA image when --model-source=image"
+    )
     parser.add_argument(
         "--model-field",
         help="Field name/index for setjy when --model-source=setjy",
@@ -556,14 +586,11 @@ def add_calibrate_parser(subparsers: argparse._SubParsersAction) -> argparse.Arg
     parser.add_argument(
         "--model-setjy-standard",
         default="Perley-Butler 2017",
-        help=(
-            "Flux standard for setjy (default: Perley-Butler 2017)"
-        ),
+        help=("Flux standard for setjy (default: Perley-Butler 2017)"),
     )
     parser.add_argument(
-        "--model-setjy-spw",
-        default="",
-        help="Spectral window selection for setjy")
+        "--model-setjy-spw", default="", help="Spectral window selection for setjy"
+    )
     # On-the-fly MS repair has been removed; prefer reconversion if needed.
 
     return parser
@@ -576,28 +603,28 @@ def handle_calibrate(args: argparse.Namespace) -> int:
     start_time = time.time()
 
     # Input validation
-    if not hasattr(args, 'ms') or not args.ms:
+    if not hasattr(args, "ms") or not args.ms:
         raise ValueError("MS file path is required")
     if not isinstance(args.ms, str) or not args.ms.strip():
         raise ValueError("MS file path must be a non-empty string")
     if not os.path.exists(args.ms):
         raise FileNotFoundError(f"MS file not found: {args.ms}")
-    if hasattr(args, 'refant') and args.refant is not None:
+    if hasattr(args, "refant") and args.refant is not None:
         if not isinstance(args.refant, (str, int)):
             raise ValueError("refant must be a string or integer")
-    if hasattr(args, 'field') and args.field is not None:
+    if hasattr(args, "field") and args.field is not None:
         if not isinstance(args.field, str):
             raise ValueError("field must be a string")
 
     # Performance optimization: memory management
-    if getattr(args, 'memory_limit_gb', None):
-        os.environ['CASA_MEMORY_LIMIT_GB'] = str(args.memory_limit_gb)
+    if getattr(args, "memory_limit_gb", None):
+        os.environ["CASA_MEMORY_LIMIT_GB"] = str(args.memory_limit_gb)
         logger.info(f"Memory limit set to {args.memory_limit_gb} GB")
     else:
         # Auto-estimate memory requirements
         try:
             mem_estimates = estimate_memory_requirements(args.ms)
-            if mem_estimates.get('recommended_memory_gb'):
+            if mem_estimates.get("recommended_memory_gb"):
                 logger.info(
                     f"Estimated memory requirements: {mem_estimates['recommended_memory_gb']:.1f} GB "
                     f"(MS size: {mem_estimates.get('ms_size_gb', 'unknown')} GB)"
@@ -618,9 +645,7 @@ def handle_calibrate(args: argparse.Namespace) -> int:
     logger.info("[1/6] Validating MS...")
     try:
         warnings = validate_ms_for_calibration(
-            args.ms,
-            field=args.field if args.field else None,
-            refant=args.refant
+            args.ms, field=args.field if args.field else None, refant=args.refant
         )
         # Log warnings but don't fail
         for warning in warnings:
@@ -631,7 +656,7 @@ def handle_calibrate(args: argparse.Namespace) -> int:
             "Check MS path is correct and file exists",
             "Verify file permissions",
             "Run validation: python -m dsa110_contimg.calibration.cli validate --ms <path>",
-            "Check MS structure with: python -m dsa110_contimg.calibration.cli qa check-delays --ms <path>"
+            "Check MS structure with: python -m dsa110_contimg.calibration.cli qa check-delays --ms <path>",
         ]
         error_msg = format_ms_error_with_suggestions(
             e, args.ms, "calibration validation", suggestions
@@ -643,7 +668,7 @@ def handle_calibrate(args: argparse.Namespace) -> int:
             "Check MS path is correct and file exists",
             "Verify file permissions",
             "Check MS structure and integrity",
-            "Review logs for detailed error information"
+            "Review logs for detailed error information",
         ]
         error_msg = format_ms_error_with_suggestions(
             e, args.ms, "MS validation", suggestions
@@ -664,8 +689,9 @@ def handle_calibrate(args: argparse.Namespace) -> int:
             if registry_db_env:
                 registry_db = Path(registry_db_env)
             else:
-                state_dir = Path(os.environ.get(
-                    "PIPELINE_STATE_DIR", "/data/dsa110-contimg/state"))
+                state_dir = Path(
+                    os.environ.get("PIPELINE_STATE_DIR", "/data/dsa110-contimg/state")
+                )
                 registry_db = state_dir / "cal_registry.sqlite3"
 
             # Check if registry exists
@@ -675,8 +701,7 @@ def handle_calibrate(args: argparse.Namespace) -> int:
 
                 if mid_mjd is not None:
                     # Query registry for active calibration tables
-                    existing_tables = get_active_applylist(
-                        registry_db, mid_mjd)
+                    existing_tables = get_active_applylist(registry_db, mid_mjd)
 
                     if existing_tables:
                         # Check if tables match current calibration parameters
@@ -703,20 +728,25 @@ def handle_calibrate(args: argparse.Namespace) -> int:
                             set_name, matching_refant, matching_field = row
 
                             # Check if parameters match
-                            refant_match = (not args.refant or
-                                            matching_refant == args.refant or
-                                            matching_refant is None)
+                            refant_match = (
+                                not args.refant
+                                or matching_refant == args.refant
+                                or matching_refant is None
+                            )
 
                             # Field matching: check if current field matches registered field
                             field_match = True
                             if args.field and matching_field:
                                 # Compare field selections (handle ranges like "0~23")
                                 current_fields = set(
-                                    args.field.replace("~", ",").split(","))
+                                    args.field.replace("~", ",").split(",")
+                                )
                                 registered_fields = set(
-                                    matching_field.replace("~", ",").split(","))
+                                    matching_field.replace("~", ",").split(",")
+                                )
                                 field_match = bool(
-                                    current_fields.intersection(registered_fields))
+                                    current_fields.intersection(registered_fields)
+                                )
 
                             # Check which table types exist and their ages
                             table_types = set()
@@ -724,6 +754,7 @@ def handle_calibrate(args: argparse.Namespace) -> int:
                             g_age_hours = None
 
                             import time
+
                             for table_path in existing_tables:
                                 if os.path.exists(table_path):
                                     row = conn.execute(
@@ -743,53 +774,66 @@ def handle_calibrate(args: argparse.Namespace) -> int:
 
                                         # Track ages for BP and G tables (use youngest if multiple)
                                         if table_type in ["BP", "BA"]:
-                                            if bp_age_hours is None or age_hours < bp_age_hours:
+                                            if (
+                                                bp_age_hours is None
+                                                or age_hours < bp_age_hours
+                                            ):
                                                 bp_age_hours = age_hours
                                         elif table_type in ["GP", "GA", "2G"]:
-                                            if g_age_hours is None or age_hours < g_age_hours:
+                                            if (
+                                                g_age_hours is None
+                                                or age_hours < g_age_hours
+                                            ):
                                                 g_age_hours = age_hours
 
                             # Determine what to skip based on age requirements
                             # BP tables: valid for 24 hours
                             # G tables: valid for 1 hour
-                            has_bp = any(
-                                t in table_types for t in ["BP", "BA"])
-                            has_g = any(t in table_types for t in [
-                                        "GP", "GA", "2G"])
+                            has_bp = any(t in table_types for t in ["BP", "BA"])
+                            has_g = any(t in table_types for t in ["GP", "GA", "2G"])
 
-                            bp_fresh = has_bp and bp_age_hours is not None and bp_age_hours < 24.0
-                            g_fresh = has_g and g_age_hours is not None and g_age_hours < 1.0
+                            bp_fresh = (
+                                has_bp
+                                and bp_age_hours is not None
+                                and bp_age_hours < 24.0
+                            )
+                            g_fresh = (
+                                has_g and g_age_hours is not None and g_age_hours < 1.0
+                            )
 
                             if refant_match and field_match and (bp_fresh or g_fresh):
                                 logger.info("=" * 70)
                                 logger.info(
-                                    "Registry Check: Found existing calibration tables")
+                                    "Registry Check: Found existing calibration tables"
+                                )
                                 logger.info(f"  Set name: {set_name}")
+                                logger.info(f"  Tables found: {len(existing_tables)}")
                                 logger.info(
-                                    f"  Tables found: {len(existing_tables)}")
-                                logger.info(
-                                    f"  Table types: {', '.join(sorted(table_types))}")
-                                logger.info(
-                                    f"  Reference antenna: {matching_refant}")
-                                logger.info(
-                                    f"  Calibration field: {matching_field}")
+                                    f"  Table types: {', '.join(sorted(table_types))}"
+                                )
+                                logger.info(f"  Reference antenna: {matching_refant}")
+                                logger.info(f"  Calibration field: {matching_field}")
 
                                 # Auto-skip steps if tables exist, match, and are fresh enough
                                 if bp_fresh and not args.skip_bp:
                                     logger.info(
-                                        f"  → Skipping bandpass calibration (table age: {bp_age_hours:.1f}h < 24h)")
+                                        f"  → Skipping bandpass calibration (table age: {bp_age_hours:.1f}h < 24h)"
+                                    )
                                     args.skip_bp = True
                                 elif has_bp and bp_age_hours is not None:
                                     logger.info(
-                                        f"  → Bandpass table exists but too old ({bp_age_hours:.1f}h >= 24h), will regenerate")
+                                        f"  → Bandpass table exists but too old ({bp_age_hours:.1f}h >= 24h), will regenerate"
+                                    )
 
                                 if g_fresh and not args.skip_g:
                                     logger.info(
-                                        f"  → Skipping gain calibration (table age: {g_age_hours:.1f}h < 1h)")
+                                        f"  → Skipping gain calibration (table age: {g_age_hours:.1f}h < 1h)"
+                                    )
                                     args.skip_g = True
                                 elif has_g and g_age_hours is not None:
                                     logger.info(
-                                        f"  → Gain table exists but too old ({g_age_hours:.1f}h >= 1h), will regenerate")
+                                        f"  → Gain table exists but too old ({g_age_hours:.1f}h >= 1h), will regenerate"
+                                    )
 
                                 logger.info("=" * 70)
                                 logger.info("")
@@ -797,21 +841,26 @@ def handle_calibrate(args: argparse.Namespace) -> int:
                                 if not refant_match:
                                     logger.debug(
                                         f"Registry tables use different refant ({matching_refant} vs {args.refant}), "
-                                        "will re-calibrate")
+                                        "will re-calibrate"
+                                    )
                                 if not field_match:
                                     logger.debug(
                                         f"Registry tables use different field ({matching_field} vs {args.field}), "
-                                        "will re-calibrate")
+                                        "will re-calibrate"
+                                    )
                         else:
                             logger.debug(
-                                "Could not find metadata for existing tables in registry")
+                                "Could not find metadata for existing tables in registry"
+                            )
                     else:
                         logger.debug(
-                            "No active calibration tables found in registry for this observation time")
+                            "No active calibration tables found in registry for this observation time"
+                        )
         except Exception as e:
             # Registry check failure is non-fatal - proceed with calibration
             logger.debug(
-                f"Registry check failed (non-fatal): {e}. Proceeding with calibration.")
+                f"Registry check failed (non-fatal): {e}. Proceeding with calibration."
+            )
 
     # Display workflow steps (after registry check, so it reflects what will actually run)
     workflow_steps = []
@@ -825,7 +874,8 @@ def handle_calibrate(args: argparse.Namespace) -> int:
     logger.info("CALIBRATION WORKFLOW")
     logger.info("=" * 70)
     logger.info(
-        f"Steps: {', '.join(workflow_steps) if workflow_steps else 'validation only'}")
+        f"Steps: {', '.join(workflow_steps) if workflow_steps else 'validation only'}"
+    )
     logger.info("=" * 70)
     logger.info("")
 
@@ -852,7 +902,8 @@ def handle_calibrate(args: argparse.Namespace) -> int:
                 args.gain_calmode = "p"
             args.fast = True
             logger.info(
-                "Development tier: timebin=30s, chanbin=4, phase-only gains, uvrange cuts (NON-SCIENCE)")
+                "Development tier: timebin=30s, chanbin=4, phase-only gains, uvrange cuts (NON-SCIENCE)"
+            )
         elif args.preset == "standard":
             # Recommended for all science observations
             args.fast = False
@@ -860,7 +911,8 @@ def handle_calibrate(args: argparse.Namespace) -> int:
             if args.gain_calmode == "p":  # Only override if not explicitly set
                 args.gain_calmode = "ap"
             logger.info(
-                "Standard tier: full MS, amp+phase gains, no subset (recommended for science)")
+                "Standard tier: full MS, amp+phase gains, no subset (recommended for science)"
+            )
         elif args.preset == "high_precision":
             # Enhanced quality for critical observations
             args.fast = False
@@ -871,7 +923,8 @@ def handle_calibrate(args: argparse.Namespace) -> int:
             if not args.gain_minsnr:
                 args.gain_minsnr = 5.0  # Higher SNR threshold
             logger.info(
-                "High precision tier: full MS, per-integration solutions, enhanced quality (slower)")
+                "High precision tier: full MS, per-integration solutions, enhanced quality (slower)"
+            )
 
     # STRICT SEPARATION: Development tier produces NON_SCIENCE calibration tables
     # that cannot be applied to production data
@@ -910,7 +963,8 @@ def handle_calibrate(args: argparse.Namespace) -> int:
                 # Validate catalog file exists
                 try:
                     validate_file_path(
-                        args.cal_catalog, must_exist=True, must_readable=True)
+                        args.cal_catalog, must_exist=True, must_readable=True
+                    )
                 except ValidationError as e:
                     logger.error("Catalog validation failed:")
                     for error in e.errors:
@@ -920,32 +974,30 @@ def handle_calibrate(args: argparse.Namespace) -> int:
             else:
                 # Auto-resolve to SQLite database (preferred) or CSV fallback
                 try:
-                    from dsa110_contimg.calibration.catalogs import resolve_vla_catalog_path
-                    catalog_path = str(
-                        resolve_vla_catalog_path(prefer_sqlite=True))
+                    from dsa110_contimg.calibration.catalogs import (
+                        resolve_vla_catalog_path,
+                    )
+
+                    catalog_path = str(resolve_vla_catalog_path(prefer_sqlite=True))
                     logger.info(f"Auto-resolved catalog to: {catalog_path}")
                 except FileNotFoundError as e:
                     logger.error(f"Catalog auto-resolution failed: {e}")
                     logger.error(
-                        "Provide --cal-catalog explicitly or ensure SQLite catalog exists at state/catalogs/vla_calibrators.sqlite3")
+                        "Provide --cal-catalog explicitly or ensure SQLite catalog exists at state/catalogs/vla_calibrators.sqlite3"
+                    )
                     sys.exit(1)
 
             logger.info("Selecting bandpass fields from catalog...")
             sel, idxs, wflux, calinfo, peak_field = select_bandpass_from_catalog(
                 args.ms,
                 catalog_path,
-                search_radius_deg=float(
-                    args.cal_search_radius_deg or 1.0
-                ),
+                search_radius_deg=float(args.cal_search_radius_deg or 1.0),
                 window=max(1, int(args.bp_window)),
-                min_pb=(
-                    float(args.bp_min_pb)
-                    if args.bp_min_pb is not None
-                    else None
-                ),
+                min_pb=(float(args.bp_min_pb) if args.bp_min_pb is not None else None),
             )
             logger.debug(
-                f"Catalog selection complete: sel={sel}, calinfo={calinfo}, peak_field={peak_field}")
+                f"Catalog selection complete: sel={sel}, calinfo={calinfo}, peak_field={peak_field}"
+            )
             name, ra_deg, dec_deg, flux_jy = calinfo
             # Store catalog path and calinfo for later use in MODEL_DATA population
             resolved_catalog_path = catalog_path
@@ -963,11 +1015,15 @@ def handle_calibrate(args: argparse.Namespace) -> int:
                 sys.stdout.flush()
                 _calibrator_info_printed_global = True
             logger.info(
-                f"Auto-selected bandpass fields: {sel} (indices: {idxs}, peak: {peak_field})")
+                f"Auto-selected bandpass fields: {sel} (indices: {idxs}, peak: {peak_field})"
+            )
             field_sel = sel
-            peak_field_idx = peak_field  # Store peak field for use when not combining fields
+            peak_field_idx = (
+                peak_field  # Store peak field for use when not combining fields
+            )
             logger.debug(
-                f"Field selection complete, field_sel={field_sel}, peak_field={peak_field_idx}")
+                f"Field selection complete, field_sel={field_sel}, peak_field={peak_field_idx}"
+            )
 
             # CRITICAL: Rephase MS to calibrator position immediately after field selection
             # This rephases ALL fields to the same phase center (calibrator position),
@@ -977,7 +1033,7 @@ def handle_calibrate(args: argparse.Namespace) -> int:
             # SKIP REPHASING if --skip-rephase is specified
             # This allows ft() to work correctly using meridian phase center (no manual calculation needed)
             # ms_was_rephased is already initialized at the start of this block (line 687)
-            if not getattr(args, 'skip_rephase', False):
+            if not getattr(args, "skip_rephase", False):
                 logger.debug("Rephasing MS to calibrator position...")
                 rephase_success = _rephase_ms_to_calibrator(
                     args.ms,
@@ -987,69 +1043,83 @@ def handle_calibrate(args: argparse.Namespace) -> int:
                     logger,
                 )
                 if not rephase_success:
-                    logger.warning(
-                        "Rephasing failed, but continuing with calibration")
-                    ms_was_rephased = False  # Explicitly set to False when rephasing fails
+                    logger.warning("Rephasing failed, but continuing with calibration")
+                    ms_was_rephased = (
+                        False  # Explicitly set to False when rephasing fails
+                    )
                 else:
                     # After rephasing, all fields have the same phase center, so we can combine
                     # all fields for better SNR (instead of just using field 0)
                     logger.debug(
-                        "After rephasing, all fields share the same phase center")
+                        "After rephasing, all fields share the same phase center"
+                    )
                     # Get total number of fields from MS
                     from casacore.tables import table
+
                     with table(f"{args.ms}::FIELD", readonly=True) as tb:
                         nfields = tb.nrows()
                     # Update field_sel to use all fields (0~N-1) for maximum integration time
                     field_sel = f"0~{nfields-1}"
                     peak_field_idx = peak_field  # Keep peak field for reference
                     logger.debug(
-                        f"Updated field selection to all {nfields} fields after rephasing: {field_sel}")
+                        f"Updated field selection to all {nfields} fields after rephasing: {field_sel}"
+                    )
                     # Enable field combining by default when rephasing (all fields point at calibrator)
                     # This maximizes integration time and SNR for calibration solutions
                     args.bp_combine_field = True
                     logger.debug(
-                        "Enabled --bp-combine-field by default (rephased MS with all fields at same phase center)")
+                        "Enabled --bp-combine-field by default (rephased MS with all fields at same phase center)"
+                    )
             else:
                 logger.debug("Skipping rephasing (--skip-rephase specified)")
                 logger.debug(
-                    "Using original meridian phase center (ft() will work correctly)")
+                    "Using original meridian phase center (ft() will work correctly)"
+                )
                 logger.info("Skipping rephasing - using meridian phase center")
                 ms_was_rephased = False  # No rephasing when skip_rephase is used
 
             # Track whether rephasing was performed in auto-fields case
             # This is used to determine if we should use manual MODEL_DATA calculation
-            if not getattr(args, 'skip_rephase', False) and ('rephase_success' in locals() and rephase_success):
+            if not getattr(args, "skip_rephase", False) and (
+                "rephase_success" in locals() and rephase_success
+            ):
                 ms_was_rephased = True
         except Exception as e:
             logger.warning(
                 f"Auto field selection failed ({e}); falling back to --field"
             )
             print(
-                (
-                    "Auto field selection failed ({}); falling back to "
-                    "--field"
-                ).format(e)
+                ("Auto field selection failed ({}); falling back to " "--field").format(
+                    e
+                )
             )
             if field_sel is None:
-                logger.error(
-                    "No --field provided and auto selection failed"
-                )
+                logger.error("No --field provided and auto selection failed")
                 sys.exit(1)
 
             # If auto-fields failed but explicit calibrator coordinates provided, use those
-            if hasattr(args, 'cal_ra_deg') and hasattr(args, 'cal_dec_deg') and args.cal_ra_deg and args.cal_dec_deg:
+            if (
+                hasattr(args, "cal_ra_deg")
+                and hasattr(args, "cal_dec_deg")
+                and args.cal_ra_deg
+                and args.cal_dec_deg
+            ):
                 logger.info(
-                    "Using explicit calibrator coordinates (--cal-ra-deg, --cal-dec-deg)")
+                    "Using explicit calibrator coordinates (--cal-ra-deg, --cal-dec-deg)"
+                )
                 ra_deg = float(args.cal_ra_deg)
                 dec_deg = float(args.cal_dec_deg)
-                flux_jy = float(getattr(args, 'cal_flux_jy', None) or 2.5)
-                name = getattr(args, 'cal_name',
-                               None) or f"manual_{ra_deg:.2f}_{dec_deg:.2f}"
+                flux_jy = float(getattr(args, "cal_flux_jy", None) or 2.5)
+                name = (
+                    getattr(args, "cal_name", None)
+                    or f"manual_{ra_deg:.2f}_{dec_deg:.2f}"
+                )
                 logger.info(
-                    f"Calibrator: {name} @ ({ra_deg:.4f}°, {dec_deg:.4f}°), flux={flux_jy:.2f} Jy")
+                    f"Calibrator: {name} @ ({ra_deg:.4f}°, {dec_deg:.4f}°), flux={flux_jy:.2f} Jy"
+                )
 
                 # Rephase to calibrator if not skipping rephasing
-                if not getattr(args, 'skip_rephase', False):
+                if not getattr(args, "skip_rephase", False):
                     logger.debug("Rephasing MS to calibrator position...")
                     rephase_success = _rephase_ms_to_calibrator(
                         args.ms,
@@ -1061,11 +1131,15 @@ def handle_calibrate(args: argparse.Namespace) -> int:
                     if rephase_success:
                         ms_was_rephased = True
                         logger.debug(
-                            "After rephasing, all fields share the same phase center")
+                            "After rephasing, all fields share the same phase center"
+                        )
                     else:
                         logger.warning(
-                            "Rephasing failed, but continuing with calibration")
-                        ms_was_rephased = False  # Explicitly set to False when rephasing fails
+                            "Rephasing failed, but continuing with calibration"
+                        )
+                        ms_was_rephased = (
+                            False  # Explicitly set to False when rephasing fails
+                        )
                 else:
                     ms_was_rephased = False
     if field_sel is None:
@@ -1086,13 +1160,13 @@ def handle_calibrate(args: argparse.Namespace) -> int:
     refant = args.refant
     if args.refant_ranking:
         import json
+
         try:
-            with open(args.refant_ranking, 'r', encoding='utf-8') as fh:
+            with open(args.refant_ranking, "r", encoding="utf-8") as fh:
                 data = json.load(fh)
-            rec = data.get('recommended') if isinstance(
-                data, dict) else None
-            if rec and rec.get('antenna_id') is not None:
-                refant = str(rec['antenna_id'])
+            rec = data.get("recommended") if isinstance(data, dict) else None
+            if rec and rec.get("antenna_id") is not None:
+                refant = str(rec["antenna_id"])
                 logger.info(f"Reference antenna (from ranking): {refant}")
         except Exception as e:
             # If a ranking file was provided but failed to load, fall back to
@@ -1121,6 +1195,7 @@ def handle_calibrate(args: argparse.Namespace) -> int:
                 get_default_outrigger_refants,
             )
             import glob
+
             ms_dir = os.path.dirname(os.path.abspath(args.ms))
             # Search for a recent calibration table to inform the recommendation
             patterns = [
@@ -1132,8 +1207,7 @@ def handle_calibrate(args: argparse.Namespace) -> int:
             candidates = []
             for pat in patterns:
                 candidates.extend(glob.glob(pat))
-            caltable = max(
-                candidates, key=os.path.getmtime) if candidates else None
+            caltable = max(candidates, key=os.path.getmtime) if candidates else None
             refant = recommend_refants_from_ms(args.ms, caltable_path=caltable)
             if caltable:
                 print(
@@ -1142,13 +1216,14 @@ def handle_calibrate(args: argparse.Namespace) -> int:
             else:
                 # recommend_refants_from_ms will have returned the default chain
                 # when no caltable is available
-                print(
-                    f"Reference antenna (auto, default outrigger chain): {refant}"
-                )
+                print(f"Reference antenna (auto, default outrigger chain): {refant}")
         except Exception as e:
             # Last-resort fallback to the static default chain
             try:
-                from dsa110_contimg.calibration.refant_selection import get_default_outrigger_refants
+                from dsa110_contimg.calibration.refant_selection import (
+                    get_default_outrigger_refants,
+                )
+
                 refant = get_default_outrigger_refants()
                 print(
                     f"Reference antenna (auto, default outrigger chain): {refant} (reason: {e})"
@@ -1168,8 +1243,7 @@ def handle_calibrate(args: argparse.Namespace) -> int:
         print("\n" + "=" * 70)
         print("RESETTING MS TO POST-GENERATION STATE")
         print("=" * 70)
-        _clear_all_calibration_artifacts(
-            args.ms, logger, restore_field_names=True)
+        _clear_all_calibration_artifacts(args.ms, logger, restore_field_names=True)
         print("=" * 70)
 
         # After reset, if auto-fields is enabled, we'll rephase to calibrator position
@@ -1181,8 +1255,7 @@ def handle_calibrate(args: argparse.Namespace) -> int:
         logger.info("\n" + "=" * 70)
         logger.info("CLEARING ALL CALIBRATION ARTIFACTS")
         logger.info("=" * 70)
-        _clear_all_calibration_artifacts(
-            args.ms, logger, restore_field_names=False)
+        _clear_all_calibration_artifacts(args.ms, logger, restore_field_names=False)
         logger.info("✓ All calibration artifacts cleared\n")
 
     # MS repair flags removed.
@@ -1195,7 +1268,7 @@ def handle_calibrate(args: argparse.Namespace) -> int:
         from .subset import make_subset
         from casacore.tables import table
 
-        base = ms_in.rstrip('/').rstrip('.ms')
+        base = ms_in.rstrip("/").rstrip(".ms")
         ms_minimal = f"{base}.minimal.ms"
 
         logger.warning(
@@ -1223,6 +1296,7 @@ def handle_calibrate(args: argparse.Namespace) -> int:
         # Validate minimal subset
         try:
             from dsa110_contimg.utils.validation import validate_ms
+
             validate_ms(ms_minimal, check_empty=True)
         except ValidationError as e:
             logger.error("Minimal subset MS validation failed:")
@@ -1244,7 +1318,7 @@ def handle_calibrate(args: argparse.Namespace) -> int:
         from .subset import make_subset
         from casacore.tables import table
 
-        base = ms_in.rstrip('/').rstrip('.ms')
+        base = ms_in.rstrip("/").rstrip(".ms")
         ms_fast = f"{base}.fast.ms"
 
         logger.warning(
@@ -1257,7 +1331,8 @@ def handle_calibrate(args: argparse.Namespace) -> int:
             "=" * 70
         )
         logger.info(
-            f"Creating fast subset: timebin={args.timebin} chanbin={args.chanbin} -> {ms_fast}")
+            f"Creating fast subset: timebin={args.timebin} chanbin={args.chanbin} -> {ms_fast}"
+        )
         make_subset(
             ms_in,
             ms_fast,
@@ -1269,6 +1344,7 @@ def handle_calibrate(args: argparse.Namespace) -> int:
         # Validate fast subset MS was created successfully
         try:
             from dsa110_contimg.utils.validation import validate_ms
+
             validate_ms(ms_fast, check_empty=True)
         except ValidationError as e:
             logger.error("Fast subset MS validation failed:")
@@ -1284,23 +1360,23 @@ def handle_calibrate(args: argparse.Namespace) -> int:
     # Dry-run mode: validate and estimate, but don't actually solve
     if args.dry_run:
         logger.info("\n" + "=" * 70)
-        logger.info(
-            "DRY-RUN MODE: Simulating calibration without writing caltables")
+        logger.info("DRY-RUN MODE: Simulating calibration without writing caltables")
         logger.info("=" * 70)
         logger.info(f"MS: {ms_in}")
         logger.info(f"Field: {field_sel}")
         logger.info(f"Reference Antenna: {refant}")
         logger.info(
-            f"K-calibration: {'enabled' if args.do_k else 'disabled (default)'}")
-        logger.info(
-            f"Bandpass: {'enabled' if not args.skip_bp else 'disabled'}")
+            f"K-calibration: {'enabled' if args.do_k else 'disabled (default)'}"
+        )
+        logger.info(f"Bandpass: {'enabled' if not args.skip_bp else 'disabled'}")
         logger.info(f"Gain: {'enabled' if not args.skip_g else 'disabled'}")
         logger.info("")
 
         # Validate MS
         try:
             warnings = validate_ms_for_calibration(
-                ms_in, field=field_sel, refant=refant)
+                ms_in, field=field_sel, refant=refant
+            )
             for warning in warnings:
                 logger.warning(warning)
             logger.info("✓ MS validation passed")
@@ -1313,23 +1389,24 @@ def handle_calibrate(args: argparse.Namespace) -> int:
         # Estimate unflagged data after flagging (simulate)
         try:
             from dsa110_contimg.utils.ms_helpers import validate_ms_unflagged_fraction
-            current_unflagged = validate_ms_unflagged_fraction(
-                ms_in, sample_size=10000)
+
+            current_unflagged = validate_ms_unflagged_fraction(ms_in, sample_size=10000)
             # Estimate after flagging (conservative: 10-20% reduction)
             estimated_unflagged = current_unflagged * 0.85
             logger.info(
-                f"Estimated unflagged data after flagging: {estimated_unflagged*100:.1f}%")
+                f"Estimated unflagged data after flagging: {estimated_unflagged*100:.1f}%"
+            )
             if estimated_unflagged < 0.1:
                 logger.warning(
-                    "WARNING: May have insufficient unflagged data after flagging")
+                    "WARNING: May have insufficient unflagged data after flagging"
+                )
         except Exception as e:
             logger.warning(f"Could not estimate unflagged data: {e}")
 
         # Estimate time (rough)
         logger.info("\nEstimated calibration time:")
         if args.do_k:
-            logger.info(
-                "  K-calibration: ~15-30 min (full) or ~2-3 min (fast-only)")
+            logger.info("  K-calibration: ~15-30 min (full) or ~2-3 min (fast-only)")
         if not args.skip_bp:
             logger.info("  Bandpass: ~5-15 min")
         if not args.skip_g:
@@ -1337,16 +1414,17 @@ def handle_calibrate(args: argparse.Namespace) -> int:
         logger.info("\nTotal estimated time: 15-60 min (depending on options)")
 
         logger.info(
-            "\n✓ Dry-run complete. Use without --dry-run to perform actual calibration.")
+            "\n✓ Dry-run complete. Use without --dry-run to perform actual calibration."
+        )
         return 0
 
     if not args.no_flagging:
         logger.info("[2/6] Flagging bad data...")
-        mode = getattr(args, 'flagging_mode', 'zeros') or 'zeros'
-        if mode == 'zeros':
+        mode = getattr(args, "flagging_mode", "zeros") or "zeros"
+        if mode == "zeros":
             reset_flags(ms_in)
             flag_zeros(ms_in)
-        elif mode == 'rfi':
+        elif mode == "rfi":
             reset_flags(ms_in)
             flag_zeros(ms_in)
             flag_rfi(ms_in)
@@ -1356,41 +1434,49 @@ def handle_calibrate(args: argparse.Namespace) -> int:
         # Non-fatal: CASA calibration tasks respect FLAG column regardless of weights.
         try:
             from casatasks import initweights
+
             print("Updating weights to match flags after flagging...")
             # NOTE: When wtmode='weight', initweights initializes WEIGHT_SPECTRUM from WEIGHT column
             # dowtsp=True creates/updates WEIGHT_SPECTRUM column
             # CASA's initweights does NOT have doweight or doflag parameters
             initweights(
                 vis=ms_in,
-                wtmode='weight',  # Initialize WEIGHT_SPECTRUM from existing WEIGHT
-                dowtsp=True      # Create/update WEIGHT_SPECTRUM column
+                wtmode="weight",  # Initialize WEIGHT_SPECTRUM from existing WEIGHT
+                dowtsp=True,  # Create/update WEIGHT_SPECTRUM column
             )
             print("✓ Weights updated to match flags")
         except Exception as e:
             # Non-fatal: CASA calibration tasks respect FLAG column automatically
             # Even if weights aren't updated, calibration will still work correctly
-            logger.warning(f"Could not update weights after flagging: {e}. "
-                           f"Calibration will proceed (CASA tasks respect FLAG column automatically).")
+            logger.warning(
+                f"Could not update weights after flagging: {e}. "
+                f"Calibration will proceed (CASA tasks respect FLAG column automatically)."
+            )
 
         # PRECONDITION CHECK: Verify sufficient unflagged data remains after flagging
         # This ensures we follow "measure twice, cut once" - verify data quality
         # before proceeding with expensive calibration operations.
         # OPTIMIZATION: Use memory-efficient sampling instead of reading entire MS
         try:
-            from dsa110_contimg.utils.ms_helpers import validate_ms_unflagged_fraction, estimate_ms_size
+            from dsa110_contimg.utils.ms_helpers import (
+                validate_ms_unflagged_fraction,
+                estimate_ms_size,
+            )
             from casacore.tables import table
 
             # Get MS size for reporting
             ms_info = estimate_ms_size(ms_in)
-            n_rows = ms_info['n_rows']
+            n_rows = ms_info["n_rows"]
 
             # Sample flags efficiently
             unflagged_fraction = validate_ms_unflagged_fraction(
-                ms_in, sample_size=10000)
+                ms_in, sample_size=10000
+            )
 
             # Estimate total points (rough estimate)
-            total_points = n_rows * \
-                ms_info.get('n_channels', 1) * ms_info.get('n_pols', 1)
+            total_points = (
+                n_rows * ms_info.get("n_channels", 1) * ms_info.get("n_pols", 1)
+            )
             unflagged_points = int(total_points * unflagged_fraction)
 
             if unflagged_fraction < 0.1:  # Less than 10% unflagged
@@ -1413,26 +1499,23 @@ def handle_calibrate(args: argparse.Namespace) -> int:
 
             # Channel-level flagging: Analyze and flag problematic channels after RFI flagging
             # This is more precise than SPW-level flagging since SPWs are arbitrary subdivisions
-            if getattr(args, 'auto_flag_channels', True):
-                logger.info(
-                    "[2/6] Analyzing channel-level flagging statistics...")
+            if getattr(args, "auto_flag_channels", True):
+                logger.info("[2/6] Analyzing channel-level flagging statistics...")
                 try:
                     problematic_channels = analyze_channel_flagging_stats(
-                        args.ms,
-                        threshold=getattr(args, 'channel_flag_threshold', 0.5)
+                        args.ms, threshold=getattr(args, "channel_flag_threshold", 0.5)
                     )
 
                     if problematic_channels:
                         total_flagged_channels = sum(
-                            len(chans) for chans in problematic_channels.values())
+                            len(chans) for chans in problematic_channels.values()
+                        )
                         logger.info(
                             f"Found {total_flagged_channels} problematic channel(s) across "
                             f"{len(problematic_channels)} SPW(s):"
                         )
                         flag_problematic_channels(
-                            args.ms,
-                            problematic_channels,
-                            datacolumn=args.datacolumn
+                            args.ms, problematic_channels, datacolumn=args.datacolumn
                         )
                         logger.info(
                             f"✓ [2/6] Channel-level flagging complete: {total_flagged_channels} "
@@ -1441,10 +1524,10 @@ def handle_calibrate(args: argparse.Namespace) -> int:
                     else:
                         logger.info("✓ [2/6] No problematic channels detected")
                 except Exception as e:
+                    logger.warning(f"Channel-level flagging analysis failed: {e}")
                     logger.warning(
-                        f"Channel-level flagging analysis failed: {e}")
-                    logger.warning(
-                        "Continuing with calibration (channel-level flagging skipped)")
+                        "Continuing with calibration (channel-level flagging skipped)"
+                    )
         except Exception as e:
             logger.error(
                 f"Failed to validate unflagged data after flagging: {e}. "
@@ -1456,20 +1539,17 @@ def handle_calibrate(args: argparse.Namespace) -> int:
     try:
         # Available only in this scope if auto-fields branch set these
         # locals
-        if (
-            'idxs' in locals()
-            and 'wflux' in locals()
-            and idxs is not None
-        ):
+        if "idxs" in locals() and "wflux" in locals() and idxs is not None:
             import numpy as np
+
             k_idx = int(idxs[int(np.nanargmax(wflux))])
             k_field_sel = str(k_idx)
     except Exception:
         pass
     # As a fallback, if field_sel is a range like A~B, pick B
-    if '~' in str(field_sel) and (k_field_sel == field_sel):
+    if "~" in str(field_sel) and (k_field_sel == field_sel):
         try:
-            _, b = str(field_sel).split('~')
+            _, b = str(field_sel).split("~")
             k_field_sel = str(int(b))
         except Exception:
             pass
@@ -1485,9 +1565,7 @@ def handle_calibrate(args: argparse.Namespace) -> int:
             "Use --do-k to enable if needed."
         )
     else:
-        logger.info(
-            f"Delay solve field (K): {k_field_sel}; BP/G fields: {field_sel}"
-        )
+        logger.info(f"Delay solve field (K): {k_field_sel}; BP/G fields: {field_sel}")
 
     # CRITICAL: Populate MODEL_DATA BEFORE calibration (K, BP, or G)
     # All calibration steps require MODEL_DATA to be populated so they know what signal
@@ -1497,7 +1575,8 @@ def handle_calibrate(args: argparse.Namespace) -> int:
     logger.debug("Checking if MODEL_DATA needs to be populated...")
     needs_model = args.do_k or not args.skip_bp or not args.skip_g
     logger.debug(
-        f"needs_model={needs_model}, skip_bp={args.skip_bp}, skip_g={args.skip_g}, do_k={args.do_k}")
+        f"needs_model={needs_model}, skip_bp={args.skip_bp}, skip_g={args.skip_g}, do_k={args.do_k}"
+    )
     logger.debug(f"model_source={args.model_source}")
 
     # Validate model source usage BEFORE populating MODEL_DATA
@@ -1514,7 +1593,7 @@ def handle_calibrate(args: argparse.Namespace) -> int:
                     "For more information, see: docs/reports/EDGE_CASE_DOCUMENTATION.md"
                 )
                 sys.exit(1)
-            if not (hasattr(args, 'cal_ra_deg') and args.cal_ra_deg):
+            if not (hasattr(args, "cal_ra_deg") and args.cal_ra_deg):
                 logger.warning(
                     "WARNING: --model-source=setjy without explicit coordinates may have phase issues.\n"
                     "Recommendation: Provide --cal-ra-deg and --cal-dec-deg for accurate MODEL_DATA.\n"
@@ -1523,7 +1602,7 @@ def handle_calibrate(args: argparse.Namespace) -> int:
 
         # Inform about catalog model default behavior
         if args.model_source == "catalog":
-            if not (hasattr(args, 'cal_ra_deg') and args.cal_ra_deg):
+            if not (hasattr(args, "cal_ra_deg") and args.cal_ra_deg):
                 logger.info(
                     "INFO: Using catalog model without explicit coordinates.\n"
                     "Will attempt --auto-fields to find calibrator in MS field of view.\n"
@@ -1534,19 +1613,21 @@ def handle_calibrate(args: argparse.Namespace) -> int:
         logger.info("[3/6] Populating MODEL_DATA...")
         try:
             from . import model as model_helpers
+
             if args.model_source == "catalog":
                 logger.debug("Using catalog model source")
                 # Check if we have calibrator info from auto_fields
                 # calinfo is set when --auto-fields is used (regardless of whether --cal-catalog was explicit)
                 if (
                     args.auto_fields
-                    and 'calinfo' in locals()
+                    and "calinfo" in locals()
                     and isinstance(calinfo, (list, tuple))
                     and len(calinfo) >= 4
                 ):
                     name, ra_deg, dec_deg, flux_jy = calinfo
                     logger.debug(
-                        f"Found calibrator info, proceeding with MODEL_DATA population for {name}...")
+                        f"Found calibrator info, proceeding with MODEL_DATA population for {name}..."
+                    )
                     logger.info(f"Populating MODEL_DATA for {name}...")
 
                     # Enhanced MODEL_DATA validation against catalog
@@ -1559,14 +1640,13 @@ def handle_calibrate(args: argparse.Namespace) -> int:
                     )
 
                     if not validation_results["all_valid"]:
-                        logger.warning(
-                            "MODEL_DATA validation issues detected:")
+                        logger.warning("MODEL_DATA validation issues detected:")
                         if not validation_results.get("populated", False):
-                            logger.warning(
-                                "  - MODEL_DATA not properly populated")
+                            logger.warning("  - MODEL_DATA not properly populated")
                         if validation_results.get("catalog_match") is False:
                             catalog_details = validation_results["details"].get(
-                                "catalog", {})
+                                "catalog", {}
+                            )
                             if not catalog_details.get("position_match", True):
                                 logger.warning(
                                     f"  - Phase center offset: {catalog_details.get('separation_arcmin', 'unknown')} arcmin"
@@ -1576,8 +1656,7 @@ def handle_calibrate(args: argparse.Namespace) -> int:
                                     f"  - Flux mismatch: ratio = {catalog_details.get('flux_ratio', 'unknown')}"
                                 )
                         if not validation_results.get("consistent", True):
-                            logger.warning(
-                                "  - MODEL_DATA inconsistent across fields")
+                            logger.warning("  - MODEL_DATA inconsistent across fields")
                     else:
                         logger.info("✓ MODEL_DATA validation passed")
 
@@ -1603,48 +1682,47 @@ def handle_calibrate(args: argparse.Namespace) -> int:
                             # We also update REFERENCE_DIR after phaseshift to keep both in sync.
                             if "REFERENCE_DIR" in tf.colnames():
                                 ref_dir = tf.getcol("REFERENCE_DIR")
-                                ms_ra_rad = float(
-                                    np.array(ref_dir[0]).ravel()[0])
-                                ms_dec_rad = float(
-                                    np.array(ref_dir[0]).ravel()[1])
+                                ms_ra_rad = float(np.array(ref_dir[0]).ravel()[0])
+                                ms_dec_rad = float(np.array(ref_dir[0]).ravel()[1])
                             else:
                                 # Fallback to PHASE_DIR if REFERENCE_DIR not available
                                 phase_dir = tf.getcol("PHASE_DIR")
-                                ms_ra_rad = float(
-                                    np.array(phase_dir[0]).ravel()[0])
-                                ms_dec_rad = float(
-                                    np.array(phase_dir[0]).ravel()[1])
+                                ms_ra_rad = float(np.array(phase_dir[0]).ravel()[0])
+                                ms_dec_rad = float(np.array(phase_dir[0]).ravel()[1])
                             ms_ra_deg = np.rad2deg(ms_ra_rad)
                             ms_dec_deg = np.rad2deg(ms_dec_rad)
 
                         print(
-                            f"MS phase center: RA={ms_ra_deg:.4f}°, Dec={ms_dec_deg:.4f}°")
+                            f"MS phase center: RA={ms_ra_deg:.4f}°, Dec={ms_dec_deg:.4f}°"
+                        )
                         ms_coord = SkyCoord(
-                            ra=ms_ra_deg*u.deg, dec=ms_dec_deg*u.deg)
-                        cal_coord = SkyCoord(
-                            ra=ra_deg*u.deg, dec=dec_deg*u.deg)
-                        sep_arcmin = ms_coord.separation(
-                            cal_coord).to(u.arcmin).value
+                            ra=ms_ra_deg * u.deg, dec=ms_dec_deg * u.deg
+                        )
+                        cal_coord = SkyCoord(ra=ra_deg * u.deg, dec=dec_deg * u.deg)
+                        sep_arcmin = ms_coord.separation(cal_coord).to(u.arcmin).value
 
                         print(f"Separation: {sep_arcmin:.2f} arcmin")
                         if sep_arcmin < 1.0:
                             logger.info(
-                                f"✓ MS already phased to calibrator position (offset: {sep_arcmin:.2f} arcmin)")
+                                f"✓ MS already phased to calibrator position (offset: {sep_arcmin:.2f} arcmin)"
+                            )
                             needs_rephasing = False
                         else:
                             print(
-                                f"Rephasing MS to calibrator position: {name} @ ({ra_deg:.4f}°, {dec_deg:.4f}°)")
+                                f"Rephasing MS to calibrator position: {name} @ ({ra_deg:.4f}°, {dec_deg:.4f}°)"
+                            )
                             print(
-                                f"  Current phase center offset: {sep_arcmin:.2f} arcmin")
+                                f"  Current phase center offset: {sep_arcmin:.2f} arcmin"
+                            )
                             needs_rephasing = True
                     except Exception as e:
                         logger.warning(
-                            f"Could not check phase center: {e}. Assuming rephasing needed.")
+                            f"Could not check phase center: {e}. Assuming rephasing needed."
+                        )
                         needs_rephasing = True
 
                     if needs_rephasing:
-                        logger.debug(
-                            "Rephasing needed, starting rephasing workflow...")
+                        logger.debug("Rephasing needed, starting rephasing workflow...")
 
                         # CRITICAL: UVW coordinates cannot be corrected by simple addition/subtraction.
                         # When phase center changes, UVW must be rotated/transformed using coordinate rotation.
@@ -1661,77 +1739,94 @@ def handle_calibrate(args: argparse.Namespace) -> int:
                             from dsa110_contimg.calibration.uvw_verification import (
                                 get_phase_center_from_ms,
                             )
-                            logger.debug(
-                                "Imports complete, formatting phase center...")
+
+                            logger.debug("Imports complete, formatting phase center...")
 
                             # Capture old phase center for UVW verification
                             try:
                                 old_phase_center = get_phase_center_from_ms(
-                                    args.ms, field=0)
+                                    args.ms, field=0
+                                )
                                 new_phase_center = (ra_deg, dec_deg)
                             except Exception:
                                 old_phase_center = None
                                 new_phase_center = (ra_deg, dec_deg)
 
                             # Format phase center string for CASA
-                            ra_hms = Angle(ra_deg, unit='deg').to_string(
-                                unit='hourangle', sep='hms', precision=2, pad=True
-                            ).replace(' ', '')
-                            dec_dms = Angle(dec_deg, unit='deg').to_string(
-                                unit='deg', sep='dms', precision=2, alwayssign=True, pad=True
-                            ).replace(' ', '')
+                            ra_hms = (
+                                Angle(ra_deg, unit="deg")
+                                .to_string(
+                                    unit="hourangle", sep="hms", precision=2, pad=True
+                                )
+                                .replace(" ", "")
+                            )
+                            dec_dms = (
+                                Angle(dec_deg, unit="deg")
+                                .to_string(
+                                    unit="deg",
+                                    sep="dms",
+                                    precision=2,
+                                    alwayssign=True,
+                                    pad=True,
+                                )
+                                .replace(" ", "")
+                            )
                             phasecenter_str = f"J2000 {ra_hms} {dec_dms}"
-                            logger.debug(
-                                f"Phase center string: {phasecenter_str}")
+                            logger.debug(f"Phase center string: {phasecenter_str}")
 
                             # Create temporary MS for rephased data
                             # Use absolute path and ensure it's a sibling, not nested
-                            ms_abs = os.path.abspath(args.ms.rstrip('/'))
+                            ms_abs = os.path.abspath(args.ms.rstrip("/"))
                             ms_dir = os.path.dirname(ms_abs)
-                            ms_base = os.path.basename(ms_abs).rstrip('.ms')
-                            ms_phased = os.path.join(
-                                ms_dir, f"{ms_base}.phased.ms")
+                            ms_base = os.path.basename(ms_abs).rstrip(".ms")
+                            ms_phased = os.path.join(ms_dir, f"{ms_base}.phased.ms")
 
                             # Clean up any existing temporary files
                             if os.path.exists(ms_phased):
-                                logger.debug(
-                                    "Removing existing phased MS: {ms_phased}")
+                                logger.debug("Removing existing phased MS: {ms_phased}")
                                 shutil.rmtree(ms_phased, ignore_errors=True)
 
                             # Calculate phase shift magnitude to determine method
                             from astropy.coordinates import SkyCoord
                             from astropy import units as u
+
                             old_coord = SkyCoord(
-                                ra=old_phase_center[0]*u.deg, dec=old_phase_center[1]*u.deg, frame='icrs')
+                                ra=old_phase_center[0] * u.deg,
+                                dec=old_phase_center[1] * u.deg,
+                                frame="icrs",
+                            )
                             new_coord = SkyCoord(
-                                ra=new_phase_center[0]*u.deg, dec=new_phase_center[1]*u.deg, frame='icrs')
-                            phase_shift_arcmin = old_coord.separation(
-                                new_coord).to(u.arcmin).value
+                                ra=new_phase_center[0] * u.deg,
+                                dec=new_phase_center[1] * u.deg,
+                                frame="icrs",
+                            )
+                            phase_shift_arcmin = (
+                                old_coord.separation(new_coord).to(u.arcmin).value
+                            )
 
                             logger.debug(
-                                f"Phase shift magnitude: {phase_shift_arcmin:.1f} arcmin")
+                                f"Phase shift magnitude: {phase_shift_arcmin:.1f} arcmin"
+                            )
 
                             # Try phaseshift first (preferred method)
-                            logger.info(
-                                "Running phaseshift (this may take a while)...")
+                            logger.info("Running phaseshift (this may take a while)...")
                             uv_transformation_valid = False
 
                             try:
                                 casa_phaseshift(
                                     vis=args.ms,
                                     outputvis=ms_phased,
-                                    phasecenter=phasecenter_str
+                                    phasecenter=phasecenter_str,
                                 )
                                 logger.debug("phaseshift complete")
                                 logger.info(
-                                    "✓ phaseshift completed successfully - UVW coordinates and visibility phases transformed")
+                                    "✓ phaseshift completed successfully - UVW coordinates and visibility phases transformed"
+                                )
                                 uv_transformation_valid = True
 
                             except Exception as phaseshift_error:
-                                logger.error(
-                                    f"phaseshift failed: {phaseshift_error}")
-                                logger.error(
-                                    "Cannot proceed - rephasing failed")
+                                logger.error(f"phaseshift failed: {phaseshift_error}")
+                                logger.error("Cannot proceed - rephasing failed")
                                 uv_transformation_valid = False
 
                             # CRITICAL: phaseshift must succeed
@@ -1742,12 +1837,15 @@ def handle_calibrate(args: argparse.Namespace) -> int:
                                     "Check MS phase center alignment",
                                     "Verify calibrator position matches MS phase center",
                                     "Re-run conversion with correct phase center",
-                                    "Manually rephase MS using phaseshift task"
+                                    "Manually rephase MS using phaseshift task",
                                 ]
                                 error_msg_final = format_ms_error_with_suggestions(
                                     RuntimeError(
-                                        "phaseshift failed - cannot calibrate MS with incorrect phase center"),
-                                    args.ms, "MS rephasing", suggestions
+                                        "phaseshift failed - cannot calibrate MS with incorrect phase center"
+                                    ),
+                                    args.ms,
+                                    "MS rephasing",
+                                    suggestions,
                                 )
                                 logger.error(error_msg_final)
                                 raise RuntimeError(error_msg_final)
@@ -1759,11 +1857,16 @@ def handle_calibrate(args: argparse.Namespace) -> int:
                             # Manually update REFERENCE_DIR for ALL fields if phaseshift didn't update it
                             try:
                                 from casacore.tables import table as casa_table
-                                with casa_table(f"{ms_phased}::FIELD", readonly=False) as tf:
-                                    if "REFERENCE_DIR" in tf.colnames() and "PHASE_DIR" in tf.colnames():
+
+                                with casa_table(
+                                    f"{ms_phased}::FIELD", readonly=False
+                                ) as tf:
+                                    if (
+                                        "REFERENCE_DIR" in tf.colnames()
+                                        and "PHASE_DIR" in tf.colnames()
+                                    ):
                                         # Shape: (nfields, 1, 2)
-                                        ref_dir_all = tf.getcol(
-                                            "REFERENCE_DIR")
+                                        ref_dir_all = tf.getcol("REFERENCE_DIR")
                                         # Shape: (nfields, 1, 2)
                                         phase_dir_all = tf.getcol("PHASE_DIR")
                                         nfields = len(ref_dir_all)
@@ -1776,69 +1879,89 @@ def handle_calibrate(args: argparse.Namespace) -> int:
                                             ref_dir = ref_dir_all[field_idx][0]
                                             # Shape: (2,)
                                             phase_dir = phase_dir_all[field_idx][0]
-                                            if not np.allclose(ref_dir, phase_dir, atol=2.9e-5):
+                                            if not np.allclose(
+                                                ref_dir, phase_dir, atol=2.9e-5
+                                            ):
                                                 needs_update = True
                                                 break
 
                                         if needs_update:
                                             logger.debug(
-                                                "REFERENCE_DIR not updated by phaseshift for some fields, updating manually...")
+                                                "REFERENCE_DIR not updated by phaseshift for some fields, updating manually..."
+                                            )
                                             # Update REFERENCE_DIR for ALL fields to match PHASE_DIR
                                             # This ensures each field has correct REFERENCE_DIR after rephasing
-                                            tf.putcol(
-                                                "REFERENCE_DIR", phase_dir_all)
+                                            tf.putcol("REFERENCE_DIR", phase_dir_all)
                                             logger.debug(
-                                                f"REFERENCE_DIR updated to match PHASE_DIR for all {nfields} fields")
+                                                f"REFERENCE_DIR updated to match PHASE_DIR for all {nfields} fields"
+                                            )
                                         else:
                                             logger.debug(
-                                                "REFERENCE_DIR already correct (matches PHASE_DIR for all fields)")
+                                                "REFERENCE_DIR already correct (matches PHASE_DIR for all fields)"
+                                            )
                             except Exception as refdir_error:
                                 logger.warning(
-                                    f"Could not verify/update REFERENCE_DIR: {refdir_error}")
+                                    f"Could not verify/update REFERENCE_DIR: {refdir_error}"
+                                )
                                 logger.warning(
-                                    "Calibration may fail if REFERENCE_DIR is incorrect")
+                                    "Calibration may fail if REFERENCE_DIR is incorrect"
+                                )
                             logger.debug(
-                                "Rephasing complete, verifying phase center...")
+                                "Rephasing complete, verifying phase center..."
+                            )
 
                             # Verify REFERENCE_DIR is correct after rephasing
                             try:
                                 from casacore.tables import table as casa_table
-                                with casa_table(f"{ms_phased}::FIELD", readonly=True) as tf:
+
+                                with casa_table(
+                                    f"{ms_phased}::FIELD", readonly=True
+                                ) as tf:
                                     if "REFERENCE_DIR" in tf.colnames():
-                                        ref_dir = tf.getcol(
-                                            "REFERENCE_DIR")[0][0]
+                                        ref_dir = tf.getcol("REFERENCE_DIR")[0][0]
                                         ref_ra_deg = ref_dir[0] * 180.0 / np.pi
-                                        ref_dec_deg = ref_dir[1] * \
-                                            180.0 / np.pi
+                                        ref_dec_deg = ref_dir[1] * 180.0 / np.pi
 
                                         # Check separation from calibrator
                                         from astropy.coordinates import SkyCoord
                                         from astropy import units as u
+
                                         ms_coord = SkyCoord(
-                                            ra=ref_ra_deg*u.deg, dec=ref_dec_deg*u.deg, frame='icrs')
+                                            ra=ref_ra_deg * u.deg,
+                                            dec=ref_dec_deg * u.deg,
+                                            frame="icrs",
+                                        )
                                         cal_coord = SkyCoord(
-                                            ra=ra_deg*u.deg, dec=dec_deg*u.deg, frame='icrs')
-                                        separation = ms_coord.separation(
-                                            cal_coord)
+                                            ra=ra_deg * u.deg,
+                                            dec=dec_deg * u.deg,
+                                            frame="icrs",
+                                        )
+                                        separation = ms_coord.separation(cal_coord)
 
                                         logger.debug(
-                                            f"Final REFERENCE_DIR: RA={ref_ra_deg:.6f}°, Dec={ref_dec_deg:.6f}°")
+                                            f"Final REFERENCE_DIR: RA={ref_ra_deg:.6f}°, Dec={ref_dec_deg:.6f}°"
+                                        )
                                         logger.debug(
-                                            f"Separation from calibrator: {separation.to(u.arcmin):.4f}")
+                                            f"Separation from calibrator: {separation.to(u.arcmin):.4f}"
+                                        )
 
                                         if separation.to(u.arcmin).value > 1.0:
                                             logger.warning(
-                                                f"REFERENCE_DIR still offset by {separation.to(u.arcmin):.4f} - calibration may fail")
+                                                f"REFERENCE_DIR still offset by {separation.to(u.arcmin):.4f} - calibration may fail"
+                                            )
                                         else:
                                             logger.info(
-                                                "✓ REFERENCE_DIR correctly aligned (separation < 1 arcmin)")
+                                                "✓ REFERENCE_DIR correctly aligned (separation < 1 arcmin)"
+                                            )
                             except Exception as verify_error:
                                 logger.warning(
-                                    f"Could not verify phase center: {verify_error}")
+                                    f"Could not verify phase center: {verify_error}"
+                                )
 
                             # Replace original MS with rephased version
                             logger.debug(
-                                "Replacing original MS with rephased version...")
+                                "Replacing original MS with rephased version..."
+                            )
                             shutil.rmtree(args.ms, ignore_errors=True)
                             shutil.move(ms_phased, args.ms)
                             logger.info("✓ MS rephased to calibrator position")
@@ -1850,11 +1973,13 @@ def handle_calibrate(args: argparse.Namespace) -> int:
                                 "Install CASA with phaseshift task support",
                                 "Use --skip-rephase to skip rephasing (not recommended)",
                                 "Re-run conversion with correct phase center",
-                                "Check CASA installation and version"
+                                "Check CASA installation and version",
                             ]
                             error_msg_import = format_ms_error_with_suggestions(
                                 ImportError("phaseshift task not available"),
-                                args.ms, "MS rephasing", suggestions
+                                args.ms,
+                                "MS rephasing",
+                                suggestions,
                             )
                             logger.error(error_msg_import)
                             raise RuntimeError(error_msg_import)
@@ -1865,7 +1990,7 @@ def handle_calibrate(args: argparse.Namespace) -> int:
                                 "Verify calibrator position matches MS phase center",
                                 "Re-run conversion with correct phase center",
                                 "Manually rephase MS using phaseshift task",
-                                "Check CASA logs for detailed error information"
+                                "Check CASA logs for detailed error information",
                             ]
                             error_msg_rephase = format_ms_error_with_suggestions(
                                 e, args.ms, "MS rephasing", suggestions
@@ -1880,17 +2005,21 @@ def handle_calibrate(args: argparse.Namespace) -> int:
                         ).format(n=name, ra=ra_deg, de=dec_deg, fl=flux_jy)
                     )
                     logger.info(
-                        "Calling MODEL_DATA population (this may take a while)...")
+                        "Calling MODEL_DATA population (this may take a while)..."
+                    )
                     # CRITICAL: Clear MODEL_DATA before writing, especially after rephasing
                     # Old MODEL_DATA may have been written for wrong phase center
                     try:
                         from casatasks import clearcal
+
                         clearcal(vis=args.ms, addmodel=True)
                         logger.debug(
-                            "Cleared existing MODEL_DATA before writing new model")
+                            "Cleared existing MODEL_DATA before writing new model"
+                        )
                     except Exception as e:
                         logger.warning(
-                            f"Could not clear MODEL_DATA before writing: {e}")
+                            f"Could not clear MODEL_DATA before writing: {e}"
+                        )
 
                     # Use manual calculation to populate MODEL_DATA (bypasses ft() phase center issues)
                     # Manual calculation uses PHASE_DIR per field, ensuring correct phase structure
@@ -1899,13 +2028,18 @@ def handle_calibrate(args: argparse.Namespace) -> int:
                     # Pass field parameter to ensure MODEL_DATA is written to the correct field
                     # Use field_sel (the calibrator field) for MODEL_DATA population
                     model_helpers.write_point_model_with_ft(
-                        args.ms, float(ra_deg), float(dec_deg), float(flux_jy),
-                        field=field_sel, use_manual=True)
-                    logger.debug(
-                        "MODEL_DATA population completed (manual calculation)")
+                        args.ms,
+                        float(ra_deg),
+                        float(dec_deg),
+                        float(flux_jy),
+                        field=field_sel,
+                        use_manual=True,
+                    )
+                    logger.debug("MODEL_DATA population completed (manual calculation)")
                     # Rename field to calibrator name
                     try:
                         from casacore.tables import table
+
                         with table(f"{args.ms}::FIELD", readonly=False) as field_tb:
                             # Get current field names
                             field_names = field_tb.getcol("NAME")
@@ -1916,44 +2050,62 @@ def handle_calibrate(args: argparse.Namespace) -> int:
                                 logger.info(f"✓ Renamed field 0 to '{name}'")
                     except Exception as e:
                         logger.warning(
-                            f"Could not rename field to calibrator name: {e}")
+                            f"Could not rename field to calibrator name: {e}"
+                        )
                 else:
                     # PRECONDITION CHECK: If calibrator info is unavailable, try explicit args
                     # Check if explicit calibrator coordinates were provided
-                    if hasattr(args, 'cal_ra_deg') and hasattr(args, 'cal_dec_deg') and args.cal_ra_deg and args.cal_dec_deg:
+                    if (
+                        hasattr(args, "cal_ra_deg")
+                        and hasattr(args, "cal_dec_deg")
+                        and args.cal_ra_deg
+                        and args.cal_dec_deg
+                    ):
                         logger.info(
-                            f"Using explicit calibrator coordinates for catalog model")
+                            f"Using explicit calibrator coordinates for catalog model"
+                        )
                         ra_deg = float(args.cal_ra_deg)
                         dec_deg = float(args.cal_dec_deg)
-                        flux_jy = float(
-                            getattr(args, 'cal_flux_jy', None) or 2.5)
-                        name = getattr(
-                            args, 'cal_name', None) or f"manual_{ra_deg:.2f}_{dec_deg:.2f}"
+                        flux_jy = float(getattr(args, "cal_flux_jy", None) or 2.5)
+                        name = (
+                            getattr(args, "cal_name", None)
+                            or f"manual_{ra_deg:.2f}_{dec_deg:.2f}"
+                        )
 
                         # Use field_sel (from --field argument) since auto-fields failed
                         print(
-                            f"Writing catalog point model: {name} @ ({ra_deg:.4f},{dec_deg:.4f}) deg, {flux_jy:.2f} Jy")
+                            f"Writing catalog point model: {name} @ ({ra_deg:.4f},{dec_deg:.4f}) deg, {flux_jy:.2f} Jy"
+                        )
                         logger.info(
-                            "Calling MODEL_DATA population (this may take a while)...")
+                            "Calling MODEL_DATA population (this may take a while)..."
+                        )
 
                         # Clear MODEL_DATA before writing
                         try:
                             from casatasks import clearcal
+
                             clearcal(vis=args.ms, addmodel=True)
                             logger.debug(
-                                "Cleared existing MODEL_DATA before writing new model")
+                                "Cleared existing MODEL_DATA before writing new model"
+                            )
                         except Exception as e:
                             logger.warning(
-                                f"Could not clear MODEL_DATA before writing: {e}")
+                                f"Could not clear MODEL_DATA before writing: {e}"
+                            )
 
                         # Use manual calculation to populate MODEL_DATA
                         logger.debug("Using manual MODEL_DATA calculation...")
                         model_helpers.write_point_model_with_ft(
-                            args.ms, float(ra_deg), float(
-                                dec_deg), float(flux_jy),
-                            field=field_sel, use_manual=True)
+                            args.ms,
+                            float(ra_deg),
+                            float(dec_deg),
+                            float(flux_jy),
+                            field=field_sel,
+                            use_manual=True,
+                        )
                         logger.debug(
-                            "MODEL_DATA population completed (manual calculation)")
+                            "MODEL_DATA population completed (manual calculation)"
+                        )
                     elif needs_model:
                         logger.error(
                             "ERROR: Catalog model requires calibrator information.\n\n"
@@ -1983,18 +2135,28 @@ def handle_calibrate(args: argparse.Namespace) -> int:
                 # because setjy uses ft() internally which has phase center bugs
                 if ms_was_rephased:
                     logger.warning(
-                        "MS was rephased, but setjy uses ft() internally which has phase center bugs.")
+                        "MS was rephased, but setjy uses ft() internally which has phase center bugs."
+                    )
                     logger.warning(
-                        "setjy will likely produce MODEL_DATA with incorrect phase structure.")
+                        "setjy will likely produce MODEL_DATA with incorrect phase structure."
+                    )
                     logger.warning(
-                        "Recommend using --model-source catalog with --cal-ra-deg and --cal-dec-deg instead.")
+                        "Recommend using --model-source catalog with --cal-ra-deg and --cal-dec-deg instead."
+                    )
                     logger.warning(
-                        "Or use --skip-rephase if calibrator is near meridian phase center.")
+                        "Or use --skip-rephase if calibrator is near meridian phase center."
+                    )
 
                     # Try to get calibrator coordinates if available
-                    if hasattr(args, 'cal_ra_deg') and hasattr(args, 'cal_dec_deg') and args.cal_ra_deg and args.cal_dec_deg:
+                    if (
+                        hasattr(args, "cal_ra_deg")
+                        and hasattr(args, "cal_dec_deg")
+                        and args.cal_ra_deg
+                        and args.cal_dec_deg
+                    ):
                         print(
-                            f"Attempting to use manual calculation with calibrator coordinates...")
+                            f"Attempting to use manual calculation with calibrator coordinates..."
+                        )
                         # Get flux from setjy first, then use manual calculation
                         try:
                             from casatasks import setjy as casa_setjy
@@ -2007,10 +2169,12 @@ def handle_calibrate(args: argparse.Namespace) -> int:
 
                             # Use manual calculation with provided coordinates
                             # We need flux - try to get it from standard catalog or use default
-                            flux_jy = getattr(
-                                args, 'cal_flux_jy', None) or 2.5  # Default flux
+                            flux_jy = (
+                                getattr(args, "cal_flux_jy", None) or 2.5
+                            )  # Default flux
                             print(
-                                f"Using flux: {flux_jy:.2f} Jy (consider providing --cal-flux-jy for accurate flux)")
+                                f"Using flux: {flux_jy:.2f} Jy (consider providing --cal-flux-jy for accurate flux)"
+                            )
 
                             model_helpers.write_point_model_with_ft(
                                 args.ms,
@@ -2018,15 +2182,18 @@ def handle_calibrate(args: argparse.Namespace) -> int:
                                 float(args.cal_dec_deg),
                                 float(flux_jy),
                                 field=args.model_field,
-                                use_manual=True
+                                use_manual=True,
                             )
                             logger.info(
-                                "✓ MODEL_DATA populated using manual calculation (bypasses ft() phase center bug)")
+                                "✓ MODEL_DATA populated using manual calculation (bypasses ft() phase center bug)"
+                            )
                         except Exception as e:
                             logger.warning(
-                                f"Failed to use manual calculation for setjy: {e}")
+                                f"Failed to use manual calculation for setjy: {e}"
+                            )
                             print(
-                                f"Falling back to setjy (may have phase center issues)...")
+                                f"Falling back to setjy (may have phase center issues)..."
+                            )
                             model_helpers.write_setjy_model(
                                 args.ms,
                                 field=args.model_field,
@@ -2035,7 +2202,8 @@ def handle_calibrate(args: argparse.Namespace) -> int:
                             )
                     else:
                         print(
-                            f"No calibrator coordinates available - falling back to setjy (may have phase issues)")
+                            f"No calibrator coordinates available - falling back to setjy (may have phase issues)"
+                        )
                         model_helpers.write_setjy_model(
                             args.ms,
                             field=args.model_field,
@@ -2044,9 +2212,9 @@ def handle_calibrate(args: argparse.Namespace) -> int:
                         )
                 else:
                     print(
-                        (
-                            "Running setjy on field {} (standard {})"
-                        ).format(args.model_field, args.model_setjy_standard)
+                        ("Running setjy on field {} (standard {})").format(
+                            args.model_field, args.model_setjy_standard
+                        )
                     )
                     model_helpers.write_setjy_model(
                         args.ms,
@@ -2056,25 +2224,18 @@ def handle_calibrate(args: argparse.Namespace) -> int:
                     )
             elif args.model_source == "component":
                 if not args.model_component:
-                    logger.error(
-                        "--model-source=component requires --model-component"
-                    )
+                    logger.error("--model-source=component requires --model-component")
                     sys.exit(1)
-                print(
-                    "Applying component list model: {}"
-                    .format(args.model_component)
-                )
+                print("Applying component list model: {}".format(args.model_component))
                 model_helpers.write_component_model_with_ft(
-                    args.ms, args.model_component)
+                    args.ms, args.model_component
+                )
             elif args.model_source == "image":
                 if not args.model_image:
                     logger.error("--model-source=image requires --model-image")
                     sys.exit(1)
-                print(
-                    "Applying image model: {}".format(args.model_image)
-                )
-                model_helpers.write_image_model_with_ft(
-                    args.ms, args.model_image)
+                print("Applying image model: {}".format(args.model_image))
+                model_helpers.write_image_model_with_ft(args.ms, args.model_image)
             elif args.model_source is None:
                 # No model source specified - this violates "measure twice, cut once"
                 # We require MODEL_DATA to be populated before calibration for consistent,
@@ -2106,6 +2267,7 @@ def handle_calibrate(args: argparse.Namespace) -> int:
         try:
             from casacore.tables import table
             import numpy as np
+
             with table(ms_in, readonly=True) as tb:
                 if "MODEL_DATA" in tb.colnames():
                     n_rows = tb.nrows()
@@ -2113,9 +2275,9 @@ def handle_calibrate(args: argparse.Namespace) -> int:
                         # Sample MODEL_DATA to check flux values
                         sample_size = min(10000, n_rows)
                         model_sample = tb.getcol(
-                            "MODEL_DATA", startrow=0, nrow=sample_size)
-                        flags_sample = tb.getcol(
-                            "FLAG", startrow=0, nrow=sample_size)
+                            "MODEL_DATA", startrow=0, nrow=sample_size
+                        )
+                        flags_sample = tb.getcol("FLAG", startrow=0, nrow=sample_size)
 
                         # Check unflagged model data
                         unflagged_model = model_sample[~flags_sample]
@@ -2163,24 +2325,20 @@ def handle_calibrate(args: argparse.Namespace) -> int:
             ms_in,
             k_field_sel,
             refant,
-            table_prefix=getattr(args, 'table_prefix_override', None),
+            table_prefix=getattr(args, "table_prefix_override", None),
             combine_spw=args.combine_spw,
-            uvrange=(
-                (args.uvrange or "")
-                if args.fast
-                else ""
-            ),
+            uvrange=((args.uvrange or "") if args.fast else ""),
             minsnr=5.0,
             skip_slow=args.k_fast_only,
         )
         elapsed_k = time.perf_counter() - t_k0
-        logger.info(
-            f"✓ [{step_num-1}/6] K-calibration completed in {elapsed_k:.2f}s")
+        logger.info(f"✓ [{step_num-1}/6] K-calibration completed in {elapsed_k:.2f}s")
 
     # Flag autocorrelations before any solves unless disabled
-    if not args.no_flagging and not getattr(args, 'no_flag_autocorr', False):
+    if not args.no_flagging and not getattr(args, "no_flag_autocorr", False):
         try:
             from casatasks import flagdata  # type: ignore
+
             print("Flagging autocorrelations prior to calibration...")
             flagdata(vis=ms_in, autocorr=True, flagbackup=False)
             print("\u2713 Autocorrelations flagged")
@@ -2190,7 +2348,7 @@ def handle_calibrate(args: argparse.Namespace) -> int:
 
     # Optional: pre-bandpass phase-only solve if requested
     prebp_phase_table = None
-    if not args.skip_bp and bool(getattr(args, 'prebp_phase', False)):
+    if not args.skip_bp and bool(getattr(args, "prebp_phase", False)):
         logger.info(f"[{step_num}/6] Pre-bandpass phase-only solve...")
         t_prebp0 = time.perf_counter()
         try:
@@ -2199,22 +2357,24 @@ def handle_calibrate(args: argparse.Namespace) -> int:
                 field_sel,
                 refant,
                 combine_fields=bool(args.bp_combine_field),
-                combine_spw=bool(getattr(args, 'combine_spw', False)),
-                uvrange=str(getattr(args, 'prebp_uvrange', '') or ''),
-                solint=str(getattr(args, 'prebp_solint', '30s') or '30s'),
-                minsnr=float(getattr(args, 'prebp_minsnr', 3.0)),
-                peak_field_idx=peak_field_idx if 'peak_field_idx' in locals() else None,
-                minblperant=getattr(args, 'prebp_minblperant', None),
-                spw=getattr(args, 'prebp_spw', None),
-                table_name=getattr(args, 'prebp_table_name', None),
+                combine_spw=bool(getattr(args, "combine_spw", False)),
+                uvrange=str(getattr(args, "prebp_uvrange", "") or ""),
+                solint=str(getattr(args, "prebp_solint", "30s") or "30s"),
+                minsnr=float(getattr(args, "prebp_minsnr", 3.0)),
+                peak_field_idx=peak_field_idx if "peak_field_idx" in locals() else None,
+                minblperant=getattr(args, "prebp_minblperant", None),
+                spw=getattr(args, "prebp_spw", None),
+                table_name=getattr(args, "prebp_table_name", None),
             )
             elapsed_prebp = time.perf_counter() - t_prebp0
             logger.info(
-                f"✓ [{step_num}/6] Pre-bandpass phase solve completed in {elapsed_prebp:.2f}s")
+                f"✓ [{step_num}/6] Pre-bandpass phase solve completed in {elapsed_prebp:.2f}s"
+            )
         except Exception as e:
             logger.warning("Pre-bandpass phase solve failed: {e}")
             logger.info(
-                "Continuing with bandpass solve without pre-bandpass phase correction...")
+                "Continuing with bandpass solve without pre-bandpass phase correction..."
+            )
 
     bptabs = []
     if not args.skip_bp:
@@ -2223,38 +2383,41 @@ def handle_calibrate(args: argparse.Namespace) -> int:
         # No implicit UV range cut; use CLI or env default if provided
         # NOTE: K-table is NOT passed to bandpass (K-calibration not used for DSA-110)
         import os as _os
-        bp_uvrange = args.uvrange if args.uvrange else _os.getenv(
-            "CONTIMG_CAL_BP_UVRANGE", "")
+
+        bp_uvrange = (
+            args.uvrange if args.uvrange else _os.getenv("CONTIMG_CAL_BP_UVRANGE", "")
+        )
         logger.debug(
-            f"Calling solve_bandpass with uvrange='{bp_uvrange}', field={field_sel}, refant={refant}")
+            f"Calling solve_bandpass with uvrange='{bp_uvrange}', field={field_sel}, refant={refant}"
+        )
         if prebp_phase_table:
-            logger.debug(
-                f"Using pre-bandpass phase table: {prebp_phase_table}")
-        logger.info(
-            "This may take several minutes - bandpass solve is running...")
+            logger.debug(f"Using pre-bandpass phase table: {prebp_phase_table}")
+        logger.info("This may take several minutes - bandpass solve is running...")
         logger.info(f"[{step_num}/6] Solving bandpass (BP) calibration...")
         bptabs = solve_bandpass(
             ms_in,
             field_sel,
             refant,
             None,  # K-table not used for DSA-110
-            table_prefix=getattr(args, 'table_prefix_override', None),
+            table_prefix=getattr(args, "table_prefix_override", None),
             combine_fields=bool(args.bp_combine_field),
             combine_spw=args.combine_spw,
             uvrange=bp_uvrange,
             minsnr=float(args.bp_minsnr),
             # Apply pre-bandpass phase correction
             prebandpass_phase_table=prebp_phase_table,
-            bp_smooth_type=(getattr(args, 'bp_smooth_type', 'none') or 'none'),
-            bp_smooth_window=(int(getattr(args, 'bp_smooth_window')) if getattr(
-                args, 'bp_smooth_window', None) is not None else None),
-            peak_field_idx=peak_field_idx if 'peak_field_idx' in locals() else None,
+            bp_smooth_type=(getattr(args, "bp_smooth_type", "none") or "none"),
+            bp_smooth_window=(
+                int(getattr(args, "bp_smooth_window"))
+                if getattr(args, "bp_smooth_window", None) is not None
+                else None
+            ),
+            peak_field_idx=peak_field_idx if "peak_field_idx" in locals() else None,
             # Custom combine string (e.g., "scan,obs,field")
-            combine=getattr(args, 'bp_combine', None),
+            combine=getattr(args, "bp_combine", None),
         )
         elapsed_bp = time.perf_counter() - t_bp0
-        logger.info(
-            f"✓ [{step_num}/6] Bandpass solve completed in {elapsed_bp:.2f}s")
+        logger.info(f"✓ [{step_num}/6] Bandpass solve completed in {elapsed_bp:.2f}s")
         step_num += 1
         # Always report bandpass flagged fraction and per-SPW statistics
         try:
@@ -2263,22 +2426,24 @@ def handle_calibrate(args: argparse.Namespace) -> int:
                     validate_caltable_quality,
                     analyze_per_spw_flagging,
                 )
+
                 _bp_metrics = validate_caltable_quality(bptabs[0])
                 print(
                     f"Bandpass flagged solutions: {_bp_metrics.fraction_flagged*100:.1f}%"
                 )
 
                 # Generate bandpass plots if requested
-                if getattr(args, 'plot_bandpass', True) and bptabs:
+                if getattr(args, "plot_bandpass", True) and bptabs:
                     try:
                         # Determine plot output directory
-                        if getattr(args, 'bandpass_plot_dir', None):
+                        if getattr(args, "bandpass_plot_dir", None):
                             plot_dir = args.bandpass_plot_dir
                         else:
                             # Default: {ms_dir}/calibration_plots/bandpass
                             ms_dir = os.path.dirname(os.path.abspath(args.ms))
                             plot_dir = os.path.join(
-                                ms_dir, 'calibration_plots', 'bandpass')
+                                ms_dir, "calibration_plots", "bandpass"
+                            )
 
                         logger.info("Generating bandpass plots...")
                         plot_files = generate_bandpass_plots(
@@ -2289,14 +2454,16 @@ def handle_calibrate(args: argparse.Namespace) -> int:
                         )
                         if plot_files:
                             logger.info(
-                                f"✓ Generated {len(plot_files)} bandpass plot(s) in {plot_dir}")
+                                f"✓ Generated {len(plot_files)} bandpass plot(s) in {plot_dir}"
+                            )
                             logger.info(
-                                f"✓ Bandpass plots: {len(plot_files)} file(s) in {plot_dir}")
+                                f"✓ Bandpass plots: {len(plot_files)} file(s) in {plot_dir}"
+                            )
                     except Exception as e:
+                        logger.warning(f"Failed to generate bandpass plots: {e}")
                         logger.warning(
-                            f"Failed to generate bandpass plots: {e}")
-                        logger.warning(
-                            "Continuing without plots (calibration completed successfully)")
+                            "Continuing without plots (calibration completed successfully)"
+                        )
 
                 # Per-SPW analysis (following NRAO/VLBA best practices)
                 try:
@@ -2308,15 +2475,15 @@ def handle_calibrate(args: argparse.Namespace) -> int:
 
                     spw_stats = analyze_per_spw_flagging(bptabs[0])
                     if spw_stats:
-                        problematic_spws = [
-                            s for s in spw_stats if s.is_problematic]
+                        problematic_spws = [s for s in spw_stats if s.is_problematic]
 
-                        print("\n" + "="*70)
+                        print("\n" + "=" * 70)
                         print("PER-SPECTRAL-WINDOW FLAGGING ANALYSIS")
-                        print("="*70)
+                        print("=" * 70)
                         print(
-                            f"{'SPW':<6} {'Flagged':<25} {'Avg/Ch':<10} {'High-Flag Ch':<15} {'Status':<12}")
-                        print("-"*70)
+                            f"{'SPW':<6} {'Flagged':<25} {'Avg/Ch':<10} {'High-Flag Ch':<15} {'Status':<12}"
+                        )
+                        print("-" * 70)
 
                         for stats in sorted(spw_stats, key=lambda x: x.spw_id):
                             status = "⚠ PROBLEMATIC" if stats.is_problematic else "✓ OK"
@@ -2332,9 +2499,9 @@ def handle_calibrate(args: argparse.Namespace) -> int:
                             )
 
                         if problematic_spws:
-                            print("\n" + "="*70)
+                            print("\n" + "=" * 70)
                             print("⚠ WARNING: Problematic Spectral Windows Detected")
-                            print("="*70)
+                            print("=" * 70)
                             for stats in problematic_spws:
                                 logger.warning(
                                     f"SPW {stats.spw_id}: {stats.fraction_flagged*100:.1f}% flagged "
@@ -2351,61 +2518,73 @@ def handle_calibrate(args: argparse.Namespace) -> int:
 
                             # Auto-flag problematic SPWs if requested
                             auto_flag = getattr(
-                                args, 'auto_flag_problematic_spws', False)
+                                args, "auto_flag_problematic_spws", False
+                            )
                             if auto_flag:
                                 logger.info(
-                                    f"Auto-flagging {len(problematic_spws)} problematic SPW(s)...")
+                                    f"Auto-flagging {len(problematic_spws)} problematic SPW(s)..."
+                                )
                                 try:
                                     flagged_spws = flag_problematic_spws(
-                                        ms_in, bptabs[0])
+                                        ms_in, bptabs[0]
+                                    )
                                     if flagged_spws:
-                                        logger.info(
-                                            f"✓ Flagged SPWs: {flagged_spws}")
+                                        logger.info(f"✓ Flagged SPWs: {flagged_spws}")
                                         print(
-                                            f"\n✓ Automatically flagged {len(flagged_spws)} problematic SPW(s): {flagged_spws}")
+                                            f"\n✓ Automatically flagged {len(flagged_spws)} problematic SPW(s): {flagged_spws}"
+                                        )
                                 except Exception as e:
                                     logger.warning(
-                                        f"Failed to auto-flag problematic SPWs: {e}")
+                                        f"Failed to auto-flag problematic SPWs: {e}"
+                                    )
                         else:
                             print(
-                                "\n✓ All spectral windows show acceptable flagging rates")
-                        print("="*70 + "\n")
+                                "\n✓ All spectral windows show acceptable flagging rates"
+                            )
+                        print("=" * 70 + "\n")
 
                         # Export statistics if requested
-                        export_stats = getattr(args, 'export_spw_stats', None)
+                        export_stats = getattr(args, "export_spw_stats", None)
                         if export_stats:
                             try:
                                 json_path = export_per_spw_stats(
-                                    spw_stats, export_stats, output_format="json")
+                                    spw_stats, export_stats, output_format="json"
+                                )
                                 csv_path = export_per_spw_stats(
-                                    spw_stats, export_stats, output_format="csv")
+                                    spw_stats, export_stats, output_format="csv"
+                                )
                                 logger.info(
-                                    f"Exported per-SPW statistics: {json_path}, {csv_path}")
+                                    f"Exported per-SPW statistics: {json_path}, {csv_path}"
+                                )
                                 logger.info(
-                                    f"✓ Exported per-SPW statistics: {json_path}, {csv_path}")
+                                    f"✓ Exported per-SPW statistics: {json_path}, {csv_path}"
+                                )
                             except Exception as e:
                                 logger.warning(
-                                    f"Failed to export per-SPW statistics: {e}")
+                                    f"Failed to export per-SPW statistics: {e}"
+                                )
 
                         # Generate visualization if requested
-                        plot_path = getattr(args, 'plot_spw_flagging', None)
+                        plot_path = getattr(args, "plot_spw_flagging", None)
                         if plot_path:
                             try:
                                 plot_file = plot_per_spw_flagging(
                                     spw_stats,
                                     plot_path,
-                                    title=f"Bandpass Calibration - Per-SPW Flagging Analysis\n{os.path.basename(ms_in)}"
+                                    title=f"Bandpass Calibration - Per-SPW Flagging Analysis\n{os.path.basename(ms_in)}",
                                 )
                                 logger.info(
-                                    f"Generated per-SPW flagging plot: {plot_file}")
-                                logger.info(
-                                    f"✓ Generated visualization: {plot_file}")
+                                    f"Generated per-SPW flagging plot: {plot_file}"
+                                )
+                                logger.info(f"✓ Generated visualization: {plot_file}")
                             except Exception as e:
                                 logger.warning(
-                                    f"Failed to generate per-SPW flagging plot: {e}")
+                                    f"Failed to generate per-SPW flagging plot: {e}"
+                                )
                 except Exception as e:
                     logger.warning(
-                        f"Could not compute per-SPW flagging statistics: {e}")
+                        f"Could not compute per-SPW flagging statistics: {e}"
+                    )
         except Exception as e:
             logger.warning(f"Could not compute bandpass flagged fraction: {e}")
 
@@ -2413,9 +2592,11 @@ def handle_calibrate(args: argparse.Namespace) -> int:
         if args.export_model_image and bptabs:
             try:
                 from .model import export_model_as_fits
+
                 output_path = f"{ms_in}.calibrator_model"
                 logger.info(
-                    f"Exporting calibrator model image to {output_path}.fits...")
+                    f"Exporting calibrator model image to {output_path}.fits..."
+                )
                 export_model_as_fits(
                     ms_in,
                     output_path,
@@ -2440,33 +2621,27 @@ def handle_calibrate(args: argparse.Namespace) -> int:
                 refant,
                 None,  # K-table not used for DSA-110
                 bptabs,
-                table_prefix=getattr(args, 'table_prefix_override', None),
+                table_prefix=getattr(args, "table_prefix_override", None),
                 combine_fields=bool(args.bp_combine_field),
                 phase_only=phase_only,
-                uvrange=(
-                    (args.uvrange or "")
-                    if args.fast
-                    else ""
-                ),
+                uvrange=((args.uvrange or "") if args.fast else ""),
                 solint=args.gain_solint,
-                minsnr=float(getattr(args, 'gain_minsnr', 3.0)),
-                peak_field_idx=peak_field_idx if 'peak_field_idx' in locals() else None,
+                minsnr=float(getattr(args, "gain_minsnr", 3.0)),
+                peak_field_idx=peak_field_idx if "peak_field_idx" in locals() else None,
             )
             elapsed_g = time.perf_counter() - t_g0
-            logger.info(
-                f"✓ [{step_num}/6] Gain solve completed in {elapsed_g:.2f}s")
+            logger.info(f"✓ [{step_num}/6] Gain solve completed in {elapsed_g:.2f}s")
 
             # Generate gain plots if requested
-            if getattr(args, 'plot_gain', True) and gtabs:
+            if getattr(args, "plot_gain", True) and gtabs:
                 try:
                     # Determine plot output directory
-                    if getattr(args, 'gain_plot_dir', None):
+                    if getattr(args, "gain_plot_dir", None):
                         plot_dir = args.gain_plot_dir
                     else:
                         # Default: {ms_dir}/calibration_plots/gain
                         ms_dir = os.path.dirname(os.path.abspath(args.ms))
-                        plot_dir = os.path.join(
-                            ms_dir, 'calibration_plots', 'gain')
+                        plot_dir = os.path.join(ms_dir, "calibration_plots", "gain")
 
                     logger.info("Generating gain plots...")
                     plot_files = generate_gain_plots(
@@ -2477,23 +2652,26 @@ def handle_calibrate(args: argparse.Namespace) -> int:
                     )
                     if plot_files:
                         logger.info(
-                            f"✓ Generated {len(plot_files)} gain plot(s) in {plot_dir}")
+                            f"✓ Generated {len(plot_files)} gain plot(s) in {plot_dir}"
+                        )
                         logger.info(
-                            f"✓ Gain plots: {len(plot_files)} file(s) in {plot_dir}")
+                            f"✓ Gain plots: {len(plot_files)} file(s) in {plot_dir}"
+                        )
                 except Exception as e:
                     logger.warning(f"Failed to generate gain plots: {e}")
                     logger.warning(
-                        "Continuing without plots (calibration completed successfully)")
+                        "Continuing without plots (calibration completed successfully)"
+                    )
 
     except Exception as e:
         from dsa110_contimg.utils.error_context import format_error_with_context
 
         # Enhanced error handling with recovery suggestions
         context = {
-            'operation': 'calibration solves',
-            'ms_path': ms_in if 'ms_in' in locals() else args.ms,
-            'field': field_sel if 'field_sel' in locals() else args.field,
-            'refant': refant if 'refant' in locals() else args.refant
+            "operation": "calibration solves",
+            "ms_path": ms_in if "ms_in" in locals() else args.ms,
+            "field": field_sel if "field_sel" in locals() else args.field,
+            "refant": refant if "refant" in locals() else args.refant,
         }
 
         # Determine error type and provide specific recovery suggestions
@@ -2502,46 +2680,58 @@ def handle_calibrate(args: argparse.Namespace) -> int:
 
         recovery_suggestions = []
 
-        if 'model_data' in error_msg_str or 'model' in error_msg_str:
-            recovery_suggestions.extend([
-                "Ensure MODEL_DATA is populated before calibration",
-                "Use --auto-fields to automatically populate MODEL_DATA from catalog",
-                "Or use --model-source setjy to create point source model",
-                "Check that calibrator flux is correct for your frequency"
-            ])
-        elif 'flag' in error_msg_str or 'flagged' in error_msg_str:
-            recovery_suggestions.extend([
-                "Check flagging statistics: too much data may be flagged",
-                "Review RFI flagging results and adjust thresholds if needed",
-                "Try --no-auto-flag-channels if channel flagging is too aggressive",
-                "Verify reference antenna has unflagged data"
-            ])
-        elif 'refant' in error_msg_str or 'reference' in error_msg_str:
-            recovery_suggestions.extend([
-                "Verify reference antenna has unflagged data",
-                "Try a different reference antenna with --refant",
-                "Check antenna selection: python -m dsa110_contimg.calibration.cli qa check-delays --ms <path>"
-            ])
-        elif 'snr' in error_msg_str or 'signal' in error_msg_str:
-            recovery_suggestions.extend([
-                "Calibrator may be too faint - check flux density",
-                "Try combining more fields with --bp-combine-field",
-                "Reduce --gain-minsnr threshold (default: 3.0)",
-                "Increase integration time or use longer solution intervals"
-            ])
-        elif 'table' in error_msg_str or 'caltable' in error_msg_str:
-            recovery_suggestions.extend([
-                "Check that previous calibration tables exist and are valid",
-                "Verify table compatibility with MS",
-                "Try removing old tables and recalibrating from scratch"
-            ])
+        if "model_data" in error_msg_str or "model" in error_msg_str:
+            recovery_suggestions.extend(
+                [
+                    "Ensure MODEL_DATA is populated before calibration",
+                    "Use --auto-fields to automatically populate MODEL_DATA from catalog",
+                    "Or use --model-source setjy to create point source model",
+                    "Check that calibrator flux is correct for your frequency",
+                ]
+            )
+        elif "flag" in error_msg_str or "flagged" in error_msg_str:
+            recovery_suggestions.extend(
+                [
+                    "Check flagging statistics: too much data may be flagged",
+                    "Review RFI flagging results and adjust thresholds if needed",
+                    "Try --no-auto-flag-channels if channel flagging is too aggressive",
+                    "Verify reference antenna has unflagged data",
+                ]
+            )
+        elif "refant" in error_msg_str or "reference" in error_msg_str:
+            recovery_suggestions.extend(
+                [
+                    "Verify reference antenna has unflagged data",
+                    "Try a different reference antenna with --refant",
+                    "Check antenna selection: python -m dsa110_contimg.calibration.cli qa check-delays --ms <path>",
+                ]
+            )
+        elif "snr" in error_msg_str or "signal" in error_msg_str:
+            recovery_suggestions.extend(
+                [
+                    "Calibrator may be too faint - check flux density",
+                    "Try combining more fields with --bp-combine-field",
+                    "Reduce --gain-minsnr threshold (default: 3.0)",
+                    "Increase integration time or use longer solution intervals",
+                ]
+            )
+        elif "table" in error_msg_str or "caltable" in error_msg_str:
+            recovery_suggestions.extend(
+                [
+                    "Check that previous calibration tables exist and are valid",
+                    "Verify table compatibility with MS",
+                    "Try removing old tables and recalibrating from scratch",
+                ]
+            )
         else:
-            recovery_suggestions.extend([
-                "Check MS path is correct and file exists",
-                "Verify file permissions and disk space",
-                "Review logs for detailed error information",
-                "Run validation: python -m dsa110_contimg.calibration.cli validate --ms <path>"
-            ])
+            recovery_suggestions.extend(
+                [
+                    "Check MS path is correct and file exists",
+                    "Verify file permissions and disk space",
+                    "Review logs for detailed error information",
+                    "Run validation: python -m dsa110_contimg.calibration.cli validate --ms <path>",
+                ]
+            )
 
         error_msg = format_error_with_context(e, context)
         logger.error(error_msg)
@@ -2552,14 +2742,14 @@ def handle_calibrate(args: argparse.Namespace) -> int:
                 logger.error(f"  {i}. {suggestion}")
 
         # Attempt automatic recovery for common issues
-        if 'model_data' in error_msg_str and not args.dry_run:
-            logger.info(
-                "\nAttempting automatic recovery: populating MODEL_DATA...")
+        if "model_data" in error_msg_str and not args.dry_run:
+            logger.info("\nAttempting automatic recovery: populating MODEL_DATA...")
             try:
                 # This would require importing the model population code
                 # For now, just log the suggestion
                 logger.info(
-                    "  → Run with --auto-fields to automatically populate MODEL_DATA")
+                    "  → Run with --auto-fields to automatically populate MODEL_DATA"
+                )
             except Exception as recovery_error:
                 logger.warning(f"Automatic recovery failed: {recovery_error}")
 
@@ -2572,14 +2762,15 @@ def handle_calibrate(args: argparse.Namespace) -> int:
     for tab in tabs:
         logger.info(f"  - {tab}")
     total_time = time.time() - start_time
-    logger.info(
-        f"Total calibration time: {total_time:.1f}s ({total_time/60:.1f} min)")
+    logger.info(f"Total calibration time: {total_time:.1f}s ({total_time/60:.1f} min)")
     logger.info("=" * 70)
 
     # Validate expected calibration tables exist
     if not args.dry_run:
         try:
-            from dsa110_contimg.calibration.caltable_paths import validate_caltables_exist
+            from dsa110_contimg.calibration.caltable_paths import (
+                validate_caltables_exist,
+            )
             from pathlib import Path
 
             # Determine caltable directory (same as MS directory by default)
@@ -2593,27 +2784,27 @@ def handle_calibrate(args: argparse.Namespace) -> int:
                 pass
 
             existing, missing = validate_caltables_exist(
-                ms_path=ms_in,
-                caltable_dir=str(caltable_dir),
-                caltype="all"
+                ms_path=ms_in, caltable_dir=str(caltable_dir), caltype="all"
             )
 
             if missing["all"]:
-                logger.warning(
-                    f"Expected calibration tables missing: {missing['all']}")
+                logger.warning(f"Expected calibration tables missing: {missing['all']}")
                 logger.info(f"Existing tables: {existing['all']}")
             else:
                 logger.info(
-                    f"✓ All expected calibration tables present: {existing['all']}")
+                    f"✓ All expected calibration tables present: {existing['all']}"
+                )
         except Exception as e:
-            logger.warning(
-                f"Could not validate calibration table completeness: {e}")
+            logger.warning(f"Could not validate calibration table completeness: {e}")
 
     # Register calibration tables in registry database (if not dry-run)
     if not args.dry_run and tabs:
         try:
             from pathlib import Path
-            from dsa110_contimg.database.registry import register_set_from_prefix, ensure_db
+            from dsa110_contimg.database.registry import (
+                register_set_from_prefix,
+                ensure_db,
+            )
             from dsa110_contimg.utils.time_utils import extract_ms_time_range
             import re
 
@@ -2623,8 +2814,9 @@ def handle_calibrate(args: argparse.Namespace) -> int:
             if registry_db_env:
                 registry_db = Path(registry_db_env)
             else:
-                state_dir = Path(os.environ.get(
-                    "PIPELINE_STATE_DIR", "/data/dsa110-contimg/state"))
+                state_dir = Path(
+                    os.environ.get("PIPELINE_STATE_DIR", "/data/dsa110-contimg/state")
+                )
                 registry_db = state_dir / "cal_registry.sqlite3"
 
             # Ensure registry DB exists (creates if missing)
@@ -2634,8 +2826,10 @@ def handle_calibrate(args: argparse.Namespace) -> int:
             start_mjd, end_mjd, mid_mjd = extract_ms_time_range(ms_in)
             if mid_mjd is None:
                 logger.warning(
-                    f"Could not extract time range from {ms_in}, using current time")
+                    f"Could not extract time range from {ms_in}, using current time"
+                )
                 from astropy.time import Time
+
                 mid_mjd = Time.now().mjd
                 start_mjd = mid_mjd - 0.5  # 12 hour window
                 end_mjd = mid_mjd + 0.5
@@ -2653,11 +2847,14 @@ def handle_calibrate(args: argparse.Namespace) -> int:
 
                 # Remove table type suffixes to get base prefix
                 prefix_base = re.sub(
-                    r'_(bpcal|gpcal|gacal|2gcal|kcal|bacal|flux)$', '', first_table_name, flags=re.IGNORECASE)
+                    r"_(bpcal|gpcal|gacal|2gcal|kcal|bacal|flux)$",
+                    "",
+                    first_table_name,
+                    flags=re.IGNORECASE,
+                )
                 table_prefix = table_dir / prefix_base
 
-                logger.info(
-                    f"Registering calibration tables in registry: {set_name}")
+                logger.info(f"Registering calibration tables in registry: {set_name}")
                 logger.debug(f"Using table prefix: {table_prefix}")
                 registered = register_set_from_prefix(
                     registry_db,
@@ -2671,7 +2868,8 @@ def handle_calibrate(args: argparse.Namespace) -> int:
                 )
                 if registered:
                     logger.info(
-                        f"✓ Registered {len(registered)} calibration tables in registry")
+                        f"✓ Registered {len(registered)} calibration tables in registry"
+                    )
                 else:
                     logger.warning(
                         f"Warning: No tables found with prefix {table_prefix} for registration. "
@@ -2683,19 +2881,19 @@ def handle_calibrate(args: argparse.Namespace) -> int:
                 f"Failed to register calibration tables in registry: {e}. "
                 f"Tables were created but not registered. You can register them manually using "
                 f"the registry CLI or provide tables explicitly to apply_calibration.",
-                exc_info=True
+                exc_info=True,
             )
 
     # Cleanup subset MS if requested
     if args.cleanup_subset and subset_ms_created:
         import shutil
+
         try:
             logger.info(f"Cleaning up subset MS: {subset_ms_created}")
             shutil.rmtree(subset_ms_created, ignore_errors=True)
             logger.info("✓ Subset MS removed")
         except Exception as e:
-            logger.warning(
-                f"Failed to remove subset MS {subset_ms_created}: {e}")
+            logger.warning(f"Failed to remove subset MS {subset_ms_created}: {e}")
 
     # Generate diagnostics if requested
     if args.diagnostics:

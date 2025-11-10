@@ -152,5 +152,3 @@ def test_status_and_products_endpoints(tmp_path, monkeypatch):
     payload = products_response.json()
     assert len(payload["items"]) == 1
     assert payload["items"][0]["type"] == "dirty"
-
-

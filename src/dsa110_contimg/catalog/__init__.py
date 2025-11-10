@@ -10,4 +10,3 @@ __all__ = [
     "build_first_strip_db",
     "build_rax_strip_db",
 ]
-

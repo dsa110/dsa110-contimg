@@ -51,38 +51,51 @@ def cmd_inbeam(args: argparse.Namespace) -> int:
         df = load_vla_catalog()
     t = Time(args.time)
     pt_dec = float(args.pt_dec) * u.deg
-    matches = calibrator_match(df, pt_dec, t.mjd, radius_deg=float(args.radius), top_n=int(args.top))
+    matches = calibrator_match(
+        df, pt_dec, t.mjd, radius_deg=float(args.radius), top_n=int(args.top)
+    )
     if not matches:
         print("No calibrators in beam")
         return 1
     for m in matches:
-        print(f"{m['name']} sep={m['sep_deg']:.3f} deg ra={m['ra_deg']:.6f} dec={m['dec_deg']:.6f} wflux={m['weighted_flux']:.3f}")
+        print(
+            f"{m['name']} sep={m['sep_deg']:.3f} deg ra={m['ra_deg']:.6f} dec={m['dec_deg']:.6f} wflux={m['weighted_flux']:.3f}"
+        )
     return 0
 
 
 def main(argv=None) -> int:
     p = argparse.ArgumentParser(description="Calibrator catalog utilities")
-    sub = p.add_subparsers(dest='cmd', required=True)
+    sub = p.add_subparsers(dest="cmd", required=True)
 
-    sp = sub.add_parser('transit', help='Previous N transits for a calibrator by name')
-    sp.add_argument('--catalog', default=None, help='Catalog path (optional, uses automatic resolution if not provided)')
-    sp.add_argument('--name', required=True)
-    sp.add_argument('--n', type=int, default=3)
-    sp.add_argument('--start', help='UTC start time (default: now)')
+    sp = sub.add_parser("transit", help="Previous N transits for a calibrator by name")
+    sp.add_argument(
+        "--catalog",
+        default=None,
+        help="Catalog path (optional, uses automatic resolution if not provided)",
+    )
+    sp.add_argument("--name", required=True)
+    sp.add_argument("--n", type=int, default=3)
+    sp.add_argument("--start", help="UTC start time (default: now)")
     sp.set_defaults(func=cmd_transit)
 
-    sp = sub.add_parser('inbeam', help='List in-beam calibrator matches for a drift strip')
-    sp.add_argument('--catalog', default=None, help='Catalog path (optional, uses automatic resolution if not provided)')
-    sp.add_argument('--pt-dec', required=True, help='Pointing declination (deg)')
-    sp.add_argument('--time', required=True, help='UTC time of group midpoint')
-    sp.add_argument('--radius', default='1.0', help='Search radius (deg)')
-    sp.add_argument('--top', default='3', help='Top N matches to show')
+    sp = sub.add_parser(
+        "inbeam", help="List in-beam calibrator matches for a drift strip"
+    )
+    sp.add_argument(
+        "--catalog",
+        default=None,
+        help="Catalog path (optional, uses automatic resolution if not provided)",
+    )
+    sp.add_argument("--pt-dec", required=True, help="Pointing declination (deg)")
+    sp.add_argument("--time", required=True, help="UTC time of group midpoint")
+    sp.add_argument("--radius", default="1.0", help="Search radius (deg)")
+    sp.add_argument("--top", default="3", help="Top N matches to show")
     sp.set_defaults(func=cmd_inbeam)
 
     args = p.parse_args(argv)
     return args.func(args)
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     raise SystemExit(main())
-

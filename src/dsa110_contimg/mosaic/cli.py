@@ -22,6 +22,7 @@ from typing import Dict, List, Optional, Tuple
 
 from dsa110_contimg.database.products import ensure_products_db
 from dsa110_contimg.utils.cli_helpers import ensure_scratch_dirs
+
 try:
     from dsa110_contimg.utils.tempdirs import prepare_temp_environment
 except Exception:  # pragma: no cover
@@ -81,7 +82,7 @@ def _ensure_mosaics_table(conn: sqlite3.Connection) -> None:
     cur = conn.execute("PRAGMA table_info(mosaics)")
     columns = {row[1] for row in cur.fetchall()}
 
-    if 'status' not in columns:
+    if "status" not in columns:
         # Add workflow columns to existing table
         conn.execute("ALTER TABLE mosaics ADD COLUMN status TEXT")
         conn.execute("ALTER TABLE mosaics ADD COLUMN method TEXT")
@@ -89,19 +90,22 @@ def _ensure_mosaics_table(conn: sqlite3.Connection) -> None:
         conn.execute("ALTER TABLE mosaics ADD COLUMN output_path TEXT")
         conn.execute("ALTER TABLE mosaics ADD COLUMN validation_issues TEXT")
         # Set default status for existing rows
-        conn.execute(
-            "UPDATE mosaics SET status = 'built' WHERE status IS NULL")
+        conn.execute("UPDATE mosaics SET status = 'built' WHERE status IS NULL")
 
     # Ensure metrics_path column exists (used in cmd_build)
-    if 'metrics_path' not in columns:
+    if "metrics_path" not in columns:
         conn.execute("ALTER TABLE mosaics ADD COLUMN metrics_path TEXT")
 
-    conn.execute(
-        "CREATE INDEX IF NOT EXISTS idx_mosaics_name ON mosaics(name)"
-    )
+    conn.execute("CREATE INDEX IF NOT EXISTS idx_mosaics_name ON mosaics(name)")
 
 
-def _fetch_tiles(products_db: Path, *, since: Optional[float], until: Optional[float], pbcor_only: bool = True) -> List[str]:
+def _fetch_tiles(
+    products_db: Path,
+    *,
+    since: Optional[float],
+    until: Optional[float],
+    pbcor_only: bool = True,
+) -> List[str]:
     """Fetch tile paths from products database.
 
     Returns paths to PB-corrected images (CASA image directories or FITS files).
@@ -136,28 +140,29 @@ def _fetch_tiles(products_db: Path, *, since: Optional[float], until: Optional[f
             p = r["path"] if isinstance(r, sqlite3.Row) else r[0]
             # Accept both CASA image directories and FITS files
             # casaimage() can read both formats
-            if p and (os.path.isdir(p) or (os.path.isfile(p) and p.endswith('.fits'))):
+            if p and (os.path.isdir(p) or (os.path.isfile(p) and p.endswith(".fits"))):
                 tiles.append(p)
     return tiles
 
 
 def cmd_plan(args: argparse.Namespace) -> int:
     # Input validation
-    if not hasattr(args, 'products_db') or not args.products_db:
+    if not hasattr(args, "products_db") or not args.products_db:
         raise ValueError("products_db is required")
     if not isinstance(args.products_db, str) or not args.products_db.strip():
         raise ValueError("products_db must be a non-empty string")
-    if not hasattr(args, 'name') or not args.name:
+    if not hasattr(args, "name") or not args.name:
         raise ValueError("name is required")
     if not isinstance(args.name, str) or not args.name.strip():
         raise ValueError("name must be a non-empty string")
-    
+
     pdb = Path(args.products_db)
     name = args.name
     since = args.since
     until = args.until
-    tiles = _fetch_tiles(pdb, since=since, until=until,
-                         pbcor_only=not args.include_unpbcor)
+    tiles = _fetch_tiles(
+        pdb, since=since, until=until, pbcor_only=not args.include_unpbcor
+    )
     if not tiles:
         print("No tiles found for the specified window")
         return 1
@@ -167,14 +172,22 @@ def cmd_plan(args: argparse.Namespace) -> int:
         cur = conn.execute("PRAGMA table_info(mosaics)")
         columns = {row[1]: row[3] for row in cur.fetchall()}  # name: notnull
 
-        if 'path' in columns:
+        if "path" in columns:
             # Science metadata schema - provide placeholder values for NOT NULL columns
             # These will be updated when mosaic is built
             conn.execute(
                 """INSERT INTO mosaics(name, created_at, status, method, tiles, path, start_mjd, end_mjd) 
                    VALUES(?,?,?,?,?,?,?,?)""",
-                (name, time.time(), "planned", args.method,
-                 "\n".join(tiles), "PLANNED", 0.0, 0.0),
+                (
+                    name,
+                    time.time(),
+                    "planned",
+                    args.method,
+                    "\n".join(tiles),
+                    "PLANNED",
+                    0.0,
+                    0.0,
+                ),
             )
         else:
             # Workflow-only schema
@@ -200,7 +213,7 @@ def _check_consistent_tiles(tiles: List[str]) -> Tuple[bool, Optional[str]]:
             if not header:
                 return False, f"Failed to get header for {t}"
             # Convert shape to tuple for comparison (handles numpy arrays, lists, and strings)
-            shape = header.get('shape')
+            shape = header.get("shape")
             if isinstance(shape, np.ndarray):
                 shape = tuple(shape.tolist())
             elif isinstance(shape, list):
@@ -210,14 +223,14 @@ def _check_consistent_tiles(tiles: List[str]) -> Tuple[bool, Optional[str]]:
                 # Try to parse it
                 try:
                     import ast
+
                     shape_list = ast.literal_eval(shape)
-                    shape = tuple(shape_list) if isinstance(
-                        shape_list, list) else shape
+                    shape = tuple(shape_list) if isinstance(shape_list, list) else shape
                 except (ValueError, SyntaxError):
                     # If parsing fails, use string comparison (less ideal but works)
                     pass
-            cdelt1 = header.get('cdelt1')
-            cdelt2 = header.get('cdelt2')
+            cdelt1 = header.get("cdelt1")
+            cdelt2 = header.get("cdelt2")
             key = (shape, cdelt1, cdelt2)
             if ref is None:
                 ref = key
@@ -225,14 +238,23 @@ def _check_consistent_tiles(tiles: List[str]) -> Tuple[bool, Optional[str]]:
                 # Compare with tolerance for floating-point values
                 ref_shape, ref_cdelt1, ref_cdelt2 = ref
                 if shape != ref_shape:
-                    return False, f"Tiles have inconsistent grid shapes: {shape} vs {ref_shape}"
+                    return (
+                        False,
+                        f"Tiles have inconsistent grid shapes: {shape} vs {ref_shape}",
+                    )
                 # Use relative tolerance for cell size comparison (1e-9 relative tolerance)
                 if cdelt1 is not None and ref_cdelt1 is not None:
                     if abs(cdelt1 - ref_cdelt1) > max(1e-12, abs(ref_cdelt1) * 1e-9):
-                        return False, f"Tiles have inconsistent cdelt1: {cdelt1} vs {ref_cdelt1}"
+                        return (
+                            False,
+                            f"Tiles have inconsistent cdelt1: {cdelt1} vs {ref_cdelt1}",
+                        )
                 if cdelt2 is not None and ref_cdelt2 is not None:
                     if abs(cdelt2 - ref_cdelt2) > max(1e-12, abs(ref_cdelt2) * 1e-9):
-                        return False, f"Tiles have inconsistent cdelt2: {cdelt2} vs {ref_cdelt2}"
+                        return (
+                            False,
+                            f"Tiles have inconsistent cdelt2: {cdelt2} vs {ref_cdelt2}",
+                        )
         except Exception as e:
             return False, f"imhead failed for {t}: {e}"
     return True, None
@@ -266,8 +288,7 @@ def generate_mosaic_metrics(
     metric_files = {}
 
     if not HAVE_CASACORE:
-        LOG.warning(
-            "casacore.images not available, skipping mosaic metrics generation")
+        LOG.warning("casacore.images not available, skipping mosaic metrics generation")
         return metric_files
 
     try:
@@ -284,8 +305,7 @@ def generate_mosaic_metrics(
             casaimage = None
 
         if not casaimage:
-            LOG.warning(
-                "CASA tools not available, skipping mosaic metrics generation")
+            LOG.warning("CASA tools not available, skipping mosaic metrics generation")
             return metric_files
 
         # Determine output directory
@@ -306,8 +326,7 @@ def generate_mosaic_metrics(
         else:
             mosaic_2d = mosaic_data.squeeze()
             if mosaic_2d.ndim > 2:
-                mosaic_2d = mosaic_2d[0, :,
-                                      :] if mosaic_2d.ndim == 3 else mosaic_2d
+                mosaic_2d = mosaic_2d[0, :, :] if mosaic_2d.ndim == 3 else mosaic_2d
 
         ny, nx = mosaic_2d.shape
         mosaic_base = os.path.splitext(os.path.basename(mosaic_path))[0]
@@ -320,8 +339,7 @@ def generate_mosaic_metrics(
 
         # Process each tile
         for tile in tiles:
-            metrics = metrics_dict.get(
-                tile, TileQualityMetrics(tile_path=tile))
+            metrics = metrics_dict.get(tile, TileQualityMetrics(tile_path=tile))
 
             # Get PB path
             pb_path = metrics.pb_path
@@ -341,14 +359,15 @@ def generate_mosaic_metrics(
                     else:
                         pb_2d = pb_data.squeeze()
                         if pb_2d.ndim > 2:
-                            pb_2d = pb_2d[0, :,
-                                          :] if pb_2d.ndim == 3 else pb_2d
+                            pb_2d = pb_2d[0, :, :] if pb_2d.ndim == 3 else pb_2d
 
                     # Check if PB needs regridding
                     if pb_2d.shape != (ny, nx):
                         # Need to regrid PB to mosaic grid
                         regridded_pb = os.path.join(
-                            output_dir, f"{mosaic_base}_pb_regrid_{len(metric_files)}.tmp")
+                            output_dir,
+                            f"{mosaic_base}_pb_regrid_{len(metric_files)}.tmp",
+                        )
                         try:
                             imregrid(
                                 imagename=str(pb_path),
@@ -366,8 +385,7 @@ def generate_mosaic_metrics(
                             else:
                                 pb_2d = pb_data.squeeze()
                                 if pb_2d.ndim > 2:
-                                    pb_2d = pb_2d[0, :,
-                                                  :] if pb_2d.ndim == 3 else pb_2d
+                                    pb_2d = pb_2d[0, :, :] if pb_2d.ndim == 3 else pb_2d
                         except Exception as e:
                             LOG.warning(f"Failed to regrid PB for {tile}: {e}")
                             pb_img.close()
@@ -384,7 +402,7 @@ def generate_mosaic_metrics(
             # Get noise variance
             noise_var = 1.0
             if metrics.rms_noise is not None and metrics.rms_noise > 0:
-                noise_var = metrics.rms_noise ** 2
+                noise_var = metrics.rms_noise**2
 
             # Accumulate weighted noise variance
             # For each pixel, accumulate 1/noise_variance (inverse variance weighting)
@@ -418,7 +436,7 @@ def generate_mosaic_metrics(
             overwrite=True,
         )
         pb_response_img.close()
-        metric_files['pb_response'] = f"{base_path}_pb_response"
+        metric_files["pb_response"] = f"{base_path}_pb_response"
 
         # 2. Noise variance map
         noise_var_img = casaimage()
@@ -429,19 +447,18 @@ def generate_mosaic_metrics(
             overwrite=True,
         )
         noise_var_img.close()
-        metric_files['noise_variance'] = f"{base_path}_noise_variance"
+        metric_files["noise_variance"] = f"{base_path}_noise_variance"
 
         # 3. Tile count map
         tile_count_img = casaimage()
         tile_count_img.fromarray(
             outfile=f"{base_path}_tile_count",
-            pixels=tile_count_map.astype(
-                np.float32)[np.newaxis, np.newaxis, :, :],
+            pixels=tile_count_map.astype(np.float32)[np.newaxis, np.newaxis, :, :],
             csys=coord_sys,
             overwrite=True,
         )
         tile_count_img.close()
-        metric_files['tile_count'] = f"{base_path}_tile_count"
+        metric_files["tile_count"] = f"{base_path}_tile_count"
 
         # 4. Integration time map
         integration_time_img = casaimage()
@@ -452,7 +469,7 @@ def generate_mosaic_metrics(
             overwrite=True,
         )
         integration_time_img.close()
-        metric_files['integration_time'] = f"{base_path}_integration_time"
+        metric_files["integration_time"] = f"{base_path}_integration_time"
 
         # 5. Coverage map (binary: 1 if tile contributes, 0 otherwise)
         coverage_map = (tile_count_map > 0).astype(np.float32)
@@ -464,7 +481,7 @@ def generate_mosaic_metrics(
             overwrite=True,
         )
         coverage_img.close()
-        metric_files['coverage'] = f"{base_path}_coverage"
+        metric_files["coverage"] = f"{base_path}_coverage"
 
         # Export as FITS
         if exportfits:
@@ -488,6 +505,7 @@ def generate_mosaic_metrics(
     except Exception as e:
         LOG.error(f"Failed to generate mosaic metrics: {e}")
         import traceback
+
         traceback.print_exc()
 
     return metric_files
@@ -514,8 +532,8 @@ def _calculate_mosaic_bounds(tiles: List[str]) -> Tuple[float, float, float, flo
     except ImportError:
         # Fallback: try using CASA to get coordinates
         import numpy as np
-        LOG.warning(
-            "astropy not available, using CASA for coordinate extraction")
+
+        LOG.warning("astropy not available, using CASA for coordinate extraction")
         from casacore.images import image as casaimage
 
         ra_min_list, ra_max_list = [], []
@@ -538,12 +556,7 @@ def _calculate_mosaic_bounds(tiles: List[str]) -> Tuple[float, float, float, flo
                     ny, nx = shape[0], shape[1] if len(shape) > 1 else shape[0]
 
                 # Get corner coordinates
-                corners_pix = [
-                    [0, 0],
-                    [nx-1, 0],
-                    [0, ny-1],
-                    [nx-1, ny-1]
-                ]
+                corners_pix = [[0, 0], [nx - 1, 0], [0, ny - 1], [nx - 1, ny - 1]]
 
                 ras, decs = [], []
                 for x, y in corners_pix:
@@ -594,8 +607,12 @@ def _calculate_mosaic_bounds(tiles: List[str]) -> Tuple[float, float, float, flo
         if not ra_min_list:
             raise ValueError("Could not extract coordinates from any tile")
 
-        return (min(ra_min_list), max(ra_max_list),
-                min(dec_min_list), max(dec_max_list))
+        return (
+            min(ra_min_list),
+            max(ra_max_list),
+            min(dec_min_list),
+            max(dec_max_list),
+        )
 
     # Use astropy (preferred method)
     ra_min_list, ra_max_list = [], []
@@ -613,15 +630,12 @@ def _calculate_mosaic_bounds(tiles: List[str]) -> Tuple[float, float, float, flo
                 if data.ndim >= 2:
                     ny, nx = data.shape[-2], data.shape[-1]
                 else:
-                    ny, nx = data.shape[0], data.shape[1] if data.ndim > 1 else data.shape[0]
+                    ny, nx = data.shape[0], (
+                        data.shape[1] if data.ndim > 1 else data.shape[0]
+                    )
 
                 # Get corner coordinates
-                corners_pix = [
-                    [0, 0],
-                    [nx-1, 0],
-                    [0, ny-1],
-                    [nx-1, ny-1]
-                ]
+                corners_pix = [[0, 0], [nx - 1, 0], [0, ny - 1], [nx - 1, ny - 1]]
 
                 wcs_validated, is_4d, defaults = validate_wcs_4d(wcs)
                 corners_world = [
@@ -642,16 +656,18 @@ def _calculate_mosaic_bounds(tiles: List[str]) -> Tuple[float, float, float, flo
     if not ra_min_list:
         raise ValueError("Could not extract coordinates from any tile")
 
-    return (min(ra_min_list), max(ra_max_list),
-            min(dec_min_list), max(dec_max_list))
+    return (min(ra_min_list), max(ra_max_list), min(dec_min_list), max(dec_max_list))
 
 
 def _create_common_coordinate_system(
-    ra_min: float, ra_max: float, dec_min: float, dec_max: float,
+    ra_min: float,
+    ra_max: float,
+    dec_min: float,
+    dec_max: float,
     pixel_scale_arcsec: float = 2.0,
     padding_pixels: int = 10,
     template_tile: Optional[str] = None,
-    output_dir: Optional[str] = None
+    output_dir: Optional[str] = None,
 ):
     """
     Create a common coordinate system that encompasses all tiles.
@@ -680,8 +696,7 @@ def _create_common_coordinate_system(
     import os
 
     if template_tile is None:
-        raise ValueError(
-            "template_tile is required to create coordinate system")
+        raise ValueError("template_tile is required to create coordinate system")
 
     # Calculate center
     ra_center = (ra_min + ra_max) / 2.0
@@ -700,32 +715,34 @@ def _create_common_coordinate_system(
 
     # Create template image directory
     if output_dir is None:
-        output_dir = tempfile.mkdtemp(prefix='mosaic_template_')
+        output_dir = tempfile.mkdtemp(prefix="mosaic_template_")
     else:
         os.makedirs(output_dir, exist_ok=True)
 
-    template_image_path = os.path.join(output_dir, 'common_template.image')
+    template_image_path = os.path.join(output_dir, "common_template.image")
 
     # Convert FITS to CASA image if needed (imregrid requires CASA image format)
     template_tile_casa = template_tile
-    if template_tile.endswith('.fits'):
+    if template_tile.endswith(".fits"):
         # Convert FITS to CASA image format for template
-        template_tile_casa = os.path.join(
-            output_dir, 'template_tile_casa.image')
+        template_tile_casa = os.path.join(output_dir, "template_tile_casa.image")
         if os.path.exists(template_tile_casa):
             import shutil
+
             if os.path.isdir(template_tile_casa):
                 shutil.rmtree(template_tile_casa)
 
         try:
             from casatasks import importfits
-            importfits(fitsimage=template_tile,
-                       imagename=template_tile_casa, overwrite=True)
-            LOG.debug(
-                f"Converted FITS template to CASA image: {template_tile_casa}")
+
+            importfits(
+                fitsimage=template_tile, imagename=template_tile_casa, overwrite=True
+            )
+            LOG.debug(f"Converted FITS template to CASA image: {template_tile_casa}")
         except Exception as e:
             LOG.warning(
-                f"Could not convert FITS to CASA image: {e}, using FITS directly")
+                f"Could not convert FITS to CASA image: {e}, using FITS directly"
+            )
             template_tile_casa = template_tile
 
     # Use template tile to get coordinate system structure
@@ -733,7 +750,7 @@ def _create_common_coordinate_system(
     template_coordsys = template_img.coordinates()
 
     # Get direction coordinate and modify it
-    dir_coord = template_coordsys.get_coordinate('direction')
+    dir_coord = template_coordsys.get_coordinate("direction")
 
     # Convert to radians
     ra_center_rad = np.radians(ra_center)
@@ -742,7 +759,7 @@ def _create_common_coordinate_system(
 
     # Modify the direction coordinate
     dir_coord.set_referencevalue([ra_center_rad, dec_center_rad])
-    dir_coord.set_referencepixel([nx/2.0, ny/2.0])
+    dir_coord.set_referencepixel([nx / 2.0, ny / 2.0])
     dir_coord.set_increment([-pixel_scale_rad, pixel_scale_rad])
 
     # Create a new coordinate system with modified direction coordinate
@@ -751,6 +768,7 @@ def _create_common_coordinate_system(
         # Remove existing template if it exists
         if os.path.exists(template_image_path):
             import shutil
+
             if os.path.isdir(template_image_path):
                 shutil.rmtree(template_image_path)
             else:
@@ -766,12 +784,12 @@ def _create_common_coordinate_system(
         # Modify the direction coordinate in the record
         # CASA uses 'direction0', 'stokes1', 'spectral2' etc. as keys
         dir_coord_dict = dir_coord.dict()
-        if 'direction0' in coordsys_dict:
+        if "direction0" in coordsys_dict:
             # Update existing direction coordinate
-            coordsys_dict['direction0'] = dir_coord_dict
+            coordsys_dict["direction0"] = dir_coord_dict
         else:
             # Add direction coordinate (shouldn't happen, but handle it)
-            coordsys_dict['direction0'] = dir_coord_dict
+            coordsys_dict["direction0"] = dir_coord_dict
 
         # Create coordinate system from record
         new_coordsys = coordinatesystem(coordsys_dict)
@@ -790,8 +808,12 @@ def _create_common_coordinate_system(
             image_shape = [ny, nx]
 
         # Create new image with modified coordinate system
-        new_img = casaimage(template_image_path, shape=image_shape,
-                            coordsys=new_coordsys, overwrite=True)
+        new_img = casaimage(
+            template_image_path,
+            shape=image_shape,
+            coordsys=new_coordsys,
+            overwrite=True,
+        )
 
         # Fill with zeros
         new_img.putdata(np.zeros(image_shape, dtype=np.float32))
@@ -802,14 +824,17 @@ def _create_common_coordinate_system(
             pass
 
         LOG.debug(
-            f"Created template image: {template_image_path} with shape {image_shape}")
+            f"Created template image: {template_image_path} with shape {image_shape}"
+        )
 
     except Exception as e:
         # Fallback: create a simple template with correct shape
         # Even if coordinate system creation fails, we need the right shape
         LOG.warning(
-            f"Could not create custom template image: {e}, creating simple template with correct shape")
+            f"Could not create custom template image: {e}, creating simple template with correct shape"
+        )
         import traceback
+
         LOG.debug(traceback.format_exc())
 
         # Create a simple template image with the correct shape
@@ -824,8 +849,12 @@ def _create_common_coordinate_system(
 
             # Create image with template's coordinate system but desired shape
             # This will have wrong coordinates but right shape for regridding
-            new_img = casaimage(template_image_path, shape=image_shape,
-                                coordsys=template_coordsys, overwrite=True)
+            new_img = casaimage(
+                template_image_path,
+                shape=image_shape,
+                coordsys=template_coordsys,
+                overwrite=True,
+            )
             new_img.putdata(np.zeros(image_shape, dtype=np.float32))
             try:
                 new_img.close()
@@ -835,7 +864,8 @@ def _create_common_coordinate_system(
         except Exception as e2:
             # Last resort: use template tile (wrong shape, but will work for coordinate system)
             LOG.warning(
-                f"Could not create fallback template: {e2}, using template tile")
+                f"Could not create fallback template: {e2}, using template tile"
+            )
             template_image_path = template_tile_casa
 
     try:
@@ -876,21 +906,33 @@ def _build_weighted_mosaic(
     # When False, only critical errors will stop execution
     # Temporarily disabled due to cache returning old regridded images with wrong shapes
     DEBUG_AGGRESSIVE_VALIDATION = False
-    
+
     # CRITICAL: Validate that tiles are in chronological order
     # Tiles must be ordered by observation time to ensure correct coordinate system
     # and prevent mosaic artifacts
     from pathlib import Path
 
-    print(f"[DEBUG] =========================================", file=sys.stderr, flush=True)
-    print(f"[DEBUG] CHECKPOINT: Starting _build_weighted_mosaic", file=sys.stderr, flush=True)
+    print(
+        f"[DEBUG] =========================================",
+        file=sys.stderr,
+        flush=True,
+    )
+    print(
+        f"[DEBUG] CHECKPOINT: Starting _build_weighted_mosaic",
+        file=sys.stderr,
+        flush=True,
+    )
     print(f"[DEBUG] Number of tiles: {len(tiles)}", file=sys.stderr, flush=True)
     print(f"[DEBUG] Output path: {output_path}", file=sys.stderr, flush=True)
     print(f"[DEBUG] Tile paths:", file=sys.stderr, flush=True)
     for i, tile in enumerate(tiles):
         print(f"[DEBUG]   [{i+1}] {tile}", file=sys.stderr, flush=True)
-    print(f"[DEBUG] =========================================", file=sys.stderr, flush=True)
-    
+    print(
+        f"[DEBUG] =========================================",
+        file=sys.stderr,
+        flush=True,
+    )
+
     # AGGRESSIVE VALIDATION: Fail immediately on invalid inputs
     if DEBUG_AGGRESSIVE_VALIDATION:
         if not tiles:
@@ -899,17 +941,28 @@ def _build_weighted_mosaic(
             raise MosaicError("Empty tiles list", "Must provide at least one tile")
         for i, tile in enumerate(tiles):
             if not tile:
-                raise MosaicError(f"Tile {i+1} is empty", "All tiles must be non-empty paths")
+                raise MosaicError(
+                    f"Tile {i+1} is empty", "All tiles must be non-empty paths"
+                )
             if not isinstance(tile, str):
                 raise MosaicError(f"Tile {i+1} is not a string", f"Got {type(tile)}")
             if not os.path.exists(tile):
-                raise MosaicError(f"Tile {i+1} does not exist: {tile}", "All tiles must exist before building mosaic")
+                raise MosaicError(
+                    f"Tile {i+1} does not exist: {tile}",
+                    "All tiles must exist before building mosaic",
+                )
         if not output_path:
             raise MosaicError("Output path is empty", "Must provide output_path")
         if not isinstance(output_path, str):
-            raise MosaicError(f"Output path is not a string", f"Got {type(output_path)}")
-        print(f"[DEBUG] ✓ Aggressive validation passed: {len(tiles)} tiles, all exist", file=sys.stderr, flush=True)
-    
+            raise MosaicError(
+                f"Output path is not a string", f"Got {type(output_path)}"
+            )
+        print(
+            f"[DEBUG] ✓ Aggressive validation passed: {len(tiles)} tiles, all exist",
+            file=sys.stderr,
+            flush=True,
+        )
+
     LOG.info(f"Building mosaic with {len(tiles)} tiles")
     LOG.debug(f"Tile paths: {[Path(t).name for t in tiles]}")
 
@@ -932,7 +985,7 @@ def _build_weighted_mosaic(
         raise CASAToolError(
             f"CASA not available: {e}",
             "Ensure CASA is installed and available in the environment. "
-            "Try: conda activate casa6"
+            "Try: conda activate casa6",
         ) from e
 
     # CRITICAL: Calculate bounding box and create common coordinate system
@@ -940,15 +993,16 @@ def _build_weighted_mosaic(
     LOG.info("Calculating mosaic bounding box from all tiles...")
     try:
         ra_min, ra_max, dec_min, dec_max = _calculate_mosaic_bounds(tiles)
-        LOG.info(f"Mosaic bounds: RA=[{ra_min:.6f}°, {ra_max:.6f}°], "
-                 f"Dec=[{dec_min:.6f}°, {dec_max:.6f}°]")
         LOG.info(
-            f"Mosaic span: RA={ra_max-ra_min:.6f}°, Dec={dec_max-dec_min:.6f}°")
+            f"Mosaic bounds: RA=[{ra_min:.6f}°, {ra_max:.6f}°], "
+            f"Dec=[{dec_min:.6f}°, {dec_max:.6f}°]"
+        )
+        LOG.info(f"Mosaic span: RA={ra_max-ra_min:.6f}°, Dec={dec_max-dec_min:.6f}°")
     except Exception as e:
         LOG.error(f"Failed to calculate mosaic bounds: {e}")
         raise MosaicError(
             f"Could not determine mosaic bounds from tiles: {e}",
-            "Ensure all tiles have valid WCS information."
+            "Ensure all tiles have valid WCS information.",
         ) from e
 
     # Create common coordinate system
@@ -984,7 +1038,8 @@ def _build_weighted_mosaic(
             # Fallback to default
             pixel_scale_arcsec = 2.0
             LOG.warning(
-                f"Could not determine pixel scale from first tile, using default {pixel_scale_arcsec}\"")
+                f'Could not determine pixel scale from first tile, using default {pixel_scale_arcsec}"'
+            )
 
         # Try to close image (may not exist for FITS files)
         try:
@@ -999,7 +1054,7 @@ def _build_weighted_mosaic(
         dec_span = dec_max - dec_min
         nx = int(np.ceil(ra_span / pixel_scale_deg)) + 2 * padding_pixels
         ny = int(np.ceil(dec_span / pixel_scale_deg)) + 2 * padding_pixels
-        
+
         # Check first tile dimensionality to determine common_shape format
         # Tiles might be 2D [y, x] or 4D [stokes, freq, y, x]
         # We need common_shape to match the tile dimensionality for imregrid
@@ -1009,87 +1064,156 @@ def _build_weighted_mosaic(
             first_tile_check.close()
         except AttributeError:
             pass
-        
+
         if len(first_tile_shape) == 4:
             # Tiles are 4D, so common_shape must be 4D: [stokes, freq, y, x]
             common_shape = [first_tile_shape[0], first_tile_shape[1], ny, nx]
-            print(f"[DEBUG] Tiles are 4D, using 4D common_shape: {common_shape} (spatial: {ny}x{nx})", file=sys.stderr, flush=True)
+            print(
+                f"[DEBUG] Tiles are 4D, using 4D common_shape: {common_shape} (spatial: {ny}x{nx})",
+                file=sys.stderr,
+                flush=True,
+            )
         else:
             # Tiles are 2D, use 2D common_shape: [y, x]
             common_shape = [ny, nx]
-            print(f"[DEBUG] Tiles are 2D, using 2D common_shape: {common_shape}", file=sys.stderr, flush=True)
+            print(
+                f"[DEBUG] Tiles are 2D, using 2D common_shape: {common_shape}",
+                file=sys.stderr,
+                flush=True,
+            )
 
         # Use first tile as template for coordinate system structure
         # imregrid will use shape parameter to set output size
         # Convert FITS to CASA format if needed (imregrid requires CASA images)
-        print(f"[DEBUG] CHECKPOINT: Starting template preparation", file=sys.stderr, flush=True)
+        print(
+            f"[DEBUG] CHECKPOINT: Starting template preparation",
+            file=sys.stderr,
+            flush=True,
+        )
         template_tile = tiles[0]
-        print(f"[DEBUG] Template tile (first): {template_tile}", file=sys.stderr, flush=True)
-        
+        print(
+            f"[DEBUG] Template tile (first): {template_tile}",
+            file=sys.stderr,
+            flush=True,
+        )
+
         if not os.path.exists(template_tile):
             raise MosaicError(
                 f"Template tile does not exist: {template_tile}",
-                "First tile must exist to use as template."
+                "First tile must exist to use as template.",
             )
-        
-        template_output_dir = os.path.join(os.path.dirname(output_path), '.mosaic_template')
-        print(f"[DEBUG] Template output directory: {template_output_dir}", file=sys.stderr, flush=True)
+
+        template_output_dir = os.path.join(
+            os.path.dirname(output_path), ".mosaic_template"
+        )
+        print(
+            f"[DEBUG] Template output directory: {template_output_dir}",
+            file=sys.stderr,
+            flush=True,
+        )
         os.makedirs(template_output_dir, exist_ok=True)
-        
+
         if not os.path.isdir(template_output_dir):
             raise MosaicError(
                 f"Failed to create template directory: {template_output_dir}",
-                "Check disk space and permissions."
+                "Check disk space and permissions.",
             )
-        
-        if template_tile.endswith('.fits'):
-            template_image_path = os.path.join(template_output_dir, 'template_casa.image')
-            print(f"[DEBUG] FITS template detected, target CASA path: {template_image_path}", file=sys.stderr, flush=True)
-            
+
+        if template_tile.endswith(".fits"):
+            template_image_path = os.path.join(
+                template_output_dir, "template_casa.image"
+            )
+            print(
+                f"[DEBUG] FITS template detected, target CASA path: {template_image_path}",
+                file=sys.stderr,
+                flush=True,
+            )
+
             if not os.path.exists(template_image_path):
-                print(f"[DEBUG] Converting FITS to CASA: {Path(template_tile).name} -> {Path(template_image_path).name}", file=sys.stderr, flush=True)
-                LOG.info(f"Converting template FITS to CASA format: {Path(template_tile).name} -> {Path(template_image_path).name}")
+                print(
+                    f"[DEBUG] Converting FITS to CASA: {Path(template_tile).name} -> {Path(template_image_path).name}",
+                    file=sys.stderr,
+                    flush=True,
+                )
+                LOG.info(
+                    f"Converting template FITS to CASA format: {Path(template_tile).name} -> {Path(template_image_path).name}"
+                )
                 sys.stderr.flush()
-                
+
                 from casatasks import importfits
+
                 import_start = time.time()
-                importfits(fitsimage=template_tile, imagename=template_image_path, overwrite=True)
+                importfits(
+                    fitsimage=template_tile,
+                    imagename=template_image_path,
+                    overwrite=True,
+                )
                 import_elapsed = time.time() - import_start
-                print(f"[DEBUG] FITS import completed in {import_elapsed:.2f}s", file=sys.stderr, flush=True)
-                
+                print(
+                    f"[DEBUG] FITS import completed in {import_elapsed:.2f}s",
+                    file=sys.stderr,
+                    flush=True,
+                )
+
                 if not os.path.exists(template_image_path):
                     raise MosaicError(
                         f"FITS conversion failed: {template_image_path} does not exist after importfits",
-                        "Check CASA importfits output for errors."
+                        "Check CASA importfits output for errors.",
                     )
-                print(f"[DEBUG] ✓ FITS conversion verified: {template_image_path} exists", file=sys.stderr, flush=True)
+                print(
+                    f"[DEBUG] ✓ FITS conversion verified: {template_image_path} exists",
+                    file=sys.stderr,
+                    flush=True,
+                )
             else:
-                print(f"[DEBUG] Using existing CASA template: {Path(template_image_path).name}", file=sys.stderr, flush=True)
-                LOG.info(f"Using existing CASA template: {Path(template_image_path).name}")
+                print(
+                    f"[DEBUG] Using existing CASA template: {Path(template_image_path).name}",
+                    file=sys.stderr,
+                    flush=True,
+                )
+                LOG.info(
+                    f"Using existing CASA template: {Path(template_image_path).name}"
+                )
         else:
             # Already a CASA image directory
             template_image_path = template_tile
-            print(f"[DEBUG] Using CASA template directory: {Path(template_tile).name}", file=sys.stderr, flush=True)
+            print(
+                f"[DEBUG] Using CASA template directory: {Path(template_tile).name}",
+                file=sys.stderr,
+                flush=True,
+            )
             LOG.info(f"Using CASA template directory: {Path(template_tile).name}")
 
         # CRITICAL: Verify template is in CASA format (not FITS)
         print(f"[DEBUG] Validating template format...", file=sys.stderr, flush=True)
-        if template_image_path.endswith('.fits'):
-            print(f"[ERROR] Template is FITS format: {template_image_path}", file=sys.stderr, flush=True)
+        if template_image_path.endswith(".fits"):
+            print(
+                f"[ERROR] Template is FITS format: {template_image_path}",
+                file=sys.stderr,
+                flush=True,
+            )
             raise MosaicError(
                 f"Template image must be in CASA format, not FITS: {template_image_path}",
-                "FITS files must be converted to CASA format before use as template."
+                "FITS files must be converted to CASA format before use as template.",
             )
-        
+
         if not os.path.exists(template_image_path):
-            print(f"[ERROR] Template does not exist: {template_image_path}", file=sys.stderr, flush=True)
+            print(
+                f"[ERROR] Template does not exist: {template_image_path}",
+                file=sys.stderr,
+                flush=True,
+            )
             raise MosaicError(
                 f"Template image does not exist: {template_image_path}",
-                "Check that FITS to CASA conversion succeeded."
+                "Check that FITS to CASA conversion succeeded.",
             )
-        
-        print(f"[DEBUG] ✓ Template validation passed: {template_image_path}", file=sys.stderr, flush=True)
-        
+
+        print(
+            f"[DEBUG] ✓ Template validation passed: {template_image_path}",
+            file=sys.stderr,
+            flush=True,
+        )
+
         # AGGRESSIVE VALIDATION: Verify template is actually readable
         if DEBUG_AGGRESSIVE_VALIDATION:
             try:
@@ -1100,29 +1224,42 @@ def _build_weighted_mosaic(
                     test_img.close()
                 except AttributeError:
                     pass
-                print(f"[DEBUG] ✓ Template image is readable: shape={test_shape}", file=sys.stderr, flush=True)
+                print(
+                    f"[DEBUG] ✓ Template image is readable: shape={test_shape}",
+                    file=sys.stderr,
+                    flush=True,
+                )
             except Exception as e:
                 raise MosaicError(
                     f"Template image is not readable: {e}",
-                    f"Template path: {template_image_path}"
+                    f"Template path: {template_image_path}",
                 ) from e
-        
+
         LOG.info(
-            f"Common regridding shape: {common_shape} (RA span: {ra_span:.6f}°, Dec span: {dec_span:.6f}°)")
+            f"Common regridding shape: {common_shape} (RA span: {ra_span:.6f}°, Dec span: {dec_span:.6f}°)"
+        )
         LOG.info(f"Template image path: {template_image_path}")
         sys.stderr.flush()
     except Exception as e:
-        print(f"[ERROR] Failed to create common coordinate system: {e}", file=sys.stderr, flush=True)
+        print(
+            f"[ERROR] Failed to create common coordinate system: {e}",
+            file=sys.stderr,
+            flush=True,
+        )
         import traceback
-        print(f"[ERROR] Traceback:\n{traceback.format_exc()}", file=sys.stderr, flush=True)
+
+        print(
+            f"[ERROR] Traceback:\n{traceback.format_exc()}", file=sys.stderr, flush=True
+        )
         LOG.error(f"Failed to create common coordinate system: {e}")
         raise MosaicError(
             f"Could not create common coordinate system: {e}",
-            "Check that CASA coordinate system creation is working."
+            "Check that CASA coordinate system creation is working.",
         ) from e
 
     # Check if we have PB images for all tiles (using cache)
     from .cache import get_cache
+
     cache = get_cache()
     pb_paths = []
     for tile in tiles:
@@ -1131,6 +1268,7 @@ def _build_weighted_mosaic(
         if not pb_path:
             # Try to find PB path using cache
             from .validation import _find_pb_path
+
             pb_path = cache.get_pb_path(tile, _find_pb_path)
 
         if pb_path and os.path.exists(pb_path):
@@ -1148,10 +1286,9 @@ def _build_weighted_mosaic(
         # Fall back to noise-weighted combination
         noise_weights = []
         for tile in tiles:
-            metrics = metrics_dict.get(
-                tile, TileQualityMetrics(tile_path=tile))
+            metrics = metrics_dict.get(tile, TileQualityMetrics(tile_path=tile))
             if metrics.rms_noise is not None and metrics.rms_noise > 0:
-                weight = 1.0 / (metrics.rms_noise ** 2)
+                weight = 1.0 / (metrics.rms_noise**2)
             else:
                 weight = 1.0
             noise_weights.append(weight)
@@ -1185,129 +1322,231 @@ def _build_weighted_mosaic(
     # template_image_path is guaranteed to be a CASA image (converted from FITS if needed)
     print(f"[DEBUG] CHECKPOINT: Starting PB regridding", file=sys.stderr, flush=True)
     print(f"[DEBUG] Template path: {template_image_path}", file=sys.stderr, flush=True)
-    print(f"[DEBUG] Template exists: {os.path.exists(template_image_path)}", file=sys.stderr, flush=True)
-    print(f"[DEBUG] Template is FITS: {template_image_path.endswith('.fits')}", file=sys.stderr, flush=True)
-    
-    if template_image_path.endswith('.fits'):
-        print(f"[ERROR] CRITICAL: Template is still FITS format!", file=sys.stderr, flush=True)
+    print(
+        f"[DEBUG] Template exists: {os.path.exists(template_image_path)}",
+        file=sys.stderr,
+        flush=True,
+    )
+    print(
+        f"[DEBUG] Template is FITS: {template_image_path.endswith('.fits')}",
+        file=sys.stderr,
+        flush=True,
+    )
+
+    if template_image_path.endswith(".fits"):
+        print(
+            f"[ERROR] CRITICAL: Template is still FITS format!",
+            file=sys.stderr,
+            flush=True,
+        )
         raise MosaicError(
             f"Template must be CASA format but is FITS: {template_image_path}",
-            "This should have been caught earlier. Check template conversion logic."
+            "This should have been caught earlier. Check template conversion logic.",
         )
-    
+
     if not os.path.exists(template_image_path):
-        print(f"[ERROR] CRITICAL: Template does not exist!", file=sys.stderr, flush=True)
+        print(
+            f"[ERROR] CRITICAL: Template does not exist!", file=sys.stderr, flush=True
+        )
         raise MosaicError(
             f"Template image missing: {template_image_path}",
-            "Template should have been created/validated earlier."
+            "Template should have been created/validated earlier.",
         )
-    
-    LOG.info(f"Using CASA template image for regridding: {Path(template_image_path).name}")
+
+    LOG.info(
+        f"Using CASA template image for regridding: {Path(template_image_path).name}"
+    )
     sys.stderr.flush()
 
     try:
         for i, (tile, pb_path) in enumerate(zip(tiles, pb_paths)):
-            print(f"[DEBUG] ===== PB REGRID {i+1}/{len(pb_paths)} =====", file=sys.stderr, flush=True)
+            print(
+                f"[DEBUG] ===== PB REGRID {i+1}/{len(pb_paths)} =====",
+                file=sys.stderr,
+                flush=True,
+            )
             print(f"[DEBUG] Tile: {Path(tile).name}", file=sys.stderr, flush=True)
             print(f"[DEBUG] PB path: {pb_path}", file=sys.stderr, flush=True)
-            
+
             if pb_path is None:
-                print(f"[ERROR] PB path is None for tile {i+1}", file=sys.stderr, flush=True)
+                print(
+                    f"[ERROR] PB path is None for tile {i+1}",
+                    file=sys.stderr,
+                    flush=True,
+                )
                 raise MosaicError(
                     f"No PB path for tile {i+1}: {tile}",
-                    "All tiles must have PB images for PB-weighted combination."
+                    "All tiles must have PB images for PB-weighted combination.",
                 )
-            
+
             if not os.path.exists(pb_path):
-                print(f"[ERROR] PB file does not exist: {pb_path}", file=sys.stderr, flush=True)
-                raise MosaicError(
-                    f"PB image missing: {pb_path}",
-                    "PB image file must exist."
+                print(
+                    f"[ERROR] PB file does not exist: {pb_path}",
+                    file=sys.stderr,
+                    flush=True,
                 )
-            
+                raise MosaicError(
+                    f"PB image missing: {pb_path}", "PB image file must exist."
+                )
+
             try:
                 pb_start = time.time()
-                print(f"[DEBUG] Regridding PB {i+1}/{len(pb_paths)}: {Path(pb_path).name}...", file=sys.stderr, flush=True)
+                print(
+                    f"[DEBUG] Regridding PB {i+1}/{len(pb_paths)}: {Path(pb_path).name}...",
+                    file=sys.stderr,
+                    flush=True,
+                )
                 LOG.info(
-                    f"Regridding PB image {i+1}/{len(pb_paths)}: {Path(pb_path).name}...")
+                    f"Regridding PB image {i+1}/{len(pb_paths)}: {Path(pb_path).name}..."
+                )
 
                 # Regrid PB image to common coordinate system
                 # Try to use cached regridded image
                 def regrid_func(imagename, template, output, overwrite):
-                    print(f"[DEBUG] Calling imregrid: imagename={imagename}, template={template}, output={output}", file=sys.stderr, flush=True)
+                    print(
+                        f"[DEBUG] Calling imregrid: imagename={imagename}, template={template}, output={output}",
+                        file=sys.stderr,
+                        flush=True,
+                    )
                     if not os.path.exists(imagename):
-                        raise FileNotFoundError(f"Source image does not exist: {imagename}")
+                        raise FileNotFoundError(
+                            f"Source image does not exist: {imagename}"
+                        )
                     if not os.path.exists(template):
-                        raise FileNotFoundError(f"Template image does not exist: {template}")
-                    if template.endswith('.fits'):
-                        raise ValueError(f"Template must be CASA format, not FITS: {template}")
+                        raise FileNotFoundError(
+                            f"Template image does not exist: {template}"
+                        )
+                    if template.endswith(".fits"):
+                        raise ValueError(
+                            f"Template must be CASA format, not FITS: {template}"
+                        )
                     # When using a template, imregrid uses the template's shape automatically
                     # Do NOT pass shape parameter - it causes errors with non-spatial axes
                     # The template already has the correct spatial dimensions
-                    imregrid(imagename=imagename, template=template,
-                             output=output, overwrite=overwrite)
-                    print(f"[DEBUG] imregrid completed for {output}", file=sys.stderr, flush=True)
+                    imregrid(
+                        imagename=imagename,
+                        template=template,
+                        output=output,
+                        overwrite=overwrite,
+                    )
+                    print(
+                        f"[DEBUG] imregrid completed for {output}",
+                        file=sys.stderr,
+                        flush=True,
+                    )
 
                 regridded_pb = cache.get_regridded_image(
                     source_path=str(pb_path),
                     template_path=template_image_path,
                     regrid_func=regrid_func,
-                    output_suffix=f"_pb_common_{i}"
+                    output_suffix=f"_pb_common_{i}",
                 )
 
                 if not regridded_pb:
-                    print(f"[DEBUG] Cache miss, using temporary file", file=sys.stderr, flush=True)
+                    print(
+                        f"[DEBUG] Cache miss, using temporary file",
+                        file=sys.stderr,
+                        flush=True,
+                    )
                     # Fallback to temporary file if caching not available
-                    regridded_pb = str(output_path) + \
-                        f"_pb_regrid_common_{i}.tmp"
-                    print(f"[DEBUG] Regridding to: {regridded_pb}", file=sys.stderr, flush=True)
+                    regridded_pb = str(output_path) + f"_pb_regrid_common_{i}.tmp"
+                    print(
+                        f"[DEBUG] Regridding to: {regridded_pb}",
+                        file=sys.stderr,
+                        flush=True,
+                    )
                     try:
-                        print(f"[DEBUG] Pre-regrid check: source={pb_path} exists={os.path.exists(pb_path)}, template={template_image_path} exists={os.path.exists(template_image_path)}", file=sys.stderr, flush=True)
+                        print(
+                            f"[DEBUG] Pre-regrid check: source={pb_path} exists={os.path.exists(pb_path)}, template={template_image_path} exists={os.path.exists(template_image_path)}",
+                            file=sys.stderr,
+                            flush=True,
+                        )
                         imregrid(
                             imagename=str(pb_path),
                             template=template_image_path,
                             output=regridded_pb,
                             overwrite=True,
                         )
-                        print(f"[DEBUG] ✓ Regridding completed: {regridded_pb}", file=sys.stderr, flush=True)
+                        print(
+                            f"[DEBUG] ✓ Regridding completed: {regridded_pb}",
+                            file=sys.stderr,
+                            flush=True,
+                        )
                         if not os.path.exists(regridded_pb):
-                            raise FileNotFoundError(f"Regridded output does not exist: {regridded_pb}")
+                            raise FileNotFoundError(
+                                f"Regridded output does not exist: {regridded_pb}"
+                            )
                     except Exception as e:
-                        print(f"[ERROR] Regridding failed: {e}", file=sys.stderr, flush=True)
+                        print(
+                            f"[ERROR] Regridding failed: {e}",
+                            file=sys.stderr,
+                            flush=True,
+                        )
                         import traceback
-                        print(f"[ERROR] Traceback:\n{traceback.format_exc()}", file=sys.stderr, flush=True)
+
+                        print(
+                            f"[ERROR] Traceback:\n{traceback.format_exc()}",
+                            file=sys.stderr,
+                            flush=True,
+                        )
                         handle_casa_tool_error(
-                            'imregrid', e,
+                            "imregrid",
+                            e,
                             image_path=pb_path,
                             operation=f"regrid_pb_to_common_{i}",
-                            template=template_image_path
+                            template=template_image_path,
                         )
                 else:
-                    print(f"[DEBUG] Using cached regridded PB: {regridded_pb}", file=sys.stderr, flush=True)
-                    LOG.debug(
-                        f"Using cached regridded PB image: {regridded_pb}")
+                    print(
+                        f"[DEBUG] Using cached regridded PB: {regridded_pb}",
+                        file=sys.stderr,
+                        flush=True,
+                    )
+                    LOG.debug(f"Using cached regridded PB image: {regridded_pb}")
 
                 # Read regridded PB image
-                print(f"[DEBUG] Reading regridded PB image: {regridded_pb}", file=sys.stderr, flush=True)
+                print(
+                    f"[DEBUG] Reading regridded PB image: {regridded_pb}",
+                    file=sys.stderr,
+                    flush=True,
+                )
                 if not os.path.exists(regridded_pb):
-                    raise FileNotFoundError(f"Regridded PB image missing: {regridded_pb}")
-                
+                    raise FileNotFoundError(
+                        f"Regridded PB image missing: {regridded_pb}"
+                    )
+
                 pb_img = casaimage(str(regridded_pb))
-                print(f"[DEBUG] PB image opened, reading data...", file=sys.stderr, flush=True)
+                print(
+                    f"[DEBUG] PB image opened, reading data...",
+                    file=sys.stderr,
+                    flush=True,
+                )
                 pb_data = pb_img.getdata()
                 shape = pb_img.shape()
                 print(f"[DEBUG] PB data shape: {shape}", file=sys.stderr, flush=True)
-                
+
                 # AGGRESSIVE VALIDATION: Verify PB data is valid
                 if DEBUG_AGGRESSIVE_VALIDATION:
                     if pb_data is None:
-                        raise MosaicError(f"PB {i+1} data is None", f"PB image: {pb_path}")
+                        raise MosaicError(
+                            f"PB {i+1} data is None", f"PB image: {pb_path}"
+                        )
                     if pb_data.size == 0:
-                        raise MosaicError(f"PB {i+1} data is empty", f"PB image: {pb_path}")
+                        raise MosaicError(
+                            f"PB {i+1} data is empty", f"PB image: {pb_path}"
+                        )
                     if np.all(np.isnan(pb_data)):
-                        print(f"[WARNING] PB {i+1} is all NaN", file=sys.stderr, flush=True)
+                        print(
+                            f"[WARNING] PB {i+1} is all NaN",
+                            file=sys.stderr,
+                            flush=True,
+                        )
                     if np.any(np.isinf(pb_data)):
-                        print(f"[WARNING] PB {i+1} contains Inf values", file=sys.stderr, flush=True)
+                        print(
+                            f"[WARNING] PB {i+1} contains Inf values",
+                            file=sys.stderr,
+                            flush=True,
+                        )
                     # Extract 2D shape for comparison (handle 2D or 4D arrays)
                     if pb_data.ndim == 2:
                         pb_shape_2d = pb_data.shape
@@ -1318,17 +1557,25 @@ def _build_weighted_mosaic(
                     if pb_shape_2d != tuple(common_shape):
                         raise MosaicError(
                             f"PB {i+1} shape mismatch: got {pb_shape_2d}, expected {common_shape} (full shape: {pb_data.shape})",
-                            f"PB image: {pb_path}"
+                            f"PB image: {pb_path}",
                         )
-                    print(f"[DEBUG] ✓ PB {i+1} data validation passed: shape_2d={pb_shape_2d}", file=sys.stderr, flush=True)
-                
+                    print(
+                        f"[DEBUG] ✓ PB {i+1} data validation passed: shape_2d={pb_shape_2d}",
+                        file=sys.stderr,
+                        flush=True,
+                    )
+
                 pb_elapsed = time.time() - pb_start
-                print(f"[DEBUG] ✓ PB {i+1} processed in {pb_elapsed:.2f}s", file=sys.stderr, flush=True)
-                LOG.info(
-                    f"  PB {i+1} regridded in {pb_elapsed:.1f}s: shape={shape}")
+                print(
+                    f"[DEBUG] ✓ PB {i+1} processed in {pb_elapsed:.2f}s",
+                    file=sys.stderr,
+                    flush=True,
+                )
+                LOG.info(f"  PB {i+1} regridded in {pb_elapsed:.1f}s: shape={shape}")
 
                 LOG.debug(
-                    f"  PB {i+1} extracting 2D response from shape {pb_data.shape}")
+                    f"  PB {i+1} extracting 2D response from shape {pb_data.shape}"
+                )
                 # Extract PB response (handle multi-dimensional arrays)
                 # PB images are typically 2D [y, x] or 4D [stokes, freq, y, x]
                 if pb_data.ndim == 2:
@@ -1340,10 +1587,12 @@ def _build_weighted_mosaic(
                     # Flatten to 2D
                     pb_response = pb_data.squeeze()
                     if pb_response.ndim > 2:
-                        pb_response = pb_response[0, :,
-                                                  :] if pb_response.ndim == 3 else pb_response
-                LOG.debug(
-                    f"  PB {i+1} extracted 2D shape: {pb_response.shape}")
+                        pb_response = (
+                            pb_response[0, :, :]
+                            if pb_response.ndim == 3
+                            else pb_response
+                        )
+                LOG.debug(f"  PB {i+1} extracted 2D shape: {pb_response.shape}")
 
                 # PB data is already float32 from FITS - no conversion needed for performance
                 # Will convert to float64 only during final mosaic calculation if needed
@@ -1356,7 +1605,7 @@ def _build_weighted_mosaic(
                 raise
             except Exception as e:
                 LOG.error(f"Failed to read PB image {pb_path}: {e}")
-                if 'pb_img' in locals():
+                if "pb_img" in locals():
                     try:
                         pb_img.close()
                     except Exception:
@@ -1367,7 +1616,7 @@ def _build_weighted_mosaic(
                     f"Error: {e}. "
                     "Check if the PB image exists and is readable. "
                     "Verify the image format is supported (CASA .pb directory or FITS -beam-0.fits file).",
-                    context={'tile': pb_path, 'operation': f'read_pb_tile_{i}'}
+                    context={"tile": pb_path, "operation": f"read_pb_tile_{i}"},
                 ) from e
     except Exception as e:
         # Outer try block error handling
@@ -1378,101 +1627,168 @@ def _build_weighted_mosaic(
 
     # Step 2: Regrid all tile images to common coordinate system
     print(f"[DEBUG] CHECKPOINT: Starting tile regridding", file=sys.stderr, flush=True)
-    LOG.info(
-        f"Regridding {len(tiles)} tile images to common coordinate system...")
+    LOG.info(f"Regridding {len(tiles)} tile images to common coordinate system...")
     LOG.info(f"Tile paths: {[Path(t).name for t in tiles]}")
     sys.stderr.flush()
 
     if len(tiles) != len(pb_paths):
-        print(f"[WARNING] Mismatch: {len(tiles)} tiles vs {len(pb_paths)} PB images", file=sys.stderr, flush=True)
-        LOG.warning(
-            f"Mismatch: {len(tiles)} tiles vs {len(pb_paths)} PB images")
+        print(
+            f"[WARNING] Mismatch: {len(tiles)} tiles vs {len(pb_paths)} PB images",
+            file=sys.stderr,
+            flush=True,
+        )
+        LOG.warning(f"Mismatch: {len(tiles)} tiles vs {len(pb_paths)} PB images")
 
     tile_images = []
     tile_data_list = []
 
     for i, tile in enumerate(tiles):
-        print(f"[DEBUG] ===== TILE REGRID {i+1}/{len(tiles)} =====", file=sys.stderr, flush=True)
+        print(
+            f"[DEBUG] ===== TILE REGRID {i+1}/{len(tiles)} =====",
+            file=sys.stderr,
+            flush=True,
+        )
         print(f"[DEBUG] Tile path: {tile}", file=sys.stderr, flush=True)
-        LOG.info(
-            f"=== Starting tile {i+1}/{len(tiles)}: {Path(tile).name} ===")
-        
+        LOG.info(f"=== Starting tile {i+1}/{len(tiles)}: {Path(tile).name} ===")
+
         if not os.path.exists(tile):
             print(f"[ERROR] Tile does not exist: {tile}", file=sys.stderr, flush=True)
             raise MosaicError(
-                f"Tile image missing: {tile}",
-                "All tile images must exist."
+                f"Tile image missing: {tile}", "All tile images must exist."
             )
-        
+
         try:
             tile_start = time.time()
-            print(f"[DEBUG] Regridding tile {i+1}/{len(tiles)}: {Path(tile).name}...", file=sys.stderr, flush=True)
-            LOG.info(
-                f"Regridding tile image {i+1}/{len(tiles)}: {Path(tile).name}...")
+            print(
+                f"[DEBUG] Regridding tile {i+1}/{len(tiles)}: {Path(tile).name}...",
+                file=sys.stderr,
+                flush=True,
+            )
+            LOG.info(f"Regridding tile image {i+1}/{len(tiles)}: {Path(tile).name}...")
 
             # Regrid tile to common coordinate system
             # Try to use cached regridded image
             def regrid_tile_func(imagename, template, output, overwrite):
-                print(f"[DEBUG] Calling imregrid for tile: imagename={imagename}, template={template}, output={output}", file=sys.stderr, flush=True)
+                print(
+                    f"[DEBUG] Calling imregrid for tile: imagename={imagename}, template={template}, output={output}",
+                    file=sys.stderr,
+                    flush=True,
+                )
                 if not os.path.exists(imagename):
                     raise FileNotFoundError(f"Source tile does not exist: {imagename}")
                 if not os.path.exists(template):
-                    raise FileNotFoundError(f"Template image does not exist: {template}")
-                if template.endswith('.fits'):
-                    raise ValueError(f"Template must be CASA format, not FITS: {template}")
-                imregrid(imagename=imagename, template=template,
-                         output=output, overwrite=overwrite)
-                print(f"[DEBUG] Tile imregrid completed: {output}", file=sys.stderr, flush=True)
+                    raise FileNotFoundError(
+                        f"Template image does not exist: {template}"
+                    )
+                if template.endswith(".fits"):
+                    raise ValueError(
+                        f"Template must be CASA format, not FITS: {template}"
+                    )
+                imregrid(
+                    imagename=imagename,
+                    template=template,
+                    output=output,
+                    overwrite=overwrite,
+                )
+                print(
+                    f"[DEBUG] Tile imregrid completed: {output}",
+                    file=sys.stderr,
+                    flush=True,
+                )
 
             regridded_tile = cache.get_regridded_image(
                 source_path=str(tile),
                 template_path=template_image_path,
                 regrid_func=regrid_tile_func,
-                output_suffix=f"_tile_common_{i}"
+                output_suffix=f"_tile_common_{i}",
             )
 
             if not regridded_tile:
-                print(f"[DEBUG] Cache miss for tile, using temporary file", file=sys.stderr, flush=True)
+                print(
+                    f"[DEBUG] Cache miss for tile, using temporary file",
+                    file=sys.stderr,
+                    flush=True,
+                )
                 # Fallback to temporary file if caching not available
-                regridded_tile = str(output_path) + \
-                    f"_tile_regrid_common_{i}.tmp"
-                print(f"[DEBUG] Regridding tile to: {regridded_tile}", file=sys.stderr, flush=True)
+                regridded_tile = str(output_path) + f"_tile_regrid_common_{i}.tmp"
+                print(
+                    f"[DEBUG] Regridding tile to: {regridded_tile}",
+                    file=sys.stderr,
+                    flush=True,
+                )
                 try:
-                    print(f"[DEBUG] Pre-regrid check: source={tile} exists={os.path.exists(tile)}, template={template_image_path} exists={os.path.exists(template_image_path)}", file=sys.stderr, flush=True)
+                    print(
+                        f"[DEBUG] Pre-regrid check: source={tile} exists={os.path.exists(tile)}, template={template_image_path} exists={os.path.exists(template_image_path)}",
+                        file=sys.stderr,
+                        flush=True,
+                    )
                     imregrid(
                         imagename=str(tile),
                         template=template_image_path,
                         output=regridded_tile,
                         overwrite=True,
                     )
-                    print(f"[DEBUG] ✓ Tile regridding completed: {regridded_tile}", file=sys.stderr, flush=True)
+                    print(
+                        f"[DEBUG] ✓ Tile regridding completed: {regridded_tile}",
+                        file=sys.stderr,
+                        flush=True,
+                    )
                     if not os.path.exists(regridded_tile):
-                        raise FileNotFoundError(f"Regridded tile output does not exist: {regridded_tile}")
+                        raise FileNotFoundError(
+                            f"Regridded tile output does not exist: {regridded_tile}"
+                        )
                 except Exception as e:
-                    print(f"[ERROR] Tile regridding failed: {e}", file=sys.stderr, flush=True)
+                    print(
+                        f"[ERROR] Tile regridding failed: {e}",
+                        file=sys.stderr,
+                        flush=True,
+                    )
                     import traceback
-                    print(f"[ERROR] Traceback:\n{traceback.format_exc()}", file=sys.stderr, flush=True)
+
+                    print(
+                        f"[ERROR] Traceback:\n{traceback.format_exc()}",
+                        file=sys.stderr,
+                        flush=True,
+                    )
                     handle_casa_tool_error(
-                        'imregrid', e,
+                        "imregrid",
+                        e,
                         image_path=tile,
                         operation=f"regrid_tile_to_common_{i}",
-                        template=template_image_path
+                        template=template_image_path,
                     )
             else:
-                print(f"[DEBUG] Using cached regridded tile: {regridded_tile}", file=sys.stderr, flush=True)
-                LOG.debug(
-                    f"Using cached regridded tile image: {regridded_tile}")
+                print(
+                    f"[DEBUG] Using cached regridded tile: {regridded_tile}",
+                    file=sys.stderr,
+                    flush=True,
+                )
+                LOG.debug(f"Using cached regridded tile image: {regridded_tile}")
 
             # Read regridded tile image
-            print(f"[DEBUG] Reading regridded tile image: {regridded_tile}", file=sys.stderr, flush=True)
+            print(
+                f"[DEBUG] Reading regridded tile image: {regridded_tile}",
+                file=sys.stderr,
+                flush=True,
+            )
             if not os.path.exists(regridded_tile):
-                raise FileNotFoundError(f"Regridded tile image missing: {regridded_tile}")
-            
+                raise FileNotFoundError(
+                    f"Regridded tile image missing: {regridded_tile}"
+                )
+
             tile_img = casaimage(str(regridded_tile))
-            print(f"[DEBUG] Tile image opened, reading data...", file=sys.stderr, flush=True)
+            print(
+                f"[DEBUG] Tile image opened, reading data...",
+                file=sys.stderr,
+                flush=True,
+            )
             tile_data = tile_img.getdata()
-            print(f"[DEBUG] Tile data shape: {tile_data.shape}", file=sys.stderr, flush=True)
-            
+            print(
+                f"[DEBUG] Tile data shape: {tile_data.shape}",
+                file=sys.stderr,
+                flush=True,
+            )
+
             # AGGRESSIVE VALIDATION: Verify tile data is valid
             if DEBUG_AGGRESSIVE_VALIDATION:
                 if tile_data is None:
@@ -1489,12 +1805,20 @@ def _build_weighted_mosaic(
                 if tile_shape_2d != tuple(common_shape):
                     raise MosaicError(
                         f"Tile {i+1} shape mismatch: got {tile_shape_2d}, expected {common_shape}",
-                        f"Tile: {tile}"
+                        f"Tile: {tile}",
                     )
-                print(f"[DEBUG] ✓ Tile {i+1} data validation passed", file=sys.stderr, flush=True)
-            
+                print(
+                    f"[DEBUG] ✓ Tile {i+1} data validation passed",
+                    file=sys.stderr,
+                    flush=True,
+                )
+
             tile_elapsed = time.time() - tile_start
-            print(f"[DEBUG] ✓ Tile {i+1} processed in {tile_elapsed:.2f}s", file=sys.stderr, flush=True)
+            print(
+                f"[DEBUG] ✓ Tile {i+1} processed in {tile_elapsed:.2f}s",
+                file=sys.stderr,
+                flush=True,
+            )
             LOG.info(f"  Tile {i+1} regridded: shape={tile_data.shape}")
 
             # Extract image data (handle multi-dimensional arrays)
@@ -1507,14 +1831,14 @@ def _build_weighted_mosaic(
                 # Flatten to 2D
                 img_data = tile_data.squeeze()
                 if img_data.ndim > 2:
-                    img_data = img_data[0, :,
-                                        :] if img_data.ndim == 3 else img_data
+                    img_data = img_data[0, :, :] if img_data.ndim == 3 else img_data
 
             # Verify shape matches common shape
             if img_data.shape != common_shape:
                 LOG.warning(
                     f"Tile {i+1} regridded shape {img_data.shape} doesn't match common shape {common_shape}. "
-                    f"This should not happen - regridding may have failed.")
+                    f"This should not happen - regridding may have failed."
+                )
 
             # Verify shape matches PB image
             if i >= len(pb_data_list):
@@ -1525,18 +1849,19 @@ def _build_weighted_mosaic(
             if img_data.shape != pb_data_list[i].shape:
                 LOG.warning(
                     f"Tile {i+1} shape {img_data.shape} doesn't match PB shape {pb_data_list[i].shape}. "
-                    f"This should not happen - both should be regridded to common coordinate system.")
+                    f"This should not happen - both should be regridded to common coordinate system."
+                )
 
             # Append tile data
-            LOG.debug(
-                f"  Tile {i+1} extracted 2D shape: {img_data.shape}")
+            LOG.debug(f"  Tile {i+1} extracted 2D shape: {img_data.shape}")
             # Keep as float32 for performance (tile data is already float32 from FITS)
             # Will convert to float64 only during final mosaic calculation if needed
             tile_data_list.append(img_data)
             tile_images.append(tile_img)
             tile_elapsed = time.time() - tile_start
             LOG.info(
-                f"  Tile {i+1} processed in {tile_elapsed:.1f}s and added to list (total: {len(tile_data_list)})")
+                f"  Tile {i+1} processed in {tile_elapsed:.1f}s and added to list (total: {len(tile_data_list)})"
+            )
             LOG.info(f"=== Completed tile {i+1}/{len(tiles)} successfully ===")
 
         except (ImageReadError, ImageCorruptionError, IncompatibleImageFormatError):
@@ -1545,8 +1870,10 @@ def _build_weighted_mosaic(
             raise
         except Exception as e:
             LOG.error(
-                f"=== Tile {i+1} failed with exception: {type(e).__name__}: {e} ===")
+                f"=== Tile {i+1} failed with exception: {type(e).__name__}: {e} ==="
+            )
             import traceback
+
             LOG.error(f"Traceback: {traceback.format_exc()}")
             # Clean up already opened images
             for img in tile_images:
@@ -1565,11 +1892,12 @@ def _build_weighted_mosaic(
                 f"Error: {e}. "
                 "Check if the file exists and is readable. "
                 "Verify the image format is supported (CASA image directory or FITS file).",
-                context={'tile': tile, 'operation': f'read_tile_{i}'}
+                context={"tile": tile, "operation": f"read_tile_{i}"},
             ) from e
 
     LOG.info(
-        f"=== Tile reading loop completed: processed {len(tile_data_list)}/{len(tiles)} tiles ===")
+        f"=== Tile reading loop completed: processed {len(tile_data_list)}/{len(tiles)} tiles ==="
+    )
 
     # Step 3: Compute per-pixel weights and combine
     mosaic_start = time.time()
@@ -1577,8 +1905,7 @@ def _build_weighted_mosaic(
 
     # Validate we have tile data
     if not tile_data_list:
-        raise ValueError(
-            "No tile images were successfully read. Cannot create mosaic.")
+        raise ValueError("No tile images were successfully read. Cannot create mosaic.")
     if len(tile_data_list) != len(pb_data_list):
         raise ValueError(
             f"Mismatch between tile images ({len(tile_data_list)}) and PB images ({len(pb_data_list)}). "
@@ -1588,10 +1915,9 @@ def _build_weighted_mosaic(
     # Get noise variances
     noise_vars = []
     for tile in tiles:
-        metrics = metrics_dict.get(
-            tile, TileQualityMetrics(tile_path=tile))
+        metrics = metrics_dict.get(tile, TileQualityMetrics(tile_path=tile))
         if metrics.rms_noise is not None and metrics.rms_noise > 0:
-            noise_var = metrics.rms_noise ** 2
+            noise_var = metrics.rms_noise**2
         else:
             # Default noise variance if not available
             noise_var = 1.0
@@ -1600,23 +1926,35 @@ def _build_weighted_mosaic(
     # Compute weights: weight = pb_response^2 / noise_variance
     # For each pixel, combine: mosaic = sum(weight * tile) / sum(weight)
     # All tiles and PB images are now on the same grid (common_shape)
-    print(f"[DEBUG] CHECKPOINT: Starting mosaic combination", file=sys.stderr, flush=True)
+    print(
+        f"[DEBUG] CHECKPOINT: Starting mosaic combination", file=sys.stderr, flush=True
+    )
     print(f"[DEBUG] Common shape: {common_shape}", file=sys.stderr, flush=True)
-    print(f"[DEBUG] Number of tiles to combine: {len(tile_data_list)}", file=sys.stderr, flush=True)
-    print(f"[DEBUG] Number of PB images: {len(pb_data_list)}", file=sys.stderr, flush=True)
-    print(f"[DEBUG] Number of noise variances: {len(noise_vars)}", file=sys.stderr, flush=True)
-    
+    print(
+        f"[DEBUG] Number of tiles to combine: {len(tile_data_list)}",
+        file=sys.stderr,
+        flush=True,
+    )
+    print(
+        f"[DEBUG] Number of PB images: {len(pb_data_list)}", file=sys.stderr, flush=True
+    )
+    print(
+        f"[DEBUG] Number of noise variances: {len(noise_vars)}",
+        file=sys.stderr,
+        flush=True,
+    )
+
     # AGGRESSIVE VALIDATION: Verify all arrays match before combining
     if DEBUG_AGGRESSIVE_VALIDATION:
         if len(tile_data_list) != len(pb_data_list):
             raise MosaicError(
                 f"Mismatch: {len(tile_data_list)} tiles vs {len(pb_data_list)} PB images",
-                "Each tile must have a corresponding PB image"
+                "Each tile must have a corresponding PB image",
             )
         if len(tile_data_list) != len(noise_vars):
             raise MosaicError(
                 f"Mismatch: {len(tile_data_list)} tiles vs {len(noise_vars)} noise variances",
-                "Each tile must have a noise variance"
+                "Each tile must have a noise variance",
             )
         if len(tile_data_list) == 0:
             raise MosaicError("No tiles to combine", "tile_data_list is empty")
@@ -1628,26 +1966,30 @@ def _build_weighted_mosaic(
                 tile_shape_2d = tile_data.shape[2:]
             else:
                 tile_shape_2d = tile_data.shape[-2:]
-            
+
             if pb_data.ndim == 2:
                 pb_shape_2d = pb_data.shape
             elif pb_data.ndim == 4:
                 pb_shape_2d = pb_data.shape[2:]
             else:
                 pb_shape_2d = pb_data.shape[-2:]
-            
+
             if tile_shape_2d != pb_shape_2d:
                 raise MosaicError(
                     f"Shape mismatch for tile {i+1}: tile={tile_shape_2d}, pb={pb_shape_2d}",
-                    "Tile and PB must have matching shapes after regridding"
+                    "Tile and PB must have matching shapes after regridding",
                 )
             if tile_shape_2d != tuple(common_shape):
                 raise MosaicError(
                     f"Tile {i+1} shape mismatch: got {tile_shape_2d}, expected {common_shape}",
-                    "All tiles must match common_shape after regridding"
+                    "All tiles must match common_shape after regridding",
                 )
-        print(f"[DEBUG] ✓ All arrays validated: shapes match, ready to combine", file=sys.stderr, flush=True)
-    
+        print(
+            f"[DEBUG] ✓ All arrays validated: shapes match, ready to combine",
+            file=sys.stderr,
+            flush=True,
+        )
+
     sys.stderr.flush()
 
     # Extract spatial dimensions from common_shape (handles both 2D and 4D)
@@ -1657,32 +1999,54 @@ def _build_weighted_mosaic(
         ny, nx = common_shape
     mosaic_data = np.zeros((ny, nx), dtype=np.float64)
     total_weight = np.zeros((ny, nx), dtype=np.float64)
-    print(f"[DEBUG] Initialized mosaic arrays: shape=({ny}, {nx})", file=sys.stderr, flush=True)
+    print(
+        f"[DEBUG] Initialized mosaic arrays: shape=({ny}, {nx})",
+        file=sys.stderr,
+        flush=True,
+    )
 
     mosaic_start = time.time()
-    for i, (tile_data, pb_data, noise_var) in enumerate(zip(tile_data_list, pb_data_list, noise_vars)):
-        print(f"[DEBUG] Combining tile {i+1}/{len(tile_data_list)}: tile_shape={tile_data.shape}, pb_shape={pb_data.shape}", file=sys.stderr, flush=True)
+    for i, (tile_data, pb_data, noise_var) in enumerate(
+        zip(tile_data_list, pb_data_list, noise_vars)
+    ):
+        print(
+            f"[DEBUG] Combining tile {i+1}/{len(tile_data_list)}: tile_shape={tile_data.shape}, pb_shape={pb_data.shape}",
+            file=sys.stderr,
+            flush=True,
+        )
         # Compute weights: pb^2 / noise_variance
         # Clip PB values to avoid division issues
         pb_safe = np.clip(pb_data, 1e-10, None)  # Avoid zero/negative PB
-        weights = (pb_safe ** 2) / noise_var
+        weights = (pb_safe**2) / noise_var
 
         # Accumulate weighted sum
         mosaic_data += weights * tile_data
         total_weight += weights
 
-        print(f"[DEBUG] Tile {i+1}: min PB={pb_safe.min():.4f}, max PB={pb_safe.max():.4f}, noise_var={noise_var:.3e}", file=sys.stderr, flush=True)
-        LOG.debug(f"Tile {i}: min PB={pb_safe.min():.4f}, max PB={pb_safe.max():.4f}, "
-                  f"noise_var={noise_var:.3e}")
+        print(
+            f"[DEBUG] Tile {i+1}: min PB={pb_safe.min():.4f}, max PB={pb_safe.max():.4f}, noise_var={noise_var:.3e}",
+            file=sys.stderr,
+            flush=True,
+        )
+        LOG.debug(
+            f"Tile {i}: min PB={pb_safe.min():.4f}, max PB={pb_safe.max():.4f}, "
+            f"noise_var={noise_var:.3e}"
+        )
 
     # AGGRESSIVE VALIDATION: Check weights before normalization
     if DEBUG_AGGRESSIVE_VALIDATION:
         if np.all(total_weight == 0):
-            raise MosaicError("All weights are zero", "Cannot create mosaic with zero weights")
+            raise MosaicError(
+                "All weights are zero", "Cannot create mosaic with zero weights"
+            )
         if np.all(np.isnan(total_weight)):
             raise MosaicError("All weights are NaN", "Weight calculation failed")
-        print(f"[DEBUG] Weight statistics: min={np.nanmin(total_weight):.2e}, max={np.nanmax(total_weight):.2e}, mean={np.nanmean(total_weight):.2e}", file=sys.stderr, flush=True)
-    
+        print(
+            f"[DEBUG] Weight statistics: min={np.nanmin(total_weight):.2e}, max={np.nanmax(total_weight):.2e}, mean={np.nanmean(total_weight):.2e}",
+            file=sys.stderr,
+            flush=True,
+        )
+
     # Normalize by total weight (avoid division by zero)
     # Use a relative threshold: pixels with weight < 1% of max weight are set to NaN
     # This handles edge pixels better than absolute threshold
@@ -1691,12 +2055,14 @@ def _build_weighted_mosaic(
         # At least 1% of max weight, or 1e-12
         weight_threshold = max(1e-12, max_weight * 0.01)
     else:
-        weight_threshold = 1e-12  # Fallback to absolute threshold if all weights are zero
+        weight_threshold = (
+            1e-12  # Fallback to absolute threshold if all weights are zero
+        )
 
     nonzero_mask = total_weight > weight_threshold
     mosaic_data[nonzero_mask] /= total_weight[nonzero_mask]
     mosaic_data[~nonzero_mask] = np.nan
-    
+
     # AGGRESSIVE VALIDATION: Check final mosaic data
     if DEBUG_AGGRESSIVE_VALIDATION:
         if np.all(np.isnan(mosaic_data)):
@@ -1704,7 +2070,11 @@ def _build_weighted_mosaic(
         valid_pixels = np.sum(~np.isnan(mosaic_data))
         if valid_pixels == 0:
             raise MosaicError("No valid pixels in mosaic", "All pixels are NaN")
-        print(f"[DEBUG] Final mosaic: {valid_pixels}/{mosaic_data.size} valid pixels ({100*valid_pixels/mosaic_data.size:.1f}%)", file=sys.stderr, flush=True)
+        print(
+            f"[DEBUG] Final mosaic: {valid_pixels}/{mosaic_data.size} valid pixels ({100*valid_pixels/mosaic_data.size:.1f}%)",
+            file=sys.stderr,
+            flush=True,
+        )
 
     # Log statistics about NaN pixels
     nan_count = np.sum(~nonzero_mask)
@@ -1729,7 +2099,7 @@ def _build_weighted_mosaic(
     # Create output image using common coordinate system
     # Ensure output path is clean (no extensions that might confuse CASA)
     output_path_str = str(output_path)
-    if output_path_str.endswith('.image'):
+    if output_path_str.endswith(".image"):
         output_path_str = output_path_str[:-6]
 
     # Use 2D output to match coordinate system
@@ -1759,18 +2129,25 @@ def _build_weighted_mosaic(
     # Remove existing image if it exists
     if os.path.exists(output_path_str):
         import shutil
+
         if os.path.isdir(output_path_str):
             shutil.rmtree(output_path_str)
         else:
             os.remove(output_path_str)
 
     # Create image with shape and coordinate system (use coordinate system from template)
-    print(f"[DEBUG] CHECKPOINT: Creating final mosaic image", file=sys.stderr, flush=True)
+    print(
+        f"[DEBUG] CHECKPOINT: Creating final mosaic image", file=sys.stderr, flush=True
+    )
     print(f"[DEBUG] Output path: {output_path_str}", file=sys.stderr, flush=True)
     print(f"[DEBUG] Output shape: {output_shape}", file=sys.stderr, flush=True)
-    print(f"[DEBUG] Output pixels shape: {output_pixels.shape}", file=sys.stderr, flush=True)
+    print(
+        f"[DEBUG] Output pixels shape: {output_pixels.shape}",
+        file=sys.stderr,
+        flush=True,
+    )
     sys.stderr.flush()
-    
+
     # AGGRESSIVE VALIDATION: Verify output data before writing
     if DEBUG_AGGRESSIVE_VALIDATION:
         if output_pixels is None:
@@ -1780,20 +2157,28 @@ def _build_weighted_mosaic(
         if output_pixels.shape != tuple(output_shape):
             raise MosaicError(
                 f"Output shape mismatch: pixels={output_pixels.shape}, expected={output_shape}",
-                "Output pixels must match output_shape"
+                "Output pixels must match output_shape",
             )
-        print(f"[DEBUG] ✓ Output data validated before writing", file=sys.stderr, flush=True)
-    
-    output_img = casaimage(output_path_str, shape=output_shape,
-                           coordsys=final_coordsys, overwrite=True)
+        print(
+            f"[DEBUG] ✓ Output data validated before writing",
+            file=sys.stderr,
+            flush=True,
+        )
+
+    output_img = casaimage(
+        output_path_str, shape=output_shape, coordsys=final_coordsys, overwrite=True
+    )
     print(f"[DEBUG] CASA image created, writing data...", file=sys.stderr, flush=True)
     output_img.putdata(output_pixels)
     print(f"[DEBUG] ✓ Mosaic image data written", file=sys.stderr, flush=True)
-    
+
     # AGGRESSIVE VALIDATION: Verify image was created successfully
     if DEBUG_AGGRESSIVE_VALIDATION:
         if not os.path.exists(output_path_str):
-            raise MosaicError(f"Mosaic image was not created: {output_path_str}", "CASA image creation failed")
+            raise MosaicError(
+                f"Mosaic image was not created: {output_path_str}",
+                "CASA image creation failed",
+            )
         try:
             verify_img = casaimage(output_path_str)
             verify_shape = verify_img.shape()
@@ -1805,29 +2190,38 @@ def _build_weighted_mosaic(
             if verify_shape != tuple(output_shape):
                 raise MosaicError(
                     f"Created image shape mismatch: got {verify_shape}, expected {output_shape}",
-                    "Image creation succeeded but shape is wrong"
+                    "Image creation succeeded but shape is wrong",
                 )
             if verify_data.size != output_pixels.size:
                 raise MosaicError(
                     f"Created image data size mismatch: got {verify_data.size}, expected {output_pixels.size}",
-                    "Image creation succeeded but data size is wrong"
+                    "Image creation succeeded but data size is wrong",
                 )
-            print(f"[DEBUG] ✓ Mosaic image verified: exists, shape={verify_shape}, data_size={verify_data.size}", file=sys.stderr, flush=True)
+            print(
+                f"[DEBUG] ✓ Mosaic image verified: exists, shape={verify_shape}, data_size={verify_data.size}",
+                file=sys.stderr,
+                flush=True,
+            )
         except Exception as e:
             raise MosaicError(
                 f"Failed to verify created mosaic image: {e}",
-                f"Image path: {output_path_str}"
+                f"Image path: {output_path_str}",
             ) from e
-    
+
     # Note: casaimage objects don't have close() method in this version
     del output_img
-    print(f"[DEBUG] ✓ Final mosaic image created: {output_path_str}", file=sys.stderr, flush=True)
+    print(
+        f"[DEBUG] ✓ Final mosaic image created: {output_path_str}",
+        file=sys.stderr,
+        flush=True,
+    )
 
     # Export to FITS format
     fits_output_path = output_path_str + ".fits"
     LOG.info(f"Exporting mosaic to FITS: {Path(fits_output_path).name}...")
     try:
         from casatasks import exportfits
+
         export_start = time.time()
         exportfits(
             imagename=output_path_str,
@@ -1841,16 +2235,18 @@ def _build_weighted_mosaic(
         output_path_str = fits_output_path
     except ImportError:
         LOG.warning(
-            "casatasks.exportfits not available, keeping CASA image format only")
+            "casatasks.exportfits not available, keeping CASA image format only"
+        )
     except Exception as e:
-        LOG.warning(
-            f"Failed to export mosaic to FITS: {e}. Keeping CASA image format.")
+        LOG.warning(f"Failed to export mosaic to FITS: {e}. Keeping CASA image format.")
         from .error_handling import handle_casa_tool_error
+
         try:
             handle_casa_tool_error(
-                'exportfits', e,
+                "exportfits",
+                e,
                 image_path=output_path_str,
-                operation='export_mosaic_fits'
+                operation="export_mosaic_fits",
             )
         except Exception:
             # If error handling fails, just continue with CASA image
@@ -1868,6 +2264,7 @@ def _build_weighted_mosaic(
 
     # Clean up temporary files
     import shutil
+
     for temp_path in temp_files_to_cleanup:
         if os.path.exists(temp_path):
             try:
@@ -1876,8 +2273,7 @@ def _build_weighted_mosaic(
                 else:
                     os.remove(temp_path)
             except Exception as e:
-                LOG.warning(
-                    f"Failed to clean up temporary file {temp_path}: {e}")
+                LOG.warning(f"Failed to clean up temporary file {temp_path}: {e}")
 
     # Close all images
     for img in tile_images:
@@ -1910,19 +2306,19 @@ def cmd_build(args: argparse.Namespace) -> int:
     timeout 7200 dsa110-contimg mosaic build ...
     """
     # Input validation
-    if not hasattr(args, 'products_db') or not args.products_db:
+    if not hasattr(args, "products_db") or not args.products_db:
         raise ValueError("products_db is required")
     if not isinstance(args.products_db, str) or not args.products_db.strip():
         raise ValueError("products_db must be a non-empty string")
-    if not hasattr(args, 'name') or not args.name:
+    if not hasattr(args, "name") or not args.name:
         raise ValueError("name is required")
     if not isinstance(args.name, str) or not args.name.strip():
         raise ValueError("name must be a non-empty string")
-    if not hasattr(args, 'output') or not args.output:
+    if not hasattr(args, "output") or not args.output:
         raise ValueError("output is required")
     if not isinstance(args.output, str) or not args.output.strip():
         raise ValueError("output must be a non-empty string")
-    
+
     pdb = Path(args.products_db)
     name = args.name
     out = Path(args.output).with_suffix("")
@@ -1930,12 +2326,13 @@ def cmd_build(args: argparse.Namespace) -> int:
     with ensure_products_db(pdb) as conn:
         _ensure_mosaics_table(conn)
         row = conn.execute(
-            "SELECT id, tiles, method FROM mosaics WHERE name = ?", (name,)).fetchone()
+            "SELECT id, tiles, method FROM mosaics WHERE name = ?", (name,)
+        ).fetchone()
         if row is None:
             print("Mosaic plan not found; create with 'plan' first")
             return 1
         tiles = str(row[1]).splitlines()
-        method = str(row[2] or 'mean')
+        method = str(row[2] or "mean")
 
     if not tiles:
         print("No tiles found in mosaic plan")
@@ -1954,8 +2351,7 @@ def cmd_build(args: argparse.Namespace) -> int:
                 # Find MS path associated with this image
                 # Images table links to MS via ms_path column
                 row = conn.execute(
-                    "SELECT ms_path FROM images WHERE path = ?",
-                    (tile,)
+                    "SELECT ms_path FROM images WHERE path = ?", (tile,)
                 ).fetchone()
                 if row and row[0]:
                     ms_path = row[0]
@@ -1969,27 +2365,32 @@ def cmd_build(args: argparse.Namespace) -> int:
         # Validate chronological order if we got times
         if len(tile_times) > 1:
             is_chronological = all(
-                tile_times[i] <= tile_times[i+1] for i in range(len(tile_times)-1))
+                tile_times[i] <= tile_times[i + 1] for i in range(len(tile_times) - 1)
+            )
             if not is_chronological:
                 print(f"ERROR: Tiles are NOT in chronological order!")
                 print(f"  Validated {len(tile_times)}/{len(tiles)} tiles")
+                print(f"  Observation times (MJD): {[f'{t:.6f}' for t in tile_times]}")
                 print(
-                    f"  Observation times (MJD): {[f'{t:.6f}' for t in tile_times]}")
-                print(
-                    f"  This will cause mosaic artifacts and incorrect coordinate system.")
+                    f"  This will cause mosaic artifacts and incorrect coordinate system."
+                )
                 if not args.ignore_validation:
                     print(
-                        "  Use --ignore-validation to proceed anyway (NOT RECOMMENDED).")
+                        "  Use --ignore-validation to proceed anyway (NOT RECOMMENDED)."
+                    )
                     return 4
                 else:
                     print(
-                        "  WARNING: Proceeding with out-of-order tiles (--ignore-validation)")
+                        "  WARNING: Proceeding with out-of-order tiles (--ignore-validation)"
+                    )
             else:
                 print(
-                    f"✓ Validated: Tiles are in chronological order ({len(tile_times)}/{len(tiles)} tiles validated)")
+                    f"✓ Validated: Tiles are in chronological order ({len(tile_times)}/{len(tiles)} tiles validated)"
+                )
         elif len(tile_times) == 0:
             print(
-                f"  Warning: Could not validate chronological order (no MS times extracted)")
+                f"  Warning: Could not validate chronological order (no MS times extracted)"
+            )
             print(f"  Proceeding assuming tiles are in correct order from plan")
     except Exception as e:
         LOG.debug(f"Could not validate chronological order: {e}")
@@ -2001,7 +2402,7 @@ def cmd_build(args: argparse.Namespace) -> int:
     from .preflight import validate_preflight_conditions, estimate_resources
 
     # Check if PB images are required based on method
-    require_pb = (method == 'weighted' or method == 'pbweighted')
+    require_pb = method == "weighted" or method == "pbweighted"
 
     preflight_valid, preflight_issues, preflight_info = validate_preflight_conditions(
         tiles=tiles,
@@ -2022,36 +2423,42 @@ def cmd_build(args: argparse.Namespace) -> int:
             return 3
         else:
             print(
-                "\nWarning: Pre-flight issues detected but ignored (--ignore-validation)")
+                "\nWarning: Pre-flight issues detected but ignored (--ignore-validation)"
+            )
 
     # Report resource estimates
     try:
         estimates = estimate_resources(tiles, str(out))
         print(f"\nResource estimates:")
         print(f"  - Tiles: {estimates['num_tiles']}")
-        print(
-            f"  - Estimated disk space: {estimates['estimated_disk_gb']:.1f} GB")
+        print(f"  - Estimated disk space: {estimates['estimated_disk_gb']:.1f} GB")
         print(f"  - Estimated operations: {estimates['estimated_operations']}")
-        print(
-            f"  - Estimated time: ~{estimates['estimated_time_minutes']:.0f} minutes")
+        print(f"  - Estimated time: ~{estimates['estimated_time_minutes']:.0f} minutes")
     except Exception as e:
         LOG.debug(f"Could not estimate resources: {e}")
 
     # Warn if output exists
-    if preflight_info.get('output_exists'):
-        print(
-            f"\nWarning: Output '{out}' already exists and will be overwritten")
+    if preflight_info.get("output_exists"):
+        print(f"\nWarning: Output '{out}' already exists and will be overwritten")
 
     # Comprehensive validation
     print(f"Validating {len(tiles)} tiles...", flush=True)
-    print(f"[DEBUG] Starting validation for {len(tiles)} tiles", file=sys.stderr, flush=True)
-    print(f"[DEBUG] Starting validation for {len(tiles)} tiles", flush=True)  # Also to stdout
+    print(
+        f"[DEBUG] Starting validation for {len(tiles)} tiles",
+        file=sys.stderr,
+        flush=True,
+    )
+    print(
+        f"[DEBUG] Starting validation for {len(tiles)} tiles", flush=True
+    )  # Also to stdout
 
     # 1. Basic grid consistency
     print(f"[DEBUG] Checking grid consistency...", file=sys.stderr, flush=True)
     print(f"[DEBUG] Checking grid consistency...", flush=True)  # Also to stdout
     ok, reason = _check_consistent_tiles(tiles)
-    print(f"[DEBUG] Grid consistency check complete: ok={ok}", file=sys.stderr, flush=True)
+    print(
+        f"[DEBUG] Grid consistency check complete: ok={ok}", file=sys.stderr, flush=True
+    )
     if not ok:
         print(f"Cannot build mosaic: {reason}")
         return 2
@@ -2061,7 +2468,11 @@ def cmd_build(args: argparse.Namespace) -> int:
     is_valid, validation_issues, metrics_dict = validate_tiles_consistency(
         tiles, products_db=pdb
     )
-    print(f"[DEBUG] validate_tiles_consistency complete: is_valid={is_valid}, issues={len(validation_issues)}", file=sys.stderr, flush=True)
+    print(
+        f"[DEBUG] validate_tiles_consistency complete: is_valid={is_valid}, issues={len(validation_issues)}",
+        file=sys.stderr,
+        flush=True,
+    )
 
     # Re-run pre-flight with computed metrics_dict for better PB checking
     if require_pb:
@@ -2093,65 +2504,103 @@ def cmd_build(args: argparse.Namespace) -> int:
                 "  - Ensure all tiles have PB correction applied\n"
                 "  - Check tile noise levels are reasonable\n"
                 "  - Verify tiles have consistent calibration\n"
-                "Use --ignore-validation to proceed anyway (not recommended for science)."
+                "Use --ignore-validation to proceed anyway (not recommended for science).",
             )
         else:
             print(
-                "\nWarning: Validation issues detected but ignored (--ignore-validation)")
+                "\nWarning: Validation issues detected but ignored (--ignore-validation)"
+            )
 
     # 3. Astrometric registration check
     print(f"[DEBUG] Starting astrometric verification...", file=sys.stderr, flush=True)
     try:
-        astro_valid, astro_issues, offsets = verify_astrometric_registration(
-            tiles)
-        print(f"[DEBUG] Astrometric verification complete: valid={astro_valid}, issues={len(astro_issues)}", file=sys.stderr, flush=True)
+        astro_valid, astro_issues, offsets = verify_astrometric_registration(tiles)
+        print(
+            f"[DEBUG] Astrometric verification complete: valid={astro_valid}, issues={len(astro_issues)}",
+            file=sys.stderr,
+            flush=True,
+        )
     except Exception as e:
-        print(f"[DEBUG] Astrometric verification exception: {e}", file=sys.stderr, flush=True)
+        print(
+            f"[DEBUG] Astrometric verification exception: {e}",
+            file=sys.stderr,
+            flush=True,
+        )
         raise ValidationError(
             f"Astrometric verification failed: {e}",
             "Check if catalog access is available. "
-            "Try running with --ignore-validation to skip astrometric checks."
+            "Try running with --ignore-validation to skip astrometric checks.",
         ) from e
     if astro_issues:
         print("Astrometric registration issues:", flush=True)
-        print(f"[DEBUG] Processing {len(astro_issues)} astrometric issues", file=sys.stderr, flush=True)
+        print(
+            f"[DEBUG] Processing {len(astro_issues)} astrometric issues",
+            file=sys.stderr,
+            flush=True,
+        )
         print(f"[DEBUG] Processing {len(astro_issues)} astrometric issues", flush=True)
-        
+
         # Filter out catalog access failures and image close() errors (non-fatal) from actual astrometric issues (fatal)
         non_fatal_keywords = [
-            "catalog query", "skipping astrometric", 
-            "has no attribute 'close'", "failed to verify", 
-            "attributeerror", "'image' object"
+            "catalog query",
+            "skipping astrometric",
+            "has no attribute 'close'",
+            "failed to verify",
+            "attributeerror",
+            "'image' object",
         ]
         non_fatal_issues = [
-            issue for issue in astro_issues 
+            issue
+            for issue in astro_issues
             if any(keyword in issue.lower() for keyword in non_fatal_keywords)
         ]
-        actual_astro_issues = [issue for issue in astro_issues if issue not in non_fatal_issues]
-        
-        print(f"[DEBUG] Astrometric filtering: {len(astro_issues)} total, {len(non_fatal_issues)} non-fatal, {len(actual_astro_issues)} actual", file=sys.stderr, flush=True)
-        print(f"[DEBUG] Astrometric filtering: {len(astro_issues)} total, {len(non_fatal_issues)} non-fatal, {len(actual_astro_issues)} actual", flush=True)
-        
+        actual_astro_issues = [
+            issue for issue in astro_issues if issue not in non_fatal_issues
+        ]
+
+        print(
+            f"[DEBUG] Astrometric filtering: {len(astro_issues)} total, {len(non_fatal_issues)} non-fatal, {len(actual_astro_issues)} actual",
+            file=sys.stderr,
+            flush=True,
+        )
+        print(
+            f"[DEBUG] Astrometric filtering: {len(astro_issues)} total, {len(non_fatal_issues)} non-fatal, {len(actual_astro_issues)} actual",
+            flush=True,
+        )
+
         for issue in astro_issues:
             print(f"  - {issue}", flush=True)
-        
+
         # Only abort on actual astrometric misalignment, not catalog access failures
         if actual_astro_issues and not args.ignore_validation:
-            print(f"[DEBUG] Aborting: {len(actual_astro_issues)} actual issues", file=sys.stderr, flush=True)
-            print("\nMosaic build aborted due to astrometric misalignment issues.", flush=True)
+            print(
+                f"[DEBUG] Aborting: {len(actual_astro_issues)} actual issues",
+                file=sys.stderr,
+                flush=True,
+            )
+            print(
+                "\nMosaic build aborted due to astrometric misalignment issues.",
+                flush=True,
+            )
             return 4
         elif non_fatal_issues and not actual_astro_issues:
-            print("\nWarning: Catalog access unavailable, skipping astrometric verification.", flush=True)
-            print("Proceeding with mosaic build (astrometric accuracy not verified).", flush=True)
+            print(
+                "\nWarning: Catalog access unavailable, skipping astrometric verification.",
+                flush=True,
+            )
+            print(
+                "Proceeding with mosaic build (astrometric accuracy not verified).",
+                flush=True,
+            )
 
     # 4. Calibration consistency check
     # Try to find registry DB from environment or default location
     registry_db = None
-    if os.getenv('CAL_REGISTRY_DB'):
-        registry_db = Path(os.getenv('CAL_REGISTRY_DB'))
+    if os.getenv("CAL_REGISTRY_DB"):
+        registry_db = Path(os.getenv("CAL_REGISTRY_DB"))
     else:
         # Try default location relative to products DB
-        registry_db = pdb.parent / 'cal_registry.sqlite3'
+        registry_db = pdb.parent / "cal_registry.sqlite3"
         if not registry_db.exists():
             registry_db = None
 
@@ -2182,9 +2631,9 @@ def cmd_build(args: argparse.Namespace) -> int:
 
     # Dry-run mode: validate without building
     if args.dry_run:
-        print("\n" + "="*60)
+        print("\n" + "=" * 60)
         print("DRY-RUN MODE: Validation complete, not building mosaic")
-        print("="*60)
+        print("=" * 60)
         print(f"\nMosaic plan summary:")
         print(f"  - Name: {name}")
         print(f"  - Method: {method}")
@@ -2201,64 +2650,73 @@ def cmd_build(args: argparse.Namespace) -> int:
         try:
             if prepare_temp_environment is not None:
                 prepare_temp_environment(
-                    os.getenv(
-                        'CONTIMG_SCRATCH_DIR') or '/stage/dsa110-contimg',
-                    cwd_to=out.parent
+                    os.getenv("CONTIMG_SCRATCH_DIR") or "/stage/dsa110-contimg",
+                    cwd_to=out.parent,
                 )
         except Exception:
             pass
 
         # Use weighted combination if method is 'weighted', otherwise use mean
-        if method == 'weighted' or method == 'pbweighted':
+        if method == "weighted" or method == "pbweighted":
             print(f"Building weighted mosaic to {out}...")
             try:
                 _build_weighted_mosaic(tiles, metrics_dict, str(out))
-            except (ImageReadError, ImageCorruptionError, MissingPrimaryBeamError,
-                    CASAToolError, GridMismatchError) as e:
+            except (
+                ImageReadError,
+                ImageCorruptionError,
+                MissingPrimaryBeamError,
+                CASAToolError,
+                GridMismatchError,
+            ) as e:
                 # Re-raise with context
                 raise
         else:
             print(f"Building mean mosaic to {out}...")
             try:
                 from .error_handling import handle_casa_tool_error
+
                 if not immath:
                     raise CASAToolError(
                         "CASA immath not available",
                         "Ensure CASA is installed: conda activate casa6",
-                        context={'tool': 'immath',
-                                 'operation': 'build_mean_mosaic'}
+                        context={"tool": "immath", "operation": "build_mean_mosaic"},
                     )
-                expr = f"({'+'.join([f'IM{i}' for i in range(len(tiles))])})/{len(tiles)}"
+                expr = (
+                    f"({'+'.join([f'IM{i}' for i in range(len(tiles))])})/{len(tiles)}"
+                )
                 try:
                     immath(imagename=tiles, expr=expr, outfile=str(out))
                 except Exception as e:
                     handle_casa_tool_error(
-                        'immath', e,
-                        operation='build_mean_mosaic',
+                        "immath",
+                        e,
+                        operation="build_mean_mosaic",
                         expression=expr,
-                        num_tiles=len(tiles)
+                        num_tiles=len(tiles),
                     )
             except Exception as e:
                 raise CASAToolError(
                     f"CASA immath failed: {e}",
                     "Check if all tile images are readable and have compatible formats. "
-                    "Try using weighted method instead: --method=weighted"
+                    "Try using weighted method instead: --method=weighted",
                 ) from e
 
         # Export FITS for the mosaic image for downstream photometry
         try:
             from casatasks import exportfits
             from .error_handling import handle_casa_tool_error
-            exportfits(imagename=str(out), fitsimage=str(
-                out) + ".fits", overwrite=True)
+
+            exportfits(imagename=str(out), fitsimage=str(out) + ".fits", overwrite=True)
         except Exception as exc:
             # Don't fail build if export fails, but log it properly
             try:
                 from .error_handling import handle_casa_tool_error
+
                 handle_casa_tool_error(
-                    'exportfits', exc,
+                    "exportfits",
+                    exc,
                     image_path=str(out),
-                    operation='export_mosaic_fits'
+                    operation="export_mosaic_fits",
                 )
             except Exception:
                 # If handle_casa_tool_error fails, just print warning
@@ -2267,6 +2725,7 @@ def cmd_build(args: argparse.Namespace) -> int:
         # Post-mosaic validation
         try:
             from .post_validation import validate_mosaic_quality
+
             print("Validating final mosaic quality...")
             mosaic_valid, mosaic_issues, mosaic_metrics = validate_mosaic_quality(
                 str(out),
@@ -2279,14 +2738,18 @@ def cmd_build(args: argparse.Namespace) -> int:
                 for issue in mosaic_issues:
                     print(f"  - {issue}")
                 if mosaic_metrics:
-                    print(f"Mosaic metrics: RMS={mosaic_metrics.get('rms_noise', 'N/A'):.3e}, "
-                          f"coverage={mosaic_metrics.get('coverage_fraction', 0):.1%}")
+                    print(
+                        f"Mosaic metrics: RMS={mosaic_metrics.get('rms_noise', 'N/A'):.3e}, "
+                        f"coverage={mosaic_metrics.get('coverage_fraction', 0):.1%}"
+                    )
             else:
                 print("✓ Post-mosaic validation passed")
                 if mosaic_metrics:
-                    print(f"Mosaic metrics: RMS={mosaic_metrics.get('rms_noise', 'N/A'):.3e}, "
-                          f"coverage={mosaic_metrics.get('coverage_fraction', 0):.1%}, "
-                          f"dynamic_range={mosaic_metrics.get('dynamic_range', 0):.1f}")
+                    print(
+                        f"Mosaic metrics: RMS={mosaic_metrics.get('rms_noise', 'N/A'):.3e}, "
+                        f"coverage={mosaic_metrics.get('coverage_fraction', 0):.1%}, "
+                        f"dynamic_range={mosaic_metrics.get('dynamic_range', 0):.1f}"
+                    )
         except Exception as e:
             LOG.warning(f"Post-mosaic validation failed: {e}")
             # Don't fail build if validation fails
@@ -2302,8 +2765,7 @@ def cmd_build(args: argparse.Namespace) -> int:
                 output_dir=str(out.parent),
             )
             if metrics_files:
-                print(
-                    f"✓ Generated {len(metrics_files)} quality metric images")
+                print(f"✓ Generated {len(metrics_files)} quality metric images")
                 for metric_name, metric_path in metrics_files.items():
                     print(f"  - {metric_name}: {metric_path}")
             else:
@@ -2314,13 +2776,11 @@ def cmd_build(args: argparse.Namespace) -> int:
             # Don't fail the build if metrics generation fails
 
         # Update mosaic status
-        validation_summary = "\n".join(
-            validation_issues) if validation_issues else None
+        validation_summary = "\n".join(validation_issues) if validation_issues else None
         metrics_summary = None
         if metrics_files:
             # Store metrics paths as JSON-like string (simple format)
-            metrics_list = [f"{name}:{path}" for name,
-                            path in metrics_files.items()]
+            metrics_list = [f"{name}:{path}" for name, path in metrics_files.items()]
             metrics_summary = "\n".join(metrics_list)
 
         with ensure_products_db(pdb) as conn:
@@ -2332,59 +2792,86 @@ def cmd_build(args: argparse.Namespace) -> int:
                 conn.execute("SELECT metrics_path FROM mosaics LIMIT 1")
             except sqlite3.OperationalError:
                 # Column doesn't exist, add it
-                conn.execute(
-                    "ALTER TABLE mosaics ADD COLUMN metrics_path TEXT")
+                conn.execute("ALTER TABLE mosaics ADD COLUMN metrics_path TEXT")
                 conn.commit()
 
             conn.execute(
                 "UPDATE mosaics SET status='built', output_path=?, validation_issues=?, metrics_path=? WHERE name=?",
-                (str(out), validation_summary, metrics_summary, name)
+                (str(out), validation_summary, metrics_summary, name),
             )
             conn.commit()
 
         print(f"✓ Built mosaic to {out}")
         return 0
-    except (MosaicError, ImageReadError, ImageCorruptionError, MissingPrimaryBeamError,
-            CASAToolError, GridMismatchError, ValidationError, MetricsGenerationError) as e:
+    except (
+        MosaicError,
+        ImageReadError,
+        ImageCorruptionError,
+        MissingPrimaryBeamError,
+        CASAToolError,
+        GridMismatchError,
+        ValidationError,
+        MetricsGenerationError,
+    ) as e:
         # Handle specific mosaic errors with user-friendly messages
         print(f"\nMosaic build failed: {e.message}")
         if e.recovery_hint:
             print(f"\n{e.recovery_hint}")
         import traceback
+
         traceback.print_exc()
         return 6
     except Exception as e:
         print(f"Mosaic build failed: {e}")
         import traceback
+
         traceback.print_exc()
         return 6
 
 
 def build_parser() -> argparse.ArgumentParser:
     p = argparse.ArgumentParser(description="Mosaic planner/builder")
-    sub = p.add_subparsers(dest='cmd')
-    sp = sub.add_parser('plan', help='Plan a mosaic from products DB tiles')
-    sp.add_argument('--products-db', default='state/products.sqlite3')
-    sp.add_argument('--name', required=True)
-    sp.add_argument('--since', type=float,
-                    help='Only include tiles created_at >= since (epoch seconds)')
-    sp.add_argument('--until', type=float,
-                    help='Only include tiles created_at <= until (epoch seconds)')
-    sp.add_argument('--method', default='mean', choices=['mean', 'weighted', 'pbweighted'],
-                    help='Combination method: mean (simple), weighted (noise-weighted), pbweighted (primary beam weighted)')
-    sp.add_argument('--include-unpbcor', action='store_true',
-                    help='Include non-pbcor tiles')
+    sub = p.add_subparsers(dest="cmd")
+    sp = sub.add_parser("plan", help="Plan a mosaic from products DB tiles")
+    sp.add_argument("--products-db", default="state/products.sqlite3")
+    sp.add_argument("--name", required=True)
+    sp.add_argument(
+        "--since",
+        type=float,
+        help="Only include tiles created_at >= since (epoch seconds)",
+    )
+    sp.add_argument(
+        "--until",
+        type=float,
+        help="Only include tiles created_at <= until (epoch seconds)",
+    )
+    sp.add_argument(
+        "--method",
+        default="mean",
+        choices=["mean", "weighted", "pbweighted"],
+        help="Combination method: mean (simple), weighted (noise-weighted), pbweighted (primary beam weighted)",
+    )
+    sp.add_argument(
+        "--include-unpbcor", action="store_true", help="Include non-pbcor tiles"
+    )
     sp.set_defaults(func=cmd_plan)
 
-    sp = sub.add_parser('build', help='Build a mosaic from a planned set')
-    sp.add_argument('--products-db', default='state/products.sqlite3')
-    sp.add_argument('--name', required=True)
-    sp.add_argument('--output', required=True,
-                    help='Output image base path (CASA image)')
-    sp.add_argument('--ignore-validation', action='store_true',
-                    help='Ignore validation issues and proceed anyway (not recommended)')
-    sp.add_argument('--dry-run', action='store_true',
-                    help='Validate mosaic plan without building (measure twice, cut once)')
+    sp = sub.add_parser("build", help="Build a mosaic from a planned set")
+    sp.add_argument("--products-db", default="state/products.sqlite3")
+    sp.add_argument("--name", required=True)
+    sp.add_argument(
+        "--output", required=True, help="Output image base path (CASA image)"
+    )
+    sp.add_argument(
+        "--ignore-validation",
+        action="store_true",
+        help="Ignore validation issues and proceed anyway (not recommended)",
+    )
+    sp.add_argument(
+        "--dry-run",
+        action="store_true",
+        help="Validate mosaic plan without building (measure twice, cut once)",
+    )
     sp.set_defaults(func=cmd_build)
     return p
 
@@ -2398,11 +2885,11 @@ def main(argv: Optional[List[str]] = None) -> int:
 
     p = build_parser()
     args = p.parse_args(argv)
-    if not hasattr(args, 'func'):
+    if not hasattr(args, "func"):
         p.print_help()
         return 2
     return args.func(args)
 
 
-if __name__ == '__main__':  # pragma: no cover
+if __name__ == "__main__":  # pragma: no cover
     raise SystemExit(main())

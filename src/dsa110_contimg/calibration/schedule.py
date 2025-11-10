@@ -17,7 +17,12 @@ DSA110_ALT_M = OVRO_LOCATION.height.to(u.m).value
 SIDEREAL_RATE = 1.002737909350795  # sidereal days per solar day
 
 
-def next_transit_time(ra_deg: float, start_time_mjd: float, location: EarthLocation = DSA110_LOCATION, max_iter: int = 4) -> Time:
+def next_transit_time(
+    ra_deg: float,
+    start_time_mjd: float,
+    location: EarthLocation = DSA110_LOCATION,
+    max_iter: int = 4,
+) -> Time:
     """Compute next transit (HA=0) after start_time_mjd for a source with RA=ra_deg."""
     ra_hours = Angle(ra_deg, u.deg).to(u.hourangle).value
     t = Time(start_time_mjd, format="mjd", scale="utc", location=location)
@@ -59,7 +64,12 @@ def previous_transits(
     return out
 
 
-def cal_in_datetime(dt_start_iso: str, transit_time: Time, duration: u.Quantity = 5 * u.min, filelength: u.Quantity = 15 * u.min) -> bool:
+def cal_in_datetime(
+    dt_start_iso: str,
+    transit_time: Time,
+    duration: u.Quantity = 5 * u.min,
+    filelength: u.Quantity = 15 * u.min,
+) -> bool:
     """Return True if a file starting at dt_start_iso overlaps the desired window around transit.
 
     A file of length `filelength` starting at `dt_start_iso` overlaps a window of +/- duration around `transit_time`.
@@ -71,7 +81,9 @@ def cal_in_datetime(dt_start_iso: str, transit_time: Time, duration: u.Quantity 
     return (mjd0 <= window1) and (mjd1 >= window0)
 
 
-def pick_best_observation(observations: List[Tuple[str, float, float]], transit_time: Time) -> Tuple[str, float, float]:
+def pick_best_observation(
+    observations: List[Tuple[str, float, float]], transit_time: Time
+) -> Tuple[str, float, float]:
     """Pick observation whose midpoint is closest to transit.
 
     observations: list of (obs_id, start_mjd, end_mjd)
@@ -86,4 +98,3 @@ def pick_best_observation(observations: List[Tuple[str, float, float]], transit_
             best_dt = dt_min
             best = (obs_id, mid, dt_min)
     return best
-

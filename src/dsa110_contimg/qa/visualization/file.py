@@ -199,4 +199,3 @@ def autodetect_file_type(path: str):
         return "casatable"
 
     return None
-

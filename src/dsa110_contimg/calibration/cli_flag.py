@@ -9,9 +9,18 @@ from casacore.tables import table
 
 from dsa110_contimg.utils.validation import validate_ms, ValidationError
 from .flagging import (
-    reset_flags, flag_zeros, flag_rfi, flag_antenna, flag_baselines,
-    flag_manual, flag_shadow, flag_quack, flag_elevation, flag_clip,
-    flag_extend, flag_summary,
+    reset_flags,
+    flag_zeros,
+    flag_rfi,
+    flag_antenna,
+    flag_baselines,
+    flag_manual,
+    flag_shadow,
+    flag_quack,
+    flag_elevation,
+    flag_clip,
+    flag_extend,
+    flag_summary,
 )
 
 logger = logging.getLogger(__name__)
@@ -58,8 +67,18 @@ def add_flag_parser(subparsers: argparse._SubParsersAction) -> argparse.Argument
         "--mode",
         required=True,
         choices=[
-            "reset", "zeros", "rfi", "shadow", "quack", "elevation",
-            "clip", "extend", "manual", "antenna", "baselines", "summary"
+            "reset",
+            "zeros",
+            "rfi",
+            "shadow",
+            "quack",
+            "elevation",
+            "clip",
+            "extend",
+            "manual",
+            "antenna",
+            "baselines",
+            "summary",
         ],
         help="Flagging mode",
     )
@@ -245,9 +264,7 @@ def handle_flag(args: argparse.Namespace) -> int:
         logger.info("✓ Shadow flagging complete")
 
     elif mode == "quack":
-        logger.info(
-            f"Flagging {args.quack_mode} of scans ({args.quack_interval}s)..."
-        )
+        logger.info(f"Flagging {args.quack_mode} of scans ({args.quack_interval}s)...")
         flag_quack(
             args.ms,
             quackinterval=args.quack_interval,
@@ -321,15 +338,11 @@ def handle_flag(args: argparse.Namespace) -> int:
         }
         provided = {k: v for k, v in selections.items() if v is not None}
         if not provided:
-            logger.error(
-                "At least one selection parameter is required for manual mode"
-            )
+            logger.error("At least one selection parameter is required for manual mode")
             logger.error("Examples:")
             logger.error("  --antenna '10' --scan '1~5'")
             logger.error("  --spw '0:10~20'")
-            logger.error(
-                "  --field '0' --timerange '2025/01/01/10:00:00~10:05:00'"
-            )
+            logger.error("  --field '0' --timerange '2025/01/01/10:00:00~10:05:00'")
             sys.exit(1)
 
         selection_str = ", ".join([f"{k}={v}" for k, v in provided.items()])
@@ -383,7 +396,10 @@ def handle_flag(args: argparse.Namespace) -> int:
     if mode != "summary":
         try:
             from dsa110_contimg.utils.ms_helpers import validate_ms_unflagged_fraction
-            unflagged_fraction = validate_ms_unflagged_fraction(args.ms, sample_size=10000)
+
+            unflagged_fraction = validate_ms_unflagged_fraction(
+                args.ms, sample_size=10000
+            )
             flagged_pct = (1.0 - unflagged_fraction) * 100
             logger.info(
                 f"\nFlagging complete. Total flagged: {flagged_pct:.2f}% "
@@ -393,4 +409,3 @@ def handle_flag(args: argparse.Namespace) -> int:
             logger.debug(f"Could not compute flagging statistics: {e}")
 
     return 0
-

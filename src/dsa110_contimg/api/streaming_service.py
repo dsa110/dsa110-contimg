@@ -28,6 +28,7 @@ log = logging.getLogger(__name__)
 @dataclass
 class StreamingConfig:
     """Configuration for streaming service."""
+
     input_dir: str
     output_dir: str
     queue_db: str
@@ -58,6 +59,7 @@ class StreamingConfig:
 @dataclass
 class StreamingStatus:
     """Status of streaming service."""
+
     running: bool
     pid: Optional[int] = None
     started_at: Optional[datetime] = None
@@ -77,7 +79,9 @@ class StreamingStatus:
             "uptime_seconds": self.uptime_seconds,
             "cpu_percent": self.cpu_percent,
             "memory_mb": self.memory_mb,
-            "last_heartbeat": self.last_heartbeat.isoformat() if self.last_heartbeat else None,
+            "last_heartbeat": (
+                self.last_heartbeat.isoformat() if self.last_heartbeat else None
+            ),
             "error": self.error,
         }
         if self.config:
@@ -88,16 +92,23 @@ class StreamingStatus:
 class StreamingServiceManager:
     """Manages the streaming converter service lifecycle."""
 
-    def __init__(self, pid_file: Optional[Path] = None, config_file: Optional[Path] = None):
+    def __init__(
+        self, pid_file: Optional[Path] = None, config_file: Optional[Path] = None
+    ):
         """
         Initialize the streaming service manager.
-        
+
         Args:
             pid_file: Path to PID file for tracking service process
             config_file: Path to configuration file
         """
-        self.pid_file = pid_file or Path(os.getenv("PIPELINE_STATE_DIR", "state")) / "streaming.pid"
-        self.config_file = config_file or Path(os.getenv("PIPELINE_STATE_DIR", "state")) / "streaming_config.json"
+        self.pid_file = (
+            pid_file or Path(os.getenv("PIPELINE_STATE_DIR", "state")) / "streaming.pid"
+        )
+        self.config_file = (
+            config_file
+            or Path(os.getenv("PIPELINE_STATE_DIR", "state")) / "streaming_config.json"
+        )
         self.pid_file.parent.mkdir(parents=True, exist_ok=True)
         self.config_file.parent.mkdir(parents=True, exist_ok=True)
         self._docker_client: Optional[DockerClient] = None
@@ -113,9 +124,9 @@ class StreamingServiceManager:
         # Check Docker first if in Docker environment
         if self._is_docker_environment():
             return self._get_status_via_docker()
-        
+
         pid = self._get_pid()
-        
+
         if pid is None:
             return StreamingStatus(running=False, config=self._load_config())
 
@@ -129,7 +140,7 @@ class StreamingServiceManager:
             # Process is running
             started_at = datetime.fromtimestamp(process.create_time())
             uptime = (datetime.now() - started_at).total_seconds()
-            
+
             try:
                 cpu_percent = process.cpu_percent(interval=0.1)
                 memory_info = process.memory_info()
@@ -186,42 +197,50 @@ class StreamingServiceManager:
         try:
             docker_client = self._get_docker_client()
             container_name = "contimg-stream"
-            
+
             # Check if container is running
             if not docker_client.is_container_running(container_name):
                 return StreamingStatus(running=False, config=self._load_config())
-            
+
             # Get container info
             info = docker_client.get_container_info(container_name)
             if not info:
                 return StreamingStatus(running=False, config=self._load_config())
-            
+
             # Get stats
             stats = docker_client.get_container_stats(container_name)
-            
+
             # Parse start time
             started_at = None
             uptime = None
             if info.get("started_at"):
                 try:
                     started_at_str = info["started_at"]
-                    started_at = datetime.fromisoformat(started_at_str.replace("Z", "+00:00"))
-                    uptime = (datetime.now() - started_at.replace(tzinfo=None)).total_seconds()
+                    started_at = datetime.fromisoformat(
+                        started_at_str.replace("Z", "+00:00")
+                    )
+                    uptime = (
+                        datetime.now() - started_at.replace(tzinfo=None)
+                    ).total_seconds()
                 except (ValueError, AttributeError):
                     pass
-            
+
             # Get PID
             pid = info.get("pid")
             if pid:
                 self._save_pid(pid)
-            
+
             return StreamingStatus(
                 running=True,
                 pid=pid,
                 started_at=started_at,
                 uptime_seconds=uptime,
                 cpu_percent=stats.get("cpu_percent") if stats else None,
-                memory_mb=stats.get("memory_mb") if stats else (stats.get("memory_usage", 0) / 1024 / 1024 if stats else None),
+                memory_mb=(
+                    stats.get("memory_mb")
+                    if stats
+                    else (stats.get("memory_usage", 0) / 1024 / 1024 if stats else None)
+                ),
                 config=self._load_config(),
             )
         except FileNotFoundError as e:
@@ -229,7 +248,9 @@ class StreamingServiceManager:
             error_msg = str(e)
             if "docker-compose" in error_msg:
                 # Don't log as error - this is expected when docker-compose isn't available
-                log.debug("docker-compose not available (expected), using Docker SDK or direct docker commands")
+                log.debug(
+                    "docker-compose not available (expected), using Docker SDK or direct docker commands"
+                )
                 return StreamingStatus(
                     running=False,
                     error="Docker control unavailable: docker-compose not found. Use Docker SDK or direct docker commands.",
@@ -260,23 +281,28 @@ class StreamingServiceManager:
                 error=str(e),
                 config=self._load_config(),
             )
-    
+
     def _is_docker_environment(self) -> bool:
         """Check if we're running in a Docker environment."""
         # Check if we're in a container
         if Path("/.dockerenv").exists():
             return True
         # Check if docker-compose.yml exists nearby
-        docker_compose = Path(__file__).parent.parent.parent.parent / "ops" / "docker" / "docker-compose.yml"
+        docker_compose = (
+            Path(__file__).parent.parent.parent.parent
+            / "ops"
+            / "docker"
+            / "docker-compose.yml"
+        )
         return docker_compose.exists()
-    
+
     def start(self, config: Optional[StreamingConfig] = None) -> Dict[str, Any]:
         """
         Start the streaming service.
-        
+
         Args:
             config: Configuration to use. If None, loads from file or uses defaults.
-            
+
         Returns:
             Dictionary with status information
         """
@@ -297,7 +323,9 @@ class StreamingServiceManager:
             config = self._load_config()
         if config is None:
             # Use defaults from environment with validation
-            def safe_int(env_var: str, default: str, min_val: int = 1, max_val: int = 32) -> int:
+            def safe_int(
+                env_var: str, default: str, min_val: int = 1, max_val: int = 32
+            ) -> int:
                 """Safely convert environment variable to integer with validation."""
                 value_str = os.getenv(env_var, default)
                 try:
@@ -314,7 +342,7 @@ class StreamingServiceManager:
                             f"Expected integer between {min_val} and {max_val}."
                         ) from e
                     raise
-            
+
             def safe_float(env_var: str, default: str, min_val: float = 0.0) -> float:
                 """Safely convert environment variable to float with validation."""
                 value_str = os.getenv(env_var, default)
@@ -330,19 +358,23 @@ class StreamingServiceManager:
                             f"Expected float >= {min_val}."
                         ) from e
                     raise
-            
+
             config = StreamingConfig(
                 input_dir=os.getenv("CONTIMG_INPUT_DIR", "/data/incoming"),
                 output_dir=os.getenv("CONTIMG_OUTPUT_DIR", "/stage/dsa110-contimg/ms"),
                 queue_db=os.getenv("CONTIMG_QUEUE_DB", "state/ingest.sqlite3"),
-                registry_db=os.getenv("CONTIMG_REGISTRY_DB", "state/cal_registry.sqlite3"),
+                registry_db=os.getenv(
+                    "CONTIMG_REGISTRY_DB", "state/cal_registry.sqlite3"
+                ),
                 scratch_dir=os.getenv("CONTIMG_SCRATCH_DIR", "/stage/dsa110-contimg"),
                 expected_subbands=safe_int("CONTIMG_EXPECTED_SUBBANDS", "16"),
                 chunk_duration=safe_float("CONTIMG_CHUNK_MINUTES", "5.0", min_val=0.1),
                 log_level=os.getenv("CONTIMG_LOG_LEVEL", "INFO"),
                 use_subprocess=True,
                 monitoring=True,
-                monitor_interval=safe_float("CONTIMG_MONITOR_INTERVAL", "60.0", min_val=1.0),
+                monitor_interval=safe_float(
+                    "CONTIMG_MONITOR_INTERVAL", "60.0", min_val=1.0
+                ),
             )
 
         # Save config
@@ -392,16 +424,16 @@ class StreamingServiceManager:
         try:
             docker_client = self._get_docker_client()
             container_name = "contimg-stream"
-            
+
             # Try to start the container directly
             result = docker_client.start_container(container_name)
-            
+
             if result["success"]:
                 # Get container info to save PID
                 info = docker_client.get_container_info(container_name)
                 if info and info.get("pid"):
                     self._save_pid(info["pid"])
-            
+
             return result
         except Exception as e:
             log.error(f"Error starting streaming service via Docker: {e}")
@@ -415,10 +447,10 @@ class StreamingServiceManager:
         try:
             docker_client = self._get_docker_client()
             container_name = "contimg-stream"
-            
+
             result = docker_client.stop_container(container_name)
             self._clear_pid()
-            
+
             return result
         except Exception as e:
             log.error(f"Error stopping streaming service via Docker: {e}")
@@ -431,10 +463,10 @@ class StreamingServiceManager:
     def stop(self, timeout: float = 30.0) -> Dict[str, Any]:
         """
         Stop the streaming service.
-        
+
         Args:
             timeout: Maximum time to wait for graceful shutdown
-            
+
         Returns:
             Dictionary with status information
         """
@@ -451,10 +483,10 @@ class StreamingServiceManager:
 
         try:
             process = psutil.Process(status.pid)
-            
+
             # Try graceful shutdown first
             process.terminate()
-            
+
             try:
                 process.wait(timeout=timeout)
             except psutil.TimeoutExpired:
@@ -483,10 +515,10 @@ class StreamingServiceManager:
     def restart(self, config: Optional[StreamingConfig] = None) -> Dict[str, Any]:
         """
         Restart the streaming service.
-        
+
         Args:
             config: Optional new configuration
-            
+
         Returns:
             Dictionary with status information
         """
@@ -496,11 +528,11 @@ class StreamingServiceManager:
                 docker_client = self._get_docker_client()
                 container_name = "contimg-stream"
                 result = docker_client.restart_container(container_name)
-                
+
                 # Update config if provided
                 if config:
                     self._save_config(config)
-                
+
                 return result
             except Exception as e:
                 log.error(f"Error restarting streaming service via Docker: {e}")
@@ -508,9 +540,11 @@ class StreamingServiceManager:
                     "success": False,
                     "message": f"Failed to restart via Docker: {str(e)}",
                 }
-        
+
         stop_result = self.stop()
-        if not stop_result.get("success") and "not running" not in stop_result.get("message", ""):
+        if not stop_result.get("success") and "not running" not in stop_result.get(
+            "message", ""
+        ):
             return {
                 "success": False,
                 "message": f"Failed to stop service: {stop_result.get('message')}",
@@ -522,10 +556,10 @@ class StreamingServiceManager:
     def update_config(self, config: StreamingConfig) -> Dict[str, Any]:
         """
         Update streaming service configuration.
-        
+
         Args:
             config: New configuration
-            
+
         Returns:
             Dictionary with status information
         """
@@ -547,12 +581,12 @@ class StreamingServiceManager:
     def get_health(self) -> Dict[str, Any]:
         """
         Get health check information.
-        
+
         Returns:
             Dictionary with health status
         """
         status = self.get_status()
-        
+
         health = {
             "healthy": status.running and status.error is None,
             "running": status.running,
@@ -571,23 +605,35 @@ class StreamingServiceManager:
     def _build_command(self, config: StreamingConfig) -> list[str]:
         """Build command to start streaming service."""
         python_bin = os.getenv("CASA6_PYTHON", "/opt/miniforge/envs/casa6/bin/python")
-        
+
         cmd = [
             python_bin,
             "-m",
             "dsa110_contimg.conversion.streaming.streaming_converter",
-            "--input-dir", config.input_dir,
-            "--output-dir", config.output_dir,
-            "--queue-db", config.queue_db,
-            "--registry-db", config.registry_db,
-            "--scratch-dir", config.scratch_dir,
-            "--log-level", config.log_level,
-            "--expected-subbands", str(config.expected_subbands),
-            "--chunk-duration", str(config.chunk_duration),
-            "--monitor-interval", str(config.monitor_interval),
-            "--poll-interval", str(config.poll_interval),
-            "--worker-poll-interval", str(config.worker_poll_interval),
-            "--max-workers", str(config.max_workers),
+            "--input-dir",
+            config.input_dir,
+            "--output-dir",
+            config.output_dir,
+            "--queue-db",
+            config.queue_db,
+            "--registry-db",
+            config.registry_db,
+            "--scratch-dir",
+            config.scratch_dir,
+            "--log-level",
+            config.log_level,
+            "--expected-subbands",
+            str(config.expected_subbands),
+            "--chunk-duration",
+            str(config.chunk_duration),
+            "--monitor-interval",
+            str(config.monitor_interval),
+            "--poll-interval",
+            str(config.poll_interval),
+            "--worker-poll-interval",
+            str(config.worker_poll_interval),
+            "--max-workers",
+            str(config.max_workers),
         ]
 
         if config.use_subprocess:
@@ -637,4 +683,3 @@ class StreamingServiceManager:
         """Save configuration to file."""
         with open(self.config_file, "w") as f:
             json.dump(config.to_dict(), f, indent=2)
-

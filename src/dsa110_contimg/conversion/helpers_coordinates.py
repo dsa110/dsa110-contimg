@@ -1,38 +1,53 @@
 """Coordinate and phase helper functions for conversion."""
+
 import logging
 from typing import Tuple, Optional
 
 import numpy as np
 import astropy.units as u
 from astropy.coordinates import EarthLocation, SkyCoord
+
 try:
     from astropy.coordinates import angular_separation  # type: ignore
 except Exception:  # pragma: no cover - fallback for older astropy
+
     def angular_separation(ra1, dec1, ra2, dec2):
         import numpy as _np
+
         ra1 = _np.asarray(ra1, dtype=float)
         dec1 = _np.asarray(dec1, dtype=float)
         ra2 = _np.asarray(ra2, dtype=float)
         dec2 = _np.asarray(dec2, dtype=float)
-        cossep = _np.sin(dec1) * _np.sin(dec2) + _np.cos(dec1) * _np.cos(dec2) * _np.cos(ra1 - ra2)
+        cossep = _np.sin(dec1) * _np.sin(dec2) + _np.cos(dec1) * _np.cos(
+            dec2
+        ) * _np.cos(ra1 - ra2)
         cossep = _np.clip(cossep, -1.0, 1.0)
         return _np.arccos(cossep)
+
+
 from astropy.time import Time
 from pyuvdata import utils as uvutils
+
 try:  # pyuvdata>=3.2: faster uvw calculator
     from pyuvdata.utils.phasing import calc_uvw as _PU_CALC_UVW  # type: ignore
 except Exception:  # pragma: no cover - fallback
     _PU_CALC_UVW = None
 
-from dsa110_contimg.conversion.helpers_antenna import set_antenna_positions, _ensure_antenna_diameters
+from dsa110_contimg.conversion.helpers_antenna import (
+    set_antenna_positions,
+    _ensure_antenna_diameters,
+)
 
 logger = logging.getLogger("dsa110_contimg.conversion.helpers")
 
 
-def get_meridian_coords(pt_dec: u.Quantity, time_mjd: float) -> Tuple[u.Quantity, u.Quantity]:
+def get_meridian_coords(
+    pt_dec: u.Quantity, time_mjd: float
+) -> Tuple[u.Quantity, u.Quantity]:
     """Compute the right ascension/declination of the meridian at DSA-110."""
     # Use DSA-110 coordinates from constants.py (single source of truth)
     from dsa110_contimg.utils.constants import OVRO_LOCATION
+
     dsa110_loc = OVRO_LOCATION
     obstime = Time(time_mjd, format="mjd")
     hadec_coord = SkyCoord(
@@ -90,17 +105,17 @@ def phase_to_meridian(uvdata, pt_dec: Optional[u.Quantity] = None) -> None:
 
         # Create phase center with unique name per time
         pc_id = uvdata._add_phase_center(
-            cat_name=f'meridian_icrs_t{i}',
-            cat_type='sidereal',
+            cat_name=f"meridian_icrs_t{i}",
+            cat_type="sidereal",
             cat_lon=float(phase_ra.to_value(u.rad)),
             cat_lat=float(phase_dec.to_value(u.rad)),
-            cat_frame='icrs',
+            cat_frame="icrs",
             cat_epoch=2000.0,
         )
         phase_center_ids[time_jd] = pc_id
 
     # Map each baseline-time to its corresponding phase center (vectorized)
-    if getattr(uvdata, 'phase_center_id_array', None) is None:
+    if getattr(uvdata, "phase_center_id_array", None) is None:
         uvdata.phase_center_id_array = np.zeros(uvdata.Nblts, dtype=int)
 
     # Vectorized mapping: create array of phase center IDs indexed by time
@@ -115,10 +130,10 @@ def phase_to_meridian(uvdata, pt_dec: Optional[u.Quantity] = None) -> None:
     # Use midpoint values for backward compatibility with legacy code
     phase_time = Time(float(np.mean(uvdata.time_array)), format="jd")
     phase_ra_mid, phase_dec_mid = get_meridian_coords(pt_dec, phase_time.mjd)
-    uvdata.phase_type = 'phased'
+    uvdata.phase_type = "phased"
     uvdata.phase_center_ra = phase_ra_mid.to_value(u.rad)
     uvdata.phase_center_dec = phase_dec_mid.to_value(u.rad)
-    uvdata.phase_center_frame = 'icrs'
+    uvdata.phase_center_frame = "icrs"
     uvdata.phase_center_epoch = 2000.0
     uvdata.reorder_freqs(channel_order="freq", run_check=False)
 
@@ -134,24 +149,26 @@ def compute_and_set_uvw(uvdata, pt_dec: u.Quantity) -> None:
     from astropy.time import Time as _Time
 
     # Telescope metadata (lat, lon, alt; frame)
-    tel_latlonalt = getattr(uvdata, 'telescope_location_lat_lon_alt', None)
-    if tel_latlonalt is None and hasattr(uvdata, 'telescope'):
-        tel_latlonalt = getattr(uvdata.telescope, 'location_lat_lon_alt', None)
-    tel_frame = getattr(uvdata, '_telescope_location', None)
-    tel_frame = getattr(tel_frame, 'frame', None)
+    tel_latlonalt = getattr(uvdata, "telescope_location_lat_lon_alt", None)
+    if tel_latlonalt is None and hasattr(uvdata, "telescope"):
+        tel_latlonalt = getattr(uvdata.telescope, "location_lat_lon_alt", None)
+    tel_frame = getattr(uvdata, "_telescope_location", None)
+    tel_frame = getattr(tel_frame, "frame", None)
 
     # Antenna metadata
-    ant_pos = getattr(uvdata, 'antenna_positions', None)
-    if ant_pos is None and hasattr(uvdata, 'telescope'):
-        ant_pos = getattr(uvdata.telescope, 'antenna_positions', None)
-    ant_nums = getattr(uvdata, 'antenna_numbers', None)
-    if ant_nums is None and hasattr(uvdata, 'telescope'):
-        ant_nums = getattr(uvdata.telescope, 'antenna_numbers', None)
+    ant_pos = getattr(uvdata, "antenna_positions", None)
+    if ant_pos is None and hasattr(uvdata, "telescope"):
+        ant_pos = getattr(uvdata.telescope, "antenna_positions", None)
+    ant_nums = getattr(uvdata, "antenna_numbers", None)
+    if ant_nums is None and hasattr(uvdata, "telescope"):
+        ant_nums = getattr(uvdata.telescope, "antenna_numbers", None)
     ant_pos = _np.asarray(ant_pos) if ant_pos is not None else None
     ant_nums = _np.asarray(ant_nums) if ant_nums is not None else None
 
-    utime, _, uinvert = _np.unique(uvdata.time_array, return_index=True, return_inverse=True)
-    mjd_unique = _Time(utime, format='jd').mjd.astype(float)
+    utime, _, uinvert = _np.unique(
+        uvdata.time_array, return_index=True, return_inverse=True
+    )
+    mjd_unique = _Time(utime, format="jd").mjd.astype(float)
 
     # Compute apparent coords + frame PA per unique time at meridian
     app_ra_unique = _np.zeros(len(utime), dtype=float)
@@ -164,19 +181,27 @@ def compute_and_set_uvw(uvdata, pt_dec: u.Quantity) -> None:
             new_app_ra, new_app_dec = uvutils.calc_app_coords(
                 ra_icrs.to_value(u.rad),
                 dec_icrs.to_value(u.rad),
-                coord_frame='icrs',
+                coord_frame="icrs",
                 coord_epoch=2000.0,
                 coord_times=None,
-                coord_type='sidereal',
+                coord_type="sidereal",
                 time_array=uvdata.time_array[uinvert == i],
                 lst_array=uvdata.lst_array[uinvert == i],
-                pm_ra=None, pm_dec=None, vrad=None, dist=None,
+                pm_ra=None,
+                pm_dec=None,
+                vrad=None,
+                dist=None,
                 telescope_loc=tel_latlonalt,
                 telescope_frame=tel_frame,
             )
             new_frame_pa = uvutils.calc_frame_pos_angle(
-                uvdata.time_array[uinvert == i], new_app_ra, new_app_dec,
-                tel_latlonalt, 'icrs', ref_epoch=2000.0, telescope_frame=tel_frame,
+                uvdata.time_array[uinvert == i],
+                new_app_ra,
+                new_app_dec,
+                tel_latlonalt,
+                "icrs",
+                ref_epoch=2000.0,
+                telescope_frame=tel_frame,
             )
             app_ra_unique[i] = float(new_app_ra[0])
             app_dec_unique[i] = float(new_app_dec[0])
@@ -221,4 +246,3 @@ def compute_and_set_uvw(uvdata, pt_dec: u.Quantity) -> None:
         )
 
     uvdata.uvw_array[:, :] = uvw_all
-

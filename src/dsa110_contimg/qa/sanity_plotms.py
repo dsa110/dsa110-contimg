@@ -28,13 +28,12 @@ def main() -> int:
     # CASA imports
     from casatools import componentlist  # type: ignore  # noqa: E402
     from casatasks import simobserve  # type: ignore  # noqa: E402
+
     try:
         from casaplotms import plotms  # type: ignore  # noqa: E402
     except Exception as e:
         p = outdir / "PLOTS_SKIPPED_NO_CASAPLOTMS.txt"
-        p.write_text(
-            f"casaplotms not importable: {e}\n", encoding="utf-8"
-        )
+        p.write_text(f"casaplotms not importable: {e}\n", encoding="utf-8")
         return 0
 
     # Build a simple component list (1 Jy point)
@@ -51,6 +50,7 @@ def main() -> int:
     try:
         if pt_path.exists():
             import shutil
+
             shutil.rmtree(pt_path, ignore_errors=True)
         cl.rename(str(pt_path))
     finally:
@@ -89,6 +89,7 @@ def main() -> int:
     vdisplay = None
     try:
         from pyvirtualdisplay import Display  # type: ignore  # noqa: E402
+
         vdisplay = Display(visible=False, size=(1600, 1200))
         vdisplay.start()
     except Exception:
@@ -129,5 +130,3 @@ def main() -> int:
 
 if __name__ == "__main__":
     raise SystemExit(main())
-
-

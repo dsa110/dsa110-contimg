@@ -87,11 +87,11 @@ def partial_read_merge(files, n_times_keep=1, n_chan_keep=16, n_ants_keep=8):
             # across subbands.
             ant_ids = np.unique(
                 np.r_[
-                    tmp.ant_1_array[:tmp.Nbls],
-                    tmp.ant_2_array[:tmp.Nbls],
+                    tmp.ant_1_array[: tmp.Nbls],
+                    tmp.ant_2_array[: tmp.Nbls],
                 ]
             ).astype(int)
-            keep_ants = ant_ids[:min(n_ants_keep, ant_ids.size)]
+            keep_ants = ant_ids[: min(n_ants_keep, ant_ids.size)]
             tmp.select(antenna_nums=keep_ants, run_check=False)
             uv = tmp
             first = False
@@ -108,7 +108,8 @@ def partial_read_merge(files, n_times_keep=1, n_chan_keep=16, n_ants_keep=8):
             check_extra=False,
             run_check_acceptability=False,
             strict_uvw_antpos_check=False,
-            ignore_name=True)
+            ignore_name=True,
+        )
 
     return uv
 
@@ -158,10 +159,10 @@ def write_tiny_ms(in_dir, out_ms):
         uv.uvw_array[row_slice, :] = calc_uvw_blt(
             blen,
             time_vec,
-            'J2000',
+            "J2000",
             ra_icrs,
             dec_icrs,
-            obs='OVRO_MMA',
+            obs="OVRO_MMA",
         )
     uv.reorder_freqs(channel_order="freq", run_check=False)
     uv.phase_type = "phased"
@@ -199,7 +200,8 @@ def write_tiny_ms(in_dir, out_ms):
         "Nchan",
         uv.Nfreqs,
         "Npols",
-        uv.Npols)
+        uv.Npols,
+    )
 
 
 # Run

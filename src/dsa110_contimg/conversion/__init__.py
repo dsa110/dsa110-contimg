@@ -29,6 +29,7 @@ configure_ms_for_imaging("observation.ms")
 """
 
 from .uvh5_to_ms import convert_single_file
+
 # Lazy import to avoid RuntimeWarning when running hdf5_orchestrator as module
 # python -m dsa110_contimg.conversion.strategies.hdf5_orchestrator
 from .ms_utils import configure_ms_for_imaging
@@ -50,8 +51,10 @@ def __getattr__(name: str):
     """Lazy import for hdf5_orchestrator to prevent RuntimeWarning when running as module."""
     if name == "convert_subband_groups_to_ms":
         from .strategies.hdf5_orchestrator import convert_subband_groups_to_ms
+
         return convert_subband_groups_to_ms
     raise AttributeError(f"module {__name__!r} has no attribute {name!r}")
+
 
 __all__ = [
     "convert_single_file",

@@ -15,11 +15,11 @@ from .base import MSWriter
 class PyuvdataMonolithicWriter(MSWriter):
     """
     Writes a merged UVData object directly to a single MS.
-    
+
     **TESTING ONLY:** This writer is intended for testing scenarios with ≤2 subbands.
     Production processing always uses 16 subbands and should use DirectSubbandWriter
     (parallel-subband) instead.
-    
+
     This writer loads all subbands into memory and writes them in a single operation,
     which is inefficient for production use with 16 subbands.
     """

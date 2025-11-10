@@ -22,7 +22,7 @@ except ImportError:
 
 def _ensure_imaging_columns(ms_path: str) -> None:
     """Ensure imaging columns (MODEL_DATA, CORRECTED_DATA) exist in MS.
-    
+
     Args:
         ms_path: Path to Measurement Set
     """
@@ -35,7 +35,7 @@ def _ensure_imaging_columns(ms_path: str) -> None:
 
 def _initialize_corrected_from_data(ms_path: str) -> None:
     """Initialize CORRECTED_DATA column from DATA column.
-    
+
     Args:
         ms_path: Path to Measurement Set
     """
@@ -56,16 +56,16 @@ def _calculate_manual_model_data(
     field: Optional[str] = None,
 ) -> None:
     """Manually calculate MODEL_DATA phase structure using correct phase center.
-    
+
     This function calculates MODEL_DATA directly using the formula:
         phase = 2π * (u*ΔRA + v*ΔDec) / λ
-    
+
     This bypasses ft() which may use incorrect phase center information.
-    
+
     **CRITICAL**: Uses each field's own PHASE_DIR (falls back to REFERENCE_DIR if unavailable)
     to ensure correct phase structure. PHASE_DIR matches the DATA column phasing (updated by
     phaseshift), ensuring MODEL_DATA phase structure matches DATA column exactly.
-    
+
     Args:
         ms_path: Path to Measurement Set
         ra_deg: Right ascension in degrees (component position)
@@ -78,16 +78,16 @@ def _calculate_manual_model_data(
               If None, writes to all fields.
     """
     from casacore.tables import table as casa_table
-    
+
     _ensure_imaging_columns(ms_path)
-    
+
     # Parse field selection to get list of field indices
     field_indices = None
     if field is not None:
-        if '~' in str(field):
+        if "~" in str(field):
             # Field range: "0~15"
             try:
-                parts = str(field).split('~')
+                parts = str(field).split("~")
                 start_idx = int(parts[0])
                 end_idx = int(parts[1])
                 field_indices = list(range(start_idx, end_idx + 1))
@@ -97,7 +97,7 @@ def _calculate_manual_model_data(
             # Single field index: "0"
             field_indices = [int(field)]
         # If field is a name or invalid, field_indices stays None (use all fields)
-    
+
     # OPTIMIZATION: Use cached MS metadata if available to avoid redundant table reads
     # This is especially beneficial when MODEL_DATA is calculated multiple times
     # for the same MS (e.g., during calibration iteration).
@@ -105,15 +105,17 @@ def _calculate_manual_model_data(
     if get_ms_metadata is not None:
         try:
             metadata = get_ms_metadata(ms_path)
-            phase_dir = metadata.get('phase_dir')
-            chan_freq = metadata.get('chan_freq')
+            phase_dir = metadata.get("phase_dir")
+            chan_freq = metadata.get("chan_freq")
             if phase_dir is not None and chan_freq is not None:
                 nfields = len(phase_dir)
                 nspw = len(chan_freq)
                 # Check if cached metadata is actually valid (non-empty)
                 if nfields > 0 and nspw > 0:
                     use_cached_metadata = True
-                    logger.debug(f"Using cached MS metadata for {ms_path} ({nfields} fields, {nspw} SPWs)")
+                    logger.debug(
+                        f"Using cached MS metadata for {ms_path} ({nfields} fields, {nspw} SPWs)"
+                    )
                 else:
                     # Cached metadata is empty/invalid, fall back to direct read
                     raise ValueError("Cached metadata incomplete")
@@ -122,9 +124,11 @@ def _calculate_manual_model_data(
                 raise ValueError("Cached metadata incomplete")
         except Exception as e:
             # Fallback to direct read if cache fails
-            logger.debug(f"Metadata cache lookup failed for {ms_path}: {e}. Falling back to direct read.")
+            logger.debug(
+                f"Metadata cache lookup failed for {ms_path}: {e}. Falling back to direct read."
+            )
             use_cached_metadata = False
-    
+
     if not use_cached_metadata:
         # Fallback: Read MS phase center from PHASE_DIR for all fields
         # PHASE_DIR matches the actual phase center used for DATA column phasing
@@ -139,64 +143,68 @@ def _calculate_manual_model_data(
                 phase_dir = field_tb.getcol("REFERENCE_DIR")  # Shape: (nfields, 1, 2)
                 logger.debug("PHASE_DIR not available, using REFERENCE_DIR")
             nfields = len(phase_dir)
-        
+
         # Read spectral window information for frequencies
         with casa_table(f"{ms_path}::SPECTRAL_WINDOW", readonly=True) as spw_tb:
             chan_freq = spw_tb.getcol("CHAN_FREQ")  # Shape: (nspw, nchan)
             nspw = len(chan_freq)
-    
+
     # Log field selection
     if field_indices is not None:
         logger.debug(f"Field selection: {field_indices} ({len(field_indices)} fields)")
     else:
         logger.debug("No field selection: processing all fields")
-    
+
     # Read main table data
     start_time = time.time()
     with casa_table(ms_path, readonly=False) as main_tb:
         nrows = main_tb.nrows()
-        logger.info(f"Calculating MODEL_DATA for {ms_path} (field={field}, flux={flux_jy:.2f} Jy, {nrows:,} rows)")
-        
+        logger.info(
+            f"Calculating MODEL_DATA for {ms_path} (field={field}, flux={flux_jy:.2f} Jy, {nrows:,} rows)"
+        )
+
         # Read UVW coordinates
         uvw = main_tb.getcol("UVW")  # Shape: (nrows, 3)
         u = uvw[:, 0]
         v = uvw[:, 1]
-        
+
         # Read DATA_DESC_ID and map to SPECTRAL_WINDOW_ID
         # DATA_DESC_ID indexes the DATA_DESCRIPTION table, not SPECTRAL_WINDOW directly
         data_desc_id = main_tb.getcol("DATA_DESC_ID")  # Shape: (nrows,)
-        
+
         # Read DATA_DESCRIPTION table to get SPECTRAL_WINDOW_ID mapping
         with casa_table(f"{ms_path}::DATA_DESCRIPTION", readonly=True) as dd_tb:
             dd_spw_id = dd_tb.getcol("SPECTRAL_WINDOW_ID")  # Shape: (ndd,)
             # Map DATA_DESC_ID -> SPECTRAL_WINDOW_ID
             spw_id = dd_spw_id[data_desc_id]  # Shape: (nrows,)
-        
+
         # Read FIELD_ID to apply field selection and get per-field phase centers
         field_id = main_tb.getcol("FIELD_ID")  # Shape: (nrows,)
-        
+
         # Apply field selection if specified
         if field_indices is not None:
             field_mask = np.isin(field_id, field_indices)
         else:
             field_mask = np.ones(nrows, dtype=bool)
-        
+
         nselected = np.sum(field_mask)
-        logger.debug(f"Processing {nselected:,} rows ({nselected/nrows*100:.1f}% of total)")
-        
+        logger.debug(
+            f"Processing {nselected:,} rows ({nselected/nrows*100:.1f}% of total)"
+        )
+
         # Read DATA shape to create MODEL_DATA with matching shape
         data_sample = main_tb.getcell("DATA", 0)
         data_shape = data_sample.shape  # In CASA: (nchan, npol)
         nchan, npol = data_shape[0], data_shape[1]
         logger.debug(f"Data shape: {nchan} channels, {npol} polarizations")
-        
+
         # Initialize MODEL_DATA array with correct shape (nrows, nchan, npol)
         model_data = np.zeros((nrows, nchan, npol), dtype=np.complex64)
         logger.debug(f"Allocated MODEL_DATA array: {model_data.nbytes / 1e9:.2f} GB")
-        
+
         # VECTORIZED CALCULATION: Process all rows at once using NumPy broadcasting
         # This replaces the row-by-row loop for 10-100x speedup
-        
+
         # Filter to selected rows only
         selected_indices = np.where(field_mask)[0]
         if len(selected_indices) == 0:
@@ -204,18 +212,18 @@ def _calculate_manual_model_data(
             main_tb.putcol("MODEL_DATA", model_data)
             main_tb.flush()
             return
-        
+
         # Get field and SPW indices for selected rows
         selected_field_id = field_id[selected_indices]  # (nselected,)
-        selected_spw_id = spw_id[selected_indices]    # (nselected,)
-        selected_u = u[selected_indices]               # (nselected,)
-        selected_v = v[selected_indices]              # (nselected,)
-        
+        selected_spw_id = spw_id[selected_indices]  # (nselected,)
+        selected_u = u[selected_indices]  # (nselected,)
+        selected_v = v[selected_indices]  # (nselected,)
+
         # Validate field and SPW indices
         valid_field_mask = (selected_field_id >= 0) & (selected_field_id < nfields)
         valid_spw_mask = (selected_spw_id >= 0) & (selected_spw_id < nspw)
         valid_mask = valid_field_mask & valid_spw_mask
-        
+
         if not np.all(valid_mask):
             n_invalid = np.sum(~valid_mask)
             logger.warning(f"Skipping {n_invalid} rows with invalid field/SPW indices")
@@ -224,35 +232,37 @@ def _calculate_manual_model_data(
             selected_spw_id = selected_spw_id[valid_mask]
             selected_u = selected_u[valid_mask]
             selected_v = selected_v[valid_mask]
-        
+
         nselected = len(selected_indices)
         if nselected == 0:
             logger.warning("No valid rows after filtering")
             main_tb.putcol("MODEL_DATA", model_data)
             main_tb.flush()
             return
-        
+
         # Get phase centers for all selected rows (one per field)
         # phase_dir shape: (nfields, 1, 2) -> extract (ra_rad, dec_rad) for each field
         phase_centers_ra_rad = phase_dir[selected_field_id, 0, 0]  # (nselected,)
         phase_centers_dec_rad = phase_dir[selected_field_id, 0, 1]  # (nselected,)
-        
+
         # Convert to degrees
         phase_centers_ra_deg = np.degrees(phase_centers_ra_rad)  # (nselected,)
         phase_centers_dec_deg = np.degrees(phase_centers_dec_rad)  # (nselected,)
-        
+
         # Calculate offsets from phase centers to component (vectorized)
         # Offset in RA: account for cos(dec) factor
-        offset_ra_rad = np.radians(ra_deg - phase_centers_ra_deg) * np.cos(phase_centers_dec_rad)  # (nselected,)
+        offset_ra_rad = np.radians(ra_deg - phase_centers_ra_deg) * np.cos(
+            phase_centers_dec_rad
+        )  # (nselected,)
         offset_dec_rad = np.radians(dec_deg - phase_centers_dec_deg)  # (nselected,)
-        
+
         # Get frequencies for all selected rows
         # chan_freq shape: (nspw, nchan)
         # selected_spw_id contains SPECTRAL_WINDOW_ID values (mapped from DATA_DESC_ID)
         # We index: chan_freq[selected_spw_id] -> (nselected, nchan)
         selected_freqs = chan_freq[selected_spw_id]  # (nselected, nchan)
         selected_wavelengths = 3e8 / selected_freqs  # (nselected, nchan)
-        
+
         # Vectorize phase calculation using broadcasting
         # u, v: (nselected,) -> (nselected, 1) for broadcasting
         # offset_ra_rad, offset_dec_rad: (nselected,) -> (nselected, 1)
@@ -262,33 +272,44 @@ def _calculate_manual_model_data(
         v_broadcast = selected_v[:, np.newaxis]  # (nselected, 1)
         offset_ra_broadcast = offset_ra_rad[:, np.newaxis]  # (nselected, 1)
         offset_dec_broadcast = offset_dec_rad[:, np.newaxis]  # (nselected, 1)
-        
+
         # Phase calculation: 2π * (u*ΔRA + v*ΔDec) / λ
-        phase = 2 * np.pi * (u_broadcast * offset_ra_broadcast + v_broadcast * offset_dec_broadcast) / selected_wavelengths
-        phase = np.mod(phase + np.pi, 2*np.pi) - np.pi  # Wrap to [-π, π]
-        
+        phase = (
+            2
+            * np.pi
+            * (u_broadcast * offset_ra_broadcast + v_broadcast * offset_dec_broadcast)
+            / selected_wavelengths
+        )
+        phase = np.mod(phase + np.pi, 2 * np.pi) - np.pi  # Wrap to [-π, π]
+
         # Create complex model: amplitude * exp(i*phase)
         # Shape: (nselected, nchan)
         amplitude = float(flux_jy)
-        model_complex = amplitude * (np.cos(phase) + 1j * np.sin(phase))  # (nselected, nchan)
-        
+        model_complex = amplitude * (
+            np.cos(phase) + 1j * np.sin(phase)
+        )  # (nselected, nchan)
+
         # Broadcast to all polarizations: (nselected, nchan) -> (nselected, nchan, npol)
         model_complex_pol = model_complex[:, :, np.newaxis]  # (nselected, nchan, 1)
-        model_data[selected_indices, :, :] = model_complex_pol  # Broadcasts to (nselected, nchan, npol)
-        
+        model_data[selected_indices, :, :] = (
+            model_complex_pol  # Broadcasts to (nselected, nchan, npol)
+        )
+
         calc_time = time.time() - start_time
-        logger.info(f"MODEL_DATA calculation completed in {calc_time:.2f}s ({nselected:,} rows, {calc_time/nselected*1e6:.2f} μs/row)")
-        
+        logger.info(
+            f"MODEL_DATA calculation completed in {calc_time:.2f}s ({nselected:,} rows, {calc_time/nselected*1e6:.2f} μs/row)"
+        )
+
         # Write MODEL_DATA column
         write_start = time.time()
         main_tb.putcol("MODEL_DATA", model_data)
         main_tb.flush()  # Ensure data is written to disk
         write_time = time.time() - write_start
         logger.debug(f"MODEL_DATA written to disk in {write_time:.2f}s")
-        
+
         total_time = time.time() - start_time
         logger.info(f"✓ MODEL_DATA populated for {ms_path} (total: {total_time:.2f}s)")
-    
+
     _initialize_corrected_from_data(ms_path)
 
 
@@ -304,14 +325,14 @@ def write_point_model_with_ft(
     use_manual: bool = True,
 ) -> None:
     """Write a physically-correct complex point-source model into MODEL_DATA.
-    
+
     By default, uses manual calculation which handles per-field phase centers correctly.
     If use_manual=False, uses CASA ft() task, which reads phase center from FIELD parameters
     but uses ONE phase center for ALL fields. This causes phase errors when fields have
     different phase centers (e.g., each field phased to its own meridian). ft() works correctly
     when all fields share the same phase center (after rephasing), but manual calculation
     is more robust and handles per-field phase centers correctly in all scenarios.
-    
+
     Args:
         ms_path: Path to Measurement Set
         ra_deg: Right ascension in degrees
@@ -327,22 +348,27 @@ def write_point_model_with_ft(
     """
     if use_manual:
         # Use manual calculation to bypass ft() phase center issues
-        logger.info(f"Writing point model using manual calculation (bypasses ft() phase center issues)")
+        logger.info(
+            f"Writing point model using manual calculation (bypasses ft() phase center issues)"
+        )
         _calculate_manual_model_data(ms_path, ra_deg, dec_deg, flux_jy, field=field)
         return
-    
+
     from casatools import componentlist as cltool
     from casatasks import ft
 
-    logger.info(f"Writing point model using ft() (use_manual=False). "
-                f"WARNING: ft() uses one phase center for all fields. "
-                f"Use use_manual=True for per-field phase centers.")
+    logger.info(
+        f"Writing point model using ft() (use_manual=False). "
+        f"WARNING: ft() uses one phase center for all fields. "
+        f"Use use_manual=True for per-field phase centers."
+    )
     _ensure_imaging_columns(ms_path)
 
     comp_path = os.path.join(os.path.dirname(ms_path), "cal_component.cl")
     # Remove existing component list if it exists (cl.rename() will fail if it exists)
     if os.path.exists(comp_path):
         import shutil
+
         shutil.rmtree(comp_path, ignore_errors=True)
     cl = cltool()
     sc = SkyCoord(ra_deg * u.deg, dec_deg * u.deg, frame="icrs")
@@ -357,15 +383,16 @@ def write_point_model_with_ft(
         flux=float(flux_jy),
         fluxunit="Jy",
         freq=f"{reffreq_hz}Hz",
-        shape="point")
+        shape="point",
+    )
     if spectral_index is not None:
         try:
             cl.setspectrum(
                 which=0,
                 type="spectral index",
-                index=[
-                    float(spectral_index)],
-                reffreq=f"{reffreq_hz}Hz")
+                index=[float(spectral_index)],
+                reffreq=f"{reffreq_hz}Hz",
+            )
         except Exception:
             pass
     cl.rename(comp_path)
@@ -376,6 +403,7 @@ def write_point_model_with_ft(
     # clearcal() may not fully clear MODEL_DATA, especially after rephasing
     try:
         import numpy as np
+
         t = tb.table(ms_path, readonly=False)
         if "MODEL_DATA" in t.colnames() and t.nrows() > 0:
             # Get DATA shape to match MODEL_DATA shape
@@ -391,10 +419,11 @@ def write_point_model_with_ft(
     except Exception as e:
         # Non-fatal: log warning but continue
         import warnings
+
         warnings.warn(
             f"Failed to explicitly clear MODEL_DATA before ft(): {e}. "
             "Continuing with ft() call, but MODEL_DATA may not be properly cleared.",
-            RuntimeWarning
+            RuntimeWarning,
         )
 
     # Pass field parameter to ensure MODEL_DATA is written to the correct field
@@ -418,29 +447,30 @@ def write_point_model_with_ft(
 
 def write_component_model_with_ft(ms_path: str, component_path: str) -> None:
     """Apply an existing CASA component list (.cl) into MODEL_DATA using ft.
-    
+
     .. deprecated:: 2025-11-05
         This function uses ft() which has known phase center bugs.
         For point sources, use :func:`write_point_model_with_ft` with ``use_manual=True`` instead.
-        
+
         Known Issues:
         - Uses ft() which does not use PHASE_DIR correctly after rephasing
         - May cause phase scatter when MS is rephased
-        
+
         This function is kept for component list support (no manual alternative available).
         Use with caution and only when component list is required.
-    
+
     Args:
         ms_path: Path to Measurement Set
         component_path: Path to CASA component list (.cl)
     """
     import warnings
+
     warnings.warn(
         "write_component_model_with_ft() uses ft() which has known phase center bugs. "
         "For point sources, use write_point_model_with_ft(use_manual=True) instead. "
         "See docs/reports/FT_PHASE_CENTER_FIX.md",
         DeprecationWarning,
-        stacklevel=2
+        stacklevel=2,
     )
     from casatasks import ft
 
@@ -454,29 +484,30 @@ def write_component_model_with_ft(ms_path: str, component_path: str) -> None:
 
 def write_image_model_with_ft(ms_path: str, image_path: str) -> None:
     """Apply a CASA image model into MODEL_DATA using ft.
-    
+
     .. deprecated:: 2025-11-05
         This function uses ft() which has known phase center bugs.
         For point sources, use :func:`write_point_model_with_ft` with ``use_manual=True`` instead.
-        
+
         Known Issues:
         - Uses ft() which does not use PHASE_DIR correctly after rephasing
         - May cause phase scatter when MS is rephased
-        
+
         This function is kept for image model support (no manual alternative available).
         Use with caution and only when image model is required.
-    
+
     Args:
         ms_path: Path to Measurement Set
         image_path: Path to CASA image model
     """
     import warnings
+
     warnings.warn(
         "write_image_model_with_ft() uses ft() which has known phase center bugs. "
         "For point sources, use write_point_model_with_ft(use_manual=True) instead. "
         "See docs/reports/FT_PHASE_CENTER_FIX.md",
         DeprecationWarning,
-        stacklevel=2
+        stacklevel=2,
     )
     from casatasks import ft
 
@@ -496,11 +527,11 @@ def export_model_as_fits(
     cell_arcsec: float = 1.0,
 ) -> None:
     """Export MODEL_DATA as a FITS image.
-    
+
     Creates a CASA image from MODEL_DATA column and exports it to FITS format.
     This is useful for visualizing the sky model used during calibration (NVSS sources
     or calibrator model) and for debugging calibration issues.
-    
+
     Args:
         ms_path: Path to Measurement Set
         output_path: Output FITS file path (without .fits extension)
@@ -511,15 +542,15 @@ def export_model_as_fits(
     from casatasks import tclean, exportfits
     from casatools import image as imtool
     import logging
-    
+
     LOG = logging.getLogger(__name__)
-    
+
     # Ensure imaging columns exist
     _ensure_imaging_columns(ms_path)
-    
+
     # Create image name (CASA will add .image suffix)
     image_name = f"{output_path}.model"
-    
+
     try:
         # Use tclean to create image from MODEL_DATA
         # Use niter=0 to just grid without deconvolution
@@ -536,17 +567,17 @@ def export_model_as_fits(
         }
         if field is not None:
             tclean_kwargs["field"] = field
-        
+
         LOG.info(f"Creating model image from {ms_path} MODEL_DATA...")
         tclean(**tclean_kwargs)
-        
+
         # Export to FITS
         fits_path = f"{output_path}.fits"
         LOG.info(f"Exporting model image to {fits_path}...")
         exportfits(imagename=f"{image_name}.image", fitsimage=fits_path, overwrite=True)
-        
+
         LOG.info(f"✓ Model image exported to {fits_path}")
-        
+
     except Exception as e:
         LOG.error(f"Failed to export model image: {e}")
         raise
@@ -561,19 +592,19 @@ def write_setjy_model(
     usescratch: bool = True,
 ) -> None:
     """Populate MODEL_DATA via casatasks.setjy for standard calibrators.
-    
+
     .. deprecated:: 2025-11-05
         This function has known phase center bugs when used with rephased MS.
         Use :func:`write_point_model_with_ft` with ``use_manual=True`` instead.
-        
+
         Known Issues:
         - Uses setjy() which internally calls ft() with phase center bugs
         - Causes 100°+ phase scatter when MS is rephased
         - Does not use PHASE_DIR correctly after rephasing
-        
+
         The CLI now prevents problematic usage, but this function is deprecated
         for new code.
-    
+
     Args:
         ms_path: Path to Measurement Set
         field: Field selection
@@ -582,21 +613,19 @@ def write_setjy_model(
         usescratch: Whether to use scratch column
     """
     import warnings
+
     warnings.warn(
         "write_setjy_model() is deprecated. Use write_point_model_with_ft(use_manual=True) instead. "
         "This function has known phase center bugs. See docs/reports/FT_PHASE_CENTER_FIX.md",
         DeprecationWarning,
-        stacklevel=2
+        stacklevel=2,
     )
     from casatasks import setjy
 
     _ensure_imaging_columns(ms_path)
     setjy(
-        vis=ms_path,
-        field=str(field),
-        spw=spw,
-        standard=standard,
-        usescratch=usescratch)
+        vis=ms_path, field=str(field), spw=spw, standard=standard, usescratch=usescratch
+    )
     _initialize_corrected_from_data(ms_path)
 
 
@@ -610,10 +639,10 @@ def populate_model_from_catalog(
     cal_flux_jy: Optional[float] = None,
 ) -> None:
     """Populate MODEL_DATA from catalog source.
-    
+
     Looks up calibrator coordinates and flux from catalog, then writes
     MODEL_DATA using manual calculation (bypasses ft() phase center bugs).
-    
+
     Args:
         ms_path: Path to Measurement Set
         field: Field selection (default: "0" or first field)
@@ -622,17 +651,20 @@ def populate_model_from_catalog(
         cal_ra_deg: Optional explicit RA in degrees (overrides catalog lookup)
         cal_dec_deg: Optional explicit Dec in degrees (overrides catalog lookup)
         cal_flux_jy: Optional explicit flux in Jy (default: 2.5 Jy if not in catalog)
-    
+
     Raises:
         ValueError: If calibrator cannot be found or coordinates are invalid
         RuntimeError: If MODEL_DATA population fails
     """
-    from dsa110_contimg.calibration.catalogs import get_calibrator_radec, load_vla_catalog
-    
+    from dsa110_contimg.calibration.catalogs import (
+        get_calibrator_radec,
+        load_vla_catalog,
+    )
+
     # Default field to "0" if not provided
     if field is None:
         field = "0"
-    
+
     # Determine calibrator coordinates
     if cal_ra_deg is not None and cal_dec_deg is not None:
         # Use explicit coordinates
@@ -640,7 +672,9 @@ def populate_model_from_catalog(
         dec_deg = float(cal_dec_deg)
         flux_jy = float(cal_flux_jy) if cal_flux_jy is not None else 2.5
         name = calibrator_name or f"manual_{ra_deg:.2f}_{dec_deg:.2f}"
-        logger.info(f"Using explicit calibrator coordinates: {name} @ ({ra_deg:.4f}°, {dec_deg:.4f}°), {flux_jy:.2f} Jy")
+        logger.info(
+            f"Using explicit calibrator coordinates: {name} @ ({ra_deg:.4f}°, {dec_deg:.4f}°), {flux_jy:.2f} Jy"
+        )
     elif calibrator_name:
         # Look up from catalog
         try:
@@ -649,7 +683,9 @@ def populate_model_from_catalog(
             # Try to get flux from catalog, default to 2.5 Jy
             flux_jy = float(cal_flux_jy) if cal_flux_jy is not None else 2.5
             name = calibrator_name
-            logger.info(f"Found calibrator in catalog: {name} @ ({ra_deg:.4f}°, {dec_deg:.4f}°), {flux_jy:.2f} Jy")
+            logger.info(
+                f"Found calibrator in catalog: {name} @ ({ra_deg:.4f}°, {dec_deg:.4f}°), {flux_jy:.2f} Jy"
+            )
         except Exception as e:
             raise ValueError(
                 f"Could not find calibrator '{calibrator_name}' in catalog: {e}. "
@@ -664,12 +700,19 @@ def populate_model_from_catalog(
                     # Look for common calibrator names in field names
                     common_calibrators = ["0834+555", "3C286", "3C48", "3C147", "3C138"]
                     for cal_name in common_calibrators:
-                        if any(cal_name.lower() in str(name).lower() for name in field_names):
+                        if any(
+                            cal_name.lower() in str(name).lower()
+                            for name in field_names
+                        ):
                             catalog = load_vla_catalog()
                             ra_deg, dec_deg = get_calibrator_radec(catalog, cal_name)
-                            flux_jy = float(cal_flux_jy) if cal_flux_jy is not None else 2.5
+                            flux_jy = (
+                                float(cal_flux_jy) if cal_flux_jy is not None else 2.5
+                            )
                             name = cal_name
-                            logger.info(f"Auto-detected calibrator from field names: {name} @ ({ra_deg:.4f}°, {dec_deg:.4f}°), {flux_jy:.2f} Jy")
+                            logger.info(
+                                f"Auto-detected calibrator from field names: {name} @ ({ra_deg:.4f}°, {dec_deg:.4f}°), {flux_jy:.2f} Jy"
+                            )
                             break
                     else:
                         raise ValueError(
@@ -688,15 +731,16 @@ def populate_model_from_catalog(
                 f"Could not auto-detect calibrator: {e}. "
                 "Provide calibrator_name or explicit coordinates."
             ) from e
-    
+
     # Clear existing MODEL_DATA before writing
     try:
         from casatasks import clearcal
+
         clearcal(vis=ms_path, addmodel=True)
         logger.debug("Cleared existing MODEL_DATA before writing new model")
     except Exception as e:
         logger.warning(f"Could not clear MODEL_DATA before writing: {e}")
-    
+
     # Write MODEL_DATA using manual calculation (bypasses ft() phase center bugs)
     logger.info(f"Populating MODEL_DATA for {name} using manual calculation...")
     write_point_model_with_ft(
@@ -717,22 +761,22 @@ def populate_model_from_image(
     model_image: str,
 ) -> None:
     """Populate MODEL_DATA from image file.
-    
+
     Args:
         ms_path: Path to Measurement Set
         field: Field selection (default: "0")
         model_image: Path to model image file
-    
+
     Raises:
         FileNotFoundError: If model image does not exist
         RuntimeError: If MODEL_DATA population fails
     """
     if field is None:
         field = "0"
-    
+
     if not os.path.exists(model_image):
         raise FileNotFoundError(f"Model image not found: {model_image}")
-    
+
     logger.info(f"Populating MODEL_DATA from image: {model_image}")
     write_image_model_with_ft(ms_path, model_image)
     logger.info(f"✓ MODEL_DATA populated from image")

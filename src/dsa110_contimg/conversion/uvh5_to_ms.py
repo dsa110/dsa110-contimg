@@ -30,8 +30,7 @@ from dsa110_contimg.utils.runtime_safeguards import (
 
 # Configure logging
 logging.basicConfig(
-    level=logging.INFO,
-    format='%(asctime)s - %(levelname)s - %(message)s'
+    level=logging.INFO, format="%(asctime)s - %(levelname)s - %(message)s"
 )
 logger = logging.getLogger(__name__)
 
@@ -72,15 +71,14 @@ def _validate_mount_type(mount_type: str) -> str:
         "x-y": "x-y",
         "xy": "x-y",
         "spherical": "spherical",
-        "sphere": "spherical"
+        "sphere": "spherical",
     }
 
     if normalized in mount_mapping:
         return mount_mapping[normalized]
 
     # Default fallback
-    logger.warning(
-        f"Unknown mount type '{mount_type}', defaulting to 'alt-az'")
+    logger.warning(f"Unknown mount type '{mount_type}', defaulting to 'alt-az'")
     return "alt-az"
 
 
@@ -99,8 +97,7 @@ def _cleanup_temp_files(temp_files: List[str]) -> None:
                 os.remove(temp_file)
                 logger.debug(f"Cleaned up temporary file: {temp_file}")
         except OSError as e:
-            logger.warning(
-                f"Could not clean up temporary file {temp_file}: {e}")
+            logger.warning(f"Could not clean up temporary file {temp_file}: {e}")
 
 
 def _assess_data_quality(uvd: UVData) -> dict:
@@ -118,55 +115,55 @@ def _assess_data_quality(uvd: UVData) -> dict:
         Dictionary containing quality assessment and parameter recommendations
     """
     quality_info = {
-        'total_data_points': uvd.Nblts * uvd.Nfreqs * uvd.Npols,
-        'time_span_days': 0.0,
-        'freq_span_mhz': 0.0,
-        'recommended_solint': '30s',
-        'recommended_minsnr': 3.0,
-        'data_quality_score': 'good'
+        "total_data_points": uvd.Nblts * uvd.Nfreqs * uvd.Npols,
+        "time_span_days": 0.0,
+        "freq_span_mhz": 0.0,
+        "recommended_solint": "30s",
+        "recommended_minsnr": 3.0,
+        "data_quality_score": "good",
     }
 
     # Calculate time span
-    if hasattr(uvd, 'time_array') and uvd.time_array is not None:
+    if hasattr(uvd, "time_array") and uvd.time_array is not None:
         time_span = np.max(uvd.time_array) - np.min(uvd.time_array)
-        quality_info['time_span_days'] = time_span
+        quality_info["time_span_days"] = time_span
 
         # Adjust solution interval based on time span
         if time_span < 0.01:  # Less than ~15 minutes
-            quality_info['recommended_solint'] = '12s'
+            quality_info["recommended_solint"] = "12s"
         elif time_span < 0.1:  # Less than ~2.4 hours
-            quality_info['recommended_solint'] = '30s'
+            quality_info["recommended_solint"] = "30s"
         else:
-            quality_info['recommended_solint'] = '60s'
+            quality_info["recommended_solint"] = "60s"
 
     # Calculate frequency span
-    if hasattr(uvd, 'freq_array') and uvd.freq_array is not None:
+    if hasattr(uvd, "freq_array") and uvd.freq_array is not None:
         freq_span = np.max(uvd.freq_array) - np.min(uvd.freq_array)
-        quality_info['freq_span_mhz'] = freq_span / 1e6
+        quality_info["freq_span_mhz"] = freq_span / 1e6
 
         # Adjust SNR threshold based on frequency span
         if freq_span < 50e6:  # Less than 50 MHz
-            quality_info['recommended_minsnr'] = 2.0
+            quality_info["recommended_minsnr"] = 2.0
         elif freq_span < 200e6:  # Less than 200 MHz
-            quality_info['recommended_minsnr'] = 3.0
+            quality_info["recommended_minsnr"] = 3.0
         else:
-            quality_info['recommended_minsnr'] = 5.0
+            quality_info["recommended_minsnr"] = 5.0
 
     # Assess flagging fraction
-    if hasattr(uvd, 'flag_array') and uvd.flag_array is not None:
+    if hasattr(uvd, "flag_array") and uvd.flag_array is not None:
         total_flags = np.sum(uvd.flag_array)
         total_data = uvd.flag_array.size
         flag_fraction = total_flags / total_data if total_data > 0 else 0
-        quality_info['flag_fraction'] = flag_fraction
+        quality_info["flag_fraction"] = flag_fraction
 
         if flag_fraction > 0.5:
-            quality_info['data_quality_score'] = 'poor'
-            quality_info['recommended_minsnr'] = 2.0
+            quality_info["data_quality_score"] = "poor"
+            quality_info["recommended_minsnr"] = 2.0
         elif flag_fraction > 0.2:
-            quality_info['data_quality_score'] = 'fair'
-            quality_info['recommended_minsnr'] = 3.0
+            quality_info["data_quality_score"] = "fair"
+            quality_info["recommended_minsnr"] = 3.0
         else:
-            quality_info['data_quality_score'] = 'good'
+            quality_info["data_quality_score"] = "good"
 
     return quality_info
 
@@ -186,43 +183,42 @@ def _generate_calibration_recommendations(quality_info: dict) -> dict:
         Dictionary containing recommended calibration parameters
     """
     recommendations = {
-        'delay_calibration': {
-            'solint': quality_info['recommended_solint'],
-            'minsnr': max(2.0, quality_info['recommended_minsnr'] - 1.0),
-            'combine': 'spw',
-            'calmode': 'p'
+        "delay_calibration": {
+            "solint": quality_info["recommended_solint"],
+            "minsnr": max(2.0, quality_info["recommended_minsnr"] - 1.0),
+            "combine": "spw",
+            "calmode": "p",
         },
-        'bandpass_calibration': {
-            'solint': 'inf',
-            'minsnr': quality_info['recommended_minsnr'],
-            'combine': 'scan,field',
-            'calmode': 'bp'
+        "bandpass_calibration": {
+            "solint": "inf",
+            "minsnr": quality_info["recommended_minsnr"],
+            "combine": "scan,field",
+            "calmode": "bp",
         },
-        'gain_calibration': {
-            'solint': quality_info['recommended_solint'],
-            'minsnr': quality_info['recommended_minsnr'],
-            'combine': 'scan,field',
-            'calmode': 'ap'
-        }
+        "gain_calibration": {
+            "solint": quality_info["recommended_solint"],
+            "minsnr": quality_info["recommended_minsnr"],
+            "combine": "scan,field",
+            "calmode": "ap",
+        },
     }
 
     # Adjust parameters based on data quality
-    if quality_info['data_quality_score'] == 'poor':
-        recommendations['delay_calibration']['minsnr'] = 1.5
-        recommendations['bandpass_calibration']['minsnr'] = 2.0
-        recommendations['gain_calibration']['minsnr'] = 2.0
-        recommendations['delay_calibration']['solint'] = '60s'
-        recommendations['gain_calibration']['solint'] = '60s'
-    elif quality_info['data_quality_score'] == 'fair':
-        recommendations['delay_calibration']['minsnr'] = 2.0
-        recommendations['bandpass_calibration']['minsnr'] = 3.0
-        recommendations['gain_calibration']['minsnr'] = 3.0
+    if quality_info["data_quality_score"] == "poor":
+        recommendations["delay_calibration"]["minsnr"] = 1.5
+        recommendations["bandpass_calibration"]["minsnr"] = 2.0
+        recommendations["gain_calibration"]["minsnr"] = 2.0
+        recommendations["delay_calibration"]["solint"] = "60s"
+        recommendations["gain_calibration"]["solint"] = "60s"
+    elif quality_info["data_quality_score"] == "fair":
+        recommendations["delay_calibration"]["minsnr"] = 2.0
+        recommendations["bandpass_calibration"]["minsnr"] = 3.0
+        recommendations["gain_calibration"]["minsnr"] = 3.0
 
     return recommendations
 
 
-def _write_calibration_recommendations(ms_path: str,
-                                       recommendations: dict) -> None:
+def _write_calibration_recommendations(ms_path: str, recommendations: dict) -> None:
     """
     Write calibration recommendations to a JSON file alongside the MS.
 
@@ -238,27 +234,27 @@ def _write_calibration_recommendations(ms_path: str,
     # Create recommendations file path: write alongside each MS directory
     # If ms_path is a directory (standard for CASA MS), write inside it
     if os.path.isdir(ms_path):
-        recommendations_path = os.path.join(
-            ms_path, 'calibration_recommendations.json')
+        recommendations_path = os.path.join(ms_path, "calibration_recommendations.json")
     else:
         # Fallback: write next to the file path
-        parent_dir = os.path.dirname(ms_path) or '.'
+        parent_dir = os.path.dirname(ms_path) or "."
         recommendations_path = os.path.join(
-            parent_dir, 'calibration_recommendations.json')
+            parent_dir, "calibration_recommendations.json"
+        )
 
     try:
-        with open(recommendations_path, 'w') as f:
+        with open(recommendations_path, "w") as f:
             json.dump(recommendations, f, indent=2)
-        logger.info(
-            f"Wrote calibration recommendations to: {recommendations_path}")
+        logger.info(f"Wrote calibration recommendations to: {recommendations_path}")
     except Exception as e:
         logger.warning(f"Could not write calibration recommendations: {e}")
 
 
 def _phase_data_to_midpoint_reference(
-        uvd: UVData,
-        reference_time: Optional[float] = None,
-        hour_angle_offset_hours: float = 0.0) -> UVData:
+    uvd: UVData,
+    reference_time: Optional[float] = None,
+    hour_angle_offset_hours: float = 0.0,
+) -> UVData:
     """
     Phase the data to RA=LST(t_ref)-H0 and Dec=phase_center_dec at a
     single reference time (default: midpoint of the dump).
@@ -291,32 +287,27 @@ def _phase_data_to_midpoint_reference(
         reference_time = 0.5 * (tmin + tmax)
 
     # Telescope location
-    if hasattr(uvd, 'telescope_location_lat_lon_alt_deg'):
+    if hasattr(uvd, "telescope_location_lat_lon_alt_deg"):
         lat, lon, alt = uvd.telescope_location_lat_lon_alt_deg
-        location = EarthLocation(
-            lat=lat * u.deg,
-            lon=lon * u.deg,
-            height=alt * u.m)
+        location = EarthLocation(lat=lat * u.deg, lon=lon * u.deg, height=alt * u.m)
     else:
         # OVRO fallback - use constants.py (single source of truth)
         from dsa110_contimg.utils.constants import OVRO_LOCATION
+
         location = OVRO_LOCATION
         logger.warning("Using default OVRO location for phasing")
 
-    tref = Time(reference_time, format='jd')
+    tref = Time(reference_time, format="jd")
 
     # Compute apparent sidereal time at reference time
-    lst = tref.sidereal_time('apparent', longitude=location.lon)
+    lst = tref.sidereal_time("apparent", longitude=location.lon)
 
     # Phase center declination from UVH5 metadata if available
     dec_rad = None
-    if hasattr(uvd, 'phase_center_dec') and uvd.phase_center_dec is not None:
+    if hasattr(uvd, "phase_center_dec") and uvd.phase_center_dec is not None:
         dec_rad = float(uvd.phase_center_dec)
-    elif (
-        hasattr(uvd, 'extra_keywords') and
-        isinstance(uvd.extra_keywords, dict)
-    ):
-        dec_rad = float(uvd.extra_keywords.get('phase_center_dec', 0.0))
+    elif hasattr(uvd, "extra_keywords") and isinstance(uvd.extra_keywords, dict):
+        dec_rad = float(uvd.extra_keywords.get("phase_center_dec", 0.0))
     else:
         # Fallback to telescope latitude (not ideal but safe default)
         dec_rad = location.lat.to(u.rad).value
@@ -324,39 +315,37 @@ def _phase_data_to_midpoint_reference(
     # Hour angle offset H0 (hours) -> radians
     h0_rad = (hour_angle_offset_hours * u.hourangle).to(u.rad).value
     # Compute apparent-of-date RA at meridian, then convert to ICRS (J2000)
-    ra_app = (lst.to(u.rad).value - h0_rad)
+    ra_app = lst.to(u.rad).value - h0_rad
     ra_app = (ra_app + 2 * np.pi) % (2 * np.pi)
     # Transform apparent (CIRS) to ICRS to avoid arcsecond-level offsets
     try:
         cirs = SkyCoord(
             ra=ra_app * u.rad,
             dec=dec_rad * u.rad,
-            frame='cirs',
+            frame="cirs",
             obstime=tref,
-            location=location)
-        icrs = cirs.transform_to('icrs')
+            location=location,
+        )
+        icrs = cirs.transform_to("icrs")
         ra_rad = icrs.ra.to_value(u.rad)
         dec_rad = icrs.dec.to_value(u.rad)
     except Exception as e:
         logger.warning(
-            f"CIRS->ICRS transform failed ({e}); using apparent-of-date coordinates")
+            f"CIRS->ICRS transform failed ({e}); using apparent-of-date coordinates"
+        )
         ra_rad = ra_app
 
     logger.info(
         f"Phasing to reference center at {tref.isot}: RA(ICRS)={ra_rad:.6f} rad, "
-        f"Dec(ICRS)={dec_rad:.6f} rad (H0={hour_angle_offset_hours} h)")
+        f"Dec(ICRS)={dec_rad:.6f} rad (H0={hour_angle_offset_hours} h)"
+    )
 
     try:
         # pyuvdata expects radians for phase(); cat_name is required
-        uvd.phase(
-            ra=ra_rad,
-            dec=dec_rad,
-            epoch='J2000',
-            cat_name='midpoint_ref')
+        uvd.phase(ra=ra_rad, dec=dec_rad, epoch="J2000", cat_name="midpoint_ref")
         logger.info("Successfully phased data to midpoint reference")
     except Exception as e:
-        logger.warning(
-            f"Explicit phasing failed, leaving original phasing: {e}")
+        logger.warning(f"Explicit phasing failed, leaving original phasing: {e}")
 
     return uvd
 
@@ -374,38 +363,39 @@ def _fix_mount_type_in_ms(ms_path: str) -> None:
         from casacore.tables import table
 
         # Open the antenna table for read/write
-        ant_table = table(ms_path + '/ANTENNA', readonly=False)
+        ant_table = table(ms_path + "/ANTENNA", readonly=False)
 
         # Get the current mount type values
-        mount_types = ant_table.getcol('MOUNT')
+        mount_types = ant_table.getcol("MOUNT")
 
         # Fix mount types to CASA-compatible format
         fixed_mount_types = []
         for mount_type in mount_types:
-            if mount_type is None or mount_type == '':
-                fixed_mount_types.append('alt-az')
+            if mount_type is None or mount_type == "":
+                fixed_mount_types.append("alt-az")
             else:
                 # Normalize to CASA-compatible format
                 normalized = str(mount_type).lower().strip()
                 if normalized in [
-                    'alt-az',
-                    'altaz',
-                    'alt_az',
-                    'alt az',
-                    'az-el',
-                        'azel']:
-                    fixed_mount_types.append('alt-az')
-                elif normalized in ['equatorial', 'eq']:
-                    fixed_mount_types.append('equatorial')
-                elif normalized in ['x-y', 'xy']:
-                    fixed_mount_types.append('x-y')
-                elif normalized in ['spherical', 'sphere']:
-                    fixed_mount_types.append('spherical')
+                    "alt-az",
+                    "altaz",
+                    "alt_az",
+                    "alt az",
+                    "az-el",
+                    "azel",
+                ]:
+                    fixed_mount_types.append("alt-az")
+                elif normalized in ["equatorial", "eq"]:
+                    fixed_mount_types.append("equatorial")
+                elif normalized in ["x-y", "xy"]:
+                    fixed_mount_types.append("x-y")
+                elif normalized in ["spherical", "sphere"]:
+                    fixed_mount_types.append("spherical")
                 else:
-                    fixed_mount_types.append('alt-az')  # Default fallback
+                    fixed_mount_types.append("alt-az")  # Default fallback
 
         # Update the mount types in the table
-        ant_table.putcol('MOUNT', fixed_mount_types)
+        ant_table.putcol("MOUNT", fixed_mount_types)
         ant_table.close()
 
         logger.info(f"Fixed mount types in MS antenna table: {ms_path}")
@@ -415,8 +405,11 @@ def _fix_mount_type_in_ms(ms_path: str) -> None:
         # Don't raise exception as this is not critical
 
 
-def read_uvh5_file(filepath: str, create_time_binned_fields: bool = False,
-                   field_time_bin_minutes: float = 5.0) -> UVData:
+def read_uvh5_file(
+    filepath: str,
+    create_time_binned_fields: bool = False,
+    field_time_bin_minutes: float = 5.0,
+) -> UVData:
     """
     Read a UVH5 file using pyuvdata.
 
@@ -454,31 +447,33 @@ def read_uvh5_file(filepath: str, create_time_binned_fields: bool = False,
     if not isinstance(create_time_binned_fields, bool):
         validation_errors.append("create_time_binned_fields must be a boolean")
 
-    if not isinstance(field_time_bin_minutes, (int, float)) or field_time_bin_minutes <= 0:
-        validation_errors.append(
-            "field_time_bin_minutes must be a positive number")
+    if (
+        not isinstance(field_time_bin_minutes, (int, float))
+        or field_time_bin_minutes <= 0
+    ):
+        validation_errors.append("field_time_bin_minutes must be a positive number")
 
     if validation_errors:
         raise ValidationError(
             errors=validation_errors,
-            context={'filepath': filepath, 'operation': 'read_uvh5'},
-            suggestion="Check input parameters and file path"
+            context={"filepath": filepath, "operation": "read_uvh5"},
+            suggestion="Check input parameters and file path",
         )
 
     # Check if file exists
     if not os.path.exists(filepath):
         raise ConversionError(
             message=f"UVH5 file not found: {filepath}",
-            context={'filepath': filepath, 'operation': 'read'},
-            suggestion="Verify the file path is correct and the file exists"
+            context={"filepath": filepath, "operation": "read"},
+            suggestion="Verify the file path is correct and the file exists",
         )
 
     # Check if file is readable
     if not os.access(filepath, os.R_OK):
         raise ConversionError(
             message=f"Cannot read UVH5 file: {filepath}",
-            context={'filepath': filepath, 'operation': 'read'},
-            suggestion="Check file permissions"
+            context={"filepath": filepath, "operation": "read"},
+            suggestion="Check file permissions",
         )
 
     # Check file size (basic sanity check)
@@ -486,8 +481,8 @@ def read_uvh5_file(filepath: str, create_time_binned_fields: bool = False,
     if file_size == 0:
         raise ConversionError(
             message=f"UVH5 file is empty: {filepath}",
-            context={'filepath': filepath, 'file_size': file_size},
-            suggestion="Check that the file was written correctly"
+            context={"filepath": filepath, "file_size": file_size},
+            suggestion="Check that the file was written correctly",
         )
 
     logger.info(f"File size: {file_size / (1024*1024):.1f} MB")
@@ -502,15 +497,14 @@ def read_uvh5_file(filepath: str, create_time_binned_fields: bool = False,
     except Exception as e:
         raise ConversionError(
             message=f"Failed to read UVH5 file: {e}",
-            context={'filepath': filepath, 'operation': 'read_uvh5'},
-            suggestion="Check that the file is a valid UVH5 file and not corrupted"
+            context={"filepath": filepath, "operation": "read_uvh5"},
+            suggestion="Check that the file is a valid UVH5 file and not corrupted",
         ) from e
 
     # Validate basic structure
     structure_errors = []
     if uvd.Nblts == 0:
-        structure_errors.append(
-            "UVH5 file contains no baseline-time integrations")
+        structure_errors.append("UVH5 file contains no baseline-time integrations")
     if uvd.Nfreqs == 0:
         structure_errors.append("UVH5 file contains no frequency channels")
     if uvd.Npols == 0:
@@ -523,22 +517,21 @@ def read_uvh5_file(filepath: str, create_time_binned_fields: bool = False,
     if structure_errors:
         raise ValidationError(
             errors=structure_errors,
-            context={'filepath': filepath, 'operation': 'validate_structure'},
-            suggestion="Check that the UVH5 file contains valid data"
+            context={"filepath": filepath, "operation": "validate_structure"},
+            suggestion="Check that the UVH5 file contains valid data",
         )
 
     # Fix common data type issues before validation
     data_type_fixes = 0
 
-    if hasattr(uvd, 'uvw_array') and uvd.uvw_array is not None:
+    if hasattr(uvd, "uvw_array") and uvd.uvw_array is not None:
         if uvd.uvw_array.dtype != np.float64:
-            logger.info(
-                f"Converting uvw_array from {uvd.uvw_array.dtype} to float64")
+            logger.info(f"Converting uvw_array from {uvd.uvw_array.dtype} to float64")
             uvd.uvw_array = uvd.uvw_array.astype(np.float64)
             data_type_fixes += 1
 
     # Fix other common float32 issues (do NOT cast flags to float)
-    for attr in ['data_array', 'nsample_array']:
+    for attr in ["data_array", "nsample_array"]:
         if hasattr(uvd, attr):
             arr = getattr(uvd, attr)
             if arr is not None and arr.dtype == np.float32:
@@ -546,11 +539,12 @@ def read_uvh5_file(filepath: str, create_time_binned_fields: bool = False,
                 setattr(uvd, attr, arr.astype(np.float64))
                 data_type_fixes += 1
     # Ensure flag_array is boolean
-    if hasattr(uvd, 'flag_array'):
-        arr = getattr(uvd, 'flag_array')
+    if hasattr(uvd, "flag_array"):
+        arr = getattr(uvd, "flag_array")
         if arr is not None and arr.dtype != np.bool_:
             logger.warning(
-                f"Coercing flag_array from {arr.dtype} to boolean; verify upstream writer")
+                f"Coercing flag_array from {arr.dtype} to boolean; verify upstream writer"
+            )
             uvd.flag_array = arr.astype(np.bool_)
 
     if data_type_fixes > 0:
@@ -558,7 +552,7 @@ def read_uvh5_file(filepath: str, create_time_binned_fields: bool = False,
 
     # Handle field management for drift scans
     if create_time_binned_fields:
-        if hasattr(uvd, 'phase_type') and uvd.phase_type == 'drift':
+        if hasattr(uvd, "phase_type") and uvd.phase_type == "drift":
             logger.info("Creating time-binned fields for drift scan")
         else:
             logger.info("Creating time-binned fields (assuming drift scan)")
@@ -568,9 +562,12 @@ def read_uvh5_file(filepath: str, create_time_binned_fields: bool = False,
         except Exception as e:
             raise ConversionError(
                 message=f"Failed to create time-binned fields: {e}",
-                context={'filepath': filepath, 'field_time_bin_minutes': field_time_bin_minutes,
-                         'operation': 'create_time_binned_fields'},
-                suggestion="Check field_time_bin_minutes parameter and UVData structure"
+                context={
+                    "filepath": filepath,
+                    "field_time_bin_minutes": field_time_bin_minutes,
+                    "operation": "create_time_binned_fields",
+                },
+                suggestion="Check field_time_bin_minutes parameter and UVData structure",
             ) from e
 
     # Now run the check with corrected data types
@@ -581,12 +578,12 @@ def read_uvh5_file(filepath: str, create_time_binned_fields: bool = False,
         logger.warning(f"UVData validation failed: {e}")
         # Check if this is a critical error
         error_str = str(e).lower()
-        critical_errors = ['no data', 'empty', 'invalid', 'corrupt']
+        critical_errors = ["no data", "empty", "invalid", "corrupt"]
         if any(crit in error_str for crit in critical_errors):
             raise ValidationError(
                 errors=[f"Critical UVData validation error: {e}"],
-                context={'filepath': filepath, 'operation': 'validate_uvdata'},
-                suggestion="Check that the UVH5 file contains valid, uncorrupted data"
+                context={"filepath": filepath, "operation": "validate_uvdata"},
+                suggestion="Check that the UVH5 file contains valid, uncorrupted data",
             ) from e
         # Continue anyway - some issues might not be critical
         logger.warning("Continuing despite validation warnings")
@@ -596,8 +593,7 @@ def read_uvh5_file(filepath: str, create_time_binned_fields: bool = False,
 
     # Assess data quality and get recommendations
     quality_info = _assess_data_quality(uvd)
-    calibration_recommendations = _generate_calibration_recommendations(
-        quality_info)
+    calibration_recommendations = _generate_calibration_recommendations(quality_info)
 
     # Do not modify uvd.telescope_name (observatory id).
     # Mount-type normalization is handled after MS write in
@@ -611,10 +607,10 @@ def read_uvh5_file(filepath: str, create_time_binned_fields: bool = False,
     logger.info(f"  - Nbls: {uvd.Nbls}")
     # Some pyuvdata versions do not expose Nfields; attempt a safe fallback
     try:
-        nfields = getattr(uvd, 'Nfields', None)
+        nfields = getattr(uvd, "Nfields", None)
         if nfields is None:
-            nfields = getattr(uvd, 'Nphase', None)
-        if nfields is None and hasattr(uvd, 'phase_center_catalog'):
+            nfields = getattr(uvd, "Nphase", None)
+        if nfields is None and hasattr(uvd, "phase_center_catalog"):
             try:
                 nfields = len(uvd.phase_center_catalog)
             except Exception:
@@ -629,15 +625,15 @@ def read_uvh5_file(filepath: str, create_time_binned_fields: bool = False,
     logger.info(f"  - Quality score: {quality_info['data_quality_score']}")
     logger.info(f"  - Time span: {quality_info['time_span_days']:.3f} days")
     logger.info(f"  - Frequency span: {quality_info['freq_span_mhz']:.1f} MHz")
-    logger.info(
-        f"  - Flag fraction: {quality_info.get('flag_fraction', 0):.1%}")
+    logger.info(f"  - Flag fraction: {quality_info.get('flag_fraction', 0):.1%}")
 
     # Log calibration recommendations
     logger.info("Calibration recommendations:")
     for cal_type, params in calibration_recommendations.items():
         logger.info(
             f"  - {cal_type}: solint={params['solint']}, "
-            f"minsnr={params['minsnr']}, combine={params['combine']}")
+            f"minsnr={params['minsnr']}, combine={params['combine']}"
+        )
 
     return uvd
 
@@ -659,7 +655,7 @@ def _validate_data_quality(uvd: UVData) -> None:
     logger.debug("Performing data quality checks...")
 
     # Check for all flagged data
-    if hasattr(uvd, 'flag_array') and uvd.flag_array is not None:
+    if hasattr(uvd, "flag_array") and uvd.flag_array is not None:
         total_flags = np.sum(uvd.flag_array)
         total_data = uvd.flag_array.size
         flag_fraction = total_flags / total_data if total_data > 0 else 0
@@ -669,13 +665,15 @@ def _validate_data_quality(uvd: UVData) -> None:
         elif flag_fraction == 1.0:
             raise ValidationError(
                 errors=["All data is flagged - no usable data"],
-                context={'flag_fraction': flag_fraction,
-                         'operation': 'validate_data_quality'},
-                suggestion="Check data quality and flagging criteria"
+                context={
+                    "flag_fraction": flag_fraction,
+                    "operation": "validate_data_quality",
+                },
+                suggestion="Check data quality and flagging criteria",
             )
 
     # Check for NaN or infinite values in data
-    if hasattr(uvd, 'data_array') and uvd.data_array is not None:
+    if hasattr(uvd, "data_array") and uvd.data_array is not None:
         data = uvd.data_array
         nan_count = np.sum(np.isnan(data))
         inf_count = np.sum(np.isinf(data))
@@ -687,7 +685,7 @@ def _validate_data_quality(uvd: UVData) -> None:
             logger.warning(f"Found {inf_count} infinite values in data_array")
 
     # Check for reasonable frequency range
-    if hasattr(uvd, 'freq_array') and uvd.freq_array is not None:
+    if hasattr(uvd, "freq_array") and uvd.freq_array is not None:
         freq_min = np.min(uvd.freq_array)
         freq_max = np.max(uvd.freq_array)
 
@@ -695,10 +693,11 @@ def _validate_data_quality(uvd: UVData) -> None:
         if freq_min < 1e7 or freq_max > 1e12:
             logger.warning(
                 f"Unusual frequency range: {freq_min/1e6:.1f} - "
-                f"{freq_max/1e6:.1f} MHz")
+                f"{freq_max/1e6:.1f} MHz"
+            )
 
     # Check for reasonable time range
-    if hasattr(uvd, 'time_array') and uvd.time_array is not None:
+    if hasattr(uvd, "time_array") and uvd.time_array is not None:
         time_span = np.max(uvd.time_array) - np.min(uvd.time_array)
 
         # Check for reasonable observation duration (1 second to 1 year)
@@ -708,8 +707,7 @@ def _validate_data_quality(uvd: UVData) -> None:
     logger.debug("Data quality checks completed")
 
 
-def _create_time_binned_fields(uvd: UVData,
-                               field_time_bin_minutes: float) -> UVData:
+def _create_time_binned_fields(uvd: UVData, field_time_bin_minutes: float) -> UVData:
     """
     Create time-binned fields for drift scan data.
 
@@ -725,12 +723,13 @@ def _create_time_binned_fields(uvd: UVData,
     UVData
         UVData object with time-binned fields
     """
-# from astropy.time import Time
-# from astropy.coordinates import SkyCoord
-# import astropy.units as u
+    # from astropy.time import Time
+    # from astropy.coordinates import SkyCoord
+    # import astropy.units as u
 
     logger.info(
-        f"Creating time-binned fields with {field_time_bin_minutes} minute bins")
+        f"Creating time-binned fields with {field_time_bin_minutes} minute bins"
+    )
 
     # Robust behavior: Disable custom time-binned FIELD generation until
     # pyuvdata multi-phase center catalog is wired. Returning unmodified UVData
@@ -738,14 +737,14 @@ def _create_time_binned_fields(uvd: UVData,
     # rephasing downstream instead.
     logger.warning(
         "Time-binned FIELD generation is disabled pending proper "
-        "phase_center_catalog support; returning original UVData")
+        "phase_center_catalog support; returning original UVData"
+    )
     return uvd
 
 
 def write_ms_file(
-        uvd: UVData,
-        output_path: str,
-        add_imaging_columns: bool = True) -> None:
+    uvd: UVData, output_path: str, add_imaging_columns: bool = True
+) -> None:
     """
     Write UVData to CASA Measurement Set.
 
@@ -781,16 +780,16 @@ def write_ms_file(
     if validation_errors:
         raise ValidationError(
             errors=validation_errors,
-            context={'output_path': output_path, 'operation': 'write_ms'},
-            suggestion="Check input parameters"
+            context={"output_path": output_path, "operation": "write_ms"},
+            suggestion="Check input parameters",
         )
 
     # Validate UVData object
     if uvd.Nblts == 0:
         raise ValidationError(
             errors=["UVData object contains no data to write"],
-            context={'output_path': output_path, 'operation': 'write_ms'},
-            suggestion="Ensure the UVData object contains valid data"
+            context={"output_path": output_path, "operation": "write_ms"},
+            suggestion="Ensure the UVData object contains valid data",
         )
 
     # Ensure output directory exists
@@ -801,25 +800,27 @@ def write_ms_file(
             logger.debug(f"Created output directory: {output_dir}")
         except OSError as e:
             raise PermissionError(
-                f"Cannot create output directory {output_dir}: {e}") from e
+                f"Cannot create output directory {output_dir}: {e}"
+            ) from e
 
     # Check if we can write to the output location
     if os.path.exists(output_path):
         if not os.access(output_path, os.W_OK):
-            raise PermissionError(
-                f"Cannot write to existing MS: {output_path}")
+            raise PermissionError(f"Cannot write to existing MS: {output_path}")
 
     # Check available disk space (basic check)
     try:
-        statvfs = os.statvfs(output_dir if output_dir else '.')
+        statvfs = os.statvfs(output_dir if output_dir else ".")
         free_space = statvfs.f_frsize * statvfs.f_bavail
         # Estimate required space (rough approximation)
-        estimated_size = uvd.Nblts * uvd.Nfreqs * uvd.Npols * \
-            8 * 2  # 8 bytes per complex, 2 for safety
+        estimated_size = (
+            uvd.Nblts * uvd.Nfreqs * uvd.Npols * 8 * 2
+        )  # 8 bytes per complex, 2 for safety
         if free_space < estimated_size:
             logger.warning(
                 f"Low disk space: {free_space/(1024**3):.1f} GB available, "
-                f"estimated need: {estimated_size/(1024**3):.1f} GB")
+                f"estimated need: {estimated_size/(1024**3):.1f} GB"
+            )
     except OSError:
         logger.warning("Could not check available disk space")
 
@@ -827,11 +828,13 @@ def write_ms_file(
     if os.path.exists(output_path):
         try:
             import shutil
+
             shutil.rmtree(output_path)
             logger.info(f"Removed existing MS: {output_path}")
         except OSError as e:
             raise PermissionError(
-                f"Cannot remove existing MS {output_path}: {e}") from e
+                f"Cannot remove existing MS {output_path}: {e}"
+            ) from e
 
     # Write the MS using pyuvdata
     temp_files: List[str] = []
@@ -839,23 +842,20 @@ def write_ms_file(
         logger.debug("Starting MS write with pyuvdata...")
 
         # Ensure mount type is properly set for CASA compatibility
-        if hasattr(uvd, 'telescope_name'):
+        if hasattr(uvd, "telescope_name"):
             # Set mount type to alt-az for CASA compatibility
-            original_telescope = getattr(uvd, 'telescope_name', 'Unknown')
+            original_telescope = getattr(uvd, "telescope_name", "Unknown")
             logger.debug(f"Original telescope name: {original_telescope}")
 
-        uvd.write_ms(
-            output_path,
-            clobber=True,
-            fix_autos=True)
+        uvd.write_ms(output_path, clobber=True, fix_autos=True)
         logger.info(f"Successfully wrote MS: {output_path}")
 
         # Verify the MS was created successfully
         if not os.path.exists(output_path):
             raise ConversionError(
                 message="MS file was not created despite no error",
-                context={'output_path': output_path, 'operation': 'write_ms'},
-                suggestion="Check disk space and write permissions"
+                context={"output_path": output_path, "operation": "write_ms"},
+                suggestion="Check disk space and write permissions",
             )
 
         # Check MS size
@@ -867,8 +867,7 @@ def write_ms_file(
                 for dirpath, dirnames, filenames in os.walk(output_path)
                 for filename in filenames
             )
-        logger.info(
-            f"MS file size: {ms_size / (1024*1024):.1f} MB")
+        logger.info(f"MS file size: {ms_size / (1024*1024):.1f} MB")
 
     except Exception as e:
         logger.error(f"Failed to write MS: {e}")
@@ -876,6 +875,7 @@ def write_ms_file(
         if os.path.exists(output_path):
             try:
                 import shutil
+
                 shutil.rmtree(output_path)
                 logger.debug("Cleaned up partial MS file")
             except OSError:
@@ -884,8 +884,8 @@ def write_ms_file(
         _cleanup_temp_files(temp_files)
         raise ConversionError(
             message=f"MS writing failed: {e}",
-            context={'output_path': output_path, 'operation': 'write_ms'},
-            suggestion="Check disk space, permissions, and CASA installation"
+            context={"output_path": output_path, "operation": "write_ms"},
+            suggestion="Check disk space, permissions, and CASA installation",
         ) from e
 
     finally:
@@ -930,11 +930,11 @@ def _ensure_imaging_columns_populated(ms_path: str) -> None:
         nrow = tb.nrows()
         if nrow == 0:
             return
-        data0 = tb.getcell('DATA', 0)
+        data0 = tb.getcell("DATA", 0)
         data_shape = data0.shape
         data_dtype = data0.dtype
 
-        for col in ('MODEL_DATA', 'CORRECTED_DATA'):
+        for col in ("MODEL_DATA", "CORRECTED_DATA"):
             # If the column does not exist, skip
             if col not in tb.colnames():
                 continue
@@ -943,28 +943,29 @@ def _ensure_imaging_columns_populated(ms_path: str) -> None:
                 try:
                     val = tb.getcell(col, r)
                     # If None or wrong shape, replace
-                    if (val is None) or (hasattr(val, 'shape')
-                                         and val.shape != data_shape):
-                        tb.putcell(
-                            col, r, np.zeros(
-                                data_shape, dtype=data_dtype))
+                    if (val is None) or (
+                        hasattr(val, "shape") and val.shape != data_shape
+                    ):
+                        tb.putcell(col, r, np.zeros(data_shape, dtype=data_dtype))
                         fixed += 1
                 except Exception:
                     tb.putcell(col, r, np.zeros(data_shape, dtype=data_dtype))
                     fixed += 1
             if fixed > 0:
-                logger.debug(
-                    f"Populated {fixed} rows in {col} for {ms_path}")
+                logger.debug(f"Populated {fixed} rows in {col} for {ms_path}")
 
 
 @progress_monitor(operation_name="UVH5 File Conversion", warn_threshold=60.0)
-def convert_single_file(input_file: str, output_file: str,
-                        add_imaging_columns: bool = True,
-                        create_time_binned_fields: bool = False,
-                        field_time_bin_minutes: float = 5.0,
-                        write_recommendations: bool = True,
-                        enable_phasing: bool = True,
-                        phase_reference_time: Optional[float] = None) -> None:
+def convert_single_file(
+    input_file: str,
+    output_file: str,
+    add_imaging_columns: bool = True,
+    create_time_binned_fields: bool = False,
+    field_time_bin_minutes: float = 5.0,
+    write_recommendations: bool = True,
+    enable_phasing: bool = True,
+    phase_reference_time: Optional[float] = None,
+) -> None:
     """
     Convert a single UVH5 file to CASA Measurement Set (MS) format.
 
@@ -1052,6 +1053,7 @@ def convert_single_file(input_file: str, output_file: str,
     - After conversion, the MS is ready for calibration and imaging
     """
     import time
+
     start_time_sec = time.time()
     log_progress(f"Starting conversion of {input_file}...")
     logger.info(f"Converting {input_file} -> {output_file}")
@@ -1066,54 +1068,61 @@ def convert_single_file(input_file: str, output_file: str,
         validation_errors.append("add_imaging_columns must be a boolean")
     if not isinstance(create_time_binned_fields, bool):
         validation_errors.append("create_time_binned_fields must be a boolean")
-    if not isinstance(field_time_bin_minutes, (int, float)) or field_time_bin_minutes <= 0:
-        validation_errors.append(
-            "field_time_bin_minutes must be a positive number")
+    if (
+        not isinstance(field_time_bin_minutes, (int, float))
+        or field_time_bin_minutes <= 0
+    ):
+        validation_errors.append("field_time_bin_minutes must be a positive number")
 
     if validation_errors:
         raise ValidationError(
             errors=validation_errors,
-            context={'input_file': input_file, 'output_file': output_file,
-                     'operation': 'convert_single_file'},
-            suggestion="Check input parameters"
+            context={
+                "input_file": input_file,
+                "output_file": output_file,
+                "operation": "convert_single_file",
+            },
+            suggestion="Check input parameters",
         )
 
     # Check if input and output are the same file
     if os.path.abspath(input_file) == os.path.abspath(output_file):
         raise ValidationError(
             errors=["Input and output files cannot be the same"],
-            context={'input_file': input_file, 'output_file': output_file,
-                     'operation': 'convert_single_file'},
-            suggestion="Use different paths for input and output files"
+            context={
+                "input_file": input_file,
+                "output_file": output_file,
+                "operation": "convert_single_file",
+            },
+            suggestion="Use different paths for input and output files",
         )
 
     # Track conversion start time
     import time
+
     start_time = time.time()
 
     try:
         # Read UVH5 file
         logger.debug("Reading UVH5 file...")
         uvd = read_uvh5_file(
-            input_file,
-            create_time_binned_fields,
-            field_time_bin_minutes)
+            input_file, create_time_binned_fields, field_time_bin_minutes
+        )
 
         # Ensure telescope name + location are set before any downstream phasing/writes
         try:
             from os import getenv as _getenv
+
             set_telescope_identity(
                 uvd,
                 _getenv("PIPELINE_TELESCOPE_NAME", "DSA_110"),
             )
         except Exception:
-            logger.debug(
-                "set_telescope_identity best-effort failed", exc_info=True)
+            logger.debug("set_telescope_identity best-effort failed", exc_info=True)
 
         # Phase data to meridian with time-dependent phase centers (RA=LST(t), Dec from UVH5)
         if enable_phasing:
-            logger.info(
-                "Phasing to meridian with time-dependent phase centers")
+            logger.info("Phasing to meridian with time-dependent phase centers")
             phase_to_meridian(uvd)
         else:
             logger.info("Skipping explicit phasing (using original phasing)")
@@ -1126,25 +1135,23 @@ def convert_single_file(input_file: str, output_file: str,
         if write_recommendations:
             try:
                 quality_info = _assess_data_quality(uvd)
-                recommendations = _generate_calibration_recommendations(
-                    quality_info)
-                _write_calibration_recommendations(
-                    output_file, recommendations)
+                recommendations = _generate_calibration_recommendations(quality_info)
+                _write_calibration_recommendations(output_file, recommendations)
             except Exception as e:
-                logger.warning(
-                    f"Could not write calibration recommendations: {e}")
+                logger.warning(f"Could not write calibration recommendations: {e}")
 
         # Calculate conversion time
         conversion_time = time.time() - start_time
         logger.info(
-            f"Conversion completed successfully in "
-            f"{conversion_time:.1f} seconds")
-        log_progress(f"Completed conversion of {input_file} -> {output_file}", start_time_sec)
+            f"Conversion completed successfully in " f"{conversion_time:.1f} seconds"
+        )
+        log_progress(
+            f"Completed conversion of {input_file} -> {output_file}", start_time_sec
+        )
 
     except Exception as e:
         conversion_time = time.time() - start_time
-        logger.error(
-            f"Conversion failed after {conversion_time:.1f} seconds: {e}")
+        logger.error(f"Conversion failed after {conversion_time:.1f} seconds: {e}")
         raise
 
 
@@ -1177,14 +1184,17 @@ def find_uvh5_files(input_dir: str, pattern: str = "*.hdf5") -> List[str]:
 
 
 @progress_monitor(operation_name="UVH5 Directory Conversion", warn_threshold=600.0)
-def convert_directory(input_dir: str, output_dir: str,
-                      pattern: str = "*.hdf5",
-                      add_imaging_columns: bool = True,
-                      create_time_binned_fields: bool = False,
-                      field_time_bin_minutes: float = 5.0,
-                      write_recommendations: bool = True,
-                      enable_phasing: bool = True,
-                      phase_reference_time: Optional[float] = None) -> None:
+def convert_directory(
+    input_dir: str,
+    output_dir: str,
+    pattern: str = "*.hdf5",
+    add_imaging_columns: bool = True,
+    create_time_binned_fields: bool = False,
+    field_time_bin_minutes: float = 5.0,
+    write_recommendations: bool = True,
+    enable_phasing: bool = True,
+    phase_reference_time: Optional[float] = None,
+) -> None:
     """
     Convert all UVH5 files in a directory to MS format.
 
@@ -1224,16 +1234,21 @@ def convert_directory(input_dir: str, output_dir: str,
         validation_errors.append("add_imaging_columns must be a boolean")
     if not isinstance(create_time_binned_fields, bool):
         validation_errors.append("create_time_binned_fields must be a boolean")
-    if not isinstance(field_time_bin_minutes, (int, float)) or field_time_bin_minutes <= 0:
-        validation_errors.append(
-            "field_time_bin_minutes must be a positive number")
+    if (
+        not isinstance(field_time_bin_minutes, (int, float))
+        or field_time_bin_minutes <= 0
+    ):
+        validation_errors.append("field_time_bin_minutes must be a positive number")
 
     if validation_errors:
         raise ValidationError(
             errors=validation_errors,
-            context={'input_dir': input_dir, 'output_dir': output_dir,
-                     'operation': 'convert_directory'},
-            suggestion="Check input parameters"
+            context={
+                "input_dir": input_dir,
+                "output_dir": output_dir,
+                "operation": "convert_directory",
+            },
+            suggestion="Check input parameters",
         )
 
     # Check if input directory exists
@@ -1250,12 +1265,12 @@ def convert_directory(input_dir: str, output_dir: str,
         raise RuntimeError(f"Failed to find UVH5 files: {e}") from e
 
     import time
+
     start_time_sec = time.time()
     log_progress(f"Starting directory conversion: {input_dir} -> {output_dir}...")
-    
+
     if not uvh5_files:
-        logger.warning(
-            f"No UVH5 files found in {input_dir} with pattern '{pattern}'")
+        logger.warning(f"No UVH5 files found in {input_dir} with pattern '{pattern}'")
         return
 
     logger.info(f"Found {len(uvh5_files)} UVH5 files to convert")
@@ -1266,10 +1281,12 @@ def convert_directory(input_dir: str, output_dir: str,
         logger.debug(f"Created output directory: {output_dir}")
     except OSError as e:
         raise PermissionError(
-            f"Cannot create output directory {output_dir}: {e}") from e
+            f"Cannot create output directory {output_dir}: {e}"
+        ) from e
 
     # Track conversion statistics
     import time
+
     start_time = time.time()
     successful_conversions = 0
     failed_conversions = 0
@@ -1280,8 +1297,7 @@ def convert_directory(input_dir: str, output_dir: str,
 
         # Create output filename
         input_path = Path(uvh5_file)
-        output_file = os.path.join(
-            output_dir, f"{input_path.stem}.ms")
+        output_file = os.path.join(output_dir, f"{input_path.stem}.ms")
 
         try:
             convert_single_file(
@@ -1292,7 +1308,8 @@ def convert_directory(input_dir: str, output_dir: str,
                 field_time_bin_minutes,
                 write_recommendations,
                 enable_phasing,
-                phase_reference_time)
+                phase_reference_time,
+            )
             successful_conversions += 1
             logger.info(f"✓ Successfully converted {uvh5_file}")
 
@@ -1303,23 +1320,29 @@ def convert_directory(input_dir: str, output_dir: str,
 
     # Report final statistics
     total_time = time.time() - start_time_sec
+    logger.info(f"Directory conversion completed in {total_time:.1f} seconds")
     logger.info(
-        f"Directory conversion completed in {total_time:.1f} seconds")
-    logger.info(
-        f"Successfully converted: {successful_conversions}/"
-        f"{len(uvh5_files)} files")
-    log_progress(f"Completed directory conversion: {successful_conversions}/{len(uvh5_files)} files processed", start_time_sec)
+        f"Successfully converted: {successful_conversions}/" f"{len(uvh5_files)} files"
+    )
+    log_progress(
+        f"Completed directory conversion: {successful_conversions}/{len(uvh5_files)} files processed",
+        start_time_sec,
+    )
 
     if failed_conversions > 0:
         logger.warning(
-            f"Failed conversions: {failed_conversions}/"
-            f"{len(uvh5_files)} files")
+            f"Failed conversions: {failed_conversions}/" f"{len(uvh5_files)} files"
+        )
         if failed_conversions == len(uvh5_files):
             raise ConversionError(
                 message="All file conversions failed",
-                context={'input_dir': input_dir, 'total_files': len(
-                    uvh5_files), 'failed_files': failed_conversions, 'operation': 'convert_directory'},
-                suggestion="Check input files, disk space, and CASA installation"
+                context={
+                    "input_dir": input_dir,
+                    "total_files": len(uvh5_files),
+                    "failed_files": failed_conversions,
+                    "operation": "convert_directory",
+                },
+                suggestion="Check input files, disk space, and CASA installation",
             )
 
     logger.info(f"Output directory: {output_dir}")

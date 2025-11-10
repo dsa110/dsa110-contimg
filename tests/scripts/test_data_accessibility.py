@@ -8,29 +8,30 @@ import sys
 from pathlib import Path
 import os
 
-sys.path.insert(0, str(Path(__file__).parent.parent.parent / 'src'))
+sys.path.insert(0, str(Path(__file__).parent.parent.parent / "src"))
 
-print("="*70)
+print("=" * 70)
 print("DATA ACCESSIBILITY TEST")
-print("="*70)
+print("=" * 70)
 
 # Test 1: Can we access MS files?
 print("\n1. MS FILE ACCESS")
-print("-"*70)
+print("-" * 70)
 
 ms_dir = Path("/stage/dsa110-contimg/ms/central_cal_rebuild")
 if ms_dir.exists():
     ms_files = list(ms_dir.glob("*.ms"))
     print(f"  ✓ MS directory exists: {ms_dir}")
     print(f"  ✓ Found {len(ms_files)} MS files")
-    
+
     if ms_files:
         test_ms = ms_files[0]
         print(f"  Testing access to: {test_ms.name}")
-        
+
         # Check if we can read it
         try:
             from casacore.tables import table
+
             tb = table(str(test_ms), ack=False)
             nrows = tb.nrows()
             cols = tb.colnames()
@@ -43,19 +44,19 @@ else:
 
 # Test 2: Can we access caltables?
 print("\n2. CALTABLE ACCESS")
-print("-"*70)
+print("-" * 70)
 
 cal_patterns = [
     "/stage/dsa110-contimg/caltables/*.K",
-    "/stage/dsa110-contimg/caltables/*.B", 
+    "/stage/dsa110-contimg/caltables/*.B",
     "/stage/dsa110-contimg/caltables/*.G",
 ]
 
 found_any = False
 for pattern in cal_patterns:
-    path_obj = Path(pattern.split('*')[0])
+    path_obj = Path(pattern.split("*")[0])
     if path_obj.exists():
-        files = list(path_obj.parent.glob(path_obj.name + "*" + pattern.split('*')[1]))
+        files = list(path_obj.parent.glob(path_obj.name + "*" + pattern.split("*")[1]))
         if files:
             print(f"  ✓ Found {len(files)} {pattern.split('*')[1]} tables")
             found_any = True
@@ -65,7 +66,7 @@ if not found_any:
 
 # Test 3: Can we access images?
 print("\n3. IMAGE ACCESS")
-print("-"*70)
+print("-" * 70)
 
 image_patterns = [
     "*.image",
@@ -81,7 +82,7 @@ for ms_file in list(ms_dir.glob("*.ms"))[:3]:  # Check first 3 MS
 
 # Test 4: Can we write to temp locations?
 print("\n4. WRITE ACCESS")
-print("-"*70)
+print("-" * 70)
 
 test_dirs = [
     "/dev/shm/dsa110-contimg-test",
@@ -103,7 +104,7 @@ for test_dir in test_dirs:
 
 # Test 5: Environment variables
 print("\n5. ENVIRONMENT CONFIGURATION")
-print("-"*70)
+print("-" * 70)
 
 env_vars = [
     "CONTIMG_STAGE_TO_TMPFS",
@@ -124,7 +125,7 @@ for var in env_vars:
 
 # Test 6: Database files
 print("\n6. DATABASE ACCESS")
-print("-"*70)
+print("-" * 70)
 
 db_files = [
     "/data/dsa110-contimg/state/ingest.sqlite3",
@@ -144,10 +145,11 @@ for db_file in db_files:
     else:
         print(f"  ✗ {path.name}: NOT FOUND")
 
-print("\n" + "="*70)
+print("\n" + "=" * 70)
 print("SUMMARY")
-print("="*70)
-print("""
+print("=" * 70)
+print(
+    """
 ACCESSIBILITY:
 - MS files: Can access and read ✓
 - Caltables: Present and accessible ✓  
@@ -163,5 +165,5 @@ READY:
 - All file access works
 - Can read/write all data types
 - Just missing reference catalog data
-""")
-
+"""
+)

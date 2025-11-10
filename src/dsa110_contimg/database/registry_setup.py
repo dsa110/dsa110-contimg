@@ -4,6 +4,7 @@ This module sets up the data registry system by adding registry tables
 and ensuring consistent table naming (keeping images, ms_index, mosaics
 instead of renaming to *_all variants).
 """
+
 import sqlite3
 import logging
 from pathlib import Path
@@ -105,8 +106,7 @@ def setup_data_registry(db_path: Path, verbose: bool = True) -> bool:
             ("idx_data_registry_type_status", "data_registry(data_type, status)"),
             ("idx_data_registry_status", "data_registry(status)"),
             ("idx_data_registry_published_at", "data_registry(published_at)"),
-            ("idx_data_registry_finalization",
-             "data_registry(finalization_status)"),
+            ("idx_data_registry_finalization", "data_registry(finalization_status)"),
             ("idx_data_relationships_parent", "data_relationships(parent_data_id)"),
             ("idx_data_relationships_child", "data_relationships(child_data_id)"),
             ("idx_data_tags_data_id", "data_tags(data_id)"),
@@ -114,8 +114,7 @@ def setup_data_registry(db_path: Path, verbose: bool = True) -> bool:
 
         for idx_name, idx_def in indexes:
             try:
-                cur.execute(
-                    f"CREATE INDEX IF NOT EXISTS {idx_name} ON {idx_def}")
+                cur.execute(f"CREATE INDEX IF NOT EXISTS {idx_name} ON {idx_def}")
             except Exception as e:
                 if verbose:
                     logger.warning(f"Failed to create index {idx_name}: {e}")
@@ -123,22 +122,23 @@ def setup_data_registry(db_path: Path, verbose: bool = True) -> bool:
         # NOTE: We no longer rename tables to *_all suffix
         # Keep original table names (images, ms_index, mosaics) for consistency
         # If images_all exists, migrate data back to images if needed
-        if 'images_all' in existing_tables and 'images' not in existing_tables:
+        if "images_all" in existing_tables and "images" not in existing_tables:
             if verbose:
                 logger.info(
-                    "Renaming images_all -> images (reverting previous migration)...")
+                    "Renaming images_all -> images (reverting previous migration)..."
+                )
             try:
                 cur.execute("ALTER TABLE images_all RENAME TO images")
-                existing_tables.remove('images_all')
-                existing_tables.add('images')
+                existing_tables.remove("images_all")
+                existing_tables.add("images")
             except Exception as e:
                 if verbose:
-                    logger.warning(
-                        f"Failed to rename images_all -> images: {e}")
-        elif 'images_all' in existing_tables and 'images' in existing_tables:
+                    logger.warning(f"Failed to rename images_all -> images: {e}")
+        elif "images_all" in existing_tables and "images" in existing_tables:
             if verbose:
                 logger.info(
-                    "Both images_all and images exist. Migrating data from images_all to images...")
+                    "Both images_all and images exist. Migrating data from images_all to images..."
+                )
             try:
                 # Get column names from both tables to ensure compatibility
                 cur.execute("PRAGMA table_info(images_all)")
@@ -147,56 +147,61 @@ def setup_data_registry(db_path: Path, verbose: bool = True) -> bool:
                 img_columns = {row[1]: row[0] for row in cur.fetchall()}
 
                 # Find common columns
-                common_cols = [col for col in all_columns.keys()
-                               if col in img_columns]
+                common_cols = [col for col in all_columns.keys() if col in img_columns]
                 if common_cols:
-                    cols_str = ', '.join(common_cols)
-                    cur.execute(f"""
+                    cols_str = ", ".join(common_cols)
+                    cur.execute(
+                        f"""
                         INSERT OR IGNORE INTO images ({cols_str})
                         SELECT {cols_str} FROM images_all
-                    """)
+                    """
+                    )
                     if verbose:
                         cur.execute("SELECT COUNT(*) FROM images_all")
                         count_all = cur.fetchone()[0]
                         cur.execute("SELECT COUNT(*) FROM images")
                         count_img = cur.fetchone()[0]
                         logger.info(
-                            f"Migrated data from images_all ({count_all} rows) to images (now {count_img} rows)")
+                            f"Migrated data from images_all ({count_all} rows) to images (now {count_img} rows)"
+                        )
                 else:
                     if verbose:
                         logger.warning(
-                            "No common columns between images_all and images, skipping migration")
+                            "No common columns between images_all and images, skipping migration"
+                        )
             except Exception as e:
                 if verbose:
                     logger.warning(
-                        f"Failed to migrate data from images_all to images: {e}")
+                        f"Failed to migrate data from images_all to images: {e}"
+                    )
 
         # Similar handling for ms_index/ms_all if needed
-        if 'ms_all' in existing_tables and 'ms_index' not in existing_tables:
+        if "ms_all" in existing_tables and "ms_index" not in existing_tables:
             if verbose:
                 logger.info(
-                    "Renaming ms_all -> ms_index (reverting previous migration)...")
+                    "Renaming ms_all -> ms_index (reverting previous migration)..."
+                )
             try:
                 cur.execute("ALTER TABLE ms_all RENAME TO ms_index")
-                existing_tables.remove('ms_all')
-                existing_tables.add('ms_index')
+                existing_tables.remove("ms_all")
+                existing_tables.add("ms_index")
             except Exception as e:
                 if verbose:
                     logger.warning(f"Failed to rename ms_all -> ms_index: {e}")
 
         # Similar handling for mosaics/mosaics_all if needed
-        if 'mosaics_all' in existing_tables and 'mosaics' not in existing_tables:
+        if "mosaics_all" in existing_tables and "mosaics" not in existing_tables:
             if verbose:
                 logger.info(
-                    "Renaming mosaics_all -> mosaics (reverting previous migration)...")
+                    "Renaming mosaics_all -> mosaics (reverting previous migration)..."
+                )
             try:
                 cur.execute("ALTER TABLE mosaics_all RENAME TO mosaics")
-                existing_tables.remove('mosaics_all')
-                existing_tables.add('mosaics')
+                existing_tables.remove("mosaics_all")
+                existing_tables.add("mosaics")
             except Exception as e:
                 if verbose:
-                    logger.warning(
-                        f"Failed to rename mosaics_all -> mosaics: {e}")
+                    logger.warning(f"Failed to rename mosaics_all -> mosaics: {e}")
 
         conn.commit()
 

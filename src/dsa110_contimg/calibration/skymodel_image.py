@@ -67,7 +67,7 @@ def skymodel_to_image(
     wcs.wcs.crval = [center_ra_deg, center_dec_deg]
     wcs.wcs.cdelt = [
         -pixel_scale_arcsec / 3600.0,  # Negative for RA (east to west)
-        pixel_scale_arcsec / 3600.0,    # Positive for Dec (north to south)
+        pixel_scale_arcsec / 3600.0,  # Positive for Dec (north to south)
     ]
     wcs.wcs.ctype = ["RA---TAN", "DEC--TAN"]
 
@@ -78,12 +78,11 @@ def skymodel_to_image(
     for i in range(sky.Ncomponents):
         ra = sky.skycoord[i].ra.deg
         dec = sky.skycoord[i].dec.deg
-        flux_jy = sky.stokes[0, 0, i].to('Jy').value
+        flux_jy = sky.stokes[0, 0, i].to("Jy").value
 
         # Convert RA/Dec to pixel coordinates
         wcs_validated, is_4d, defaults = validate_wcs_4d(wcs)
-        x, y = wcs_world_to_pixel_safe(
-            wcs_validated, ra, dec, is_4d, defaults)
+        x, y = wcs_world_to_pixel_safe(wcs_validated, ra, dec, is_4d, defaults)
 
         # Check if within image bounds
         if 0 <= x < width and 0 <= y < height:
@@ -96,8 +95,9 @@ def skymodel_to_image(
     # Convolve with beam if specified
     if beam_fwhm_arcsec is not None:
         # Convert FWHM to sigma
-        beam_sigma_pix = (beam_fwhm_arcsec / pixel_scale_arcsec) / \
-            (2 * np.sqrt(2 * np.log(2)))
+        beam_sigma_pix = (beam_fwhm_arcsec / pixel_scale_arcsec) / (
+            2 * np.sqrt(2 * np.log(2))
+        )
         kernel = Gaussian2DKernel(beam_sigma_pix)
         image = convolve(image, kernel)
 
@@ -140,8 +140,8 @@ def write_skymodel_fits(
     # Create FITS HDU
     hdu = fits.PrimaryHDU(data=image)
     hdu.header.update(wcs.to_header())
-    hdu.header['BUNIT'] = 'Jy/pixel'
-    hdu.header['BTYPE'] = 'Intensity'
+    hdu.header["BUNIT"] = "Jy/pixel"
+    hdu.header["BTYPE"] = "Intensity"
 
     # Write FITS file
     hdu.writeto(output_path, overwrite=True)
@@ -160,7 +160,7 @@ def write_skymodel_png(
     beam_fwhm_arcsec: Optional[float] = None,
     vmin: Optional[float] = None,
     vmax: Optional[float] = None,
-    colormap: str = 'viridis',
+    colormap: str = "viridis",
 ) -> str:
     """Write sky model as PNG image.
 
@@ -201,26 +201,26 @@ def write_skymodel_png(
     # Plot image
     im = ax.imshow(
         image,
-        origin='lower',
+        origin="lower",
         cmap=colormap,
         norm=LogNorm(vmin=vmin, vmax=vmax) if vmin > 0 else None,
-        interpolation='nearest',
+        interpolation="nearest",
     )
 
     # Add colorbar
     cbar = plt.colorbar(im, ax=ax)
-    cbar.set_label('Flux (Jy/pixel)', rotation=270, labelpad=20)
+    cbar.set_label("Flux (Jy/pixel)", rotation=270, labelpad=20)
 
     # Set labels
-    ax.set_xlabel('RA')
-    ax.set_ylabel('Dec')
-    ax.set_title('Sky Model')
+    ax.set_xlabel("RA")
+    ax.set_ylabel("Dec")
+    ax.set_title("Sky Model")
 
     # Add grid
-    ax.grid(True, color='white', alpha=0.3)
+    ax.grid(True, color="white", alpha=0.3)
 
     # Save
-    plt.savefig(output_path, dpi=150, bbox_inches='tight')
+    plt.savefig(output_path, dpi=150, bbox_inches="tight")
     plt.close()
 
     return output_path
@@ -250,9 +250,8 @@ def write_skymodel_images(
     Returns:
         (fits_path, png_path) tuple
     """
-    fits_path = base_path if base_path.endswith(
-        '.fits') else base_path + '.fits'
-    png_path = base_path if base_path.endswith('.png') else base_path + '.png'
+    fits_path = base_path if base_path.endswith(".fits") else base_path + ".fits"
+    png_path = base_path if base_path.endswith(".png") else base_path + ".png"
 
     write_skymodel_fits(
         sky,

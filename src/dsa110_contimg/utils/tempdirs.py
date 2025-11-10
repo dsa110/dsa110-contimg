@@ -16,6 +16,7 @@ This sets common temp environment variables (TMPDIR, TMP, TEMP, CASA_TMPDIR)
 and creates the directories if needed. It also changes CWD to `cwd_to` when
 provided.
 """
+
 from __future__ import annotations
 
 import os
@@ -87,7 +88,7 @@ def prepare_temp_environment(
 
 def derive_casa_log_dir() -> Path:
     """Return the directory where CASA log files should be written.
-    
+
     Order of precedence:
     - ENV CONTIMG_STATE_DIR/logs (if CONTIMG_STATE_DIR is set)
     - /data/dsa110-contimg/state/logs
@@ -98,7 +99,7 @@ def derive_casa_log_dir() -> Path:
         log_dir = Path(state_dir) / "logs"
     else:
         log_dir = Path("/data/dsa110-contimg/state/logs")
-    
+
     try:
         log_dir.mkdir(parents=True, exist_ok=True)
         return log_dir
@@ -110,11 +111,11 @@ def derive_casa_log_dir() -> Path:
 @contextmanager
 def casa_log_environment():
     """Context manager that sets up CASA logging environment.
-    
+
     CASA writes log files (casa-YYYYMMDD-HHMMSS.log) to the current working
     directory. This context manager temporarily changes the working directory
     to the centralized logs directory while CASA tasks execute.
-    
+
     Usage:
         with casa_log_environment():
             from casatasks import tclean
@@ -131,12 +132,12 @@ def casa_log_environment():
 
 def setup_casa_logging() -> Path:
     """Set up CASA logging environment variables.
-    
+
     This sets the CASALOGFILE environment variable and ensures the log
     directory exists. Note that CASA primarily uses the current working
     directory for log files, so this should be used in conjunction with
     changing CWD or using casa_log_environment() context manager.
-    
+
     Returns the path to the log directory.
     """
     log_dir = derive_casa_log_dir()
@@ -152,4 +153,3 @@ __all__ = [
     "casa_log_environment",
     "setup_casa_logging",
 ]
-

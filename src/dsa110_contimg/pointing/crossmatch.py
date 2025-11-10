@@ -22,7 +22,9 @@ from dsa110_contimg.database.products import ensure_products_db
 SB_RE = re.compile(r"^(.+)_sb(\d{2})\.hdf5$")
 
 
-def _read_dec_start_end(sb_path: str) -> Tuple[float | None, float | None, float | None]:
+def _read_dec_start_end(
+    sb_path: str,
+) -> Tuple[float | None, float | None, float | None]:
     """Read declination and time range from UVH5 file."""
     dec_rad = None
     jd0 = None
@@ -33,6 +35,7 @@ def _read_dec_start_end(sb_path: str) -> Tuple[float | None, float | None, float
             if arr.size > 0:
                 jd0 = float(arr[0])
                 jd1 = float(arr[-1])
+
         # Try extra_keywords locations
         def _read_extra(name: str):
             try:
@@ -55,10 +58,15 @@ def _read_dec_start_end(sb_path: str) -> Tuple[float | None, float | None, float
             except Exception:
                 pass
             return None
+
         v = _read_extra("phase_center_dec")
         if v is not None and np.isfinite(v):
             dec_rad = float(v)
-    dec_deg = float(np.degrees(dec_rad)) if (dec_rad is not None and np.isfinite(dec_rad)) else None
+    dec_deg = (
+        float(np.degrees(dec_rad))
+        if (dec_rad is not None and np.isfinite(dec_rad))
+        else None
+    )
     return dec_deg, jd0, jd1
 
 
@@ -94,7 +102,9 @@ def _ensure_transit_table(conn: sqlite3.Connection) -> None:
     )
 
 
-def _write_transits(conn: sqlite3.Connection, name: str, ra_deg: float, *, days_back: int = 21) -> None:
+def _write_transits(
+    conn: sqlite3.Connection, name: str, ra_deg: float, *, days_back: int = 21
+) -> None:
     """Write previous N daily transits (including today) into cal_transits."""
     _ensure_transit_table(conn)
     now = Time.now()
@@ -109,7 +119,9 @@ def _write_transits(conn: sqlite3.Connection, name: str, ra_deg: float, *, days_
             )
 
 
-def _ingest_pointing_from_groups(conn: sqlite3.Connection, groups: Dict[str, List[str]]) -> None:
+def _ingest_pointing_from_groups(
+    conn: sqlite3.Connection, groups: Dict[str, List[str]]
+) -> None:
     """Populate pointing_history from UVH5 groups (midpoint RA=LST at DSA-110, DEC from header)."""
     # ensure_products_db already created pointing_history table
     with conn:
@@ -127,16 +139,18 @@ def _ingest_pointing_from_groups(conn: sqlite3.Connection, groups: Dict[str, Lis
             )
 
 
-def find_transit_groups(name: str,
-                        input_dir: str,
-                        products_db: str,
-                        catalogs: List[str],
-                        *,
-                        dec_tolerance_deg: float = 1.5,
-                        time_pad_minutes: float = 10.0,
-                        days_back: int = 21) -> List[dict]:
+def find_transit_groups(
+    name: str,
+    input_dir: str,
+    products_db: str,
+    catalogs: List[str],
+    *,
+    dec_tolerance_deg: float = 1.5,
+    time_pad_minutes: float = 10.0,
+    days_back: int = 21,
+) -> List[dict]:
     """Cross-match daily transits with pointing history and UVH5 groups.
-    
+
     Args:
         name: Calibrator name
         input_dir: Directory containing UVH5 files
@@ -145,7 +159,7 @@ def find_transit_groups(name: str,
         dec_tolerance_deg: Declination tolerance (degrees)
         time_pad_minutes: Time padding around transit (minutes)
         days_back: Days to search back
-        
+
     Returns:
         List of matching transit groups with metadata
     """
@@ -201,7 +215,11 @@ def find_transit_groups(name: str,
             if abs(meta[gid]["dec_deg"] - dec_deg) > dec_tolerance_deg:
                 continue
             if (jd0 - pad_days) <= tmjd <= (jd1 + pad_days):
-                dt_min = abs((Time(0.5 * (jd0 + jd1), format="jd") - Time(tmjd, format="mjd")).to(u.min).value)
+                dt_min = abs(
+                    (Time(0.5 * (jd0 + jd1), format="jd") - Time(tmjd, format="mjd"))
+                    .to(u.min)
+                    .value
+                )
                 results.append(
                     {
                         "group_id": gid,
@@ -214,6 +232,7 @@ def find_transit_groups(name: str,
                     }
                 )
     # Sort by transit time desc then closeness
-    results.sort(key=lambda r: (r["transit_iso"], -r["delta_minutes_mid"]), reverse=True)
+    results.sort(
+        key=lambda r: (r["transit_iso"], -r["delta_minutes_mid"]), reverse=True
+    )
     return results
-

@@ -4,7 +4,7 @@ Test script for DSA-110 alerting system.
 
 Usage:
     python scripts/test_alerting.py
-    
+
 This will send test alerts through all configured channels.
 """
 
@@ -12,42 +12,36 @@ import sys
 import os
 
 # Add src to path
-sys.path.insert(0, os.path.join(os.path.dirname(__file__), '..', '..', 'src'))
+sys.path.insert(0, os.path.join(os.path.dirname(__file__), "..", "..", "src"))
 
 from dsa110_contimg.utils import alerting
 
 
 def main():
     """Test alerting system."""
-    
+
     print("Testing DSA-110 Alerting System")
     print("=" * 60)
-    
+
     # Check if Slack is configured
     manager = alerting.get_alert_manager()
-    slack_enabled = any(
-        ch.name == "slack" and ch.enabled 
-        for ch in manager.channels
-    )
-    
+    slack_enabled = any(ch.name == "slack" and ch.enabled for ch in manager.channels)
+
     if slack_enabled:
         print("Slack alerts: ENABLED")
     else:
         print("Slack alerts: DISABLED (set CONTIMG_SLACK_WEBHOOK_URL to enable)")
-    
-    email_enabled = any(
-        ch.name == "email" and ch.enabled 
-        for ch in manager.channels
-    )
-    
+
+    email_enabled = any(ch.name == "email" and ch.enabled for ch in manager.channels)
+
     if email_enabled:
         print("Email alerts: ENABLED")
     else:
         print("Email alerts: DISABLED (optional)")
-    
+
     print("\nSending test alerts...")
     print("-" * 60)
-    
+
     # Test each severity level
     print("\n1. INFO alert (general information)")
     alerting.info(
@@ -55,7 +49,7 @@ def main():
         "Alerting system test - INFO level",
         context={"test_run": "success", "severity": "info"},
     )
-    
+
     print("\n2. WARNING alert (non-critical issue)")
     alerting.warning(
         "test",
@@ -66,7 +60,7 @@ def main():
             "example_issue": "High fraction of flagged data: 45%",
         },
     )
-    
+
     print("\n3. ERROR alert (significant problem)")
     alerting.error(
         "test",
@@ -77,7 +71,7 @@ def main():
             "example_issue": "MS quality check failed",
         },
     )
-    
+
     print("\n4. CRITICAL alert (requires immediate attention)")
     alerting.critical(
         "test",
@@ -88,7 +82,7 @@ def main():
             "example_issue": "All calibration solutions flagged",
         },
     )
-    
+
     print("\n" + "=" * 60)
     print("Test complete!")
     print("\nIf Slack is enabled, check your channel for 4 test messages.")
@@ -103,4 +97,3 @@ def main():
 
 if __name__ == "__main__":
     main()
-

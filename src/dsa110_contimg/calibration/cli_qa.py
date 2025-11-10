@@ -202,9 +202,7 @@ def handle_verify_delays(args: argparse.Namespace) -> int:
     """Handle 'verify-delays' subcommand."""
     from dsa110_contimg.qa.calibration_quality import verify_kcal_delays
 
-    verify_kcal_delays(
-        args.ms, args.kcal, args.cal_field, args.refant, args.no_create
-    )
+    verify_kcal_delays(args.ms, args.kcal, args.cal_field, args.refant, args.no_create)
     return 0
 
 
@@ -298,4 +296,3 @@ def handle_compare(args: argparse.Namespace) -> int:
         logger.error(f"Comparison failed: {e}")
         sys.exit(1)
     return 0
-

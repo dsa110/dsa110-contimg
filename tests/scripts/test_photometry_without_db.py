@@ -7,12 +7,12 @@ Test what happens when photometry runs without a populated database.
 import sys
 from pathlib import Path
 
-sys.path.insert(0, str(Path(__file__).parent.parent.parent / 'src'))
+sys.path.insert(0, str(Path(__file__).parent.parent.parent / "src"))
 
 from dsa110_contimg.photometry.normalize import query_reference_sources
 
 print("Testing photometry normalization with empty database...")
-print("="*70)
+print("=" * 70)
 
 try:
     refs = query_reference_sources(
@@ -25,8 +25,7 @@ try:
     )
     print(f"✓ Query succeeded (should have failed!)")
     print(f"  Found {len(refs)} reference sources")
-    
+
 except Exception as e:
     print(f"✗ Query failed as expected: {type(e).__name__}")
     print(f"  Error: {e}")
-

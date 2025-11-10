@@ -33,6 +33,7 @@ ACCESS_TOKEN_EXPIRE_MINUTES = 60 * 24  # 24 hours
 # HTTP Bearer token scheme
 security = HTTPBearer()
 
+
 # User roles
 class UserRole:
     OBSERVER = "observer"
@@ -54,7 +55,9 @@ class UserRole:
     @staticmethod
     def has_permission(user_role: str, required_role: str) -> bool:
         """Check if user role has permission for required role."""
-        return UserRole.get_hierarchy(user_role) >= UserRole.get_hierarchy(required_role)
+        return UserRole.get_hierarchy(user_role) >= UserRole.get_hierarchy(
+            required_role
+        )
 
 
 # Pydantic models
@@ -100,7 +103,8 @@ def init_users_db():
     db_path.parent.mkdir(parents=True, exist_ok=True)
 
     with closing(sqlite3.connect(str(db_path))) as conn:
-        conn.execute("""
+        conn.execute(
+            """
             CREATE TABLE IF NOT EXISTS users (
                 id INTEGER PRIMARY KEY AUTOINCREMENT,
                 username TEXT UNIQUE NOT NULL,
@@ -110,10 +114,13 @@ def init_users_db():
                 created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
                 last_login TIMESTAMP
             )
-        """)
-        conn.execute("""
+        """
+        )
+        conn.execute(
+            """
             CREATE INDEX IF NOT EXISTS idx_username ON users(username)
-        """)
+        """
+        )
         conn.commit()
 
 
@@ -127,7 +134,12 @@ def get_password_hash(password: str) -> str:
     return pwd_context.hash(password)
 
 
-def create_user(username: str, password: str, email: Optional[str] = None, role: str = UserRole.OBSERVER) -> User:
+def create_user(
+    username: str,
+    password: str,
+    email: Optional[str] = None,
+    role: str = UserRole.OBSERVER,
+) -> User:
     """Create a new user."""
     init_users_db()
     db_path = get_users_db_path()
@@ -136,15 +148,18 @@ def create_user(username: str, password: str, email: Optional[str] = None, role:
 
     with closing(sqlite3.connect(str(db_path))) as conn:
         try:
-            conn.execute("""
+            conn.execute(
+                """
                 INSERT INTO users (username, email, password_hash, role)
                 VALUES (?, ?, ?, ?)
-            """, (username, email, password_hash, role))
+            """,
+                (username, email, password_hash, role),
+            )
             conn.commit()
         except sqlite3.IntegrityError:
             raise HTTPException(
                 status_code=status.HTTP_400_BAD_REQUEST,
-                detail="Username already exists"
+                detail="Username already exists",
             )
 
     return User(username=username, email=email, role=role, created_at=datetime.utcnow())
@@ -157,18 +172,25 @@ def get_user_by_username(username: str) -> Optional[User]:
 
     with closing(sqlite3.connect(str(db_path))) as conn:
         conn.row_factory = sqlite3.Row
-        row = conn.execute("""
+        row = conn.execute(
+            """
             SELECT username, email, role, created_at
             FROM users
             WHERE username = ?
-        """, (username,)).fetchone()
+        """,
+            (username,),
+        ).fetchone()
 
         if row:
             return User(
                 username=row["username"],
                 email=row["email"],
                 role=row["role"],
-                created_at=datetime.fromisoformat(row["created_at"]) if row["created_at"] else None
+                created_at=(
+                    datetime.fromisoformat(row["created_at"])
+                    if row["created_at"]
+                    else None
+                ),
             )
     return None
 
@@ -180,11 +202,14 @@ def authenticate_user(username: str, password: str) -> Optional[User]:
 
     with closing(sqlite3.connect(str(db_path))) as conn:
         conn.row_factory = sqlite3.Row
-        row = conn.execute("""
+        row = conn.execute(
+            """
             SELECT username, email, password_hash, role, created_at
             FROM users
             WHERE username = ?
-        """, (username,)).fetchone()
+        """,
+            (username,),
+        ).fetchone()
 
         if not row:
             return None
@@ -193,18 +218,23 @@ def authenticate_user(username: str, password: str) -> Optional[User]:
             return None
 
         # Update last login
-        conn.execute("""
+        conn.execute(
+            """
             UPDATE users
             SET last_login = CURRENT_TIMESTAMP
             WHERE username = ?
-        """, (username,))
+        """,
+            (username,),
+        )
         conn.commit()
 
         return User(
             username=row["username"],
             email=row["email"],
             role=row["role"],
-            created_at=datetime.fromisoformat(row["created_at"]) if row["created_at"] else None
+            created_at=(
+                datetime.fromisoformat(row["created_at"]) if row["created_at"] else None
+            ),
         )
 
 
@@ -215,7 +245,7 @@ def create_access_token(data: dict, expires_delta: Optional[timedelta] = None) -
         expire = datetime.utcnow() + expires_delta
     else:
         expire = datetime.utcnow() + timedelta(minutes=ACCESS_TOKEN_EXPIRE_MINUTES)
-    
+
     to_encode.update({"exp": expire})
     encoded_jwt = jwt.encode(to_encode, SECRET_KEY, algorithm=ALGORITHM)
     return encoded_jwt
@@ -230,43 +260,42 @@ def verify_token(token: str) -> TokenData:
         if username is None:
             raise HTTPException(
                 status_code=status.HTTP_401_UNAUTHORIZED,
-                detail="Invalid authentication credentials"
+                detail="Invalid authentication credentials",
             )
         return TokenData(username=username, role=role)
     except jwt.ExpiredSignatureError:
         raise HTTPException(
-            status_code=status.HTTP_401_UNAUTHORIZED,
-            detail="Token has expired"
+            status_code=status.HTTP_401_UNAUTHORIZED, detail="Token has expired"
         )
     except jwt.JWTError:
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
-            detail="Invalid authentication credentials"
+            detail="Invalid authentication credentials",
         )
 
 
 async def get_current_user(
-    credentials: HTTPAuthorizationCredentials = Depends(security)
+    credentials: HTTPAuthorizationCredentials = Depends(security),
 ) -> User:
     """Get current authenticated user."""
     token_data = verify_token(credentials.credentials)
     user = get_user_by_username(token_data.username)
     if user is None:
         raise HTTPException(
-            status_code=status.HTTP_401_UNAUTHORIZED,
-            detail="User not found"
+            status_code=status.HTTP_401_UNAUTHORIZED, detail="User not found"
         )
     return user
 
 
 def require_role(required_role: str):
     """Dependency to require a specific role."""
+
     async def role_checker(current_user: User = Depends(get_current_user)) -> User:
         if not UserRole.has_permission(current_user.role, required_role):
             raise HTTPException(
                 status_code=status.HTTP_403_FORBIDDEN,
-                detail=f"Requires {required_role} role or higher"
+                detail=f"Requires {required_role} role or higher",
             )
         return current_user
-    return role_checker
 
+    return role_checker

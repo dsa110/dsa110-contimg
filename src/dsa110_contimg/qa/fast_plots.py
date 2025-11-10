@@ -128,13 +128,9 @@ def _phase_pages_per_antenna(
     ddid_to_freq = _data_description_to_freqs(ms_path)
     dsets = xds_from_ms(
         ms_path,
-        chunks={
-            "row": 100000},
-        columns=[
-            "DATA",
-            "FLAG",
-            "ANTENNA1",
-            "ANTENNA2"])
+        chunks={"row": 100000},
+        columns=["DATA", "FLAG", "ANTENNA1", "ANTENNA2"],
+    )
 
     # Gather per-antenna samples across SPWs
     ant_series: Dict[int, List[Tuple[np.ndarray, np.ndarray]]] = {}
@@ -154,7 +150,7 @@ def _phase_pages_per_antenna(
             rng = np.random.default_rng(42)
             idx = rng.choice(idx, size=rows_per_spw, replace=False)
         other = np.where(ant1[idx] == refant, ant2[idx], ant1[idx])
-        conj_mask = (ant2[idx] == refant)
+        conj_mask = ant2[idx] == refant
         data_sub = ds.DATA.data[idx, :, :].compute()
         flag_sub = ds.FLAG.data[idx, :, :].compute()
         with np.errstate(divide="ignore", invalid="ignore"):
@@ -163,16 +159,14 @@ def _phase_pages_per_antenna(
         ph[conj_mask, :, :] = np.conj(ph[conj_mask, :, :])
 
         for ant in np.unique(other):
-            rmask = (other == ant)
+            rmask = other == ant
             if not np.any(rmask):
                 continue
             ph_ant = ph[rmask, :, :]
             real = np.nanmean(np.real(ph_ant), axis=(0, 2))
             imag = np.nanmean(np.imag(ph_ant), axis=(0, 2))
             phase = np.arctan2(imag, real)
-            ant_series.setdefault(
-                int(ant), []).append(
-                (chan_x.copy(), phase.copy()))
+            ant_series.setdefault(int(ant), []).append((chan_x.copy(), phase.copy()))
 
     if not ant_series:
         return artifacts
@@ -186,8 +180,8 @@ def _phase_pages_per_antenna(
         end = min(start + panels, len(ants))
         subset = ants[start:end]
         fig, axes = plt.subplots(
-            nrows, ncols, figsize=(
-                ncols * 3.2, nrows * 2.5), squeeze=False)
+            nrows, ncols, figsize=(ncols * 3.2, nrows * 2.5), squeeze=False
+        )
         for i, ant in enumerate(subset):
             ax = axes[i // ncols][i % ncols]
             segs = ant_series[ant]
@@ -258,10 +252,12 @@ def _bcal_per_antenna_plots(
     try:
         # Columns: ANTENNA1 (int), SPECTRAL_WINDOW_ID (int), CPARAM (nchan x
         # npol), FLAG (nchan x npol)
-        ant_col = tb.getcol(
-            "ANTENNA1") if "ANTENNA1" in tb.colnames() else None
-        spw_col = (tb.getcol("SPECTRAL_WINDOW_ID")
-                   if "SPECTRAL_WINDOW_ID" in tb.colnames() else None)
+        ant_col = tb.getcol("ANTENNA1") if "ANTENNA1" in tb.colnames() else None
+        spw_col = (
+            tb.getcol("SPECTRAL_WINDOW_ID")
+            if "SPECTRAL_WINDOW_ID" in tb.colnames()
+            else None
+        )
         cparam = tb.getcol("CPARAM") if "CPARAM" in tb.colnames() else None
         flag = tb.getcol("FLAG") if "FLAG" in tb.colnames() else None
         tb.close()
@@ -335,10 +331,14 @@ def _bcal_per_antenna_plots(
             amp_concat.append(np.asarray(amp))
             phs_concat.append(np.asarray(phs))
         if freq_concat:
-            amp_series[int(ant)] = (np.concatenate(
-                freq_concat), np.concatenate(amp_concat))
-            phs_series[int(ant)] = (np.concatenate(
-                freq_concat), np.concatenate(phs_concat))
+            amp_series[int(ant)] = (
+                np.concatenate(freq_concat),
+                np.concatenate(amp_concat),
+            )
+            phs_series[int(ant)] = (
+                np.concatenate(freq_concat),
+                np.concatenate(phs_concat),
+            )
 
     ants_list = sorted(amp_series.keys())
     # Amplitude pages
@@ -347,8 +347,8 @@ def _bcal_per_antenna_plots(
         end = min(start + panels, len(ants_list))
         subset = ants_list[start:end]
         fig, axes = plt.subplots(
-            nrows, ncols, figsize=(
-                ncols * 3.0, nrows * 2.2), squeeze=False)
+            nrows, ncols, figsize=(ncols * 3.0, nrows * 2.2), squeeze=False
+        )
         for i, ant in enumerate(subset):
             ax = axes[i // ncols][i % ncols]
             x, y = amp_series[ant]
@@ -373,8 +373,8 @@ def _bcal_per_antenna_plots(
         end = min(start + panels, len(ants_list))
         subset = ants_list[start:end]
         fig, axes = plt.subplots(
-            nrows, ncols, figsize=(
-                ncols * 3.0, nrows * 2.2), squeeze=False)
+            nrows, ncols, figsize=(ncols * 3.0, nrows * 2.2), squeeze=False
+        )
         for i, ant in enumerate(subset):
             ax = axes[i // ncols][i % ncols]
             x, y = phs_series[ant]
@@ -388,9 +388,7 @@ def _bcal_per_antenna_plots(
         for j in range((end - start), panels):
             axes[j // ncols][j % ncols].axis("off")
         plt.tight_layout()
-        out = os.path.join(
-            output_dir,
-            f"bcal_phase_per_antenna_page{page}.png")
+        out = os.path.join(output_dir, f"bcal_phase_per_antenna_page{page}.png")
         plt.savefig(out, dpi=130)
         plt.close(fig)
         artifacts.append(os.path.basename(out))
@@ -419,7 +417,8 @@ def run_fast_plots(
         if "MODEL_DATA" in available_columns:
             extra_cols.append("MODEL_DATA")
     extra_cols.extend(
-        [col for col in ("ANTENNA1", "ANTENNA2") if col in available_columns])
+        [col for col in ("ANTENNA1", "ANTENNA2") if col in available_columns]
+    )
 
     datasets = xds_from_ms(
         ms_path,
@@ -448,8 +447,7 @@ def run_fast_plots(
     uv_amp_chunks: List[np.ndarray] = []
     resid_amp_chunks: List[np.ndarray] = []
     uv_dist_chunks: List[np.ndarray] = []
-    phase_chunk_data: List[Tuple[np.ndarray,
-                                 np.ndarray, np.ndarray, np.ndarray]] = []
+    phase_chunk_data: List[Tuple[np.ndarray, np.ndarray, np.ndarray, np.ndarray]] = []
 
     for ds in datasets:
         amp = _mask_amplitude(ds.DATA.data, ds)
@@ -465,14 +463,12 @@ def run_fast_plots(
             ant2 = _as_numpy(ds.ANTENNA2.data).astype(int)
         flag_row_np = _as_numpy(ds.FLAG_ROW.data).astype(float)
         if ant1 is not None:
-            total_rows += np.bincount(ant1,
-                                      np.ones_like(ant1,
-                                                   dtype=float),
-                                      minlength=n_ant)
-            total_rows += np.bincount(ant2,
-                                      np.ones_like(ant2,
-                                                   dtype=float),
-                                      minlength=n_ant)
+            total_rows += np.bincount(
+                ant1, np.ones_like(ant1, dtype=float), minlength=n_ant
+            )
+            total_rows += np.bincount(
+                ant2, np.ones_like(ant2, dtype=float), minlength=n_ant
+            )
             flagged_rows += np.bincount(ant1, flag_row_np, minlength=n_ant)
             flagged_rows += np.bincount(ant2, flag_row_np, minlength=n_ant)
 
@@ -481,10 +477,8 @@ def run_fast_plots(
             amp_values = row_amp_np[mask]
             sum_amp += np.bincount(ant1_valid, amp_values, minlength=n_ant)
             sum_amp += np.bincount(ant2_valid, amp_values, minlength=n_ant)
-            sum_amp_sq += np.bincount(ant1_valid,
-                                      amp_values ** 2, minlength=n_ant)
-            sum_amp_sq += np.bincount(ant2_valid,
-                                      amp_values ** 2, minlength=n_ant)
+            sum_amp_sq += np.bincount(ant1_valid, amp_values**2, minlength=n_ant)
+            sum_amp_sq += np.bincount(ant2_valid, amp_values**2, minlength=n_ant)
             counts = np.ones_like(amp_values)
             count_amp += np.bincount(ant1_valid, counts, minlength=n_ant)
             count_amp += np.bincount(ant2_valid, counts, minlength=n_ant)
@@ -525,9 +519,7 @@ def run_fast_plots(
                 / da.maximum(valid.sum(axis=(0, 2)), 1)
             ).compute()
         ddid = ds.attrs.get("DATA_DESC_ID")
-        freq_results.append(
-            (ddid if ddid is not None else -1,
-             np.asarray(chan_amp)))
+        freq_results.append((ddid if ddid is not None else -1, np.asarray(chan_amp)))
 
         # phase vs frequency (circular mean over rows and correlations)
         try:
@@ -549,10 +541,12 @@ def run_fast_plots(
             imag = da.imag(phasor)
             valid_r = da.isfinite(real)
             valid_i = da.isfinite(imag)
-            real_mean = da.sum(da.where(valid_r, real, 0.0), axis=(
-                0, 2)) / da.maximum(valid_r.sum(axis=(0, 2)), 1)
-            imag_mean = da.sum(da.where(valid_i, imag, 0.0), axis=(
-                0, 2)) / da.maximum(valid_i.sum(axis=(0, 2)), 1)
+            real_mean = da.sum(da.where(valid_r, real, 0.0), axis=(0, 2)) / da.maximum(
+                valid_r.sum(axis=(0, 2)), 1
+            )
+            imag_mean = da.sum(da.where(valid_i, imag, 0.0), axis=(0, 2)) / da.maximum(
+                valid_i.sum(axis=(0, 2)), 1
+            )
         chan_phase = np.arctan2(_as_numpy(imag_mean), _as_numpy(real_mean))
         phase_results.append((ddid if ddid is not None else -1, chan_phase))
 
@@ -581,7 +575,8 @@ def run_fast_plots(
             mask_resid = np.isfinite(resid_np) & np.isfinite(uvw[:, 0])
             resid_amp_chunks.append(resid_np[mask_resid])
             uv_dist_chunks.append(
-                np.sqrt(uvw[mask_resid, 0] ** 2 + uvw[mask_resid, 1] ** 2))
+                np.sqrt(uvw[mask_resid, 0] ** 2 + uvw[mask_resid, 1] ** 2)
+            )
 
     artifacts: List[str] = []
 
@@ -594,13 +589,7 @@ def run_fast_plots(
         amps = amps[order]
         times_rel_min = (times - times.min()) / 60.0  # seconds -> minutes
         plt.figure(figsize=(9, 4))
-        plt.scatter(
-            times_rel_min,
-            amps,
-            s=1,
-            alpha=0.6,
-            c=amps,
-            cmap="viridis")
+        plt.scatter(times_rel_min, amps, s=1, alpha=0.6, c=amps, cmap="viridis")
         plt.xlabel("Time since start (minutes)")
         plt.ylabel("Mean baseline amplitude")
         plt.title("Amplitude vs Time")
@@ -659,24 +648,15 @@ def run_fast_plots(
             freq = ddid_to_freq.get(ddid)
             if freq is not None and freq.size == phase_unw.size:
                 x = freq / 1e9
-                plt.plot(
-                    x,
-                    np.degrees(phase_unw),
-                    linewidth=1.0,
-                    label=f"DDID {ddid}")
+                plt.plot(x, np.degrees(phase_unw), linewidth=1.0, label=f"DDID {ddid}")
                 plt.xlabel("Frequency (GHz)")
             else:
                 x = np.arange(phase_unw.size)
-                plt.plot(
-                    x,
-                    np.degrees(phase_unw),
-                    linewidth=1.0,
-                    label=f"DDID {ddid}")
+                plt.plot(x, np.degrees(phase_unw), linewidth=1.0, label=f"DDID {ddid}")
                 plt.xlabel("Channel")
             plotted = True
         if plotted:
-            plt.ylabel("Phase (deg)" +
-                       (" (unwrapped)" if unwrap_phase else ""))
+            plt.ylabel("Phase (deg)" + (" (unwrapped)" if unwrap_phase else ""))
             plt.title("Phase vs Frequency / Channel")
             if len(phase_results) > 1:
                 plt.legend(fontsize="small", ncol=2)
@@ -704,8 +684,9 @@ def run_fast_plots(
         # Convert to kilo-lambda if average frequency known
         avg_freq = None
         if ddid_to_freq:
-            freq_vals = [np.nanmean(freq)
-                         for freq in ddid_to_freq.values() if freq.size]
+            freq_vals = [
+                np.nanmean(freq) for freq in ddid_to_freq.values() if freq.size
+            ]
             if freq_vals:
                 avg_freq = float(np.nanmean(freq_vals))
         if avg_freq:
@@ -722,13 +703,7 @@ def run_fast_plots(
             ylabel = "v (km)"
 
         plt.figure(figsize=(6, 6))
-        sc = plt.scatter(
-            u_plot,
-            v_plot,
-            c=amp_uv,
-            s=1,
-            cmap="viridis",
-            alpha=0.5)
+        sc = plt.scatter(u_plot, v_plot, c=amp_uv, s=1, cmap="viridis", alpha=0.5)
         plt.xlabel(xlabel)
         plt.ylabel(ylabel)
         plt.title("UV Coverage (coloured by amplitude)")
@@ -749,20 +724,13 @@ def run_fast_plots(
             sample_size = min(max_uv_points, resid_amp.size)
             if sample_size < resid_amp.size:
                 rng = np.random.default_rng(1)
-                idx = rng.choice(
-                    resid_amp.size,
-                    size=sample_size,
-                    replace=False)
+                idx = rng.choice(resid_amp.size, size=sample_size, replace=False)
                 resid_amp = resid_amp[idx]
                 uv_dist = uv_dist[idx]
             plt.figure(figsize=(8, 4))
             plt.scatter(
-                uv_dist / 1e3,
-                resid_amp,
-                s=1,
-                alpha=0.5,
-                c=resid_amp,
-                cmap="plasma")
+                uv_dist / 1e3, resid_amp, s=1, alpha=0.5, c=resid_amp, cmap="plasma"
+            )
             plt.xlabel("UV distance (km)")
             plt.ylabel("Residual amplitude")
             plt.title("Residual amplitude vs UV distance")
@@ -777,16 +745,12 @@ def run_fast_plots(
     valid = count_amp > 0
     mean_amp = np.full(n_ant, np.nan)
     mean_amp[valid] = np.divide(
-        sum_amp[valid],
-        count_amp[valid],
-        where=count_amp[valid] > 0)
+        sum_amp[valid], count_amp[valid], where=count_amp[valid] > 0
+    )
     var_amp = np.full(n_ant, np.nan)
     var_amp[valid] = np.maximum(
-        np.divide(
-            sum_amp_sq[valid],
-            count_amp[valid],
-            where=count_amp[valid] > 0) -
-        mean_amp[valid] ** 2,
+        np.divide(sum_amp_sq[valid], count_amp[valid], where=count_amp[valid] > 0)
+        - mean_amp[valid] ** 2,
         0.0,
     )
 
@@ -795,7 +759,8 @@ def run_fast_plots(
     flagged_frac[nonzero_total] = np.divide(
         flagged_rows[nonzero_total],
         total_rows[nonzero_total],
-        where=total_rows[nonzero_total] > 0)
+        where=total_rows[nonzero_total] > 0,
+    )
 
     phase_std_deg = np.full(n_ant, np.nan)
     mean_phase = np.full(n_ant, np.nan)
@@ -805,14 +770,10 @@ def run_fast_plots(
         sum_cos_valid = sum_cos[valid_phase]
         sum_sin_valid = sum_sin[valid_phase]
         counts_valid = phase_counts[valid_phase]
-        R = np.sqrt(sum_cos_valid ** 2 + sum_sin_valid ** 2)
+        R = np.sqrt(sum_cos_valid**2 + sum_sin_valid**2)
         coherence_vals = np.clip(
-            np.divide(
-                R,
-                counts_valid,
-                where=counts_valid > 0),
-            1e-6,
-            1.0)
+            np.divide(R, counts_valid, where=counts_valid > 0), 1e-6, 1.0
+        )
         phase_std = np.sqrt(-2.0 * np.log(coherence_vals))
         phase_std_deg[valid_phase] = np.degrees(phase_std)
         mean_phase[valid_phase] = np.arctan2(sum_sin_valid, sum_cos_valid)
@@ -849,10 +810,9 @@ def run_fast_plots(
         plt.figure(figsize=(10, 6))
         plt.bar(
             range(n_ant),
-            np.nan_to_num(
-                phase_std_deg[order],
-                nan=0.0),
-            color="steelblue")
+            np.nan_to_num(phase_std_deg[order], nan=0.0),
+            color="steelblue",
+        )
         plt.xticks(range(n_ant), ant_ids[order], rotation=90)
         plt.ylabel("Phase σ (deg)")
         plt.title("Per-antenna phase stability (sorted)")
@@ -871,7 +831,8 @@ def run_fast_plots(
             cmap="viridis",
             s=30,
             edgecolor="k",
-            linewidths=0.3)
+            linewidths=0.3,
+        )
         plt.xlabel("Phase coherence (R)")
         plt.ylabel("Flagged fraction")
         plt.title("Coherence vs. flagged fraction")
@@ -885,7 +846,8 @@ def run_fast_plots(
                     str(ant),
                     fontsize=6,
                     ha="center",
-                    va="bottom")
+                    va="bottom",
+                )
         plt.tight_layout()
         fname = os.path.join(output_dir, "coherence_vs_flagged_fast.png")
         plt.savefig(fname, dpi=150)
@@ -897,17 +859,15 @@ def run_fast_plots(
             top = np.argsort(-coherence[valid_phase])
             idx_map = np.flatnonzero(valid_phase)[top[: min(20, top.size)]]
             polar_fig, polar_ax = plt.subplots(
-                subplot_kw={"projection": "polar"}, figsize=(6, 6))
+                subplot_kw={"projection": "polar"}, figsize=(6, 6)
+            )
             polar_ax.set_title("Top antenna phasors (by coherence)")
             for ant in idx_map:
                 theta = mean_phase[ant]
                 r = coherence[ant]
                 color = plt.cm.viridis(
-                    1.0 -
-                    np.nan_to_num(
-                        phase_std_deg[ant],
-                        nan=180.0) /
-                    180.0)
+                    1.0 - np.nan_to_num(phase_std_deg[ant], nan=180.0) / 180.0
+                )
                 polar_ax.arrow(
                     theta,
                     0,
@@ -916,22 +876,20 @@ def run_fast_plots(
                     width=0.01,
                     color=color,
                     alpha=0.8,
-                    length_includes_head=True)
+                    length_includes_head=True,
+                )
                 polar_ax.text(
-                    theta,
-                    r + 0.03,
-                    str(ant),
-                    fontsize=7,
-                    ha="center",
-                    va="bottom")
+                    theta, r + 0.03, str(ant), fontsize=7, ha="center", va="bottom"
+                )
             polar_ax.set_rlim(
-                0, max(
-                    0.3, float(
-                        np.nanmax(
-                            coherence[idx_map]) * 1.1 if idx_map.size else 1.0)))
+                0,
+                max(
+                    0.3,
+                    float(np.nanmax(coherence[idx_map]) * 1.1 if idx_map.size else 1.0),
+                ),
+            )
             polar_ax.grid(True, alpha=0.3)
-            fname = os.path.join(
-                output_dir, "per_antenna_phase_polar_fast.png")
+            fname = os.path.join(output_dir, "per_antenna_phase_polar_fast.png")
             polar_fig.savefig(fname, dpi=150, bbox_inches="tight")
             plt.close(polar_fig)
             artifacts.append(os.path.basename(fname))
@@ -947,11 +905,8 @@ def run_fast_plots(
             bin_counts = np.zeros((num_bins, n_ant))
             for chunk_time, chunk_ant1, chunk_ant2, chunk_phasor in phase_chunk_data:
                 bin_idx = np.clip(
-                    np.digitize(
-                        chunk_time,
-                        bin_edges) - 1,
-                    0,
-                    num_bins - 1)
+                    np.digitize(chunk_time, bin_edges) - 1, 0, num_bins - 1
+                )
                 cos = np.real(chunk_phasor)
                 sin = np.imag(chunk_phasor)
                 np.add.at(bin_cos, (bin_idx, chunk_ant1), cos)
@@ -964,20 +919,15 @@ def run_fast_plots(
 
             with np.errstate(divide="ignore", invalid="ignore"):
                 R = np.sqrt(bin_cos**2 + bin_sin**2)
-                coh = np.clip(
-                    np.divide(
-                        R,
-                        bin_counts,
-                        where=bin_counts > 0),
-                    1e-6,
-                    1.0)
+                coh = np.clip(np.divide(R, bin_counts, where=bin_counts > 0), 1e-6, 1.0)
                 phase_sigma = np.degrees(np.sqrt(-2.0 * np.log(coh)))
                 phase_sigma[bin_counts == 0] = np.nan
 
             plt.figure(figsize=(10, 5))
             extent = [0, (t_max - t_min) / 60.0, 0, n_ant]
-            vmax = np.nanmax(phase_sigma) if np.isfinite(
-                np.nanmax(phase_sigma)) else 90.0
+            vmax = (
+                np.nanmax(phase_sigma) if np.isfinite(np.nanmax(phase_sigma)) else 90.0
+            )
             plt.imshow(
                 phase_sigma.T,
                 origin="lower",
@@ -1004,23 +954,29 @@ def run_fast_plots(
             xy = positions[:, :2]
             center = np.nanmean(xy, axis=0)
             r = np.linalg.norm(xy - center, axis=1)
-            r_max = np.nanmax(r) if np.isfinite(
-                np.nanmax(r)) and np.nanmax(r) > 0 else 1.0
+            r_max = (
+                np.nanmax(r) if np.isfinite(np.nanmax(r)) and np.nanmax(r) > 0 else 1.0
+            )
             center_factor = np.clip(1.0 - (r / r_max), 0.0, 1.0)
 
         # Normalizations and composite score
         amp_norm = np.nan_to_num(
-            mean_amp /
-            np.nanmax(mean_amp) if np.nanmax(mean_amp) > 0 else mean_amp,
-            nan=0.0)
+            mean_amp / np.nanmax(mean_amp) if np.nanmax(mean_amp) > 0 else mean_amp,
+            nan=0.0,
+        )
         coh = np.nan_to_num(coherence, nan=0.0)
         good_frac = np.nan_to_num(1.0 - flagged_frac, nan=0.0)
         phase_sigma_safe = np.nan_to_num(phase_std_deg, nan=180.0)
         stability = 1.0 / (1.0 + (phase_sigma_safe / 45.0))
         center_f = np.nan_to_num(center_factor, nan=0.5)
 
-        score = (amp_norm ** 0.5) * (coh ** 1.0) * (good_frac **
-                                                    1.0) * (stability ** 1.0) * (center_f ** 0.5)
+        score = (
+            (amp_norm**0.5)
+            * (coh**1.0)
+            * (good_frac**1.0)
+            * (stability**1.0)
+            * (center_f**0.5)
+        )
         score[np.isnan(score)] = 0.0
         ranking_idx = np.argsort(-score)
 
@@ -1032,14 +988,19 @@ def run_fast_plots(
                     "antenna_id": int(idx),
                     "score": float(score[idx]),
                     "mean_amp": float(np.nan_to_num(mean_amp[idx], nan=0.0)),
-                    "phase_sigma_deg": float(np.nan_to_num(phase_std_deg[idx], nan=180.0)),
+                    "phase_sigma_deg": float(
+                        np.nan_to_num(phase_std_deg[idx], nan=180.0)
+                    ),
                     "coherence": float(np.nan_to_num(coherence[idx], nan=0.0)),
-                    "flagged_fraction": float(np.nan_to_num(flagged_frac[idx], nan=1.0)),
+                    "flagged_fraction": float(
+                        np.nan_to_num(flagged_frac[idx], nan=1.0)
+                    ),
                     "center_factor": float(center_f[idx]),
                 }
             )
         rec = ranking[0] if ranking else None
         import json
+
         rec_path = os.path.join(output_dir, "refant_ranking.json")
         with open(rec_path, "w", encoding="utf-8") as f:
             json.dump({"recommended": rec, "ranking": ranking}, f, indent=2)
@@ -1049,43 +1010,44 @@ def run_fast_plots(
         try:
             with open(csv_path, "w", encoding="utf-8") as f:
                 f.write(
-                    "antenna_id,score,mean_amp,phase_sigma_deg,coherence,flagged_fraction,center_factor\n")
+                    "antenna_id,score,mean_amp,phase_sigma_deg,coherence,flagged_fraction,center_factor\n"
+                )
                 for row in ranking:
                     f.write(
                         f"{row['antenna_id']},{row['score']:.6f},{row['mean_amp']:.6f},{row['phase_sigma_deg']:.3f},"
-                        f"{row['coherence']:.6f},{row['flagged_fraction']:.6f},{row['center_factor']:.6f}\n")
+                        f"{row['coherence']:.6f},{row['flagged_fraction']:.6f},{row['center_factor']:.6f}\n"
+                    )
             artifacts.append(os.path.basename(csv_path))
         except Exception:
             pass
 
         # Optional per‑antenna phase pages
         if phase_per_antenna:
-            chosen = refant_auto if refant_auto is not None else (
-                rec["antenna_id"] if rec else 0)
-            phase_dir = _ensure_dir(
-                os.path.join(
-                    output_dir,
-                    "phase_per_antenna"))
+            chosen = (
+                refant_auto
+                if refant_auto is not None
+                else (rec["antenna_id"] if rec else 0)
+            )
+            phase_dir = _ensure_dir(os.path.join(output_dir, "phase_per_antenna"))
             artifacts.extend(
                 _phase_pages_per_antenna(
                     ms_path,
                     output_dir=phase_dir,
                     refant=int(chosen),
                     panels_per_page=25,
-                    unwrap_phase=unwrap_phase))
+                    unwrap_phase=unwrap_phase,
+                )
+            )
 
     # Optional bandpass QA plots
     if bcal_path:
         try:
-            bcal_dir = _ensure_dir(
-                os.path.join(
-                    output_dir,
-                    "bandpass_per_antenna"))
+            bcal_dir = _ensure_dir(os.path.join(output_dir, "bandpass_per_antenna"))
             artifacts.extend(
                 _bcal_per_antenna_plots(
-                    bcal_path,
-                    output_dir=bcal_dir,
-                    unwrap_phase=unwrap_phase))
+                    bcal_path, output_dir=bcal_dir, unwrap_phase=unwrap_phase
+                )
+            )
         except Exception as exc:  # pragma: no cover - best effort
             LOG.debug("BCAL QA generation failed: %s", exc)
 
@@ -1103,10 +1065,7 @@ def _configure_logging(verbose: bool = False) -> None:
 
 def main(argv: Optional[List[str]] = None) -> None:
     parser = argparse.ArgumentParser(description="Fast MS QA plots (no CASA).")
-    parser.add_argument(
-        "--ms",
-        required=True,
-        help="Path to the Measurement Set (.ms)")
+    parser.add_argument("--ms", required=True, help="Path to the Measurement Set (.ms)")
     parser.add_argument(
         "--output-dir",
         default="qa_fast",

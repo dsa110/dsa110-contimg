@@ -18,7 +18,8 @@ from pathlib import Path
 import traceback
 
 # Add src to path
-sys.path.insert(0, os.path.join(os.path.dirname(__file__), '..', '..', 'src'))
+sys.path.insert(0, os.path.join(os.path.dirname(__file__), "..", "..", "src"))
+
 
 # Test results tracking
 class TestResults:
@@ -27,27 +28,27 @@ class TestResults:
         self.passed = 0
         self.failed = 0
         self.errors = 0
-    
+
     def add_pass(self, name, message=""):
         self.tests.append(("PASS", name, message))
         self.passed += 1
         print(f"  ✓ {name}")
         if message:
             print(f"    {message}")
-    
+
     def add_fail(self, name, message=""):
         self.tests.append(("FAIL", name, message))
         self.failed += 1
         print(f"  ✗ {name}")
         if message:
             print(f"    {message}")
-    
+
     def add_error(self, name, exception):
         self.tests.append(("ERROR", name, str(exception)))
         self.errors += 1
         print(f"  ⚠  {name}")
         print(f"    ERROR: {exception}")
-    
+
     def summary(self):
         total = self.passed + self.failed + self.errors
         print(f"\n{'='*70}")
@@ -64,10 +65,10 @@ results = TestResults()
 
 def test_imports():
     """Test 1: Can we import all modules without errors?"""
-    print("\n" + "="*70)
+    print("\n" + "=" * 70)
     print("TEST 1: Module Imports")
-    print("="*70)
-    
+    print("=" * 70)
+
     modules_to_test = [
         ("dsa110_contimg.utils.alerting", "Alerting"),
         ("dsa110_contimg.qa.ms_quality", "MS Quality"),
@@ -77,7 +78,7 @@ def test_imports():
         ("dsa110_contimg.photometry.normalize", "Photometry Normalization"),
         ("dsa110_contimg.photometry.forced", "Forced Photometry"),
     ]
-    
+
     for module_name, display_name in modules_to_test:
         try:
             __import__(module_name)
@@ -90,20 +91,20 @@ def test_imports():
 
 def test_alerting_edge_cases():
     """Test 2: Alerting system edge cases."""
-    print("\n" + "="*70)
+    print("\n" + "=" * 70)
     print("TEST 2: Alerting Edge Cases")
-    print("="*70)
-    
+    print("=" * 70)
+
     try:
         from dsa110_contimg.utils import alerting
-        
+
         # Test 1: Empty message
         try:
             alerting.info("test", "")
             results.add_pass("Alert with empty message")
         except Exception as e:
             results.add_fail("Alert with empty message", str(e))
-        
+
         # Test 2: Very long message
         try:
             long_msg = "x" * 10000
@@ -111,21 +112,21 @@ def test_alerting_edge_cases():
             results.add_pass("Alert with very long message")
         except Exception as e:
             results.add_fail("Alert with very long message", str(e))
-        
+
         # Test 3: Special characters
         try:
             alerting.info("test", "Special: \n\t\"'<>&")
             results.add_pass("Alert with special characters")
         except Exception as e:
             results.add_fail("Alert with special characters", str(e))
-        
+
         # Test 4: None context
         try:
             alerting.info("test", "message", context=None)
             results.add_pass("Alert with None context")
         except Exception as e:
             results.add_fail("Alert with None context", str(e))
-        
+
         # Test 5: Large context dict
         try:
             big_context = {f"key_{i}": f"value_{i}" for i in range(100)}
@@ -133,7 +134,7 @@ def test_alerting_edge_cases():
             results.add_pass("Alert with large context dict")
         except Exception as e:
             results.add_fail("Alert with large context dict", str(e))
-        
+
         # Test 6: Rate limiting (send 20 rapid alerts)
         try:
             for i in range(20):
@@ -141,24 +142,24 @@ def test_alerting_edge_cases():
             results.add_pass("Rate limiting doesn't crash")
         except Exception as e:
             results.add_fail("Rate limiting", str(e))
-        
+
     except Exception as e:
         results.add_error("Alerting edge cases", e)
 
 
 def test_qa_missing_files():
     """Test 3: QA modules with missing/invalid files."""
-    print("\n" + "="*70)
+    print("\n" + "=" * 70)
     print("TEST 3: QA with Missing Files")
-    print("="*70)
-    
+    print("=" * 70)
+
     try:
         from dsa110_contimg.qa.pipeline_quality import (
             check_ms_after_conversion,
             check_calibration_quality,
             check_image_quality,
         )
-        
+
         # Test 1: Non-existent MS
         try:
             passed, metrics = check_ms_after_conversion(
@@ -174,7 +175,7 @@ def test_qa_missing_files():
             results.add_pass("QA raises FileNotFoundError for missing MS")
         except Exception as e:
             results.add_error("QA with missing MS", e)
-        
+
         # Test 2: Empty caltables list
         try:
             passed, metrics = check_calibration_quality(
@@ -185,7 +186,7 @@ def test_qa_missing_files():
             results.add_pass("QA handles empty caltables list")
         except Exception as e:
             results.add_fail("QA with empty caltables", str(e))
-        
+
         # Test 3: Non-existent image
         try:
             passed, metrics = check_image_quality(
@@ -201,35 +202,35 @@ def test_qa_missing_files():
             results.add_pass("QA raises FileNotFoundError for missing image")
         except Exception as e:
             results.add_error("QA with missing image", e)
-        
+
     except Exception as e:
         results.add_error("QA missing files test", e)
 
 
 def test_photometry_functions():
     """Test 4: Photometry normalization functions."""
-    print("\n" + "="*70)
+    print("\n" + "=" * 70)
     print("TEST 4: Photometry Normalization Functions")
-    print("="*70)
-    
+    print("=" * 70)
+
     try:
         from dsa110_contimg.photometry import normalize
         import numpy as np
-        
+
         # Test 1: Check required functions exist
         required_funcs = [
-            'query_reference_sources',
-            'establish_baselines',
-            'compute_ensemble_correction',
-            'check_reference_stability',
+            "query_reference_sources",
+            "establish_baselines",
+            "compute_ensemble_correction",
+            "check_reference_stability",
         ]
-        
+
         for func_name in required_funcs:
             if hasattr(normalize, func_name):
                 results.add_pass(f"Function {func_name} exists")
             else:
                 results.add_fail(f"Function {func_name} missing")
-        
+
         # Test 2: ReferenceSource dataclass
         try:
             ref = normalize.ReferenceSource(
@@ -243,7 +244,7 @@ def test_photometry_functions():
             results.add_pass("ReferenceSource dataclass creation")
         except Exception as e:
             results.add_fail("ReferenceSource creation", str(e))
-        
+
         # Test 3: CorrectionResult dataclass
         try:
             corr = normalize.CorrectionResult(
@@ -256,7 +257,7 @@ def test_photometry_functions():
             results.add_pass("CorrectionResult dataclass creation")
         except Exception as e:
             results.add_fail("CorrectionResult creation", str(e))
-        
+
         # Test 4: Query with non-existent database
         try:
             refs = normalize.query_reference_sources(
@@ -269,33 +270,36 @@ def test_photometry_functions():
             results.add_pass("Correctly raises error for missing database")
         except Exception as e:
             results.add_error("Query with missing database", e)
-        
+
     except Exception as e:
         results.add_error("Photometry functions test", e)
 
 
 def test_configuration():
     """Test 5: Configuration handling."""
-    print("\n" + "="*70)
+    print("\n" + "=" * 70)
     print("TEST 5: Configuration Handling")
-    print("="*70)
-    
+    print("=" * 70)
+
     try:
         from dsa110_contimg.qa.pipeline_quality import QualityThresholds
-        
+
         # Test 1: Default thresholds
         try:
             thresholds = QualityThresholds()
             results.add_pass("Default thresholds creation")
         except Exception as e:
             results.add_fail("Default thresholds", str(e))
-        
+
         # Test 2: Check reasonable defaults
         try:
             thresholds = QualityThresholds()
             checks = [
                 ("ms_max_flagged_fraction", 0 < thresholds.ms_max_flagged_fraction < 1),
-                ("cal_max_flagged_fraction", 0 < thresholds.cal_max_flagged_fraction < 1),
+                (
+                    "cal_max_flagged_fraction",
+                    0 < thresholds.cal_max_flagged_fraction < 1,
+                ),
                 ("img_min_dynamic_range", thresholds.img_min_dynamic_range > 0),
             ]
             for name, condition in checks:
@@ -305,32 +309,32 @@ def test_configuration():
                     results.add_fail(f"Threshold {name} is unreasonable")
         except Exception as e:
             results.add_error("Threshold sanity checks", e)
-        
+
     except Exception as e:
         results.add_error("Configuration test", e)
 
 
 def test_with_real_data():
     """Test 6: Test with real pipeline data if available."""
-    print("\n" + "="*70)
+    print("\n" + "=" * 70)
     print("TEST 6: Real Data Integration")
-    print("="*70)
-    
+    print("=" * 70)
+
     # Find any existing data
     ms_dir = Path("/stage/dsa110-contimg/ms/central_cal_rebuild")
-    
+
     if not ms_dir.exists():
         results.add_pass("No real data available (skipped)")
         return
-    
+
     try:
         from dsa110_contimg.qa.pipeline_quality import check_ms_after_conversion
-        
+
         # Find an MS file
         ms_files = list(ms_dir.glob("*.ms"))
         if ms_files:
             ms_path = str(ms_files[0])
-            
+
             try:
                 passed, metrics = check_ms_after_conversion(
                     ms_path,
@@ -342,20 +346,20 @@ def test_with_real_data():
                 results.add_fail("MS validation on real data", str(e))
         else:
             results.add_pass("No MS files found (skipped)")
-    
+
     except Exception as e:
         results.add_error("Real data test", e)
 
 
 def test_error_propagation():
     """Test 7: Error propagation and handling."""
-    print("\n" + "="*70)
+    print("\n" + "=" * 70)
     print("TEST 7: Error Propagation")
-    print("="*70)
-    
+    print("=" * 70)
+
     try:
         from dsa110_contimg.qa import ms_quality
-        
+
         # Test 1: Corrupted MS path (directory without MS structure)
         try:
             metrics = ms_quality.validate_ms_quality("/tmp")
@@ -366,19 +370,19 @@ def test_error_propagation():
                 results.add_fail("Should detect corrupted MS")
         except Exception as e:
             results.add_pass("Raises exception for corrupted MS")
-        
+
     except Exception as e:
         results.add_error("Error propagation test", e)
 
 
 def main():
     """Run all tests."""
-    print("\n" + "="*70)
+    print("\n" + "=" * 70)
     print("DSA-110 COMPREHENSIVE TEST SUITE")
-    print("="*70)
+    print("=" * 70)
     print("\nTesting everything that could break...")
     print("Looking for: import errors, edge cases, missing data, error handling")
-    
+
     # Run all test suites
     test_imports()
     test_alerting_edge_cases()
@@ -387,10 +391,10 @@ def main():
     test_configuration()
     test_with_real_data()
     test_error_propagation()
-    
+
     # Summary
     all_passed = results.summary()
-    
+
     if all_passed:
         print("\n✓ ALL TESTS PASSED")
         return 0
@@ -402,4 +406,3 @@ def main():
 
 if __name__ == "__main__":
     sys.exit(main())
-

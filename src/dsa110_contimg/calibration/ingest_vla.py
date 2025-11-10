@@ -89,7 +89,9 @@ def ingest_vla(
         conn.execute("DELETE FROM fluxes")
         conn.execute("DELETE FROM calibrators")
         # Insert calibrators
-        cal_rows = [(str(idx), float(r.ra_deg), float(r.dec_deg)) for idx, r in df.iterrows()]
+        cal_rows = [
+            (str(idx), float(r.ra_deg), float(r.dec_deg)) for idx, r in df.iterrows()
+        ]
         conn.executemany(
             "INSERT OR REPLACE INTO calibrators(name, ra_deg, dec_deg) VALUES(?,?,?)",
             cal_rows,
@@ -104,7 +106,11 @@ def ingest_vla(
                     1.4e9 if band.lower() in ("20cm", "l", "l-band") else None,
                     float(r.get("flux_jy", float("nan"))),
                     (None if pd.isna(r.get("sidx", None)) else float(r.get("sidx"))),
-                    (None if pd.isna(r.get("sidx_f0_hz", None)) else float(r.get("sidx_f0_hz"))),
+                    (
+                        None
+                        if pd.isna(r.get("sidx_f0_hz", None))
+                        else float(r.get("sidx_f0_hz"))
+                    ),
                 )
             )
         conn.executemany(
@@ -112,7 +118,9 @@ def ingest_vla(
             fx_rows,
         )
         # Indices and views
-        conn.execute("CREATE INDEX IF NOT EXISTS idx_cal_radec ON calibrators(ra_deg, dec_deg)")
+        conn.execute(
+            "CREATE INDEX IF NOT EXISTS idx_cal_radec ON calibrators(ra_deg, dec_deg)"
+        )
         try:
             conn.execute("DROP VIEW IF EXISTS vla_20cm")
         except Exception:
@@ -132,26 +140,39 @@ def ingest_vla(
             (datetime.now(timezone.utc).isoformat(),),
         )
         conn.execute(
-            "INSERT OR REPLACE INTO meta(key, value) VALUES('source_csv', ?)", (os.fspath(csv_path),)
+            "INSERT OR REPLACE INTO meta(key, value) VALUES('source_csv', ?)",
+            (os.fspath(csv_path),),
         )
         conn.execute(
             "INSERT OR REPLACE INTO meta(key, value) VALUES('source_sha256', ?)", (sha,)
         )
         conn.execute(
-            "INSERT OR REPLACE INTO meta(key, value) VALUES('source_size', ?)", (str(size),)
+            "INSERT OR REPLACE INTO meta(key, value) VALUES('source_size', ?)",
+            (str(size),),
         )
         conn.execute(
-            "INSERT OR REPLACE INTO meta(key, value) VALUES('source_mtime', ?)", (str(mtime),)
+            "INSERT OR REPLACE INTO meta(key, value) VALUES('source_mtime', ?)",
+            (str(mtime),),
         )
         conn.commit()
     return out
 
 
 def main(argv: Optional[list[str]] = None) -> int:
-    ap = argparse.ArgumentParser(description="Ingest parsed VLA calibrator CSV into SQLite")
+    ap = argparse.ArgumentParser(
+        description="Ingest parsed VLA calibrator CSV into SQLite"
+    )
     ap.add_argument("--csv", required=True, help="Path to parsed VLA calibrator CSV")
-    ap.add_argument("--out", default="state/catalogs/vla_calibrators.sqlite3", help="Output SQLite path")
-    ap.add_argument("--band", default="20cm", help="Band name for the flux selection (default: 20cm)")
+    ap.add_argument(
+        "--out",
+        default="state/catalogs/vla_calibrators.sqlite3",
+        help="Output SQLite path",
+    )
+    ap.add_argument(
+        "--band",
+        default="20cm",
+        help="Band name for the flux selection (default: 20cm)",
+    )
     args = ap.parse_args(argv)
     try:
         outp = ingest_vla(args.csv, args.out, band=args.band)
@@ -164,4 +185,3 @@ def main(argv: Optional[list[str]] = None) -> int:
 
 if __name__ == "__main__":  # pragma: no cover
     raise SystemExit(main())
-

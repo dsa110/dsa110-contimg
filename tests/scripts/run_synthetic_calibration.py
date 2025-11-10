@@ -58,7 +58,13 @@ def run(
     prebp = None
     if do_prebp:
         prebp = solve_prebandpass_phase(
-            str(ms_path), "0", refant, combine_fields=False, uvrange="", solint="inf", minsnr=5.0
+            str(ms_path),
+            "0",
+            refant,
+            combine_fields=False,
+            uvrange="",
+            solint="inf",
+            minsnr=5.0,
         )
 
     # 6) Bandpass solve
@@ -154,12 +160,12 @@ def main() -> int:
         bp_minsnr=float(args.bp_minsnr),
         gain_minsnr=float(args.gain_minsnr),
         bp_smooth_type=str(args.bp_smooth_type or "none"),
-        bp_smooth_window=(int(args.bp_smooth_window) if args.bp_smooth_window is not None else None),
+        bp_smooth_window=(
+            int(args.bp_smooth_window) if args.bp_smooth_window is not None else None
+        ),
     )
     return 0
 
 
 if __name__ == "__main__":
     raise SystemExit(main())
-
-

@@ -40,5 +40,3 @@ def wrap_0_360_deg(angles_deg: ArrayLike) -> ArrayLike:
     if np.isscalar(angles_deg):
         return float(wrapped)
     return wrapped
-
-

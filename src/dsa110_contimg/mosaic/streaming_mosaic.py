@@ -42,10 +42,15 @@ from dsa110_contimg.database.products import (
     get_storage_locations,
 )
 from dsa110_contimg.imaging.cli import image_ms
+
 # Lazy import to avoid syntax errors in cli.py
 # from dsa110_contimg.mosaic.cli import _build_weighted_mosaic, _ensure_mosaics_table
 from dsa110_contimg.utils.time_utils import extract_ms_time_range
-from dsa110_contimg.utils.ms_organization import organize_ms_file, get_organized_ms_path, determine_ms_type
+from dsa110_contimg.utils.ms_organization import (
+    organize_ms_file,
+    get_organized_ms_path,
+    determine_ms_type,
+)
 
 logger = logging.getLogger(__name__)
 
@@ -58,11 +63,11 @@ CALIBRATION_MS_INDEX = 4  # 5th MS (0-indexed)
 
 class StreamingMosaicManager:
     """Manages streaming mosaic generation workflow.
-    
+
     This class orchestrates the complete workflow from MS file groups through
     calibration, imaging, and mosaic creation. It maintains organized directory
     structures and tracks all files in registry databases.
-    
+
     Directory Organization:
         MS files are automatically organized by type and date:
         - Calibrator MS: ms/calibrators/YYYY-MM-DD/<timestamp>.ms/
@@ -70,22 +75,22 @@ class StreamingMosaicManager:
         - Failed MS: ms/failed/YYYY-MM-DD/<timestamp>.ms/
         - Images: images/<timestamp>.img-*/
         - Mosaics: mosaics/<mosaic_name>.fits
-        
+
         Calibration tables are stored alongside calibrator MS files:
         - ms/calibrators/YYYY-MM-DD/<timestamp>_bpcal/
         - ms/calibrators/YYYY-MM-DD/<timestamp>_gpcal/
         - ms/calibrators/YYYY-MM-DD/<timestamp>_2gcal/
-    
+
     Storage Location Registration:
         Base directories are registered in products.sqlite3 storage_locations table:
         - ms_files, calibration_tables, science_ms, failed_ms, images, mosaics
-        
+
         Individual file paths are tracked in:
         - ms_index table (products.sqlite3) for MS files
         - cal_registry.sqlite3 for calibration tables
-        
+
         Paths are automatically updated when files are moved to organized locations.
-    
+
     Workflow:
         1. Form groups of MS files (default: 10 MS per group, 2 MS overlap)
         2. Solve calibration using 5th MS (middle by time)
@@ -132,8 +137,9 @@ class StreamingMosaicManager:
         self.images_dir = images_dir
         self.mosaic_output_dir = mosaic_output_dir
         self.observatory_location = observatory_location or EarthLocation.of_site(
-            "greenwich")
-        
+            "greenwich"
+        )
+
         # Organized subdirectories within ms_output_dir
         self.ms_calibrators_dir = ms_output_dir / "calibrators"
         self.ms_science_dir = ms_output_dir / "science"
@@ -143,7 +149,7 @@ class StreamingMosaicManager:
         self.gain_validity_minutes = gain_validity_minutes
         self.min_calibrator_flux_jy = min_calibrator_flux_jy
         self.min_calibrator_pb_response = min_calibrator_pb_response
-        
+
         # Set default calibration parameters
         self.calibration_params = {
             "minsnr": 5.0,
@@ -155,7 +161,7 @@ class StreamingMosaicManager:
         # Override with user-provided parameters
         if calibration_params:
             self.calibration_params.update(calibration_params)
-        
+
         # Retry configuration
         self.max_retries = 3
         self.retry_delay_seconds = 5.0
@@ -222,10 +228,10 @@ class StreamingMosaicManager:
 
     def _register_storage_locations(self) -> None:
         """Register storage locations for recovery.
-        
+
         Registers base directories in the storage_locations table of products.sqlite3.
         This enables recovery and discovery of files even after reorganization.
-        
+
         Registered locations:
         - ms_files: Base MS directory
         - calibration_tables: Calibrator MS directory (where calibration tables are stored)
@@ -233,7 +239,7 @@ class StreamingMosaicManager:
         - failed_ms: Failed MS directory
         - images: Images directory
         - mosaics: Mosaics directory
-        
+
         Individual file paths are tracked separately:
         - MS files: ms_index table (updated when files are moved)
         - Calibration tables: cal_registry.sqlite3 (registered with full organized paths)
@@ -257,7 +263,7 @@ class StreamingMosaicManager:
             "Calibration tables",
             "BP, GP, 2G calibration tables organized by date in calibrators/YYYY-MM-DD/",
         )
-        
+
         # Register science MS location
         register_storage_location(
             self.products_db,
@@ -266,7 +272,7 @@ class StreamingMosaicManager:
             "Science observations",
             "Science MS files organized by date in science/YYYY-MM-DD/",
         )
-        
+
         # Register failed MS location
         register_storage_location(
             self.products_db,
@@ -441,12 +447,13 @@ class StreamingMosaicManager:
         self.products_db.commit()
 
         logger.info(
-            f"Created new mosaic group: {group_id} with {len(ms_paths)} MS files (chronological order)")
+            f"Created new mosaic group: {group_id} with {len(ms_paths)} MS files (chronological order)"
+        )
         return group_id
 
     def get_group_ms_paths(self, group_id: str) -> List[str]:
         """Get MS paths for a group in chronological order.
-        
+
         CRITICAL: Returns paths sorted by observation time (mid_mjd), not alphabetical order.
         This ensures tiles are passed to the mosaic builder in chronological order.
         """
@@ -459,7 +466,7 @@ class StreamingMosaicManager:
             return []
 
         ms_paths = row[0].split(",")
-        
+
         # CRITICAL: Sort by observation time (mid_mjd) to ensure chronological order
         # Extract mid_mjd for each path and sort
         ms_paths_with_time = []
@@ -470,15 +477,17 @@ class StreamingMosaicManager:
                     ms_paths_with_time.append((mid_mjd, ms_path))
                 else:
                     # If time extraction fails, log warning but include path
-                    logger.warning(f"Could not extract time from {ms_path}, using path order")
-                    ms_paths_with_time.append((float('inf'), ms_path))  # Put at end
+                    logger.warning(
+                        f"Could not extract time from {ms_path}, using path order"
+                    )
+                    ms_paths_with_time.append((float("inf"), ms_path))  # Put at end
             except Exception as e:
                 logger.warning(f"Error extracting time from {ms_path}: {e}")
-                ms_paths_with_time.append((float('inf'), ms_path))  # Put at end
-        
+                ms_paths_with_time.append((float("inf"), ms_path))  # Put at end
+
         # Sort by mid_mjd (chronological order)
         ms_paths_with_time.sort(key=lambda x: x[0])
-        
+
         # Return paths in chronological order
         return [path for _, path in ms_paths_with_time]
 
@@ -504,7 +513,8 @@ class StreamingMosaicManager:
 
         if len(ms_times) < MS_PER_GROUP:
             logger.warning(
-                f"Only {len(ms_times)} MS files have valid times, need {MS_PER_GROUP}")
+                f"Only {len(ms_times)} MS files have valid times, need {MS_PER_GROUP}"
+            )
             return None
 
         # Sort by time and select 5th (index 4)
@@ -512,7 +522,8 @@ class StreamingMosaicManager:
         calibration_ms = ms_times[CALIBRATION_MS_INDEX][1]
 
         logger.info(
-            f"Selected calibration MS: {calibration_ms} (5th of {len(ms_times)} MS)")
+            f"Selected calibration MS: {calibration_ms} (5th of {len(ms_times)} MS)"
+        )
         return calibration_ms
 
     def check_registry_for_calibration(
@@ -568,7 +579,8 @@ class StreamingMosaicManager:
         # Calculate local sidereal time at transit
         # Transit occurs when LST = RA
         lst = observation_date.sidereal_time(
-            "mean", longitude=self.observatory_location.lon)
+            "mean", longitude=self.observatory_location.lon
+        )
 
         # Calculate time difference to transit
         ra_angle = calibrator_ra * u.deg
@@ -587,17 +599,17 @@ class StreamingMosaicManager:
         self, ms_path: Path, is_calibrator: bool = False, date_str: Optional[str] = None
     ) -> Path:
         """Get organized path for MS file based on type and date.
-        
+
         Organizes MS files into hierarchical structure:
         - Calibrator MS → ms/calibrators/YYYY-MM-DD/<timestamp>.ms/
         - Science MS → ms/science/YYYY-MM-DD/<timestamp>.ms/
         - Failed MS → ms/failed/YYYY-MM-DD/<timestamp>.ms/
-        
+
         Args:
             ms_path: Current MS file path
             is_calibrator: Whether this is a calibrator observation
             date_str: Date string in YYYY-MM-DD format (extracted from MS filename if None)
-            
+
         Returns:
             Organized path in appropriate subdirectory (date directory created if needed)
         """
@@ -606,19 +618,21 @@ class StreamingMosaicManager:
             ms_name = ms_path.stem
             # Try to extract date from filename (format: YYYY-MM-DDTHH:MM:SS)
             import re
-            match = re.search(r'(\d{4}-\d{2}-\d{2})', ms_name)
+
+            match = re.search(r"(\d{4}-\d{2}-\d{2})", ms_name)
             if match:
                 date_str = match.group(1)
             else:
                 # Fallback: use current date
                 from datetime import datetime
+
                 date_str = datetime.now().strftime("%Y-%m-%d")
-        
+
         if is_calibrator:
             target_dir = self.ms_calibrators_dir / date_str
         else:
             target_dir = self.ms_science_dir / date_str
-        
+
         target_dir.mkdir(parents=True, exist_ok=True)
         return target_dir / ms_path.name
 
@@ -626,53 +640,55 @@ class StreamingMosaicManager:
         self, ms_path: Path, is_calibrator: bool = False, date_str: Optional[str] = None
     ) -> Path:
         """Get organized path prefix for calibration tables.
-        
+
         Calibration tables are stored alongside their corresponding calibrator MS files
         in the organized directory structure. The prefix is used to generate table names:
         - {prefix}_bpcal/ for bandpass tables
         - {prefix}_gpcal/ for gain phase tables
         - {prefix}_2gcal/ for short-timescale gain tables
-        
+
         Args:
             ms_path: MS file path
             is_calibrator: Whether this is a calibrator observation
             date_str: Date string in YYYY-MM-DD format (extracted from MS filename if None)
-            
+
         Returns:
             Path prefix for calibration tables (e.g., ms/calibrators/YYYY-MM-DD/timestamp)
             Tables will be created as {prefix}_bpcal/, {prefix}_gpcal/, etc.
         """
-        organized_ms_path = self._get_organized_ms_path(ms_path, is_calibrator, date_str)
+        organized_ms_path = self._get_organized_ms_path(
+            ms_path, is_calibrator, date_str
+        )
         return organized_ms_path.parent / organized_ms_path.stem
 
     def _organize_ms_file(
         self, ms_path: Path, is_calibrator: bool = False, date_str: Optional[str] = None
     ) -> Path:
         """Move MS file to organized directory structure.
-        
+
         Organizes MS files into date-based subdirectories:
         - Calibrator MS → ms/calibrators/YYYY-MM-DD/
         - Science MS → ms/science/YYYY-MM-DD/
         - Failed MS → ms/failed/YYYY-MM-DD/
-        
+
         After moving, updates the ms_index table in products.sqlite3 with the new path.
         This ensures the registry always reflects the current file location.
-        
+
         Args:
             ms_path: Current MS file path
             is_calibrator: Whether this is a calibrator observation
             date_str: Date string in YYYY-MM-DD format (extracted from MS filename if None)
-            
+
         Returns:
             New organized path (or original path if move fails or already organized)
-            
+
         Note:
             Uses the shared ms_organization utility for consistency across the pipeline.
         """
         try:
             ms_base_dir = self.ms_output_dir
             is_failed = False  # StreamingMosaicManager doesn't handle failed MS
-            
+
             organized_path = organize_ms_file(
                 ms_path,
                 ms_base_dir,
@@ -680,23 +696,25 @@ class StreamingMosaicManager:
                 is_calibrator=is_calibrator,
                 is_failed=is_failed,
                 date_str=date_str,
-                update_database=True
+                update_database=True,
             )
-            
+
             return organized_path
         except Exception as e:
-            logger.warning(f"Failed to organize MS file {ms_path}: {e}. Using original path.")
+            logger.warning(
+                f"Failed to organize MS file {ms_path}: {e}. Using original path."
+            )
             return ms_path
 
     def _retry_on_transient_error(
         self, func: Callable, *args, **kwargs
     ) -> Tuple[bool, Optional[str]]:
         """Retry a function on transient errors.
-        
+
         Args:
             func: Function to retry (should return (success: bool, error_msg: Optional[str]))
             *args, **kwargs: Arguments to pass to func
-            
+
         Returns:
             Tuple of (success, error_message)
         """
@@ -707,24 +725,32 @@ class StreamingMosaicManager:
                 if success:
                     if attempt > 0:
                         logger.info(
-                            f"Function {func.__name__} succeeded on attempt {attempt + 1}")
+                            f"Function {func.__name__} succeeded on attempt {attempt + 1}"
+                        )
                     return success, error_msg
                 else:
                     last_error = error_msg
                     # Check if error is transient (I/O, network, etc.)
                     transient_keywords = [
-                        "timeout", "connection", "network", "i/o", "disk",
-                        "temporary", "resource", "busy", "locked"
+                        "timeout",
+                        "connection",
+                        "network",
+                        "i/o",
+                        "disk",
+                        "temporary",
+                        "resource",
+                        "busy",
+                        "locked",
                     ]
                     is_transient = any(
                         keyword.lower() in str(error_msg).lower()
                         for keyword in transient_keywords
                     )
-                    
+
                     if not is_transient or attempt == self.max_retries - 1:
                         # Not transient or last attempt
                         return success, error_msg
-                    
+
                     logger.warning(
                         f"Transient error on attempt {attempt + 1}/{self.max_retries}: "
                         f"{error_msg}. Retrying in {self.retry_delay_seconds}s..."
@@ -733,23 +759,30 @@ class StreamingMosaicManager:
             except Exception as e:
                 last_error = str(e)
                 transient_keywords = [
-                    "timeout", "connection", "network", "i/o", "disk",
-                    "temporary", "resource", "busy", "locked"
+                    "timeout",
+                    "connection",
+                    "network",
+                    "i/o",
+                    "disk",
+                    "temporary",
+                    "resource",
+                    "busy",
+                    "locked",
                 ]
                 is_transient = any(
                     keyword.lower() in last_error.lower()
                     for keyword in transient_keywords
                 )
-                
+
                 if not is_transient or attempt == self.max_retries - 1:
                     return False, last_error
-                
+
                 logger.warning(
                     f"Transient exception on attempt {attempt + 1}/{self.max_retries}: "
                     f"{last_error}. Retrying in {self.retry_delay_seconds}s..."
                 )
                 time.sleep(self.retry_delay_seconds)
-        
+
         return False, last_error
 
     def solve_calibration_for_group(
@@ -768,7 +801,9 @@ class StreamingMosaicManager:
         try:
             _, _, mid_mjd = extract_ms_time_range(calibration_ms_path)
             if mid_mjd is None:
-                error_msg = f"Could not extract time from calibration MS: {calibration_ms_path}"
+                error_msg = (
+                    f"Could not extract time from calibration MS: {calibration_ms_path}"
+                )
                 logger.error(error_msg)
                 return False, False, error_msg
         except Exception as e:
@@ -779,8 +814,10 @@ class StreamingMosaicManager:
         # Check registry first
         registry_tables = self.check_registry_for_calibration(mid_mjd)
         has_bp = len(registry_tables.get("BP", [])) > 0
-        has_g = len(registry_tables.get("GP", [])) > 0 and len(
-            registry_tables.get("2G", [])) > 0
+        has_g = (
+            len(registry_tables.get("GP", [])) > 0
+            and len(registry_tables.get("2G", [])) > 0
+        )
 
         bpcal_solved = False
         gaincal_solved = False
@@ -790,9 +827,11 @@ class StreamingMosaicManager:
             # Get observation Dec from calibration MS
             try:
                 from casacore.tables import table
+
                 t = table(calibration_ms_path)
                 field_table = t.getkeyword("FIELD")
                 import numpy as np
+
                 dec_deg = np.mean(
                     [f["REFERENCE_DIR"][0][1] * 180 / np.pi for f in field_table]
                 )
@@ -824,21 +863,25 @@ class StreamingMosaicManager:
                     try:
                         # Use select_bandpass_from_catalog to find calibrator in MS
                         # This searches for calibrators near the pointing and selects optimal fields
-                        field_sel_str, field_indices, weighted_flux, cal_info, peak_field_idx = (
-                            select_bandpass_from_catalog(
-                                str(ms_path),
-                                catalog_path=None,  # Auto-resolve to SQLite catalog
-                                search_radius_deg=1.0,
-                                freq_GHz=1.4,
-                                window=3,
-                            )
+                        (
+                            field_sel_str,
+                            field_indices,
+                            weighted_flux,
+                            cal_info,
+                            peak_field_idx,
+                        ) = select_bandpass_from_catalog(
+                            str(ms_path),
+                            catalog_path=None,  # Auto-resolve to SQLite catalog
+                            search_radius_deg=1.0,
+                            freq_GHz=1.4,
+                            window=3,
                         )
 
                         # Check if the found calibrator matches our registered calibrator
-                        if cal_info and cal_info[0] == bp_cal['name']:
+                        if cal_info and cal_info[0] == bp_cal["name"]:
                             # Validate calibrator visibility: check flux and PB response
                             cal_name, cal_ra, cal_dec, cal_flux_jy = cal_info
-                            
+
                             # Check flux threshold
                             if cal_flux_jy < self.min_calibrator_flux_jy:
                                 logger.warning(
@@ -847,12 +890,20 @@ class StreamingMosaicManager:
                                     f"in {ms_path}. Skipping."
                                 )
                                 continue
-                            
+
                             # Check PB-weighted flux at peak field
                             if len(weighted_flux) > 0 and peak_field_idx is not None:
-                                peak_pb_flux = weighted_flux[peak_field_idx] if peak_field_idx < len(weighted_flux) else 0.0
-                                pb_response = peak_pb_flux / cal_flux_jy if cal_flux_jy > 0 else 0.0
-                                
+                                peak_pb_flux = (
+                                    weighted_flux[peak_field_idx]
+                                    if peak_field_idx < len(weighted_flux)
+                                    else 0.0
+                                )
+                                pb_response = (
+                                    peak_pb_flux / cal_flux_jy
+                                    if cal_flux_jy > 0
+                                    else 0.0
+                                )
+
                                 if pb_response < self.min_calibrator_pb_response:
                                     logger.warning(
                                         f"Calibrator {cal_name} PB response ({pb_response:.3f}) "
@@ -860,7 +911,7 @@ class StreamingMosaicManager:
                                         f"in {ms_path}. Skipping."
                                     )
                                     continue
-                            
+
                             calibrator_ms = str(ms_path)
                             cal_field_sel = field_sel_str
                             calibrator_info = cal_info
@@ -871,26 +922,29 @@ class StreamingMosaicManager:
                             )
                             break
                     except Exception as e:
-                        logger.debug(
-                            f"Could not find calibrator in {ms_path}: {e}")
+                        logger.debug(f"Could not find calibrator in {ms_path}: {e}")
                         continue
 
                 # If not found via catalog search, try calibration MS directly
                 if not calibrator_ms:
                     try:
-                        field_sel_str, field_indices, weighted_flux, cal_info, peak_field_idx = (
-                            select_bandpass_from_catalog(
-                                str(calibration_ms_path),
-                                catalog_path=None,
-                                search_radius_deg=1.0,
-                                freq_GHz=1.4,
-                                window=3,
-                            )
+                        (
+                            field_sel_str,
+                            field_indices,
+                            weighted_flux,
+                            cal_info,
+                            peak_field_idx,
+                        ) = select_bandpass_from_catalog(
+                            str(calibration_ms_path),
+                            catalog_path=None,
+                            search_radius_deg=1.0,
+                            freq_GHz=1.4,
+                            window=3,
                         )
-                        if cal_info and cal_info[0] == bp_cal['name']:
+                        if cal_info and cal_info[0] == bp_cal["name"]:
                             # Validate calibrator visibility
                             cal_name, cal_ra, cal_dec, cal_flux_jy = cal_info
-                            
+
                             if cal_flux_jy < self.min_calibrator_flux_jy:
                                 logger.warning(
                                     f"Calibrator {cal_name} flux ({cal_flux_jy:.3f} Jy) "
@@ -898,9 +952,17 @@ class StreamingMosaicManager:
                                     f"in calibration MS. Skipping."
                                 )
                             elif len(weighted_flux) > 0 and peak_field_idx is not None:
-                                peak_pb_flux = weighted_flux[peak_field_idx] if peak_field_idx < len(weighted_flux) else 0.0
-                                pb_response = peak_pb_flux / cal_flux_jy if cal_flux_jy > 0 else 0.0
-                                
+                                peak_pb_flux = (
+                                    weighted_flux[peak_field_idx]
+                                    if peak_field_idx < len(weighted_flux)
+                                    else 0.0
+                                )
+                                pb_response = (
+                                    peak_pb_flux / cal_flux_jy
+                                    if cal_flux_jy > 0
+                                    else 0.0
+                                )
+
                                 if pb_response < self.min_calibrator_pb_response:
                                     logger.warning(
                                         f"Calibrator {cal_name} PB response ({pb_response:.3f}) "
@@ -927,7 +989,8 @@ class StreamingMosaicManager:
                                 calibrator_info = cal_info
                     except Exception as e:
                         logger.debug(
-                            f"Could not find calibrator in calibration MS: {e}")
+                            f"Could not find calibrator in calibration MS: {e}"
+                        )
 
                 if calibrator_ms and cal_field_sel:
                     logger.info(
@@ -940,12 +1003,17 @@ class StreamingMosaicManager:
                         # Extract date from MS filename
                         ms_name = calibrator_ms_path.stem
                         import re
-                        date_match = re.search(r'(\d{4}-\d{2}-\d{2})', ms_name)
+
+                        date_match = re.search(r"(\d{4}-\d{2}-\d{2})", ms_name)
                         date_str = date_match.group(1) if date_match else None
-                        
-                        table_prefix = str(self._get_calibration_table_prefix(
-                            calibrator_ms_path, is_calibrator=True, date_str=date_str
-                        ))
+
+                        table_prefix = str(
+                            self._get_calibration_table_prefix(
+                                calibrator_ms_path,
+                                is_calibrator=True,
+                                date_str=date_str,
+                            )
+                        )
 
                         # Solve bandpass calibration with retry logic for transient errors
                         bp_tables = None
@@ -959,15 +1027,21 @@ class StreamingMosaicManager:
                                     ktable=None,  # No delay table needed for standard calibration
                                     table_prefix=table_prefix,
                                     set_model=True,
-                                    model_standard=self.calibration_params["model_standard"],
-                                    combine_fields=self.calibration_params["combine_fields"],
+                                    model_standard=self.calibration_params[
+                                        "model_standard"
+                                    ],
+                                    combine_fields=self.calibration_params[
+                                        "combine_fields"
+                                    ],
                                     combine_spw=self.calibration_params["combine_spw"],
                                     minsnr=self.calibration_params["minsnr"],
                                     uvrange=self.calibration_params["uvrange"],
                                 )
                                 if bp_tables and len(bp_tables) > 0:
                                     if attempt > 0:
-                                        logger.info(f"Bandpass solving succeeded on attempt {attempt + 1}")
+                                        logger.info(
+                                            f"Bandpass solving succeeded on attempt {attempt + 1}"
+                                        )
                                     break
                                 else:
                                     last_error = "No tables returned"
@@ -976,23 +1050,30 @@ class StreamingMosaicManager:
                             except Exception as e:
                                 last_error = str(e)
                                 transient_keywords = [
-                                    "timeout", "connection", "network", "i/o", "disk",
-                                    "temporary", "resource", "busy", "locked"
+                                    "timeout",
+                                    "connection",
+                                    "network",
+                                    "i/o",
+                                    "disk",
+                                    "temporary",
+                                    "resource",
+                                    "busy",
+                                    "locked",
                                 ]
                                 is_transient = any(
                                     keyword.lower() in last_error.lower()
                                     for keyword in transient_keywords
                                 )
-                                
+
                                 if not is_transient or attempt == self.max_retries - 1:
                                     break
-                                
+
                                 logger.warning(
                                     f"Transient error on attempt {attempt + 1}/{self.max_retries}: "
                                     f"{last_error}. Retrying in {self.retry_delay_seconds}s..."
                                 )
                                 time.sleep(self.retry_delay_seconds)
-                        
+
                         if bp_tables and len(bp_tables) > 0:
                             logger.info(
                                 f"Bandpass calibration solved successfully: {bp_tables}"
@@ -1001,8 +1082,7 @@ class StreamingMosaicManager:
                             # Register bandpass calibration tables with transit-centered validity window
                             # Validity: ±bp_validity_hours around calibrator transit time
                             transit_mjd = self.calculate_calibrator_transit(
-                                bp_cal['ra_deg'],
-                                Time(mid_mjd, format='mjd')
+                                bp_cal["ra_deg"], Time(mid_mjd, format="mjd")
                             )
                             validity_days = self.bp_validity_hours / 24.0
                             valid_start_mjd = transit_mjd - validity_days
@@ -1020,18 +1100,24 @@ class StreamingMosaicManager:
                                     valid_start_mjd=valid_start_mjd,
                                     valid_end_mjd=valid_end_mjd,
                                 )
-                                bpcal_solved = True  # Only set True after successful registration
+                                bpcal_solved = (
+                                    True  # Only set True after successful registration
+                                )
                                 logger.info(
                                     f"Registered bandpass calibration with validity window: "
                                     f"{valid_start_mjd:.6f} - {valid_end_mjd:.6f} MJD "
                                     f"(centered on transit at {transit_mjd:.6f} MJD)"
                                 )
-                                
+
                                 # Organize calibration MS file to calibrators directory
                                 organized_cal_ms = self._organize_ms_file(
-                                    calibrator_ms_path, is_calibrator=True, date_str=date_str
+                                    calibrator_ms_path,
+                                    is_calibrator=True,
+                                    date_str=date_str,
                                 )
-                                logger.debug(f"Organized calibration MS to: {organized_cal_ms}")
+                                logger.debug(
+                                    f"Organized calibration MS to: {organized_cal_ms}"
+                                )
                             except Exception as e:
                                 logger.error(
                                     f"Failed to register bandpass calibration tables: {e}. "
@@ -1041,11 +1127,13 @@ class StreamingMosaicManager:
                                 bpcal_solved = False  # Ensure consistent state
                         else:
                             logger.error(
-                                "Bandpass calibration solving returned no tables")
+                                "Bandpass calibration solving returned no tables"
+                            )
                             bpcal_solved = False
                     except Exception as e:
                         logger.error(
-                            f"Failed to solve bandpass calibration: {e}", exc_info=True)
+                            f"Failed to solve bandpass calibration: {e}", exc_info=True
+                        )
                 else:
                     logger.warning(
                         f"Bandpass calibrator {bp_cal['name']} not found in group MS files"
@@ -1070,34 +1158,45 @@ class StreamingMosaicManager:
                     ms_name = cal_ms_path.stem
                     # Extract date from filename for organized path
                     import re
-                    date_match = re.search(r'(\d{4}-\d{2}-\d{2})', ms_name)
+
+                    date_match = re.search(r"(\d{4}-\d{2}-\d{2})", ms_name)
                     date_str = date_match.group(1) if date_match else None
                     table_prefix = self._get_calibration_table_prefix(
                         cal_ms_path, is_calibrator=True, date_str=date_str
                     )
                     # Look for BP tables with the expected naming pattern (_bpcal directory)
-                    bp_table_path = Path(table_prefix).parent / f"{table_prefix.name}_bpcal"
+                    bp_table_path = (
+                        Path(table_prefix).parent / f"{table_prefix.name}_bpcal"
+                    )
                     if bp_table_path.exists() and bp_table_path.is_dir():
                         bp_tables_list = [str(bp_table_path)]
-                
+
                 # Select calibrator field for gain solving
                 try:
-                    field_sel_str, field_indices, weighted_flux, cal_info, peak_field_idx = (
-                        select_bandpass_from_catalog(
-                            str(calibration_ms_path),
-                            catalog_path=None,  # Auto-resolve to SQLite catalog
-                            search_radius_deg=1.0,
-                            freq_GHz=1.4,
-                            window=3,
-                        )
+                    (
+                        field_sel_str,
+                        field_indices,
+                        weighted_flux,
+                        cal_info,
+                        peak_field_idx,
+                    ) = select_bandpass_from_catalog(
+                        str(calibration_ms_path),
+                        catalog_path=None,  # Auto-resolve to SQLite catalog
+                        search_radius_deg=1.0,
+                        freq_GHz=1.4,
+                        window=3,
                     )
                     if not cal_info:
-                        raise ValueError("No calibrator found in MS for gain calibration")
+                        raise ValueError(
+                            "No calibrator found in MS for gain calibration"
+                        )
                 except Exception as e:
-                    error_msg = f"Failed to select calibrator field for gain calibration: {e}"
+                    error_msg = (
+                        f"Failed to select calibrator field for gain calibration: {e}"
+                    )
                     logger.error(error_msg)
                     return bpcal_solved, False, error_msg
-                
+
                 # Populate MODEL_DATA before solving gains
                 try:
                     populate_model_from_catalog(
@@ -1108,22 +1207,26 @@ class StreamingMosaicManager:
                     logger.debug("MODEL_DATA populated for gain calibration")
                 except Exception as e:
                     logger.warning(
-                        f"Failed to populate MODEL_DATA: {e}. Proceeding anyway.")
-                
+                        f"Failed to populate MODEL_DATA: {e}. Proceeding anyway."
+                    )
+
                 # Prepare organized table prefix for calibration tables
                 cal_ms_path = Path(calibration_ms_path)
                 # Extract date from MS filename
                 ms_name = cal_ms_path.stem
                 import re
-                date_match = re.search(r'(\d{4}-\d{2}-\d{2})', ms_name)
+
+                date_match = re.search(r"(\d{4}-\d{2}-\d{2})", ms_name)
                 date_str = date_match.group(1) if date_match else None
-                
+
                 # Determine if this is a calibrator MS (check if it's used for calibration solving)
                 # For now, assume calibration MS is a calibrator observation
-                table_prefix = str(self._get_calibration_table_prefix(
-                    cal_ms_path, is_calibrator=True, date_str=date_str
-                ))
-                
+                table_prefix = str(
+                    self._get_calibration_table_prefix(
+                        cal_ms_path, is_calibrator=True, date_str=date_str
+                    )
+                )
+
                 # Solve gain calibration using direct API
                 gain_tables = solve_gains(
                     ms=calibration_ms_path,
@@ -1138,15 +1241,15 @@ class StreamingMosaicManager:
                     uvrange=self.calibration_params["uvrange"],
                     peak_field_idx=peak_field_idx,
                 )
-                
+
                 if gain_tables and len(gain_tables) > 0:
-                    logger.info(
-                        f"Gain calibration solved successfully: {gain_tables}")
-                    
+                    logger.info(f"Gain calibration solved successfully: {gain_tables}")
+
                     # Register gain calibration tables with validity windows
                     # Validity: ±gain_validity_minutes around calibration MS observation time
                     cal_ms_start, cal_ms_end, cal_ms_mid = extract_ms_time_range(
-                        calibration_ms_path)
+                        calibration_ms_path
+                    )
                     if cal_ms_mid is not None:
                         validity_days = self.gain_validity_minutes / 1440.0
                         valid_start_mjd = cal_ms_mid - validity_days
@@ -1164,16 +1267,21 @@ class StreamingMosaicManager:
                                 valid_start_mjd=valid_start_mjd,
                                 valid_end_mjd=valid_end_mjd,
                             )
-                            gaincal_solved = True  # Only set True after successful registration
+                            gaincal_solved = (
+                                True  # Only set True after successful registration
+                            )
                             logger.info(
                                 f"Registered gain calibration with validity window: "
-                                f"{valid_start_mjd:.6f} - {valid_end_mjd:.6f} MJD")
-                            
+                                f"{valid_start_mjd:.6f} - {valid_end_mjd:.6f} MJD"
+                            )
+
                             # Organize calibration MS file to calibrators directory (if not already organized)
                             organized_cal_ms = self._organize_ms_file(
                                 cal_ms_path, is_calibrator=True, date_str=date_str
                             )
-                            logger.debug(f"Organized calibration MS to: {organized_cal_ms}")
+                            logger.debug(
+                                f"Organized calibration MS to: {organized_cal_ms}"
+                            )
                         except Exception as e:
                             logger.error(
                                 f"Failed to register gain calibration tables: {e}. "
@@ -1182,7 +1290,9 @@ class StreamingMosaicManager:
                             )
                             gaincal_solved = False  # Ensure consistent state
                     else:
-                        logger.error("Could not extract time from calibration MS for registration")
+                        logger.error(
+                            "Could not extract time from calibration MS for registration"
+                        )
                         gaincal_solved = False
                 else:
                     logger.error("Gain calibration solving returned no tables")
@@ -1228,30 +1338,31 @@ class StreamingMosaicManager:
                 ms_path_obj = Path(ms_path)
                 _, _, mid_mjd = extract_ms_time_range(str(ms_path_obj))
                 if mid_mjd is None:
-                    logger.warning(
-                        f"Could not extract time from {ms_path}, skipping")
+                    logger.warning(f"Could not extract time from {ms_path}, skipping")
                     continue
 
                 # Query registry for valid calibration tables
-                applylist = get_active_applylist(
-                    self.registry_db_path, mid_mjd)
+                applylist = get_active_applylist(self.registry_db_path, mid_mjd)
 
                 if not applylist:
                     logger.warning(
-                        f"No valid calibration tables found in registry for {ms_path}")
+                        f"No valid calibration tables found in registry for {ms_path}"
+                    )
                     continue
 
                 # Apply calibration
-                apply_to_target(str(ms_path_obj), field="",
-                                gaintables=applylist, calwt=True)
+                apply_to_target(
+                    str(ms_path_obj), field="", gaintables=applylist, calwt=True
+                )
 
                 # Organize MS file to science directory after calibration
                 # Extract date from filename
                 ms_name = ms_path_obj.stem
                 import re
-                date_match = re.search(r'(\d{4}-\d{2}-\d{2})', ms_name)
+
+                date_match = re.search(r"(\d{4}-\d{2}-\d{2})", ms_name)
                 date_str = date_match.group(1) if date_match else None
-                
+
                 organized_path = self._organize_ms_file(
                     ms_path_obj, is_calibrator=False, date_str=date_str
                 )
@@ -1265,11 +1376,14 @@ class StreamingMosaicManager:
                 )
 
                 success_count += 1
-                logger.info(f"Applied calibration to {ms_path} (organized to {organized_path})")
+                logger.info(
+                    f"Applied calibration to {ms_path} (organized to {organized_path})"
+                )
 
             except Exception as e:
                 logger.error(
-                    f"Failed to apply calibration to {ms_path}: {e}", exc_info=True)
+                    f"Failed to apply calibration to {ms_path}: {e}", exc_info=True
+                )
 
         self.products_db.commit()
 
@@ -1286,7 +1400,8 @@ class StreamingMosaicManager:
             return True
         else:
             logger.warning(
-                f"Only {success_count}/{len(ms_paths)} MS files calibrated successfully")
+                f"Only {success_count}/{len(ms_paths)} MS files calibrated successfully"
+            )
             return False
 
     def image_group(self, group_id: str) -> bool:
@@ -1363,7 +1478,8 @@ class StreamingMosaicManager:
             return True
         else:
             logger.warning(
-                f"Only {success_count}/{len(ms_paths)} MS files imaged successfully")
+                f"Only {success_count}/{len(ms_paths)} MS files imaged successfully"
+            )
             return False
 
     def create_mosaic(self, group_id: str) -> Optional[str]:
@@ -1390,13 +1506,19 @@ class StreamingMosaicManager:
                 if mid_mjd is not None:
                     ms_times.append(mid_mjd)
                 else:
-                    logger.warning(f"Could not extract time from {ms_path} for chronological validation")
+                    logger.warning(
+                        f"Could not extract time from {ms_path} for chronological validation"
+                    )
             except Exception as e:
-                logger.warning(f"Error extracting time from {ms_path} for validation: {e}")
-        
+                logger.warning(
+                    f"Error extracting time from {ms_path} for validation: {e}"
+                )
+
         # Check if times are in chronological order
         if len(ms_times) > 1:
-            is_chronological = all(ms_times[i] <= ms_times[i+1] for i in range(len(ms_times)-1))
+            is_chronological = all(
+                ms_times[i] <= ms_times[i + 1] for i in range(len(ms_times) - 1)
+            )
             if not is_chronological:
                 logger.error(
                     f"MS paths for group {group_id} are NOT in chronological order! "
@@ -1413,9 +1535,13 @@ class StreamingMosaicManager:
                         pass
                 ms_paths_with_time.sort(key=lambda x: x[0])
                 ms_paths = [path for _, path in ms_paths_with_time]
-                logger.info(f"Re-sorted MS paths to chronological order for group {group_id}")
+                logger.info(
+                    f"Re-sorted MS paths to chronological order for group {group_id}"
+                )
             else:
-                logger.debug(f"MS paths for group {group_id} are in chronological order (validated)")
+                logger.debug(
+                    f"MS paths for group {group_id} are in chronological order (validated)"
+                )
 
         # Get image paths (in chronological order)
         image_paths = []
@@ -1429,7 +1555,7 @@ class StreamingMosaicManager:
                 # Handle both base paths and full paths
                 # Try multiple path construction strategies
                 found_image = None
-                
+
                 # Strategy 1: Check if imagename is already a full path to an existing file
                 if Path(imagename).exists():
                     found_image = imagename
@@ -1450,21 +1576,30 @@ class StreamingMosaicManager:
                                 found_image = image
                             else:
                                 # Strategy 5: If imagename has extension, try removing it and reconstructing
-                                base = str(imagename).replace('.image', '').replace('.pbcor', '').replace('.pb', '')
-                                for candidate in [f"{base}-image-pb.fits", f"{base}.pbcor", f"{base}.image"]:
+                                base = (
+                                    str(imagename)
+                                    .replace(".image", "")
+                                    .replace(".pbcor", "")
+                                    .replace(".pb", "")
+                                )
+                                for candidate in [
+                                    f"{base}-image-pb.fits",
+                                    f"{base}.pbcor",
+                                    f"{base}.image",
+                                ]:
                                     if Path(candidate).exists():
                                         found_image = candidate
                                         break
-                
+
                 if found_image:
                     image_paths.append(found_image)
                 else:
                     logger.warning(
-                        f"Could not find image for MS {Path(ms_path).name}, imagename={imagename}")
+                        f"Could not find image for MS {Path(ms_path).name}, imagename={imagename}"
+                    )
 
         if len(image_paths) < MS_PER_GROUP:
-            logger.warning(
-                f"Only {len(image_paths)} images found, need {MS_PER_GROUP}")
+            logger.warning(f"Only {len(image_paths)} images found, need {MS_PER_GROUP}")
             return None
 
         # Generate mosaic
@@ -1532,15 +1667,13 @@ class StreamingMosaicManager:
         # Get MS paths
         ms_paths = self.get_group_ms_paths(group_id)
         if len(ms_paths) < MS_PER_GROUP:
-            logger.warning(
-                f"Group {group_id} has only {len(ms_paths)} MS files")
+            logger.warning(f"Group {group_id} has only {len(ms_paths)} MS files")
             return False
 
         # Select calibration MS
         calibration_ms = self.select_calibration_ms(ms_paths)
         if not calibration_ms:
-            logger.error(
-                f"Could not select calibration MS for group {group_id}")
+            logger.error(f"Could not select calibration MS for group {group_id}")
             return False
 
         # Solve calibration
@@ -1548,7 +1681,9 @@ class StreamingMosaicManager:
             group_id, calibration_ms
         )
         if error_msg:
-            logger.error(f"Calibration solving failed for group {group_id}: {error_msg}")
+            logger.error(
+                f"Calibration solving failed for group {group_id}: {error_msg}"
+            )
             return False
 
         # Apply calibration
@@ -1567,8 +1702,7 @@ class StreamingMosaicManager:
             logger.error(f"Failed to create mosaic for group {group_id}")
             return False
 
-        logger.info(
-            f"Successfully processed group {group_id}, mosaic: {mosaic_path}")
+        logger.info(f"Successfully processed group {group_id}, mosaic: {mosaic_path}")
         return True
 
     def get_last_group_overlap_ms(self) -> List[str]:
@@ -1625,6 +1759,7 @@ class StreamingMosaicManager:
             if cal_table.exists():
                 try:
                     import shutil
+
                     if cal_table.is_dir():
                         shutil.rmtree(cal_table)
                     else:
@@ -1634,8 +1769,7 @@ class StreamingMosaicManager:
                     logger.warning(f"Failed to remove {cal_table}: {e}")
 
         if removed:
-            logger.info(
-                f"Cleared calibration tables from {ms_path}: {removed}")
+            logger.info(f"Cleared calibration tables from {ms_path}: {removed}")
 
         # Update products database
         ms_index_upsert(
@@ -1668,8 +1802,7 @@ class StreamingMosaicManager:
         ).fetchall()
 
         # Filter out overlap MS and get new MS
-        new_ms = [(row[0], row[1])
-                  for row in rows if row[0] not in overlap_set]
+        new_ms = [(row[0], row[1]) for row in rows if row[0] not in overlap_set]
 
         if len(new_ms) < MS_NEW_PER_MOSAIC:
             return None
@@ -1744,9 +1877,11 @@ class StreamingMosaicManager:
         # Get Dec from first MS
         try:
             from casacore.tables import table
+
             t = table(ms_paths[0])
             field_table = t.getkeyword("FIELD")
             import numpy as np
+
             dec_deg = np.mean(
                 [f["REFERENCE_DIR"][0][1] * 180 / np.pi for f in field_table]
             )
@@ -1793,8 +1928,7 @@ class StreamingMosaicManager:
         # Get MS paths
         ms_paths = self.get_group_ms_paths(group_id)
         if len(ms_paths) < MS_PER_GROUP:
-            logger.warning(
-                f"Group {group_id} has only {len(ms_paths)} MS files")
+            logger.warning(f"Group {group_id} has only {len(ms_paths)} MS files")
             return False
 
         # Validate Dec and calibrator registration
@@ -1808,8 +1942,7 @@ class StreamingMosaicManager:
         # Select calibration MS
         calibration_ms = self.select_calibration_ms(ms_paths)
         if not calibration_ms:
-            logger.error(
-                f"Could not select calibration MS for group {group_id}")
+            logger.error(f"Could not select calibration MS for group {group_id}")
             return False
 
         # Solve calibration
@@ -1817,7 +1950,9 @@ class StreamingMosaicManager:
             group_id, calibration_ms
         )
         if error_msg:
-            logger.error(f"Calibration solving failed for group {group_id}: {error_msg}")
+            logger.error(
+                f"Calibration solving failed for group {group_id}: {error_msg}"
+            )
             return False
 
         # Apply calibration
@@ -1836,8 +1971,7 @@ class StreamingMosaicManager:
             logger.error(f"Failed to create mosaic for group {group_id}")
             return False
 
-        logger.info(
-            f"Successfully processed group {group_id}, mosaic: {mosaic_path}")
+        logger.info(f"Successfully processed group {group_id}, mosaic: {mosaic_path}")
         return True
 
 
@@ -1845,42 +1979,35 @@ def main() -> int:
     """CLI entry point for streaming mosaic processing."""
     import argparse
 
-    parser = argparse.ArgumentParser(
-        description="Process streaming mosaic groups"
-    )
+    parser = argparse.ArgumentParser(description="Process streaming mosaic groups")
     parser.add_argument(
         "--products-db",
         type=Path,
-        default=Path(os.getenv("PIPELINE_PRODUCTS_DB",
-                     "state/products.sqlite3")),
+        default=Path(os.getenv("PIPELINE_PRODUCTS_DB", "state/products.sqlite3")),
         help="Path to products database",
     )
     parser.add_argument(
         "--registry-db",
         type=Path,
-        default=Path(os.getenv("CAL_REGISTRY_DB",
-                     "state/cal_registry.sqlite3")),
+        default=Path(os.getenv("CAL_REGISTRY_DB", "state/cal_registry.sqlite3")),
         help="Path to calibration registry database",
     )
     parser.add_argument(
         "--ms-dir",
         type=Path,
-        default=Path(os.getenv("CONTIMG_OUTPUT_DIR",
-                     "/stage/dsa110-contimg/ms")),
+        default=Path(os.getenv("CONTIMG_OUTPUT_DIR", "/stage/dsa110-contimg/ms")),
         help="Directory containing MS files",
     )
     parser.add_argument(
         "--images-dir",
         type=Path,
-        default=Path(os.getenv("CONTIMG_IMAGES_DIR",
-                     "/stage/dsa110-contimg/images")),
+        default=Path(os.getenv("CONTIMG_IMAGES_DIR", "/stage/dsa110-contimg/images")),
         help="Directory for individual image outputs",
     )
     parser.add_argument(
         "--mosaic-dir",
         type=Path,
-        default=Path(os.getenv("CONTIMG_MOSAIC_DIR",
-                     "/stage/dsa110-contimg/mosaics")),
+        default=Path(os.getenv("CONTIMG_MOSAIC_DIR", "/stage/dsa110-contimg/mosaics")),
         help="Directory for mosaic output",
     )
     parser.add_argument(
@@ -1962,11 +2089,13 @@ def main() -> int:
 
     if args.loop:
         logger.info(
-            "Starting streaming mosaic daemon (sliding window: %s)", use_sliding_window)
+            "Starting streaming mosaic daemon (sliding window: %s)", use_sliding_window
+        )
         while True:
             try:
                 processed = manager.process_next_group(
-                    use_sliding_window=use_sliding_window)
+                    use_sliding_window=use_sliding_window
+                )
                 if not processed:
                     time.sleep(args.sleep)
             except KeyboardInterrupt:
@@ -1978,11 +2107,11 @@ def main() -> int:
         return 0
     else:
         # Process single group
-        processed = manager.process_next_group(
-            use_sliding_window=use_sliding_window)
+        processed = manager.process_next_group(use_sliding_window=use_sliding_window)
         return 0 if processed else 1
 
 
 if __name__ == "__main__":
     import sys
+
     sys.exit(main())

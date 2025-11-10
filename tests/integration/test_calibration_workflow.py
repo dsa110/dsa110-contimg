@@ -246,7 +246,9 @@ class TestCalibrationParameterValidation:
         import inspect
 
         sig = inspect.signature(solve_prebandpass_phase)
-        assert "solint" in sig.parameters, "solve_prebandpass_phase should have solint parameter"
+        assert (
+            "solint" in sig.parameters
+        ), "solve_prebandpass_phase should have solint parameter"
 
         # Default should be "inf" (problematic)
         default_solint = sig.parameters["solint"].default
@@ -258,7 +260,9 @@ class TestCalibrationParameterValidation:
         import inspect
 
         sig = inspect.signature(solve_prebandpass_phase)
-        assert "minsnr" in sig.parameters, "solve_prebandpass_phase should have minsnr parameter"
+        assert (
+            "minsnr" in sig.parameters
+        ), "solve_prebandpass_phase should have minsnr parameter"
 
         # Default should be 5.0 (too strict)
         default_minsnr = sig.parameters["minsnr"].default
@@ -271,10 +275,13 @@ class TestCalibrationParameterValidation:
 
         sig = inspect.signature(solve_bandpass)
 
-        assert "combine_spw" in sig.parameters, "solve_bandpass should have combine_spw parameter"
-        assert "combine_fields" in sig.parameters, "solve_bandpass should have combine_fields parameter"
+        assert (
+            "combine_spw" in sig.parameters
+        ), "solve_bandpass should have combine_spw parameter"
+        assert (
+            "combine_fields" in sig.parameters
+        ), "solve_bandpass should have combine_fields parameter"
 
 
 if __name__ == "__main__":
     pytest.main([__file__, "-v"])
-

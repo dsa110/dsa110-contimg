@@ -9,6 +9,7 @@ This creates a synthetic FITS image with:
 - Realistic noise
 - Then performs forced photometry and compares measured vs expected fluxes.
 """
+
 import numpy as np
 from pathlib import Path
 from astropy.io import fits
@@ -22,7 +23,7 @@ from dsa110_contimg.photometry.forced import measure_forced_peak, ForcedPhotomet
 def create_synthetic_fits(
     output_path: Path,
     center_ra: float = 180.0,  # degrees
-    center_dec: float = 35.0,   # degrees
+    center_dec: float = 35.0,  # degrees
     image_size: int = 512,
     pixel_scale: float = 0.001,  # degrees per pixel (~3.6 arcsec)
     beam_fwhm_pix: float = 3.0,  # pixels (Gaussian FWHM)
@@ -48,14 +49,25 @@ def create_synthetic_fits(
     if sources is None:
         # Default test sources
         sources = [
-            {"ra_deg": 180.0, "dec_deg": 35.0,
-                "flux_jy": 1.0, "name": "bright_center"},
-            {"ra_deg": 180.01, "dec_deg": 35.01,
-                "flux_jy": 0.5, "name": "medium_offset"},
-            {"ra_deg": 179.99, "dec_deg": 34.99,
-                "flux_jy": 0.2, "name": "faint_offset"},
-            {"ra_deg": 180.005, "dec_deg": 35.005,
-                "flux_jy": 0.1, "name": "faint_close"},
+            {"ra_deg": 180.0, "dec_deg": 35.0, "flux_jy": 1.0, "name": "bright_center"},
+            {
+                "ra_deg": 180.01,
+                "dec_deg": 35.01,
+                "flux_jy": 0.5,
+                "name": "medium_offset",
+            },
+            {
+                "ra_deg": 179.99,
+                "dec_deg": 34.99,
+                "flux_jy": 0.2,
+                "name": "faint_offset",
+            },
+            {
+                "ra_deg": 180.005,
+                "dec_deg": 35.005,
+                "flux_jy": 0.1,
+                "name": "faint_close",
+            },
         ]
 
     # Create empty image
@@ -74,8 +86,7 @@ def create_synthetic_fits(
     y_coords, x_coords = np.ogrid[0:image_size, 0:image_size]
 
     # Add Gaussian sources
-    sigma_pix = beam_fwhm_pix / \
-        (2 * np.sqrt(2 * np.log(2)))  # Convert FWHM to sigma
+    sigma_pix = beam_fwhm_pix / (2 * np.sqrt(2 * np.log(2)))  # Convert FWHM to sigma
 
     for src in sources:
         ra_src = src["ra_deg"]
@@ -87,13 +98,15 @@ def create_synthetic_fits(
         x0, y0 = float(pix_coords[0]), float(pix_coords[1])
 
         if not (0 <= x0 < image_size and 0 <= y0 < image_size):
-            print(f"Warning: Source {src.get('name', 'unknown')} at ({ra_src}, {dec_src}) "
-                  f"is outside image bounds (pixel: {x0:.1f}, {y0:.1f})")
+            print(
+                f"Warning: Source {src.get('name', 'unknown')} at ({ra_src}, {dec_src}) "
+                f"is outside image bounds (pixel: {x0:.1f}, {y0:.1f})"
+            )
             continue
 
         # Create 2D Gaussian
         gaussian = flux_src * np.exp(
-            -((x_coords - x0) ** 2 + (y_coords - y0) ** 2) / (2 * sigma_pix ** 2)
+            -((x_coords - x0) ** 2 + (y_coords - y0) ** 2) / (2 * sigma_pix**2)
         )
         data += gaussian
 
@@ -120,11 +133,9 @@ def test_forced_photometry_recovery(tmp_path):
     # Define test sources with known positions and fluxes
     test_sources = [
         {"ra_deg": 180.0, "dec_deg": 35.0, "flux_jy": 1.0, "name": "bright_center"},
-        {"ra_deg": 180.01, "dec_deg": 35.01,
-            "flux_jy": 0.5, "name": "medium_offset"},
+        {"ra_deg": 180.01, "dec_deg": 35.01, "flux_jy": 0.5, "name": "medium_offset"},
         {"ra_deg": 179.99, "dec_deg": 34.99, "flux_jy": 0.2, "name": "faint_offset"},
-        {"ra_deg": 180.005, "dec_deg": 35.005,
-            "flux_jy": 0.1, "name": "faint_close"},
+        {"ra_deg": 180.005, "dec_deg": 35.005, "flux_jy": 0.1, "name": "faint_close"},
         {"ra_deg": 180.02, "dec_deg": 35.02, "flux_jy": 0.05, "name": "very_faint"},
     ]
 
@@ -148,16 +159,20 @@ def test_forced_photometry_recovery(tmp_path):
     print(f"RMS noise: 0.001 Jy/beam")
     print(f"\nTest sources:")
     for src in test_sources:
-        print(f"  {src['name']:20s}: RA={src['ra_deg']:8.5f}, Dec={src['dec_deg']:8.5f}, "
-              f"Flux={src['flux_jy']:6.3f} Jy/beam")
+        print(
+            f"  {src['name']:20s}: RA={src['ra_deg']:8.5f}, Dec={src['dec_deg']:8.5f}, "
+            f"Flux={src['flux_jy']:6.3f} Jy/beam"
+        )
 
     # Perform forced photometry on each source
     results = []
     print(f"\n{'='*80}")
     print("Forced Photometry Results:")
     print(f"{'='*80}")
-    print(f"{'Source':<20s} {'Expected':>10s} {'Measured':>10s} {'Error':>10s} "
-          f"{'SNR':>8s} {'Recovered':>10s}")
+    print(
+        f"{'Source':<20s} {'Expected':>10s} {'Measured':>10s} {'Error':>10s} "
+        f"{'SNR':>8s} {'Recovered':>10s}"
+    )
     print(f"{'-'*80}")
 
     for src in test_sources:
@@ -175,22 +190,27 @@ def test_forced_photometry_recovery(tmp_path):
 
         if np.isfinite(measured_flux) and np.isfinite(flux_error) and flux_error > 0:
             snr = measured_flux / flux_error
-            recovered = abs(measured_flux - expected_flux) / \
-                expected_flux < 0.2  # Within 20%
+            recovered = (
+                abs(measured_flux - expected_flux) / expected_flux < 0.2
+            )  # Within 20%
         else:
             snr = 0.0
             recovered = False
 
         recovered_str = "✓" if recovered else "✗"
 
-        print(f"{src['name']:<20s} {expected_flux:10.4f} {measured_flux:10.4f} "
-              f"{flux_error:10.4f} {snr:8.1f} {recovered_str:>10s}")
+        print(
+            f"{src['name']:<20s} {expected_flux:10.4f} {measured_flux:10.4f} "
+            f"{flux_error:10.4f} {snr:8.1f} {recovered_str:>10s}"
+        )
 
-        results.append({
-            "source": src,
-            "result": result,
-            "recovered": recovered,
-        })
+        results.append(
+            {
+                "source": src,
+                "result": result,
+                "recovered": recovered,
+            }
+        )
 
     # Summary statistics
     print(f"\n{'='*80}")
@@ -215,7 +235,8 @@ def test_forced_photometry_recovery(tmp_path):
         mean_ratio = np.mean(flux_ratios)
         std_ratio = np.std(flux_ratios)
         print(
-            f"Mean flux ratio (measured/expected): {mean_ratio:.4f} ± {std_ratio:.4f}")
+            f"Mean flux ratio (measured/expected): {mean_ratio:.4f} ± {std_ratio:.4f}"
+        )
         print(f"Expected: 1.0000")
 
         # Check if mean ratio is close to 1.0
@@ -238,17 +259,19 @@ def test_forced_photometry_recovery(tmp_path):
             print(f"  Error: {res.peak_err_jyb:.4f} Jy/beam")
             if res.peak_err_jyb > 0:
                 print(f"  SNR: {res.peak_jyb / res.peak_err_jyb:.1f}")
-        if np.isfinite(res.peak_jyb) and src['flux_jy'] > 0:
-            ratio = res.peak_jyb / src['flux_jy']
+        if np.isfinite(res.peak_jyb) and src["flux_jy"] > 0:
+            ratio = res.peak_jyb / src["flux_jy"]
             print(f"  Ratio (measured/expected): {ratio:.4f}")
             print(f"  Recovery: {'✓ PASS' if r['recovered'] else '✗ FAIL'}")
 
     # Assertions for automated testing
-    assert n_recovered >= n_total * \
-        0.8, f"Only {n_recovered}/{n_total} sources recovered (expected ≥80%)"
+    assert (
+        n_recovered >= n_total * 0.8
+    ), f"Only {n_recovered}/{n_total} sources recovered (expected ≥80%)"
     if flux_ratios:
-        assert abs(
-            mean_ratio - 1.0) < 0.15, f"Flux scale error too large: {mean_ratio:.4f} (expected ~1.0)"
+        assert (
+            abs(mean_ratio - 1.0) < 0.15
+        ), f"Flux scale error too large: {mean_ratio:.4f} (expected ~1.0)"
 
     print(f"\n{'='*80}")
     print("✓ All checks passed!")
@@ -261,8 +284,7 @@ def test_forced_photometry_low_snr(tmp_path):
     """
     test_sources = [
         {"ra_deg": 180.0, "dec_deg": 35.0, "flux_jy": 0.01, "name": "low_snr_1"},
-        {"ra_deg": 180.005, "dec_deg": 35.005,
-            "flux_jy": 0.005, "name": "low_snr_2"},
+        {"ra_deg": 180.005, "dec_deg": 35.005, "flux_jy": 0.005, "name": "low_snr_2"},
     ]
 
     fits_path = tmp_path / "test_low_snr.fits"
@@ -290,17 +312,20 @@ def test_forced_photometry_low_snr(tmp_path):
         if np.isfinite(result.peak_jyb) and result.peak_err_jyb > 0:
             snr = result.peak_jyb / result.peak_err_jyb
             # For low SNR, we expect larger scatter but should still detect
-            recovered = snr >= 3.0 and abs(
-                result.peak_jyb - src["flux_jy"]) / src["flux_jy"] < 0.5
+            recovered = (
+                snr >= 3.0
+                and abs(result.peak_jyb - src["flux_jy"]) / src["flux_jy"] < 0.5
+            )
         else:
             recovered = False
 
-        results.append(
-            {"source": src, "result": result, "recovered": recovered})
+        results.append({"source": src, "result": result, "recovered": recovered})
 
     # At least one should be recovered
     n_recovered = sum(1 for r in results if r["recovered"])
-    assert n_recovered >= 1, f"Expected at least 1 low-SNR source recovered, got {n_recovered}"
+    assert (
+        n_recovered >= 1
+    ), f"Expected at least 1 low-SNR source recovered, got {n_recovered}"
 
 
 def test_forced_photometry_edge_sources(tmp_path):
@@ -309,8 +334,7 @@ def test_forced_photometry_edge_sources(tmp_path):
     """
     test_sources = [
         {"ra_deg": 180.0, "dec_deg": 35.0, "flux_jy": 0.5, "name": "center"},
-        {"ra_deg": 180.015, "dec_deg": 35.015,
-            "flux_jy": 0.3, "name": "near_edge"},
+        {"ra_deg": 180.015, "dec_deg": 35.015, "flux_jy": 0.3, "name": "near_edge"},
     ]
 
     fits_path = tmp_path / "test_edge.fits"
@@ -337,13 +361,13 @@ def test_forced_photometry_edge_sources(tmp_path):
 
         # Edge sources may have partial annulus, but should still work
         recovered = np.isfinite(result.peak_jyb) and result.peak_jyb > 0
-        results.append(
-            {"source": src, "result": result, "recovered": recovered})
+        results.append({"source": src, "result": result, "recovered": recovered})
 
     # Both should be recovered
     n_recovered = sum(1 for r in results if r["recovered"])
     assert n_recovered == len(
-        test_sources), f"Expected all sources recovered, got {n_recovered}/{len(test_sources)}"
+        test_sources
+    ), f"Expected all sources recovered, got {n_recovered}/{len(test_sources)}"
 
 
 if __name__ == "__main__":
@@ -387,7 +411,8 @@ if __name__ == "__main__":
             print(f"Using temporary directory: {tmp_path}")
             print("Generated FITS files will be cleaned up after tests complete.")
             print(
-                "To save files, set FORCED_PHOTOMETRY_OUTPUT_DIR or pass output directory as argument:")
+                "To save files, set FORCED_PHOTOMETRY_OUTPUT_DIR or pass output directory as argument:"
+            )
             print("  python test_forced_photometry_simulation.py /path/to/output")
 
             print("\nRunning main recovery test...")

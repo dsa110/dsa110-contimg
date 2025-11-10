@@ -20,32 +20,28 @@ logger = logging.getLogger(__name__)
 
 def validate_caltable_exists(caltable_path: str) -> None:
     """Verify that a calibration table exists and is readable.
-    
+
     CASA calibration tables are directories (like Measurement Sets), not files.
-    
+
     Raises:
         FileNotFoundError: If table doesn't exist
         ValueError: If table is empty or unreadable
     """
     if not os.path.exists(caltable_path):
-        raise FileNotFoundError(
-            f"Calibration table does not exist: {caltable_path}"
-        )
-    
+        raise FileNotFoundError(f"Calibration table does not exist: {caltable_path}")
+
     # CASA calibration tables are directories, not files (like MS files)
     if not os.path.isdir(caltable_path):
         raise ValueError(
             f"Calibration table path is not a directory: {caltable_path}. "
             f"CASA calibration tables must be directories."
         )
-    
+
     # Try to open the table to verify it's readable
     try:
         with table(caltable_path, readonly=True) as tb:
             if tb.nrows() == 0:
-                raise ValueError(
-                    f"Calibration table has no solutions: {caltable_path}"
-                )
+                raise ValueError(f"Calibration table has no solutions: {caltable_path}")
     except Exception as e:
         raise ValueError(
             f"Calibration table is unreadable or corrupted: {caltable_path}. "
@@ -63,13 +59,13 @@ def validate_caltable_compatibility(
     refant: Optional[Union[int, str]] = None,
 ) -> List[str]:
     """Validate that a calibration table is compatible with an MS.
-    
+
     Checks:
     - Antenna compatibility (if check_antennas=True)
     - Frequency compatibility (if check_frequencies=True) - NOTE: incomplete
     - Spectral window compatibility (if check_spw=True)
     - Reference antenna has solutions (if refant provided)
-    
+
     Args:
         caltable_path: Path to calibration table
         ms_path: Path to Measurement Set
@@ -77,16 +73,16 @@ def validate_caltable_compatibility(
         check_frequencies: Whether to check frequency compatibility (currently incomplete)
         check_spw: Whether to check SPW compatibility
         refant: Optional reference antenna ID to verify has solutions
-        
+
     Returns:
         List of warning messages (empty if all checks pass)
-        
+
     Raises:
         FileNotFoundError: If MS or caltable doesn't exist
         ValueError: If compatibility issues are found (critical errors)
     """
     warnings: List[str] = []
-    
+
     # Read MS antenna list
     ms_antennas = set()
     if check_antennas:
@@ -97,7 +93,7 @@ def validate_caltable_compatibility(
             raise ValueError(
                 f"Failed to read MS antenna table: {ms_path}. Error: {e}"
             ) from e
-    
+
     # Read MS frequency range
     ms_freq_min = None
     ms_freq_max = None
@@ -109,7 +105,7 @@ def validate_caltable_compatibility(
                 if len(chan_freqs) > 0:
                     ms_freq_min = float(np.min(chan_freqs))
                     ms_freq_max = float(np.max(chan_freqs))
-                
+
                 if check_spw:
                     # Get SPW IDs from DATA_DESCRIPTION
                     try:
@@ -123,15 +119,13 @@ def validate_caltable_compatibility(
             raise ValueError(
                 f"Failed to read MS spectral window table: {ms_path}. Error: {e}"
             ) from e
-    
+
     # Read calibration table
     try:
         with table(caltable_path, readonly=True) as tb:
             if tb.nrows() == 0:
-                raise ValueError(
-                    f"Calibration table has no solutions: {caltable_path}"
-                )
-            
+                raise ValueError(f"Calibration table has no solutions: {caltable_path}")
+
             # Check antenna compatibility
             if check_antennas:
                 cal_antennas = set()
@@ -145,14 +139,14 @@ def validate_caltable_compatibility(
                     # Filter out -1 values (indicates antenna-based calibration)
                     valid_ant2 = ant2_values[ant2_values >= 0]
                     cal_antennas.update(valid_ant2)
-                
+
                 # Check for critical mismatches
                 if len(cal_antennas) == 0:
                     # No antennas in caltable - this is critical
                     raise ValueError(
                         f"Calibration table has no antenna solutions: {caltable_path}"
                     )
-                
+
                 missing_antennas = ms_antennas - cal_antennas
                 if missing_antennas:
                     if len(missing_antennas) == len(ms_antennas):
@@ -170,7 +164,7 @@ def validate_caltable_compatibility(
                             + ("..." if len(missing_antennas) > 10 else "")
                             + " (CASA will flag data for these antennas)"
                         )
-                
+
                 # Check reference antenna has solutions
                 if refant is not None:
                     # Handle both string and int refant values
@@ -180,10 +174,9 @@ def validate_caltable_compatibility(
                         # Outriggers are preferred for reference antenna due to better
                         # phase stability and longer baselines
                         outrigger_refant = select_outrigger_refant(
-                            list(cal_antennas),
-                            preferred_refant=refant_int
+                            list(cal_antennas), preferred_refant=refant_int
                         )
-                        
+
                         if outrigger_refant is not None:
                             error_msg = (
                                 f"Reference antenna {refant_int} has no solutions in calibration table: "
@@ -202,14 +195,14 @@ def validate_caltable_compatibility(
                                 f"or check why antenna {refant_int} has no solutions "
                                 f"(it may be flagged or not present in the calibration data)."
                             )
-                        
+
                         raise ValueError(error_msg)
-            
+
             # Check frequency/SPW compatibility
             if check_frequencies or check_spw:
                 if "SPECTRAL_WINDOW_ID" in tb.colnames():
                     cal_spw_ids = set(tb.getcol("SPECTRAL_WINDOW_ID"))
-                    
+
                     if check_spw:
                         missing_spws = ms_spw_ids - cal_spw_ids
                         if missing_spws:
@@ -231,22 +224,26 @@ def validate_caltable_compatibility(
                                     f"MS has {len(missing_spws)} SPWs not in calibration table: "
                                     f"{sorted(missing_spws)}"
                                 )
-                    
+
                     # Check frequency overlap (if we have frequency info)
                     # NOTE: Frequency checking is incomplete - CASA caltables don't always
                     # store frequencies directly. This would require matching SPW IDs and
                     # checking REF_FREQUENCY from SPW tables, which is complex.
-                    if check_frequencies and ms_freq_min is not None and ms_freq_max is not None:
+                    if (
+                        check_frequencies
+                        and ms_freq_min is not None
+                        and ms_freq_max is not None
+                    ):
                         warnings.append(
                             "Frequency compatibility check not fully implemented. "
                             "SPW compatibility check should be sufficient."
                         )
-            
+
     except Exception as e:
         raise ValueError(
             f"Failed to read calibration table: {caltable_path}. Error: {e}"
         ) from e
-    
+
     return warnings
 
 
@@ -259,41 +256,39 @@ def validate_caltables_for_use(
     refant: Optional[Union[int, str]] = None,
 ) -> None:
     """Validate multiple calibration tables before use.
-    
+
     This is a convenience function that validates existence and optionally
     compatibility for a list of calibration tables.
-    
+
     Args:
         caltable_paths: List of calibration table paths (may include None)
         ms_path: Path to Measurement Set
         require_all: If True, all tables must exist. If False, None entries are skipped.
         check_compatibility: Whether to check compatibility with MS
         refant: Optional reference antenna ID to verify has solutions in all tables
-        
+
     Raises:
         FileNotFoundError: If required tables don't exist
         ValueError: If tables are invalid or incompatible
     """
     valid_tables = [ct for ct in caltable_paths if ct is not None]
-    
+
     if not valid_tables:
         if require_all:
             raise ValueError("No calibration tables provided")
         return
-    
+
     # Validate existence
     for ct in valid_tables:
         validate_caltable_exists(ct)
-    
+
     # Validate compatibility
     if check_compatibility:
         all_warnings = []
         for ct in valid_tables:
-            warnings = validate_caltable_compatibility(
-                ct, ms_path, refant=refant
-            )
+            warnings = validate_caltable_compatibility(ct, ms_path, refant=refant)
             all_warnings.extend(warnings)
-        
+
         if all_warnings:
             # Log warnings but don't fail (non-critical issues)
             logger.warning(
@@ -301,4 +296,3 @@ def validate_caltables_for_use(
                 + "; ".join(all_warnings[:5])
                 + ("..." if len(all_warnings) > 5 else "")
             )
-

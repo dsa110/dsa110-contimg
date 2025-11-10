@@ -37,10 +37,14 @@ def _time_from_seconds(seconds: Optional[np.ndarray]) -> Optional[Time]:
     """
     if seconds is None or len(seconds) == 0:
         return None
-    from dsa110_contimg.utils.time_utils import detect_casa_time_format, DEFAULT_YEAR_RANGE
+    from dsa110_contimg.utils.time_utils import (
+        detect_casa_time_format,
+        DEFAULT_YEAR_RANGE,
+    )
+
     time_sec = float(np.mean(seconds))
     _, mjd = detect_casa_time_format(time_sec, DEFAULT_YEAR_RANGE)
-    return Time(mjd, format='mjd', scale='utc')
+    return Time(mjd, format="mjd", scale="utc")
 
 
 def load_pointing(path: str | Path, field_id: Optional[int] = None) -> Dict[str, Any]:
@@ -53,7 +57,7 @@ def load_pointing(path: str | Path, field_id: Optional[int] = None) -> Dict[str,
     field_id : int, optional
         When reading an MS, select this FIELD_ID; defaults to the FIELD with
         the largest number of rows.
-        
+
     Returns
     -------
     dict
@@ -65,7 +69,7 @@ def load_pointing(path: str | Path, field_id: Optional[int] = None) -> Dict[str,
         - fields: List of field information (MS only)
         - selected_field_id: Selected field ID
         - ms_path: Path to MS (if applicable)
-        
+
     Raises
     ------
     FileNotFoundError
@@ -82,12 +86,8 @@ def load_pointing(path: str | Path, field_id: Optional[int] = None) -> Dict[str,
         raise FileNotFoundError(f"Path does not exist: {path}")
 
     # Validate field_id if provided
-    if field_id is not None and (
-        not isinstance(field_id, int) or field_id < 0
-    ):
-        raise ValueError(
-            f"field_id must be a non-negative integer, got: {field_id}"
-        )
+    if field_id is not None and (not isinstance(field_id, int) or field_id < 0):
+        raise ValueError(f"field_id must be a non-negative integer, got: {field_id}")
 
     info: Dict[str, Any] = {
         "input_path": str(path),
@@ -123,16 +123,16 @@ def load_pointing(path: str | Path, field_id: Optional[int] = None) -> Dict[str,
             for fid in unique_ids:
                 idx = np.where(field_ids == fid)[0]
                 if int(fid) >= len(ra_list):
-                    logger.warning(
-                        "Field %s index out of range for PHASE_DIR", fid
-                    )
+                    logger.warning("Field %s index out of range for PHASE_DIR", fid)
                     continue
-                fields.append({
-                    "field_id": int(fid),
-                    "rows": int(idx.size),
-                    "ra_deg": float(ra_list[int(fid)]),
-                    "dec_deg": float(dec_list[int(fid)]),
-                })
+                fields.append(
+                    {
+                        "field_id": int(fid),
+                        "rows": int(idx.size),
+                        "ra_deg": float(ra_list[int(fid)]),
+                        "dec_deg": float(dec_list[int(fid)]),
+                    }
+                )
             info["fields"] = fields
 
             if not fields:
@@ -171,9 +171,7 @@ def load_pointing(path: str | Path, field_id: Optional[int] = None) -> Dict[str,
                     raise ValueError("No Header group found in UVH5 file")
 
                 time_arr = (
-                    np.asarray(header["time_array"])
-                    if "time_array" in header
-                    else None
+                    np.asarray(header["time_array"]) if "time_array" in header else None
                 )
                 info["mid_time"] = _time_from_seconds(time_arr)
 
@@ -189,9 +187,7 @@ def load_pointing(path: str | Path, field_id: Optional[int] = None) -> Dict[str,
                 if dec_val is not None:
                     info["dec_deg"] = np.degrees(dec_val)
                 else:
-                    logger.warning(
-                        "No phase_center_dec found in UVH5 extra_keywords"
-                    )
+                    logger.warning("No phase_center_dec found in UVH5 extra_keywords")
 
                 if info["mid_time"] is not None and ha_val is not None:
                     lst = info["mid_time"].sidereal_time(
@@ -201,8 +197,7 @@ def load_pointing(path: str | Path, field_id: Optional[int] = None) -> Dict[str,
                     info["ra_deg"] = float(ra.deg)
                 else:
                     logger.warning(
-                        "Cannot compute RA: missing mid_time or "
-                        "ha_phase_center"
+                        "Cannot compute RA: missing mid_time or " "ha_phase_center"
                     )
 
             return info
@@ -212,7 +207,5 @@ def load_pointing(path: str | Path, field_id: Optional[int] = None) -> Dict[str,
             raise RuntimeError(f"Error reading UVH5 {path}: {e}") from e
 
     raise ValueError(
-        f"Unsupported file format: {path}. "
-        f"Expected .ms directory or .hdf5 file"
+        f"Unsupported file format: {path}. " f"Expected .ms directory or .hdf5 file"
     )
-

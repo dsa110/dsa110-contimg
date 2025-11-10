@@ -6,6 +6,7 @@ This module provides functions to:
 2. Image individual SPWs
 3. Image all SPWs and return paths for adaptive binning
 """
+
 from __future__ import annotations
 
 import logging
@@ -28,6 +29,7 @@ LOG = logging.getLogger(__name__)
 @dataclass
 class SPWInfo:
     """Information about a spectral window."""
+
     spw_id: int
     center_freq_mhz: float
     bandwidth_mhz: float
@@ -83,18 +85,19 @@ def get_spw_info(ms_path: str) -> List[SPWInfo]:
                 freq_min_mhz = freq_min_hz / 1e6
                 freq_max_mhz = freq_max_hz / 1e6
 
-                spw_info_list.append(SPWInfo(
-                    spw_id=spw_id,
-                    center_freq_mhz=center_freq_mhz,
-                    bandwidth_mhz=bandwidth_mhz,
-                    num_channels=int(num_chans[spw_id]),
-                    freq_min_mhz=freq_min_mhz,
-                    freq_max_mhz=freq_max_mhz,
-                ))
+                spw_info_list.append(
+                    SPWInfo(
+                        spw_id=spw_id,
+                        center_freq_mhz=center_freq_mhz,
+                        bandwidth_mhz=bandwidth_mhz,
+                        num_channels=int(num_chans[spw_id]),
+                        freq_min_mhz=freq_min_mhz,
+                        freq_max_mhz=freq_max_mhz,
+                    )
+                )
 
     except Exception as e:
-        raise RuntimeError(
-            f"Failed to read SPW information from {ms_path}: {e}") from e
+        raise RuntimeError(f"Failed to read SPW information from {ms_path}: {e}") from e
 
     return spw_info_list
 
@@ -155,6 +158,7 @@ def image_spw(
     if Path(pbcor_casa).exists():
         # Convert to FITS if needed
         from dsa110_contimg.imaging.export import export_fits
+
         casa_images = [pbcor_casa]
         exported = export_fits(casa_images)
         if exported and exported[0] and Path(exported[0]).exists():
@@ -167,7 +171,7 @@ def image_spw(
 
 
 def _image_spw_parallel_wrapper(
-    args: Tuple[str, int, Path, str, dict]
+    args: Tuple[str, int, Path, str, dict],
 ) -> Tuple[int, Path]:
     """Wrapper function for parallel SPW imaging (must be at module level for pickling).
 
@@ -236,9 +240,7 @@ def image_all_spws(
     """
     # Import MS locking utility if serialization is enabled
     if serialize_ms_access:
-        from dsa110_contimg.utils.ms_locking import (
-            ms_lock, cleanup_stale_locks
-        )
+        from dsa110_contimg.utils.ms_locking import ms_lock, cleanup_stale_locks
 
         # Clean up any stale locks before starting
         cleanup_stale_locks(ms_path)
@@ -355,7 +357,6 @@ def _image_all_spws_impl(
     if not results:
         raise RuntimeError("No SPWs were successfully imaged")
 
-    LOG.info(
-        f"Successfully imaged {len(results)}/{len(spw_ids_to_image)} SPW(s)")
+    LOG.info(f"Successfully imaged {len(results)}/{len(spw_ids_to_image)} SPW(s)")
 
     return sorted(results, key=lambda x: x[0])

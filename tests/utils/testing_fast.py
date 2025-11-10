@@ -28,7 +28,7 @@ import astropy.units as u
 from astropy.time import Time
 from pyuvdata import UVData
 
-SRC_ROOT = os.path.abspath(os.path.join(os.path.dirname(__file__), 'src'))
+SRC_ROOT = os.path.abspath(os.path.join(os.path.dirname(__file__), "src"))
 if SRC_ROOT not in sys.path:
     sys.path.insert(0, SRC_ROOT)
 
@@ -55,8 +55,8 @@ END = os.environ.get("END", "2025-09-05 03:13:30")
 
 # Trim parameters
 N_TIMES_KEEP = int(os.environ.get("N_TIMES_KEEP", "1"))
-N_CH_KEEP    = int(os.environ.get("N_CH_KEEP",    "16"))
-N_ANTS_KEEP  = int(os.environ.get("N_ANTS_KEEP",  "8"))
+N_CH_KEEP = int(os.environ.get("N_CH_KEEP", "16"))
+N_ANTS_KEEP = int(os.environ.get("N_ANTS_KEEP", "8"))
 
 
 def first_unique_time_jd(uvh5_path):
@@ -97,8 +97,10 @@ def partial_read_merge(files, n_times_keep=1, n_chan_keep=16, n_ants_keep=8):
         except Exception:
             pass
         if first:
-            ant_ids = np.unique(np.r_[tmp.ant_1_array[:tmp.Nbls], tmp.ant_2_array[:tmp.Nbls]]).astype(int)
-            keep_ants = ant_ids[:min(n_ants_keep, ant_ids.size)]
+            ant_ids = np.unique(
+                np.r_[tmp.ant_1_array[: tmp.Nbls], tmp.ant_2_array[: tmp.Nbls]]
+            ).astype(int)
+            keep_ants = ant_ids[: min(n_ants_keep, ant_ids.size)]
             tmp.select(antenna_nums=keep_ants, run_check=False)
             uv = tmp
             first = False
@@ -180,10 +182,10 @@ def write_tiny_ms(in_dir, out_ms):
         uv.uvw_array[row_slice, :] = calc_uvw_blt(
             blen,
             time_vec,
-            'J2000',
+            "J2000",
             ra_icrs,
             dec_icrs,
-            obs='OVRO_MMA',
+            obs="OVRO_MMA",
         )
 
     # Ascending frequency and MS-friendly metadata
@@ -214,7 +216,8 @@ def write_tiny_ms(in_dir, out_ms):
     print(f"[done] wrote tiny MS in {dt:.2f}s")
     print(
         f"Dims: Ntimes={uv.Ntimes} Nbls={uv.Nbls} Nblts={uv.Nblts} "
-        f"Nchan={uv.Nfreqs} Npols={uv.Npols}")
+        f"Nchan={uv.Nfreqs} Npols={uv.Npols}"
+    )
 
 
 if __name__ == "__main__":

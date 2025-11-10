@@ -16,55 +16,77 @@ from .downsample_hdf5_batch import downsample_uvh5_batch
 
 
 def add_single_args(p: argparse.ArgumentParser) -> None:
-    p.add_argument('input', help='Input UVH5 file')
-    p.add_argument('output', help='Output UVH5 file')
-    p.add_argument('--time-factor', type=int, default=1)
-    p.add_argument('--freq-factor', type=int, default=1)
-    p.add_argument('--method', choices=['average', 'weighted'], default='average')
-    p.add_argument('--chunk-size', type=int, default=1000)
+    p.add_argument("input", help="Input UVH5 file")
+    p.add_argument("output", help="Output UVH5 file")
+    p.add_argument("--time-factor", type=int, default=1)
+    p.add_argument("--freq-factor", type=int, default=1)
+    p.add_argument("--method", choices=["average", "weighted"], default="average")
+    p.add_argument("--chunk-size", type=int, default=1000)
 
 
 def add_fast_args(p: argparse.ArgumentParser) -> None:
-    p.add_argument('input', help='Input UVH5 file')
-    p.add_argument('output', help='Output UVH5 file')
-    p.add_argument('--time-factor', type=int, default=1)
-    p.add_argument('--freq-factor', type=int, default=1)
-    p.add_argument('--method', choices=['average', 'weighted'], default='average')
-    p.add_argument('--chunk-size', type=int, default=10000)
+    p.add_argument("input", help="Input UVH5 file")
+    p.add_argument("output", help="Output UVH5 file")
+    p.add_argument("--time-factor", type=int, default=1)
+    p.add_argument("--freq-factor", type=int, default=1)
+    p.add_argument("--method", choices=["average", "weighted"], default="average")
+    p.add_argument("--chunk-size", type=int, default=10000)
 
 
 def add_batch_args(p: argparse.ArgumentParser) -> None:
-    p.add_argument('input_dir', help='Directory of input UVH5 files')
-    p.add_argument('output_dir', help='Directory for downsampled outputs')
-    p.add_argument('--time-factor', type=int, default=1)
-    p.add_argument('--freq-factor', type=int, default=1)
-    p.add_argument('--method', choices=['average', 'weighted'], default='average')
-    p.add_argument('--chunk-size', type=int, default=10000)
-    p.add_argument('--max-workers', type=int, default=None)
+    p.add_argument("input_dir", help="Directory of input UVH5 files")
+    p.add_argument("output_dir", help="Directory for downsampled outputs")
+    p.add_argument("--time-factor", type=int, default=1)
+    p.add_argument("--freq-factor", type=int, default=1)
+    p.add_argument("--method", choices=["average", "weighted"], default="average")
+    p.add_argument("--chunk-size", type=int, default=10000)
+    p.add_argument("--max-workers", type=int, default=None)
 
 
 def main(argv: list[str] | None = None) -> int:
     argv = list(sys.argv[1:] if argv is None else argv)
 
-    parser = argparse.ArgumentParser(prog='downsample', description='UVH5 downsampling toolkit')
-    sub = parser.add_subparsers(dest='cmd', required=True)
+    parser = argparse.ArgumentParser(
+        prog="downsample", description="UVH5 downsampling toolkit"
+    )
+    sub = parser.add_subparsers(dest="cmd", required=True)
 
-    p_single = sub.add_parser('single', help='Reference single-file downsample')
+    p_single = sub.add_parser("single", help="Reference single-file downsample")
     add_single_args(p_single)
-    p_single.set_defaults(func=lambda a: downsample_uvh5(a.input, a.output, a.time_factor, a.freq_factor, a.method, a.chunk_size))
+    p_single.set_defaults(
+        func=lambda a: downsample_uvh5(
+            a.input, a.output, a.time_factor, a.freq_factor, a.method, a.chunk_size
+        )
+    )
 
-    p_fast = sub.add_parser('fast', help='Optimized single-file downsample')
+    p_fast = sub.add_parser("fast", help="Optimized single-file downsample")
     add_fast_args(p_fast)
-    p_fast.set_defaults(func=lambda a: downsample_uvh5_fast(a.input, a.output, a.time_factor, a.freq_factor, a.method, a.chunk_size))
+    p_fast.set_defaults(
+        func=lambda a: downsample_uvh5_fast(
+            a.input, a.output, a.time_factor, a.freq_factor, a.method, a.chunk_size
+        )
+    )
 
-    p_batch = sub.add_parser('batch', help='Parallel directory downsample (uses fast path)')
+    p_batch = sub.add_parser(
+        "batch", help="Parallel directory downsample (uses fast path)"
+    )
     add_batch_args(p_batch)
-    p_batch.set_defaults(func=lambda a: downsample_uvh5_batch(a.input_dir, a.output_dir, a.time_factor, a.freq_factor, a.method, a.chunk_size, a.max_workers))
+    p_batch.set_defaults(
+        func=lambda a: downsample_uvh5_batch(
+            a.input_dir,
+            a.output_dir,
+            a.time_factor,
+            a.freq_factor,
+            a.method,
+            a.chunk_size,
+            a.max_workers,
+        )
+    )
 
     args = parser.parse_args(argv)
 
     # Basic validations for single/fast
-    if args.cmd in ('single', 'fast'):
+    if args.cmd in ("single", "fast"):
         if not Path(args.input).exists():
             parser.error(f"Input file not found: {args.input}")
         Path(args.output).parent.mkdir(parents=True, exist_ok=True)
@@ -75,10 +97,10 @@ def main(argv: list[str] | None = None) -> int:
         Path(args.output_dir).mkdir(parents=True, exist_ok=True)
 
     # Validate factors
-    if getattr(args, 'time_factor', 1) < 1:
-        parser.error('time-factor must be >= 1')
-    if getattr(args, 'freq_factor', 1) < 1:
-        parser.error('freq-factor must be >= 1')
+    if getattr(args, "time_factor", 1) < 1:
+        parser.error("time-factor must be >= 1")
+    if getattr(args, "freq_factor", 1) < 1:
+        parser.error("freq-factor must be >= 1")
 
     try:
         res = args.func(args)
@@ -88,5 +110,5 @@ def main(argv: list[str] | None = None) -> int:
     return 0
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     raise SystemExit(main())

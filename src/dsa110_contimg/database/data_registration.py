@@ -1,4 +1,5 @@
 """Helper functions for registering data in the pipeline."""
+
 import logging
 from pathlib import Path
 from typing import Optional, Dict, Any
@@ -22,7 +23,7 @@ def register_pipeline_data(
     db_path: Optional[Path] = None,
 ) -> bool:
     """Register a data product created by the pipeline.
-    
+
     Args:
         data_type: Type of data ('ms', 'calib_ms', 'image', etc.)
         data_id: Unique identifier
@@ -30,18 +31,18 @@ def register_pipeline_data(
         metadata: Optional metadata dictionary
         auto_publish: Whether auto-publish is enabled
         db_path: Path to products database (defaults to standard location)
-        
+
     Returns:
         True if successful
     """
     if db_path is None:
         db_path = Path("/data/dsa110-contimg/state/products.sqlite3")
-    
+
     try:
         # Ensure file_path is in staging directory
         file_path = Path(file_path).resolve()
         staging_dir = get_staging_dir(data_type)
-        
+
         # If file is not in staging, move it or use staging path
         if not str(file_path).startswith(str(staging_dir)):
             # File is elsewhere - we'll register it with its current path
@@ -53,7 +54,7 @@ def register_pipeline_data(
             stage_path = str(file_path)
         else:
             stage_path = str(file_path)
-        
+
         # Register in data registry
         conn = ensure_data_registry_db(db_path)
         register_data(
@@ -65,10 +66,10 @@ def register_pipeline_data(
             auto_publish=auto_publish,
         )
         conn.close()
-        
+
         logger.info(f"Registered {data_type} {data_id} at {stage_path}")
         return True
-        
+
     except Exception as e:
         logger.error(f"Failed to register {data_type} {data_id}: {e}")
         return False
@@ -81,19 +82,19 @@ def link_pipeline_data(
     db_path: Optional[Path] = None,
 ) -> bool:
     """Link two data instances with a relationship.
-    
+
     Args:
         parent_id: Parent data ID
         child_id: Child data ID
         relationship_type: Type of relationship (e.g., 'derived_from', 'contains')
         db_path: Path to products database
-        
+
     Returns:
         True if successful
     """
     if db_path is None:
         db_path = Path("/data/dsa110-contimg/state/products.sqlite3")
-    
+
     try:
         conn = ensure_data_registry_db(db_path)
         link_data(conn, parent_id, child_id, relationship_type)

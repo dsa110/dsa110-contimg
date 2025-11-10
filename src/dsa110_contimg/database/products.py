@@ -4,6 +4,7 @@ Products database helpers for imaging artifacts and MS index.
 Provides a single place to create/migrate the products DB schema and helper
 routines to upsert ms_index rows and insert image artifacts.
 """
+
 import os
 import sqlite3
 import time
@@ -72,9 +73,7 @@ def ensure_products_db(path: Path) -> sqlite3.Connection:
     )
     # Minimal index to speed lookups by Measurement Set
     try:
-        conn.execute(
-            "CREATE INDEX IF NOT EXISTS idx_images_ms_path ON images(ms_path)"
-        )
+        conn.execute("CREATE INDEX IF NOT EXISTS idx_images_ms_path ON images(ms_path)")
     except Exception:
         pass
     # Index for photometry lookups by image
@@ -120,8 +119,7 @@ def ensure_products_db(path: Path) -> sqlite3.Connection:
 
     # Auto-register default storage locations if table is empty
     try:
-        existing = conn.execute(
-            "SELECT COUNT(*) FROM storage_locations").fetchone()[0]
+        existing = conn.execute("SELECT COUNT(*) FROM storage_locations").fetchone()[0]
         if existing == 0:
             _register_default_storage_locations(conn)
     except Exception:
@@ -136,30 +134,54 @@ def _register_default_storage_locations(conn: sqlite3.Connection) -> None:
     import time
 
     default_locations = [
-        ("ms_files", "/stage/dsa110-contimg/ms",
-         "Measurement Set files (converted from HDF5)",
-         "Default location for MS files after conversion"),
-        ("calibration_tables", "/stage/dsa110-contimg/ms",
-         "Calibration tables (BP, GP, 2G) stored alongside MS files",
-         "Calibration tables are stored in same directory as MS files"),
-        ("images", "/stage/dsa110-contimg/images",
-         "Individual tile images (before mosaicking)",
-         "Images created from calibrated MS files"),
-        ("mosaics", "/stage/dsa110-contimg/mosaics",
-         "Final mosaic images (combined from tiles)",
-         "Output location for completed mosaics"),
-        ("hdf5_staging", "/stage/dsa110-contimg/hdf5",
-         "HDF5 files staged for conversion (temporary)",
-         "HDF5 files moved here from incoming before conversion"),
-        ("hdf5_incoming", "/data/incoming",
-         "HDF5 files in incoming directory (never auto-deleted)",
-         "Original HDF5 files - never automatically removed"),
-        ("products_db", "state/products.sqlite3",
-         "Products database (relative to project root)",
-         "SQLite database tracking MS files, images, and mosaics"),
-        ("registry_db", "state/cal_registry.sqlite3",
-         "Calibration registry database (relative to project root)",
-         "SQLite database tracking calibration table validity windows"),
+        (
+            "ms_files",
+            "/stage/dsa110-contimg/ms",
+            "Measurement Set files (converted from HDF5)",
+            "Default location for MS files after conversion",
+        ),
+        (
+            "calibration_tables",
+            "/stage/dsa110-contimg/ms",
+            "Calibration tables (BP, GP, 2G) stored alongside MS files",
+            "Calibration tables are stored in same directory as MS files",
+        ),
+        (
+            "images",
+            "/stage/dsa110-contimg/images",
+            "Individual tile images (before mosaicking)",
+            "Images created from calibrated MS files",
+        ),
+        (
+            "mosaics",
+            "/stage/dsa110-contimg/mosaics",
+            "Final mosaic images (combined from tiles)",
+            "Output location for completed mosaics",
+        ),
+        (
+            "hdf5_staging",
+            "/stage/dsa110-contimg/hdf5",
+            "HDF5 files staged for conversion (temporary)",
+            "HDF5 files moved here from incoming before conversion",
+        ),
+        (
+            "hdf5_incoming",
+            "/data/incoming",
+            "HDF5 files in incoming directory (never auto-deleted)",
+            "Original HDF5 files - never automatically removed",
+        ),
+        (
+            "products_db",
+            "state/products.sqlite3",
+            "Products database (relative to project root)",
+            "SQLite database tracking MS files, images, and mosaics",
+        ),
+        (
+            "registry_db",
+            "state/cal_registry.sqlite3",
+            "Calibration registry database (relative to project root)",
+            "SQLite database tracking calibration table validity windows",
+        ),
     ]
 
     now = time.time()
@@ -359,19 +381,16 @@ def get_storage_locations(
     )
     # Lightweight migrations to add missing columns
     try:
-        cols = {r[1] for r in conn.execute(
-            'PRAGMA table_info(ms_index)').fetchall()}
+        cols = {r[1] for r in conn.execute("PRAGMA table_info(ms_index)").fetchall()}
         cur = conn.cursor()
-        if 'stage' not in cols:
-            cur.execute('ALTER TABLE ms_index ADD COLUMN stage TEXT')
-        if 'stage_updated_at' not in cols:
-            cur.execute(
-                'ALTER TABLE ms_index ADD COLUMN stage_updated_at REAL')
-        if 'cal_applied' not in cols:
-            cur.execute(
-                'ALTER TABLE ms_index ADD COLUMN cal_applied INTEGER DEFAULT 0')
-        if 'imagename' not in cols:
-            cur.execute('ALTER TABLE ms_index ADD COLUMN imagename TEXT')
+        if "stage" not in cols:
+            cur.execute("ALTER TABLE ms_index ADD COLUMN stage TEXT")
+        if "stage_updated_at" not in cols:
+            cur.execute("ALTER TABLE ms_index ADD COLUMN stage_updated_at REAL")
+        if "cal_applied" not in cols:
+            cur.execute("ALTER TABLE ms_index ADD COLUMN cal_applied INTEGER DEFAULT 0")
+        if "imagename" not in cols:
+            cur.execute("ALTER TABLE ms_index ADD COLUMN imagename TEXT")
         conn.commit()
     except Exception:
         pass
@@ -399,8 +418,9 @@ def ms_index_upsert(
     """
     now = time.time()
     stage_updated_at = (
-        stage_updated_at if stage_updated_at is not None else (
-            now if stage is not None else None)
+        stage_updated_at
+        if stage_updated_at is not None
+        else (now if stage is not None else None)
     )
     conn.execute(
         """
@@ -445,8 +465,8 @@ def images_insert(
 ) -> None:
     """Insert an image artifact record."""
     conn.execute(
-        'INSERT INTO images(path, ms_path, created_at, type, beam_major_arcsec, noise_jy, pbcor) '
-        'VALUES(?,?,?,?,?,?,?)',
+        "INSERT INTO images(path, ms_path, created_at, type, beam_major_arcsec, noise_jy, pbcor) "
+        "VALUES(?,?,?,?,?,?,?)",
         (
             path,
             ms_path,
@@ -472,8 +492,8 @@ def photometry_insert(
 ) -> None:
     """Insert a forced photometry measurement."""
     conn.execute(
-        'INSERT INTO photometry(image_path, ra_deg, dec_deg, nvss_flux_mjy, peak_jyb, peak_err_jyb, measured_at) '
-        'VALUES(?,?,?,?,?,?,?)',
+        "INSERT INTO photometry(image_path, ra_deg, dec_deg, nvss_flux_mjy, peak_jyb, peak_err_jyb, measured_at) "
+        "VALUES(?,?,?,?,?,?,?)",
         (
             image_path,
             ra_deg,
@@ -527,17 +547,18 @@ def discover_ms_files(
 
         # Check if already registered
         existing = conn.execute(
-            "SELECT path FROM ms_index WHERE path = ?",
-            (ms_path_str,)
+            "SELECT path FROM ms_index WHERE path = ?", (ms_path_str,)
         ).fetchone()
 
         # Extract time range from MS using standardized utility
         from dsa110_contimg.utils.time_utils import extract_ms_time_range
+
         start_mjd, end_mjd, mid_mjd = extract_ms_time_range(ms_path_str)
 
         # Use current time in MJD as fallback if extraction failed
         if mid_mjd is None:
             from astropy.time import Time
+
             mid_mjd = Time.now().mjd
 
         # Register/update in database
@@ -559,5 +580,10 @@ def discover_ms_files(
     return registered
 
 
-__all__ = ['ensure_products_db', 'ms_index_upsert',
-           'images_insert', 'photometry_insert', 'discover_ms_files']
+__all__ = [
+    "ensure_products_db",
+    "ms_index_upsert",
+    "images_insert",
+    "photometry_insert",
+    "discover_ms_files",
+]

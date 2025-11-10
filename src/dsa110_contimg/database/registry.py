@@ -56,7 +56,7 @@ from typing import List, Optional, Sequence, Tuple
 
 
 DEFAULT_ORDER = [
-    ("K", 10),   # delays
+    ("K", 10),  # delays
     ("BA", 20),  # bandpass amplitude
     ("BP", 30),  # bandpass phase
     ("GA", 40),  # gain amplitude
@@ -101,9 +101,7 @@ def ensure_db(path: Path) -> sqlite3.Connection:
         )
         """
     )
-    conn.execute(
-        "CREATE INDEX IF NOT EXISTS idx_caltables_set ON caltables(set_name)"
-    )
+    conn.execute("CREATE INDEX IF NOT EXISTS idx_caltables_set ON caltables(set_name)")
     conn.execute(
         "CREATE INDEX IF NOT EXISTS idx_caltables_valid "
         "ON caltables(valid_start_mjd, valid_end_mjd)"
@@ -268,9 +266,7 @@ def register_set_from_prefix(
     return rows
 
 
-def retire_set(
-    db_path: Path, set_name: str, *, reason: Optional[str] = None
-) -> None:
+def retire_set(db_path: Path, set_name: str, *, reason: Optional[str] = None) -> None:
     conn = ensure_db(db_path)
     with conn:
         conn.execute(
@@ -296,25 +292,28 @@ def list_sets(db_path: Path) -> List[Tuple[str, int, int, int]]:
     return [(r[0], r[1], r[2], r[3]) for r in cur.fetchall()]
 
 
-def get_active_applylist(db_path: Path, mjd: float, set_name: Optional[str] = None) -> List[str]:
+def get_active_applylist(
+    db_path: Path, mjd: float, set_name: Optional[str] = None
+) -> List[str]:
     """Return ordered list of active tables applicable to mjd.
 
     When set_name is provided, restrict to that group; otherwise choose among
     active sets whose validity window includes mjd. If multiple sets match,
     pick the most recently created set (by created_at max) as winner.
-    
+
     **Compatibility Validation:**
-    
+
     When multiple sets overlap, this function validates compatibility by checking:
     - Same reference antenna (refant)
     - Same calibration field (cal_field)
-    
+
     If incompatible sets overlap, a warning is logged and the newest set is still
     selected, but users should be aware of potential calibration inconsistencies.
     """
     import logging
+
     logger = logging.getLogger(__name__)
-    
+
     conn = ensure_db(db_path)
     if set_name:
         rows = conn.execute(
@@ -340,10 +339,10 @@ def get_active_applylist(db_path: Path, mjd: float, set_name: Optional[str] = No
         """,
         (mjd, mjd),
     ).fetchall()
-    
+
     if not all_matching_sets:
         return []
-    
+
     # If multiple sets match, check compatibility
     if len(all_matching_sets) > 1:
         # Get metadata for all matching sets
@@ -360,38 +359,44 @@ def get_active_applylist(db_path: Path, mjd: float, set_name: Optional[str] = No
             ).fetchone()
             if rows:
                 set_metadata[set_name_row] = {
-                    'cal_field': rows[0],
-                    'refant': rows[1],
+                    "cal_field": rows[0],
+                    "refant": rows[1],
                 }
-        
+
         # Check compatibility between sets
         set_names = [s[0] for s in all_matching_sets]
         newest_set = set_names[0]
         newest_metadata = set_metadata.get(newest_set, {})
-        
+
         for other_set in set_names[1:]:
             other_metadata = set_metadata.get(other_set, {})
-            
+
             # Check refant compatibility
-            if (newest_metadata.get('refant') and other_metadata.get('refant') and
-                newest_metadata['refant'] != other_metadata['refant']):
+            if (
+                newest_metadata.get("refant")
+                and other_metadata.get("refant")
+                and newest_metadata["refant"] != other_metadata["refant"]
+            ):
                 logger.warning(
                     f"Overlapping calibration sets have different reference antennas: "
                     f"'{newest_set}' uses refant={newest_metadata['refant']}, "
                     f"'{other_set}' uses refant={other_metadata['refant']}. "
                     f"Selecting newest set '{newest_set}' but calibration may be inconsistent."
                 )
-            
+
             # Check cal_field compatibility
-            if (newest_metadata.get('cal_field') and other_metadata.get('cal_field') and
-                newest_metadata['cal_field'] != other_metadata['cal_field']):
+            if (
+                newest_metadata.get("cal_field")
+                and other_metadata.get("cal_field")
+                and newest_metadata["cal_field"] != other_metadata["cal_field"]
+            ):
                 logger.warning(
                     f"Overlapping calibration sets have different calibration fields: "
                     f"'{newest_set}' uses field={newest_metadata['cal_field']}, "
                     f"'{other_set}' uses field={other_metadata['cal_field']}. "
                     f"Selecting newest set '{newest_set}' but calibration may be inconsistent."
                 )
-    
+
     # Select winner set by created_at (most recent)
     chosen = all_matching_sets[0][0]
     out = conn.execute(
@@ -441,6 +446,7 @@ def register_and_verify_caltables(
         ValueError: If no tables found with prefix
     """
     import logging
+
     logger = logging.getLogger(__name__)
 
     # Ensure registry DB exists
@@ -490,6 +496,7 @@ def register_and_verify_caltables(
                 else:
                     # Fallback: use current time
                     from astropy.time import Time
+
                     mid_mjd = Time.now().mjd
                     logger.warning(
                         "Using current time (%.6f) for verification "
@@ -498,9 +505,7 @@ def register_and_verify_caltables(
                     )
 
             # Verify tables are discoverable via registry lookup
-            discovered = get_active_applylist(
-                registry_db, mid_mjd, set_name=set_name
-            )
+            discovered = get_active_applylist(registry_db, mid_mjd, set_name=set_name)
 
             if not discovered:
                 error_msg = (

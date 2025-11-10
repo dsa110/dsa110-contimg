@@ -11,16 +11,19 @@ from contextlib import contextmanager
 
 try:
     from IPython.display import display, HTML
+
     HAS_IPYTHON = True
 except ImportError:
     HAS_IPYTHON = False
 
     def display(*args, **kwargs):
         pass
+
     HTML = str
 
 try:
     from casacore.tables import table
+
     HAS_CASACORE = True
 except ImportError:
     HAS_CASACORE = False
@@ -46,7 +49,13 @@ class CasaTable(FileBase):
         Proxy object for accessing table columns with slicing support.
         """
 
-        def __init__(self, casatable: "CasaTable", name: str, flagrow: bool = False, flag: bool = False):
+        def __init__(
+            self,
+            casatable: "CasaTable",
+            name: str,
+            flagrow: bool = False,
+            flag: bool = False,
+        ):
             """
             Initialize column proxy.
 
@@ -61,7 +70,9 @@ class CasaTable(FileBase):
             self._flagrow = flagrow
             self._flag = flag
 
-        def __call__(self, start: int = 0, nrow: int = -1, incr: int = 1, flag: bool = False):
+        def __call__(
+            self, start: int = 0, nrow: int = -1, incr: int = 1, flag: bool = False
+        ):
             """
             Get column data.
 
@@ -131,7 +142,9 @@ class CasaTable(FileBase):
                 flag=self._flag,
             )
 
-    def __init__(self, name: str, table=None, title: Optional[str] = None, parent=None, **kwargs):
+    def __init__(
+        self, name: str, table=None, title: Optional[str] = None, parent=None, **kwargs
+    ):
         """
         Initialize CASA table browser.
 
@@ -216,7 +229,9 @@ class CasaTable(FileBase):
                 self._columns = tab.colnames()
                 self._keywords = tab.getkeywords()
                 self._subtables = list(tab.getsubtables())
-                self._writeable = tab.iswritable() if hasattr(tab, 'iswritable') else False
+                self._writeable = (
+                    tab.iswritable() if hasattr(tab, "iswritable") else False
+                )
 
                 # Create column proxies
                 self._create_column_proxies(tab)
@@ -263,8 +278,7 @@ class CasaTable(FileBase):
                 setattr(
                     self,
                     flag_attrname,
-                    CasaTable.ColumnProxy(
-                        self, name, flagrow=flagrow, flag=True),
+                    CasaTable.ColumnProxy(self, name, flagrow=flagrow, flag=True),
                 )
 
     def _create_subtable_proxies(self) -> None:
@@ -314,46 +328,63 @@ class CasaTable(FileBase):
             if blc is None:
                 # casacore.tables uses startrow, nrow, rowincr
                 if nrow == -1:
-                    coldata = tab.getcol(
-                        colname, startrow=start, rowincr=rowincr)
+                    coldata = tab.getcol(colname, startrow=start, rowincr=rowincr)
                 else:
                     coldata = tab.getcol(
-                        colname, startrow=start, nrow=nrow, rowincr=rowincr)
+                        colname, startrow=start, nrow=nrow, rowincr=rowincr
+                    )
             else:
                 coldata = tab.getcolslice(
-                    colname, blc=blc, trc=trc, incr=incr, startrow=start, nrow=nrow, rowincr=rowincr)
+                    colname,
+                    blc=blc,
+                    trc=trc,
+                    incr=incr,
+                    startrow=start,
+                    nrow=nrow,
+                    rowincr=rowincr,
+                )
 
             if coldata is None:
                 return None
 
             # Apply flags if requested
             if flagrow or flag:
-                shape = coldata.shape if isinstance(
-                    coldata, np.ndarray) else (len(coldata),)
+                shape = (
+                    coldata.shape
+                    if isinstance(coldata, np.ndarray)
+                    else (len(coldata),)
+                )
                 mask = np.zeros(shape, dtype=bool)
 
                 if flagrow and "FLAG_ROW" in self._columns:
                     if nrow == -1:
-                        fr = tab.getcol(
-                            "FLAG_ROW", startrow=start, rowincr=rowincr)
+                        fr = tab.getcol("FLAG_ROW", startrow=start, rowincr=rowincr)
                     else:
-                        fr = tab.getcol("FLAG_ROW", startrow=start,
-                                        nrow=nrow, rowincr=rowincr)
+                        fr = tab.getcol(
+                            "FLAG_ROW", startrow=start, nrow=nrow, rowincr=rowincr
+                        )
                     if fr.shape[0] == shape[0]:
                         mask[fr, ...] = True
 
                 if flag and "FLAG" in self._columns:
                     if blc is None:
                         if nrow == -1:
-                            fl = tab.getcol(
-                                "FLAG", startrow=start, rowincr=rowincr)
+                            fl = tab.getcol("FLAG", startrow=start, rowincr=rowincr)
                         else:
                             fl = tab.getcol(
-                                "FLAG", startrow=start, nrow=nrow, rowincr=rowincr)
+                                "FLAG", startrow=start, nrow=nrow, rowincr=rowincr
+                            )
                     else:
                         fl = tab.getcolslice(
-                            "FLAG", blc=blc, trc=trc, incr=incr, startrow=start, nrow=nrow, rowincr=rowincr)
-                    if fl.shape == shape[-len(fl.shape):]:
+                            "FLAG",
+                            blc=blc,
+                            trc=trc,
+                            incr=incr,
+                            startrow=start,
+                            nrow=nrow,
+                            rowincr=rowincr,
+                        )
+                    if fl.shape == shape[-len(fl.shape) :]:
                         mask[..., fl] = True
 
                 return masked_array(coldata, mask)
@@ -421,8 +452,7 @@ class CasaTable(FileBase):
             ("Subtables", f"{len(self._subtables)}"),
         ]
 
-        html += render_table(data,
-                             headers=["Property", "Value"], numbering=False)
+        html += render_table(data, headers=["Property", "Value"], numbering=False)
         html += "</div>"
 
         # Column list
@@ -471,8 +501,7 @@ class CasaTable(FileBase):
 
             headers = ["Row"] + sample_cols
             html += render_table(
-                [(str(i), " | ".join(row[1:]))
-                 for i, row in enumerate(sample_data)],
+                [(str(i), " | ".join(row[1:])) for i, row in enumerate(sample_data)],
                 headers=headers,
                 numbering=False,
             )

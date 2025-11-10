@@ -47,14 +47,11 @@ class DirectSubbandWriter(MSWriter):
         super().__init__(uv, ms_path, **kwargs)
         self.file_list: List[str] = self.kwargs.get("file_list", [])
         if not self.file_list:
-            raise ValueError(
-                "DirectSubbandWriter requires 'file_list' in kwargs.")
+            raise ValueError("DirectSubbandWriter requires 'file_list' in kwargs.")
         self.scratch_dir: Optional[str] = self.kwargs.get("scratch_dir")
         self.max_workers: int = self.kwargs.get("max_workers", 4)
         # Optional tmpfs staging
-        self.stage_to_tmpfs: bool = bool(
-            self.kwargs.get("stage_to_tmpfs", False)
-        )
+        self.stage_to_tmpfs: bool = bool(self.kwargs.get("stage_to_tmpfs", False))
         self.tmpfs_path: str = str(self.kwargs.get("tmpfs_path", "/dev/shm"))
         # Optional: disable SPW merging (for backward compatibility)
         # Default: False (don't merge) to avoid mstransform incompatibility with gaincal
@@ -115,14 +112,12 @@ class DirectSubbandWriter(MSWriter):
             unique_id = f"{ms_final_path.stem}_{uuid.uuid4().hex[:8]}"
             part_base = tmpfs_root / "dsa110-contimg" / unique_id
             part_base.mkdir(parents=True, exist_ok=True)
-            ms_stage_path = part_base.parent / (
-                ms_final_path.stem + ".staged.ms"
-            )
+            ms_stage_path = part_base.parent / (ms_final_path.stem + ".staged.ms")
         else:
             # Use provided scratch or output directory parent
-            part_base = Path(
-                self.scratch_dir or ms_final_path.parent
-            ) / ms_final_path.stem
+            part_base = (
+                Path(self.scratch_dir or ms_final_path.parent) / ms_final_path.stem
+            )
         part_base.mkdir(parents=True, exist_ok=True)
 
         # Compute shared pointing declination for entire group
@@ -136,8 +131,9 @@ class DirectSubbandWriter(MSWriter):
                 try:
                     # Use lightweight peek to get midpoint time without full read
                     from dsa110_contimg.conversion.strategies.hdf5_orchestrator import (
-                        _peek_uvh5_phase_and_midtime
+                        _peek_uvh5_phase_and_midtime,
                     )
+
                     _, pt_dec, mid_mjd = _peek_uvh5_phase_and_midtime(sb_file)
                     if group_pt_dec is None:
                         group_pt_dec = pt_dec
@@ -148,10 +144,11 @@ class DirectSubbandWriter(MSWriter):
                     if group_pt_dec is None:
                         try:
                             from pyuvdata import UVData
+
                             temp_uv = UVData()
                             temp_uv.read(
                                 sb_file,
-                                file_type='uvh5',
+                                file_type="uvh5",
                                 read_data=False,
                                 run_check=False,
                                 check_extra=False,
@@ -159,11 +156,12 @@ class DirectSubbandWriter(MSWriter):
                                 strict_uvw_antpos_check=False,
                             )
                             if group_pt_dec is None:
-                                group_pt_dec = temp_uv.extra_keywords.get(
-                                    "phase_center_dec", 0.0) * u.rad
+                                group_pt_dec = (
+                                    temp_uv.extra_keywords.get("phase_center_dec", 0.0)
+                                    * u.rad
+                                )
                             mid_mjd = Time(
-                                float(np.mean(temp_uv.time_array)),
-                                format="jd"
+                                float(np.mean(temp_uv.time_array)), format="jd"
                             ).mjd
                             mid_times.append(mid_mjd)
                             del temp_uv
@@ -179,8 +177,7 @@ class DirectSubbandWriter(MSWriter):
                     f"(MJD={group_mid_mjd:.6f})"
                 )
         except Exception as e:
-            logger.warning(
-                f"Failed to compute shared pointing declination: {e}")
+            logger.warning(f"Failed to compute shared pointing declination: {e}")
             logger.info("Falling back to per-subband pointing declination")
             group_pt_dec = None
 
@@ -191,35 +188,34 @@ class DirectSubbandWriter(MSWriter):
         #   sb15 = lowest frequency (~1311 MHz)
         # For MFS imaging, we need ASCENDING frequency order (low to high).
         # Therefore, we must REVERSE the subband number sort.
-        from dsa110_contimg.conversion.strategies.hdf5_orchestrator import _extract_subband_code
+        from dsa110_contimg.conversion.strategies.hdf5_orchestrator import (
+            _extract_subband_code,
+        )
 
         def sort_by_subband(fpath):
             fname = os.path.basename(fpath)
             sb = _extract_subband_code(fname)
-            sb_num = int(sb.replace('sb', '')) if sb else 999
+            sb_num = int(sb.replace("sb", "")) if sb else 999
             return sb_num
 
         # CRITICAL: Sort in REVERSE subband order (15, 14, ..., 1, 0) to get
         # ascending frequency order (lowest to highest) for proper MFS imaging
         # and bandpass calibration. If frequencies are out of order, imaging will
         # produce fringes and bandpass calibration will fail.
-        sorted_files = sorted(
-            self.file_list, key=sort_by_subband, reverse=True)
+        sorted_files = sorted(self.file_list, key=sort_by_subband, reverse=True)
 
         futures = []
         with ProcessPoolExecutor(max_workers=self.max_workers) as ex:
             for idx, sb_file in enumerate(sorted_files):
-                part_out = (
-                    part_base / f"{Path(ms_stage_path).stem}.sb{idx:02d}.ms"
+                part_out = part_base / f"{Path(ms_stage_path).stem}.sb{idx:02d}.ms"
+                futures.append(
+                    (
+                        idx,
+                        ex.submit(
+                            _write_ms_subband_part, sb_file, str(part_out), group_pt_dec
+                        ),  # Pass shared pointing declination
+                    )
                 )
-                futures.append((
-                    idx,
-                    ex.submit(
-                        _write_ms_subband_part,
-                        sb_file,
-                        str(part_out),
-                        group_pt_dec)  # Pass shared pointing declination
-                ))
 
         # Collect results in order (idx 0, 1, 2, ..., 15) to maintain spectral order
         parts = [None] * len(futures)
@@ -235,14 +231,11 @@ class DirectSubbandWriter(MSWriter):
                         break
                 if completed % 4 == 0 or completed == len(futures):
                     msg = (
-                        f"Per-subband writes completed: {completed}/"
-                        f"{len(futures)}"
+                        f"Per-subband writes completed: {completed}/" f"{len(futures)}"
                     )
                     logger.info(msg)
             except Exception as e:
-                raise RuntimeError(
-                    f"A subband writer process failed: {e}"
-                )
+                raise RuntimeError(f"A subband writer process failed: {e}")
 
         # Remove None entries (shouldn't happen, but safety check)
         parts = [p for p in parts if p is not None]
@@ -295,7 +288,8 @@ class DirectSubbandWriter(MSWriter):
                 casa_concat(
                     vis=parts,  # Already in correct subband order
                     concatvis=str(ms_stage_path),
-                    copypointing=False)
+                    copypointing=False,
+                )
                 concat_success = True
                 break
             except (RuntimeError, OSError) as e:
@@ -303,14 +297,14 @@ class DirectSubbandWriter(MSWriter):
                 error_msg = str(e)
                 # Check for retryable errors
                 retryable = (
-                    "cannot be opened" in error_msg or
-                    "readBlock" in error_msg or
-                    "read/write" in error_msg or
-                    "lock" in error_msg.lower() or
-                    "Directory not empty" in error_msg or
-                    "Invalid cross-device link" in error_msg or
-                    "Errno 39" in error_msg or
-                    "Errno 18" in error_msg
+                    "cannot be opened" in error_msg
+                    or "readBlock" in error_msg
+                    or "read/write" in error_msg
+                    or "lock" in error_msg.lower()
+                    or "Directory not empty" in error_msg
+                    or "Invalid cross-device link" in error_msg
+                    or "Errno 39" in error_msg
+                    or "Errno 18" in error_msg
                 )
                 if retryable and attempt < max_retries - 1:
                     logger.warning(
@@ -320,7 +314,10 @@ class DirectSubbandWriter(MSWriter):
                     # Enhanced cleanup and retry
                     if ms_stage_path.exists():
                         shutil.rmtree(ms_stage_path, ignore_errors=True)
-                    from dsa110_contimg.conversion.helpers_telescope import casa_operation
+                    from dsa110_contimg.conversion.helpers_telescope import (
+                        casa_operation,
+                    )
+
                     with casa_operation():
                         # Cleanup happens automatically
                         pass
@@ -330,6 +327,7 @@ class DirectSubbandWriter(MSWriter):
 
         if not concat_success:
             from dsa110_contimg.conversion.helpers_telescope import casa_operation
+
             with casa_operation():
                 # Final cleanup attempt - automatic cleanup
                 pass
@@ -340,6 +338,7 @@ class DirectSubbandWriter(MSWriter):
         # Explicit cleanup verification after concat
         # Use context manager for guaranteed cleanup
         from dsa110_contimg.conversion.helpers_telescope import casa_operation
+
         with casa_operation():
             # Cleanup happens automatically
             pass
@@ -354,8 +353,7 @@ class DirectSubbandWriter(MSWriter):
                 dst_path = str(ms_final_path)
                 shutil.move(src_path, dst_path)
                 ms_stage_path = ms_final_path
-                logger.info(
-                    f"Moved staged MS to final location: {ms_final_path}")
+                logger.info(f"Moved staged MS to final location: {ms_final_path}")
             except Exception:
                 # If move failed, try copytree (for directory MS)
                 if ms_final_path.exists():
@@ -365,18 +363,19 @@ class DirectSubbandWriter(MSWriter):
                 shutil.copytree(src_path, dst_path)
                 shutil.rmtree(ms_stage_path, ignore_errors=True)
                 ms_stage_path = ms_final_path
-                logger.info(
-                    f"Copied staged MS to final location: {ms_final_path}")
+                logger.info(f"Copied staged MS to final location: {ms_final_path}")
 
         # Merge SPWs into a single SPW if requested
         if self.merge_spws:
             try:
-                from dsa110_contimg.conversion.merge_spws import merge_spws, get_spw_count
+                from dsa110_contimg.conversion.merge_spws import (
+                    merge_spws,
+                    get_spw_count,
+                )
 
                 n_spw_before = get_spw_count(str(ms_stage_path))
                 if n_spw_before and n_spw_before > 1:
-                    logger.info(
-                        f"Merging {n_spw_before} SPWs into a single SPW...")
+                    logger.info(f"Merging {n_spw_before} SPWs into a single SPW...")
                     ms_multi_spw = str(ms_stage_path)
                     ms_single_spw = str(ms_stage_path) + ".merged"
 
@@ -395,14 +394,13 @@ class DirectSubbandWriter(MSWriter):
 
                     n_spw_after = get_spw_count(str(ms_stage_path))
                     if n_spw_after == 1:
-                        logger.info(
-                            f"Successfully merged SPWs: {n_spw_before} → 1")
+                        logger.info(f"Successfully merged SPWs: {n_spw_before} → 1")
                     else:
-                        logger.warning(
-                            f"Expected 1 SPW after merge, got {n_spw_after}")
+                        logger.warning(f"Expected 1 SPW after merge, got {n_spw_after}")
             except Exception as merge_err:
                 logger.warning(
-                    f"SPW merging failed (non-fatal): {merge_err}", exc_info=True)
+                    f"SPW merging failed (non-fatal): {merge_err}", exc_info=True
+                )
 
         # Solution 1: Clean up temporary per-subband Measurement Sets and staging dir
         # with verification that cleanup completed
@@ -556,9 +554,9 @@ def write_ms_from_subbands(file_list, ms_path, scratch_dir=None):
     import numpy as np
 
     ms_stage_path = ms_path
-    part_base = Path(
-        scratch_dir or Path(ms_stage_path).parent
-    ) / Path(ms_stage_path).stem
+    part_base = (
+        Path(scratch_dir or Path(ms_stage_path).parent) / Path(ms_stage_path).stem
+    )
     part_base.mkdir(parents=True, exist_ok=True)
 
     # Compute shared pointing declination for entire group
@@ -570,8 +568,9 @@ def write_ms_from_subbands(file_list, ms_path, scratch_dir=None):
         for sb_file in file_list:
             try:
                 from dsa110_contimg.conversion.strategies.hdf5_orchestrator import (
-                    _peek_uvh5_phase_and_midtime
+                    _peek_uvh5_phase_and_midtime,
                 )
+
                 _, pt_dec, mid_mjd = _peek_uvh5_phase_and_midtime(sb_file)
                 if group_pt_dec is None:
                     group_pt_dec = pt_dec
@@ -581,10 +580,11 @@ def write_ms_from_subbands(file_list, ms_path, scratch_dir=None):
                 # Fallback: read file fully if peek fails
                 try:
                     from pyuvdata import UVData
+
                     temp_uv = UVData()
                     temp_uv.read(
                         sb_file,
-                        file_type='uvh5',
+                        file_type="uvh5",
                         read_data=False,
                         run_check=False,
                         check_extra=False,
@@ -592,12 +592,10 @@ def write_ms_from_subbands(file_list, ms_path, scratch_dir=None):
                         strict_uvw_antpos_check=False,
                     )
                     if group_pt_dec is None:
-                        group_pt_dec = temp_uv.extra_keywords.get(
-                            "phase_center_dec", 0.0) * u.rad
-                    mid_mjd = Time(
-                        float(np.mean(temp_uv.time_array)),
-                        format="jd"
-                    ).mjd
+                        group_pt_dec = (
+                            temp_uv.extra_keywords.get("phase_center_dec", 0.0) * u.rad
+                        )
+                    mid_mjd = Time(float(np.mean(temp_uv.time_array)), format="jd").mjd
                     if np.isfinite(mid_mjd) and mid_mjd > 0:
                         mid_times.append(mid_mjd)
                     del temp_uv
@@ -618,12 +616,14 @@ def write_ms_from_subbands(file_list, ms_path, scratch_dir=None):
     # Create per-subband MS files
     # CRITICAL: DSA-110 subbands use DESCENDING frequency order (sb00=highest, sb15=lowest).
     # For MFS imaging, we need ASCENDING frequency order, so REVERSE the sort.
-    from dsa110_contimg.conversion.strategies.hdf5_orchestrator import _extract_subband_code
+    from dsa110_contimg.conversion.strategies.hdf5_orchestrator import (
+        _extract_subband_code,
+    )
 
     def sort_by_subband(fpath):
         fname = os.path.basename(fpath)
         sb = _extract_subband_code(fname)
-        sb_num = int(sb.replace('sb', '')) if sb else 999
+        sb_num = int(sb.replace("sb", "")) if sb else 999
         return sb_num
 
     parts = []
@@ -631,8 +631,7 @@ def write_ms_from_subbands(file_list, ms_path, scratch_dir=None):
         part_out = part_base / f"{Path(ms_stage_path).stem}.sb{idx:02d}.ms"
         try:
             result = _write_ms_subband_part(
-                sb, str(part_out),
-                group_pt_dec  # Pass shared pointing declination
+                sb, str(part_out), group_pt_dec  # Pass shared pointing declination
             )
             parts.append(result)
         except Exception as e:
@@ -650,7 +649,8 @@ def write_ms_from_subbands(file_list, ms_path, scratch_dir=None):
     casa_concat(
         vis=parts,  # Already in correct subband order
         concatvis=ms_stage_path,
-        copypointing=False)
+        copypointing=False,
+    )
 
     # Clean up the temporary per-subband Measurement Sets.
     try:

@@ -27,4 +27,3 @@ def handle_apply(args: argparse.Namespace) -> int:
     apply_to_target(args.ms, args.field, args.tables)
     print("Applied calibration to target")
     return 0
-

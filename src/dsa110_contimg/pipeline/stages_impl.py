@@ -17,7 +17,10 @@ from dsa110_contimg.pipeline.context import PipelineContext
 from dsa110_contimg.pipeline.stages import PipelineStage
 from dsa110_contimg.utils.time_utils import extract_ms_time_range
 from dsa110_contimg.utils.ms_organization import (
-    organize_ms_file, determine_ms_type, create_path_mapper, extract_date_from_filename
+    organize_ms_file,
+    determine_ms_type,
+    create_path_mapper,
+    extract_date_from_filename,
 )
 from dsa110_contimg.utils.runtime_safeguards import (
     require_casa6_python,
@@ -67,9 +70,10 @@ class ConversionStage(PipelineStage):
     def execute(self, context: PipelineContext) -> PipelineContext:
         """Execute conversion stage."""
         import time
+
         start_time_sec = time.time()
         log_progress("Starting UVH5 to MS conversion stage...")
-        
+
         from dsa110_contimg.conversion.strategies.hdf5_orchestrator import (
             convert_subband_groups_to_ms,
         )
@@ -86,13 +90,13 @@ class ConversionStage(PipelineStage):
         if self.config.conversion.stage_to_tmpfs:
             writer_kwargs["stage_to_tmpfs"] = True
             if context.config.paths.scratch_dir:
-                writer_kwargs["tmpfs_path"] = str(
-                    context.config.paths.scratch_dir)
+                writer_kwargs["tmpfs_path"] = str(context.config.paths.scratch_dir)
 
         # Create path mapper for organized output (default to science)
         ms_base_dir = Path(context.config.paths.output_dir)
         path_mapper = create_path_mapper(
-            ms_base_dir, is_calibrator=False, is_failed=False)
+            ms_base_dir, is_calibrator=False, is_failed=False
+        )
 
         # Execute conversion (function returns None, creates MS files in organized locations)
         convert_subband_groups_to_ms(
@@ -107,9 +111,7 @@ class ConversionStage(PipelineStage):
 
         # Discover created MS files (now in organized subdirectories)
         # Pattern: YYYY-MM-DDTHH:MM:SS.ms (no suffixes)
-        pattern = re.compile(
-            r'^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}\.ms$'
-        )
+        pattern = re.compile(r"^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}\.ms$")
 
         output_path = Path(context.config.paths.output_dir)
         ms_files = []
@@ -120,7 +122,9 @@ class ConversionStage(PipelineStage):
                 if subdir_path.exists():
                     # Search recursively for date subdirectories
                     for date_dir in subdir_path.iterdir():
-                        if date_dir.is_dir() and re.match(r'^\d{4}-\d{2}-\d{2}$', date_dir.name):
+                        if date_dir.is_dir() and re.match(
+                            r"^\d{4}-\d{2}-\d{2}$", date_dir.name
+                        ):
                             for ms in date_dir.glob("*.ms"):
                                 if ms.is_dir() and pattern.match(ms.name):
                                     ms_files.append(str(ms))
@@ -149,6 +153,7 @@ class ConversionStage(PipelineStage):
         # Run quality checks after conversion if they were skipped during conversion
         if self.config.conversion.skip_validation_during_conversion:
             from dsa110_contimg.qa.pipeline_quality import check_ms_after_conversion
+
             logger.info("Running quality checks after conversion...")
             try:
                 qa_passed, qa_metrics = check_ms_after_conversion(
@@ -162,8 +167,11 @@ class ConversionStage(PipelineStage):
                     logger.warning("⚠ MS quality issues detected (see alerts)")
             except Exception as e:
                 logger.warning(f"Quality check failed (non-fatal): {e}")
-        
-        log_progress(f"Completed UVH5 to MS conversion stage. Created {len(ms_files)} MS file(s).", start_time_sec)
+
+        log_progress(
+            f"Completed UVH5 to MS conversion stage. Created {len(ms_files)} MS file(s).",
+            start_time_sec,
+        )
 
         # MS files are already in organized locations (written directly via path_mapper)
         # No need to move them - they're already organized
@@ -174,8 +182,7 @@ class ConversionStage(PipelineStage):
         if context.state_repository:
             try:
                 for ms_file in organized_ms_files:
-                    start_mjd, end_mjd, mid_mjd = extract_ms_time_range(
-                        ms_file)
+                    start_mjd, end_mjd, mid_mjd = extract_ms_time_range(ms_file)
                     context.state_repository.upsert_ms_index(
                         ms_file,
                         {
@@ -192,6 +199,7 @@ class ConversionStage(PipelineStage):
         # Register MS files in data registry (with organized paths)
         try:
             from dsa110_contimg.database.data_registration import register_pipeline_data
+
             for ms_file in organized_ms_files:
                 ms_path_obj = Path(ms_file)
                 # Use MS path as data_id (unique identifier)
@@ -199,8 +207,7 @@ class ConversionStage(PipelineStage):
                 # Extract metadata from MS if available
                 metadata = {}
                 try:
-                    start_mjd, end_mjd, mid_mjd = extract_ms_time_range(
-                        ms_file)
+                    start_mjd, end_mjd, mid_mjd = extract_ms_time_range(ms_file)
                     if start_mjd:
                         metadata["start_mjd"] = start_mjd
                     if end_mjd:
@@ -208,8 +215,7 @@ class ConversionStage(PipelineStage):
                     if mid_mjd:
                         metadata["mid_mjd"] = mid_mjd
                 except Exception as e:
-                    logger.debug(
-                        f"Could not extract MS time range for metadata: {e}")
+                    logger.debug(f"Could not extract MS time range for metadata: {e}")
 
                 register_pipeline_data(
                     data_type="ms",
@@ -220,14 +226,15 @@ class ConversionStage(PipelineStage):
                 )
                 logger.info(f"Registered MS in data registry: {ms_file}")
         except Exception as e:
-            logger.warning(
-                f"Failed to register MS files in data registry: {e}")
+            logger.warning(f"Failed to register MS files in data registry: {e}")
 
         # Return both single MS path (for backward compatibility) and all MS paths
-        return context.with_outputs({
-            "ms_path": organized_ms_path,  # Single MS for backward compatibility
-            "ms_paths": organized_ms_files,  # All MS files (organized)
-        })
+        return context.with_outputs(
+            {
+                "ms_path": organized_ms_path,  # Single MS for backward compatibility
+                "ms_paths": organized_ms_files,  # All MS files (organized)
+            }
+        )
 
     def validate_outputs(self, context: PipelineContext) -> Tuple[bool, Optional[str]]:
         """Validate conversion outputs."""
@@ -241,10 +248,10 @@ class ConversionStage(PipelineStage):
         # Validate MS is readable and has required columns
         try:
             from casacore.tables import table
+
             with table(ms_path, readonly=True) as tb:
                 required_cols = ["DATA", "ANTENNA1", "ANTENNA2", "TIME"]
-                missing = [
-                    col for col in required_cols if col not in tb.colnames()]
+                missing = [col for col in required_cols if col not in tb.colnames()]
                 if missing:
                     return False, f"MS missing required columns: {missing}"
                 if tb.nrows() == 0:
@@ -262,11 +269,11 @@ class ConversionStage(PipelineStage):
             if ms_path.exists():
                 try:
                     import shutil
+
                     shutil.rmtree(ms_path, ignore_errors=True)
                     logger.info(f"Cleaned up partial MS: {ms_path}")
                 except Exception as e:
-                    logger.warning(
-                        f"Failed to cleanup partial MS {ms_path}: {e}")
+                    logger.warning(f"Failed to cleanup partial MS {ms_path}: {e}")
 
     def get_name(self) -> str:
         """Get stage name."""
@@ -292,7 +299,10 @@ class CalibrationSolveStage(PipelineStage):
     def validate(self, context: PipelineContext) -> Tuple[bool, Optional[str]]:
         """Validate prerequisites for calibration solving."""
         if "ms_path" not in context.outputs:
-            return False, "ms_path required in context.outputs (conversion must run first)"
+            return (
+                False,
+                "ms_path required in context.outputs (conversion must run first)",
+            )
 
         ms_path = context.outputs["ms_path"]
         if not Path(ms_path).exists():
@@ -305,9 +315,10 @@ class CalibrationSolveStage(PipelineStage):
     def execute(self, context: PipelineContext) -> PipelineContext:
         """Execute calibration solve stage."""
         import time
+
         start_time_sec = time.time()
         log_progress("Starting calibration solve stage...")
-        
+
         from dsa110_contimg.calibration.calibration import (
             solve_delay,
             solve_bandpass,
@@ -344,7 +355,9 @@ class CalibrationSolveStage(PipelineStage):
             logger.error(error_msg)
             raise RuntimeError(error_msg) from e
 
-    def _execute_calibration_solve(self, context: PipelineContext, ms_path: str) -> PipelineContext:
+    def _execute_calibration_solve(
+        self, context: PipelineContext, ms_path: str
+    ) -> PipelineContext:
         """Internal calibration solve execution (called within lock)."""
         from dsa110_contimg.calibration.calibration import (
             solve_delay,
@@ -382,26 +395,35 @@ class CalibrationSolveStage(PipelineStage):
 
         if use_existing == "auto":
             ms_dir = os.path.dirname(ms_path)
-            ms_base = os.path.basename(ms_path).replace('.ms', '')
+            ms_base = os.path.basename(ms_path).replace(".ms", "")
 
             if not solve_delay_flag and not existing_k:
                 k_pattern = os.path.join(ms_dir, f"{ms_base}*kcal")
-                k_tables = sorted([p for p in glob.glob(k_pattern) if os.path.isdir(p)],
-                                  key=os.path.getmtime, reverse=True)
+                k_tables = sorted(
+                    [p for p in glob.glob(k_pattern) if os.path.isdir(p)],
+                    key=os.path.getmtime,
+                    reverse=True,
+                )
                 if k_tables:
                     existing_k = k_tables[0]
 
             if not solve_bandpass_flag and not existing_bp:
                 bp_pattern = os.path.join(ms_dir, f"{ms_base}*bpcal")
-                bp_tables = sorted([p for p in glob.glob(bp_pattern) if os.path.isdir(p)],
-                                   key=os.path.getmtime, reverse=True)
+                bp_tables = sorted(
+                    [p for p in glob.glob(bp_pattern) if os.path.isdir(p)],
+                    key=os.path.getmtime,
+                    reverse=True,
+                )
                 if bp_tables:
                     existing_bp = bp_tables[0]
 
             if not solve_gains_flag and not existing_g:
                 g_pattern = os.path.join(ms_dir, f"{ms_base}*g*cal")
-                g_tables = sorted([p for p in glob.glob(g_pattern) if os.path.isdir(p)],
-                                  key=os.path.getmtime, reverse=True)
+                g_tables = sorted(
+                    [p for p in glob.glob(g_pattern) if os.path.isdir(p)],
+                    key=os.path.getmtime,
+                    reverse=True,
+                )
                 if g_tables:
                     existing_g = g_tables[0]
 
@@ -418,6 +440,7 @@ class CalibrationSolveStage(PipelineStage):
             flag_rfi(ms_path)
             if flag_autocorr:
                 from casatasks import flagdata
+
                 logger.info("Flagging autocorrelations...")
                 flagdata(vis=str(ms_path), autocorr=True, flagbackup=False)
                 logger.info("✓ Autocorrelations flagged")
@@ -425,6 +448,7 @@ class CalibrationSolveStage(PipelineStage):
         # Step 2: Model population (required for calibration)
         if model_source == "catalog":
             from dsa110_contimg.calibration.model import populate_model_from_catalog
+
             logger.info("Populating MODEL_DATA from catalog...")
             populate_model_from_catalog(
                 ms_path,
@@ -436,13 +460,12 @@ class CalibrationSolveStage(PipelineStage):
             )
         elif model_source == "image":
             from dsa110_contimg.calibration.model import populate_model_from_image
+
             model_image = params.get("model_image")
             if not model_image:
-                raise ValueError(
-                    "model_image required when model_source='image'")
+                raise ValueError("model_image required when model_source='image'")
             logger.info(f"Populating MODEL_DATA from image: {model_image}")
-            populate_model_from_image(
-                ms_path, field=field, model_image=model_image)
+            populate_model_from_image(ms_path, field=field, model_image=model_image)
 
         # Step 3: Solve delay (K) if requested
         ktabs = []
@@ -488,8 +511,7 @@ class CalibrationSolveStage(PipelineStage):
                 ktable=ktabs[0] if ktabs else None,
                 table_prefix=table_prefix,
                 set_model=True,
-                model_standard=params.get(
-                    "bp_model_standard", "Perley-Butler 2017"),
+                model_standard=params.get("bp_model_standard", "Perley-Butler 2017"),
                 combine_fields=bp_combine_field,
                 combine_spw=params.get("bp_combine_spw", False),
                 minsnr=params.get("bp_minsnr", 5.0),
@@ -527,8 +549,7 @@ class CalibrationSolveStage(PipelineStage):
 
         # Combine all tables
         all_tables = (ktabs[:1] if ktabs else []) + bptabs + gtabs
-        logger.info(
-            f"Calibration solve complete. Generated {len(all_tables)} tables:")
+        logger.info(f"Calibration solve complete. Generated {len(all_tables)} tables:")
         for tab in all_tables:
             logger.info(f"  - {tab}")
 
@@ -548,9 +569,10 @@ class CalibrationSolveStage(PipelineStage):
                     f"Could not extract time range from {ms_path}, using current time"
                 )
                 from astropy.time import Time
+
                 mid_mjd = Time.now().mjd
                 start_mjd = mid_mjd - 1.0 / 24.0  # 1 hour before
-                end_mjd = mid_mjd + 1.0 / 24.0    # 1 hour after
+                end_mjd = mid_mjd + 1.0 / 24.0  # 1 hour after
             else:
                 # Extend validity window to ±1 hour around MS time range
                 # This ensures calibration tables are valid for the entire observation period
@@ -587,10 +609,10 @@ class CalibrationSolveStage(PipelineStage):
             # Remove table type suffixes (e.g., "_bpcal", "_gpcal", "_2gcal")
             # Use fallback logic if pattern doesn't match
             prefix_base = re.sub(
-                r'_(bpcal|gpcal|gacal|2gcal|kcal|bacal|flux)$',
-                '',
+                r"_(bpcal|gpcal|gacal|2gcal|kcal|bacal|flux)$",
+                "",
                 first_table_name,
-                flags=re.IGNORECASE
+                flags=re.IGNORECASE,
             )
 
             # Fallback: If regex didn't change the name, try alternative patterns
@@ -600,11 +622,20 @@ class CalibrationSolveStage(PipelineStage):
                     f"Trying alternative extraction methods."
                 )
                 # Try removing common suffixes one by one
-                for suffix in ['_bpcal', '_gpcal', '_gacal', '_2gcal', '_kcal', '_bacal', '_flux']:
+                for suffix in [
+                    "_bpcal",
+                    "_gpcal",
+                    "_gacal",
+                    "_2gcal",
+                    "_kcal",
+                    "_bacal",
+                    "_flux",
+                ]:
                     if first_table_name.lower().endswith(suffix.lower()):
-                        prefix_base = first_table_name[:-len(suffix)]
+                        prefix_base = first_table_name[: -len(suffix)]
                         logger.info(
-                            f"Extracted prefix using suffix removal: {prefix_base}")
+                            f"Extracted prefix using suffix removal: {prefix_base}"
+                        )
                         break
 
                 # Final fallback: use MS path-based prefix
@@ -617,8 +648,7 @@ class CalibrationSolveStage(PipelineStage):
 
             table_prefix = table_dir / prefix_base
 
-            logger.info(
-                f"Registering calibration tables in registry: {set_name}")
+            logger.info(f"Registering calibration tables in registry: {set_name}")
             logger.debug(f"Using table prefix: {table_prefix}")
 
             # Register and verify tables are discoverable
@@ -667,7 +697,10 @@ class CalibrationSolveStage(PipelineStage):
             except Exception as e:
                 logger.warning(f"Failed to update MS index: {e}")
 
-        log_progress(f"Completed calibration solve stage. Generated {len(all_tables)} calibration table(s).", start_time_sec)
+        log_progress(
+            f"Completed calibration solve stage. Generated {len(all_tables)} calibration table(s).",
+            start_time_sec,
+        )
         return context.with_output("calibration_tables", all_tables)
 
     def validate_outputs(self, context: PipelineContext) -> Tuple[bool, Optional[str]]:
@@ -695,12 +728,13 @@ class CalibrationSolveStage(PipelineStage):
                 if table.exists():
                     try:
                         import shutil
+
                         shutil.rmtree(table, ignore_errors=True)
-                        logger.info(
-                            f"Cleaned up partial calibration table: {table}")
+                        logger.info(f"Cleaned up partial calibration table: {table}")
                     except Exception as e:
                         logger.warning(
-                            f"Failed to cleanup calibration table {table}: {e}")
+                            f"Failed to cleanup calibration table {table}: {e}"
+                        )
 
     def get_name(self) -> str:
         """Get stage name."""
@@ -726,7 +760,10 @@ class CalibrationStage(PipelineStage):
     def validate(self, context: PipelineContext) -> Tuple[bool, Optional[str]]:
         """Validate prerequisites for calibration."""
         if "ms_path" not in context.outputs:
-            return False, "ms_path required in context.outputs (conversion must run first)"
+            return (
+                False,
+                "ms_path required in context.outputs (conversion must run first)",
+            )
 
         ms_path = context.outputs["ms_path"]
         if not Path(ms_path).exists():
@@ -744,9 +781,10 @@ class CalibrationStage(PipelineStage):
         then applies them using apply_to_target() directly.
         """
         import time
+
         start_time_sec = time.time()
         log_progress("Starting calibration application stage...")
-        
+
         from dsa110_contimg.calibration.applycal import apply_to_target
         from dsa110_contimg.database.registry import get_active_applylist
         from dsa110_contimg.utils.time_utils import extract_ms_time_range
@@ -763,23 +801,21 @@ class CalibrationStage(PipelineStage):
         # If tables provided, use them directly (for workflows that solve calibration)
         if caltables:
             logger.info(
-                f"Using calibration tables from previous stage: {len(caltables)} tables")
+                f"Using calibration tables from previous stage: {len(caltables)} tables"
+            )
             applylist = caltables  # Store for registration
             try:
-                apply_to_target(ms_path, field="",
-                                gaintables=caltables, calwt=True)
+                apply_to_target(ms_path, field="", gaintables=caltables, calwt=True)
                 cal_applied = 1
             except Exception as e:
                 logger.error(f"applycal failed for {ms_path}: {e}")
-                raise RuntimeError(
-                    f"Calibration application failed: {e}") from e
+                raise RuntimeError(f"Calibration application failed: {e}") from e
         else:
             # Lookup tables from registry by observation time (consistent with streaming mode)
             registry_db = context.config.paths.state_dir / "cal_registry.sqlite3"
             if not registry_db.exists():
                 # Try alternative location
-                registry_db = Path(
-                    "/data/dsa110-contimg/state/cal_registry.sqlite3")
+                registry_db = Path("/data/dsa110-contimg/state/cal_registry.sqlite3")
                 if not registry_db.exists():
                     error_msg = (
                         f"Cannot apply calibration: No calibration tables provided and "
@@ -802,7 +838,8 @@ class CalibrationStage(PipelineStage):
                 applylist = get_active_applylist(registry_db, float(mid_mjd))
             except Exception as e:
                 logger.warning(
-                    f"Failed to lookup calibration tables from registry: {e}")
+                    f"Failed to lookup calibration tables from registry: {e}"
+                )
                 applylist = []
 
             if not applylist:
@@ -814,16 +851,13 @@ class CalibrationStage(PipelineStage):
                 raise RuntimeError(error_msg)
 
             # Apply calibration using apply_to_target() directly (same as streaming)
-            logger.info(
-                f"Applying {len(applylist)} calibration tables from registry")
+            logger.info(f"Applying {len(applylist)} calibration tables from registry")
             try:
-                apply_to_target(ms_path, field="",
-                                gaintables=applylist, calwt=True)
+                apply_to_target(ms_path, field="", gaintables=applylist, calwt=True)
                 cal_applied = 1
             except Exception as e:
                 logger.error(f"applycal failed for {ms_path}: {e}")
-                raise RuntimeError(
-                    f"Calibration application failed: {e}") from e
+                raise RuntimeError(f"Calibration application failed: {e}") from e
 
         # Update MS index (consistent with streaming mode)
         if context.state_repository:
@@ -841,8 +875,11 @@ class CalibrationStage(PipelineStage):
         # Register calibrated MS in data registry (as calib_ms type)
         if cal_applied:
             try:
-                from dsa110_contimg.database.data_registration import register_pipeline_data
+                from dsa110_contimg.database.data_registration import (
+                    register_pipeline_data,
+                )
                 from dsa110_contimg.utils.time_utils import extract_ms_time_range
+
                 ms_path_obj = Path(ms_path)
                 # Use MS path as data_id with calib_ms prefix to distinguish from raw MS
                 data_id = f"calib_{ms_path_obj}"
@@ -853,8 +890,7 @@ class CalibrationStage(PipelineStage):
                     "calibration_tables": applylist,  # applylist is defined earlier in this function
                 }
                 try:
-                    start_mjd, end_mjd, mid_mjd = extract_ms_time_range(
-                        ms_path)
+                    start_mjd, end_mjd, mid_mjd = extract_ms_time_range(ms_path)
                     if start_mjd:
                         metadata["start_mjd"] = start_mjd
                     if end_mjd:
@@ -862,8 +898,7 @@ class CalibrationStage(PipelineStage):
                     if mid_mjd:
                         metadata["mid_mjd"] = mid_mjd
                 except Exception as e:
-                    logger.debug(
-                        f"Could not extract MS time range for metadata: {e}")
+                    logger.debug(f"Could not extract MS time range for metadata: {e}")
 
                 register_pipeline_data(
                     data_type="calib_ms",
@@ -872,11 +907,11 @@ class CalibrationStage(PipelineStage):
                     metadata=metadata,
                     auto_publish=True,
                 )
-                logger.info(
-                    f"Registered calibrated MS in data registry: {ms_path}")
+                logger.info(f"Registered calibrated MS in data registry: {ms_path}")
             except Exception as e:
                 logger.warning(
-                    f"Failed to register calibrated MS in data registry: {e}")
+                    f"Failed to register calibrated MS in data registry: {e}"
+                )
 
         log_progress("Completed calibration application stage.", start_time_sec)
         return context
@@ -893,6 +928,7 @@ class CalibrationStage(PipelineStage):
         # Validate CORRECTED_DATA column exists and has data
         try:
             from casacore.tables import table
+
             with table(ms_path, readonly=True) as tb:
                 if "CORRECTED_DATA" not in tb.colnames():
                     return False, "CORRECTED_DATA column missing after calibration"
@@ -904,6 +940,7 @@ class CalibrationStage(PipelineStage):
                 unflagged = sample[~flags]
                 if len(unflagged) > 0:
                     import numpy as np
+
                     if np.count_nonzero(np.abs(unflagged) > 1e-10) == 0:
                         return False, "CORRECTED_DATA appears empty after calibration"
         except Exception as e:
@@ -947,9 +984,10 @@ class ImagingStage(PipelineStage):
     def execute(self, context: PipelineContext) -> PipelineContext:
         """Execute imaging stage."""
         import time
+
         start_time_sec = time.time()
         log_progress("Starting imaging stage...")
-        
+
         from dsa110_contimg.imaging.cli_imaging import image_ms
         from casacore.tables import table
         import numpy as np
@@ -963,14 +1001,17 @@ class ImagingStage(PipelineStage):
             with table(ms_path, readonly=False) as t:
                 if "CORRECTED_DATA" in t.colnames() and t.nrows() > 0:
                     # Sample to check if CORRECTED_DATA is populated
-                    sample = t.getcol("CORRECTED_DATA", 0,
-                                      min(1000, t.nrows()))
+                    sample = t.getcol("CORRECTED_DATA", 0, min(1000, t.nrows()))
                     flags = t.getcol("FLAG", 0, min(1000, t.nrows()))
                     unflagged = sample[~flags]
-                    if len(unflagged) > 0 and np.count_nonzero(np.abs(unflagged) > 1e-10) == 0:
+                    if (
+                        len(unflagged) > 0
+                        and np.count_nonzero(np.abs(unflagged) > 1e-10) == 0
+                    ):
                         # CORRECTED_DATA exists but is empty - copy DATA to CORRECTED_DATA
                         logger.info(
-                            "CORRECTED_DATA is empty, copying DATA to CORRECTED_DATA for imaging")
+                            "CORRECTED_DATA is empty, copying DATA to CORRECTED_DATA for imaging"
+                        )
                         data_col = t.getcol("DATA")
                         t.putcol("CORRECTED_DATA", data_col)
                         t.flush()
@@ -1044,11 +1085,13 @@ class ImagingStage(PipelineStage):
         # Run catalog-based flux scale validation if enabled
         if context.config.imaging.run_catalog_validation:
             self._run_catalog_validation(
-                primary_image, context.config.imaging.catalog_validation_catalog)
+                primary_image, context.config.imaging.catalog_validation_catalog
+            )
 
         # Register image in data registry
         try:
             from dsa110_contimg.database.data_registration import register_pipeline_data
+
             image_path_obj = Path(primary_image)
             # Use image path as data_id (unique identifier)
             data_id = str(image_path_obj)
@@ -1062,11 +1105,11 @@ class ImagingStage(PipelineStage):
             # Try to get image metadata if available
             try:
                 from casacore.images import image
+
                 with image(str(primary_image)) as img:
                     shape = img.shape()
                     metadata["shape"] = list(shape)
-                    metadata["has_data"] = len(
-                        shape) > 0 and all(s > 0 for s in shape)
+                    metadata["has_data"] = len(shape) > 0 and all(s > 0 for s in shape)
             except Exception as e:
                 logger.debug(f"Could not extract image metadata: {e}")
 
@@ -1081,7 +1124,9 @@ class ImagingStage(PipelineStage):
         except Exception as e:
             logger.warning(f"Failed to register image in data registry: {e}")
 
-        log_progress(f"Completed imaging stage. Created image: {primary_image}", start_time_sec)
+        log_progress(
+            f"Completed imaging stage. Created image: {primary_image}", start_time_sec
+        )
         return context.with_output("image_path", primary_image)
 
     def validate_outputs(self, context: PipelineContext) -> Tuple[bool, Optional[str]]:
@@ -1096,6 +1141,7 @@ class ImagingStage(PipelineStage):
         # Validate image is readable
         try:
             from casacore.images import image
+
             with image(str(image_path)) as img:
                 shape = img.shape()
                 if len(shape) == 0 or any(s == 0 for s in shape):
@@ -1110,23 +1156,21 @@ class ImagingStage(PipelineStage):
         if "image_path" in context.outputs:
             image_path = Path(context.outputs["image_path"])
             # Remove all related image files
-            base_name = str(image_path).replace(
-                ".image", "").replace(".fits", "")
-            suffixes = [".image", ".image.pbcor",
-                        ".residual", ".psf", ".pb", ".fits"]
+            base_name = str(image_path).replace(".image", "").replace(".fits", "")
+            suffixes = [".image", ".image.pbcor", ".residual", ".psf", ".pb", ".fits"]
             for suffix in suffixes:
                 img_file = Path(f"{base_name}{suffix}")
                 if img_file.exists():
                     try:
                         import shutil
+
                         if img_file.is_dir():
                             shutil.rmtree(img_file, ignore_errors=True)
                         else:
                             img_file.unlink()
                         logger.info(f"Cleaned up partial image: {img_file}")
                     except Exception as e:
-                        logger.warning(
-                            f"Failed to cleanup image {img_file}: {e}")
+                        logger.warning(f"Failed to cleanup image {img_file}: {e}")
 
     def _run_catalog_validation(self, image_path: str, catalog: str) -> None:
         """Run catalog-based flux scale validation on image.
@@ -1167,7 +1211,8 @@ class ImagingStage(PipelineStage):
             return
 
         logger.info(
-            f"Running catalog-based flux scale validation ({catalog.upper()}) on {fits_image}")
+            f"Running catalog-based flux scale validation ({catalog.upper()}) on {fits_image}"
+        )
 
         try:
             result = validate_flux_scale(
@@ -1175,7 +1220,7 @@ class ImagingStage(PipelineStage):
                 catalog=catalog,
                 min_snr=5.0,
                 flux_range_jy=(0.01, 10.0),
-                max_flux_ratio_error=0.2
+                max_flux_ratio_error=0.2,
             )
 
             if result.n_matched > 0:
@@ -1188,11 +1233,13 @@ class ImagingStage(PipelineStage):
 
                 if result.has_issues:
                     logger.warning(
-                        f"Catalog validation issues: {', '.join(result.issues)}")
+                        f"Catalog validation issues: {', '.join(result.issues)}"
+                    )
 
                 if result.has_warnings:
                     logger.warning(
-                        f"Catalog validation warnings: {', '.join(result.warnings)}")
+                        f"Catalog validation warnings: {', '.join(result.warnings)}"
+                    )
             else:
                 logger.warning(
                     f"Catalog validation ({catalog.upper()}): No sources matched. "
@@ -1234,8 +1281,11 @@ class OrganizationStage(PipelineStage):
         if not ms_base_dir.exists():
             return False, f"MS base directory does not exist: {ms_base_dir}"
 
-        products_db_path = Path(context.config.paths.products_db) if hasattr(
-            context.config.paths, 'products_db') else None
+        products_db_path = (
+            Path(context.config.paths.products_db)
+            if hasattr(context.config.paths, "products_db")
+            else None
+        )
         if products_db_path and not products_db_path.exists():
             return False, f"Products database does not exist: {products_db_path}"
 
@@ -1252,12 +1302,14 @@ class OrganizationStage(PipelineStage):
             return context
 
         ms_base_dir = Path(context.config.paths.output_dir)
-        products_db_path = Path(context.config.paths.products_db) if hasattr(
-            context.config.paths, 'products_db') else None
+        products_db_path = (
+            Path(context.config.paths.products_db)
+            if hasattr(context.config.paths, "products_db")
+            else None
+        )
 
         if not products_db_path or not products_db_path.exists():
-            logger.warning(
-                "Products database not available, skipping database updates")
+            logger.warning("Products database not available, skipping database updates")
             products_db_path = None
 
         organized_ms_files = []
@@ -1279,40 +1331,48 @@ class OrganizationStage(PipelineStage):
                         products_db_path,
                         is_calibrator=is_calibrator,
                         is_failed=is_failed,
-                        update_database=True
+                        update_database=True,
                     )
                 else:
                     # Just get the organized path without moving/updating DB
-                    from dsa110_contimg.utils.ms_organization import get_organized_ms_path
+                    from dsa110_contimg.utils.ms_organization import (
+                        get_organized_ms_path,
+                    )
+
                     organized_path = get_organized_ms_path(
                         ms_path_obj,
                         ms_base_dir,
                         is_calibrator=is_calibrator,
-                        is_failed=is_failed
+                        is_failed=is_failed,
                     )
                     # Move file manually
                     import shutil
+
                     if ms_path_obj.resolve() != organized_path.resolve():
-                        organized_path.parent.mkdir(
-                            parents=True, exist_ok=True)
+                        organized_path.parent.mkdir(parents=True, exist_ok=True)
                         shutil.move(str(ms_path_obj), str(organized_path))
-                        logger.info(
-                            f"Moved MS file: {ms_file} → {organized_path}")
+                        logger.info(f"Moved MS file: {ms_file} → {organized_path}")
 
                 organized_ms_files.append(str(organized_path))
 
             except Exception as e:
                 logger.error(
-                    f"Failed to organize MS file {ms_file}: {e}", exc_info=True)
+                    f"Failed to organize MS file {ms_file}: {e}", exc_info=True
+                )
                 organized_ms_files.append(ms_file)
 
-        organized_ms_path = organized_ms_files[0] if organized_ms_files else context.outputs.get(
-            "ms_path")
+        organized_ms_path = (
+            organized_ms_files[0]
+            if organized_ms_files
+            else context.outputs.get("ms_path")
+        )
 
-        return context.with_outputs({
-            "ms_path": organized_ms_path,
-            "ms_paths": organized_ms_files,
-        })
+        return context.with_outputs(
+            {
+                "ms_path": organized_ms_path,
+                "ms_paths": organized_ms_files,
+            }
+        )
 
     def validate_outputs(self, context: PipelineContext) -> Tuple[bool, Optional[str]]:
         """Validate organization outputs."""
@@ -1368,14 +1428,15 @@ class ValidationStage(PipelineStage):
     def execute(self, context: PipelineContext) -> PipelineContext:
         """Execute validation stage."""
         import time
+
         start_time_sec = time.time()
         log_progress("Starting image validation stage...")
-        
+
         from dsa110_contimg.qa.catalog_validation import (
             validate_astrometry,
             validate_flux_scale,
             validate_source_counts,
-            run_full_validation
+            run_full_validation,
         )
         from dsa110_contimg.qa.html_reports import generate_validation_report
 
@@ -1404,7 +1465,9 @@ class ValidationStage(PipelineStage):
                 f"Validation skipped: FITS image not found for {image_path}. "
                 "Validation requires FITS format."
             )
-            log_progress("Validation stage skipped (no FITS image found).", start_time_sec)
+            log_progress(
+                "Validation stage skipped (no FITS image found).", start_time_sec
+            )
             return context
 
         validation_config = self.config.validation
@@ -1420,41 +1483,45 @@ class ValidationStage(PipelineStage):
             # Prepare HTML report path if needed
             html_report_path = None
             if validation_config.generate_html_report:
-                output_dir = Path(
-                    context.config.paths.output_dir) / "qa" / "reports"
+                output_dir = Path(context.config.paths.output_dir) / "qa" / "reports"
                 output_dir.mkdir(parents=True, exist_ok=True)
                 image_name = Path(fits_image).stem
                 html_report_path = str(
-                    output_dir / f"{image_name}_validation_report.html")
+                    output_dir / f"{image_name}_validation_report.html"
+                )
 
             # Run full validation (all types) and optionally generate HTML report
-            astrometry_result, flux_scale_result, source_counts_result = run_full_validation(
-                image_path=fits_image,
-                catalog=catalog,
-                validation_types=validation_types,
-                generate_html=validation_config.generate_html_report,
-                html_output_path=html_report_path
+            astrometry_result, flux_scale_result, source_counts_result = (
+                run_full_validation(
+                    image_path=fits_image,
+                    catalog=catalog,
+                    validation_types=validation_types,
+                    generate_html=validation_config.generate_html_report,
+                    html_output_path=html_report_path,
+                )
             )
 
             if html_report_path:
-                logger.info(
-                    f"HTML validation report generated: {html_report_path}")
+                logger.info(f"HTML validation report generated: {html_report_path}")
                 context = context.with_output(
-                    "validation_report_path", html_report_path)
+                    "validation_report_path", html_report_path
+                )
 
             # Log validation results
             if astrometry_result:
                 logger.info(
                     f"Astrometry validation: {astrometry_result.n_matched} matched, "
-                    f"RMS offset: {astrometry_result.rms_offset_arcsec:.2f}\""
-                    if astrometry_result.rms_offset_arcsec else "N/A"
+                    f'RMS offset: {astrometry_result.rms_offset_arcsec:.2f}"'
+                    if astrometry_result.rms_offset_arcsec
+                    else "N/A"
                 )
 
             if flux_scale_result:
                 logger.info(
                     f"Flux scale validation: Mean ratio: {flux_scale_result.mean_flux_ratio:.3f}, "
                     f"Error: {flux_scale_result.flux_scale_error*100:.1f}%"
-                    if flux_scale_result.mean_flux_ratio and flux_scale_result.flux_scale_error
+                    if flux_scale_result.mean_flux_ratio
+                    and flux_scale_result.flux_scale_error
                     else "N/A"
                 )
 
@@ -1467,14 +1534,13 @@ class ValidationStage(PipelineStage):
 
             # Store validation results in context
             if astrometry_result:
-                context = context.with_output(
-                    "astrometry_result", astrometry_result)
+                context = context.with_output("astrometry_result", astrometry_result)
             if flux_scale_result:
-                context = context.with_output(
-                    "flux_scale_result", flux_scale_result)
+                context = context.with_output("flux_scale_result", flux_scale_result)
             if source_counts_result:
                 context = context.with_output(
-                    "source_counts_result", source_counts_result)
+                    "source_counts_result", source_counts_result
+                )
 
         except Exception as e:
             # Validation failures are non-fatal - log warning but continue
@@ -1522,10 +1588,13 @@ class AdaptivePhotometryStage(PipelineStage):
     def execute(self, context: PipelineContext) -> PipelineContext:
         """Execute adaptive photometry stage."""
         import time
+
         start_time_sec = time.time()
         log_progress("Starting adaptive photometry stage...")
-        
-        from dsa110_contimg.photometry.adaptive_photometry import measure_with_adaptive_binning
+
+        from dsa110_contimg.photometry.adaptive_photometry import (
+            measure_with_adaptive_binning,
+        )
         from dsa110_contimg.photometry.adaptive_binning import AdaptiveBinningConfig
         from dsa110_contimg.calibration.catalogs import read_nvss_catalog
         from casacore.tables import table
@@ -1564,7 +1633,9 @@ class AdaptivePhotometryStage(PipelineStage):
         # Run adaptive binning for each source
         results = []
         for i, (ra_deg, dec_deg) in enumerate(sources):
-            logger.info(f"Running adaptive binning for source {i+1}/{len(sources)}: RA={ra_deg:.6f}, Dec={dec_deg:.6f}")
+            logger.info(
+                f"Running adaptive binning for source {i+1}/{len(sources)}: RA={ra_deg:.6f}, Dec={dec_deg:.6f}"
+            )
 
             source_output_dir = output_dir / f"source_{i+1:03d}"
             source_output_dir.mkdir(parents=True, exist_ok=True)
@@ -1584,29 +1655,33 @@ class AdaptivePhotometryStage(PipelineStage):
                         f"Source {i+1}: Found {len(result.detections)} detection(s) "
                         f"(best SNR: {max([d.snr for d in result.detections], default=0.0):.2f})"
                     )
-                    results.append({
-                        "ra_deg": ra_deg,
-                        "dec_deg": dec_deg,
-                        "n_detections": len(result.detections),
-                        "detections": [
-                            {
-                                "spw_ids": det.channels,
-                                "flux_jy": det.flux_jy,
-                                "rms_jy": det.rms_jy,
-                                "snr": det.snr,
-                                "center_freq_mhz": det.center_freq_mhz,
-                                "bin_width": det.bin_width,
-                            }
-                            for det in result.detections
-                        ],
-                        "output_dir": str(source_output_dir),
-                    })
+                    results.append(
+                        {
+                            "ra_deg": ra_deg,
+                            "dec_deg": dec_deg,
+                            "n_detections": len(result.detections),
+                            "detections": [
+                                {
+                                    "spw_ids": det.channels,
+                                    "flux_jy": det.flux_jy,
+                                    "rms_jy": det.rms_jy,
+                                    "snr": det.snr,
+                                    "center_freq_mhz": det.center_freq_mhz,
+                                    "bin_width": det.bin_width,
+                                }
+                                for det in result.detections
+                            ],
+                            "output_dir": str(source_output_dir),
+                        }
+                    )
                 else:
                     logger.warning(
                         f"Source {i+1}: Adaptive binning failed: {result.error_message}"
                     )
             except Exception as e:
-                logger.error(f"Source {i+1}: Error during adaptive binning: {e}", exc_info=True)
+                logger.error(
+                    f"Source {i+1}: Error during adaptive binning: {e}", exc_info=True
+                )
 
         # Store results in context
         photometry_results = {
@@ -1620,7 +1695,10 @@ class AdaptivePhotometryStage(PipelineStage):
             f"Adaptive photometry complete: {len(results)}/{len(sources)} sources successful"
         )
 
-        log_progress(f"Completed adaptive photometry stage. Measured {len(photometry_results)} source(s).", start_time_sec)
+        log_progress(
+            f"Completed adaptive photometry stage. Measured {len(photometry_results)} source(s).",
+            start_time_sec,
+        )
         return context.with_output("adaptive_photometry_results", photometry_results)
 
     def _get_source_coordinates(
@@ -1637,10 +1715,7 @@ class AdaptivePhotometryStage(PipelineStage):
         """
         # If sources are provided in config, use them
         if self.config.photometry.sources:
-            return [
-                (src["ra"], src["dec"])
-                for src in self.config.photometry.sources
-            ]
+            return [(src["ra"], src["dec"]) for src in self.config.photometry.sources]
 
         # Otherwise, query NVSS catalog for sources in the field
         try:
@@ -1660,29 +1735,35 @@ class AdaptivePhotometryStage(PipelineStage):
                         ra_deg = np.degrees(ra_rad)
                         dec_deg = np.degrees(dec_rad)
                     else:
-                        logger.warning("Could not extract field center from MS - using default")
+                        logger.warning(
+                            "Could not extract field center from MS - using default"
+                        )
                         return []
                 else:
-                    logger.warning("Could not extract field center from MS - using default")
+                    logger.warning(
+                        "Could not extract field center from MS - using default"
+                    )
                     return []
 
             # Query NVSS catalog
             df = read_nvss_catalog()
             sc = acoords.SkyCoord(
-                df['ra'].to_numpy(),
-                df['dec'].to_numpy(),
-                unit='deg',
-                frame='icrs',
+                df["ra"].to_numpy(),
+                df["dec"].to_numpy(),
+                unit="deg",
+                frame="icrs",
             )
-            center = acoords.SkyCoord(ra_deg, dec_deg, unit='deg', frame='icrs')
+            center = acoords.SkyCoord(ra_deg, dec_deg, unit="deg", frame="icrs")
             sep_deg = sc.separation(center).deg
-            flux_mjy = df['flux_20_cm'].to_numpy()
+            flux_mjy = df["flux_20_cm"].to_numpy()
 
             # Filter: sources within reasonable radius (1 degree), flux >= min_flux_mjy
             max_radius_deg = 1.0
-            keep = (sep_deg <= max_radius_deg) & (flux_mjy >= self.config.photometry.min_flux_mjy)
-            ra_sel = df['ra'].to_numpy()[keep]
-            dec_sel = df['dec'].to_numpy()[keep]
+            keep = (sep_deg <= max_radius_deg) & (
+                flux_mjy >= self.config.photometry.min_flux_mjy
+            )
+            ra_sel = df["ra"].to_numpy()[keep]
+            dec_sel = df["dec"].to_numpy()[keep]
 
             sources = list(zip(ra_sel, dec_sel))
             logger.info(
@@ -1716,10 +1797,15 @@ class AdaptivePhotometryStage(PipelineStage):
                 if output_dir.exists():
                     try:
                         import shutil
+
                         shutil.rmtree(output_dir, ignore_errors=True)
-                        logger.info(f"Cleaned up partial adaptive photometry output: {output_dir}")
+                        logger.info(
+                            f"Cleaned up partial adaptive photometry output: {output_dir}"
+                        )
                     except Exception as e:
-                        logger.warning(f"Failed to cleanup adaptive photometry output: {e}")
+                        logger.warning(
+                            f"Failed to cleanup adaptive photometry output: {e}"
+                        )
 
     def get_name(self) -> str:
         """Get stage name."""

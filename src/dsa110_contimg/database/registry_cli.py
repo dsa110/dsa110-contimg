@@ -45,14 +45,24 @@ def cmd_register_prefix(args: argparse.Namespace) -> int:
 
 
 def cmd_active(args: argparse.Namespace) -> int:
-    applylist = registry.get_active_applylist(Path(args.db), args.mjd, set_name=args.set)
+    applylist = registry.get_active_applylist(
+        Path(args.db), args.mjd, set_name=args.set
+    )
     print(json.dumps({"applylist": applylist}, indent=2))
     return 0 if applylist else 1
 
 
 def cmd_list_sets(args: argparse.Namespace) -> int:
     items = registry.list_sets(Path(args.db))
-    print(json.dumps([{"set": s, "rows": n, "active": a, "min_order": m} for s, n, a, m in items], indent=2))
+    print(
+        json.dumps(
+            [
+                {"set": s, "rows": n, "active": a, "min_order": m}
+                for s, n, a, m in items
+            ],
+            indent=2,
+        )
+    )
     return 0
 
 
@@ -102,7 +112,7 @@ def build_parser() -> argparse.ArgumentParser:
 def main(argv: Optional[List[str]] = None) -> int:
     p = build_parser()
     args = p.parse_args(argv)
-    if not hasattr(args, 'func'):
+    if not hasattr(args, "func"):
         p.print_help()
         return 2
     return args.func(args)

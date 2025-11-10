@@ -1,4 +1,5 @@
 """Utility functions for imaging CLI."""
+
 import numpy as np
 from casacore.tables import table
 
@@ -9,12 +10,12 @@ def detect_datacolumn(ms_path: str) -> str:
     Preference order:
     - Use CORRECTED_DATA if present and contains any non-zero values.
     - Otherwise fall back to DATA.
-    
+
     **CRITICAL SAFEGUARD**: If CORRECTED_DATA column exists but is unpopulated
     (all zeros), this indicates calibration was attempted but failed. In this case,
     we FAIL rather than silently falling back to DATA to prevent imaging uncalibrated
     data when calibration was expected.
-    
+
     This avoids the common pitfall where applycal didn't populate
     CORRECTED_DATA (all zeros) and tclean would produce blank images.
     """
@@ -39,7 +40,7 @@ def detect_datacolumn(ms_path: str) -> str:
                     for i in range(windows):
                         start_idx = int(i * total / max(1, windows))
                         indices.append(max(0, start_idx - block // 2))
-                    
+
                     found_nonzero = False
                     for start in indices:
                         n = min(block, total - start)
@@ -49,10 +50,13 @@ def detect_datacolumn(ms_path: str) -> str:
                         flags = t.getcol("FLAG", start, n)
                         # Check unflagged data
                         unflagged = cd[~flags]
-                        if len(unflagged) > 0 and np.count_nonzero(np.abs(unflagged) > 1e-10) > 0:
+                        if (
+                            len(unflagged) > 0
+                            and np.count_nonzero(np.abs(unflagged) > 1e-10) > 0
+                        ):
                             found_nonzero = True
                             break
-                    
+
                     if found_nonzero:
                         return "corrected"
                     else:
@@ -91,6 +95,7 @@ def default_cell_arcsec(ms_path: str) -> float:
     """
     try:
         from daskms import xds_from_ms  # type: ignore[import]
+
         dsets = xds_from_ms(ms_path, columns=["UVW", "DATA"], chunks={})
         umax = 0.0
         freq_list: list[float] = []
@@ -132,4 +137,3 @@ def default_cell_arcsec(ms_path: str) -> float:
             return float(cell)
         except Exception:
             return 2.0
-

@@ -31,17 +31,13 @@ def _start_virtual_display(qa_root: Optional[str] = None) -> Optional[Any]:
         if qa_root:
             note = os.path.join(qa_root, "VIRTUAL_DISPLAY_STARTED.txt")
             with open(note, "w", encoding="utf-8") as f:
-                f.write(
-                    "pyvirtualdisplay started for headless plotting.\n"
-                )
+                f.write("pyvirtualdisplay started for headless plotting.\n")
         return display
     except Exception:
         if qa_root:
             note = os.path.join(qa_root, "PLOTS_VDISPLAY_UNAVAILABLE.txt")
             with open(note, "w", encoding="utf-8") as f:
-                f.write(
-                    "pyvirtualdisplay not available; proceeding without.\n"
-                )
+                f.write("pyvirtualdisplay not available; proceeding without.\n")
         return None
 
 
@@ -171,4 +167,3 @@ __all__ = [
     "standard_visibility_plots",
     "get_output_formats",
 ]
-

@@ -51,7 +51,7 @@ def _mkdocs_paths() -> List[str]:
 def _to_url(md_path: str) -> str:
     # Normalize docs-relative path
     if md_path.startswith("docs/"):
-        rel = md_path[len("docs/"):]
+        rel = md_path[len("docs/") :]
     else:
         rel = md_path
 
@@ -102,4 +102,3 @@ def test_mermaid_diagrams_render_without_errors(md_path: str) -> None:
             assert svgs > 0, f"Mermaid present but no rendered SVGs on {url}"
 
         browser.close()
-
