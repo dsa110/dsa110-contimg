@@ -1533,3 +1533,61 @@ export function useRunQA() {
     },
   });
 }
+
+// Source detail hooks
+export function useSourceDetail(sourceId: string | null): UseQueryResult<any> {
+  return useQuery({
+    queryKey: ['source', sourceId],
+    queryFn: async () => {
+      const response = await apiClient.get(`/api/sources/${sourceId}`);
+      return response.data;
+    },
+    enabled: !!sourceId,
+  });
+}
+
+export function useSourceDetections(
+  sourceId: string | null,
+  page: number = 1,
+  pageSize: number = 25
+): UseQueryResult<any> {
+  return useQuery({
+    queryKey: ['source', sourceId, 'detections', page, pageSize],
+    queryFn: async () => {
+      const response = await apiClient.get(`/api/sources/${sourceId}/detections`, {
+        params: { page, page_size: pageSize },
+      });
+      return response.data;
+    },
+    enabled: !!sourceId,
+  });
+}
+
+// Image detail hooks
+export function useImageDetail(imageId: number | null): UseQueryResult<any> {
+  return useQuery({
+    queryKey: ['image', imageId],
+    queryFn: async () => {
+      const response = await apiClient.get(`/api/images/${imageId}`);
+      return response.data;
+    },
+    enabled: !!imageId,
+  });
+}
+
+export function useImageMeasurements(
+  imageId: number | null,
+  page: number = 1,
+  pageSize: number = 25
+): UseQueryResult<any> {
+  return useQuery({
+    queryKey: ['image', imageId, 'measurements', page, pageSize],
+    queryFn: async () => {
+      const response = await apiClient.get(`/api/images/${imageId}/measurements`, {
+        params: { page, page_size: pageSize },
+      });
+      return response.data;
+    },
+    enabled: !!imageId,
+  });
+}
