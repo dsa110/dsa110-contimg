@@ -56,7 +56,6 @@ from .selection import select_bandpass_fields, select_bandpass_from_catalog
 # CASA imports deferred until needed
 
 
-
 try:
     # Ensure casacore temp files go to scratch, not the repo root
     from dsa110_contimg.utils.tempdirs import prepare_temp_environment
