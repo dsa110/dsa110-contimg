@@ -12,6 +12,8 @@ import ControlPage from './pages/ControlPage';
 import MosaicGalleryPage from './pages/MosaicGalleryPage';
 import MosaicViewPage from './pages/MosaicViewPage';
 import SourceMonitoringPage from './pages/SourceMonitoringPage';
+import SourceDetailPage from './pages/SourceDetailPage';
+import ImageDetailPage from './pages/ImageDetailPage';
 import SkyViewPage from './pages/SkyViewPage';
 import StreamingPage from './pages/StreamingPage';
 import DataBrowserPage from './pages/DataBrowserPage';
@@ -119,6 +121,8 @@ function AppContent() {
                       <Route path="/mosaics" element={<MosaicGalleryPage />} />
                       <Route path="/mosaics/:mosaicId" element={<MosaicViewPage />} />
                       <Route path="/sources" element={<SourceMonitoringPage />} />
+                      <Route path="/sources/:sourceId" element={<SourceDetailPage />} />
+                      <Route path="/images/:imageId" element={<ImageDetailPage />} />
                       <Route path="/sky" element={<SkyViewPage />} />
                       <Route path="/streaming" element={<StreamingPage />} />
                       <Route path="/data" element={<DataBrowserPage />} />
