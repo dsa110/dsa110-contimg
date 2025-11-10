@@ -606,7 +606,7 @@ The pipeline includes a **declarative orchestration framework** for dependency-b
 - **Pipeline Flow**: `docs/pipeline.md`
 - **ESE Literature Summary**: `docs/reports/ESE_LITERATURE_SUMMARY.md`
 - **Photometry Normalization**: `docs/science/photometry_normalization.md`
-- **Project Schema**: `.cursor/rules/graphiti/graphiti-dsa110-contimg-schema.mdc`
+- **Project Knowledge Graph Schema**: `docs/reference/knowledge-graph-schema.md`
 - **Control Panel**: `docs/guides/control-panel/`
 - **Complete Project Review**: `docs/reports/COMPLETE_PROJECT_REVIEW.md`
 - **Test Suite**: `tests/README.md`
@@ -626,4 +626,3 @@ The DSA-110 continuum imaging pipeline is a sophisticated, production-ready syst
 6. **Detects** ESE candidates through variability analysis
 
 The pipeline is designed for **robustness**, **observability**, and **scientific rigor**, with comprehensive error handling, QA metrics, and database tracking throughout.
-

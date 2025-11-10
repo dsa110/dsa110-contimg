@@ -41,7 +41,7 @@ Based on industry best practices, we propose a **three-tier architecture**:
 **Purpose:** Documentation for users, developers, and operators  
 **Structure:** Organized by purpose (how-to, concepts, reference, tutorials)
 
-### Tier 2: Development Notes (`docs/dev/`)
+### Tier 2: Development Notes (`internal/docs/dev/`)
 **Purpose:** Agent notes, investigation reports, status updates, development history  
 **Structure:** Organized by topic and date
 
@@ -98,7 +98,7 @@ docs/
 │   └── troubleshooting/
 │       └── common_issues.md
 │
-├── dev/                              # NEW: Development notes
+├── (internal)/docs/dev/              # Development notes (not published)
 │   ├── README.md                     # Entry point for dev notes
 │   │
 │   ├── analysis/                     # Investigation reports
@@ -139,7 +139,7 @@ docs/
 
 ### Phase 1: Root Directory Cleanup (Priority: High)
 
-**Move to `docs/dev/status/`:**
+**Move to `internal/docs/dev/status/`:**
 - `DASHBOARD_ENDPOINT_TEST_RESULTS.md`
 - `DASHBOARD_REAL_DATA_IMPLEMENTATION.md`
 - `DASHBOARD_TBD_STATUS.md`
@@ -153,13 +153,13 @@ docs/
 - `TEST_RESULTS.md`
 - `VALIDATION_DEMONSTRATION.md`
 
-**Move to `docs/dev/analysis/`:**
+**Move to `internal/docs/dev/analysis/`:**
 - `TIME_INVESTIGATION_REPORT.md`
 - `TIME_VALIDATION_STRATEGY.md`
 - `DUPLICATE_TIME_INVESTIGATION.md`
 - `BUG_REPORT.md` (if still relevant)
 
-**Move to `docs/dev/notes/`:**
+**Move to `internal/docs/dev/notes/`:**
 - `ARCHITECTURAL_ELEGANCE_BRAINSTORM.md`
 - `ARCHITECTURE_OPTIMIZATION_RECOMMENDATIONS.md`
 - `PYUVDATA_USAGE_ANALYSIS.md`
@@ -178,7 +178,7 @@ docs/
 
 ### Phase 2: Source Directory Cleanup (Priority: High)
 
-**Move to `docs/dev/analysis/`:**
+**Move to `internal/docs/dev/analysis/`:**
 - `src/dsa110_contimg/RA_CALCULATION_ISSUE.md`
 - `src/dsa110_contimg/TIME_HANDLING_ISSUES.md`
 
@@ -188,7 +188,7 @@ docs/
 
 ### Phase 3: Docker Directory Cleanup (Priority: Medium)
 
-**Move to `docs/dev/status/experimental/`:**
+**Move to `internal/docs/dev/status/experimental/`:**
 - All `docker/cubical_experimental/*.md` status files
 - Keep only `docker/cubical_experimental/README.md` in place
 
@@ -211,7 +211,7 @@ docs/
 - `docs/concepts/README.md` - Concepts overview
 - `docs/how-to/README.md` - How-to guides index
 - `docs/reference/README.md` - Reference documentation index
-- `docs/dev/README.md` - Development notes index
+- `internal/docs/dev/README.md` - Development notes index
 - `docs/archive/README.md` - Archive index
 
 **Add cross-references:**
@@ -243,19 +243,19 @@ docs/
 ## Documentation Lifecycle Management
 
 ### Status Reports (Temporal)
-1. **Create** in `docs/dev/status/YYYY-MM/`
+1. **Create** in `internal/docs/dev/status/YYYY-MM/`
 2. **Update** as needed during development
 3. **Archive** to `docs/archive/status_reports/` when complete or superseded
 4. **Link** from relevant permanent documentation
 
 ### Investigation Reports
-1. **Create** in `docs/dev/analysis/`
+1. **Create** in `internal/docs/dev/analysis/`
 2. **Update** with findings
-3. **Move** to `docs/dev/history/` when investigation complete
+3. **Move** to `internal/docs/dev/history/` when investigation complete
 4. **Extract** key findings to permanent documentation
 
-### Agent Notes
-1. **Create** in `docs/dev/notes/`
+### Notes
+1. **Create** in `internal/docs/dev/notes/`
 2. **Review** periodically for valuable insights
 3. **Extract** insights to permanent documentation
 4. **Archive** when no longer relevant
@@ -266,28 +266,28 @@ docs/
 
 ### Step 1: Create New Directory Structure
 ```bash
-mkdir -p docs/dev/{analysis,status,history,notes}
+mkdir -p internal/docs/dev/{analysis,status,history,notes}
 mkdir -p docs/archive/{status_reports,investigations,experimental}
 ```
 
 ### Step 2: Move Files (Batch 1: Root Directory)
 ```bash
 # Status reports
-mv DASHBOARD_*.md docs/dev/status/2025-01/
-mv ENDPOINT_*.md docs/dev/status/2025-01/
-mv SKYVIEW_*.md docs/dev/status/2025-01/
-mv TEST*.md docs/dev/status/2025-01/
-mv VALIDATION_DEMONSTRATION.md docs/dev/status/2025-01/
+mv DASHBOARD_*.md internal/docs/dev/status/2025-01/
+mv ENDPOINT_*.md internal/docs/dev/status/2025-01/
+mv SKYVIEW_*.md internal/docs/dev/status/2025-01/
+mv TEST*.md internal/docs/dev/status/2025-01/
+mv VALIDATION_DEMONSTRATION.md internal/docs/dev/status/2025-01/
 
 # Analysis reports
-mv TIME_*.md docs/dev/analysis/
-mv DUPLICATE_TIME_INVESTIGATION.md docs/dev/analysis/
-mv BUG_REPORT.md docs/dev/analysis/
+mv TIME_*.md internal/docs/dev/analysis/
+mv DUPLICATE_TIME_INVESTIGATION.md internal/docs/dev/analysis/
+mv BUG_REPORT.md internal/docs/dev/analysis/
 
 # Notes
-mv ARCHITECTURAL_*.md docs/dev/notes/
-mv ARCHITECTURE_OPTIMIZATION_RECOMMENDATIONS.md docs/dev/notes/
-mv PYUVDATA_USAGE_ANALYSIS.md docs/dev/notes/
+mv ARCHITECTURAL_*.md internal/docs/dev/notes/
+mv ARCHITECTURE_OPTIMIZATION_RECOMMENDATIONS.md internal/docs/dev/notes/
+mv PYUVDATA_USAGE_ANALYSIS.md internal/docs/dev/notes/
 
 # Reference
 mv DEVELOPER_GUIDE.md docs/reference/developer_guide.md
@@ -295,8 +295,8 @@ mv DEVELOPER_GUIDE.md docs/reference/developer_guide.md
 
 ### Step 3: Move Files (Batch 2: Source Directories)
 ```bash
-mv src/dsa110_contimg/RA_CALCULATION_ISSUE.md docs/dev/analysis/
-mv src/dsa110_contimg/TIME_HANDLING_ISSUES.md docs/dev/analysis/
+mv src/dsa110_contimg/RA_CALCULATION_ISSUE.md internal/docs/dev/analysis/
+mv src/dsa110_contimg/TIME_HANDLING_ISSUES.md internal/docs/dev/analysis/
 ```
 
 ### Step 4: Create Entry Point READMEs
@@ -325,9 +325,9 @@ Create `README.md` files in each major directory with:
 
 1. **Choose the right location:**
    - **User-facing docs:** `docs/how-to/`, `docs/concepts/`, `docs/reference/`
-   - **Status updates:** `docs/dev/status/YYYY-MM/`
-   - **Investigation reports:** `docs/dev/analysis/`
-   - **Agent notes:** `docs/dev/notes/`
+   - **Status updates:** `internal/docs/dev/status/YYYY-MM/`
+   - **Investigation reports:** `internal/docs/dev/analysis/`
+   - **Notes:** `internal/docs/dev/notes/`
 
 2. **Use consistent naming:**
    - Lowercase with underscores
@@ -406,8 +406,8 @@ Create scripts for:
 
 ### Immediate (After Consolidation)
 - ✅ No markdown files in root directory (except README.md, MEMORY.md, TODO.md)
-- ✅ All status reports in `docs/dev/status/`
-- ✅ All analysis reports in `docs/dev/analysis/`
+- ✅ All status reports in `internal/docs/dev/status/`
+- ✅ All analysis reports in `internal/docs/dev/analysis/`
 - ✅ Consistent file naming (lowercase_with_underscores)
 
 ### Short-term (3 months)
@@ -458,4 +458,3 @@ Based on industry best practices from:
 3. **Create migration script** for automated file moves
 4. **Execute Phase 1** (root directory cleanup)
 5. **Iterate** based on feedback
-

@@ -32,10 +32,10 @@
 - **[Calibration Overview](calibration-overview.md)** - Calibration system overview
 - **[Current Calibration Procedure](CURRENT_CALIBRATION_PROCEDURE.md)** - Current calibration workflow reference
 
-## Graphiti Knowledge Graph
+## Knowledge Graph
 
-- **[Graphiti DSA-110 Schema](graphiti-dsa110-contimg-schema.md)** - Knowledge graph schema for this project
-- **[Graphiti Guardrails](graphiti-guardrails.md)** - Graphiti usage guidelines
+- **[Knowledge Graph Schema](knowledge-graph-schema.md)** - Schema for this project
+- **[Knowledge Graph Guardrails](knowledge-graph-guardrails.md)** - Usage guidelines
 
 ## Developer Resources
 
@@ -58,4 +58,3 @@
 ---
 
 **Last Updated:** 2025-01-XX
-

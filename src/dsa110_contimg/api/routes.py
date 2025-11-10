@@ -5247,5 +5247,9 @@ def create_app(config: ApiConfig | None = None) -> FastAPI:
 
     # Include router after all routes are defined
     app.include_router(router)
+    
+    # Include visualization routes
+    from dsa110_contimg.api.visualization_routes import router as visualization_router
+    app.include_router(visualization_router)
 
     return app

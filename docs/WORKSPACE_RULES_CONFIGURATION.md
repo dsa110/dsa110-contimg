@@ -10,8 +10,8 @@
 
 The workspace configuration should include:
 
-1. **Graphiti Knowledge Graph Maintenance Rules** - Already included ✅
-2. **Graphiti MCP Core Rules** - Already included ✅
+1. **Knowledge Graph Maintenance Rules** - Already included ✅
+2. **MCP Core Rules** - Already included ✅
 3. **Python Environment Requirements (casa6)** - Already included ✅
 4. **Critical Instructions (MEMORY.md editing)** - Already included ✅
 
@@ -106,4 +106,3 @@ After adding to workspace configuration, verify:
 ---
 
 **Note:** The `.cursor/rules/critical-requirements.mdc` file has been created and contains both requirements. This file can be referenced by the workspace configuration or explicitly requested by agents.
-

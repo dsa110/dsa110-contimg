@@ -1,7 +1,7 @@
 # Development History: Cursor Chat Exports Analysis
 
 **Generated:** 2025-01-XX  
-**Source:** `docs/cursor-chats/*.md` (4 chat export files)  
+**Source:** `internal/docs/chat/*.md` (chat export files)  
 **Purpose:** Extract key development decisions, bug fixes, and implementation details from AI-assisted development sessions
 
 ---
@@ -435,4 +435,3 @@ These insights are valuable for:
 - Avoiding similar bugs in future development
 - Knowing workarounds for known limitations
 - Planning future improvements
-

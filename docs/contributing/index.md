@@ -1,6 +1,6 @@
-# Contributing to the dsa110-contimg Knowledge Graph
+# Contributing to the Knowledge Graph
 
-This project uses a Graphiti knowledge graph to maintain a long-term, queryable memory of design decisions, domain facts, and feature states. All contributors are encouraged to interact with and enrich the graph as part of their development workflow.
+This project uses a knowledge graph to maintain a long-term, queryable memory of design decisions, domain facts, and feature states. All contributors are encouraged to interact with and enrich the graph as part of their development workflow.
 
 ## Daily Workflow
 

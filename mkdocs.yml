@@ -113,8 +113,8 @@ nav:
     - Database Schema: reference/database_schema.md
     - AOFlagger Configuration: reference/dsa110-default.lua
     - Environment Variables: reference/env.md
-    - Graphiti Schema: reference/graphiti-dsa110-contimg-schema.md
-    - Graphiti Guardrails: reference/graphiti-guardrails.md
+    - Knowledge Graph Schema: reference/knowledge-graph-schema.md
+    - Knowledge Graph Guardrails: reference/knowledge-graph-guardrails.md
     - Critical Python Environment: reference/CRITICAL_PYTHON_ENVIRONMENT.md
     - Optimizations:
       - API: reference/optimizations/OPTIMIZATION_API.md

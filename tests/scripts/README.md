@@ -14,7 +14,7 @@ This directory contains test scripts for the DSA-110 continuum imaging pipeline.
 - **`test_monitor_daemon.py`** - Monitor daemon tests
 - **`test_ingest_vla_catalog.py`** - VLA catalog ingestion tests
 - **`test_catalog_builder.py`** - Catalog builder tests
-- **`test_graphiti_mcp.py`** - Graphiti MCP tests
+- **`test_graphiti_mcp.py`** - Knowledge graph MCP tests
 
 ## Running Tests
 

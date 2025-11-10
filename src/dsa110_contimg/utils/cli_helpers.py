@@ -31,8 +31,9 @@ def setup_casa_environment() -> None:
 
         casa_log_dir = derive_casa_log_dir()
         os.chdir(str(casa_log_dir))
-    except Exception:
-        pass  # Best-effort; continue if setup fails
+    except (OSError, IOError, RuntimeError) as e:
+        # Best-effort; continue if setup fails
+        logging.debug("CASA environment setup failed: %s", e)
 
 
 @contextmanager
@@ -54,8 +55,9 @@ def casa_log_environment() -> Path:
         from dsa110_contimg.utils.tempdirs import derive_casa_log_dir
 
         log_dir = derive_casa_log_dir()
-    except Exception:
+    except (OSError, IOError, RuntimeError) as e:
         # Fallback to current directory if setup fails
+        logging.debug("CASA log directory setup failed: %s", e)
         log_dir = Path.cwd()
 
     old_cwd = os.getcwd()

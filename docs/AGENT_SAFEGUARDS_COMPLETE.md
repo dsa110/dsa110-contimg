@@ -78,7 +78,7 @@ Implemented multiple safeguards to prevent root directory markdown file creation
 ### Scenario 2: Rules Are Missed
 - A file is created in root (e.g., `STATUS_REPORT.md`)
 - A maintainer runs the migration script
-- File gets moved to `docs/dev/status/YYYY-MM/status_report.md`
+- File gets moved to `internal/docs/dev/status/YYYY-MM/status_report.md`
 - Cross-references updated automatically
 
 ### Scenario 3: Need Quick Reference
