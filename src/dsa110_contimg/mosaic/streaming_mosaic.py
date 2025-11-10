@@ -1638,6 +1638,34 @@ class StreamingMosaicManager:
             else:
                 final_mosaic_path = mosaic_path
 
+            # Generate PNG visualization automatically
+            try:
+                from dsa110_contimg.imaging.export import export_fits, save_png_from_fits
+                
+                # If we have a CASA image but no FITS, export to FITS first
+                png_source_path = fits_path if Path(fits_path).exists() else None
+                if not png_source_path:
+                    logger.info("Exporting CASA image to FITS for PNG generation...")
+                    exported_fits = export_fits([mosaic_path])
+                    if exported_fits:
+                        png_source_path = exported_fits[0]
+                        logger.info(f"Exported FITS: {png_source_path}")
+                    else:
+                        logger.warning("Failed to export FITS for PNG generation")
+                
+                # Generate PNG from FITS
+                if png_source_path:
+                    logger.info("Generating PNG visualization...")
+                    png_files = save_png_from_fits([png_source_path])
+                    if png_files:
+                        png_path = png_files[0]
+                        logger.info(f"PNG visualization created: {png_path}")
+                    else:
+                        logger.warning("Failed to generate PNG visualization")
+            except Exception as e:
+                # Don't fail the mosaic creation if PNG generation fails
+                logger.warning(f"PNG visualization generation failed (non-critical): {e}")
+
             # Update group status
             self.products_db.execute(
                 """

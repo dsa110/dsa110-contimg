@@ -1589,6 +1589,23 @@ def _build_weighted_mosaic_linearmosaic(
             f"RA span difference: {ra_span_diff:.6f}°, Dec span difference: {dec_span_diff:.6f}°"
         )
 
+    # Remove existing output paths before defining new ones
+    # linearmosaic.defineoutputimage will erase existing images, but empty/corrupted
+    # directories can cause issues, so we explicitly remove them first
+    output_weight_path = str(output_path) + ".weight"
+    if os.path.exists(output_path):
+        LOG.info(f"Removing existing output image: {output_path}")
+        if os.path.isdir(output_path):
+            shutil.rmtree(output_path)
+        else:
+            os.remove(output_path)
+    if os.path.exists(output_weight_path):
+        LOG.info(f"Removing existing output weight image: {output_weight_path}")
+        if os.path.isdir(output_weight_path):
+            shutil.rmtree(output_weight_path)
+        else:
+            os.remove(output_weight_path)
+
     # Define output image for linearmosaic
     # Use the template's coordinate system parameters to ensure exact bounds
     from casatools import measures
@@ -1609,7 +1626,7 @@ def _build_weighted_mosaic_linearmosaic(
         celly=f"{pixel_scale_arcsec}arcsec",
         imagecenter=direction,
         outputimage=str(output_path),
-        outputweight=str(output_path) + ".weight"
+        outputweight=output_weight_path
     )
 
     # Make mosaic using linearmosaic

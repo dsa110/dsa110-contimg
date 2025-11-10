@@ -147,11 +147,13 @@ lm.makemosaic(
 
 1. **Images must be regridded first:** All input images and weight images must be regridded to a common coordinate system before calling `makemosaic()`. Use `imregrid` for this.
 
-2. **Coordinate system:** The output coordinate system is defined by `defineoutputimage()` before calling `makemosaic()`.
+2. **DSA-110 Pipeline Default:** The DSA-110 pipeline uses `imageweighttype=0` by default in `_build_weighted_mosaic_linearmosaic()`. This ensures `linearmosaic` handles PB correction internally, avoiding artifacts from incorrectly assuming images are already PB-corrected.
 
-3. **Order matters:** The `weightimages` list must match the order of the `images` list.
+3. **Coordinate system:** The output coordinate system is defined by `defineoutputimage()` before calling `makemosaic()`.
 
-4. **PB Correction:** If you're unsure whether images are PB-corrected, use `imageweighttype=0` to let `linearmosaic` handle it. Incorrectly setting `imageweighttype=1` with uncorrected images will cause artifacts.
+4. **Order matters:** The `weightimages` list must match the order of the `images` list.
+
+5. **PB Correction:** If you're unsure whether images are PB-corrected, use `imageweighttype=0` to let `linearmosaic` handle it. Incorrectly setting `imageweighttype=1` with uncorrected images will cause artifacts.
 
 ## Common Issues
 

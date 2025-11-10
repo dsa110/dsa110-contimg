@@ -7,6 +7,7 @@ Tests the new _build_weighted_mosaic_linearmosaic function with real data.
 
 from dsa110_contimg.mosaic.cli import (
     _build_weighted_mosaic_linearmosaic,
+    _build_weighted_mosaic,
 )
 from dsa110_contimg.mosaic.validation import TileQualityMetrics
 import sqlite3
@@ -243,7 +244,18 @@ def test_linearmosaic():
     # Remove existing if present
     if Path(output_path).exists():
         import shutil
-        shutil.rmtree(output_path)
+        import time
+        # Try multiple times with delay (CASA images can be slow to release)
+        for attempt in range(3):
+            try:
+                shutil.rmtree(output_path)
+                break
+            except OSError:
+                if attempt < 2:
+                    time.sleep(1)
+                else:
+                    # Force remove with ignore_errors
+                    shutil.rmtree(output_path, ignore_errors=True)
 
     print(f"\n3. Testing linearmosaic...")
     print(f"   Output: {output_path}")
@@ -306,7 +318,18 @@ def test_fallback():
 
     if Path(output_path).exists():
         import shutil
-        shutil.rmtree(output_path)
+        import time
+        # Try multiple times with delay (CASA images can be slow to release)
+        for attempt in range(3):
+            try:
+                shutil.rmtree(output_path)
+                break
+            except OSError:
+                if attempt < 2:
+                    time.sleep(1)
+                else:
+                    # Force remove with ignore_errors
+                    shutil.rmtree(output_path, ignore_errors=True)
 
     print(f"\nTesting fallback method...")
     print(f"   Output: {output_path}")
@@ -351,7 +374,18 @@ def test_wrapper():
 
     if Path(output_path).exists():
         import shutil
-        shutil.rmtree(output_path)
+        import time
+        # Try multiple times with delay (CASA images can be slow to release)
+        for attempt in range(3):
+            try:
+                shutil.rmtree(output_path)
+                break
+            except OSError:
+                if attempt < 2:
+                    time.sleep(1)
+                else:
+                    # Force remove with ignore_errors
+                    shutil.rmtree(output_path, ignore_errors=True)
 
     print(f"\nTesting wrapper function...")
     print(f"   Output: {output_path}")
@@ -395,24 +429,66 @@ def test_wrapper():
 
 
 if __name__ == '__main__':
-    print("Starting linearmosaic tests...\n")
+    import signal
+    import os
+    
+    # Set strict timeout: 30 minutes (1800 seconds)
+    TIMEOUT_SECONDS = 1800
+    
+    def timeout_handler(signum, frame):
+        print(f"\n\n{'='*60}")
+        print(f"TIMEOUT: Test exceeded {TIMEOUT_SECONDS} seconds ({TIMEOUT_SECONDS/60:.1f} minutes)")
+        print(f"{'='*60}")
+        print("This may indicate:")
+        print("  - Mosaic building is taking longer than expected")
+        print("  - A hang or infinite loop in the code")
+        print("  - Very large images requiring more time")
+        print("\nConsider:")
+        print("  - Using downsampled images for testing")
+        print("  - Checking system resources (CPU, memory, disk)")
+        print("  - Reviewing logs for progress indicators")
+        sys.exit(124)  # Standard timeout exit code
+    
+    # Set up signal handler for timeout
+    signal.signal(signal.SIGALRM, timeout_handler)
+    signal.alarm(TIMEOUT_SECONDS)
+    
+    try:
+        print("Starting linearmosaic tests...")
+        print(f"Timeout: {TIMEOUT_SECONDS} seconds ({TIMEOUT_SECONDS/60:.1f} minutes)\n")
 
-    # Test 1: Direct linearmosaic (if PB images available)
-    success1 = test_linearmosaic()
+        # Test 1: Direct linearmosaic (if PB images available)
+        success1 = test_linearmosaic()
 
-    # Test 2: Wrapper function
-    success2 = test_wrapper()
+        # Test 2: Wrapper function
+        success2 = test_wrapper()
 
-    print("\n" + "=" * 60)
-    print("Test Summary")
-    print("=" * 60)
-    print(
-        f"linearmosaic direct: {'✓ PASSED' if success1 else '✗ FAILED/SKIPPED'}")
-    print(f"Wrapper function:    {'✓ PASSED' if success2 else '✗ FAILED'}")
+        # Cancel timeout if we complete successfully
+        signal.alarm(0)
 
-    if success1 or success2:
-        print("\n✓✓✓ At least one test passed!")
-        sys.exit(0)
-    else:
-        print("\n✗✗✗ All tests failed")
+        print("\n" + "=" * 60)
+        print("Test Summary")
+        print("=" * 60)
+        print(
+            f"linearmosaic direct: {'✓ PASSED' if success1 else '✗ FAILED/SKIPPED'}")
+        print(f"Wrapper function:    {'✓ PASSED' if success2 else '✗ FAILED'}")
+
+        if success1 or success2:
+            print("\n✓✓✓ At least one test passed!")
+            sys.exit(0)
+        else:
+            print("\n✗✗✗ All tests failed")
+            sys.exit(1)
+    except KeyboardInterrupt:
+        signal.alarm(0)
+        print("\n\nInterrupted by user")
+        sys.exit(130)
+    except SystemExit as e:
+        signal.alarm(0)
+        raise
+    except Exception as e:
+        signal.alarm(0)
+        print(f"\n\nUnexpected error: {e}")
+        import traceback
+        traceback.print_exc()
         sys.exit(1)

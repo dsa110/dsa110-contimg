@@ -21,7 +21,8 @@ def export_fits(images: Iterable[str]) -> List[str]:
     try:
         from casatasks import exportfits as _exportfits  # type: ignore
     except Exception as e:
-        print("casatasks.exportfits not available:", e, file=__import__("sys").stderr)
+        print("casatasks.exportfits not available:",
+              e, file=__import__("sys").stderr)
         return []
 
     exported: List[str] = []
@@ -32,7 +33,8 @@ def export_fits(images: Iterable[str]) -> List[str]:
             print("Exported FITS:", fits_out)
             exported.append(fits_out)
         except Exception as e:
-            print("exportfits failed for", p, ":", e, file=__import__("sys").stderr)
+            print("exportfits failed for", p, ":",
+                  e, file=__import__("sys").stderr)
     return exported
 
 
@@ -49,12 +51,14 @@ def save_png_from_fits(paths: Iterable[str]) -> List[str]:
         matplotlib.use("Agg")
         import matplotlib.pyplot as plt
     except Exception as e:
-        print("PNG conversion dependencies missing:", e, file=__import__("sys").stderr)
+        print("PNG conversion dependencies missing:",
+              e, file=__import__("sys").stderr)
         return saved
 
     for f in paths:
         try:
-            with fits.open(f, memmap=False) as hdul:
+            # Use memmap=True for large files to avoid loading everything into memory
+            with fits.open(f, memmap=True) as hdul:
                 data = None
                 for hdu in hdul:
                     if (
@@ -67,7 +71,8 @@ def save_png_from_fits(paths: Iterable[str]) -> List[str]:
                         except ValueError as e:
                             import logging
 
-                            logging.warning(f"Skipping invalid image in {f}: {e}")
+                            logging.warning(
+                                f"Skipping invalid image in {f}: {e}")
                             continue
                         data = hdu.data
                         break
@@ -81,13 +86,33 @@ def save_png_from_fits(paths: Iterable[str]) -> List[str]:
                 if not np.any(m):
                     print("Skip (all NaN):", f)
                     continue
+
+                # Downsample large arrays to speed up processing
+                # For arrays > 10M pixels, downsample by factor of 4-16
+                n_pixels = arr.size
+                if n_pixels > 10_000_000:
+                    # Calculate downsampling factor to get ~1-5M pixels
+                    factor = max(2, int(np.sqrt(n_pixels / 2_000_000)))
+                    # Use simple block averaging for downsampling
+                    h, w = arr.shape
+                    h_new, w_new = h // factor, w // factor
+                    if h_new > 0 and w_new > 0:
+                        arr_downsampled = arr[:h_new * factor, :w_new * factor].reshape(
+                            h_new, factor, w_new, factor
+                        ).mean(axis=(1, 3))
+                        arr = arr_downsampled
+                        m = np.isfinite(arr)
+                        print(
+                            f"Downsampled by factor {factor} for faster processing")
+
                 vals = arr[m]
                 lo, hi = np.percentile(vals, [1.0, 99.5])
                 img = np.clip(arr, lo, hi)
                 img = np.arcsinh((img - lo) / max(1e-12, (hi - lo)))
                 img[~m] = np.nan
                 plt.figure(figsize=(6, 5), dpi=140)
-                plt.imshow(img, origin="lower", cmap="inferno", interpolation="nearest")
+                plt.imshow(img, origin="lower", cmap="inferno",
+                           interpolation="nearest")
                 plt.colorbar(fraction=0.046, pad=0.04)
                 plt.title(os.path.basename(f))
                 plt.tight_layout()
@@ -97,5 +122,6 @@ def save_png_from_fits(paths: Iterable[str]) -> List[str]:
                 print("Wrote PNG:", out)
                 saved.append(out)
         except Exception as e:
-            print("PNG conversion failed for", f, ":", e, file=__import__("sys").stderr)
+            print("PNG conversion failed for", f, ":",
+                  e, file=__import__("sys").stderr)
     return saved
