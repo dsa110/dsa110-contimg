@@ -114,6 +114,7 @@ class StreamingMosaicManager:
         calibration_params: Optional[Dict] = None,
         min_calibrator_flux_jy: float = 0.1,
         min_calibrator_pb_response: float = 0.3,
+        config: Optional[Any] = None,
     ):
         """Initialize streaming mosaic manager.
 
@@ -178,6 +179,17 @@ class StreamingMosaicManager:
         self.registry_db = ensure_cal_db(registry_db_path)
         self._ensure_mosaic_groups_table()
         self._register_storage_locations()
+
+        # Pipeline configuration (optional, for cross-matching and other stages)
+        if config is None:
+            from dsa110_contimg.pipeline.config import PipelineConfig
+            try:
+                self.config = PipelineConfig.from_env(validate_paths=False)
+            except Exception:
+                # Create minimal config if env vars not available
+                self.config = PipelineConfig()
+        else:
+            self.config = config
 
     def _ensure_mosaic_groups_table(self) -> None:
         """Ensure mosaic_groups table exists in products database."""
@@ -1734,6 +1746,16 @@ class StreamingMosaicManager:
             logger.error(f"Failed to create mosaic for group {group_id}")
             return False
 
+        # Run cross-matching if enabled
+        if self.config.crossmatch.enabled:
+            try:
+                self.run_crossmatch_for_mosaic(group_id, mosaic_path)
+            except Exception as e:
+                logger.warning(
+                    f"Cross-matching failed for group {group_id}: {e}. "
+                    "Continuing without cross-match results."
+                )
+
         logger.info(f"Successfully processed group {group_id}, mosaic: {mosaic_path}")
         return True
 
@@ -2003,8 +2025,84 @@ class StreamingMosaicManager:
             logger.error(f"Failed to create mosaic for group {group_id}")
             return False
 
+        # Run cross-matching if enabled
+        if self.config.crossmatch.enabled:
+            try:
+                self.run_crossmatch_for_mosaic(group_id, mosaic_path)
+            except Exception as e:
+                logger.warning(
+                    f"Cross-matching failed for group {group_id}: {e}. "
+                    "Continuing without cross-match results."
+                )
+
         logger.info(f"Successfully processed group {group_id}, mosaic: {mosaic_path}")
         return True
+
+    def run_crossmatch_for_mosaic(
+        self, group_id: str, mosaic_path: str
+    ) -> Optional[str]:
+        """Run cross-matching stage for a completed mosaic.
+
+        Args:
+            group_id: Group identifier
+            mosaic_path: Path to mosaic image (FITS or CASA)
+
+        Returns:
+            Cross-match status string, or None if disabled/failed
+        """
+        if not self.config.crossmatch.enabled:
+            logger.debug("Cross-matching is disabled, skipping")
+            return None
+
+        logger.info(f"Running cross-matching for mosaic: {mosaic_path}")
+
+        try:
+            from dsa110_contimg.pipeline.context import PipelineContext
+            from dsa110_contimg.pipeline import stages_impl
+
+            # Create pipeline context with mosaic as image output
+            # Note: state_repository is optional - CrossMatchStage doesn't require it
+            context = PipelineContext(
+                config=self.config,
+                job_id=None,
+                inputs={},
+                outputs={"image_path": mosaic_path},
+                metadata={"group_id": group_id, "mosaic_path": mosaic_path},
+                state_repository=None,
+            )
+
+            # Create and execute cross-match stage
+            crossmatch_stage = stages_impl.CrossMatchStage(self.config)
+
+            # Validate prerequisites
+            is_valid, error_msg = crossmatch_stage.validate(context)
+            if not is_valid:
+                logger.warning(
+                    f"Cross-match validation failed for {mosaic_path}: {error_msg}"
+                )
+                return None
+
+            # Execute cross-matching
+            updated_context = crossmatch_stage.execute(context)
+
+            # Extract status from outputs
+            status = updated_context.outputs.get("crossmatch_status", "unknown")
+            n_matches = updated_context.outputs.get("n_matches", 0)
+            n_catalogs = updated_context.outputs.get("n_catalogs", 0)
+
+            logger.info(
+                f"Cross-matching completed for {mosaic_path}: "
+                f"status={status}, matches={n_matches}, catalogs={n_catalogs}"
+            )
+
+            return status
+
+        except Exception as e:
+            logger.error(
+                f"Error running cross-matching for {mosaic_path}: {e}",
+                exc_info=True,
+            )
+            raise
 
 
 def main() -> int:

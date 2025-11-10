@@ -12,7 +12,7 @@ import logging
 import sqlite3
 from dataclasses import dataclass
 from pathlib import Path
-from typing import Optional, Tuple, Dict, Any
+from typing import Optional, Tuple, Dict, Any, List
 
 import numpy as np
 import pandas as pd
@@ -25,6 +25,12 @@ try:
         calculate_eta_metric,
         calculate_vs_metric,
         calculate_m_metric,
+    )
+    from dsa110_contimg.catalog.external import (
+        simbad_search,
+        ned_search,
+        gaia_search,
+        query_all_catalogs,
     )
 except ImportError:
     # Fallback if variability module not available
@@ -525,4 +531,85 @@ class Source:
             return None
         
         return fig
+
+    def crossmatch_external(
+        self,
+        radius_arcsec: float = 5.0,
+        catalogs: Optional[List[str]] = None,
+        timeout: float = 30.0,
+    ) -> Dict[str, Optional[Dict[str, any]]]:
+        """Cross-match this source with external catalogs (SIMBAD, NED, Gaia).
+
+        Queries external astronomical catalogs to identify the source and retrieve
+        additional information such as object type, redshift, proper motion, etc.
+
+        Args:
+            radius_arcsec: Search radius in arcseconds (default: 5.0)
+            catalogs: List of catalogs to query. Options: 'simbad', 'ned', 'gaia'.
+                     If None, queries all catalogs (default: None)
+            timeout: Query timeout in seconds (default: 30.0)
+
+        Returns:
+            Dictionary with catalog names as keys and query results as values.
+            Each result is a dictionary with catalog-specific fields, or None
+            if no match found or error occurred.
+
+        Example:
+            >>> source = Source(source_id="NVSS J123456+012345")
+            >>> results = source.crossmatch_external(radius_arcsec=10.0)
+            >>> if results['simbad']:
+            ...     print(f"SIMBAD ID: {results['simbad']['main_id']}")
+            >>> if results['ned'] and results['ned']['redshift']:
+            ...     print(f"Redshift: {results['ned']['redshift']}")
+        """
+        from astropy.coordinates import SkyCoord
+        import astropy.units as u
+
+        if self.ra_deg is None or self.dec_deg is None:
+            logger.warning(
+                f"Cannot cross-match source {self.source_id}: "
+                "RA/Dec not available"
+            )
+            return {'simbad': None, 'ned': None, 'gaia': None}
+
+        coord = SkyCoord(ra=self.ra_deg * u.deg, dec=self.dec_deg * u.deg)
+
+        if catalogs is None:
+            # Query all catalogs
+            return query_all_catalogs(
+                coord,
+                radius_arcsec=radius_arcsec,
+                timeout=timeout,
+            )
+
+        # Query specific catalogs
+        results = {}
+        if 'simbad' in catalogs:
+            results['simbad'] = simbad_search(
+                coord,
+                radius_arcsec=radius_arcsec,
+                timeout=timeout,
+            )
+        else:
+            results['simbad'] = None
+
+        if 'ned' in catalogs:
+            results['ned'] = ned_search(
+                coord,
+                radius_arcsec=radius_arcsec,
+                timeout=timeout,
+            )
+        else:
+            results['ned'] = None
+
+        if 'gaia' in catalogs:
+            results['gaia'] = gaia_search(
+                coord,
+                radius_arcsec=radius_arcsec,
+                timeout=timeout,
+            )
+        else:
+            results['gaia'] = None
+
+        return results
 

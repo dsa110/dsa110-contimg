@@ -18,6 +18,10 @@ from astropy.io import fits
 from astropy.wcs import WCS
 
 from dsa110_contimg.catalog.query import query_sources
+from dsa110_contimg.catalog.crossmatch import (
+    cross_match_dataframes,
+    calculate_positional_offsets,
+)
 from dsa110_contimg.photometry.forced import measure_forced_peak
 from dsa110_contimg.utils.runtime_safeguards import (
     validate_wcs_4d,
@@ -399,23 +403,18 @@ def validate_astrometry(
         return result
 
     # Match sources
-    detected_coords = SkyCoord(
-        detected_sources["ra_deg"].values * u.deg,
-        detected_sources["dec_deg"].values * u.deg,
+    # Use standalone cross-matching utility
+    matches = cross_match_dataframes(
+        detected_df=detected_sources,
+        catalog_df=catalog_sources,
+        radius_arcsec=search_radius_arcsec,
+        detected_ra_col="ra_deg",
+        detected_dec_col="dec_deg",
+        catalog_ra_col="ra_deg",
+        catalog_dec_col="dec_deg",
     )
-    catalog_coords = SkyCoord(
-        catalog_sources["ra_deg"].values * u.deg,
-        catalog_sources["dec_deg"].values * u.deg,
-    )
 
-    # Find nearest catalog source for each detected source
-    idx, sep2d, _ = match_coordinates_sky(detected_coords, catalog_coords)
-
-    # Filter matches within search radius
-    sep_arcsec = sep2d.to(u.arcsec).value
-    match_mask = sep_arcsec < search_radius_arcsec
-
-    n_matched = np.sum(match_mask)
+    n_matched = len(matches)
 
     if n_matched == 0:
         result = CatalogValidationResult(
@@ -430,20 +429,21 @@ def validate_astrometry(
         )
         return result
 
-    # Calculate offsets
-    matched_sep = sep_arcsec[match_mask]
-    matched_detected = detected_coords[match_mask]
-    matched_catalog = catalog_coords[idx[match_mask]]
+    # Calculate offsets using standalone utility
+    dra_median, ddec_median, dra_madfm, ddec_madfm = calculate_positional_offsets(
+        matches
+    )
 
-    # Calculate RA/Dec offsets
-    ra_offsets = (matched_detected.ra - matched_catalog.ra).to(u.arcsec).value
-    dec_offsets = (matched_detected.dec - matched_catalog.dec).to(u.arcsec).value
+    # Extract offsets for compatibility with existing result structure
+    matched_sep = matches["separation_arcsec"].values
+    ra_offsets = matches["dra_arcsec"].values
+    dec_offsets = matches["ddec_arcsec"].values
 
     mean_offset = np.mean(matched_sep)
     rms_offset = np.std(matched_sep)
     max_offset = np.max(matched_sep)
-    mean_ra_offset = np.mean(ra_offsets)
-    mean_dec_offset = np.mean(dec_offsets)
+    mean_ra_offset = dra_median.to(u.arcsec).value
+    mean_dec_offset = ddec_median.to(u.arcsec).value
 
     # Check for issues
     issues = []
@@ -846,32 +846,29 @@ def validate_source_counts(
             ],
         )
 
-    # Match detected sources to catalog sources
+    # Match detected sources to catalog sources using standalone utility
     if n_detected > 0 and len(detected_sources) > 0:
-        # Create SkyCoord objects for matching
-        catalog_coords = SkyCoord(
-            ra=catalog_filtered["ra_deg"].values * u.deg,
-            dec=catalog_filtered["dec_deg"].values * u.deg,
+        # Use standalone cross-matching utility
+        matches = cross_match_dataframes(
+            detected_df=detected_sources,
+            catalog_df=catalog_filtered,
+            radius_arcsec=search_radius_arcsec,
+            detected_ra_col="ra_deg",
+            detected_dec_col="dec_deg",
+            catalog_ra_col="ra_deg",
+            catalog_dec_col="dec_deg",
         )
-        detected_coords = SkyCoord(
-            ra=detected_sources["ra_deg"].values * u.deg,
-            dec=detected_sources["dec_deg"].values * u.deg,
-        )
-
-        # Match within search radius
-        idx, sep2d, _ = match_coordinates_sky(detected_coords, catalog_coords)
-        matched_mask = sep2d.arcsec <= search_radius_arcsec
 
         # Mark which catalog sources were detected
         catalog_filtered = catalog_filtered.copy()
         catalog_filtered["detected"] = False
-        matched_catalog_indices = idx[matched_mask]
-        if len(matched_catalog_indices) > 0:
+        if len(matches) > 0:
+            matched_catalog_indices = matches["catalog_idx"].values
             catalog_filtered.iloc[
                 matched_catalog_indices, catalog_filtered.columns.get_loc("detected")
             ] = True
 
-        n_matched = matched_mask.sum()
+        n_matched = len(matches)
     else:
         catalog_filtered["detected"] = False
         n_matched = 0

@@ -143,7 +143,7 @@ def save_png_from_fits(paths: Iterable[str]) -> List[str]:
                     import logging
                     logging.warning(f"ZScale normalization failed, using percentile fallback: {norm_error}")
                     vals = arr[m]
-                    lo, hi = np.percentile(vals, [1.0, 99.5])
+                    lo, hi = np.percentile(vals, [1.0, 99.9])  # Standardized to 99.9 (matches VAST Tools)
                     img = np.clip(arr, lo, hi)
                     img = np.arcsinh((img - lo) / max(1e-12, (hi - lo)))
                     img[~m] = np.nan

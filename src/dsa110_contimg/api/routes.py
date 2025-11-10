@@ -113,6 +113,8 @@ from dsa110_contimg.api.models import (
     SourceTimeseries,
     LightCurveData,
     PostageStampsResponse,
+    ExternalCatalogsResponse,
+    ExternalCatalogMatch,
     StreamingConfigRequest,
     VariabilityMetrics,
     StreamingControlResponse,
@@ -2241,6 +2243,44 @@ def create_app(config: ApiConfig | None = None) -> FastAPI:
             total=len(candidates),
         )
 
+    @router.get("/ese/candidates/{source_id}/lightcurve", response_model=LightCurveData)
+    def get_ese_candidate_lightcurve(source_id: str):
+        """Get light curve for an ESE candidate source."""
+        # Reuse existing lightcurve endpoint logic
+        return get_source_lightcurve(source_id)
+
+    @router.get("/ese/candidates/{source_id}/postage_stamps", response_model=PostageStampsResponse)
+    def get_ese_candidate_postage_stamps(
+        source_id: str,
+        size_arcsec: float = Query(60.0, description="Cutout size in arcseconds"),
+        max_stamps: int = Query(20, description="Maximum number of stamps to return")
+    ):
+        """Get postage stamp cutouts for an ESE candidate source."""
+        # Reuse existing postage stamps endpoint logic
+        return get_source_postage_stamps(source_id, size_arcsec=size_arcsec, max_stamps=max_stamps)
+
+    @router.get("/ese/candidates/{source_id}/variability", response_model=VariabilityMetrics)
+    def get_ese_candidate_variability(source_id: str):
+        """Get variability metrics for an ESE candidate source."""
+        # Reuse existing variability endpoint logic
+        return get_source_variability(source_id)
+
+    @router.get("/ese/candidates/{source_id}/external_catalogs", response_model=ExternalCatalogsResponse)
+    def get_ese_candidate_external_catalogs(
+        source_id: str,
+        radius_arcsec: float = Query(5.0, description="Search radius in arcseconds"),
+        catalogs: Optional[str] = Query(None, description="Comma-separated list of catalogs"),
+        timeout: float = Query(30.0, description="Query timeout in seconds")
+    ):
+        """Get external catalog matches for an ESE candidate source."""
+        # Reuse existing external catalogs endpoint logic
+        return get_source_external_catalogs(
+            source_id,
+            radius_arcsec=radius_arcsec,
+            catalogs=catalogs,
+            timeout=timeout
+        )
+
     @router.post("/mosaics/query", response_model=MosaicQueryResponse)
     def mosaics_query(request: dict):
         """Query mosaics by time range from database."""
@@ -2520,6 +2560,106 @@ def create_app(config: ApiConfig | None = None) -> FastAPI:
                 detail=f"Source {source_id} not found or error creating stamps: {str(e)}"
             )
 
+    @router.get("/sources/{source_id}/external_catalogs", response_model=ExternalCatalogsResponse)
+    def get_source_external_catalogs(
+        source_id: str,
+        radius_arcsec: float = Query(5.0, description="Search radius in arcseconds"),
+        catalogs: Optional[str] = Query(None, description="Comma-separated list of catalogs (simbad,ned,gaia). If None, queries all."),
+        timeout: float = Query(30.0, description="Query timeout in seconds")
+    ):
+        """Get external catalog matches for a source (SIMBAD, NED, Gaia)."""
+        import time
+        from dsa110_contimg.photometry.source import Source
+
+        try:
+            source = Source(source_id=source_id, products_db=cfg.products_db)
+
+            if source.ra_deg is None or source.dec_deg is None:
+                raise HTTPException(
+                    status_code=404,
+                    detail=f"Source {source_id} does not have RA/Dec coordinates"
+                )
+
+            # Parse catalog list
+            catalog_list = None
+            if catalogs:
+                catalog_list = [c.strip().lower() for c in catalogs.split(',')]
+                valid_catalogs = {'simbad', 'ned', 'gaia'}
+                invalid = set(catalog_list) - valid_catalogs
+                if invalid:
+                    raise HTTPException(
+                        status_code=400,
+                        detail=f"Invalid catalogs: {invalid}. Valid options: simbad, ned, gaia"
+                    )
+
+            # Query external catalogs
+            start_time = time.time()
+            results = source.crossmatch_external(
+                radius_arcsec=radius_arcsec,
+                catalogs=catalog_list,
+                timeout=timeout,
+            )
+            query_time = time.time() - start_time
+
+            # Convert results to API response format
+            matches = {}
+            for catalog_name in ['simbad', 'ned', 'gaia']:
+                result = results.get(catalog_name)
+                if result is None:
+                    matches[catalog_name] = ExternalCatalogMatch(
+                        catalog=catalog_name,
+                        matched=False,
+                    )
+                else:
+                    # Extract catalog-specific fields
+                    if catalog_name == 'simbad':
+                        matches[catalog_name] = ExternalCatalogMatch(
+                            catalog=catalog_name,
+                            matched=True,
+                            main_id=result.get('main_id'),
+                            object_type=result.get('otype'),
+                            separation_arcsec=result.get('separation_arcsec'),
+                            redshift=result.get('redshift'),
+                        )
+                    elif catalog_name == 'ned':
+                        matches[catalog_name] = ExternalCatalogMatch(
+                            catalog=catalog_name,
+                            matched=True,
+                            main_id=result.get('ned_name'),
+                            object_type=result.get('object_type'),
+                            separation_arcsec=result.get('separation_arcsec'),
+                            redshift=result.get('redshift'),
+                        )
+                    elif catalog_name == 'gaia':
+                        matches[catalog_name] = ExternalCatalogMatch(
+                            catalog=catalog_name,
+                            matched=True,
+                            main_id=result.get('source_id'),
+                            separation_arcsec=result.get('separation_arcsec'),
+                            parallax=result.get('parallax'),
+                            distance=result.get('distance'),
+                            pmra=result.get('pmra'),
+                            pmdec=result.get('pmdec'),
+                            phot_g_mean_mag=result.get('phot_g_mean_mag'),
+                        )
+
+            return ExternalCatalogsResponse(
+                source_id=source_id,
+                ra_deg=source.ra_deg,
+                dec_deg=source.dec_deg,
+                matches=matches,
+                query_time_sec=query_time,
+            )
+
+        except HTTPException:
+            raise
+        except Exception as e:
+            logger.error(f"Error getting external catalogs for {source_id}: {e}")
+            raise HTTPException(
+                status_code=404,
+                detail=f"Source {source_id} not found or error querying catalogs: {str(e)}"
+            )
+
     @router.get("/sources/{source_id}", response_model=SourceDetail)
     def get_source_detail(source_id: str):
         """Get detailed information for a source."""
@@ -2566,11 +2706,95 @@ def create_app(config: ApiConfig | None = None) -> FastAPI:
                     if len(snrs) > 0:
                         max_snr = float(snrs.max())
 
-            # Check if source is new (would need additional logic based on catalog matching)
-            new_source = False  # TODO: Implement new source detection
+            # Check if source is new (no matches in cross_matches table)
+            new_source = False
+            try:
+                import sqlite3
+                with sqlite3.connect(cfg.products_db) as conn:
+                    conn.row_factory = sqlite3.Row
+                    matches = conn.execute(
+                        "SELECT COUNT(*) as count FROM cross_matches WHERE source_id = ?",
+                        (source_id,)
+                    ).fetchone()
+                    # Source is "new" if it has no catalog matches
+                    new_source = matches['count'] == 0 if matches else True
+            except Exception as e:
+                logger.debug(f"Could not check if source is new: {e}")
+                new_source = False
 
-            # Get ESE probability (would need additional logic)
-            ese_probability = None  # TODO: Implement ESE probability calculation
+            # Calculate ESE probability based on variability metrics and light curve characteristics
+            ese_probability = None
+            try:
+                if variability_metrics and len(source.measurements) >= 3:
+                    # ESE characteristics:
+                    # 1. High variability (eta > 0.1 or v > 0.2)
+                    # 2. Significant flux deviation (chi2_nu > 2)
+                    # 3. Timescale: 14-180 days (check if measurements span this range)
+                    # 4. Single or double-peaked light curve
+                    
+                    # Get variability indicators
+                    eta = variability_metrics.eta or 0.0
+                    v = variability_metrics.v or 0.0
+                    
+                    # Get chi2_nu from variability_stats if available
+                    chi2_nu = None
+                    try:
+                        import sqlite3
+                        with sqlite3.connect(cfg.products_db) as conn:
+                            conn.row_factory = sqlite3.Row
+                            stats = conn.execute(
+                                "SELECT chi2_nu FROM variability_stats WHERE source_id = ?",
+                                (source_id,)
+                            ).fetchone()
+                            if stats:
+                                chi2_nu = stats['chi2_nu']
+                    except Exception:
+                        pass
+                    
+                    # Check timescale
+                    if 'mjd' in source.measurements.columns:
+                        mjds = source.measurements['mjd'].dropna()
+                        if len(mjds) > 1:
+                            time_span_days = float(mjds.max() - mjds.min())
+                            ese_timescale = 14 <= time_span_days <= 180
+                        else:
+                            ese_timescale = False
+                    else:
+                        ese_timescale = False
+                    
+                    # Calculate probability score (0.0 to 1.0)
+                    score = 0.0
+                    
+                    # Variability component (40% weight)
+                    if eta > 0.1 or v > 0.2:
+                        score += 0.4
+                    elif eta > 0.05 or v > 0.1:
+                        score += 0.2
+                    
+                    # Chi2 component (30% weight)
+                    if chi2_nu and chi2_nu > 3.0:
+                        score += 0.3
+                    elif chi2_nu and chi2_nu > 2.0:
+                        score += 0.15
+                    
+                    # Timescale component (20% weight)
+                    if ese_timescale:
+                        score += 0.2
+                    
+                    # Flux deviation component (10% weight)
+                    if std_flux and mean_flux and mean_flux > 0:
+                        flux_fractional_var = std_flux / mean_flux
+                        if flux_fractional_var > 0.3:
+                            score += 0.1
+                        elif flux_fractional_var > 0.15:
+                            score += 0.05
+                    
+                    # Cap at 1.0 and round to 2 decimal places
+                    ese_probability = min(1.0, round(score, 2))
+                    
+            except Exception as e:
+                logger.debug(f"Could not calculate ESE probability: {e}")
+                ese_probability = None
 
             return SourceDetail(
                 id=source_id,
@@ -4421,6 +4645,58 @@ def create_app(config: ApiConfig | None = None) -> FastAPI:
             results["source_counts"] = validate_source_counts(
                 image_path, catalog=catalog
             )
+
+        # Store results in database for future retrieval (caching)
+        try:
+            import sqlite3
+            import json
+            import time
+            import hashlib
+            
+            # Create cache key from image path and catalog
+            cache_key = hashlib.md5(f"{image_path}:{catalog}:{validation_type}".encode()).hexdigest()
+            
+            with sqlite3.connect(cfg.products_db) as conn:
+                # Create validation_cache table if it doesn't exist
+                conn.execute("""
+                    CREATE TABLE IF NOT EXISTS validation_cache (
+                        cache_key TEXT PRIMARY KEY,
+                        image_path TEXT NOT NULL,
+                        catalog TEXT NOT NULL,
+                        validation_type TEXT NOT NULL,
+                        results_json TEXT NOT NULL,
+                        created_at REAL NOT NULL,
+                        expires_at REAL
+                    )
+                """)
+                conn.execute("""
+                    CREATE INDEX IF NOT EXISTS idx_validation_cache_image 
+                    ON validation_cache(image_path)
+                """)
+                conn.execute("""
+                    CREATE INDEX IF NOT EXISTS idx_validation_cache_expires 
+                    ON validation_cache(expires_at)
+                """)
+                
+                # Store results (cache for 24 hours)
+                expires_at = time.time() + (24 * 3600)  # 24 hours
+                conn.execute("""
+                    INSERT OR REPLACE INTO validation_cache 
+                    (cache_key, image_path, catalog, validation_type, results_json, created_at, expires_at)
+                    VALUES (?, ?, ?, ?, ?, ?, ?)
+                """, (
+                    cache_key,
+                    image_path,
+                    catalog,
+                    validation_type,
+                    json.dumps(results),
+                    time.time(),
+                    expires_at,
+                ))
+                conn.commit()
+        except Exception as e:
+            logger.debug(f"Could not cache validation results: {e}")
+            # Continue without caching - not critical
 
         return results
 

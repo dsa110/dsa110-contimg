@@ -9,8 +9,13 @@ from __future__ import annotations
 
 import logging
 import re
+import time
 from pathlib import Path
-from typing import Optional, Tuple
+from typing import Optional, Tuple, Dict
+
+import pandas as pd
+import numpy as np
+import astropy.units as u
 
 from dsa110_contimg.pipeline.config import PipelineConfig
 from dsa110_contimg.pipeline.context import PipelineContext
@@ -29,6 +34,283 @@ from dsa110_contimg.utils.runtime_safeguards import (
 from dsa110_contimg.utils.time_utils import extract_ms_time_range
 
 logger = logging.getLogger(__name__)
+
+
+class CatalogSetupStage(PipelineStage):
+    """Catalog setup stage: Build catalog databases if missing for observation declination.
+
+    This stage runs before other stages to ensure catalog databases (NVSS, FIRST, RAX)
+    are available for the declination strip being observed. Since DSA-110 only slews
+    in elevation and changes declination rarely, catalogs need to be updated when
+    declination changes.
+
+    The stage:
+    1. Extracts declination from the observation (HDF5 file)
+    2. Checks if catalog databases exist for that declination strip
+    3. Builds missing catalogs automatically
+    4. Logs catalog status for downstream stages
+    """
+
+    def __init__(self, config: PipelineConfig):
+        """Initialize catalog setup stage.
+
+        Args:
+            config: Pipeline configuration
+        """
+        self.config = config
+
+    def validate(self, context: PipelineContext) -> Tuple[bool, Optional[str]]:
+        """Validate prerequisites for catalog setup."""
+        # Need input_path (HDF5) to extract declination
+        if "input_path" not in context.inputs:
+            return False, "input_path required to extract declination for catalog setup"
+
+        input_path = context.inputs["input_path"]
+        if not Path(input_path).exists():
+            return False, f"Input file not found: {input_path}"
+
+        return True, None
+
+    def execute(self, context: PipelineContext) -> PipelineContext:
+        """Execute catalog setup: build databases if missing.
+
+        Args:
+            context: Pipeline context
+
+        Returns:
+            Updated context with catalog status
+        """
+        from dsa110_contimg.pointing.utils import load_pointing
+        from dsa110_contimg.catalog.builders import (
+            build_nvss_strip_db,
+            build_first_strip_db,
+            build_rax_strip_db,
+        )
+        from dsa110_contimg.catalog.query import resolve_catalog_path
+
+        input_path = context.inputs["input_path"]
+        logger.info(
+            f"Catalog setup stage: Checking catalogs for {Path(input_path).name}")
+
+        # Extract declination from HDF5 file
+        try:
+            info = load_pointing(str(input_path))
+            if "dec_deg" not in info:
+                logger.warning(
+                    f"Could not extract declination from {input_path}. "
+                    f"Available keys: {list(info.keys())}. Skipping catalog setup."
+                )
+                return context.with_output("catalog_setup_status", "skipped_no_dec")
+
+            dec_center = float(info["dec_deg"])
+            logger.info(f"Extracted declination: {dec_center:.6f} degrees")
+
+            # Detect declination change
+            dec_change_detected = False
+            previous_dec = None
+            dec_change_threshold = getattr(
+                self.config, "catalog_setup_dec_change_threshold", 0.1
+            )  # Default 0.1 degrees
+
+            try:
+                from dsa110_contimg.database.products import ensure_products_db
+
+                products_db = self.config.paths.products_db
+                conn = ensure_products_db(products_db)
+                cursor = conn.cursor()
+
+                # Get most recent declination from pointing_history
+                cursor.execute(
+                    "SELECT dec_deg FROM pointing_history ORDER BY timestamp DESC LIMIT 1"
+                )
+                result = cursor.fetchone()
+                if result:
+                    previous_dec = float(result[0])
+                    dec_change = abs(dec_center - previous_dec)
+
+                    if dec_change > dec_change_threshold:
+                        dec_change_detected = True
+                        logger.warning(
+                            f"⚠️  DECLINATION CHANGE DETECTED: "
+                            f"{previous_dec:.6f}° → {dec_center:.6f}° "
+                            f"(Δ = {dec_change:.6f}° > {dec_change_threshold:.6f}° threshold)"
+                        )
+                        logger.warning(
+                            "⚠️  Telescope pointing has changed significantly. "
+                            "Catalogs will be rebuilt for new declination strip."
+                        )
+                    else:
+                        logger.info(
+                            f"Declination stable: {dec_center:.6f}° "
+                            f"(previous: {previous_dec:.6f}°, Δ = {dec_change:.6f}°)"
+                        )
+
+                conn.close()
+
+            except Exception as e:
+                logger.debug(
+                    f"Could not check previous declination (first observation?): {e}"
+                )
+                # First observation or no pointing history - not an error
+                pass
+
+            # Log pointing to pointing_history for future change detection
+            try:
+                from dsa110_contimg.database.products import ensure_products_db
+
+                products_db = self.config.paths.products_db
+                conn = ensure_products_db(products_db)
+
+                # Get timestamp from observation
+                timestamp = info.get("mid_time")
+                if timestamp:
+                    if hasattr(timestamp, "mjd"):
+                        timestamp_mjd = timestamp.mjd
+                    else:
+                        timestamp_mjd = float(timestamp)
+
+                    ra_deg = info.get("ra_deg", 0.0)
+
+                    conn.execute(
+                        "INSERT OR REPLACE INTO pointing_history (timestamp, ra_deg, dec_deg) VALUES (?, ?, ?)",
+                        (timestamp_mjd, ra_deg, dec_center),
+                    )
+                    conn.commit()
+                    conn.close()
+
+                    if dec_change_detected:
+                        logger.info(
+                            f"Logged new pointing to pointing_history: "
+                            f"RA={ra_deg:.6f}°, Dec={dec_center:.6f}°"
+                        )
+
+            except Exception as e:
+                logger.debug(f"Could not log pointing to history: {e}")
+                # Non-critical - continue with catalog setup
+                pass
+
+        except Exception as e:
+            logger.warning(
+                f"Error reading declination from {input_path}: {e}. Skipping catalog setup."
+            )
+            return context.with_output("catalog_setup_status", "skipped_error")
+
+        # Calculate declination range (default ±6 degrees, configurable)
+        dec_range_deg = getattr(
+            self.config, "catalog_setup_dec_range", 6.0
+        )  # Default ±6 degrees
+        dec_min = dec_center - dec_range_deg
+        dec_max = dec_center + dec_range_deg
+        dec_range = (dec_min, dec_max)
+
+        logger.info(
+            f"Catalog declination strip: {dec_min:.6f}° to {dec_max:.6f}° "
+            f"(center: {dec_center:.6f}°, range: ±{dec_range_deg}°)"
+        )
+
+        # Check and build catalogs
+        catalogs_built = []
+        catalogs_existed = []
+        catalogs_failed = []
+
+        catalog_types = ["nvss", "first", "rax"]
+
+        for catalog_type in catalog_types:
+            try:
+                # Check if catalog database exists
+                try:
+                    catalog_path = resolve_catalog_path(
+                        catalog_type=catalog_type, dec_strip=dec_center
+                    )
+                    if catalog_path.exists():
+                        logger.info(
+                            f"✓ {catalog_type.upper()} catalog exists: {catalog_path}"
+                        )
+                        catalogs_existed.append(catalog_type)
+                        continue
+                except FileNotFoundError:
+                    # Catalog doesn't exist, will build it
+                    pass
+
+                # Build catalog database
+                logger.info(
+                    f"Building {catalog_type.upper()} catalog database...")
+
+                if catalog_type == "nvss":
+                    db_path = build_nvss_strip_db(
+                        dec_center=dec_center,
+                        dec_range=dec_range,
+                        output_path=None,  # Auto-generate path
+                        min_flux_mjy=None,  # No flux threshold
+                    )
+                elif catalog_type == "first":
+                    db_path = build_first_strip_db(
+                        dec_center=dec_center,
+                        dec_range=dec_range,
+                        output_path=None,  # Auto-generate path
+                        min_flux_mjy=None,  # No flux threshold
+                        cache_dir=".cache/catalogs",
+                    )
+                elif catalog_type == "rax":
+                    db_path = build_rax_strip_db(
+                        dec_center=dec_center,
+                        dec_range=dec_range,
+                        output_path=None,  # Auto-generate path
+                        min_flux_mjy=None,  # No flux threshold
+                        cache_dir=".cache/catalogs",
+                    )
+
+                logger.info(
+                    f"✓ {catalog_type.upper()} catalog built: {db_path} "
+                    f"({db_path.stat().st_size / (1024 * 1024):.2f} MB)"
+                )
+                catalogs_built.append(catalog_type)
+
+            except Exception as e:
+                logger.error(
+                    f"✗ Failed to build {catalog_type.upper()} catalog: {e}",
+                    exc_info=True,
+                )
+                catalogs_failed.append(catalog_type)
+
+        # Log summary
+        if catalogs_built:
+            logger.info(
+                f"Catalog setup complete: Built {len(catalogs_built)} catalogs "
+                f"({', '.join(catalogs_built)})"
+            )
+        if catalogs_existed:
+            logger.info(
+                f"Catalog setup complete: {len(catalogs_existed)} catalogs already exist "
+                f"({', '.join(catalogs_existed)})"
+            )
+        if catalogs_failed:
+            logger.warning(
+                f"Catalog setup incomplete: {len(catalogs_failed)} catalogs failed "
+                f"({', '.join(catalogs_failed)}). Pipeline will continue but may use "
+                f"CSV fallback or fail if catalogs are required."
+            )
+
+        # Store catalog status in context
+        catalog_status = {
+            "dec_center": dec_center,
+            "dec_range": dec_range,
+            "catalogs_built": catalogs_built,
+            "catalogs_existed": catalogs_existed,
+            "catalogs_failed": catalogs_failed,
+            "dec_change_detected": dec_change_detected,
+            "previous_dec": previous_dec,
+        }
+
+        return context.with_output("catalog_setup_status", catalog_status)
+
+    def cleanup(self, context: PipelineContext) -> None:
+        """Cleanup on failure (nothing to clean up for catalog setup)."""
+        pass
+
+    def get_name(self) -> str:
+        """Get stage name."""
+        return "catalog_setup"
 
 
 class ConversionStage(PipelineStage):
@@ -90,7 +372,8 @@ class ConversionStage(PipelineStage):
         if self.config.conversion.stage_to_tmpfs:
             writer_kwargs["stage_to_tmpfs"] = True
             if context.config.paths.scratch_dir:
-                writer_kwargs["tmpfs_path"] = str(context.config.paths.scratch_dir)
+                writer_kwargs["tmpfs_path"] = str(
+                    context.config.paths.scratch_dir)
 
         # Create path mapper for organized output (default to science)
         ms_base_dir = Path(context.config.paths.output_dir)
@@ -182,7 +465,8 @@ class ConversionStage(PipelineStage):
         if context.state_repository:
             try:
                 for ms_file in organized_ms_files:
-                    start_mjd, end_mjd, mid_mjd = extract_ms_time_range(ms_file)
+                    start_mjd, end_mjd, mid_mjd = extract_ms_time_range(
+                        ms_file)
                     context.state_repository.upsert_ms_index(
                         ms_file,
                         {
@@ -207,7 +491,8 @@ class ConversionStage(PipelineStage):
                 # Extract metadata from MS if available
                 metadata = {}
                 try:
-                    start_mjd, end_mjd, mid_mjd = extract_ms_time_range(ms_file)
+                    start_mjd, end_mjd, mid_mjd = extract_ms_time_range(
+                        ms_file)
                     if start_mjd:
                         metadata["start_mjd"] = start_mjd
                     if end_mjd:
@@ -215,7 +500,8 @@ class ConversionStage(PipelineStage):
                     if mid_mjd:
                         metadata["mid_mjd"] = mid_mjd
                 except Exception as e:
-                    logger.debug(f"Could not extract MS time range for metadata: {e}")
+                    logger.debug(
+                        f"Could not extract MS time range for metadata: {e}")
 
                 register_pipeline_data(
                     data_type="ms",
@@ -226,7 +512,8 @@ class ConversionStage(PipelineStage):
                 )
                 logger.info(f"Registered MS in data registry: {ms_file}")
         except Exception as e:
-            logger.warning(f"Failed to register MS files in data registry: {e}")
+            logger.warning(
+                f"Failed to register MS files in data registry: {e}")
 
         # Return both single MS path (for backward compatibility) and all MS paths
         return context.with_outputs(
@@ -255,7 +542,8 @@ class ConversionStage(PipelineStage):
 
             with table(ms_path, readonly=True) as tb:
                 required_cols = ["DATA", "ANTENNA1", "ANTENNA2", "TIME"]
-                missing = [col for col in required_cols if col not in tb.colnames()]
+                missing = [
+                    col for col in required_cols if col not in tb.colnames()]
                 if missing:
                     return False, f"MS missing required columns: {missing}"
                 if tb.nrows() == 0:
@@ -277,7 +565,8 @@ class ConversionStage(PipelineStage):
                     shutil.rmtree(ms_path, ignore_errors=True)
                     logger.info(f"Cleaned up partial MS: {ms_path}")
                 except Exception as e:
-                    logger.warning(f"Failed to cleanup partial MS {ms_path}: {e}")
+                    logger.warning(
+                        f"Failed to cleanup partial MS {ms_path}: {e}")
 
     def get_name(self) -> str:
         """Get stage name."""
@@ -469,9 +758,11 @@ class CalibrationSolveStage(PipelineStage):
 
             model_image = params.get("model_image")
             if not model_image:
-                raise ValueError("model_image required when model_source='image'")
+                raise ValueError(
+                    "model_image required when model_source='image'")
             logger.info(f"Populating MODEL_DATA from image: {model_image}")
-            populate_model_from_image(ms_path, field=field, model_image=model_image)
+            populate_model_from_image(
+                ms_path, field=field, model_image=model_image)
 
         # Step 3: Solve delay (K) if requested
         ktabs = []
@@ -517,7 +808,8 @@ class CalibrationSolveStage(PipelineStage):
                 ktable=ktabs[0] if ktabs else None,
                 table_prefix=table_prefix,
                 set_model=True,
-                model_standard=params.get("bp_model_standard", "Perley-Butler 2017"),
+                model_standard=params.get(
+                    "bp_model_standard", "Perley-Butler 2017"),
                 combine_fields=bp_combine_field,
                 combine_spw=params.get("bp_combine_spw", False),
                 minsnr=params.get("bp_minsnr", 5.0),
@@ -555,7 +847,8 @@ class CalibrationSolveStage(PipelineStage):
 
         # Combine all tables
         all_tables = (ktabs[:1] if ktabs else []) + bptabs + gtabs
-        logger.info(f"Calibration solve complete. Generated {len(all_tables)} tables:")
+        logger.info(
+            f"Calibration solve complete. Generated {len(all_tables)} tables:")
         for tab in all_tables:
             logger.info(f"  - {tab}")
 
@@ -654,7 +947,8 @@ class CalibrationSolveStage(PipelineStage):
 
             table_prefix = table_dir / prefix_base
 
-            logger.info(f"Registering calibration tables in registry: {set_name}")
+            logger.info(
+                f"Registering calibration tables in registry: {set_name}")
             logger.debug(f"Using table prefix: {table_prefix}")
 
             # Register and verify tables are discoverable
@@ -736,7 +1030,8 @@ class CalibrationSolveStage(PipelineStage):
                         import shutil
 
                         shutil.rmtree(table, ignore_errors=True)
-                        logger.info(f"Cleaned up partial calibration table: {table}")
+                        logger.info(
+                            f"Cleaned up partial calibration table: {table}")
                     except Exception as e:
                         logger.warning(
                             f"Failed to cleanup calibration table {table}: {e}"
@@ -812,17 +1107,20 @@ class CalibrationStage(PipelineStage):
             )
             applylist = caltables  # Store for registration
             try:
-                apply_to_target(ms_path, field="", gaintables=caltables, calwt=True)
+                apply_to_target(ms_path, field="",
+                                gaintables=caltables, calwt=True)
                 cal_applied = 1
             except Exception as e:
                 logger.error(f"applycal failed for {ms_path}: {e}")
-                raise RuntimeError(f"Calibration application failed: {e}") from e
+                raise RuntimeError(
+                    f"Calibration application failed: {e}") from e
         else:
             # Lookup tables from registry by observation time (consistent with streaming mode)
             registry_db = context.config.paths.state_dir / "cal_registry.sqlite3"
             if not registry_db.exists():
                 # Try alternative location
-                registry_db = Path("/data/dsa110-contimg/state/cal_registry.sqlite3")
+                registry_db = Path(
+                    "/data/dsa110-contimg/state/cal_registry.sqlite3")
                 if not registry_db.exists():
                     error_msg = (
                         f"Cannot apply calibration: No calibration tables provided and "
@@ -858,13 +1156,16 @@ class CalibrationStage(PipelineStage):
                 raise RuntimeError(error_msg)
 
             # Apply calibration using apply_to_target() directly (same as streaming)
-            logger.info(f"Applying {len(applylist)} calibration tables from registry")
+            logger.info(
+                f"Applying {len(applylist)} calibration tables from registry")
             try:
-                apply_to_target(ms_path, field="", gaintables=applylist, calwt=True)
+                apply_to_target(ms_path, field="",
+                                gaintables=applylist, calwt=True)
                 cal_applied = 1
             except Exception as e:
                 logger.error(f"applycal failed for {ms_path}: {e}")
-                raise RuntimeError(f"Calibration application failed: {e}") from e
+                raise RuntimeError(
+                    f"Calibration application failed: {e}") from e
 
         # Update MS index (consistent with streaming mode)
         if context.state_repository:
@@ -897,7 +1198,8 @@ class CalibrationStage(PipelineStage):
                     "calibration_tables": applylist,  # applylist is defined earlier in this function
                 }
                 try:
-                    start_mjd, end_mjd, mid_mjd = extract_ms_time_range(ms_path)
+                    start_mjd, end_mjd, mid_mjd = extract_ms_time_range(
+                        ms_path)
                     if start_mjd:
                         metadata["start_mjd"] = start_mjd
                     if end_mjd:
@@ -905,7 +1207,8 @@ class CalibrationStage(PipelineStage):
                     if mid_mjd:
                         metadata["mid_mjd"] = mid_mjd
                 except Exception as e:
-                    logger.debug(f"Could not extract MS time range for metadata: {e}")
+                    logger.debug(
+                        f"Could not extract MS time range for metadata: {e}")
 
                 register_pipeline_data(
                     data_type="calib_ms",
@@ -914,13 +1217,15 @@ class CalibrationStage(PipelineStage):
                     metadata=metadata,
                     auto_publish=True,
                 )
-                logger.info(f"Registered calibrated MS in data registry: {ms_path}")
+                logger.info(
+                    f"Registered calibrated MS in data registry: {ms_path}")
             except Exception as e:
                 logger.warning(
                     f"Failed to register calibrated MS in data registry: {e}"
                 )
 
-        log_progress("Completed calibration application stage.", start_time_sec)
+        log_progress("Completed calibration application stage.",
+                     start_time_sec)
         return context
 
     def validate_outputs(self, context: PipelineContext) -> Tuple[bool, Optional[str]]:
@@ -1009,7 +1314,8 @@ class ImagingStage(PipelineStage):
             with table(ms_path, readonly=False) as t:
                 if "CORRECTED_DATA" in t.colnames() and t.nrows() > 0:
                     # Sample to check if CORRECTED_DATA is populated
-                    sample = t.getcol("CORRECTED_DATA", 0, min(1000, t.nrows()))
+                    sample = t.getcol("CORRECTED_DATA", 0,
+                                      min(1000, t.nrows()))
                     flags = t.getcol("FLAG", 0, min(1000, t.nrows()))
                     unflagged = sample[~flags]
                     if (
@@ -1117,7 +1423,8 @@ class ImagingStage(PipelineStage):
                 with image(str(primary_image)) as img:
                     shape = img.shape()
                     metadata["shape"] = list(shape)
-                    metadata["has_data"] = len(shape) > 0 and all(s > 0 for s in shape)
+                    metadata["has_data"] = len(
+                        shape) > 0 and all(s > 0 for s in shape)
             except Exception as e:
                 logger.debug(f"Could not extract image metadata: {e}")
 
@@ -1164,8 +1471,10 @@ class ImagingStage(PipelineStage):
         if "image_path" in context.outputs:
             image_path = Path(context.outputs["image_path"])
             # Remove all related image files
-            base_name = str(image_path).replace(".image", "").replace(".fits", "")
-            suffixes = [".image", ".image.pbcor", ".residual", ".psf", ".pb", ".fits"]
+            base_name = str(image_path).replace(
+                ".image", "").replace(".fits", "")
+            suffixes = [".image", ".image.pbcor",
+                        ".residual", ".psf", ".pb", ".fits"]
             for suffix in suffixes:
                 img_file = Path(f"{base_name}{suffix}")
                 if img_file.exists():
@@ -1178,7 +1487,8 @@ class ImagingStage(PipelineStage):
                             img_file.unlink()
                         logger.info(f"Cleaned up partial image: {img_file}")
                     except Exception as e:
-                        logger.warning(f"Failed to cleanup image {img_file}: {e}")
+                        logger.warning(
+                            f"Failed to cleanup image {img_file}: {e}")
 
     def _run_catalog_validation(self, image_path: str, catalog: str) -> None:
         """Run catalog-based flux scale validation on image.
@@ -1318,7 +1628,8 @@ class OrganizationStage(PipelineStage):
         )
 
         if not products_db_path or not products_db_path.exists():
-            logger.warning("Products database not available, skipping database updates")
+            logger.warning(
+                "Products database not available, skipping database updates")
             products_db_path = None
 
         organized_ms_files = []
@@ -1358,9 +1669,11 @@ class OrganizationStage(PipelineStage):
                     import shutil
 
                     if ms_path_obj.resolve() != organized_path.resolve():
-                        organized_path.parent.mkdir(parents=True, exist_ok=True)
+                        organized_path.parent.mkdir(
+                            parents=True, exist_ok=True)
                         shutil.move(str(ms_path_obj), str(organized_path))
-                        logger.info(f"Moved MS file: {ms_file} → {organized_path}")
+                        logger.info(
+                            f"Moved MS file: {ms_file} → {organized_path}")
 
                 organized_ms_files.append(str(organized_path))
 
@@ -1492,7 +1805,8 @@ class ValidationStage(PipelineStage):
             # Prepare HTML report path if needed
             html_report_path = None
             if validation_config.generate_html_report:
-                output_dir = Path(context.config.paths.output_dir) / "qa" / "reports"
+                output_dir = Path(
+                    context.config.paths.output_dir) / "qa" / "reports"
                 output_dir.mkdir(parents=True, exist_ok=True)
                 image_name = Path(fits_image).stem
                 html_report_path = str(
@@ -1511,7 +1825,8 @@ class ValidationStage(PipelineStage):
             )
 
             if html_report_path:
-                logger.info(f"HTML validation report generated: {html_report_path}")
+                logger.info(
+                    f"HTML validation report generated: {html_report_path}")
                 context = context.with_output(
                     "validation_report_path", html_report_path
                 )
@@ -1543,9 +1858,11 @@ class ValidationStage(PipelineStage):
 
             # Store validation results in context
             if astrometry_result:
-                context = context.with_output("astrometry_result", astrometry_result)
+                context = context.with_output(
+                    "astrometry_result", astrometry_result)
             if flux_scale_result:
-                context = context.with_output("flux_scale_result", flux_scale_result)
+                context = context.with_output(
+                    "flux_scale_result", flux_scale_result)
             if source_counts_result:
                 context = context.with_output(
                     "source_counts_result", source_counts_result
@@ -1561,6 +1878,433 @@ class ValidationStage(PipelineStage):
     def get_name(self) -> str:
         """Get stage name."""
         return "validation"
+
+
+class CrossMatchStage(PipelineStage):
+    """Cross-match stage: Match detected sources with reference catalogs.
+
+    This stage cross-matches detected sources from images with reference catalogs
+    (NVSS, FIRST, RACS) to:
+    - Identify known sources
+    - Calculate astrometric offsets
+    - Calculate flux scale corrections
+    - Store cross-match results in database
+
+    The stage supports both basic (nearest neighbor) and advanced (all matches)
+    matching methods.
+    """
+
+    def __init__(self, config: PipelineConfig):
+        """Initialize cross-match stage.
+
+        Args:
+            config: Pipeline configuration
+        """
+        self.config = config
+
+    def validate(self, context: PipelineContext) -> Tuple[bool, Optional[str]]:
+        """Validate prerequisites for cross-matching."""
+        if not self.config.crossmatch.enabled:
+            return False, "Cross-match stage is disabled"
+
+        # Need detected sources from previous stage (photometry or validation)
+        if "detected_sources" not in context.outputs:
+            # Try to get from photometry or validation outputs
+            if "photometry_results" not in context.outputs and "validation_results" not in context.outputs:
+                return False, "No detected sources found in context outputs"
+
+        return True, None
+
+    def execute(self, context: PipelineContext) -> PipelineContext:
+        """Execute cross-match stage.
+
+        Args:
+            context: Pipeline context
+
+        Returns:
+            Updated context with cross-match results
+        """
+        from dsa110_contimg.catalog.crossmatch import (
+            cross_match_dataframes,
+            calculate_positional_offsets,
+            calculate_flux_scale,
+            multi_catalog_match,
+            identify_duplicate_catalog_sources,
+        )
+        from dsa110_contimg.catalog.query import query_sources
+        from dsa110_contimg.qa.catalog_validation import extract_sources_from_image
+        from dsa110_contimg.database.products import ensure_products_db
+        from astropy.coordinates import Angle
+        from astropy.time import Time
+        import time
+
+        if not self.config.crossmatch.enabled:
+            logger.info("Cross-match stage is disabled, skipping")
+            return context.with_output("crossmatch_status", "disabled")
+
+        logger.info("Starting cross-match stage...")
+
+        # Get detected sources
+        detected_sources = None
+        if "detected_sources" in context.outputs:
+            detected_sources = context.outputs["detected_sources"]
+        elif "photometry_results" in context.outputs:
+            # Extract sources from photometry results
+            photometry_results = context.outputs["photometry_results"]
+            if isinstance(photometry_results, pd.DataFrame):
+                detected_sources = photometry_results
+        elif "image_path" in context.outputs:
+            # Extract sources from image
+            image_path = context.outputs["image_path"]
+            detected_sources = extract_sources_from_image(
+                image_path, min_snr=self.config.validation.min_snr
+            )
+        else:
+            logger.warning("No detected sources found, skipping cross-match")
+            return context.with_output("crossmatch_status", "skipped_no_sources")
+
+        if detected_sources is None or len(detected_sources) == 0:
+            logger.warning("No detected sources to cross-match")
+            return context.with_output("crossmatch_status", "skipped_no_sources")
+
+        # Get image center for catalog querying
+        ra_center = detected_sources["ra_deg"].median()
+        dec_center = detected_sources["dec_deg"].median()
+
+        # Query reference catalogs
+        catalog_types = self.config.crossmatch.catalog_types
+        radius_arcsec = self.config.crossmatch.radius_arcsec
+        method = self.config.crossmatch.method
+
+        # Step 1: Query all catalogs and prepare for multi-catalog matching
+        catalog_data_dict = {}
+        catalog_sources_dict = {}
+
+        for catalog_type in catalog_types:
+            try:
+                logger.info(
+                    f"Querying {catalog_type.upper()} catalog...")
+
+                # Query catalog sources
+                catalog_sources = query_sources(
+                    catalog_type=catalog_type,
+                    ra_center=ra_center,
+                    dec_center=dec_center,
+                    radius_deg=1.5,  # Query within 1.5 degrees
+                )
+
+                if catalog_sources is None or len(catalog_sources) == 0:
+                    logger.warning(
+                        f"No {catalog_type.upper()} sources found in field")
+                    continue
+
+                catalog_sources_dict[catalog_type] = catalog_sources
+
+                # Prepare data for multi_catalog_match
+                catalog_data_dict[catalog_type] = {
+                    "ra": catalog_sources["ra_deg"].values,
+                    "dec": catalog_sources["dec_deg"].values,
+                }
+                if "flux_mjy" in catalog_sources.columns:
+                    catalog_data_dict[catalog_type]["flux"] = catalog_sources["flux_mjy"].values
+                if "id" in catalog_sources.columns:
+                    catalog_data_dict[catalog_type]["id"] = catalog_sources["id"].values
+                else:
+                    # Generate IDs from index
+                    catalog_data_dict[catalog_type]["id"] = [
+                        f"{catalog_type}_{i}" for i in range(len(catalog_sources))
+                    ]
+
+            except Exception as e:
+                logger.error(
+                    f"Error querying {catalog_type} catalog: {e}", exc_info=True
+                )
+                continue
+
+        if len(catalog_data_dict) == 0:
+            logger.warning("No catalogs available for cross-matching")
+            return context.with_output("crossmatch_status", "no_catalogs")
+
+        # Step 2: Use multi_catalog_match to find best matches across all catalogs
+        logger.info("Performing multi-catalog matching...")
+        multi_match_results = multi_catalog_match(
+            detected_ra=detected_sources["ra_deg"].values,
+            detected_dec=detected_sources["dec_deg"].values,
+            catalogs=catalog_data_dict,
+            radius_arcsec=radius_arcsec,
+        )
+
+        # Step 3: Build individual catalog matches from multi-catalog results
+        all_matches = {}
+        all_offsets = {}
+        all_flux_scales = {}
+
+        for catalog_type in catalog_types:
+            if catalog_type not in catalog_sources_dict:
+                continue
+
+            catalog_sources = catalog_sources_dict[catalog_type]
+
+            # Extract matches for this catalog from multi-catalog results
+            matched_col = f"{catalog_type}_matched"
+            if matched_col not in multi_match_results.columns:
+                logger.info(f"No matches found with {catalog_type.upper()}")
+                continue
+
+            matched_mask = multi_match_results[matched_col]
+            matched_indices = matched_mask[matched_mask].index
+
+            if len(matched_indices) == 0:
+                logger.info(f"No matches found with {catalog_type.upper()}")
+                continue
+
+            # Build matches DataFrame for this catalog
+            matches_list = []
+            for detected_idx in matched_indices:
+                catalog_idx = int(multi_match_results.loc[detected_idx, f"{catalog_type}_idx"])
+                separation = float(multi_match_results.loc[detected_idx, f"{catalog_type}_separation_arcsec"])
+
+                # Filter by separation limits
+                min_sep = self.config.crossmatch.min_separation_arcsec
+                max_sep = self.config.crossmatch.max_separation_arcsec
+                if not (min_sep <= separation <= max_sep):
+                    continue
+
+                detected_row = detected_sources.iloc[detected_idx]
+                catalog_row = catalog_sources.iloc[catalog_idx]
+
+                # Calculate offsets
+                dra_arcsec = (detected_row["ra_deg"] - catalog_row["ra_deg"]) * 3600.0
+                ddec_arcsec = (detected_row["dec_deg"] - catalog_row["dec_deg"]) * 3600.0
+
+                match_dict = {
+                    "detected_idx": detected_idx,
+                    "catalog_idx": catalog_idx,
+                    "separation_arcsec": separation,
+                    "dra_arcsec": dra_arcsec,
+                    "ddec_arcsec": ddec_arcsec,
+                    "ra_deg": detected_row["ra_deg"],
+                    "dec_deg": detected_row["dec_deg"],
+                    "catalog_ra_deg": catalog_row["ra_deg"],
+                    "catalog_dec_deg": catalog_row["dec_deg"],
+                }
+
+                # Add flux information if available
+                if "flux_jy" in detected_row:
+                    match_dict["detected_flux"] = detected_row["flux_jy"]
+                if "flux_mjy" in catalog_row:
+                    match_dict["catalog_flux"] = catalog_row["flux_mjy"] / 1000.0  # Convert to Jy
+                    if "detected_flux" in match_dict:
+                        match_dict["flux_ratio"] = match_dict["detected_flux"] / match_dict["catalog_flux"]
+
+                # Add catalog source ID
+                if "id" in catalog_row:
+                    match_dict["catalog_source_id"] = str(catalog_row["id"])
+                else:
+                    match_dict["catalog_source_id"] = f"{catalog_type}_{catalog_idx}"
+
+                matches_list.append(match_dict)
+
+            if len(matches_list) == 0:
+                logger.info(f"No matches within separation limits for {catalog_type.upper()}")
+                continue
+
+            matches = pd.DataFrame(matches_list)
+            matches["catalog_type"] = catalog_type
+            matches["match_method"] = method
+            all_matches[catalog_type] = matches
+
+            # Calculate offsets
+            try:
+                dra_median, ddec_median, dra_madfm, ddec_madfm = (
+                    calculate_positional_offsets(matches)
+                )
+                all_offsets[catalog_type] = {
+                    "dra_median_arcsec": dra_median.to(u.arcsec).value,
+                    "ddec_median_arcsec": ddec_median.to(u.arcsec).value,
+                    "dra_madfm_arcsec": dra_madfm.to(u.arcsec).value,
+                    "ddec_madfm_arcsec": ddec_madfm.to(u.arcsec).value,
+                }
+                logger.info(
+                    f"{catalog_type.upper()} offsets: "
+                    f"RA={dra_median.to(u.arcsec).value:.2f}±{dra_madfm.to(u.arcsec).value:.2f} arcsec, "
+                    f"Dec={ddec_median.to(u.arcsec).value:.2f}±{ddec_madfm.to(u.arcsec).value:.2f} arcsec"
+                )
+            except Exception as e:
+                logger.warning(
+                    f"Error calculating offsets for {catalog_type}: {e}")
+
+            # Calculate flux scale if flux information available
+            if "flux_ratio" in matches.columns:
+                try:
+                    flux_corr, flux_ratio = calculate_flux_scale(matches)
+                    all_flux_scales[catalog_type] = {
+                        "flux_correction_factor": flux_corr.nominal_value,
+                        "flux_correction_error": flux_corr.std_dev,
+                        "flux_ratio": flux_ratio.nominal_value,
+                        "flux_ratio_error": flux_ratio.std_dev,
+                    }
+                    logger.info(
+                        f"{catalog_type.upper()} flux scale: "
+                        f"correction={flux_corr.nominal_value:.3f}±{flux_corr.std_dev:.3f}"
+                    )
+                except Exception as e:
+                    logger.warning(
+                        f"Error calculating flux scale for {catalog_type}: {e}")
+
+        # Step 4: Identify duplicate catalog sources and assign master IDs
+        logger.info("Identifying duplicate catalog sources...")
+        master_catalog_ids = identify_duplicate_catalog_sources(
+            catalog_matches=all_matches,
+            deduplication_radius_arcsec=2.0,  # 2 arcsec for deduplication
+        )
+
+        # Step 5: Store matches in database with master catalog IDs
+        if self.config.crossmatch.store_in_database:
+            for catalog_type, matches in all_matches.items():
+                try:
+                    self._store_matches_in_database(
+                        matches, catalog_type, method, context, master_catalog_ids
+                    )
+                except Exception as e:
+                    logger.warning(
+                        f"Error storing matches in database: {e}", exc_info=True
+                    )
+
+        # Prepare results
+        crossmatch_results = {
+            "n_catalogs": len(all_matches),
+            "catalog_types": list(all_matches.keys()),
+            "matches": all_matches,
+            "offsets": all_offsets,
+            "flux_scales": all_flux_scales,
+            "method": method,
+            "radius_arcsec": radius_arcsec,
+        }
+
+        logger.info(
+            f"Cross-match complete: {len(all_matches)} catalogs matched, "
+            f"{sum(len(m) for m in all_matches.values())} total matches"
+        )
+
+        return context.with_output("crossmatch_results", crossmatch_results)
+
+    def _store_matches_in_database(
+        self,
+        matches: pd.DataFrame,
+        catalog_type: str,
+        method: str,
+        context: PipelineContext,
+        master_catalog_ids: Optional[Dict[str, str]] = None,
+    ) -> None:
+        """Store cross-match results in database.
+
+        Args:
+            matches: DataFrame with cross-matched sources
+            catalog_type: Type of catalog used
+            method: Matching method used
+            context: Pipeline context
+            master_catalog_ids: Dictionary mapping catalog entries to master IDs
+        """
+        from dsa110_contimg.database.products import ensure_products_db
+        import time
+
+        products_db = self.config.paths.products_db
+        conn = ensure_products_db(products_db)
+        cursor = conn.cursor()
+
+        created_at = time.time()
+
+        # Prepare match quality based on separation
+        def get_match_quality(sep_arcsec: float) -> str:
+            if sep_arcsec < 2.0:
+                return "excellent"
+            elif sep_arcsec < 5.0:
+                return "good"
+            elif sep_arcsec < 10.0:
+                return "fair"
+            else:
+                return "poor"
+
+        # Insert or replace matches (UNIQUE constraint on source_id, catalog_type)
+        for _, match in matches.iterrows():
+            detected_idx = int(match["detected_idx"])
+            catalog_idx = int(match["catalog_idx"])
+            separation = match["separation_arcsec"]
+            dra = match.get("dra_arcsec")
+            ddec = match.get("ddec_arcsec")
+            detected_flux = match.get("detected_flux")
+            catalog_flux = match.get("catalog_flux")
+            flux_ratio = match.get("flux_ratio")
+
+            # Get source_id from detected sources
+            # Try to get from context outputs first
+            source_id = None
+            if "detected_sources" in context.outputs:
+                detected_sources = context.outputs["detected_sources"]
+                if detected_idx < len(detected_sources):
+                    source_id = detected_sources.iloc[detected_idx].get("source_id")
+            
+            # Fallback: generate source_id from index if not available
+            if source_id is None:
+                source_id = f"src_{detected_idx}"
+
+            # Get catalog_source_id
+            catalog_source_id = match.get("catalog_source_id")
+            if catalog_source_id is None and "catalog_id" in match:
+                catalog_source_id = str(match["catalog_id"])
+            if catalog_source_id is None:
+                catalog_source_id = f"{catalog_type}_{catalog_idx}"
+
+            # Get master catalog ID
+            master_catalog_id = None
+            if master_catalog_ids:
+                entry_key = f"{catalog_type}:{catalog_source_id}"
+                master_catalog_id = master_catalog_ids.get(entry_key)
+
+            match_quality = get_match_quality(separation)
+
+            # Use INSERT OR REPLACE to handle UNIQUE constraint
+            cursor.execute(
+                """
+                INSERT OR REPLACE INTO cross_matches (
+                    source_id, catalog_type, catalog_source_id,
+                    separation_arcsec, dra_arcsec, ddec_arcsec,
+                    detected_flux_jy, catalog_flux_jy, flux_ratio,
+                    match_quality, match_method, master_catalog_id, created_at
+                ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                """,
+                (
+                    source_id,
+                    catalog_type,
+                    catalog_source_id,
+                    separation,
+                    dra,
+                    ddec,
+                    detected_flux,
+                    catalog_flux,
+                    flux_ratio,
+                    match_quality,
+                    method,
+                    master_catalog_id,
+                    created_at,
+                ),
+            )
+
+        conn.commit()
+        conn.close()
+
+        logger.info(
+            f"Stored {len(matches)} cross-matches in database for {catalog_type}"
+        )
+
+    def cleanup(self, context: PipelineContext) -> None:
+        """Cleanup on failure (nothing to clean up for cross-match)."""
+        pass
+
+    def get_name(self) -> str:
+        """Get stage name."""
+        return "crossmatch"
 
 
 class AdaptivePhotometryStage(PipelineStage):
@@ -1617,7 +2361,8 @@ class AdaptivePhotometryStage(PipelineStage):
         # Get source coordinates
         sources = self._get_source_coordinates(context, ms_path)
         if not sources:
-            logger.warning("No sources found for adaptive photometry - skipping stage")
+            logger.warning(
+                "No sources found for adaptive photometry - skipping stage")
             return context
 
         # Create adaptive binning config
@@ -1637,7 +2382,8 @@ class AdaptivePhotometryStage(PipelineStage):
         }
 
         # Create output directory for adaptive photometry results
-        output_dir = Path(context.config.paths.output_dir) / "adaptive_photometry"
+        output_dir = Path(context.config.paths.output_dir) / \
+            "adaptive_photometry"
         output_dir.mkdir(parents=True, exist_ok=True)
 
         # Run adaptive binning for each source
@@ -1763,7 +2509,8 @@ class AdaptivePhotometryStage(PipelineStage):
                 unit="deg",
                 frame="icrs",
             )
-            center = acoords.SkyCoord(ra_deg, dec_deg, unit="deg", frame="icrs")
+            center = acoords.SkyCoord(
+                ra_deg, dec_deg, unit="deg", frame="icrs")
             sep_deg = sc.separation(center).deg
             flux_mjy = df["flux_20_cm"].to_numpy()
 

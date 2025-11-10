@@ -189,9 +189,56 @@ def evolve_products_schema(db_path: Path, verbose: bool = True) -> bool:
         cur.execute(
             "CREATE INDEX IF NOT EXISTS idx_regions_image ON regions(image_path)"
         )
-        cur.execute("CREATE INDEX IF NOT EXISTS idx_regions_type ON regions(type)")
+        cur.execute(
+            "CREATE INDEX IF NOT EXISTS idx_regions_type ON regions(type)")
         cur.execute(
             "CREATE INDEX IF NOT EXISTS idx_regions_created ON regions(created_at)"
+        )
+
+        # Table: cross_matches
+        if verbose:
+            print("Adding cross_matches table...")
+        cur.execute(
+            """
+            CREATE TABLE IF NOT EXISTS cross_matches (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                source_id TEXT NOT NULL,
+                catalog_type TEXT NOT NULL,
+                catalog_source_id TEXT,
+                separation_arcsec REAL NOT NULL,
+                dra_arcsec REAL,
+                ddec_arcsec REAL,
+                detected_flux_jy REAL,
+                catalog_flux_jy REAL,
+                flux_ratio REAL,
+                match_quality TEXT,
+                match_method TEXT DEFAULT 'basic',
+                master_catalog_id TEXT,
+                created_at REAL NOT NULL,
+                FOREIGN KEY (source_id) REFERENCES variability_stats(source_id),
+                UNIQUE(source_id, catalog_type)
+            )
+        """
+        )
+        cur.execute(
+            "CREATE INDEX IF NOT EXISTS idx_cross_matches_source ON cross_matches(source_id)"
+        )
+        cur.execute(
+            "CREATE INDEX IF NOT EXISTS idx_cross_matches_catalog ON cross_matches(catalog_type)"
+        )
+        cur.execute(
+            "CREATE INDEX IF NOT EXISTS idx_cross_matches_quality ON cross_matches(match_quality)"
+        )
+        cur.execute(
+            "CREATE INDEX IF NOT EXISTS idx_cross_matches_created ON cross_matches(created_at)"
+        )
+        cur.execute(
+            "CREATE INDEX IF NOT EXISTS idx_cross_matches_master ON cross_matches(master_catalog_id)"
+        )
+        
+        # Add master_catalog_id column if it doesn't exist (for existing databases)
+        _add_column_if_missing(
+            cur, "cross_matches", "master_catalog_id", "TEXT"
         )
 
         # Add missing columns to existing tables (safe schema evolution)
@@ -233,8 +280,10 @@ def evolve_products_schema(db_path: Path, verbose: bool = True) -> bool:
             _add_column_if_missing(cur, "photometry", "source_id", "TEXT")
             _add_column_if_missing(cur, "photometry", "snr", "REAL")
             _add_column_if_missing(cur, "photometry", "mjd", "REAL")
-            _add_column_if_missing(cur, "photometry", "sep_from_center_deg", "REAL")
-            _add_column_if_missing(cur, "photometry", "flags", "INTEGER DEFAULT 0")
+            _add_column_if_missing(
+                cur, "photometry", "sep_from_center_deg", "REAL")
+            _add_column_if_missing(
+                cur, "photometry", "flags", "INTEGER DEFAULT 0")
             cur.execute(
                 "CREATE INDEX IF NOT EXISTS idx_photometry_source_mjd ON photometry(source_id, mjd)"
             )
@@ -300,7 +349,8 @@ def _table_exists(cursor: sqlite3.Cursor, table: str) -> bool:
     """Check if a table exists."""
     try:
         cursor.execute(
-            "SELECT name FROM sqlite_master WHERE type='table' AND name=?", (table,)
+            "SELECT name FROM sqlite_master WHERE type='table' AND name=?", (
+                table,)
         )
         return cursor.fetchone() is not None
     except Exception:
@@ -319,7 +369,8 @@ def _add_column_if_missing(
         cursor.execute(f"PRAGMA table_info({table})")
         columns = {row[1] for row in cursor.fetchall()}
         if column not in columns:
-            cursor.execute(f"ALTER TABLE {table} ADD COLUMN {column} {col_type}")
+            cursor.execute(
+                f"ALTER TABLE {table} ADD COLUMN {column} {col_type}")
     except Exception:
         pass  # Column might already exist or table doesn't exist
 
@@ -342,7 +393,8 @@ def evolve_ingest_schema(db_path: Path, verbose: bool = True) -> bool:
         if verbose:
             print("Checking ingest_queue table...")
 
-        _add_column_if_missing(cur, "ingest_queue", "retry_count", "INTEGER DEFAULT 0")
+        _add_column_if_missing(cur, "ingest_queue",
+                               "retry_count", "INTEGER DEFAULT 0")
         _add_column_if_missing(cur, "ingest_queue", "error_message", "TEXT")
 
         conn.commit()
@@ -401,7 +453,8 @@ if __name__ == "__main__":
     import sys
 
     state_dir = (
-        Path(sys.argv[1]) if len(sys.argv) > 1 else Path("/data/dsa110-contimg/state")
+        Path(sys.argv[1]) if len(sys.argv) > 1 else Path(
+            "/data/dsa110-contimg/state")
     )
     success = migrate_all(state_dir, verbose=True)
     sys.exit(0 if success else 1)

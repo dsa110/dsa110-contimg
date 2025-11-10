@@ -98,8 +98,14 @@ def standard_imaging_workflow(config: PipelineConfig) -> PipelineOrchestrator:
     builder = (
         WorkflowBuilder()
         .add_stage(
+            "catalog_setup",
+            stages_impl.CatalogSetupStage(config),
+            retry_policy=retry_policy,
+        )
+        .add_stage(
             "convert",
             stages_impl.ConversionStage(config),
+            depends_on=["catalog_setup"],
             retry_policy=retry_policy,
         )
         .add_stage(
@@ -124,10 +130,19 @@ def standard_imaging_workflow(config: PipelineConfig) -> PipelineOrchestrator:
 
     # Add validation stage if enabled
     if config.validation.enabled:
-        builder = builder.add_stage(
+        builder = builder        .add_stage(
             "validate",
             stages_impl.ValidationStage(config),
             depends_on=["image"],
+            retry_policy=retry_policy,
+        )
+
+    # Add cross-match stage if enabled
+    if config.crossmatch.enabled:
+        builder = builder.add_stage(
+            "crossmatch",
+            stages_impl.CrossMatchStage(config),
+            depends_on=["validate", "image"],
             retry_policy=retry_policy,
         )
 
@@ -156,16 +171,25 @@ def quicklook_workflow(config: PipelineConfig) -> PipelineOrchestrator:
 
     builder = (
         WorkflowBuilder()
-        .add_stage("convert", stages_impl.ConversionStage(config))
+        .add_stage("catalog_setup", stages_impl.CatalogSetupStage(config))
+        .add_stage("convert", stages_impl.ConversionStage(config), depends_on=["catalog_setup"])
         .add_stage("image", stages_impl.ImagingStage(config), depends_on=["convert"])
     )
 
     # Add validation stage if enabled
     if config.validation.enabled:
-        builder = builder.add_stage(
+        builder = builder        .add_stage(
             "validate",
             stages_impl.ValidationStage(config),
             depends_on=["image"],
+        )
+
+    # Add cross-match stage if enabled
+    if config.crossmatch.enabled:
+        builder = builder.add_stage(
+            "crossmatch",
+            stages_impl.CrossMatchStage(config),
+            depends_on=["validate", "image"],
         )
 
     return builder.build()
@@ -184,7 +208,8 @@ def reprocessing_workflow(config: PipelineConfig) -> PipelineOrchestrator:
 
     builder = (
         WorkflowBuilder()
-        .add_stage("calibrate", stages_impl.CalibrationStage(config))
+        .add_stage("catalog_setup", stages_impl.CatalogSetupStage(config))
+        .add_stage("calibrate", stages_impl.CalibrationStage(config), depends_on=["catalog_setup"])
         .add_stage("image", stages_impl.ImagingStage(config), depends_on=["calibrate"])
     )
 
@@ -194,6 +219,14 @@ def reprocessing_workflow(config: PipelineConfig) -> PipelineOrchestrator:
             "validate",
             stages_impl.ValidationStage(config),
             depends_on=["image"],
+        )
+
+    # Add cross-match stage if enabled
+    if config.crossmatch.enabled:
+        builder = builder.add_stage(
+            "crossmatch",
+            stages_impl.CrossMatchStage(config),
+            depends_on=["validate", "image"],
         )
 
     return builder.build()
