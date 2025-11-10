@@ -11,7 +11,17 @@ from pathlib import Path
 from typing import Any, Dict, List, Optional, Tuple
 
 import numpy as np
-from casacore.tables import table
+# casacore is only available inside the CASA / casa6 environment. Guard the
+# import so that running tests on plain runners (without CASA) doesn't fail at
+# module import time. When casacore is unavailable we set a flag and leave
+# `table` as None so runtime callers can raise an informative error if they
+# attempt to use it.
+try:
+    from casacore.tables import table  # type: ignore
+    HAVE_CASACORE = True
+except Exception:
+    table = None
+    HAVE_CASACORE = False
 
 from dsa110_contimg.calibration.units import (
     delay_from_phase,
