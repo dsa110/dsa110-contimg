@@ -13,6 +13,7 @@ try:
         QaResult,
         QaThresholds,
     )
+
     HAS_QA = True
 except ImportError:
     HAS_QA = False
@@ -62,9 +63,7 @@ def run_ms_qa_with_visualization(
         >>> # Notebook is in result.artifacts
     """
     if not HAS_QA:
-        raise ImportError(
-            "dsa110_contimg.qa.casa_ms_qa is required for QA functions"
-        )
+        raise ImportError("dsa110_contimg.qa.casa_ms_qa is required for QA functions")
 
     # Run standard QA
     result = run_ms_qa(
