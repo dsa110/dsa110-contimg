@@ -9,6 +9,12 @@ Speed up feedback when iterating on the pipeline by running only the most releva
 
 ## Quick Options
 
+- Smoke (ultra-fast):
+
+```
+make test-smoke
+```
+
 - Fast unit subset (fail-fast):
 
 ```
@@ -30,7 +36,8 @@ BASE_REF=origin/main make test-impacted
 
 ## What They Run
 
-- `test-fast`: unit tests only; excludes `slow`, `integration`, and `casa` markers; uses `-q -x --maxfail=1`.
+- `test-smoke`: a tiny, representative suite (a few quick files) for sub‑minute feedback.
+- `test-fast`: unit tests only; excludes `slow`, `integration`, and `casa` markers; uses `-q -x --maxfail=1`; also excludes heavier paths by keyword (`imaging|masking|nvss`) and disables plugin autoload.
 - `test-impacted.sh`: detects changed files and runs only matching tests:
   - `pipeline/` → orchestrator + core pipeline tests
   - `imaging/` → mocked imaging tests
@@ -42,4 +49,4 @@ BASE_REF=origin/main make test-impacted
 
 - Integration tests require `TEST_WITH_SYNTHETIC_DATA=1` plus CASA6/pyuvdata; they are excluded by default.
 - By policy, local testing should use CASA6; CI may use system Python for certain unit tests.
-
+- For faster startup, we disable auto‑loading of third‑party pytest plugins in the fast/smoke targets (`PYTEST_DISABLE_PLUGIN_AUTOLOAD=1`).

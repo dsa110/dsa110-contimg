@@ -19,6 +19,10 @@ import numpy as np
 
 from .cache import get_cache
 
+# Ensure CASAPATH is set before importing CASA modules
+from dsa110_contimg.utils.casa_init import ensure_casa_path
+ensure_casa_path()
+
 try:
     from casacore.images import image as casaimage
     from casatasks import imhead
@@ -270,16 +274,20 @@ def validate_tiles_consistency(
     Returns:
         (is_valid, issues, metrics_dict)
     """
-    print(f"[DEBUG] validate_tiles_consistency: Starting for {len(tiles)} tiles", file=sys.stderr, flush=True)
-    print(f"[DEBUG] validate_tiles_consistency: Starting for {len(tiles)} tiles", flush=True)
-    
+    print(
+        f"[DEBUG] validate_tiles_consistency: Starting for {len(tiles)} tiles", file=sys.stderr, flush=True)
+    print(
+        f"[DEBUG] validate_tiles_consistency: Starting for {len(tiles)} tiles", flush=True)
+
     cache = get_cache()
-    print(f"[DEBUG] validate_tiles_consistency: Cache obtained", file=sys.stderr, flush=True)
+    print(f"[DEBUG] validate_tiles_consistency: Cache obtained",
+          file=sys.stderr, flush=True)
     all_issues = []
     metrics_dict = {}
 
     # Batch database query for all tiles
-    print(f"[DEBUG] validate_tiles_consistency: Starting database query", file=sys.stderr, flush=True)
+    print(f"[DEBUG] validate_tiles_consistency: Starting database query",
+          file=sys.stderr, flush=True)
     db_data = {}
     ms_paths = set()
     if products_db:
@@ -309,13 +317,16 @@ def validate_tiles_consistency(
                                   for row in cal_rows}
         except Exception as e:
             logger.debug(f"Batch DB query failed: {e}")
-            print(f"[DEBUG] validate_tiles_consistency: Database query exception: {e}", file=sys.stderr, flush=True)
-    
-    print(f"[DEBUG] validate_tiles_consistency: Database query complete, validating {len(tiles)} tiles", file=sys.stderr, flush=True)
+            print(
+                f"[DEBUG] validate_tiles_consistency: Database query exception: {e}", file=sys.stderr, flush=True)
+
+    print(
+        f"[DEBUG] validate_tiles_consistency: Database query complete, validating {len(tiles)} tiles", file=sys.stderr, flush=True)
 
     # Validate each tile
     for i, tile in enumerate(tiles):
-        print(f"[DEBUG] validate_tiles_consistency: Validating tile {i+1}/{len(tiles)}: {Path(tile).name}", file=sys.stderr, flush=True)
+        print(
+            f"[DEBUG] validate_tiles_consistency: Validating tile {i+1}/{len(tiles)}: {Path(tile).name}", file=sys.stderr, flush=True)
         metrics = validate_tile_quality(
             tile, products_db=None)  # Skip DB query here
 
@@ -345,23 +356,33 @@ def validate_tiles_consistency(
             header = cache.get_tile_header(tile)
             if header:
                 # Convert shape to tuple for comparison (handles numpy arrays, lists, and strings)
-                shape = header.get('shape')
-                if isinstance(shape, np.ndarray):
-                    shape = tuple(shape.tolist())
-                elif isinstance(shape, list):
-                    shape = tuple(shape)
-                elif isinstance(shape, str):
-                    # Cache may serialize arrays as strings like "[512 512]"
-                    # Try to parse it
-                    try:
-                        import ast
-                        shape_list = ast.literal_eval(shape)
-                        shape = tuple(shape_list) if isinstance(
-                            shape_list, list) else shape
-                    except (ValueError, SyntaxError):
-                        # If parsing fails, use string comparison (less ideal but works)
-                        pass
+                def normalize_shape(s):
+                    """Normalize shape to tuple for comparison."""
+                    if isinstance(s, tuple):
+                        return s
+                    elif isinstance(s, np.ndarray):
+                        return tuple(s.tolist())
+                    elif isinstance(s, list):
+                        return tuple(s)
+                    elif isinstance(s, str):
+                        # Cache may serialize arrays as strings like "[6300 6300    1    1]" or "[512, 512]"
+                        try:
+                            import ast
+                            import re
+                            # First try direct ast.literal_eval for list-style "[512, 512]"
+                            shape_list = ast.literal_eval(s)
+                            return tuple(shape_list) if isinstance(shape_list, list) else s
+                        except (ValueError, SyntaxError):
+                            # If that fails, try parsing numpy-style "[6300 6300    1    1]"
+                            try:
+                                numbers = re.findall(r'\d+', s)
+                                return tuple(int(n) for n in numbers) if numbers else s
+                            except Exception:
+                                return s
+                    else:
+                        return tuple(s) if hasattr(s, '__iter__') and not isinstance(s, (str, bytes)) else s
 
+                shape = normalize_shape(header.get('shape'))
                 key = (shape, header.get('cdelt1'), header.get('cdelt2'))
                 if ref_header is None:
                     ref_header = key
@@ -369,9 +390,12 @@ def validate_tiles_consistency(
                 else:
                     # Compare with tolerance for floating-point values
                     ref_shape, ref_cdelt1, ref_cdelt2 = ref_header
-                    if shape != ref_shape:
+                    # Normalize both shapes for comparison
+                    shape_norm = normalize_shape(shape)
+                    ref_shape_norm = normalize_shape(ref_shape)
+                    if shape_norm != ref_shape_norm:
                         all_issues.append(
-                            f"Grid inconsistency: {tile} shape {shape} differs from {ref_tile} shape {ref_shape}"
+                            f"Grid inconsistency: {tile} shape {shape_norm} differs from {ref_tile} shape {ref_shape_norm}"
                         )
                     # Use relative tolerance for cell size comparison
                     cdelt1 = header.get('cdelt1')
@@ -641,7 +665,7 @@ def verify_astrometric_registration(
             # Need to read image for peak finding (can't cache this easily)
             # But we can use cached coordinate system
             img = casaimage(tile)
-            coord_sys = cache.get_tile_coordsys(tile) or img.coordsys()
+            coord_sys = cache.get_tile_coordsys(tile) or img.coordinates()
             data = img.getdata()
 
             # Extract 2D image data
@@ -1054,11 +1078,8 @@ def check_primary_beam_consistency(
             try:
                 pb_img = casaimage(str(pb_path))
                 pb_data = pb_img.getdata()
-                # Try coordsys() first, fallback to coordinates() for FITS files
-                try:
-                    coord_sys = pb_img.coordsys()
-                except AttributeError:
-                    coord_sys = pb_img.coordinates()
+                # Use coordinates() directly (correct API for casacore.images.image)
+                coord_sys = pb_img.coordinates()
 
                 # Extract frequency information from coordinate system
                 try:
@@ -1094,7 +1115,8 @@ def check_primary_beam_consistency(
                     pb_info['pb_response_max'] = float(valid_pb.max())
                 else:
                     import logging
-                    logging.warning(f"No valid PB data found for {pb_path} (all NaN/Inf or <= 0)")
+                    logging.warning(
+                        f"No valid PB data found for {pb_path} (all NaN/Inf or <= 0)")
 
                     # Basic pattern check: verify PB has reasonable shape
                     # (should peak near center, decrease toward edges)

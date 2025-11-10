@@ -17,6 +17,10 @@ def detect_ms_corruption(ms_path: str) -> tuple[bool, list[str]]:
     Returns:
         (is_corrupted, list_of_issues) tuple
     """
+    # Ensure CASAPATH is set before importing CASA modules
+    from dsa110_contimg.utils.casa_init import ensure_casa_path
+    ensure_casa_path()
+
     from casacore.tables import table  # type: ignore
     
     issues = []

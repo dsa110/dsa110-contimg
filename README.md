@@ -166,10 +166,6 @@ Image:
 - Housekeeping:
   - `python ops/pipeline/housekeeping.py --queue-db state/ingest.sqlite3 --scratch-dir /stage/dsa110-contimg --in-progress-timeout 3600 --collecting-timeout 86400 --temp-age 86400`
 
-## Knowledge Graph Guardrails
-
-Use project-specific guardrails and maintenance scripts to keep any external knowledge graph healthy and easy to navigate. Internal details and scripts are documented in the contributor resources.
-
 ## Nightly Mosaic and Housekeeping
 
 - Docker Compose scheduler (optional):
@@ -255,26 +251,6 @@ Notes
 - Keep changes minimal and focused; prefer using the shared DB helpers
 - Add tests where practical; synthetic data tools are in `simulation/`
 - Follow existing logging styles and module structure
-## Git Hook: Commit Summaries to Knowledge Graph
+## Git Hook: Commit Summaries (internal tooling)
 
-This repository includes a lightweight, non‑blocking Git post‑commit hook that can record each commit as a short episode in an external knowledge graph (optional). It helps long‑term recall of changes and decisions during development.
-
-- Hook location: `.githooks/post-commit`
-- Activation (already configured): `git config core.hooksPath .githooks`
-- Behavior: runs in the background after every `git commit`; failures never block your commit.
-- What it stores: commit short hash, branch, and commit message.
-- Where it goes: the configured knowledge graph service/client.
-
-Disable later:
-
-```
-git config --unset core.hooksPath
-```
-
-Re‑enable:
-
-```
-git config core.hooksPath .githooks
-```
-
-If you need to customize the target group or episode format, edit `.githooks/post-commit`.
+This repository can optionally use a lightweight, non‑blocking post‑commit hook to record commit summaries for internal tools. See internal documentation for setup and details.

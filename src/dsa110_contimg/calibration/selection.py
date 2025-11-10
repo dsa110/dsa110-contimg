@@ -4,6 +4,10 @@ import numpy as np
 import pandas as pd
 from typing import Tuple, List, Optional
 
+# Ensure CASAPATH is set before importing CASA modules
+from dsa110_contimg.utils.casa_init import ensure_casa_path
+ensure_casa_path()
+
 from casacore.tables import table
 import astropy.units as u
 from astropy.coordinates import Angle

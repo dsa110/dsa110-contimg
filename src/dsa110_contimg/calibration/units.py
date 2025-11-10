@@ -162,6 +162,10 @@ def get_reference_frequency_from_ms(ms_path: str) -> Optional[u.Quantity]:
     Returns:
         Reference frequency as Quantity (Hz), or None if not found
     """
+    # Ensure CASAPATH is set before importing CASA modules
+    from dsa110_contimg.utils.casa_init import ensure_casa_path
+    ensure_casa_path()
+
     try:
         from casacore.tables import table
         

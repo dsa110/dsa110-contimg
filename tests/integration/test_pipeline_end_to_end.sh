@@ -25,8 +25,10 @@ REPO_ROOT="$(cd "${SCRIPT_DIR}/../.." && pwd)"
 cd "${REPO_ROOT}"
 
 # Python environment
-PYTHON_BIN="${PYTHON_BIN:-/opt/miniforge/envs/casa6/bin/python}"
-if [[ ! -x "${PYTHON_BIN}" ]]; then
+PYTHON_BIN_BASE="${PYTHON_BIN_BASE:-/opt/miniforge/envs/casa6/bin/python}"
+if [[ -x "${PYTHON_BIN_BASE}" ]]; then
+    PYTHON_BIN="${PYTHON_BIN_BASE} -W ignore::DeprecationWarning"
+else
     PYTHON_BIN="python"
 fi
 

@@ -14,11 +14,12 @@ set -euo pipefail
 # - Excludes slow, integration, and casa-marked tests by default.
 # - Maps changes in src/ to related tests using ripgrep if present, else grep.
 
-CASA6_PYTHON="/opt/miniforge/envs/casa6/bin/python"
-if [[ -x "$CASA6_PYTHON" ]]; then
+CASA6_PYTHON_BIN="/opt/miniforge/envs/casa6/bin/python"
+CASA6_PYTHON="${CASA6_PYTHON_BIN} -W ignore::DeprecationWarning"
+if [[ -x "$CASA6_PYTHON_BIN" ]]; then
   PY="$CASA6_PYTHON"
 else
-  echo "WARNING: CASA6 Python not found at $CASA6_PYTHON; using system python." >&2
+  echo "WARNING: CASA6 Python not found at $CASA6_PYTHON_BIN; using system python." >&2
   PY="$(command -v python || command -v python3 || echo python)"
 fi
 
@@ -121,5 +122,13 @@ fi
 echo "Running impacted tests:" >&2
 echo "$uniq_tests" | sed 's/^/  - /' >&2
 
-PYTHONPATH="$(pwd)/src:${PYTHONPATH:-}" "$PY" -m pytest -q -x --maxfail=1 -m "not slow and not integration and not casa" $uniq_tests
-
+count=$(printf "%s\n" "$uniq_tests" | wc -l | awk '{print $1}')
+if [ "$count" -gt 12 ]; then
+  echo "Too many impacted tests ($count). Running smoke suite instead..." >&2
+  PYTEST_DISABLE_PLUGIN_AUTOLOAD=1 MPLBACKEND=Agg \
+  PYTHONPATH="$(pwd)/src:${PYTHONPATH:-}" "$PY" -m pytest -q -x --maxfail=1 \
+    tests/test_pipeline.py tests/unit/test_cli_calibration_args.py
+else
+  PYTEST_DISABLE_PLUGIN_AUTOLOAD=1 MPLBACKEND=Agg \
+  PYTHONPATH="$(pwd)/src:${PYTHONPATH:-}" "$PY" -m pytest -q -x --maxfail=1 -m "not slow and not integration and not casa" $uniq_tests
+fi

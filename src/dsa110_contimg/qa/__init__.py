@@ -39,6 +39,12 @@ from dsa110_contimg.qa.visualization import (
     display_qa_summary,
 )
 from dsa110_contimg.qa.visualization_qa import run_ms_qa_with_visualization
+from dsa110_contimg.qa.postage_stamps import (
+    create_cutout,
+    normalize_cutout,
+    plot_cutout,
+    show_all_cutouts,
+)
 
 __all__ = [
     # MS quality
@@ -77,5 +83,10 @@ __all__ = [
     "browse_qa_outputs",
     "display_qa_summary",
     "run_ms_qa_with_visualization",
+    # Postage stamps
+    "create_cutout",
+    "normalize_cutout",
+    "plot_cutout",
+    "show_all_cutouts",
 ]
 

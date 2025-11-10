@@ -16,6 +16,7 @@ import SkyViewPage from './pages/SkyViewPage';
 import StreamingPage from './pages/StreamingPage';
 import DataBrowserPage from './pages/DataBrowserPage';
 import DataDetailPage from './pages/DataDetailPage';
+import QAVisualizationPage from './pages/QAVisualizationPage';
 import { isRetryableError } from './utils/errorUtils';
 
 // Create React Query client factory function
@@ -93,6 +94,7 @@ function AppContent() {
                     <Route path="/streaming" element={<StreamingPage />} />
                     <Route path="/data" element={<DataBrowserPage />} />
                     <Route path="/data/:type/:id" element={<DataDetailPage />} />
+                    <Route path="/qa" element={<QAVisualizationPage />} />
                   </Routes>
                 </ErrorBoundary>
               </Box>

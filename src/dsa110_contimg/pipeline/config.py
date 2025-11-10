@@ -24,6 +24,8 @@ class PathsConfig(BaseModel):
         None, description="Scratch directory for temporary files")
     state_dir: Path = Field(default=Path(
         "state"), description="State directory for databases")
+    synthetic_dir: Path = Field(
+        default=Path("state/synth"), description="Directory for synthetic/test data (images, MS files, etc.)")
 
     @property
     def products_db(self) -> Path:
@@ -39,6 +41,16 @@ class PathsConfig(BaseModel):
     def queue_db(self) -> Path:
         """Path to queue database."""
         return self.state_dir / "ingest.sqlite3"
+
+    @property
+    def synthetic_images_dir(self) -> Path:
+        """Path to synthetic images directory."""
+        return self.synthetic_dir / "images"
+
+    @property
+    def synthetic_ms_dir(self) -> Path:
+        """Path to synthetic MS files directory."""
+        return self.synthetic_dir / "ms"
 
 
 class ConversionConfig(BaseModel):
@@ -163,6 +175,7 @@ class PipelineConfig(BaseModel):
             PIPELINE_OUTPUT_DIR: Output directory (required)
             PIPELINE_SCRATCH_DIR: Scratch directory (optional)
             PIPELINE_STATE_DIR: State directory (default: "state")
+            PIPELINE_SYNTHETIC_DIR: Synthetic/test data directory (default: "state/synth")
             PIPELINE_WRITER: Writer strategy (default: "auto")
             PIPELINE_MAX_WORKERS: Max workers (default: 4)
             PIPELINE_EXPECTED_SUBBANDS: Expected subbands (default: 16)
@@ -179,6 +192,8 @@ class PipelineConfig(BaseModel):
             HealthCheckError: If path validation fails (when validate_paths=True)
         """
         base_state = Path(os.getenv("PIPELINE_STATE_DIR", "state"))
+        synthetic_dir = Path(
+            os.getenv("PIPELINE_SYNTHETIC_DIR", str(base_state / "synth")))
 
         input_dir = os.getenv("PIPELINE_INPUT_DIR")
         output_dir = os.getenv("PIPELINE_OUTPUT_DIR")
@@ -238,6 +253,7 @@ class PipelineConfig(BaseModel):
                 output_dir=Path(output_dir),
                 scratch_dir=Path(scratch_dir) if scratch_dir else None,
                 state_dir=base_state,
+                synthetic_dir=synthetic_dir,
             ),
             conversion=ConversionConfig(
                 writer=os.getenv("PIPELINE_WRITER", "auto"),

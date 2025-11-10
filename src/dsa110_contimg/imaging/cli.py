@@ -21,6 +21,11 @@ from dsa110_contimg.utils.cli_helpers import (
 )
 from .cli_imaging import image_ms, run_wsclean as _run_wsclean
 from .cli_utils import detect_datacolumn as _detect_datacolumn, default_cell_arcsec as _default_cell_arcsec
+
+# Initialize CASA environment before importing CASA modules
+from dsa110_contimg.utils.casa_init import ensure_casa_path
+ensure_casa_path()
+
 from casatasks import tclean, exportfits  # type: ignore[import]
 from casacore.tables import table  # type: ignore[import]
 import numpy as np

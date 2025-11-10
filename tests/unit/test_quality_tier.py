@@ -189,6 +189,7 @@ class TestQualityTierStandard:
         
         with patch('casacore.tables.table', side_effect=mock_table_factory), \
              patch('dsa110_contimg.imaging.cli_utils.table', side_effect=mock_table_factory), \
+             patch('dsa110_contimg.imaging.cli_imaging.table', side_effect=mock_table_factory), \
              patch('dsa110_contimg.imaging.cli_imaging.default_cell_arcsec', return_value=2.0), \
              patch('dsa110_contimg.imaging.cli_imaging.detect_datacolumn', return_value='data'), \
              patch('dsa110_contimg.imaging.cli_utils.default_cell_arcsec', return_value=2.0), \

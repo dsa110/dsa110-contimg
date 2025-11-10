@@ -19,6 +19,10 @@ def cleanup_casa_file_handles() -> None:
     CASA tools can hold file handles open even after operations complete,
     causing file locking errors in subsequent operations.
     """
+    # Ensure CASAPATH is set before importing CASA modules
+    from dsa110_contimg.utils.casa_init import ensure_casa_path
+    ensure_casa_path()
+
     try:
         import casatools
         tool_names = ['ms', 'table', 'image', 'msmetadata', 'simulator']

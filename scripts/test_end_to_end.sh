@@ -8,7 +8,7 @@ echo ""
 
 # 1. Test database migration
 echo "1. Testing database migration..."
-PYTHONPATH=/data/dsa110-contimg/src /opt/miniforge/envs/casa6/bin/python -c "
+PYTHONPATH=/data/dsa110-contimg/src /opt/miniforge/envs/casa6/bin/python -W ignore::DeprecationWarning -c "
 from dsa110_contimg.database.schema_evolution import evolve_products_schema
 from pathlib import Path
 import tempfile
@@ -24,12 +24,12 @@ echo ""
 
 # 2. Test data registration
 echo "2. Testing data registration..."
-PYTHONPATH=/data/dsa110-contimg/src /opt/miniforge/envs/casa6/bin/python scripts/test_data_registry.py
+PYTHONPATH=/data/dsa110-contimg/src /opt/miniforge/envs/casa6/bin/python -W ignore::DeprecationWarning scripts/test_data_registry.py
 echo ""
 
 # 3. Test API endpoints
 echo "3. Testing API endpoints..."
-PYTHONPATH=/data/dsa110-contimg/src /opt/miniforge/envs/casa6/bin/python -c "
+PYTHONPATH=/data/dsa110-contimg/src /opt/miniforge/envs/casa6/bin/python -W ignore::DeprecationWarning -c "
 from dsa110_contimg.api.routes import create_app
 from fastapi.testclient import TestClient
 

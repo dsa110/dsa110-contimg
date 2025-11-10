@@ -606,7 +606,6 @@ The pipeline includes a **declarative orchestration framework** for dependency-b
 - **Pipeline Flow**: `docs/pipeline.md`
 - **ESE Literature Summary**: `docs/reports/ESE_LITERATURE_SUMMARY.md`
 - **Photometry Normalization**: `docs/science/photometry_normalization.md`
-- **Project Knowledge Graph Schema**: `docs/reference/knowledge-graph-schema.md`
 - **Control Panel**: `docs/guides/control-panel/`
 - **Complete Project Review**: `docs/reports/COMPLETE_PROJECT_REVIEW.md`
 - **Test Suite**: `tests/README.md`

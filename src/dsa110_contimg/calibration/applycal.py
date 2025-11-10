@@ -1,6 +1,10 @@
 from typing import List, Optional, Union
 import os
 
+# Ensure CASAPATH is set before importing CASA modules
+from dsa110_contimg.utils.casa_init import ensure_casa_path
+ensure_casa_path()
+
 from casatasks import applycal as casa_applycal
 
 from dsa110_contimg.calibration.validate import (

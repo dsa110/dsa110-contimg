@@ -213,6 +213,7 @@ CREATE TABLE IF NOT EXISTS variability_stats (
     max_flux_mjy REAL,
     chi2_nu REAL,                          -- Reduced chi-square for constant model
     sigma_deviation REAL,                  -- Max deviation in sigma units
+    eta_metric REAL,                       -- Weighted variance metric (η) - VAST Tools adoption
     last_measured_at REAL,                 -- Unix timestamp of last measurement
     last_mjd REAL,
     updated_at REAL NOT NULL               -- When stats were computed
@@ -220,6 +221,7 @@ CREATE TABLE IF NOT EXISTS variability_stats (
 
 CREATE INDEX IF NOT EXISTS idx_variability_chi2 ON variability_stats(chi2_nu);
 CREATE INDEX IF NOT EXISTS idx_variability_sigma ON variability_stats(sigma_deviation);
+CREATE INDEX IF NOT EXISTS idx_variability_eta ON variability_stats(eta_metric);
 CREATE INDEX IF NOT EXISTS idx_variability_last_mjd ON variability_stats(last_mjd);
 ```
 

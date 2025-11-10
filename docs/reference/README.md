@@ -32,10 +32,7 @@
 - **[Calibration Overview](calibration-overview.md)** - Calibration system overview
 - **[Current Calibration Procedure](CURRENT_CALIBRATION_PROCEDURE.md)** - Current calibration workflow reference
 
-## Knowledge Graph
 
-- **[Knowledge Graph Schema](knowledge-graph-schema.md)** - Schema for this project
-- **[Knowledge Graph Guardrails](knowledge-graph-guardrails.md)** - Usage guidelines
 
 ## Developer Resources
 

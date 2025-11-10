@@ -54,6 +54,10 @@ from dsa110_contimg.api.models import (
     MosaicQueryResponse,
     SourceTimeseries,
     SourceSearchResponse,
+    VariabilityMetrics,
+    LightCurveData,
+    PostageStampsResponse,
+    PostageStampInfo,
     AlertHistory,
     StreamingConfigRequest,
     StreamingStatusResponse,
@@ -1676,6 +1680,179 @@ def create_app(config: ApiConfig | None = None) -> FastAPI:
             total=1,
         )
 
+    @router.get("/sources/{source_id}/variability", response_model=VariabilityMetrics)
+    def get_source_variability(source_id: str):
+        """Get variability metrics for a source."""
+        from dsa110_contimg.photometry.source import Source
+        
+        try:
+            source = Source(source_id=source_id, products_db=cfg.products_db)
+            metrics = source.calc_variability_metrics()
+            
+            return VariabilityMetrics(
+                source_id=source_id,
+                v=metrics.get('v', 0.0),
+                eta=metrics.get('eta', 0.0),
+                vs_mean=metrics.get('vs_mean'),
+                m_mean=metrics.get('m_mean'),
+                n_epochs=metrics.get('n_epochs', 0)
+            )
+        except Exception as e:
+            logger.error(f"Error getting variability metrics for {source_id}: {e}")
+            raise HTTPException(
+                status_code=404,
+                detail=f"Source {source_id} not found or error calculating metrics: {str(e)}"
+            )
+
+    @router.get("/sources/{source_id}/lightcurve", response_model=LightCurveData)
+    def get_source_lightcurve(source_id: str):
+        """Get light curve data for a source."""
+        from dsa110_contimg.photometry.source import Source
+        from dsa110_contimg.api.models import SourceFluxPoint
+        from astropy.time import Time
+        
+        try:
+            source = Source(source_id=source_id, products_db=cfg.products_db)
+            
+            if source.measurements.empty:
+                raise HTTPException(
+                    status_code=404,
+                    detail=f"No measurements found for source {source_id}"
+                )
+            
+            # Convert measurements to flux points
+            flux_points = []
+            normalized_flux_points = []
+            
+            for _, row in source.measurements.iterrows():
+                mjd = row.get('mjd', 0.0)
+                if mjd == 0 and 'measured_at' in row:
+                    # Convert timestamp to MJD
+                    mjd = Time(row['measured_at'], format='datetime').mjd
+                
+                time_str = Time(mjd, format='mjd').iso if mjd > 0 else ""
+                
+                # Regular flux points
+                flux_jy = row.get('peak_jyb', row.get('flux_jy', 0.0))
+                flux_err_jy = row.get('peak_err_jyb', row.get('flux_err_jy', None))
+                image_path = row.get('image_path', '')
+                
+                flux_points.append(SourceFluxPoint(
+                    mjd=float(mjd),
+                    time=time_str,
+                    flux_jy=float(flux_jy) if flux_jy else 0.0,
+                    flux_err_jy=float(flux_err_jy) if flux_err_jy else None,
+                    image_id=image_path
+                ))
+                
+                # Normalized flux points if available
+                if 'normalized_flux_jy' in row:
+                    norm_flux_jy = row.get('normalized_flux_jy', 0.0)
+                    norm_flux_err_jy = row.get('normalized_flux_err_jy', None)
+                    normalized_flux_points.append(SourceFluxPoint(
+                        mjd=float(mjd),
+                        time=time_str,
+                        flux_jy=float(norm_flux_jy) if norm_flux_jy else 0.0,
+                        flux_err_jy=float(norm_flux_err_jy) if norm_flux_err_jy else None,
+                        image_id=image_path
+                    ))
+            
+            return LightCurveData(
+                source_id=source_id,
+                ra_deg=source.ra_deg,
+                dec_deg=source.dec_deg,
+                flux_points=flux_points,
+                normalized_flux_points=normalized_flux_points if normalized_flux_points else None
+            )
+        except HTTPException:
+            raise
+        except Exception as e:
+            logger.error(f"Error getting light curve for {source_id}: {e}")
+            raise HTTPException(
+                status_code=404,
+                detail=f"Source {source_id} not found or error loading measurements: {str(e)}"
+            )
+
+    @router.get("/sources/{source_id}/postage_stamps", response_model=PostageStampsResponse)
+    def get_source_postage_stamps(
+        source_id: str,
+        size_arcsec: float = Query(60.0, description="Cutout size in arcseconds"),
+        max_stamps: int = Query(20, description="Maximum number of stamps to return")
+    ):
+        """Get postage stamp cutouts for a source."""
+        from dsa110_contimg.photometry.source import Source
+        from dsa110_contimg.qa.postage_stamps import create_cutout
+        import tempfile
+        
+        try:
+            source = Source(source_id=source_id, products_db=cfg.products_db)
+            
+            if source.measurements.empty:
+                raise HTTPException(
+                    status_code=404,
+                    detail=f"No measurements found for source {source_id}"
+                )
+            
+            stamps = []
+            temp_dir = Path(tempfile.gettempdir()) / "postage_stamps"
+            temp_dir.mkdir(exist_ok=True)
+            
+            # Get unique image paths
+            image_paths = source.measurements['image_path'].dropna().unique()[:max_stamps]
+            
+            for image_path in image_paths:
+                if not Path(image_path).exists():
+                    stamps.append(PostageStampInfo(
+                        image_path=image_path,
+                        mjd=0.0,
+                        error=f"Image file not found: {image_path}"
+                    ))
+                    continue
+                
+                # Get MJD for this image
+                img_measurements = source.measurements[source.measurements['image_path'] == image_path]
+                mjd = img_measurements['mjd'].iloc[0] if 'mjd' in img_measurements.columns else 0.0
+                
+                try:
+                    # Create cutout
+                    cutout_path = temp_dir / f"{source_id}_{Path(image_path).stem}_cutout.fits"
+                    create_cutout(
+                        image_path=image_path,
+                        ra_deg=source.ra_deg,
+                        dec_deg=source.dec_deg,
+                        size_arcsec=size_arcsec,
+                        output_path=str(cutout_path)
+                    )
+                    
+                    stamps.append(PostageStampInfo(
+                        image_path=image_path,
+                        mjd=float(mjd),
+                        cutout_path=str(cutout_path)
+                    ))
+                except Exception as e:
+                    logger.warning(f"Error creating cutout for {image_path}: {e}")
+                    stamps.append(PostageStampInfo(
+                        image_path=image_path,
+                        mjd=float(mjd),
+                        error=str(e)
+                    ))
+            
+            return PostageStampsResponse(
+                source_id=source_id,
+                ra_deg=source.ra_deg,
+                dec_deg=source.dec_deg,
+                stamps=stamps,
+                total=len(stamps)
+            )
+        except HTTPException:
+            raise
+        except Exception as e:
+            logger.error(f"Error getting postage stamps for {source_id}: {e}")
+            raise HTTPException(
+                status_code=404,
+                detail=f"Source {source_id} not found or error creating stamps: {str(e)}"
+            )
+
     @router.get("/alerts/history", response_model=List[AlertHistory])
     def alerts_history(limit: int = 50):
         """Get alert history from database."""
@@ -2302,6 +2479,10 @@ def create_app(config: ApiConfig | None = None) -> FastAPI:
     def get_ms_metadata(ms_path: str) -> MSMetadata:
         """Get metadata for an MS file."""
         from dsa110_contimg.api.models import MSMetadata, FieldInfo, AntennaInfo, FlaggingStats
+        # Ensure CASAPATH is set before importing CASA modules
+        from dsa110_contimg.utils.casa_init import ensure_casa_path
+        ensure_casa_path()
+
         from casatools import table, ms as casams
         import numpy as np
 

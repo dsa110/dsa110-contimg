@@ -154,7 +154,9 @@ def create_nvss_fits_mask(
         # No sources found, create empty mask
         if out_path is None:
             out_path = f"{imagename}.nvss_mask.fits"
-        hdu = fits.PrimaryHDU(data=mask, header=wcs.to_header())
+        from dsa110_contimg.utils.fits_utils import create_fits_hdu
+        header = wcs.to_header()
+        hdu = create_fits_hdu(data=mask, header=header, fix_cdelt=True)
         hdu.writeto(out_path, overwrite=True)
         return out_path
 
@@ -179,7 +181,9 @@ def create_nvss_fits_mask(
         out_path = f"{imagename}.nvss_mask.fits"
 
     os.makedirs(os.path.dirname(out_path) or '.', exist_ok=True)
-    hdu = fits.PrimaryHDU(data=mask, header=wcs.to_header())
+    from dsa110_contimg.utils.fits_utils import create_fits_hdu
+    header = wcs.to_header()
+    hdu = create_fits_hdu(data=mask, header=header, fix_cdelt=True)
     hdu.writeto(out_path, overwrite=True)
 
     return out_path

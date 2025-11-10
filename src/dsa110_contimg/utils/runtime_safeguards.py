@@ -50,6 +50,10 @@ def check_casa6_python() -> bool:
     is_casa6 = any('casa6' in python_path.lower() for expected_path in expected_paths)
     
     # Also check for CASA availability
+    # Ensure CASAPATH is set before importing CASA modules
+    from dsa110_contimg.utils.casa_init import ensure_casa_path
+    ensure_casa_path()
+
     try:
         import casatools
         is_casa6 = True

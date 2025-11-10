@@ -57,6 +57,10 @@ def get_default_outrigger_refants() -> str:
         Example: '104,105,106,107,108,109,110,111,112,113,114,115,116,103,117'
     
     Example:
+        # Ensure CASAPATH is set before importing CASA modules
+        from dsa110_contimg.utils.casa_init import ensure_casa_path
+        ensure_casa_path()
+
         >>> from casatasks import bandpass
         >>> refant = get_default_outrigger_refants()
         >>> bandpass(vis='obs.ms', refant=refant, ...)

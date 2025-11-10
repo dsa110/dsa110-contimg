@@ -5,6 +5,10 @@ import logging
 
 import astropy.units as u
 from astropy.coordinates import SkyCoord
+# Ensure CASAPATH is set before importing CASA modules
+from dsa110_contimg.utils.casa_init import ensure_casa_path
+ensure_casa_path()
+
 from casacore.tables import addImagingColumns
 import casacore.tables as tb
 import numpy as np

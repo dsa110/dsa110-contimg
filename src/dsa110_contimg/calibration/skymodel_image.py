@@ -137,9 +137,10 @@ def write_skymodel_fits(
         beam_fwhm_arcsec=beam_fwhm_arcsec,
     )
 
-    # Create FITS HDU
-    hdu = fits.PrimaryHDU(data=image)
-    hdu.header.update(wcs.to_header())
+    # Create FITS HDU with properly formatted header
+    from dsa110_contimg.utils.fits_utils import create_fits_hdu
+    header = wcs.to_header()
+    hdu = create_fits_hdu(data=image, header=header, fix_cdelt=True)
     hdu.header['BUNIT'] = 'Jy/pixel'
     hdu.header['BTYPE'] = 'Intensity'
 

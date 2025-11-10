@@ -642,6 +642,42 @@ class SourceSearchResponse(BaseModel):
     total: int
 
 
+class VariabilityMetrics(BaseModel):
+    """Variability metrics for a source."""
+    source_id: str
+    v: float = Field(..., description="Coefficient of variation (std/mean)")
+    eta: float = Field(..., description="Weighted variance metric (η)")
+    vs_mean: Optional[float] = Field(None, description="Mean two-epoch t-statistic")
+    m_mean: Optional[float] = Field(None, description="Mean modulation index")
+    n_epochs: int = Field(..., description="Number of epochs")
+
+
+class LightCurveData(BaseModel):
+    """Light curve data for a source."""
+    source_id: str
+    ra_deg: float
+    dec_deg: float
+    flux_points: List[SourceFluxPoint]
+    normalized_flux_points: Optional[List[SourceFluxPoint]] = None
+
+
+class PostageStampInfo(BaseModel):
+    """Postage stamp image information."""
+    image_path: str
+    mjd: float
+    cutout_path: Optional[str] = None
+    error: Optional[str] = None
+
+
+class PostageStampsResponse(BaseModel):
+    """Response for postage stamps endpoint."""
+    source_id: str
+    ra_deg: float
+    dec_deg: float
+    stamps: List[PostageStampInfo]
+    total: int
+
+
 class AlertHistory(BaseModel):
     """Alert history entry."""
     id: int

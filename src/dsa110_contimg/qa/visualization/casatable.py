@@ -19,12 +19,54 @@ except ImportError:
         pass
     HTML = str
 
-try:
-    from casacore.tables import table
-    HAS_CASACORE = True
-except ImportError:
-    HAS_CASACORE = False
-    table = None
+# Lazy CASA imports to avoid segfault during module initialization
+# See docs/dev/CASA_SEGFAULT_ROOT_CAUSE.md for details
+_CASACORE_TABLE = None
+_CASACORE_AVAILABLE = None
+
+
+def _ensure_casa_initialized():
+    """
+    Lazy initialization of CASA modules.
+    
+    This function ensures CASAPATH is set and imports casacore.tables
+    only when actually needed, preventing segfaults during module import.
+    
+    Returns:
+        tuple: (table_class, available) where table_class is the casacore.tables.table
+               class if available, None otherwise. available is a boolean.
+    """
+    global _CASACORE_TABLE, _CASACORE_AVAILABLE
+    
+    if _CASACORE_AVAILABLE is not None:
+        # Already checked
+        return _CASACORE_TABLE, _CASACORE_AVAILABLE
+    
+    # First time - initialize
+    from dsa110_contimg.utils.casa_init import ensure_casa_path
+    ensure_casa_path()
+    
+    try:
+        from casacore.tables import table
+        _CASACORE_TABLE = table
+        _CASACORE_AVAILABLE = True
+    except ImportError:
+        _CASACORE_TABLE = None
+        _CASACORE_AVAILABLE = False
+    
+    return _CASACORE_TABLE, _CASACORE_AVAILABLE
+
+
+def _has_casacore():
+    """Check if casacore.tables is available (lazy)."""
+    _, available = _ensure_casa_initialized()
+    return available
+
+
+def _get_table_class():
+    """Get casacore.tables.table class (lazy)."""
+    table_class, _ = _ensure_casa_initialized()
+    return table_class
 
 import numpy as np
 from numpy.ma import masked_array
@@ -151,12 +193,23 @@ class CasaTable(FileBase):
         self._dynamic_attributes = set()
         self._parent = parent
         self._error = None
+        self._size_str = "0 rows, 0 cols"  # Initialize size string
 
         super().__init__(name, title=title, parent=parent)
 
         # Scan table if path exists
         if self.exists:
             self._scan_impl()
+
+    @property
+    def size(self) -> Union[int, str]:
+        """
+        Override size property to return table size string for CASA tables.
+        For directories (CASA tables), returns descriptive string instead of 0.
+        """
+        if self._size_str:
+            return self._size_str
+        return super().size
 
     @property
     def do_mirror(self):
@@ -174,12 +227,16 @@ class CasaTable(FileBase):
         Yields:
             Table object
         """
-        if not HAS_CASACORE:
+        if not _has_casacore():
+            raise RuntimeError("casacore.tables not available")
+
+        table_class = _get_table_class()
+        if table_class is None:
             raise RuntimeError("casacore.tables not available")
 
         if self._table is None:
             # Open table
-            tab = table(self.fullpath, readonly=not write)
+            tab = table_class(self.fullpath, readonly=not write)
             try:
                 yield tab
             finally:
@@ -200,7 +257,7 @@ class CasaTable(FileBase):
 
     def _scan_impl(self) -> None:
         """Scan table and extract metadata."""
-        if not HAS_CASACORE:
+        if not _has_casacore():
             self._error = "casacore.tables not available"
             self._description = rich_string(self._error)
             return
@@ -225,7 +282,8 @@ class CasaTable(FileBase):
                 self._create_subtable_proxies()
 
                 self._error = None
-                self.size = f"{self._nrows} rows, {len(self._columns)} cols"
+                # size is a read-only property from FileBase, store size string separately
+                self._size_str = f"{self._nrows} rows, {len(self._columns)} cols"
                 self._description = (
                     f"{self._nrows} rows, {len(self._columns)} columns, "
                     f"{len(self._keywords)} keywords, {len(self._subtables)} subtables"
@@ -307,7 +365,7 @@ class CasaTable(FileBase):
         Returns:
             Column data (possibly masked if flags applied)
         """
-        if not HAS_CASACORE:
+        if not _has_casacore():
             raise RuntimeError("casacore.tables not available")
 
         with self.rtable as tab:
@@ -393,7 +451,7 @@ class CasaTable(FileBase):
             display(HTML(render_error(self._error, title="CASA Table Error")))
             return
 
-        if not HAS_CASACORE:
+        if not _has_casacore():
             display(HTML(render_error("casacore.tables not available")))
             return
 

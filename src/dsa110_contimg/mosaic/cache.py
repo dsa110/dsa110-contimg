@@ -12,6 +12,7 @@ Provides centralized caching for expensive operations:
 - Regridding results
 """
 
+from dsa110_contimg.utils.casa_init import ensure_casa_path
 import numpy as np
 from typing import Any, Dict, List, Optional, Tuple
 from pathlib import Path
@@ -31,6 +32,9 @@ warnings.filterwarnings(
 
 
 logger = logging.getLogger(__name__)
+
+# Ensure CASAPATH is set before importing CASA modules
+ensure_casa_path()
 
 try:
     from casacore.images import image as casaimage
@@ -197,17 +201,10 @@ class MosaicCache:
 
         try:
             img = casaimage(tile_path)
-            # Try coordsys() first (for CASA image directories)
-            try:
-                coordsys = img.coordsys()
-            except AttributeError:
-                # Fallback to coordinates() for FITS files
-                coordsys = img.coordinates()
-            # Try to close image (may not exist for FITS files)
-            try:
-                img.close()
-            except AttributeError:
-                pass  # FITS files don't have close() method
+            # Use coordinates() directly (correct API for casacore.images.image)
+            coordsys = img.coordinates()
+            # Cleanup: casaimage objects don't have close(), use del
+            del img
             self._coordsys[cache_key] = coordsys
             return coordsys
         except Exception as e:

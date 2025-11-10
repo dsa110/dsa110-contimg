@@ -5,7 +5,7 @@ _Exported on 11/7/2025 at 13:50:58 PST from Cursor (2.0.64)_
 
 **User**
 
-Pick up from: /data/dsa110-contimg/docs/cursor-chats/cursor_ingest_data_and_construct_mosaic.md
+Pick up from: /data/dsa110-contimg/internal/docs/chat/cursor_ingest_data_and_construct_mosaic.md
 
 
 
@@ -191,5 +191,4 @@ Files are split across timestamps within the same 5-minute window. The orchestra
 
 
 Found 12 complete groups. Filtering to those within the 60-minute window and starting conversion. Updating the todo and beginning conversion:
-
 

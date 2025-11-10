@@ -26,6 +26,10 @@ def main() -> int:
         os.environ.pop("DISPLAY", None)
 
     # CASA imports
+    # Ensure CASAPATH is set before importing CASA modules
+    from dsa110_contimg.utils.casa_init import ensure_casa_path
+    ensure_casa_path()
+
     from casatools import componentlist  # type: ignore  # noqa: E402
     from casatasks import simobserve  # type: ignore  # noqa: E402
     try:

@@ -57,17 +57,49 @@ def evolve_products_schema(db_path: Path, verbose: bool = True) -> bool:
                 max_flux_mjy REAL,
                 chi2_nu REAL,
                 sigma_deviation REAL,
+                eta_metric REAL,
                 last_measured_at REAL,
                 last_mjd REAL,
                 updated_at REAL NOT NULL
             )
         """)
-        cur.execute(
-            "CREATE INDEX IF NOT EXISTS idx_variability_chi2 ON variability_stats(chi2_nu)")
-        cur.execute(
-            "CREATE INDEX IF NOT EXISTS idx_variability_sigma ON variability_stats(sigma_deviation)")
-        cur.execute(
-            "CREATE INDEX IF NOT EXISTS idx_variability_last_mjd ON variability_stats(last_mjd)")
+        
+        # Add missing columns to existing table (safe schema evolution)
+        if _table_exists(cur, 'variability_stats'):
+            _add_column_if_missing(cur, 'variability_stats', 'nvss_flux_mjy', 'REAL')
+            _add_column_if_missing(cur, 'variability_stats', 'n_obs', 'INTEGER DEFAULT 0')
+            _add_column_if_missing(cur, 'variability_stats', 'mean_flux_mjy', 'REAL')
+            _add_column_if_missing(cur, 'variability_stats', 'std_flux_mjy', 'REAL')
+            _add_column_if_missing(cur, 'variability_stats', 'min_flux_mjy', 'REAL')
+            _add_column_if_missing(cur, 'variability_stats', 'max_flux_mjy', 'REAL')
+            _add_column_if_missing(cur, 'variability_stats', 'chi2_nu', 'REAL')
+            _add_column_if_missing(cur, 'variability_stats', 'sigma_deviation', 'REAL')
+            _add_column_if_missing(cur, 'variability_stats', 'eta_metric', 'REAL')
+            _add_column_if_missing(cur, 'variability_stats', 'last_measured_at', 'REAL')
+            _add_column_if_missing(cur, 'variability_stats', 'last_mjd', 'REAL')
+            _add_column_if_missing(cur, 'variability_stats', 'updated_at', 'REAL NOT NULL')
+        
+        # Create indexes only if columns exist (safe to call multiple times)
+        try:
+            cur.execute(
+                "CREATE INDEX IF NOT EXISTS idx_variability_chi2 ON variability_stats(chi2_nu)")
+        except sqlite3.OperationalError:
+            pass  # Column might not exist yet
+        try:
+            cur.execute(
+                "CREATE INDEX IF NOT EXISTS idx_variability_sigma ON variability_stats(sigma_deviation)")
+        except sqlite3.OperationalError:
+            pass  # Column might not exist yet
+        try:
+            cur.execute(
+                "CREATE INDEX IF NOT EXISTS idx_variability_eta ON variability_stats(eta_metric)")
+        except sqlite3.OperationalError:
+            pass  # Column might not exist yet
+        try:
+            cur.execute(
+                "CREATE INDEX IF NOT EXISTS idx_variability_last_mjd ON variability_stats(last_mjd)")
+        except sqlite3.OperationalError:
+            pass  # Column might not exist yet
 
         # Table: ese_candidates
         if verbose:
@@ -207,6 +239,9 @@ def evolve_products_schema(db_path: Path, verbose: bool = True) -> bool:
                 cur, 'photometry', 'flags', 'INTEGER DEFAULT 0')
             cur.execute(
                 "CREATE INDEX IF NOT EXISTS idx_photometry_source_mjd ON photometry(source_id, mjd)")
+        
+        # Note: eta_metric column is already added above in the variability_stats table creation section
+        # This section is kept for backwards compatibility but is now redundant
 
         # Add missing indices (handle renamed tables)
 
@@ -277,8 +312,16 @@ def _add_column_if_missing(cursor: sqlite3.Cursor, table: str, column: str, col_
         if column not in columns:
             cursor.execute(
                 f"ALTER TABLE {table} ADD COLUMN {column} {col_type}")
-    except Exception:
-        pass  # Column might already exist or table doesn't exist
+    except sqlite3.OperationalError as e:
+        # Column might already exist (SQLite doesn't support IF NOT EXISTS for ALTER TABLE)
+        # This is expected and safe to ignore
+        if "duplicate column" not in str(e).lower():
+            # Re-raise if it's a different operational error
+            raise
+    except Exception as e:
+        # Log other exceptions but don't fail schema evolution
+        # Column might already exist or table doesn't exist
+        pass
 
 
 def evolve_ingest_schema(db_path: Path, verbose: bool = True) -> bool:

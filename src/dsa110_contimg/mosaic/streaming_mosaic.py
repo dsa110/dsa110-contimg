@@ -790,6 +790,10 @@ class StreamingMosaicManager:
         # Solve bandpass if not in registry
         if not has_bp:
             # Get observation Dec from calibration MS
+            # Ensure CASAPATH is set before importing CASA modules
+            from dsa110_contimg.utils.casa_init import ensure_casa_path
+            ensure_casa_path()
+
             try:
                 from casacore.tables import table
                 t = table(calibration_ms_path)

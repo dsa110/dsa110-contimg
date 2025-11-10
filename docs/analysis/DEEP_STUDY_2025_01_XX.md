@@ -553,7 +553,6 @@ CREATE TABLE caltables (
 - **Development History:** `docs/analysis/CURSOR_CHAT_DEVELOPMENT_HISTORY.md`
 - **ESE Literature Summary:** `docs/reports/ESE_LITERATURE_SUMMARY.md`
 - **Photometry Normalization:** `docs/science/photometry_normalization.md`
-- **Project Knowledge Graph Schema:** `docs/reference/knowledge-graph-schema.md`
 - **Complete Project Review:** `docs/reports/COMPLETE_PROJECT_REVIEW.md`
 - **Robustness Analysis:** `docs/reports/PIPELINE_ROBUSTNESS_ANALYSIS.md`
 

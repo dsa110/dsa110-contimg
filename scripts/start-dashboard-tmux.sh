@@ -30,8 +30,9 @@ fi
 
 # Determine Python path
 # Try casa6 first, then system python
-if [ -x "/opt/miniforge/envs/casa6/bin/python" ]; then
-    PYTHON_CMD="/opt/miniforge/envs/casa6/bin/python"
+CASA6_PYTHON_BIN="/opt/miniforge/envs/casa6/bin/python"
+if [ -x "$CASA6_PYTHON_BIN" ]; then
+    PYTHON_CMD="${CASA6_PYTHON_BIN} -W ignore::DeprecationWarning"
 elif command -v python3 >/dev/null 2>&1; then
     PYTHON_CMD="python3"
 else

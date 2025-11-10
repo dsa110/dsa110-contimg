@@ -7,6 +7,10 @@ Adapted from dsamfs and dsacalib
 import logging
 import numpy as np
 import astropy.units as u
+# Ensure CASAPATH is set before importing CASA modules
+from dsa110_contimg.utils.casa_init import ensure_casa_path
+ensure_casa_path()
+
 import casatools as cc
 from astropy.coordinates import angular_separation
 from numba import jit

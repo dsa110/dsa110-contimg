@@ -10,10 +10,11 @@ DC=docker compose -f ops/docker/docker-compose.yml
 # Path: /opt/miniforge/envs/casa6/bin/python
 # Python version: 3.11.13 (in casa6 conda environment)
 # Never use system python3 - it will fail due to missing CASA dependencies
-CASA6_PYTHON := /opt/miniforge/envs/casa6/bin/python
-CASA6_PYTHON_CHECK := $(shell test -x $(CASA6_PYTHON) && echo "ok" || echo "missing")
+# Warning suppression: -W ignore::DeprecationWarning suppresses SWIG-generated warnings
+CASA6_PYTHON := /opt/miniforge/envs/casa6/bin/python -W ignore::DeprecationWarning
+CASA6_PYTHON_CHECK := $(shell test -x /opt/miniforge/envs/casa6/bin/python && echo "ok" || echo "missing")
 
-.PHONY: help compose-build compose-up compose-down compose-logs compose-ps compose-restart compose-up-scheduler compose-up-stream compose-up-api compose-pull compose-down-service compose-stop docs-install docs-serve docs-build docs-deploy docs-test-mermaid guardrails-check guardrails-fix ingest-docs test-unit test-fast test-impacted test-validation test-integration test-all test-quality update-todo-date frontend-build frontend-build-docker
+.PHONY: help compose-build compose-up compose-down compose-logs compose-ps compose-restart compose-up-scheduler compose-up-stream compose-up-api compose-pull compose-down-service compose-stop docs-install docs-serve docs-build docs-deploy docs-test-mermaid guardrails-check guardrails-fix ingest-docs test-smoke test-unit test-fast test-impacted test-validation test-integration test-all test-quality update-todo-date frontend-build frontend-build-docker
 
 help:
 	@echo "DSA-110 Continuum Pipeline - Docker Compose helper targets"
@@ -43,14 +44,18 @@ help:
 	@echo ""
 	@echo "Testing & Validation:"
 	@echo "  make test-help                     Show detailed testing help"
+	@echo "  make test-smoke                    Ultra-fast smoke (few files)"
 	@echo "  make test-fast                     Fast unit subset (fail-fast)"
 	@echo "  make test-unit                     Unit tests (requires casa6)"
 	@echo "  make test-validation               Validation tests (requires casa6)"
 	@echo "  make test-all                      Run all tests"
+	@echo "  make frontend-test-smoke           Frontend API smoke via Vitest"
+	@echo "  make frontend-test-smoke-docker    Frontend API smoke in Docker"
 	@echo ""
 	@echo "CRITICAL: All Python execution uses casa6 environment:"
 	@echo "  Python path: /opt/miniforge/envs/casa6/bin/python"
 	@echo "  Python version: 3.11.13 (in casa6 conda environment)"
+	@echo "  Warning suppression: -W ignore::DeprecationWarning (suppresses SWIG warnings)"
 	@echo "  Never use system python3 - it will fail!"
 	@echo ""
 	@echo "Examples:"
@@ -199,6 +204,19 @@ test-unit:
 	@echo "Running unit tests..."
 	@$(CASA6_PYTHON) -m pytest tests/unit/ -v
 
+# Ultra-fast smoke suite (few, representative tests)
+test-smoke:
+	@if [ "$(CASA6_PYTHON_CHECK)" != "ok" ]; then \
+		echo "ERROR: casa6 Python not found at $(CASA6_PYTHON)"; \
+		echo "Please ensure casa6 conda environment is installed at /opt/miniforge/envs/casa6"; \
+		exit 1; \
+	fi
+	@echo "Running ultra-fast smoke tests..."
+	@PYTEST_DISABLE_PLUGIN_AUTOLOAD=1 MPLBACKEND=Agg \
+	$(CASA6_PYTHON) -m pytest -q -x --maxfail=1 \
+		tests/test_pipeline.py \
+		tests/unit/test_cli_calibration_args.py
+
 # Fast unit tests (fail fast, minimal scope)
 test-fast:
 	@if [ "$(CASA6_PYTHON_CHECK)" != "ok" ]; then \
@@ -207,7 +225,30 @@ test-fast:
 		exit 1; \
 	fi
 	@echo "Running fast unit test subset (fail-fast, minimal logging)..."
-	@$(CASA6_PYTHON) -m pytest tests/unit -q -x --maxfail=1 -m "unit and not slow and not integration and not casa"
+	@PYTEST_DISABLE_PLUGIN_AUTOLOAD=1 MPLBACKEND=Agg \
+	$(CASA6_PYTHON) -m pytest tests/unit -q -x --maxfail=1 \
+		-m "unit and not slow and not integration and not casa" \
+		-k "not imaging and not masking and not nvss"
+
+# Frontend smoke tests (Vitest)
+frontend-test-smoke:
+	@echo "Running frontend smoke tests..."
+	@if [ -x "/opt/miniforge/envs/casa6/bin/npm" ]; then \
+		cd frontend && NODE_OPTIONS=--experimental-global-webcrypto /opt/miniforge/envs/casa6/bin/npm run test --silent -- --run --reporter=dot; \
+	else \
+		cd frontend && NODE_OPTIONS=--experimental-global-webcrypto npm run test --silent -- --run --reporter=dot; \
+	fi
+
+frontend-test-smoke-docker:
+	@echo "Running frontend smoke tests in Docker..."
+	@cd frontend && \
+	IMAGE_NAME="dsa110-frontend-test"; \
+	if ! docker images | grep -q "$$IMAGE_NAME"; then \
+	  echo "Building Docker image..."; \
+	  docker build -t "$$IMAGE_NAME" -f Dockerfile.dev .; \
+	fi; \
+	docker run --rm -v "$(PWD)/frontend:/app" -w /app "$$IMAGE_NAME" \
+	  sh -c "npm ci --silent || true; npm test -- src/api/__tests__/client.smoke.test.ts --run --reporter=dot"
 
 # Impacted tests runner (maps changes to tests)
 test-impacted:

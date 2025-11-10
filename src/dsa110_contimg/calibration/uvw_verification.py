@@ -6,6 +6,10 @@ transformed after rephasing operations (phaseshift, fixvis).
 
 from typing import Tuple, Optional
 import numpy as np
+# Ensure CASAPATH is set before importing CASA modules
+from dsa110_contimg.utils.casa_init import ensure_casa_path
+ensure_casa_path()
+
 from casacore.tables import table
 from astropy.coordinates import SkyCoord
 import astropy.units as u

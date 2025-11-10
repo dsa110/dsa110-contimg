@@ -150,6 +150,10 @@ def ft_from_cl(
     Use :func:`write_point_model_with_ft` with ``use_manual=True`` instead, which
     bypasses ft() phase center bugs.
     """
+    # Ensure CASAPATH is set before importing CASA modules
+    from dsa110_contimg.utils.casa_init import ensure_casa_path
+    ensure_casa_path()
+
     from casatasks import ft as casa_ft  # type: ignore
     from casacore.tables import table  # type: ignore
     import numpy as np

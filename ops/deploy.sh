@@ -116,9 +116,10 @@ if ! command -v docker-compose &> /dev/null; then
 fi
 
 # Check if casa6 Python exists
-CASA6_PYTHON="${CASA6_PYTHON:-/opt/miniforge/envs/casa6/bin/python}"
-if [[ ! -x "$CASA6_PYTHON" ]]; then
-  echo "Error: CASA6 Python not found at: $CASA6_PYTHON"
+CASA6_PYTHON_BIN="${CASA6_PYTHON_BIN:-/opt/miniforge/envs/casa6/bin/python}"
+CASA6_PYTHON="${CASA6_PYTHON_BIN} -W ignore::DeprecationWarning"
+if [[ ! -x "$CASA6_PYTHON_BIN" ]]; then
+  echo "Error: CASA6 Python not found at: $CASA6_PYTHON_BIN"
   echo "Please set CASA6_PYTHON environment variable or install casa6 conda environment"
   exit 1
 fi

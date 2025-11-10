@@ -1,0 +1,321 @@
+/**
+ * DirectoryBrowser Component - Browse and navigate directory structures
+ */
+import { useState, useEffect, useRef } from 'react';
+import {
+  Box,
+  Paper,
+  Typography,
+  TextField,
+  Button,
+  Checkbox,
+  FormControlLabel,
+  CircularProgress,
+  Alert,
+  Chip,
+  List,
+  ListItem,
+  ListItemText,
+  ListItemIcon,
+  IconButton,
+  Breadcrumbs,
+  Link,
+} from '@mui/material';
+import {
+  Folder,
+  InsertDriveFile,
+  Image as ImageIcon,
+  TableChart,
+  NavigateNext,
+  Refresh,
+  Home,
+} from '@mui/icons-material';
+import { useDirectoryListing } from '../../api/queries';
+import type { DirectoryEntry } from '../../api/types';
+
+/**
+ * Check if a path looks complete (not being actively typed).
+ */
+function isPathComplete(path: string | null): boolean {
+  if (!path || path.trim().length === 0) return false;
+  
+  const trimmed = path.trim();
+  // Paths ending with these characters suggest incomplete typing
+  const incompleteEndings = ['-', '_', '.', ' '];
+  // Allow root and common base paths
+  if (trimmed === '/' || trimmed === '/data' || trimmed.startsWith('/data/')) {
+    // Check if it ends with an incomplete segment
+    const lastSegment = trimmed.split('/').pop() || '';
+    return !incompleteEndings.some(ending => lastSegment.endsWith(ending));
+  }
+  
+  // For other paths, check if the last segment looks incomplete
+  const lastSegment = trimmed.split('/').pop() || '';
+  return lastSegment.length > 0 && !incompleteEndings.some(ending => lastSegment.endsWith(ending));
+}
+
+interface DirectoryBrowserProps {
+  initialPath?: string;
+  onSelectFile?: (path: string, type: string) => void;
+  onSelectDirectory?: (path: string) => void;
+}
+
+export default function DirectoryBrowser({
+  initialPath = '/data/dsa110-contimg/state/qa',
+  onSelectFile,
+  onSelectDirectory,
+}: DirectoryBrowserProps) {
+  const [currentPath, setCurrentPath] = useState(initialPath);
+  const [debouncedPath, setDebouncedPath] = useState(initialPath);
+  const [recursive, setRecursive] = useState(false);
+  const [includePattern, setIncludePattern] = useState('');
+  const [excludePattern, setExcludePattern] = useState('');
+  const debounceTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  // Debounce path changes - only update debouncedPath after user stops typing for 500ms
+  useEffect(() => {
+    // Clear existing timer
+    if (debounceTimerRef.current) {
+      clearTimeout(debounceTimerRef.current);
+    }
+
+    // Set new timer
+    debounceTimerRef.current = setTimeout(() => {
+      setDebouncedPath(currentPath);
+    }, 500);
+
+    // Cleanup on unmount or when currentPath changes
+    return () => {
+      if (debounceTimerRef.current) {
+        clearTimeout(debounceTimerRef.current);
+      }
+    };
+  }, [currentPath]);
+
+  // Use debouncedPath for API calls to avoid fetching on every keystroke
+  const { data, isLoading, error, refetch } = useDirectoryListing(
+    debouncedPath,
+    recursive,
+    includePattern || undefined,
+    excludePattern || undefined,
+    false
+  );
+
+  const handlePathClick = (path: string, isDir: boolean) => {
+    if (isDir) {
+      // Immediately update both currentPath and debouncedPath when clicking
+      setCurrentPath(path);
+      setDebouncedPath(path);
+      onSelectDirectory?.(path);
+    } else {
+      const entry = data?.entries.find((e) => e.path === path);
+      if (entry) {
+        onSelectFile?.(path, entry.type);
+      }
+    }
+  };
+
+  const handleBreadcrumbClick = (path: string) => {
+    // Immediately update both currentPath and debouncedPath when clicking breadcrumb
+    setCurrentPath(path);
+    setDebouncedPath(path);
+  };
+
+  const handleGoClick = () => {
+    // Immediately update debouncedPath when user clicks "Go" button
+    setDebouncedPath(currentPath);
+  };
+
+  const getIcon = (type: string) => {
+    switch (type) {
+      case 'directory':
+        return <Folder />;
+      case 'fits':
+        return <ImageIcon />;
+      case 'casatable':
+        return <TableChart />;
+      default:
+        return <InsertDriveFile />;
+    }
+  };
+
+  const getTypeColor = (type: string): 'default' | 'primary' | 'secondary' | 'success' | 'warning' => {
+    switch (type) {
+      case 'directory':
+        return 'primary';
+      case 'fits':
+        return 'success';
+      case 'casatable':
+        return 'warning';
+      default:
+        return 'default';
+    }
+  };
+
+  // Use debouncedPath for breadcrumbs to show the actual loaded path
+  const pathParts = debouncedPath.split('/').filter(Boolean);
+  const breadcrumbs = pathParts.map((_, index) => {
+    const path = '/' + pathParts.slice(0, index + 1).join('/');
+    return { name: pathParts[index], path };
+  });
+
+  return (
+    <Paper sx={{ p: 2 }}>
+      <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 2 }}>
+        <Typography variant="h6">Directory Browser</Typography>
+        <Button
+          startIcon={<Refresh />}
+          onClick={() => refetch()}
+          disabled={isLoading}
+          size="small"
+        >
+          Refresh
+        </Button>
+      </Box>
+
+      <Box sx={{ mb: 2 }}>
+        <Breadcrumbs separator={<NavigateNext fontSize="small" />} aria-label="breadcrumb">
+          <Link
+            component="button"
+            variant="body1"
+            onClick={() => handleBreadcrumbClick('/')}
+            sx={{ cursor: 'pointer' }}
+          >
+            <Home fontSize="small" sx={{ mr: 0.5, verticalAlign: 'middle' }} />
+            Root
+          </Link>
+          {breadcrumbs.map((crumb, index) => (
+            <Link
+              key={crumb.path}
+              component="button"
+              variant="body1"
+              onClick={() => handleBreadcrumbClick(crumb.path)}
+              sx={{ cursor: 'pointer' }}
+            >
+              {crumb.name}
+            </Link>
+          ))}
+        </Breadcrumbs>
+      </Box>
+
+      <Box sx={{ display: 'flex', gap: 2, mb: 2, flexWrap: 'wrap' }}>
+        <TextField
+          label="Current Path"
+          value={currentPath}
+          onChange={(e) => setCurrentPath(e.target.value)}
+          size="small"
+          fullWidth
+          sx={{ flex: 1, minWidth: 300 }}
+        />
+        <Button
+          variant="contained"
+          onClick={handleGoClick}
+          disabled={isLoading || currentPath === debouncedPath}
+        >
+          Go
+        </Button>
+      </Box>
+
+      <Box sx={{ display: 'flex', gap: 2, mb: 2, flexWrap: 'wrap' }}>
+        <TextField
+          label="Include Pattern"
+          value={includePattern}
+          onChange={(e) => setIncludePattern(e.target.value)}
+          size="small"
+          placeholder="*.fits"
+          sx={{ flex: 1, minWidth: 200 }}
+        />
+        <TextField
+          label="Exclude Pattern"
+          value={excludePattern}
+          onChange={(e) => setExcludePattern(e.target.value)}
+          size="small"
+          placeholder="*.tmp"
+          sx={{ flex: 1, minWidth: 200 }}
+        />
+        <FormControlLabel
+          control={
+            <Checkbox
+              checked={recursive}
+              onChange={(e) => setRecursive(e.target.checked)}
+            />
+          }
+          label="Recursive"
+        />
+      </Box>
+
+      {data && (
+        <Box sx={{ display: 'flex', gap: 2, mb: 2 }}>
+          <Chip label={`${data.total_files} Files`} size="small" />
+          <Chip label={`${data.total_dirs} Directories`} size="small" color="primary" />
+          <Chip label={`${data.fits_count} FITS`} size="small" color="success" />
+          <Chip label={`${data.casatable_count} CASA Tables`} size="small" color="warning" />
+        </Box>
+      )}
+
+      {error && isPathComplete(debouncedPath) && (
+        <Alert severity="error" sx={{ mb: 2 }}>
+          Error loading directory: {error instanceof Error ? error.message : 'Unknown error'}
+        </Alert>
+      )}
+
+      {isLoading && (
+        <Box sx={{ display: 'flex', justifyContent: 'center', p: 4 }}>
+          <CircularProgress />
+        </Box>
+      )}
+
+      {data && !isLoading && (
+        <List>
+          {data.entries.length === 0 ? (
+            <Alert severity="info">No entries found</Alert>
+          ) : (
+            data.entries.map((entry) => (
+              <ListItem
+                key={entry.path}
+                button
+                onClick={() => handlePathClick(entry.path, entry.is_dir)}
+                sx={{
+                  '&:hover': { bgcolor: 'action.hover' },
+                  borderBottom: '1px solid',
+                  borderColor: 'divider',
+                }}
+              >
+                <ListItemIcon>{getIcon(entry.type)}</ListItemIcon>
+                <ListItemText
+                  primary={
+                    <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                      <Typography variant="body1">{entry.name}</Typography>
+                      <Chip label={entry.type} size="small" color={getTypeColor(entry.type)} />
+                    </Box>
+                  }
+                  secondary={
+                    <Box sx={{ display: 'flex', gap: 2, mt: 0.5 }}>
+                      <Typography variant="caption" color="text.secondary">
+                        {entry.size || 'N/A'}
+                      </Typography>
+                      {entry.modified_time && (
+                        <Typography variant="caption" color="text.secondary">
+                          {new Date(entry.modified_time).toLocaleString()}
+                        </Typography>
+                      )}
+                    </Box>
+                  }
+                />
+                {entry.is_dir && (
+                  <IconButton size="small" onClick={(e) => {
+                    e.stopPropagation();
+                    handlePathClick(entry.path, true);
+                  }}>
+                    <NavigateNext />
+                  </IconButton>
+                )}
+              </ListItem>
+            ))
+          )}
+        </List>
+      )}
+    </Paper>
+  );
+}
+

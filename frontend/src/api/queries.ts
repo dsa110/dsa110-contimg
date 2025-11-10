@@ -45,6 +45,13 @@ import type {
   DataLineage,
   PointingHistoryList,
   Mosaic,
+  DirectoryListing,
+  FITSInfo,
+  CasaTableInfo,
+  NotebookGenerateRequest,
+  NotebookGenerateResponse,
+  QARunRequest,
+  QAResultSummary,
 } from './types';
 
 /**
@@ -1363,6 +1370,125 @@ export function useImageFitting() {
         body
       );
       return response.data;
+    },
+  });
+}
+
+// QA Visualization Queries
+/**
+ * Check if a path looks complete (not being actively typed).
+ * Paths ending with certain characters suggest they're incomplete.
+ */
+function isPathComplete(path: string | null): boolean {
+  if (!path || path.trim().length === 0) return false;
+  
+  const trimmed = path.trim();
+  
+  // Root path is always complete
+  if (trimmed === '/') return true;
+  
+  // Remove trailing slash for analysis (but keep it for the path itself)
+  const pathWithoutTrailingSlash = trimmed.replace(/\/+$/, '');
+  if (pathWithoutTrailingSlash.length === 0) return true; // Just slashes
+  
+  // Paths ending with these characters suggest incomplete typing
+  const incompleteEndings = ['-', '_'];
+  // Check if the last segment ends with an incomplete character
+  const segments = pathWithoutTrailingSlash.split('/').filter(Boolean);
+  if (segments.length === 0) return true; // Root or just slashes
+  
+  const lastSegment = segments[segments.length - 1];
+  // If last segment ends with incomplete characters, path is incomplete
+  return !incompleteEndings.some(ending => lastSegment.endsWith(ending));
+}
+
+export function useDirectoryListing(
+  path: string | null,
+  recursive = false,
+  includePattern?: string,
+  excludePattern?: string,
+  showHidden = false
+): UseQueryResult<DirectoryListing> {
+  const pathComplete = isPathComplete(path);
+  
+  return useQuery({
+    queryKey: ['visualization', 'directory', path, recursive, includePattern, excludePattern, showHidden],
+    queryFn: async () => {
+      if (!path) throw new Error('Path required');
+      const params = new URLSearchParams({
+        path,
+        recursive: recursive.toString(),
+        show_hidden: showHidden.toString(),
+      });
+      if (includePattern) params.append('include_pattern', includePattern);
+      if (excludePattern) params.append('exclude_pattern', excludePattern);
+      const response = await apiClient.get<DirectoryListing>(
+        `/api/visualization/browse?${params.toString()}`
+      );
+      return response.data;
+    },
+    enabled: !!path && pathComplete,
+    // Don't show errors for incomplete paths
+    retry: pathComplete,
+  });
+}
+
+export function useFITSInfo(path: string | null): UseQueryResult<FITSInfo> {
+  return useQuery({
+    queryKey: ['visualization', 'fits', 'info', path],
+    queryFn: async () => {
+      if (!path) throw new Error('Path required');
+      const response = await apiClient.get<FITSInfo>(
+        `/api/visualization/fits/info?path=${encodeURIComponent(path)}`
+      );
+      return response.data;
+    },
+    enabled: !!path,
+  });
+}
+
+export function useCasaTableInfo(path: string | null): UseQueryResult<CasaTableInfo> {
+  return useQuery({
+    queryKey: ['visualization', 'casatable', 'info', path],
+    queryFn: async () => {
+      if (!path) throw new Error('Path required');
+      const response = await apiClient.get<CasaTableInfo>(
+        `/api/visualization/casatable/info?path=${encodeURIComponent(path)}`
+      );
+      return response.data;
+    },
+    enabled: !!path,
+  });
+}
+
+export function useGenerateNotebook() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: async (request: NotebookGenerateRequest) => {
+      const response = await apiClient.post<NotebookGenerateResponse>(
+        '/api/visualization/notebook/generate',
+        request
+      );
+      return response.data;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['visualization', 'notebook'] });
+    },
+  });
+}
+
+export function useRunQA() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: async (request: QARunRequest) => {
+      const response = await apiClient.post<QAResultSummary>(
+        '/api/visualization/notebook/qa',
+        request
+      );
+      return response.data;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['visualization', 'qa'] });
     },
   });
 }

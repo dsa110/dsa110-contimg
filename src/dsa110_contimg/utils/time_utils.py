@@ -261,6 +261,10 @@ def extract_ms_time_range(
     ...     print(f"Observation time: {t.isot}")
     """
     # Method 1: msmetadata.timerangeforobs() - most reliable, returns MJD days directly
+    # Ensure CASAPATH is set before importing CASA modules
+    from dsa110_contimg.utils.casa_init import ensure_casa_path
+    ensure_casa_path()
+
     try:
         from casatools import msmetadata  # type: ignore
 

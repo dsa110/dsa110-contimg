@@ -719,3 +719,71 @@ export interface PointingHistoryEntry {
 export interface PointingHistoryList {
   items: PointingHistoryEntry[];
 }
+
+// QA Visualization Types
+export interface DirectoryEntry {
+  name: string;
+  path: string;
+  type: 'file' | 'directory' | 'fits' | 'casatable';
+  size: string | null;
+  modified_time: string | null;
+  is_dir: boolean;
+}
+
+export interface DirectoryListing {
+  path: string;
+  entries: DirectoryEntry[];
+  total_files: number;
+  total_dirs: number;
+  fits_count: number;
+  casatable_count: number;
+}
+
+export interface FITSInfo {
+  path: string;
+  exists: boolean;
+  shape: number[] | null;
+  summary: string | null;
+  header_keys: string[] | null;
+  naxis: number | null;
+  error: string | null;
+}
+
+export interface CasaTableInfo {
+  path: string;
+  exists: boolean;
+  nrows: number | null;
+  columns: string[] | null;
+  keywords: Record<string, any> | null;
+  subtables: string[] | null;
+  is_writable: boolean | null;
+  error: string | null;
+}
+
+export interface NotebookGenerateRequest {
+  ms_path?: string;
+  qa_root?: string;
+  artifacts?: string[];
+  output_path: string;
+  title?: string;
+  notebook_type?: 'qa' | 'fits' | 'ms';
+}
+
+export interface NotebookGenerateResponse {
+  notebook_path: string;
+}
+
+export interface QARunRequest {
+  ms_path: string;
+  qa_root: string;
+  generate_notebook?: boolean;
+  display_summary?: boolean;
+}
+
+export interface QAResultSummary {
+  ms_path: string;
+  success: boolean;
+  reasons: string[];
+  metrics: Record<string, any>;
+  artifacts: string[];
+}

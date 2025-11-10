@@ -128,6 +128,10 @@ def update_batch_item(conn: sqlite3.Connection, batch_id: int, ms_path: str, job
 
 def extract_calibration_qa(ms_path: str, job_id: int, caltables: Dict[str, str]) -> Dict[str, Any]:
     """Extract QA metrics from calibration tables."""
+    # Ensure CASAPATH is set before importing CASA modules
+    from dsa110_contimg.utils.casa_init import ensure_casa_path
+    ensure_casa_path()
+
     try:
         from casatools import table
         tb = table()

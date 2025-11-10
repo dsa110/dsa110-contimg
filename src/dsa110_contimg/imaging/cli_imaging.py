@@ -6,6 +6,10 @@ import shutil
 import logging
 from typing import Optional
 
+# Initialize CASA environment before importing CASA modules
+from dsa110_contimg.utils.casa_init import ensure_casa_path
+ensure_casa_path()
+
 import numpy as np
 from casacore.tables import table
 from casatasks import tclean, exportfits  # type: ignore[import]

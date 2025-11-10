@@ -14,6 +14,7 @@ import {
   Settings,
   PlayArrow,
   Storage,
+  Assessment,
 } from '@mui/icons-material';
 
 const navItems = [
@@ -21,6 +22,7 @@ const navItems = [
   { path: '/control', label: 'Control', icon: Settings },
   { path: '/streaming', label: 'Streaming', icon: PlayArrow },
   { path: '/data', label: 'Data', icon: Storage },
+  { path: '/qa', label: 'QA Visualization', icon: Assessment },
   { path: '/mosaics', label: 'Mosaics', icon: Image },
   { path: '/sources', label: 'Sources', icon: TableChart },
   { path: '/sky', label: 'Sky View', icon: Public },
@@ -44,7 +46,9 @@ export default function Navigation() {
       <List>
         {navItems.map((item) => {
           const Icon = item.icon;
-          const isActive = location.pathname === item.path || (item.path === '/data' && location.pathname.startsWith('/data'));
+          const isActive = location.pathname === item.path || 
+            (item.path === '/data' && location.pathname.startsWith('/data')) ||
+            (item.path === '/qa' && location.pathname.startsWith('/qa'));
           
           return (
             <ListItem key={item.path} disablePadding>
@@ -88,7 +92,9 @@ export default function Navigation() {
             <Box sx={{ display: 'flex', gap: 1, flexGrow: 1 }}>
               {navItems.map((item) => {
                 const Icon = item.icon;
-                const isActive = location.pathname === item.path || (item.path === '/data' && location.pathname.startsWith('/data'));
+                const isActive = location.pathname === item.path || 
+                  (item.path === '/data' && location.pathname.startsWith('/data')) ||
+                  (item.path === '/qa' && location.pathname.startsWith('/qa'));
 
                 return (
                   <Button

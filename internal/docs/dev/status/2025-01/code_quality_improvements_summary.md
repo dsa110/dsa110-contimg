@@ -136,7 +136,7 @@ Comprehensive edge case tests covering:
 1. `tests/unit/test_parallel.py` - New comprehensive test suite (NEW)
 
 ### Documentation
-1. `docs/dev/status/2025-01/code_quality_improvements_summary.md` - This file (NEW)
+1. `internal/docs/dev/status/2025-01/code_quality_improvements_summary.md` - This file (NEW)
 
 ---
 
@@ -213,4 +213,3 @@ The codebase now has:
 
 **Status:** High-priority work complete  
 **Last Updated:** 2025-01-XX
-

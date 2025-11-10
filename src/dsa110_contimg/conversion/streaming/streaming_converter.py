@@ -35,6 +35,10 @@ except Exception:  # pragma: no cover - optional helper
         def __exit__(self, *a): return False
         def log_consumes(self, *a, **k): pass
         def log_produces(self, *a, **k): pass
+# Ensure CASAPATH is set before importing CASA modules
+from dsa110_contimg.utils.casa_init import ensure_casa_path
+ensure_casa_path()
+
 from casatasks import concat as casa_concat  # noqa
 from casacore.tables import table  # noqa
 from dsa110_contimg.calibration.calibration import solve_delay, solve_bandpass, solve_gains  # noqa

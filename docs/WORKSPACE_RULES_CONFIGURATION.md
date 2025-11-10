@@ -10,7 +10,7 @@
 
 The workspace configuration should include:
 
-1. **Knowledge Graph Maintenance Rules** - Already included ✅
+1. **Internal Maintenance Rules** - Already included ✅
 2. **MCP Core Rules** - Already included ✅
 3. **Python Environment Requirements (casa6)** - Already included ✅
 4. **Critical Instructions (MEMORY.md editing)** - Already included ✅

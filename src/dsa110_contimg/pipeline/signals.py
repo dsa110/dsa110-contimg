@@ -8,6 +8,7 @@ when interrupted (SIGTERM, SIGINT).
 from __future__ import annotations
 
 import logging
+from contextlib import contextmanager
 import signal
 import sys
 from typing import Callable, Optional
@@ -109,4 +110,3 @@ def graceful_shutdown(cleanup_callback: Optional[Callable[[], None]] = None):
         yield handler
     finally:
         handler.unregister()
-

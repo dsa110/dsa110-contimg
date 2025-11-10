@@ -54,6 +54,10 @@ def parallel_process_spws(
     Returns:
         List of results from process_func
     """
+    # Ensure CASAPATH is set before importing CASA modules
+    from dsa110_contimg.utils.casa_init import ensure_casa_path
+    ensure_casa_path()
+
     from casacore.tables import table
     
     # Auto-detect SPWs if not provided

@@ -1027,6 +1027,10 @@ def convert_subband_groups_to_ms(
                     "Skipping validation checks during conversion (will be done after)")
 
             # Verify MS is readable and has required structure
+            # Ensure CASAPATH is set before importing CASA modules
+            from dsa110_contimg.utils.casa_init import ensure_casa_path
+            ensure_casa_path()
+
             try:
                 from casacore.tables import table
                 with table(ms_path, readonly=True) as tb:

@@ -6,8 +6,10 @@ SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 REPO_ROOT="$(cd "${SCRIPT_DIR}/.." && pwd)"
 
 # Python to use (prefer casa6 env if available)
-PYTHON_BIN="/opt/miniforge/envs/casa6/bin/python"
-if [[ ! -x "${PYTHON_BIN}" ]]; then
+PYTHON_BIN_BASE="/opt/miniforge/envs/casa6/bin/python"
+if [[ -x "${PYTHON_BIN_BASE}" ]]; then
+  PYTHON_BIN="${PYTHON_BIN_BASE} -W ignore::DeprecationWarning"
+else
   PYTHON_BIN="python"
 fi
 

@@ -1,6 +1,6 @@
-# Knowledge Graph Schema for dsa110-contimg
+# Graphiti Schema: dsa110-contimg Project
 
-This document defines the schema for the `dsa110-contimg` project's knowledge graph. It outlines the types of entities and relationships that will be used to represent project knowledge.
+This document defines the schema for the `dsa110-contimg` project's Graphiti knowledge graph. It outlines the types of entities and relationships used to represent project knowledge.
 
 ## Entities
 

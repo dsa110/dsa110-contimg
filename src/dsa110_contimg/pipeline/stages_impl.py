@@ -239,6 +239,10 @@ class ConversionStage(PipelineStage):
             return False, f"MS file does not exist: {ms_path}"
 
         # Validate MS is readable and has required columns
+        # Ensure CASAPATH is set before importing CASA modules
+        from dsa110_contimg.utils.casa_init import ensure_casa_path
+        ensure_casa_path()
+
         try:
             from casacore.tables import table
             with table(ms_path, readonly=True) as tb:

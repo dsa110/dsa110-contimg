@@ -996,6 +996,10 @@ def handle_calibrate(args: argparse.Namespace) -> int:
                     logger.debug(
                         "After rephasing, all fields share the same phase center")
                     # Get total number of fields from MS
+                    # Ensure CASAPATH is set before importing CASA modules
+                    from dsa110_contimg.utils.casa_init import ensure_casa_path
+                    ensure_casa_path()
+
                     from casacore.tables import table
                     with table(f"{args.ms}::FIELD", readonly=True) as tb:
                         nfields = tb.nrows()

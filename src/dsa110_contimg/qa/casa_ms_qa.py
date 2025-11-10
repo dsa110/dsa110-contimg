@@ -31,6 +31,10 @@ def _import_casa() -> Tuple[Any, Any, Dict[str, Optional[str]]]:
     tasks: Dict[str, Any] = {}
     versions: Dict[str, Optional[str]] = {"casa": None}
 
+    # Ensure CASAPATH is set before importing CASA modules
+    from dsa110_contimg.utils.casa_init import ensure_casa_path
+    ensure_casa_path()
+
     try:
         # CASA 6 essentials
         from casatools import msmetadata, table  # type: ignore

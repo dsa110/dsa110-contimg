@@ -747,7 +747,7 @@ UVH5 Files → Conversion → Calibration → Imaging → Photometry → ESE Det
 
 ## Important Notes for Future Work
 
-1. **Always check the project knowledge graph schema** (`docs/reference/knowledge-graph-schema.md`) for project-specific entities and relationships before extracting knowledge
+1. **Always check the Graphiti schema** (`internal/docs/graphiti/graphiti-dsa110-contimg-schema.md`) for project-specific entities and relationships before extracting knowledge
 
 2. **Database migrations**: Run `python -m dsa110_contimg.database.migrations migrate_all` to ensure schema is up-to-date
 
@@ -908,7 +908,7 @@ CASA calibration tables (`.bpcal`, `.gpcal`, `.kcal`, etc.) are **directories**,
 
 **All other documentation goes in `docs/`:**
 - User-facing docs: `docs/how-to/`, `docs/concepts/`, `docs/reference/`, `docs/tutorials/`
-- Development notes: `docs/dev/status/`, `docs/dev/analysis/`, `docs/dev/notes/`
+- Development notes: `internal/docs/dev/status/`, `internal/docs/dev/analysis/`, `internal/docs/dev/notes/`
 - Historical: `docs/archive/`
 
 **Before creating any markdown file:**
@@ -931,7 +931,7 @@ CASA calibration tables (`.bpcal`, `.gpcal`, `.kcal`, etc.) are **directories**,
 - **Development History**: `docs/analysis/CURSOR_CHAT_DEVELOPMENT_HISTORY.md` - Key development decisions, bug fixes, and implementation details from AI-assisted development sessions
 - **ESE Literature Summary**: `docs/reports/ESE_LITERATURE_SUMMARY.md`
 - **Photometry Normalization**: `docs/science/photometry_normalization.md`
-- **Project Knowledge Graph Schema**: `docs/reference/knowledge-graph-schema.md`
+- **Project Graphiti Schema**: `internal/docs/graphiti/graphiti-dsa110-contimg-schema.md`
 - **Control Panel**: `docs/guides/control-panel/`
 - **Complete Project Review**: `docs/reports/COMPLETE_PROJECT_REVIEW.md`
 - **Test Suite**: `tests/README.md`

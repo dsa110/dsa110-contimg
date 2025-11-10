@@ -147,6 +147,10 @@ def validate_caltables_exist(
 
 def _get_n_spws_from_ms(ms_path: str) -> int:
     """Get number of spectral windows from MS."""
+    # Ensure CASAPATH is set before importing CASA modules
+    from dsa110_contimg.utils.casa_init import ensure_casa_path
+    ensure_casa_path()
+
     try:
         from casacore.tables import table
         spw_table_path = str(ms_path) + "/SPECTRAL_WINDOW"
