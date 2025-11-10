@@ -34,7 +34,6 @@ from dsa110_contimg.qa.visualization import (
     browse_qa_outputs,
     display_qa_summary,
     generate_fits_viewer_notebook,
-    generate_ms_explorer_notebook,
     generate_qa_notebook,
     ls,
 )
@@ -79,7 +78,6 @@ __all__ = [
     "ls",
     "generate_qa_notebook",
     "generate_fits_viewer_notebook",
-    "generate_ms_explorer_notebook",
     "browse_qa_outputs",
     "display_qa_summary",
     "run_ms_qa_with_visualization",

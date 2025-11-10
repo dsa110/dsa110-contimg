@@ -96,14 +96,14 @@ export default function FITSViewer({
 
   if (!fitsPath) {
     return (
-      <Paper sx={{ p: 3 }}>
+      <Paper sx={{ p: 3, bgcolor: 'background.paper', height: '100%' }}>
         <Alert severity="info">Select a FITS file to view</Alert>
       </Paper>
     );
   }
 
   return (
-    <Paper sx={{ p: 2 }}>
+    <Paper sx={{ p: 2, bgcolor: 'background.paper', height: '100%', display: 'flex', flexDirection: 'column' }}>
       <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 2 }}>
         <ImageIcon />
         <Typography variant="h6">FITS Viewer</Typography>

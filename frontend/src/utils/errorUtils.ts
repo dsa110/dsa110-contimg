@@ -101,7 +101,12 @@ export function classifyError(error: unknown): ClassifiedError {
  * Check if an error is retryable
  */
 export function isRetryableError(error: unknown): boolean {
-  return classifyError(error).retryable;
+  try {
+    return classifyError(error).retryable;
+  } catch {
+    // If classification fails, assume error is not retryable
+    return false;
+  }
 }
 
 /**

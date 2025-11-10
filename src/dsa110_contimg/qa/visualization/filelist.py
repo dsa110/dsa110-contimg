@@ -22,11 +22,25 @@ except ImportError:
     HTML = str
 
 from .file import FileBase, autodetect_file_type
-from .render import render_table, rich_string
+from .render import (
+    render_table,
+    rich_string,
+    render_titled_content,
+    render_preamble,
+    render_status_message,
+    RenderingProxy,
+)
+from .table import tabulate
+from .executor import executor, ncpu
+from .settings_manager import settings
 
 # Import file type classes (lazy import to avoid circular dependencies)
 _FITSFile = None
 _CasaTable = None
+_ImageFile = None
+_TextFile = None
+_HTMLFile = None
+_PDFFile = None
 
 
 def _get_fitsfile_class():
@@ -47,6 +61,46 @@ def _get_casatable_class():
 
         _CasaTable = CasaTable
     return _CasaTable
+
+
+def _get_imagefile_class():
+    """Lazy import of ImageFile to avoid circular dependencies."""
+    global _ImageFile
+    if _ImageFile is None:
+        from .imagefile import ImageFile
+
+        _ImageFile = ImageFile
+    return _ImageFile
+
+
+def _get_textfile_class():
+    """Lazy import of TextFile to avoid circular dependencies."""
+    global _TextFile
+    if _TextFile is None:
+        from .textfile import TextFile
+
+        _TextFile = TextFile
+    return _TextFile
+
+
+def _get_htmlfile_class():
+    """Lazy import of HTMLFile to avoid circular dependencies."""
+    global _HTMLFile
+    if _HTMLFile is None:
+        from .htmlfile import HTMLFile
+
+        _HTMLFile = HTMLFile
+    return _HTMLFile
+
+
+def _get_pdffile_class():
+    """Lazy import of PDFFile to avoid circular dependencies."""
+    global _PDFFile
+    if _PDFFile is None:
+        from .pdffile import PDFFile
+
+        _PDFFile = PDFFile
+    return _PDFFile
 
 
 class FileList(FileBase, list):
@@ -122,6 +176,22 @@ class FileList(FileBase, list):
                     # Use FITSFile for FITS files
                     FITSFile = _get_fitsfile_class()
                     items.append(FITSFile(item))
+                elif file_type == "image":
+                    # Use ImageFile for image files
+                    ImageFile = _get_imagefile_class()
+                    items.append(ImageFile(item))
+                elif file_type == "text":
+                    # Use TextFile for text files
+                    TextFile = _get_textfile_class()
+                    items.append(TextFile(item))
+                elif file_type == "html":
+                    # Use HTMLFile for HTML files
+                    HTMLFile = _get_htmlfile_class()
+                    items.append(HTMLFile(item))
+                elif file_type == "pdf":
+                    # Use PDFFile for PDF files
+                    PDFFile = _get_pdffile_class()
+                    items.append(PDFFile(item))
                 else:
                     items.append(FileBase(item))
             elif isinstance(item, FileBase):
@@ -224,6 +294,9 @@ class FileList(FileBase, list):
                 "image",
                 "directory",
                 "casatable",
+                "text",
+                "html",
+                "pdf",
             ]:
                 filtered.append(item)
 
@@ -317,7 +390,8 @@ class FileList(FileBase, list):
 
         if len(self) == 0:
             display(
-                HTML(f'<p class="qa-status-message">No files found in {self.title}</p>')
+                HTML(
+                    f'<p class="qa-status-message">No files found in {self.title}</p>')
             )
             return
 
@@ -388,3 +462,271 @@ class FileList(FileBase, list):
         """HTML representation for Jupyter."""
         self.show()
         return ""
+
+    def render_thumbnail_catalog(
+        self,
+        ncol: Optional[int] = None,
+        mincol: int = 0,
+        maxcol: int = 8,
+        title: Optional[str] = None,
+        titles: bool = True,
+        buttons: bool = True,
+        collapsed: Optional[bool] = None,
+        **kwargs
+    ) -> str:
+        """
+        Render a thumbnail catalog (grid view) of all files in the list.
+
+        Args:
+            ncol: Fixed number of columns (None = auto)
+            mincol: Minimum number of columns
+            maxcol: Maximum number of columns
+            title: Optional title for the catalog
+            titles: Whether to show file titles
+            buttons: Whether to show action buttons
+            collapsed: Whether section starts collapsed
+            **kwargs: Additional arguments passed to render_thumb()
+
+        Returns:
+            HTML string for the thumbnail catalog
+
+        Example:
+            >>> filelist.render_thumbnail_catalog(ncol=4)
+        """
+        if len(self) == 0:
+            return render_status_message("No files to display", message_type="info")
+
+        # Generate thumbnails
+        # Create a simple wrapper class for HTML strings so they're not escaped
+        class HTMLString:
+            def __init__(self, html: str):
+                self.html = html
+
+            def render_html(self) -> str:
+                return self.html
+
+            def __str__(self) -> str:
+                return self.html
+
+        def _make_thumb(num_item):
+            idx, item = num_item
+            thumb_html = item.render_thumb(**kwargs)
+            if titles:
+                title_html = f'<div class="qa-thumb-title">{item.basename}</div>'
+                thumb_html = f'<div class="qa-thumb-item">{thumb_html}{title_html}</div>'
+            return HTMLString(thumb_html)
+
+        # Use parallel processing if multiple CPUs available
+        if ncpu() < 2:
+            thumbs = list(map(_make_thumb, enumerate(self)))
+        else:
+            thumbs = list(executor().map(_make_thumb, enumerate(self)))
+
+        if not thumbs:
+            return render_status_message("No thumbnails generated", message_type="warning")
+
+        # Determine number of columns
+        if ncol is None:
+            ncol = max(mincol, min(maxcol, len(self)))
+        else:
+            ncol = max(mincol, min(maxcol, ncol))
+
+        # Create table from thumbnails
+        thumb_table = tabulate(
+            thumbs, ncol=ncol, mincol=mincol, maxcol=maxcol, zebra=False, align="center")
+        content_html = thumb_table.render_html()
+
+        # Build title HTML
+        title_html = f'<h3>{title or self.title}</h3>' if title or self.title else ""
+
+        # Determine collapsed state
+        if collapsed is None:
+            try:
+                collapsed = getattr(settings, 'thumb', None) and getattr(
+                    settings.thumb, 'collapsed', False)
+            except AttributeError:
+                collapsed = False
+
+        # Add CSS for thumbnail catalog
+        css = """
+        <style>
+        .qa-thumb-item {
+            display: inline-block;
+            margin: 5px;
+            padding: 5px;
+            text-align: center;
+            vertical-align: top;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            background-color: #f9f9f9;
+        }
+        .qa-thumb-item:hover {
+            border-color: #58A6FF;
+            background-color: #f0f0f0;
+        }
+        .qa-thumb-title {
+            margin-top: 5px;
+            font-size: 0.85em;
+            color: #333;
+            word-wrap: break-word;
+            max-width: 200px;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+        .qa-thumb-item img {
+            max-width: 100%;
+            height: auto;
+            display: block;
+            margin: 0 auto;
+        }
+        .qa-thumb-item a {
+            display: block;
+            text-decoration: none;
+            color: inherit;
+        }
+        </style>
+        """
+
+        # Render with collapsible section
+        return css + render_preamble() + render_titled_content(
+            title_html=title_html,
+            content_html=content_html,
+            buttons_html="",
+            collapsed=collapsed
+        )
+
+    @property
+    def thumbs(self) -> RenderingProxy:
+        """
+        Property that returns a rendering proxy for thumbnail catalog.
+
+        Usage:
+            >>> filelist.thumbs.show()
+            >>> filelist.thumbs(ncol=4).show()
+            >>> filelist.thumbs(ncol=3, width=200).show()
+
+        Returns:
+            RenderingProxy for render_thumbnail_catalog()
+        """
+        return RenderingProxy(self, 'render_thumbnail_catalog', 'thumbs', arg0='ncol')
+
+    def show_all(self, *args, **kwargs) -> None:
+        """
+        Call show() on all files in the list.
+
+        Useful for batch viewing with the same parameters.
+
+        Args:
+            *args: Positional arguments passed to each file's show() method
+            **kwargs: Keyword arguments passed to each file's show() method
+
+        Example:
+            >>> filelist.show_all()
+            >>> filelist.fits.show_all(dual_window=True, scale="log")
+        """
+        if len(self) == 0:
+            if HAS_IPYTHON:
+                display(HTML('<div class="qa-status-message">0 files</div>'))
+            else:
+                print("0 files")
+            return
+
+        for item in self:
+            try:
+                item.show(*args, **kwargs)
+            except Exception as e:
+                # Display error but continue with other files
+                error_msg = f"Error displaying {item.basename}: {e}"
+                if HAS_IPYTHON:
+                    from .render import render_error
+                    display(HTML(render_error(error_msg)))
+                else:
+                    print(f"ERROR: {error_msg}")
+
+    def __call__(self, *patterns: str) -> "FileList":
+        """
+        Filter files by pattern using callable syntax.
+
+        Supports pattern matching with wildcards and exclusion patterns.
+
+        Args:
+            *patterns: One or more patterns to match
+                - "*.fits": Match FITS files
+                - "!*.tmp": Exclude temporary files
+                - "-n": Sort by name (flags: n=name, s=size, t=time, x=extension, r=reverse)
+
+        Returns:
+            New FileList with filtered items
+
+        Example:
+            >>> fits_only = filelist("*.fits")
+            >>> no_tmp = filelist("*.fits", "!*.tmp")
+            >>> sorted_fits = filelist("*.fits", "-tn")  # Sort by time, then name
+        """
+        import fnmatch
+        import itertools
+
+        sort_flags = None
+        files = []
+        subsets = []
+
+        # Process patterns
+        for patt in itertools.chain(*[p.split() for p in patterns]):
+            if patt.startswith('!'):
+                # Exclusion pattern
+                exclude_pattern = patt[1:]
+                files = [f for f in self if not (
+                    fnmatch.fnmatch(f.basename, exclude_pattern) or
+                    fnmatch.fnmatch(f.path, exclude_pattern)
+                )]
+                subsets.append(patt)
+            elif patt.startswith('-'):
+                # Sort flags
+                sort_flags = patt[1:]
+                subsets.append(f"sort: {sort_flags}")
+            else:
+                # Inclusion pattern
+                matching = [f for f in self if (
+                    fnmatch.fnmatch(f.basename, patt) or
+                    fnmatch.fnmatch(f.path, patt)
+                )]
+                if files:
+                    # Intersection with previous matches
+                    files = [f for f in files if f in matching]
+                else:
+                    files = matching
+                subsets.append(patt)
+
+        # If no patterns provided, return copy of self
+        if not subsets:
+            files = list(self)
+
+        # Apply sorting if specified
+        sort_key = sort_flags or self._sort
+
+        # Create new FileList
+        result = FileList(
+            content=files,
+            path=self.path,
+            extcol=self._extcol,
+            showpath=self._showpath,
+            title=self._build_title(*subsets) if subsets else self.title,
+            parent=self._parent,
+            sort=sort_key,
+        )
+        return result
+
+    def _build_title(self, *subsets: str) -> str:
+        """
+        Build a title from subset patterns.
+
+        Args:
+            *subsets: Subset pattern strings
+
+        Returns:
+            Title string
+        """
+        if not subsets:
+            return self.title
+        subset_str = ", ".join(subsets)
+        return f"{self.title} [{subset_str}]"

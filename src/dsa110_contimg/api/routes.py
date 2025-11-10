@@ -42,6 +42,7 @@ from dsa110_contimg.api.data_access import (
     fetch_ese_candidates,
     fetch_mosaic_by_id,
     fetch_mosaics,
+    fetch_observation_timeline,
     fetch_pointing_history,
     fetch_queue_stats,
     fetch_recent_calibrator_matches,
@@ -72,6 +73,7 @@ from dsa110_contimg.api.models import (
     CalTableList,
     ConversionJobCreateRequest,
     ConversionJobParams,
+    DiskInfo,
     ESECandidate,
     ESECandidatesResponse,
     ExistingCalTable,
@@ -94,6 +96,7 @@ from dsa110_contimg.api.models import (
     MSList,
     MSListEntry,
     MSMetadata,
+    ObservationTimeline,
     PipelineStatus,
     PointingHistoryList,
     ProductList,
@@ -102,7 +105,10 @@ from dsa110_contimg.api.models import (
     QAMetrics,
     SourceSearchResponse,
     SourceTimeseries,
+    LightCurveData,
+    PostageStampsResponse,
     StreamingConfigRequest,
+    VariabilityMetrics,
     StreamingControlResponse,
     StreamingHealthResponse,
     StreamingStatusResponse,
@@ -173,26 +179,52 @@ def create_app(config: ApiConfig | None = None) -> FastAPI:
                         logger.warning(f"Failed to fetch pipeline status: {e}")
 
                     try:
-                        # Calculate system metrics inline
-                        import psutil
+                        # Use the shared metrics function to ensure consistency
+                        system_metrics = _get_system_metrics()
 
-                        cpu_percent = psutil.cpu_percent(interval=0.1)
-                        memory = psutil.virtual_memory()
-                        disk = psutil.disk_usage("/")
-                        load_avg = (
-                            os.getloadavg()[0] if hasattr(os, "getloadavg") else 0.0
-                        )
-
+                        # Convert to dict format for WebSocket broadcast
                         metrics = {
-                            "cpu_percent": cpu_percent,
-                            "memory_percent": memory.percent,
-                            "memory_used_gb": round(memory.used / (1024**3), 2),
-                            "memory_total_gb": round(memory.total / (1024**3), 2),
-                            "disk_percent": disk.percent,
-                            "disk_free_gb": round(disk.free / (1024**3), 2),
-                            "disk_total_gb": round(disk.total / (1024**3), 2),
-                            "load_avg_1min": load_avg,
-                            "timestamp": datetime.now().isoformat(),
+                            "cpu_percent": system_metrics.cpu_percent,
+                            "memory_percent": system_metrics.mem_percent,
+                            "memory_used_gb": (
+                                round(system_metrics.mem_used / (1024**3), 2)
+                                if system_metrics.mem_used
+                                else None
+                            ),
+                            "memory_total_gb": (
+                                round(system_metrics.mem_total / (1024**3), 2)
+                                if system_metrics.mem_total
+                                else None
+                            ),
+                            "load_avg_1min": system_metrics.load_1,
+                            "timestamp": system_metrics.ts.isoformat(),
+                            # Include disk information
+                            "disks": [
+                                {
+                                    "mount_point": disk.mount_point,
+                                    "total_gb": round(disk.total / (1024**3), 2),
+                                    "used_gb": round(disk.used / (1024**3), 2),
+                                    "free_gb": round(disk.free / (1024**3), 2),
+                                    "percent": disk.percent,
+                                }
+                                for disk in system_metrics.disks
+                            ],
+                            # Legacy fields for backward compatibility
+                            "disk_percent": (
+                                system_metrics.disks[0].percent
+                                if system_metrics.disks
+                                else None
+                            ),
+                            "disk_free_gb": (
+                                round(system_metrics.disks[0].free / (1024**3), 2)
+                                if system_metrics.disks
+                                else None
+                            ),
+                            "disk_total_gb": (
+                                round(system_metrics.disks[0].total / (1024**3), 2)
+                                if system_metrics.disks
+                                else None
+                            ),
                         }
                     except Exception as e:
                         logger.warning(f"Failed to fetch metrics: {e}")
@@ -1257,6 +1289,132 @@ def create_app(config: ApiConfig | None = None) -> FastAPI:
         items = fetch_pointing_history(cfg.products_db, start_mjd, end_mjd)
         return PointingHistoryList(items=items)
 
+    @router.get("/observation_timeline", response_model=ObservationTimeline)
+    def observation_timeline(
+        gap_threshold_hours: float = Query(
+            24.0, description="Maximum gap in hours before starting a new segment"
+        ),
+        data_dir: Optional[str] = Query(
+            None, description="Directory to scan (defaults to /data/incoming/)"
+        ),
+    ) -> ObservationTimeline:
+        """Get observation timeline from HDF5 files on disk.
+        
+        Scans the specified directory (or /data/incoming/ by default) for HDF5 files
+        and returns timeline segments showing when observation data exists.
+        """
+        scan_dir = Path(data_dir) if data_dir else Path("/data/incoming")
+        return fetch_observation_timeline(scan_dir, gap_threshold_hours=gap_threshold_hours)
+
+    @router.get("/observation_timeline/plot")
+    def observation_timeline_plot(
+        gap_threshold_hours: float = Query(
+            24.0, description="Maximum gap in hours before starting a new segment"
+        ),
+        data_dir: Optional[str] = Query(
+            None, description="Directory to scan (defaults to /data/incoming/)"
+        ),
+        width: int = Query(16, description="Plot width in inches"),
+        height: int = Query(4, description="Plot height in inches"),
+    ) -> FileResponse:
+        """Generate a timeline visualization image showing observation data segments.
+        
+        Creates a plot similar to pointing_timeline.png showing time ranges where
+        HDF5 observation data exists on disk.
+        """
+        import io
+        import tempfile
+
+        import matplotlib
+        import matplotlib.dates as mdates
+        import matplotlib.pyplot as plt
+
+        matplotlib.use("Agg")  # Non-interactive backend
+
+        scan_dir = Path(data_dir) if data_dir else Path("/data/incoming")
+        timeline = fetch_observation_timeline(scan_dir, gap_threshold_hours=gap_threshold_hours)
+
+        if not timeline.segments:
+            raise HTTPException(
+                status_code=404, detail="No observation data found in the specified directory"
+            )
+
+        # Create figure
+        fig, ax = plt.subplots(figsize=(width, height))
+
+        # Plot segments as horizontal bars
+        y_pos = 0
+        for i, segment in enumerate(timeline.segments):
+            start_num = mdates.date2num(segment.start_time)
+            end_num = mdates.date2num(segment.end_time)
+            duration = end_num - start_num
+            
+            ax.barh(
+                y_pos,
+                duration,
+                left=start_num,
+                height=0.6,
+                alpha=0.7,
+                color="steelblue",
+                edgecolor="navy",
+                linewidth=1,
+            )
+            y_pos += 1
+
+        # Format x-axis
+        ax.set_xlabel("Observation Time", fontsize=12)
+        ax.set_ylabel("Data Segments", fontsize=12)
+        ax.xaxis.set_major_formatter(mdates.DateFormatter("%Y-%m-%d"))
+        ax.xaxis.set_major_locator(mdates.DayLocator(interval=max(1, len(timeline.segments) // 10)))
+        plt.xticks(rotation=45, ha="right")
+
+        # Set y-axis
+        ax.set_yticks(range(len(timeline.segments)))
+        ax.set_yticklabels([f"Segment {i+1}" for i in range(len(timeline.segments))])
+        ax.set_ylim(-0.5, len(timeline.segments) - 0.5)
+
+        # Title
+        time_span_days = (
+            (timeline.latest_time - timeline.earliest_time).days
+            if timeline.earliest_time and timeline.latest_time
+            else 0
+        )
+        ax.set_title(
+            f"DSA-110 Observation Timeline ({len(timeline.segments)} segments, "
+            f"{timeline.total_files} files, {time_span_days} days)",
+            fontsize=14,
+            fontweight="bold",
+        )
+
+        # Add grid
+        ax.grid(True, axis="x", alpha=0.3)
+
+        # Add statistics text
+        if timeline.earliest_time and timeline.latest_time:
+            stats_text = f"First: {timeline.earliest_time.strftime('%Y-%m-%d %H:%M:%S')}\n"
+            stats_text += f"Last: {timeline.latest_time.strftime('%Y-%m-%d %H:%M:%S')}\n"
+            stats_text += f"Span: {time_span_days} days\n"
+            stats_text += f"Segments: {len(timeline.segments)}\n"
+            stats_text += f"Files: {timeline.total_files}"
+
+            ax.text(
+                0.02,
+                0.98,
+                stats_text,
+                transform=ax.transAxes,
+                verticalalignment="top",
+                fontsize=10,
+                bbox=dict(boxstyle="round", facecolor="wheat", alpha=0.5),
+            )
+
+        plt.tight_layout()
+
+        # Save to temporary file
+        with tempfile.NamedTemporaryFile(delete=False, suffix=".png") as tmp_file:
+            fig.savefig(tmp_file.name, dpi=150, bbox_inches="tight")
+            plt.close(fig)
+            return FileResponse(tmp_file.name, media_type="image/png", filename="timeline.png")
+
     @router.get("/qa", response_model=QAList)
     def qa(limit: int = 100) -> QAList:
         # Prefer DB-backed artifacts if available
@@ -1363,6 +1521,8 @@ def create_app(config: ApiConfig | None = None) -> FastAPI:
         ts = datetime.utcnow()
         cpu = mem_pct = mem_total = mem_used = disk_total = disk_used = None
         load1 = load5 = load15 = None
+        disks: List[DiskInfo] = []
+
         try:
             import psutil  # type: ignore
 
@@ -1373,16 +1533,53 @@ def create_app(config: ApiConfig | None = None) -> FastAPI:
             mem_used = int(vm.used)
         except Exception:
             pass
-        try:
-            du = shutil.disk_usage("/")
-            disk_total = int(du.total)
-            disk_used = int(du.used)
-        except Exception:
-            pass
+
+        # Collect disk usage for multiple mount points
+        disk_paths = [
+            ("/stage/", "/stage"),
+            ("/data/", "/data"),
+        ]
+
+        for mount_label, mount_path in disk_paths:
+            try:
+                du = shutil.disk_usage(mount_path)
+                total = int(du.total)
+                used = int(du.used)
+                free = int(du.free)
+                percent = (used / total * 100.0) if total > 0 else 0.0
+
+                disks.append(
+                    DiskInfo(
+                        mount_point=mount_label,
+                        total=total,
+                        used=used,
+                        free=free,
+                        percent=round(percent, 2),
+                    )
+                )
+
+                # Keep backward compatibility: use /stage/ for legacy disk_total/disk_used
+                if mount_label == "/stage/":
+                    disk_total = total
+                    disk_used = used
+            except Exception:
+                # If mount point doesn't exist or isn't accessible, skip it
+                pass
+
+        # Fallback to root disk if no disks were found
+        if not disks:
+            try:
+                du = shutil.disk_usage("/")
+                disk_total = int(du.total)
+                disk_used = int(du.used)
+            except Exception:
+                pass
+
         try:
             load1, load5, load15 = os.getloadavg()
         except Exception:
             pass
+
         return SystemMetrics(
             ts=ts,
             cpu_percent=cpu,
@@ -1391,6 +1588,7 @@ def create_app(config: ApiConfig | None = None) -> FastAPI:
             mem_used=mem_used,
             disk_total=disk_total,
             disk_used=disk_used,
+            disks=disks,
             load_1=load1,
             load_5=load5,
             load_15=load15,

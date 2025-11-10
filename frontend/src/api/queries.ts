@@ -1433,6 +1433,47 @@ export function useDirectoryListing(
   });
 }
 
+export function useDirectoryThumbnails(
+  path: string | null,
+  recursive = false,
+  includePattern?: string,
+  excludePattern?: string,
+  ncol?: number,
+  mincol = 0,
+  maxcol = 8,
+  titles = true,
+  width?: number
+): UseQueryResult<string> {
+  const pathComplete = isPathComplete(path);
+  
+  return useQuery({
+    queryKey: ['visualization', 'directory', 'thumbnails', path, recursive, includePattern, excludePattern, ncol, mincol, maxcol, titles, width],
+    queryFn: async () => {
+      if (!path) throw new Error('Path required');
+      const params = new URLSearchParams({
+        path,
+        recursive: recursive.toString(),
+        mincol: mincol.toString(),
+        maxcol: maxcol.toString(),
+        titles: titles.toString(),
+      });
+      if (includePattern) params.append('include_pattern', includePattern);
+      if (excludePattern) params.append('exclude_pattern', excludePattern);
+      if (ncol !== undefined) params.append('ncol', ncol.toString());
+      if (width !== undefined) params.append('width', width.toString());
+      const response = await apiClient.get<string>(
+        `/api/visualization/directory/thumbnails?${params.toString()}`,
+        {
+          responseType: 'text',
+        }
+      );
+      return response.data;
+    },
+    enabled: !!path && pathComplete,
+    retry: pathComplete,
+  });
+}
+
 export function useFITSInfo(path: string | null): UseQueryResult<FITSInfo> {
   return useQuery({
     queryKey: ['visualization', 'fits', 'info', path],

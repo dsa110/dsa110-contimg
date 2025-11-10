@@ -29,13 +29,15 @@ from dsa110_contimg.qa.casa_ms_qa import QaResult, QaThresholds, run_ms_qa
 from dsa110_contimg.qa.visualization import (
     CasaTable,
     FITSFile,
+    ImageFile,
+    TextFile,
     browse_qa_outputs,
     display_qa_summary,
     generate_fits_viewer_notebook,
-    generate_ms_explorer_notebook,
     generate_qa_notebook,
     generate_qa_notebook_from_result,
     ls,
+    FileList,
 )
 from dsa110_contimg.qa.visualization_qa import run_ms_qa_with_visualization
 
@@ -93,6 +95,27 @@ class CasaTableInfo(BaseModel):
     keywords: Optional[Dict[str, Any]] = None
     subtables: Optional[List[str]] = None
     is_writable: Optional[bool] = None
+    error: Optional[str] = None
+
+
+class ImageInfo(BaseModel):
+    """Image file information."""
+
+    path: str
+    exists: bool
+    size: Optional[int] = None
+    format: Optional[str] = None
+    dimensions: Optional[Dict[str, int]] = None
+    error: Optional[str] = None
+
+
+class TextInfo(BaseModel):
+    """Text file information."""
+
+    path: str
+    exists: bool
+    size: Optional[int] = None
+    line_count: Optional[int] = None
     error: Optional[str] = None
 
 
@@ -168,7 +191,8 @@ def browse_directory(
             )
 
         if not target_path.exists():
-            raise HTTPException(status_code=404, detail=f"Path not found: {path}")
+            raise HTTPException(
+                status_code=404, detail=f"Path not found: {path}")
 
         if not target_path.is_dir():
             raise HTTPException(
@@ -219,6 +243,92 @@ def browse_directory(
         )
 
 
+@router.get("/directory/thumbnails")
+def get_directory_thumbnails(
+    path: str = Query(..., description="Directory path to browse"),
+    recursive: bool = Query(False, description="Recursive directory scan"),
+    include_pattern: Optional[str] = Query(
+        None, description="Include pattern (glob)"),
+    exclude_pattern: Optional[str] = Query(
+        None, description="Exclude pattern (glob)"),
+    ncol: Optional[int] = Query(
+        None, description="Number of columns (None = auto)"),
+    mincol: int = Query(0, description="Minimum number of columns"),
+    maxcol: int = Query(8, description="Maximum number of columns"),
+    titles: bool = Query(True, description="Show file titles"),
+    width: Optional[int] = Query(
+        None, description="Thumbnail width in pixels"),
+):
+    """
+    Render a thumbnail catalog (grid view) of files in a directory.
+
+    Returns HTML for displaying thumbnails in a grid layout.
+    """
+    try:
+        # Validate path is within allowed directories
+        base_state = Path(os.getenv("PIPELINE_STATE_DIR", "state"))
+        qa_base = base_state / "qa"
+
+        # Resolve and validate path
+        target_path = Path(path).resolve()
+
+        # Ensure path is within allowed directories
+        allowed_bases = [
+            base_state.resolve(),
+            qa_base.resolve(),
+            Path(
+                os.getenv("PIPELINE_OUTPUT_DIR", "/stage/dsa110-contimg/ms")
+            ).resolve(),
+        ]
+
+        if not any(str(target_path).startswith(str(base)) for base in allowed_bases):
+            raise HTTPException(
+                status_code=403, detail=f"Path {path} is outside allowed directories"
+            )
+
+        if not target_path.exists():
+            raise HTTPException(
+                status_code=404, detail=f"Path not found: {path}")
+
+        if not target_path.is_dir():
+            raise HTTPException(
+                status_code=400, detail=f"Path is not a directory: {path}"
+            )
+
+        # Browse directory using DataDir
+        from dsa110_contimg.qa.visualization.datadir import DataDir
+
+        qa_dir = DataDir(str(target_path), recursive=recursive)
+
+        # Apply filters using callable syntax if patterns provided
+        if include_pattern or exclude_pattern:
+            patterns = []
+            if include_pattern:
+                patterns.append(include_pattern)
+            if exclude_pattern:
+                patterns.append(f"!{exclude_pattern}")
+            qa_dir = qa_dir(*patterns)
+
+        # Render thumbnail catalog
+        html = qa_dir.render_thumbnail_catalog(
+            ncol=ncol,
+            mincol=mincol,
+            maxcol=maxcol,
+            titles=titles,
+            width=width,
+        )
+
+        return HTMLResponse(content=html)
+
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.exception(f"Error rendering thumbnails for {path}")
+        raise HTTPException(
+            status_code=500, detail=f"Error rendering thumbnails: {str(e)}"
+        )
+
+
 # ============================================================================
 # FITS File Endpoints
 # ============================================================================
@@ -233,7 +343,8 @@ def get_fits_info(
         # Validate path
         target_path = Path(path).resolve()
         if not target_path.exists():
-            raise HTTPException(status_code=404, detail=f"FITS file not found: {path}")
+            raise HTTPException(
+                status_code=404, detail=f"FITS file not found: {path}")
 
         fits_file = FITSFile(str(target_path))
 
@@ -280,7 +391,8 @@ def view_fits_file(
     try:
         target_path = Path(path).resolve()
         if not target_path.exists():
-            raise HTTPException(status_code=404, detail=f"FITS file not found: {path}")
+            raise HTTPException(
+                status_code=404, detail=f"FITS file not found: {path}")
 
         fits_file = FITSFile(str(target_path))
 
@@ -315,7 +427,8 @@ def get_casatable_info(
     try:
         target_path = Path(path).resolve()
         if not target_path.exists():
-            raise HTTPException(status_code=404, detail=f"CASA table not found: {path}")
+            raise HTTPException(
+                status_code=404, detail=f"CASA table not found: {path}")
 
         if not target_path.is_dir():
             raise HTTPException(
@@ -332,7 +445,8 @@ def get_casatable_info(
             columns=casa_table.columns if casa_table.exists else None,
             keywords=casa_table.keywords if casa_table.exists else None,
             subtables=(
-                [str(s) for s in casa_table.subtables] if casa_table.exists else None
+                [str(s)
+                 for s in casa_table.subtables] if casa_table.exists else None
             ),
             is_writable=casa_table._is_writable if casa_table.exists else None,
             error=casa_table._error if hasattr(casa_table, "_error") else None,
@@ -363,13 +477,11 @@ def view_casatable(
     try:
         target_path = Path(path).resolve()
         if not target_path.exists():
-            raise HTTPException(status_code=404, detail=f"CASA table not found: {path}")
+            raise HTTPException(
+                status_code=404, detail=f"CASA table not found: {path}")
 
         casa_table = CasaTable(str(target_path))
         casa_table.rescan()
-
-        # Generate HTML summary
-        casa_table.show(max_rows=max_rows, max_cols=max_cols)
 
         # Note: show() uses display() which won't work in API context
         # We need to generate HTML directly
@@ -385,6 +497,198 @@ def view_casatable(
         raise
     except Exception as e:
         logger.exception(f"Error generating CASA table viewer HTML for {path}")
+        raise HTTPException(
+            status_code=500, detail=f"Error generating viewer: {str(e)}"
+        )
+
+
+# ============================================================================
+# Image File Endpoints
+# ============================================================================
+
+
+@router.get("/image/info", response_model=ImageInfo)
+def get_image_info(
+    path: str = Query(..., description="Path to image file"),
+):
+    """Get information about an image file."""
+    try:
+        target_path = Path(path).resolve()
+        if not target_path.exists():
+            raise HTTPException(
+                status_code=404, detail=f"Image file not found: {path}")
+
+        img_file = ImageFile(str(target_path))
+
+        # Get image dimensions if available
+        dimensions = None
+        if img_file.exists:
+            try:
+                from PIL import Image as PILImage
+                with PILImage.open(target_path) as img:
+                    dimensions = {"width": img.width, "height": img.height}
+            except Exception:
+                pass
+
+        return ImageInfo(
+            path=str(target_path),
+            exists=img_file.exists,
+            size=img_file.size if img_file.exists else None,
+            format=target_path.suffix.lower() if img_file.exists else None,
+            dimensions=dimensions,
+            error=None,
+        )
+
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.exception(f"Error reading image file {path}")
+        return ImageInfo(
+            path=path,
+            exists=False,
+            error=str(e),
+        )
+
+
+@router.get("/image/view")
+def view_image_file(
+    path: str = Query(..., description="Path to image file"),
+    width: Optional[int] = Query(None, description="Display width in pixels"),
+):
+    """
+    Get HTML for viewing an image file.
+
+    Returns HTML that can be embedded in the dashboard.
+    """
+    try:
+        target_path = Path(path).resolve()
+        if not target_path.exists():
+            raise HTTPException(
+                status_code=404, detail=f"Image file not found: {path}")
+
+        img_file = ImageFile(str(target_path))
+        html = img_file.render_html(width=width)
+
+        return HTMLResponse(content=html)
+
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.exception(f"Error generating image viewer HTML for {path}")
+        raise HTTPException(
+            status_code=500, detail=f"Error generating viewer: {str(e)}"
+        )
+
+
+@router.get("/image/thumbnail")
+def get_image_thumbnail(
+    path: str = Query(..., description="Path to image file"),
+    width: int = Query(300, description="Thumbnail width in pixels"),
+):
+    """
+    Get or generate thumbnail for an image file.
+
+    Returns HTML with thumbnail that can be embedded in the dashboard.
+    """
+    try:
+        target_path = Path(path).resolve()
+        if not target_path.exists():
+            raise HTTPException(
+                status_code=404, detail=f"Image file not found: {path}")
+
+        img_file = ImageFile(str(target_path))
+        html = img_file.render_thumb(width=width)
+
+        return HTMLResponse(content=html)
+
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.exception(f"Error generating thumbnail for {path}")
+        raise HTTPException(
+            status_code=500, detail=f"Error generating thumbnail: {str(e)}"
+        )
+
+
+# ============================================================================
+# Text File Endpoints
+# ============================================================================
+
+
+@router.get("/text/info", response_model=TextInfo)
+def get_text_info(
+    path: str = Query(..., description="Path to text file"),
+):
+    """Get information about a text file."""
+    try:
+        target_path = Path(path).resolve()
+        if not target_path.exists():
+            raise HTTPException(
+                status_code=404, detail=f"Text file not found: {path}")
+
+        text_file = TextFile(str(target_path))
+        text_file._load_impl()  # Load file content
+
+        return TextInfo(
+            path=str(target_path),
+            exists=text_file.exists,
+            size=text_file.size if text_file.exists else None,
+            line_count=len(text_file.lines) if hasattr(
+                text_file, "lines") else None,
+            error=None,
+        )
+
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.exception(f"Error reading text file {path}")
+        return TextInfo(
+            path=path,
+            exists=False,
+            error=str(e),
+        )
+
+
+@router.get("/text/view")
+def view_text_file(
+    path: str = Query(..., description="Path to text file"),
+    head: Optional[int] = Query(None, description="Show first N lines"),
+    tail: Optional[int] = Query(None, description="Show last N lines"),
+    grep: Optional[str] = Query(None, description="Search pattern (regex)"),
+    line_numbers: bool = Query(True, description="Show line numbers"),
+):
+    """
+    View text file with optional filtering (head, tail, grep).
+
+    Returns HTML that can be embedded in the dashboard.
+    """
+    try:
+        target_path = Path(path).resolve()
+        if not target_path.exists():
+            raise HTTPException(
+                status_code=404, detail=f"Text file not found: {path}")
+
+        text_file = TextFile(str(target_path))
+        text_file._load_impl()  # Load file content
+
+        # Apply filters
+        if grep:
+            filtered = text_file.grep(grep)
+        elif head:
+            filtered = text_file.head(head)
+        elif tail:
+            filtered = text_file.tail(tail)
+        else:
+            filtered = text_file
+
+        html = filtered.render_html(line_numbers=line_numbers)
+
+        return HTMLResponse(content=html)
+
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.exception(f"Error generating text viewer HTML for {path}")
         raise HTTPException(
             status_code=500, detail=f"Error generating viewer: {str(e)}"
         )
@@ -434,7 +738,8 @@ def generate_qa_notebook_endpoint(request: QANotebookRequest):
     try:
         # Run QA
         thresholds = (
-            QaThresholds(**(request.thresholds or {})) if request.thresholds else None
+            QaThresholds(**(request.thresholds or {})
+                         ) if request.thresholds else None
         )
 
         qa_result = run_ms_qa(
@@ -526,7 +831,8 @@ def browse_qa_directory(
                     type=item.file_type,
                     size=item.size,
                     modified_time=(
-                        datetime.fromtimestamp(item.mtime) if item.mtime else None
+                        datetime.fromtimestamp(
+                            item.mtime) if item.mtime else None
                     ),
                     is_dir=item.is_dir,
                 )
@@ -544,6 +850,10 @@ def browse_qa_directory(
     except Exception as e:
         logger.exception(f"Error browsing QA directory {qa_root}")
         raise HTTPException(
+            status_code=500, detail=f"Error browsing QA directory: {str(e)}"
+        )
+
+
 # Demo/Viewer Page
 # ============================================================================
 
@@ -966,6 +1276,3 @@ def visualization_viewer():
 </html>
     """
     return HTMLResponse(content=html_content)
-=======
-            status_code=500, detail=f"Error browsing QA directory: {str(e)}"
-        )

@@ -75,14 +75,14 @@ export default function CasaTableViewer({ tablePath }: CasaTableViewerProps) {
 
   if (!tablePath) {
     return (
-      <Paper sx={{ p: 3 }}>
+      <Paper sx={{ p: 3, bgcolor: 'background.paper', height: '100%' }}>
         <Alert severity="info">Select a CASA table to view</Alert>
       </Paper>
     );
   }
 
   return (
-    <Paper sx={{ p: 2 }}>
+    <Paper sx={{ p: 2, bgcolor: 'background.paper', height: '100%', display: 'flex', flexDirection: 'column' }}>
       <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 2 }}>
         <TableChart />
         <Typography variant="h6">CASA Table Viewer</Typography>

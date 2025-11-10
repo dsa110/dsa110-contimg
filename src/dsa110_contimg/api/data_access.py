@@ -5,7 +5,7 @@ from __future__ import annotations
 import json as _json
 import sqlite3
 from contextlib import closing
-from datetime import datetime
+from datetime import datetime, timedelta
 from pathlib import Path
 from typing import List, Optional
 
@@ -14,9 +14,11 @@ from dsa110_contimg.api.models import (
     CalibrationSet,
     CalibratorMatch,
     CalibratorMatchGroup,
+    ObservationTimeline,
     ProductEntry,
     QueueGroup,
     QueueStats,
+    TimelineSegment,
 )
 
 from .models import PointingHistoryEntry
@@ -700,3 +702,102 @@ def fetch_alert_history(products_db: Path, limit: int = 50) -> List[dict]:
         )
 
     return alerts
+
+
+def fetch_observation_timeline(
+    data_dir: Path, gap_threshold_hours: float = 24.0
+) -> ObservationTimeline:
+    """Scan /data/incoming/ for HDF5 files and compute timeline segments.
+    
+    Groups timestamps into segments where data exists, with gaps larger than
+    gap_threshold_hours separating segments.
+    
+    Args:
+        data_dir: Directory to scan for HDF5 files (typically /data/incoming/)
+        gap_threshold_hours: Maximum gap in hours before starting a new segment
+        
+    Returns:
+        ObservationTimeline with segments and statistics
+    """
+    if not data_dir.exists():
+        return ObservationTimeline()
+    
+    # Collect all unique timestamps from HDF5 files
+    timestamps = []
+    file_count_by_timestamp: dict[datetime, int] = {}
+    
+    for root, _, files in data_dir.rglob("*"):
+        for filename in files:
+            if not filename.endswith(".hdf5"):
+                continue
+            
+            try:
+                # Parse timestamp from filename
+                # Format: YYYY-MM-DDTHH:MM:SS_sbXX.hdf5
+                parts = filename.split("_sb")
+                if len(parts) != 2:
+                    continue
+                
+                timestamp_str = parts[0]
+                timestamp = datetime.strptime(timestamp_str, "%Y-%m-%dT%H:%M:%S")
+                
+                timestamps.append(timestamp)
+                file_count_by_timestamp[timestamp] = (
+                    file_count_by_timestamp.get(timestamp, 0) + 1
+                )
+            except (ValueError, IndexError):
+                continue
+    
+    if not timestamps:
+        return ObservationTimeline()
+    
+    # Sort timestamps
+    timestamps = sorted(set(timestamps))
+    
+    # Group into segments based on gap threshold
+    segments: List[TimelineSegment] = []
+    gap_threshold = timedelta(hours=gap_threshold_hours)
+    
+    if timestamps:
+        current_segment_start = timestamps[0]
+        current_segment_end = timestamps[0]
+        current_file_count = file_count_by_timestamp[timestamps[0]]
+        
+        for i in range(1, len(timestamps)):
+            gap = timestamps[i] - current_segment_end
+            
+            if gap <= gap_threshold:
+                # Continue current segment
+                current_segment_end = timestamps[i]
+                current_file_count += file_count_by_timestamp[timestamps[i]]
+            else:
+                # Start new segment
+                segments.append(
+                    TimelineSegment(
+                        start_time=current_segment_start,
+                        end_time=current_segment_end,
+                        file_count=current_file_count,
+                    )
+                )
+                current_segment_start = timestamps[i]
+                current_segment_end = timestamps[i]
+                current_file_count = file_count_by_timestamp[timestamps[i]]
+        
+        # Add final segment
+        segments.append(
+            TimelineSegment(
+                start_time=current_segment_start,
+                end_time=current_segment_end,
+                file_count=current_file_count,
+            )
+        )
+    
+    total_files = sum(file_count_by_timestamp.values())
+    
+    return ObservationTimeline(
+        earliest_time=timestamps[0] if timestamps else None,
+        latest_time=timestamps[-1] if timestamps else None,
+        total_files=total_files,
+        unique_timestamps=len(timestamps),
+        segments=segments,
+    )

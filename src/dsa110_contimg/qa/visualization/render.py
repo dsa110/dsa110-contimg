@@ -206,3 +206,230 @@ def display_html(html: str) -> None:
         >>> display_html("<p>Hello</p>")
     """
     display(HTML(html))
+
+
+def htmlize(text: str) -> str:
+    """
+    Convert text to HTML-safe format.
+
+    Escapes HTML special characters and converts newlines to <br>.
+
+    Args:
+        text: Text to convert
+
+    Returns:
+        HTML-safe string
+
+    Example:
+        >>> htmlize("Hello <world>")
+        'Hello &lt;world&gt;'
+    """
+    return (
+        _escape_html(text)
+        .replace("\n", "<br>")
+        .replace("  ", "&nbsp;&nbsp;")
+    )
+
+
+def render_url(path: str) -> str:
+    """
+    Convert a file path to a URL for HTML display.
+
+    Args:
+        path: File system path
+
+    Returns:
+        URL string (file:// URL for absolute paths, relative path otherwise)
+    """
+    import os
+    import urllib.parse
+
+    if os.path.isabs(path):
+        # Convert absolute path to file:// URL
+        return urllib.parse.urljoin("file://", urllib.parse.quote(path))
+    else:
+        # Return relative path as-is
+        return path
+
+
+def render_titled_content(
+    title_html: str,
+    content_html: str,
+    buttons_html: Optional[str] = None,
+    collapsed: Optional[bool] = None,
+) -> str:
+    """
+    Render content with title and optional collapsible section.
+
+    Args:
+        title_html: HTML for the title
+        content_html: HTML for the content
+        buttons_html: Optional HTML for action buttons
+        collapsed: If True, section starts collapsed
+
+    Returns:
+        HTML string
+    """
+    collapsible_id = f"collapsible_{id(content_html)}"
+    collapsed_class = "collapsed" if collapsed else ""
+    collapse_style = "display: none;" if collapsed else ""
+
+    html = f"""
+    <div class="qa-collapsible-section {collapsed_class}">
+        <div class="qa-section-header" onclick="toggleSection('{collapsible_id}')">
+            {title_html}
+            <span class="qa-toggle-icon">▼</span>
+        </div>
+        <div id="{collapsible_id}" class="qa-section-content" style="{collapse_style}">
+            {content_html}
+        </div>
+    </div>
+    <script>
+    if (typeof toggleSection === 'undefined') {{
+        function toggleSection(id) {{
+            var content = document.getElementById(id);
+            var header = content.previousElementSibling;
+            var icon = header.querySelector('.qa-toggle-icon');
+            if (content.style.display === 'none') {{
+                content.style.display = 'block';
+                icon.textContent = '▼';
+                header.parentElement.classList.remove('collapsed');
+            }} else {{
+                content.style.display = 'none';
+                icon.textContent = '▶';
+                header.parentElement.classList.add('collapsed');
+            }}
+        }}
+    }}
+    </script>
+    <style>
+    .qa-collapsible-section {{
+        margin: 10px 0;
+        border: 1px solid #ddd;
+        border-radius: 4px;
+    }}
+    .qa-section-header {{
+        padding: 10px;
+        background-color: #f5f5f5;
+        cursor: pointer;
+        user-select: none;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+    }}
+    .qa-section-header:hover {{
+        background-color: #e5e5e5;
+    }}
+    .qa-toggle-icon {{
+        font-size: 0.8em;
+        color: #666;
+    }}
+    .qa-section-content {{
+        padding: 10px;
+    }}
+    .qa-collapsible-section.collapsed .qa-toggle-icon {{
+        transform: rotate(-90deg);
+    }}
+    </style>
+    """
+    return html
+
+
+def render_refresh_button(content: Optional[str] = None, style: Optional[str] = None) -> str:
+    """
+    Render a refresh button.
+
+    Args:
+        content: Button content (default: refresh icon)
+        style: Optional CSS style
+
+    Returns:
+        HTML string for refresh button
+    """
+    if content is None:
+        content = "↻"
+    if style is None:
+        style = "padding: 2px 5px; cursor: pointer; border: 1px solid #ccc; background: #f5f5f5;"
+    return f'<button onclick="location.reload()" style="{style}">{content}</button>'
+
+
+class RenderingProxy:
+    """
+    Proxy object for deferred rendering with method chaining.
+
+    Allows methods like .thumbs() to be called with optional arguments
+    and render only when needed.
+    """
+
+    def __init__(self, elem, method: str, name: str, arg0: Optional[str] = None, kwargs: Optional[dict] = None):
+        """
+        Initialize a rendering proxy.
+
+        Args:
+            elem: Element to render
+            method: Method name to call
+            name: Display name for the proxy
+            arg0: Optional first positional argument name
+            kwargs: Optional keyword arguments
+        """
+        self._elem = elem
+        self._name = name
+        self._method = method
+        self._kw = kwargs or {}
+        self._arg0 = arg0
+
+    def __call__(self, *args, **kwargs):
+        """
+        Call the proxy with arguments.
+
+        Args:
+            *args: Positional arguments
+            **kwargs: Keyword arguments
+
+        Returns:
+            New RenderingProxy with updated arguments
+        """
+        kw = self._kw.copy()
+        kw.update(kwargs)
+
+        # Handle single positional argument if arg0 is specified
+        if self._arg0:
+            if args:
+                if len(args) > 1:
+                    raise TypeError(f"at most one non-keyword argument expected in call to {self._name}()")
+                kw[self._arg0] = args[0]
+
+        return RenderingProxy(self._elem, self._method, self._name, arg0=self._arg0, kwargs=kw)
+
+    def render_html(self, **kwargs) -> str:
+        """
+        Render the proxy as HTML.
+
+        Args:
+            **kwargs: Additional keyword arguments
+
+        Returns:
+            HTML string
+        """
+        kw = self._kw.copy()
+        kw.update(kwargs)
+        html = getattr(self._elem, self._method)(**kw)
+        if isinstance(html, RenderingProxy):
+            return html.render_html(**kw)
+        return html
+
+    def show(self, **kwargs) -> None:
+        """
+        Display the rendered HTML.
+
+        Args:
+            **kwargs: Additional keyword arguments
+        """
+        if HAS_IPYTHON:
+            display(HTML(self.render_html(**kwargs)))
+        else:
+            print(self.render_html(**kwargs))
+
+    def _repr_html_(self) -> str:
+        """HTML representation for Jupyter."""
+        return self.render_html()

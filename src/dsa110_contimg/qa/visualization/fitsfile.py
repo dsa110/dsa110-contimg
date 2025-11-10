@@ -184,7 +184,13 @@ class FITSFile(FileBase):
         return self.basename
 
     def show(
-        self, js9_id: Optional[str] = None, width: int = 600, height: int = 600
+        self,
+        js9_id: Optional[str] = None,
+        width: int = 600,
+        height: int = 600,
+        dual_window: bool = False,
+        scale: str = "linear",
+        colormap: str = "grey",
     ) -> None:
         """
         Display FITS file using JS9 viewer.
@@ -193,6 +199,9 @@ class FITSFile(FileBase):
             js9_id: Optional JS9 display ID (auto-generated if not provided)
             width: Display width in pixels
             height: Display height in pixels
+            dual_window: If True, use dual-window JS9 display
+            scale: Image scaling ("linear", "log", "sqrt", "squared", "histeq", "minmax")
+            colormap: Color map name ("grey", "heat", "cool", "cubehelix", etc.)
         """
         self.mark_shown()
 
@@ -224,7 +233,9 @@ class FITSFile(FileBase):
             summary_html = self._render_summary_html()
 
             # JS9 display HTML
-            js9_html = self._render_js9_html(width=width, height=height)
+            js9_html = self._render_js9_html(
+                width=width, height=height, dual_window=dual_window, scale=scale, colormap=colormap
+            )
 
             # Combine and display
             full_html = summary_html + js9_html
@@ -253,52 +264,110 @@ class FITSFile(FileBase):
         html += "</div>"
         return html
 
-    def _render_js9_html(self, width: int = 600, height: int = 600) -> str:
+    def _render_js9_html(
+        self,
+        width: int = 600,
+        height: int = 600,
+        dual_window: bool = False,
+        scale: str = "linear",
+        colormap: str = "grey",
+    ) -> str:
         """
         Render JS9 viewer HTML.
 
         Args:
             width: Display width in pixels
             height: Display height in pixels
+            dual_window: If True, use dual-window JS9 display
+            scale: Image scaling
+            colormap: Color map name
 
         Returns:
             HTML string for JS9 viewer
         """
         js9_id = self._js9_id or f"js9_{uuid.uuid4().hex[:8]}"
 
+        # Check if image is large (needs segmentation)
+        shape = self.shape
+        is_large = False
+        max_slice_size = 2048  # Default max slice size
+
+        if shape and len(shape) >= 2:
+            # Check if either dimension exceeds max_slice_size
+            if shape[0] > max_slice_size or shape[1] > max_slice_size:
+                is_large = True
+
         # Note: JS9.Load() expects a URL, not a file path
         # For local files, we need to serve them or use a data URL
         # For now, we'll use the file path and let JS9 handle it
         # In a production setup, files should be served via HTTP
 
-        html = f"""
-        <div class="qa-js9-container" id="{js9_id}_container" style="margin: 10px 0;">
-            <div id="{js9_id}" class="js9" style="width: {width}px; height: {height}px; border: 1px solid #ccc;"></div>
-        </div>
-        <script>
-        (function() {{
-            var js9Id = "{js9_id}";
-            var fitsPath = "{self.fullpath}";
-            
-            function loadFITS() {{
-                if (typeof JS9 !== 'undefined') {{
-                    // JS9 is available
-                    JS9.Load(fitsPath, {{
-                        display: js9Id,
-                        scale: "linear",
-                        colormap: "grey"
-                    }});
-                }} else {{
-                    // JS9 not loaded yet, wait a bit and try again
-                    setTimeout(loadFITS, 100);
+        if dual_window:
+            # Dual window display
+            html = f"""
+            <div class="qa-js9-container" id="{js9_id}_container" style="margin: 10px 0;">
+                <div style="display: flex; gap: 10px;">
+                    <div id="{js9_id}_1" class="js9" style="width: {width}px; height: {height}px; border: 1px solid #ccc;"></div>
+                    <div id="{js9_id}_2" class="js9" style="width: {width}px; height: {height}px; border: 1px solid #ccc;"></div>
+                </div>
+            </div>
+            <script>
+            (function() {{
+                var js9Id1 = "{js9_id}_1";
+                var js9Id2 = "{js9_id}_2";
+                var fitsPath = "{self.fullpath}";
+                
+                function loadFITS() {{
+                    if (typeof JS9 !== 'undefined') {{
+                        // Load same file in both windows
+                        JS9.Load(fitsPath, {{
+                            display: js9Id1,
+                            scale: "{scale}",
+                            colormap: "{colormap}"
+                        }});
+                        JS9.Load(fitsPath, {{
+                            display: js9Id2,
+                            scale: "{scale}",
+                            colormap: "{colormap}"
+                        }});
+                    }} else {{
+                        setTimeout(loadFITS, 100);
+                    }}
                 }}
-            }}
-            
-            // Try to load immediately
-            loadFITS();
-        }})();
-        </script>
-        """
+                
+                loadFITS();
+            }})();
+            </script>
+            """
+        else:
+            # Single window display
+            html = f"""
+            <div class="qa-js9-container" id="{js9_id}_container" style="margin: 10px 0;">
+                <div id="{js9_id}" class="js9" style="width: {width}px; height: {height}px; border: 1px solid #ccc;"></div>
+            </div>
+            <script>
+            (function() {{
+                var js9Id = "{js9_id}";
+                var fitsPath = "{self.fullpath}";
+                
+                function loadFITS() {{
+                    if (typeof JS9 !== 'undefined') {{
+                        var options = {{
+                            display: js9Id,
+                            scale: "{scale}",
+                            colormap: "{colormap}"
+                        }};
+                        {"options.maxSliceSize = " + str(max_slice_size) + ";" if is_large else ""}
+                        JS9.Load(fitsPath, options);
+                    }} else {{
+                        setTimeout(loadFITS, 100);
+                    }}
+                }}
+                
+                loadFITS();
+            }})();
+            </script>
+            """
         return html
 
     def _repr_html_(self) -> str:

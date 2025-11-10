@@ -7,8 +7,6 @@ Tests the new _build_weighted_mosaic_linearmosaic function with real data.
 
 from dsa110_contimg.mosaic.cli import (
     _build_weighted_mosaic_linearmosaic,
-    _build_weighted_mosaic_imregrid_immath,
-    _build_weighted_mosaic
 )
 from dsa110_contimg.mosaic.validation import TileQualityMetrics
 import sqlite3
@@ -31,10 +29,58 @@ def get_test_tiles(mosaic_id=None, max_tiles=3):
     # Try to find tiles directly from filesystem
     stage_dir = Path("/stage/dsa110-contimg/images")
     if stage_dir.exists():
-        # First try CASA image directories
-        tiles = list(stage_dir.glob("*.image"))
+        # First try FITS files (preferred - we'll convert to CASA)
+        fits_tiles = []
+        for fits_file in sorted(stage_dir.glob("*.fits")):
+            name = fits_file.name
+            # Look for image tiles (not PB, not beam)
+            if "img-image.fits" in name and "pb" not in name and "beam" not in name:
+                # Check if corresponding PB exists
+                pb_name = name.replace("img-image.fits", "img-image-pb.fits")
+                pb_path = stage_dir / pb_name
+                if pb_path.exists():
+                    fits_tiles.append(str(fits_file))
+                    if len(fits_tiles) >= max_tiles:
+                        break
+
+        if fits_tiles:
+            # Convert FITS to CASA format
+            import tempfile
+            import shutil
+            from casatasks import importfits
+
+            temp_dir = tempfile.mkdtemp(prefix="linearmosaic_test_")
+            casa_tiles = []
+
+            LOG.info(
+                f"Found {len(fits_tiles)} FITS tiles with PB images, converting to CASA images...")
+            for i, fits_tile in enumerate(fits_tiles):
+                casa_tile = os.path.join(temp_dir, f"tile_{i}.image")
+                try:
+                    importfits(fitsimage=fits_tile,
+                               imagename=casa_tile, overwrite=True)
+                    casa_tiles.append(casa_tile)
+                    LOG.info(
+                        f"  Converted {Path(fits_tile).name} -> {Path(casa_tile).name}")
+                except Exception as e:
+                    LOG.warning(f"  Failed to convert {fits_tile}: {e}")
+
+            if casa_tiles:
+                LOG.info(
+                    f"Using {len(casa_tiles)} converted tiles from {stage_dir}")
+                return casa_tiles
+
+        # Fallback: try CASA image directories (but filter out PB images)
+        tiles = []
+        for casa_dir in sorted(stage_dir.glob("*.image")):
+            name = casa_dir.name
+            # Skip PB images and beam images
+            if "pb" not in name.lower() and "beam" not in name.lower() and "img-image" in name:
+                tiles.append(str(casa_dir))
+                if len(tiles) >= max_tiles:
+                    break
+
         if tiles:
-            tiles = [str(t) for t in tiles[:max_tiles]]
             LOG.info(f"Found {len(tiles)} CASA image tiles in {stage_dir}")
             return tiles
 
@@ -266,7 +312,7 @@ def test_fallback():
     print(f"   Output: {output_path}")
 
     try:
-        _build_weighted_mosaic_imregrid_immath(
+        _build_weighted_mosaic(
             tiles=tiles,
             metrics_dict=metrics_dict,
             output_path=output_path

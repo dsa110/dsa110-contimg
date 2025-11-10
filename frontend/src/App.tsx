@@ -17,6 +17,7 @@ import StreamingPage from './pages/StreamingPage';
 import DataBrowserPage from './pages/DataBrowserPage';
 import DataDetailPage from './pages/DataDetailPage';
 import QAVisualizationPage from './pages/QAVisualizationPage';
+import QACartaPage from './pages/QACartaPage';
 import { isRetryableError } from './utils/errorUtils';
 
 // Create React Query client factory function
@@ -29,7 +30,12 @@ function makeQueryClient() {
           if (failureCount >= 3) {
             return false;
           }
-          return isRetryableError(error);
+          // Safely check if error is retryable, return false if check fails
+          try {
+            return isRetryableError(error);
+          } catch {
+            return false;
+          }
         },
         retryDelay: (attemptIndex) => {
           // Exponential backoff: 1s, 2s, 4s
@@ -44,7 +50,12 @@ function makeQueryClient() {
           if (failureCount >= 1) {
             return false;
           }
-          return isRetryableError(error);
+          // Safely check if error is retryable, return false if check fails
+          try {
+            return isRetryableError(error);
+          } catch {
+            return false;
+          }
         },
         retryDelay: 1000,
       },
@@ -81,22 +92,42 @@ function AppContent() {
             <BrowserRouter basename={basename}>
             <Box sx={{ display: 'flex', flexDirection: 'column', minHeight: '100vh' }}>
               <Navigation />
-              <Box component="main" sx={{ flexGrow: 1 }}>
-                <ErrorBoundary>
-                  <Routes>
-                    <Route path="/" element={<Navigate to="/dashboard" replace />} />
-                    <Route path="/dashboard" element={<DashboardPage />} />
-                    <Route path="/control" element={<ControlPage />} />
-                    <Route path="/mosaics" element={<MosaicGalleryPage />} />
-                    <Route path="/mosaics/:mosaicId" element={<MosaicViewPage />} />
-                    <Route path="/sources" element={<SourceMonitoringPage />} />
-                    <Route path="/sky" element={<SkyViewPage />} />
-                    <Route path="/streaming" element={<StreamingPage />} />
-                    <Route path="/data" element={<DataBrowserPage />} />
-                    <Route path="/data/:type/:id" element={<DataDetailPage />} />
-                    <Route path="/qa" element={<QAVisualizationPage />} />
-                  </Routes>
-                </ErrorBoundary>
+              <Box 
+                component="main" 
+                sx={{ 
+                  flexGrow: 1,
+                  width: '100%',
+                  display: 'flex',
+                  justifyContent: 'center'
+                }}
+              >
+                <Box
+                  sx={{
+                    width: '100%',
+                    maxWidth: '1536px', // MUI xl breakpoint
+                    px: { xs: 2, sm: 3, md: 4 },
+                    display: 'flex',
+                    flexDirection: 'column',
+                    alignItems: 'stretch' // Stretch children to container width, but container respects maxWidth
+                  }}
+                >
+                  <ErrorBoundary>
+                    <Routes>
+                      <Route path="/" element={<Navigate to="/dashboard" replace />} />
+                      <Route path="/dashboard" element={<DashboardPage />} />
+                      <Route path="/control" element={<ControlPage />} />
+                      <Route path="/mosaics" element={<MosaicGalleryPage />} />
+                      <Route path="/mosaics/:mosaicId" element={<MosaicViewPage />} />
+                      <Route path="/sources" element={<SourceMonitoringPage />} />
+                      <Route path="/sky" element={<SkyViewPage />} />
+                      <Route path="/streaming" element={<StreamingPage />} />
+                      <Route path="/data" element={<DataBrowserPage />} />
+                      <Route path="/data/:type/:id" element={<DataDetailPage />} />
+                      <Route path="/qa" element={<QAVisualizationPage />} />
+                      <Route path="/qa/carta" element={<QACartaPage />} />
+                    </Routes>
+                  </ErrorBoundary>
+                </Box>
               </Box>
             </Box>
           </BrowserRouter>

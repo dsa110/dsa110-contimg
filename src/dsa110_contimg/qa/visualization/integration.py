@@ -6,7 +6,7 @@ and notebook generation.
 """
 
 from pathlib import Path
-from typing import Any, Dict, List, Optional
+from typing import Optional
 
 try:
     from dsa110_contimg.qa.casa_ms_qa import QaResult
@@ -18,7 +18,7 @@ except ImportError:
 
 from .datadir import ls
 from .notebook import generate_qa_notebook
-from .render import display_html, render_status_message
+from .render import render_status_message
 
 try:
     from IPython.display import HTML, display
@@ -27,7 +27,7 @@ try:
 except ImportError:
     HAS_IPYTHON = False
 
-    def display(*args, **kwargs):
+    def display(*args, **kwargs):  # noqa: ARG001
         pass
 
     HTML = str
@@ -55,23 +55,35 @@ def generate_qa_notebook_from_result(
         >>> notebook = generate_qa_notebook_from_result(result)
     """
     if not HAS_QA:
-        raise ImportError("dsa110_contimg.qa.casa_ms_qa is required for QA integration")
+        raise ImportError(
+            "dsa110_contimg.qa.casa_ms_qa is required for QA integration"
+        )
 
     ms_path = result.ms_path if include_ms else None
-    qa_root = str(Path(result.artifacts[0]).parent) if result.artifacts else None
+    qa_root = (
+        str(Path(result.artifacts[0]).parent) if result.artifacts else None
+    )
 
     # Filter artifacts to include only relevant ones
     artifacts = []
     for artifact in result.artifacts:
         artifact_path = Path(artifact)
-        # Include FITS files, images, and other visualizable files
+        # Include FITS files, images, text files, and other visualizable files
         if artifact_path.suffix.lower() in [
             ".fits",
             ".png",
             ".jpg",
             ".jpeg",
             ".gif",
+            ".svg",
             ".pdf",
+            ".html",
+            ".htm",
+        ]:
+            artifacts.append(artifact)
+        # Include text/log files
+        elif artifact_path.suffix.lower() in [
+            ".txt", ".log", ".out", ".err", ".dat", ".csv"
         ]:
             artifacts.append(artifact)
         # Include MS files
@@ -135,7 +147,9 @@ def display_qa_summary(result: QaResult) -> None:
         >>> display_qa_summary(result)
     """
     if not HAS_QA:
-        raise ImportError("dsa110_contimg.qa.casa_ms_qa is required for QA integration")
+        raise ImportError(
+            "dsa110_contimg.qa.casa_ms_qa is required for QA integration"
+        )
 
     if not HAS_IPYTHON:
         # Fallback to print
@@ -174,7 +188,8 @@ def display_qa_summary(result: QaResult) -> None:
     if result.artifacts:
         html += "<h4>Artifacts</h4>"
         artifacts_data = [
-            (i + 1, Path(artifact).name) for i, artifact in enumerate(result.artifacts)
+            (i + 1, Path(artifact).name)
+            for i, artifact in enumerate(result.artifacts)
         ]
         html += render_table(
             artifacts_data,
@@ -207,7 +222,9 @@ def enhance_qa_with_notebook(
         >>> # Notebook is now in enhanced.artifacts
     """
     if not HAS_QA:
-        raise ImportError("dsa110_contimg.qa.casa_ms_qa is required for QA integration")
+        raise ImportError(
+            "dsa110_contimg.qa.casa_ms_qa is required for QA integration"
+        )
 
     if auto_generate:
         try:
@@ -217,12 +234,12 @@ def enhance_qa_with_notebook(
             )
             # Add notebook to artifacts
             result.artifacts.append(notebook_path)
-        except Exception as e:
+        except Exception as e:  # noqa: BLE001
             # Don't fail QA if notebook generation fails
             import logging
 
             logger = logging.getLogger(__name__)
-            logger.warning(f"Failed to generate QA notebook: {e}")
+            logger.warning("Failed to generate QA notebook: %s", e)
 
     return result
 
@@ -244,7 +261,7 @@ def create_qa_explorer_notebook(
     Example:
         >>> notebook = create_qa_explorer_notebook("state/qa")
     """
-    from .notebook import generate_qa_notebook
+    from .notebook import generate_qa_notebook  # noqa: PLC0414
 
     # Find MS files and artifacts in QA directory
     qa_dir = ls(qa_root, recursive=True)

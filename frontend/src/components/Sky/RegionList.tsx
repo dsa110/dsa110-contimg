@@ -124,11 +124,11 @@ export default function RegionList({
         {regions.map((region: any) => (
           <ListItem
             key={region.id}
-            selected={selectedRegionId === region.id}
             onClick={() => onRegionSelect?.(region)}
             sx={{
               cursor: 'pointer',
               opacity: hiddenRegions.has(region.id) ? 0.5 : 1,
+              backgroundColor: selectedRegionId === region.id ? 'action.selected' : 'transparent',
             }}
           >
             <ListItemText

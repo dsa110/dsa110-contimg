@@ -61,16 +61,25 @@ def generate_qa_notebook(
             title += f" ({Path(qa_root).name})"
 
     timestamp = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
-    nb.cells.append(
-        nbformat.v4.new_markdown_cell(f"# {title}\n\nGenerated: {timestamp}")
-    )
+    # Use Title() from layouts for better formatting
+    title_code = f"""
+# Display notebook title
+from dsa110_contimg.qa.visualization import Title
+Title("{title}", sections=["MS", "QA Directory", "Artifacts"])
+print(f"Generated: {timestamp}")
+"""
+    nb.cells.append(nbformat.v4.new_code_cell(title_code))
 
     # Add imports cell
     imports_code = """
 # QA Visualization Framework
 from dsa110_contimg.qa.visualization import (
     FITSFile,
+    ImageFile,
+    TextFile,
     CasaTable,
+    Title,
+    Section,
     ls,
     init_js9,
     render_table,
@@ -90,6 +99,7 @@ from pathlib import Path
     if ms_path:
         ms_code = f"""
 # Browse Measurement Set
+Section("MS", refreshable=False)
 ms = CasaTable("{ms_path}")
 ms.show()
 
@@ -105,6 +115,7 @@ print(f"\\nColumn names: {{ms.columns[:10]}}...")
     if qa_root:
         qa_code = f"""
 # Browse QA output directory
+Section("QA Directory", refreshable=False)
 qa_dir = ls("{qa_root}")
 qa_dir.show()
 
@@ -113,32 +124,67 @@ fits_files = qa_dir.fits
 if fits_files:
     print(f"Found {{len(fits_files)}} FITS files")
     fits_files.show()
+
+# Find image files
+images = qa_dir.images
+if images:
+    print(f"\\nFound {{len(images)}} image files")
+    images.show()
+
+# Find text/log files
+text_files = [
+    f for f in qa_dir
+    if hasattr(f, 'fullpath') and
+    str(f.fullpath).endswith(('.log', '.txt', '.out', '.err'))
+]
+if text_files:
+    print(f"\\nFound {{len(text_files)}} text/log files")
 """
         nb.cells.append(nbformat.v4.new_code_cell(qa_code))
 
     # Add artifact viewing cells
     if artifacts:
-        nb.cells.append(nbformat.v4.new_markdown_cell("## Artifacts"))
+        artifacts_code = """
+Section("Artifacts", refreshable=False)
+"""
+        nb.cells.append(nbformat.v4.new_code_cell(artifacts_code))
 
         for artifact in artifacts:
             artifact_path = Path(artifact)
             if artifact_path.suffix.lower() == ".fits":
-                # FITS file
+                # FITS file - use enhanced features
                 fits_code = f"""
 # View FITS file: {artifact_path.name}
 fits = FITSFile("{artifact}")
-fits.show()
+# Use enhanced features: dual-window for comparison, configurable scale/colormap
+fits.show(dual_window=False, scale="linear", colormap="grey")
 """
                 nb.cells.append(nbformat.v4.new_code_cell(fits_code))
-            elif artifact_path.suffix.lower() in [".png", ".jpg", ".jpeg", ".gif"]:
-                # Image file
+            elif artifact_path.suffix.lower() in [
+                ".png", ".jpg", ".jpeg", ".gif", ".svg"
+            ]:
+                # Image file - use ImageFile class
                 img_code = f"""
 # Display image: {artifact_path.name}
-from IPython.display import Image, display
-img_path = "{artifact}"
-display(Image(img_path))
+img = ImageFile("{artifact}")
+img.show()
+# Or show as thumbnail
+# img.render_thumb(width=300)
 """
                 nb.cells.append(nbformat.v4.new_code_cell(img_code))
+            elif artifact_path.suffix.lower() in [
+                ".txt", ".log", ".out", ".err", ".dat"
+            ]:
+                # Text file - use TextFile class
+                text_code = f"""
+# View text file: {artifact_path.name}
+text = TextFile("{artifact}")
+# Show first 50 lines
+text.head(50).show()
+# Or use grep to search
+# text.grep("ERROR").show()
+"""
+                nb.cells.append(nbformat.v4.new_code_cell(text_code))
             elif artifact_path.suffix.lower() == ".ms" or artifact_path.is_dir():
                 # CASA table
                 table_code = f"""

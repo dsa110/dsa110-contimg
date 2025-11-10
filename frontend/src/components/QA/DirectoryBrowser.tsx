@@ -15,7 +15,7 @@ import {
   Chip,
   List,
   ListItem,
-  ListItemText,
+  ListItemButton,
   ListItemIcon,
   IconButton,
   Breadcrumbs,
@@ -29,8 +29,10 @@ import {
   NavigateNext,
   Refresh,
   Home,
+  ViewList,
+  ViewModule,
 } from '@mui/icons-material';
-import { useDirectoryListing } from '../../api/queries';
+import { useDirectoryListing, useDirectoryThumbnails } from '../../api/queries';
 import type { DirectoryEntry } from '../../api/types';
 
 /**
@@ -70,6 +72,8 @@ export default function DirectoryBrowser({
   const [recursive, setRecursive] = useState(false);
   const [includePattern, setIncludePattern] = useState('');
   const [excludePattern, setExcludePattern] = useState('');
+  const [viewMode, setViewMode] = useState<'list' | 'thumbnails'>('list');
+  const [thumbnailCols] = useState<number | undefined>(undefined);
   const debounceTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   // Debounce path changes - only update debouncedPath after user stops typing for 500ms
@@ -99,6 +103,19 @@ export default function DirectoryBrowser({
     includePattern || undefined,
     excludePattern || undefined,
     false
+  );
+
+  // Thumbnail catalog query
+  const { data: thumbnailHtml, isLoading: thumbnailsLoading } = useDirectoryThumbnails(
+    viewMode === 'thumbnails' ? debouncedPath : null,
+    recursive,
+    includePattern || undefined,
+    excludePattern || undefined,
+    thumbnailCols,
+    0,
+    8,
+    true,
+    undefined
   );
 
   const handlePathClick = (path: string, isDir: boolean) => {
@@ -160,17 +177,40 @@ export default function DirectoryBrowser({
   });
 
   return (
-    <Paper sx={{ p: 2 }}>
+    <Paper sx={{ p: 2, bgcolor: 'background.paper', height: '100%', display: 'flex', flexDirection: 'column' }}>
       <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 2 }}>
         <Typography variant="h6">Directory Browser</Typography>
-        <Button
-          startIcon={<Refresh />}
-          onClick={() => refetch()}
-          disabled={isLoading}
-          size="small"
-        >
-          Refresh
-        </Button>
+        <Box sx={{ display: 'flex', gap: 1 }}>
+          <Button
+            variant={viewMode === 'list' ? 'contained' : 'outlined'}
+            startIcon={<ViewList />}
+            onClick={() => setViewMode('list')}
+            size="small"
+          >
+            List
+          </Button>
+          <Button
+            variant={viewMode === 'thumbnails' ? 'contained' : 'outlined'}
+            startIcon={<ViewModule />}
+            onClick={() => setViewMode('thumbnails')}
+            size="small"
+          >
+            Thumbnails
+          </Button>
+          <Button
+            startIcon={<Refresh />}
+            onClick={() => {
+              refetch();
+              if (viewMode === 'thumbnails') {
+                // Thumbnails will refetch automatically via query invalidation
+              }
+            }}
+            disabled={isLoading || thumbnailsLoading}
+            size="small"
+          >
+            Refresh
+          </Button>
+        </Box>
       </Box>
 
       <Box sx={{ mb: 2 }}>
@@ -265,55 +305,93 @@ export default function DirectoryBrowser({
         </Box>
       )}
 
-      {data && !isLoading && (
-        <List>
+      {viewMode === 'list' && data && !isLoading && (
+        <List sx={{ flex: 1, overflow: 'auto', bgcolor: 'background.paper' }}>
           {data.entries.length === 0 ? (
             <Alert severity="info">No entries found</Alert>
           ) : (
-            data.entries.map((entry) => (
+            data.entries.map((entry: DirectoryEntry) => (
               <ListItem
                 key={entry.path}
-                button
-                onClick={() => handlePathClick(entry.path, entry.is_dir)}
+                disablePadding
                 sx={{
-                  '&:hover': { bgcolor: 'action.hover' },
                   borderBottom: '1px solid',
                   borderColor: 'divider',
                 }}
               >
-                <ListItemIcon>{getIcon(entry.type)}</ListItemIcon>
-                <ListItemText
-                  primary={
-                    <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                      <Typography variant="body1">{entry.name}</Typography>
-                      <Chip label={entry.type} size="small" color={getTypeColor(entry.type)} />
-                    </Box>
-                  }
-                  secondary={
-                    <Box sx={{ display: 'flex', gap: 2, mt: 0.5 }}>
-                      <Typography variant="caption" color="text.secondary">
-                        {entry.size || 'N/A'}
-                      </Typography>
-                      {entry.modified_time && (
-                        <Typography variant="caption" color="text.secondary">
-                          {new Date(entry.modified_time).toLocaleString()}
+                <ListItemButton
+                  onClick={() => handlePathClick(entry.path, entry.is_dir)}
+                  sx={{
+                    bgcolor: 'background.paper',
+                    '&:hover': { bgcolor: 'action.hover' },
+                    flexDirection: 'column',
+                    alignItems: 'flex-start',
+                    py: 1.5,
+                  }}
+                >
+                  <Box sx={{ display: 'flex', alignItems: 'center', width: '100%' }}>
+                    <ListItemIcon sx={{ minWidth: 40 }}>{getIcon(entry.type)}</ListItemIcon>
+                    <Box sx={{ flex: 1, minWidth: 0 }}>
+                      <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 0.5 }}>
+                        <Typography variant="body1" component="span" sx={{ fontWeight: 500 }}>
+                          {entry.name}
                         </Typography>
-                      )}
+                        <Chip label={entry.type} size="small" color={getTypeColor(entry.type)} />
+                      </Box>
+                      <Box sx={{ display: 'flex', gap: 2 }}>
+                        <Typography variant="caption" color="text.secondary" component="span">
+                          {entry.size || 'N/A'}
+                        </Typography>
+                        {entry.modified_time && (
+                          <Typography variant="caption" color="text.secondary" component="span">
+                            {new Date(entry.modified_time).toLocaleString()}
+                          </Typography>
+                        )}
+                      </Box>
                     </Box>
-                  }
-                />
-                {entry.is_dir && (
-                  <IconButton size="small" onClick={(e) => {
-                    e.stopPropagation();
-                    handlePathClick(entry.path, true);
-                  }}>
-                    <NavigateNext />
-                  </IconButton>
-                )}
+                    {entry.is_dir && (
+                      <IconButton
+                        size="small"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          handlePathClick(entry.path, true);
+                        }}
+                        sx={{ ml: 'auto' }}
+                      >
+                        <NavigateNext />
+                      </IconButton>
+                    )}
+                  </Box>
+                </ListItemButton>
               </ListItem>
             ))
           )}
         </List>
+      )}
+
+      {viewMode === 'thumbnails' && (
+        <Box sx={{ flex: 1, overflow: 'auto', bgcolor: 'background.paper', p: 2 }}>
+          {thumbnailsLoading ? (
+            <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', minHeight: 200 }}>
+              <CircularProgress />
+            </Box>
+          ) : thumbnailHtml ? (
+            <Box
+              dangerouslySetInnerHTML={{ __html: thumbnailHtml }}
+              sx={{
+                '& .qa-thumb-item': {
+                  cursor: 'pointer',
+                },
+                '& .qa-thumb-item:hover': {
+                  transform: 'scale(1.05)',
+                  transition: 'transform 0.2s',
+                },
+              }}
+            />
+          ) : (
+            <Alert severity="info">No thumbnails available</Alert>
+          )}
+        </Box>
       )}
     </Paper>
   );

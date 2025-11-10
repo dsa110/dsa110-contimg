@@ -139,14 +139,27 @@ class GroupDetail(BaseModel):
     writer_type: str | None = None
 
 
+class DiskInfo(BaseModel):
+    """Disk usage information for a specific mount point."""
+
+    mount_point: str = Field(..., description="Mount point path (e.g., '/stage/', '/data/')")
+    total: int = Field(..., description="Total disk space in bytes")
+    used: int = Field(..., description="Used disk space in bytes")
+    free: int = Field(..., description="Free disk space in bytes")
+    percent: float = Field(..., description="Disk usage percentage")
+
+
 class SystemMetrics(BaseModel):
     ts: datetime
     cpu_percent: float | None = None
     mem_percent: float | None = None
     mem_total: int | None = None
     mem_used: int | None = None
-    disk_total: int | None = None
-    disk_used: int | None = None
+    disk_total: int | None = None  # Deprecated: kept for backward compatibility
+    disk_used: int | None = None  # Deprecated: kept for backward compatibility
+    disks: List[DiskInfo] = Field(
+        default_factory=list, description="Disk usage information for multiple mount points"
+    )
     load_1: float | None = None
     load_5: float | None = None
     load_15: float | None = None
@@ -177,6 +190,33 @@ class PointingHistoryEntry(BaseModel):
 
 class PointingHistoryList(BaseModel):
     items: List[PointingHistoryEntry]
+
+
+class TimelineSegment(BaseModel):
+    """A time segment where observation data exists on disk."""
+
+    start_time: datetime = Field(..., description="Start time of the segment")
+    end_time: datetime = Field(..., description="End time of the segment")
+    file_count: int = Field(..., description="Number of HDF5 files in this segment")
+
+
+class ObservationTimeline(BaseModel):
+    """Timeline of observations from HDF5 files on disk."""
+
+    earliest_time: datetime | None = Field(
+        None, description="Earliest observation timestamp found"
+    )
+    latest_time: datetime | None = Field(
+        None, description="Latest observation timestamp found"
+    )
+    total_files: int = Field(0, description="Total number of HDF5 files found")
+    unique_timestamps: int = Field(
+        0, description="Number of unique observation timestamps"
+    )
+    segments: List[TimelineSegment] = Field(
+        default_factory=list,
+        description="Time segments where data exists (grouped by proximity)",
+    )
 
 
 # Control panel job models

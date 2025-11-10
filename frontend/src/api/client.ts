@@ -65,6 +65,11 @@ apiClient.interceptors.response.use(
     (error as { errorType?: string }).errorType = classified.type;
 
     // Retry logic for retryable errors
+    // Check if error.config exists (it may be undefined for non-Axios errors)
+    if (!error.config) {
+      return Promise.reject(error);
+    }
+    
     const config = error.config as InternalAxiosRequestConfig & { _retryCount?: number };
     const retryCount = config._retryCount || 0;
     const maxRetries = 3;

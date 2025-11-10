@@ -9,6 +9,8 @@ from datetime import datetime
 from pathlib import Path
 from typing import Optional
 
+from .thumbnail import get_cache_file, render_thumbnail_html
+
 
 class FileBase:
     """
@@ -123,6 +125,36 @@ class FileBase:
         self.mark_shown()
         raise NotImplementedError("Subclasses must implement show()")
 
+    def _get_cache_file(
+        self, cache_type: str, extension: str, keydict: Optional[dict] = None
+    ) -> tuple:
+        """
+        Get cache file path for this file.
+
+        Args:
+            cache_type: Type of cache (e.g., "thumbs", "html-render")
+            extension: File extension for cache file
+            keydict: Optional dictionary of cache parameters
+
+        Returns:
+            Tuple of (cache_file_path, cache_file_url, needs_update)
+        """
+        return get_cache_file(self.fullpath, cache_type, extension, keydict)
+
+    def render_thumb(self, width: Optional[int] = None, **kwargs) -> str:
+        """
+        Render a thumbnail for this file.
+
+        Args:
+            width: Optional thumbnail width
+            **kwargs: Additional rendering options
+
+        Returns:
+            HTML string for thumbnail
+        """
+        # Default implementation - subclasses should override
+        return f'<a href="{self.fullpath}" target="_blank">{self.basename}</a>'
+
     def __str__(self) -> str:
         """String representation."""
         return f"{self.__class__.__name__}({self.path})"
@@ -191,10 +223,14 @@ def autodetect_file_type(path: str):
 
     if ext == ".fits":
         return "fits"
-    elif ext in [".png", ".jpg", ".jpeg", ".gif"]:
+    elif ext in [".png", ".jpg", ".jpeg", ".gif", ".svg"]:
         return "image"
     elif ext in [".html", ".htm"]:
         return "html"
+    elif ext == ".pdf":
+        return "pdf"
+    elif ext in [".txt", ".log", ".out", ".err", ".dat", ".csv"]:
+        return "text"
     elif ext == ".ms":
         return "casatable"
 
