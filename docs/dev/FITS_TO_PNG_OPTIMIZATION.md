@@ -37,6 +37,27 @@ For arrays > 10M pixels, automatically downsamples before processing:
 
 ## Implementation Details
 
+### Normalization Method
+
+Uses **ZScale normalization** (adopted from VAST Tools), which is superior to percentile-based methods for astronomical images:
+
+- **ZScaleInterval**: Specifically designed for astronomical images
+- **AsinhStretch**: Handles wide dynamic range better than linear stretch
+- **Better outlier handling**: More robust to noise and background variations
+- **Fallback**: If ZScale fails, falls back to percentile normalization
+
+```python
+from astropy.visualization import ZScaleInterval, ImageNormalize, AsinhStretch
+
+normalize = ImageNormalize(
+    arr[m],  # Use finite values for interval calculation
+    interval=ZScaleInterval(contrast=0.2),
+    stretch=AsinhStretch()
+)
+```
+
+### Downsampling
+
 ```python
 # Automatic downsampling for large arrays
 n_pixels = arr.size
@@ -76,8 +97,22 @@ png_files = save_png_from_fits(['large_mosaic.fits'])
 - Original FITS files are not modified
 - Quality is maintained for visualization purposes (block averaging preserves structure)
 
+## Comparison with VAST Tools
+
+**VAST Tools Approach:**
+- Uses `ZScaleInterval` with `ImageNormalize`
+- Option for `AsinhStretch` or `LinearStretch`
+- Standard for astronomical image visualization
+
+**Our Implementation:**
+- Adopted VAST Tools approach (ZScale + AsinhStretch)
+- Matches industry standard for astronomical images
+- Better than previous percentile-based method
+
 ## Related Files
 
 - `src/dsa110_contimg/imaging/export.py` - Implementation
+- `src/dsa110_contimg/qa/postage_stamps.py` - Also uses ZScale normalization
 - `docs/reference/LINEARMOSAIC_PARAMETERS.md` - Mosaic building documentation
+- `archive/references/vast-tools/vasttools/source.py` - VAST Tools reference
 

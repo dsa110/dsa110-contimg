@@ -261,7 +261,12 @@ def show_all_cutouts(
     outfile: Optional[str] = None,
     normalize_method: str = 'zscale',
     show_beam: bool = True,
-    plot_dpi: int = 150
+    plot_dpi: int = 150,
+    disable_autoscaling: bool = False,
+    cmap: str = 'gray_r',
+    contrast: float = 0.1,
+    mjy_conversion: bool = True,
+    percentile: float = 99.9
 ) -> Optional[plt.Figure]:
     """
     Display all cutouts for a source in a grid layout.
@@ -278,6 +283,12 @@ def show_all_cutouts(
         normalize_method: Normalization method ('zscale' or 'percentile')
         show_beam: Show beam ellipse on each cutout
         plot_dpi: DPI for saved figure
+        disable_autoscaling: If True, each cutout uses its own normalization.
+                           If False (default), uses shared normalization from first cutout.
+        cmap: Colormap name (default: 'gray_r' for cutouts, matches VAST Tools)
+        contrast: Contrast for ZScale normalization (default: 0.1 for grid views)
+        mjy_conversion: Convert Jy to mJy for display (default: True)
+        percentile: Percentile for percentile normalization (default: 99.9)
     
     Returns:
         matplotlib.figure.Figure if save=False, None otherwise

@@ -45,6 +45,11 @@ def save_png_from_fits(paths: Iterable[str]) -> List[str]:
         import matplotlib
         import numpy as np
         from astropy.io import fits
+        from astropy.visualization import (
+            ZScaleInterval,
+            ImageNormalize,
+            AsinhStretch,
+        )
 
         from dsa110_contimg.utils.runtime_safeguards import validate_image_shape
 
@@ -105,22 +110,54 @@ def save_png_from_fits(paths: Iterable[str]) -> List[str]:
                         print(
                             f"Downsampled by factor {factor} for faster processing")
 
-                vals = arr[m]
-                lo, hi = np.percentile(vals, [1.0, 99.5])
-                img = np.clip(arr, lo, hi)
-                img = np.arcsinh((img - lo) / max(1e-12, (hi - lo)))
-                img[~m] = np.nan
-                plt.figure(figsize=(6, 5), dpi=140)
-                plt.imshow(img, origin="lower", cmap="inferno",
-                           interpolation="nearest")
-                plt.colorbar(fraction=0.046, pad=0.04)
-                plt.title(os.path.basename(f))
-                plt.tight_layout()
-                out = f + ".png"
-                plt.savefig(out, bbox_inches="tight")
-                plt.close()
-                print("Wrote PNG:", out)
-                saved.append(out)
+                # Use ZScale normalization (better for astronomical images)
+                # This matches VAST Tools approach and handles outliers better
+                # than percentile-based methods
+                try:
+                    # Create ZScale normalization with asinh stretch
+                    # This is the standard approach for astronomical images
+                    # Use finite values for interval calculation, but apply to full array
+                    normalize = ImageNormalize(
+                        arr[m],  # Use finite values for interval calculation
+                        interval=ZScaleInterval(contrast=0.2),
+                        stretch=AsinhStretch()
+                    )
+                    
+                    # Set NaN values to 0 for display (they'll be outside the colormap range)
+                    arr_display = arr.copy()
+                    arr_display[~m] = 0
+                    
+                    plt.figure(figsize=(6, 5), dpi=140)
+                    im = plt.imshow(arr_display, origin="lower", cmap="inferno",
+                                   interpolation="nearest", norm=normalize)
+                    plt.colorbar(im, fraction=0.046, pad=0.04, label='Flux (Jy/beam)')
+                    plt.title(os.path.basename(f))
+                    plt.tight_layout()
+                    out = f + ".png"
+                    plt.savefig(out, bbox_inches="tight")
+                    plt.close()
+                    print("Wrote PNG:", out)
+                    saved.append(out)
+                except Exception as norm_error:
+                    # Fallback to simple percentile normalization if ZScale fails
+                    import logging
+                    logging.warning(f"ZScale normalization failed, using percentile fallback: {norm_error}")
+                    vals = arr[m]
+                    lo, hi = np.percentile(vals, [1.0, 99.5])
+                    img = np.clip(arr, lo, hi)
+                    img = np.arcsinh((img - lo) / max(1e-12, (hi - lo)))
+                    img[~m] = np.nan
+                    plt.figure(figsize=(6, 5), dpi=140)
+                    plt.imshow(img, origin="lower", cmap="inferno",
+                               interpolation="nearest")
+                    plt.colorbar(fraction=0.046, pad=0.04)
+                    plt.title(os.path.basename(f))
+                    plt.tight_layout()
+                    out = f + ".png"
+                    plt.savefig(out, bbox_inches="tight")
+                    plt.close()
+                    print("Wrote PNG:", out)
+                    saved.append(out)
         except Exception as e:
             print("PNG conversion failed for", f, ":",
                   e, file=__import__("sys").stderr)
