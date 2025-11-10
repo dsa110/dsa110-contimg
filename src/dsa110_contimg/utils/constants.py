@@ -4,8 +4,8 @@ Constants for DSA-110 continuum imaging pipeline.
 Adapted from dsacalib.constants
 """
 
-import numpy as np
 import astropy.units as u
+import numpy as np
 from astropy.coordinates import EarthLocation
 
 # Observatory location (DSA-110)

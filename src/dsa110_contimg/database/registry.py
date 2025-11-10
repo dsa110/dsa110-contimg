@@ -54,7 +54,6 @@ from dataclasses import dataclass
 from pathlib import Path
 from typing import List, Optional, Sequence, Tuple
 
-
 DEFAULT_ORDER = [
     ("K", 10),  # delays
     ("BA", 20),  # bandpass amplitude

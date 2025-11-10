@@ -8,11 +8,11 @@ Provides helper functions for:
 - Disk space checking
 """
 
-import os
 import logging
+import os
 import shutil
 from pathlib import Path
-from typing import Optional, Tuple, Dict, Any
+from typing import Any, Dict, Optional, Tuple
 
 logger = logging.getLogger(__name__)
 
@@ -100,8 +100,8 @@ def validate_image_before_read(
     """
     # Import here to avoid circular imports
     from .exceptions import (
-        ImageReadError,
         ImageCorruptionError,
+        ImageReadError,
         IncompatibleImageFormatError,
     )
 
@@ -172,6 +172,7 @@ def validate_image_data(data, image_path: str, operation: str = "read") -> None:
         ImageCorruptionError: If data appears corrupted
     """
     import numpy as np
+
     from .exceptions import ImageCorruptionError
 
     if data is None:

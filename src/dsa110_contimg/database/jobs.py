@@ -2,11 +2,11 @@
 
 from __future__ import annotations
 
-import sqlite3
 import json
+import sqlite3
 import time
 from pathlib import Path
-from typing import Optional, Dict, Any
+from typing import Any, Dict, Optional
 
 
 def ensure_jobs_table(conn: sqlite3.Connection) -> None:

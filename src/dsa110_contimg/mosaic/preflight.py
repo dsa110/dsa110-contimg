@@ -8,10 +8,10 @@ adhering to "measure twice, cut once" philosophy.
 import logging
 import os
 from pathlib import Path
-from typing import List, Tuple, Dict, Optional
+from typing import Dict, List, Optional, Tuple
 
-from .validation import TileQualityMetrics, _find_pb_path
 from .error_handling import check_disk_space
+from .validation import TileQualityMetrics, _find_pb_path
 
 logger = logging.getLogger(__name__)
 

@@ -9,22 +9,22 @@ from unittest.mock import Mock, patch
 
 import pytest
 
-from dsa110_contimg.pipeline.config import PipelineConfig, PathsConfig, ConversionConfig
+from dsa110_contimg.pipeline.config import ConversionConfig, PathsConfig, PipelineConfig
 from dsa110_contimg.pipeline.context import PipelineContext
 from dsa110_contimg.pipeline.orchestrator import (
     PipelineOrchestrator,
-    StageDefinition,
     PipelineStatus,
+    StageDefinition,
     StageStatus,
 )
 from dsa110_contimg.pipeline.resilience import RetryPolicy, RetryStrategy
 from dsa110_contimg.pipeline.resources import ResourceManager
 from dsa110_contimg.pipeline.stages import PipelineStage
 from dsa110_contimg.pipeline.state import (
-    StateRepository,
-    SQLiteStateRepository,
     InMemoryStateRepository,
     JobState,
+    SQLiteStateRepository,
+    StateRepository,
 )
 from dsa110_contimg.pipeline.workflows import WorkflowBuilder
 
@@ -47,7 +47,7 @@ class MockStage(PipelineStage):
 
     def validate(self, context: PipelineContext):
         """Validate mock stage."""
-        from typing import Tuple, Optional
+        from typing import Optional, Tuple
 
         return True, None
 

@@ -4,15 +4,16 @@ Plotting utilities for validation results.
 Generates diagnostic plots for astrometry, flux scale, and completeness validation.
 """
 
-from dsa110_contimg.qa.catalog_validation import CatalogValidationResult
-import numpy as np
-import matplotlib.pyplot as plt
 import base64
 import io
 import logging
 from typing import List, Optional, Tuple
 
 import matplotlib
+import matplotlib.pyplot as plt
+import numpy as np
+
+from dsa110_contimg.qa.catalog_validation import CatalogValidationResult
 
 matplotlib.use("Agg", force=True)  # Headless backend
 

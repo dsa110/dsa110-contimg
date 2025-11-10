@@ -10,14 +10,15 @@ This creates a synthetic FITS image with:
 - Then performs forced photometry and compares measured vs expected fluxes.
 """
 
-import numpy as np
 from pathlib import Path
+
+import astropy.units as u
+import numpy as np
+from astropy.coordinates import SkyCoord
 from astropy.io import fits
 from astropy.wcs import WCS
-from astropy.coordinates import SkyCoord
-import astropy.units as u
 
-from dsa110_contimg.photometry.forced import measure_forced_peak, ForcedPhotometryResult
+from dsa110_contimg.photometry.forced import ForcedPhotometryResult, measure_forced_peak
 
 
 def create_synthetic_fits(
@@ -371,9 +372,9 @@ def test_forced_photometry_edge_sources(tmp_path):
 
 
 if __name__ == "__main__":
-    import tempfile
     import os
     import sys
+    import tempfile
     from pathlib import Path
 
     # Check for output directory from environment variable or command line

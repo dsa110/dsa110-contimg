@@ -15,8 +15,8 @@ from dataclasses import dataclass
 from pathlib import Path
 from typing import List, Optional, Tuple
 
-import pandas as pd
 import astropy.units as u
+import pandas as pd
 from astropy.time import Time
 
 from dsa110_contimg.calibration.catalogs import read_vla_parsed_catalog_csv
@@ -144,6 +144,7 @@ class CalibratorMSGenerator:
         in order until the calibrator is found.
         """
         import numpy as np
+
         from dsa110_contimg.calibration.catalogs import (
             load_vla_catalog_from_sqlite,
             read_vla_parsed_catalog_csv,
@@ -304,13 +305,14 @@ class CalibratorMSGenerator:
                 if full:
                     # IRON-CLAD SAFEGUARD: Verify calibrator is in primary beam
                     # Extract ACTUAL pointing RA and Dec from first file (not assumed)
-                    from dsa110_contimg.conversion.strategies.hdf5_orchestrator import (
-                        _peek_uvh5_phase_and_midtime,
-                    )
+                    import numpy as np
+
                     from dsa110_contimg.calibration.catalogs import (
                         airy_primary_beam_response,
                     )
-                    import numpy as np
+                    from dsa110_contimg.conversion.strategies.hdf5_orchestrator import (
+                        _peek_uvh5_phase_and_midtime,
+                    )
 
                     pt_ra_rad, pt_dec_rad, _ = _peek_uvh5_phase_and_midtime(gbest[0])
                     pt_ra_deg = float(pt_ra_rad.to_value(u.deg))
@@ -623,8 +625,10 @@ class CalibratorMSGenerator:
             - 'days_ago': Days since transit
             - 'has_ms': Boolean indicating if MS already exists
         """
-        import numpy as np
         from collections import defaultdict
+
+        import numpy as np
+
         from dsa110_contimg.calibration.schedule import cal_in_datetime
 
         # Load RA/Dec for calibrator

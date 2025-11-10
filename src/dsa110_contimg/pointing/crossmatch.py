@@ -10,13 +10,13 @@ import sqlite3
 from pathlib import Path
 from typing import Dict, List, Tuple
 
-import numpy as np
-import h5py
-from astropy.time import Time
 import astropy.units as u
+import h5py
+import numpy as np
+from astropy.time import Time
 
-from dsa110_contimg.calibration.schedule import DSA110_LOCATION, previous_transits
 from dsa110_contimg.calibration.catalogs import read_vla_parsed_catalog_csv
+from dsa110_contimg.calibration.schedule import DSA110_LOCATION, previous_transits
 from dsa110_contimg.database.products import ensure_products_db
 
 SB_RE = re.compile(r"^(.+)_sb(\d{2})\.hdf5$")

@@ -16,41 +16,41 @@ import logging
 import os
 import sqlite3
 import time
-from pathlib import Path
-from typing import Dict, List, Optional, Tuple, Callable, TypeVar
 from functools import wraps
+from pathlib import Path
+from typing import Callable, Dict, List, Optional, Tuple, TypeVar
 
-from astropy.coordinates import SkyCoord, EarthLocation
-from astropy.time import Time
 import astropy.units as u
+from astropy.coordinates import EarthLocation, SkyCoord
+from astropy.time import Time
 
-from dsa110_contimg.calibration.calibration import solve_bandpass, solve_gains
 from dsa110_contimg.calibration.applycal import apply_to_target
-from dsa110_contimg.calibration.selection import select_bandpass_from_catalog
+from dsa110_contimg.calibration.calibration import solve_bandpass, solve_gains
 from dsa110_contimg.calibration.model import populate_model_from_catalog
-from dsa110_contimg.mosaic.validation import validate_tiles_consistency
-from dsa110_contimg.database.registry import (
-    ensure_db as ensure_cal_db,
-    register_set_from_prefix,
-    get_active_applylist,
-)
+from dsa110_contimg.calibration.selection import select_bandpass_from_catalog
 from dsa110_contimg.database.products import (
     ensure_products_db,
-    ms_index_upsert,
-    images_insert,
-    register_storage_location,
     get_storage_locations,
+    images_insert,
+    ms_index_upsert,
+    register_storage_location,
+)
+from dsa110_contimg.database.registry import ensure_db as ensure_cal_db
+from dsa110_contimg.database.registry import (
+    get_active_applylist,
+    register_set_from_prefix,
 )
 from dsa110_contimg.imaging.cli import image_ms
+from dsa110_contimg.mosaic.validation import validate_tiles_consistency
+from dsa110_contimg.utils.ms_organization import (
+    determine_ms_type,
+    get_organized_ms_path,
+    organize_ms_file,
+)
 
 # Lazy import to avoid syntax errors in cli.py
 # from dsa110_contimg.mosaic.cli import _build_weighted_mosaic, _ensure_mosaics_table
 from dsa110_contimg.utils.time_utils import extract_ms_time_range
-from dsa110_contimg.utils.ms_organization import (
-    organize_ms_file,
-    get_organized_ms_path,
-    determine_ms_type,
-)
 
 logger = logging.getLogger(__name__)
 

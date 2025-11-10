@@ -13,10 +13,10 @@ from typing import Any, Dict, List, Optional, Tuple
 import numpy as np
 from astropy.coordinates import SkyCoord
 from astropy.io import fits
-from astropy.modeling import models, fitting
+from astropy.modeling import fitting, models
 from astropy.wcs import WCS
 from astropy.wcs.utils import skycoord_to_pixel
-from scipy import optimize, ndimage
+from scipy import ndimage, optimize
 
 LOG = logging.getLogger(__name__)
 

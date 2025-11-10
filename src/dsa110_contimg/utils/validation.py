@@ -8,10 +8,11 @@ Validation functions raise ValidationError when validation fails,
 ensuring type safety and enforcing the "parse, don't validate" principle.
 """
 
-from typing import Optional, List
-from pathlib import Path
 import os
 import shutil
+from pathlib import Path
+from typing import List, Optional
+
 import numpy as np
 
 # Import ValidationError from unified exception hierarchy
@@ -199,6 +200,7 @@ def validate_ms_for_calibration(
     if field:
         try:
             from casacore.tables import table
+
             from dsa110_contimg.calibration.calibration import _resolve_field_ids
 
             with table(ms_path, readonly=True) as tb:
@@ -245,8 +247,8 @@ def validate_ms_for_calibration(
                 suggestions = []
                 try:
                     from dsa110_contimg.utils.antenna_classification import (
-                        select_outrigger_refant,
                         get_outrigger_antennas,
+                        select_outrigger_refant,
                     )
 
                     outrigger_refant = select_outrigger_refant(

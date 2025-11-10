@@ -1,8 +1,8 @@
 """Mock data for enhanced dashboard features."""
 
-from datetime import datetime, timedelta
-from typing import List, Dict, Any
 import random
+from datetime import datetime, timedelta
+from typing import Any, Dict, List
 
 
 def generate_mock_ese_candidates(count: int = 5) -> List[Dict[str, Any]]:

@@ -1,11 +1,11 @@
-from typing import List, Optional, Union
 import os
+from typing import List, Optional, Union
 
 from casatasks import applycal as casa_applycal
 
 from dsa110_contimg.calibration.validate import (
-    validate_caltable_exists,
     validate_caltable_compatibility,
+    validate_caltable_exists,
     validate_caltables_for_use,
 )
 
@@ -23,8 +23,8 @@ def _verify_corrected_data_populated(ms_path: str, min_fraction: float = 0.01) -
     Raises:
         RuntimeError: If CORRECTED_DATA is not populated
     """
-    from casacore.tables import table  # type: ignore[import]
     import numpy as np  # type: ignore[import]
+    from casacore.tables import table  # type: ignore[import]
 
     try:
         with table(ms_path, readonly=True) as tb:

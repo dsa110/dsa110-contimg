@@ -17,9 +17,9 @@ from unittest.mock import MagicMock, patch
 import pytest
 
 from dsa110_contimg.calibration.caltable_paths import (
+    _get_n_spws_from_ms,
     get_expected_caltables,
     validate_caltables_exist,
-    _get_n_spws_from_ms,
 )
 
 

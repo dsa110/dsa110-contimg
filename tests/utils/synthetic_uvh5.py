@@ -10,6 +10,7 @@ Note: Requires pyuvdata installed in the active environment.
 
 from pathlib import Path
 from typing import Tuple, Union
+
 import numpy as np
 
 
@@ -21,8 +22,8 @@ def _make_minimal_uvdata(
     chan_bw_hz=1.0e6,
     source_flux_jy=10.0,
 ):
-    from pyuvdata import UVData
     from astropy.time import Time
+    from pyuvdata import UVData
 
     uv = UVData()
     ant_inds = np.arange(n_ants)

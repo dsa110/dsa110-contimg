@@ -5,8 +5,8 @@ and ensuring consistent table naming (keeping images, ms_index, mosaics
 instead of renaming to *_all variants).
 """
 
-import sqlite3
 import logging
+import sqlite3
 from pathlib import Path
 from typing import Optional
 

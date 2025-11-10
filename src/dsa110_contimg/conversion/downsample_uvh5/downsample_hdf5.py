@@ -12,12 +12,13 @@ Usage:
     python -m dsa110_contimg.conversion.downsample_uvh5.cli single input.uvh5 output.uvh5 --freq-factor 4
 """
 
+import argparse
+import logging
+import sys
+from pathlib import Path
+
 import h5py  # type: ignore
 import numpy as np
-import argparse
-from pathlib import Path
-import sys
-import logging
 
 # Configure logging
 logging.basicConfig(

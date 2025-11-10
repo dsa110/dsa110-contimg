@@ -14,14 +14,14 @@ Run with: pytest tests/unit/test_masking.py -v
 import os
 import sys
 from pathlib import Path
-from unittest.mock import patch, MagicMock, Mock
+from unittest.mock import MagicMock, Mock, patch
 
+import astropy.units as u
 import numpy as np
 import pytest
+from astropy.coordinates import SkyCoord
 from astropy.io import fits
 from astropy.wcs import WCS
-from astropy.coordinates import SkyCoord
-import astropy.units as u
 
 # Add src to path for imports
 sys.path.insert(0, str(Path(__file__).parent.parent.parent / "src"))
@@ -553,8 +553,9 @@ class TestMaskingConfiguration:
 
     def test_imaging_config_radius_validation(self):
         """Test ImagingConfig radius validation."""
-        from dsa110_contimg.pipeline.config import ImagingConfig
         from pydantic import ValidationError
+
+        from dsa110_contimg.pipeline.config import ImagingConfig
 
         # Test minimum bound
         with pytest.raises(ValidationError):
@@ -573,7 +574,7 @@ class TestMaskingConfiguration:
 
     def test_pipeline_config_from_dict_with_masking(self):
         """Test PipelineConfig.from_dict extracts masking parameters."""
-        from dsa110_contimg.pipeline.config import PipelineConfig, PathsConfig
+        from dsa110_contimg.pipeline.config import PathsConfig, PipelineConfig
 
         # Test with masking parameters at top level
         params = {

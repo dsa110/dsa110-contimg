@@ -13,6 +13,7 @@ from typing import Optional
 import numpy as np
 from casacore.tables import table  # type: ignore[import]
 from casatasks import mstransform  # type: ignore[import]
+
 from dsa110_contimg.utils.runtime_safeguards import require_casa6_python
 
 try:

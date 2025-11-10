@@ -21,15 +21,15 @@ Usage:
     data = filter_non_finite(data, min_points=10)
 """
 
-import sys
-import os
 import functools
+import os
+import sys
 import time
 import warnings
-from typing import Optional, Tuple, Any, Callable
+from typing import Any, Callable, Optional, Tuple
+
 import numpy as np
 from astropy.wcs import WCS
-
 
 # ============================================================================
 # Python Environment Safeguards

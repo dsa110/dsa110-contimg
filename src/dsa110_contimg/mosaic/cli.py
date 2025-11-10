@@ -28,25 +28,25 @@ try:
 except Exception:  # pragma: no cover
     prepare_temp_environment = None  # type: ignore
 
-from .validation import (
-    validate_tiles_consistency,
-    verify_astrometric_registration,
-    check_calibration_consistency,
-    check_primary_beam_consistency,
-    TileQualityMetrics,
-    _find_pb_path,
-    HAVE_CASACORE,
-)
 from .exceptions import (
-    MosaicError,
-    ImageReadError,
-    ImageCorruptionError,
-    MissingPrimaryBeamError,
-    IncompatibleImageFormatError,
     CASAToolError,
     GridMismatchError,
-    ValidationError,
+    ImageCorruptionError,
+    ImageReadError,
+    IncompatibleImageFormatError,
     MetricsGenerationError,
+    MissingPrimaryBeamError,
+    MosaicError,
+    ValidationError,
+)
+from .validation import (
+    HAVE_CASACORE,
+    TileQualityMetrics,
+    _find_pb_path,
+    check_calibration_consistency,
+    check_primary_beam_consistency,
+    validate_tiles_consistency,
+    verify_astrometric_registration,
 )
 
 LOG = logging.getLogger(__name__)
@@ -202,8 +202,9 @@ def cmd_plan(args: argparse.Namespace) -> int:
 
 def _check_consistent_tiles(tiles: List[str]) -> Tuple[bool, Optional[str]]:
     """Check basic grid consistency (legacy function)."""
-    from .cache import get_cache
     import numpy as np
+
+    from .cache import get_cache
 
     cache = get_cache()
     ref = None
@@ -293,12 +294,13 @@ def generate_mosaic_metrics(
 
     try:
         import numpy as np
+
         from .validation import _find_pb_path
 
         # Import CASA tools if available
         try:
-            from casatasks import exportfits, imregrid
             from casacore.images import image as casaimage
+            from casatasks import exportfits, imregrid
         except ImportError:
             exportfits = None
             imregrid = None
@@ -522,13 +524,14 @@ def _calculate_mosaic_bounds(tiles: List[str]) -> Tuple[float, float, float, flo
         Tuple of (RA_min, RA_max, Dec_min, Dec_max) in degrees
     """
     try:
+        import numpy as np
         from astropy.io import fits
         from astropy.wcs import WCS
+
         from dsa110_contimg.utils.runtime_safeguards import (
             validate_wcs_4d,
             wcs_pixel_to_world_safe,
         )
-        import numpy as np
     except ImportError:
         # Fallback: try using CASA to get coordinates
         import numpy as np
@@ -689,11 +692,12 @@ def _create_common_coordinate_system(
         Tuple of (template_image_path, shape) where template_image_path
         is the path to a CASA image with the desired coordinate system
     """
-    from casacore.images import image as casaimage
-    from casatasks import imregrid, immath
-    import numpy as np
-    import tempfile
     import os
+    import tempfile
+
+    import numpy as np
+    from casacore.images import image as casaimage
+    from casatasks import immath, imregrid
 
     if template_tile is None:
         raise ValueError("template_tile is required to create coordinate system")
@@ -972,14 +976,15 @@ def _build_weighted_mosaic(
     # For CLI builds, tiles should already be in chronological order from _fetch_tiles()
     # which orders by created_at ASC (which correlates with observation time).
     try:
-        from casatasks import immath, imregrid
-        from casacore.images import image as casaimage
         import numpy as np
+        from casacore.images import image as casaimage
+        from casatasks import immath, imregrid
+
         from .error_handling import (
-            safe_casaimage_open,
-            validate_image_data,
-            validate_image_before_read,
             handle_casa_tool_error,
+            safe_casaimage_open,
+            validate_image_before_read,
+            validate_image_data,
         )
     except ImportError as e:
         raise CASAToolError(
@@ -2399,7 +2404,7 @@ def cmd_build(args: argparse.Namespace) -> int:
 
     # Pre-flight validation: Check all pre-conditions before expensive operations
     print("Pre-flight validation: Checking pre-conditions...")
-    from .preflight import validate_preflight_conditions, estimate_resources
+    from .preflight import estimate_resources, validate_preflight_conditions
 
     # Check if PB images are required based on method
     require_pb = method == "weighted" or method == "pbweighted"
@@ -2704,6 +2709,7 @@ def cmd_build(args: argparse.Namespace) -> int:
         # Export FITS for the mosaic image for downstream photometry
         try:
             from casatasks import exportfits
+
             from .error_handling import handle_casa_tool_error
 
             exportfits(imagename=str(out), fitsimage=str(out) + ".fits", overwrite=True)

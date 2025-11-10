@@ -9,11 +9,11 @@ Uses caching to avoid redundant expensive operations.
 
 import logging
 import os
-import sys
 import sqlite3
-from dataclasses import dataclass, asdict
+import sys
+from dataclasses import asdict, dataclass
 from pathlib import Path
-from typing import Dict, List, Optional, Tuple, Any
+from typing import Any, Dict, List, Optional, Tuple
 
 import numpy as np
 
@@ -560,9 +560,10 @@ def verify_astrometric_registration(
 
     # Import catalog query functionality
     try:
-        from dsa110_contimg.catalog.query import query_sources
-        from astropy.coordinates import SkyCoord
         import astropy.units as u
+        from astropy.coordinates import SkyCoord
+
+        from dsa110_contimg.catalog.query import query_sources
     except ImportError as e:
         return False, [f"Catalog query module not available: {e}"], offsets_dict
 

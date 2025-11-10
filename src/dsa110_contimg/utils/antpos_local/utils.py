@@ -6,10 +6,10 @@ from dataclasses import dataclass
 from importlib import resources
 from typing import Iterable, Optional
 
+import astropy.units as u
 import numpy as np
 import pandas as pd
 from astropy.coordinates import EarthLocation
-import astropy.units as u
 
 __all__ = ["tee_centers", "get_lonlat", "get_itrf"]
 

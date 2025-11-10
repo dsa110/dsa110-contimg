@@ -5,13 +5,13 @@ This module provides file-based locking mechanisms to prevent race conditions
 when multiple processes attempt to operate on the same resource simultaneously.
 """
 
-import os
 import fcntl
-import time
 import logging
-from pathlib import Path
-from typing import Optional, ContextManager
+import os
+import time
 from contextlib import contextmanager
+from pathlib import Path
+from typing import ContextManager, Optional
 
 logger = logging.getLogger(__name__)
 

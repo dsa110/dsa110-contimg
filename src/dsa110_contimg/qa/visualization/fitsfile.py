@@ -8,11 +8,11 @@ similar to RadioPadre's FITSFile functionality.
 import os
 import sys
 import traceback
-from typing import Optional, Dict, List, Tuple
 import uuid
+from typing import Dict, List, Optional, Tuple
 
 try:
-    from IPython.display import display, HTML, Javascript
+    from IPython.display import HTML, Javascript, display
 
     HAS_IPYTHON = True
 except ImportError:
@@ -33,8 +33,8 @@ except ImportError:
     fits = None
 
 from .file import FileBase
-from .render import render_table, render_error, rich_string
-from .js9 import init_js9, get_js9_init_html, JS9_ERROR
+from .js9 import JS9_ERROR, get_js9_init_html, init_js9
+from .render import render_error, render_table, rich_string
 
 
 class FITSFile(FileBase):

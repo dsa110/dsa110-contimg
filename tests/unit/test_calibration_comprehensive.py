@@ -109,8 +109,8 @@ class TestMSPhasing:
 
     def test_phase_center_alignment(self):
         """Test that phase center alignment calculation works."""
-        from astropy.coordinates import SkyCoord  # type: ignore
         from astropy import units as u  # type: ignore
+        from astropy.coordinates import SkyCoord  # type: ignore
 
         # Calibrator position (0834+555)
         cal_coord = SkyCoord(ra=128.7287 * u.deg, dec=55.5725 * u.deg, frame="icrs")
@@ -220,8 +220,9 @@ class TestBandpassCalibration:
     def test_combine_spw_parameter(self):
         """Test that combine_spw parameter exists and works."""
         # This is a smoke test - verify parameter exists
-        from dsa110_contimg.calibration.calibration import solve_bandpass
         import inspect
+
+        from dsa110_contimg.calibration.calibration import solve_bandpass
 
         sig = inspect.signature(solve_bandpass)
         assert (
@@ -230,8 +231,9 @@ class TestBandpassCalibration:
 
     def test_combine_fields_parameter(self):
         """Test that combine_fields parameter exists and works."""
-        from dsa110_contimg.calibration.calibration import solve_bandpass
         import inspect
+
+        from dsa110_contimg.calibration.calibration import solve_bandpass
 
         sig = inspect.signature(solve_bandpass)
         assert (

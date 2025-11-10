@@ -4,8 +4,9 @@
 This phase-only gaincal output can be used as input to bandpass() via gaintable.
 The .gcal extension follows CASA naming conventions for gain calibration tables.
 """
-from casatasks import gaincal
 import os
+
+from casatasks import gaincal
 
 ms_path = "/stage/dsa110-contimg/ms/0834_20251029/2025-10-29T13:54:17.phased.ms"
 refant = "59"  # Middle antenna

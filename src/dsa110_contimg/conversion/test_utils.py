@@ -4,9 +4,9 @@ Utilities for creating test MS files.
 
 from __future__ import annotations
 
+import logging
 import os
 import shutil
-import logging
 from pathlib import Path
 from typing import Optional
 
@@ -118,6 +118,7 @@ def create_test_ms(
     # Build time selection
     # Use format detection to handle both TIME formats (seconds since MJD 0 vs MJD 51544.0)
     from astropy.time import Time
+
     from dsa110_contimg.utils.time_utils import detect_casa_time_format
 
     _, mjd_start = detect_casa_time_format(time_start)
@@ -216,8 +217,9 @@ def create_minimal_test_ms(output_ms: str, cleanup: bool = True) -> bool:
             synth_dir.mkdir()
 
             logger.info("1. Generating minimal synthetic UVH5 data...")
-            from dsa110_contimg.simulation.make_synthetic_uvh5 import main as make_synth
             import sys
+
+            from dsa110_contimg.simulation.make_synthetic_uvh5 import main as make_synth
 
             # Create minimal config inline or use defaults
             synth_args = [

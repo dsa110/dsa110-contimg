@@ -1,24 +1,26 @@
 # testing.py: partial read + tiny MS write
-from dsa110_contimg.conversion.helpers import (  # type: ignore[import]
-    set_antenna_positions,
+import os
+import shutil
+import sys
+import time
+
+import astropy.units as u
+import h5py
+import numpy as np
+from astropy.time import Time
+from pyuvdata import UVData
+
+from dsa110_contimg.conversion.helpers import (
+    get_meridian_coords,  # type: ignore[import]
 )
 from dsa110_contimg.conversion.helpers import (  # type: ignore[import]
     _ensure_antenna_diameters,
+    set_antenna_positions,
 )
-from dsa110_contimg.conversion.strategies import (  # type: ignore[import]
-    hdf5_orchestrator as orch,
+from dsa110_contimg.conversion.strategies import (
+    hdf5_orchestrator as orch,  # type: ignore[import]
 )
-from dsa110_contimg.conversion.helpers import get_meridian_coords  # type: ignore[import]
 from dsa110_contimg.utils.fringestopping import calc_uvw_blt  # type: ignore[import]
-import os
-import sys
-import shutil
-import time
-import numpy as np
-import h5py
-import astropy.units as u
-from astropy.time import Time
-from pyuvdata import UVData
 
 SRC_ROOT = "/data/dsa110-contimg/src"
 if SRC_ROOT not in sys.path:

@@ -1,10 +1,10 @@
 #!/usr/bin/env python3
 """Test complete pipeline stages on 1-minute MS (excluding mosaicking)."""
 
-import sys
-import os
-from pathlib import Path
 import logging
+import os
+import sys
+from pathlib import Path
 
 # Force unbuffered output for real-time visibility
 sys.stdout.reconfigure(line_buffering=True)
@@ -24,8 +24,8 @@ if os.environ.get("DISPLAY"):
     os.environ.pop("DISPLAY", None)
 
 from dsa110_contimg.utils.cli_helpers import (
-    setup_casa_environment,
     configure_logging_from_args,
+    setup_casa_environment,
 )
 from dsa110_contimg.utils.tempdirs import prepare_temp_environment
 
@@ -45,16 +45,17 @@ logging.basicConfig(
 LOG = logging.getLogger(__name__)
 print("Logging configured", flush=True)
 
-# Import pipeline modules
-from dsa110_contimg.conversion.ms_utils import configure_ms_for_imaging
-from dsa110_contimg.calibration.flagging import reset_flags, flag_zeros, flag_rfi
+from dsa110_contimg.calibration.applycal import apply_to_target
 from dsa110_contimg.calibration.calibration import (
-    solve_delay,
     solve_bandpass,
+    solve_delay,
     solve_gains,
 )
-from dsa110_contimg.calibration.applycal import apply_to_target
+from dsa110_contimg.calibration.flagging import flag_rfi, flag_zeros, reset_flags
 from dsa110_contimg.calibration.selection import select_bandpass_fields
+
+# Import pipeline modules
+from dsa110_contimg.conversion.ms_utils import configure_ms_for_imaging
 from dsa110_contimg.imaging.cli import image_ms
 from dsa110_contimg.utils.validation import validate_ms
 
@@ -68,8 +69,8 @@ def get_ms_metadata(ms_path):
     Returns:
         Tuple of (ra0_deg, dec0_deg, freq_ghz)
     """
-    from casacore.tables import table
     import numpy as np
+    from casacore.tables import table
 
     # Get phase center from FIELD table
     with table(f"{ms_path}::FIELD", readonly=True) as fld:
@@ -164,8 +165,8 @@ def test_pipeline_stages(ms_path, output_dir, skip_calibration=False):
             LOG.info("Populating MODEL_DATA with NVSS sources...")
             try:
                 from dsa110_contimg.calibration.skymodels import (
-                    make_nvss_component_cl,
                     ft_from_cl,
+                    make_nvss_component_cl,
                 )
 
                 # Get MS metadata in single optimized pass (faster than separate reads)

@@ -3,8 +3,8 @@
 Test script to verify all implementations work as intended (direct imports).
 """
 
-import sys
 import os
+import sys
 from pathlib import Path
 
 # Add src to path
@@ -188,8 +188,8 @@ def test_type_annotations():
     print("Testing: Type Annotations")
     print("=" * 70)
 
-    import inspect
     import importlib.util
+    import inspect
 
     spec = importlib.util.spec_from_file_location(
         "ms_helpers", Path("src/dsa110_contimg/utils/ms_helpers.py")

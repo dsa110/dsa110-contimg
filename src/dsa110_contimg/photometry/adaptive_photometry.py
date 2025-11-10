@@ -14,6 +14,7 @@ from typing import Callable, List, Optional, Tuple
 
 import numpy as np
 
+from dsa110_contimg.imaging.spw_imaging import get_spw_info, image_all_spws
 from dsa110_contimg.photometry.adaptive_binning import (
     AdaptiveBinningConfig,
     Detection,
@@ -21,11 +22,10 @@ from dsa110_contimg.photometry.adaptive_binning import (
     create_measure_fn_from_images,
 )
 from dsa110_contimg.photometry.forced import measure_forced_peak
-from dsa110_contimg.imaging.spw_imaging import get_spw_info, image_all_spws
 from dsa110_contimg.utils.runtime_safeguards import (
-    progress_monitor,
-    log_progress,
     filter_non_finite_2d,
+    log_progress,
+    progress_monitor,
 )
 
 LOG = logging.getLogger(__name__)

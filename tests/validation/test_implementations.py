@@ -3,8 +3,8 @@
 Test script to verify all implementations work as intended.
 """
 
-import sys
 import os
+import sys
 from pathlib import Path
 
 # Add src to path
@@ -17,13 +17,14 @@ def test_performance_metrics():
     print("Testing: Performance Metrics Module")
     print("=" * 70)
 
-    from dsa110_contimg.utils.performance import (
-        track_performance,
-        get_performance_stats,
-        clear_performance_metrics,
-        get_performance_summary,
-    )
     import time
+
+    from dsa110_contimg.utils.performance import (
+        clear_performance_metrics,
+        get_performance_stats,
+        get_performance_summary,
+        track_performance,
+    )
 
     # Test decorator
     @track_performance("test_operation")
@@ -66,12 +67,13 @@ def test_error_context():
     print("Testing: Error Context Module")
     print("=" * 70)
 
+    import tempfile
+
     from dsa110_contimg.utils.error_context import (
         format_error_with_context,
-        format_ms_error_with_suggestions,
         format_file_error_with_suggestions,
+        format_ms_error_with_suggestions,
     )
-    import tempfile
 
     # Test basic error formatting
     error = ValueError("Test error message")
@@ -108,14 +110,15 @@ def test_cache_stats():
     print("Testing: Cache Statistics Function")
     print("=" * 70)
 
+    import tempfile
+
     from dsa110_contimg.utils.ms_helpers import (
+        clear_flag_validation_cache,
+        clear_ms_metadata_cache,
         get_cache_stats,
         get_ms_metadata,
         validate_ms_unflagged_fraction,
-        clear_ms_metadata_cache,
-        clear_flag_validation_cache,
     )
-    import tempfile
 
     # Clear caches first
     clear_ms_metadata_cache()
@@ -192,8 +195,8 @@ def test_ms_helpers_optimizations():
     print("=" * 70)
 
     from dsa110_contimg.utils.ms_helpers import (
-        clear_ms_metadata_cache,
         clear_flag_validation_cache,
+        clear_ms_metadata_cache,
         get_cache_stats,
     )
 
@@ -227,9 +230,10 @@ def test_type_annotations():
     print("=" * 70)
 
     import inspect
+
     from dsa110_contimg.utils.ms_helpers import (
-        clear_ms_metadata_cache,
         clear_flag_validation_cache,
+        clear_ms_metadata_cache,
     )
 
     # Check return type annotations

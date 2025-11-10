@@ -5,9 +5,9 @@ Provides functions to programmatically generate Jupyter notebooks for QA
 reports and interactive data exploration.
 """
 
-from pathlib import Path
-from typing import Optional, List
 from datetime import datetime
+from pathlib import Path
+from typing import List, Optional
 
 try:
     import nbformat

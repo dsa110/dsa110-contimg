@@ -21,10 +21,11 @@ Example:
     ```
 """
 
+import logging
 import time
 from functools import wraps
-from typing import Dict, List, Any, Optional
-import logging
+from typing import Any, Dict, List, Optional
+
 import numpy as np
 
 logger = logging.getLogger(__name__)

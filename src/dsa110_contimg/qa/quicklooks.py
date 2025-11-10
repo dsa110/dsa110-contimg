@@ -8,13 +8,12 @@ invoked independently to avoid rerunning the full UVH5→MS conversion.
 import argparse
 import logging
 import os
-import sys
 import subprocess
+import sys
 import time
 from typing import List, Optional
 
 from .fast_plots import run_fast_plots
-
 
 LOG = logging.getLogger(__name__)
 

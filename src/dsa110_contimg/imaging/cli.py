@@ -8,33 +8,35 @@ Performs primary-beam correction and exports FITS products.
 Supports hybrid workflow: CASA ft() for model seeding + WSClean for fast imaging.
 """
 
-from dsa110_contimg.utils.validation import (
-    validate_ms,
-    validate_corrected_data_quality,
-    ValidationError,
-)
-from dsa110_contimg.utils.cli_helpers import (
-    setup_casa_environment,
-    add_common_logging_args,
-    configure_logging_from_args,
-    ensure_scratch_dirs,
-)
-from .cli_imaging import image_ms, run_wsclean as _run_wsclean
-from .cli_utils import (
-    detect_datacolumn as _detect_datacolumn,
-    default_cell_arcsec as _default_cell_arcsec,
-)
-from casatasks import tclean, exportfits  # type: ignore[import]
-from casacore.tables import table  # type: ignore[import]
-import numpy as np
 import argparse
 import logging
 import os
-import sys
-from typing import Optional
-import time
-import subprocess
 import shutil
+import subprocess
+import sys
+import time
+from typing import Optional
+
+import numpy as np
+from casacore.tables import table  # type: ignore[import]
+from casatasks import exportfits, tclean  # type: ignore[import]
+
+from dsa110_contimg.utils.cli_helpers import (
+    add_common_logging_args,
+    configure_logging_from_args,
+    ensure_scratch_dirs,
+    setup_casa_environment,
+)
+from dsa110_contimg.utils.validation import (
+    ValidationError,
+    validate_corrected_data_quality,
+    validate_ms,
+)
+
+from .cli_imaging import image_ms
+from .cli_imaging import run_wsclean as _run_wsclean
+from .cli_utils import default_cell_arcsec as _default_cell_arcsec
+from .cli_utils import detect_datacolumn as _detect_datacolumn
 
 logger = logging.getLogger(__name__)
 
@@ -44,8 +46,8 @@ logger = logging.getLogger(__name__)
 setup_casa_environment()
 
 try:
-    from casatools import vpmanager as _vpmanager  # type: ignore[import]
     from casatools import msmetadata as _msmd  # type: ignore[import]
+    from casatools import vpmanager as _vpmanager  # type: ignore[import]
 except Exception:  # pragma: no cover
     _vpmanager = None
     _msmd = None
@@ -55,8 +57,8 @@ LOG = logging.getLogger(__name__)
 try:
     # Ensure temp artifacts go to scratch and not the repo root
     from dsa110_contimg.utils.tempdirs import (
-        prepare_temp_environment,
         derive_default_scratch_root,
+        prepare_temp_environment,
     )
 except Exception:  # pragma: no cover - defensive import
     prepare_temp_environment = None  # type: ignore
@@ -360,10 +362,11 @@ def main(argv: Optional[list] = None) -> None:
     elif args.cmd == "export":
         from glob import glob
         from typing import List
+
         from dsa110_contimg.imaging.export import (
+            _find_casa_images,
             export_fits,
             save_png_from_fits,
-            _find_casa_images,
         )
 
         casa_images = _find_casa_images(args.source, args.prefix)

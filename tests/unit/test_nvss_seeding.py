@@ -11,7 +11,7 @@ Run with: pytest tests/unit/test_nvss_seeding.py -v
 import math
 import sys
 from pathlib import Path
-from unittest.mock import patch, MagicMock, Mock
+from unittest.mock import MagicMock, Mock, patch
 
 import numpy as np
 import pytest

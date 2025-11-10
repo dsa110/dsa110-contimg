@@ -1,16 +1,17 @@
 import logging
-from typing import Optional, List, Union
+from typing import List, Optional, Union
 
 logger = logging.getLogger(__name__)
 
-import os
 import fnmatch
+import os
+
 from casatasks import gaincal as casa_gaincal  # type: ignore[import]
 
 # setjy imported elsewhere; avoid unused import here
 from dsa110_contimg.calibration.validate import (
-    validate_caltable_exists,
     validate_caltable_compatibility,
+    validate_caltable_exists,
     validate_caltables_for_use,
 )
 from dsa110_contimg.conversion.merge_spws import get_spw_count
@@ -25,8 +26,8 @@ def _get_caltable_spw_count(caltable_path: str) -> Optional[int]:
     Returns:
         Number of unique SPWs, or None if unable to read
     """
-    from casacore.tables import table  # type: ignore[import]
     import numpy as np  # type: ignore[import]
+    from casacore.tables import table  # type: ignore[import]
 
     try:
         with table(caltable_path, readonly=True) as tb:
@@ -239,8 +240,8 @@ def solve_delay(
     (bright or faint). The calling code should verify MODEL_DATA exists and is
     populated before invoking solve_delay().
     """
-    from casacore.tables import table  # type: ignore[import]
     import numpy as np  # type: ignore[import]
+    from casacore.tables import table  # type: ignore[import]
 
     # Validate data availability before attempting calibration
     logger.info(f"Validating data for delay solve on field(s) {cal_field}...")
@@ -453,8 +454,8 @@ def solve_prebandpass_phase(
     Returns:
         Path to phase-only calibration table (to be passed to bandpass via gaintable)
     """
-    from casacore.tables import table  # type: ignore[import]
     import numpy as np  # type: ignore[import]
+    from casacore.tables import table  # type: ignore[import]
 
     if table_prefix is None:
         table_prefix = f"{os.path.splitext(ms)[0]}_{cal_field}"
@@ -650,8 +651,8 @@ def solve_bandpass(
     **NOTE**: `ktable` parameter is kept for API compatibility but is NOT used
     (K-calibration is not used for DSA-110 connected-element array).
     """
-    from casacore.tables import table  # type: ignore[import]
     import numpy as np  # type: ignore[import]
+    from casacore.tables import table  # type: ignore[import]
     from casatasks import bandpass as casa_bandpass  # type: ignore[import]
 
     if table_prefix is None:
@@ -856,7 +857,9 @@ def solve_bandpass(
         ):
             try:
                 # Prefer CASA smoothcal if available
-                from casatasks import smoothcal as casa_smoothcal  # type: ignore[import]
+                from casatasks import (
+                    smoothcal as casa_smoothcal,  # type: ignore[import]
+                )
 
                 logger.info(
                     f"Smoothing bandpass table '{table_prefix}_bpcal' with {bp_smooth_type} (window={bp_smooth_window})..."
@@ -920,8 +923,8 @@ def solve_gains(
     **NOTE**: `ktable` parameter is kept for API compatibility but is NOT used
     (K-calibration is not used for DSA-110 connected-element array).
     """
-    from casacore.tables import table  # type: ignore[import]
     import numpy as np  # type: ignore[import]
+    from casacore.tables import table  # type: ignore[import]
 
     if table_prefix is None:
         table_prefix = f"{os.path.splitext(ms)[0]}_{cal_field}"

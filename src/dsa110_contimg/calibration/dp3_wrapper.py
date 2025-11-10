@@ -24,12 +24,12 @@ Usage:
     )
 """
 
-import os
-import subprocess
 import logging
-from typing import List, Optional
-from pathlib import Path
+import os
 import shutil
+import subprocess
+from pathlib import Path
+from typing import List, Optional
 
 LOG = logging.getLogger(__name__)
 
@@ -84,10 +84,11 @@ def convert_nvss_to_dp3_skymodel(
         Format = Name, Type, Ra, Dec, I, SpectralIndex, LogarithmicSI, ReferenceFrequency='1400000000.0', MajorAxis, MinorAxis, Orientation
         s0c0,POINT,07:02:53.6790,+44:31:11.940,2.4,[-0.7],false,1400000000.0,,,
     """
-    from dsa110_contimg.calibration.catalogs import read_nvss_catalog
-    from astropy.coordinates import SkyCoord
     import astropy.units as u
     import numpy as np
+    from astropy.coordinates import SkyCoord
+
+    from dsa110_contimg.calibration.catalogs import read_nvss_catalog
 
     df = read_nvss_catalog()
     sc_all = SkyCoord(
@@ -157,8 +158,8 @@ def concatenate_fields_in_ms(ms_path: str, output_ms_path: str) -> str:
     Returns:
         Path to concatenated MS
     """
-    from casatasks import concat
     from casacore.tables import table
+    from casatasks import concat
 
     # Check field count
     field_table = table(ms_path + "/FIELD", readonly=True)
@@ -183,8 +184,8 @@ def _concatenate_fields_manual(ms_path: str, output_ms_path: str) -> str:
 
     This is simpler than using CASA concat and works for our use case.
     """
-    from casacore.tables import table
     import numpy as np
+    from casacore.tables import table
 
     LOG.info("Using manual field concatenation")
 
@@ -243,8 +244,9 @@ def prepare_ms_for_dp3(
     Returns:
         Path to prepared single-field MS
     """
-    from dsa110_contimg.calibration.cli_utils import rephase_ms_to_calibrator
     import logging
+
+    from dsa110_contimg.calibration.cli_utils import rephase_ms_to_calibrator
 
     logger = logging.getLogger(__name__)
 
@@ -319,8 +321,8 @@ def convert_skymodel_to_dp3(
             "Install with: pip install pyradiosky"
         )
 
-    from astropy.coordinates import Angle
     import astropy.units as u
+    from astropy.coordinates import Angle
 
     with open(out_path, "w") as f:
         # Write header

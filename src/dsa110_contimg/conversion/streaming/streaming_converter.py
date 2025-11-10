@@ -17,6 +17,7 @@ import re
 import shutil
 import sqlite3
 import subprocess
+import sys
 import tempfile
 import threading
 import time
@@ -24,8 +25,6 @@ from contextlib import contextmanager
 from datetime import datetime, timedelta
 from pathlib import Path
 from typing import Dict, Iterator, List, Optional, Sequence, Set, Tuple
-
-import sys
 
 try:
     from dsa110_contimg.utils.graphiti_logging import GraphitiRunLogger
@@ -48,31 +47,32 @@ except Exception:  # pragma: no cover - optional helper
             pass
 
 
-from casatasks import concat as casa_concat  # noqa
 from casacore.tables import table  # noqa
-from dsa110_contimg.calibration.calibration import (
-    solve_delay,
-    solve_bandpass,
-    solve_gains,
-)  # noqa
+from casatasks import concat as casa_concat  # noqa
+
 from dsa110_contimg.calibration.applycal import apply_to_target  # noqa
-from dsa110_contimg.imaging.cli import image_ms  # noqa
-from dsa110_contimg.database.registry import (
-    ensure_db as ensure_cal_db,
-    register_set_from_prefix,
-    get_active_applylist,
-)  # noqa
-from dsa110_contimg.database.products import (
+from dsa110_contimg.calibration.calibration import (  # noqa
+    solve_bandpass,
+    solve_delay,
+    solve_gains,
+)
+from dsa110_contimg.database.products import (  # noqa
     ensure_products_db,
-    ms_index_upsert,
     images_insert,
-)  # noqa
-from dsa110_contimg.utils.ms_organization import (
-    organize_ms_file,
-    determine_ms_type,
+    ms_index_upsert,
+)
+from dsa110_contimg.database.registry import ensure_db as ensure_cal_db  # noqa
+from dsa110_contimg.database.registry import (
+    get_active_applylist,
+    register_set_from_prefix,
+)
+from dsa110_contimg.imaging.cli import image_ms  # noqa
+from dsa110_contimg.utils.ms_organization import (  # noqa
     create_path_mapper,
+    determine_ms_type,
     extract_date_from_filename,
-)  # noqa
+    organize_ms_file,
+)
 
 try:  # Optional dependency for efficient file watching
     from watchdog.events import FileSystemEventHandler
@@ -822,10 +822,11 @@ def _worker_loop(args: argparse.Namespace, queue: QueueDB) -> None:
 
                     # Run catalog-based flux scale validation
                     try:
+                        from pathlib import Path
+
                         from dsa110_contimg.qa.catalog_validation import (
                             validate_flux_scale,
                         )
-                        from pathlib import Path
 
                         # Find PB-corrected FITS image (preferred for validation)
                         pbcor_fits = f"{imgroot}.pbcor.fits"

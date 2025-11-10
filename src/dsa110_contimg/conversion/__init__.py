@@ -28,12 +28,6 @@ configure_ms_for_imaging("observation.ms")
 - See `ARCHITECTURE_OPTIMIZATION_RECOMMENDATIONS.md` for design decisions
 """
 
-from .uvh5_to_ms import convert_single_file
-
-# Lazy import to avoid RuntimeWarning when running hdf5_orchestrator as module
-# python -m dsa110_contimg.conversion.strategies.hdf5_orchestrator
-from .ms_utils import configure_ms_for_imaging
-from .merge_spws import merge_spws, merge_spws_simple, get_spw_count
 from .calibrator_ms_service import CalibratorMSGenerator, CalibratorMSResult
 from .config import CalibratorMSConfig
 from .exceptions import (
@@ -44,7 +38,13 @@ from .exceptions import (
     TransitNotFoundError,
     ValidationError,
 )
+from .merge_spws import get_spw_count, merge_spws, merge_spws_simple
+
+# Lazy import to avoid RuntimeWarning when running hdf5_orchestrator as module
+# python -m dsa110_contimg.conversion.strategies.hdf5_orchestrator
+from .ms_utils import configure_ms_for_imaging
 from .progress import ProgressReporter
+from .uvh5_to_ms import convert_single_file
 
 
 def __getattr__(name: str):

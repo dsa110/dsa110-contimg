@@ -7,7 +7,7 @@ checking for artifacts, discontinuities, and statistical consistency.
 
 import logging
 from pathlib import Path
-from typing import Tuple, List, Dict, Any, Optional
+from typing import Any, Dict, List, Optional, Tuple
 
 import numpy as np
 

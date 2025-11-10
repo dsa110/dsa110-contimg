@@ -6,9 +6,9 @@ Test integration points where QA should be called but isn't yet.
 This identifies WHERE in the pipeline QA needs to be integrated.
 """
 
+import re
 import sys
 from pathlib import Path
-import re
 
 # Test 1: Search for conversion completion points
 print("=" * 70)

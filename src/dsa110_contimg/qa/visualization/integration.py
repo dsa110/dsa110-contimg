@@ -6,7 +6,7 @@ and notebook generation.
 """
 
 from pathlib import Path
-from typing import Optional, List, Dict, Any
+from typing import Any, Dict, List, Optional
 
 try:
     from dsa110_contimg.qa.casa_ms_qa import QaResult
@@ -16,12 +16,12 @@ except ImportError:
     HAS_QA = False
     QaResult = None  # type: ignore
 
-from .notebook import generate_qa_notebook
 from .datadir import ls
-from .render import render_status_message, display_html
+from .notebook import generate_qa_notebook
+from .render import display_html, render_status_message
 
 try:
-    from IPython.display import display, HTML
+    from IPython.display import HTML, display
 
     HAS_IPYTHON = True
 except ImportError:

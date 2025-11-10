@@ -4,9 +4,9 @@ Fringestopping utilities for DSA-110.
 Adapted from dsamfs and dsacalib
 """
 
-import numpy as np
 import astropy.units as u
 import casatools as cc
+import numpy as np
 from astropy.coordinates import angular_separation
 from numba import jit
 from scipy.special import j1

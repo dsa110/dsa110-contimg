@@ -5,25 +5,25 @@ Command-line interface for pointing/observation utilities.
 import argparse
 import os
 import sys
-from pathlib import Path
 from datetime import datetime
-from typing import Optional, List, Dict
+from pathlib import Path
+from typing import Dict, List, Optional
 
-import matplotlib.pyplot as plt
 import matplotlib.dates as mdates
+import matplotlib.pyplot as plt
+
+from dsa110_contimg.pointing.utils import load_pointing
 
 # Use shared CLI utilities
 from dsa110_contimg.utils.cli_helpers import (
-    setup_casa_environment,
     add_common_logging_args,
     configure_logging_from_args,
+    setup_casa_environment,
 )
 from dsa110_contimg.utils.validation import (
-    validate_directory,
     ValidationError,
+    validate_directory,
 )
-
-from dsa110_contimg.pointing.utils import load_pointing
 
 # Set up CASA environment (backward compatibility)
 setup_casa_environment()

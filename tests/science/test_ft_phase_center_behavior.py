@@ -6,14 +6,15 @@ This test creates a controlled experiment to determine:
 3. What happens if REFERENCE_DIR and PHASE_DIR differ?
 """
 
-import pytest
+import os
+import shutil
+import tempfile
+
 import numpy as np
+import pytest
 from casacore.tables import table
 from casatasks import ft
 from casatools import componentlist as cltool
-import tempfile
-import shutil
-import os
 
 
 @pytest.fixture

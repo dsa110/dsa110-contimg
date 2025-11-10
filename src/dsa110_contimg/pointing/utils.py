@@ -6,10 +6,10 @@ import logging
 from pathlib import Path
 from typing import Any, Dict, Optional
 
+import astropy.units as u
 import h5py
 import numpy as np
 from astropy.time import Time
-import astropy.units as u
 from casacore.tables import table
 
 from dsa110_contimg.calibration.schedule import DSA110_LOCATION
@@ -38,8 +38,8 @@ def _time_from_seconds(seconds: Optional[np.ndarray]) -> Optional[Time]:
     if seconds is None or len(seconds) == 0:
         return None
     from dsa110_contimg.utils.time_utils import (
-        detect_casa_time_format,
         DEFAULT_YEAR_RANGE,
+        detect_casa_time_format,
     )
 
     time_sec = float(np.mean(seconds))

@@ -5,8 +5,10 @@ import sys
 sys.path.insert(0, "src")
 import os
 import shutil
-from dsa110_contimg.conversion.merge_spws import merge_spws
+
 from casacore.tables import table
+
+from dsa110_contimg.conversion.merge_spws import merge_spws
 
 # Paths
 ms_path = "/stage/dsa110-contimg/ms/0834_20251029/2025-10-29T13:54:17.phased.ms"

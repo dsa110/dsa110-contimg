@@ -7,15 +7,15 @@ import math
 import sys
 from pathlib import Path
 
-import numpy as np
 import astropy.units as u
+import numpy as np
 
 PROJECT_ROOT = Path(__file__).resolve().parents[2]
 if str(PROJECT_ROOT) not in sys.path:
     sys.path.insert(0, str(PROJECT_ROOT))
 
 from dsa110_contimg.utils.antpos_local import get_itrf
-from dsa110_contimg.utils.constants import OVRO_LAT, OVRO_LON, OVRO_ALT
+from dsa110_contimg.utils.constants import OVRO_ALT, OVRO_LAT, OVRO_LON
 
 
 def main() -> None:

@@ -20,9 +20,9 @@ provided.
 from __future__ import annotations
 
 import os
+from contextlib import contextmanager
 from pathlib import Path
 from typing import Optional
-from contextlib import contextmanager
 
 
 def derive_default_scratch_root() -> Path:

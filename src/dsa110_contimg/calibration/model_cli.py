@@ -10,8 +10,9 @@ Example:
 """
 
 import argparse
-import numpy as np
 from typing import Optional
+
+import numpy as np
 
 from .catalogs import read_vla_parsed_catalog_with_flux
 from .model import write_point_model_with_ft

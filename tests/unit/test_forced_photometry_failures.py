@@ -1,11 +1,12 @@
 #!/usr/bin/env python3
 """Test forced photometry failure scenarios."""
 
-import pytest
-import numpy as np
-import tempfile
 import os
+import tempfile
 from pathlib import Path
+
+import numpy as np
+import pytest
 from astropy.io import fits
 
 from dsa110_contimg.photometry.forced import measure_forced_peak

@@ -9,9 +9,9 @@ then runs calibration with permissive BP settings.
 """
 
 
+import subprocess
 import sys
 from pathlib import Path
-import subprocess
 
 
 def run(cmd):

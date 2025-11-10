@@ -23,9 +23,9 @@ Usage:
     refant_string = recommend_refants_from_ms(ms_path, caltable_path)
 """
 
-from typing import Dict, Any, List, Optional
-from pathlib import Path
 import logging
+from pathlib import Path
+from typing import Any, Dict, List, Optional
 
 logger = logging.getLogger(__name__)
 

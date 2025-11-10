@@ -26,21 +26,21 @@ Notes:
 from __future__ import annotations
 
 import argparse
+import hashlib
 import logging
 import math
 import os
 import sqlite3
 from dataclasses import dataclass
 from datetime import datetime, timezone
-import hashlib
 from pathlib import Path
 from typing import Dict, Iterable, Optional, Tuple
 
+import astropy.units as u
 import numpy as np
 import pandas as pd
 from astropy.coordinates import SkyCoord
 from astropy.table import Table
-import astropy.units as u
 
 logger = logging.getLogger(__name__)
 

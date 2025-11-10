@@ -15,23 +15,23 @@ import tempfile
 from pathlib import Path
 from unittest.mock import MagicMock, patch
 
+import astropy.units as u
 import numpy as np
 import pandas as pd
 import pytest
 from astropy.coordinates import SkyCoord
 from astropy.io import fits
 from astropy.wcs import WCS
-import astropy.units as u
 
 from dsa110_contimg.qa.catalog_validation import (
     CatalogValidationResult,
+    extract_sources_from_image,
+    get_catalog_overlay_pixels,
+    get_image_frequency,
+    scale_flux_to_frequency,
     validate_astrometry,
     validate_flux_scale,
     validate_source_counts,
-    extract_sources_from_image,
-    scale_flux_to_frequency,
-    get_catalog_overlay_pixels,
-    get_image_frequency,
 )
 
 

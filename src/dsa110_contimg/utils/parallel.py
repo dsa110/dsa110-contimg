@@ -14,13 +14,14 @@ For CASA operations, use ProcessPoolExecutor (separate processes) rather than
 ThreadPoolExecutor (shared memory) to avoid thread-safety issues.
 """
 
+import logging
 from concurrent.futures import (
     ProcessPoolExecutor,
     ThreadPoolExecutor,
     as_completed,
 )
-from typing import List, Callable, TypeVar, Union
-import logging
+from typing import Callable, List, TypeVar, Union
+
 from dsa110_contimg.utils.runtime_safeguards import log_progress
 
 logger = logging.getLogger(__name__)

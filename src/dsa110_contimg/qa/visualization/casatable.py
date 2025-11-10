@@ -6,11 +6,11 @@ CasaTable functionality.
 """
 
 import os
-from typing import Optional, List, Union, Tuple
 from contextlib import contextmanager
+from typing import List, Optional, Tuple, Union
 
 try:
-    from IPython.display import display, HTML
+    from IPython.display import HTML, display
 
     HAS_IPYTHON = True
 except ImportError:
@@ -33,7 +33,7 @@ import numpy as np
 from numpy.ma import masked_array
 
 from .file import FileBase
-from .render import render_table, render_error, render_status_message, rich_string
+from .render import render_error, render_status_message, render_table, rich_string
 
 
 class CasaTable(FileBase):

@@ -1,7 +1,8 @@
 #!/usr/bin/env python3
 """Run gaincal with solint=inf (default, no time interval)."""
-import sys
 import os
+import sys
+
 from casatasks import gaincal, listobs
 
 ms_path = "/stage/dsa110-contimg/ms/0834_20251029/2025-10-29T13:54:17.phased_concat_spws_fields.ms"

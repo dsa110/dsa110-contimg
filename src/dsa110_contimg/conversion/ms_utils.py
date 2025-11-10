@@ -102,8 +102,8 @@ def _ensure_imaging_columns_populated(ms_path: str) -> None:
     logger = logging.getLogger(__name__)
 
     try:
-        from casacore.tables import table as _tb  # type: ignore
         import numpy as _np
+        from casacore.tables import table as _tb  # type: ignore
     except ImportError as e:
         error_msg = f"Failed to import required modules for column population: {e}"
         logger.error(error_msg)
@@ -192,8 +192,8 @@ def _ensure_flag_and_weight_spectrum(ms_path: str) -> None:
       to WEIGHT.
     """
     try:
-        from casacore.tables import table as _tb  # type: ignore
         import numpy as _np
+        from casacore.tables import table as _tb  # type: ignore
     except Exception:
         return
 
@@ -317,9 +317,10 @@ def _fix_field_phase_centers_from_times(ms_path: str) -> None:
         ms_path: Path to Measurement Set
     """
     try:
-        from casacore.tables import table as _tb  # type: ignore
-        import numpy as _np
         import astropy.units as u  # type: ignore
+        import numpy as _np
+        from casacore.tables import table as _tb  # type: ignore
+
         from dsa110_contimg.conversion.helpers_coordinates import get_meridian_coords
     except ImportError:
         # Non-fatal: if dependencies aren't available, skip this fix
@@ -469,13 +470,14 @@ def _fix_observation_time_range(ms_path: str) -> None:
         Path to Measurement Set
     """
     try:
+        import numpy as _np
         from casacore.tables import table as _tb
+
         from dsa110_contimg.utils.time_utils import (
+            DEFAULT_YEAR_RANGE,
             detect_casa_time_format,
             validate_time_mjd,
-            DEFAULT_YEAR_RANGE,
         )
-        import numpy as _np
     except Exception:
         return
 

@@ -1,17 +1,17 @@
 from __future__ import annotations
 
+from typing import List, Optional, Tuple
+
+import astropy.units as u
 import numpy as np
 import pandas as pd
-from typing import Tuple, List, Optional
-
-from casacore.tables import table
-import astropy.units as u
 from astropy.coordinates import Angle
+from casacore.tables import table
 
 from .catalogs import (
     airy_primary_beam_response,
-    read_vla_calibrator_catalog,
     load_vla_catalog,
+    read_vla_calibrator_catalog,
     resolve_vla_catalog_path,
 )
 

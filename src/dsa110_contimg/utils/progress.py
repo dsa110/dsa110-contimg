@@ -8,10 +8,9 @@ Following expert recommendations: Use tqdm library (industry standard) instead
 of custom solutions.
 """
 
-from contextlib import contextmanager
-from typing import Optional, Iterator, Any
 import sys
-
+from contextlib import contextmanager
+from typing import Any, Iterator, Optional
 
 try:
     from tqdm import tqdm

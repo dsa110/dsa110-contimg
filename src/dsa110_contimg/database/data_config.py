@@ -1,7 +1,7 @@
 """Configuration for data registry paths and auto-publish settings."""
 
 from pathlib import Path
-from typing import Dict, Any
+from typing import Any, Dict
 
 # Base paths
 STAGE_BASE = Path("/stage/dsa110-contimg")  # SSD - fast access for active work

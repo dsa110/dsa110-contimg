@@ -9,7 +9,7 @@ import os
 import sqlite3
 import time
 from pathlib import Path
-from typing import Optional, List
+from typing import List, Optional
 
 
 def ensure_products_db(path: Path) -> sqlite3.Connection:

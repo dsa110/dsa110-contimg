@@ -7,8 +7,8 @@ WSClean or other external tools modifying MODEL_DATA) and attempt repairs.
 from __future__ import annotations
 
 import os
-from typing import Optional
 import warnings
+from typing import Optional
 
 
 def detect_ms_corruption(ms_path: str) -> tuple[bool, list[str]]:
@@ -72,7 +72,7 @@ def attempt_model_data_repair(ms_path: str) -> bool:
     Returns:
         True if repair succeeded, False otherwise
     """
-    from casacore.tables import table, addImagingColumns  # type: ignore
+    from casacore.tables import addImagingColumns, table  # type: ignore
 
     try:
         # Open MS

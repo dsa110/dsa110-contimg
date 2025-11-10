@@ -5,12 +5,14 @@ Evaluates quality of CASA image products to ensure scientific validity.
 """
 
 import logging
-import numpy as np
-from dsa110_contimg.utils.runtime_safeguards import filter_non_finite_2d
 import os
 from dataclasses import dataclass
 from pathlib import Path
 from typing import Dict, List, Optional, Tuple
+
+import numpy as np
+
+from dsa110_contimg.utils.runtime_safeguards import filter_non_finite_2d
 
 try:
     from casacore.images import image as casaimage

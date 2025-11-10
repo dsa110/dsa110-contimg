@@ -5,8 +5,7 @@ This module provides utilities for formatting error messages in a way that
 helps users understand and fix issues quickly.
 """
 
-from typing import List, Dict, Any, Optional
-
+from typing import Any, Dict, List, Optional
 
 # Error code definitions with help URLs and suggestions
 ERROR_CODES = {

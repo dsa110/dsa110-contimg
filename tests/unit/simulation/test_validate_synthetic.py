@@ -1,16 +1,14 @@
 """Tests for synthetic UVH5 validation helpers."""
 
+import json
 from pathlib import Path
 
 import pytest
-
-import json
 
 from dsa110_contimg.simulation.validate_synthetic import (
     validate_subband_group,
     validate_uvh5_file,
 )
-
 
 REPO_ROOT = Path(__file__).resolve().parents[2]
 UVH5_DIR = REPO_ROOT / "data-samples" / "uvh5"

@@ -2,10 +2,11 @@
 
 import os
 import shutil
+
 import numpy as np
-from casacore.tables import table
-from astropy.coordinates import SkyCoord, Angle
 from astropy import units as u
+from astropy.coordinates import Angle, SkyCoord
+from casacore.tables import table
 
 
 def rephase_ms_to_calibrator(

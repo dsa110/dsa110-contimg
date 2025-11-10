@@ -1,11 +1,11 @@
 import argparse
-import os
-import sys
 import json
 import logging
+import os
 import re
+import sys
 from pathlib import Path
-from typing import List, Dict, Optional
+from typing import Dict, List, Optional
 
 # Ensure headless operation before any CASA imports (prevents casaplotserver X server errors)
 os.environ.setdefault("QT_QPA_PLATFORM", "offscreen")
@@ -14,46 +14,48 @@ if os.environ.get("DISPLAY"):
 
 # Use shared CLI utilities
 from dsa110_contimg.utils.cli_helpers import (
-    setup_casa_environment,
-    add_common_ms_args,
     add_common_logging_args,
+    add_common_ms_args,
     configure_logging_from_args,
     ensure_scratch_dirs,
+    setup_casa_environment,
 )
 from dsa110_contimg.utils.validation import (
-    validate_ms_for_calibration,
-    validate_corrected_data_quality,
     ValidationError,
+    validate_corrected_data_quality,
+    validate_ms_for_calibration,
 )
+
+from .applycal import apply_to_target
+from .calibration import (
+    solve_bandpass,
+    solve_delay,
+    solve_gains,
+    solve_prebandpass_phase,
+)
+
+# Note: Delay QA functions moved to qa.calibration_quality (imported inline where needed)
+from .diagnostics import compare_calibration_tables, generate_calibration_diagnostics
+from .flagging import (
+    flag_antenna,
+    flag_baselines,
+    flag_clip,
+    flag_elevation,
+    flag_extend,
+    flag_manual,
+    flag_quack,
+    flag_rfi,
+    flag_shadow,
+    flag_summary,
+    flag_zeros,
+    reset_flags,
+)
+from .selection import select_bandpass_fields, select_bandpass_from_catalog
 
 # Note: CASA environment setup moved to main() to avoid import-time side effects
 # CASA imports deferred until needed
 
-from .flagging import (
-    reset_flags,
-    flag_zeros,
-    flag_rfi,
-    flag_antenna,
-    flag_baselines,
-    flag_manual,
-    flag_shadow,
-    flag_quack,
-    flag_elevation,
-    flag_clip,
-    flag_extend,
-    flag_summary,
-)
-from .calibration import (
-    solve_delay,
-    solve_bandpass,
-    solve_gains,
-    solve_prebandpass_phase,
-)
-from .applycal import apply_to_target
-from .selection import select_bandpass_fields, select_bandpass_from_catalog
 
-# Note: Delay QA functions moved to qa.calibration_quality (imported inline where needed)
-from .diagnostics import generate_calibration_diagnostics, compare_calibration_tables
 
 try:
     # Ensure casacore temp files go to scratch, not the repo root
@@ -93,25 +95,26 @@ def run_calibrator(
 _calibrator_info_printed_global = False
 
 
-# Helper functions moved to cli_utils.py
-from .cli_utils import (
-    rephase_ms_to_calibrator as _rephase_ms_to_calibrator,
-    clear_all_calibration_artifacts as _clear_all_calibration_artifacts,
-)
+from .cli_apply import add_apply_parser, handle_apply
 
 # Subcommand handlers extracted to separate modules
 from .cli_calibrate import add_calibrate_parser, handle_calibrate
-from .cli_apply import add_apply_parser, handle_apply
 from .cli_flag import add_flag_parser, handle_flag
 from .cli_qa import (
     add_qa_parsers,
     handle_check_delays,
-    handle_verify_delays,
+    handle_compare,
     handle_inspect_delays,
     handle_list_transits,
     handle_validate,
-    handle_compare,
+    handle_verify_delays,
 )
+
+# Helper functions moved to cli_utils.py
+from .cli_utils import (
+    clear_all_calibration_artifacts as _clear_all_calibration_artifacts,
+)
+from .cli_utils import rephase_ms_to_calibrator as _rephase_ms_to_calibrator
 
 
 def main():
@@ -247,13 +250,14 @@ def handle_find_calibrators_in_ms(
     args: argparse.Namespace, logger: logging.Logger
 ) -> int:
     """Handle the find-calibrators-in-ms subcommand."""
+    import astropy.units as u
+    from astropy.time import Time
+
     from dsa110_contimg.calibration.catalogs import (
         load_vla_catalog,
     )
+    from dsa110_contimg.calibration.schedule import DSA110_LOCATION, next_transit_time
     from dsa110_contimg.pointing.utils import load_pointing
-    from dsa110_contimg.calibration.schedule import next_transit_time, DSA110_LOCATION
-    from astropy.time import Time
-    import astropy.units as u
 
     ms_dir = Path(args.ms_dir)
     if not ms_dir.exists() or not ms_dir.is_dir():

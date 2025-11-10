@@ -16,20 +16,21 @@ designed to be compatible with our architecture, Python version, and dependencie
 
 __version__ = "0.1.0"
 
+from .casatable import CasaTable
+from .datadir import DataDir, ls
+
 # Import implemented modules
 from .filelist import FileList
-from .datadir import DataDir, ls
+from .fitsfile import FITSFile
+from .js9 import init_js9, is_js9_available
 from .render import (
-    render_table,
-    render_status_message,
+    display_html,
     render_error,
     render_preamble,
+    render_status_message,
+    render_table,
     rich_string,
-    display_html,
 )
-from .fitsfile import FITSFile
-from .casatable import CasaTable
-from .js9 import init_js9, is_js9_available
 
 # Placeholder imports - will be uncommented as modules are implemented
 # from .notebook import generate_qa_notebook

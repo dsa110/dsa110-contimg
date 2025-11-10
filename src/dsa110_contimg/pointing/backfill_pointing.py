@@ -1,14 +1,15 @@
 import argparse
 import logging
-import sqlite3
-from pathlib import Path
-from datetime import datetime, timedelta
-from typing import List, Tuple
 import os
+import sqlite3
+from datetime import datetime, timedelta
+from pathlib import Path
+from typing import List, Tuple
+
 import pandas as pd
 
-from dsa110_contimg.pointing.utils import load_pointing
 from dsa110_contimg.database.products import ensure_products_db
+from dsa110_contimg.pointing.utils import load_pointing
 
 # Configure logging
 logger = logging.getLogger(__name__)

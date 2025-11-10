@@ -1,10 +1,10 @@
 """Coordinate and phase helper functions for conversion."""
 
 import logging
-from typing import Tuple, Optional
+from typing import Optional, Tuple
 
-import numpy as np
 import astropy.units as u
+import numpy as np
 from astropy.coordinates import EarthLocation, SkyCoord
 
 try:
@@ -34,8 +34,8 @@ except Exception:  # pragma: no cover - fallback
     _PU_CALC_UVW = None
 
 from dsa110_contimg.conversion.helpers_antenna import (
-    set_antenna_positions,
     _ensure_antenna_diameters,
+    set_antenna_positions,
 )
 
 logger = logging.getLogger("dsa110_contimg.conversion.helpers")

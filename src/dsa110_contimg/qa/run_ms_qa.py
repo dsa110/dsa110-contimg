@@ -17,11 +17,11 @@ from typing import Any, Dict, List, Optional
 
 try:
     # When installed/used as a package
-    from dsa110_contimg.qa.casa_ms_qa import run_ms_qa, QaThresholds
+    from dsa110_contimg.qa.casa_ms_qa import QaThresholds, run_ms_qa
 except Exception:
     # When running directly from the qa/ directory
     sys.path.append(os.path.abspath(os.path.dirname(__file__)))
-    from casa_ms_qa import run_ms_qa, QaThresholds  # type: ignore
+    from casa_ms_qa import QaThresholds, run_ms_qa  # type: ignore
 
 
 def find_ms_in_dir(ms_dir: str) -> List[str]:

@@ -4,11 +4,11 @@ Final comprehensive test - verifies all implementations work correctly.
 Uses timeouts to prevent hanging.
 """
 
-import sys
 import ast
 import importlib.util
-from pathlib import Path
 import signal
+import sys
+from pathlib import Path
 
 
 class TimeoutError(Exception):

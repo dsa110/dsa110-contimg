@@ -3,12 +3,13 @@
 These tests verify all code paths and edge cases are handled correctly.
 """
 
-import pytest
-import numpy as np
-from unittest.mock import Mock, patch, MagicMock
-import tempfile
-import shutil
 import os
+import shutil
+import tempfile
+from unittest.mock import MagicMock, Mock, patch
+
+import numpy as np
+import pytest
 
 
 class TestUVWVerificationCompleteness:
@@ -240,11 +241,9 @@ class TestUVWVerificationLogic:
 
         # Mock MS paths (will fail to read, but tests logic)
         # In real test, would use actual MS files
-
         # The function should detect:
         # - max_change < min_change_meters → transformation failed
         # - change_error > tolerance → magnitude mismatch
-
         # This tests the logic, not the implementation
         assert True  # Logic verified in function implementation
 

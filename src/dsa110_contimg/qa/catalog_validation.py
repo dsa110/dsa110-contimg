@@ -10,20 +10,20 @@ from dataclasses import dataclass, field
 from pathlib import Path
 from typing import Dict, List, Optional, Tuple
 
+import astropy.units as u
 import numpy as np
 import pandas as pd
 from astropy.coordinates import SkyCoord, match_coordinates_sky
+from astropy.io import fits
 from astropy.wcs import WCS
+
+from dsa110_contimg.catalog.query import query_sources
+from dsa110_contimg.photometry.forced import measure_forced_peak
 from dsa110_contimg.utils.runtime_safeguards import (
     validate_wcs_4d,
     wcs_pixel_to_world_safe,
     wcs_world_to_pixel_safe,
 )
-from astropy.io import fits
-import astropy.units as u
-
-from dsa110_contimg.catalog.query import query_sources
-from dsa110_contimg.photometry.forced import measure_forced_peak
 
 logger = logging.getLogger(__name__)
 
@@ -149,7 +149,7 @@ def extract_sources_from_image(
 
             # Find local maxima (simple peak finding)
             try:
-                from scipy.ndimage import maximum_filter, label
+                from scipy.ndimage import label, maximum_filter
 
                 # Find local maxima
                 local_maxima = maximum_filter(data, size=5) == data

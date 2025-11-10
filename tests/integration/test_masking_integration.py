@@ -14,7 +14,7 @@ Run with: pytest tests/integration/test_masking_integration.py -v
 import os
 import sys
 from pathlib import Path
-from unittest.mock import patch, MagicMock
+from unittest.mock import MagicMock, patch
 
 import numpy as np
 import pytest
@@ -70,8 +70,8 @@ class TestMaskingIntegration:
         self, test_config, context_with_repo, temp_work_dir
     ):
         """Test ImagingStage with masking enabled."""
-        from dsa110_contimg.pipeline.stages_impl import ImagingStage
         from dsa110_contimg.pipeline.config import ImagingConfig
+        from dsa110_contimg.pipeline.stages_impl import ImagingStage
 
         # Update config with masking enabled
         test_config.imaging = ImagingConfig(
@@ -182,8 +182,9 @@ class TestMaskingIntegration:
 
     def test_mask_generation_failure_handling(self, temp_work_dir):
         """Test that imaging continues when mask generation fails."""
-        from dsa110_contimg.imaging.cli_imaging import image_ms
         from casacore.tables import table
+
+        from dsa110_contimg.imaging.cli_imaging import image_ms
 
         ms_path = str(temp_work_dir / "test.ms")
         imagename = str(temp_work_dir / "test.img")

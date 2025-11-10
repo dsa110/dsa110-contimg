@@ -2,12 +2,12 @@
 
 from __future__ import annotations
 
+import logging
 import os
 import sqlite3
-from pathlib import Path
 from datetime import datetime
-from typing import List, Dict, Optional, Any
-import logging
+from pathlib import Path
+from typing import Any, Dict, List, Optional
 
 logger = logging.getLogger(__name__)
 
@@ -340,8 +340,8 @@ def generate_image_thumbnail(
 ) -> Optional[str]:
     """Generate a PNG thumbnail of a CASA image."""
     try:
-        from casatools import image
         import numpy as np
+        from casatools import image
         from PIL import Image
 
         ia = image()

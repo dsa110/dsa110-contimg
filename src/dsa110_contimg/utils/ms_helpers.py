@@ -5,10 +5,11 @@ This module provides optimized MS access patterns using sampling and chunking
 to reduce memory usage for validation and QA operations.
 """
 
-from typing import Optional, List, Tuple, Dict, Any
-from functools import lru_cache
-import numpy as np
 import os
+from functools import lru_cache
+from typing import Any, Dict, List, Optional, Tuple
+
+import numpy as np
 
 
 def sample_ms_column(

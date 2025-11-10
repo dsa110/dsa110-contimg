@@ -13,11 +13,11 @@ from typing import TYPE_CHECKING
 if TYPE_CHECKING:
     # For type checkers, provide direct imports
     from .hdf5_orchestrator import (
-        convert_subband_groups_to_ms,
-        find_subband_groups,
-        _parse_timestamp_from_filename,
         _extract_subband_code,
         _load_and_merge_subbands,
+        _parse_timestamp_from_filename,
+        convert_subband_groups_to_ms,
+        find_subband_groups,
     )
 
 __all__ = [
@@ -44,11 +44,11 @@ def __getattr__(name: str):
         return hdf5_orchestrator
     elif name in __all__:
         from .hdf5_orchestrator import (
-            convert_subband_groups_to_ms,
-            find_subband_groups,
-            _parse_timestamp_from_filename,
             _extract_subband_code,
             _load_and_merge_subbands,
+            _parse_timestamp_from_filename,
+            convert_subband_groups_to_ms,
+            find_subband_groups,
         )
 
         # Create a mapping of names to functions

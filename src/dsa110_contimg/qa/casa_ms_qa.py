@@ -18,7 +18,7 @@ import json
 import os
 from dataclasses import dataclass
 from datetime import datetime
-from typing import Dict, List, Optional, Tuple, Any
+from typing import Any, Dict, List, Optional, Tuple
 
 
 def _import_casa() -> Tuple[Any, Any, Dict[str, Optional[str]]]:
@@ -33,14 +33,14 @@ def _import_casa() -> Tuple[Any, Any, Dict[str, Optional[str]]]:
 
     try:
         # CASA 6 essentials
-        from casatools import msmetadata, table  # type: ignore
-        from casatasks import (
-            listobs,
-            flagdata,
-            visstat,
-            tclean,
+        from casatasks import (  # type: ignore
             applycal,
-        )  # type: ignore
+            flagdata,
+            listobs,
+            tclean,
+            visstat,
+        )
+        from casatools import msmetadata, table  # type: ignore
 
         tools["msmetadata"] = msmetadata
         tools["table"] = table

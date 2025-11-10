@@ -10,17 +10,19 @@ from __future__ import annotations
 import os
 from pathlib import Path
 from typing import Optional, Tuple
+
+import astropy.units as u
+import matplotlib.pyplot as plt
 import numpy as np
+from astropy.coordinates import SkyCoord
 from astropy.io import fits
 from astropy.wcs import WCS
+from matplotlib.colors import LogNorm
+
 from dsa110_contimg.utils.runtime_safeguards import (
     validate_wcs_4d,
     wcs_world_to_pixel_safe,
 )
-from astropy.coordinates import SkyCoord
-import astropy.units as u
-import matplotlib.pyplot as plt
-from matplotlib.colors import LogNorm
 
 
 def skymodel_to_image(

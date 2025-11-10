@@ -240,7 +240,7 @@ def image_all_spws(
     """
     # Import MS locking utility if serialization is enabled
     if serialize_ms_access:
-        from dsa110_contimg.utils.ms_locking import ms_lock, cleanup_stale_locks
+        from dsa110_contimg.utils.ms_locking import cleanup_stale_locks, ms_lock
 
         # Clean up any stale locks before starting
         cleanup_stale_locks(ms_path)
@@ -308,8 +308,8 @@ def _image_all_spws_impl(
 
     if parallel and len(spw_ids_to_image) > 1:
         # Parallel imaging
-        from concurrent.futures import ProcessPoolExecutor, as_completed
         import multiprocessing as mp
+        from concurrent.futures import ProcessPoolExecutor, as_completed
 
         if max_workers is None:
             max_workers = min(mp.cpu_count(), len(spw_ids_to_image))

@@ -15,7 +15,7 @@ import sys
 import tempfile
 import time
 from pathlib import Path
-from unittest.mock import Mock, patch, MagicMock
+from unittest.mock import MagicMock, Mock, patch
 
 import numpy as np
 import pytest
@@ -95,8 +95,8 @@ class TestMSMetadataCaching:
     def test_cache_hit(self):
         """Verify cache is used on second call."""
         from dsa110_contimg.utils.ms_helpers import (
-            get_ms_metadata,
             clear_ms_metadata_cache,
+            get_ms_metadata,
             get_ms_metadata_cached,
         )
 
@@ -139,8 +139,8 @@ class TestMSMetadataCaching:
     def test_cache_invalidation_on_file_modification(self):
         """Verify cache invalidates when file modification time changes."""
         from dsa110_contimg.utils.ms_helpers import (
-            get_ms_metadata,
             clear_ms_metadata_cache,
+            get_ms_metadata,
             get_ms_metadata_cached,
         )
 
@@ -188,9 +188,9 @@ class TestFlagValidationCaching:
     def test_flag_validation_cache_hit(self):
         """Verify flag validation cache is used on second call."""
         from dsa110_contimg.utils.ms_helpers import (
-            validate_ms_unflagged_fraction,
-            clear_flag_validation_cache,
             _validate_ms_unflagged_fraction_cached,
+            clear_flag_validation_cache,
+            validate_ms_unflagged_fraction,
         )
 
         clear_flag_validation_cache()
@@ -229,8 +229,8 @@ class TestFlagValidationCaching:
     def test_flag_validation_cache_invalidation(self):
         """Verify cache invalidates on file modification."""
         from dsa110_contimg.utils.ms_helpers import (
-            validate_ms_unflagged_fraction,
             clear_flag_validation_cache,
+            validate_ms_unflagged_fraction,
         )
 
         clear_flag_validation_cache()

@@ -6,28 +6,29 @@ direct calls to the new pipeline framework stages.
 
 from __future__ import annotations
 
-import time
 import json
+import time
 from pathlib import Path
 from typing import List
 
+import structlog
+
 from dsa110_contimg.database.jobs import (
-    update_job_status,
     append_job_log,
-    get_job,
     create_job,
+    get_job,
+    update_job_status,
 )
-from dsa110_contimg.database.products import ensure_products_db, ensure_jobs_table
+from dsa110_contimg.database.products import ensure_jobs_table, ensure_products_db
 from dsa110_contimg.pipeline.config import PipelineConfig
 from dsa110_contimg.pipeline.context import PipelineContext
-from dsa110_contimg.pipeline.state import SQLiteStateRepository
 from dsa110_contimg.pipeline.stages_impl import (
-    ConversionStage,
     CalibrationSolveStage,
     CalibrationStage,
+    ConversionStage,
     ImagingStage,
 )
-import structlog
+from dsa110_contimg.pipeline.state import SQLiteStateRepository
 
 logger = structlog.get_logger(__name__)
 

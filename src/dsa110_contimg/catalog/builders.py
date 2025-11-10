@@ -9,14 +9,14 @@ from __future__ import annotations
 
 import os
 import sqlite3
+from datetime import datetime, timezone
 from pathlib import Path
 from typing import Optional, Tuple
-from datetime import datetime, timezone
 
+import astropy.units as u
 import numpy as np
 import pandas as pd
 from astropy.coordinates import SkyCoord
-import astropy.units as u
 
 
 def build_nvss_strip_db(
@@ -200,8 +200,8 @@ def build_first_strip_db(
     Returns:
         Path to created SQLite database
     """
-    from dsa110_contimg.catalog.build_master import _normalize_columns
     from dsa110_contimg.calibration.catalogs import read_first_catalog
+    from dsa110_contimg.catalog.build_master import _normalize_columns
 
     dec_min, dec_max = dec_range
 
@@ -405,8 +405,8 @@ def build_rax_strip_db(
     Returns:
         Path to created SQLite database
     """
-    from dsa110_contimg.catalog.build_master import _normalize_columns
     from dsa110_contimg.calibration.catalogs import read_rax_catalog
+    from dsa110_contimg.catalog.build_master import _normalize_columns
 
     dec_min, dec_max = dec_range
 

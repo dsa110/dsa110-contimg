@@ -5,25 +5,27 @@ This strategy creates per-subband MS files in parallel, concatenates them,
 and then merges all SPWs into a single SPW Measurement Set.
 """
 
-from dsa110_contimg.conversion.helpers import (
-    set_antenna_positions,
-    _ensure_antenna_diameters,
-    phase_to_meridian,
-    set_telescope_identity,
-    cleanup_casa_file_handles,
-)
-from .base import MSWriter
+import logging
 import os
 import shutil
 import time
 import uuid
-import logging
 from pathlib import Path
 from typing import TYPE_CHECKING, Any, List, Optional
 
-import numpy as np
 import astropy.units as u
+import numpy as np
 from astropy.time import Time
+
+from dsa110_contimg.conversion.helpers import (
+    _ensure_antenna_diameters,
+    cleanup_casa_file_handles,
+    phase_to_meridian,
+    set_antenna_positions,
+    set_telescope_identity,
+)
+
+from .base import MSWriter
 
 logger = logging.getLogger(__name__)
 
@@ -69,8 +71,9 @@ class DirectSubbandWriter(MSWriter):
 
     def write(self) -> str:
         """Execute the parallel subband write and concatenation."""
-        from casatasks import concat as casa_concat
         from concurrent.futures import ProcessPoolExecutor, as_completed
+
+        from casatasks import concat as casa_concat
 
         # Determine staging locations
         ms_final_path = Path(self.ms_path)
@@ -369,8 +372,8 @@ class DirectSubbandWriter(MSWriter):
         if self.merge_spws:
             try:
                 from dsa110_contimg.conversion.merge_spws import (
-                    merge_spws,
                     get_spw_count,
+                    merge_spws,
                 )
 
                 n_spw_before = get_spw_count(str(ms_stage_path))
@@ -550,8 +553,8 @@ def write_ms_from_subbands(file_list, ms_path, scratch_dir=None):
     Returns:
         str: Writer type used
     """
-    from casatasks import concat as casa_concat
     import numpy as np
+    from casatasks import concat as casa_concat
 
     ms_stage_path = ms_path
     part_base = (

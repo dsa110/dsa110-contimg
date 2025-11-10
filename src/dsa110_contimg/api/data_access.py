@@ -2,24 +2,24 @@
 
 from __future__ import annotations
 
+import json as _json
 import sqlite3
 from contextlib import closing
 from datetime import datetime
 from pathlib import Path
 from typing import List, Optional
-import json as _json
 
 from dsa110_contimg.api.config import ApiConfig
 from dsa110_contimg.api.models import (
     CalibrationSet,
+    CalibratorMatch,
+    CalibratorMatchGroup,
     ProductEntry,
     QueueGroup,
     QueueStats,
-    CalibratorMatch,
-    CalibratorMatchGroup,
 )
-from .models import PointingHistoryEntry
 
+from .models import PointingHistoryEntry
 
 QUEUE_COLUMNS = [
     "group_id",
@@ -533,8 +533,9 @@ def fetch_source_timeseries(products_db: Path, source_id: str) -> Optional[dict]
     if not products_db.exists():
         return None
 
-    from astropy.time import Time
     import statistics
+
+    from astropy.time import Time
 
     with closing(_connect(products_db)) as conn:
         # Check if tables exist

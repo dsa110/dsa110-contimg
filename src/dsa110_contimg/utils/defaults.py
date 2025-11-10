@@ -7,7 +7,6 @@ making it easier to manage, document, and validate defaults.
 
 import os
 
-
 # ============================================================================
 # Calibration Defaults
 # ============================================================================

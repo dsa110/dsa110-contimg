@@ -13,14 +13,14 @@ import logging
 import os
 import subprocess
 import time
-from dataclasses import dataclass, asdict
+from dataclasses import asdict, dataclass
 from datetime import datetime
 from pathlib import Path
-from typing import Optional, Dict, Any
+from typing import Any, Dict, Optional
 
 import psutil
 
-from dsa110_contimg.api.docker_client import get_docker_client, DockerClient
+from dsa110_contimg.api.docker_client import DockerClient, get_docker_client
 
 log = logging.getLogger(__name__)
 

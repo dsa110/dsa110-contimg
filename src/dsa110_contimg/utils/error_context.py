@@ -5,9 +5,9 @@ This module provides utilities for formatting error messages with rich context,
 including file metadata, MS characteristics, and actionable suggestions.
 """
 
-from typing import Dict, Any, Optional, List
-import os
 import logging
+import os
+from typing import Any, Dict, List, Optional
 
 logger = logging.getLogger(__name__)
 
@@ -66,10 +66,10 @@ def format_error_with_context(
         ms_path = context["ms_path"]
         try:
             # Lazy import to avoid circular dependencies
-            from dsa110_contimg.utils.ms_helpers import (
-                get_ms_metadata,
+            from dsa110_contimg.utils.ms_helpers import (  # noqa: F401
                 estimate_ms_size,
-            )  # noqa: F401
+                get_ms_metadata,
+            )
 
             if os.path.exists(ms_path):
                 # Get MS metadata

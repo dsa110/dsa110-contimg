@@ -5,19 +5,6 @@ Generates comprehensive HTML validation reports similar to ASKAP's validation
 framework, with pass/fail indicators, tables, and integrated visualization.
 """
 
-from dsa110_contimg.qa.validation_plots import (
-    plot_astrometry_scatter,
-    plot_flux_ratio_histogram,
-    plot_completeness_curve,
-    plot_spatial_distribution,
-    plot_flux_vs_offset,
-    plot_validation_summary,
-)
-from dsa110_contimg.qa.catalog_validation import CatalogValidationResult
-from astropy.io import fits
-import numpy as np
-from dsa110_contimg.utils.runtime_safeguards import validate_image_shape
-import matplotlib.pyplot as plt
 import base64
 import io
 import logging
@@ -27,6 +14,20 @@ from pathlib import Path
 from typing import Dict, List, Optional, Tuple
 
 import matplotlib
+import matplotlib.pyplot as plt
+import numpy as np
+from astropy.io import fits
+
+from dsa110_contimg.qa.catalog_validation import CatalogValidationResult
+from dsa110_contimg.qa.validation_plots import (
+    plot_astrometry_scatter,
+    plot_completeness_curve,
+    plot_flux_ratio_histogram,
+    plot_flux_vs_offset,
+    plot_spatial_distribution,
+    plot_validation_summary,
+)
+from dsa110_contimg.utils.runtime_safeguards import validate_image_shape
 
 matplotlib.use("Agg", force=True)  # Headless backend
 

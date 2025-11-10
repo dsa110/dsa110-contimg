@@ -3,24 +3,25 @@
 import argparse
 import logging
 import sys
-import numpy as np
 
+import numpy as np
 from casacore.tables import table
 
-from dsa110_contimg.utils.validation import validate_ms, ValidationError
+from dsa110_contimg.utils.validation import ValidationError, validate_ms
+
 from .flagging import (
-    reset_flags,
-    flag_zeros,
-    flag_rfi,
     flag_antenna,
     flag_baselines,
-    flag_manual,
-    flag_shadow,
-    flag_quack,
-    flag_elevation,
     flag_clip,
+    flag_elevation,
     flag_extend,
+    flag_manual,
+    flag_quack,
+    flag_rfi,
+    flag_shadow,
     flag_summary,
+    flag_zeros,
+    reset_flags,
 )
 
 logger = logging.getLogger(__name__)

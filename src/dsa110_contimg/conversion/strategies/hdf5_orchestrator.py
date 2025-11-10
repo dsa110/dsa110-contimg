@@ -9,29 +9,6 @@ Measurement Set for imaging. It serves as the primary entry point for converting
 subband groups.
 """
 
-from .writers import get_writer
-from dsa110_contimg.conversion.helpers import (
-    _ensure_antenna_diameters,
-    get_meridian_coords,
-    set_antenna_positions,
-    compute_and_set_uvw,
-    set_model_column,
-    phase_to_meridian,
-    set_telescope_identity,
-    validate_ms_frequency_order,
-    cleanup_casa_file_handles,
-    validate_phase_center_coherence,
-    validate_uvw_precision,
-    validate_antenna_positions,
-    validate_model_data_quality,
-    validate_reference_antenna_stability,
-)
-from dsa110_contimg.conversion.ms_utils import configure_ms_for_imaging
-from dsa110_contimg.qa.pipeline_quality import check_ms_after_conversion
-from dsa110_contimg.utils.performance import track_performance
-from dsa110_contimg.utils.error_context import format_file_error_with_suggestions
-from dsa110_contimg.utils.cli_helpers import ensure_scratch_dirs
-from dsa110_contimg.utils.exceptions import ConversionError, ValidationError
 import argparse
 import glob
 import logging
@@ -46,6 +23,30 @@ import numpy as np
 from astropy.time import Time  # type: ignore[import]
 from pyuvdata import UVData  # type: ignore[import]
 
+from dsa110_contimg.conversion.helpers import (
+    _ensure_antenna_diameters,
+    cleanup_casa_file_handles,
+    compute_and_set_uvw,
+    get_meridian_coords,
+    phase_to_meridian,
+    set_antenna_positions,
+    set_model_column,
+    set_telescope_identity,
+    validate_antenna_positions,
+    validate_model_data_quality,
+    validate_ms_frequency_order,
+    validate_phase_center_coherence,
+    validate_reference_antenna_stability,
+    validate_uvw_precision,
+)
+from dsa110_contimg.conversion.ms_utils import configure_ms_for_imaging
+from dsa110_contimg.qa.pipeline_quality import check_ms_after_conversion
+from dsa110_contimg.utils.cli_helpers import ensure_scratch_dirs
+from dsa110_contimg.utils.error_context import format_file_error_with_suggestions
+from dsa110_contimg.utils.exceptions import ConversionError, ValidationError
+from dsa110_contimg.utils.performance import track_performance
+
+from .writers import get_writer
 
 logger = logging.getLogger("hdf5_orchestrator")
 
@@ -110,6 +111,7 @@ def _peek_uvh5_phase_and_midtime(
             if val_ha is not None and np.isfinite(val_ha) and mid_jd > 0:
                 try:
                     from astropy.time import Time
+
                     from dsa110_contimg.utils.constants import OVRO_LOCATION
 
                     # Get longitude from Header (default to DSA-110 location from constants)

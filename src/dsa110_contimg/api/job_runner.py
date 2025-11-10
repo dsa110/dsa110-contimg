@@ -7,27 +7,27 @@ archive/legacy/api/job_runner_legacy.py.
 
 from __future__ import annotations
 
+import os
+import sys
 from pathlib import Path
 from typing import List
 
 # Import all job functions from the new adapters
 from dsa110_contimg.api.job_adapters import (
-    run_convert_job,
-    run_calibrate_job,
     run_apply_job,
-    run_image_job,
-    run_batch_calibrate_job,
     run_batch_apply_job,
+    run_batch_calibrate_job,
     run_batch_image_job,
+    run_calibrate_job,
+    run_convert_job,
+    run_image_job,
 )
-
-# Import workflow adapter
-from dsa110_contimg.pipeline.adapter import LegacyWorkflowAdapter
 
 # Keep helper functions that may still be used
 from dsa110_contimg.database.products import ensure_products_db
-import os
-import sys
+
+# Import workflow adapter
+from dsa110_contimg.pipeline.adapter import LegacyWorkflowAdapter
 
 
 def _python_cmd_for_jobs() -> list[str]:

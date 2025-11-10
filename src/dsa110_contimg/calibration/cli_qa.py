@@ -5,8 +5,9 @@ import json
 import logging
 import sys
 
-from dsa110_contimg.utils.validation import validate_ms_for_calibration, ValidationError
-from .diagnostics import generate_calibration_diagnostics, compare_calibration_tables
+from dsa110_contimg.utils.validation import ValidationError, validate_ms_for_calibration
+
+from .diagnostics import compare_calibration_tables, generate_calibration_diagnostics
 
 logger = logging.getLogger(__name__)
 

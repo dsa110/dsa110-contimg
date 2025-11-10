@@ -12,10 +12,10 @@ from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).parent.parent.parent / "src"))
 
-from casacore.tables import table
 import numpy as np
-from astropy.coordinates import SkyCoord
 from astropy import units as u
+from astropy.coordinates import SkyCoord
+from casacore.tables import table
 
 
 def diagnose_model_data_phase(ms_path: str, cal_ra_deg: float, cal_dec_deg: float):

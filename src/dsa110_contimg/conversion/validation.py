@@ -7,25 +7,25 @@ or as part of the conversion CLI.
 
 from __future__ import annotations
 
-import h5py
 import logging
 import os
+from dataclasses import dataclass
 from pathlib import Path
 from typing import Dict, List, Optional, Tuple
-from dataclasses import dataclass
 
+import astropy.units as u
+import h5py
 import numpy as np
 from astropy.time import Time
-import astropy.units as u
 
-from dsa110_contimg.conversion.strategies.hdf5_orchestrator import (
-    find_subband_groups,
-    _peek_uvh5_phase_and_midtime,
-    _parse_timestamp_from_filename,
-)
-from dsa110_contimg.conversion.calibrator_ms_service import CalibratorMSGenerator
-from dsa110_contimg.calibration.schedule import previous_transits
 from dsa110_contimg.calibration.catalogs import read_vla_parsed_catalog_csv
+from dsa110_contimg.calibration.schedule import previous_transits
+from dsa110_contimg.conversion.calibrator_ms_service import CalibratorMSGenerator
+from dsa110_contimg.conversion.strategies.hdf5_orchestrator import (
+    _parse_timestamp_from_filename,
+    _peek_uvh5_phase_and_midtime,
+    find_subband_groups,
+)
 
 logger = logging.getLogger(__name__)
 

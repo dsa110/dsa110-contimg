@@ -5,12 +5,12 @@ Provides DataDir class and ls() function for browsing directories,
 similar to RadioPadre's DataDir functionality.
 """
 
-import os
 import fnmatch
+import os
 from typing import List, Optional, Union
 
-from .filelist import FileList
 from .file import FileBase, autodetect_file_type
+from .filelist import FileList
 
 
 def _match_pattern(path: str, pattern: str) -> bool:

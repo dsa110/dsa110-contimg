@@ -1,13 +1,14 @@
 #!/usr/bin/env python3
 """Check field phase centers vs MODEL_DATA phase center."""
-from casacore.tables import table
-import numpy as np
-from astropy.coordinates import SkyCoord
-import astropy.units as u
 import sys
 
+import astropy.units as u
+import numpy as np
+from astropy.coordinates import SkyCoord
+from casacore.tables import table
+
 sys.path.insert(0, "src")
-from dsa110_contimg.calibration.catalogs import load_vla_catalog, get_calibrator_radec
+from dsa110_contimg.calibration.catalogs import get_calibrator_radec, load_vla_catalog
 
 ms_path = "/stage/dsa110-contimg/ms/0834_20251029/2025-10-29T13:54:17.phased.ms"
 

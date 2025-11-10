@@ -5,8 +5,8 @@ All exceptions inherit from the unified DSA110Error hierarchy.
 """
 
 from dsa110_contimg.utils.exceptions import (
-    DSA110Error,
     ConversionError,
+    DSA110Error,
     ValidationError,
 )
 

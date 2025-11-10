@@ -5,13 +5,13 @@ Provides wrapper functions that integrate visualization framework
 with existing QA functions.
 """
 
-from typing import Optional, List, Dict, Any
+from typing import Any, Dict, List, Optional
 
 try:
     from dsa110_contimg.qa.casa_ms_qa import (
-        run_ms_qa,
         QaResult,
         QaThresholds,
+        run_ms_qa,
     )
 
     HAS_QA = True
@@ -22,8 +22,8 @@ except ImportError:
     QaThresholds = None  # type: ignore
 
 from dsa110_contimg.qa.visualization.integration import (
-    enhance_qa_with_notebook,
     display_qa_summary,
+    enhance_qa_with_notebook,
 )
 
 

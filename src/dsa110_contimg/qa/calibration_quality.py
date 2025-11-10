@@ -5,12 +5,12 @@ Evaluates the quality of CASA calibration tables and applied calibration solutio
 """
 
 import logging
-import numpy as np
 import os
 from dataclasses import dataclass
 from pathlib import Path
-from typing import Dict, List, Optional, Tuple, Any
+from typing import Any, Dict, List, Optional, Tuple
 
+import numpy as np
 from casacore.tables import table
 
 from dsa110_contimg.calibration.units import (
@@ -676,8 +676,8 @@ def analyze_per_spw_flagging(
         - NRAO VLA/VLBA calibration guides recommend per-SPW evaluation for diagnostics
         - Best practice: Use per-channel flagging first, SPW-level flagging as last resort
     """
-    from casacore.tables import table
     import numpy as np
+    from casacore.tables import table
 
     if not os.path.exists(caltable_path):
         raise FileNotFoundError(f"Calibration table not found: {caltable_path}")
@@ -856,8 +856,8 @@ def export_per_spw_stats(
     Returns:
         Path to the created file
     """
-    import json
     import csv
+    import json
     from pathlib import Path
 
     output = Path(output_path)
@@ -950,9 +950,10 @@ def plot_per_spw_flagging(
     import matplotlib
 
     matplotlib.use("Agg", force=True)
+    from pathlib import Path
+
     import matplotlib.pyplot as plt
     import numpy as np
-    from pathlib import Path
 
     output = Path(output_path)
     if not output.suffix:

@@ -5,9 +5,9 @@ import logging
 import sys
 
 from dsa110_contimg.utils.cli_helpers import (
-    setup_casa_environment,
     add_common_logging_args,
     configure_logging_from_args,
+    setup_casa_environment,
 )
 
 logger = logging.getLogger(__name__)
@@ -222,12 +222,13 @@ def main(argv: list = None) -> int:
     logger = configure_logging_from_args(args)
 
     if args.command == "validate":
-        from .validation import (
-            validate_hdf5_files,
-            validate_calibrator_transit,
-        )
-        from .strategies.hdf5_orchestrator import find_subband_groups
         from pathlib import Path
+
+        from .strategies.hdf5_orchestrator import find_subband_groups
+        from .validation import (
+            validate_calibrator_transit,
+            validate_hdf5_files,
+        )
 
         if args.validate_calibrator:
             # Validate calibrator transit
@@ -300,12 +301,13 @@ def main(argv: list = None) -> int:
             return 0 if valid_count == total_count else 1
 
     elif args.command == "verify-ms":
-        from dsa110_contimg.utils.validation import (
-            validate_ms,
-            validate_corrected_data_quality,
-        )
-        from dsa110_contimg.utils.validation import ValidationError
         from casacore.tables import table
+
+        from dsa110_contimg.utils.validation import (
+            ValidationError,
+            validate_corrected_data_quality,
+            validate_ms,
+        )
 
         try:
             check_columns = ["DATA", "ANTENNA1", "ANTENNA2", "TIME", "UVW"]
@@ -353,9 +355,10 @@ def main(argv: list = None) -> int:
         return 0 if success else 1
 
     elif args.command == "find-calibrators":
-        from .validation import find_calibrator_sources_in_data
-        from pathlib import Path
         import json
+        from pathlib import Path
+
+        from .validation import find_calibrator_sources_in_data
 
         catalog_path = Path(args.catalog) if args.catalog else None
         results = find_calibrator_sources_in_data(

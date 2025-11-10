@@ -4,10 +4,10 @@ Provides parallel processing and memory management for large-scale calibration o
 """
 
 import logging
-import os
-from typing import List, Optional, Callable, Any, Tuple
-from concurrent.futures import ProcessPoolExecutor, ThreadPoolExecutor, as_completed
 import multiprocessing as mp
+import os
+from concurrent.futures import ProcessPoolExecutor, ThreadPoolExecutor, as_completed
+from typing import Any, Callable, List, Optional, Tuple
 
 logger = logging.getLogger(__name__)
 
@@ -230,8 +230,8 @@ def estimate_memory_requirements(ms_path: str) -> dict:
     Returns:
         Dictionary with memory estimates (in GB)
     """
-    from casacore.tables import table
     import numpy as np
+    from casacore.tables import table
 
     try:
         with table(ms_path, readonly=True, ack=False) as tb:

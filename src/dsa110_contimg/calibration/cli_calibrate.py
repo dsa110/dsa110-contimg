@@ -1,56 +1,58 @@
 """Calibrate subcommand handler."""
 
-from .cli_utils import (
-    rephase_ms_to_calibrator as _rephase_ms_to_calibrator,
-    clear_all_calibration_artifacts as _clear_all_calibration_artifacts,
+import argparse
+import glob
+import json
+import logging
+import os
+import shutil
+import sys
+import time
+from typing import List
+
+from dsa110_contimg.calibration.performance import optimize_memory_usage
+from dsa110_contimg.utils.cli_helpers import configure_logging_from_args
+from dsa110_contimg.utils.error_context import (
+    format_error_with_context,
+    format_ms_error_with_suggestions,
 )
-from .model_validation import comprehensive_model_data_validation
-from .diagnostics import generate_calibration_diagnostics
-from .selection import select_bandpass_fields, select_bandpass_from_catalog
+from dsa110_contimg.utils.performance import track_performance
+from dsa110_contimg.utils.validation import (
+    ValidationError,
+    validate_file_path,
+    validate_ms_for_calibration,
+)
+
 from .calibration import (
-    solve_delay,
     solve_bandpass,
+    solve_delay,
     solve_gains,
     solve_prebandpass_phase,
 )
-from .plotting import generate_bandpass_plots, generate_gain_plots
+from .cli_utils import (
+    clear_all_calibration_artifacts as _clear_all_calibration_artifacts,
+)
+from .cli_utils import rephase_ms_to_calibrator as _rephase_ms_to_calibrator
+from .diagnostics import generate_calibration_diagnostics
 from .flagging import (
-    reset_flags,
-    flag_zeros,
-    flag_rfi,
+    analyze_channel_flagging_stats,
     flag_antenna,
     flag_baselines,
-    flag_manual,
-    flag_shadow,
-    flag_quack,
-    flag_elevation,
     flag_clip,
+    flag_elevation,
     flag_extend,
-    flag_summary,
-    analyze_channel_flagging_stats,
+    flag_manual,
     flag_problematic_channels,
+    flag_quack,
+    flag_rfi,
+    flag_shadow,
+    flag_summary,
+    flag_zeros,
+    reset_flags,
 )
-from dsa110_contimg.calibration.performance import optimize_memory_usage
-from dsa110_contimg.utils.error_context import (
-    format_ms_error_with_suggestions,
-    format_error_with_context,
-)
-from dsa110_contimg.utils.performance import track_performance
-from dsa110_contimg.utils.cli_helpers import configure_logging_from_args
-from dsa110_contimg.utils.validation import (
-    validate_ms_for_calibration,
-    validate_file_path,
-    ValidationError,
-)
-import argparse
-import logging
-import os
-import sys
-import time
-import shutil
-import glob
-import json
-from typing import List
+from .model_validation import comprehensive_model_data_validation
+from .plotting import generate_bandpass_plots, generate_gain_plots
+from .selection import select_bandpass_fields, select_bandpass_from_catalog
 
 # Ensure headless operation before any CASA imports
 os.environ.setdefault("QT_QPA_PLATFORM", "offscreen")
@@ -681,6 +683,7 @@ def handle_calibrate(args: argparse.Namespace) -> int:
     if not args.dry_run and (not args.skip_bp or not args.skip_g):
         try:
             from pathlib import Path
+
             from dsa110_contimg.database.registry import ensure_db, get_active_applylist
             from dsa110_contimg.utils.time_utils import extract_ms_time_range
 
@@ -1190,11 +1193,12 @@ def handle_calibrate(args: argparse.Namespace) -> int:
         # existing caltable in the MS directory if present; otherwise use the
         # default outrigger chain.
         try:
-            from dsa110_contimg.calibration.refant_selection import (
-                recommend_refants_from_ms,
-                get_default_outrigger_refants,
-            )
             import glob
+
+            from dsa110_contimg.calibration.refant_selection import (
+                get_default_outrigger_refants,
+                recommend_refants_from_ms,
+            )
 
             ms_dir = os.path.dirname(os.path.abspath(args.ms))
             # Search for a recent calibration table to inform the recommendation
@@ -1265,8 +1269,9 @@ def handle_calibrate(args: argparse.Namespace) -> int:
     # Handle minimal mode (very fast test calibration)
     if args.minimal:
         # Minimal mode overrides fast mode settings
-        from .subset import make_subset
         from casacore.tables import table
+
+        from .subset import make_subset
 
         base = ms_in.rstrip("/").rstrip(".ms")
         ms_minimal = f"{base}.minimal.ms"
@@ -1315,8 +1320,9 @@ def handle_calibrate(args: argparse.Namespace) -> int:
             args.uvrange = ""  # No UV range cut for minimal
 
     if args.fast and (args.timebin or args.chanbin) and not args.minimal:
-        from .subset import make_subset
         from casacore.tables import table
+
+        from .subset import make_subset
 
         base = ms_in.rstrip("/").rstrip(".ms")
         ms_fast = f"{base}.fast.ms"
@@ -1458,11 +1464,12 @@ def handle_calibrate(args: argparse.Namespace) -> int:
         # before proceeding with expensive calibration operations.
         # OPTIMIZATION: Use memory-efficient sampling instead of reading entire MS
         try:
-            from dsa110_contimg.utils.ms_helpers import (
-                validate_ms_unflagged_fraction,
-                estimate_ms_size,
-            )
             from casacore.tables import table
+
+            from dsa110_contimg.utils.ms_helpers import (
+                estimate_ms_size,
+                validate_ms_unflagged_fraction,
+            )
 
             # Get MS size for reporting
             ms_info = estimate_ms_size(ms_in)
@@ -1667,10 +1674,10 @@ def handle_calibrate(args: argparse.Namespace) -> int:
                     logger.debug("Checking if MS needs rephasing...")
                     needs_rephasing = True
                     try:
-                        from casacore.tables import table
                         import numpy as np
-                        from astropy.coordinates import SkyCoord
                         from astropy import units as u
+                        from astropy.coordinates import SkyCoord
+                        from casacore.tables import table
 
                         logger.debug("Reading MS phase center...")
                         with table(f"{args.ms}::FIELD") as tf:
@@ -1733,9 +1740,11 @@ def handle_calibrate(args: argparse.Namespace) -> int:
 
                         try:
                             logger.debug("Importing rephasing tasks...")
-                            from casatasks import phaseshift as casa_phaseshift
-                            from astropy.coordinates import Angle
                             import shutil
+
+                            from astropy.coordinates import Angle
+                            from casatasks import phaseshift as casa_phaseshift
+
                             from dsa110_contimg.calibration.uvw_verification import (
                                 get_phase_center_from_ms,
                             )
@@ -1787,8 +1796,8 @@ def handle_calibrate(args: argparse.Namespace) -> int:
                                 shutil.rmtree(ms_phased, ignore_errors=True)
 
                             # Calculate phase shift magnitude to determine method
-                            from astropy.coordinates import SkyCoord
                             from astropy import units as u
+                            from astropy.coordinates import SkyCoord
 
                             old_coord = SkyCoord(
                                 ra=old_phase_center[0] * u.deg,
@@ -1923,8 +1932,8 @@ def handle_calibrate(args: argparse.Namespace) -> int:
                                         ref_dec_deg = ref_dir[1] * 180.0 / np.pi
 
                                         # Check separation from calibrator
-                                        from astropy.coordinates import SkyCoord
                                         from astropy import units as u
+                                        from astropy.coordinates import SkyCoord
 
                                         ms_coord = SkyCoord(
                                             ra=ref_ra_deg * u.deg,
@@ -2159,8 +2168,8 @@ def handle_calibrate(args: argparse.Namespace) -> int:
                         )
                         # Get flux from setjy first, then use manual calculation
                         try:
-                            from casatasks import setjy as casa_setjy
                             from casacore.tables import table
+                            from casatasks import setjy as casa_setjy
 
                             # Call setjy with usescratch=False to get flux without populating MODEL_DATA
                             # Actually, setjy always populates MODEL_DATA, so we need a different approach
@@ -2265,8 +2274,8 @@ def handle_calibrate(args: argparse.Namespace) -> int:
     # before proceeding with calibration.
     if needs_model and args.model_source is not None:
         try:
-            from casacore.tables import table
             import numpy as np
+            from casacore.tables import table
 
             with table(ms_in, readonly=True) as tb:
                 if "MODEL_DATA" in tb.colnames():
@@ -2423,8 +2432,8 @@ def handle_calibrate(args: argparse.Namespace) -> int:
         try:
             if bptabs:
                 from dsa110_contimg.qa.calibration_quality import (
-                    validate_caltable_quality,
                     analyze_per_spw_flagging,
+                    validate_caltable_quality,
                 )
 
                 _bp_metrics = validate_caltable_quality(bptabs[0])
@@ -2469,8 +2478,8 @@ def handle_calibrate(args: argparse.Namespace) -> int:
                 try:
                     from dsa110_contimg.qa.calibration_quality import (
                         export_per_spw_stats,
-                        plot_per_spw_flagging,
                         flag_problematic_spws,
+                        plot_per_spw_flagging,
                     )
 
                     spw_stats = analyze_per_spw_flagging(bptabs[0])
@@ -2768,10 +2777,11 @@ def handle_calibrate(args: argparse.Namespace) -> int:
     # Validate expected calibration tables exist
     if not args.dry_run:
         try:
+            from pathlib import Path
+
             from dsa110_contimg.calibration.caltable_paths import (
                 validate_caltables_exist,
             )
-            from pathlib import Path
 
             # Determine caltable directory (same as MS directory by default)
             caltable_dir = Path(ms_in).parent
@@ -2800,13 +2810,14 @@ def handle_calibrate(args: argparse.Namespace) -> int:
     # Register calibration tables in registry database (if not dry-run)
     if not args.dry_run and tabs:
         try:
+            import re
             from pathlib import Path
+
             from dsa110_contimg.database.registry import (
-                register_set_from_prefix,
                 ensure_db,
+                register_set_from_prefix,
             )
             from dsa110_contimg.utils.time_utils import extract_ms_time_range
-            import re
 
             # Determine registry DB path (same logic as apply_service)
             # Try CAL_REGISTRY_DB env var first, then PIPELINE_STATE_DIR, then default

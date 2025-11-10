@@ -12,29 +12,30 @@ Run with: pytest tests/validation/test_pipeline_validation_integration.py -v
 import logging
 import os
 import tempfile
-import pytest
-import numpy as np
 from pathlib import Path
-from unittest.mock import patch, MagicMock, mock_open
+from unittest.mock import MagicMock, mock_open, patch
+
+import numpy as np
+import pytest
 
 # Test requires casa6 environment with full dependencies
 try:
+    import h5py
     from casacore.tables import table
     from pyuvdata import UVData
-    import h5py
 
     CASA_AVAILABLE = True
 except ImportError:
     CASA_AVAILABLE = False
 
 from dsa110_contimg.conversion.helpers import (
-    validate_ms_frequency_order,
     cleanup_casa_file_handles,
-    validate_phase_center_coherence,
-    validate_uvw_precision,
     validate_antenna_positions,
     validate_model_data_quality,
+    validate_ms_frequency_order,
+    validate_phase_center_coherence,
     validate_reference_antenna_stability,
+    validate_uvw_precision,
 )
 
 

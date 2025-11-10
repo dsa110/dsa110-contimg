@@ -3,8 +3,8 @@
 import logging
 from typing import Optional
 
-import numpy as np
 import astropy.units as u
+import numpy as np
 from casacore.tables import table
 
 logger = logging.getLogger("dsa110_contimg.conversion.helpers")

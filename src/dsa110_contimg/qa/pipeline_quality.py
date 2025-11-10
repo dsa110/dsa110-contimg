@@ -10,13 +10,13 @@ import os
 from pathlib import Path
 from typing import Dict, List, Optional, Tuple
 
-from dsa110_contimg.utils import alerting
-from dsa110_contimg.qa.ms_quality import validate_ms_quality, quick_ms_check
 from dsa110_contimg.qa.calibration_quality import (
-    validate_caltable_quality,
     check_corrected_data_quality,
+    validate_caltable_quality,
 )
-from dsa110_contimg.qa.image_quality import validate_image_quality, quick_image_check
+from dsa110_contimg.qa.image_quality import quick_image_check, validate_image_quality
+from dsa110_contimg.qa.ms_quality import quick_ms_check, validate_ms_quality
+from dsa110_contimg.utils import alerting
 
 logger = logging.getLogger(__name__)
 

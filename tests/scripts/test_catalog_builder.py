@@ -11,11 +11,11 @@ Usage:
 
 from __future__ import annotations
 
+import csv
 import os
 import sqlite3
 import sys
 from pathlib import Path
-import csv
 
 
 def ensure_repo_on_path() -> None:

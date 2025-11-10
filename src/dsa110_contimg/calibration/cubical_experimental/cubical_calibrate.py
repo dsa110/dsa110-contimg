@@ -10,8 +10,7 @@ from typing import Optional
 
 # These imports will only work when CubiCal is installed
 try:
-    from cubical import data_handling
-    from cubical import calibration_control
+    from cubical import calibration_control, data_handling
 
     CUBICAL_AVAILABLE = True
 except ImportError:

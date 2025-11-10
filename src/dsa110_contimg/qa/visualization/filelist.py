@@ -6,10 +6,10 @@ similar to RadioPadre's FileList functionality.
 """
 
 import os
-from typing import List, Optional, Union, Callable
+from typing import Callable, List, Optional, Union
 
 try:
-    from IPython.display import display, HTML
+    from IPython.display import HTML, display
 
     HAS_IPYTHON = True
 except ImportError:

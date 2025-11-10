@@ -4,9 +4,9 @@
 Test QA integration with real pipeline data - validates that QA works end-to-end
 """
 
+import logging
 import sys
 from pathlib import Path
-import logging
 
 sys.path.insert(0, str(Path(__file__).parent.parent.parent / "src"))
 

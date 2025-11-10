@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """Analyze phase structure of DATA columns."""
-from casacore.tables import table
 import numpy as np
+from casacore.tables import table
 
 ms_path = "/stage/dsa110-contimg/ms/0834_20251029/2025-10-29T13:54:17.phased.ms"
 

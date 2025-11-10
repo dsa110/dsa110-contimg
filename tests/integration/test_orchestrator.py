@@ -7,13 +7,13 @@ Tests orchestrator behavior with multiple stages, dependencies, and error handli
 import pytest
 
 from dsa110_contimg.pipeline import (
-    PipelineOrchestrator,
-    StageDefinition,
     PipelineContext,
+    PipelineOrchestrator,
     PipelineStatus,
+    StageDefinition,
     StageStatus,
 )
-from tests.fixtures.mock_stages import MockStage, FailingValidationStage
+from tests.fixtures.mock_stages import FailingValidationStage, MockStage
 
 
 class TestOrchestratorExecution:

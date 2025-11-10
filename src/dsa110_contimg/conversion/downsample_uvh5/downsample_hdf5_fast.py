@@ -5,12 +5,13 @@ Fast downsampling for UVH5 files by merging integrations and/or frequency channe
 This optimized version uses bulk operations and proper chunking for much better performance.
 """
 
+import argparse
+import logging
+import sys
+from pathlib import Path
+
 import h5py  # type: ignore
 import numpy as np
-import argparse
-from pathlib import Path
-import sys
-import logging
 
 # Configure logging
 logging.basicConfig(

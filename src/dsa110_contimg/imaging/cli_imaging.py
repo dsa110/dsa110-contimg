@@ -1,28 +1,28 @@
 """Core imaging functions for imaging CLI."""
 
-import os
-import time
-import subprocess
-import shutil
 import logging
+import os
+import shutil
+import subprocess
+import time
 from typing import Optional
 
 import numpy as np
 from casacore.tables import table
-from casatasks import tclean, exportfits  # type: ignore[import]
+from casatasks import exportfits, tclean  # type: ignore[import]
 
 try:
-    from casatools import vpmanager as _vpmanager  # type: ignore[import]
     from casatools import msmetadata as _msmd  # type: ignore[import]
+    from casatools import vpmanager as _vpmanager  # type: ignore[import]
 except Exception:  # pragma: no cover
     _vpmanager = None
     _msmd = None
 
-from dsa110_contimg.utils.validation import validate_ms, ValidationError
-from dsa110_contimg.imaging.cli_utils import detect_datacolumn, default_cell_arcsec
-from dsa110_contimg.utils.performance import track_performance
+from dsa110_contimg.imaging.cli_utils import default_cell_arcsec, detect_datacolumn
 from dsa110_contimg.utils.error_context import format_ms_error_with_suggestions
+from dsa110_contimg.utils.performance import track_performance
 from dsa110_contimg.utils.runtime_safeguards import require_casa6_python
+from dsa110_contimg.utils.validation import ValidationError, validate_ms
 
 LOG = logging.getLogger(__name__)
 
@@ -31,8 +31,8 @@ FIXED_IMAGE_EXTENT_DEG = 3.5
 
 try:
     from dsa110_contimg.utils.tempdirs import (
-        prepare_temp_environment,
         derive_default_scratch_root,
+        prepare_temp_environment,
     )
 except Exception:  # pragma: no cover - defensive import
     prepare_temp_environment = None  # type: ignore
@@ -674,7 +674,10 @@ def image_ms(
             d_dec = float(calib_dec_deg) - dec0_deg
             sep_deg = float(_math.hypot(d_ra, d_dec))
             if sep_deg <= radius_deg * 1.05:
-                from dsa110_contimg.calibration.skymodels import make_point_cl, ft_from_cl  # type: ignore
+                from dsa110_contimg.calibration.skymodels import (  # type: ignore
+                    ft_from_cl,
+                    make_point_cl,
+                )
 
                 cl_path = f"{imagename}.calibrator_{calib_flux_jy:.3f}Jy.cl"
                 make_point_cl(
@@ -697,10 +700,10 @@ def image_ms(
     # Optional: seed a sky model from NVSS (> nvss_min_mjy mJy) via ft(), if no calibrator seed
     if (not did_seed) and (nvss_min_mjy is not None):
         try:
-            from dsa110_contimg.calibration.skymodels import (
-                make_nvss_component_cl,
+            from dsa110_contimg.calibration.skymodels import (  # type: ignore
                 ft_from_cl,
-            )  # type: ignore
+                make_nvss_component_cl,
+            )
 
             # Use phase center already determined above
             if ra0_deg is None or dec0_deg is None:

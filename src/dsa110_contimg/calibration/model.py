@@ -1,13 +1,13 @@
-from typing import Optional
+import logging
 import os
 import time
-import logging
+from typing import Optional
 
 import astropy.units as u
-from astropy.coordinates import SkyCoord
-from casacore.tables import addImagingColumns
 import casacore.tables as tb
 import numpy as np
+from astropy.coordinates import SkyCoord
+from casacore.tables import addImagingColumns
 
 # Set up logger
 logger = logging.getLogger(__name__)
@@ -354,8 +354,8 @@ def write_point_model_with_ft(
         _calculate_manual_model_data(ms_path, ra_deg, dec_deg, flux_jy, field=field)
         return
 
-    from casatools import componentlist as cltool
     from casatasks import ft
+    from casatools import componentlist as cltool
 
     logger.info(
         f"Writing point model using ft() (use_manual=False). "
@@ -539,9 +539,10 @@ def export_model_as_fits(
         imsize: Image size in pixels (default: 512)
         cell_arcsec: Cell size in arcseconds (default: 1.0)
     """
-    from casatasks import tclean, exportfits
-    from casatools import image as imtool
     import logging
+
+    from casatasks import exportfits, tclean
+    from casatools import image as imtool
 
     LOG = logging.getLogger(__name__)
 

@@ -3,9 +3,9 @@
 Simple test to verify implementations are syntactically correct and work as intended.
 """
 
-import sys
 import ast
 import importlib.util
+import sys
 from pathlib import Path
 
 

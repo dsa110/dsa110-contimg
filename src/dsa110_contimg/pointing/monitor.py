@@ -10,11 +10,12 @@ from collections import deque
 from datetime import datetime
 from pathlib import Path
 from typing import Dict, Optional
-from watchdog.observers import Observer
-from watchdog.events import FileSystemEventHandler
 
-from dsa110_contimg.pointing.utils import load_pointing
+from watchdog.events import FileSystemEventHandler
+from watchdog.observers import Observer
+
 from dsa110_contimg.database.products import ensure_products_db
+from dsa110_contimg.pointing.utils import load_pointing
 
 # Configure logging
 logger = logging.getLogger(__name__)

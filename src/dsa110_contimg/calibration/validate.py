@@ -7,13 +7,13 @@ before expensive calibration operations.
 
 from __future__ import annotations
 
-from typing import List, Optional, Union
-import os
 import logging
+import os
 from pathlib import Path
+from typing import List, Optional, Union
 
-from casacore.tables import table  # type: ignore[import]
 import numpy as np  # type: ignore[import]
+from casacore.tables import table  # type: ignore[import]
 
 logger = logging.getLogger(__name__)
 

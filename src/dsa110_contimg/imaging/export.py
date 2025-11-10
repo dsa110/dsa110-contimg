@@ -40,10 +40,11 @@ def save_png_from_fits(paths: Iterable[str]) -> List[str]:
     """Convert FITS files to PNG quicklook images."""
     saved: List[str] = []
     try:
-        from astropy.io import fits
-        from dsa110_contimg.utils.runtime_safeguards import validate_image_shape
-        import numpy as np
         import matplotlib
+        import numpy as np
+        from astropy.io import fits
+
+        from dsa110_contimg.utils.runtime_safeguards import validate_image_shape
 
         matplotlib.use("Agg")
         import matplotlib.pyplot as plt

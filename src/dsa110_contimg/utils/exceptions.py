@@ -5,7 +5,7 @@ This module provides a consistent exception structure across the codebase,
 ensuring all errors include context and actionable suggestions.
 """
 
-from typing import Optional, Dict, Any, List
+from typing import Any, Dict, List, Optional
 
 
 class DSA110Error(Exception):

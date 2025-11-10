@@ -5,14 +5,14 @@ NVSS catalog tools for imaging: masks and overlays.
 from __future__ import annotations
 
 import os
-from typing import Tuple, Optional
+from typing import Optional, Tuple
 
+import astropy.units as u
 import numpy as np
 from astropy.coordinates import SkyCoord
 from astropy.io import fits
 from astropy.wcs import WCS
 from astropy.wcs.utils import proj_plane_pixel_scales
-import astropy.units as u
 
 
 def image_center_and_radius_deg(hdr) -> Tuple[SkyCoord, float]:

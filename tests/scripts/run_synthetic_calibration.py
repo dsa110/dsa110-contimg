@@ -19,14 +19,14 @@ import os
 from pathlib import Path
 from typing import Optional
 
-from dsa110_contimg.conversion.uvh5_to_ms import convert_single_file
-from dsa110_contimg.calibration.model import write_point_model_with_ft
-from dsa110_contimg.calibration.flagging import reset_flags, flag_zeros
 from dsa110_contimg.calibration.calibration import (
-    solve_prebandpass_phase,
     solve_bandpass,
     solve_gains,
+    solve_prebandpass_phase,
 )
+from dsa110_contimg.calibration.flagging import flag_zeros, reset_flags
+from dsa110_contimg.calibration.model import write_point_model_with_ft
+from dsa110_contimg.conversion.uvh5_to_ms import convert_single_file
 
 
 def run(

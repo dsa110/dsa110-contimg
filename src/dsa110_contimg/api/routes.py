@@ -1,118 +1,120 @@
 """FastAPI routing for the pipeline monitoring API."""
 
 from __future__ import annotations
-from dsa110_contimg.api.image_utils import (
-    get_fits_path,
-    convert_casa_to_fits,
-    resolve_image_path,
-)
-from dsa110_contimg.api.data_access import _connect
-from dsa110_contimg.api.models import (
-    PipelineStatus,
-    ProductList,
-    CalTableList,
-    CalTableInfo,
-    ExistingCalTables,
-    ExistingCalTable,
-    CalTableCompatibility,
-    MSMetadata,
-    FieldInfo,
-    AntennaInfo,
-    FlaggingStats,
-    MSCalibratorMatchList,
-    MSCalibratorMatch,
-    WorkflowJobCreateRequest,
-    CalibratorMatchList,
-    QAList,
-    QAArtifact,
-    GroupDetail,
-    SystemMetrics,
-    MsIndexList,
-    MsIndexEntry,
-    PointingHistoryList,
-    Job,
-    JobList,
-    JobCreateRequest,
-    MSList,
-    MSListEntry,
-    UVH5FileList,
-    UVH5FileEntry,
-    ConversionJobCreateRequest,
-    ConversionJobParams,
-    CalibrateJobParams,
-    CalibrationQA,
-    ImageQA,
-    QAMetrics,
-    BatchJob,
-    BatchJobStatus,
-    BatchJobList,
-    BatchCalibrateParams,
-    BatchApplyParams,
-    BatchImageParams,
-    BatchJobCreateRequest,
-    ImageInfo,
-    ImageList,
-    ESECandidate,
-    ESECandidatesResponse,
-    Mosaic,
-    MosaicQueryResponse,
-    SourceTimeseries,
-    SourceSearchResponse,
-    AlertHistory,
-    StreamingConfigRequest,
-    StreamingStatusResponse,
-    StreamingHealthResponse,
-    StreamingControlResponse,
-)
-from dsa110_contimg.api.streaming_service import (
-    StreamingServiceManager,
-    StreamingConfig,
-)
-from dsa110_contimg.api.data_access import (
-    fetch_calibration_sets,
-    fetch_queue_stats,
-    fetch_recent_products,
-    fetch_recent_queue_groups,
-    fetch_recent_calibrator_matches,
-    fetch_pointing_history,
-    fetch_ese_candidates,
-    fetch_mosaics,
-    fetch_mosaic_by_id,
-    fetch_source_timeseries,
-    fetch_alert_history,
-)
-from dsa110_contimg.api.config import ApiConfig
 
-import os
-import json
-import time
 import asyncio
+import json
 import logging
-from pathlib import Path
+import os
+import shutil
+import time
+from collections import deque
 from datetime import datetime
+from pathlib import Path
+from typing import Any, Dict, List, Optional
+
 from fastapi import (
     APIRouter,
-    FastAPI,
     BackgroundTasks,
-    HTTPException,
     Body,
+    FastAPI,
+    HTTPException,
+    Query,
+    Request,
     WebSocket,
     WebSocketDisconnect,
     status,
-    Request,
-    Query,
 )
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import (
-    HTMLResponse,
     FileResponse,
-    StreamingResponse,
+    HTMLResponse,
     RedirectResponse,
+    StreamingResponse,
 )
-from typing import List, Optional, Dict, Any
-from collections import deque
-import shutil
 from fastapi.staticfiles import StaticFiles
+
+from dsa110_contimg.api.config import ApiConfig
+from dsa110_contimg.api.data_access import (
+    _connect,
+    fetch_alert_history,
+    fetch_calibration_sets,
+    fetch_ese_candidates,
+    fetch_mosaic_by_id,
+    fetch_mosaics,
+    fetch_pointing_history,
+    fetch_queue_stats,
+    fetch_recent_calibrator_matches,
+    fetch_recent_products,
+    fetch_recent_queue_groups,
+    fetch_source_timeseries,
+)
+from dsa110_contimg.api.image_utils import (
+    convert_casa_to_fits,
+    get_fits_path,
+    resolve_image_path,
+)
+from dsa110_contimg.api.models import (
+    AlertHistory,
+    AntennaInfo,
+    BatchApplyParams,
+    BatchCalibrateParams,
+    BatchImageParams,
+    BatchJob,
+    BatchJobCreateRequest,
+    BatchJobList,
+    BatchJobStatus,
+    CalibrateJobParams,
+    CalibrationQA,
+    CalibratorMatchList,
+    CalTableCompatibility,
+    CalTableInfo,
+    CalTableList,
+    ConversionJobCreateRequest,
+    ConversionJobParams,
+    ESECandidate,
+    ESECandidatesResponse,
+    ExistingCalTable,
+    ExistingCalTables,
+    FieldInfo,
+    FlaggingStats,
+    GroupDetail,
+    ImageInfo,
+    ImageList,
+    ImageQA,
+    Job,
+    JobCreateRequest,
+    JobList,
+    Mosaic,
+    MosaicQueryResponse,
+    MSCalibratorMatch,
+    MSCalibratorMatchList,
+    MsIndexEntry,
+    MsIndexList,
+    MSList,
+    MSListEntry,
+    MSMetadata,
+    PipelineStatus,
+    PointingHistoryList,
+    ProductList,
+    QAArtifact,
+    QAList,
+    QAMetrics,
+    SourceSearchResponse,
+    SourceTimeseries,
+    StreamingConfigRequest,
+    StreamingControlResponse,
+    StreamingHealthResponse,
+    StreamingStatusResponse,
+    SystemMetrics,
+    UVH5FileEntry,
+    UVH5FileList,
+    WorkflowJobCreateRequest,
+)
+from dsa110_contimg.api.streaming_service import (
+    StreamingConfig,
+    StreamingServiceManager,
+)
 
 logger = logging.getLogger(__name__)
 
@@ -127,7 +129,7 @@ def create_app(config: ApiConfig | None = None) -> FastAPI:
     @app.on_event("startup")
     async def start_status_broadcaster():
         """Start background task to broadcast status updates."""
-        from dsa110_contimg.api.websocket_manager import manager, create_status_update
+        from dsa110_contimg.api.websocket_manager import create_status_update, manager
 
         async def broadcast_status():
             """Periodically fetch and broadcast status updates."""
@@ -360,8 +362,9 @@ def create_app(config: ApiConfig | None = None) -> FastAPI:
 
             Used for testing real-time status updates (STREAM-020).
             """
-            from dsa110_contimg.api.websocket_manager import manager
             import time
+
+            from dsa110_contimg.api.websocket_manager import manager
 
             test_message = message or {
                 "type": "streaming_status_update",
@@ -375,8 +378,9 @@ def create_app(config: ApiConfig | None = None) -> FastAPI:
     @router.get("/health")
     def health():
         """Health check endpoint for monitoring and load balancers."""
-        from dsa110_contimg.api.data_access import _connect
         import os
+
+        from dsa110_contimg.api.data_access import _connect
 
         health_status = {
             "status": "healthy",
@@ -634,14 +638,15 @@ def create_app(config: ApiConfig | None = None) -> FastAPI:
         Supports line, polyline, and point (radial) profiles.
         Optionally fits Gaussian or Moffat models to the profile.
         """
+        import json
+
         from dsa110_contimg.utils.profiling import (
             extract_line_profile,
-            extract_polyline_profile,
             extract_point_profile,
+            extract_polyline_profile,
             fit_gaussian_profile,
             fit_moffat_profile,
         )
-        import json
 
         db_path = cfg.products_db
         if not db_path.exists():
@@ -792,12 +797,14 @@ def create_app(config: ApiConfig | None = None) -> FastAPI:
 
         Optionally fits within a region constraint.
         """
-        from dsa110_contimg.utils.fitting import fit_2d_gaussian, fit_2d_moffat
-        from dsa110_contimg.utils.regions import json_to_region, create_region_mask
+        import json
+
+        import numpy as np
         from astropy.io import fits
         from astropy.wcs import WCS
-        import json
-        import numpy as np
+
+        from dsa110_contimg.utils.fitting import fit_2d_gaussian, fit_2d_moffat
+        from dsa110_contimg.utils.regions import create_region_mask, json_to_region
 
         db_path = cfg.products_db
         if not db_path.exists():
@@ -1050,8 +1057,9 @@ def create_app(config: ApiConfig | None = None) -> FastAPI:
         - coordinates: JSON object with coordinates
         - image_path: Path to image
         """
-        from dsa110_contimg.utils.regions import RegionData, region_to_json
         import time
+
+        from dsa110_contimg.utils.regions import RegionData, region_to_json
 
         db_path = cfg.products_db
         if not db_path.exists():
@@ -1193,11 +1201,11 @@ def create_app(config: ApiConfig | None = None) -> FastAPI:
     @router.get("/regions/{region_id}/statistics")
     def get_region_statistics(region_id: int):
         """Get statistics for pixels within a region."""
-        from dsa110_contimg.utils.regions import (
-            json_to_region,
-            calculate_region_statistics,
-        )
         from dsa110_contimg.api.image_utils import get_fits_path
+        from dsa110_contimg.utils.regions import (
+            calculate_region_statistics,
+            json_to_region,
+        )
 
         db_path = cfg.products_db
         if not db_path.exists():
@@ -1861,12 +1869,13 @@ def create_app(config: ApiConfig | None = None) -> FastAPI:
         limit = max(1, min(limit, 1000)) if limit > 0 else 100
         offset = max(0, offset) if offset >= 0 else 0
 
-        from dsa110_contimg.database.products import (
-            ensure_products_db,
-            discover_ms_files,
-        )
-        from astropy.time import Time
         import astropy.units as u
+        from astropy.time import Time
+
+        from dsa110_contimg.database.products import (
+            discover_ms_files,
+            ensure_products_db,
+        )
 
         db_path = Path(os.getenv("PIPELINE_PRODUCTS_DB", "state/products.sqlite3"))
 
@@ -2050,8 +2059,8 @@ def create_app(config: ApiConfig | None = None) -> FastAPI:
             Dictionary with count of discovered MS files and list of paths
         """
         from dsa110_contimg.database.products import (
-            ensure_products_db,
             discover_ms_files,
+            ensure_products_db,
         )
 
         db_path = Path(os.getenv("PIPELINE_PRODUCTS_DB", "state/products.sqlite3"))
@@ -2080,9 +2089,9 @@ def create_app(config: ApiConfig | None = None) -> FastAPI:
     @router.get("/jobs", response_model=JobList)
     def list_jobs(limit: int = 50, status: str | None = None) -> JobList:
         """List recent jobs."""
+        from dsa110_contimg.api.models import JobParams
         from dsa110_contimg.database.jobs import list_jobs as db_list_jobs
         from dsa110_contimg.database.products import ensure_products_db
-        from dsa110_contimg.api.models import JobParams
 
         db_path = Path(os.getenv("PIPELINE_PRODUCTS_DB", "state/products.sqlite3"))
         conn = ensure_products_db(db_path)
@@ -2119,9 +2128,9 @@ def create_app(config: ApiConfig | None = None) -> FastAPI:
     @router.get("/jobs/id/{job_id}", response_model=Job)
     def get_job(job_id: int) -> Job:
         """Get job details by ID."""
+        from dsa110_contimg.api.models import JobParams
         from dsa110_contimg.database.jobs import get_job as db_get_job
         from dsa110_contimg.database.products import ensure_products_db
-        from dsa110_contimg.api.models import JobParams
 
         db_path = Path(os.getenv("PIPELINE_PRODUCTS_DB", "state/products.sqlite3"))
         conn = ensure_products_db(db_path)
@@ -2188,10 +2197,10 @@ def create_app(config: ApiConfig | None = None) -> FastAPI:
         request: JobCreateRequest, background_tasks: BackgroundTasks
     ) -> Job:
         """Create and run a calibration job."""
-        from dsa110_contimg.database.jobs import create_job
-        from dsa110_contimg.database.products import ensure_products_db
         from dsa110_contimg.api.job_runner import run_calibrate_job
         from dsa110_contimg.api.models import JobParams
+        from dsa110_contimg.database.jobs import create_job
+        from dsa110_contimg.database.products import ensure_products_db
 
         db_path = Path(os.getenv("PIPELINE_PRODUCTS_DB", "state/products.sqlite3"))
         conn = ensure_products_db(db_path)
@@ -2239,10 +2248,10 @@ def create_app(config: ApiConfig | None = None) -> FastAPI:
         request: JobCreateRequest, background_tasks: BackgroundTasks
     ) -> Job:
         """Create and run an apply calibration job."""
-        from dsa110_contimg.database.jobs import create_job
-        from dsa110_contimg.database.products import ensure_products_db
         from dsa110_contimg.api.job_runner import run_apply_job
         from dsa110_contimg.api.models import JobParams
+        from dsa110_contimg.database.jobs import create_job
+        from dsa110_contimg.database.products import ensure_products_db
 
         db_path = Path(os.getenv("PIPELINE_PRODUCTS_DB", "state/products.sqlite3"))
         conn = ensure_products_db(db_path)
@@ -2284,10 +2293,10 @@ def create_app(config: ApiConfig | None = None) -> FastAPI:
         request: JobCreateRequest, background_tasks: BackgroundTasks
     ) -> Job:
         """Create and run an imaging job."""
-        from dsa110_contimg.database.jobs import create_job
-        from dsa110_contimg.database.products import ensure_products_db
         from dsa110_contimg.api.job_runner import run_image_job
         from dsa110_contimg.api.models import JobParams
+        from dsa110_contimg.database.jobs import create_job
+        from dsa110_contimg.database.products import ensure_products_db
 
         db_path = Path(os.getenv("PIPELINE_PRODUCTS_DB", "state/products.sqlite3"))
         conn = ensure_products_db(db_path)
@@ -2327,9 +2336,10 @@ def create_app(config: ApiConfig | None = None) -> FastAPI:
     @router.get("/uvh5", response_model=UVH5FileList)
     def list_uvh5_files(input_dir: str | None = None, limit: int = 100) -> UVH5FileList:
         """List available UVH5 files for conversion."""
-        from dsa110_contimg.api.models import UVH5FileEntry, UVH5FileList
-        import re
         import glob as _glob
+        import re
+
+        from dsa110_contimg.api.models import UVH5FileEntry, UVH5FileList
 
         if input_dir is None:
             input_dir = os.getenv("CONTIMG_INPUT_DIR", "/data/incoming")
@@ -2376,10 +2386,10 @@ def create_app(config: ApiConfig | None = None) -> FastAPI:
         request: ConversionJobCreateRequest, background_tasks: BackgroundTasks
     ) -> Job:
         """Create and run a UVH5 → MS conversion job."""
+        from dsa110_contimg.api.job_runner import run_convert_job
+        from dsa110_contimg.api.models import ConversionJobParams, JobParams
         from dsa110_contimg.database.jobs import create_job
         from dsa110_contimg.database.products import ensure_products_db
-        from dsa110_contimg.api.job_runner import run_convert_job
-        from dsa110_contimg.api.models import JobParams, ConversionJobParams
 
         db_path = Path(os.getenv("PIPELINE_PRODUCTS_DB", "state/products.sqlite3"))
         conn = ensure_products_db(db_path)
@@ -2423,9 +2433,10 @@ def create_app(config: ApiConfig | None = None) -> FastAPI:
     @router.get("/caltables", response_model=CalTableList)
     def list_caltables(cal_dir: str | None = None) -> CalTableList:
         """List available calibration tables."""
-        from dsa110_contimg.api.models import CalTableInfo, CalTableList
-        import re
         import glob as _glob
+        import re
+
+        from dsa110_contimg.api.models import CalTableInfo, CalTableList
 
         if cal_dir is None:
             cal_dir = os.getenv("CONTIMG_CAL_DIR", "/stage/dsa110-contimg/caltables")
@@ -2489,14 +2500,16 @@ def create_app(config: ApiConfig | None = None) -> FastAPI:
     @router.get("/ms/{ms_path:path}/metadata", response_model=MSMetadata)
     def get_ms_metadata(ms_path: str) -> MSMetadata:
         """Get metadata for an MS file."""
-        from dsa110_contimg.api.models import (
-            MSMetadata,
-            FieldInfo,
-            AntennaInfo,
-            FlaggingStats,
-        )
-        from casatools import table, ms as casams
         import numpy as np
+        from casatools import ms as casams
+        from casatools import table
+
+        from dsa110_contimg.api.models import (
+            AntennaInfo,
+            FieldInfo,
+            FlaggingStats,
+            MSMetadata,
+        )
 
         # Decode path
         ms_full_path = f"/{ms_path}" if not ms_path.startswith("/") else ms_path
@@ -2659,16 +2672,17 @@ def create_app(config: ApiConfig | None = None) -> FastAPI:
         ms_path: str, catalog: str = "vla", radius_deg: float = 1.5, top_n: int = 5
     ) -> MSCalibratorMatchList:
         """Find calibrator candidates for an MS."""
+        import astropy.units as u
+        import numpy as np
+        from astropy.time import Time
+        from casatools import table
+
         from dsa110_contimg.calibration.catalogs import (
+            airy_primary_beam_response,
             calibrator_match,
             read_vla_parsed_catalog_csv,
-            airy_primary_beam_response,
         )
         from dsa110_contimg.pointing.utils import load_pointing
-        from casatools import table
-        import numpy as np
-        import astropy.units as u
-        from astropy.time import Time
 
         # Decode path
         ms_full_path = f"/{ms_path}" if not ms_path.startswith("/") else ms_path
@@ -2900,8 +2914,8 @@ def create_app(config: ApiConfig | None = None) -> FastAPI:
         - Frequency ranges overlap
         - Table structure is valid
         """
-        from casatools import table
         import numpy as np
+        from casatools import table
 
         # Decode paths
         ms_full_path = f"/{ms_path}" if not ms_path.startswith("/") else ms_path
@@ -3041,9 +3055,10 @@ def create_app(config: ApiConfig | None = None) -> FastAPI:
     @router.get("/qa/calibration/{ms_path:path}/bandpass-plots")
     def list_bandpass_plots(ms_path: str):
         """List available bandpass plots for an MS."""
-        from dsa110_contimg.calibration.caltables import discover_caltables
         import glob
         import urllib.parse
+
+        from dsa110_contimg.calibration.caltables import discover_caltables
 
         # FastAPI automatically URL-decodes path parameters, but we need to handle
         # cases where the path might not start with / and ensure proper decoding
@@ -3189,11 +3204,12 @@ def create_app(config: ApiConfig | None = None) -> FastAPI:
     @router.get("/qa/calibration/{ms_path:path}/spw-plot")
     def get_calibration_spw_plot(ms_path: str):
         """Generate and return per-SPW flagging visualization for an MS."""
+        import tempfile
+
         from dsa110_contimg.qa.calibration_quality import (
             analyze_per_spw_flagging,
             plot_per_spw_flagging,
         )
-        import tempfile
 
         # Decode path
         ms_full_path = f"/{ms_path}" if not ms_path.startswith("/") else ms_path
@@ -3282,8 +3298,9 @@ def create_app(config: ApiConfig | None = None) -> FastAPI:
     @router.get("/qa/calibration/{ms_path:path}", response_model=CalibrationQA)
     def get_calibration_qa(ms_path: str) -> CalibrationQA:
         """Get calibration QA metrics for an MS."""
-        from dsa110_contimg.database.products import ensure_products_db
         import json
+
+        from dsa110_contimg.database.products import ensure_products_db
 
         # Decode path
         ms_full_path = f"/{ms_path}" if not ms_path.startswith("/") else ms_path
@@ -3370,10 +3387,11 @@ def create_app(config: ApiConfig | None = None) -> FastAPI:
             - image_info: Image metadata (center, size, pixel scale)
             - catalog_used: Which catalog was queried
         """
-        from dsa110_contimg.qa.catalog_validation import get_catalog_overlay_pixels
-        from dsa110_contimg.catalog.query import query_sources
-        from astropy.wcs import WCS
         from astropy.io import fits
+        from astropy.wcs import WCS
+
+        from dsa110_contimg.catalog.query import query_sources
+        from dsa110_contimg.qa.catalog_validation import get_catalog_overlay_pixels
 
         # Resolve image ID to path (handles both integer IDs and string paths)
         try:
@@ -3549,13 +3567,15 @@ def create_app(config: ApiConfig | None = None) -> FastAPI:
         Returns:
             HTMLResponse with validation report
         """
+        import os
+
+        from fastapi.responses import HTMLResponse
+
         from dsa110_contimg.qa.catalog_validation import run_full_validation
         from dsa110_contimg.qa.html_reports import (
-            generate_validation_report,
             ValidationReport,
+            generate_validation_report,
         )
-        from fastapi.responses import HTMLResponse
-        import os
 
         # Resolve image ID to path
         try:
@@ -3621,8 +3641,9 @@ def create_app(config: ApiConfig | None = None) -> FastAPI:
         Returns:
             Dict with report path and status
         """
-        from dsa110_contimg.qa.catalog_validation import run_full_validation
         import os
+
+        from dsa110_contimg.qa.catalog_validation import run_full_validation
 
         # Resolve image ID to path
         try:
@@ -3726,8 +3747,9 @@ def create_app(config: ApiConfig | None = None) -> FastAPI:
     @router.get("/qa/{ms_path:path}", response_model=QAMetrics)
     def get_qa_metrics(ms_path: str) -> QAMetrics:
         """Get combined QA metrics (calibration + image) for an MS."""
-        from dsa110_contimg.database.products import ensure_products_db
         import json
+
+        from dsa110_contimg.database.products import ensure_products_db
 
         # Decode path
         ms_full_path = f"/{ms_path}" if not ms_path.startswith("/") else ms_path
@@ -3878,13 +3900,14 @@ def create_app(config: ApiConfig | None = None) -> FastAPI:
         - phase_vs_time: Phase vs time (for gain tables)
         - phase_vs_freq: Phase vs frequency (for bandpass tables)
         """
-        from casatools import table
-        import numpy as np
         import matplotlib
+        import numpy as np
+        from casatools import table
 
         matplotlib.use("Agg")
-        import matplotlib.pyplot as plt
         from io import BytesIO
+
+        import matplotlib.pyplot as plt
 
         # Decode path
         cal_full_path = (
@@ -4119,10 +4142,10 @@ def create_app(config: ApiConfig | None = None) -> FastAPI:
         request: WorkflowJobCreateRequest, background_tasks: BackgroundTasks
     ) -> Job:
         """Create and run a full pipeline workflow (Convert → Calibrate → Image)."""
-        from dsa110_contimg.database.jobs import create_job
-        from dsa110_contimg.database.products import ensure_products_db
         from dsa110_contimg.api.job_runner import run_workflow_job
         from dsa110_contimg.api.models import JobParams
+        from dsa110_contimg.database.jobs import create_job
+        from dsa110_contimg.database.products import ensure_products_db
 
         db_path = Path(os.getenv("PIPELINE_PRODUCTS_DB", "state/products.sqlite3"))
         conn = ensure_products_db(db_path)
@@ -4166,9 +4189,9 @@ def create_app(config: ApiConfig | None = None) -> FastAPI:
         request: BatchJobCreateRequest, background_tasks: BackgroundTasks
     ) -> BatchJob:
         """Create a batch calibration job for multiple MS files."""
-        from dsa110_contimg.database.products import ensure_products_db
         from dsa110_contimg.api.batch_jobs import create_batch_job
         from dsa110_contimg.api.job_runner import run_batch_calibrate_job
+        from dsa110_contimg.database.products import ensure_products_db
 
         if request.job_type != "calibrate":
             raise HTTPException(status_code=400, detail="Job type must be 'calibrate'")
@@ -4252,9 +4275,9 @@ def create_app(config: ApiConfig | None = None) -> FastAPI:
         request: BatchJobCreateRequest, background_tasks: BackgroundTasks
     ) -> BatchJob:
         """Create a batch apply job for multiple MS files."""
-        from dsa110_contimg.database.products import ensure_products_db
         from dsa110_contimg.api.batch_jobs import create_batch_job
         from dsa110_contimg.api.job_runner import run_batch_apply_job
+        from dsa110_contimg.database.products import ensure_products_db
 
         if request.job_type != "apply":
             raise HTTPException(status_code=400, detail="Job type must be 'apply'")
@@ -4336,9 +4359,9 @@ def create_app(config: ApiConfig | None = None) -> FastAPI:
         request: BatchJobCreateRequest, background_tasks: BackgroundTasks
     ) -> BatchJob:
         """Create a batch imaging job for multiple MS files."""
-        from dsa110_contimg.database.products import ensure_products_db
         from dsa110_contimg.api.batch_jobs import create_batch_job
         from dsa110_contimg.api.job_runner import run_batch_image_job
+        from dsa110_contimg.database.products import ensure_products_db
 
         if request.job_type != "image":
             raise HTTPException(status_code=400, detail="Job type must be 'image'")
@@ -4845,8 +4868,9 @@ def create_app(config: ApiConfig | None = None) -> FastAPI:
     def get_streaming_metrics():
         """Get processing metrics for the streaming service."""
         import time
-        from dsa110_contimg.api.data_access import _connect
+
         from dsa110_contimg.api.config import ApiConfig
+        from dsa110_contimg.api.data_access import _connect
 
         cfg = ApiConfig.from_env()
         status = _streaming_manager.get_status()
@@ -4903,8 +4927,9 @@ def create_app(config: ApiConfig | None = None) -> FastAPI:
         execution is likely to succeed (Python subprocess spawn, CASA import,
         dsa110_contimg import resolution, DB readability, disk space).
         """
-        import subprocess as _subprocess
         import shutil as _shutil
+        import subprocess as _subprocess
+
         from dsa110_contimg.api.job_runner import (
             _python_cmd_for_jobs,
             _src_path_for_env,
@@ -5038,12 +5063,13 @@ def create_app(config: ApiConfig | None = None) -> FastAPI:
         status: str | None = None,
     ):
         """List data instances with optional filters."""
+        from pathlib import Path
+
         from dsa110_contimg.database.data_registry import (
+            DataRecord,
             ensure_data_registry_db,
             list_data,
-            DataRecord,
         )
-        from pathlib import Path
 
         db_path = Path("/data/dsa110-contimg/state/products.sqlite3")
         conn = ensure_data_registry_db(db_path)
@@ -5072,11 +5098,12 @@ def create_app(config: ApiConfig | None = None) -> FastAPI:
     @router.get("/data/{data_id:path}")
     async def get_data_instance(data_id: str) -> dict:
         """Get a specific data instance."""
+        from pathlib import Path
+
         from dsa110_contimg.database.data_registry import (
             ensure_data_registry_db,
             get_data,
         )
-        from pathlib import Path
 
         db_path = Path("/data/dsa110-contimg/state/products.sqlite3")
         conn = ensure_data_registry_db(db_path)
@@ -5111,12 +5138,13 @@ def create_app(config: ApiConfig | None = None) -> FastAPI:
         validation_status: Optional[str] = None,
     ):
         """Finalize a data instance and trigger auto-publish if enabled."""
+        from pathlib import Path
+
         from dsa110_contimg.database.data_registry import (
             ensure_data_registry_db,
             finalize_data,
             get_data,
         )
-        from pathlib import Path
 
         db_path = Path("/data/dsa110-contimg/state/products.sqlite3")
         conn = ensure_data_registry_db(db_path)
@@ -5144,12 +5172,13 @@ def create_app(config: ApiConfig | None = None) -> FastAPI:
     @router.post("/data/{data_id:path}/publish")
     async def publish_data_instance_manual(data_id: str):
         """Manually publish a data instance."""
+        from pathlib import Path
+
         from dsa110_contimg.database.data_registry import (
             ensure_data_registry_db,
-            publish_data_manual,
             get_data,
+            publish_data_manual,
         )
-        from pathlib import Path
 
         db_path = Path("/data/dsa110-contimg/state/products.sqlite3")
         conn = ensure_data_registry_db(db_path)
@@ -5177,11 +5206,14 @@ def create_app(config: ApiConfig | None = None) -> FastAPI:
     @router.post("/data/{data_id:path}/auto-publish/enable")
     async def enable_auto_publish(data_id: str):
         """Enable auto-publish for a data instance."""
+        from pathlib import Path
+
         from dsa110_contimg.database.data_registry import (
-            ensure_data_registry_db,
             enable_auto_publish as enable_ap,
         )
-        from pathlib import Path
+        from dsa110_contimg.database.data_registry import (
+            ensure_data_registry_db,
+        )
 
         db_path = Path("/data/dsa110-contimg/state/products.sqlite3")
         conn = ensure_data_registry_db(db_path)
@@ -5195,11 +5227,14 @@ def create_app(config: ApiConfig | None = None) -> FastAPI:
     @router.post("/data/{data_id:path}/auto-publish/disable")
     async def disable_auto_publish(data_id: str):
         """Disable auto-publish for a data instance."""
+        from pathlib import Path
+
         from dsa110_contimg.database.data_registry import (
-            ensure_data_registry_db,
             disable_auto_publish as disable_ap,
         )
-        from pathlib import Path
+        from dsa110_contimg.database.data_registry import (
+            ensure_data_registry_db,
+        )
 
         db_path = Path("/data/dsa110-contimg/state/products.sqlite3")
         conn = ensure_data_registry_db(db_path)
@@ -5213,11 +5248,12 @@ def create_app(config: ApiConfig | None = None) -> FastAPI:
     @router.get("/data/{data_id:path}/auto-publish/status")
     async def get_auto_publish_status(data_id: str):
         """Get auto-publish status and criteria for a data instance."""
-        from dsa110_contimg.database.data_registry import (
-            ensure_data_registry_db,
-            check_auto_publish_criteria,
-        )
         from pathlib import Path
+
+        from dsa110_contimg.database.data_registry import (
+            check_auto_publish_criteria,
+            ensure_data_registry_db,
+        )
 
         db_path = Path("/data/dsa110-contimg/state/products.sqlite3")
         conn = ensure_data_registry_db(db_path)
@@ -5228,12 +5264,13 @@ def create_app(config: ApiConfig | None = None) -> FastAPI:
     @router.get("/data/{data_id:path}/lineage")
     async def get_data_lineage(data_id: str):
         """Get lineage (parents and children) for a data instance."""
+        from pathlib import Path
+
         from dsa110_contimg.database.data_registry import (
             ensure_data_registry_db,
-            get_data_lineage,
             get_data,
+            get_data_lineage,
         )
-        from pathlib import Path
 
         db_path = Path("/data/dsa110-contimg/state/products.sqlite3")
         conn = ensure_data_registry_db(db_path)

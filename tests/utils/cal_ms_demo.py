@@ -7,16 +7,16 @@ from casatasks import imstat
 # Add the source directory to Python path for local imports
 sys.path.insert(0, str(Path(__file__).parent.parent.parent / "src"))
 
-from dsa110_contimg.calibration.flagging import reset_flags, flag_zeros, flag_rfi
+from dsa110_contimg.calibration.applycal import apply_to_target
 from dsa110_contimg.calibration.calibration import (
-    solve_delay,
     solve_bandpass,
+    solve_delay,
     solve_gains,
 )
-from dsa110_contimg.calibration.applycal import apply_to_target
-from dsa110_contimg.imaging.cli import (
+from dsa110_contimg.calibration.flagging import flag_rfi, flag_zeros, reset_flags
+from dsa110_contimg.imaging.cli import (  # Replaces calibration.imaging.quick_image
     image_ms,
-)  # Replaces calibration.imaging.quick_image
+)
 
 
 def main():

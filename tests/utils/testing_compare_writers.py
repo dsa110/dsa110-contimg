@@ -17,30 +17,31 @@ Usage (run in casa6 env):
       --times 1 --chans 16 --ants 8 --scratch /dev/shm
 """
 
+import argparse
+import os
+import shutil
+import sys
+import time
 from pathlib import Path
+
+import astropy.units as u
+import h5py
+import numpy as np
+from astropy.time import Time
+from pyuvdata import UVData
+
+# type: ignore[import]
 from dsa110_contimg.conversion.helpers import (
-    set_antenna_positions,
     _ensure_antenna_diameters,
+    get_meridian_coords,
+    set_antenna_positions,
+)
+from dsa110_contimg.conversion.strategies import (
+    hdf5_orchestrator as orch,  # type: ignore[import]
 )
 
 # type: ignore[import]
 from dsa110_contimg.utils.fringestopping import calc_uvw_blt
-
-# type: ignore[import]
-from dsa110_contimg.conversion.helpers import get_meridian_coords
-from dsa110_contimg.conversion.strategies import (  # type: ignore[import]
-    hdf5_orchestrator as orch,
-)
-import argparse
-import os
-import sys
-import time
-import shutil
-import h5py
-import numpy as np
-import astropy.units as u
-from astropy.time import Time
-from pyuvdata import UVData
 
 SRC_ROOT = os.path.abspath(os.path.join(os.path.dirname(__file__), "src"))
 if SRC_ROOT not in sys.path:

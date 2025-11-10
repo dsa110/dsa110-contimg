@@ -4,13 +4,14 @@ This test verifies that phaseshift correctly transforms UVW coordinates
 for large phase shifts, which is critical for ft() to work correctly.
 """
 
-import pytest
+import os
+import shutil
+
 import numpy as np
+import pytest
+from astropy.coordinates import Angle
 from casacore.tables import table
 from casatasks import phaseshift
-from astropy.coordinates import Angle
-import shutil
-import os
 
 
 @pytest.fixture

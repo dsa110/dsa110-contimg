@@ -20,14 +20,14 @@ import argparse
 import json
 import os
 import time
-from typing import List, Tuple
 from pathlib import Path
+from typing import List, Tuple
 
+import astropy.coordinates as acoords  # type: ignore[reportMissingTypeStubs]
+import matplotlib.pyplot as plt
+import numpy as np
 from astropy.io import fits  # type: ignore[reportMissingTypeStubs]
 from astropy.wcs import WCS  # type: ignore[reportMissingTypeStubs]
-import astropy.coordinates as acoords  # type: ignore[reportMissingTypeStubs]
-import numpy as np
-import matplotlib.pyplot as plt
 from matplotlib.colors import Normalize
 
 from dsa110_contimg.calibration.catalogs import read_nvss_catalog
@@ -35,10 +35,11 @@ from dsa110_contimg.database.products import (
     ensure_products_db,
     photometry_insert,
 )
-from .forced import measure_forced_peak, measure_many
-from .aegean_fitting import measure_with_aegean
-from .adaptive_photometry import measure_with_adaptive_binning
+
 from .adaptive_binning import AdaptiveBinningConfig
+from .adaptive_photometry import measure_with_adaptive_binning
+from .aegean_fitting import measure_with_aegean
+from .forced import measure_forced_peak, measure_many
 
 
 def _parse_coords_arg(coords_arg: str) -> List[Tuple[float, float]]:

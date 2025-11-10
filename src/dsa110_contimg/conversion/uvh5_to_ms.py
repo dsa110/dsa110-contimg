@@ -17,15 +17,16 @@ from typing import List, Optional
 
 import numpy as np
 from pyuvdata import UVData
-from dsa110_contimg.conversion.ms_utils import configure_ms_for_imaging
+
 from dsa110_contimg.conversion.helpers import (
     phase_to_meridian,
     set_telescope_identity,
 )
+from dsa110_contimg.conversion.ms_utils import configure_ms_for_imaging
 from dsa110_contimg.utils.exceptions import ConversionError, ValidationError
 from dsa110_contimg.utils.runtime_safeguards import (
-    progress_monitor,
     log_progress,
+    progress_monitor,
 )
 
 # Configure logging
@@ -273,9 +274,9 @@ def _phase_data_to_midpoint_reference(
     UVData
         Phased UVData object
     """
+    import astropy.units as u
     from astropy.coordinates import EarthLocation, SkyCoord
     from astropy.time import Time
-    import astropy.units as u
 
     if uvd.Ntimes == 0:
         return uvd

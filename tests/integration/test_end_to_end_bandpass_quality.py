@@ -4,11 +4,12 @@ This test runs the complete calibration workflow and measures solution quality
 to prove the implementation is complete and effective.
 """
 
-import pytest
 import os
 import sys
 from pathlib import Path
+
 import numpy as np
+import pytest
 from casacore.tables import table
 
 # Add src to path

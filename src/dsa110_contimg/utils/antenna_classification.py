@@ -1,6 +1,7 @@
 """Utilities for identifying DSA-110 antenna types (core vs outrigger)."""
 
-from typing import List, Set, Optional
+from typing import List, Optional, Set
+
 import numpy as np
 
 # DSA-110 array configuration

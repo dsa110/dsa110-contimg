@@ -16,13 +16,12 @@ import time
 from pathlib import Path
 from typing import List, Optional, Tuple
 
-from dsa110_contimg.database.registry import get_active_applylist
 from dsa110_contimg.database.products import (
     ensure_products_db,
-    ms_index_upsert,
     images_insert,
+    ms_index_upsert,
 )
-
+from dsa110_contimg.database.registry import get_active_applylist
 
 logger = logging.getLogger("imaging_worker")
 try:

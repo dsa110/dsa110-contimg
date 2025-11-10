@@ -9,12 +9,12 @@ from __future__ import annotations
 import os
 import sqlite3
 from pathlib import Path
-from typing import Optional, List, Dict, Any
+from typing import Any, Dict, List, Optional
 
+import astropy.units as u
 import numpy as np
 import pandas as pd
 from astropy.coordinates import SkyCoord
-import astropy.units as u
 
 
 def resolve_catalog_path(

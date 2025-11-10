@@ -19,12 +19,13 @@ Run with casa6 python for correct deps:
 from __future__ import print_function
 
 import os
+import shutil
 import sys
 import time
-import shutil
+
+import astropy.units as u
 import h5py
 import numpy as np
-import astropy.units as u
 from astropy.time import Time
 from pyuvdata import UVData
 
@@ -38,15 +39,17 @@ os.environ.setdefault("OMP_NUM_THREADS", "1")
 os.environ.setdefault("MKL_NUM_THREADS", "1")
 os.environ.setdefault("CASACORE_TABLE_LOCKING", "FALSE")
 
-from dsa110_contimg.conversion.strategies import (  # type: ignore[import]
-    hdf5_orchestrator as orch,
-)
-from dsa110_contimg.conversion.helpers import get_meridian_coords  # type: ignore[import]
-from dsa110_contimg.utils.fringestopping import calc_uvw_blt  # type: ignore[import]
 from dsa110_contimg.conversion.helpers import (
-    set_antenna_positions,
-    _ensure_antenna_diameters,
+    get_meridian_coords,  # type: ignore[import]
 )
+from dsa110_contimg.conversion.helpers import (
+    _ensure_antenna_diameters,
+    set_antenna_positions,
+)
+from dsa110_contimg.conversion.strategies import (
+    hdf5_orchestrator as orch,  # type: ignore[import]
+)
+from dsa110_contimg.utils.fringestopping import calc_uvw_blt  # type: ignore[import]
 
 IN_DIR = os.environ.get("IN_DIR", "/data/incoming_test/2025-09-05T03-12-56_HDF5")
 OUT_MS = os.environ.get("OUT_MS", "/data/output/ms_quick_tiny/partial_tiny.ms")

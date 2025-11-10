@@ -5,13 +5,14 @@ Tests edge cases, error handling, and robustness of parallel processing
 functions in dsa110_contimg.utils.parallel.
 """
 
+from unittest.mock import MagicMock, Mock, patch
+
 import pytest
-from unittest.mock import Mock, patch, MagicMock
 
 from dsa110_contimg.utils.parallel import (
-    process_parallel,
-    process_batch_parallel,
     map_parallel,
+    process_batch_parallel,
+    process_parallel,
 )
 
 

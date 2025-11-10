@@ -22,6 +22,7 @@ Usage:
 """
 
 import argparse
+
 import numpy as np
 from pyuvdata import UVData
 

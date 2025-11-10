@@ -12,10 +12,10 @@ Tests everything that could break:
 6. Database interactions
 """
 
-import sys
 import os
-from pathlib import Path
+import sys
 import traceback
+from pathlib import Path
 
 # Add src to path
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), "..", "..", "src"))
@@ -155,9 +155,9 @@ def test_qa_missing_files():
 
     try:
         from dsa110_contimg.qa.pipeline_quality import (
-            check_ms_after_conversion,
             check_calibration_quality,
             check_image_quality,
+            check_ms_after_conversion,
         )
 
         # Test 1: Non-existent MS
@@ -214,8 +214,9 @@ def test_photometry_functions():
     print("=" * 70)
 
     try:
-        from dsa110_contimg.photometry import normalize
         import numpy as np
+
+        from dsa110_contimg.photometry import normalize
 
         # Test 1: Check required functions exist
         required_funcs = [

@@ -6,11 +6,12 @@ that MODEL_DATA matches the expected calibrator position and flux.
 """
 
 import logging
-from typing import Optional, Tuple, Dict, List
-import numpy as np
-from casacore.tables import table
+from typing import Dict, List, Optional, Tuple
+
 import astropy.units as u
-from astropy.coordinates import SkyCoord, Angle
+import numpy as np
+from astropy.coordinates import Angle, SkyCoord
+from casacore.tables import table
 
 logger = logging.getLogger(__name__)
 

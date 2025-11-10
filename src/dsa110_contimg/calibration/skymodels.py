@@ -30,7 +30,7 @@ from __future__ import annotations
 
 import os
 from pathlib import Path
-from typing import Optional, Iterable, Tuple
+from typing import Iterable, Optional, Tuple
 
 
 def make_point_skymodel(
@@ -61,9 +61,9 @@ def make_point_skymodel(
             "Install with: pip install pyradiosky"
         )
 
-    from astropy.coordinates import SkyCoord
     import astropy.units as u
     import numpy as np
+    from astropy.coordinates import SkyCoord
 
     # Get reference frequency
     if isinstance(freq_ghz, (int, float)):
@@ -151,9 +151,9 @@ def ft_from_cl(
     Use :func:`write_point_model_with_ft` with ``use_manual=True`` instead, which
     bypasses ft() phase center bugs.
     """
-    from casatasks import ft as casa_ft  # type: ignore
-    from casacore.tables import table  # type: ignore
     import numpy as np
+    from casacore.tables import table  # type: ignore
+    from casatasks import ft as casa_ft  # type: ignore
 
     # Ensure MODEL_DATA column exists before calling ft()
     # This is required for ft() to work properly
@@ -405,10 +405,11 @@ def make_nvss_skymodel(
             "Install with: pip install pyradiosky"
         )
 
-    from dsa110_contimg.calibration.catalogs import read_nvss_catalog  # type: ignore
-    from astropy.coordinates import SkyCoord
     import astropy.units as u
     import numpy as np
+    from astropy.coordinates import SkyCoord
+
+    from dsa110_contimg.calibration.catalogs import read_nvss_catalog  # type: ignore
 
     df = read_nvss_catalog()
     sc_all = SkyCoord(

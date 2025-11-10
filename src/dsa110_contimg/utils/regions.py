@@ -6,19 +6,19 @@ Supports CASA and DS9 region formats, coordinate transformations, and region-bas
 
 import json
 import logging
+from dataclasses import asdict, dataclass
 from pathlib import Path
-from typing import Dict, List, Optional, Tuple, Any
-from dataclasses import dataclass, asdict
+from typing import Any, Dict, List, Optional, Tuple
 
 try:
+    import astropy.units as u
+    from astropy.coordinates import SkyCoord
     from astropy.regions import (
         CircleSkyRegion,
-        RectangleSkyRegion,
         PolygonSkyRegion,
+        RectangleSkyRegion,
         Region,
     )
-    from astropy.coordinates import SkyCoord
-    import astropy.units as u
 
     HAVE_ASTROPY_REGIONS = True
 except ImportError:
@@ -284,8 +284,8 @@ def calculate_region_statistics(
         Dictionary with statistics: mean, rms, peak, sum, pixel_count
     """
     try:
-        from astropy.io import fits
         import numpy as np
+        from astropy.io import fits
 
         # Load FITS image
         with fits.open(image_path) as hdul:

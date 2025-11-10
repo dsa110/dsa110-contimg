@@ -5,18 +5,18 @@ Implements JWT token-based authentication with role-based access control (RBAC).
 
 from __future__ import annotations
 
-import os
-import jwt
 import hashlib
+import logging
+import os
 import sqlite3
+from contextlib import closing
 from datetime import datetime, timedelta
 from pathlib import Path
 from typing import Optional
-from contextlib import closing
-import logging
 
-from fastapi import HTTPException, status, Depends
-from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
+import jwt
+from fastapi import Depends, HTTPException, status
+from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
 from passlib.context import CryptContext
 from pydantic import BaseModel
 

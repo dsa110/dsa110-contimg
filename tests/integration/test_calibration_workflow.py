@@ -19,9 +19,9 @@ Requirements:
 """
 
 import os
+import shutil
 import sys
 import tempfile
-import shutil
 from pathlib import Path
 from typing import List, Optional
 
@@ -125,14 +125,14 @@ class TestCalibrationWorkflowIntegration:
     )
     def test_full_calibration_with_prebp_phase(self, temp_dir, synthetic_uvh5_files):
         """Test full calibration workflow with pre-bandpass phase correction."""
-        from dsa110_contimg.conversion.uvh5_to_ms import convert_single_file
-        from dsa110_contimg.calibration.model import write_point_model_with_ft
-        from dsa110_contimg.calibration.flagging import reset_flags, flag_zeros
         from dsa110_contimg.calibration.calibration import (
-            solve_prebandpass_phase,
             solve_bandpass,
             solve_gains,
+            solve_prebandpass_phase,
         )
+        from dsa110_contimg.calibration.flagging import flag_zeros, reset_flags
+        from dsa110_contimg.calibration.model import write_point_model_with_ft
+        from dsa110_contimg.conversion.uvh5_to_ms import convert_single_file
         from dsa110_contimg.qa.calibration_quality import validate_caltable_quality
 
         ms_path = Path(temp_dir) / "test_calibration.ms"
@@ -207,13 +207,12 @@ class TestCalibrationWorkflowIntegration:
 
     def test_ms_phasing_verification(self, temp_dir):
         """Test that MS phasing verification logic works."""
-        from casacore.tables import table
-        from astropy.coordinates import SkyCoord
         from astropy import units as u
+        from astropy.coordinates import SkyCoord
+        from casacore.tables import table
 
         # This test would require an actual MS file
         # For now, verify the logic
-
         # Calibrator position
         cal_coord = SkyCoord(ra=128.7287 * u.deg, dec=55.5725 * u.deg, frame="icrs")
 
@@ -242,8 +241,9 @@ class TestCalibrationParameterValidation:
 
     def test_prebp_solint_parameter(self):
         """Test that pre-bandpass solint parameter is configurable."""
-        from dsa110_contimg.calibration.calibration import solve_prebandpass_phase
         import inspect
+
+        from dsa110_contimg.calibration.calibration import solve_prebandpass_phase
 
         sig = inspect.signature(solve_prebandpass_phase)
         assert (
@@ -256,8 +256,9 @@ class TestCalibrationParameterValidation:
 
     def test_prebp_minsnr_parameter(self):
         """Test that pre-bandpass minsnr parameter is configurable."""
-        from dsa110_contimg.calibration.calibration import solve_prebandpass_phase
         import inspect
+
+        from dsa110_contimg.calibration.calibration import solve_prebandpass_phase
 
         sig = inspect.signature(solve_prebandpass_phase)
         assert (
@@ -270,8 +271,9 @@ class TestCalibrationParameterValidation:
 
     def test_bandpass_combine_parameters(self):
         """Test that bandpass combine parameters exist."""
-        from dsa110_contimg.calibration.calibration import solve_bandpass
         import inspect
+
+        from dsa110_contimg.calibration.calibration import solve_bandpass
 
         sig = inspect.signature(solve_bandpass)
 

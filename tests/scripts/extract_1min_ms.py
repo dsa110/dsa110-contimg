@@ -1,16 +1,18 @@
 #!/usr/bin/env python3
 """Extract 1 minute from an existing Measurement Set using CASA split."""
 
-import sys
 import os
+import sys
 from pathlib import Path
+
 from astropy.time import Time
 
 # Add src to path
 sys.path.insert(0, str(Path(__file__).parent / "src"))
 
-from dsa110_contimg.database.products import _ms_time_range
 from casatasks import split  # type: ignore
+
+from dsa110_contimg.database.products import _ms_time_range
 
 
 def extract_1minute(ms_in, ms_out):

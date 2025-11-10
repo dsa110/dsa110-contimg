@@ -7,17 +7,17 @@ Tests MS quality, calibration quality, and image quality validation
 on real pipeline outputs.
 """
 
-import sys
 import os
+import sys
 from pathlib import Path
 
 # Add src to path
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), "..", "..", "src"))
 
 from dsa110_contimg.qa.pipeline_quality import (
-    check_ms_after_conversion,
     check_calibration_quality,
     check_image_quality,
+    check_ms_after_conversion,
 )
 
 

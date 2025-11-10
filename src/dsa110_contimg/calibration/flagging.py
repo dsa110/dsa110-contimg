@@ -1,14 +1,16 @@
-from dsa110_contimg.utils.error_context import format_ms_error_with_suggestions
-from casatasks import flagdata
-from typing import Dict, List, Optional
-import os
-import sys
-import subprocess
-import shutil
 import logging
+import os
+import shutil
+import subprocess
+import sys
 import time
-from pathlib import Path
 from contextlib import contextmanager
+from pathlib import Path
+from typing import Dict, List, Optional
+
+from casatasks import flagdata
+
+from dsa110_contimg.utils.error_context import format_ms_error_with_suggestions
 
 # Ensure headless operation to prevent casaplotserver X server errors
 # Set multiple environment variables to prevent CASA from launching plotting servers
@@ -659,8 +661,8 @@ def _extend_flags_direct(
     For more complex extension (growaround, growtime, etc.), use CASA flagdata.
     """
     try:
-        from casacore.tables import table
         import numpy as np
+        from casacore.tables import table
 
         with table(ms, readonly=False, ack=False) as tb:
             flags = tb.getcol("FLAG")
@@ -739,8 +741,8 @@ def analyze_channel_flagging_stats(
         >>> problematic = analyze_channel_flagging_stats('data.ms', threshold=0.5)
         >>> # Returns: {1: [5, 10, 15, 20], 12: [3, 7, 11]}
     """
-    from casacore.tables import table
     import numpy as np
+    from casacore.tables import table
 
     logger = logging.getLogger(__name__)
     problematic_channels = {}
@@ -904,8 +906,8 @@ def flag_summary(
 
     # Parse summary statistics directly from MS (faster and avoids casaplotserver)
     try:
-        from casacore.tables import table
         import numpy as np
+        from casacore.tables import table
 
         stats = {}
         with table(ms, readonly=True) as tb:

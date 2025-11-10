@@ -7,7 +7,7 @@ from pathlib import Path
 
 import pytest
 
-from dsa110_contimg.pipeline.config import PipelineConfig, PathsConfig
+from dsa110_contimg.pipeline.config import PathsConfig, PipelineConfig
 from dsa110_contimg.pipeline.context import PipelineContext
 from dsa110_contimg.pipeline.state import InMemoryStateRepository, SQLiteStateRepository
 

@@ -6,9 +6,9 @@ This replaces convert_uvh5_standalone.py and convert_uvh5_simple.py
 by using the production conversion modules directly.
 """
 
+import logging
 import os
 import sys
-import logging
 from pathlib import Path
 from typing import Optional
 
@@ -16,22 +16,23 @@ from typing import Optional
 if "/data/dsa110-contimg/src" not in sys.path:
     sys.path.insert(0, "/data/dsa110-contimg/src")
 
+from dsa110_contimg.conversion.helpers import (
+    _ensure_antenna_diameters,
+    get_meridian_coords,
+    set_antenna_positions,
+    set_model_column,
+)
+from dsa110_contimg.conversion.ms_utils import configure_ms_for_imaging
+
 # Import production modules
 from dsa110_contimg.conversion.strategies.hdf5_orchestrator import (
     convert_subband_groups_to_ms,
     find_subband_groups,
 )
-from dsa110_contimg.conversion.helpers import (
-    set_antenna_positions,
-    _ensure_antenna_diameters,
-    get_meridian_coords,
-    set_model_column,
-)
-from dsa110_contimg.conversion.ms_utils import configure_ms_for_imaging
 from dsa110_contimg.conversion.validation import (
-    validate_hdf5_files,
-    validate_calibrator_transit,
     find_calibrator_sources_in_data,
+    validate_calibrator_transit,
+    validate_hdf5_files,
 )
 
 logger = logging.getLogger("convert_uvh5_refactored")

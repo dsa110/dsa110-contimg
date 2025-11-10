@@ -70,6 +70,7 @@ class TestActualCalibrationFluxScale:
     def test_bandpass_normalization_from_table(self, calibration_table_paths):
         """Validate bandpass normalization from actual table."""
         from casacore.tables import table
+
         from dsa110_contimg.qa.calibration_quality import validate_caltable_quality
 
         bp_table = calibration_table_paths["bandpass"]
@@ -203,9 +204,9 @@ class TestActualMSStructure:
     )
     def test_ms_phase_center_alignment(self, ms_path, known_calibrator_info):
         """Validate MS phase center alignment from actual MS."""
-        from casacore.tables import table
-        from astropy.coordinates import SkyCoord
         from astropy import units as u
+        from astropy.coordinates import SkyCoord
+        from casacore.tables import table
 
         if not ms_path or not os.path.exists(ms_path):
             pytest.skip(f"MS not found: {ms_path}")

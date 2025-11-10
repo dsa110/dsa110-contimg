@@ -1,7 +1,8 @@
 #!/usr/bin/env python3
 """Run gaincal on SPW-merged MS (before field merge)."""
-import sys
 import os
+import sys
+
 from casatasks import gaincal
 
 ms_path = (

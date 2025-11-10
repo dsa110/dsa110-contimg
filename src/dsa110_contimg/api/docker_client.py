@@ -9,7 +9,7 @@ from __future__ import annotations
 
 import logging
 import subprocess
-from typing import Optional, Dict, Any
+from typing import Any, Dict, Optional
 
 log = logging.getLogger(__name__)
 

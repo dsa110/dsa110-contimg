@@ -10,9 +10,10 @@ Subcommands:
 import argparse
 import sys
 from pathlib import Path
+
 from .downsample_hdf5 import downsample_uvh5
-from .downsample_hdf5_fast import downsample_uvh5_fast
 from .downsample_hdf5_batch import downsample_uvh5_batch
+from .downsample_hdf5_fast import downsample_uvh5_fast
 
 
 def add_single_args(p: argparse.ArgumentParser) -> None:

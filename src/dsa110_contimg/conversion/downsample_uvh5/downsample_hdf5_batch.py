@@ -7,14 +7,15 @@ applying the same downsampling parameters to all files and writing
 the results to an output directory.
 """
 
+import argparse
+import logging
+import multiprocessing as mp
+import sys
+from concurrent.futures import ProcessPoolExecutor, as_completed
+from pathlib import Path
+
 import h5py  # type: ignore
 import numpy as np
-import argparse
-from pathlib import Path
-import sys
-import logging
-from concurrent.futures import ProcessPoolExecutor, as_completed
-import multiprocessing as mp
 
 # Configure logging
 logging.basicConfig(

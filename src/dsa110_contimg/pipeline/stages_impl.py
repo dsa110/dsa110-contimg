@@ -15,18 +15,18 @@ from typing import Optional, Tuple
 from dsa110_contimg.pipeline.config import PipelineConfig
 from dsa110_contimg.pipeline.context import PipelineContext
 from dsa110_contimg.pipeline.stages import PipelineStage
-from dsa110_contimg.utils.time_utils import extract_ms_time_range
 from dsa110_contimg.utils.ms_organization import (
-    organize_ms_file,
-    determine_ms_type,
     create_path_mapper,
+    determine_ms_type,
     extract_date_from_filename,
+    organize_ms_file,
 )
 from dsa110_contimg.utils.runtime_safeguards import (
-    require_casa6_python,
-    progress_monitor,
     log_progress,
+    progress_monitor,
+    require_casa6_python,
 )
+from dsa110_contimg.utils.time_utils import extract_ms_time_range
 
 logger = logging.getLogger(__name__)
 
@@ -319,20 +319,21 @@ class CalibrationSolveStage(PipelineStage):
         start_time_sec = time.time()
         log_progress("Starting calibration solve stage...")
 
+        import glob
+        import os
+
         from dsa110_contimg.calibration.calibration import (
-            solve_delay,
             solve_bandpass,
+            solve_delay,
             solve_gains,
             solve_prebandpass_phase,
         )
         from dsa110_contimg.calibration.flagging import (
-            reset_flags,
-            flag_zeros,
             flag_rfi,
+            flag_zeros,
+            reset_flags,
         )
-        from dsa110_contimg.utils.locking import file_lock, LockError
-        import glob
-        import os
+        from dsa110_contimg.utils.locking import LockError, file_lock
 
         ms_path = context.outputs["ms_path"]
         logger.info(f"Calibration solve stage: {ms_path}")
@@ -359,19 +360,20 @@ class CalibrationSolveStage(PipelineStage):
         self, context: PipelineContext, ms_path: str
     ) -> PipelineContext:
         """Internal calibration solve execution (called within lock)."""
+        import glob
+        import os
+
         from dsa110_contimg.calibration.calibration import (
-            solve_delay,
             solve_bandpass,
+            solve_delay,
             solve_gains,
             solve_prebandpass_phase,
         )
         from dsa110_contimg.calibration.flagging import (
-            reset_flags,
-            flag_zeros,
             flag_rfi,
+            flag_zeros,
+            reset_flags,
         )
-        import glob
-        import os
 
         # Get calibration parameters from context inputs or config
         params = context.inputs.get("calibration_params", {})
@@ -785,10 +787,11 @@ class CalibrationStage(PipelineStage):
         start_time_sec = time.time()
         log_progress("Starting calibration application stage...")
 
+        from pathlib import Path
+
         from dsa110_contimg.calibration.applycal import apply_to_target
         from dsa110_contimg.database.registry import get_active_applylist
         from dsa110_contimg.utils.time_utils import extract_ms_time_range
-        from pathlib import Path
 
         ms_path = context.outputs["ms_path"]
         logger.info(f"Calibration stage: {ms_path}")
@@ -988,9 +991,10 @@ class ImagingStage(PipelineStage):
         start_time_sec = time.time()
         log_progress("Starting imaging stage...")
 
-        from dsa110_contimg.imaging.cli_imaging import image_ms
-        from casacore.tables import table
         import numpy as np
+        from casacore.tables import table
+
+        from dsa110_contimg.imaging.cli_imaging import image_ms
 
         ms_path = context.outputs["ms_path"]
         logger.info(f"Imaging stage: {ms_path}")
@@ -1183,8 +1187,9 @@ class ImagingStage(PipelineStage):
             image_path: Path to image file (CASA or FITS)
             catalog: Catalog to use for validation ('nvss' or 'vlass')
         """
-        from dsa110_contimg.qa.catalog_validation import validate_flux_scale
         from pathlib import Path
+
+        from dsa110_contimg.qa.catalog_validation import validate_flux_scale
 
         # Find FITS image (prefer PB-corrected)
         image_path_obj = Path(image_path)
@@ -1433,10 +1438,10 @@ class ValidationStage(PipelineStage):
         log_progress("Starting image validation stage...")
 
         from dsa110_contimg.qa.catalog_validation import (
+            run_full_validation,
             validate_astrometry,
             validate_flux_scale,
             validate_source_counts,
-            run_full_validation,
         )
         from dsa110_contimg.qa.html_reports import generate_validation_report
 
@@ -1592,14 +1597,15 @@ class AdaptivePhotometryStage(PipelineStage):
         start_time_sec = time.time()
         log_progress("Starting adaptive photometry stage...")
 
+        import astropy.coordinates as acoords
+        import numpy as np
+        from casacore.tables import table
+
+        from dsa110_contimg.calibration.catalogs import read_nvss_catalog
+        from dsa110_contimg.photometry.adaptive_binning import AdaptiveBinningConfig
         from dsa110_contimg.photometry.adaptive_photometry import (
             measure_with_adaptive_binning,
         )
-        from dsa110_contimg.photometry.adaptive_binning import AdaptiveBinningConfig
-        from dsa110_contimg.calibration.catalogs import read_nvss_catalog
-        from casacore.tables import table
-        import astropy.coordinates as acoords
-        import numpy as np
 
         ms_path = context.outputs["ms_path"]
         logger.info(f"Adaptive photometry stage: {ms_path}")
@@ -1719,9 +1725,9 @@ class AdaptivePhotometryStage(PipelineStage):
 
         # Otherwise, query NVSS catalog for sources in the field
         try:
-            from casacore.tables import table
             import astropy.coordinates as acoords
             import numpy as np
+            from casacore.tables import table
 
             # Get field center from MS
             with table(ms_path) as t:

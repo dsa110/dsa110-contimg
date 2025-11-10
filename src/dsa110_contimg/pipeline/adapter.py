@@ -11,17 +11,17 @@ import json
 import logging
 import time
 from pathlib import Path
-from typing import Dict, Any, Optional
+from typing import Any, Dict, Optional
 
+from dsa110_contimg.database.jobs import (
+    append_job_log,
+    ensure_jobs_table,
+    update_job_status,
+)
 from dsa110_contimg.pipeline.config import PipelineConfig
 from dsa110_contimg.pipeline.context import PipelineContext
 from dsa110_contimg.pipeline.state import SQLiteStateRepository
 from dsa110_contimg.pipeline.workflows import standard_imaging_workflow
-from dsa110_contimg.database.jobs import (
-    ensure_jobs_table,
-    update_job_status,
-    append_job_log,
-)
 
 logger = logging.getLogger(__name__)
 

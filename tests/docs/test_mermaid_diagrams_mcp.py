@@ -6,14 +6,14 @@ Tests all MkDocs pages to ensure Mermaid diagrams render correctly without error
 Uses MCP browser tools instead of Playwright to avoid GLIBC compatibility issues.
 """
 
+import json
+import subprocess
 import sys
 import time
-import subprocess
-from pathlib import Path
-from typing import List, Tuple, Optional
 from dataclasses import dataclass
 from datetime import datetime
-import json
+from pathlib import Path
+from typing import List, Optional, Tuple
 
 
 @dataclass

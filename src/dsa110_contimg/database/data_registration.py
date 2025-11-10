@@ -2,13 +2,14 @@
 
 import logging
 from pathlib import Path
-from typing import Optional, Dict, Any
+from typing import Any, Dict, Optional
+
+from dsa110_contimg.database.data_config import get_staging_dir
 from dsa110_contimg.database.data_registry import (
     ensure_data_registry_db,
-    register_data,
     link_data,
+    register_data,
 )
-from dsa110_contimg.database.data_config import get_staging_dir
 from dsa110_contimg.database.products import ensure_products_db
 
 logger = logging.getLogger(__name__)

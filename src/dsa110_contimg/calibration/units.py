@@ -6,8 +6,9 @@ and ensure scientific correctness in calibration calculations.
 
 import logging
 from typing import Optional, Tuple
-import numpy as np
+
 import astropy.units as u
+import numpy as np
 from astropy.coordinates import Angle
 
 logger = logging.getLogger(__name__)

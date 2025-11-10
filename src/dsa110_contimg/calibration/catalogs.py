@@ -1,13 +1,13 @@
-import os
 import gzip
-from urllib.request import urlretrieve
+import os
 from pathlib import Path
-from typing import Optional, Tuple, List
+from typing import List, Optional, Tuple
+from urllib.request import urlretrieve
 
+import astropy.units as u
 import numpy as np
 import pandas as pd
 from astropy.coordinates import Angle, SkyCoord
-import astropy.units as u
 from astropy.time import Time
 
 from .schedule import DSA110_LOCATION
@@ -299,9 +299,9 @@ def read_first_catalog(
     # Try astroquery first if enabled
     if use_astroquery:
         try:
-            from astroquery.vizier import Vizier
-            from astropy.coordinates import SkyCoord
             import astropy.units as u
+            from astropy.coordinates import SkyCoord
+            from astroquery.vizier import Vizier
 
             # Configure Vizier for large queries
             Vizier.ROW_LIMIT = -1  # No row limit
@@ -601,8 +601,8 @@ def read_vla_parsed_catalog_csv(path: str) -> pd.DataFrame:
     dec_deg_col = next((c for c in df.columns if "dec_deg" in c.lower()), None)
 
     def _to_deg(ra_val, dec_val) -> Tuple[float, float]:
-        from astropy.coordinates import SkyCoord
         import astropy.units as u
+        from astropy.coordinates import SkyCoord
 
         # try sexagesimal first
         try:

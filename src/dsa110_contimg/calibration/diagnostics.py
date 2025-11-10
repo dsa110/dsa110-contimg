@@ -5,22 +5,22 @@ Comprehensive calibration diagnostics and comparison utilities.
 from __future__ import annotations
 
 import logging
-import numpy as np
 import os
 from dataclasses import dataclass
 from pathlib import Path
 from typing import Dict, List, Optional, Tuple
 
+import numpy as np
 from casacore.tables import table
 
 from dsa110_contimg.calibration.validate import (
-    validate_caltable_exists,
     validate_caltable_compatibility,
+    validate_caltable_exists,
 )
 from dsa110_contimg.qa.calibration_quality import (
-    validate_caltable_quality,
-    check_corrected_data_quality,
     CalibrationQualityMetrics,
+    check_corrected_data_quality,
+    validate_caltable_quality,
 )
 
 logger = logging.getLogger(__name__)

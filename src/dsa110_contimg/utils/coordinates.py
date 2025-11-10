@@ -4,11 +4,11 @@ Coordinate and source utilities for DSA-110.
 Adapted from dsacalib.utils
 """
 
-import numpy as np
 import astropy.units as u
+import casatools as cc
+import numpy as np
 from astropy.coordinates import SkyCoord
 from astropy.time import Time
-import casatools as cc
 
 from . import constants as ct
 

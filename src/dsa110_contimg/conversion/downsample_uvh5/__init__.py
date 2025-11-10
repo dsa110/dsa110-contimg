@@ -4,8 +4,8 @@ Exports a small, stable API for single-file, fast single-file, and batch downsam
 """
 
 from .downsample_hdf5 import downsample_uvh5
-from .downsample_hdf5_fast import downsample_uvh5_fast
 from .downsample_hdf5_batch import downsample_uvh5_batch
+from .downsample_hdf5_fast import downsample_uvh5_fast
 
 __all__ = [
     "downsample_uvh5",

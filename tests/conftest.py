@@ -334,7 +334,7 @@ def sample_calibration_tables(temp_work_dir):
 @pytest.fixture
 def test_config():
     """Standard test configuration for pipeline tests."""
-    from dsa110_contimg.pipeline.config import PipelineConfig, PathsConfig
+    from dsa110_contimg.pipeline.config import PathsConfig, PipelineConfig
 
     return PipelineConfig(
         paths=PathsConfig(

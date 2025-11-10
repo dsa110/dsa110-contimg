@@ -11,7 +11,7 @@ Run with: pytest tests/unit/test_imaging_mocked.py -v
 import os
 import sys
 from pathlib import Path
-from unittest.mock import patch, MagicMock, Mock
+from unittest.mock import MagicMock, Mock, patch
 
 import numpy as np
 import pytest

@@ -27,8 +27,8 @@ from casacore.tables import table
 
 from dsa110_contimg.calibration.applycal import apply_to_target
 from dsa110_contimg.database.products import ensure_products_db, ms_index_upsert
+from dsa110_contimg.database.registry import ensure_db as ensure_cal_db
 from dsa110_contimg.database.registry import (
-    ensure_db as ensure_cal_db,
     get_active_applylist,
 )
 

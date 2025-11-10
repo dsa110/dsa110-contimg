@@ -4,11 +4,12 @@ This module provides functions to verify that UVW coordinates are correctly
 transformed after rephasing operations (phaseshift, fixvis).
 """
 
-from typing import Tuple, Optional
-import numpy as np
-from casacore.tables import table
-from astropy.coordinates import SkyCoord
+from typing import Optional, Tuple
+
 import astropy.units as u
+import numpy as np
+from astropy.coordinates import SkyCoord
+from casacore.tables import table
 
 
 def calculate_expected_uvw_change(

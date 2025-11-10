@@ -1,8 +1,9 @@
 """Unit test for mosaic shape handling (2D vs 4D)."""
 
-import pytest
-import numpy as np
 import sys
+
+import numpy as np
+import pytest
 
 sys.path.insert(0, "src")
 

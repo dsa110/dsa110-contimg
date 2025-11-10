@@ -7,7 +7,8 @@ actionable error messages and recovery suggestions.
 All exceptions inherit from the unified DSA110Error hierarchy.
 """
 
-from typing import Optional, Dict, Any
+from typing import Any, Dict, Optional
+
 from dsa110_contimg.utils.exceptions import DSA110Error
 
 

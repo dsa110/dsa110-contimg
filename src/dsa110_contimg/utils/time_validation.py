@@ -15,8 +15,8 @@ from typing import Dict, Optional, Tuple
 import numpy as np
 from astropy.time import Time
 
-from dsa110_contimg.utils.time_utils import extract_ms_time_range
 from dsa110_contimg.calibration.schedule import DSA110_LOCATION
+from dsa110_contimg.utils.time_utils import extract_ms_time_range
 
 logger = logging.getLogger(__name__)
 

@@ -1,11 +1,11 @@
-import os
 import asyncio
 import json
+import os
 import sys
 
 try:
     from mcp.client.session import ClientSession
-    from mcp.client.stdio import stdio_client, StdioServerParameters
+    from mcp.client.stdio import StdioServerParameters, stdio_client
 except Exception as e:
     print(
         "Missing mcp client library. Run with: uv run --with mcp scripts/test_graphiti_mcp.py",

@@ -1,7 +1,7 @@
 """Utilities for image handling in the API layer."""
 
-import os
 import logging
+import os
 from pathlib import Path
 from typing import Optional
 
@@ -24,8 +24,8 @@ def resolve_image_path(image_id: str | int, db_path: Optional[Path] = None) -> s
     Raises:
         HTTPException: If image not found or path invalid
     """
-    from dsa110_contimg.api.data_access import _connect
     from dsa110_contimg.api.config import ApiConfig
+    from dsa110_contimg.api.data_access import _connect
 
     # If integer, query database
     if isinstance(image_id, int):

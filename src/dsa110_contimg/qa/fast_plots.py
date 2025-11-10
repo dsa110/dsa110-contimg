@@ -26,7 +26,6 @@ from daskms import xds_from_ms
 matplotlib.use("Agg", force=True)
 import matplotlib.pyplot as plt  # noqa  E402  (after setting backend)
 
-
 LOG = logging.getLogger(__name__)
 
 

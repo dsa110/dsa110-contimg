@@ -8,18 +8,17 @@ from dataclasses import dataclass, field
 from pathlib import Path
 from typing import Dict, List
 
+import astropy.units as u
 import h5py
 import numpy as np
 import yaml
 from astropy.coordinates import EarthLocation
 from astropy.time import Time
-import astropy.units as u
 from pyuvdata import UVData
 
-from dsa110_contimg.utils.fringestopping import calc_uvw_blt
 from dsa110_contimg.utils.antpos_local import get_itrf
-from dsa110_contimg.utils.constants import OVRO_LAT, OVRO_LON, OVRO_ALT
-
+from dsa110_contimg.utils.constants import OVRO_ALT, OVRO_LAT, OVRO_LON
+from dsa110_contimg.utils.fringestopping import calc_uvw_blt
 
 PACKAGE_ROOT = Path(__file__).resolve().parent
 REPO_ROOT = Path(__file__).resolve().parents[3]
