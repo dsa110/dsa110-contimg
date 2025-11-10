@@ -1,7 +1,7 @@
 """Utilities for image handling in the API layer."""
 
-import os
 import logging
+import os
 from pathlib import Path
 from typing import Optional
 
@@ -24,8 +24,8 @@ def resolve_image_path(image_id: str | int, db_path: Optional[Path] = None) -> s
     Raises:
         HTTPException: If image not found or path invalid
     """
-    from dsa110_contimg.api.data_access import _connect
     from dsa110_contimg.api.config import ApiConfig
+    from dsa110_contimg.api.data_access import _connect
 
     # If integer, query database
     if isinstance(image_id, int):
@@ -38,30 +38,32 @@ def resolve_image_path(image_id: str | int, db_path: Optional[Path] = None) -> s
 
         with _connect(db_path) as conn:
             row = conn.execute(
-                "SELECT path FROM images WHERE id = ?",
-                (image_id,)
+                "SELECT path FROM images WHERE id = ?", (image_id,)
             ).fetchone()
 
             if not row:
                 raise HTTPException(
-                    status_code=404, detail=f"Image {image_id} not found")
+                    status_code=404, detail=f"Image {image_id} not found"
+                )
 
             image_path = row["path"]
     else:
         # String: treat as path (may be URL-encoded)
         image_path = image_id
         # Decode URL encoding if present
-        if '%' in image_path:
+        if "%" in image_path:
             from urllib.parse import unquote
+
             image_path = unquote(image_path)
         # Ensure absolute path
-        if not image_path.startswith('/'):
+        if not image_path.startswith("/"):
             image_path = f"/{image_path}"
 
     # Verify path exists
     if not Path(image_path).exists():
         raise HTTPException(
-            status_code=404, detail=f"Image file not found: {image_path}")
+            status_code=404, detail=f"Image file not found: {image_path}"
+        )
 
     return image_path
 
@@ -80,18 +82,18 @@ def get_fits_path(image_path: str) -> Optional[str]:
     image_path_obj = Path(image_path)
 
     # If it's already a FITS file, return it
-    if image_path.endswith('.fits') and image_path_obj.exists():
+    if image_path.endswith(".fits") and image_path_obj.exists():
         return str(image_path_obj.resolve())
 
     # Check if corresponding FITS file exists
-    fits_path = str(image_path_obj) + '.fits'
+    fits_path = str(image_path_obj) + ".fits"
     if Path(fits_path).exists():
         return fits_path
 
     # Check if it's a CASA image directory
     if image_path_obj.is_dir():
         # CASA images are directories, try to export to FITS
-        fits_path = str(image_path_obj) + '.fits'
+        fits_path = str(image_path_obj) + ".fits"
         if convert_casa_to_fits(str(image_path_obj), fits_path):
             return fits_path
 
@@ -112,7 +114,8 @@ def convert_casa_to_fits(casa_image_path: str, fits_output_path: str) -> bool:
         from casatasks import exportfits  # type: ignore
     except ImportError:
         LOG.warning(
-            "casatasks.exportfits not available - cannot convert CASA image to FITS")
+            "casatasks.exportfits not available - cannot convert CASA image to FITS"
+        )
         return False
 
     if not os.path.isdir(casa_image_path):
@@ -121,15 +124,12 @@ def convert_casa_to_fits(casa_image_path: str, fits_output_path: str) -> bool:
 
     try:
         exportfits(
-            imagename=casa_image_path,
-            fitsimage=fits_output_path,
-            overwrite=True
+            imagename=casa_image_path, fitsimage=fits_output_path, overwrite=True
         )
         LOG.info(f"Converted CASA image to FITS: {fits_output_path}")
         return True
     except Exception as e:
-        LOG.error(
-            f"Failed to convert CASA image {casa_image_path} to FITS: {e}")
+        LOG.error(f"Failed to convert CASA image {casa_image_path} to FITS: {e}")
         return False
 
 
@@ -148,5 +148,5 @@ def is_casa_image(path: str) -> bool:
 
     # CASA images are directories that typically contain image data
     # Check for common CASA image files
-    casa_files = ['imageinfo', 'table.dat', 'table.f0']
+    casa_files = ["imageinfo", "table.dat", "table.f0"]
     return any((path_obj / f).exists() for f in casa_files)

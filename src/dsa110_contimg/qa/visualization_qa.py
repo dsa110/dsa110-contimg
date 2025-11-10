@@ -5,14 +5,15 @@ Provides wrapper functions that integrate visualization framework
 with existing QA functions.
 """
 
-from typing import Optional, List, Dict, Any
+from typing import Any, Dict, List, Optional
 
 try:
     from dsa110_contimg.qa.casa_ms_qa import (
-        run_ms_qa,
         QaResult,
         QaThresholds,
+        run_ms_qa,
     )
+
     HAS_QA = True
 except ImportError:
     HAS_QA = False
@@ -21,8 +22,8 @@ except ImportError:
     QaThresholds = None  # type: ignore
 
 from dsa110_contimg.qa.visualization.integration import (
-    enhance_qa_with_notebook,
     display_qa_summary,
+    enhance_qa_with_notebook,
 )
 
 
@@ -62,9 +63,7 @@ def run_ms_qa_with_visualization(
         >>> # Notebook is in result.artifacts
     """
     if not HAS_QA:
-        raise ImportError(
-            "dsa110_contimg.qa.casa_ms_qa is required for QA functions"
-        )
+        raise ImportError("dsa110_contimg.qa.casa_ms_qa is required for QA functions")
 
     # Run standard QA
     result = run_ms_qa(

@@ -70,4 +70,3 @@ class GraphitiRunLogger(AbstractContextManager["GraphitiRunLogger"]):
 
     def log_produces(self, product: str) -> None:
         self._append({"type": "produces", "product": product})
-

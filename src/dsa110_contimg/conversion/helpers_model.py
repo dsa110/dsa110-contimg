@@ -1,13 +1,14 @@
 """Model helper functions for conversion."""
+
 import logging
 from typing import Optional
 
-import numpy as np
 import astropy.units as u
 # Ensure CASAPATH is set before importing CASA modules
 from dsa110_contimg.utils.casa_init import ensure_casa_path
 ensure_casa_path()
 
+import numpy as np
 from casacore.tables import table
 
 logger = logging.getLogger("dsa110_contimg.conversion.helpers")
@@ -31,10 +32,12 @@ def primary_beam_response(
             dec1 = np.asarray(dec1, dtype=float)
             ra2 = np.asarray(ra2, dtype=float)
             dec2 = np.asarray(dec2, dtype=float)
-            cossep = np.sin(dec1) * np.sin(dec2) + np.cos(dec1) * np.cos(dec2) * np.cos(ra1 - ra2)
+            cossep = np.sin(dec1) * np.sin(dec2) + np.cos(dec1) * np.cos(dec2) * np.cos(
+                ra1 - ra2
+            )
             cossep = np.clip(cossep, -1.0, 1.0)
             return np.arccos(cossep)
-    
+
     dis = np.array(angular_separation(ant_ra, ant_dec, src_ra, src_dec))
     if dis.ndim > 0 and dis.shape[0] > 1:
         dis = dis[:, np.newaxis]
@@ -86,7 +89,9 @@ def set_model_column(
         fobs = uvdata.freq_array.squeeze() / 1e9
         lst = uvdata.lst_array
         model = amplitude_sky_model(ra, dec, flux_jy, lst, pt_dec, fobs)
-        model = np.tile(model[:, :, np.newaxis], (1, 1, uvdata.Npols)).astype(np.complex64)
+        model = np.tile(model[:, :, np.newaxis], (1, 1, uvdata.Npols)).astype(
+            np.complex64
+        )
     else:
         model = np.ones((uvdata.Nblts, uvdata.Nfreqs, uvdata.Npols), dtype=np.complex64)
 
@@ -121,7 +126,8 @@ def set_model_column(
             wspec = np.repeat(weights[np.newaxis, :, :], nchan, axis=0)
             if wspec.shape != (nchan, ncorr, weights.shape[1]):
                 logger.debug(
-                    "Skipping WEIGHT_SPECTRUM update due to unexpected shape: %s", wspec.shape
+                    "Skipping WEIGHT_SPECTRUM update due to unexpected shape: %s",
+                    wspec.shape,
                 )
             else:
                 wspec[flags] = 0.0
@@ -129,4 +135,3 @@ def set_model_column(
                 logger.info("Reconstructed WEIGHT_SPECTRUM column.")
 
     logger.info("MODEL_DATA column set successfully")
-

@@ -12,33 +12,35 @@ Provides centralized caching for expensive operations:
 - Regridding results
 """
 
+# Ensure CASAPATH is set before importing CASA modules
 from dsa110_contimg.utils.casa_init import ensure_casa_path
-import numpy as np
-from typing import Any, Dict, List, Optional, Tuple
-from pathlib import Path
-from functools import lru_cache
-import time
-import sqlite3
-import os
-import logging
-import json
+
+ensure_casa_path()
+
 import hashlib
+import json
+import logging
+import os
+import sqlite3
+import time
 import warnings
+from functools import lru_cache
+from pathlib import Path
+from typing import Any, Dict, List, Optional, Tuple
+
+import numpy as np
 
 # Use SHA256 instead of MD5 for cache keys (non-cryptographic use, but better practice)
 # Suppress warning about MD5 usage since this is for cache keys, not security
-warnings.filterwarnings(
-    'ignore', category=DeprecationWarning, module='hashlib')
+warnings.filterwarnings("ignore", category=DeprecationWarning, module="hashlib")
 
 
 logger = logging.getLogger(__name__)
 
-# Ensure CASAPATH is set before importing CASA modules
-ensure_casa_path()
-
 try:
     from casacore.images import image as casaimage
     from casatasks import imhead
+
     HAVE_CASACORE = True
 except ImportError:
     HAVE_CASACORE = False
@@ -51,7 +53,9 @@ class MosaicCache:
     Provides in-memory and on-disk caching with automatic invalidation.
     """
 
-    def __init__(self, cache_dir: Optional[Path] = None, enable_disk_cache: bool = True):
+    def __init__(
+        self, cache_dir: Optional[Path] = None, enable_disk_cache: bool = True
+    ):
         """
         Initialize cache manager.
 
@@ -101,13 +105,13 @@ class MosaicCache:
             return None
 
         try:
-            with open(cache_path, 'r') as f:
+            with open(cache_path, "r") as f:
                 cache_data = json.load(f)
                 # Check if cache is expired (7 days default)
-                if cache_data.get('expires', float('inf')) < time.time():
+                if cache_data.get("expires", float("inf")) < time.time():
                     cache_path.unlink()
                     return None
-                return cache_data.get('data')
+                return cache_data.get("data")
         except Exception as e:
             logger.debug(f"Failed to load cache {cache_path}: {e}")
             return None
@@ -119,11 +123,11 @@ class MosaicCache:
 
         try:
             cache_data = {
-                'data': data,
-                'created': time.time(),
-                'expires': time.time() + (expire_days * 24 * 3600),
+                "data": data,
+                "created": time.time(),
+                "expires": time.time() + (expire_days * 24 * 3600),
             }
-            with open(cache_path, 'w') as f:
+            with open(cache_path, "w") as f:
                 json.dump(cache_data, f, default=str)
         except Exception as e:
             logger.debug(f"Failed to save cache {cache_path}: {e}")
@@ -138,7 +142,7 @@ class MosaicCache:
 
         # Check disk cache
         if self.enable_disk_cache:
-            cache_path = self._get_disk_cache_path('header', cache_key)
+            cache_path = self._get_disk_cache_path("header", cache_key)
             cached = self._load_disk_cache(cache_path)
             if cached is not None:
                 self._headers[cache_key] = cached
@@ -150,7 +154,8 @@ class MosaicCache:
 
         try:
             from .error_handling import safe_imhead
-            header = safe_imhead(imagename=tile_path, mode='list')
+
+            header = safe_imhead(imagename=tile_path, mode="list")
             self._headers[cache_key] = header
 
             # Save to disk
@@ -172,7 +177,7 @@ class MosaicCache:
 
         # Check disk cache
         if self.enable_disk_cache:
-            cache_path = self._get_disk_cache_path('pb_path', cache_key)
+            cache_path = self._get_disk_cache_path("pb_path", cache_key)
             cached = self._load_disk_cache(cache_path)
             if cached is not None:
                 self._pb_paths[cache_key] = cached
@@ -220,7 +225,7 @@ class MosaicCache:
 
         # Check disk cache
         if self.enable_disk_cache:
-            cache_path = self._get_disk_cache_path('wcs_metadata', cache_key)
+            cache_path = self._get_disk_cache_path("wcs_metadata", cache_key)
             cached = self._load_disk_cache(cache_path)
             if cached is not None:
                 self._wcs_metadata[cache_key] = cached
@@ -249,7 +254,7 @@ class MosaicCache:
                 return float(val)
 
             header = self.get_tile_header(tile_path)
-            shape = header.get('shape') if header else None
+            shape = header.get("shape") if header else None
 
             # Extract RA/Dec values, handling arrays
             ra_val = ref_val[0] if len(ref_val) >= 1 else None
@@ -258,11 +263,17 @@ class MosaicCache:
             dec_incr = incr[1] if len(incr) >= 2 else None
 
             metadata = {
-                'ra_center': to_scalar(ra_val) if ra_val is not None else None,
-                'dec_center': to_scalar(dec_val) if dec_val is not None else None,
-                'cdelt_ra': to_scalar(ra_incr) * 180.0 / np.pi if ra_incr is not None else None,
-                'cdelt_dec': to_scalar(dec_incr) * 180.0 / np.pi if dec_incr is not None else None,
-                'shape': shape,
+                "ra_center": to_scalar(ra_val) if ra_val is not None else None,
+                "dec_center": to_scalar(dec_val) if dec_val is not None else None,
+                "cdelt_ra": (
+                    to_scalar(ra_incr) * 180.0 / np.pi if ra_incr is not None else None
+                ),
+                "cdelt_dec": (
+                    to_scalar(dec_incr) * 180.0 / np.pi
+                    if dec_incr is not None
+                    else None
+                ),
+                "shape": shape,
             }
 
             self._wcs_metadata[cache_key] = metadata
@@ -280,13 +291,15 @@ class MosaicCache:
         """Get tile shape from cached header."""
         header = self.get_tile_header(tile_path)
         if header:
-            shape = header.get('shape')
+            shape = header.get("shape")
             if shape:
                 return tuple(shape) if isinstance(shape, (list, tuple)) else shape
         return None
 
     # Image statistics caching
-    def get_tile_statistics(self, tile_path: str, force_recompute: bool = False) -> Dict[str, float]:
+    def get_tile_statistics(
+        self, tile_path: str, force_recompute: bool = False
+    ) -> Dict[str, float]:
         """Get cached tile statistics (RMS, dynamic range, etc.)."""
         cache_key = self._get_cache_key(tile_path)
 
@@ -295,7 +308,7 @@ class MosaicCache:
 
         # Check disk cache
         if self.enable_disk_cache and not force_recompute:
-            cache_path = self._get_disk_cache_path('image_stats', cache_key)
+            cache_path = self._get_disk_cache_path("image_stats", cache_key)
             cached = self._load_disk_cache(cache_path)
             if cached is not None:
                 self._image_stats[cache_key] = cached
@@ -317,10 +330,10 @@ class MosaicCache:
                 dynamic_range = peak_value / rms_noise if rms_noise > 0 else 0.0
 
                 stats = {
-                    'rms_noise': rms_noise,
-                    'peak_flux': peak_value,
-                    'dynamic_range': dynamic_range,
-                    'num_pixels': len(valid_pixels),
+                    "rms_noise": rms_noise,
+                    "peak_flux": peak_value,
+                    "dynamic_range": dynamic_range,
+                    "num_pixels": len(valid_pixels),
                 }
 
                 self._image_stats[cache_key] = stats
@@ -345,7 +358,7 @@ class MosaicCache:
 
         # Check disk cache
         if self.enable_disk_cache:
-            cache_path = self._get_disk_cache_path('pb_stats', cache_key)
+            cache_path = self._get_disk_cache_path("pb_stats", cache_key)
             cached = self._load_disk_cache(cache_path)
             if cached is not None:
                 self._pb_stats[cache_key] = cached
@@ -363,10 +376,10 @@ class MosaicCache:
 
             if len(valid_pb) > 0:
                 stats = {
-                    'pb_response_min': float(valid_pb.min()),
-                    'pb_response_max': float(valid_pb.max()),
-                    'pb_response_mean': float(valid_pb.mean()),
-                    'pb_response_median': float(np.median(valid_pb)),
+                    "pb_response_min": float(valid_pb.min()),
+                    "pb_response_max": float(valid_pb.max()),
+                    "pb_response_mean": float(valid_pb.mean()),
+                    "pb_response_median": float(np.median(valid_pb)),
                 }
 
                 self._pb_stats[cache_key] = stats
@@ -382,8 +395,14 @@ class MosaicCache:
         return {}
 
     # Catalog query caching
-    def query_catalog_cached(self, ra_deg: float, dec_deg: float, radius_deg: float,
-                             catalog_name: str, query_func) -> List[Dict]:
+    def query_catalog_cached(
+        self,
+        ra_deg: float,
+        dec_deg: float,
+        radius_deg: float,
+        catalog_name: str,
+        query_func,
+    ) -> List[Dict]:
         """Query catalog with caching based on sky region."""
         # Use SHA256 for cache keys (non-cryptographic, but better practice)
         cache_key = hashlib.sha256(
@@ -395,7 +414,7 @@ class MosaicCache:
 
         # Check disk cache
         if self.enable_disk_cache:
-            cache_path = self._get_disk_cache_path('catalog_query', cache_key)
+            cache_path = self._get_disk_cache_path("catalog_query", cache_key)
             cached = self._load_disk_cache(cache_path)
             if cached is not None:
                 self._catalog_queries[cache_key] = cached
@@ -420,10 +439,10 @@ class MosaicCache:
 
         path = Path(file_path)
         metadata = {
-            'exists': path.exists(),
-            'mtime': path.stat().st_mtime if path.exists() else None,
-            'size': path.stat().st_size if path.exists() else None,
-            'isdir': path.is_dir() if path.exists() else False,
+            "exists": path.exists(),
+            "mtime": path.stat().st_mtime if path.exists() else None,
+            "size": path.stat().st_size if path.exists() else None,
+            "isdir": path.is_dir() if path.exists() else False,
         }
 
         self._file_metadata[file_path] = metadata
@@ -444,10 +463,10 @@ class MosaicCache:
         header = self.get_tile_header(tiles[0])
         if header:
             grid_info = {
-                'shape': header.get('shape'),
-                'cdelt1': header.get('cdelt1'),
-                'cdelt2': header.get('cdelt2'),
-                'ref_tile': tiles[0],
+                "shape": header.get("shape"),
+                "cdelt1": header.get("cdelt1"),
+                "cdelt2": header.get("cdelt2"),
+                "ref_tile": tiles[0],
             }
             self._grid_consistency[cache_key] = grid_info
             return grid_info
@@ -475,9 +494,9 @@ class MosaicCache:
                     f.unlink()
         else:
             # Clear specific cache type
-            if cache_type == 'headers':
+            if cache_type == "headers":
                 self._headers.clear()
-            elif cache_type == 'pb_paths':
+            elif cache_type == "pb_paths":
                 self._pb_paths.clear()
             # ... etc
 
@@ -499,8 +518,9 @@ class MosaicCache:
         logger.info(f"Cleaned up {cleaned} old cache files")
 
     # Regridding results caching
-    def get_regridded_image(self, source_path: str, template_path: str,
-                            regrid_func, output_suffix: str = "") -> Optional[str]:
+    def get_regridded_image(
+        self, source_path: str, template_path: str, regrid_func, output_suffix: str = ""
+    ) -> Optional[str]:
         """
         Get cached regridded image or create if needed.
 
@@ -551,18 +571,20 @@ class MosaicCache:
 _global_cache: Optional[MosaicCache] = None
 
 
-def get_cache(cache_dir: Optional[Path] = None, enable_disk_cache: bool = True) -> MosaicCache:
+def get_cache(
+    cache_dir: Optional[Path] = None, enable_disk_cache: bool = True
+) -> MosaicCache:
     """Get or create global cache instance."""
     global _global_cache
 
     if _global_cache is None:
         if cache_dir is None:
             # Default cache directory
-            cache_dir = Path(
-                os.getenv('MOSAIC_CACHE_DIR', '/tmp/mosaic_cache'))
+            cache_dir = Path(os.getenv("MOSAIC_CACHE_DIR", "/tmp/mosaic_cache"))
 
         _global_cache = MosaicCache(
-            cache_dir=cache_dir, enable_disk_cache=enable_disk_cache)
+            cache_dir=cache_dir, enable_disk_cache=enable_disk_cache
+        )
 
     return _global_cache
 

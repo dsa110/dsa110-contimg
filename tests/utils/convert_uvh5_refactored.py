@@ -6,32 +6,33 @@ This replaces convert_uvh5_standalone.py and convert_uvh5_simple.py
 by using the production conversion modules directly.
 """
 
+import logging
 import os
 import sys
-import logging
 from pathlib import Path
 from typing import Optional
 
 # Add source to path (for tests)
-if '/data/dsa110-contimg/src' not in sys.path:
-    sys.path.insert(0, '/data/dsa110-contimg/src')
+if "/data/dsa110-contimg/src" not in sys.path:
+    sys.path.insert(0, "/data/dsa110-contimg/src")
+
+from dsa110_contimg.conversion.helpers import (
+    _ensure_antenna_diameters,
+    get_meridian_coords,
+    set_antenna_positions,
+    set_model_column,
+)
+from dsa110_contimg.conversion.ms_utils import configure_ms_for_imaging
 
 # Import production modules
 from dsa110_contimg.conversion.strategies.hdf5_orchestrator import (
     convert_subband_groups_to_ms,
     find_subband_groups,
 )
-from dsa110_contimg.conversion.helpers import (
-    set_antenna_positions,
-    _ensure_antenna_diameters,
-    get_meridian_coords,
-    set_model_column,
-)
-from dsa110_contimg.conversion.ms_utils import configure_ms_for_imaging
 from dsa110_contimg.conversion.validation import (
-    validate_hdf5_files,
-    validate_calibrator_transit,
     find_calibrator_sources_in_data,
+    validate_calibrator_transit,
+    validate_hdf5_files,
 )
 
 logger = logging.getLogger("convert_uvh5_refactored")
@@ -50,12 +51,12 @@ def convert_with_calibrator_model(
 ) -> None:
     """
     Convert subband groups using production modules.
-    
+
     This function demonstrates how to use production modules instead of
     duplicating conversion logic. For most use cases, use the CLI directly:
-    
+
         python -m dsa110_contimg.conversion.cli groups ...
-    
+
     Args:
         input_dir: Directory containing UVH5 files
         output_dir: Directory for output MS files
@@ -77,7 +78,7 @@ def convert_with_calibrator_model(
         writer="auto",
         writer_kwargs=None,
     )
-    
+
     # If calibrator catalog provided, find and create calibrator MS
     if cal_catalog and cal_search_radius_deg > 0:
         logger.info("Calibrator MS generation using production modules...")
@@ -92,7 +93,7 @@ def convert_with_calibrator_model(
 def main() -> int:
     """Main entry point for testing purposes."""
     import argparse
-    
+
     parser = argparse.ArgumentParser(
         description="Convert DSA-110 subband UVH5 to MS (refactored to use production modules)"
     )
@@ -101,43 +102,49 @@ def main() -> int:
     parser.add_argument("start_time", help="YYYY-MM-DD HH:MM:SS")
     parser.add_argument("end_time", help="YYYY-MM-DD HH:MM:SS")
     parser.add_argument("--flux", type=float)
-    parser.add_argument("--cal-catalog", default=None, help="Path to VLA calibrator CSV")
+    parser.add_argument(
+        "--cal-catalog", default=None, help="Path to VLA calibrator CSV"
+    )
     parser.add_argument("--cal-search-radius-deg", type=float, default=0.0)
     parser.add_argument("--cal-output-dir", default=None)
     parser.add_argument("--log-level", default="INFO")
-    parser.add_argument("--validate-only", action="store_true",
-                       help="Only validate files, do not convert")
-    parser.add_argument("--validate-calibrator", type=str,
-                       help="Validate calibrator transit (e.g., '0834+555')")
-    
+    parser.add_argument(
+        "--validate-only",
+        action="store_true",
+        help="Only validate files, do not convert",
+    )
+    parser.add_argument(
+        "--validate-calibrator",
+        type=str,
+        help="Validate calibrator transit (e.g., '0834+555')",
+    )
+
     args = parser.parse_args()
-    
+
     logging.basicConfig(
         level=getattr(logging, args.log_level.upper(), logging.INFO),
         format="%(asctime)s [%(levelname)s] %(message)s",
         datefmt="%Y-%m-%d %H:%M:%S",
     )
-    
+
     # Validation mode
     if args.validate_only:
         logger.info("Validation mode: checking files...")
-        groups = find_subband_groups(
-            args.input_dir,
-            args.start_time,
-            args.end_time
-        )
-        
+        groups = find_subband_groups(args.input_dir, args.start_time, args.end_time)
+
         all_files = []
         for group in groups:
             all_files.extend(group)
-        
+
         results = validate_hdf5_files(all_files)
-        
+
         valid_count = sum(1 for r in results.values() if r.valid)
         total_count = len(results)
-        
-        logger.info(f"Validated {total_count} files: {valid_count} valid, {total_count - valid_count} invalid")
-        
+
+        logger.info(
+            f"Validated {total_count} files: {valid_count} valid, {total_count - valid_count} invalid"
+        )
+
         for path, result in results.items():
             if not result.valid:
                 logger.error(f"Invalid: {path}")
@@ -146,9 +153,9 @@ def main() -> int:
             if result.warnings:
                 for warning in result.warnings:
                     logger.warning(f"  - {warning}")
-        
+
         return 0 if valid_count == total_count else 1
-    
+
     # Calibrator validation mode
     if args.validate_calibrator:
         logger.info(f"Validating calibrator transit for {args.validate_calibrator}...")
@@ -158,7 +165,7 @@ def main() -> int:
             window_minutes=60,
             max_days_back=30,
         )
-        
+
         if result.found:
             logger.info(f"✓ Transit found: {result.transit_time.iso}")
             logger.info(f"  Data available: {result.data_available}")
@@ -177,12 +184,12 @@ def main() -> int:
                 for error in result.errors:
                     logger.error(f"  - {error}")
             return 1
-    
+
     # Normal conversion mode
-    os.environ.setdefault('HDF5_USE_FILE_LOCKING', 'FALSE')
-    os.environ.setdefault('OMP_NUM_THREADS', '4')
-    os.environ.setdefault('MKL_NUM_THREADS', '4')
-    
+    os.environ.setdefault("HDF5_USE_FILE_LOCKING", "FALSE")
+    os.environ.setdefault("OMP_NUM_THREADS", "4")
+    os.environ.setdefault("MKL_NUM_THREADS", "4")
+
     convert_with_calibrator_model(
         args.input_dir,
         args.output_dir,
@@ -198,4 +205,3 @@ def main() -> int:
 
 if __name__ == "__main__":
     raise SystemExit(main())
-

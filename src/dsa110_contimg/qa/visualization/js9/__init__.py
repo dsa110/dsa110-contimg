@@ -9,13 +9,16 @@ from pathlib import Path
 
 try:
     from IPython.display import HTML, Javascript, display
+
     HAS_IPYTHON = True
 except ImportError:
     HAS_IPYTHON = False
     HTML = str
     Javascript = str
+
     def display(*args, **kwargs):
         pass
+
 
 # Path to JS9 static files
 JS9_STATIC_DIR = Path(__file__).parent / "static" / "js9"
@@ -104,13 +107,13 @@ def _init_js9_cdn() -> bool:
     try:
         # JS9 CDN URLs (using jsdelivr CDN)
         js9_cdn_base = "https://cdn.jsdelivr.net/npm/js9@latest"
-        
-        html = f'''
+
+        html = f"""
         <link rel="stylesheet" href="{js9_cdn_base}/js9.css">
         <script src="{js9_cdn_base}/js9.js"></script>
         <script src="{js9_cdn_base}/js9Helper.js"></script>
-        '''
-        
+        """
+
         display(HTML(html))
         _js9_initialized = True
         JS9_ERROR = None
@@ -131,16 +134,16 @@ def get_js9_init_html() -> str:
     if not is_js9_available():
         # Use CDN
         js9_cdn_base = "https://cdn.jsdelivr.net/npm/js9@latest"
-        return f'''
+        return f"""
         <link rel="stylesheet" href="{js9_cdn_base}/js9.css">
         <script src="{js9_cdn_base}/js9.js"></script>
         <script src="{js9_cdn_base}/js9Helper.js"></script>
-        '''
+        """
     else:
         # Use local files
         css_path = JS9_STATIC_DIR / "js9.css"
         js_path = JS9_STATIC_DIR / "js9.js"
-        
+
         html_parts = []
         if css_path.exists():
             with open(css_path) as f:
@@ -148,7 +151,7 @@ def get_js9_init_html() -> str:
         if js_path.exists():
             with open(js_path) as f:
                 html_parts.append(f"<script>{f.read()}</script>")
-        
+
         return "\n".join(html_parts)
 
 
@@ -156,6 +159,7 @@ def get_js9_init_html() -> str:
 if HAS_IPYTHON:
     try:
         from IPython import get_ipython
+
         ip = get_ipython()
         if ip is not None:
             # We're in a Jupyter environment
@@ -164,4 +168,3 @@ if HAS_IPYTHON:
             pass
     except Exception:
         pass
-

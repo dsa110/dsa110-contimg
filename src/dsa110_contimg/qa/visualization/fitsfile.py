@@ -8,29 +8,33 @@ similar to RadioPadre's FITSFile functionality.
 import os
 import sys
 import traceback
-from typing import Optional, Dict, List, Tuple
 import uuid
+from typing import Dict, List, Optional, Tuple
 
 try:
-    from IPython.display import display, HTML, Javascript
+    from IPython.display import HTML, Javascript, display
+
     HAS_IPYTHON = True
 except ImportError:
     HAS_IPYTHON = False
+
     def display(*args, **kwargs):
         pass
+
     HTML = str
     Javascript = str
 
 try:
     from astropy.io import fits
+
     HAS_ASTROPY = True
 except ImportError:
     HAS_ASTROPY = False
     fits = None
 
 from .file import FileBase
-from .render import render_table, render_error, rich_string
-from .js9 import init_js9, get_js9_init_html, JS9_ERROR
+from .js9 import JS9_ERROR, get_js9_init_html, init_js9
+from .render import render_error, render_table, rich_string
 
 
 class FITSFile(FileBase):
@@ -148,15 +152,16 @@ class FITSFile(FileBase):
                         elif d >= 1 / 60:
                             resolution_parts.append(f"{d * 60:.2f}'")
                         elif d >= 1 / 3600:
-                            resolution_parts.append(f"{d * 3600:.2f}\"")
+                            resolution_parts.append(f'{d * 3600:.2f}"')
                         else:
-                            resolution_parts.append(f"{d * 3600:.2g}\"")
+                            resolution_parts.append(f'{d * 3600:.2g}"')
             resolution = "×".join(resolution_parts) if resolution_parts else "?"
 
             # Modified time
             mtime = self.mtime
             if mtime:
                 from datetime import datetime
+
                 mtime_str = datetime.fromtimestamp(mtime).strftime("%Y-%m-%d %H:%M:%S")
 
         except Exception:
@@ -178,7 +183,9 @@ class FITSFile(FileBase):
             return f"{items[0]}: {items[1]} ({items[2]}) [{items[3]}]"
         return self.basename
 
-    def show(self, js9_id: Optional[str] = None, width: int = 600, height: int = 600) -> None:
+    def show(
+        self, js9_id: Optional[str] = None, width: int = 600, height: int = 600
+    ) -> None:
         """
         Display FITS file using JS9 viewer.
 
@@ -190,7 +197,9 @@ class FITSFile(FileBase):
         self.mark_shown()
 
         if not HAS_ASTROPY:
-            display(HTML(render_error("astropy.io.fits is required for FITS file viewing")))
+            display(
+                HTML(render_error("astropy.io.fits is required for FITS file viewing"))
+            )
             return
 
         if not self.exists:
@@ -261,8 +270,8 @@ class FITSFile(FileBase):
         # For local files, we need to serve them or use a data URL
         # For now, we'll use the file path and let JS9 handle it
         # In a production setup, files should be served via HTTP
-        
-        html = f'''
+
+        html = f"""
         <div class="qa-js9-container" id="{js9_id}_container" style="margin: 10px 0;">
             <div id="{js9_id}" class="js9" style="width: {width}px; height: {height}px; border: 1px solid #ccc;"></div>
         </div>
@@ -289,7 +298,7 @@ class FITSFile(FileBase):
             loadFITS();
         }})();
         </script>
-        '''
+        """
         return html
 
     def _repr_html_(self) -> str:
@@ -300,4 +309,3 @@ class FITSFile(FileBase):
     def __str__(self) -> str:
         """String representation."""
         return f"FITSFile({self.path})"
-

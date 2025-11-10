@@ -9,9 +9,9 @@ then runs calibration with permissive BP settings.
 """
 
 
+import subprocess
 import sys
 from pathlib import Path
-import subprocess
 
 
 def run(cmd):
@@ -32,6 +32,7 @@ def main(out_dir):
     if str(tests_dir) not in sys.path:
         sys.path.insert(0, str(tests_dir))
     from utils.synthetic_uvh5 import write_two_subbands
+
     write_two_subbands(data_dir, basename="synthetic")
 
     # 2) Convert to MS (use writer=pyuvdata for <=2 subbands)
@@ -39,10 +40,19 @@ def main(out_dir):
     # we directly invoke the writer via orchestrator with a wide time window.
     start = "2020-01-01 00:00:00"
     end = "2030-01-01 00:00:00"
-    run([
-        sys.executable, "-m", "dsa110_contimg.conversion.strategies.hdf5_orchestrator",
-        str(data_dir), str(ms_dir), start, end, "--writer", "pyuvdata"
-    ])
+    run(
+        [
+            sys.executable,
+            "-m",
+            "dsa110_contimg.conversion.strategies.hdf5_orchestrator",
+            str(data_dir),
+            str(ms_dir),
+            start,
+            end,
+            "--writer",
+            "pyuvdata",
+        ]
+    )
 
     # Find produced MS
     mss = list(ms_dir.glob("*.ms"))
@@ -50,12 +60,28 @@ def main(out_dir):
     ms_path = str(mss[0])
 
     # 3) Calibrate (zeros-only flagging, no UV cut, BP minsnr=3)
-    run([
-        sys.executable, "-m", "dsa110_contimg.calibration.cli", "calibrate",
-        "--ms", ms_path, "--field", "0", "--refant", "0",
-        "--flagging-mode", "zeros", "--bp-minsnr", "3.0", "--bp-combine-field",
-        "--model-source", "catalog", "--prebp-phase"
-    ])
+    run(
+        [
+            sys.executable,
+            "-m",
+            "dsa110_contimg.calibration.cli",
+            "calibrate",
+            "--ms",
+            ms_path,
+            "--field",
+            "0",
+            "--refant",
+            "0",
+            "--flagging-mode",
+            "zeros",
+            "--bp-minsnr",
+            "3.0",
+            "--bp-combine-field",
+            "--model-source",
+            "catalog",
+            "--prebp-phase",
+        ]
+    )
 
     print("OK")
     return 0
@@ -63,5 +89,3 @@ def main(out_dir):
 
 if __name__ == "__main__":
     sys.exit(main(sys.argv[1] if len(sys.argv) > 1 else "/tmp/contimg_synth"))
-
-

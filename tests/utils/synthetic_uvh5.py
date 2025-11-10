@@ -10,17 +10,20 @@ Note: Requires pyuvdata installed in the active environment.
 
 from pathlib import Path
 from typing import Tuple, Union
+
 import numpy as np
 
 
-def _make_minimal_uvdata(n_ants=4,
-                         n_times=4,
-                         n_chans=64,
-                         start_freq_hz=1.4e9,
-                         chan_bw_hz=1.0e6,
-                         source_flux_jy=10.0):
-    from pyuvdata import UVData
+def _make_minimal_uvdata(
+    n_ants=4,
+    n_times=4,
+    n_chans=64,
+    start_freq_hz=1.4e9,
+    chan_bw_hz=1.0e6,
+    source_flux_jy=10.0,
+):
     from astropy.time import Time
+    from pyuvdata import UVData
 
     uv = UVData()
     ant_inds = np.arange(n_ants)
@@ -29,7 +32,7 @@ def _make_minimal_uvdata(n_ants=4,
 
     # Times
     t0 = Time.now().jd
-    time_array = np.linspace(t0, t0 + 1.0/86400.0, n_times)  # ~1 sec span
+    time_array = np.linspace(t0, t0 + 1.0 / 86400.0, n_times)  # ~1 sec span
 
     # Frequencies
     freq_array = start_freq_hz + np.arange(n_chans) * chan_bw_hz
@@ -61,7 +64,9 @@ def _make_minimal_uvdata(n_ants=4,
     uv.phase_center_frame = "icrs"
 
     # Generate visibilities as flat spectrum of a point source at phase center
-    data = (source_flux_jy + 0j) * np.ones((nblts, n_chans, uv.Npols), dtype=np.complex64)
+    data = (source_flux_jy + 0j) * np.ones(
+        (nblts, n_chans, uv.Npols), dtype=np.complex64
+    )
     flags = np.zeros((nblts, n_chans, uv.Npols), dtype=bool)
     nsample = np.ones((nblts, n_chans, uv.Npols), dtype=float)
 
@@ -84,9 +89,11 @@ def _make_minimal_uvdata(n_ants=4,
     return uv
 
 
-def write_two_subbands(out_dir,  # type: Union[str, Path]
-                       basename="synthetic",
-                       **uv_kwargs):
+def write_two_subbands(
+    out_dir,  # type: Union[str, Path]
+    basename="synthetic",
+    **uv_kwargs,
+):
     """Write two minimal UVH5 files to out_dir with sb00/sb01 suffixes.
 
     Returns paths to the two files.
@@ -109,5 +116,3 @@ def write_two_subbands(out_dir,  # type: Union[str, Path]
     uv1.write_uvh5(str(sb1), clobber=True)
 
     return sb0, sb1
-
-

@@ -19,7 +19,10 @@ class ApiConfig:
     @classmethod
     def from_env(cls) -> "ApiConfig":
         """Build configuration from environment variables with sane defaults."""
-        def safe_int(env_var: str, default: str, min_val: int = 1, max_val: int = 32) -> int:
+
+        def safe_int(
+            env_var: str, default: str, min_val: int = 1, max_val: int = 32
+        ) -> int:
             """Safely convert environment variable to integer with validation."""
             value_str = os.getenv(env_var, default)
             try:
@@ -48,4 +51,3 @@ class ApiConfig:
             products_db=Path(os.getenv("PIPELINE_PRODUCTS_DB", products_default)),
             expected_subbands=safe_int("PIPELINE_EXPECTED_SUBBANDS", "16"),
         )
-

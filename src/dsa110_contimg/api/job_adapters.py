@@ -6,28 +6,29 @@ direct calls to the new pipeline framework stages.
 
 from __future__ import annotations
 
-import time
 import json
+import time
 from pathlib import Path
 from typing import List
 
+import structlog
+
 from dsa110_contimg.database.jobs import (
-    update_job_status,
     append_job_log,
-    get_job,
     create_job,
+    get_job,
+    update_job_status,
 )
-from dsa110_contimg.database.products import ensure_products_db, ensure_jobs_table
+from dsa110_contimg.database.products import ensure_jobs_table, ensure_products_db
 from dsa110_contimg.pipeline.config import PipelineConfig
 from dsa110_contimg.pipeline.context import PipelineContext
-from dsa110_contimg.pipeline.state import SQLiteStateRepository
 from dsa110_contimg.pipeline.stages_impl import (
-    ConversionStage,
     CalibrationSolveStage,
     CalibrationStage,
+    ConversionStage,
     ImagingStage,
 )
-import structlog
+from dsa110_contimg.pipeline.state import SQLiteStateRepository
 
 logger = structlog.get_logger(__name__)
 
@@ -73,15 +74,23 @@ def run_convert_job(job_id: int, params: dict, products_db: Path) -> None:
         is_valid, error_msg = stage.validate(context)
         if not is_valid:
             from dsa110_contimg.utils.exceptions import ValidationError
+
             raise ValidationError(
                 errors=[f"Validation failed: {error_msg}"],
-                context={'job_id': job_id, 'start_time': params.get(
-                    'start_time'), 'end_time': params.get('end_time'), 'stage': 'conversion'},
-                suggestion="Check conversion parameters and input paths"
+                context={
+                    "job_id": job_id,
+                    "start_time": params.get("start_time"),
+                    "end_time": params.get("end_time"),
+                    "stage": "conversion",
+                },
+                suggestion="Check conversion parameters and input paths",
             )
 
         _log_to_db(
-            conn, job_id, f"Converting UVH5 → MS: {params['start_time']} to {params['end_time']}\n")
+            conn,
+            job_id,
+            f"Converting UVH5 → MS: {params['start_time']} to {params['end_time']}\n",
+        )
         context = stage.execute(context)
 
         # Update job with results
@@ -91,20 +100,31 @@ def run_convert_job(job_id: int, params: dict, products_db: Path) -> None:
             cursor = conn.cursor()
             cursor.execute(
                 "UPDATE jobs SET artifacts = ?, status = 'done', finished_at = ? WHERE id = ?",
-                (json.dumps(artifacts), time.time(), job_id)
+                (json.dumps(artifacts), time.time(), job_id),
             )
             conn.commit()
             _log_to_db(conn, job_id, f"✓ Conversion complete: {ms_path}\n")
         else:
             from dsa110_contimg.utils.exceptions import ConversionError
+
             raise ConversionError(
                 message="Conversion produced no MS file",
-                context={'job_id': job_id, 'start_time': params.get(
-                    'start_time'), 'end_time': params.get('end_time')},
-                suggestion="Check conversion stage output and logs"
+                context={
+                    "job_id": job_id,
+                    "start_time": params.get("start_time"),
+                    "end_time": params.get("end_time"),
+                },
+                suggestion="Check conversion stage output and logs",
             )
 
-    except (ValueError, RuntimeError, OSError, FileNotFoundError, ValidationError, ConversionError) as e:
+    except (
+        ValueError,
+        RuntimeError,
+        OSError,
+        FileNotFoundError,
+        ValidationError,
+        ConversionError,
+    ) as e:
         # Catch specific exceptions that can occur during conversion
         logger.exception("Conversion job failed", job_id=job_id, error=str(e))
         conn = ensure_products_db(products_db)
@@ -114,7 +134,8 @@ def run_convert_job(job_id: int, params: dict, products_db: Path) -> None:
     except Exception as e:
         # Catch-all for unexpected exceptions
         logger.exception(
-            "Conversion job failed with unexpected error", job_id=job_id, error=str(e))
+            "Conversion job failed with unexpected error", job_id=job_id, error=str(e)
+        )
         conn = ensure_products_db(products_db)
         append_job_log(conn, job_id, f"ERROR: {str(e)}\n")
         update_job_status(conn, job_id, "failed", finished_at=time.time())
@@ -123,7 +144,9 @@ def run_convert_job(job_id: int, params: dict, products_db: Path) -> None:
         conn.close()
 
 
-def run_calibrate_job(job_id: int, ms_path: str, params: dict, products_db: Path) -> None:
+def run_calibrate_job(
+    job_id: int, ms_path: str, params: dict, products_db: Path
+) -> None:
     """Run calibration solve job using new pipeline framework.
 
     Args:
@@ -137,8 +160,7 @@ def run_calibrate_job(job_id: int, ms_path: str, params: dict, products_db: Path
 
     try:
         update_job_status(conn, job_id, "running", started_at=time.time())
-        _log_to_db(
-            conn, job_id, "=== Starting Calibration Solve (New Pipeline) ===\n")
+        _log_to_db(conn, job_id, "=== Starting Calibration Solve (New Pipeline) ===\n")
 
         # Convert params to PipelineConfig
         config = PipelineConfig.from_dict(params)
@@ -162,11 +184,15 @@ def run_calibrate_job(job_id: int, ms_path: str, params: dict, products_db: Path
         is_valid, error_msg = stage.validate(context)
         if not is_valid:
             from dsa110_contimg.utils.exceptions import ValidationError
+
             raise ValidationError(
                 errors=[f"Validation failed: {error_msg}"],
-                context={'job_id': job_id, 'ms_path': ms_path,
-                         'stage': 'calibration_solve'},
-                suggestion="Check calibration parameters and MS path"
+                context={
+                    "job_id": job_id,
+                    "ms_path": ms_path,
+                    "stage": "calibration_solve",
+                },
+                suggestion="Check calibration parameters and MS path",
             )
 
         _log_to_db(conn, job_id, f"Solving calibration for: {ms_path}\n")
@@ -179,21 +205,26 @@ def run_calibrate_job(job_id: int, ms_path: str, params: dict, products_db: Path
             cursor = conn.cursor()
             cursor.execute(
                 "UPDATE jobs SET artifacts = ?, status = 'done', finished_at = ? WHERE id = ?",
-                (json.dumps(artifacts), time.time(), job_id)
+                (json.dumps(artifacts), time.time(), job_id),
             )
             conn.commit()
             _log_to_db(
-                conn, job_id, f"✓ Calibration solve complete. Generated {len(cal_tables)} tables.\n")
+                conn,
+                job_id,
+                f"✓ Calibration solve complete. Generated {len(cal_tables)} tables.\n",
+            )
         else:
             _log_to_db(
-                conn, job_id, "⚠ No calibration tables generated (may have used existing tables)\n")
+                conn,
+                job_id,
+                "⚠ No calibration tables generated (may have used existing tables)\n",
+            )
             update_job_status(conn, job_id, "done", finished_at=time.time())
             conn.commit()
 
     except (ValueError, RuntimeError, OSError, FileNotFoundError) as e:
         # Catch specific exceptions that can occur during calibration
-        logger.exception("Calibration solve job failed",
-                         job_id=job_id, error=str(e))
+        logger.exception("Calibration solve job failed", job_id=job_id, error=str(e))
         conn = ensure_products_db(products_db)
         append_job_log(conn, job_id, f"ERROR: {str(e)}\n")
         update_job_status(conn, job_id, "failed", finished_at=time.time())
@@ -201,7 +232,10 @@ def run_calibrate_job(job_id: int, ms_path: str, params: dict, products_db: Path
     except Exception as e:
         # Catch-all for unexpected exceptions
         logger.exception(
-            "Calibration solve job failed with unexpected error", job_id=job_id, error=str(e))
+            "Calibration solve job failed with unexpected error",
+            job_id=job_id,
+            error=str(e),
+        )
         conn = ensure_products_db(products_db)
         append_job_log(conn, job_id, f"ERROR: {str(e)}\n")
         update_job_status(conn, job_id, "failed", finished_at=time.time())
@@ -224,8 +258,7 @@ def run_apply_job(job_id: int, ms_path: str, params: dict, products_db: Path) ->
 
     try:
         update_job_status(conn, job_id, "running", started_at=time.time())
-        _log_to_db(
-            conn, job_id, "=== Starting Calibration Apply (New Pipeline) ===\n")
+        _log_to_db(conn, job_id, "=== Starting Calibration Apply (New Pipeline) ===\n")
 
         # Convert params to PipelineConfig
         config = PipelineConfig.from_dict(params)
@@ -246,11 +279,15 @@ def run_apply_job(job_id: int, ms_path: str, params: dict, products_db: Path) ->
         is_valid, error_msg = stage.validate(context)
         if not is_valid:
             from dsa110_contimg.utils.exceptions import ValidationError
+
             raise ValidationError(
                 errors=[f"Validation failed: {error_msg}"],
-                context={'job_id': job_id, 'ms_path': ms_path,
-                         'stage': 'calibration_apply'},
-                suggestion="Check calibration parameters and MS path"
+                context={
+                    "job_id": job_id,
+                    "ms_path": ms_path,
+                    "stage": "calibration_apply",
+                },
+                suggestion="Check calibration parameters and MS path",
             )
 
         _log_to_db(conn, job_id, f"Applying calibration to: {ms_path}\n")
@@ -262,15 +299,14 @@ def run_apply_job(job_id: int, ms_path: str, params: dict, products_db: Path) ->
         cursor = conn.cursor()
         cursor.execute(
             "UPDATE jobs SET artifacts = ? WHERE id = ?",
-            (json.dumps(artifacts), job_id)
+            (json.dumps(artifacts), job_id),
         )
         conn.commit()
         _log_to_db(conn, job_id, "✓ Calibration apply complete\n")
 
     except (ValueError, RuntimeError, OSError, FileNotFoundError) as e:
         # Catch specific exceptions that can occur during calibration apply
-        logger.exception("Calibration apply job failed",
-                         job_id=job_id, error=str(e))
+        logger.exception("Calibration apply job failed", job_id=job_id, error=str(e))
         conn = ensure_products_db(products_db)
         append_job_log(conn, job_id, f"ERROR: {str(e)}\n")
         update_job_status(conn, job_id, "failed", finished_at=time.time())
@@ -278,7 +314,10 @@ def run_apply_job(job_id: int, ms_path: str, params: dict, products_db: Path) ->
     except Exception as e:
         # Catch-all for unexpected exceptions
         logger.exception(
-            "Calibration apply job failed with unexpected error", job_id=job_id, error=str(e))
+            "Calibration apply job failed with unexpected error",
+            job_id=job_id,
+            error=str(e),
+        )
         conn = ensure_products_db(products_db)
         append_job_log(conn, job_id, f"ERROR: {str(e)}\n")
         update_job_status(conn, job_id, "failed", finished_at=time.time())
@@ -322,11 +361,11 @@ def run_image_job(job_id: int, ms_path: str, params: dict, products_db: Path) ->
         is_valid, error_msg = stage.validate(context)
         if not is_valid:
             from dsa110_contimg.utils.exceptions import ValidationError
+
             raise ValidationError(
                 errors=[f"Validation failed: {error_msg}"],
-                context={'job_id': job_id,
-                         'ms_path': ms_path, 'stage': 'imaging'},
-                suggestion="Check imaging parameters and MS path"
+                context={"job_id": job_id, "ms_path": ms_path, "stage": "imaging"},
+                suggestion="Check imaging parameters and MS path",
             )
 
         _log_to_db(conn, job_id, f"Imaging: {ms_path}\n")
@@ -339,16 +378,17 @@ def run_image_job(job_id: int, ms_path: str, params: dict, products_db: Path) ->
             cursor = conn.cursor()
             cursor.execute(
                 "UPDATE jobs SET artifacts = ?, status = 'done', finished_at = ? WHERE id = ?",
-                (json.dumps(artifacts), time.time(), job_id)
+                (json.dumps(artifacts), time.time(), job_id),
             )
             conn.commit()
             _log_to_db(conn, job_id, f"✓ Imaging complete: {image_path}\n")
         else:
             from dsa110_contimg.utils.exceptions import ImagingError
+
             raise ImagingError(
                 message="Imaging produced no image file",
-                context={'job_id': job_id, 'ms_path': ms_path},
-                suggestion="Check imaging stage output and logs"
+                context={"job_id": job_id, "ms_path": ms_path},
+                suggestion="Check imaging stage output and logs",
             )
 
     except (ValueError, RuntimeError, OSError, FileNotFoundError, ImagingError) as e:
@@ -362,7 +402,9 @@ def run_image_job(job_id: int, ms_path: str, params: dict, products_db: Path) ->
         conn.close()
 
 
-def run_batch_calibrate_job(batch_id: int, ms_paths: List[str], params: dict, products_db: Path) -> None:
+def run_batch_calibrate_job(
+    batch_id: int, ms_paths: List[str], params: dict, products_db: Path
+) -> None:
     """Process batch calibration job using new pipeline framework.
 
     Args:
@@ -377,57 +419,65 @@ def run_batch_calibrate_job(batch_id: int, ms_paths: List[str], params: dict, pr
 
     try:
         conn.execute(
-            "UPDATE batch_jobs SET status = 'running' WHERE id = ?", (batch_id,))
+            "UPDATE batch_jobs SET status = 'running' WHERE id = ?", (batch_id,)
+        )
         conn.commit()
 
         for ms_path in ms_paths:
             # Check if batch was cancelled
             cursor = conn.execute(
-                "SELECT status FROM batch_jobs WHERE id = ?", (batch_id,))
+                "SELECT status FROM batch_jobs WHERE id = ?", (batch_id,)
+            )
             batch_status = cursor.fetchone()[0]
             if batch_status == "cancelled":
                 break
 
             try:
                 # Create individual calibration job
-                individual_job_id = create_job(
-                    conn, "calibrate", ms_path, params)
+                individual_job_id = create_job(conn, "calibrate", ms_path, params)
                 conn.commit()
 
                 # Update batch item status
-                update_batch_item(conn, batch_id, ms_path,
-                                  individual_job_id, "running")
+                update_batch_item(conn, batch_id, ms_path, individual_job_id, "running")
                 conn.commit()
 
                 # Run calibration job using new framework
-                run_calibrate_job(individual_job_id, ms_path,
-                                  params, products_db)
+                run_calibrate_job(individual_job_id, ms_path, params, products_db)
 
                 # Check job result
                 jd = get_job(conn, individual_job_id)
                 if jd["status"] == "done":
-                    update_batch_item(conn, batch_id, ms_path,
-                                      individual_job_id, "done")
+                    update_batch_item(
+                        conn, batch_id, ms_path, individual_job_id, "done"
+                    )
                 else:
-                    update_batch_item(conn, batch_id, ms_path, individual_job_id, "failed",
-                                      error=jd.get("logs", "")[-500:])
+                    update_batch_item(
+                        conn,
+                        batch_id,
+                        ms_path,
+                        individual_job_id,
+                        "failed",
+                        error=jd.get("logs", "")[-500:],
+                    )
                 conn.commit()
 
             except Exception as e:
-                update_batch_item(conn, batch_id, ms_path,
-                                  None, "failed", error=str(e))
+                update_batch_item(conn, batch_id, ms_path, None, "failed", error=str(e))
                 conn.commit()
 
     except Exception as e:
         conn = ensure_products_db(products_db)
         conn.execute(
-            "UPDATE batch_jobs SET status = 'failed' WHERE id = ?", (batch_id,))
+            "UPDATE batch_jobs SET status = 'failed' WHERE id = ?", (batch_id,)
+        )
         conn.commit()
     finally:
         conn.close()
 
 
-def run_batch_apply_job(batch_id: int, ms_paths: List[str], params: dict, products_db: Path) -> None:
+def run_batch_apply_job(
+    batch_id: int, ms_paths: List[str], params: dict, products_db: Path
+) -> None:
     """Process batch apply job using new pipeline framework.
 
     Args:
@@ -442,12 +492,14 @@ def run_batch_apply_job(batch_id: int, ms_paths: List[str], params: dict, produc
 
     try:
         conn.execute(
-            "UPDATE batch_jobs SET status = 'running' WHERE id = ?", (batch_id,))
+            "UPDATE batch_jobs SET status = 'running' WHERE id = ?", (batch_id,)
+        )
         conn.commit()
 
         for ms_path in ms_paths:
             cursor = conn.execute(
-                "SELECT status FROM batch_jobs WHERE id = ?", (batch_id,))
+                "SELECT status FROM batch_jobs WHERE id = ?", (batch_id,)
+            )
             batch_status = cursor.fetchone()[0]
             if batch_status == "cancelled":
                 break
@@ -456,36 +508,44 @@ def run_batch_apply_job(batch_id: int, ms_paths: List[str], params: dict, produc
                 individual_job_id = create_job(conn, "apply", ms_path, params)
                 conn.commit()
 
-                update_batch_item(conn, batch_id, ms_path,
-                                  individual_job_id, "running")
+                update_batch_item(conn, batch_id, ms_path, individual_job_id, "running")
                 conn.commit()
 
                 run_apply_job(individual_job_id, ms_path, params, products_db)
 
                 jd = get_job(conn, individual_job_id)
                 if jd["status"] == "done":
-                    update_batch_item(conn, batch_id, ms_path,
-                                      individual_job_id, "done")
+                    update_batch_item(
+                        conn, batch_id, ms_path, individual_job_id, "done"
+                    )
                 else:
-                    update_batch_item(conn, batch_id, ms_path, individual_job_id, "failed",
-                                      error=jd.get("logs", "")[-500:])
+                    update_batch_item(
+                        conn,
+                        batch_id,
+                        ms_path,
+                        individual_job_id,
+                        "failed",
+                        error=jd.get("logs", "")[-500:],
+                    )
                 conn.commit()
 
             except Exception as e:
-                update_batch_item(conn, batch_id, ms_path,
-                                  None, "failed", error=str(e))
+                update_batch_item(conn, batch_id, ms_path, None, "failed", error=str(e))
                 conn.commit()
 
     except Exception as e:
         conn = ensure_products_db(products_db)
         conn.execute(
-            "UPDATE batch_jobs SET status = 'failed' WHERE id = ?", (batch_id,))
+            "UPDATE batch_jobs SET status = 'failed' WHERE id = ?", (batch_id,)
+        )
         conn.commit()
     finally:
         conn.close()
 
 
-def run_batch_image_job(batch_id: int, ms_paths: List[str], params: dict, products_db: Path) -> None:
+def run_batch_image_job(
+    batch_id: int, ms_paths: List[str], params: dict, products_db: Path
+) -> None:
     """Process batch imaging job using new pipeline framework.
 
     Args:
@@ -500,12 +560,14 @@ def run_batch_image_job(batch_id: int, ms_paths: List[str], params: dict, produc
 
     try:
         conn.execute(
-            "UPDATE batch_jobs SET status = 'running' WHERE id = ?", (batch_id,))
+            "UPDATE batch_jobs SET status = 'running' WHERE id = ?", (batch_id,)
+        )
         conn.commit()
 
         for ms_path in ms_paths:
             cursor = conn.execute(
-                "SELECT status FROM batch_jobs WHERE id = ?", (batch_id,))
+                "SELECT status FROM batch_jobs WHERE id = ?", (batch_id,)
+            )
             batch_status = cursor.fetchone()[0]
             if batch_status == "cancelled":
                 break
@@ -514,30 +576,36 @@ def run_batch_image_job(batch_id: int, ms_paths: List[str], params: dict, produc
                 individual_job_id = create_job(conn, "image", ms_path, params)
                 conn.commit()
 
-                update_batch_item(conn, batch_id, ms_path,
-                                  individual_job_id, "running")
+                update_batch_item(conn, batch_id, ms_path, individual_job_id, "running")
                 conn.commit()
 
                 run_image_job(individual_job_id, ms_path, params, products_db)
 
                 jd = get_job(conn, individual_job_id)
                 if jd["status"] == "done":
-                    update_batch_item(conn, batch_id, ms_path,
-                                      individual_job_id, "done")
+                    update_batch_item(
+                        conn, batch_id, ms_path, individual_job_id, "done"
+                    )
                 else:
-                    update_batch_item(conn, batch_id, ms_path, individual_job_id, "failed",
-                                      error=jd.get("logs", "")[-500:])
+                    update_batch_item(
+                        conn,
+                        batch_id,
+                        ms_path,
+                        individual_job_id,
+                        "failed",
+                        error=jd.get("logs", "")[-500:],
+                    )
                 conn.commit()
 
             except Exception as e:
-                update_batch_item(conn, batch_id, ms_path,
-                                  None, "failed", error=str(e))
+                update_batch_item(conn, batch_id, ms_path, None, "failed", error=str(e))
                 conn.commit()
 
     except Exception as e:
         conn = ensure_products_db(products_db)
         conn.execute(
-            "UPDATE batch_jobs SET status = 'failed' WHERE id = ?", (batch_id,))
+            "UPDATE batch_jobs SET status = 'failed' WHERE id = ?", (batch_id,)
+        )
         conn.commit()
     finally:
         conn.close()

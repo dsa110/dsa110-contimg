@@ -6,10 +6,11 @@ similar to RadioPadre's FileList functionality.
 """
 
 import os
-from typing import List, Optional, Union, Callable
+from typing import Callable, List, Optional, Union
 
 try:
-    from IPython.display import display, HTML
+    from IPython.display import HTML, display
+
     HAS_IPYTHON = True
 except ImportError:
     HAS_IPYTHON = False
@@ -17,6 +18,7 @@ except ImportError:
 
     def display(*args, **kwargs):
         pass
+
     HTML = str
 
 from .file import FileBase, autodetect_file_type
@@ -32,6 +34,7 @@ def _get_fitsfile_class():
     global _FITSFile
     if _FITSFile is None:
         from .fitsfile import FITSFile
+
         _FITSFile = FITSFile
     return _FITSFile
 
@@ -41,6 +44,7 @@ def _get_casatable_class():
     global _CasaTable
     if _CasaTable is None:
         from .casatable import CasaTable
+
         _CasaTable = CasaTable
     return _CasaTable
 
@@ -95,7 +99,9 @@ class FileList(FileBase, list):
         if content is not None:
             self._set_list(content, sort)
 
-    def _set_list(self, content: List[Union[str, FileBase]], sort: Optional[str] = None) -> None:
+    def _set_list(
+        self, content: List[Union[str, FileBase]], sort: Optional[str] = None
+    ) -> None:
         """
         Set the list content from a list of paths or FileBase objects.
 
@@ -213,7 +219,12 @@ class FileList(FileBase, list):
                 filtered.append(item)
             elif file_type == "casatable" and detected_type == "casatable":
                 filtered.append(item)
-            elif file_type == "other" and detected_type not in ["fits", "image", "directory", "casatable"]:
+            elif file_type == "other" and detected_type not in [
+                "fits",
+                "image",
+                "directory",
+                "casatable",
+            ]:
                 filtered.append(item)
 
         result = FileList(
@@ -267,7 +278,9 @@ class FileList(FileBase, list):
         import fnmatch
 
         def matches(item: FileBase) -> bool:
-            return fnmatch.fnmatch(item.basename, pattern) or fnmatch.fnmatch(item.path, pattern)
+            return fnmatch.fnmatch(item.basename, pattern) or fnmatch.fnmatch(
+                item.path, pattern
+            )
 
         return self.filter(matches)
 
@@ -287,7 +300,10 @@ class FileList(FileBase, list):
         import fnmatch
 
         def matches(item: FileBase) -> bool:
-            return not (fnmatch.fnmatch(item.basename, pattern) or fnmatch.fnmatch(item.path, pattern))
+            return not (
+                fnmatch.fnmatch(item.basename, pattern)
+                or fnmatch.fnmatch(item.path, pattern)
+            )
 
         return self.filter(matches)
 
@@ -301,7 +317,8 @@ class FileList(FileBase, list):
 
         if len(self) == 0:
             display(
-                HTML(f'<p class="qa-status-message">No files found in {self.title}</p>'))
+                HTML(f'<p class="qa-status-message">No files found in {self.title}</p>')
+            )
             return
 
         # Prepare table data

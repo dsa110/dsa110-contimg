@@ -50,9 +50,9 @@ class TestFluxScaleAccuracy:
         expected_ratio = 1.0
         tolerance = 0.1  # 10% flux scale tolerance
 
-        assert abs(expected_ratio - 1.0) < tolerance, (
-            "Flux scale must be preserved after calibration"
-        )
+        assert (
+            abs(expected_ratio - 1.0) < tolerance
+        ), "Flux scale must be preserved after calibration"
 
     def test_bandpass_does_not_distort_flux(self):
         """Bandpass calibration must not introduce flux scale errors."""
@@ -61,9 +61,9 @@ class TestFluxScaleAccuracy:
         expected_bandpass_median = 1.0
         tolerance = 0.05  # 5% tolerance for bandpass normalization
 
-        assert abs(expected_bandpass_median - 1.0) < tolerance, (
-            "Bandpass must normalize to unity (solnorm=True)"
-        )
+        assert (
+            abs(expected_bandpass_median - 1.0) < tolerance
+        ), "Bandpass must normalize to unity (solnorm=True)"
 
 
 class TestPhaseSolutionPhysicalReasonableness:
@@ -75,9 +75,9 @@ class TestPhaseSolutionPhysicalReasonableness:
         max_phase_jump_deg = 180.0
         expected_max_jump = 45.0  # Typical phase stability
 
-        assert expected_max_jump < max_phase_jump_deg, (
-            "Phase solutions must be continuous (no jumps > 180 deg)"
-        )
+        assert (
+            expected_max_jump < max_phase_jump_deg
+        ), "Phase solutions must be continuous (no jumps > 180 deg)"
 
     def test_prebandpass_phase_reduces_decorrelation(self):
         """Pre-bandpass phase should reduce phase scatter."""
@@ -86,9 +86,9 @@ class TestPhaseSolutionPhysicalReasonableness:
         phase_scatter_without_prebp = 50.0  # degrees
         phase_scatter_with_prebp = 15.0  # degrees
 
-        assert phase_scatter_with_prebp < phase_scatter_without_prebp, (
-            "Pre-bandpass phase must reduce phase scatter"
-        )
+        assert (
+            phase_scatter_with_prebp < phase_scatter_without_prebp
+        ), "Pre-bandpass phase must reduce phase scatter"
 
     def test_reference_antenna_has_stable_phase(self):
         """Reference antenna phase should be stable (near zero)."""
@@ -97,9 +97,9 @@ class TestPhaseSolutionPhysicalReasonableness:
         refant_phase_deg = 0.0
         tolerance_deg = 1.0  # 1 degree tolerance
 
-        assert abs(refant_phase_deg) < tolerance_deg, (
-            "Reference antenna phase must be stable (near zero)"
-        )
+        assert (
+            abs(refant_phase_deg) < tolerance_deg
+        ), "Reference antenna phase must be stable (near zero)"
 
 
 class TestBandpassShapeScientificValidity:
@@ -111,9 +111,9 @@ class TestBandpassShapeScientificValidity:
         # (indicates frequency ordering problems or bad solutions)
         max_channel_to_channel_change = 0.1  # 10% max change per channel
 
-        assert max_channel_to_channel_change < 0.5, (
-            "Bandpass must vary smoothly across frequency"
-        )
+        assert (
+            max_channel_to_channel_change < 0.5
+        ), "Bandpass must vary smoothly across frequency"
 
     def test_bandpass_normalization_is_correct(self):
         """Bandpass should be normalized to unity (solnorm=True)."""
@@ -122,9 +122,9 @@ class TestBandpassShapeScientificValidity:
         expected_median = 1.0
         tolerance = 0.05
 
-        assert abs(expected_median - 1.0) < tolerance, (
-            "Bandpass must be normalized to unity"
-        )
+        assert (
+            abs(expected_median - 1.0) < tolerance
+        ), "Bandpass must be normalized to unity"
 
     def test_bandpass_has_reasonable_amplitude_range(self):
         """Bandpass amplitude should be in reasonable range (0.1-10)."""
@@ -178,22 +178,18 @@ class TestCalibrationTableStandards:
     def test_bandpass_table_has_correct_structure(self):
         """Bandpass table must follow CASA bandpass table structure."""
         # Required columns: TIME, ANTENNA1, SPW, CHAN, CPARAM, FLAG
-        required_columns = [
-            "TIME", "ANTENNA1", "SPW", "CHAN", "CPARAM", "FLAG"
-        ]
+        required_columns = ["TIME", "ANTENNA1", "SPW", "CHAN", "CPARAM", "FLAG"]
 
-        assert len(required_columns) > 0, (
-            "Bandpass table must have required CASA columns"
-        )
+        assert (
+            len(required_columns) > 0
+        ), "Bandpass table must have required CASA columns"
 
     def test_gain_table_has_correct_structure(self):
         """Gain table must follow CASA gain table structure."""
         # Required columns: TIME, ANTENNA1, SPW, CPARAM, FLAG
         required_columns = ["TIME", "ANTENNA1", "SPW", "CPARAM", "FLAG"]
 
-        assert len(required_columns) > 0, (
-            "Gain table must have required CASA columns"
-        )
+        assert len(required_columns) > 0, "Gain table must have required CASA columns"
 
     def test_solution_intervals_are_scientifically_appropriate(self):
         """Solution intervals must be appropriate for science."""
@@ -204,9 +200,9 @@ class TestCalibrationTableStandards:
         prebp_solint_correct = "30s"
         prebp_solint_wrong = "inf"
 
-        assert prebp_solint_correct != prebp_solint_wrong, (
-            "Pre-bandpass solint must be '30s', not 'inf'"
-        )
+        assert (
+            prebp_solint_correct != prebp_solint_wrong
+        ), "Pre-bandpass solint must be '30s', not 'inf'"
 
 
 class TestSolutionQualityMetrics:
@@ -241,9 +237,9 @@ class TestSolutionQualityMetrics:
         min_snr_prebandpass = 3.0  # Lowered from 5.0
 
         test_snr = 5.0
-        assert test_snr >= min_snr_bandpass, (
-            f"Solution SNR {test_snr} below minimum {min_snr_bandpass}"
-        )
+        assert (
+            test_snr >= min_snr_bandpass
+        ), f"Solution SNR {test_snr} below minimum {min_snr_bandpass}"
 
 
 class TestCalibratorSelection:
@@ -303,9 +299,7 @@ class TestSubbandOrderingScientificImpact:
         # - Incorrect spectral structure
         # - Poor calibration quality
 
-        assert True, (
-            "Subband ordering directly affects bandpass scientific validity"
-        )
+        assert True, "Subband ordering directly affects bandpass scientific validity"
 
 
 class TestCalibrationWorkflowScientificCorrectness:
@@ -320,9 +314,9 @@ class TestCalibrationWorkflowScientificCorrectness:
         sequence = ["skip_K", "bandpass", "gain"]
         expected_sequence = ["skip_K", "bandpass", "gain"]
 
-        assert sequence == expected_sequence, (
-            "Calibration sequence must be correct for science"
-        )
+        assert (
+            sequence == expected_sequence
+        ), "Calibration sequence must be correct for science"
 
     def test_prebandpass_phase_is_applied_before_bandpass(self):
         """Pre-bandpass phase must be applied BEFORE bandpass."""
@@ -331,20 +325,15 @@ class TestCalibrationWorkflowScientificCorrectness:
         order = ["prebandpass_phase", "bandpass"]
         expected_order = ["prebandpass_phase", "bandpass"]
 
-        assert order == expected_order, (
-            "Pre-bandpass phase must come before bandpass"
-        )
+        assert order == expected_order, "Pre-bandpass phase must come before bandpass"
 
     def test_model_data_is_populated_before_calibration(self):
         """MODEL_DATA must be populated before calibration solve."""
         # Calibration requires MODEL_DATA for solutions
         # Without MODEL_DATA, calibration will fail or produce wrong results
 
-        assert True, (
-            "MODEL_DATA must be populated before calibration solve"
-        )
+        assert True, "MODEL_DATA must be populated before calibration solve"
 
 
 if __name__ == "__main__":
     pytest.main([__file__, "-v"])
-

@@ -9,11 +9,13 @@ from typing import List, Optional, Tuple, Union
 
 try:
     from IPython.display import HTML, display
+
     HAS_IPYTHON = True
 except ImportError:
     HAS_IPYTHON = False
     # Dummy implementations for non-Jupyter environments
     HTML = str
+
     def display(*args, **kwargs):
         pass
 
@@ -204,4 +206,3 @@ def display_html(html: str) -> None:
         >>> display_html("<p>Hello</p>")
     """
     display(HTML(html))
-

@@ -1,24 +1,26 @@
 # testing.py: partial read + tiny MS write
-from dsa110_contimg.conversion.helpers import (  # type: ignore[import]
-    set_antenna_positions,
+import os
+import shutil
+import sys
+import time
+
+import astropy.units as u
+import h5py
+import numpy as np
+from astropy.time import Time
+from pyuvdata import UVData
+
+from dsa110_contimg.conversion.helpers import (
+    get_meridian_coords,  # type: ignore[import]
 )
 from dsa110_contimg.conversion.helpers import (  # type: ignore[import]
     _ensure_antenna_diameters,
+    set_antenna_positions,
 )
-from dsa110_contimg.conversion.strategies import (  # type: ignore[import]
-    hdf5_orchestrator as orch,
+from dsa110_contimg.conversion.strategies import (
+    hdf5_orchestrator as orch,  # type: ignore[import]
 )
-from dsa110_contimg.conversion.helpers import get_meridian_coords  # type: ignore[import]
 from dsa110_contimg.utils.fringestopping import calc_uvw_blt  # type: ignore[import]
-import os
-import sys
-import shutil
-import time
-import numpy as np
-import h5py
-import astropy.units as u
-from astropy.time import Time
-from pyuvdata import UVData
 
 SRC_ROOT = "/data/dsa110-contimg/src"
 if SRC_ROOT not in sys.path:
@@ -87,11 +89,11 @@ def partial_read_merge(files, n_times_keep=1, n_chan_keep=16, n_ants_keep=8):
             # across subbands.
             ant_ids = np.unique(
                 np.r_[
-                    tmp.ant_1_array[:tmp.Nbls],
-                    tmp.ant_2_array[:tmp.Nbls],
+                    tmp.ant_1_array[: tmp.Nbls],
+                    tmp.ant_2_array[: tmp.Nbls],
                 ]
             ).astype(int)
-            keep_ants = ant_ids[:min(n_ants_keep, ant_ids.size)]
+            keep_ants = ant_ids[: min(n_ants_keep, ant_ids.size)]
             tmp.select(antenna_nums=keep_ants, run_check=False)
             uv = tmp
             first = False
@@ -108,7 +110,8 @@ def partial_read_merge(files, n_times_keep=1, n_chan_keep=16, n_ants_keep=8):
             check_extra=False,
             run_check_acceptability=False,
             strict_uvw_antpos_check=False,
-            ignore_name=True)
+            ignore_name=True,
+        )
 
     return uv
 
@@ -158,10 +161,10 @@ def write_tiny_ms(in_dir, out_ms):
         uv.uvw_array[row_slice, :] = calc_uvw_blt(
             blen,
             time_vec,
-            'J2000',
+            "J2000",
             ra_icrs,
             dec_icrs,
-            obs='OVRO_MMA',
+            obs="OVRO_MMA",
         )
     uv.reorder_freqs(channel_order="freq", run_check=False)
     uv.phase_type = "phased"
@@ -199,7 +202,8 @@ def write_tiny_ms(in_dir, out_ms):
         "Nchan",
         uv.Nfreqs,
         "Npols",
-        uv.Npols)
+        uv.Npols,
+    )
 
 
 # Run

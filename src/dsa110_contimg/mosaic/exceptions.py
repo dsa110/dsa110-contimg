@@ -7,22 +7,23 @@ actionable error messages and recovery suggestions.
 All exceptions inherit from the unified DSA110Error hierarchy.
 """
 
-from typing import Optional, Dict, Any
+from typing import Any, Dict, Optional
+
 from dsa110_contimg.utils.exceptions import DSA110Error
 
 
 class MosaicError(DSA110Error):
     """
     Base exception for mosaic building operations.
-    
+
     Maintains backward compatibility with existing MosaicError interface.
     """
-    
+
     def __init__(
         self,
         message: str,
         recovery_hint: Optional[str] = None,
-        context: Optional[Dict[str, Any]] = None
+        context: Optional[Dict[str, Any]] = None,
     ):
         """
         Args:
@@ -38,40 +39,47 @@ class MosaicError(DSA110Error):
 
 class ImageReadError(MosaicError):
     """Raised when an image cannot be read (corruption, missing, permission issues)."""
+
     pass
 
 
 class ImageCorruptionError(MosaicError):
     """Raised when an image is corrupted or has invalid structure."""
+
     pass
 
 
 class MissingPrimaryBeamError(MosaicError):
     """Raised when a primary beam image is missing or cannot be found."""
+
     pass
 
 
 class IncompatibleImageFormatError(MosaicError):
     """Raised when images have incompatible formats or coordinate systems."""
+
     pass
 
 
 class CASAToolError(MosaicError):
     """Raised when a CASA tool fails (imhead, imregrid, immath, etc.)."""
+
     pass
 
 
 class GridMismatchError(MosaicError):
     """Raised when image grids are incompatible (different shapes, cell sizes)."""
+
     pass
 
 
 class ValidationError(MosaicError):
     """Raised when pre-mosaicking validation fails."""
+
     pass
 
 
 class MetricsGenerationError(MosaicError):
     """Raised when mosaic quality metrics generation fails."""
-    pass
 
+    pass

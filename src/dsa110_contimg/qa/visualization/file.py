@@ -5,9 +5,9 @@ Provides base functionality for file handling, similar to RadioPadre's FileBase.
 """
 
 import os
+from datetime import datetime
 from pathlib import Path
 from typing import Optional
-from datetime import datetime
 
 
 class FileBase:
@@ -199,4 +199,3 @@ def autodetect_file_type(path: str):
         return "casatable"
 
     return None
-

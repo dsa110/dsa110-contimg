@@ -48,13 +48,13 @@ def _make_coordsys(
     # Use a benign reference value at boresight to avoid ill-conditioned WCS
     refval = [0.0, 0.0]
     # Create a coordsys with direction+stokes+spectral, then set parameters
-    cs.newcoordsys(direction=True, spectral=True, stokes=["XX","XY","YX","YY"])  # type: ignore[arg-type]
+    cs.newcoordsys(direction=True, spectral=True, stokes=["XX", "XY", "YX", "YY"])  # type: ignore[arg-type]
     # Set units first so values are interpreted in degrees
     cs.setunits(["deg", "deg", "", "Hz"])  # dir units in degrees
-    cs.setreferencecode(refcode, 'direction')
-    cs.setreferencepixel(refpix, 'direction')
-    cs.setreferencevalue(refval, 'direction')
-    cs.setincrement([abs(dphi), abs(dth)], 'direction')
+    cs.setreferencecode(refcode, "direction")
+    cs.setreferencepixel(refpix, "direction")
+    cs.setreferencevalue(refval, "direction")
+    cs.setincrement([abs(dphi), abs(dth)], "direction")
     return cs.torecord()
 
 
@@ -118,11 +118,10 @@ def build_vp_table(
     # Create an image and save as a VP table via vpmanager
     cs_rec = _make_coordsys(phi_deg, el_deg, refcode="AZEL")
     # Write a temporary complex image
-    complex_img = os.path.join(
-        os.path.dirname(out_vp_table), "dsa110_vp_tmp.im"
-    )
+    complex_img = os.path.join(os.path.dirname(out_vp_table), "dsa110_vp_tmp.im")
     if os.path.isdir(complex_img):
         import shutil
+
         shutil.rmtree(complex_img, ignore_errors=True)
     ia = _image()
     try:
@@ -132,13 +131,14 @@ def build_vp_table(
         vp = _vpmanager()
         # Register the complex image for all antennas ('*')
         try:
-            vp.setpbimage(compleximage=complex_img, antnames=['*'])
+            vp.setpbimage(compleximage=complex_img, antnames=["*"])
         except Exception:
             # Fallback to telescope binding if required by this CASA build
             vp.setpbimage(compleximage=complex_img, telescope=telescope or "")
         # Persist to a table on disk
         if os.path.isdir(out_vp_table):
             import shutil
+
             shutil.rmtree(out_vp_table, ignore_errors=True)
         vp.saveastable(out_vp_table)
         # If telescope is provided, set user default for it
@@ -153,4 +153,3 @@ def build_vp_table(
         except Exception:
             pass
     return out_vp_table
-

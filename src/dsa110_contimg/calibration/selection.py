@@ -1,21 +1,22 @@
 from __future__ import annotations
 
-import numpy as np
-import pandas as pd
-from typing import Tuple, List, Optional
+from typing import List, Optional, Tuple
 
 # Ensure CASAPATH is set before importing CASA modules
 from dsa110_contimg.utils.casa_init import ensure_casa_path
+
 ensure_casa_path()
 
-from casacore.tables import table
 import astropy.units as u
+import numpy as np
+import pandas as pd
 from astropy.coordinates import Angle
+from casacore.tables import table
 
 from .catalogs import (
     airy_primary_beam_response,
-    read_vla_calibrator_catalog,
     load_vla_catalog,
+    read_vla_calibrator_catalog,
     resolve_vla_catalog_path,
 )
 
@@ -82,7 +83,7 @@ def select_bandpass_fields(
     # If only one field exists, return it directly (no range needed)
     if n == 1:
         return "0", [0], wflux
-    
+
     # Pick best center and window
     idx = int(np.nanargmax(wflux))
     if min_pb is not None and np.isfinite(min_pb):
@@ -114,7 +115,7 @@ def select_bandpass_from_catalog(
     min_pb: float | None = None,
 ) -> Tuple[str, List[int], np.ndarray, Tuple[str, float, float, float], int]:
     """Select bandpass fields by scanning a VLA calibrator catalog.
-    
+
     Automatically prefers SQLite catalog if available, falls back to CSV.
     If catalog_path is None, uses automatic resolution (prefers SQLite).
 
@@ -131,19 +132,19 @@ def select_bandpass_from_catalog(
         df = load_vla_catalog()  # Auto-resolves to SQLite if available
     else:
         # Check if it's SQLite or CSV
-        if str(catalog_path).endswith('.sqlite3'):
+        if str(catalog_path).endswith(".sqlite3"):
             df = load_vla_catalog(catalog_path)
         else:
             # CSV format - use old function
             df = read_vla_calibrator_catalog(catalog_path)
-    
+
     if df.empty:
         raise RuntimeError(f"Catalog contains no entries")
 
     ra_field, dec_field = _read_field_dirs(ms_path)
     if ra_field.size == 0:
         raise RuntimeError("MS has no FIELD rows")
-    
+
     # Filter out time-dependent phase center fields (meridian_icrs_t*)
     # These are created during conversion but aren't separate observational fields
     # NOTE: When ALL fields are meridian phase centers (drift-scan), we must check ALL fields
@@ -151,28 +152,33 @@ def select_bandpass_from_catalog(
     # When only some fields are meridian phase centers, we keep non-meridian fields plus field 0.
     with table(f"{ms_path}::FIELD") as tf:
         field_names = tf.getcol("NAME")
-    
+
     # Check if ALL fields are meridian phase centers
     all_meridian = all(
-        isinstance(name, str) and name.startswith('meridian_icrs_t')
+        isinstance(name, str) and name.startswith("meridian_icrs_t")
         for name in field_names
     )
-    
+
     if all_meridian:
         # In drift-scan mode: check ALL fields to find which one contains the calibrator
         valid_field_indices = np.arange(len(field_names))
     else:
         # Mixed mode: keep only fields that don't match meridian phase center pattern, EXCEPT field 0
         # Field 0 is kept as a fallback even if it's a meridian phase center
-        valid_field_mask = np.array([
-            (i == 0) or not (isinstance(name, str) and name.startswith('meridian_icrs_t'))
-            for i, name in enumerate(field_names)
-        ])
+        valid_field_mask = np.array(
+            [
+                (i == 0)
+                or not (isinstance(name, str) and name.startswith("meridian_icrs_t"))
+                for i, name in enumerate(field_names)
+            ]
+        )
         valid_field_indices = np.where(valid_field_mask)[0]
-    
+
     if len(valid_field_indices) == 0:
-        raise RuntimeError("No valid calibrator fields found (all fields are time-dependent phase centers)")
-    
+        raise RuntimeError(
+            "No valid calibrator fields found (all fields are time-dependent phase centers)"
+        )
+
     # Filter field coordinates to only valid fields
     ra_field = ra_field[valid_field_indices]
     dec_field = dec_field[valid_field_indices]
@@ -187,41 +193,54 @@ def select_bandpass_from_catalog(
     for name, row in df.iterrows():
         try:
             # Handle both SQLite (ra_deg, dec_deg) and CSV (ra, dec) formats
-            ra_deg = float(row.get('ra_deg', row.get('ra', row.get('RA', np.nan))))
-            dec_deg = float(row.get('dec_deg', row.get('dec', row.get('DEC', np.nan))))
+            ra_deg = float(row.get("ra_deg", row.get("ra", row.get("RA", np.nan))))
+            dec_deg = float(row.get("dec_deg", row.get("dec", row.get("DEC", np.nan))))
             # Flux: try flux_jy first (SQLite), then flux_20_cm (CSV), then flux
             flux_jy = None
-            if 'flux_jy' in row.index and pd.notna(row.get('flux_jy')):
-                flux_jy = float(row['flux_jy'])
-            elif 'flux_20_cm' in row.index and pd.notna(row.get('flux_20_cm')):
-                flux_mJy = float(row['flux_20_cm'])
+            if "flux_jy" in row.index and pd.notna(row.get("flux_jy")):
+                flux_jy = float(row["flux_jy"])
+            elif "flux_20_cm" in row.index and pd.notna(row.get("flux_20_cm")):
+                flux_mJy = float(row["flux_20_cm"])
                 flux_jy = flux_mJy / 1000.0
-            elif 'flux' in row.index and pd.notna(row.get('flux')):
+            elif "flux" in row.index and pd.notna(row.get("flux")):
                 # Assume flux is in mJy if > 1, otherwise Jy
-                flux_val = float(row['flux'])
+                flux_val = float(row["flux"])
                 flux_jy = flux_val / 1000.0 if flux_val > 1.0 else flux_val
             else:
                 # Default flux if not available (use 1 Jy as fallback)
                 flux_jy = 1.0
         except Exception:
             continue
-        if not np.isfinite(ra_deg) or not np.isfinite(dec_deg) or flux_jy is None or not np.isfinite(flux_jy):
+        if (
+            not np.isfinite(ra_deg)
+            or not np.isfinite(dec_deg)
+            or flux_jy is None
+            or not np.isfinite(flux_jy)
+        ):
             continue
         src_ra = Angle(ra_deg, unit=u.deg).rad
         src_dec = Angle(dec_deg, unit=u.deg).rad
 
         # Compute angular separation to each field and filter by search radius
-        sep = np.rad2deg(np.arccos(np.clip(
-            np.sin(field_dec) * np.sin(src_dec) +
-            np.cos(field_dec) * np.cos(src_dec) * np.cos(field_ra - src_ra),
-            -1.0, 1.0)))
+        sep = np.rad2deg(
+            np.arccos(
+                np.clip(
+                    np.sin(field_dec) * np.sin(src_dec)
+                    + np.cos(field_dec) * np.cos(src_dec) * np.cos(field_ra - src_ra),
+                    -1.0,
+                    1.0,
+                )
+            )
+        )
         if np.nanmin(sep) > float(search_radius_deg):
             continue
 
-        resp = np.array([
-            airy_primary_beam_response(ra, dec, src_ra, src_dec, freq_GHz)
-            for ra, dec in zip(field_ra, field_dec)
-        ])
+        resp = np.array(
+            [
+                airy_primary_beam_response(ra, dec, src_ra, src_dec, freq_GHz)
+                for ra, dec in zip(field_ra, field_dec)
+            ]
+        )
         wflux = resp * flux_jy
         peak_idx = int(np.nanargmax(wflux))
         peak_val = float(wflux[peak_idx])
@@ -236,34 +255,52 @@ def select_bandpass_from_catalog(
     _, peak_idx_filtered, name, ra_deg, dec_deg, flux_jy = best
     wflux = best_wflux
     nfields = len(wflux)
-    
+
     # Map filtered index back to original MS field index
     peak_idx_original = int(valid_field_indices[peak_idx_filtered])
-    
+
     # If only one valid field exists, return it directly (no range needed)
     if nfields == 1:
         cal_info = (name, ra_deg, dec_deg, flux_jy)
-        return str(peak_idx_original), [peak_idx_original], wflux, cal_info, peak_idx_original
-    
+        return (
+            str(peak_idx_original),
+            [peak_idx_original],
+            wflux,
+            cal_info,
+            peak_idx_original,
+        )
+
     if min_pb is not None and np.isfinite(min_pb):
         resp_peak = max(wflux[peak_idx_filtered] / max(flux_jy, 1e-12), 0.0)
         thr = float(min_pb) * max(resp_peak, 1e-12)
         start_filtered = peak_idx_filtered
         end_filtered = peak_idx_filtered
-        while start_filtered - 1 >= 0 and (wflux[start_filtered - 1] / max(flux_jy, 1e-12)) >= thr:
+        while (
+            start_filtered - 1 >= 0
+            and (wflux[start_filtered - 1] / max(flux_jy, 1e-12)) >= thr
+        ):
             start_filtered -= 1
-        while end_filtered + 1 < len(wflux) and (wflux[end_filtered + 1] / max(flux_jy, 1e-12)) >= thr:
+        while (
+            end_filtered + 1 < len(wflux)
+            and (wflux[end_filtered + 1] / max(flux_jy, 1e-12)) >= thr
+        ):
             end_filtered += 1
     else:
         half = max(1, int(window)) // 2
         start_filtered = max(0, peak_idx_filtered - half)
         end_filtered = min(len(wflux) - 1, peak_idx_filtered + half)
-    
+
     # Map filtered indices back to original MS field indices
     start_original = int(valid_field_indices[start_filtered])
     end_original = int(valid_field_indices[end_filtered])
-    
-    sel_str = f"{start_original}~{end_original}" if start_original != end_original else f"{start_original}"
-    indices = [int(valid_field_indices[i]) for i in range(start_filtered, end_filtered + 1)]
+
+    sel_str = (
+        f"{start_original}~{end_original}"
+        if start_original != end_original
+        else f"{start_original}"
+    )
+    indices = [
+        int(valid_field_indices[i]) for i in range(start_filtered, end_filtered + 1)
+    ]
     cal_info = (name, ra_deg, dec_deg, flux_jy)
     return sel_str, indices, wflux, cal_info, peak_idx_original

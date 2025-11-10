@@ -13,11 +13,11 @@ from typing import TYPE_CHECKING
 if TYPE_CHECKING:
     # For type checkers, provide direct imports
     from .hdf5_orchestrator import (
-        convert_subband_groups_to_ms,
-        find_subband_groups,
-        _parse_timestamp_from_filename,
         _extract_subband_code,
         _load_and_merge_subbands,
+        _parse_timestamp_from_filename,
+        convert_subband_groups_to_ms,
+        find_subband_groups,
     )
 
 __all__ = [
@@ -33,22 +33,24 @@ __all__ = [
 
 def __getattr__(name: str):
     """Lazy import for hdf5_orchestrator functions and module.
-    
+
     This lazy import prevents RuntimeWarning when running as module:
     python -m dsa110_contimg.conversion.strategies.hdf5_orchestrator
     """
     if name == "hdf5_orchestrator":
         # Lazy import to avoid RuntimeWarning when running as module
         from . import hdf5_orchestrator
+
         return hdf5_orchestrator
     elif name in __all__:
         from .hdf5_orchestrator import (
-            convert_subband_groups_to_ms,
-            find_subband_groups,
-            _parse_timestamp_from_filename,
             _extract_subband_code,
             _load_and_merge_subbands,
+            _parse_timestamp_from_filename,
+            convert_subband_groups_to_ms,
+            find_subband_groups,
         )
+
         # Create a mapping of names to functions
         _exports = {
             "convert_subband_groups_to_ms": convert_subband_groups_to_ms,

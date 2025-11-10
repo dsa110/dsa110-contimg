@@ -5,8 +5,9 @@ import json
 import logging
 import sys
 
-from dsa110_contimg.utils.validation import validate_ms_for_calibration, ValidationError
-from .diagnostics import generate_calibration_diagnostics, compare_calibration_tables
+from dsa110_contimg.utils.validation import ValidationError, validate_ms_for_calibration
+
+from .diagnostics import compare_calibration_tables, generate_calibration_diagnostics
 
 logger = logging.getLogger(__name__)
 
@@ -202,9 +203,7 @@ def handle_verify_delays(args: argparse.Namespace) -> int:
     """Handle 'verify-delays' subcommand."""
     from dsa110_contimg.qa.calibration_quality import verify_kcal_delays
 
-    verify_kcal_delays(
-        args.ms, args.kcal, args.cal_field, args.refant, args.no_create
-    )
+    verify_kcal_delays(args.ms, args.kcal, args.cal_field, args.refant, args.no_create)
     return 0
 
 
@@ -298,4 +297,3 @@ def handle_compare(args: argparse.Namespace) -> int:
         logger.error(f"Comparison failed: {e}")
         sys.exit(1)
     return 0
-

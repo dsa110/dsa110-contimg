@@ -6,8 +6,9 @@ discontinuities (e.g., around ±180°) when computing statistics or plotting.
 
 from __future__ import annotations
 
-import numpy as np
 from typing import Union
+
+import numpy as np
 
 ArrayLike = Union[float, np.ndarray]
 
@@ -40,5 +41,3 @@ def wrap_0_360_deg(angles_deg: ArrayLike) -> ArrayLike:
     if np.isscalar(angles_deg):
         return float(wrapped)
     return wrapped
-
-

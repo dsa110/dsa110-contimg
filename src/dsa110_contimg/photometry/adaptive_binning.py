@@ -14,11 +14,12 @@ Algorithm:
 This is particularly useful for weak sources that may not be detected in
 individual subbands but become detectable when multiple subbands are combined.
 """
+
 from __future__ import annotations
 
 from dataclasses import dataclass
 from pathlib import Path
-from typing import List, Optional, Tuple, Callable
+from typing import Callable, List, Optional, Tuple
 
 import numpy as np
 
@@ -26,6 +27,7 @@ import numpy as np
 @dataclass
 class Detection:
     """A detection with optimal binning."""
+
     channels: List[int]  # List of channel/subband indices
     flux_jy: float
     rms_jy: float
@@ -37,6 +39,7 @@ class Detection:
 @dataclass
 class AdaptiveBinningConfig:
     """Configuration for adaptive binning."""
+
     target_snr: float = 5.0  # Target SNR threshold
     initial_width: int = 1  # Starting bin width
     max_width: int = 16  # Maximum bin width (for DSA-110: 16 subbands)
@@ -46,36 +49,36 @@ class AdaptiveBinningConfig:
 
 def _find_consecutive_series(channels: List[int]) -> List[List[int]]:
     """Find consecutive series of channel indices.
-    
+
     Args:
         channels: List of channel indices (may not be consecutive)
-        
+
     Returns:
         List of consecutive series
-        
+
     Example:
         >>> _find_consecutive_series([0, 1, 2, 5, 6, 8])
         [[0, 1, 2], [5, 6], [8]]
     """
     if not channels:
         return []
-    
+
     sorted_channels = sorted(set(channels))
     if not sorted_channels:
         return []
-    
+
     series = []
     current_series = [sorted_channels[0]]
-    
+
     for i in range(1, len(sorted_channels)):
-        if sorted_channels[i] == sorted_channels[i-1] + 1:
+        if sorted_channels[i] == sorted_channels[i - 1] + 1:
             # Consecutive
             current_series.append(sorted_channels[i])
         else:
             # Gap - start new series
             series.append(current_series)
             current_series = [sorted_channels[i]]
-    
+
     series.append(current_series)
     return series
 
@@ -85,14 +88,14 @@ def _split_into_slices(
     slice_width: int,
 ) -> List[List[int]]:
     """Split consecutive channels into slices of specified width.
-    
+
     Args:
         channels: Consecutive channel indices
         slice_width: Width of each slice
-        
+
     Returns:
         List of slices
-        
+
     Example:
         >>> _split_into_slices([0, 1, 2, 3, 4, 5], 2)
         [[0, 1], [2, 3], [4, 5]]
@@ -101,7 +104,7 @@ def _split_into_slices(
     """
     slices = []
     for i in range(0, len(channels), slice_width):
-        slices.append(channels[i:i + slice_width])
+        slices.append(channels[i : i + slice_width])
     return slices
 
 
@@ -111,40 +114,42 @@ def _try_adjacent_misfits(
     target_snr: float,
 ) -> List[Detection]:
     """Try combining adjacent misfit channels.
-    
+
     Args:
         misfit_channels: List of channel indices that didn't achieve target SNR
         measure_fn: Function to measure flux, RMS, SNR for given channels
         target_snr: Target SNR threshold
-        
+
     Returns:
         List of detections from combined misfits
     """
     if not misfit_channels:
         return []
-    
+
     detections = []
     consecutive_series = _find_consecutive_series(misfit_channels)
-    
+
     for series in consecutive_series:
         if len(series) < 2:
             continue  # Need at least 2 channels to combine
-        
+
         # Try combining all channels in series
         try:
             flux, rms, snr = measure_fn(series)
             if snr >= target_snr:
-                detections.append(Detection(
-                    channels=series,
-                    flux_jy=flux,
-                    rms_jy=rms,
-                    snr=snr,
-                    bin_width=len(series),
-                ))
+                detections.append(
+                    Detection(
+                        channels=series,
+                        flux_jy=flux,
+                        rms_jy=rms,
+                        snr=snr,
+                        bin_width=len(series),
+                    )
+                )
         except Exception:
             # Skip if measurement fails
             continue
-    
+
     return detections
 
 
@@ -156,7 +161,7 @@ def adaptive_bin_channels(
     channel_freqs_mhz: Optional[List[float]] = None,
 ) -> List[Detection]:
     """Adaptive channel binning following WABIFAT algorithm.
-    
+
     This function implements the core adaptive binning logic:
     1. Start with all channels available
     2. For each bin width (initial_width to max_width):
@@ -166,17 +171,17 @@ def adaptive_bin_channels(
        d. If SNR >= target_snr, record as detection
        e. Otherwise, add channels back to pool for next iteration
     3. Final pass: try combining adjacent misfits
-    
+
     Args:
         n_channels: Total number of channels/subbands
         measure_fn: Function that takes a list of channel indices and returns
                     (flux_jy, rms_jy, snr). Should raise exception on failure.
         config: Configuration (uses defaults if None)
         channel_freqs_mhz: Optional list of central frequencies for each channel
-        
+
     Returns:
         List of Detection objects with optimal binning
-        
+
     Example:
         >>> def measure(channels):
         ...     # Simulate measurement: combine channels, measure flux
@@ -184,7 +189,7 @@ def adaptive_bin_channels(
         ...     combined_rms = sqrt(len(channels)) * rms_per_channel
         ...     snr = combined_flux / combined_rms
         ...     return combined_flux, combined_rms, snr
-        >>> 
+        >>>
         >>> detections = adaptive_bin_channels(
         ...     n_channels=16,
         ...     measure_fn=measure,
@@ -193,31 +198,31 @@ def adaptive_bin_channels(
     """
     if config is None:
         config = AdaptiveBinningConfig()
-    
+
     # Initialize: all channels available
     all_channels = list(range(n_channels))
     misfit_channels = []
     detections = []
-    
+
     # Iterate through bin widths
     for check_width in range(config.initial_width, config.max_width + 1):
         if not all_channels:
             break  # No more channels to process
-        
+
         new_all_channels = []
-        
+
         # Find consecutive series
         consecutive_series = _find_consecutive_series(all_channels)
-        
+
         for series_channels in consecutive_series:
             # Split into slices of check_width
             slices = _split_into_slices(series_channels, check_width)
-            
+
             for slice_channels in slices:
                 try:
                     # Measure photometry for this slice
                     flux, rms, snr = measure_fn(slice_channels)
-                    
+
                     if snr >= config.target_snr:
                         # Detection! Record it
                         center_freq = None
@@ -225,26 +230,28 @@ def adaptive_bin_channels(
                             # Calculate central frequency
                             freqs = [channel_freqs_mhz[i] for i in slice_channels]
                             center_freq = np.mean(freqs)
-                        
-                        detections.append(Detection(
-                            channels=slice_channels,
-                            flux_jy=flux,
-                            rms_jy=rms,
-                            snr=snr,
-                            center_freq_mhz=center_freq,
-                            bin_width=len(slice_channels),
-                        ))
+
+                        detections.append(
+                            Detection(
+                                channels=slice_channels,
+                                flux_jy=flux,
+                                rms_jy=rms,
+                                snr=snr,
+                                center_freq_mhz=center_freq,
+                                bin_width=len(slice_channels),
+                            )
+                        )
                     else:
                         # Not detected - add back to pool for next iteration
                         new_all_channels.extend(slice_channels)
-                        
+
                 except Exception:
                     # Measurement failed - add back to pool
                     new_all_channels.extend(slice_channels)
-        
+
         # Update channel pool for next iteration
         all_channels = new_all_channels
-    
+
     # Final pass: try combining adjacent misfits
     if config.allow_adjacent_misfits and all_channels:
         misfit_detections = _try_adjacent_misfits(
@@ -253,7 +260,7 @@ def adaptive_bin_channels(
             config.target_snr,
         )
         detections.extend(misfit_detections)
-    
+
     return detections
 
 
@@ -264,69 +271,69 @@ def create_measure_fn_from_images(
     photometry_fn: Callable[[str, float, float], Tuple[float, float]],
 ) -> Callable[[List[int]], Tuple[float, float, float]]:
     """Create a measure function from a list of per-channel images.
-    
+
     This helper creates a measure function that can be used with
     adaptive_bin_channels(). It combines multiple images and measures
     photometry at the specified coordinates.
-    
+
     Args:
         image_paths: List of image paths (one per channel/subband)
         ra_deg: Right ascension (degrees)
         dec_deg: Declination (degrees)
         photometry_fn: Function that takes (image_path, ra, dec) and returns
                       (flux_jy, rms_jy)
-        
+
     Returns:
         Measure function compatible with adaptive_bin_channels()
-        
+
     Example:
         >>> from dsa110_contimg.photometry.forced import measure_forced_peak
-        >>> 
+        >>>
         >>> def photometry_fn(image_path, ra, dec):
         ...     result = measure_forced_peak(image_path, ra, dec)
         ...     return result.peak_jyb, result.peak_err_jyb
-        >>> 
+        >>>
         >>> measure_fn = create_measure_fn_from_images(
         ...     image_paths=['sb0.fits', 'sb1.fits', ..., 'sb15.fits'],
         ...     ra_deg=128.725,
         ...     dec_deg=55.573,
         ...     photometry_fn=photometry_fn,
         ... )
-        >>> 
+        >>>
         >>> detections = adaptive_bin_channels(
         ...     n_channels=16,
         ...     measure_fn=measure_fn,
         ... )
     """
+
     def measure_fn(channels: List[int]) -> Tuple[float, float, float]:
         """Measure combined flux, RMS, and SNR for given channels."""
         fluxes = []
         rms_values = []
-        
+
         for channel_idx in channels:
             if channel_idx >= len(image_paths):
                 raise ValueError(f"Channel index {channel_idx} out of range")
-            
+
             image_path = image_paths[channel_idx]
             if not Path(image_path).exists():
                 raise FileNotFoundError(f"Image not found: {image_path}")
-            
+
             flux, rms = photometry_fn(image_path, ra_deg, dec_deg)
-            
+
             if not (np.isfinite(flux) and np.isfinite(rms) and rms > 0):
                 raise ValueError(f"Invalid measurement for channel {channel_idx}")
-            
+
             fluxes.append(flux)
             rms_values.append(rms)
-        
+
         # Combine: flux adds, RMS adds in quadrature
         combined_flux = sum(fluxes)
         combined_rms = np.sqrt(sum(r**2 for r in rms_values))
-        
+
         # Calculate SNR
         snr = combined_flux / combined_rms if combined_rms > 0 else 0.0
-        
-        return combined_flux, combined_rms, snr
-    
-    return measure_fn
 
+        return combined_flux, combined_rms, snr
+
+    return measure_fn

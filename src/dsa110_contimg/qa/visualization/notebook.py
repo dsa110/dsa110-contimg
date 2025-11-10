@@ -5,12 +5,13 @@ Provides functions to programmatically generate Jupyter notebooks for QA
 reports and interactive data exploration.
 """
 
-from pathlib import Path
-from typing import Optional, List
 from datetime import datetime
+from pathlib import Path
+from typing import List, Optional
 
 try:
     import nbformat
+
     HAS_NBFORMAT = True
 except ImportError:
     HAS_NBFORMAT = False
@@ -59,11 +60,9 @@ def generate_qa_notebook(
         if qa_root:
             title += f" ({Path(qa_root).name})"
 
-    timestamp = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
+    timestamp = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
     nb.cells.append(
-        nbformat.v4.new_markdown_cell(
-            f"# {title}\n\nGenerated: {timestamp}"
-        )
+        nbformat.v4.new_markdown_cell(f"# {title}\n\nGenerated: {timestamp}")
     )
 
     # Add imports cell
@@ -119,9 +118,7 @@ if fits_files:
 
     # Add artifact viewing cells
     if artifacts:
-        nb.cells.append(
-            nbformat.v4.new_markdown_cell("## Artifacts")
-        )
+        nb.cells.append(nbformat.v4.new_markdown_cell("## Artifacts"))
 
         for artifact in artifacts:
             artifact_path = Path(artifact)
@@ -133,9 +130,7 @@ fits = FITSFile("{artifact}")
 fits.show()
 """
                 nb.cells.append(nbformat.v4.new_code_cell(fits_code))
-            elif artifact_path.suffix.lower() in [
-                ".png", ".jpg", ".jpeg", ".gif"
-            ]:
+            elif artifact_path.suffix.lower() in [".png", ".jpg", ".jpeg", ".gif"]:
                 # Image file
                 img_code = f"""
 # Display image: {artifact_path.name}
@@ -144,10 +139,7 @@ img_path = "{artifact}"
 display(Image(img_path))
 """
                 nb.cells.append(nbformat.v4.new_code_cell(img_code))
-            elif (
-                artifact_path.suffix.lower() == ".ms" or
-                artifact_path.is_dir()
-            ):
+            elif artifact_path.suffix.lower() == ".ms" or artifact_path.is_dir():
                 # CASA table
                 table_code = f"""
 # Browse CASA table: {artifact_path.name}
@@ -207,11 +199,9 @@ def generate_fits_viewer_notebook(
     if title is None:
         title = f"FITS Viewer - {len(fits_paths)} files"
 
-    timestamp = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
+    timestamp = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
     nb.cells.append(
-        nbformat.v4.new_markdown_cell(
-            f"# {title}\n\nGenerated: {timestamp}"
-        )
+        nbformat.v4.new_markdown_cell(f"# {title}\n\nGenerated: {timestamp}")
     )
 
     # Imports
@@ -226,9 +216,7 @@ init_js9()
     # Add cells for each FITS file
     for i, fits_path in enumerate(fits_paths, 1):
         fits_name = Path(fits_path).name
-        nb.cells.append(
-            nbformat.v4.new_markdown_cell(f"## FITS File {i}: {fits_name}")
-        )
+        nb.cells.append(nbformat.v4.new_markdown_cell(f"## FITS File {i}: {fits_name}"))
 
         fits_code = f"""
 fits_{i} = FITSFile("{fits_path}")
@@ -273,11 +261,9 @@ def generate_ms_explorer_notebook(
     if title is None:
         title = f"MS Explorer - {Path(ms_path).name}"
 
-    timestamp = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
+    timestamp = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
     nb.cells.append(
-        nbformat.v4.new_markdown_cell(
-            f"# {title}\n\nGenerated: {timestamp}"
-        )
+        nbformat.v4.new_markdown_cell(f"# {title}\n\nGenerated: {timestamp}")
     )
 
     # Imports

@@ -14,19 +14,20 @@ For CASA operations, use ProcessPoolExecutor (separate processes) rather than
 ThreadPoolExecutor (shared memory) to avoid thread-safety issues.
 """
 
+import logging
 from concurrent.futures import (
     ProcessPoolExecutor,
     ThreadPoolExecutor,
     as_completed,
 )
-from typing import List, Callable, TypeVar, Union
-import logging
+from typing import Callable, List, TypeVar, Union
+
 from dsa110_contimg.utils.runtime_safeguards import log_progress
 
 logger = logging.getLogger(__name__)
 
-T = TypeVar('T')
-R = TypeVar('R')
+T = TypeVar("T")
+R = TypeVar("R")
 
 
 def process_parallel(
@@ -70,23 +71,19 @@ def process_parallel(
 
     if len(items) == 1:
         # No need for parallelization for single item
-        result = func(items[0])
-        return [result]
+        return [func(items[0])]
 
-    worker_type = "processes" if use_processes else "threads"
     log_progress(
-        f"Starting parallel processing: {len(items)} items with "
-        f"{max_workers} workers ({worker_type})",
+        f"Starting parallel processing: {len(items)} items with {max_workers} workers ({'processes' if use_processes else 'threads'})",
         flush=True,
     )
 
-    results: List[Union[R, None]] = []
-    executor_class = (
-        ProcessPoolExecutor if use_processes else ThreadPoolExecutor
-    )
+    results = []
+    executor_class = ProcessPoolExecutor if use_processes else ThreadPoolExecutor
 
     try:
         from dsa110_contimg.utils.progress import get_progress_bar
+
         has_progress = True
     except ImportError:
         has_progress = False
@@ -94,8 +91,7 @@ def process_parallel(
 
     with executor_class(max_workers=max_workers) as executor:
         # Submit all tasks
-        futures = {executor.submit(func, item): i for i,
-                   item in enumerate(items)}
+        futures = {executor.submit(func, item): i for i, item in enumerate(items)}
 
         # Collect results in order
         results = [None] * len(items)
@@ -116,28 +112,19 @@ def process_parallel(
                             MemoryError,
                         ) as e:
                             logger.error(
-                                "Error processing item %d: %s",
-                                idx,
-                                e,
-                                exc_info=True,
+                                f"Error processing item {idx}: {e}", exc_info=True
                             )
                             results[idx] = None
-                        except Exception as e:  # noqa: BLE001
-                            # Catch-all for unexpected exceptions
+                        except Exception as e:
                             logger.error(
-                                "Unexpected error processing item %d: %s: %s",
-                                idx,
-                                type(e).__name__,
-                                e,
+                                f"Unexpected error processing item {idx}: {type(e).__name__}: {e}",
                                 exc_info=True,
                             )
                             results[idx] = None
                         pbar.update(1)
             except (OSError, IOError, RuntimeError) as e:
                 logger.warning(
-                    "Progress bar failed, continuing without progress "
-                    "display: %s",
-                    e,
+                    f"Progress bar failed, continuing without progress display: {e}"
                 )
                 for future in as_completed(futures):
                     idx = futures[future]
@@ -150,20 +137,11 @@ def process_parallel(
                         RuntimeError,
                         MemoryError,
                     ) as e:
-                        logger.error(
-                            "Error processing item %d: %s",
-                            idx,
-                            e,
-                            exc_info=True,
-                        )
+                        logger.error(f"Error processing item {idx}: {e}", exc_info=True)
                         results[idx] = None
-                    except Exception as e:  # noqa: BLE001
-                        # Catch-all for unexpected exceptions
+                    except Exception as e:
                         logger.error(
-                            "Unexpected error processing item %d: %s: %s",
-                            idx,
-                            type(e).__name__,
-                            e,
+                            f"Unexpected error processing item {idx}: {type(e).__name__}: {e}",
                             exc_info=True,
                         )
                         results[idx] = None
@@ -173,35 +151,18 @@ def process_parallel(
                 idx = futures[future]
                 try:
                     results[idx] = future.result()
-                except (
-                    OSError,
-                    IOError,
-                    ValueError,
-                    RuntimeError,
-                    MemoryError,
-                ) as e:
-                    logger.error(
-                        "Error processing item %d: %s",
-                        idx,
-                        e,
-                        exc_info=True,
-                    )
+                except (OSError, IOError, ValueError, RuntimeError, MemoryError) as e:
+                    logger.error(f"Error processing item {idx}: {e}", exc_info=True)
                     results[idx] = None
-                except Exception as e:  # noqa: BLE001
-                    # Catch-all for unexpected exceptions
+                except Exception as e:
                     logger.error(
-                        "Unexpected error processing item %d: %s: %s",
-                        idx,
-                        type(e).__name__,
-                        e,
+                        f"Unexpected error processing item {idx}: {type(e).__name__}: {e}",
                         exc_info=True,
                     )
                     results[idx] = None
 
-    succeeded = len([r for r in results if r is not None])
     log_progress(
-        f"Completed parallel processing: {succeeded}/{len(items)} "
-        "items succeeded",
+        f"Completed parallel processing: {len([r for r in results if r is not None])}/{len(items)} items succeeded",
         flush=True,
     )
     return results
@@ -215,7 +176,7 @@ def process_batch_parallel(
     use_processes: bool = True,
     show_progress: bool = True,
     desc: str = "Processing batches",
-) -> List[Union[R, None]]:
+) -> List[R]:
     """
     Process items in batches with parallel execution within each batch.
 
@@ -235,8 +196,7 @@ def process_batch_parallel(
         List of results (order preserved)
     """
     log_progress(
-        f"Starting batch parallel processing: {len(items)} items in "
-        f"batches of {batch_size}",
+        f"Starting batch parallel processing: {len(items)} items in batches of {batch_size}",
         flush=True,
     )
 
@@ -250,10 +210,7 @@ def process_batch_parallel(
 
         if show_progress:
             logger.info(
-                "Processing batch %d/%d (%d items)...",
-                batch_num + 1,
-                total_batches,
-                len(batch),
+                f"Processing batch {batch_num + 1}/{total_batches} ({len(batch)} items)..."
             )
 
         batch_results = process_parallel(
@@ -262,14 +219,12 @@ def process_batch_parallel(
             max_workers=max_workers,
             use_processes=use_processes,
             show_progress=False,  # Don't show nested progress bars
-            desc=f"{desc} (batch {batch_num + 1}/{total_batches})"
+            desc=f"{desc} (batch {batch_num + 1}/{total_batches})",
         )
         all_results.extend(batch_results)
 
-    succeeded = len([r for r in all_results if r is not None])
     log_progress(
-        f"Completed batch parallel processing: {succeeded}/{len(items)} "
-        "items succeeded",
+        f"Completed batch parallel processing: {len([r for r in all_results if r is not None])}/{len(items)} items succeeded",
         flush=True,
     )
     return all_results
@@ -282,26 +237,23 @@ def map_parallel(
     use_processes: bool = True,
     show_progress: bool = True,
     desc: str = "Processing",
-) -> List[Union[R, None]]:
+) -> List[R]:
     """
     Parallel version of map() function.
 
     Args:
-        func: Function to apply (must accept same number of arguments as
-            iterables)
+        func: Function to apply (must accept same number of arguments as iterables)
         *iterables: Iterables to map over (must be same length)
         max_workers: Maximum number of parallel workers
-        use_processes: Use ProcessPoolExecutor (True) or ThreadPoolExecutor
-            (False)
+        use_processes: Use ProcessPoolExecutor (True) or ThreadPoolExecutor (False)
         show_progress: Whether to show progress
         desc: Progress bar description
 
     Returns:
-        List of results. Failed items are None.
+        List of results
 
     Raises:
-        ValueError: If iterables have different lengths or no iterables
-            provided
+        ValueError: If iterables have different lengths
 
     Example:
         # Process multiple MS files with different parameters
@@ -310,9 +262,7 @@ def map_parallel(
 
         ms_paths = ['ms1.ms', 'ms2.ms', 'ms3.ms']
         thresholds = [0.1, 0.2, 0.3]
-        results = map_parallel(
-            validate_ms, ms_paths, thresholds, max_workers=4
-        )
+        results = map_parallel(validate_ms, ms_paths, thresholds, max_workers=4)
     """
     if not iterables:
         raise ValueError("At least one iterable must be provided")

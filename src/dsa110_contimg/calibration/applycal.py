@@ -1,5 +1,5 @@
-from typing import List, Optional, Union
 import os
+from typing import List, Optional, Union
 
 # Ensure CASAPATH is set before importing CASA modules
 from dsa110_contimg.utils.casa_init import ensure_casa_path
@@ -8,28 +8,28 @@ ensure_casa_path()
 from casatasks import applycal as casa_applycal
 
 from dsa110_contimg.calibration.validate import (
-    validate_caltable_exists,
     validate_caltable_compatibility,
+    validate_caltable_exists,
     validate_caltables_for_use,
 )
 
 
 def _verify_corrected_data_populated(ms_path: str, min_fraction: float = 0.01) -> None:
     """Verify CORRECTED_DATA column is populated after applycal.
-    
+
     This ensures we follow "measure twice, cut once" - verify calibration
     was applied successfully before proceeding.
-    
+
     Args:
         ms_path: Path to Measurement Set
         min_fraction: Minimum fraction of unflagged data that must be non-zero
-    
+
     Raises:
         RuntimeError: If CORRECTED_DATA is not populated
     """
-    from casacore.tables import table  # type: ignore[import]
     import numpy as np  # type: ignore[import]
-    
+    from casacore.tables import table  # type: ignore[import]
+
     try:
         with table(ms_path, readonly=True) as tb:
             if "CORRECTED_DATA" not in tb.colnames():
@@ -37,18 +37,18 @@ def _verify_corrected_data_populated(ms_path: str, min_fraction: float = 0.01) -
                     f"CORRECTED_DATA column not present in MS: {ms_path}. "
                     f"Calibration may not have been applied successfully."
                 )
-            
+
             n_rows = tb.nrows()
             if n_rows == 0:
                 raise RuntimeError(
                     f"MS has zero rows: {ms_path}. Cannot verify calibration."
                 )
-            
+
             # Sample data (up to 10000 rows for efficiency)
             sample_size = min(10000, n_rows)
             corrected_data = tb.getcol("CORRECTED_DATA", startrow=0, nrow=sample_size)
             flags = tb.getcol("FLAG", startrow=0, nrow=sample_size)
-            
+
             # Check unflagged data
             unflagged = corrected_data[~flags]
             if len(unflagged) == 0:
@@ -56,11 +56,13 @@ def _verify_corrected_data_populated(ms_path: str, min_fraction: float = 0.01) -
                     f"All CORRECTED_DATA is flagged in MS: {ms_path}. "
                     f"Cannot verify calibration was applied."
                 )
-            
+
             # Check fraction non-zero
             nonzero_count = np.count_nonzero(np.abs(unflagged) > 1e-10)
-            nonzero_fraction = nonzero_count / len(unflagged) if len(unflagged) > 0 else 0.0
-            
+            nonzero_fraction = (
+                nonzero_count / len(unflagged) if len(unflagged) > 0 else 0.0
+            )
+
             if nonzero_fraction < min_fraction:
                 raise RuntimeError(
                     f"CORRECTED_DATA appears unpopulated in MS: {ms_path}. "
@@ -68,7 +70,7 @@ def _verify_corrected_data_populated(ms_path: str, min_fraction: float = 0.01) -
                     f"(minimum {min_fraction*100:.1f}% required). "
                     f"Calibration may not have been applied successfully."
                 )
-            
+
             print(
                 f"✓ Verified CORRECTED_DATA populated: {nonzero_fraction*100:.1f}% "
                 f"non-zero ({nonzero_count}/{len(unflagged)} unflagged samples)"
@@ -94,13 +96,13 @@ def apply_to_target(
     verify: bool = True,
 ) -> None:
     """Apply calibration tables to a target MS field.
-    
+
     **PRECONDITION**: All calibration tables must exist and be compatible with
     the MS. This ensures consistent, reliable calibration application.
-    
+
     **POSTCONDITION**: If `verify=True`, CORRECTED_DATA is verified to be populated
     after application. This ensures calibration was applied successfully.
-    
+
     interp defaults will be set to 'linear' matching list length.
     """
     # PRECONDITION CHECK: Validate all calibration tables before applying
@@ -108,7 +110,7 @@ def apply_to_target(
     # for consistent, reliable calibration application.
     if not gaintables:
         raise ValueError("No calibration tables provided for applycal")
-    
+
     print(f"Validating {len(gaintables)} calibration table(s) before applying...")
 
     # STRICT SEPARATION: Reject NON_SCIENCE calibration tables for production use
@@ -128,7 +130,7 @@ def apply_to_target(
             f"Calibration table validation failed. This is a required precondition for "
             f"applycal. Error: {e}"
         ) from e
-    
+
     if interp is None:
         # Prefer 'nearest' for bandpass-like tables, 'linear' for gains.
         # Heuristic by table name; callers can override explicitly.
@@ -150,10 +152,10 @@ def apply_to_target(
     # Only pass spwmap if explicitly provided; CASA rejects explicit null
     if spwmap is not None:
         kwargs["spwmap"] = spwmap
-    
+
     print(f"Applying {len(gaintables)} calibration table(s) to {ms_target}...")
     casa_applycal(**kwargs)
-    
+
     # POSTCONDITION CHECK: Verify CORRECTED_DATA was populated successfully
     # This ensures we follow "measure twice, cut once" - verify calibration was
     # applied successfully before proceeding.

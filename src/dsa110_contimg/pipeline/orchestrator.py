@@ -73,7 +73,9 @@ class PipelineOrchestrator:
         result = orchestrator.execute(initial_context)
     """
 
-    def __init__(self, stages: List[StageDefinition], observer: Optional[PipelineObserver] = None):
+    def __init__(
+        self, stages: List[StageDefinition], observer: Optional[PipelineObserver] = None
+    ):
         """Initialize orchestrator.
 
         Args:
@@ -120,7 +122,9 @@ class PipelineOrchestrator:
 
         return result
 
-    def _prerequisites_met(self, stage_name: str, results: Dict[str, StageResult]) -> bool:
+    def _prerequisites_met(
+        self, stage_name: str, results: Dict[str, StageResult]
+    ) -> bool:
         """Check if prerequisites for a stage are met.
 
         Args:
@@ -143,10 +147,7 @@ class PipelineOrchestrator:
         return True
 
     def _execute_with_retry(
-        self,
-        stage_def: StageDefinition,
-        context: PipelineContext,
-        attempt: int = 1
+        self, stage_def: StageDefinition, context: PipelineContext, attempt: int = 1
     ) -> StageResult:
         """Execute stage with retry policy.
 
@@ -177,6 +178,7 @@ class PipelineOrchestrator:
             # Execute stage with timeout if specified
             if stage_def.timeout:
                 from dsa110_contimg.pipeline.timeout import stage_timeout
+
                 with stage_timeout(stage_def.timeout, stage_def.name):
                     result_context = stage_def.stage.execute(context)
             else:
@@ -185,15 +187,21 @@ class PipelineOrchestrator:
             # CRITICAL: Validate outputs after successful execution
             # This catches issues early before downstream stages depend on invalid outputs
             try:
-                is_valid, validation_msg = stage_def.stage.validate_outputs(result_context)
+                is_valid, validation_msg = stage_def.stage.validate_outputs(
+                    result_context
+                )
                 if not is_valid:
-                    raise ValueError(f"Output validation failed for stage '{stage_def.name}': {validation_msg}")
+                    raise ValueError(
+                        f"Output validation failed for stage '{stage_def.name}': {validation_msg}"
+                    )
             except AttributeError:
                 # Stage doesn't implement validate_outputs - that's OK, skip validation
                 pass
             except Exception as validation_error:
                 # Validation failed - treat as execution failure
-                raise RuntimeError(f"Output validation failed: {validation_error}") from validation_error
+                raise RuntimeError(
+                    f"Output validation failed: {validation_error}"
+                ) from validation_error
 
             # Cleanup
             try:
@@ -201,10 +209,10 @@ class PipelineOrchestrator:
             except Exception as e:
                 # Log cleanup errors but don't fail the stage
                 import logging
+
                 logger = logging.getLogger(__name__)
                 logger.warning(
-                    f"Cleanup failed for stage '{stage_def.name}': {e}",
-                    exc_info=True
+                    f"Cleanup failed for stage '{stage_def.name}': {e}", exc_info=True
                 )
 
             return StageResult(
@@ -214,7 +222,13 @@ class PipelineOrchestrator:
                 attempt=attempt,
             )
 
-        except (ValueError, RuntimeError, OSError, FileNotFoundError, PermissionError) as e:
+        except (
+            ValueError,
+            RuntimeError,
+            OSError,
+            FileNotFoundError,
+            PermissionError,
+        ) as e:
             # Catch specific exceptions that can occur during stage execution
             # These are recoverable errors that may benefit from retry
             duration = time.time() - start_time
@@ -225,14 +239,17 @@ class PipelineOrchestrator:
                 stage_def.stage.cleanup(context)
             except Exception as cleanup_error:
                 import logging
+
                 logger = logging.getLogger(__name__)
                 logger.warning(
                     f"Cleanup failed after stage '{stage_def.name}' error: {cleanup_error}",
-                    exc_info=True
+                    exc_info=True,
                 )
 
             # Check if we should retry
-            if stage_def.retry_policy and stage_def.retry_policy.should_retry(attempt, e):
+            if stage_def.retry_policy and stage_def.retry_policy.should_retry(
+                attempt, e
+            ):
                 # Wait before retry
                 delay = stage_def.retry_policy.get_delay(attempt)
                 if delay > 0:
@@ -260,10 +277,11 @@ class PipelineOrchestrator:
                 stage_def.stage.cleanup(context)
             except Exception as cleanup_error:
                 import logging
+
                 logger = logging.getLogger(__name__)
                 logger.warning(
                     f"Cleanup failed after stage '{stage_def.name}' error: {cleanup_error}",
-                    exc_info=True
+                    exc_info=True,
                 )
 
             # Don't retry unexpected exceptions (KeyboardInterrupt, SystemExit, etc.)
@@ -288,34 +306,37 @@ class PipelineOrchestrator:
         import time
 
         start_time = time.time()
-        
+
         # CRITICAL: Health check before starting pipeline
         # This catches configuration and system issues early
         try:
             from dsa110_contimg.pipeline.health import validate_pipeline_health
+
             validate_pipeline_health(initial_context.config)
         except Exception as health_error:
             # Log health check failure but don't fail pipeline
             # (allows override for testing/debugging)
             import logging
+
             logger = logging.getLogger(__name__)
             logger.warning(
                 f"Pipeline health check failed: {health_error}. "
                 "Proceeding anyway - this may cause failures.",
-                exc_info=True
+                exc_info=True,
             )
-        
+
         # CRITICAL: Register graceful shutdown handlers
         # This allows pipelines to clean up resources when interrupted
         from dsa110_contimg.pipeline.signals import graceful_shutdown
-        
+
         def cleanup_on_shutdown():
             """Cleanup function called on shutdown."""
             import logging
+
             logger = logging.getLogger(__name__)
             logger.info("Cleaning up pipeline resources due to shutdown signal...")
             # Cleanup is handled by individual stage cleanup methods
-        
+
         with graceful_shutdown(cleanup_on_shutdown):
             self.observer.pipeline_started(initial_context)
 
@@ -333,7 +354,9 @@ class PipelineOrchestrator:
                         status=StageStatus.SKIPPED,
                         context=context,
                     )
-                    self.observer.stage_skipped(stage_name, context, "Prerequisites not met")
+                    self.observer.stage_skipped(
+                        stage_name, context, "Prerequisites not met"
+                    )
                     continue
 
                 # Notify observer of stage start
@@ -346,9 +369,7 @@ class PipelineOrchestrator:
                 # Notify observer of stage completion/failure
                 if result.status == StageStatus.COMPLETED:
                     self.observer.stage_completed(
-                        stage_name,
-                        result.context,
-                        result.duration_seconds or 0.0
+                        stage_name, result.context, result.duration_seconds or 0.0
                     )
                     context = result.context
                 elif result.status == StageStatus.FAILED:
@@ -357,10 +378,13 @@ class PipelineOrchestrator:
                         context,
                         result.error or Exception("Unknown error"),
                         result.duration_seconds or 0.0,
-                        result.attempt
+                        result.attempt,
                     )
                     # Handle failure based on retry policy
-                    if stage_def.retry_policy and stage_def.retry_policy.should_continue():
+                    if (
+                        stage_def.retry_policy
+                        and stage_def.retry_policy.should_continue()
+                    ):
                         pipeline_status = PipelineStatus.PARTIAL
                         continue
                     else:
@@ -371,13 +395,18 @@ class PipelineOrchestrator:
             if pipeline_status == PipelineStatus.RUNNING:
                 # Check if all stages completed
                 all_completed = all(
-                    r.status == StageStatus.COMPLETED
-                    for r in results.values()
+                    r.status == StageStatus.COMPLETED for r in results.values()
                 )
-                pipeline_status = PipelineStatus.COMPLETED if all_completed else PipelineStatus.PARTIAL
+                pipeline_status = (
+                    PipelineStatus.COMPLETED
+                    if all_completed
+                    else PipelineStatus.PARTIAL
+                )
 
             total_duration = time.time() - start_time
-            self.observer.pipeline_completed(context, total_duration, pipeline_status.value)
+            self.observer.pipeline_completed(
+                context, total_duration, pipeline_status.value
+            )
 
             return PipelineResult(
                 status=pipeline_status,

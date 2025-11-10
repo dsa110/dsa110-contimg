@@ -8,13 +8,12 @@ invoked independently to avoid rerunning the full UVH5→MS conversion.
 import argparse
 import logging
 import os
-import sys
 import subprocess
+import sys
 import time
 from typing import List, Optional
 
 from .fast_plots import run_fast_plots
-
 
 LOG = logging.getLogger(__name__)
 
@@ -93,7 +92,9 @@ def run_shadems_quicklooks(
     python_bin = os.path.dirname(sys.executable)
     current_path = env.get("PATH", "")
     if python_bin and python_bin not in current_path.split(os.pathsep):
-        env["PATH"] = python_bin + os.pathsep + current_path if current_path else python_bin
+        env["PATH"] = (
+            python_bin + os.pathsep + current_path if current_path else python_bin
+        )
 
     generated: List[str] = []
     ran = 0
@@ -166,7 +167,9 @@ def run_ragavi_vis(
     python_bin = os.path.dirname(sys.executable)
     current_path = env.get("PATH", "")
     if python_bin and python_bin not in current_path.split(os.pathsep):
-        env["PATH"] = python_bin + os.pathsep + current_path if current_path else python_bin
+        env["PATH"] = (
+            python_bin + os.pathsep + current_path if current_path else python_bin
+        )
     html_base = f"ragavi_{stem}"
     html_name = f"{html_base}.html"
     cmd = [

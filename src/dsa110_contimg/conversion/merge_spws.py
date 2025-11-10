@@ -17,6 +17,7 @@ ensure_casa_path()
 
 from casacore.tables import table  # type: ignore[import]
 from casatasks import mstransform  # type: ignore[import]
+
 from dsa110_contimg.utils.runtime_safeguards import require_casa6_python
 
 try:
@@ -45,10 +46,10 @@ def merge_spws(
 ) -> str:
     """
     Merge multiple SPWs into a single SPW using CASA mstransform.
-    
+
     This function takes a multi-SPW MS (e.g., created by direct-subband writer
     with 16 SPWs) and creates a single-SPW MS with all frequencies combined.
-    
+
     Args:
         ms_in: Input multi-SPW Measurement Set path
         ms_out: Output single-SPW Measurement Set path
@@ -62,10 +63,10 @@ def merge_spws(
             merge to save disk space (default: True). SIGMA_SPECTRUM is
             automatically created by mstransform when combining SPWs, but
             contains redundant information (SIGMA repeated per channel).
-        
+
     Returns:
         Path to output MS
-        
+
     Raises:
         FileNotFoundError: If input MS doesn't exist
         RuntimeError: If mstransform fails
@@ -89,7 +90,7 @@ def merge_spws(
     if regridms:
         # Build global frequency grid from all SPWs
         with table(f"{ms_in}::SPECTRAL_WINDOW", readonly=True) as spw:
-            cf = np.asarray(spw.getcol('CHAN_FREQ'))  # shape (nspw, nchan)
+            cf = np.asarray(spw.getcol("CHAN_FREQ"))  # shape (nspw, nchan)
 
         # Flatten and sort all frequencies
         all_freq = np.sort(cf.reshape(-1))
@@ -102,10 +103,10 @@ def merge_spws(
         start = float(all_freq[0])
 
         kwargs.update(
-            mode='frequency',
+            mode="frequency",
             nchan=nchan,
-            start=f'{start}Hz',
-            width=f'{dnu}Hz',
+            start=f"{start}Hz",
+            width=f"{dnu}Hz",
             interpolation=interpolation,
         )
 
@@ -121,8 +122,8 @@ def merge_spws(
     if remove_sigma_spectrum:
         try:
             with table(ms_out, readonly=False) as tb:
-                if 'SIGMA_SPECTRUM' in tb.colnames():
-                    tb.removecols(['SIGMA_SPECTRUM'])
+                if "SIGMA_SPECTRUM" in tb.colnames():
+                    tb.removecols(["SIGMA_SPECTRUM"])
         except Exception:
             # Non-fatal: continue if removal fails
             pass
@@ -131,17 +132,18 @@ def merge_spws(
     # CASA doesn't recognize "DSA_110", so change to "OVRO" which is recognized
     try:
         from casatools import table as casa_table
+
         tb_obs = casa_table()
-        tb_obs.open(ms_out + '/OBSERVATION', readonly=False)
-        current_name = tb_obs.getcol('TELESCOPE_NAME')
+        tb_obs.open(ms_out + "/OBSERVATION", readonly=False)
+        current_name = tb_obs.getcol("TELESCOPE_NAME")
         # Only change if it's DSA_110 (or other unrecognized names)
-        if current_name and 'DSA_110' in str(current_name[0]):
-            tb_obs.putcol('TELESCOPE_NAME', ['OVRO'])
+        if current_name and "DSA_110" in str(current_name[0]):
+            tb_obs.putcol("TELESCOPE_NAME", ["OVRO"])
         tb_obs.close()
         tb_obs.done()  # Required: casatools.table needs both close() and done()
     except Exception:
         # Non-fatal: telescope name fix is cosmetic
-            pass
+        pass
 
     return ms_out
 
@@ -157,10 +159,10 @@ def merge_spws_simple(
 ) -> str:
     """
     Simple SPW merging without regridding (combines SPWs but may have gaps).
-    
+
     This is faster than merge_spws() but may result in discontinuous frequency
     coverage if subbands have gaps.
-    
+
     Args:
         ms_in: Input multi-SPW Measurement Set path
         ms_out: Output single-SPW Measurement Set path
@@ -185,10 +187,10 @@ def merge_spws_simple(
 def get_spw_count(ms_path: str) -> Optional[int]:
     """
     Get the number of spectral windows in an MS.
-    
+
     Args:
         ms_path: Path to Measurement Set
-        
+
     Returns:
         Number of SPWs, or None if unable to read
     """
@@ -208,20 +210,20 @@ def merge_fields(
 ) -> str:
     """
     Merge multiple fields into a single field using direct table manipulation.
-    
+
     This function takes a multi-field MS (e.g., with time-binned fields) and
     creates a single-field MS by reassigning all rows to field 0 and updating
     the FIELD table accordingly.
-    
+
     Args:
         ms_in: Input multi-field Measurement Set path
         ms_out: Output single-field Measurement Set path
         datacolumn: Data column to use ('DATA', 'CORRECTED_DATA', etc.)
         keepflags: Preserve flagging information
-        
+
     Returns:
         Path to output MS
-        
+
     Raises:
         FileNotFoundError: If input MS doesn't exist
         RuntimeError: If field merging fails
@@ -242,36 +244,38 @@ def merge_fields(
             nfields = field_in.nrows()
             if nfields == 0:
                 raise RuntimeError("Input MS has no fields")
-            
+
             # Get phase center from first field
-            phase_dirs = field_in.getcol('PHASE_DIR')  # Shape: (nfields, npoly, 2)
+            phase_dirs = field_in.getcol("PHASE_DIR")  # Shape: (nfields, npoly, 2)
             ref_phase_dir = phase_dirs[0]  # Use first field's phase center
             ref_ra_rad = ref_phase_dir[0][0]  # Reference RA (radians)
             ref_dec_rad = ref_phase_dir[0][1]  # Reference Dec (radians)
-            field_names = field_in.getcol('NAME')
-            ref_name = field_names[0] if len(field_names) > 0 else 'merged_field'
-            
+            field_names = field_in.getcol("NAME")
+            ref_name = field_names[0] if len(field_names) > 0 else "merged_field"
+
             # Validate that all fields share the same phase center (within tolerance)
             # This is critical: merging fields with different phase centers produces incorrect results
             tolerance_arcsec = 1.0  # 1 arcsecond tolerance
             tolerance_rad = np.deg2rad(tolerance_arcsec / 3600.0)
-            
+
             max_separation_rad = 0.0
             mismatched_fields = []
-            
+
             for i in range(1, nfields):
                 ra_rad = phase_dirs[i, 0, 0]
                 dec_rad = phase_dirs[i, 0, 1]
-                
+
                 # Calculate angular separation
-                separation_rad = angular_separation(ref_ra_rad, ref_dec_rad, ra_rad, dec_rad)
+                separation_rad = angular_separation(
+                    ref_ra_rad, ref_dec_rad, ra_rad, dec_rad
+                )
                 max_separation_rad = max(max_separation_rad, separation_rad)
-                
+
                 if separation_rad > tolerance_rad:
                     mismatched_fields.append(i)
-            
+
             max_separation_arcsec = np.rad2deg(max_separation_rad) * 3600.0
-            
+
             if mismatched_fields:
                 raise RuntimeError(
                     f"Cannot merge fields with different phase centers. "
@@ -280,56 +284,58 @@ def merge_fields(
                     f"All fields must be phased to the same position before merging. "
                     f"Consider using phaseshift() to phase all fields to a common target first."
                 )
-            
+
             print(f"Input MS has {nfields} fields")
             if nfields > 1:
-                print(f"✓ Validated: all {nfields} fields share the same phase center (max separation: {max_separation_arcsec:.3f} arcsec)")
+                print(
+                    f"✓ Validated: all {nfields} fields share the same phase center (max separation: {max_separation_arcsec:.3f} arcsec)"
+                )
             print(f"Using phase center from field 0: {ref_name}")
 
         # Reassign all rows to field 0 in main table
         with table(ms_out, readonly=False) as tb:
-            if 'FIELD_ID' not in tb.colnames():
+            if "FIELD_ID" not in tb.colnames():
                 raise RuntimeError("Main table has no FIELD_ID column")
-            
+
             nrows = tb.nrows()
             print(f"Reassigning {nrows:,} rows to field 0...")
-            
+
             # Set all FIELD_ID to 0
             field_ids = np.zeros(nrows, dtype=np.int32)
-            tb.putcol('FIELD_ID', field_ids)
+            tb.putcol("FIELD_ID", field_ids)
 
         # Update FIELD table to have only one field
-        with table(ms_out + '/FIELD', readonly=False) as field_out:
+        with table(ms_out + "/FIELD", readonly=False) as field_out:
             # Get all columns from original field table
             all_colnames = field_out.colnames()
-            
+
             # Read first row's data as template
             field_data = {}
             for colname in all_colnames:
                 field_data[colname] = field_out.getcol(colname, startrow=0, nrow=1)
-            
+
             # Remove all rows
             field_out.removerows(list(range(nfields)))
-            
+
             # Add single merged field row
             field_out.addrows(1)
-            
+
             # Write merged field data
             for colname in all_colnames:
                 field_out.putcol(colname, field_data[colname], startrow=0)
 
             # Update name to indicate it's merged
-            if 'NAME' in field_out.colnames():
-                field_out.putcol('NAME', [ref_name + '_merged'], startrow=0)
+            if "NAME" in field_out.colnames():
+                field_out.putcol("NAME", [ref_name + "_merged"], startrow=0)
 
         print(f"✓ Successfully merged {nfields} fields into 1 field")
-        
+
         # Verify the result
-        with table(ms_out + '/FIELD', readonly=True) as field_check:
+        with table(ms_out + "/FIELD", readonly=True) as field_check:
             nfields_out = field_check.nrows()
             if nfields_out != 1:
                 raise RuntimeError(f"Expected 1 field in output, got {nfields_out}")
-            
+
             print(f"Output MS has {nfields_out} field")
 
     except Exception as e:
@@ -399,4 +405,3 @@ if __name__ == "__main__":
             print("✓ Successfully merged SPWs into single SPW")
         else:
             print(f"⚠ Warning: Expected 1 SPW, got {n_spw_out}")
-

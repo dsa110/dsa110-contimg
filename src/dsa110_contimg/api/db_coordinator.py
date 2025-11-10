@@ -5,12 +5,12 @@ Provides coordination for operations that span multiple SQLite databases.
 
 from __future__ import annotations
 
-import sqlite3
 import logging
-from pathlib import Path
+import sqlite3
 from contextlib import contextmanager
-from typing import List, Dict, Any, Optional
 from dataclasses import dataclass
+from pathlib import Path
+from typing import Any, Dict, List, Optional
 
 logger = logging.getLogger(__name__)
 
@@ -18,6 +18,7 @@ logger = logging.getLogger(__name__)
 @dataclass
 class DatabaseConfig:
     """Configuration for a database."""
+
     name: str
     path: Path
 
@@ -38,19 +39,19 @@ class DatabaseCoordinator:
             for db_name in db_names:
                 if db_name not in self.databases:
                     raise ValueError(f"Database {db_name} not found")
-                
+
                 db_config = self.databases[db_name]
                 conn = sqlite3.connect(str(db_config.path))
                 conn.execute("BEGIN TRANSACTION")
                 connections.append((db_name, conn))
-            
+
             yield connections
-            
+
             # Commit all transactions
             for db_name, conn in connections:
                 conn.commit()
                 conn.close()
-                
+
         except Exception as e:
             # Rollback all transactions on error
             logger.error(f"Transaction failed, rolling back: {e}")
@@ -74,4 +75,3 @@ class DatabaseCoordinator:
             except Exception as e:
                 health[db_name] = f"error: {str(e)}"
         return health
-

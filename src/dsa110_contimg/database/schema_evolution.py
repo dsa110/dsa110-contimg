@@ -4,6 +4,7 @@ This module provides functions to evolve database schemas by adding new tables,
 columns, and indices to existing databases without disrupting operations.
 These are idempotent operations that can be run multiple times safely.
 """
+
 import sqlite3
 import time
 from pathlib import Path
@@ -44,7 +45,8 @@ def evolve_products_schema(db_path: Path, verbose: bool = True) -> bool:
         # Table: variability_stats
         if verbose:
             print("Adding variability_stats table...")
-        cur.execute("""
+        cur.execute(
+            """
             CREATE TABLE IF NOT EXISTS variability_stats (
                 source_id TEXT PRIMARY KEY,
                 ra_deg REAL NOT NULL,
@@ -62,49 +64,23 @@ def evolve_products_schema(db_path: Path, verbose: bool = True) -> bool:
                 last_mjd REAL,
                 updated_at REAL NOT NULL
             )
-        """)
-        
-        # Add missing columns to existing table (safe schema evolution)
-        if _table_exists(cur, 'variability_stats'):
-            _add_column_if_missing(cur, 'variability_stats', 'nvss_flux_mjy', 'REAL')
-            _add_column_if_missing(cur, 'variability_stats', 'n_obs', 'INTEGER DEFAULT 0')
-            _add_column_if_missing(cur, 'variability_stats', 'mean_flux_mjy', 'REAL')
-            _add_column_if_missing(cur, 'variability_stats', 'std_flux_mjy', 'REAL')
-            _add_column_if_missing(cur, 'variability_stats', 'min_flux_mjy', 'REAL')
-            _add_column_if_missing(cur, 'variability_stats', 'max_flux_mjy', 'REAL')
-            _add_column_if_missing(cur, 'variability_stats', 'chi2_nu', 'REAL')
-            _add_column_if_missing(cur, 'variability_stats', 'sigma_deviation', 'REAL')
-            _add_column_if_missing(cur, 'variability_stats', 'eta_metric', 'REAL')
-            _add_column_if_missing(cur, 'variability_stats', 'last_measured_at', 'REAL')
-            _add_column_if_missing(cur, 'variability_stats', 'last_mjd', 'REAL')
-            _add_column_if_missing(cur, 'variability_stats', 'updated_at', 'REAL NOT NULL')
-        
-        # Create indexes only if columns exist (safe to call multiple times)
-        try:
-            cur.execute(
-                "CREATE INDEX IF NOT EXISTS idx_variability_chi2 ON variability_stats(chi2_nu)")
-        except sqlite3.OperationalError:
-            pass  # Column might not exist yet
-        try:
-            cur.execute(
-                "CREATE INDEX IF NOT EXISTS idx_variability_sigma ON variability_stats(sigma_deviation)")
-        except sqlite3.OperationalError:
-            pass  # Column might not exist yet
-        try:
-            cur.execute(
-                "CREATE INDEX IF NOT EXISTS idx_variability_eta ON variability_stats(eta_metric)")
-        except sqlite3.OperationalError:
-            pass  # Column might not exist yet
-        try:
-            cur.execute(
-                "CREATE INDEX IF NOT EXISTS idx_variability_last_mjd ON variability_stats(last_mjd)")
-        except sqlite3.OperationalError:
-            pass  # Column might not exist yet
+        """
+        )
+        cur.execute(
+            "CREATE INDEX IF NOT EXISTS idx_variability_chi2 ON variability_stats(chi2_nu)"
+        )
+        cur.execute(
+            "CREATE INDEX IF NOT EXISTS idx_variability_sigma ON variability_stats(sigma_deviation)"
+        )
+        cur.execute(
+            "CREATE INDEX IF NOT EXISTS idx_variability_last_mjd ON variability_stats(last_mjd)"
+        )
 
         # Table: ese_candidates
         if verbose:
             print("Adding ese_candidates table...")
-        cur.execute("""
+        cur.execute(
+            """
             CREATE TABLE IF NOT EXISTS ese_candidates (
                 id INTEGER PRIMARY KEY AUTOINCREMENT,
                 source_id TEXT NOT NULL,
@@ -118,18 +94,23 @@ def evolve_products_schema(db_path: Path, verbose: bool = True) -> bool:
                 dismissed_at REAL,
                 FOREIGN KEY (source_id) REFERENCES variability_stats(source_id)
             )
-        """)
+        """
+        )
         cur.execute(
-            "CREATE INDEX IF NOT EXISTS idx_ese_source ON ese_candidates(source_id)")
+            "CREATE INDEX IF NOT EXISTS idx_ese_source ON ese_candidates(source_id)"
+        )
         cur.execute(
-            "CREATE INDEX IF NOT EXISTS idx_ese_status ON ese_candidates(status)")
+            "CREATE INDEX IF NOT EXISTS idx_ese_status ON ese_candidates(status)"
+        )
         cur.execute(
-            "CREATE INDEX IF NOT EXISTS idx_ese_flagged ON ese_candidates(flagged_at)")
+            "CREATE INDEX IF NOT EXISTS idx_ese_flagged ON ese_candidates(flagged_at)"
+        )
 
         # Table: mosaics
         if verbose:
             print("Adding mosaics table...")
-        cur.execute("""
+        cur.execute(
+            """
             CREATE TABLE IF NOT EXISTS mosaics (
                 id INTEGER PRIMARY KEY AUTOINCREMENT,
                 path TEXT NOT NULL UNIQUE,
@@ -150,16 +131,20 @@ def evolve_products_schema(db_path: Path, verbose: bool = True) -> bool:
                 n_sources INTEGER,
                 thumbnail_path TEXT
             )
-        """)
+        """
+        )
         cur.execute(
-            "CREATE INDEX IF NOT EXISTS idx_mosaics_created ON mosaics(created_at)")
+            "CREATE INDEX IF NOT EXISTS idx_mosaics_created ON mosaics(created_at)"
+        )
         cur.execute(
-            "CREATE INDEX IF NOT EXISTS idx_mosaics_mjd ON mosaics(start_mjd, end_mjd)")
+            "CREATE INDEX IF NOT EXISTS idx_mosaics_mjd ON mosaics(start_mjd, end_mjd)"
+        )
 
         # Table: alert_history
         if verbose:
             print("Adding alert_history table...")
-        cur.execute("""
+        cur.execute(
+            """
             CREATE TABLE IF NOT EXISTS alert_history (
                 id INTEGER PRIMARY KEY AUTOINCREMENT,
                 source_id TEXT NOT NULL,
@@ -171,18 +156,23 @@ def evolve_products_schema(db_path: Path, verbose: bool = True) -> bool:
                 success INTEGER DEFAULT 1,
                 error_msg TEXT
             )
-        """)
+        """
+        )
         cur.execute(
-            "CREATE INDEX IF NOT EXISTS idx_alert_source ON alert_history(source_id)")
+            "CREATE INDEX IF NOT EXISTS idx_alert_source ON alert_history(source_id)"
+        )
         cur.execute(
-            "CREATE INDEX IF NOT EXISTS idx_alert_sent ON alert_history(sent_at)")
+            "CREATE INDEX IF NOT EXISTS idx_alert_sent ON alert_history(sent_at)"
+        )
         cur.execute(
-            "CREATE INDEX IF NOT EXISTS idx_alert_type ON alert_history(alert_type)")
+            "CREATE INDEX IF NOT EXISTS idx_alert_type ON alert_history(alert_type)"
+        )
 
         # Table: regions
         if verbose:
             print("Adding regions table...")
-        cur.execute("""
+        cur.execute(
+            """
             CREATE TABLE IF NOT EXISTS regions (
                 id INTEGER PRIMARY KEY AUTOINCREMENT,
                 name TEXT NOT NULL,
@@ -194,83 +184,101 @@ def evolve_products_schema(db_path: Path, verbose: bool = True) -> bool:
                 updated_at REAL,
                 FOREIGN KEY (image_path) REFERENCES images(path)
             )
-        """)
+        """
+        )
         cur.execute(
-            "CREATE INDEX IF NOT EXISTS idx_regions_image ON regions(image_path)")
+            "CREATE INDEX IF NOT EXISTS idx_regions_image ON regions(image_path)"
+        )
+        cur.execute("CREATE INDEX IF NOT EXISTS idx_regions_type ON regions(type)")
         cur.execute(
-            "CREATE INDEX IF NOT EXISTS idx_regions_type ON regions(type)")
-        cur.execute(
-            "CREATE INDEX IF NOT EXISTS idx_regions_created ON regions(created_at)")
+            "CREATE INDEX IF NOT EXISTS idx_regions_created ON regions(created_at)"
+        )
 
         # Add missing columns to existing tables (safe schema evolution)
         if verbose:
             print("Checking for missing columns in existing tables...")
 
         # ms_index additions (keep original name, check for ms_all only for backwards compatibility)
-        table_name = 'ms_index' if _table_exists(cur, 'ms_index') else ('ms_all' if _table_exists(cur, 'ms_all') else 'ms_index')
-        _add_column_if_missing(cur, table_name, 'field_name', 'TEXT')
-        _add_column_if_missing(cur, table_name, 'pointing_ra_deg', 'REAL')
-        _add_column_if_missing(cur, table_name, 'pointing_dec_deg', 'REAL')
+        table_name = (
+            "ms_index"
+            if _table_exists(cur, "ms_index")
+            else ("ms_all" if _table_exists(cur, "ms_all") else "ms_index")
+        )
+        _add_column_if_missing(cur, table_name, "field_name", "TEXT")
+        _add_column_if_missing(cur, table_name, "pointing_ra_deg", "REAL")
+        _add_column_if_missing(cur, table_name, "pointing_dec_deg", "REAL")
 
         # images additions (keep original name, check for images_all only for backwards compatibility)
-        img_table = 'images' if _table_exists(cur, 'images') else ('images_all' if _table_exists(cur, 'images_all') else 'images')
-        _add_column_if_missing(cur, img_table, 'format', 'TEXT DEFAULT "fits"')
-        _add_column_if_missing(cur, img_table, 'beam_minor_arcsec', 'REAL')
-        _add_column_if_missing(cur, img_table, 'beam_pa_deg', 'REAL')
-        _add_column_if_missing(cur, img_table, 'dynamic_range', 'REAL')
-        _add_column_if_missing(cur, img_table, 'field_name', 'TEXT')
-        _add_column_if_missing(cur, img_table, 'center_ra_deg', 'REAL')
-        _add_column_if_missing(cur, img_table, 'center_dec_deg', 'REAL')
-        _add_column_if_missing(cur, img_table, 'imsize_x', 'INTEGER')
-        _add_column_if_missing(cur, img_table, 'imsize_y', 'INTEGER')
-        _add_column_if_missing(cur, img_table, 'cellsize_arcsec', 'REAL')
-        _add_column_if_missing(cur, img_table, 'freq_ghz', 'REAL')
-        _add_column_if_missing(cur, img_table, 'bandwidth_mhz', 'REAL')
-        _add_column_if_missing(cur, img_table, 'integration_sec', 'REAL')
+        img_table = (
+            "images"
+            if _table_exists(cur, "images")
+            else ("images_all" if _table_exists(cur, "images_all") else "images")
+        )
+        _add_column_if_missing(cur, img_table, "format", 'TEXT DEFAULT "fits"')
+        _add_column_if_missing(cur, img_table, "beam_minor_arcsec", "REAL")
+        _add_column_if_missing(cur, img_table, "beam_pa_deg", "REAL")
+        _add_column_if_missing(cur, img_table, "dynamic_range", "REAL")
+        _add_column_if_missing(cur, img_table, "field_name", "TEXT")
+        _add_column_if_missing(cur, img_table, "center_ra_deg", "REAL")
+        _add_column_if_missing(cur, img_table, "center_dec_deg", "REAL")
+        _add_column_if_missing(cur, img_table, "imsize_x", "INTEGER")
+        _add_column_if_missing(cur, img_table, "imsize_y", "INTEGER")
+        _add_column_if_missing(cur, img_table, "cellsize_arcsec", "REAL")
+        _add_column_if_missing(cur, img_table, "freq_ghz", "REAL")
+        _add_column_if_missing(cur, img_table, "bandwidth_mhz", "REAL")
+        _add_column_if_missing(cur, img_table, "integration_sec", "REAL")
 
         # photometry additions (only if table exists)
-        if _table_exists(cur, 'photometry'):
-            _add_column_if_missing(cur, 'photometry', 'source_id', 'TEXT')
-            _add_column_if_missing(cur, 'photometry', 'snr', 'REAL')
-            _add_column_if_missing(cur, 'photometry', 'mjd', 'REAL')
-            _add_column_if_missing(
-                cur, 'photometry', 'sep_from_center_deg', 'REAL')
-            _add_column_if_missing(
-                cur, 'photometry', 'flags', 'INTEGER DEFAULT 0')
+        if _table_exists(cur, "photometry"):
+            _add_column_if_missing(cur, "photometry", "source_id", "TEXT")
+            _add_column_if_missing(cur, "photometry", "snr", "REAL")
+            _add_column_if_missing(cur, "photometry", "mjd", "REAL")
+            _add_column_if_missing(cur, "photometry", "sep_from_center_deg", "REAL")
+            _add_column_if_missing(cur, "photometry", "flags", "INTEGER DEFAULT 0")
             cur.execute(
-                "CREATE INDEX IF NOT EXISTS idx_photometry_source_mjd ON photometry(source_id, mjd)")
-        
-        # Note: eta_metric column is already added above in the variability_stats table creation section
-        # This section is kept for backwards compatibility but is now redundant
+                "CREATE INDEX IF NOT EXISTS idx_photometry_source_mjd ON photometry(source_id, mjd)"
+            )
 
         # Add missing indices (handle renamed tables)
 
         # Handle table names (prefer original names, fallback to *_all for backwards compatibility)
-        img_table = 'images' if _table_exists(cur, 'images') else ('images_all' if _table_exists(cur, 'images_all') else 'images')
-        ms_table = 'ms_index' if _table_exists(cur, 'ms_index') else ('ms_all' if _table_exists(cur, 'ms_all') else 'ms_index')
+        img_table = (
+            "images"
+            if _table_exists(cur, "images")
+            else ("images_all" if _table_exists(cur, "images_all") else "images")
+        )
+        ms_table = (
+            "ms_index"
+            if _table_exists(cur, "ms_index")
+            else ("ms_all" if _table_exists(cur, "ms_all") else "ms_index")
+        )
 
         if _table_exists(cur, img_table):
             # Check if field_name column exists before creating index
             cur.execute(f"PRAGMA table_info({img_table})")
             img_columns = {row[1] for row in cur.fetchall()}
-            if 'field_name' in img_columns:
+            if "field_name" in img_columns:
                 cur.execute(
-                    f"CREATE INDEX IF NOT EXISTS idx_images_field ON {img_table}(field_name)")
+                    f"CREATE INDEX IF NOT EXISTS idx_images_field ON {img_table}(field_name)"
+                )
 
         if _table_exists(cur, ms_table):
             # Check if columns exist before creating indices
             cur.execute(f"PRAGMA table_info({ms_table})")
             ms_columns = {row[1] for row in cur.fetchall()}
-            if 'field_name' in ms_columns:
+            if "field_name" in ms_columns:
                 cur.execute(
-                    f"CREATE INDEX IF NOT EXISTS idx_ms_index_field ON {ms_table}(field_name)")
-            if 'mid_mjd' in ms_columns:
+                    f"CREATE INDEX IF NOT EXISTS idx_ms_index_field ON {ms_table}(field_name)"
+                )
+            if "mid_mjd" in ms_columns:
                 cur.execute(
-                    f"CREATE INDEX IF NOT EXISTS idx_ms_index_mjd ON {ms_table}(mid_mjd)")
+                    f"CREATE INDEX IF NOT EXISTS idx_ms_index_mjd ON {ms_table}(mid_mjd)"
+                )
 
         # Run data registry setup (this will add registry tables and ensure consistent naming)
         # We do this AFTER adding columns to avoid conflicts
         from dsa110_contimg.database.registry_setup import setup_data_registry
+
         setup_data_registry(db_path, verbose=verbose)
 
         # Re-commit after data registry setup
@@ -292,15 +300,16 @@ def _table_exists(cursor: sqlite3.Cursor, table: str) -> bool:
     """Check if a table exists."""
     try:
         cursor.execute(
-            "SELECT name FROM sqlite_master WHERE type='table' AND name=?",
-            (table,)
+            "SELECT name FROM sqlite_master WHERE type='table' AND name=?", (table,)
         )
         return cursor.fetchone() is not None
     except Exception:
         return False
 
 
-def _add_column_if_missing(cursor: sqlite3.Cursor, table: str, column: str, col_type: str):
+def _add_column_if_missing(
+    cursor: sqlite3.Cursor, table: str, column: str, col_type: str
+):
     """Add column to table if it doesn't exist (SQLite safe schema evolution)."""
     try:
         # Check if table exists first
@@ -310,18 +319,9 @@ def _add_column_if_missing(cursor: sqlite3.Cursor, table: str, column: str, col_
         cursor.execute(f"PRAGMA table_info({table})")
         columns = {row[1] for row in cursor.fetchall()}
         if column not in columns:
-            cursor.execute(
-                f"ALTER TABLE {table} ADD COLUMN {column} {col_type}")
-    except sqlite3.OperationalError as e:
-        # Column might already exist (SQLite doesn't support IF NOT EXISTS for ALTER TABLE)
-        # This is expected and safe to ignore
-        if "duplicate column" not in str(e).lower():
-            # Re-raise if it's a different operational error
-            raise
-    except Exception as e:
-        # Log other exceptions but don't fail schema evolution
-        # Column might already exist or table doesn't exist
-        pass
+            cursor.execute(f"ALTER TABLE {table} ADD COLUMN {column} {col_type}")
+    except Exception:
+        pass  # Column might already exist or table doesn't exist
 
 
 def evolve_ingest_schema(db_path: Path, verbose: bool = True) -> bool:
@@ -342,9 +342,8 @@ def evolve_ingest_schema(db_path: Path, verbose: bool = True) -> bool:
         if verbose:
             print("Checking ingest_queue table...")
 
-        _add_column_if_missing(cur, 'ingest_queue',
-                               'retry_count', 'INTEGER DEFAULT 0')
-        _add_column_if_missing(cur, 'ingest_queue', 'error_message', 'TEXT')
+        _add_column_if_missing(cur, "ingest_queue", "retry_count", "INTEGER DEFAULT 0")
+        _add_column_if_missing(cur, "ingest_queue", "error_message", "TEXT")
 
         conn.commit()
         if verbose:
@@ -359,9 +358,11 @@ def evolve_ingest_schema(db_path: Path, verbose: bool = True) -> bool:
         conn.close()
 
 
-def evolve_all_schemas(state_dir: Path = Path("/data/dsa110-contimg/state"), verbose: bool = True):
+def evolve_all_schemas(
+    state_dir: Path = Path("/data/dsa110-contimg/state"), verbose: bool = True
+):
     """Evolve all database schemas to latest version.
-    
+
     Runs schema evolution on all standard database locations.
     """
     if verbose:
@@ -373,13 +374,13 @@ def evolve_all_schemas(state_dir: Path = Path("/data/dsa110-contimg/state"), ver
     products_db = state_dir / "products.sqlite3"
     if verbose:
         print(f"Evolving schema for {products_db}...")
-    results['products'] = evolve_products_schema(products_db, verbose=verbose)
+    results["products"] = evolve_products_schema(products_db, verbose=verbose)
 
     # Ingest database
     ingest_db = state_dir / "ingest.sqlite3"
     if verbose:
         print(f"\nEvolving schema for {ingest_db}...")
-    results['ingest'] = evolve_ingest_schema(ingest_db, verbose=verbose)
+    results["ingest"] = evolve_ingest_schema(ingest_db, verbose=verbose)
 
     if verbose:
         print("\n=== Schema Evolution Summary ===")
@@ -398,7 +399,9 @@ migrate_all = evolve_all_schemas
 
 if __name__ == "__main__":
     import sys
-    state_dir = Path(sys.argv[1]) if len(
-        sys.argv) > 1 else Path("/data/dsa110-contimg/state")
+
+    state_dir = (
+        Path(sys.argv[1]) if len(sys.argv) > 1 else Path("/data/dsa110-contimg/state")
+    )
     success = migrate_all(state_dir, verbose=True)
     sys.exit(0 if success else 1)

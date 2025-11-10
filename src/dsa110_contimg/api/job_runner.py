@@ -7,32 +7,32 @@ archive/legacy/api/job_runner_legacy.py.
 
 from __future__ import annotations
 
+import os
+import sys
 from pathlib import Path
 from typing import List
 
 # Import all job functions from the new adapters
 from dsa110_contimg.api.job_adapters import (
-    run_convert_job,
-    run_calibrate_job,
     run_apply_job,
-    run_image_job,
-    run_batch_calibrate_job,
     run_batch_apply_job,
+    run_batch_calibrate_job,
     run_batch_image_job,
+    run_calibrate_job,
+    run_convert_job,
+    run_image_job,
 )
+
+# Keep helper functions that may still be used
+from dsa110_contimg.database.products import ensure_products_db
 
 # Import workflow adapter
 from dsa110_contimg.pipeline.adapter import LegacyWorkflowAdapter
 
-# Keep helper functions that may still be used
-from dsa110_contimg.database.products import ensure_products_db
-import os
-import sys
-
 
 def _python_cmd_for_jobs() -> list[str]:
     """Decide how to invoke Python for job subprocesses.
-    
+
     This is a utility function used by health checks and other diagnostic tools.
     It's not part of the legacy job runner - it's a general utility.
 
@@ -52,7 +52,7 @@ def _python_cmd_for_jobs() -> list[str]:
 
 def _src_path_for_env() -> str:
     """Compute repository src path to export into PYTHONPATH for child processes.
-    
+
     This is a utility function used by health checks and other diagnostic tools.
     It's not part of the legacy job runner - it's a general utility.
     """
@@ -70,7 +70,7 @@ def _src_path_for_env() -> str:
 def list_caltables(ms_path: str) -> List[str]:
     """Discover calibration tables associated with an MS."""
     from pathlib import Path
-    
+
     ms_dir = Path(ms_path).parent
     ms_stem = Path(ms_path).stem
 
@@ -85,11 +85,11 @@ def list_caltables(ms_path: str) -> List[str]:
 
 def run_workflow_job(job_id: int, params: dict, products_db: Path) -> None:
     """Run full pipeline workflow: Convert → Calibrate → Image.
-    
+
     This function uses the new pipeline framework by default.
     The new framework provides better error handling, retry policies,
     and observability compared to the legacy subprocess-based execution.
-    
+
     Args:
         job_id: Job ID from database
         params: Job parameters

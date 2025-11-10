@@ -34,15 +34,9 @@ class TestSubbandOrdering:
             _extract_subband_code,
         )
 
-        assert _extract_subband_code(
-            "2025-10-29T13:54:17_sb00.hdf5"
-        ) == "sb00"
-        assert _extract_subband_code(
-            "2025-10-29T13:54:18_sb03.hdf5"
-        ) == "sb03"
-        assert _extract_subband_code(
-            "2025-10-29T13:54:17_sb15.hdf5"
-        ) == "sb15"
+        assert _extract_subband_code("2025-10-29T13:54:17_sb00.hdf5") == "sb00"
+        assert _extract_subband_code("2025-10-29T13:54:18_sb03.hdf5") == "sb03"
+        assert _extract_subband_code("2025-10-29T13:54:17_sb15.hdf5") == "sb15"
         assert _extract_subband_code("no_subband.hdf5") is None
 
     def test_subband_sorting(self):
@@ -83,18 +77,14 @@ class TestSubbandOrdering:
     def test_complete_subband_group(self):
         """Test that complete 16-subband groups are identified correctly."""
         # Create mock files for all 16 subbands
-        files = [
-            f"2025-10-29T13:54:17_sb{i:02d}.hdf5" for i in range(16)
-        ]
+        files = [f"2025-10-29T13:54:17_sb{i:02d}.hdf5" for i in range(16)]
 
         # Verify all subbands present
         from dsa110_contimg.conversion.strategies.hdf5_orchestrator import (
             _extract_subband_code,
         )
 
-        subband_codes = [
-            _extract_subband_code(os.path.basename(f)) for f in files
-        ]
+        subband_codes = [_extract_subband_code(os.path.basename(f)) for f in files]
         subband_nums = sorted(
             [
                 int(sb.replace("sb", ""))
@@ -119,18 +109,14 @@ class TestMSPhasing:
 
     def test_phase_center_alignment(self):
         """Test that phase center alignment calculation works."""
-        from astropy.coordinates import SkyCoord  # type: ignore
         from astropy import units as u  # type: ignore
+        from astropy.coordinates import SkyCoord  # type: ignore
 
         # Calibrator position (0834+555)
-        cal_coord = SkyCoord(
-            ra=128.7287 * u.deg, dec=55.5725 * u.deg, frame="icrs"
-        )
+        cal_coord = SkyCoord(ra=128.7287 * u.deg, dec=55.5725 * u.deg, frame="icrs")
 
         # MS phase center (offset)
-        ms_coord = SkyCoord(
-            ra=128.5719 * u.deg, dec=54.6652 * u.deg, frame="icrs"
-        )
+        ms_coord = SkyCoord(ra=128.5719 * u.deg, dec=54.6652 * u.deg, frame="icrs")
 
         # Calculate separation
         separation = ms_coord.separation(cal_coord)
@@ -141,14 +127,12 @@ class TestMSPhasing:
         assert sep_arcmin < 60, "Separation should be ~54.7 arcmin"
 
         # After rephasing, should be < 1 arcmin
-        aligned_coord = SkyCoord(
-            ra=128.7287 * u.deg, dec=55.5725 * u.deg, frame="icrs"
-        )
+        aligned_coord = SkyCoord(ra=128.7287 * u.deg, dec=55.5725 * u.deg, frame="icrs")
         aligned_separation = aligned_coord.separation(cal_coord)
         aligned_sep_arcmin = aligned_separation.to(u.arcmin).value
-        assert aligned_sep_arcmin < 1.0, (
-            "After rephasing, separation should be < 1 arcmin"
-        )
+        assert (
+            aligned_sep_arcmin < 1.0
+        ), "After rephasing, separation should be < 1 arcmin"
 
 
 class TestModelData:
@@ -180,15 +164,11 @@ class TestPreBandpassPhase:
     def test_solint_parameter_default(self):
         """Test that default solint is 'inf' (problematic)."""
         default_solint = "inf"
-        assert default_solint == "inf", (
-            "Default solint is 'inf' (causes decorrelation)"
-        )
+        assert default_solint == "inf", "Default solint is 'inf' (causes decorrelation)"
 
         # Recommended value
         recommended_solint = "30s"
-        assert recommended_solint != default_solint, (
-            "Should use 30s, not inf"
-        )
+        assert recommended_solint != default_solint, "Should use 30s, not inf"
 
     def test_minsnr_parameter_default(self):
         """Test that default minsnr is 5.0 (too strict)."""
@@ -208,9 +188,9 @@ class TestPreBandpassPhase:
         flagging_rate_inf = 0.80  # 80% flagged with solint='inf'
         flagging_rate_30s = 0.25  # 25% flagged with solint='30s'
 
-        assert flagging_rate_inf > flagging_rate_30s, (
-            "solint='inf' should cause higher flagging than solint='30s'"
-        )
+        assert (
+            flagging_rate_inf > flagging_rate_30s
+        ), "solint='inf' should cause higher flagging than solint='30s'"
 
 
 class TestBandpassCalibration:
@@ -233,28 +213,32 @@ class TestBandpassCalibration:
         bp_minsnr = 3.0
         prebp_minsnr = 5.0
 
-        assert bp_minsnr < prebp_minsnr, "Bandpass should be more lenient than pre-bandpass"
+        assert (
+            bp_minsnr < prebp_minsnr
+        ), "Bandpass should be more lenient than pre-bandpass"
 
     def test_combine_spw_parameter(self):
         """Test that combine_spw parameter exists and works."""
         # This is a smoke test - verify parameter exists
-        from dsa110_contimg.calibration.calibration import solve_bandpass
         import inspect
 
+        from dsa110_contimg.calibration.calibration import solve_bandpass
+
         sig = inspect.signature(solve_bandpass)
-        assert "combine_spw" in sig.parameters, (
-            "solve_bandpass should have combine_spw parameter"
-        )
+        assert (
+            "combine_spw" in sig.parameters
+        ), "solve_bandpass should have combine_spw parameter"
 
     def test_combine_fields_parameter(self):
         """Test that combine_fields parameter exists and works."""
-        from dsa110_contimg.calibration.calibration import solve_bandpass
         import inspect
 
+        from dsa110_contimg.calibration.calibration import solve_bandpass
+
         sig = inspect.signature(solve_bandpass)
-        assert "combine_fields" in sig.parameters, (
-            "solve_bandpass should have combine_fields parameter"
-        )
+        assert (
+            "combine_fields" in sig.parameters
+        ), "solve_bandpass should have combine_fields parameter"
 
 
 class TestCalibrationWorkflowIntegration:
@@ -315,11 +299,8 @@ class TestCalibrationQualityMetrics:
 
         assert n_flagged == 1, "Only one solution should be flagged (SNR=2.5)"
         assert flagged[0], "First solution should be flagged"
-        assert not flagged[1:].any(), (
-            "Other solutions should not be flagged"
-        )
+        assert not flagged[1:].any(), "Other solutions should not be flagged"
 
 
 if __name__ == "__main__":
     pytest.main([__file__, "-v"])
-

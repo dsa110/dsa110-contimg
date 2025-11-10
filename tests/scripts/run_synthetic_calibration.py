@@ -19,14 +19,14 @@ import os
 from pathlib import Path
 from typing import Optional
 
-from dsa110_contimg.conversion.uvh5_to_ms import convert_single_file
-from dsa110_contimg.calibration.model import write_point_model_with_ft
-from dsa110_contimg.calibration.flagging import reset_flags, flag_zeros
 from dsa110_contimg.calibration.calibration import (
-    solve_prebandpass_phase,
     solve_bandpass,
     solve_gains,
+    solve_prebandpass_phase,
 )
+from dsa110_contimg.calibration.flagging import flag_zeros, reset_flags
+from dsa110_contimg.calibration.model import write_point_model_with_ft
+from dsa110_contimg.conversion.uvh5_to_ms import convert_single_file
 
 
 def run(
@@ -58,7 +58,13 @@ def run(
     prebp = None
     if do_prebp:
         prebp = solve_prebandpass_phase(
-            str(ms_path), "0", refant, combine_fields=False, uvrange="", solint="inf", minsnr=5.0
+            str(ms_path),
+            "0",
+            refant,
+            combine_fields=False,
+            uvrange="",
+            solint="inf",
+            minsnr=5.0,
         )
 
     # 6) Bandpass solve
@@ -154,12 +160,12 @@ def main() -> int:
         bp_minsnr=float(args.bp_minsnr),
         gain_minsnr=float(args.gain_minsnr),
         bp_smooth_type=str(args.bp_smooth_type or "none"),
-        bp_smooth_window=(int(args.bp_smooth_window) if args.bp_smooth_window is not None else None),
+        bp_smooth_window=(
+            int(args.bp_smooth_window) if args.bp_smooth_window is not None else None
+        ),
     )
     return 0
 
 
 if __name__ == "__main__":
     raise SystemExit(main())
-
-

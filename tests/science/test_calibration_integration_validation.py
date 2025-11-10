@@ -33,7 +33,7 @@ def calibration_table_paths():
     bp_table = os.environ.get("TEST_BP_TABLE", "")
     prebp_table = os.environ.get("TEST_PREBP_TABLE", "")
     g_table = os.environ.get("TEST_G_TABLE", "")
-    
+
     return {
         "bandpass": bp_table,
         "prebandpass": prebp_table,
@@ -70,6 +70,7 @@ class TestActualCalibrationFluxScale:
     def test_bandpass_normalization_from_table(self, calibration_table_paths):
         """Validate bandpass normalization from actual table."""
         from casacore.tables import table
+
         from dsa110_contimg.qa.calibration_quality import validate_caltable_quality
 
         bp_table = calibration_table_paths["bandpass"]
@@ -190,7 +191,7 @@ class TestActualCalibrationPhaseQuality:
                 UserWarning,
                 f"Bandpass flagged fraction {fraction_flagged:.1%} exceeds "
                 f"target {target_flagged:.1%} (though below maximum). "
-                f"Consider improving calibration parameters."
+                f"Consider improving calibration parameters.",
             )
 
 
@@ -203,9 +204,9 @@ class TestActualMSStructure:
     )
     def test_ms_phase_center_alignment(self, ms_path, known_calibrator_info):
         """Validate MS phase center alignment from actual MS."""
-        from casacore.tables import table
-        from astropy.coordinates import SkyCoord
         from astropy import units as u
+        from astropy.coordinates import SkyCoord
+        from casacore.tables import table
 
         if not ms_path or not os.path.exists(ms_path):
             pytest.skip(f"MS not found: {ms_path}")
@@ -227,7 +228,9 @@ class TestActualMSStructure:
         cal_ra = known_calibrator_info["ra_deg"]
         cal_dec = known_calibrator_info["dec_deg"]
 
-        ms_coord = SkyCoord(ra=ref_ra_deg * u.deg, dec=ref_dec_deg * u.deg, frame="icrs")
+        ms_coord = SkyCoord(
+            ra=ref_ra_deg * u.deg, dec=ref_dec_deg * u.deg, frame="icrs"
+        )
         cal_coord = SkyCoord(ra=cal_ra * u.deg, dec=cal_dec * u.deg, frame="icrs")
         separation = ms_coord.separation(cal_coord)
 
@@ -350,4 +353,3 @@ class TestActualCASACompliance:
 
 if __name__ == "__main__":
     pytest.main([__file__, "-v"])
-

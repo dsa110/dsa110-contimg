@@ -7,7 +7,6 @@ making it easier to manage, document, and validate defaults.
 
 import os
 
-
 # ============================================================================
 # Calibration Defaults
 # ============================================================================
@@ -87,6 +86,7 @@ CONV_MAX_WORKERS = 4  # Number of parallel workers
 # Environment Variable Overrides
 # ============================================================================
 
+
 def get_cal_bp_minsnr() -> float:
     """Get BP minimum SNR from environment or default."""
     return float(os.getenv("CONTIMG_CAL_BP_MINSNR", str(CAL_BP_MINSNR)))
@@ -125,6 +125,7 @@ def get_conv_max_workers() -> int:
 # ============================================================================
 # Default Validation
 # ============================================================================
+
 
 def validate_defaults() -> list[str]:
     """

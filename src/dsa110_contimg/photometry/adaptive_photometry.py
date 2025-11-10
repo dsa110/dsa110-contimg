@@ -4,6 +4,7 @@ Adaptive binning photometry integration for DSA-110 pipeline.
 This module integrates adaptive channel binning with the photometry workflow,
 allowing automatic detection of weak sources by combining multiple subbands.
 """
+
 from __future__ import annotations
 
 import logging
@@ -13,6 +14,7 @@ from typing import Callable, List, Optional, Tuple
 
 import numpy as np
 
+from dsa110_contimg.imaging.spw_imaging import get_spw_info, image_all_spws
 from dsa110_contimg.photometry.adaptive_binning import (
     AdaptiveBinningConfig,
     Detection,
@@ -20,11 +22,10 @@ from dsa110_contimg.photometry.adaptive_binning import (
     create_measure_fn_from_images,
 )
 from dsa110_contimg.photometry.forced import measure_forced_peak
-from dsa110_contimg.imaging.spw_imaging import get_spw_info, image_all_spws
 from dsa110_contimg.utils.runtime_safeguards import (
-    progress_monitor,
-    log_progress,
     filter_non_finite_2d,
+    log_progress,
+    progress_monitor,
 )
 
 LOG = logging.getLogger(__name__)
@@ -33,6 +34,7 @@ LOG = logging.getLogger(__name__)
 @dataclass
 class AdaptivePhotometryResult:
     """Result from adaptive binning photometry."""
+
     ra_deg: float
     dec_deg: float
     detections: List[Detection]
@@ -49,13 +51,12 @@ def measure_with_adaptive_binning(
     dec_deg: float,
     output_dir: Path,
     config: Optional[AdaptiveBinningConfig] = None,
-    photometry_fn: Optional[Callable[[
-        str, float, float], Tuple[float, float]]] = None,
+    photometry_fn: Optional[Callable[[str, float, float], Tuple[float, float]]] = None,
     max_spws: Optional[int] = None,
     **imaging_kwargs,
 ) -> AdaptivePhotometryResult:
     """Measure photometry using adaptive channel binning.
-    
+
     import time
     start_time_sec = time.time()
     log_progress(f"Starting adaptive photometry at ({ra_deg:.6f}, {dec_deg:.6f})...")
@@ -115,8 +116,7 @@ def measure_with_adaptive_binning(
         # Limit SPWs if requested
         if max_spws is not None and max_spws < n_spws:
             LOG.info(f"Limiting to first {max_spws} SPW(s) (out of {n_spws})")
-            spw_ids_to_image = [
-                info.spw_id for info in spw_info_list[:max_spws]]
+            spw_ids_to_image = [info.spw_id for info in spw_info_list[:max_spws]]
             n_spws_used = max_spws
         else:
             spw_ids_to_image = None
@@ -128,9 +128,9 @@ def measure_with_adaptive_binning(
 
         LOG.info(f"Imaging {n_spws_used} SPW(s)...")
         # Extract parallel imaging parameters if provided
-        parallel = imaging_kwargs.pop('parallel', False)
-        max_workers = imaging_kwargs.pop('max_workers', None)
-        serialize_ms_access = imaging_kwargs.pop('serialize_ms_access', False)
+        parallel = imaging_kwargs.pop("parallel", False)
+        max_workers = imaging_kwargs.pop("max_workers", None)
+        serialize_ms_access = imaging_kwargs.pop("serialize_ms_access", False)
 
         spw_image_paths = image_all_spws(
             ms_path=ms_path,
@@ -155,7 +155,10 @@ def measure_with_adaptive_binning(
 
         # Create photometry function if not provided
         if photometry_fn is None:
-            def photometry_fn(image_path: str, ra: float, dec: float) -> Tuple[float, float]:
+
+            def photometry_fn(
+                image_path: str, ra: float, dec: float
+            ) -> Tuple[float, float]:
                 """Default photometry using measure_forced_peak."""
                 result = measure_forced_peak(
                     image_path,
@@ -166,12 +169,23 @@ def measure_with_adaptive_binning(
                 )
                 # Convert from Jy/beam to Jy (approximate)
                 flux_jy = result.peak_jyb
-                rms_jy = result.peak_err_jyb if result.peak_err_jyb is not None else result.local_rms_jy
+                rms_jy = (
+                    result.peak_err_jyb
+                    if result.peak_err_jyb is not None
+                    else result.local_rms_jy
+                )
                 # Filter non-finite values from RMS calculation
                 if rms_jy is None or not np.isfinite(rms_jy):
                     # Use safe filtering if rms_jy is invalid
-                    if hasattr(measure_result, 'rms_jy') and measure_result.rms_jy is not None:
-                        rms_jy = measure_result.rms_jy if np.isfinite(measure_result.rms_jy) else None
+                    if (
+                        hasattr(measure_result, "rms_jy")
+                        and measure_result.rms_jy is not None
+                    ):
+                        rms_jy = (
+                            measure_result.rms_jy
+                            if np.isfinite(measure_result.rms_jy)
+                            else None
+                        )
                     rms_jy = 0.001  # Default RMS if not available
                 return flux_jy, rms_jy
 
@@ -187,7 +201,8 @@ def measure_with_adaptive_binning(
         # Use only the SPWs that were actually imaged
         spw_ids_imaged = [spw_id for spw_id, _ in spw_image_paths]
         spw_info_used = [
-            info for info in spw_info_list if info.spw_id in spw_ids_imaged]
+            info for info in spw_info_list if info.spw_id in spw_ids_imaged
+        ]
         channel_freqs_mhz = [info.center_freq_mhz for info in spw_info_used]
 
         # Run adaptive binning
@@ -201,7 +216,10 @@ def measure_with_adaptive_binning(
 
         LOG.info(f"Found {len(detections)} detection(s) with adaptive binning")
 
-        log_progress(f"Completed adaptive photometry: {len(detections)} detection(s) found", start_time_sec)
+        log_progress(
+            f"Completed adaptive photometry: {len(detections)} detection(s) found",
+            start_time_sec,
+        )
         return AdaptivePhotometryResult(
             ra_deg=ra_deg,
             dec_deg=dec_deg,

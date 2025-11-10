@@ -18,7 +18,7 @@ import json
 import os
 from dataclasses import dataclass
 from datetime import datetime
-from typing import Dict, List, Optional, Tuple, Any
+from typing import Any, Dict, List, Optional, Tuple
 
 
 def _import_casa() -> Tuple[Any, Any, Dict[str, Optional[str]]]:
@@ -37,14 +37,14 @@ def _import_casa() -> Tuple[Any, Any, Dict[str, Optional[str]]]:
 
     try:
         # CASA 6 essentials
-        from casatools import msmetadata, table  # type: ignore
-        from casatasks import (
-            listobs,
-            flagdata,
-            visstat,
-            tclean,
+        from casatasks import (  # type: ignore
             applycal,
-        )  # type: ignore
+            flagdata,
+            listobs,
+            tclean,
+            visstat,
+        )
+        from casatools import msmetadata, table  # type: ignore
 
         tools["msmetadata"] = msmetadata
         tools["table"] = table
@@ -70,6 +70,7 @@ def _import_casa() -> Tuple[Any, Any, Dict[str, Optional[str]]]:
 
         try:
             import casatools  # type: ignore
+
             versions["casa"] = getattr(casatools, "version", lambda: "unknown")()
         except Exception:
             versions["casa"] = "unknown"
@@ -109,7 +110,9 @@ class QaResult:
     artifacts: List[str]
 
 
-def inventory_and_provenance(ms_path: str, qa_root: str, extra_metadata: Optional[Dict[str, Any]] = None) -> Dict[str, Any]:
+def inventory_and_provenance(
+    ms_path: str, qa_root: str, extra_metadata: Optional[Dict[str, Any]] = None
+) -> Dict[str, Any]:
     ensure_dir(qa_root)
     st = os.stat(ms_path)
     meta = {
@@ -128,7 +131,11 @@ def structural_validation(ms_path: str) -> Dict[str, Any]:
     msmd = tools["msmetadata"]()
     tb = tools["table"]()
 
-    details: Dict[str, Any] = {"required_subtables": {}, "required_columns": {}, "openable": True}
+    details: Dict[str, Any] = {
+        "required_subtables": {},
+        "required_columns": {},
+        "openable": True,
+    }
     try:
         msmd.open(ms_path)
         # Touch some basic queries to ensure core tables are consistent
@@ -224,13 +231,22 @@ def generate_plots(ms_path: str, qa_root: str) -> List[str]:
 def rfi_dryrun(ms_path: str, qa_root: str) -> str:
     _, tasks, _ = _import_casa()
     outfile = os.path.join(qa_root, "rflag_report.txt")
-    tasks["flagdata"](vis=ms_path, mode="rflag", action="calculate", display="report", outfile=outfile)
+    tasks["flagdata"](
+        vis=ms_path, mode="rflag", action="calculate", display="report", outfile=outfile
+    )
     return outfile
 
 
-def calibration_dryrun(ms_path: str, qa_root: str, gaintables: Optional[List[str]] = None) -> Dict[str, Any]:
+def calibration_dryrun(
+    ms_path: str, qa_root: str, gaintables: Optional[List[str]] = None
+) -> Dict[str, Any]:
     _, tasks, _ = _import_casa()
-    result: Dict[str, Any] = {"attempted": False, "success": False, "error": None, "created_corrected": False}
+    result: Dict[str, Any] = {
+        "attempted": False,
+        "success": False,
+        "error": None,
+        "created_corrected": False,
+    }
     if not gaintables:
         return result
 
@@ -263,7 +279,9 @@ def calibration_dryrun(ms_path: str, qa_root: str, gaintables: Optional[List[str
     return result
 
 
-def tclean_smoketest(ms_path: str, qa_root: str, imagename: str = "smoke") -> Dict[str, Any]:
+def tclean_smoketest(
+    ms_path: str, qa_root: str, imagename: str = "smoke"
+) -> Dict[str, Any]:
     _, tasks, _ = _import_casa()
     imgroot = os.path.join(qa_root, imagename)
     try:
@@ -287,16 +305,20 @@ def tclean_smoketest(ms_path: str, qa_root: str, imagename: str = "smoke") -> Di
 
     artifacts = [
         f
-        for f in [
-            imgroot + ext
-            for ext in [".image", ".residual", ".psf", ".pb"]
-        ]
+        for f in [imgroot + ext for ext in [".image", ".residual", ".psf", ".pb"]]
         if os.path.exists(f)
     ]
-    return {"success": success, "error": error, "artifacts": artifacts, "imagename": imgroot}
+    return {
+        "success": success,
+        "error": error,
+        "artifacts": artifacts,
+        "imagename": imgroot,
+    }
 
 
-def evaluate_pass_fail(metrics: Dict[str, Any], thresholds: QaThresholds) -> Tuple[bool, List[str]]:
+def evaluate_pass_fail(
+    metrics: Dict[str, Any], thresholds: QaThresholds
+) -> Tuple[bool, List[str]]:
     reasons: List[str] = []
     ok = True
 
@@ -318,13 +340,17 @@ def evaluate_pass_fail(metrics: Dict[str, Any], thresholds: QaThresholds) -> Tup
     flag_frac = metrics.get("flag_summary", {}).get("flagged_fraction_overall")
     if flag_frac is not None and flag_frac > thresholds.max_flagged_fraction:
         ok = False
-        reasons.append(f"Too much flagged data: {flag_frac:.2f} > {thresholds.max_flagged_fraction}")
+        reasons.append(
+            f"Too much flagged data: {flag_frac:.2f} > {thresholds.max_flagged_fraction}"
+        )
 
     # NaN/Inf fraction
     naninf_frac = metrics.get("data_integrity", {}).get("naninf_fraction")
     if naninf_frac is not None and naninf_frac > thresholds.max_naninf_fraction:
         ok = False
-        reasons.append(f"NaN/Inf fraction {naninf_frac:.3f} > {thresholds.max_naninf_fraction}")
+        reasons.append(
+            f"NaN/Inf fraction {naninf_frac:.3f} > {thresholds.max_naninf_fraction}"
+        )
 
     # Antenna count
     n_ant = metrics.get("antenna_geometry", {}).get("num_antennas")
@@ -336,7 +362,9 @@ def evaluate_pass_fail(metrics: Dict[str, Any], thresholds: QaThresholds) -> Tup
     ws_dev = metrics.get("data_integrity", {}).get("weight_sigma_max_deviation")
     if ws_dev is not None and ws_dev > thresholds.weight_sigma_tolerance:
         ok = False
-        reasons.append(f"WEIGHT vs SIGMA mismatch: {ws_dev:.2f} > {thresholds.weight_sigma_tolerance}")
+        reasons.append(
+            f"WEIGHT vs SIGMA mismatch: {ws_dev:.2f} > {thresholds.weight_sigma_tolerance}"
+        )
 
     # Imaging SNR
     snr = metrics.get("imaging", {}).get("calibrator_snr")
@@ -491,7 +519,11 @@ def run_ms_qa(
     try:
         metrics["calibration"] = calibration_dryrun(ms_path, qa_root, gaintables)
     except Exception as e:
-        metrics["calibration"] = {"attempted": bool(gaintables), "success": False, "error": str(e)}
+        metrics["calibration"] = {
+            "attempted": bool(gaintables),
+            "success": False,
+            "error": str(e),
+        }
 
     # 10) Imaging smoke test
     try:
@@ -504,7 +536,13 @@ def run_ms_qa(
         metrics["imaging"] = {"success": False, "error": str(e)}
 
     success, reasons = evaluate_pass_fail(metrics, thresholds)
-    result = QaResult(ms_path=ms_path, success=success, reasons=reasons, metrics=metrics, artifacts=artifacts)
+    result = QaResult(
+        ms_path=ms_path,
+        success=success,
+        reasons=reasons,
+        metrics=metrics,
+        artifacts=artifacts,
+    )
     report_path = write_report(qa_root, result)
     artifacts.append(report_path)
     return result
@@ -515,5 +553,3 @@ __all__ = [
     "QaResult",
     "run_ms_qa",
 ]
-
-

@@ -5,6 +5,7 @@ This module provides a context manager to serialize access to Measurement Sets,
 preventing CASA table lock conflicts when multiple processes try to access the
 same MS concurrently.
 """
+
 from __future__ import annotations
 
 import fcntl

@@ -11,11 +11,11 @@ Usage:
 
 from __future__ import annotations
 
+import csv
 import os
 import sqlite3
 import sys
 from pathlib import Path
-import csv
 
 
 def ensure_repo_on_path() -> None:
@@ -57,7 +57,9 @@ def write_mock_catalogs(basedir: Path) -> tuple[Path, Path, Path]:
 
 def export_view_to_csv(db_path: Path, view: str, out_csv: Path) -> None:
     out_csv.parent.mkdir(parents=True, exist_ok=True)
-    with sqlite3.connect(os.fspath(db_path)) as conn, open(out_csv, "w", newline="", encoding="utf-8") as f:
+    with sqlite3.connect(os.fspath(db_path)) as conn, open(
+        out_csv, "w", newline="", encoding="utf-8"
+    ) as f:
         cur = conn.execute(f"SELECT * FROM {view}")
         cols = [c[0] for c in cur.description]
         w = csv.writer(f)
@@ -105,7 +107,7 @@ def main() -> int:
         for r in rows:
             print("ROW:", r)
         meta = conn.execute(
-            "SELECT key, value FROM meta WHERE key IN (" 
+            "SELECT key, value FROM meta WHERE key IN ("
             "'build_time_iso','nvss_sha256','vlass_sha256','first_sha256','goodref_snr_min','finalref_snr_min')"
         ).fetchall()
         print("META:", meta)
@@ -126,4 +128,3 @@ def main() -> int:
 
 if __name__ == "__main__":
     raise SystemExit(main())
-

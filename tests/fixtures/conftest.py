@@ -7,7 +7,7 @@ from pathlib import Path
 
 import pytest
 
-from dsa110_contimg.pipeline.config import PipelineConfig, PathsConfig
+from dsa110_contimg.pipeline.config import PathsConfig, PipelineConfig
 from dsa110_contimg.pipeline.context import PipelineContext
 from dsa110_contimg.pipeline.state import InMemoryStateRepository, SQLiteStateRepository
 
@@ -32,7 +32,7 @@ def test_context(test_config):
         inputs={
             "start_time": "2024-01-01T00:00:00",
             "end_time": "2024-01-01T01:00:00",
-        }
+        },
     )
 
 
@@ -69,4 +69,3 @@ def temp_dir():
     """Temporary directory for file operations."""
     with tempfile.TemporaryDirectory() as tmpdir:
         yield Path(tmpdir)
-

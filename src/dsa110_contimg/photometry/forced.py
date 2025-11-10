@@ -4,15 +4,17 @@ Forced photometry utilities on FITS images (PB-corrected mosaics or tiles).
 Minimal functionality: measure peak within a small pixel box around a world
 coordinate, plus estimate local RMS in an annulus for error bars.
 """
+
 from __future__ import annotations
 
 from dataclasses import dataclass
 from pathlib import Path
-from typing import Tuple, List
+from typing import List, Tuple
 
 import numpy as np
 from astropy.io import fits  # type: ignore[reportMissingTypeStubs]
 from astropy.wcs import WCS  # type: ignore[reportMissingTypeStubs]
+
 from dsa110_contimg.utils.runtime_safeguards import (
     filter_non_finite_2d,
 )
@@ -63,14 +65,14 @@ def measure_forced_peak(
             pix_y=float("nan"),
             box_size_pix=box_size_pix,
         )
-    
+
     # Load data/header with helpers to avoid HDU typing confusion for linters
     hdr = fits.getheader(p)
     data = np.asarray(fits.getdata(p)).squeeze()
     # Use celestial 2D WCS even if the header encodes extra axes
     wcs = WCS(hdr).celestial
     x0, y0 = _world_to_pixel(wcs, ra_deg, dec_deg)
-    
+
     # Check for invalid coordinates (NaN from WCS conversion failure)
     if not (np.isfinite(x0) and np.isfinite(y0)):
         return ForcedPhotometryResult(
@@ -82,7 +84,7 @@ def measure_forced_peak(
             pix_y=y0,
             box_size_pix=box_size_pix,
         )
-    
+
     # Define integer box centered at nearest pixel
     cx, cy = int(round(x0)), int(round(y0))
     half = max(1, box_size_pix // 2)
@@ -91,7 +93,7 @@ def measure_forced_peak(
     h, w = data.shape[-2], data.shape[-1]
     x1c, x2c = max(0, x1), min(w - 1, x2)
     y1c, y2c = max(0, y1), min(h - 1, y2)
-    cut = data[y1c:y2c + 1, x1c:x2c + 1]
+    cut = data[y1c : y2c + 1, x1c : x2c + 1]
     # Filter non-finite values (NaN/Inf) before peak calculation
     finite_cut = cut[np.isfinite(cut)]
     peak = float(np.max(finite_cut)) if finite_cut.size > 0 else float("nan")

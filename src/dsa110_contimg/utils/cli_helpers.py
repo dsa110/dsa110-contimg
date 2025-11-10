@@ -10,24 +10,25 @@ This module provides common CLI patterns:
 All CLIs should use these utilities to ensure consistent behavior.
 """
 
-from contextlib import contextmanager
-from pathlib import Path
-from typing import Any
 import argparse
 import logging
 import os
+from contextlib import contextmanager
+from pathlib import Path
+from typing import Any
 
 
 def setup_casa_environment() -> None:
     """
     Configure CASA logging directory. Call at the start of CLI main() functions.
-    
+
     This is a convenience function for backward compatibility.
     For new code,
     prefer using `casa_log_environment()` context manager.
     """
     try:
         from dsa110_contimg.utils.tempdirs import derive_casa_log_dir
+
         casa_log_dir = derive_casa_log_dir()
         os.chdir(str(casa_log_dir))
     except (OSError, IOError, RuntimeError) as e:
@@ -39,12 +40,12 @@ def setup_casa_environment() -> None:
 def casa_log_environment() -> Path:
     """
     Context manager for CASA operations that need log directory.
-    
+
     This is the preferred method for CASA operations as it:
     - Properly manages CWD changes (restores after operation)
     - Doesn't pollute global state
     - Can be nested safely
-    
+
     Usage:
         with casa_log_environment():
             from casatasks import tclean
@@ -52,12 +53,13 @@ def casa_log_environment() -> Path:
     """
     try:
         from dsa110_contimg.utils.tempdirs import derive_casa_log_dir
+
         log_dir = derive_casa_log_dir()
     except (OSError, IOError, RuntimeError) as e:
         # Fallback to current directory if setup fails
         logging.debug("CASA log directory setup failed: %s", e)
         log_dir = Path.cwd()
-    
+
     old_cwd = os.getcwd()
     try:
         os.chdir(str(log_dir))
@@ -66,113 +68,109 @@ def casa_log_environment() -> Path:
         os.chdir(old_cwd)
 
 
-def add_common_ms_args(parser: argparse.ArgumentParser, 
-                       ms_required: bool = True) -> None:
+def add_common_ms_args(
+    parser: argparse.ArgumentParser, ms_required: bool = True
+) -> None:
     """
     Add common MS-related arguments to a parser.
-    
+
     Args:
         parser: ArgumentParser instance to add arguments to
         ms_required: Whether --ms argument is required
     """
-    parser.add_argument(
-        "--ms", required=ms_required,
-        help="Path to Measurement Set"
-    )
+    parser.add_argument("--ms", required=ms_required, help="Path to Measurement Set")
 
 
 def add_common_field_args(parser: argparse.ArgumentParser) -> None:
     """Add common field selection arguments."""
     parser.add_argument(
-        "--field", default="",
-        help="Field selection (name, index, or range)"
+        "--field", default="", help="Field selection (name, index, or range)"
     )
 
 
 def add_common_logging_args(parser: argparse.ArgumentParser) -> None:
     """
     Add common logging arguments to a parser.
-    
+
     Adds:
         --verbose, -v: Enable verbose logging
         --log-level: Set logging level (DEBUG, INFO, WARNING, ERROR)
     """
     parser.add_argument(
-        "--verbose", "-v", action="store_true",
-        help="Enable verbose logging"
+        "--verbose", "-v", action="store_true", help="Enable verbose logging"
     )
     parser.add_argument(
-        "--log-level", default="INFO",
+        "--log-level",
+        default="INFO",
         choices=["DEBUG", "INFO", "WARNING", "ERROR"],
-        help="Set logging level"
+        help="Set logging level",
     )
 
 
 def configure_logging_from_args(args: argparse.Namespace) -> logging.Logger:
     """
     Configure logging based on CLI arguments.
-    
+
     Args:
         args: Parsed arguments object (should have 'verbose' and/or 'log_level' attributes)
-    
+
     Returns:
         Configured logger instance
     """
     # Determine log level
     level = logging.INFO
-    
+
     # Check verbose flag first (takes precedence)
-    if getattr(args, 'verbose', False):
+    if getattr(args, "verbose", False):
         level = logging.DEBUG
-    
+
     # Override with explicit log-level if provided
-    if hasattr(args, 'log_level'):
+    if hasattr(args, "log_level"):
         level = getattr(logging, args.log_level.upper(), level)
-    
+
     # Configure logging
     logging.basicConfig(
         level=level,
         format="%(asctime)s [%(levelname)s] %(message)s",
         datefmt="%Y-%m-%d %H:%M:%S",
     )
-    
+
     return logging.getLogger(__name__)
 
 
-def add_ms_group(parser: argparse.ArgumentParser, required: bool = True) -> argparse._ArgumentGroup:
+def add_ms_group(
+    parser: argparse.ArgumentParser, required: bool = True
+) -> argparse._ArgumentGroup:
     """
     Add MS-related arguments as a group for better help organization.
-    
+
     Args:
         parser: ArgumentParser instance
         required: Whether --ms argument is required
-    
+
     Returns:
         The argument group (for further customization if needed)
     """
-    group = parser.add_argument_group('Measurement Set')
-    group.add_argument(
-        "--ms", required=required,
-        help="Path to Measurement Set"
-    )
+    group = parser.add_argument_group("Measurement Set")
+    group.add_argument("--ms", required=required, help="Path to Measurement Set")
     return group
 
 
 def add_progress_flag(parser: argparse.ArgumentParser) -> None:
     """
     Add progress bar control flag.
-    
+
     Adds:
         --disable-progress: Disable progress bars (useful for non-interactive environments)
         --quiet, -q: Alias for --disable-progress
     """
     parser.add_argument(
-        "--disable-progress", action="store_true",
-        help="Disable progress bars (useful for non-interactive environments)"
+        "--disable-progress",
+        action="store_true",
+        help="Disable progress bars (useful for non-interactive environments)",
     )
     parser.add_argument(
-        "--quiet", "-q", action="store_true",
-        help="Alias for --disable-progress"
+        "--quiet", "-q", action="store_true", help="Alias for --disable-progress"
     )
 
 
@@ -185,7 +183,7 @@ def add_progress_flag(parser: argparse.ArgumentParser) -> None:
 def ensure_scratch_dirs() -> dict[str, Path]:
     """
     Ensure scratch directory structure exists and create if missing.
-    
+
     Creates the following directory structure under CONTIMG_SCRATCH_DIR:
     - ms/          # Measurement Sets
     - caltables/   # Calibration tables
@@ -193,7 +191,7 @@ def ensure_scratch_dirs() -> dict[str, Path]:
     - mosaics/      # Final mosaics
     - logs/         # Processing logs
     - tmp/          # Temporary staging (auto-cleaned)
-    
+
     Returns:
         Dictionary mapping directory names to Path objects:
         {
@@ -206,20 +204,26 @@ def ensure_scratch_dirs() -> dict[str, Path]:
             'tmp': Path to tmp directory,
         }
     """
-    scratch_base = os.getenv('CONTIMG_SCRATCH_DIR', '/stage/dsa110-contimg')
+    scratch_base = os.getenv("CONTIMG_SCRATCH_DIR", "/stage/dsa110-contimg")
     scratch_base_path = Path(scratch_base)
-    
+
     # Get subdirectory paths from env vars or default to scratch_base/{name}
     dirs = {
-        'scratch': scratch_base_path,
-        'ms': Path(os.getenv('CONTIMG_MS_DIR', str(scratch_base_path / 'ms'))),
-        'caltables': Path(os.getenv('CONTIMG_CALTABLES_DIR', str(scratch_base_path / 'caltables'))),
-        'images': Path(os.getenv('CONTIMG_IMAGES_DIR', str(scratch_base_path / 'images'))),
-        'mosaics': Path(os.getenv('CONTIMG_MOSAICS_DIR', str(scratch_base_path / 'mosaics'))),
-        'logs': Path(os.getenv('CONTIMG_LOGS_DIR', str(scratch_base_path / 'logs'))),
-        'tmp': Path(scratch_base_path / 'tmp'),
+        "scratch": scratch_base_path,
+        "ms": Path(os.getenv("CONTIMG_MS_DIR", str(scratch_base_path / "ms"))),
+        "caltables": Path(
+            os.getenv("CONTIMG_CALTABLES_DIR", str(scratch_base_path / "caltables"))
+        ),
+        "images": Path(
+            os.getenv("CONTIMG_IMAGES_DIR", str(scratch_base_path / "images"))
+        ),
+        "mosaics": Path(
+            os.getenv("CONTIMG_MOSAICS_DIR", str(scratch_base_path / "mosaics"))
+        ),
+        "logs": Path(os.getenv("CONTIMG_LOGS_DIR", str(scratch_base_path / "logs"))),
+        "tmp": Path(scratch_base_path / "tmp"),
     }
-    
+
     # Create all directories if they don't exist
     for name, path in dirs.items():
         try:
@@ -227,5 +231,5 @@ def ensure_scratch_dirs() -> dict[str, Path]:
         except Exception as e:
             # Log warning but don't fail - some operations may work without all dirs
             logging.warning(f"Failed to create scratch directory {name} at {path}: {e}")
-    
+
     return dirs

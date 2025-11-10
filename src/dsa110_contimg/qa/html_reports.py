@@ -5,19 +5,6 @@ Generates comprehensive HTML validation reports similar to ASKAP's validation
 framework, with pass/fail indicators, tables, and integrated visualization.
 """
 
-from dsa110_contimg.qa.validation_plots import (
-    plot_astrometry_scatter,
-    plot_flux_ratio_histogram,
-    plot_completeness_curve,
-    plot_spatial_distribution,
-    plot_flux_vs_offset,
-    plot_validation_summary
-)
-from dsa110_contimg.qa.catalog_validation import CatalogValidationResult
-from astropy.io import fits
-import numpy as np
-from dsa110_contimg.utils.runtime_safeguards import validate_image_shape
-import matplotlib.pyplot as plt
 import base64
 import io
 import logging
@@ -27,6 +14,21 @@ from pathlib import Path
 from typing import Dict, List, Optional, Tuple
 
 import matplotlib
+import matplotlib.pyplot as plt
+import numpy as np
+from astropy.io import fits
+
+from dsa110_contimg.qa.catalog_validation import CatalogValidationResult
+from dsa110_contimg.qa.validation_plots import (
+    plot_astrometry_scatter,
+    plot_completeness_curve,
+    plot_flux_ratio_histogram,
+    plot_flux_vs_offset,
+    plot_spatial_distribution,
+    plot_validation_summary,
+)
+from dsa110_contimg.utils.runtime_safeguards import validate_image_shape
+
 matplotlib.use("Agg", force=True)  # Headless backend
 
 
@@ -51,7 +53,8 @@ class ValidationReport:
 
     # Metadata
     generated_at: str = field(
-        default_factory=lambda: datetime.utcnow().isoformat() + "Z")
+        default_factory=lambda: datetime.utcnow().isoformat() + "Z"
+    )
     catalog_used: str = "nvss"
 
     def __post_init__(self):
@@ -69,20 +72,29 @@ class ValidationReport:
         if self.astrometry:
             all_issues.extend(self.astrometry.issues)
             all_warnings.extend(self.astrometry.warnings)
-            scores.append(0.0 if self.astrometry.has_issues else (
-                0.7 if self.astrometry.has_warnings else 1.0))
+            scores.append(
+                0.0
+                if self.astrometry.has_issues
+                else (0.7 if self.astrometry.has_warnings else 1.0)
+            )
 
         if self.flux_scale:
             all_issues.extend(self.flux_scale.issues)
             all_warnings.extend(self.flux_scale.warnings)
-            scores.append(0.0 if self.flux_scale.has_issues else (
-                0.7 if self.flux_scale.has_warnings else 1.0))
+            scores.append(
+                0.0
+                if self.flux_scale.has_issues
+                else (0.7 if self.flux_scale.has_warnings else 1.0)
+            )
 
         if self.source_counts:
             all_issues.extend(self.source_counts.issues)
             all_warnings.extend(self.source_counts.warnings)
-            scores.append(0.0 if self.source_counts.has_issues else (
-                0.7 if self.source_counts.has_warnings else 1.0))
+            scores.append(
+                0.0
+                if self.source_counts.has_issues
+                else (0.7 if self.source_counts.has_warnings else 1.0)
+            )
 
         self.issues = all_issues
         self.warnings = all_warnings
@@ -138,8 +150,7 @@ def _format_float(value: Optional[float], precision: int = 3, unit: str = "") ->
 
 def _generate_astrometry_section(result: CatalogValidationResult) -> str:
     """Generate HTML section for astrometry validation."""
-    status_color = _get_status_color(
-        "PASS" if not result.has_issues else "FAIL")
+    status_color = _get_status_color("PASS" if not result.has_issues else "FAIL")
     status_icon = _get_status_icon("PASS" if not result.has_issues else "FAIL")
 
     html = f"""
@@ -206,23 +217,22 @@ def _generate_astrometry_section(result: CatalogValidationResult) -> str:
     if result.issues:
         html += '<div class="issues"><h4>Issues:</h4><ul>'
         for issue in result.issues:
-            html += f'<li>{issue}</li>'
-        html += '</ul></div>'
+            html += f"<li>{issue}</li>"
+        html += "</ul></div>"
 
     if result.warnings:
         html += '<div class="warnings"><h4>Warnings:</h4><ul>'
         for warning in result.warnings:
-            html += f'<li>{warning}</li>'
-        html += '</ul></div>'
+            html += f"<li>{warning}</li>"
+        html += "</ul></div>"
 
-    html += '</div>'
+    html += "</div>"
     return html
 
 
 def _generate_flux_scale_section(result: CatalogValidationResult) -> str:
     """Generate HTML section for flux scale validation."""
-    status_color = _get_status_color(
-        "PASS" if not result.has_issues else "FAIL")
+    status_color = _get_status_color("PASS" if not result.has_issues else "FAIL")
     status_icon = _get_status_icon("PASS" if not result.has_issues else "FAIL")
 
     html = f"""
@@ -277,23 +287,22 @@ def _generate_flux_scale_section(result: CatalogValidationResult) -> str:
     if result.issues:
         html += '<div class="issues"><h4>Issues:</h4><ul>'
         for issue in result.issues:
-            html += f'<li>{issue}</li>'
-        html += '</ul></div>'
+            html += f"<li>{issue}</li>"
+        html += "</ul></div>"
 
     if result.warnings:
         html += '<div class="warnings"><h4>Warnings:</h4><ul>'
         for warning in result.warnings:
-            html += f'<li>{warning}</li>'
-        html += '</ul></div>'
+            html += f"<li>{warning}</li>"
+        html += "</ul></div>"
 
-    html += '</div>'
+    html += "</div>"
     return html
 
 
 def _generate_source_counts_section(result: CatalogValidationResult) -> str:
     """Generate HTML section for source counts validation."""
-    status_color = _get_status_color(
-        "PASS" if not result.has_issues else "FAIL")
+    status_color = _get_status_color("PASS" if not result.has_issues else "FAIL")
     status_icon = _get_status_icon("PASS" if not result.has_issues else "FAIL")
 
     html = f"""
@@ -336,8 +345,12 @@ def _generate_source_counts_section(result: CatalogValidationResult) -> str:
     """
 
     # Add completeness per bin table if available
-    if (result.completeness_bins_jy and result.completeness_per_bin and
-            result.catalog_counts_per_bin and result.detected_counts_per_bin):
+    if (
+        result.completeness_bins_jy
+        and result.completeness_per_bin
+        and result.catalog_counts_per_bin
+        and result.detected_counts_per_bin
+    ):
         html += """
         <h4>Completeness by Flux Density</h4>
         <table class="metrics-table">
@@ -348,12 +361,14 @@ def _generate_source_counts_section(result: CatalogValidationResult) -> str:
                 <th>Completeness</th>
             </tr>
         """
-        for i, (bin_center, catalog_count, detected_count, completeness) in enumerate(zip(
-            result.completeness_bins_jy,
-            result.catalog_counts_per_bin,
-            result.detected_counts_per_bin,
-            result.completeness_per_bin
-        )):
+        for i, (bin_center, catalog_count, detected_count, completeness) in enumerate(
+            zip(
+                result.completeness_bins_jy,
+                result.catalog_counts_per_bin,
+                result.detected_counts_per_bin,
+                result.completeness_per_bin,
+            )
+        ):
             if catalog_count > 0:  # Only show bins with catalog sources
                 completeness_pct = completeness * 100
                 # Color code completeness
@@ -389,20 +404,22 @@ def _generate_source_counts_section(result: CatalogValidationResult) -> str:
     if result.issues:
         html += '<div class="issues"><h4>Issues:</h4><ul>'
         for issue in result.issues:
-            html += f'<li>{issue}</li>'
-        html += '</ul></div>'
+            html += f"<li>{issue}</li>"
+        html += "</ul></div>"
 
     if result.warnings:
         html += '<div class="warnings"><h4>Warnings:</h4><ul>'
         for warning in result.warnings:
-            html += f'<li>{warning}</li>'
-        html += '</ul></div>'
+            html += f"<li>{warning}</li>"
+        html += "</ul></div>"
 
-    html += '</div>'
+    html += "</div>"
     return html
 
 
-def _generate_image_visualization(image_path: str, output_format: str = "png", dpi: int = 100) -> Optional[str]:
+def _generate_image_visualization(
+    image_path: str, output_format: str = "png", dpi: int = 100
+) -> Optional[str]:
     """
     Generate base64-encoded visualization of FITS image.
 
@@ -418,12 +435,17 @@ def _generate_image_visualization(image_path: str, output_format: str = "png", d
         with fits.open(image_path, memmap=False) as hdul:
             data = None
             for hdu in hdul:
-                if getattr(hdu, "data", None) is not None and getattr(hdu.data, "ndim", 0) >= 2:
+                if (
+                    getattr(hdu, "data", None) is not None
+                    and getattr(hdu.data, "ndim", 0) >= 2
+                ):
                     # Validate image shape before processing
                     try:
                         validate_image_shape(hdu.data, min_size=1)
                     except ValueError as e:
-                        logger.warning(f"Invalid image shape in {image_path} (HDU {hdu.name}): {e}")
+                        logger.warning(
+                            f"Invalid image shape in {image_path} (HDU {hdu.name}): {e}"
+                        )
                         continue
                     data = hdu.data
                     break
@@ -454,12 +476,12 @@ def _generate_image_visualization(image_path: str, output_format: str = "png", d
 
             # Create figure
             fig, ax = plt.subplots(figsize=(8, 7), dpi=dpi)
-            im = ax.imshow(img, origin="lower", cmap="inferno",
-                           interpolation="nearest")
+            im = ax.imshow(img, origin="lower", cmap="inferno", interpolation="nearest")
             ax.set_xlabel("Pixel X", fontsize=11)
             ax.set_ylabel("Pixel Y", fontsize=11)
-            ax.set_title(f"Image: {Path(image_path).name}",
-                         fontsize=12, fontweight="bold")
+            ax.set_title(
+                f"Image: {Path(image_path).name}", fontsize=12, fontweight="bold"
+            )
 
             # Add colorbar
             cbar = plt.colorbar(im, ax=ax, fraction=0.046, pad=0.04)
@@ -469,17 +491,15 @@ def _generate_image_visualization(image_path: str, output_format: str = "png", d
 
             # Convert to base64
             buf = io.BytesIO()
-            plt.savefig(buf, format=output_format,
-                        dpi=dpi, bbox_inches='tight')
+            plt.savefig(buf, format=output_format, dpi=dpi, bbox_inches="tight")
             buf.seek(0)
-            img_base64 = base64.b64encode(buf.read()).decode('utf-8')
+            img_base64 = base64.b64encode(buf.read()).decode("utf-8")
             plt.close(fig)
 
             return f"data:image/{output_format};base64,{img_base64}"
 
     except Exception as e:
-        logger.error(
-            f"Error generating image visualization: {e}", exc_info=True)
+        logger.error(f"Error generating image visualization: {e}", exc_info=True)
         return None
 
 
@@ -497,10 +517,10 @@ def _verify_real_observation(image_path: str) -> Tuple[bool, List[str]]:
     # Check file location
     path_str = str(path_obj).lower()
     is_test_dir = (
-        'test' in path_str or
-        'tests/' in path_str or
-        'notebooks/' in path_str or
-        path_str.endswith('_test_')
+        "test" in path_str
+        or "tests/" in path_str
+        or "notebooks/" in path_str
+        or path_str.endswith("_test_")
     )
 
     if is_test_dir:
@@ -508,7 +528,7 @@ def _verify_real_observation(image_path: str) -> Tuple[bool, List[str]]:
 
     # Check filename
     filename_lower = path_obj.name.lower()
-    if filename_lower.startswith('test_') or 'test' in filename_lower:
+    if filename_lower.startswith("test_") or "test" in filename_lower:
         indicators.append("Filename indicates test data")
 
     # Check FITS header metadata
@@ -519,19 +539,18 @@ def _verify_real_observation(image_path: str) -> Tuple[bool, List[str]]:
     try:
         with fits.open(image_path) as hdul:
             header = hdul[0].header
-            has_date = 'DATE-OBS' in header or 'DATE' in header
-            has_telescope = 'TELESCOP' in header
-            has_object = 'OBJECT' in header
+            has_date = "DATE-OBS" in header or "DATE" in header
+            has_telescope = "TELESCOP" in header
+            has_object = "OBJECT" in header
 
             if has_date:
-                indicators.append(
-                    "Has DATE-OBS field (real observation indicator)")
+                indicators.append("Has DATE-OBS field (real observation indicator)")
             if has_telescope:
                 indicators.append(
-                    f"Has TELESCOP field: {header.get('TELESCOP', 'N/A')}")
+                    f"Has TELESCOP field: {header.get('TELESCOP', 'N/A')}"
+                )
             if has_object:
-                indicators.append(
-                    f"Has OBJECT field: {header.get('OBJECT', 'N/A')}")
+                indicators.append(f"Has OBJECT field: {header.get('OBJECT', 'N/A')}")
     except Exception:
         pass
 
@@ -564,7 +583,9 @@ def _get_image_metadata(image_path: str) -> Dict[str, str]:
 
             # Try to get image dimensions
             if "NAXIS1" in header and "NAXIS2" in header:
-                metadata["dimensions"] = f"{header['NAXIS1']} × {header['NAXIS2']} pixels"
+                metadata["dimensions"] = (
+                    f"{header['NAXIS1']} × {header['NAXIS2']} pixels"
+                )
 
             # Try to get pixel scale
             if "CDELT1" in header:
@@ -590,7 +611,7 @@ def _get_image_metadata(image_path: str) -> Dict[str, str]:
 def generate_html_report(
     report: ValidationReport,
     output_path: Optional[str] = None,
-    include_plots: bool = False
+    include_plots: bool = False,
 ) -> str:
     """
     Generate comprehensive HTML validation report.
@@ -610,9 +631,10 @@ def generate_html_report(
     image_metadata = _get_image_metadata(report.image_path)
 
     # Verify if this is real observation or test data
-    is_real_observation, data_indicators = _verify_real_observation(
-        report.image_path)
-    data_type_label = "Real Observation" if is_real_observation else "Test/Synthetic Data"
+    is_real_observation, data_indicators = _verify_real_observation(report.image_path)
+    data_type_label = (
+        "Real Observation" if is_real_observation else "Test/Synthetic Data"
+    )
     data_type_color = "#28a745" if is_real_observation else "#ffc107"
 
     # Build HTML
@@ -812,7 +834,7 @@ def generate_html_report(
 """
 
     # Close the initial HTML string and add summary section
-    real_class = 'real' if is_real_observation else ''
+    real_class = "real" if is_real_observation else ""
 
     html += f"""
     <div class="summary">
@@ -877,7 +899,9 @@ def generate_html_report(
         <div style="text-align: center; margin: 20px 0;">
             <img src="{}" alt="FITS image visualization" style="max-width: 100%; height: auto; border: 1px solid #ddd; border-radius: 4px; box-shadow: 0 2px 4px rgba(0,0,0,0.1);">
         </div>
-""".format(image_viz)
+""".format(
+            image_viz
+        )
 
     # Add overall issues and warnings
     if report.issues:
@@ -887,7 +911,7 @@ def generate_html_report(
             <ul>
 """
         for issue in report.issues:
-            html += f'                <li>{issue}</li>\n'
+            html += f"                <li>{issue}</li>\n"
         html += """            </ul>
         </div>
 """
@@ -899,16 +923,14 @@ def generate_html_report(
             <ul>
 """
         for warning in report.warnings:
-            html += f'                <li>{warning}</li>\n'
+            html += f"                <li>{warning}</li>\n"
         html += """            </ul>
         </div>
 """
 
     # Add enhanced visualization: validation summary dashboard
     summary_plot = plot_validation_summary(
-        report.astrometry,
-        report.flux_scale,
-        report.source_counts
+        report.astrometry, report.flux_scale, report.source_counts
     )
     if summary_plot:
         html += """
@@ -916,8 +938,10 @@ def generate_html_report(
         <div style="text-align: center; margin: 20px 0;">
             <img src="{}" alt="Validation summary dashboard" style="max-width: 100%; height: auto; border: 1px solid #ddd; border-radius: 4px; box-shadow: 0 2px 4px rgba(0,0,0,0.1);">
         </div>
-""".format(summary_plot)
-    
+""".format(
+            summary_plot
+        )
+
     # Add enhanced visualization: spatial distribution (if astrometry available)
     if report.astrometry:
         spatial_plot = plot_spatial_distribution(report.astrometry)
@@ -927,8 +951,10 @@ def generate_html_report(
         <div style="text-align: center; margin: 20px 0;">
             <img src="{}" alt="Spatial distribution plot" style="max-width: 100%; height: auto; border: 1px solid #ddd; border-radius: 4px; box-shadow: 0 2px 4px rgba(0,0,0,0.1);">
         </div>
-""".format(spatial_plot)
-    
+""".format(
+                spatial_plot
+            )
+
     # Add enhanced visualization: flux vs offset correlation (if both available)
     if report.astrometry and report.flux_scale:
         flux_offset_plot = plot_flux_vs_offset(report.astrometry, report.flux_scale)
@@ -938,7 +964,9 @@ def generate_html_report(
         <div style="text-align: center; margin: 20px 0;">
             <img src="{}" alt="Flux vs offset plot" style="max-width: 100%; height: auto; border: 1px solid #ddd; border-radius: 4px; box-shadow: 0 2px 4px rgba(0,0,0,0.1);">
         </div>
-""".format(flux_offset_plot)
+""".format(
+                flux_offset_plot
+            )
 
     html += """    </div>
 """
@@ -967,7 +995,7 @@ def generate_html_report(
     if output_path:
         output_path_obj = Path(output_path)
         output_path_obj.parent.mkdir(parents=True, exist_ok=True)
-        with open(output_path_obj, 'w', encoding='utf-8') as f:
+        with open(output_path_obj, "w", encoding="utf-8") as f:
             f.write(html)
         logger.info(f"HTML validation report saved to {output_path}")
 
@@ -980,7 +1008,7 @@ def generate_validation_report(
     flux_scale_result: Optional[CatalogValidationResult] = None,
     source_counts_result: Optional[CatalogValidationResult] = None,
     output_path: Optional[str] = None,
-    catalog: str = "nvss"
+    catalog: str = "nvss",
 ) -> ValidationReport:
     """
     Generate unified validation report from validation results.
@@ -1004,7 +1032,7 @@ def generate_validation_report(
         astrometry=astrometry_result,
         flux_scale=flux_scale_result,
         source_counts=source_counts_result,
-        catalog_used=catalog
+        catalog_used=catalog,
     )
 
     # Generate HTML if output path provided

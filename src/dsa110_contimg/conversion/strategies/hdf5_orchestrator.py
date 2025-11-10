@@ -9,29 +9,6 @@ Measurement Set for imaging. It serves as the primary entry point for converting
 subband groups.
 """
 
-from .writers import get_writer
-from dsa110_contimg.conversion.helpers import (
-    _ensure_antenna_diameters,
-    get_meridian_coords,
-    set_antenna_positions,
-    compute_and_set_uvw,
-    set_model_column,
-    phase_to_meridian,
-    set_telescope_identity,
-    validate_ms_frequency_order,
-    cleanup_casa_file_handles,
-    validate_phase_center_coherence,
-    validate_uvw_precision,
-    validate_antenna_positions,
-    validate_model_data_quality,
-    validate_reference_antenna_stability,
-)
-from dsa110_contimg.conversion.ms_utils import configure_ms_for_imaging
-from dsa110_contimg.qa.pipeline_quality import check_ms_after_conversion
-from dsa110_contimg.utils.performance import track_performance
-from dsa110_contimg.utils.error_context import format_file_error_with_suggestions
-from dsa110_contimg.utils.cli_helpers import ensure_scratch_dirs
-from dsa110_contimg.utils.exceptions import ConversionError, ValidationError
 import argparse
 import glob
 import logging
@@ -46,13 +23,40 @@ import numpy as np
 from astropy.time import Time  # type: ignore[import]
 from pyuvdata import UVData  # type: ignore[import]
 
+from dsa110_contimg.conversion.helpers import (
+    _ensure_antenna_diameters,
+    cleanup_casa_file_handles,
+    compute_and_set_uvw,
+    get_meridian_coords,
+    phase_to_meridian,
+    set_antenna_positions,
+    set_model_column,
+    set_telescope_identity,
+    validate_antenna_positions,
+    validate_model_data_quality,
+    validate_ms_frequency_order,
+    validate_phase_center_coherence,
+    validate_reference_antenna_stability,
+    validate_uvw_precision,
+)
+from dsa110_contimg.conversion.ms_utils import configure_ms_for_imaging
+from dsa110_contimg.qa.pipeline_quality import check_ms_after_conversion
+from dsa110_contimg.utils.cli_helpers import ensure_scratch_dirs
+from dsa110_contimg.utils.error_context import format_file_error_with_suggestions
+from dsa110_contimg.utils.exceptions import ConversionError, ValidationError
+from dsa110_contimg.utils.performance import track_performance
+
+from .writers import get_writer
 
 logger = logging.getLogger("hdf5_orchestrator")
 
 
-def _peek_uvh5_phase_and_midtime(uvh5_path: str) -> tuple[u.Quantity, u.Quantity, float]:
+def _peek_uvh5_phase_and_midtime(
+    uvh5_path: str,
+) -> tuple[u.Quantity, u.Quantity, float]:
     """Lightweight HDF5 peek: return (pt_ra [rad], pt_dec [rad], mid_time [MJD])."""
     import h5py  # type: ignore[import]
+
     pt_ra_val: float = 0.0
     pt_dec_val: float = 0.0
     mid_jd: float = 0.0
@@ -77,10 +81,7 @@ def _peek_uvh5_phase_and_midtime(uvh5_path: str) -> tuple[u.Quantity, u.Quantity
 
         def _read_extra(name: str) -> Optional[float]:
             try:
-                if (
-                    "extra_keywords" in f
-                    and name in f["extra_keywords"]
-                ):
+                if "extra_keywords" in f and name in f["extra_keywords"]:
                     return float(np.asarray(f["extra_keywords"][name]))
             except Exception:
                 pass
@@ -90,9 +91,7 @@ def _peek_uvh5_phase_and_midtime(uvh5_path: str) -> tuple[u.Quantity, u.Quantity
                     and "extra_keywords" in f["Header"]
                     and name in f["Header"]["extra_keywords"]
                 ):
-                    return float(
-                        np.asarray(f["Header"]["extra_keywords"][name])
-                    )
+                    return float(np.asarray(f["Header"]["extra_keywords"][name]))
             except Exception:
                 pass
             try:
@@ -112,7 +111,9 @@ def _peek_uvh5_phase_and_midtime(uvh5_path: str) -> tuple[u.Quantity, u.Quantity
             if val_ha is not None and np.isfinite(val_ha) and mid_jd > 0:
                 try:
                     from astropy.time import Time
+
                     from dsa110_contimg.utils.constants import OVRO_LOCATION
+
                     # Get longitude from Header (default to DSA-110 location from constants)
                     lon_deg = OVRO_LOCATION.lon.to(u.deg).value
                     if "Header" in f and "longitude" in f["Header"]:
@@ -123,14 +124,14 @@ def _peek_uvh5_phase_and_midtime(uvh5_path: str) -> tuple[u.Quantity, u.Quantity
                     # Calculate LST at mid_time using OVRO_LOCATION as base (single source of truth)
                     # If Header provides longitude, use it but keep lat/height from constants
                     from astropy.coordinates import EarthLocation
+
                     location = EarthLocation(
                         lat=OVRO_LOCATION.lat,
                         lon=lon_deg * u.deg,
-                        height=OVRO_LOCATION.height
+                        height=OVRO_LOCATION.height,
                     )
-                    tref = Time(mid_jd, format='jd')
-                    lst = tref.sidereal_time(
-                        'apparent', longitude=location.lon)
+                    tref = Time(mid_jd, format="jd")
+                    lst = tref.sidereal_time("apparent", longitude=location.lon)
 
                     # Calculate RA: RA = LST - HA
                     ha_rad = float(val_ha)  # HA is in radians
@@ -143,7 +144,8 @@ def _peek_uvh5_phase_and_midtime(uvh5_path: str) -> tuple[u.Quantity, u.Quantity
                     )
                 except Exception as e:
                     logger.warning(
-                        f"Could not calculate RA from HA: {e}. Using default 0.0")
+                        f"Could not calculate RA from HA: {e}. Using default 0.0"
+                    )
                     pt_ra_val = 0.0
 
         val_dec = _read_extra("phase_center_dec")
@@ -193,6 +195,7 @@ def find_subband_groups(
     candidates = []
     days = set()
     from datetime import timedelta as _dt_timedelta
+
     cur = tmin.to_datetime()
     end_dt = tmax.to_datetime()
     while cur.date() <= end_dt.date():
@@ -225,10 +228,7 @@ def find_subband_groups(
     for i in range(len(times_sec)):
         if used[i]:
             continue
-        close_indices = np.where(
-            np.abs(
-                times_sec -
-                times_sec[i]) <= tolerance_s)[0]
+        close_indices = np.where(np.abs(times_sec - times_sec[i]) <= tolerance_s)[0]
         group_indices = [idx for idx in close_indices if not used[idx]]
 
         selected_files = [files[j] for j in group_indices]
@@ -255,11 +255,13 @@ def find_subband_groups(
             # For proper frequency ordering (ascending, low to high), REVERSE the sort.
             # Files with slightly different timestamps should still be ordered by frequency.
             def sort_key_for_group(sb_code):
-                sb_num = int(sb_code.replace('sb', ''))
+                sb_num = int(sb_code.replace("sb", ""))
                 return sb_num
 
-            sorted_group = [subband_map[s] for s in sorted(
-                spw, key=sort_key_for_group, reverse=True)]
+            sorted_group = [
+                subband_map[s]
+                for s in sorted(spw, key=sort_key_for_group, reverse=True)
+            ]
             groups.append(sorted_group)
             for idx in group_indices:
                 used[idx] = True
@@ -267,9 +269,9 @@ def find_subband_groups(
     return groups
 
 
-def _load_and_merge_subbands(file_list: Sequence[str],
-                             show_progress: bool = True,
-                             batch_size: int = 4) -> UVData:
+def _load_and_merge_subbands(
+    file_list: Sequence[str], show_progress: bool = True, batch_size: int = 4
+) -> UVData:
     """Load and merge subband files into a single UVData object.
 
     OPTIMIZATION: Processes subbands in batches to reduce peak memory usage.
@@ -287,6 +289,7 @@ def _load_and_merge_subbands(file_list: Sequence[str],
                    Smaller batches = lower memory, more merges
                    Larger batches = higher memory, fewer merges
     """
+
     # CRITICAL: DSA-110 subbands use DESCENDING frequency order:
     #   sb00 = highest frequency (~1498 MHz)
     #   sb15 = lowest frequency (~1311 MHz)
@@ -297,7 +300,7 @@ def _load_and_merge_subbands(file_list: Sequence[str],
     def sort_by_subband(fpath):
         fname = os.path.basename(fpath)
         sb = _extract_subband_code(fname)
-        sb_num = int(sb.replace('sb', '')) if sb else 999
+        sb_num = int(sb.replace("sb", "")) if sb else 999
         return sb_num
 
     sorted_file_list = sorted(file_list, key=sort_by_subband, reverse=True)
@@ -313,40 +316,45 @@ def _load_and_merge_subbands(file_list: Sequence[str],
     batch_num = 0
     total_batches = (len(sorted_file_list) + batch_size - 1) // batch_size
 
-    _pyuv_lg = logging.getLogger('pyuvdata')
+    _pyuv_lg = logging.getLogger("pyuvdata")
     _prev_level = _pyuv_lg.level
     try:
         _pyuv_lg.setLevel(logging.ERROR)
 
         for i in range(0, len(sorted_file_list), batch_size):
             batch_num += 1
-            batch = sorted_file_list[i:i+batch_size]
+            batch = sorted_file_list[i : i + batch_size]
 
             if show_progress:
                 logger.info(
-                    f"Loading batch {batch_num}/{total_batches} ({len(batch)} subbands)...")
+                    f"Loading batch {batch_num}/{total_batches} ({len(batch)} subbands)..."
+                )
 
             # Load batch
             batch_data = _load_and_merge_subbands_single_batch(
-                batch, show_progress=False)
+                batch, show_progress=False
+            )
 
             # Merge with accumulated result
             if merged is None:
                 merged = batch_data
             else:
                 # Merge batch into accumulated result
-                merged.fast_concat([batch_data], axis="freq",
-                                   inplace=True, run_check=False)
+                merged.fast_concat(
+                    [batch_data], axis="freq", inplace=True, run_check=False
+                )
 
             # Explicit cleanup to help GC
             del batch_data
             import gc
+
             gc.collect()
 
         if merged is not None:
             merged.reorder_freqs(channel_order="freq", run_check=False)
             logger.info(
-                f"Concatenated {len(sorted_file_list)} subbands in {total_batches} batches")
+                f"Concatenated {len(sorted_file_list)} subbands in {total_batches} batches"
+            )
 
     finally:
         _pyuv_lg.setLevel(_prev_level)
@@ -354,8 +362,9 @@ def _load_and_merge_subbands(file_list: Sequence[str],
     return merged if merged is not None else UVData()
 
 
-def _load_and_merge_subbands_single_batch(file_list: Sequence[str],
-                                          show_progress: bool = True) -> UVData:
+def _load_and_merge_subbands_single_batch(
+    file_list: Sequence[str], show_progress: bool = True
+) -> UVData:
     """Load and merge a single batch of subband files (original implementation).
 
     This is the original single-batch loading logic, extracted for reuse
@@ -363,19 +372,20 @@ def _load_and_merge_subbands_single_batch(file_list: Sequence[str],
     """
     uv = UVData()
     acc: List[UVData] = []
-    _pyuv_lg = logging.getLogger('pyuvdata')
+    _pyuv_lg = logging.getLogger("pyuvdata")
     _prev_level = _pyuv_lg.level
     try:
         _pyuv_lg.setLevel(logging.ERROR)
 
         # Use progress bar for file reading
         from dsa110_contimg.utils.progress import get_progress_bar
+
         file_iter = get_progress_bar(
             enumerate(file_list),
             total=len(file_list),
             desc="Reading subbands",
             disable=not show_progress,
-            mininterval=0.5  # Update every 0.5s max
+            mininterval=0.5,  # Update every 0.5s max
         )
 
         for i, path in file_iter:
@@ -386,53 +396,56 @@ def _load_and_merge_subbands_single_batch(file_list: Sequence[str],
                 suggestions = [
                     "Check file path is correct",
                     "Verify file exists",
-                    "Check file system permissions"
+                    "Check file system permissions",
                 ]
                 error_msg = format_file_error_with_suggestions(
                     FileNotFoundError(f"Subband file does not exist: {path}"),
-                    path, "file validation", suggestions
+                    path,
+                    "file validation",
+                    suggestions,
                 )
                 raise FileNotFoundError(error_msg)
             if not os.access(path, os.R_OK):
                 suggestions = [
                     "Check file system permissions",
                     "Verify read access to file",
-                    "Check SELinux/AppArmor restrictions if applicable"
+                    "Check SELinux/AppArmor restrictions if applicable",
                 ]
                 error_msg = format_file_error_with_suggestions(
                     PermissionError(f"Subband file is not readable: {path}"),
-                    path, "file validation", suggestions
+                    path,
+                    "file validation",
+                    suggestions,
                 )
                 raise PermissionError(error_msg)
 
             # Quick HDF5 structure check
             try:
                 import h5py
-                with h5py.File(path, 'r') as f:
+
+                with h5py.File(path, "r") as f:
                     # Verify file has required structure (Header or Data group)
-                    if 'Header' not in f and 'Data' not in f:
+                    if "Header" not in f and "Data" not in f:
                         suggestions = [
                             "Verify file is a valid UVH5/HDF5 file",
                             "Check file format and structure",
-                            "Re-run conversion if file is corrupted"
+                            "Re-run conversion if file is corrupted",
                         ]
                         raise ValidationError(
                             errors=[f"Invalid HDF5 structure: {path}"],
-                            context={'path': str(
-                                path), 'operation': 'file validation'},
-                            suggestion="Check file format and structure. Re-run conversion if file is corrupted."
+                            context={"path": str(path), "operation": "file validation"},
+                            suggestion="Check file format and structure. Re-run conversion if file is corrupted.",
                         )
             except Exception as e:
                 raise ValidationError(
                     errors=[f"File validation failed: {e}"],
-                    context={'path': str(
-                        path), 'operation': 'file validation'},
-                    suggestion="Verify file is a valid UVH5/HDF5 file. Check file format and structure. Review detailed error logs."
+                    context={"path": str(path), "operation": "file validation"},
+                    suggestion="Verify file is a valid UVH5/HDF5 file. Check file format and structure. Review detailed error logs.",
                 ) from e
 
             t_read0 = time.perf_counter()
             # Update progress bar description with current file
-            if hasattr(file_iter, 'set_description'):
+            if hasattr(file_iter, "set_description"):
                 file_iter.set_description(f"Reading {os.path.basename(path)}")
 
             tmp = UVData()
@@ -462,14 +475,14 @@ def _load_and_merge_subbands_single_batch(file_list: Sequence[str],
     uv = acc[0]
     if len(acc) > 1:
         uv.fast_concat(acc[1:], axis="freq", inplace=True, run_check=False)
-    logger.debug("Concatenated %d subbands in %.2fs",
-                 len(acc), time.perf_counter() - t_cat0)
+    logger.debug(
+        "Concatenated %d subbands in %.2fs", len(acc), time.perf_counter() - t_cat0
+    )
     uv.reorder_freqs(channel_order="freq", run_check=False)
     return uv
 
 
-def _set_phase_and_uvw(
-        uv: UVData) -> tuple[u.Quantity, u.Quantity, u.Quantity]:
+def _set_phase_and_uvw(uv: UVData) -> tuple[u.Quantity, u.Quantity, u.Quantity]:
     phase_to_meridian(uv)
     return (
         uv.extra_keywords.get("phase_center_dec", 0.0) * u.rad,
@@ -546,27 +559,24 @@ def convert_subband_groups_to_ms(
         suggestions = [
             "Check input directory path is correct",
             "Verify directory exists",
-            "Check file system permissions"
+            "Check file system permissions",
         ]
         raise ValidationError(
             errors=[f"Input directory does not exist: {input_dir}"],
-            context={'input_dir': input_dir,
-                     'operation': 'directory validation'},
-            suggestion="Verify directory exists. Check file system permissions."
+            context={"input_dir": input_dir, "operation": "directory validation"},
+            suggestion="Verify directory exists. Check file system permissions.",
         )
     if not os.path.isdir(input_dir):
         raise ValidationError(
             errors=[f"Input path is not a directory: {input_dir}"],
-            context={'input_dir': input_dir,
-                     'operation': 'directory validation'},
-            suggestion="Verify path is a directory, not a file. Check input path is correct."
+            context={"input_dir": input_dir, "operation": "directory validation"},
+            suggestion="Verify path is a directory, not a file. Check input path is correct.",
         )
     if not os.access(input_dir, os.R_OK):
         raise ValidationError(
             errors=[f"Input directory is not readable: {input_dir}"],
-            context={'input_dir': input_dir,
-                     'operation': 'directory validation'},
-            suggestion="Check file system permissions. Verify read access to input directory. Check SELinux/AppArmor restrictions if applicable."
+            context={"input_dir": input_dir, "operation": "directory validation"},
+            suggestion="Check file system permissions. Verify read access to input directory. Check SELinux/AppArmor restrictions if applicable.",
         )
 
     # Validate output directory
@@ -575,32 +585,38 @@ def convert_subband_groups_to_ms(
         suggestions = [
             "Check file system permissions",
             "Verify parent directory exists and is writable",
-            "Check disk space"
+            "Check disk space",
         ]
         error_msg = format_file_error_with_suggestions(
             OSError(f"Failed to create output directory: {output_dir}"),
-            output_dir, "directory creation", suggestions
+            output_dir,
+            "directory creation",
+            suggestions,
         )
         raise ValueError(error_msg)
     if not os.path.isdir(output_dir):
         suggestions = [
             "Verify path is a directory, not a file",
-            "Check output path is correct"
+            "Check output path is correct",
         ]
         error_msg = format_file_error_with_suggestions(
             ValueError(f"Output path is not a directory: {output_dir}"),
-            output_dir, "directory validation", suggestions
+            output_dir,
+            "directory validation",
+            suggestions,
         )
         raise ValueError(error_msg)
     if not os.access(output_dir, os.W_OK):
         suggestions = [
             "Check file system permissions",
             "Verify write access to output directory",
-            "Check SELinux/AppArmor restrictions if applicable"
+            "Check SELinux/AppArmor restrictions if applicable",
         ]
         error_msg = format_file_error_with_suggestions(
             PermissionError(f"Output directory is not writable: {output_dir}"),
-            output_dir, "directory validation", suggestions
+            output_dir,
+            "directory validation",
+            suggestions,
         )
         raise ValueError(error_msg)
 
@@ -611,23 +627,26 @@ def convert_subband_groups_to_ms(
             suggestions = [
                 "Check file system permissions",
                 "Verify parent directory exists and is writable",
-                "Check disk space"
+                "Check disk space",
             ]
             error_msg = format_file_error_with_suggestions(
                 OSError(f"Failed to create scratch directory: {scratch_dir}"),
-                scratch_dir, "directory creation", suggestions
+                scratch_dir,
+                "directory creation",
+                suggestions,
             )
             raise ValueError(error_msg)
         if not os.access(scratch_dir, os.W_OK):
             suggestions = [
                 "Check file system permissions",
                 "Verify write access to scratch directory",
-                "Check SELinux/AppArmor restrictions if applicable"
+                "Check SELinux/AppArmor restrictions if applicable",
             ]
             error_msg = format_file_error_with_suggestions(
-                PermissionError(
-                    f"Scratch directory is not writable: {scratch_dir}"),
-                scratch_dir, "directory validation", suggestions
+                PermissionError(f"Scratch directory is not writable: {scratch_dir}"),
+                scratch_dir,
+                "directory validation",
+                suggestions,
             )
             raise ValueError(error_msg)
 
@@ -635,6 +654,7 @@ def convert_subband_groups_to_ms(
     # This ensures we follow "measure twice, cut once" - establish requirements upfront.
     try:
         from astropy.time import Time
+
         t_start = Time(start_time)
         t_end = Time(end_time)
         if t_start >= t_end:
@@ -645,8 +665,7 @@ def convert_subband_groups_to_ms(
     except Exception as e:
         if isinstance(e, ValueError) and "Invalid time range" in str(e):
             raise
-        logger.warning(
-            f"Failed to validate time range (proceeding anyway): {e}")
+        logger.warning(f"Failed to validate time range (proceeding anyway): {e}")
 
     groups = find_subband_groups(input_dir, start_time, end_time)
     if not groups:
@@ -655,7 +674,8 @@ def convert_subband_groups_to_ms(
 
     # Print group filenames for visibility
     logger.info(
-        f"Found {len(groups)} complete subband group(s) ({len(groups)*16} total files)")
+        f"Found {len(groups)} complete subband group(s) ({len(groups)*16} total files)"
+    )
     for i, group in enumerate(groups, 1):
         logger.info(f"  Group {i}:")
         # Sort by subband number ONLY (0-15) to show correct spectral order
@@ -664,8 +684,9 @@ def convert_subband_groups_to_ms(
         def sort_key(fpath):
             fname = os.path.basename(fpath)
             sb = _extract_subband_code(fname)
-            sb_num = int(sb.replace('sb', '')) if sb else 999
+            sb_num = int(sb.replace("sb", "")) if sb else 999
             return sb_num
+
         for f in sorted(group, key=sort_key):
             logger.info(f"    {os.path.basename(f)}")
 
@@ -717,13 +738,15 @@ def convert_subband_groups_to_ms(
                         )
             except Exception as cleanup_err:
                 logger.debug(
-                    f"Stale tmpfs cleanup check failed (non-fatal): {cleanup_err}")
+                    f"Stale tmpfs cleanup check failed (non-fatal): {cleanup_err}"
+                )
 
     # Add progress indicator for group processing
     from dsa110_contimg.utils.progress import get_progress_bar, should_disable_progress
+
     show_progress = not should_disable_progress(
         None,  # No args in this function scope - use env var
-        env_var="CONTIMG_DISABLE_PROGRESS"
+        env_var="CONTIMG_DISABLE_PROGRESS",
     )
 
     groups_iter = get_progress_bar(
@@ -731,7 +754,7 @@ def convert_subband_groups_to_ms(
         total=len(groups),
         desc="Converting groups",
         disable=not show_progress,
-        mininterval=1.0  # Update every 1s max for groups
+        mininterval=1.0,  # Update every 1s max for groups
     )
 
     for file_list in groups_iter:
@@ -771,7 +794,8 @@ def convert_subband_groups_to_ms(
         if os.path.exists(ms_path):
             if skip_existing:
                 logger.info(
-                    "MS already exists (--skip-existing), skipping: %s", ms_path)
+                    "MS already exists (--skip-existing), skipping: %s", ms_path
+                )
                 continue
             else:
                 logger.info("MS already exists, skipping: %s", ms_path)
@@ -787,6 +811,7 @@ def convert_subband_groups_to_ms(
 
             # CRITICAL: Check available space in output directory (fatal check)
             from dsa110_contimg.mosaic.error_handling import check_disk_space
+
             check_disk_space(
                 output_dir,
                 required_bytes=estimated_ms_size,
@@ -859,15 +884,18 @@ def convert_subband_groups_to_ms(
             t0 = time.perf_counter()
             # Determine if progress should be shown
             from dsa110_contimg.utils.progress import should_disable_progress
+
             show_progress = not should_disable_progress(
                 None,  # No args in this function scope
-                env_var="CONTIMG_DISABLE_PROGRESS"
+                env_var="CONTIMG_DISABLE_PROGRESS",
             )
 
-            uv = _load_and_merge_subbands(
-                file_list, show_progress=show_progress)
-            logger.info("Loaded and merged %d subbands in %.2fs",
-                        len(file_list), time.perf_counter() - t0)
+            uv = _load_and_merge_subbands(file_list, show_progress=show_progress)
+            logger.info(
+                "Loaded and merged %d subbands in %.2fs",
+                len(file_list),
+                time.perf_counter() - t0,
+            )
 
             t1 = time.perf_counter()
             # Ensure telescope name + location are set consistently before phasing
@@ -878,32 +906,24 @@ def convert_subband_groups_to_ms(
                     os.getenv("PIPELINE_TELESCOPE_NAME", "DSA_110"),
                 )
             except Exception:
-                logger.debug(
-                    "set_telescope_identity best-effort failed", exc_info=True)
+                logger.debug("set_telescope_identity best-effort failed", exc_info=True)
             pt_dec, phase_ra, phase_dec = _set_phase_and_uvw(uv)
-            logger.info(
-                "Phased and updated UVW in %.2fs",
-                time.perf_counter() - t1)
+            logger.info("Phased and updated UVW in %.2fs", time.perf_counter() - t1)
         else:
             _, pt_dec, mid_mjd = _peek_uvh5_phase_and_midtime(file_list[0])
             if not np.isfinite(mid_mjd) or mid_mjd == 0.0:
                 temp_uv = UVData()
                 temp_uv.read(
                     file_list[0],
-                    file_type='uvh5',
+                    file_type="uvh5",
                     read_data=False,
                     run_check=False,
                     check_extra=False,
                     run_check_acceptability=False,
                     strict_uvw_antpos_check=False,
                 )
-                pt_dec = temp_uv.extra_keywords.get(
-                    "phase_center_dec", 0.0) * u.rad
-                mid_mjd = Time(
-                    float(
-                        np.mean(
-                            temp_uv.time_array)),
-                    format="jd").mjd
+                pt_dec = temp_uv.extra_keywords.get("phase_center_dec", 0.0) * u.rad
+                mid_mjd = Time(float(np.mean(temp_uv.time_array)), format="jd").mjd
                 del temp_uv
             phase_ra, phase_dec = get_meridian_coords(pt_dec, mid_mjd)
 
@@ -919,10 +939,10 @@ def convert_subband_groups_to_ms(
             def sort_by_subband(fpath):
                 fname = os.path.basename(fpath)
                 sb = _extract_subband_code(fname)
-                sb_num = int(sb.replace('sb', '')) if sb else 999
+                sb_num = int(sb.replace("sb", "")) if sb else 999
                 return sb_num
-            sorted_file_list = sorted(
-                file_list, key=sort_by_subband, reverse=True)
+
+            sorted_file_list = sorted(file_list, key=sort_by_subband, reverse=True)
 
             # CRITICAL FIX: Create a copy of writer_kwargs for each iteration
             # to prevent file_list from being shared between groups.
@@ -941,8 +961,8 @@ def convert_subband_groups_to_ms(
             logger.info(
                 "Writer '%s' finished in %.2fs",
                 writer_type,
-                time.perf_counter() -
-                t_write_start)
+                time.perf_counter() - t_write_start,
+            )
             logger.debug(f"WRITER_TYPE: {writer_type}")
 
             # CRITICAL: Clean up CASA file handles before validation
@@ -957,11 +977,13 @@ def convert_subband_groups_to_ms(
                     "Check disk space",
                     "Verify write permissions on output directory",
                     "Review conversion logs for errors",
-                    "Check writer implementation for failures"
+                    "Check writer implementation for failures",
                 ]
                 error_msg = format_file_error_with_suggestions(
                     RuntimeError(f"MS was not created: {ms_path}"),
-                    ms_path, "MS creation", suggestions
+                    ms_path,
+                    "MS creation",
+                    suggestions,
                 )
                 raise RuntimeError(error_msg)
 
@@ -976,20 +998,21 @@ def convert_subband_groups_to_ms(
                     if os.path.exists(ms_path):
                         shutil.rmtree(ms_path, ignore_errors=True)
                         logger.info(
-                            f"Cleaned up MS with incorrect frequency order: {ms_path}")
+                            f"Cleaned up MS with incorrect frequency order: {ms_path}"
+                        )
                 except Exception:
                     pass
                 raise
 
             # Skip validation checks during conversion if requested (do after conversion)
             skip_validation = writer_kwargs and writer_kwargs.get(
-                "skip_validation_during_conversion", False)
+                "skip_validation_during_conversion", False
+            )
             if not skip_validation:
                 # CRITICAL: Validate phase center coherence to prevent imaging artifacts
                 # All subbands should have coherent phase centers after conversion
                 try:
-                    validate_phase_center_coherence(
-                        ms_path, tolerance_arcsec=2.0)
+                    validate_phase_center_coherence(ms_path, tolerance_arcsec=2.0)
                 except RuntimeError as e:
                     # Phase center incoherence is serious - warn but don't fail
                     logger.error(f"WARNING: {e}")
@@ -1007,8 +1030,7 @@ def convert_subband_groups_to_ms(
                 # CRITICAL: Validate antenna positions to prevent calibration decorrelation
                 # Position errors cause systematic phase errors and flagged solutions
                 try:
-                    validate_antenna_positions(
-                        ms_path, position_tolerance_m=0.05)
+                    validate_antenna_positions(ms_path, position_tolerance_m=0.05)
                 except RuntimeError as e:
                     # Position errors are critical for calibration
                     logger.error(f"CRITICAL: {e}")
@@ -1024,7 +1046,8 @@ def convert_subband_groups_to_ms(
                     # Continue anyway - user may proceed with caution
             else:
                 logger.debug(
-                    "Skipping validation checks during conversion (will be done after)")
+                    "Skipping validation checks during conversion (will be done after)"
+                )
 
             # Verify MS is readable and has required structure
             # Ensure CASAPATH is set before importing CASA modules
@@ -1033,36 +1056,40 @@ def convert_subband_groups_to_ms(
 
             try:
                 from casacore.tables import table
+
                 with table(ms_path, readonly=True) as tb:
                     if tb.nrows() == 0:
                         suggestions = [
                             "Check input UVH5 files contain data",
                             "Verify conversion writer completed successfully",
                             "Review conversion logs for errors",
-                            "Check for empty or corrupted input files"
+                            "Check for empty or corrupted input files",
                         ]
                         error_msg = format_file_error_with_suggestions(
                             RuntimeError(f"MS has no data rows: {ms_path}"),
-                            ms_path, "MS validation", suggestions
+                            ms_path,
+                            "MS validation",
+                            suggestions,
                         )
                         raise RuntimeError(error_msg)
 
                     # Verify required columns exist
-                    required_cols = ['DATA', 'ANTENNA1',
-                                     'ANTENNA2', 'TIME', 'UVW']
-                    missing_cols = [
-                        c for c in required_cols if c not in tb.colnames()]
+                    required_cols = ["DATA", "ANTENNA1", "ANTENNA2", "TIME", "UVW"]
+                    missing_cols = [c for c in required_cols if c not in tb.colnames()]
                     if missing_cols:
                         suggestions = [
                             "Check conversion writer implementation",
                             "Verify MS structure is correct",
                             "Review conversion logs for errors",
-                            "Re-run conversion if MS is corrupted"
+                            "Re-run conversion if MS is corrupted",
                         ]
                         error_msg = format_file_error_with_suggestions(
                             RuntimeError(
-                                f"MS missing required columns: {missing_cols}"),
-                            ms_path, "MS validation", suggestions
+                                f"MS missing required columns: {missing_cols}"
+                            ),
+                            ms_path,
+                            "MS validation",
+                            suggestions,
                         )
                         raise RuntimeError(error_msg)
 
@@ -1130,12 +1157,8 @@ def convert_subband_groups_to_ms(
                     uv = UVData()
                     uv.read(file_list, read_data=False)
                 set_model_column(
-                    base_name,
-                    uv,
-                    pt_dec,
-                    phase_ra,
-                    phase_dec,
-                    flux_jy=flux)
+                    base_name, uv, pt_dec, phase_ra, phase_dec, flux_jy=flux
+                )
             except Exception:
                 logger.warning("Failed to set MODEL_DATA column")
 
@@ -1145,26 +1168,27 @@ def convert_subband_groups_to_ms(
         if checkpoint_file:
             try:
                 import json
+
                 checkpoint_path = Path(checkpoint_file)
                 checkpoint_path.parent.mkdir(parents=True, exist_ok=True)
 
                 # Load existing checkpoint or create new
-                checkpoint_data = {'completed_groups': [], 'groups': {}}
+                checkpoint_data = {"completed_groups": [], "groups": {}}
                 if checkpoint_path.exists():
-                    with open(checkpoint_path, 'r') as f:
+                    with open(checkpoint_path, "r") as f:
                         checkpoint_data = json.load(f)
 
                 # Add this group to completed list
-                if 'completed_groups' not in checkpoint_data:
-                    checkpoint_data['completed_groups'] = []
-                checkpoint_data['completed_groups'].append(base_name)
-                checkpoint_data['groups'][base_name] = {
-                    'ms_path': ms_path,
-                    'timestamp': time.time(),
-                    'files': file_list,
+                if "completed_groups" not in checkpoint_data:
+                    checkpoint_data["completed_groups"] = []
+                checkpoint_data["completed_groups"].append(base_name)
+                checkpoint_data["groups"][base_name] = {
+                    "ms_path": ms_path,
+                    "timestamp": time.time(),
+                    "files": file_list,
                 }
 
-                with open(checkpoint_path, 'w') as f:
+                with open(checkpoint_path, "w") as f:
                     json.dump(checkpoint_data, f, indent=2)
                 logger.debug(f"Checkpoint saved: {checkpoint_file}")
             except Exception as e:
@@ -1172,7 +1196,8 @@ def convert_subband_groups_to_ms(
 
         # Run QA check on MS (skip if requested - will be done after conversion stage)
         skip_qa = writer_kwargs and writer_kwargs.get(
-            "skip_validation_during_conversion", False)
+            "skip_validation_during_conversion", False
+        )
         if not skip_qa:
             try:
                 qa_passed, qa_metrics = check_ms_after_conversion(
@@ -1188,7 +1213,8 @@ def convert_subband_groups_to_ms(
                 logger.warning(f"QA check failed (non-fatal): {e}")
         else:
             logger.debug(
-                "Skipping QA check during conversion (will be done after conversion stage)")
+                "Skipping QA check during conversion (will be done after conversion stage)"
+            )
 
 
 def add_args(p: argparse.ArgumentParser) -> None:
@@ -1208,53 +1234,54 @@ def add_args(p: argparse.ArgumentParser) -> None:
             --calibrator 0834+555 --find-only
     """
     p.add_argument(
-        "input_dir",
-        help="Directory containing UVH5 (HDF5 container) subband files.")
+        "input_dir", help="Directory containing UVH5 (HDF5 container) subband files."
+    )
     p.add_argument(
         "output_dir",
         nargs="?",
         default="/data/dsa110-contimg/ms",
-        help="Directory to save Measurement Sets (default: /data/dsa110-contimg/ms)."
+        help="Directory to save Measurement Sets (default: /data/dsa110-contimg/ms).",
     )
 
     # Time window arguments (required unless using calibrator mode)
     time_group = p.add_argument_group(
         "time_window",
-        "Time window specification (required unless --calibrator is used)"
+        "Time window specification (required unless --calibrator is used)",
     )
     time_group.add_argument(
         "start_time",
         nargs="?",
-        help="Start of processing window (YYYY-MM-DD HH:MM:SS). Required unless --calibrator is specified.")
+        help="Start of processing window (YYYY-MM-DD HH:MM:SS). Required unless --calibrator is specified.",
+    )
     time_group.add_argument(
         "end_time",
         nargs="?",
-        help="End of processing window (YYYY-MM-DD HH:MM:SS). Required unless --calibrator is specified.")
+        help="End of processing window (YYYY-MM-DD HH:MM:SS). Required unless --calibrator is specified.",
+    )
 
     # Calibrator transit mode (alternative to explicit time window)
     calibrator_group = p.add_argument_group(
-        "calibrator",
-        "Calibrator transit mode (alternative to explicit time window)"
+        "calibrator", "Calibrator transit mode (alternative to explicit time window)"
     )
     calibrator_group.add_argument(
         "--calibrator",
-        help="Calibrator name (e.g., '0834+555'). When specified, finds transit and calculates time window automatically."
+        help="Calibrator name (e.g., '0834+555'). When specified, finds transit and calculates time window automatically.",
     )
     calibrator_group.add_argument(
         "--transit-date",
-        help="Specific transit date (YYYY-MM-DD) or transit time (YYYY-MM-DDTHH:MM:SS). If not specified, uses most recent transit."
+        help="Specific transit date (YYYY-MM-DD) or transit time (YYYY-MM-DDTHH:MM:SS). If not specified, uses most recent transit.",
     )
     calibrator_group.add_argument(
         "--window-minutes",
         type=int,
         default=60,
-        help="Search window in minutes around transit (default: 60, i.e., ±30 minutes)."
+        help="Search window in minutes around transit (default: 60, i.e., ±30 minutes).",
     )
     calibrator_group.add_argument(
         "--max-days-back",
         type=int,
         default=30,
-        help="Maximum days to search back for transit (default: 30)."
+        help="Maximum days to search back for transit (default: 30).",
     )
     calibrator_group.add_argument(
         "--min-pb-response",
@@ -1264,13 +1291,13 @@ def add_args(p: argparse.ArgumentParser) -> None:
             "Minimum primary beam response (0-1) required for calibrator to be in beam. "
             "IRON-CLAD SAFEGUARD: Only converts data where calibrator is actually in primary beam. "
             "Default: 0.3 (30%% PB response)."
-        )
+        ),
     )
     calibrator_group.add_argument(
         "--dec-tolerance-deg",
         type=float,
         default=2.0,
-        help="Declination tolerance in degrees for matching observations (default: 2.0)."
+        help="Declination tolerance in degrees for matching observations (default: 2.0).",
     )
     p.add_argument(
         "--writer",
@@ -1285,14 +1312,15 @@ def add_args(p: argparse.ArgumentParser) -> None:
         ),
     )
     p.add_argument(
-        "--flux",
-        type=float,
-        help="Optional flux in Jy to write to MODEL_DATA.")
+        "--flux", type=float, help="Optional flux in Jy to write to MODEL_DATA."
+    )
+    p.add_argument("--scratch-dir", help="Scratch directory for temporary files.")
     p.add_argument(
-        "--scratch-dir",
-        help="Scratch directory for temporary files.")
-    p.add_argument("--max-workers", type=int, default=4,
-                   help="Parallel workers for parallel-subband writer.")
+        "--max-workers",
+        type=int,
+        default=4,
+        help="Parallel workers for parallel-subband writer.",
+    )
     p.add_argument(
         "--stage-to-tmpfs",
         action="store_true",
@@ -1309,10 +1337,7 @@ def add_args(p: argparse.ArgumentParser) -> None:
         dest="stage_to_tmpfs",
         help="Disable tmpfs staging and use scratch directory only.",
     )
-    p.add_argument(
-        "--tmpfs-path",
-        default="/dev/shm",
-        help="Path to tmpfs (RAM disk).")
+    p.add_argument("--tmpfs-path", default="/dev/shm", help="Path to tmpfs (RAM disk).")
     p.add_argument(
         "--merge-spws",
         action="store_true",
@@ -1331,34 +1356,31 @@ def add_args(p: argparse.ArgumentParser) -> None:
         help="Logging level.",
     )
     # Utility flags
-    utility_group = p.add_argument_group(
-        "utility",
-        "Utility and debugging options"
-    )
+    utility_group = p.add_argument_group("utility", "Utility and debugging options")
     utility_group.add_argument(
         "--find-only",
         action="store_true",
-        help="Find transit and list files without converting to MS. Useful for verifying data availability before conversion."
+        help="Find transit and list files without converting to MS. Useful for verifying data availability before conversion.",
     )
     utility_group.add_argument(
         "--dry-run",
         action="store_true",
-        help="Simulate conversion without writing files. Validates inputs and reports what would be converted."
+        help="Simulate conversion without writing files. Validates inputs and reports what would be converted.",
     )
     utility_group.add_argument(
         "--disable-progress",
         action="store_true",
-        help="Disable progress bars. Useful for non-interactive environments or scripts."
+        help="Disable progress bars. Useful for non-interactive environments or scripts.",
     )
     utility_group.add_argument(
         "--skip-existing",
         action="store_true",
-        help="Skip groups that already have MS files. Faster iteration during testing."
+        help="Skip groups that already have MS files. Faster iteration during testing.",
     )
     utility_group.add_argument(
         "--checkpoint-file",
         type=str,
-        help="Path to checkpoint file for resumable conversion. Saves progress after each group."
+        help="Path to checkpoint file for resumable conversion. Saves progress after each group.",
     )
 
 
@@ -1406,14 +1428,16 @@ def main(args: Optional[argparse.Namespace] = None) -> int:
             )
 
         try:
-            from dsa110_contimg.conversion.calibrator_ms_service import CalibratorMSGenerator
+            from dsa110_contimg.conversion.calibrator_ms_service import (
+                CalibratorMSGenerator,
+            )
             from dsa110_contimg.conversion.config import CalibratorMSConfig
 
             logger.info(f"Finding transit for calibrator: {args.calibrator}")
 
             # Initialize service
             config = CalibratorMSConfig.from_env()
-            if hasattr(args, 'input_dir') and args.input_dir:
+            if hasattr(args, "input_dir") and args.input_dir:
                 config.input_dir = Path(args.input_dir)
             service = CalibratorMSGenerator.from_config(config, verbose=True)
 
@@ -1431,9 +1455,9 @@ def main(args: Optional[argparse.Namespace] = None) -> int:
                     transit_time_parsed = Time(args.transit_date)
                     # Check if input was just a date (no time component)
                     # If it parses to midnight and input has no 'T' or ':', it's likely just a date
-                    if 'T' not in args.transit_date and ':' not in args.transit_date:
+                    if "T" not in args.transit_date and ":" not in args.transit_date:
                         is_date_only = True
-                    elif transit_time_parsed.isot.endswith('T00:00:00.000'):
+                    elif transit_time_parsed.isot.endswith("T00:00:00.000"):
                         # Check if hours/minutes/seconds are all zero (midnight)
                         is_date_only = True
                 except Exception:
@@ -1441,8 +1465,7 @@ def main(args: Optional[argparse.Namespace] = None) -> int:
 
                 if is_date_only:
                     # Optimize: Calculate transit for specific date instead of searching all dates
-                    logger.info(
-                        f"Calculating transit for date: {args.transit_date}")
+                    logger.info(f"Calculating transit for date: {args.transit_date}")
 
                     # Load RA/Dec for calibrator
                     ra_deg, dec_deg = service._load_radec(args.calibrator)
@@ -1450,13 +1473,14 @@ def main(args: Optional[argparse.Namespace] = None) -> int:
                     # Calculate transit time for that specific date
                     # Use end of target date as search start, then find previous transit
                     from dsa110_contimg.calibration.schedule import previous_transits
+
                     target_date_end = Time(f"{args.transit_date}T23:59:59")
 
                     # Get transit around that date (search a small window)
                     candidate_transits = previous_transits(
                         ra_deg,
                         start_time=target_date_end,
-                        n=3  # Check a few transits around the date
+                        n=3,  # Check a few transits around the date
                     )
 
                     # Find the transit that falls on the target date
@@ -1465,7 +1489,8 @@ def main(args: Optional[argparse.Namespace] = None) -> int:
                         if candidate.isot.startswith(args.transit_date):
                             target_transit_time = candidate
                             logger.info(
-                                f"Calculated transit time: {target_transit_time.isot}")
+                                f"Calculated transit time: {target_transit_time.isot}"
+                            )
                             break
 
                     if target_transit_time is None:
@@ -1479,7 +1504,7 @@ def main(args: Optional[argparse.Namespace] = None) -> int:
                         transit_time=target_transit_time,
                         window_minutes=args.window_minutes,
                         max_days_back=args.max_days_back,  # Use configured search window
-                        min_pb_response=getattr(args, 'min_pb_response', 0.3)
+                        min_pb_response=getattr(args, "min_pb_response", 0.3),
                     )
 
                     if transit_info is None:
@@ -1488,18 +1513,23 @@ def main(args: Optional[argparse.Namespace] = None) -> int:
                             f"Direct transit search failed, trying broader search for {args.transit_date}..."
                         )
                         all_transits = service.list_available_transits(
-                            args.calibrator,
-                            max_days_back=args.max_days_back
+                            args.calibrator, max_days_back=args.max_days_back
                         )
                         for transit in all_transits:
-                            if transit['transit_iso'].startswith(args.transit_date):
+                            if transit["transit_iso"].startswith(args.transit_date):
                                 transit_info = {
-                                    'transit_iso': transit['transit_iso'],
-                                    'group_id': transit['group_id'],
-                                    'files': transit['files'],
-                                    'delta_minutes': transit['delta_minutes'],
-                                    'start_iso': (Time(transit['transit_iso']) - (args.window_minutes // 2) * u.min).isot,
-                                    'end_iso': (Time(transit['transit_iso']) + (args.window_minutes // 2) * u.min).isot,
+                                    "transit_iso": transit["transit_iso"],
+                                    "group_id": transit["group_id"],
+                                    "files": transit["files"],
+                                    "delta_minutes": transit["delta_minutes"],
+                                    "start_iso": (
+                                        Time(transit["transit_iso"])
+                                        - (args.window_minutes // 2) * u.min
+                                    ).isot,
+                                    "end_iso": (
+                                        Time(transit["transit_iso"])
+                                        + (args.window_minutes // 2) * u.min
+                                    ).isot,
                                 }
                                 break
 
@@ -1511,8 +1541,7 @@ def main(args: Optional[argparse.Namespace] = None) -> int:
                 else:
                     # Full ISO time provided, use it directly
                     transit_time = transit_time_parsed
-                    logger.info(
-                        f"Using provided transit time: {transit_time.isot}")
+                    logger.info(f"Using provided transit time: {transit_time.isot}")
 
             # If we don't have transit_info yet, call find_transit
             if transit_info is None:
@@ -1521,7 +1550,7 @@ def main(args: Optional[argparse.Namespace] = None) -> int:
                     transit_time=transit_time,
                     window_minutes=args.window_minutes,
                     max_days_back=args.max_days_back,
-                    min_pb_response=getattr(args, 'min_pb_response', 0.3)
+                    min_pb_response=getattr(args, "min_pb_response", 0.3),
                 )
 
                 if not transit_info:
@@ -1531,8 +1560,8 @@ def main(args: Optional[argparse.Namespace] = None) -> int:
                     )
 
             # Extract time window from transit info
-            start_time = transit_info['start_iso']
-            end_time = transit_info['end_iso']
+            start_time = transit_info["start_iso"]
+            end_time = transit_info["end_iso"]
 
             logger.info("Calibrator transit found:")
             logger.info(f"  Transit time: {transit_info['transit_iso']}")
@@ -1540,7 +1569,7 @@ def main(args: Optional[argparse.Namespace] = None) -> int:
             logger.info(f"  Search window: {start_time} to {end_time}")
 
             # Print subband filenames (sorted by subband number for spectral order)
-            transit_files = transit_info.get('files', [])
+            transit_files = transit_info.get("files", [])
             logger.info(f"  Files: {len(transit_files)} subband files")
             if transit_files:
                 # Sort by subband number ONLY (0-15) to show correct spectral order
@@ -1548,33 +1577,39 @@ def main(args: Optional[argparse.Namespace] = None) -> int:
                 def sort_key(fpath):
                     fname = os.path.basename(fpath)
                     sb = _extract_subband_code(fname)
-                    sb_num = int(sb.replace('sb', '')) if sb else 999
+                    sb_num = int(sb.replace("sb", "")) if sb else 999
                     return sb_num
+
                 for i, fpath in enumerate(sorted(transit_files, key=sort_key), 1):
                     logger.info(f"    {i:2d}. {os.path.basename(fpath)}")
 
             # If --find-only, print file list and exit without converting
-            if getattr(args, 'find_only', False):
-                logger.info("\n" + "="*60)
+            if getattr(args, "find_only", False):
+                logger.info("\n" + "=" * 60)
                 logger.info("FIND-ONLY MODE: Not converting to MS")
-                logger.info("="*60)
+                logger.info("=" * 60)
                 logger.info(f"\nTransit Information:")
                 logger.info(f"  Calibrator: {args.calibrator}")
                 logger.info(f"  Transit Time: {transit_info['transit_iso']}")
                 logger.info(f"  Group ID: {transit_info['group_id']}")
                 logger.info(
-                    f"  Delta from transit: {transit_info.get('delta_minutes', 'N/A')} minutes")
+                    f"  Delta from transit: {transit_info.get('delta_minutes', 'N/A')} minutes"
+                )
                 logger.info(
-                    f"\nHDF5 Files ({len(transit_info.get('files', []))} subbands):")
+                    f"\nHDF5 Files ({len(transit_info.get('files', []))} subbands):"
+                )
                 # Sort by subband number ONLY (0-15) to show correct spectral order
                 # Files from find_transit are already sorted, but ensure correct order here too
 
                 def sort_key_files(fpath):
                     fname = os.path.basename(fpath)
                     sb = _extract_subband_code(fname)
-                    sb_num = int(sb.replace('sb', '')) if sb else 999
+                    sb_num = int(sb.replace("sb", "")) if sb else 999
                     return sb_num
-                for i, fpath in enumerate(sorted(transit_info.get('files', []), key=sort_key_files), 1):
+
+                for i, fpath in enumerate(
+                    sorted(transit_info.get("files", []), key=sort_key_files), 1
+                ):
                     logger.info(f"  {i:2d}. {os.path.basename(fpath)}")
                 logger.info(f"\nTime Window:")
                 logger.info(f"  Start: {start_time}")
@@ -1601,10 +1636,10 @@ def main(args: Optional[argparse.Namespace] = None) -> int:
 
     # If --find-only mode and we have transit info, we've already printed it and returned above
     # This check handles the case where explicit time window is used with --find-only
-    if getattr(args, 'find_only', False):
-        logger.info("\n" + "="*60)
+    if getattr(args, "find_only", False):
+        logger.info("\n" + "=" * 60)
         logger.info("FIND-ONLY MODE: Not converting to MS")
-        logger.info("="*60)
+        logger.info("=" * 60)
         logger.info(f"\nTime Window:")
         logger.info(f"  Start: {start_time}")
         logger.info(f"  End: {end_time}")
@@ -1612,40 +1647,41 @@ def main(args: Optional[argparse.Namespace] = None) -> int:
         return 0
 
     # Check for dry-run mode
-    if getattr(args, 'dry_run', False):
-        logger.info("="*60)
+    if getattr(args, "dry_run", False):
+        logger.info("=" * 60)
         logger.info("DRY-RUN MODE: No files will be written")
-        logger.info("="*60)
+        logger.info("=" * 60)
 
         # Find groups that would be converted
         groups = find_subband_groups(args.input_dir, start_time, end_time)
         logger.info(f"\nWould convert {len(groups)} group(s):")
         for i, file_list in enumerate(groups, 1):
-            first_file = os.path.basename(
-                file_list[0]) if file_list else "unknown"
+            first_file = os.path.basename(file_list[0]) if file_list else "unknown"
             base_name = os.path.splitext(first_file)[0].split("_sb")[0]
             ms_path = os.path.join(args.output_dir, f"{base_name}.ms")
             logger.info(
-                f"  {i}. Group {base_name} ({len(file_list)} subbands) -> {ms_path}")
+                f"  {i}. Group {base_name} ({len(file_list)} subbands) -> {ms_path}"
+            )
 
         logger.info("\nValidation:")
         # Perform validation checks
         try:
             from dsa110_contimg.utils.validation import validate_directory
-            validate_directory(
-                args.output_dir, must_exist=False, must_writable=True)
+
+            validate_directory(args.output_dir, must_exist=False, must_writable=True)
             if args.scratch_dir:
                 validate_directory(
-                    args.scratch_dir, must_exist=False, must_writable=True)
+                    args.scratch_dir, must_exist=False, must_writable=True
+                )
             logger.info("  ✓ Directory validation passed")
         except Exception as e:
             from dsa110_contimg.utils.validation import ValidationError
+
             if isinstance(e, ValidationError):
                 logger.error(f"  ✗ Validation failed: {', '.join(e.errors)}")
             else:
                 logger.error(f"  ✗ Validation failed: {e}")
-        logger.info(
-            "\nDry-run complete. Use without --dry-run to perform conversion.")
+        logger.info("\nDry-run complete. Use without --dry-run to perform conversion.")
         return 0
 
     writer_kwargs = {"max_workers": args.max_workers}
@@ -1671,12 +1707,13 @@ def main(args: Optional[argparse.Namespace] = None) -> int:
         scratch_dir=args.scratch_dir,
         writer=args.writer,
         writer_kwargs=writer_kwargs,
-        skip_existing=getattr(args, 'skip_existing', False),
-        checkpoint_file=getattr(args, 'checkpoint_file', None),
+        skip_existing=getattr(args, "skip_existing", False),
+        checkpoint_file=getattr(args, "checkpoint_file", None),
     )
     return 0
 
 
 if __name__ == "__main__":
     import sys
+
     sys.exit(main())

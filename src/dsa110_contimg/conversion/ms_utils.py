@@ -21,11 +21,12 @@ from dsa110_contimg.utils.runtime_safeguards import require_casa6_python
 
 def _ensure_imaging_columns_exist(ms_path: str) -> None:
     """Add MODEL_DATA and CORRECTED_DATA columns if missing.
-    
+
     Raises:
         RuntimeError: If column creation fails and columns don't already exist
     """
     import logging
+
     logger = logging.getLogger(__name__)
     
     # Ensure CASAPATH is set before importing CASA modules
@@ -35,34 +36,34 @@ def _ensure_imaging_columns_exist(ms_path: str) -> None:
     try:
         from casacore.tables import addImagingColumns as _addImCols  # type: ignore
         from casacore.tables import table as _tb
-        
+
         # Check if columns already exist before attempting creation
         with _tb(ms_path, readonly=True) as tb:
             colnames = set(tb.colnames())
-            has_model = 'MODEL_DATA' in colnames
-            has_corrected = 'CORRECTED_DATA' in colnames
-            
+            has_model = "MODEL_DATA" in colnames
+            has_corrected = "CORRECTED_DATA" in colnames
+
             if has_model and has_corrected:
                 logger.debug(f"Imaging columns already exist in {ms_path}")
                 return
-        
+
         # Attempt to create columns
         _addImCols(ms_path)
         logger.debug(f"Created imaging columns in {ms_path}")
-        
+
         # Verify columns were actually created
         with _tb(ms_path, readonly=True) as tb:
             colnames = set(tb.colnames())
-            if 'MODEL_DATA' not in colnames or 'CORRECTED_DATA' not in colnames:
+            if "MODEL_DATA" not in colnames or "CORRECTED_DATA" not in colnames:
                 missing = []
-                if 'MODEL_DATA' not in colnames:
-                    missing.append('MODEL_DATA')
-                if 'CORRECTED_DATA' not in colnames:
-                    missing.append('CORRECTED_DATA')
+                if "MODEL_DATA" not in colnames:
+                    missing.append("MODEL_DATA")
+                if "CORRECTED_DATA" not in colnames:
+                    missing.append("CORRECTED_DATA")
                 raise RuntimeError(
                     f"addImagingColumns() succeeded but columns still missing: {missing}"
                 )
-                
+
     except ImportError as e:
         error_msg = f"Failed to import casacore.tables.addImagingColumns: {e}"
         logger.error(error_msg)
@@ -71,11 +72,12 @@ def _ensure_imaging_columns_exist(ms_path: str) -> None:
         # Check if columns exist despite the error (might have been created)
         try:
             from casacore.tables import table as _tb
+
             with _tb(ms_path, readonly=True) as tb:
                 colnames = set(tb.colnames())
-                has_model = 'MODEL_DATA' in colnames
-                has_corrected = 'CORRECTED_DATA' in colnames
-                
+                has_model = "MODEL_DATA" in colnames
+                has_corrected = "CORRECTED_DATA" in colnames
+
                 if has_model and has_corrected:
                     logger.warning(
                         f"addImagingColumns() raised exception but columns exist: {e}. "
@@ -84,7 +86,7 @@ def _ensure_imaging_columns_exist(ms_path: str) -> None:
                     return
         except Exception:
             pass
-        
+
         # Columns don't exist - this is a critical failure
         error_msg = f"Failed to create imaging columns in {ms_path}: {e}"
         logger.error(error_msg, exc_info=True)
@@ -95,16 +97,17 @@ def _ensure_imaging_columns_populated(ms_path: str) -> None:
     """
     Ensure MODEL_DATA and CORRECTED_DATA contain array values for every
     row, with shapes/dtypes matching the DATA column cells.
-    
+
     Raises:
         RuntimeError: If columns exist but cannot be populated
     """
     import logging
+
     logger = logging.getLogger(__name__)
-    
+
     try:
-        from casacore.tables import table as _tb  # type: ignore
         import numpy as _np
+        from casacore.tables import table as _tb  # type: ignore
     except ImportError as e:
         error_msg = f"Failed to import required modules for column population: {e}"
         logger.error(error_msg)
@@ -116,32 +119,32 @@ def _ensure_imaging_columns_populated(ms_path: str) -> None:
             if nrow == 0:
                 logger.warning(f"MS {ms_path} has no rows - cannot populate columns")
                 return
-            
+
             colnames = set(tb.colnames())
-            if 'MODEL_DATA' not in colnames or 'CORRECTED_DATA' not in colnames:
+            if "MODEL_DATA" not in colnames or "CORRECTED_DATA" not in colnames:
                 missing = []
-                if 'MODEL_DATA' not in colnames:
-                    missing.append('MODEL_DATA')
-                if 'CORRECTED_DATA' not in colnames:
-                    missing.append('CORRECTED_DATA')
+                if "MODEL_DATA" not in colnames:
+                    missing.append("MODEL_DATA")
+                if "CORRECTED_DATA" not in colnames:
+                    missing.append("CORRECTED_DATA")
                 raise RuntimeError(
                     f"Cannot populate columns - they don't exist: {missing}"
                 )
-            
+
             # Get DATA shape and dtype from first row
             try:
-                data0 = tb.getcell('DATA', 0)
-                data_shape = getattr(data0, 'shape', None)
-                data_dtype = getattr(data0, 'dtype', None)
+                data0 = tb.getcell("DATA", 0)
+                data_shape = getattr(data0, "shape", None)
+                data_dtype = getattr(data0, "dtype", None)
                 if not data_shape or data_dtype is None:
                     raise RuntimeError("Cannot determine DATA column shape/dtype")
             except Exception as e:
                 error_msg = f"Failed to read DATA column from {ms_path}: {e}"
                 logger.error(error_msg)
                 raise RuntimeError(error_msg) from e
-            
+
             # Populate each column
-            for col in ('MODEL_DATA', 'CORRECTED_DATA'):
+            for col in ("MODEL_DATA", "CORRECTED_DATA"):
                 if col not in tb.colnames():
                     continue
                 fixed = 0
@@ -150,33 +153,29 @@ def _ensure_imaging_columns_populated(ms_path: str) -> None:
                 for r in range(nrow):
                     try:
                         val = tb.getcell(col, r)
-                        if (val is None) or (
-                            getattr(val, 'shape', None) != data_shape
-                        ):
-                            tb.putcell(
-                                col, r, _np.zeros(data_shape, dtype=data_dtype)
-                            )
+                        if (val is None) or (getattr(val, "shape", None) != data_shape):
+                            tb.putcell(col, r, _np.zeros(data_shape, dtype=data_dtype))
                             fixed += 1
                     except Exception as e:
                         try:
-                            tb.putcell(
-                                col, r, _np.zeros(data_shape, dtype=data_dtype)
-                            )
+                            tb.putcell(col, r, _np.zeros(data_shape, dtype=data_dtype))
                             fixed += 1
                         except Exception as e2:
                             errors += 1
                             if len(error_examples) < 5:  # Store first few errors
                                 error_examples.append(f"row {r}: {e2}")
-                
+
                 # Log summary with examples
                 if fixed > 0:
-                    logger.debug(f"Populated {fixed} rows in {col} column for {ms_path}")
+                    logger.debug(
+                        f"Populated {fixed} rows in {col} column for {ms_path}"
+                    )
                 if errors > 0:
                     error_summary = f"Failed to populate {errors} out of {nrow} rows in {col} column for {ms_path}"
                     if error_examples:
                         error_summary += f". Examples: {'; '.join(error_examples)}"
                     logger.warning(error_summary)
-                    
+
     except RuntimeError:
         # Re-raise RuntimeError (our own errors)
         raise
@@ -197,8 +196,8 @@ def _ensure_flag_and_weight_spectrum(ms_path: str) -> None:
       to WEIGHT.
     """
     try:
-        from casacore.tables import table as _tb  # type: ignore
         import numpy as _np
+        from casacore.tables import table as _tb  # type: ignore
     except Exception:
         return
 
@@ -206,47 +205,47 @@ def _ensure_flag_and_weight_spectrum(ms_path: str) -> None:
         with _tb(ms_path, readonly=False) as tb:
             nrow = tb.nrows()
             colnames = set(tb.colnames())
-            has_ws = 'WEIGHT_SPECTRUM' in colnames
+            has_ws = "WEIGHT_SPECTRUM" in colnames
             ws_bad = False
             for i in range(nrow):
                 try:
-                    data = tb.getcell('DATA', i)
+                    data = tb.getcell("DATA", i)
                 except Exception:
                     continue
-                target_shape = getattr(data, 'shape', None)
+                target_shape = getattr(data, "shape", None)
                 if not target_shape or len(target_shape) != 2:
                     continue
                 nchan, npol = int(target_shape[0]), int(target_shape[1])
                 # FLAG
                 try:
-                    f = tb.getcell('FLAG', i)
-                    if f is None or getattr(f, 'shape', None) != (nchan, npol):
-                        raise RuntimeError('FLAG shape mismatch')
+                    f = tb.getcell("FLAG", i)
+                    if f is None or getattr(f, "shape", None) != (nchan, npol):
+                        raise RuntimeError("FLAG shape mismatch")
                 except Exception:
-                    tb.putcell('FLAG', i, _np.zeros((nchan, npol), dtype=bool))
+                    tb.putcell("FLAG", i, _np.zeros((nchan, npol), dtype=bool))
                 # WEIGHT_SPECTRUM
                 if has_ws:
                     try:
-                        ws_val = tb.getcell('WEIGHT_SPECTRUM', i)
-                        if (
-                            ws_val is None
-                            or getattr(ws_val, 'shape', None) != (nchan, npol)
+                        ws_val = tb.getcell("WEIGHT_SPECTRUM", i)
+                        if ws_val is None or getattr(ws_val, "shape", None) != (
+                            nchan,
+                            npol,
                         ):
-                            raise RuntimeError('WS shape mismatch')
+                            raise RuntimeError("WS shape mismatch")
                     except Exception:
                         try:
-                            w = tb.getcell('WEIGHT', i)
+                            w = tb.getcell("WEIGHT", i)
                             w = _np.asarray(w).reshape(-1)
                             if w.size != npol:
                                 w = _np.ones((npol,), dtype=float)
                         except Exception:
                             w = _np.ones((npol,), dtype=float)
                         ws = _np.repeat(w[_np.newaxis, :], nchan, axis=0)
-                        tb.putcell('WEIGHT_SPECTRUM', i, ws)
+                        tb.putcell("WEIGHT_SPECTRUM", i, ws)
                         ws_bad = True
             if has_ws and ws_bad:
                 try:
-                    tb.removecols(['WEIGHT_SPECTRUM'])
+                    tb.removecols(["WEIGHT_SPECTRUM"])
                 except Exception:
                     pass
     except Exception:
@@ -256,15 +255,16 @@ def _ensure_flag_and_weight_spectrum(ms_path: str) -> None:
 @require_casa6_python
 def _initialize_weights(ms_path: str) -> None:
     """Initialize WEIGHT_SPECTRUM via casatasks.initweights.
-    
+
     NOTE: CASA's initweights does NOT have doweight or doflag parameters.
     When wtmode='weight', it initializes WEIGHT_SPECTRUM from the existing WEIGHT column.
     """
     try:
         from casatasks import initweights as _initweights  # type: ignore
+
         # NOTE: When wtmode='weight', initweights initializes WEIGHT_SPECTRUM from WEIGHT column
         # dowtsp=True creates/updates WEIGHT_SPECTRUM column
-        _initweights(vis=ms_path, wtmode='weight', dowtsp=True)
+        _initweights(vis=ms_path, wtmode="weight", dowtsp=True)
     except Exception:
         # Non-fatal: initweights can fail on edge cases; downstream tools may
         # still work
@@ -275,28 +275,30 @@ def _fix_mount_type_in_ms(ms_path: str) -> None:
     """Normalize ANTENNA.MOUNT values to CASA-supported strings."""
     try:
         from casacore.tables import table as _tb  # type: ignore
-        with _tb(ms_path + '/ANTENNA', readonly=False) as ant_table:
-            mounts = ant_table.getcol('MOUNT')
+
+        with _tb(ms_path + "/ANTENNA", readonly=False) as ant_table:
+            mounts = ant_table.getcol("MOUNT")
             fixed = []
             for m in mounts:
-                normalized = str(m or '').lower().strip()
+                normalized = str(m or "").lower().strip()
                 if normalized in (
-                    'alt-az',
-                    'altaz',
-                    'alt_az',
-                    'alt az',
-                    'az-el',
-                        'azel'):
-                    fixed.append('alt-az')
-                elif normalized in ('equatorial', 'eq'):
-                    fixed.append('equatorial')
-                elif normalized in ('x-y', 'xy'):
-                    fixed.append('x-y')
-                elif normalized in ('spherical', 'sphere'):
-                    fixed.append('spherical')
+                    "alt-az",
+                    "altaz",
+                    "alt_az",
+                    "alt az",
+                    "az-el",
+                    "azel",
+                ):
+                    fixed.append("alt-az")
+                elif normalized in ("equatorial", "eq"):
+                    fixed.append("equatorial")
+                elif normalized in ("x-y", "xy"):
+                    fixed.append("x-y")
+                elif normalized in ("spherical", "sphere"):
+                    fixed.append("spherical")
                 else:
-                    fixed.append('alt-az')
-            ant_table.putcol('MOUNT', fixed)
+                    fixed.append("alt-az")
+            ant_table.putcol("MOUNT", fixed)
     except Exception:
         # Non-fatal normalization
         pass
@@ -304,61 +306,64 @@ def _fix_mount_type_in_ms(ms_path: str) -> None:
 
 def _fix_field_phase_centers_from_times(ms_path: str) -> None:
     """Fix FIELD table PHASE_DIR/REFERENCE_DIR with correct time-dependent RA values.
-    
+
     This function corrects a bug where pyuvdata.write_ms() may assign incorrect RA
     values to fields when using time-dependent phase centers. For meridian-tracking
     phasing (RA = LST), each field should have RA corresponding to LST at that field's
     time, not a single midpoint RA.
-    
+
     The function:
     1. Reads the main table to determine which times correspond to which FIELD_ID
     2. For each field, calculates the correct RA = LST(time) at that field's time
     3. Updates PHASE_DIR and REFERENCE_DIR in the FIELD table with correct values
-    
+
     Args:
         ms_path: Path to Measurement Set
     """
     try:
-        from casacore.tables import table as _tb  # type: ignore
-        import numpy as _np
         import astropy.units as u  # type: ignore
+        import numpy as _np
+        from casacore.tables import table as _tb  # type: ignore
+
         from dsa110_contimg.conversion.helpers_coordinates import get_meridian_coords
     except ImportError:
         # Non-fatal: if dependencies aren't available, skip this fix
         return
-    
+
     try:
         # Read main table to get FIELD_ID and TIME mapping
         with _tb(ms_path, readonly=True, ack=False) as main_table:
             if main_table.nrows() == 0:
                 return
-            
-            field_ids = main_table.getcol('FIELD_ID')
-            times = main_table.getcol('TIME')  # CASA TIME is in seconds since MJD epoch
-            
+
+            field_ids = main_table.getcol("FIELD_ID")
+            times = main_table.getcol("TIME")  # CASA TIME is in seconds since MJD epoch
+
             # Get unique field IDs and their corresponding times
             unique_field_ids = _np.unique(field_ids)
             field_times = {}
             for fid in unique_field_ids:
                 mask = field_ids == fid
-                field_times[int(fid)] = _np.mean(times[mask])  # Use mean time for the field
-        
+                field_times[int(fid)] = _np.mean(
+                    times[mask]
+                )  # Use mean time for the field
+
         # Read FIELD table
-        with _tb(ms_path + '::FIELD', readonly=False) as field_table:
+        with _tb(ms_path + "::FIELD", readonly=False) as field_table:
             nfields = field_table.nrows()
             if nfields == 0:
                 return
-            
+
             # Get current PHASE_DIR and REFERENCE_DIR
-            has_phase_dir = 'PHASE_DIR' in field_table.colnames()
-            has_ref_dir = 'REFERENCE_DIR' in field_table.colnames()
-            
+            has_phase_dir = "PHASE_DIR" in field_table.colnames()
+            has_ref_dir = "REFERENCE_DIR" in field_table.colnames()
+
             if not has_phase_dir and not has_ref_dir:
                 return  # Can't fix if neither column exists
-            
-            phase_dir = field_table.getcol('PHASE_DIR') if has_phase_dir else None
-            ref_dir = field_table.getcol('REFERENCE_DIR') if has_ref_dir else None
-            
+
+            phase_dir = field_table.getcol("PHASE_DIR") if has_phase_dir else None
+            ref_dir = field_table.getcol("REFERENCE_DIR") if has_ref_dir else None
+
             # Get pointing declination from first field (should be constant)
             if phase_dir is not None:
                 pt_dec_rad = phase_dir[0, 0, 1]  # Dec from first field
@@ -366,28 +371,31 @@ def _fix_field_phase_centers_from_times(ms_path: str) -> None:
                 pt_dec_rad = ref_dir[0, 0, 1]
             else:
                 return
-            
+
             pt_dec = pt_dec_rad * u.rad
-            
+
             # Get telescope location from OBSERVATION table or use DSA-110 default
             # Note: location is used implicitly by get_meridian_coords() which uses
             # DSA-110 coordinates internally, so we don't need to store it here
             try:
-                with _tb(ms_path + '::OBSERVATION', readonly=True) as obs_table:
+                with _tb(ms_path + "::OBSERVATION", readonly=True) as obs_table:
                     # Check telescope name for potential future use, but get_meridian_coords
                     # already uses correct DSA-110 coordinates internally
-                    if obs_table.nrows() > 0 and 'TELESCOPE_NAME' in obs_table.colnames():
-                        _tel_name = obs_table.getcol('TELESCOPE_NAME')[0]
+                    if (
+                        obs_table.nrows() > 0
+                        and "TELESCOPE_NAME" in obs_table.colnames()
+                    ):
+                        _tel_name = obs_table.getcol("TELESCOPE_NAME")[0]
                         # get_meridian_coords() uses DSA-110 coordinates internally
             except Exception:
                 # get_meridian_coords() uses DSA-110 coordinates internally, so no action needed
                 pass
-            
+
             # Fix each field's phase center
             updated = False
             # Import time conversion utilities for proper format detection
             from dsa110_contimg.utils.time_utils import detect_casa_time_format
-            
+
             for field_idx in range(nfields):
                 # Get time for this field (CASA TIME format varies: seconds since MJD 0 or MJD 51544.0)
                 if field_idx in field_times:
@@ -400,12 +408,12 @@ def _fix_field_phase_centers_from_times(ms_path: str) -> None:
                     # Fallback: use mean time from main table with format detection
                     mean_time_sec = _np.mean(times)
                     _, time_mjd = detect_casa_time_format(mean_time_sec)
-                
+
                 # Calculate correct RA = LST(time) at meridian
                 phase_ra, phase_dec = get_meridian_coords(pt_dec, time_mjd)
                 ra_rad = float(phase_ra.to_value(u.rad))
                 dec_rad = float(phase_dec.to_value(u.rad))
-                
+
                 # Update PHASE_DIR if it exists
                 if has_phase_dir:
                     current_ra = phase_dir[field_idx, 0, 0]
@@ -413,11 +421,13 @@ def _fix_field_phase_centers_from_times(ms_path: str) -> None:
                     # Only update if significantly different (more than 1 arcsec)
                     ra_diff_rad = abs(ra_rad - current_ra)
                     dec_diff_rad = abs(dec_rad - current_dec)
-                    if ra_diff_rad > _np.deg2rad(1.0 / 3600.0) or dec_diff_rad > _np.deg2rad(1.0 / 3600.0):
+                    if ra_diff_rad > _np.deg2rad(
+                        1.0 / 3600.0
+                    ) or dec_diff_rad > _np.deg2rad(1.0 / 3600.0):
                         phase_dir[field_idx, 0, 0] = ra_rad
                         phase_dir[field_idx, 0, 1] = dec_rad
                         updated = True
-                
+
                 # Update REFERENCE_DIR if it exists
                 if has_ref_dir:
                     current_ra = ref_dir[field_idx, 0, 0]
@@ -425,87 +435,97 @@ def _fix_field_phase_centers_from_times(ms_path: str) -> None:
                     # Only update if significantly different (more than 1 arcsec)
                     ra_diff_rad = abs(ra_rad - current_ra)
                     dec_diff_rad = abs(dec_rad - current_dec)
-                    if ra_diff_rad > _np.deg2rad(1.0 / 3600.0) or dec_diff_rad > _np.deg2rad(1.0 / 3600.0):
+                    if ra_diff_rad > _np.deg2rad(
+                        1.0 / 3600.0
+                    ) or dec_diff_rad > _np.deg2rad(1.0 / 3600.0):
                         ref_dir[field_idx, 0, 0] = ra_rad
                         ref_dir[field_idx, 0, 1] = dec_rad
                         updated = True
-            
+
             # Write back updated values
             if updated:
                 if has_phase_dir:
-                    field_table.putcol('PHASE_DIR', phase_dir)
+                    field_table.putcol("PHASE_DIR", phase_dir)
                 if has_ref_dir:
-                    field_table.putcol('REFERENCE_DIR', ref_dir)
+                    field_table.putcol("REFERENCE_DIR", ref_dir)
     except Exception:
         # Non-fatal: if fixing fails, log warning but don't crash
         import logging
+
         logger = logging.getLogger(__name__)
-        logger.warning("Could not fix FIELD table phase centers (non-fatal)", exc_info=True)
+        logger.warning(
+            "Could not fix FIELD table phase centers (non-fatal)", exc_info=True
+        )
 
 
 def _fix_observation_time_range(ms_path: str) -> None:
     """
     Fix OBSERVATION table TIME_RANGE by reading from main table TIME column.
-    
+
     This corrects MS files where OBSERVATION table TIME_RANGE is [0, 0] or invalid.
     The TIME column in the main table is the authoritative source.
-    
+
     Uses the same format detection logic as extract_ms_time_range() to handle
     both TIME formats (seconds since MJD 0 vs seconds since MJD 51544.0).
-    
+
     Parameters
     ----------
     ms_path : str
         Path to Measurement Set
     """
     try:
-        from casacore.tables import table as _tb
-        from dsa110_contimg.utils.time_utils import (
-            detect_casa_time_format, validate_time_mjd, DEFAULT_YEAR_RANGE
-        )
         import numpy as _np
+        from casacore.tables import table as _tb
+
+        from dsa110_contimg.utils.time_utils import (
+            DEFAULT_YEAR_RANGE,
+            detect_casa_time_format,
+            validate_time_mjd,
+        )
     except Exception:
         return
-    
+
     try:
         # Read TIME column from main table (authoritative source)
         with _tb(ms_path, readonly=True) as main_tb:
-            if 'TIME' not in main_tb.colnames() or main_tb.nrows() == 0:
+            if "TIME" not in main_tb.colnames() or main_tb.nrows() == 0:
                 return
-            
-            times = main_tb.getcol('TIME')
+
+            times = main_tb.getcol("TIME")
             if len(times) == 0:
                 return
-            
+
             t0_sec = float(_np.min(times))
             t1_sec = float(_np.max(times))
-        
+
         # Detect correct format using the same logic as extract_ms_time_range()
         # This handles both formats: seconds since MJD 0 vs seconds since MJD 51544.0
         _, start_mjd = detect_casa_time_format(t0_sec, DEFAULT_YEAR_RANGE)
         _, end_mjd = detect_casa_time_format(t1_sec, DEFAULT_YEAR_RANGE)
-        
+
         # Validate using astropy
-        if not (validate_time_mjd(start_mjd, DEFAULT_YEAR_RANGE) and
-                validate_time_mjd(end_mjd, DEFAULT_YEAR_RANGE)):
+        if not (
+            validate_time_mjd(start_mjd, DEFAULT_YEAR_RANGE)
+            and validate_time_mjd(end_mjd, DEFAULT_YEAR_RANGE)
+        ):
             # Invalid dates, skip update
             return
-        
+
         # OBSERVATION table TIME_RANGE should be in the same format as the main table TIME
         # (seconds, not MJD days). Use the raw seconds values directly.
         # Shape should be [2] (start, end), not [1, 2]
         time_range_sec = _np.array([t0_sec, t1_sec], dtype=_np.float64)
-        
+
         # Update OBSERVATION table
         with _tb(f"{ms_path}::OBSERVATION", readonly=False) as obs_tb:
             if obs_tb.nrows() == 0:
                 return
-            
-            if 'TIME_RANGE' not in obs_tb.colnames():
+
+            if "TIME_RANGE" not in obs_tb.colnames():
                 return
-            
+
             # Check if TIME_RANGE is invalid (all zeros or very small)
-            existing_tr = obs_tb.getcol('TIME_RANGE')
+            existing_tr = obs_tb.getcol("TIME_RANGE")
             if existing_tr is not None and len(existing_tr) > 0:
                 # Handle both shapes: (2, 1) and (2,)
                 if existing_tr.shape[0] >= 2:
@@ -515,18 +535,23 @@ def _fix_observation_time_range(ms_path: str) -> None:
                 else:
                     # Shape is (2,) - flat array
                     existing_t0 = float(_np.asarray(existing_tr).flat[0])
-                    existing_t1 = float(_np.asarray(existing_tr).flat[1]) if len(existing_tr) > 1 else existing_t0
-                
+                    existing_t1 = (
+                        float(_np.asarray(existing_tr).flat[1])
+                        if len(existing_tr) > 1
+                        else existing_t0
+                    )
+
                 # Only update if TIME_RANGE is invalid (zero or very small)
                 if existing_t0 > 1.0 and existing_t1 > existing_t0:
                     # TIME_RANGE is already valid, don't overwrite
                     return
-            
+
             # Update TIME_RANGE for all observation rows
             for row in range(obs_tb.nrows()):
-                obs_tb.putcell('TIME_RANGE', row, time_range_sec)
-        
+                obs_tb.putcell("TIME_RANGE", row, time_range_sec)
+
         import logging
+
         logger = logging.getLogger(__name__)
         logger.debug(
             f"Fixed OBSERVATION table TIME_RANGE for {ms_path}: "
@@ -536,8 +561,11 @@ def _fix_observation_time_range(ms_path: str) -> None:
     except Exception:
         # Non-fatal: best-effort fix only
         import logging
+
         logger = logging.getLogger(__name__)
-        logger.warning("Could not fix OBSERVATION table TIME_RANGE (non-fatal)", exc_info=True)
+        logger.warning(
+            "Could not fix OBSERVATION table TIME_RANGE (non-fatal)", exc_info=True
+        )
 
 
 @require_casa6_python
@@ -553,14 +581,14 @@ def configure_ms_for_imaging(
 ) -> None:
     """
     Make a Measurement Set safe and ready for imaging and calibration.
-    
+
     This function performs essential post-conversion setup to ensure an MS is
     ready for downstream processing (calibration, imaging). It uses consistent
     error handling: critical failures raise exceptions, while non-critical issues
     log warnings and continue.
-    
+
     **What this function does:**
-    
+
     1. **Ensures imaging columns exist**: Creates MODEL_DATA and CORRECTED_DATA
        columns if missing, and populates them with properly-shaped arrays
     2. **Ensures flag/weight arrays**: Creates FLAG and WEIGHT_SPECTRUM arrays
@@ -598,36 +626,36 @@ def configure_ms_for_imaging(
         Validate that columns exist and contain data after creation.
         Set to False for high-throughput scenarios where validation overhead
         is a concern. Default: True
-        
+
     Raises
     ------
     ConversionError
         If MS path does not exist, is not readable, or becomes unreadable
         after configuration (critical failures)
-        
+
     Examples
     --------
     Basic usage after converting UVH5 to MS:
-    
+
     >>> from dsa110_contimg.conversion.ms_utils import configure_ms_for_imaging
     >>> configure_ms_for_imaging("/path/to/observation.ms")
-    
+
     Configure only essential columns (skip weight initialization):
-    
+
     >>> configure_ms_for_imaging(
     ...     "/path/to/observation.ms",
     ...     do_initweights=False
     ... )
-    
+
     Minimal configuration (only columns and flags):
-    
+
     >>> configure_ms_for_imaging(
     ...     "/path/to/observation.ms",
     ...     do_initweights=False,
     ...     fix_mount=False,
     ...     stamp_observation_telescope=False
     ... )
-    
+
     Notes
     -----
     - This function should be called after converting UVH5 to MS format
@@ -642,56 +670,59 @@ def configure_ms_for_imaging(
 
     # CRITICAL: Validate MS exists and is readable
     from dsa110_contimg.utils.exceptions import ConversionError
+
     if not os.path.exists(ms_path):
         raise ConversionError(
             f"MS does not exist: {ms_path}",
-            context={'ms_path': ms_path, 'operation': 'configure_ms_for_imaging'},
-            suggestion='Check that the MS path is correct and the file exists'
+            context={"ms_path": ms_path, "operation": "configure_ms_for_imaging"},
+            suggestion="Check that the MS path is correct and the file exists",
         )
     if not os.path.isdir(ms_path):
         raise ConversionError(
             f"MS path is not a directory: {ms_path}",
-            context={'ms_path': ms_path, 'operation': 'configure_ms_for_imaging'},
-            suggestion='Measurement Sets are directories, not files. Check the path.'
+            context={"ms_path": ms_path, "operation": "configure_ms_for_imaging"},
+            suggestion="Measurement Sets are directories, not files. Check the path.",
         )
     if not os.access(ms_path, os.R_OK):
         raise ConversionError(
             f"MS is not readable: {ms_path}",
-            context={'ms_path': ms_path, 'operation': 'configure_ms_for_imaging'},
-            suggestion='Check file permissions: ls -ld ' + ms_path
+            context={"ms_path": ms_path, "operation": "configure_ms_for_imaging"},
+            suggestion="Check file permissions: ls -ld " + ms_path,
         )
 
     # Initialize logger early for use in error handling
     import logging
+
     logger = logging.getLogger(__name__)
-    
+
     # Track which operations succeeded for summary logging
     operations_status = {
-        'columns': 'skipped',
-        'flag_weight': 'skipped', 
-        'initweights': 'skipped',
-        'mount_fix': 'skipped',
-        'telescope_stamp': 'skipped',
-        'field_phase_centers': 'skipped',
-        'observation_time_range': 'skipped'
+        "columns": "skipped",
+        "flag_weight": "skipped",
+        "initweights": "skipped",
+        "mount_fix": "skipped",
+        "telescope_stamp": "skipped",
+        "field_phase_centers": "skipped",
+        "observation_time_range": "skipped",
     }
 
     if ensure_columns:
         try:
             _ensure_imaging_columns_exist(ms_path)
             _ensure_imaging_columns_populated(ms_path)
-            
+
             # CRITICAL: Validate columns actually exist and are populated (if enabled)
             if validate_columns:
                 from casacore.tables import table as _tb
+
                 with _tb(ms_path, readonly=True) as tb:
                     colnames = set(tb.colnames())
                     missing = []
-                    if 'MODEL_DATA' not in colnames:
-                        missing.append('MODEL_DATA')
-                    if 'CORRECTED_DATA' not in colnames:
-                        missing.append('CORRECTED_DATA')
-                    
+                    if "MODEL_DATA" not in colnames:
+                        missing.append("MODEL_DATA")
+                    if "CORRECTED_DATA" not in colnames:
+                        missing.append("CORRECTED_DATA")
+
                     if missing:
                         error_msg = (
                             f"CRITICAL: Required imaging columns missing after creation: {missing}. "
@@ -700,16 +731,16 @@ def configure_ms_for_imaging(
                         logger.error(error_msg)
                         raise ConversionError(
                             error_msg,
-                            context={'ms_path': ms_path, 'missing_columns': missing},
-                            suggestion='Check MS file permissions and disk space. '
-                                      'Try recreating the MS if the issue persists.'
+                            context={"ms_path": ms_path, "missing_columns": missing},
+                            suggestion="Check MS file permissions and disk space. "
+                            "Try recreating the MS if the issue persists.",
                         )
-                    
+
                     # Verify columns have data (at least one row)
                     if tb.nrows() > 0:
                         try:
-                            model_sample = tb.getcell('MODEL_DATA', 0)
-                            corrected_sample = tb.getcell('CORRECTED_DATA', 0)
+                            model_sample = tb.getcell("MODEL_DATA", 0)
+                            corrected_sample = tb.getcell("CORRECTED_DATA", 0)
                             if model_sample is None or corrected_sample is None:
                                 logger.warning(
                                     f"Imaging columns exist but contain None values in {ms_path}"
@@ -720,14 +751,16 @@ def configure_ms_for_imaging(
                             )
                     logger.info(f"✓ Imaging columns verified in {ms_path}")
             else:
-                logger.debug(f"Imaging columns created (validation skipped) in {ms_path}")
-            
-            operations_status['columns'] = 'success'
+                logger.debug(
+                    f"Imaging columns created (validation skipped) in {ms_path}"
+                )
+
+            operations_status["columns"] = "success"
         except ConversionError:
             # Re-raise ConversionError (critical failures)
             raise
         except Exception as e:
-            operations_status['columns'] = f'failed: {e}'
+            operations_status["columns"] = f"failed: {e}"
             error_msg = (
                 f"CRITICAL: Failed to create/verify imaging columns in {ms_path}: {e}. "
                 "MS is not ready for calibration/imaging."
@@ -735,77 +768,84 @@ def configure_ms_for_imaging(
             logger.error(error_msg, exc_info=True)
             raise ConversionError(
                 error_msg,
-                context={'ms_path': ms_path, 'error': str(e)},
-                suggestion='Check MS file permissions, disk space, and CASA installation. '
-                          'Try recreating the MS if the issue persists.'
+                context={"ms_path": ms_path, "error": str(e)},
+                suggestion="Check MS file permissions, disk space, and CASA installation. "
+                "Try recreating the MS if the issue persists.",
             ) from e
-            
+
     if ensure_flag_and_weight:
         try:
             _ensure_flag_and_weight_spectrum(ms_path)
-            operations_status['flag_weight'] = 'success'
+            operations_status["flag_weight"] = "success"
         except Exception as e:
-            operations_status['flag_weight'] = f'failed: {e}'
+            operations_status["flag_weight"] = f"failed: {e}"
             # Non-fatal: continue with other operations
-            
+
     if do_initweights:
         try:
             _initialize_weights(ms_path)
-            operations_status['initweights'] = 'success'
+            operations_status["initweights"] = "success"
         except Exception as e:
-            operations_status['initweights'] = f'failed: {e}'
+            operations_status["initweights"] = f"failed: {e}"
             # Non-fatal: initweights often fails on edge cases
-            
+
     if fix_mount:
         try:
             _fix_mount_type_in_ms(ms_path)
-            operations_status['mount_fix'] = 'success'
+            operations_status["mount_fix"] = "success"
         except Exception as e:
-            operations_status['mount_fix'] = f'failed: {e}'
+            operations_status["mount_fix"] = f"failed: {e}"
             # Non-fatal: mount type normalization is optional
-            
+
     if stamp_observation_telescope:
         try:
             from casacore.tables import table as _tb  # type: ignore
+
             name = os.getenv("PIPELINE_TELESCOPE_NAME", "DSA_110")
-            with _tb(ms_path + '::OBSERVATION', readonly=False) as tb:
+            with _tb(ms_path + "::OBSERVATION", readonly=False) as tb:
                 n = tb.nrows()
                 if n:
-                    tb.putcol('TELESCOPE_NAME', [name] * n)
-            operations_status['telescope_stamp'] = 'success'
+                    tb.putcol("TELESCOPE_NAME", [name] * n)
+            operations_status["telescope_stamp"] = "success"
         except Exception as e:
-            operations_status['telescope_stamp'] = f'failed: {e}'
+            operations_status["telescope_stamp"] = f"failed: {e}"
             # Non-fatal: telescope name stamping is optional
-    
+
     # Fix FIELD table phase centers (corrects RA assignment bug)
     try:
         _fix_field_phase_centers_from_times(ms_path)
-        operations_status['field_phase_centers'] = 'success'
+        operations_status["field_phase_centers"] = "success"
     except Exception as e:
-        operations_status['field_phase_centers'] = f'failed: {e}'
+        operations_status["field_phase_centers"] = f"failed: {e}"
         # Non-fatal: field phase center fix is best-effort
-    
+
     # Fix OBSERVATION table TIME_RANGE (corrects missing/invalid time range)
     try:
         _fix_observation_time_range(ms_path)
-        operations_status['observation_time_range'] = 'success'
+        operations_status["observation_time_range"] = "success"
     except Exception as e:
-        operations_status['observation_time_range'] = f'failed: {e}'
+        operations_status["observation_time_range"] = f"failed: {e}"
         # Non-fatal: observation time range fix is best-effort
-    
+
     # Summary logging - report what worked and what didn't
-    success_ops = [op for op, status in operations_status.items() if status == 'success']
-    failed_ops = [f"{op}({status.split(': ')[1]})" for op, status in operations_status.items() 
-                  if status.startswith('failed')]
-    
+    success_ops = [
+        op for op, status in operations_status.items() if status == "success"
+    ]
+    failed_ops = [
+        f"{op}({status.split(': ')[1]})"
+        for op, status in operations_status.items()
+        if status.startswith("failed")
+    ]
+
     if success_ops:
         logger.info(f"✓ MS configuration completed: {', '.join(success_ops)}")
     if failed_ops:
         logger.warning(f"⚠ MS configuration partial failures: {'; '.join(failed_ops)}")
-    
+
     # Final validation: verify MS is still readable after all operations
     try:
         from casacore.tables import table as _tb
+
         with _tb(ms_path, readonly=True) as tb:
             if tb.nrows() == 0:
                 raise RuntimeError(f"MS has no data after configuration: {ms_path}")
@@ -814,12 +854,12 @@ def configure_ms_for_imaging(
 
 
 __all__ = [
-    'configure_ms_for_imaging',
-    '_ensure_imaging_columns_exist',
-    '_ensure_imaging_columns_populated',
-    '_ensure_flag_and_weight_spectrum',
-    '_initialize_weights',
-    '_fix_mount_type_in_ms',
-    '_fix_field_phase_centers_from_times',
-    '_fix_observation_time_range',
+    "configure_ms_for_imaging",
+    "_ensure_imaging_columns_exist",
+    "_ensure_imaging_columns_populated",
+    "_ensure_flag_and_weight_spectrum",
+    "_initialize_weights",
+    "_fix_mount_type_in_ms",
+    "_fix_field_phase_centers_from_times",
+    "_fix_observation_time_range",
 ]

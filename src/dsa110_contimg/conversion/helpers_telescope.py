@@ -1,11 +1,13 @@
 """Telescope utility helper functions for conversion."""
-import logging
-from typing import Optional
-from contextlib import contextmanager
 
-import numpy as np
+import logging
+from contextlib import contextmanager
+from typing import Optional
+
 import astropy.units as u
+import numpy as np
 from astropy.coordinates import EarthLocation
+
 from dsa110_contimg.utils.runtime_safeguards import require_casa6_python
 
 logger = logging.getLogger("dsa110_contimg.conversion.helpers")
@@ -14,7 +16,7 @@ logger = logging.getLogger("dsa110_contimg.conversion.helpers")
 @require_casa6_python
 def cleanup_casa_file_handles() -> None:
     """Force close any open CASA file handles to prevent locking issues.
-    
+
     This is critical when running parallel MS operations or using tmpfs staging.
     CASA tools can hold file handles open even after operations complete,
     causing file locking errors in subsequent operations.
@@ -25,21 +27,22 @@ def cleanup_casa_file_handles() -> None:
 
     try:
         import casatools
-        tool_names = ['ms', 'table', 'image', 'msmetadata', 'simulator']
-        
+
+        tool_names = ["ms", "table", "image", "msmetadata", "simulator"]
+
         for tool_name in tool_names:
             try:
                 tool_factory = getattr(casatools, tool_name, None)
                 if tool_factory is not None:
                     tool_instance = tool_factory()
-                    if hasattr(tool_instance, 'close'):
+                    if hasattr(tool_instance, "close"):
                         tool_instance.close()
-                    if hasattr(tool_instance, 'done'):
+                    if hasattr(tool_instance, "done"):
                         tool_instance.done()
             except Exception:
                 # Individual tool cleanup failures are non-fatal
                 pass
-                
+
         logger.debug("CASA file handles cleanup completed")
     except ImportError:
         # casatools not available - nothing to clean up
@@ -51,11 +54,11 @@ def cleanup_casa_file_handles() -> None:
 @contextmanager
 def casa_operation():
     """Context manager for CASA operations with automatic cleanup.
-    
+
     Ensures CASA file handles are cleaned up after operations complete,
     even if exceptions occur. This prevents file locking issues in parallel
     operations and tmpfs staging scenarios.
-    
+
     Example:
         with casa_operation():
             # CASA operations here
@@ -63,7 +66,7 @@ def casa_operation():
             # ... do work ...
             ms.close()
         # cleanup_casa_file_handles() is automatically called here
-    
+
     Note:
         This is a best-effort cleanup. Individual tool cleanup failures
         are logged but don't raise exceptions.
@@ -107,6 +110,7 @@ def set_telescope_identity(
     # Use constants if coordinates not provided (single source of truth)
     if lon_deg is None or lat_deg is None or alt_m is None:
         from dsa110_contimg.utils.constants import OVRO_LOCATION
+
         if lon_deg is None:
             lon_deg = OVRO_LOCATION.lon.to(u.deg).value
         if lat_deg is None:
@@ -121,18 +125,23 @@ def set_telescope_identity(
         pass
 
     try:
-        _loc = EarthLocation.from_geodetic(lon=lon_deg * u.deg, lat=lat_deg * u.deg, height=alt_m * u.m)
+        _loc = EarthLocation.from_geodetic(
+            lon=lon_deg * u.deg, lat=lat_deg * u.deg, height=alt_m * u.m
+        )
     except Exception as exc:  # pragma: no cover - defensive
         logger.warning("Failed to construct EarthLocation: %s", exc)
         return
 
     # Populate top-level ITRF (meters)
     try:
-        uv.telescope_location = np.array([
-            _loc.x.to_value(u.m),
-            _loc.y.to_value(u.m),
-            _loc.z.to_value(u.m),
-        ], dtype=float)
+        uv.telescope_location = np.array(
+            [
+                _loc.x.to_value(u.m),
+                _loc.y.to_value(u.m),
+                _loc.z.to_value(u.m),
+            ],
+            dtype=float,
+        )
     except Exception:
         pass
 
@@ -163,32 +172,49 @@ def set_telescope_identity(
         except Exception:
             pass
         try:
-            setattr(tel, "location", np.array([
-                _loc.x.to_value(u.m),
-                _loc.y.to_value(u.m),
-                _loc.z.to_value(u.m),
-            ], dtype=float))
+            setattr(
+                tel,
+                "location",
+                np.array(
+                    [
+                        _loc.x.to_value(u.m),
+                        _loc.y.to_value(u.m),
+                        _loc.z.to_value(u.m),
+                    ],
+                    dtype=float,
+                ),
+            )
         except Exception:
             pass
         try:
-            setattr(tel, "location_lat_lon_alt", (
-                float(_loc.lat.to_value(u.rad)),
-                float(_loc.lon.to_value(u.rad)),
-                float(_loc.height.to_value(u.m)),
-            ))
+            setattr(
+                tel,
+                "location_lat_lon_alt",
+                (
+                    float(_loc.lat.to_value(u.rad)),
+                    float(_loc.lon.to_value(u.rad)),
+                    float(_loc.height.to_value(u.m)),
+                ),
+            )
         except Exception:
             pass
         try:
-            setattr(tel, "location_lat_lon_alt_deg", (
-                float(_loc.lat.to_value(u.deg)),
-                float(_loc.lon.to_value(u.deg)),
-                float(_loc.height.to_value(u.m)),
-            ))
+            setattr(
+                tel,
+                "location_lat_lon_alt_deg",
+                (
+                    float(_loc.lat.to_value(u.deg)),
+                    float(_loc.lon.to_value(u.deg)),
+                    float(_loc.height.to_value(u.m)),
+                ),
+            )
         except Exception:
             pass
 
     logger.debug(
         "Set telescope identity: %s @ (lon,lat,alt)=(%.4f, %.4f, %.1f)",
-        tel_name, lon_deg, lat_deg, alt_m,
+        tel_name,
+        lon_deg,
+        lat_deg,
+        alt_m,
     )
-

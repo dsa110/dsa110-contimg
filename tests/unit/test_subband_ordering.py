@@ -108,7 +108,9 @@ class TestSubbandSorting:
         files = []
         for sb_num in [15, 0, 8, 1, 9, 2, 10, 3, 11, 4, 12, 5, 13, 6, 14, 7]:
             # Alternate between two timestamps to test sorting
-            timestamp = "2025-10-29T13:54:17" if sb_num % 2 == 0 else "2025-10-29T13:54:18"
+            timestamp = (
+                "2025-10-29T13:54:17" if sb_num % 2 == 0 else "2025-10-29T13:54:18"
+            )
             files.append(f"{timestamp}_sb{sb_num:02d}.hdf5")
 
         def sort_by_subband(fpath):
@@ -161,9 +163,11 @@ class TestSubbandSorting:
         assert sorted_files[1].endswith("_sb01.hdf5"), "sb01 should be second"
         assert sorted_files[2].endswith("_sb02.hdf5"), "sb02 should be third"
         # Files without subband codes should be at the end
-        assert "2025-10-29T13:54:17.hdf5" in sorted_files[-2:] or "other_file.hdf5" in sorted_files[-2:]
+        assert (
+            "2025-10-29T13:54:17.hdf5" in sorted_files[-2:]
+            or "other_file.hdf5" in sorted_files[-2:]
+        )
 
 
 if __name__ == "__main__":
     pytest.main([__file__, "-v"])
-

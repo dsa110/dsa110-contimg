@@ -14,44 +14,53 @@ Key Components:
 - PipelineConfig: Unified configuration system
 """
 
-from dsa110_contimg.pipeline.context import PipelineContext
-from dsa110_contimg.pipeline.stages import PipelineStage, StageStatus
-from dsa110_contimg.pipeline.state import (
-    StateRepository,
-    SQLiteStateRepository,
-    JobState,
-)
-from dsa110_contimg.pipeline.resources import ResourceManager
+from dsa110_contimg.pipeline.adapter import LegacyWorkflowAdapter
 from dsa110_contimg.pipeline.config import PipelineConfig
+from dsa110_contimg.pipeline.context import PipelineContext
+from dsa110_contimg.pipeline.observability import PipelineObserver, StageMetrics
 from dsa110_contimg.pipeline.orchestrator import (
     PipelineOrchestrator,
-    StageDefinition,
     PipelineResult,
     PipelineStatus,
+    StageDefinition,
+)
+from dsa110_contimg.pipeline.resilience import RetryPolicy, RetryStrategy
+from dsa110_contimg.pipeline.resources import ResourceManager
+from dsa110_contimg.pipeline.stages import PipelineStage, StageStatus
+from dsa110_contimg.pipeline.state import (
+    JobState,
+    SQLiteStateRepository,
+    StateRepository,
 )
 from dsa110_contimg.pipeline.workflows import (
     WorkflowBuilder,
-    standard_imaging_workflow,
     quicklook_workflow,
     reprocessing_workflow,
+    standard_imaging_workflow,
 )
-from dsa110_contimg.pipeline.observability import PipelineObserver, StageMetrics
-from dsa110_contimg.pipeline.adapter import LegacyWorkflowAdapter
-from dsa110_contimg.pipeline.resilience import RetryPolicy, RetryStrategy
+
 
 # Import stages_impl lazily to avoid circular dependencies
 def __getattr__(name: str):
     """Lazy import for stage implementations."""
-    if name in ("ConversionStage", "CalibrationSolveStage", "CalibrationStage", "ImagingStage", "OrganizationStage"):
+    if name in (
+        "ConversionStage",
+        "CalibrationSolveStage",
+        "CalibrationStage",
+        "ImagingStage",
+        "OrganizationStage",
+    ):
         from dsa110_contimg.pipeline.stages_impl import (
-            ConversionStage,
             CalibrationSolveStage,
             CalibrationStage,
+            ConversionStage,
             ImagingStage,
             OrganizationStage,
         )
+
         return globals()[name]
     raise AttributeError(f"module {__name__!r} has no attribute {name!r}")
+
 
 __all__ = [
     "PipelineContext",
@@ -76,4 +85,3 @@ __all__ = [
     "RetryPolicy",
     "RetryStrategy",
 ]
-

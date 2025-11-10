@@ -3,25 +3,28 @@
 from __future__ import annotations
 
 from datetime import datetime
-from typing import List, Optional, Union, Dict
+from typing import Dict, List, Optional, Union
 
 from pydantic import BaseModel, Field
 
 
 class QueueGroup(BaseModel):
     group_id: str = Field(..., description="Normalized observation timestamp")
-    state: str = Field(...,
-                       description="Queue state (collecting|pending|in_progress|completed|failed)")
+    state: str = Field(
+        ..., description="Queue state (collecting|pending|in_progress|completed|failed)"
+    )
     received_at: datetime
     last_update: datetime
-    subbands_present: int = Field(...,
-                                  description="Number of subbands ingested for this group")
-    expected_subbands: int = Field(...,
-                                   description="Expected subbands per group")
+    subbands_present: int = Field(
+        ..., description="Number of subbands ingested for this group"
+    )
+    expected_subbands: int = Field(..., description="Expected subbands per group")
     has_calibrator: bool | None = Field(
-        None, description="True if any calibrator was matched in beam")
+        None, description="True if any calibrator was matched in beam"
+    )
     matches: list[CalibratorMatch] | None = Field(
-        None, description="Top matched calibrators for this group")
+        None, description="Top matched calibrators for this group"
+    )
 
 
 class QueueStats(BaseModel):
@@ -45,7 +48,8 @@ class PipelineStatus(BaseModel):
     recent_groups: List[QueueGroup]
     calibration_sets: List[CalibrationSet]
     matched_recent: int = Field(
-        0, description="Number of recent groups with calibrator matches")
+        0, description="Number of recent groups with calibrator matches"
+    )
 
 
 class ProductEntry(BaseModel):
@@ -65,12 +69,12 @@ class ProductList(BaseModel):
 
 class ImageInfo(BaseModel):
     """Detailed image information for SkyView."""
+
     id: int
     path: str
     ms_path: str
     created_at: Optional[datetime] = None
-    type: str = Field(...,
-                      description="Image type: image, pbcor, residual, psf, pb")
+    type: str = Field(..., description="Image type: image, pbcor, residual, psf, pb")
     beam_major_arcsec: Optional[float] = None
     beam_minor_arcsec: Optional[float] = None
     beam_pa_deg: Optional[float] = None
@@ -85,6 +89,7 @@ class ImageInfo(BaseModel):
 
 class ImageList(BaseModel):
     """List of images with pagination."""
+
     items: List[ImageInfo]
     total: int
 
@@ -190,6 +195,7 @@ class JobParams(BaseModel):
 
 class CalibrateJobParams(BaseModel):
     """Enhanced calibration job parameters with flexible cal table selection."""
+
     field: Optional[str] = None
     refant: str = "103"
 
@@ -272,6 +278,7 @@ class MSList(BaseModel):
 
 class MSListFilters(BaseModel):
     """Filters for MS list query."""
+
     search: Optional[str] = None  # Search in path or calibrator name
     has_calibrator: Optional[bool] = None
     is_calibrated: Optional[bool] = None
@@ -304,6 +311,7 @@ class ConversionJobParams(BaseModel):
     Production processing always uses 16 subbands and should use 'parallel-subband' writer.
     The 'pyuvdata' writer is available for testing scenarios with ≤2 subbands only.
     """
+
     input_dir: str
     output_dir: str
     start_time: str
@@ -352,6 +360,7 @@ class ExistingCalTables(BaseModel):
 
 class CalTableCompatibility(BaseModel):
     """Compatibility check result for a calibration table."""
+
     is_compatible: bool
     caltable_path: str
     ms_path: str
@@ -368,6 +377,7 @@ class CalTableCompatibility(BaseModel):
 # MS metadata models
 class FieldInfo(BaseModel):
     """Field information with coordinates."""
+
     field_id: int
     name: str
     ra_deg: float
@@ -376,12 +386,14 @@ class FieldInfo(BaseModel):
 
 class AntennaInfo(BaseModel):
     """Antenna information."""
+
     antenna_id: int
     name: str
 
 
 class FlaggingStats(BaseModel):
     """Flagging statistics for an MS."""
+
     total_fraction: float  # Overall fraction flagged
     # Antenna ID -> fraction flagged
     per_antenna: Optional[Dict[str, float]] = None
@@ -412,6 +424,7 @@ class MSMetadata(BaseModel):
 # MS Calibrator match models
 class MSCalibratorMatch(BaseModel):
     """Calibrator match for a specific MS."""
+
     name: str
     ra_deg: float
     dec_deg: float
@@ -425,6 +438,7 @@ class MSCalibratorMatch(BaseModel):
 
 class MSCalibratorMatchList(BaseModel):
     """List of calibrator matches for an MS."""
+
     ms_path: str
     pointing_dec: float
     mid_mjd: Optional[float] = None
@@ -439,6 +453,7 @@ class WorkflowParams(BaseModel):
     Production processing always uses 16 subbands and should use 'parallel-subband' writer.
     The 'pyuvdata' writer is available for testing scenarios with ≤2 subbands only.
     """
+
     start_time: str
     end_time: str
     input_dir: str = "/data/incoming"
@@ -461,8 +476,10 @@ class WorkflowJobCreateRequest(BaseModel):
 # Batch Job Models
 # ============================================================================
 
+
 class BatchJobStatus(BaseModel):
     """Status of a single job within a batch."""
+
     ms_path: str
     job_id: Optional[int] = None
     status: str = "pending"  # pending, running, done, failed, cancelled
@@ -473,6 +490,7 @@ class BatchJobStatus(BaseModel):
 
 class BatchJob(BaseModel):
     """A batch job that processes multiple MS files."""
+
     id: int
     type: str  # batch_calibrate, batch_apply, batch_image
     created_at: datetime
@@ -490,24 +508,28 @@ class BatchJobList(BaseModel):
 
 class BatchCalibrateParams(BaseModel):
     """Parameters for batch calibration."""
+
     ms_paths: List[str]
     params: CalibrateJobParams
 
 
 class BatchApplyParams(BaseModel):
     """Parameters for batch apply."""
+
     ms_paths: List[str]
     params: JobParams
 
 
 class BatchImageParams(BaseModel):
     """Parameters for batch imaging."""
+
     ms_paths: List[str]
     params: JobParams
 
 
 class BatchJobCreateRequest(BaseModel):
     """Request to create a batch job."""
+
     job_type: str  # calibrate, apply, image
     params: Union[BatchCalibrateParams, BatchApplyParams, BatchImageParams]
 
@@ -516,8 +538,10 @@ class BatchJobCreateRequest(BaseModel):
 # Quality Assessment Models
 # ============================================================================
 
+
 class PerSPWStats(BaseModel):
     """Per-spectral-window flagging statistics."""
+
     spw_id: int
     total_solutions: int
     flagged_solutions: int
@@ -531,6 +555,7 @@ class PerSPWStats(BaseModel):
 
 class CalibrationQA(BaseModel):
     """Quality assessment metrics for calibration."""
+
     ms_path: str
     job_id: int
     k_metrics: Optional[dict] = None  # SNR, flagged fraction, etc.
@@ -545,6 +570,7 @@ class CalibrationQA(BaseModel):
 
 class ImageQA(BaseModel):
     """Quality assessment metrics for images."""
+
     ms_path: str
     job_id: int
     image_path: str
@@ -562,6 +588,7 @@ class ImageQA(BaseModel):
 
 class QAMetrics(BaseModel):
     """Combined QA metrics for an MS."""
+
     ms_path: str
     calibration_qa: Optional[CalibrationQA] = None
     image_qa: Optional[ImageQA] = None
@@ -569,8 +596,10 @@ class QAMetrics(BaseModel):
 
 # Enhanced dashboard feature models
 
+
 class ESECandidate(BaseModel):
     """ESE (Extreme Scattering Event) candidate source."""
+
     id: Optional[int] = None
     source_id: str
     ra_deg: float
@@ -586,12 +615,14 @@ class ESECandidate(BaseModel):
 
 class ESECandidatesResponse(BaseModel):
     """Response for ESE candidates endpoint."""
+
     candidates: List[ESECandidate]
     total: int
 
 
 class Mosaic(BaseModel):
     """Mosaic image metadata."""
+
     id: Optional[int] = None
     name: str
     path: str
@@ -600,8 +631,7 @@ class Mosaic(BaseModel):
     start_time: str  # ISO format datetime
     end_time: str  # ISO format datetime
     created_at: str  # ISO format datetime
-    status: str = Field(...,
-                        description="pending, in_progress, completed, failed")
+    status: str = Field(..., description="pending, in_progress, completed, failed")
     image_count: Optional[int] = None
     noise_jy: Optional[float] = None
     source_count: Optional[int] = None
@@ -610,12 +640,14 @@ class Mosaic(BaseModel):
 
 class MosaicQueryResponse(BaseModel):
     """Response for mosaic query endpoint."""
+
     mosaics: List[Mosaic]
     total: int
 
 
 class SourceFluxPoint(BaseModel):
     """Single flux measurement point."""
+
     mjd: float
     time: str  # ISO format datetime
     flux_jy: float
@@ -625,6 +657,7 @@ class SourceFluxPoint(BaseModel):
 
 class SourceTimeseries(BaseModel):
     """Source flux timeseries with variability statistics."""
+
     source_id: str
     ra_deg: float
     dec_deg: float
@@ -638,6 +671,7 @@ class SourceTimeseries(BaseModel):
 
 class SourceSearchResponse(BaseModel):
     """Response for source search endpoint."""
+
     sources: List[SourceTimeseries]
     total: int
 
@@ -680,10 +714,12 @@ class PostageStampsResponse(BaseModel):
 
 class AlertHistory(BaseModel):
     """Alert history entry."""
+
     id: int
     source_id: str
-    alert_type: str = Field(...,
-                            description="ese_candidate, calibrator_missing, system_error")
+    alert_type: str = Field(
+        ..., description="ese_candidate, calibrator_missing, system_error"
+    )
     severity: str = Field(..., description="info, warning, critical")
     message: str
     triggered_at: str  # ISO format datetime
@@ -693,6 +729,7 @@ class AlertHistory(BaseModel):
 # Streaming Service Models
 class StreamingConfigRequest(BaseModel):
     """Request model for streaming service configuration."""
+
     input_dir: str
     output_dir: str
     queue_db: Optional[str] = None
@@ -713,6 +750,7 @@ class StreamingConfigRequest(BaseModel):
 
 class StreamingStatusResponse(BaseModel):
     """Response model for streaming service status."""
+
     running: bool
     pid: Optional[int] = None
     started_at: Optional[str] = None  # ISO format
@@ -726,6 +764,7 @@ class StreamingStatusResponse(BaseModel):
 
 class StreamingHealthResponse(BaseModel):
     """Response model for streaming service health check."""
+
     healthy: bool
     running: bool
     uptime_seconds: Optional[float] = None
@@ -736,6 +775,7 @@ class StreamingHealthResponse(BaseModel):
 
 class StreamingControlResponse(BaseModel):
     """Response model for streaming service control operations."""
+
     success: bool
     message: str
     pid: Optional[int] = None

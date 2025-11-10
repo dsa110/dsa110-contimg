@@ -16,12 +16,13 @@ This sets common temp environment variables (TMPDIR, TMP, TEMP, CASA_TMPDIR)
 and creates the directories if needed. It also changes CWD to `cwd_to` when
 provided.
 """
+
 from __future__ import annotations
 
 import os
+from contextlib import contextmanager
 from pathlib import Path
 from typing import Optional
-from contextlib import contextmanager
 
 
 def derive_default_scratch_root() -> Path:
@@ -58,8 +59,7 @@ def prepare_temp_environment(
 
     Returns the path to the temp directory used.
     """
-    root = Path(
-        preferred_root) if preferred_root else derive_default_scratch_root()
+    root = Path(preferred_root) if preferred_root else derive_default_scratch_root()
     tmp = root / "tmp"
     try:
         tmp.mkdir(parents=True, exist_ok=True)
@@ -99,8 +99,7 @@ def derive_casa_log_dir() -> Path:
     - /data/dsa110-contimg/state/logs
     - /tmp (last resort)
     """
-    state_dir = os.getenv("CONTIMG_STATE_DIR") or os.getenv(
-        "PIPELINE_STATE_DIR")
+    state_dir = os.getenv("CONTIMG_STATE_DIR") or os.getenv("PIPELINE_STATE_DIR")
     if state_dir:
         log_dir = Path(state_dir) / "logs"
     else:

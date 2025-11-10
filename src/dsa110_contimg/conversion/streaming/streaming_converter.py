@@ -17,6 +17,7 @@ import re
 import shutil
 import sqlite3
 import subprocess
+import sys
 import tempfile
 import threading
 import time
@@ -25,10 +26,10 @@ from datetime import datetime, timedelta
 from pathlib import Path
 from typing import Dict, Iterator, List, Optional, Sequence, Set, Tuple
 
-import sys
 try:
     from dsa110_contimg.utils.graphiti_logging import GraphitiRunLogger
 except Exception:  # pragma: no cover - optional helper
+
     class GraphitiRunLogger:  # type: ignore
         def __init__(self, *a, **k): pass
         def __enter__(self): return self
@@ -40,15 +41,48 @@ from dsa110_contimg.utils.casa_init import ensure_casa_path
 ensure_casa_path()
 
 from casatasks import concat as casa_concat  # noqa
+        def __init__(self, *a, **k):
+            pass
+
+        def __enter__(self):
+            return self
+
+        def __exit__(self, *a):
+            return False
+
+        def log_consumes(self, *a, **k):
+            pass
+
+        def log_produces(self, *a, **k):
+            pass
+
+
 from casacore.tables import table  # noqa
-from dsa110_contimg.calibration.calibration import solve_delay, solve_bandpass, solve_gains  # noqa
+from casatasks import concat as casa_concat  # noqa
+
 from dsa110_contimg.calibration.applycal import apply_to_target  # noqa
+from dsa110_contimg.calibration.calibration import (  # noqa
+    solve_bandpass,
+    solve_delay,
+    solve_gains,
+)
+from dsa110_contimg.database.products import (  # noqa
+    ensure_products_db,
+    images_insert,
+    ms_index_upsert,
+)
+from dsa110_contimg.database.registry import ensure_db as ensure_cal_db  # noqa
+from dsa110_contimg.database.registry import (
+    get_active_applylist,
+    register_set_from_prefix,
+)
 from dsa110_contimg.imaging.cli import image_ms  # noqa
-from dsa110_contimg.database.registry import ensure_db as ensure_cal_db, register_set_from_prefix, get_active_applylist  # noqa
-from dsa110_contimg.database.products import ensure_products_db, ms_index_upsert, images_insert  # noqa
-from dsa110_contimg.utils.ms_organization import (
-    organize_ms_file, determine_ms_type, create_path_mapper, extract_date_from_filename
-)  # noqa
+from dsa110_contimg.utils.ms_organization import (  # noqa
+    create_path_mapper,
+    determine_ms_type,
+    extract_date_from_filename,
+    organize_ms_file,
+)
 
 try:  # Optional dependency for efficient file watching
     from watchdog.events import FileSystemEventHandler
@@ -62,6 +96,7 @@ except ImportError:  # pragma: no cover - fallback path
 GROUP_PATTERN = re.compile(
     r"(?P<timestamp>\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2})_sb(?P<index>\d{2})\.hdf5$"
 )
+
 
 def parse_subband_info(path: Path) -> Optional[Tuple[str, int]]:
     """Extract (group_id, subband_idx) from a filename, or None if not matched."""
@@ -193,7 +228,9 @@ class QueueDB:
             try:
                 columns = {
                     row["name"]
-                    for row in self._conn.execute("PRAGMA table_info(ingest_queue)").fetchall()
+                    for row in self._conn.execute(
+                        "PRAGMA table_info(ingest_queue)"
+                    ).fetchall()
                 }
             except sqlite3.DatabaseError as exc:  # pragma: no cover - defensive path
                 logging.error("Failed to inspect ingest_queue schema: %s", exc)
@@ -202,7 +239,8 @@ class QueueDB:
             altered = False
             if "checkpoint_path" not in columns:
                 self._conn.execute(
-                    "ALTER TABLE ingest_queue ADD COLUMN checkpoint_path TEXT")
+                    "ALTER TABLE ingest_queue ADD COLUMN checkpoint_path TEXT"
+                )
                 altered = True
             if "processing_stage" not in columns:
                 self._conn.execute(
@@ -214,15 +252,17 @@ class QueueDB:
                 altered = True
             if "chunk_minutes" not in columns:
                 self._conn.execute(
-                    "ALTER TABLE ingest_queue ADD COLUMN chunk_minutes REAL")
+                    "ALTER TABLE ingest_queue ADD COLUMN chunk_minutes REAL"
+                )
                 altered = True
             if "expected_subbands" not in columns:
                 self._conn.execute(
-                    "ALTER TABLE ingest_queue ADD COLUMN expected_subbands INTEGER")
+                    "ALTER TABLE ingest_queue ADD COLUMN expected_subbands INTEGER"
+                )
                 try:
                     self._conn.execute(
                         "UPDATE ingest_queue SET expected_subbands = ? WHERE expected_subbands IS NULL",
-                        (self.expected_subbands,)
+                        (self.expected_subbands,),
                     )
                 except sqlite3.DatabaseError:
                     pass
@@ -240,7 +280,9 @@ class QueueDB:
     def _normalize_existing_groups(self) -> None:
         with self._lock, self._conn:
             try:
-                rows = self._conn.execute("SELECT group_id FROM ingest_queue").fetchall()
+                rows = self._conn.execute(
+                    "SELECT group_id FROM ingest_queue"
+                ).fetchall()
             except sqlite3.DatabaseError:
                 return
             for r in rows:
@@ -248,9 +290,18 @@ class QueueDB:
                 norm = self._normalize_group_id_datetime(gid)
                 if norm != gid:
                     try:
-                        self._conn.execute("UPDATE ingest_queue SET group_id = ? WHERE group_id = ?", (norm, gid))
-                        self._conn.execute("UPDATE subband_files SET group_id = ? WHERE group_id = ?", (norm, gid))
-                        self._conn.execute("UPDATE performance_metrics SET group_id = ? WHERE group_id = ?", (norm, gid))
+                        self._conn.execute(
+                            "UPDATE ingest_queue SET group_id = ? WHERE group_id = ?",
+                            (norm, gid),
+                        )
+                        self._conn.execute(
+                            "UPDATE subband_files SET group_id = ? WHERE group_id = ?",
+                            (norm, gid),
+                        )
+                        self._conn.execute(
+                            "UPDATE performance_metrics SET group_id = ? WHERE group_id = ?",
+                            (norm, gid),
+                        )
                     except sqlite3.DatabaseError:
                         continue
 
@@ -258,47 +309,52 @@ class QueueDB:
             try:
                 columns = {
                     row["name"]
-                    for row in self._conn.execute("PRAGMA table_info(ingest_queue)").fetchall()
+                    for row in self._conn.execute(
+                        "PRAGMA table_info(ingest_queue)"
+                    ).fetchall()
                 }
             except sqlite3.DatabaseError:
                 columns = set()
-            
+
             altered = False
             if "has_calibrator" not in columns:
                 self._conn.execute(
-                    "ALTER TABLE ingest_queue ADD COLUMN has_calibrator INTEGER DEFAULT NULL")
+                    "ALTER TABLE ingest_queue ADD COLUMN has_calibrator INTEGER DEFAULT NULL"
+                )
                 altered = True
             if "calibrators" not in columns:
                 self._conn.execute(
-                    "ALTER TABLE ingest_queue ADD COLUMN calibrators TEXT")
+                    "ALTER TABLE ingest_queue ADD COLUMN calibrators TEXT"
+                )
                 altered = True
 
             if altered:
-                logging.info(
-                    "Updated ingest_queue schema with new metadata columns.")
+                logging.info("Updated ingest_queue schema with new metadata columns.")
 
         with self._lock, self._conn:
             try:
-                pcols = {row["name"] for row in self._conn.execute(
-                    "PRAGMA table_info(performance_metrics)").fetchall()}
+                pcols = {
+                    row["name"]
+                    for row in self._conn.execute(
+                        "PRAGMA table_info(performance_metrics)"
+                    ).fetchall()
+                }
             except sqlite3.DatabaseError:
                 pcols = set()
             if pcols and "writer_type" not in pcols:
                 try:
                     self._conn.execute(
-                        "ALTER TABLE performance_metrics ADD COLUMN writer_type TEXT")
+                        "ALTER TABLE performance_metrics ADD COLUMN writer_type TEXT"
+                    )
                     logging.info(
-                        "Updated performance_metrics schema with writer_type column.")
+                        "Updated performance_metrics schema with writer_type column."
+                    )
                 except sqlite3.DatabaseError:
                     pass
 
-    def record_subband(
-            self,
-            group_id: str,
-            subband_idx: int,
-            file_path: Path) -> None:
+    def record_subband(self, group_id: str, subband_idx: int, file_path: Path) -> None:
         """Record a subband file arrival.
-        
+
         CRITICAL: Uses explicit transaction boundaries for thread safety.
         All operations within this method are atomic.
         """
@@ -314,8 +370,13 @@ class QueueDB:
                     INSERT OR IGNORE INTO ingest_queue (group_id, state, received_at, last_update, chunk_minutes, expected_subbands)
                     VALUES (?, 'collecting', ?, ?, ?, ?)
                     """,
-                    (normalized_group, now, now,
-                     self.chunk_duration_minutes, self.expected_subbands),
+                    (
+                        normalized_group,
+                        now,
+                        now,
+                        self.chunk_duration_minutes,
+                        self.expected_subbands,
+                    ),
                 )
                 self._conn.execute(
                     """
@@ -354,10 +415,8 @@ class QueueDB:
                 raise
 
     def bootstrap_directory(self, input_dir: Path) -> None:
-        logging.info(
-            "Bootstrapping queue from existing files in %s",
-            input_dir)
-        for path in sorted(input_dir.glob('*_sb??.hdf5')):
+        logging.info("Bootstrapping queue from existing files in %s", input_dir)
+        for path in sorted(input_dir.glob("*_sb??.hdf5")):
             info = parse_subband_info(path)
             if info is None:
                 continue
@@ -366,7 +425,7 @@ class QueueDB:
 
     def acquire_next_pending(self) -> Optional[str]:
         """Acquire the next pending group atomically.
-        
+
         CRITICAL: Uses explicit transaction to ensure SELECT and UPDATE are atomic.
         Prevents race conditions where multiple threads acquire the same group.
         """
@@ -401,9 +460,11 @@ class QueueDB:
                 self._conn.rollback()
                 raise
 
-    def update_state(self, group_id: str, state: str, error: Optional[str] = None) -> None:
+    def update_state(
+        self, group_id: str, state: str, error: Optional[str] = None
+    ) -> None:
         """Update the state of a group in the queue.
-        
+
         CRITICAL: Uses explicit transaction for consistency.
         """
         normalized_group = self._normalize_group_id_datetime(group_id)
@@ -436,7 +497,7 @@ class QueueDB:
 
     def record_metrics(self, group_id: str, **kwargs) -> None:
         """Record performance metrics for a group.
-        
+
         CRITICAL: Column names are whitelisted to prevent SQL injection.
         Only known performance metric columns are allowed.
         """
@@ -448,7 +509,7 @@ class QueueDB:
             "total_time",
             "writer_type",
         }
-        
+
         normalized_group = self._normalize_group_id_datetime(group_id)
         now = time.time()
         with self._lock:
@@ -458,14 +519,14 @@ class QueueDB:
                 columns = ["group_id", "recorded_at"]
                 values = [normalized_group, now]
                 placeholders = ["?", "?"]
-                
+
                 for key, value in kwargs.items():
                     # Only allow whitelisted columns
                     if key in ALLOWED_METRIC_COLUMNS:
                         columns.append(key)
                         values.append(value)
                         placeholders.append("?")
-                
+
                 if len(columns) > 2:  # Only execute if we have metrics to record
                     self._conn.execute(
                         f"""
@@ -502,22 +563,22 @@ class _FSHandler(FileSystemEventHandler):
         if info is None:
             return
         gid, sb = info
-        
+
         # PRECONDITION CHECK: Validate file is readable before queuing
         # This ensures we follow "measure twice, cut once" - establish requirements upfront
         # before recording file in queue and attempting conversion.
         log = logging.getLogger("stream")
-        
+
         # Check file exists
         if not p.exists():
             log.warning(f"File does not exist (may have been deleted): {path}")
             return
-        
+
         # Check file is readable
         if not os.access(path, os.R_OK):
             log.warning(f"File is not readable: {path}")
             return
-        
+
         # Check file size (basic sanity check)
         try:
             file_size = p.stat().st_size
@@ -529,24 +590,27 @@ class _FSHandler(FileSystemEventHandler):
         except OSError as e:
             log.warning(f"Failed to check file size: {path}. Error: {e}")
             return
-        
+
         # Quick HDF5 structure check
         try:
             import h5py
-            with h5py.File(path, 'r') as f:
+
+            with h5py.File(path, "r") as f:
                 # Verify file has required structure (Header or Data group)
-                if 'Header' not in f and 'Data' not in f:
+                if "Header" not in f and "Data" not in f:
                     log.warning(f"File does not appear to be valid HDF5/UVH5: {path}")
                     return
         except Exception as e:
             log.warning(f"File is not readable HDF5: {path}. Error: {e}")
             return
-        
+
         # File passed all checks, record in queue
         try:
             self.queue.record_subband(gid, sb, p)
         except Exception:
-            logging.getLogger("stream").debug("record_subband failed for %s", p, exc_info=True)
+            logging.getLogger("stream").debug(
+                "record_subband failed for %s", p, exc_info=True
+            )
 
     def on_created(self, event):  # type: ignore[override]
         if getattr(event, "is_directory", False):  # pragma: no cover - defensive
@@ -574,13 +638,15 @@ def _worker_loop(args: argparse.Namespace, queue: QueueDB) -> None:
             end_time = start_time
             writer_type = None
             ret = 0
-            
+
             # Create path mapper for organized output (default to science, will be corrected if needed)
             # Extract date from group ID to determine organized path
             date_str = extract_date_from_filename(gid)
             ms_base_dir = Path(args.output_dir)
-            path_mapper = create_path_mapper(ms_base_dir, is_calibrator=False, is_failed=False)
-            
+            path_mapper = create_path_mapper(
+                ms_base_dir, is_calibrator=False, is_failed=False
+            )
+
             try:
                 if getattr(args, "use_subprocess", False):
                     # Note: Subprocess mode doesn't support path_mapper yet
@@ -602,7 +668,9 @@ def _worker_loop(args: argparse.Namespace, queue: QueueDB) -> None:
                     ]
                     if getattr(args, "stage_to_tmpfs", False):
                         cmd.append("--stage-to-tmpfs")
-                        cmd.extend(["--tmpfs-path", getattr(args, "tmpfs_path", "/dev/shm")])
+                        cmd.extend(
+                            ["--tmpfs-path", getattr(args, "tmpfs_path", "/dev/shm")]
+                        )
                     env = os.environ.copy()
                     env.setdefault("HDF5_USE_FILE_LOCKING", "FALSE")
                     env.setdefault("OMP_NUM_THREADS", os.getenv("OMP_NUM_THREADS", "4"))
@@ -613,6 +681,7 @@ def _worker_loop(args: argparse.Namespace, queue: QueueDB) -> None:
                     from dsa110_contimg.conversion.strategies.hdf5_orchestrator import (
                         convert_subband_groups_to_ms,
                     )
+
                     convert_subband_groups_to_ms(
                         args.input_dir,
                         args.output_dir,
@@ -641,14 +710,16 @@ def _worker_loop(args: argparse.Namespace, queue: QueueDB) -> None:
                 continue
 
             # Derive MS path from first subband filename (already organized if path_mapper was used)
-            products_db_path = os.getenv("PIPELINE_PRODUCTS_DB", "state/products.sqlite3")
+            products_db_path = os.getenv(
+                "PIPELINE_PRODUCTS_DB", "state/products.sqlite3"
+            )
             try:
                 files = queue.group_files(gid)
                 if not files:
                     raise RuntimeError("no subband files recorded for group")
                 first = os.path.basename(files[0])
                 base = os.path.splitext(first)[0].split("_sb")[0]
-                
+
                 # If path_mapper was used, MS is already in organized location
                 # Otherwise, compute organized path now
                 if not getattr(args, "use_subprocess", False):
@@ -659,7 +730,7 @@ def _worker_loop(args: argparse.Namespace, queue: QueueDB) -> None:
                     ms_path_flat = os.path.join(args.output_dir, base + ".ms")
                     ms_path_obj = Path(ms_path_flat)
                     ms_base_dir = Path(args.output_dir)
-                    
+
                     # Determine MS type and organize
                     try:
                         is_calibrator, is_failed = determine_ms_type(ms_path_obj)
@@ -669,13 +740,16 @@ def _worker_loop(args: argparse.Namespace, queue: QueueDB) -> None:
                             Path(products_db_path),
                             is_calibrator=is_calibrator,
                             is_failed=is_failed,
-                            update_database=False  # We'll register with correct path below
+                            update_database=False,  # We'll register with correct path below
                         )
                         ms_path = str(organized_path)
                         if organized_path != ms_path_obj:
                             log.info(f"Organized MS file: {ms_path_flat} → {ms_path}")
                     except Exception as e:
-                        log.warning(f"Failed to organize MS file {ms_path_flat}: {e}. Using flat path.", exc_info=True)
+                        log.warning(
+                            f"Failed to organize MS file {ms_path_flat}: {e}. Using flat path.",
+                            exc_info=True,
+                        )
                         ms_path = ms_path_flat
             except Exception as exc:
                 log.error("Failed to locate MS for %s: %s", gid, exc)
@@ -689,6 +763,7 @@ def _worker_loop(args: argparse.Namespace, queue: QueueDB) -> None:
                 start_mjd = end_mjd = mid_mjd = None
                 try:
                     from dsa110_contimg.utils.time_utils import extract_ms_time_range
+
                     start_mjd, end_mjd, mid_mjd = extract_ms_time_range(ms_path)
                 except Exception:
                     pass
@@ -712,21 +787,33 @@ def _worker_loop(args: argparse.Namespace, queue: QueueDB) -> None:
                 if mid_mjd is None:
                     # fallback: try extract_ms_time_range again (it has multiple fallbacks)
                     try:
-                        from dsa110_contimg.utils.time_utils import extract_ms_time_range
+                        from dsa110_contimg.utils.time_utils import (
+                            extract_ms_time_range,
+                        )
+
                         _, _, mid_mjd = extract_ms_time_range(ms_path)
                     except Exception:
                         pass
 
                 applylist = []
                 try:
-                    applylist = get_active_applylist(Path(args.registry_db), float(mid_mjd) if mid_mjd is not None else time.time()/86400.0)
+                    applylist = get_active_applylist(
+                        Path(args.registry_db),
+                        (
+                            float(mid_mjd)
+                            if mid_mjd is not None
+                            else time.time() / 86400.0
+                        ),
+                    )
                 except Exception:
                     applylist = []
 
                 cal_applied = 0
                 if applylist:
                     try:
-                        apply_to_target(ms_path, field="", gaintables=applylist, calwt=True)
+                        apply_to_target(
+                            ms_path, field="", gaintables=applylist, calwt=True
+                        )
                         cal_applied = 1
                     except Exception:
                         log.warning("applycal failed for %s", ms_path, exc_info=True)
@@ -735,27 +822,42 @@ def _worker_loop(args: argparse.Namespace, queue: QueueDB) -> None:
                 # Note: Data is always reordered for correct multi-SPW processing
                 imgroot = os.path.join(args.output_dir, base + ".img")
                 try:
-                    image_ms(ms_path, imagename=imgroot, field="", quality_tier="standard", skip_fits=False)
-                    
+                    image_ms(
+                        ms_path,
+                        imagename=imgroot,
+                        field="",
+                        quality_tier="standard",
+                        skip_fits=False,
+                    )
+
                     # Run catalog-based flux scale validation
                     try:
-                        from dsa110_contimg.qa.catalog_validation import validate_flux_scale
                         from pathlib import Path
-                        
+
+                        from dsa110_contimg.qa.catalog_validation import (
+                            validate_flux_scale,
+                        )
+
                         # Find PB-corrected FITS image (preferred for validation)
                         pbcor_fits = f"{imgroot}.pbcor.fits"
-                        fits_image = pbcor_fits if Path(pbcor_fits).exists() else f"{imgroot}.fits"
-                        
+                        fits_image = (
+                            pbcor_fits
+                            if Path(pbcor_fits).exists()
+                            else f"{imgroot}.fits"
+                        )
+
                         if Path(fits_image).exists():
-                            log.info(f"Running catalog-based flux scale validation (NVSS) on {fits_image}")
+                            log.info(
+                                f"Running catalog-based flux scale validation (NVSS) on {fits_image}"
+                            )
                             result = validate_flux_scale(
                                 image_path=fits_image,
                                 catalog="nvss",
                                 min_snr=5.0,
                                 flux_range_jy=(0.01, 10.0),
-                                max_flux_ratio_error=0.2
+                                max_flux_ratio_error=0.2,
                             )
-                            
+
                             if result.n_matched > 0:
                                 log.info(
                                     f"Catalog validation (NVSS): {result.n_matched} sources matched, "
@@ -763,22 +865,30 @@ def _worker_loop(args: argparse.Namespace, queue: QueueDB) -> None:
                                     f"scale error={result.flux_scale_error*100:.1f}%"
                                 )
                                 if result.has_issues:
-                                    log.warning(f"Catalog validation issues: {', '.join(result.issues)}")
+                                    log.warning(
+                                        f"Catalog validation issues: {', '.join(result.issues)}"
+                                    )
                                 if result.has_warnings:
-                                    log.warning(f"Catalog validation warnings: {', '.join(result.warnings)}")
+                                    log.warning(
+                                        f"Catalog validation warnings: {', '.join(result.warnings)}"
+                                    )
                             else:
                                 log.warning("Catalog validation: No sources matched")
                         else:
-                            log.debug(f"Catalog validation skipped: FITS image not found ({fits_image})")
+                            log.debug(
+                                f"Catalog validation skipped: FITS image not found ({fits_image})"
+                            )
                     except Exception as e:
                         log.warning(f"Catalog validation failed (non-fatal): {e}")
-                        
+
                 except Exception:
                     log.error("imaging failed for %s", ms_path, exc_info=True)
 
                 # Update products DB with imaging artifacts and stage
                 try:
-                    products_db_path = os.getenv("PIPELINE_PRODUCTS_DB", "state/products.sqlite3")
+                    products_db_path = os.getenv(
+                        "PIPELINE_PRODUCTS_DB", "state/products.sqlite3"
+                    )
                     conn = ensure_products_db(Path(products_db_path))
                     ms_index_upsert(
                         conn,
@@ -790,7 +900,13 @@ def _worker_loop(args: argparse.Namespace, queue: QueueDB) -> None:
                     )
                     # Insert images
                     now_ts = time.time()
-                    for suffix, pbcor in [(".image", 0), (".pb", 0), (".pbcor", 1), (".residual", 0), (".model", 0)]:
+                    for suffix, pbcor in [
+                        (".image", 0),
+                        (".pb", 0),
+                        (".pbcor", 1),
+                        (".residual", 0),
+                        (".model", 0),
+                    ]:
                         p = f"{imgroot}{suffix}"
                         if os.path.isdir(p) or os.path.isfile(p):
                             images_insert(conn, p, ms_path, now_ts, "5min", pbcor)
@@ -852,7 +968,9 @@ def build_parser() -> argparse.ArgumentParser:
     p.add_argument("--registry-db", default="state/cal_registry.sqlite3")
     p.add_argument("--scratch-dir", default="/stage/dsa110-contimg")
     p.add_argument("--expected-subbands", type=int, default=16)
-    p.add_argument("--chunk-duration", type=float, default=5.0, help="Minutes per group")
+    p.add_argument(
+        "--chunk-duration", type=float, default=5.0, help="Minutes per group"
+    )
     p.add_argument("--log-level", default="INFO")
     p.add_argument("--use-subprocess", action="store_true")
     p.add_argument("--monitoring", action="store_true")
@@ -868,16 +986,17 @@ def build_parser() -> argparse.ArgumentParser:
 def main(argv: Optional[List[str]] = None) -> int:
     # Set CASA log directory before any CASA task calls
     from dsa110_contimg.utils.cli_helpers import setup_casa_environment
+
     setup_casa_environment()
     parser = build_parser()
     args = parser.parse_args(argv)
     setup_logging(args.log_level)
-    
+
     # PRECONDITION CHECK: Validate input/output directories before proceeding
     # This ensures we follow "measure twice, cut once" - establish requirements upfront
     # before starting file watching and processing.
     log = logging.getLogger("stream")
-    
+
     # Validate input directory
     input_path = Path(args.input_dir)
     if not input_path.exists():
@@ -889,7 +1008,7 @@ def main(argv: Optional[List[str]] = None) -> int:
     if not os.access(args.input_dir, os.R_OK):
         log.error(f"Input directory is not readable: {args.input_dir}")
         return 1
-    
+
     # Validate output directory
     output_path = Path(args.output_dir)
     output_path.mkdir(parents=True, exist_ok=True)
@@ -902,9 +1021,9 @@ def main(argv: Optional[List[str]] = None) -> int:
     if not os.access(args.output_dir, os.W_OK):
         log.error(f"Output directory is not writable: {args.output_dir}")
         return 1
-    
+
     # Validate scratch directory if provided
-    if hasattr(args, 'scratch_dir') and args.scratch_dir:
+    if hasattr(args, "scratch_dir") and args.scratch_dir:
         scratch_path = Path(args.scratch_dir)
         scratch_path.mkdir(parents=True, exist_ok=True)
         if not scratch_path.exists():
@@ -913,10 +1032,14 @@ def main(argv: Optional[List[str]] = None) -> int:
         if not os.access(args.scratch_dir, os.W_OK):
             log.error(f"Scratch directory is not writable: {args.scratch_dir}")
             return 1
-    
+
     log.info("✓ Directory validation passed")
 
-    qdb = QueueDB(Path(args.queue_db), expected_subbands=int(args.expected_subbands), chunk_duration_minutes=float(args.chunk_duration))
+    qdb = QueueDB(
+        Path(args.queue_db),
+        expected_subbands=int(args.expected_subbands),
+        chunk_duration_minutes=float(args.chunk_duration),
+    )
     try:
         qdb.bootstrap_directory(Path(args.input_dir))
     except Exception:
@@ -936,7 +1059,9 @@ def main(argv: Optional[List[str]] = None) -> int:
         while True:
             try:
                 with qdb._lock:
-                    cur = qdb._conn.execute("SELECT state, COUNT(*) FROM ingest_queue GROUP BY state").fetchall()
+                    cur = qdb._conn.execute(
+                        "SELECT state, COUNT(*) FROM ingest_queue GROUP BY state"
+                    ).fetchall()
                 stats = {r[0]: r[1] for r in cur}
                 log.info("Queue stats: %s", stats)
             except Exception:
@@ -953,4 +1078,5 @@ def main(argv: Optional[List[str]] = None) -> int:
 
 if __name__ == "__main__":  # pragma: no cover
     import sys
+
     raise SystemExit(main())

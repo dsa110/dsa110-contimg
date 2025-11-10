@@ -11,30 +11,32 @@ Provides endpoints for:
 
 from __future__ import annotations
 
-import os
 import json
 import logging
-from pathlib import Path
-from typing import List, Optional, Dict, Any
+import os
 from datetime import datetime
+from pathlib import Path
+from typing import Any, Dict, List, Optional
 
-from fastapi import APIRouter, HTTPException, Query, Path as PathParam
+from fastapi import APIRouter, HTTPException
+from fastapi import Path as PathParam
+from fastapi import Query
 from fastapi.responses import FileResponse, HTMLResponse, JSONResponse
 from pydantic import BaseModel, Field
 import numpy as np
 
+from dsa110_contimg.qa.casa_ms_qa import QaResult, QaThresholds, run_ms_qa
 from dsa110_contimg.qa.visualization import (
-    ls,
-    FITSFile,
     CasaTable,
-    generate_qa_notebook,
-    generate_fits_viewer_notebook,
-    generate_ms_explorer_notebook,
+    FITSFile,
     browse_qa_outputs,
     display_qa_summary,
+    generate_fits_viewer_notebook,
+    generate_ms_explorer_notebook,
+    generate_qa_notebook,
     generate_qa_notebook_from_result,
+    ls,
 )
-from dsa110_contimg.qa.casa_ms_qa import run_ms_qa, QaResult, QaThresholds
 from dsa110_contimg.qa.visualization_qa import run_ms_qa_with_visualization
 
 logger = logging.getLogger(__name__)
@@ -46,8 +48,10 @@ router = APIRouter(prefix="/api/visualization", tags=["visualization"])
 # Request/Response Models
 # ============================================================================
 
+
 class DirectoryEntry(BaseModel):
     """Directory entry information."""
+
     name: str
     path: str
     type: str = Field(..., description="file, directory, fits, casatable")
@@ -58,6 +62,7 @@ class DirectoryEntry(BaseModel):
 
 class DirectoryListing(BaseModel):
     """Directory listing response."""
+
     path: str
     entries: List[DirectoryEntry]
     total_files: int = 0
@@ -68,6 +73,7 @@ class DirectoryListing(BaseModel):
 
 class FITSInfo(BaseModel):
     """FITS file information."""
+
     path: str
     exists: bool
     shape: Optional[List[int]] = None
@@ -79,6 +85,7 @@ class FITSInfo(BaseModel):
 
 class CasaTableInfo(BaseModel):
     """CASA table information."""
+
     path: str
     exists: bool
     nrows: Optional[int] = None
@@ -91,6 +98,7 @@ class CasaTableInfo(BaseModel):
 
 class NotebookGenerateRequest(BaseModel):
     """Request to generate a QA notebook."""
+
     ms_path: Optional[str] = None
     qa_root: Optional[str] = None
     artifacts: Optional[List[str]] = None
@@ -100,6 +108,7 @@ class NotebookGenerateRequest(BaseModel):
 
 class NotebookGenerateResponse(BaseModel):
     """Response from notebook generation."""
+
     notebook_path: str
     success: bool
     message: Optional[str] = None
@@ -107,6 +116,7 @@ class NotebookGenerateResponse(BaseModel):
 
 class QANotebookRequest(BaseModel):
     """Request to generate QA notebook from MS QA result."""
+
     ms_path: str
     qa_root: str
     thresholds: Optional[Dict[str, Any]] = None
@@ -118,6 +128,7 @@ class QANotebookRequest(BaseModel):
 # ============================================================================
 # Directory Browsing Endpoints
 # ============================================================================
+
 
 @router.get("/browse", response_model=DirectoryListing)
 def browse_directory(
@@ -146,141 +157,72 @@ def browse_directory(
         allowed_bases = [
             base_state.resolve(),
             qa_base.resolve(),
-            Path(os.getenv("PIPELINE_OUTPUT_DIR",
-                 "/stage/dsa110-contimg/ms")).resolve(),
+            Path(
+                os.getenv("PIPELINE_OUTPUT_DIR", "/stage/dsa110-contimg/ms")
+            ).resolve(),
         ]
 
-        # Also allow browsing within /data/dsa110-contimg (common deployment path)
-        # This allows users to browse from /data down to the project directory
-        data_base = Path("/data/dsa110-contimg")
-        if data_base.exists():
-            allowed_bases.append(data_base.resolve())
-
-        # Allow browsing /data itself (parent directory) for navigation purposes
-        # This enables users to navigate from /data to /data/dsa110-contimg
-        data_root = Path("/data")
-        if data_root.exists():
-            allowed_bases.append(data_root.resolve())
-
-        # Allow browsing root directory (/) for full system navigation
-        # Note: This enables browsing from root, but users can still only access
-        # paths within the allowed bases listed above
-        root_path = Path("/")
-        if root_path.exists():
-            allowed_bases.append(root_path.resolve())
-
-        # Check if path is within any allowed base
-        path_allowed = False
-        for base in allowed_bases:
-            try:
-                # Use relative_to to properly handle path containment (handles symlinks)
-                target_path.relative_to(base.resolve())
-                path_allowed = True
-                break
-            except ValueError:
-                # Path is not within this base, try next
-                continue
-
-        if not path_allowed:
+        if not any(str(target_path).startswith(str(base)) for base in allowed_bases):
             raise HTTPException(
-                status_code=403,
-                detail=f"Path {path} is outside allowed directories. Allowed: {[str(b) for b in allowed_bases]}"
+                status_code=403, detail=f"Path {path} is outside allowed directories"
             )
 
         if not target_path.exists():
-            raise HTTPException(
-                status_code=404, detail=f"Path not found: {path}")
+            raise HTTPException(status_code=404, detail=f"Path not found: {path}")
 
         if not target_path.is_dir():
             raise HTTPException(
-                status_code=400, detail=f"Path is not a directory: {path}")
+                status_code=400, detail=f"Path is not a directory: {path}"
+            )
 
         # Browse directory using DataDir
         from dsa110_contimg.qa.visualization.datadir import DataDir
-        try:
-            qa_dir = DataDir(str(target_path), recursive=recursive)
 
-            # Apply filters
-            if include_pattern:
-                qa_dir = qa_dir.include(include_pattern)
-            if exclude_pattern:
-                qa_dir = qa_dir.exclude(exclude_pattern)
+        qa_dir = DataDir(str(target_path), recursive=recursive)
 
-            # Convert to API response
-            entries = []
-            for item in qa_dir:
-                # Determine file type - FileBase uses isdir (not is_dir)
-                is_directory = getattr(item, 'isdir', False) or getattr(
-                    item, 'is_dir', False)
-                file_type = "directory" if is_directory else "file"
-                if not is_directory:
-                    # Use autodetect_file_type for file type detection
-                    from dsa110_contimg.qa.visualization.file import autodetect_file_type
-                    detected_type = autodetect_file_type(item.fullpath)
-                    if detected_type == "fits":
-                        file_type = "fits"
-                    elif detected_type == "casatable":
-                        file_type = "casatable"
+        # Apply filters
+        if include_pattern:
+            qa_dir = qa_dir.include(include_pattern)
+        if exclude_pattern:
+            qa_dir = qa_dir.exclude(exclude_pattern)
 
-                # Format size as human-readable string
-                size_bytes = getattr(item, 'size', 0)
-                if isinstance(size_bytes, int):
-                    if size_bytes == 0:
-                        size_str = "0 B"
-                    elif size_bytes < 1024:
-                        size_str = f"{size_bytes} B"
-                    elif size_bytes < 1024 * 1024:
-                        size_str = f"{size_bytes / 1024:.1f} KB"
-                    elif size_bytes < 1024 * 1024 * 1024:
-                        size_str = f"{size_bytes / (1024 * 1024):.1f} MB"
-                    else:
-                        size_str = f"{size_bytes / (1024 * 1024 * 1024):.1f} GB"
-                else:
-                    size_str = str(size_bytes) if size_bytes else "0 B"
-
-                entry = DirectoryEntry(
-                    name=item.basename,
-                    path=item.fullpath,
-                    type=file_type,
-                    size=size_str,
-                    modified_time=datetime.fromtimestamp(
-                        item.mtime) if item.mtime else None,
-                    is_dir=is_directory,
-                )
-                entries.append(entry)
-
-            return DirectoryListing(
-                path=str(target_path),
-                entries=entries,
-                total_files=qa_dir.nfiles,
-                total_dirs=qa_dir.ndirs,
-                fits_count=len(qa_dir.fits),
-                casatable_count=len(qa_dir.tables),
+        # Convert to API response
+        entries = []
+        for item in qa_dir:
+            entry = DirectoryEntry(
+                name=item.basename,
+                path=item.fullpath,
+                type=item.file_type,
+                size=item.size,
+                modified_time=(
+                    datetime.fromtimestamp(item.mtime) if item.mtime else None
+                ),
+                is_dir=item.is_dir,
             )
-        except (PermissionError, OSError) as e:
-            # Handle permission errors gracefully when browsing root or system directories
-            # Return empty listing with error message in detail
-            logger.warning(f"Permission error browsing {path}: {e}")
-            return DirectoryListing(
-                path=str(target_path),
-                entries=[],
-                total_files=0,
-                total_dirs=0,
-                fits_count=0,
-                casatable_count=0,
-            )
+            entries.append(entry)
+
+        return DirectoryListing(
+            path=str(target_path),
+            entries=entries,
+            total_files=qa_dir.nfiles,
+            total_dirs=qa_dir.ndirs,
+            fits_count=len(qa_dir.fits),
+            casatable_count=len(qa_dir.tables),
+        )
 
     except HTTPException:
         raise
     except Exception as e:
         logger.exception(f"Error browsing directory {path}")
         raise HTTPException(
-            status_code=500, detail=f"Error browsing directory: {str(e)}")
+            status_code=500, detail=f"Error browsing directory: {str(e)}"
+        )
 
 
 # ============================================================================
 # FITS File Endpoints
 # ============================================================================
+
 
 @router.get("/fits/info", response_model=FITSInfo)
 def get_fits_info(
@@ -291,8 +233,7 @@ def get_fits_info(
         # Validate path
         target_path = Path(path).resolve()
         if not target_path.exists():
-            raise HTTPException(
-                status_code=404, detail=f"FITS file not found: {path}")
+            raise HTTPException(status_code=404, detail=f"FITS file not found: {path}")
 
         fits_file = FITSFile(str(target_path))
 
@@ -301,10 +242,16 @@ def get_fits_info(
             exists=fits_file.exists,
             shape=fits_file.shape if fits_file.exists else None,
             summary=str(fits_file.summary) if fits_file.exists else None,
-            header_keys=list(fits_file.hdrobj.keys()) if fits_file.exists and hasattr(
-                fits_file, 'hdrobj') else None,
-            naxis=fits_file.hdrobj.get('NAXIS') if fits_file.exists and hasattr(
-                fits_file, 'hdrobj') else None,
+            header_keys=(
+                list(fits_file.hdrobj.keys())
+                if fits_file.exists and hasattr(fits_file, "hdrobj")
+                else None
+            ),
+            naxis=(
+                fits_file.hdrobj.get("NAXIS")
+                if fits_file.exists and hasattr(fits_file, "hdrobj")
+                else None
+            ),
             error=None,
         )
 
@@ -333,8 +280,7 @@ def view_fits_file(
     try:
         target_path = Path(path).resolve()
         if not target_path.exists():
-            raise HTTPException(
-                status_code=404, detail=f"FITS file not found: {path}")
+            raise HTTPException(status_code=404, detail=f"FITS file not found: {path}")
 
         fits_file = FITSFile(str(target_path))
 
@@ -352,12 +298,14 @@ def view_fits_file(
     except Exception as e:
         logger.exception(f"Error generating FITS viewer HTML for {path}")
         raise HTTPException(
-            status_code=500, detail=f"Error generating viewer: {str(e)}")
+            status_code=500, detail=f"Error generating viewer: {str(e)}"
+        )
 
 
 # ============================================================================
 # CASA Table Endpoints
 # ============================================================================
+
 
 @router.get("/casatable/info", response_model=CasaTableInfo)
 def get_casatable_info(
@@ -367,17 +315,15 @@ def get_casatable_info(
     try:
         target_path = Path(path).resolve()
         if not target_path.exists():
-            raise HTTPException(
-                status_code=404, detail=f"CASA table not found: {path}")
+            raise HTTPException(status_code=404, detail=f"CASA table not found: {path}")
 
         if not target_path.is_dir():
             raise HTTPException(
-                status_code=400, detail=f"Path is not a directory: {path}")
+                status_code=400, detail=f"Path is not a directory: {path}"
+            )
 
         casa_table = CasaTable(str(target_path))
-        # CasaTable scans automatically in __init__ if path exists
-        # Access properties to ensure scanning is complete
-        _ = casa_table.nrows  # This triggers scanning if needed
+        casa_table.rescan()
 
         return CasaTableInfo(
             path=str(target_path),
@@ -385,10 +331,11 @@ def get_casatable_info(
             nrows=casa_table.nrows if casa_table.exists else None,
             columns=casa_table.columns if casa_table.exists else None,
             keywords=casa_table.keywords if casa_table.exists else None,
-            subtables=[
-                str(s) for s in casa_table.subtables] if casa_table.exists else None,
-            is_writable=casa_table._writeable if casa_table.exists else None,
-            error=casa_table._error if hasattr(casa_table, '_error') else None,
+            subtables=(
+                [str(s) for s in casa_table.subtables] if casa_table.exists else None
+            ),
+            is_writable=casa_table._is_writable if casa_table.exists else None,
+            error=casa_table._error if hasattr(casa_table, "_error") else None,
         )
 
     except HTTPException:
@@ -416,47 +363,21 @@ def view_casatable(
     try:
         target_path = Path(path).resolve()
         if not target_path.exists():
-            raise HTTPException(
-                status_code=404, detail=f"CASA table not found: {path}")
+            raise HTTPException(status_code=404, detail=f"CASA table not found: {path}")
 
         casa_table = CasaTable(str(target_path))
-        # CasaTable scans automatically in __init__ if path exists
-        # Access properties to ensure scanning is complete
-        _ = casa_table.nrows  # This triggers scanning if needed
+        casa_table.rescan()
 
-        # Generate HTML summary directly (show() uses display() which won't work in API context)
+        # Generate HTML summary
+        casa_table.show(max_rows=max_rows, max_cols=max_cols)
+
+        # Note: show() uses display() which won't work in API context
+        # We need to generate HTML directly
         html = f'<div class="qa-casatable-summary"><h3>CASA Table: {casa_table.basename}</h3>'
-        html += f'<p>Path: {casa_table.fullpath}</p>'
-        html += f'<p>Rows: {casa_table.nrows:,}</p>'
-        html += f'<p>Columns: {len(casa_table.columns)}</p>'
-
-        # Display sample rows if available
-        if casa_table.nrows > 0 and casa_table.columns:
-            html += '<div class="qa-casatable-sample"><h4>Sample Rows:</h4>'
-            sample_cols = casa_table.columns[:max_cols]
-            html += '<table><tr><th>Row</th>'
-            for col in sample_cols:
-                html += f'<th>{col}</th>'
-            html += '</tr>'
-
-            try:
-                for i in range(min(max_rows, casa_table.nrows)):
-                    html += f'<tr><td>{i}</td>'
-                    for col in sample_cols:
-                        val = casa_table.getcol(col, start=i, nrow=1)
-                        if isinstance(val, np.ndarray) and val.size > 1:
-                            html += f'<td>Array({val.shape})</td>'
-                        elif isinstance(val, np.ndarray) and val.size == 1:
-                            html += f'<td>{val.item()}</td>'
-                        else:
-                            html += f'<td>{val}</td>'
-                    html += '</tr>'
-            except Exception as e:
-                html += f'<tr><td colspan="{len(sample_cols)+1}">Error reading sample data: {e}</td></tr>'
-
-            html += '</table></div>'
-
-        html += '</div>'
+        html += f"<p>Path: {casa_table.fullpath}</p>"
+        html += f"<p>Rows: {casa_table.nrows:,}</p>"
+        html += f"<p>Columns: {len(casa_table.columns)}</p>"
+        html += "</div>"
 
         return HTMLResponse(content=html)
 
@@ -465,12 +386,14 @@ def view_casatable(
     except Exception as e:
         logger.exception(f"Error generating CASA table viewer HTML for {path}")
         raise HTTPException(
-            status_code=500, detail=f"Error generating viewer: {str(e)}")
+            status_code=500, detail=f"Error generating viewer: {str(e)}"
+        )
 
 
 # ============================================================================
 # Notebook Generation Endpoints
 # ============================================================================
+
 
 @router.post("/notebook/generate", response_model=NotebookGenerateResponse)
 def generate_notebook(request: NotebookGenerateRequest):
@@ -497,7 +420,8 @@ def generate_notebook(request: NotebookGenerateRequest):
     except Exception as e:
         logger.exception("Error generating notebook")
         raise HTTPException(
-            status_code=500, detail=f"Error generating notebook: {str(e)}")
+            status_code=500, detail=f"Error generating notebook: {str(e)}"
+        )
 
 
 @router.post("/notebook/qa", response_model=NotebookGenerateResponse)
@@ -509,8 +433,9 @@ def generate_qa_notebook_endpoint(request: QANotebookRequest):
     """
     try:
         # Run QA
-        thresholds = QaThresholds(
-            **(request.thresholds or {})) if request.thresholds else None
+        thresholds = (
+            QaThresholds(**(request.thresholds or {})) if request.thresholds else None
+        )
 
         qa_result = run_ms_qa(
             ms_path=request.ms_path,
@@ -535,7 +460,8 @@ def generate_qa_notebook_endpoint(request: QANotebookRequest):
     except Exception as e:
         logger.exception("Error generating QA notebook")
         raise HTTPException(
-            status_code=500, detail=f"Error generating QA notebook: {str(e)}")
+            status_code=500, detail=f"Error generating QA notebook: {str(e)}"
+        )
 
 
 @router.get("/notebook/{notebook_path:path}")
@@ -550,7 +476,7 @@ def serve_notebook(notebook_path: str):
         target_path = Path(notebook_path).resolve()
 
         # Ensure it's a .ipynb file
-        if not target_path.suffix == '.ipynb':
+        if not target_path.suffix == ".ipynb":
             raise HTTPException(status_code=400, detail="Not a notebook file")
 
         # Ensure it exists
@@ -575,6 +501,7 @@ def serve_notebook(notebook_path: str):
 # QA Integration Endpoints
 # ============================================================================
 
+
 @router.get("/qa/browse")
 def browse_qa_directory(
     qa_root: str = Query(..., description="QA root directory"),
@@ -592,43 +519,18 @@ def browse_qa_directory(
 
         entries = []
         for item in qa_dir:
-            # Determine file type - FileBase uses isdir (not is_dir)
-            is_directory = getattr(item, 'isdir', False) or getattr(
-                item, 'is_dir', False)
-            file_type = "directory" if is_directory else "file"
-            if not is_directory:
-                from dsa110_contimg.qa.visualization.file import autodetect_file_type
-                detected_type = autodetect_file_type(item.fullpath)
-                if detected_type == "fits":
-                    file_type = "fits"
-                elif detected_type == "casatable":
-                    file_type = "casatable"
-
-            # Format size as human-readable string
-            size_bytes = getattr(item, 'size', 0)
-            if isinstance(size_bytes, int):
-                if size_bytes == 0:
-                    size_str = "0 B"
-                elif size_bytes < 1024:
-                    size_str = f"{size_bytes} B"
-                elif size_bytes < 1024 * 1024:
-                    size_str = f"{size_bytes / 1024:.1f} KB"
-                elif size_bytes < 1024 * 1024 * 1024:
-                    size_str = f"{size_bytes / (1024 * 1024):.1f} MB"
-                else:
-                    size_str = f"{size_bytes / (1024 * 1024 * 1024):.1f} GB"
-            else:
-                size_str = str(size_bytes) if size_bytes else "0 B"
-
-            entries.append(DirectoryEntry(
-                name=item.basename,
-                path=item.fullpath,
-                type=file_type,
-                size=size_str,
-                modified_time=datetime.fromtimestamp(
-                    item.mtime) if item.mtime else None,
-                is_dir=is_directory,
-            ))
+            entries.append(
+                DirectoryEntry(
+                    name=item.basename,
+                    path=item.fullpath,
+                    type=item.file_type,
+                    size=item.size,
+                    modified_time=(
+                        datetime.fromtimestamp(item.mtime) if item.mtime else None
+                    ),
+                    is_dir=item.is_dir,
+                )
+            )
 
         return DirectoryListing(
             path=qa_root,
@@ -642,10 +544,6 @@ def browse_qa_directory(
     except Exception as e:
         logger.exception(f"Error browsing QA directory {qa_root}")
         raise HTTPException(
-            status_code=500, detail=f"Error browsing QA directory: {str(e)}")
-
-
-# ============================================================================
 # Demo/Viewer Page
 # ============================================================================
 
@@ -1068,3 +966,6 @@ def visualization_viewer():
 </html>
     """
     return HTMLResponse(content=html_content)
+=======
+            status_code=500, detail=f"Error browsing QA directory: {str(e)}"
+        )

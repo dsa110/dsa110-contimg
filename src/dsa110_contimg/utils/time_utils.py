@@ -20,7 +20,7 @@ There are TWO different TIME formats in use:
 
 **This module handles BOTH formats automatically using format detection.**
 
-Functions like `detect_casa_time_format()` and `extract_ms_time_range()` 
+Functions like `detect_casa_time_format()` and `extract_ms_time_range()`
 automatically detect which format is used by validating the resulting date.
 
 Additional Notes:
@@ -106,8 +106,7 @@ def mjd_to_casa_time(mjd: Union[float, np.ndarray]) -> Union[float, np.ndarray]:
 
 
 def casa_time_to_astropy_time(
-    time_sec: Union[float, np.ndarray],
-    scale: str = 'utc'
+    time_sec: Union[float, np.ndarray], scale: str = "utc"
 ) -> Time:
     """Convert CASA TIME to astropy Time object.
 
@@ -134,12 +133,11 @@ def casa_time_to_astropy_time(
     '2000-01-01T00:00:00.000'
     """
     mjd = casa_time_to_mjd(time_sec)
-    return Time(mjd, format='mjd', scale=scale)
+    return Time(mjd, format="mjd", scale=scale)
 
 
 def validate_time_mjd(
-    mjd: float,
-    year_range: Tuple[int, int] = DEFAULT_YEAR_RANGE
+    mjd: float, year_range: Tuple[int, int] = DEFAULT_YEAR_RANGE
 ) -> bool:
     """Validate that MJD corresponds to a reasonable date using astropy.
 
@@ -165,17 +163,15 @@ def validate_time_mjd(
     False
     """
     try:
-        t = Time(mjd, format='mjd')
+        t = Time(mjd, format="mjd")
         year = t.datetime.year
         return year_range[0] <= year <= year_range[1]
-    except (ValueError, TypeError, OSError) as e:
-        # Invalid MJD value or Time conversion failed
+    except Exception:
         return False
 
 
 def detect_casa_time_format(
-    time_sec: float,
-    year_range: Tuple[int, int] = DEFAULT_YEAR_RANGE
+    time_sec: float, year_range: Tuple[int, int] = DEFAULT_YEAR_RANGE
 ) -> Tuple[bool, float]:
     """Detect if CASA TIME needs epoch offset using astropy validation.
 
@@ -227,8 +223,7 @@ def detect_casa_time_format(
 
 
 def extract_ms_time_range(
-    ms_path: str,
-    year_range: Tuple[int, int] = DEFAULT_YEAR_RANGE
+    ms_path: str, year_range: Tuple[int, int] = DEFAULT_YEAR_RANGE
 ) -> Tuple[Optional[float], Optional[float], Optional[float]]:
     """Extract time range from MS using astropy for validation.
 
@@ -279,27 +274,24 @@ def extract_ms_time_range(
                 mid_mjd = 0.5 * (start_mjd + end_mjd)
 
                 # Validate using astropy
-                if (validate_time_mjd(start_mjd, year_range) and
-                        validate_time_mjd(end_mjd, year_range)):
+                if validate_time_mjd(start_mjd, year_range) and validate_time_mjd(
+                    end_mjd, year_range
+                ):
                     return start_mjd, end_mjd, mid_mjd
                 else:
                     logger.warning(
                         f"msmetadata.timerangeforobs() returned invalid dates "
                         f"for {ms_path}: start={start_mjd}, end={end_mjd}"
                     )
-        except (RuntimeError, OSError, IOError, AttributeError) as e:
-            logger.debug(
-                "msmetadata.timerangeforobs() failed for %s: %s",
-                ms_path,
-                e,
-            )
+        except Exception as e:
+            logger.debug(f"msmetadata.timerangeforobs() failed for {ms_path}: {e}")
         finally:
             try:
                 msmd.close()
-            except (RuntimeError, OSError, AttributeError):
+            except Exception:
                 pass
-    except (RuntimeError, OSError, IOError, ImportError) as e:
-        logger.debug("Failed to open msmetadata for %s: %s", ms_path, e)
+    except Exception as e:
+        logger.debug(f"Failed to open msmetadata for {ms_path}: {e}")
 
     # Method 2: msmetadata.timesforscans() - returns seconds, needs epoch conversion
     try:
@@ -321,21 +313,18 @@ def extract_ms_time_range(
                     mid_mjd = 0.5 * (start_mjd + end_mjd)
 
                     # Validate using astropy
-                    if (validate_time_mjd(start_mjd, year_range) and
-                            validate_time_mjd(end_mjd, year_range)):
+                    if validate_time_mjd(start_mjd, year_range) and validate_time_mjd(
+                        end_mjd, year_range
+                    ):
                         return float(start_mjd), float(end_mjd), float(mid_mjd)
-        except (RuntimeError, OSError, IOError, AttributeError) as e:
-            logger.debug(
-                "msmetadata.timesforscans() failed for %s: %s",
-                ms_path,
-                e,
-            )
+        except Exception as e:
+            logger.debug(f"msmetadata.timesforscans() failed for {ms_path}: {e}")
         finally:
             try:
                 msmd.close()
-            except (RuntimeError, OSError, AttributeError):
+            except Exception:
                 pass
-    except (RuntimeError, OSError, IOError, ImportError):
+    except Exception:
         pass
 
     # Method 3: Main table TIME column - seconds, needs epoch conversion
@@ -343,8 +332,8 @@ def extract_ms_time_range(
         from casacore.tables import table as _tb
 
         with _tb(ms_path, readonly=True) as _main:
-            if 'TIME' in _main.colnames():
-                times = _main.getcol('TIME')
+            if "TIME" in _main.colnames():
+                times = _main.getcol("TIME")
                 if len(times) > 0:
                     t0_sec = float(times.min())
                     t1_sec = float(times.max())
@@ -355,8 +344,9 @@ def extract_ms_time_range(
                     mid_mjd = 0.5 * (start_mjd + end_mjd)
 
                     # Validate using astropy
-                    if (validate_time_mjd(start_mjd, year_range) and
-                            validate_time_mjd(end_mjd, year_range)):
+                    if validate_time_mjd(start_mjd, year_range) and validate_time_mjd(
+                        end_mjd, year_range
+                    ):
                         return float(start_mjd), float(end_mjd), float(mid_mjd)
                     else:
                         logger.warning(
@@ -371,7 +361,7 @@ def extract_ms_time_range(
         from casacore.tables import table as _tb
 
         with _tb(f"{ms_path}::OBSERVATION", readonly=True) as _obs:
-            if _obs.nrows() > 0 and 'TIME_RANGE' in _obs.colnames():
+            if _obs.nrows() > 0 and "TIME_RANGE" in _obs.colnames():
                 tr = _obs.getcol("TIME_RANGE")
                 if tr is not None and len(tr) > 0:
                     t0_sec = float(tr[0][0])
@@ -383,8 +373,9 @@ def extract_ms_time_range(
                     mid_mjd = 0.5 * (start_mjd + end_mjd)
 
                     # Validate using astropy
-                    if (validate_time_mjd(start_mjd, year_range) and
-                            validate_time_mjd(end_mjd, year_range)):
+                    if validate_time_mjd(start_mjd, year_range) and validate_time_mjd(
+                        end_mjd, year_range
+                    ):
                         return float(start_mjd), float(end_mjd), float(mid_mjd)
     except Exception as e:
         logger.debug(f"Failed to read TIME_RANGE from OBSERVATION table: {e}")
@@ -394,12 +385,12 @@ def extract_ms_time_range(
 
 
 __all__ = [
-    'CASA_TIME_EPOCH_MJD',
-    'DEFAULT_YEAR_RANGE',
-    'casa_time_to_mjd',
-    'mjd_to_casa_time',
-    'casa_time_to_astropy_time',
-    'validate_time_mjd',
-    'detect_casa_time_format',
-    'extract_ms_time_range',
+    "CASA_TIME_EPOCH_MJD",
+    "DEFAULT_YEAR_RANGE",
+    "casa_time_to_mjd",
+    "mjd_to_casa_time",
+    "casa_time_to_astropy_time",
+    "validate_time_mjd",
+    "detect_casa_time_format",
+    "extract_ms_time_range",
 ]

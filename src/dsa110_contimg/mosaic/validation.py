@@ -9,11 +9,11 @@ Uses caching to avoid redundant expensive operations.
 
 import logging
 import os
-import sys
 import sqlite3
-from dataclasses import dataclass, asdict
+import sys
+from dataclasses import asdict, dataclass
 from pathlib import Path
-from typing import Dict, List, Optional, Tuple, Any
+from typing import Any, Dict, List, Optional, Tuple
 
 import numpy as np
 
@@ -26,6 +26,7 @@ ensure_casa_path()
 try:
     from casacore.images import image as casaimage
     from casatasks import imhead
+
     HAVE_CASACORE = True
 except ImportError:
     HAVE_CASACORE = False
@@ -73,14 +74,14 @@ class TileQualityMetrics:
 def _find_pbcor_path(tile_path: str) -> Optional[str]:
     """Find primary beam corrected image path."""
     # Try common suffixes
-    for suffix in ['.pbcor', '.image.pbcor']:
-        pbcor_path = tile_path.replace('.image', suffix)
+    for suffix in [".pbcor", ".image.pbcor"]:
+        pbcor_path = tile_path.replace(".image", suffix)
         if os.path.exists(pbcor_path):
             return pbcor_path
 
     # Try adding suffix
-    if not tile_path.endswith('.pbcor'):
-        pbcor_path = tile_path + '.pbcor'
+    if not tile_path.endswith(".pbcor"):
+        pbcor_path = tile_path + ".pbcor"
         if os.path.exists(pbcor_path):
             return pbcor_path
 
@@ -101,13 +102,13 @@ def _find_pb_path(tile_path: str) -> Optional[str]:
     # Handle CASA images (directory)
     if os.path.isdir(tile_path):
         # Try .pb suffix
-        pb_path = tile_path.replace('.image', '.pb')
+        pb_path = tile_path.replace(".image", ".pb")
         if os.path.exists(pb_path):
             return pb_path
 
         # Try .image.pb
-        if tile_path.endswith('.image'):
-            pb_path = tile_path + '.pb'
+        if tile_path.endswith(".image"):
+            pb_path = tile_path + ".pb"
             if os.path.exists(pb_path):
                 return pb_path
 
@@ -116,31 +117,31 @@ def _find_pb_path(tile_path: str) -> Optional[str]:
     # PB images: {base}-{channel}-beam-0.fits or {base}-MFS-beam-0.fits
 
     # Try WSClean MFS pattern: {base}-MFS-beam-0.fits
-    if tile_path.endswith('.fits'):
+    if tile_path.endswith(".fits"):
         # Try replacing -image-pb.fits with -beam-0.fits
-        pb_path = tile_path.replace('-image-pb.fits', '-beam-0.fits')
+        pb_path = tile_path.replace("-image-pb.fits", "-beam-0.fits")
         if os.path.exists(pb_path):
             return pb_path
 
         # Try replacing -image.fits with -beam-0.fits
-        pb_path = tile_path.replace('-image.fits', '-beam-0.fits')
+        pb_path = tile_path.replace("-image.fits", "-beam-0.fits")
         if os.path.exists(pb_path):
             return pb_path
 
         # Try replacing -MFS-image-pb.fits with -MFS-beam-0.fits
-        pb_path = tile_path.replace('-MFS-image-pb.fits', '-MFS-beam-0.fits')
+        pb_path = tile_path.replace("-MFS-image-pb.fits", "-MFS-beam-0.fits")
         if os.path.exists(pb_path):
             return pb_path
 
         # Try replacing -MFS-image.fits with -MFS-beam-0.fits
-        pb_path = tile_path.replace('-MFS-image.fits', '-MFS-beam-0.fits')
+        pb_path = tile_path.replace("-MFS-image.fits", "-MFS-beam-0.fits")
         if os.path.exists(pb_path):
             return pb_path
 
     # Try FITS file in same directory (CASA export)
-    if tile_path.endswith('.fits'):
-        base = tile_path.rsplit('.fits', 1)[0]
-        pb_path = base + '.pb.fits'
+    if tile_path.endswith(".fits"):
+        base = tile_path.rsplit(".fits", 1)[0]
+        pb_path = base + ".pb.fits"
         if os.path.exists(pb_path):
             return pb_path
 
@@ -183,9 +184,7 @@ def validate_tile_quality(
         metrics.pbcor_path = pbcor_path
         metrics.pbcor_applied = True
     elif require_pbcor:
-        metrics.issues.append(
-            f"Primary beam corrected image not found for {tile_path}"
-        )
+        metrics.issues.append(f"Primary beam corrected image not found for {tile_path}")
 
     # Check for primary beam image (using cache)
     pb_path = cache.get_pb_path(tile_path, _find_pb_path)
@@ -198,8 +197,8 @@ def validate_tile_quality(
         stats = cache.get_tile_statistics(tile_path)
 
         if stats:
-            metrics.rms_noise = stats.get('rms_noise')
-            metrics.dynamic_range = stats.get('dynamic_range')
+            metrics.rms_noise = stats.get("rms_noise")
+            metrics.dynamic_range = stats.get("dynamic_range")
 
             # Check for artifacts (would need full image read, but we can skip for now)
             # Can be added later if needed
@@ -207,18 +206,17 @@ def validate_tile_quality(
         # Get WCS information using cached WCS metadata
         wcs_metadata = cache.get_tile_wcs_metadata(tile_path)
         if wcs_metadata:
-            metrics.ra_center = wcs_metadata.get('ra_center')
-            metrics.dec_center = wcs_metadata.get('dec_center')
+            metrics.ra_center = wcs_metadata.get("ra_center")
+            metrics.dec_center = wcs_metadata.get("dec_center")
     else:
-        metrics.warnings.append(
-            "casacore.images not available, limited validation")
+        metrics.warnings.append("casacore.images not available, limited validation")
 
     # Check primary beam response if PB image exists (using cached PB statistics)
     if metrics.pb_path and HAVE_CASACORE:
         pb_stats = cache.get_pb_statistics(metrics.pb_path)
         if pb_stats:
-            metrics.pb_response_min = pb_stats.get('pb_response_min')
-            metrics.pb_response_max = pb_stats.get('pb_response_max')
+            metrics.pb_response_min = pb_stats.get("pb_response_min")
+            metrics.pb_response_max = pb_stats.get("pb_response_max")
 
             if metrics.pb_response_min and metrics.pb_response_min < 0.1:
                 metrics.warnings.append(
@@ -233,17 +231,17 @@ def validate_tile_quality(
                 conn.row_factory = sqlite3.Row
                 row = conn.execute(
                     "SELECT ms_path, noise_jy, dynamic_range FROM images WHERE path = ?",
-                    (tile_path,)
+                    (tile_path,),
                 ).fetchone()
 
                 if row:
-                    metrics.ms_path = row['ms_path']
+                    metrics.ms_path = row["ms_path"]
                     # Check if calibration was applied
                     cal_row = conn.execute(
                         "SELECT cal_applied FROM ms_index WHERE path = ?",
-                        (metrics.ms_path,)
+                        (metrics.ms_path,),
                     ).fetchone()
-                    if cal_row and cal_row['cal_applied']:
+                    if cal_row and cal_row["cal_applied"]:
                         metrics.calibration_applied = True
         except Exception as e:
             metrics.warnings.append(f"Failed to query products DB: {e}")
@@ -275,65 +273,83 @@ def validate_tiles_consistency(
         (is_valid, issues, metrics_dict)
     """
     print(
-        f"[DEBUG] validate_tiles_consistency: Starting for {len(tiles)} tiles", file=sys.stderr, flush=True)
+        f"[DEBUG] validate_tiles_consistency: Starting for {len(tiles)} tiles",
+        file=sys.stderr,
+        flush=True,
+    )
     print(
-        f"[DEBUG] validate_tiles_consistency: Starting for {len(tiles)} tiles", flush=True)
+        f"[DEBUG] validate_tiles_consistency: Starting for {len(tiles)} tiles",
+        flush=True,
+    )
 
     cache = get_cache()
-    print(f"[DEBUG] validate_tiles_consistency: Cache obtained",
-          file=sys.stderr, flush=True)
+    print(
+        f"[DEBUG] validate_tiles_consistency: Cache obtained",
+        file=sys.stderr,
+        flush=True,
+    )
     all_issues = []
     metrics_dict = {}
 
     # Batch database query for all tiles
-    print(f"[DEBUG] validate_tiles_consistency: Starting database query",
-          file=sys.stderr, flush=True)
+    print(
+        f"[DEBUG] validate_tiles_consistency: Starting database query",
+        file=sys.stderr,
+        flush=True,
+    )
     db_data = {}
     ms_paths = set()
     if products_db:
         try:
             with sqlite3.connect(str(products_db)) as conn:
                 conn.row_factory = sqlite3.Row
-                placeholders = ','.join(['?'] * len(tiles))
+                placeholders = ",".join(["?"] * len(tiles))
                 rows = conn.execute(
                     f"SELECT path, ms_path, noise_jy, dynamic_range FROM images WHERE path IN ({placeholders})",
-                    tiles
+                    tiles,
                 ).fetchall()
 
-                db_data = {row['path']: row for row in rows}
-                ms_paths = {row['ms_path'] for row in rows if row['ms_path']}
+                db_data = {row["path"]: row for row in rows}
+                ms_paths = {row["ms_path"] for row in rows if row["ms_path"]}
 
             # Batch query for calibration status
             cal_status = {}
             if ms_paths:
                 with sqlite3.connect(str(products_db)) as conn:
                     conn.row_factory = sqlite3.Row
-                    ms_placeholders = ','.join(['?'] * len(ms_paths))
+                    ms_placeholders = ",".join(["?"] * len(ms_paths))
                     cal_rows = conn.execute(
                         f"SELECT path, cal_applied FROM ms_index WHERE path IN ({ms_placeholders})",
-                        list(ms_paths)
+                        list(ms_paths),
                     ).fetchall()
-                    cal_status = {row['path']: row['cal_applied']
-                                  for row in cal_rows}
+                    cal_status = {row["path"]: row["cal_applied"] for row in cal_rows}
         except Exception as e:
             logger.debug(f"Batch DB query failed: {e}")
             print(
-                f"[DEBUG] validate_tiles_consistency: Database query exception: {e}", file=sys.stderr, flush=True)
+                f"[DEBUG] validate_tiles_consistency: Database query exception: {e}",
+                file=sys.stderr,
+                flush=True,
+            )
 
     print(
-        f"[DEBUG] validate_tiles_consistency: Database query complete, validating {len(tiles)} tiles", file=sys.stderr, flush=True)
+        f"[DEBUG] validate_tiles_consistency: Database query complete, validating {len(tiles)} tiles",
+        file=sys.stderr,
+        flush=True,
+    )
 
     # Validate each tile
     for i, tile in enumerate(tiles):
         print(
-            f"[DEBUG] validate_tiles_consistency: Validating tile {i+1}/{len(tiles)}: {Path(tile).name}", file=sys.stderr, flush=True)
-        metrics = validate_tile_quality(
-            tile, products_db=None)  # Skip DB query here
+            f"[DEBUG] validate_tiles_consistency: Validating tile {i+1}/{len(tiles)}: {Path(tile).name}",
+            file=sys.stderr,
+            flush=True,
+        )
+        metrics = validate_tile_quality(tile, products_db=None)  # Skip DB query here
 
         # Update with batch DB data if available
         if tile in db_data:
             row = db_data[tile]
-            metrics.ms_path = row['ms_path']
+            metrics.ms_path = row["ms_path"]
             if metrics.ms_path and metrics.ms_path in cal_status:
                 metrics.calibration_applied = bool(cal_status[metrics.ms_path])
 
@@ -344,8 +360,7 @@ def validate_tiles_consistency(
 
     # Check consistency
     if not HAVE_CASACORE:
-        all_issues.append(
-            "casacore.images not available, cannot check consistency")
+        all_issues.append("casacore.images not available, cannot check consistency")
         return False, all_issues, metrics_dict
 
     # Check grid consistency using cached headers
@@ -356,34 +371,26 @@ def validate_tiles_consistency(
             header = cache.get_tile_header(tile)
             if header:
                 # Convert shape to tuple for comparison (handles numpy arrays, lists, and strings)
-                def normalize_shape(s):
-                    """Normalize shape to tuple for comparison."""
-                    if isinstance(s, tuple):
-                        return s
-                    elif isinstance(s, np.ndarray):
-                        return tuple(s.tolist())
-                    elif isinstance(s, list):
-                        return tuple(s)
-                    elif isinstance(s, str):
-                        # Cache may serialize arrays as strings like "[6300 6300    1    1]" or "[512, 512]"
-                        try:
-                            import ast
-                            import re
-                            # First try direct ast.literal_eval for list-style "[512, 512]"
-                            shape_list = ast.literal_eval(s)
-                            return tuple(shape_list) if isinstance(shape_list, list) else s
-                        except (ValueError, SyntaxError):
-                            # If that fails, try parsing numpy-style "[6300 6300    1    1]"
-                            try:
-                                numbers = re.findall(r'\d+', s)
-                                return tuple(int(n) for n in numbers) if numbers else s
-                            except Exception:
-                                return s
-                    else:
-                        return tuple(s) if hasattr(s, '__iter__') and not isinstance(s, (str, bytes)) else s
+                shape = header.get("shape")
+                if isinstance(shape, np.ndarray):
+                    shape = tuple(shape.tolist())
+                elif isinstance(shape, list):
+                    shape = tuple(shape)
+                elif isinstance(shape, str):
+                    # Cache may serialize arrays as strings like "[512 512]"
+                    # Try to parse it
+                    try:
+                        import ast
 
-                shape = normalize_shape(header.get('shape'))
-                key = (shape, header.get('cdelt1'), header.get('cdelt2'))
+                        shape_list = ast.literal_eval(shape)
+                        shape = (
+                            tuple(shape_list) if isinstance(shape_list, list) else shape
+                        )
+                    except (ValueError, SyntaxError):
+                        # If parsing fails, use string comparison (less ideal but works)
+                        pass
+
+                key = (shape, header.get("cdelt1"), header.get("cdelt2"))
                 if ref_header is None:
                     ref_header = key
                     ref_tile = tile
@@ -398,15 +405,19 @@ def validate_tiles_consistency(
                             f"Grid inconsistency: {tile} shape {shape_norm} differs from {ref_tile} shape {ref_shape_norm}"
                         )
                     # Use relative tolerance for cell size comparison
-                    cdelt1 = header.get('cdelt1')
-                    cdelt2 = header.get('cdelt2')
+                    cdelt1 = header.get("cdelt1")
+                    cdelt2 = header.get("cdelt2")
                     if cdelt1 is not None and ref_cdelt1 is not None:
-                        if abs(cdelt1 - ref_cdelt1) > max(1e-12, abs(ref_cdelt1) * 1e-9):
+                        if abs(cdelt1 - ref_cdelt1) > max(
+                            1e-12, abs(ref_cdelt1) * 1e-9
+                        ):
                             all_issues.append(
                                 f"Grid inconsistency: {tile} cdelt1 {cdelt1} differs from {ref_tile} cdelt1 {ref_cdelt1}"
                             )
                     if cdelt2 is not None and ref_cdelt2 is not None:
-                        if abs(cdelt2 - ref_cdelt2) > max(1e-12, abs(ref_cdelt2) * 1e-9):
+                        if abs(cdelt2 - ref_cdelt2) > max(
+                            1e-12, abs(ref_cdelt2) * 1e-9
+                        ):
                             all_issues.append(
                                 f"Grid inconsistency: {tile} cdelt2 {cdelt2} differs from {ref_tile} cdelt2 {ref_cdelt2}"
                             )
@@ -414,8 +425,9 @@ def validate_tiles_consistency(
             all_issues.append(f"Failed to read header for {tile}: {e}")
 
     # Check noise consistency
-    noise_values = [m.rms_noise for m in metrics_dict.values()
-                    if m.rms_noise is not None]
+    noise_values = [
+        m.rms_noise for m in metrics_dict.values() if m.rms_noise is not None
+    ]
     if len(noise_values) > 1:
         median_noise = np.median(noise_values)
         for tile, metrics in metrics_dict.items():
@@ -448,44 +460,48 @@ def validate_tiles_consistency(
             # Try to get beam information
             try:
                 # CASA imhead returns beam in various formats
-                beam_major = header.get('beammajor')
-                beam_minor = header.get('beamminor')
-                beam_pa = header.get('beampa')
+                beam_major = header.get("beammajor")
+                beam_minor = header.get("beamminor")
+                beam_pa = header.get("beampa")
 
                 if beam_major is not None and beam_minor is not None:
                     # Convert to arcseconds if needed
                     if isinstance(beam_major, dict):
-                        maj_val = beam_major.get('value', 0)
-                        maj_unit = beam_major.get('unit', 'arcsec')
+                        maj_val = beam_major.get("value", 0)
+                        maj_unit = beam_major.get("unit", "arcsec")
                     else:
                         maj_val = beam_major
-                        maj_unit = 'arcsec'
+                        maj_unit = "arcsec"
 
                     if isinstance(beam_minor, dict):
-                        min_val = beam_minor.get('value', 0)
-                        min_unit = beam_minor.get('unit', 'arcsec')
+                        min_val = beam_minor.get("value", 0)
+                        min_unit = beam_minor.get("unit", "arcsec")
                     else:
                         min_val = beam_minor
-                        min_unit = 'arcsec'
+                        min_unit = "arcsec"
 
                     # Convert to arcseconds
-                    if maj_unit == 'deg':
+                    if maj_unit == "deg":
                         maj_val *= 3600.0
-                    elif maj_unit == 'rad':
+                    elif maj_unit == "rad":
                         maj_val *= 206265.0
 
-                    if min_unit == 'deg':
+                    if min_unit == "deg":
                         min_val *= 3600.0
-                    elif min_unit == 'rad':
+                    elif min_unit == "rad":
                         min_val *= 206265.0
 
                     if maj_val > 0 and min_val > 0:
                         beam_majors.append(maj_val)
                         beam_minors.append(min_val)
                         beam_info[tile] = {
-                            'major': maj_val,
-                            'minor': min_val,
-                            'pa': beam_pa.get('value') if isinstance(beam_pa, dict) else beam_pa
+                            "major": maj_val,
+                            "minor": min_val,
+                            "pa": (
+                                beam_pa.get("value")
+                                if isinstance(beam_pa, dict)
+                                else beam_pa
+                            ),
                         }
             except Exception:
                 # Beam info not available or in unexpected format
@@ -500,8 +516,8 @@ def validate_tiles_consistency(
 
         # Check for outliers (more than 20% difference)
         for tile, info in beam_info.items():
-            maj_diff = abs(info['major'] - median_major) / median_major
-            min_diff = abs(info['minor'] - median_minor) / median_minor
+            maj_diff = abs(info["major"] - median_major) / median_major
+            min_diff = abs(info["minor"] - median_minor) / median_minor
 
             if maj_diff > 0.2 or min_diff > 0.2:
                 all_issues.append(
@@ -551,9 +567,10 @@ def verify_astrometric_registration(
 
     # Import catalog query functionality
     try:
-        from dsa110_contimg.catalog.query import query_sources
-        from astropy.coordinates import SkyCoord
         import astropy.units as u
+        from astropy.coordinates import SkyCoord
+
+        from dsa110_contimg.catalog.query import query_sources
     except ImportError as e:
         return False, [f"Catalog query module not available: {e}"], offsets_dict
 
@@ -566,11 +583,11 @@ def verify_astrometric_registration(
                 issues.append(f"Failed to get WCS metadata for {tile}")
                 continue
 
-            ra_center = wcs_metadata.get('ra_center')
-            dec_center = wcs_metadata.get('dec_center')
-            cdelt_ra = wcs_metadata.get('cdelt_ra')
-            cdelt_dec = wcs_metadata.get('cdelt_dec')
-            shape = wcs_metadata.get('shape')
+            ra_center = wcs_metadata.get("ra_center")
+            dec_center = wcs_metadata.get("dec_center")
+            cdelt_ra = wcs_metadata.get("cdelt_ra")
+            cdelt_dec = wcs_metadata.get("cdelt_dec")
+            shape = wcs_metadata.get("shape")
 
             if ra_center is None or dec_center is None:
                 issues.append(f"Failed to get center position from {tile}")
@@ -586,10 +603,11 @@ def verify_astrometric_registration(
                     # Parse string representation like "[6300 6300    1    1]"
                     import ast
                     import re
+
                     try:
                         # Convert space-separated values to comma-separated
                         # e.g., "[6300 6300    1    1]" -> "[6300, 6300, 1, 1]"
-                        shape_str = re.sub(r'\s+', ', ', shape.strip())
+                        shape_str = re.sub(r"\s+", ", ", shape.strip())
                         shape = ast.literal_eval(shape_str)
                         if isinstance(shape, (list, np.ndarray)):
                             shape = tuple(shape)
@@ -613,18 +631,16 @@ def verify_astrometric_registration(
 
             # Ensure cdelt values are scalars (handle cached arrays)
             if isinstance(cdelt_ra, (list, np.ndarray)):
-                cdelt_ra = float(cdelt_ra[0] if len(
-                    cdelt_ra) > 0 else 2.0 / 3600.0)
+                cdelt_ra = float(cdelt_ra[0] if len(cdelt_ra) > 0 else 2.0 / 3600.0)
             if isinstance(cdelt_dec, (list, np.ndarray)):
-                cdelt_dec = float(cdelt_dec[0] if len(
-                    cdelt_dec) > 0 else 2.0 / 3600.0)
+                cdelt_dec = float(cdelt_dec[0] if len(cdelt_dec) > 0 else 2.0 / 3600.0)
 
             # Estimate FoV radius (half diagonal)
-            fov_radius_deg = np.sqrt(
-                (nx * cdelt_ra)**2 + (ny * cdelt_dec)**2) / 2.0
+            fov_radius_deg = np.sqrt((nx * cdelt_ra) ** 2 + (ny * cdelt_dec) ** 2) / 2.0
 
             # Query catalog sources (cached)
             try:
+
                 def query_func(ra, dec, radius, cat_name):
                     return query_sources(
                         catalog_type=cat_name,
@@ -640,7 +656,7 @@ def verify_astrometric_registration(
                     dec_deg=dec_center,
                     radius_deg=fov_radius_deg,
                     catalog_name="nvss",
-                    query_func=query_func
+                    query_func=query_func,
                 )
             except Exception as e:
                 issues.append(f"Failed to query catalog for {tile}: {e}")
@@ -648,6 +664,7 @@ def verify_astrometric_registration(
 
             # Ensure catalog_df is a DataFrame
             import pandas as pd
+
             if not isinstance(catalog_df, pd.DataFrame):
                 issues.append(
                     f"Catalog query returned unexpected type ({type(catalog_df)}) "
@@ -676,8 +693,7 @@ def verify_astrometric_registration(
             else:
                 img_data = data.squeeze()
                 if img_data.ndim > 2:
-                    img_data = img_data[0, :,
-                                        :] if img_data.ndim == 3 else img_data
+                    img_data = img_data[0, :, :] if img_data.ndim == 3 else img_data
 
             # Match catalog sources with image peaks
             offsets_ra_arcsec = []
@@ -708,21 +724,19 @@ def verify_astrometric_registration(
                 ref_y = ny / 2.0
 
             for _, cat_row in catalog_df.iterrows():
-                cat_ra = float(cat_row['ra_deg'])
-                cat_dec = float(cat_row['dec_deg'])
+                cat_ra = float(cat_row["ra_deg"])
+                cat_dec = float(cat_row["dec_deg"])
 
                 # Convert catalog position to pixel coordinates
                 try:
                     # Use CASA coordinate system to convert sky to pixel
                     try:
-                        pixel_coords = coord_sys.topixelmany(
-                            [[cat_ra, cat_dec]])[0]
+                        pixel_coords = coord_sys.topixelmany([[cat_ra, cat_dec]])[0]
                         pix_x = float(pixel_coords[0])
                         pix_y = float(pixel_coords[1])
                     except (AttributeError, TypeError):
                         # Fallback: manual calculation
-                        dra = (cat_ra - ra_center) * \
-                            np.cos(np.radians(dec_center))
+                        dra = (cat_ra - ra_center) * np.cos(np.radians(dec_center))
                         ddec = cat_dec - dec_center
                         pix_x = ref_x + dra / cdelt_ra
                         pix_y = ref_y + ddec / cdelt_dec
@@ -738,28 +752,33 @@ def verify_astrometric_registration(
                         search_region = img_data[y_min:y_max, x_min:x_max]
                         if search_region.size > 0:
                             peak_idx = np.unravel_index(
-                                np.argmax(search_region), search_region.shape)
+                                np.argmax(search_region), search_region.shape
+                            )
                             peak_y = y_min + peak_idx[0]
                             peak_x = x_min + peak_idx[1]
 
                             # Convert peak pixel back to sky coordinates
                             try:
                                 world_coords = coord_sys.toworldmany(
-                                    [[peak_x, peak_y]])[0]
+                                    [[peak_x, peak_y]]
+                                )[0]
                                 det_ra = float(world_coords[0])
                                 det_dec = float(world_coords[1])
                             except (AttributeError, TypeError):
                                 # Fallback: manual calculation
                                 pix_offset_x = peak_x - ref_x
                                 pix_offset_y = peak_y - ref_y
-                                det_ra = ra_center + \
-                                    (pix_offset_x * cdelt_ra) / \
-                                    np.cos(np.radians(dec_center))
+                                det_ra = ra_center + (pix_offset_x * cdelt_ra) / np.cos(
+                                    np.radians(dec_center)
+                                )
                                 det_dec = dec_center + pix_offset_y * cdelt_dec
 
                             # Compute offset (in arcseconds)
-                            offset_ra = (det_ra - cat_ra) * \
-                                np.cos(np.radians(dec_center)) * 3600.0
+                            offset_ra = (
+                                (det_ra - cat_ra)
+                                * np.cos(np.radians(dec_center))
+                                * 3600.0
+                            )
                             offset_dec = (det_dec - cat_dec) * 3600.0
 
                             offsets_ra_arcsec.append(offset_ra)
@@ -767,7 +786,8 @@ def verify_astrometric_registration(
 
                 except Exception as e:
                     logger.debug(
-                        f"Failed to match catalog source at ({cat_ra}, {cat_dec}): {e}")
+                        f"Failed to match catalog source at ({cat_ra}, {cat_dec}): {e}"
+                    )
                     continue
 
             img.close()
@@ -782,16 +802,15 @@ def verify_astrometric_registration(
             # Compute systematic offset
             median_offset_ra = np.median(offsets_ra_arcsec)
             median_offset_dec = np.median(offsets_dec_arcsec)
-            offset_magnitude = np.sqrt(
-                median_offset_ra**2 + median_offset_dec**2)
+            offset_magnitude = np.sqrt(median_offset_ra**2 + median_offset_dec**2)
 
             offsets_dict[tile] = (median_offset_ra, median_offset_dec)
 
             if offset_magnitude > max_offset_arcsec:
                 issues.append(
                     f"Systematic astrometric offset detected in {tile}: "
-                    f"RA={median_offset_ra:.2f}\", Dec={median_offset_dec:.2f}\" "
-                    f"(magnitude={offset_magnitude:.2f}\" > {max_offset_arcsec}\")"
+                    f'RA={median_offset_ra:.2f}", Dec={median_offset_dec:.2f}" '
+                    f'(magnitude={offset_magnitude:.2f}" > {max_offset_arcsec}")'
                 )
 
         except Exception as e:
@@ -835,45 +854,44 @@ def check_calibration_consistency(
             tile_to_ms = {}
             for tile in tiles:
                 row = conn.execute(
-                    "SELECT ms_path FROM images WHERE path = ?",
-                    (tile,)
+                    "SELECT ms_path FROM images WHERE path = ?", (tile,)
                 ).fetchone()
                 if row:
-                    ms_path = row['ms_path']
+                    ms_path = row["ms_path"]
                     ms_paths.append(ms_path)
                     tile_to_ms[tile] = ms_path
                     calibration_dict[tile] = {
-                        'ms_path': ms_path,
-                        'cal_applied': False,
-                        'caltables': [],
-                        'cal_set_name': None,
+                        "ms_path": ms_path,
+                        "cal_applied": False,
+                        "caltables": [],
+                        "cal_set_name": None,
                     }
 
             # Check calibration status from products DB
             for ms_path in ms_paths:
                 row = conn.execute(
-                    "SELECT cal_applied FROM ms_index WHERE path = ?",
-                    (ms_path,)
+                    "SELECT cal_applied FROM ms_index WHERE path = ?", (ms_path,)
                 ).fetchone()
                 if row:
-                    cal_applied = bool(row['cal_applied'])
+                    cal_applied = bool(row["cal_applied"])
                     # Update calibration_dict for all tiles using this MS
                     for tile, ms in tile_to_ms.items():
                         if ms == ms_path:
-                            calibration_dict[tile]['cal_applied'] = cal_applied
+                            calibration_dict[tile]["cal_applied"] = cal_applied
 
             # Query calibration registry for applied tables
             if registry_db and registry_db.exists():
                 try:
-                    from dsa110_contimg.calibration.apply_service import get_active_caltables
+                    from dsa110_contimg.calibration.apply_service import (
+                        get_active_caltables,
+                    )
                     from dsa110_contimg.utils.time_utils import extract_ms_time_range
 
                     # Get calibration tables for each MS
                     for tile, ms_path in tile_to_ms.items():
                         try:
                             # Get observation time range for MS using standardized utility
-                            start_mjd, end_mjd, mid_mjd = extract_ms_time_range(
-                                ms_path)
+                            start_mjd, end_mjd, mid_mjd = extract_ms_time_range(ms_path)
 
                             if mid_mjd is not None:
                                 # Get active calibration tables for this observation
@@ -883,7 +901,7 @@ def check_calibration_consistency(
                                     mid_mjd=mid_mjd,
                                 )
 
-                                calibration_dict[tile]['caltables'] = caltables
+                                calibration_dict[tile]["caltables"] = caltables
 
                                 # Get calibration set name from registry
                                 try:
@@ -895,26 +913,32 @@ def check_calibration_consistency(
                                             first_table = caltables[0]
                                             row = reg_conn.execute(
                                                 "SELECT set_name FROM caltables WHERE path = ?",
-                                                (first_table,)
+                                                (first_table,),
                                             ).fetchone()
                                             if row:
-                                                calibration_dict[tile]['cal_set_name'] = row['set_name']
+                                                calibration_dict[tile][
+                                                    "cal_set_name"
+                                                ] = row["set_name"]
 
                                 except Exception as e:
                                     logger.debug(
-                                        f"Failed to query registry for {tile}: {e}")
+                                        f"Failed to query registry for {tile}: {e}"
+                                    )
 
                         except Exception as e:
                             logger.debug(
-                                f"Failed to get calibration tables for {tile}: {e}")
+                                f"Failed to get calibration tables for {tile}: {e}"
+                            )
 
                 except ImportError:
                     logger.debug(
-                        "Calibration apply_service not available, skipping registry query")
+                        "Calibration apply_service not available, skipping registry query"
+                    )
 
             # Check consistency
-            cal_applied_list = [cal_dict['cal_applied']
-                                for cal_dict in calibration_dict.values()]
+            cal_applied_list = [
+                cal_dict["cal_applied"] for cal_dict in calibration_dict.values()
+            ]
             if len(cal_applied_list) > 0:
                 if not all(cal_applied_list):
                     issues.append(
@@ -925,10 +949,10 @@ def check_calibration_consistency(
             # Compare calibration table sets
             cal_table_sets = {}
             for tile, cal_dict in calibration_dict.items():
-                caltables = cal_dict.get('caltables', [])
+                caltables = cal_dict.get("caltables", [])
                 if caltables:
                     # Use set_name if available, otherwise use sorted table paths
-                    set_name = cal_dict.get('cal_set_name')
+                    set_name = cal_dict.get("cal_set_name")
                     if set_name:
                         cal_table_sets[tile] = set_name
                     else:
@@ -952,9 +976,7 @@ def check_calibration_consistency(
                     )
                     for cal_set, tile_list in set_to_tiles.items():
                         set_name = str(cal_set)[:50]  # Truncate long paths
-                        issues.append(
-                            f"  Set '{set_name}': {len(tile_list)} tiles"
-                        )
+                        issues.append(f"  Set '{set_name}': {len(tile_list)} tiles")
 
             # Check calibration table validity windows (if registry available)
             if registry_db and registry_db.exists() and len(cal_table_sets) > 0:
@@ -974,13 +996,13 @@ def check_calibration_consistency(
                                     FROM caltables
                                     WHERE set_name = ? AND status = 'active'
                                     """,
-                                    (cal_set,)
+                                    (cal_set,),
                                 ).fetchone()
 
-                                if rows and rows['start_mjd'] and rows['end_mjd']:
+                                if rows and rows["start_mjd"] and rows["end_mjd"]:
                                     validity_windows[cal_set] = (
-                                        rows['start_mjd'],
-                                        rows['end_mjd']
+                                        rows["start_mjd"],
+                                        rows["end_mjd"],
                                     )
 
                         # Check if validity windows overlap
@@ -1038,13 +1060,13 @@ def check_primary_beam_consistency(
     # Extract PB model information for each tile
     for tile in tiles:
         pb_info = {
-            'pb_path': None,
-            'freq_ghz': None,
-            'bandwidth_mhz': None,
-            'pb_pattern': None,
-            'pb_response_min': None,
-            'pb_response_max': None,
-            'pbcor_applied': False,
+            "pb_path": None,
+            "freq_ghz": None,
+            "bandwidth_mhz": None,
+            "pb_pattern": None,
+            "pb_response_min": None,
+            "pb_response_max": None,
+            "pbcor_applied": False,
         }
 
         try:
@@ -1058,8 +1080,8 @@ def check_primary_beam_consistency(
                 pbcor_path = _find_pbcor_path(tile)
                 pbcor_applied = pbcor_path is not None
 
-            pb_info['pb_path'] = pb_path
-            pb_info['pbcor_applied'] = pbcor_applied
+            pb_info["pb_path"] = pb_path
+            pb_info["pbcor_applied"] = pbcor_applied
 
             if not pb_path or not os.path.exists(pb_path):
                 issues.append(f"Primary beam image not found for {tile}")
@@ -1071,8 +1093,8 @@ def check_primary_beam_consistency(
             pb_stats = cache.get_pb_statistics(str(pb_path))
 
             if pb_stats:
-                pb_info['pb_response_min'] = pb_stats.get('pb_response_min')
-                pb_info['pb_response_max'] = pb_stats.get('pb_response_max')
+                pb_info["pb_response_min"] = pb_stats.get("pb_response_min")
+                pb_info["pb_response_max"] = pb_stats.get("pb_response_max")
 
             # Read PB image for additional metadata (frequency, etc.)
             try:
@@ -1087,36 +1109,37 @@ def check_primary_beam_consistency(
                     freq_info = coord_sys.spectral()
                     if freq_info:
                         # Get reference frequency
-                        ref_freq = freq_info.get('restfreq', [None])[0]
+                        ref_freq = freq_info.get("restfreq", [None])[0]
                         if ref_freq:
-                            pb_info['freq_ghz'] = float(ref_freq) / 1e9
+                            pb_info["freq_ghz"] = float(ref_freq) / 1e9
 
                     # Try to get frequency from image header metadata
                     try:
                         summary = pb_img.summary()
-                        if 'refval' in summary:
-                            refval = summary['refval']
+                        if "refval" in summary:
+                            refval = summary["refval"]
                             if len(refval) >= 3:  # [stokes, freq, ra, dec]
                                 freq_val = refval[1]
                                 if freq_val:
-                                    pb_info['freq_ghz'] = float(freq_val) / 1e9
+                                    pb_info["freq_ghz"] = float(freq_val) / 1e9
                     except Exception:
                         pass
 
                 except Exception:
                     # Frequency extraction failed, try to infer from MS or tile
-                    logger.debug(
-                        f"Failed to extract frequency from PB image {pb_path}")
+                    logger.debug(f"Failed to extract frequency from PB image {pb_path}")
 
                 # Extract PB response statistics (filter non-finite values)
                 valid_pb = pb_data[np.isfinite(pb_data) & (pb_data > 0)]
                 if len(valid_pb) > 0:
-                    pb_info['pb_response_min'] = float(valid_pb.min())
-                    pb_info['pb_response_max'] = float(valid_pb.max())
+                    pb_info["pb_response_min"] = float(valid_pb.min())
+                    pb_info["pb_response_max"] = float(valid_pb.max())
                 else:
                     import logging
+
                     logging.warning(
-                        f"No valid PB data found for {pb_path} (all NaN/Inf or <= 0)")
+                        f"No valid PB data found for {pb_path} (all NaN/Inf or <= 0)"
+                    )
 
                     # Basic pattern check: verify PB has reasonable shape
                     # (should peak near center, decrease toward edges)
@@ -1127,12 +1150,14 @@ def check_primary_beam_consistency(
                         center_pb = pb_2d[center_y, center_x]
 
                         # Check edge vs center (should be lower at edges)
-                        edge_pb = np.mean([
-                            pb_2d[0, :].mean(),
-                            pb_2d[-1, :].mean(),
-                            pb_2d[:, 0].mean(),
-                            pb_2d[:, -1].mean(),
-                        ])
+                        edge_pb = np.mean(
+                            [
+                                pb_2d[0, :].mean(),
+                                pb_2d[-1, :].mean(),
+                                pb_2d[:, 0].mean(),
+                                pb_2d[:, -1].mean(),
+                            ]
+                        )
 
                         if center_pb > 0 and edge_pb > 0:
                             edge_ratio = edge_pb / center_pb
@@ -1160,8 +1185,11 @@ def check_primary_beam_consistency(
     # Compare PB models across tiles
     if len(pb_info_dict) > 1:
         # Check frequency consistency
-        freq_values = [info['freq_ghz'] for info in pb_info_dict.values()
-                       if info['freq_ghz'] is not None]
+        freq_values = [
+            info["freq_ghz"]
+            for info in pb_info_dict.values()
+            if info["freq_ghz"] is not None
+        ]
 
         if len(freq_values) > 1:
             freq_median = np.median(freq_values)
@@ -1177,8 +1205,8 @@ def check_primary_beam_consistency(
 
             # Check for outliers
             for tile, info in pb_info_dict.items():
-                if info['freq_ghz'] is not None:
-                    freq_diff = abs(info['freq_ghz'] - freq_median)
+                if info["freq_ghz"] is not None:
+                    freq_diff = abs(info["freq_ghz"] - freq_median)
                     if freq_diff > 0.05:  # More than 50 MHz difference
                         issues.append(
                             f"Tile {tile} has unusual frequency: "
@@ -1186,8 +1214,7 @@ def check_primary_beam_consistency(
                         )
 
         # Check PB correction consistency
-        pbcor_counts = sum(1 for info in pb_info_dict.values()
-                           if info['pbcor_applied'])
+        pbcor_counts = sum(1 for info in pb_info_dict.values() if info["pbcor_applied"])
         if pbcor_counts > 0 and pbcor_counts < len(pb_info_dict):
             issues.append(
                 f"PB correction inconsistent: "
@@ -1195,10 +1222,16 @@ def check_primary_beam_consistency(
             )
 
         # Check PB response range consistency
-        pb_mins = [info['pb_response_min'] for info in pb_info_dict.values()
-                   if info['pb_response_min'] is not None]
-        pb_maxs = [info['pb_response_max'] for info in pb_info_dict.values()
-                   if info['pb_response_max'] is not None]
+        pb_mins = [
+            info["pb_response_min"]
+            for info in pb_info_dict.values()
+            if info["pb_response_min"] is not None
+        ]
+        pb_maxs = [
+            info["pb_response_max"]
+            for info in pb_info_dict.values()
+            if info["pb_response_max"] is not None
+        ]
 
         if len(pb_mins) > 1 and len(pb_maxs) > 1:
             min_median = np.median(pb_mins)
@@ -1206,13 +1239,16 @@ def check_primary_beam_consistency(
 
             # Check for outliers
             for tile, info in pb_info_dict.items():
-                if info['pb_response_min'] is not None and info['pb_response_max'] is not None:
-                    if info['pb_response_min'] < min_median * 0.5:
+                if (
+                    info["pb_response_min"] is not None
+                    and info["pb_response_max"] is not None
+                ):
+                    if info["pb_response_min"] < min_median * 0.5:
                         issues.append(
                             f"Tile {tile} has unusually low PB response: "
                             f"min={info['pb_response_min']:.3f} (median: {min_median:.3f})"
                         )
-                    if info['pb_response_max'] > max_median * 1.5:
+                    if info["pb_response_max"] > max_median * 1.5:
                         issues.append(
                             f"Tile {tile} has unusually high PB response: "
                             f"max={info['pb_response_max']:.3f} (median: {max_median:.3f})"

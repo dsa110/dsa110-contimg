@@ -6,26 +6,30 @@ and notebook generation.
 """
 
 from pathlib import Path
-from typing import Optional, List, Dict, Any
+from typing import Any, Dict, List, Optional
 
 try:
     from dsa110_contimg.qa.casa_ms_qa import QaResult
+
     HAS_QA = True
 except ImportError:
     HAS_QA = False
     QaResult = None  # type: ignore
 
-from .notebook import generate_qa_notebook
 from .datadir import ls
-from .render import render_status_message, display_html
+from .notebook import generate_qa_notebook
+from .render import display_html, render_status_message
 
 try:
-    from IPython.display import display, HTML
+    from IPython.display import HTML, display
+
     HAS_IPYTHON = True
 except ImportError:
     HAS_IPYTHON = False
+
     def display(*args, **kwargs):
         pass
+
     HTML = str
 
 
@@ -51,9 +55,7 @@ def generate_qa_notebook_from_result(
         >>> notebook = generate_qa_notebook_from_result(result)
     """
     if not HAS_QA:
-        raise ImportError(
-            "dsa110_contimg.qa.casa_ms_qa is required for QA integration"
-        )
+        raise ImportError("dsa110_contimg.qa.casa_ms_qa is required for QA integration")
 
     ms_path = result.ms_path if include_ms else None
     qa_root = str(Path(result.artifacts[0]).parent) if result.artifacts else None
@@ -64,7 +66,12 @@ def generate_qa_notebook_from_result(
         artifact_path = Path(artifact)
         # Include FITS files, images, and other visualizable files
         if artifact_path.suffix.lower() in [
-            ".fits", ".png", ".jpg", ".jpeg", ".gif", ".pdf"
+            ".fits",
+            ".png",
+            ".jpg",
+            ".jpeg",
+            ".gif",
+            ".pdf",
         ]:
             artifacts.append(artifact)
         # Include MS files
@@ -128,9 +135,7 @@ def display_qa_summary(result: QaResult) -> None:
         >>> display_qa_summary(result)
     """
     if not HAS_QA:
-        raise ImportError(
-            "dsa110_contimg.qa.casa_ms_qa is required for QA integration"
-        )
+        raise ImportError("dsa110_contimg.qa.casa_ms_qa is required for QA integration")
 
     if not HAS_IPYTHON:
         # Fallback to print
@@ -202,9 +207,7 @@ def enhance_qa_with_notebook(
         >>> # Notebook is now in enhanced.artifacts
     """
     if not HAS_QA:
-        raise ImportError(
-            "dsa110_contimg.qa.casa_ms_qa is required for QA integration"
-        )
+        raise ImportError("dsa110_contimg.qa.casa_ms_qa is required for QA integration")
 
     if auto_generate:
         try:
@@ -217,6 +220,7 @@ def enhance_qa_with_notebook(
         except Exception as e:
             # Don't fail QA if notebook generation fails
             import logging
+
             logger = logging.getLogger(__name__)
             logger.warning(f"Failed to generate QA notebook: {e}")
 
@@ -267,4 +271,3 @@ def create_qa_explorer_notebook(
         output_path=output_path,
         title=title,
     )
-

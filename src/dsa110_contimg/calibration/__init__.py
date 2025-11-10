@@ -26,4 +26,3 @@ __all__ = [
     "model_validation",
     "caltable_paths",
 ]
-

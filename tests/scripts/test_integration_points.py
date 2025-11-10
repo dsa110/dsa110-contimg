@@ -6,22 +6,24 @@ Test integration points where QA should be called but isn't yet.
 This identifies WHERE in the pipeline QA needs to be integrated.
 """
 
+import re
 import sys
 from pathlib import Path
-import re
 
 # Test 1: Search for conversion completion points
-print("="*70)
+print("=" * 70)
 print("INTEGRATION POINT ANALYSIS")
-print("="*70)
+print("=" * 70)
 
 print("\n1. CONVERSION COMPLETION POINTS")
 print("-" * 70)
 
-conversion_file = Path("/data/dsa110-contimg/src/dsa110_contimg/conversion/streaming/streaming_converter.py")
+conversion_file = Path(
+    "/data/dsa110-contimg/src/dsa110_contimg/conversion/streaming/streaming_converter.py"
+)
 if conversion_file.exists():
     content = conversion_file.read_text()
-    
+
     # Look for where MS is created/written
     ms_creation_patterns = [
         r"\.ms['\"]?\s*(created|written|completed)",
@@ -29,7 +31,7 @@ if conversion_file.exists():
         r"write.*ms",
         r"concat.*ms",
     ]
-    
+
     found_any = False
     for pattern in ms_creation_patterns:
         matches = re.finditer(pattern, content, re.IGNORECASE)
@@ -38,13 +40,13 @@ if conversion_file.exists():
             start = max(0, match.start() - 100)
             end = min(len(content), match.end() + 100)
             context = content[start:end]
-            
+
             # Find line number
-            line_num = content[:match.start()].count('\n') + 1
-            
+            line_num = content[: match.start()].count("\n") + 1
+
             print(f"\n  Line {line_num}: ...{context.strip()}...")
             found_any = True
-    
+
     if not found_any:
         print("  No obvious MS creation points found (may need manual review)")
 else:
@@ -56,7 +58,7 @@ print("-" * 70)
 calib_file = Path("/data/dsa110-contimg/src/dsa110_contimg/calibration/calibration.py")
 if calib_file.exists():
     content = calib_file.read_text()
-    
+
     # Look for where calibration tables are created
     cal_patterns = [
         r"def solve_.*\(",
@@ -64,15 +66,15 @@ if calib_file.exists():
         r"gaincal\(",
         r"bandpass\(",
     ]
-    
+
     found_any = False
     for pattern in cal_patterns:
         matches = re.finditer(pattern, content, re.IGNORECASE)
         for match in matches:
-            line_num = content[:match.start()].count('\n') + 1
+            line_num = content[: match.start()].count("\n") + 1
             print(f"  Line {line_num}: Found {match.group()}")
             found_any = True
-    
+
     if not found_any:
         print("  No calibration points found")
 else:
@@ -84,22 +86,22 @@ print("-" * 70)
 imaging_file = Path("/data/dsa110-contimg/src/dsa110_contimg/imaging/cli.py")
 if imaging_file.exists():
     content = imaging_file.read_text()
-    
+
     # Look for where images are created
     img_patterns = [
         r"tclean\(",
         r"\.image['\"]?\s*$",
         r"image.*produced",
     ]
-    
+
     found_any = False
     for pattern in img_patterns:
         matches = re.finditer(pattern, content, re.IGNORECASE | re.MULTILINE)
         for match in matches:
-            line_num = content[:match.start()].count('\n') + 1
+            line_num = content[: match.start()].count("\n") + 1
             print(f"  Line {line_num}: Found {match.group()}")
             found_any = True
-    
+
     if not found_any:
         print("  No imaging points found")
 else:
@@ -107,7 +109,8 @@ else:
 
 print("\n4. RECOMMENDATIONS")
 print("-" * 70)
-print("""
+print(
+    """
 To integrate QA into the pipeline:
 
 1. streaming_converter.py:
@@ -133,7 +136,8 @@ To integrate QA into the pipeline:
    - Run: python -m dsa110_contimg.catalog.build_master \\
            --nvss <path> --vlass <path> --first <path> \\
            --out state/master_sources.sqlite3
-""")
+"""
+)
 
 print("\n5. MISSING DEPENDENCIES")
 print("-" * 70)
@@ -152,10 +156,11 @@ for path in catalog_paths:
     else:
         print(f"  ✗ {path} NOT FOUND")
 
-print("\n" + "="*70)
+print("\n" + "=" * 70)
 print("SUMMARY")
-print("="*70)
-print("""
+print("=" * 70)
+print(
+    """
 CURRENT STATUS:
 - QA modules: IMPLEMENTED and TESTED ✓
 - Alerting system: IMPLEMENTED and TESTED ✓
@@ -173,5 +178,5 @@ READY FOR INTEGRATION:
 - Configuration in contimg.env is ready
 - Just need to add 3-4 lines of code in each integration point
 - Need to populate master_sources database
-""")
-
+"""
+)

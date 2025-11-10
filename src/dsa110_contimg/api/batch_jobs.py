@@ -2,17 +2,19 @@
 
 from __future__ import annotations
 
+import logging
 import os
 import sqlite3
-from pathlib import Path
 from datetime import datetime
-from typing import List, Dict, Optional, Any
-import logging
+from pathlib import Path
+from typing import Any, Dict, List, Optional
 
 logger = logging.getLogger(__name__)
 
 
-def create_batch_job(conn: sqlite3.Connection, job_type: str, ms_paths: List[str], params: Dict[str, Any]) -> int:
+def create_batch_job(
+    conn: sqlite3.Connection, job_type: str, ms_paths: List[str], params: Dict[str, Any]
+) -> int:
     """Create a batch job in the database."""
     # Input validation
     if not isinstance(job_type, str) or not job_type.strip():
@@ -30,8 +32,15 @@ def create_batch_job(conn: sqlite3.Connection, job_type: str, ms_paths: List[str
         INSERT INTO batch_jobs (type, created_at, status, total_items, completed_items, failed_items, params)
         VALUES (?, ?, ?, ?, ?, ?, ?)
         """,
-        (job_type, datetime.utcnow().timestamp(),
-         "pending", len(ms_paths), 0, 0, str(params))
+        (
+            job_type,
+            datetime.utcnow().timestamp(),
+            "pending",
+            len(ms_paths),
+            0,
+            0,
+            str(params),
+        ),
     )
     batch_id = cursor.lastrowid
 
@@ -42,14 +51,21 @@ def create_batch_job(conn: sqlite3.Connection, job_type: str, ms_paths: List[str
             INSERT INTO batch_job_items (batch_id, ms_path, status)
             VALUES (?, ?, ?)
             """,
-            (batch_id, ms_path, "pending")
+            (batch_id, ms_path, "pending"),
         )
 
     conn.commit()
     return batch_id
 
 
-def update_batch_item(conn: sqlite3.Connection, batch_id: int, ms_path: str, job_id: Optional[int], status: str, error: Optional[str] = None):
+def update_batch_item(
+    conn: sqlite3.Connection,
+    batch_id: int,
+    ms_path: str,
+    job_id: Optional[int],
+    status: str,
+    error: Optional[str] = None,
+):
     """Update a batch job item status."""
     # Input validation
     if not isinstance(batch_id, int) or batch_id < 1:
@@ -71,7 +87,7 @@ def update_batch_item(conn: sqlite3.Connection, batch_id: int, ms_path: str, job
             SET job_id = ?, status = ?, started_at = ?
             WHERE batch_id = ? AND ms_path = ?
             """,
-            (job_id, status, timestamp, batch_id, ms_path)
+            (job_id, status, timestamp, batch_id, ms_path),
         )
     elif status in ("done", "failed", "cancelled"):
         cursor.execute(
@@ -80,7 +96,7 @@ def update_batch_item(conn: sqlite3.Connection, batch_id: int, ms_path: str, job
             SET status = ?, completed_at = ?, error = ?
             WHERE batch_id = ? AND ms_path = ?
             """,
-            (status, timestamp, error, batch_id, ms_path)
+            (status, timestamp, error, batch_id, ms_path),
         )
 
     # Update batch job counts
@@ -88,7 +104,7 @@ def update_batch_item(conn: sqlite3.Connection, batch_id: int, ms_path: str, job
         """
         SELECT COUNT(*) FROM batch_job_items WHERE batch_id = ? AND status = 'done'
         """,
-        (batch_id,)
+        (batch_id,),
     )
     completed = cursor.fetchone()[0]
 
@@ -96,7 +112,7 @@ def update_batch_item(conn: sqlite3.Connection, batch_id: int, ms_path: str, job
         """
         SELECT COUNT(*) FROM batch_job_items WHERE batch_id = ? AND status = 'failed'
         """,
-        (batch_id,)
+        (batch_id,),
     )
     failed = cursor.fetchone()[0]
 
@@ -105,7 +121,7 @@ def update_batch_item(conn: sqlite3.Connection, batch_id: int, ms_path: str, job
         """
         SELECT COUNT(*) FROM batch_job_items WHERE batch_id = ? AND status IN ('pending', 'running')
         """,
-        (batch_id,)
+        (batch_id,),
     )
     remaining = cursor.fetchone()[0]
 
@@ -120,13 +136,15 @@ def update_batch_item(conn: sqlite3.Connection, batch_id: int, ms_path: str, job
         SET completed_items = ?, failed_items = ?, status = ?
         WHERE id = ?
         """,
-        (completed, failed, batch_status, batch_id)
+        (completed, failed, batch_status, batch_id),
     )
 
     conn.commit()
 
 
-def extract_calibration_qa(ms_path: str, job_id: int, caltables: Dict[str, str]) -> Dict[str, Any]:
+def extract_calibration_qa(
+    ms_path: str, job_id: int, caltables: Dict[str, str]
+) -> Dict[str, Any]:
     """Extract QA metrics from calibration tables."""
     # Ensure CASAPATH is set before importing CASA modules
     from dsa110_contimg.utils.casa_init import ensure_casa_path
@@ -134,6 +152,7 @@ def extract_calibration_qa(ms_path: str, job_id: int, caltables: Dict[str, str])
 
     try:
         from casatools import table
+
         tb = table()
 
         qa_metrics = {
@@ -148,8 +167,7 @@ def extract_calibration_qa(ms_path: str, job_id: int, caltables: Dict[str, str])
             try:
                 tb.open(caltables["k"])
                 flags = tb.getcol("FLAG")
-                snr = tb.getcol("SNR") if tb.colnames().count(
-                    "SNR") > 0 else None
+                snr = tb.getcol("SNR") if tb.colnames().count("SNR") > 0 else None
                 tb.close()
 
                 flag_fraction = flags.sum() / flags.size if flags.size > 0 else 1.0
@@ -183,7 +201,10 @@ def extract_calibration_qa(ms_path: str, job_id: int, caltables: Dict[str, str])
 
                 # Extract per-SPW statistics
                 try:
-                    from dsa110_contimg.qa.calibration_quality import analyze_per_spw_flagging
+                    from dsa110_contimg.qa.calibration_quality import (
+                        analyze_per_spw_flagging,
+                    )
+
                     spw_stats = analyze_per_spw_flagging(caltables["bp"])
                     qa_metrics["per_spw_stats"] = [
                         {
@@ -201,7 +222,8 @@ def extract_calibration_qa(ms_path: str, job_id: int, caltables: Dict[str, str])
                     ]
                 except Exception as e:
                     logger.warning(
-                        f"Failed to extract per-SPW statistics for {ms_path}: {e}")
+                        f"Failed to extract per-SPW statistics for {ms_path}: {e}"
+                    )
             except Exception as e:
                 logger.warning(f"Failed to extract BP QA for {ms_path}: {e}")
 
@@ -253,6 +275,7 @@ def extract_image_qa(ms_path: str, job_id: int, image_path: str) -> Dict[str, An
     """Extract QA metrics from an image."""
     try:
         from casatools import image
+
         ia = image()
 
         qa_metrics = {
@@ -273,8 +296,9 @@ def extract_image_qa(ms_path: str, job_id: int, image_path: str) -> Dict[str, An
         qa_metrics["peak_flux"] = float(stats.get("max", [0])[0])
 
         if qa_metrics["rms_noise"] > 0:
-            qa_metrics["dynamic_range"] = qa_metrics["peak_flux"] / \
-                qa_metrics["rms_noise"]
+            qa_metrics["dynamic_range"] = (
+                qa_metrics["peak_flux"] / qa_metrics["rms_noise"]
+            )
 
         # Get beam info
         beam = ia.restoringbeam()
@@ -307,14 +331,21 @@ def extract_image_qa(ms_path: str, job_id: int, image_path: str) -> Dict[str, An
         return qa_metrics
     except Exception as e:
         logger.error(f"Failed to extract image QA for {ms_path}: {e}")
-        return {"ms_path": ms_path, "job_id": job_id, "image_path": image_path, "overall_quality": "unknown"}
+        return {
+            "ms_path": ms_path,
+            "job_id": job_id,
+            "image_path": image_path,
+            "overall_quality": "unknown",
+        }
 
 
-def generate_image_thumbnail(image_path: str, output_path: Optional[str] = None, size: int = 512) -> Optional[str]:
+def generate_image_thumbnail(
+    image_path: str, output_path: Optional[str] = None, size: int = 512
+) -> Optional[str]:
     """Generate a PNG thumbnail of a CASA image."""
     try:
-        from casatools import image
         import numpy as np
+        from casatools import image
         from PIL import Image
 
         ia = image()
@@ -323,8 +354,11 @@ def generate_image_thumbnail(image_path: str, output_path: Optional[str] = None,
         # Get image data (first Stokes, first channel)
         data = ia.getchunk()
         if data.ndim >= 2:
-            img_data = data[:, :, 0, 0] if data.ndim == 4 else data[:,
-                                                                    :, 0] if data.ndim == 3 else data
+            img_data = (
+                data[:, :, 0, 0]
+                if data.ndim == 4
+                else data[:, :, 0] if data.ndim == 3 else data
+            )
         else:
             ia.close()
             return None
@@ -343,14 +377,14 @@ def generate_image_thumbnail(image_path: str, output_path: Optional[str] = None,
         img_8bit = (normalized * 255).astype(np.uint8)
 
         # Create PIL image and resize
-        pil_img = Image.fromarray(img_8bit, mode='L')
+        pil_img = Image.fromarray(img_8bit, mode="L")
         pil_img.thumbnail((size, size), Image.Resampling.LANCZOS)
 
         # Save thumbnail
         if output_path is None:
-            output_path = str(Path(image_path).with_suffix('.thumb.png'))
+            output_path = str(Path(image_path).with_suffix(".thumb.png"))
 
-        pil_img.save(output_path, 'PNG')
+        pil_img.save(output_path, "PNG")
         return output_path
     except Exception as e:
         logger.error(f"Failed to generate thumbnail for {image_path}: {e}")

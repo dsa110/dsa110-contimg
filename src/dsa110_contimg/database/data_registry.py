@@ -3,15 +3,16 @@
 Provides data registry tables and functions for tracking all data instances
 through their lifecycle from staging to published.
 """
-import os
-import sqlite3
+
 import json
-import time
-import shutil
-from pathlib import Path
-from typing import Optional, List, Dict, Any
-from dataclasses import dataclass
 import logging
+import os
+import shutil
+import sqlite3
+import time
+from dataclasses import dataclass
+from pathlib import Path
+from typing import Any, Dict, List, Optional
 
 logger = logging.getLogger(__name__)
 
@@ -19,6 +20,7 @@ logger = logging.getLogger(__name__)
 @dataclass
 class DataRecord:
     """Data registry record."""
+
     id: int
     data_type: str
     data_id: str
@@ -39,7 +41,7 @@ class DataRecord:
 
 def ensure_data_registry_db(path: Path) -> sqlite3.Connection:
     """Open or create the data registry SQLite DB and ensure schema exists.
-    
+
     Tables:
       - data_registry: Central registry of all data instances
       - data_relationships: Relationships between data instances
@@ -48,7 +50,7 @@ def ensure_data_registry_db(path: Path) -> sqlite3.Connection:
     path = Path(path)
     path.parent.mkdir(parents=True, exist_ok=True)
     conn = sqlite3.connect(os.fspath(path))
-    
+
     # Data registry table
     conn.execute(
         """
@@ -73,7 +75,7 @@ def ensure_data_registry_db(path: Path) -> sqlite3.Connection:
         )
         """
     )
-    
+
     # Data relationships table
     conn.execute(
         """
@@ -88,7 +90,7 @@ def ensure_data_registry_db(path: Path) -> sqlite3.Connection:
         )
         """
     )
-    
+
     # Data tags table
     conn.execute(
         """
@@ -101,7 +103,7 @@ def ensure_data_registry_db(path: Path) -> sqlite3.Connection:
         )
         """
     )
-    
+
     # Indexes
     try:
         conn.execute(
@@ -127,7 +129,7 @@ def ensure_data_registry_db(path: Path) -> sqlite3.Connection:
         )
     except Exception as e:
         logger.warning(f"Failed to create indexes: {e}")
-    
+
     conn.commit()
     return conn
 
@@ -141,7 +143,7 @@ def register_data(
     auto_publish: bool = True,
 ) -> str:
     """Register a new data instance in the registry.
-    
+
     Args:
         conn: Database connection
         data_type: Type of data ('ms', 'calib_ms', 'image', 'mosaic', etc.)
@@ -149,13 +151,13 @@ def register_data(
         stage_path: Path in /stage/dsa110-contimg/
         metadata: Optional metadata dictionary (will be JSON-encoded)
         auto_publish: Whether auto-publish is enabled for this instance
-        
+
     Returns:
         data_id (same as input)
     """
     now = time.time()
     metadata_json = json.dumps(metadata) if metadata else None
-    
+
     conn.execute(
         """
         INSERT OR REPLACE INTO data_registry
@@ -185,18 +187,18 @@ def finalize_data(
     validation_status: Optional[str] = None,
 ) -> bool:
     """Mark data as finalized and trigger auto-publish if enabled and criteria met.
-    
+
     Args:
         conn: Database connection
         data_id: Data instance ID
         qa_status: QA status ('pending', 'passed', 'failed', 'warning')
         validation_status: Validation status ('pending', 'validated', 'invalid')
-        
+
     Returns:
         True if finalized (and possibly auto-published), False otherwise
     """
     cur = conn.cursor()
-    
+
     # CRITICAL: Whitelist allowed column names to prevent SQL injection
     # Even though values are parameterized, column names must be whitelisted
     ALLOWED_UPDATE_COLUMNS = {
@@ -204,33 +206,33 @@ def finalize_data(
         "qa_status",
         "validation_status",
     }
-    
+
     # Update finalization status and QA/validation if provided
     updates = []
     params = []
-    
+
     # Always set finalization_status
     updates.append("finalization_status = ?")
     params.append("finalized")
-    
+
     # Add optional updates only if column is whitelisted
     if qa_status and "qa_status" in ALLOWED_UPDATE_COLUMNS:
         updates.append("qa_status = ?")
         params.append(qa_status)
-    
+
     if validation_status and "validation_status" in ALLOWED_UPDATE_COLUMNS:
         updates.append("validation_status = ?")
         params.append(validation_status)
-    
+
     # Add data_id for WHERE clause
     params.append(data_id)
-    
+
     if updates:
         cur.execute(
             f"UPDATE data_registry SET {', '.join(updates)} WHERE data_id = ?",
             tuple(params),
         )
-    
+
     # Check if auto-publish should be triggered
     cur.execute(
         """
@@ -241,30 +243,30 @@ def finalize_data(
         (data_id,),
     )
     row = cur.fetchone()
-    
+
     if not row:
         conn.commit()
         return False
-    
+
     auto_enabled, qa, validation, dtype, stage_path = row
-    
+
     if auto_enabled:
         # Check criteria (simplified - will be enhanced with config)
         should_publish = True
-        if validation != 'validated':
+        if validation != "validated":
             should_publish = False
-        
+
         # For science data types, require QA passed
-        if dtype in ('image', 'mosaic', 'calib_ms', 'caltable'):
-            if qa != 'passed':
+        if dtype in ("image", "mosaic", "calib_ms", "caltable"):
+            if qa != "passed":
                 should_publish = False
-        
+
         if should_publish:
             # Trigger auto-publish
             trigger_auto_publish(conn, data_id)
             conn.commit()
             return True
-    
+
     conn.commit()
     return True
 
@@ -275,20 +277,20 @@ def trigger_auto_publish(
     products_base: Optional[Path] = None,
 ) -> bool:
     """Trigger auto-publish for a data instance.
-    
+
     Moves data from /stage/ (SSD) to /data/dsa110-contimg/products/ (HDD).
-    
+
     Args:
         conn: Database connection
         data_id: Data instance ID
         products_base: Base path for published products (defaults to /data/dsa110-contimg/products)
-        
+
     Returns:
         True if successful, False otherwise
     """
     if products_base is None:
         products_base = Path("/data/dsa110-contimg/products")
-    
+
     cur = conn.cursor()
     cur.execute(
         """
@@ -299,38 +301,38 @@ def trigger_auto_publish(
         (data_id,),
     )
     row = cur.fetchone()
-    
+
     if not row:
         logger.warning(f"Data {data_id} not found or already published")
         return False
-    
+
     data_type, stage_path, base_path = row
-    
+
     # Determine published path based on data type
     type_to_dir = {
-        'ms': 'ms',
-        'calib_ms': 'calib_ms',
-        'caltable': 'caltables',
-        'image': 'images',
-        'mosaic': 'mosaics',
-        'catalog': 'catalogs',
-        'qa': 'qa',
-        'metadata': 'metadata',
+        "ms": "ms",
+        "calib_ms": "calib_ms",
+        "caltable": "caltables",
+        "image": "images",
+        "mosaic": "mosaics",
+        "catalog": "catalogs",
+        "qa": "qa",
+        "metadata": "metadata",
     }
-    
-    type_dir = type_to_dir.get(data_type, 'misc')
+
+    type_dir = type_to_dir.get(data_type, "misc")
     published_dir = products_base / type_dir
     published_dir.mkdir(parents=True, exist_ok=True)
-    
+
     # Move data (preserve directory structure)
     stage_path_obj = Path(stage_path)
     if not stage_path_obj.exists():
         logger.error(f"Stage path does not exist: {stage_path}")
         return False
-    
+
     # Published path maintains same structure
     published_path = published_dir / stage_path_obj.name
-    
+
     try:
         # Move directory/file
         if stage_path_obj.is_dir():
@@ -338,7 +340,7 @@ def trigger_auto_publish(
         else:
             published_path.parent.mkdir(parents=True, exist_ok=True)
             shutil.move(str(stage_path_obj), str(published_path))
-        
+
         # Update database
         now = time.time()
         cur.execute(
@@ -353,10 +355,10 @@ def trigger_auto_publish(
             (str(published_path), now, data_id),
         )
         conn.commit()
-        
+
         logger.info(f"Auto-published {data_id} from {stage_path} to {published_path}")
         return True
-        
+
     except Exception as e:
         logger.error(f"Failed to auto-publish {data_id}: {e}")
         conn.rollback()
@@ -369,18 +371,18 @@ def publish_data_manual(
     products_base: Optional[Path] = None,
 ) -> bool:
     """Manually publish data (user-initiated).
-    
+
     Args:
         conn: Database connection
         data_id: Data instance ID
         products_base: Base path for published products
-        
+
     Returns:
         True if successful, False otherwise
     """
     if products_base is None:
         products_base = Path("/data/dsa110-contimg/products")
-    
+
     cur = conn.cursor()
     cur.execute(
         """
@@ -391,43 +393,43 @@ def publish_data_manual(
         (data_id,),
     )
     row = cur.fetchone()
-    
+
     if not row:
         logger.warning(f"Data {data_id} not found or already published")
         return False
-    
+
     data_type, stage_path = row
-    
+
     # Use same logic as auto-publish for path determination
     type_to_dir = {
-        'ms': 'ms',
-        'calib_ms': 'calib_ms',
-        'caltable': 'caltables',
-        'image': 'images',
-        'mosaic': 'mosaics',
-        'catalog': 'catalogs',
-        'qa': 'qa',
-        'metadata': 'metadata',
+        "ms": "ms",
+        "calib_ms": "calib_ms",
+        "caltable": "caltables",
+        "image": "images",
+        "mosaic": "mosaics",
+        "catalog": "catalogs",
+        "qa": "qa",
+        "metadata": "metadata",
     }
-    
-    type_dir = type_to_dir.get(data_type, 'misc')
+
+    type_dir = type_to_dir.get(data_type, "misc")
     published_dir = products_base / type_dir
     published_dir.mkdir(parents=True, exist_ok=True)
-    
+
     stage_path_obj = Path(stage_path)
     if not stage_path_obj.exists():
         logger.error(f"Stage path does not exist: {stage_path}")
         return False
-    
+
     published_path = published_dir / stage_path_obj.name
-    
+
     try:
         if stage_path_obj.is_dir():
             shutil.move(str(stage_path_obj), str(published_path))
         else:
             published_path.parent.mkdir(parents=True, exist_ok=True)
             shutil.move(str(stage_path_obj), str(published_path))
-        
+
         now = time.time()
         cur.execute(
             """
@@ -441,10 +443,12 @@ def publish_data_manual(
             (str(published_path), now, data_id),
         )
         conn.commit()
-        
-        logger.info(f"Manually published {data_id} from {stage_path} to {published_path}")
+
+        logger.info(
+            f"Manually published {data_id} from {stage_path} to {published_path}"
+        )
         return True
-        
+
     except Exception as e:
         logger.error(f"Failed to manually publish {data_id}: {e}")
         conn.rollback()
@@ -465,10 +469,10 @@ def get_data(conn: sqlite3.Connection, data_id: str) -> Optional[DataRecord]:
         (data_id,),
     )
     row = cur.fetchone()
-    
+
     if not row:
         return None
-    
+
     return DataRecord(
         id=row[0],
         data_type=row[1],
@@ -496,7 +500,7 @@ def list_data(
 ) -> List[DataRecord]:
     """List data records with optional filters."""
     cur = conn.cursor()
-    
+
     query = """
         SELECT id, data_type, data_id, base_path, status, stage_path, published_path,
                created_at, staged_at, published_at, publish_mode, metadata_json,
@@ -505,20 +509,20 @@ def list_data(
         WHERE 1=1
     """
     params = []
-    
+
     if data_type:
         query += " AND data_type = ?"
         params.append(data_type)
-    
+
     if status:
         query += " AND status = ?"
         params.append(status)
-    
+
     query += " ORDER BY created_at DESC"
-    
+
     cur.execute(query, params)
     rows = cur.fetchall()
-    
+
     return [
         DataRecord(
             id=row[0],
@@ -568,7 +572,7 @@ def link_data(
 def get_data_lineage(conn: sqlite3.Connection, data_id: str) -> Dict[str, List[str]]:
     """Get lineage (parents and children) for a data instance."""
     cur = conn.cursor()
-    
+
     # Get parents (what this data was derived from)
     cur.execute(
         """
@@ -583,7 +587,7 @@ def get_data_lineage(conn: sqlite3.Connection, data_id: str) -> Dict[str, List[s
         if rel_type not in parents:
             parents[rel_type] = []
         parents[rel_type].append(parent_id)
-    
+
     # Get children (what was produced from this data)
     cur.execute(
         """
@@ -598,10 +602,10 @@ def get_data_lineage(conn: sqlite3.Connection, data_id: str) -> Dict[str, List[s
         if rel_type not in children:
             children[rel_type] = []
         children[rel_type].append(child_id)
-    
+
     return {
-        'parents': parents,
-        'children': children,
+        "parents": parents,
+        "children": children,
     }
 
 
@@ -649,40 +653,39 @@ def check_auto_publish_criteria(
         (data_id,),
     )
     row = cur.fetchone()
-    
+
     if not row:
-        return {'enabled': False, 'criteria_met': False, 'reason': 'not_found'}
-    
+        return {"enabled": False, "criteria_met": False, "reason": "not_found"}
+
     dtype, qa_status, validation_status, finalization_status, auto_enabled = row
-    
+
     if not auto_enabled:
-        return {'enabled': False, 'criteria_met': False, 'reason': 'disabled'}
-    
+        return {"enabled": False, "criteria_met": False, "reason": "disabled"}
+
     criteria_met = True
     reasons = []
-    
-    # Check finalization
-    if finalization_status != 'finalized':
-        criteria_met = False
-        reasons.append('not_finalized')
-    
-    # Check validation
-    if validation_status != 'validated':
-        criteria_met = False
-        reasons.append('not_validated')
-    
-    # Check QA for science data
-    if dtype in ('image', 'mosaic', 'calib_ms', 'caltable'):
-        if qa_status != 'passed':
-            criteria_met = False
-            reasons.append('qa_not_passed')
-    
-    return {
-        'enabled': True,
-        'criteria_met': criteria_met,
-        'reasons': reasons,
-        'qa_status': qa_status,
-        'validation_status': validation_status,
-        'finalization_status': finalization_status,
-    }
 
+    # Check finalization
+    if finalization_status != "finalized":
+        criteria_met = False
+        reasons.append("not_finalized")
+
+    # Check validation
+    if validation_status != "validated":
+        criteria_met = False
+        reasons.append("not_validated")
+
+    # Check QA for science data
+    if dtype in ("image", "mosaic", "calib_ms", "caltable"):
+        if qa_status != "passed":
+            criteria_met = False
+            reasons.append("qa_not_passed")
+
+    return {
+        "enabled": True,
+        "criteria_met": criteria_met,
+        "reasons": reasons,
+        "qa_status": qa_status,
+        "validation_status": validation_status,
+        "finalization_status": finalization_status,
+    }

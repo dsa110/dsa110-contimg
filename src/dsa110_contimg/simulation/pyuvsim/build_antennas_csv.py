@@ -7,15 +7,15 @@ import math
 import sys
 from pathlib import Path
 
-import numpy as np
 import astropy.units as u
+import numpy as np
 
 PROJECT_ROOT = Path(__file__).resolve().parents[2]
 if str(PROJECT_ROOT) not in sys.path:
     sys.path.insert(0, str(PROJECT_ROOT))
 
 from dsa110_contimg.utils.antpos_local import get_itrf
-from dsa110_contimg.utils.constants import OVRO_LAT, OVRO_LON, OVRO_ALT
+from dsa110_contimg.utils.constants import OVRO_ALT, OVRO_LAT, OVRO_LON
 
 
 def main() -> None:
@@ -28,9 +28,7 @@ def main() -> None:
     )
     args = parser.parse_args()
 
-    df = get_itrf(
-        latlon_center=(OVRO_LAT * u.rad, OVRO_LON * u.rad, OVRO_ALT * u.m)
-    )
+    df = get_itrf(latlon_center=(OVRO_LAT * u.rad, OVRO_LON * u.rad, OVRO_ALT * u.m))
     indices = df.index.to_numpy()
     dx = df["dx_m"].to_numpy()
     dy = df["dy_m"].to_numpy()
@@ -50,13 +48,15 @@ def main() -> None:
         writer = csv.writer(fh)
         writer.writerow(["antenna_name", "antenna_number", "east_m", "north_m", "up_m"])
         for idx, east_m, north_m, up_m in zip(indices, east, north, up):
-            writer.writerow([
-                f"DSA{int(idx):03d}",
-                int(idx),
-                float(round(east_m, 6)),
-                float(round(north_m, 6)),
-                float(round(up_m, 6)),
-            ])
+            writer.writerow(
+                [
+                    f"DSA{int(idx):03d}",
+                    int(idx),
+                    float(round(east_m, 6)),
+                    float(round(north_m, 6)),
+                    float(round(up_m, 6)),
+                ]
+            )
 
     print(f"Wrote antenna layout to {args.output}")
 

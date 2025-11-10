@@ -24,3 +24,16 @@ memory-profiler>=0.61.0
 
 # Additional utilities for testing
 pyyaml>=6.0  # For config file handling in tests
+
+# Runtime dependencies needed by tests (imports)
+numpy>=1.20.0  # Required by conftest.py and test files
+astropy>=5.0.0  # Required for astronomy calculations
+scipy>=1.7.0  # Required for scientific computations
+pandas>=1.5.0  # Data manipulation
+h5py>=3.7.0  # HDF5 file handling
+fastapi>=0.104.0  # API testing
+httpx>=0.25.0  # Required for FastAPI TestClient
+uvicorn>=0.24.0  # ASGI server for API tests
+pydantic>=2.0.0  # Data validation
+click>=8.1.0  # CLI testing
+psutil>=5.9.0  # System utilities

@@ -1,2 +1,1 @@
-from .utils import get_itrf, tee_centers, get_lonlat  # noqa: F401
-
+from .utils import get_itrf, get_lonlat, tee_centers  # noqa: F401

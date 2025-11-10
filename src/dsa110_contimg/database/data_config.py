@@ -1,6 +1,7 @@
 """Configuration for data registry paths and auto-publish settings."""
+
 from pathlib import Path
-from typing import Dict, Any
+from typing import Any, Dict
 
 # Base paths
 STAGE_BASE = Path("/stage/dsa110-contimg")  # SSD - fast access for active work
@@ -76,7 +77,14 @@ DATA_TYPES: Dict[str, Dict[str, Any]] = {
     "metadata": {
         "staging_dir": STAGE_BASE / "metadata",
         "published_dir": PRODUCTS_BASE / "metadata",
-        "subdirs": ["pipe_meta", "cal_meta", "ms_meta", "catalog_meta", "image_meta", "mosaic_meta"],
+        "subdirs": [
+            "pipe_meta",
+            "cal_meta",
+            "ms_meta",
+            "catalog_meta",
+            "image_meta",
+            "mosaic_meta",
+        ],
         "auto_publish_criteria": {
             "qa_required": False,
             "validation_required": False,  # Metadata auto-publishes with its data

@@ -5,12 +5,12 @@ Provides DataDir class and ls() function for browsing directories,
 similar to RadioPadre's DataDir functionality.
 """
 
-import os
 import fnmatch
+import os
 from typing import List, Optional, Union
 
-from .filelist import FileList
 from .file import FileBase, autodetect_file_type
+from .filelist import FileList
 
 
 def _match_pattern(path: str, pattern: str) -> bool:
@@ -33,7 +33,9 @@ def _match_pattern(path: str, pattern: str) -> bool:
     if "/" in pattern:
         patt_dir, patt_name = os.path.split(pattern)
         path_dir, path_name = os.path.split(path)
-        return fnmatch.fnmatch(path_dir, patt_dir) and fnmatch.fnmatch(path_name, patt_name)
+        return fnmatch.fnmatch(path_dir, patt_dir) and fnmatch.fnmatch(
+            path_name, patt_name
+        )
     else:
         return fnmatch.fnmatch(os.path.basename(path), pattern)
 
@@ -54,7 +56,9 @@ def _matches(
     Returns:
         True if filename matches criteria
     """
-    if include_patterns and not any([_match_pattern(filename, patt) for patt in include_patterns]):
+    if include_patterns and not any(
+        [_match_pattern(filename, patt) for patt in include_patterns]
+    ):
         return False
     return not any([_match_pattern(filename, patt) for patt in exclude_patterns])
 
@@ -159,7 +163,11 @@ class DataDir(FileList):
                 for name in dirs:
                     path = os.path.join(root, name)
                     if self._browse_mode:
-                        if _matches(name, self._include + self._include_dir, self._exclude + self._exclude_dir):
+                        if _matches(
+                            name,
+                            self._include + self._include_dir,
+                            self._exclude + self._exclude_dir,
+                        ):
                             dirs_to_scan.append(name)
                     else:
                         if _matches(path, self._include, self._exclude):
@@ -208,7 +216,11 @@ class DataDir(FileList):
                 if os.path.isdir(path):
                     # Check directory patterns
                     if self._browse_mode:
-                        if _matches(name, self._include + self._include_dir, self._exclude + self._exclude_dir):
+                        if _matches(
+                            name,
+                            self._include + self._include_dir,
+                            self._exclude + self._exclude_dir,
+                        ):
                             if self._include_empty or os.listdir(path):
                                 file_type = autodetect_file_type(path)
                                 if file_type:
@@ -280,4 +292,3 @@ def ls(
         show_hidden=show_hidden,
         sort=sort,
     )
-

@@ -8,12 +8,12 @@ decorator to automatically track execution time for operations.
 Example:
     ```python
     from dsa110_contimg.utils.performance import track_performance
-    
+
     @track_performance("subband_loading")
     def load_subbands(file_list):
         # ... loading logic ...
         return uv_data
-    
+
     # Later, get performance statistics
     from dsa110_contimg.utils.performance import get_performance_stats
     stats = get_performance_stats()
@@ -21,10 +21,11 @@ Example:
     ```
 """
 
+import logging
 import time
 from functools import wraps
-from typing import Dict, List, Any, Optional
-import logging
+from typing import Any, Dict, List, Optional
+
 import numpy as np
 
 logger = logging.getLogger(__name__)
@@ -36,18 +37,18 @@ _performance_metrics: Dict[str, List[float]] = {}
 def track_performance(operation_name: str, log_result: bool = False):
     """
     Decorator to track operation performance.
-    
+
     Tracks execution time for decorated functions and stores metrics
     in a global dictionary. Metrics can be retrieved later using
     `get_performance_stats()`.
-    
+
     Args:
         operation_name: Name to identify this operation in metrics
         log_result: If True, log the execution time after each call
-    
+
     Returns:
         Decorated function that tracks performance
-        
+
     Example:
         ```python
         @track_performance("ms_validation")
@@ -56,6 +57,7 @@ def track_performance(operation_name: str, log_result: bool = False):
             return True
         ```
     """
+
     def decorator(func):
         @wraps(func)
         def wrapper(*args, **kwargs):
@@ -64,37 +66,41 @@ def track_performance(operation_name: str, log_result: bool = False):
                 result = func(*args, **kwargs)
                 elapsed = time.perf_counter() - start
                 _performance_metrics.setdefault(operation_name, []).append(elapsed)
-                
+
                 if log_result:
                     logger.debug(
                         f"Performance: {operation_name} took {elapsed:.3f}s "
                         f"(args: {len(args)} positional, {len(kwargs)} keyword)"
                     )
-                
+
                 return result
             except Exception as e:
                 elapsed = time.perf_counter() - start
                 error_name = f"{operation_name}_error"
                 _performance_metrics.setdefault(error_name, []).append(elapsed)
-                
+
                 if log_result:
                     logger.debug(
                         f"Performance: {operation_name} failed after {elapsed:.3f}s: {e}"
                     )
-                
+
                 raise
+
         return wrapper
+
     return decorator
 
 
-def get_performance_stats(operation_name: Optional[str] = None) -> Dict[str, Dict[str, float]]:
+def get_performance_stats(
+    operation_name: Optional[str] = None,
+) -> Dict[str, Dict[str, float]]:
     """
     Get performance statistics for tracked operations.
-    
+
     Args:
         operation_name: If provided, return stats only for this operation.
                       If None, return stats for all operations.
-    
+
     Returns:
         Dictionary mapping operation names to statistics dictionaries:
         - 'mean': Average execution time (seconds)
@@ -103,7 +109,7 @@ def get_performance_stats(operation_name: Optional[str] = None) -> Dict[str, Dic
         - 'max': Maximum execution time (seconds)
         - 'std': Standard deviation (seconds)
         - 'count': Number of measurements
-        
+
     Example:
         ```python
         stats = get_performance_stats()
@@ -112,42 +118,44 @@ def get_performance_stats(operation_name: Optional[str] = None) -> Dict[str, Dic
         ```
     """
     stats = {}
-    
-    operations = [operation_name] if operation_name else list(_performance_metrics.keys())
-    
+
+    operations = (
+        [operation_name] if operation_name else list(_performance_metrics.keys())
+    )
+
     for op in operations:
         if op not in _performance_metrics:
             continue
-            
+
         times = _performance_metrics[op]
         if not times:
             continue
-        
+
         stats[op] = {
-            'mean': float(np.mean(times)),
-            'median': float(np.median(times)),
-            'min': float(np.min(times)),
-            'max': float(np.max(times)),
-            'std': float(np.std(times)),
-            'count': len(times)
+            "mean": float(np.mean(times)),
+            "median": float(np.median(times)),
+            "min": float(np.min(times)),
+            "max": float(np.max(times)),
+            "std": float(np.std(times)),
+            "count": len(times),
         }
-    
+
     return stats
 
 
 def clear_performance_metrics(operation_name: Optional[str] = None) -> None:
     """
     Clear performance metrics.
-    
+
     Args:
         operation_name: If provided, clear only this operation's metrics.
                       If None, clear all metrics.
-    
+
     Example:
         ```python
         # Clear all metrics
         clear_performance_metrics()
-        
+
         # Clear only subband_loading metrics
         clear_performance_metrics("subband_loading")
         ```
@@ -162,10 +170,10 @@ def clear_performance_metrics(operation_name: Optional[str] = None) -> None:
 def get_performance_summary() -> str:
     """
     Get a human-readable summary of performance metrics.
-    
+
     Returns:
         Multi-line string with formatted performance statistics
-        
+
     Example:
         ```python
         print(get_performance_summary())
@@ -175,10 +183,10 @@ def get_performance_summary() -> str:
         ```
     """
     stats = get_performance_stats()
-    
+
     if not stats:
         return "No performance metrics recorded yet."
-    
+
     lines = []
     for op, op_stats in sorted(stats.items()):
         lines.append(
@@ -189,6 +197,5 @@ def get_performance_summary() -> str:
             f"max={op_stats['max']:.3f}s "
             f"(count={op_stats['count']})"
         )
-    
-    return "\n".join(lines)
 
+    return "\n".join(lines)

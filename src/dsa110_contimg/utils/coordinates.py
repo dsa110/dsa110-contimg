@@ -4,23 +4,23 @@ Coordinate and source utilities for DSA-110.
 Adapted from dsacalib.utils
 """
 
-import numpy as np
+from . import constants as ct
 import astropy.units as u
+import casatools as cc
+import numpy as np
 from astropy.coordinates import SkyCoord
 from astropy.time import Time
+
 # Ensure CASAPATH is set before importing CASA modules
 from dsa110_contimg.utils.casa_init import ensure_casa_path
+
 ensure_casa_path()
-
-import casatools as cc
-
-from . import constants as ct
 
 
 class Direction:
     """
     Class for handling coordinate conversions.
-    
+
     Parameters
     ----------
     epoch : str
@@ -34,53 +34,55 @@ class Direction:
     observatory : str
         Observatory name for CASA (default: 'OVRO_MMA')
     """
-    
+
     def __init__(self, epoch, lon, lat, obstime=None, observatory="OVRO_MMA"):
         self.epoch = epoch
         self.observatory = observatory
-        
+
         # Handle lon/lat - can be Quantity objects or floats (assumed radians)
         if isinstance(lon, u.Quantity):
             self.lon = lon
         else:
             self.lon = lon * u.rad
-        
+
         if isinstance(lat, u.Quantity):
             self.lat = lat
         else:
             self.lat = lat * u.rad
-        
+
         # Handle obstime - can be Time object or float MJD
         if obstime is not None:
             if isinstance(obstime, Time):
                 self.obstime = obstime
             else:
                 # Assume it's a float MJD
-                self.obstime = Time(obstime, format='mjd')
+                self.obstime = Time(obstime, format="mjd")
         else:
             self.obstime = None
-        
+
         # Set up CASA tools
         self.me = cc.measures()
         self.qa = cc.quanta()
-        
+
         if self.observatory is not None:
             self.me.doframe(self.me.observatory(self.observatory))
-        
+
         if self.obstime is not None:
-            self.me.doframe(self.me.epoch('UTC', self.qa.quantity(self.obstime.mjd, 'd')))
-    
+            self.me.doframe(
+                self.me.epoch("UTC", self.qa.quantity(self.obstime.mjd, "d"))
+            )
+
     def J2000(self, obstime=None, observatory=None):
         """
         Convert to J2000 coordinates.
-        
+
         Parameters
         ----------
         obstime : astropy.time.Time, optional
             Observation time (overrides object obstime)
         observatory : str, optional
             Observatory name (overrides object observatory)
-        
+
         Returns
         -------
         ra : astropy.units.Quantity
@@ -92,38 +94,40 @@ class Direction:
             self.obstime = obstime
         if observatory is not None:
             self.observatory = observatory
-        
+
         # Update reference frame
         if self.observatory is not None:
             self.me.doframe(self.me.observatory(self.observatory))
         if self.obstime is not None:
-            self.me.doframe(self.me.epoch('UTC', self.qa.quantity(self.obstime.mjd, 'd')))
-        
+            self.me.doframe(
+                self.me.epoch("UTC", self.qa.quantity(self.obstime.mjd, "d"))
+            )
+
         # Convert to J2000
         direction = self.me.direction(
             self.epoch,
-            self.qa.quantity(self.lon.to_value(u.rad), 'rad'),
-            self.qa.quantity(self.lat.to_value(u.rad), 'rad')
+            self.qa.quantity(self.lon.to_value(u.rad), "rad"),
+            self.qa.quantity(self.lat.to_value(u.rad), "rad"),
         )
-        
-        j2000_dir = self.me.measure(direction, 'J2000')
-        
-        ra = j2000_dir['m0']['value'] * u.rad
-        dec = j2000_dir['m1']['value'] * u.rad
-        
+
+        j2000_dir = self.me.measure(direction, "J2000")
+
+        ra = j2000_dir["m0"]["value"] * u.rad
+        dec = j2000_dir["m1"]["value"] * u.rad
+
         return ra, dec
-    
+
     def hadec(self, obstime=None, observatory=None):
         """
         Convert to Hour Angle-Declination coordinates.
-        
+
         Parameters
         ----------
         obstime : astropy.time.Time, optional
             Observation time (overrides object obstime)
         observatory : str, optional
             Observatory name (overrides object observatory)
-        
+
         Returns
         -------
         ha : astropy.units.Quantity
@@ -135,33 +139,36 @@ class Direction:
             self.obstime = obstime
         if observatory is not None:
             self.observatory = observatory
-        
+
         # Update reference frame
         if self.observatory is not None:
             self.me.doframe(self.me.observatory(self.observatory))
         if self.obstime is not None:
-            self.me.doframe(self.me.epoch('UTC', self.qa.quantity(self.obstime.mjd, 'd')))
-        
+            self.me.doframe(
+                self.me.epoch("UTC", self.qa.quantity(self.obstime.mjd, "d"))
+            )
+
         # Convert to HADEC
         direction = self.me.direction(
             self.epoch,
-            self.qa.quantity(self.lon.to_value(u.rad), 'rad'),
-            self.qa.quantity(self.lat.to_value(u.rad), 'rad')
+            self.qa.quantity(self.lon.to_value(u.rad), "rad"),
+            self.qa.quantity(self.lat.to_value(u.rad), "rad"),
         )
-        
-        hadec_dir = self.me.measure(direction, 'HADEC')
-        
-        ha = hadec_dir['m0']['value'] * u.rad
-        dec = hadec_dir['m1']['value'] * u.rad
-        
+
+        hadec_dir = self.me.measure(direction, "HADEC")
+
+        ha = hadec_dir["m0"]["value"] * u.rad
+        dec = hadec_dir["m1"]["value"] * u.rad
+
         return ha, dec
 
 
-def generate_calibrator_source(name, ra, dec, flux=1.0, epoch="J2000",
-                               pa=None, maj_axis=None, min_axis=None):
+def generate_calibrator_source(
+    name, ra, dec, flux=1.0, epoch="J2000", pa=None, maj_axis=None, min_axis=None
+):
     """
     Generate a calibrator source object.
-    
+
     Parameters
     ----------
     name : str
@@ -180,14 +187,14 @@ def generate_calibrator_source(name, ra, dec, flux=1.0, epoch="J2000",
         Major axis size
     min_axis : astropy.units.Quantity, optional
         Minor axis size
-    
+
     Returns
     -------
     source : SimpleNamespace
         Source object with attributes: name, ra, dec, flux, epoch, etc.
     """
     from types import SimpleNamespace
-    
+
     source = SimpleNamespace()
     source.name = name
     source.ra = ra
@@ -197,28 +204,28 @@ def generate_calibrator_source(name, ra, dec, flux=1.0, epoch="J2000",
     source.pa = pa
     source.maj_axis = maj_axis
     source.min_axis = min_axis
-    
+
     # Create SkyCoord for convenience
-    source.coord = SkyCoord(ra=ra, dec=dec, frame='icrs')
-    
+    source.coord = SkyCoord(ra=ra, dec=dec, frame="icrs")
+
     return source
 
 
 def to_deg(string):
     """
     Convert a coordinate string to degrees.
-    
+
     Parameters
     ----------
     string : str
         Coordinate string (e.g., '12:34:56.7')
-    
+
     Returns
     -------
     float
         Coordinate in degrees
     """
-    components = string.split(':')
+    components = string.split(":")
     if len(components) == 3:
         deg = float(components[0])
         minutes = float(components[1])
@@ -227,4 +234,3 @@ def to_deg(string):
         return deg + sign * (minutes / 60.0 + seconds / 3600.0)
     else:
         return float(string)
-

@@ -31,35 +31,35 @@ class TestCASATableStructure:
         """Bandpass table must have all required CASA columns."""
         # CASA bandpass table structure (from CASA documentation)
         required_columns = [
-            "TIME",        # Solution time
-            "ANTENNA1",   # Antenna ID
-            "SPW",        # Spectral window
-            "CHAN",       # Channel number
-            "CPARAM",     # Complex calibration parameters
-            "FLAG",       # Solution flags
+            "TIME",  # Solution time
+            "ANTENNA1",  # Antenna ID
+            "SPW",  # Spectral window
+            "CHAN",  # Channel number
+            "CPARAM",  # Complex calibration parameters
+            "FLAG",  # Solution flags
         ]
 
         # Optional but recommended:
         # "SNR" - Signal-to-noise ratio
         # "SOLINT" - Solution interval
 
-        assert len(required_columns) == 6, (
-            "Bandpass table must have 6 required CASA columns"
-        )
+        assert (
+            len(required_columns) == 6
+        ), "Bandpass table must have 6 required CASA columns"
 
     def test_gain_table_has_required_columns(self):
         """Gain table must have all required CASA columns."""
         required_columns = [
-            "TIME",        # Solution time
-            "ANTENNA1",   # Antenna ID
-            "SPW",        # Spectral window
-            "CPARAM",     # Complex calibration parameters
-            "FLAG",       # Solution flags
+            "TIME",  # Solution time
+            "ANTENNA1",  # Antenna ID
+            "SPW",  # Spectral window
+            "CPARAM",  # Complex calibration parameters
+            "FLAG",  # Solution flags
         ]
 
-        assert len(required_columns) == 5, (
-            "Gain table must have 5 required CASA columns"
-        )
+        assert (
+            len(required_columns) == 5
+        ), "Gain table must have 5 required CASA columns"
 
     def test_cparam_shape_is_correct(self):
         """CPARAM column shape must match CASA standards."""
@@ -67,9 +67,7 @@ class TestCASATableStructure:
         # For DSA-110: typically (2, n_solutions) for XX, YY
 
         expected_n_pols = 2  # XX, YY
-        assert expected_n_pols == 2, (
-            "CPARAM must have correct polarization dimension"
-        )
+        assert expected_n_pols == 2, "CPARAM must have correct polarization dimension"
 
 
 class TestCASAPhaseCenterStandards:
@@ -82,9 +80,9 @@ class TestCASAPhaseCenterStandards:
         # or produce incorrect results
 
         max_separation_arcmin = 1.0
-        assert max_separation_arcmin < 60.0, (
-            "REFERENCE_DIR and PHASE_DIR must match within 1 arcmin"
-        )
+        assert (
+            max_separation_arcmin < 60.0
+        ), "REFERENCE_DIR and PHASE_DIR must match within 1 arcmin"
 
     def test_phase_center_format_is_casa_compliant(self):
         """Phase center format must be CASA-compliant."""
@@ -103,9 +101,9 @@ class TestCASACalibrationTaskParameters:
         # bandtype='BPOLY': Polynomial fit (not recommended for continuum)
 
         correct_bandtype = "B"
-        assert correct_bandtype == "B", (
-            "Bandpass task must use bandtype='B' for per-channel solutions"
-        )
+        assert (
+            correct_bandtype == "B"
+        ), "Bandpass task must use bandtype='B' for per-channel solutions"
 
     def test_bandpass_task_uses_solnorm(self):
         """Bandpass task must use solnorm=True for flux scale."""
@@ -113,9 +111,9 @@ class TestCASACalibrationTaskParameters:
         # solnorm=False: No normalization (incorrect flux scale)
 
         use_solnorm = True
-        assert use_solnorm is True, (
-            "Bandpass task must use solnorm=True for correct flux scale"
-        )
+        assert (
+            use_solnorm is True
+        ), "Bandpass task must use solnorm=True for correct flux scale"
 
     def test_gaincal_uses_correct_calmode(self):
         """Gain calibration must use correct calmode."""
@@ -124,9 +122,9 @@ class TestCASACalibrationTaskParameters:
 
         # For DSA-110 gain calibration after bandpass: phase-only
         correct_calmode_after_bp = "p"
-        assert correct_calmode_after_bp == "p", (
-            "Gain calibration after bandpass must use calmode='p'"
-        )
+        assert (
+            correct_calmode_after_bp == "p"
+        ), "Gain calibration after bandpass must use calmode='p'"
 
 
 class TestCASADataColumnStandards:
@@ -152,9 +150,7 @@ class TestCASADataColumnStandards:
         # Units are stored in MS metadata
 
         expected_units = "Jy"
-        assert expected_units == "Jy", (
-            "DATA column must have units='Jy'"
-        )
+        assert expected_units == "Jy", "DATA column must have units='Jy'"
 
 
 class TestCASAFieldStandards:
@@ -173,9 +169,9 @@ class TestCASAFieldStandards:
         # Otherwise calibration will fail
 
         max_separation_arcmin = 1.0
-        assert max_separation_arcmin < 60.0, (
-            "Field phase center must match source within 1 arcmin"
-        )
+        assert (
+            max_separation_arcmin < 60.0
+        ), "Field phase center must match source within 1 arcmin"
 
 
 class TestCASACalibrationApplication:
@@ -189,9 +185,9 @@ class TestCASACalibrationApplication:
         correct_order = ["K", "BP", "G"]  # If K exists
         no_k_order = ["BP", "G"]  # If K skipped
 
-        assert len(correct_order) >= 2, (
-            "Calibration tables must be applied in correct order"
-        )
+        assert (
+            len(correct_order) >= 2
+        ), "Calibration tables must be applied in correct order"
 
     def test_applycal_uses_correct_parameters(self):
         """applycal must use correct parameters for CASA standards."""
@@ -199,11 +195,10 @@ class TestCASACalibrationApplication:
         # interp='linear': Linear interpolation between solutions
 
         use_calwt = True
-        assert use_calwt is True, (
-            "applycal must use calwt=True for correct weight handling"
-        )
+        assert (
+            use_calwt is True
+        ), "applycal must use calwt=True for correct weight handling"
 
 
 if __name__ == "__main__":
     pytest.main([__file__, "-v"])
-

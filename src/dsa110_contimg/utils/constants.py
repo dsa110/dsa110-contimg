@@ -4,8 +4,8 @@ Constants for DSA-110 continuum imaging pipeline.
 Adapted from dsacalib.constants
 """
 
-import numpy as np
 import astropy.units as u
+import numpy as np
 from astropy.coordinates import EarthLocation
 
 # Observatory location (DSA-110)
@@ -16,9 +16,7 @@ DSA110_ALT = 1222.0  # meters
 
 # Create EarthLocation object for DSA-110
 DSA110_LOCATION = EarthLocation(
-    lat=DSA110_LAT * u.rad,
-    lon=DSA110_LON * u.rad,
-    height=DSA110_ALT * u.m
+    lat=DSA110_LAT * u.rad, lon=DSA110_LON * u.rad, height=DSA110_ALT * u.m
 )
 
 # Legacy OVRO constants (deprecated - use DSA110_LOCATION instead)
@@ -28,9 +26,7 @@ OVRO_ALT = 1188.0519  # meters
 
 # Legacy OVRO_LOCATION (deprecated - use DSA110_LOCATION instead)
 OVRO_LOCATION = EarthLocation(
-    lat=OVRO_LAT * u.rad,
-    lon=OVRO_LON * u.rad,
-    height=OVRO_ALT * u.m
+    lat=OVRO_LAT * u.rad, lon=OVRO_LON * u.rad, height=OVRO_ALT * u.m
 )
 
 # Telescope parameters

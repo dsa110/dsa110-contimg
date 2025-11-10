@@ -6,10 +6,10 @@ from dataclasses import dataclass
 from importlib import resources
 from typing import Iterable, Optional
 
+import astropy.units as u
 import numpy as np
 import pandas as pd
 from astropy.coordinates import EarthLocation
-import astropy.units as u
 
 __all__ = ["tee_centers", "get_lonlat", "get_itrf"]
 
@@ -66,14 +66,18 @@ def get_lonlat(
     height = table[HEIGHT_COLUMN]
 
     df = pd.DataFrame()
-    df[STATION_COLUMN] = [int(str(station).split('-')[-1]) for station in stations]
+    df[STATION_COLUMN] = [int(str(station).split("-")[-1]) for station in stations]
     df[LAT_COLUMN] = latitude
     df[LON_COLUMN] = longitude
     df[HEIGHT_COLUMN] = height
-    df[HEIGHT_COLUMN] = np.where(np.isnan(df[HEIGHT_COLUMN]), defaultheight, df[HEIGHT_COLUMN])
+    df[HEIGHT_COLUMN] = np.where(
+        np.isnan(df[HEIGHT_COLUMN]), defaultheight, df[HEIGHT_COLUMN]
+    )
 
     # Drop legacy designations such as 200E/200W if present
-    drop_indices = [idx for idx, station in enumerate(stations) if str(station).startswith("200")]
+    drop_indices = [
+        idx for idx, station in enumerate(stations) if str(station).startswith("200")
+    ]
     if drop_indices:
         df.drop(index=drop_indices, inplace=True, errors="ignore")
 
@@ -83,7 +87,9 @@ def get_lonlat(
     return df
 
 
-def _select_stations(df: pd.DataFrame, stations: Optional[Iterable[int]] = None) -> pd.DataFrame:
+def _select_stations(
+    df: pd.DataFrame, stations: Optional[Iterable[int]] = None
+) -> pd.DataFrame:
     if stations is None:
         return df
     indices = np.array(list(stations), dtype=int)

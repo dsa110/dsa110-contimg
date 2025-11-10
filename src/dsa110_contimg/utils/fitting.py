@@ -4,6 +4,7 @@
 This module provides functions for fitting 2D models (Gaussian, Moffat) to sources
 in astronomical images, including support for region constraints and initial guess estimation.
 """
+
 from __future__ import annotations
 
 import logging
@@ -12,10 +13,10 @@ from typing import Any, Dict, List, Optional, Tuple
 import numpy as np
 from astropy.coordinates import SkyCoord
 from astropy.io import fits
-from astropy.modeling import models, fitting
+from astropy.modeling import fitting, models
 from astropy.wcs import WCS
 from astropy.wcs.utils import skycoord_to_pixel
-from scipy import optimize, ndimage
+from scipy import ndimage, optimize
 
 LOG = logging.getLogger(__name__)
 
@@ -63,8 +64,9 @@ def estimate_initial_guess(
         border_mask[border_size:-border_size, border_size:-border_size] = True
         background_data = data[~border_mask]
 
-    background = float(np.nanmedian(background_data)
-                       ) if background_data.size > 0 else 0.0
+    background = (
+        float(np.nanmedian(background_data)) if background_data.size > 0 else 0.0
+    )
 
     # Estimate width using second moments
     # Subtract background for moment calculation
@@ -73,7 +75,7 @@ def estimate_initial_guess(
 
     if np.sum(signal_data) > 0:
         # Calculate weighted moments
-        y_coords, x_coords = np.mgrid[0:data.shape[0], 0:data.shape[1]]
+        y_coords, x_coords = np.mgrid[0 : data.shape[0], 0 : data.shape[1]]
 
         total_flux = np.sum(signal_data)
         x_mean = np.sum(x_coords * signal_data) / total_flux
@@ -82,8 +84,9 @@ def estimate_initial_guess(
         # Second moments
         xx_moment = np.sum((x_coords - x_mean) ** 2 * signal_data) / total_flux
         yy_moment = np.sum((y_coords - y_mean) ** 2 * signal_data) / total_flux
-        xy_moment = np.sum((x_coords - x_mean) *
-                           (y_coords - y_mean) * signal_data) / total_flux
+        xy_moment = (
+            np.sum((x_coords - x_mean) * (y_coords - y_mean) * signal_data) / total_flux
+        )
 
         # Calculate eigenvalues and eigenvectors for ellipse parameters
         cov_matrix = np.array([[xx_moment, xy_moment], [xy_moment, yy_moment]])
@@ -105,9 +108,8 @@ def estimate_initial_guess(
         half_max = peak_value / 2
 
         # Simple radial scan
-        y_coords, x_coords = np.mgrid[0:data.shape[0], 0:data.shape[1]]
-        distances = np.sqrt((x_coords - x_center) ** 2 +
-                            (y_coords - y_center) ** 2)
+        y_coords, x_coords = np.mgrid[0 : data.shape[0], 0 : data.shape[1]]
+        distances = np.sqrt((x_coords - x_center) ** 2 + (y_coords - y_center) ** 2)
 
         above_half_max = signal_data >= half_max
         if np.any(above_half_max):
@@ -168,14 +170,14 @@ def fit_2d_gaussian(
                 data = data.squeeze()
                 if data.ndim > 2:
                     LOG.warning(
-                        f"Image {fits_file_path} has >2 dimensions, taking first slice for fitting.")
+                        f"Image {fits_file_path} has >2 dimensions, taking first slice for fitting."
+                    )
                     data = data[0, 0] if data.ndim == 4 else data[0]
 
             # Apply region mask if provided
             if region_mask is not None:
                 if region_mask.shape != data.shape:
-                    raise ValueError(
-                        "Region mask shape must match image shape")
+                    raise ValueError("Region mask shape must match image shape")
                 fit_mask = region_mask
             else:
                 fit_mask = np.ones_like(data, dtype=bool)
@@ -185,15 +187,13 @@ def fit_2d_gaussian(
                 initial_guess = estimate_initial_guess(data, fit_mask)
 
             # Create coordinate grids
-            y_coords, x_coords = np.mgrid[0:data.shape[0], 0:data.shape[1]]
+            y_coords, x_coords = np.mgrid[0 : data.shape[0], 0 : data.shape[1]]
 
             # Create 2D Gaussian model using astropy.modeling
             # Gaussian2D: amplitude, x_mean, y_mean, x_stddev, y_stddev, theta
             # We need to convert major/minor axes (FWHM) to stddev
-            major_stddev = initial_guess["major_axis"] / \
-                (2 * np.sqrt(2 * np.log(2)))
-            minor_stddev = initial_guess["minor_axis"] / \
-                (2 * np.sqrt(2 * np.log(2)))
+            major_stddev = initial_guess["major_axis"] / (2 * np.sqrt(2 * np.log(2)))
+            minor_stddev = initial_guess["minor_axis"] / (2 * np.sqrt(2 * np.log(2)))
             theta = np.radians(initial_guess["pa"])
 
             if fit_background:
@@ -219,12 +219,12 @@ def fit_2d_gaussian(
             fit_data = data[fit_mask]
             fit_x = x_coords[fit_mask]
             fit_y = y_coords[fit_mask]
-            
+
             # Filter out non-finite values (NaN/Inf)
             finite_mask = np.isfinite(fit_data)
             if np.sum(finite_mask) == 0:
                 raise ValueError("No finite values in data for fitting")
-            
+
             fit_data = fit_data[finite_mask]
             fit_x = fit_x[finite_mask]
             fit_y = fit_y[finite_mask]
@@ -283,10 +283,11 @@ def fit_2d_gaussian(
             chi_squared = np.sum((residual_masked) ** 2)
             n_params = 7 if fit_background else 6
             n_points = np.sum(fit_mask)
-            reduced_chi_squared = chi_squared / \
-                (n_points - n_params) if n_points > n_params else np.nan
+            reduced_chi_squared = (
+                chi_squared / (n_points - n_params) if n_points > n_params else np.nan
+            )
 
-            ss_res = np.sum(residual_masked ** 2)
+            ss_res = np.sum(residual_masked**2)
             ss_tot = np.sum((fit_data - np.mean(fit_data)) ** 2)
             r_squared = 1 - (ss_res / ss_tot) if ss_tot > 0 else np.nan
 
@@ -295,7 +296,7 @@ def fit_2d_gaussian(
             if wcs is not None:
                 try:
                     # Handle 4D WCS (common in radio astronomy)
-                    if hasattr(wcs, 'naxis') and wcs.naxis == 4:
+                    if hasattr(wcs, "naxis") and wcs.naxis == 4:
                         # Use all_pix2world for 4D WCS
                         world_coords = wcs.all_pix2world(x_center, y_center, 0, 0, 0)
                         center_wcs = {
@@ -387,14 +388,14 @@ def fit_2d_moffat(
                 data = data.squeeze()
                 if data.ndim > 2:
                     LOG.warning(
-                        f"Image {fits_file_path} has >2 dimensions, taking first slice for fitting.")
+                        f"Image {fits_file_path} has >2 dimensions, taking first slice for fitting."
+                    )
                     data = data[0, 0] if data.ndim == 4 else data[0]
 
             # Apply region mask if provided
             if region_mask is not None:
                 if region_mask.shape != data.shape:
-                    raise ValueError(
-                        "Region mask shape must match image shape")
+                    raise ValueError("Region mask shape must match image shape")
                 fit_mask = region_mask
             else:
                 fit_mask = np.ones_like(data, dtype=bool)
@@ -404,7 +405,7 @@ def fit_2d_moffat(
                 initial_guess = estimate_initial_guess(data, fit_mask)
 
             # Create coordinate grids
-            y_coords, x_coords = np.mgrid[0:data.shape[0], 0:data.shape[1]]
+            y_coords, x_coords = np.mgrid[0 : data.shape[0], 0 : data.shape[1]]
 
             # Create 2D Moffat model using astropy.modeling
             # Moffat2D: amplitude, x_0, y_0, gamma (alpha), alpha (beta)
@@ -412,10 +413,12 @@ def fit_2d_moffat(
             # For Moffat: FWHM = 2 * gamma * sqrt(2^(1/beta) - 1)
             # We'll use beta=2.5 as typical value, estimate gamma from FWHM
             beta = 2.5  # Typical value
-            major_gamma = initial_guess["major_axis"] / \
-                (2 * np.sqrt(2 ** (1 / beta) - 1))
-            minor_gamma = initial_guess["minor_axis"] / \
-                (2 * np.sqrt(2 ** (1 / beta) - 1))
+            major_gamma = initial_guess["major_axis"] / (
+                2 * np.sqrt(2 ** (1 / beta) - 1)
+            )
+            minor_gamma = initial_guess["minor_axis"] / (
+                2 * np.sqrt(2 ** (1 / beta) - 1)
+            )
             theta = np.radians(initial_guess["pa"])
 
             if fit_background:
@@ -439,12 +442,12 @@ def fit_2d_moffat(
             fit_data = data[fit_mask]
             fit_x = x_coords[fit_mask]
             fit_y = y_coords[fit_mask]
-            
+
             # Filter out non-finite values (NaN/Inf)
             finite_mask = np.isfinite(fit_data)
             if np.sum(finite_mask) == 0:
                 raise ValueError("No finite values in data for fitting")
-            
+
             fit_data = fit_data[finite_mask]
             fit_x = fit_x[finite_mask]
             fit_y = fit_y[finite_mask]
@@ -507,10 +510,11 @@ def fit_2d_moffat(
             chi_squared = np.sum((residual_masked) ** 2)
             n_params = 6 if fit_background else 5
             n_points = np.sum(fit_mask)
-            reduced_chi_squared = chi_squared / \
-                (n_points - n_params) if n_points > n_params else np.nan
+            reduced_chi_squared = (
+                chi_squared / (n_points - n_params) if n_points > n_params else np.nan
+            )
 
-            ss_res = np.sum(residual_masked ** 2)
+            ss_res = np.sum(residual_masked**2)
             ss_tot = np.sum((fit_data - np.mean(fit_data)) ** 2)
             r_squared = 1 - (ss_res / ss_tot) if ss_tot > 0 else np.nan
 
@@ -519,7 +523,7 @@ def fit_2d_moffat(
             if wcs is not None:
                 try:
                     # Handle 4D WCS (common in radio astronomy)
-                    if hasattr(wcs, 'naxis') and wcs.naxis == 4:
+                    if hasattr(wcs, "naxis") and wcs.naxis == 4:
                         # Use all_pix2world for 4D WCS
                         world_coords = wcs.all_pix2world(x_center, y_center, 0, 0, 0)
                         center_wcs = {

@@ -8,9 +8,9 @@ from __future__ import annotations
 import asyncio
 import json
 import logging
-from typing import Dict, Set
-from datetime import datetime
 from collections.abc import AsyncIterator
+from datetime import datetime
+from typing import Dict, Set
 
 logger = logging.getLogger(__name__)
 
@@ -26,13 +26,17 @@ class ConnectionManager:
         """Add a new connection."""
         async with self._lock:
             self.active_connections.add(websocket)
-            logger.info(f"New connection established. Total connections: {len(self.active_connections)}")
+            logger.info(
+                f"New connection established. Total connections: {len(self.active_connections)}"
+            )
 
     async def disconnect(self, websocket: any):
         """Remove a connection."""
         async with self._lock:
             self.active_connections.discard(websocket)
-            logger.info(f"Connection closed. Total connections: {len(self.active_connections)}")
+            logger.info(
+                f"Connection closed. Total connections: {len(self.active_connections)}"
+            )
 
     async def broadcast(self, message: dict):
         """Broadcast a message to all connected clients."""
@@ -46,12 +50,12 @@ class ConnectionManager:
             for connection in self.active_connections:
                 try:
                     # Try WebSocket send first
-                    if hasattr(connection, 'send_text'):
+                    if hasattr(connection, "send_text"):
                         await connection.send_text(message_str)
-                    elif hasattr(connection, 'send'):
+                    elif hasattr(connection, "send"):
                         await connection.send(message_str)
                     # SSE format: data: {...}\n\n
-                    elif hasattr(connection, 'write'):
+                    elif hasattr(connection, "write"):
                         await connection.write(f"data: {message_str}\n\n")
                 except Exception as e:
                     logger.warning(f"Failed to send message to connection: {e}")
@@ -64,11 +68,11 @@ class ConnectionManager:
         """Send a message to a specific connection."""
         message_str = json.dumps(message)
         try:
-            if hasattr(websocket, 'send_text'):
+            if hasattr(websocket, "send_text"):
                 await websocket.send_text(message_str)
-            elif hasattr(websocket, 'send'):
+            elif hasattr(websocket, "send"):
                 await websocket.send(message_str)
-            elif hasattr(websocket, 'write'):
+            elif hasattr(websocket, "write"):
                 await websocket.write(f"data: {message_str}\n\n")
         except Exception as e:
             logger.warning(f"Failed to send personal message: {e}")
@@ -83,7 +87,7 @@ async def event_generator() -> AsyncIterator[str]:
     try:
         # Send initial connection message
         yield f"data: {json.dumps({'type': 'connected', 'timestamp': datetime.now().isoformat()})}\n\n"
-        
+
         # Keep connection alive with periodic heartbeats
         while True:
             await asyncio.sleep(30)  # Send heartbeat every 30 seconds
@@ -94,15 +98,16 @@ async def event_generator() -> AsyncIterator[str]:
         logger.error(f"Error in SSE generator: {e}")
 
 
-def create_status_update(pipeline_status: dict = None, metrics: dict = None, ese_candidates: dict = None) -> dict:
+def create_status_update(
+    pipeline_status: dict = None, metrics: dict = None, ese_candidates: dict = None
+) -> dict:
     """Create a status update message."""
     return {
-        'type': 'status_update',
-        'timestamp': datetime.now().isoformat(),
-        'data': {
-            'pipeline_status': pipeline_status,
-            'metrics': metrics,
-            'ese_candidates': ese_candidates,
-        }
+        "type": "status_update",
+        "timestamp": datetime.now().isoformat(),
+        "data": {
+            "pipeline_status": pipeline_status,
+            "metrics": metrics,
+            "ese_candidates": ese_candidates,
+        },
     }
-

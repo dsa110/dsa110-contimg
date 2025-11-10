@@ -5,13 +5,13 @@ This module provides file-based locking mechanisms to prevent race conditions
 when multiple processes attempt to operate on the same resource simultaneously.
 """
 
-import os
 import fcntl
-import time
 import logging
-from pathlib import Path
-from typing import Optional
+import os
+import time
 from contextlib import contextmanager
+from pathlib import Path
+from typing import ContextManager, Optional
 
 logger = logging.getLogger(__name__)
 
@@ -19,11 +19,11 @@ logger = logging.getLogger(__name__)
 class LockError(Exception):
     """Raised when a lock cannot be acquired."""
 
+    pass
+
 
 @contextmanager
-def file_lock(
-    lock_path: Path, timeout: float = 300.0, poll_interval: float = 1.0
-):
+def file_lock(lock_path: Path, timeout: float = 300.0, poll_interval: float = 1.0):
     """Acquire an exclusive file lock, blocking until available or timeout.
 
     This uses fcntl.flock() for advisory locking on Unix systems. The lock
@@ -31,8 +31,7 @@ def file_lock(
 
     Args:
         lock_path: Path to lock file (will be created if needed)
-        timeout: Maximum time to wait for lock (seconds).
-            Default: 5 minutes
+        timeout: Maximum time to wait for lock (seconds). Default: 5 minutes
         poll_interval: How often to check if lock is available (seconds)
 
     Yields:
@@ -43,7 +42,7 @@ def file_lock(
 
     Example:
         with file_lock(Path("/tmp/my_operation.lock"), timeout=60):
-            # Critical section - only one process can execute this
+            # Critical section - only one process can execute this at a time
             perform_exclusive_operation()
     """
     lock_path = Path(lock_path)
@@ -56,16 +55,14 @@ def file_lock(
         # Try to acquire lock with timeout
         while True:
             try:
-                lock_file = open(lock_path, 'w', encoding='utf-8')
+                lock_file = open(lock_path, "w")
                 # Try to acquire exclusive lock (non-blocking)
-                fcntl.flock(
-                    lock_file.fileno(), fcntl.LOCK_EX | fcntl.LOCK_NB
-                )
+                fcntl.flock(lock_file.fileno(), fcntl.LOCK_EX | fcntl.LOCK_NB)
 
                 # Lock acquired successfully
                 lock_file.write(f"{os.getpid()}\n")
                 lock_file.flush()
-                logger.debug("Acquired lock: %s", lock_path)
+                logger.debug(f"Acquired lock: {lock_path}")
                 break
 
             except (IOError, OSError) as e:
@@ -77,19 +74,16 @@ def file_lock(
                 elapsed = time.time() - start_time
                 if elapsed >= timeout:
                     error_msg = (
-                        f"Could not acquire lock {lock_path} within "
-                        f"{timeout}s. Another process may be running. "
-                        f"Check for stale lock files if no process is "
-                        f"running."
+                        f"Could not acquire lock {lock_path} within {timeout}s. "
+                        f"Another process may be running. "
+                        f"Check for stale lock files if no process is running."
                     )
                     logger.error(error_msg)
                     raise LockError(error_msg) from e
 
                 logger.debug(
-                    "Lock %s is held by another process, waiting... "
-                    "(%.1fs elapsed)",
-                    lock_path,
-                    elapsed,
+                    f"Lock {lock_path} is held by another process, "
+                    f"waiting... ({elapsed:.1f}s elapsed)"
                 )
                 time.sleep(poll_interval)
 
@@ -102,26 +96,16 @@ def file_lock(
             try:
                 fcntl.flock(lock_file.fileno(), fcntl.LOCK_UN)
                 lock_file.close()
-                logger.debug("Released lock: %s", lock_path)
-            except (OSError, IOError, RuntimeError) as e:
-                logger.warning(
-                    "Error releasing lock %s: %s",
-                    lock_path,
-                    e,
-                    exc_info=True,
-                )
+                logger.debug(f"Released lock: {lock_path}")
+            except Exception as e:
+                logger.warning(f"Error releasing lock {lock_path}: {e}")
 
             # Clean up lock file if empty or stale
             try:
                 if lock_path.exists() and lock_path.stat().st_size == 0:
                     lock_path.unlink()
-            except (OSError, IOError, PermissionError) as e:
-                # Non-fatal: lock file cleanup failure
-                logger.debug(
-                    "Could not clean up lock file %s: %s",
-                    lock_path,
-                    e,
-                )
+            except Exception:
+                pass
 
 
 def check_lock(lock_path: Path) -> tuple[bool, Optional[str]]:
@@ -131,35 +115,30 @@ def check_lock(lock_path: Path) -> tuple[bool, Optional[str]]:
         lock_path: Path to lock file
 
     Returns:
-        (is_locked, pid_string) tuple where pid_string is the PID holding
-        the lock or None if lock is not held
+        (is_locked, pid_string) tuple where pid_string is the PID holding the lock
+        or None if lock is not held
     """
     lock_path = Path(lock_path)
     if not lock_path.exists():
         return False, None
 
     try:
-        with open(lock_path, 'r', encoding='utf-8') as f:
+        with open(lock_path, "r") as f:
             pid_str = f.read().strip()
             # Check if process is still running
             try:
                 pid = int(pid_str)
                 # Check if process exists (Unix-specific)
-                # Signal 0 doesn't kill, just checks existence
-                os.kill(pid, 0)
+                os.kill(pid, 0)  # Signal 0 doesn't kill, just checks existence
                 return True, pid_str
             except (ValueError, OSError):
                 # PID invalid or process doesn't exist - stale lock
                 return False, None
-    except (OSError, IOError, PermissionError) as e:
-        # Lock file cannot be read - treat as not locked
-        logger.debug("Could not read lock file %s: %s", lock_path, e)
+    except Exception:
         return False, None
 
 
-def cleanup_stale_locks(
-    lock_dir: Path, timeout_seconds: float = 3600.0
-) -> int:
+def cleanup_stale_locks(lock_dir: Path, timeout_seconds: float = 3600.0) -> int:
     """Clean up stale lock files in a directory.
 
     A lock is considered stale if:
@@ -186,9 +165,7 @@ def cleanup_stale_locks(
             file_age = current_time - lock_file.stat().st_mtime
             if file_age > timeout_seconds:
                 logger.warning(
-                    "Removing stale lock file (age: %.0fs): %s",
-                    file_age,
-                    lock_file,
+                    f"Removing stale lock file (age: {file_age:.0f}s): {lock_file}"
                 )
                 lock_file.unlink()
                 cleaned += 1
@@ -198,24 +175,15 @@ def cleanup_stale_locks(
             is_locked, pid_str = check_lock(lock_file)
             if not is_locked:
                 logger.warning(
-                    "Removing stale lock file (process %s not running): %s",
-                    pid_str,
-                    lock_file,
+                    f"Removing stale lock file (process {pid_str} not running): {lock_file}"
                 )
                 lock_file.unlink()
                 cleaned += 1
 
-        except (OSError, IOError, PermissionError, ValueError) as e:
-            logger.warning(
-                "Error checking lock file %s: %s",
-                lock_file,
-                e,
-                exc_info=True,
-            )
+        except Exception as e:
+            logger.warning(f"Error checking lock file {lock_file}: {e}")
 
     if cleaned > 0:
-        logger.info(
-            "Cleaned up %d stale lock file(s) from %s", cleaned, lock_dir
-        )
+        logger.info(f"Cleaned up {cleaned} stale lock file(s) from {lock_dir}")
 
     return cleaned
