@@ -11,6 +11,12 @@ from typing import Dict, List, Optional, Tuple
 
 logger = logging.getLogger(__name__)
 
+# Provide a patchable casacore table symbol for unit tests
+from dsa110_contimg.utils.casa_init import ensure_casa_path
+ensure_casa_path()
+import casacore.tables as casatables  # type: ignore
+table = casatables.table  # noqa: N816
+
 
 def get_expected_caltables(
     ms_path: str,
@@ -142,13 +148,7 @@ def validate_caltables_exist(
 
 def _get_n_spws_from_ms(ms_path: str) -> int:
     """Get number of spectral windows from MS."""
-    # Ensure CASAPATH is set before importing CASA modules
-    from dsa110_contimg.utils.casa_init import ensure_casa_path
-    ensure_casa_path()
-
     try:
-        from casacore.tables import table
-
         spw_table_path = str(ms_path) + "/SPECTRAL_WINDOW"
         with table(spw_table_path, ack=False) as spw_table:
             return len(spw_table)

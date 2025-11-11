@@ -12,7 +12,10 @@ from dsa110_contimg.utils.casa_init import ensure_casa_path
 ensure_casa_path()
 
 import numpy as np
-from casacore.tables import table
+# Prefer module import so mocks on casacore.tables.table are respected at call time
+import casacore.tables as casatables
+# Back-compat symbol for tests that patch dsa110_contimg.imaging.cli_imaging.table
+table = casatables.table  # noqa: N816 (kept for test patchability)
 from casatasks import exportfits, tclean  # type: ignore[import]
 
 try:
@@ -650,7 +653,7 @@ def image_ms(
 
     # Get phase center from MS (needed for mask generation and NVSS seeding)
     ra0_deg = dec0_deg = None
-    with table(f"{ms_path}::FIELD", readonly=True) as fld:
+    with casatables.table(f"{ms_path}::FIELD", readonly=True) as fld:
         try:
             ph = fld.getcol("PHASE_DIR")[0]
             ra0_deg = float(ph[0][0]) * (180.0 / np.pi)
@@ -669,7 +672,7 @@ def image_ms(
         and calib_flux_jy > 0
     ):
         try:
-            with table(f"{ms_path}::FIELD", readonly=True) as fld:
+            with casatables.table(f"{ms_path}::FIELD", readonly=True) as fld:
                 ph = fld.getcol("PHASE_DIR")[0]
                 ra0_deg = float(ph[0][0]) * (180.0 / np.pi)
                 dec0_deg = float(ph[0][1]) * (180.0 / np.pi)
@@ -719,7 +722,9 @@ def image_ms(
             # Mean observing frequency
             freq_ghz = 1.4
             try:
-                with table(f"{ms_path}::SPECTRAL_WINDOW", readonly=True) as spw:
+                with casatables.table(
+                    f"{ms_path}::SPECTRAL_WINDOW", readonly=True
+                ) as spw:
                     ch = spw.getcol("CHAN_FREQ")[0]
                     freq_ghz = float(np.nanmean(ch)) / 1e9
             except Exception:

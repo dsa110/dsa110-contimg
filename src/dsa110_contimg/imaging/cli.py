@@ -27,7 +27,8 @@ from dsa110_contimg.utils.casa_init import ensure_casa_path
 ensure_casa_path()
 
 from casatasks import tclean, exportfits  # type: ignore[import]
-from casacore.tables import table  # type: ignore[import]
+import casacore.tables as casatables  # type: ignore[import]
+table = casatables.table  # noqa: N816
 import numpy as np
 import argparse
 import logging

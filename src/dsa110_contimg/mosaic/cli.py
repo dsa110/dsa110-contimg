@@ -1001,27 +1001,14 @@ def _build_weighted_mosaic_linearmosaic(
     import shutil
     from pathlib import Path
 
-    print(
-        f"[DEBUG] =========================================",
-        file=sys.stderr,
-        flush=True,
-    )
-    print(
-        f"[DEBUG] CHECKPOINT: Starting _build_weighted_mosaic",
-        file=sys.stderr,
-        flush=True,
-    )
-    print(f"[DEBUG] Number of tiles: {len(tiles)}",
-          file=sys.stderr, flush=True)
-    print(f"[DEBUG] Output path: {output_path}", file=sys.stderr, flush=True)
-    print(f"[DEBUG] Tile paths:", file=sys.stderr, flush=True)
+    LOG.debug("=" * 50)
+    LOG.debug("CHECKPOINT: Starting _build_weighted_mosaic")
+    LOG.debug(f"Number of tiles: {len(tiles)}")
+    LOG.debug(f"Output path: {output_path}")
+    LOG.debug("Tile paths:")
     for i, tile in enumerate(tiles):
-        print(f"[DEBUG]   [{i+1}] {tile}", file=sys.stderr, flush=True)
-    print(
-        f"[DEBUG] =========================================",
-        file=sys.stderr,
-        flush=True,
-    )
+        LOG.debug(f"  [{i+1}] {tile}")
+    LOG.debug("=" * 50)
 
     # AGGRESSIVE VALIDATION: Fail immediately on invalid inputs
     DEBUG_AGGRESSIVE_VALIDATION = False  # Set to True for aggressive validation
@@ -1600,7 +1587,8 @@ def _build_weighted_mosaic_linearmosaic(
         else:
             os.remove(output_path)
     if os.path.exists(output_weight_path):
-        LOG.info(f"Removing existing output weight image: {output_weight_path}")
+        LOG.info(
+            f"Removing existing output weight image: {output_weight_path}")
         if os.path.isdir(output_weight_path):
             shutil.rmtree(output_weight_path)
         else:
@@ -2221,38 +2209,23 @@ def cmd_build(args: argparse.Namespace) -> int:
 
     # Comprehensive validation
     print(f"Validating {len(tiles)} tiles...", flush=True)
-    print(
-        f"[DEBUG] Starting validation for {len(tiles)} tiles",
-        file=sys.stderr,
-        flush=True,
-    )
-    print(
-        f"[DEBUG] Starting validation for {len(tiles)} tiles", flush=True
-    )  # Also to stdout
+    LOG.debug(f"Starting validation for {len(tiles)} tiles")
 
     # 1. Basic grid consistency
-    print(f"[DEBUG] Checking grid consistency...", file=sys.stderr, flush=True)
-    print(f"[DEBUG] Checking grid consistency...",
-          flush=True)  # Also to stdout
+    LOG.debug("Checking grid consistency...")
     ok, reason = _check_consistent_tiles(tiles)
-    print(
-        f"[DEBUG] Grid consistency check complete: ok={ok}", file=sys.stderr, flush=True
-    )
+    LOG.debug(f"Grid consistency check complete: ok={ok}")
     if not ok:
         print(f"Cannot build mosaic: {reason}")
         return 2
 
     # 2. Tile quality validation (computes metrics_dict)
-    print(f"[DEBUG] Calling validate_tiles_consistency...",
-          file=sys.stderr, flush=True)
+    LOG.debug("Calling validate_tiles_consistency...")
     is_valid, validation_issues, metrics_dict = validate_tiles_consistency(
         tiles, products_db=pdb
     )
-    print(
-        f"[DEBUG] validate_tiles_consistency complete: is_valid={is_valid}, issues={len(validation_issues)}",
-        file=sys.stderr,
-        flush=True,
-    )
+    LOG.debug(
+        f"validate_tiles_consistency complete: is_valid={is_valid}, issues={len(validation_issues)}")
 
     # Re-run pre-flight with computed metrics_dict for better PB checking
     if require_pb:
@@ -2292,22 +2265,14 @@ def cmd_build(args: argparse.Namespace) -> int:
             )
 
     # 3. Astrometric registration check
-    print(f"[DEBUG] Starting astrometric verification...",
-          file=sys.stderr, flush=True)
+    LOG.debug("Starting astrometric verification...")
     try:
         astro_valid, astro_issues, offsets = verify_astrometric_registration(
             tiles)
-        print(
-            f"[DEBUG] Astrometric verification complete: valid={astro_valid}, issues={len(astro_issues)}",
-            file=sys.stderr,
-            flush=True,
-        )
+        LOG.debug(
+            f"Astrometric verification complete: valid={astro_valid}, issues={len(astro_issues)}")
     except Exception as e:
-        print(
-            f"[DEBUG] Astrometric verification exception: {e}",
-            file=sys.stderr,
-            flush=True,
-        )
+        LOG.debug(f"Astrometric verification exception: {e}", exc_info=True)
         raise ValidationError(
             f"Astrometric verification failed: {e}",
             "Check if catalog access is available. "
@@ -2315,13 +2280,7 @@ def cmd_build(args: argparse.Namespace) -> int:
         ) from e
     if astro_issues:
         print("Astrometric registration issues:", flush=True)
-        print(
-            f"[DEBUG] Processing {len(astro_issues)} astrometric issues",
-            file=sys.stderr,
-            flush=True,
-        )
-        print(
-            f"[DEBUG] Processing {len(astro_issues)} astrometric issues", flush=True)
+        LOG.debug(f"Processing {len(astro_issues)} astrometric issues")
 
         # Filter out catalog access failures and image close() errors (non-fatal) from actual astrometric issues (fatal)
         non_fatal_keywords = [
@@ -2341,26 +2300,15 @@ def cmd_build(args: argparse.Namespace) -> int:
             issue for issue in astro_issues if issue not in non_fatal_issues
         ]
 
-        print(
-            f"[DEBUG] Astrometric filtering: {len(astro_issues)} total, {len(non_fatal_issues)} non-fatal, {len(actual_astro_issues)} actual",
-            file=sys.stderr,
-            flush=True,
-        )
-        print(
-            f"[DEBUG] Astrometric filtering: {len(astro_issues)} total, {len(non_fatal_issues)} non-fatal, {len(actual_astro_issues)} actual",
-            flush=True,
-        )
+        LOG.debug(
+            f"Astrometric filtering: {len(astro_issues)} total, {len(non_fatal_issues)} non-fatal, {len(actual_astro_issues)} actual")
 
         for issue in astro_issues:
             print(f"  - {issue}", flush=True)
 
         # Only abort on actual astrometric misalignment, not catalog access failures
         if actual_astro_issues and not args.ignore_validation:
-            print(
-                f"[DEBUG] Aborting: {len(actual_astro_issues)} actual issues",
-                file=sys.stderr,
-                flush=True,
-            )
+            LOG.debug(f"Aborting: {len(actual_astro_issues)} actual issues")
             print(
                 "\nMosaic build aborted due to astrometric misalignment issues.",
                 flush=True,

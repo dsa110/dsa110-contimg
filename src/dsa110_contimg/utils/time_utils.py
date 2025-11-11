@@ -284,7 +284,8 @@ def extract_ms_time_range(
                         f"for {ms_path}: start={start_mjd}, end={end_mjd}"
                     )
         except Exception as e:
-            logger.debug(f"msmetadata.timerangeforobs() failed for {ms_path}: {e}")
+            logger.debug(
+                f"msmetadata.timerangeforobs() failed for {ms_path}: {e}")
         finally:
             try:
                 msmd.close()
@@ -318,7 +319,8 @@ def extract_ms_time_range(
                     ):
                         return float(start_mjd), float(end_mjd), float(mid_mjd)
         except Exception as e:
-            logger.debug(f"msmetadata.timesforscans() failed for {ms_path}: {e}")
+            logger.debug(
+                f"msmetadata.timesforscans() failed for {ms_path}: {e}")
         finally:
             try:
                 msmd.close()
@@ -380,7 +382,8 @@ def extract_ms_time_range(
     except Exception as e:
         logger.debug(f"Failed to read TIME_RANGE from OBSERVATION table: {e}")
 
-    logger.warning(f"Could not extract valid time range from {ms_path}")
+    logger.debug(
+        f"Could not extract valid time range from {ms_path} (fallback will be used)")
     return None, None, None
 
 

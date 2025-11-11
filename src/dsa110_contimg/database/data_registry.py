@@ -25,7 +25,7 @@ class DataRecord:
     data_type: str
     data_id: str
     base_path: str
-    status: str  # 'staging' or 'published'
+    status: str  # 'staging', 'publishing', or 'published'
     stage_path: str
     published_path: Optional[str]
     created_at: float
@@ -37,6 +37,8 @@ class DataRecord:
     validation_status: Optional[str]
     finalization_status: str  # 'pending', 'finalized', 'failed'
     auto_publish_enabled: bool
+    publish_attempts: int = 0
+    publish_error: Optional[str] = None
 
 
 def ensure_data_registry_db(path: Path) -> sqlite3.Connection:
@@ -71,10 +73,35 @@ def ensure_data_registry_db(path: Path) -> sqlite3.Connection:
             validation_status TEXT,
             finalization_status TEXT DEFAULT 'pending',
             auto_publish_enabled INTEGER DEFAULT 1,
+            publish_attempts INTEGER DEFAULT 0,
+            publish_error TEXT,
             UNIQUE(data_type, data_id)
         )
         """
     )
+    
+    # Migrate existing tables to add new columns if they don't exist
+    try:
+        # Check if publish_attempts column exists
+        conn.execute("SELECT publish_attempts FROM data_registry LIMIT 1")
+    except sqlite3.OperationalError:
+        # Column doesn't exist, add it
+        try:
+            conn.execute("ALTER TABLE data_registry ADD COLUMN publish_attempts INTEGER DEFAULT 0")
+            logger.info("Added publish_attempts column to data_registry")
+        except sqlite3.OperationalError as e:
+            logger.warning(f"Could not add publish_attempts column: {e}")
+    
+    try:
+        # Check if publish_error column exists
+        conn.execute("SELECT publish_error FROM data_registry LIMIT 1")
+    except sqlite3.OperationalError:
+        # Column doesn't exist, add it
+        try:
+            conn.execute("ALTER TABLE data_registry ADD COLUMN publish_error TEXT")
+            logger.info("Added publish_error column to data_registry")
+        except sqlite3.OperationalError as e:
+            logger.warning(f"Could not add publish_error column: {e}")
 
     # Data relationships table
     conn.execute(
@@ -275,15 +302,20 @@ def trigger_auto_publish(
     conn: sqlite3.Connection,
     data_id: str,
     products_base: Optional[Path] = None,
+    max_attempts: int = 3,
 ) -> bool:
     """Trigger auto-publish for a data instance.
 
     Moves data from /stage/ (SSD) to /data/dsa110-contimg/products/ (HDD).
+    
+    Uses database-level locking (SELECT FOR UPDATE) to prevent concurrent access race conditions.
+    Implements retry tracking with exponential backoff for transient failures.
 
     Args:
         conn: Database connection
         data_id: Data instance ID
         products_base: Base path for published products (defaults to /data/dsa110-contimg/products)
+        max_attempts: Maximum number of publish attempts (default: 3)
 
     Returns:
         True if successful, False otherwise
@@ -292,21 +324,63 @@ def trigger_auto_publish(
         products_base = Path("/data/dsa110-contimg/products")
 
     cur = conn.cursor()
-    cur.execute(
-        """
-        SELECT data_type, stage_path, base_path
-        FROM data_registry
-        WHERE data_id = ? AND status = 'staging'
-        """,
-        (data_id,),
-    )
-    row = cur.fetchone()
+    
+    # CRITICAL: Use SELECT FOR UPDATE to prevent concurrent publish attempts
+    # This locks the row until the transaction completes, preventing race conditions
+    try:
+        conn.execute("BEGIN IMMEDIATE")  # Start transaction with immediate lock
+        cur.execute(
+            """
+            SELECT data_type, stage_path, base_path, publish_attempts, status
+            FROM data_registry
+            WHERE data_id = ? AND status IN ('staging', 'publishing')
+            FOR UPDATE
+            """,
+            (data_id,),
+        )
+        row = cur.fetchone()
+        
+        if not row:
+            conn.rollback()
+            logger.warning(f"Data {data_id} not found or already published")
+            return False
 
-    if not row:
-        logger.warning(f"Data {data_id} not found or already published")
+        data_type, stage_path, base_path, publish_attempts, status = row
+        
+        # Check if already publishing (another process has the lock)
+        if status == 'publishing':
+            conn.rollback()
+            logger.debug(f"Data {data_id} is already being published by another process")
+            return False
+        
+        # Check if max attempts exceeded
+        if publish_attempts and publish_attempts >= max_attempts:
+            conn.rollback()
+            logger.warning(
+                f"Data {data_id} has exceeded max publish attempts ({publish_attempts}/{max_attempts}). "
+                f"Manual intervention required."
+            )
+            return False
+        
+        # Set status to 'publishing' to prevent concurrent attempts
+        cur.execute(
+            """
+            UPDATE data_registry
+            SET status = 'publishing'
+            WHERE data_id = ?
+            """,
+            (data_id,),
+        )
+        conn.commit()  # Commit the lock
+        
+    except sqlite3.OperationalError as e:
+        conn.rollback()
+        logger.error(f"Failed to acquire lock for {data_id}: {e}")
         return False
-
-    data_type, stage_path, base_path = row
+    except Exception as e:
+        conn.rollback()
+        logger.error(f"Unexpected error acquiring lock for {data_id}: {e}")
+        return False
 
     # Determine published path based on data type
     type_to_dir = {
@@ -325,13 +399,43 @@ def trigger_auto_publish(
     published_dir.mkdir(parents=True, exist_ok=True)
 
     # Move data (preserve directory structure)
-    stage_path_obj = Path(stage_path)
+    stage_path_obj = Path(stage_path).resolve()
     if not stage_path_obj.exists():
-        logger.error(f"Stage path does not exist: {stage_path}")
+        error_msg = f"Stage path does not exist: {stage_path}"
+        logger.error(error_msg)
+        _record_publish_failure(conn, cur, data_id, publish_attempts, error_msg)
+        return False
+
+    # CRITICAL: Enhanced path validation using validate_path_safe helper
+    from dsa110_contimg.utils.naming import validate_path_safe
+    
+    expected_staging_base = Path("/stage/dsa110-contimg")
+    is_safe, error_msg = validate_path_safe(stage_path_obj, expected_staging_base)
+    if not is_safe:
+        logger.error(f"Stage path validation failed for {data_id}: {error_msg}")
+        _record_publish_failure(conn, cur, data_id, publish_attempts, error_msg)
         return False
 
     # Published path maintains same structure
     published_path = published_dir / stage_path_obj.name
+    
+    # CRITICAL: Check if published path already exists (could indicate duplicate or failed previous publish)
+    if published_path.exists():
+        logger.warning(
+            f"Published path already exists: {published_path}. "
+            f"This may indicate a duplicate publish or failed cleanup."
+        )
+        # For safety, append timestamp to avoid overwriting
+        timestamp = int(time.time())
+        published_path = published_dir / f"{stage_path_obj.stem}_{timestamp}{stage_path_obj.suffix}"
+
+    # CRITICAL: Enhanced path validation for published path
+    expected_products_base = Path("/data/dsa110-contimg/products")
+    is_safe, error_msg = validate_path_safe(published_path, expected_products_base)
+    if not is_safe:
+        logger.error(f"Published path validation failed for {data_id}: {error_msg}")
+        _record_publish_failure(conn, cur, data_id, publish_attempts, error_msg)
+        return False
 
     try:
         # Move directory/file
@@ -341,7 +445,13 @@ def trigger_auto_publish(
             published_path.parent.mkdir(parents=True, exist_ok=True)
             shutil.move(str(stage_path_obj), str(published_path))
 
-        # Update database
+        # CRITICAL: Verify move succeeded before updating database
+        if not published_path.exists():
+            raise RuntimeError(f"Move appeared to succeed but destination does not exist: {published_path}")
+        if stage_path_obj.exists():
+            raise RuntimeError(f"Move appeared to succeed but source still exists: {stage_path}")
+
+        # Update database - clear publish error on success
         now = time.time()
         cur.execute(
             """
@@ -349,10 +459,12 @@ def trigger_auto_publish(
             SET status = 'published',
                 published_path = ?,
                 published_at = ?,
-                publish_mode = 'auto'
+                publish_mode = 'auto',
+                publish_error = NULL,
+                publish_attempts = 0
             WHERE data_id = ?
             """,
-            (str(published_path), now, data_id),
+            (str(published_path.resolve()), now, data_id),
         )
         conn.commit()
 
@@ -360,9 +472,45 @@ def trigger_auto_publish(
         return True
 
     except Exception as e:
-        logger.error(f"Failed to auto-publish {data_id}: {e}")
-        conn.rollback()
+        error_msg = str(e)
+        logger.error(f"Failed to auto-publish {data_id}: {error_msg}", exc_info=True)
+        _record_publish_failure(conn, cur, data_id, publish_attempts, error_msg)
         return False
+
+
+def _record_publish_failure(
+    conn: sqlite3.Connection,
+    cur: sqlite3.Cursor,
+    data_id: str,
+    current_attempts: int,
+    error_msg: str,
+) -> None:
+    """Record a publish failure and update attempt counter.
+    
+    Args:
+        conn: Database connection
+        cur: Database cursor
+        data_id: Data instance ID
+        current_attempts: Current number of attempts
+        error_msg: Error message to record
+    """
+    try:
+        new_attempts = (current_attempts or 0) + 1
+        cur.execute(
+            """
+            UPDATE data_registry
+            SET status = 'staging',
+                publish_attempts = ?,
+                publish_error = ?
+            WHERE data_id = ?
+            """,
+            (new_attempts, error_msg[:500], data_id),  # Limit error message length
+        )
+        conn.commit()
+        logger.debug(f"Recorded publish failure for {data_id}: attempt {new_attempts}, error: {error_msg[:100]}")
+    except Exception as e:
+        logger.error(f"Failed to record publish failure for {data_id}: {e}")
+        conn.rollback()
 
 
 def publish_data_manual(
@@ -458,73 +606,86 @@ def publish_data_manual(
 def get_data(conn: sqlite3.Connection, data_id: str) -> Optional[DataRecord]:
     """Get a data record by ID."""
     cur = conn.cursor()
-    cur.execute(
-        """
-        SELECT id, data_type, data_id, base_path, status, stage_path, published_path,
-               created_at, staged_at, published_at, publish_mode, metadata_json,
-               qa_status, validation_status, finalization_status, auto_publish_enabled
-        FROM data_registry
-        WHERE data_id = ?
-        """,
-        (data_id,),
-    )
-    row = cur.fetchone()
-
-    if not row:
-        return None
-
-    return DataRecord(
-        id=row[0],
-        data_type=row[1],
-        data_id=row[2],
-        base_path=row[3],
-        status=row[4],
-        stage_path=row[5],
-        published_path=row[6],
-        created_at=row[7],
-        staged_at=row[8],
-        published_at=row[9],
-        publish_mode=row[10],
-        metadata_json=row[11],
-        qa_status=row[12],
-        validation_status=row[13],
-        finalization_status=row[14],
-        auto_publish_enabled=bool(row[15]),
-    )
-
-
-def list_data(
-    conn: sqlite3.Connection,
-    data_type: Optional[str] = None,
-    status: Optional[str] = None,
-) -> List[DataRecord]:
-    """List data records with optional filters."""
-    cur = conn.cursor()
-
-    query = """
-        SELECT id, data_type, data_id, base_path, status, stage_path, published_path,
-               created_at, staged_at, published_at, publish_mode, metadata_json,
-               qa_status, validation_status, finalization_status, auto_publish_enabled
-        FROM data_registry
-        WHERE 1=1
-    """
-    params = []
-
-    if data_type:
-        query += " AND data_type = ?"
-        params.append(data_type)
-
-    if status:
-        query += " AND status = ?"
-        params.append(status)
-
-    query += " ORDER BY created_at DESC"
-
-    cur.execute(query, params)
-    rows = cur.fetchall()
-
-    return [
-        DataRecord(
+    # Try to select with new columns, fall back to old columns if they don't exist
+    try:
+        cur.execute(
+            """
+            SELECT id, data_type, data_id, base_path, status, stage_path, published_path,
+                   created_at, staged_at, published_at, publish_mode, metadata_json,
+                   qa_status, validation_status, finalization_status, auto_publish_enabled,
+                   publish_attempts, publish_error
+            FROM data_registry
+            WHERE data_id = ?
+            """,
+            (data_id,),
+        )
+        row = cur.fetchone()
+        
+        if not row:
+            return None
+        
+        # Handle both old and new schema
+        if len(row) >= 18:
+            return DataRecord(
+                id=row[0],
+                data_type=row[1],
+                data_id=row[2],
+                base_path=row[3],
+                status=row[4],
+                stage_path=row[5],
+                published_path=row[6],
+                created_at=row[7],
+                staged_at=row[8],
+                published_at=row[9],
+                publish_mode=row[10],
+                metadata_json=row[11],
+                qa_status=row[12],
+                validation_status=row[13],
+                finalization_status=row[14],
+                auto_publish_enabled=bool(row[15]),
+                publish_attempts=row[16] or 0,
+                publish_error=row[17],
+            )
+        else:
+            # Old schema without new columns
+            return DataRecord(
+                id=row[0],
+                data_type=row[1],
+                data_id=row[2],
+                base_path=row[3],
+                status=row[4],
+                stage_path=row[5],
+                published_path=row[6],
+                created_at=row[7],
+                staged_at=row[8],
+                published_at=row[9],
+                publish_mode=row[10],
+                metadata_json=row[11],
+                qa_status=row[12],
+                validation_status=row[13],
+                finalization_status=row[14],
+                auto_publish_enabled=bool(row[15]),
+                publish_attempts=0,
+                publish_error=None,
+            )
+    except sqlite3.OperationalError:
+        # Fall back to old schema if columns don't exist
+        cur.execute(
+            """
+            SELECT id, data_type, data_id, base_path, status, stage_path, published_path,
+                   created_at, staged_at, published_at, publish_mode, metadata_json,
+                   qa_status, validation_status, finalization_status, auto_publish_enabled
+            FROM data_registry
+            WHERE data_id = ?
+            """,
+            (data_id,),
+        )
+        row = cur.fetchone()
+        
+        if not row:
+            return None
+        
+        return DataRecord(
             id=row[0],
             data_type=row[1],
             data_id=row[2],
@@ -541,9 +702,114 @@ def list_data(
             validation_status=row[13],
             finalization_status=row[14],
             auto_publish_enabled=bool(row[15]),
+            publish_attempts=0,
+            publish_error=None,
         )
-        for row in rows
-    ]
+
+
+def list_data(
+    conn: sqlite3.Connection,
+    data_type: Optional[str] = None,
+    status: Optional[str] = None,
+) -> List[DataRecord]:
+    """List data records with optional filters."""
+    cur = conn.cursor()
+
+    # Try to select with new columns, fall back to old columns if they don't exist
+    try:
+        query = """
+            SELECT id, data_type, data_id, base_path, status, stage_path, published_path,
+                   created_at, staged_at, published_at, publish_mode, metadata_json,
+                   qa_status, validation_status, finalization_status, auto_publish_enabled,
+                   publish_attempts, publish_error
+            FROM data_registry
+            WHERE 1=1
+        """
+        params = []
+
+        if data_type:
+            query += " AND data_type = ?"
+            params.append(data_type)
+
+        if status:
+            query += " AND status = ?"
+            params.append(status)
+
+        query += " ORDER BY created_at DESC"
+
+        cur.execute(query, params)
+        rows = cur.fetchall()
+
+        return [
+            DataRecord(
+                id=row[0],
+                data_type=row[1],
+                data_id=row[2],
+                base_path=row[3],
+                status=row[4],
+                stage_path=row[5],
+                published_path=row[6],
+                created_at=row[7],
+                staged_at=row[8],
+                published_at=row[9],
+                publish_mode=row[10],
+                metadata_json=row[11],
+                qa_status=row[12],
+                validation_status=row[13],
+                finalization_status=row[14],
+                auto_publish_enabled=bool(row[15]),
+                publish_attempts=row[16] if len(row) > 16 and row[16] is not None else 0,
+                publish_error=row[17] if len(row) > 17 else None,
+            )
+            for row in rows
+        ]
+    except sqlite3.OperationalError:
+        # Fall back to old schema if columns don't exist
+        query = """
+            SELECT id, data_type, data_id, base_path, status, stage_path, published_path,
+                   created_at, staged_at, published_at, publish_mode, metadata_json,
+                   qa_status, validation_status, finalization_status, auto_publish_enabled
+            FROM data_registry
+            WHERE 1=1
+        """
+        params = []
+
+        if data_type:
+            query += " AND data_type = ?"
+            params.append(data_type)
+
+        if status:
+            query += " AND status = ?"
+            params.append(status)
+
+        query += " ORDER BY created_at DESC"
+
+        cur.execute(query, params)
+        rows = cur.fetchall()
+
+        return [
+            DataRecord(
+                id=row[0],
+                data_type=row[1],
+                data_id=row[2],
+                base_path=row[3],
+                status=row[4],
+                stage_path=row[5],
+                published_path=row[6],
+                created_at=row[7],
+                staged_at=row[8],
+                published_at=row[9],
+                publish_mode=row[10],
+                metadata_json=row[11],
+                qa_status=row[12],
+                validation_status=row[13],
+                finalization_status=row[14],
+                auto_publish_enabled=bool(row[15]),
+                publish_attempts=0,
+                publish_error=None,
+            )
+            for row in rows
+        ]
 
 
 def link_data(

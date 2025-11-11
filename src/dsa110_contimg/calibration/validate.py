@@ -12,16 +12,13 @@ import os
 from pathlib import Path
 from typing import List, Optional, Union
 
-<<<<<<< HEAD
 # Ensure CASAPATH is set before importing CASA modules
 from dsa110_contimg.utils.casa_init import ensure_casa_path
 ensure_casa_path()
 
-from casacore.tables import table  # type: ignore[import]
-=======
->>>>>>> e44dfe7076f185340d319a23579f5ecfa79da9d6
 import numpy as np  # type: ignore[import]
-from casacore.tables import table  # type: ignore[import]
+import casacore.tables as casatables  # type: ignore[import]
+table = casatables.table  # noqa: N816
 
 logger = logging.getLogger(__name__)
 

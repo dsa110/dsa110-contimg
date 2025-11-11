@@ -138,6 +138,8 @@ def create_app(config: ApiConfig | None = None) -> FastAPI:
 
     cfg = config or ApiConfig.from_env()
     app = FastAPI(title="DSA-110 Continuum Pipeline API", version="0.1.0")
+    # Expose config to subrouters via app.state
+    app.state.cfg = cfg
 
     # Background task to broadcast status updates
     @app.on_event("startup")
@@ -398,137 +400,9 @@ def create_app(config: ApiConfig | None = None) -> FastAPI:
         pass
 
     router = APIRouter(prefix="/api")
-
-    # Test endpoints (dev only)
-    import os
-
-    if os.getenv("ENVIRONMENT") != "production":
-
-        @router.post("/test/streaming/broadcast")
-        async def test_streaming_broadcast(message: Optional[dict] = None):
-            """Test endpoint to trigger WebSocket broadcast (dev only).
-
-            Used for testing real-time status updates (STREAM-020).
-            """
-            import time
-
-            from dsa110_contimg.api.websocket_manager import manager
-
-            test_message = message or {
-                "type": "streaming_status_update",
-                "status": "running",
-                "timestamp": time.time(),
-                "test": True,
-            }
-            await manager.broadcast(test_message)
-            return {"success": True, "message": "Broadcast sent", "data": test_message}
-
-    @router.get("/health")
-    def health():
-        """Health check endpoint for monitoring and load balancers."""
-        import os
-
-        from dsa110_contimg.api.data_access import _connect
-
-        health_status = {
-            "status": "healthy",
-            "timestamp": datetime.now().isoformat(),
-            "databases": {},
-            "version": "0.1.0",
-        }
-
-        # Check database accessibility
-        databases = {
-            "queue": cfg.queue_db,
-            "products": cfg.products_db,
-            "registry": cfg.registry_db,
-        }
-
-        all_healthy = True
-        for db_name, db_path in databases.items():
-            try:
-                if db_path.exists():
-                    # Try to connect and execute a simple query
-                    with _connect(db_path) as conn:
-                        conn.execute("SELECT 1").fetchone()
-                    health_status["databases"][db_name] = "accessible"
-                else:
-                    health_status["databases"][db_name] = "not_found"
-                    all_healthy = False
-            except Exception as e:
-                health_status["databases"][db_name] = f"error: {str(e)}"
-                all_healthy = False
-
-        # Check disk space (basic check)
-        try:
-            import shutil
-
-            disk_usage = shutil.disk_usage(
-                cfg.queue_db.parent if cfg.queue_db.parent.exists() else Path(".")
-            )
-            health_status["disk"] = {
-                "free_gb": round(disk_usage.free / (1024**3), 2),
-                "total_gb": round(disk_usage.total / (1024**3), 2),
-            }
-        except Exception:
-            pass
-
-        if not all_healthy:
-            health_status["status"] = "degraded"
-            return health_status, 503
-
-        return health_status
-
-    @router.websocket("/ws/status")
-    async def websocket_status(websocket: WebSocket):
-        """WebSocket endpoint for real-time status updates."""
-        from dsa110_contimg.api.websocket_manager import manager
-
-        await manager.connect(websocket)
-        try:
-            while True:
-                # Wait for client messages (ping/pong)
-                data = await websocket.receive_text()
-                if data == "ping":
-                    await websocket.send_text("pong")
-        except WebSocketDisconnect:
-            await manager.disconnect(websocket)
-        except Exception as e:
-            logger.error(f"WebSocket error: {e}")
-            await manager.disconnect(websocket)
-
-    @router.get("/sse/status")
-    async def sse_status():
-        """Server-Sent Events endpoint for real-time status updates."""
-        from dsa110_contimg.api.websocket_manager import event_generator
-
-        return StreamingResponse(
-            event_generator(),
-            media_type="text/event-stream",
-            headers={
-                "Cache-Control": "no-cache",
-                "Connection": "keep-alive",
-                "X-Accel-Buffering": "no",
-            },
-        )
-
-    @router.get("/status", response_model=PipelineStatus)
-    def status(
-        limit: int = 20,
-    ) -> PipelineStatus:  # noqa: WPS430 (fastapi handles context)
-        queue_stats = fetch_queue_stats(cfg.queue_db)
-        recent_groups = fetch_recent_queue_groups(
-            cfg.queue_db, cfg, limit=limit)
-        cal_sets = fetch_calibration_sets(cfg.registry_db)
-        matched_recent = sum(
-            1 for g in recent_groups if getattr(g, "has_calibrator", False)
-        )
-        return PipelineStatus(
-            queue=queue_stats,
-            recent_groups=recent_groups,
-            calibration_sets=cal_sets,
-            matched_recent=matched_recent,
-        )
+    # Move status/health/SSE/WS/test-broadcast endpoints to dedicated subrouter
+    from dsa110_contimg.api.routers.status import router as status_router
+    app.include_router(status_router, prefix="/api")
 
     @router.get("/products", response_model=ProductList)
     def products(limit: int = 50) -> ProductList:
@@ -2522,13 +2396,23 @@ def create_app(config: ApiConfig | None = None) -> FastAPI:
                     # Create cutout
                     cutout_path = temp_dir / \
                         f"{source_id}_{Path(image_path).stem}_cutout.fits"
-                    create_cutout(
-                        image_path=image_path,
+                    
+                    # Convert image_path to Path and size_arcsec to size_arcmin
+                    fits_path = Path(image_path)
+                    size_arcmin = size_arcsec / 60.0
+                    
+                    # Create cutout (returns data, wcs, metadata)
+                    cutout_data, cutout_wcs, metadata = create_cutout(
+                        fits_path=fits_path,
                         ra_deg=source.ra_deg,
                         dec_deg=source.dec_deg,
-                        size_arcsec=size_arcsec,
-                        output_path=str(cutout_path)
+                        size_arcmin=size_arcmin
                     )
+                    
+                    # Save cutout to FITS file
+                    from astropy.io import fits
+                    hdu = fits.PrimaryHDU(data=cutout_data, header=cutout_wcs.to_header())
+                    hdu.writeto(cutout_path, overwrite=True)
 
                     stamps.append(PostageStampInfo(
                         image_path=image_path,
@@ -4630,6 +4514,30 @@ def create_app(config: ApiConfig | None = None) -> FastAPI:
         except ValueError:
             # Not an integer, treat as path
             image_path = resolve_image_path(image_id)
+
+        # Check cache first
+        try:
+            import sqlite3
+            import json
+            import time
+            import hashlib
+            
+            cache_key = hashlib.md5(f"{image_path}:{catalog}:{validation_type}".encode()).hexdigest()
+            
+            with sqlite3.connect(cfg.products_db) as conn:
+                conn.row_factory = sqlite3.Row
+                cached = conn.execute("""
+                    SELECT results_json, expires_at 
+                    FROM validation_cache 
+                    WHERE cache_key = ? AND expires_at > ?
+                """, (cache_key, time.time())).fetchone()
+                
+                if cached:
+                    logger.debug(f"Returning cached validation results for {image_path}")
+                    return json.loads(cached['results_json'])
+        except Exception as e:
+            logger.debug(f"Could not check validation cache: {e}")
+            # Continue to run validation
 
         results = {}
 

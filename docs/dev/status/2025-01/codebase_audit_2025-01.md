@@ -346,6 +346,7 @@ This audit covers:
    - Clear separation of concerns
    - Well-defined module boundaries
    - Consistent patterns across modules
+   - Good use of lazy imports to avoid circular dependencies
 
 2. **Comprehensive Documentation:**
    - 397 markdown files
@@ -366,18 +367,55 @@ This audit covers:
    - Consistent CLI patterns
    - Clear entry points
    - Good help text
+   - 35 files with `__main__` blocks
 
 6. **Cursor Rules:**
    - Comprehensive rule set
    - Well-organized
    - Clear guidelines
 
-### 4.2 Areas for Improvement
+7. **Exception Hierarchy:**
+   - Well-structured exception classes (`DSA110Error` base)
+   - Consistent error handling patterns
+   - Good error context and suggestions
+
+8. **Security Practices:**
+   - Path traversal protection in API routes
+   - Safe use of `ast.literal_eval()` instead of `eval()`
+   - Input validation in critical paths
+
+9. **Package Exports:**
+   - Good use of `__all__` in 27 modules
+   - Clear public API boundaries
+
+### 4.2 Critical Issues Found
+
+1. **CRITICAL BUG: Duplicate Code in `streaming_converter.py`:**
+   - **Location:** `conversion/streaming/streaming_converter.py` lines 44-57
+   - **Issue:** Duplicate/malformed `GraphitiRunLogger` class definition
+   - **Impact:** Code duplication, potential runtime issues
+   - **Status:** ⚠️ **NEEDS IMMEDIATE FIX**
+   - **Details:** Lines 33-38 define the class correctly, but lines 44-57 have a duplicate definition that appears malformed (not properly indented)
+
+2. **Empty Directory:**
+   - **Location:** `science/` directory
+   - **Issue:** Directory exists but contains no files (not even `__init__.py`)
+   - **Impact:** Confusing structure, unclear purpose
+   - **Recommendation:** Either add content or remove directory
+
+3. **Debug Print Statements:**
+   - **Location:** `mosaic/cli.py` lines 1004-1024
+   - **Issue:** Debug print statements instead of logger.debug calls
+   - **Impact:** Inconsistent logging, harder to control log levels
+   - **Count:** ~20 print statements in debug sections
+
+### 4.3 Areas for Improvement
 
 1. **Code Quality:**
    - Logging: ~7% complete (579 print() statements remaining)
    - Error handling: ~4% complete (258 generic exceptions remaining)
    - Type safety: ~5% complete (101 `# type: ignore` comments)
+   - **Note:** Most `# type: ignore` comments are for CASA libraries without stubs (acceptable)
 
 2. **Documentation:**
    - Some root-level markdown files could be moved to `docs/`
@@ -389,6 +427,17 @@ This audit covers:
 4. **Test Coverage:**
    - Some modules may need more unit tests
    - Integration tests may need expansion
+
+5. **Deprecated Code:**
+   - Several deprecated functions exist (documented):
+     - `calibration/model.py`: `write_component_model_with_ft()`, `write_image_model_with_ft()`, `write_setjy_model()`
+     - `api/models.py`: `disk_total`, `disk_used` fields (kept for backward compatibility)
+   - **Status:** Properly documented, but should be removed in future major version
+
+6. **TODO Comments:**
+   - 340 TODO/FIXME/XXX comments found across codebase
+   - Most are informational/debugging notes
+   - One actionable TODO: `api/routes.py` line 4775 - "Store results in database for future retrieval"
 
 ### 4.3 Critical Requirements
 
@@ -409,7 +458,24 @@ This audit covers:
 
 ## 5. Recommendations
 
-### 5.1 Immediate Actions
+### 5.1 CRITICAL - Immediate Actions Required
+
+1. **Fix Duplicate Code Bug:**
+   - **File:** `conversion/streaming/streaming_converter.py`
+   - **Action:** Remove duplicate `GraphitiRunLogger` class definition (lines 44-57)
+   - **Priority:** CRITICAL - May cause runtime issues
+   - **Verification:** Ensure only one definition exists (lines 33-38)
+
+2. **Clean Up Empty Directory:**
+   - **Action:** Either add `__init__.py` and content to `science/` directory, or remove it
+   - **Priority:** MEDIUM - Structural clarity
+
+3. **Convert Debug Print Statements:**
+   - **File:** `mosaic/cli.py` lines 1004-1024
+   - **Action:** Replace print statements with logger.debug calls
+   - **Priority:** MEDIUM - Logging consistency
+
+### 5.2 High Priority Actions
 
 1. **Complete Code Quality Improvements:**
    - Finish logging conversion (579 print() statements)
@@ -423,6 +489,9 @@ This audit covers:
 3. **Test Expansion:**
    - Add more unit tests for core modules
    - Expand integration test coverage
+
+4. **Address Actionable TODOs:**
+   - `api/routes.py` line 4775: Implement database storage for validation results
 
 ### 5.2 Long-Term Improvements
 
@@ -452,18 +521,27 @@ The DSA-110 Continuum Imaging Pipeline codebase is **well-organized and producti
 - Type-safe configuration
 - Well-structured tests
 - Consistent CLI patterns
+- Good exception hierarchy
+- Security-conscious code (path traversal protection, safe eval usage)
+- Proper package exports (`__all__` usage)
+
+**Critical Issues Found:**
+- ⚠️ **CRITICAL:** Duplicate code bug in `streaming_converter.py` (needs immediate fix)
+- Empty `science/` directory (structural clarity issue)
+- Debug print statements in `mosaic/cli.py` (logging consistency)
 
 **Areas for Improvement:**
 - Complete code quality improvements
 - Expand test coverage
 - Standardize environment variables
 - Enhance documentation
+- Address actionable TODOs
 
-**Overall Assessment:** ✓ **Excellent** - The codebase demonstrates high-quality engineering practices and is well-maintained.
+**Overall Assessment:** ✓ **Excellent** - The codebase demonstrates high-quality engineering practices and is well-maintained. One critical bug needs immediate attention, but overall structure and quality are excellent.
 
 ---
 
-## Appendix: File Counts
+## Appendix: File Counts and Statistics
 
 - **Python Files:** ~169 modules
 - **Markdown Files:** 397 files
@@ -471,8 +549,40 @@ The DSA-110 Continuum Imaging Pipeline codebase is **well-organized and producti
 - **CLI Entry Points:** 35 files with `__main__` blocks
 - **Cursor Rules:** 11 rule files
 - **Configuration Files:** Multiple (pytest.ini, Makefile, mkdocs.yml, etc.)
+- **Modules with `__all__`:** 27 modules
+- **TODO/FIXME Comments:** 340 instances
+- **Deprecated Functions:** 4 documented functions
+- **Type Ignore Comments:** 101 instances (mostly CASA-related, acceptable)
+
+## Appendix: Code Quality Metrics
+
+### Import Patterns
+- **Lazy Imports:** Well-used to avoid circular dependencies
+  - `pipeline/__init__.py`: Lazy import for `stages_impl`
+  - `conversion/__init__.py`: Lazy import for `hdf5_orchestrator`
+  - `qa/visualization/filelist.py`: Lazy imports for file type classes
+
+### Exception Handling
+- **Exception Hierarchy:** Well-structured
+  - Base: `DSA110Error` in `utils/exceptions.py`
+  - Specialized: `ValidationError`, `ConversionError`, `ImagingError`, `MosaicError`
+  - Good error context and suggestions
+
+### Security Practices
+- **Path Traversal Protection:** ✅ Implemented in `api/routes.py` `/qa/file/{group}/{name}` endpoint
+- **Safe Eval Usage:** ✅ Uses `ast.literal_eval()` instead of `eval()` (safe)
+- **Input Validation:** ✅ Good validation in critical paths
+
+### Code Patterns
+- **Circular Dependency Handling:** ✅ Lazy imports used appropriately
+- **Optional Dependencies:** ✅ Graceful fallbacks (e.g., `GraphitiRunLogger`, `watchdog`)
+- **CASA Integration:** ✅ Proper initialization checks (`ensure_casa_path()`)
 
 ---
 
 **End of Audit Report**
+
+**Audit Date:** 2025-01-XX  
+**Auditor:** AI Agent (Composer)  
+**Audit Type:** Comprehensive (Second Pass - Enhanced)
 

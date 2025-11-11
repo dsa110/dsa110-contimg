@@ -15,7 +15,8 @@ import numpy as np
 from dsa110_contimg.utils.casa_init import ensure_casa_path
 ensure_casa_path()
 
-from casacore.tables import table  # type: ignore[import]
+import casacore.tables as casatables  # type: ignore[import]
+table = casatables.table  # noqa: N816
 from casatasks import mstransform  # type: ignore[import]
 
 from dsa110_contimg.utils.runtime_safeguards import require_casa6_python

@@ -73,14 +73,8 @@ def _determine_spwmap_for_bptables(
     for bptable in bptables:
         n_bp_spw = _get_caltable_spw_count(bptable)
         logger.debug(
-<< << << < HEAD
-            f"Checking table {os.path.basename(bptable)}: {n_bp_spw} SPW(s), MS has {n_ms_spw} SPWs")
-
-
-== == == =
             f"Checking table {os.path.basename(bptable)}: {n_bp_spw} SPW(s), MS has {n_ms_spw} SPWs"
         )
->>>>>>> e44dfe7076f185340d319a23579f5ecfa79da9d6
         if n_bp_spw == 1:
             # This bandpass table was created with combine_spw=True
             # Map all MS SPWs to SPW 0 in the bandpass table

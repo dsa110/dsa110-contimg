@@ -9,7 +9,8 @@ from astropy.time import Time
 from dsa110_contimg.utils.casa_init import ensure_casa_path
 ensure_casa_path()
 
-from casacore.tables import table
+# Use the shared patchable table symbol from conversion.helpers to make unit tests simpler
+import dsa110_contimg.conversion.helpers as _helpers
 
 try:
     from astropy.coordinates import angular_separation  # type: ignore
@@ -47,7 +48,7 @@ def validate_ms_frequency_order(ms_path: str) -> None:
         RuntimeError: If frequency order is incorrect
     """
     try:
-        with table(f"{ms_path}::SPECTRAL_WINDOW", readonly=True) as spw:
+        with _helpers.table(f"{ms_path}::SPECTRAL_WINDOW", readonly=True) as spw:
             chan_freq = spw.getcol("CHAN_FREQ")  # Shape: (nspw, nchan)
 
             # Check each SPW has ascending frequency order
@@ -55,7 +56,7 @@ def validate_ms_frequency_order(ms_path: str) -> None:
                 freqs = chan_freq[ispw, :]
                 if freqs.size > 1 and not np.all(freqs[1:] >= freqs[:-1]):
                     raise RuntimeError(
-                        f"SPW {ispw} has incorrect frequency order in {ms_path}. "
+                        f"frequencies are in DESCENDING order in {ms_path} (SPW {ispw}). "
                         f"Frequencies: {freqs[:3]}...{freqs[-3:]} Hz. "
                         f"This will cause MFS imaging artifacts and calibration failures."
                     )
@@ -75,7 +76,10 @@ def validate_ms_frequency_order(ms_path: str) -> None:
                 f"range {chan_freq.min()/1e6:.1f}-{chan_freq.max()/1e6:.1f} MHz"
             )
     except Exception as e:
-        if "incorrect frequency order" in str(e):
+        if (
+            "incorrect frequency order" in str(e)
+            or "frequencies are in DESCENDING order" in str(e)
+        ):
             raise  # Re-raise our validation errors
         else:
             logger.warning(f"Frequency order validation failed (non-fatal): {e}")
@@ -102,7 +106,7 @@ def validate_phase_center_coherence(
         RuntimeError: If phase centers are incoherent beyond tolerance
     """
     try:
-        with table(f"{ms_path}::FIELD", readonly=True) as field_table:
+        with _helpers.table(f"{ms_path}::FIELD", readonly=True) as field_table:
             if field_table.nrows() == 0:
                 logger.warning(f"No fields found in MS: {ms_path}")
                 return
@@ -114,7 +118,7 @@ def validate_phase_center_coherence(
                 # Time-dependent phasing: phase centers should track LST (RA changes with time)
                 # Get observation time range from main table
                 try:
-                    with table(ms_path, readonly=True, ack=False) as main_table:
+                    with _helpers.table(ms_path, readonly=True, ack=False) as main_table:
                         if main_table.nrows() > 0:
                             times = main_table.getcol("TIME")
                             if times.size > 0:
@@ -187,12 +191,26 @@ def validate_phase_center_coherence(
                 max_separation_arcsec = np.rad2deg(max_separation_rad) * 3600
 
                 if max_separation_arcsec > tolerance_arcsec:
-                    raise RuntimeError(
-                        f"Phase centers are incoherent in {ms_path}. "
-                        f"Maximum separation: {max_separation_arcsec:.2f} arcsec "
-                        f"(tolerance: {tolerance_arcsec:.2f} arcsec). "
-                        f"This will cause imaging artifacts."
-                    )
+                    # Check if this might be time-dependent phasing that wasn't detected
+                    # If separation is large (> 60 arcsec), it's likely time-dependent phasing
+                    if max_separation_arcsec > 60.0:
+                        raise RuntimeError(
+                            f"Phase centers are incoherent in {ms_path}. "
+                            f"Maximum separation: {max_separation_arcsec:.2f} arcsec "
+                            f"(tolerance: {tolerance_arcsec:.2f} arcsec). "
+                            f"NOTE: Large separations (>60 arcsec) are EXPECTED for time-dependent phasing "
+                            f"(meridian-tracking, RA=LST). If this is meridian-tracking phasing, this is correct. "
+                            f"See conversion/README.md for details."
+                        )
+                    else:
+                        raise RuntimeError(
+                            f"Phase centers are incoherent in {ms_path}. "
+                            f"Maximum separation: {max_separation_arcsec:.2f} arcsec "
+                            f"(tolerance: {tolerance_arcsec:.2f} arcsec). "
+                            f"This may cause imaging artifacts. "
+                            f"If separation is large (>60 arcsec), this may be expected time-dependent phasing. "
+                            f"See conversion/README.md for details."
+                        )
 
                 logger.info(
                     f"✓ Phase center coherence validated: {phase_dirs.shape[0]} field(s), "
@@ -224,19 +242,19 @@ def validate_uvw_precision(ms_path: str, tolerance_lambda: float = 0.1) -> None:
     """
     try:
         # Get observation parameters
-        with table(f"{ms_path}::OBSERVATION", readonly=True) as obs_table:
+        with _helpers.table(f"{ms_path}::OBSERVATION", readonly=True) as obs_table:
             if obs_table.nrows() == 0:
                 logger.warning(f"No observation info in MS: {ms_path}")
                 return
 
         # Get reference frequency for wavelength calculation
-        with table(f"{ms_path}::SPECTRAL_WINDOW", readonly=True) as spw_table:
+        with _helpers.table(f"{ms_path}::SPECTRAL_WINDOW", readonly=True) as spw_table:
             ref_freqs = spw_table.getcol("REF_FREQUENCY")
             ref_freq_hz = float(np.median(ref_freqs))
             wavelength_m = 2.998e8 / ref_freq_hz  # c / freq
 
         # Sample UVW coordinates from main table
-        with table(ms_path, readonly=True) as tb:
+        with _helpers.table(ms_path, readonly=True) as tb:
             if tb.nrows() == 0:
                 raise RuntimeError(f"MS has no data rows: {ms_path}")
 
@@ -332,7 +350,7 @@ def validate_antenna_positions(
     """
     try:
         # Get antenna positions from MS
-        with table(f"{ms_path}::ANTENNA", readonly=True) as ant_table:
+        with _helpers.table(f"{ms_path}::ANTENNA", readonly=True) as ant_table:
             ms_positions = ant_table.getcol("POSITION")  # Shape: (nant, 3) ITRF meters
             ant_names = ant_table.getcol("NAME")
             n_antennas = len(ant_names)
@@ -460,7 +478,7 @@ def validate_model_data_quality(
         RuntimeError: If MODEL_DATA has quality issues
     """
     try:
-        with table(ms_path, readonly=True) as tb:
+        with _helpers.table(ms_path, readonly=True) as tb:
             if "MODEL_DATA" not in tb.colnames():
                 raise RuntimeError(
                     f"MODEL_DATA column does not exist in {ms_path}. "
@@ -596,7 +614,7 @@ def validate_reference_antenna_stability(ms_path: str, refant_list: list = None)
     logger = logging.getLogger(__name__)
 
     try:
-        with table(ms_path, readonly=True) as tb:
+        with _helpers.table(ms_path, readonly=True) as tb:
             # Get antenna information
             ant1 = tb.getcol("ANTENNA1")
             ant2 = tb.getcol("ANTENNA2")
@@ -605,7 +623,7 @@ def validate_reference_antenna_stability(ms_path: str, refant_list: list = None)
 
             # Get antenna table for names
             ms_ant_path = os.path.join(ms_path, "ANTENNA")
-            with table(ms_ant_path, readonly=True) as ant_tb:
+            with _helpers.table(ms_ant_path, readonly=True) as ant_tb:
                 ant_names = ant_tb.getcol("NAME")
 
             unique_ants = np.unique(np.concatenate([ant1, ant2]))
@@ -682,7 +700,7 @@ def validate_reference_antenna_stability(ms_path: str, refant_list: list = None)
         logger.warning(f"Reference antenna validation failed (non-fatal): {e}")
         # Fallback: return first antenna
         try:
-            with table(f"{ms_path}::ANTENNA", readonly=True) as ant_tb:
+            with _helpers.table(f"{ms_path}::ANTENNA", readonly=True) as ant_tb:
                 ant_names = ant_tb.getcol("NAME")
                 if len(ant_names) > 0:
                     return ant_names[0]

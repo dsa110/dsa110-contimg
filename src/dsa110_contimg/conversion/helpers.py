@@ -11,6 +11,13 @@ All functions have been split into logical modules for better organization:
 
 import logging
 
+# Provide a patchable casacore table symbol for tests and submodules
+from dsa110_contimg.utils.casa_init import ensure_casa_path
+ensure_casa_path()
+import casacore.tables as casatables  # type: ignore
+# Expose as module attribute so tests can patch dsa110_contimg.conversion.helpers.table
+table = casatables.table  # noqa: N816
+
 logger = logging.getLogger("dsa110_contimg.conversion.helpers")
 
 # Import all functions from specialized modules for backward compatibility

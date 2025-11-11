@@ -125,7 +125,7 @@ for transit in transits:
 ## Complete Example: Getting File Lists for ALL Transits
 
 ```python
-#!/usr/bin/env python3
+#!/opt/miniforge/envs/casa6/bin/python
 """
 Example: Get file lists for ALL 0834+555 transits with data in /data/incoming/.
 """
@@ -174,7 +174,7 @@ if __name__ == "__main__":
 ## Complete Example: Finding One Transit and Getting Files
 
 ```python
-#!/usr/bin/env python3
+#!/opt/miniforge/envs/casa6/bin/python
 """
 Example: Find 0834+555 transit data and get the HDF5 file list.
 """

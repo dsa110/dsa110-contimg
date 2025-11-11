@@ -12,14 +12,15 @@
 
 **Environment Configuration** (`ops/systemd/contimg.env`):
 ```bash
-CONTIMG_INPUT_DIR=/data/ingest
-CONTIMG_OUTPUT_DIR=/data/ms
-CONTIMG_SCRATCH_DIR=/data/scratch
+CONTIMG_INPUT_DIR=/data/incoming
+CONTIMG_OUTPUT_DIR=/stage/dsa110-contimg/ms
+CONTIMG_SCRATCH_DIR=/stage/dsa110-contimg
 ```
 
 **Actual Data Location:**
-- Everything is currently under `/stage/dsa110-contimg/`
-- Configuration points to non-existent `/data/ingest`, `/data/ms`, etc.
+- Input: `/data/incoming/` (raw UVH5 files)
+- Output: `/stage/dsa110-contimg/ms/` (Measurement Sets)
+- Scratch: `/stage/dsa110-contimg/` (temporary files)
 
 ### Current `/stage/dsa110-contimg/` Structure
 
@@ -257,16 +258,13 @@ CONTIMG_SCRATCH_DIR=/data/scratch
 **Action:** Update `ops/systemd/contimg.env` to match actual paths:
 
 ```bash
-# Current (incorrect)
-CONTIMG_INPUT_DIR=/data/ingest
-CONTIMG_OUTPUT_DIR=/data/ms
-CONTIMG_SCRATCH_DIR=/data/scratch
-
-# Corrected
-CONTIMG_INPUT_DIR=/stage/dsa110-contimg/incoming
+# Current configuration (updated to match reality)
+CONTIMG_INPUT_DIR=/data/incoming
 CONTIMG_OUTPUT_DIR=/stage/dsa110-contimg/ms
-CONTIMG_STAGE_DIR=/stage/dsa110-contimg/tmp
+CONTIMG_SCRATCH_DIR=/stage/dsa110-contimg
 ```
+
+**Note:** Configuration has been updated to match actual data locations.
 
 **Impact:** Configuration matches reality, no surprises
 

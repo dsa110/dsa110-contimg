@@ -32,18 +32,21 @@ def test_common_shape_unpacking_4d():
 
 def test_shape_broadcasting_issue():
     """Test the actual error case: mismatched shapes."""
+    # Use smaller arrays to avoid memory/time issues in tests
     mosaic_shape = (21, 21)
-    tile_shape = (6300, 6300)
-    pb_shape = (6300, 6300)
+    tile_shape = (100, 100)  # Reduced from 6300x6300 for speed
 
-    # This should fail with the current error
-    with pytest.raises(ValueError, match="operands could not be broadcast"):
-        # Simulate the error
-        mosaic = np.zeros(mosaic_shape)
-        tile = np.ones(tile_shape)
-        pb = np.ones(pb_shape)
-        # This would fail
-        result = mosaic + tile * pb
+    # NumPy raises ValueError for broadcasting errors
+    mosaic = np.zeros(mosaic_shape, dtype=np.float32)
+    tile = np.ones(tile_shape, dtype=np.float32)
+
+    # NumPy will raise ValueError when shapes can't be broadcast
+    # Use try/except instead of pytest.raises to avoid hanging
+    try:
+        result = mosaic + tile
+        assert False, "Should have raised ValueError"
+    except ValueError as e:
+        assert "broadcast" in str(e).lower() or "operands" in str(e).lower()
 
 
 if __name__ == "__main__":

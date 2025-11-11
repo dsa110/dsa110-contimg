@@ -15,7 +15,8 @@ import astropy.units as u
 from dsa110_contimg.utils.casa_init import ensure_casa_path
 ensure_casa_path()
 
-from casacore.tables import table
+import casacore.tables as casatables
+table = casatables.table  # noqa: N816
 
 from dsa110_contimg.calibration.schedule import DSA110_LOCATION
 

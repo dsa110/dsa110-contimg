@@ -9,6 +9,10 @@ group using a scratch directory for staging.
 The queue is persisted in SQLite so the service can resume after restarts.
 """
 
+from dsa110_contimg.database.registry import (
+    get_active_applylist,
+    register_set_from_prefix,
+)
 import argparse
 import json
 import logging
@@ -40,23 +44,6 @@ except Exception:  # pragma: no cover - optional helper
 from dsa110_contimg.utils.casa_init import ensure_casa_path
 ensure_casa_path()
 
-from casatasks import concat as casa_concat  # noqa
-        def __init__(self, *a, **k):
-            pass
-
-        def __enter__(self):
-            return self
-
-        def __exit__(self, *a):
-            return False
-
-        def log_consumes(self, *a, **k):
-            pass
-
-        def log_produces(self, *a, **k):
-            pass
-
-
 from casacore.tables import table  # noqa
 from casatasks import concat as casa_concat  # noqa
 
@@ -72,10 +59,6 @@ from dsa110_contimg.database.products import (  # noqa
     ms_index_upsert,
 )
 from dsa110_contimg.database.registry import ensure_db as ensure_cal_db  # noqa
-from dsa110_contimg.database.registry import (
-    get_active_applylist,
-    register_set_from_prefix,
-)
 from dsa110_contimg.imaging.cli import image_ms  # noqa
 from dsa110_contimg.utils.ms_organization import (  # noqa
     create_path_mapper,
@@ -269,13 +252,19 @@ class QueueDB:
 
     def _normalize_group_id_datetime(self, group_id: str) -> str:
         """Normalize group_id to 'YYYY-MM-DDTHH:MM:SS'. Accept 'T' or space."""
-        s = group_id.strip()
+        from dsa110_contimg.utils.naming import normalize_group_id
+        
         try:
-            ts = s.replace("T", " ")
-            dt = datetime.strptime(ts, "%Y-%m-%d %H:%M:%S")
-            return dt.strftime("%Y-%m-%dT%H:%M:%S")
-        except Exception:
-            return s
+            return normalize_group_id(group_id)
+        except ValueError:
+            # Fallback to original behavior for backward compatibility
+            s = group_id.strip()
+            try:
+                ts = s.replace("T", " ")
+                dt = datetime.strptime(ts, "%Y-%m-%d %H:%M:%S")
+                return dt.strftime("%Y-%m-%dT%H:%M:%S")
+            except Exception:
+                return s
 
     def _normalize_existing_groups(self) -> None:
         with self._lock, self._conn:
@@ -329,7 +318,8 @@ class QueueDB:
                 altered = True
 
             if altered:
-                logging.info("Updated ingest_queue schema with new metadata columns.")
+                logging.info(
+                    "Updated ingest_queue schema with new metadata columns.")
 
         with self._lock, self._conn:
             try:
@@ -415,13 +405,37 @@ class QueueDB:
                 raise
 
     def bootstrap_directory(self, input_dir: Path) -> None:
-        logging.info("Bootstrapping queue from existing files in %s", input_dir)
+        logging.info(
+            "Bootstrapping queue from existing files in %s", input_dir)
+        
+        # Pre-fetch existing registered paths to avoid redundant DB operations
+        with self._lock:
+            existing_paths = {
+                row[0] for row in self._conn.execute(
+                    "SELECT path FROM subband_files"
+                ).fetchall()
+            }
+        
+        new_count = 0
+        skipped_count = 0
         for path in sorted(input_dir.glob("*_sb??.hdf5")):
+            path_str = str(path)
+            # Skip if already registered
+            if path_str in existing_paths:
+                skipped_count += 1
+                continue
+            
             info = parse_subband_info(path)
             if info is None:
                 continue
             group_id, subband_idx = info
             self.record_subband(group_id, subband_idx, path)
+            new_count += 1
+        
+        logging.info(
+            f"✓ Bootstrap complete: {new_count} new files registered, "
+            f"{skipped_count} already registered"
+        )
 
     def acquire_next_pending(self) -> Optional[str]:
         """Acquire the next pending group atomically.
@@ -436,7 +450,7 @@ class QueueDB:
                     """
                     SELECT group_id FROM ingest_queue
                      WHERE state = 'pending'
-                     ORDER BY received_at ASC
+                     ORDER BY group_id ASC
                      LIMIT 1
                     """
                 ).fetchone()
@@ -586,7 +600,8 @@ class _FSHandler(FileSystemEventHandler):
                 log.warning(f"File is empty (0 bytes): {path}")
                 return
             if file_size < 1024:  # Less than 1KB is suspicious
-                log.warning(f"File is suspiciously small ({file_size} bytes): {path}")
+                log.warning(
+                    f"File is suspiciously small ({file_size} bytes): {path}")
         except OSError as e:
             log.warning(f"Failed to check file size: {path}. Error: {e}")
             return
@@ -598,7 +613,8 @@ class _FSHandler(FileSystemEventHandler):
             with h5py.File(path, "r") as f:
                 # Verify file has required structure (Header or Data group)
                 if "Header" not in f and "Data" not in f:
-                    log.warning(f"File does not appear to be valid HDF5/UVH5: {path}")
+                    log.warning(
+                        f"File does not appear to be valid HDF5/UVH5: {path}")
                     return
         except Exception as e:
             log.warning(f"File is not readable HDF5: {path}. Error: {e}")
@@ -669,12 +685,15 @@ def _worker_loop(args: argparse.Namespace, queue: QueueDB) -> None:
                     if getattr(args, "stage_to_tmpfs", False):
                         cmd.append("--stage-to-tmpfs")
                         cmd.extend(
-                            ["--tmpfs-path", getattr(args, "tmpfs_path", "/dev/shm")]
+                            ["--tmpfs-path",
+                                getattr(args, "tmpfs_path", "/dev/shm")]
                         )
                     env = os.environ.copy()
                     env.setdefault("HDF5_USE_FILE_LOCKING", "FALSE")
-                    env.setdefault("OMP_NUM_THREADS", os.getenv("OMP_NUM_THREADS", "4"))
-                    env.setdefault("MKL_NUM_THREADS", os.getenv("MKL_NUM_THREADS", "4"))
+                    env.setdefault("OMP_NUM_THREADS",
+                                   os.getenv("OMP_NUM_THREADS", "4"))
+                    env.setdefault("MKL_NUM_THREADS",
+                                   os.getenv("MKL_NUM_THREADS", "4"))
                     ret = subprocess.call(cmd, env=env)
                     writer_type = "auto"
                 else:
@@ -704,9 +723,11 @@ def _worker_loop(args: argparse.Namespace, queue: QueueDB) -> None:
                 continue
 
             total = time.perf_counter() - t0
-            queue.record_metrics(gid, total_time=total, writer_type=writer_type)
+            queue.record_metrics(gid, total_time=total,
+                                 writer_type=writer_type)
             if ret != 0:
-                queue.update_state(gid, "failed", error=f"orchestrator exit={ret}")
+                queue.update_state(
+                    gid, "failed", error=f"orchestrator exit={ret}")
                 continue
 
             # Derive MS path from first subband filename (already organized if path_mapper was used)
@@ -733,7 +754,8 @@ def _worker_loop(args: argparse.Namespace, queue: QueueDB) -> None:
 
                     # Determine MS type and organize
                     try:
-                        is_calibrator, is_failed = determine_ms_type(ms_path_obj)
+                        is_calibrator, is_failed = determine_ms_type(
+                            ms_path_obj)
                         organized_path = organize_ms_file(
                             ms_path_obj,
                             ms_base_dir,
@@ -744,7 +766,8 @@ def _worker_loop(args: argparse.Namespace, queue: QueueDB) -> None:
                         )
                         ms_path = str(organized_path)
                         if organized_path != ms_path_obj:
-                            log.info(f"Organized MS file: {ms_path_flat} → {ms_path}")
+                            log.info(
+                                f"Organized MS file: {ms_path_flat} → {ms_path}")
                     except Exception as e:
                         log.warning(
                             f"Failed to organize MS file {ms_path_flat}: {e}. Using flat path.",
@@ -764,7 +787,8 @@ def _worker_loop(args: argparse.Namespace, queue: QueueDB) -> None:
                 try:
                     from dsa110_contimg.utils.time_utils import extract_ms_time_range
 
-                    start_mjd, end_mjd, mid_mjd = extract_ms_time_range(ms_path)
+                    start_mjd, end_mjd, mid_mjd = extract_ms_time_range(
+                        ms_path)
                 except Exception:
                     pass
                 ms_index_upsert(
@@ -816,7 +840,8 @@ def _worker_loop(args: argparse.Namespace, queue: QueueDB) -> None:
                         )
                         cal_applied = 1
                     except Exception:
-                        log.warning("applycal failed for %s", ms_path, exc_info=True)
+                        log.warning("applycal failed for %s",
+                                    ms_path, exc_info=True)
 
                 # Standard tier imaging (production quality)
                 # Note: Data is always reordered for correct multi-SPW processing
@@ -873,13 +898,15 @@ def _worker_loop(args: argparse.Namespace, queue: QueueDB) -> None:
                                         f"Catalog validation warnings: {', '.join(result.warnings)}"
                                     )
                             else:
-                                log.warning("Catalog validation: No sources matched")
+                                log.warning(
+                                    "Catalog validation: No sources matched")
                         else:
                             log.debug(
                                 f"Catalog validation skipped: FITS image not found ({fits_image})"
                             )
                     except Exception as e:
-                        log.warning(f"Catalog validation failed (non-fatal): {e}")
+                        log.warning(
+                            f"Catalog validation failed (non-fatal): {e}")
 
                 except Exception:
                     log.error("imaging failed for %s", ms_path, exc_info=True)
@@ -909,7 +936,8 @@ def _worker_loop(args: argparse.Namespace, queue: QueueDB) -> None:
                     ]:
                         p = f"{imgroot}{suffix}"
                         if os.path.isdir(p) or os.path.isfile(p):
-                            images_insert(conn, p, ms_path, now_ts, "5min", pbcor)
+                            images_insert(conn, p, ms_path,
+                                          now_ts, "5min", pbcor)
                     conn.commit()
                 except Exception:
                     log.debug("products DB update failed", exc_info=True)
@@ -939,21 +967,40 @@ def _start_watch(args: argparse.Namespace, queue: QueueDB) -> Optional[object]:
 
 def _polling_loop(args: argparse.Namespace, queue: QueueDB) -> None:
     log = logging.getLogger("stream.poll")
-    seen: Set[str] = set()
     input_dir = Path(args.input_dir)
     interval = float(getattr(args, "poll_interval", 5.0))
+    
+    # Pre-fetch existing registered paths from database to avoid redundant work
+    # This persists across restarts, unlike an in-memory set
+    with queue._lock:
+        existing_paths = {
+            row[0] for row in queue._conn.execute(
+                "SELECT path FROM subband_files"
+            ).fetchall()
+        }
+    
     while True:
         try:
+            new_count = 0
+            skipped_count = 0
             for p in input_dir.glob("*_sb??.hdf5"):
                 sp = os.fspath(p)
-                if sp in seen:
+                # Skip if already registered in database
+                if sp in existing_paths:
+                    skipped_count += 1
                     continue
-                seen.add(sp)
+                
                 info = parse_subband_info(p)
                 if info is None:
                     continue
                 gid, sb = info
                 queue.record_subband(gid, sb, p)
+                existing_paths.add(sp)  # Update in-memory set
+                new_count += 1
+            
+            if new_count > 0:
+                log.debug(f"Polling: {new_count} new files, {skipped_count} already registered")
+            
             time.sleep(interval)
         except Exception:
             log.exception("Polling loop error")
@@ -1027,7 +1074,8 @@ def main(argv: Optional[List[str]] = None) -> int:
         scratch_path = Path(args.scratch_dir)
         scratch_path.mkdir(parents=True, exist_ok=True)
         if not scratch_path.exists():
-            log.error(f"Failed to create scratch directory: {args.scratch_dir}")
+            log.error(
+                f"Failed to create scratch directory: {args.scratch_dir}")
             return 1
         if not os.access(args.scratch_dir, os.W_OK):
             log.error(f"Scratch directory is not writable: {args.scratch_dir}")
@@ -1047,11 +1095,13 @@ def main(argv: Optional[List[str]] = None) -> int:
 
     obs = _start_watch(args, qdb)
 
-    worker = threading.Thread(target=_worker_loop, args=(args, qdb), daemon=True)
+    worker = threading.Thread(
+        target=_worker_loop, args=(args, qdb), daemon=True)
     worker.start()
 
     if obs is None:
-        poller = threading.Thread(target=_polling_loop, args=(args, qdb), daemon=True)
+        poller = threading.Thread(
+            target=_polling_loop, args=(args, qdb), daemon=True)
         poller.start()
 
     if getattr(args, "monitoring", False):

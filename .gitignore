@@ -157,6 +157,8 @@ state/
 .serena/
 .gemini/
 .codacy/
+.watch/
+*watch*
 
 # Editor/tool-specific directories to ignore
 .codex/

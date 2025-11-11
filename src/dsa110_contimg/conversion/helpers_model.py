@@ -9,7 +9,8 @@ from dsa110_contimg.utils.casa_init import ensure_casa_path
 ensure_casa_path()
 
 import numpy as np
-from casacore.tables import table
+import casacore.tables as casatables  # type: ignore
+table = casatables.table  # noqa: N816
 
 logger = logging.getLogger("dsa110_contimg.conversion.helpers")
 

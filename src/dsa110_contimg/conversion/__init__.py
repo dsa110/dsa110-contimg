@@ -23,9 +23,9 @@ configure_ms_for_imaging("observation.ms")
 
 **For More Information:**
 
-- See `DEVELOPER_GUIDE.md` for development guidelines
+- See `conversion/README.md` for expected behaviors and troubleshooting
 - See function docstrings for detailed usage examples
-- See `ARCHITECTURE_OPTIMIZATION_RECOMMENDATIONS.md` for design decisions
+- See `WORKFLOW_THOUGHT_EXPERIMENT.md` for end-to-end workflow details
 """
 
 from .calibrator_ms_service import CalibratorMSGenerator, CalibratorMSResult
