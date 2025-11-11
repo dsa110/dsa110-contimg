@@ -6050,4 +6050,10 @@ def create_app(config: ApiConfig | None = None) -> FastAPI:
 
     app.include_router(visualization_router)
 
+    # Root-level health check endpoint (for monitoring tools that request /health)
+    @app.get("/health")
+    def health_check():
+        """Simple health check endpoint for monitoring tools."""
+        return {"status": "healthy", "service": "dsa110-contimg-api"}
+
     return app

@@ -212,16 +212,18 @@ def browse_directory(
 
         # Convert to API response
         entries = []
+        from dsa110_contimg.qa.visualization.file import autodetect_file_type
         for item in qa_dir:
+            file_type = autodetect_file_type(item.fullpath) or ("directory" if item.isdir else "file")
             entry = DirectoryEntry(
                 name=item.basename,
                 path=item.fullpath,
-                type=item.file_type,
+                type=file_type,
                 size=item.size,
                 modified_time=(
                     datetime.fromtimestamp(item.mtime) if item.mtime else None
                 ),
-                is_dir=item.is_dir,
+                is_dir=item.isdir,
             )
             entries.append(entry)
 
@@ -823,12 +825,14 @@ def browse_qa_directory(
         qa_dir.rescan()
 
         entries = []
+        from dsa110_contimg.qa.visualization.file import autodetect_file_type
         for item in qa_dir:
+            file_type = autodetect_file_type(item.fullpath) or ("directory" if item.isdir else "file")
             entries.append(
                 DirectoryEntry(
                     name=item.basename,
                     path=item.fullpath,
-                    type=item.file_type,
+                    type=file_type,
                     size=item.size,
                     modified_time=(
                         datetime.fromtimestamp(
