@@ -414,7 +414,6 @@ def create_app(config: ApiConfig | None = None) -> FastAPI:
     app.include_router(photometry_router, prefix="/api")
     app.include_router(catalogs_router, prefix="/api")
 
-
     @router.get("/images/{image_id}/measurements", response_model=MeasurementList)
     def get_image_measurements(
         image_id: int,
@@ -1776,8 +1775,10 @@ def create_app(config: ApiConfig | None = None) -> FastAPI:
     @router.get("/ese/candidates/{source_id}/postage_stamps", response_model=PostageStampsResponse)
     def get_ese_candidate_postage_stamps(
         source_id: str,
-        size_arcsec: float = Query(60.0, description="Cutout size in arcseconds"),
-        max_stamps: int = Query(20, description="Maximum number of stamps to return")
+        size_arcsec: float = Query(
+            60.0, description="Cutout size in arcseconds"),
+        max_stamps: int = Query(
+            20, description="Maximum number of stamps to return")
     ):
         """Get postage stamp cutouts for an ESE candidate source."""
         # Reuse existing postage stamps endpoint logic
@@ -1792,8 +1793,10 @@ def create_app(config: ApiConfig | None = None) -> FastAPI:
     @router.get("/ese/candidates/{source_id}/external_catalogs", response_model=ExternalCatalogsResponse)
     def get_ese_candidate_external_catalogs(
         source_id: str,
-        radius_arcsec: float = Query(5.0, description="Search radius in arcseconds"),
-        catalogs: Optional[str] = Query(None, description="Comma-separated list of catalogs"),
+        radius_arcsec: float = Query(
+            5.0, description="Search radius in arcseconds"),
+        catalogs: Optional[str] = Query(
+            None, description="Comma-separated list of catalogs"),
         timeout: float = Query(30.0, description="Query timeout in seconds")
     ):
         """Get external catalog matches for an ESE candidate source."""
@@ -1986,11 +1989,11 @@ def create_app(config: ApiConfig | None = None) -> FastAPI:
                     # Create cutout
                     cutout_path = temp_dir / \
                         f"{source_id}_{Path(image_path).stem}_cutout.fits"
-                    
+
                     # Convert image_path to Path and size_arcsec to size_arcmin
                     fits_path = Path(image_path)
                     size_arcmin = size_arcsec / 60.0
-                    
+
                     # Create cutout (returns data, wcs, metadata)
                     cutout_data, cutout_wcs, metadata = create_cutout(
                         fits_path=fits_path,
@@ -1998,10 +2001,11 @@ def create_app(config: ApiConfig | None = None) -> FastAPI:
                         dec_deg=source.dec_deg,
                         size_arcmin=size_arcmin
                     )
-                    
+
                     # Save cutout to FITS file
                     from astropy.io import fits
-                    hdu = fits.PrimaryHDU(data=cutout_data, header=cutout_wcs.to_header())
+                    hdu = fits.PrimaryHDU(
+                        data=cutout_data, header=cutout_wcs.to_header())
                     hdu.writeto(cutout_path, overwrite=True)
 
                     stamps.append(PostageStampInfo(
@@ -2037,8 +2041,10 @@ def create_app(config: ApiConfig | None = None) -> FastAPI:
     @router.get("/legacy/sources/{source_id}/external_catalogs", response_model=ExternalCatalogsResponse)
     def get_source_external_catalogs(
         source_id: str,
-        radius_arcsec: float = Query(5.0, description="Search radius in arcseconds"),
-        catalogs: Optional[str] = Query(None, description="Comma-separated list of catalogs (simbad,ned,gaia). If None, queries all."),
+        radius_arcsec: float = Query(
+            5.0, description="Search radius in arcseconds"),
+        catalogs: Optional[str] = Query(
+            None, description="Comma-separated list of catalogs (simbad,ned,gaia). If None, queries all."),
         timeout: float = Query(30.0, description="Query timeout in seconds")
     ):
         """Get external catalog matches for a source (SIMBAD, NED, Gaia)."""
@@ -2128,7 +2134,8 @@ def create_app(config: ApiConfig | None = None) -> FastAPI:
         except HTTPException:
             raise
         except Exception as e:
-            logger.error(f"Error getting external catalogs for {source_id}: {e}")
+            logger.error(
+                f"Error getting external catalogs for {source_id}: {e}")
             raise HTTPException(
                 status_code=404,
                 detail=f"Source {source_id} not found or error querying catalogs: {str(e)}"
@@ -2205,11 +2212,11 @@ def create_app(config: ApiConfig | None = None) -> FastAPI:
                     # 2. Significant flux deviation (chi2_nu > 2)
                     # 3. Timescale: 14-180 days (check if measurements span this range)
                     # 4. Single or double-peaked light curve
-                    
+
                     # Get variability indicators
                     eta = variability_metrics.eta or 0.0
                     v = variability_metrics.v or 0.0
-                    
+
                     # Get chi2_nu from variability_stats if available
                     chi2_nu = None
                     try:
@@ -2224,7 +2231,7 @@ def create_app(config: ApiConfig | None = None) -> FastAPI:
                                 chi2_nu = stats['chi2_nu']
                     except Exception:
                         pass
-                    
+
                     # Check timescale
                     if 'mjd' in source.measurements.columns:
                         mjds = source.measurements['mjd'].dropna()
@@ -2235,26 +2242,26 @@ def create_app(config: ApiConfig | None = None) -> FastAPI:
                             ese_timescale = False
                     else:
                         ese_timescale = False
-                    
+
                     # Calculate probability score (0.0 to 1.0)
                     score = 0.0
-                    
+
                     # Variability component (40% weight)
                     if eta > 0.1 or v > 0.2:
                         score += 0.4
                     elif eta > 0.05 or v > 0.1:
                         score += 0.2
-                    
+
                     # Chi2 component (30% weight)
                     if chi2_nu and chi2_nu > 3.0:
                         score += 0.3
                     elif chi2_nu and chi2_nu > 2.0:
                         score += 0.15
-                    
+
                     # Timescale component (20% weight)
                     if ese_timescale:
                         score += 0.2
-                    
+
                     # Flux deviation component (10% weight)
                     if std_flux and mean_flux and mean_flux > 0:
                         flux_fractional_var = std_flux / mean_flux
@@ -2262,10 +2269,10 @@ def create_app(config: ApiConfig | None = None) -> FastAPI:
                             score += 0.1
                         elif flux_fractional_var > 0.15:
                             score += 0.05
-                    
+
                     # Cap at 1.0 and round to 2 decimal places
                     ese_probability = min(1.0, round(score, 2))
-                    
+
             except Exception as e:
                 logger.debug(f"Could not calculate ESE probability: {e}")
                 ese_probability = None
@@ -4111,9 +4118,10 @@ def create_app(config: ApiConfig | None = None) -> FastAPI:
             import json
             import time
             import hashlib
-            
-            cache_key = hashlib.md5(f"{image_path}:{catalog}:{validation_type}".encode()).hexdigest()
-            
+
+            cache_key = hashlib.md5(
+                f"{image_path}:{catalog}:{validation_type}".encode()).hexdigest()
+
             with sqlite3.connect(cfg.products_db) as conn:
                 conn.row_factory = sqlite3.Row
                 cached = conn.execute("""
@@ -4121,9 +4129,10 @@ def create_app(config: ApiConfig | None = None) -> FastAPI:
                     FROM validation_cache 
                     WHERE cache_key = ? AND expires_at > ?
                 """, (cache_key, time.time())).fetchone()
-                
+
                 if cached:
-                    logger.debug(f"Returning cached validation results for {image_path}")
+                    logger.debug(
+                        f"Returning cached validation results for {image_path}")
                     return json.loads(cached['results_json'])
         except Exception as e:
             logger.debug(f"Could not check validation cache: {e}")
@@ -4150,10 +4159,11 @@ def create_app(config: ApiConfig | None = None) -> FastAPI:
             import json
             import time
             import hashlib
-            
+
             # Create cache key from image path and catalog
-            cache_key = hashlib.md5(f"{image_path}:{catalog}:{validation_type}".encode()).hexdigest()
-            
+            cache_key = hashlib.md5(
+                f"{image_path}:{catalog}:{validation_type}".encode()).hexdigest()
+
             with sqlite3.connect(cfg.products_db) as conn:
                 # Create validation_cache table if it doesn't exist
                 conn.execute("""
@@ -4175,7 +4185,7 @@ def create_app(config: ApiConfig | None = None) -> FastAPI:
                     CREATE INDEX IF NOT EXISTS idx_validation_cache_expires 
                     ON validation_cache(expires_at)
                 """)
-                
+
                 # Store results (cache for 24 hours)
                 expires_at = time.time() + (24 * 3600)  # 24 hours
                 conn.execute("""
@@ -6041,6 +6051,280 @@ def create_app(config: ApiConfig | None = None) -> FastAPI:
 
         lineage = get_data_lineage(conn, data_id)
         return lineage
+
+    @router.get("/monitoring/publish/status")
+    async def get_publish_status():
+        """Get publish status metrics and statistics.
+
+        Returns:
+            - Total publishes attempted
+            - Successful publishes
+            - Failed publishes
+            - Success rate
+            - Recent failures
+        """
+        from pathlib import Path
+        from datetime import datetime
+
+        from dsa110_contimg.database.data_registry import (
+            ensure_data_registry_db,
+            list_data,
+        )
+
+        db_path = Path("/data/dsa110-contimg/state/products.sqlite3")
+        conn = ensure_data_registry_db(db_path)
+
+        # Get all published data
+        published = list_data(conn, status="published")
+
+        # Get all staging data (may include failed publishes)
+        staging = list_data(conn, status="staging")
+
+        # Get publishing data (currently being published)
+        publishing = list_data(conn, status="publishing")
+
+        # Calculate metrics
+        total_published = len(published)
+        total_staging = len(staging)
+        total_publishing = len(publishing)
+
+        # Count failed publishes (staging with publish_attempts > 0)
+        failed_publishes = [
+            r for r in staging
+            if r.publish_attempts and r.publish_attempts > 0
+        ]
+
+        # Count max attempts exceeded
+        max_attempts_exceeded = [
+            r for r in staging
+            if r.publish_attempts and r.publish_attempts >= 3
+        ]
+
+        # Calculate success rate (published / (published + failed))
+        total_attempts = total_published + len(failed_publishes)
+        success_rate = (total_published / total_attempts *
+                        100) if total_attempts > 0 else 100.0
+
+        # Get recent failures (last 24 hours)
+        now = datetime.now()
+        recent_failures = [
+            r for r in failed_publishes
+            if r.staged_at and (now.timestamp() - r.staged_at) < 86400
+        ]
+
+        return {
+            "total_published": total_published,
+            "total_staging": total_staging,
+            "total_publishing": total_publishing,
+            "failed_publishes": len(failed_publishes),
+            "max_attempts_exceeded": len(max_attempts_exceeded),
+            "success_rate_percent": round(success_rate, 2),
+            "recent_failures_24h": len(recent_failures),
+            "timestamp": datetime.now().isoformat(),
+        }
+
+    @router.get("/monitoring/publish/failed")
+    async def get_failed_publishes(
+        max_attempts: Optional[int] = None,
+        limit: int = 50,
+    ):
+        """Get list of failed publishes.
+
+        Args:
+            max_attempts: Filter by minimum publish attempts (default: 1)
+            limit: Maximum number of results (default: 50)
+
+        Returns:
+            List of failed publish records with error details
+        """
+        from pathlib import Path
+
+        from dsa110_contimg.database.data_registry import (
+            ensure_data_registry_db,
+            list_data,
+        )
+
+        db_path = Path("/data/dsa110-contimg/state/products.sqlite3")
+        conn = ensure_data_registry_db(db_path)
+
+        # Get staging data
+        staging = list_data(conn, status="staging")
+
+        # Filter failed publishes
+        failed = [
+            r for r in staging
+            if r.publish_attempts and r.publish_attempts > 0
+        ]
+
+        # Filter by max_attempts if specified
+        if max_attempts is not None:
+            failed = [r for r in failed if r.publish_attempts >= max_attempts]
+
+        # Sort by publish_attempts (descending) and limit
+        failed.sort(key=lambda x: x.publish_attempts or 0, reverse=True)
+        failed = failed[:limit]
+
+        # Format response
+        return {
+            "count": len(failed),
+            "failed_publishes": [
+                {
+                    "data_id": r.data_id,
+                    "data_type": r.data_type,
+                    "stage_path": r.stage_path,
+                    "publish_attempts": r.publish_attempts or 0,
+                    "publish_error": r.publish_error,
+                    "staged_at": r.staged_at,
+                    "created_at": r.created_at,
+                }
+                for r in failed
+            ],
+        }
+
+    @router.post("/monitoring/publish/retry/{data_id:path}")
+    async def retry_publish(data_id: str):
+        """Retry publishing a failed data instance.
+
+        This endpoint allows manual retry of failed publishes.
+        It resets the publish_attempts counter and triggers a new publish attempt.
+
+        Args:
+            data_id: Data instance ID to retry
+
+        Returns:
+            Publish result
+        """
+        from pathlib import Path
+
+        from dsa110_contimg.database.data_registry import (
+            ensure_data_registry_db,
+            get_data,
+            trigger_auto_publish,
+        )
+
+        db_path = Path("/data/dsa110-contimg/state/products.sqlite3")
+        conn = ensure_data_registry_db(db_path)
+
+        record = get_data(conn, data_id)
+        if not record:
+            raise HTTPException(
+                status_code=404, detail=f"Data {data_id} not found")
+
+        if record.status == "published":
+            raise HTTPException(
+                status_code=400, detail=f"Data {data_id} is already published"
+            )
+
+        # Reset publish attempts before retry
+        cur = conn.cursor()
+        cur.execute(
+            """
+            UPDATE data_registry
+            SET publish_attempts = 0,
+                publish_error = NULL,
+                status = 'staging'
+            WHERE data_id = ?
+            """,
+            (data_id,),
+        )
+        conn.commit()
+
+        # Trigger auto-publish
+        success = trigger_auto_publish(conn, data_id)
+
+        if not success:
+            updated_record = get_data(conn, data_id)
+            raise HTTPException(
+                status_code=500,
+                detail=f"Failed to publish {data_id}. "
+                f"Error: {updated_record.publish_error if updated_record else 'Unknown error'}"
+            )
+
+        updated_record = get_data(conn, data_id)
+        return {
+            "retried": True,
+            "published": True,
+            "status": updated_record.status if updated_record else record.status,
+            "published_path": updated_record.published_path if updated_record else None,
+        }
+
+    @router.post("/monitoring/publish/retry-all")
+    async def retry_all_failed_publishes(
+        max_attempts: Optional[int] = None,
+        limit: int = 10,
+    ):
+        """Retry all failed publishes (up to limit).
+
+        Args:
+            max_attempts: Only retry publishes with attempts >= this value (default: 1)
+            limit: Maximum number of publishes to retry (default: 10)
+
+        Returns:
+            Summary of retry results
+        """
+        from pathlib import Path
+
+        from dsa110_contimg.database.data_registry import (
+            ensure_data_registry_db,
+            list_data,
+            trigger_auto_publish,
+        )
+
+        db_path = Path("/data/dsa110-contimg/state/products.sqlite3")
+        conn = ensure_data_registry_db(db_path)
+
+        # Get failed publishes
+        staging = list_data(conn, status="staging")
+        failed = [
+            r for r in staging
+            if r.publish_attempts and r.publish_attempts > 0
+        ]
+
+        if max_attempts is not None:
+            failed = [r for r in failed if r.publish_attempts >= max_attempts]
+
+        # Sort by attempts (descending) and limit
+        failed.sort(key=lambda x: x.publish_attempts or 0, reverse=True)
+        failed = failed[:limit]
+
+        # Retry each one
+        results = []
+        for record in failed:
+            try:
+                # Reset attempts
+                cur = conn.cursor()
+                cur.execute(
+                    """
+                    UPDATE data_registry
+                    SET publish_attempts = 0,
+                        publish_error = NULL,
+                        status = 'staging'
+                    WHERE data_id = ?
+                    """,
+                    (record.data_id,),
+                )
+                conn.commit()
+
+                # Trigger publish
+                success = trigger_auto_publish(conn, record.data_id)
+                results.append({
+                    "data_id": record.data_id,
+                    "success": success,
+                })
+            except Exception as e:
+                results.append({
+                    "data_id": record.data_id,
+                    "success": False,
+                    "error": str(e),
+                })
+
+        successful = sum(1 for r in results if r.get("success"))
+        return {
+            "total_attempted": len(results),
+            "successful": successful,
+            "failed": len(results) - successful,
+            "results": results,
+        }
 
     # Include router after all routes are defined
     app.include_router(router)

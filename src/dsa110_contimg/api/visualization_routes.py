@@ -45,6 +45,11 @@ logger = logging.getLogger(__name__)
 
 router = APIRouter(prefix="/api/visualization", tags=["visualization"])
 
+# Simple in-memory cache for analysis results
+# Key: (task, image_path, region_hash, params_hash) -> result
+_analysis_cache: Dict[str, Dict[str, Any]] = {}
+_cache_max_size = 100  # Maximum number of cached results
+
 
 # ============================================================================
 # Request/Response Models
@@ -214,7 +219,8 @@ def browse_directory(
         entries = []
         from dsa110_contimg.qa.visualization.file import autodetect_file_type
         for item in qa_dir:
-            file_type = autodetect_file_type(item.fullpath) or ("directory" if item.isdir else "file")
+            file_type = autodetect_file_type(item.fullpath) or (
+                "directory" if item.isdir else "file")
             entry = DirectoryEntry(
                 name=item.basename,
                 path=item.fullpath,
@@ -827,7 +833,8 @@ def browse_qa_directory(
         entries = []
         from dsa110_contimg.qa.visualization.file import autodetect_file_type
         for item in qa_dir:
-            file_type = autodetect_file_type(item.fullpath) or ("directory" if item.isdir else "file")
+            file_type = autodetect_file_type(item.fullpath) or (
+                "directory" if item.isdir else "file")
             entries.append(
                 DirectoryEntry(
                     name=item.basename,
@@ -856,6 +863,596 @@ def browse_qa_directory(
         raise HTTPException(
             status_code=500, detail=f"Error browsing QA directory: {str(e)}"
         )
+
+
+# JS9 CASA Analysis Endpoints
+# ============================================================================
+
+
+class JS9AnalysisRequest(BaseModel):
+    """Request for JS9 CASA analysis."""
+
+    task: str = Field(...,
+                      description="CASA task name (imstat, imfit, imview, specflux)")
+    image_path: str = Field(..., description="Path to FITS image file")
+    region: Optional[Dict[str, Any]] = Field(
+        None, description="JS9 region object (optional, for region-based analysis)"
+    )
+    parameters: Optional[Dict[str, Any]] = Field(
+        None, description="Additional task-specific parameters"
+    )
+
+
+class JS9AnalysisResponse(BaseModel):
+    """Response from JS9 CASA analysis."""
+
+    success: bool
+    task: str
+    result: Optional[Dict[str, Any]] = None
+    error: Optional[str] = None
+    execution_time_sec: Optional[float] = None
+
+
+@router.post("/js9/analysis", response_model=JS9AnalysisResponse)
+def js9_casa_analysis(request: JS9AnalysisRequest):
+    """
+    Execute CASA analysis tasks on FITS images for JS9 viewer.
+
+    Supports server-side execution of CASA tasks:
+    - imstat: Image statistics
+    - imfit: Source fitting
+    - imview: Contour generation (returns contour data)
+    - specflux: Spectral flux extraction
+    - imval: Pixel value extraction
+
+    The image_path must be a valid FITS file accessible to the server.
+    Region is optional and can be provided in JS9 format (pixel coordinates).
+
+    Results are cached to avoid re-running identical analyses.
+    """
+    import time
+    import hashlib
+    from dsa110_contimg.utils.casa_init import ensure_casa_path
+
+    start_time = time.time()
+
+    try:
+        # Create cache key
+        import json as json_module
+        region_str = (
+            json_module.dumps(request.region, sort_keys=True)
+            if request.region
+            else ""
+        )
+        params_str = json_module.dumps(
+            request.parameters or {}, sort_keys=True)
+        cache_key_data = (
+            f"{request.task}:{request.image_path}:{region_str}:{params_str}"
+        )
+        cache_key = hashlib.sha256(cache_key_data.encode()).hexdigest()
+
+        # Check cache
+        if cache_key in _analysis_cache:
+            cached_result = _analysis_cache[cache_key]
+            logger.debug(f"Returning cached result for {request.task}")
+            return JS9AnalysisResponse(
+                success=cached_result["success"],
+                task=request.task,
+                result=cached_result.get("result"),
+                error=cached_result.get("error"),
+                execution_time_sec=0.001,  # Cached results are instant
+            )
+        # Ensure CASA path is set
+        ensure_casa_path()
+
+        # Validate image path
+        image_path = Path(request.image_path).resolve()
+        if not image_path.exists():
+            raise HTTPException(
+                status_code=404, detail=f"Image file not found: {request.image_path}"
+            )
+
+        if not image_path.suffix.lower() == ".fits":
+            raise HTTPException(
+                status_code=400,
+                detail=f"File is not a FITS image: {request.image_path}",
+            )
+
+        # Validate task name
+        valid_tasks = ["imstat", "imfit", "imview", "specflux", "imval", "imhead", "immath"]
+        if request.task not in valid_tasks:
+            raise HTTPException(
+                status_code=400,
+                detail=f"Invalid task '{request.task}'. Valid tasks: {valid_tasks}",
+            )
+
+        # Execute CASA task
+        result = _execute_casa_task(
+            task=request.task,
+            image_path=str(image_path),
+            region=request.region,
+            parameters=request.parameters or {},
+        )
+
+        execution_time = time.time() - start_time
+
+        response = JS9AnalysisResponse(
+            success=True,
+            task=request.task,
+            result=result,
+            execution_time_sec=round(execution_time, 3),
+        )
+
+        # Cache the result
+        _cache_result(cache_key, {
+            "success": True,
+            "result": result,
+            "error": None,
+        })
+
+        return response
+
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.exception(f"Error executing CASA task {request.task}")
+        execution_time = time.time() - start_time
+
+        response = JS9AnalysisResponse(
+            success=False,
+            task=request.task,
+            error=str(e),
+            execution_time_sec=round(execution_time, 3),
+        )
+
+        # Don't cache errors
+        return response
+
+
+def _cache_result(cache_key: str, result: Dict[str, Any]) -> None:
+    """Cache an analysis result."""
+    global _analysis_cache
+
+    # Limit cache size
+    if len(_analysis_cache) >= _cache_max_size:
+        # Remove oldest entry (simple FIFO)
+        oldest_key = next(iter(_analysis_cache))
+        del _analysis_cache[oldest_key]
+
+    _analysis_cache[cache_key] = result
+
+
+def _execute_casa_task(
+    task: str, image_path: str, region: Optional[Dict[str, Any]], parameters: Dict[str, Any]
+) -> Dict[str, Any]:
+    """
+    Execute a CASA task on an image.
+
+    Args:
+        task: Task name (imstat, imfit, imview, specflux)
+        image_path: Path to FITS image
+        region: Optional JS9 region object
+        parameters: Additional task parameters
+
+    Returns:
+        Dictionary with task results
+    """
+    from dsa110_contimg.utils.casa_init import ensure_casa_path
+
+    ensure_casa_path()
+
+    if task == "imstat":
+        return _run_imstat(image_path, region, parameters)
+    elif task == "imfit":
+        return _run_imfit(image_path, region, parameters)
+    elif task == "imview":
+        return _run_imview(image_path, region, parameters)
+    elif task == "specflux":
+        return _run_specflux(image_path, region, parameters)
+    elif task == "imval":
+        return _run_imval(image_path, region, parameters)
+    elif task == "imhead":
+        return _run_imhead(image_path, region, parameters)
+    elif task == "immath":
+        return _run_immath(image_path, region, parameters)
+    else:
+        raise ValueError(f"Unsupported task: {task}")
+
+
+def _run_imstat(image_path: str, region: Optional[Dict[str, Any]], parameters: Dict[str, Any]) -> Dict[str, Any]:
+    """Run imstat CASA task."""
+    from casatasks import imstat
+
+    # Convert JS9 region to CASA region string if provided
+    region_str = None
+    if region:
+        region_str = _js9_region_to_casa(region)
+
+    # Run imstat
+    stats = imstat(imagename=image_path, region=region_str, **parameters)
+
+    # Convert to JSON-serializable format
+    result = {}
+    if isinstance(stats, dict):
+        # imstat returns a dictionary with keys like 'DATA', 'MASK', etc.
+        for key, value in stats.items():
+            if isinstance(value, dict):
+                # Convert nested dicts
+                result[key] = {
+                    k: _convert_to_json_serializable(v) for k, v in value.items()
+                }
+            else:
+                result[key] = _convert_to_json_serializable(value)
+    else:
+        result["stats"] = _convert_to_json_serializable(stats)
+
+    return result
+
+
+def _run_imfit(image_path: str, region: Optional[Dict[str, Any]], parameters: Dict[str, Any]) -> Dict[str, Any]:
+    """Run imfit CASA task for source fitting."""
+    from casatasks import imfit
+
+    region_str = None
+    if region:
+        region_str = _js9_region_to_casa(region)
+
+    # Run imfit
+    fit_result = imfit(imagename=image_path, region=region_str, **parameters)
+
+    # Convert to JSON-serializable format
+    return {"fit": _convert_to_json_serializable(fit_result)}
+
+
+def _run_imview(image_path: str, region: Optional[Dict[str, Any]], parameters: Dict[str, Any]) -> Dict[str, Any]:
+    """Run imview CASA task for contour generation."""
+    import numpy as np
+    from astropy.io import fits
+    from scipy.ndimage import gaussian_filter
+
+    # Get contour levels from parameters or use defaults
+    n_levels = parameters.get("n_levels", 10)
+    sigma = parameters.get("smoothing_sigma", 1.0)
+
+    # Load image data
+    with fits.open(image_path) as hdul:
+        data = hdul[0].data
+
+        # Handle multi-dimensional data
+        if data.ndim > 2:
+            data = data.squeeze()
+            if data.ndim > 2:
+                data = data[0, 0] if data.ndim == 4 else data[0]
+
+        # Apply smoothing if requested
+        if sigma > 0:
+            data = gaussian_filter(data, sigma=sigma)
+
+        # Calculate contour levels
+        valid_data = data[~np.isnan(data)]
+        if len(valid_data) == 0:
+            return {"error": "No valid data in image"}
+
+        min_val = float(np.nanmin(valid_data))
+        max_val = float(np.nanmax(valid_data))
+
+        # Generate contour levels (linear spacing)
+        contour_levels = (
+            np.linspace(min_val, max_val, n_levels + 2)[1:-1].tolist()
+        )
+
+        # Generate contour coordinates using matplotlib
+        try:
+            from matplotlib import pyplot as plt
+
+            # Create a figure to generate contours
+            fig = plt.figure(figsize=(1, 1))
+            ax = fig.add_subplot(111)
+
+            # Generate contours
+            contours = ax.contour(data, levels=contour_levels)
+
+            # Extract contour paths
+            contour_paths = []
+            for level, collection in zip(contour_levels, contours.collections):
+                paths = []
+                for path in collection.get_paths():
+                    vertices = path.vertices
+                    paths.append({
+                        "x": vertices[:, 0].tolist(),
+                        "y": vertices[:, 1].tolist(),
+                    })
+                contour_paths.append({
+                    "level": float(level),
+                    "paths": paths,
+                })
+
+            plt.close(fig)
+
+            return {
+                "contour_levels": contour_levels,
+                "contour_paths": contour_paths,
+                "image_shape": list(data.shape),
+                "data_range": {"min": min_val, "max": max_val},
+            }
+        except ImportError:
+            # Fallback: return statistics if matplotlib not available
+            from casatasks import imstat
+
+            region_str = None
+            if region:
+                region_str = _js9_region_to_casa(region)
+
+            stats = imstat(
+                imagename=image_path, region=region_str, **parameters
+            )
+            return {
+                "contour_data": _convert_to_json_serializable(stats),
+                "note": (
+                    "Matplotlib not available, "
+                    "returning statistics instead"
+                ),
+            }
+
+
+def _run_specflux(image_path: str, region: Optional[Dict[str, Any]], parameters: Dict[str, Any]) -> Dict[str, Any]:
+    """Run spectral flux extraction."""
+    from casatasks import imstat
+
+    region_str = None
+    if region:
+        region_str = _js9_region_to_casa(region)
+
+    # Extract flux statistics
+    stats = imstat(imagename=image_path, region=region_str, **parameters)
+
+    return {
+        "flux": _convert_to_json_serializable(stats),
+        "note": "Spectral flux extraction via imstat",
+    }
+
+
+def _run_imval(image_path: str, region: Optional[Dict[str, Any]], parameters: Dict[str, Any]) -> Dict[str, Any]:
+    """Run imval CASA task for pixel value extraction."""
+    from casatasks import imval
+
+    region_str = None
+    if region:
+        region_str = _js9_region_to_casa(region)
+
+    # Get additional parameters
+    box = parameters.get("box", None)  # Box region: "x1,y1,x2,y2"
+    stokes = parameters.get("stokes", None)  # Stokes parameter
+
+    # Run imval
+    try:
+        val_result = imval(
+            imagename=image_path,
+            region=region_str,
+            box=box,
+            stokes=stokes,
+        )
+
+        # imval returns a dictionary with keys like 'data', 'mask', 'coords'
+        result = {}
+        if isinstance(val_result, dict):
+            for key, value in val_result.items():
+                result[key] = _convert_to_json_serializable(value)
+        else:
+            result["values"] = _convert_to_json_serializable(val_result)
+
+        return result
+    except Exception as e:
+        # Fallback: try to extract pixel values directly from FITS
+        import numpy as np
+        from astropy.io import fits
+
+        try:
+            with fits.open(image_path) as hdul:
+                data = hdul[0].data
+
+                # Handle multi-dimensional data
+                if data.ndim > 2:
+                    data = data.squeeze()
+                    if data.ndim > 2:
+                        data = (
+                            data[0, 0] if data.ndim == 4 else data[0]
+                        )
+
+                # If region provided, extract values from region
+                if region:
+                    # Create mask from region
+                    from dsa110_contimg.utils.regions import (
+                        create_region_mask,
+                    )
+                    from astropy.wcs import WCS
+
+                    wcs = WCS(hdul[0].header)
+                    region_data = type("RegionData", (), {
+                        "type": region.get("shape", "circle"),
+                        "coordinates": {
+                            "ra_deg": region.get("ra", 0),
+                            "dec_deg": region.get("dec", 0),
+                            "radius_deg": region.get("r", 1),
+                        },
+                    })()
+
+                    mask = create_region_mask(
+                        data.shape, region_data, wcs, hdul[0].header
+                    )
+                    values = data[mask].tolist()
+                else:
+                    # Return all values (flattened)
+                    values = data.flatten().tolist()
+
+                return {
+                    "values": values,
+                    "shape": list(data.shape),
+                    "note": (
+                        "Extracted directly from FITS file "
+                        "(imval fallback)"
+                    ),
+                }
+        except Exception as e2:
+            return {
+                "error": (
+                    f"Failed to extract pixel values: {str(e2)}"
+                ),
+                "original_error": str(e),
+            }
+
+
+def _run_imhead(image_path: str, region: Optional[Dict[str, Any]], parameters: Dict[str, Any]) -> Dict[str, Any]:
+    """Run imhead CASA task to get image header information."""
+    from casatasks import imhead
+    
+    try:
+        # Get mode (list, get, put)
+        mode = parameters.get("mode", "list")
+        
+        if mode == "list":
+            # List all header keywords
+            header_info = imhead(imagename=image_path, mode="list")
+        elif mode == "get":
+            # Get specific keyword
+            keyword = parameters.get("keyword", None)
+            if not keyword:
+                return {"error": "keyword parameter required for mode='get'"}
+            header_info = imhead(imagename=image_path, mode="get", hdkey=keyword)
+        else:
+            return {"error": f"Unsupported mode: {mode}"}
+        
+        return {"header": _convert_to_json_serializable(header_info)}
+    except Exception as e:
+        # Fallback: read header directly from FITS
+        try:
+            from astropy.io import fits
+            
+            with fits.open(image_path) as hdul:
+                header = hdul[0].header
+                header_dict = {}
+                for key, value in header.items():
+                    # Skip COMMENT and HISTORY cards
+                    if key not in ['COMMENT', 'HISTORY']:
+                        try:
+                            # Try to convert to JSON-serializable types
+                            if isinstance(value, (int, float, str, bool)):
+                                header_dict[key] = value
+                            else:
+                                header_dict[key] = str(value)
+                        except Exception:
+                            header_dict[key] = str(value)
+                
+                return {
+                    "header": header_dict,
+                    "note": "Extracted directly from FITS file (imhead fallback)"
+                }
+        except Exception as e2:
+            return {
+                "error": f"Failed to extract header: {str(e2)}",
+                "original_error": str(e)
+            }
+
+
+def _run_immath(image_path: str, region: Optional[Dict[str, Any]], parameters: Dict[str, Any]) -> Dict[str, Any]:
+    """Run immath CASA task for image arithmetic operations."""
+    from casatasks import immath
+    import tempfile
+    import os
+    
+    try:
+        # Get expression and output name
+        expr = parameters.get("expr", None)
+        if not expr:
+            return {"error": "expr parameter required for immath"}
+        
+        # Create temporary output file
+        output_path = parameters.get("output", None)
+        if not output_path:
+            # Generate temporary filename
+            temp_dir = tempfile.gettempdir()
+            output_path = os.path.join(temp_dir, f"immath_temp_{os.getpid()}.fits")
+        
+        # Run immath
+        immath(
+            imagename=image_path,
+            expr=expr,
+            outfile=output_path,
+            **{k: v for k, v in parameters.items() if k not in ["expr", "output"]}
+        )
+        
+        # Read result statistics
+        from casatasks import imstat
+        stats = imstat(imagename=output_path)
+        
+        result = {
+            "output_path": output_path,
+            "statistics": _convert_to_json_serializable(stats),
+            "expression": expr
+        }
+        
+        # Clean up temporary file if we created it
+        if not parameters.get("output") and os.path.exists(output_path):
+            try:
+                os.remove(output_path)
+                result["note"] = "Temporary output file cleaned up"
+            except Exception:
+                result["note"] = "Temporary output file preserved"
+        
+        return result
+    except Exception as e:
+        return {
+            "error": f"Failed to execute immath: {str(e)}"
+        }
+
+
+def _js9_region_to_casa(region: Dict[str, Any]) -> str:
+    """
+    Convert JS9 region object to CASA region string.
+
+    JS9 regions are typically in pixel coordinates.
+    CASA region format: circle[[ra,dec],radius] or box[[ra,dec],[width,height]]
+
+    For now, we'll use pixel coordinates directly (CASA supports pixel regions).
+    """
+    shape = region.get("shape", "").lower()
+    if shape in ["circle", "c"]:
+        # JS9 circle: {x, y, radius} in pixels
+        x = region.get("x", region.get("xcen", 0))
+        y = region.get("y", region.get("ycen", 0))
+        radius = region.get("r", region.get("radius", 1))
+        # CASA pixel region format: circle[[x,y],radius]pix
+        return f"circle[[{x},{y}],{radius}]pix"
+    elif shape in ["box", "rectangle", "r"]:
+        # JS9 box: {x, y, width, height} in pixels
+        x = region.get("x", region.get("xcen", 0))
+        y = region.get("y", region.get("ycen", 0))
+        width = region.get("width", 1)
+        height = region.get("height", 1)
+        # CASA pixel region format: box[[x,y],[width,height]]pix
+        return f"box[[{x},{y}],[{width},{height}]]pix"
+    else:
+        # Default: use bounding box
+        return ""
+
+
+def _convert_to_json_serializable(obj: Any) -> Any:
+    """Convert numpy types and other non-JSON-serializable objects to JSON-compatible types."""
+    import numpy as np
+
+    if isinstance(obj, (np.integer, np.floating)):
+        return float(obj)
+    elif isinstance(obj, np.ndarray):
+        return obj.tolist()
+    elif isinstance(obj, (list, tuple)):
+        return [_convert_to_json_serializable(item) for item in obj]
+    elif isinstance(obj, dict):
+        return {k: _convert_to_json_serializable(v) for k, v in obj.items()}
+    elif isinstance(obj, (str, int, float, bool, type(None))):
+        return obj
+    else:
+        # Try to convert to string as fallback
+        return str(obj)
 
 
 # Demo/Viewer Page

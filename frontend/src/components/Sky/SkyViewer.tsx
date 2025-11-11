@@ -4,6 +4,8 @@
 import { useEffect, useLayoutEffect, useRef, useState } from 'react';
 import { Box, CircularProgress, Alert, Typography } from '@mui/material';
 import { logger } from '../../utils/logger';
+import styles from './Sky.module.css';
+import WCSDisplay from './WCSDisplay';
 
 declare global {
   interface Window {
@@ -66,11 +68,18 @@ export default function SkyViewer({
       try {
         // Try multiple methods to disable JS9's loading indicator
         if (typeof window.JS9.SetOptions === 'function') {
-          window.JS9.SetOptions({ loadImage: false });
+          window.JS9.SetOptions({ 
+            loadImage: false,
+            // Ensure JS9 respects container width
+            resizeDisplay: true,
+            autoResize: true
+          });
         }
         // Also try setting it as a global option
         if (window.JS9.opts) {
           window.JS9.opts.loadImage = false;
+          window.JS9.opts.resizeDisplay = true;
+          window.JS9.opts.autoResize = true;
         }
         // Hide JS9's loading indicator via CSS if it exists
         const js9LoadingElements = document.querySelectorAll('.JS9Loading, .js9-loading, [class*="js9"][class*="load"]');
@@ -193,7 +202,10 @@ export default function SkyViewer({
                        loadImage: false,
                        helperType: 'none',
                        helperPort: 0,
-                       loadProxy: false
+                       loadProxy: false,
+                       // Ensure JS9 respects container width
+                       resizeDisplay: true,
+                       autoResize: true
                      });
                      logger.debug('JS9 paths configured to use local files:', js9Base);
                    } else if (window.JS9.opts) {
@@ -218,12 +230,20 @@ export default function SkyViewer({
                  if (typeof window.JS9.Init === 'function') {
                    try {
                      // Initialize with loadImage disabled to prevent duplicate spinners
-                     window.JS9.Init({ loadImage: false });
+                     window.JS9.Init({ 
+                       loadImage: false,
+                       resizeDisplay: true,
+                       autoResize: true
+                     });
                    } catch (initErr) {
                      // JS9 may already be initialized, try to set options instead
                      try {
                        if (typeof window.JS9.SetOptions === 'function') {
-                         window.JS9.SetOptions({ loadImage: false });
+                         window.JS9.SetOptions({ 
+                           loadImage: false,
+                           resizeDisplay: true,
+                           autoResize: true
+                         });
                        }
                      } catch (optErr) {
                        logger.debug('JS9 Init and SetOptions failed:', initErr, optErr);
@@ -379,25 +399,37 @@ export default function SkyViewer({
           const allChildren = targetDiv.querySelectorAll('*');
           allChildren.forEach((el: any) => {
             if (el && el.style) {
-              const className = (el.className || '').toString();
+              // Handle className properly - it can be a string, DOMTokenList, or SVGAnimatedString
+              let className = '';
+              if (typeof el.className === 'string') {
+                className = el.className;
+              } else if (el.className && typeof el.className.toString === 'function') {
+                className = el.className.toString();
+              } else if (el.className && el.className.baseVal) {
+                className = el.className.baseVal;
+              } else if (el.getAttribute && el.getAttribute('class')) {
+                className = el.getAttribute('class') || '';
+              }
+              
               const id = (el.id || '').toString();
               const style = el.getAttribute('style') || '';
               const tagName = (el.tagName || '').toLowerCase();
               
               // Check if this looks like a loading indicator
+              const classNameLower = className.toLowerCase();
               const isSpinner = 
-                className.toLowerCase().includes('load') ||
-                className.toLowerCase().includes('spinner') ||
-                className.toLowerCase().includes('loader') ||
+                classNameLower.includes('load') ||
+                classNameLower.includes('spinner') ||
+                classNameLower.includes('loader') ||
                 id.toLowerCase().includes('load') ||
                 id.toLowerCase().includes('spinner') ||
                 style.toLowerCase().includes('spinner') ||
                 style.toLowerCase().includes('loader') ||
                 style.toLowerCase().includes('rotate') ||
                 // Check for animated elements (common in spinners)
-                (el.getAttribute('class') && el.getAttribute('class').includes('animate')) ||
+                (el.getAttribute && el.getAttribute('class') && el.getAttribute('class').includes('animate')) ||
                 // Check for SVG spinners
-                (tagName === 'svg' && (className.includes('spin') || id.includes('spin'))) ||
+                (tagName === 'svg' && (classNameLower.includes('spin') || id.includes('spin'))) ||
                 // Check for circular/rotating elements
                 (style.includes('animation') && (style.includes('spin') || style.includes('rotate')));
               
@@ -558,6 +590,17 @@ export default function SkyViewer({
                   document.title = originalTitle;
                 }
                 
+                // Resize JS9 to fill container width after image loads
+                if (typeof window.JS9?.ResizeDisplay === 'function') {
+                  setTimeout(() => {
+                    try {
+                      window.JS9.ResizeDisplay(displayId);
+                    } catch (e) {
+                      logger.warn('Failed to resize JS9 display after image load:', e);
+                    }
+                  }, 200);
+                }
+                
                 // Force JS9 to display the image in the correct div
                 try {
                   // Use SetDisplay to ensure the image is shown in the correct display
@@ -605,6 +648,17 @@ export default function SkyViewer({
                   logger.debug('FITS image loaded (fallback):', im);
                   imageLoadedRef.current = true;
                   setLoading(false);
+                  
+                  // Resize JS9 to fill container width after image loads
+                  if (typeof window.JS9?.ResizeDisplay === 'function') {
+                    setTimeout(() => {
+                      try {
+                        window.JS9.ResizeDisplay(displayId);
+                      } catch (e) {
+                        logger.warn('Failed to resize JS9 display after image load:', e);
+                      }
+                    }, 200);
+                  }
                   cleanupInterval();
                   hideJS9Loading();
                   
@@ -662,6 +716,49 @@ export default function SkyViewer({
     }
   }, [imagePath, displayId, initialized]);
 
+  // Resize handler to ensure JS9 fills container width
+  useEffect(() => {
+    if (!initialized || !window.JS9) return;
+
+    const handleResize = () => {
+      if (!containerRef.current || !window.JS9) return;
+      
+      const display = window.JS9.displays?.find((d: any) => {
+        const divId = d.id || d.display || d.divID;
+        return divId === displayId;
+      });
+      
+      if (display && typeof window.JS9.ResizeDisplay === 'function') {
+        try {
+          // Small delay to ensure container has updated dimensions
+          setTimeout(() => {
+            window.JS9.ResizeDisplay(displayId);
+          }, 100);
+        } catch (e) {
+          logger.warn('Failed to resize JS9 display:', e);
+        }
+      }
+    };
+
+    // Use ResizeObserver to detect container size changes
+    if (containerRef.current && typeof ResizeObserver !== 'undefined') {
+      const resizeObserver = new ResizeObserver(() => {
+        handleResize();
+      });
+      resizeObserver.observe(containerRef.current);
+
+      return () => {
+        resizeObserver.disconnect();
+      };
+    } else {
+      // Fallback to window resize event
+      window.addEventListener('resize', handleResize);
+      return () => {
+        window.removeEventListener('resize', handleResize);
+      };
+    }
+  }, [initialized, displayId]);
+
   return (
     <Box sx={{ position: 'relative', width: '100%', height: `${height}px` }}>
       <Box
@@ -669,8 +766,10 @@ export default function SkyViewer({
         id={displayId}
         ref={containerRef}
         component="div"
+        className={styles.JS9DisplayContainer}
         sx={{
           width: '100%',
+          maxWidth: '100%',
           minWidth: '400px',
           height: `${height}px`,
           minHeight: `${height}px`,
@@ -700,6 +799,9 @@ export default function SkyViewer({
         }}
       />
       
+      {/* WCS Coordinate Display Overlay */}
+      <WCSDisplay displayId={displayId} />
+
       {loading && !imageLoadedRef.current && (
         <Box
           sx={{

@@ -77,7 +77,7 @@ After completing Priority 1 (Region Mask Integration), we're deferring polish fe
 ### Phase 1: Unit Testing (Quick Verification) ✅ DONE
 - **Status:** Completed for Priority 1
 - **Results:** All tests passed
-- **Files:** `test_priority1_quick.py`
+- **Files:** `tests/test_priority1_quick.py`
 
 ### Phase 2: Integration Testing (Real Data)
 

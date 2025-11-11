@@ -110,8 +110,12 @@ function getWebSocketClient(): WebSocketClient | null {
   }
 
   if (!wsClientInstance) {
-    const apiUrl = import.meta.env.VITE_API_URL || 'http://localhost:8000';
-    const wsUrl = `${apiUrl}/api/ws/status`;
+    // Use VITE_API_URL if set, otherwise use relative /api for Vite proxy
+    const apiUrl = import.meta.env.VITE_API_URL || '/api';
+    // For WebSocket, convert http:// to ws:// or use relative path
+    const wsUrl = apiUrl.startsWith('http') 
+      ? `${apiUrl.replace(/^http/, 'ws')}/ws/status`
+      : `${window.location.protocol === 'https:' ? 'wss:' : 'ws:'}//${window.location.host}${apiUrl}/ws/status`;
     
     try {
       wsClientInstance = createWebSocketClient({

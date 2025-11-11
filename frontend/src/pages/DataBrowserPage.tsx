@@ -85,14 +85,15 @@ export default function DataBrowserPage() {
   const [dataTypeFilter, setDataTypeFilter] = useState<string>('all');
   const navigate = useNavigate();
 
-  // Fetch data based on tab (staging vs published)
-  const status = tabValue === 0 ? 'staging' : 'published';
-  const { data: instances, isLoading, error } = useDataInstances(
+  // Fetch data for both tabs independently to ensure proper caching
+  const stagingQuery = useDataInstances(
     dataTypeFilter !== 'all' ? dataTypeFilter : undefined,
-    status
+    'staging'
   );
-
-  const filteredInstances = instances || [];
+  const publishedQuery = useDataInstances(
+    dataTypeFilter !== 'all' ? dataTypeFilter : undefined,
+    'published'
+  );
 
   const handleViewDetails = (instance: DataInstance) => {
     navigate(`/data/${instance.data_type}/${instance.id}`);
@@ -146,18 +147,18 @@ export default function DataBrowserPage() {
 
       <TabPanel value={tabValue} index={0}>
         <DataTable
-          instances={filteredInstances}
-          isLoading={isLoading}
-          error={error}
+          instances={stagingQuery.data || []}
+          isLoading={stagingQuery.isLoading}
+          error={stagingQuery.error}
           onViewDetails={handleViewDetails}
           status="staging"
         />
       </TabPanel>
       <TabPanel value={tabValue} index={1}>
         <DataTable
-          instances={filteredInstances}
-          isLoading={isLoading}
-          error={error}
+          instances={publishedQuery.data || []}
+          isLoading={publishedQuery.isLoading}
+          error={publishedQuery.error}
           onViewDetails={handleViewDetails}
           status="published"
         />

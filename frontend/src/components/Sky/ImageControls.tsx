@@ -17,6 +17,7 @@ import {
   DialogContent,
   DialogActions,
   Typography,
+  Tooltip,
 } from '@mui/material';
 import {
   ZoomIn,
@@ -28,6 +29,7 @@ import {
   LocationOn,
 } from '@mui/icons-material';
 import { logger } from '../../utils/logger';
+import styles from './Sky.module.css';
 
 declare global {
   interface Window {
@@ -226,6 +228,45 @@ export default function ImageControls({
     }
   };
 
+  // Hide JS9 default menubar and integrate controls into dashboard
+  useEffect(() => {
+    if (!window.JS9) return;
+
+    const hideJS9Menubar = () => {
+      // Hide JS9 menubar elements
+      const selectors = [
+        '.JS9Menubar',
+        '.js9-menubar',
+        '.JS9 .JS9Menubar',
+        '.JS9 .js9-menubar',
+        '[class*="JS9Menubar"]',
+        '[class*="js9-menubar"]',
+      ];
+
+      selectors.forEach(selector => {
+        try {
+          const elements = document.querySelectorAll(selector);
+          elements.forEach((el: any) => {
+            if (el && el.style) {
+              el.style.display = 'none';
+              el.style.visibility = 'hidden';
+              el.style.height = '0';
+              el.style.overflow = 'hidden';
+            }
+          });
+        } catch (e) {
+          // Ignore selector errors
+        }
+      });
+    };
+
+    // Hide immediately and set up interval
+    hideJS9Menubar();
+    const interval = setInterval(hideJS9Menubar, 500);
+
+    return () => clearInterval(interval);
+  }, []);
+
   // Load saved colormap preference
   useEffect(() => {
     const savedColormap = localStorage.getItem('js9_colormap');
@@ -239,30 +280,39 @@ export default function ImageControls({
     <Box sx={{ display: 'flex', gap: 1, flexWrap: 'wrap', alignItems: 'center', mb: 2 }}>
       {/* Zoom Controls */}
       <ButtonGroup size="small" variant="outlined">
-        <Button onClick={handleZoomOut} title="Zoom Out">
-          <ZoomOut />
-        </Button>
-        <Button onClick={handleZoomReset} title="Zoom to Fit">
-          <FitScreen />
-        </Button>
-        <Button onClick={handleZoomIn} title="Zoom In">
-          <ZoomIn />
-        </Button>
+        <Tooltip title="Zoom out (reduce magnification)">
+          <Button onClick={handleZoomOut}>
+            <ZoomOut />
+          </Button>
+        </Tooltip>
+        <Tooltip title="Fit image to display size">
+          <Button onClick={handleZoomReset}>
+            <FitScreen />
+          </Button>
+        </Tooltip>
+        <Tooltip title="Zoom in (increase magnification)">
+          <Button onClick={handleZoomIn}>
+            <ZoomIn />
+          </Button>
+        </Tooltip>
       </ButtonGroup>
 
       {/* Zoom Level Display */}
-      <Typography variant="body2" sx={{ minWidth: '60px' }}>
-        {zoomLevel.toFixed(1)}x
-      </Typography>
+      <Tooltip title="Current zoom level">
+        <Typography variant="body2" sx={{ minWidth: '70px', fontWeight: 'medium' }}>
+          Zoom: {zoomLevel.toFixed(1)}x
+        </Typography>
+      </Tooltip>
 
       {/* Colormap Selector */}
-      <FormControl size="small" sx={{ minWidth: 120 }}>
-        <InputLabel>Colormap</InputLabel>
-        <Select
-          value={colormap}
-          label="Colormap"
-          onChange={(e) => handleColormapChange(e.target.value)}
-        >
+      <Tooltip title="Select color scheme for image display">
+        <FormControl size="small" sx={{ minWidth: 120 }}>
+          <InputLabel>Colormap</InputLabel>
+          <Select
+            value={colormap}
+            label="Colormap"
+            onChange={(e) => handleColormapChange(e.target.value)}
+          >
           <MenuItem value="grey">Grey</MenuItem>
           <MenuItem value="hot">Hot</MenuItem>
           <MenuItem value="cool">Cool</MenuItem>
@@ -271,28 +321,31 @@ export default function ImageControls({
           <MenuItem value="green">Green</MenuItem>
           <MenuItem value="blue">Blue</MenuItem>
         </Select>
-      </FormControl>
+        </FormControl>
+      </Tooltip>
 
       {/* Grid Toggle */}
-      <Button
-        size="small"
-        variant={gridVisible ? 'contained' : 'outlined'}
-        onClick={handleGridToggle}
-        title="Toggle Grid"
-      >
-        {gridVisible ? <GridOn /> : <GridOff />}
-      </Button>
+      <Tooltip title={gridVisible ? 'Hide coordinate grid' : 'Show coordinate grid'}>
+        <Button
+          size="small"
+          variant={gridVisible ? 'contained' : 'outlined'}
+          onClick={handleGridToggle}
+        >
+          {gridVisible ? <GridOn /> : <GridOff />}
+        </Button>
+      </Tooltip>
 
       {/* Go To Coordinates */}
-      <Button
-        size="small"
-        variant="outlined"
-        onClick={handleGoToCoordinates}
-        title="Go To Coordinates"
-        startIcon={<LocationOn />}
-      >
-        Go To
-      </Button>
+      <Tooltip title="Navigate to specific RA/Dec coordinates">
+        <Button
+          size="small"
+          variant="outlined"
+          onClick={handleGoToCoordinates}
+          startIcon={<LocationOn />}
+        >
+          Go To
+        </Button>
+      </Tooltip>
 
       {/* Coordinate Dialog */}
       <Dialog open={coordDialogOpen} onClose={() => setCoordDialogOpen(false)}>

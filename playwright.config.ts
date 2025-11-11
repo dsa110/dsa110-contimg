@@ -6,7 +6,18 @@ import { defineConfig, devices } from '@playwright/test';
  * See https://playwright.dev/docs/test-configuration.
  */
 export default defineConfig({
-  testDir: './tests/e2e',
+  testDir: '/app/tests/e2e', // Absolute path to E2E tests
+  
+  /* Only match Playwright test files */
+  testMatch: /.*\.(test|spec)\.(js|ts|tsx)$/,
+  
+  /* Ignore Vitest test files */
+  testIgnore: [
+    '**/node_modules/**',
+    '**/src/**/*.test.tsx',
+    '**/src/**/*.test.ts',
+    '**/src/**/__tests__/**',
+  ],
   
   /* Run tests in files in parallel */
   fullyParallel: true,
@@ -17,8 +28,8 @@ export default defineConfig({
   /* Retry on CI only */
   retries: process.env.CI ? 2 : 0,
   
-  /* Opt out of parallel tests on CI. */
-  workers: process.env.CI ? 1 : undefined,
+  /* Parallel execution: Use more workers locally, fewer on CI */
+  workers: process.env.CI ? 2 : 4, // Increased from 1 to 2 on CI, 4 locally
   
   /* Reporter to use. See https://playwright.dev/docs/test-reporters */
   reporter: [

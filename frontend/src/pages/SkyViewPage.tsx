@@ -11,7 +11,9 @@ import {
   Grid,
   Switch,
   FormControlLabel,
+  Button,
 } from '@mui/material';
+import { CompareArrows } from '@mui/icons-material';
 import ImageBrowser from '../components/Sky/ImageBrowser';
 import SkyViewer from '../components/Sky/SkyViewer';
 import ImageControls from '../components/Sky/ImageControls';
@@ -22,12 +24,18 @@ import RegionList from '../components/Sky/RegionList';
 import ProfileTool from '../components/Sky/ProfileTool';
 import ImageFittingTool from '../components/Sky/ImageFittingTool';
 import SkyMap from '../components/Sky/SkyMap';
+import PhotometryPlugin from '../components/Sky/plugins/PhotometryPlugin';
+import ImageStatisticsPlugin from '../components/Sky/plugins/ImageStatisticsPlugin';
+import CASAnalysisPlugin from '../components/Sky/plugins/CASAnalysisPlugin';
+import MultiImageCompare from '../components/Sky/MultiImageCompare';
+import QuickAnalysisPanel from '../components/Sky/QuickAnalysisPanel';
 import type { ImageInfo } from '../api/types';
 
 export default function SkyViewPage() {
   const [selectedImage, setSelectedImage] = useState<ImageInfo | null>(null);
   const [catalogOverlayVisible, setCatalogOverlayVisible] = useState(false);
   const [selectedRegionId, setSelectedRegionId] = useState<number | null>(null);
+  const [compareDialogOpen, setCompareDialogOpen] = useState(false);
 
   // Construct FITS URL for selected image
   const fitsUrl = selectedImage
@@ -61,7 +69,7 @@ export default function SkyViewPage() {
 
       <Grid container spacing={3}>
         {/* Image Browser Sidebar */}
-        <Grid item xs={12} md={4} {...({} as any)}>
+        <Grid size={{ xs: 12, md: 4 }}>
           <ImageBrowser
             onSelectImage={setSelectedImage}
             selectedImageId={selectedImage?.id}
@@ -69,14 +77,29 @@ export default function SkyViewPage() {
         </Grid>
 
         {/* Main Image Display */}
-        <Grid item xs={12} md={8} {...({} as any)}>
+        <Grid size={{ xs: 12, md: 8 }}>
           <Paper sx={{ p: 3 }}>
-            <Typography variant="h6" gutterBottom sx={{ mb: 2 }}>
-              Image Display
-            </Typography>
+            <Box display="flex" justifyContent="space-between" alignItems="center" sx={{ mb: 2 }}>
+              <Typography variant="h6">
+                Image Display
+              </Typography>
+              <Button
+                variant="outlined"
+                startIcon={<CompareArrows />}
+                onClick={() => setCompareDialogOpen(true)}
+                size="small"
+              >
+                Compare Images
+              </Button>
+            </Box>
             
             {/* Image Controls */}
             <ImageControls displayId="skyViewDisplay" />
+            
+            {/* Quick Analysis Panel - Always visible */}
+            <Box sx={{ mb: 2 }}>
+              <QuickAnalysisPanel displayId="skyViewDisplay" />
+            </Box>
             
             {/* Catalog Overlay Toggle */}
             {selectedImage && imageCenter.ra !== null && imageCenter.dec !== null && (
@@ -135,6 +158,34 @@ export default function SkyViewPage() {
                 />
               </Box>
             )}
+
+            {/* Image Statistics Plugin */}
+            {selectedImage && (
+              <ImageStatisticsPlugin
+                displayId="skyViewDisplay"
+                imageInfo={{
+                  noise_jy: selectedImage.noise_jy,
+                  beam_major_arcsec: selectedImage.beam_major_arcsec,
+                  beam_minor_arcsec: selectedImage.beam_minor_arcsec,
+                  beam_pa_deg: selectedImage.beam_pa_deg,
+                }}
+              />
+            )}
+
+            {/* Photometry Plugin */}
+            {selectedImage && (
+              <PhotometryPlugin displayId="skyViewDisplay" />
+            )}
+
+            {/* CASA Analysis Plugin */}
+            {selectedImage && (
+              <Box sx={{ mb: 2 }}>
+                <CASAnalysisPlugin
+                  displayId="skyViewDisplay"
+                  imagePath={selectedImage.path}
+                />
+              </Box>
+            )}
             
             {/* Image Metadata */}
             {selectedImage && (
@@ -170,6 +221,14 @@ export default function SkyViewPage() {
           </Paper>
         </Grid>
       </Grid>
+
+      {/* Multi-Image Compare Dialog */}
+      <MultiImageCompare
+        open={compareDialogOpen}
+        onClose={() => setCompareDialogOpen(false)}
+        initialImageA={selectedImage}
+        initialImageB={null}
+      />
     </Container>
   );
 }

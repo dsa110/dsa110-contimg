@@ -39,4 +39,28 @@ services:
     profiles:
       - build
 
+  frontend-e2e:
+    build:
+      context: ..
+      dockerfile: frontend/Dockerfile.test
+    container_name: dsa110-frontend-e2e
+    working_dir: /app/frontend
+    volumes:
+      - ../tests:/app/tests:ro
+      - playwright-report:/app/frontend/playwright-report
+      - test-results:/app/frontend/test-results
+    environment:
+      - CI=true
+      - PLAYWRIGHT_BROWSERS_PATH=/ms-playwright
+      - NODE_PATH=/app/frontend/node_modules
+    command: npx playwright test
+    profiles:
+      - e2e
+      - test
+
+volumes:
+  frontend-node-modules:
+  playwright-report:
+  test-results:
+
 

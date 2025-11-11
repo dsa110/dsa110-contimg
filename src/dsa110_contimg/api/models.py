@@ -2,10 +2,13 @@
 
 from __future__ import annotations
 
-from datetime import datetime
+from datetime import datetime as dt
 from typing import Dict, List, Optional, Union
 
 from pydantic import BaseModel, Field
+
+# Re-export datetime for backward compatibility in type annotations
+datetime = dt
 
 
 class QueueGroup(BaseModel):
@@ -609,7 +612,7 @@ class CalibrationQA(BaseModel):
     flags_total: Optional[float] = None  # Fraction of flagged solutions
     # Per-SPW flagging statistics
     per_spw_stats: Optional[List[PerSPWStats]] = None
-    timestamp: datetime = Field(default_factory=datetime.utcnow)
+    timestamp: datetime = Field(default_factory=dt.utcnow)
 
 
 class ImageQA(BaseModel):
@@ -627,7 +630,7 @@ class ImageQA(BaseModel):
     num_sources: Optional[int] = None
     thumbnail_path: Optional[str] = None
     overall_quality: str = "unknown"  # excellent, good, marginal, poor, unknown
-    timestamp: datetime = Field(default_factory=datetime.utcnow)
+    timestamp: datetime = Field(default_factory=dt.utcnow)
 
 
 class QAMetrics(BaseModel):
@@ -763,15 +766,23 @@ class ExternalCatalogMatch(BaseModel):
     catalog: str = Field(..., description="Catalog name (simbad, ned, gaia)")
     matched: bool = Field(..., description="Whether a match was found")
     main_id: Optional[str] = Field(None, description="Primary identifier")
-    object_type: Optional[str] = Field(None, description="Object type/classification")
-    separation_arcsec: Optional[float] = Field(None, description="Separation from query position")
+    object_type: Optional[str] = Field(
+        None, description="Object type/classification")
+    separation_arcsec: Optional[float] = Field(
+        None, description="Separation from query position")
     redshift: Optional[float] = Field(None, description="Redshift (NED)")
-    parallax: Optional[float] = Field(None, description="Parallax in mas (Gaia)")
-    distance: Optional[float] = Field(None, description="Distance in pc (Gaia)")
-    pmra: Optional[float] = Field(None, description="Proper motion RA (mas/yr, Gaia)")
-    pmdec: Optional[float] = Field(None, description="Proper motion Dec (mas/yr, Gaia)")
-    phot_g_mean_mag: Optional[float] = Field(None, description="G-band magnitude (Gaia)")
-    error: Optional[str] = Field(None, description="Error message if query failed")
+    parallax: Optional[float] = Field(
+        None, description="Parallax in mas (Gaia)")
+    distance: Optional[float] = Field(
+        None, description="Distance in pc (Gaia)")
+    pmra: Optional[float] = Field(
+        None, description="Proper motion RA (mas/yr, Gaia)")
+    pmdec: Optional[float] = Field(
+        None, description="Proper motion Dec (mas/yr, Gaia)")
+    phot_g_mean_mag: Optional[float] = Field(
+        None, description="G-band magnitude (Gaia)")
+    error: Optional[str] = Field(
+        None, description="Error message if query failed")
 
 
 class ExternalCatalogsResponse(BaseModel):
@@ -780,7 +791,8 @@ class ExternalCatalogsResponse(BaseModel):
     ra_deg: float
     dec_deg: float
     matches: Dict[str, ExternalCatalogMatch]
-    query_time_sec: Optional[float] = Field(None, description="Total query time")
+    query_time_sec: Optional[float] = Field(
+        None, description="Total query time")
 
 
 class AlertHistory(BaseModel):
@@ -907,8 +919,8 @@ class ImageDetail(BaseModel):
     rms_max: Optional[float] = Field(None, description="Maximum RMS in mJy")
     frequency: Optional[float] = Field(None, description="Frequency in MHz")
     bandwidth: Optional[float] = Field(None, description="Bandwidth in MHz")
-    datetime: Optional[datetime] = None
-    created_at: Optional[datetime] = None
+    datetime: Optional[dt] = None  # Use dt alias to avoid shadowing
+    created_at: Optional[dt] = None  # Use dt alias to avoid shadowing
     n_meas: int = Field(0, description="Number of measurements")
     n_runs: int = Field(0, description="Number of runs")
     type: str = Field(..., description="Image type")

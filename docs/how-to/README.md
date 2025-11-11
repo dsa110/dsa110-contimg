@@ -43,6 +43,7 @@
 - **[Dashboard Development](dashboard-development.md)** - Develop dashboard features
 - **[Control Panel Quickstart](control-panel-quickstart.md)** - Control panel setup
 - **[Frontend Initial Setup](frontend-initial-setup.md)** - Frontend development setup
+- **[JS9 CASA Analysis](js9_casa_analysis.md)** - Use CASA analysis tasks in JS9 viewer
 
 ### Utilities
 - **[Downsampling Guide](downsampling_guide.md)** - Downsample data for testing

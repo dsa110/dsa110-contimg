@@ -31,7 +31,9 @@ import {
   Schedule as ScheduleIcon,
   TrendingUp as TrendingUpIcon,
 } from '@mui/icons-material';
-import { usePointingHistory, useCalibratorMatches, usePipelineStatus } from '../api/queries';
+import { usePointingHistory, usePipelineStatus } from '../api/queries';
+import { apiClient } from '../api/client';
+import { useQuery } from '@tanstack/react-query';
 import PointingVisualization from '../components/PointingVisualization';
 import Plot from 'react-plotly.js';
 import type { Data, Layout } from 'plotly.js';
@@ -71,13 +73,38 @@ export default function ObservingPage() {
     error: pointingError,
   } = usePointingHistory(startMjd, endMjd);
 
+  // Fetch recent calibrator matches
   const {
     data: calibratorMatches,
     isLoading: calibratorLoading,
-  } = useCalibratorMatches(null, 'vla', 1.5);
+  } = useQuery({
+    queryKey: ['calibrator-matches', 'recent'],
+    queryFn: async () => {
+      const response = await apiClient.get('/api/calibrator_matches?limit=50&matched_only=true');
+      return response.data;
+    },
+    refetchInterval: 60000, // Refresh every minute
+  });
 
   const historyData = pointingHistory?.items || [];
   const calibratorData = calibratorMatches?.items || [];
+  
+  // Extract individual calibrator matches from groups
+  const allCalibratorMatches = useMemo(() => {
+    const matches: any[] = [];
+    calibratorData.forEach((group: any) => {
+      if (group.matches && Array.isArray(group.matches)) {
+        group.matches.forEach((match: any) => {
+          matches.push({
+            ...match,
+            timestamp: group.received_at || group.last_update,
+            group_id: group.group_id,
+          });
+        });
+      }
+    });
+    return matches;
+  }, [calibratorData]);
 
   // Get current pointing from most recent history entry
   const currentPointing = useMemo(() => {
@@ -94,17 +121,16 @@ export default function ObservingPage() {
 
   // Prepare calibrator flux vs elevation plot
   const calibratorPlotData = useMemo(() => {
-    if (!calibratorData.length) return { data: [], layout: {} };
+    if (!allCalibratorMatches.length) return { data: [], layout: {} };
 
     const data: Data[] = [];
-    const calibratorNames = new Set(calibratorData.map((m: any) => m.name).filter(Boolean));
+    const calibratorNames = new Set(allCalibratorMatches.map((m: any) => m.name).filter(Boolean));
 
     calibratorNames.forEach((name) => {
-      const matches = calibratorData.filter((m: any) => m.name === name);
+      const matches = allCalibratorMatches.filter((m: any) => m.name === name);
       if (matches.length > 1) {
         const times = matches.map((m: any) => new Date(m.timestamp || Date.now()));
-        const fluxes = matches.map((m: any) => m.flux_jy * 1000); // Convert to mJy
-        const elevations = matches.map((m: any) => m.elevation_deg || 0);
+        const fluxes = matches.map((m: any) => (m.weighted_flux || m.flux_jy || 0) * 1000); // Convert to mJy
 
         data.push({
           type: 'scatter',
@@ -112,8 +138,7 @@ export default function ObservingPage() {
           name: name,
           x: times,
           y: fluxes,
-          text: elevations.map((e) => `Elevation: ${e.toFixed(1)}°`),
-          hovertemplate: `${name}<br>Flux: %{y:.2f} mJy<br>%{text}<extra></extra>`,
+          hovertemplate: `${name}<br>Flux: %{y:.2f} mJy<br>Time: %{x}<extra></extra>`,
         });
       }
     });
@@ -127,7 +152,7 @@ export default function ObservingPage() {
     };
 
     return { data, layout };
-  }, [calibratorData]);
+  }, [allCalibratorMatches]);
 
   return (
     <Container maxWidth="xl" sx={{ py: 4 }}>
@@ -221,7 +246,7 @@ export default function ObservingPage() {
             <CardContent>
               {calibratorLoading ? (
                 <CircularProgress />
-              ) : calibratorData.length > 0 ? (
+              ) : allCalibratorMatches.length > 0 ? (
                 <TableContainer>
                   <Table size="small">
                     <TableHead>
@@ -230,18 +255,22 @@ export default function ObservingPage() {
                         <TableCell>RA (deg)</TableCell>
                         <TableCell>Dec (deg)</TableCell>
                         <TableCell>Flux (mJy)</TableCell>
+                        <TableCell>Separation (°)</TableCell>
                         <TableCell>Last Seen</TableCell>
                       </TableRow>
                     </TableHead>
                     <TableBody>
-                      {calibratorData.slice(0, 10).map((match: any, idx: number) => (
+                      {allCalibratorMatches.slice(0, 10).map((match: any, idx: number) => (
                         <TableRow key={idx}>
                           <TableCell>{match.name || 'Unknown'}</TableCell>
                           <TableCell>{match.ra_deg?.toFixed(4) || 'N/A'}</TableCell>
                           <TableCell>{match.dec_deg?.toFixed(4) || 'N/A'}</TableCell>
                           <TableCell>
-                            {match.flux_jy ? (match.flux_jy * 1000).toFixed(2) : 'N/A'}
+                            {(match.weighted_flux || match.flux_jy || 0) * 1000 > 0
+                              ? ((match.weighted_flux || match.flux_jy) * 1000).toFixed(2)
+                              : 'N/A'}
                           </TableCell>
+                          <TableCell>{match.sep_deg?.toFixed(3) || 'N/A'}</TableCell>
                           <TableCell>
                             {match.timestamp
                               ? dayjs(match.timestamp).format('MM-DD HH:mm')

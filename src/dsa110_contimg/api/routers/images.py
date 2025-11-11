@@ -1,6 +1,7 @@
 """Image-related API routes extracted from routes.py."""
 from __future__ import annotations
 
+import logging
 from datetime import datetime
 from pathlib import Path
 
@@ -10,6 +11,8 @@ from fastapi.responses import FileResponse, HTMLResponse
 from dsa110_contimg.api.data_access import _connect
 from dsa110_contimg.api.image_utils import get_fits_path
 from dsa110_contimg.api.models import ImageDetail, ImageInfo, ImageList
+
+logger = logging.getLogger(__name__)
 
 router = APIRouter()
 
@@ -152,10 +155,14 @@ def images(
                                     center_pix = [hdr.get('NAXIS1', 0) / 2, hdr.get('NAXIS2', 0) / 2]
                                     if hdr.get('NAXIS', 0) >= 2:
                                         ra, center_dec = wcs.all_pix2world(center_pix[0], center_pix[1], 0)
-                            except Exception:
-                                pass
-                    except Exception:
-                        pass
+                            except (ValueError, TypeError, AttributeError, KeyError) as e:
+                                logger.debug(
+                                    f"Could not parse WCS for dec filter (image {r.get('id', 'unknown')}): {e}"
+                                )
+                    except (OSError, IOError, KeyError) as e:
+                        logger.debug(
+                            f"Could not read FITS for dec filter (image {r.get('id', 'unknown')}): {e}"
+                        )
             
             # Apply declination filter
             if dec_min is not None and center_dec is not None and center_dec < dec_min:
@@ -204,10 +211,14 @@ def images(
                                 center_pix = [hdr.get('NAXIS1', 0) / 2, hdr.get('NAXIS2', 0) / 2]
                                 if hdr.get('NAXIS', 0) >= 2:
                                     center_ra, center_dec = wcs.all_pix2world(center_pix[0], center_pix[1], 0)
-                        except Exception:
-                            pass
-                except Exception:
-                    pass
+                        except (ValueError, TypeError, AttributeError, KeyError) as e:
+                            logger.debug(
+                                f"Could not parse WCS for response (image {r.get('id', 'unknown')}): {e}"
+                            )
+                except (OSError, IOError, KeyError) as e:
+                    logger.debug(
+                        f"Could not read FITS for response (image {r.get('id', 'unknown')}): {e}"
+                    )
             
             items.append(
                 ImageInfo(
@@ -280,8 +291,10 @@ def get_image_detail(request: Request, image_id: int):
                 if 'image_path' in cols:
                     count_row = conn.execute("SELECT COUNT(*) as cnt FROM photometry WHERE image_path = ?", (image_path,)).fetchone()
                     n_meas = count_row['cnt'] if count_row else 0
-        except Exception:
-            pass
+        except Exception as e:
+            logger.debug(
+                f"Could not count measurements for image {image_id}: {e}"
+            )
         n_runs = 0
         ra = dec = ra_hms = dec_dms = l = b = frequency = bandwidth = datetime_str = None
         fits_path = get_fits_path(image_path)
@@ -300,8 +313,11 @@ def get_image_detail(request: Request, image_id: int):
                                 dec_dms = coord.dec.to_string(unit=u.deg, sep=':', precision=2)
                                 l = coord.galactic.l.deg
                                 b = coord.galactic.b.deg
-                    except Exception:
-                        pass
+                    except (ValueError, TypeError, AttributeError, KeyError) as e:
+                        # WCS parsing can fail if header is incomplete or malformed
+                        logger.debug(
+                            f"Could not parse WCS coordinates for image {image_id}: {e}"
+                        )
                     if 'RESTFRQ' in hdr:
                         frequency = hdr['RESTFRQ'] / 1e6
                     elif 'CRVAL3' in hdr and 'CUNIT3' in hdr:
@@ -320,8 +336,18 @@ def get_image_detail(request: Request, image_id: int):
                             bandwidth = bw_val
                     if 'DATE-OBS' in hdr:
                         datetime_str = hdr['DATE-OBS']
-            except Exception:
-                pass
+            except (OSError, IOError, KeyError, ValueError, TypeError) as e:
+                # FITS reading can fail for various reasons (corrupted file, missing keys, etc.)
+                logger.warning(
+                    f"Failed to read FITS header for image {image_id} ({image_path}): {e}",
+                    exc_info=True
+                )
+            except Exception as e:
+                # Catch-all for unexpected errors during FITS reading
+                logger.error(
+                    f"Unexpected error reading FITS header for image {image_id} ({image_path}): {e}",
+                    exc_info=True
+                )
         name = Path(image_path).name
         return ImageDetail(
             id=image_id,
@@ -337,7 +363,7 @@ def get_image_detail(request: Request, image_id: int):
             frequency=frequency,
             bandwidth=bandwidth,
             datetime=datetime.fromisoformat(datetime_str) if datetime_str else None,
-            created_at=datetime.fromtimestamp(row["created_at"]) if row["created_at"] else None,
+            created_at=datetime.fromtimestamp(row["created_at"]) if row["created_at"] is not None else None,
             n_meas=n_meas,
             n_runs=n_runs,
             type=row["type"],

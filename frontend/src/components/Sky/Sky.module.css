@@ -1,0 +1,102 @@
+/**
+ * Sky Component Styles
+ * CSS overrides for JS9 integration with Material-UI dashboard
+ */
+
+/* Hide JS9 default menubar */
+.JS9Menubar,
+.js9-menubar,
+.JS9 .JS9Menubar,
+.JS9 .js9-menubar,
+[class*="JS9Menubar"],
+[class*="js9-menubar"] {
+  display: none !important;
+  visibility: hidden !important;
+  height: 0 !important;
+  overflow: hidden !important;
+}
+
+/* Hide JS9 default toolbar if present */
+.JS9Toolbar,
+.js9-toolbar,
+.JS9 .JS9Toolbar,
+.JS9 .js9-toolbar {
+  display: none !important;
+}
+
+/* Ensure JS9 display fills container */
+.JS9,
+.js9-display,
+.JS9Display {
+  width: 100% !important;
+  max-width: 100% !important;
+  height: 100% !important;
+}
+
+/* Ensure JS9 canvas fills container */
+.JS9 canvas,
+.js9-display canvas {
+  width: 100% !important;
+  max-width: 100% !important;
+}
+
+/* Style JS9 canvas to match dashboard theme */
+.JS9 canvas,
+.js9-display canvas {
+  background-color: #0a0a0a !important;
+  border-radius: 4px;
+}
+
+/* Hide JS9 loading indicators (handled by React) */
+.JS9Loading,
+.js9-loading,
+[class*="js9"][class*="load"],
+[class*="JS9"][class*="Load"] {
+  display: none !important;
+  visibility: hidden !important;
+  opacity: 0 !important;
+  pointer-events: none !important;
+}
+
+/* Style JS9 region overlays to match dashboard */
+.JS9Region,
+.js9-region {
+  stroke-width: 2px;
+  stroke-opacity: 0.8;
+  fill-opacity: 0.1;
+}
+
+/* Ensure JS9 display container doesn't interfere with Material-UI */
+.JS9DisplayContainer {
+  position: relative;
+  width: 100% !important;
+  max-width: 100% !important;
+  height: 100%;
+}
+
+/* Ensure JS9 div inside container takes full width */
+.JS9DisplayContainer > div,
+.JS9DisplayContainer > div > div {
+  width: 100% !important;
+  max-width: 100% !important;
+}
+
+/* Hide JS9's default coordinate display (we have our own) */
+.JS9CoordDisplay,
+.js9-coord-display {
+  display: none !important;
+}
+
+/* Match JS9 text color to dashboard theme */
+.JS9,
+.JS9 * {
+  color: inherit;
+}
+
+/* Ensure JS9 doesn't override Material-UI styles */
+.JS9 button,
+.JS9 input,
+.JS9 select {
+  font-family: inherit;
+}
+

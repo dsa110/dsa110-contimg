@@ -22,7 +22,7 @@ except ImportError:
 
 # Get project root
 PROJECT_ROOT = Path(__file__).parent.parent
-TODO_FILE = PROJECT_ROOT / "TODO.md"
+TODO_FILE = PROJECT_ROOT / "docs" / "dev" / "notes" / "TODO.md"
 CONFIG_FILE = PROJECT_ROOT / ".linear_config.json"
 
 # Linear API endpoint

@@ -2,7 +2,9 @@ version: '3.8'
 
 services:
   api:
-    image: continuumdevs/dsa110-api:latest
+    build:
+      context: .
+      dockerfile: ops/docker/Dockerfile
     container_name: dsa110-api
     ports:
       - "8000:8000"
@@ -16,7 +18,7 @@ services:
       - PIPELINE_QUEUE_DB=/app/state/ingest_queue.sqlite3
       - PIPELINE_STATE_DIR=/app/state
     restart: unless-stopped
-    command: uvicorn dsa110_contimg.api.server:app --host 0.0.0.0 --port 8000
+    command: uvicorn dsa110_contimg.api:app --host 0.0.0.0 --port 8000 --reload
     healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost:8000/api/status"]
       interval: 30s
@@ -36,6 +38,30 @@ services:
     command: serve -s /app/build -l 3000
     healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost:3000"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+  dashboard-dev:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile.dev
+    container_name: dsa110-dashboard-dev
+    ports:
+      - "5174:5173"  # Use port 5174 on host to avoid conflict with local dev server
+    volumes:
+      - ./frontend:/app
+      - /app/node_modules
+    environment:
+      - VITE_API_URL=/api  # Use relative path for Vite proxy (/api -> backend)
+      - NODE_ENV=development
+      - API_PROXY_TARGET=http://api:8000
+    restart: unless-stopped
+    depends_on:
+      - api
+    command: npm run dev -- --host 0.0.0.0
+    healthcheck:
+      test: ["CMD", "node", "-e", "require('http').get('http://localhost:5173', (r) => process.exit(r.statusCode === 200 ? 0 : 1)).on('error', () => process.exit(1))"]
       interval: 30s
       timeout: 10s
       retries: 3

@@ -9,10 +9,10 @@ import { createCircuitBreaker } from './circuitBreaker';
 
 // Use current origin when served from API at /ui, otherwise use relative URL (proxied by Vite)
 // In Docker, Vite proxy handles /api -> backend service
-// For dev mode, use direct backend URL if proxy fails
+// If VITE_API_URL is explicitly set, use it; otherwise use relative /api for proxy
 const API_BASE_URL = (typeof window !== 'undefined' && window.location.pathname.startsWith('/ui')) 
   ? window.location.origin 
-  : (import.meta.env.DEV ? 'http://127.0.0.1:8000' : ''); // Direct backend URL in dev mode to bypass proxy issues
+  : (import.meta.env.VITE_API_URL || ''); // Use VITE_API_URL if set, otherwise empty string uses relative /api (Vite proxy)
 
 // Create circuit breaker for API calls
 const circuitBreaker = createCircuitBreaker({

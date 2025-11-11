@@ -1,6 +1,6 @@
 /**
  * Source Monitoring Page
- * AG Grid table for per-source flux timeseries monitoring
+ * AG Grid table for per-source flux timeseries monitoring with advanced filtering
  */
 import { useState, useMemo, useRef } from 'react';
 import {
@@ -11,27 +11,81 @@ import {
   TextField,
   Button,
   Alert,
+  Stack,
+  Chip,
+  Collapse,
+  FormControl,
+  InputLabel,
+  Select,
+  MenuItem,
+  Slider,
+  FormControlLabel,
+  Checkbox,
+  IconButton,
+  Divider,
 } from '@mui/material';
-import { Search } from '@mui/icons-material';
+import {
+  Search,
+  ExpandMore,
+  ExpandLess,
+  FilterList,
+  Clear as ClearIcon,
+} from '@mui/icons-material';
+import { useNavigate } from 'react-router-dom';
 import { AgGridReact } from 'ag-grid-react';
 import type { ColDef } from 'ag-grid-community';
+import { Grid } from '@mui/material';
 import 'ag-grid-community/styles/ag-grid.css';
 import 'ag-grid-community/styles/ag-theme-alpine.css';
 import { useSourceSearch } from '../api/queries';
-import type { SourceTimeseries } from '../api/types';
+import type { SourceTimeseries, SourceSearchRequest } from '../api/types';
 
 export default function SourceMonitoringPage() {
+  const navigate = useNavigate();
   const [sourceId, setSourceId] = useState('');
-  const [searchRequest, setSearchRequest] = useState<{ source_id: string } | null>(null);
+  const [showAdvancedFilters, setShowAdvancedFilters] = useState(false);
+  const [variabilityThreshold, setVariabilityThreshold] = useState(5);
+  const [eseOnly, setEseOnly] = useState(false);
+  const [decMin, setDecMin] = useState(-90);
+  const [decMax, setDecMax] = useState(90);
+  const [searchRequest, setSearchRequest] = useState<SourceSearchRequest | null>(null);
   const gridRef = useRef<AgGridReact>(null);
 
   const { data, isLoading, error } = useSourceSearch(searchRequest);
 
   const handleSearch = () => {
+    const request: SourceSearchRequest = {};
+    
     if (sourceId.trim()) {
-      setSearchRequest({ source_id: sourceId.trim() });
+      request.source_id = sourceId.trim();
     }
+    
+    if (showAdvancedFilters) {
+      request.limit = 1000; // Allow more results with filters
+    } else {
+      request.limit = 100;
+    }
+    
+    setSearchRequest(Object.keys(request).length > 0 ? request : null);
   };
+
+  const handleClearFilters = () => {
+    setSourceId('');
+    setVariabilityThreshold(5);
+    setEseOnly(false);
+    setDecMin(-90);
+    setDecMax(90);
+    setSearchRequest(null);
+  };
+
+  const activeFiltersCount = useMemo(() => {
+    let count = 0;
+    if (sourceId.trim()) count++;
+    if (variabilityThreshold !== 5) count++;
+    if (eseOnly) count++;
+    if (decMin !== -90 || decMax !== 90) count++;
+    return count;
+  }, [sourceId, variabilityThreshold, eseOnly, decMin, decMax]);
 
   const columnDefs = useMemo<ColDef<SourceTimeseries>[]>(
     () => [
@@ -41,6 +95,14 @@ export default function SourceMonitoringPage() {
         width: 200,
         pinned: 'left',
         cellStyle: { fontFamily: 'monospace' },
+        cellRenderer: (params: any) => (
+          <span
+            style={{ cursor: 'pointer', textDecoration: 'underline', color: '#90caf9' }}
+            onClick={() => navigate(`/sources/${encodeURIComponent(params.value)}`)}
+          >
+            {params.value}
+          </span>
+        ),
       },
       {
         field: 'ra_deg',
@@ -120,27 +182,110 @@ export default function SourceMonitoringPage() {
 
       {/* Search Interface */}
       <Paper sx={{ p: 3, mb: 3 }}>
-        <Typography variant="h6" gutterBottom>
-          Search Sources
-        </Typography>
-        <Box display="flex" gap={2} alignItems="center">
-          <TextField
-            label="Source ID (e.g., NVSS J123456.7+420312)"
-            value={sourceId}
-            onChange={(e) => setSourceId(e.target.value)}
-            onKeyPress={(e) => e.key === 'Enter' && handleSearch()}
-            size="small"
-            sx={{ flexGrow: 1, maxWidth: 400 }}
-          />
-          <Button
-            variant="contained"
-            startIcon={<Search />}
-            onClick={handleSearch}
-            disabled={!sourceId.trim()}
-          >
-            Search
-          </Button>
-        </Box>
+        <Stack spacing={2}>
+          <Box display="flex" justifyContent="space-between" alignItems="center">
+            <Typography variant="h6">Search Sources</Typography>
+            <Box display="flex" gap={1} alignItems="center">
+              {activeFiltersCount > 0 && (
+                <Chip
+                  label={`${activeFiltersCount} filter${activeFiltersCount > 1 ? 's' : ''}`}
+                  size="small"
+                  onDelete={handleClearFilters}
+                  deleteIcon={<ClearIcon />}
+                />
+              )}
+              <Button
+                size="small"
+                startIcon={showAdvancedFilters ? <ExpandLess /> : <ExpandMore />}
+                onClick={() => setShowAdvancedFilters(!showAdvancedFilters)}
+              >
+                {showAdvancedFilters ? 'Hide' : 'Show'} Advanced Filters
+              </Button>
+            </Box>
+          </Box>
+
+          <Box display="flex" gap={2} alignItems="center" flexWrap="wrap">
+            <TextField
+              label="Source ID (e.g., NVSS J123456.7+420312)"
+              value={sourceId}
+              onChange={(e) => setSourceId(e.target.value)}
+              onKeyPress={(e) => e.key === 'Enter' && handleSearch()}
+              size="small"
+              sx={{ flexGrow: 1, minWidth: 300 }}
+            />
+            <Button
+              variant="contained"
+              startIcon={<Search />}
+              onClick={handleSearch}
+              disabled={!sourceId.trim() && !showAdvancedFilters}
+            >
+              Search
+            </Button>
+            {activeFiltersCount > 0 && (
+              <Button
+                variant="outlined"
+                startIcon={<ClearIcon />}
+                onClick={handleClearFilters}
+              >
+                Clear
+              </Button>
+            )}
+          </Box>
+
+          {/* Advanced Filters */}
+          <Collapse in={showAdvancedFilters}>
+            <Divider sx={{ my: 2 }} />
+            <Grid container spacing={2}>
+              <Grid item xs={12} md={6}>
+                <Typography variant="body2" gutterBottom>
+                  Variability Threshold (σ): {variabilityThreshold}
+                </Typography>
+                <Slider
+                  value={variabilityThreshold}
+                  onChange={(_, value) => setVariabilityThreshold(value as number)}
+                  min={0}
+                  max={10}
+                  step={0.5}
+                  marks={[
+                    { value: 0, label: '0' },
+                    { value: 5, label: '5' },
+                    { value: 10, label: '10' },
+                  ]}
+                />
+              </Grid>
+              <Grid item xs={12} md={6}>
+                <Typography variant="body2" gutterBottom>
+                  Declination Range: {decMin.toFixed(1)}° to {decMax.toFixed(1)}°
+                </Typography>
+                <Box sx={{ px: 2 }}>
+                  <Slider
+                    value={[decMin, decMax]}
+                    onChange={(_, value) => {
+                      const [min, max] = value as number[];
+                      setDecMin(min);
+                      setDecMax(max);
+                    }}
+                    min={-90}
+                    max={90}
+                    step={1}
+                    valueLabelDisplay="auto"
+                  />
+                </Box>
+              </Grid>
+              <Grid item xs={12}>
+                <FormControlLabel
+                  control={
+                    <Checkbox
+                      checked={eseOnly}
+                      onChange={(e) => setEseOnly(e.target.checked)}
+                    />
+                  }
+                  label="Show only ESE candidates (>5σ variability)"
+                />
+              </Grid>
+            </Grid>
+          </Collapse>
+        </Stack>
       </Paper>
 
       {/* Results Table */}

@@ -1,7 +1,7 @@
 # Priority 1: Region Mask Integration - Test Results
 
 **Date:** 2025-01-27  
-**Test Script:** `test_priority1_quick.py`  
+**Test Script:** `tests/test_priority1_quick.py`  
 **Status:** ✅ ALL TESTS PASSED
 
 ---
@@ -81,7 +81,7 @@ This approach is faster and more focused than testing with large real FITS files
 
 ## Test Files
 
-- **Test Script:** `test_priority1_quick.py`
+- **Test Script:** `tests/test_priority1_quick.py`
 - **Strategy Document:** `docs/analysis/PRIORITY1_TESTING_STRATEGY.md`
 - **Implementation Summary:** `docs/analysis/PRIORITY1_COMPLETION.md`
 

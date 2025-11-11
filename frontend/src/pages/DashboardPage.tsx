@@ -30,7 +30,7 @@ export default function DashboardPage() {
     return (
       <Container maxWidth="xl" sx={{ py: 4 }}>
         <Alert severity="error">
-          Failed to connect to DSA-110 pipeline API. Is the backend running at {import.meta.env.VITE_API_URL || 'http://localhost:8000'}?
+          Failed to connect to DSA-110 pipeline API. {import.meta.env.VITE_API_URL ? `Using API URL: ${import.meta.env.VITE_API_URL}` : 'Using Vite proxy (/api).'} Is the backend running?
         </Alert>
       </Container>
     );

@@ -13,7 +13,7 @@ from pathlib import Path
 
 # Get project root (assuming script is in scripts/)
 PROJECT_ROOT = Path(__file__).parent.parent
-TODO_FILE = PROJECT_ROOT / "TODO.md"
+TODO_FILE = PROJECT_ROOT / "docs" / "dev" / "notes" / "TODO.md"
 
 # Date format: YYYY-MM-DD
 DATE_FORMAT = "%Y-%m-%d"

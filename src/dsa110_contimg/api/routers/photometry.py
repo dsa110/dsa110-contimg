@@ -1,6 +1,7 @@
 """Photometry and sources-related API routes extracted from routes.py."""
 from __future__ import annotations
 
+import logging
 import tempfile
 from datetime import datetime
 from pathlib import Path
@@ -23,6 +24,8 @@ from dsa110_contimg.api.models import (
     SourceTimeseries,
     VariabilityMetrics,
 )
+
+logger = logging.getLogger(__name__)
 
 router = APIRouter()
 
@@ -205,8 +208,11 @@ def get_source_detail(request: Request, source_id: str):
                 n_epochs=metrics.get("n_epochs", 0),
                 is_variable=metrics.get("is_variable", False),
             )
-        except Exception:
-            pass
+        except Exception as e:
+            logger.warning(
+                f"Failed to calculate variability metrics for source {source_id}: {e}",
+                exc_info=True
+            )
         # Compute summary metrics
         n_forced = 0
         mean_flux = std_flux = max_snr = None
@@ -226,8 +232,11 @@ def get_source_detail(request: Request, source_id: str):
                     snr_vals = snr_series.dropna().astype(float)
                     if len(snr_vals) > 0:
                         max_snr = float(snr_vals.max())
-        except Exception:
-            pass
+        except Exception as e:
+            logger.warning(
+                f"Failed to compute summary metrics for source {source_id}: {e}",
+                exc_info=True
+            )
         # Simple ESE probability (heuristic)
         ese_probability = None
         try:
@@ -256,7 +265,11 @@ def get_source_detail(request: Request, source_id: str):
                     elif flux_fractional_var > 0.15:
                         score += 0.05
                 ese_probability = min(1.0, round(score, 2))
-        except Exception:
+        except Exception as e:
+            logger.warning(
+                f"Failed to calculate ESE probability for source {source_id}: {e}",
+                exc_info=True
+            )
             ese_probability = None
         return SourceDetail(
             id=source_id,
@@ -305,8 +318,10 @@ def get_source_detections(
                         img_row = conn.execute("SELECT id FROM images WHERE path = ?", (image_path,)).fetchone()
                         if img_row:
                             image_id = img_row["id"]
-                except Exception:
-                    pass
+                except Exception as e:
+                    logger.debug(
+                        f"Could not resolve image_id for path {image_path}: {e}"
+                    )
             flux_peak = row.get("peak_jyb", row.get("flux_jy", 0.0))
             if flux_peak and flux_peak < 1.0:
                 flux_peak = flux_peak * 1000.0
@@ -326,8 +341,11 @@ def get_source_detections(
                         measured_at = datetime.fromtimestamp(row["measured_at"])  # type: ignore
                     else:
                         measured_at = datetime.fromisoformat(str(row["measured_at"]))
-                except Exception:
-                    pass
+                except (ValueError, TypeError, OSError) as e:
+                    logger.debug(
+                        f"Could not parse measured_at timestamp for detection {row.get('id', 'unknown')}: {e}"
+                    )
+                    measured_at = None
             detections.append(
                 Detection(
                     id=None,

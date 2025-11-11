@@ -26,6 +26,8 @@ const navItems = [
   { path: '/mosaics', label: 'Mosaics', icon: Image },
   { path: '/sources', label: 'Sources', icon: TableChart },
   { path: '/sky', label: 'Sky View', icon: Public },
+  { path: '/observing', label: 'Observing', icon: Public },
+  { path: '/health', label: 'Health', icon: Assessment },
 ];
 
 export default function Navigation() {

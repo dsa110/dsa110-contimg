@@ -29,7 +29,7 @@
 
 **Status**: PARTIAL (requires Python environment)
 
-**Test Script**: `test_api_endpoints.py`
+**Test Script**: `tests/test_api_endpoints.py`
 
 **Results:**
 - ⚠️ Module imports require Python environment setup

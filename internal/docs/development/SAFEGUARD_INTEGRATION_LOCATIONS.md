@@ -284,7 +284,7 @@ After each phase, run validation:
 
 ```bash
 # Test fitting functions
-PYTHONPATH=/data/dsa110-contimg/src /opt/miniforge/envs/casa6/bin/python -u validate_backend_core.py
+PYTHONPATH=/data/dsa110-contimg/src /opt/miniforge/envs/casa6/bin/python -u tests/validate_backend_core.py
 
 # Test API endpoints
 # Start API server and test endpoints

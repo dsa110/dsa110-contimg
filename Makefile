@@ -51,6 +51,7 @@ help:
 	@echo "  make test-all                      Run all tests"
 	@echo "  make frontend-test-smoke           Frontend API smoke via Vitest"
 	@echo "  make frontend-test-smoke-docker    Frontend API smoke in Docker"
+	@echo "  make frontend-test-e2e-docker      Frontend E2E tests in Docker (for GLIBC compatibility)"
 	@echo ""
 	@echo "CRITICAL: All Python execution uses casa6 environment:"
 	@echo "  Python path: /opt/miniforge/envs/casa6/bin/python"
@@ -268,11 +269,25 @@ test-validation:
 test-integration:
 	@if [ "$(CASA6_PYTHON_CHECK)" != "ok" ]; then \
 		echo "ERROR: casa6 Python not found at $(CASA6_PYTHON)"; \
-		echo "Please ensure casa6 conda environment is installed at /opt/miniforge/envs/casa6"; \
 		exit 1; \
 	fi
-	@echo "Running integration tests..."
 	@$(CASA6_PYTHON) -m pytest tests/integration/ -v
+
+test-integration-parallel:
+	@echo "Running integration tests in parallel (requires pytest-xdist)"
+	@if [ "$(CASA6_PYTHON_CHECK)" != "ok" ]; then \
+		echo "ERROR: casa6 Python not found at $(CASA6_PYTHON)"; \
+		exit 1; \
+	fi
+	@$(CASA6_PYTHON) -m pytest tests/integration/ -v -n auto
+
+test-integration-fast:
+	@echo "Running fast integration tests only"
+	@if [ "$(CASA6_PYTHON_CHECK)" != "ok" ]; then \
+		echo "ERROR: casa6 Python not found at $(CASA6_PYTHON)"; \
+		exit 1; \
+	fi
+	@$(CASA6_PYTHON) -m pytest tests/integration/ -v -m "integration and not slow"
 
 test-quality:
 	@echo "Running code quality checks..."
@@ -367,5 +382,9 @@ frontend-build:
 	@bash scripts/build-frontend-docker.sh
 
 # Alias for backward compatibility
+frontend-test-e2e-docker:
+	@echo "Running frontend E2E tests in Docker..."
+	@cd frontend && docker compose -f docker-compose.test.yml --profile e2e run --rm frontend-e2e
+
 frontend-build-docker: frontend-build
 	@echo "(Note: This target now uses casa6 Node.js when available)"

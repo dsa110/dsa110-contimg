@@ -93,7 +93,7 @@ while IFS= read -r f; do
       [[ -n "$map" ]] && TEST_FILES+=($map)
       ;;
     qa)
-      TEST_FILES+=(test_html_reports_simple.py test_validation_plots.py)
+      TEST_FILES+=(tests/test_html_reports_simple.py tests/test_validation_plots.py)
       map=$(FIND_L "dsa110_contimg\\.qa" tests)
       [[ -n "$map" ]] && TEST_FILES+=($map)
       ;;

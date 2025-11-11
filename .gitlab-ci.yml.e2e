@@ -1,0 +1,44 @@
+# GitLab CI configuration for E2E tests
+# Add this to your existing .gitlab-ci.yml or use as a separate file
+
+e2e-tests:
+  stage: test
+  image: docker:24-dind
+  services:
+    - docker:24-dind
+  variables:
+    DOCKER_DRIVER: overlay2
+    DOCKER_TLS_CERTDIR: "/certs"
+    BASE_URL: http://localhost:5173
+  before_script:
+    - apk add --no-cache curl bash
+    - docker info
+  script:
+    - cd frontend
+    - npm ci
+    # Start frontend dev server in background
+    - npm run dev > /tmp/frontend-dev.log 2>&1 &
+    - echo $! > /tmp/frontend-dev.pid
+    # Wait for server to be ready
+    - echo "Waiting for frontend server to start..."
+    - timeout 60 bash -c 'until curl -f http://localhost:5173 > /dev/null 2>&1; do sleep 2; done' || exit 1
+    - echo "Frontend server is ready"
+    # Run E2E tests
+    - docker compose -f docker-compose.test.yml --profile e2e run --rm frontend-e2e
+  after_script:
+    - |
+      if [ -f /tmp/frontend-dev.pid ]; then
+        kill $(cat /tmp/frontend-dev.pid) || true
+      fi
+  artifacts:
+    when: always
+    paths:
+      - frontend/playwright-report/
+      - frontend/test-results/
+    expire_in: 7 days
+  only:
+    changes:
+      - frontend/**/*
+      - tests/e2e/**/*
+      - .gitlab-ci.yml
+

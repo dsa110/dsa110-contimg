@@ -79,7 +79,7 @@ def ensure_data_registry_db(path: Path) -> sqlite3.Connection:
         )
         """
     )
-    
+
     # Migrate existing tables to add new columns if they don't exist
     try:
         # Check if publish_attempts column exists
@@ -87,18 +87,20 @@ def ensure_data_registry_db(path: Path) -> sqlite3.Connection:
     except sqlite3.OperationalError:
         # Column doesn't exist, add it
         try:
-            conn.execute("ALTER TABLE data_registry ADD COLUMN publish_attempts INTEGER DEFAULT 0")
+            conn.execute(
+                "ALTER TABLE data_registry ADD COLUMN publish_attempts INTEGER DEFAULT 0")
             logger.info("Added publish_attempts column to data_registry")
         except sqlite3.OperationalError as e:
             logger.warning(f"Could not add publish_attempts column: {e}")
-    
+
     try:
         # Check if publish_error column exists
         conn.execute("SELECT publish_error FROM data_registry LIMIT 1")
     except sqlite3.OperationalError:
         # Column doesn't exist, add it
         try:
-            conn.execute("ALTER TABLE data_registry ADD COLUMN publish_error TEXT")
+            conn.execute(
+                "ALTER TABLE data_registry ADD COLUMN publish_error TEXT")
             logger.info("Added publish_error column to data_registry")
         except sqlite3.OperationalError as e:
             logger.warning(f"Could not add publish_error column: {e}")
@@ -307,7 +309,7 @@ def trigger_auto_publish(
     """Trigger auto-publish for a data instance.
 
     Moves data from /stage/ (SSD) to /data/dsa110-contimg/products/ (HDD).
-    
+
     Uses database-level locking (SELECT FOR UPDATE) to prevent concurrent access race conditions.
     Implements retry tracking with exponential backoff for transient failures.
 
@@ -324,35 +326,36 @@ def trigger_auto_publish(
         products_base = Path("/data/dsa110-contimg/products")
 
     cur = conn.cursor()
-    
-    # CRITICAL: Use SELECT FOR UPDATE to prevent concurrent publish attempts
-    # This locks the row until the transaction completes, preventing race conditions
+
+    # CRITICAL: Use BEGIN IMMEDIATE to prevent concurrent publish attempts
+    # BEGIN IMMEDIATE acquires an exclusive lock, preventing race conditions
     try:
-        conn.execute("BEGIN IMMEDIATE")  # Start transaction with immediate lock
+        # Start transaction with immediate lock
+        conn.execute("BEGIN IMMEDIATE")
         cur.execute(
             """
             SELECT data_type, stage_path, base_path, publish_attempts, status
             FROM data_registry
             WHERE data_id = ? AND status IN ('staging', 'publishing')
-            FOR UPDATE
             """,
             (data_id,),
         )
         row = cur.fetchone()
-        
+
         if not row:
             conn.rollback()
             logger.warning(f"Data {data_id} not found or already published")
             return False
 
         data_type, stage_path, base_path, publish_attempts, status = row
-        
+
         # Check if already publishing (another process has the lock)
         if status == 'publishing':
             conn.rollback()
-            logger.debug(f"Data {data_id} is already being published by another process")
+            logger.debug(
+                f"Data {data_id} is already being published by another process")
             return False
-        
+
         # Check if max attempts exceeded
         if publish_attempts and publish_attempts >= max_attempts:
             conn.rollback()
@@ -361,7 +364,7 @@ def trigger_auto_publish(
                 f"Manual intervention required."
             )
             return False
-        
+
         # Set status to 'publishing' to prevent concurrent attempts
         cur.execute(
             """
@@ -372,7 +375,7 @@ def trigger_auto_publish(
             (data_id,),
         )
         conn.commit()  # Commit the lock
-        
+
     except sqlite3.OperationalError as e:
         conn.rollback()
         logger.error(f"Failed to acquire lock for {data_id}: {e}")
@@ -403,22 +406,26 @@ def trigger_auto_publish(
     if not stage_path_obj.exists():
         error_msg = f"Stage path does not exist: {stage_path}"
         logger.error(error_msg)
-        _record_publish_failure(conn, cur, data_id, publish_attempts, error_msg)
+        _record_publish_failure(
+            conn, cur, data_id, publish_attempts, error_msg)
         return False
 
     # CRITICAL: Enhanced path validation using validate_path_safe helper
     from dsa110_contimg.utils.naming import validate_path_safe
-    
+
     expected_staging_base = Path("/stage/dsa110-contimg")
-    is_safe, error_msg = validate_path_safe(stage_path_obj, expected_staging_base)
+    is_safe, error_msg = validate_path_safe(
+        stage_path_obj, expected_staging_base)
     if not is_safe:
-        logger.error(f"Stage path validation failed for {data_id}: {error_msg}")
-        _record_publish_failure(conn, cur, data_id, publish_attempts, error_msg)
+        logger.error(
+            f"Stage path validation failed for {data_id}: {error_msg}")
+        _record_publish_failure(
+            conn, cur, data_id, publish_attempts, error_msg)
         return False
 
     # Published path maintains same structure
     published_path = published_dir / stage_path_obj.name
-    
+
     # CRITICAL: Check if published path already exists (could indicate duplicate or failed previous publish)
     if published_path.exists():
         logger.warning(
@@ -427,14 +434,18 @@ def trigger_auto_publish(
         )
         # For safety, append timestamp to avoid overwriting
         timestamp = int(time.time())
-        published_path = published_dir / f"{stage_path_obj.stem}_{timestamp}{stage_path_obj.suffix}"
+        published_path = published_dir / \
+            f"{stage_path_obj.stem}_{timestamp}{stage_path_obj.suffix}"
 
     # CRITICAL: Enhanced path validation for published path
     expected_products_base = Path("/data/dsa110-contimg/products")
-    is_safe, error_msg = validate_path_safe(published_path, expected_products_base)
+    is_safe, error_msg = validate_path_safe(
+        published_path, expected_products_base)
     if not is_safe:
-        logger.error(f"Published path validation failed for {data_id}: {error_msg}")
-        _record_publish_failure(conn, cur, data_id, publish_attempts, error_msg)
+        logger.error(
+            f"Published path validation failed for {data_id}: {error_msg}")
+        _record_publish_failure(
+            conn, cur, data_id, publish_attempts, error_msg)
         return False
 
     try:
@@ -447,9 +458,11 @@ def trigger_auto_publish(
 
         # CRITICAL: Verify move succeeded before updating database
         if not published_path.exists():
-            raise RuntimeError(f"Move appeared to succeed but destination does not exist: {published_path}")
+            raise RuntimeError(
+                f"Move appeared to succeed but destination does not exist: {published_path}")
         if stage_path_obj.exists():
-            raise RuntimeError(f"Move appeared to succeed but source still exists: {stage_path}")
+            raise RuntimeError(
+                f"Move appeared to succeed but source still exists: {stage_path}")
 
         # Update database - clear publish error on success
         now = time.time()
@@ -468,13 +481,16 @@ def trigger_auto_publish(
         )
         conn.commit()
 
-        logger.info(f"Auto-published {data_id} from {stage_path} to {published_path}")
+        logger.info(
+            f"Auto-published {data_id} from {stage_path} to {published_path}")
         return True
 
     except Exception as e:
         error_msg = str(e)
-        logger.error(f"Failed to auto-publish {data_id}: {error_msg}", exc_info=True)
-        _record_publish_failure(conn, cur, data_id, publish_attempts, error_msg)
+        logger.error(
+            f"Failed to auto-publish {data_id}: {error_msg}", exc_info=True)
+        _record_publish_failure(
+            conn, cur, data_id, publish_attempts, error_msg)
         return False
 
 
@@ -486,7 +502,7 @@ def _record_publish_failure(
     error_msg: str,
 ) -> None:
     """Record a publish failure and update attempt counter.
-    
+
     Args:
         conn: Database connection
         cur: Database cursor
@@ -504,10 +520,12 @@ def _record_publish_failure(
                 publish_error = ?
             WHERE data_id = ?
             """,
-            (new_attempts, error_msg[:500], data_id),  # Limit error message length
+            (new_attempts, error_msg[:500],
+             data_id),  # Limit error message length
         )
         conn.commit()
-        logger.debug(f"Recorded publish failure for {data_id}: attempt {new_attempts}, error: {error_msg[:100]}")
+        logger.debug(
+            f"Recorded publish failure for {data_id}: attempt {new_attempts}, error: {error_msg[:100]}")
     except Exception as e:
         logger.error(f"Failed to record publish failure for {data_id}: {e}")
         conn.rollback()
@@ -620,10 +638,10 @@ def get_data(conn: sqlite3.Connection, data_id: str) -> Optional[DataRecord]:
             (data_id,),
         )
         row = cur.fetchone()
-        
+
         if not row:
             return None
-        
+
         # Handle both old and new schema
         if len(row) >= 18:
             return DataRecord(
@@ -681,10 +699,10 @@ def get_data(conn: sqlite3.Connection, data_id: str) -> Optional[DataRecord]:
             (data_id,),
         )
         row = cur.fetchone()
-        
+
         if not row:
             return None
-        
+
         return DataRecord(
             id=row[0],
             data_type=row[1],
@@ -758,7 +776,8 @@ def list_data(
                 validation_status=row[13],
                 finalization_status=row[14],
                 auto_publish_enabled=bool(row[15]),
-                publish_attempts=row[16] if len(row) > 16 and row[16] is not None else 0,
+                publish_attempts=row[16] if len(
+                    row) > 16 and row[16] is not None else 0,
                 publish_error=row[17] if len(row) > 17 else None,
             )
             for row in rows

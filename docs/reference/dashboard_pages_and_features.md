@@ -18,10 +18,10 @@
 ## Table of Contents
 
 1. [Dashboard Page (`/dashboard`)](#dashboard-page-dashboard) - ✅ Implemented
-2. [Sky View Page (`/sky`)](#sky-view-page-sky) - 🔄 Partially Implemented
-3. [Sources Page (`/sources`)](#sources-page-sources) - 🔄 Partially Implemented
-4. [Observing Page (`/observing`)](#observing-page-observing) - 📋 Planned
-5. [Health Page (`/health`)](#health-page-health) - 📋 Planned
+2. [Sky View Page (`/sky`)](#sky-view-page-sky) - ✅ Implemented
+3. [Sources Page (`/sources`)](#sources-page-sources) - ✅ Implemented
+4. [Observing Page (`/observing`)](#observing-page-observing) - ✅ Implemented
+5. [Health Page (`/health`)](#health-page-health) - ✅ Implemented
 6. [Control Page (`/control`)](#control-page-control) - ✅ Implemented
 7. [Streaming Page (`/streaming`)](#streaming-page-streaming) - ✅ Implemented
 8. [QA Visualization Page (`/qa`)](#qa-visualization-page-qa) - ✅ Implemented
@@ -76,8 +76,8 @@
 
 **Real-Time Updates:**
 - Last update timestamp
-- Live metrics chart (last 6 hours)
-- Color-coded status indicators (green/yellow/red)
+- Current metrics display (no historical chart - see Health page for trends)
+- Basic status indicators
 
 #### ESE Candidates Panel
 
@@ -92,10 +92,9 @@
 - Last detection timestamp
 - Auto-refresh every 10 seconds
 
-**Alert Prioritization:**
-- High priority (>5σ deviation)
-- Medium priority (3-5σ deviation)
-- Quick actions (View Source, Dismiss, Export)
+**Alert Display:**
+- Auto-flagged sources with >5σ variability
+- Click to navigate to source detail page
 
 #### Pointing Visualization
 
@@ -137,7 +136,7 @@
 ## Sky View Page (`/sky`)
 
 **URL:** `/sky`  
-**Status:** 🔄 **Partially Implemented**  
+**Status:** ✅ **Implemented**  
 **Purpose:** Visual exploration of sky coverage and images  
 **Refresh Rate:** On-demand (user-triggered)
 
@@ -145,7 +144,7 @@
 
 #### Interactive Sky Map
 
-**Status:** 📋 **Planned** (Not yet implemented)
+**Status:** ✅ **Implemented**
 
 **Coverage Visualization:**
 - Observed fields (color-coded by observation time)
@@ -161,7 +160,7 @@
 
 #### Image Gallery
 
-**Status:** 🔄 **Partially Implemented** (Basic gallery exists, advanced features planned)
+**Status:** ✅ **Implemented**
 
 **Grid View:**
 - Thumbnail grid (4-6 images per row, responsive)
@@ -187,7 +186,7 @@
 
 #### Image Detail View
 
-**Status:** 🔄 **Partially Implemented** (JS9 viewer exists, some metadata features planned)
+**Status:** ✅ **Implemented**
 
 **Full-Resolution Display:**
 - Large image viewer (JS9 integration)
@@ -219,46 +218,20 @@
 
 **Actions:**
 - Download FITS file
-- Download PNG image
 - View source list
-- Reprocess with different parameters
-- View QA plots
+- Catalog overlay toggle
+- Region tools (create/edit regions)
+- Profile tool
+- Image fitting tool
+- Photometry plugin
 
-#### Mosaic Builder
-
-**Status:** ✅ **Implemented** (Query and list implemented, generation UI in progress)
-
-**Time-Range Query:**
-- Start/End DateTime pickers (UTC timezone)
-- MJD conversion support
-- Declination range filter
-- Preview coverage map before generation
-
-**Mosaic Generation:**
-- Create new mosaic from time range
-- Background processing with status updates
-- Progress tracking (0-100%)
-- Status indicators (pending, in_progress, completed, failed)
-
-**Existing Mosaics:**
-- List previously generated mosaics
-- Thumbnail previews (when available)
-- Metadata display:
-  - Time range
-  - Source count
-  - Noise level
-  - Image count
-- Download options (FITS, PNG)
-- Quick view button
+**Note:** Mosaic Builder functionality is available on the separate Mosaic Gallery page (`/mosaics`), not on Sky View page.
 
 ### API Endpoints Used
 
-- `GET /api/images` - List images with filters
-- `GET /api/images/{image_id}` - Get image details
-- `GET /api/images/{image_id}/fits` - Download FITS file
-- `POST /api/mosaics/query` - Query mosaics by time range
-- `POST /api/mosaics/create` - Create new mosaic
-- `GET /api/mosaics/{mosaic_id}` - Get mosaic details
+- `GET /api/images` - List images with filters (via ImageBrowser component)
+- `GET /api/images/{image_id}/fits` - Download FITS file (for JS9 viewer)
+- `GET /api/pointing_history` - Pointing history (for SkyMap component)
 
 ### User Workflows
 
@@ -269,18 +242,19 @@
 4. Examines image with JS9 viewer
 5. Downloads FITS file for analysis
 
-**Mosaic Creation:**
-1. User selects time range (e.g., 1 hour)
-2. Clicks "Generate Mosaic"
-3. Monitors progress in mosaic gallery
-4. Downloads completed mosaic
+**Image Analysis:**
+1. User selects image from browser
+2. Views image in JS9 viewer
+3. Uses region tools, profile tool, or fitting tool
+4. Toggles catalog overlay if needed
+5. Examines image metadata
 
 ---
 
 ## Sources Page (`/sources`)
 
 **URL:** `/sources`  
-**Status:** 🔄 **Partially Implemented**  
+**Status:** ✅ **Implemented**  
 **Purpose:** Monitor source flux variability and identify ESE candidates  
 **Refresh Rate:** On-demand (user-triggered)
 
@@ -292,23 +266,17 @@
 
 **Quick Search:**
 - Search by NVSS ID (e.g., `NVSS J123456.7+420312`)
-- Search by coordinates (RA/Dec)
-- Auto-complete suggestions
+- Enter key to search
 
-**Advanced Filters:**
-- Variability threshold (χ² > 5, σ deviation)
-- Declination range
-- NVSS flux range
-- Observation count threshold
-- Spectral index range
-- ESE candidates only
-- User-flagged sources
-- New detections (last 7 days)
+**Advanced Filters (Collapsible):**
+- Variability threshold slider (0-10σ)
+- Declination range slider (-90° to +90°)
+- ESE candidates only checkbox
 
-**Active Filters Display:**
-- Shows active filters as chips
-- Quick remove buttons
-- Save filter presets (future)
+**Filter Management:**
+- Active filter count chip
+- Clear all filters button
+- Show/hide advanced filters toggle
 
 #### Source Table (AG Grid)
 
@@ -333,91 +301,70 @@
 - Trend sparkline (last 20 observations)
 - Variability indicator (✓/⚠/✗)
 
-**Bulk Actions:**
-- Select all / Deselect all
-- Flag selected sources
-- Export selected (CSV, JSON)
-- Add to watch list
+**Table Features:**
+- Clickable source IDs (navigate to detail page)
+- Sortable columns
+- Filterable columns
+- Pagination (20 items per page)
 
 #### Source Detail View
 
-**Status:** 🔄 **Partially Implemented** (Basic detail view exists, advanced features planned)
+**Status:** ✅ **Implemented** (Basic detail view with metadata and detections table)
 
-**Flux Light Curve:**
-- Interactive Plotly.js visualization
-- Flux vs. time (MJD or UTC)
-- Error bars for each measurement
-- Mean flux reference line
-- NVSS reference flux line
-- Zoom, pan, and export capabilities
+**Source Details Panel:**
+- Source name/ID
+- RA/Dec coordinates (formatted HH:MM:SS and decimal)
+- Flux statistics (mean, std, max SNR if available)
+- Variability metrics (v, η if available)
+- ESE probability chip (if >0)
+- New source chip (if applicable)
+- Measurement counts (total, forced)
+- External links (SIMBAD, NED)
 
-**Statistics Panel:**
-- Observations count
-- Mean flux ± standard deviation
-- NVSS flux (with spectral index from VLASS)
-- Variability metrics:
-  - χ²/ν (reduced chi-squared)
-  - σ deviation from constant model
-  - Maximum deviation (magnitude and time)
-- Variability timescale (shortest variation)
+**Sky Visualization:**
+- Aladin Lite placeholder (not yet implemented)
 
-**Catalog Information:**
-- RA/Dec coordinates (J2000, Galactic)
-- NVSS flux
-- VLASS flux (with spectral index)
-- FIRST resolution status
-- Confusion flag
-- External links (SIMBAD, NED, VizieR)
+**Comments & Annotations:**
+- Placeholder section (not yet implemented)
 
-**Recent Measurements Table:**
-- MJD timestamp
-- Date/Time (UTC)
-- Image identifier
-- Flux measurement (Jy)
-- Flux error (Jy)
-- Separation from phase center
-- Signal-to-noise ratio
+**Light Curve:**
+- Collapsible section (placeholder, not yet implemented)
 
-**Images Containing Source:**
-- Grid of image thumbnails
-- Each shows timestamp and measured flux
-- Click to view image in Sky View
+**Detections Table:**
+- GenericTable component
+- Columns: Name, RA, Dec, Peak Flux, Integrated Flux, SNR, Forced flag, Date
+- Clickable rows (navigate to image detail page)
+- Searchable and exportable
 
-**Notes & Classification:**
-- User notes and comments
-- Classification tags
-- Flag status
-- Collaborative features (future)
+**Note:** Light curve visualization, Aladin Lite sky view, and comments system are placeholders and not yet fully implemented.
 
 ### API Endpoints Used
 
 - `POST /api/sources/search` - Search sources
-- `GET /api/sources/{source_id}` - Get source details
-- `GET /api/sources/{source_id}/timeseries` - Get flux timeseries
-- `GET /api/ese/candidates` - Get ESE candidates
+- `GET /api/sources/{sourceId}` - Get source details
+- `GET /api/sources/{sourceId}/detections` - Get source detections (for detail page table)
 
 ### User Workflows
 
 **Source Investigation:**
-1. User searches for source by NVSS ID
-2. Views flux light curve
-3. Examines variability statistics
-4. Compares with catalog values
-5. Flags as ESE candidate if significant
+1. User searches for source by NVSS ID (or uses advanced filters)
+2. Views source in table
+3. Clicks source ID to navigate to detail page
+4. Examines source metadata and detections table
+5. Clicks detection row to view associated image
 
 **ESE Candidate Review:**
-1. User views ESE candidates panel
-2. Clicks candidate to view details
-3. Reviews light curve and statistics
-4. Compares with historical data
-5. Approves or dismisses candidate
+1. User views ESE candidates on Dashboard
+2. Clicks candidate to navigate to source detail page
+3. Reviews source metadata and detections
+4. Examines variability statistics in table
 
 ---
 
 ## Observing Page (`/observing`)
 
 **URL:** `/observing`  
-**Status:** 📋 **Planned** (Not yet implemented)  
+**Status:** ✅ **Implemented**  
 **Purpose:** Real-time telescope status and observing plan  
 **Refresh Rate:** 10 seconds (auto-refresh)
 
@@ -426,89 +373,66 @@
 #### Current Status Panel
 
 **Telescope Pointing:**
-- Current RA/Dec coordinates
-- Local Sidereal Time (LST)
-- Altitude and Azimuth
-- Parallactic angle
-- Next calibrator transit information
+- Current RA/Dec coordinates (from most recent pointing history entry)
+- Last update timestamp
+- Pipeline status chips (pending, in-progress, completed counts)
 
-**Antenna Status:**
-- Total antennas count
-- Online antennas count
-- Flagged antennas (with reason)
-- Offline antennas
-- Antenna array map (color-coded status)
-
-**Observing Mode:**
-- Current mode (drift scan, etc.)
-- Cadence (5 minutes)
-- Field size
-- Frequency setup
+**Note:** LST, Alt/Az, Parallactic angle, Antenna status, and Observing mode features are not yet implemented.
 
 #### Pointing History Visualization
 
 **Sky Map Display:**
-- Pointing centers over last 24h/7d/30d
+- Pointing centers over last 7 days (fixed)
 - Color-coded by time
-- Declination strip coverage overlay
-- Interactive: click pointing → show observation details
+- Uses PointingVisualization component
+- Historical trail display
 
-**Time Range Selection:**
-- Last 24 hours
-- Last 7 days
-- Last 30 days
-- Custom date range
+**Note:** Time range selection, declination strip overlay, and click-to-view details are not yet implemented.
 
 #### Calibrator Tracking
 
-**Active Calibrators (Last 6 Hours):**
+**Active Calibrators (Recent):**
 - Calibrator name
 - RA/Dec coordinates
-- Detection count
-- Average flux vs. expected flux
-- Deviation percentage
+- Flux (mJy)
+- Separation from pointing center (°)
 - Last seen timestamp
+- Table display (top 10 matches)
 
-**Calibrator Flux vs. Elevation:**
-- Time-series plot
+**Calibrator Flux vs Time:**
+- Time-series plot (Plotly.js)
 - Multiple calibrators overlaid
-- Expected flux marked
-- Elevation-dependent effects visible
+- Shows flux measurements over time
+- Conditional display (only shown if multiple measurements exist)
 
-**Calibrator Plan:**
-- Upcoming calibrator transits (next 6 hours)
-- Peak elevation
-- Parallactic angle coverage
-- Visibility windows
-- Transit times
+**Note:** Elevation-dependent effects, expected flux markers, and Calibrator Plan (upcoming transits) are not yet implemented.
 
 ### API Endpoints Used
 
-- `GET /api/pointing/current` - Current telescope pointing
-- `GET /api/pointing_history` - Pointing history
+- `GET /api/pointing_history` - Pointing history (used to derive current pointing)
 - `GET /api/calibrator_matches` - Calibrator detection history
-- `GET /api/antenna/status` - Antenna status (future)
+- `GET /api/status` - Pipeline status
 
 ### User Workflows
 
 **Monitoring Telescope Status:**
 1. User opens Observing page
-2. Checks current pointing and antenna status
-3. Reviews calibrator tracking
-4. Plans for upcoming calibrator transits
+2. Checks current pointing (RA/Dec from most recent history)
+3. Reviews pipeline status chips
+4. Views calibrator tracking table
+5. Examines calibrator flux vs time plot (if data available)
 
 **Pointing History Analysis:**
-1. User selects time range
-2. Views pointing trail on sky map
-3. Clicks pointing to view observation details
-4. Analyzes coverage patterns
+1. User views pointing history visualization (7-day trail)
+2. Examines pointing patterns on sky map
+3. Reviews calibrator matches in table
 
 ---
 
 ## Health Page (`/health`)
 
 **URL:** `/health`  
-**Status:** 📋 **Planned** (Not yet implemented)  
+**Status:** ✅ **Implemented**  
 **Purpose:** Deep diagnostics for pipeline and data quality monitoring  
 **Refresh Rate:** 10 seconds (auto-refresh)
 
@@ -516,18 +440,22 @@
 
 #### System Monitoring
 
-**Resource Usage Plots (Last 6 Hours):**
-- CPU usage (with threshold markers)
-- Memory usage
-- Disk I/O
-- System load averages
-- Color-coded zones (normal/warning/critical)
+**Current Metrics (Metric Cards):**
+- CPU usage percentage (with progress bar and thresholds)
+- Memory usage percentage (with progress bar and thresholds)
+- Disk usage percentage (with progress bar and thresholds)
+- Load average (1m) display
 
-**Current Metrics:**
-- CPU percentage (current, average, peak)
-- Memory percentage (current, average, peak)
-- Disk usage (total, used, available)
-- Load averages (1, 5, 15 minutes)
+**Resource Usage Plot:**
+- Basic plot showing current CPU and Memory % (single data point, not historical)
+- Plotly.js visualization
+
+**Detailed Metrics:**
+- Memory details (total, used in GB)
+- Disk details (total, used, available in GB)
+- Load averages (1m, 5m, 15m)
+
+**Note:** Historical metrics plots (last 6 hours), average/peak values, and color-coded zones are not yet implemented.
 
 #### Processing Queue Status
 
@@ -545,69 +473,29 @@
 
 **Recent Groups Table:**
 - Group ID
-- Processing state
-- Subband counts
-- Calibrator detection
-- Processing time
-- Retry count
-- Actions (View QA, Retry, etc.)
+- Processing state (with color-coded chips)
+- Subband counts (present/expected)
+- Top 10 recent groups displayed
 
-#### Calibration Registry
+#### QA Diagnostics Tab
 
-**Active Calibration Sets:**
-- Set name
-- Table types (K, BP, G)
-- Valid MJD range
-- Last used timestamp
-- Usage count
-- Status (active, expired, retired)
+**ESE Candidates Table:**
+- Source ID
+- Max σ deviation
+- Status (active/resolved/false_positive)
+- Last detection timestamp
+- Top 10 candidates displayed
 
-**Calibration Set Details:**
-- Table paths
-- Calibrator source
-- Reference antenna
-- Creation timestamp
-- Notes
+**Link to QA Visualization:**
+- Alert with link to `/qa` page for full QA diagnostics
 
-#### Data Quality Metrics
-
-**Image Quality Trends (Last 7 Days):**
-- Image noise vs. time
-- Expected thermal noise marked
-- Noise/thermal ratio (should be ~1.0-1.2)
-- Source detection rate vs. time
-- Expected from NVSS catalog density
-- Calibration solution success rate
-
-**Performance Metrics:**
-- Conversion time (UVH5 → MS): mean, p50, p95
-- Calibration time (K+BP+G): mean, p50, p95
-- Imaging time (tclean): mean, p50, p95
-- End-to-end latency (data arrival → final image)
-- Throughput: images/hour, sources measured/hour
-
-#### QA Diagnostic Gallery
-
-**Recent QA Plots:**
-- Thumbnail grid
-- Filter by: All, Calibrators only, Failed groups
-- Click to expand full-size view
-- Types: amplitude, phase, UVW coverage
-
-**QA Plot Types:**
-- Calibration solutions (bandpass, gains)
-- Flagging statistics
-- Image quality metrics
-- Source detection plots
+**Note:** Calibration Registry, Data Quality Metrics, Performance Metrics, and QA Diagnostic Gallery features are not yet implemented on this page. See QA Visualization page for QA features.
 
 ### API Endpoints Used
 
 - `GET /api/metrics/system` - System metrics
-- `GET /api/metrics/system/history` - Historical metrics
 - `GET /api/status` - Queue statistics
-- `GET /api/groups/{group_id}` - Group details
-- `GET /api/calibration/registry` - Calibration registry
-- `GET /api/qa` - QA artifacts list
+- `GET /api/ese/candidates` - ESE candidates
 
 ### User Workflows
 
@@ -781,31 +669,27 @@
 
 #### Real-Time Status
 
-**Current Operations:**
-- Operation type (conversion, calibration, imaging, mosaicking, QA)
-- Operation status (pending, in-progress, completed, failed)
-- Progress percentage (0-100%)
+**Service Status:**
+- Running/Stopped state (with chip indicator)
+- Health status chip (if healthy)
+- Process ID (PID)
 - Started timestamp
-- Estimated completion time
-- Resource usage (CPU, memory)
+- Uptime (formatted: hours, minutes, seconds)
 
 **Resource Usage:**
-- CPU percentage (with progress bar)
-- Memory usage (MB)
-- Real-time updates
+- CPU percentage (with progress bar and color coding)
+- Memory usage (MB, with progress bar)
+- Real-time updates (5s refresh)
 
 #### Queue Statistics
 
-**Queue Depth:**
-- Pending groups
-- In-progress groups
-- Completed groups (last 24h)
-- Failed groups
+**Queue Metrics:**
+- Total groups processed
+- Groups processed in last hour
+- Average processing time per group
+- Current queue depth (if available from status)
 
-**Processing Rate:**
-- Groups processed per hour
-- Average processing time
-- Throughput metrics
+**Note:** Detailed processing rate metrics and throughput breakdown are not yet fully implemented.
 
 #### Configuration Management
 
@@ -817,10 +701,10 @@
 - Other settings
 
 **Configuration Editor:**
+- Dialog-based configuration editor
 - Edit configuration values
-- Validation before save
-- Apply without restart (if supported)
-- Reset to defaults
+- Save configuration (updates via API)
+- Configuration displayed in dialog form
 
 ### API Endpoints Used
 
@@ -885,10 +769,7 @@
 - Coordinate display (RA/Dec, pixel)
 - Image statistics
 
-**Dual Window Mode:**
-- Compare two FITS files side-by-side
-- Synchronized zoom/pan
-- Difference mode
+**Note:** Dual Window Mode (side-by-side comparison) is not yet implemented.
 
 #### CASA Table Viewer
 
@@ -976,25 +857,12 @@
 - Processing history
 - Related products
 
-#### Data Lineage Graph
-
-**Visualization:**
-- Data flow from raw data to products
-- Dependencies and relationships
-- Interactive exploration
-- Click to view details
-
-**Lineage Information:**
-- Source data (UVH5 files)
-- Intermediate products (MS files)
-- Final products (images, mosaics)
-- Processing steps
+**Note:** Data Lineage Graph visualization is not yet implemented. Data detail pages (`/data/:type/:id`) may provide lineage information.
 
 ### API Endpoints Used
 
-- `GET /api/products` - List data products
-- `GET /api/products/{product_id}` - Get product details
-- `GET /api/lineage/{product_id}` - Get data lineage
+- `GET /api/data` - List data instances (with type and status filters)
+- `GET /api/data/{type}/{id}` - Get data instance details (via detail page)
 
 ### User Workflows
 

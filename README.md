@@ -142,6 +142,8 @@ Units:
   - `stream`: streaming worker with orchestrator (bind mounts to host paths)
   - `api`: uvicorn exposing `${CONTIMG_API_PORT}`
   - `scheduler`: optional nightly mosaic + periodic housekeeping
+  - `dashboard`: production frontend build (serves static files on port 3000)
+  - `dashboard-dev`: development frontend with hot reloading (Vite dev server on port 5173)
 
 Image:
 - `ops/docker/Dockerfile` creates a `contimg` conda env (`casa6`, casacore, pyuvdata, FastAPI)
@@ -217,7 +219,9 @@ PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
   - dask-ms writing path exists historically but is avoided for CASA workflows
   - Older imports from `dsa110_contimg.core.conversion.*` are deprecated; use `dsa110_contimg.conversion.*`
 
-### Frontend: Switch API (dev)
+### Frontend Development
+
+#### Option 1: Local Development (Recommended)
 
 If you brought up the API container on a different port (e.g., 8010 via `ops/docker/.env` → `CONTIMG_API_PORT=8010`), point the frontend at it during development:
 
@@ -228,10 +232,55 @@ If you brought up the API container on a different port (e.g., 8010 via `ops/doc
 - Or use the Vite proxy:
   - Edit `frontend/vite.config.ts` and set `server.proxy['/api'].target = 'http://localhost:8010'`
 
-Notes
+**Notes:**
 - Vite requires Node.js 20.19+ or 22.12+; use the provided casa6 environment as in `frontend/README.md`.
 - Verify API availability: `curl http://localhost:8010/api/ese/candidates` should return JSON.
-- After switching, the Dashboard’s ESE panel and other enhanced endpoints will populate.
+- After switching, the Dashboard's ESE panel and other enhanced endpoints will populate.
+
+#### Option 2: Docker Development (Hot Reloading)
+
+For development with hot reloading in Docker (no rebuilds needed), use the root `docker-compose.yml`:
+
+```bash
+# From repository root
+# Use 'docker compose' (v2, recommended) - newer Docker CLI plugin
+# Note: If you only have 'docker-compose' (v1), upgrade Docker or use: docker compose up
+
+# Build and start API service (builds from ops/docker/Dockerfile)
+docker compose up api
+
+# Start the dev frontend container (builds from frontend/Dockerfile.dev)
+docker compose up dashboard-dev
+
+# Or start both together
+docker compose up api dashboard-dev
+
+# Or run in background
+docker compose up -d api dashboard-dev
+
+# View logs
+docker compose logs -f dashboard-dev
+docker compose logs -f api
+
+# Stop
+docker compose stop dashboard-dev api
+```
+
+**Features:**
+- **Backend (API)**: Builds locally from `ops/docker/Dockerfile`, code mounted via volumes
+- **Frontend (dashboard-dev)**: Hot module replacement (HMR) - code changes reflect immediately
+- Volume-mounted source code - no image rebuilds needed after initial build
+- Frontend available at http://localhost:5174 (avoids conflict with local dev server on 5173)
+- Backend available at http://localhost:8000
+- Services connect via Docker network
+
+**Requirements:**
+- Both services build from local Dockerfiles (no external image pulls needed)
+- Frontend code changes in `frontend/src/` will trigger automatic reloads
+- Backend code changes in `src/` are mounted and will reload (if using uvicorn reload)
+- Uses `docker-compose.yml` in repository root (not `ops/docker/docker-compose.yml`)
+
+**Note:** Port 5174 is used for the Docker frontend to avoid conflict with local dev server on 5173. Both can run simultaneously.
 
 
 ## Troubleshooting

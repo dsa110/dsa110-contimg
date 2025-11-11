@@ -46,38 +46,40 @@
 
 5. **Data Browser Page** (`/data`)
    - Data product browser ✅
-   - Data lineage visualization ✅
-
-### 🔄 Partially Implemented Pages
+   - Staging/Published tabs ✅
+   - Data type filtering ✅
 
 6. **Sky View Page** (`/sky`)
-   - Image gallery ✅ (basic)
-   - Image detail view ✅ (JS9 viewer exists)
-   - Mosaic builder ✅ (query/list implemented)
-   - Interactive sky map 📋 (planned)
-   - Advanced filtering 🔄 (partial)
+   - Image gallery with advanced filtering ✅
+   - Image detail view with JS9 ✅
+   - Interactive sky map (SkyMap component) ✅
+   - Catalog overlay ✅
+   - Region tools ✅
+   - Profile tool ✅
+   - Image fitting tool ✅
+   - Photometry plugin ✅
 
 7. **Sources Page** (`/sources`)
    - Source search ✅
    - Source table (AG Grid) ✅
-   - Source detail view 🔄 (basic exists, advanced features planned)
-   - Flux timeseries display ✅
-   - Variability statistics 🔄 (partial)
-   - Advanced filtering 🔄 (partial)
-
-### 📋 Planned Pages (Not Yet Implemented)
+   - Advanced filtering (variability threshold, declination range, ESE filter) ✅
+   - Source detail view ✅ (basic with metadata and detections table)
+   - Light curve visualization 📋 (placeholder)
 
 8. **Observing Page** (`/observing`)
-   - Telescope status display 📋
-   - Pointing history visualization 📋
-   - Calibrator tracking 📋
-   - Observing plan display 📋
+   - Current pointing display ✅
+   - Pointing history visualization ✅
+   - Calibrator tracking table ✅
+   - Calibrator flux vs time plot ✅
+   - Pipeline status integration ✅
 
 9. **Health Page** (`/health`)
-   - System diagnostics 📋
-   - Queue monitoring 📋
-   - QA diagnostic gallery 📋
-   - Performance metrics 📋
+   - System monitoring tab ✅
+   - Queue status tab ✅
+   - QA diagnostics tab ✅
+   - ESE candidates table ✅
+
+**Note:** Some advanced features within pages are still planned or partially implemented (e.g., light curve visualization, Aladin Lite, historical metrics plots). See individual page documentation for detailed feature status.
 
 ---
 
@@ -98,11 +100,12 @@
 
 ### Real-Time Updates
 
-**Status:** 🔄 **Partially Implemented**
+**Status:** ✅ **Implemented** (Basic)
 
-- ✅ HTTP polling (10s intervals)
+- ✅ HTTP polling (10s intervals for most pages)
 - ✅ WebSocket client (basic connection)
-- 🔄 WebSocket integration with React Query (in progress)
+- ✅ React Query integration with polling
+- 📋 Advanced WebSocket integration with React Query (in progress)
 - 📋 SSE fallback (planned)
 - 📋 Connection state UI indicators (planned)
 
@@ -118,38 +121,41 @@
 
 ### Source Monitoring
 
-**Status:** 🔄 **Partially Implemented**
+**Status:** ✅ **Implemented**
 
 - ✅ Source search
 - ✅ Source table with AG Grid
-- ✅ Basic source detail view
-- ✅ Flux timeseries display
-- 🔄 Advanced variability statistics (partial)
-- 🔄 Advanced filtering (partial)
-- 📋 Source comparison tools (planned)
-- 📋 External catalog integration (planned)
+- ✅ Source detail view with metadata and detections table
+- ✅ Advanced filtering (variability threshold, declination range, ESE filter)
+- ✅ Clickable source IDs (navigate to detail page)
+- ✅ Filter management (chips, clear button)
+- 📋 Light curve visualization (placeholder)
+- 📋 Aladin Lite sky view (placeholder)
 
 ### Mosaic Features
 
-**Status:** 🔄 **Partially Implemented**
+**Status:** ✅ **Implemented** (on Mosaic Gallery page, not Sky View)
 
 - ✅ Mosaic query by time range
 - ✅ Mosaic list display
 - ✅ Mosaic detail view
-- 🔄 Mosaic generation UI (in progress)
+- ✅ Mosaic generation UI
 - 📋 Mosaic preview coverage map (planned)
 - 📋 Mosaic comparison tools (planned)
 
 ### Image Features
 
-**Status:** 🔄 **Partially Implemented**
+**Status:** ✅ **Implemented**
 
-- ✅ Image gallery (basic)
+- ✅ Image gallery with advanced filtering
 - ✅ Image detail view with JS9
 - ✅ FITS file download
-- 🔄 Advanced image metadata display (partial)
-- 📋 Image comparison tools (planned)
-- 📋 Catalog overlay (planned)
+- ✅ Image metadata display
+- ✅ Catalog overlay (JS9 integration)
+- ✅ Region tools
+- ✅ Profile tool
+- ✅ Image fitting tool
+- ✅ Photometry plugin
 
 ### QA Visualization
 
@@ -230,12 +236,20 @@
 - 🔄 `POST /api/mosaics/generate` - Mosaic generation (backend exists, UI in progress)
 - 🔄 `GET /api/sources/{sourceId}/timeseries` - Timeseries (basic exists, advanced features planned)
 
+**Observing:**
+- ✅ `GET /api/pointing_history` - Pointing history
+- ✅ `GET /api/calibrator_matches` - Calibrator matches
+
+**Health:**
+- ✅ `GET /api/metrics/system` - System metrics
+- ✅ `GET /api/status` - Queue statistics
+- ✅ `GET /api/ese/candidates` - ESE candidates
+
 ### 📋 Planned Endpoints
 
-- 📋 `GET /api/observing/status` - Telescope status
-- 📋 `GET /api/observing/pointing` - Pointing history
-- 📋 `GET /api/health/diagnostics` - System diagnostics
-- 📋 `GET /api/health/qa/gallery` - QA gallery
+- 📋 `GET /api/metrics/system/history` - Historical metrics (for Health page trends)
+- 📋 `GET /api/observing/current` - Current telescope pointing (with LST, Alt/Az)
+- 📋 `GET /api/antenna/status` - Antenna status
 - 📋 `POST /api/ese/candidates/{id}/dismiss` - Dismiss candidate
 - 📋 `POST /api/ese/candidates/{id}/flag` - Flag candidate
 
@@ -301,23 +315,25 @@
 - ✅ `SourceDetailPage` - Source details (basic)
 
 **Sky:**
-- ✅ `SkyViewPage` - Image gallery (basic)
-- ✅ `ImageBrowser` - Image browser
+- ✅ `SkyViewPage` - Full implementation with SkyMap
+- ✅ `ImageBrowser` - Image browser with advanced filters
+- ✅ `SkyMap` - Interactive sky map component
 - ✅ `MosaicGalleryPage` - Mosaic gallery
+- ✅ `MosaicViewPage` - Mosaic detail view
 
-### 🔄 Partially Implemented Components
+**Observing:**
+- ✅ `ObservingPage` - Telescope status and pointing history
 
-- 🔄 `SourceDetailPage` - Advanced features planned
-- 🔄 `ImageDetailPage` - Advanced metadata planned
-- 🔄 `MosaicViewPage` - Advanced features planned
+**Health:**
+- ✅ `HealthPage` - System diagnostics and queue monitoring
 
-### 📋 Planned Components
+### 📋 Planned Components (Advanced Features)
 
-- 📋 `ObservingPage` - Telescope status
-- 📋 `HealthPage` - System diagnostics
-- 📋 `SkyMap` - Interactive sky map
-- 📋 `SourceComparison` - Source comparison tools
-- 📋 `ImageComparison` - Image comparison tools
+- 📋 Advanced light curve visualization component (for SourceDetailPage)
+- 📋 Aladin Lite integration component (for SourceDetailPage)
+- 📋 Source comparison tools
+- 📋 Image comparison tools
+- 📋 Historical metrics visualization components
 
 ---
 

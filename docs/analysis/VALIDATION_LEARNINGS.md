@@ -138,7 +138,7 @@ Direct backend validation of core CARTA integration features (Spatial Profiler, 
 
 ## Validation Script Improvements
 
-The validation script (`validate_backend_core.py`) now serves as:
+The validation script (`tests/validate_backend_core.py`) now serves as:
 - **Quick sanity check**: Run before deployments
 - **Performance monitoring**: Track operation times
 - **Regression testing**: Ensure fixes don't break functionality

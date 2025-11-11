@@ -1,0 +1,41 @@
+# Frontend testing Docker container (includes Playwright)
+FROM node:22-alpine
+
+WORKDIR /app
+
+# Install system dependencies for Playwright
+RUN apk add --no-cache \
+    chromium \
+    nss \
+    freetype \
+    freetype-dev \
+    harfbuzz \
+    ca-certificates \
+    ttf-freefont \
+    && rm -rf /var/cache/apk/*
+
+# Set Playwright to use system Chromium
+ENV PLAYWRIGHT_SKIP_BROWSER_DOWNLOAD=1
+ENV PLAYWRIGHT_CHROMIUM_EXECUTABLE_PATH=/usr/bin/chromium-browser
+
+# Set working directory
+WORKDIR /app/frontend
+
+# Copy package files first (for better caching)
+COPY frontend/package*.json ./
+
+# Install dependencies (including @playwright/test)
+RUN npm ci
+
+# Install Playwright browsers (system Chromium already installed)
+RUN npx playwright install chromium || true
+
+# Install Playwright system dependencies (already done via apk, but ensure compatibility)
+RUN npx playwright install-deps chromium || true
+
+# Copy Playwright config (source code will be mounted as volume, but config needs to be in image)
+COPY frontend/playwright.config.ts ./
+
+# Default command: Run Playwright E2E tests only
+CMD ["npx", "playwright", "test"]
+

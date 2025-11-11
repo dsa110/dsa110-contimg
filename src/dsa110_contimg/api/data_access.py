@@ -726,27 +726,30 @@ def fetch_observation_timeline(
     timestamps = []
     file_count_by_timestamp: dict[datetime, int] = {}
     
-    for root, _, files in data_dir.rglob("*"):
-        for filename in files:
-            if not filename.endswith(".hdf5"):
+    # rglob returns Path objects, not tuples like os.walk()
+    for file_path in data_dir.rglob("*.hdf5"):
+        # Skip directories (though rglob with pattern should only return files)
+        if not file_path.is_file():
+            continue
+        
+        filename = file_path.name
+        
+        try:
+            # Parse timestamp from filename
+            # Format: YYYY-MM-DDTHH:MM:SS_sbXX.hdf5
+            parts = filename.split("_sb")
+            if len(parts) != 2:
                 continue
             
-            try:
-                # Parse timestamp from filename
-                # Format: YYYY-MM-DDTHH:MM:SS_sbXX.hdf5
-                parts = filename.split("_sb")
-                if len(parts) != 2:
-                    continue
-                
-                timestamp_str = parts[0]
-                timestamp = datetime.strptime(timestamp_str, "%Y-%m-%dT%H:%M:%S")
-                
-                timestamps.append(timestamp)
-                file_count_by_timestamp[timestamp] = (
-                    file_count_by_timestamp.get(timestamp, 0) + 1
-                )
-            except (ValueError, IndexError):
-                continue
+            timestamp_str = parts[0]
+            timestamp = datetime.strptime(timestamp_str, "%Y-%m-%dT%H:%M:%S")
+            
+            timestamps.append(timestamp)
+            file_count_by_timestamp[timestamp] = (
+                file_count_by_timestamp.get(timestamp, 0) + 1
+            )
+        except (ValueError, IndexError):
+            continue
     
     if not timestamps:
         return ObservationTimeline()
