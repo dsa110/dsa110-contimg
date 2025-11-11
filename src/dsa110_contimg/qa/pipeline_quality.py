@@ -214,7 +214,8 @@ def check_calibration_quality(
         ensure_casa_path()
 
         try:
-            from casacore.tables import table
+            import casacore.tables as casatables
+            table = casatables.table  # noqa: N816
 
             with table(ms_path, readonly=True, ack=False) as tb:
                 has_corrected_data = "CORRECTED_DATA" in tb.colnames()

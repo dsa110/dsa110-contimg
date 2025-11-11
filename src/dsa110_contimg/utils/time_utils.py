@@ -331,7 +331,8 @@ def extract_ms_time_range(
 
     # Method 3: Main table TIME column - seconds, needs epoch conversion
     try:
-        from casacore.tables import table as _tb
+        import casacore.tables as _casatables
+        _tb = _casatables.table
 
         with _tb(ms_path, readonly=True) as _main:
             if "TIME" in _main.colnames():
@@ -360,7 +361,8 @@ def extract_ms_time_range(
 
     # Method 4: OBSERVATION table TIME_RANGE - seconds, needs epoch conversion
     try:
-        from casacore.tables import table as _tb
+        import casacore.tables as _casatables
+        _tb = _casatables.table
 
         with _tb(f"{ms_path}::OBSERVATION", readonly=True) as _obs:
             if _obs.nrows() > 0 and "TIME_RANGE" in _obs.colnames():

@@ -21,7 +21,8 @@ from dsa110_contimg.utils.casa_init import ensure_casa_path
 ensure_casa_path()
 
 try:
-    from casacore.tables import table
+    import casacore.tables as casatables
+    table = casatables.table  # noqa: N816
 except ImportError:
     table = None  # type: ignore[assignment, misc]
 

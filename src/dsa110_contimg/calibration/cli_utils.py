@@ -1,6 +1,7 @@
 """Utility functions for calibration CLI."""
 
-from casacore.tables import table
+import casacore.tables as casatables
+table = casatables.table  # noqa: N816
 from astropy.coordinates import Angle, SkyCoord
 from astropy import units as u
 import os

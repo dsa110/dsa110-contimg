@@ -11,7 +11,8 @@ import astropy.units as u
 import numpy as np
 import pandas as pd
 from astropy.coordinates import Angle
-from casacore.tables import table
+import casacore.tables as casatables
+table = casatables.table  # noqa: N816
 
 from .catalogs import (
     airy_primary_beam_response,

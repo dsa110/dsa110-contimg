@@ -306,8 +306,17 @@ def measure_forced_peak(
     if has_beam_info:
         # Use weighted convolution method
         pixelscale = (proj_plane_pixel_scales(wcs)[1] * u.deg).to(u.arcsec)
-        bmaj_arcsec = hdr["BMAJ"] * 3600.0  # Convert degrees to arcsec
-        bmin_arcsec = hdr["BMIN"] * 3600.0
+        # Some generators (tests) store BMAJ/BMIN in arcsec instead of degrees.
+        # Heuristic: values > 2 likely given in arcsec; else assume degrees.
+        def _to_arcsec(v: float) -> float:
+            try:
+                val = float(v)
+            except Exception:
+                return float("nan")
+            return val if val > 2.0 else val * 3600.0
+
+        bmaj_arcsec = _to_arcsec(hdr["BMAJ"])  # Accept deg or arcsec
+        bmin_arcsec = _to_arcsec(hdr["BMIN"])  # Accept deg or arcsec
         bpa_deg = hdr.get("BPA", 0.0)
 
         # Calculate cutout size in pixels

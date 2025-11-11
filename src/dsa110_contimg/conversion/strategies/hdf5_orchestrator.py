@@ -1135,7 +1135,8 @@ def convert_subband_groups_to_ms(
             ensure_casa_path()
 
             try:
-                from casacore.tables import table
+                import casacore.tables as casatables
+                table = casatables.table  # noqa: N816
 
                 with table(ms_path, readonly=True) as tb:
                     if tb.nrows() == 0:

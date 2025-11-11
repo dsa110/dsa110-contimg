@@ -27,7 +27,8 @@ import numpy as np
 from dsa110_contimg.utils.casa_init import ensure_casa_path
 ensure_casa_path()
 
-from casacore.tables import table
+import casacore.tables as casatables
+table = casatables.table  # noqa: N816
 
 from dsa110_contimg.calibration.applycal import apply_to_target
 from dsa110_contimg.database.products import ensure_products_db, ms_index_upsert

@@ -21,6 +21,7 @@ import RegionTools from '../components/Sky/RegionTools';
 import RegionList from '../components/Sky/RegionList';
 import ProfileTool from '../components/Sky/ProfileTool';
 import ImageFittingTool from '../components/Sky/ImageFittingTool';
+import SkyMap from '../components/Sky/SkyMap';
 import type { ImageInfo } from '../api/types';
 
 export default function SkyViewPage() {
@@ -47,6 +48,16 @@ export default function SkyViewPage() {
       <Typography variant="h3" gutterBottom sx={{ mb: 4 }}>
         Sky View
       </Typography>
+
+      {/* Interactive Sky Map */}
+      <Box sx={{ mb: 4 }}>
+        <SkyMap
+          height={500}
+          historyDays={7}
+          showPointingHistory={true}
+          showObservedFields={true}
+        />
+      </Box>
 
       <Grid container spacing={3}>
         {/* Image Browser Sidebar */}

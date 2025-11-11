@@ -13,11 +13,13 @@ import numpy as np
 from dsa110_contimg.utils.casa_init import ensure_casa_path
 ensure_casa_path()
 
-from casacore.tables import table
+import casacore.tables as casatables
+table = casatables.table  # noqa: N816
 =======
 >>>>>>> e44dfe7076f185340d319a23579f5ecfa79da9d6
 from astropy.coordinates import SkyCoord
-from casacore.tables import table
+import casacore.tables as casatables
+table = casatables.table  # noqa: N816
 
 
 def calculate_expected_uvw_change(

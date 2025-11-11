@@ -58,7 +58,8 @@ def parallel_process_spws(
     from dsa110_contimg.utils.casa_init import ensure_casa_path
     ensure_casa_path()
 
-    from casacore.tables import table
+    import casacore.tables as casatables
+    table = casatables.table
 
     # Auto-detect SPWs if not provided
     if spw_list is None:
@@ -117,7 +118,8 @@ def parallel_process_antennas(
     Returns:
         List of results from process_func
     """
-    from casacore.tables import table
+    import casacore.tables as casatables
+    table = casatables.table
 
     # Auto-detect antennas if not provided
     if antenna_list is None:
@@ -235,7 +237,8 @@ def estimate_memory_requirements(ms_path: str) -> dict:
         Dictionary with memory estimates (in GB)
     """
     import numpy as np
-    from casacore.tables import table
+    import casacore.tables as casatables
+    table = casatables.table
 
     try:
         with table(ms_path, readonly=True, ack=False) as tb:

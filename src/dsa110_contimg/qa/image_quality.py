@@ -212,7 +212,8 @@ def validate_image_quality(image_path: str) -> ImageQualityMetrics:
                 del img
         else:
             # Fallback: try to read with CASA table interface
-            from casacore.tables import table
+            import casacore.tables as casatables
+            table = casatables.table  # noqa: N816
 
             with table(image_path, readonly=True, ack=False) as tb:
                 shape_col = tb.getcol("shape") if "shape" in tb.colnames() else None

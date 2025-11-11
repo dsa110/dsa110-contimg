@@ -400,304 +400,20 @@ def create_app(config: ApiConfig | None = None) -> FastAPI:
         pass
 
     router = APIRouter(prefix="/api")
-    # Move status/health/SSE/WS/test-broadcast endpoints to dedicated subrouter
+    # Include subrouters
     from dsa110_contimg.api.routers.status import router as status_router
+    from dsa110_contimg.api.routers.images import router as images_router
+    from dsa110_contimg.api.routers.products import router as products_router
+    from dsa110_contimg.api.routers.mosaics import router as mosaics_router
+    from dsa110_contimg.api.routers.photometry import router as photometry_router
+    from dsa110_contimg.api.routers.catalogs import router as catalogs_router
     app.include_router(status_router, prefix="/api")
+    app.include_router(images_router, prefix="/api")
+    app.include_router(products_router, prefix="/api")
+    app.include_router(mosaics_router, prefix="/api")
+    app.include_router(photometry_router, prefix="/api")
+    app.include_router(catalogs_router, prefix="/api")
 
-    @router.get("/products", response_model=ProductList)
-    def products(limit: int = 50) -> ProductList:
-        items = fetch_recent_products(cfg.products_db, limit=limit)
-        return ProductList(items=items)
-
-    @router.get("/images", response_model=ImageList)
-    def images(
-        limit: int = 100,
-        offset: int = 0,
-        ms_path: str | None = None,
-        image_type: str | None = None,
-        pbcor: bool | None = None,
-    ) -> ImageList:
-        """List available images for SkyView.
-
-        Args:
-            limit: Maximum number of images to return (1-1000, default: 100)
-            offset: Offset for pagination (>= 0, default: 0)
-            ms_path: Filter by MS path (partial match)
-            image_type: Filter by image type (image, pbcor, residual, psf, pb)
-            pbcor: Filter by primary beam correction status
-        """
-        # Validate and clamp parameters
-        limit = max(1, min(limit, 1000)) if limit > 0 else 100
-        offset = max(0, offset) if offset >= 0 else 0
-
-        db_path = cfg.products_db
-        items: list[ImageInfo] = []
-        total = 0
-
-        if not db_path.exists():
-            return ImageList(items=items, total=0)
-
-        with _connect(db_path) as conn:
-            # Build query
-            where_clauses = []
-            params: list[object] = []
-
-            if ms_path:
-                where_clauses.append("ms_path LIKE ?")
-                params.append(f"%{ms_path}%")
-
-            if image_type:
-                where_clauses.append("type = ?")
-                params.append(image_type)
-
-            if pbcor is not None:
-                where_clauses.append("pbcor = ?")
-                params.append(1 if pbcor else 0)
-
-            where_sql = " WHERE " + \
-                " AND ".join(where_clauses) if where_clauses else ""
-
-            # Get total count
-            count_query = f"SELECT COUNT(*) as total FROM images{where_sql}"
-            total_row = conn.execute(count_query, params).fetchone()
-            total = total_row["total"] if total_row else 0
-
-            # Get images
-            query = f"""
-                SELECT id, path, ms_path, created_at, type, beam_major_arcsec, noise_jy, pbcor
-                FROM images
-                {where_sql}
-                ORDER BY created_at DESC
-                LIMIT ? OFFSET ?
-            """
-            params.extend([limit, offset])
-            rows = conn.execute(query, params).fetchall()
-
-            for r in rows:
-                # For now, we'll use the basic fields. WCS and additional metadata
-                # can be extracted from FITS headers in a future enhancement
-                items.append(
-                    ImageInfo(
-                        id=r["id"],
-                        path=r["path"],
-                        ms_path=r["ms_path"],
-                        created_at=(
-                            datetime.fromtimestamp(r["created_at"])
-                            if r["created_at"]
-                            else None
-                        ),
-                        type=r["type"],
-                        beam_major_arcsec=r["beam_major_arcsec"],
-                        beam_minor_arcsec=None,  # Not in current schema
-                        beam_pa_deg=None,  # Not in current schema
-                        noise_jy=r["noise_jy"],
-                        peak_flux_jy=None,  # Not in current schema
-                        pbcor=bool(r["pbcor"]),
-                        center_ra_deg=None,  # Will extract from FITS in future
-                        center_dec_deg=None,  # Will extract from FITS in future
-                        image_size_deg=None,  # Will extract from FITS in future
-                        pixel_size_arcsec=None,  # Will extract from FITS in future
-                    )
-                )
-
-        return ImageList(items=items, total=total)
-
-    @router.get("/images/{image_id}/fits")
-    def get_image_fits(image_id: int):
-        """Serve FITS file for an image.
-
-        Converts CASA images to FITS on-demand if needed.
-        """
-        db_path = cfg.products_db
-
-        if not db_path.exists():
-            return HTMLResponse(status_code=404, content="Database not found")
-
-        with _connect(db_path) as conn:
-            row = conn.execute(
-                "SELECT path FROM images WHERE id = ?", (image_id,)
-            ).fetchone()
-
-            if not row:
-                return HTMLResponse(status_code=404, content="Image not found")
-
-            image_path = row["path"]
-
-        # Get FITS file path (convert if needed)
-        fits_path = get_fits_path(image_path)
-
-        if not fits_path or not Path(fits_path).exists():
-            return HTMLResponse(
-                status_code=404,
-                content=f"FITS file not found for image {image_id}. Conversion may have failed.",
-            )
-
-        # Serve FITS file
-        return FileResponse(
-            fits_path,
-            media_type="application/fits",
-            filename=Path(fits_path).name,
-        )
-
-    @router.get("/images/{image_id}", response_model=ImageDetail)
-    def get_image_detail(image_id: int):
-        """Get detailed information for an image."""
-        from astropy.coordinates import SkyCoord
-        from astropy import units as u
-        from astropy.io import fits
-        from astropy.wcs import WCS
-
-        db_path = cfg.products_db
-        if not db_path.exists():
-            raise HTTPException(status_code=404, detail="Database not found")
-
-        with _connect(db_path) as conn:
-            row = conn.execute(
-                """
-                SELECT id, path, ms_path, created_at, type, beam_major_arcsec,
-                       beam_minor_arcsec, beam_pa_deg, noise_jy, pbcor
-                FROM images
-                WHERE id = ?
-                """,
-                (image_id,)
-            ).fetchone()
-
-            if not row:
-                raise HTTPException(
-                    status_code=404,
-                    detail=f"Image {image_id} not found"
-                )
-
-            image_path = row["path"]
-
-            # Count measurements
-            n_meas = 0
-            try:
-                # Check if photometry table exists and has image_path column
-                tables = {
-                    r[0] for r in conn.execute(
-                        "SELECT name FROM sqlite_master WHERE type='table'"
-                    ).fetchall()
-                }
-                if 'photometry' in tables:
-                    cols = {
-                        r[1] for r in conn.execute(
-                            "PRAGMA table_info(photometry)"
-                        ).fetchall()
-                    }
-                    if 'image_path' in cols:
-                        count_row = conn.execute(
-                            "SELECT COUNT(*) as cnt FROM photometry WHERE image_path = ?",
-                            (image_path,)
-                        ).fetchone()
-                        n_meas = count_row['cnt'] if count_row else 0
-            except Exception:
-                pass
-
-            # Count runs (images aren't directly linked to runs, so return 0 for now)
-            n_runs = 0
-
-            # Try to extract WCS and metadata from FITS
-            ra = None
-            dec = None
-            ra_hms = None
-            dec_dms = None
-            l = None
-            b = None
-            frequency = None
-            bandwidth = None
-            datetime_str = None
-
-            fits_path = get_fits_path(image_path)
-            if fits_path and Path(fits_path).exists():
-                try:
-                    with fits.open(fits_path) as hdul:
-                        hdr = hdul[0].header
-
-                        # Get WCS
-                        try:
-                            wcs = WCS(hdr)
-                            if wcs.has_celestial:
-                                # Get center coordinates
-                                center_pix = [
-                                    hdr.get('NAXIS1', 0) / 2, hdr.get('NAXIS2', 0) / 2]
-                                if hdr.get('NAXIS', 0) >= 2:
-                                    ra, dec = wcs.all_pix2world(
-                                        center_pix[0], center_pix[1], 0)
-                                    coord = SkyCoord(
-                                        ra=ra*u.deg, dec=dec*u.deg, frame='icrs')
-                                    ra_hms = coord.ra.to_string(
-                                        unit=u.hour, sep=':', precision=2)
-                                    dec_dms = coord.dec.to_string(
-                                        unit=u.deg, sep=':', precision=2)
-                                    l = coord.galactic.l.deg
-                                    b = coord.galactic.b.deg
-                        except Exception:
-                            pass
-
-                        # Get frequency
-                        if 'RESTFRQ' in hdr:
-                            frequency = hdr['RESTFRQ'] / \
-                                1e6  # Convert Hz to MHz
-                        elif 'CRVAL3' in hdr and 'CUNIT3' in hdr:
-                            freq_val = hdr['CRVAL3']
-                            freq_unit = hdr['CUNIT3']
-                            if freq_unit == 'Hz':
-                                frequency = freq_val / 1e6
-                            elif freq_unit == 'MHz':
-                                frequency = freq_val
-
-                        # Get bandwidth
-                        if 'CDELT3' in hdr and 'CUNIT3' in hdr:
-                            bw_val = abs(hdr['CDELT3'])
-                            bw_unit = hdr['CUNIT3']
-                            if bw_unit == 'Hz':
-                                bandwidth = bw_val / 1e6
-                            elif bw_unit == 'MHz':
-                                bandwidth = bw_val
-
-                        # Get datetime
-                        if 'DATE-OBS' in hdr:
-                            datetime_str = hdr['DATE-OBS']
-                except Exception:
-                    pass
-
-            # Get image name from path
-            name = Path(image_path).name
-
-            return ImageDetail(
-                id=image_id,
-                name=name,
-                path=image_path,
-                ms_path=row["ms_path"],
-                ra=ra,
-                dec=dec,
-                ra_hms=ra_hms,
-                dec_dms=dec_dms,
-                l=l,
-                b=b,
-                # Convert arcsec to deg
-                beam_bmaj=row["beam_major_arcsec"] /
-                3600.0 if row["beam_major_arcsec"] else None,
-                beam_bmin=row["beam_minor_arcsec"] /
-                3600.0 if row.get("beam_minor_arcsec") else None,
-                beam_bpa=row["beam_pa_deg"],
-                # Convert Jy to mJy
-                rms_median=row["noise_jy"] *
-                1000.0 if row["noise_jy"] else None,
-                rms_min=None,  # Not stored separately
-                rms_max=None,  # Not stored separately
-                frequency=frequency,
-                bandwidth=bandwidth,
-                datetime=datetime.fromisoformat(
-                    datetime_str) if datetime_str else None,
-                created_at=datetime.fromtimestamp(
-                    row["created_at"]) if row["created_at"] else None,
-                n_meas=n_meas,
-                n_runs=n_runs,
-                type=row["type"],
-                pbcor=bool(row["pbcor"])
-            )
 
     @router.get("/images/{image_id}/measurements", response_model=MeasurementList)
     def get_image_measurements(
@@ -1133,73 +849,7 @@ def create_app(config: ApiConfig | None = None) -> FastAPI:
                 status_code=500, detail=f"Failed to fit {model}: {str(e)}"
             )
 
-    @router.get("/catalog/overlay")
-    def get_catalog_overlay(
-        ra: float = Query(..., description="RA center in degrees"),
-        dec: float = Query(..., description="Dec center in degrees"),
-        radius: float = Query(..., description="Search radius in degrees"),
-        catalog: str = Query(
-            "all", description="Catalog type: nvss, vlass, first, or all"
-        ),
-    ):
-        """Get catalog sources for overlay on images.
-
-        Returns sources within the specified field of view from the master catalog.
-        """
-        from dsa110_contimg.catalog.query import query_sources
-
-        try:
-            # Query sources from catalog
-            if catalog == "all":
-                # Query master catalog (includes NVSS, VLASS, FIRST)
-                df = query_sources(
-                    catalog_type="master",
-                    ra_center=ra,
-                    dec_center=dec,
-                    radius_deg=radius,
-                )
-            else:
-                df = query_sources(
-                    catalog_type=catalog.lower(),
-                    ra_center=ra,
-                    dec_center=dec,
-                    radius_deg=radius,
-                )
-
-            # Convert to list of dictionaries
-            sources = []
-            for _, row in df.iterrows():
-                source = {
-                    "ra_deg": float(row.get("ra_deg", 0)),
-                    "dec_deg": float(row.get("dec_deg", 0)),
-                    "flux_mjy": (
-                        float(row.get("flux_mjy", 0)
-                              ) if "flux_mjy" in row else None
-                    ),
-                    "source_id": (
-                        str(row.get("source_id", "")
-                            ) if "source_id" in row else None
-                    ),
-                    "catalog_type": (
-                        str(row.get("catalog_type", catalog))
-                        if "catalog_type" in row
-                        else catalog
-                    ),
-                }
-                sources.append(source)
-
-            return {
-                "sources": sources,
-                "count": len(sources),
-                "ra_center": ra,
-                "dec_center": dec,
-                "radius_deg": radius,
-            }
-        except Exception as e:
-            logger.error(f"Error querying catalog overlay: {e}")
-            raise HTTPException(
-                status_code=500, detail=f"Failed to query catalog: {str(e)}"
-            )
+    # moved to dsa110_contimg.api.routers.catalogs
 
     @router.get("/regions")
     def get_regions(
@@ -2155,69 +1805,9 @@ def create_app(config: ApiConfig | None = None) -> FastAPI:
             timeout=timeout
         )
 
-    @router.post("/mosaics/query", response_model=MosaicQueryResponse)
-    def mosaics_query(request: dict):
-        """Query mosaics by time range from database."""
-        start_time = request.get("start_time", "")
-        end_time = request.get("end_time", "")
+    # moved to dsa110_contimg.api.routers.mosaics
 
-        if not start_time or not end_time:
-            return MosaicQueryResponse(mosaics=[], total=0)
-
-        mosaics_data = fetch_mosaics(cfg.products_db, start_time, end_time)
-        mosaics = [Mosaic(**m) for m in mosaics_data]
-        return MosaicQueryResponse(
-            mosaics=mosaics,
-            total=len(mosaics),
-        )
-
-    @router.post("/mosaics/create")
-    def mosaics_create(request: dict):
-        """Create a new mosaic (queue mosaic generation job).
-
-        Note: This is a placeholder for future mosaic generation pipeline integration.
-        For now, returns a response indicating the feature is not yet implemented.
-        """
-        return {
-            "status": "not_implemented",
-            "message": "Mosaic creation via API is not yet implemented. Use the mosaic CLI tools.",
-            "mosaic_id": None,
-        }
-
-    @router.get("/mosaics/{mosaic_id}", response_model=Mosaic)
-    def get_mosaic(mosaic_id: int):
-        """Get a single mosaic by ID."""
-        mosaic_data = fetch_mosaic_by_id(cfg.products_db, mosaic_id)
-        if not mosaic_data:
-            raise HTTPException(
-                status_code=404, detail=f"Mosaic {mosaic_id} not found")
-        return Mosaic(**mosaic_data)
-
-    @router.get("/mosaics/{mosaic_id}/fits")
-    def get_mosaic_fits(mosaic_id: int):
-        """Serve FITS file for a mosaic."""
-        mosaic_data = fetch_mosaic_by_id(cfg.products_db, mosaic_id)
-        if not mosaic_data:
-            raise HTTPException(
-                status_code=404, detail=f"Mosaic {mosaic_id} not found")
-
-        mosaic_path = mosaic_data["path"]
-
-        # Check if path exists
-        if not Path(mosaic_path).exists():
-            raise HTTPException(
-                status_code=404,
-                detail=f"FITS file not found for mosaic {mosaic_id}: {mosaic_path}",
-            )
-
-        # Serve FITS file
-        return FileResponse(
-            mosaic_path,
-            media_type="application/fits",
-            filename=Path(mosaic_path).name,
-        )
-
-    @router.post("/sources/search", response_model=SourceSearchResponse)
+    @router.post("/legacy/sources/search", response_model=SourceSearchResponse)
     def sources_search(request: dict):
         """Search for sources and return flux timeseries from photometry database."""
         source_id = request.get("source_id", "")
@@ -2253,7 +1843,7 @@ def create_app(config: ApiConfig | None = None) -> FastAPI:
             total=1,
         )
 
-    @router.get("/sources/{source_id}/variability", response_model=VariabilityMetrics)
+    @router.get("/legacy/sources/{source_id}/variability", response_model=VariabilityMetrics)
     def get_source_variability(source_id: str):
         """Get variability metrics for a source."""
         from dsa110_contimg.photometry.source import Source
@@ -2278,7 +1868,7 @@ def create_app(config: ApiConfig | None = None) -> FastAPI:
                 detail=f"Source {source_id} not found or error calculating metrics: {str(e)}"
             )
 
-    @router.get("/sources/{source_id}/lightcurve", response_model=LightCurveData)
+    @router.get("/legacy/sources/{source_id}/lightcurve", response_model=LightCurveData)
     def get_source_lightcurve(source_id: str):
         """Get light curve data for a source."""
         from dsa110_contimg.photometry.source import Source
@@ -2349,7 +1939,7 @@ def create_app(config: ApiConfig | None = None) -> FastAPI:
                 detail=f"Source {source_id} not found or error loading measurements: {str(e)}"
             )
 
-    @router.get("/sources/{source_id}/postage_stamps", response_model=PostageStampsResponse)
+    @router.get("/legacy/sources/{source_id}/postage_stamps", response_model=PostageStampsResponse)
     def get_source_postage_stamps(
         source_id: str,
         size_arcsec: float = Query(
@@ -2444,7 +2034,7 @@ def create_app(config: ApiConfig | None = None) -> FastAPI:
                 detail=f"Source {source_id} not found or error creating stamps: {str(e)}"
             )
 
-    @router.get("/sources/{source_id}/external_catalogs", response_model=ExternalCatalogsResponse)
+    @router.get("/legacy/sources/{source_id}/external_catalogs", response_model=ExternalCatalogsResponse)
     def get_source_external_catalogs(
         source_id: str,
         radius_arcsec: float = Query(5.0, description="Search radius in arcseconds"),
@@ -2544,7 +2134,7 @@ def create_app(config: ApiConfig | None = None) -> FastAPI:
                 detail=f"Source {source_id} not found or error querying catalogs: {str(e)}"
             )
 
-    @router.get("/sources/{source_id}", response_model=SourceDetail)
+    @router.get("/legacy/sources/{source_id}", response_model=SourceDetail)
     def get_source_detail(source_id: str):
         """Get detailed information for a source."""
         from dsa110_contimg.photometry.source import Source
@@ -2703,7 +2293,7 @@ def create_app(config: ApiConfig | None = None) -> FastAPI:
                 detail=f"Source {source_id} not found: {str(e)}"
             )
 
-    @router.get("/sources/{source_id}/detections", response_model=DetectionList)
+    @router.get("/legacy/sources/{source_id}/detections", response_model=DetectionList)
     def get_source_detections(
         source_id: str,
         page: int = Query(1, ge=1, description="Page number"),

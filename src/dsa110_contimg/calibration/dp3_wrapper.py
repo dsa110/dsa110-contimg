@@ -163,7 +163,8 @@ def concatenate_fields_in_ms(ms_path: str, output_ms_path: str) -> str:
 
     ensure_casa_path()
 
-    from casacore.tables import table
+    import casacore.tables as casatables
+    table = casatables.table
     from casatasks import concat
 
     # Check field count
@@ -190,7 +191,8 @@ def _concatenate_fields_manual(ms_path: str, output_ms_path: str) -> str:
     This is simpler than using CASA concat and works for our use case.
     """
     import numpy as np
-    from casacore.tables import table
+    import casacore.tables as casatables
+    table = casatables.table
 
     LOG.info("Using manual field concatenation")
 

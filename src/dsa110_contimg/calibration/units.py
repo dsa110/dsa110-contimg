@@ -174,7 +174,8 @@ def get_reference_frequency_from_ms(ms_path: str) -> Optional[u.Quantity]:
     ensure_casa_path()
 
     try:
-        from casacore.tables import table
+        import casacore.tables as casatables
+        table = casatables.table
 
         with table(f"{ms_path}::SPECTRAL_WINDOW", readonly=True, ack=False) as spw_tb:
             ref_freqs = spw_tb.getcol("REF_FREQUENCY")

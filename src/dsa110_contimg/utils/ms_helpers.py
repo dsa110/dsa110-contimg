@@ -45,7 +45,8 @@ def sample_ms_column(
     ensure_casa_path()
 
     try:
-        from casacore.tables import table
+import casacore.tables as casatables
+table = casatables.table  # noqa: N816
     except ImportError:
         raise ImportError("casacore.tables required for MS operations")
 
@@ -124,7 +125,7 @@ def _validate_ms_unflagged_fraction_cached(
     Cache key includes file modification time for automatic invalidation.
     """
     try:
-        from casacore.tables import table
+    # use module-level table
     except ImportError:
         raise ImportError("casacore.tables required for MS operations")
 
@@ -206,7 +207,7 @@ def get_antennas_cached(ms_path: str) -> List[str]:
         List of antenna names
     """
     try:
-        from casacore.tables import table
+    # use module-level table
     except ImportError:
         raise ImportError("casacore.tables required for MS operations")
 
@@ -228,7 +229,7 @@ def get_fields_cached(ms_path: str) -> List[Tuple[str, float, float]]:
         List of tuples: (field_name, ra_deg, dec_deg)
     """
     try:
-        from casacore.tables import table
+    # use module-level table
     except ImportError:
         raise ImportError("casacore.tables required for MS operations")
 
@@ -273,7 +274,7 @@ def estimate_ms_size(ms_path: str) -> dict:
         - estimated_memory_gb: Rough estimate of memory usage (GB)
     """
     try:
-        from casacore.tables import table
+    # use module-level table
     except ImportError:
         raise ImportError("casacore.tables required for MS operations")
 
@@ -367,7 +368,7 @@ def get_ms_metadata_cached(
         phase_dir = metadata['phase_dir']
     """
     try:
-        from casacore.tables import table
+    # use module-level table
     except ImportError:
         raise ImportError("casacore.tables required for MS operations")
 

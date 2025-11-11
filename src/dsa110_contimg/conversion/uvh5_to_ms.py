@@ -365,7 +365,8 @@ def _fix_mount_type_in_ms(ms_path: str) -> None:
     ensure_casa_path()
 
     try:
-        from casacore.tables import table
+        import casacore.tables as casatables
+        table = casatables.table  # noqa: N816
 
         # Open the antenna table for read/write
         ant_table = table(ms_path + "/ANTENNA", readonly=False)
@@ -929,7 +930,8 @@ def _ensure_imaging_columns_populated(ms_path: str) -> None:
     This is required by CASA concat/ms tools which assume array-valued
     cells in these columns.
     """
-    from casacore.tables import table
+    import casacore.tables as casatables
+    table = casatables.table  # noqa: N816
 
     with table(ms_path, readonly=False) as tb:
         nrow = tb.nrows()

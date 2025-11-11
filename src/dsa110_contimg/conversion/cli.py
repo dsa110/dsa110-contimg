@@ -307,7 +307,8 @@ def main(argv: list = None) -> int:
         from dsa110_contimg.utils.casa_init import ensure_casa_path
         ensure_casa_path()
 
-        from casacore.tables import table
+        import casacore.tables as casatables
+        table = casatables.table
 
         from dsa110_contimg.utils.validation import (
             ValidationError,

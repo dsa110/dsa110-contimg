@@ -15,7 +15,8 @@ from .flagging import (
     reset_flags,
 )
 from dsa110_contimg.utils.validation import ValidationError, validate_ms
-from casacore.tables import table
+import casacore.tables as casatables
+table = casatables.table  # noqa: N816
 import numpy as np
 import argparse
 import logging

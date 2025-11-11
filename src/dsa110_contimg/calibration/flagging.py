@@ -672,7 +672,8 @@ def _extend_flags_direct(
     """
     try:
         import numpy as np
-        from casacore.tables import table
+        import casacore.tables as casatables
+        table = casatables.table
 
         with table(ms, readonly=False, ack=False) as tb:
             flags = tb.getcol("FLAG")
@@ -752,7 +753,8 @@ def analyze_channel_flagging_stats(
         >>> # Returns: {1: [5, 10, 15, 20], 12: [3, 7, 11]}
     """
     import numpy as np
-    from casacore.tables import table
+    import casacore.tables as casatables
+    table = casatables.table
 
     logger = logging.getLogger(__name__)
     problematic_channels = {}
@@ -920,7 +922,8 @@ def flag_summary(
     # Parse summary statistics directly from MS (faster and avoids casaplotserver)
     try:
         import numpy as np
-        from casacore.tables import table
+        import casacore.tables as casatables
+        table = casatables.table
 
         stats = {}
         with table(ms, readonly=True) as tb:

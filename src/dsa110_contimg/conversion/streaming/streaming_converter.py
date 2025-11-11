@@ -44,7 +44,8 @@ except Exception:  # pragma: no cover - optional helper
 from dsa110_contimg.utils.casa_init import ensure_casa_path
 ensure_casa_path()
 
-from casacore.tables import table  # noqa
+import casacore.tables as casatables  # noqa
+table = casatables.table  # noqa: N816
 from casatasks import concat as casa_concat  # noqa
 
 from dsa110_contimg.calibration.applycal import apply_to_target  # noqa

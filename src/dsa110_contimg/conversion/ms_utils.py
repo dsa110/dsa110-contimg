@@ -35,7 +35,8 @@ def _ensure_imaging_columns_exist(ms_path: str) -> None:
 
     try:
         from casacore.tables import addImagingColumns as _addImCols  # type: ignore
-        from casacore.tables import table as _tb
+        import casacore.tables as _casatables
+        _tb = _casatables.table
 
         # Check if columns already exist before attempting creation
         with _tb(ms_path, readonly=True) as tb:
@@ -71,7 +72,8 @@ def _ensure_imaging_columns_exist(ms_path: str) -> None:
     except Exception as e:
         # Check if columns exist despite the error (might have been created)
         try:
-            from casacore.tables import table as _tb
+            import casacore.tables as _casatables
+            _tb = _casatables.table
 
             with _tb(ms_path, readonly=True) as tb:
                 colnames = set(tb.colnames())
@@ -107,7 +109,8 @@ def _ensure_imaging_columns_populated(ms_path: str) -> None:
 
     try:
         import numpy as _np
-        from casacore.tables import table as _tb  # type: ignore
+        import casacore.tables as _casatables  # type: ignore
+        _tb = _casatables.table
     except ImportError as e:
         error_msg = f"Failed to import required modules for column population: {e}"
         logger.error(error_msg)
@@ -197,7 +200,8 @@ def _ensure_flag_and_weight_spectrum(ms_path: str) -> None:
     """
     try:
         import numpy as _np
-        from casacore.tables import table as _tb  # type: ignore
+        import casacore.tables as _casatables  # type: ignore
+        _tb = _casatables.table
     except Exception:
         return
 
@@ -274,7 +278,8 @@ def _initialize_weights(ms_path: str) -> None:
 def _fix_mount_type_in_ms(ms_path: str) -> None:
     """Normalize ANTENNA.MOUNT values to CASA-supported strings."""
     try:
-        from casacore.tables import table as _tb  # type: ignore
+        import casacore.tables as _casatables  # type: ignore
+        _tb = _casatables.table
 
         with _tb(ms_path + "/ANTENNA", readonly=False) as ant_table:
             mounts = ant_table.getcol("MOUNT")
@@ -323,7 +328,8 @@ def _fix_field_phase_centers_from_times(ms_path: str) -> None:
     try:
         import astropy.units as u  # type: ignore
         import numpy as _np
-        from casacore.tables import table as _tb  # type: ignore
+        import casacore.tables as _casatables  # type: ignore
+        _tb = _casatables.table
 
         from dsa110_contimg.conversion.helpers_coordinates import get_meridian_coords
     except ImportError:
@@ -475,7 +481,8 @@ def _fix_observation_time_range(ms_path: str) -> None:
     """
     try:
         import numpy as _np
-        from casacore.tables import table as _tb
+        import casacore.tables as _casatables
+        _tb = _casatables.table
 
         from dsa110_contimg.utils.time_utils import (
             DEFAULT_YEAR_RANGE,
@@ -713,7 +720,8 @@ def configure_ms_for_imaging(
 
             # CRITICAL: Validate columns actually exist and are populated (if enabled)
             if validate_columns:
-                from casacore.tables import table as _tb
+                import casacore.tables as _casatables
+                _tb = _casatables.table
 
                 with _tb(ms_path, readonly=True) as tb:
                     colnames = set(tb.colnames())
@@ -799,7 +807,8 @@ def configure_ms_for_imaging(
 
     if stamp_observation_telescope:
         try:
-            from casacore.tables import table as _tb  # type: ignore
+            import casacore.tables as _casatables  # type: ignore
+            _tb = _casatables.table
 
             name = os.getenv("PIPELINE_TELESCOPE_NAME", "DSA_110")
             with _tb(ms_path + "::OBSERVATION", readonly=False) as tb:
@@ -844,7 +853,8 @@ def configure_ms_for_imaging(
 
     # Final validation: verify MS is still readable after all operations
     try:
-        from casacore.tables import table as _tb
+        import casacore.tables as _casatables
+        _tb = _casatables.table
 
         with _tb(ms_path, readonly=True) as tb:
             if tb.nrows() == 0:

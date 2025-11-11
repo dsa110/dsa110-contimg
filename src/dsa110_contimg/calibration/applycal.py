@@ -28,7 +28,8 @@ def _verify_corrected_data_populated(ms_path: str, min_fraction: float = 0.01) -
         RuntimeError: If CORRECTED_DATA is not populated
     """
     import numpy as np  # type: ignore[import]
-    from casacore.tables import table  # type: ignore[import]
+    import casacore.tables as casatables  # type: ignore[import]
+    table = casatables.table  # noqa: N816
 
     try:
         with table(ms_path, readonly=True) as tb:

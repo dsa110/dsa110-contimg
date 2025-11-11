@@ -538,7 +538,8 @@ class ConversionStage(PipelineStage):
         ensure_casa_path()
 
         try:
-            from casacore.tables import table
+            import casacore.tables as casatables
+            table = casatables.table
 
             with table(ms_path, readonly=True) as tb:
                 required_cols = ["DATA", "ANTENNA1", "ANTENNA2", "TIME"]
@@ -1239,7 +1240,8 @@ class CalibrationStage(PipelineStage):
 
         # Validate CORRECTED_DATA column exists and has data
         try:
-            from casacore.tables import table
+            import casacore.tables as casatables
+            table = casatables.table
 
             with table(ms_path, readonly=True) as tb:
                 if "CORRECTED_DATA" not in tb.colnames():
@@ -1301,7 +1303,8 @@ class ImagingStage(PipelineStage):
         log_progress("Starting imaging stage...")
 
         import numpy as np
-        from casacore.tables import table
+        import casacore.tables as casatables
+        table = casatables.table
 
         from dsa110_contimg.imaging.cli_imaging import image_ms
 
@@ -2347,7 +2350,8 @@ class AdaptivePhotometryStage(PipelineStage):
 
         import astropy.coordinates as acoords
         import numpy as np
-        from casacore.tables import table
+        import casacore.tables as casatables
+        table = casatables.table
 
         from dsa110_contimg.calibration.catalogs import read_nvss_catalog
         from dsa110_contimg.photometry.adaptive_binning import AdaptiveBinningConfig
@@ -2477,7 +2481,8 @@ class AdaptivePhotometryStage(PipelineStage):
         try:
             import astropy.coordinates as acoords
             import numpy as np
-            from casacore.tables import table
+            import casacore.tables as casatables
+            table = casatables.table
 
             # Get field center from MS
             with table(ms_path) as t:

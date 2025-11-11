@@ -15,6 +15,12 @@ from typing import List, Optional
 
 import numpy as np
 
+# Provide a patchable casacore table symbol for tests
+from dsa110_contimg.utils.casa_init import ensure_casa_path
+ensure_casa_path()
+import casacore.tables as casatables  # type: ignore
+table = casatables.table  # noqa: N816
+
 # Import ValidationError from unified exception hierarchy
 from dsa110_contimg.utils.exceptions import ValidationError
 
@@ -141,8 +147,8 @@ def validate_ms(
     ensure_casa_path()
 
     try:
-        from casacore.tables import table
-    except ImportError:
+        table  # ensure symbol exists
+    except Exception:
         raise ValidationError([f"Cannot import casacore.tables. Is CASA installed?"])
 
     try:
@@ -203,8 +209,6 @@ def validate_ms_for_calibration(
     # Field validation if provided
     if field:
         try:
-            from casacore.tables import table
-
             from dsa110_contimg.calibration.calibration import _resolve_field_ids
 
             with table(ms_path, readonly=True) as tb:
@@ -238,8 +242,6 @@ def validate_ms_for_calibration(
     # Reference antenna validation if provided
     if refant:
         try:
-            from casacore.tables import table
-
             with table(ms_path, readonly=True) as tb:
                 ant1 = tb.getcol("ANTENNA1")
                 ant2 = tb.getcol("ANTENNA2")
@@ -297,8 +299,6 @@ def validate_ms_for_calibration(
 
     # Check flagged data fraction (warning only)
     try:
-        from casacore.tables import table
-
         with table(ms_path, readonly=True) as tb:
             flags = tb.getcol("FLAG")
             unflagged_fraction = np.sum(~flags) / flags.size if flags.size > 0 else 0
@@ -333,8 +333,6 @@ def validate_corrected_data_quality(
     warnings = []
 
     try:
-        from casacore.tables import table
-
         with table(ms_path, readonly=True) as tb:
             if "CORRECTED_DATA" not in tb.colnames():
                 # No corrected data column - calibration never attempted, this is fine

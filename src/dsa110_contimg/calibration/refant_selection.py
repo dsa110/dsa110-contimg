@@ -107,7 +107,8 @@ def analyze_antenna_health_from_caltable(caltable_path: str) -> List[Dict[str, A
         FileNotFoundError: If calibration table doesn't exist
     """
     try:
-        from casacore.tables import table
+        import casacore.tables as casatables
+        table = casatables.table
     except ImportError as e:
         raise ImportError(
             "casacore.tables not available - cannot analyze antenna health"

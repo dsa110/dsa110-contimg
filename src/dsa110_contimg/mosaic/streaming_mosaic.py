@@ -618,7 +618,8 @@ class StreamingMosaicManager:
         dec_degrees = []
         for mid_mjd, ms_path in ms_paths_with_time:
             try:
-                from casacore.tables import table
+                import casacore.tables as casatables
+                table = casatables.table  # noqa: N816
                 
                 t = table(ms_path)
                 field_table = t.getkeyword("FIELD")
@@ -1090,7 +1091,8 @@ class StreamingMosaicManager:
             ensure_casa_path()
 
             try:
-                from casacore.tables import table
+                import casacore.tables as casatables
+                table = casatables.table  # noqa: N816
 
                 t = table(calibration_ms_path)
                 field_table = t.getkeyword("FIELD")
@@ -2485,7 +2487,8 @@ class StreamingMosaicManager:
         """
         # Get Dec from first MS
         try:
-            from casacore.tables import table
+            import casacore.tables as casatables
+            table = casatables.table  # noqa: N816
 
             t = table(ms_paths[0])
             field_table = t.getkeyword("FIELD")

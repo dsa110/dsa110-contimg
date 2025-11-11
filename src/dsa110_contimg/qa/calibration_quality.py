@@ -14,7 +14,8 @@ from typing import Any, Dict, List, Optional, Tuple
 from dsa110_contimg.utils.casa_init import ensure_casa_path
 ensure_casa_path()
 
-from casacore.tables import table
+import casacore.tables as casatables
+table = casatables.table  # noqa: N816
 import numpy as np
 # casacore is only available inside the CASA / casa6 environment. Guard the
 # import so that running tests on plain runners (without CASA) doesn't fail at
@@ -22,7 +23,8 @@ import numpy as np
 # `table` as None so runtime callers can raise an informative error if they
 # attempt to use it.
 try:
-    from casacore.tables import table  # type: ignore
+    import casacore.tables as casatables  # type: ignore
+    table = casatables.table  # noqa: N816
     HAVE_CASACORE = True
 except Exception:
     table = None
@@ -692,7 +694,8 @@ def analyze_per_spw_flagging(
         - Best practice: Use per-channel flagging first, SPW-level flagging as last resort
     """
     import numpy as np
-    from casacore.tables import table
+    import casacore.tables as casatables
+    table = casatables.table  # noqa: N816
 
     if not os.path.exists(caltable_path):
         raise FileNotFoundError(f"Calibration table not found: {caltable_path}")

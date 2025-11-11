@@ -40,7 +40,8 @@ import time
 from typing import Optional
 
 import numpy as np
-from casacore.tables import table  # type: ignore[import]
+import casacore.tables as casatables  # type: ignore[import]
+table = casatables.table  # noqa: N816
 from casatasks import exportfits, tclean  # type: ignore[import]
 
 from dsa110_contimg.utils.cli_helpers import (

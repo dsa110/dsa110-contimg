@@ -16,7 +16,8 @@ from dsa110_contimg.utils.casa_init import ensure_casa_path
 ensure_casa_path()
 
 from astropy.coordinates import Angle, SkyCoord
-from casacore.tables import table
+import casacore.tables as casatables
+table = casatables.table  # noqa: N816
 
 logger = logging.getLogger(__name__)
 

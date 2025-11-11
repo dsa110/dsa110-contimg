@@ -49,7 +49,8 @@ def _ensure_casa_initialized():
     ensure_casa_path()
     
     try:
-        from casacore.tables import table
+        import casacore.tables as casatables
+        table = casatables.table  # noqa: N816
         _CASACORE_TABLE = table
         _CASACORE_AVAILABLE = True
     except ImportError:
@@ -70,7 +71,8 @@ def _get_table_class():
     table_class, _ = _ensure_casa_initialized()
     return table_class
 try:
-    from casacore.tables import table
+    import casacore.tables as casatables
+    table = casatables.table  # noqa: N816
 
     HAS_CASACORE = True
 except ImportError:

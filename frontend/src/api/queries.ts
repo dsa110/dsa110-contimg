@@ -754,6 +754,13 @@ export function useImages(filters?: ImageFilters): UseQueryResult<ImageList> {
       if (filters?.ms_path) params.append('ms_path', filters.ms_path);
       if (filters?.image_type) params.append('image_type', filters.image_type);
       if (filters?.pbcor !== undefined) params.append('pbcor', filters.pbcor.toString());
+      // Advanced filters
+      if (filters?.start_date) params.append('start_date', filters.start_date);
+      if (filters?.end_date) params.append('end_date', filters.end_date);
+      if (filters?.dec_min !== undefined) params.append('dec_min', filters.dec_min.toString());
+      if (filters?.dec_max !== undefined) params.append('dec_max', filters.dec_max.toString());
+      if (filters?.noise_max !== undefined) params.append('noise_max', filters.noise_max.toString());
+      if (filters?.has_calibrator !== undefined) params.append('has_calibrator', filters.has_calibrator.toString());
       
       const response = await apiClient.get<ImageList>(`/api/images?${params.toString()}`);
       return response.data;

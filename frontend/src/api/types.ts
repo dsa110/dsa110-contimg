@@ -619,6 +619,13 @@ export interface ImageFilters {
   ms_path?: string;
   image_type?: string;
   pbcor?: boolean;
+  // Advanced filters
+  start_date?: string; // ISO date string (UTC)
+  end_date?: string; // ISO date string (UTC)
+  dec_min?: number; // Declination minimum (degrees)
+  dec_max?: number; // Declination maximum (degrees)
+  noise_max?: number; // Maximum noise level (Jy)
+  has_calibrator?: boolean; // Calibrator detected flag
 }
 
 // Data Registry Types
