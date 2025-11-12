@@ -16,9 +16,12 @@ from unittest.mock import MagicMock, call, patch
 import numpy as np
 import pytest
 
-# Mock casacore before importing modules that depend on it
+# Mock casacore and pyuvdata before importing modules that depend on them
 sys.modules['casacore'] = MagicMock()
 sys.modules['casacore.tables'] = MagicMock()
+sys.modules['pyuvdata'] = MagicMock()
+sys.modules['pyuvdata.utils'] = MagicMock()
+sys.modules['pyuvdata.utils.phasing'] = MagicMock()
 
 from dsa110_contimg.conversion.helpers import (
     cleanup_casa_file_handles,
