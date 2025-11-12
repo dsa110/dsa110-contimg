@@ -72,7 +72,7 @@ jobs:
   mermaid-visual:
     name: Mermaid visual checks (optional)
     needs: build
-    if: ${{ hashFiles('tests/docs/test_mermaid_diagrams.py') != '' }}
+    if: hashFiles('tests/docs/test_mermaid_diagrams.py') != ''
     runs-on: ubuntu-latest
     continue-on-error: true  # Don't fail workflow if this fails
     steps:
