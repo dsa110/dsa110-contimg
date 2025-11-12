@@ -33,14 +33,13 @@ jobs:
 
       - name: Install dependencies
         run: |
-          set -euo pipefail
           python -m pip install --upgrade pip
           pip install -r docs/requirements.txt
+          pip list | grep -E "mkdocs|mkdocstrings|griffe|autorefs"
 
       - name: Build site (strict)
         run: |
-          set -euo pipefail
-          mkdocs build --strict
+          python -m mkdocs build --strict --verbose
 
       - name: Deploy to GitHub Pages
         if: github.event_name == 'push' && (github.ref == 'refs/heads/main' || github.ref == 'refs/heads/master' || github.ref == 'refs/heads/jakob-wdash')
