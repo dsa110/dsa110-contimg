@@ -1,0 +1,2139 @@
+
+<!DOCTYPE html>
+
+<html class="no-js" lang="en">
+<head>
+<meta charset="utf-8"/>
+<meta content="width=device-width,initial-scale=1" name="viewport"/>
+<link href="http://code.deepsynoptic.org/dsa110-contimg/concepts/pipeline_workflow_visualization/" rel="canonical"/>
+<link href="../pipeline_stage_architecture/" rel="prev"/>
+<link href="../pipeline_production_features/" rel="next"/>
+<link href="../../assets/images/favicon.png" rel="icon"/>
+<meta content="mkdocs-1.6.1, mkdocs-material-9.5.31" name="generator"/>
+<title>Workflow Visualization - DSA-110 Continuum Imaging Pipeline</title>
+<link href="../../assets/stylesheets/main.3cba04c6.min.css" rel="stylesheet"/>
+<link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect"/>
+<link href="https://fonts.googleapis.com/css?family=Roboto:300,300i,400,400i,700,700i%7CRoboto+Mono:400,400i,700,700i&amp;display=fallback" rel="stylesheet"/>
+<style>:root{--md-text-font:"Roboto";--md-code-font:"Roboto Mono"}</style>
+<link href="../../assets/_mkdocstrings.css" rel="stylesheet"/>
+<script>__md_scope=new URL("../..",location),__md_hash=e=>[...e].reduce((e,_)=>(e<<5)-e+_.charCodeAt(0),0),__md_get=(e,_=localStorage,t=__md_scope)=>JSON.parse(_.getItem(t.pathname+"."+e)),__md_set=(e,_,t=localStorage,a=__md_scope)=>{try{t.setItem(a.pathname+"."+e,JSON.stringify(_))}catch(e){}}</script>
+</head>
+<body dir="ltr">
+<input autocomplete="off" class="md-toggle" data-md-toggle="drawer" id="__drawer" type="checkbox"/>
+<input autocomplete="off" class="md-toggle" data-md-toggle="search" id="__search" type="checkbox"/>
+<label class="md-overlay" for="__drawer"></label>
+<div data-md-component="skip">
+<a class="md-skip" href="#dsa-110-continuum-imaging-pipeline-complete-workflow-visualization">
+          Skip to content
+        </a>
+</div>
+<div data-md-component="announce">
+</div>
+<header class="md-header md-header--shadow" data-md-component="header">
+<nav aria-label="Header" class="md-header__inner md-grid">
+<a aria-label="DSA-110 Continuum Imaging Pipeline" class="md-header__button md-logo" data-md-component="logo" href="../.." title="DSA-110 Continuum Imaging Pipeline">
+<svg viewbox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54Z"></path></svg>
+</a>
+<label class="md-header__button md-icon" for="__drawer">
+<svg viewbox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M3 6h18v2H3V6m0 5h18v2H3v-2m0 5h18v2H3v-2Z"></path></svg>
+</label>
+<div class="md-header__title" data-md-component="header-title">
+<div class="md-header__ellipsis">
+<div class="md-header__topic">
+<span class="md-ellipsis">
+            DSA-110 Continuum Imaging Pipeline
+          </span>
+</div>
+<div class="md-header__topic" data-md-component="header-topic">
+<span class="md-ellipsis">
+            
+              Workflow Visualization
+            
+          </span>
+</div>
+</div>
+</div>
+<script>var media,input,key,value,palette=__md_get("__palette");if(palette&&palette.color){"(prefers-color-scheme)"===palette.color.media&&(media=matchMedia("(prefers-color-scheme: light)"),input=document.querySelector(media.matches?"[data-md-color-media='(prefers-color-scheme: light)']":"[data-md-color-media='(prefers-color-scheme: dark)']"),palette.color.media=input.getAttribute("data-md-color-media"),palette.color.scheme=input.getAttribute("data-md-color-scheme"),palette.color.primary=input.getAttribute("data-md-color-primary"),palette.color.accent=input.getAttribute("data-md-color-accent"));for([key,value]of Object.entries(palette.color))document.body.setAttribute("data-md-color-"+key,value)}</script>
+<label class="md-header__button md-icon" for="__search">
+<svg viewbox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.516 6.516 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5Z"></path></svg>
+</label>
+<div class="md-search" data-md-component="search" role="dialog">
+<label class="md-search__overlay" for="__search"></label>
+<div class="md-search__inner" role="search">
+<form class="md-search__form" name="search">
+<input aria-label="Search" autocapitalize="off" autocomplete="off" autocorrect="off" class="md-search__input" data-md-component="search-query" name="query" placeholder="Search" required="" spellcheck="false" type="text"/>
+<label class="md-search__icon md-icon" for="__search">
+<svg viewbox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.516 6.516 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5Z"></path></svg>
+<svg viewbox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11h12Z"></path></svg>
+</label>
+<nav aria-label="Search" class="md-search__options">
+<button aria-label="Clear" class="md-search__icon md-icon" tabindex="-1" title="Clear" type="reset">
+<svg viewbox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M19 6.41 17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12 19 6.41Z"></path></svg>
+</button>
+</nav>
+</form>
+<div class="md-search__output">
+<div class="md-search__scrollwrap" data-md-scrollfix="" tabindex="0">
+<div class="md-search-result" data-md-component="search-result">
+<div class="md-search-result__meta">
+            Initializing search
+          </div>
+<ol class="md-search-result__list" role="presentation"></ol>
+</div>
+</div>
+</div>
+</div>
+</div>
+<div class="md-header__source">
+<a class="md-source" data-md-component="source" href="https://github.com/dsa110/dsa110-contimg" title="Go to repository">
+<div class="md-source__icon md-icon">
+<svg viewbox="0 0 448 512" xmlns="http://www.w3.org/2000/svg"><!--! Font Awesome Free 6.6.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2024 Fonticons, Inc.--><path d="M439.55 236.05 244 40.45a28.87 28.87 0 0 0-40.81 0l-40.66 40.63 51.52 51.52c27.06-9.14 52.68 16.77 43.39 43.68l49.66 49.66c34.23-11.8 61.18 31 35.47 56.69-26.49 26.49-70.21-2.87-56-37.34L240.22 199v121.85c25.3 12.54 22.26 41.85 9.08 55a34.34 34.34 0 0 1-48.55 0c-17.57-17.6-11.07-46.91 11.25-56v-123c-20.8-8.51-24.6-30.74-18.64-45L142.57 101 8.45 235.14a28.86 28.86 0 0 0 0 40.81l195.61 195.6a28.86 28.86 0 0 0 40.8 0l194.69-194.69a28.86 28.86 0 0 0 0-40.81z"></path></svg>
+</div>
+<div class="md-source__repository">
+    GitHub
+  </div>
+</a>
+</div>
+</nav>
+</header>
+<div class="md-container" data-md-component="container">
+<main class="md-main" data-md-component="main">
+<div class="md-main__inner md-grid">
+<div class="md-sidebar md-sidebar--primary" data-md-component="sidebar" data-md-type="navigation">
+<div class="md-sidebar__scrollwrap">
+<div class="md-sidebar__inner">
+<nav aria-label="Navigation" class="md-nav md-nav--primary" data-md-level="0">
+<label class="md-nav__title" for="__drawer">
+<a aria-label="DSA-110 Continuum Imaging Pipeline" class="md-nav__button md-logo" data-md-component="logo" href="../.." title="DSA-110 Continuum Imaging Pipeline">
+<svg viewbox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54Z"></path></svg>
+</a>
+    DSA-110 Continuum Imaging Pipeline
+  </label>
+<div class="md-nav__source">
+<a class="md-source" data-md-component="source" href="https://github.com/dsa110/dsa110-contimg" title="Go to repository">
+<div class="md-source__icon md-icon">
+<svg viewbox="0 0 448 512" xmlns="http://www.w3.org/2000/svg"><!--! Font Awesome Free 6.6.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2024 Fonticons, Inc.--><path d="M439.55 236.05 244 40.45a28.87 28.87 0 0 0-40.81 0l-40.66 40.63 51.52 51.52c27.06-9.14 52.68 16.77 43.39 43.68l49.66 49.66c34.23-11.8 61.18 31 35.47 56.69-26.49 26.49-70.21-2.87-56-37.34L240.22 199v121.85c25.3 12.54 22.26 41.85 9.08 55a34.34 34.34 0 0 1-48.55 0c-17.57-17.6-11.07-46.91 11.25-56v-123c-20.8-8.51-24.6-30.74-18.64-45L142.57 101 8.45 235.14a28.86 28.86 0 0 0 0 40.81l195.61 195.6a28.86 28.86 0 0 0 40.8 0l194.69-194.69a28.86 28.86 0 0 0 0-40.81z"></path></svg>
+</div>
+<div class="md-source__repository">
+    GitHub
+  </div>
+</a>
+</div>
+<ul class="md-nav__list" data-md-scrollfix="">
+<li class="md-nav__item">
+<a class="md-nav__link" href="../..">
+<span class="md-ellipsis">
+    Home
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../DOCUMENTATION_QUICK_REFERENCE/">
+<span class="md-ellipsis">
+    Documentation Guide
+  </span>
+</a>
+</li>
+<li class="md-nav__item md-nav__item--active md-nav__item--section md-nav__item--nested">
+<input checked="" class="md-nav__toggle md-toggle" id="__nav_3" type="checkbox"/>
+<div class="md-nav__link md-nav__container">
+<a class="md-nav__link" href="../">
+<span class="md-ellipsis">
+    Concepts
+  </span>
+</a>
+<label class="md-nav__link" for="__nav_3" id="__nav_3_label" tabindex="">
+<span class="md-nav__icon md-icon"></span>
+</label>
+</div>
+<nav aria-expanded="true" aria-labelledby="__nav_3_label" class="md-nav" data-md-level="1">
+<label class="md-nav__title" for="__nav_3">
+<span class="md-nav__icon md-icon"></span>
+            Concepts
+          </label>
+<ul class="md-nav__list" data-md-scrollfix="">
+<li class="md-nav__item">
+<a class="md-nav__link" href="../architecture/">
+<span class="md-ellipsis">
+    Architecture
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../DIRECTORY_ARCHITECTURE/">
+<span class="md-ellipsis">
+    Directory Architecture
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../modules/">
+<span class="md-ellipsis">
+    Modules
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../control-panel/">
+<span class="md-ellipsis">
+    Control Panel
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../aoflagger/">
+<span class="md-ellipsis">
+    AOFlagger
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../frontend_design/">
+<span class="md-ellipsis">
+    Frontend Design
+  </span>
+</a>
+</li>
+<li class="md-nav__item md-nav__item--nested">
+<input class="md-nav__toggle md-toggle" id="__nav_3_8" type="checkbox"/>
+<label class="md-nav__link" for="__nav_3_8" id="__nav_3_8_label" tabindex="0">
+<span class="md-ellipsis">
+    Dashboard
+  </span>
+<span class="md-nav__icon md-icon"></span>
+</label>
+<nav aria-expanded="false" aria-labelledby="__nav_3_8_label" class="md-nav" data-md-level="2">
+<label class="md-nav__title" for="__nav_3_8">
+<span class="md-nav__icon md-icon"></span>
+            Dashboard
+          </label>
+<ul class="md-nav__list" data-md-scrollfix="">
+<li class="md-nav__item">
+<a class="md-nav__link" href="../dashboard_mockups/">
+<span class="md-ellipsis">
+    Mockups
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../SKYVIEW_IMPLEMENTATION_PLAN/">
+<span class="md-ellipsis">
+    Sky View
+  </span>
+</a>
+</li>
+</ul>
+</nav>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../GLOSSARY/">
+<span class="md-ellipsis">
+    Glossary
+  </span>
+</a>
+</li>
+<li class="md-nav__item md-nav__item--active md-nav__item--nested">
+<input checked="" class="md-nav__toggle md-toggle" id="__nav_3_10" type="checkbox"/>
+<label class="md-nav__link" for="__nav_3_10" id="__nav_3_10_label" tabindex="0">
+<span class="md-ellipsis">
+    Pipeline
+  </span>
+<span class="md-nav__icon md-icon"></span>
+</label>
+<nav aria-expanded="true" aria-labelledby="__nav_3_10_label" class="md-nav" data-md-level="2">
+<label class="md-nav__title" for="__nav_3_10">
+<span class="md-nav__icon md-icon"></span>
+            Pipeline
+          </label>
+<ul class="md-nav__list" data-md-scrollfix="">
+<li class="md-nav__item">
+<a class="md-nav__link" href="../pipeline_overview/">
+<span class="md-ellipsis">
+    Overview
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../pipeline_stage_architecture/">
+<span class="md-ellipsis">
+    Stage Architecture
+  </span>
+</a>
+</li>
+<li class="md-nav__item md-nav__item--active">
+<input class="md-nav__toggle md-toggle" id="__toc" type="checkbox"/>
+<label class="md-nav__link md-nav__link--active" for="__toc">
+<span class="md-ellipsis">
+    Workflow Visualization
+  </span>
+<span class="md-nav__icon md-icon"></span>
+</label>
+<a class="md-nav__link md-nav__link--active" href="./">
+<span class="md-ellipsis">
+    Workflow Visualization
+  </span>
+</a>
+<nav aria-label="Table of contents" class="md-nav md-nav--secondary">
+<label class="md-nav__title" for="__toc">
+<span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+<ul class="md-nav__list" data-md-component="toc" data-md-scrollfix="">
+<li class="md-nav__item">
+<a class="md-nav__link" href="#table-of-contents">
+<span class="md-ellipsis">
+      Table of Contents
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#end-to-end-pipeline-overview">
+<span class="md-ellipsis">
+      End-to-End Pipeline Overview
+    </span>
+</a>
+<nav aria-label="End-to-End Pipeline Overview" class="md-nav">
+<ul class="md-nav__list">
+<li class="md-nav__item">
+<a class="md-nav__link" href="#complete-data-flow">
+<span class="md-ellipsis">
+      Complete Data Flow
+    </span>
+</a>
+</li>
+</ul>
+</nav>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#detailed-stage-breakdown">
+<span class="md-ellipsis">
+      Detailed Stage Breakdown
+    </span>
+</a>
+<nav aria-label="Detailed Stage Breakdown" class="md-nav">
+<ul class="md-nav__list">
+<li class="md-nav__item">
+<a class="md-nav__link" href="#stage-1-ingest-and-grouping">
+<span class="md-ellipsis">
+      Stage 1: Ingest and Grouping
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#stage-2-conversion-uvh5-to-ms">
+<span class="md-ellipsis">
+      Stage 2: Conversion (UVH5 to MS)
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#stage-2-conversion-includes-ms-configuration">
+<span class="md-ellipsis">
+      Stage 2: Conversion (includes MS Configuration)
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#stage-3-calibration">
+<span class="md-ellipsis">
+      Stage 3: Calibration
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#stage-4-apply-calibration">
+<span class="md-ellipsis">
+      Stage 4: Apply Calibration
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#stage-5-imaging">
+<span class="md-ellipsis">
+      Stage 5: Imaging
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#stage-6-products-and-indexing">
+<span class="md-ellipsis">
+      Stage 6: Products and Indexing
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#stage-7-monitoring-access">
+<span class="md-ellipsis">
+      Stage 7: Monitoring &amp; Access
+    </span>
+</a>
+</li>
+</ul>
+</nav>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#state-machine-queue-management">
+<span class="md-ellipsis">
+      State Machine &amp; Queue Management
+    </span>
+</a>
+<nav aria-label="State Machine &amp; Queue Management" class="md-nav">
+<ul class="md-nav__list">
+<li class="md-nav__item">
+<a class="md-nav__link" href="#queue-state-transitions">
+<span class="md-ellipsis">
+      Queue State Transitions
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#stage-tracking">
+<span class="md-ellipsis">
+      Stage Tracking
+    </span>
+</a>
+</li>
+</ul>
+</nav>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#data-products-artifacts">
+<span class="md-ellipsis">
+      Data Products &amp; Artifacts
+    </span>
+</a>
+<nav aria-label="Data Products &amp; Artifacts" class="md-nav">
+<ul class="md-nav__list">
+<li class="md-nav__item">
+<a class="md-nav__link" href="#file-structure">
+<span class="md-ellipsis">
+      File Structure
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#database-schema">
+<span class="md-ellipsis">
+      Database Schema
+    </span>
+</a>
+</li>
+</ul>
+</nav>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#database-interactions">
+<span class="md-ellipsis">
+      Database Interactions
+    </span>
+</a>
+<nav aria-label="Database Interactions" class="md-nav">
+<ul class="md-nav__list">
+<li class="md-nav__item">
+<a class="md-nav__link" href="#data-flow-through-databases">
+<span class="md-ellipsis">
+      Data Flow Through Databases
+    </span>
+</a>
+</li>
+</ul>
+</nav>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#performance-optimization-paths">
+<span class="md-ellipsis">
+      Performance Optimization Paths
+    </span>
+</a>
+<nav aria-label="Performance Optimization Paths" class="md-nav">
+<ul class="md-nav__list">
+<li class="md-nav__item">
+<a class="md-nav__link" href="#fast-path-options">
+<span class="md-ellipsis">
+      Fast Path Options
+    </span>
+</a>
+</li>
+</ul>
+</nav>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#summary">
+<span class="md-ellipsis">
+      Summary
+    </span>
+</a>
+</li>
+</ul>
+</nav>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../pipeline_production_features/">
+<span class="md-ellipsis">
+    Production Features
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../pipeline_patterns/">
+<span class="md-ellipsis">
+    Patterns
+  </span>
+</a>
+</li>
+</ul>
+</nav>
+</li>
+<li class="md-nav__item md-nav__item--nested">
+<input class="md-nav__toggle md-toggle" id="__nav_3_11" type="checkbox"/>
+<label class="md-nav__link" for="__nav_3_11" id="__nav_3_11_label" tabindex="0">
+<span class="md-ellipsis">
+    Science
+  </span>
+<span class="md-nav__icon md-icon"></span>
+</label>
+<nav aria-expanded="false" aria-labelledby="__nav_3_11_label" class="md-nav" data-md-level="2">
+<label class="md-nav__title" for="__nav_3_11">
+<span class="md-nav__icon md-icon"></span>
+            Science
+          </label>
+<ul class="md-nav__list" data-md-scrollfix="">
+<li class="md-nav__item">
+<a class="md-nav__link" href="../science/photometry_normalization/">
+<span class="md-ellipsis">
+    Photometry Normalization
+  </span>
+</a>
+</li>
+</ul>
+</nav>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../mcp_browser_server_setup/">
+<span class="md-ellipsis">
+    Browser MCP Server
+  </span>
+</a>
+</li>
+</ul>
+</nav>
+</li>
+<li class="md-nav__item md-nav__item--section md-nav__item--nested">
+<input class="md-nav__toggle md-toggle" id="__nav_4" type="checkbox"/>
+<label class="md-nav__link" for="__nav_4" id="__nav_4_label" tabindex="">
+<span class="md-ellipsis">
+    Tutorials
+  </span>
+<span class="md-nav__icon md-icon"></span>
+</label>
+<nav aria-expanded="false" aria-labelledby="__nav_4_label" class="md-nav" data-md-level="1">
+<label class="md-nav__title" for="__nav_4">
+<span class="md-nav__icon md-icon"></span>
+            Tutorials
+          </label>
+<ul class="md-nav__list" data-md-scrollfix="">
+<li class="md-nav__item md-nav__item--nested">
+<input class="md-nav__toggle md-toggle" id="__nav_4_1" type="checkbox"/>
+<label class="md-nav__link" for="__nav_4_1" id="__nav_4_1_label" tabindex="0">
+<span class="md-ellipsis">
+    Conversion
+  </span>
+<span class="md-nav__icon md-icon"></span>
+</label>
+<nav aria-expanded="false" aria-labelledby="__nav_4_1_label" class="md-nav" data-md-level="2">
+<label class="md-nav__title" for="__nav_4_1">
+<span class="md-nav__icon md-icon"></span>
+            Conversion
+          </label>
+<ul class="md-nav__list" data-md-scrollfix="">
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../tutorials/HDF5_TO_MS_TUTORIAL/">
+<span class="md-ellipsis">
+    HDF5 to MS
+  </span>
+</a>
+</li>
+</ul>
+</nav>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../tutorials/simulation-tutorial/">
+<span class="md-ellipsis">
+    Simulation
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../tutorials/calibrate-apply/">
+<span class="md-ellipsis">
+    Calibrate and Apply
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../tutorials/convert-standalone/">
+<span class="md-ellipsis">
+    Convert Standalone
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../tutorials/streaming/">
+<span class="md-ellipsis">
+    Streaming
+  </span>
+</a>
+</li>
+<li class="md-nav__item md-nav__item--nested">
+<input class="md-nav__toggle md-toggle" id="__nav_4_6" type="checkbox"/>
+<label class="md-nav__link" for="__nav_4_6" id="__nav_4_6_label" tabindex="0">
+<span class="md-ellipsis">
+    Notebooks
+  </span>
+<span class="md-nav__icon md-icon"></span>
+</label>
+<nav aria-expanded="false" aria-labelledby="__nav_4_6_label" class="md-nav" data-md-level="2">
+<label class="md-nav__title" for="__nav_4_6">
+<span class="md-nav__icon md-icon"></span>
+            Notebooks
+          </label>
+<ul class="md-nav__list" data-md-scrollfix="">
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../tutorials/notebooks/bandpass_calibration_test.ipynb">
+<span class="md-ellipsis">
+    Bandpass Calibration Test
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../tutorials/notebooks/calibrator_helper.py">
+<span class="md-ellipsis">
+    Calibrator Helper
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../tutorials/notebooks/CalibratorSearch.ipynb">
+<span class="md-ellipsis">
+    Calibrator Search
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../tutorials/notebooks/ms_staging_workflow.ipynb">
+<span class="md-ellipsis">
+    MS Staging Workflow
+  </span>
+</a>
+</li>
+</ul>
+</nav>
+</li>
+</ul>
+</nav>
+</li>
+<li class="md-nav__item md-nav__item--section md-nav__item--nested">
+<input class="md-nav__toggle md-toggle" id="__nav_5" type="checkbox"/>
+<label class="md-nav__link" for="__nav_5" id="__nav_5_label" tabindex="">
+<span class="md-ellipsis">
+    How-To Guides
+  </span>
+<span class="md-nav__icon md-icon"></span>
+</label>
+<nav aria-expanded="false" aria-labelledby="__nav_5_label" class="md-nav" data-md-level="1">
+<label class="md-nav__title" for="__nav_5">
+<span class="md-nav__icon md-icon"></span>
+            How-To Guides
+          </label>
+<ul class="md-nav__list" data-md-scrollfix="">
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../how-to/github_pages_walkthrough/">
+<span class="md-ellipsis">
+    GitHub Pages Setup
+  </span>
+</a>
+</li>
+<li class="md-nav__item md-nav__item--nested">
+<input class="md-nav__toggle md-toggle" id="__nav_5_2" type="checkbox"/>
+<label class="md-nav__link" for="__nav_5_2" id="__nav_5_2_label" tabindex="0">
+<span class="md-ellipsis">
+    Quickstarts
+  </span>
+<span class="md-nav__icon md-icon"></span>
+</label>
+<nav aria-expanded="false" aria-labelledby="__nav_5_2_label" class="md-nav" data-md-level="2">
+<label class="md-nav__title" for="__nav_5_2">
+<span class="md-nav__icon md-icon"></span>
+            Quickstarts
+          </label>
+<ul class="md-nav__list" data-md-scrollfix="">
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../how-to/quickstart/">
+<span class="md-ellipsis">
+    General
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../how-to/control-panel-quickstart/">
+<span class="md-ellipsis">
+    Control Panel
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../how-to/LINEAR_SETUP_QUICKSTART/">
+<span class="md-ellipsis">
+    Linear Setup
+  </span>
+</a>
+</li>
+</ul>
+</nav>
+</li>
+<li class="md-nav__item md-nav__item--nested">
+<input class="md-nav__toggle md-toggle" id="__nav_5_3" type="checkbox"/>
+<label class="md-nav__link" for="__nav_5_3" id="__nav_5_3_label" tabindex="0">
+<span class="md-ellipsis">
+    Testing
+  </span>
+<span class="md-nav__icon md-icon"></span>
+</label>
+<nav aria-expanded="false" aria-labelledby="__nav_5_3_label" class="md-nav" data-md-level="2">
+<label class="md-nav__title" for="__nav_5_3">
+<span class="md-nav__icon md-icon"></span>
+            Testing
+          </label>
+<ul class="md-nav__list" data-md-scrollfix="">
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../how-to/FAST_TESTING/">
+<span class="md-ellipsis">
+    Fast Testing
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../how-to/PIPELINE_TESTING_GUIDE/">
+<span class="md-ellipsis">
+    Pipeline Guide
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../how-to/TEST_FLAG_SUBCOMMAND/">
+<span class="md-ellipsis">
+    Flag Subcommand
+  </span>
+</a>
+</li>
+</ul>
+</nav>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../how-to/build-vp-from-h5/">
+<span class="md-ellipsis">
+    Build VP from h5
+  </span>
+</a>
+</li>
+<li class="md-nav__item md-nav__item--nested">
+<input class="md-nav__toggle md-toggle" id="__nav_5_5" type="checkbox"/>
+<label class="md-nav__link" for="__nav_5_5" id="__nav_5_5_label" tabindex="0">
+<span class="md-ellipsis">
+    Calibration
+  </span>
+<span class="md-nav__icon md-icon"></span>
+</label>
+<nav aria-expanded="false" aria-labelledby="__nav_5_5_label" class="md-nav" data-md-level="2">
+<label class="md-nav__title" for="__nav_5_5">
+<span class="md-nav__icon md-icon"></span>
+            Calibration
+          </label>
+<ul class="md-nav__list" data-md-scrollfix="">
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../how-to/CALIBRATION_DETAILED_PROCEDURE/">
+<span class="md-ellipsis">
+    Detailed Procedure
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../how-to/FIND_CALIBRATOR_TRANSIT_DATA/">
+<span class="md-ellipsis">
+    Find Calibrator Transit
+  </span>
+</a>
+</li>
+</ul>
+</nav>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../how-to/IMAGE_0834_TRANSIT_5MIN/">
+<span class="md-ellipsis">
+    Image 0834 Transit 5min
+  </span>
+</a>
+</li>
+<li class="md-nav__item md-nav__item--nested">
+<input class="md-nav__toggle md-toggle" id="__nav_5_7" type="checkbox"/>
+<label class="md-nav__link" for="__nav_5_7" id="__nav_5_7_label" tabindex="0">
+<span class="md-ellipsis">
+    Mosaic
+  </span>
+<span class="md-nav__icon md-icon"></span>
+</label>
+<nav aria-expanded="false" aria-labelledby="__nav_5_7_label" class="md-nav" data-md-level="2">
+<label class="md-nav__title" for="__nav_5_7">
+<span class="md-nav__icon md-icon"></span>
+            Mosaic
+          </label>
+<ul class="md-nav__list" data-md-scrollfix="">
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../how-to/mosaic_quickstart/">
+<span class="md-ellipsis">
+    Quickstart
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../how-to/mosaic/">
+<span class="md-ellipsis">
+    Complete Guide
+  </span>
+</a>
+</li>
+</ul>
+</nav>
+</li>
+<li class="md-nav__item md-nav__item--nested">
+<input class="md-nav__toggle md-toggle" id="__nav_5_8" type="checkbox"/>
+<label class="md-nav__link" for="__nav_5_8" id="__nav_5_8_label" tabindex="0">
+<span class="md-ellipsis">
+    Quality Assurance
+  </span>
+<span class="md-nav__icon md-icon"></span>
+</label>
+<nav aria-expanded="false" aria-labelledby="__nav_5_8_label" class="md-nav" data-md-level="2">
+<label class="md-nav__title" for="__nav_5_8">
+<span class="md-nav__icon md-icon"></span>
+            Quality Assurance
+          </label>
+<ul class="md-nav__list" data-md-scrollfix="">
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../how-to/QUALITY_ASSURANCE_SETUP/">
+<span class="md-ellipsis">
+    Setup
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../how-to/quicklook/">
+<span class="md-ellipsis">
+    Quick Look
+  </span>
+</a>
+</li>
+</ul>
+</nav>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../how-to/reprocess/">
+<span class="md-ellipsis">
+    Reprocess
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../how-to/USING_ORCHESTRATOR_CLI/">
+<span class="md-ellipsis">
+    Using Orchestrator CLI
+  </span>
+</a>
+</li>
+<li class="md-nav__item md-nav__item--nested">
+<input class="md-nav__toggle md-toggle" id="__nav_5_11" type="checkbox"/>
+<label class="md-nav__link" for="__nav_5_11" id="__nav_5_11_label" tabindex="0">
+<span class="md-ellipsis">
+    Dashboard
+  </span>
+<span class="md-nav__icon md-icon"></span>
+</label>
+<nav aria-expanded="false" aria-labelledby="__nav_5_11_label" class="md-nav" data-md-level="2">
+<label class="md-nav__title" for="__nav_5_11">
+<span class="md-nav__icon md-icon"></span>
+            Dashboard
+          </label>
+<ul class="md-nav__list" data-md-scrollfix="">
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../how-to/dashboard-development/">
+<span class="md-ellipsis">
+    Development
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../how-to/dashboard-quickstart/">
+<span class="md-ellipsis">
+    Quickstart
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../how-to/dashboard_testing/">
+<span class="md-ellipsis">
+    Testing
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../how-to/dashboard_development_workflow/">
+<span class="md-ellipsis">
+    Development Workflow
+  </span>
+</a>
+</li>
+</ul>
+</nav>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../how-to/LINEAR_INTEGRATION/">
+<span class="md-ellipsis">
+    Linear Integration
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../how-to/frontend-initial-setup/">
+<span class="md-ellipsis">
+    Frontend Initial Setup
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../how-to/PARAMETER_OPTIMIZATION_GUIDE/">
+<span class="md-ellipsis">
+    AOFlagger Parameter Optimization
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../how-to/downsampling_guide/">
+<span class="md-ellipsis">
+    Downsampling Guide
+  </span>
+</a>
+</li>
+<li class="md-nav__item md-nav__item--nested">
+<input class="md-nav__toggle md-toggle" id="__nav_5_16" type="checkbox"/>
+<label class="md-nav__link" for="__nav_5_16" id="__nav_5_16_label" tabindex="0">
+<span class="md-ellipsis">
+    Conversion
+  </span>
+<span class="md-nav__icon md-icon"></span>
+</label>
+<nav aria-expanded="false" aria-labelledby="__nav_5_16_label" class="md-nav" data-md-level="2">
+<label class="md-nav__title" for="__nav_5_16">
+<span class="md-nav__icon md-icon"></span>
+            Conversion
+          </label>
+<ul class="md-nav__list" data-md-scrollfix="">
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../how-to/uvh5_to_ms_conversion/">
+<span class="md-ellipsis">
+    UVH5 to MS
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../how-to/streaming_converter_guide/">
+<span class="md-ellipsis">
+    Streaming Converter
+  </span>
+</a>
+</li>
+</ul>
+</nav>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../how-to/troubleshooting/">
+<span class="md-ellipsis">
+    Troubleshooting
+  </span>
+</a>
+</li>
+</ul>
+</nav>
+</li>
+<li class="md-nav__item md-nav__item--section md-nav__item--nested">
+<input class="md-nav__toggle md-toggle" id="__nav_6" type="checkbox"/>
+<label class="md-nav__link" for="__nav_6" id="__nav_6_label" tabindex="">
+<span class="md-ellipsis">
+    Reference
+  </span>
+<span class="md-nav__icon md-icon"></span>
+</label>
+<nav aria-expanded="false" aria-labelledby="__nav_6_label" class="md-nav" data-md-level="1">
+<label class="md-nav__title" for="__nav_6">
+<span class="md-nav__icon md-icon"></span>
+            Reference
+          </label>
+<ul class="md-nav__list" data-md-scrollfix="">
+<li class="md-nav__item md-nav__item--nested">
+<input class="md-nav__toggle md-toggle" id="__nav_6_1" type="checkbox"/>
+<label class="md-nav__link" for="__nav_6_1" id="__nav_6_1_label" tabindex="0">
+<span class="md-ellipsis">
+    API
+  </span>
+<span class="md-nav__icon md-icon"></span>
+</label>
+<nav aria-expanded="false" aria-labelledby="__nav_6_1_label" class="md-nav" data-md-level="2">
+<label class="md-nav__title" for="__nav_6_1">
+<span class="md-nav__icon md-icon"></span>
+            API
+          </label>
+<ul class="md-nav__list" data-md-scrollfix="">
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../reference/api-endpoints/">
+<span class="md-ellipsis">
+    Endpoints
+  </span>
+</a>
+</li>
+<li class="md-nav__item md-nav__item--nested">
+<input class="md-nav__toggle md-toggle" id="__nav_6_1_2" type="checkbox"/>
+<label class="md-nav__link" for="__nav_6_1_2" id="__nav_6_1_2_label" tabindex="0">
+<span class="md-ellipsis">
+    Dashboard
+  </span>
+<span class="md-nav__icon md-icon"></span>
+</label>
+<nav aria-expanded="false" aria-labelledby="__nav_6_1_2_label" class="md-nav" data-md-level="3">
+<label class="md-nav__title" for="__nav_6_1_2">
+<span class="md-nav__icon md-icon"></span>
+            Dashboard
+          </label>
+<ul class="md-nav__list" data-md-scrollfix="">
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../reference/dashboard_backend_api/">
+<span class="md-ellipsis">
+    API Reference
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../reference/dashboard_pages_and_features/">
+<span class="md-ellipsis">
+    Pages &amp; Features
+  </span>
+</a>
+</li>
+</ul>
+</nav>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../reference/backend_integration_snippets/">
+<span class="md-ellipsis">
+    Integration Snippets
+  </span>
+</a>
+</li>
+</ul>
+</nav>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../reference/calibration-overview/">
+<span class="md-ellipsis">
+    Calibration Overview
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../reference/cli/">
+<span class="md-ellipsis">
+    CLI
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../reference/control-panel-cheatsheet/">
+<span class="md-ellipsis">
+    Control Panel Cheatsheet
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../reference/database_schema/">
+<span class="md-ellipsis">
+    Database Schema
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../reference/env/">
+<span class="md-ellipsis">
+    Environment Variables
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../reference/CRITICAL_PYTHON_ENVIRONMENT/">
+<span class="md-ellipsis">
+    Critical Python Environment
+  </span>
+</a>
+</li>
+<li class="md-nav__item md-nav__item--nested">
+<input class="md-nav__toggle md-toggle" id="__nav_6_8" type="checkbox"/>
+<label class="md-nav__link" for="__nav_6_8" id="__nav_6_8_label" tabindex="0">
+<span class="md-ellipsis">
+    Optimizations
+  </span>
+<span class="md-nav__icon md-icon"></span>
+</label>
+<nav aria-expanded="false" aria-labelledby="__nav_6_8_label" class="md-nav" data-md-level="2">
+<label class="md-nav__title" for="__nav_6_8">
+<span class="md-nav__icon md-icon"></span>
+            Optimizations
+          </label>
+<ul class="md-nav__list" data-md-scrollfix="">
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../reference/optimizations/OPTIMIZATION_API/">
+<span class="md-ellipsis">
+    API
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../reference/optimizations/PROFILING_GUIDE/">
+<span class="md-ellipsis">
+    Profiling Guide
+  </span>
+</a>
+</li>
+</ul>
+</nav>
+</li>
+</ul>
+</nav>
+</li>
+<li class="md-nav__item md-nav__item--section md-nav__item--nested">
+<input class="md-nav__toggle md-toggle" id="__nav_7" type="checkbox"/>
+<label class="md-nav__link" for="__nav_7" id="__nav_7_label" tabindex="">
+<span class="md-ellipsis">
+    Operations
+  </span>
+<span class="md-nav__icon md-icon"></span>
+</label>
+<nav aria-expanded="false" aria-labelledby="__nav_7_label" class="md-nav" data-md-level="1">
+<label class="md-nav__title" for="__nav_7">
+<span class="md-nav__icon md-icon"></span>
+            Operations
+          </label>
+<ul class="md-nav__list" data-md-scrollfix="">
+<li class="md-nav__item md-nav__item--nested">
+<input class="md-nav__toggle md-toggle" id="__nav_7_1" type="checkbox"/>
+<label class="md-nav__link" for="__nav_7_1" id="__nav_7_1_label" tabindex="0">
+<span class="md-ellipsis">
+    Deployment
+  </span>
+<span class="md-nav__icon md-icon"></span>
+</label>
+<nav aria-expanded="false" aria-labelledby="__nav_7_1_label" class="md-nav" data-md-level="2">
+<label class="md-nav__title" for="__nav_7_1">
+<span class="md-nav__icon md-icon"></span>
+            Deployment
+          </label>
+<ul class="md-nav__list" data-md-scrollfix="">
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../operations/deploy-docker/">
+<span class="md-ellipsis">
+    Docker
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../operations/deploy-systemd/">
+<span class="md-ellipsis">
+    systemd
+  </span>
+</a>
+</li>
+</ul>
+</nav>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../operations/port-management/">
+<span class="md-ellipsis">
+    Port Management
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../operations/refant_quick_reference/">
+<span class="md-ellipsis">
+    Refant Quick Reference
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../operations/service_restart_fix/">
+<span class="md-ellipsis">
+    Service Restart Fix
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../operations/systemd-migration/">
+<span class="md-ellipsis">
+    Systemd Migration
+  </span>
+</a>
+</li>
+</ul>
+</nav>
+</li>
+<li class="md-nav__item md-nav__item--section md-nav__item--nested">
+<input class="md-nav__toggle md-toggle" id="__nav_8" type="checkbox"/>
+<div class="md-nav__link md-nav__container">
+<a class="md-nav__link" href="../../contributing/">
+<span class="md-ellipsis">
+    Contributing
+  </span>
+</a>
+<label class="md-nav__link" for="__nav_8" id="__nav_8_label" tabindex="">
+<span class="md-nav__icon md-icon"></span>
+</label>
+</div>
+<nav aria-expanded="false" aria-labelledby="__nav_8_label" class="md-nav" data-md-level="1">
+<label class="md-nav__title" for="__nav_8">
+<span class="md-nav__icon md-icon"></span>
+            Contributing
+          </label>
+<ul class="md-nav__list" data-md-scrollfix="">
+<li class="md-nav__item md-nav__item--nested">
+<input class="md-nav__toggle md-toggle" id="__nav_8_2" type="checkbox"/>
+<label class="md-nav__link" for="__nav_8_2" id="__nav_8_2_label" tabindex="0">
+<span class="md-ellipsis">
+    Archive
+  </span>
+<span class="md-nav__icon md-icon"></span>
+</label>
+<nav aria-expanded="false" aria-labelledby="__nav_8_2_label" class="md-nav" data-md-level="2">
+<label class="md-nav__title" for="__nav_8_2">
+<span class="md-nav__icon md-icon"></span>
+            Archive
+          </label>
+<ul class="md-nav__list" data-md-scrollfix="">
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../contributing/archive/CONTRIBUTING_TODO/">
+<span class="md-ellipsis">
+    Contributing to TODO
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../contributing/archive/rules/">
+<span class="md-ellipsis">
+    Rules
+  </span>
+</a>
+</li>
+</ul>
+</nav>
+</li>
+</ul>
+</nav>
+</li>
+</ul>
+</nav>
+</div>
+</div>
+</div>
+<div class="md-sidebar md-sidebar--secondary" data-md-component="sidebar" data-md-type="toc">
+<div class="md-sidebar__scrollwrap">
+<div class="md-sidebar__inner">
+<nav aria-label="Table of contents" class="md-nav md-nav--secondary">
+<label class="md-nav__title" for="__toc">
+<span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+<ul class="md-nav__list" data-md-component="toc" data-md-scrollfix="">
+<li class="md-nav__item">
+<a class="md-nav__link" href="#table-of-contents">
+<span class="md-ellipsis">
+      Table of Contents
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#end-to-end-pipeline-overview">
+<span class="md-ellipsis">
+      End-to-End Pipeline Overview
+    </span>
+</a>
+<nav aria-label="End-to-End Pipeline Overview" class="md-nav">
+<ul class="md-nav__list">
+<li class="md-nav__item">
+<a class="md-nav__link" href="#complete-data-flow">
+<span class="md-ellipsis">
+      Complete Data Flow
+    </span>
+</a>
+</li>
+</ul>
+</nav>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#detailed-stage-breakdown">
+<span class="md-ellipsis">
+      Detailed Stage Breakdown
+    </span>
+</a>
+<nav aria-label="Detailed Stage Breakdown" class="md-nav">
+<ul class="md-nav__list">
+<li class="md-nav__item">
+<a class="md-nav__link" href="#stage-1-ingest-and-grouping">
+<span class="md-ellipsis">
+      Stage 1: Ingest and Grouping
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#stage-2-conversion-uvh5-to-ms">
+<span class="md-ellipsis">
+      Stage 2: Conversion (UVH5 to MS)
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#stage-2-conversion-includes-ms-configuration">
+<span class="md-ellipsis">
+      Stage 2: Conversion (includes MS Configuration)
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#stage-3-calibration">
+<span class="md-ellipsis">
+      Stage 3: Calibration
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#stage-4-apply-calibration">
+<span class="md-ellipsis">
+      Stage 4: Apply Calibration
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#stage-5-imaging">
+<span class="md-ellipsis">
+      Stage 5: Imaging
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#stage-6-products-and-indexing">
+<span class="md-ellipsis">
+      Stage 6: Products and Indexing
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#stage-7-monitoring-access">
+<span class="md-ellipsis">
+      Stage 7: Monitoring &amp; Access
+    </span>
+</a>
+</li>
+</ul>
+</nav>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#state-machine-queue-management">
+<span class="md-ellipsis">
+      State Machine &amp; Queue Management
+    </span>
+</a>
+<nav aria-label="State Machine &amp; Queue Management" class="md-nav">
+<ul class="md-nav__list">
+<li class="md-nav__item">
+<a class="md-nav__link" href="#queue-state-transitions">
+<span class="md-ellipsis">
+      Queue State Transitions
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#stage-tracking">
+<span class="md-ellipsis">
+      Stage Tracking
+    </span>
+</a>
+</li>
+</ul>
+</nav>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#data-products-artifacts">
+<span class="md-ellipsis">
+      Data Products &amp; Artifacts
+    </span>
+</a>
+<nav aria-label="Data Products &amp; Artifacts" class="md-nav">
+<ul class="md-nav__list">
+<li class="md-nav__item">
+<a class="md-nav__link" href="#file-structure">
+<span class="md-ellipsis">
+      File Structure
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#database-schema">
+<span class="md-ellipsis">
+      Database Schema
+    </span>
+</a>
+</li>
+</ul>
+</nav>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#database-interactions">
+<span class="md-ellipsis">
+      Database Interactions
+    </span>
+</a>
+<nav aria-label="Database Interactions" class="md-nav">
+<ul class="md-nav__list">
+<li class="md-nav__item">
+<a class="md-nav__link" href="#data-flow-through-databases">
+<span class="md-ellipsis">
+      Data Flow Through Databases
+    </span>
+</a>
+</li>
+</ul>
+</nav>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#performance-optimization-paths">
+<span class="md-ellipsis">
+      Performance Optimization Paths
+    </span>
+</a>
+<nav aria-label="Performance Optimization Paths" class="md-nav">
+<ul class="md-nav__list">
+<li class="md-nav__item">
+<a class="md-nav__link" href="#fast-path-options">
+<span class="md-ellipsis">
+      Fast Path Options
+    </span>
+</a>
+</li>
+</ul>
+</nav>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#summary">
+<span class="md-ellipsis">
+      Summary
+    </span>
+</a>
+</li>
+</ul>
+</nav>
+</div>
+</div>
+</div>
+<div class="md-content" data-md-component="content">
+<article class="md-content__inner md-typeset">
+<h1 id="dsa-110-continuum-imaging-pipeline-complete-workflow-visualization">DSA-110 Continuum Imaging Pipeline: Complete Workflow Visualization<a class="headerlink" href="#dsa-110-continuum-imaging-pipeline-complete-workflow-visualization" title="Permanent link">¶</a></h1>
+<p><strong>Purpose:</strong> Comprehensive, instructive visualization of the pipeline workflow from raw UVH5 data ingestion to final calibrated continuum images.</p>
+<p><strong>Last Updated:</strong> 2025-11-12</p>
+<hr/>
+<h2 id="table-of-contents">Table of Contents<a class="headerlink" href="#table-of-contents" title="Permanent link">¶</a></h2>
+<ol>
+<li><a href="#end-to-end-pipeline-overview">End-to-End Pipeline Overview</a></li>
+<li><a href="#detailed-stage-breakdown">Detailed Stage Breakdown</a></li>
+<li><a href="#state-machine--queue-management">State Machine &amp; Queue Management</a></li>
+<li><a href="#data-products--artifacts">Data Products &amp; Artifacts</a></li>
+<li><a href="#database-interactions">Database Interactions</a></li>
+<li><a href="#performance-optimization-paths">Performance Optimization Paths</a></li>
+</ol>
+<hr/>
+<h2 id="end-to-end-pipeline-overview">End-to-End Pipeline Overview<a class="headerlink" href="#end-to-end-pipeline-overview" title="Permanent link">¶</a></h2>
+<h3 id="complete-data-flow">Complete Data Flow<a class="headerlink" href="#complete-data-flow" title="Permanent link">¶</a></h3>
+<div class="mermaid">flowchart TB
+ subgraph INGEST["Stage 1: Ingest &amp; Grouping"]
+ Files["UVH5 files&lt;br/&gt;16 subbands"]
+ Watch["Directory&lt;br/&gt;watcher"]
+ Queue["Queue DB&lt;br/&gt;ingest.sqlite3"]
+ Files --&gt; Watch
+ Watch --&gt; Queue
+ end
+
+ subgraph CATALOG["Stage 2: Catalog Setup"]
+ CatalogPrep["NVSS catalog&lt;br/&gt;preparation"]
+ CatalogPrep --&gt; Queue
+ end
+
+ subgraph CONVERT["Stage 3: Conversion"]
+ Group["Group&lt;br/&gt;5-min windows"]
+ Orch["Orchestrator&lt;br/&gt;hdf5_orchestrator"]
+ Writer{"Writer&lt;br/&gt;selection"}
+ Par["parallel-subband&lt;br/&gt;PRODUCTION"]
+ Mono["pyuvdata&lt;br/&gt;TESTING"]
+ Stage["Staging&lt;br/&gt;tmpfs/SSD"]
+ Concat["concat&lt;br/&gt;full-band MS"]
+ Config["Configure MS&lt;br/&gt;MODEL_DATA/CORRECTED_DATA"]
+ Validate["Validate&lt;br/&gt;readable"]
+ MS["Measurement Set&lt;br/&gt;ready"]
+ Queue --&gt; Group
+ Group --&gt; Orch
+ Orch --&gt; Writer
+ Writer --&gt;|&gt;2 subbands| Par
+ Writer --&gt;|&lt;=2 subbands| Mono
+ Par --&gt; Stage
+ Stage --&gt; Concat
+ Mono --&gt; Config
+ Concat --&gt; Config
+ Config --&gt; Validate
+ Validate --&gt; MS
+ end
+
+ subgraph CAL["Stage 4: Calibration"]
+ CalSolve["Solve&lt;br/&gt;K/BP/G"]
+ Reg["Register&lt;br/&gt;caltables"]
+ CalApply["Apply&lt;br/&gt;calibration"]
+ Verify["Verify&lt;br/&gt;non-zero"]
+ MS --&gt; CalSolve
+ CalSolve --&gt; Reg
+ Reg --&gt; CalApply
+ CalApply --&gt; Verify
+ end
+
+ subgraph IMAGE["Stage 5: Imaging"]
+ Clean["WSClean&lt;br/&gt;imaging"]
+ Quick{"Quick&lt;br/&gt;mode?"}
+ Full["Full&lt;br/&gt;quality"]
+ QuickImg["Quick look&lt;br/&gt;imsize≤512"]
+ Fits{"Export&lt;br/&gt;FITS?"}
+ FITS["FITS&lt;br/&gt;export"]
+ Verify --&gt; Clean
+ Clean --&gt; Quick
+ Quick --&gt;|Yes| QuickImg
+ Quick --&gt;|No| Full
+ QuickImg --&gt; Fits
+ Full --&gt; Fits
+ Fits --&gt;|Yes| FITS
+ Fits --&gt;|No| ImgFiles["CASA&lt;br/&gt;images"]
+ end
+
+ subgraph VALIDATE["Stage 6: Validation (Optional)"]
+ ValidateStage["QA&lt;br/&gt;validation"]
+ FITS --&gt; ValidateStage
+ ImgFiles --&gt; ValidateStage
+ end
+
+ subgraph CROSSMATCH["Stage 7: Cross-Match (Optional)"]
+ CrossMatchStage["Cross-Match&lt;br/&gt;NVSS"]
+ ValidateStage --&gt; CrossMatchStage
+ ImgFiles --&gt; CrossMatchStage
+ end
+
+ subgraph PHOTOMETRY["Stage 8: Photometry (Optional)"]
+ PhotometryStage["Photometry&lt;br/&gt;adaptive"]
+ CrossMatchStage --&gt; PhotometryStage
+ ImgFiles --&gt; PhotometryStage
+ end
+
+ subgraph PRODUCT["Stage 9: Products &amp; Indexing"]
+ Products["Products DB&lt;br/&gt;products.sqlite3"]
+ MSIdx["MS Index&lt;br/&gt;ms_index"]
+ ImgIdx["Image Index&lt;br/&gt;images"]
+ QA["QA&lt;br/&gt;artifacts"]
+ Products --&gt; MSIdx
+ Products --&gt; ImgIdx
+ Products --&gt; QA
+ FITS --&gt; Products
+ ImgFiles --&gt; Products
+ ValidateStage --&gt; Products
+ CrossMatchStage --&gt; Products
+ PhotometryStage --&gt; Products
+ end
+
+ subgraph API["Stage 10: Monitoring &amp; Access"]
+ FastAPI["FastAPI&lt;br/&gt;server"]
+ Status["Status&lt;br/&gt;endpoints"]
+ QAView["QA&lt;br/&gt;views"]
+ Products --&gt; FastAPI
+ FastAPI --&gt; Status
+ FastAPI --&gt; QAView
+ end
+
+ %% Subgraph styling - vibrant colors with backgrounds
+ style INGEST fill:#E3F2FD,stroke:#1976D2,stroke-width:3px,color:#000
+ style CATALOG fill:#E8F5E9,stroke:#388E3C,stroke-width:3px,color:#000
+ style CONVERT fill:#F3E5F5,stroke:#7B1FA2,stroke-width:3px,color:#000
+ style CAL fill:#E8F5E9,stroke:#388E3C,stroke-width:3px,color:#000
+ style IMAGE fill:#FCE4EC,stroke:#C2185B,stroke-width:3px,color:#000
+ style VALIDATE fill:#F5F5F5,stroke:#757575,stroke-width:2px,stroke-dasharray: 5 5,color:#000
+ style CROSSMATCH fill:#F5F5F5,stroke:#757575,stroke-width:2px,stroke-dasharray: 5 5,color:#000
+ style PHOTOMETRY fill:#F5F5F5,stroke:#757575,stroke-width:2px,stroke-dasharray: 5 5,color:#000
+ style PRODUCT fill:#E0F2F1,stroke:#00796B,stroke-width:3px,color:#000
+ style API fill:#E1F5FE,stroke:#0277BD,stroke-width:3px,color:#000
+
+ %% Node styling - vibrant colors for key nodes
+ style Writer fill:#FF9800,stroke:#E65100,stroke-width:3px,color:#FFF
+ style Quick fill:#FF9800,stroke:#E65100,stroke-width:3px,color:#FFF
+ style Fits fill:#FF9800,stroke:#E65100,stroke-width:3px,color:#FFF
+ style Par fill:#4CAF50,stroke:#1B5E20,stroke-width:3px,color:#FFF
+ style Mono fill:#F44336,stroke:#B71C1C,stroke-width:3px,color:#FFF
+ style MS fill:#4CAF50,stroke:#1B5E20,stroke-width:3px,color:#FFF
+ style Clean fill:#E91E63,stroke:#880E4F,stroke-width:3px,color:#FFF</div>
+<p><strong>Key Points:</strong>
+- <strong>Stage 1</strong>: Continuous monitoring of incoming UVH5 files, grouping by timestamp
+- <strong>Stage 2</strong>: Catalog setup prepares NVSS catalog for calibration (runs before conversion)
+- <strong>Stage 3</strong>: Conversion includes MS configuration (MODEL_DATA, CORRECTED_DATA, WEIGHT_SPECTRUM) - MS is ready for calibration after conversion
+- <strong>Stage 4</strong>: Calibration split into two sub-stages: <code>calibrate_solve</code> (solves K/BP/G) and <code>calibrate_apply</code> (applies solutions to create CORRECTED_DATA column)
+- <strong>Stage 5</strong>: Imaging with optional development tier for speed (⚠️ NON-SCIENCE)
+- <strong>Stage 6</strong>: Validation (optional) - QA validation with tiered validation for fast execution
+- <strong>Stage 7</strong>: Cross-match (optional) - Source cross-matching with NVSS catalog
+- <strong>Stage 8</strong>: Adaptive photometry (optional) - Differential flux measurement
+- <strong>Stage 9</strong>: All products indexed in SQLite database
+- <strong>Stage 10</strong>: API provides monitoring and access to all products</p>
+<hr/>
+<h2 id="detailed-stage-breakdown">Detailed Stage Breakdown<a class="headerlink" href="#detailed-stage-breakdown" title="Permanent link">¶</a></h2>
+<h3 id="stage-1-ingest-and-grouping">Stage 1: Ingest and Grouping<a class="headerlink" href="#stage-1-ingest-and-grouping" title="Permanent link">¶</a></h3>
+<div class="mermaid">flowchart LR
+ subgraph INGEST_DETAIL["Ingest Process"]
+ Files["UVH5 Files&lt;br/&gt;*_sb00 to *_sb15"]
+ Watch["File System Watcher&lt;br/&gt;watchdog or polling"]
+ Parse["Parse Timestamp&lt;br/&gt;YYYY-MM-DDTHH:MM:SS"]
+ Group["Group by Time&lt;br/&gt;5-minute windows"]
+ Check["Check Completeness&lt;br/&gt;16 subbands required"]
+ State["Update Queue State&lt;br/&gt;collecting to pending"]
+ end
+
+ Files --&gt; Watch
+ Watch --&gt; Parse
+ Parse --&gt; Group
+ Group --&gt; Check
+ Check --&gt;|Complete| State
+ Check --&gt;|Incomplete| Wait["Wait for&lt;br/&gt;more subbands"]
+ Wait --&gt; Check
+
+ style INGEST_DETAIL fill:#E3F2FD,stroke:#1976D2,stroke-width:2px,color:#000
+ style State fill:#C8E6C9,stroke:#388E3C,stroke-width:2px,color:#000
+ style Wait fill:#FFCDD2,stroke:#D32F2F,stroke-width:2px,color:#000</div>
+<p><strong>Details:</strong>
+- <strong>Input</strong>: <code>*_sb??.hdf5</code> files in <code>/data/incoming/</code>
+- <strong>Pattern</strong>: <code>YYYY-MM-DDTHH:MM:SS_sb??.hdf5</code>
+- <strong>Grouping</strong>: 5-minute time windows (configurable via <code>--chunk-duration</code>)
+- <strong>Completeness</strong>: All 16 subbands must arrive before processing
+- <strong>Database</strong>: <code>state/ingest.sqlite3</code> tracks <code>subband_files</code> and <code>ingest_queue</code></p>
+<hr/>
+<h3 id="stage-2-conversion-uvh5-to-ms">Stage 2: Conversion (UVH5 to MS)<a class="headerlink" href="#stage-2-conversion-uvh5-to-ms" title="Permanent link">¶</a></h3>
+<div class="mermaid">flowchart TB
+ subgraph CONVERT_DETAIL["Conversion Process"]
+ Start["Group Acquired&lt;br/&gt;pending to in_progress"]
+ Orch["Orchestrator CLI&lt;br/&gt;hdf5_orchestrator.py"]
+ WriterSel{"Writer&lt;br/&gt;Selection"}
+ Auto["Auto Mode&lt;br/&gt;--writer auto"]
+
+ subgraph PROD_PATH["Production Path (&gt;2 subbands)"]
+ Par["parallel-subband&lt;br/&gt;Writer"]
+ Subbands["Parallel Writes&lt;br/&gt;16 concurrent workers"]
+ Staging{"Staging&lt;br/&gt;Decision"}
+ Tmpfs["tmpfs /dev/shm&lt;br/&gt;3-5x speedup"]
+ Disk["SSD Scratch&lt;br/&gt;fallback"]
+ Concat["CASA concat&lt;br/&gt;combine subbands"]
+ end
+
+ subgraph TEST_PATH["Testing Path (&lt;=2 subbands)"]
+ Mono["pyuvdata Writer&lt;br/&gt;monolithic write"]
+ end
+
+ Ops["Operations&lt;br/&gt;Applied"]
+ Identity["Set Telescope&lt;br/&gt;DSA_110"]
+ Phase["Meridian Phasing&lt;br/&gt;at midpoint"]
+ UVW["Compute UVW&lt;br/&gt;Coordinates"]
+ Init["Initialize Columns&lt;br/&gt;MODEL_DATA, CORRECTED_DATA"]
+
+ Output["Full-Band MS&lt;br/&gt;16 subbands, all columns"]
+ end
+
+ Start --&gt; Orch
+ Orch --&gt; WriterSel
+ WriterSel --&gt;|Auto| Auto
+ Auto --&gt;|&gt;2 subbands| Par
+ Auto --&gt;|&lt;=2 subbands| Mono
+ Par --&gt; Subbands
+ Subbands --&gt; Staging
+ Staging --&gt;|tmpfs available| Tmpfs
+ Staging --&gt;|fallback| Disk
+ Tmpfs --&gt; Concat
+ Disk --&gt; Concat
+ Mono --&gt; Ops
+ Concat --&gt; Ops
+ Ops --&gt; Identity
+ Identity --&gt; Phase
+ Phase --&gt; UVW
+ UVW --&gt; Init
+ Init --&gt; Output
+
+ style CONVERT_DETAIL fill:#F3E5F5,stroke:#7B1FA2,stroke-width:2px,color:#000
+ style PROD_PATH fill:#E1BEE7,stroke:#7B1FA2,stroke-width:2px,color:#000
+ style TEST_PATH fill:#FFF9C4,stroke:#F57F17,stroke-width:2px,color:#000
+ style Output fill:#C8E6C9,stroke:#388E3C,stroke-width:2px,color:#000</div>
+<p><strong>Details:</strong>
+- <strong>Entry Point</strong>: <code>hdf5_orchestrator.py</code> CLI (called by streaming worker)
+- <strong>Writer Selection</strong>:
+  - Production: <code>parallel-subband</code> (16 subbands) - default
+  - Testing: <code>pyuvdata</code> (&lt;=2 subbands only)
+- <strong>Staging</strong>: tmpfs (<code>/dev/shm</code>) preferred for 3-5x speedup
+- <strong>Operations</strong>: All applied during conversion to ensure MS is ready for imaging
+- <strong>Output</strong>: Single full-band MS with all columns preallocated</p>
+<hr/>
+<h3 id="stage-2-conversion-includes-ms-configuration">Stage 2: Conversion (includes MS Configuration)<a class="headerlink" href="#stage-2-conversion-includes-ms-configuration" title="Permanent link">¶</a></h3>
+<p><strong>Note:</strong> MS configuration happens during conversion finalization, not as a separate stage.</p>
+<p><strong>Details:</strong>
+- <strong>Configuration</strong>: <code>configure_ms_for_imaging()</code> is called after MS creation to initialize MODEL_DATA, CORRECTED_DATA, WEIGHT_SPECTRUM columns
+- <strong>Validation</strong>: MS is validated to ensure it's readable and contains required data
+- <strong>Output</strong>: MS is ready for calibration after conversion completes</p>
+<hr/>
+<h3 id="stage-3-calibration">Stage 3: Calibration<a class="headerlink" href="#stage-3-calibration" title="Permanent link">¶</a></h3>
+<div class="mermaid">flowchart TB
+ subgraph CAL_DETAIL["Calibration Process"]
+ MSIn["MS from&lt;br/&gt;Conversion"]
+ Flag{"Pre-Cal&lt;br/&gt;Flagging?"}
+ Check{"Has Calibrator&lt;br/&gt;Field?"}
+
+ subgraph CAL_PATH["Calibrator Path"]
+ SkyModel["NVSS Sky Model&lt;br/&gt;&gt;=10 mJy sources&lt;br/&gt;0.2 deg radius"]
+ FT["ft: Populate&lt;br/&gt;MODEL_DATA"]
+ K{"K-Calibration?&lt;br/&gt;--do-k flag"}
+ KCal["K-Calibration&lt;br/&gt;Delay/Phase"]
+ SkipK["Skip K-Cal&lt;br/&gt;Default for DSA-110"]
+ BPCal["BP-Calibration&lt;br/&gt;Bandpass"]
+ GCal["G-Calibration&lt;br/&gt;Time-variable gains"]
+ Reg["Register Caltables&lt;br/&gt;cal_registry.sqlite3"]
+ end
+
+ subgraph NO_CAL_PATH["No Calibrator Path"]
+ Query["Query Active Caltables&lt;br/&gt;by MS mid-MJD"]
+ UseExisting["Use Existing&lt;br/&gt;Caltables"]
+ end
+
+ MSIn --&gt; Flag
+ Flag --&gt;|Optional| Check
+ Flag --&gt;|Skip| Check
+ Check --&gt;|Yes| SkyModel
+ Check --&gt;|No| Query
+ SkyModel --&gt; FT
+ FT --&gt; K
+ K --&gt;|--do-k| KCal
+ K --&gt;|Default| SkipK
+ KCal --&gt; BPCal
+ SkipK --&gt; BPCal
+ BPCal --&gt; GCal
+ GCal --&gt; Reg
+ Query --&gt; UseExisting
+ Reg --&gt; Apply
+ UseExisting --&gt; Apply
+
+ style CAL_DETAIL fill:#E8F5E9,stroke:#388E3C,stroke-width:2px,color:#000
+ style CAL_PATH fill:#C8E6C9,stroke:#388E3C,stroke-width:2px,color:#000
+ style NO_CAL_PATH fill:#FFF9C4,stroke:#F57F17,stroke-width:2px,color:#000
+ style Flag fill:#FFF9C4,stroke:#F57F17,stroke-width:2px,color:#000
+ end
+
+ Apply["Apply&lt;br/&gt;Caltables"]
+ style Apply fill:#C8E6C9,stroke:#388E3C,stroke-width:2px,color:#000</div>
+<p><strong>Details:</strong>
+- <strong>Pre-Calibration Flagging</strong>: Optional step that resets flags, flags zeros, and optionally flags RFI (tfcrop + rflag). May be skipped in streaming mode when using existing caltables.
+- <strong>K-Calibration</strong>: Skipped by default (short baselines, delays &lt;0.5 ns absorbed into gains)
+- <strong>BP-Calibration</strong>: Frequency-dependent gains, uses "G" mode
+- <strong>G-Calibration</strong>: Time-variable atmospheric effects, uses "p" (phase-only) mode in development tier
+- <strong>Fast Mode</strong>: Time/channel binning, phase-only gains, uvrange cuts
+- <strong>Registry</strong>: All caltables registered with validity windows for automatic selection</p>
+<hr/>
+<h3 id="stage-4-apply-calibration">Stage 4: Apply Calibration<a class="headerlink" href="#stage-4-apply-calibration" title="Permanent link">¶</a></h3>
+<div class="mermaid">flowchart LR
+ subgraph APPLY_DETAIL["Apply Calibration"]
+ MSIn["MS with&lt;br/&gt;Caltables"]
+ Apply["applycal&lt;br/&gt;Apply to CORRECTED_DATA"]
+ Verify["Verify CORRECTED_DATA&lt;br/&gt;non-zero values"]
+ MSOut["Calibrated MS"]
+ end
+
+ MSIn --&gt; Apply
+ Apply --&gt; Verify
+ Verify --&gt;|Valid| MSOut
+ Verify --&gt;|Invalid| Warn["Warning:&lt;br/&gt;All zeros"]
+
+ style APPLY_DETAIL fill:#FFF3E0,stroke:#F57C00,stroke-width:2px,color:#000
+ style Apply fill:#FFE0B2,stroke:#F57C00,stroke-width:2px,color:#000
+ style Verify fill:#FFE0B2,stroke:#F57C00,stroke-width:2px,color:#000
+ style MSOut fill:#C8E6C9,stroke:#388E3C,stroke-width:2px,color:#000
+ style Warn fill:#FFCDD2,stroke:#D32F2F,stroke-width:2px,color:#000</div>
+<p><strong>Details:</strong>
+- <strong>Process</strong>: <code>applycal</code> writes calibrated visibilities to <code>CORRECTED_DATA</code>
+- <strong>Validation</strong>: Ensures corrected data is populated (not all zeros)
+- <strong>Registry</strong>: Queries active caltables by MS mid-MJD for automatic selection</p>
+<hr/>
+<h3 id="stage-5-imaging">Stage 5: Imaging<a class="headerlink" href="#stage-5-imaging" title="Permanent link">¶</a></h3>
+<div class="mermaid">flowchart TB
+ subgraph IMAGE_DETAIL["Imaging Process"]
+ MSIn["Calibrated MS&lt;br/&gt;CORRECTED_DATA"]
+ Clean["WSClean&lt;br/&gt;default backend"]
+ Mode{"Imaging&lt;br/&gt;Mode"}
+
+ subgraph QUICK_MODE["Quick Mode (--quick)"]
+ Quick["Quick Imaging&lt;br/&gt;imsize &lt;= 512&lt;br/&gt;niter &lt;= 300&lt;br/&gt;robust ~ 0"]
+ end
+
+ subgraph FULL_MODE["Full Mode"]
+ Full["Full Quality&lt;br/&gt;imsize from config&lt;br/&gt;niter from config&lt;br/&gt;robust from config"]
+ end
+
+ Fits{"Export&lt;br/&gt;FITS?"}
+ FITS["FITS Export&lt;br/&gt;.pbcor.fits"]
+ CASA["CASA Images&lt;br/&gt;.image, .pb"]
+
+ MSIn --&gt; Clean
+ Clean --&gt; Mode
+ Mode --&gt;|--quick| Quick
+ Mode --&gt;|Default| Full
+ Quick --&gt; Fits
+ Full --&gt; Fits
+ Fits --&gt;|No| CASA
+ Fits --&gt;|Yes| FITS
+ end
+
+ style IMAGE_DETAIL fill:#FCE4EC,stroke:#C2185B,stroke-width:2px,color:#000
+ style QUICK_MODE fill:#FFF9C4,stroke:#F57F17,stroke-width:2px,color:#000
+ style FULL_MODE fill:#F8BBD0,stroke:#C2185B,stroke-width:2px,color:#000
+ style FITS fill:#C8E6C9,stroke:#388E3C,stroke-width:2px,color:#000
+ style CASA fill:#C8E6C9,stroke:#388E3C,stroke-width:2px,color:#000</div>
+<p><strong>Details:</strong>
+- <strong>Backend</strong>: WSClean is the default (2-5x faster than tclean). tclean available via <code>--backend tclean</code>.
+- <strong>Quick Mode</strong>: For speed and operator QA, reduced parameters
+- <strong>Full Mode</strong>: Production quality with full deconvolution
+- <strong>PB Correction</strong>: Primary beam correction always applied
+- <strong>FITS Export</strong>: Optional for speed (CASA images sufficient for CASA tools)</p>
+<hr/>
+<h3 id="stage-6-products-and-indexing">Stage 6: Products and Indexing<a class="headerlink" href="#stage-6-products-and-indexing" title="Permanent link">¶</a></h3>
+<div class="mermaid">flowchart TB
+ subgraph PRODUCT_DETAIL["Products and Indexing"]
+ Images["Image Files&lt;br/&gt;.image, .pb, .pbcor.fits"]
+ MSFiles["MS Files&lt;br/&gt;.ms directory"]
+ QAArt["QA Artifacts&lt;br/&gt;plots, thumbnails"]
+
+ subgraph DB["Products DB&lt;br/&gt;products.sqlite3"]
+ MSIdx["ms_index Table&lt;br/&gt;path, timestamps&lt;br/&gt;status, stage"]
+ ImgIdx["images Table&lt;br/&gt;id, path, ms_path&lt;br/&gt;quality metrics"]
+ QAIdx["QA Index&lt;br/&gt;qa_artifacts table&lt;br/&gt;links to images"]
+ end
+
+ Images --&gt; MSIdx
+ MSFiles --&gt; MSIdx
+ Images --&gt; ImgIdx
+ QAArt --&gt; QAIdx
+ end
+
+ style PRODUCT_DETAIL fill:#E0F2F1,stroke:#00796B,stroke-width:2px,color:#000
+ style DB fill:#B2DFDB,stroke:#00796B,stroke-width:2px,color:#000</div>
+<p><strong>Details:</strong>
+- <strong>MS Index</strong>: Tracks all Measurement Sets with metadata and processing status
+- <strong>Image Index</strong>: Tracks all images with quality metrics
+- <strong>QA Index</strong>: Links QA artifacts (plots, thumbnails) to images
+- <strong>Status Tracking</strong>: <code>status</code> field tracks processing state, <code>stage</code> tracks current stage</p>
+<hr/>
+<h3 id="stage-7-monitoring-access">Stage 7: Monitoring &amp; Access<a class="headerlink" href="#stage-7-monitoring-access" title="Permanent link">¶</a></h3>
+<div class="mermaid">flowchart LR
+ subgraph API_DETAIL["FastAPI Monitoring"]
+ Products["Products DB"]
+ FastAPI["FastAPI Server&lt;br/&gt;uvicorn"]
+
+ subgraph ENDPOINTS["API Endpoints"]
+ Status["/api/status&lt;br/&gt;queue, calibration"]
+ ProductsEP["/api/ms_index&lt;br/&gt;filtered MS index"]
+ ImagesEP["/api/images&lt;br/&gt;image metadata"]
+ QAEP["/api/qa&lt;br/&gt;QA artifacts"]
+ Reprocess["/api/reprocess&lt;br/&gt;/{group_id}"]
+ end
+
+ Products --&gt; FastAPI
+ FastAPI --&gt; ENDPOINTS
+ end
+
+ style API_DETAIL fill:#E1F5FE,stroke:#0277BD,stroke-width:2px,color:#000
+ style FastAPI fill:#B3E5FC,stroke:#0277BD,stroke-width:2px,color:#000
+ style ENDPOINTS fill:#C8E6C9,stroke:#388E3C,stroke-width:2px,color:#000</div>
+<p><strong>Details:</strong>
+- <strong>Status Endpoints</strong>: Real-time queue and system status
+- <strong>Product Endpoints</strong>: Filtered access to MS index and images
+- <strong>QA Endpoints</strong>: Serve QA plots and thumbnails
+- <strong>Reprocessing</strong>: Manual trigger to reprocess failed groups</p>
+<hr/>
+<h2 id="state-machine-queue-management">State Machine &amp; Queue Management<a class="headerlink" href="#state-machine-queue-management" title="Permanent link">¶</a></h2>
+<h3 id="queue-state-transitions">Queue State Transitions<a class="headerlink" href="#queue-state-transitions" title="Permanent link">¶</a></h3>
+<div class="mermaid">stateDiagram-v2
+ [*] --&gt; collecting: New subband file detected
+
+ collecting --&gt; collecting: More subbands arriving&lt;br/&gt;(waiting for 16)
+ collecting --&gt; pending: All 16 subbands arrived&lt;br/&gt;(complete group)
+ collecting --&gt; failed: Timeout exceeded&lt;br/&gt;(collecting_timeout)
+
+ pending --&gt; in_progress: Worker acquires group
+ pending --&gt; failed: Max retries exceeded
+
+ in_progress --&gt; processing_fresh: First conversion attempt
+ in_progress --&gt; resuming: Recovery from checkpoint
+
+ processing_fresh --&gt; processing_fresh: Checkpoint saved
+ processing_fresh --&gt; completed: Conversion successful
+ processing_fresh --&gt; failed: Conversion failed
+
+ resuming --&gt; resuming: Checkpoint saved
+ resuming --&gt; completed: Conversion successful
+ resuming --&gt; failed: Conversion failed
+
+ completed --&gt; [*]
+ failed --&gt; [*]
+
+ note right of collecting
+ Waiting for all 16 subbands&lt;br/&gt;in 5-minute time window
+ end note
+
+ note right of pending
+ Ready for processing&lt;br/&gt;Worker will pick up
+ end note
+
+ note right of in_progress
+ Worker claimed group&lt;br/&gt;Processing starting
+ end note
+
+ note right of completed
+ MS written successfully&lt;br/&gt;Products indexed
+ end note</div>
+<p><strong>State Details:</strong>
+- <strong>collecting</strong>: Waiting for all 16 subbands to arrive
+- <strong>pending</strong>: Complete group ready for processing
+- <strong>in_progress</strong>: Worker has claimed the group
+- <strong>processing_fresh</strong>: First conversion attempt (no checkpoint)
+- <strong>resuming</strong>: Recovery from existing checkpoint
+- <strong>completed</strong>: Successfully processed and indexed
+- <strong>failed</strong>: Exceeded retry budget or unrecoverable error</p>
+<h3 id="stage-tracking">Stage Tracking<a class="headerlink" href="#stage-tracking" title="Permanent link">¶</a></h3>
+<div class="mermaid">flowchart LR
+ subgraph STAGES["Processing Stages"]
+ S1["Stage 1:&lt;br/&gt;Ingest"]
+ S2["Stage 2:&lt;br/&gt;Conversion&lt;br/&gt;(includes MS config)"]
+ S3["Stage 3:&lt;br/&gt;Calibration"]
+ S4["Stage 4:&lt;br/&gt;Apply Cal"]
+ S5["Stage 5:&lt;br/&gt;Imaging"]
+ S6["Stage 6:&lt;br/&gt;Indexing"]
+ end
+
+ S1 --&gt; S2
+ S2 --&gt; S3
+ S3 --&gt; S4
+ S4 --&gt; S5
+ S5 --&gt; S6
+ S6 --&gt; Done["Complete"]
+
+ style S1 fill:#E3F2FD,stroke:#1976D2,stroke-width:2px,color:#000
+ style S2 fill:#F3E5F5,stroke:#7B1FA2,stroke-width:2px,color:#000
+ style S3 fill:#E8F5E9,stroke:#388E3C,stroke-width:2px,color:#000
+ style S4 fill:#FFF3E0,stroke:#F57C00,stroke-width:2px,color:#000
+ style S5 fill:#FCE4EC,stroke:#C2185B,stroke-width:2px,color:#000
+ style S6 fill:#E0F2F1,stroke:#00796B,stroke-width:2px,color:#000
+ style Done fill:#C8E6C9,stroke:#388E3C,stroke-width:3px,color:#000</div>
+<p><strong>Stage Field</strong>: Tracks current processing stage in <code>ms_index</code> table for monitoring and debugging.</p>
+<p><strong>Note:</strong> MS configuration (MODEL_DATA, CORRECTED_DATA, WEIGHT_SPECTRUM initialization) happens during Stage 2 conversion finalization, not as a separate stage.</p>
+<hr/>
+<h2 id="data-products-artifacts">Data Products &amp; Artifacts<a class="headerlink" href="#data-products-artifacts" title="Permanent link">¶</a></h2>
+<h3 id="file-structure">File Structure<a class="headerlink" href="#file-structure" title="Permanent link">¶</a></h3>
+<div class="highlight"><pre><span></span><code>/data/ms/
+├── 2025-11-02T13:40:03.ms/          # Measurement Set (directory)
+│   ├── ANTENNA
+│   ├── DATA
+│   ├── FIELD
+│   ├── SPECTRAL_WINDOW
+│   └── ...
+├── 2025-11-02T13:40:03.bpcal/       # Bandpass calibration table
+├── 2025-11-02T13:40:03.gcal/        # Gain calibration table
+├── 2025-11-02T13:40:03.image/       # CASA image (directory)
+│   ├── image
+│   ├── mask
+│   └── ...
+├── 2025-11-02T13:40:03.pb/          # Primary beam image
+└── 2025-11-02T13:40:03.pbcor.fits   # Primary beam corrected FITS
+</code></pre></div>
+<h3 id="database-schema">Database Schema<a class="headerlink" href="#database-schema" title="Permanent link">¶</a></h3>
+<p><strong>Queue DB (<code>ingest.sqlite3</code>):</strong>
+- <code>ingest_queue</code>: Group state and metadata
+- <code>subband_files</code>: Individual file tracking
+- <code>performance_metrics</code>: Conversion timings and writer type</p>
+<p><strong>Cal Registry DB (<code>cal_registry.sqlite3</code>):</strong>
+- <code>caltables</code>: Calibration table registry with validity windows</p>
+<p><strong>Products DB (<code>products.sqlite3</code>):</strong>
+- <code>ms_index</code>: MS metadata and processing status
+- <code>images</code>: Image metadata and quality metrics
+- <code>qa_artifacts</code>: QA plots and thumbnails</p>
+<hr/>
+<h2 id="database-interactions">Database Interactions<a class="headerlink" href="#database-interactions" title="Permanent link">¶</a></h2>
+<h3 id="data-flow-through-databases">Data Flow Through Databases<a class="headerlink" href="#data-flow-through-databases" title="Permanent link">¶</a></h3>
+<div class="mermaid">flowchart TB
+ subgraph QUEUE["Queue DB&lt;br/&gt;ingest.sqlite3"]
+ Queue["ingest_queue&lt;br/&gt;Group state tracking"]
+ Files["subband_files&lt;br/&gt;File arrival tracking"]
+ Perf["performance_metrics&lt;br/&gt;Timing metrics"]
+ end
+
+ subgraph REGISTRY["Cal Registry DB&lt;br/&gt;cal_registry.sqlite3"]
+ CalReg["caltables&lt;br/&gt;Calibration registry&lt;br/&gt;Validity windows"]
+ end
+
+ subgraph PRODUCTS["Products DB&lt;br/&gt;products.sqlite3"]
+ MSIdx["ms_index&lt;br/&gt;MS metadata&lt;br/&gt;Processing status"]
+ ImgIdx["images&lt;br/&gt;Image metadata&lt;br/&gt;Quality metrics"]
+ QAIdx["qa_artifacts&lt;br/&gt;QA plots/thumbnails"]
+ end
+
+ Queue --&gt; MSIdx
+ Files --&gt; Queue
+ Perf --&gt; Queue
+ CalReg --&gt; MSIdx
+ MSIdx --&gt; ImgIdx
+ ImgIdx --&gt; QAIdx
+
+ style QUEUE fill:#E3F2FD,stroke:#1976D2,stroke-width:2px,color:#000
+ style REGISTRY fill:#FFF9C4,stroke:#F57F17,stroke-width:2px,color:#000
+ style PRODUCTS fill:#E8F5E9,stroke:#388E3C,stroke-width:2px,color:#000</div>
+<p><strong>Key Interactions:</strong>
+1. <strong>Queue DB</strong>: Tracks ingestion and conversion state
+2. <strong>Cal Registry</strong>: Manages calibration table validity and selection
+3. <strong>Products DB</strong>: Central repository for all processing products</p>
+<hr/>
+<h2 id="performance-optimization-paths">Performance Optimization Paths<a class="headerlink" href="#performance-optimization-paths" title="Permanent link">¶</a></h2>
+<h3 id="fast-path-options">Fast Path Options<a class="headerlink" href="#fast-path-options" title="Permanent link">¶</a></h3>
+<div class="mermaid">flowchart TB
+ subgraph OPTIMIZATIONS["Performance Optimization Options"]
+ Start["Pipeline&lt;br/&gt;Start"]
+
+ subgraph CONVERT_OPT["Conversion Optimizations"]
+ Tmpfs["tmpfs Staging&lt;br/&gt;/dev/shm&lt;br/&gt;3-5x speedup"]
+ Par["Parallel Writes&lt;br/&gt;16 concurrent workers"]
+ end
+
+ subgraph CAL_OPT["Calibration Optimizations"]
+ Fast["Fast Mode&lt;br/&gt;--fast flag"]
+ Timebin["Time Binning&lt;br/&gt;--timebin 30s"]
+ Chanbin["Channel Binning&lt;br/&gt;--chanbin 4"]
+ UVRange["UV Range Cut&lt;br/&gt;--uvrange &gt;1klambda"]
+ PhaseOnly["Phase-Only Gains&lt;br/&gt;--phase-only"]
+ end
+
+ subgraph IMAGE_OPT["Imaging Optimizations"]
+ Quick["Quick Mode&lt;br/&gt;--quick flag"]
+ SmallImg["Small Image Size&lt;br/&gt;imsize &lt;= 512"]
+ FewIter["Fewer Iterations&lt;br/&gt;niter &lt;= 300"]
+ SkipFITS["Skip FITS Export&lt;br/&gt;--skip-fits"]
+ end
+
+ Start --&gt; Tmpfs
+ Start --&gt; Par
+ Tmpfs --&gt; Fast
+ Par --&gt; Fast
+ Fast --&gt; Timebin
+ Fast --&gt; Chanbin
+ Fast --&gt; UVRange
+ Fast --&gt; PhaseOnly
+ Timebin --&gt; Quick
+ Chanbin --&gt; Quick
+ UVRange --&gt; Quick
+ PhaseOnly --&gt; Quick
+ Quick --&gt; SmallImg
+ Quick --&gt; FewIter
+ Quick --&gt; SkipFITS
+ end
+
+ style OPTIMIZATIONS fill:#F5F5F5,stroke:#616161,stroke-width:2px,color:#000
+ style CONVERT_OPT fill:#E3F2FD,stroke:#1976D2,stroke-width:2px,color:#000
+ style CAL_OPT fill:#FFF9C4,stroke:#F57F17,stroke-width:2px,color:#000
+ style IMAGE_OPT fill:#E8F5E9,stroke:#388E3C,stroke-width:2px,color:#000</div>
+<p><strong>Optimization Summary:</strong>
+- <strong>Conversion</strong>: tmpfs staging + parallel writes = 3-5x speedup
+- <strong>Calibration</strong>: Fast mode with binning and cuts = 2-3x speedup
+- <strong>Imaging</strong>: Quick mode with reduced parameters = 2-4x speedup
+- <strong>Combined</strong>: Can achieve 10-20x overall speedup for quick-look processing</p>
+<hr/>
+<h2 id="summary">Summary<a class="headerlink" href="#summary" title="Permanent link">¶</a></h2>
+<p>This visualization provides a comprehensive view of the DSA-110 continuum imaging pipeline workflow:</p>
+<ol>
+<li><strong>Continuous Ingestion</strong>: Automated monitoring and grouping of UVH5 files</li>
+<li><strong>Efficient Conversion</strong>: Strategy-based conversion with performance optimizations</li>
+<li><strong>Robust Calibration</strong>: Flexible calibration with automatic table management</li>
+<li><strong>Quality Imaging</strong>: Configurable imaging with quick-look options</li>
+<li><strong>Complete Indexing</strong>: All products tracked in SQLite databases</li>
+<li><strong>Full Monitoring</strong>: API access to all pipeline components and products</li>
+</ol>
+<p><strong>Key Design Principles:</strong>
+- <strong>Modular</strong>: Each stage is independent and testable
+- <strong>Resilient</strong>: State tracking and checkpointing for recovery
+- <strong>Flexible</strong>: Multiple optimization paths for different use cases
+- <strong>Observable</strong>: Comprehensive logging and API monitoring</p>
+<hr/>
+<p><strong>Related Documentation:</strong>
+- <code>docs/pipeline.md</code> - Pipeline overview with decision points
+- <code>docs/quickstart.md</code> - Quick start guide
+- <code>docs/howto/PIPELINE_TESTING_GUIDE.md</code> - Testing procedures
+- <code>MEMORY.md</code> - Codebase understanding and design decisions</p>
+</article>
+</div>
+<script>var tabs=__md_get("__tabs");if(Array.isArray(tabs))e:for(var set of document.querySelectorAll(".tabbed-set")){var tab,labels=set.querySelector(".tabbed-labels");for(tab of tabs)for(var label of labels.getElementsByTagName("label"))if(label.innerText.trim()===tab){var input=document.getElementById(label.htmlFor);input.checked=!0;continue e}}</script>
+<script>var target=document.getElementById(location.hash.slice(1));target&&target.name&&(target.checked=target.name.startsWith("__tabbed_"))</script>
+</div>
+</main>
+<footer class="md-footer">
+<div class="md-footer-meta md-typeset">
+<div class="md-footer-meta__inner md-grid">
+<div class="md-copyright">
+  
+  
+    Made with
+    <a href="https://squidfunk.github.io/mkdocs-material/" rel="noopener" target="_blank">
+      Material for MkDocs
+    </a>
+</div>
+</div>
+</div>
+</footer>
+</div>
+<div class="md-dialog" data-md-component="dialog">
+<div class="md-dialog__inner md-typeset"></div>
+</div>
+<script id="__config" type="application/json">{"base": "../..", "features": ["navigation.sections", "navigation.indexes", "content.code.copy", "content.tabs.link"], "search": "../../assets/javascripts/workers/search.b8dbb3d2.min.js", "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}}</script>
+<script src="../../assets/javascripts/bundle.fe8b6f2b.min.js"></script>
+<script src="../../javascripts/mathjax.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+<script src="../../javascripts/mermaid-zoom.js"></script>
+<script>mermaid.initialize({
+    theme: "default",
+    themeVariables: {
+        primaryColor: "#2196F3",
+        primaryTextColor: "#fff",
+        primaryBorderColor: "#1976D2",
+        lineColor: "#424242",
+        secondaryColor: "#FFC107",
+        tertiaryColor: "#4CAF50"
+    },
+    suppressErrorRendering: false
+});</script></body>
+</html>

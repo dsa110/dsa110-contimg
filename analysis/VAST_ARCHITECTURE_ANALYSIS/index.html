@@ -1,0 +1,3763 @@
+
+<!DOCTYPE html>
+
+<html class="no-js" lang="en">
+<head>
+<meta charset="utf-8"/>
+<meta content="width=device-width,initial-scale=1" name="viewport"/>
+<link href="http://code.deepsynoptic.org/dsa110-contimg/analysis/VAST_ARCHITECTURE_ANALYSIS/" rel="canonical"/>
+<link href="../../assets/images/favicon.png" rel="icon"/>
+<meta content="mkdocs-1.6.1, mkdocs-material-9.5.31" name="generator"/>
+<title>VAST Architecture Deep Dive Analysis - DSA-110 Continuum Imaging Pipeline</title>
+<link href="../../assets/stylesheets/main.3cba04c6.min.css" rel="stylesheet"/>
+<link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect"/>
+<link href="https://fonts.googleapis.com/css?family=Roboto:300,300i,400,400i,700,700i%7CRoboto+Mono:400,400i,700,700i&amp;display=fallback" rel="stylesheet"/>
+<style>:root{--md-text-font:"Roboto";--md-code-font:"Roboto Mono"}</style>
+<link href="../../assets/_mkdocstrings.css" rel="stylesheet"/>
+<script>__md_scope=new URL("../..",location),__md_hash=e=>[...e].reduce((e,_)=>(e<<5)-e+_.charCodeAt(0),0),__md_get=(e,_=localStorage,t=__md_scope)=>JSON.parse(_.getItem(t.pathname+"."+e)),__md_set=(e,_,t=localStorage,a=__md_scope)=>{try{t.setItem(a.pathname+"."+e,JSON.stringify(_))}catch(e){}}</script>
+</head>
+<body dir="ltr">
+<input autocomplete="off" class="md-toggle" data-md-toggle="drawer" id="__drawer" type="checkbox"/>
+<input autocomplete="off" class="md-toggle" data-md-toggle="search" id="__search" type="checkbox"/>
+<label class="md-overlay" for="__drawer"></label>
+<div data-md-component="skip">
+<a class="md-skip" href="#vast-architecture-deep-dive-analysis">
+          Skip to content
+        </a>
+</div>
+<div data-md-component="announce">
+</div>
+<header class="md-header md-header--shadow" data-md-component="header">
+<nav aria-label="Header" class="md-header__inner md-grid">
+<a aria-label="DSA-110 Continuum Imaging Pipeline" class="md-header__button md-logo" data-md-component="logo" href="../.." title="DSA-110 Continuum Imaging Pipeline">
+<svg viewbox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54Z"></path></svg>
+</a>
+<label class="md-header__button md-icon" for="__drawer">
+<svg viewbox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M3 6h18v2H3V6m0 5h18v2H3v-2m0 5h18v2H3v-2Z"></path></svg>
+</label>
+<div class="md-header__title" data-md-component="header-title">
+<div class="md-header__ellipsis">
+<div class="md-header__topic">
+<span class="md-ellipsis">
+            DSA-110 Continuum Imaging Pipeline
+          </span>
+</div>
+<div class="md-header__topic" data-md-component="header-topic">
+<span class="md-ellipsis">
+            
+              VAST Architecture Deep Dive Analysis
+            
+          </span>
+</div>
+</div>
+</div>
+<script>var media,input,key,value,palette=__md_get("__palette");if(palette&&palette.color){"(prefers-color-scheme)"===palette.color.media&&(media=matchMedia("(prefers-color-scheme: light)"),input=document.querySelector(media.matches?"[data-md-color-media='(prefers-color-scheme: light)']":"[data-md-color-media='(prefers-color-scheme: dark)']"),palette.color.media=input.getAttribute("data-md-color-media"),palette.color.scheme=input.getAttribute("data-md-color-scheme"),palette.color.primary=input.getAttribute("data-md-color-primary"),palette.color.accent=input.getAttribute("data-md-color-accent"));for([key,value]of Object.entries(palette.color))document.body.setAttribute("data-md-color-"+key,value)}</script>
+<label class="md-header__button md-icon" for="__search">
+<svg viewbox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.516 6.516 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5Z"></path></svg>
+</label>
+<div class="md-search" data-md-component="search" role="dialog">
+<label class="md-search__overlay" for="__search"></label>
+<div class="md-search__inner" role="search">
+<form class="md-search__form" name="search">
+<input aria-label="Search" autocapitalize="off" autocomplete="off" autocorrect="off" class="md-search__input" data-md-component="search-query" name="query" placeholder="Search" required="" spellcheck="false" type="text"/>
+<label class="md-search__icon md-icon" for="__search">
+<svg viewbox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.516 6.516 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5Z"></path></svg>
+<svg viewbox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11h12Z"></path></svg>
+</label>
+<nav aria-label="Search" class="md-search__options">
+<button aria-label="Clear" class="md-search__icon md-icon" tabindex="-1" title="Clear" type="reset">
+<svg viewbox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M19 6.41 17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12 19 6.41Z"></path></svg>
+</button>
+</nav>
+</form>
+<div class="md-search__output">
+<div class="md-search__scrollwrap" data-md-scrollfix="" tabindex="0">
+<div class="md-search-result" data-md-component="search-result">
+<div class="md-search-result__meta">
+            Initializing search
+          </div>
+<ol class="md-search-result__list" role="presentation"></ol>
+</div>
+</div>
+</div>
+</div>
+</div>
+<div class="md-header__source">
+<a class="md-source" data-md-component="source" href="https://github.com/dsa110/dsa110-contimg" title="Go to repository">
+<div class="md-source__icon md-icon">
+<svg viewbox="0 0 448 512" xmlns="http://www.w3.org/2000/svg"><!--! Font Awesome Free 6.6.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2024 Fonticons, Inc.--><path d="M439.55 236.05 244 40.45a28.87 28.87 0 0 0-40.81 0l-40.66 40.63 51.52 51.52c27.06-9.14 52.68 16.77 43.39 43.68l49.66 49.66c34.23-11.8 61.18 31 35.47 56.69-26.49 26.49-70.21-2.87-56-37.34L240.22 199v121.85c25.3 12.54 22.26 41.85 9.08 55a34.34 34.34 0 0 1-48.55 0c-17.57-17.6-11.07-46.91 11.25-56v-123c-20.8-8.51-24.6-30.74-18.64-45L142.57 101 8.45 235.14a28.86 28.86 0 0 0 0 40.81l195.61 195.6a28.86 28.86 0 0 0 40.8 0l194.69-194.69a28.86 28.86 0 0 0 0-40.81z"></path></svg>
+</div>
+<div class="md-source__repository">
+    GitHub
+  </div>
+</a>
+</div>
+</nav>
+</header>
+<div class="md-container" data-md-component="container">
+<main class="md-main" data-md-component="main">
+<div class="md-main__inner md-grid">
+<div class="md-sidebar md-sidebar--primary" data-md-component="sidebar" data-md-type="navigation">
+<div class="md-sidebar__scrollwrap">
+<div class="md-sidebar__inner">
+<nav aria-label="Navigation" class="md-nav md-nav--primary" data-md-level="0">
+<label class="md-nav__title" for="__drawer">
+<a aria-label="DSA-110 Continuum Imaging Pipeline" class="md-nav__button md-logo" data-md-component="logo" href="../.." title="DSA-110 Continuum Imaging Pipeline">
+<svg viewbox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54Z"></path></svg>
+</a>
+    DSA-110 Continuum Imaging Pipeline
+  </label>
+<div class="md-nav__source">
+<a class="md-source" data-md-component="source" href="https://github.com/dsa110/dsa110-contimg" title="Go to repository">
+<div class="md-source__icon md-icon">
+<svg viewbox="0 0 448 512" xmlns="http://www.w3.org/2000/svg"><!--! Font Awesome Free 6.6.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2024 Fonticons, Inc.--><path d="M439.55 236.05 244 40.45a28.87 28.87 0 0 0-40.81 0l-40.66 40.63 51.52 51.52c27.06-9.14 52.68 16.77 43.39 43.68l49.66 49.66c34.23-11.8 61.18 31 35.47 56.69-26.49 26.49-70.21-2.87-56-37.34L240.22 199v121.85c25.3 12.54 22.26 41.85 9.08 55a34.34 34.34 0 0 1-48.55 0c-17.57-17.6-11.07-46.91 11.25-56v-123c-20.8-8.51-24.6-30.74-18.64-45L142.57 101 8.45 235.14a28.86 28.86 0 0 0 0 40.81l195.61 195.6a28.86 28.86 0 0 0 40.8 0l194.69-194.69a28.86 28.86 0 0 0 0-40.81z"></path></svg>
+</div>
+<div class="md-source__repository">
+    GitHub
+  </div>
+</a>
+</div>
+<ul class="md-nav__list" data-md-scrollfix="">
+<li class="md-nav__item">
+<a class="md-nav__link" href="../..">
+<span class="md-ellipsis">
+    Home
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../DOCUMENTATION_QUICK_REFERENCE/">
+<span class="md-ellipsis">
+    Documentation Guide
+  </span>
+</a>
+</li>
+<li class="md-nav__item md-nav__item--section md-nav__item--nested">
+<input class="md-nav__toggle md-toggle" id="__nav_3" type="checkbox"/>
+<div class="md-nav__link md-nav__container">
+<a class="md-nav__link" href="../../concepts/">
+<span class="md-ellipsis">
+    Concepts
+  </span>
+</a>
+<label class="md-nav__link" for="__nav_3" id="__nav_3_label" tabindex="">
+<span class="md-nav__icon md-icon"></span>
+</label>
+</div>
+<nav aria-expanded="false" aria-labelledby="__nav_3_label" class="md-nav" data-md-level="1">
+<label class="md-nav__title" for="__nav_3">
+<span class="md-nav__icon md-icon"></span>
+            Concepts
+          </label>
+<ul class="md-nav__list" data-md-scrollfix="">
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../concepts/architecture/">
+<span class="md-ellipsis">
+    Architecture
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../concepts/DIRECTORY_ARCHITECTURE/">
+<span class="md-ellipsis">
+    Directory Architecture
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../concepts/modules/">
+<span class="md-ellipsis">
+    Modules
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../concepts/control-panel/">
+<span class="md-ellipsis">
+    Control Panel
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../concepts/aoflagger/">
+<span class="md-ellipsis">
+    AOFlagger
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../concepts/frontend_design/">
+<span class="md-ellipsis">
+    Frontend Design
+  </span>
+</a>
+</li>
+<li class="md-nav__item md-nav__item--nested">
+<input class="md-nav__toggle md-toggle" id="__nav_3_8" type="checkbox"/>
+<label class="md-nav__link" for="__nav_3_8" id="__nav_3_8_label" tabindex="0">
+<span class="md-ellipsis">
+    Dashboard
+  </span>
+<span class="md-nav__icon md-icon"></span>
+</label>
+<nav aria-expanded="false" aria-labelledby="__nav_3_8_label" class="md-nav" data-md-level="2">
+<label class="md-nav__title" for="__nav_3_8">
+<span class="md-nav__icon md-icon"></span>
+            Dashboard
+          </label>
+<ul class="md-nav__list" data-md-scrollfix="">
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../concepts/dashboard_mockups/">
+<span class="md-ellipsis">
+    Mockups
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../SKYVIEW_IMPLEMENTATION_PLAN/">
+<span class="md-ellipsis">
+    Sky View
+  </span>
+</a>
+</li>
+</ul>
+</nav>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../concepts/GLOSSARY/">
+<span class="md-ellipsis">
+    Glossary
+  </span>
+</a>
+</li>
+<li class="md-nav__item md-nav__item--nested">
+<input class="md-nav__toggle md-toggle" id="__nav_3_10" type="checkbox"/>
+<label class="md-nav__link" for="__nav_3_10" id="__nav_3_10_label" tabindex="0">
+<span class="md-ellipsis">
+    Pipeline
+  </span>
+<span class="md-nav__icon md-icon"></span>
+</label>
+<nav aria-expanded="false" aria-labelledby="__nav_3_10_label" class="md-nav" data-md-level="2">
+<label class="md-nav__title" for="__nav_3_10">
+<span class="md-nav__icon md-icon"></span>
+            Pipeline
+          </label>
+<ul class="md-nav__list" data-md-scrollfix="">
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../concepts/pipeline_overview/">
+<span class="md-ellipsis">
+    Overview
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../concepts/pipeline_stage_architecture/">
+<span class="md-ellipsis">
+    Stage Architecture
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../concepts/pipeline_workflow_visualization/">
+<span class="md-ellipsis">
+    Workflow Visualization
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../concepts/pipeline_production_features/">
+<span class="md-ellipsis">
+    Production Features
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../concepts/pipeline_patterns/">
+<span class="md-ellipsis">
+    Patterns
+  </span>
+</a>
+</li>
+</ul>
+</nav>
+</li>
+<li class="md-nav__item md-nav__item--nested">
+<input class="md-nav__toggle md-toggle" id="__nav_3_11" type="checkbox"/>
+<label class="md-nav__link" for="__nav_3_11" id="__nav_3_11_label" tabindex="0">
+<span class="md-ellipsis">
+    Science
+  </span>
+<span class="md-nav__icon md-icon"></span>
+</label>
+<nav aria-expanded="false" aria-labelledby="__nav_3_11_label" class="md-nav" data-md-level="2">
+<label class="md-nav__title" for="__nav_3_11">
+<span class="md-nav__icon md-icon"></span>
+            Science
+          </label>
+<ul class="md-nav__list" data-md-scrollfix="">
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../concepts/science/photometry_normalization/">
+<span class="md-ellipsis">
+    Photometry Normalization
+  </span>
+</a>
+</li>
+</ul>
+</nav>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../concepts/mcp_browser_server_setup/">
+<span class="md-ellipsis">
+    Browser MCP Server
+  </span>
+</a>
+</li>
+</ul>
+</nav>
+</li>
+<li class="md-nav__item md-nav__item--section md-nav__item--nested">
+<input class="md-nav__toggle md-toggle" id="__nav_4" type="checkbox"/>
+<label class="md-nav__link" for="__nav_4" id="__nav_4_label" tabindex="">
+<span class="md-ellipsis">
+    Tutorials
+  </span>
+<span class="md-nav__icon md-icon"></span>
+</label>
+<nav aria-expanded="false" aria-labelledby="__nav_4_label" class="md-nav" data-md-level="1">
+<label class="md-nav__title" for="__nav_4">
+<span class="md-nav__icon md-icon"></span>
+            Tutorials
+          </label>
+<ul class="md-nav__list" data-md-scrollfix="">
+<li class="md-nav__item md-nav__item--nested">
+<input class="md-nav__toggle md-toggle" id="__nav_4_1" type="checkbox"/>
+<label class="md-nav__link" for="__nav_4_1" id="__nav_4_1_label" tabindex="0">
+<span class="md-ellipsis">
+    Conversion
+  </span>
+<span class="md-nav__icon md-icon"></span>
+</label>
+<nav aria-expanded="false" aria-labelledby="__nav_4_1_label" class="md-nav" data-md-level="2">
+<label class="md-nav__title" for="__nav_4_1">
+<span class="md-nav__icon md-icon"></span>
+            Conversion
+          </label>
+<ul class="md-nav__list" data-md-scrollfix="">
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../tutorials/HDF5_TO_MS_TUTORIAL/">
+<span class="md-ellipsis">
+    HDF5 to MS
+  </span>
+</a>
+</li>
+</ul>
+</nav>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../tutorials/simulation-tutorial/">
+<span class="md-ellipsis">
+    Simulation
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../tutorials/calibrate-apply/">
+<span class="md-ellipsis">
+    Calibrate and Apply
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../tutorials/convert-standalone/">
+<span class="md-ellipsis">
+    Convert Standalone
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../tutorials/streaming/">
+<span class="md-ellipsis">
+    Streaming
+  </span>
+</a>
+</li>
+<li class="md-nav__item md-nav__item--nested">
+<input class="md-nav__toggle md-toggle" id="__nav_4_6" type="checkbox"/>
+<label class="md-nav__link" for="__nav_4_6" id="__nav_4_6_label" tabindex="0">
+<span class="md-ellipsis">
+    Notebooks
+  </span>
+<span class="md-nav__icon md-icon"></span>
+</label>
+<nav aria-expanded="false" aria-labelledby="__nav_4_6_label" class="md-nav" data-md-level="2">
+<label class="md-nav__title" for="__nav_4_6">
+<span class="md-nav__icon md-icon"></span>
+            Notebooks
+          </label>
+<ul class="md-nav__list" data-md-scrollfix="">
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../tutorials/notebooks/bandpass_calibration_test.ipynb">
+<span class="md-ellipsis">
+    Bandpass Calibration Test
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../tutorials/notebooks/calibrator_helper.py">
+<span class="md-ellipsis">
+    Calibrator Helper
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../tutorials/notebooks/CalibratorSearch.ipynb">
+<span class="md-ellipsis">
+    Calibrator Search
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../tutorials/notebooks/ms_staging_workflow.ipynb">
+<span class="md-ellipsis">
+    MS Staging Workflow
+  </span>
+</a>
+</li>
+</ul>
+</nav>
+</li>
+</ul>
+</nav>
+</li>
+<li class="md-nav__item md-nav__item--section md-nav__item--nested">
+<input class="md-nav__toggle md-toggle" id="__nav_5" type="checkbox"/>
+<label class="md-nav__link" for="__nav_5" id="__nav_5_label" tabindex="">
+<span class="md-ellipsis">
+    How-To Guides
+  </span>
+<span class="md-nav__icon md-icon"></span>
+</label>
+<nav aria-expanded="false" aria-labelledby="__nav_5_label" class="md-nav" data-md-level="1">
+<label class="md-nav__title" for="__nav_5">
+<span class="md-nav__icon md-icon"></span>
+            How-To Guides
+          </label>
+<ul class="md-nav__list" data-md-scrollfix="">
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../how-to/github_pages_walkthrough/">
+<span class="md-ellipsis">
+    GitHub Pages Setup
+  </span>
+</a>
+</li>
+<li class="md-nav__item md-nav__item--nested">
+<input class="md-nav__toggle md-toggle" id="__nav_5_2" type="checkbox"/>
+<label class="md-nav__link" for="__nav_5_2" id="__nav_5_2_label" tabindex="0">
+<span class="md-ellipsis">
+    Quickstarts
+  </span>
+<span class="md-nav__icon md-icon"></span>
+</label>
+<nav aria-expanded="false" aria-labelledby="__nav_5_2_label" class="md-nav" data-md-level="2">
+<label class="md-nav__title" for="__nav_5_2">
+<span class="md-nav__icon md-icon"></span>
+            Quickstarts
+          </label>
+<ul class="md-nav__list" data-md-scrollfix="">
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../how-to/quickstart/">
+<span class="md-ellipsis">
+    General
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../how-to/control-panel-quickstart/">
+<span class="md-ellipsis">
+    Control Panel
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../how-to/LINEAR_SETUP_QUICKSTART/">
+<span class="md-ellipsis">
+    Linear Setup
+  </span>
+</a>
+</li>
+</ul>
+</nav>
+</li>
+<li class="md-nav__item md-nav__item--nested">
+<input class="md-nav__toggle md-toggle" id="__nav_5_3" type="checkbox"/>
+<label class="md-nav__link" for="__nav_5_3" id="__nav_5_3_label" tabindex="0">
+<span class="md-ellipsis">
+    Testing
+  </span>
+<span class="md-nav__icon md-icon"></span>
+</label>
+<nav aria-expanded="false" aria-labelledby="__nav_5_3_label" class="md-nav" data-md-level="2">
+<label class="md-nav__title" for="__nav_5_3">
+<span class="md-nav__icon md-icon"></span>
+            Testing
+          </label>
+<ul class="md-nav__list" data-md-scrollfix="">
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../how-to/FAST_TESTING/">
+<span class="md-ellipsis">
+    Fast Testing
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../how-to/PIPELINE_TESTING_GUIDE/">
+<span class="md-ellipsis">
+    Pipeline Guide
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../how-to/TEST_FLAG_SUBCOMMAND/">
+<span class="md-ellipsis">
+    Flag Subcommand
+  </span>
+</a>
+</li>
+</ul>
+</nav>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../how-to/build-vp-from-h5/">
+<span class="md-ellipsis">
+    Build VP from h5
+  </span>
+</a>
+</li>
+<li class="md-nav__item md-nav__item--nested">
+<input class="md-nav__toggle md-toggle" id="__nav_5_5" type="checkbox"/>
+<label class="md-nav__link" for="__nav_5_5" id="__nav_5_5_label" tabindex="0">
+<span class="md-ellipsis">
+    Calibration
+  </span>
+<span class="md-nav__icon md-icon"></span>
+</label>
+<nav aria-expanded="false" aria-labelledby="__nav_5_5_label" class="md-nav" data-md-level="2">
+<label class="md-nav__title" for="__nav_5_5">
+<span class="md-nav__icon md-icon"></span>
+            Calibration
+          </label>
+<ul class="md-nav__list" data-md-scrollfix="">
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../how-to/CALIBRATION_DETAILED_PROCEDURE/">
+<span class="md-ellipsis">
+    Detailed Procedure
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../how-to/FIND_CALIBRATOR_TRANSIT_DATA/">
+<span class="md-ellipsis">
+    Find Calibrator Transit
+  </span>
+</a>
+</li>
+</ul>
+</nav>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../how-to/IMAGE_0834_TRANSIT_5MIN/">
+<span class="md-ellipsis">
+    Image 0834 Transit 5min
+  </span>
+</a>
+</li>
+<li class="md-nav__item md-nav__item--nested">
+<input class="md-nav__toggle md-toggle" id="__nav_5_7" type="checkbox"/>
+<label class="md-nav__link" for="__nav_5_7" id="__nav_5_7_label" tabindex="0">
+<span class="md-ellipsis">
+    Mosaic
+  </span>
+<span class="md-nav__icon md-icon"></span>
+</label>
+<nav aria-expanded="false" aria-labelledby="__nav_5_7_label" class="md-nav" data-md-level="2">
+<label class="md-nav__title" for="__nav_5_7">
+<span class="md-nav__icon md-icon"></span>
+            Mosaic
+          </label>
+<ul class="md-nav__list" data-md-scrollfix="">
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../how-to/mosaic_quickstart/">
+<span class="md-ellipsis">
+    Quickstart
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../how-to/mosaic/">
+<span class="md-ellipsis">
+    Complete Guide
+  </span>
+</a>
+</li>
+</ul>
+</nav>
+</li>
+<li class="md-nav__item md-nav__item--nested">
+<input class="md-nav__toggle md-toggle" id="__nav_5_8" type="checkbox"/>
+<label class="md-nav__link" for="__nav_5_8" id="__nav_5_8_label" tabindex="0">
+<span class="md-ellipsis">
+    Quality Assurance
+  </span>
+<span class="md-nav__icon md-icon"></span>
+</label>
+<nav aria-expanded="false" aria-labelledby="__nav_5_8_label" class="md-nav" data-md-level="2">
+<label class="md-nav__title" for="__nav_5_8">
+<span class="md-nav__icon md-icon"></span>
+            Quality Assurance
+          </label>
+<ul class="md-nav__list" data-md-scrollfix="">
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../how-to/QUALITY_ASSURANCE_SETUP/">
+<span class="md-ellipsis">
+    Setup
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../how-to/quicklook/">
+<span class="md-ellipsis">
+    Quick Look
+  </span>
+</a>
+</li>
+</ul>
+</nav>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../how-to/reprocess/">
+<span class="md-ellipsis">
+    Reprocess
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../how-to/USING_ORCHESTRATOR_CLI/">
+<span class="md-ellipsis">
+    Using Orchestrator CLI
+  </span>
+</a>
+</li>
+<li class="md-nav__item md-nav__item--nested">
+<input class="md-nav__toggle md-toggle" id="__nav_5_11" type="checkbox"/>
+<label class="md-nav__link" for="__nav_5_11" id="__nav_5_11_label" tabindex="0">
+<span class="md-ellipsis">
+    Dashboard
+  </span>
+<span class="md-nav__icon md-icon"></span>
+</label>
+<nav aria-expanded="false" aria-labelledby="__nav_5_11_label" class="md-nav" data-md-level="2">
+<label class="md-nav__title" for="__nav_5_11">
+<span class="md-nav__icon md-icon"></span>
+            Dashboard
+          </label>
+<ul class="md-nav__list" data-md-scrollfix="">
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../how-to/dashboard-development/">
+<span class="md-ellipsis">
+    Development
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../how-to/dashboard-quickstart/">
+<span class="md-ellipsis">
+    Quickstart
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../how-to/dashboard_testing/">
+<span class="md-ellipsis">
+    Testing
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../how-to/dashboard_development_workflow/">
+<span class="md-ellipsis">
+    Development Workflow
+  </span>
+</a>
+</li>
+</ul>
+</nav>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../how-to/LINEAR_INTEGRATION/">
+<span class="md-ellipsis">
+    Linear Integration
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../how-to/frontend-initial-setup/">
+<span class="md-ellipsis">
+    Frontend Initial Setup
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../how-to/PARAMETER_OPTIMIZATION_GUIDE/">
+<span class="md-ellipsis">
+    AOFlagger Parameter Optimization
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../how-to/downsampling_guide/">
+<span class="md-ellipsis">
+    Downsampling Guide
+  </span>
+</a>
+</li>
+<li class="md-nav__item md-nav__item--nested">
+<input class="md-nav__toggle md-toggle" id="__nav_5_16" type="checkbox"/>
+<label class="md-nav__link" for="__nav_5_16" id="__nav_5_16_label" tabindex="0">
+<span class="md-ellipsis">
+    Conversion
+  </span>
+<span class="md-nav__icon md-icon"></span>
+</label>
+<nav aria-expanded="false" aria-labelledby="__nav_5_16_label" class="md-nav" data-md-level="2">
+<label class="md-nav__title" for="__nav_5_16">
+<span class="md-nav__icon md-icon"></span>
+            Conversion
+          </label>
+<ul class="md-nav__list" data-md-scrollfix="">
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../how-to/uvh5_to_ms_conversion/">
+<span class="md-ellipsis">
+    UVH5 to MS
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../how-to/streaming_converter_guide/">
+<span class="md-ellipsis">
+    Streaming Converter
+  </span>
+</a>
+</li>
+</ul>
+</nav>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../how-to/troubleshooting/">
+<span class="md-ellipsis">
+    Troubleshooting
+  </span>
+</a>
+</li>
+</ul>
+</nav>
+</li>
+<li class="md-nav__item md-nav__item--section md-nav__item--nested">
+<input class="md-nav__toggle md-toggle" id="__nav_6" type="checkbox"/>
+<label class="md-nav__link" for="__nav_6" id="__nav_6_label" tabindex="">
+<span class="md-ellipsis">
+    Reference
+  </span>
+<span class="md-nav__icon md-icon"></span>
+</label>
+<nav aria-expanded="false" aria-labelledby="__nav_6_label" class="md-nav" data-md-level="1">
+<label class="md-nav__title" for="__nav_6">
+<span class="md-nav__icon md-icon"></span>
+            Reference
+          </label>
+<ul class="md-nav__list" data-md-scrollfix="">
+<li class="md-nav__item md-nav__item--nested">
+<input class="md-nav__toggle md-toggle" id="__nav_6_1" type="checkbox"/>
+<label class="md-nav__link" for="__nav_6_1" id="__nav_6_1_label" tabindex="0">
+<span class="md-ellipsis">
+    API
+  </span>
+<span class="md-nav__icon md-icon"></span>
+</label>
+<nav aria-expanded="false" aria-labelledby="__nav_6_1_label" class="md-nav" data-md-level="2">
+<label class="md-nav__title" for="__nav_6_1">
+<span class="md-nav__icon md-icon"></span>
+            API
+          </label>
+<ul class="md-nav__list" data-md-scrollfix="">
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../reference/api-endpoints/">
+<span class="md-ellipsis">
+    Endpoints
+  </span>
+</a>
+</li>
+<li class="md-nav__item md-nav__item--nested">
+<input class="md-nav__toggle md-toggle" id="__nav_6_1_2" type="checkbox"/>
+<label class="md-nav__link" for="__nav_6_1_2" id="__nav_6_1_2_label" tabindex="0">
+<span class="md-ellipsis">
+    Dashboard
+  </span>
+<span class="md-nav__icon md-icon"></span>
+</label>
+<nav aria-expanded="false" aria-labelledby="__nav_6_1_2_label" class="md-nav" data-md-level="3">
+<label class="md-nav__title" for="__nav_6_1_2">
+<span class="md-nav__icon md-icon"></span>
+            Dashboard
+          </label>
+<ul class="md-nav__list" data-md-scrollfix="">
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../reference/dashboard_backend_api/">
+<span class="md-ellipsis">
+    API Reference
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../reference/dashboard_pages_and_features/">
+<span class="md-ellipsis">
+    Pages &amp; Features
+  </span>
+</a>
+</li>
+</ul>
+</nav>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../reference/backend_integration_snippets/">
+<span class="md-ellipsis">
+    Integration Snippets
+  </span>
+</a>
+</li>
+</ul>
+</nav>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../reference/calibration-overview/">
+<span class="md-ellipsis">
+    Calibration Overview
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../reference/cli/">
+<span class="md-ellipsis">
+    CLI
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../reference/control-panel-cheatsheet/">
+<span class="md-ellipsis">
+    Control Panel Cheatsheet
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../reference/database_schema/">
+<span class="md-ellipsis">
+    Database Schema
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../reference/env/">
+<span class="md-ellipsis">
+    Environment Variables
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../reference/CRITICAL_PYTHON_ENVIRONMENT/">
+<span class="md-ellipsis">
+    Critical Python Environment
+  </span>
+</a>
+</li>
+<li class="md-nav__item md-nav__item--nested">
+<input class="md-nav__toggle md-toggle" id="__nav_6_8" type="checkbox"/>
+<label class="md-nav__link" for="__nav_6_8" id="__nav_6_8_label" tabindex="0">
+<span class="md-ellipsis">
+    Optimizations
+  </span>
+<span class="md-nav__icon md-icon"></span>
+</label>
+<nav aria-expanded="false" aria-labelledby="__nav_6_8_label" class="md-nav" data-md-level="2">
+<label class="md-nav__title" for="__nav_6_8">
+<span class="md-nav__icon md-icon"></span>
+            Optimizations
+          </label>
+<ul class="md-nav__list" data-md-scrollfix="">
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../reference/optimizations/OPTIMIZATION_API/">
+<span class="md-ellipsis">
+    API
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../reference/optimizations/PROFILING_GUIDE/">
+<span class="md-ellipsis">
+    Profiling Guide
+  </span>
+</a>
+</li>
+</ul>
+</nav>
+</li>
+</ul>
+</nav>
+</li>
+<li class="md-nav__item md-nav__item--section md-nav__item--nested">
+<input class="md-nav__toggle md-toggle" id="__nav_7" type="checkbox"/>
+<label class="md-nav__link" for="__nav_7" id="__nav_7_label" tabindex="">
+<span class="md-ellipsis">
+    Operations
+  </span>
+<span class="md-nav__icon md-icon"></span>
+</label>
+<nav aria-expanded="false" aria-labelledby="__nav_7_label" class="md-nav" data-md-level="1">
+<label class="md-nav__title" for="__nav_7">
+<span class="md-nav__icon md-icon"></span>
+            Operations
+          </label>
+<ul class="md-nav__list" data-md-scrollfix="">
+<li class="md-nav__item md-nav__item--nested">
+<input class="md-nav__toggle md-toggle" id="__nav_7_1" type="checkbox"/>
+<label class="md-nav__link" for="__nav_7_1" id="__nav_7_1_label" tabindex="0">
+<span class="md-ellipsis">
+    Deployment
+  </span>
+<span class="md-nav__icon md-icon"></span>
+</label>
+<nav aria-expanded="false" aria-labelledby="__nav_7_1_label" class="md-nav" data-md-level="2">
+<label class="md-nav__title" for="__nav_7_1">
+<span class="md-nav__icon md-icon"></span>
+            Deployment
+          </label>
+<ul class="md-nav__list" data-md-scrollfix="">
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../operations/deploy-docker/">
+<span class="md-ellipsis">
+    Docker
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../operations/deploy-systemd/">
+<span class="md-ellipsis">
+    systemd
+  </span>
+</a>
+</li>
+</ul>
+</nav>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../operations/port-management/">
+<span class="md-ellipsis">
+    Port Management
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../operations/refant_quick_reference/">
+<span class="md-ellipsis">
+    Refant Quick Reference
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../operations/service_restart_fix/">
+<span class="md-ellipsis">
+    Service Restart Fix
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../operations/systemd-migration/">
+<span class="md-ellipsis">
+    Systemd Migration
+  </span>
+</a>
+</li>
+</ul>
+</nav>
+</li>
+<li class="md-nav__item md-nav__item--section md-nav__item--nested">
+<input class="md-nav__toggle md-toggle" id="__nav_8" type="checkbox"/>
+<div class="md-nav__link md-nav__container">
+<a class="md-nav__link" href="../../contributing/">
+<span class="md-ellipsis">
+    Contributing
+  </span>
+</a>
+<label class="md-nav__link" for="__nav_8" id="__nav_8_label" tabindex="">
+<span class="md-nav__icon md-icon"></span>
+</label>
+</div>
+<nav aria-expanded="false" aria-labelledby="__nav_8_label" class="md-nav" data-md-level="1">
+<label class="md-nav__title" for="__nav_8">
+<span class="md-nav__icon md-icon"></span>
+            Contributing
+          </label>
+<ul class="md-nav__list" data-md-scrollfix="">
+<li class="md-nav__item md-nav__item--nested">
+<input class="md-nav__toggle md-toggle" id="__nav_8_2" type="checkbox"/>
+<label class="md-nav__link" for="__nav_8_2" id="__nav_8_2_label" tabindex="0">
+<span class="md-ellipsis">
+    Archive
+  </span>
+<span class="md-nav__icon md-icon"></span>
+</label>
+<nav aria-expanded="false" aria-labelledby="__nav_8_2_label" class="md-nav" data-md-level="2">
+<label class="md-nav__title" for="__nav_8_2">
+<span class="md-nav__icon md-icon"></span>
+            Archive
+          </label>
+<ul class="md-nav__list" data-md-scrollfix="">
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../contributing/archive/CONTRIBUTING_TODO/">
+<span class="md-ellipsis">
+    Contributing to TODO
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../contributing/archive/rules/">
+<span class="md-ellipsis">
+    Rules
+  </span>
+</a>
+</li>
+</ul>
+</nav>
+</li>
+</ul>
+</nav>
+</li>
+</ul>
+</nav>
+</div>
+</div>
+</div>
+<div class="md-sidebar md-sidebar--secondary" data-md-component="sidebar" data-md-type="toc">
+<div class="md-sidebar__scrollwrap">
+<div class="md-sidebar__inner">
+<nav aria-label="Table of contents" class="md-nav md-nav--secondary">
+<label class="md-nav__title" for="__toc">
+<span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+<ul class="md-nav__list" data-md-component="toc" data-md-scrollfix="">
+<li class="md-nav__item">
+<a class="md-nav__link" href="#executive-summary">
+<span class="md-ellipsis">
+      Executive Summary
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#table-of-contents">
+<span class="md-ellipsis">
+      Table of Contents
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#system-overview">
+<span class="md-ellipsis">
+      System Overview
+    </span>
+</a>
+<nav aria-label="System Overview" class="md-nav">
+<ul class="md-nav__list">
+<li class="md-nav__item">
+<a class="md-nav__link" href="#core-components">
+<span class="md-ellipsis">
+      Core Components
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#technology-stack">
+<span class="md-ellipsis">
+      Technology Stack
+    </span>
+</a>
+</li>
+</ul>
+</nav>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#architecture-patterns">
+<span class="md-ellipsis">
+      Architecture Patterns
+    </span>
+</a>
+<nav aria-label="Architecture Patterns" class="md-nav">
+<ul class="md-nav__list">
+<li class="md-nav__item">
+<a class="md-nav__link" href="#1-multi-run-pipeline-architecture">
+<span class="md-ellipsis">
+      1. Multi-Run Pipeline Architecture
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#2-measurement-source-association-model">
+<span class="md-ellipsis">
+      2. Measurement-Source Association Model
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#3-commentable-model-pattern">
+<span class="md-ellipsis">
+      3. Commentable Model Pattern
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#4-tag-system">
+<span class="md-ellipsis">
+      4. Tag System
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#5-async-task-processing">
+<span class="md-ellipsis">
+      5. Async Task Processing
+    </span>
+</a>
+</li>
+</ul>
+</nav>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#database-design">
+<span class="md-ellipsis">
+      Database Design
+    </span>
+</a>
+<nav aria-label="Database Design" class="md-nav">
+<ul class="md-nav__list">
+<li class="md-nav__item">
+<a class="md-nav__link" href="#core-models">
+<span class="md-ellipsis">
+      Core Models
+    </span>
+</a>
+<nav aria-label="Core Models" class="md-nav">
+<ul class="md-nav__list">
+<li class="md-nav__item">
+<a class="md-nav__link" href="#run">
+<span class="md-ellipsis">
+      Run
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#image">
+<span class="md-ellipsis">
+      Image
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#measurement">
+<span class="md-ellipsis">
+      Measurement
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#source">
+<span class="md-ellipsis">
+      Source
+    </span>
+</a>
+</li>
+</ul>
+</nav>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#key-relationships">
+<span class="md-ellipsis">
+      Key Relationships
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#spatial-queries">
+<span class="md-ellipsis">
+      Spatial Queries
+    </span>
+</a>
+</li>
+</ul>
+</nav>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#web-interface-architecture">
+<span class="md-ellipsis">
+      Web Interface Architecture
+    </span>
+</a>
+<nav aria-label="Web Interface Architecture" class="md-nav">
+<ul class="md-nav__list">
+<li class="md-nav__item">
+<a class="md-nav__link" href="#page-structure">
+<span class="md-ellipsis">
+      Page Structure
+    </span>
+</a>
+<nav aria-label="Page Structure" class="md-nav">
+<ul class="md-nav__list">
+<li class="md-nav__item">
+<a class="md-nav__link" href="#1-homepage">
+<span class="md-ellipsis">
+      1. Homepage
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#2-pipeline-runs-piperuns">
+<span class="md-ellipsis">
+      2. Pipeline Runs (/piperuns/)
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#3-run-detail-piperunsid">
+<span class="md-ellipsis">
+      3. Run Detail (/piperuns/&lt;id&gt;/)
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#4-source-query-sourcesquery">
+<span class="md-ellipsis">
+      4. Source Query (/sources/query/)
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#5-source-detail-sourcesid">
+<span class="md-ellipsis">
+      5. Source Detail (/sources/&lt;id&gt;/)
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#6-v-analysis-sourcesqueryplot">
+<span class="md-ellipsis">
+      6. η-V Analysis (/sources/query/plot/)
+    </span>
+</a>
+</li>
+</ul>
+</nav>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#ui-components">
+<span class="md-ellipsis">
+      UI Components
+    </span>
+</a>
+<nav aria-label="UI Components" class="md-nav">
+<ul class="md-nav__list">
+<li class="md-nav__item">
+<a class="md-nav__link" href="#datatables-integration">
+<span class="md-ellipsis">
+      DataTables Integration
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#bokeh-plots">
+<span class="md-ellipsis">
+      Bokeh Plots
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#js9-integration">
+<span class="md-ellipsis">
+      JS9 Integration
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#aladin-lite-integration">
+<span class="md-ellipsis">
+      Aladin Lite Integration
+    </span>
+</a>
+</li>
+</ul>
+</nav>
+</li>
+</ul>
+</nav>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#analysis-tools-workflows">
+<span class="md-ellipsis">
+      Analysis Tools &amp; Workflows
+    </span>
+</a>
+<nav aria-label="Analysis Tools &amp; Workflows" class="md-nav">
+<ul class="md-nav__list">
+<li class="md-nav__item">
+<a class="md-nav__link" href="#1-source-query-workflow">
+<span class="md-ellipsis">
+      1. Source Query Workflow
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#2-v-analysis-workflow">
+<span class="md-ellipsis">
+      2. η-V Analysis Workflow
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#3-source-investigation-workflow">
+<span class="md-ellipsis">
+      3. Source Investigation Workflow
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#4-pipeline-run-workflow">
+<span class="md-ellipsis">
+      4. Pipeline Run Workflow
+    </span>
+</a>
+</li>
+</ul>
+</nav>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#visualization-patterns">
+<span class="md-ellipsis">
+      Visualization Patterns
+    </span>
+</a>
+<nav aria-label="Visualization Patterns" class="md-nav">
+<ul class="md-nav__list">
+<li class="md-nav__item">
+<a class="md-nav__link" href="#1-light-curve-visualization">
+<span class="md-ellipsis">
+      1. Light Curve Visualization
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#2-v-scatter-plot">
+<span class="md-ellipsis">
+      2. η-V Scatter Plot
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#3-sky-visualization">
+<span class="md-ellipsis">
+      3. Sky Visualization
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#4-image-display">
+<span class="md-ellipsis">
+      4. Image Display
+    </span>
+</a>
+</li>
+</ul>
+</nav>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#key-design-decisions">
+<span class="md-ellipsis">
+      Key Design Decisions
+    </span>
+</a>
+<nav aria-label="Key Design Decisions" class="md-nav">
+<ul class="md-nav__list">
+<li class="md-nav__item">
+<a class="md-nav__link" href="#1-separation-of-pipeline-and-web-app">
+<span class="md-ellipsis">
+      1. Separation of Pipeline and Web App
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#2-many-to-many-relationships">
+<span class="md-ellipsis">
+      2. Many-to-Many Relationships
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#3-session-based-query-results">
+<span class="md-ellipsis">
+      3. Session-Based Query Results
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#4-arrowparquet-for-measurements">
+<span class="md-ellipsis">
+      4. Arrow/Parquet for Measurements
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#5-generic-comments-system">
+<span class="md-ellipsis">
+      5. Generic Comments System
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#6-tag-system">
+<span class="md-ellipsis">
+      6. Tag System
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#7-async-task-processing">
+<span class="md-ellipsis">
+      7. Async Task Processing
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#8-rest-api-with-datatables">
+<span class="md-ellipsis">
+      8. REST API with DataTables
+    </span>
+</a>
+</li>
+</ul>
+</nav>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#recommendations-for-dsa-110">
+<span class="md-ellipsis">
+      Recommendations for DSA-110
+    </span>
+</a>
+<nav aria-label="Recommendations for DSA-110" class="md-nav">
+<ul class="md-nav__list">
+<li class="md-nav__item">
+<a class="md-nav__link" href="#1-adopt-similar-data-model">
+<span class="md-ellipsis">
+      1. Adopt Similar Data Model
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#2-implement-similar-web-interface-patterns">
+<span class="md-ellipsis">
+      2. Implement Similar Web Interface Patterns
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#3-use-similar-visualization-stack">
+<span class="md-ellipsis">
+      3. Use Similar Visualization Stack
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#4-implement-query-system">
+<span class="md-ellipsis">
+      4. Implement Query System
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#5-add-analysis-workspace">
+<span class="md-ellipsis">
+      5. Add Analysis Workspace
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#6-implement-comment-system">
+<span class="md-ellipsis">
+      6. Implement Comment System
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#7-add-tag-system">
+<span class="md-ellipsis">
+      7. Add Tag System
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#8-optimize-for-large-datasets">
+<span class="md-ellipsis">
+      8. Optimize for Large Datasets
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#9-external-catalog-integration">
+<span class="md-ellipsis">
+      9. External Catalog Integration
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#10-pipeline-monitoring">
+<span class="md-ellipsis">
+      10. Pipeline Monitoring
+    </span>
+</a>
+</li>
+</ul>
+</nav>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#code-patterns-to-adopt">
+<span class="md-ellipsis">
+      Code Patterns to Adopt
+    </span>
+</a>
+<nav aria-label="Code Patterns to Adopt" class="md-nav">
+<ul class="md-nav__list">
+<li class="md-nav__item">
+<a class="md-nav__link" href="#1-view-pattern-for-detail-pages">
+<span class="md-ellipsis">
+      1. View Pattern for Detail Pages
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#2-rest-api-viewset-pattern">
+<span class="md-ellipsis">
+      2. REST API ViewSet Pattern
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#3-plot-generation-pattern">
+<span class="md-ellipsis">
+      3. Plot Generation Pattern
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#4-datatables-configuration-pattern">
+<span class="md-ellipsis">
+      4. DataTables Configuration Pattern
+    </span>
+</a>
+</li>
+</ul>
+</nav>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#performance-considerations">
+<span class="md-ellipsis">
+      Performance Considerations
+    </span>
+</a>
+<nav aria-label="Performance Considerations" class="md-nav">
+<ul class="md-nav__list">
+<li class="md-nav__item">
+<a class="md-nav__link" href="#1-database-optimization">
+<span class="md-ellipsis">
+      1. Database Optimization
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#2-frontend-optimization">
+<span class="md-ellipsis">
+      2. Frontend Optimization
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#3-api-optimization">
+<span class="md-ellipsis">
+      3. API Optimization
+    </span>
+</a>
+</li>
+</ul>
+</nav>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#security-considerations">
+<span class="md-ellipsis">
+      Security Considerations
+    </span>
+</a>
+<nav aria-label="Security Considerations" class="md-nav">
+<ul class="md-nav__list">
+<li class="md-nav__item">
+<a class="md-nav__link" href="#1-authentication">
+<span class="md-ellipsis">
+      1. Authentication
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#2-authorization">
+<span class="md-ellipsis">
+      2. Authorization
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#3-data-access">
+<span class="md-ellipsis">
+      3. Data Access
+    </span>
+</a>
+</li>
+</ul>
+</nav>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#testing-patterns">
+<span class="md-ellipsis">
+      Testing Patterns
+    </span>
+</a>
+<nav aria-label="Testing Patterns" class="md-nav">
+<ul class="md-nav__list">
+<li class="md-nav__item">
+<a class="md-nav__link" href="#1-unit-tests">
+<span class="md-ellipsis">
+      1. Unit Tests
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#2-integration-tests">
+<span class="md-ellipsis">
+      2. Integration Tests
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#3-performance-tests">
+<span class="md-ellipsis">
+      3. Performance Tests
+    </span>
+</a>
+</li>
+</ul>
+</nav>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#documentation-patterns">
+<span class="md-ellipsis">
+      Documentation Patterns
+    </span>
+</a>
+<nav aria-label="Documentation Patterns" class="md-nav">
+<ul class="md-nav__list">
+<li class="md-nav__item">
+<a class="md-nav__link" href="#1-architecture-documentation">
+<span class="md-ellipsis">
+      1. Architecture Documentation
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#2-user-documentation">
+<span class="md-ellipsis">
+      2. User Documentation
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#3-developer-documentation">
+<span class="md-ellipsis">
+      3. Developer Documentation
+    </span>
+</a>
+</li>
+</ul>
+</nav>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#deep-implementation-details">
+<span class="md-ellipsis">
+      Deep Implementation Details
+    </span>
+</a>
+<nav aria-label="Deep Implementation Details" class="md-nav">
+<ul class="md-nav__list">
+<li class="md-nav__item">
+<a class="md-nav__link" href="#frontend-javascript-patterns">
+<span class="md-ellipsis">
+      Frontend JavaScript Patterns
+    </span>
+</a>
+<nav aria-label="Frontend JavaScript Patterns" class="md-nav">
+<ul class="md-nav__list">
+<li class="md-nav__item">
+<a class="md-nav__link" href="#datatables-configuration-pattern">
+<span class="md-ellipsis">
+      DataTables Configuration Pattern
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#aladin-lite-integration-pattern">
+<span class="md-ellipsis">
+      Aladin Lite Integration Pattern
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#form-handling-pattern">
+<span class="md-ellipsis">
+      Form Handling Pattern
+    </span>
+</a>
+</li>
+</ul>
+</nav>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#backend-form-serializer-patterns">
+<span class="md-ellipsis">
+      Backend Form &amp; Serializer Patterns
+    </span>
+</a>
+<nav aria-label="Backend Form &amp; Serializer Patterns" class="md-nav">
+<ul class="md-nav__list">
+<li class="md-nav__item">
+<a class="md-nav__link" href="#django-forms-with-crispy-forms">
+<span class="md-ellipsis">
+      Django Forms with Crispy Forms
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#rest-api-serializers">
+<span class="md-ellipsis">
+      REST API Serializers
+    </span>
+</a>
+</li>
+</ul>
+</nav>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#pipeline-processing-patterns">
+<span class="md-ellipsis">
+      Pipeline Processing Patterns
+    </span>
+</a>
+<nav aria-label="Pipeline Processing Patterns" class="md-nav">
+<ul class="md-nav__list">
+<li class="md-nav__item">
+<a class="md-nav__link" href="#association-algorithm">
+<span class="md-ellipsis">
+      Association Algorithm
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#image-ingestion-utilities">
+<span class="md-ellipsis">
+      Image Ingestion Utilities
+    </span>
+</a>
+</li>
+</ul>
+</nav>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#external-query-patterns">
+<span class="md-ellipsis">
+      External Query Patterns
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#management-commands">
+<span class="md-ellipsis">
+      Management Commands
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#template-patterns">
+<span class="md-ellipsis">
+      Template Patterns
+    </span>
+</a>
+<nav aria-label="Template Patterns" class="md-nav">
+<ul class="md-nav__list">
+<li class="md-nav__item">
+<a class="md-nav__link" href="#query-form-template">
+<span class="md-ellipsis">
+      Query Form Template
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#detail-page-template">
+<span class="md-ellipsis">
+      Detail Page Template
+    </span>
+</a>
+</li>
+</ul>
+</nav>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#utility-patterns">
+<span class="md-ellipsis">
+      Utility Patterns
+    </span>
+</a>
+<nav aria-label="Utility Patterns" class="md-nav">
+<ul class="md-nav__list">
+<li class="md-nav__item">
+<a class="md-nav__link" href="#coordinate-formatting">
+<span class="md-ellipsis">
+      Coordinate Formatting
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#view-utilities">
+<span class="md-ellipsis">
+      View Utilities
+    </span>
+</a>
+</li>
+</ul>
+</nav>
+</li>
+</ul>
+</nav>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#additional-deep-implementation-patterns-third-pass">
+<span class="md-ellipsis">
+      Additional Deep Implementation Patterns (Third Pass)
+    </span>
+</a>
+<nav aria-label="Additional Deep Implementation Patterns (Third Pass)" class="md-nav">
+<ul class="md-nav__list">
+<li class="md-nav__item">
+<a class="md-nav__link" href="#complete-data-model-understanding">
+<span class="md-ellipsis">
+      Complete Data Model Understanding
+    </span>
+</a>
+<nav aria-label="Complete Data Model Understanding" class="md-nav">
+<ul class="md-nav__list">
+<li class="md-nav__item">
+<a class="md-nav__link" href="#source-model-deep-dive">
+<span class="md-ellipsis">
+      Source Model Deep Dive
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#measurement-model-deep-dive">
+<span class="md-ellipsis">
+      Measurement Model Deep Dive
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#association-model">
+<span class="md-ellipsis">
+      Association Model
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#relatedsource-model">
+<span class="md-ellipsis">
+      RelatedSource Model
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#sourcefav-model">
+<span class="md-ellipsis">
+      SourceFav Model
+    </span>
+</a>
+</li>
+</ul>
+</nav>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#admin-interface-patterns">
+<span class="md-ellipsis">
+      Admin Interface Patterns
+    </span>
+</a>
+<nav aria-label="Admin Interface Patterns" class="md-nav">
+<ul class="md-nav__list">
+<li class="md-nav__item">
+<a class="md-nav__link" href="#django-admin-customization">
+<span class="md-ellipsis">
+      Django Admin Customization
+    </span>
+</a>
+</li>
+</ul>
+</nav>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#template-architecture-deep-dive">
+<span class="md-ellipsis">
+      Template Architecture Deep Dive
+    </span>
+</a>
+<nav aria-label="Template Architecture Deep Dive" class="md-nav">
+<ul class="md-nav__list">
+<li class="md-nav__item">
+<a class="md-nav__link" href="#base-template-basehtml">
+<span class="md-ellipsis">
+      Base Template (base.html)
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#generic-table-template-generic_tablehtml">
+<span class="md-ellipsis">
+      Generic Table Template (generic_table.html)
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#detail-page-templates">
+<span class="md-ellipsis">
+      Detail Page Templates
+    </span>
+</a>
+</li>
+</ul>
+</nav>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#pipeline-processing-deep-dive">
+<span class="md-ellipsis">
+      Pipeline Processing Deep Dive
+    </span>
+</a>
+<nav aria-label="Pipeline Processing Deep Dive" class="md-nav">
+<ul class="md-nav__list">
+<li class="md-nav__item">
+<a class="md-nav__link" href="#final-operations-finalisepy">
+<span class="md-ellipsis">
+      Final Operations (finalise.py)
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#forced-extraction-forced_extractionpy">
+<span class="md-ellipsis">
+      Forced Extraction (forced_extraction.py)
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#measurement-pairs-pairspy">
+<span class="md-ellipsis">
+      Measurement Pairs (pairs.py)
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#pipeline-loading-loadingpy">
+<span class="md-ellipsis">
+      Pipeline Loading (loading.py)
+    </span>
+</a>
+</li>
+</ul>
+</nav>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#configuration-management">
+<span class="md-ellipsis">
+      Configuration Management
+    </span>
+</a>
+<nav aria-label="Configuration Management" class="md-nav">
+<ul class="md-nav__list">
+<li class="md-nav__item">
+<a class="md-nav__link" href="#pipelineconfig-class-configpy">
+<span class="md-ellipsis">
+      PipelineConfig Class (config.py)
+    </span>
+</a>
+</li>
+</ul>
+</nav>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#authentication-authorization">
+<span class="md-ellipsis">
+      Authentication &amp; Authorization
+    </span>
+</a>
+<nav aria-label="Authentication &amp; Authorization" class="md-nav">
+<ul class="md-nav__list">
+<li class="md-nav__item">
+<a class="md-nav__link" href="#github-oauth-integration-utilsauthpy">
+<span class="md-ellipsis">
+      GitHub OAuth Integration (utils/auth.py)
+    </span>
+</a>
+</li>
+</ul>
+</nav>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#management-commands_1">
+<span class="md-ellipsis">
+      Management Commands
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#api-endpoints-deep-dive">
+<span class="md-ellipsis">
+      API Endpoints Deep Dive
+    </span>
+</a>
+<nav aria-label="API Endpoints Deep Dive" class="md-nav">
+<ul class="md-nav__list">
+<li class="md-nav__item">
+<a class="md-nav__link" href="#region-export-viewspy">
+<span class="md-ellipsis">
+      Region Export (views.py)
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#raw-image-list-viewspy">
+<span class="md-ellipsis">
+      Raw Image List (views.py)
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#run-config-api-viewspy">
+<span class="md-ellipsis">
+      Run Config API (views.py)
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#run-log-api-viewspy">
+<span class="md-ellipsis">
+      Run Log API (views.py)
+    </span>
+</a>
+</li>
+</ul>
+</nav>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#utility-patterns_1">
+<span class="md-ellipsis">
+      Utility Patterns
+    </span>
+</a>
+<nav aria-label="Utility Patterns" class="md-nav">
+<ul class="md-nav__list">
+<li class="md-nav__item">
+<a class="md-nav__link" href="#delete-run-utilsdelete_runpy">
+<span class="md-ellipsis">
+      Delete Run (utils/delete_run.py)
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#unit-tags-utilsunit_tagspy">
+<span class="md-ellipsis">
+      Unit Tags (utils/unit_tags.py)
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#context-processors-context_processorspy">
+<span class="md-ellipsis">
+      Context Processors (context_processors.py)
+    </span>
+</a>
+</li>
+</ul>
+</nav>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#new-sources-detection-pipelinenew_sourcespy">
+<span class="md-ellipsis">
+      New Sources Detection (pipeline/new_sources.py)
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#vast-tools-integration">
+<span class="md-ellipsis">
+      Vast-Tools Integration
+    </span>
+</a>
+<nav aria-label="Vast-Tools Integration" class="md-nav">
+<ul class="md-nav__list">
+<li class="md-nav__item">
+<a class="md-nav__link" href="#piperun-class-vasttoolspipelinepy">
+<span class="md-ellipsis">
+      PipeRun Class (vasttools/pipeline.py)
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#tools-module-vasttoolstoolspy">
+<span class="md-ellipsis">
+      Tools Module (vasttools/tools.py)
+    </span>
+</a>
+</li>
+</ul>
+</nav>
+</li>
+</ul>
+</nav>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#conclusion">
+<span class="md-ellipsis">
+      Conclusion
+    </span>
+</a>
+</li>
+</ul>
+</nav>
+</div>
+</div>
+</div>
+<div class="md-content" data-md-component="content">
+<article class="md-content__inner md-typeset">
+<h1 id="vast-architecture-deep-dive-analysis">VAST Architecture Deep Dive Analysis<a class="headerlink" href="#vast-architecture-deep-dive-analysis" title="Permanent link">¶</a></h1>
+<h2 id="executive-summary">Executive Summary<a class="headerlink" href="#executive-summary" title="Permanent link">¶</a></h2>
+<p>This document provides a comprehensive analysis of the VAST (Variables and Slow Transients) pipeline architecture, focusing on patterns, design decisions, and implementation details that are directly applicable to the DSA-110 Continuum Imaging dashboard. VAST is a radio continuum imaging pipeline with similar science goals to DSA-110, making it an excellent reference architecture.</p>
+<h2 id="table-of-contents">Table of Contents<a class="headerlink" href="#table-of-contents" title="Permanent link">¶</a></h2>
+<ol>
+<li><a href="#system-overview">System Overview</a></li>
+<li><a href="#architecture-patterns">Architecture Patterns</a></li>
+<li><a href="#database-design">Database Design</a></li>
+<li><a href="#web-interface-architecture">Web Interface Architecture</a></li>
+<li><a href="#analysis-tools--workflows">Analysis Tools &amp; Workflows</a></li>
+<li><a href="#visualization-patterns">Visualization Patterns</a></li>
+<li><a href="#key-design-decisions">Key Design Decisions</a></li>
+<li><a href="#recommendations-for-dsa-110">Recommendations for DSA-110</a></li>
+</ol>
+<hr/>
+<h2 id="system-overview">System Overview<a class="headerlink" href="#system-overview" title="Permanent link">¶</a></h2>
+<h3 id="core-components">Core Components<a class="headerlink" href="#core-components" title="Permanent link">¶</a></h3>
+<p>VAST consists of several interconnected repositories:</p>
+<ol>
+<li><strong>vast-pipeline</strong> - Main Django web application and pipeline processing</li>
+<li><strong>vast-tools</strong> - Python library for interactive analysis and data exploration</li>
+<li><strong>vaster-webapp</strong> - Django web app for transient candidate classification</li>
+<li><strong>vast-post-processing</strong> - Post-processing utilities</li>
+<li><strong>vast-fastdetection</strong> - Fast transient detection pipeline</li>
+<li><strong>dstools</strong> - Data science tools for CASA/MS manipulation</li>
+<li><strong>forced_phot</strong> - Forced photometry module</li>
+</ol>
+<h3 id="technology-stack">Technology Stack<a class="headerlink" href="#technology-stack" title="Permanent link">¶</a></h3>
+<p><strong>Backend:</strong>
+- Django 3.2+ (web framework)
+- PostgreSQL 12+ with Q3C plugin (spatial queries)
+- Django REST Framework (API)
+- Django Q (async task processing)
+- Dask (parallel processing)
+- Astropy (astronomical calculations)
+- Pandas (data manipulation)</p>
+<p><strong>Frontend:</strong>
+- Bootstrap 4 (UI framework)
+- DataTables (interactive tables)
+- Bokeh 2.4.2 (interactive plots)
+- JS9 (FITS image viewer)
+- Aladin Lite (sky viewer)
+- D3.js (custom visualizations)
+- Holoviews + Datashader (large dataset visualization)</p>
+<p><strong>Data Formats:</strong>
+- FITS (images)
+- Parquet/Arrow (measurements)
+- SQLite/PostgreSQL (metadata)</p>
+<hr/>
+<h2 id="architecture-patterns">Architecture Patterns<a class="headerlink" href="#architecture-patterns" title="Permanent link">¶</a></h2>
+<h3 id="1-multi-run-pipeline-architecture">1. Multi-Run Pipeline Architecture<a class="headerlink" href="#1-multi-run-pipeline-architecture" title="Permanent link">¶</a></h3>
+<p><strong>Pattern:</strong> Each pipeline run is completely independent and self-aware.</p>
+<p><strong>Implementation:</strong>
+- Images are shared across runs (many-to-many relationship)
+- Each run has its own configuration and results
+- Runs can be compared side-by-side
+- Users can create multiple runs with different parameters</p>
+<p><strong>Key Insight:</strong> This allows experimentation without affecting existing results.</p>
+<p><strong>DSA-110 Application:</strong>
+- Support multiple calibration strategies
+- Compare different imaging parameters
+- Track different processing epochs
+- Enable A/B testing of algorithms</p>
+<h3 id="2-measurement-source-association-model">2. Measurement-Source Association Model<a class="headerlink" href="#2-measurement-source-association-model" title="Permanent link">¶</a></h3>
+<p><strong>Pattern:</strong> Two-tier data model: Measurements → Sources</p>
+<p><strong>Structure:</strong>
+<div class="highlight"><pre><span></span><code>Image → Measurement → Source
+</code></pre></div></p>
+<ul>
+<li><strong>Measurement</strong>: Single detection from one image</li>
+<li><strong>Source</strong>: Group of measurements representing the same astrophysical object</li>
+<li><strong>Association</strong>: Algorithm that groups measurements into sources</li>
+</ul>
+<p><strong>Key Features:</strong>
+- Measurements can belong to multiple sources (many-to-many)
+- Sources track aggregate statistics
+- Association methods: basic, advanced, De Ruiter, epoch-based
+- Forced measurements fill gaps in light curves</p>
+<p><strong>DSA-110 Application:</strong>
+- Track individual detections per image
+- Associate detections across epochs
+- Build source light curves
+- Support forced photometry for non-detections</p>
+<h3 id="3-commentable-model-pattern">3. Commentable Model Pattern<a class="headerlink" href="#3-commentable-model-pattern" title="Permanent link">¶</a></h3>
+<p><strong>Pattern:</strong> Generic foreign keys for comments on any model.</p>
+<p><strong>Implementation:</strong>
+<div class="highlight"><pre><span></span><code><span class="k">class</span><span class="w"> </span><span class="nc">CommentableModel</span><span class="p">(</span><span class="n">models</span><span class="o">.</span><span class="n">Model</span><span class="p">):</span>
+    <span class="n">comment</span> <span class="o">=</span> <span class="n">GenericRelation</span><span class="p">(</span><span class="n">Comment</span><span class="p">,</span> <span class="o">...</span><span class="p">)</span>
+
+<span class="k">class</span><span class="w"> </span><span class="nc">Comment</span><span class="p">(</span><span class="n">models</span><span class="o">.</span><span class="n">Model</span><span class="p">):</span>
+    <span class="n">content_type</span> <span class="o">=</span> <span class="n">models</span><span class="o">.</span><span class="n">ForeignKey</span><span class="p">(</span><span class="n">ContentType</span><span class="p">)</span>
+    <span class="n">object_id</span> <span class="o">=</span> <span class="n">models</span><span class="o">.</span><span class="n">PositiveIntegerField</span><span class="p">()</span>
+    <span class="n">content_object</span> <span class="o">=</span> <span class="n">GenericForeignKey</span><span class="p">(</span><span class="s1">'content_type'</span><span class="p">,</span> <span class="s1">'object_id'</span><span class="p">)</span>
+</code></pre></div></p>
+<p><strong>Benefits:</strong>
+- Comments on Runs, Sources, Images, Measurements
+- User avatars from GitHub OAuth
+- Threaded discussions
+- Audit trail</p>
+<p><strong>DSA-110 Application:</strong>
+- Annotate problematic sources
+- Document calibration decisions
+- Track investigation notes
+- Collaborative analysis</p>
+<h3 id="4-tag-system">4. Tag System<a class="headerlink" href="#4-tag-system" title="Permanent link">¶</a></h3>
+<p><strong>Pattern:</strong> Flexible tagging with autocomplete.</p>
+<p><strong>Implementation:</strong>
+- Django-tagulous for tag management
+- Autocomplete via AJAX
+- Tags filterable in queries
+- User-specific favorites</p>
+<p><strong>DSA-110 Application:</strong>
+- Tag ESE candidates
+- Mark calibration issues
+- Organize sources by science case
+- Personal favorites system</p>
+<h3 id="5-async-task-processing">5. Async Task Processing<a class="headerlink" href="#5-async-task-processing" title="Permanent link">¶</a></h3>
+<p><strong>Pattern:</strong> Django Q for background jobs.</p>
+<p><strong>Use Cases:</strong>
+- Pipeline processing
+- Arrow file generation
+- Image cutout creation
+- Large queries</p>
+<p><strong>DSA-110 Application:</strong>
+- Streaming pipeline monitoring
+- Background calibration
+- Mosaic generation
+- Report generation</p>
+<hr/>
+<h2 id="database-design">Database Design<a class="headerlink" href="#database-design" title="Permanent link">¶</a></h2>
+<h3 id="core-models">Core Models<a class="headerlink" href="#core-models" title="Permanent link">¶</a></h3>
+<h4 id="run">Run<a class="headerlink" href="#run" title="Permanent link">¶</a></h4>
+<ul>
+<li>Represents a single pipeline execution</li>
+<li>Tracks status: INI, QUE, RUN, END, ERR, RES, DEL</li>
+<li>Stores configuration as YAML</li>
+<li>Links to user who created it</li>
+<li>Tracks statistics: n_images, n_sources, n_measurements</li>
+</ul>
+<h4 id="image">Image<a class="headerlink" href="#image" title="Permanent link">¶</a></h4>
+<ul>
+<li>FITS image metadata</li>
+<li>Many-to-many with Runs</li>
+<li>Stores: datetime, frequency, RA/Dec, RMS, beam properties</li>
+<li>Unique by filename</li>
+</ul>
+<h4 id="measurement">Measurement<a class="headerlink" href="#measurement" title="Permanent link">¶</a></h4>
+<ul>
+<li>Single source detection from an image</li>
+<li>Links to Image and Source (many-to-many)</li>
+<li>Stores: position, flux, errors, SNR, forced flag</li>
+<li>Can belong to multiple sources</li>
+</ul>
+<h4 id="source">Source<a class="headerlink" href="#source" title="Permanent link">¶</a></h4>
+<ul>
+<li>Aggregated measurements representing one object</li>
+<li>Calculated statistics: weighted avg position, flux stats, variability metrics</li>
+<li>Tracks: n_meas, n_rel, n_sibl, new source flag</li>
+<li>Variability metrics: η, V, Vs, m</li>
+</ul>
+<h3 id="key-relationships">Key Relationships<a class="headerlink" href="#key-relationships" title="Permanent link">¶</a></h3>
+<div class="highlight"><pre><span></span><code>Run ←→ Image (many-to-many)
+Image → Measurement (one-to-many)
+Measurement ←→ Source (many-to-many)
+Source → Source (self-referential for relations)
+</code></pre></div>
+<h3 id="spatial-queries">Spatial Queries<a class="headerlink" href="#spatial-queries" title="Permanent link">¶</a></h3>
+<p><strong>Q3C Plugin:</strong>
+- PostgreSQL extension for fast spatial queries
+- Cone searches on RA/Dec
+- Efficient for large catalogs
+- Used extensively in source queries</p>
+<p><strong>DSA-110 Application:</strong>
+- Fast source queries by position
+- Crossmatch with external catalogs
+- Spatial clustering analysis
+- Mosaic footprint queries</p>
+<hr/>
+<h2 id="web-interface-architecture">Web Interface Architecture<a class="headerlink" href="#web-interface-architecture" title="Permanent link">¶</a></h2>
+<h3 id="page-structure">Page Structure<a class="headerlink" href="#page-structure" title="Permanent link">¶</a></h3>
+<h4 id="1-homepage">1. Homepage<a class="headerlink" href="#1-homepage" title="Permanent link">¶</a></h4>
+<ul>
+<li>Welcome message</li>
+<li>Quick links to common pages</li>
+<li>Pipeline run overview</li>
+</ul>
+<h4 id="2-pipeline-runs-piperuns">2. Pipeline Runs (<code>/piperuns/</code>)<a class="headerlink" href="#2-pipeline-runs-piperuns" title="Permanent link">¶</a></h4>
+<ul>
+<li>List all runs with DataTables</li>
+<li>Create new run via form</li>
+<li>Status indicators</li>
+<li>Links to run detail pages</li>
+</ul>
+<p><strong>Key Features:</strong>
+- Form validation
+- Config file upload/editing
+- Run status tracking
+- Delete/restore functionality</p>
+<h4 id="3-run-detail-piperunsid">3. Run Detail (<code>/piperuns/&lt;id&gt;/</code>)<a class="headerlink" href="#3-run-detail-piperunsid" title="Permanent link">¶</a></h4>
+<ul>
+<li>Run configuration display</li>
+<li>Image list (DataTables)</li>
+<li>Log file viewer</li>
+<li>Comments section</li>
+<li>Action buttons: Process, Delete, Generate Arrow</li>
+</ul>
+<p><strong>Key Features:</strong>
+- Config validation
+- Real-time status updates
+- Sky region visualization (D3 Celestial)
+- Arrow file generation</p>
+<h4 id="4-source-query-sourcesquery">4. Source Query (<code>/sources/query/</code>)<a class="headerlink" href="#4-source-query-sourcesquery" title="Permanent link">¶</a></h4>
+<ul>
+<li>Advanced filtering form</li>
+<li>Cone search with name resolver</li>
+<li>Metric thresholds</li>
+<li>Tag filtering</li>
+<li>Results table (DataTables)</li>
+</ul>
+<p><strong>Key Features:</strong>
+- Coordinate validation
+- SIMBAD/NED name resolution
+- Session-based result storage
+- Export to η-V analysis</p>
+<h4 id="5-source-detail-sourcesid">5. Source Detail (<code>/sources/&lt;id&gt;/</code>)<a class="headerlink" href="#5-source-detail-sourcesid" title="Permanent link">¶</a></h4>
+<ul>
+<li>Source information panel</li>
+<li>Light curve (Bokeh)</li>
+<li>Postage stamps (JS9)</li>
+<li>Sky viewer (Aladin Lite)</li>
+<li>Measurements table</li>
+<li>Related sources</li>
+<li>Comments and tags</li>
+</ul>
+<p><strong>Key Features:</strong>
+- Interactive light curve
+- Image cutouts on demand
+- External catalog overlays
+- Previous/Next navigation
+- Favorite button</p>
+<h4 id="6-v-analysis-sourcesqueryplot">6. η-V Analysis (<code>/sources/query/plot/</code>)<a class="headerlink" href="#6-v-analysis-sourcesqueryplot" title="Permanent link">¶</a></h4>
+<ul>
+<li>Interactive scatter plot (Bokeh)</li>
+<li>Gaussian fit with sigma cut</li>
+<li>Source selection → light curve</li>
+<li>Datashader for large datasets</li>
+</ul>
+<p><strong>Key Features:</strong>
+- Interactive point selection
+- Dynamic light curve loading
+- Configurable sigma threshold
+- Performance optimization for &gt;20k sources</p>
+<h3 id="ui-components">UI Components<a class="headerlink" href="#ui-components" title="Permanent link">¶</a></h3>
+<h4 id="datatables-integration">DataTables Integration<a class="headerlink" href="#datatables-integration" title="Permanent link">¶</a></h4>
+<ul>
+<li>Server-side processing for large datasets</li>
+<li>Custom column rendering</li>
+<li>Search and filtering</li>
+<li>Export functionality</li>
+<li>Column visibility controls</li>
+</ul>
+<p><strong>Implementation:</strong>
+<div class="highlight"><pre><span></span><code><span class="n">datatable</span> <span class="o">=</span> <span class="p">{</span>
+    <span class="s1">'api'</span><span class="p">:</span> <span class="n">reverse</span><span class="p">(</span><span class="s1">'api_sources-list'</span><span class="p">)</span> <span class="o">+</span> <span class="s1">'?format=datatables'</span><span class="p">,</span>
+    <span class="s1">'colsFields'</span><span class="p">:</span> <span class="n">colsfields</span><span class="p">,</span>
+    <span class="s1">'colsNames'</span><span class="p">:</span> <span class="p">[</span><span class="o">...</span><span class="p">],</span>
+    <span class="s1">'search'</span><span class="p">:</span> <span class="kc">True</span><span class="p">,</span>
+    <span class="s1">'order'</span><span class="p">:</span> <span class="p">[</span><span class="mi">1</span><span class="p">,</span> <span class="s1">'asc'</span><span class="p">]</span>
+<span class="p">}</span>
+</code></pre></div></p>
+<h4 id="bokeh-plots">Bokeh Plots<a class="headerlink" href="#bokeh-plots" title="Permanent link">¶</a></h4>
+<ul>
+<li>Light curves with error bars</li>
+<li>η-V scatter plots</li>
+<li>Interactive hover/selection</li>
+<li>Custom tooltips</li>
+<li>Linked plots</li>
+</ul>
+<p><strong>Key Pattern:</strong>
+- Server-side plot generation
+- JSON embedding in templates
+- Client-side interactivity
+- Dynamic updates via AJAX</p>
+<h4 id="js9-integration">JS9 Integration<a class="headerlink" href="#js9-integration" title="Permanent link">¶</a></h4>
+<ul>
+<li>FITS image display</li>
+<li>Cutout generation</li>
+<li>Multiple image support</li>
+<li>Coordinate overlays</li>
+</ul>
+<p><strong>Pattern:</strong>
+- Lazy loading of cutouts
+- Caching in database
+- Multiple size options
+- PNG fallback</p>
+<h4 id="aladin-lite-integration">Aladin Lite Integration<a class="headerlink" href="#aladin-lite-integration" title="Permanent link">¶</a></h4>
+<ul>
+<li>Sky survey overlays</li>
+<li>Catalog overlays (VizieR)</li>
+<li>Coordinate display</li>
+<li>Survey switching</li>
+</ul>
+<p><strong>Pattern:</strong>
+- Async script loading
+- Dynamic catalog loading
+- Color-coded catalogs
+- Configurable radius</p>
+<hr/>
+<h2 id="analysis-tools-workflows">Analysis Tools &amp; Workflows<a class="headerlink" href="#analysis-tools-workflows" title="Permanent link">¶</a></h2>
+<h3 id="1-source-query-workflow">1. Source Query Workflow<a class="headerlink" href="#1-source-query-workflow" title="Permanent link">¶</a></h3>
+<p><strong>Steps:</strong>
+1. User defines query criteria (position, metrics, tags)
+2. Form validation and coordinate resolution
+3. Database query with filters
+4. Results stored in session
+5. Display in DataTables
+6. Option to export to η-V analysis</p>
+<p><strong>Key Features:</strong>
+- Real-time coordinate validation
+- Name resolver integration (SIMBAD, NED)
+- Complex filter combinations
+- Session persistence</p>
+<h3 id="2-v-analysis-workflow">2. η-V Analysis Workflow<a class="headerlink" href="#2-v-analysis-workflow" title="Permanent link">¶</a></h3>
+<p><strong>Steps:</strong>
+1. Load sources from query session
+2. Filter bad sources (n_meas=1, η=0, V=0)
+3. Calculate Gaussian fits
+4. Generate interactive plot
+5. User selects source → load light curve
+6. Display source info and crossmatches</p>
+<p><strong>Key Features:</strong>
+- Automatic bad source filtering
+- Configurable sigma threshold
+- Datashader for performance
+- Dynamic source loading</p>
+<h3 id="3-source-investigation-workflow">3. Source Investigation Workflow<a class="headerlink" href="#3-source-investigation-workflow" title="Permanent link">¶</a></h3>
+<p><strong>Steps:</strong>
+1. Navigate to source detail page
+2. View light curve and postage stamps
+3. Check external catalogs (Aladin)
+4. Review measurements table
+5. Check related sources
+6. Add comments/tags
+7. Navigate to next/previous source</p>
+<p><strong>Key Features:</strong>
+- Comprehensive source view
+- Multiple visualization types
+- External catalog integration
+- Collaborative annotations</p>
+<h3 id="4-pipeline-run-workflow">4. Pipeline Run Workflow<a class="headerlink" href="#4-pipeline-run-workflow" title="Permanent link">¶</a></h3>
+<p><strong>Steps:</strong>
+1. Create run with configuration
+2. Upload images and catalogs
+3. Validate configuration
+4. Initialize run
+5. Process run (async)
+6. Monitor status
+7. View results
+8. Generate Arrow files (optional)</p>
+<p><strong>Key Features:</strong>
+- Configuration validation
+- Async processing
+- Status tracking
+- Error handling
+- Log file access</p>
+<hr/>
+<h2 id="visualization-patterns">Visualization Patterns<a class="headerlink" href="#visualization-patterns" title="Permanent link">¶</a></h2>
+<h3 id="1-light-curve-visualization">1. Light Curve Visualization<a class="headerlink" href="#1-light-curve-visualization" title="Permanent link">¶</a></h3>
+<p><strong>Technology:</strong> Bokeh</p>
+<p><strong>Features:</strong>
+- Time series plot
+- Error bars
+- Method coloring (Selavy vs Forced)
+- Interactive hover
+- Cutout links
+- Measurement pair graph</p>
+<p><strong>Pattern:</strong>
+<div class="highlight"><pre><span></span><code><span class="k">def</span><span class="w"> </span><span class="nf">plot_lightcurve</span><span class="p">(</span><span class="n">source</span><span class="p">,</span> <span class="n">vs_abs_min</span><span class="o">=</span><span class="mf">4.3</span><span class="p">,</span> <span class="n">m_abs_min</span><span class="o">=</span><span class="mf">0.26</span><span class="p">):</span>
+    <span class="c1"># Query measurements</span>
+    <span class="c1"># Create Bokeh figure</span>
+    <span class="c1"># Add scatter with hover</span>
+    <span class="c1"># Add error bars</span>
+    <span class="c1"># Create measurement pair graph</span>
+    <span class="c1"># Return Row layout</span>
+</code></pre></div></p>
+<p><strong>DSA-110 Application:</strong>
+- ESE candidate light curves
+- Source variability tracking
+- Calibration monitoring
+- Forced photometry results</p>
+<h3 id="2-v-scatter-plot">2. η-V Scatter Plot<a class="headerlink" href="#2-v-scatter-plot" title="Permanent link">¶</a></h3>
+<p><strong>Technology:</strong> Bokeh + Datashader</p>
+<p><strong>Features:</strong>
+- Log-log plot
+- Gaussian fit overlay
+- Sigma cut region
+- Color by n_meas
+- Interactive selection
+- Performance optimization</p>
+<p><strong>Pattern:</strong>
+- Use Datashader for &gt;20k sources
+- Interactive points only in transient region
+- Dynamic light curve loading
+- Configurable thresholds</p>
+<p><strong>DSA-110 Application:</strong>
+- Variability analysis
+- Transient identification
+- Source classification
+- Quality assessment</p>
+<h3 id="3-sky-visualization">3. Sky Visualization<a class="headerlink" href="#3-sky-visualization" title="Permanent link">¶</a></h3>
+<p><strong>Technology:</strong> Aladin Lite + D3 Celestial</p>
+<p><strong>Features:</strong>
+- Survey overlays
+- Catalog overlays
+- Coordinate display
+- Field footprints
+- Source positions</p>
+<p><strong>Pattern:</strong>
+- Async Aladin loading
+- Dynamic catalog queries
+- Color-coded overlays
+- Configurable surveys</p>
+<p><strong>DSA-110 Application:</strong>
+- Pointing visualization
+- Source distribution
+- Mosaic coverage
+- External catalog comparison</p>
+<h3 id="4-image-display">4. Image Display<a class="headerlink" href="#4-image-display" title="Permanent link">¶</a></h3>
+<p><strong>Technology:</strong> JS9</p>
+<p><strong>Features:</strong>
+- FITS image rendering
+- Cutout generation
+- Multiple images
+- Coordinate overlays
+- Scaling/stretching</p>
+<p><strong>Pattern:</strong>
+- Lazy cutout generation
+- Database caching
+- Multiple size options
+- PNG fallback</p>
+<p><strong>DSA-110 Application:</strong>
+- Image QA display
+- Source postage stamps
+- Mosaic visualization
+- Calibration comparison</p>
+<hr/>
+<h2 id="key-design-decisions">Key Design Decisions<a class="headerlink" href="#key-design-decisions" title="Permanent link">¶</a></h2>
+<h3 id="1-separation-of-pipeline-and-web-app">1. Separation of Pipeline and Web App<a class="headerlink" href="#1-separation-of-pipeline-and-web-app" title="Permanent link">¶</a></h3>
+<p><strong>Decision:</strong> Pipeline processing is separate from web interface.</p>
+<p><strong>Rationale:</strong>
+- Pipeline can run standalone (CLI)
+- Web app provides monitoring and analysis
+- Clear separation of concerns
+- Easier testing and deployment</p>
+<p><strong>DSA-110 Application:</strong>
+- Keep streaming pipeline independent
+- Dashboard monitors and controls
+- Clear API boundaries
+- Flexible deployment</p>
+<h3 id="2-many-to-many-relationships">2. Many-to-Many Relationships<a class="headerlink" href="#2-many-to-many-relationships" title="Permanent link">¶</a></h3>
+<p><strong>Decision:</strong> Images ↔ Runs, Measurements ↔ Sources</p>
+<p><strong>Rationale:</strong>
+- Avoid data duplication
+- Enable comparison across runs
+- Flexible association methods
+- Efficient storage</p>
+<p><strong>DSA-110 Application:</strong>
+- Share images across runs
+- Compare calibration strategies
+- Flexible source association
+- Efficient data management</p>
+<h3 id="3-session-based-query-results">3. Session-Based Query Results<a class="headerlink" href="#3-session-based-query-results" title="Permanent link">¶</a></h3>
+<p><strong>Decision:</strong> Store query results in Django session.</p>
+<p><strong>Rationale:</strong>
+- Fast navigation between pages
+- No database overhead
+- User-specific results
+- Simple implementation</p>
+<p><strong>Trade-off:</strong>
+- Session size limits
+- Not persistent across sessions
+- Server memory usage</p>
+<p><strong>DSA-110 Application:</strong>
+- Consider Redis for larger sessions
+- Or database-backed query results
+- User-specific workspaces</p>
+<h3 id="4-arrowparquet-for-measurements">4. Arrow/Parquet for Measurements<a class="headerlink" href="#4-arrowparquet-for-measurements" title="Permanent link">¶</a></h3>
+<p><strong>Decision:</strong> Use Arrow format for large measurement datasets.</p>
+<p><strong>Rationale:</strong>
+- Fast columnar access
+- Efficient for analysis
+- Compatible with Pandas/Dask
+- Smaller file size</p>
+<p><strong>DSA-110 Application:</strong>
+- Export measurements to Arrow
+- Fast analysis queries
+- Integration with analysis tools
+- Efficient data transfer</p>
+<h3 id="5-generic-comments-system">5. Generic Comments System<a class="headerlink" href="#5-generic-comments-system" title="Permanent link">¶</a></h3>
+<p><strong>Decision:</strong> Use Django ContentTypes for comments.</p>
+<p><strong>Rationale:</strong>
+- Reusable across models
+- Simple implementation
+- Flexible annotation
+- Easy to extend</p>
+<p><strong>DSA-110 Application:</strong>
+- Comments on all entities
+- Collaborative analysis
+- Audit trail
+- Knowledge sharing</p>
+<h3 id="6-tag-system">6. Tag System<a class="headerlink" href="#6-tag-system" title="Permanent link">¶</a></h3>
+<p><strong>Decision:</strong> Use django-tagulous for tagging.</p>
+<p><strong>Rationale:</strong>
+- Flexible tagging
+- Autocomplete support
+- Query filtering
+- User-friendly</p>
+<p><strong>DSA-110 Application:</strong>
+- Organize sources
+- Mark candidates
+- Filter queries
+- Personal organization</p>
+<h3 id="7-async-task-processing">7. Async Task Processing<a class="headerlink" href="#7-async-task-processing" title="Permanent link">¶</a></h3>
+<p><strong>Decision:</strong> Use Django Q for background tasks.</p>
+<p><strong>Rationale:</strong>
+- Non-blocking operations
+- Scalable processing
+- Status tracking
+- Error handling</p>
+<p><strong>DSA-110 Application:</strong>
+- Pipeline monitoring
+- Background processing
+- Report generation
+- Data export</p>
+<h3 id="8-rest-api-with-datatables">8. REST API with DataTables<a class="headerlink" href="#8-rest-api-with-datatables" title="Permanent link">¶</a></h3>
+<p><strong>Decision:</strong> Use Django REST Framework + DataTables.</p>
+<p><strong>Rationale:</strong>
+- Server-side processing
+- Efficient for large datasets
+- Standard API
+- Easy filtering/sorting</p>
+<p><strong>DSA-110 Application:</strong>
+- Consistent API design
+- Efficient data tables
+- Easy filtering
+- Export capabilities</p>
+<hr/>
+<h2 id="recommendations-for-dsa-110">Recommendations for DSA-110<a class="headerlink" href="#recommendations-for-dsa-110" title="Permanent link">¶</a></h2>
+<h3 id="1-adopt-similar-data-model">1. Adopt Similar Data Model<a class="headerlink" href="#1-adopt-similar-data-model" title="Permanent link">¶</a></h3>
+<p><strong>Recommendation:</strong> Use Measurement → Source association pattern.</p>
+<p><strong>Benefits:</strong>
+- Track individual detections
+- Build light curves
+- Support forced photometry
+- Enable source association</p>
+<p><strong>Implementation:</strong>
+- Measurement model per image
+- Source model for associations
+- Many-to-many relationship
+- Aggregate statistics</p>
+<h3 id="2-implement-similar-web-interface-patterns">2. Implement Similar Web Interface Patterns<a class="headerlink" href="#2-implement-similar-web-interface-patterns" title="Permanent link">¶</a></h3>
+<p><strong>Recommendation:</strong> Adopt VAST's page structure and workflows.</p>
+<p><strong>Key Pages:</strong>
+- Pipeline status dashboard
+- Source query interface
+- Source detail page
+- Analysis workspace</p>
+<p><strong>Features:</strong>
+- DataTables for large datasets
+- Interactive visualizations
+- External catalog integration
+- Comments and tags</p>
+<h3 id="3-use-similar-visualization-stack">3. Use Similar Visualization Stack<a class="headerlink" href="#3-use-similar-visualization-stack" title="Permanent link">¶</a></h3>
+<p><strong>Recommendation:</strong> Adopt Bokeh, JS9, Aladin Lite.</p>
+<p><strong>Rationale:</strong>
+- Proven in radio astronomy
+- Interactive capabilities
+- Good performance
+- Active development</p>
+<p><strong>Alternatives:</strong>
+- Consider Plotly.js (already in use)
+- Keep JS9 for FITS
+- Consider CARTA for advanced features</p>
+<h3 id="4-implement-query-system">4. Implement Query System<a class="headerlink" href="#4-implement-query-system" title="Permanent link">¶</a></h3>
+<p><strong>Recommendation:</strong> Build flexible source query interface.</p>
+<p><strong>Features:</strong>
+- Cone search with name resolver
+- Metric filtering
+- Tag filtering
+- Session-based results
+- Export capabilities</p>
+<p><strong>Implementation:</strong>
+- Django forms for query
+- REST API for results
+- DataTables for display
+- Session storage</p>
+<h3 id="5-add-analysis-workspace">5. Add Analysis Workspace<a class="headerlink" href="#5-add-analysis-workspace" title="Permanent link">¶</a></h3>
+<p><strong>Recommendation:</strong> Build on VAST's η-V analysis pattern.</p>
+<p><strong>Features:</strong>
+- Interactive scatter plots
+- Source selection
+- Light curve display
+- Crossmatch results
+- Export capabilities</p>
+<p><strong>Enhancement:</strong>
+- Use Golden Layout for flexibility
+- Multiple analysis tools
+- Reproducibility features
+- Trust indicators</p>
+<h3 id="6-implement-comment-system">6. Implement Comment System<a class="headerlink" href="#6-implement-comment-system" title="Permanent link">¶</a></h3>
+<p><strong>Recommendation:</strong> Use generic comments like VAST.</p>
+<p><strong>Benefits:</strong>
+- Collaborative analysis
+- Knowledge sharing
+- Audit trail
+- User annotations</p>
+<p><strong>Implementation:</strong>
+- Django ContentTypes
+- User avatars
+- Threaded discussions
+- Rich text support</p>
+<h3 id="7-add-tag-system">7. Add Tag System<a class="headerlink" href="#7-add-tag-system" title="Permanent link">¶</a></h3>
+<p><strong>Recommendation:</strong> Implement flexible tagging.</p>
+<p><strong>Features:</strong>
+- Autocomplete
+- Query filtering
+- User favorites
+- Personal organization</p>
+<p><strong>Implementation:</strong>
+- django-tagulous or custom
+- AJAX autocomplete
+- Filter integration
+- Export support</p>
+<h3 id="8-optimize-for-large-datasets">8. Optimize for Large Datasets<a class="headerlink" href="#8-optimize-for-large-datasets" title="Permanent link">¶</a></h3>
+<p><strong>Recommendation:</strong> Use techniques from VAST.</p>
+<p><strong>Techniques:</strong>
+- Server-side DataTables processing
+- Datashader for large plots
+- Arrow/Parquet for measurements
+- Lazy loading of images
+- Database caching</p>
+<p><strong>DSA-110 Specific:</strong>
+- Streaming data handling
+- Real-time updates
+- Efficient queries
+- Caching strategy</p>
+<h3 id="9-external-catalog-integration">9. External Catalog Integration<a class="headerlink" href="#9-external-catalog-integration" title="Permanent link">¶</a></h3>
+<p><strong>Recommendation:</strong> Integrate external catalogs like VAST.</p>
+<p><strong>Catalogs:</strong>
+- NVSS, VLASS, FIRST (radio)
+- Gaia, SIMBAD, NED (general)
+- Custom catalogs</p>
+<p><strong>Implementation:</strong>
+- Aladin Lite overlays
+- VizieR queries
+- Crossmatch API
+- Results display</p>
+<h3 id="10-pipeline-monitoring">10. Pipeline Monitoring<a class="headerlink" href="#10-pipeline-monitoring" title="Permanent link">¶</a></h3>
+<p><strong>Recommendation:</strong> Build monitoring similar to VAST run pages.</p>
+<p><strong>Features:</strong>
+- Status tracking
+- Log file viewing
+- Configuration display
+- Statistics display
+- Action buttons</p>
+<p><strong>DSA-110 Specific:</strong>
+- Streaming pipeline status
+- Real-time metrics
+- Queue monitoring
+- Error tracking</p>
+<hr/>
+<h2 id="code-patterns-to-adopt">Code Patterns to Adopt<a class="headerlink" href="#code-patterns-to-adopt" title="Permanent link">¶</a></h2>
+<h3 id="1-view-pattern-for-detail-pages">1. View Pattern for Detail Pages<a class="headerlink" href="#1-view-pattern-for-detail-pages" title="Permanent link">¶</a></h3>
+<div class="highlight"><pre><span></span><code><span class="nd">@login_required</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">SourceDetail</span><span class="p">(</span><span class="n">request</span><span class="p">,</span> <span class="n">pk</span><span class="p">):</span>
+    <span class="c1"># Fetch source data</span>
+    <span class="n">source</span> <span class="o">=</span> <span class="n">Source</span><span class="o">.</span><span class="n">objects</span><span class="o">.</span><span class="n">filter</span><span class="p">(</span><span class="nb">id</span><span class="o">=</span><span class="n">pk</span><span class="p">)</span><span class="o">.</span><span class="n">annotate</span><span class="p">(</span><span class="o">...</span><span class="p">)</span><span class="o">.</span><span class="n">values</span><span class="p">()</span><span class="o">.</span><span class="n">get</span><span class="p">()</span>
+
+    <span class="c1"># Prepare measurements</span>
+    <span class="n">measurements</span> <span class="o">=</span> <span class="n">Measurement</span><span class="o">.</span><span class="n">objects</span><span class="o">.</span><span class="n">filter</span><span class="p">(</span><span class="o">...</span><span class="p">)</span><span class="o">.</span><span class="n">values</span><span class="p">(</span><span class="o">...</span><span class="p">)</span>
+
+    <span class="c1"># Generate context</span>
+    <span class="n">context</span> <span class="o">=</span> <span class="p">{</span>
+        <span class="s1">'source'</span><span class="p">:</span> <span class="n">source</span><span class="p">,</span>
+        <span class="s1">'datatables'</span><span class="p">:</span> <span class="p">[</span><span class="n">measurements_table</span><span class="p">],</span>
+        <span class="s1">'cutout_measurements'</span><span class="p">:</span> <span class="n">cutouts</span><span class="p">,</span>
+    <span class="p">}</span>
+
+    <span class="c1"># Process forms</span>
+    <span class="k">if</span> <span class="n">request</span><span class="o">.</span><span class="n">method</span> <span class="o">==</span> <span class="s2">"POST"</span><span class="p">:</span>
+        <span class="c1"># Handle form submission</span>
+        <span class="k">pass</span>
+
+    <span class="k">return</span> <span class="n">render</span><span class="p">(</span><span class="n">request</span><span class="p">,</span> <span class="s1">'source_detail.html'</span><span class="p">,</span> <span class="n">context</span><span class="p">)</span>
+</code></pre></div>
+<h3 id="2-rest-api-viewset-pattern">2. REST API ViewSet Pattern<a class="headerlink" href="#2-rest-api-viewset-pattern" title="Permanent link">¶</a></h3>
+<div class="highlight"><pre><span></span><code><span class="k">class</span><span class="w"> </span><span class="nc">SourceViewSet</span><span class="p">(</span><span class="n">ModelViewSet</span><span class="p">):</span>
+    <span class="n">authentication_classes</span> <span class="o">=</span> <span class="p">[</span><span class="n">SessionAuthentication</span><span class="p">]</span>
+    <span class="n">permission_classes</span> <span class="o">=</span> <span class="p">[</span><span class="n">IsAuthenticated</span><span class="p">]</span>
+    <span class="n">queryset</span> <span class="o">=</span> <span class="n">Source</span><span class="o">.</span><span class="n">objects</span><span class="o">.</span><span class="n">all</span><span class="p">()</span>
+    <span class="n">serializer_class</span> <span class="o">=</span> <span class="n">SourceSerializer</span>
+
+    <span class="nd">@action</span><span class="p">(</span><span class="n">detail</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">methods</span><span class="o">=</span><span class="p">[</span><span class="s1">'get'</span><span class="p">])</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">related</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">request</span><span class="p">,</span> <span class="n">pk</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+        <span class="c1"># Custom endpoint</span>
+        <span class="k">pass</span>
+</code></pre></div>
+<h3 id="3-plot-generation-pattern">3. Plot Generation Pattern<a class="headerlink" href="#3-plot-generation-pattern" title="Permanent link">¶</a></h3>
+<div class="highlight"><pre><span></span><code><span class="k">def</span><span class="w"> </span><span class="nf">plot_lightcurve</span><span class="p">(</span><span class="n">source</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+    <span class="c1"># Query data</span>
+    <span class="n">measurements</span> <span class="o">=</span> <span class="n">Measurement</span><span class="o">.</span><span class="n">objects</span><span class="o">.</span><span class="n">filter</span><span class="p">(</span><span class="o">...</span><span class="p">)</span><span class="o">.</span><span class="n">values</span><span class="p">(</span><span class="o">...</span><span class="p">)</span>
+
+    <span class="c1"># Create Bokeh figure</span>
+    <span class="n">fig</span> <span class="o">=</span> <span class="n">figure</span><span class="p">(</span><span class="o">...</span><span class="p">)</span>
+
+    <span class="c1"># Add plots</span>
+    <span class="n">fig</span><span class="o">.</span><span class="n">scatter</span><span class="p">(</span><span class="o">...</span><span class="p">)</span>
+    <span class="n">fig</span><span class="o">.</span><span class="n">line</span><span class="p">(</span><span class="o">...</span><span class="p">)</span>
+
+    <span class="c1"># Return JSON</span>
+    <span class="k">return</span> <span class="n">json_item</span><span class="p">(</span><span class="n">fig</span><span class="p">,</span> <span class="s2">"plot-id"</span><span class="p">)</span>
+</code></pre></div>
+<h3 id="4-datatables-configuration-pattern">4. DataTables Configuration Pattern<a class="headerlink" href="#4-datatables-configuration-pattern" title="Permanent link">¶</a></h3>
+<div class="highlight"><pre><span></span><code><span class="n">datatable</span> <span class="o">=</span> <span class="p">{</span>
+    <span class="s1">'api'</span><span class="p">:</span> <span class="n">reverse</span><span class="p">(</span><span class="s1">'api_sources-list'</span><span class="p">)</span> <span class="o">+</span> <span class="s1">'?format=datatables'</span><span class="p">,</span>
+    <span class="s1">'colsFields'</span><span class="p">:</span> <span class="n">generate_colsfields</span><span class="p">(</span><span class="n">fields</span><span class="p">,</span> <span class="n">api_col_dict</span><span class="p">),</span>
+    <span class="s1">'colsNames'</span><span class="p">:</span> <span class="p">[</span><span class="o">...</span><span class="p">],</span>
+    <span class="s1">'search'</span><span class="p">:</span> <span class="kc">True</span><span class="p">,</span>
+    <span class="s1">'order'</span><span class="p">:</span> <span class="p">[</span><span class="mi">1</span><span class="p">,</span> <span class="s1">'asc'</span><span class="p">]</span>
+<span class="p">}</span>
+</code></pre></div>
+<hr/>
+<h2 id="performance-considerations">Performance Considerations<a class="headerlink" href="#performance-considerations" title="Permanent link">¶</a></h2>
+<h3 id="1-database-optimization">1. Database Optimization<a class="headerlink" href="#1-database-optimization" title="Permanent link">¶</a></h3>
+<p><strong>VAST Techniques:</strong>
+- Q3C for spatial queries
+- Indexed columns
+- Bulk operations
+- Query optimization</p>
+<p><strong>DSA-110 Application:</strong>
+- Spatial indexes for RA/Dec
+- Indexed timestamps
+- Efficient joins
+- Query analysis</p>
+<h3 id="2-frontend-optimization">2. Frontend Optimization<a class="headerlink" href="#2-frontend-optimization" title="Permanent link">¶</a></h3>
+<p><strong>VAST Techniques:</strong>
+- Server-side DataTables processing
+- Datashader for large plots
+- Lazy image loading
+- Caching cutouts</p>
+<p><strong>DSA-110 Application:</strong>
+- Pagination for large datasets
+- Virtual scrolling
+- Image lazy loading
+- Result caching</p>
+<h3 id="3-api-optimization">3. API Optimization<a class="headerlink" href="#3-api-optimization" title="Permanent link">¶</a></h3>
+<p><strong>VAST Techniques:</strong>
+- Pagination
+- Filtering at database level
+- Efficient serialization
+- Caching</p>
+<p><strong>DSA-110 Application:</strong>
+- REST API best practices
+- Efficient queries
+- Response caching
+- Rate limiting</p>
+<hr/>
+<h2 id="security-considerations">Security Considerations<a class="headerlink" href="#security-considerations" title="Permanent link">¶</a></h2>
+<h3 id="1-authentication">1. Authentication<a class="headerlink" href="#1-authentication" title="Permanent link">¶</a></h3>
+<p><strong>VAST:</strong> Django authentication + GitHub OAuth</p>
+<p><strong>DSA-110 Application:</strong>
+- Django authentication (initially)
+- OAuth for future (GitHub, Google)
+- Session management
+- CSRF protection</p>
+<h3 id="2-authorization">2. Authorization<a class="headerlink" href="#2-authorization" title="Permanent link">¶</a></h3>
+<p><strong>VAST:</strong> User-based permissions, admin roles</p>
+<p><strong>DSA-110 Application:</strong>
+- User roles (initially simple)
+- Run ownership
+- Admin capabilities
+- Future: fine-grained permissions</p>
+<h3 id="3-data-access">3. Data Access<a class="headerlink" href="#3-data-access" title="Permanent link">¶</a></h3>
+<p><strong>VAST:</strong> User-specific data, shared runs</p>
+<p><strong>DSA-110 Application:</strong>
+- Initially: open access
+- Future: user workspaces
+- Data sharing capabilities
+- Export controls</p>
+<hr/>
+<h2 id="testing-patterns">Testing Patterns<a class="headerlink" href="#testing-patterns" title="Permanent link">¶</a></h2>
+<h3 id="1-unit-tests">1. Unit Tests<a class="headerlink" href="#1-unit-tests" title="Permanent link">¶</a></h3>
+<p><strong>VAST:</strong> pytest, Django test framework</p>
+<p><strong>DSA-110 Application:</strong>
+- Unit tests for models
+- View tests
+- API tests
+- Utility function tests</p>
+<h3 id="2-integration-tests">2. Integration Tests<a class="headerlink" href="#2-integration-tests" title="Permanent link">¶</a></h3>
+<p><strong>VAST:</strong> End-to-end workflow tests</p>
+<p><strong>DSA-110 Application:</strong>
+- Pipeline workflow tests
+- Web interface tests
+- API integration tests
+- Database tests</p>
+<h3 id="3-performance-tests">3. Performance Tests<a class="headerlink" href="#3-performance-tests" title="Permanent link">¶</a></h3>
+<p><strong>VAST:</strong> Large dataset tests</p>
+<p><strong>DSA-110 Application:</strong>
+- Query performance tests
+- Visualization performance
+- API response time tests
+- Database query optimization</p>
+<hr/>
+<h2 id="documentation-patterns">Documentation Patterns<a class="headerlink" href="#documentation-patterns" title="Permanent link">¶</a></h2>
+<h3 id="1-architecture-documentation">1. Architecture Documentation<a class="headerlink" href="#1-architecture-documentation" title="Permanent link">¶</a></h3>
+<p><strong>VAST:</strong> Comprehensive docs with diagrams</p>
+<p><strong>DSA-110 Application:</strong>
+- System architecture docs
+- Database schema docs
+- API documentation
+- Workflow documentation</p>
+<h3 id="2-user-documentation">2. User Documentation<a class="headerlink" href="#2-user-documentation" title="Permanent link">¶</a></h3>
+<p><strong>VAST:</strong> Step-by-step guides, screenshots</p>
+<p><strong>DSA-110 Application:</strong>
+- User guides
+- Tutorials
+- FAQ
+- Video tutorials (future)</p>
+<h3 id="3-developer-documentation">3. Developer Documentation<a class="headerlink" href="#3-developer-documentation" title="Permanent link">¶</a></h3>
+<p><strong>VAST:</strong> Code examples, contribution guides</p>
+<p><strong>DSA-110 Application:</strong>
+- Development setup
+- Code style guide
+- API reference
+- Contribution guidelines</p>
+<hr/>
+<hr/>
+<h2 id="deep-implementation-details">Deep Implementation Details<a class="headerlink" href="#deep-implementation-details" title="Permanent link">¶</a></h2>
+<h3 id="frontend-javascript-patterns">Frontend JavaScript Patterns<a class="headerlink" href="#frontend-javascript-patterns" title="Permanent link">¶</a></h3>
+<h4 id="datatables-configuration-pattern">DataTables Configuration Pattern<a class="headerlink" href="#datatables-configuration-pattern" title="Permanent link">¶</a></h4>
+<p>VAST uses a sophisticated DataTables configuration system:</p>
+<p><strong>Key Features:</strong>
+- Server-side processing for large datasets
+- Custom renderers for URLs, floats, booleans
+- Deferred loading (don't fetch until query submitted)
+- Column visibility controls
+- Export buttons (CSV, Excel)
+- Nested field support (e.g., <code>run.name</code>)</p>
+<p><strong>Pattern:</strong>
+<div class="highlight"><pre><span></span><code><span class="c1">// Configuration object passed from Django template</span>
+<span class="nx">datatable</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="p">{</span>
+<span class="w">    </span><span class="s1">'api'</span><span class="o">:</span><span class="w"> </span><span class="nx">reverse</span><span class="p">(</span><span class="s1">'api_sources-list'</span><span class="p">)</span><span class="w"> </span><span class="o">+</span><span class="w"> </span><span class="s1">'?format=datatables'</span><span class="p">,</span>
+<span class="w">    </span><span class="s1">'colsFields'</span><span class="o">:</span><span class="w"> </span><span class="nx">generate_colsfields</span><span class="p">(</span><span class="nx">fields</span><span class="p">,</span><span class="w"> </span><span class="nx">url_prefix_dict</span><span class="p">),</span>
+<span class="w">    </span><span class="s1">'colsNames'</span><span class="o">:</span><span class="w"> </span><span class="p">[...],</span>
+<span class="w">    </span><span class="s1">'search'</span><span class="o">:</span><span class="w"> </span><span class="nx">True</span><span class="p">,</span>
+<span class="w">    </span><span class="s1">'order'</span><span class="o">:</span><span class="w"> </span><span class="p">[</span><span class="mf">1</span><span class="p">,</span><span class="w"> </span><span class="s1">'asc'</span><span class="p">],</span>
+<span class="w">    </span><span class="s1">'deferLoading'</span><span class="o">:</span><span class="w"> </span><span class="mf">0</span><span class="w">  </span><span class="c1">// Don't load until query</span>
+<span class="p">}</span>
+
+<span class="c1">// JavaScript processes configuration</span>
+<span class="kd">function</span><span class="w"> </span><span class="nx">obj_formatter</span><span class="p">(</span><span class="nx">obj</span><span class="p">)</span><span class="w"> </span><span class="p">{</span>
+<span class="w">    </span><span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="nx">obj</span><span class="p">.</span><span class="nx">render</span><span class="p">.</span><span class="nx">hasOwnProperty</span><span class="p">(</span><span class="s1">'url'</span><span class="p">))</span><span class="w"> </span><span class="p">{</span>
+<span class="w">        </span><span class="c1">// Generate href renderer</span>
+<span class="w">    </span><span class="p">}</span><span class="w"> </span><span class="k">else</span><span class="w"> </span><span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="nx">obj</span><span class="p">.</span><span class="nx">render</span><span class="p">.</span><span class="nx">hasOwnProperty</span><span class="p">(</span><span class="s1">'float'</span><span class="p">))</span><span class="w"> </span><span class="p">{</span>
+<span class="w">        </span><span class="c1">// Generate float formatter with precision/scale</span>
+<span class="w">    </span><span class="p">}</span>
+<span class="p">}</span>
+</code></pre></div></p>
+<p><strong>DSA-110 Application:</strong>
+- Use similar DataTables configuration
+- Support nested fields (e.g., <code>calibration.name</code>)
+- Custom renderers for astronomical data
+- Deferred loading for query results</p>
+<h4 id="aladin-lite-integration-pattern">Aladin Lite Integration Pattern<a class="headerlink" href="#aladin-lite-integration-pattern" title="Permanent link">¶</a></h4>
+<p>VAST creates custom survey overlays for Aladin:</p>
+<p><strong>Pattern:</strong>
+<div class="highlight"><pre><span></span><code><span class="kd">function</span><span class="w"> </span><span class="nx">configureAladin</span><span class="p">(</span><span class="nx">aladin</span><span class="p">,</span><span class="w"> </span><span class="nx">aladinConf</span><span class="p">)</span><span class="w"> </span><span class="p">{</span>
+<span class="w">    </span><span class="c1">// Create custom surveys</span>
+<span class="w">    </span><span class="kd">var</span><span class="w"> </span><span class="nx">vast_epoch_01</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="nx">aladin</span><span class="p">.</span><span class="nx">createImageSurvey</span><span class="p">(</span>
+<span class="w">        </span><span class="s1">'VAST Pilot 01'</span><span class="p">,</span><span class="w"> </span><span class="s1">'VAST Pilot 01'</span><span class="p">,</span><span class="w"> </span>
+<span class="w">        </span><span class="s1">'https://.../VAST1_I4'</span><span class="p">,</span><span class="w"> </span><span class="s1">'equatorial'</span><span class="p">,</span><span class="w"> </span><span class="mf">6</span><span class="p">,</span><span class="w"> </span>
+<span class="w">        </span><span class="p">{</span><span class="nx">imgFormat</span><span class="o">:</span><span class="w"> </span><span class="s1">'png'</span><span class="p">}</span>
+<span class="w">    </span><span class="p">);</span>
+
+<span class="w">    </span><span class="c1">// Set default survey</span>
+<span class="w">    </span><span class="nx">aladin</span><span class="p">.</span><span class="nx">setImageSurvey</span><span class="p">(</span><span class="nx">racs</span><span class="p">);</span>
+
+<span class="w">    </span><span class="c1">// Add overlays (boxes, circles, polygons)</span>
+<span class="w">    </span><span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="nx">aladinConf</span><span class="p">.</span><span class="nx">hasOwnProperty</span><span class="p">(</span><span class="s1">'aladin_box_ra'</span><span class="p">))</span><span class="w"> </span><span class="p">{</span>
+<span class="w">        </span><span class="kd">var</span><span class="w"> </span><span class="nx">overlay</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="nx">A</span><span class="p">.</span><span class="nx">graphicOverlay</span><span class="p">({</span><span class="nx">color</span><span class="o">:</span><span class="w"> </span><span class="s1">'#ee2345'</span><span class="p">});</span>
+<span class="w">        </span><span class="nx">overlay</span><span class="p">.</span><span class="nx">addFootprints</span><span class="p">([</span><span class="nx">A</span><span class="p">.</span><span class="nx">polygon</span><span class="p">([...])]);</span>
+<span class="w">    </span><span class="p">}</span>
+<span class="p">}</span>
+</code></pre></div></p>
+<p><strong>DSA-110 Application:</strong>
+- Create DSA-110 survey overlays
+- Add pointing footprints
+- Overlay calibration regions
+- Show mosaic coverage</p>
+<h4 id="form-handling-pattern">Form Handling Pattern<a class="headerlink" href="#form-handling-pattern" title="Permanent link">¶</a></h4>
+<p>VAST uses extensive form validation and AJAX:</p>
+<p><strong>Pattern:</strong>
+<div class="highlight"><pre><span></span><code><span class="c1">// Coordinate validation on blur</span>
+<span class="nx">$</span><span class="p">(</span><span class="s2">"#coordInput"</span><span class="p">).</span><span class="nx">on</span><span class="p">(</span><span class="s1">'blur'</span><span class="p">,</span><span class="w"> </span><span class="kd">function</span><span class="w"> </span><span class="p">(</span><span class="nx">e</span><span class="p">)</span><span class="w"> </span><span class="p">{</span>
+<span class="w">    </span><span class="nx">$</span><span class="p">.</span><span class="nx">get</span><span class="p">(</span><span class="nx">validatorUrl</span><span class="p">,</span><span class="w"> </span><span class="p">{</span>
+<span class="w">        </span><span class="nx">coord</span><span class="o">:</span><span class="w"> </span><span class="nx">coordString</span><span class="p">,</span>
+<span class="w">        </span><span class="nx">frame</span><span class="o">:</span><span class="w"> </span><span class="nx">coordFrame</span>
+<span class="w">    </span><span class="p">}).</span><span class="nx">done</span><span class="p">(</span><span class="kd">function</span><span class="w"> </span><span class="p">(</span><span class="nx">data</span><span class="p">)</span><span class="w"> </span><span class="p">{</span>
+<span class="w">        </span><span class="nx">coordInput</span><span class="p">.</span><span class="nx">addClass</span><span class="p">(</span><span class="s1">'is-valid'</span><span class="p">);</span>
+<span class="w">    </span><span class="p">}).</span><span class="nx">fail</span><span class="p">(</span><span class="kd">function</span><span class="w"> </span><span class="p">(</span><span class="nx">jqxhr</span><span class="p">)</span><span class="w"> </span><span class="p">{</span>
+<span class="w">        </span><span class="nx">coordInput</span><span class="p">.</span><span class="nx">addClass</span><span class="p">(</span><span class="s1">'is-invalid'</span><span class="p">);</span>
+<span class="w">    </span><span class="p">});</span>
+<span class="p">});</span>
+
+<span class="c1">// Name resolver</span>
+<span class="nx">$</span><span class="p">(</span><span class="s2">"#objectResolveButton"</span><span class="p">).</span><span class="nx">on</span><span class="p">(</span><span class="s1">'click'</span><span class="p">,</span><span class="w"> </span><span class="kd">function</span><span class="w"> </span><span class="p">(</span><span class="nx">e</span><span class="p">)</span><span class="w"> </span><span class="p">{</span>
+<span class="w">    </span><span class="nx">$</span><span class="p">.</span><span class="nx">get</span><span class="p">(</span><span class="nx">sesameUrl</span><span class="p">,</span><span class="w"> </span><span class="p">{</span>
+<span class="w">        </span><span class="nx">object_name</span><span class="o">:</span><span class="w"> </span><span class="nx">objectNameInput</span><span class="p">.</span><span class="nx">val</span><span class="p">(),</span>
+<span class="w">        </span><span class="nx">service</span><span class="o">:</span><span class="w"> </span><span class="nx">sesameService</span>
+<span class="w">    </span><span class="p">}).</span><span class="nx">done</span><span class="p">(</span><span class="kd">function</span><span class="w"> </span><span class="p">(</span><span class="nx">data</span><span class="p">)</span><span class="w"> </span><span class="p">{</span>
+<span class="w">        </span><span class="nx">coordInput</span><span class="p">.</span><span class="nx">val</span><span class="p">(</span><span class="nx">data</span><span class="p">[</span><span class="s1">'coord'</span><span class="p">]);</span>
+<span class="w">    </span><span class="p">});</span>
+<span class="p">});</span>
+</code></pre></div></p>
+<p><strong>DSA-110 Application:</strong>
+- Real-time coordinate validation
+- Name resolver integration
+- Form state management
+- Error feedback</p>
+<h3 id="backend-form-serializer-patterns">Backend Form &amp; Serializer Patterns<a class="headerlink" href="#backend-form-serializer-patterns" title="Permanent link">¶</a></h3>
+<h4 id="django-forms-with-crispy-forms">Django Forms with Crispy Forms<a class="headerlink" href="#django-forms-with-crispy-forms" title="Permanent link">¶</a></h4>
+<p>VAST uses django-crispy-forms for form rendering:</p>
+<p><strong>Pattern:</strong>
+<div class="highlight"><pre><span></span><code><span class="k">class</span><span class="w"> </span><span class="nc">PipelineRunForm</span><span class="p">(</span><span class="n">forms</span><span class="o">.</span><span class="n">Form</span><span class="p">):</span>
+    <span class="n">run_name</span> <span class="o">=</span> <span class="n">forms</span><span class="o">.</span><span class="n">CharField</span><span class="p">(</span><span class="n">max_length</span><span class="o">=</span><span class="mi">64</span><span class="p">)</span>
+    <span class="n">monitor</span> <span class="o">=</span> <span class="n">forms</span><span class="o">.</span><span class="n">BooleanField</span><span class="p">(</span><span class="n">required</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+    <span class="n">association_method</span> <span class="o">=</span> <span class="n">forms</span><span class="o">.</span><span class="n">CharField</span><span class="p">()</span>
+    <span class="c1"># ... many fields</span>
+
+<span class="k">class</span><span class="w"> </span><span class="nc">TagWithCommentsForm</span><span class="p">(</span><span class="n">forms</span><span class="o">.</span><span class="n">Form</span><span class="p">):</span>
+    <span class="n">comment</span> <span class="o">=</span> <span class="n">forms</span><span class="o">.</span><span class="n">CharField</span><span class="p">(</span><span class="n">required</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">widget</span><span class="o">=</span><span class="n">forms</span><span class="o">.</span><span class="n">Textarea</span><span class="p">())</span>
+    <span class="n">tags</span> <span class="o">=</span> <span class="n">tagulous</span><span class="o">.</span><span class="n">forms</span><span class="o">.</span><span class="n">TagField</span><span class="p">(</span>
+        <span class="n">required</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+        <span class="n">tag_options</span><span class="o">=</span><span class="n">tagulous</span><span class="o">.</span><span class="n">models</span><span class="o">.</span><span class="n">TagOptions</span><span class="p">(</span><span class="o">**</span><span class="n">Source</span><span class="o">.</span><span class="n">tags</span><span class="o">.</span><span class="n">tag_options</span><span class="o">.</span><span class="n">items</span><span class="p">()),</span>
+    <span class="p">)</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">helper</span> <span class="o">=</span> <span class="n">FormHelper</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">helper</span><span class="o">.</span><span class="n">layout</span> <span class="o">=</span> <span class="n">Layout</span><span class="p">(</span>
+            <span class="n">Field</span><span class="p">(</span><span class="s2">"tags"</span><span class="p">),</span>
+            <span class="n">Field</span><span class="p">(</span><span class="s2">"comment"</span><span class="p">,</span> <span class="n">rows</span><span class="o">=</span><span class="mi">2</span><span class="p">),</span>
+            <span class="n">Submit</span><span class="p">(</span><span class="s2">"submit"</span><span class="p">,</span> <span class="s2">"Submit"</span><span class="p">,</span> <span class="n">css_class</span><span class="o">=</span><span class="s2">"btn-block"</span><span class="p">),</span>
+        <span class="p">)</span>
+</code></pre></div></p>
+<p><strong>DSA-110 Application:</strong>
+- Use crispy-forms for consistent styling
+- Tag integration for sources
+- Form validation
+- Helper layouts</p>
+<h4 id="rest-api-serializers">REST API Serializers<a class="headerlink" href="#rest-api-serializers" title="Permanent link">¶</a></h4>
+<p>VAST uses DRF serializers with DataTables support:</p>
+<p><strong>Pattern:</strong>
+<div class="highlight"><pre><span></span><code><span class="k">class</span><span class="w"> </span><span class="nc">SourceSerializer</span><span class="p">(</span><span class="n">serializers</span><span class="o">.</span><span class="n">ModelSerializer</span><span class="p">):</span>
+    <span class="nb">id</span> <span class="o">=</span> <span class="n">serializers</span><span class="o">.</span><span class="n">IntegerField</span><span class="p">(</span><span class="n">read_only</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+    <span class="n">run</span> <span class="o">=</span> <span class="n">RunNameSerializer</span><span class="p">()</span>
+    <span class="n">wavg_ra</span> <span class="o">=</span> <span class="n">serializers</span><span class="o">.</span><span class="n">SerializerMethodField</span><span class="p">()</span>
+    <span class="n">wavg_dec</span> <span class="o">=</span> <span class="n">serializers</span><span class="o">.</span><span class="n">SerializerMethodField</span><span class="p">()</span>
+
+    <span class="k">class</span><span class="w"> </span><span class="nc">Meta</span><span class="p">:</span>
+        <span class="n">model</span> <span class="o">=</span> <span class="n">Source</span>
+        <span class="n">fields</span> <span class="o">=</span> <span class="s2">"__all__"</span>
+        <span class="n">datatables_always_serialize</span> <span class="o">=</span> <span class="p">(</span><span class="s1">'id'</span><span class="p">,)</span>  <span class="c1"># Always include ID</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">get_wavg_ra</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">source</span><span class="p">):</span>
+        <span class="k">return</span> <span class="n">deg2hms</span><span class="p">(</span><span class="n">source</span><span class="o">.</span><span class="n">wavg_ra</span><span class="p">,</span> <span class="n">hms_format</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+</code></pre></div></p>
+<p><strong>Key Features:</strong>
+- Nested serializers for relationships
+- Method fields for computed values
+- DataTables-specific metadata
+- Coordinate formatting</p>
+<p><strong>DSA-110 Application:</strong>
+- Similar serializer patterns
+- Coordinate formatting utilities
+- Nested relationships
+- DataTables integration</p>
+<h3 id="pipeline-processing-patterns">Pipeline Processing Patterns<a class="headerlink" href="#pipeline-processing-patterns" title="Permanent link">¶</a></h3>
+<h4 id="association-algorithm">Association Algorithm<a class="headerlink" href="#association-algorithm" title="Permanent link">¶</a></h4>
+<p>VAST implements sophisticated source association:</p>
+<p><strong>Key Methods:</strong>
+1. <strong>Basic Association</strong>: Simple distance-based matching
+2. <strong>Advanced Association</strong>: De Ruiter radius calculation
+3. <strong>One-to-Many Handling</strong>: Fork sources when multiple matches
+4. <strong>Many-to-One Handling</strong>: Merge sources when appropriate</p>
+<p><strong>Pattern:</strong>
+<div class="highlight"><pre><span></span><code><span class="k">def</span><span class="w"> </span><span class="nf">calc_de_ruiter</span><span class="p">(</span><span class="n">df</span><span class="p">:</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">"""Calculate unitless de Ruiter radius"""</span>
+    <span class="c1"># Complex calculation using RA/Dec errors</span>
+    <span class="n">dr1</span> <span class="o">=</span> <span class="p">(</span><span class="n">ra_1</span> <span class="o">-</span> <span class="n">ra_2</span><span class="p">)</span> <span class="o">*</span> <span class="p">(</span><span class="n">ra_1</span> <span class="o">-</span> <span class="n">ra_2</span><span class="p">)</span>
+    <span class="n">dr1</span> <span class="o">*=</span> <span class="n">np</span><span class="o">.</span><span class="n">cos</span><span class="p">((</span><span class="n">dec_1</span> <span class="o">+</span> <span class="n">dec_2</span><span class="p">)</span> <span class="o">/</span> <span class="mf">2.</span><span class="p">)</span> <span class="o">**</span> <span class="mi">2</span>
+    <span class="n">dr1</span> <span class="o">/=</span> <span class="n">ra_1_err</span><span class="o">**</span><span class="mi">2</span> <span class="o">+</span> <span class="n">ra_2_err</span><span class="o">**</span><span class="mi">2</span>
+    <span class="c1"># ... more calculations</span>
+    <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">sqrt</span><span class="p">(</span><span class="n">dr1</span> <span class="o">+</span> <span class="n">dr2</span><span class="p">)</span>
+
+<span class="k">def</span><span class="w"> </span><span class="nf">one_to_many_basic</span><span class="p">(</span><span class="n">skyc2_srcs</span><span class="p">,</span> <span class="n">sources_df</span><span class="p">,</span> <span class="n">id_incr_par_assoc</span><span class="o">=</span><span class="mi">0</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">"""Handle one-to-many associations"""</span>
+    <span class="c1"># Find duplicated matches</span>
+    <span class="c1"># Assign new IDs to non-nearest matches</span>
+    <span class="c1"># Fork sources in sources_df</span>
+    <span class="c1"># Update related fields</span>
+</code></pre></div></p>
+<p><strong>DSA-110 Application:</strong>
+- Implement similar association methods
+- Support multiple association strategies
+- Handle edge cases (one-to-many, many-to-one)
+- Track source relationships</p>
+<h4 id="image-ingestion-utilities">Image Ingestion Utilities<a class="headerlink" href="#image-ingestion-utilities" title="Permanent link">¶</a></h4>
+<p>VAST has sophisticated FITS handling:</p>
+<p><strong>Pattern:</strong>
+<div class="highlight"><pre><span></span><code><span class="k">def</span><span class="w"> </span><span class="nf">open_fits</span><span class="p">(</span><span class="n">fits_path</span><span class="p">,</span> <span class="n">memmap</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">comp_nan_fill</span><span class="o">=</span><span class="kc">True</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">"""Open compressed or uncompressed FITS"""</span>
+    <span class="n">hdul</span> <span class="o">=</span> <span class="n">fits</span><span class="o">.</span><span class="n">open</span><span class="p">(</span><span class="n">fits_path</span><span class="p">,</span> <span class="n">memmap</span><span class="o">=</span><span class="n">memmap</span><span class="p">)</span>
+    <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">hdul</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span> <span class="n">fits</span><span class="o">.</span><span class="n">hdu</span><span class="o">.</span><span class="n">compressed</span><span class="o">.</span><span class="n">CompImageHDU</span><span class="p">):</span>
+        <span class="k">if</span> <span class="n">comp_nan_fill</span><span class="p">:</span>
+            <span class="n">data</span> <span class="o">=</span> <span class="n">hdul</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">data</span>
+            <span class="n">data</span><span class="p">[</span><span class="n">data</span> <span class="o">&lt;</span> <span class="n">comp_nan_fill_cut</span><span class="p">]</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">nan</span>
+    <span class="k">return</span> <span class="n">hdul</span>
+
+<span class="k">def</span><span class="w"> </span><span class="nf">calc_condon_flux_errors</span><span class="p">(</span><span class="n">row</span><span class="p">,</span> <span class="n">theta_B</span><span class="p">,</span> <span class="n">theta_b</span><span class="p">,</span> <span class="o">...</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">"""Calculate flux errors using Condon (1997) method"""</span>
+    <span class="c1"># Complex error propagation calculations</span>
+    <span class="c1"># Returns: peak_err, int_err, major_err, minor_err, pa_err, ra_err, dec_err</span>
+</code></pre></div></p>
+<p><strong>DSA-110 Application:</strong>
+- Robust FITS file handling
+- Support compressed FITS
+- Error calculation utilities
+- Image metadata extraction</p>
+<h3 id="external-query-patterns">External Query Patterns<a class="headerlink" href="#external-query-patterns" title="Permanent link">¶</a></h3>
+<p>VAST integrates multiple external catalogs:</p>
+<p><strong>Supported Services:</strong>
+- SIMBAD (astroquery)
+- NED (astroquery)
+- TNS (Transient Name Server)
+- Fink
+- DAS (Data Central)</p>
+<p><strong>Pattern:</strong>
+<div class="highlight"><pre><span></span><code><span class="k">def</span><span class="w"> </span><span class="nf">simbad</span><span class="p">(</span><span class="n">coord</span><span class="p">:</span> <span class="n">SkyCoord</span><span class="p">,</span> <span class="n">radius</span><span class="p">:</span> <span class="n">Angle</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">List</span><span class="p">[</span><span class="n">Dict</span><span class="p">]:</span>
+    <span class="n">CustomSimbad</span> <span class="o">=</span> <span class="n">Simbad</span><span class="p">()</span>
+    <span class="n">CustomSimbad</span><span class="o">.</span><span class="n">add_votable_fields</span><span class="p">(</span><span class="s2">"otype(S)"</span><span class="p">,</span> <span class="s2">"otype(V)"</span><span class="p">,</span> <span class="o">...</span><span class="p">)</span>
+    <span class="k">try</span><span class="p">:</span>
+        <span class="n">result_table</span> <span class="o">=</span> <span class="n">CustomSimbad</span><span class="o">.</span><span class="n">query_region</span><span class="p">(</span><span class="n">coord</span><span class="p">,</span> <span class="n">radius</span><span class="o">=</span><span class="n">radius</span><span class="p">)</span>
+    <span class="k">except</span> <span class="n">requests</span><span class="o">.</span><span class="n">HTTPError</span><span class="p">:</span>
+        <span class="c1"># Try Harvard mirror</span>
+        <span class="n">CustomSimbad</span><span class="o">.</span><span class="n">SIMBAD_URL</span> <span class="o">=</span> <span class="s2">"https://simbad.harvard.edu/..."</span>
+        <span class="n">result_table</span> <span class="o">=</span> <span class="n">CustomSimbad</span><span class="o">.</span><span class="n">query_region</span><span class="p">(</span><span class="n">coord</span><span class="p">,</span> <span class="n">radius</span><span class="o">=</span><span class="n">radius</span><span class="p">)</span>
+
+    <span class="c1"># Format results</span>
+    <span class="n">results_df</span> <span class="o">=</span> <span class="n">result_table</span><span class="o">.</span><span class="n">to_pandas</span><span class="p">()</span>
+    <span class="n">results_df</span><span class="p">[</span><span class="s2">"database"</span><span class="p">]</span> <span class="o">=</span> <span class="s2">"SIMBAD"</span>
+    <span class="k">return</span> <span class="n">results_df</span><span class="o">.</span><span class="n">to_dict</span><span class="p">(</span><span class="n">orient</span><span class="o">=</span><span class="s2">"records"</span><span class="p">)</span>
+</code></pre></div></p>
+<p><strong>DSA-110 Application:</strong>
+- Integrate radio catalogs (NVSS, VLASS, FIRST)
+- Add optical catalogs (Gaia, PanSTARRS)
+- Error handling and fallbacks
+- Consistent result format</p>
+<h3 id="management-commands">Management Commands<a class="headerlink" href="#management-commands" title="Permanent link">¶</a></h3>
+<p>VAST uses Django management commands extensively:</p>
+<p><strong>Key Commands:</strong>
+- <code>initpiperun</code> - Initialize new pipeline run
+- <code>runpipeline</code> - Execute pipeline processing
+- <code>ingestimages</code> - Ingest images and catalogs
+- <code>createmeasarrow</code> - Generate Arrow files
+- <code>restorepiperun</code> - Restore deleted run
+- <code>clearpiperun</code> - Clean up run data</p>
+<p><strong>Pattern:</strong>
+<div class="highlight"><pre><span></span><code><span class="k">class</span><span class="w"> </span><span class="nc">Command</span><span class="p">(</span><span class="n">BaseCommand</span><span class="p">):</span>
+    <span class="n">help</span> <span class="o">=</span> <span class="s1">'Initialize a new pipeline run'</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">add_arguments</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">parser</span><span class="p">):</span>
+        <span class="n">parser</span><span class="o">.</span><span class="n">add_argument</span><span class="p">(</span><span class="s1">'run_name'</span><span class="p">,</span> <span class="nb">type</span><span class="o">=</span><span class="nb">str</span><span class="p">)</span>
+        <span class="n">parser</span><span class="o">.</span><span class="n">add_argument</span><span class="p">(</span><span class="s1">'--config'</span><span class="p">,</span> <span class="nb">type</span><span class="o">=</span><span class="nb">str</span><span class="p">)</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">handle</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">options</span><span class="p">):</span>
+        <span class="c1"># Validate inputs</span>
+        <span class="c1"># Create run directory</span>
+        <span class="c1"># Write config file</span>
+        <span class="c1"># Initialize database records</span>
+</code></pre></div></p>
+<p><strong>DSA-110 Application:</strong>
+- Similar command structure
+- Validation and error handling
+- Database initialization
+- File system management</p>
+<h3 id="template-patterns">Template Patterns<a class="headerlink" href="#template-patterns" title="Permanent link">¶</a></h3>
+<h4 id="query-form-template">Query Form Template<a class="headerlink" href="#query-form-template" title="Permanent link">¶</a></h4>
+<p>VAST's source query form is comprehensive:</p>
+<p><strong>Features:</strong>
+- Collapsible sections
+- Tooltips for help
+- Real-time validation
+- Select2 for tag selection
+- Coordinate frame selection
+- Multiple filter types</p>
+<p><strong>Pattern:</strong>
+<div class="highlight"><pre><span></span><code><span class="p">&lt;</span><span class="nt">fieldset</span><span class="p">&gt;</span>
+  <span class="p">&lt;</span><span class="nt">legend</span><span class="p">&gt;</span>Cone Search<span class="p">&lt;/</span><span class="nt">legend</span><span class="p">&gt;</span>
+  <span class="cm">&lt;!-- Object name resolver --&gt;</span>
+  <span class="p">&lt;</span><span class="nt">input</span> <span class="na">id</span><span class="o">=</span><span class="s">"objectNameInput"</span> <span class="err">...</span><span class="p">&gt;</span>
+  <span class="p">&lt;</span><span class="nt">button</span> <span class="na">id</span><span class="o">=</span><span class="s">"objectResolveButton"</span> <span class="na">data-sesame-url</span><span class="o">=</span><span class="s">"..."</span><span class="p">&gt;</span>Resolve<span class="p">&lt;/</span><span class="nt">button</span><span class="p">&gt;</span>
+
+  <span class="cm">&lt;!-- Coordinate input with validation --&gt;</span>
+  <span class="p">&lt;</span><span class="nt">input</span> <span class="na">id</span><span class="o">=</span><span class="s">"coordInput"</span> <span class="na">data-validator-url</span><span class="o">=</span><span class="s">"..."</span><span class="p">&gt;</span>
+  <span class="p">&lt;</span><span class="nt">select</span> <span class="na">id</span><span class="o">=</span><span class="s">"coordFrameSelect"</span><span class="p">&gt;</span>...<span class="p">&lt;/</span><span class="nt">select</span><span class="p">&gt;</span>
+
+  <span class="cm">&lt;!-- Radius input --&gt;</span>
+  <span class="p">&lt;</span><span class="nt">input</span> <span class="na">id</span><span class="o">=</span><span class="s">"radiusSelect"</span> <span class="err">...</span><span class="p">&gt;</span>
+  <span class="p">&lt;</span><span class="nt">select</span> <span class="na">id</span><span class="o">=</span><span class="s">"radiusUnit"</span><span class="p">&gt;</span>...<span class="p">&lt;/</span><span class="nt">select</span><span class="p">&gt;</span>
+<span class="p">&lt;/</span><span class="nt">fieldset</span><span class="p">&gt;</span>
+
+<span class="p">&lt;</span><span class="nt">fieldset</span><span class="p">&gt;</span>
+  <span class="p">&lt;</span><span class="nt">legend</span><span class="p">&gt;</span>Table Filters<span class="p">&lt;/</span><span class="nt">legend</span><span class="p">&gt;</span>
+  <span class="cm">&lt;!-- Many filter rows --&gt;</span>
+  <span class="p">&lt;</span><span class="nt">div</span> <span class="na">class</span><span class="o">=</span><span class="s">"form-group form-row"</span><span class="p">&gt;</span>
+    <span class="p">&lt;</span><span class="nt">label</span><span class="p">&gt;</span>Min. Flux<span class="p">&lt;/</span><span class="nt">label</span><span class="p">&gt;</span>
+    <span class="p">&lt;</span><span class="nt">input</span> <span class="na">id</span><span class="o">=</span><span class="s">"fluxMinMinSelect"</span> <span class="err">...</span><span class="p">&gt;</span>
+    <span class="p">&lt;</span><span class="nt">input</span> <span class="na">id</span><span class="o">=</span><span class="s">"fluxMaxMinSelect"</span> <span class="err">...</span><span class="p">&gt;</span>
+    <span class="p">&lt;</span><span class="nt">select</span> <span class="na">id</span><span class="o">=</span><span class="s">"minFluxSelect"</span><span class="p">&gt;</span>...<span class="p">&lt;/</span><span class="nt">select</span><span class="p">&gt;</span>
+  <span class="p">&lt;/</span><span class="nt">div</span><span class="p">&gt;</span>
+<span class="p">&lt;/</span><span class="nt">fieldset</span><span class="p">&gt;</span>
+</code></pre></div></p>
+<p><strong>DSA-110 Application:</strong>
+- Similar form structure
+- Collapsible sections
+- Tooltips and help text
+- Real-time validation
+- Consistent styling</p>
+<h4 id="detail-page-template">Detail Page Template<a class="headerlink" href="#detail-page-template" title="Permanent link">¶</a></h4>
+<p>VAST's source detail page is information-dense:</p>
+<p><strong>Layout:</strong>
+- Three-column layout (Details, Postage Stamp, Sky Viewer)
+- Multiple cards for different information
+- Tabs for measurements and related sources
+- External catalog results table
+- Comments and tags section</p>
+<p><strong>Pattern:</strong>
+<div class="highlight"><pre><span></span><code><span class="p">&lt;</span><span class="nt">div</span> <span class="na">class</span><span class="o">=</span><span class="s">"row"</span><span class="p">&gt;</span>
+  <span class="cm">&lt;!-- Details Card --&gt;</span>
+  <span class="p">&lt;</span><span class="nt">div</span> <span class="na">class</span><span class="o">=</span><span class="s">"col-xl-4"</span><span class="p">&gt;</span>
+    <span class="p">&lt;</span><span class="nt">div</span> <span class="na">class</span><span class="o">=</span><span class="s">"card"</span><span class="p">&gt;</span>
+      <span class="p">&lt;</span><span class="nt">div</span> <span class="na">class</span><span class="o">=</span><span class="s">"card-header"</span><span class="p">&gt;</span>Details<span class="p">&lt;/</span><span class="nt">div</span><span class="p">&gt;</span>
+      <span class="p">&lt;</span><span class="nt">div</span> <span class="na">class</span><span class="o">=</span><span class="s">"card-body"</span><span class="p">&gt;</span>
+        <span class="cm">&lt;!-- Source information --&gt;</span>
+      <span class="p">&lt;/</span><span class="nt">div</span><span class="p">&gt;</span>
+    <span class="p">&lt;/</span><span class="nt">div</span><span class="p">&gt;</span>
+  <span class="p">&lt;/</span><span class="nt">div</span><span class="p">&gt;</span>
+
+  <span class="cm">&lt;!-- JS9 Postage Stamp --&gt;</span>
+  <span class="p">&lt;</span><span class="nt">div</span> <span class="na">class</span><span class="o">=</span><span class="s">"col-xl-4"</span><span class="p">&gt;</span>
+    <span class="p">&lt;</span><span class="nt">div</span> <span class="na">class</span><span class="o">=</span><span class="s">"card"</span><span class="p">&gt;</span>
+      <span class="p">&lt;</span><span class="nt">div</span> <span class="na">class</span><span class="o">=</span><span class="s">"JS9"</span> <span class="na">id</span><span class="o">=</span><span class="s">"JS9_..."</span> <span class="na">data-width</span><span class="o">=</span><span class="s">"450px"</span><span class="p">&gt;&lt;/</span><span class="nt">div</span><span class="p">&gt;</span>
+    <span class="p">&lt;/</span><span class="nt">div</span><span class="p">&gt;</span>
+  <span class="p">&lt;/</span><span class="nt">div</span><span class="p">&gt;</span>
+
+  <span class="cm">&lt;!-- Aladin Sky Viewer --&gt;</span>
+  <span class="p">&lt;</span><span class="nt">div</span> <span class="na">class</span><span class="o">=</span><span class="s">"col-xl-4"</span><span class="p">&gt;</span>
+    <span class="p">&lt;</span><span class="nt">div</span> <span class="na">id</span><span class="o">=</span><span class="s">"aladin-lite-div"</span><span class="p">&gt;&lt;/</span><span class="nt">div</span><span class="p">&gt;</span>
+  <span class="p">&lt;/</span><span class="nt">div</span><span class="p">&gt;</span>
+<span class="p">&lt;/</span><span class="nt">div</span><span class="p">&gt;</span>
+</code></pre></div></p>
+<p><strong>DSA-110 Application:</strong>
+- Similar card-based layout
+- Multiple visualization types
+- Information hierarchy
+- Responsive design</p>
+<h3 id="utility-patterns">Utility Patterns<a class="headerlink" href="#utility-patterns" title="Permanent link">¶</a></h3>
+<h4 id="coordinate-formatting">Coordinate Formatting<a class="headerlink" href="#coordinate-formatting" title="Permanent link">¶</a></h4>
+<p>VAST has comprehensive coordinate utilities:</p>
+<p><strong>Pattern:</strong>
+<div class="highlight"><pre><span></span><code><span class="k">def</span><span class="w"> </span><span class="nf">deg2dms</span><span class="p">(</span><span class="n">deg</span><span class="p">,</span> <span class="n">dms_format</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">precision</span><span class="o">=</span><span class="mi">2</span><span class="p">,</span> <span class="n">truncate</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">latitude</span><span class="o">=</span><span class="kc">True</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">"""Convert degrees to DMS string"""</span>
+    <span class="n">AngleClass</span> <span class="o">=</span> <span class="n">Latitude</span> <span class="k">if</span> <span class="n">latitude</span> <span class="k">else</span> <span class="n">Longitude</span>
+    <span class="n">angle</span> <span class="o">=</span> <span class="n">AngleClass</span><span class="p">(</span><span class="n">deg</span><span class="p">,</span> <span class="n">unit</span><span class="o">=</span><span class="s2">"deg"</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">angle</span><span class="o">.</span><span class="n">to_string</span><span class="p">(</span>
+        <span class="n">unit</span><span class="o">=</span><span class="s2">"deg"</span><span class="p">,</span>
+        <span class="n">sep</span><span class="o">=</span><span class="s2">"fromunit"</span> <span class="k">if</span> <span class="n">dms_format</span> <span class="k">else</span> <span class="s2">":"</span><span class="p">,</span>
+        <span class="n">precision</span><span class="o">=</span><span class="n">precision</span><span class="p">,</span>
+        <span class="n">alwayssign</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+        <span class="n">pad</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+    <span class="p">)</span>
+
+<span class="k">def</span><span class="w"> </span><span class="nf">deg2hms</span><span class="p">(</span><span class="n">deg</span><span class="p">,</span> <span class="n">hms_format</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">precision</span><span class="o">=</span><span class="mi">2</span><span class="p">,</span> <span class="n">truncate</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">"""Convert degrees to HMS string"""</span>
+    <span class="k">return</span> <span class="n">deg2dms</span><span class="p">(</span><span class="n">deg</span> <span class="o">/</span> <span class="mf">15.0</span><span class="p">,</span> <span class="n">dms_format</span><span class="o">=</span><span class="n">hms_format</span><span class="p">,</span> <span class="o">...</span><span class="p">)</span>
+</code></pre></div></p>
+<p><strong>DSA-110 Application:</strong>
+- Similar coordinate utilities
+- Consistent formatting
+- Support multiple formats
+- Precision control</p>
+<h4 id="view-utilities">View Utilities<a class="headerlink" href="#view-utilities" title="Permanent link">¶</a></h4>
+<p>VAST has helper functions for views:</p>
+<p><strong>Pattern:</strong>
+<div class="highlight"><pre><span></span><code><span class="n">FLOAT_FIELDS</span> <span class="o">=</span> <span class="p">{</span>
+    <span class="s1">'ra'</span><span class="p">:</span> <span class="p">{</span><span class="s1">'precision'</span><span class="p">:</span> <span class="mi">4</span><span class="p">,</span> <span class="s1">'scale'</span><span class="p">:</span> <span class="mi">1</span><span class="p">},</span>
+    <span class="s1">'ra_err'</span><span class="p">:</span> <span class="p">{</span><span class="s1">'precision'</span><span class="p">:</span> <span class="mi">4</span><span class="p">,</span> <span class="s1">'scale'</span><span class="p">:</span> <span class="mf">3600.</span><span class="p">},</span>
+    <span class="s1">'flux_peak'</span><span class="p">:</span> <span class="p">{</span><span class="s1">'precision'</span><span class="p">:</span> <span class="mi">3</span><span class="p">,</span> <span class="s1">'scale'</span><span class="p">:</span> <span class="mi">1</span><span class="p">},</span>
+    <span class="c1"># ... many more</span>
+<span class="p">}</span>
+
+<span class="k">def</span><span class="w"> </span><span class="nf">generate_colsfields</span><span class="p">(</span><span class="n">fields</span><span class="p">,</span> <span class="n">url_prefix_dict</span><span class="p">,</span> <span class="n">not_orderable_col</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">"""Generate DataTables column configuration"""</span>
+    <span class="n">colsfields</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="k">for</span> <span class="n">col</span> <span class="ow">in</span> <span class="n">fields</span><span class="p">:</span>
+        <span class="k">if</span> <span class="n">col</span> <span class="o">==</span> <span class="s1">'name'</span><span class="p">:</span>
+            <span class="n">field2append</span> <span class="o">=</span> <span class="p">{</span><span class="s1">'data'</span><span class="p">:</span> <span class="n">col</span><span class="p">,</span> <span class="s1">'render'</span><span class="p">:</span> <span class="p">{</span><span class="s1">'url'</span><span class="p">:</span> <span class="p">{</span><span class="o">...</span><span class="p">}}}</span>
+        <span class="k">elif</span> <span class="n">col</span> <span class="ow">in</span> <span class="n">FLOAT_FIELDS</span><span class="p">:</span>
+            <span class="n">field2append</span> <span class="o">=</span> <span class="p">{</span><span class="s1">'data'</span><span class="p">:</span> <span class="n">col</span><span class="p">,</span> <span class="s1">'render'</span><span class="p">:</span> <span class="p">{</span><span class="s1">'float'</span><span class="p">:</span> <span class="p">{</span><span class="o">...</span><span class="p">}}}</span>
+        <span class="c1"># ... more cases</span>
+    <span class="k">return</span> <span class="n">colsfields</span>
+</code></pre></div></p>
+<p><strong>DSA-110 Application:</strong>
+- Similar utility functions
+- Consistent field formatting
+- DataTables integration
+- Reusable patterns</p>
+<hr/>
+<h2 id="additional-deep-implementation-patterns-third-pass">Additional Deep Implementation Patterns (Third Pass)<a class="headerlink" href="#additional-deep-implementation-patterns-third-pass" title="Permanent link">¶</a></h2>
+<h3 id="complete-data-model-understanding">Complete Data Model Understanding<a class="headerlink" href="#complete-data-model-understanding" title="Permanent link">¶</a></h3>
+<h4 id="source-model-deep-dive">Source Model Deep Dive<a class="headerlink" href="#source-model-deep-dive" title="Permanent link">¶</a></h4>
+<ul>
+<li><strong>Weighted averages</strong>: <code>wavg_ra</code>, <code>wavg_dec</code>, <code>wavg_uncertainty_ew</code>, <code>wavg_uncertainty_ns</code> - calculated from measurements</li>
+<li><strong>Aggregate flux metrics</strong>: <code>avg_flux_int</code>, <code>avg_flux_peak</code>, <code>max_flux_peak</code>, <code>min_flux_peak</code>, <code>max_flux_int</code>, <code>min_flux_int</code></li>
+<li><strong>Variability metrics</strong>: <code>v_int</code>, <code>v_peak</code>, <code>eta_int</code>, <code>eta_peak</code> - calculated from measurement pairs</li>
+<li><strong>New source detection</strong>: <code>new_high_sigma</code> - maximum sigma if source placed in previous images</li>
+<li><strong>Neighbor metrics</strong>: <code>n_neighbour_dist</code> - distance to nearest neighbor</li>
+<li><strong>Pair metrics aggregates</strong>: <code>vs_abs_significant_max_int</code>, <code>m_abs_significant_max_int</code>, <code>vs_abs_significant_max_peak</code>, <code>m_abs_significant_max_peak</code> - only for pairs exceeding threshold</li>
+<li><strong>Count metrics</strong>: <code>n_meas</code>, <code>n_meas_sel</code>, <code>n_meas_forced</code>, <code>n_rel</code>, <code>n_sibl</code></li>
+<li><strong>Method</strong>: <code>get_measurement_pairs()</code> - calculates measurement pair metrics on-demand</li>
+</ul>
+<h4 id="measurement-model-deep-dive">Measurement Model Deep Dive<a class="headerlink" href="#measurement-model-deep-dive" title="Permanent link">¶</a></h4>
+<ul>
+<li><strong>Position</strong>: <code>ra</code>, <code>dec</code>, <code>ra_err</code>, <code>dec_err</code>, <code>uncertainty_ew</code>, <code>uncertainty_ns</code> (quadratic sum)</li>
+<li><strong>Flux</strong>: <code>flux_int</code>, <code>flux_int_err</code>, <code>flux_peak</code>, <code>flux_peak_err</code> (mJy/beam)</li>
+<li><strong>Island ratios</strong>: <code>flux_int_isl_ratio</code>, <code>flux_peak_isl_ratio</code> - component to island flux ratio</li>
+<li><strong>Fit quality</strong>: <code>chi_squared_fit</code>, <code>spectral_index</code>, <code>spectral_index_from_TT</code></li>
+<li><strong>Local properties</strong>: <code>local_rms</code>, <code>snr</code>, <code>compactness</code> (int/peak flux ratio)</li>
+<li><strong>Flags</strong>: <code>flag_c4</code> (Selavy fit flag), <code>has_siblings</code> (multi-component island), <code>forced</code> (forced extraction)</li>
+<li><strong>Component tracking</strong>: <code>component_id</code>, <code>island_id</code> - links to Selavy catalog</li>
+</ul>
+<h4 id="association-model">Association Model<a class="headerlink" href="#association-model" title="Permanent link">¶</a></h4>
+<ul>
+<li><strong>Distance metrics</strong>: <code>d2d</code> (astronomical distance in arcsec), <code>dr</code> (De Ruiter radius)</li>
+<li><strong>Many-to-many</strong>: Source ↔ Measurement through Association table</li>
+<li><strong>Flexible association</strong>: Different methods produce different associations</li>
+</ul>
+<h4 id="relatedsource-model">RelatedSource Model<a class="headerlink" href="#relatedsource-model" title="Permanent link">¶</a></h4>
+<ul>
+<li><strong>Self-referential</strong>: Many-to-many relationship between Sources</li>
+<li><strong>Through table</strong>: Explicit <code>RelatedSource</code> model with <code>from_source</code> and <code>to_source</code></li>
+<li><strong>Unique constraint</strong>: Prevents duplicate relationships</li>
+<li><strong>Use case</strong>: Related sources (e.g., components of extended sources)</li>
+</ul>
+<h4 id="sourcefav-model">SourceFav Model<a class="headerlink" href="#sourcefav-model" title="Permanent link">¶</a></h4>
+<ul>
+<li><strong>User favorites</strong>: Links User to Source</li>
+<li><strong>Comment field</strong>: Optional 500-character comment explaining why favorited</li>
+<li><strong>Use case</strong>: Personal bookmarking system</li>
+</ul>
+<h3 id="admin-interface-patterns">Admin Interface Patterns<a class="headerlink" href="#admin-interface-patterns" title="Permanent link">¶</a></h3>
+<h4 id="django-admin-customization">Django Admin Customization<a class="headerlink" href="#django-admin-customization" title="Permanent link">¶</a></h4>
+<ul>
+<li><strong>Custom admin classes</strong>: <code>RunAdmin</code>, <code>ImageAdmin</code>, <code>SourceAdmin</code>, <code>MeasurementAdmin</code>, <code>SourceFavAdmin</code></li>
+<li><strong>List display</strong>: Custom columns shown in admin list view</li>
+<li><strong>List filters</strong>: Filter by status, new sources, forced measurements</li>
+<li><strong>Search fields</strong>: Search by name for images, sources, measurements</li>
+<li><strong>Excluded fields</strong>: Hide technical fields like <code>path</code>, <code>measurements_path</code> from admin forms</li>
+<li><strong>Site customization</strong>: Custom site title and header</li>
+</ul>
+<p><strong>DSA-110 Application:</strong>
+- Use Django admin for quick data inspection
+- Customize admin for common operations
+- Hide technical implementation details</p>
+<h3 id="template-architecture-deep-dive">Template Architecture Deep Dive<a class="headerlink" href="#template-architecture-deep-dive" title="Permanent link">¶</a></h3>
+<h4 id="base-template-basehtml">Base Template (<code>base.html</code>)<a class="headerlink" href="#base-template-basehtml" title="Permanent link">¶</a></h4>
+<ul>
+<li><strong>Sidebar navigation</strong>: Collapsible accordion menu</li>
+<li><strong>Breadcrumbs</strong>: Context-aware navigation trail</li>
+<li><strong>User dropdown</strong>: GitHub avatar, favorites link, logout</li>
+<li><strong>Maintenance banner</strong>: Context processor injects maintenance messages</li>
+<li><strong>Version display</strong>: Pipeline version with link to GitHub releases</li>
+<li><strong>Responsive design</strong>: Bootstrap 4 grid system</li>
+</ul>
+<h4 id="generic-table-template-generic_tablehtml">Generic Table Template (<code>generic_table.html</code>)<a class="headerlink" href="#generic-table-template-generic_tablehtml" title="Permanent link">¶</a></h4>
+<ul>
+<li><strong>Reusable DataTables</strong>: Single template for all table views</li>
+<li><strong>Dynamic columns</strong>: Columns defined in view context</li>
+<li><strong>API integration</strong>: DataTables AJAX source from REST API</li>
+<li><strong>Search/filter</strong>: Built-in DataTables search</li>
+<li><strong>Export buttons</strong>: CSV, Excel, PDF export via DataTables Buttons</li>
+<li><strong>Column visibility</strong>: Show/hide columns dynamically</li>
+</ul>
+<p><strong>Key Pattern:</strong>
+<div class="highlight"><pre><span></span><code><span class="c1"># View defines table structure</span>
+<span class="n">datatable</span> <span class="o">=</span> <span class="p">{</span>
+    <span class="s1">'api'</span><span class="p">:</span> <span class="n">reverse</span><span class="p">(</span><span class="s1">'api-endpoint'</span><span class="p">)</span> <span class="o">+</span> <span class="s1">'?format=datatables'</span><span class="p">,</span>
+    <span class="s1">'colsFields'</span><span class="p">:</span> <span class="n">generate_colsfields</span><span class="p">(</span><span class="n">fields</span><span class="p">,</span> <span class="n">link_map</span><span class="p">),</span>
+    <span class="s1">'colsNames'</span><span class="p">:</span> <span class="p">[</span><span class="s1">'Column 1'</span><span class="p">,</span> <span class="s1">'Column 2'</span><span class="p">,</span> <span class="o">...</span><span class="p">],</span>
+    <span class="s1">'search'</span><span class="p">:</span> <span class="kc">True</span><span class="p">,</span>
+<span class="p">}</span>
+</code></pre></div></p>
+<h4 id="detail-page-templates">Detail Page Templates<a class="headerlink" href="#detail-page-templates" title="Permanent link">¶</a></h4>
+<ul>
+<li><strong>Three-column layout</strong>: Details card, visualization, comments</li>
+<li><strong>Collapsible sections</strong>: Bootstrap collapse for measurements, runs tables</li>
+<li><strong>Navigation</strong>: Previous/Next buttons for sequential browsing</li>
+<li><strong>Aladin integration</strong>: Embedded sky viewer with source overlay</li>
+<li><strong>DataTables</strong>: Nested tables for related objects</li>
+<li><strong>Comments component</strong>: Reusable comment form and display</li>
+</ul>
+<h3 id="pipeline-processing-deep-dive">Pipeline Processing Deep Dive<a class="headerlink" href="#pipeline-processing-deep-dive" title="Permanent link">¶</a></h3>
+<h4 id="final-operations-finalisepy">Final Operations (<code>finalise.py</code>)<a class="headerlink" href="#final-operations-finalisepy" title="Permanent link">¶</a></h4>
+<ul>
+<li><strong>Source statistics</strong>: Parallel groupby to calculate aggregate metrics</li>
+<li><strong>Nearest neighbor</strong>: Astropy SkyCoord matching for <code>n_neighbour_dist</code></li>
+<li><strong>Measurement pairs</strong>: Optional calculation of 2-epoch variability metrics</li>
+<li><strong>Pair aggregates</strong>: Maximum Vs and m metrics per source (only significant pairs)</li>
+<li><strong>Bulk upload</strong>: Batch creation of sources, associations, relations</li>
+<li><strong>Parquet export</strong>: Save sources, associations, relations, measurement pairs</li>
+<li><strong>Add mode</strong>: Update existing sources vs create new ones</li>
+<li><strong>Memory management</strong>: Track memory usage throughout process</li>
+</ul>
+<p><strong>Key Functions:</strong>
+- <code>calculate_measurement_pair_aggregate_metrics()</code> - Filter pairs by Vs threshold, find max m metric
+- <code>final_operations()</code> - Orchestrates all finalization steps</p>
+<h4 id="forced-extraction-forced_extractionpy">Forced Extraction (<code>forced_extraction.py</code>)<a class="headerlink" href="#forced-extraction-forced_extractionpy" title="Permanent link">¶</a></h4>
+<ul>
+<li><strong>Purpose</strong>: Fill gaps in light curves by extracting flux at known positions</li>
+<li><strong>Image loading</strong>: Memmap option for large images</li>
+<li><strong>SkyCoord conversion</strong>: Convert RA/Dec to pixel coordinates</li>
+<li><strong>Edge detection</strong>: Skip sources near image edges (configurable buffer)</li>
+<li><strong>NaN handling</strong>: Check for NaN values in background/noise maps</li>
+<li><strong>Batch processing</strong>: Process multiple images in parallel</li>
+<li><strong>Parquet storage</strong>: Save forced measurements to separate parquet files</li>
+</ul>
+<p><strong>Key Functions:</strong>
+- <code>extract_from_image()</code> - Extract flux for sources in one image
+- <code>remove_forced_meas()</code> - Clean up forced measurements from database
+- <code>get_data_from_parquet()</code> - Get prefix and max ID for component naming</p>
+<h4 id="measurement-pairs-pairspy">Measurement Pairs (<code>pairs.py</code>)<a class="headerlink" href="#measurement-pairs-pairspy" title="Permanent link">¶</a></h4>
+<ul>
+<li><strong>Purpose</strong>: Calculate 2-epoch variability metrics (Vs, m) for all measurement pairs</li>
+<li><strong>Dask parallelization</strong>: Group by source, generate combinations in parallel</li>
+<li><strong>Date ordering</strong>: Ensure pairs are in chronological order (a &lt; b)</li>
+<li><strong>Metrics calculation</strong>: <code>calculate_vs_metric()</code>, <code>calculate_m_metric()</code></li>
+<li><strong>Memory optimization</strong>: Configurable partition size</li>
+</ul>
+<p><strong>Key Functions:</strong>
+- <code>calculate_vs_metric()</code> - T-statistic for variability (Mooley et al. 2016)
+- <code>calculate_m_metric()</code> - Modulation index (fractional variability)
+- <code>calculate_measurement_pair_metrics()</code> - Generate all pairs with metrics</p>
+<h4 id="pipeline-loading-loadingpy">Pipeline Loading (<code>loading.py</code>)<a class="headerlink" href="#pipeline-loading-loadingpy" title="Permanent link">¶</a></h4>
+<ul>
+<li><strong>Bulk upload pattern</strong>: Generator-based batch creation</li>
+<li><strong>Transaction management</strong>: Atomic transactions for consistency</li>
+<li><strong>Memory tracking</strong>: Log memory usage at each step</li>
+<li><strong>Parquet storage</strong>: Save measurements to parquet immediately after upload</li>
+<li><strong>Image-band relationship</strong>: Get or create Band objects</li>
+<li><strong>Sky region management</strong>: Create or reuse SkyRegion objects</li>
+</ul>
+<p><strong>Key Functions:</strong>
+- <code>bulk_upload_model()</code> - Generic bulk upload with batch size control
+- <code>make_upload_images()</code> - Process images, create measurements
+- <code>make_upload_sources()</code> - Bulk create sources with batch processing
+- <code>make_upload_associations()</code> - Create Association records
+- <code>make_upload_related_sources()</code> - Create RelatedSource records</p>
+<h3 id="configuration-management">Configuration Management<a class="headerlink" href="#configuration-management" title="Permanent link">¶</a></h3>
+<h4 id="pipelineconfig-class-configpy">PipelineConfig Class (<code>config.py</code>)<a class="headerlink" href="#pipelineconfig-class-configpy" title="Permanent link">¶</a></h4>
+<ul>
+<li><strong>YAML schema</strong>: StrictYAML schema validation</li>
+<li><strong>Jinja2 templates</strong>: Generate config files from templates</li>
+<li><strong>Input validation</strong>: Check file existence, match images to catalogs</li>
+<li><strong>Epoch mode</strong>: Support for user-defined epochs vs auto-detection</li>
+<li><strong>Glob expressions</strong>: Resolve glob patterns to file lists</li>
+<li><strong>Default values</strong>: Sensible defaults from Django settings</li>
+<li><strong>Validation</strong>: Separate validation for schema vs inputs</li>
+</ul>
+<p><strong>Key Features:</strong>
+- <code>make_config_template()</code> - Render Jinja2 template
+- <code>from_file()</code> - Load and parse YAML config
+- <code>validate()</code> - Validate schema and inputs
+- <code>_resolve_glob_expressions()</code> - Expand glob patterns
+- <code>_create_input_epochs()</code> - Auto-create epochs from file dates</p>
+<p><strong>Config Structure:</strong>
+<div class="highlight"><pre><span></span><code><span class="nt">run</span><span class="p">:</span>
+<span class="w">  </span><span class="nt">path</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">/path/to/run</span>
+<span class="w">  </span><span class="nt">suppress_astropy_warnings</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">true</span>
+<span class="nt">inputs</span><span class="p">:</span>
+<span class="w">  </span><span class="nt">image</span><span class="p">:</span><span class="w"> </span><span class="p p-Indicator">{</span><span class="nv">...</span><span class="p p-Indicator">}</span>
+<span class="w">  </span><span class="nt">selavy</span><span class="p">:</span><span class="w"> </span><span class="p p-Indicator">{</span><span class="nv">...</span><span class="p p-Indicator">}</span>
+<span class="w">  </span><span class="nt">noise</span><span class="p">:</span><span class="w"> </span><span class="p p-Indicator">{</span><span class="nv">...</span><span class="p p-Indicator">}</span>
+<span class="nt">source_association</span><span class="p">:</span>
+<span class="w">  </span><span class="nt">method</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">basic|advanced|deruiter</span>
+<span class="w">  </span><span class="nt">radius</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">5.0</span>
+<span class="w">  </span><span class="l l-Scalar l-Scalar-Plain">...</span>
+<span class="nt">source_monitoring</span><span class="p">:</span>
+<span class="w">  </span><span class="nt">monitor</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">false</span>
+<span class="w">  </span><span class="nt">min_sigma</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">5.0</span>
+<span class="w">  </span><span class="l l-Scalar l-Scalar-Plain">...</span>
+<span class="nt">variability</span><span class="p">:</span>
+<span class="w">  </span><span class="nt">pair_metrics</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">true</span>
+<span class="w">  </span><span class="nt">source_aggregate_pair_metrics_min_abs_vs</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">3.0</span>
+</code></pre></div></p>
+<h3 id="authentication-authorization">Authentication &amp; Authorization<a class="headerlink" href="#authentication-authorization" title="Permanent link">¶</a></h3>
+<h4 id="github-oauth-integration-utilsauthpy">GitHub OAuth Integration (<code>utils/auth.py</code>)<a class="headerlink" href="#github-oauth-integration-utilsauthpy" title="Permanent link">¶</a></h4>
+<ul>
+<li><strong>Social auth</strong>: python-social-auth for GitHub OAuth</li>
+<li><strong>Admin team</strong>: Check GitHub team membership for admin privileges</li>
+<li><strong>Avatar loading</strong>: Store GitHub avatar URL in extra_data</li>
+<li><strong>Auto-admin</strong>: Grant Django admin to team members</li>
+</ul>
+<p><strong>Key Functions:</strong>
+- <code>create_admin_user()</code> - Pipeline function for social auth
+- <code>load_github_avatar()</code> - Store avatar URL</p>
+<p><strong>DSA-110 Application:</strong>
+- Consider GitHub OAuth for team authentication
+- Use team membership for access control
+- Store user avatars for UI display</p>
+<h3 id="management-commands_1">Management Commands<a class="headerlink" href="#management-commands_1" title="Permanent link">¶</a></h3>
+<p>VAST provides Django management commands for common operations:</p>
+<ol>
+<li><strong><code>runpipeline.py</code></strong> - Execute pipeline run</li>
+<li><strong><code>initpiperun.py</code></strong> - Initialize new pipeline run</li>
+<li><strong><code>ingestimages.py</code></strong> - Ingest images into database</li>
+<li><strong><code>clearpiperun.py</code></strong> - Delete pipeline run and associated data</li>
+<li><strong><code>restorepiperun.py</code></strong> - Restore deleted pipeline run</li>
+<li><strong><code>createmeasarrow.py</code></strong> - Create Arrow files from Parquet</li>
+<li><strong><code>cleanup_cutouts.py</code></strong> - Clean up image cutouts</li>
+<li><strong><code>debugrun.py</code></strong> - Debug pipeline run</li>
+</ol>
+<p><strong>Pattern:</strong> CLI tools as Django management commands for consistency</p>
+<h3 id="api-endpoints-deep-dive">API Endpoints Deep Dive<a class="headerlink" href="#api-endpoints-deep-dive" title="Permanent link">¶</a></h3>
+<h4 id="region-export-viewspy">Region Export (<code>views.py</code>)<a class="headerlink" href="#region-export-viewspy" title="Permanent link">¶</a></h4>
+<ul>
+<li><strong>Cone search</strong>: Filter measurements by RA/Dec/radius</li>
+<li><strong>Region file</strong>: Generate DS9 region file format</li>
+<li><strong>Selection highlighting</strong>: Color selected source/measurement differently</li>
+<li><strong>Forced indicator</strong>: Dashed lines for forced measurements</li>
+<li><strong>Ellipse shapes</strong>: Use beam parameters for ellipse size</li>
+</ul>
+<p><strong>Endpoint:</strong> <code>/api/images/{id}/regions/</code></p>
+<h4 id="raw-image-list-viewspy">Raw Image List (<code>views.py</code>)<a class="headerlink" href="#raw-image-list-viewspy" title="Permanent link">¶</a></h4>
+<ul>
+<li><strong>File discovery</strong>: Glob patterns for FITS and Selavy files</li>
+<li><strong>Parallel search</strong>: Dask bag for parallel file discovery</li>
+<li><strong>User home data</strong>: Include user's home directory data</li>
+<li><strong>Title/tokens</strong>: Generate HTML option attributes for Bootstrap Select</li>
+<li><strong>Response format</strong>: Separate lists for FITS and Selavy files</li>
+</ul>
+<p><strong>Endpoint:</strong> <code>/api/rawimages/</code></p>
+<h4 id="run-config-api-viewspy">Run Config API (<code>views.py</code>)<a class="headerlink" href="#run-config-api-viewspy" title="Permanent link">¶</a></h4>
+<ul>
+<li><strong>Validation</strong>: Validate config file against schema</li>
+<li><strong>Write</strong>: Update config file from UI</li>
+<li><strong>Error handling</strong>: Return detailed error messages</li>
+<li><strong>Success feedback</strong>: Django messages framework</li>
+</ul>
+<p><strong>Endpoints:</strong>
+- <code>POST /api/runs/{id}/config/validate/</code> - Validate config
+- <code>POST /api/runs/{id}/config/write/</code> - Write config</p>
+<h4 id="run-log-api-viewspy">Run Log API (<code>views.py</code>)<a class="headerlink" href="#run-log-api-viewspy" title="Permanent link">¶</a></h4>
+<ul>
+<li><strong>Log fetching</strong>: Retrieve log files from run directory</li>
+<li><strong>Multiple logs</strong>: Support different log types (run, restore, arrow)</li>
+<li><strong>File streaming</strong>: Stream log content to response</li>
+<li><strong>Error handling</strong>: 404 if log doesn't exist</li>
+</ul>
+<p><strong>Endpoint:</strong> <code>GET /api/runs/{id}/logs/fetch/?logname=run.log</code></p>
+<h3 id="utility-patterns_1">Utility Patterns<a class="headerlink" href="#utility-patterns_1" title="Permanent link">¶</a></h3>
+<h4 id="delete-run-utilsdelete_runpy">Delete Run (<code>utils/delete_run.py</code>)<a class="headerlink" href="#delete-run-utilsdelete_runpy" title="Permanent link">¶</a></h4>
+<ul>
+<li><strong>Raw SQL</strong>: Use raw SQL for performance on large deletions</li>
+<li><strong>Batch deletion</strong>: Delete in batches to avoid memory issues</li>
+<li><strong>Orphan cleanup</strong>: Delete images and sky regions not used by other runs</li>
+<li><strong>Cascade handling</strong>: Manually handle cascades for performance</li>
+<li><strong>Transaction safety</strong>: Wrap in transaction for atomicity</li>
+</ul>
+<p><strong>Key Functions:</strong>
+- <code>delete_pipeline_run_raw_sql()</code> - Main deletion function
+- <code>clear_run_sources()</code> - Delete sources in batches</p>
+<p><strong>DSA-110 Application:</strong>
+- Use raw SQL for bulk deletions
+- Batch operations for large datasets
+- Manual cascade handling for performance</p>
+<h4 id="unit-tags-utilsunit_tagspy">Unit Tags (<code>utils/unit_tags.py</code>)<a class="headerlink" href="#unit-tags-utilsunit_tagspy" title="Permanent link">¶</a></h4>
+<ul>
+<li><strong>Template filters</strong>: Django template filters for unit conversion</li>
+<li><strong>deg_to_arcsec</strong>: Convert degrees to arcseconds</li>
+<li><strong>deg_to_arcmin</strong>: Convert degrees to arcminutes</li>
+</ul>
+<p><strong>Usage:</strong>
+<div class="highlight"><pre><span></span><code><span class="cp">{{</span> <span class="nv">image.beam_bmaj</span><span class="o">|</span><span class="nf">deg_to_arcsec</span><span class="o">|</span><span class="nf">floatformat</span><span class="o">:</span><span class="m">3</span> <span class="cp">}}</span><span class="x">"</span>
+</code></pre></div></p>
+<h4 id="context-processors-context_processorspy">Context Processors (<code>context_processors.py</code>)<a class="headerlink" href="#context-processors-context_processorspy" title="Permanent link">¶</a></h4>
+<ul>
+<li><strong>Maintenance banner</strong>: Inject maintenance messages into all templates</li>
+<li><strong>Version display</strong>: Add pipeline version to context</li>
+<li><strong>Global context</strong>: Available in all templates</li>
+</ul>
+<h3 id="new-sources-detection-pipelinenew_sourcespy">New Sources Detection (<code>pipeline/new_sources.py</code>)<a class="headerlink" href="#new-sources-detection-pipelinenew_sourcespy" title="Permanent link">¶</a></h3>
+<ul>
+<li><strong>Purpose</strong>: Identify sources that appear for the first time</li>
+<li><strong>Method</strong>: Check if source would have been detected in previous images</li>
+<li><strong>RMS measurement</strong>: Measure RMS at source position in previous images</li>
+<li><strong>Sigma calculation</strong>: Calculate SNR if source placed at minimum RMS</li>
+<li><strong>Threshold</strong>: Flag as new if SNR &gt; <code>new_source_min_sigma</code></li>
+<li><strong>Parallel processing</strong>: Use Dask for parallel RMS measurements</li>
+</ul>
+<p><strong>Key Functions:</strong>
+- <code>get_image_rms_measurements()</code> - Measure RMS at coordinates
+- <code>parallel_get_rms_measurements()</code> - Parallel version
+- <code>check_primary_image()</code> - Verify primary image in image list</p>
+<h3 id="vast-tools-integration">Vast-Tools Integration<a class="headerlink" href="#vast-tools-integration" title="Permanent link">¶</a></h3>
+<h4 id="piperun-class-vasttoolspipelinepy">PipeRun Class (<code>vasttools/pipeline.py</code>)<a class="headerlink" href="#piperun-class-vasttoolspipelinepy" title="Permanent link">¶</a></h4>
+<ul>
+<li><strong>Purpose</strong>: Python interface to pipeline results</li>
+<li><strong>Data loading</strong>: Load parquet files into DataFrames</li>
+<li><strong>Vaex support</strong>: Option to use Vaex for large datasets</li>
+<li><strong>Measurement pairs</strong>: Lazy loading of measurement pairs</li>
+<li><strong>Combine runs</strong>: Merge multiple runs for comparison</li>
+<li><strong>SkyCoord</strong>: Pre-compute SkyCoord for spatial queries</li>
+</ul>
+<p><strong>Key Features:</strong>
+- Load measurements, sources, associations, relations
+- Support for Arrow files (faster than Parquet)
+- Combine multiple runs
+- Query by position, flux, variability</p>
+<h4 id="tools-module-vasttoolstoolspy">Tools Module (<code>vasttools/tools.py</code>)<a class="headerlink" href="#tools-module-vasttoolstoolspy" title="Permanent link">¶</a></h4>
+<ul>
+<li><strong>MOC operations</strong>: Create and query MOC (Multi-Order Coverage) maps</li>
+<li><strong>Credible levels</strong>: Calculate credible regions from skymaps</li>
+<li><strong>Beam information</strong>: Parse beam files into DataFrames</li>
+<li><strong>Epoch tools</strong>: Utilities for epoch-based analysis</li>
+</ul>
+<p><strong>Key Functions:</strong>
+- <code>skymap2moc()</code> - Convert skymap to MOC
+- <code>find_in_moc()</code> - Find sources in MOC region
+- <code>add_credible_levels()</code> - Add credible level to dataframe</p>
+<h2 id="conclusion">Conclusion<a class="headerlink" href="#conclusion" title="Permanent link">¶</a></h2>
+<p>VAST provides an excellent reference architecture for DSA-110's dashboard. Key takeaways:</p>
+<ol>
+<li><strong>Data Model</strong>: Measurement → Source association is powerful</li>
+<li><strong>Web Interface</strong>: Proven patterns for radio astronomy workflows</li>
+<li><strong>Visualization</strong>: Bokeh, JS9, Aladin Lite are excellent choices</li>
+<li><strong>Performance</strong>: Server-side processing and optimization techniques</li>
+<li><strong>User Experience</strong>: Query system, detail pages, analysis tools</li>
+<li><strong>Implementation</strong>: Comprehensive JavaScript patterns, form handling, utilities</li>
+</ol>
+<p>The main differences for DSA-110:
+- <strong>Streaming focus</strong>: Real-time pipeline monitoring
+- <strong>Autonomous operations</strong>: Less manual intervention
+- <strong>Analysis workspace</strong>: More flexible than VAST's fixed pages
+- <strong>Unified command center</strong>: Integration with streaming pipeline</p>
+<p>By adopting VAST's proven patterns while enhancing for DSA-110's specific needs, we can build a world-class dashboard for continuum imaging and ESE detection.</p>
+</article>
+</div>
+<script>var tabs=__md_get("__tabs");if(Array.isArray(tabs))e:for(var set of document.querySelectorAll(".tabbed-set")){var tab,labels=set.querySelector(".tabbed-labels");for(tab of tabs)for(var label of labels.getElementsByTagName("label"))if(label.innerText.trim()===tab){var input=document.getElementById(label.htmlFor);input.checked=!0;continue e}}</script>
+<script>var target=document.getElementById(location.hash.slice(1));target&&target.name&&(target.checked=target.name.startsWith("__tabbed_"))</script>
+</div>
+</main>
+<footer class="md-footer">
+<div class="md-footer-meta md-typeset">
+<div class="md-footer-meta__inner md-grid">
+<div class="md-copyright">
+  
+  
+    Made with
+    <a href="https://squidfunk.github.io/mkdocs-material/" rel="noopener" target="_blank">
+      Material for MkDocs
+    </a>
+</div>
+</div>
+</div>
+</footer>
+</div>
+<div class="md-dialog" data-md-component="dialog">
+<div class="md-dialog__inner md-typeset"></div>
+</div>
+<script id="__config" type="application/json">{"base": "../..", "features": ["navigation.sections", "navigation.indexes", "content.code.copy", "content.tabs.link"], "search": "../../assets/javascripts/workers/search.b8dbb3d2.min.js", "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}}</script>
+<script src="../../assets/javascripts/bundle.fe8b6f2b.min.js"></script>
+<script src="../../javascripts/mathjax.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+<script src="../../javascripts/mermaid-zoom.js"></script>
+</body>
+</html>

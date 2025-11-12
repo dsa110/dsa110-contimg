@@ -1,0 +1,1878 @@
+
+<!DOCTYPE html>
+
+<html class="no-js" lang="en">
+<head>
+<meta charset="utf-8"/>
+<meta content="width=device-width,initial-scale=1" name="viewport"/>
+<link href="http://code.deepsynoptic.org/dsa110-contimg/CODE_REVIEW_ANALYSIS/" rel="canonical"/>
+<link href="../assets/images/favicon.png" rel="icon"/>
+<meta content="mkdocs-1.6.1, mkdocs-material-9.5.31" name="generator"/>
+<title>Code Review Analysis: Software Developer &amp; Radio Astronomer Perspectives - DSA-110 Continuum Imaging Pipeline</title>
+<link href="../assets/stylesheets/main.3cba04c6.min.css" rel="stylesheet"/>
+<link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect"/>
+<link href="https://fonts.googleapis.com/css?family=Roboto:300,300i,400,400i,700,700i%7CRoboto+Mono:400,400i,700,700i&amp;display=fallback" rel="stylesheet"/>
+<style>:root{--md-text-font:"Roboto";--md-code-font:"Roboto Mono"}</style>
+<link href="../assets/_mkdocstrings.css" rel="stylesheet"/>
+<script>__md_scope=new URL("..",location),__md_hash=e=>[...e].reduce((e,_)=>(e<<5)-e+_.charCodeAt(0),0),__md_get=(e,_=localStorage,t=__md_scope)=>JSON.parse(_.getItem(t.pathname+"."+e)),__md_set=(e,_,t=localStorage,a=__md_scope)=>{try{t.setItem(a.pathname+"."+e,JSON.stringify(_))}catch(e){}}</script>
+</head>
+<body dir="ltr">
+<input autocomplete="off" class="md-toggle" data-md-toggle="drawer" id="__drawer" type="checkbox"/>
+<input autocomplete="off" class="md-toggle" data-md-toggle="search" id="__search" type="checkbox"/>
+<label class="md-overlay" for="__drawer"></label>
+<div data-md-component="skip">
+<a class="md-skip" href="#code-review-analysis-software-developer-radio-astronomer-perspectives">
+          Skip to content
+        </a>
+</div>
+<div data-md-component="announce">
+</div>
+<header class="md-header md-header--shadow" data-md-component="header">
+<nav aria-label="Header" class="md-header__inner md-grid">
+<a aria-label="DSA-110 Continuum Imaging Pipeline" class="md-header__button md-logo" data-md-component="logo" href=".." title="DSA-110 Continuum Imaging Pipeline">
+<svg viewbox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54Z"></path></svg>
+</a>
+<label class="md-header__button md-icon" for="__drawer">
+<svg viewbox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M3 6h18v2H3V6m0 5h18v2H3v-2m0 5h18v2H3v-2Z"></path></svg>
+</label>
+<div class="md-header__title" data-md-component="header-title">
+<div class="md-header__ellipsis">
+<div class="md-header__topic">
+<span class="md-ellipsis">
+            DSA-110 Continuum Imaging Pipeline
+          </span>
+</div>
+<div class="md-header__topic" data-md-component="header-topic">
+<span class="md-ellipsis">
+            
+              Code Review Analysis: Software Developer &amp; Radio Astronomer Perspectives
+            
+          </span>
+</div>
+</div>
+</div>
+<script>var media,input,key,value,palette=__md_get("__palette");if(palette&&palette.color){"(prefers-color-scheme)"===palette.color.media&&(media=matchMedia("(prefers-color-scheme: light)"),input=document.querySelector(media.matches?"[data-md-color-media='(prefers-color-scheme: light)']":"[data-md-color-media='(prefers-color-scheme: dark)']"),palette.color.media=input.getAttribute("data-md-color-media"),palette.color.scheme=input.getAttribute("data-md-color-scheme"),palette.color.primary=input.getAttribute("data-md-color-primary"),palette.color.accent=input.getAttribute("data-md-color-accent"));for([key,value]of Object.entries(palette.color))document.body.setAttribute("data-md-color-"+key,value)}</script>
+<label class="md-header__button md-icon" for="__search">
+<svg viewbox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.516 6.516 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5Z"></path></svg>
+</label>
+<div class="md-search" data-md-component="search" role="dialog">
+<label class="md-search__overlay" for="__search"></label>
+<div class="md-search__inner" role="search">
+<form class="md-search__form" name="search">
+<input aria-label="Search" autocapitalize="off" autocomplete="off" autocorrect="off" class="md-search__input" data-md-component="search-query" name="query" placeholder="Search" required="" spellcheck="false" type="text"/>
+<label class="md-search__icon md-icon" for="__search">
+<svg viewbox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.516 6.516 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5Z"></path></svg>
+<svg viewbox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11h12Z"></path></svg>
+</label>
+<nav aria-label="Search" class="md-search__options">
+<button aria-label="Clear" class="md-search__icon md-icon" tabindex="-1" title="Clear" type="reset">
+<svg viewbox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M19 6.41 17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12 19 6.41Z"></path></svg>
+</button>
+</nav>
+</form>
+<div class="md-search__output">
+<div class="md-search__scrollwrap" data-md-scrollfix="" tabindex="0">
+<div class="md-search-result" data-md-component="search-result">
+<div class="md-search-result__meta">
+            Initializing search
+          </div>
+<ol class="md-search-result__list" role="presentation"></ol>
+</div>
+</div>
+</div>
+</div>
+</div>
+<div class="md-header__source">
+<a class="md-source" data-md-component="source" href="https://github.com/dsa110/dsa110-contimg" title="Go to repository">
+<div class="md-source__icon md-icon">
+<svg viewbox="0 0 448 512" xmlns="http://www.w3.org/2000/svg"><!--! Font Awesome Free 6.6.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2024 Fonticons, Inc.--><path d="M439.55 236.05 244 40.45a28.87 28.87 0 0 0-40.81 0l-40.66 40.63 51.52 51.52c27.06-9.14 52.68 16.77 43.39 43.68l49.66 49.66c34.23-11.8 61.18 31 35.47 56.69-26.49 26.49-70.21-2.87-56-37.34L240.22 199v121.85c25.3 12.54 22.26 41.85 9.08 55a34.34 34.34 0 0 1-48.55 0c-17.57-17.6-11.07-46.91 11.25-56v-123c-20.8-8.51-24.6-30.74-18.64-45L142.57 101 8.45 235.14a28.86 28.86 0 0 0 0 40.81l195.61 195.6a28.86 28.86 0 0 0 40.8 0l194.69-194.69a28.86 28.86 0 0 0 0-40.81z"></path></svg>
+</div>
+<div class="md-source__repository">
+    GitHub
+  </div>
+</a>
+</div>
+</nav>
+</header>
+<div class="md-container" data-md-component="container">
+<main class="md-main" data-md-component="main">
+<div class="md-main__inner md-grid">
+<div class="md-sidebar md-sidebar--primary" data-md-component="sidebar" data-md-type="navigation">
+<div class="md-sidebar__scrollwrap">
+<div class="md-sidebar__inner">
+<nav aria-label="Navigation" class="md-nav md-nav--primary" data-md-level="0">
+<label class="md-nav__title" for="__drawer">
+<a aria-label="DSA-110 Continuum Imaging Pipeline" class="md-nav__button md-logo" data-md-component="logo" href=".." title="DSA-110 Continuum Imaging Pipeline">
+<svg viewbox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54Z"></path></svg>
+</a>
+    DSA-110 Continuum Imaging Pipeline
+  </label>
+<div class="md-nav__source">
+<a class="md-source" data-md-component="source" href="https://github.com/dsa110/dsa110-contimg" title="Go to repository">
+<div class="md-source__icon md-icon">
+<svg viewbox="0 0 448 512" xmlns="http://www.w3.org/2000/svg"><!--! Font Awesome Free 6.6.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2024 Fonticons, Inc.--><path d="M439.55 236.05 244 40.45a28.87 28.87 0 0 0-40.81 0l-40.66 40.63 51.52 51.52c27.06-9.14 52.68 16.77 43.39 43.68l49.66 49.66c34.23-11.8 61.18 31 35.47 56.69-26.49 26.49-70.21-2.87-56-37.34L240.22 199v121.85c25.3 12.54 22.26 41.85 9.08 55a34.34 34.34 0 0 1-48.55 0c-17.57-17.6-11.07-46.91 11.25-56v-123c-20.8-8.51-24.6-30.74-18.64-45L142.57 101 8.45 235.14a28.86 28.86 0 0 0 0 40.81l195.61 195.6a28.86 28.86 0 0 0 40.8 0l194.69-194.69a28.86 28.86 0 0 0 0-40.81z"></path></svg>
+</div>
+<div class="md-source__repository">
+    GitHub
+  </div>
+</a>
+</div>
+<ul class="md-nav__list" data-md-scrollfix="">
+<li class="md-nav__item">
+<a class="md-nav__link" href="..">
+<span class="md-ellipsis">
+    Home
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../DOCUMENTATION_QUICK_REFERENCE/">
+<span class="md-ellipsis">
+    Documentation Guide
+  </span>
+</a>
+</li>
+<li class="md-nav__item md-nav__item--section md-nav__item--nested">
+<input class="md-nav__toggle md-toggle" id="__nav_3" type="checkbox"/>
+<div class="md-nav__link md-nav__container">
+<a class="md-nav__link" href="../concepts/">
+<span class="md-ellipsis">
+    Concepts
+  </span>
+</a>
+<label class="md-nav__link" for="__nav_3" id="__nav_3_label" tabindex="">
+<span class="md-nav__icon md-icon"></span>
+</label>
+</div>
+<nav aria-expanded="false" aria-labelledby="__nav_3_label" class="md-nav" data-md-level="1">
+<label class="md-nav__title" for="__nav_3">
+<span class="md-nav__icon md-icon"></span>
+            Concepts
+          </label>
+<ul class="md-nav__list" data-md-scrollfix="">
+<li class="md-nav__item">
+<a class="md-nav__link" href="../concepts/architecture/">
+<span class="md-ellipsis">
+    Architecture
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../concepts/DIRECTORY_ARCHITECTURE/">
+<span class="md-ellipsis">
+    Directory Architecture
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../concepts/modules/">
+<span class="md-ellipsis">
+    Modules
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../concepts/control-panel/">
+<span class="md-ellipsis">
+    Control Panel
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../concepts/aoflagger/">
+<span class="md-ellipsis">
+    AOFlagger
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../concepts/frontend_design/">
+<span class="md-ellipsis">
+    Frontend Design
+  </span>
+</a>
+</li>
+<li class="md-nav__item md-nav__item--nested">
+<input class="md-nav__toggle md-toggle" id="__nav_3_8" type="checkbox"/>
+<label class="md-nav__link" for="__nav_3_8" id="__nav_3_8_label" tabindex="0">
+<span class="md-ellipsis">
+    Dashboard
+  </span>
+<span class="md-nav__icon md-icon"></span>
+</label>
+<nav aria-expanded="false" aria-labelledby="__nav_3_8_label" class="md-nav" data-md-level="2">
+<label class="md-nav__title" for="__nav_3_8">
+<span class="md-nav__icon md-icon"></span>
+            Dashboard
+          </label>
+<ul class="md-nav__list" data-md-scrollfix="">
+<li class="md-nav__item">
+<a class="md-nav__link" href="../concepts/dashboard_mockups/">
+<span class="md-ellipsis">
+    Mockups
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../SKYVIEW_IMPLEMENTATION_PLAN/">
+<span class="md-ellipsis">
+    Sky View
+  </span>
+</a>
+</li>
+</ul>
+</nav>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../concepts/GLOSSARY/">
+<span class="md-ellipsis">
+    Glossary
+  </span>
+</a>
+</li>
+<li class="md-nav__item md-nav__item--nested">
+<input class="md-nav__toggle md-toggle" id="__nav_3_10" type="checkbox"/>
+<label class="md-nav__link" for="__nav_3_10" id="__nav_3_10_label" tabindex="0">
+<span class="md-ellipsis">
+    Pipeline
+  </span>
+<span class="md-nav__icon md-icon"></span>
+</label>
+<nav aria-expanded="false" aria-labelledby="__nav_3_10_label" class="md-nav" data-md-level="2">
+<label class="md-nav__title" for="__nav_3_10">
+<span class="md-nav__icon md-icon"></span>
+            Pipeline
+          </label>
+<ul class="md-nav__list" data-md-scrollfix="">
+<li class="md-nav__item">
+<a class="md-nav__link" href="../concepts/pipeline_overview/">
+<span class="md-ellipsis">
+    Overview
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../concepts/pipeline_stage_architecture/">
+<span class="md-ellipsis">
+    Stage Architecture
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../concepts/pipeline_workflow_visualization/">
+<span class="md-ellipsis">
+    Workflow Visualization
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../concepts/pipeline_production_features/">
+<span class="md-ellipsis">
+    Production Features
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../concepts/pipeline_patterns/">
+<span class="md-ellipsis">
+    Patterns
+  </span>
+</a>
+</li>
+</ul>
+</nav>
+</li>
+<li class="md-nav__item md-nav__item--nested">
+<input class="md-nav__toggle md-toggle" id="__nav_3_11" type="checkbox"/>
+<label class="md-nav__link" for="__nav_3_11" id="__nav_3_11_label" tabindex="0">
+<span class="md-ellipsis">
+    Science
+  </span>
+<span class="md-nav__icon md-icon"></span>
+</label>
+<nav aria-expanded="false" aria-labelledby="__nav_3_11_label" class="md-nav" data-md-level="2">
+<label class="md-nav__title" for="__nav_3_11">
+<span class="md-nav__icon md-icon"></span>
+            Science
+          </label>
+<ul class="md-nav__list" data-md-scrollfix="">
+<li class="md-nav__item">
+<a class="md-nav__link" href="../concepts/science/photometry_normalization/">
+<span class="md-ellipsis">
+    Photometry Normalization
+  </span>
+</a>
+</li>
+</ul>
+</nav>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../concepts/mcp_browser_server_setup/">
+<span class="md-ellipsis">
+    Browser MCP Server
+  </span>
+</a>
+</li>
+</ul>
+</nav>
+</li>
+<li class="md-nav__item md-nav__item--section md-nav__item--nested">
+<input class="md-nav__toggle md-toggle" id="__nav_4" type="checkbox"/>
+<label class="md-nav__link" for="__nav_4" id="__nav_4_label" tabindex="">
+<span class="md-ellipsis">
+    Tutorials
+  </span>
+<span class="md-nav__icon md-icon"></span>
+</label>
+<nav aria-expanded="false" aria-labelledby="__nav_4_label" class="md-nav" data-md-level="1">
+<label class="md-nav__title" for="__nav_4">
+<span class="md-nav__icon md-icon"></span>
+            Tutorials
+          </label>
+<ul class="md-nav__list" data-md-scrollfix="">
+<li class="md-nav__item md-nav__item--nested">
+<input class="md-nav__toggle md-toggle" id="__nav_4_1" type="checkbox"/>
+<label class="md-nav__link" for="__nav_4_1" id="__nav_4_1_label" tabindex="0">
+<span class="md-ellipsis">
+    Conversion
+  </span>
+<span class="md-nav__icon md-icon"></span>
+</label>
+<nav aria-expanded="false" aria-labelledby="__nav_4_1_label" class="md-nav" data-md-level="2">
+<label class="md-nav__title" for="__nav_4_1">
+<span class="md-nav__icon md-icon"></span>
+            Conversion
+          </label>
+<ul class="md-nav__list" data-md-scrollfix="">
+<li class="md-nav__item">
+<a class="md-nav__link" href="../tutorials/HDF5_TO_MS_TUTORIAL/">
+<span class="md-ellipsis">
+    HDF5 to MS
+  </span>
+</a>
+</li>
+</ul>
+</nav>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../tutorials/simulation-tutorial/">
+<span class="md-ellipsis">
+    Simulation
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../tutorials/calibrate-apply/">
+<span class="md-ellipsis">
+    Calibrate and Apply
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../tutorials/convert-standalone/">
+<span class="md-ellipsis">
+    Convert Standalone
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../tutorials/streaming/">
+<span class="md-ellipsis">
+    Streaming
+  </span>
+</a>
+</li>
+<li class="md-nav__item md-nav__item--nested">
+<input class="md-nav__toggle md-toggle" id="__nav_4_6" type="checkbox"/>
+<label class="md-nav__link" for="__nav_4_6" id="__nav_4_6_label" tabindex="0">
+<span class="md-ellipsis">
+    Notebooks
+  </span>
+<span class="md-nav__icon md-icon"></span>
+</label>
+<nav aria-expanded="false" aria-labelledby="__nav_4_6_label" class="md-nav" data-md-level="2">
+<label class="md-nav__title" for="__nav_4_6">
+<span class="md-nav__icon md-icon"></span>
+            Notebooks
+          </label>
+<ul class="md-nav__list" data-md-scrollfix="">
+<li class="md-nav__item">
+<a class="md-nav__link" href="../tutorials/notebooks/bandpass_calibration_test.ipynb">
+<span class="md-ellipsis">
+    Bandpass Calibration Test
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../tutorials/notebooks/calibrator_helper.py">
+<span class="md-ellipsis">
+    Calibrator Helper
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../tutorials/notebooks/CalibratorSearch.ipynb">
+<span class="md-ellipsis">
+    Calibrator Search
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../tutorials/notebooks/ms_staging_workflow.ipynb">
+<span class="md-ellipsis">
+    MS Staging Workflow
+  </span>
+</a>
+</li>
+</ul>
+</nav>
+</li>
+</ul>
+</nav>
+</li>
+<li class="md-nav__item md-nav__item--section md-nav__item--nested">
+<input class="md-nav__toggle md-toggle" id="__nav_5" type="checkbox"/>
+<label class="md-nav__link" for="__nav_5" id="__nav_5_label" tabindex="">
+<span class="md-ellipsis">
+    How-To Guides
+  </span>
+<span class="md-nav__icon md-icon"></span>
+</label>
+<nav aria-expanded="false" aria-labelledby="__nav_5_label" class="md-nav" data-md-level="1">
+<label class="md-nav__title" for="__nav_5">
+<span class="md-nav__icon md-icon"></span>
+            How-To Guides
+          </label>
+<ul class="md-nav__list" data-md-scrollfix="">
+<li class="md-nav__item">
+<a class="md-nav__link" href="../how-to/github_pages_walkthrough/">
+<span class="md-ellipsis">
+    GitHub Pages Setup
+  </span>
+</a>
+</li>
+<li class="md-nav__item md-nav__item--nested">
+<input class="md-nav__toggle md-toggle" id="__nav_5_2" type="checkbox"/>
+<label class="md-nav__link" for="__nav_5_2" id="__nav_5_2_label" tabindex="0">
+<span class="md-ellipsis">
+    Quickstarts
+  </span>
+<span class="md-nav__icon md-icon"></span>
+</label>
+<nav aria-expanded="false" aria-labelledby="__nav_5_2_label" class="md-nav" data-md-level="2">
+<label class="md-nav__title" for="__nav_5_2">
+<span class="md-nav__icon md-icon"></span>
+            Quickstarts
+          </label>
+<ul class="md-nav__list" data-md-scrollfix="">
+<li class="md-nav__item">
+<a class="md-nav__link" href="../how-to/quickstart/">
+<span class="md-ellipsis">
+    General
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../how-to/control-panel-quickstart/">
+<span class="md-ellipsis">
+    Control Panel
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../how-to/LINEAR_SETUP_QUICKSTART/">
+<span class="md-ellipsis">
+    Linear Setup
+  </span>
+</a>
+</li>
+</ul>
+</nav>
+</li>
+<li class="md-nav__item md-nav__item--nested">
+<input class="md-nav__toggle md-toggle" id="__nav_5_3" type="checkbox"/>
+<label class="md-nav__link" for="__nav_5_3" id="__nav_5_3_label" tabindex="0">
+<span class="md-ellipsis">
+    Testing
+  </span>
+<span class="md-nav__icon md-icon"></span>
+</label>
+<nav aria-expanded="false" aria-labelledby="__nav_5_3_label" class="md-nav" data-md-level="2">
+<label class="md-nav__title" for="__nav_5_3">
+<span class="md-nav__icon md-icon"></span>
+            Testing
+          </label>
+<ul class="md-nav__list" data-md-scrollfix="">
+<li class="md-nav__item">
+<a class="md-nav__link" href="../how-to/FAST_TESTING/">
+<span class="md-ellipsis">
+    Fast Testing
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../how-to/PIPELINE_TESTING_GUIDE/">
+<span class="md-ellipsis">
+    Pipeline Guide
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../how-to/TEST_FLAG_SUBCOMMAND/">
+<span class="md-ellipsis">
+    Flag Subcommand
+  </span>
+</a>
+</li>
+</ul>
+</nav>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../how-to/build-vp-from-h5/">
+<span class="md-ellipsis">
+    Build VP from h5
+  </span>
+</a>
+</li>
+<li class="md-nav__item md-nav__item--nested">
+<input class="md-nav__toggle md-toggle" id="__nav_5_5" type="checkbox"/>
+<label class="md-nav__link" for="__nav_5_5" id="__nav_5_5_label" tabindex="0">
+<span class="md-ellipsis">
+    Calibration
+  </span>
+<span class="md-nav__icon md-icon"></span>
+</label>
+<nav aria-expanded="false" aria-labelledby="__nav_5_5_label" class="md-nav" data-md-level="2">
+<label class="md-nav__title" for="__nav_5_5">
+<span class="md-nav__icon md-icon"></span>
+            Calibration
+          </label>
+<ul class="md-nav__list" data-md-scrollfix="">
+<li class="md-nav__item">
+<a class="md-nav__link" href="../how-to/CALIBRATION_DETAILED_PROCEDURE/">
+<span class="md-ellipsis">
+    Detailed Procedure
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../how-to/FIND_CALIBRATOR_TRANSIT_DATA/">
+<span class="md-ellipsis">
+    Find Calibrator Transit
+  </span>
+</a>
+</li>
+</ul>
+</nav>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../how-to/IMAGE_0834_TRANSIT_5MIN/">
+<span class="md-ellipsis">
+    Image 0834 Transit 5min
+  </span>
+</a>
+</li>
+<li class="md-nav__item md-nav__item--nested">
+<input class="md-nav__toggle md-toggle" id="__nav_5_7" type="checkbox"/>
+<label class="md-nav__link" for="__nav_5_7" id="__nav_5_7_label" tabindex="0">
+<span class="md-ellipsis">
+    Mosaic
+  </span>
+<span class="md-nav__icon md-icon"></span>
+</label>
+<nav aria-expanded="false" aria-labelledby="__nav_5_7_label" class="md-nav" data-md-level="2">
+<label class="md-nav__title" for="__nav_5_7">
+<span class="md-nav__icon md-icon"></span>
+            Mosaic
+          </label>
+<ul class="md-nav__list" data-md-scrollfix="">
+<li class="md-nav__item">
+<a class="md-nav__link" href="../how-to/mosaic_quickstart/">
+<span class="md-ellipsis">
+    Quickstart
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../how-to/mosaic/">
+<span class="md-ellipsis">
+    Complete Guide
+  </span>
+</a>
+</li>
+</ul>
+</nav>
+</li>
+<li class="md-nav__item md-nav__item--nested">
+<input class="md-nav__toggle md-toggle" id="__nav_5_8" type="checkbox"/>
+<label class="md-nav__link" for="__nav_5_8" id="__nav_5_8_label" tabindex="0">
+<span class="md-ellipsis">
+    Quality Assurance
+  </span>
+<span class="md-nav__icon md-icon"></span>
+</label>
+<nav aria-expanded="false" aria-labelledby="__nav_5_8_label" class="md-nav" data-md-level="2">
+<label class="md-nav__title" for="__nav_5_8">
+<span class="md-nav__icon md-icon"></span>
+            Quality Assurance
+          </label>
+<ul class="md-nav__list" data-md-scrollfix="">
+<li class="md-nav__item">
+<a class="md-nav__link" href="../how-to/QUALITY_ASSURANCE_SETUP/">
+<span class="md-ellipsis">
+    Setup
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../how-to/quicklook/">
+<span class="md-ellipsis">
+    Quick Look
+  </span>
+</a>
+</li>
+</ul>
+</nav>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../how-to/reprocess/">
+<span class="md-ellipsis">
+    Reprocess
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../how-to/USING_ORCHESTRATOR_CLI/">
+<span class="md-ellipsis">
+    Using Orchestrator CLI
+  </span>
+</a>
+</li>
+<li class="md-nav__item md-nav__item--nested">
+<input class="md-nav__toggle md-toggle" id="__nav_5_11" type="checkbox"/>
+<label class="md-nav__link" for="__nav_5_11" id="__nav_5_11_label" tabindex="0">
+<span class="md-ellipsis">
+    Dashboard
+  </span>
+<span class="md-nav__icon md-icon"></span>
+</label>
+<nav aria-expanded="false" aria-labelledby="__nav_5_11_label" class="md-nav" data-md-level="2">
+<label class="md-nav__title" for="__nav_5_11">
+<span class="md-nav__icon md-icon"></span>
+            Dashboard
+          </label>
+<ul class="md-nav__list" data-md-scrollfix="">
+<li class="md-nav__item">
+<a class="md-nav__link" href="../how-to/dashboard-development/">
+<span class="md-ellipsis">
+    Development
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../how-to/dashboard-quickstart/">
+<span class="md-ellipsis">
+    Quickstart
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../how-to/dashboard_testing/">
+<span class="md-ellipsis">
+    Testing
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../how-to/dashboard_development_workflow/">
+<span class="md-ellipsis">
+    Development Workflow
+  </span>
+</a>
+</li>
+</ul>
+</nav>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../how-to/LINEAR_INTEGRATION/">
+<span class="md-ellipsis">
+    Linear Integration
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../how-to/frontend-initial-setup/">
+<span class="md-ellipsis">
+    Frontend Initial Setup
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../how-to/PARAMETER_OPTIMIZATION_GUIDE/">
+<span class="md-ellipsis">
+    AOFlagger Parameter Optimization
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../how-to/downsampling_guide/">
+<span class="md-ellipsis">
+    Downsampling Guide
+  </span>
+</a>
+</li>
+<li class="md-nav__item md-nav__item--nested">
+<input class="md-nav__toggle md-toggle" id="__nav_5_16" type="checkbox"/>
+<label class="md-nav__link" for="__nav_5_16" id="__nav_5_16_label" tabindex="0">
+<span class="md-ellipsis">
+    Conversion
+  </span>
+<span class="md-nav__icon md-icon"></span>
+</label>
+<nav aria-expanded="false" aria-labelledby="__nav_5_16_label" class="md-nav" data-md-level="2">
+<label class="md-nav__title" for="__nav_5_16">
+<span class="md-nav__icon md-icon"></span>
+            Conversion
+          </label>
+<ul class="md-nav__list" data-md-scrollfix="">
+<li class="md-nav__item">
+<a class="md-nav__link" href="../how-to/uvh5_to_ms_conversion/">
+<span class="md-ellipsis">
+    UVH5 to MS
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../how-to/streaming_converter_guide/">
+<span class="md-ellipsis">
+    Streaming Converter
+  </span>
+</a>
+</li>
+</ul>
+</nav>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../how-to/troubleshooting/">
+<span class="md-ellipsis">
+    Troubleshooting
+  </span>
+</a>
+</li>
+</ul>
+</nav>
+</li>
+<li class="md-nav__item md-nav__item--section md-nav__item--nested">
+<input class="md-nav__toggle md-toggle" id="__nav_6" type="checkbox"/>
+<label class="md-nav__link" for="__nav_6" id="__nav_6_label" tabindex="">
+<span class="md-ellipsis">
+    Reference
+  </span>
+<span class="md-nav__icon md-icon"></span>
+</label>
+<nav aria-expanded="false" aria-labelledby="__nav_6_label" class="md-nav" data-md-level="1">
+<label class="md-nav__title" for="__nav_6">
+<span class="md-nav__icon md-icon"></span>
+            Reference
+          </label>
+<ul class="md-nav__list" data-md-scrollfix="">
+<li class="md-nav__item md-nav__item--nested">
+<input class="md-nav__toggle md-toggle" id="__nav_6_1" type="checkbox"/>
+<label class="md-nav__link" for="__nav_6_1" id="__nav_6_1_label" tabindex="0">
+<span class="md-ellipsis">
+    API
+  </span>
+<span class="md-nav__icon md-icon"></span>
+</label>
+<nav aria-expanded="false" aria-labelledby="__nav_6_1_label" class="md-nav" data-md-level="2">
+<label class="md-nav__title" for="__nav_6_1">
+<span class="md-nav__icon md-icon"></span>
+            API
+          </label>
+<ul class="md-nav__list" data-md-scrollfix="">
+<li class="md-nav__item">
+<a class="md-nav__link" href="../reference/api-endpoints/">
+<span class="md-ellipsis">
+    Endpoints
+  </span>
+</a>
+</li>
+<li class="md-nav__item md-nav__item--nested">
+<input class="md-nav__toggle md-toggle" id="__nav_6_1_2" type="checkbox"/>
+<label class="md-nav__link" for="__nav_6_1_2" id="__nav_6_1_2_label" tabindex="0">
+<span class="md-ellipsis">
+    Dashboard
+  </span>
+<span class="md-nav__icon md-icon"></span>
+</label>
+<nav aria-expanded="false" aria-labelledby="__nav_6_1_2_label" class="md-nav" data-md-level="3">
+<label class="md-nav__title" for="__nav_6_1_2">
+<span class="md-nav__icon md-icon"></span>
+            Dashboard
+          </label>
+<ul class="md-nav__list" data-md-scrollfix="">
+<li class="md-nav__item">
+<a class="md-nav__link" href="../reference/dashboard_backend_api/">
+<span class="md-ellipsis">
+    API Reference
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../reference/dashboard_pages_and_features/">
+<span class="md-ellipsis">
+    Pages &amp; Features
+  </span>
+</a>
+</li>
+</ul>
+</nav>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../reference/backend_integration_snippets/">
+<span class="md-ellipsis">
+    Integration Snippets
+  </span>
+</a>
+</li>
+</ul>
+</nav>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../reference/calibration-overview/">
+<span class="md-ellipsis">
+    Calibration Overview
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../reference/cli/">
+<span class="md-ellipsis">
+    CLI
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../reference/control-panel-cheatsheet/">
+<span class="md-ellipsis">
+    Control Panel Cheatsheet
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../reference/database_schema/">
+<span class="md-ellipsis">
+    Database Schema
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../reference/env/">
+<span class="md-ellipsis">
+    Environment Variables
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../reference/CRITICAL_PYTHON_ENVIRONMENT/">
+<span class="md-ellipsis">
+    Critical Python Environment
+  </span>
+</a>
+</li>
+<li class="md-nav__item md-nav__item--nested">
+<input class="md-nav__toggle md-toggle" id="__nav_6_8" type="checkbox"/>
+<label class="md-nav__link" for="__nav_6_8" id="__nav_6_8_label" tabindex="0">
+<span class="md-ellipsis">
+    Optimizations
+  </span>
+<span class="md-nav__icon md-icon"></span>
+</label>
+<nav aria-expanded="false" aria-labelledby="__nav_6_8_label" class="md-nav" data-md-level="2">
+<label class="md-nav__title" for="__nav_6_8">
+<span class="md-nav__icon md-icon"></span>
+            Optimizations
+          </label>
+<ul class="md-nav__list" data-md-scrollfix="">
+<li class="md-nav__item">
+<a class="md-nav__link" href="../reference/optimizations/OPTIMIZATION_API/">
+<span class="md-ellipsis">
+    API
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../reference/optimizations/PROFILING_GUIDE/">
+<span class="md-ellipsis">
+    Profiling Guide
+  </span>
+</a>
+</li>
+</ul>
+</nav>
+</li>
+</ul>
+</nav>
+</li>
+<li class="md-nav__item md-nav__item--section md-nav__item--nested">
+<input class="md-nav__toggle md-toggle" id="__nav_7" type="checkbox"/>
+<label class="md-nav__link" for="__nav_7" id="__nav_7_label" tabindex="">
+<span class="md-ellipsis">
+    Operations
+  </span>
+<span class="md-nav__icon md-icon"></span>
+</label>
+<nav aria-expanded="false" aria-labelledby="__nav_7_label" class="md-nav" data-md-level="1">
+<label class="md-nav__title" for="__nav_7">
+<span class="md-nav__icon md-icon"></span>
+            Operations
+          </label>
+<ul class="md-nav__list" data-md-scrollfix="">
+<li class="md-nav__item md-nav__item--nested">
+<input class="md-nav__toggle md-toggle" id="__nav_7_1" type="checkbox"/>
+<label class="md-nav__link" for="__nav_7_1" id="__nav_7_1_label" tabindex="0">
+<span class="md-ellipsis">
+    Deployment
+  </span>
+<span class="md-nav__icon md-icon"></span>
+</label>
+<nav aria-expanded="false" aria-labelledby="__nav_7_1_label" class="md-nav" data-md-level="2">
+<label class="md-nav__title" for="__nav_7_1">
+<span class="md-nav__icon md-icon"></span>
+            Deployment
+          </label>
+<ul class="md-nav__list" data-md-scrollfix="">
+<li class="md-nav__item">
+<a class="md-nav__link" href="../operations/deploy-docker/">
+<span class="md-ellipsis">
+    Docker
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../operations/deploy-systemd/">
+<span class="md-ellipsis">
+    systemd
+  </span>
+</a>
+</li>
+</ul>
+</nav>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../operations/port-management/">
+<span class="md-ellipsis">
+    Port Management
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../operations/refant_quick_reference/">
+<span class="md-ellipsis">
+    Refant Quick Reference
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../operations/service_restart_fix/">
+<span class="md-ellipsis">
+    Service Restart Fix
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../operations/systemd-migration/">
+<span class="md-ellipsis">
+    Systemd Migration
+  </span>
+</a>
+</li>
+</ul>
+</nav>
+</li>
+<li class="md-nav__item md-nav__item--section md-nav__item--nested">
+<input class="md-nav__toggle md-toggle" id="__nav_8" type="checkbox"/>
+<div class="md-nav__link md-nav__container">
+<a class="md-nav__link" href="../contributing/">
+<span class="md-ellipsis">
+    Contributing
+  </span>
+</a>
+<label class="md-nav__link" for="__nav_8" id="__nav_8_label" tabindex="">
+<span class="md-nav__icon md-icon"></span>
+</label>
+</div>
+<nav aria-expanded="false" aria-labelledby="__nav_8_label" class="md-nav" data-md-level="1">
+<label class="md-nav__title" for="__nav_8">
+<span class="md-nav__icon md-icon"></span>
+            Contributing
+          </label>
+<ul class="md-nav__list" data-md-scrollfix="">
+<li class="md-nav__item md-nav__item--nested">
+<input class="md-nav__toggle md-toggle" id="__nav_8_2" type="checkbox"/>
+<label class="md-nav__link" for="__nav_8_2" id="__nav_8_2_label" tabindex="0">
+<span class="md-ellipsis">
+    Archive
+  </span>
+<span class="md-nav__icon md-icon"></span>
+</label>
+<nav aria-expanded="false" aria-labelledby="__nav_8_2_label" class="md-nav" data-md-level="2">
+<label class="md-nav__title" for="__nav_8_2">
+<span class="md-nav__icon md-icon"></span>
+            Archive
+          </label>
+<ul class="md-nav__list" data-md-scrollfix="">
+<li class="md-nav__item">
+<a class="md-nav__link" href="../contributing/archive/CONTRIBUTING_TODO/">
+<span class="md-ellipsis">
+    Contributing to TODO
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../contributing/archive/rules/">
+<span class="md-ellipsis">
+    Rules
+  </span>
+</a>
+</li>
+</ul>
+</nav>
+</li>
+</ul>
+</nav>
+</li>
+</ul>
+</nav>
+</div>
+</div>
+</div>
+<div class="md-sidebar md-sidebar--secondary" data-md-component="sidebar" data-md-type="toc">
+<div class="md-sidebar__scrollwrap">
+<div class="md-sidebar__inner">
+<nav aria-label="Table of contents" class="md-nav md-nav--secondary">
+<label class="md-nav__title" for="__toc">
+<span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+<ul class="md-nav__list" data-md-component="toc" data-md-scrollfix="">
+<li class="md-nav__item">
+<a class="md-nav__link" href="#executive-summary">
+<span class="md-ellipsis">
+      Executive Summary
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#1-software-developer-concerns">
+<span class="md-ellipsis">
+      1. SOFTWARE DEVELOPER CONCERNS
+    </span>
+</a>
+<nav aria-label="1. SOFTWARE DEVELOPER CONCERNS" class="md-nav">
+<ul class="md-nav__list">
+<li class="md-nav__item">
+<a class="md-nav__link" href="#11-testing-quality-assurance">
+<span class="md-ellipsis">
+      1.1 Testing &amp; Quality Assurance
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#12-code-quality-maintainability">
+<span class="md-ellipsis">
+      1.2 Code Quality &amp; Maintainability
+    </span>
+</a>
+<nav aria-label="1.2 Code Quality &amp; Maintainability" class="md-nav">
+<ul class="md-nav__list">
+<li class="md-nav__item">
+<a class="md-nav__link" href="#excessive-use-of-print-instead-of-logging">
+<span class="md-ellipsis">
+      Excessive Use of print() Instead of Logging
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#error-handling-patterns">
+<span class="md-ellipsis">
+      Error Handling Patterns
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#type-safety">
+<span class="md-ellipsis">
+      Type Safety
+    </span>
+</a>
+</li>
+</ul>
+</nav>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#13-architecture-design">
+<span class="md-ellipsis">
+      1.3 Architecture &amp; Design
+    </span>
+</a>
+<nav aria-label="1.3 Architecture &amp; Design" class="md-nav">
+<ul class="md-nav__list">
+<li class="md-nav__item">
+<a class="md-nav__link" href="#large-monolithic-files">
+<span class="md-ellipsis">
+      Large, Monolithic Files
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#resource-management">
+<span class="md-ellipsis">
+      Resource Management
+    </span>
+</a>
+</li>
+</ul>
+</nav>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#14-configuration-hardcoding">
+<span class="md-ellipsis">
+      1.4 Configuration &amp; Hardcoding
+    </span>
+</a>
+</li>
+</ul>
+</nav>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#2-radio-astronomer-concerns">
+<span class="md-ellipsis">
+      2. RADIO ASTRONOMER CONCERNS
+    </span>
+</a>
+<nav aria-label="2. RADIO ASTRONOMER CONCERNS" class="md-nav">
+<ul class="md-nav__list">
+<li class="md-nav__item">
+<a class="md-nav__link" href="#21-scientific-correctness-precision">
+<span class="md-ellipsis">
+      2.1 Scientific Correctness &amp; Precision
+    </span>
+</a>
+<nav aria-label="2.1 Scientific Correctness &amp; Precision" class="md-nav">
+<ul class="md-nav__list">
+<li class="md-nav__item">
+<a class="md-nav__link" href="#unit-handling">
+<span class="md-ellipsis">
+      Unit Handling
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#numerical-precision-rounding">
+<span class="md-ellipsis">
+      Numerical Precision &amp; Rounding
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#phase-wrapping">
+<span class="md-ellipsis">
+      Phase Wrapping
+    </span>
+</a>
+</li>
+</ul>
+</nav>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#22-data-integrity-validation">
+<span class="md-ellipsis">
+      2.2 Data Integrity &amp; Validation
+    </span>
+</a>
+<nav aria-label="2.2 Data Integrity &amp; Validation" class="md-nav">
+<ul class="md-nav__list">
+<li class="md-nav__item">
+<a class="md-nav__link" href="#model_data-validation">
+<span class="md-ellipsis">
+      MODEL_DATA Validation
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#flagging-statistics">
+<span class="md-ellipsis">
+      Flagging Statistics
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#reference-antenna-selection">
+<span class="md-ellipsis">
+      Reference Antenna Selection
+    </span>
+</a>
+</li>
+</ul>
+</nav>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#23-calibration-quality-assessment">
+<span class="md-ellipsis">
+      2.3 Calibration Quality Assessment
+    </span>
+</a>
+<nav aria-label="2.3 Calibration Quality Assessment" class="md-nav">
+<ul class="md-nav__list">
+<li class="md-nav__item">
+<a class="md-nav__link" href="#snr-calculation">
+<span class="md-ellipsis">
+      SNR Calculation
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#solution-stability-metrics">
+<span class="md-ellipsis">
+      Solution Stability Metrics
+    </span>
+</a>
+</li>
+</ul>
+</nav>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#24-reproducibility-documentation">
+<span class="md-ellipsis">
+      2.4 Reproducibility &amp; Documentation
+    </span>
+</a>
+<nav aria-label="2.4 Reproducibility &amp; Documentation" class="md-nav">
+<ul class="md-nav__list">
+<li class="md-nav__item">
+<a class="md-nav__link" href="#hardcoded-scientific-parameters">
+<span class="md-ellipsis">
+      Hardcoded Scientific Parameters
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#version-tracking">
+<span class="md-ellipsis">
+      Version Tracking
+    </span>
+</a>
+</li>
+</ul>
+</nav>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#25-extreme-scattering-event-detection">
+<span class="md-ellipsis">
+      2.5 Extreme Scattering Event Detection
+    </span>
+</a>
+<nav aria-label="2.5 Extreme Scattering Event Detection" class="md-nav">
+<ul class="md-nav__list">
+<li class="md-nav__item">
+<a class="md-nav__link" href="#data-quality-for-variability-detection">
+<span class="md-ellipsis">
+      Data Quality for Variability Detection
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#systematic-error-propagation">
+<span class="md-ellipsis">
+      Systematic Error Propagation
+    </span>
+</a>
+</li>
+</ul>
+</nav>
+</li>
+</ul>
+</nav>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#3-priority-recommendations">
+<span class="md-ellipsis">
+      3. PRIORITY RECOMMENDATIONS
+    </span>
+</a>
+<nav aria-label="3. PRIORITY RECOMMENDATIONS" class="md-nav">
+<ul class="md-nav__list">
+<li class="md-nav__item">
+<a class="md-nav__link" href="#critical-fix-immediately">
+<span class="md-ellipsis">
+      Critical (Fix Immediately)
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#high-priority">
+<span class="md-ellipsis">
+      High Priority
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#medium-priority">
+<span class="md-ellipsis">
+      Medium Priority
+    </span>
+</a>
+</li>
+</ul>
+</nav>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#4-specific-code-examples">
+<span class="md-ellipsis">
+      4. SPECIFIC CODE EXAMPLES
+    </span>
+</a>
+<nav aria-label="4. SPECIFIC CODE EXAMPLES" class="md-nav">
+<ul class="md-nav__list">
+<li class="md-nav__item">
+<a class="md-nav__link" href="#example-1-unit-handling-issue">
+<span class="md-ellipsis">
+      Example 1: Unit Handling Issue
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#example-2-logging-instead-of-print">
+<span class="md-ellipsis">
+      Example 2: Logging Instead of Print
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#example-3-proper-error-handling">
+<span class="md-ellipsis">
+      Example 3: Proper Error Handling
+    </span>
+</a>
+</li>
+</ul>
+</nav>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#5-conclusion">
+<span class="md-ellipsis">
+      5. CONCLUSION
+    </span>
+</a>
+</li>
+</ul>
+</nav>
+</div>
+</div>
+</div>
+<div class="md-content" data-md-component="content">
+<article class="md-content__inner md-typeset">
+<h1 id="code-review-analysis-software-developer-radio-astronomer-perspectives">Code Review Analysis: Software Developer &amp; Radio Astronomer Perspectives<a class="headerlink" href="#code-review-analysis-software-developer-radio-astronomer-perspectives" title="Permanent link">¶</a></h1>
+<h2 id="executive-summary">Executive Summary<a class="headerlink" href="#executive-summary" title="Permanent link">¶</a></h2>
+<p>This analysis examines the DSA-110 continuum imaging pipeline codebase from two critical perspectives:
+1. <strong>Professional Software Developer</strong>: Code quality, maintainability, architecture, testing
+2. <strong>Radio Astronomer</strong>: Scientific correctness, data integrity, precision, reproducibility</p>
+<p><strong>Key Statistics:</strong>
+- 171 Python files, ~54,000 lines of code
+- Only 1 test file found
+- 388 <code>print()</code> statements (vs proper logging)
+- Extensive use of <code>sys.exit()</code> (10+ instances in calibration CLI)
+- Many <code>type: ignore</code> comments indicating type system bypasses</p>
+<hr/>
+<h2 id="1-software-developer-concerns">1. SOFTWARE DEVELOPER CONCERNS<a class="headerlink" href="#1-software-developer-concerns" title="Permanent link">¶</a></h2>
+<h3 id="11-testing-quality-assurance">1.1 Testing &amp; Quality Assurance<a class="headerlink" href="#11-testing-quality-assurance" title="Permanent link">¶</a></h3>
+<p><strong>Critical Issues:</strong>
+- <strong>Minimal test coverage</strong>: Only 1 test file found (<code>test_*.py</code> or <code>*_test.py</code>)
+- <strong>No unit tests</strong> for calibration logic, flagging, or quality assessment
+- <strong>No integration tests</strong> for end-to-end calibration workflows
+- <strong>No regression tests</strong> for scientific correctness</p>
+<p><strong>Impact:</strong>
+- High risk of regressions when modifying calibration algorithms
+- Difficult to verify correctness of scientific calculations
+- No automated validation of edge cases</p>
+<p><strong>Recommendations:</strong>
+<div class="highlight"><pre><span></span><code><span class="c1"># Example: Add tests for critical calibration functions</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">test_solve_bandpass_validation</span><span class="p">():</span>
+<span class="w">    </span><span class="sd">"""Test MODEL_DATA precondition checking"""</span>
+    <span class="c1"># Should fail if MODEL_DATA not populated</span>
+    <span class="c1"># Should succeed with proper MODEL_DATA</span>
+
+<span class="k">def</span><span class="w"> </span><span class="nf">test_calibration_quality_metrics</span><span class="p">():</span>
+<span class="w">    </span><span class="sd">"""Test SNR and stability calculations"""</span>
+    <span class="c1"># Verify SNR computation from weights</span>
+    <span class="c1"># Verify stability metrics for time-variable calibration</span>
+</code></pre></div></p>
+<h3 id="12-code-quality-maintainability">1.2 Code Quality &amp; Maintainability<a class="headerlink" href="#12-code-quality-maintainability" title="Permanent link">¶</a></h3>
+<h4 id="excessive-use-of-print-instead-of-logging">Excessive Use of <code>print()</code> Instead of Logging<a class="headerlink" href="#excessive-use-of-print-instead-of-logging" title="Permanent link">¶</a></h4>
+<p><strong>Found:</strong> 388 <code>print()</code> statements across 14 files</p>
+<p><strong>Problem:</strong>
+- <code>cli_calibrate.py</code> has 138 print statements mixed with logger calls
+- Debug prints like <code>print(f"DEBUG: ...")</code> scattered throughout
+- No consistent logging levels (debug/info/warning/error)</p>
+<p><strong>Example Issues:</strong>
+<div class="highlight"><pre><span></span><code><span class="c1"># calibration/cli_calibrate.py:778</span>
+<span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">"DEBUG: Field selection complete, field_sel=</span><span class="si">{</span><span class="n">field_sel</span><span class="si">}</span><span class="s2">, peak_field=</span><span class="si">{</span><span class="n">peak_field_idx</span><span class="si">}</span><span class="s2">"</span><span class="p">)</span>
+
+<span class="c1"># Should be:</span>
+<span class="n">logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="sa">f</span><span class="s2">"Field selection complete, field_sel=</span><span class="si">{</span><span class="n">field_sel</span><span class="si">}</span><span class="s2">, peak_field=</span><span class="si">{</span><span class="n">peak_field_idx</span><span class="si">}</span><span class="s2">"</span><span class="p">)</span>
+</code></pre></div></p>
+<p><strong>Impact:</strong>
+- Cannot control verbosity via logging configuration
+- Debug output always visible, cluttering production logs
+- Difficult to filter/search logs</p>
+<p><strong>Recommendations:</strong>
+- Replace all <code>print()</code> with appropriate <code>logger.debug/info/warning/error()</code> calls
+- Remove hardcoded "DEBUG:" prefixes (use logging levels)
+- Use structured logging for better parsing</p>
+<h4 id="error-handling-patterns">Error Handling Patterns<a class="headerlink" href="#error-handling-patterns" title="Permanent link">¶</a></h4>
+<p><strong>Found:</strong> 
+- 1 bare <code>except:</code> clause (dangerous - catches all exceptions including KeyboardInterrupt)
+- 265 <code>except Exception:</code> clauses (too broad)
+- 10+ <code>sys.exit(1)</code> calls in CLI code</p>
+<p><strong>Problems:</strong>
+<div class="highlight"><pre><span></span><code><span class="c1"># Dangerous: catches KeyboardInterrupt, SystemExit, etc.</span>
+<span class="k">except</span><span class="p">:</span>
+    <span class="n">logger</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span><span class="s2">"Continuing..."</span><span class="p">)</span>
+
+<span class="c1"># Too broad: catches all exceptions</span>
+<span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
+    <span class="n">logger</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="sa">f</span><span class="s2">"Error: </span><span class="si">{</span><span class="n">e</span><span class="si">}</span><span class="s2">"</span><span class="p">)</span>
+    <span class="n">sys</span><span class="o">.</span><span class="n">exit</span><span class="p">(</span><span class="mi">1</span><span class="p">)</span>  <span class="c1"># Abrupt termination, no cleanup</span>
+</code></pre></div></p>
+<p><strong>Impact:</strong>
+- Difficult to debug (exception context lost)
+- No graceful shutdown/cleanup
+- Cannot distinguish recoverable vs fatal errors</p>
+<p><strong>Recommendations:</strong>
+- Catch specific exception types
+- Use context managers for resource cleanup
+- Return error codes instead of <code>sys.exit()</code> in library code
+- Add exception chaining (<code>raise ... from e</code>)</p>
+<h4 id="type-safety">Type Safety<a class="headerlink" href="#type-safety" title="Permanent link">¶</a></h4>
+<p><strong>Found:</strong> Many <code># type: ignore</code> comments</p>
+<p><strong>Problem:</strong>
+<div class="highlight"><pre><span></span><code><span class="kn">from</span><span class="w"> </span><span class="nn">casacore.tables</span><span class="w"> </span><span class="kn">import</span> <span class="n">table</span>  <span class="c1"># type: ignore[import]</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">numpy</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">np</span>  <span class="c1"># type: ignore[import]</span>
+</code></pre></div></p>
+<p><strong>Impact:</strong>
+- Type checker cannot verify correctness
+- Potential runtime errors from type mismatches
+- Reduced IDE support and autocomplete</p>
+<p><strong>Recommendations:</strong>
+- Add proper type stubs for CASA libraries
+- Use <code>typing.TYPE_CHECKING</code> for conditional imports
+- Fix underlying type issues instead of ignoring</p>
+<h3 id="13-architecture-design">1.3 Architecture &amp; Design<a class="headerlink" href="#13-architecture-design" title="Permanent link">¶</a></h3>
+<h4 id="large-monolithic-files">Large, Monolithic Files<a class="headerlink" href="#large-monolithic-files" title="Permanent link">¶</a></h4>
+<p><strong>Found:</strong>
+- <code>cli_calibrate.py</code>: 2,298 lines, 26 top-level items
+- <code>calibration.py</code>: Large file with multiple responsibilities
+- <code>qa/calibration_quality.py</code>: 1,420 lines</p>
+<p><strong>Problems:</strong>
+- Single Responsibility Principle violated
+- Difficult to test individual components
+- High cognitive load for maintainers</p>
+<p><strong>Recommendations:</strong>
+- Split <code>cli_calibrate.py</code> into:
+  - CLI argument parsing
+  - Workflow orchestration
+  - Individual step handlers
+- Extract validation logic into separate modules
+- Use composition over large monolithic functions</p>
+<h4 id="resource-management">Resource Management<a class="headerlink" href="#resource-management" title="Permanent link">¶</a></h4>
+<p><strong>Found:</strong> Good use of <code>with table()</code> context managers, but some inconsistencies</p>
+<p><strong>Good:</strong>
+<div class="highlight"><pre><span></span><code><span class="k">with</span> <span class="n">table</span><span class="p">(</span><span class="n">ms_path</span><span class="p">,</span> <span class="n">readonly</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span> <span class="k">as</span> <span class="n">tb</span><span class="p">:</span>
+    <span class="n">data</span> <span class="o">=</span> <span class="n">tb</span><span class="o">.</span><span class="n">getcol</span><span class="p">(</span><span class="s2">"DATA"</span><span class="p">)</span>
+</code></pre></div></p>
+<p><strong>Concerns:</strong>
+- Some files use <code>.close()</code> explicitly (redundant with context managers)
+- No explicit memory cleanup for large arrays
+- Potential memory leaks with large MS files</p>
+<p><strong>Recommendations:</strong>
+- Ensure all table operations use context managers
+- Add explicit memory cleanup for large numpy arrays
+- Consider chunked processing for very large datasets</p>
+<h3 id="14-configuration-hardcoding">1.4 Configuration &amp; Hardcoding<a class="headerlink" href="#14-configuration-hardcoding" title="Permanent link">¶</a></h3>
+<p><strong>Found:</strong> Hardcoded values scattered throughout</p>
+<p><strong>Examples:</strong>
+<div class="highlight"><pre><span></span><code><span class="c1"># calibration/calibration.py</span>
+<span class="n">ref_freq_hz</span> <span class="o">=</span> <span class="mf">1400e6</span>  <span class="c1"># Default L-band fallback</span>
+<span class="n">bandwidth_hz</span> <span class="o">=</span> <span class="mf">200e6</span>  <span class="c1"># 200 MHz</span>
+
+<span class="c1"># calibration/cli_calibrate.py</span>
+<span class="n">default</span><span class="o">=</span><span class="mf">0.5</span>  <span class="c1"># Channel flagging threshold</span>
+<span class="n">default</span><span class="o">=</span><span class="mf">3.0</span>  <span class="c1"># SNR threshold</span>
+</code></pre></div></p>
+<p><strong>Impact:</strong>
+- Difficult to adjust for different observing modes
+- No single source of truth for instrument parameters
+- Hard to maintain consistency</p>
+<p><strong>Recommendations:</strong>
+- Create <code>config.py</code> with instrument constants
+- Use environment variables or config files
+- Document all magic numbers</p>
+<hr/>
+<h2 id="2-radio-astronomer-concerns">2. RADIO ASTRONOMER CONCERNS<a class="headerlink" href="#2-radio-astronomer-concerns" title="Permanent link">¶</a></h2>
+<h3 id="21-scientific-correctness-precision">2.1 Scientific Correctness &amp; Precision<a class="headerlink" href="#21-scientific-correctness-precision" title="Permanent link">¶</a></h3>
+<h4 id="unit-handling">Unit Handling<a class="headerlink" href="#unit-handling" title="Permanent link">¶</a></h4>
+<p><strong>Critical Issues:</strong></p>
+<p><strong>Found:</strong> Mixed unit conventions without explicit conversion
+<div class="highlight"><pre><span></span><code><span class="c1"># qa/calibration_quality.py:244</span>
+<span class="n">delays_sec</span> <span class="o">=</span> <span class="n">unflagged_fparam</span> <span class="o">/</span> <span class="p">(</span><span class="mi">2</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">pi</span> <span class="o">*</span> <span class="n">ref_freq_hz</span><span class="p">)</span>
+<span class="n">delays_ns</span> <span class="o">=</span> <span class="n">delays_sec</span> <span class="o">*</span> <span class="mf">1e9</span>
+
+<span class="c1"># calibration/calibration.py</span>
+<span class="n">ref_freq_hz</span> <span class="o">=</span> <span class="mf">1400e6</span>  <span class="c1"># Hardcoded frequency</span>
+</code></pre></div></p>
+<p><strong>Problems:</strong>
+- No explicit unit tracking (using <code>astropy.units</code> inconsistently)
+- Potential unit conversion errors
+- Hardcoded frequency values may not match actual observations</p>
+<p><strong>Impact:</strong>
+- <strong>CRITICAL</strong>: Wrong units could corrupt calibration solutions
+- Difficult to verify calculations
+- Cannot easily adapt to different frequency bands</p>
+<p><strong>Recommendations:</strong>
+<div class="highlight"><pre><span></span><code><span class="kn">import</span><span class="w"> </span><span class="nn">astropy.units</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">u</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">astropy.coordinates</span><span class="w"> </span><span class="kn">import</span> <span class="n">Angle</span>
+
+<span class="c1"># Explicit units</span>
+<span class="n">ref_freq</span> <span class="o">=</span> <span class="mi">1400</span> <span class="o">*</span> <span class="n">u</span><span class="o">.</span><span class="n">MHz</span>
+<span class="n">delay</span> <span class="o">=</span> <span class="n">phase</span> <span class="o">/</span> <span class="p">(</span><span class="mi">2</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">pi</span> <span class="o">*</span> <span class="n">ref_freq</span><span class="p">)</span>
+<span class="n">delay_ns</span> <span class="o">=</span> <span class="n">delay</span><span class="o">.</span><span class="n">to</span><span class="p">(</span><span class="n">u</span><span class="o">.</span><span class="n">ns</span><span class="p">)</span>
+</code></pre></div></p>
+<h4 id="numerical-precision-rounding">Numerical Precision &amp; Rounding<a class="headerlink" href="#numerical-precision-rounding" title="Permanent link">¶</a></h4>
+<p><strong>Found:</strong> Many <code>float()</code> conversions without precision control</p>
+<p><strong>Examples:</strong>
+<div class="highlight"><pre><span></span><code><span class="c1"># qa/calibration_quality.py</span>
+<span class="n">median_amplitude</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">median</span><span class="p">(</span><span class="n">amplitudes</span><span class="p">))</span>
+<span class="n">rms_phase_deg</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">sqrt</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">mean</span><span class="p">(</span><span class="n">phases_deg</span><span class="o">**</span><span class="mi">2</span><span class="p">)))</span>
+</code></pre></div></p>
+<p><strong>Problems:</strong>
+- No explicit precision requirements
+- Rounding errors accumulate in calculations
+- No validation of numerical stability</p>
+<p><strong>Impact:</strong>
+- <strong>CRITICAL</strong>: Precision loss in calibration solutions
+- Phase wrapping errors (±180° boundary)
+- Amplitude scaling errors</p>
+<p><strong>Recommendations:</strong>
+- Use <code>np.float64</code> explicitly (not <code>float()</code>)
+- Add precision validation tests
+- Document precision requirements (e.g., "phase accurate to 0.1°")</p>
+<h4 id="phase-wrapping">Phase Wrapping<a class="headerlink" href="#phase-wrapping" title="Permanent link">¶</a></h4>
+<p><strong>Found:</strong> Some phase wrapping logic, but inconsistent</p>
+<p><strong>Example:</strong>
+<div class="highlight"><pre><span></span><code><span class="c1"># qa/calibration_quality.py:305</span>
+<span class="n">phases_deg</span> <span class="o">=</span> <span class="n">wrap_phase_deg</span><span class="p">(</span><span class="n">phases_deg</span><span class="p">)</span>  <span class="c1"># Good!</span>
+</code></pre></div></p>
+<p><strong>But:</strong>
+<div class="highlight"><pre><span></span><code><span class="c1"># calibration_quality.py:378</span>
+<span class="n">phase_diff</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">minimum</span><span class="p">(</span><span class="n">phase_diff</span><span class="p">,</span> <span class="mi">2</span><span class="o">*</span><span class="n">np</span><span class="o">.</span><span class="n">pi</span> <span class="o">-</span> <span class="n">phase_diff</span><span class="p">)</span>  <span class="c1"># Manual wrapping</span>
+</code></pre></div></p>
+<p><strong>Problems:</strong>
+- Inconsistent phase wrapping approaches
+- Potential for ±180° boundary errors
+- No validation that wrapping is correct</p>
+<p><strong>Impact:</strong>
+- <strong>CRITICAL</strong>: Phase jumps could corrupt calibration
+- Incorrect phase solutions near ±180°
+- Decorrelation in imaging</p>
+<p><strong>Recommendations:</strong>
+- Use centralized <code>wrap_phase_deg()</code> function everywhere
+- Add tests for phase wrapping edge cases
+- Validate phase continuity in calibration solutions</p>
+<h3 id="22-data-integrity-validation">2.2 Data Integrity &amp; Validation<a class="headerlink" href="#22-data-integrity-validation" title="Permanent link">¶</a></h3>
+<h4 id="model_data-validation">MODEL_DATA Validation<a class="headerlink" href="#model_data-validation" title="Permanent link">¶</a></h4>
+<p><strong>Found:</strong> Good precondition checks, but limited validation</p>
+<p><strong>Good:</strong>
+<div class="highlight"><pre><span></span><code><span class="c1"># calibration/calibration.py</span>
+<span class="k">if</span> <span class="s2">"MODEL_DATA"</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">tb</span><span class="o">.</span><span class="n">colnames</span><span class="p">():</span>
+    <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">"MODEL_DATA column does not exist"</span><span class="p">)</span>
+<span class="n">model_sample</span> <span class="o">=</span> <span class="n">tb</span><span class="o">.</span><span class="n">getcol</span><span class="p">(</span><span class="s2">"MODEL_DATA"</span><span class="p">,</span> <span class="n">startrow</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">nrow</span><span class="o">=</span><span class="nb">min</span><span class="p">(</span><span class="mi">100</span><span class="p">,</span> <span class="n">tb</span><span class="o">.</span><span class="n">nrows</span><span class="p">()))</span>
+<span class="k">if</span> <span class="n">np</span><span class="o">.</span><span class="n">all</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">abs</span><span class="p">(</span><span class="n">model_sample</span><span class="p">)</span> <span class="o">&lt;</span> <span class="mf">1e-10</span><span class="p">):</span>
+    <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">"MODEL_DATA is all zeros"</span><span class="p">)</span>
+</code></pre></div></p>
+<p><strong>Concerns:</strong>
+- Only checks first 100 rows (may miss issues)
+- No validation of MODEL_DATA vs actual source position
+- No check for MODEL_DATA consistency across fields</p>
+<p><strong>Impact:</strong>
+- <strong>CRITICAL</strong>: Wrong MODEL_DATA → wrong calibration solutions
+- Silent failures if MODEL_DATA is incorrect but non-zero
+- No verification that MODEL_DATA matches calibrator catalog</p>
+<p><strong>Recommendations:</strong>
+- Validate MODEL_DATA against catalog flux/position
+- Check MODEL_DATA consistency across all fields
+- Add checksum/validation of MODEL_DATA after population</p>
+<h4 id="flagging-statistics">Flagging Statistics<a class="headerlink" href="#flagging-statistics" title="Permanent link">¶</a></h4>
+<p><strong>Found:</strong> Channel-level flagging, but limited validation</p>
+<p><strong>Example:</strong>
+<div class="highlight"><pre><span></span><code><span class="c1"># calibration/cli_calibrate.py</span>
+<span class="n">problematic_channels</span> <span class="o">=</span> <span class="n">analyze_channel_flagging_stats</span><span class="p">(</span>
+    <span class="n">args</span><span class="o">.</span><span class="n">ms</span><span class="p">,</span>
+    <span class="n">threshold</span><span class="o">=</span><span class="nb">getattr</span><span class="p">(</span><span class="n">args</span><span class="p">,</span> <span class="s1">'channel_flag_threshold'</span><span class="p">,</span> <span class="mf">0.5</span><span class="p">)</span>
+<span class="p">)</span>
+</code></pre></div></p>
+<p><strong>Concerns:</strong>
+- No validation that flagging statistics are reasonable
+- No check for systematic flagging patterns
+- No verification that flagged data is actually bad</p>
+<p><strong>Impact:</strong>
+- Over-flagging could remove good data
+- Under-flagging could corrupt calibration
+- No way to verify flagging decisions</p>
+<p><strong>Recommendations:</strong>
+- Add flagging statistics validation
+- Compare flagging rates across antennas/SPWs
+- Log flagging decisions for review</p>
+<h4 id="reference-antenna-selection">Reference Antenna Selection<a class="headerlink" href="#reference-antenna-selection" title="Permanent link">¶</a></h4>
+<p><strong>Found:</strong> Complex refant selection logic</p>
+<p><strong>Example:</strong>
+<div class="highlight"><pre><span></span><code><span class="c1"># calibration/calibration.py</span>
+<span class="k">if</span> <span class="n">refant</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+    <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">refant</span><span class="p">,</span> <span class="nb">str</span><span class="p">):</span>
+        <span class="k">if</span> <span class="s1">','</span> <span class="ow">in</span> <span class="n">refant</span><span class="p">:</span>
+            <span class="n">refant_str</span> <span class="o">=</span> <span class="n">refant</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s1">','</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">strip</span><span class="p">()</span>
+            <span class="n">refant_int</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">refant_str</span><span class="p">)</span>
+</code></pre></div></p>
+<p><strong>Concerns:</strong>
+- No validation that refant has good data
+- No check for refant stability
+- Comma-separated refant string parsing is fragile</p>
+<p><strong>Impact:</strong>
+- <strong>CRITICAL</strong>: Bad refant → corrupted calibration solutions
+- No verification that refant is suitable
+- Silent failures if refant is flagged</p>
+<p><strong>Recommendations:</strong>
+- Validate refant has unflagged data before calibration
+- Check refant SNR and stability
+- Add refant health checks</p>
+<h3 id="23-calibration-quality-assessment">2.3 Calibration Quality Assessment<a class="headerlink" href="#23-calibration-quality-assessment" title="Permanent link">¶</a></h3>
+<h4 id="snr-calculation">SNR Calculation<a class="headerlink" href="#snr-calculation" title="Permanent link">¶</a></h4>
+<p><strong>Found:</strong> SNR computed from weights, but assumptions unclear</p>
+<p><strong>Example:</strong>
+<div class="highlight"><pre><span></span><code><span class="c1"># qa/calibration_quality.py:350</span>
+<span class="n">snr_values</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">sqrt</span><span class="p">(</span><span class="n">unflagged_weights</span> <span class="o">/</span> <span class="n">mean_weight</span><span class="p">)</span>
+</code></pre></div></p>
+<p><strong>Concerns:</strong>
+- Assumes <code>weight = SNR²</code> (may not be true for all CASA versions)
+- No validation that weights are meaningful
+- No check for zero/negative weights</p>
+<p><strong>Impact:</strong>
+- <strong>CRITICAL</strong>: Wrong SNR estimates → wrong quality assessment
+- May accept bad solutions or reject good ones
+- No way to verify SNR calculations</p>
+<p><strong>Recommendations:</strong>
+- Document SNR calculation assumptions
+- Validate weights are positive and meaningful
+- Add alternative SNR calculation methods for comparison
+- Cross-validate SNR with solution residuals</p>
+<h4 id="solution-stability-metrics">Solution Stability Metrics<a class="headerlink" href="#solution-stability-metrics" title="Permanent link">¶</a></h4>
+<p><strong>Found:</strong> Stability calculated from temporal variations</p>
+<p><strong>Example:</strong>
+<div class="highlight"><pre><span></span><code><span class="c1"># qa/calibration_quality.py:419</span>
+<span class="n">stability_values</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="nb">float</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">std</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">abs</span><span class="p">(</span><span class="n">gains_diff</span><span class="p">))))</span>
+</code></pre></div></p>
+<p><strong>Concerns:</strong>
+- No normalization by solution interval
+- No accounting for expected variations (e.g., atmospheric effects)
+- Thresholds are hardcoded (e.g., <code>amplitude_stability &gt; 0.1</code>)</p>
+<p><strong>Impact:</strong>
+- May flag normal atmospheric variations as problems
+- May miss real calibration issues
+- Thresholds may not be appropriate for all observing conditions</p>
+<p><strong>Recommendations:</strong>
+- Normalize stability by solution interval
+- Account for expected atmospheric variations
+- Make thresholds configurable
+- Compare stability to expected values from atmospheric models</p>
+<h3 id="24-reproducibility-documentation">2.4 Reproducibility &amp; Documentation<a class="headerlink" href="#24-reproducibility-documentation" title="Permanent link">¶</a></h3>
+<h4 id="hardcoded-scientific-parameters">Hardcoded Scientific Parameters<a class="headerlink" href="#hardcoded-scientific-parameters" title="Permanent link">¶</a></h4>
+<p><strong>Found:</strong> Many hardcoded values without documentation</p>
+<p><strong>Examples:</strong>
+<div class="highlight"><pre><span></span><code><span class="c1"># calibration/cli_calibrate.py</span>
+<span class="n">default</span><span class="o">=</span><span class="mf">0.5</span>  <span class="c1"># Channel flagging threshold - why 0.5?</span>
+<span class="n">default</span><span class="o">=</span><span class="mf">3.0</span>  <span class="c1"># SNR threshold - why 3.0?</span>
+
+<span class="c1"># calibration/calibration.py</span>
+<span class="n">ref_freq_hz</span> <span class="o">=</span> <span class="mf">1400e6</span>  <span class="c1"># Default L-band - what if observing at different frequency?</span>
+</code></pre></div></p>
+<p><strong>Impact:</strong>
+- <strong>CRITICAL</strong>: Cannot reproduce results without knowing exact parameters
+- No way to verify that parameters are appropriate
+- Difficult to adapt to different observing modes</p>
+<p><strong>Recommendations:</strong>
+- Document all scientific parameters with references
+- Include parameter justification in docstrings
+- Add parameter validation with acceptable ranges
+- Log all parameters used in calibration</p>
+<h4 id="version-tracking">Version Tracking<a class="headerlink" href="#version-tracking" title="Permanent link">¶</a></h4>
+<p><strong>Found:</strong> No explicit version tracking for calibration algorithms</p>
+<p><strong>Impact:</strong>
+- Cannot reproduce results from different code versions
+- Difficult to track when algorithms changed
+- No way to compare calibration quality across versions</p>
+<p><strong>Recommendations:</strong>
+- Add version numbers to calibration tables
+- Include git commit hash in calibration metadata
+- Document algorithm changes in changelog
+- Store calibration parameters in calibration tables</p>
+<h3 id="25-extreme-scattering-event-detection">2.5 Extreme Scattering Event Detection<a class="headerlink" href="#25-extreme-scattering-event-detection" title="Permanent link">¶</a></h3>
+<p><strong>Specific Concerns for Monitoring 10,000 Compact Objects:</strong></p>
+<h4 id="data-quality-for-variability-detection">Data Quality for Variability Detection<a class="headerlink" href="#data-quality-for-variability-detection" title="Permanent link">¶</a></h4>
+<p><strong>Critical Issues:</strong>
+1. <strong>Calibration stability</strong>: Small calibration errors → false variability detections
+2. <strong>Flagging decisions</strong>: Over-flagging removes real events; under-flagging creates false positives
+3. <strong>Reference antenna stability</strong>: Refant variations propagate to all sources
+4. <strong>Time-dependent calibration</strong>: Gain variations must be separated from source variability</p>
+<p><strong>Recommendations:</strong>
+- <strong>Separate calibration quality metrics for variability science</strong>:
+  - Long-term stability (days/weeks)
+  - Short-term stability (minutes/hours)
+  - Cross-calibration consistency
+- <strong>Validation of calibration for variability</strong>:
+  - Check that stable sources remain stable
+  - Verify that known variable sources show expected variations
+  - Cross-check with independent calibration methods
+- <strong>Flagging for variability science</strong>:
+  - Conservative flagging (prefer false negatives over false positives)
+  - Document all flagging decisions
+  - Separate flagging for calibration vs science</p>
+<h4 id="systematic-error-propagation">Systematic Error Propagation<a class="headerlink" href="#systematic-error-propagation" title="Permanent link">¶</a></h4>
+<p><strong>Found:</strong> No explicit error propagation analysis</p>
+<p><strong>Impact:</strong>
+- <strong>CRITICAL</strong>: Systematic calibration errors → systematic false detections
+- Cannot quantify uncertainty in flux measurements
+- No way to distinguish real variability from calibration artifacts</p>
+<p><strong>Recommendations:</strong>
+- Add error propagation calculations
+- Track calibration uncertainty through pipeline
+- Include uncertainty estimates in flux measurements
+- Cross-validate with independent calibration</p>
+<hr/>
+<h2 id="3-priority-recommendations">3. PRIORITY RECOMMENDATIONS<a class="headerlink" href="#3-priority-recommendations" title="Permanent link">¶</a></h2>
+<h3 id="critical-fix-immediately">Critical (Fix Immediately)<a class="headerlink" href="#critical-fix-immediately" title="Permanent link">¶</a></h3>
+<ol>
+<li><strong>Replace all <code>print()</code> with proper logging</strong> (Software Developer)</li>
+<li><strong>Add explicit unit handling with <code>astropy.units</code></strong> (Radio Astronomer)</li>
+<li><strong>Add comprehensive tests for calibration algorithms</strong> (Both)</li>
+<li><strong>Validate MODEL_DATA against catalog</strong> (Radio Astronomer)</li>
+<li><strong>Add error propagation calculations</strong> (Radio Astronomer)</li>
+</ol>
+<h3 id="high-priority">High Priority<a class="headerlink" href="#high-priority" title="Permanent link">¶</a></h3>
+<ol>
+<li><strong>Fix error handling patterns</strong> (Software Developer)</li>
+<li><strong>Add phase wrapping validation</strong> (Radio Astronomer)</li>
+<li><strong>Document all scientific parameters</strong> (Radio Astronomer)</li>
+<li><strong>Split large monolithic files</strong> (Software Developer)</li>
+<li><strong>Add calibration version tracking</strong> (Radio Astronomer)</li>
+</ol>
+<h3 id="medium-priority">Medium Priority<a class="headerlink" href="#medium-priority" title="Permanent link">¶</a></h3>
+<ol>
+<li><strong>Remove <code>type: ignore</code> comments</strong> (Software Developer)</li>
+<li><strong>Add configuration management</strong> (Software Developer)</li>
+<li><strong>Improve resource management</strong> (Software Developer)</li>
+<li><strong>Add SNR calculation validation</strong> (Radio Astronomer)</li>
+<li><strong>Add stability metric normalization</strong> (Radio Astronomer)</li>
+</ol>
+<hr/>
+<h2 id="4-specific-code-examples">4. SPECIFIC CODE EXAMPLES<a class="headerlink" href="#4-specific-code-examples" title="Permanent link">¶</a></h2>
+<h3 id="example-1-unit-handling-issue">Example 1: Unit Handling Issue<a class="headerlink" href="#example-1-unit-handling-issue" title="Permanent link">¶</a></h3>
+<p><strong>Current (Problematic):</strong>
+<div class="highlight"><pre><span></span><code><span class="c1"># qa/calibration_quality.py:244</span>
+<span class="n">delays_sec</span> <span class="o">=</span> <span class="n">unflagged_fparam</span> <span class="o">/</span> <span class="p">(</span><span class="mi">2</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">pi</span> <span class="o">*</span> <span class="n">ref_freq_hz</span><span class="p">)</span>
+<span class="n">delays_ns</span> <span class="o">=</span> <span class="n">delays_sec</span> <span class="o">*</span> <span class="mf">1e9</span>
+</code></pre></div></p>
+<p><strong>Recommended:</strong>
+<div class="highlight"><pre><span></span><code><span class="kn">import</span><span class="w"> </span><span class="nn">astropy.units</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">u</span>
+
+<span class="n">ref_freq</span> <span class="o">=</span> <span class="n">ref_freq_hz</span> <span class="o">*</span> <span class="n">u</span><span class="o">.</span><span class="n">Hz</span>
+<span class="n">phase_rad</span> <span class="o">=</span> <span class="n">unflagged_fparam</span>  <span class="c1"># Assuming radians</span>
+<span class="n">delay</span> <span class="o">=</span> <span class="n">phase_rad</span> <span class="o">/</span> <span class="p">(</span><span class="mi">2</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">pi</span> <span class="o">*</span> <span class="n">ref_freq</span><span class="p">)</span>
+<span class="n">delay_ns</span> <span class="o">=</span> <span class="n">delay</span><span class="o">.</span><span class="n">to</span><span class="p">(</span><span class="n">u</span><span class="o">.</span><span class="n">ns</span><span class="p">)</span>
+
+<span class="c1"># Validate units</span>
+<span class="k">assert</span> <span class="n">delay</span><span class="o">.</span><span class="n">unit</span> <span class="o">==</span> <span class="n">u</span><span class="o">.</span><span class="n">s</span><span class="p">,</span> <span class="sa">f</span><span class="s2">"Expected seconds, got </span><span class="si">{</span><span class="n">delay</span><span class="o">.</span><span class="n">unit</span><span class="si">}</span><span class="s2">"</span>
+</code></pre></div></p>
+<h3 id="example-2-logging-instead-of-print">Example 2: Logging Instead of Print<a class="headerlink" href="#example-2-logging-instead-of-print" title="Permanent link">¶</a></h3>
+<p><strong>Current (Problematic):</strong>
+<div class="highlight"><pre><span></span><code><span class="c1"># cli_calibrate.py:778</span>
+<span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">"DEBUG: Field selection complete, field_sel=</span><span class="si">{</span><span class="n">field_sel</span><span class="si">}</span><span class="s2">"</span><span class="p">)</span>
+</code></pre></div></p>
+<p><strong>Recommended:</strong>
+<div class="highlight"><pre><span></span><code><span class="n">logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s2">"Field selection complete"</span><span class="p">,</span> <span class="n">extra</span><span class="o">=</span><span class="p">{</span>
+    <span class="s2">"field_sel"</span><span class="p">:</span> <span class="n">field_sel</span><span class="p">,</span>
+    <span class="s2">"peak_field"</span><span class="p">:</span> <span class="n">peak_field_idx</span>
+<span class="p">})</span>
+</code></pre></div></p>
+<h3 id="example-3-proper-error-handling">Example 3: Proper Error Handling<a class="headerlink" href="#example-3-proper-error-handling" title="Permanent link">¶</a></h3>
+<p><strong>Current (Problematic):</strong>
+<div class="highlight"><pre><span></span><code><span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
+    <span class="n">logger</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="sa">f</span><span class="s2">"Error: </span><span class="si">{</span><span class="n">e</span><span class="si">}</span><span class="s2">"</span><span class="p">)</span>
+    <span class="n">sys</span><span class="o">.</span><span class="n">exit</span><span class="p">(</span><span class="mi">1</span><span class="p">)</span>
+</code></pre></div></p>
+<p><strong>Recommended:</strong>
+<div class="highlight"><pre><span></span><code><span class="k">except</span> <span class="n">ValidationError</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
+    <span class="n">logger</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="s2">"Validation failed"</span><span class="p">,</span> <span class="n">exc_info</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+    <span class="k">return</span> <span class="mi">1</span>  <span class="c1"># Return error code instead of sys.exit</span>
+<span class="k">except</span> <span class="ne">FileNotFoundError</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
+    <span class="n">logger</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="sa">f</span><span class="s2">"File not found: </span><span class="si">{</span><span class="n">e</span><span class="si">}</span><span class="s2">"</span><span class="p">,</span> <span class="n">exc_info</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+    <span class="k">return</span> <span class="mi">2</span>
+<span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
+    <span class="n">logger</span><span class="o">.</span><span class="n">critical</span><span class="p">(</span><span class="s2">"Unexpected error"</span><span class="p">,</span> <span class="n">exc_info</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+    <span class="k">raise</span>  <span class="c1"># Re-raise for debugging</span>
+</code></pre></div></p>
+<hr/>
+<h2 id="5-conclusion">5. CONCLUSION<a class="headerlink" href="#5-conclusion" title="Permanent link">¶</a></h2>
+<p>The codebase shows good scientific understanding and functional implementation, but has significant gaps in:
+- <strong>Software engineering practices</strong>: Testing, logging, error handling
+- <strong>Scientific rigor</strong>: Unit handling, precision, reproducibility
+- <strong>Maintainability</strong>: Large files, hardcoded values, minimal documentation</p>
+<p><strong>For a production science pipeline monitoring 10,000 sources</strong>, these issues are <strong>critical</strong> because:
+1. Small calibration errors propagate to all sources
+2. False positives/negatives in variability detection waste scientific resources
+3. Reproducibility is essential for scientific validity
+4. Maintainability is crucial for long-term operations</p>
+<p><strong>Recommended Action Plan:</strong>
+1. <strong>Immediate</strong>: Fix logging, add unit handling, add critical tests
+2. <strong>Short-term</strong>: Improve error handling, add validation, document parameters
+3. <strong>Long-term</strong>: Refactor architecture, add comprehensive testing, improve reproducibility</p>
+</article>
+</div>
+<script>var tabs=__md_get("__tabs");if(Array.isArray(tabs))e:for(var set of document.querySelectorAll(".tabbed-set")){var tab,labels=set.querySelector(".tabbed-labels");for(tab of tabs)for(var label of labels.getElementsByTagName("label"))if(label.innerText.trim()===tab){var input=document.getElementById(label.htmlFor);input.checked=!0;continue e}}</script>
+<script>var target=document.getElementById(location.hash.slice(1));target&&target.name&&(target.checked=target.name.startsWith("__tabbed_"))</script>
+</div>
+</main>
+<footer class="md-footer">
+<div class="md-footer-meta md-typeset">
+<div class="md-footer-meta__inner md-grid">
+<div class="md-copyright">
+  
+  
+    Made with
+    <a href="https://squidfunk.github.io/mkdocs-material/" rel="noopener" target="_blank">
+      Material for MkDocs
+    </a>
+</div>
+</div>
+</div>
+</footer>
+</div>
+<div class="md-dialog" data-md-component="dialog">
+<div class="md-dialog__inner md-typeset"></div>
+</div>
+<script id="__config" type="application/json">{"base": "..", "features": ["navigation.sections", "navigation.indexes", "content.code.copy", "content.tabs.link"], "search": "../assets/javascripts/workers/search.b8dbb3d2.min.js", "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}}</script>
+<script src="../assets/javascripts/bundle.fe8b6f2b.min.js"></script>
+<script src="../javascripts/mathjax.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+<script src="../javascripts/mermaid-zoom.js"></script>
+</body>
+</html>

@@ -1,0 +1,1655 @@
+
+<!DOCTYPE html>
+
+<html class="no-js" lang="en">
+<head>
+<meta charset="utf-8"/>
+<meta content="width=device-width,initial-scale=1" name="viewport"/>
+<link href="http://code.deepsynoptic.org/dsa110-contimg/how-to/FIND_CALIBRATOR_TRANSIT_DATA/" rel="canonical"/>
+<link href="../CALIBRATION_DETAILED_PROCEDURE/" rel="prev"/>
+<link href="../IMAGE_0834_TRANSIT_5MIN/" rel="next"/>
+<link href="../../assets/images/favicon.png" rel="icon"/>
+<meta content="mkdocs-1.6.1, mkdocs-material-9.5.31" name="generator"/>
+<title>Find Calibrator Transit - DSA-110 Continuum Imaging Pipeline</title>
+<link href="../../assets/stylesheets/main.3cba04c6.min.css" rel="stylesheet"/>
+<link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect"/>
+<link href="https://fonts.googleapis.com/css?family=Roboto:300,300i,400,400i,700,700i%7CRoboto+Mono:400,400i,700,700i&amp;display=fallback" rel="stylesheet"/>
+<style>:root{--md-text-font:"Roboto";--md-code-font:"Roboto Mono"}</style>
+<link href="../../assets/_mkdocstrings.css" rel="stylesheet"/>
+<script>__md_scope=new URL("../..",location),__md_hash=e=>[...e].reduce((e,_)=>(e<<5)-e+_.charCodeAt(0),0),__md_get=(e,_=localStorage,t=__md_scope)=>JSON.parse(_.getItem(t.pathname+"."+e)),__md_set=(e,_,t=localStorage,a=__md_scope)=>{try{t.setItem(a.pathname+"."+e,JSON.stringify(_))}catch(e){}}</script>
+</head>
+<body dir="ltr">
+<input autocomplete="off" class="md-toggle" data-md-toggle="drawer" id="__drawer" type="checkbox"/>
+<input autocomplete="off" class="md-toggle" data-md-toggle="search" id="__search" type="checkbox"/>
+<label class="md-overlay" for="__drawer"></label>
+<div data-md-component="skip">
+<a class="md-skip" href="#finding-calibrator-transit-data-with-hdf5-file-lists">
+          Skip to content
+        </a>
+</div>
+<div data-md-component="announce">
+</div>
+<header class="md-header md-header--shadow" data-md-component="header">
+<nav aria-label="Header" class="md-header__inner md-grid">
+<a aria-label="DSA-110 Continuum Imaging Pipeline" class="md-header__button md-logo" data-md-component="logo" href="../.." title="DSA-110 Continuum Imaging Pipeline">
+<svg viewbox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54Z"></path></svg>
+</a>
+<label class="md-header__button md-icon" for="__drawer">
+<svg viewbox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M3 6h18v2H3V6m0 5h18v2H3v-2m0 5h18v2H3v-2Z"></path></svg>
+</label>
+<div class="md-header__title" data-md-component="header-title">
+<div class="md-header__ellipsis">
+<div class="md-header__topic">
+<span class="md-ellipsis">
+            DSA-110 Continuum Imaging Pipeline
+          </span>
+</div>
+<div class="md-header__topic" data-md-component="header-topic">
+<span class="md-ellipsis">
+            
+              Find Calibrator Transit
+            
+          </span>
+</div>
+</div>
+</div>
+<script>var media,input,key,value,palette=__md_get("__palette");if(palette&&palette.color){"(prefers-color-scheme)"===palette.color.media&&(media=matchMedia("(prefers-color-scheme: light)"),input=document.querySelector(media.matches?"[data-md-color-media='(prefers-color-scheme: light)']":"[data-md-color-media='(prefers-color-scheme: dark)']"),palette.color.media=input.getAttribute("data-md-color-media"),palette.color.scheme=input.getAttribute("data-md-color-scheme"),palette.color.primary=input.getAttribute("data-md-color-primary"),palette.color.accent=input.getAttribute("data-md-color-accent"));for([key,value]of Object.entries(palette.color))document.body.setAttribute("data-md-color-"+key,value)}</script>
+<label class="md-header__button md-icon" for="__search">
+<svg viewbox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.516 6.516 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5Z"></path></svg>
+</label>
+<div class="md-search" data-md-component="search" role="dialog">
+<label class="md-search__overlay" for="__search"></label>
+<div class="md-search__inner" role="search">
+<form class="md-search__form" name="search">
+<input aria-label="Search" autocapitalize="off" autocomplete="off" autocorrect="off" class="md-search__input" data-md-component="search-query" name="query" placeholder="Search" required="" spellcheck="false" type="text"/>
+<label class="md-search__icon md-icon" for="__search">
+<svg viewbox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.516 6.516 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5Z"></path></svg>
+<svg viewbox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11h12Z"></path></svg>
+</label>
+<nav aria-label="Search" class="md-search__options">
+<button aria-label="Clear" class="md-search__icon md-icon" tabindex="-1" title="Clear" type="reset">
+<svg viewbox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M19 6.41 17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12 19 6.41Z"></path></svg>
+</button>
+</nav>
+</form>
+<div class="md-search__output">
+<div class="md-search__scrollwrap" data-md-scrollfix="" tabindex="0">
+<div class="md-search-result" data-md-component="search-result">
+<div class="md-search-result__meta">
+            Initializing search
+          </div>
+<ol class="md-search-result__list" role="presentation"></ol>
+</div>
+</div>
+</div>
+</div>
+</div>
+<div class="md-header__source">
+<a class="md-source" data-md-component="source" href="https://github.com/dsa110/dsa110-contimg" title="Go to repository">
+<div class="md-source__icon md-icon">
+<svg viewbox="0 0 448 512" xmlns="http://www.w3.org/2000/svg"><!--! Font Awesome Free 6.6.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2024 Fonticons, Inc.--><path d="M439.55 236.05 244 40.45a28.87 28.87 0 0 0-40.81 0l-40.66 40.63 51.52 51.52c27.06-9.14 52.68 16.77 43.39 43.68l49.66 49.66c34.23-11.8 61.18 31 35.47 56.69-26.49 26.49-70.21-2.87-56-37.34L240.22 199v121.85c25.3 12.54 22.26 41.85 9.08 55a34.34 34.34 0 0 1-48.55 0c-17.57-17.6-11.07-46.91 11.25-56v-123c-20.8-8.51-24.6-30.74-18.64-45L142.57 101 8.45 235.14a28.86 28.86 0 0 0 0 40.81l195.61 195.6a28.86 28.86 0 0 0 40.8 0l194.69-194.69a28.86 28.86 0 0 0 0-40.81z"></path></svg>
+</div>
+<div class="md-source__repository">
+    GitHub
+  </div>
+</a>
+</div>
+</nav>
+</header>
+<div class="md-container" data-md-component="container">
+<main class="md-main" data-md-component="main">
+<div class="md-main__inner md-grid">
+<div class="md-sidebar md-sidebar--primary" data-md-component="sidebar" data-md-type="navigation">
+<div class="md-sidebar__scrollwrap">
+<div class="md-sidebar__inner">
+<nav aria-label="Navigation" class="md-nav md-nav--primary" data-md-level="0">
+<label class="md-nav__title" for="__drawer">
+<a aria-label="DSA-110 Continuum Imaging Pipeline" class="md-nav__button md-logo" data-md-component="logo" href="../.." title="DSA-110 Continuum Imaging Pipeline">
+<svg viewbox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54Z"></path></svg>
+</a>
+    DSA-110 Continuum Imaging Pipeline
+  </label>
+<div class="md-nav__source">
+<a class="md-source" data-md-component="source" href="https://github.com/dsa110/dsa110-contimg" title="Go to repository">
+<div class="md-source__icon md-icon">
+<svg viewbox="0 0 448 512" xmlns="http://www.w3.org/2000/svg"><!--! Font Awesome Free 6.6.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2024 Fonticons, Inc.--><path d="M439.55 236.05 244 40.45a28.87 28.87 0 0 0-40.81 0l-40.66 40.63 51.52 51.52c27.06-9.14 52.68 16.77 43.39 43.68l49.66 49.66c34.23-11.8 61.18 31 35.47 56.69-26.49 26.49-70.21-2.87-56-37.34L240.22 199v121.85c25.3 12.54 22.26 41.85 9.08 55a34.34 34.34 0 0 1-48.55 0c-17.57-17.6-11.07-46.91 11.25-56v-123c-20.8-8.51-24.6-30.74-18.64-45L142.57 101 8.45 235.14a28.86 28.86 0 0 0 0 40.81l195.61 195.6a28.86 28.86 0 0 0 40.8 0l194.69-194.69a28.86 28.86 0 0 0 0-40.81z"></path></svg>
+</div>
+<div class="md-source__repository">
+    GitHub
+  </div>
+</a>
+</div>
+<ul class="md-nav__list" data-md-scrollfix="">
+<li class="md-nav__item">
+<a class="md-nav__link" href="../..">
+<span class="md-ellipsis">
+    Home
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../DOCUMENTATION_QUICK_REFERENCE/">
+<span class="md-ellipsis">
+    Documentation Guide
+  </span>
+</a>
+</li>
+<li class="md-nav__item md-nav__item--section md-nav__item--nested">
+<input class="md-nav__toggle md-toggle" id="__nav_3" type="checkbox"/>
+<div class="md-nav__link md-nav__container">
+<a class="md-nav__link" href="../../concepts/">
+<span class="md-ellipsis">
+    Concepts
+  </span>
+</a>
+<label class="md-nav__link" for="__nav_3" id="__nav_3_label" tabindex="">
+<span class="md-nav__icon md-icon"></span>
+</label>
+</div>
+<nav aria-expanded="false" aria-labelledby="__nav_3_label" class="md-nav" data-md-level="1">
+<label class="md-nav__title" for="__nav_3">
+<span class="md-nav__icon md-icon"></span>
+            Concepts
+          </label>
+<ul class="md-nav__list" data-md-scrollfix="">
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../concepts/architecture/">
+<span class="md-ellipsis">
+    Architecture
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../concepts/DIRECTORY_ARCHITECTURE/">
+<span class="md-ellipsis">
+    Directory Architecture
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../concepts/modules/">
+<span class="md-ellipsis">
+    Modules
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../concepts/control-panel/">
+<span class="md-ellipsis">
+    Control Panel
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../concepts/aoflagger/">
+<span class="md-ellipsis">
+    AOFlagger
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../concepts/frontend_design/">
+<span class="md-ellipsis">
+    Frontend Design
+  </span>
+</a>
+</li>
+<li class="md-nav__item md-nav__item--nested">
+<input class="md-nav__toggle md-toggle" id="__nav_3_8" type="checkbox"/>
+<label class="md-nav__link" for="__nav_3_8" id="__nav_3_8_label" tabindex="0">
+<span class="md-ellipsis">
+    Dashboard
+  </span>
+<span class="md-nav__icon md-icon"></span>
+</label>
+<nav aria-expanded="false" aria-labelledby="__nav_3_8_label" class="md-nav" data-md-level="2">
+<label class="md-nav__title" for="__nav_3_8">
+<span class="md-nav__icon md-icon"></span>
+            Dashboard
+          </label>
+<ul class="md-nav__list" data-md-scrollfix="">
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../concepts/dashboard_mockups/">
+<span class="md-ellipsis">
+    Mockups
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../SKYVIEW_IMPLEMENTATION_PLAN/">
+<span class="md-ellipsis">
+    Sky View
+  </span>
+</a>
+</li>
+</ul>
+</nav>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../concepts/GLOSSARY/">
+<span class="md-ellipsis">
+    Glossary
+  </span>
+</a>
+</li>
+<li class="md-nav__item md-nav__item--nested">
+<input class="md-nav__toggle md-toggle" id="__nav_3_10" type="checkbox"/>
+<label class="md-nav__link" for="__nav_3_10" id="__nav_3_10_label" tabindex="0">
+<span class="md-ellipsis">
+    Pipeline
+  </span>
+<span class="md-nav__icon md-icon"></span>
+</label>
+<nav aria-expanded="false" aria-labelledby="__nav_3_10_label" class="md-nav" data-md-level="2">
+<label class="md-nav__title" for="__nav_3_10">
+<span class="md-nav__icon md-icon"></span>
+            Pipeline
+          </label>
+<ul class="md-nav__list" data-md-scrollfix="">
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../concepts/pipeline_overview/">
+<span class="md-ellipsis">
+    Overview
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../concepts/pipeline_stage_architecture/">
+<span class="md-ellipsis">
+    Stage Architecture
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../concepts/pipeline_workflow_visualization/">
+<span class="md-ellipsis">
+    Workflow Visualization
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../concepts/pipeline_production_features/">
+<span class="md-ellipsis">
+    Production Features
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../concepts/pipeline_patterns/">
+<span class="md-ellipsis">
+    Patterns
+  </span>
+</a>
+</li>
+</ul>
+</nav>
+</li>
+<li class="md-nav__item md-nav__item--nested">
+<input class="md-nav__toggle md-toggle" id="__nav_3_11" type="checkbox"/>
+<label class="md-nav__link" for="__nav_3_11" id="__nav_3_11_label" tabindex="0">
+<span class="md-ellipsis">
+    Science
+  </span>
+<span class="md-nav__icon md-icon"></span>
+</label>
+<nav aria-expanded="false" aria-labelledby="__nav_3_11_label" class="md-nav" data-md-level="2">
+<label class="md-nav__title" for="__nav_3_11">
+<span class="md-nav__icon md-icon"></span>
+            Science
+          </label>
+<ul class="md-nav__list" data-md-scrollfix="">
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../concepts/science/photometry_normalization/">
+<span class="md-ellipsis">
+    Photometry Normalization
+  </span>
+</a>
+</li>
+</ul>
+</nav>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../concepts/mcp_browser_server_setup/">
+<span class="md-ellipsis">
+    Browser MCP Server
+  </span>
+</a>
+</li>
+</ul>
+</nav>
+</li>
+<li class="md-nav__item md-nav__item--section md-nav__item--nested">
+<input class="md-nav__toggle md-toggle" id="__nav_4" type="checkbox"/>
+<label class="md-nav__link" for="__nav_4" id="__nav_4_label" tabindex="">
+<span class="md-ellipsis">
+    Tutorials
+  </span>
+<span class="md-nav__icon md-icon"></span>
+</label>
+<nav aria-expanded="false" aria-labelledby="__nav_4_label" class="md-nav" data-md-level="1">
+<label class="md-nav__title" for="__nav_4">
+<span class="md-nav__icon md-icon"></span>
+            Tutorials
+          </label>
+<ul class="md-nav__list" data-md-scrollfix="">
+<li class="md-nav__item md-nav__item--nested">
+<input class="md-nav__toggle md-toggle" id="__nav_4_1" type="checkbox"/>
+<label class="md-nav__link" for="__nav_4_1" id="__nav_4_1_label" tabindex="0">
+<span class="md-ellipsis">
+    Conversion
+  </span>
+<span class="md-nav__icon md-icon"></span>
+</label>
+<nav aria-expanded="false" aria-labelledby="__nav_4_1_label" class="md-nav" data-md-level="2">
+<label class="md-nav__title" for="__nav_4_1">
+<span class="md-nav__icon md-icon"></span>
+            Conversion
+          </label>
+<ul class="md-nav__list" data-md-scrollfix="">
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../tutorials/HDF5_TO_MS_TUTORIAL/">
+<span class="md-ellipsis">
+    HDF5 to MS
+  </span>
+</a>
+</li>
+</ul>
+</nav>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../tutorials/simulation-tutorial/">
+<span class="md-ellipsis">
+    Simulation
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../tutorials/calibrate-apply/">
+<span class="md-ellipsis">
+    Calibrate and Apply
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../tutorials/convert-standalone/">
+<span class="md-ellipsis">
+    Convert Standalone
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../tutorials/streaming/">
+<span class="md-ellipsis">
+    Streaming
+  </span>
+</a>
+</li>
+<li class="md-nav__item md-nav__item--nested">
+<input class="md-nav__toggle md-toggle" id="__nav_4_6" type="checkbox"/>
+<label class="md-nav__link" for="__nav_4_6" id="__nav_4_6_label" tabindex="0">
+<span class="md-ellipsis">
+    Notebooks
+  </span>
+<span class="md-nav__icon md-icon"></span>
+</label>
+<nav aria-expanded="false" aria-labelledby="__nav_4_6_label" class="md-nav" data-md-level="2">
+<label class="md-nav__title" for="__nav_4_6">
+<span class="md-nav__icon md-icon"></span>
+            Notebooks
+          </label>
+<ul class="md-nav__list" data-md-scrollfix="">
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../tutorials/notebooks/bandpass_calibration_test.ipynb">
+<span class="md-ellipsis">
+    Bandpass Calibration Test
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../tutorials/notebooks/calibrator_helper.py">
+<span class="md-ellipsis">
+    Calibrator Helper
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../tutorials/notebooks/CalibratorSearch.ipynb">
+<span class="md-ellipsis">
+    Calibrator Search
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../tutorials/notebooks/ms_staging_workflow.ipynb">
+<span class="md-ellipsis">
+    MS Staging Workflow
+  </span>
+</a>
+</li>
+</ul>
+</nav>
+</li>
+</ul>
+</nav>
+</li>
+<li class="md-nav__item md-nav__item--active md-nav__item--section md-nav__item--nested">
+<input checked="" class="md-nav__toggle md-toggle" id="__nav_5" type="checkbox"/>
+<label class="md-nav__link" for="__nav_5" id="__nav_5_label" tabindex="">
+<span class="md-ellipsis">
+    How-To Guides
+  </span>
+<span class="md-nav__icon md-icon"></span>
+</label>
+<nav aria-expanded="true" aria-labelledby="__nav_5_label" class="md-nav" data-md-level="1">
+<label class="md-nav__title" for="__nav_5">
+<span class="md-nav__icon md-icon"></span>
+            How-To Guides
+          </label>
+<ul class="md-nav__list" data-md-scrollfix="">
+<li class="md-nav__item">
+<a class="md-nav__link" href="../github_pages_walkthrough/">
+<span class="md-ellipsis">
+    GitHub Pages Setup
+  </span>
+</a>
+</li>
+<li class="md-nav__item md-nav__item--nested">
+<input class="md-nav__toggle md-toggle" id="__nav_5_2" type="checkbox"/>
+<label class="md-nav__link" for="__nav_5_2" id="__nav_5_2_label" tabindex="0">
+<span class="md-ellipsis">
+    Quickstarts
+  </span>
+<span class="md-nav__icon md-icon"></span>
+</label>
+<nav aria-expanded="false" aria-labelledby="__nav_5_2_label" class="md-nav" data-md-level="2">
+<label class="md-nav__title" for="__nav_5_2">
+<span class="md-nav__icon md-icon"></span>
+            Quickstarts
+          </label>
+<ul class="md-nav__list" data-md-scrollfix="">
+<li class="md-nav__item">
+<a class="md-nav__link" href="../quickstart/">
+<span class="md-ellipsis">
+    General
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../control-panel-quickstart/">
+<span class="md-ellipsis">
+    Control Panel
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../LINEAR_SETUP_QUICKSTART/">
+<span class="md-ellipsis">
+    Linear Setup
+  </span>
+</a>
+</li>
+</ul>
+</nav>
+</li>
+<li class="md-nav__item md-nav__item--nested">
+<input class="md-nav__toggle md-toggle" id="__nav_5_3" type="checkbox"/>
+<label class="md-nav__link" for="__nav_5_3" id="__nav_5_3_label" tabindex="0">
+<span class="md-ellipsis">
+    Testing
+  </span>
+<span class="md-nav__icon md-icon"></span>
+</label>
+<nav aria-expanded="false" aria-labelledby="__nav_5_3_label" class="md-nav" data-md-level="2">
+<label class="md-nav__title" for="__nav_5_3">
+<span class="md-nav__icon md-icon"></span>
+            Testing
+          </label>
+<ul class="md-nav__list" data-md-scrollfix="">
+<li class="md-nav__item">
+<a class="md-nav__link" href="../FAST_TESTING/">
+<span class="md-ellipsis">
+    Fast Testing
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../PIPELINE_TESTING_GUIDE/">
+<span class="md-ellipsis">
+    Pipeline Guide
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../TEST_FLAG_SUBCOMMAND/">
+<span class="md-ellipsis">
+    Flag Subcommand
+  </span>
+</a>
+</li>
+</ul>
+</nav>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../build-vp-from-h5/">
+<span class="md-ellipsis">
+    Build VP from h5
+  </span>
+</a>
+</li>
+<li class="md-nav__item md-nav__item--active md-nav__item--nested">
+<input checked="" class="md-nav__toggle md-toggle" id="__nav_5_5" type="checkbox"/>
+<label class="md-nav__link" for="__nav_5_5" id="__nav_5_5_label" tabindex="0">
+<span class="md-ellipsis">
+    Calibration
+  </span>
+<span class="md-nav__icon md-icon"></span>
+</label>
+<nav aria-expanded="true" aria-labelledby="__nav_5_5_label" class="md-nav" data-md-level="2">
+<label class="md-nav__title" for="__nav_5_5">
+<span class="md-nav__icon md-icon"></span>
+            Calibration
+          </label>
+<ul class="md-nav__list" data-md-scrollfix="">
+<li class="md-nav__item">
+<a class="md-nav__link" href="../CALIBRATION_DETAILED_PROCEDURE/">
+<span class="md-ellipsis">
+    Detailed Procedure
+  </span>
+</a>
+</li>
+<li class="md-nav__item md-nav__item--active">
+<input class="md-nav__toggle md-toggle" id="__toc" type="checkbox"/>
+<label class="md-nav__link md-nav__link--active" for="__toc">
+<span class="md-ellipsis">
+    Find Calibrator Transit
+  </span>
+<span class="md-nav__icon md-icon"></span>
+</label>
+<a class="md-nav__link md-nav__link--active" href="./">
+<span class="md-ellipsis">
+    Find Calibrator Transit
+  </span>
+</a>
+<nav aria-label="Table of contents" class="md-nav md-nav--secondary">
+<label class="md-nav__title" for="__toc">
+<span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+<ul class="md-nav__list" data-md-component="toc" data-md-scrollfix="">
+<li class="md-nav__item">
+<a class="md-nav__link" href="#quick-answer">
+<span class="md-ellipsis">
+      Quick Answer
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#what-not-to-do">
+<span class="md-ellipsis">
+      What NOT to Do
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#the-proper-method-from-docsreportsmemorymd-line-45">
+<span class="md-ellipsis">
+      The Proper Method (From docs/reports/memory.md Line 45)
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#understanding-calibratormsgenerator-methods">
+<span class="md-ellipsis">
+      Understanding CalibratorMSGenerator Methods
+    </span>
+</a>
+<nav aria-label="Understanding CalibratorMSGenerator Methods" class="md-nav">
+<ul class="md-nav__list">
+<li class="md-nav__item">
+<a class="md-nav__link" href="#find_transit-returns-transit-info-with-file-list">
+<span class="md-ellipsis">
+      find_transit() - Returns Transit Info WITH File List
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#generate_from_transit-creates-ms-returns-result-with-file-list">
+<span class="md-ellipsis">
+      generate_from_transit() - Creates MS, Returns Result WITH File List
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#list_available_transits-lists-all-transits-with-file-lists">
+<span class="md-ellipsis">
+      list_available_transits() - Lists ALL Transits WITH File Lists
+    </span>
+</a>
+</li>
+</ul>
+</nav>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#complete-example-getting-file-lists-for-all-transits">
+<span class="md-ellipsis">
+      Complete Example: Getting File Lists for ALL Transits
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#complete-example-finding-one-transit-and-getting-files">
+<span class="md-ellipsis">
+      Complete Example: Finding One Transit and Getting Files
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#why-this-method">
+<span class="md-ellipsis">
+      Why This Method?
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#common-mistakes">
+<span class="md-ellipsis">
+      Common Mistakes
+    </span>
+</a>
+<nav aria-label="Common Mistakes" class="md-nav">
+<ul class="md-nav__list">
+<li class="md-nav__item">
+<a class="md-nav__link" href="#mistake-1-not-knowing-which-method-to-use">
+<span class="md-ellipsis">
+      Mistake 1: Not knowing which method to use
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#mistake-2-manually-searching-for-files">
+<span class="md-ellipsis">
+      Mistake 2: Manually searching for files
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#mistake-3-forgetting-that-file-list-is-in-transit_info">
+<span class="md-ellipsis">
+      Mistake 3: Forgetting that file list is in transit_info
+    </span>
+</a>
+</li>
+</ul>
+</nav>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#integration-with-test-scripts">
+<span class="md-ellipsis">
+      Integration with Test Scripts
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#summary">
+<span class="md-ellipsis">
+      Summary
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#references">
+<span class="md-ellipsis">
+      References
+    </span>
+</a>
+</li>
+</ul>
+</nav>
+</li>
+</ul>
+</nav>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../IMAGE_0834_TRANSIT_5MIN/">
+<span class="md-ellipsis">
+    Image 0834 Transit 5min
+  </span>
+</a>
+</li>
+<li class="md-nav__item md-nav__item--nested">
+<input class="md-nav__toggle md-toggle" id="__nav_5_7" type="checkbox"/>
+<label class="md-nav__link" for="__nav_5_7" id="__nav_5_7_label" tabindex="0">
+<span class="md-ellipsis">
+    Mosaic
+  </span>
+<span class="md-nav__icon md-icon"></span>
+</label>
+<nav aria-expanded="false" aria-labelledby="__nav_5_7_label" class="md-nav" data-md-level="2">
+<label class="md-nav__title" for="__nav_5_7">
+<span class="md-nav__icon md-icon"></span>
+            Mosaic
+          </label>
+<ul class="md-nav__list" data-md-scrollfix="">
+<li class="md-nav__item">
+<a class="md-nav__link" href="../mosaic_quickstart/">
+<span class="md-ellipsis">
+    Quickstart
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../mosaic/">
+<span class="md-ellipsis">
+    Complete Guide
+  </span>
+</a>
+</li>
+</ul>
+</nav>
+</li>
+<li class="md-nav__item md-nav__item--nested">
+<input class="md-nav__toggle md-toggle" id="__nav_5_8" type="checkbox"/>
+<label class="md-nav__link" for="__nav_5_8" id="__nav_5_8_label" tabindex="0">
+<span class="md-ellipsis">
+    Quality Assurance
+  </span>
+<span class="md-nav__icon md-icon"></span>
+</label>
+<nav aria-expanded="false" aria-labelledby="__nav_5_8_label" class="md-nav" data-md-level="2">
+<label class="md-nav__title" for="__nav_5_8">
+<span class="md-nav__icon md-icon"></span>
+            Quality Assurance
+          </label>
+<ul class="md-nav__list" data-md-scrollfix="">
+<li class="md-nav__item">
+<a class="md-nav__link" href="../QUALITY_ASSURANCE_SETUP/">
+<span class="md-ellipsis">
+    Setup
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../quicklook/">
+<span class="md-ellipsis">
+    Quick Look
+  </span>
+</a>
+</li>
+</ul>
+</nav>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../reprocess/">
+<span class="md-ellipsis">
+    Reprocess
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../USING_ORCHESTRATOR_CLI/">
+<span class="md-ellipsis">
+    Using Orchestrator CLI
+  </span>
+</a>
+</li>
+<li class="md-nav__item md-nav__item--nested">
+<input class="md-nav__toggle md-toggle" id="__nav_5_11" type="checkbox"/>
+<label class="md-nav__link" for="__nav_5_11" id="__nav_5_11_label" tabindex="0">
+<span class="md-ellipsis">
+    Dashboard
+  </span>
+<span class="md-nav__icon md-icon"></span>
+</label>
+<nav aria-expanded="false" aria-labelledby="__nav_5_11_label" class="md-nav" data-md-level="2">
+<label class="md-nav__title" for="__nav_5_11">
+<span class="md-nav__icon md-icon"></span>
+            Dashboard
+          </label>
+<ul class="md-nav__list" data-md-scrollfix="">
+<li class="md-nav__item">
+<a class="md-nav__link" href="../dashboard-development/">
+<span class="md-ellipsis">
+    Development
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../dashboard-quickstart/">
+<span class="md-ellipsis">
+    Quickstart
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../dashboard_testing/">
+<span class="md-ellipsis">
+    Testing
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../dashboard_development_workflow/">
+<span class="md-ellipsis">
+    Development Workflow
+  </span>
+</a>
+</li>
+</ul>
+</nav>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../LINEAR_INTEGRATION/">
+<span class="md-ellipsis">
+    Linear Integration
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../frontend-initial-setup/">
+<span class="md-ellipsis">
+    Frontend Initial Setup
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../PARAMETER_OPTIMIZATION_GUIDE/">
+<span class="md-ellipsis">
+    AOFlagger Parameter Optimization
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../downsampling_guide/">
+<span class="md-ellipsis">
+    Downsampling Guide
+  </span>
+</a>
+</li>
+<li class="md-nav__item md-nav__item--nested">
+<input class="md-nav__toggle md-toggle" id="__nav_5_16" type="checkbox"/>
+<label class="md-nav__link" for="__nav_5_16" id="__nav_5_16_label" tabindex="0">
+<span class="md-ellipsis">
+    Conversion
+  </span>
+<span class="md-nav__icon md-icon"></span>
+</label>
+<nav aria-expanded="false" aria-labelledby="__nav_5_16_label" class="md-nav" data-md-level="2">
+<label class="md-nav__title" for="__nav_5_16">
+<span class="md-nav__icon md-icon"></span>
+            Conversion
+          </label>
+<ul class="md-nav__list" data-md-scrollfix="">
+<li class="md-nav__item">
+<a class="md-nav__link" href="../uvh5_to_ms_conversion/">
+<span class="md-ellipsis">
+    UVH5 to MS
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../streaming_converter_guide/">
+<span class="md-ellipsis">
+    Streaming Converter
+  </span>
+</a>
+</li>
+</ul>
+</nav>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../troubleshooting/">
+<span class="md-ellipsis">
+    Troubleshooting
+  </span>
+</a>
+</li>
+</ul>
+</nav>
+</li>
+<li class="md-nav__item md-nav__item--section md-nav__item--nested">
+<input class="md-nav__toggle md-toggle" id="__nav_6" type="checkbox"/>
+<label class="md-nav__link" for="__nav_6" id="__nav_6_label" tabindex="">
+<span class="md-ellipsis">
+    Reference
+  </span>
+<span class="md-nav__icon md-icon"></span>
+</label>
+<nav aria-expanded="false" aria-labelledby="__nav_6_label" class="md-nav" data-md-level="1">
+<label class="md-nav__title" for="__nav_6">
+<span class="md-nav__icon md-icon"></span>
+            Reference
+          </label>
+<ul class="md-nav__list" data-md-scrollfix="">
+<li class="md-nav__item md-nav__item--nested">
+<input class="md-nav__toggle md-toggle" id="__nav_6_1" type="checkbox"/>
+<label class="md-nav__link" for="__nav_6_1" id="__nav_6_1_label" tabindex="0">
+<span class="md-ellipsis">
+    API
+  </span>
+<span class="md-nav__icon md-icon"></span>
+</label>
+<nav aria-expanded="false" aria-labelledby="__nav_6_1_label" class="md-nav" data-md-level="2">
+<label class="md-nav__title" for="__nav_6_1">
+<span class="md-nav__icon md-icon"></span>
+            API
+          </label>
+<ul class="md-nav__list" data-md-scrollfix="">
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../reference/api-endpoints/">
+<span class="md-ellipsis">
+    Endpoints
+  </span>
+</a>
+</li>
+<li class="md-nav__item md-nav__item--nested">
+<input class="md-nav__toggle md-toggle" id="__nav_6_1_2" type="checkbox"/>
+<label class="md-nav__link" for="__nav_6_1_2" id="__nav_6_1_2_label" tabindex="0">
+<span class="md-ellipsis">
+    Dashboard
+  </span>
+<span class="md-nav__icon md-icon"></span>
+</label>
+<nav aria-expanded="false" aria-labelledby="__nav_6_1_2_label" class="md-nav" data-md-level="3">
+<label class="md-nav__title" for="__nav_6_1_2">
+<span class="md-nav__icon md-icon"></span>
+            Dashboard
+          </label>
+<ul class="md-nav__list" data-md-scrollfix="">
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../reference/dashboard_backend_api/">
+<span class="md-ellipsis">
+    API Reference
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../reference/dashboard_pages_and_features/">
+<span class="md-ellipsis">
+    Pages &amp; Features
+  </span>
+</a>
+</li>
+</ul>
+</nav>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../reference/backend_integration_snippets/">
+<span class="md-ellipsis">
+    Integration Snippets
+  </span>
+</a>
+</li>
+</ul>
+</nav>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../reference/calibration-overview/">
+<span class="md-ellipsis">
+    Calibration Overview
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../reference/cli/">
+<span class="md-ellipsis">
+    CLI
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../reference/control-panel-cheatsheet/">
+<span class="md-ellipsis">
+    Control Panel Cheatsheet
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../reference/database_schema/">
+<span class="md-ellipsis">
+    Database Schema
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../reference/env/">
+<span class="md-ellipsis">
+    Environment Variables
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../reference/CRITICAL_PYTHON_ENVIRONMENT/">
+<span class="md-ellipsis">
+    Critical Python Environment
+  </span>
+</a>
+</li>
+<li class="md-nav__item md-nav__item--nested">
+<input class="md-nav__toggle md-toggle" id="__nav_6_8" type="checkbox"/>
+<label class="md-nav__link" for="__nav_6_8" id="__nav_6_8_label" tabindex="0">
+<span class="md-ellipsis">
+    Optimizations
+  </span>
+<span class="md-nav__icon md-icon"></span>
+</label>
+<nav aria-expanded="false" aria-labelledby="__nav_6_8_label" class="md-nav" data-md-level="2">
+<label class="md-nav__title" for="__nav_6_8">
+<span class="md-nav__icon md-icon"></span>
+            Optimizations
+          </label>
+<ul class="md-nav__list" data-md-scrollfix="">
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../reference/optimizations/OPTIMIZATION_API/">
+<span class="md-ellipsis">
+    API
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../reference/optimizations/PROFILING_GUIDE/">
+<span class="md-ellipsis">
+    Profiling Guide
+  </span>
+</a>
+</li>
+</ul>
+</nav>
+</li>
+</ul>
+</nav>
+</li>
+<li class="md-nav__item md-nav__item--section md-nav__item--nested">
+<input class="md-nav__toggle md-toggle" id="__nav_7" type="checkbox"/>
+<label class="md-nav__link" for="__nav_7" id="__nav_7_label" tabindex="">
+<span class="md-ellipsis">
+    Operations
+  </span>
+<span class="md-nav__icon md-icon"></span>
+</label>
+<nav aria-expanded="false" aria-labelledby="__nav_7_label" class="md-nav" data-md-level="1">
+<label class="md-nav__title" for="__nav_7">
+<span class="md-nav__icon md-icon"></span>
+            Operations
+          </label>
+<ul class="md-nav__list" data-md-scrollfix="">
+<li class="md-nav__item md-nav__item--nested">
+<input class="md-nav__toggle md-toggle" id="__nav_7_1" type="checkbox"/>
+<label class="md-nav__link" for="__nav_7_1" id="__nav_7_1_label" tabindex="0">
+<span class="md-ellipsis">
+    Deployment
+  </span>
+<span class="md-nav__icon md-icon"></span>
+</label>
+<nav aria-expanded="false" aria-labelledby="__nav_7_1_label" class="md-nav" data-md-level="2">
+<label class="md-nav__title" for="__nav_7_1">
+<span class="md-nav__icon md-icon"></span>
+            Deployment
+          </label>
+<ul class="md-nav__list" data-md-scrollfix="">
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../operations/deploy-docker/">
+<span class="md-ellipsis">
+    Docker
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../operations/deploy-systemd/">
+<span class="md-ellipsis">
+    systemd
+  </span>
+</a>
+</li>
+</ul>
+</nav>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../operations/port-management/">
+<span class="md-ellipsis">
+    Port Management
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../operations/refant_quick_reference/">
+<span class="md-ellipsis">
+    Refant Quick Reference
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../operations/service_restart_fix/">
+<span class="md-ellipsis">
+    Service Restart Fix
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../operations/systemd-migration/">
+<span class="md-ellipsis">
+    Systemd Migration
+  </span>
+</a>
+</li>
+</ul>
+</nav>
+</li>
+<li class="md-nav__item md-nav__item--section md-nav__item--nested">
+<input class="md-nav__toggle md-toggle" id="__nav_8" type="checkbox"/>
+<div class="md-nav__link md-nav__container">
+<a class="md-nav__link" href="../../contributing/">
+<span class="md-ellipsis">
+    Contributing
+  </span>
+</a>
+<label class="md-nav__link" for="__nav_8" id="__nav_8_label" tabindex="">
+<span class="md-nav__icon md-icon"></span>
+</label>
+</div>
+<nav aria-expanded="false" aria-labelledby="__nav_8_label" class="md-nav" data-md-level="1">
+<label class="md-nav__title" for="__nav_8">
+<span class="md-nav__icon md-icon"></span>
+            Contributing
+          </label>
+<ul class="md-nav__list" data-md-scrollfix="">
+<li class="md-nav__item md-nav__item--nested">
+<input class="md-nav__toggle md-toggle" id="__nav_8_2" type="checkbox"/>
+<label class="md-nav__link" for="__nav_8_2" id="__nav_8_2_label" tabindex="0">
+<span class="md-ellipsis">
+    Archive
+  </span>
+<span class="md-nav__icon md-icon"></span>
+</label>
+<nav aria-expanded="false" aria-labelledby="__nav_8_2_label" class="md-nav" data-md-level="2">
+<label class="md-nav__title" for="__nav_8_2">
+<span class="md-nav__icon md-icon"></span>
+            Archive
+          </label>
+<ul class="md-nav__list" data-md-scrollfix="">
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../contributing/archive/CONTRIBUTING_TODO/">
+<span class="md-ellipsis">
+    Contributing to TODO
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../contributing/archive/rules/">
+<span class="md-ellipsis">
+    Rules
+  </span>
+</a>
+</li>
+</ul>
+</nav>
+</li>
+</ul>
+</nav>
+</li>
+</ul>
+</nav>
+</div>
+</div>
+</div>
+<div class="md-sidebar md-sidebar--secondary" data-md-component="sidebar" data-md-type="toc">
+<div class="md-sidebar__scrollwrap">
+<div class="md-sidebar__inner">
+<nav aria-label="Table of contents" class="md-nav md-nav--secondary">
+<label class="md-nav__title" for="__toc">
+<span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+<ul class="md-nav__list" data-md-component="toc" data-md-scrollfix="">
+<li class="md-nav__item">
+<a class="md-nav__link" href="#quick-answer">
+<span class="md-ellipsis">
+      Quick Answer
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#what-not-to-do">
+<span class="md-ellipsis">
+      What NOT to Do
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#the-proper-method-from-docsreportsmemorymd-line-45">
+<span class="md-ellipsis">
+      The Proper Method (From docs/reports/memory.md Line 45)
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#understanding-calibratormsgenerator-methods">
+<span class="md-ellipsis">
+      Understanding CalibratorMSGenerator Methods
+    </span>
+</a>
+<nav aria-label="Understanding CalibratorMSGenerator Methods" class="md-nav">
+<ul class="md-nav__list">
+<li class="md-nav__item">
+<a class="md-nav__link" href="#find_transit-returns-transit-info-with-file-list">
+<span class="md-ellipsis">
+      find_transit() - Returns Transit Info WITH File List
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#generate_from_transit-creates-ms-returns-result-with-file-list">
+<span class="md-ellipsis">
+      generate_from_transit() - Creates MS, Returns Result WITH File List
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#list_available_transits-lists-all-transits-with-file-lists">
+<span class="md-ellipsis">
+      list_available_transits() - Lists ALL Transits WITH File Lists
+    </span>
+</a>
+</li>
+</ul>
+</nav>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#complete-example-getting-file-lists-for-all-transits">
+<span class="md-ellipsis">
+      Complete Example: Getting File Lists for ALL Transits
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#complete-example-finding-one-transit-and-getting-files">
+<span class="md-ellipsis">
+      Complete Example: Finding One Transit and Getting Files
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#why-this-method">
+<span class="md-ellipsis">
+      Why This Method?
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#common-mistakes">
+<span class="md-ellipsis">
+      Common Mistakes
+    </span>
+</a>
+<nav aria-label="Common Mistakes" class="md-nav">
+<ul class="md-nav__list">
+<li class="md-nav__item">
+<a class="md-nav__link" href="#mistake-1-not-knowing-which-method-to-use">
+<span class="md-ellipsis">
+      Mistake 1: Not knowing which method to use
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#mistake-2-manually-searching-for-files">
+<span class="md-ellipsis">
+      Mistake 2: Manually searching for files
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#mistake-3-forgetting-that-file-list-is-in-transit_info">
+<span class="md-ellipsis">
+      Mistake 3: Forgetting that file list is in transit_info
+    </span>
+</a>
+</li>
+</ul>
+</nav>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#integration-with-test-scripts">
+<span class="md-ellipsis">
+      Integration with Test Scripts
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#summary">
+<span class="md-ellipsis">
+      Summary
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#references">
+<span class="md-ellipsis">
+      References
+    </span>
+</a>
+</li>
+</ul>
+</nav>
+</div>
+</div>
+</div>
+<div class="md-content" data-md-component="content">
+<article class="md-content__inner md-typeset">
+<h1 id="finding-calibrator-transit-data-with-hdf5-file-lists">Finding Calibrator Transit Data with HDF5 File Lists<a class="headerlink" href="#finding-calibrator-transit-data-with-hdf5-file-lists" title="Permanent link">¶</a></h1>
+<p><strong>CRITICAL</strong>: This document explains the <strong>canonical method</strong> for finding calibrator transit data and obtaining the list of 16 subband HDF5 files. This is frequently misunderstood, so read carefully.</p>
+<p><strong>Location</strong>: <code>docs/howto/FIND_CALIBRATOR_TRANSIT_DATA.md</code><br/>
+<strong>Related</strong>: See also <code>docs/reports/memory.md</code> line 45 for the underlying method.</p>
+<h2 id="quick-answer">Quick Answer<a class="headerlink" href="#quick-answer" title="Permanent link">¶</a></h2>
+<p><strong>Question</strong>: How do I get the list of 16 subband HDF5 files containing a calibrator transit?</p>
+<p><strong>Answer</strong>: Use <code>CalibratorMSGenerator.find_transit()</code> or <code>generate_from_transit()</code>. The file list is in <code>transit_info['files']</code>.</p>
+<div class="highlight"><pre><span></span><code><span class="kn">from</span><span class="w"> </span><span class="nn">dsa110_contimg.conversion.calibrator_ms_service</span><span class="w"> </span><span class="kn">import</span> <span class="n">CalibratorMSGenerator</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">dsa110_contimg.conversion.config</span><span class="w"> </span><span class="kn">import</span> <span class="n">CalibratorMSConfig</span>
+
+<span class="n">config</span> <span class="o">=</span> <span class="n">CalibratorMSConfig</span><span class="o">.</span><span class="n">from_env</span><span class="p">()</span>
+<span class="n">service</span> <span class="o">=</span> <span class="n">CalibratorMSGenerator</span><span class="o">.</span><span class="n">from_config</span><span class="p">(</span><span class="n">config</span><span class="p">)</span>
+
+<span class="c1"># Method 1: Find transit and get files directly</span>
+<span class="n">transit_info</span> <span class="o">=</span> <span class="n">service</span><span class="o">.</span><span class="n">find_transit</span><span class="p">(</span><span class="s2">"0834+555"</span><span class="p">)</span>
+<span class="k">if</span> <span class="n">transit_info</span><span class="p">:</span>
+    <span class="n">hdf5_files</span> <span class="o">=</span> <span class="n">transit_info</span><span class="p">[</span><span class="s1">'files'</span><span class="p">]</span>  <span class="c1"># List of 16 HDF5 file paths</span>
+    <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">"Found </span><span class="si">{</span><span class="nb">len</span><span class="p">(</span><span class="n">hdf5_files</span><span class="p">)</span><span class="si">}</span><span class="s2"> subband files"</span><span class="p">)</span>
+
+<span class="c1"># Method 2: Generate MS and access files from result</span>
+<span class="n">result</span> <span class="o">=</span> <span class="n">service</span><span class="o">.</span><span class="n">generate_from_transit</span><span class="p">(</span><span class="s2">"0834+555"</span><span class="p">)</span>
+<span class="k">if</span> <span class="n">result</span><span class="o">.</span><span class="n">success</span><span class="p">:</span>
+    <span class="n">hdf5_files</span> <span class="o">=</span> <span class="n">result</span><span class="o">.</span><span class="n">transit_info</span><span class="p">[</span><span class="s1">'files'</span><span class="p">]</span>  <span class="c1"># List of 16 HDF5 file paths</span>
+    <span class="n">ms_path</span> <span class="o">=</span> <span class="n">result</span><span class="o">.</span><span class="n">ms_path</span>  <span class="c1"># MS path (may already exist)</span>
+</code></pre></div>
+<h2 id="what-not-to-do">What NOT to Do<a class="headerlink" href="#what-not-to-do" title="Permanent link">¶</a></h2>
+<p><strong>❌ Don't manually reimplement the logic:</strong>
+- Don't call <code>load_vla_catalog()</code>, <code>previous_transits()</code>, and <code>find_subband_groups()</code> separately
+- Don't manually search for MS files using glob patterns
+- Don't try to parse timestamps from filenames yourself</p>
+<p><strong>✓ Use <code>list_available_transits()</code> to get ALL transits with file lists:</strong>
+- This method returns file lists for ALL available transits in one call
+- Each transit dict includes <code>'files'</code> with the complete 16-subband HDF5 file list</p>
+<h2 id="the-proper-method-from-docsreportsmemorymd-line-45">The Proper Method (From <code>docs/reports/memory.md</code> Line 45)<a class="headerlink" href="#the-proper-method-from-docsreportsmemorymd-line-45" title="Permanent link">¶</a></h2>
+<p>The canonical workflow is:</p>
+<ol>
+<li><strong>Load calibrator coordinates</strong> via <code>load_vla_catalog()</code> (SQLite preferred)</li>
+<li><strong>Calculate transit times</strong> using <code>previous_transits(ra_deg=..., start_time=Time.now(), n=5)</code></li>
+<li><strong>Calculate search window</strong> (±30-60 minutes around transit)</li>
+<li><strong>CRITICAL: Verify data exists</strong> using <code>find_subband_groups()</code> from <code>hdf5_orchestrator</code></li>
+<li><strong>Select the group whose 5-minute window contains the transit time</strong></li>
+</ol>
+<p><code>CalibratorMSGenerator</code> implements this entire workflow for you. Use it.</p>
+<h2 id="understanding-calibratormsgenerator-methods">Understanding CalibratorMSGenerator Methods<a class="headerlink" href="#understanding-calibratormsgenerator-methods" title="Permanent link">¶</a></h2>
+<h3 id="find_transit-returns-transit-info-with-file-list"><code>find_transit()</code> - Returns Transit Info WITH File List<a class="headerlink" href="#find_transit-returns-transit-info-with-file-list" title="Permanent link">¶</a></h3>
+<div class="highlight"><pre><span></span><code><span class="n">transit_info</span> <span class="o">=</span> <span class="n">service</span><span class="o">.</span><span class="n">find_transit</span><span class="p">(</span><span class="s2">"0834+555"</span><span class="p">,</span> <span class="n">max_days_back</span><span class="o">=</span><span class="mi">30</span><span class="p">)</span>
+
+<span class="k">if</span> <span class="n">transit_info</span><span class="p">:</span>
+    <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">"Transit: </span><span class="si">{</span><span class="n">transit_info</span><span class="p">[</span><span class="s1">'transit_iso'</span><span class="p">]</span><span class="si">}</span><span class="s2">"</span><span class="p">)</span>
+    <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">"Group ID: </span><span class="si">{</span><span class="n">transit_info</span><span class="p">[</span><span class="s1">'group_id'</span><span class="p">]</span><span class="si">}</span><span class="s2">"</span><span class="p">)</span>  <span class="c1"># e.g., "2025-11-02T13:34:54"</span>
+    <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">"Files: </span><span class="si">{</span><span class="nb">len</span><span class="p">(</span><span class="n">transit_info</span><span class="p">[</span><span class="s1">'files'</span><span class="p">])</span><span class="si">}</span><span class="s2">"</span><span class="p">)</span>  <span class="c1"># List of 16 HDF5 paths</span>
+
+    <span class="c1"># Access the file list</span>
+    <span class="n">hdf5_files</span> <span class="o">=</span> <span class="n">transit_info</span><span class="p">[</span><span class="s1">'files'</span><span class="p">]</span>
+    <span class="c1"># Example: ['/data/incoming/2025-11-02T13:34:54_sb00.hdf5', ...]</span>
+</code></pre></div>
+<p><strong>Returns:</strong>
+- <code>transit_info['files']</code>: <strong>List of 16 HDF5 file paths</strong> ✓
+- <code>transit_info['group_id']</code>: Timestamp string (e.g., "2025-11-02T13:34:54")
+- <code>transit_info['transit_iso']</code>: Transit time in ISO format
+- Other metadata (delta_minutes, start_iso, end_iso, etc.)</p>
+<h3 id="generate_from_transit-creates-ms-returns-result-with-file-list"><code>generate_from_transit()</code> - Creates MS, Returns Result WITH File List<a class="headerlink" href="#generate_from_transit-creates-ms-returns-result-with-file-list" title="Permanent link">¶</a></h3>
+<div class="highlight"><pre><span></span><code><span class="n">result</span> <span class="o">=</span> <span class="n">service</span><span class="o">.</span><span class="n">generate_from_transit</span><span class="p">(</span><span class="s2">"0834+555"</span><span class="p">)</span>
+
+<span class="k">if</span> <span class="n">result</span><span class="o">.</span><span class="n">success</span><span class="p">:</span>
+    <span class="c1"># MS path (may already exist)</span>
+    <span class="n">ms_path</span> <span class="o">=</span> <span class="n">result</span><span class="o">.</span><span class="n">ms_path</span>
+
+    <span class="c1"># File list is in transit_info</span>
+    <span class="n">hdf5_files</span> <span class="o">=</span> <span class="n">result</span><span class="o">.</span><span class="n">transit_info</span><span class="p">[</span><span class="s1">'files'</span><span class="p">]</span>  <span class="c1"># List of 16 HDF5 paths</span>
+
+    <span class="c1"># Other info</span>
+    <span class="n">group_id</span> <span class="o">=</span> <span class="n">result</span><span class="o">.</span><span class="n">group_id</span>
+    <span class="n">already_exists</span> <span class="o">=</span> <span class="n">result</span><span class="o">.</span><span class="n">already_exists</span>  <span class="c1"># True if MS was pre-existing</span>
+</code></pre></div>
+<p><strong>Returns:</strong>
+- <code>result.transit_info['files']</code>: <strong>List of 16 HDF5 file paths</strong> ✓
+- <code>result.ms_path</code>: Path to MS file (created or found existing)
+- <code>result.group_id</code>: Group timestamp
+- <code>result.already_exists</code>: Whether MS already existed
+- <code>result.metrics</code>: Conversion metrics, subband count, etc.</p>
+<h3 id="list_available_transits-lists-all-transits-with-file-lists"><code>list_available_transits()</code> - Lists ALL Transits WITH File Lists<a class="headerlink" href="#list_available_transits-lists-all-transits-with-file-lists" title="Permanent link">¶</a></h3>
+<div class="highlight"><pre><span></span><code><span class="n">transits</span> <span class="o">=</span> <span class="n">service</span><span class="o">.</span><span class="n">list_available_transits</span><span class="p">(</span><span class="s2">"0834+555"</span><span class="p">,</span> <span class="n">max_days_back</span><span class="o">=</span><span class="mi">30</span><span class="p">)</span>
+
+<span class="k">for</span> <span class="n">transit</span> <span class="ow">in</span> <span class="n">transits</span><span class="p">:</span>
+    <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">"Transit: </span><span class="si">{</span><span class="n">transit</span><span class="p">[</span><span class="s1">'transit_iso'</span><span class="p">]</span><span class="si">}</span><span class="s2">"</span><span class="p">)</span>
+    <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">"Group: </span><span class="si">{</span><span class="n">transit</span><span class="p">[</span><span class="s1">'group_id'</span><span class="p">]</span><span class="si">}</span><span class="s2">"</span><span class="p">)</span>
+    <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">"Has MS: </span><span class="si">{</span><span class="n">transit</span><span class="p">[</span><span class="s1">'has_ms'</span><span class="p">]</span><span class="si">}</span><span class="s2">"</span><span class="p">)</span>
+    <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">"Files: </span><span class="si">{</span><span class="nb">len</span><span class="p">(</span><span class="n">transit</span><span class="p">[</span><span class="s1">'files'</span><span class="p">])</span><span class="si">}</span><span class="s2"> subband files"</span><span class="p">)</span>  <span class="c1"># ✓ File list included!</span>
+
+    <span class="c1"># Access the file list</span>
+    <span class="n">hdf5_files</span> <span class="o">=</span> <span class="n">transit</span><span class="p">[</span><span class="s1">'files'</span><span class="p">]</span>  <span class="c1"># List of 16 HDF5 paths</span>
+</code></pre></div>
+<p><strong>Returns:</strong>
+- List of dicts with transit metadata AND file lists
+- <strong><code>'files'</code> field</strong>: List of 16 HDF5 file paths for each transit ✓
+- Also includes: transit_iso, group_id, has_ms, subband_count, delta_minutes, etc.
+- <strong>Use this to get file lists for ALL available transits in one call</strong></p>
+<h2 id="complete-example-getting-file-lists-for-all-transits">Complete Example: Getting File Lists for ALL Transits<a class="headerlink" href="#complete-example-getting-file-lists-for-all-transits" title="Permanent link">¶</a></h2>
+<div class="highlight"><pre><span></span><code><span class="ch">#!/opt/miniforge/envs/casa6/bin/python</span>
+<span class="sd">"""</span>
+<span class="sd">Example: Get file lists for ALL 0834+555 transits with data in /data/incoming/.</span>
+<span class="sd">"""</span>
+
+<span class="kn">import</span><span class="w"> </span><span class="nn">sys</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">pathlib</span><span class="w"> </span><span class="kn">import</span> <span class="n">Path</span>
+
+<span class="n">sys</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">insert</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="nb">str</span><span class="p">(</span><span class="n">Path</span><span class="p">(</span><span class="vm">__file__</span><span class="p">)</span><span class="o">.</span><span class="n">parent</span><span class="o">.</span><span class="n">parent</span> <span class="o">/</span> <span class="s2">"src"</span><span class="p">))</span>
+
+<span class="kn">from</span><span class="w"> </span><span class="nn">dsa110_contimg.conversion.calibrator_ms_service</span><span class="w"> </span><span class="kn">import</span> <span class="n">CalibratorMSGenerator</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">dsa110_contimg.conversion.config</span><span class="w"> </span><span class="kn">import</span> <span class="n">CalibratorMSConfig</span>
+
+<span class="k">def</span><span class="w"> </span><span class="nf">main</span><span class="p">():</span>
+    <span class="c1"># Initialize service</span>
+    <span class="n">config</span> <span class="o">=</span> <span class="n">CalibratorMSConfig</span><span class="o">.</span><span class="n">from_env</span><span class="p">()</span>
+    <span class="n">service</span> <span class="o">=</span> <span class="n">CalibratorMSGenerator</span><span class="o">.</span><span class="n">from_config</span><span class="p">(</span><span class="n">config</span><span class="p">)</span>
+
+    <span class="c1"># Get ALL available transits with file lists</span>
+    <span class="n">transits</span> <span class="o">=</span> <span class="n">service</span><span class="o">.</span><span class="n">list_available_transits</span><span class="p">(</span><span class="s2">"0834+555"</span><span class="p">,</span> <span class="n">max_days_back</span><span class="o">=</span><span class="mi">60</span><span class="p">)</span>
+
+    <span class="k">if</span> <span class="ow">not</span> <span class="n">transits</span><span class="p">:</span>
+        <span class="nb">print</span><span class="p">(</span><span class="s2">"No transits found with data"</span><span class="p">)</span>
+        <span class="k">return</span> <span class="mi">1</span>
+
+    <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">"Found </span><span class="si">{</span><span class="nb">len</span><span class="p">(</span><span class="n">transits</span><span class="p">)</span><span class="si">}</span><span class="s2"> transits with complete 16-subband groups:</span><span class="se">\n</span><span class="s2">"</span><span class="p">)</span>
+
+    <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">transit</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">transits</span><span class="p">,</span> <span class="mi">1</span><span class="p">):</span>
+        <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">"Transit </span><span class="si">{</span><span class="n">i</span><span class="si">}</span><span class="s2">: </span><span class="si">{</span><span class="n">transit</span><span class="p">[</span><span class="s1">'transit_iso'</span><span class="p">]</span><span class="si">}</span><span class="s2">"</span><span class="p">)</span>
+        <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">"  Group ID: </span><span class="si">{</span><span class="n">transit</span><span class="p">[</span><span class="s1">'group_id'</span><span class="p">]</span><span class="si">}</span><span class="s2">"</span><span class="p">)</span>
+        <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">"  Files: </span><span class="si">{</span><span class="nb">len</span><span class="p">(</span><span class="n">transit</span><span class="p">[</span><span class="s1">'files'</span><span class="p">])</span><span class="si">}</span><span class="s2"> subband files"</span><span class="p">)</span>
+        <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">"  Has MS: </span><span class="si">{</span><span class="n">transit</span><span class="p">[</span><span class="s1">'has_ms'</span><span class="p">]</span><span class="si">}</span><span class="s2">"</span><span class="p">)</span>
+        <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">"  Days ago: </span><span class="si">{</span><span class="n">transit</span><span class="p">[</span><span class="s1">'days_ago'</span><span class="p">]</span><span class="si">:</span><span class="s2">.1f</span><span class="si">}</span><span class="s2">"</span><span class="p">)</span>
+
+        <span class="c1"># Access the file list</span>
+        <span class="n">hdf5_files</span> <span class="o">=</span> <span class="n">transit</span><span class="p">[</span><span class="s1">'files'</span><span class="p">]</span>  <span class="c1"># List of 16 HDF5 paths</span>
+        <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">"  First file: </span><span class="si">{</span><span class="n">Path</span><span class="p">(</span><span class="n">hdf5_files</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span><span class="o">.</span><span class="n">name</span><span class="si">}</span><span class="s2">"</span><span class="p">)</span>
+        <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">"  Last file: </span><span class="si">{</span><span class="n">Path</span><span class="p">(</span><span class="n">hdf5_files</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">])</span><span class="o">.</span><span class="n">name</span><span class="si">}</span><span class="s2">"</span><span class="p">)</span>
+        <span class="nb">print</span><span class="p">()</span>
+
+    <span class="k">return</span> <span class="mi">0</span>
+
+<span class="k">if</span> <span class="vm">__name__</span> <span class="o">==</span> <span class="s2">"__main__"</span><span class="p">:</span>
+    <span class="n">sys</span><span class="o">.</span><span class="n">exit</span><span class="p">(</span><span class="n">main</span><span class="p">())</span>
+</code></pre></div>
+<h2 id="complete-example-finding-one-transit-and-getting-files">Complete Example: Finding One Transit and Getting Files<a class="headerlink" href="#complete-example-finding-one-transit-and-getting-files" title="Permanent link">¶</a></h2>
+<div class="highlight"><pre><span></span><code><span class="ch">#!/opt/miniforge/envs/casa6/bin/python</span>
+<span class="sd">"""</span>
+<span class="sd">Example: Find 0834+555 transit data and get the HDF5 file list.</span>
+<span class="sd">"""</span>
+
+<span class="kn">import</span><span class="w"> </span><span class="nn">sys</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">pathlib</span><span class="w"> </span><span class="kn">import</span> <span class="n">Path</span>
+
+<span class="n">sys</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">insert</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="nb">str</span><span class="p">(</span><span class="n">Path</span><span class="p">(</span><span class="vm">__file__</span><span class="p">)</span><span class="o">.</span><span class="n">parent</span><span class="o">.</span><span class="n">parent</span> <span class="o">/</span> <span class="s2">"src"</span><span class="p">))</span>
+
+<span class="kn">from</span><span class="w"> </span><span class="nn">dsa110_contimg.conversion.calibrator_ms_service</span><span class="w"> </span><span class="kn">import</span> <span class="n">CalibratorMSGenerator</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">dsa110_contimg.conversion.config</span><span class="w"> </span><span class="kn">import</span> <span class="n">CalibratorMSConfig</span>
+
+<span class="k">def</span><span class="w"> </span><span class="nf">main</span><span class="p">():</span>
+    <span class="c1"># Initialize service</span>
+    <span class="n">config</span> <span class="o">=</span> <span class="n">CalibratorMSConfig</span><span class="o">.</span><span class="n">from_env</span><span class="p">()</span>
+    <span class="n">service</span> <span class="o">=</span> <span class="n">CalibratorMSGenerator</span><span class="o">.</span><span class="n">from_config</span><span class="p">(</span><span class="n">config</span><span class="p">)</span>
+
+    <span class="c1"># Find transit (returns file list)</span>
+    <span class="n">transit_info</span> <span class="o">=</span> <span class="n">service</span><span class="o">.</span><span class="n">find_transit</span><span class="p">(</span><span class="s2">"0834+555"</span><span class="p">,</span> <span class="n">max_days_back</span><span class="o">=</span><span class="mi">30</span><span class="p">)</span>
+
+    <span class="k">if</span> <span class="ow">not</span> <span class="n">transit_info</span><span class="p">:</span>
+        <span class="nb">print</span><span class="p">(</span><span class="s2">"No transit found with data"</span><span class="p">)</span>
+        <span class="k">return</span> <span class="mi">1</span>
+
+    <span class="c1"># Extract file list</span>
+    <span class="n">hdf5_files</span> <span class="o">=</span> <span class="n">transit_info</span><span class="p">[</span><span class="s1">'files'</span><span class="p">]</span>
+
+    <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">"Found transit: </span><span class="si">{</span><span class="n">transit_info</span><span class="p">[</span><span class="s1">'transit_iso'</span><span class="p">]</span><span class="si">}</span><span class="s2">"</span><span class="p">)</span>
+    <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">"Group ID: </span><span class="si">{</span><span class="n">transit_info</span><span class="p">[</span><span class="s1">'group_id'</span><span class="p">]</span><span class="si">}</span><span class="s2">"</span><span class="p">)</span>
+    <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">"Subband files (</span><span class="si">{</span><span class="nb">len</span><span class="p">(</span><span class="n">hdf5_files</span><span class="p">)</span><span class="si">}</span><span class="s2">):"</span><span class="p">)</span>
+    <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">fpath</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="nb">sorted</span><span class="p">(</span><span class="n">hdf5_files</span><span class="p">)):</span>
+        <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">"  </span><span class="si">{</span><span class="n">i</span><span class="o">+</span><span class="mi">1</span><span class="si">:</span><span class="s2">2d</span><span class="si">}</span><span class="s2">: </span><span class="si">{</span><span class="n">Path</span><span class="p">(</span><span class="n">fpath</span><span class="p">)</span><span class="o">.</span><span class="n">name</span><span class="si">}</span><span class="s2">"</span><span class="p">)</span>
+
+    <span class="c1"># Verify it's a complete 16-subband group</span>
+    <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">hdf5_files</span><span class="p">)</span> <span class="o">==</span> <span class="mi">16</span><span class="p">:</span>
+        <span class="nb">print</span><span class="p">(</span><span class="s2">"</span><span class="se">\n</span><span class="s2">✓ Complete 16-subband group"</span><span class="p">)</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">"</span><span class="se">\n</span><span class="s2">✗ Incomplete group: </span><span class="si">{</span><span class="nb">len</span><span class="p">(</span><span class="n">hdf5_files</span><span class="p">)</span><span class="si">}</span><span class="s2"> files"</span><span class="p">)</span>
+        <span class="k">return</span> <span class="mi">1</span>
+
+    <span class="k">return</span> <span class="mi">0</span>
+
+<span class="k">if</span> <span class="vm">__name__</span> <span class="o">==</span> <span class="s2">"__main__"</span><span class="p">:</span>
+    <span class="n">sys</span><span class="o">.</span><span class="n">exit</span><span class="p">(</span><span class="n">main</span><span class="p">())</span>
+</code></pre></div>
+<h2 id="why-this-method">Why This Method?<a class="headerlink" href="#why-this-method" title="Permanent link">¶</a></h2>
+<ol>
+<li><strong>Implements the canonical workflow</strong> from <code>docs/reports/memory.md</code> line 45</li>
+<li><strong>Checks data availability</strong> before proceeding</li>
+<li><strong>Finds the correct group</strong> whose 5-minute window contains the transit</li>
+<li><strong>Returns the complete file list</strong> as part of transit info</li>
+<li><strong>Handles edge cases</strong> (missing files, incomplete groups, declination matching)</li>
+</ol>
+<h2 id="common-mistakes">Common Mistakes<a class="headerlink" href="#common-mistakes" title="Permanent link">¶</a></h2>
+<h3 id="mistake-1-not-knowing-which-method-to-use">Mistake 1: Not knowing which method to use<a class="headerlink" href="#mistake-1-not-knowing-which-method-to-use" title="Permanent link">¶</a></h3>
+<div class="highlight"><pre><span></span><code><span class="c1"># ✓ Correct - get file list for one transit</span>
+<span class="n">transit_info</span> <span class="o">=</span> <span class="n">service</span><span class="o">.</span><span class="n">find_transit</span><span class="p">(</span><span class="s2">"0834+555"</span><span class="p">)</span>
+<span class="n">files</span> <span class="o">=</span> <span class="n">transit_info</span><span class="p">[</span><span class="s1">'files'</span><span class="p">]</span>  <span class="c1"># Works!</span>
+
+<span class="c1"># ✓ Also correct - get file lists for ALL transits</span>
+<span class="n">transits</span> <span class="o">=</span> <span class="n">service</span><span class="o">.</span><span class="n">list_available_transits</span><span class="p">(</span><span class="s2">"0834+555"</span><span class="p">)</span>
+<span class="n">files</span> <span class="o">=</span> <span class="n">transits</span><span class="p">[</span><span class="mi">0</span><span class="p">][</span><span class="s1">'files'</span><span class="p">]</span>  <span class="c1"># Also works! (returns file list for each transit)</span>
+</code></pre></div>
+<h3 id="mistake-2-manually-searching-for-files">Mistake 2: Manually searching for files<a class="headerlink" href="#mistake-2-manually-searching-for-files" title="Permanent link">¶</a></h3>
+<div class="highlight"><pre><span></span><code><span class="c1"># ❌ Wrong - don't do this</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">dsa110_contimg.conversion.strategies.hdf5_orchestrator</span><span class="w"> </span><span class="kn">import</span> <span class="n">find_subband_groups</span>
+<span class="n">groups</span> <span class="o">=</span> <span class="n">find_subband_groups</span><span class="p">(</span><span class="s2">"/data/incoming"</span><span class="p">,</span> <span class="n">start</span><span class="p">,</span> <span class="n">end</span><span class="p">)</span>
+<span class="c1"># Then trying to figure out which group matches transit...</span>
+
+<span class="c1"># ✓ Correct - use the service</span>
+<span class="n">transit_info</span> <span class="o">=</span> <span class="n">service</span><span class="o">.</span><span class="n">find_transit</span><span class="p">(</span><span class="s2">"0834+555"</span><span class="p">)</span>
+<span class="c1"># It handles all the logic above automatically</span>
+</code></pre></div>
+<h3 id="mistake-3-forgetting-that-file-list-is-in-transit_info">Mistake 3: Forgetting that file list is in <code>transit_info</code><a class="headerlink" href="#mistake-3-forgetting-that-file-list-is-in-transit_info" title="Permanent link">¶</a></h3>
+<div class="highlight"><pre><span></span><code><span class="c1"># ❌ Wrong</span>
+<span class="n">result</span> <span class="o">=</span> <span class="n">service</span><span class="o">.</span><span class="n">generate_from_transit</span><span class="p">(</span><span class="s2">"0834+555"</span><span class="p">)</span>
+<span class="n">files</span> <span class="o">=</span> <span class="n">result</span><span class="o">.</span><span class="n">files</span>  <span class="c1"># AttributeError! Result doesn't have .files</span>
+
+<span class="c1"># ✓ Correct</span>
+<span class="n">result</span> <span class="o">=</span> <span class="n">service</span><span class="o">.</span><span class="n">generate_from_transit</span><span class="p">(</span><span class="s2">"0834+555"</span><span class="p">)</span>
+<span class="n">files</span> <span class="o">=</span> <span class="n">result</span><span class="o">.</span><span class="n">transit_info</span><span class="p">[</span><span class="s1">'files'</span><span class="p">]</span>  <span class="c1"># File list is here</span>
+</code></pre></div>
+<h2 id="integration-with-test-scripts">Integration with Test Scripts<a class="headerlink" href="#integration-with-test-scripts" title="Permanent link">¶</a></h2>
+<p>When writing test scripts, use this pattern:</p>
+<div class="highlight"><pre><span></span><code><span class="kn">from</span><span class="w"> </span><span class="nn">dsa110_contimg.conversion.calibrator_ms_service</span><span class="w"> </span><span class="kn">import</span> <span class="n">CalibratorMSGenerator</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">dsa110_contimg.conversion.config</span><span class="w"> </span><span class="kn">import</span> <span class="n">CalibratorMSConfig</span>
+
+<span class="c1"># Find transit with data</span>
+<span class="n">config</span> <span class="o">=</span> <span class="n">CalibratorMSConfig</span><span class="o">.</span><span class="n">from_env</span><span class="p">()</span>
+<span class="n">service</span> <span class="o">=</span> <span class="n">CalibratorMSGenerator</span><span class="o">.</span><span class="n">from_config</span><span class="p">(</span><span class="n">config</span><span class="p">)</span>
+<span class="n">transit_info</span> <span class="o">=</span> <span class="n">service</span><span class="o">.</span><span class="n">find_transit</span><span class="p">(</span><span class="s2">"0834+555"</span><span class="p">,</span> <span class="n">max_days_back</span><span class="o">=</span><span class="mi">30</span><span class="p">)</span>
+
+<span class="k">if</span> <span class="ow">not</span> <span class="n">transit_info</span><span class="p">:</span>
+    <span class="k">raise</span> <span class="ne">RuntimeError</span><span class="p">(</span><span class="s2">"No 0834 transit data found"</span><span class="p">)</span>
+
+<span class="c1"># Get file list and group info</span>
+<span class="n">hdf5_files</span> <span class="o">=</span> <span class="n">transit_info</span><span class="p">[</span><span class="s1">'files'</span><span class="p">]</span>
+<span class="n">group_id</span> <span class="o">=</span> <span class="n">transit_info</span><span class="p">[</span><span class="s1">'group_id'</span><span class="p">]</span>
+
+<span class="c1"># Optionally check if MS already exists</span>
+<span class="n">result</span> <span class="o">=</span> <span class="n">service</span><span class="o">.</span><span class="n">generate_from_transit</span><span class="p">(</span><span class="s2">"0834+555"</span><span class="p">)</span>
+<span class="k">if</span> <span class="n">result</span><span class="o">.</span><span class="n">success</span><span class="p">:</span>
+    <span class="n">ms_path</span> <span class="o">=</span> <span class="n">result</span><span class="o">.</span><span class="n">ms_path</span>
+    <span class="c1"># Use existing MS or convert from files</span>
+<span class="k">else</span><span class="p">:</span>
+    <span class="c1"># Convert files to MS</span>
+    <span class="n">service</span><span class="o">.</span><span class="n">convert_group</span><span class="p">(</span><span class="n">hdf5_files</span><span class="p">,</span> <span class="n">output_ms_path</span><span class="p">)</span>
+</code></pre></div>
+<h2 id="summary">Summary<a class="headerlink" href="#summary" title="Permanent link">¶</a></h2>
+<table>
+<thead>
+<tr>
+<th>Method</th>
+<th>Returns File List?</th>
+<th>Use Case</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>find_transit()</code></td>
+<td>✓ Yes (<code>transit_info['files']</code>)</td>
+<td>Get file list for <strong>one</strong> transit (most recent with data)</td>
+</tr>
+<tr>
+<td><code>generate_from_transit()</code></td>
+<td>✓ Yes (<code>result.transit_info['files']</code>)</td>
+<td>Get file list AND create/get MS for <strong>one</strong> transit</td>
+</tr>
+<tr>
+<td><code>list_available_transits()</code></td>
+<td>✓ Yes (<code>transit['files']</code> for each)</td>
+<td>Get file lists for <strong>ALL</strong> available transits at once</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Use <code>list_available_transits()</code> when you need file lists for multiple transits. Use <code>find_transit()</code> for just the most recent transit.</strong></p>
+<h2 id="references">References<a class="headerlink" href="#references" title="Permanent link">¶</a></h2>
+<ul>
+<li><strong>Canonical Method</strong>: <code>docs/reports/memory.md</code> line 45</li>
+<li><strong>Service Implementation</strong>: <code>src/dsa110_contimg/conversion/calibrator_ms_service.py</code></li>
+<li><strong>Config</strong>: <code>src/dsa110_contimg/conversion/config.py</code></li>
+</ul>
+</article>
+</div>
+<script>var tabs=__md_get("__tabs");if(Array.isArray(tabs))e:for(var set of document.querySelectorAll(".tabbed-set")){var tab,labels=set.querySelector(".tabbed-labels");for(tab of tabs)for(var label of labels.getElementsByTagName("label"))if(label.innerText.trim()===tab){var input=document.getElementById(label.htmlFor);input.checked=!0;continue e}}</script>
+<script>var target=document.getElementById(location.hash.slice(1));target&&target.name&&(target.checked=target.name.startsWith("__tabbed_"))</script>
+</div>
+</main>
+<footer class="md-footer">
+<div class="md-footer-meta md-typeset">
+<div class="md-footer-meta__inner md-grid">
+<div class="md-copyright">
+  
+  
+    Made with
+    <a href="https://squidfunk.github.io/mkdocs-material/" rel="noopener" target="_blank">
+      Material for MkDocs
+    </a>
+</div>
+</div>
+</div>
+</footer>
+</div>
+<div class="md-dialog" data-md-component="dialog">
+<div class="md-dialog__inner md-typeset"></div>
+</div>
+<script id="__config" type="application/json">{"base": "../..", "features": ["navigation.sections", "navigation.indexes", "content.code.copy", "content.tabs.link"], "search": "../../assets/javascripts/workers/search.b8dbb3d2.min.js", "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}}</script>
+<script src="../../assets/javascripts/bundle.fe8b6f2b.min.js"></script>
+<script src="../../javascripts/mathjax.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+<script src="../../javascripts/mermaid-zoom.js"></script>
+</body>
+</html>

@@ -1,0 +1,3043 @@
+
+<!DOCTYPE html>
+
+<html class="no-js" lang="en">
+<head>
+<meta charset="utf-8"/>
+<meta content="width=device-width,initial-scale=1" name="viewport"/>
+<link href="http://code.deepsynoptic.org/dsa110-contimg/reference/dashboard_pages_and_features/" rel="canonical"/>
+<link href="../dashboard_backend_api/" rel="prev"/>
+<link href="../backend_integration_snippets/" rel="next"/>
+<link href="../../assets/images/favicon.png" rel="icon"/>
+<meta content="mkdocs-1.6.1, mkdocs-material-9.5.31" name="generator"/>
+<title>Pages &amp; Features - DSA-110 Continuum Imaging Pipeline</title>
+<link href="../../assets/stylesheets/main.3cba04c6.min.css" rel="stylesheet"/>
+<link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect"/>
+<link href="https://fonts.googleapis.com/css?family=Roboto:300,300i,400,400i,700,700i%7CRoboto+Mono:400,400i,700,700i&amp;display=fallback" rel="stylesheet"/>
+<style>:root{--md-text-font:"Roboto";--md-code-font:"Roboto Mono"}</style>
+<link href="../../assets/_mkdocstrings.css" rel="stylesheet"/>
+<script>__md_scope=new URL("../..",location),__md_hash=e=>[...e].reduce((e,_)=>(e<<5)-e+_.charCodeAt(0),0),__md_get=(e,_=localStorage,t=__md_scope)=>JSON.parse(_.getItem(t.pathname+"."+e)),__md_set=(e,_,t=localStorage,a=__md_scope)=>{try{t.setItem(a.pathname+"."+e,JSON.stringify(_))}catch(e){}}</script>
+</head>
+<body dir="ltr">
+<input autocomplete="off" class="md-toggle" data-md-toggle="drawer" id="__drawer" type="checkbox"/>
+<input autocomplete="off" class="md-toggle" data-md-toggle="search" id="__search" type="checkbox"/>
+<label class="md-overlay" for="__drawer"></label>
+<div data-md-component="skip">
+<a class="md-skip" href="#dsa-110-dashboard-pages-features-reference">
+          Skip to content
+        </a>
+</div>
+<div data-md-component="announce">
+</div>
+<header class="md-header md-header--shadow" data-md-component="header">
+<nav aria-label="Header" class="md-header__inner md-grid">
+<a aria-label="DSA-110 Continuum Imaging Pipeline" class="md-header__button md-logo" data-md-component="logo" href="../.." title="DSA-110 Continuum Imaging Pipeline">
+<svg viewbox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54Z"></path></svg>
+</a>
+<label class="md-header__button md-icon" for="__drawer">
+<svg viewbox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M3 6h18v2H3V6m0 5h18v2H3v-2m0 5h18v2H3v-2Z"></path></svg>
+</label>
+<div class="md-header__title" data-md-component="header-title">
+<div class="md-header__ellipsis">
+<div class="md-header__topic">
+<span class="md-ellipsis">
+            DSA-110 Continuum Imaging Pipeline
+          </span>
+</div>
+<div class="md-header__topic" data-md-component="header-topic">
+<span class="md-ellipsis">
+            
+              Pages &amp; Features
+            
+          </span>
+</div>
+</div>
+</div>
+<script>var media,input,key,value,palette=__md_get("__palette");if(palette&&palette.color){"(prefers-color-scheme)"===palette.color.media&&(media=matchMedia("(prefers-color-scheme: light)"),input=document.querySelector(media.matches?"[data-md-color-media='(prefers-color-scheme: light)']":"[data-md-color-media='(prefers-color-scheme: dark)']"),palette.color.media=input.getAttribute("data-md-color-media"),palette.color.scheme=input.getAttribute("data-md-color-scheme"),palette.color.primary=input.getAttribute("data-md-color-primary"),palette.color.accent=input.getAttribute("data-md-color-accent"));for([key,value]of Object.entries(palette.color))document.body.setAttribute("data-md-color-"+key,value)}</script>
+<label class="md-header__button md-icon" for="__search">
+<svg viewbox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.516 6.516 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5Z"></path></svg>
+</label>
+<div class="md-search" data-md-component="search" role="dialog">
+<label class="md-search__overlay" for="__search"></label>
+<div class="md-search__inner" role="search">
+<form class="md-search__form" name="search">
+<input aria-label="Search" autocapitalize="off" autocomplete="off" autocorrect="off" class="md-search__input" data-md-component="search-query" name="query" placeholder="Search" required="" spellcheck="false" type="text"/>
+<label class="md-search__icon md-icon" for="__search">
+<svg viewbox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.516 6.516 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5Z"></path></svg>
+<svg viewbox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11h12Z"></path></svg>
+</label>
+<nav aria-label="Search" class="md-search__options">
+<button aria-label="Clear" class="md-search__icon md-icon" tabindex="-1" title="Clear" type="reset">
+<svg viewbox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M19 6.41 17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12 19 6.41Z"></path></svg>
+</button>
+</nav>
+</form>
+<div class="md-search__output">
+<div class="md-search__scrollwrap" data-md-scrollfix="" tabindex="0">
+<div class="md-search-result" data-md-component="search-result">
+<div class="md-search-result__meta">
+            Initializing search
+          </div>
+<ol class="md-search-result__list" role="presentation"></ol>
+</div>
+</div>
+</div>
+</div>
+</div>
+<div class="md-header__source">
+<a class="md-source" data-md-component="source" href="https://github.com/dsa110/dsa110-contimg" title="Go to repository">
+<div class="md-source__icon md-icon">
+<svg viewbox="0 0 448 512" xmlns="http://www.w3.org/2000/svg"><!--! Font Awesome Free 6.6.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2024 Fonticons, Inc.--><path d="M439.55 236.05 244 40.45a28.87 28.87 0 0 0-40.81 0l-40.66 40.63 51.52 51.52c27.06-9.14 52.68 16.77 43.39 43.68l49.66 49.66c34.23-11.8 61.18 31 35.47 56.69-26.49 26.49-70.21-2.87-56-37.34L240.22 199v121.85c25.3 12.54 22.26 41.85 9.08 55a34.34 34.34 0 0 1-48.55 0c-17.57-17.6-11.07-46.91 11.25-56v-123c-20.8-8.51-24.6-30.74-18.64-45L142.57 101 8.45 235.14a28.86 28.86 0 0 0 0 40.81l195.61 195.6a28.86 28.86 0 0 0 40.8 0l194.69-194.69a28.86 28.86 0 0 0 0-40.81z"></path></svg>
+</div>
+<div class="md-source__repository">
+    GitHub
+  </div>
+</a>
+</div>
+</nav>
+</header>
+<div class="md-container" data-md-component="container">
+<main class="md-main" data-md-component="main">
+<div class="md-main__inner md-grid">
+<div class="md-sidebar md-sidebar--primary" data-md-component="sidebar" data-md-type="navigation">
+<div class="md-sidebar__scrollwrap">
+<div class="md-sidebar__inner">
+<nav aria-label="Navigation" class="md-nav md-nav--primary" data-md-level="0">
+<label class="md-nav__title" for="__drawer">
+<a aria-label="DSA-110 Continuum Imaging Pipeline" class="md-nav__button md-logo" data-md-component="logo" href="../.." title="DSA-110 Continuum Imaging Pipeline">
+<svg viewbox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54Z"></path></svg>
+</a>
+    DSA-110 Continuum Imaging Pipeline
+  </label>
+<div class="md-nav__source">
+<a class="md-source" data-md-component="source" href="https://github.com/dsa110/dsa110-contimg" title="Go to repository">
+<div class="md-source__icon md-icon">
+<svg viewbox="0 0 448 512" xmlns="http://www.w3.org/2000/svg"><!--! Font Awesome Free 6.6.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2024 Fonticons, Inc.--><path d="M439.55 236.05 244 40.45a28.87 28.87 0 0 0-40.81 0l-40.66 40.63 51.52 51.52c27.06-9.14 52.68 16.77 43.39 43.68l49.66 49.66c34.23-11.8 61.18 31 35.47 56.69-26.49 26.49-70.21-2.87-56-37.34L240.22 199v121.85c25.3 12.54 22.26 41.85 9.08 55a34.34 34.34 0 0 1-48.55 0c-17.57-17.6-11.07-46.91 11.25-56v-123c-20.8-8.51-24.6-30.74-18.64-45L142.57 101 8.45 235.14a28.86 28.86 0 0 0 0 40.81l195.61 195.6a28.86 28.86 0 0 0 40.8 0l194.69-194.69a28.86 28.86 0 0 0 0-40.81z"></path></svg>
+</div>
+<div class="md-source__repository">
+    GitHub
+  </div>
+</a>
+</div>
+<ul class="md-nav__list" data-md-scrollfix="">
+<li class="md-nav__item">
+<a class="md-nav__link" href="../..">
+<span class="md-ellipsis">
+    Home
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../DOCUMENTATION_QUICK_REFERENCE/">
+<span class="md-ellipsis">
+    Documentation Guide
+  </span>
+</a>
+</li>
+<li class="md-nav__item md-nav__item--section md-nav__item--nested">
+<input class="md-nav__toggle md-toggle" id="__nav_3" type="checkbox"/>
+<div class="md-nav__link md-nav__container">
+<a class="md-nav__link" href="../../concepts/">
+<span class="md-ellipsis">
+    Concepts
+  </span>
+</a>
+<label class="md-nav__link" for="__nav_3" id="__nav_3_label" tabindex="">
+<span class="md-nav__icon md-icon"></span>
+</label>
+</div>
+<nav aria-expanded="false" aria-labelledby="__nav_3_label" class="md-nav" data-md-level="1">
+<label class="md-nav__title" for="__nav_3">
+<span class="md-nav__icon md-icon"></span>
+            Concepts
+          </label>
+<ul class="md-nav__list" data-md-scrollfix="">
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../concepts/architecture/">
+<span class="md-ellipsis">
+    Architecture
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../concepts/DIRECTORY_ARCHITECTURE/">
+<span class="md-ellipsis">
+    Directory Architecture
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../concepts/modules/">
+<span class="md-ellipsis">
+    Modules
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../concepts/control-panel/">
+<span class="md-ellipsis">
+    Control Panel
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../concepts/aoflagger/">
+<span class="md-ellipsis">
+    AOFlagger
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../concepts/frontend_design/">
+<span class="md-ellipsis">
+    Frontend Design
+  </span>
+</a>
+</li>
+<li class="md-nav__item md-nav__item--nested">
+<input class="md-nav__toggle md-toggle" id="__nav_3_8" type="checkbox"/>
+<label class="md-nav__link" for="__nav_3_8" id="__nav_3_8_label" tabindex="0">
+<span class="md-ellipsis">
+    Dashboard
+  </span>
+<span class="md-nav__icon md-icon"></span>
+</label>
+<nav aria-expanded="false" aria-labelledby="__nav_3_8_label" class="md-nav" data-md-level="2">
+<label class="md-nav__title" for="__nav_3_8">
+<span class="md-nav__icon md-icon"></span>
+            Dashboard
+          </label>
+<ul class="md-nav__list" data-md-scrollfix="">
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../concepts/dashboard_mockups/">
+<span class="md-ellipsis">
+    Mockups
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../SKYVIEW_IMPLEMENTATION_PLAN/">
+<span class="md-ellipsis">
+    Sky View
+  </span>
+</a>
+</li>
+</ul>
+</nav>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../concepts/GLOSSARY/">
+<span class="md-ellipsis">
+    Glossary
+  </span>
+</a>
+</li>
+<li class="md-nav__item md-nav__item--nested">
+<input class="md-nav__toggle md-toggle" id="__nav_3_10" type="checkbox"/>
+<label class="md-nav__link" for="__nav_3_10" id="__nav_3_10_label" tabindex="0">
+<span class="md-ellipsis">
+    Pipeline
+  </span>
+<span class="md-nav__icon md-icon"></span>
+</label>
+<nav aria-expanded="false" aria-labelledby="__nav_3_10_label" class="md-nav" data-md-level="2">
+<label class="md-nav__title" for="__nav_3_10">
+<span class="md-nav__icon md-icon"></span>
+            Pipeline
+          </label>
+<ul class="md-nav__list" data-md-scrollfix="">
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../concepts/pipeline_overview/">
+<span class="md-ellipsis">
+    Overview
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../concepts/pipeline_stage_architecture/">
+<span class="md-ellipsis">
+    Stage Architecture
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../concepts/pipeline_workflow_visualization/">
+<span class="md-ellipsis">
+    Workflow Visualization
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../concepts/pipeline_production_features/">
+<span class="md-ellipsis">
+    Production Features
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../concepts/pipeline_patterns/">
+<span class="md-ellipsis">
+    Patterns
+  </span>
+</a>
+</li>
+</ul>
+</nav>
+</li>
+<li class="md-nav__item md-nav__item--nested">
+<input class="md-nav__toggle md-toggle" id="__nav_3_11" type="checkbox"/>
+<label class="md-nav__link" for="__nav_3_11" id="__nav_3_11_label" tabindex="0">
+<span class="md-ellipsis">
+    Science
+  </span>
+<span class="md-nav__icon md-icon"></span>
+</label>
+<nav aria-expanded="false" aria-labelledby="__nav_3_11_label" class="md-nav" data-md-level="2">
+<label class="md-nav__title" for="__nav_3_11">
+<span class="md-nav__icon md-icon"></span>
+            Science
+          </label>
+<ul class="md-nav__list" data-md-scrollfix="">
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../concepts/science/photometry_normalization/">
+<span class="md-ellipsis">
+    Photometry Normalization
+  </span>
+</a>
+</li>
+</ul>
+</nav>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../concepts/mcp_browser_server_setup/">
+<span class="md-ellipsis">
+    Browser MCP Server
+  </span>
+</a>
+</li>
+</ul>
+</nav>
+</li>
+<li class="md-nav__item md-nav__item--section md-nav__item--nested">
+<input class="md-nav__toggle md-toggle" id="__nav_4" type="checkbox"/>
+<label class="md-nav__link" for="__nav_4" id="__nav_4_label" tabindex="">
+<span class="md-ellipsis">
+    Tutorials
+  </span>
+<span class="md-nav__icon md-icon"></span>
+</label>
+<nav aria-expanded="false" aria-labelledby="__nav_4_label" class="md-nav" data-md-level="1">
+<label class="md-nav__title" for="__nav_4">
+<span class="md-nav__icon md-icon"></span>
+            Tutorials
+          </label>
+<ul class="md-nav__list" data-md-scrollfix="">
+<li class="md-nav__item md-nav__item--nested">
+<input class="md-nav__toggle md-toggle" id="__nav_4_1" type="checkbox"/>
+<label class="md-nav__link" for="__nav_4_1" id="__nav_4_1_label" tabindex="0">
+<span class="md-ellipsis">
+    Conversion
+  </span>
+<span class="md-nav__icon md-icon"></span>
+</label>
+<nav aria-expanded="false" aria-labelledby="__nav_4_1_label" class="md-nav" data-md-level="2">
+<label class="md-nav__title" for="__nav_4_1">
+<span class="md-nav__icon md-icon"></span>
+            Conversion
+          </label>
+<ul class="md-nav__list" data-md-scrollfix="">
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../tutorials/HDF5_TO_MS_TUTORIAL/">
+<span class="md-ellipsis">
+    HDF5 to MS
+  </span>
+</a>
+</li>
+</ul>
+</nav>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../tutorials/simulation-tutorial/">
+<span class="md-ellipsis">
+    Simulation
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../tutorials/calibrate-apply/">
+<span class="md-ellipsis">
+    Calibrate and Apply
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../tutorials/convert-standalone/">
+<span class="md-ellipsis">
+    Convert Standalone
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../tutorials/streaming/">
+<span class="md-ellipsis">
+    Streaming
+  </span>
+</a>
+</li>
+<li class="md-nav__item md-nav__item--nested">
+<input class="md-nav__toggle md-toggle" id="__nav_4_6" type="checkbox"/>
+<label class="md-nav__link" for="__nav_4_6" id="__nav_4_6_label" tabindex="0">
+<span class="md-ellipsis">
+    Notebooks
+  </span>
+<span class="md-nav__icon md-icon"></span>
+</label>
+<nav aria-expanded="false" aria-labelledby="__nav_4_6_label" class="md-nav" data-md-level="2">
+<label class="md-nav__title" for="__nav_4_6">
+<span class="md-nav__icon md-icon"></span>
+            Notebooks
+          </label>
+<ul class="md-nav__list" data-md-scrollfix="">
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../tutorials/notebooks/bandpass_calibration_test.ipynb">
+<span class="md-ellipsis">
+    Bandpass Calibration Test
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../tutorials/notebooks/calibrator_helper.py">
+<span class="md-ellipsis">
+    Calibrator Helper
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../tutorials/notebooks/CalibratorSearch.ipynb">
+<span class="md-ellipsis">
+    Calibrator Search
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../tutorials/notebooks/ms_staging_workflow.ipynb">
+<span class="md-ellipsis">
+    MS Staging Workflow
+  </span>
+</a>
+</li>
+</ul>
+</nav>
+</li>
+</ul>
+</nav>
+</li>
+<li class="md-nav__item md-nav__item--section md-nav__item--nested">
+<input class="md-nav__toggle md-toggle" id="__nav_5" type="checkbox"/>
+<label class="md-nav__link" for="__nav_5" id="__nav_5_label" tabindex="">
+<span class="md-ellipsis">
+    How-To Guides
+  </span>
+<span class="md-nav__icon md-icon"></span>
+</label>
+<nav aria-expanded="false" aria-labelledby="__nav_5_label" class="md-nav" data-md-level="1">
+<label class="md-nav__title" for="__nav_5">
+<span class="md-nav__icon md-icon"></span>
+            How-To Guides
+          </label>
+<ul class="md-nav__list" data-md-scrollfix="">
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../how-to/github_pages_walkthrough/">
+<span class="md-ellipsis">
+    GitHub Pages Setup
+  </span>
+</a>
+</li>
+<li class="md-nav__item md-nav__item--nested">
+<input class="md-nav__toggle md-toggle" id="__nav_5_2" type="checkbox"/>
+<label class="md-nav__link" for="__nav_5_2" id="__nav_5_2_label" tabindex="0">
+<span class="md-ellipsis">
+    Quickstarts
+  </span>
+<span class="md-nav__icon md-icon"></span>
+</label>
+<nav aria-expanded="false" aria-labelledby="__nav_5_2_label" class="md-nav" data-md-level="2">
+<label class="md-nav__title" for="__nav_5_2">
+<span class="md-nav__icon md-icon"></span>
+            Quickstarts
+          </label>
+<ul class="md-nav__list" data-md-scrollfix="">
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../how-to/quickstart/">
+<span class="md-ellipsis">
+    General
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../how-to/control-panel-quickstart/">
+<span class="md-ellipsis">
+    Control Panel
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../how-to/LINEAR_SETUP_QUICKSTART/">
+<span class="md-ellipsis">
+    Linear Setup
+  </span>
+</a>
+</li>
+</ul>
+</nav>
+</li>
+<li class="md-nav__item md-nav__item--nested">
+<input class="md-nav__toggle md-toggle" id="__nav_5_3" type="checkbox"/>
+<label class="md-nav__link" for="__nav_5_3" id="__nav_5_3_label" tabindex="0">
+<span class="md-ellipsis">
+    Testing
+  </span>
+<span class="md-nav__icon md-icon"></span>
+</label>
+<nav aria-expanded="false" aria-labelledby="__nav_5_3_label" class="md-nav" data-md-level="2">
+<label class="md-nav__title" for="__nav_5_3">
+<span class="md-nav__icon md-icon"></span>
+            Testing
+          </label>
+<ul class="md-nav__list" data-md-scrollfix="">
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../how-to/FAST_TESTING/">
+<span class="md-ellipsis">
+    Fast Testing
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../how-to/PIPELINE_TESTING_GUIDE/">
+<span class="md-ellipsis">
+    Pipeline Guide
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../how-to/TEST_FLAG_SUBCOMMAND/">
+<span class="md-ellipsis">
+    Flag Subcommand
+  </span>
+</a>
+</li>
+</ul>
+</nav>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../how-to/build-vp-from-h5/">
+<span class="md-ellipsis">
+    Build VP from h5
+  </span>
+</a>
+</li>
+<li class="md-nav__item md-nav__item--nested">
+<input class="md-nav__toggle md-toggle" id="__nav_5_5" type="checkbox"/>
+<label class="md-nav__link" for="__nav_5_5" id="__nav_5_5_label" tabindex="0">
+<span class="md-ellipsis">
+    Calibration
+  </span>
+<span class="md-nav__icon md-icon"></span>
+</label>
+<nav aria-expanded="false" aria-labelledby="__nav_5_5_label" class="md-nav" data-md-level="2">
+<label class="md-nav__title" for="__nav_5_5">
+<span class="md-nav__icon md-icon"></span>
+            Calibration
+          </label>
+<ul class="md-nav__list" data-md-scrollfix="">
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../how-to/CALIBRATION_DETAILED_PROCEDURE/">
+<span class="md-ellipsis">
+    Detailed Procedure
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../how-to/FIND_CALIBRATOR_TRANSIT_DATA/">
+<span class="md-ellipsis">
+    Find Calibrator Transit
+  </span>
+</a>
+</li>
+</ul>
+</nav>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../how-to/IMAGE_0834_TRANSIT_5MIN/">
+<span class="md-ellipsis">
+    Image 0834 Transit 5min
+  </span>
+</a>
+</li>
+<li class="md-nav__item md-nav__item--nested">
+<input class="md-nav__toggle md-toggle" id="__nav_5_7" type="checkbox"/>
+<label class="md-nav__link" for="__nav_5_7" id="__nav_5_7_label" tabindex="0">
+<span class="md-ellipsis">
+    Mosaic
+  </span>
+<span class="md-nav__icon md-icon"></span>
+</label>
+<nav aria-expanded="false" aria-labelledby="__nav_5_7_label" class="md-nav" data-md-level="2">
+<label class="md-nav__title" for="__nav_5_7">
+<span class="md-nav__icon md-icon"></span>
+            Mosaic
+          </label>
+<ul class="md-nav__list" data-md-scrollfix="">
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../how-to/mosaic_quickstart/">
+<span class="md-ellipsis">
+    Quickstart
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../how-to/mosaic/">
+<span class="md-ellipsis">
+    Complete Guide
+  </span>
+</a>
+</li>
+</ul>
+</nav>
+</li>
+<li class="md-nav__item md-nav__item--nested">
+<input class="md-nav__toggle md-toggle" id="__nav_5_8" type="checkbox"/>
+<label class="md-nav__link" for="__nav_5_8" id="__nav_5_8_label" tabindex="0">
+<span class="md-ellipsis">
+    Quality Assurance
+  </span>
+<span class="md-nav__icon md-icon"></span>
+</label>
+<nav aria-expanded="false" aria-labelledby="__nav_5_8_label" class="md-nav" data-md-level="2">
+<label class="md-nav__title" for="__nav_5_8">
+<span class="md-nav__icon md-icon"></span>
+            Quality Assurance
+          </label>
+<ul class="md-nav__list" data-md-scrollfix="">
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../how-to/QUALITY_ASSURANCE_SETUP/">
+<span class="md-ellipsis">
+    Setup
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../how-to/quicklook/">
+<span class="md-ellipsis">
+    Quick Look
+  </span>
+</a>
+</li>
+</ul>
+</nav>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../how-to/reprocess/">
+<span class="md-ellipsis">
+    Reprocess
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../how-to/USING_ORCHESTRATOR_CLI/">
+<span class="md-ellipsis">
+    Using Orchestrator CLI
+  </span>
+</a>
+</li>
+<li class="md-nav__item md-nav__item--nested">
+<input class="md-nav__toggle md-toggle" id="__nav_5_11" type="checkbox"/>
+<label class="md-nav__link" for="__nav_5_11" id="__nav_5_11_label" tabindex="0">
+<span class="md-ellipsis">
+    Dashboard
+  </span>
+<span class="md-nav__icon md-icon"></span>
+</label>
+<nav aria-expanded="false" aria-labelledby="__nav_5_11_label" class="md-nav" data-md-level="2">
+<label class="md-nav__title" for="__nav_5_11">
+<span class="md-nav__icon md-icon"></span>
+            Dashboard
+          </label>
+<ul class="md-nav__list" data-md-scrollfix="">
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../how-to/dashboard-development/">
+<span class="md-ellipsis">
+    Development
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../how-to/dashboard-quickstart/">
+<span class="md-ellipsis">
+    Quickstart
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../how-to/dashboard_testing/">
+<span class="md-ellipsis">
+    Testing
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../how-to/dashboard_development_workflow/">
+<span class="md-ellipsis">
+    Development Workflow
+  </span>
+</a>
+</li>
+</ul>
+</nav>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../how-to/LINEAR_INTEGRATION/">
+<span class="md-ellipsis">
+    Linear Integration
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../how-to/frontend-initial-setup/">
+<span class="md-ellipsis">
+    Frontend Initial Setup
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../how-to/PARAMETER_OPTIMIZATION_GUIDE/">
+<span class="md-ellipsis">
+    AOFlagger Parameter Optimization
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../how-to/downsampling_guide/">
+<span class="md-ellipsis">
+    Downsampling Guide
+  </span>
+</a>
+</li>
+<li class="md-nav__item md-nav__item--nested">
+<input class="md-nav__toggle md-toggle" id="__nav_5_16" type="checkbox"/>
+<label class="md-nav__link" for="__nav_5_16" id="__nav_5_16_label" tabindex="0">
+<span class="md-ellipsis">
+    Conversion
+  </span>
+<span class="md-nav__icon md-icon"></span>
+</label>
+<nav aria-expanded="false" aria-labelledby="__nav_5_16_label" class="md-nav" data-md-level="2">
+<label class="md-nav__title" for="__nav_5_16">
+<span class="md-nav__icon md-icon"></span>
+            Conversion
+          </label>
+<ul class="md-nav__list" data-md-scrollfix="">
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../how-to/uvh5_to_ms_conversion/">
+<span class="md-ellipsis">
+    UVH5 to MS
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../how-to/streaming_converter_guide/">
+<span class="md-ellipsis">
+    Streaming Converter
+  </span>
+</a>
+</li>
+</ul>
+</nav>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../how-to/troubleshooting/">
+<span class="md-ellipsis">
+    Troubleshooting
+  </span>
+</a>
+</li>
+</ul>
+</nav>
+</li>
+<li class="md-nav__item md-nav__item--active md-nav__item--section md-nav__item--nested">
+<input checked="" class="md-nav__toggle md-toggle" id="__nav_6" type="checkbox"/>
+<label class="md-nav__link" for="__nav_6" id="__nav_6_label" tabindex="">
+<span class="md-ellipsis">
+    Reference
+  </span>
+<span class="md-nav__icon md-icon"></span>
+</label>
+<nav aria-expanded="true" aria-labelledby="__nav_6_label" class="md-nav" data-md-level="1">
+<label class="md-nav__title" for="__nav_6">
+<span class="md-nav__icon md-icon"></span>
+            Reference
+          </label>
+<ul class="md-nav__list" data-md-scrollfix="">
+<li class="md-nav__item md-nav__item--active md-nav__item--nested">
+<input checked="" class="md-nav__toggle md-toggle" id="__nav_6_1" type="checkbox"/>
+<label class="md-nav__link" for="__nav_6_1" id="__nav_6_1_label" tabindex="0">
+<span class="md-ellipsis">
+    API
+  </span>
+<span class="md-nav__icon md-icon"></span>
+</label>
+<nav aria-expanded="true" aria-labelledby="__nav_6_1_label" class="md-nav" data-md-level="2">
+<label class="md-nav__title" for="__nav_6_1">
+<span class="md-nav__icon md-icon"></span>
+            API
+          </label>
+<ul class="md-nav__list" data-md-scrollfix="">
+<li class="md-nav__item">
+<a class="md-nav__link" href="../api-endpoints/">
+<span class="md-ellipsis">
+    Endpoints
+  </span>
+</a>
+</li>
+<li class="md-nav__item md-nav__item--active md-nav__item--nested">
+<input checked="" class="md-nav__toggle md-toggle" id="__nav_6_1_2" type="checkbox"/>
+<label class="md-nav__link" for="__nav_6_1_2" id="__nav_6_1_2_label" tabindex="0">
+<span class="md-ellipsis">
+    Dashboard
+  </span>
+<span class="md-nav__icon md-icon"></span>
+</label>
+<nav aria-expanded="true" aria-labelledby="__nav_6_1_2_label" class="md-nav" data-md-level="3">
+<label class="md-nav__title" for="__nav_6_1_2">
+<span class="md-nav__icon md-icon"></span>
+            Dashboard
+          </label>
+<ul class="md-nav__list" data-md-scrollfix="">
+<li class="md-nav__item">
+<a class="md-nav__link" href="../dashboard_backend_api/">
+<span class="md-ellipsis">
+    API Reference
+  </span>
+</a>
+</li>
+<li class="md-nav__item md-nav__item--active">
+<input class="md-nav__toggle md-toggle" id="__toc" type="checkbox"/>
+<label class="md-nav__link md-nav__link--active" for="__toc">
+<span class="md-ellipsis">
+    Pages &amp; Features
+  </span>
+<span class="md-nav__icon md-icon"></span>
+</label>
+<a class="md-nav__link md-nav__link--active" href="./">
+<span class="md-ellipsis">
+    Pages &amp; Features
+  </span>
+</a>
+<nav aria-label="Table of contents" class="md-nav md-nav--secondary">
+<label class="md-nav__title" for="__toc">
+<span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+<ul class="md-nav__list" data-md-component="toc" data-md-scrollfix="">
+<li class="md-nav__item">
+<a class="md-nav__link" href="#implementation-status-legend">
+<span class="md-ellipsis">
+      Implementation Status Legend
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#table-of-contents">
+<span class="md-ellipsis">
+      Table of Contents
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#dashboard-page-dashboard">
+<span class="md-ellipsis">
+      Dashboard Page (/dashboard)
+    </span>
+</a>
+<nav aria-label="Dashboard Page (/dashboard)" class="md-nav">
+<ul class="md-nav__list">
+<li class="md-nav__item">
+<a class="md-nav__link" href="#features">
+<span class="md-ellipsis">
+      Features
+    </span>
+</a>
+<nav aria-label="Features" class="md-nav">
+<ul class="md-nav__list">
+<li class="md-nav__item">
+<a class="md-nav__link" href="#pipeline-status-panel">
+<span class="md-ellipsis">
+      Pipeline Status Panel
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#system-health-panel">
+<span class="md-ellipsis">
+      System Health Panel
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#ese-candidates-panel">
+<span class="md-ellipsis">
+      ESE Candidates Panel
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#pointing-visualization">
+<span class="md-ellipsis">
+      Pointing Visualization
+    </span>
+</a>
+</li>
+</ul>
+</nav>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#api-endpoints-used">
+<span class="md-ellipsis">
+      API Endpoints Used
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#user-workflows">
+<span class="md-ellipsis">
+      User Workflows
+    </span>
+</a>
+</li>
+</ul>
+</nav>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#sky-view-page-sky">
+<span class="md-ellipsis">
+      Sky View Page (/sky)
+    </span>
+</a>
+<nav aria-label="Sky View Page (/sky)" class="md-nav">
+<ul class="md-nav__list">
+<li class="md-nav__item">
+<a class="md-nav__link" href="#features_1">
+<span class="md-ellipsis">
+      Features
+    </span>
+</a>
+<nav aria-label="Features" class="md-nav">
+<ul class="md-nav__list">
+<li class="md-nav__item">
+<a class="md-nav__link" href="#interactive-sky-map">
+<span class="md-ellipsis">
+      Interactive Sky Map
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#image-gallery">
+<span class="md-ellipsis">
+      Image Gallery
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#image-detail-view">
+<span class="md-ellipsis">
+      Image Detail View
+    </span>
+</a>
+</li>
+</ul>
+</nav>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#api-endpoints-used_1">
+<span class="md-ellipsis">
+      API Endpoints Used
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#user-workflows_1">
+<span class="md-ellipsis">
+      User Workflows
+    </span>
+</a>
+</li>
+</ul>
+</nav>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#sources-page-sources">
+<span class="md-ellipsis">
+      Sources Page (/sources)
+    </span>
+</a>
+<nav aria-label="Sources Page (/sources)" class="md-nav">
+<ul class="md-nav__list">
+<li class="md-nav__item">
+<a class="md-nav__link" href="#features_2">
+<span class="md-ellipsis">
+      Features
+    </span>
+</a>
+<nav aria-label="Features" class="md-nav">
+<ul class="md-nav__list">
+<li class="md-nav__item">
+<a class="md-nav__link" href="#source-search-filters">
+<span class="md-ellipsis">
+      Source Search &amp; Filters
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#source-table-ag-grid">
+<span class="md-ellipsis">
+      Source Table (AG Grid)
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#source-detail-view">
+<span class="md-ellipsis">
+      Source Detail View
+    </span>
+</a>
+</li>
+</ul>
+</nav>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#api-endpoints-used_2">
+<span class="md-ellipsis">
+      API Endpoints Used
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#user-workflows_2">
+<span class="md-ellipsis">
+      User Workflows
+    </span>
+</a>
+</li>
+</ul>
+</nav>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#observing-page-observing">
+<span class="md-ellipsis">
+      Observing Page (/observing)
+    </span>
+</a>
+<nav aria-label="Observing Page (/observing)" class="md-nav">
+<ul class="md-nav__list">
+<li class="md-nav__item">
+<a class="md-nav__link" href="#features_3">
+<span class="md-ellipsis">
+      Features
+    </span>
+</a>
+<nav aria-label="Features" class="md-nav">
+<ul class="md-nav__list">
+<li class="md-nav__item">
+<a class="md-nav__link" href="#current-status-panel">
+<span class="md-ellipsis">
+      Current Status Panel
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#pointing-history-visualization">
+<span class="md-ellipsis">
+      Pointing History Visualization
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#calibrator-tracking">
+<span class="md-ellipsis">
+      Calibrator Tracking
+    </span>
+</a>
+</li>
+</ul>
+</nav>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#api-endpoints-used_3">
+<span class="md-ellipsis">
+      API Endpoints Used
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#user-workflows_3">
+<span class="md-ellipsis">
+      User Workflows
+    </span>
+</a>
+</li>
+</ul>
+</nav>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#health-page-health">
+<span class="md-ellipsis">
+      Health Page (/health)
+    </span>
+</a>
+<nav aria-label="Health Page (/health)" class="md-nav">
+<ul class="md-nav__list">
+<li class="md-nav__item">
+<a class="md-nav__link" href="#features_4">
+<span class="md-ellipsis">
+      Features
+    </span>
+</a>
+<nav aria-label="Features" class="md-nav">
+<ul class="md-nav__list">
+<li class="md-nav__item">
+<a class="md-nav__link" href="#system-monitoring">
+<span class="md-ellipsis">
+      System Monitoring
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#processing-queue-status">
+<span class="md-ellipsis">
+      Processing Queue Status
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#qa-diagnostics-tab">
+<span class="md-ellipsis">
+      QA Diagnostics Tab
+    </span>
+</a>
+</li>
+</ul>
+</nav>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#api-endpoints-used_4">
+<span class="md-ellipsis">
+      API Endpoints Used
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#user-workflows_4">
+<span class="md-ellipsis">
+      User Workflows
+    </span>
+</a>
+</li>
+</ul>
+</nav>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#control-page-control">
+<span class="md-ellipsis">
+      Control Page (/control)
+    </span>
+</a>
+<nav aria-label="Control Page (/control)" class="md-nav">
+<ul class="md-nav__list">
+<li class="md-nav__item">
+<a class="md-nav__link" href="#features_5">
+<span class="md-ellipsis">
+      Features
+    </span>
+</a>
+<nav aria-label="Features" class="md-nav">
+<ul class="md-nav__list">
+<li class="md-nav__item">
+<a class="md-nav__link" href="#job-submission-forms">
+<span class="md-ellipsis">
+      Job Submission Forms
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#ms-browser">
+<span class="md-ellipsis">
+      MS Browser
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#job-management">
+<span class="md-ellipsis">
+      Job Management
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#calibration-qa-display">
+<span class="md-ellipsis">
+      Calibration QA Display
+    </span>
+</a>
+</li>
+</ul>
+</nav>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#api-endpoints-used_5">
+<span class="md-ellipsis">
+      API Endpoints Used
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#user-workflows_5">
+<span class="md-ellipsis">
+      User Workflows
+    </span>
+</a>
+</li>
+</ul>
+</nav>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#streaming-page-streaming">
+<span class="md-ellipsis">
+      Streaming Page (/streaming)
+    </span>
+</a>
+<nav aria-label="Streaming Page (/streaming)" class="md-nav">
+<ul class="md-nav__list">
+<li class="md-nav__item">
+<a class="md-nav__link" href="#features_6">
+<span class="md-ellipsis">
+      Features
+    </span>
+</a>
+<nav aria-label="Features" class="md-nav">
+<ul class="md-nav__list">
+<li class="md-nav__item">
+<a class="md-nav__link" href="#service-control">
+<span class="md-ellipsis">
+      Service Control
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#real-time-status">
+<span class="md-ellipsis">
+      Real-Time Status
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#queue-statistics">
+<span class="md-ellipsis">
+      Queue Statistics
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#configuration-management">
+<span class="md-ellipsis">
+      Configuration Management
+    </span>
+</a>
+</li>
+</ul>
+</nav>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#api-endpoints-used_6">
+<span class="md-ellipsis">
+      API Endpoints Used
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#user-workflows_6">
+<span class="md-ellipsis">
+      User Workflows
+    </span>
+</a>
+</li>
+</ul>
+</nav>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#qa-visualization-page-qa">
+<span class="md-ellipsis">
+      QA Visualization Page (/qa)
+    </span>
+</a>
+<nav aria-label="QA Visualization Page (/qa)" class="md-nav">
+<ul class="md-nav__list">
+<li class="md-nav__item">
+<a class="md-nav__link" href="#features_7">
+<span class="md-ellipsis">
+      Features
+    </span>
+</a>
+<nav aria-label="Features" class="md-nav">
+<ul class="md-nav__list">
+<li class="md-nav__item">
+<a class="md-nav__link" href="#directory-browser">
+<span class="md-ellipsis">
+      Directory Browser
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#fits-viewer">
+<span class="md-ellipsis">
+      FITS Viewer
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#casa-table-viewer">
+<span class="md-ellipsis">
+      CASA Table Viewer
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#qa-notebook-generator">
+<span class="md-ellipsis">
+      QA Notebook Generator
+    </span>
+</a>
+</li>
+</ul>
+</nav>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#api-endpoints-used_7">
+<span class="md-ellipsis">
+      API Endpoints Used
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#user-workflows_7">
+<span class="md-ellipsis">
+      User Workflows
+    </span>
+</a>
+</li>
+</ul>
+</nav>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#data-browser-page-data">
+<span class="md-ellipsis">
+      Data Browser Page (/data)
+    </span>
+</a>
+<nav aria-label="Data Browser Page (/data)" class="md-nav">
+<ul class="md-nav__list">
+<li class="md-nav__item">
+<a class="md-nav__link" href="#features_8">
+<span class="md-ellipsis">
+      Features
+    </span>
+</a>
+<nav aria-label="Features" class="md-nav">
+<ul class="md-nav__list">
+<li class="md-nav__item">
+<a class="md-nav__link" href="#data-product-browser">
+<span class="md-ellipsis">
+      Data Product Browser
+    </span>
+</a>
+</li>
+</ul>
+</nav>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#api-endpoints-used_8">
+<span class="md-ellipsis">
+      API Endpoints Used
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#user-workflows_8">
+<span class="md-ellipsis">
+      User Workflows
+    </span>
+</a>
+</li>
+</ul>
+</nav>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#common-features-across-pages">
+<span class="md-ellipsis">
+      Common Features Across Pages
+    </span>
+</a>
+<nav aria-label="Common Features Across Pages" class="md-nav">
+<ul class="md-nav__list">
+<li class="md-nav__item">
+<a class="md-nav__link" href="#navigation">
+<span class="md-ellipsis">
+      Navigation
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#real-time-updates">
+<span class="md-ellipsis">
+      Real-Time Updates
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#error-handling">
+<span class="md-ellipsis">
+      Error Handling
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#loading-states">
+<span class="md-ellipsis">
+      Loading States
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#export-functionality">
+<span class="md-ellipsis">
+      Export Functionality
+    </span>
+</a>
+</li>
+</ul>
+</nav>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#related-documentation">
+<span class="md-ellipsis">
+      Related Documentation
+    </span>
+</a>
+</li>
+</ul>
+</nav>
+</li>
+</ul>
+</nav>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../backend_integration_snippets/">
+<span class="md-ellipsis">
+    Integration Snippets
+  </span>
+</a>
+</li>
+</ul>
+</nav>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../calibration-overview/">
+<span class="md-ellipsis">
+    Calibration Overview
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../cli/">
+<span class="md-ellipsis">
+    CLI
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../control-panel-cheatsheet/">
+<span class="md-ellipsis">
+    Control Panel Cheatsheet
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../database_schema/">
+<span class="md-ellipsis">
+    Database Schema
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../env/">
+<span class="md-ellipsis">
+    Environment Variables
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../CRITICAL_PYTHON_ENVIRONMENT/">
+<span class="md-ellipsis">
+    Critical Python Environment
+  </span>
+</a>
+</li>
+<li class="md-nav__item md-nav__item--nested">
+<input class="md-nav__toggle md-toggle" id="__nav_6_8" type="checkbox"/>
+<label class="md-nav__link" for="__nav_6_8" id="__nav_6_8_label" tabindex="0">
+<span class="md-ellipsis">
+    Optimizations
+  </span>
+<span class="md-nav__icon md-icon"></span>
+</label>
+<nav aria-expanded="false" aria-labelledby="__nav_6_8_label" class="md-nav" data-md-level="2">
+<label class="md-nav__title" for="__nav_6_8">
+<span class="md-nav__icon md-icon"></span>
+            Optimizations
+          </label>
+<ul class="md-nav__list" data-md-scrollfix="">
+<li class="md-nav__item">
+<a class="md-nav__link" href="../optimizations/OPTIMIZATION_API/">
+<span class="md-ellipsis">
+    API
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../optimizations/PROFILING_GUIDE/">
+<span class="md-ellipsis">
+    Profiling Guide
+  </span>
+</a>
+</li>
+</ul>
+</nav>
+</li>
+</ul>
+</nav>
+</li>
+<li class="md-nav__item md-nav__item--section md-nav__item--nested">
+<input class="md-nav__toggle md-toggle" id="__nav_7" type="checkbox"/>
+<label class="md-nav__link" for="__nav_7" id="__nav_7_label" tabindex="">
+<span class="md-ellipsis">
+    Operations
+  </span>
+<span class="md-nav__icon md-icon"></span>
+</label>
+<nav aria-expanded="false" aria-labelledby="__nav_7_label" class="md-nav" data-md-level="1">
+<label class="md-nav__title" for="__nav_7">
+<span class="md-nav__icon md-icon"></span>
+            Operations
+          </label>
+<ul class="md-nav__list" data-md-scrollfix="">
+<li class="md-nav__item md-nav__item--nested">
+<input class="md-nav__toggle md-toggle" id="__nav_7_1" type="checkbox"/>
+<label class="md-nav__link" for="__nav_7_1" id="__nav_7_1_label" tabindex="0">
+<span class="md-ellipsis">
+    Deployment
+  </span>
+<span class="md-nav__icon md-icon"></span>
+</label>
+<nav aria-expanded="false" aria-labelledby="__nav_7_1_label" class="md-nav" data-md-level="2">
+<label class="md-nav__title" for="__nav_7_1">
+<span class="md-nav__icon md-icon"></span>
+            Deployment
+          </label>
+<ul class="md-nav__list" data-md-scrollfix="">
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../operations/deploy-docker/">
+<span class="md-ellipsis">
+    Docker
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../operations/deploy-systemd/">
+<span class="md-ellipsis">
+    systemd
+  </span>
+</a>
+</li>
+</ul>
+</nav>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../operations/port-management/">
+<span class="md-ellipsis">
+    Port Management
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../operations/refant_quick_reference/">
+<span class="md-ellipsis">
+    Refant Quick Reference
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../operations/service_restart_fix/">
+<span class="md-ellipsis">
+    Service Restart Fix
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../operations/systemd-migration/">
+<span class="md-ellipsis">
+    Systemd Migration
+  </span>
+</a>
+</li>
+</ul>
+</nav>
+</li>
+<li class="md-nav__item md-nav__item--section md-nav__item--nested">
+<input class="md-nav__toggle md-toggle" id="__nav_8" type="checkbox"/>
+<div class="md-nav__link md-nav__container">
+<a class="md-nav__link" href="../../contributing/">
+<span class="md-ellipsis">
+    Contributing
+  </span>
+</a>
+<label class="md-nav__link" for="__nav_8" id="__nav_8_label" tabindex="">
+<span class="md-nav__icon md-icon"></span>
+</label>
+</div>
+<nav aria-expanded="false" aria-labelledby="__nav_8_label" class="md-nav" data-md-level="1">
+<label class="md-nav__title" for="__nav_8">
+<span class="md-nav__icon md-icon"></span>
+            Contributing
+          </label>
+<ul class="md-nav__list" data-md-scrollfix="">
+<li class="md-nav__item md-nav__item--nested">
+<input class="md-nav__toggle md-toggle" id="__nav_8_2" type="checkbox"/>
+<label class="md-nav__link" for="__nav_8_2" id="__nav_8_2_label" tabindex="0">
+<span class="md-ellipsis">
+    Archive
+  </span>
+<span class="md-nav__icon md-icon"></span>
+</label>
+<nav aria-expanded="false" aria-labelledby="__nav_8_2_label" class="md-nav" data-md-level="2">
+<label class="md-nav__title" for="__nav_8_2">
+<span class="md-nav__icon md-icon"></span>
+            Archive
+          </label>
+<ul class="md-nav__list" data-md-scrollfix="">
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../contributing/archive/CONTRIBUTING_TODO/">
+<span class="md-ellipsis">
+    Contributing to TODO
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../contributing/archive/rules/">
+<span class="md-ellipsis">
+    Rules
+  </span>
+</a>
+</li>
+</ul>
+</nav>
+</li>
+</ul>
+</nav>
+</li>
+</ul>
+</nav>
+</div>
+</div>
+</div>
+<div class="md-sidebar md-sidebar--secondary" data-md-component="sidebar" data-md-type="toc">
+<div class="md-sidebar__scrollwrap">
+<div class="md-sidebar__inner">
+<nav aria-label="Table of contents" class="md-nav md-nav--secondary">
+<label class="md-nav__title" for="__toc">
+<span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+<ul class="md-nav__list" data-md-component="toc" data-md-scrollfix="">
+<li class="md-nav__item">
+<a class="md-nav__link" href="#implementation-status-legend">
+<span class="md-ellipsis">
+      Implementation Status Legend
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#table-of-contents">
+<span class="md-ellipsis">
+      Table of Contents
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#dashboard-page-dashboard">
+<span class="md-ellipsis">
+      Dashboard Page (/dashboard)
+    </span>
+</a>
+<nav aria-label="Dashboard Page (/dashboard)" class="md-nav">
+<ul class="md-nav__list">
+<li class="md-nav__item">
+<a class="md-nav__link" href="#features">
+<span class="md-ellipsis">
+      Features
+    </span>
+</a>
+<nav aria-label="Features" class="md-nav">
+<ul class="md-nav__list">
+<li class="md-nav__item">
+<a class="md-nav__link" href="#pipeline-status-panel">
+<span class="md-ellipsis">
+      Pipeline Status Panel
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#system-health-panel">
+<span class="md-ellipsis">
+      System Health Panel
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#ese-candidates-panel">
+<span class="md-ellipsis">
+      ESE Candidates Panel
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#pointing-visualization">
+<span class="md-ellipsis">
+      Pointing Visualization
+    </span>
+</a>
+</li>
+</ul>
+</nav>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#api-endpoints-used">
+<span class="md-ellipsis">
+      API Endpoints Used
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#user-workflows">
+<span class="md-ellipsis">
+      User Workflows
+    </span>
+</a>
+</li>
+</ul>
+</nav>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#sky-view-page-sky">
+<span class="md-ellipsis">
+      Sky View Page (/sky)
+    </span>
+</a>
+<nav aria-label="Sky View Page (/sky)" class="md-nav">
+<ul class="md-nav__list">
+<li class="md-nav__item">
+<a class="md-nav__link" href="#features_1">
+<span class="md-ellipsis">
+      Features
+    </span>
+</a>
+<nav aria-label="Features" class="md-nav">
+<ul class="md-nav__list">
+<li class="md-nav__item">
+<a class="md-nav__link" href="#interactive-sky-map">
+<span class="md-ellipsis">
+      Interactive Sky Map
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#image-gallery">
+<span class="md-ellipsis">
+      Image Gallery
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#image-detail-view">
+<span class="md-ellipsis">
+      Image Detail View
+    </span>
+</a>
+</li>
+</ul>
+</nav>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#api-endpoints-used_1">
+<span class="md-ellipsis">
+      API Endpoints Used
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#user-workflows_1">
+<span class="md-ellipsis">
+      User Workflows
+    </span>
+</a>
+</li>
+</ul>
+</nav>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#sources-page-sources">
+<span class="md-ellipsis">
+      Sources Page (/sources)
+    </span>
+</a>
+<nav aria-label="Sources Page (/sources)" class="md-nav">
+<ul class="md-nav__list">
+<li class="md-nav__item">
+<a class="md-nav__link" href="#features_2">
+<span class="md-ellipsis">
+      Features
+    </span>
+</a>
+<nav aria-label="Features" class="md-nav">
+<ul class="md-nav__list">
+<li class="md-nav__item">
+<a class="md-nav__link" href="#source-search-filters">
+<span class="md-ellipsis">
+      Source Search &amp; Filters
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#source-table-ag-grid">
+<span class="md-ellipsis">
+      Source Table (AG Grid)
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#source-detail-view">
+<span class="md-ellipsis">
+      Source Detail View
+    </span>
+</a>
+</li>
+</ul>
+</nav>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#api-endpoints-used_2">
+<span class="md-ellipsis">
+      API Endpoints Used
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#user-workflows_2">
+<span class="md-ellipsis">
+      User Workflows
+    </span>
+</a>
+</li>
+</ul>
+</nav>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#observing-page-observing">
+<span class="md-ellipsis">
+      Observing Page (/observing)
+    </span>
+</a>
+<nav aria-label="Observing Page (/observing)" class="md-nav">
+<ul class="md-nav__list">
+<li class="md-nav__item">
+<a class="md-nav__link" href="#features_3">
+<span class="md-ellipsis">
+      Features
+    </span>
+</a>
+<nav aria-label="Features" class="md-nav">
+<ul class="md-nav__list">
+<li class="md-nav__item">
+<a class="md-nav__link" href="#current-status-panel">
+<span class="md-ellipsis">
+      Current Status Panel
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#pointing-history-visualization">
+<span class="md-ellipsis">
+      Pointing History Visualization
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#calibrator-tracking">
+<span class="md-ellipsis">
+      Calibrator Tracking
+    </span>
+</a>
+</li>
+</ul>
+</nav>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#api-endpoints-used_3">
+<span class="md-ellipsis">
+      API Endpoints Used
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#user-workflows_3">
+<span class="md-ellipsis">
+      User Workflows
+    </span>
+</a>
+</li>
+</ul>
+</nav>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#health-page-health">
+<span class="md-ellipsis">
+      Health Page (/health)
+    </span>
+</a>
+<nav aria-label="Health Page (/health)" class="md-nav">
+<ul class="md-nav__list">
+<li class="md-nav__item">
+<a class="md-nav__link" href="#features_4">
+<span class="md-ellipsis">
+      Features
+    </span>
+</a>
+<nav aria-label="Features" class="md-nav">
+<ul class="md-nav__list">
+<li class="md-nav__item">
+<a class="md-nav__link" href="#system-monitoring">
+<span class="md-ellipsis">
+      System Monitoring
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#processing-queue-status">
+<span class="md-ellipsis">
+      Processing Queue Status
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#qa-diagnostics-tab">
+<span class="md-ellipsis">
+      QA Diagnostics Tab
+    </span>
+</a>
+</li>
+</ul>
+</nav>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#api-endpoints-used_4">
+<span class="md-ellipsis">
+      API Endpoints Used
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#user-workflows_4">
+<span class="md-ellipsis">
+      User Workflows
+    </span>
+</a>
+</li>
+</ul>
+</nav>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#control-page-control">
+<span class="md-ellipsis">
+      Control Page (/control)
+    </span>
+</a>
+<nav aria-label="Control Page (/control)" class="md-nav">
+<ul class="md-nav__list">
+<li class="md-nav__item">
+<a class="md-nav__link" href="#features_5">
+<span class="md-ellipsis">
+      Features
+    </span>
+</a>
+<nav aria-label="Features" class="md-nav">
+<ul class="md-nav__list">
+<li class="md-nav__item">
+<a class="md-nav__link" href="#job-submission-forms">
+<span class="md-ellipsis">
+      Job Submission Forms
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#ms-browser">
+<span class="md-ellipsis">
+      MS Browser
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#job-management">
+<span class="md-ellipsis">
+      Job Management
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#calibration-qa-display">
+<span class="md-ellipsis">
+      Calibration QA Display
+    </span>
+</a>
+</li>
+</ul>
+</nav>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#api-endpoints-used_5">
+<span class="md-ellipsis">
+      API Endpoints Used
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#user-workflows_5">
+<span class="md-ellipsis">
+      User Workflows
+    </span>
+</a>
+</li>
+</ul>
+</nav>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#streaming-page-streaming">
+<span class="md-ellipsis">
+      Streaming Page (/streaming)
+    </span>
+</a>
+<nav aria-label="Streaming Page (/streaming)" class="md-nav">
+<ul class="md-nav__list">
+<li class="md-nav__item">
+<a class="md-nav__link" href="#features_6">
+<span class="md-ellipsis">
+      Features
+    </span>
+</a>
+<nav aria-label="Features" class="md-nav">
+<ul class="md-nav__list">
+<li class="md-nav__item">
+<a class="md-nav__link" href="#service-control">
+<span class="md-ellipsis">
+      Service Control
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#real-time-status">
+<span class="md-ellipsis">
+      Real-Time Status
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#queue-statistics">
+<span class="md-ellipsis">
+      Queue Statistics
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#configuration-management">
+<span class="md-ellipsis">
+      Configuration Management
+    </span>
+</a>
+</li>
+</ul>
+</nav>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#api-endpoints-used_6">
+<span class="md-ellipsis">
+      API Endpoints Used
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#user-workflows_6">
+<span class="md-ellipsis">
+      User Workflows
+    </span>
+</a>
+</li>
+</ul>
+</nav>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#qa-visualization-page-qa">
+<span class="md-ellipsis">
+      QA Visualization Page (/qa)
+    </span>
+</a>
+<nav aria-label="QA Visualization Page (/qa)" class="md-nav">
+<ul class="md-nav__list">
+<li class="md-nav__item">
+<a class="md-nav__link" href="#features_7">
+<span class="md-ellipsis">
+      Features
+    </span>
+</a>
+<nav aria-label="Features" class="md-nav">
+<ul class="md-nav__list">
+<li class="md-nav__item">
+<a class="md-nav__link" href="#directory-browser">
+<span class="md-ellipsis">
+      Directory Browser
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#fits-viewer">
+<span class="md-ellipsis">
+      FITS Viewer
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#casa-table-viewer">
+<span class="md-ellipsis">
+      CASA Table Viewer
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#qa-notebook-generator">
+<span class="md-ellipsis">
+      QA Notebook Generator
+    </span>
+</a>
+</li>
+</ul>
+</nav>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#api-endpoints-used_7">
+<span class="md-ellipsis">
+      API Endpoints Used
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#user-workflows_7">
+<span class="md-ellipsis">
+      User Workflows
+    </span>
+</a>
+</li>
+</ul>
+</nav>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#data-browser-page-data">
+<span class="md-ellipsis">
+      Data Browser Page (/data)
+    </span>
+</a>
+<nav aria-label="Data Browser Page (/data)" class="md-nav">
+<ul class="md-nav__list">
+<li class="md-nav__item">
+<a class="md-nav__link" href="#features_8">
+<span class="md-ellipsis">
+      Features
+    </span>
+</a>
+<nav aria-label="Features" class="md-nav">
+<ul class="md-nav__list">
+<li class="md-nav__item">
+<a class="md-nav__link" href="#data-product-browser">
+<span class="md-ellipsis">
+      Data Product Browser
+    </span>
+</a>
+</li>
+</ul>
+</nav>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#api-endpoints-used_8">
+<span class="md-ellipsis">
+      API Endpoints Used
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#user-workflows_8">
+<span class="md-ellipsis">
+      User Workflows
+    </span>
+</a>
+</li>
+</ul>
+</nav>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#common-features-across-pages">
+<span class="md-ellipsis">
+      Common Features Across Pages
+    </span>
+</a>
+<nav aria-label="Common Features Across Pages" class="md-nav">
+<ul class="md-nav__list">
+<li class="md-nav__item">
+<a class="md-nav__link" href="#navigation">
+<span class="md-ellipsis">
+      Navigation
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#real-time-updates">
+<span class="md-ellipsis">
+      Real-Time Updates
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#error-handling">
+<span class="md-ellipsis">
+      Error Handling
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#loading-states">
+<span class="md-ellipsis">
+      Loading States
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#export-functionality">
+<span class="md-ellipsis">
+      Export Functionality
+    </span>
+</a>
+</li>
+</ul>
+</nav>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#related-documentation">
+<span class="md-ellipsis">
+      Related Documentation
+    </span>
+</a>
+</li>
+</ul>
+</nav>
+</div>
+</div>
+</div>
+<div class="md-content" data-md-component="content">
+<article class="md-content__inner md-typeset">
+<h1 id="dsa-110-dashboard-pages-features-reference">DSA-110 Dashboard: Pages &amp; Features Reference<a class="headerlink" href="#dsa-110-dashboard-pages-features-reference" title="Permanent link">¶</a></h1>
+<p><strong>Date:</strong> 2025-11-12<br/>
+<strong>Status:</strong> Consolidated feature documentation<br/>
+<strong>Audience:</strong> Users, frontend developers, product managers</p>
+<hr/>
+<h2 id="implementation-status-legend">Implementation Status Legend<a class="headerlink" href="#implementation-status-legend" title="Permanent link">¶</a></h2>
+<ul>
+<li>✅ <strong>Implemented</strong> - Feature is fully implemented and working</li>
+<li>🔄 <strong>Partially Implemented</strong> - Feature exists but may be incomplete or in progress</li>
+<li>📋 <strong>Planned</strong> - Feature is planned but not yet implemented</li>
+<li>💡 <strong>Future</strong> - Feature is in backlog or future consideration</li>
+</ul>
+<hr/>
+<h2 id="table-of-contents">Table of Contents<a class="headerlink" href="#table-of-contents" title="Permanent link">¶</a></h2>
+<ol>
+<li><a href="#dashboard-page-dashboard">Dashboard Page (<code>/dashboard</code>)</a> - ✅ Implemented</li>
+<li><a href="#sky-view-page-sky">Sky View Page (<code>/sky</code>)</a> - ✅ Implemented</li>
+<li><a href="#sources-page-sources">Sources Page (<code>/sources</code>)</a> - ✅ Implemented</li>
+<li><a href="#observing-page-observing">Observing Page (<code>/observing</code>)</a> - ✅ Implemented</li>
+<li><a href="#health-page-health">Health Page (<code>/health</code>)</a> - ✅ Implemented</li>
+<li><a href="#control-page-control">Control Page (<code>/control</code>)</a> - ✅ Implemented</li>
+<li><a href="#streaming-page-streaming">Streaming Page (<code>/streaming</code>)</a> - ✅ Implemented</li>
+<li><a href="#qa-visualization-page-qa">QA Visualization Page (<code>/qa</code>)</a> - ✅ Implemented</li>
+<li><a href="#data-browser-page-data">Data Browser Page (<code>/data</code>)</a> - ✅ Implemented</li>
+</ol>
+<hr/>
+<h2 id="dashboard-page-dashboard">Dashboard Page (<code>/dashboard</code>)<a class="headerlink" href="#dashboard-page-dashboard" title="Permanent link">¶</a></h2>
+<p><strong>URL:</strong> <code>/dashboard</code><br/>
+<strong>Status:</strong> ✅ <strong>Implemented</strong><br/>
+<strong>Purpose:</strong> At-a-glance pipeline health and recent activity<br/>
+<strong>Refresh Rate:</strong> 10 seconds (auto-refresh)</p>
+<h3 id="features">Features<a class="headerlink" href="#features" title="Permanent link">¶</a></h3>
+<h4 id="pipeline-status-panel">Pipeline Status Panel<a class="headerlink" href="#pipeline-status-panel" title="Permanent link">¶</a></h4>
+<p><strong>Status:</strong> ✅ <strong>Implemented</strong></p>
+<p><strong>Queue Statistics:</strong>
+- Total groups in queue
+- Pending groups (ready for processing)
+- In-progress groups (currently processing)
+- Completed groups (successfully processed)
+- Failed groups (errors occurred)
+- Collecting groups (waiting for all subbands)</p>
+<p><strong>Calibration Sets:</strong>
+- Active calibration sets count
+- Calibration set details (set name, tables, valid MJD range)
+- Last update timestamp
+- Number of targets per set</p>
+<p><strong>Recent Observations Table:</strong>
+- Last 20 observation groups
+- Group ID (normalized timestamp)
+- Processing state
+- Subband counts (present/expected)
+- Calibrator detection status
+- Timestamps (received, last update)</p>
+<h4 id="system-health-panel">System Health Panel<a class="headerlink" href="#system-health-panel" title="Permanent link">¶</a></h4>
+<p><strong>Status:</strong> ✅ <strong>Implemented</strong></p>
+<p><strong>Resource Metrics:</strong>
+- CPU usage percentage (with threshold indicators)
+- Memory usage percentage
+- Disk usage percentage
+- System load averages (1, 5, 15 minutes)</p>
+<p><strong>Real-Time Updates:</strong>
+- Last update timestamp
+- Current metrics display (no historical chart - see Health page for trends)
+- Basic status indicators</p>
+<h4 id="ese-candidates-panel">ESE Candidates Panel<a class="headerlink" href="#ese-candidates-panel" title="Permanent link">¶</a></h4>
+<p><strong>Status:</strong> ✅ <strong>Implemented</strong></p>
+<p><strong>Real-Time Variability Alerts:</strong>
+- Auto-flagged sources with &gt;5σ variability
+- Source ID (NVSS naming convention)
+- Maximum σ deviation
+- Current flux vs. baseline flux
+- Status indicators (active, resolved, false_positive)
+- Last detection timestamp
+- Auto-refresh every 10 seconds</p>
+<p><strong>Alert Display:</strong>
+- Auto-flagged sources with &gt;5σ variability
+- Click to navigate to source detail page</p>
+<h4 id="pointing-visualization">Pointing Visualization<a class="headerlink" href="#pointing-visualization" title="Permanent link">¶</a></h4>
+<p><strong>Status:</strong> ✅ <strong>Implemented</strong></p>
+<p><strong>Interactive Sky Map:</strong>
+- Current telescope pointing position (RA/Dec)
+- Historical pointing trail (configurable days, default 7)
+- Color-coded by time
+- Click to view observation details</p>
+<p><strong>Display Options:</strong>
+- Show/hide historical trail
+- Adjust trail duration (1 day, 7 days, 30 days)
+- Zoom and pan controls</p>
+<h3 id="api-endpoints-used">API Endpoints Used<a class="headerlink" href="#api-endpoints-used" title="Permanent link">¶</a></h3>
+<ul>
+<li><code>GET /api/status</code> - Pipeline queue statistics</li>
+<li><code>GET /api/metrics/system</code> - System health metrics</li>
+<li><code>GET /api/ese/candidates</code> - ESE detection alerts</li>
+<li><code>GET /api/pointing_history</code> - Telescope pointing history</li>
+</ul>
+<h3 id="user-workflows">User Workflows<a class="headerlink" href="#user-workflows" title="Permanent link">¶</a></h3>
+<p><strong>Normal Operation:</strong>
+1. User opens dashboard
+2. Sees pipeline status at a glance
+3. Monitors ESE candidates panel for alerts
+4. Checks system health metrics</p>
+<p><strong>Alert Investigation:</strong>
+1. ESE candidate appears in panel
+2. User clicks "View Source"
+3. Navigates to Sources page for detailed investigation</p>
+<hr/>
+<h2 id="sky-view-page-sky">Sky View Page (<code>/sky</code>)<a class="headerlink" href="#sky-view-page-sky" title="Permanent link">¶</a></h2>
+<p><strong>URL:</strong> <code>/sky</code><br/>
+<strong>Status:</strong> ✅ <strong>Implemented</strong><br/>
+<strong>Purpose:</strong> Visual exploration of sky coverage and images<br/>
+<strong>Refresh Rate:</strong> On-demand (user-triggered)</p>
+<h3 id="features_1">Features<a class="headerlink" href="#features_1" title="Permanent link">¶</a></h3>
+<h4 id="interactive-sky-map">Interactive Sky Map<a class="headerlink" href="#interactive-sky-map" title="Permanent link">¶</a></h4>
+<p><strong>Status:</strong> ✅ <strong>Implemented</strong></p>
+<p><strong>Coverage Visualization:</strong>
+- Observed fields (color-coded by observation time)
+- Source density heatmap
+- Calibrator positions
+- Current/upcoming telescope pointing</p>
+<p><strong>Interactive Features:</strong>
+- Click field → show observation details
+- Zoom and pan controls
+- Time range filtering
+- Declination range filtering</p>
+<h4 id="image-gallery">Image Gallery<a class="headerlink" href="#image-gallery" title="Permanent link">¶</a></h4>
+<p><strong>Status:</strong> ✅ <strong>Implemented</strong></p>
+<p><strong>Grid View:</strong>
+- Thumbnail grid (4-6 images per row, responsive)
+- Each thumbnail shows:
+  - Observation timestamp
+  - Field ID
+  - Noise level
+  - Source count
+  - Calibrator status</p>
+<p><strong>Filters:</strong>
+- Date range (start/end UTC)
+- Declination range
+- Quality threshold (noise level)
+- Primary-beam corrected flag
+- Calibrator detected flag
+- Search by field ID or coordinates</p>
+<p><strong>Pagination:</strong>
+- Configurable items per page
+- Page navigation controls
+- Total count display</p>
+<h4 id="image-detail-view">Image Detail View<a class="headerlink" href="#image-detail-view" title="Permanent link">¶</a></h4>
+<p><strong>Status:</strong> ✅ <strong>Implemented</strong></p>
+<p><strong>Full-Resolution Display:</strong>
+- Large image viewer (JS9 integration)
+- Zoom and pan controls
+- Colormap selection
+- Scaling options (linear, log, sqrt)
+- Grid overlay toggle
+- Catalog overlay toggle</p>
+<p><strong>Metadata Panel:</strong>
+- Observation details (date, MJD, integration time)
+- Pointing center (RA/Dec)
+- Field size
+- Image quality metrics:
+  - Noise level (mJy/beam)
+  - Synthesized beam (major, minor, PA)
+  - Noise/thermal ratio
+  - Dynamic range
+- Frequency information (center, bandwidth)
+- Source statistics:
+  - Detected sources count
+  - NVSS matches count
+  - Variable sources count
+- Calibration information:
+  - Calibrator name
+  - Separation from pointing center
+  - Measured vs. expected flux
+  - Calibration tables used</p>
+<p><strong>Actions:</strong>
+- Download FITS file
+- View source list
+- Catalog overlay toggle
+- Region tools (create/edit regions)
+- Profile tool
+- Image fitting tool
+- Photometry plugin</p>
+<p><strong>Note:</strong> Mosaic Builder functionality is available on the separate Mosaic Gallery page (<code>/mosaics</code>), not on Sky View page.</p>
+<h3 id="api-endpoints-used_1">API Endpoints Used<a class="headerlink" href="#api-endpoints-used_1" title="Permanent link">¶</a></h3>
+<ul>
+<li><code>GET /api/images</code> - List images with filters (via ImageBrowser component)</li>
+<li><code>GET /api/images/{image_id}/fits</code> - Download FITS file (for JS9 viewer)</li>
+<li><code>GET /api/pointing_history</code> - Pointing history (for SkyMap component)</li>
+</ul>
+<h3 id="user-workflows_1">User Workflows<a class="headerlink" href="#user-workflows_1" title="Permanent link">¶</a></h3>
+<p><strong>Image Exploration:</strong>
+1. User navigates to Sky View
+2. Filters images by date range or quality
+3. Clicks thumbnail to view full image
+4. Examines image with JS9 viewer
+5. Downloads FITS file for analysis</p>
+<p><strong>Image Analysis:</strong>
+1. User selects image from browser
+2. Views image in JS9 viewer
+3. Uses region tools, profile tool, or fitting tool
+4. Toggles catalog overlay if needed
+5. Examines image metadata</p>
+<hr/>
+<h2 id="sources-page-sources">Sources Page (<code>/sources</code>)<a class="headerlink" href="#sources-page-sources" title="Permanent link">¶</a></h2>
+<p><strong>URL:</strong> <code>/sources</code><br/>
+<strong>Status:</strong> ✅ <strong>Implemented</strong><br/>
+<strong>Purpose:</strong> Monitor source flux variability and identify ESE candidates<br/>
+<strong>Refresh Rate:</strong> On-demand (user-triggered)</p>
+<h3 id="features_2">Features<a class="headerlink" href="#features_2" title="Permanent link">¶</a></h3>
+<h4 id="source-search-filters">Source Search &amp; Filters<a class="headerlink" href="#source-search-filters" title="Permanent link">¶</a></h4>
+<p><strong>Status:</strong> ✅ <strong>Implemented</strong></p>
+<p><strong>Quick Search:</strong>
+- Search by NVSS ID (e.g., <code>NVSS J123456.7+420312</code>)
+- Enter key to search</p>
+<p><strong>Advanced Filters (Collapsible):</strong>
+- Variability threshold slider (0-10σ)
+- Declination range slider (-90° to +90°)
+- ESE candidates only checkbox</p>
+<p><strong>Filter Management:</strong>
+- Active filter count chip
+- Clear all filters button
+- Show/hide advanced filters toggle</p>
+<h4 id="source-table-ag-grid">Source Table (AG Grid)<a class="headerlink" href="#source-table-ag-grid" title="Permanent link">¶</a></h4>
+<p><strong>Status:</strong> ✅ <strong>Implemented</strong></p>
+<p><strong>High-Performance Table:</strong>
+- Handles 10,000+ rows efficiently
+- Virtual scrolling
+- Sortable columns
+- Filterable columns
+- Pagination (configurable page size)</p>
+<p><strong>Columns:</strong>
+- Source ID (NVSS naming, monospace font)
+- RA/Dec coordinates (J2000)
+- NVSS flux (mJy)
+- Latest flux (mJy)
+- Variability metrics:
+  - σ deviation (highlight if &gt;5)
+  - χ²/ν (reduced chi-squared)
+- Observation count
+- Trend sparkline (last 20 observations)
+- Variability indicator (✓/⚠/✗)</p>
+<p><strong>Table Features:</strong>
+- Clickable source IDs (navigate to detail page)
+- Sortable columns
+- Filterable columns
+- Pagination (20 items per page)</p>
+<h4 id="source-detail-view">Source Detail View<a class="headerlink" href="#source-detail-view" title="Permanent link">¶</a></h4>
+<p><strong>Status:</strong> ✅ <strong>Implemented</strong> (Basic detail view with metadata and detections table)</p>
+<p><strong>Source Details Panel:</strong>
+- Source name/ID
+- RA/Dec coordinates (formatted HH:MM:SS and decimal)
+- Flux statistics (mean, std, max SNR if available)
+- Variability metrics (v, η if available)
+- ESE probability chip (if &gt;0)
+- New source chip (if applicable)
+- Measurement counts (total, forced)
+- External links (SIMBAD, NED)</p>
+<p><strong>Sky Visualization:</strong>
+- Aladin Lite placeholder (not yet implemented)</p>
+<p><strong>Comments &amp; Annotations:</strong>
+- Placeholder section (not yet implemented)</p>
+<p><strong>Light Curve:</strong>
+- Collapsible section (placeholder, not yet implemented)</p>
+<p><strong>Detections Table:</strong>
+- GenericTable component
+- Columns: Name, RA, Dec, Peak Flux, Integrated Flux, SNR, Forced flag, Date
+- Clickable rows (navigate to image detail page)
+- Searchable and exportable</p>
+<p><strong>Note:</strong> Light curve visualization, Aladin Lite sky view, and comments system are placeholders and not yet fully implemented.</p>
+<h3 id="api-endpoints-used_2">API Endpoints Used<a class="headerlink" href="#api-endpoints-used_2" title="Permanent link">¶</a></h3>
+<ul>
+<li><code>POST /api/sources/search</code> - Search sources</li>
+<li><code>GET /api/sources/{sourceId}</code> - Get source details</li>
+<li><code>GET /api/sources/{sourceId}/detections</code> - Get source detections (for detail page table)</li>
+</ul>
+<h3 id="user-workflows_2">User Workflows<a class="headerlink" href="#user-workflows_2" title="Permanent link">¶</a></h3>
+<p><strong>Source Investigation:</strong>
+1. User searches for source by NVSS ID (or uses advanced filters)
+2. Views source in table
+3. Clicks source ID to navigate to detail page
+4. Examines source metadata and detections table
+5. Clicks detection row to view associated image</p>
+<p><strong>ESE Candidate Review:</strong>
+1. User views ESE candidates on Dashboard
+2. Clicks candidate to navigate to source detail page
+3. Reviews source metadata and detections
+4. Examines variability statistics in table</p>
+<hr/>
+<h2 id="observing-page-observing">Observing Page (<code>/observing</code>)<a class="headerlink" href="#observing-page-observing" title="Permanent link">¶</a></h2>
+<p><strong>URL:</strong> <code>/observing</code><br/>
+<strong>Status:</strong> ✅ <strong>Implemented</strong><br/>
+<strong>Purpose:</strong> Real-time telescope status and observing plan<br/>
+<strong>Refresh Rate:</strong> 10 seconds (auto-refresh)</p>
+<h3 id="features_3">Features<a class="headerlink" href="#features_3" title="Permanent link">¶</a></h3>
+<h4 id="current-status-panel">Current Status Panel<a class="headerlink" href="#current-status-panel" title="Permanent link">¶</a></h4>
+<p><strong>Telescope Pointing:</strong>
+- Current RA/Dec coordinates (from most recent pointing history entry)
+- Last update timestamp
+- Pipeline status chips (pending, in-progress, completed counts)</p>
+<p><strong>Note:</strong> LST, Alt/Az, Parallactic angle, Antenna status, and Observing mode features are not yet implemented.</p>
+<h4 id="pointing-history-visualization">Pointing History Visualization<a class="headerlink" href="#pointing-history-visualization" title="Permanent link">¶</a></h4>
+<p><strong>Sky Map Display:</strong>
+- Pointing centers over last 7 days (fixed)
+- Color-coded by time
+- Uses PointingVisualization component
+- Historical trail display</p>
+<p><strong>Note:</strong> Time range selection, declination strip overlay, and click-to-view details are not yet implemented.</p>
+<h4 id="calibrator-tracking">Calibrator Tracking<a class="headerlink" href="#calibrator-tracking" title="Permanent link">¶</a></h4>
+<p><strong>Active Calibrators (Recent):</strong>
+- Calibrator name
+- RA/Dec coordinates
+- Flux (mJy)
+- Separation from pointing center (°)
+- Last seen timestamp
+- Table display (top 10 matches)</p>
+<p><strong>Calibrator Flux vs Time:</strong>
+- Time-series plot (Plotly.js)
+- Multiple calibrators overlaid
+- Shows flux measurements over time
+- Conditional display (only shown if multiple measurements exist)</p>
+<p><strong>Note:</strong> Elevation-dependent effects, expected flux markers, and Calibrator Plan (upcoming transits) are not yet implemented.</p>
+<h3 id="api-endpoints-used_3">API Endpoints Used<a class="headerlink" href="#api-endpoints-used_3" title="Permanent link">¶</a></h3>
+<ul>
+<li><code>GET /api/pointing_history</code> - Pointing history (used to derive current pointing)</li>
+<li><code>GET /api/calibrator_matches</code> - Calibrator detection history</li>
+<li><code>GET /api/status</code> - Pipeline status</li>
+</ul>
+<h3 id="user-workflows_3">User Workflows<a class="headerlink" href="#user-workflows_3" title="Permanent link">¶</a></h3>
+<p><strong>Monitoring Telescope Status:</strong>
+1. User opens Observing page
+2. Checks current pointing (RA/Dec from most recent history)
+3. Reviews pipeline status chips
+4. Views calibrator tracking table
+5. Examines calibrator flux vs time plot (if data available)</p>
+<p><strong>Pointing History Analysis:</strong>
+1. User views pointing history visualization (7-day trail)
+2. Examines pointing patterns on sky map
+3. Reviews calibrator matches in table</p>
+<hr/>
+<h2 id="health-page-health">Health Page (<code>/health</code>)<a class="headerlink" href="#health-page-health" title="Permanent link">¶</a></h2>
+<p><strong>URL:</strong> <code>/health</code><br/>
+<strong>Status:</strong> ✅ <strong>Implemented</strong><br/>
+<strong>Purpose:</strong> Deep diagnostics for pipeline and data quality monitoring<br/>
+<strong>Refresh Rate:</strong> 10 seconds (auto-refresh)</p>
+<h3 id="features_4">Features<a class="headerlink" href="#features_4" title="Permanent link">¶</a></h3>
+<h4 id="system-monitoring">System Monitoring<a class="headerlink" href="#system-monitoring" title="Permanent link">¶</a></h4>
+<p><strong>Current Metrics (Metric Cards):</strong>
+- CPU usage percentage (with progress bar and thresholds)
+- Memory usage percentage (with progress bar and thresholds)
+- Disk usage percentage (with progress bar and thresholds)
+- Load average (1m) display</p>
+<p><strong>Resource Usage Plot:</strong>
+- Basic plot showing current CPU and Memory % (single data point, not historical)
+- Plotly.js visualization</p>
+<p><strong>Detailed Metrics:</strong>
+- Memory details (total, used in GB)
+- Disk details (total, used, available in GB)
+- Load averages (1m, 5m, 15m)</p>
+<p><strong>Note:</strong> Historical metrics plots (last 6 hours), average/peak values, and color-coded zones are not yet implemented.</p>
+<h4 id="processing-queue-status">Processing Queue Status<a class="headerlink" href="#processing-queue-status" title="Permanent link">¶</a></h4>
+<p><strong>Queue Statistics:</strong>
+- Total groups
+- Pending groups
+- In-progress groups
+- Failed groups
+- Completed groups (last 24 hours)</p>
+<p><strong>State Distribution:</strong>
+- Visual bar chart
+- Percentage breakdown
+- Color-coded by state</p>
+<p><strong>Recent Groups Table:</strong>
+- Group ID
+- Processing state (with color-coded chips)
+- Subband counts (present/expected)
+- Top 10 recent groups displayed</p>
+<h4 id="qa-diagnostics-tab">QA Diagnostics Tab<a class="headerlink" href="#qa-diagnostics-tab" title="Permanent link">¶</a></h4>
+<p><strong>ESE Candidates Table:</strong>
+- Source ID
+- Max σ deviation
+- Status (active/resolved/false_positive)
+- Last detection timestamp
+- Top 10 candidates displayed</p>
+<p><strong>Link to QA Visualization:</strong>
+- Alert with link to <code>/qa</code> page for full QA diagnostics</p>
+<p><strong>Note:</strong> Calibration Registry, Data Quality Metrics, Performance Metrics, and QA Diagnostic Gallery features are not yet implemented on this page. See QA Visualization page for QA features.</p>
+<h3 id="api-endpoints-used_4">API Endpoints Used<a class="headerlink" href="#api-endpoints-used_4" title="Permanent link">¶</a></h3>
+<ul>
+<li><code>GET /api/metrics/system</code> - System metrics</li>
+<li><code>GET /api/status</code> - Queue statistics</li>
+<li><code>GET /api/ese/candidates</code> - ESE candidates</li>
+</ul>
+<h3 id="user-workflows_4">User Workflows<a class="headerlink" href="#user-workflows_4" title="Permanent link">¶</a></h3>
+<p><strong>System Health Monitoring:</strong>
+1. User opens Health page
+2. Reviews resource usage trends
+3. Checks queue statistics
+4. Examines data quality metrics
+5. Identifies potential issues</p>
+<p><strong>Diagnostic Investigation:</strong>
+1. User notices elevated metrics
+2. Reviews QA diagnostic gallery
+3. Examines failed groups
+4. Checks calibration registry
+5. Takes corrective action</p>
+<hr/>
+<h2 id="control-page-control">Control Page (<code>/control</code>)<a class="headerlink" href="#control-page-control" title="Permanent link">¶</a></h2>
+<p><strong>URL:</strong> <code>/control</code><br/>
+<strong>Status:</strong> ✅ <strong>Implemented</strong><br/>
+<strong>Purpose:</strong> Manual job execution for selected Measurement Sets<br/>
+<strong>Refresh Rate:</strong> 5 seconds (for job status)</p>
+<h3 id="features_5">Features<a class="headerlink" href="#features_5" title="Permanent link">¶</a></h3>
+<h4 id="job-submission-forms">Job Submission Forms<a class="headerlink" href="#job-submission-forms" title="Permanent link">¶</a></h4>
+<p><strong>Convert Job:</strong>
+- Select UVH5 files or group ID
+- Output directory
+- Configuration options</p>
+<p><strong>Calibrate Job:</strong>
+- Select Measurement Set
+- Reference antenna (default: "103")
+- Solve bandpass (yes/no)
+- Solve gains (yes/no)
+- Gain solution interval
+- Gain calibration mode (ap, apcal)
+- Auto-detect fields
+- Minimum primary beam threshold</p>
+<p><strong>Apply Job:</strong>
+- Select Measurement Set
+- Select calibration tables (K, BP, G)
+- Apply options</p>
+<p><strong>Image Job:</strong>
+- Select Measurement Set
+- Imaging parameters:
+  - Gridder (wgridder, standard)
+  - Cell size
+  - Image size
+  - Weighting (natural, uniform, robust)
+  - Deconvolution algorithm
+  - Iteration limits</p>
+<p><strong>Workflow Job:</strong>
+- End-to-end pipeline execution
+- Convert → Calibrate → Apply → Image
+- Configuration for each stage</p>
+<h4 id="ms-browser">MS Browser<a class="headerlink" href="#ms-browser" title="Permanent link">¶</a></h4>
+<p><strong>Measurement Set List:</strong>
+- Available Measurement Sets
+- Filter by path, date, state
+- Sortable columns
+- Select MS for job submission</p>
+<p><strong>MS Details:</strong>
+- Path
+- Processing stage
+- Timestamps (created, updated)
+- Calibration status
+- Image status</p>
+<h4 id="job-management">Job Management<a class="headerlink" href="#job-management" title="Permanent link">¶</a></h4>
+<p><strong>Job List:</strong>
+- Recent jobs (with status filter)
+- Job type, status, MS path
+- Created, started, finished timestamps
+- Actions (View Details, View Logs, Cancel)</p>
+<p><strong>Job Details:</strong>
+- Job parameters
+- Status history
+- Logs (live streaming via SSE)
+- Artifacts (output files)
+- Error messages (if failed)</p>
+<p><strong>Live Log Streaming:</strong>
+- Server-Sent Events (SSE) for real-time logs
+- Auto-scroll to latest
+- Filter log levels
+- Export logs</p>
+<h4 id="calibration-qa-display">Calibration QA Display<a class="headerlink" href="#calibration-qa-display" title="Permanent link">¶</a></h4>
+<p><strong>Calibration Quality Metrics:</strong>
+- K-table SNR
+- Bandpass RMS
+- Gain solution quality
+- Bandpass plots
+- Gain solution plots</p>
+<p><strong>QA Visualization:</strong>
+- Interactive plots
+- Quality indicators
+- Comparison with expected values</p>
+<h3 id="api-endpoints-used_5">API Endpoints Used<a class="headerlink" href="#api-endpoints-used_5" title="Permanent link">¶</a></h3>
+<ul>
+<li><code>GET /api/ms</code> - List Measurement Sets</li>
+<li><code>GET /api/ms/{ms_path}</code> - Get MS details</li>
+<li><code>POST /api/jobs/calibrate</code> - Create calibration job</li>
+<li><code>POST /api/jobs/apply</code> - Create apply job</li>
+<li><code>POST /api/jobs/image</code> - Create imaging job</li>
+<li><code>POST /api/jobs/workflow</code> - Create workflow job</li>
+<li><code>GET /api/jobs</code> - List jobs</li>
+<li><code>GET /api/jobs/{job_id}</code> - Get job details</li>
+<li><code>GET /api/jobs/{job_id}/logs</code> - Stream job logs</li>
+<li><code>GET /api/calibration/qa</code> - Get calibration QA</li>
+</ul>
+<h3 id="user-workflows_5">User Workflows<a class="headerlink" href="#user-workflows_5" title="Permanent link">¶</a></h3>
+<p><strong>Manual Calibration:</strong>
+1. User selects Measurement Set
+2. Configures calibration parameters
+3. Submits calibration job
+4. Monitors job progress
+5. Reviews calibration QA
+6. Applies calibration if quality is good</p>
+<p><strong>Reprocessing:</strong>
+1. User identifies failed observation
+2. Selects Measurement Set
+3. Submits workflow job
+4. Monitors end-to-end processing
+5. Reviews results</p>
+<hr/>
+<h2 id="streaming-page-streaming">Streaming Page (<code>/streaming</code>)<a class="headerlink" href="#streaming-page-streaming" title="Permanent link">¶</a></h2>
+<p><strong>URL:</strong> <code>/streaming</code><br/>
+<strong>Status:</strong> ✅ <strong>Implemented</strong><br/>
+<strong>Purpose:</strong> Control and monitor the streaming converter service<br/>
+<strong>Refresh Rate:</strong> 5 seconds (auto-refresh)</p>
+<h3 id="features_6">Features<a class="headerlink" href="#features_6" title="Permanent link">¶</a></h3>
+<h4 id="service-control">Service Control<a class="headerlink" href="#service-control" title="Permanent link">¶</a></h4>
+<p><strong>Service Status:</strong>
+- Running/Stopped/Error state
+- Process ID (PID)
+- Started timestamp
+- Uptime (formatted)
+- Error message (if any)</p>
+<p><strong>Control Buttons:</strong>
+- Start service
+- Stop service
+- Restart service
+- Update configuration</p>
+<h4 id="real-time-status">Real-Time Status<a class="headerlink" href="#real-time-status" title="Permanent link">¶</a></h4>
+<p><strong>Service Status:</strong>
+- Running/Stopped state (with chip indicator)
+- Health status chip (if healthy)
+- Process ID (PID)
+- Started timestamp
+- Uptime (formatted: hours, minutes, seconds)</p>
+<p><strong>Resource Usage:</strong>
+- CPU percentage (with progress bar and color coding)
+- Memory usage (MB, with progress bar)
+- Real-time updates (5s refresh)</p>
+<h4 id="queue-statistics">Queue Statistics<a class="headerlink" href="#queue-statistics" title="Permanent link">¶</a></h4>
+<p><strong>Queue Metrics:</strong>
+- Total groups processed
+- Groups processed in last hour
+- Average processing time per group
+- Current queue depth (if available from status)</p>
+<p><strong>Note:</strong> Detailed processing rate metrics and throughput breakdown are not yet fully implemented.</p>
+<h4 id="configuration-management">Configuration Management<a class="headerlink" href="#configuration-management" title="Permanent link">¶</a></h4>
+<p><strong>Current Configuration:</strong>
+- Input directory
+- Output directory
+- Max workers
+- Expected subbands
+- Other settings</p>
+<p><strong>Configuration Editor:</strong>
+- Dialog-based configuration editor
+- Edit configuration values
+- Save configuration (updates via API)
+- Configuration displayed in dialog form</p>
+<h3 id="api-endpoints-used_6">API Endpoints Used<a class="headerlink" href="#api-endpoints-used_6" title="Permanent link">¶</a></h3>
+<ul>
+<li><code>GET /api/streaming/status</code> - Service status</li>
+<li><code>GET /api/streaming/health</code> - Health check</li>
+<li><code>GET /api/streaming/config</code> - Get configuration</li>
+<li><code>PUT /api/streaming/config</code> - Update configuration</li>
+<li><code>POST /api/streaming/start</code> - Start service</li>
+<li><code>POST /api/streaming/stop</code> - Stop service</li>
+<li><code>POST /api/streaming/restart</code> - Restart service</li>
+<li><code>GET /api/streaming/metrics</code> - Processing metrics</li>
+</ul>
+<h3 id="user-workflows_6">User Workflows<a class="headerlink" href="#user-workflows_6" title="Permanent link">¶</a></h3>
+<p><strong>Starting Streaming Service:</strong>
+1. User navigates to Streaming page
+2. Reviews current configuration
+3. Clicks "Start" button
+4. Monitors service status
+5. Reviews queue statistics</p>
+<p><strong>Updating Configuration:</strong>
+1. User clicks "Edit Configuration"
+2. Modifies configuration values
+3. Validates changes
+4. Saves configuration
+5. Restarts service if needed</p>
+<hr/>
+<h2 id="qa-visualization-page-qa">QA Visualization Page (<code>/qa</code>)<a class="headerlink" href="#qa-visualization-page-qa" title="Permanent link">¶</a></h2>
+<p><strong>URL:</strong> <code>/qa</code><br/>
+<strong>Status:</strong> ✅ <strong>Implemented</strong><br/>
+<strong>Purpose:</strong> Quality assurance data visualization and exploration<br/>
+<strong>Refresh Rate:</strong> On-demand (user-triggered)</p>
+<h3 id="features_7">Features<a class="headerlink" href="#features_7" title="Permanent link">¶</a></h3>
+<h4 id="directory-browser">Directory Browser<a class="headerlink" href="#directory-browser" title="Permanent link">¶</a></h4>
+<p><strong>File Tree Navigation:</strong>
+- Browse QA artifact directories
+- Expand/collapse folders
+- Filter by file type (FITS, images, logs, tables)
+- Search functionality
+- File metadata (size, modified time)</p>
+<p><strong>File Actions:</strong>
+- View FITS file
+- View CASA table
+- Download file
+- Generate notebook</p>
+<h4 id="fits-viewer">FITS Viewer<a class="headerlink" href="#fits-viewer" title="Permanent link">¶</a></h4>
+<p><strong>JS9 Integration:</strong>
+- Load FITS files
+- Scale controls (linear, log, sqrt)
+- Colormap selection
+- Zoom and pan
+- Coordinate display (RA/Dec, pixel)
+- Image statistics</p>
+<p><strong>Note:</strong> Dual Window Mode (side-by-side comparison) is not yet implemented.</p>
+<h4 id="casa-table-viewer">CASA Table Viewer<a class="headerlink" href="#casa-table-viewer" title="Permanent link">¶</a></h4>
+<p><strong>Table Browser:</strong>
+- Browse Measurement Set tables
+- Column selection
+- Filtering and sorting
+- Subtable navigation
+- Data export (CSV)</p>
+<p><strong>Table Types:</strong>
+- MAIN table (visibilities)
+- ANTENNA table
+- FIELD table
+- SPECTRAL_WINDOW table
+- POLARIZATION table
+- Other subtables</p>
+<h4 id="qa-notebook-generator">QA Notebook Generator<a class="headerlink" href="#qa-notebook-generator" title="Permanent link">¶</a></h4>
+<p><strong>Automated Report Generation:</strong>
+- Generate Jupyter notebooks for QA analysis
+- Customizable templates
+- Include relevant plots and data
+- Export notebook file</p>
+<p><strong>Notebook Templates:</strong>
+- Calibration QA
+- Image QA
+- Source detection QA
+- Custom analysis</p>
+<h3 id="api-endpoints-used_7">API Endpoints Used<a class="headerlink" href="#api-endpoints-used_7" title="Permanent link">¶</a></h3>
+<ul>
+<li><code>GET /api/visualization/browse</code> - Browse QA directory</li>
+<li><code>GET /api/visualization/fits/view</code> - View FITS file</li>
+<li><code>GET /api/visualization/casa/table</code> - Browse CASA table</li>
+<li><code>POST /api/visualization/qa/run</code> - Run QA analysis</li>
+<li><code>GET /api/visualization/qa/notebook</code> - Generate QA notebook</li>
+</ul>
+<h3 id="user-workflows_7">User Workflows<a class="headerlink" href="#user-workflows_7" title="Permanent link">¶</a></h3>
+<p><strong>QA Review:</strong>
+1. User navigates to QA page
+2. Browses QA directory
+3. Views FITS files with JS9
+4. Examines CASA tables
+5. Generates QA notebook for detailed analysis</p>
+<p><strong>Diagnostic Investigation:</strong>
+1. User identifies quality issue
+2. Navigates to QA page
+3. Locates relevant QA artifacts
+4. Examines plots and tables
+5. Generates diagnostic report</p>
+<hr/>
+<h2 id="data-browser-page-data">Data Browser Page (<code>/data</code>)<a class="headerlink" href="#data-browser-page-data" title="Permanent link">¶</a></h2>
+<p><strong>URL:</strong> <code>/data</code><br/>
+<strong>Status:</strong> ✅ <strong>Implemented</strong><br/>
+<strong>Purpose:</strong> Browse data products and visualize data lineage<br/>
+<strong>Refresh Rate:</strong> On-demand (user-triggered)</p>
+<h3 id="features_8">Features<a class="headerlink" href="#features_8" title="Permanent link">¶</a></h3>
+<h4 id="data-product-browser">Data Product Browser<a class="headerlink" href="#data-product-browser" title="Permanent link">¶</a></h4>
+<p><strong>Product Types:</strong>
+- Images (FITS files)
+- Mosaics (combined images)
+- Catalogs (source lists)
+- Measurement Sets</p>
+<p><strong>Filters:</strong>
+- Date range
+- Product type
+- Quality threshold
+- Search functionality</p>
+<p><strong>Product Details:</strong>
+- Metadata display
+- File paths
+- Processing history
+- Related products</p>
+<p><strong>Note:</strong> Data Lineage Graph visualization is not yet implemented. Data detail pages (<code>/data/:type/:id</code>) may provide lineage information.</p>
+<h3 id="api-endpoints-used_8">API Endpoints Used<a class="headerlink" href="#api-endpoints-used_8" title="Permanent link">¶</a></h3>
+<ul>
+<li><code>GET /api/data</code> - List data instances (with type and status filters)</li>
+<li><code>GET /api/data/{type}/{id}</code> - Get data instance details (via detail page)</li>
+</ul>
+<h3 id="user-workflows_8">User Workflows<a class="headerlink" href="#user-workflows_8" title="Permanent link">¶</a></h3>
+<p><strong>Product Exploration:</strong>
+1. User navigates to Data Browser
+2. Filters products by type or date
+3. Views product details
+4. Examines data lineage
+5. Downloads products</p>
+<hr/>
+<h2 id="common-features-across-pages">Common Features Across Pages<a class="headerlink" href="#common-features-across-pages" title="Permanent link">¶</a></h2>
+<h3 id="navigation">Navigation<a class="headerlink" href="#navigation" title="Permanent link">¶</a></h3>
+<p><strong>Top Navigation Bar:</strong>
+- Logo and title
+- Page links (Dashboard, Sky, Sources, etc.)
+- Settings menu (future)
+- User menu (future)</p>
+<p><strong>Breadcrumbs:</strong>
+- Page hierarchy
+- Quick navigation
+- Current page indicator</p>
+<h3 id="real-time-updates">Real-Time Updates<a class="headerlink" href="#real-time-updates" title="Permanent link">¶</a></h3>
+<p><strong>Update Mechanisms:</strong>
+- WebSocket (primary)
+- HTTP polling (fallback)
+- Server-Sent Events (for logs)</p>
+<p><strong>Update Intervals:</strong>
+- Critical data: 10 seconds
+- Job status: 5 seconds
+- On-demand: User-triggered</p>
+<h3 id="error-handling">Error Handling<a class="headerlink" href="#error-handling" title="Permanent link">¶</a></h3>
+<p><strong>Error Display:</strong>
+- User-friendly error messages
+- Retry buttons
+- Error details (in development mode)
+- Error boundaries for component errors</p>
+<h3 id="loading-states">Loading States<a class="headerlink" href="#loading-states" title="Permanent link">¶</a></h3>
+<p><strong>Loading Indicators:</strong>
+- Circular progress for data loading
+- Skeleton loaders for better UX
+- Progress bars for long operations
+- Status messages</p>
+<h3 id="export-functionality">Export Functionality<a class="headerlink" href="#export-functionality" title="Permanent link">¶</a></h3>
+<p><strong>Export Options:</strong>
+- CSV export for tables
+- JSON export for data
+- PNG export for images
+- FITS download for images
+- PDF export for reports (future)</p>
+<hr/>
+<h2 id="related-documentation">Related Documentation<a class="headerlink" href="#related-documentation" title="Permanent link">¶</a></h2>
+<ul>
+<li><strong><a href="../../how-to/dashboard-quickstart/">Dashboard Quick Start</a></strong> - Getting started guide</li>
+<li><strong><a href="../dashboard_backend_api/">API Reference</a></strong> - API endpoint documentation</li>
+<li><strong><a href="../../concepts/dashboard_architecture/">Dashboard Architecture</a></strong> - System architecture</li>
+<li><strong><a href="../../concepts/dashboard_vision_and_design/">Dashboard Vision &amp; Design</a></strong> - Design principles</li>
+</ul>
+<hr/>
+<p><strong>Last Updated:</strong> 2025-11-12<br/>
+<strong>Status:</strong> Consolidated Feature Reference</p>
+</article>
+</div>
+<script>var tabs=__md_get("__tabs");if(Array.isArray(tabs))e:for(var set of document.querySelectorAll(".tabbed-set")){var tab,labels=set.querySelector(".tabbed-labels");for(tab of tabs)for(var label of labels.getElementsByTagName("label"))if(label.innerText.trim()===tab){var input=document.getElementById(label.htmlFor);input.checked=!0;continue e}}</script>
+<script>var target=document.getElementById(location.hash.slice(1));target&&target.name&&(target.checked=target.name.startsWith("__tabbed_"))</script>
+</div>
+</main>
+<footer class="md-footer">
+<div class="md-footer-meta md-typeset">
+<div class="md-footer-meta__inner md-grid">
+<div class="md-copyright">
+  
+  
+    Made with
+    <a href="https://squidfunk.github.io/mkdocs-material/" rel="noopener" target="_blank">
+      Material for MkDocs
+    </a>
+</div>
+</div>
+</div>
+</footer>
+</div>
+<div class="md-dialog" data-md-component="dialog">
+<div class="md-dialog__inner md-typeset"></div>
+</div>
+<script id="__config" type="application/json">{"base": "../..", "features": ["navigation.sections", "navigation.indexes", "content.code.copy", "content.tabs.link"], "search": "../../assets/javascripts/workers/search.b8dbb3d2.min.js", "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}}</script>
+<script src="../../assets/javascripts/bundle.fe8b6f2b.min.js"></script>
+<script src="../../javascripts/mathjax.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+<script src="../../javascripts/mermaid-zoom.js"></script>
+</body>
+</html>

@@ -1,0 +1,2213 @@
+
+<!DOCTYPE html>
+
+<html class="no-js" lang="en">
+<head>
+<meta charset="utf-8"/>
+<meta content="width=device-width,initial-scale=1" name="viewport"/>
+<link href="http://code.deepsynoptic.org/dsa110-contimg/implementation/high_priority_improvements/" rel="canonical"/>
+<link href="../../assets/images/favicon.png" rel="icon"/>
+<meta content="mkdocs-1.6.1, mkdocs-material-9.5.31" name="generator"/>
+<title>High-Priority Improvements Implementation Plan - DSA-110 Continuum Imaging Pipeline</title>
+<link href="../../assets/stylesheets/main.3cba04c6.min.css" rel="stylesheet"/>
+<link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect"/>
+<link href="https://fonts.googleapis.com/css?family=Roboto:300,300i,400,400i,700,700i%7CRoboto+Mono:400,400i,700,700i&amp;display=fallback" rel="stylesheet"/>
+<style>:root{--md-text-font:"Roboto";--md-code-font:"Roboto Mono"}</style>
+<link href="../../assets/_mkdocstrings.css" rel="stylesheet"/>
+<script>__md_scope=new URL("../..",location),__md_hash=e=>[...e].reduce((e,_)=>(e<<5)-e+_.charCodeAt(0),0),__md_get=(e,_=localStorage,t=__md_scope)=>JSON.parse(_.getItem(t.pathname+"."+e)),__md_set=(e,_,t=localStorage,a=__md_scope)=>{try{t.setItem(a.pathname+"."+e,JSON.stringify(_))}catch(e){}}</script>
+</head>
+<body dir="ltr">
+<input autocomplete="off" class="md-toggle" data-md-toggle="drawer" id="__drawer" type="checkbox"/>
+<input autocomplete="off" class="md-toggle" data-md-toggle="search" id="__search" type="checkbox"/>
+<label class="md-overlay" for="__drawer"></label>
+<div data-md-component="skip">
+<a class="md-skip" href="#high-priority-improvements-implementation-plan">
+          Skip to content
+        </a>
+</div>
+<div data-md-component="announce">
+</div>
+<header class="md-header md-header--shadow" data-md-component="header">
+<nav aria-label="Header" class="md-header__inner md-grid">
+<a aria-label="DSA-110 Continuum Imaging Pipeline" class="md-header__button md-logo" data-md-component="logo" href="../.." title="DSA-110 Continuum Imaging Pipeline">
+<svg viewbox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54Z"></path></svg>
+</a>
+<label class="md-header__button md-icon" for="__drawer">
+<svg viewbox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M3 6h18v2H3V6m0 5h18v2H3v-2m0 5h18v2H3v-2Z"></path></svg>
+</label>
+<div class="md-header__title" data-md-component="header-title">
+<div class="md-header__ellipsis">
+<div class="md-header__topic">
+<span class="md-ellipsis">
+            DSA-110 Continuum Imaging Pipeline
+          </span>
+</div>
+<div class="md-header__topic" data-md-component="header-topic">
+<span class="md-ellipsis">
+            
+              High-Priority Improvements Implementation Plan
+            
+          </span>
+</div>
+</div>
+</div>
+<script>var media,input,key,value,palette=__md_get("__palette");if(palette&&palette.color){"(prefers-color-scheme)"===palette.color.media&&(media=matchMedia("(prefers-color-scheme: light)"),input=document.querySelector(media.matches?"[data-md-color-media='(prefers-color-scheme: light)']":"[data-md-color-media='(prefers-color-scheme: dark)']"),palette.color.media=input.getAttribute("data-md-color-media"),palette.color.scheme=input.getAttribute("data-md-color-scheme"),palette.color.primary=input.getAttribute("data-md-color-primary"),palette.color.accent=input.getAttribute("data-md-color-accent"));for([key,value]of Object.entries(palette.color))document.body.setAttribute("data-md-color-"+key,value)}</script>
+<label class="md-header__button md-icon" for="__search">
+<svg viewbox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.516 6.516 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5Z"></path></svg>
+</label>
+<div class="md-search" data-md-component="search" role="dialog">
+<label class="md-search__overlay" for="__search"></label>
+<div class="md-search__inner" role="search">
+<form class="md-search__form" name="search">
+<input aria-label="Search" autocapitalize="off" autocomplete="off" autocorrect="off" class="md-search__input" data-md-component="search-query" name="query" placeholder="Search" required="" spellcheck="false" type="text"/>
+<label class="md-search__icon md-icon" for="__search">
+<svg viewbox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.516 6.516 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5Z"></path></svg>
+<svg viewbox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11h12Z"></path></svg>
+</label>
+<nav aria-label="Search" class="md-search__options">
+<button aria-label="Clear" class="md-search__icon md-icon" tabindex="-1" title="Clear" type="reset">
+<svg viewbox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M19 6.41 17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12 19 6.41Z"></path></svg>
+</button>
+</nav>
+</form>
+<div class="md-search__output">
+<div class="md-search__scrollwrap" data-md-scrollfix="" tabindex="0">
+<div class="md-search-result" data-md-component="search-result">
+<div class="md-search-result__meta">
+            Initializing search
+          </div>
+<ol class="md-search-result__list" role="presentation"></ol>
+</div>
+</div>
+</div>
+</div>
+</div>
+<div class="md-header__source">
+<a class="md-source" data-md-component="source" href="https://github.com/dsa110/dsa110-contimg" title="Go to repository">
+<div class="md-source__icon md-icon">
+<svg viewbox="0 0 448 512" xmlns="http://www.w3.org/2000/svg"><!--! Font Awesome Free 6.6.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2024 Fonticons, Inc.--><path d="M439.55 236.05 244 40.45a28.87 28.87 0 0 0-40.81 0l-40.66 40.63 51.52 51.52c27.06-9.14 52.68 16.77 43.39 43.68l49.66 49.66c34.23-11.8 61.18 31 35.47 56.69-26.49 26.49-70.21-2.87-56-37.34L240.22 199v121.85c25.3 12.54 22.26 41.85 9.08 55a34.34 34.34 0 0 1-48.55 0c-17.57-17.6-11.07-46.91 11.25-56v-123c-20.8-8.51-24.6-30.74-18.64-45L142.57 101 8.45 235.14a28.86 28.86 0 0 0 0 40.81l195.61 195.6a28.86 28.86 0 0 0 40.8 0l194.69-194.69a28.86 28.86 0 0 0 0-40.81z"></path></svg>
+</div>
+<div class="md-source__repository">
+    GitHub
+  </div>
+</a>
+</div>
+</nav>
+</header>
+<div class="md-container" data-md-component="container">
+<main class="md-main" data-md-component="main">
+<div class="md-main__inner md-grid">
+<div class="md-sidebar md-sidebar--primary" data-md-component="sidebar" data-md-type="navigation">
+<div class="md-sidebar__scrollwrap">
+<div class="md-sidebar__inner">
+<nav aria-label="Navigation" class="md-nav md-nav--primary" data-md-level="0">
+<label class="md-nav__title" for="__drawer">
+<a aria-label="DSA-110 Continuum Imaging Pipeline" class="md-nav__button md-logo" data-md-component="logo" href="../.." title="DSA-110 Continuum Imaging Pipeline">
+<svg viewbox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54Z"></path></svg>
+</a>
+    DSA-110 Continuum Imaging Pipeline
+  </label>
+<div class="md-nav__source">
+<a class="md-source" data-md-component="source" href="https://github.com/dsa110/dsa110-contimg" title="Go to repository">
+<div class="md-source__icon md-icon">
+<svg viewbox="0 0 448 512" xmlns="http://www.w3.org/2000/svg"><!--! Font Awesome Free 6.6.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2024 Fonticons, Inc.--><path d="M439.55 236.05 244 40.45a28.87 28.87 0 0 0-40.81 0l-40.66 40.63 51.52 51.52c27.06-9.14 52.68 16.77 43.39 43.68l49.66 49.66c34.23-11.8 61.18 31 35.47 56.69-26.49 26.49-70.21-2.87-56-37.34L240.22 199v121.85c25.3 12.54 22.26 41.85 9.08 55a34.34 34.34 0 0 1-48.55 0c-17.57-17.6-11.07-46.91 11.25-56v-123c-20.8-8.51-24.6-30.74-18.64-45L142.57 101 8.45 235.14a28.86 28.86 0 0 0 0 40.81l195.61 195.6a28.86 28.86 0 0 0 40.8 0l194.69-194.69a28.86 28.86 0 0 0 0-40.81z"></path></svg>
+</div>
+<div class="md-source__repository">
+    GitHub
+  </div>
+</a>
+</div>
+<ul class="md-nav__list" data-md-scrollfix="">
+<li class="md-nav__item">
+<a class="md-nav__link" href="../..">
+<span class="md-ellipsis">
+    Home
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../DOCUMENTATION_QUICK_REFERENCE/">
+<span class="md-ellipsis">
+    Documentation Guide
+  </span>
+</a>
+</li>
+<li class="md-nav__item md-nav__item--section md-nav__item--nested">
+<input class="md-nav__toggle md-toggle" id="__nav_3" type="checkbox"/>
+<div class="md-nav__link md-nav__container">
+<a class="md-nav__link" href="../../concepts/">
+<span class="md-ellipsis">
+    Concepts
+  </span>
+</a>
+<label class="md-nav__link" for="__nav_3" id="__nav_3_label" tabindex="">
+<span class="md-nav__icon md-icon"></span>
+</label>
+</div>
+<nav aria-expanded="false" aria-labelledby="__nav_3_label" class="md-nav" data-md-level="1">
+<label class="md-nav__title" for="__nav_3">
+<span class="md-nav__icon md-icon"></span>
+            Concepts
+          </label>
+<ul class="md-nav__list" data-md-scrollfix="">
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../concepts/architecture/">
+<span class="md-ellipsis">
+    Architecture
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../concepts/DIRECTORY_ARCHITECTURE/">
+<span class="md-ellipsis">
+    Directory Architecture
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../concepts/modules/">
+<span class="md-ellipsis">
+    Modules
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../concepts/control-panel/">
+<span class="md-ellipsis">
+    Control Panel
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../concepts/aoflagger/">
+<span class="md-ellipsis">
+    AOFlagger
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../concepts/frontend_design/">
+<span class="md-ellipsis">
+    Frontend Design
+  </span>
+</a>
+</li>
+<li class="md-nav__item md-nav__item--nested">
+<input class="md-nav__toggle md-toggle" id="__nav_3_8" type="checkbox"/>
+<label class="md-nav__link" for="__nav_3_8" id="__nav_3_8_label" tabindex="0">
+<span class="md-ellipsis">
+    Dashboard
+  </span>
+<span class="md-nav__icon md-icon"></span>
+</label>
+<nav aria-expanded="false" aria-labelledby="__nav_3_8_label" class="md-nav" data-md-level="2">
+<label class="md-nav__title" for="__nav_3_8">
+<span class="md-nav__icon md-icon"></span>
+            Dashboard
+          </label>
+<ul class="md-nav__list" data-md-scrollfix="">
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../concepts/dashboard_mockups/">
+<span class="md-ellipsis">
+    Mockups
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../SKYVIEW_IMPLEMENTATION_PLAN/">
+<span class="md-ellipsis">
+    Sky View
+  </span>
+</a>
+</li>
+</ul>
+</nav>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../concepts/GLOSSARY/">
+<span class="md-ellipsis">
+    Glossary
+  </span>
+</a>
+</li>
+<li class="md-nav__item md-nav__item--nested">
+<input class="md-nav__toggle md-toggle" id="__nav_3_10" type="checkbox"/>
+<label class="md-nav__link" for="__nav_3_10" id="__nav_3_10_label" tabindex="0">
+<span class="md-ellipsis">
+    Pipeline
+  </span>
+<span class="md-nav__icon md-icon"></span>
+</label>
+<nav aria-expanded="false" aria-labelledby="__nav_3_10_label" class="md-nav" data-md-level="2">
+<label class="md-nav__title" for="__nav_3_10">
+<span class="md-nav__icon md-icon"></span>
+            Pipeline
+          </label>
+<ul class="md-nav__list" data-md-scrollfix="">
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../concepts/pipeline_overview/">
+<span class="md-ellipsis">
+    Overview
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../concepts/pipeline_stage_architecture/">
+<span class="md-ellipsis">
+    Stage Architecture
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../concepts/pipeline_workflow_visualization/">
+<span class="md-ellipsis">
+    Workflow Visualization
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../concepts/pipeline_production_features/">
+<span class="md-ellipsis">
+    Production Features
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../concepts/pipeline_patterns/">
+<span class="md-ellipsis">
+    Patterns
+  </span>
+</a>
+</li>
+</ul>
+</nav>
+</li>
+<li class="md-nav__item md-nav__item--nested">
+<input class="md-nav__toggle md-toggle" id="__nav_3_11" type="checkbox"/>
+<label class="md-nav__link" for="__nav_3_11" id="__nav_3_11_label" tabindex="0">
+<span class="md-ellipsis">
+    Science
+  </span>
+<span class="md-nav__icon md-icon"></span>
+</label>
+<nav aria-expanded="false" aria-labelledby="__nav_3_11_label" class="md-nav" data-md-level="2">
+<label class="md-nav__title" for="__nav_3_11">
+<span class="md-nav__icon md-icon"></span>
+            Science
+          </label>
+<ul class="md-nav__list" data-md-scrollfix="">
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../concepts/science/photometry_normalization/">
+<span class="md-ellipsis">
+    Photometry Normalization
+  </span>
+</a>
+</li>
+</ul>
+</nav>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../concepts/mcp_browser_server_setup/">
+<span class="md-ellipsis">
+    Browser MCP Server
+  </span>
+</a>
+</li>
+</ul>
+</nav>
+</li>
+<li class="md-nav__item md-nav__item--section md-nav__item--nested">
+<input class="md-nav__toggle md-toggle" id="__nav_4" type="checkbox"/>
+<label class="md-nav__link" for="__nav_4" id="__nav_4_label" tabindex="">
+<span class="md-ellipsis">
+    Tutorials
+  </span>
+<span class="md-nav__icon md-icon"></span>
+</label>
+<nav aria-expanded="false" aria-labelledby="__nav_4_label" class="md-nav" data-md-level="1">
+<label class="md-nav__title" for="__nav_4">
+<span class="md-nav__icon md-icon"></span>
+            Tutorials
+          </label>
+<ul class="md-nav__list" data-md-scrollfix="">
+<li class="md-nav__item md-nav__item--nested">
+<input class="md-nav__toggle md-toggle" id="__nav_4_1" type="checkbox"/>
+<label class="md-nav__link" for="__nav_4_1" id="__nav_4_1_label" tabindex="0">
+<span class="md-ellipsis">
+    Conversion
+  </span>
+<span class="md-nav__icon md-icon"></span>
+</label>
+<nav aria-expanded="false" aria-labelledby="__nav_4_1_label" class="md-nav" data-md-level="2">
+<label class="md-nav__title" for="__nav_4_1">
+<span class="md-nav__icon md-icon"></span>
+            Conversion
+          </label>
+<ul class="md-nav__list" data-md-scrollfix="">
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../tutorials/HDF5_TO_MS_TUTORIAL/">
+<span class="md-ellipsis">
+    HDF5 to MS
+  </span>
+</a>
+</li>
+</ul>
+</nav>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../tutorials/simulation-tutorial/">
+<span class="md-ellipsis">
+    Simulation
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../tutorials/calibrate-apply/">
+<span class="md-ellipsis">
+    Calibrate and Apply
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../tutorials/convert-standalone/">
+<span class="md-ellipsis">
+    Convert Standalone
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../tutorials/streaming/">
+<span class="md-ellipsis">
+    Streaming
+  </span>
+</a>
+</li>
+<li class="md-nav__item md-nav__item--nested">
+<input class="md-nav__toggle md-toggle" id="__nav_4_6" type="checkbox"/>
+<label class="md-nav__link" for="__nav_4_6" id="__nav_4_6_label" tabindex="0">
+<span class="md-ellipsis">
+    Notebooks
+  </span>
+<span class="md-nav__icon md-icon"></span>
+</label>
+<nav aria-expanded="false" aria-labelledby="__nav_4_6_label" class="md-nav" data-md-level="2">
+<label class="md-nav__title" for="__nav_4_6">
+<span class="md-nav__icon md-icon"></span>
+            Notebooks
+          </label>
+<ul class="md-nav__list" data-md-scrollfix="">
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../tutorials/notebooks/bandpass_calibration_test.ipynb">
+<span class="md-ellipsis">
+    Bandpass Calibration Test
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../tutorials/notebooks/calibrator_helper.py">
+<span class="md-ellipsis">
+    Calibrator Helper
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../tutorials/notebooks/CalibratorSearch.ipynb">
+<span class="md-ellipsis">
+    Calibrator Search
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../tutorials/notebooks/ms_staging_workflow.ipynb">
+<span class="md-ellipsis">
+    MS Staging Workflow
+  </span>
+</a>
+</li>
+</ul>
+</nav>
+</li>
+</ul>
+</nav>
+</li>
+<li class="md-nav__item md-nav__item--section md-nav__item--nested">
+<input class="md-nav__toggle md-toggle" id="__nav_5" type="checkbox"/>
+<label class="md-nav__link" for="__nav_5" id="__nav_5_label" tabindex="">
+<span class="md-ellipsis">
+    How-To Guides
+  </span>
+<span class="md-nav__icon md-icon"></span>
+</label>
+<nav aria-expanded="false" aria-labelledby="__nav_5_label" class="md-nav" data-md-level="1">
+<label class="md-nav__title" for="__nav_5">
+<span class="md-nav__icon md-icon"></span>
+            How-To Guides
+          </label>
+<ul class="md-nav__list" data-md-scrollfix="">
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../how-to/github_pages_walkthrough/">
+<span class="md-ellipsis">
+    GitHub Pages Setup
+  </span>
+</a>
+</li>
+<li class="md-nav__item md-nav__item--nested">
+<input class="md-nav__toggle md-toggle" id="__nav_5_2" type="checkbox"/>
+<label class="md-nav__link" for="__nav_5_2" id="__nav_5_2_label" tabindex="0">
+<span class="md-ellipsis">
+    Quickstarts
+  </span>
+<span class="md-nav__icon md-icon"></span>
+</label>
+<nav aria-expanded="false" aria-labelledby="__nav_5_2_label" class="md-nav" data-md-level="2">
+<label class="md-nav__title" for="__nav_5_2">
+<span class="md-nav__icon md-icon"></span>
+            Quickstarts
+          </label>
+<ul class="md-nav__list" data-md-scrollfix="">
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../how-to/quickstart/">
+<span class="md-ellipsis">
+    General
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../how-to/control-panel-quickstart/">
+<span class="md-ellipsis">
+    Control Panel
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../how-to/LINEAR_SETUP_QUICKSTART/">
+<span class="md-ellipsis">
+    Linear Setup
+  </span>
+</a>
+</li>
+</ul>
+</nav>
+</li>
+<li class="md-nav__item md-nav__item--nested">
+<input class="md-nav__toggle md-toggle" id="__nav_5_3" type="checkbox"/>
+<label class="md-nav__link" for="__nav_5_3" id="__nav_5_3_label" tabindex="0">
+<span class="md-ellipsis">
+    Testing
+  </span>
+<span class="md-nav__icon md-icon"></span>
+</label>
+<nav aria-expanded="false" aria-labelledby="__nav_5_3_label" class="md-nav" data-md-level="2">
+<label class="md-nav__title" for="__nav_5_3">
+<span class="md-nav__icon md-icon"></span>
+            Testing
+          </label>
+<ul class="md-nav__list" data-md-scrollfix="">
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../how-to/FAST_TESTING/">
+<span class="md-ellipsis">
+    Fast Testing
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../how-to/PIPELINE_TESTING_GUIDE/">
+<span class="md-ellipsis">
+    Pipeline Guide
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../how-to/TEST_FLAG_SUBCOMMAND/">
+<span class="md-ellipsis">
+    Flag Subcommand
+  </span>
+</a>
+</li>
+</ul>
+</nav>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../how-to/build-vp-from-h5/">
+<span class="md-ellipsis">
+    Build VP from h5
+  </span>
+</a>
+</li>
+<li class="md-nav__item md-nav__item--nested">
+<input class="md-nav__toggle md-toggle" id="__nav_5_5" type="checkbox"/>
+<label class="md-nav__link" for="__nav_5_5" id="__nav_5_5_label" tabindex="0">
+<span class="md-ellipsis">
+    Calibration
+  </span>
+<span class="md-nav__icon md-icon"></span>
+</label>
+<nav aria-expanded="false" aria-labelledby="__nav_5_5_label" class="md-nav" data-md-level="2">
+<label class="md-nav__title" for="__nav_5_5">
+<span class="md-nav__icon md-icon"></span>
+            Calibration
+          </label>
+<ul class="md-nav__list" data-md-scrollfix="">
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../how-to/CALIBRATION_DETAILED_PROCEDURE/">
+<span class="md-ellipsis">
+    Detailed Procedure
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../how-to/FIND_CALIBRATOR_TRANSIT_DATA/">
+<span class="md-ellipsis">
+    Find Calibrator Transit
+  </span>
+</a>
+</li>
+</ul>
+</nav>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../how-to/IMAGE_0834_TRANSIT_5MIN/">
+<span class="md-ellipsis">
+    Image 0834 Transit 5min
+  </span>
+</a>
+</li>
+<li class="md-nav__item md-nav__item--nested">
+<input class="md-nav__toggle md-toggle" id="__nav_5_7" type="checkbox"/>
+<label class="md-nav__link" for="__nav_5_7" id="__nav_5_7_label" tabindex="0">
+<span class="md-ellipsis">
+    Mosaic
+  </span>
+<span class="md-nav__icon md-icon"></span>
+</label>
+<nav aria-expanded="false" aria-labelledby="__nav_5_7_label" class="md-nav" data-md-level="2">
+<label class="md-nav__title" for="__nav_5_7">
+<span class="md-nav__icon md-icon"></span>
+            Mosaic
+          </label>
+<ul class="md-nav__list" data-md-scrollfix="">
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../how-to/mosaic_quickstart/">
+<span class="md-ellipsis">
+    Quickstart
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../how-to/mosaic/">
+<span class="md-ellipsis">
+    Complete Guide
+  </span>
+</a>
+</li>
+</ul>
+</nav>
+</li>
+<li class="md-nav__item md-nav__item--nested">
+<input class="md-nav__toggle md-toggle" id="__nav_5_8" type="checkbox"/>
+<label class="md-nav__link" for="__nav_5_8" id="__nav_5_8_label" tabindex="0">
+<span class="md-ellipsis">
+    Quality Assurance
+  </span>
+<span class="md-nav__icon md-icon"></span>
+</label>
+<nav aria-expanded="false" aria-labelledby="__nav_5_8_label" class="md-nav" data-md-level="2">
+<label class="md-nav__title" for="__nav_5_8">
+<span class="md-nav__icon md-icon"></span>
+            Quality Assurance
+          </label>
+<ul class="md-nav__list" data-md-scrollfix="">
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../how-to/QUALITY_ASSURANCE_SETUP/">
+<span class="md-ellipsis">
+    Setup
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../how-to/quicklook/">
+<span class="md-ellipsis">
+    Quick Look
+  </span>
+</a>
+</li>
+</ul>
+</nav>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../how-to/reprocess/">
+<span class="md-ellipsis">
+    Reprocess
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../how-to/USING_ORCHESTRATOR_CLI/">
+<span class="md-ellipsis">
+    Using Orchestrator CLI
+  </span>
+</a>
+</li>
+<li class="md-nav__item md-nav__item--nested">
+<input class="md-nav__toggle md-toggle" id="__nav_5_11" type="checkbox"/>
+<label class="md-nav__link" for="__nav_5_11" id="__nav_5_11_label" tabindex="0">
+<span class="md-ellipsis">
+    Dashboard
+  </span>
+<span class="md-nav__icon md-icon"></span>
+</label>
+<nav aria-expanded="false" aria-labelledby="__nav_5_11_label" class="md-nav" data-md-level="2">
+<label class="md-nav__title" for="__nav_5_11">
+<span class="md-nav__icon md-icon"></span>
+            Dashboard
+          </label>
+<ul class="md-nav__list" data-md-scrollfix="">
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../how-to/dashboard-development/">
+<span class="md-ellipsis">
+    Development
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../how-to/dashboard-quickstart/">
+<span class="md-ellipsis">
+    Quickstart
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../how-to/dashboard_testing/">
+<span class="md-ellipsis">
+    Testing
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../how-to/dashboard_development_workflow/">
+<span class="md-ellipsis">
+    Development Workflow
+  </span>
+</a>
+</li>
+</ul>
+</nav>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../how-to/LINEAR_INTEGRATION/">
+<span class="md-ellipsis">
+    Linear Integration
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../how-to/frontend-initial-setup/">
+<span class="md-ellipsis">
+    Frontend Initial Setup
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../how-to/PARAMETER_OPTIMIZATION_GUIDE/">
+<span class="md-ellipsis">
+    AOFlagger Parameter Optimization
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../how-to/downsampling_guide/">
+<span class="md-ellipsis">
+    Downsampling Guide
+  </span>
+</a>
+</li>
+<li class="md-nav__item md-nav__item--nested">
+<input class="md-nav__toggle md-toggle" id="__nav_5_16" type="checkbox"/>
+<label class="md-nav__link" for="__nav_5_16" id="__nav_5_16_label" tabindex="0">
+<span class="md-ellipsis">
+    Conversion
+  </span>
+<span class="md-nav__icon md-icon"></span>
+</label>
+<nav aria-expanded="false" aria-labelledby="__nav_5_16_label" class="md-nav" data-md-level="2">
+<label class="md-nav__title" for="__nav_5_16">
+<span class="md-nav__icon md-icon"></span>
+            Conversion
+          </label>
+<ul class="md-nav__list" data-md-scrollfix="">
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../how-to/uvh5_to_ms_conversion/">
+<span class="md-ellipsis">
+    UVH5 to MS
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../how-to/streaming_converter_guide/">
+<span class="md-ellipsis">
+    Streaming Converter
+  </span>
+</a>
+</li>
+</ul>
+</nav>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../how-to/troubleshooting/">
+<span class="md-ellipsis">
+    Troubleshooting
+  </span>
+</a>
+</li>
+</ul>
+</nav>
+</li>
+<li class="md-nav__item md-nav__item--section md-nav__item--nested">
+<input class="md-nav__toggle md-toggle" id="__nav_6" type="checkbox"/>
+<label class="md-nav__link" for="__nav_6" id="__nav_6_label" tabindex="">
+<span class="md-ellipsis">
+    Reference
+  </span>
+<span class="md-nav__icon md-icon"></span>
+</label>
+<nav aria-expanded="false" aria-labelledby="__nav_6_label" class="md-nav" data-md-level="1">
+<label class="md-nav__title" for="__nav_6">
+<span class="md-nav__icon md-icon"></span>
+            Reference
+          </label>
+<ul class="md-nav__list" data-md-scrollfix="">
+<li class="md-nav__item md-nav__item--nested">
+<input class="md-nav__toggle md-toggle" id="__nav_6_1" type="checkbox"/>
+<label class="md-nav__link" for="__nav_6_1" id="__nav_6_1_label" tabindex="0">
+<span class="md-ellipsis">
+    API
+  </span>
+<span class="md-nav__icon md-icon"></span>
+</label>
+<nav aria-expanded="false" aria-labelledby="__nav_6_1_label" class="md-nav" data-md-level="2">
+<label class="md-nav__title" for="__nav_6_1">
+<span class="md-nav__icon md-icon"></span>
+            API
+          </label>
+<ul class="md-nav__list" data-md-scrollfix="">
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../reference/api-endpoints/">
+<span class="md-ellipsis">
+    Endpoints
+  </span>
+</a>
+</li>
+<li class="md-nav__item md-nav__item--nested">
+<input class="md-nav__toggle md-toggle" id="__nav_6_1_2" type="checkbox"/>
+<label class="md-nav__link" for="__nav_6_1_2" id="__nav_6_1_2_label" tabindex="0">
+<span class="md-ellipsis">
+    Dashboard
+  </span>
+<span class="md-nav__icon md-icon"></span>
+</label>
+<nav aria-expanded="false" aria-labelledby="__nav_6_1_2_label" class="md-nav" data-md-level="3">
+<label class="md-nav__title" for="__nav_6_1_2">
+<span class="md-nav__icon md-icon"></span>
+            Dashboard
+          </label>
+<ul class="md-nav__list" data-md-scrollfix="">
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../reference/dashboard_backend_api/">
+<span class="md-ellipsis">
+    API Reference
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../reference/dashboard_pages_and_features/">
+<span class="md-ellipsis">
+    Pages &amp; Features
+  </span>
+</a>
+</li>
+</ul>
+</nav>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../reference/backend_integration_snippets/">
+<span class="md-ellipsis">
+    Integration Snippets
+  </span>
+</a>
+</li>
+</ul>
+</nav>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../reference/calibration-overview/">
+<span class="md-ellipsis">
+    Calibration Overview
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../reference/cli/">
+<span class="md-ellipsis">
+    CLI
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../reference/control-panel-cheatsheet/">
+<span class="md-ellipsis">
+    Control Panel Cheatsheet
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../reference/database_schema/">
+<span class="md-ellipsis">
+    Database Schema
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../reference/env/">
+<span class="md-ellipsis">
+    Environment Variables
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../reference/CRITICAL_PYTHON_ENVIRONMENT/">
+<span class="md-ellipsis">
+    Critical Python Environment
+  </span>
+</a>
+</li>
+<li class="md-nav__item md-nav__item--nested">
+<input class="md-nav__toggle md-toggle" id="__nav_6_8" type="checkbox"/>
+<label class="md-nav__link" for="__nav_6_8" id="__nav_6_8_label" tabindex="0">
+<span class="md-ellipsis">
+    Optimizations
+  </span>
+<span class="md-nav__icon md-icon"></span>
+</label>
+<nav aria-expanded="false" aria-labelledby="__nav_6_8_label" class="md-nav" data-md-level="2">
+<label class="md-nav__title" for="__nav_6_8">
+<span class="md-nav__icon md-icon"></span>
+            Optimizations
+          </label>
+<ul class="md-nav__list" data-md-scrollfix="">
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../reference/optimizations/OPTIMIZATION_API/">
+<span class="md-ellipsis">
+    API
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../reference/optimizations/PROFILING_GUIDE/">
+<span class="md-ellipsis">
+    Profiling Guide
+  </span>
+</a>
+</li>
+</ul>
+</nav>
+</li>
+</ul>
+</nav>
+</li>
+<li class="md-nav__item md-nav__item--section md-nav__item--nested">
+<input class="md-nav__toggle md-toggle" id="__nav_7" type="checkbox"/>
+<label class="md-nav__link" for="__nav_7" id="__nav_7_label" tabindex="">
+<span class="md-ellipsis">
+    Operations
+  </span>
+<span class="md-nav__icon md-icon"></span>
+</label>
+<nav aria-expanded="false" aria-labelledby="__nav_7_label" class="md-nav" data-md-level="1">
+<label class="md-nav__title" for="__nav_7">
+<span class="md-nav__icon md-icon"></span>
+            Operations
+          </label>
+<ul class="md-nav__list" data-md-scrollfix="">
+<li class="md-nav__item md-nav__item--nested">
+<input class="md-nav__toggle md-toggle" id="__nav_7_1" type="checkbox"/>
+<label class="md-nav__link" for="__nav_7_1" id="__nav_7_1_label" tabindex="0">
+<span class="md-ellipsis">
+    Deployment
+  </span>
+<span class="md-nav__icon md-icon"></span>
+</label>
+<nav aria-expanded="false" aria-labelledby="__nav_7_1_label" class="md-nav" data-md-level="2">
+<label class="md-nav__title" for="__nav_7_1">
+<span class="md-nav__icon md-icon"></span>
+            Deployment
+          </label>
+<ul class="md-nav__list" data-md-scrollfix="">
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../operations/deploy-docker/">
+<span class="md-ellipsis">
+    Docker
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../operations/deploy-systemd/">
+<span class="md-ellipsis">
+    systemd
+  </span>
+</a>
+</li>
+</ul>
+</nav>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../operations/port-management/">
+<span class="md-ellipsis">
+    Port Management
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../operations/refant_quick_reference/">
+<span class="md-ellipsis">
+    Refant Quick Reference
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../operations/service_restart_fix/">
+<span class="md-ellipsis">
+    Service Restart Fix
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../operations/systemd-migration/">
+<span class="md-ellipsis">
+    Systemd Migration
+  </span>
+</a>
+</li>
+</ul>
+</nav>
+</li>
+<li class="md-nav__item md-nav__item--section md-nav__item--nested">
+<input class="md-nav__toggle md-toggle" id="__nav_8" type="checkbox"/>
+<div class="md-nav__link md-nav__container">
+<a class="md-nav__link" href="../../contributing/">
+<span class="md-ellipsis">
+    Contributing
+  </span>
+</a>
+<label class="md-nav__link" for="__nav_8" id="__nav_8_label" tabindex="">
+<span class="md-nav__icon md-icon"></span>
+</label>
+</div>
+<nav aria-expanded="false" aria-labelledby="__nav_8_label" class="md-nav" data-md-level="1">
+<label class="md-nav__title" for="__nav_8">
+<span class="md-nav__icon md-icon"></span>
+            Contributing
+          </label>
+<ul class="md-nav__list" data-md-scrollfix="">
+<li class="md-nav__item md-nav__item--nested">
+<input class="md-nav__toggle md-toggle" id="__nav_8_2" type="checkbox"/>
+<label class="md-nav__link" for="__nav_8_2" id="__nav_8_2_label" tabindex="0">
+<span class="md-ellipsis">
+    Archive
+  </span>
+<span class="md-nav__icon md-icon"></span>
+</label>
+<nav aria-expanded="false" aria-labelledby="__nav_8_2_label" class="md-nav" data-md-level="2">
+<label class="md-nav__title" for="__nav_8_2">
+<span class="md-nav__icon md-icon"></span>
+            Archive
+          </label>
+<ul class="md-nav__list" data-md-scrollfix="">
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../contributing/archive/CONTRIBUTING_TODO/">
+<span class="md-ellipsis">
+    Contributing to TODO
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../contributing/archive/rules/">
+<span class="md-ellipsis">
+    Rules
+  </span>
+</a>
+</li>
+</ul>
+</nav>
+</li>
+</ul>
+</nav>
+</li>
+</ul>
+</nav>
+</div>
+</div>
+</div>
+<div class="md-sidebar md-sidebar--secondary" data-md-component="sidebar" data-md-type="toc">
+<div class="md-sidebar__scrollwrap">
+<div class="md-sidebar__inner">
+<nav aria-label="Table of contents" class="md-nav md-nav--secondary">
+<label class="md-nav__title" for="__toc">
+<span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+<ul class="md-nav__list" data-md-component="toc" data-md-scrollfix="">
+<li class="md-nav__item">
+<a class="md-nav__link" href="#1-catalog-based-validation-astrometry-flux-scale">
+<span class="md-ellipsis">
+      1. Catalog-Based Validation (Astrometry &amp; Flux Scale)
+    </span>
+</a>
+<nav aria-label="1. Catalog-Based Validation (Astrometry &amp; Flux Scale)" class="md-nav">
+<ul class="md-nav__list">
+<li class="md-nav__item">
+<a class="md-nav__link" href="#overview">
+<span class="md-ellipsis">
+      Overview
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#implementation-details">
+<span class="md-ellipsis">
+      Implementation Details
+    </span>
+</a>
+<nav aria-label="Implementation Details" class="md-nav">
+<ul class="md-nav__list">
+<li class="md-nav__item">
+<a class="md-nav__link" href="#11-new-module-qacatalog_validationpy">
+<span class="md-ellipsis">
+      1.1 New Module: qa/catalog_validation.py
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#12-catalog-query-functions">
+<span class="md-ellipsis">
+      1.2 Catalog Query Functions
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#13-source-extraction">
+<span class="md-ellipsis">
+      1.3 Source Extraction
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#14-api-integration">
+<span class="md-ellipsis">
+      1.4 API Integration
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#15-dashboard-integration">
+<span class="md-ellipsis">
+      1.5 Dashboard Integration
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#16-cli-integration">
+<span class="md-ellipsis">
+      1.6 CLI Integration
+    </span>
+</a>
+</li>
+</ul>
+</nav>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#testing-strategy">
+<span class="md-ellipsis">
+      Testing Strategy
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#estimated-effort">
+<span class="md-ellipsis">
+      Estimated Effort
+    </span>
+</a>
+</li>
+</ul>
+</nav>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#2-expected-caltable-path-construction">
+<span class="md-ellipsis">
+      2. Expected Caltable Path Construction
+    </span>
+</a>
+<nav aria-label="2. Expected Caltable Path Construction" class="md-nav">
+<ul class="md-nav__list">
+<li class="md-nav__item">
+<a class="md-nav__link" href="#overview_1">
+<span class="md-ellipsis">
+      Overview
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#implementation-details_1">
+<span class="md-ellipsis">
+      Implementation Details
+    </span>
+</a>
+<nav aria-label="Implementation Details" class="md-nav">
+<ul class="md-nav__list">
+<li class="md-nav__item">
+<a class="md-nav__link" href="#21-new-module-calibrationcaltable_pathspy">
+<span class="md-ellipsis">
+      2.1 New Module: calibration/caltable_paths.py
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#22-integration-with-calibration-cli">
+<span class="md-ellipsis">
+      2.2 Integration with Calibration CLI
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#23-integration-with-qa-system">
+<span class="md-ellipsis">
+      2.3 Integration with QA System
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#24-api-integration">
+<span class="md-ellipsis">
+      2.4 API Integration
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#25-dashboard-integration">
+<span class="md-ellipsis">
+      2.5 Dashboard Integration
+    </span>
+</a>
+</li>
+</ul>
+</nav>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#testing-strategy_1">
+<span class="md-ellipsis">
+      Testing Strategy
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#estimated-effort_1">
+<span class="md-ellipsis">
+      Estimated Effort
+    </span>
+</a>
+</li>
+</ul>
+</nav>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#3-catalog-overlay-visualization">
+<span class="md-ellipsis">
+      3. Catalog Overlay Visualization
+    </span>
+</a>
+<nav aria-label="3. Catalog Overlay Visualization" class="md-nav">
+<ul class="md-nav__list">
+<li class="md-nav__item">
+<a class="md-nav__link" href="#overview_2">
+<span class="md-ellipsis">
+      Overview
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#implementation-details_2">
+<span class="md-ellipsis">
+      Implementation Details
+    </span>
+</a>
+<nav aria-label="Implementation Details" class="md-nav">
+<ul class="md-nav__list">
+<li class="md-nav__item">
+<a class="md-nav__link" href="#31-backend-catalog-overlay-data-api">
+<span class="md-ellipsis">
+      3.1 Backend: Catalog Overlay Data API
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#32-frontend-catalog-overlay-component">
+<span class="md-ellipsis">
+      3.2 Frontend: Catalog Overlay Component
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#33-integration-with-image-viewer">
+<span class="md-ellipsis">
+      3.3 Integration with Image Viewer
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#34-enhanced-features-future">
+<span class="md-ellipsis">
+      3.4 Enhanced Features (Future)
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#35-wcs-handling">
+<span class="md-ellipsis">
+      3.5 WCS Handling
+    </span>
+</a>
+</li>
+</ul>
+</nav>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#testing-strategy_2">
+<span class="md-ellipsis">
+      Testing Strategy
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#estimated-effort_2">
+<span class="md-ellipsis">
+      Estimated Effort
+    </span>
+</a>
+</li>
+</ul>
+</nav>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#summary">
+<span class="md-ellipsis">
+      Summary
+    </span>
+</a>
+<nav aria-label="Summary" class="md-nav">
+<ul class="md-nav__list">
+<li class="md-nav__item">
+<a class="md-nav__link" href="#implementation-order">
+<span class="md-ellipsis">
+      Implementation Order
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#total-estimated-effort">
+<span class="md-ellipsis">
+      Total Estimated Effort
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#dependencies">
+<span class="md-ellipsis">
+      Dependencies
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#risk-mitigation">
+<span class="md-ellipsis">
+      Risk Mitigation
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#success-criteria">
+<span class="md-ellipsis">
+      Success Criteria
+    </span>
+</a>
+</li>
+</ul>
+</nav>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#next-steps">
+<span class="md-ellipsis">
+      Next Steps
+    </span>
+</a>
+</li>
+</ul>
+</nav>
+</div>
+</div>
+</div>
+<div class="md-content" data-md-component="content">
+<article class="md-content__inner md-typeset">
+<h1 id="high-priority-improvements-implementation-plan">High-Priority Improvements Implementation Plan<a class="headerlink" href="#high-priority-improvements-implementation-plan" title="Permanent link">¶</a></h1>
+<p>Based on analysis of external radio astronomy repositories (MeerKAT, ASKAP, katdal, CARTA, MeerKAT-Cookbook), this document outlines detailed implementation plans for three critical improvements that will measurably enhance scientific correctness and operational reliability for monitoring ~10,000 compact objects.</p>
+<hr/>
+<h2 id="1-catalog-based-validation-astrometry-flux-scale">1. Catalog-Based Validation (Astrometry &amp; Flux Scale)<a class="headerlink" href="#1-catalog-based-validation-astrometry-flux-scale" title="Permanent link">¶</a></h2>
+<p><strong>Priority:</strong> Critical (Scientific Correctness)<br/>
+<strong>Source Pattern:</strong> ASKAP continuum validation<br/>
+<strong>Impact:</strong> Ensures accurate monitoring of 10,000 compact objects by validating astrometry and flux scale against reference catalogs</p>
+<h3 id="overview">Overview<a class="headerlink" href="#overview" title="Permanent link">¶</a></h3>
+<p>Implement automated validation of image astrometry and flux scale by comparing detected sources against reference radio catalogs (NVSS, VLASS). This will catch systematic errors in calibration, imaging, or coordinate transformations that could affect scientific results.</p>
+<h3 id="implementation-details">Implementation Details<a class="headerlink" href="#implementation-details" title="Permanent link">¶</a></h3>
+<h4 id="11-new-module-qacatalog_validationpy">1.1 New Module: <code>qa/catalog_validation.py</code><a class="headerlink" href="#11-new-module-qacatalog_validationpy" title="Permanent link">¶</a></h4>
+<p><strong>Purpose:</strong> Core validation functions for catalog-based quality assessment</p>
+<p><strong>Key Functions:</strong></p>
+<div class="highlight"><pre><span></span><code><span class="k">def</span><span class="w"> </span><span class="nf">validate_astrometry</span><span class="p">(</span>
+    <span class="n">image_path</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
+    <span class="n">catalog</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">"nvss"</span><span class="p">,</span>  <span class="c1"># "nvss" or "vlass"</span>
+    <span class="n">search_radius_arcsec</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">10.0</span><span class="p">,</span>
+    <span class="n">min_snr</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">5.0</span><span class="p">,</span>
+    <span class="n">max_offset_arcsec</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">5.0</span>
+<span class="p">)</span> <span class="o">-&gt;</span> <span class="n">CatalogValidationResult</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">"""</span>
+<span class="sd">    Validate image astrometry by matching detected sources to reference catalog.</span>
+
+<span class="sd">    Steps:</span>
+<span class="sd">    1. Extract source positions from image (using existing source finder or PyBDSF)</span>
+<span class="sd">    2. Query reference catalog (NVSS/VLASS) for sources in image field</span>
+<span class="sd">    3. Match detected sources to catalog sources (nearest neighbor within search_radius)</span>
+<span class="sd">    4. Calculate astrometric offsets (RA/Dec differences)</span>
+<span class="sd">    5. Compute statistics: mean offset, RMS offset, max offset</span>
+<span class="sd">    6. Flag if offsets exceed max_offset_arcsec threshold</span>
+
+<span class="sd">    Returns:</span>
+<span class="sd">        CatalogValidationResult with:</span>
+<span class="sd">        - n_matched: Number of successfully matched sources</span>
+<span class="sd">        - n_catalog: Number of catalog sources in field</span>
+<span class="sd">        - n_detected: Number of detected sources</span>
+<span class="sd">        - mean_offset_arcsec: Mean astrometric offset</span>
+<span class="sd">        - rms_offset_arcsec: RMS astrometric offset</span>
+<span class="sd">        - max_offset_arcsec: Maximum astrometric offset</span>
+<span class="sd">        - offset_ra_arcsec: Mean RA offset</span>
+<span class="sd">        - offset_dec_arcsec: Mean Dec offset</span>
+<span class="sd">        - matched_pairs: List of (detected_pos, catalog_pos, offset) tuples</span>
+<span class="sd">        - has_issues: bool (True if offsets exceed threshold)</span>
+<span class="sd">        - issues: List[str] (descriptions of problems)</span>
+<span class="sd">    """</span>
+
+<span class="k">def</span><span class="w"> </span><span class="nf">validate_flux_scale</span><span class="p">(</span>
+    <span class="n">image_path</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
+    <span class="n">catalog</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">"nvss"</span><span class="p">,</span>
+    <span class="n">search_radius_arcsec</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">10.0</span><span class="p">,</span>
+    <span class="n">min_snr</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">5.0</span><span class="p">,</span>
+    <span class="n">flux_range_jy</span><span class="p">:</span> <span class="n">Tuple</span><span class="p">[</span><span class="nb">float</span><span class="p">,</span> <span class="nb">float</span><span class="p">]</span> <span class="o">=</span> <span class="p">(</span><span class="mf">0.01</span><span class="p">,</span> <span class="mf">10.0</span><span class="p">),</span>
+    <span class="n">max_flux_ratio_error</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">0.2</span>  <span class="c1"># 20% tolerance</span>
+<span class="p">)</span> <span class="o">-&gt;</span> <span class="n">CatalogValidationResult</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">"""</span>
+<span class="sd">    Validate image flux scale by comparing integrated fluxes to catalog fluxes.</span>
+
+<span class="sd">    Steps:</span>
+<span class="sd">    1. Extract source positions and integrated fluxes from image</span>
+<span class="sd">    2. Match to catalog sources (same as astrometry validation)</span>
+<span class="sd">    3. Compare image integrated flux to catalog flux</span>
+<span class="sd">    4. Account for frequency scaling if catalog is at different frequency:</span>
+<span class="sd">       - NVSS: 1.4 GHz</span>
+<span class="sd">       - VLASS: 3 GHz</span>
+<span class="sd">       - Use spectral index α = -0.7 (typical for synchrotron sources)</span>
+<span class="sd">       - Scale: S_ν2 = S_ν1 * (ν2/ν1)^α</span>
+<span class="sd">    5. Compute flux ratio statistics (image_flux / catalog_flux_scaled)</span>
+<span class="sd">    6. Flag if flux scale differs significantly from expected</span>
+
+<span class="sd">    Returns:</span>
+<span class="sd">        CatalogValidationResult with:</span>
+<span class="sd">        - n_matched: Number of matched sources with valid flux measurements</span>
+<span class="sd">        - mean_flux_ratio: Mean ratio of image_flux / catalog_flux_scaled</span>
+<span class="sd">        - rms_flux_ratio: RMS of flux ratios</span>
+<span class="sd">        - flux_scale_error: Deviation from unity (1.0 = perfect scale)</span>
+<span class="sd">        - matched_fluxes: List of (image_flux, catalog_flux, ratio) tuples</span>
+<span class="sd">        - has_issues: bool (True if flux scale error exceeds threshold)</span>
+<span class="sd">        - issues: List[str] (descriptions of problems)</span>
+<span class="sd">    """</span>
+
+<span class="k">def</span><span class="w"> </span><span class="nf">validate_source_counts</span><span class="p">(</span>
+    <span class="n">image_path</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
+    <span class="n">catalog</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">"nvss"</span><span class="p">,</span>
+    <span class="n">min_snr</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">5.0</span><span class="p">,</span>
+    <span class="n">completeness_threshold</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">0.7</span>  <span class="c1"># Expect 70% completeness</span>
+<span class="p">)</span> <span class="o">-&gt;</span> <span class="n">CatalogValidationResult</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">"""</span>
+<span class="sd">    Validate source detection completeness by comparing counts to catalog.</span>
+
+<span class="sd">    Steps:</span>
+<span class="sd">    1. Count detected sources above min_snr threshold</span>
+<span class="sd">    2. Count catalog sources in field above same flux threshold</span>
+<span class="sd">    3. Calculate completeness ratio (detected / catalog)</span>
+<span class="sd">    4. Flag if completeness is below threshold</span>
+
+<span class="sd">    Returns:</span>
+<span class="sd">        CatalogValidationResult with:</span>
+<span class="sd">        - n_detected: Number of detected sources</span>
+<span class="sd">        - n_catalog: Number of catalog sources</span>
+<span class="sd">        - completeness: Ratio of detected/catalog</span>
+<span class="sd">        - has_issues: bool (True if completeness below threshold)</span>
+<span class="sd">    """</span>
+
+<span class="nd">@dataclass</span>
+<span class="k">class</span><span class="w"> </span><span class="nc">CatalogValidationResult</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">"""Results from catalog-based validation."""</span>
+    <span class="n">validation_type</span><span class="p">:</span> <span class="nb">str</span>  <span class="c1"># "astrometry", "flux_scale", "source_counts"</span>
+    <span class="n">image_path</span><span class="p">:</span> <span class="nb">str</span>
+    <span class="n">catalog_used</span><span class="p">:</span> <span class="nb">str</span>
+    <span class="n">n_matched</span><span class="p">:</span> <span class="nb">int</span>
+    <span class="n">n_catalog</span><span class="p">:</span> <span class="nb">int</span>
+    <span class="n">n_detected</span><span class="p">:</span> <span class="nb">int</span>
+
+    <span class="c1"># Astrometry results</span>
+    <span class="n">mean_offset_arcsec</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">float</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span>
+    <span class="n">rms_offset_arcsec</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">float</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span>
+    <span class="n">max_offset_arcsec</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">float</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span>
+    <span class="n">offset_ra_arcsec</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">float</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span>
+    <span class="n">offset_dec_arcsec</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">float</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span>
+
+    <span class="c1"># Flux scale results</span>
+    <span class="n">mean_flux_ratio</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">float</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span>
+    <span class="n">rms_flux_ratio</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">float</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span>
+    <span class="n">flux_scale_error</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">float</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span>
+
+    <span class="c1"># Source counts results</span>
+    <span class="n">completeness</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">float</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span>
+
+    <span class="c1"># Quality flags</span>
+    <span class="n">has_issues</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span>
+    <span class="n">has_warnings</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span>
+    <span class="n">issues</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span>
+    <span class="n">warnings</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span>
+
+    <span class="c1"># Detailed data</span>
+    <span class="n">matched_pairs</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">List</span><span class="p">[</span><span class="n">Tuple</span><span class="p">]]</span> <span class="o">=</span> <span class="kc">None</span>
+    <span class="n">matched_fluxes</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">List</span><span class="p">[</span><span class="n">Tuple</span><span class="p">]]</span> <span class="o">=</span> <span class="kc">None</span>
+</code></pre></div>
+<p><strong>Dependencies:</strong>
+- <code>astropy.coordinates</code> (already available) - for coordinate matching
+- <code>astropy.units</code> (already available) - for unit conversions
+- <code>dsa110_contimg.catalog</code> - existing catalog query functions
+- <code>dsa110_contimg.qa.image_quality</code> - may need source extraction functions
+- PyBDSF or similar for source extraction (may need to add)</p>
+<p><strong>Integration Points:</strong>
+- Called from <code>qa/pipeline_quality.py</code> after imaging completes
+- Results stored in QA database/registry
+- Displayed in dashboard QA views</p>
+<h4 id="12-catalog-query-functions">1.2 Catalog Query Functions<a class="headerlink" href="#12-catalog-query-functions" title="Permanent link">¶</a></h4>
+<p><strong>Location:</strong> Extend <code>catalog/query.py</code> or create <code>catalog/reference_catalogs.py</code></p>
+<p><strong>New Functions:</strong></p>
+<div class="highlight"><pre><span></span><code><span class="k">def</span><span class="w"> </span><span class="nf">query_nvss_field</span><span class="p">(</span>
+    <span class="n">center_ra</span><span class="p">:</span> <span class="nb">float</span><span class="p">,</span>
+    <span class="n">center_dec</span><span class="p">:</span> <span class="nb">float</span><span class="p">,</span>
+    <span class="n">radius_deg</span><span class="p">:</span> <span class="nb">float</span><span class="p">,</span>
+    <span class="n">min_flux_jy</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">float</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span>
+<span class="p">)</span> <span class="o">-&gt;</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">"""</span>
+<span class="sd">    Query NVSS catalog for sources in a field.</span>
+
+<span class="sd">    Uses existing NVSS catalog infrastructure (see catalog/build_nvss_strip_cli.py).</span>
+<span class="sd">    Returns DataFrame with columns: ra, dec, flux_jy, etc.</span>
+<span class="sd">    """</span>
+
+<span class="k">def</span><span class="w"> </span><span class="nf">query_vlass_field</span><span class="p">(</span>
+    <span class="n">center_ra</span><span class="p">:</span> <span class="nb">float</span><span class="p">,</span>
+    <span class="n">center_dec</span><span class="p">:</span> <span class="nb">float</span><span class="p">,</span>
+    <span class="n">radius_deg</span><span class="p">:</span> <span class="nb">float</span><span class="p">,</span>
+    <span class="n">min_flux_jy</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">float</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span>
+<span class="p">)</span> <span class="o">-&gt;</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">"""</span>
+<span class="sd">    Query VLASS catalog for sources in a field.</span>
+
+<span class="sd">    Similar to NVSS query. May need to implement VLASS catalog access.</span>
+<span class="sd">    """</span>
+
+<span class="k">def</span><span class="w"> </span><span class="nf">scale_flux_to_frequency</span><span class="p">(</span>
+    <span class="n">flux_jy</span><span class="p">:</span> <span class="nb">float</span><span class="p">,</span>
+    <span class="n">source_freq_hz</span><span class="p">:</span> <span class="nb">float</span><span class="p">,</span>
+    <span class="n">target_freq_hz</span><span class="p">:</span> <span class="nb">float</span><span class="p">,</span>
+    <span class="n">spectral_index</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="o">-</span><span class="mf">0.7</span>
+<span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">float</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">"""</span>
+<span class="sd">    Scale flux from one frequency to another using power-law spectrum.</span>
+
+<span class="sd">    S_ν2 = S_ν1 * (ν2/ν1)^α</span>
+<span class="sd">    """</span>
+</code></pre></div>
+<h4 id="13-source-extraction">1.3 Source Extraction<a class="headerlink" href="#13-source-extraction" title="Permanent link">¶</a></h4>
+<p><strong>Options:</strong>
+1. Use PyBDSF (Python Blob Detector and Source Finder) - industry standard
+2. Use existing source finder if available in <code>qa/image_quality.py</code>
+3. Simple threshold-based extraction for initial implementation</p>
+<p><strong>If PyBDSF needed:</strong>
+- Add to requirements: <code>pybdsf&gt;=1.10.0</code>
+- Create wrapper function in <code>qa/catalog_validation.py</code></p>
+<h4 id="14-api-integration">1.4 API Integration<a class="headerlink" href="#14-api-integration" title="Permanent link">¶</a></h4>
+<p><strong>Location:</strong> <code>api/routes.py</code></p>
+<p><strong>New Endpoints:</strong></p>
+<div class="highlight"><pre><span></span><code><span class="nd">@router</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"/api/qa/images/</span><span class="si">{image_id}</span><span class="s2">/catalog-validation"</span><span class="p">)</span>
+<span class="k">async</span> <span class="k">def</span><span class="w"> </span><span class="nf">get_catalog_validation</span><span class="p">(</span>
+    <span class="n">image_id</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
+    <span class="n">catalog</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">"nvss"</span><span class="p">,</span>
+    <span class="n">validation_type</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">"all"</span>  <span class="c1"># "astrometry", "flux_scale", "source_counts", "all"</span>
+<span class="p">):</span>
+<span class="w">    </span><span class="sd">"""</span>
+<span class="sd">    Get catalog validation results for an image.</span>
+<span class="sd">    """</span>
+    <span class="c1"># Query validation results from database</span>
+    <span class="c1"># Return JSON with validation metrics</span>
+
+<span class="nd">@router</span><span class="o">.</span><span class="n">post</span><span class="p">(</span><span class="s2">"/api/qa/images/</span><span class="si">{image_id}</span><span class="s2">/catalog-validation/run"</span><span class="p">)</span>
+<span class="k">async</span> <span class="k">def</span><span class="w"> </span><span class="nf">run_catalog_validation</span><span class="p">(</span>
+    <span class="n">image_id</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
+    <span class="n">catalog</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">"nvss"</span><span class="p">,</span>
+    <span class="n">validation_types</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="p">[</span><span class="s2">"astrometry"</span><span class="p">,</span> <span class="s2">"flux_scale"</span><span class="p">,</span> <span class="s2">"source_counts"</span><span class="p">]</span>
+<span class="p">):</span>
+<span class="w">    </span><span class="sd">"""</span>
+<span class="sd">    Run catalog validation for an image and store results.</span>
+<span class="sd">    """</span>
+    <span class="c1"># Run validation functions</span>
+    <span class="c1"># Store results in database</span>
+    <span class="c1"># Return validation results</span>
+</code></pre></div>
+<h4 id="15-dashboard-integration">1.5 Dashboard Integration<a class="headerlink" href="#15-dashboard-integration" title="Permanent link">¶</a></h4>
+<p><strong>Location:</strong> <code>frontend/src/pages/ImageDetailPage.tsx</code> or new <code>CatalogValidationPage.tsx</code></p>
+<p><strong>New Components:</strong></p>
+<div class="highlight"><pre><span></span><code><span class="c1">// CatalogValidationPanel.tsx</span>
+<span class="o">-</span><span class="w"> </span><span class="nx">Display</span><span class="w"> </span><span class="nx">astrometry</span><span class="w"> </span><span class="nx">offsets</span><span class="w"> </span><span class="p">(</span><span class="nx">RA</span><span class="o">/</span><span class="nx">Dec</span><span class="p">)</span><span class="w"> </span><span class="kd">with</span><span class="w"> </span><span class="nx">visual</span><span class="w"> </span><span class="nx">indicators</span>
+<span class="o">-</span><span class="w"> </span><span class="nx">Display</span><span class="w"> </span><span class="nx">flux</span><span class="w"> </span><span class="nx">scale</span><span class="w"> </span><span class="nx">ratio</span><span class="w"> </span><span class="kd">with</span><span class="w"> </span><span class="nx">pass</span><span class="o">/</span><span class="nx">fail</span><span class="w"> </span><span class="nx">status</span>
+<span class="o">-</span><span class="w"> </span><span class="nx">Display</span><span class="w"> </span><span class="nx">source</span><span class="w"> </span><span class="nx">completeness</span><span class="w"> </span><span class="nx">percentage</span>
+<span class="o">-</span><span class="w"> </span><span class="nx">Show</span><span class="w"> </span><span class="nx">matched</span><span class="w"> </span><span class="nx">source</span><span class="w"> </span><span class="nx">pairs</span><span class="w"> </span><span class="nx">on</span><span class="w"> </span><span class="nx">image</span><span class="w"> </span><span class="nx">overlay</span><span class="w"> </span><span class="p">(</span><span class="nx">see</span><span class="w"> </span><span class="nx">item</span><span class="w"> </span><span class="mf">3</span><span class="p">)</span>
+<span class="o">-</span><span class="w"> </span><span class="nx">Color</span><span class="o">-</span><span class="nx">coded</span><span class="w"> </span><span class="nx">status</span><span class="o">:</span><span class="w"> </span><span class="kt">green</span><span class="w"> </span><span class="p">(</span><span class="nx">pass</span><span class="p">),</span><span class="w"> </span><span class="nx">yellow</span><span class="w"> </span><span class="p">(</span><span class="nx">warning</span><span class="p">),</span><span class="w"> </span><span class="nx">red</span><span class="w"> </span><span class="p">(</span><span class="nx">fail</span><span class="p">)</span>
+</code></pre></div>
+<p><strong>Visualization:</strong>
+- Offset vectors plotted on image (see catalog overlay, item 3)
+- Histogram of flux ratios
+- Scatter plot: image_flux vs catalog_flux</p>
+<h4 id="16-cli-integration">1.6 CLI Integration<a class="headerlink" href="#16-cli-integration" title="Permanent link">¶</a></h4>
+<p><strong>Location:</strong> <code>qa/cli_qa.py</code> (if exists) or create new CLI</p>
+<p><strong>New Command:</strong></p>
+<div class="highlight"><pre><span></span><code>python<span class="w"> </span>-m<span class="w"> </span>dsa110_contimg.qa.cli<span class="w"> </span>validate-catalog<span class="w"> </span><span class="se">\</span>
+<span class="w">    </span>--image<span class="w"> </span>/path/to/image.fits<span class="w"> </span><span class="se">\</span>
+<span class="w">    </span>--catalog<span class="w"> </span>nvss<span class="w"> </span><span class="se">\</span>
+<span class="w">    </span>--validation-type<span class="w"> </span>all
+</code></pre></div>
+<h3 id="testing-strategy">Testing Strategy<a class="headerlink" href="#testing-strategy" title="Permanent link">¶</a></h3>
+<ol>
+<li><strong>Unit Tests:</strong> Test validation functions with synthetic data</li>
+<li><strong>Integration Tests:</strong> Test with real images and known catalog matches</li>
+<li><strong>Validation:</strong> Compare results to manual validation for known good/bad images</li>
+</ol>
+<h3 id="estimated-effort">Estimated Effort<a class="headerlink" href="#estimated-effort" title="Permanent link">¶</a></h3>
+<ul>
+<li>Core validation functions: 2-3 days</li>
+<li>Catalog query functions: 1 day</li>
+<li>Source extraction integration: 1-2 days</li>
+<li>API endpoints: 1 day</li>
+<li>Dashboard components: 2-3 days</li>
+<li>Testing: 1-2 days</li>
+<li><strong>Total: 8-12 days</strong></li>
+</ul>
+<hr/>
+<h2 id="2-expected-caltable-path-construction">2. Expected Caltable Path Construction<a class="headerlink" href="#2-expected-caltable-path-construction" title="Permanent link">¶</a></h2>
+<p><strong>Priority:</strong> Critical (Operational Reliability)<br/>
+<strong>Source Pattern:</strong> MeerKAT <code>bookkeeping.py</code><br/>
+<strong>Impact:</strong> Catches calibration failures early by validating expected calibration tables exist</p>
+<h3 id="overview_1">Overview<a class="headerlink" href="#overview_1" title="Permanent link">¶</a></h3>
+<p>Implement a function that constructs expected calibration table paths based on MS path and calibration parameters, then validates that all expected tables exist. This prevents downstream failures when calibration tables are missing or misnamed.</p>
+<h3 id="implementation-details_1">Implementation Details<a class="headerlink" href="#implementation-details_1" title="Permanent link">¶</a></h3>
+<h4 id="21-new-module-calibrationcaltable_pathspy">2.1 New Module: <code>calibration/caltable_paths.py</code><a class="headerlink" href="#21-new-module-calibrationcaltable_pathspy" title="Permanent link">¶</a></h4>
+<p><strong>Purpose:</strong> Functions for constructing and validating expected caltable paths</p>
+<p><strong>Key Functions:</strong></p>
+<div class="highlight"><pre><span></span><code><span class="k">def</span><span class="w"> </span><span class="nf">get_expected_caltables</span><span class="p">(</span>
+    <span class="n">ms_path</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
+    <span class="n">caltable_dir</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+    <span class="n">caltype</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">"all"</span><span class="p">,</span>  <span class="c1"># "all", "K", "B", "G"</span>
+    <span class="n">spwmap</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">Dict</span><span class="p">[</span><span class="nb">int</span><span class="p">,</span> <span class="nb">int</span><span class="p">]]</span> <span class="o">=</span> <span class="kc">None</span>
+<span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">List</span><span class="p">[</span><span class="nb">str</span><span class="p">]]:</span>
+<span class="w">    </span><span class="sd">"""</span>
+<span class="sd">    Construct expected calibration table paths for a Measurement Set.</span>
+
+<span class="sd">    Expected naming convention (based on CASA standards):</span>
+<span class="sd">    - Delay calibration: {ms_basename}.K</span>
+<span class="sd">    - Bandpass calibration: {ms_basename}.B{spw_index}</span>
+<span class="sd">    - Gain calibration: {ms_basename}.G</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        ms_path: Path to Measurement Set</span>
+<span class="sd">        caltable_dir: Directory containing caltables (default: same as MS)</span>
+<span class="sd">        caltype: Type of caltables to return ("all", "K", "B", "G")</span>
+<span class="sd">        spwmap: Optional SPW mapping dict {spw_index: bptable_index}</span>
+
+<span class="sd">    Returns:</span>
+<span class="sd">        Dict with keys:</span>
+<span class="sd">        - "K": List of delay caltable paths (typically 1)</span>
+<span class="sd">        - "B": List of bandpass caltable paths (one per SPW or per mapped SPW)</span>
+<span class="sd">        - "G": List of gain caltable paths (typically 1)</span>
+<span class="sd">        - "all": List of all expected caltable paths</span>
+
+<span class="sd">    Example:</span>
+<span class="sd">        ms_path = "/data/obs123.ms"</span>
+<span class="sd">        Returns:</span>
+<span class="sd">        {</span>
+<span class="sd">            "K": ["/data/obs123.K"],</span>
+<span class="sd">            "B": ["/data/obs123.B0", "/data/obs123.B1"],</span>
+<span class="sd">            "G": ["/data/obs123.G"],</span>
+<span class="sd">            "all": ["/data/obs123.K", "/data/obs123.B0", "/data/obs123.B1", "/data/obs123.G"]</span>
+<span class="sd">        }</span>
+<span class="sd">    """</span>
+    <span class="n">ms_path_obj</span> <span class="o">=</span> <span class="n">Path</span><span class="p">(</span><span class="n">ms_path</span><span class="p">)</span>
+    <span class="n">ms_basename</span> <span class="o">=</span> <span class="n">ms_path_obj</span><span class="o">.</span><span class="n">stem</span>  <span class="c1"># "obs123" from "/data/obs123.ms"</span>
+
+    <span class="k">if</span> <span class="n">caltable_dir</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">caltable_dir</span> <span class="o">=</span> <span class="n">ms_path_obj</span><span class="o">.</span><span class="n">parent</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">caltable_dir</span> <span class="o">=</span> <span class="n">Path</span><span class="p">(</span><span class="n">caltable_dir</span><span class="p">)</span>
+
+    <span class="n">expected</span> <span class="o">=</span> <span class="p">{</span>
+        <span class="s2">"K"</span><span class="p">:</span> <span class="p">[],</span>
+        <span class="s2">"B"</span><span class="p">:</span> <span class="p">[],</span>
+        <span class="s2">"G"</span><span class="p">:</span> <span class="p">[],</span>
+        <span class="s2">"all"</span><span class="p">:</span> <span class="p">[]</span>
+    <span class="p">}</span>
+
+    <span class="c1"># Delay calibration (K)</span>
+    <span class="k">if</span> <span class="n">caltype</span> <span class="ow">in</span> <span class="p">(</span><span class="s2">"all"</span><span class="p">,</span> <span class="s2">"K"</span><span class="p">):</span>
+        <span class="n">k_table</span> <span class="o">=</span> <span class="n">caltable_dir</span> <span class="o">/</span> <span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">ms_basename</span><span class="si">}</span><span class="s2">.K"</span>
+        <span class="n">expected</span><span class="p">[</span><span class="s2">"K"</span><span class="p">]</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="nb">str</span><span class="p">(</span><span class="n">k_table</span><span class="p">))</span>
+
+    <span class="c1"># Bandpass calibration (B)</span>
+    <span class="k">if</span> <span class="n">caltype</span> <span class="ow">in</span> <span class="p">(</span><span class="s2">"all"</span><span class="p">,</span> <span class="s2">"B"</span><span class="p">):</span>
+        <span class="c1"># Need to determine number of SPWs from MS</span>
+        <span class="n">n_spws</span> <span class="o">=</span> <span class="n">_get_n_spws_from_ms</span><span class="p">(</span><span class="n">ms_path</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">spwmap</span><span class="p">:</span>
+            <span class="c1"># Use mapped SPW indices</span>
+            <span class="n">unique_bp_indices</span> <span class="o">=</span> <span class="nb">set</span><span class="p">(</span><span class="n">spwmap</span><span class="o">.</span><span class="n">values</span><span class="p">())</span>
+            <span class="k">for</span> <span class="n">bp_idx</span> <span class="ow">in</span> <span class="n">unique_bp_indices</span><span class="p">:</span>
+                <span class="n">b_table</span> <span class="o">=</span> <span class="n">caltable_dir</span> <span class="o">/</span> <span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">ms_basename</span><span class="si">}</span><span class="s2">.B</span><span class="si">{</span><span class="n">bp_idx</span><span class="si">}</span><span class="s2">"</span>
+                <span class="n">expected</span><span class="p">[</span><span class="s2">"B"</span><span class="p">]</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="nb">str</span><span class="p">(</span><span class="n">b_table</span><span class="p">))</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="c1"># One BP table per SPW</span>
+            <span class="k">for</span> <span class="n">spw_idx</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">n_spws</span><span class="p">):</span>
+                <span class="n">b_table</span> <span class="o">=</span> <span class="n">caltable_dir</span> <span class="o">/</span> <span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">ms_basename</span><span class="si">}</span><span class="s2">.B</span><span class="si">{</span><span class="n">spw_idx</span><span class="si">}</span><span class="s2">"</span>
+                <span class="n">expected</span><span class="p">[</span><span class="s2">"B"</span><span class="p">]</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="nb">str</span><span class="p">(</span><span class="n">b_table</span><span class="p">))</span>
+
+    <span class="c1"># Gain calibration (G)</span>
+    <span class="k">if</span> <span class="n">caltype</span> <span class="ow">in</span> <span class="p">(</span><span class="s2">"all"</span><span class="p">,</span> <span class="s2">"G"</span><span class="p">):</span>
+        <span class="n">g_table</span> <span class="o">=</span> <span class="n">caltable_dir</span> <span class="o">/</span> <span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">ms_basename</span><span class="si">}</span><span class="s2">.G"</span>
+        <span class="n">expected</span><span class="p">[</span><span class="s2">"G"</span><span class="p">]</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="nb">str</span><span class="p">(</span><span class="n">g_table</span><span class="p">))</span>
+
+    <span class="c1"># Collect all</span>
+    <span class="n">expected</span><span class="p">[</span><span class="s2">"all"</span><span class="p">]</span> <span class="o">=</span> <span class="n">expected</span><span class="p">[</span><span class="s2">"K"</span><span class="p">]</span> <span class="o">+</span> <span class="n">expected</span><span class="p">[</span><span class="s2">"B"</span><span class="p">]</span> <span class="o">+</span> <span class="n">expected</span><span class="p">[</span><span class="s2">"G"</span><span class="p">]</span>
+
+    <span class="k">return</span> <span class="n">expected</span>
+
+<span class="k">def</span><span class="w"> </span><span class="nf">validate_caltables_exist</span><span class="p">(</span>
+    <span class="n">ms_path</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
+    <span class="n">caltable_dir</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+    <span class="n">caltype</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">"all"</span><span class="p">,</span>
+    <span class="n">spwmap</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">Dict</span><span class="p">[</span><span class="nb">int</span><span class="p">,</span> <span class="nb">int</span><span class="p">]]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+    <span class="n">raise_on_missing</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span>
+<span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Tuple</span><span class="p">[</span><span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">List</span><span class="p">[</span><span class="nb">str</span><span class="p">]],</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">List</span><span class="p">[</span><span class="nb">str</span><span class="p">]]]:</span>
+<span class="w">    </span><span class="sd">"""</span>
+<span class="sd">    Validate that expected calibration tables exist.</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        ms_path: Path to Measurement Set</span>
+<span class="sd">        caltable_dir: Directory containing caltables</span>
+<span class="sd">        caltype: Type of caltables to validate</span>
+<span class="sd">        spwmap: Optional SPW mapping</span>
+<span class="sd">        raise_on_missing: If True, raise exception if any tables missing</span>
+
+<span class="sd">    Returns:</span>
+<span class="sd">        Tuple of (existing_tables, missing_tables) dicts</span>
+<span class="sd">        Each dict has keys: "K", "B", "G", "all"</span>
+
+<span class="sd">    Raises:</span>
+<span class="sd">        FileNotFoundError: If raise_on_missing=True and tables are missing</span>
+<span class="sd">    """</span>
+    <span class="n">expected</span> <span class="o">=</span> <span class="n">get_expected_caltables</span><span class="p">(</span><span class="n">ms_path</span><span class="p">,</span> <span class="n">caltable_dir</span><span class="p">,</span> <span class="n">caltype</span><span class="p">,</span> <span class="n">spwmap</span><span class="p">)</span>
+
+    <span class="n">existing</span> <span class="o">=</span> <span class="p">{</span><span class="s2">"K"</span><span class="p">:</span> <span class="p">[],</span> <span class="s2">"B"</span><span class="p">:</span> <span class="p">[],</span> <span class="s2">"G"</span><span class="p">:</span> <span class="p">[],</span> <span class="s2">"all"</span><span class="p">:</span> <span class="p">[]}</span>
+    <span class="n">missing</span> <span class="o">=</span> <span class="p">{</span><span class="s2">"K"</span><span class="p">:</span> <span class="p">[],</span> <span class="s2">"B"</span><span class="p">:</span> <span class="p">[],</span> <span class="s2">"G"</span><span class="p">:</span> <span class="p">[],</span> <span class="s2">"all"</span><span class="p">:</span> <span class="p">[]}</span>
+
+    <span class="k">for</span> <span class="n">caltype_key</span> <span class="ow">in</span> <span class="p">[</span><span class="s2">"K"</span><span class="p">,</span> <span class="s2">"B"</span><span class="p">,</span> <span class="s2">"G"</span><span class="p">]:</span>
+        <span class="k">for</span> <span class="n">table_path</span> <span class="ow">in</span> <span class="n">expected</span><span class="p">[</span><span class="n">caltype_key</span><span class="p">]:</span>
+            <span class="k">if</span> <span class="n">Path</span><span class="p">(</span><span class="n">table_path</span><span class="p">)</span><span class="o">.</span><span class="n">exists</span><span class="p">():</span>
+                <span class="n">existing</span><span class="p">[</span><span class="n">caltype_key</span><span class="p">]</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">table_path</span><span class="p">)</span>
+                <span class="n">existing</span><span class="p">[</span><span class="s2">"all"</span><span class="p">]</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">table_path</span><span class="p">)</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">missing</span><span class="p">[</span><span class="n">caltype_key</span><span class="p">]</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">table_path</span><span class="p">)</span>
+                <span class="n">missing</span><span class="p">[</span><span class="s2">"all"</span><span class="p">]</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">table_path</span><span class="p">)</span>
+
+    <span class="k">if</span> <span class="n">raise_on_missing</span> <span class="ow">and</span> <span class="n">missing</span><span class="p">[</span><span class="s2">"all"</span><span class="p">]:</span>
+        <span class="k">raise</span> <span class="ne">FileNotFoundError</span><span class="p">(</span>
+            <span class="sa">f</span><span class="s2">"Missing calibration tables for </span><span class="si">{</span><span class="n">ms_path</span><span class="si">}</span><span class="s2">:</span><span class="se">\n</span><span class="s2">"</span>
+            <span class="sa">f</span><span class="s2">"  K tables: </span><span class="si">{</span><span class="n">missing</span><span class="p">[</span><span class="s1">'K'</span><span class="p">]</span><span class="si">}</span><span class="se">\n</span><span class="s2">"</span>
+            <span class="sa">f</span><span class="s2">"  B tables: </span><span class="si">{</span><span class="n">missing</span><span class="p">[</span><span class="s1">'B'</span><span class="p">]</span><span class="si">}</span><span class="se">\n</span><span class="s2">"</span>
+            <span class="sa">f</span><span class="s2">"  G tables: </span><span class="si">{</span><span class="n">missing</span><span class="p">[</span><span class="s1">'G'</span><span class="p">]</span><span class="si">}</span><span class="s2">"</span>
+        <span class="p">)</span>
+
+    <span class="k">return</span> <span class="n">existing</span><span class="p">,</span> <span class="n">missing</span>
+
+<span class="k">def</span><span class="w"> </span><span class="nf">_get_n_spws_from_ms</span><span class="p">(</span><span class="n">ms_path</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">int</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">"""Get number of spectral windows from MS."""</span>
+    <span class="k">try</span><span class="p">:</span>
+        <span class="kn">from</span><span class="w"> </span><span class="nn">casacore.tables</span><span class="w"> </span><span class="kn">import</span> <span class="n">table</span>
+        <span class="k">with</span> <span class="n">table</span><span class="p">(</span><span class="nb">str</span><span class="p">(</span><span class="n">ms_path</span><span class="p">)</span> <span class="o">+</span> <span class="s2">"/SPECTRAL_WINDOW"</span><span class="p">,</span> <span class="n">ack</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span> <span class="k">as</span> <span class="n">spw_table</span><span class="p">:</span>
+            <span class="k">return</span> <span class="nb">len</span><span class="p">(</span><span class="n">spw_table</span><span class="p">)</span>
+    <span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span><span class="sa">f</span><span class="s2">"Could not determine SPW count from MS: </span><span class="si">{</span><span class="n">e</span><span class="si">}</span><span class="s2">"</span><span class="p">)</span>
+        <span class="k">return</span> <span class="mi">1</span>  <span class="c1"># Default to 1 SPW</span>
+</code></pre></div>
+<h4 id="22-integration-with-calibration-cli">2.2 Integration with Calibration CLI<a class="headerlink" href="#22-integration-with-calibration-cli" title="Permanent link">¶</a></h4>
+<p><strong>Location:</strong> <code>calibration/cli_calibrate.py</code></p>
+<p><strong>Integration Points:</strong></p>
+<ol>
+<li>
+<p><strong>After calibration completes:</strong>
+<div class="highlight"><pre><span></span><code><span class="c1"># After successful calibration</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">dsa110_contimg.calibration.caltable_paths</span><span class="w"> </span><span class="kn">import</span> <span class="n">validate_caltables_exist</span>
+
+<span class="n">existing</span><span class="p">,</span> <span class="n">missing</span> <span class="o">=</span> <span class="n">validate_caltables_exist</span><span class="p">(</span>
+    <span class="n">ms_path</span><span class="o">=</span><span class="n">ms_in</span><span class="p">,</span>
+    <span class="n">caltable_dir</span><span class="o">=</span><span class="n">caltable_dir</span><span class="p">,</span>
+    <span class="n">caltype</span><span class="o">=</span><span class="s2">"all"</span>
+<span class="p">)</span>
+
+<span class="k">if</span> <span class="n">missing</span><span class="p">[</span><span class="s2">"all"</span><span class="p">]:</span>
+    <span class="n">logger</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span><span class="sa">f</span><span class="s2">"Expected calibration tables missing: </span><span class="si">{</span><span class="n">missing</span><span class="p">[</span><span class="s1">'all'</span><span class="p">]</span><span class="si">}</span><span class="s2">"</span><span class="p">)</span>
+    <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="sa">f</span><span class="s2">"Existing tables: </span><span class="si">{</span><span class="n">existing</span><span class="p">[</span><span class="s1">'all'</span><span class="p">]</span><span class="si">}</span><span class="s2">"</span><span class="p">)</span>
+<span class="k">else</span><span class="p">:</span>
+    <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="sa">f</span><span class="s2">"✓ All expected calibration tables present: </span><span class="si">{</span><span class="n">existing</span><span class="p">[</span><span class="s1">'all'</span><span class="p">]</span><span class="si">}</span><span class="s2">"</span><span class="p">)</span>
+</code></pre></div></p>
+</li>
+<li>
+<p><strong>Before applying calibration:</strong>
+<div class="highlight"><pre><span></span><code><span class="c1"># Before applying calibration in apply_service.py</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">dsa110_contimg.calibration.caltable_paths</span><span class="w"> </span><span class="kn">import</span> <span class="n">validate_caltables_exist</span>
+
+<span class="n">existing</span><span class="p">,</span> <span class="n">missing</span> <span class="o">=</span> <span class="n">validate_caltables_exist</span><span class="p">(</span>
+    <span class="n">ms_path</span><span class="o">=</span><span class="n">ms_path_str</span><span class="p">,</span>
+    <span class="n">caltable_dir</span><span class="o">=</span><span class="n">caltable_dir</span><span class="p">,</span>
+    <span class="n">raise_on_missing</span><span class="o">=</span><span class="kc">True</span>  <span class="c1"># Fail fast if tables missing</span>
+<span class="p">)</span>
+</code></pre></div></p>
+</li>
+</ol>
+<h4 id="23-integration-with-qa-system">2.3 Integration with QA System<a class="headerlink" href="#23-integration-with-qa-system" title="Permanent link">¶</a></h4>
+<p><strong>Location:</strong> <code>qa/calibration_quality.py</code></p>
+<p><strong>New Function:</strong></p>
+<div class="highlight"><pre><span></span><code><span class="k">def</span><span class="w"> </span><span class="nf">check_caltable_completeness</span><span class="p">(</span>
+    <span class="n">ms_path</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
+    <span class="n">caltable_dir</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span>
+<span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]:</span>
+<span class="w">    </span><span class="sd">"""</span>
+<span class="sd">    Check that all expected calibration tables exist for an MS.</span>
+
+<span class="sd">    Returns:</span>
+<span class="sd">        Dict with:</span>
+<span class="sd">        - expected_tables: List of expected table paths</span>
+<span class="sd">        - existing_tables: List of existing table paths</span>
+<span class="sd">        - missing_tables: List of missing table paths</span>
+<span class="sd">        - completeness: Fraction of expected tables that exist</span>
+<span class="sd">        - has_issues: bool (True if any tables missing)</span>
+<span class="sd">    """</span>
+    <span class="kn">from</span><span class="w"> </span><span class="nn">dsa110_contimg.calibration.caltable_paths</span><span class="w"> </span><span class="kn">import</span> <span class="p">(</span>
+        <span class="n">get_expected_caltables</span><span class="p">,</span>
+        <span class="n">validate_caltables_exist</span>
+    <span class="p">)</span>
+
+    <span class="n">expected</span> <span class="o">=</span> <span class="n">get_expected_caltables</span><span class="p">(</span><span class="n">ms_path</span><span class="p">,</span> <span class="n">caltable_dir</span><span class="p">)</span>
+    <span class="n">existing</span><span class="p">,</span> <span class="n">missing</span> <span class="o">=</span> <span class="n">validate_caltables_exist</span><span class="p">(</span><span class="n">ms_path</span><span class="p">,</span> <span class="n">caltable_dir</span><span class="p">)</span>
+
+    <span class="n">n_expected</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">expected</span><span class="p">[</span><span class="s2">"all"</span><span class="p">])</span>
+    <span class="n">n_existing</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">existing</span><span class="p">[</span><span class="s2">"all"</span><span class="p">])</span>
+    <span class="n">completeness</span> <span class="o">=</span> <span class="n">n_existing</span> <span class="o">/</span> <span class="n">n_expected</span> <span class="k">if</span> <span class="n">n_expected</span> <span class="o">&gt;</span> <span class="mi">0</span> <span class="k">else</span> <span class="mf">0.0</span>
+
+    <span class="k">return</span> <span class="p">{</span>
+        <span class="s2">"expected_tables"</span><span class="p">:</span> <span class="n">expected</span><span class="p">[</span><span class="s2">"all"</span><span class="p">],</span>
+        <span class="s2">"existing_tables"</span><span class="p">:</span> <span class="n">existing</span><span class="p">[</span><span class="s2">"all"</span><span class="p">],</span>
+        <span class="s2">"missing_tables"</span><span class="p">:</span> <span class="n">missing</span><span class="p">[</span><span class="s2">"all"</span><span class="p">],</span>
+        <span class="s2">"completeness"</span><span class="p">:</span> <span class="n">completeness</span><span class="p">,</span>
+        <span class="s2">"has_issues"</span><span class="p">:</span> <span class="nb">len</span><span class="p">(</span><span class="n">missing</span><span class="p">[</span><span class="s2">"all"</span><span class="p">])</span> <span class="o">&gt;</span> <span class="mi">0</span>
+    <span class="p">}</span>
+</code></pre></div>
+<h4 id="24-api-integration">2.4 API Integration<a class="headerlink" href="#24-api-integration" title="Permanent link">¶</a></h4>
+<p><strong>Location:</strong> <code>api/routes.py</code></p>
+<p><strong>New Endpoint:</strong></p>
+<div class="highlight"><pre><span></span><code><span class="nd">@router</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"/api/qa/calibration/{ms_path:path}/caltable-completeness"</span><span class="p">)</span>
+<span class="k">async</span> <span class="k">def</span><span class="w"> </span><span class="nf">get_caltable_completeness</span><span class="p">(</span><span class="n">ms_path</span><span class="p">:</span> <span class="nb">str</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">"""</span>
+<span class="sd">    Check calibration table completeness for an MS.</span>
+<span class="sd">    """</span>
+    <span class="kn">from</span><span class="w"> </span><span class="nn">dsa110_contimg.qa.calibration_quality</span><span class="w"> </span><span class="kn">import</span> <span class="n">check_caltable_completeness</span>
+
+    <span class="n">result</span> <span class="o">=</span> <span class="n">check_caltable_completeness</span><span class="p">(</span><span class="n">ms_path</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">result</span>
+</code></pre></div>
+<h4 id="25-dashboard-integration">2.5 Dashboard Integration<a class="headerlink" href="#25-dashboard-integration" title="Permanent link">¶</a></h4>
+<p><strong>Location:</strong> <code>frontend/src/pages/CalibrationDetailPage.tsx</code> or QA views</p>
+<p><strong>New Component:</strong></p>
+<div class="highlight"><pre><span></span><code><span class="c1">// CaltableCompletenessPanel.tsx</span>
+<span class="o">-</span><span class="w"> </span><span class="nx">List</span><span class="w"> </span><span class="nx">expected</span><span class="w"> </span><span class="nx">caltables</span><span class="w"> </span><span class="kd">with</span><span class="w"> </span><span class="nx">checkmarks</span><span class="w"> </span><span class="k">for</span><span class="w"> </span><span class="nx">existing</span>
+<span class="o">-</span><span class="w"> </span><span class="nx">Highlight</span><span class="w"> </span><span class="nx">missing</span><span class="w"> </span><span class="nx">caltables</span><span class="w"> </span><span class="ow">in</span><span class="w"> </span><span class="nx">red</span>
+<span class="o">-</span><span class="w"> </span><span class="nx">Show</span><span class="w"> </span><span class="nx">completeness</span><span class="w"> </span><span class="nx">percentage</span>
+<span class="o">-</span><span class="w"> </span><span class="nx">Link</span><span class="w"> </span><span class="nx">to</span><span class="w"> </span><span class="nx">calibration</span><span class="w"> </span><span class="nx">logs</span><span class="w"> </span><span class="k">if</span><span class="w"> </span><span class="nx">tables</span><span class="w"> </span><span class="nx">missing</span>
+</code></pre></div>
+<h3 id="testing-strategy_1">Testing Strategy<a class="headerlink" href="#testing-strategy_1" title="Permanent link">¶</a></h3>
+<ol>
+<li><strong>Unit Tests:</strong> Test path construction with various MS paths and SPW configurations</li>
+<li><strong>Integration Tests:</strong> Test with real MS files and caltables</li>
+<li><strong>Edge Cases:</strong> Test with missing tables, renamed tables, different directory structures</li>
+</ol>
+<h3 id="estimated-effort_1">Estimated Effort<a class="headerlink" href="#estimated-effort_1" title="Permanent link">¶</a></h3>
+<ul>
+<li>Core path construction functions: 1 day</li>
+<li>Integration with calibration CLI: 0.5 days</li>
+<li>Integration with QA system: 0.5 days</li>
+<li>API endpoint: 0.5 days</li>
+<li>Dashboard component: 1 day</li>
+<li>Testing: 0.5 days</li>
+<li><strong>Total: 4 days</strong></li>
+</ul>
+<hr/>
+<h2 id="3-catalog-overlay-visualization">3. Catalog Overlay Visualization<a class="headerlink" href="#3-catalog-overlay-visualization" title="Permanent link">¶</a></h2>
+<p><strong>Priority:</strong> High (Operational Reliability)<br/>
+<strong>Source Pattern:</strong> CARTA visualization patterns<br/>
+<strong>Impact:</strong> Quick visual QA for operators by overlaying reference catalog sources on images</p>
+<h3 id="overview_2">Overview<a class="headerlink" href="#overview_2" title="Permanent link">¶</a></h3>
+<p>Implement catalog overlay visualization in the dashboard, allowing operators to visually validate astrometry and flux scale by overlaying NVSS/VLASS catalog sources on images. This complements the automated catalog validation (item 1) with visual confirmation.</p>
+<h3 id="implementation-details_2">Implementation Details<a class="headerlink" href="#implementation-details_2" title="Permanent link">¶</a></h3>
+<h4 id="31-backend-catalog-overlay-data-api">3.1 Backend: Catalog Overlay Data API<a class="headerlink" href="#31-backend-catalog-overlay-data-api" title="Permanent link">¶</a></h4>
+<p><strong>Location:</strong> <code>api/routes.py</code></p>
+<p><strong>New Endpoint:</strong></p>
+<div class="highlight"><pre><span></span><code><span class="nd">@router</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"/api/qa/images/</span><span class="si">{image_id}</span><span class="s2">/catalog-overlay"</span><span class="p">)</span>
+<span class="k">async</span> <span class="k">def</span><span class="w"> </span><span class="nf">get_catalog_overlay</span><span class="p">(</span>
+    <span class="n">image_id</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
+    <span class="n">catalog</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">"nvss"</span><span class="p">,</span>
+    <span class="n">search_radius_arcsec</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">60.0</span><span class="p">,</span>  <span class="c1"># Larger radius for overlay</span>
+    <span class="n">min_flux_jy</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">float</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span>
+<span class="p">):</span>
+<span class="w">    </span><span class="sd">"""</span>
+<span class="sd">    Get catalog sources for overlay on an image.</span>
+
+<span class="sd">    Returns:</span>
+<span class="sd">        JSON with:</span>
+<span class="sd">        - sources: List of catalog sources with:</span>
+<span class="sd">          - ra: Right ascension (deg)</span>
+<span class="sd">          - dec: Declination (deg)</span>
+<span class="sd">          - flux_jy: Flux density (Jy)</span>
+<span class="sd">          - name: Source name/ID (optional)</span>
+<span class="sd">        - image_info: Image center, size, pixel scale</span>
+<span class="sd">        - catalog_used: Which catalog was queried</span>
+<span class="sd">    """</span>
+    <span class="c1"># Get image metadata (center, size, pixel scale)</span>
+    <span class="c1"># Query catalog for sources in field</span>
+    <span class="c1"># Return sources in JSON format suitable for frontend overlay</span>
+</code></pre></div>
+<p><strong>Implementation:</strong></p>
+<div class="highlight"><pre><span></span><code><span class="kn">from</span><span class="w"> </span><span class="nn">dsa110_contimg.catalog.reference_catalogs</span><span class="w"> </span><span class="kn">import</span> <span class="n">query_nvss_field</span><span class="p">,</span> <span class="n">query_vlass_field</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">dsa110_contimg.qa.image_quality</span><span class="w"> </span><span class="kn">import</span> <span class="n">get_image_metadata</span>
+
+<span class="c1"># Get image metadata</span>
+<span class="n">image_metadata</span> <span class="o">=</span> <span class="n">get_image_metadata</span><span class="p">(</span><span class="n">image_path</span><span class="p">)</span>
+<span class="n">center_ra</span> <span class="o">=</span> <span class="n">image_metadata</span><span class="p">[</span><span class="s2">"center_ra"</span><span class="p">]</span>
+<span class="n">center_dec</span> <span class="o">=</span> <span class="n">image_metadata</span><span class="p">[</span><span class="s2">"center_dec"</span><span class="p">]</span>
+<span class="n">radius_deg</span> <span class="o">=</span> <span class="nb">max</span><span class="p">(</span><span class="n">image_metadata</span><span class="p">[</span><span class="s2">"width_deg"</span><span class="p">],</span> <span class="n">image_metadata</span><span class="p">[</span><span class="s2">"height_deg"</span><span class="p">])</span> <span class="o">/</span> <span class="mi">2</span> <span class="o">+</span> <span class="mf">0.01</span>
+
+<span class="c1"># Query catalog</span>
+<span class="k">if</span> <span class="n">catalog</span> <span class="o">==</span> <span class="s2">"nvss"</span><span class="p">:</span>
+    <span class="n">catalog_sources</span> <span class="o">=</span> <span class="n">query_nvss_field</span><span class="p">(</span><span class="n">center_ra</span><span class="p">,</span> <span class="n">center_dec</span><span class="p">,</span> <span class="n">radius_deg</span><span class="p">,</span> <span class="n">min_flux_jy</span><span class="p">)</span>
+<span class="k">elif</span> <span class="n">catalog</span> <span class="o">==</span> <span class="s2">"vlass"</span><span class="p">:</span>
+    <span class="n">catalog_sources</span> <span class="o">=</span> <span class="n">query_vlass_field</span><span class="p">(</span><span class="n">center_ra</span><span class="p">,</span> <span class="n">center_dec</span><span class="p">,</span> <span class="n">radius_deg</span><span class="p">,</span> <span class="n">min_flux_jy</span><span class="p">)</span>
+<span class="k">else</span><span class="p">:</span>
+    <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="sa">f</span><span class="s2">"Unknown catalog: </span><span class="si">{</span><span class="n">catalog</span><span class="si">}</span><span class="s2">"</span><span class="p">)</span>
+
+<span class="c1"># Format for frontend</span>
+<span class="n">sources_json</span> <span class="o">=</span> <span class="p">[</span>
+    <span class="p">{</span>
+        <span class="s2">"ra"</span><span class="p">:</span> <span class="n">row</span><span class="p">[</span><span class="s2">"ra"</span><span class="p">],</span>
+        <span class="s2">"dec"</span><span class="p">:</span> <span class="n">row</span><span class="p">[</span><span class="s2">"dec"</span><span class="p">],</span>
+        <span class="s2">"flux_jy"</span><span class="p">:</span> <span class="n">row</span><span class="p">[</span><span class="s2">"flux_jy"</span><span class="p">],</span>
+        <span class="s2">"name"</span><span class="p">:</span> <span class="n">row</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"name"</span><span class="p">,</span> <span class="sa">f</span><span class="s2">"Source_</span><span class="si">{</span><span class="n">i</span><span class="si">}</span><span class="s2">"</span><span class="p">)</span>
+    <span class="p">}</span>
+    <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">row</span> <span class="ow">in</span> <span class="n">catalog_sources</span><span class="o">.</span><span class="n">iterrows</span><span class="p">()</span>
+<span class="p">]</span>
+
+<span class="k">return</span> <span class="p">{</span>
+    <span class="s2">"sources"</span><span class="p">:</span> <span class="n">sources_json</span><span class="p">,</span>
+    <span class="s2">"image_info"</span><span class="p">:</span> <span class="n">image_metadata</span><span class="p">,</span>
+    <span class="s2">"catalog_used"</span><span class="p">:</span> <span class="n">catalog</span>
+<span class="p">}</span>
+</code></pre></div>
+<h4 id="32-frontend-catalog-overlay-component">3.2 Frontend: Catalog Overlay Component<a class="headerlink" href="#32-frontend-catalog-overlay-component" title="Permanent link">¶</a></h4>
+<p><strong>Location:</strong> <code>frontend/src/components/CatalogOverlay.tsx</code></p>
+<p><strong>New Component:</strong></p>
+<div class="highlight"><pre><span></span><code><span class="kd">interface</span><span class="w"> </span><span class="nx">CatalogSource</span><span class="w"> </span><span class="p">{</span>
+<span class="w">  </span><span class="nx">ra</span><span class="o">:</span><span class="w"> </span><span class="kt">number</span><span class="p">;</span>
+<span class="w">  </span><span class="nx">dec</span><span class="o">:</span><span class="w"> </span><span class="kt">number</span><span class="p">;</span>
+<span class="w">  </span><span class="nx">flux_jy</span><span class="o">:</span><span class="w"> </span><span class="kt">number</span><span class="p">;</span>
+<span class="w">  </span><span class="nx">name?</span><span class="o">:</span><span class="w"> </span><span class="kt">string</span><span class="p">;</span>
+<span class="p">}</span>
+
+<span class="kd">interface</span><span class="w"> </span><span class="nx">CatalogOverlayProps</span><span class="w"> </span><span class="p">{</span>
+<span class="w">  </span><span class="nx">imageId</span><span class="o">:</span><span class="w"> </span><span class="kt">string</span><span class="p">;</span>
+<span class="w">  </span><span class="nx">catalog</span><span class="o">?:</span><span class="w"> </span><span class="s2">"nvss"</span><span class="w"> </span><span class="o">|</span><span class="w"> </span><span class="s2">"vlass"</span><span class="p">;</span>
+<span class="w">  </span><span class="nx">showLabels?</span><span class="o">:</span><span class="w"> </span><span class="kt">boolean</span><span class="p">;</span>
+<span class="w">  </span><span class="nx">color?</span><span class="o">:</span><span class="w"> </span><span class="kt">string</span><span class="p">;</span>
+<span class="w">  </span><span class="nx">size?</span><span class="o">:</span><span class="w"> </span><span class="kt">number</span><span class="p">;</span>
+<span class="w">  </span><span class="nx">onSourceClick</span><span class="o">?:</span><span class="w"> </span><span class="p">(</span><span class="nx">source</span><span class="o">:</span><span class="w"> </span><span class="kt">CatalogSource</span><span class="p">)</span><span class="w"> </span><span class="p">=&gt;</span><span class="w"> </span><span class="ow">void</span><span class="p">;</span>
+<span class="p">}</span>
+
+<span class="k">export</span><span class="w"> </span><span class="kd">const</span><span class="w"> </span><span class="nx">CatalogOverlay</span><span class="o">:</span><span class="w"> </span><span class="kt">React.FC</span><span class="o">&lt;</span><span class="nx">CatalogOverlayProps</span><span class="o">&gt;</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="p">({</span>
+<span class="w">  </span><span class="nx">imageId</span><span class="p">,</span>
+<span class="w">  </span><span class="nx">catalog</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s2">"nvss"</span><span class="p">,</span>
+<span class="w">  </span><span class="nx">showLabels</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="kc">false</span><span class="p">,</span>
+<span class="w">  </span><span class="nx">color</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s2">"#00ff00"</span><span class="p">,</span>
+<span class="w">  </span><span class="nx">size</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mf">4</span><span class="p">,</span>
+<span class="w">  </span><span class="nx">onSourceClick</span>
+<span class="p">})</span><span class="w"> </span><span class="p">=&gt;</span><span class="w"> </span><span class="p">{</span>
+<span class="w">  </span><span class="c1">// Fetch catalog sources</span>
+<span class="w">  </span><span class="kd">const</span><span class="w"> </span><span class="p">{</span><span class="w"> </span><span class="nx">data</span><span class="o">:</span><span class="w"> </span><span class="kt">overlayData</span><span class="w"> </span><span class="p">}</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="nx">useCatalogOverlay</span><span class="p">(</span><span class="nx">imageId</span><span class="p">,</span><span class="w"> </span><span class="nx">catalog</span><span class="p">);</span>
+
+<span class="w">  </span><span class="c1">// Convert RA/Dec to pixel coordinates (need image WCS)</span>
+<span class="w">  </span><span class="c1">// Render overlay markers on image canvas</span>
+
+<span class="w">  </span><span class="k">return</span><span class="w"> </span><span class="p">(</span>
+<span class="w">    </span><span class="o">&lt;</span><span class="nx">g</span><span class="w"> </span><span class="nx">className</span><span class="o">=</span><span class="s2">"catalog-overlay"</span><span class="o">&gt;</span>
+<span class="w">      </span><span class="p">{</span><span class="nx">overlayData</span><span class="o">?</span><span class="p">.</span><span class="nx">sources</span><span class="p">.</span><span class="nx">map</span><span class="p">((</span><span class="nx">source</span><span class="p">,</span><span class="w"> </span><span class="nx">idx</span><span class="p">)</span><span class="w"> </span><span class="p">=&gt;</span><span class="w"> </span><span class="p">{</span>
+<span class="w">        </span><span class="kd">const</span><span class="w"> </span><span class="p">[</span><span class="nx">x</span><span class="p">,</span><span class="w"> </span><span class="nx">y</span><span class="p">]</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="nx">raDecToPixels</span><span class="p">(</span><span class="nx">source</span><span class="p">.</span><span class="nx">ra</span><span class="p">,</span><span class="w"> </span><span class="nx">source</span><span class="p">.</span><span class="nx">dec</span><span class="p">,</span><span class="w"> </span><span class="nx">imageWCS</span><span class="p">);</span>
+<span class="w">        </span><span class="k">return</span><span class="w"> </span><span class="p">(</span>
+<span class="w">          </span><span class="o">&lt;</span><span class="nx">circle</span>
+<span class="w">            </span><span class="nx">key</span><span class="o">=</span><span class="p">{</span><span class="nx">idx</span><span class="p">}</span>
+<span class="w">            </span><span class="nx">cx</span><span class="o">=</span><span class="p">{</span><span class="nx">x</span><span class="p">}</span>
+<span class="w">            </span><span class="nx">cy</span><span class="o">=</span><span class="p">{</span><span class="nx">y</span><span class="p">}</span>
+<span class="w">            </span><span class="nx">r</span><span class="o">=</span><span class="p">{</span><span class="nx">size</span><span class="p">}</span>
+<span class="w">            </span><span class="nx">fill</span><span class="o">=</span><span class="p">{</span><span class="nx">color</span><span class="p">}</span>
+<span class="w">            </span><span class="nx">stroke</span><span class="o">=</span><span class="s2">"white"</span>
+<span class="w">            </span><span class="nx">strokeWidth</span><span class="o">=</span><span class="p">{</span><span class="mf">1</span><span class="p">}</span>
+<span class="w">            </span><span class="nx">opacity</span><span class="o">=</span><span class="p">{</span><span class="mf">0.7</span><span class="p">}</span>
+<span class="w">            </span><span class="nx">onClick</span><span class="o">=</span><span class="p">{()</span><span class="w"> </span><span class="p">=&gt;</span><span class="w"> </span><span class="nx">onSourceClick</span><span class="o">?</span><span class="p">.(</span><span class="nx">source</span><span class="p">)}</span>
+<span class="w">          </span><span class="o">/&gt;</span>
+<span class="w">        </span><span class="p">);</span>
+<span class="w">      </span><span class="p">})}</span>
+<span class="w">    </span><span class="o">&lt;</span><span class="err">/g&gt;</span>
+<span class="w">  </span><span class="p">);</span>
+<span class="p">};</span>
+</code></pre></div>
+<p><strong>Dependencies:</strong>
+- Need WCS (World Coordinate System) handling for RA/Dec → pixel conversion
+- Consider using <code>astropy.wcs</code> on backend or <code>wcs</code> library on frontend
+- Or use existing image viewer library that supports WCS</p>
+<h4 id="33-integration-with-image-viewer">3.3 Integration with Image Viewer<a class="headerlink" href="#33-integration-with-image-viewer" title="Permanent link">¶</a></h4>
+<p><strong>Location:</strong> <code>frontend/src/pages/ImageDetailPage.tsx</code> or existing image viewer component</p>
+<p><strong>Integration:</strong></p>
+<div class="highlight"><pre><span></span><code><span class="c1">// In ImageDetailPage.tsx</span>
+<span class="kd">const</span><span class="w"> </span><span class="p">[</span><span class="nx">showCatalogOverlay</span><span class="p">,</span><span class="w"> </span><span class="nx">setShowCatalogOverlay</span><span class="p">]</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="nx">useState</span><span class="p">(</span><span class="kc">false</span><span class="p">);</span>
+<span class="kd">const</span><span class="w"> </span><span class="p">[</span><span class="nx">catalogType</span><span class="p">,</span><span class="w"> </span><span class="nx">setCatalogType</span><span class="p">]</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="nx">useState</span><span class="o">&lt;</span><span class="s2">"nvss"</span><span class="w"> </span><span class="o">|</span><span class="w"> </span><span class="s2">"vlass"</span><span class="o">&gt;</span><span class="p">(</span><span class="s2">"nvss"</span><span class="p">);</span>
+
+<span class="c1">// Toggle overlay</span>
+<span class="o">&lt;</span><span class="nx">Button</span><span class="w"> </span><span class="nx">onClick</span><span class="o">=</span><span class="p">{()</span><span class="w"> </span><span class="p">=&gt;</span><span class="w"> </span><span class="nx">setShowCatalogOverlay</span><span class="p">(</span><span class="o">!</span><span class="nx">showCatalogOverlay</span><span class="p">)}</span><span class="o">&gt;</span>
+<span class="w">  </span><span class="p">{</span><span class="nx">showCatalogOverlay</span><span class="w"> </span><span class="o">?</span><span class="w"> </span><span class="s2">"Hide"</span><span class="w"> </span><span class="o">:</span><span class="w"> </span><span class="s2">"Show"</span><span class="p">}</span><span class="w"> </span><span class="nx">Catalog</span><span class="w"> </span><span class="nx">Overlay</span>
+<span class="o">&lt;</span><span class="err">/Button&gt;</span>
+
+<span class="c1">// Catalog selector</span>
+<span class="o">&lt;</span><span class="nx">Select</span><span class="w"> </span><span class="nx">value</span><span class="o">=</span><span class="p">{</span><span class="nx">catalogType</span><span class="p">}</span><span class="w"> </span><span class="nx">onChange</span><span class="o">=</span><span class="p">{</span><span class="nx">setCatalogType</span><span class="p">}</span><span class="o">&gt;</span>
+<span class="w">  </span><span class="o">&lt;</span><span class="nx">option</span><span class="w"> </span><span class="nx">value</span><span class="o">=</span><span class="s2">"nvss"</span><span class="o">&gt;</span><span class="nx">NVSS</span><span class="o">&lt;</span><span class="err">/option&gt;</span>
+<span class="w">  </span><span class="o">&lt;</span><span class="nx">option</span><span class="w"> </span><span class="nx">value</span><span class="o">=</span><span class="s2">"vlass"</span><span class="o">&gt;</span><span class="nx">VLASS</span><span class="o">&lt;</span><span class="err">/option&gt;</span>
+<span class="o">&lt;</span><span class="err">/Select&gt;</span>
+
+<span class="c1">// Render overlay</span>
+<span class="p">{</span><span class="nx">showCatalogOverlay</span><span class="w"> </span><span class="o">&amp;&amp;</span><span class="w"> </span><span class="p">(</span>
+<span class="w">  </span><span class="o">&lt;</span><span class="nx">CatalogOverlay</span>
+<span class="w">    </span><span class="nx">imageId</span><span class="o">=</span><span class="p">{</span><span class="nx">imageId</span><span class="p">}</span>
+<span class="w">    </span><span class="nx">catalog</span><span class="o">=</span><span class="p">{</span><span class="nx">catalogType</span><span class="p">}</span>
+<span class="w">    </span><span class="nx">color</span><span class="o">=</span><span class="s2">"#00ff00"</span>
+<span class="w">    </span><span class="nx">size</span><span class="o">=</span><span class="p">{</span><span class="mf">4</span><span class="p">}</span>
+<span class="w">    </span><span class="nx">showLabels</span><span class="o">=</span><span class="p">{</span><span class="kc">false</span><span class="p">}</span>
+<span class="w">  </span><span class="o">/&gt;</span>
+<span class="p">)}</span>
+</code></pre></div>
+<h4 id="34-enhanced-features-future">3.4 Enhanced Features (Future)<a class="headerlink" href="#34-enhanced-features-future" title="Permanent link">¶</a></h4>
+<ol>
+<li><strong>Matched Source Highlighting:</strong></li>
+<li>Highlight catalog sources that match detected sources (from catalog validation)</li>
+<li>Show offset vectors for matched sources</li>
+<li>
+<p>Color-code: green (good match), yellow (large offset), red (no match)</p>
+</li>
+<li>
+<p><strong>Flux Visualization:</strong></p>
+</li>
+<li>Size markers proportional to catalog flux</li>
+<li>
+<p>Color-code by flux ratio (image_flux / catalog_flux)</p>
+</li>
+<li>
+<p><strong>Interactive Features:</strong></p>
+</li>
+<li>Click catalog source to show details (RA, Dec, flux)</li>
+<li>Toggle between NVSS and VLASS overlays</li>
+<li>
+<p>Adjust overlay opacity and size</p>
+</li>
+<li>
+<p><strong>Offset Vectors:</strong></p>
+</li>
+<li>Draw arrows from catalog position to detected position</li>
+<li>Show offset magnitude and direction</li>
+</ol>
+<h4 id="35-wcs-handling">3.5 WCS Handling<a class="headerlink" href="#35-wcs-handling" title="Permanent link">¶</a></h4>
+<p><strong>Option 1: Backend Conversion</strong>
+- Convert RA/Dec to pixel coordinates on backend
+- Return pixel coordinates in API response
+- Simpler frontend, but requires image access on backend</p>
+<p><strong>Option 2: Frontend Conversion</strong>
+- Return RA/Dec coordinates
+- Use WCS library on frontend to convert to pixels
+- More flexible, but requires WCS parsing on frontend</p>
+<p><strong>Recommendation:</strong> Start with Option 1 (backend conversion) for simplicity, migrate to Option 2 if needed for performance.</p>
+<p><strong>Backend WCS Conversion:</strong></p>
+<div class="highlight"><pre><span></span><code><span class="kn">from</span><span class="w"> </span><span class="nn">astropy.wcs</span><span class="w"> </span><span class="kn">import</span> <span class="n">WCS</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">astropy.io</span><span class="w"> </span><span class="kn">import</span> <span class="n">fits</span>
+
+<span class="k">def</span><span class="w"> </span><span class="nf">get_catalog_overlay_pixels</span><span class="p">(</span>
+    <span class="n">image_path</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
+    <span class="n">catalog_sources</span><span class="p">:</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span>
+<span class="p">)</span> <span class="o">-&gt;</span> <span class="n">List</span><span class="p">[</span><span class="n">Dict</span><span class="p">]:</span>
+<span class="w">    </span><span class="sd">"""</span>
+<span class="sd">    Convert catalog RA/Dec to pixel coordinates using image WCS.</span>
+<span class="sd">    """</span>
+    <span class="k">with</span> <span class="n">fits</span><span class="o">.</span><span class="n">open</span><span class="p">(</span><span class="n">image_path</span><span class="p">)</span> <span class="k">as</span> <span class="n">hdul</span><span class="p">:</span>
+        <span class="n">wcs</span> <span class="o">=</span> <span class="n">WCS</span><span class="p">(</span><span class="n">hdul</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">header</span><span class="p">)</span>
+
+    <span class="n">sources_pixels</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="k">for</span> <span class="n">_</span><span class="p">,</span> <span class="n">source</span> <span class="ow">in</span> <span class="n">catalog_sources</span><span class="o">.</span><span class="n">iterrows</span><span class="p">():</span>
+        <span class="n">ra</span><span class="p">,</span> <span class="n">dec</span> <span class="o">=</span> <span class="n">source</span><span class="p">[</span><span class="s2">"ra"</span><span class="p">],</span> <span class="n">source</span><span class="p">[</span><span class="s2">"dec"</span><span class="p">]</span>
+        <span class="n">x</span><span class="p">,</span> <span class="n">y</span> <span class="o">=</span> <span class="n">wcs</span><span class="o">.</span><span class="n">wcs_world2pix</span><span class="p">(</span><span class="n">ra</span><span class="p">,</span> <span class="n">dec</span><span class="p">,</span> <span class="mi">0</span><span class="p">)</span>
+
+        <span class="n">sources_pixels</span><span class="o">.</span><span class="n">append</span><span class="p">({</span>
+            <span class="s2">"x"</span><span class="p">:</span> <span class="nb">float</span><span class="p">(</span><span class="n">x</span><span class="p">),</span>
+            <span class="s2">"y"</span><span class="p">:</span> <span class="nb">float</span><span class="p">(</span><span class="n">y</span><span class="p">),</span>
+            <span class="s2">"ra"</span><span class="p">:</span> <span class="nb">float</span><span class="p">(</span><span class="n">ra</span><span class="p">),</span>
+            <span class="s2">"dec"</span><span class="p">:</span> <span class="nb">float</span><span class="p">(</span><span class="n">dec</span><span class="p">),</span>
+            <span class="s2">"flux_jy"</span><span class="p">:</span> <span class="nb">float</span><span class="p">(</span><span class="n">source</span><span class="p">[</span><span class="s2">"flux_jy"</span><span class="p">]),</span>
+            <span class="s2">"name"</span><span class="p">:</span> <span class="n">source</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"name"</span><span class="p">,</span> <span class="s2">""</span><span class="p">)</span>
+        <span class="p">})</span>
+
+    <span class="k">return</span> <span class="n">sources_pixels</span>
+</code></pre></div>
+<h3 id="testing-strategy_2">Testing Strategy<a class="headerlink" href="#testing-strategy_2" title="Permanent link">¶</a></h3>
+<ol>
+<li><strong>Unit Tests:</strong> Test catalog query functions</li>
+<li><strong>Integration Tests:</strong> Test overlay API with real images</li>
+<li><strong>Visual Tests:</strong> Manual verification of overlay accuracy</li>
+<li><strong>Performance Tests:</strong> Test with large catalogs (1000+ sources)</li>
+</ol>
+<h3 id="estimated-effort_2">Estimated Effort<a class="headerlink" href="#estimated-effort_2" title="Permanent link">¶</a></h3>
+<ul>
+<li>Backend API endpoint: 1 day</li>
+<li>WCS conversion functions: 1 day</li>
+<li>Frontend overlay component: 2-3 days</li>
+<li>Integration with image viewer: 1 day</li>
+<li>Testing: 1 day</li>
+<li><strong>Total: 6-7 days</strong></li>
+</ul>
+<hr/>
+<h2 id="summary">Summary<a class="headerlink" href="#summary" title="Permanent link">¶</a></h2>
+<h3 id="implementation-order">Implementation Order<a class="headerlink" href="#implementation-order" title="Permanent link">¶</a></h3>
+<ol>
+<li><strong>Expected Caltable Path Construction</strong> (4 days) - Quick win, high impact</li>
+<li><strong>Catalog-Based Validation</strong> (8-12 days) - Critical for science</li>
+<li><strong>Catalog Overlay Visualization</strong> (6-7 days) - Complements validation</li>
+</ol>
+<h3 id="total-estimated-effort">Total Estimated Effort<a class="headerlink" href="#total-estimated-effort" title="Permanent link">¶</a></h3>
+<p><strong>18-23 days</strong> for all three improvements</p>
+<h3 id="dependencies">Dependencies<a class="headerlink" href="#dependencies" title="Permanent link">¶</a></h3>
+<ul>
+<li><code>astropy</code> (already available)</li>
+<li><code>pybdsf</code> (may need to add for source extraction)</li>
+<li>Existing catalog infrastructure (<code>dsa110_contimg.catalog</code>)</li>
+<li>Existing QA infrastructure (<code>dsa110_contimg.qa</code>)</li>
+</ul>
+<h3 id="risk-mitigation">Risk Mitigation<a class="headerlink" href="#risk-mitigation" title="Permanent link">¶</a></h3>
+<ol>
+<li><strong>Catalog Access:</strong> Ensure NVSS/VLASS catalogs are accessible and up-to-date</li>
+<li><strong>WCS Handling:</strong> Verify image WCS headers are correct and parseable</li>
+<li><strong>Performance:</strong> Catalog queries may be slow for large fields; consider caching</li>
+<li><strong>Source Extraction:</strong> May need to add PyBDSF or implement simple threshold-based extraction</li>
+</ol>
+<h3 id="success-criteria">Success Criteria<a class="headerlink" href="#success-criteria" title="Permanent link">¶</a></h3>
+<ol>
+<li><strong>Catalog Validation:</strong></li>
+<li>Detects astrometric offsets &gt; 5 arcsec</li>
+<li>Detects flux scale errors &gt; 20%</li>
+<li>
+<p>Provides actionable warnings/errors</p>
+</li>
+<li>
+<p><strong>Caltable Path Construction:</strong></p>
+</li>
+<li>Correctly identifies missing caltables</li>
+<li>Prevents downstream failures</li>
+<li>
+<p>Provides clear error messages</p>
+</li>
+<li>
+<p><strong>Catalog Overlay:</strong></p>
+</li>
+<li>Overlays catalog sources accurately on images</li>
+<li>Enables quick visual validation</li>
+<li>Integrates seamlessly with existing image viewer</li>
+</ol>
+<hr/>
+<h2 id="next-steps">Next Steps<a class="headerlink" href="#next-steps" title="Permanent link">¶</a></h2>
+<ol>
+<li>Review and approve implementation plan</li>
+<li>Set up development branches for each feature</li>
+<li>Begin implementation in priority order</li>
+<li>Regular check-ins to review progress and adjust as needed</li>
+</ol>
+</article>
+</div>
+<script>var tabs=__md_get("__tabs");if(Array.isArray(tabs))e:for(var set of document.querySelectorAll(".tabbed-set")){var tab,labels=set.querySelector(".tabbed-labels");for(tab of tabs)for(var label of labels.getElementsByTagName("label"))if(label.innerText.trim()===tab){var input=document.getElementById(label.htmlFor);input.checked=!0;continue e}}</script>
+<script>var target=document.getElementById(location.hash.slice(1));target&&target.name&&(target.checked=target.name.startsWith("__tabbed_"))</script>
+</div>
+</main>
+<footer class="md-footer">
+<div class="md-footer-meta md-typeset">
+<div class="md-footer-meta__inner md-grid">
+<div class="md-copyright">
+  
+  
+    Made with
+    <a href="https://squidfunk.github.io/mkdocs-material/" rel="noopener" target="_blank">
+      Material for MkDocs
+    </a>
+</div>
+</div>
+</div>
+</footer>
+</div>
+<div class="md-dialog" data-md-component="dialog">
+<div class="md-dialog__inner md-typeset"></div>
+</div>
+<script id="__config" type="application/json">{"base": "../..", "features": ["navigation.sections", "navigation.indexes", "content.code.copy", "content.tabs.link"], "search": "../../assets/javascripts/workers/search.b8dbb3d2.min.js", "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}}</script>
+<script src="../../assets/javascripts/bundle.fe8b6f2b.min.js"></script>
+<script src="../../javascripts/mathjax.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+<script src="../../javascripts/mermaid-zoom.js"></script>
+</body>
+</html>

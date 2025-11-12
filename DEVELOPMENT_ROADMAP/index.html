@@ -1,0 +1,2287 @@
+
+<!DOCTYPE html>
+
+<html class="no-js" lang="en">
+<head>
+<meta charset="utf-8"/>
+<meta content="width=device-width,initial-scale=1" name="viewport"/>
+<link href="http://code.deepsynoptic.org/dsa110-contimg/DEVELOPMENT_ROADMAP/" rel="canonical"/>
+<link href="../assets/images/favicon.png" rel="icon"/>
+<meta content="mkdocs-1.6.1, mkdocs-material-9.5.31" name="generator"/>
+<title>Development Roadmap: Zero-Corner-Cut Setup - DSA-110 Continuum Imaging Pipeline</title>
+<link href="../assets/stylesheets/main.3cba04c6.min.css" rel="stylesheet"/>
+<link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect"/>
+<link href="https://fonts.googleapis.com/css?family=Roboto:300,300i,400,400i,700,700i%7CRoboto+Mono:400,400i,700,700i&amp;display=fallback" rel="stylesheet"/>
+<style>:root{--md-text-font:"Roboto";--md-code-font:"Roboto Mono"}</style>
+<link href="../assets/_mkdocstrings.css" rel="stylesheet"/>
+<script>__md_scope=new URL("..",location),__md_hash=e=>[...e].reduce((e,_)=>(e<<5)-e+_.charCodeAt(0),0),__md_get=(e,_=localStorage,t=__md_scope)=>JSON.parse(_.getItem(t.pathname+"."+e)),__md_set=(e,_,t=localStorage,a=__md_scope)=>{try{t.setItem(a.pathname+"."+e,JSON.stringify(_))}catch(e){}}</script>
+</head>
+<body dir="ltr">
+<input autocomplete="off" class="md-toggle" data-md-toggle="drawer" id="__drawer" type="checkbox"/>
+<input autocomplete="off" class="md-toggle" data-md-toggle="search" id="__search" type="checkbox"/>
+<label class="md-overlay" for="__drawer"></label>
+<div data-md-component="skip">
+<a class="md-skip" href="#development-roadmap-zero-corner-cut-setup">
+          Skip to content
+        </a>
+</div>
+<div data-md-component="announce">
+</div>
+<header class="md-header md-header--shadow" data-md-component="header">
+<nav aria-label="Header" class="md-header__inner md-grid">
+<a aria-label="DSA-110 Continuum Imaging Pipeline" class="md-header__button md-logo" data-md-component="logo" href=".." title="DSA-110 Continuum Imaging Pipeline">
+<svg viewbox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54Z"></path></svg>
+</a>
+<label class="md-header__button md-icon" for="__drawer">
+<svg viewbox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M3 6h18v2H3V6m0 5h18v2H3v-2m0 5h18v2H3v-2Z"></path></svg>
+</label>
+<div class="md-header__title" data-md-component="header-title">
+<div class="md-header__ellipsis">
+<div class="md-header__topic">
+<span class="md-ellipsis">
+            DSA-110 Continuum Imaging Pipeline
+          </span>
+</div>
+<div class="md-header__topic" data-md-component="header-topic">
+<span class="md-ellipsis">
+            
+              Development Roadmap: Zero-Corner-Cut Setup
+            
+          </span>
+</div>
+</div>
+</div>
+<script>var media,input,key,value,palette=__md_get("__palette");if(palette&&palette.color){"(prefers-color-scheme)"===palette.color.media&&(media=matchMedia("(prefers-color-scheme: light)"),input=document.querySelector(media.matches?"[data-md-color-media='(prefers-color-scheme: light)']":"[data-md-color-media='(prefers-color-scheme: dark)']"),palette.color.media=input.getAttribute("data-md-color-media"),palette.color.scheme=input.getAttribute("data-md-color-scheme"),palette.color.primary=input.getAttribute("data-md-color-primary"),palette.color.accent=input.getAttribute("data-md-color-accent"));for([key,value]of Object.entries(palette.color))document.body.setAttribute("data-md-color-"+key,value)}</script>
+<label class="md-header__button md-icon" for="__search">
+<svg viewbox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.516 6.516 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5Z"></path></svg>
+</label>
+<div class="md-search" data-md-component="search" role="dialog">
+<label class="md-search__overlay" for="__search"></label>
+<div class="md-search__inner" role="search">
+<form class="md-search__form" name="search">
+<input aria-label="Search" autocapitalize="off" autocomplete="off" autocorrect="off" class="md-search__input" data-md-component="search-query" name="query" placeholder="Search" required="" spellcheck="false" type="text"/>
+<label class="md-search__icon md-icon" for="__search">
+<svg viewbox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.516 6.516 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5Z"></path></svg>
+<svg viewbox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11h12Z"></path></svg>
+</label>
+<nav aria-label="Search" class="md-search__options">
+<button aria-label="Clear" class="md-search__icon md-icon" tabindex="-1" title="Clear" type="reset">
+<svg viewbox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M19 6.41 17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12 19 6.41Z"></path></svg>
+</button>
+</nav>
+</form>
+<div class="md-search__output">
+<div class="md-search__scrollwrap" data-md-scrollfix="" tabindex="0">
+<div class="md-search-result" data-md-component="search-result">
+<div class="md-search-result__meta">
+            Initializing search
+          </div>
+<ol class="md-search-result__list" role="presentation"></ol>
+</div>
+</div>
+</div>
+</div>
+</div>
+<div class="md-header__source">
+<a class="md-source" data-md-component="source" href="https://github.com/dsa110/dsa110-contimg" title="Go to repository">
+<div class="md-source__icon md-icon">
+<svg viewbox="0 0 448 512" xmlns="http://www.w3.org/2000/svg"><!--! Font Awesome Free 6.6.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2024 Fonticons, Inc.--><path d="M439.55 236.05 244 40.45a28.87 28.87 0 0 0-40.81 0l-40.66 40.63 51.52 51.52c27.06-9.14 52.68 16.77 43.39 43.68l49.66 49.66c34.23-11.8 61.18 31 35.47 56.69-26.49 26.49-70.21-2.87-56-37.34L240.22 199v121.85c25.3 12.54 22.26 41.85 9.08 55a34.34 34.34 0 0 1-48.55 0c-17.57-17.6-11.07-46.91 11.25-56v-123c-20.8-8.51-24.6-30.74-18.64-45L142.57 101 8.45 235.14a28.86 28.86 0 0 0 0 40.81l195.61 195.6a28.86 28.86 0 0 0 40.8 0l194.69-194.69a28.86 28.86 0 0 0 0-40.81z"></path></svg>
+</div>
+<div class="md-source__repository">
+    GitHub
+  </div>
+</a>
+</div>
+</nav>
+</header>
+<div class="md-container" data-md-component="container">
+<main class="md-main" data-md-component="main">
+<div class="md-main__inner md-grid">
+<div class="md-sidebar md-sidebar--primary" data-md-component="sidebar" data-md-type="navigation">
+<div class="md-sidebar__scrollwrap">
+<div class="md-sidebar__inner">
+<nav aria-label="Navigation" class="md-nav md-nav--primary" data-md-level="0">
+<label class="md-nav__title" for="__drawer">
+<a aria-label="DSA-110 Continuum Imaging Pipeline" class="md-nav__button md-logo" data-md-component="logo" href=".." title="DSA-110 Continuum Imaging Pipeline">
+<svg viewbox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54Z"></path></svg>
+</a>
+    DSA-110 Continuum Imaging Pipeline
+  </label>
+<div class="md-nav__source">
+<a class="md-source" data-md-component="source" href="https://github.com/dsa110/dsa110-contimg" title="Go to repository">
+<div class="md-source__icon md-icon">
+<svg viewbox="0 0 448 512" xmlns="http://www.w3.org/2000/svg"><!--! Font Awesome Free 6.6.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2024 Fonticons, Inc.--><path d="M439.55 236.05 244 40.45a28.87 28.87 0 0 0-40.81 0l-40.66 40.63 51.52 51.52c27.06-9.14 52.68 16.77 43.39 43.68l49.66 49.66c34.23-11.8 61.18 31 35.47 56.69-26.49 26.49-70.21-2.87-56-37.34L240.22 199v121.85c25.3 12.54 22.26 41.85 9.08 55a34.34 34.34 0 0 1-48.55 0c-17.57-17.6-11.07-46.91 11.25-56v-123c-20.8-8.51-24.6-30.74-18.64-45L142.57 101 8.45 235.14a28.86 28.86 0 0 0 0 40.81l195.61 195.6a28.86 28.86 0 0 0 40.8 0l194.69-194.69a28.86 28.86 0 0 0 0-40.81z"></path></svg>
+</div>
+<div class="md-source__repository">
+    GitHub
+  </div>
+</a>
+</div>
+<ul class="md-nav__list" data-md-scrollfix="">
+<li class="md-nav__item">
+<a class="md-nav__link" href="..">
+<span class="md-ellipsis">
+    Home
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../DOCUMENTATION_QUICK_REFERENCE/">
+<span class="md-ellipsis">
+    Documentation Guide
+  </span>
+</a>
+</li>
+<li class="md-nav__item md-nav__item--section md-nav__item--nested">
+<input class="md-nav__toggle md-toggle" id="__nav_3" type="checkbox"/>
+<div class="md-nav__link md-nav__container">
+<a class="md-nav__link" href="../concepts/">
+<span class="md-ellipsis">
+    Concepts
+  </span>
+</a>
+<label class="md-nav__link" for="__nav_3" id="__nav_3_label" tabindex="">
+<span class="md-nav__icon md-icon"></span>
+</label>
+</div>
+<nav aria-expanded="false" aria-labelledby="__nav_3_label" class="md-nav" data-md-level="1">
+<label class="md-nav__title" for="__nav_3">
+<span class="md-nav__icon md-icon"></span>
+            Concepts
+          </label>
+<ul class="md-nav__list" data-md-scrollfix="">
+<li class="md-nav__item">
+<a class="md-nav__link" href="../concepts/architecture/">
+<span class="md-ellipsis">
+    Architecture
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../concepts/DIRECTORY_ARCHITECTURE/">
+<span class="md-ellipsis">
+    Directory Architecture
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../concepts/modules/">
+<span class="md-ellipsis">
+    Modules
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../concepts/control-panel/">
+<span class="md-ellipsis">
+    Control Panel
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../concepts/aoflagger/">
+<span class="md-ellipsis">
+    AOFlagger
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../concepts/frontend_design/">
+<span class="md-ellipsis">
+    Frontend Design
+  </span>
+</a>
+</li>
+<li class="md-nav__item md-nav__item--nested">
+<input class="md-nav__toggle md-toggle" id="__nav_3_8" type="checkbox"/>
+<label class="md-nav__link" for="__nav_3_8" id="__nav_3_8_label" tabindex="0">
+<span class="md-ellipsis">
+    Dashboard
+  </span>
+<span class="md-nav__icon md-icon"></span>
+</label>
+<nav aria-expanded="false" aria-labelledby="__nav_3_8_label" class="md-nav" data-md-level="2">
+<label class="md-nav__title" for="__nav_3_8">
+<span class="md-nav__icon md-icon"></span>
+            Dashboard
+          </label>
+<ul class="md-nav__list" data-md-scrollfix="">
+<li class="md-nav__item">
+<a class="md-nav__link" href="../concepts/dashboard_mockups/">
+<span class="md-ellipsis">
+    Mockups
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../SKYVIEW_IMPLEMENTATION_PLAN/">
+<span class="md-ellipsis">
+    Sky View
+  </span>
+</a>
+</li>
+</ul>
+</nav>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../concepts/GLOSSARY/">
+<span class="md-ellipsis">
+    Glossary
+  </span>
+</a>
+</li>
+<li class="md-nav__item md-nav__item--nested">
+<input class="md-nav__toggle md-toggle" id="__nav_3_10" type="checkbox"/>
+<label class="md-nav__link" for="__nav_3_10" id="__nav_3_10_label" tabindex="0">
+<span class="md-ellipsis">
+    Pipeline
+  </span>
+<span class="md-nav__icon md-icon"></span>
+</label>
+<nav aria-expanded="false" aria-labelledby="__nav_3_10_label" class="md-nav" data-md-level="2">
+<label class="md-nav__title" for="__nav_3_10">
+<span class="md-nav__icon md-icon"></span>
+            Pipeline
+          </label>
+<ul class="md-nav__list" data-md-scrollfix="">
+<li class="md-nav__item">
+<a class="md-nav__link" href="../concepts/pipeline_overview/">
+<span class="md-ellipsis">
+    Overview
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../concepts/pipeline_stage_architecture/">
+<span class="md-ellipsis">
+    Stage Architecture
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../concepts/pipeline_workflow_visualization/">
+<span class="md-ellipsis">
+    Workflow Visualization
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../concepts/pipeline_production_features/">
+<span class="md-ellipsis">
+    Production Features
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../concepts/pipeline_patterns/">
+<span class="md-ellipsis">
+    Patterns
+  </span>
+</a>
+</li>
+</ul>
+</nav>
+</li>
+<li class="md-nav__item md-nav__item--nested">
+<input class="md-nav__toggle md-toggle" id="__nav_3_11" type="checkbox"/>
+<label class="md-nav__link" for="__nav_3_11" id="__nav_3_11_label" tabindex="0">
+<span class="md-ellipsis">
+    Science
+  </span>
+<span class="md-nav__icon md-icon"></span>
+</label>
+<nav aria-expanded="false" aria-labelledby="__nav_3_11_label" class="md-nav" data-md-level="2">
+<label class="md-nav__title" for="__nav_3_11">
+<span class="md-nav__icon md-icon"></span>
+            Science
+          </label>
+<ul class="md-nav__list" data-md-scrollfix="">
+<li class="md-nav__item">
+<a class="md-nav__link" href="../concepts/science/photometry_normalization/">
+<span class="md-ellipsis">
+    Photometry Normalization
+  </span>
+</a>
+</li>
+</ul>
+</nav>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../concepts/mcp_browser_server_setup/">
+<span class="md-ellipsis">
+    Browser MCP Server
+  </span>
+</a>
+</li>
+</ul>
+</nav>
+</li>
+<li class="md-nav__item md-nav__item--section md-nav__item--nested">
+<input class="md-nav__toggle md-toggle" id="__nav_4" type="checkbox"/>
+<label class="md-nav__link" for="__nav_4" id="__nav_4_label" tabindex="">
+<span class="md-ellipsis">
+    Tutorials
+  </span>
+<span class="md-nav__icon md-icon"></span>
+</label>
+<nav aria-expanded="false" aria-labelledby="__nav_4_label" class="md-nav" data-md-level="1">
+<label class="md-nav__title" for="__nav_4">
+<span class="md-nav__icon md-icon"></span>
+            Tutorials
+          </label>
+<ul class="md-nav__list" data-md-scrollfix="">
+<li class="md-nav__item md-nav__item--nested">
+<input class="md-nav__toggle md-toggle" id="__nav_4_1" type="checkbox"/>
+<label class="md-nav__link" for="__nav_4_1" id="__nav_4_1_label" tabindex="0">
+<span class="md-ellipsis">
+    Conversion
+  </span>
+<span class="md-nav__icon md-icon"></span>
+</label>
+<nav aria-expanded="false" aria-labelledby="__nav_4_1_label" class="md-nav" data-md-level="2">
+<label class="md-nav__title" for="__nav_4_1">
+<span class="md-nav__icon md-icon"></span>
+            Conversion
+          </label>
+<ul class="md-nav__list" data-md-scrollfix="">
+<li class="md-nav__item">
+<a class="md-nav__link" href="../tutorials/HDF5_TO_MS_TUTORIAL/">
+<span class="md-ellipsis">
+    HDF5 to MS
+  </span>
+</a>
+</li>
+</ul>
+</nav>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../tutorials/simulation-tutorial/">
+<span class="md-ellipsis">
+    Simulation
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../tutorials/calibrate-apply/">
+<span class="md-ellipsis">
+    Calibrate and Apply
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../tutorials/convert-standalone/">
+<span class="md-ellipsis">
+    Convert Standalone
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../tutorials/streaming/">
+<span class="md-ellipsis">
+    Streaming
+  </span>
+</a>
+</li>
+<li class="md-nav__item md-nav__item--nested">
+<input class="md-nav__toggle md-toggle" id="__nav_4_6" type="checkbox"/>
+<label class="md-nav__link" for="__nav_4_6" id="__nav_4_6_label" tabindex="0">
+<span class="md-ellipsis">
+    Notebooks
+  </span>
+<span class="md-nav__icon md-icon"></span>
+</label>
+<nav aria-expanded="false" aria-labelledby="__nav_4_6_label" class="md-nav" data-md-level="2">
+<label class="md-nav__title" for="__nav_4_6">
+<span class="md-nav__icon md-icon"></span>
+            Notebooks
+          </label>
+<ul class="md-nav__list" data-md-scrollfix="">
+<li class="md-nav__item">
+<a class="md-nav__link" href="../tutorials/notebooks/bandpass_calibration_test.ipynb">
+<span class="md-ellipsis">
+    Bandpass Calibration Test
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../tutorials/notebooks/calibrator_helper.py">
+<span class="md-ellipsis">
+    Calibrator Helper
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../tutorials/notebooks/CalibratorSearch.ipynb">
+<span class="md-ellipsis">
+    Calibrator Search
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../tutorials/notebooks/ms_staging_workflow.ipynb">
+<span class="md-ellipsis">
+    MS Staging Workflow
+  </span>
+</a>
+</li>
+</ul>
+</nav>
+</li>
+</ul>
+</nav>
+</li>
+<li class="md-nav__item md-nav__item--section md-nav__item--nested">
+<input class="md-nav__toggle md-toggle" id="__nav_5" type="checkbox"/>
+<label class="md-nav__link" for="__nav_5" id="__nav_5_label" tabindex="">
+<span class="md-ellipsis">
+    How-To Guides
+  </span>
+<span class="md-nav__icon md-icon"></span>
+</label>
+<nav aria-expanded="false" aria-labelledby="__nav_5_label" class="md-nav" data-md-level="1">
+<label class="md-nav__title" for="__nav_5">
+<span class="md-nav__icon md-icon"></span>
+            How-To Guides
+          </label>
+<ul class="md-nav__list" data-md-scrollfix="">
+<li class="md-nav__item">
+<a class="md-nav__link" href="../how-to/github_pages_walkthrough/">
+<span class="md-ellipsis">
+    GitHub Pages Setup
+  </span>
+</a>
+</li>
+<li class="md-nav__item md-nav__item--nested">
+<input class="md-nav__toggle md-toggle" id="__nav_5_2" type="checkbox"/>
+<label class="md-nav__link" for="__nav_5_2" id="__nav_5_2_label" tabindex="0">
+<span class="md-ellipsis">
+    Quickstarts
+  </span>
+<span class="md-nav__icon md-icon"></span>
+</label>
+<nav aria-expanded="false" aria-labelledby="__nav_5_2_label" class="md-nav" data-md-level="2">
+<label class="md-nav__title" for="__nav_5_2">
+<span class="md-nav__icon md-icon"></span>
+            Quickstarts
+          </label>
+<ul class="md-nav__list" data-md-scrollfix="">
+<li class="md-nav__item">
+<a class="md-nav__link" href="../how-to/quickstart/">
+<span class="md-ellipsis">
+    General
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../how-to/control-panel-quickstart/">
+<span class="md-ellipsis">
+    Control Panel
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../how-to/LINEAR_SETUP_QUICKSTART/">
+<span class="md-ellipsis">
+    Linear Setup
+  </span>
+</a>
+</li>
+</ul>
+</nav>
+</li>
+<li class="md-nav__item md-nav__item--nested">
+<input class="md-nav__toggle md-toggle" id="__nav_5_3" type="checkbox"/>
+<label class="md-nav__link" for="__nav_5_3" id="__nav_5_3_label" tabindex="0">
+<span class="md-ellipsis">
+    Testing
+  </span>
+<span class="md-nav__icon md-icon"></span>
+</label>
+<nav aria-expanded="false" aria-labelledby="__nav_5_3_label" class="md-nav" data-md-level="2">
+<label class="md-nav__title" for="__nav_5_3">
+<span class="md-nav__icon md-icon"></span>
+            Testing
+          </label>
+<ul class="md-nav__list" data-md-scrollfix="">
+<li class="md-nav__item">
+<a class="md-nav__link" href="../how-to/FAST_TESTING/">
+<span class="md-ellipsis">
+    Fast Testing
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../how-to/PIPELINE_TESTING_GUIDE/">
+<span class="md-ellipsis">
+    Pipeline Guide
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../how-to/TEST_FLAG_SUBCOMMAND/">
+<span class="md-ellipsis">
+    Flag Subcommand
+  </span>
+</a>
+</li>
+</ul>
+</nav>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../how-to/build-vp-from-h5/">
+<span class="md-ellipsis">
+    Build VP from h5
+  </span>
+</a>
+</li>
+<li class="md-nav__item md-nav__item--nested">
+<input class="md-nav__toggle md-toggle" id="__nav_5_5" type="checkbox"/>
+<label class="md-nav__link" for="__nav_5_5" id="__nav_5_5_label" tabindex="0">
+<span class="md-ellipsis">
+    Calibration
+  </span>
+<span class="md-nav__icon md-icon"></span>
+</label>
+<nav aria-expanded="false" aria-labelledby="__nav_5_5_label" class="md-nav" data-md-level="2">
+<label class="md-nav__title" for="__nav_5_5">
+<span class="md-nav__icon md-icon"></span>
+            Calibration
+          </label>
+<ul class="md-nav__list" data-md-scrollfix="">
+<li class="md-nav__item">
+<a class="md-nav__link" href="../how-to/CALIBRATION_DETAILED_PROCEDURE/">
+<span class="md-ellipsis">
+    Detailed Procedure
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../how-to/FIND_CALIBRATOR_TRANSIT_DATA/">
+<span class="md-ellipsis">
+    Find Calibrator Transit
+  </span>
+</a>
+</li>
+</ul>
+</nav>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../how-to/IMAGE_0834_TRANSIT_5MIN/">
+<span class="md-ellipsis">
+    Image 0834 Transit 5min
+  </span>
+</a>
+</li>
+<li class="md-nav__item md-nav__item--nested">
+<input class="md-nav__toggle md-toggle" id="__nav_5_7" type="checkbox"/>
+<label class="md-nav__link" for="__nav_5_7" id="__nav_5_7_label" tabindex="0">
+<span class="md-ellipsis">
+    Mosaic
+  </span>
+<span class="md-nav__icon md-icon"></span>
+</label>
+<nav aria-expanded="false" aria-labelledby="__nav_5_7_label" class="md-nav" data-md-level="2">
+<label class="md-nav__title" for="__nav_5_7">
+<span class="md-nav__icon md-icon"></span>
+            Mosaic
+          </label>
+<ul class="md-nav__list" data-md-scrollfix="">
+<li class="md-nav__item">
+<a class="md-nav__link" href="../how-to/mosaic_quickstart/">
+<span class="md-ellipsis">
+    Quickstart
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../how-to/mosaic/">
+<span class="md-ellipsis">
+    Complete Guide
+  </span>
+</a>
+</li>
+</ul>
+</nav>
+</li>
+<li class="md-nav__item md-nav__item--nested">
+<input class="md-nav__toggle md-toggle" id="__nav_5_8" type="checkbox"/>
+<label class="md-nav__link" for="__nav_5_8" id="__nav_5_8_label" tabindex="0">
+<span class="md-ellipsis">
+    Quality Assurance
+  </span>
+<span class="md-nav__icon md-icon"></span>
+</label>
+<nav aria-expanded="false" aria-labelledby="__nav_5_8_label" class="md-nav" data-md-level="2">
+<label class="md-nav__title" for="__nav_5_8">
+<span class="md-nav__icon md-icon"></span>
+            Quality Assurance
+          </label>
+<ul class="md-nav__list" data-md-scrollfix="">
+<li class="md-nav__item">
+<a class="md-nav__link" href="../how-to/QUALITY_ASSURANCE_SETUP/">
+<span class="md-ellipsis">
+    Setup
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../how-to/quicklook/">
+<span class="md-ellipsis">
+    Quick Look
+  </span>
+</a>
+</li>
+</ul>
+</nav>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../how-to/reprocess/">
+<span class="md-ellipsis">
+    Reprocess
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../how-to/USING_ORCHESTRATOR_CLI/">
+<span class="md-ellipsis">
+    Using Orchestrator CLI
+  </span>
+</a>
+</li>
+<li class="md-nav__item md-nav__item--nested">
+<input class="md-nav__toggle md-toggle" id="__nav_5_11" type="checkbox"/>
+<label class="md-nav__link" for="__nav_5_11" id="__nav_5_11_label" tabindex="0">
+<span class="md-ellipsis">
+    Dashboard
+  </span>
+<span class="md-nav__icon md-icon"></span>
+</label>
+<nav aria-expanded="false" aria-labelledby="__nav_5_11_label" class="md-nav" data-md-level="2">
+<label class="md-nav__title" for="__nav_5_11">
+<span class="md-nav__icon md-icon"></span>
+            Dashboard
+          </label>
+<ul class="md-nav__list" data-md-scrollfix="">
+<li class="md-nav__item">
+<a class="md-nav__link" href="../how-to/dashboard-development/">
+<span class="md-ellipsis">
+    Development
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../how-to/dashboard-quickstart/">
+<span class="md-ellipsis">
+    Quickstart
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../how-to/dashboard_testing/">
+<span class="md-ellipsis">
+    Testing
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../how-to/dashboard_development_workflow/">
+<span class="md-ellipsis">
+    Development Workflow
+  </span>
+</a>
+</li>
+</ul>
+</nav>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../how-to/LINEAR_INTEGRATION/">
+<span class="md-ellipsis">
+    Linear Integration
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../how-to/frontend-initial-setup/">
+<span class="md-ellipsis">
+    Frontend Initial Setup
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../how-to/PARAMETER_OPTIMIZATION_GUIDE/">
+<span class="md-ellipsis">
+    AOFlagger Parameter Optimization
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../how-to/downsampling_guide/">
+<span class="md-ellipsis">
+    Downsampling Guide
+  </span>
+</a>
+</li>
+<li class="md-nav__item md-nav__item--nested">
+<input class="md-nav__toggle md-toggle" id="__nav_5_16" type="checkbox"/>
+<label class="md-nav__link" for="__nav_5_16" id="__nav_5_16_label" tabindex="0">
+<span class="md-ellipsis">
+    Conversion
+  </span>
+<span class="md-nav__icon md-icon"></span>
+</label>
+<nav aria-expanded="false" aria-labelledby="__nav_5_16_label" class="md-nav" data-md-level="2">
+<label class="md-nav__title" for="__nav_5_16">
+<span class="md-nav__icon md-icon"></span>
+            Conversion
+          </label>
+<ul class="md-nav__list" data-md-scrollfix="">
+<li class="md-nav__item">
+<a class="md-nav__link" href="../how-to/uvh5_to_ms_conversion/">
+<span class="md-ellipsis">
+    UVH5 to MS
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../how-to/streaming_converter_guide/">
+<span class="md-ellipsis">
+    Streaming Converter
+  </span>
+</a>
+</li>
+</ul>
+</nav>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../how-to/troubleshooting/">
+<span class="md-ellipsis">
+    Troubleshooting
+  </span>
+</a>
+</li>
+</ul>
+</nav>
+</li>
+<li class="md-nav__item md-nav__item--section md-nav__item--nested">
+<input class="md-nav__toggle md-toggle" id="__nav_6" type="checkbox"/>
+<label class="md-nav__link" for="__nav_6" id="__nav_6_label" tabindex="">
+<span class="md-ellipsis">
+    Reference
+  </span>
+<span class="md-nav__icon md-icon"></span>
+</label>
+<nav aria-expanded="false" aria-labelledby="__nav_6_label" class="md-nav" data-md-level="1">
+<label class="md-nav__title" for="__nav_6">
+<span class="md-nav__icon md-icon"></span>
+            Reference
+          </label>
+<ul class="md-nav__list" data-md-scrollfix="">
+<li class="md-nav__item md-nav__item--nested">
+<input class="md-nav__toggle md-toggle" id="__nav_6_1" type="checkbox"/>
+<label class="md-nav__link" for="__nav_6_1" id="__nav_6_1_label" tabindex="0">
+<span class="md-ellipsis">
+    API
+  </span>
+<span class="md-nav__icon md-icon"></span>
+</label>
+<nav aria-expanded="false" aria-labelledby="__nav_6_1_label" class="md-nav" data-md-level="2">
+<label class="md-nav__title" for="__nav_6_1">
+<span class="md-nav__icon md-icon"></span>
+            API
+          </label>
+<ul class="md-nav__list" data-md-scrollfix="">
+<li class="md-nav__item">
+<a class="md-nav__link" href="../reference/api-endpoints/">
+<span class="md-ellipsis">
+    Endpoints
+  </span>
+</a>
+</li>
+<li class="md-nav__item md-nav__item--nested">
+<input class="md-nav__toggle md-toggle" id="__nav_6_1_2" type="checkbox"/>
+<label class="md-nav__link" for="__nav_6_1_2" id="__nav_6_1_2_label" tabindex="0">
+<span class="md-ellipsis">
+    Dashboard
+  </span>
+<span class="md-nav__icon md-icon"></span>
+</label>
+<nav aria-expanded="false" aria-labelledby="__nav_6_1_2_label" class="md-nav" data-md-level="3">
+<label class="md-nav__title" for="__nav_6_1_2">
+<span class="md-nav__icon md-icon"></span>
+            Dashboard
+          </label>
+<ul class="md-nav__list" data-md-scrollfix="">
+<li class="md-nav__item">
+<a class="md-nav__link" href="../reference/dashboard_backend_api/">
+<span class="md-ellipsis">
+    API Reference
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../reference/dashboard_pages_and_features/">
+<span class="md-ellipsis">
+    Pages &amp; Features
+  </span>
+</a>
+</li>
+</ul>
+</nav>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../reference/backend_integration_snippets/">
+<span class="md-ellipsis">
+    Integration Snippets
+  </span>
+</a>
+</li>
+</ul>
+</nav>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../reference/calibration-overview/">
+<span class="md-ellipsis">
+    Calibration Overview
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../reference/cli/">
+<span class="md-ellipsis">
+    CLI
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../reference/control-panel-cheatsheet/">
+<span class="md-ellipsis">
+    Control Panel Cheatsheet
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../reference/database_schema/">
+<span class="md-ellipsis">
+    Database Schema
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../reference/env/">
+<span class="md-ellipsis">
+    Environment Variables
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../reference/CRITICAL_PYTHON_ENVIRONMENT/">
+<span class="md-ellipsis">
+    Critical Python Environment
+  </span>
+</a>
+</li>
+<li class="md-nav__item md-nav__item--nested">
+<input class="md-nav__toggle md-toggle" id="__nav_6_8" type="checkbox"/>
+<label class="md-nav__link" for="__nav_6_8" id="__nav_6_8_label" tabindex="0">
+<span class="md-ellipsis">
+    Optimizations
+  </span>
+<span class="md-nav__icon md-icon"></span>
+</label>
+<nav aria-expanded="false" aria-labelledby="__nav_6_8_label" class="md-nav" data-md-level="2">
+<label class="md-nav__title" for="__nav_6_8">
+<span class="md-nav__icon md-icon"></span>
+            Optimizations
+          </label>
+<ul class="md-nav__list" data-md-scrollfix="">
+<li class="md-nav__item">
+<a class="md-nav__link" href="../reference/optimizations/OPTIMIZATION_API/">
+<span class="md-ellipsis">
+    API
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../reference/optimizations/PROFILING_GUIDE/">
+<span class="md-ellipsis">
+    Profiling Guide
+  </span>
+</a>
+</li>
+</ul>
+</nav>
+</li>
+</ul>
+</nav>
+</li>
+<li class="md-nav__item md-nav__item--section md-nav__item--nested">
+<input class="md-nav__toggle md-toggle" id="__nav_7" type="checkbox"/>
+<label class="md-nav__link" for="__nav_7" id="__nav_7_label" tabindex="">
+<span class="md-ellipsis">
+    Operations
+  </span>
+<span class="md-nav__icon md-icon"></span>
+</label>
+<nav aria-expanded="false" aria-labelledby="__nav_7_label" class="md-nav" data-md-level="1">
+<label class="md-nav__title" for="__nav_7">
+<span class="md-nav__icon md-icon"></span>
+            Operations
+          </label>
+<ul class="md-nav__list" data-md-scrollfix="">
+<li class="md-nav__item md-nav__item--nested">
+<input class="md-nav__toggle md-toggle" id="__nav_7_1" type="checkbox"/>
+<label class="md-nav__link" for="__nav_7_1" id="__nav_7_1_label" tabindex="0">
+<span class="md-ellipsis">
+    Deployment
+  </span>
+<span class="md-nav__icon md-icon"></span>
+</label>
+<nav aria-expanded="false" aria-labelledby="__nav_7_1_label" class="md-nav" data-md-level="2">
+<label class="md-nav__title" for="__nav_7_1">
+<span class="md-nav__icon md-icon"></span>
+            Deployment
+          </label>
+<ul class="md-nav__list" data-md-scrollfix="">
+<li class="md-nav__item">
+<a class="md-nav__link" href="../operations/deploy-docker/">
+<span class="md-ellipsis">
+    Docker
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../operations/deploy-systemd/">
+<span class="md-ellipsis">
+    systemd
+  </span>
+</a>
+</li>
+</ul>
+</nav>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../operations/port-management/">
+<span class="md-ellipsis">
+    Port Management
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../operations/refant_quick_reference/">
+<span class="md-ellipsis">
+    Refant Quick Reference
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../operations/service_restart_fix/">
+<span class="md-ellipsis">
+    Service Restart Fix
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../operations/systemd-migration/">
+<span class="md-ellipsis">
+    Systemd Migration
+  </span>
+</a>
+</li>
+</ul>
+</nav>
+</li>
+<li class="md-nav__item md-nav__item--section md-nav__item--nested">
+<input class="md-nav__toggle md-toggle" id="__nav_8" type="checkbox"/>
+<div class="md-nav__link md-nav__container">
+<a class="md-nav__link" href="../contributing/">
+<span class="md-ellipsis">
+    Contributing
+  </span>
+</a>
+<label class="md-nav__link" for="__nav_8" id="__nav_8_label" tabindex="">
+<span class="md-nav__icon md-icon"></span>
+</label>
+</div>
+<nav aria-expanded="false" aria-labelledby="__nav_8_label" class="md-nav" data-md-level="1">
+<label class="md-nav__title" for="__nav_8">
+<span class="md-nav__icon md-icon"></span>
+            Contributing
+          </label>
+<ul class="md-nav__list" data-md-scrollfix="">
+<li class="md-nav__item md-nav__item--nested">
+<input class="md-nav__toggle md-toggle" id="__nav_8_2" type="checkbox"/>
+<label class="md-nav__link" for="__nav_8_2" id="__nav_8_2_label" tabindex="0">
+<span class="md-ellipsis">
+    Archive
+  </span>
+<span class="md-nav__icon md-icon"></span>
+</label>
+<nav aria-expanded="false" aria-labelledby="__nav_8_2_label" class="md-nav" data-md-level="2">
+<label class="md-nav__title" for="__nav_8_2">
+<span class="md-nav__icon md-icon"></span>
+            Archive
+          </label>
+<ul class="md-nav__list" data-md-scrollfix="">
+<li class="md-nav__item">
+<a class="md-nav__link" href="../contributing/archive/CONTRIBUTING_TODO/">
+<span class="md-ellipsis">
+    Contributing to TODO
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../contributing/archive/rules/">
+<span class="md-ellipsis">
+    Rules
+  </span>
+</a>
+</li>
+</ul>
+</nav>
+</li>
+</ul>
+</nav>
+</li>
+</ul>
+</nav>
+</div>
+</div>
+</div>
+<div class="md-sidebar md-sidebar--secondary" data-md-component="sidebar" data-md-type="toc">
+<div class="md-sidebar__scrollwrap">
+<div class="md-sidebar__inner">
+<nav aria-label="Table of contents" class="md-nav md-nav--secondary">
+<label class="md-nav__title" for="__toc">
+<span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+<ul class="md-nav__list" data-md-component="toc" data-md-scrollfix="">
+<li class="md-nav__item">
+<a class="md-nav__link" href="#overview">
+<span class="md-ellipsis">
+      Overview
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#1-automated-testing-infrastructure">
+<span class="md-ellipsis">
+      1. Automated Testing Infrastructure
+    </span>
+</a>
+<nav aria-label="1. Automated Testing Infrastructure" class="md-nav">
+<ul class="md-nav__list">
+<li class="md-nav__item">
+<a class="md-nav__link" href="#current-state">
+<span class="md-ellipsis">
+      Current State
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#critical-constraint-casa6-conda-environment">
+<span class="md-ellipsis">
+      Critical Constraint: casa6 Conda Environment
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#required-setup">
+<span class="md-ellipsis">
+      Required Setup
+    </span>
+</a>
+<nav aria-label="Required Setup" class="md-nav">
+<ul class="md-nav__list">
+<li class="md-nav__item">
+<a class="md-nav__link" href="#11-unit-testing-backend">
+<span class="md-ellipsis">
+      1.1 Unit Testing (Backend)
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#12-integration-testing">
+<span class="md-ellipsis">
+      1.2 Integration Testing
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#13-e2e-testing-frontend">
+<span class="md-ellipsis">
+      1.3 E2E Testing (Frontend)
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#14-test-data-management">
+<span class="md-ellipsis">
+      1.4 Test Data Management
+    </span>
+</a>
+</li>
+</ul>
+</nav>
+</li>
+</ul>
+</nav>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#2-cicd-pipeline">
+<span class="md-ellipsis">
+      2. CI/CD Pipeline
+    </span>
+</a>
+<nav aria-label="2. CI/CD Pipeline" class="md-nav">
+<ul class="md-nav__list">
+<li class="md-nav__item">
+<a class="md-nav__link" href="#required-workflows">
+<span class="md-ellipsis">
+      Required Workflows
+    </span>
+</a>
+<nav aria-label="Required Workflows" class="md-nav">
+<ul class="md-nav__list">
+<li class="md-nav__item">
+<a class="md-nav__link" href="#21-pre-commit-checks">
+<span class="md-ellipsis">
+      2.1 Pre-commit Checks
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#22-pull-request-checks">
+<span class="md-ellipsis">
+      2.2 Pull Request Checks
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#23-deployment-pipeline">
+<span class="md-ellipsis">
+      2.3 Deployment Pipeline
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#24-scheduled-jobs">
+<span class="md-ellipsis">
+      2.4 Scheduled Jobs
+    </span>
+</a>
+</li>
+</ul>
+</nav>
+</li>
+</ul>
+</nav>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#3-code-quality-tools">
+<span class="md-ellipsis">
+      3. Code Quality Tools
+    </span>
+</a>
+<nav aria-label="3. Code Quality Tools" class="md-nav">
+<ul class="md-nav__list">
+<li class="md-nav__item">
+<a class="md-nav__link" href="#31-linting-formatting">
+<span class="md-ellipsis">
+      3.1 Linting &amp; Formatting
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#32-pre-commit-hooks">
+<span class="md-ellipsis">
+      3.2 Pre-commit Hooks
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#33-code-review-requirements">
+<span class="md-ellipsis">
+      3.3 Code Review Requirements
+    </span>
+</a>
+</li>
+</ul>
+</nav>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#4-monitoring-observability">
+<span class="md-ellipsis">
+      4. Monitoring &amp; Observability
+    </span>
+</a>
+<nav aria-label="4. Monitoring &amp; Observability" class="md-nav">
+<ul class="md-nav__list">
+<li class="md-nav__item">
+<a class="md-nav__link" href="#41-application-monitoring">
+<span class="md-ellipsis">
+      4.1 Application Monitoring
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#42-health-checks">
+<span class="md-ellipsis">
+      4.2 Health Checks
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#43-alerting">
+<span class="md-ellipsis">
+      4.3 Alerting
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#44-dashboards">
+<span class="md-ellipsis">
+      4.4 Dashboards
+    </span>
+</a>
+</li>
+</ul>
+</nav>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#5-database-management">
+<span class="md-ellipsis">
+      5. Database Management
+    </span>
+</a>
+<nav aria-label="5. Database Management" class="md-nav">
+<ul class="md-nav__list">
+<li class="md-nav__item">
+<a class="md-nav__link" href="#51-migrations">
+<span class="md-ellipsis">
+      5.1 Migrations
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#52-backup-strategy">
+<span class="md-ellipsis">
+      5.2 Backup Strategy
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#53-database-monitoring">
+<span class="md-ellipsis">
+      5.3 Database Monitoring
+    </span>
+</a>
+</li>
+</ul>
+</nav>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#6-security">
+<span class="md-ellipsis">
+      6. Security
+    </span>
+</a>
+<nav aria-label="6. Security" class="md-nav">
+<ul class="md-nav__list">
+<li class="md-nav__item">
+<a class="md-nav__link" href="#61-dependency-management">
+<span class="md-ellipsis">
+      6.1 Dependency Management
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#62-secrets-management">
+<span class="md-ellipsis">
+      6.2 Secrets Management
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#63-api-security">
+<span class="md-ellipsis">
+      6.3 API Security
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#64-infrastructure-security">
+<span class="md-ellipsis">
+      6.4 Infrastructure Security
+    </span>
+</a>
+</li>
+</ul>
+</nav>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#7-documentation">
+<span class="md-ellipsis">
+      7. Documentation
+    </span>
+</a>
+<nav aria-label="7. Documentation" class="md-nav">
+<ul class="md-nav__list">
+<li class="md-nav__item">
+<a class="md-nav__link" href="#71-code-documentation">
+<span class="md-ellipsis">
+      7.1 Code Documentation
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#72-api-documentation">
+<span class="md-ellipsis">
+      7.2 API Documentation
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#73-operational-documentation">
+<span class="md-ellipsis">
+      7.3 Operational Documentation
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#74-developer-onboarding">
+<span class="md-ellipsis">
+      7.4 Developer Onboarding
+    </span>
+</a>
+</li>
+</ul>
+</nav>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#8-performance">
+<span class="md-ellipsis">
+      8. Performance
+    </span>
+</a>
+<nav aria-label="8. Performance" class="md-nav">
+<ul class="md-nav__list">
+<li class="md-nav__item">
+<a class="md-nav__link" href="#81-performance-testing">
+<span class="md-ellipsis">
+      8.1 Performance Testing
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#82-optimization">
+<span class="md-ellipsis">
+      8.2 Optimization
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#83-monitoring">
+<span class="md-ellipsis">
+      8.3 Monitoring
+    </span>
+</a>
+</li>
+</ul>
+</nav>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#9-development-workflow">
+<span class="md-ellipsis">
+      9. Development Workflow
+    </span>
+</a>
+<nav aria-label="9. Development Workflow" class="md-nav">
+<ul class="md-nav__list">
+<li class="md-nav__item">
+<a class="md-nav__link" href="#91-branch-strategy">
+<span class="md-ellipsis">
+      9.1 Branch Strategy
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#92-commit-standards">
+<span class="md-ellipsis">
+      9.2 Commit Standards
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#93-release-process">
+<span class="md-ellipsis">
+      9.3 Release Process
+    </span>
+</a>
+</li>
+</ul>
+</nav>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#10-environment-management">
+<span class="md-ellipsis">
+      10. Environment Management
+    </span>
+</a>
+<nav aria-label="10. Environment Management" class="md-nav">
+<ul class="md-nav__list">
+<li class="md-nav__item">
+<a class="md-nav__link" href="#101-conda-environment-management-critical">
+<span class="md-ellipsis">
+      10.1 Conda Environment Management (CRITICAL)
+    </span>
+</a>
+<nav aria-label="10.1 Conda Environment Management (CRITICAL)" class="md-nav">
+<ul class="md-nav__list">
+<li class="md-nav__item">
+<a class="md-nav__link" href="#environment-file">
+<span class="md-ellipsis">
+      Environment File
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#environment-setup-script">
+<span class="md-ellipsis">
+      Environment Setup Script
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#makefile-integration">
+<span class="md-ellipsis">
+      Makefile Integration
+    </span>
+</a>
+</li>
+</ul>
+</nav>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#102-environment-parity">
+<span class="md-ellipsis">
+      10.2 Environment Parity
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#103-configuration-management">
+<span class="md-ellipsis">
+      10.3 Configuration Management
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#104-containerization">
+<span class="md-ellipsis">
+      10.4 Containerization
+    </span>
+</a>
+</li>
+</ul>
+</nav>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#11-error-handling-logging">
+<span class="md-ellipsis">
+      11. Error Handling &amp; Logging
+    </span>
+</a>
+<nav aria-label="11. Error Handling &amp; Logging" class="md-nav">
+<ul class="md-nav__list">
+<li class="md-nav__item">
+<a class="md-nav__link" href="#111-structured-logging">
+<span class="md-ellipsis">
+      11.1 Structured Logging
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#112-error-handling">
+<span class="md-ellipsis">
+      11.2 Error Handling
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#113-logging-best-practices">
+<span class="md-ellipsis">
+      11.3 Logging Best Practices
+    </span>
+</a>
+</li>
+</ul>
+</nav>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#12-data-management">
+<span class="md-ellipsis">
+      12. Data Management
+    </span>
+</a>
+<nav aria-label="12. Data Management" class="md-nav">
+<ul class="md-nav__list">
+<li class="md-nav__item">
+<a class="md-nav__link" href="#121-data-validation">
+<span class="md-ellipsis">
+      12.1 Data Validation
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#122-data-lineage">
+<span class="md-ellipsis">
+      12.2 Data Lineage
+    </span>
+</a>
+</li>
+</ul>
+</nav>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#13-disaster-recovery">
+<span class="md-ellipsis">
+      13. Disaster Recovery
+    </span>
+</a>
+<nav aria-label="13. Disaster Recovery" class="md-nav">
+<ul class="md-nav__list">
+<li class="md-nav__item">
+<a class="md-nav__link" href="#131-backup-recovery">
+<span class="md-ellipsis">
+      13.1 Backup &amp; Recovery
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#132-high-availability">
+<span class="md-ellipsis">
+      13.2 High Availability
+    </span>
+</a>
+</li>
+</ul>
+</nav>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#14-developer-experience">
+<span class="md-ellipsis">
+      14. Developer Experience
+    </span>
+</a>
+<nav aria-label="14. Developer Experience" class="md-nav">
+<ul class="md-nav__list">
+<li class="md-nav__item">
+<a class="md-nav__link" href="#141-local-development">
+<span class="md-ellipsis">
+      14.1 Local Development
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#142-debugging-tools">
+<span class="md-ellipsis">
+      14.2 Debugging Tools
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#143-documentation-tools">
+<span class="md-ellipsis">
+      14.3 Documentation Tools
+    </span>
+</a>
+</li>
+</ul>
+</nav>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#implementation-priority">
+<span class="md-ellipsis">
+      Implementation Priority
+    </span>
+</a>
+<nav aria-label="Implementation Priority" class="md-nav">
+<ul class="md-nav__list">
+<li class="md-nav__item">
+<a class="md-nav__link" href="#phase-1-critical-immediate">
+<span class="md-ellipsis">
+      Phase 1: Critical (Immediate)
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#phase-2-important-next-sprint">
+<span class="md-ellipsis">
+      Phase 2: Important (Next Sprint)
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#phase-3-enhancement-following-sprints">
+<span class="md-ellipsis">
+      Phase 3: Enhancement (Following Sprints)
+    </span>
+</a>
+</li>
+</ul>
+</nav>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#success-metrics">
+<span class="md-ellipsis">
+      Success Metrics
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#tools-technologies">
+<span class="md-ellipsis">
+      Tools &amp; Technologies
+    </span>
+</a>
+<nav aria-label="Tools &amp; Technologies" class="md-nav">
+<ul class="md-nav__list">
+<li class="md-nav__item">
+<a class="md-nav__link" href="#testing">
+<span class="md-ellipsis">
+      Testing
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#cicd">
+<span class="md-ellipsis">
+      CI/CD
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#monitoring">
+<span class="md-ellipsis">
+      Monitoring
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#code-quality">
+<span class="md-ellipsis">
+      Code Quality
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#security">
+<span class="md-ellipsis">
+      Security
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#conda-environment">
+<span class="md-ellipsis">
+      Conda Environment
+    </span>
+</a>
+</li>
+</ul>
+</nav>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#conclusion">
+<span class="md-ellipsis">
+      Conclusion
+    </span>
+</a>
+</li>
+</ul>
+</nav>
+</div>
+</div>
+</div>
+<div class="md-content" data-md-component="content">
+<article class="md-content__inner md-typeset">
+<h1 id="development-roadmap-zero-corner-cut-setup">Development Roadmap: Zero-Corner-Cut Setup<a class="headerlink" href="#development-roadmap-zero-corner-cut-setup" title="Permanent link">¶</a></h1>
+<h2 id="overview">Overview<a class="headerlink" href="#overview" title="Permanent link">¶</a></h2>
+<p>This document outlines a comprehensive setup to guarantee long-term success with zero corners cut. It covers infrastructure, tooling, processes, and best practices.</p>
+<h2 id="1-automated-testing-infrastructure">1. Automated Testing Infrastructure<a class="headerlink" href="#1-automated-testing-infrastructure" title="Permanent link">¶</a></h2>
+<h3 id="current-state">Current State<a class="headerlink" href="#current-state" title="Permanent link">¶</a></h3>
+<ul>
+<li>✅ Manual testing complete (187 tests, 100% pass rate)</li>
+<li>✅ Backend test endpoints implemented</li>
+<li>⚠️ Automated E2E tests exist but need Docker setup</li>
+<li>⚠️ No unit tests for backend Python code</li>
+<li>⚠️ No integration tests</li>
+</ul>
+<h3 id="critical-constraint-casa6-conda-environment">Critical Constraint: casa6 Conda Environment<a class="headerlink" href="#critical-constraint-casa6-conda-environment" title="Permanent link">¶</a></h3>
+<p><strong>ALL Python operations MUST use <code>/opt/miniforge/envs/casa6/bin/python</code></strong>
+- System Python (3.6.9) lacks CASA dependencies
+- Pipeline WILL FAIL without casa6
+- All testing, linting, and tooling must use casa6 Python</p>
+<h3 id="required-setup">Required Setup<a class="headerlink" href="#required-setup" title="Permanent link">¶</a></h3>
+<h4 id="11-unit-testing-backend">1.1 Unit Testing (Backend)<a class="headerlink" href="#11-unit-testing-backend" title="Permanent link">¶</a></h4>
+<div class="highlight"><pre><span></span><code><span class="c1"># tests/unit/test_data_registry.py</span>
+<span class="c1"># tests/unit/test_pipeline_stages.py</span>
+<span class="c1"># tests/unit/test_api_routes.py</span>
+<span class="c1"># tests/unit/test_websocket_manager.py</span>
+</code></pre></div>
+<p><strong>Tools</strong>: <code>pytest</code>, <code>pytest-cov</code>, <code>pytest-asyncio</code>, <code>pytest-mock</code>
+<strong>Installation</strong>: Install in casa6 conda environment
+<div class="highlight"><pre><span></span><code>conda<span class="w"> </span>activate<span class="w"> </span>casa6
+conda<span class="w"> </span>install<span class="w"> </span>-c<span class="w"> </span>conda-forge<span class="w"> </span>pytest<span class="w"> </span>pytest-cov<span class="w"> </span>pytest-asyncio<span class="w"> </span>pytest-mock
+<span class="c1"># OR</span>
+/opt/miniforge/envs/casa6/bin/pip<span class="w"> </span>install<span class="w"> </span>pytest<span class="w"> </span>pytest-cov<span class="w"> </span>pytest-asyncio<span class="w"> </span>pytest-mock
+</code></pre></div></p>
+<p><strong>Execution</strong>: Always use casa6 Python
+<div class="highlight"><pre><span></span><code><span class="c1"># Use Makefile variable</span>
+make<span class="w"> </span>test-unit<span class="w">  </span><span class="c1"># Uses $(CASA6_PYTHON)</span>
+
+<span class="c1"># Or directly</span>
+/opt/miniforge/envs/casa6/bin/python<span class="w"> </span>-m<span class="w"> </span>pytest<span class="w"> </span>tests/
+</code></pre></div></p>
+<p><strong>Coverage Target</strong>: 80%+ for critical paths, 60%+ overall</p>
+<h4 id="12-integration-testing">1.2 Integration Testing<a class="headerlink" href="#12-integration-testing" title="Permanent link">¶</a></h4>
+<div class="highlight"><pre><span></span><code><span class="c1"># tests/integration/test_pipeline_flow.py</span>
+<span class="c1"># tests/integration/test_data_registration.py</span>
+<span class="c1"># tests/integration/test_api_integration.py</span>
+</code></pre></div>
+<p><strong>Setup</strong>: Test database, test fixtures, cleanup procedures</p>
+<h4 id="13-e2e-testing-frontend">1.3 E2E Testing (Frontend)<a class="headerlink" href="#13-e2e-testing-frontend" title="Permanent link">¶</a></h4>
+<ul>
+<li>Fix Playwright Docker setup</li>
+<li>Add visual regression testing</li>
+<li>Add accessibility testing (a11y)</li>
+<li>Add performance testing</li>
+</ul>
+<p><strong>Tools</strong>: Playwright, Percy/Chromatic, Lighthouse CI</p>
+<h4 id="14-test-data-management">1.4 Test Data Management<a class="headerlink" href="#14-test-data-management" title="Permanent link">¶</a></h4>
+<ul>
+<li>Seed data scripts</li>
+<li>Test data factories</li>
+<li>Database snapshots for consistent testing</li>
+<li>Mock external services</li>
+</ul>
+<h2 id="2-cicd-pipeline">2. CI/CD Pipeline<a class="headerlink" href="#2-cicd-pipeline" title="Permanent link">¶</a></h2>
+<h3 id="required-workflows">Required Workflows<a class="headerlink" href="#required-workflows" title="Permanent link">¶</a></h3>
+<h4 id="21-pre-commit-checks">2.1 Pre-commit Checks<a class="headerlink" href="#21-pre-commit-checks" title="Permanent link">¶</a></h4>
+<div class="highlight"><pre><span></span><code><span class="c1"># .github/workflows/pre-commit.yml</span>
+<span class="p p-Indicator">-</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">Linting (flake8, pylint, eslint)</span>
+<span class="p p-Indicator">-</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">Type checking (mypy, TypeScript)</span>
+<span class="p p-Indicator">-</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">Format checking (black, prettier)</span>
+<span class="p p-Indicator">-</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">Security scanning (bandit, npm audit)</span>
+</code></pre></div>
+<h4 id="22-pull-request-checks">2.2 Pull Request Checks<a class="headerlink" href="#22-pull-request-checks" title="Permanent link">¶</a></h4>
+<div class="highlight"><pre><span></span><code><span class="c1"># .github/workflows/pr-checks.yml</span>
+<span class="p p-Indicator">-</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">Unit tests</span>
+<span class="p p-Indicator">-</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">Integration tests</span>
+<span class="p p-Indicator">-</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">E2E tests (smoke tests)</span>
+<span class="p p-Indicator">-</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">Code coverage check</span>
+<span class="p p-Indicator">-</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">Build verification</span>
+</code></pre></div>
+<h4 id="23-deployment-pipeline">2.3 Deployment Pipeline<a class="headerlink" href="#23-deployment-pipeline" title="Permanent link">¶</a></h4>
+<div class="highlight"><pre><span></span><code><span class="c1"># .github/workflows/deploy.yml</span>
+<span class="p p-Indicator">-</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">Build Docker images</span>
+<span class="p p-Indicator">-</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">Run full test suite</span>
+<span class="p p-Indicator">-</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">Security scanning</span>
+<span class="p p-Indicator">-</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">Deploy to staging</span>
+<span class="p p-Indicator">-</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">Run smoke tests</span>
+<span class="p p-Indicator">-</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">Deploy to production (manual approval)</span>
+<span class="p p-Indicator">-</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">Post-deployment verification</span>
+</code></pre></div>
+<h4 id="24-scheduled-jobs">2.4 Scheduled Jobs<a class="headerlink" href="#24-scheduled-jobs" title="Permanent link">¶</a></h4>
+<div class="highlight"><pre><span></span><code><span class="c1"># .github/workflows/nightly.yml</span>
+<span class="p p-Indicator">-</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">Full test suite</span>
+<span class="p p-Indicator">-</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">Performance benchmarks</span>
+<span class="p p-Indicator">-</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">Dependency updates check</span>
+<span class="p p-Indicator">-</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">Database migration tests</span>
+</code></pre></div>
+<h2 id="3-code-quality-tools">3. Code Quality Tools<a class="headerlink" href="#3-code-quality-tools" title="Permanent link">¶</a></h2>
+<h3 id="31-linting-formatting">3.1 Linting &amp; Formatting<a class="headerlink" href="#31-linting-formatting" title="Permanent link">¶</a></h3>
+<p><strong>Backend</strong> (MUST use casa6 conda environment):
+- <code>black</code> (code formatting) - Install in casa6: <code>conda install -c conda-forge black</code>
+- <code>flake8</code> (linting) - Install in casa6: <code>conda install -c conda-forge flake8</code>
+- <code>mypy</code> (type checking) - Install in casa6: <code>conda install -c conda-forge mypy</code>
+- <code>pylint</code> (code quality) - Install in casa6: <code>conda install -c conda-forge pylint</code>
+- <code>bandit</code> (security) - Install in casa6: <code>pip install bandit</code></p>
+<p><strong>Execution</strong>: Always use casa6 Python
+<div class="highlight"><pre><span></span><code><span class="c1"># Use wrapper scripts or Makefile</span>
+/opt/miniforge/envs/casa6/bin/python<span class="w"> </span>-m<span class="w"> </span>black<span class="w"> </span>src/
+/opt/miniforge/envs/casa6/bin/python<span class="w"> </span>-m<span class="w"> </span>flake8<span class="w"> </span>src/
+/opt/miniforge/envs/casa6/bin/python<span class="w"> </span>-m<span class="w"> </span>mypy<span class="w"> </span>src/
+</code></pre></div></p>
+<p><strong>Frontend</strong>:
+- <code>eslint</code> (linting)
+- <code>prettier</code> (formatting)
+- <code>typescript</code> (type checking)</p>
+<h3 id="32-pre-commit-hooks">3.2 Pre-commit Hooks<a class="headerlink" href="#32-pre-commit-hooks" title="Permanent link">¶</a></h3>
+<div class="highlight"><pre><span></span><code><span class="c1"># .pre-commit-config.yaml</span>
+<span class="nt">repos</span><span class="p">:</span>
+<span class="w">  </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">hooks for black, flake8, eslint, prettier</span>
+<span class="w">  </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">hooks for security scanning</span>
+<span class="w">  </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">hooks for commit message format</span>
+</code></pre></div>
+<p><strong>Critical</strong>: Pre-commit hooks MUST use casa6 Python
+<div class="highlight"><pre><span></span><code><span class="c1"># .pre-commit-config.yaml</span>
+<span class="nt">repos</span><span class="p">:</span>
+<span class="w">  </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">repo</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">local</span>
+<span class="w">    </span><span class="nt">hooks</span><span class="p">:</span>
+<span class="w">      </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">id</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">black</span>
+<span class="w">        </span><span class="nt">name</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">black (casa6)</span>
+<span class="w">        </span><span class="nt">entry</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">/opt/miniforge/envs/casa6/bin/black</span>
+<span class="w">        </span><span class="nt">language</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">system</span>
+<span class="w">        </span><span class="nt">types</span><span class="p">:</span><span class="w"> </span><span class="p p-Indicator">[</span><span class="nv">python</span><span class="p p-Indicator">]</span>
+<span class="w">      </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">id</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">flake8</span>
+<span class="w">        </span><span class="nt">name</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">flake8 (casa6)</span>
+<span class="w">        </span><span class="nt">entry</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">/opt/miniforge/envs/casa6/bin/flake8</span>
+<span class="w">        </span><span class="nt">language</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">system</span>
+<span class="w">        </span><span class="nt">types</span><span class="p">:</span><span class="w"> </span><span class="p p-Indicator">[</span><span class="nv">python</span><span class="p p-Indicator">]</span>
+<span class="w">      </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">id</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">mypy</span>
+<span class="w">        </span><span class="nt">name</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">mypy (casa6)</span>
+<span class="w">        </span><span class="nt">entry</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">/opt/miniforge/envs/casa6/bin/mypy</span>
+<span class="w">        </span><span class="nt">language</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">system</span>
+<span class="w">        </span><span class="nt">types</span><span class="p">:</span><span class="w"> </span><span class="p p-Indicator">[</span><span class="nv">python</span><span class="p p-Indicator">]</span>
+</code></pre></div></p>
+<h3 id="33-code-review-requirements">3.3 Code Review Requirements<a class="headerlink" href="#33-code-review-requirements" title="Permanent link">¶</a></h3>
+<ul>
+<li>Minimum 2 approvals for production changes</li>
+<li>Automated checks must pass</li>
+<li>Code coverage cannot decrease</li>
+<li>Security review for sensitive changes</li>
+</ul>
+<h2 id="4-monitoring-observability">4. Monitoring &amp; Observability<a class="headerlink" href="#4-monitoring-observability" title="Permanent link">¶</a></h2>
+<h3 id="41-application-monitoring">4.1 Application Monitoring<a class="headerlink" href="#41-application-monitoring" title="Permanent link">¶</a></h3>
+<ul>
+<li><strong>APM</strong>: New Relic, Datadog, or Prometheus + Grafana</li>
+<li><strong>Error Tracking</strong>: Sentry</li>
+<li><strong>Log Aggregation</strong>: ELK stack or CloudWatch</li>
+<li><strong>Metrics</strong>: Custom metrics for pipeline stages, API endpoints</li>
+</ul>
+<h3 id="42-health-checks">4.2 Health Checks<a class="headerlink" href="#42-health-checks" title="Permanent link">¶</a></h3>
+<ul>
+<li><code>/api/health</code> endpoint (already exists)</li>
+<li>Database connectivity checks</li>
+<li>External service checks</li>
+<li>Disk space monitoring</li>
+<li>Memory/CPU monitoring</li>
+</ul>
+<h3 id="43-alerting">4.3 Alerting<a class="headerlink" href="#43-alerting" title="Permanent link">¶</a></h3>
+<ul>
+<li>Critical errors → Immediate notification</li>
+<li>Performance degradation → Alert after threshold</li>
+<li>Resource exhaustion → Proactive alerts</li>
+<li>Failed pipeline stages → Alert with context</li>
+</ul>
+<h3 id="44-dashboards">4.4 Dashboards<a class="headerlink" href="#44-dashboards" title="Permanent link">¶</a></h3>
+<ul>
+<li>Real-time system health</li>
+<li>Pipeline success rates</li>
+<li>API response times</li>
+<li>Error rates by endpoint</li>
+<li>Resource utilization</li>
+</ul>
+<h2 id="5-database-management">5. Database Management<a class="headerlink" href="#5-database-management" title="Permanent link">¶</a></h2>
+<h3 id="51-migrations">5.1 Migrations<a class="headerlink" href="#51-migrations" title="Permanent link">¶</a></h3>
+<ul>
+<li>Version-controlled migrations (Alembic for SQLAlchemy)</li>
+<li>Migration testing in CI</li>
+<li>Rollback procedures</li>
+<li>Migration validation</li>
+</ul>
+<p><strong>Installation</strong>: Install Alembic in casa6 conda environment
+<div class="highlight"><pre><span></span><code>conda<span class="w"> </span>activate<span class="w"> </span>casa6
+conda<span class="w"> </span>install<span class="w"> </span>-c<span class="w"> </span>conda-forge<span class="w"> </span>alembic
+<span class="c1"># OR</span>
+/opt/miniforge/envs/casa6/bin/pip<span class="w"> </span>install<span class="w"> </span>alembic
+</code></pre></div></p>
+<p><strong>Execution</strong>: Always use casa6 Python
+<div class="highlight"><pre><span></span><code><span class="c1"># Use casa6 Python for all Alembic commands</span>
+/opt/miniforge/envs/casa6/bin/alembic<span class="w"> </span>upgrade<span class="w"> </span>head
+/opt/miniforge/envs/casa6/bin/alembic<span class="w"> </span>revision<span class="w"> </span>--autogenerate<span class="w"> </span>-m<span class="w"> </span><span class="s2">"description"</span>
+</code></pre></div></p>
+<h3 id="52-backup-strategy">5.2 Backup Strategy<a class="headerlink" href="#52-backup-strategy" title="Permanent link">¶</a></h3>
+<ul>
+<li>Automated daily backups</li>
+<li>Point-in-time recovery capability</li>
+<li>Backup verification</li>
+<li>Disaster recovery plan</li>
+</ul>
+<h3 id="53-database-monitoring">5.3 Database Monitoring<a class="headerlink" href="#53-database-monitoring" title="Permanent link">¶</a></h3>
+<ul>
+<li>Query performance monitoring</li>
+<li>Slow query alerts</li>
+<li>Connection pool monitoring</li>
+<li>Database size tracking</li>
+</ul>
+<h2 id="6-security">6. Security<a class="headerlink" href="#6-security" title="Permanent link">¶</a></h2>
+<h3 id="61-dependency-management">6.1 Dependency Management<a class="headerlink" href="#61-dependency-management" title="Permanent link">¶</a></h3>
+<ul>
+<li>Automated dependency updates (Dependabot/Renovate)</li>
+<li>Security vulnerability scanning</li>
+<li>License compliance checking</li>
+<li>Regular security audits</li>
+</ul>
+<h3 id="62-secrets-management">6.2 Secrets Management<a class="headerlink" href="#62-secrets-management" title="Permanent link">¶</a></h3>
+<ul>
+<li>No secrets in code or config files</li>
+<li>Use environment variables or secret managers (Vault, AWS Secrets Manager)</li>
+<li>Rotate secrets regularly</li>
+<li>Audit secret access</li>
+</ul>
+<h3 id="63-api-security">6.3 API Security<a class="headerlink" href="#63-api-security" title="Permanent link">¶</a></h3>
+<ul>
+<li>Rate limiting</li>
+<li>Input validation</li>
+<li>SQL injection prevention (parameterized queries)</li>
+<li>XSS prevention</li>
+<li>CORS configuration</li>
+<li>Authentication/authorization (when needed)</li>
+</ul>
+<h3 id="64-infrastructure-security">6.4 Infrastructure Security<a class="headerlink" href="#64-infrastructure-security" title="Permanent link">¶</a></h3>
+<ul>
+<li>Regular security updates</li>
+<li>Network segmentation</li>
+<li>Firewall rules</li>
+<li>Intrusion detection</li>
+</ul>
+<h2 id="7-documentation">7. Documentation<a class="headerlink" href="#7-documentation" title="Permanent link">¶</a></h2>
+<h3 id="71-code-documentation">7.1 Code Documentation<a class="headerlink" href="#71-code-documentation" title="Permanent link">¶</a></h3>
+<ul>
+<li>Docstrings for all functions/classes</li>
+<li>Type hints everywhere</li>
+<li>README files for each module</li>
+<li>Architecture decision records (ADRs)</li>
+</ul>
+<h3 id="72-api-documentation">7.2 API Documentation<a class="headerlink" href="#72-api-documentation" title="Permanent link">¶</a></h3>
+<ul>
+<li>OpenAPI/Swagger specs (auto-generated)</li>
+<li>API usage examples</li>
+<li>Error code documentation</li>
+<li>Rate limiting documentation</li>
+</ul>
+<h3 id="73-operational-documentation">7.3 Operational Documentation<a class="headerlink" href="#73-operational-documentation" title="Permanent link">¶</a></h3>
+<ul>
+<li>Deployment procedures</li>
+<li>Rollback procedures</li>
+<li>Troubleshooting guides</li>
+<li>Runbooks for common issues</li>
+<li>Incident response procedures</li>
+</ul>
+<h3 id="74-developer-onboarding">7.4 Developer Onboarding<a class="headerlink" href="#74-developer-onboarding" title="Permanent link">¶</a></h3>
+<ul>
+<li>Setup guide</li>
+<li>Development workflow</li>
+<li>Testing guide</li>
+<li>Contribution guidelines</li>
+<li>Code style guide</li>
+</ul>
+<h2 id="8-performance">8. Performance<a class="headerlink" href="#8-performance" title="Permanent link">¶</a></h2>
+<h3 id="81-performance-testing">8.1 Performance Testing<a class="headerlink" href="#81-performance-testing" title="Permanent link">¶</a></h3>
+<ul>
+<li>Load testing (Locust, k6)</li>
+<li>Stress testing</li>
+<li>Endurance testing</li>
+<li>Baseline performance metrics</li>
+</ul>
+<h3 id="82-optimization">8.2 Optimization<a class="headerlink" href="#82-optimization" title="Permanent link">¶</a></h3>
+<ul>
+<li>Database query optimization</li>
+<li>Caching strategy (Redis)</li>
+<li>CDN for static assets</li>
+<li>Image optimization</li>
+<li>Code profiling</li>
+</ul>
+<h3 id="83-monitoring">8.3 Monitoring<a class="headerlink" href="#83-monitoring" title="Permanent link">¶</a></h3>
+<ul>
+<li>Response time tracking</li>
+<li>Throughput monitoring</li>
+<li>Resource utilization</li>
+<li>Performance regression detection</li>
+</ul>
+<h2 id="9-development-workflow">9. Development Workflow<a class="headerlink" href="#9-development-workflow" title="Permanent link">¶</a></h2>
+<h3 id="91-branch-strategy">9.1 Branch Strategy<a class="headerlink" href="#91-branch-strategy" title="Permanent link">¶</a></h3>
+<ul>
+<li><code>main</code> - Production-ready code</li>
+<li><code>develop</code> - Integration branch</li>
+<li>Feature branches from <code>develop</code></li>
+<li>Hotfix branches from <code>main</code></li>
+</ul>
+<h3 id="92-commit-standards">9.2 Commit Standards<a class="headerlink" href="#92-commit-standards" title="Permanent link">¶</a></h3>
+<ul>
+<li>Conventional commits format</li>
+<li>Meaningful commit messages</li>
+<li>Atomic commits</li>
+<li>Signed commits (optional but recommended)</li>
+</ul>
+<h3 id="93-release-process">9.3 Release Process<a class="headerlink" href="#93-release-process" title="Permanent link">¶</a></h3>
+<ul>
+<li>Semantic versioning</li>
+<li>Changelog generation</li>
+<li>Release notes</li>
+<li>Tagged releases</li>
+<li>Rollback plan for each release</li>
+</ul>
+<h2 id="10-environment-management">10. Environment Management<a class="headerlink" href="#10-environment-management" title="Permanent link">¶</a></h2>
+<h3 id="101-conda-environment-management-critical">10.1 Conda Environment Management (CRITICAL)<a class="headerlink" href="#101-conda-environment-management-critical" title="Permanent link">¶</a></h3>
+<p><strong>MANDATORY</strong>: All Python operations use casa6 conda environment</p>
+<h4 id="environment-file">Environment File<a class="headerlink" href="#environment-file" title="Permanent link">¶</a></h4>
+<p>Create <code>environment.yml</code> to document casa6 dependencies:
+<div class="highlight"><pre><span></span><code><span class="nt">name</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">casa6</span>
+<span class="nt">channels</span><span class="p">:</span>
+<span class="w">  </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">conda-forge</span>
+<span class="w">  </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">defaults</span>
+<span class="nt">dependencies</span><span class="p">:</span>
+<span class="w">  </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">python=3.11</span>
+<span class="w">  </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">casa6</span><span class="w">  </span><span class="c1"># CASA dependencies</span>
+<span class="w">  </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">pytest</span>
+<span class="w">  </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">pytest-cov</span>
+<span class="w">  </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">pytest-asyncio</span>
+<span class="w">  </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">black</span>
+<span class="w">  </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">flake8</span>
+<span class="w">  </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">mypy</span>
+<span class="w">  </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">alembic</span>
+<span class="w">  </span><span class="c1"># ... other dependencies</span>
+</code></pre></div></p>
+<h4 id="environment-setup-script">Environment Setup Script<a class="headerlink" href="#environment-setup-script" title="Permanent link">¶</a></h4>
+<div class="highlight"><pre><span></span><code><span class="ch">#!/bin/bash</span>
+<span class="c1"># scripts/setup-casa6-env.sh</span>
+<span class="c1"># Verify casa6 exists</span>
+<span class="k">if</span><span class="w"> </span><span class="o">[</span><span class="w"> </span>!<span class="w"> </span>-d<span class="w"> </span><span class="s2">"/opt/miniforge/envs/casa6"</span><span class="w"> </span><span class="o">]</span><span class="p">;</span><span class="w"> </span><span class="k">then</span>
+<span class="w">    </span><span class="nb">echo</span><span class="w"> </span><span class="s2">"ERROR: casa6 conda environment not found"</span>
+<span class="w">    </span><span class="nb">exit</span><span class="w"> </span><span class="m">1</span>
+<span class="k">fi</span>
+
+<span class="c1"># Install development dependencies</span>
+/opt/miniforge/envs/casa6/bin/pip<span class="w"> </span>install<span class="w"> </span>-r<span class="w"> </span>requirements-dev.txt
+</code></pre></div>
+<h4 id="makefile-integration">Makefile Integration<a class="headerlink" href="#makefile-integration" title="Permanent link">¶</a></h4>
+<div class="highlight"><pre><span></span><code><span class="c"># Use CASA6_PYTHON variable consistently</span>
+<span class="nv">CASA6_PYTHON</span><span class="w"> </span><span class="o">:=</span><span class="w"> </span>/opt/miniforge/envs/casa6/bin/python
+
+<span class="nf">test-unit</span><span class="o">:</span>
+<span class="w">    </span><span class="k">$(</span>CASA6_PYTHON<span class="k">)</span><span class="w"> </span>-m<span class="w"> </span>pytest<span class="w"> </span>tests/unit
+
+<span class="nf">lint</span><span class="o">:</span>
+<span class="w">    </span><span class="k">$(</span>CASA6_PYTHON<span class="k">)</span><span class="w"> </span>-m<span class="w"> </span>flake8<span class="w"> </span>src/
+<span class="w">    </span><span class="k">$(</span>CASA6_PYTHON<span class="k">)</span><span class="w"> </span>-m<span class="w"> </span>black<span class="w"> </span>--check<span class="w"> </span>src/
+
+<span class="nf">format</span><span class="o">:</span>
+<span class="w">    </span><span class="k">$(</span>CASA6_PYTHON<span class="k">)</span><span class="w"> </span>-m<span class="w"> </span>black<span class="w"> </span>src/
+</code></pre></div>
+<h3 id="102-environment-parity">10.2 Environment Parity<a class="headerlink" href="#102-environment-parity" title="Permanent link">¶</a></h3>
+<ul>
+<li>Development mirrors production</li>
+<li>Same database versions</li>
+<li>Same Python version (via casa6 conda environment)</li>
+<li>Same Node versions</li>
+<li>Same dependencies (documented in environment.yml)</li>
+</ul>
+<h3 id="103-configuration-management">10.3 Configuration Management<a class="headerlink" href="#103-configuration-management" title="Permanent link">¶</a></h3>
+<ul>
+<li>Environment-specific configs</li>
+<li>No hardcoded values</li>
+<li>Configuration validation</li>
+<li>Secrets in environment variables</li>
+<li><strong>CASA6_PYTHON path in environment variables</strong></li>
+</ul>
+<h3 id="104-containerization">10.4 Containerization<a class="headerlink" href="#104-containerization" title="Permanent link">¶</a></h3>
+<ul>
+<li>Docker for all services</li>
+<li>Docker Compose for local development</li>
+<li><strong>Docker images must include casa6 conda environment</strong></li>
+<li>Kubernetes-ready (for scaling)</li>
+<li>Container image scanning</li>
+</ul>
+<h2 id="11-error-handling-logging">11. Error Handling &amp; Logging<a class="headerlink" href="#11-error-handling-logging" title="Permanent link">¶</a></h2>
+<h3 id="111-structured-logging">11.1 Structured Logging<a class="headerlink" href="#111-structured-logging" title="Permanent link">¶</a></h3>
+<ul>
+<li>JSON-formatted logs</li>
+<li>Log levels (DEBUG, INFO, WARNING, ERROR, CRITICAL)</li>
+<li>Contextual information in logs</li>
+<li>Request IDs for tracing</li>
+</ul>
+<h3 id="112-error-handling">11.2 Error Handling<a class="headerlink" href="#112-error-handling" title="Permanent link">¶</a></h3>
+<ul>
+<li>Consistent error responses</li>
+<li>Error codes/messages</li>
+<li>Stack traces in development, sanitized in production</li>
+<li>Error recovery strategies</li>
+</ul>
+<h3 id="113-logging-best-practices">11.3 Logging Best Practices<a class="headerlink" href="#113-logging-best-practices" title="Permanent link">¶</a></h3>
+<ul>
+<li>Don't log sensitive information</li>
+<li>Appropriate log levels</li>
+<li>Centralized logging</li>
+<li>Log retention policies</li>
+</ul>
+<h2 id="12-data-management">12. Data Management<a class="headerlink" href="#12-data-management" title="Permanent link">¶</a></h2>
+<h3 id="121-data-validation">12.1 Data Validation<a class="headerlink" href="#121-data-validation" title="Permanent link">¶</a></h3>
+<ul>
+<li>Input validation at API boundaries</li>
+<li>Schema validation</li>
+<li>Data sanitization</li>
+<li>Type checking</li>
+</ul>
+<h3 id="122-data-lineage">12.2 Data Lineage<a class="headerlink" href="#122-data-lineage" title="Permanent link">¶</a></h3>
+<ul>
+<li>Track data flow (already implemented)</li>
+<li>Audit trails</li>
+<li>Data quality checks</li>
+<li>Data retention policies</li>
+</ul>
+<h2 id="13-disaster-recovery">13. Disaster Recovery<a class="headerlink" href="#13-disaster-recovery" title="Permanent link">¶</a></h2>
+<h3 id="131-backup-recovery">13.1 Backup &amp; Recovery<a class="headerlink" href="#131-backup-recovery" title="Permanent link">¶</a></h3>
+<ul>
+<li>Regular backups (automated)</li>
+<li>Backup testing</li>
+<li>Recovery procedures documented</li>
+<li>RTO/RPO defined</li>
+</ul>
+<h3 id="132-high-availability">13.2 High Availability<a class="headerlink" href="#132-high-availability" title="Permanent link">¶</a></h3>
+<ul>
+<li>Redundancy where critical</li>
+<li>Failover procedures</li>
+<li>Health checks</li>
+<li>Graceful degradation</li>
+</ul>
+<h2 id="14-developer-experience">14. Developer Experience<a class="headerlink" href="#14-developer-experience" title="Permanent link">¶</a></h2>
+<h3 id="141-local-development">14.1 Local Development<a class="headerlink" href="#141-local-development" title="Permanent link">¶</a></h3>
+<ul>
+<li>One-command setup (<code>make dev-setup</code>)</li>
+<li>Hot reload for development</li>
+<li>Easy database reset</li>
+<li>Mock external services</li>
+</ul>
+<h3 id="142-debugging-tools">14.2 Debugging Tools<a class="headerlink" href="#142-debugging-tools" title="Permanent link">¶</a></h3>
+<ul>
+<li>Debugger integration</li>
+<li>Logging in development</li>
+<li>API testing tools (Postman/Insomnia collections)</li>
+<li>Database inspection tools</li>
+</ul>
+<h3 id="143-documentation-tools">14.3 Documentation Tools<a class="headerlink" href="#143-documentation-tools" title="Permanent link">¶</a></h3>
+<ul>
+<li>API documentation (Swagger UI)</li>
+<li>Architecture diagrams (Mermaid, PlantUML)</li>
+<li>Decision logs</li>
+<li>Knowledge base</li>
+</ul>
+<h2 id="implementation-priority">Implementation Priority<a class="headerlink" href="#implementation-priority" title="Permanent link">¶</a></h2>
+<h3 id="phase-1-critical-immediate">Phase 1: Critical (Immediate)<a class="headerlink" href="#phase-1-critical-immediate" title="Permanent link">¶</a></h3>
+<ol>
+<li>✅ Automated unit tests for backend</li>
+<li>✅ CI/CD pipeline (basic)</li>
+<li>✅ Code quality tools (linting, formatting)</li>
+<li>✅ Error tracking (Sentry)</li>
+<li>✅ Database migrations</li>
+</ol>
+<h3 id="phase-2-important-next-sprint">Phase 2: Important (Next Sprint)<a class="headerlink" href="#phase-2-important-next-sprint" title="Permanent link">¶</a></h3>
+<ol>
+<li>✅ Integration tests</li>
+<li>✅ E2E test automation</li>
+<li>✅ Monitoring &amp; alerting</li>
+<li>✅ Performance testing</li>
+<li>✅ Security scanning</li>
+</ol>
+<h3 id="phase-3-enhancement-following-sprints">Phase 3: Enhancement (Following Sprints)<a class="headerlink" href="#phase-3-enhancement-following-sprints" title="Permanent link">¶</a></h3>
+<ol>
+<li>✅ Advanced monitoring dashboards</li>
+<li>✅ Load testing</li>
+<li>✅ Disaster recovery procedures</li>
+<li>✅ Advanced security hardening</li>
+<li>✅ Performance optimization</li>
+</ol>
+<h2 id="success-metrics">Success Metrics<a class="headerlink" href="#success-metrics" title="Permanent link">¶</a></h2>
+<ul>
+<li><strong>Code Coverage</strong>: &gt;80% for critical paths</li>
+<li><strong>Test Execution</strong>: All tests pass before merge</li>
+<li><strong>Deployment Frequency</strong>: Daily (or as needed)</li>
+<li><strong>Mean Time to Recovery</strong>: &lt;1 hour</li>
+<li><strong>Error Rate</strong>: &lt;0.1%</li>
+<li><strong>API Response Time</strong>: P95 &lt;500ms</li>
+<li><strong>Security Vulnerabilities</strong>: Zero critical/high</li>
+</ul>
+<h2 id="tools-technologies">Tools &amp; Technologies<a class="headerlink" href="#tools-technologies" title="Permanent link">¶</a></h2>
+<h3 id="testing">Testing<a class="headerlink" href="#testing" title="Permanent link">¶</a></h3>
+<ul>
+<li>pytest, pytest-cov, pytest-asyncio (installed in casa6)</li>
+<li>Playwright, Vitest</li>
+<li>Locust, k6</li>
+</ul>
+<h3 id="cicd">CI/CD<a class="headerlink" href="#cicd" title="Permanent link">¶</a></h3>
+<ul>
+<li>GitHub Actions / GitLab CI</li>
+<li>Docker, Docker Compose</li>
+<li>Kubernetes (for production scaling)</li>
+<li><strong>All CI steps must use casa6 Python</strong></li>
+</ul>
+<h3 id="monitoring">Monitoring<a class="headerlink" href="#monitoring" title="Permanent link">¶</a></h3>
+<ul>
+<li>Prometheus + Grafana</li>
+<li>Sentry</li>
+<li>ELK Stack</li>
+</ul>
+<h3 id="code-quality">Code Quality<a class="headerlink" href="#code-quality" title="Permanent link">¶</a></h3>
+<ul>
+<li>black, flake8, mypy, pylint (installed in casa6)</li>
+<li>eslint, prettier, typescript</li>
+<li>SonarQube (optional)</li>
+</ul>
+<h3 id="security">Security<a class="headerlink" href="#security" title="Permanent link">¶</a></h3>
+<ul>
+<li>bandit, safety (installed in casa6)</li>
+<li>npm audit, Snyk</li>
+<li>OWASP ZAP</li>
+</ul>
+<h3 id="conda-environment">Conda Environment<a class="headerlink" href="#conda-environment" title="Permanent link">¶</a></h3>
+<ul>
+<li><strong>casa6 conda environment</strong> (MANDATORY)</li>
+<li>environment.yml for dependency documentation</li>
+<li>conda-forge channel for packages</li>
+<li>pip fallback for packages not in conda</li>
+</ul>
+<h2 id="conclusion">Conclusion<a class="headerlink" href="#conclusion" title="Permanent link">¶</a></h2>
+<p>This roadmap ensures:
+- ✅ No corners cut
+- ✅ Long-term maintainability
+- ✅ High code quality
+- ✅ Reliable deployments
+- ✅ Quick issue resolution
+- ✅ Scalable architecture
+- ✅ Security best practices</p>
+<p>Each item should be implemented systematically, with proper documentation and team buy-in.</p>
+</article>
+</div>
+<script>var tabs=__md_get("__tabs");if(Array.isArray(tabs))e:for(var set of document.querySelectorAll(".tabbed-set")){var tab,labels=set.querySelector(".tabbed-labels");for(tab of tabs)for(var label of labels.getElementsByTagName("label"))if(label.innerText.trim()===tab){var input=document.getElementById(label.htmlFor);input.checked=!0;continue e}}</script>
+<script>var target=document.getElementById(location.hash.slice(1));target&&target.name&&(target.checked=target.name.startsWith("__tabbed_"))</script>
+</div>
+</main>
+<footer class="md-footer">
+<div class="md-footer-meta md-typeset">
+<div class="md-footer-meta__inner md-grid">
+<div class="md-copyright">
+  
+  
+    Made with
+    <a href="https://squidfunk.github.io/mkdocs-material/" rel="noopener" target="_blank">
+      Material for MkDocs
+    </a>
+</div>
+</div>
+</div>
+</footer>
+</div>
+<div class="md-dialog" data-md-component="dialog">
+<div class="md-dialog__inner md-typeset"></div>
+</div>
+<script id="__config" type="application/json">{"base": "..", "features": ["navigation.sections", "navigation.indexes", "content.code.copy", "content.tabs.link"], "search": "../assets/javascripts/workers/search.b8dbb3d2.min.js", "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}}</script>
+<script src="../assets/javascripts/bundle.fe8b6f2b.min.js"></script>
+<script src="../javascripts/mathjax.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+<script src="../javascripts/mermaid-zoom.js"></script>
+</body>
+</html>

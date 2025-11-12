@@ -1,0 +1,2110 @@
+
+<!DOCTYPE html>
+
+<html class="no-js" lang="en">
+<head>
+<meta charset="utf-8"/>
+<meta content="width=device-width,initial-scale=1" name="viewport"/>
+<link href="http://code.deepsynoptic.org/dsa110-contimg/dev/notes/TODO/" rel="canonical"/>
+<link href="../../../assets/images/favicon.png" rel="icon"/>
+<meta content="mkdocs-1.6.1, mkdocs-material-9.5.31" name="generator"/>
+<title>TODO - DSA-110 Continuum Imaging Pipeline - DSA-110 Continuum Imaging Pipeline</title>
+<link href="../../../assets/stylesheets/main.3cba04c6.min.css" rel="stylesheet"/>
+<link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect"/>
+<link href="https://fonts.googleapis.com/css?family=Roboto:300,300i,400,400i,700,700i%7CRoboto+Mono:400,400i,700,700i&amp;display=fallback" rel="stylesheet"/>
+<style>:root{--md-text-font:"Roboto";--md-code-font:"Roboto Mono"}</style>
+<link href="../../../assets/_mkdocstrings.css" rel="stylesheet"/>
+<script>__md_scope=new URL("../../..",location),__md_hash=e=>[...e].reduce((e,_)=>(e<<5)-e+_.charCodeAt(0),0),__md_get=(e,_=localStorage,t=__md_scope)=>JSON.parse(_.getItem(t.pathname+"."+e)),__md_set=(e,_,t=localStorage,a=__md_scope)=>{try{t.setItem(a.pathname+"."+e,JSON.stringify(_))}catch(e){}}</script>
+</head>
+<body dir="ltr">
+<input autocomplete="off" class="md-toggle" data-md-toggle="drawer" id="__drawer" type="checkbox"/>
+<input autocomplete="off" class="md-toggle" data-md-toggle="search" id="__search" type="checkbox"/>
+<label class="md-overlay" for="__drawer"></label>
+<div data-md-component="skip">
+<a class="md-skip" href="#todo-dsa-110-continuum-imaging-pipeline">
+          Skip to content
+        </a>
+</div>
+<div data-md-component="announce">
+</div>
+<header class="md-header md-header--shadow" data-md-component="header">
+<nav aria-label="Header" class="md-header__inner md-grid">
+<a aria-label="DSA-110 Continuum Imaging Pipeline" class="md-header__button md-logo" data-md-component="logo" href="../../.." title="DSA-110 Continuum Imaging Pipeline">
+<svg viewbox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54Z"></path></svg>
+</a>
+<label class="md-header__button md-icon" for="__drawer">
+<svg viewbox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M3 6h18v2H3V6m0 5h18v2H3v-2m0 5h18v2H3v-2Z"></path></svg>
+</label>
+<div class="md-header__title" data-md-component="header-title">
+<div class="md-header__ellipsis">
+<div class="md-header__topic">
+<span class="md-ellipsis">
+            DSA-110 Continuum Imaging Pipeline
+          </span>
+</div>
+<div class="md-header__topic" data-md-component="header-topic">
+<span class="md-ellipsis">
+            
+              TODO - DSA-110 Continuum Imaging Pipeline
+            
+          </span>
+</div>
+</div>
+</div>
+<script>var media,input,key,value,palette=__md_get("__palette");if(palette&&palette.color){"(prefers-color-scheme)"===palette.color.media&&(media=matchMedia("(prefers-color-scheme: light)"),input=document.querySelector(media.matches?"[data-md-color-media='(prefers-color-scheme: light)']":"[data-md-color-media='(prefers-color-scheme: dark)']"),palette.color.media=input.getAttribute("data-md-color-media"),palette.color.scheme=input.getAttribute("data-md-color-scheme"),palette.color.primary=input.getAttribute("data-md-color-primary"),palette.color.accent=input.getAttribute("data-md-color-accent"));for([key,value]of Object.entries(palette.color))document.body.setAttribute("data-md-color-"+key,value)}</script>
+<label class="md-header__button md-icon" for="__search">
+<svg viewbox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.516 6.516 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5Z"></path></svg>
+</label>
+<div class="md-search" data-md-component="search" role="dialog">
+<label class="md-search__overlay" for="__search"></label>
+<div class="md-search__inner" role="search">
+<form class="md-search__form" name="search">
+<input aria-label="Search" autocapitalize="off" autocomplete="off" autocorrect="off" class="md-search__input" data-md-component="search-query" name="query" placeholder="Search" required="" spellcheck="false" type="text"/>
+<label class="md-search__icon md-icon" for="__search">
+<svg viewbox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.516 6.516 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5Z"></path></svg>
+<svg viewbox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11h12Z"></path></svg>
+</label>
+<nav aria-label="Search" class="md-search__options">
+<button aria-label="Clear" class="md-search__icon md-icon" tabindex="-1" title="Clear" type="reset">
+<svg viewbox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M19 6.41 17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12 19 6.41Z"></path></svg>
+</button>
+</nav>
+</form>
+<div class="md-search__output">
+<div class="md-search__scrollwrap" data-md-scrollfix="" tabindex="0">
+<div class="md-search-result" data-md-component="search-result">
+<div class="md-search-result__meta">
+            Initializing search
+          </div>
+<ol class="md-search-result__list" role="presentation"></ol>
+</div>
+</div>
+</div>
+</div>
+</div>
+<div class="md-header__source">
+<a class="md-source" data-md-component="source" href="https://github.com/dsa110/dsa110-contimg" title="Go to repository">
+<div class="md-source__icon md-icon">
+<svg viewbox="0 0 448 512" xmlns="http://www.w3.org/2000/svg"><!--! Font Awesome Free 6.6.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2024 Fonticons, Inc.--><path d="M439.55 236.05 244 40.45a28.87 28.87 0 0 0-40.81 0l-40.66 40.63 51.52 51.52c27.06-9.14 52.68 16.77 43.39 43.68l49.66 49.66c34.23-11.8 61.18 31 35.47 56.69-26.49 26.49-70.21-2.87-56-37.34L240.22 199v121.85c25.3 12.54 22.26 41.85 9.08 55a34.34 34.34 0 0 1-48.55 0c-17.57-17.6-11.07-46.91 11.25-56v-123c-20.8-8.51-24.6-30.74-18.64-45L142.57 101 8.45 235.14a28.86 28.86 0 0 0 0 40.81l195.61 195.6a28.86 28.86 0 0 0 40.8 0l194.69-194.69a28.86 28.86 0 0 0 0-40.81z"></path></svg>
+</div>
+<div class="md-source__repository">
+    GitHub
+  </div>
+</a>
+</div>
+</nav>
+</header>
+<div class="md-container" data-md-component="container">
+<main class="md-main" data-md-component="main">
+<div class="md-main__inner md-grid">
+<div class="md-sidebar md-sidebar--primary" data-md-component="sidebar" data-md-type="navigation">
+<div class="md-sidebar__scrollwrap">
+<div class="md-sidebar__inner">
+<nav aria-label="Navigation" class="md-nav md-nav--primary" data-md-level="0">
+<label class="md-nav__title" for="__drawer">
+<a aria-label="DSA-110 Continuum Imaging Pipeline" class="md-nav__button md-logo" data-md-component="logo" href="../../.." title="DSA-110 Continuum Imaging Pipeline">
+<svg viewbox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54Z"></path></svg>
+</a>
+    DSA-110 Continuum Imaging Pipeline
+  </label>
+<div class="md-nav__source">
+<a class="md-source" data-md-component="source" href="https://github.com/dsa110/dsa110-contimg" title="Go to repository">
+<div class="md-source__icon md-icon">
+<svg viewbox="0 0 448 512" xmlns="http://www.w3.org/2000/svg"><!--! Font Awesome Free 6.6.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2024 Fonticons, Inc.--><path d="M439.55 236.05 244 40.45a28.87 28.87 0 0 0-40.81 0l-40.66 40.63 51.52 51.52c27.06-9.14 52.68 16.77 43.39 43.68l49.66 49.66c34.23-11.8 61.18 31 35.47 56.69-26.49 26.49-70.21-2.87-56-37.34L240.22 199v121.85c25.3 12.54 22.26 41.85 9.08 55a34.34 34.34 0 0 1-48.55 0c-17.57-17.6-11.07-46.91 11.25-56v-123c-20.8-8.51-24.6-30.74-18.64-45L142.57 101 8.45 235.14a28.86 28.86 0 0 0 0 40.81l195.61 195.6a28.86 28.86 0 0 0 40.8 0l194.69-194.69a28.86 28.86 0 0 0 0-40.81z"></path></svg>
+</div>
+<div class="md-source__repository">
+    GitHub
+  </div>
+</a>
+</div>
+<ul class="md-nav__list" data-md-scrollfix="">
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../..">
+<span class="md-ellipsis">
+    Home
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../../DOCUMENTATION_QUICK_REFERENCE/">
+<span class="md-ellipsis">
+    Documentation Guide
+  </span>
+</a>
+</li>
+<li class="md-nav__item md-nav__item--section md-nav__item--nested">
+<input class="md-nav__toggle md-toggle" id="__nav_3" type="checkbox"/>
+<div class="md-nav__link md-nav__container">
+<a class="md-nav__link" href="../../../concepts/">
+<span class="md-ellipsis">
+    Concepts
+  </span>
+</a>
+<label class="md-nav__link" for="__nav_3" id="__nav_3_label" tabindex="">
+<span class="md-nav__icon md-icon"></span>
+</label>
+</div>
+<nav aria-expanded="false" aria-labelledby="__nav_3_label" class="md-nav" data-md-level="1">
+<label class="md-nav__title" for="__nav_3">
+<span class="md-nav__icon md-icon"></span>
+            Concepts
+          </label>
+<ul class="md-nav__list" data-md-scrollfix="">
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../../concepts/architecture/">
+<span class="md-ellipsis">
+    Architecture
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../../concepts/DIRECTORY_ARCHITECTURE/">
+<span class="md-ellipsis">
+    Directory Architecture
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../../concepts/modules/">
+<span class="md-ellipsis">
+    Modules
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../../concepts/control-panel/">
+<span class="md-ellipsis">
+    Control Panel
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../../concepts/aoflagger/">
+<span class="md-ellipsis">
+    AOFlagger
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../../concepts/frontend_design/">
+<span class="md-ellipsis">
+    Frontend Design
+  </span>
+</a>
+</li>
+<li class="md-nav__item md-nav__item--nested">
+<input class="md-nav__toggle md-toggle" id="__nav_3_8" type="checkbox"/>
+<label class="md-nav__link" for="__nav_3_8" id="__nav_3_8_label" tabindex="0">
+<span class="md-ellipsis">
+    Dashboard
+  </span>
+<span class="md-nav__icon md-icon"></span>
+</label>
+<nav aria-expanded="false" aria-labelledby="__nav_3_8_label" class="md-nav" data-md-level="2">
+<label class="md-nav__title" for="__nav_3_8">
+<span class="md-nav__icon md-icon"></span>
+            Dashboard
+          </label>
+<ul class="md-nav__list" data-md-scrollfix="">
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../../concepts/dashboard_mockups/">
+<span class="md-ellipsis">
+    Mockups
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../../SKYVIEW_IMPLEMENTATION_PLAN/">
+<span class="md-ellipsis">
+    Sky View
+  </span>
+</a>
+</li>
+</ul>
+</nav>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../../concepts/GLOSSARY/">
+<span class="md-ellipsis">
+    Glossary
+  </span>
+</a>
+</li>
+<li class="md-nav__item md-nav__item--nested">
+<input class="md-nav__toggle md-toggle" id="__nav_3_10" type="checkbox"/>
+<label class="md-nav__link" for="__nav_3_10" id="__nav_3_10_label" tabindex="0">
+<span class="md-ellipsis">
+    Pipeline
+  </span>
+<span class="md-nav__icon md-icon"></span>
+</label>
+<nav aria-expanded="false" aria-labelledby="__nav_3_10_label" class="md-nav" data-md-level="2">
+<label class="md-nav__title" for="__nav_3_10">
+<span class="md-nav__icon md-icon"></span>
+            Pipeline
+          </label>
+<ul class="md-nav__list" data-md-scrollfix="">
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../../concepts/pipeline_overview/">
+<span class="md-ellipsis">
+    Overview
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../../concepts/pipeline_stage_architecture/">
+<span class="md-ellipsis">
+    Stage Architecture
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../../concepts/pipeline_workflow_visualization/">
+<span class="md-ellipsis">
+    Workflow Visualization
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../../concepts/pipeline_production_features/">
+<span class="md-ellipsis">
+    Production Features
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../../concepts/pipeline_patterns/">
+<span class="md-ellipsis">
+    Patterns
+  </span>
+</a>
+</li>
+</ul>
+</nav>
+</li>
+<li class="md-nav__item md-nav__item--nested">
+<input class="md-nav__toggle md-toggle" id="__nav_3_11" type="checkbox"/>
+<label class="md-nav__link" for="__nav_3_11" id="__nav_3_11_label" tabindex="0">
+<span class="md-ellipsis">
+    Science
+  </span>
+<span class="md-nav__icon md-icon"></span>
+</label>
+<nav aria-expanded="false" aria-labelledby="__nav_3_11_label" class="md-nav" data-md-level="2">
+<label class="md-nav__title" for="__nav_3_11">
+<span class="md-nav__icon md-icon"></span>
+            Science
+          </label>
+<ul class="md-nav__list" data-md-scrollfix="">
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../../concepts/science/photometry_normalization/">
+<span class="md-ellipsis">
+    Photometry Normalization
+  </span>
+</a>
+</li>
+</ul>
+</nav>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../../concepts/mcp_browser_server_setup/">
+<span class="md-ellipsis">
+    Browser MCP Server
+  </span>
+</a>
+</li>
+</ul>
+</nav>
+</li>
+<li class="md-nav__item md-nav__item--section md-nav__item--nested">
+<input class="md-nav__toggle md-toggle" id="__nav_4" type="checkbox"/>
+<label class="md-nav__link" for="__nav_4" id="__nav_4_label" tabindex="">
+<span class="md-ellipsis">
+    Tutorials
+  </span>
+<span class="md-nav__icon md-icon"></span>
+</label>
+<nav aria-expanded="false" aria-labelledby="__nav_4_label" class="md-nav" data-md-level="1">
+<label class="md-nav__title" for="__nav_4">
+<span class="md-nav__icon md-icon"></span>
+            Tutorials
+          </label>
+<ul class="md-nav__list" data-md-scrollfix="">
+<li class="md-nav__item md-nav__item--nested">
+<input class="md-nav__toggle md-toggle" id="__nav_4_1" type="checkbox"/>
+<label class="md-nav__link" for="__nav_4_1" id="__nav_4_1_label" tabindex="0">
+<span class="md-ellipsis">
+    Conversion
+  </span>
+<span class="md-nav__icon md-icon"></span>
+</label>
+<nav aria-expanded="false" aria-labelledby="__nav_4_1_label" class="md-nav" data-md-level="2">
+<label class="md-nav__title" for="__nav_4_1">
+<span class="md-nav__icon md-icon"></span>
+            Conversion
+          </label>
+<ul class="md-nav__list" data-md-scrollfix="">
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../../tutorials/HDF5_TO_MS_TUTORIAL/">
+<span class="md-ellipsis">
+    HDF5 to MS
+  </span>
+</a>
+</li>
+</ul>
+</nav>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../../tutorials/simulation-tutorial/">
+<span class="md-ellipsis">
+    Simulation
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../../tutorials/calibrate-apply/">
+<span class="md-ellipsis">
+    Calibrate and Apply
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../../tutorials/convert-standalone/">
+<span class="md-ellipsis">
+    Convert Standalone
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../../tutorials/streaming/">
+<span class="md-ellipsis">
+    Streaming
+  </span>
+</a>
+</li>
+<li class="md-nav__item md-nav__item--nested">
+<input class="md-nav__toggle md-toggle" id="__nav_4_6" type="checkbox"/>
+<label class="md-nav__link" for="__nav_4_6" id="__nav_4_6_label" tabindex="0">
+<span class="md-ellipsis">
+    Notebooks
+  </span>
+<span class="md-nav__icon md-icon"></span>
+</label>
+<nav aria-expanded="false" aria-labelledby="__nav_4_6_label" class="md-nav" data-md-level="2">
+<label class="md-nav__title" for="__nav_4_6">
+<span class="md-nav__icon md-icon"></span>
+            Notebooks
+          </label>
+<ul class="md-nav__list" data-md-scrollfix="">
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../../tutorials/notebooks/bandpass_calibration_test.ipynb">
+<span class="md-ellipsis">
+    Bandpass Calibration Test
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../../tutorials/notebooks/calibrator_helper.py">
+<span class="md-ellipsis">
+    Calibrator Helper
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../../tutorials/notebooks/CalibratorSearch.ipynb">
+<span class="md-ellipsis">
+    Calibrator Search
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../../tutorials/notebooks/ms_staging_workflow.ipynb">
+<span class="md-ellipsis">
+    MS Staging Workflow
+  </span>
+</a>
+</li>
+</ul>
+</nav>
+</li>
+</ul>
+</nav>
+</li>
+<li class="md-nav__item md-nav__item--section md-nav__item--nested">
+<input class="md-nav__toggle md-toggle" id="__nav_5" type="checkbox"/>
+<label class="md-nav__link" for="__nav_5" id="__nav_5_label" tabindex="">
+<span class="md-ellipsis">
+    How-To Guides
+  </span>
+<span class="md-nav__icon md-icon"></span>
+</label>
+<nav aria-expanded="false" aria-labelledby="__nav_5_label" class="md-nav" data-md-level="1">
+<label class="md-nav__title" for="__nav_5">
+<span class="md-nav__icon md-icon"></span>
+            How-To Guides
+          </label>
+<ul class="md-nav__list" data-md-scrollfix="">
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../../how-to/github_pages_walkthrough/">
+<span class="md-ellipsis">
+    GitHub Pages Setup
+  </span>
+</a>
+</li>
+<li class="md-nav__item md-nav__item--nested">
+<input class="md-nav__toggle md-toggle" id="__nav_5_2" type="checkbox"/>
+<label class="md-nav__link" for="__nav_5_2" id="__nav_5_2_label" tabindex="0">
+<span class="md-ellipsis">
+    Quickstarts
+  </span>
+<span class="md-nav__icon md-icon"></span>
+</label>
+<nav aria-expanded="false" aria-labelledby="__nav_5_2_label" class="md-nav" data-md-level="2">
+<label class="md-nav__title" for="__nav_5_2">
+<span class="md-nav__icon md-icon"></span>
+            Quickstarts
+          </label>
+<ul class="md-nav__list" data-md-scrollfix="">
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../../how-to/quickstart/">
+<span class="md-ellipsis">
+    General
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../../how-to/control-panel-quickstart/">
+<span class="md-ellipsis">
+    Control Panel
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../../how-to/LINEAR_SETUP_QUICKSTART/">
+<span class="md-ellipsis">
+    Linear Setup
+  </span>
+</a>
+</li>
+</ul>
+</nav>
+</li>
+<li class="md-nav__item md-nav__item--nested">
+<input class="md-nav__toggle md-toggle" id="__nav_5_3" type="checkbox"/>
+<label class="md-nav__link" for="__nav_5_3" id="__nav_5_3_label" tabindex="0">
+<span class="md-ellipsis">
+    Testing
+  </span>
+<span class="md-nav__icon md-icon"></span>
+</label>
+<nav aria-expanded="false" aria-labelledby="__nav_5_3_label" class="md-nav" data-md-level="2">
+<label class="md-nav__title" for="__nav_5_3">
+<span class="md-nav__icon md-icon"></span>
+            Testing
+          </label>
+<ul class="md-nav__list" data-md-scrollfix="">
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../../how-to/FAST_TESTING/">
+<span class="md-ellipsis">
+    Fast Testing
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../../how-to/PIPELINE_TESTING_GUIDE/">
+<span class="md-ellipsis">
+    Pipeline Guide
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../../how-to/TEST_FLAG_SUBCOMMAND/">
+<span class="md-ellipsis">
+    Flag Subcommand
+  </span>
+</a>
+</li>
+</ul>
+</nav>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../../how-to/build-vp-from-h5/">
+<span class="md-ellipsis">
+    Build VP from h5
+  </span>
+</a>
+</li>
+<li class="md-nav__item md-nav__item--nested">
+<input class="md-nav__toggle md-toggle" id="__nav_5_5" type="checkbox"/>
+<label class="md-nav__link" for="__nav_5_5" id="__nav_5_5_label" tabindex="0">
+<span class="md-ellipsis">
+    Calibration
+  </span>
+<span class="md-nav__icon md-icon"></span>
+</label>
+<nav aria-expanded="false" aria-labelledby="__nav_5_5_label" class="md-nav" data-md-level="2">
+<label class="md-nav__title" for="__nav_5_5">
+<span class="md-nav__icon md-icon"></span>
+            Calibration
+          </label>
+<ul class="md-nav__list" data-md-scrollfix="">
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../../how-to/CALIBRATION_DETAILED_PROCEDURE/">
+<span class="md-ellipsis">
+    Detailed Procedure
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../../how-to/FIND_CALIBRATOR_TRANSIT_DATA/">
+<span class="md-ellipsis">
+    Find Calibrator Transit
+  </span>
+</a>
+</li>
+</ul>
+</nav>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../../how-to/IMAGE_0834_TRANSIT_5MIN/">
+<span class="md-ellipsis">
+    Image 0834 Transit 5min
+  </span>
+</a>
+</li>
+<li class="md-nav__item md-nav__item--nested">
+<input class="md-nav__toggle md-toggle" id="__nav_5_7" type="checkbox"/>
+<label class="md-nav__link" for="__nav_5_7" id="__nav_5_7_label" tabindex="0">
+<span class="md-ellipsis">
+    Mosaic
+  </span>
+<span class="md-nav__icon md-icon"></span>
+</label>
+<nav aria-expanded="false" aria-labelledby="__nav_5_7_label" class="md-nav" data-md-level="2">
+<label class="md-nav__title" for="__nav_5_7">
+<span class="md-nav__icon md-icon"></span>
+            Mosaic
+          </label>
+<ul class="md-nav__list" data-md-scrollfix="">
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../../how-to/mosaic_quickstart/">
+<span class="md-ellipsis">
+    Quickstart
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../../how-to/mosaic/">
+<span class="md-ellipsis">
+    Complete Guide
+  </span>
+</a>
+</li>
+</ul>
+</nav>
+</li>
+<li class="md-nav__item md-nav__item--nested">
+<input class="md-nav__toggle md-toggle" id="__nav_5_8" type="checkbox"/>
+<label class="md-nav__link" for="__nav_5_8" id="__nav_5_8_label" tabindex="0">
+<span class="md-ellipsis">
+    Quality Assurance
+  </span>
+<span class="md-nav__icon md-icon"></span>
+</label>
+<nav aria-expanded="false" aria-labelledby="__nav_5_8_label" class="md-nav" data-md-level="2">
+<label class="md-nav__title" for="__nav_5_8">
+<span class="md-nav__icon md-icon"></span>
+            Quality Assurance
+          </label>
+<ul class="md-nav__list" data-md-scrollfix="">
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../../how-to/QUALITY_ASSURANCE_SETUP/">
+<span class="md-ellipsis">
+    Setup
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../../how-to/quicklook/">
+<span class="md-ellipsis">
+    Quick Look
+  </span>
+</a>
+</li>
+</ul>
+</nav>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../../how-to/reprocess/">
+<span class="md-ellipsis">
+    Reprocess
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../../how-to/USING_ORCHESTRATOR_CLI/">
+<span class="md-ellipsis">
+    Using Orchestrator CLI
+  </span>
+</a>
+</li>
+<li class="md-nav__item md-nav__item--nested">
+<input class="md-nav__toggle md-toggle" id="__nav_5_11" type="checkbox"/>
+<label class="md-nav__link" for="__nav_5_11" id="__nav_5_11_label" tabindex="0">
+<span class="md-ellipsis">
+    Dashboard
+  </span>
+<span class="md-nav__icon md-icon"></span>
+</label>
+<nav aria-expanded="false" aria-labelledby="__nav_5_11_label" class="md-nav" data-md-level="2">
+<label class="md-nav__title" for="__nav_5_11">
+<span class="md-nav__icon md-icon"></span>
+            Dashboard
+          </label>
+<ul class="md-nav__list" data-md-scrollfix="">
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../../how-to/dashboard-development/">
+<span class="md-ellipsis">
+    Development
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../../how-to/dashboard-quickstart/">
+<span class="md-ellipsis">
+    Quickstart
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../../how-to/dashboard_testing/">
+<span class="md-ellipsis">
+    Testing
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../../how-to/dashboard_development_workflow/">
+<span class="md-ellipsis">
+    Development Workflow
+  </span>
+</a>
+</li>
+</ul>
+</nav>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../../how-to/LINEAR_INTEGRATION/">
+<span class="md-ellipsis">
+    Linear Integration
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../../how-to/frontend-initial-setup/">
+<span class="md-ellipsis">
+    Frontend Initial Setup
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../../how-to/PARAMETER_OPTIMIZATION_GUIDE/">
+<span class="md-ellipsis">
+    AOFlagger Parameter Optimization
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../../how-to/downsampling_guide/">
+<span class="md-ellipsis">
+    Downsampling Guide
+  </span>
+</a>
+</li>
+<li class="md-nav__item md-nav__item--nested">
+<input class="md-nav__toggle md-toggle" id="__nav_5_16" type="checkbox"/>
+<label class="md-nav__link" for="__nav_5_16" id="__nav_5_16_label" tabindex="0">
+<span class="md-ellipsis">
+    Conversion
+  </span>
+<span class="md-nav__icon md-icon"></span>
+</label>
+<nav aria-expanded="false" aria-labelledby="__nav_5_16_label" class="md-nav" data-md-level="2">
+<label class="md-nav__title" for="__nav_5_16">
+<span class="md-nav__icon md-icon"></span>
+            Conversion
+          </label>
+<ul class="md-nav__list" data-md-scrollfix="">
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../../how-to/uvh5_to_ms_conversion/">
+<span class="md-ellipsis">
+    UVH5 to MS
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../../how-to/streaming_converter_guide/">
+<span class="md-ellipsis">
+    Streaming Converter
+  </span>
+</a>
+</li>
+</ul>
+</nav>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../../how-to/troubleshooting/">
+<span class="md-ellipsis">
+    Troubleshooting
+  </span>
+</a>
+</li>
+</ul>
+</nav>
+</li>
+<li class="md-nav__item md-nav__item--section md-nav__item--nested">
+<input class="md-nav__toggle md-toggle" id="__nav_6" type="checkbox"/>
+<label class="md-nav__link" for="__nav_6" id="__nav_6_label" tabindex="">
+<span class="md-ellipsis">
+    Reference
+  </span>
+<span class="md-nav__icon md-icon"></span>
+</label>
+<nav aria-expanded="false" aria-labelledby="__nav_6_label" class="md-nav" data-md-level="1">
+<label class="md-nav__title" for="__nav_6">
+<span class="md-nav__icon md-icon"></span>
+            Reference
+          </label>
+<ul class="md-nav__list" data-md-scrollfix="">
+<li class="md-nav__item md-nav__item--nested">
+<input class="md-nav__toggle md-toggle" id="__nav_6_1" type="checkbox"/>
+<label class="md-nav__link" for="__nav_6_1" id="__nav_6_1_label" tabindex="0">
+<span class="md-ellipsis">
+    API
+  </span>
+<span class="md-nav__icon md-icon"></span>
+</label>
+<nav aria-expanded="false" aria-labelledby="__nav_6_1_label" class="md-nav" data-md-level="2">
+<label class="md-nav__title" for="__nav_6_1">
+<span class="md-nav__icon md-icon"></span>
+            API
+          </label>
+<ul class="md-nav__list" data-md-scrollfix="">
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../../reference/api-endpoints/">
+<span class="md-ellipsis">
+    Endpoints
+  </span>
+</a>
+</li>
+<li class="md-nav__item md-nav__item--nested">
+<input class="md-nav__toggle md-toggle" id="__nav_6_1_2" type="checkbox"/>
+<label class="md-nav__link" for="__nav_6_1_2" id="__nav_6_1_2_label" tabindex="0">
+<span class="md-ellipsis">
+    Dashboard
+  </span>
+<span class="md-nav__icon md-icon"></span>
+</label>
+<nav aria-expanded="false" aria-labelledby="__nav_6_1_2_label" class="md-nav" data-md-level="3">
+<label class="md-nav__title" for="__nav_6_1_2">
+<span class="md-nav__icon md-icon"></span>
+            Dashboard
+          </label>
+<ul class="md-nav__list" data-md-scrollfix="">
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../../reference/dashboard_backend_api/">
+<span class="md-ellipsis">
+    API Reference
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../../reference/dashboard_pages_and_features/">
+<span class="md-ellipsis">
+    Pages &amp; Features
+  </span>
+</a>
+</li>
+</ul>
+</nav>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../../reference/backend_integration_snippets/">
+<span class="md-ellipsis">
+    Integration Snippets
+  </span>
+</a>
+</li>
+</ul>
+</nav>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../../reference/calibration-overview/">
+<span class="md-ellipsis">
+    Calibration Overview
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../../reference/cli/">
+<span class="md-ellipsis">
+    CLI
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../../reference/control-panel-cheatsheet/">
+<span class="md-ellipsis">
+    Control Panel Cheatsheet
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../../reference/database_schema/">
+<span class="md-ellipsis">
+    Database Schema
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../../reference/env/">
+<span class="md-ellipsis">
+    Environment Variables
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../../reference/CRITICAL_PYTHON_ENVIRONMENT/">
+<span class="md-ellipsis">
+    Critical Python Environment
+  </span>
+</a>
+</li>
+<li class="md-nav__item md-nav__item--nested">
+<input class="md-nav__toggle md-toggle" id="__nav_6_8" type="checkbox"/>
+<label class="md-nav__link" for="__nav_6_8" id="__nav_6_8_label" tabindex="0">
+<span class="md-ellipsis">
+    Optimizations
+  </span>
+<span class="md-nav__icon md-icon"></span>
+</label>
+<nav aria-expanded="false" aria-labelledby="__nav_6_8_label" class="md-nav" data-md-level="2">
+<label class="md-nav__title" for="__nav_6_8">
+<span class="md-nav__icon md-icon"></span>
+            Optimizations
+          </label>
+<ul class="md-nav__list" data-md-scrollfix="">
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../../reference/optimizations/OPTIMIZATION_API/">
+<span class="md-ellipsis">
+    API
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../../reference/optimizations/PROFILING_GUIDE/">
+<span class="md-ellipsis">
+    Profiling Guide
+  </span>
+</a>
+</li>
+</ul>
+</nav>
+</li>
+</ul>
+</nav>
+</li>
+<li class="md-nav__item md-nav__item--section md-nav__item--nested">
+<input class="md-nav__toggle md-toggle" id="__nav_7" type="checkbox"/>
+<label class="md-nav__link" for="__nav_7" id="__nav_7_label" tabindex="">
+<span class="md-ellipsis">
+    Operations
+  </span>
+<span class="md-nav__icon md-icon"></span>
+</label>
+<nav aria-expanded="false" aria-labelledby="__nav_7_label" class="md-nav" data-md-level="1">
+<label class="md-nav__title" for="__nav_7">
+<span class="md-nav__icon md-icon"></span>
+            Operations
+          </label>
+<ul class="md-nav__list" data-md-scrollfix="">
+<li class="md-nav__item md-nav__item--nested">
+<input class="md-nav__toggle md-toggle" id="__nav_7_1" type="checkbox"/>
+<label class="md-nav__link" for="__nav_7_1" id="__nav_7_1_label" tabindex="0">
+<span class="md-ellipsis">
+    Deployment
+  </span>
+<span class="md-nav__icon md-icon"></span>
+</label>
+<nav aria-expanded="false" aria-labelledby="__nav_7_1_label" class="md-nav" data-md-level="2">
+<label class="md-nav__title" for="__nav_7_1">
+<span class="md-nav__icon md-icon"></span>
+            Deployment
+          </label>
+<ul class="md-nav__list" data-md-scrollfix="">
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../../operations/deploy-docker/">
+<span class="md-ellipsis">
+    Docker
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../../operations/deploy-systemd/">
+<span class="md-ellipsis">
+    systemd
+  </span>
+</a>
+</li>
+</ul>
+</nav>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../../operations/port-management/">
+<span class="md-ellipsis">
+    Port Management
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../../operations/refant_quick_reference/">
+<span class="md-ellipsis">
+    Refant Quick Reference
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../../operations/service_restart_fix/">
+<span class="md-ellipsis">
+    Service Restart Fix
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../../operations/systemd-migration/">
+<span class="md-ellipsis">
+    Systemd Migration
+  </span>
+</a>
+</li>
+</ul>
+</nav>
+</li>
+<li class="md-nav__item md-nav__item--section md-nav__item--nested">
+<input class="md-nav__toggle md-toggle" id="__nav_8" type="checkbox"/>
+<div class="md-nav__link md-nav__container">
+<a class="md-nav__link" href="../../../contributing/">
+<span class="md-ellipsis">
+    Contributing
+  </span>
+</a>
+<label class="md-nav__link" for="__nav_8" id="__nav_8_label" tabindex="">
+<span class="md-nav__icon md-icon"></span>
+</label>
+</div>
+<nav aria-expanded="false" aria-labelledby="__nav_8_label" class="md-nav" data-md-level="1">
+<label class="md-nav__title" for="__nav_8">
+<span class="md-nav__icon md-icon"></span>
+            Contributing
+          </label>
+<ul class="md-nav__list" data-md-scrollfix="">
+<li class="md-nav__item md-nav__item--nested">
+<input class="md-nav__toggle md-toggle" id="__nav_8_2" type="checkbox"/>
+<label class="md-nav__link" for="__nav_8_2" id="__nav_8_2_label" tabindex="0">
+<span class="md-ellipsis">
+    Archive
+  </span>
+<span class="md-nav__icon md-icon"></span>
+</label>
+<nav aria-expanded="false" aria-labelledby="__nav_8_2_label" class="md-nav" data-md-level="2">
+<label class="md-nav__title" for="__nav_8_2">
+<span class="md-nav__icon md-icon"></span>
+            Archive
+          </label>
+<ul class="md-nav__list" data-md-scrollfix="">
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../../contributing/archive/CONTRIBUTING_TODO/">
+<span class="md-ellipsis">
+    Contributing to TODO
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../../contributing/archive/rules/">
+<span class="md-ellipsis">
+    Rules
+  </span>
+</a>
+</li>
+</ul>
+</nav>
+</li>
+</ul>
+</nav>
+</li>
+</ul>
+</nav>
+</div>
+</div>
+</div>
+<div class="md-sidebar md-sidebar--secondary" data-md-component="sidebar" data-md-type="toc">
+<div class="md-sidebar__scrollwrap">
+<div class="md-sidebar__inner">
+<nav aria-label="Table of contents" class="md-nav md-nav--secondary">
+<label class="md-nav__title" for="__toc">
+<span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+<ul class="md-nav__list" data-md-component="toc" data-md-scrollfix="">
+<li class="md-nav__item">
+<a class="md-nav__link" href="#how-to-use-this-file">
+<span class="md-ellipsis">
+      📋 How to Use This File
+    </span>
+</a>
+<nav aria-label="📋 How to Use This File" class="md-nav">
+<ul class="md-nav__list">
+<li class="md-nav__item">
+<a class="md-nav__link" href="#adding-items">
+<span class="md-ellipsis">
+      Adding Items
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#marking-items-complete">
+<span class="md-ellipsis">
+      Marking Items Complete
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#removing-items">
+<span class="md-ellipsis">
+      Removing Items
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#editing-guidelines">
+<span class="md-ellipsis">
+      Editing Guidelines
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#formatting-conventions">
+<span class="md-ellipsis">
+      Formatting Conventions
+    </span>
+</a>
+</li>
+</ul>
+</nav>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#changelog">
+<span class="md-ellipsis">
+      📝 Changelog
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#high-priority">
+<span class="md-ellipsis">
+      🔴 High Priority
+    </span>
+</a>
+<nav aria-label="🔴 High Priority" class="md-nav">
+<ul class="md-nav__list">
+<li class="md-nav__item">
+<a class="md-nav__link" href="#testing-validation-2-4-hours">
+<span class="md-ellipsis">
+      Testing &amp; Validation (2-4 hours)
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#ci-branch-protection-05-1-hour">
+<span class="md-ellipsis">
+      CI &amp; Branch Protection (0.5-1 hour)
+    </span>
+</a>
+</li>
+</ul>
+</nav>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#medium-priority">
+<span class="md-ellipsis">
+      🟡 Medium Priority
+    </span>
+</a>
+<nav aria-label="🟡 Medium Priority" class="md-nav">
+<ul class="md-nav__list">
+<li class="md-nav__item">
+<a class="md-nav__link" href="#additional-optimizations-4-8-hours">
+<span class="md-ellipsis">
+      Additional Optimizations (4-8 hours)
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#documentation-polish-2-3-hours">
+<span class="md-ellipsis">
+      Documentation &amp; Polish (2-3 hours)
+    </span>
+</a>
+</li>
+</ul>
+</nav>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#low-priority-nice-to-have">
+<span class="md-ellipsis">
+      🟢 Low Priority / Nice to Have
+    </span>
+</a>
+<nav aria-label="🟢 Low Priority / Nice to Have" class="md-nav">
+<ul class="md-nav__list">
+<li class="md-nav__item">
+<a class="md-nav__link" href="#code-quality">
+<span class="md-ellipsis">
+      Code Quality
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#performance-monitoring">
+<span class="md-ellipsis">
+      Performance Monitoring
+    </span>
+</a>
+</li>
+</ul>
+</nav>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#carta-integration-work-high-priority">
+<span class="md-ellipsis">
+      📋 CARTA Integration Work (High Priority)
+    </span>
+</a>
+<nav aria-label="📋 CARTA Integration Work (High Priority)" class="md-nav">
+<ul class="md-nav__list">
+<li class="md-nav__item">
+<a class="md-nav__link" href="#phase-1-core-visualization-improvements-weeks-1-4-complete">
+<span class="md-ellipsis">
+      Phase 1: Core Visualization Improvements (Weeks 1-4) ✅ COMPLETE
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#phase-2-analysis-tools-weeks-5-7">
+<span class="md-ellipsis">
+      Phase 2: Analysis Tools (Weeks 5-7)
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#phase-3-performance-optimization-weeks-8-9">
+<span class="md-ellipsis">
+      Phase 3: Performance Optimization (Weeks 8-9)
+    </span>
+</a>
+</li>
+</ul>
+</nav>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#vast-tools-adoption-source-analysis-visualization">
+<span class="md-ellipsis">
+      📋 VAST Tools Adoption (Source Analysis &amp; Visualization)
+    </span>
+</a>
+<nav aria-label="📋 VAST Tools Adoption (Source Analysis &amp; Visualization)" class="md-nav">
+<ul class="md-nav__list">
+<li class="md-nav__item">
+<a class="md-nav__link" href="#phase-1-core-source-class-light-curves-high-priority-2-3-weeks">
+<span class="md-ellipsis">
+      Phase 1: Core Source Class &amp; Light Curves (High Priority) - 2-3 weeks
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#phase-2-visualization-enhanced-metrics-medium-priority-2-weeks">
+<span class="md-ellipsis">
+      Phase 2: Visualization &amp; Enhanced Metrics (Medium Priority) - 2 weeks
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#phase-3-external-catalog-integration-low-medium-priority-1-2-weeks">
+<span class="md-ellipsis">
+      Phase 3: External Catalog Integration (Low-Medium Priority) - 1-2 weeks
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#dependencies-setup">
+<span class="md-ellipsis">
+      Dependencies &amp; Setup
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#testing-requirements">
+<span class="md-ellipsis">
+      Testing Requirements
+    </span>
+</a>
+</li>
+</ul>
+</nav>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#separate-projects-different-scope">
+<span class="md-ellipsis">
+      📋 Separate Projects (Different Scope)
+    </span>
+</a>
+<nav aria-label="📋 Separate Projects (Different Scope)" class="md-nav">
+<ul class="md-nav__list">
+<li class="md-nav__item">
+<a class="md-nav__link" href="#apifrontend-work">
+<span class="md-ellipsis">
+      API/Frontend Work
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#mosaicking-enhancements">
+<span class="md-ellipsis">
+      Mosaicking Enhancements
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#pipeline-robustness-improvements">
+<span class="md-ellipsis">
+      Pipeline Robustness Improvements
+    </span>
+</a>
+<nav aria-label="Pipeline Robustness Improvements" class="md-nav">
+<ul class="md-nav__list">
+<li class="md-nav__item">
+<a class="md-nav__link" href="#phase-1-critical-improvements-weeks-1-2">
+<span class="md-ellipsis">
+      Phase 1: Critical Improvements (Weeks 1-2)
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#phase-2-important-improvements-weeks-3-4">
+<span class="md-ellipsis">
+      Phase 2: Important Improvements (Weeks 3-4)
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#phase-3-enhancement-improvements-weeks-5-6">
+<span class="md-ellipsis">
+      Phase 3: Enhancement Improvements (Weeks 5-6)
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#testing-requirements_1">
+<span class="md-ellipsis">
+      Testing Requirements
+    </span>
+</a>
+</li>
+</ul>
+</nav>
+</li>
+</ul>
+</nav>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#recently-completed">
+<span class="md-ellipsis">
+      ✅ Recently Completed
+    </span>
+</a>
+<nav aria-label="✅ Recently Completed" class="md-nav">
+<ul class="md-nav__list">
+<li class="md-nav__item">
+<a class="md-nav__link" href="#integration-work-2025-01-27">
+<span class="md-ellipsis">
+      Integration Work (2025-01-27)
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#optimizations-2025-01-27">
+<span class="md-ellipsis">
+      Optimizations (2025-01-27)
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#code-organization-2025-01-27">
+<span class="md-ellipsis">
+      Code Organization (2025-01-27)
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#bug-fixes-2025-01-27">
+<span class="md-ellipsis">
+      Bug Fixes (2025-01-27)
+    </span>
+</a>
+</li>
+</ul>
+</nav>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#notes">
+<span class="md-ellipsis">
+      📝 Notes
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#related-documentation">
+<span class="md-ellipsis">
+      🔗 Related Documentation
+    </span>
+</a>
+</li>
+</ul>
+</nav>
+</div>
+</div>
+</div>
+<div class="md-content" data-md-component="content">
+<article class="md-content__inner md-typeset">
+<h1 id="todo-dsa-110-continuum-imaging-pipeline">TODO - DSA-110 Continuum Imaging Pipeline<a class="headerlink" href="#todo-dsa-110-continuum-imaging-pipeline" title="Permanent link">¶</a></h1>
+<p>P25-11-05<br/>
+<strong>Status:</strong> Active/Living Document<br/>
+<strong>Maintainers:</strong> Multiple agents + project maintainers</p>
+<p><strong>📖 See <code>docs/CONTRIBUTING_TODO.md</code> for detailed guidelines on how to modify this file.</strong></p>
+<hr/>
+<h2 id="how-to-use-this-file">📋 How to Use This File<a class="headerlink" href="#how-to-use-this-file" title="Permanent link">¶</a></h2>
+<h3 id="adding-items">Adding Items<a class="headerlink" href="#adding-items" title="Permanent link">¶</a></h3>
+<ol>
+<li><strong>Choose appropriate priority section</strong> (High/Medium/Low)</li>
+<li><strong>Use consistent formatting:</strong></li>
+<li><code>- [ ]</code> for unchecked items</li>
+<li><code>- [x]</code> for completed items</li>
+<li>Use <code>**bold**</code> for item titles</li>
+<li>Add sub-bullets for detailed tasks</li>
+<li><strong>Add context:</strong> Include time estimates, related files, or references</li>
+<li><strong>Date updates automatically</strong> - No need to manually update the date! (See <code>docs/CONTRIBUTING_TODO.md</code>)</li>
+</ol>
+<h3 id="marking-items-complete">Marking Items Complete<a class="headerlink" href="#marking-items-complete" title="Permanent link">¶</a></h3>
+<ol>
+<li>Change <code>- [ ]</code> to <code>- [x]</code></li>
+<li>Optionally move to "Recently Completed" section</li>
+<li>Add completion date: <code>- [x] **Item Name** (2025-01-27)</code></li>
+<li><strong>Date updates automatically</strong> - The "Last Updated" date will be updated automatically on commit (or run <code>make update-todo-date</code>)</li>
+</ol>
+<h3 id="removing-items">Removing Items<a class="headerlink" href="#removing-items" title="Permanent link">¶</a></h3>
+<ul>
+<li><strong>Don't delete completed items</strong> - move them to "Recently Completed"</li>
+<li><strong>Only delete items</strong> if they're no longer relevant or duplicate</li>
+<li>If removing, add a note in the changelog section</li>
+</ul>
+<h3 id="editing-guidelines">Editing Guidelines<a class="headerlink" href="#editing-guidelines" title="Permanent link">¶</a></h3>
+<ul>
+<li><strong>One item per line</strong> - keeps diffs clean</li>
+<li><strong>Use consistent indentation</strong> (2 spaces for sub-items)</li>
+<li><strong>Keep related items together</strong></li>
+<li><strong>Add time estimates</strong> when known: <code>(2-4 hours)</code></li>
+<li><strong>Link to related docs:</strong> <code>See: docs/file.md</code></li>
+</ul>
+<h3 id="formatting-conventions">Formatting Conventions<a class="headerlink" href="#formatting-conventions" title="Permanent link">¶</a></h3>
+<ul>
+<li><strong>Priority sections:</strong> 🔴 High, 🟡 Medium, 🟢 Low</li>
+<li><strong>Status indicators:</strong> <code>[ ]</code> unchecked, <code>[x]</code> checked</li>
+<li><strong>Time estimates:</strong> <code>(X-Y hours)</code> or <code>(X minutes)</code></li>
+<li><strong>References:</strong> <code>See: path/to/file.md</code> or <code>(from source.md)</code></li>
+<li><strong>Completion dates:</strong> <code>(YYYY-MM-DD)</code> format</li>
+</ul>
+<hr/>
+<h2 id="changelog">📝 Changelog<a class="headerlink" href="#changelog" title="Permanent link">¶</a></h2>
+<p>Track significant changes to this TODO list:</p>
+<ul>
+<li><strong>2025-11-12:</strong> Added VAST Tools adoption section</li>
+<li>Comprehensive 3-phase plan for adopting VAST Tools patterns</li>
+<li>Source class pattern, light curve plotting, variability metrics</li>
+<li>Postage stamp visualization, external catalog integration</li>
+<li>Reference: <code>docs/analysis/VAST_TOOLS_DSA110_DETAILED_COMPARISON.md</code></li>
+<li><strong>2025-11-06:</strong> Added pipeline robustness improvements section</li>
+<li>Comprehensive 3-phase plan for production-grade robustness</li>
+<li>Error handling, resource management, state consistency improvements</li>
+<li>Deferred until after science stages and dashboard are functioning</li>
+<li>Reference: <code>docs/reports/PIPELINE_ROBUSTNESS_ANALYSIS.md</code></li>
+<li><strong>2025-01-27:</strong> Initial TODO list created with integration work next steps</li>
+<li>Added high priority testing &amp; validation items</li>
+<li>Added medium priority optimization items</li>
+<li>Added completed section for recent work</li>
+</ul>
+<hr/>
+<h2 id="high-priority">🔴 High Priority<a class="headerlink" href="#high-priority" title="Permanent link">¶</a></h2>
+<h3 id="testing-validation-2-4-hours">Testing &amp; Validation (2-4 hours)<a class="headerlink" href="#testing-validation-2-4-hours" title="Permanent link">¶</a></h3>
+<ul>
+<li>[ ] <strong>Performance Tracking Testing</strong></li>
+<li>[ ] Run calibration workflow → verify metrics logged</li>
+<li>[ ] Run imaging workflow → verify metrics logged</li>
+<li>[ ] Run conversion workflow → verify metrics logged</li>
+<li>
+<p>[ ] Check <code>get_performance_stats()</code> returns correct data</p>
+</li>
+<li>
+<p>[ ] <strong>Error Context Testing</strong></p>
+</li>
+<li>[ ] Trigger various error conditions (permission errors, missing files, invalid MS)</li>
+<li>[ ] Verify error messages include suggestions</li>
+<li>
+<p>[ ] Confirm error messages are actionable</p>
+</li>
+<li>
+<p>[ ] <strong>Optimization Testing</strong></p>
+</li>
+<li>[ ] Verify batch subband loading reduces memory usage</li>
+<li>[ ] Check cache hit rates with <code>get_cache_stats()</code></li>
+<li>
+<p>[ ] Verify flag sampling is faster on large MS files</p>
+</li>
+<li>
+<p>[ ] <strong>Integration Tests</strong></p>
+</li>
+<li>[ ] Create tests for performance tracking in real workflows</li>
+<li>[ ] Create tests for enhanced error messages with real errors</li>
+<li>[ ] Verify optimizations work correctly</li>
+</ul>
+<h3 id="ci-branch-protection-05-1-hour">CI &amp; Branch Protection (0.5-1 hour)<a class="headerlink" href="#ci-branch-protection-05-1-hour" title="Permanent link">¶</a></h3>
+<ul>
+<li>[ ] <strong>Require Backend Smoke on PRs (Branch Protection)</strong></li>
+<li>[ ] Enable branch protection for <code>main</code> (and <code>dev</code> if desired)</li>
+<li>[ ] Require status checks to pass before merging</li>
+<li>[ ] Select the new CI job from <code>.github/workflows/backend-smoke.yml</code> (GitHub UI will show the job name, e.g., "Backend Smoke (fast)")</li>
+<li>[ ] (Optional) Require branches to be up-to-date before merging</li>
+<li>[ ] (Optional) Include administrators in enforcement</li>
+<li>Time estimate: (15-30 minutes)</li>
+<li>Acceptance: PR “Merge” is disabled until the Backend Smoke job is green</li>
+<li>
+<p>Reference: .github/workflows/backend-smoke.yml</p>
+</li>
+<li>
+<p>[ ] <strong>Add Frontend Smoke CI (Docker-based)</strong></p>
+</li>
+<li>Goal: run a tiny Vitest smoke (API client) in a consistent Docker environment to avoid Node/WebCrypto variance</li>
+<li>Plan:<ul>
+<li>[ ] Create a workflow <code>.github/workflows/frontend-smoke.yml</code></li>
+<li>[ ] Job steps:</li>
+<li>actions/checkout@v4</li>
+<li>docker build -t dsa110-frontend-test -f frontend/Dockerfile.dev frontend/</li>
+<li>docker run --rm -v ${{ github.workspace }}/frontend:/app -w /app dsa110-frontend-test \
+      sh -c "npm ci --silent &amp;&amp; npm test -- src/api/<strong>tests</strong>/client.smoke.test.ts --run --reporter=dot"</li>
+<li>[ ] Keep it on PR open to <code>main</code>/<code>dev</code></li>
+<li>[ ] Set a short timeout (e.g., 2–3 minutes) and dot reporter for minimal logs</li>
+</ul>
+</li>
+<li>Branch protection (optional):<ul>
+<li>[ ] Add the new job as a required status check once it’s stable</li>
+</ul>
+</li>
+<li>Time estimate: (30–60 minutes)</li>
+<li>Acceptance:<ul>
+<li>Workflow runs on PRs and passes in under 2 minutes</li>
+<li>Fails clearly if the API client baseline breaks</li>
+</ul>
+</li>
+<li>References:<ul>
+<li>Make target: <code>frontend-test-smoke-docker</code></li>
+<li>Frontend test: <code>frontend/src/api/__tests__/client.smoke.test.ts</code></li>
+</ul>
+</li>
+</ul>
+<hr/>
+<h2 id="medium-priority">🟡 Medium Priority<a class="headerlink" href="#medium-priority" title="Permanent link">¶</a></h2>
+<h3 id="additional-optimizations-4-8-hours">Additional Optimizations (4-8 hours)<a class="headerlink" href="#additional-optimizations-4-8-hours" title="Permanent link">¶</a></h3>
+<ul>
+<li>[ ] <strong>Profile Hot Paths</strong></li>
+<li>[ ] Run <code>cProfile</code> or <code>line_profiler</code> on actual workflows</li>
+<li>[ ] Identify remaining bottlenecks</li>
+<li>[ ] Apply micro-optimizations</li>
+<li>
+<p>[ ] Reference: <code>docs/optimizations/PROFILING_GUIDE.md</code></p>
+</li>
+<li>
+<p>[ ] <strong>Cache Validation</strong></p>
+</li>
+<li>[ ] Add cache version numbers</li>
+<li>[ ] Implement cache consistency checks</li>
+<li>
+<p>[ ] Add cache size monitoring</p>
+</li>
+<li>
+<p>[ ] <strong>Additional Caching Opportunities</strong></p>
+</li>
+<li>[ ] Image header caching (for mosaicking)</li>
+<li>[ ] Database query batching</li>
+<li>[ ] Other frequently-read metadata</li>
+</ul>
+<h3 id="documentation-polish-2-3-hours">Documentation &amp; Polish (2-3 hours)<a class="headerlink" href="#documentation-polish-2-3-hours" title="Permanent link">¶</a></h3>
+<ul>
+<li>[ ] <strong>Update User Documentation</strong></li>
+<li>[ ] Add performance tracking usage examples</li>
+<li>[ ] Document enhanced error messages</li>
+<li>
+<p>[ ] Create troubleshooting guide</p>
+</li>
+<li>
+<p>[ ] <strong>Fix Linting Issues</strong></p>
+</li>
+<li>[ ] Address line length warnings (non-critical)</li>
+<li>[ ] Fix unused import warnings (low priority)</li>
+<li>
+<p>[ ] Clean up whitespace issues</p>
+</li>
+<li>
+<p>[ ] <strong>Type Annotations</strong></p>
+</li>
+<li>[ ] Add missing type hints</li>
+<li>[ ] Improve type safety</li>
+</ul>
+<hr/>
+<h2 id="low-priority-nice-to-have">🟢 Low Priority / Nice to Have<a class="headerlink" href="#low-priority-nice-to-have" title="Permanent link">¶</a></h2>
+<h3 id="code-quality">Code Quality<a class="headerlink" href="#code-quality" title="Permanent link">¶</a></h3>
+<ul>
+<li>[ ] <strong>Code Review</strong></li>
+<li>[ ] Review recently integrated code for consistency</li>
+<li>[ ] Ensure all error handling follows patterns</li>
+<li>[ ] Check for any remaining TODOs in code comments</li>
+</ul>
+<h3 id="performance-monitoring">Performance Monitoring<a class="headerlink" href="#performance-monitoring" title="Permanent link">¶</a></h3>
+<ul>
+<li>[ ] <strong>Performance Dashboard</strong></li>
+<li>[ ] Create simple dashboard to visualize performance metrics</li>
+<li>[ ] Add performance alerts for slow operations</li>
+<li>
+<p>[ ] Track performance improvements over time</p>
+</li>
+<li>
+<p>[ ] <strong>Error Analytics</strong></p>
+</li>
+<li>[ ] Centralize error logging for analytics</li>
+<li>[ ] Track common error patterns</li>
+<li>
+<p>[ ] Proactive improvements based on error data</p>
+</li>
+<li>
+<p>[ ] <strong>Package Configuration for Global CLI Access</strong></p>
+</li>
+<li>[ ] Add pyproject.toml with dependencies and console_scripts entry points</li>
+<li>[ ] Document installation process in README.md</li>
+<li>[ ] Test editable install in casa6 environment</li>
+<li>Time estimate: (2-4 hours)</li>
+<li>Note: Implement once core development stabilizes</li>
+</ul>
+<hr/>
+<h2 id="carta-integration-work-high-priority">📋 CARTA Integration Work (High Priority)<a class="headerlink" href="#carta-integration-work-high-priority" title="Permanent link">¶</a></h2>
+<p><strong>Reference:</strong> <code>docs/analysis/CARTA_INTEGRATION_ASSESSMENT.md</code><br/>
+<strong>Detailed TODO:</strong> <code>docs/analysis/CARTA_INTEGRATION_TODO.md</code></p>
+<h3 id="phase-1-core-visualization-improvements-weeks-1-4-complete">Phase 1: Core Visualization Improvements (Weeks 1-4) ✅ COMPLETE<a class="headerlink" href="#phase-1-core-visualization-improvements-weeks-1-4-complete" title="Permanent link">¶</a></h3>
+<ul>
+<li>[x] <strong>Complete JS9 Integration</strong> (Week 1) (2025-01-27)</li>
+<li>[x] Fix image loading issues in SkyViewer</li>
+<li>[x] Implement image controls (zoom, colormap, grid, coordinates)</li>
+<li>[x] Add image metadata display (beam, noise, WCS)</li>
+<li>
+<p>Time estimate: (1 week)</p>
+</li>
+<li>
+<p>[x] <strong>Catalog Overlay</strong> (Week 2) (2025-01-27)</p>
+</li>
+<li>[x] Backend: Catalog overlay API endpoint (<code>/api/catalog/overlay</code>)</li>
+<li>[x] Frontend: Catalog overlay rendering in SkyViewer</li>
+<li>[ ] Frontend: Catalog interaction (click-to-info, filtering) - Deferred to Phase 2</li>
+<li>
+<p>Time estimate: (1-2 weeks)</p>
+</li>
+<li>
+<p>[x] <strong>Region Management</strong> (Weeks 3-4) (2025-01-27)</p>
+</li>
+<li>[x] Backend: Region storage API and format parsers (CASA, DS9)</li>
+<li>[x] Backend: Region-based statistics API</li>
+<li>[x] Frontend: Region drawing tools (circle, rectangle, polygon)</li>
+<li>[x] Frontend: Region management UI (list, import/export)</li>
+<li>[x] Integration: Region-based photometry workflow</li>
+<li>Time estimate: (2-3 weeks)</li>
+</ul>
+<p><strong>Phase 1 Summary:</strong> See <code>docs/analysis/PHASE1_IMPLEMENTATION_SUMMARY.md</code> for complete details.</p>
+<h3 id="phase-2-analysis-tools-weeks-5-7">Phase 2: Analysis Tools (Weeks 5-7)<a class="headerlink" href="#phase-2-analysis-tools-weeks-5-7" title="Permanent link">¶</a></h3>
+<ul>
+<li>[x] <strong>Spatial Profiler</strong> (Week 5) (2025-01-27)</li>
+<li>[x] Backend: Profile extraction API</li>
+<li>[x] Backend: Profile fitting (Gaussian, Moffat)</li>
+<li>[x] Frontend: Profile plotting component</li>
+<li>[x] Frontend: Profile tool integration in SkyViewer</li>
+<li>[x] JS9 drawing integration</li>
+<li>[x] CSV export functionality</li>
+<li>Time estimate: (1 week)</li>
+<li>
+<p><strong>Summary:</strong> See <code>docs/analysis/PHASE2_WEEK5_COMPLETION.md</code></p>
+</li>
+<li>
+<p>[x] <strong>Image Fitting</strong> (Weeks 6-7) (2025-01-27)</p>
+</li>
+<li>[x] Backend: Image fitting API using astropy.modeling</li>
+<li>[x] Frontend: Fitting visualization</li>
+<li>[x] Integration: Fitted photometry option</li>
+<li>Time estimate: (2 weeks)</li>
+<li><strong>Summary:</strong> See <code>docs/analysis/CARTA_PHASE2_TODO.md</code></li>
+</ul>
+<h3 id="phase-3-performance-optimization-weeks-8-9">Phase 3: Performance Optimization (Weeks 8-9)<a class="headerlink" href="#phase-3-performance-optimization-weeks-8-9" title="Permanent link">¶</a></h3>
+<ul>
+<li>[ ] <strong>Progressive Image Loading</strong> (Week 8)</li>
+<li>[ ] Backend: Tile-based image serving</li>
+<li>[ ] Backend: Low-resolution preview generation</li>
+<li>[ ] Frontend: Progressive loading implementation</li>
+<li>
+<p>Time estimate: (1-2 weeks)</p>
+</li>
+<li>
+<p>[ ] <strong>WebGL Rendering</strong> (Week 9) - Optional</p>
+</li>
+<li>[ ] Evaluate WebGL libraries (regl, deck.gl)</li>
+<li>[ ] Implement WebGL rendering if beneficial</li>
+<li>Time estimate: (1-2 weeks)</li>
+</ul>
+<p><strong>Total Estimated Time:</strong> 8-12 weeks for core features (Phases 1-2)</p>
+<hr/>
+<h2 id="vast-tools-adoption-source-analysis-visualization">📋 VAST Tools Adoption (Source Analysis &amp; Visualization)<a class="headerlink" href="#vast-tools-adoption-source-analysis-visualization" title="Permanent link">¶</a></h2>
+<p><strong>Reference:</strong> <code>docs/analysis/VAST_TOOLS_DSA110_DETAILED_COMPARISON.md</code><br/>
+<strong>Summary:</strong> <code>docs/analysis/VAST_TOOLS_ADOPTION_SUMMARY.md</code><br/>
+<strong>VAST Tools Review:</strong> <code>archive/references/vast-tools/VAST_TOOLS_CODEBASE_REVIEW.md</code><br/>
+<strong>Total Estimate:</strong> 5-7 weeks for complete implementation</p>
+<h3 id="phase-1-core-source-class-light-curves-high-priority-2-3-weeks">Phase 1: Core Source Class &amp; Light Curves (High Priority) - 2-3 weeks<a class="headerlink" href="#phase-1-core-source-class-light-curves-high-priority-2-3-weeks" title="Permanent link">¶</a></h3>
+<ul>
+<li>[x] <strong>Source Class Pattern</strong> (Week 1-2) (2025-11-12)</li>
+<li>[x] Create <code>src/dsa110_contimg/photometry/source.py</code></li>
+<li>[x] Implement Source class with database loading from <code>photometry_timeseries</code></li>
+<li>[x] Add properties: <code>coord</code>, <code>n_epochs</code>, <code>detections</code></li>
+<li>[x] Add method: <code>_load_measurements()</code> from products database</li>
+<li>[x] Unit tests for Source class creation and properties</li>
+<li>[x] Time estimate: (1-2 weeks)</li>
+<li>
+<p>[x] Adopt from: <code>vasttools/source.py::Source</code></p>
+</li>
+<li>
+<p>[x] <strong>Light Curve Plotting</strong> (Week 2-3) (2025-11-12)</p>
+</li>
+<li>[x] Implement <code>Source.plot_lightcurve()</code> method</li>
+<li>[x] Add ESE-specific features:<ul>
+<li>[x] Highlight baseline period (first 10 epochs)</li>
+<li>[x] Highlight ESE candidate period (14-180 days)</li>
+<li>[x] Normalized flux plotting with error bars</li>
+<li>[x] Detection/limit distinction</li>
+</ul>
+</li>
+<li>[x] Support multiple time axes (datetime, MJD, days from start)</li>
+<li>[x] Customizable styling (figsize, DPI, grid, legend)</li>
+<li>[x] Integration tests with real data</li>
+<li>[x] Time estimate: (1 week)</li>
+<li>
+<p>[x] Adopt from: <code>vasttools/source.py::Source.plot_lightcurve()</code></p>
+</li>
+<li>
+<p>[x] <strong>Basic Variability Metrics</strong> (Week 3) (2025-11-12)</p>
+</li>
+<li>[x] Create <code>src/dsa110_contimg/photometry/variability.py</code></li>
+<li>[x] Implement <code>calculate_eta_metric()</code> (weighted variance)</li>
+<li>[x] Add <code>Source.calc_variability_metrics()</code> method</li>
+<li>[x] Database migration: Add <code>eta_metric</code> column to <code>variability_stats</code> table (2025-11-12)</li>
+<li>[ ] Update variability calculation code to include η metric (when variability stats are computed)</li>
+<li>[x] Backfill script: <code>scripts/backfill_eta_metric.py</code> (2025-11-12)</li>
+<li>[x] Backfill completed: 5 sources updated (2025-11-12)</li>
+<li>[x] Time estimate: (3-5 days)</li>
+<li>[x] Adopt from: <code>vasttools/utils.py::pipeline_get_eta_metric()</code></li>
+</ul>
+<h3 id="phase-2-visualization-enhanced-metrics-medium-priority-2-weeks">Phase 2: Visualization &amp; Enhanced Metrics (Medium Priority) - 2 weeks<a class="headerlink" href="#phase-2-visualization-enhanced-metrics-medium-priority-2-weeks" title="Permanent link">¶</a></h3>
+<ul>
+<li>[x] <strong>Postage Stamp Visualization</strong> (Week 1) (2025-11-12)</li>
+<li>[x] Create <code>src/dsa110_contimg/qa/postage_stamps.py</code></li>
+<li>[x] Implement <code>create_cutout()</code> function (image cutout around source)</li>
+<li>[x] Implement <code>Source.show_all_cutouts()</code> method (monkey-patched)</li>
+<li>[x] Add all-epoch grid visualization</li>
+<li>[x] Z-scale normalization for cutouts</li>
+<li>[x] Customizable size and layout (columns, figsize)</li>
+<li>[x] Integration with Source class</li>
+<li>[x] Time estimate: (1 week)</li>
+<li>
+<p>[x] Adopt from: <code>vasttools/source.py::Source.show_all_png_cutouts()</code></p>
+</li>
+<li>
+<p>[ ] <strong>Enhanced Variability Metrics</strong> (Week 2)</p>
+</li>
+<li>[ ] Implement <code>calculate_vs_metric()</code> (two-epoch t-statistic)</li>
+<li>[ ] Implement <code>calculate_m_metric()</code> (modulation index)</li>
+<li>[ ] Add two-epoch metrics to <code>Source.calc_variability_metrics()</code></li>
+<li>[ ] Update <code>variability_stats</code> table schema if needed</li>
+<li>[ ] Unit tests for all variability metrics</li>
+<li>[ ] Time estimate: (3-5 days)</li>
+<li>
+<p>[ ] Adopt from: <code>vasttools/utils.py::calculate_vs_metric()</code>, <code>calculate_m_metric()</code></p>
+</li>
+<li>
+<p>[x] <strong>QA Module Integration</strong> (Week 2) (2025-11-12)</p>
+</li>
+<li>[x] Add postage stamps to QA module</li>
+<li>[x] Create API endpoints for postage stamps<ul>
+<li>[x] <code>GET /api/sources/{source_id}/variability</code> - Variability metrics</li>
+<li>[x] <code>GET /api/sources/{source_id}/lightcurve</code> - Light curve data</li>
+<li>[x] <code>GET /api/sources/{source_id}/postage_stamps</code> - Postage stamp cutouts</li>
+</ul>
+</li>
+<li>[ ] Documentation and examples</li>
+<li>[x] Time estimate: (2-3 days)</li>
+</ul>
+<h3 id="phase-3-external-catalog-integration-low-medium-priority-1-2-weeks">Phase 3: External Catalog Integration (Low-Medium Priority) - 1-2 weeks<a class="headerlink" href="#phase-3-external-catalog-integration-low-medium-priority-1-2-weeks" title="Permanent link">¶</a></h3>
+<ul>
+<li>[ ] <strong>External Catalog Module</strong> (Week 1)</li>
+<li>[ ] Create <code>src/dsa110_contimg/catalog/external.py</code></li>
+<li>[ ] Implement <code>simbad_search()</code> (object identification)</li>
+<li>[ ] Implement <code>ned_search()</code> (extragalactic database)</li>
+<li>[ ] Implement <code>gaia_search()</code> (astrometry)</li>
+<li>[ ] Add <code>Source.crossmatch_external()</code> method</li>
+<li>[ ] Integration tests</li>
+<li>[ ] Time estimate: (1 week)</li>
+<li>
+<p>[ ] Adopt from: <code>vasttools/utils.py::simbad_search()</code>, <code>vasttools/source.py</code></p>
+</li>
+<li>
+<p>[ ] <strong>API Integration</strong> (Week 2)</p>
+</li>
+<li>[ ] Add API endpoint: <code>GET /api/sources/{source_id}/lightcurve</code></li>
+<li>[ ] Add API endpoint: <code>GET /api/sources/{source_id}/variability</code></li>
+<li>[ ] Add API endpoint: <code>GET /api/sources/{source_id}/postage_stamps</code></li>
+<li>[ ] Add API endpoint: <code>GET /api/sources/{source_id}/external_catalogs</code></li>
+<li>[ ] Integration tests for API endpoints</li>
+<li>
+<p>[ ] Time estimate: (3-5 days)</p>
+</li>
+<li>
+<p>[ ] <strong>ESE Detection Workflow Integration</strong> (Week 2)</p>
+</li>
+<li>[ ] Update ESE detection to use Source class</li>
+<li>[ ] Integrate light curve plotting into ESE candidate analysis</li>
+<li>[ ] Add postage stamps to ESE candidate review workflow</li>
+<li>[ ] Documentation updates</li>
+<li>[ ] Time estimate: (2-3 days)</li>
+</ul>
+<h3 id="dependencies-setup">Dependencies &amp; Setup<a class="headerlink" href="#dependencies-setup" title="Permanent link">¶</a></h3>
+<ul>
+<li>[ ] <strong>Install Required Dependencies</strong></li>
+<li>[ ] Add <code>astroquery</code> to requirements (for external catalog queries)</li>
+<li>[ ] Optional: Add <code>bokeh</code> for interactive plots (can add later)</li>
+<li>[ ] Update <code>pyproject.toml</code> or <code>requirements.txt</code></li>
+<li>[ ] Time estimate: (30 minutes)</li>
+</ul>
+<h3 id="testing-requirements">Testing Requirements<a class="headerlink" href="#testing-requirements" title="Permanent link">¶</a></h3>
+<ul>
+<li>[ ] <strong>Unit Tests</strong></li>
+<li>[ ] Source class creation and properties</li>
+<li>[ ] Light curve plotting</li>
+<li>[ ] Variability metric calculations</li>
+<li>[ ] Postage stamp creation</li>
+<li>[ ] External catalog queries</li>
+<li>
+<p>[ ] Time estimate: (2-3 days)</p>
+</li>
+<li>
+<p>[ ] <strong>Integration Tests</strong></p>
+</li>
+<li>[ ] Source class with real products database</li>
+<li>[ ] API endpoints</li>
+<li>[ ] ESE detection workflow integration</li>
+<li>[ ] Time estimate: (2-3 days)</li>
+</ul>
+<hr/>
+<h2 id="separate-projects-different-scope">📋 Separate Projects (Different Scope)<a class="headerlink" href="#separate-projects-different-scope" title="Permanent link">¶</a></h2>
+<p>These items are tracked here but may have different priorities/owners:</p>
+<h3 id="apifrontend-work">API/Frontend Work<a class="headerlink" href="#apifrontend-work" title="Permanent link">¶</a></h3>
+<ul>
+<li>[ ] <strong>Batch Operations</strong> (from <code>docs/PRIORITY_FEATURES_IMPLEMENTATION.md</code>)</li>
+<li>[ ] API endpoints for batch processing</li>
+<li>[ ] Frontend components for batch operations</li>
+<li>
+<p>[ ] Batch progress tracking</p>
+</li>
+<li>
+<p>[ ] <strong>Quality Assessment</strong> (from <code>docs/PRIORITY_FEATURES_IMPLEMENTATION.md</code>)</p>
+</li>
+<li>[ ] QA extraction API endpoints</li>
+<li>[ ] Frontend QA display components</li>
+<li>
+<p>[ ] QA badges and thumbnails</p>
+</li>
+<li>
+<p>[ ] <strong>Data Organization</strong> (from <code>docs/PRIORITY_FEATURES_IMPLEMENTATION.md</code>)</p>
+</li>
+<li>[ ] Enhanced MS listing with search/filter/sort</li>
+<li>[ ] Frontend table components</li>
+<li>[ ] Pagination and search</li>
+</ul>
+<h3 id="mosaicking-enhancements">Mosaicking Enhancements<a class="headerlink" href="#mosaicking-enhancements" title="Permanent link">¶</a></h3>
+<ul>
+<li>[ ] <strong>Additional Validation</strong> (from <code>docs/reports/MOSAICKING_REMAINING_WORK.md</code>)</li>
+<li>[ ] Beam consistency validation</li>
+<li>[ ] Post-mosaicking validation</li>
+<li>[ ] Disk space checks</li>
+</ul>
+<h3 id="pipeline-robustness-improvements">Pipeline Robustness Improvements<a class="headerlink" href="#pipeline-robustness-improvements" title="Permanent link">¶</a></h3>
+<p><strong>Note:</strong> Implement after science stages and dashboard are fully functioning<br/>
+<strong>Reference:</strong> <code>docs/reports/PIPELINE_ROBUSTNESS_ANALYSIS.md</code><br/>
+<strong>Total Estimate:</strong> 6 weeks for complete implementation</p>
+<h4 id="phase-1-critical-improvements-weeks-1-2">Phase 1: Critical Improvements (Weeks 1-2)<a class="headerlink" href="#phase-1-critical-improvements-weeks-1-2" title="Permanent link">¶</a></h4>
+<ul>
+<li>[ ] <strong>Error Classification System</strong></li>
+<li>[ ] Create error taxonomy (retryable/recoverable/fatal/validation)</li>
+<li>[ ] Implement ErrorClassifier with recovery strategies</li>
+<li>[ ] Add structured error context (PipelineError dataclass)</li>
+<li>[ ] Integrate error recovery into all pipeline stages</li>
+<li>Time estimate: (3-4 days)</li>
+<li>
+<p>Files: <code>src/dsa110_contimg/utils/error_classification.py</code> (new)</p>
+</li>
+<li>
+<p>[ ] <strong>Resource Preflight Checks</strong></p>
+</li>
+<li>[ ] Implement ResourceManager with disk/memory/tmpfs checks</li>
+<li>[ ] Add size estimation functions for MS/calibration/imaging</li>
+<li>[ ] Integrate checks before all major operations</li>
+<li>[ ] Add graceful degradation when resources low</li>
+<li>Time estimate: (2-3 days)</li>
+<li>
+<p>Files: <code>src/dsa110_contimg/utils/resource_management.py</code> (new)</p>
+</li>
+<li>
+<p>[ ] <strong>Mandatory Quality Gates</strong></p>
+</li>
+<li>[ ] Convert optional QA checks to mandatory gates</li>
+<li>[ ] Implement QualityGate class with configurable thresholds</li>
+<li>[ ] Add quality-based rejection with clear error messages</li>
+<li>[ ] Update all pipeline stages to enforce gates</li>
+<li>Time estimate: (2-3 days)</li>
+<li>
+<p>Files: Update <code>src/dsa110_contimg/qa/pipeline_quality.py</code></p>
+</li>
+<li>
+<p>[ ] <strong>Calibrator Fallback Chain</strong></p>
+</li>
+<li>[ ] Implement CalibratorSelector with fallback logic</li>
+<li>[ ] Add fallback to secondary calibrators</li>
+<li>[ ] Add last-known-good calibration fallback</li>
+<li>[ ] Integrate into calibration workflow</li>
+<li>Time estimate: (2-3 days)</li>
+<li>Files: <code>src/dsa110_contimg/calibration/calibrator_selection.py</code> (new)</li>
+</ul>
+<h4 id="phase-2-important-improvements-weeks-3-4">Phase 2: Important Improvements (Weeks 3-4)<a class="headerlink" href="#phase-2-important-improvements-weeks-3-4" title="Permanent link">¶</a></h4>
+<ul>
+<li>[ ] <strong>Atomic Operations &amp; Transaction Boundaries</strong></li>
+<li>[ ] Implement AtomicPipelineStage context manager</li>
+<li>[ ] Add two-phase commit pattern for multi-step operations</li>
+<li>[ ] Use temporary files with atomic moves</li>
+<li>[ ] Add database transaction wrappers</li>
+<li>Time estimate: (3-4 days)</li>
+<li>
+<p>Files: <code>src/dsa110_contimg/utils/transactions.py</code> (new)</p>
+</li>
+<li>
+<p>[ ] <strong>Comprehensive Checkpointing</strong></p>
+</li>
+<li>[ ] Extend checkpointing to calibration stage</li>
+<li>[ ] Extend checkpointing to imaging stage</li>
+<li>[ ] Add checkpoint validation and recovery</li>
+<li>[ ] Implement checkpoint cleanup on success</li>
+<li>Time estimate: (2-3 days)</li>
+<li>
+<p>Files: Update streaming converter, add <code>utils/checkpointing.py</code></p>
+</li>
+<li>
+<p>[ ] <strong>State Consistency Validation</strong></p>
+</li>
+<li>[ ] Implement state validation across queue/products/cal registry</li>
+<li>[ ] Add periodic consistency checks</li>
+<li>[ ] Add automatic repair of inconsistencies</li>
+<li>[ ] Add orphaned artifact detection</li>
+<li>Time estimate: (2-3 days)</li>
+<li>
+<p>Files: <code>src/dsa110_contimg/utils/state_validation.py</code> (new)</p>
+</li>
+<li>
+<p>[ ] <strong>Health Check Endpoints</strong></p>
+</li>
+<li>[ ] Implement comprehensive health check function</li>
+<li>[ ] Add checks for casa6, disk, databases, dependencies</li>
+<li>[ ] Create API endpoint: <code>/api/health</code></li>
+<li>[ ] Add health monitoring to systemd services</li>
+<li>Time estimate: (1-2 days)</li>
+<li>Files: Update <code>src/dsa110_contimg/api/routes.py</code></li>
+</ul>
+<h4 id="phase-3-enhancement-improvements-weeks-5-6">Phase 3: Enhancement Improvements (Weeks 5-6)<a class="headerlink" href="#phase-3-enhancement-improvements-weeks-5-6" title="Permanent link">¶</a></h4>
+<ul>
+<li>[ ] <strong>Distributed Tracing</strong></li>
+<li>[ ] Implement PipelineContext with correlation IDs</li>
+<li>[ ] Add context propagation across pipeline stages</li>
+<li>[ ] Integrate with logging and metrics</li>
+<li>[ ] Add trace visualization</li>
+<li>
+<p>Time estimate: (2-3 days)</p>
+</li>
+<li>
+<p>[ ] <strong>Predictive Monitoring</strong></p>
+</li>
+<li>[ ] Add trend analysis for resource usage</li>
+<li>[ ] Implement predictive alerts (disk space, queue depth)</li>
+<li>[ ] Add performance degradation detection</li>
+<li>[ ] Add SLA tracking</li>
+<li>
+<p>Time estimate: (2-3 days)</p>
+</li>
+<li>
+<p>[ ] <strong>Resource Quotas</strong></p>
+</li>
+<li>[ ] Implement ResourceQuota with semaphores</li>
+<li>[ ] Add per-operation resource budgets</li>
+<li>[ ] Add operation prioritization</li>
+<li>[ ] Integrate quota enforcement</li>
+<li>
+<p>Time estimate: (2-3 days)</p>
+</li>
+<li>
+<p>[ ] <strong>Quality-Based Routing</strong></p>
+</li>
+<li>[ ] Implement quality-based processing paths</li>
+<li>[ ] Add retry with different parameters for low quality</li>
+<li>[ ] Add quarantine queue for consistently failing data</li>
+<li>[ ] Add quality trend tracking</li>
+<li>Time estimate: (2-3 days)</li>
+</ul>
+<h4 id="testing-requirements_1">Testing Requirements<a class="headerlink" href="#testing-requirements_1" title="Permanent link">¶</a></h4>
+<ul>
+<li>[ ] <strong>Unit Tests</strong> for all new modules</li>
+<li>[ ] Error classification tests</li>
+<li>[ ] Resource management tests</li>
+<li>[ ] Quality gate tests</li>
+<li>[ ] State validation tests</li>
+<li>
+<p>Time estimate: (2-3 days)</p>
+</li>
+<li>
+<p>[ ] <strong>Integration Tests</strong></p>
+</li>
+<li>[ ] End-to-end pipeline with failure injection</li>
+<li>[ ] Recovery from checkpoints</li>
+<li>[ ] Calibrator fallback scenarios</li>
+<li>[ ] Resource exhaustion scenarios</li>
+<li>
+<p>Time estimate: (2-3 days)</p>
+</li>
+<li>
+<p>[ ] <strong>Chaos Engineering</strong></p>
+</li>
+<li>[ ] Random failure injection at each stage</li>
+<li>[ ] Disk space exhaustion simulation</li>
+<li>[ ] Network interruption simulation</li>
+<li>[ ] Database corruption simulation</li>
+<li>Time estimate: (2-3 days)</li>
+</ul>
+<hr/>
+<h2 id="recently-completed">✅ Recently Completed<a class="headerlink" href="#recently-completed" title="Permanent link">¶</a></h2>
+<h3 id="integration-work-2025-01-27">Integration Work (2025-01-27)<a class="headerlink" href="#integration-work-2025-01-27" title="Permanent link">¶</a></h3>
+<ul>
+<li>[x] <strong>Performance tracking decorators added to all workflows</strong></li>
+<li>[x] <strong>Enhanced error context integrated throughout</strong></li>
+<li>[x] <strong>All syntax verified and working</strong></li>
+<li>[x] <strong>Integration documentation created</strong></li>
+</ul>
+<h3 id="optimizations-2025-01-27">Optimizations (2025-01-27)<a class="headerlink" href="#optimizations-2025-01-27" title="Permanent link">¶</a></h3>
+<ul>
+<li>[x] <strong>Batch subband loading</strong> (60% memory reduction)</li>
+<li>[x] <strong>MS metadata caching</strong> with LRU cache</li>
+<li>[x] <strong>Flag validation caching</strong> (5-10x faster)</li>
+<li>[x] <strong>Optimized flag sampling</strong> (vectorized reads)</li>
+<li>[x] <strong>MODEL_DATA calculation caching</strong></li>
+</ul>
+<h3 id="code-organization-2025-01-27">Code Organization (2025-01-27)<a class="headerlink" href="#code-organization-2025-01-27" title="Permanent link">¶</a></h3>
+<ul>
+<li>[x] <strong>Split calibration CLI</strong> into specialized modules (93% reduction)</li>
+<li>[x] <strong>Split imaging CLI</strong> (68% reduction)</li>
+<li>[x] <strong>Split conversion helpers</strong> (95% reduction)</li>
+<li>[x] <strong>Consolidated ops pipeline helpers</strong></li>
+</ul>
+<h3 id="bug-fixes-2025-01-27">Bug Fixes (2025-01-27)<a class="headerlink" href="#bug-fixes-2025-01-27" title="Permanent link">¶</a></h3>
+<ul>
+<li>[x] <strong>Fixed error handling</strong> in imaging CLI</li>
+<li>[x] <strong>Fixed duplicate function definition</strong></li>
+<li>[x] <strong>Added safeguards</strong> to prevent imaging uncalibrated data</li>
+</ul>
+<hr/>
+<h2 id="notes">📝 Notes<a class="headerlink" href="#notes" title="Permanent link">¶</a></h2>
+<ul>
+<li>Items are organized by priority (High → Medium → Low)</li>
+<li>Check off items as they're completed</li>
+<li>Add new items as they're identified</li>
+<li>Reference related documentation files for context</li>
+<li>Separate projects are listed but may have different priorities</li>
+<li><strong>Keep this file updated</strong> - it's a living document!</li>
+</ul>
+<hr/>
+<h2 id="related-documentation">🔗 Related Documentation<a class="headerlink" href="#related-documentation" title="Permanent link">¶</a></h2>
+<ul>
+<li><strong><code>docs/CONTRIBUTING_TODO.md</code></strong> - ⭐ <strong>How to modify this file</strong> (guidelines, examples, best practices)</li>
+<li><strong><code>docs/LINEAR_INTEGRATION.md</code></strong> - 🔗 <strong>Sync TODO items to Linear issues</strong> (setup, usage, troubleshooting)</li>
+<li><code>docs/reports/INTEGRATION_COMPLETE.md</code> - Integration status</li>
+<li><code>docs/reports/NEXT_STEPS.md</code> - Detailed next steps guidance</li>
+<li><code>docs/reports/IMPLEMENTATION_SUMMARY.md</code> - Complete implementation summary</li>
+<li><code>docs/reports/PIPELINE_ROBUSTNESS_ANALYSIS.md</code> - Comprehensive robustness analysis and recommendations</li>
+<li><code>docs/optimizations/PROFILING_GUIDE.md</code> - Profiling guidance</li>
+<li><code>docs/optimizations/OPTIMIZATION_API.md</code> - Optimization API documentation</li>
+<li><code>docs/analysis/VAST_TOOLS_DSA110_DETAILED_COMPARISON.md</code> - Detailed VAST Tools comparison and adoption plan</li>
+<li><code>docs/analysis/VAST_TOOLS_ADOPTION_SUMMARY.md</code> - Quick reference for VAST Tools adoption</li>
+</ul>
+</article>
+</div>
+<script>var tabs=__md_get("__tabs");if(Array.isArray(tabs))e:for(var set of document.querySelectorAll(".tabbed-set")){var tab,labels=set.querySelector(".tabbed-labels");for(tab of tabs)for(var label of labels.getElementsByTagName("label"))if(label.innerText.trim()===tab){var input=document.getElementById(label.htmlFor);input.checked=!0;continue e}}</script>
+<script>var target=document.getElementById(location.hash.slice(1));target&&target.name&&(target.checked=target.name.startsWith("__tabbed_"))</script>
+</div>
+</main>
+<footer class="md-footer">
+<div class="md-footer-meta md-typeset">
+<div class="md-footer-meta__inner md-grid">
+<div class="md-copyright">
+  
+  
+    Made with
+    <a href="https://squidfunk.github.io/mkdocs-material/" rel="noopener" target="_blank">
+      Material for MkDocs
+    </a>
+</div>
+</div>
+</div>
+</footer>
+</div>
+<div class="md-dialog" data-md-component="dialog">
+<div class="md-dialog__inner md-typeset"></div>
+</div>
+<script id="__config" type="application/json">{"base": "../../..", "features": ["navigation.sections", "navigation.indexes", "content.code.copy", "content.tabs.link"], "search": "../../../assets/javascripts/workers/search.b8dbb3d2.min.js", "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}}</script>
+<script src="../../../assets/javascripts/bundle.fe8b6f2b.min.js"></script>
+<script src="../../../javascripts/mathjax.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+<script src="../../../javascripts/mermaid-zoom.js"></script>
+</body>
+</html>

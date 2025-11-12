@@ -1,0 +1,2045 @@
+
+<!DOCTYPE html>
+
+<html class="no-js" lang="en">
+<head>
+<meta charset="utf-8"/>
+<meta content="width=device-width,initial-scale=1" name="viewport"/>
+<link href="http://code.deepsynoptic.org/dsa110-contimg/testing/COMPREHENSIVE_TESTING_PLAN/" rel="canonical"/>
+<link href="../../assets/images/favicon.png" rel="icon"/>
+<meta content="mkdocs-1.6.1, mkdocs-material-9.5.31" name="generator"/>
+<title>Comprehensive Testing Plan for DSA-110 Continuum Imaging Dashboard - DSA-110 Continuum Imaging Pipeline</title>
+<link href="../../assets/stylesheets/main.3cba04c6.min.css" rel="stylesheet"/>
+<link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect"/>
+<link href="https://fonts.googleapis.com/css?family=Roboto:300,300i,400,400i,700,700i%7CRoboto+Mono:400,400i,700,700i&amp;display=fallback" rel="stylesheet"/>
+<style>:root{--md-text-font:"Roboto";--md-code-font:"Roboto Mono"}</style>
+<link href="../../assets/_mkdocstrings.css" rel="stylesheet"/>
+<script>__md_scope=new URL("../..",location),__md_hash=e=>[...e].reduce((e,_)=>(e<<5)-e+_.charCodeAt(0),0),__md_get=(e,_=localStorage,t=__md_scope)=>JSON.parse(_.getItem(t.pathname+"."+e)),__md_set=(e,_,t=localStorage,a=__md_scope)=>{try{t.setItem(a.pathname+"."+e,JSON.stringify(_))}catch(e){}}</script>
+</head>
+<body dir="ltr">
+<input autocomplete="off" class="md-toggle" data-md-toggle="drawer" id="__drawer" type="checkbox"/>
+<input autocomplete="off" class="md-toggle" data-md-toggle="search" id="__search" type="checkbox"/>
+<label class="md-overlay" for="__drawer"></label>
+<div data-md-component="skip">
+<a class="md-skip" href="#comprehensive-testing-plan-for-dsa-110-continuum-imaging-dashboard">
+          Skip to content
+        </a>
+</div>
+<div data-md-component="announce">
+</div>
+<header class="md-header md-header--shadow" data-md-component="header">
+<nav aria-label="Header" class="md-header__inner md-grid">
+<a aria-label="DSA-110 Continuum Imaging Pipeline" class="md-header__button md-logo" data-md-component="logo" href="../.." title="DSA-110 Continuum Imaging Pipeline">
+<svg viewbox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54Z"></path></svg>
+</a>
+<label class="md-header__button md-icon" for="__drawer">
+<svg viewbox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M3 6h18v2H3V6m0 5h18v2H3v-2m0 5h18v2H3v-2Z"></path></svg>
+</label>
+<div class="md-header__title" data-md-component="header-title">
+<div class="md-header__ellipsis">
+<div class="md-header__topic">
+<span class="md-ellipsis">
+            DSA-110 Continuum Imaging Pipeline
+          </span>
+</div>
+<div class="md-header__topic" data-md-component="header-topic">
+<span class="md-ellipsis">
+            
+              Comprehensive Testing Plan for DSA-110 Continuum Imaging Dashboard
+            
+          </span>
+</div>
+</div>
+</div>
+<script>var media,input,key,value,palette=__md_get("__palette");if(palette&&palette.color){"(prefers-color-scheme)"===palette.color.media&&(media=matchMedia("(prefers-color-scheme: light)"),input=document.querySelector(media.matches?"[data-md-color-media='(prefers-color-scheme: light)']":"[data-md-color-media='(prefers-color-scheme: dark)']"),palette.color.media=input.getAttribute("data-md-color-media"),palette.color.scheme=input.getAttribute("data-md-color-scheme"),palette.color.primary=input.getAttribute("data-md-color-primary"),palette.color.accent=input.getAttribute("data-md-color-accent"));for([key,value]of Object.entries(palette.color))document.body.setAttribute("data-md-color-"+key,value)}</script>
+<label class="md-header__button md-icon" for="__search">
+<svg viewbox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.516 6.516 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5Z"></path></svg>
+</label>
+<div class="md-search" data-md-component="search" role="dialog">
+<label class="md-search__overlay" for="__search"></label>
+<div class="md-search__inner" role="search">
+<form class="md-search__form" name="search">
+<input aria-label="Search" autocapitalize="off" autocomplete="off" autocorrect="off" class="md-search__input" data-md-component="search-query" name="query" placeholder="Search" required="" spellcheck="false" type="text"/>
+<label class="md-search__icon md-icon" for="__search">
+<svg viewbox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.516 6.516 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5Z"></path></svg>
+<svg viewbox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11h12Z"></path></svg>
+</label>
+<nav aria-label="Search" class="md-search__options">
+<button aria-label="Clear" class="md-search__icon md-icon" tabindex="-1" title="Clear" type="reset">
+<svg viewbox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M19 6.41 17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12 19 6.41Z"></path></svg>
+</button>
+</nav>
+</form>
+<div class="md-search__output">
+<div class="md-search__scrollwrap" data-md-scrollfix="" tabindex="0">
+<div class="md-search-result" data-md-component="search-result">
+<div class="md-search-result__meta">
+            Initializing search
+          </div>
+<ol class="md-search-result__list" role="presentation"></ol>
+</div>
+</div>
+</div>
+</div>
+</div>
+<div class="md-header__source">
+<a class="md-source" data-md-component="source" href="https://github.com/dsa110/dsa110-contimg" title="Go to repository">
+<div class="md-source__icon md-icon">
+<svg viewbox="0 0 448 512" xmlns="http://www.w3.org/2000/svg"><!--! Font Awesome Free 6.6.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2024 Fonticons, Inc.--><path d="M439.55 236.05 244 40.45a28.87 28.87 0 0 0-40.81 0l-40.66 40.63 51.52 51.52c27.06-9.14 52.68 16.77 43.39 43.68l49.66 49.66c34.23-11.8 61.18 31 35.47 56.69-26.49 26.49-70.21-2.87-56-37.34L240.22 199v121.85c25.3 12.54 22.26 41.85 9.08 55a34.34 34.34 0 0 1-48.55 0c-17.57-17.6-11.07-46.91 11.25-56v-123c-20.8-8.51-24.6-30.74-18.64-45L142.57 101 8.45 235.14a28.86 28.86 0 0 0 0 40.81l195.61 195.6a28.86 28.86 0 0 0 40.8 0l194.69-194.69a28.86 28.86 0 0 0 0-40.81z"></path></svg>
+</div>
+<div class="md-source__repository">
+    GitHub
+  </div>
+</a>
+</div>
+</nav>
+</header>
+<div class="md-container" data-md-component="container">
+<main class="md-main" data-md-component="main">
+<div class="md-main__inner md-grid">
+<div class="md-sidebar md-sidebar--primary" data-md-component="sidebar" data-md-type="navigation">
+<div class="md-sidebar__scrollwrap">
+<div class="md-sidebar__inner">
+<nav aria-label="Navigation" class="md-nav md-nav--primary" data-md-level="0">
+<label class="md-nav__title" for="__drawer">
+<a aria-label="DSA-110 Continuum Imaging Pipeline" class="md-nav__button md-logo" data-md-component="logo" href="../.." title="DSA-110 Continuum Imaging Pipeline">
+<svg viewbox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54Z"></path></svg>
+</a>
+    DSA-110 Continuum Imaging Pipeline
+  </label>
+<div class="md-nav__source">
+<a class="md-source" data-md-component="source" href="https://github.com/dsa110/dsa110-contimg" title="Go to repository">
+<div class="md-source__icon md-icon">
+<svg viewbox="0 0 448 512" xmlns="http://www.w3.org/2000/svg"><!--! Font Awesome Free 6.6.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2024 Fonticons, Inc.--><path d="M439.55 236.05 244 40.45a28.87 28.87 0 0 0-40.81 0l-40.66 40.63 51.52 51.52c27.06-9.14 52.68 16.77 43.39 43.68l49.66 49.66c34.23-11.8 61.18 31 35.47 56.69-26.49 26.49-70.21-2.87-56-37.34L240.22 199v121.85c25.3 12.54 22.26 41.85 9.08 55a34.34 34.34 0 0 1-48.55 0c-17.57-17.6-11.07-46.91 11.25-56v-123c-20.8-8.51-24.6-30.74-18.64-45L142.57 101 8.45 235.14a28.86 28.86 0 0 0 0 40.81l195.61 195.6a28.86 28.86 0 0 0 40.8 0l194.69-194.69a28.86 28.86 0 0 0 0-40.81z"></path></svg>
+</div>
+<div class="md-source__repository">
+    GitHub
+  </div>
+</a>
+</div>
+<ul class="md-nav__list" data-md-scrollfix="">
+<li class="md-nav__item">
+<a class="md-nav__link" href="../..">
+<span class="md-ellipsis">
+    Home
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../DOCUMENTATION_QUICK_REFERENCE/">
+<span class="md-ellipsis">
+    Documentation Guide
+  </span>
+</a>
+</li>
+<li class="md-nav__item md-nav__item--section md-nav__item--nested">
+<input class="md-nav__toggle md-toggle" id="__nav_3" type="checkbox"/>
+<div class="md-nav__link md-nav__container">
+<a class="md-nav__link" href="../../concepts/">
+<span class="md-ellipsis">
+    Concepts
+  </span>
+</a>
+<label class="md-nav__link" for="__nav_3" id="__nav_3_label" tabindex="">
+<span class="md-nav__icon md-icon"></span>
+</label>
+</div>
+<nav aria-expanded="false" aria-labelledby="__nav_3_label" class="md-nav" data-md-level="1">
+<label class="md-nav__title" for="__nav_3">
+<span class="md-nav__icon md-icon"></span>
+            Concepts
+          </label>
+<ul class="md-nav__list" data-md-scrollfix="">
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../concepts/architecture/">
+<span class="md-ellipsis">
+    Architecture
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../concepts/DIRECTORY_ARCHITECTURE/">
+<span class="md-ellipsis">
+    Directory Architecture
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../concepts/modules/">
+<span class="md-ellipsis">
+    Modules
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../concepts/control-panel/">
+<span class="md-ellipsis">
+    Control Panel
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../concepts/aoflagger/">
+<span class="md-ellipsis">
+    AOFlagger
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../concepts/frontend_design/">
+<span class="md-ellipsis">
+    Frontend Design
+  </span>
+</a>
+</li>
+<li class="md-nav__item md-nav__item--nested">
+<input class="md-nav__toggle md-toggle" id="__nav_3_8" type="checkbox"/>
+<label class="md-nav__link" for="__nav_3_8" id="__nav_3_8_label" tabindex="0">
+<span class="md-ellipsis">
+    Dashboard
+  </span>
+<span class="md-nav__icon md-icon"></span>
+</label>
+<nav aria-expanded="false" aria-labelledby="__nav_3_8_label" class="md-nav" data-md-level="2">
+<label class="md-nav__title" for="__nav_3_8">
+<span class="md-nav__icon md-icon"></span>
+            Dashboard
+          </label>
+<ul class="md-nav__list" data-md-scrollfix="">
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../concepts/dashboard_mockups/">
+<span class="md-ellipsis">
+    Mockups
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../SKYVIEW_IMPLEMENTATION_PLAN/">
+<span class="md-ellipsis">
+    Sky View
+  </span>
+</a>
+</li>
+</ul>
+</nav>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../concepts/GLOSSARY/">
+<span class="md-ellipsis">
+    Glossary
+  </span>
+</a>
+</li>
+<li class="md-nav__item md-nav__item--nested">
+<input class="md-nav__toggle md-toggle" id="__nav_3_10" type="checkbox"/>
+<label class="md-nav__link" for="__nav_3_10" id="__nav_3_10_label" tabindex="0">
+<span class="md-ellipsis">
+    Pipeline
+  </span>
+<span class="md-nav__icon md-icon"></span>
+</label>
+<nav aria-expanded="false" aria-labelledby="__nav_3_10_label" class="md-nav" data-md-level="2">
+<label class="md-nav__title" for="__nav_3_10">
+<span class="md-nav__icon md-icon"></span>
+            Pipeline
+          </label>
+<ul class="md-nav__list" data-md-scrollfix="">
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../concepts/pipeline_overview/">
+<span class="md-ellipsis">
+    Overview
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../concepts/pipeline_stage_architecture/">
+<span class="md-ellipsis">
+    Stage Architecture
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../concepts/pipeline_workflow_visualization/">
+<span class="md-ellipsis">
+    Workflow Visualization
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../concepts/pipeline_production_features/">
+<span class="md-ellipsis">
+    Production Features
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../concepts/pipeline_patterns/">
+<span class="md-ellipsis">
+    Patterns
+  </span>
+</a>
+</li>
+</ul>
+</nav>
+</li>
+<li class="md-nav__item md-nav__item--nested">
+<input class="md-nav__toggle md-toggle" id="__nav_3_11" type="checkbox"/>
+<label class="md-nav__link" for="__nav_3_11" id="__nav_3_11_label" tabindex="0">
+<span class="md-ellipsis">
+    Science
+  </span>
+<span class="md-nav__icon md-icon"></span>
+</label>
+<nav aria-expanded="false" aria-labelledby="__nav_3_11_label" class="md-nav" data-md-level="2">
+<label class="md-nav__title" for="__nav_3_11">
+<span class="md-nav__icon md-icon"></span>
+            Science
+          </label>
+<ul class="md-nav__list" data-md-scrollfix="">
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../concepts/science/photometry_normalization/">
+<span class="md-ellipsis">
+    Photometry Normalization
+  </span>
+</a>
+</li>
+</ul>
+</nav>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../concepts/mcp_browser_server_setup/">
+<span class="md-ellipsis">
+    Browser MCP Server
+  </span>
+</a>
+</li>
+</ul>
+</nav>
+</li>
+<li class="md-nav__item md-nav__item--section md-nav__item--nested">
+<input class="md-nav__toggle md-toggle" id="__nav_4" type="checkbox"/>
+<label class="md-nav__link" for="__nav_4" id="__nav_4_label" tabindex="">
+<span class="md-ellipsis">
+    Tutorials
+  </span>
+<span class="md-nav__icon md-icon"></span>
+</label>
+<nav aria-expanded="false" aria-labelledby="__nav_4_label" class="md-nav" data-md-level="1">
+<label class="md-nav__title" for="__nav_4">
+<span class="md-nav__icon md-icon"></span>
+            Tutorials
+          </label>
+<ul class="md-nav__list" data-md-scrollfix="">
+<li class="md-nav__item md-nav__item--nested">
+<input class="md-nav__toggle md-toggle" id="__nav_4_1" type="checkbox"/>
+<label class="md-nav__link" for="__nav_4_1" id="__nav_4_1_label" tabindex="0">
+<span class="md-ellipsis">
+    Conversion
+  </span>
+<span class="md-nav__icon md-icon"></span>
+</label>
+<nav aria-expanded="false" aria-labelledby="__nav_4_1_label" class="md-nav" data-md-level="2">
+<label class="md-nav__title" for="__nav_4_1">
+<span class="md-nav__icon md-icon"></span>
+            Conversion
+          </label>
+<ul class="md-nav__list" data-md-scrollfix="">
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../tutorials/HDF5_TO_MS_TUTORIAL/">
+<span class="md-ellipsis">
+    HDF5 to MS
+  </span>
+</a>
+</li>
+</ul>
+</nav>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../tutorials/simulation-tutorial/">
+<span class="md-ellipsis">
+    Simulation
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../tutorials/calibrate-apply/">
+<span class="md-ellipsis">
+    Calibrate and Apply
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../tutorials/convert-standalone/">
+<span class="md-ellipsis">
+    Convert Standalone
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../tutorials/streaming/">
+<span class="md-ellipsis">
+    Streaming
+  </span>
+</a>
+</li>
+<li class="md-nav__item md-nav__item--nested">
+<input class="md-nav__toggle md-toggle" id="__nav_4_6" type="checkbox"/>
+<label class="md-nav__link" for="__nav_4_6" id="__nav_4_6_label" tabindex="0">
+<span class="md-ellipsis">
+    Notebooks
+  </span>
+<span class="md-nav__icon md-icon"></span>
+</label>
+<nav aria-expanded="false" aria-labelledby="__nav_4_6_label" class="md-nav" data-md-level="2">
+<label class="md-nav__title" for="__nav_4_6">
+<span class="md-nav__icon md-icon"></span>
+            Notebooks
+          </label>
+<ul class="md-nav__list" data-md-scrollfix="">
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../tutorials/notebooks/bandpass_calibration_test.ipynb">
+<span class="md-ellipsis">
+    Bandpass Calibration Test
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../tutorials/notebooks/calibrator_helper.py">
+<span class="md-ellipsis">
+    Calibrator Helper
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../tutorials/notebooks/CalibratorSearch.ipynb">
+<span class="md-ellipsis">
+    Calibrator Search
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../tutorials/notebooks/ms_staging_workflow.ipynb">
+<span class="md-ellipsis">
+    MS Staging Workflow
+  </span>
+</a>
+</li>
+</ul>
+</nav>
+</li>
+</ul>
+</nav>
+</li>
+<li class="md-nav__item md-nav__item--section md-nav__item--nested">
+<input class="md-nav__toggle md-toggle" id="__nav_5" type="checkbox"/>
+<label class="md-nav__link" for="__nav_5" id="__nav_5_label" tabindex="">
+<span class="md-ellipsis">
+    How-To Guides
+  </span>
+<span class="md-nav__icon md-icon"></span>
+</label>
+<nav aria-expanded="false" aria-labelledby="__nav_5_label" class="md-nav" data-md-level="1">
+<label class="md-nav__title" for="__nav_5">
+<span class="md-nav__icon md-icon"></span>
+            How-To Guides
+          </label>
+<ul class="md-nav__list" data-md-scrollfix="">
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../how-to/github_pages_walkthrough/">
+<span class="md-ellipsis">
+    GitHub Pages Setup
+  </span>
+</a>
+</li>
+<li class="md-nav__item md-nav__item--nested">
+<input class="md-nav__toggle md-toggle" id="__nav_5_2" type="checkbox"/>
+<label class="md-nav__link" for="__nav_5_2" id="__nav_5_2_label" tabindex="0">
+<span class="md-ellipsis">
+    Quickstarts
+  </span>
+<span class="md-nav__icon md-icon"></span>
+</label>
+<nav aria-expanded="false" aria-labelledby="__nav_5_2_label" class="md-nav" data-md-level="2">
+<label class="md-nav__title" for="__nav_5_2">
+<span class="md-nav__icon md-icon"></span>
+            Quickstarts
+          </label>
+<ul class="md-nav__list" data-md-scrollfix="">
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../how-to/quickstart/">
+<span class="md-ellipsis">
+    General
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../how-to/control-panel-quickstart/">
+<span class="md-ellipsis">
+    Control Panel
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../how-to/LINEAR_SETUP_QUICKSTART/">
+<span class="md-ellipsis">
+    Linear Setup
+  </span>
+</a>
+</li>
+</ul>
+</nav>
+</li>
+<li class="md-nav__item md-nav__item--nested">
+<input class="md-nav__toggle md-toggle" id="__nav_5_3" type="checkbox"/>
+<label class="md-nav__link" for="__nav_5_3" id="__nav_5_3_label" tabindex="0">
+<span class="md-ellipsis">
+    Testing
+  </span>
+<span class="md-nav__icon md-icon"></span>
+</label>
+<nav aria-expanded="false" aria-labelledby="__nav_5_3_label" class="md-nav" data-md-level="2">
+<label class="md-nav__title" for="__nav_5_3">
+<span class="md-nav__icon md-icon"></span>
+            Testing
+          </label>
+<ul class="md-nav__list" data-md-scrollfix="">
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../how-to/FAST_TESTING/">
+<span class="md-ellipsis">
+    Fast Testing
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../how-to/PIPELINE_TESTING_GUIDE/">
+<span class="md-ellipsis">
+    Pipeline Guide
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../how-to/TEST_FLAG_SUBCOMMAND/">
+<span class="md-ellipsis">
+    Flag Subcommand
+  </span>
+</a>
+</li>
+</ul>
+</nav>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../how-to/build-vp-from-h5/">
+<span class="md-ellipsis">
+    Build VP from h5
+  </span>
+</a>
+</li>
+<li class="md-nav__item md-nav__item--nested">
+<input class="md-nav__toggle md-toggle" id="__nav_5_5" type="checkbox"/>
+<label class="md-nav__link" for="__nav_5_5" id="__nav_5_5_label" tabindex="0">
+<span class="md-ellipsis">
+    Calibration
+  </span>
+<span class="md-nav__icon md-icon"></span>
+</label>
+<nav aria-expanded="false" aria-labelledby="__nav_5_5_label" class="md-nav" data-md-level="2">
+<label class="md-nav__title" for="__nav_5_5">
+<span class="md-nav__icon md-icon"></span>
+            Calibration
+          </label>
+<ul class="md-nav__list" data-md-scrollfix="">
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../how-to/CALIBRATION_DETAILED_PROCEDURE/">
+<span class="md-ellipsis">
+    Detailed Procedure
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../how-to/FIND_CALIBRATOR_TRANSIT_DATA/">
+<span class="md-ellipsis">
+    Find Calibrator Transit
+  </span>
+</a>
+</li>
+</ul>
+</nav>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../how-to/IMAGE_0834_TRANSIT_5MIN/">
+<span class="md-ellipsis">
+    Image 0834 Transit 5min
+  </span>
+</a>
+</li>
+<li class="md-nav__item md-nav__item--nested">
+<input class="md-nav__toggle md-toggle" id="__nav_5_7" type="checkbox"/>
+<label class="md-nav__link" for="__nav_5_7" id="__nav_5_7_label" tabindex="0">
+<span class="md-ellipsis">
+    Mosaic
+  </span>
+<span class="md-nav__icon md-icon"></span>
+</label>
+<nav aria-expanded="false" aria-labelledby="__nav_5_7_label" class="md-nav" data-md-level="2">
+<label class="md-nav__title" for="__nav_5_7">
+<span class="md-nav__icon md-icon"></span>
+            Mosaic
+          </label>
+<ul class="md-nav__list" data-md-scrollfix="">
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../how-to/mosaic_quickstart/">
+<span class="md-ellipsis">
+    Quickstart
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../how-to/mosaic/">
+<span class="md-ellipsis">
+    Complete Guide
+  </span>
+</a>
+</li>
+</ul>
+</nav>
+</li>
+<li class="md-nav__item md-nav__item--nested">
+<input class="md-nav__toggle md-toggle" id="__nav_5_8" type="checkbox"/>
+<label class="md-nav__link" for="__nav_5_8" id="__nav_5_8_label" tabindex="0">
+<span class="md-ellipsis">
+    Quality Assurance
+  </span>
+<span class="md-nav__icon md-icon"></span>
+</label>
+<nav aria-expanded="false" aria-labelledby="__nav_5_8_label" class="md-nav" data-md-level="2">
+<label class="md-nav__title" for="__nav_5_8">
+<span class="md-nav__icon md-icon"></span>
+            Quality Assurance
+          </label>
+<ul class="md-nav__list" data-md-scrollfix="">
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../how-to/QUALITY_ASSURANCE_SETUP/">
+<span class="md-ellipsis">
+    Setup
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../how-to/quicklook/">
+<span class="md-ellipsis">
+    Quick Look
+  </span>
+</a>
+</li>
+</ul>
+</nav>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../how-to/reprocess/">
+<span class="md-ellipsis">
+    Reprocess
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../how-to/USING_ORCHESTRATOR_CLI/">
+<span class="md-ellipsis">
+    Using Orchestrator CLI
+  </span>
+</a>
+</li>
+<li class="md-nav__item md-nav__item--nested">
+<input class="md-nav__toggle md-toggle" id="__nav_5_11" type="checkbox"/>
+<label class="md-nav__link" for="__nav_5_11" id="__nav_5_11_label" tabindex="0">
+<span class="md-ellipsis">
+    Dashboard
+  </span>
+<span class="md-nav__icon md-icon"></span>
+</label>
+<nav aria-expanded="false" aria-labelledby="__nav_5_11_label" class="md-nav" data-md-level="2">
+<label class="md-nav__title" for="__nav_5_11">
+<span class="md-nav__icon md-icon"></span>
+            Dashboard
+          </label>
+<ul class="md-nav__list" data-md-scrollfix="">
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../how-to/dashboard-development/">
+<span class="md-ellipsis">
+    Development
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../how-to/dashboard-quickstart/">
+<span class="md-ellipsis">
+    Quickstart
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../how-to/dashboard_testing/">
+<span class="md-ellipsis">
+    Testing
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../how-to/dashboard_development_workflow/">
+<span class="md-ellipsis">
+    Development Workflow
+  </span>
+</a>
+</li>
+</ul>
+</nav>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../how-to/LINEAR_INTEGRATION/">
+<span class="md-ellipsis">
+    Linear Integration
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../how-to/frontend-initial-setup/">
+<span class="md-ellipsis">
+    Frontend Initial Setup
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../how-to/PARAMETER_OPTIMIZATION_GUIDE/">
+<span class="md-ellipsis">
+    AOFlagger Parameter Optimization
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../how-to/downsampling_guide/">
+<span class="md-ellipsis">
+    Downsampling Guide
+  </span>
+</a>
+</li>
+<li class="md-nav__item md-nav__item--nested">
+<input class="md-nav__toggle md-toggle" id="__nav_5_16" type="checkbox"/>
+<label class="md-nav__link" for="__nav_5_16" id="__nav_5_16_label" tabindex="0">
+<span class="md-ellipsis">
+    Conversion
+  </span>
+<span class="md-nav__icon md-icon"></span>
+</label>
+<nav aria-expanded="false" aria-labelledby="__nav_5_16_label" class="md-nav" data-md-level="2">
+<label class="md-nav__title" for="__nav_5_16">
+<span class="md-nav__icon md-icon"></span>
+            Conversion
+          </label>
+<ul class="md-nav__list" data-md-scrollfix="">
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../how-to/uvh5_to_ms_conversion/">
+<span class="md-ellipsis">
+    UVH5 to MS
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../how-to/streaming_converter_guide/">
+<span class="md-ellipsis">
+    Streaming Converter
+  </span>
+</a>
+</li>
+</ul>
+</nav>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../how-to/troubleshooting/">
+<span class="md-ellipsis">
+    Troubleshooting
+  </span>
+</a>
+</li>
+</ul>
+</nav>
+</li>
+<li class="md-nav__item md-nav__item--section md-nav__item--nested">
+<input class="md-nav__toggle md-toggle" id="__nav_6" type="checkbox"/>
+<label class="md-nav__link" for="__nav_6" id="__nav_6_label" tabindex="">
+<span class="md-ellipsis">
+    Reference
+  </span>
+<span class="md-nav__icon md-icon"></span>
+</label>
+<nav aria-expanded="false" aria-labelledby="__nav_6_label" class="md-nav" data-md-level="1">
+<label class="md-nav__title" for="__nav_6">
+<span class="md-nav__icon md-icon"></span>
+            Reference
+          </label>
+<ul class="md-nav__list" data-md-scrollfix="">
+<li class="md-nav__item md-nav__item--nested">
+<input class="md-nav__toggle md-toggle" id="__nav_6_1" type="checkbox"/>
+<label class="md-nav__link" for="__nav_6_1" id="__nav_6_1_label" tabindex="0">
+<span class="md-ellipsis">
+    API
+  </span>
+<span class="md-nav__icon md-icon"></span>
+</label>
+<nav aria-expanded="false" aria-labelledby="__nav_6_1_label" class="md-nav" data-md-level="2">
+<label class="md-nav__title" for="__nav_6_1">
+<span class="md-nav__icon md-icon"></span>
+            API
+          </label>
+<ul class="md-nav__list" data-md-scrollfix="">
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../reference/api-endpoints/">
+<span class="md-ellipsis">
+    Endpoints
+  </span>
+</a>
+</li>
+<li class="md-nav__item md-nav__item--nested">
+<input class="md-nav__toggle md-toggle" id="__nav_6_1_2" type="checkbox"/>
+<label class="md-nav__link" for="__nav_6_1_2" id="__nav_6_1_2_label" tabindex="0">
+<span class="md-ellipsis">
+    Dashboard
+  </span>
+<span class="md-nav__icon md-icon"></span>
+</label>
+<nav aria-expanded="false" aria-labelledby="__nav_6_1_2_label" class="md-nav" data-md-level="3">
+<label class="md-nav__title" for="__nav_6_1_2">
+<span class="md-nav__icon md-icon"></span>
+            Dashboard
+          </label>
+<ul class="md-nav__list" data-md-scrollfix="">
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../reference/dashboard_backend_api/">
+<span class="md-ellipsis">
+    API Reference
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../reference/dashboard_pages_and_features/">
+<span class="md-ellipsis">
+    Pages &amp; Features
+  </span>
+</a>
+</li>
+</ul>
+</nav>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../reference/backend_integration_snippets/">
+<span class="md-ellipsis">
+    Integration Snippets
+  </span>
+</a>
+</li>
+</ul>
+</nav>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../reference/calibration-overview/">
+<span class="md-ellipsis">
+    Calibration Overview
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../reference/cli/">
+<span class="md-ellipsis">
+    CLI
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../reference/control-panel-cheatsheet/">
+<span class="md-ellipsis">
+    Control Panel Cheatsheet
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../reference/database_schema/">
+<span class="md-ellipsis">
+    Database Schema
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../reference/env/">
+<span class="md-ellipsis">
+    Environment Variables
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../reference/CRITICAL_PYTHON_ENVIRONMENT/">
+<span class="md-ellipsis">
+    Critical Python Environment
+  </span>
+</a>
+</li>
+<li class="md-nav__item md-nav__item--nested">
+<input class="md-nav__toggle md-toggle" id="__nav_6_8" type="checkbox"/>
+<label class="md-nav__link" for="__nav_6_8" id="__nav_6_8_label" tabindex="0">
+<span class="md-ellipsis">
+    Optimizations
+  </span>
+<span class="md-nav__icon md-icon"></span>
+</label>
+<nav aria-expanded="false" aria-labelledby="__nav_6_8_label" class="md-nav" data-md-level="2">
+<label class="md-nav__title" for="__nav_6_8">
+<span class="md-nav__icon md-icon"></span>
+            Optimizations
+          </label>
+<ul class="md-nav__list" data-md-scrollfix="">
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../reference/optimizations/OPTIMIZATION_API/">
+<span class="md-ellipsis">
+    API
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../reference/optimizations/PROFILING_GUIDE/">
+<span class="md-ellipsis">
+    Profiling Guide
+  </span>
+</a>
+</li>
+</ul>
+</nav>
+</li>
+</ul>
+</nav>
+</li>
+<li class="md-nav__item md-nav__item--section md-nav__item--nested">
+<input class="md-nav__toggle md-toggle" id="__nav_7" type="checkbox"/>
+<label class="md-nav__link" for="__nav_7" id="__nav_7_label" tabindex="">
+<span class="md-ellipsis">
+    Operations
+  </span>
+<span class="md-nav__icon md-icon"></span>
+</label>
+<nav aria-expanded="false" aria-labelledby="__nav_7_label" class="md-nav" data-md-level="1">
+<label class="md-nav__title" for="__nav_7">
+<span class="md-nav__icon md-icon"></span>
+            Operations
+          </label>
+<ul class="md-nav__list" data-md-scrollfix="">
+<li class="md-nav__item md-nav__item--nested">
+<input class="md-nav__toggle md-toggle" id="__nav_7_1" type="checkbox"/>
+<label class="md-nav__link" for="__nav_7_1" id="__nav_7_1_label" tabindex="0">
+<span class="md-ellipsis">
+    Deployment
+  </span>
+<span class="md-nav__icon md-icon"></span>
+</label>
+<nav aria-expanded="false" aria-labelledby="__nav_7_1_label" class="md-nav" data-md-level="2">
+<label class="md-nav__title" for="__nav_7_1">
+<span class="md-nav__icon md-icon"></span>
+            Deployment
+          </label>
+<ul class="md-nav__list" data-md-scrollfix="">
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../operations/deploy-docker/">
+<span class="md-ellipsis">
+    Docker
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../operations/deploy-systemd/">
+<span class="md-ellipsis">
+    systemd
+  </span>
+</a>
+</li>
+</ul>
+</nav>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../operations/port-management/">
+<span class="md-ellipsis">
+    Port Management
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../operations/refant_quick_reference/">
+<span class="md-ellipsis">
+    Refant Quick Reference
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../operations/service_restart_fix/">
+<span class="md-ellipsis">
+    Service Restart Fix
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../operations/systemd-migration/">
+<span class="md-ellipsis">
+    Systemd Migration
+  </span>
+</a>
+</li>
+</ul>
+</nav>
+</li>
+<li class="md-nav__item md-nav__item--section md-nav__item--nested">
+<input class="md-nav__toggle md-toggle" id="__nav_8" type="checkbox"/>
+<div class="md-nav__link md-nav__container">
+<a class="md-nav__link" href="../../contributing/">
+<span class="md-ellipsis">
+    Contributing
+  </span>
+</a>
+<label class="md-nav__link" for="__nav_8" id="__nav_8_label" tabindex="">
+<span class="md-nav__icon md-icon"></span>
+</label>
+</div>
+<nav aria-expanded="false" aria-labelledby="__nav_8_label" class="md-nav" data-md-level="1">
+<label class="md-nav__title" for="__nav_8">
+<span class="md-nav__icon md-icon"></span>
+            Contributing
+          </label>
+<ul class="md-nav__list" data-md-scrollfix="">
+<li class="md-nav__item md-nav__item--nested">
+<input class="md-nav__toggle md-toggle" id="__nav_8_2" type="checkbox"/>
+<label class="md-nav__link" for="__nav_8_2" id="__nav_8_2_label" tabindex="0">
+<span class="md-ellipsis">
+    Archive
+  </span>
+<span class="md-nav__icon md-icon"></span>
+</label>
+<nav aria-expanded="false" aria-labelledby="__nav_8_2_label" class="md-nav" data-md-level="2">
+<label class="md-nav__title" for="__nav_8_2">
+<span class="md-nav__icon md-icon"></span>
+            Archive
+          </label>
+<ul class="md-nav__list" data-md-scrollfix="">
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../contributing/archive/CONTRIBUTING_TODO/">
+<span class="md-ellipsis">
+    Contributing to TODO
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../contributing/archive/rules/">
+<span class="md-ellipsis">
+    Rules
+  </span>
+</a>
+</li>
+</ul>
+</nav>
+</li>
+</ul>
+</nav>
+</li>
+</ul>
+</nav>
+</div>
+</div>
+</div>
+<div class="md-sidebar md-sidebar--secondary" data-md-component="sidebar" data-md-type="toc">
+<div class="md-sidebar__scrollwrap">
+<div class="md-sidebar__inner">
+<nav aria-label="Table of contents" class="md-nav md-nav--secondary">
+<label class="md-nav__title" for="__toc">
+<span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+<ul class="md-nav__list" data-md-component="toc" data-md-scrollfix="">
+<li class="md-nav__item">
+<a class="md-nav__link" href="#overview">
+<span class="md-ellipsis">
+      Overview
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#testing-strategy">
+<span class="md-ellipsis">
+      Testing Strategy
+    </span>
+</a>
+<nav aria-label="Testing Strategy" class="md-nav">
+<ul class="md-nav__list">
+<li class="md-nav__item">
+<a class="md-nav__link" href="#1-test-categories">
+<span class="md-ellipsis">
+      1. Test Categories
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#2-test-execution-approach">
+<span class="md-ellipsis">
+      2. Test Execution Approach
+    </span>
+</a>
+</li>
+</ul>
+</nav>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#test-coverage-by-page">
+<span class="md-ellipsis">
+      Test Coverage by Page
+    </span>
+</a>
+<nav aria-label="Test Coverage by Page" class="md-nav">
+<ul class="md-nav__list">
+<li class="md-nav__item">
+<a class="md-nav__link" href="#navigation-component">
+<span class="md-ellipsis">
+      Navigation Component
+    </span>
+</a>
+<nav aria-label="Navigation Component" class="md-nav">
+<ul class="md-nav__list">
+<li class="md-nav__item">
+<a class="md-nav__link" href="#test-cases-nav-001-to-nav-007">
+<span class="md-ellipsis">
+      Test Cases: NAV-001 to NAV-007
+    </span>
+</a>
+</li>
+</ul>
+</nav>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#dashboard-page">
+<span class="md-ellipsis">
+      Dashboard Page
+    </span>
+</a>
+<nav aria-label="Dashboard Page" class="md-nav">
+<ul class="md-nav__list">
+<li class="md-nav__item">
+<a class="md-nav__link" href="#test-cases-dash-001-to-dash-002">
+<span class="md-ellipsis">
+      Test Cases: DASH-001 to DASH-002
+    </span>
+</a>
+</li>
+</ul>
+</nav>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#control-page">
+<span class="md-ellipsis">
+      Control Page
+    </span>
+</a>
+<nav aria-label="Control Page" class="md-nav">
+<ul class="md-nav__list">
+<li class="md-nav__item">
+<a class="md-nav__link" href="#test-cases-ctrl-001-to-ctrl-050">
+<span class="md-ellipsis">
+      Test Cases: CTRL-001 to CTRL-050
+    </span>
+</a>
+</li>
+</ul>
+</nav>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#data-browser-page">
+<span class="md-ellipsis">
+      Data Browser Page
+    </span>
+</a>
+<nav aria-label="Data Browser Page" class="md-nav">
+<ul class="md-nav__list">
+<li class="md-nav__item">
+<a class="md-nav__link" href="#test-cases-data-001-to-data-015">
+<span class="md-ellipsis">
+      Test Cases: DATA-001 to DATA-015
+    </span>
+</a>
+</li>
+</ul>
+</nav>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#data-detail-page">
+<span class="md-ellipsis">
+      Data Detail Page
+    </span>
+</a>
+<nav aria-label="Data Detail Page" class="md-nav">
+<ul class="md-nav__list">
+<li class="md-nav__item">
+<a class="md-nav__link" href="#test-cases-detail-001-to-detail-025">
+<span class="md-ellipsis">
+      Test Cases: DETAIL-001 to DETAIL-025
+    </span>
+</a>
+</li>
+</ul>
+</nav>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#streaming-page">
+<span class="md-ellipsis">
+      Streaming Page
+    </span>
+</a>
+<nav aria-label="Streaming Page" class="md-nav">
+<ul class="md-nav__list">
+<li class="md-nav__item">
+<a class="md-nav__link" href="#test-cases-stream-001-to-stream-020">
+<span class="md-ellipsis">
+      Test Cases: STREAM-001 to STREAM-020
+    </span>
+</a>
+</li>
+</ul>
+</nav>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#mosaic-gallery-page">
+<span class="md-ellipsis">
+      Mosaic Gallery Page
+    </span>
+</a>
+<nav aria-label="Mosaic Gallery Page" class="md-nav">
+<ul class="md-nav__list">
+<li class="md-nav__item">
+<a class="md-nav__link" href="#test-cases-mosaic-001-to-mosaic-015">
+<span class="md-ellipsis">
+      Test Cases: MOSAIC-001 to MOSAIC-015
+    </span>
+</a>
+</li>
+</ul>
+</nav>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#source-monitoring-page">
+<span class="md-ellipsis">
+      Source Monitoring Page
+    </span>
+</a>
+<nav aria-label="Source Monitoring Page" class="md-nav">
+<ul class="md-nav__list">
+<li class="md-nav__item">
+<a class="md-nav__link" href="#test-cases-source-001-to-source-010">
+<span class="md-ellipsis">
+      Test Cases: SOURCE-001 to SOURCE-010
+    </span>
+</a>
+</li>
+</ul>
+</nav>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#sky-view-page">
+<span class="md-ellipsis">
+      Sky View Page
+    </span>
+</a>
+<nav aria-label="Sky View Page" class="md-nav">
+<ul class="md-nav__list">
+<li class="md-nav__item">
+<a class="md-nav__link" href="#test-cases-sky-001-to-sky-010">
+<span class="md-ellipsis">
+      Test Cases: SKY-001 to SKY-010
+    </span>
+</a>
+</li>
+</ul>
+</nav>
+</li>
+</ul>
+</nav>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#automated-test-script-structure">
+<span class="md-ellipsis">
+      Automated Test Script Structure
+    </span>
+</a>
+<nav aria-label="Automated Test Script Structure" class="md-nav">
+<ul class="md-nav__list">
+<li class="md-nav__item">
+<a class="md-nav__link" href="#test-framework-playwright">
+<span class="md-ellipsis">
+      Test Framework: Playwright
+    </span>
+</a>
+</li>
+</ul>
+</nav>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#test-execution-plan">
+<span class="md-ellipsis">
+      Test Execution Plan
+    </span>
+</a>
+<nav aria-label="Test Execution Plan" class="md-nav">
+<ul class="md-nav__list">
+<li class="md-nav__item">
+<a class="md-nav__link" href="#phase-1-manual-testing">
+<span class="md-ellipsis">
+      Phase 1: Manual Testing
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#phase-2-automated-test-development">
+<span class="md-ellipsis">
+      Phase 2: Automated Test Development
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#phase-3-continuous-testing">
+<span class="md-ellipsis">
+      Phase 3: Continuous Testing
+    </span>
+</a>
+</li>
+</ul>
+</nav>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#test-data-requirements">
+<span class="md-ellipsis">
+      Test Data Requirements
+    </span>
+</a>
+<nav aria-label="Test Data Requirements" class="md-nav">
+<ul class="md-nav__list">
+<li class="md-nav__item">
+<a class="md-nav__link" href="#test-data-setup">
+<span class="md-ellipsis">
+      Test Data Setup
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#test-environment">
+<span class="md-ellipsis">
+      Test Environment
+    </span>
+</a>
+</li>
+</ul>
+</nav>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#success-criteria">
+<span class="md-ellipsis">
+      Success Criteria
+    </span>
+</a>
+<nav aria-label="Success Criteria" class="md-nav">
+<ul class="md-nav__list">
+<li class="md-nav__item">
+<a class="md-nav__link" href="#test-coverage-goals">
+<span class="md-ellipsis">
+      Test Coverage Goals
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#quality-metrics">
+<span class="md-ellipsis">
+      Quality Metrics
+    </span>
+</a>
+</li>
+</ul>
+</nav>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#maintenance">
+<span class="md-ellipsis">
+      Maintenance
+    </span>
+</a>
+<nav aria-label="Maintenance" class="md-nav">
+<ul class="md-nav__list">
+<li class="md-nav__item">
+<a class="md-nav__link" href="#test-maintenance">
+<span class="md-ellipsis">
+      Test Maintenance
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#test-documentation">
+<span class="md-ellipsis">
+      Test Documentation
+    </span>
+</a>
+</li>
+</ul>
+</nav>
+</li>
+</ul>
+</nav>
+</div>
+</div>
+</div>
+<div class="md-content" data-md-component="content">
+<article class="md-content__inner md-typeset">
+<h1 id="comprehensive-testing-plan-for-dsa-110-continuum-imaging-dashboard">Comprehensive Testing Plan for DSA-110 Continuum Imaging Dashboard<a class="headerlink" href="#comprehensive-testing-plan-for-dsa-110-continuum-imaging-dashboard" title="Permanent link">¶</a></h1>
+<h2 id="overview">Overview<a class="headerlink" href="#overview" title="Permanent link">¶</a></h2>
+<p>This document outlines a systematic testing approach to verify all clickable features and user interactions across the dashboard application. The testing strategy combines manual test cases with automated browser-based testing.</p>
+<h2 id="testing-strategy">Testing Strategy<a class="headerlink" href="#testing-strategy" title="Permanent link">¶</a></h2>
+<h3 id="1-test-categories">1. Test Categories<a class="headerlink" href="#1-test-categories" title="Permanent link">¶</a></h3>
+<ul>
+<li><strong>Navigation Testing</strong>: Verify all navigation links and routes</li>
+<li><strong>Form Interaction Testing</strong>: Test all input fields, selects, and form submissions</li>
+<li><strong>Button Action Testing</strong>: Verify all buttons perform expected actions</li>
+<li><strong>Table/List Interaction Testing</strong>: Test row selection, sorting, filtering</li>
+<li><strong>Modal/Dialog Testing</strong>: Test dialog open/close and form submissions</li>
+<li><strong>Tab Navigation Testing</strong>: Verify tab switching and content display</li>
+<li><strong>API Integration Testing</strong>: Verify API calls and responses</li>
+<li><strong>Error Handling Testing</strong>: Test error states and error boundaries</li>
+</ul>
+<h3 id="2-test-execution-approach">2. Test Execution Approach<a class="headerlink" href="#2-test-execution-approach" title="Permanent link">¶</a></h3>
+<ul>
+<li><strong>Automated Tests</strong>: Browser-based tests using Playwright/Puppeteer for regression testing</li>
+<li><strong>Manual Tests</strong>: Detailed test cases for initial validation and exploratory testing</li>
+<li><strong>Integration Tests</strong>: Verify end-to-end workflows</li>
+</ul>
+<h2 id="test-coverage-by-page">Test Coverage by Page<a class="headerlink" href="#test-coverage-by-page" title="Permanent link">¶</a></h2>
+<h3 id="navigation-component">Navigation Component<a class="headerlink" href="#navigation-component" title="Permanent link">¶</a></h3>
+<h4 id="test-cases-nav-001-to-nav-007">Test Cases: NAV-001 to NAV-007<a class="headerlink" href="#test-cases-nav-001-to-nav-007" title="Permanent link">¶</a></h4>
+<p><strong>NAV-001: Desktop Navigation Links</strong>
+- <strong>Action</strong>: Click each navigation link in desktop view
+- <strong>Expected</strong>: 
+  - Navigate to correct route
+  - Active link is highlighted
+  - Page content loads correctly
+- <strong>Links to Test</strong>:
+  - Dashboard (/dashboard)
+  - Control (/control)
+  - Streaming (/streaming)
+  - Data (/data)
+  - Mosaics (/mosaics)
+  - Sources (/sources)
+  - Sky View (/sky)</p>
+<p><strong>NAV-002: Mobile Navigation Drawer</strong>
+- <strong>Action</strong>: 
+  1. Resize browser to mobile width (&lt; 600px)
+  2. Click hamburger menu icon
+  3. Verify drawer opens
+  4. Click each navigation link
+  5. Verify drawer closes after navigation
+- <strong>Expected</strong>: Drawer opens/closes correctly, navigation works</p>
+<p><strong>NAV-003: Mobile Drawer Close</strong>
+- <strong>Action</strong>: Click outside drawer or close button
+- <strong>Expected</strong>: Drawer closes</p>
+<hr/>
+<h3 id="dashboard-page">Dashboard Page<a class="headerlink" href="#dashboard-page" title="Permanent link">¶</a></h3>
+<h4 id="test-cases-dash-001-to-dash-002">Test Cases: DASH-001 to DASH-002<a class="headerlink" href="#test-cases-dash-001-to-dash-002" title="Permanent link">¶</a></h4>
+<p><strong>DASH-001: Page Load</strong>
+- <strong>Action</strong>: Navigate to /dashboard
+- <strong>Expected</strong>: Page loads without errors, displays dashboard content</p>
+<p><strong>DASH-002: Dashboard Content Display</strong>
+- <strong>Action</strong>: Verify dashboard widgets/components render
+- <strong>Expected</strong>: All dashboard components visible and functional</p>
+<hr/>
+<h3 id="control-page">Control Page<a class="headerlink" href="#control-page" title="Permanent link">¶</a></h3>
+<h4 id="test-cases-ctrl-001-to-ctrl-050">Test Cases: CTRL-001 to CTRL-050<a class="headerlink" href="#test-cases-ctrl-001-to-ctrl-050" title="Permanent link">¶</a></h4>
+<p><strong>CTRL-001: Tab Navigation</strong>
+- <strong>Action</strong>: Click each tab (Convert, Calibrate, Apply, Image)
+- <strong>Expected</strong>: 
+  - Tab switches correctly
+  - Tab content displays
+  - Active tab is highlighted</p>
+<p><strong>CTRL-002: MS Table Selection</strong>
+- <strong>Action</strong>: 
+  1. Click on MS table row
+  2. Select multiple rows (if multi-select enabled)
+- <strong>Expected</strong>: 
+  - Row is highlighted
+  - Selected MS is set in form
+  - Selected MS list updates</p>
+<p><strong>CTRL-003: Convert Tab - Form Fields</strong>
+- <strong>Action</strong>: Fill in form fields:
+  - Start Time
+  - End Time
+  - Input Directory
+  - Output Directory
+  - Writer (Select dropdown)
+  - Max Workers
+- <strong>Expected</strong>: All fields accept input and update state</p>
+<p><strong>CTRL-004: Convert Tab - Writer Dropdown</strong>
+- <strong>Action</strong>: Select each option from Writer dropdown:
+  - Auto (recommended)
+  - Sequential
+  - Parallel
+  - Dask
+- <strong>Expected</strong>: Selection updates correctly</p>
+<p><strong>CTRL-005: Convert Tab - Submit Button</strong>
+- <strong>Action</strong>: 
+  1. Fill required fields (Start Time, End Time)
+  2. Click "Run Conversion" button
+- <strong>Expected</strong>: 
+  - Button shows loading state
+  - API call is made
+  - Job is created
+  - Success notification appears</p>
+<p><strong>CTRL-006: Convert Tab - Submit Button Disabled State</strong>
+- <strong>Action</strong>: Try to submit without required fields
+- <strong>Expected</strong>: Button is disabled</p>
+<p><strong>CTRL-007: Calibrate Tab - Field ID Input</strong>
+- <strong>Action</strong>: Enter Field ID in text field
+- <strong>Expected</strong>: Value updates correctly</p>
+<p><strong>CTRL-008: Calibrate Tab - Reference Antenna Selection</strong>
+- <strong>Action</strong>: 
+  1. Select MS file
+  2. Open Reference Antenna dropdown
+  3. Select an antenna
+- <strong>Expected</strong>: 
+  - Dropdown shows available antennas
+  - Selection updates
+  - Validation message appears if invalid</p>
+<p><strong>CTRL-009: Calibrate Tab - Calibration Tables Selection</strong>
+- <strong>Action</strong>: 
+  1. Select MS with existing tables
+  2. Choose radio option (Use Existing / Generate New)
+- <strong>Expected</strong>: Selection updates, form adapts</p>
+<p><strong>CTRL-010: Calibrate Tab - Table Type Checkboxes</strong>
+- <strong>Action</strong>: Toggle checkboxes for K, BP, G tables
+- <strong>Expected</strong>: Checkboxes toggle correctly</p>
+<p><strong>CTRL-011: Calibrate Tab - Submit Button</strong>
+- <strong>Action</strong>: Fill required fields and submit
+- <strong>Expected</strong>: Job created, success notification</p>
+<p><strong>CTRL-012: Apply Tab - Calibration Tables Selection</strong>
+- <strong>Action</strong>: Select calibration tables from dropdown
+- <strong>Expected</strong>: Tables listed, selection works</p>
+<p><strong>CTRL-013: Apply Tab - Submit Button</strong>
+- <strong>Action</strong>: Fill required fields and submit
+- <strong>Expected</strong>: Job created successfully</p>
+<p><strong>CTRL-014: Image Tab - Form Fields</strong>
+- <strong>Action</strong>: Fill image generation form fields
+- <strong>Expected</strong>: All fields accept input</p>
+<p><strong>CTRL-015: Image Tab - Submit Button</strong>
+- <strong>Action</strong>: Submit image generation job
+- <strong>Expected</strong>: Job created successfully</p>
+<p><strong>CTRL-016: Workflow Tab - Start/End Time</strong>
+- <strong>Action</strong>: Enter workflow start and end times
+- <strong>Expected</strong>: Values update correctly</p>
+<p><strong>CTRL-017: Workflow Tab - Run Workflow Button</strong>
+- <strong>Action</strong>: Click "Run Workflow" button
+- <strong>Expected</strong>: Workflow job created</p>
+<p><strong>CTRL-018: Jobs Table - Row Selection</strong>
+- <strong>Action</strong>: Click on job row
+- <strong>Expected</strong>: Job details/logs display</p>
+<p><strong>CTRL-019: Jobs Table - Job Actions</strong>
+- <strong>Action</strong>: Click action buttons (if any) on job rows
+- <strong>Expected</strong>: Actions execute correctly</p>
+<p><strong>CTRL-020: Calibration QA Panel Display</strong>
+- <strong>Action</strong>: Select calibrated MS
+- <strong>Expected</strong>: QA panel displays with metrics</p>
+<p><strong>CTRL-021: Calibration SPW Panel Display</strong>
+- <strong>Action</strong>: Select MS for calibration
+- <strong>Expected</strong>: SPW panel displays</p>
+<hr/>
+<h3 id="data-browser-page">Data Browser Page<a class="headerlink" href="#data-browser-page" title="Permanent link">¶</a></h3>
+<h4 id="test-cases-data-001-to-data-015">Test Cases: DATA-001 to DATA-015<a class="headerlink" href="#test-cases-data-001-to-data-015" title="Permanent link">¶</a></h4>
+<p><strong>DATA-001: Page Load</strong>
+- <strong>Action</strong>: Navigate to /data
+- <strong>Expected</strong>: Page loads, data table displays</p>
+<p><strong>DATA-002: Tab Navigation - Staging vs Published</strong>
+- <strong>Action</strong>: Click "Staging" and "Published" tabs
+- <strong>Expected</strong>: 
+  - Tab switches
+  - Correct data displays for each status
+  - Table updates</p>
+<p><strong>DATA-003: Data Type Filter</strong>
+- <strong>Action</strong>: 
+  1. Open "Data Type" dropdown
+  2. Select each filter option:
+     - All Types
+     - MS
+     - Calibration Table
+     - Image
+     - Mosaic
+- <strong>Expected</strong>: 
+  - Dropdown opens/closes
+  - Table filters correctly
+  - Only matching data types shown</p>
+<p><strong>DATA-004: Table Row Display</strong>
+- <strong>Action</strong>: Verify table columns display:
+  - ID
+  - Type
+  - Status
+  - QA Status
+  - Finalization
+  - Auto-Publish
+  - Created
+  - Published (if published tab)
+  - Actions
+- <strong>Expected</strong>: All columns visible with correct data</p>
+<p><strong>DATA-005: View Details Button (Eye Icon)</strong>
+- <strong>Action</strong>: Click eye icon in Actions column
+- <strong>Expected</strong>: 
+  - Navigate to detail page (/data/:type/:id)
+  - Detail page loads correctly
+  - Data displays</p>
+<p><strong>DATA-006: Table Sorting (if implemented)</strong>
+- <strong>Action</strong>: Click column headers
+- <strong>Expected</strong>: Table sorts by column</p>
+<p><strong>DATA-007: Empty State</strong>
+- <strong>Action</strong>: Navigate with no data
+- <strong>Expected</strong>: Empty state message displays</p>
+<p><strong>DATA-008: Loading State</strong>
+- <strong>Action</strong>: Navigate while data loads
+- <strong>Expected</strong>: Loading indicator displays</p>
+<p><strong>DATA-009: Error State</strong>
+- <strong>Action</strong>: Simulate API error
+- <strong>Expected</strong>: Error message displays</p>
+<p><strong>DATA-010: Multiple Data Types Display</strong>
+- <strong>Action</strong>: Verify table shows different data types correctly
+- <strong>Expected</strong>: Each type displays with correct chip/label</p>
+<p><strong>DATA-011: Status Chips Display</strong>
+- <strong>Action</strong>: Verify status chips display correctly
+- <strong>Expected</strong>: Chips show correct color and text</p>
+<p><strong>DATA-012: Date Formatting</strong>
+- <strong>Action</strong>: Verify created/published dates format correctly
+- <strong>Expected</strong>: Dates display in readable format</p>
+<p><strong>DATA-013: Long ID Display</strong>
+- <strong>Action</strong>: Verify long data IDs display correctly
+- <strong>Expected</strong>: IDs truncate or wrap appropriately</p>
+<p><strong>DATA-014: Responsive Table</strong>
+- <strong>Action</strong>: Resize browser to mobile width
+- <strong>Expected</strong>: Table adapts or scrolls horizontally</p>
+<p><strong>DATA-015: Data Refresh</strong>
+- <strong>Action</strong>: Verify data refreshes automatically or manually
+- <strong>Expected</strong>: New data appears in table</p>
+<hr/>
+<h3 id="data-detail-page">Data Detail Page<a class="headerlink" href="#data-detail-page" title="Permanent link">¶</a></h3>
+<h4 id="test-cases-detail-001-to-detail-025">Test Cases: DETAIL-001 to DETAIL-025<a class="headerlink" href="#test-cases-detail-001-to-detail-025" title="Permanent link">¶</a></h4>
+<p><strong>DETAIL-001: Page Load</strong>
+- <strong>Action</strong>: Navigate to /data/:type/:id
+- <strong>Expected</strong>: Page loads, data displays</p>
+<p><strong>DETAIL-002: Back Button</strong>
+- <strong>Action</strong>: Click "Back to Data Browser" button
+- <strong>Expected</strong>: Navigate to /data</p>
+<p><strong>DETAIL-003: Back Icon Button</strong>
+- <strong>Action</strong>: Click back arrow icon
+- <strong>Expected</strong>: Navigate to /data</p>
+<p><strong>DETAIL-004: Publish Button</strong>
+- <strong>Action</strong>: 
+  1. Click "Publish" button
+  2. Verify button disabled during request
+- <strong>Expected</strong>: 
+  - API call made
+  - Success notification
+  - Status updates</p>
+<p><strong>DETAIL-005: Finalize Button</strong>
+- <strong>Action</strong>: 
+  1. Click "Finalize" button
+  2. Fill QA/validation status if required
+- <strong>Expected</strong>: 
+  - Dialog/form opens (if applicable)
+  - Finalization succeeds
+  - Status updates</p>
+<p><strong>DETAIL-006: Tab Navigation - Metadata</strong>
+- <strong>Action</strong>: Click "Metadata" tab
+- <strong>Expected</strong>: Metadata displays in JSON or formatted view</p>
+<p><strong>DETAIL-007: Tab Navigation - Lineage</strong>
+- <strong>Action</strong>: Click "Lineage" tab
+- <strong>Expected</strong>: Lineage graph/table displays</p>
+<p><strong>DETAIL-008: Auto-Publish Toggle</strong>
+- <strong>Action</strong>: Click "Enable/Disable Auto-Publish" button
+- <strong>Expected</strong>: 
+  - Status toggles
+  - API call made
+  - Button text updates</p>
+<p><strong>DETAIL-009: Loading State</strong>
+- <strong>Action</strong>: Navigate while data loads
+- <strong>Expected</strong>: Loading indicator displays</p>
+<p><strong>DETAIL-010: Error State</strong>
+- <strong>Action</strong>: Navigate with invalid ID
+- <strong>Expected</strong>: Error message displays, back button available</p>
+<p><strong>DETAIL-011: Metadata Display</strong>
+- <strong>Action</strong>: Verify metadata displays correctly
+- <strong>Expected</strong>: All metadata fields visible and formatted</p>
+<p><strong>DETAIL-012: Lineage Graph Display</strong>
+- <strong>Action</strong>: Verify lineage graph renders
+- <strong>Expected</strong>: Graph displays relationships</p>
+<p><strong>DETAIL-013: URL Encoding</strong>
+- <strong>Action</strong>: Navigate with data ID containing special characters
+- <strong>Expected</strong>: Page loads correctly, API calls succeed</p>
+<p><strong>DETAIL-014: Missing Data Handling</strong>
+- <strong>Action</strong>: Navigate with non-existent ID
+- <strong>Expected</strong>: Error message, graceful handling</p>
+<p><strong>DETAIL-015: Button States</strong>
+- <strong>Action</strong>: Verify buttons show correct states:
+  - Disabled when not applicable
+  - Loading during requests
+  - Enabled when ready
+- <strong>Expected</strong>: States display correctly</p>
+<p><strong>DETAIL-016: Conditional Button Display</strong>
+- <strong>Action</strong>: Verify buttons show/hide based on status
+- <strong>Expected</strong>: Only applicable buttons visible</p>
+<p><strong>DETAIL-017: Mutation Success Feedback</strong>
+- <strong>Action</strong>: Complete publish/finalize/toggle actions
+- <strong>Expected</strong>: Success notification appears</p>
+<p><strong>DETAIL-018: Mutation Error Handling</strong>
+- <strong>Action</strong>: Simulate API error during mutation
+- <strong>Expected</strong>: Error notification, button re-enabled</p>
+<p><strong>DETAIL-019: Data Refresh After Mutation</strong>
+- <strong>Action</strong>: Complete mutation, verify data refreshes
+- <strong>Expected</strong>: Updated data displays</p>
+<p><strong>DETAIL-020: Lineage API Call</strong>
+- <strong>Action</strong>: Click Lineage tab
+- <strong>Expected</strong>: Lineage API call made, data loads</p>
+<p><strong>DETAIL-021: Auto-Publish Status API Call</strong>
+- <strong>Action</strong>: Load page
+- <strong>Expected</strong>: Auto-publish status API call made</p>
+<p><strong>DETAIL-022: Multiple Tab Switching</strong>
+- <strong>Action</strong>: Switch between Metadata and Lineage tabs multiple times
+- <strong>Expected</strong>: Content loads correctly each time</p>
+<p><strong>DETAIL-023: Long Data ID Handling</strong>
+- <strong>Action</strong>: Navigate with very long data ID
+- <strong>Expected</strong>: Page loads, URL handles correctly</p>
+<p><strong>DETAIL-024: Special Characters in Data ID</strong>
+- <strong>Action</strong>: Navigate with data ID containing /, :, etc.
+- <strong>Expected</strong>: URL encoding works, page loads</p>
+<p><strong>DETAIL-025: Concurrent Mutations</strong>
+- <strong>Action</strong>: Click multiple action buttons rapidly
+- <strong>Expected</strong>: Only one mutation at a time, proper queuing</p>
+<hr/>
+<h3 id="streaming-page">Streaming Page<a class="headerlink" href="#streaming-page" title="Permanent link">¶</a></h3>
+<h4 id="test-cases-stream-001-to-stream-020">Test Cases: STREAM-001 to STREAM-020<a class="headerlink" href="#test-cases-stream-001-to-stream-020" title="Permanent link">¶</a></h4>
+<p><strong>STREAM-001: Page Load</strong>
+- <strong>Action</strong>: Navigate to /streaming
+- <strong>Expected</strong>: Page loads, status displays</p>
+<p><strong>STREAM-002: Status Display</strong>
+- <strong>Action</strong>: Verify service status displays
+- <strong>Expected</strong>: Status indicator shows running/stopped</p>
+<p><strong>STREAM-003: Start Button</strong>
+- <strong>Action</strong>: Click "Start" button
+- <strong>Expected</strong>: 
+  - API call made
+  - Status updates to running
+  - Button states change</p>
+<p><strong>STREAM-004: Stop Button</strong>
+- <strong>Action</strong>: Click "Stop" button
+- <strong>Expected</strong>: 
+  - API call made
+  - Status updates to stopped
+  - Button states change</p>
+<p><strong>STREAM-005: Restart Button</strong>
+- <strong>Action</strong>: Click "Restart" button
+- <strong>Expected</strong>: Service restarts, status updates</p>
+<p><strong>STREAM-006: Configure Button</strong>
+- <strong>Action</strong>: Click "Configure" button
+- <strong>Expected</strong>: Configuration dialog opens</p>
+<p><strong>STREAM-007: Configuration Dialog - Input Directory</strong>
+- <strong>Action</strong>: Edit Input Directory field
+- <strong>Expected</strong>: Value updates</p>
+<p><strong>STREAM-008: Configuration Dialog - Output Directory</strong>
+- <strong>Action</strong>: Edit Output Directory field
+- <strong>Expected</strong>: Value updates</p>
+<p><strong>STREAM-009: Configuration Dialog - Scratch Directory</strong>
+- <strong>Action</strong>: Edit Scratch Directory field
+- <strong>Expected</strong>: Value updates</p>
+<p><strong>STREAM-010: Configuration Dialog - Expected Subbands</strong>
+- <strong>Action</strong>: Enter number in Expected Subbands field
+- <strong>Expected</strong>: Value updates</p>
+<p><strong>STREAM-011: Configuration Dialog - Chunk Duration</strong>
+- <strong>Action</strong>: Enter number in Chunk Duration field
+- <strong>Expected</strong>: Value updates</p>
+<p><strong>STREAM-012: Configuration Dialog - Max Workers</strong>
+- <strong>Action</strong>: Enter number in Max Workers field
+- <strong>Expected</strong>: Value updates</p>
+<p><strong>STREAM-013: Configuration Dialog - Log Level</strong>
+- <strong>Action</strong>: Select log level from dropdown
+- <strong>Expected</strong>: Selection updates</p>
+<p><strong>STREAM-014: Configuration Dialog - Cancel Button</strong>
+- <strong>Action</strong>: Click "Cancel" button
+- <strong>Expected</strong>: Dialog closes, changes not saved</p>
+<p><strong>STREAM-015: Configuration Dialog - Save Button</strong>
+- <strong>Action</strong>: 
+  1. Edit configuration
+  2. Click "Save" button
+- <strong>Expected</strong>: 
+   - API call made
+   - Configuration saved
+   - Dialog closes
+   - Success notification</p>
+<p><strong>STREAM-016: Button State Management</strong>
+- <strong>Action</strong>: Verify buttons enable/disable based on service state
+- <strong>Expected</strong>: Correct buttons enabled for each state</p>
+<p><strong>STREAM-017: Loading States</strong>
+- <strong>Action</strong>: Verify loading indicators during API calls
+- <strong>Expected</strong>: Buttons show loading state</p>
+<p><strong>STREAM-018: Error Handling</strong>
+- <strong>Action</strong>: Simulate API errors
+- <strong>Expected</strong>: Error notifications display</p>
+<p><strong>STREAM-019: Configuration Validation</strong>
+- <strong>Action</strong>: Submit invalid configuration
+- <strong>Expected</strong>: Validation errors display</p>
+<p><strong>STREAM-020: Real-time Status Updates</strong>
+- <strong>Action</strong>: Verify status updates automatically
+- <strong>Expected</strong>: Status reflects current service state</p>
+<hr/>
+<h3 id="mosaic-gallery-page">Mosaic Gallery Page<a class="headerlink" href="#mosaic-gallery-page" title="Permanent link">¶</a></h3>
+<h4 id="test-cases-mosaic-001-to-mosaic-015">Test Cases: MOSAIC-001 to MOSAIC-015<a class="headerlink" href="#test-cases-mosaic-001-to-mosaic-015" title="Permanent link">¶</a></h4>
+<p><strong>MOSAIC-001: Page Load</strong>
+- <strong>Action</strong>: Navigate to /mosaics
+- <strong>Expected</strong>: Page loads, gallery displays</p>
+<p><strong>MOSAIC-002: Start Time Input</strong>
+- <strong>Action</strong>: Enter start time
+- <strong>Expected</strong>: Value updates</p>
+<p><strong>MOSAIC-003: End Time Input</strong>
+- <strong>Action</strong>: Enter end time
+- <strong>Expected</strong>: Value updates</p>
+<p><strong>MOSAIC-004: Query Button</strong>
+- <strong>Action</strong>: 
+  1. Enter start and end times
+  2. Click "Query Mosaics" button
+- <strong>Expected</strong>: 
+   - API call made
+   - Mosaics load
+   - Gallery updates</p>
+<p><strong>MOSAIC-005: Query Button Disabled State</strong>
+- <strong>Action</strong>: Try to query without times
+- <strong>Expected</strong>: Button disabled</p>
+<p><strong>MOSAIC-006: Create Mosaic Button</strong>
+- <strong>Action</strong>: 
+  1. Enter times
+  2. Click "Create Mosaic" button
+- <strong>Expected</strong>: 
+   - API call made
+   - Mosaic creation initiated
+   - Success notification</p>
+<p><strong>MOSAIC-007: Mosaic Card Display</strong>
+- <strong>Action</strong>: Verify mosaic cards display:
+  - Thumbnail
+  - Metadata
+  - Action buttons
+- <strong>Expected</strong>: All elements visible</p>
+<p><strong>MOSAIC-008: Download FITS Button</strong>
+- <strong>Action</strong>: Click "FITS" download button
+- <strong>Expected</strong>: File downloads</p>
+<p><strong>MOSAIC-009: Download PNG Button</strong>
+- <strong>Action</strong>: Click "PNG" download button
+- <strong>Expected</strong>: File downloads</p>
+<p><strong>MOSAIC-010: View Button</strong>
+- <strong>Action</strong>: Click "View" button
+- <strong>Expected</strong>: Navigate to view page or open viewer</p>
+<p><strong>MOSAIC-011: Empty State</strong>
+- <strong>Action</strong>: Query with no results
+- <strong>Expected</strong>: Empty state message</p>
+<p><strong>MOSAIC-012: Loading State</strong>
+- <strong>Action</strong>: Query mosaics
+- <strong>Expected</strong>: Loading indicator displays</p>
+<p><strong>MOSAIC-013: Error State</strong>
+- <strong>Action</strong>: Simulate query error
+- <strong>Expected</strong>: Error message displays</p>
+<p><strong>MOSAIC-014: Gallery Layout</strong>
+- <strong>Action</strong>: Verify responsive grid layout
+- <strong>Expected</strong>: Cards arrange correctly</p>
+<p><strong>MOSAIC-015: Card Hover Effects</strong>
+- <strong>Action</strong>: Hover over mosaic cards
+- <strong>Expected</strong>: Visual feedback (if implemented)</p>
+<hr/>
+<h3 id="source-monitoring-page">Source Monitoring Page<a class="headerlink" href="#source-monitoring-page" title="Permanent link">¶</a></h3>
+<h4 id="test-cases-source-001-to-source-010">Test Cases: SOURCE-001 to SOURCE-010<a class="headerlink" href="#test-cases-source-001-to-source-010" title="Permanent link">¶</a></h4>
+<p><strong>SOURCE-001: Page Load</strong>
+- <strong>Action</strong>: Navigate to /sources
+- <strong>Expected</strong>: Page loads</p>
+<p><strong>SOURCE-002: Source ID Input</strong>
+- <strong>Action</strong>: Enter source ID in text field
+- <strong>Expected</strong>: Value updates</p>
+<p><strong>SOURCE-003: Search Button</strong>
+- <strong>Action</strong>: 
+  1. Enter source ID
+  2. Click "Search" button
+- <strong>Expected</strong>: 
+   - API call made
+   - Results display</p>
+<p><strong>SOURCE-004: Search Button Disabled State</strong>
+- <strong>Action</strong>: Try to search with empty field
+- <strong>Expected</strong>: Button disabled</p>
+<p><strong>SOURCE-005: Results Table Display</strong>
+- <strong>Action</strong>: Verify results table displays:
+  - Source information
+  - Observation data
+  - Flux measurements
+- <strong>Expected</strong>: All columns visible</p>
+<p><strong>SOURCE-006: Empty Results</strong>
+- <strong>Action</strong>: Search with no results
+- <strong>Expected</strong>: Empty state message</p>
+<p><strong>SOURCE-007: Error State</strong>
+- <strong>Action</strong>: Simulate search error
+- <strong>Expected</strong>: Error message displays</p>
+<p><strong>SOURCE-008: Loading State</strong>
+- <strong>Action</strong>: Perform search
+- <strong>Expected</strong>: Loading indicator displays</p>
+<p><strong>SOURCE-009: Table Sorting</strong>
+- <strong>Action</strong>: Click column headers
+- <strong>Expected</strong>: Table sorts</p>
+<p><strong>SOURCE-010: Multiple Searches</strong>
+- <strong>Action</strong>: Perform multiple searches
+- <strong>Expected</strong>: Results update correctly</p>
+<hr/>
+<h3 id="sky-view-page">Sky View Page<a class="headerlink" href="#sky-view-page" title="Permanent link">¶</a></h3>
+<h4 id="test-cases-sky-001-to-sky-010">Test Cases: SKY-001 to SKY-010<a class="headerlink" href="#test-cases-sky-001-to-sky-010" title="Permanent link">¶</a></h4>
+<p><strong>SKY-001: Page Load</strong>
+- <strong>Action</strong>: Navigate to /sky
+- <strong>Expected</strong>: Page loads, viewer displays</p>
+<p><strong>SKY-002: Image Browser Display</strong>
+- <strong>Action</strong>: Verify image browser component displays
+- <strong>Expected</strong>: Image list/grid visible</p>
+<p><strong>SKY-003: Image Selection</strong>
+- <strong>Action</strong>: Click on image in browser
+- <strong>Expected</strong>: Image selected, viewer updates</p>
+<p><strong>SKY-004: Sky Viewer Display</strong>
+- <strong>Action</strong>: Verify JS9 viewer loads
+- <strong>Expected</strong>: Viewer displays image</p>
+<p><strong>SKY-005: Viewer Controls</strong>
+- <strong>Action</strong>: Interact with JS9 controls
+- <strong>Expected</strong>: Controls function correctly</p>
+<p><strong>SKY-006: Catalog Overlay</strong>
+- <strong>Action</strong>: Toggle catalog overlay (if implemented)
+- <strong>Expected</strong>: Overlay displays/hides</p>
+<p><strong>SKY-007: Image Navigation</strong>
+- <strong>Action</strong>: Navigate between images
+- <strong>Expected</strong>: Viewer updates</p>
+<p><strong>SKY-008: Loading State</strong>
+- <strong>Action</strong>: Load large image
+- <strong>Expected</strong>: Loading indicator</p>
+<p><strong>SKY-009: Error State</strong>
+- <strong>Action</strong>: Load invalid image
+- <strong>Expected</strong>: Error message</p>
+<p><strong>SKY-010: Responsive Layout</strong>
+- <strong>Action</strong>: Resize browser
+- <strong>Expected</strong>: Layout adapts</p>
+<hr/>
+<h2 id="automated-test-script-structure">Automated Test Script Structure<a class="headerlink" href="#automated-test-script-structure" title="Permanent link">¶</a></h2>
+<h3 id="test-framework-playwright">Test Framework: Playwright<a class="headerlink" href="#test-framework-playwright" title="Permanent link">¶</a></h3>
+<div class="highlight"><pre><span></span><code><span class="c1">// Example test structure</span>
+<span class="k">import</span><span class="w"> </span><span class="p">{</span><span class="w"> </span><span class="nx">test</span><span class="p">,</span><span class="w"> </span><span class="nx">expect</span><span class="w"> </span><span class="p">}</span><span class="w"> </span><span class="kr">from</span><span class="w"> </span><span class="s1">'@playwright/test'</span><span class="p">;</span>
+
+<span class="nx">test</span><span class="p">.</span><span class="nx">describe</span><span class="p">(</span><span class="s1">'Navigation'</span><span class="p">,</span><span class="w"> </span><span class="p">()</span><span class="w"> </span><span class="p">=&gt;</span><span class="w"> </span><span class="p">{</span>
+<span class="w">  </span><span class="nx">test</span><span class="p">(</span><span class="s1">'should navigate to all pages'</span><span class="p">,</span><span class="w"> </span><span class="k">async</span><span class="w"> </span><span class="p">({</span><span class="w"> </span><span class="nx">page</span><span class="w"> </span><span class="p">})</span><span class="w"> </span><span class="p">=&gt;</span><span class="w"> </span><span class="p">{</span>
+<span class="w">    </span><span class="c1">// Test implementation</span>
+<span class="w">  </span><span class="p">});</span>
+<span class="p">});</span>
+
+<span class="nx">test</span><span class="p">.</span><span class="nx">describe</span><span class="p">(</span><span class="s1">'Control Page'</span><span class="p">,</span><span class="w"> </span><span class="p">()</span><span class="w"> </span><span class="p">=&gt;</span><span class="w"> </span><span class="p">{</span>
+<span class="w">  </span><span class="nx">test</span><span class="p">(</span><span class="s1">'should switch tabs'</span><span class="p">,</span><span class="w"> </span><span class="k">async</span><span class="w"> </span><span class="p">({</span><span class="w"> </span><span class="nx">page</span><span class="w"> </span><span class="p">})</span><span class="w"> </span><span class="p">=&gt;</span><span class="w"> </span><span class="p">{</span>
+<span class="w">    </span><span class="c1">// Test implementation</span>
+<span class="w">  </span><span class="p">});</span>
+
+<span class="w">  </span><span class="nx">test</span><span class="p">(</span><span class="s1">'should submit conversion job'</span><span class="p">,</span><span class="w"> </span><span class="k">async</span><span class="w"> </span><span class="p">({</span><span class="w"> </span><span class="nx">page</span><span class="w"> </span><span class="p">})</span><span class="w"> </span><span class="p">=&gt;</span><span class="w"> </span><span class="p">{</span>
+<span class="w">    </span><span class="c1">// Test implementation</span>
+<span class="w">  </span><span class="p">});</span>
+<span class="p">});</span>
+
+<span class="c1">// ... more test suites</span>
+</code></pre></div>
+<h2 id="test-execution-plan">Test Execution Plan<a class="headerlink" href="#test-execution-plan" title="Permanent link">¶</a></h2>
+<h3 id="phase-1-manual-testing">Phase 1: Manual Testing<a class="headerlink" href="#phase-1-manual-testing" title="Permanent link">¶</a></h3>
+<ol>
+<li>Execute all manual test cases</li>
+<li>Document results and issues</li>
+<li>Fix critical bugs</li>
+</ol>
+<h3 id="phase-2-automated-test-development">Phase 2: Automated Test Development<a class="headerlink" href="#phase-2-automated-test-development" title="Permanent link">¶</a></h3>
+<ol>
+<li>Create Playwright test suite</li>
+<li>Implement critical path tests</li>
+<li>Add regression tests</li>
+</ol>
+<h3 id="phase-3-continuous-testing">Phase 3: Continuous Testing<a class="headerlink" href="#phase-3-continuous-testing" title="Permanent link">¶</a></h3>
+<ol>
+<li>Run automated tests on each commit</li>
+<li>Execute manual tests before releases</li>
+<li>Update test cases as features change</li>
+</ol>
+<h2 id="test-data-requirements">Test Data Requirements<a class="headerlink" href="#test-data-requirements" title="Permanent link">¶</a></h2>
+<h3 id="test-data-setup">Test Data Setup<a class="headerlink" href="#test-data-setup" title="Permanent link">¶</a></h3>
+<ul>
+<li>Sample MS files</li>
+<li>Sample calibration tables</li>
+<li>Sample images</li>
+<li>Sample mosaics</li>
+<li>Test source IDs</li>
+</ul>
+<h3 id="test-environment">Test Environment<a class="headerlink" href="#test-environment" title="Permanent link">¶</a></h3>
+<ul>
+<li>Development environment with test data</li>
+<li>API endpoints available</li>
+<li>Database with test records</li>
+</ul>
+<h2 id="success-criteria">Success Criteria<a class="headerlink" href="#success-criteria" title="Permanent link">¶</a></h2>
+<h3 id="test-coverage-goals">Test Coverage Goals<a class="headerlink" href="#test-coverage-goals" title="Permanent link">¶</a></h3>
+<ul>
+<li>100% of clickable features tested</li>
+<li>100% of form submissions tested</li>
+<li>100% of navigation paths tested</li>
+<li>80%+ code coverage for critical paths</li>
+</ul>
+<h3 id="quality-metrics">Quality Metrics<a class="headerlink" href="#quality-metrics" title="Permanent link">¶</a></h3>
+<ul>
+<li>Zero critical bugs</li>
+<li>All test cases pass</li>
+<li>Performance within acceptable limits</li>
+<li>Accessibility standards met</li>
+</ul>
+<h2 id="maintenance">Maintenance<a class="headerlink" href="#maintenance" title="Permanent link">¶</a></h2>
+<h3 id="test-maintenance">Test Maintenance<a class="headerlink" href="#test-maintenance" title="Permanent link">¶</a></h3>
+<ul>
+<li>Update test cases when features change</li>
+<li>Review and update automated tests quarterly</li>
+<li>Document new features with test cases</li>
+<li>Remove obsolete test cases</li>
+</ul>
+<h3 id="test-documentation">Test Documentation<a class="headerlink" href="#test-documentation" title="Permanent link">¶</a></h3>
+<ul>
+<li>Keep test cases in sync with code</li>
+<li>Document test data requirements</li>
+<li>Maintain test environment setup guide</li>
+</ul>
+</article>
+</div>
+<script>var tabs=__md_get("__tabs");if(Array.isArray(tabs))e:for(var set of document.querySelectorAll(".tabbed-set")){var tab,labels=set.querySelector(".tabbed-labels");for(tab of tabs)for(var label of labels.getElementsByTagName("label"))if(label.innerText.trim()===tab){var input=document.getElementById(label.htmlFor);input.checked=!0;continue e}}</script>
+<script>var target=document.getElementById(location.hash.slice(1));target&&target.name&&(target.checked=target.name.startsWith("__tabbed_"))</script>
+</div>
+</main>
+<footer class="md-footer">
+<div class="md-footer-meta md-typeset">
+<div class="md-footer-meta__inner md-grid">
+<div class="md-copyright">
+  
+  
+    Made with
+    <a href="https://squidfunk.github.io/mkdocs-material/" rel="noopener" target="_blank">
+      Material for MkDocs
+    </a>
+</div>
+</div>
+</div>
+</footer>
+</div>
+<div class="md-dialog" data-md-component="dialog">
+<div class="md-dialog__inner md-typeset"></div>
+</div>
+<script id="__config" type="application/json">{"base": "../..", "features": ["navigation.sections", "navigation.indexes", "content.code.copy", "content.tabs.link"], "search": "../../assets/javascripts/workers/search.b8dbb3d2.min.js", "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}}</script>
+<script src="../../assets/javascripts/bundle.fe8b6f2b.min.js"></script>
+<script src="../../javascripts/mathjax.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+<script src="../../javascripts/mermaid-zoom.js"></script>
+</body>
+</html>

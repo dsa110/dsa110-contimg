@@ -1,0 +1,1793 @@
+
+<!DOCTYPE html>
+
+<html class="no-js" lang="en">
+<head>
+<meta charset="utf-8"/>
+<meta content="width=device-width,initial-scale=1" name="viewport"/>
+<link href="http://code.deepsynoptic.org/dsa110-contimg/concepts/STREAMING_MOSAIC_WORKFLOW/" rel="canonical"/>
+<link href="../../assets/images/favicon.png" rel="icon"/>
+<meta content="mkdocs-1.6.1, mkdocs-material-9.5.31" name="generator"/>
+<title>Streaming Mosaic Generation Workflow - DSA-110 Continuum Imaging Pipeline</title>
+<link href="../../assets/stylesheets/main.3cba04c6.min.css" rel="stylesheet"/>
+<link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect"/>
+<link href="https://fonts.googleapis.com/css?family=Roboto:300,300i,400,400i,700,700i%7CRoboto+Mono:400,400i,700,700i&amp;display=fallback" rel="stylesheet"/>
+<style>:root{--md-text-font:"Roboto";--md-code-font:"Roboto Mono"}</style>
+<link href="../../assets/_mkdocstrings.css" rel="stylesheet"/>
+<script>__md_scope=new URL("../..",location),__md_hash=e=>[...e].reduce((e,_)=>(e<<5)-e+_.charCodeAt(0),0),__md_get=(e,_=localStorage,t=__md_scope)=>JSON.parse(_.getItem(t.pathname+"."+e)),__md_set=(e,_,t=localStorage,a=__md_scope)=>{try{t.setItem(a.pathname+"."+e,JSON.stringify(_))}catch(e){}}</script>
+</head>
+<body dir="ltr">
+<input autocomplete="off" class="md-toggle" data-md-toggle="drawer" id="__drawer" type="checkbox"/>
+<input autocomplete="off" class="md-toggle" data-md-toggle="search" id="__search" type="checkbox"/>
+<label class="md-overlay" for="__drawer"></label>
+<div data-md-component="skip">
+<a class="md-skip" href="#streaming-mosaic-generation-workflow">
+          Skip to content
+        </a>
+</div>
+<div data-md-component="announce">
+</div>
+<header class="md-header md-header--shadow" data-md-component="header">
+<nav aria-label="Header" class="md-header__inner md-grid">
+<a aria-label="DSA-110 Continuum Imaging Pipeline" class="md-header__button md-logo" data-md-component="logo" href="../.." title="DSA-110 Continuum Imaging Pipeline">
+<svg viewbox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54Z"></path></svg>
+</a>
+<label class="md-header__button md-icon" for="__drawer">
+<svg viewbox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M3 6h18v2H3V6m0 5h18v2H3v-2m0 5h18v2H3v-2Z"></path></svg>
+</label>
+<div class="md-header__title" data-md-component="header-title">
+<div class="md-header__ellipsis">
+<div class="md-header__topic">
+<span class="md-ellipsis">
+            DSA-110 Continuum Imaging Pipeline
+          </span>
+</div>
+<div class="md-header__topic" data-md-component="header-topic">
+<span class="md-ellipsis">
+            
+              Streaming Mosaic Generation Workflow
+            
+          </span>
+</div>
+</div>
+</div>
+<script>var media,input,key,value,palette=__md_get("__palette");if(palette&&palette.color){"(prefers-color-scheme)"===palette.color.media&&(media=matchMedia("(prefers-color-scheme: light)"),input=document.querySelector(media.matches?"[data-md-color-media='(prefers-color-scheme: light)']":"[data-md-color-media='(prefers-color-scheme: dark)']"),palette.color.media=input.getAttribute("data-md-color-media"),palette.color.scheme=input.getAttribute("data-md-color-scheme"),palette.color.primary=input.getAttribute("data-md-color-primary"),palette.color.accent=input.getAttribute("data-md-color-accent"));for([key,value]of Object.entries(palette.color))document.body.setAttribute("data-md-color-"+key,value)}</script>
+<label class="md-header__button md-icon" for="__search">
+<svg viewbox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.516 6.516 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5Z"></path></svg>
+</label>
+<div class="md-search" data-md-component="search" role="dialog">
+<label class="md-search__overlay" for="__search"></label>
+<div class="md-search__inner" role="search">
+<form class="md-search__form" name="search">
+<input aria-label="Search" autocapitalize="off" autocomplete="off" autocorrect="off" class="md-search__input" data-md-component="search-query" name="query" placeholder="Search" required="" spellcheck="false" type="text"/>
+<label class="md-search__icon md-icon" for="__search">
+<svg viewbox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.516 6.516 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5Z"></path></svg>
+<svg viewbox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11h12Z"></path></svg>
+</label>
+<nav aria-label="Search" class="md-search__options">
+<button aria-label="Clear" class="md-search__icon md-icon" tabindex="-1" title="Clear" type="reset">
+<svg viewbox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M19 6.41 17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12 19 6.41Z"></path></svg>
+</button>
+</nav>
+</form>
+<div class="md-search__output">
+<div class="md-search__scrollwrap" data-md-scrollfix="" tabindex="0">
+<div class="md-search-result" data-md-component="search-result">
+<div class="md-search-result__meta">
+            Initializing search
+          </div>
+<ol class="md-search-result__list" role="presentation"></ol>
+</div>
+</div>
+</div>
+</div>
+</div>
+<div class="md-header__source">
+<a class="md-source" data-md-component="source" href="https://github.com/dsa110/dsa110-contimg" title="Go to repository">
+<div class="md-source__icon md-icon">
+<svg viewbox="0 0 448 512" xmlns="http://www.w3.org/2000/svg"><!--! Font Awesome Free 6.6.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2024 Fonticons, Inc.--><path d="M439.55 236.05 244 40.45a28.87 28.87 0 0 0-40.81 0l-40.66 40.63 51.52 51.52c27.06-9.14 52.68 16.77 43.39 43.68l49.66 49.66c34.23-11.8 61.18 31 35.47 56.69-26.49 26.49-70.21-2.87-56-37.34L240.22 199v121.85c25.3 12.54 22.26 41.85 9.08 55a34.34 34.34 0 0 1-48.55 0c-17.57-17.6-11.07-46.91 11.25-56v-123c-20.8-8.51-24.6-30.74-18.64-45L142.57 101 8.45 235.14a28.86 28.86 0 0 0 0 40.81l195.61 195.6a28.86 28.86 0 0 0 40.8 0l194.69-194.69a28.86 28.86 0 0 0 0-40.81z"></path></svg>
+</div>
+<div class="md-source__repository">
+    GitHub
+  </div>
+</a>
+</div>
+</nav>
+</header>
+<div class="md-container" data-md-component="container">
+<main class="md-main" data-md-component="main">
+<div class="md-main__inner md-grid">
+<div class="md-sidebar md-sidebar--primary" data-md-component="sidebar" data-md-type="navigation">
+<div class="md-sidebar__scrollwrap">
+<div class="md-sidebar__inner">
+<nav aria-label="Navigation" class="md-nav md-nav--primary" data-md-level="0">
+<label class="md-nav__title" for="__drawer">
+<a aria-label="DSA-110 Continuum Imaging Pipeline" class="md-nav__button md-logo" data-md-component="logo" href="../.." title="DSA-110 Continuum Imaging Pipeline">
+<svg viewbox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54Z"></path></svg>
+</a>
+    DSA-110 Continuum Imaging Pipeline
+  </label>
+<div class="md-nav__source">
+<a class="md-source" data-md-component="source" href="https://github.com/dsa110/dsa110-contimg" title="Go to repository">
+<div class="md-source__icon md-icon">
+<svg viewbox="0 0 448 512" xmlns="http://www.w3.org/2000/svg"><!--! Font Awesome Free 6.6.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2024 Fonticons, Inc.--><path d="M439.55 236.05 244 40.45a28.87 28.87 0 0 0-40.81 0l-40.66 40.63 51.52 51.52c27.06-9.14 52.68 16.77 43.39 43.68l49.66 49.66c34.23-11.8 61.18 31 35.47 56.69-26.49 26.49-70.21-2.87-56-37.34L240.22 199v121.85c25.3 12.54 22.26 41.85 9.08 55a34.34 34.34 0 0 1-48.55 0c-17.57-17.6-11.07-46.91 11.25-56v-123c-20.8-8.51-24.6-30.74-18.64-45L142.57 101 8.45 235.14a28.86 28.86 0 0 0 0 40.81l195.61 195.6a28.86 28.86 0 0 0 40.8 0l194.69-194.69a28.86 28.86 0 0 0 0-40.81z"></path></svg>
+</div>
+<div class="md-source__repository">
+    GitHub
+  </div>
+</a>
+</div>
+<ul class="md-nav__list" data-md-scrollfix="">
+<li class="md-nav__item">
+<a class="md-nav__link" href="../..">
+<span class="md-ellipsis">
+    Home
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../DOCUMENTATION_QUICK_REFERENCE/">
+<span class="md-ellipsis">
+    Documentation Guide
+  </span>
+</a>
+</li>
+<li class="md-nav__item md-nav__item--section md-nav__item--nested">
+<input class="md-nav__toggle md-toggle" id="__nav_3" type="checkbox"/>
+<div class="md-nav__link md-nav__container">
+<a class="md-nav__link" href="../">
+<span class="md-ellipsis">
+    Concepts
+  </span>
+</a>
+<label class="md-nav__link" for="__nav_3" id="__nav_3_label" tabindex="">
+<span class="md-nav__icon md-icon"></span>
+</label>
+</div>
+<nav aria-expanded="false" aria-labelledby="__nav_3_label" class="md-nav" data-md-level="1">
+<label class="md-nav__title" for="__nav_3">
+<span class="md-nav__icon md-icon"></span>
+            Concepts
+          </label>
+<ul class="md-nav__list" data-md-scrollfix="">
+<li class="md-nav__item">
+<a class="md-nav__link" href="../architecture/">
+<span class="md-ellipsis">
+    Architecture
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../DIRECTORY_ARCHITECTURE/">
+<span class="md-ellipsis">
+    Directory Architecture
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../modules/">
+<span class="md-ellipsis">
+    Modules
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../control-panel/">
+<span class="md-ellipsis">
+    Control Panel
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../aoflagger/">
+<span class="md-ellipsis">
+    AOFlagger
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../frontend_design/">
+<span class="md-ellipsis">
+    Frontend Design
+  </span>
+</a>
+</li>
+<li class="md-nav__item md-nav__item--nested">
+<input class="md-nav__toggle md-toggle" id="__nav_3_8" type="checkbox"/>
+<label class="md-nav__link" for="__nav_3_8" id="__nav_3_8_label" tabindex="0">
+<span class="md-ellipsis">
+    Dashboard
+  </span>
+<span class="md-nav__icon md-icon"></span>
+</label>
+<nav aria-expanded="false" aria-labelledby="__nav_3_8_label" class="md-nav" data-md-level="2">
+<label class="md-nav__title" for="__nav_3_8">
+<span class="md-nav__icon md-icon"></span>
+            Dashboard
+          </label>
+<ul class="md-nav__list" data-md-scrollfix="">
+<li class="md-nav__item">
+<a class="md-nav__link" href="../dashboard_mockups/">
+<span class="md-ellipsis">
+    Mockups
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../SKYVIEW_IMPLEMENTATION_PLAN/">
+<span class="md-ellipsis">
+    Sky View
+  </span>
+</a>
+</li>
+</ul>
+</nav>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../GLOSSARY/">
+<span class="md-ellipsis">
+    Glossary
+  </span>
+</a>
+</li>
+<li class="md-nav__item md-nav__item--nested">
+<input class="md-nav__toggle md-toggle" id="__nav_3_10" type="checkbox"/>
+<label class="md-nav__link" for="__nav_3_10" id="__nav_3_10_label" tabindex="0">
+<span class="md-ellipsis">
+    Pipeline
+  </span>
+<span class="md-nav__icon md-icon"></span>
+</label>
+<nav aria-expanded="false" aria-labelledby="__nav_3_10_label" class="md-nav" data-md-level="2">
+<label class="md-nav__title" for="__nav_3_10">
+<span class="md-nav__icon md-icon"></span>
+            Pipeline
+          </label>
+<ul class="md-nav__list" data-md-scrollfix="">
+<li class="md-nav__item">
+<a class="md-nav__link" href="../pipeline_overview/">
+<span class="md-ellipsis">
+    Overview
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../pipeline_stage_architecture/">
+<span class="md-ellipsis">
+    Stage Architecture
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../pipeline_workflow_visualization/">
+<span class="md-ellipsis">
+    Workflow Visualization
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../pipeline_production_features/">
+<span class="md-ellipsis">
+    Production Features
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../pipeline_patterns/">
+<span class="md-ellipsis">
+    Patterns
+  </span>
+</a>
+</li>
+</ul>
+</nav>
+</li>
+<li class="md-nav__item md-nav__item--nested">
+<input class="md-nav__toggle md-toggle" id="__nav_3_11" type="checkbox"/>
+<label class="md-nav__link" for="__nav_3_11" id="__nav_3_11_label" tabindex="0">
+<span class="md-ellipsis">
+    Science
+  </span>
+<span class="md-nav__icon md-icon"></span>
+</label>
+<nav aria-expanded="false" aria-labelledby="__nav_3_11_label" class="md-nav" data-md-level="2">
+<label class="md-nav__title" for="__nav_3_11">
+<span class="md-nav__icon md-icon"></span>
+            Science
+          </label>
+<ul class="md-nav__list" data-md-scrollfix="">
+<li class="md-nav__item">
+<a class="md-nav__link" href="../science/photometry_normalization/">
+<span class="md-ellipsis">
+    Photometry Normalization
+  </span>
+</a>
+</li>
+</ul>
+</nav>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../mcp_browser_server_setup/">
+<span class="md-ellipsis">
+    Browser MCP Server
+  </span>
+</a>
+</li>
+</ul>
+</nav>
+</li>
+<li class="md-nav__item md-nav__item--section md-nav__item--nested">
+<input class="md-nav__toggle md-toggle" id="__nav_4" type="checkbox"/>
+<label class="md-nav__link" for="__nav_4" id="__nav_4_label" tabindex="">
+<span class="md-ellipsis">
+    Tutorials
+  </span>
+<span class="md-nav__icon md-icon"></span>
+</label>
+<nav aria-expanded="false" aria-labelledby="__nav_4_label" class="md-nav" data-md-level="1">
+<label class="md-nav__title" for="__nav_4">
+<span class="md-nav__icon md-icon"></span>
+            Tutorials
+          </label>
+<ul class="md-nav__list" data-md-scrollfix="">
+<li class="md-nav__item md-nav__item--nested">
+<input class="md-nav__toggle md-toggle" id="__nav_4_1" type="checkbox"/>
+<label class="md-nav__link" for="__nav_4_1" id="__nav_4_1_label" tabindex="0">
+<span class="md-ellipsis">
+    Conversion
+  </span>
+<span class="md-nav__icon md-icon"></span>
+</label>
+<nav aria-expanded="false" aria-labelledby="__nav_4_1_label" class="md-nav" data-md-level="2">
+<label class="md-nav__title" for="__nav_4_1">
+<span class="md-nav__icon md-icon"></span>
+            Conversion
+          </label>
+<ul class="md-nav__list" data-md-scrollfix="">
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../tutorials/HDF5_TO_MS_TUTORIAL/">
+<span class="md-ellipsis">
+    HDF5 to MS
+  </span>
+</a>
+</li>
+</ul>
+</nav>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../tutorials/simulation-tutorial/">
+<span class="md-ellipsis">
+    Simulation
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../tutorials/calibrate-apply/">
+<span class="md-ellipsis">
+    Calibrate and Apply
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../tutorials/convert-standalone/">
+<span class="md-ellipsis">
+    Convert Standalone
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../tutorials/streaming/">
+<span class="md-ellipsis">
+    Streaming
+  </span>
+</a>
+</li>
+<li class="md-nav__item md-nav__item--nested">
+<input class="md-nav__toggle md-toggle" id="__nav_4_6" type="checkbox"/>
+<label class="md-nav__link" for="__nav_4_6" id="__nav_4_6_label" tabindex="0">
+<span class="md-ellipsis">
+    Notebooks
+  </span>
+<span class="md-nav__icon md-icon"></span>
+</label>
+<nav aria-expanded="false" aria-labelledby="__nav_4_6_label" class="md-nav" data-md-level="2">
+<label class="md-nav__title" for="__nav_4_6">
+<span class="md-nav__icon md-icon"></span>
+            Notebooks
+          </label>
+<ul class="md-nav__list" data-md-scrollfix="">
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../tutorials/notebooks/bandpass_calibration_test.ipynb">
+<span class="md-ellipsis">
+    Bandpass Calibration Test
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../tutorials/notebooks/calibrator_helper.py">
+<span class="md-ellipsis">
+    Calibrator Helper
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../tutorials/notebooks/CalibratorSearch.ipynb">
+<span class="md-ellipsis">
+    Calibrator Search
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../tutorials/notebooks/ms_staging_workflow.ipynb">
+<span class="md-ellipsis">
+    MS Staging Workflow
+  </span>
+</a>
+</li>
+</ul>
+</nav>
+</li>
+</ul>
+</nav>
+</li>
+<li class="md-nav__item md-nav__item--section md-nav__item--nested">
+<input class="md-nav__toggle md-toggle" id="__nav_5" type="checkbox"/>
+<label class="md-nav__link" for="__nav_5" id="__nav_5_label" tabindex="">
+<span class="md-ellipsis">
+    How-To Guides
+  </span>
+<span class="md-nav__icon md-icon"></span>
+</label>
+<nav aria-expanded="false" aria-labelledby="__nav_5_label" class="md-nav" data-md-level="1">
+<label class="md-nav__title" for="__nav_5">
+<span class="md-nav__icon md-icon"></span>
+            How-To Guides
+          </label>
+<ul class="md-nav__list" data-md-scrollfix="">
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../how-to/github_pages_walkthrough/">
+<span class="md-ellipsis">
+    GitHub Pages Setup
+  </span>
+</a>
+</li>
+<li class="md-nav__item md-nav__item--nested">
+<input class="md-nav__toggle md-toggle" id="__nav_5_2" type="checkbox"/>
+<label class="md-nav__link" for="__nav_5_2" id="__nav_5_2_label" tabindex="0">
+<span class="md-ellipsis">
+    Quickstarts
+  </span>
+<span class="md-nav__icon md-icon"></span>
+</label>
+<nav aria-expanded="false" aria-labelledby="__nav_5_2_label" class="md-nav" data-md-level="2">
+<label class="md-nav__title" for="__nav_5_2">
+<span class="md-nav__icon md-icon"></span>
+            Quickstarts
+          </label>
+<ul class="md-nav__list" data-md-scrollfix="">
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../how-to/quickstart/">
+<span class="md-ellipsis">
+    General
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../how-to/control-panel-quickstart/">
+<span class="md-ellipsis">
+    Control Panel
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../how-to/LINEAR_SETUP_QUICKSTART/">
+<span class="md-ellipsis">
+    Linear Setup
+  </span>
+</a>
+</li>
+</ul>
+</nav>
+</li>
+<li class="md-nav__item md-nav__item--nested">
+<input class="md-nav__toggle md-toggle" id="__nav_5_3" type="checkbox"/>
+<label class="md-nav__link" for="__nav_5_3" id="__nav_5_3_label" tabindex="0">
+<span class="md-ellipsis">
+    Testing
+  </span>
+<span class="md-nav__icon md-icon"></span>
+</label>
+<nav aria-expanded="false" aria-labelledby="__nav_5_3_label" class="md-nav" data-md-level="2">
+<label class="md-nav__title" for="__nav_5_3">
+<span class="md-nav__icon md-icon"></span>
+            Testing
+          </label>
+<ul class="md-nav__list" data-md-scrollfix="">
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../how-to/FAST_TESTING/">
+<span class="md-ellipsis">
+    Fast Testing
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../how-to/PIPELINE_TESTING_GUIDE/">
+<span class="md-ellipsis">
+    Pipeline Guide
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../how-to/TEST_FLAG_SUBCOMMAND/">
+<span class="md-ellipsis">
+    Flag Subcommand
+  </span>
+</a>
+</li>
+</ul>
+</nav>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../how-to/build-vp-from-h5/">
+<span class="md-ellipsis">
+    Build VP from h5
+  </span>
+</a>
+</li>
+<li class="md-nav__item md-nav__item--nested">
+<input class="md-nav__toggle md-toggle" id="__nav_5_5" type="checkbox"/>
+<label class="md-nav__link" for="__nav_5_5" id="__nav_5_5_label" tabindex="0">
+<span class="md-ellipsis">
+    Calibration
+  </span>
+<span class="md-nav__icon md-icon"></span>
+</label>
+<nav aria-expanded="false" aria-labelledby="__nav_5_5_label" class="md-nav" data-md-level="2">
+<label class="md-nav__title" for="__nav_5_5">
+<span class="md-nav__icon md-icon"></span>
+            Calibration
+          </label>
+<ul class="md-nav__list" data-md-scrollfix="">
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../how-to/CALIBRATION_DETAILED_PROCEDURE/">
+<span class="md-ellipsis">
+    Detailed Procedure
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../how-to/FIND_CALIBRATOR_TRANSIT_DATA/">
+<span class="md-ellipsis">
+    Find Calibrator Transit
+  </span>
+</a>
+</li>
+</ul>
+</nav>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../how-to/IMAGE_0834_TRANSIT_5MIN/">
+<span class="md-ellipsis">
+    Image 0834 Transit 5min
+  </span>
+</a>
+</li>
+<li class="md-nav__item md-nav__item--nested">
+<input class="md-nav__toggle md-toggle" id="__nav_5_7" type="checkbox"/>
+<label class="md-nav__link" for="__nav_5_7" id="__nav_5_7_label" tabindex="0">
+<span class="md-ellipsis">
+    Mosaic
+  </span>
+<span class="md-nav__icon md-icon"></span>
+</label>
+<nav aria-expanded="false" aria-labelledby="__nav_5_7_label" class="md-nav" data-md-level="2">
+<label class="md-nav__title" for="__nav_5_7">
+<span class="md-nav__icon md-icon"></span>
+            Mosaic
+          </label>
+<ul class="md-nav__list" data-md-scrollfix="">
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../how-to/mosaic_quickstart/">
+<span class="md-ellipsis">
+    Quickstart
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../how-to/mosaic/">
+<span class="md-ellipsis">
+    Complete Guide
+  </span>
+</a>
+</li>
+</ul>
+</nav>
+</li>
+<li class="md-nav__item md-nav__item--nested">
+<input class="md-nav__toggle md-toggle" id="__nav_5_8" type="checkbox"/>
+<label class="md-nav__link" for="__nav_5_8" id="__nav_5_8_label" tabindex="0">
+<span class="md-ellipsis">
+    Quality Assurance
+  </span>
+<span class="md-nav__icon md-icon"></span>
+</label>
+<nav aria-expanded="false" aria-labelledby="__nav_5_8_label" class="md-nav" data-md-level="2">
+<label class="md-nav__title" for="__nav_5_8">
+<span class="md-nav__icon md-icon"></span>
+            Quality Assurance
+          </label>
+<ul class="md-nav__list" data-md-scrollfix="">
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../how-to/QUALITY_ASSURANCE_SETUP/">
+<span class="md-ellipsis">
+    Setup
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../how-to/quicklook/">
+<span class="md-ellipsis">
+    Quick Look
+  </span>
+</a>
+</li>
+</ul>
+</nav>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../how-to/reprocess/">
+<span class="md-ellipsis">
+    Reprocess
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../how-to/USING_ORCHESTRATOR_CLI/">
+<span class="md-ellipsis">
+    Using Orchestrator CLI
+  </span>
+</a>
+</li>
+<li class="md-nav__item md-nav__item--nested">
+<input class="md-nav__toggle md-toggle" id="__nav_5_11" type="checkbox"/>
+<label class="md-nav__link" for="__nav_5_11" id="__nav_5_11_label" tabindex="0">
+<span class="md-ellipsis">
+    Dashboard
+  </span>
+<span class="md-nav__icon md-icon"></span>
+</label>
+<nav aria-expanded="false" aria-labelledby="__nav_5_11_label" class="md-nav" data-md-level="2">
+<label class="md-nav__title" for="__nav_5_11">
+<span class="md-nav__icon md-icon"></span>
+            Dashboard
+          </label>
+<ul class="md-nav__list" data-md-scrollfix="">
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../how-to/dashboard-development/">
+<span class="md-ellipsis">
+    Development
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../how-to/dashboard-quickstart/">
+<span class="md-ellipsis">
+    Quickstart
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../how-to/dashboard_testing/">
+<span class="md-ellipsis">
+    Testing
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../how-to/dashboard_development_workflow/">
+<span class="md-ellipsis">
+    Development Workflow
+  </span>
+</a>
+</li>
+</ul>
+</nav>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../how-to/LINEAR_INTEGRATION/">
+<span class="md-ellipsis">
+    Linear Integration
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../how-to/frontend-initial-setup/">
+<span class="md-ellipsis">
+    Frontend Initial Setup
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../how-to/PARAMETER_OPTIMIZATION_GUIDE/">
+<span class="md-ellipsis">
+    AOFlagger Parameter Optimization
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../how-to/downsampling_guide/">
+<span class="md-ellipsis">
+    Downsampling Guide
+  </span>
+</a>
+</li>
+<li class="md-nav__item md-nav__item--nested">
+<input class="md-nav__toggle md-toggle" id="__nav_5_16" type="checkbox"/>
+<label class="md-nav__link" for="__nav_5_16" id="__nav_5_16_label" tabindex="0">
+<span class="md-ellipsis">
+    Conversion
+  </span>
+<span class="md-nav__icon md-icon"></span>
+</label>
+<nav aria-expanded="false" aria-labelledby="__nav_5_16_label" class="md-nav" data-md-level="2">
+<label class="md-nav__title" for="__nav_5_16">
+<span class="md-nav__icon md-icon"></span>
+            Conversion
+          </label>
+<ul class="md-nav__list" data-md-scrollfix="">
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../how-to/uvh5_to_ms_conversion/">
+<span class="md-ellipsis">
+    UVH5 to MS
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../how-to/streaming_converter_guide/">
+<span class="md-ellipsis">
+    Streaming Converter
+  </span>
+</a>
+</li>
+</ul>
+</nav>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../how-to/troubleshooting/">
+<span class="md-ellipsis">
+    Troubleshooting
+  </span>
+</a>
+</li>
+</ul>
+</nav>
+</li>
+<li class="md-nav__item md-nav__item--section md-nav__item--nested">
+<input class="md-nav__toggle md-toggle" id="__nav_6" type="checkbox"/>
+<label class="md-nav__link" for="__nav_6" id="__nav_6_label" tabindex="">
+<span class="md-ellipsis">
+    Reference
+  </span>
+<span class="md-nav__icon md-icon"></span>
+</label>
+<nav aria-expanded="false" aria-labelledby="__nav_6_label" class="md-nav" data-md-level="1">
+<label class="md-nav__title" for="__nav_6">
+<span class="md-nav__icon md-icon"></span>
+            Reference
+          </label>
+<ul class="md-nav__list" data-md-scrollfix="">
+<li class="md-nav__item md-nav__item--nested">
+<input class="md-nav__toggle md-toggle" id="__nav_6_1" type="checkbox"/>
+<label class="md-nav__link" for="__nav_6_1" id="__nav_6_1_label" tabindex="0">
+<span class="md-ellipsis">
+    API
+  </span>
+<span class="md-nav__icon md-icon"></span>
+</label>
+<nav aria-expanded="false" aria-labelledby="__nav_6_1_label" class="md-nav" data-md-level="2">
+<label class="md-nav__title" for="__nav_6_1">
+<span class="md-nav__icon md-icon"></span>
+            API
+          </label>
+<ul class="md-nav__list" data-md-scrollfix="">
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../reference/api-endpoints/">
+<span class="md-ellipsis">
+    Endpoints
+  </span>
+</a>
+</li>
+<li class="md-nav__item md-nav__item--nested">
+<input class="md-nav__toggle md-toggle" id="__nav_6_1_2" type="checkbox"/>
+<label class="md-nav__link" for="__nav_6_1_2" id="__nav_6_1_2_label" tabindex="0">
+<span class="md-ellipsis">
+    Dashboard
+  </span>
+<span class="md-nav__icon md-icon"></span>
+</label>
+<nav aria-expanded="false" aria-labelledby="__nav_6_1_2_label" class="md-nav" data-md-level="3">
+<label class="md-nav__title" for="__nav_6_1_2">
+<span class="md-nav__icon md-icon"></span>
+            Dashboard
+          </label>
+<ul class="md-nav__list" data-md-scrollfix="">
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../reference/dashboard_backend_api/">
+<span class="md-ellipsis">
+    API Reference
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../reference/dashboard_pages_and_features/">
+<span class="md-ellipsis">
+    Pages &amp; Features
+  </span>
+</a>
+</li>
+</ul>
+</nav>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../reference/backend_integration_snippets/">
+<span class="md-ellipsis">
+    Integration Snippets
+  </span>
+</a>
+</li>
+</ul>
+</nav>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../reference/calibration-overview/">
+<span class="md-ellipsis">
+    Calibration Overview
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../reference/cli/">
+<span class="md-ellipsis">
+    CLI
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../reference/control-panel-cheatsheet/">
+<span class="md-ellipsis">
+    Control Panel Cheatsheet
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../reference/database_schema/">
+<span class="md-ellipsis">
+    Database Schema
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../reference/env/">
+<span class="md-ellipsis">
+    Environment Variables
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../reference/CRITICAL_PYTHON_ENVIRONMENT/">
+<span class="md-ellipsis">
+    Critical Python Environment
+  </span>
+</a>
+</li>
+<li class="md-nav__item md-nav__item--nested">
+<input class="md-nav__toggle md-toggle" id="__nav_6_8" type="checkbox"/>
+<label class="md-nav__link" for="__nav_6_8" id="__nav_6_8_label" tabindex="0">
+<span class="md-ellipsis">
+    Optimizations
+  </span>
+<span class="md-nav__icon md-icon"></span>
+</label>
+<nav aria-expanded="false" aria-labelledby="__nav_6_8_label" class="md-nav" data-md-level="2">
+<label class="md-nav__title" for="__nav_6_8">
+<span class="md-nav__icon md-icon"></span>
+            Optimizations
+          </label>
+<ul class="md-nav__list" data-md-scrollfix="">
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../reference/optimizations/OPTIMIZATION_API/">
+<span class="md-ellipsis">
+    API
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../reference/optimizations/PROFILING_GUIDE/">
+<span class="md-ellipsis">
+    Profiling Guide
+  </span>
+</a>
+</li>
+</ul>
+</nav>
+</li>
+</ul>
+</nav>
+</li>
+<li class="md-nav__item md-nav__item--section md-nav__item--nested">
+<input class="md-nav__toggle md-toggle" id="__nav_7" type="checkbox"/>
+<label class="md-nav__link" for="__nav_7" id="__nav_7_label" tabindex="">
+<span class="md-ellipsis">
+    Operations
+  </span>
+<span class="md-nav__icon md-icon"></span>
+</label>
+<nav aria-expanded="false" aria-labelledby="__nav_7_label" class="md-nav" data-md-level="1">
+<label class="md-nav__title" for="__nav_7">
+<span class="md-nav__icon md-icon"></span>
+            Operations
+          </label>
+<ul class="md-nav__list" data-md-scrollfix="">
+<li class="md-nav__item md-nav__item--nested">
+<input class="md-nav__toggle md-toggle" id="__nav_7_1" type="checkbox"/>
+<label class="md-nav__link" for="__nav_7_1" id="__nav_7_1_label" tabindex="0">
+<span class="md-ellipsis">
+    Deployment
+  </span>
+<span class="md-nav__icon md-icon"></span>
+</label>
+<nav aria-expanded="false" aria-labelledby="__nav_7_1_label" class="md-nav" data-md-level="2">
+<label class="md-nav__title" for="__nav_7_1">
+<span class="md-nav__icon md-icon"></span>
+            Deployment
+          </label>
+<ul class="md-nav__list" data-md-scrollfix="">
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../operations/deploy-docker/">
+<span class="md-ellipsis">
+    Docker
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../operations/deploy-systemd/">
+<span class="md-ellipsis">
+    systemd
+  </span>
+</a>
+</li>
+</ul>
+</nav>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../operations/port-management/">
+<span class="md-ellipsis">
+    Port Management
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../operations/refant_quick_reference/">
+<span class="md-ellipsis">
+    Refant Quick Reference
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../operations/service_restart_fix/">
+<span class="md-ellipsis">
+    Service Restart Fix
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../operations/systemd-migration/">
+<span class="md-ellipsis">
+    Systemd Migration
+  </span>
+</a>
+</li>
+</ul>
+</nav>
+</li>
+<li class="md-nav__item md-nav__item--section md-nav__item--nested">
+<input class="md-nav__toggle md-toggle" id="__nav_8" type="checkbox"/>
+<div class="md-nav__link md-nav__container">
+<a class="md-nav__link" href="../../contributing/">
+<span class="md-ellipsis">
+    Contributing
+  </span>
+</a>
+<label class="md-nav__link" for="__nav_8" id="__nav_8_label" tabindex="">
+<span class="md-nav__icon md-icon"></span>
+</label>
+</div>
+<nav aria-expanded="false" aria-labelledby="__nav_8_label" class="md-nav" data-md-level="1">
+<label class="md-nav__title" for="__nav_8">
+<span class="md-nav__icon md-icon"></span>
+            Contributing
+          </label>
+<ul class="md-nav__list" data-md-scrollfix="">
+<li class="md-nav__item md-nav__item--nested">
+<input class="md-nav__toggle md-toggle" id="__nav_8_2" type="checkbox"/>
+<label class="md-nav__link" for="__nav_8_2" id="__nav_8_2_label" tabindex="0">
+<span class="md-ellipsis">
+    Archive
+  </span>
+<span class="md-nav__icon md-icon"></span>
+</label>
+<nav aria-expanded="false" aria-labelledby="__nav_8_2_label" class="md-nav" data-md-level="2">
+<label class="md-nav__title" for="__nav_8_2">
+<span class="md-nav__icon md-icon"></span>
+            Archive
+          </label>
+<ul class="md-nav__list" data-md-scrollfix="">
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../contributing/archive/CONTRIBUTING_TODO/">
+<span class="md-ellipsis">
+    Contributing to TODO
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../contributing/archive/rules/">
+<span class="md-ellipsis">
+    Rules
+  </span>
+</a>
+</li>
+</ul>
+</nav>
+</li>
+</ul>
+</nav>
+</li>
+</ul>
+</nav>
+</div>
+</div>
+</div>
+<div class="md-sidebar md-sidebar--secondary" data-md-component="sidebar" data-md-type="toc">
+<div class="md-sidebar__scrollwrap">
+<div class="md-sidebar__inner">
+<nav aria-label="Table of contents" class="md-nav md-nav--secondary">
+<label class="md-nav__title" for="__toc">
+<span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+<ul class="md-nav__list" data-md-component="toc" data-md-scrollfix="">
+<li class="md-nav__item">
+<a class="md-nav__link" href="#overview">
+<span class="md-ellipsis">
+      Overview
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#workflow-steps">
+<span class="md-ellipsis">
+      Workflow Steps
+    </span>
+</a>
+<nav aria-label="Workflow Steps" class="md-nav">
+<ul class="md-nav__list">
+<li class="md-nav__item">
+<a class="md-nav__link" href="#1-hdf5-group-detection-and-staging">
+<span class="md-ellipsis">
+      1. HDF5 Group Detection and Staging
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#2-hdf5-to-ms-conversion">
+<span class="md-ellipsis">
+      2. HDF5 to MS Conversion
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#3-group-formation-10-ms-groups">
+<span class="md-ellipsis">
+      3. Group Formation (10 MS Groups)
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#4-calibration-solving">
+<span class="md-ellipsis">
+      4. Calibration Solving
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#5-calibration-application">
+<span class="md-ellipsis">
+      5. Calibration Application
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#6-individual-imaging">
+<span class="md-ellipsis">
+      6. Individual Imaging
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#7-mosaic-generation">
+<span class="md-ellipsis">
+      7. Mosaic Generation
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#8-sliding-window-for-next-mosaic">
+<span class="md-ellipsis">
+      8. Sliding Window for Next Mosaic
+    </span>
+</a>
+</li>
+</ul>
+</nav>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#key-design-principles">
+<span class="md-ellipsis">
+      Key Design Principles
+    </span>
+</a>
+<nav aria-label="Key Design Principles" class="md-nav">
+<ul class="md-nav__list">
+<li class="md-nav__item">
+<a class="md-nav__link" href="#overarching-strategy">
+<span class="md-ellipsis">
+      Overarching Strategy
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#overlap-strategy">
+<span class="md-ellipsis">
+      Overlap Strategy
+    </span>
+</a>
+</li>
+</ul>
+</nav>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#directory-organization">
+<span class="md-ellipsis">
+      Directory Organization
+    </span>
+</a>
+<nav aria-label="Directory Organization" class="md-nav">
+<ul class="md-nav__list">
+<li class="md-nav__item">
+<a class="md-nav__link" href="#ms-file-organization">
+<span class="md-ellipsis">
+      MS File Organization
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#image-organization">
+<span class="md-ellipsis">
+      Image Organization
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#mosaic-organization">
+<span class="md-ellipsis">
+      Mosaic Organization
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#storage-location-registration">
+<span class="md-ellipsis">
+      Storage Location Registration
+    </span>
+</a>
+<nav aria-label="Storage Location Registration" class="md-nav">
+<ul class="md-nav__list">
+<li class="md-nav__item">
+<a class="md-nav__link" href="#1-base-directory-registration-storage_locations-table-in-productssqlite3">
+<span class="md-ellipsis">
+      1. Base Directory Registration (storage_locations table in products.sqlite3)
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#2-individual-file-path-tracking">
+<span class="md-ellipsis">
+      2. Individual File Path Tracking
+    </span>
+</a>
+</li>
+</ul>
+</nav>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#calibration-validity-windows">
+<span class="md-ellipsis">
+      Calibration Validity Windows
+    </span>
+</a>
+<nav aria-label="Calibration Validity Windows" class="md-nav">
+<ul class="md-nav__list">
+<li class="md-nav__item">
+<a class="md-nav__link" href="#bandpass-calibration">
+<span class="md-ellipsis">
+      Bandpass Calibration
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#gain-calibration">
+<span class="md-ellipsis">
+      Gain Calibration
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#registry-integration">
+<span class="md-ellipsis">
+      Registry Integration
+    </span>
+</a>
+</li>
+</ul>
+</nav>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#state-tracking">
+<span class="md-ellipsis">
+      State Tracking
+    </span>
+</a>
+</li>
+</ul>
+</nav>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#database-schema-requirements">
+<span class="md-ellipsis">
+      Database Schema Requirements
+    </span>
+</a>
+<nav aria-label="Database Schema Requirements" class="md-nav">
+<ul class="md-nav__list">
+<li class="md-nav__item">
+<a class="md-nav__link" href="#products-database-ms_index-table">
+<span class="md-ellipsis">
+      Products Database (ms_index table)
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#new-table-mosaic_groups">
+<span class="md-ellipsis">
+      New Table: mosaic_groups
+    </span>
+</a>
+</li>
+</ul>
+</nav>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#implementation-notes">
+<span class="md-ellipsis">
+      Implementation Notes
+    </span>
+</a>
+<nav aria-label="Implementation Notes" class="md-nav">
+<ul class="md-nav__list">
+<li class="md-nav__item">
+<a class="md-nav__link" href="#registry-first-approach">
+<span class="md-ellipsis">
+      Registry-First Approach
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#calibration-ms-selection">
+<span class="md-ellipsis">
+      Calibration MS Selection
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#calibrator-detection-and-transit-calculation">
+<span class="md-ellipsis">
+      Calibrator Detection and Transit Calculation
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#validity-window-calculation">
+<span class="md-ellipsis">
+      Validity Window Calculation
+    </span>
+</a>
+<nav aria-label="Validity Window Calculation" class="md-nav">
+<ul class="md-nav__list">
+<li class="md-nav__item">
+<a class="md-nav__link" href="#bandpass-validity-window">
+<span class="md-ellipsis">
+      Bandpass Validity Window
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#gain-validity-window">
+<span class="md-ellipsis">
+      Gain Validity Window
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#new-calibrator-transition-handling">
+<span class="md-ellipsis">
+      New Calibrator Transition Handling
+    </span>
+</a>
+</li>
+</ul>
+</nav>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#calibration-table-clearing">
+<span class="md-ellipsis">
+      Calibration Table Clearing
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#error-handling">
+<span class="md-ellipsis">
+      Error Handling
+    </span>
+</a>
+</li>
+</ul>
+</nav>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#registry-query-workflow-summary">
+<span class="md-ellipsis">
+      Registry Query Workflow Summary
+    </span>
+</a>
+<nav aria-label="Registry Query Workflow Summary" class="md-nav">
+<ul class="md-nav__list">
+<li class="md-nav__item">
+<a class="md-nav__link" href="#for-each-ms-file">
+<span class="md-ellipsis">
+      For Each MS File:
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#for-calibration-solving-5th-ms">
+<span class="md-ellipsis">
+      For Calibration Solving (5th MS):
+    </span>
+</a>
+</li>
+</ul>
+</nav>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#apicli-integration">
+<span class="md-ellipsis">
+      API/CLI Integration
+    </span>
+</a>
+<nav aria-label="API/CLI Integration" class="md-nav">
+<ul class="md-nav__list">
+<li class="md-nav__item">
+<a class="md-nav__link" href="#new-commands-needed">
+<span class="md-ellipsis">
+      New Commands Needed
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#monitoring">
+<span class="md-ellipsis">
+      Monitoring
+    </span>
+</a>
+</li>
+</ul>
+</nav>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#future-enhancements">
+<span class="md-ellipsis">
+      Future Enhancements
+    </span>
+</a>
+</li>
+</ul>
+</nav>
+</div>
+</div>
+</div>
+<div class="md-content" data-md-component="content">
+<article class="md-content__inner md-typeset">
+<h1 id="streaming-mosaic-generation-workflow">Streaming Mosaic Generation Workflow<a class="headerlink" href="#streaming-mosaic-generation-workflow" title="Permanent link">¶</a></h1>
+<h2 id="overview">Overview<a class="headerlink" href="#overview" title="Permanent link">¶</a></h2>
+<p>This document describes the streaming mosaic generation workflow for DSA-110 continuum imaging. The workflow processes groups of 10 MS files in a sliding window pattern with 2 MS overlap between consecutive mosaics.</p>
+<p><strong>Key Principle</strong>: The <strong>calibration registry</strong> (<code>cal_registry.sqlite3</code>) is the <strong>authoritative source</strong> for determining which calibration solutions to apply. All calibration decisions are made by querying the registry based on observation time and validity windows.</p>
+<h2 id="workflow-steps">Workflow Steps<a class="headerlink" href="#workflow-steps" title="Permanent link">¶</a></h2>
+<h3 id="1-hdf5-group-detection-and-staging">1. HDF5 Group Detection and Staging<a class="headerlink" href="#1-hdf5-group-detection-and-staging" title="Permanent link">¶</a></h3>
+<ul>
+<li><strong>Input</strong>: Groups of 16 subband HDF5 files detected in <code>/data/incoming</code></li>
+<li><strong>Action</strong>: </li>
+<li>Register group as a 5-minute observation</li>
+<li>Move HDF5 files to staging area (<code>/stage/dsa110-contimg/hdf5/</code>)</li>
+<li>Register in products database with <code>stage="staging"</code></li>
+</ul>
+<h3 id="2-hdf5-to-ms-conversion">2. HDF5 to MS Conversion<a class="headerlink" href="#2-hdf5-to-ms-conversion" title="Permanent link">¶</a></h3>
+<ul>
+<li><strong>Input</strong>: Staged HDF5 group (16 subband files)</li>
+<li><strong>Action</strong>:</li>
+<li>Convert to MS file</li>
+<li>Register MS in products database with <code>stage="converted"</code>, <code>status="converted"</code></li>
+<li>Remove HDF5 files from staging area (but <strong>NEVER</strong> remove from <code>/data/incoming</code>)</li>
+</ul>
+<h3 id="3-group-formation-10-ms-groups">3. Group Formation (10 MS Groups)<a class="headerlink" href="#3-group-formation-10-ms-groups" title="Permanent link">¶</a></h3>
+<ul>
+<li><strong>Trigger</strong>: When 10 MS files are registered as <code>stage="converted"</code> and <code>status="converted"</code></li>
+<li><strong>Action</strong>: Form a group of 10 MS files, ordered by observation time (<code>mid_mjd</code>)</li>
+</ul>
+<h3 id="4-calibration-solving">4. Calibration Solving<a class="headerlink" href="#4-calibration-solving" title="Permanent link">¶</a></h3>
+<ul>
+<li><strong>Calibration MS Selection</strong>: Use the <strong>5th MS</strong> (middle by time) in the group of 10</li>
+<li><strong>Registry Check First</strong>: Before solving, check registry for existing valid solutions:</li>
+<li>Query registry for 5th MS observation time to see if valid tables already exist</li>
+<li>If valid tables found in registry, skip solving and use registry tables</li>
+<li>Registry is authoritative - only solve if no valid tables exist in registry</li>
+<li><strong>Gain Calibration</strong> (solve if not in registry):</li>
+<li>Solve <code>.gpcal</code> (phase-only, <code>solint="inf"</code>)</li>
+<li>Solve <code>.2gcal</code> (short-timescale phase, <code>solint="60s"</code>)</li>
+<li><strong>Validity Window</strong>: 1 hour centered on the 5th MS observation time<ul>
+<li>Start: 30 minutes before 5th MS <code>mid_mjd</code></li>
+<li>End: 30 minutes after 5th MS <code>mid_mjd</code></li>
+</ul>
+</li>
+<li><strong>Register in Registry</strong>: After solving, register tables with validity windows</li>
+<li><strong>Bandpass Calibration</strong> (conditional, solve if not in registry):</li>
+<li>Check if any MS in the group contains the VLA calibrator defined for the current pointing</li>
+<li><strong>Check Registry First</strong>: Query registry for valid BP table covering observation time</li>
+<li><strong>Validity Window</strong>: 24 hours centered on calibrator transit<ul>
+<li>Start: 12 hours BEFORE calibrator transit</li>
+<li>End: 12 hours AFTER calibrator transit</li>
+</ul>
+</li>
+<li><strong>Special Case - New Calibrator</strong>: When pointing Dec changes and a new calibrator is chosen:<ul>
+<li>First transit starts a "1st day" period</li>
+<li>"1st day" ends 12 hours AFTER that first transit (may not be exactly 24 hours)</li>
+<li>After "1st day", regular 24-hour intervals resume (centered on subsequent transits)</li>
+</ul>
+</li>
+<li>If calibrator present and no valid BP in registry: Solve <code>.bpcal</code> using the calibrator MS</li>
+<li><strong>Register in Registry</strong>: After solving, register BP table with transit-centered validity window</li>
+</ul>
+<h3 id="5-calibration-application">5. Calibration Application<a class="headerlink" href="#5-calibration-application" title="Permanent link">¶</a></h3>
+<ul>
+<li><strong>Input</strong>: All 10 MS files in the group</li>
+<li><strong>Action</strong>:</li>
+<li><strong>Registry-Based Solution Selection</strong>: For each MS, query the calibration registry to find valid solutions:<ul>
+<li>Query by MS observation time (<code>mid_mjd</code>) to find calibration tables whose validity windows (<code>valid_start_mjd</code>, <code>valid_end_mjd</code>) include the MS observation time</li>
+<li>Use <code>get_active_applylist(registry_db, ms_mid_mjd)</code> to retrieve ordered list of applicable tables</li>
+<li>Registry is the <strong>authoritative source</strong> for which solutions to apply</li>
+</ul>
+</li>
+<li>Apply calibration tables from registry to all 10 MS files:<ul>
+<li>Apply <code>.bpcal</code> if valid BP table found in registry for MS observation time</li>
+<li>Apply <code>.gpcal</code> and <code>.2gcal</code> if valid G tables found in registry for MS observation time</li>
+</ul>
+</li>
+<li>Update products database: <code>stage="calibrated"</code>, <code>cal_applied=1</code></li>
+</ul>
+<h3 id="6-individual-imaging">6. Individual Imaging<a class="headerlink" href="#6-individual-imaging" title="Permanent link">¶</a></h3>
+<ul>
+<li><strong>Input</strong>: All 10 calibrated MS files</li>
+<li><strong>Action</strong>:</li>
+<li>Image each MS individually</li>
+<li>Primary beam correction applied</li>
+<li>Update products database: <code>stage="imaged"</code>, <code>status="done"</code>, <code>imagename=&lt;path&gt;</code></li>
+</ul>
+<h3 id="7-mosaic-generation">7. Mosaic Generation<a class="headerlink" href="#7-mosaic-generation" title="Permanent link">¶</a></h3>
+<ul>
+<li><strong>Input</strong>: 10 individual images (tiles)</li>
+<li><strong>Action</strong>:</li>
+<li>Create weighted mosaic from 10 tiles</li>
+<li>Register mosaic in products database</li>
+<li>Mark MS files as <code>stage="mosaicked"</code></li>
+</ul>
+<h3 id="8-sliding-window-for-next-mosaic">8. Sliding Window for Next Mosaic<a class="headerlink" href="#8-sliding-window-for-next-mosaic" title="Permanent link">¶</a></h3>
+<ul>
+<li><strong>Trigger</strong>: When 8 additional MS files are registered (total 18 MS)</li>
+<li><strong>Action</strong>:</li>
+<li><strong>Last 2 MS</strong> from previous group become <strong>first 2 MS</strong> of next group</li>
+<li>Clear calibration tables from these 2 MS (remove <code>.bpcal</code>, <code>.gpcal</code>, <code>.2gcal</code> if present)</li>
+<li>Form new group of 10 MS: [last 2 from previous] + [8 new MS]</li>
+<li>Use <strong>5th MS</strong> (middle by time) of new group for calibration solving</li>
+<li>Repeat steps 4-7</li>
+</ul>
+<h2 id="key-design-principles">Key Design Principles<a class="headerlink" href="#key-design-principles" title="Permanent link">¶</a></h2>
+<h3 id="overarching-strategy">Overarching Strategy<a class="headerlink" href="#overarching-strategy" title="Permanent link">¶</a></h3>
+<p><strong>Solutions should be generated and applied such that they fall roughly in the middle of their application windows:</strong>
+- <strong>Bandpass</strong>: Generated at calibrator transit, applied over 24-hour window (±12 hours)
+- <strong>Gain</strong>: Generated from middle MS (5th of 10), applied over 1-hour window (±30 minutes)</p>
+<p>This ensures optimal calibration quality by centering solutions within their validity periods.</p>
+<h3 id="overlap-strategy">Overlap Strategy<a class="headerlink" href="#overlap-strategy" title="Permanent link">¶</a></h3>
+<ul>
+<li>Each mosaic shares <strong>2 tiles</strong> with the previous mosaic</li>
+</ul>
+<hr/>
+<h2 id="directory-organization">Directory Organization<a class="headerlink" href="#directory-organization" title="Permanent link">¶</a></h2>
+<p>The pipeline automatically organizes files into a hierarchical structure for efficient management and recovery.</p>
+<h3 id="ms-file-organization">MS File Organization<a class="headerlink" href="#ms-file-organization" title="Permanent link">¶</a></h3>
+<p>MS files are organized by type and date:</p>
+<div class="highlight"><pre><span></span><code>/stage/dsa110-contimg/ms/
+├── calibrators/                    # Calibrator observations
+│   └── YYYY-MM-DD/                 # Organized by date
+│       ├── &lt;timestamp&gt;.ms/         # Calibrator MS file (CASA directory)
+│       ├── &lt;timestamp&gt;_bpcal/      # Bandpass calibration table (CASA directory)
+│       ├── &lt;timestamp&gt;_gpcal/       # Gain phase calibration table (CASA directory)
+│       └── &lt;timestamp&gt;_2gcal/      # Short-timescale gain table (CASA directory)
+│
+├── science/                        # Science observations
+│   └── YYYY-MM-DD/                 # Organized by date
+│       └── &lt;timestamp&gt;.ms/         # Science MS with CORRECTED_DATA (CASA directory)
+│
+└── failed/                         # Failed conversions (quarantine)
+    └── YYYY-MM-DD/                 # Organized by date
+        └── &lt;timestamp&gt;.ms/         # Partial/corrupted MS (CASA directory)
+</code></pre></div>
+<p><strong>Organization Rules:</strong>
+- Calibrator MS files are moved to <code>calibrators/YYYY-MM-DD/</code> after successful calibration solving
+- Science MS files are moved to <code>science/YYYY-MM-DD/</code> after successful calibration application
+- Failed MS files are moved to <code>failed/YYYY-MM-DD/</code> for manual review
+- Calibration tables are stored alongside their corresponding calibrator MS files</p>
+<h3 id="image-organization">Image Organization<a class="headerlink" href="#image-organization" title="Permanent link">¶</a></h3>
+<p>Images are stored in a dedicated directory:</p>
+<div class="highlight"><pre><span></span><code>/stage/dsa110-contimg/images/
+└── &lt;timestamp&gt;.img-*/              # Image files (WSClean/CASA format)
+    ├── &lt;timestamp&gt;.img-image-pb.fits # Primary beam corrected image (WSClean)
+    ├── &lt;timestamp&gt;.img.pbcor        # Primary beam corrected image (CASA)
+    └── &lt;timestamp&gt;.img.image        # Image (CASA)
+</code></pre></div>
+<h3 id="mosaic-organization">Mosaic Organization<a class="headerlink" href="#mosaic-organization" title="Permanent link">¶</a></h3>
+<p>Mosaics are stored in a dedicated directory:</p>
+<div class="highlight"><pre><span></span><code>/stage/dsa110-contimg/mosaics/
+└── &lt;mosaic_name&gt;.fits              # Combined mosaic images
+</code></pre></div>
+<h3 id="storage-location-registration">Storage Location Registration<a class="headerlink" href="#storage-location-registration" title="Permanent link">¶</a></h3>
+<p>The pipeline maintains a two-level registry system for tracking file locations:</p>
+<h4 id="1-base-directory-registration-storage_locations-table-in-productssqlite3">1. Base Directory Registration (<code>storage_locations</code> table in <code>products.sqlite3</code>)<a class="headerlink" href="#1-base-directory-registration-storage_locations-table-in-productssqlite3" title="Permanent link">¶</a></h4>
+<p>Tracks where different file types are stored:
+- <code>ms_files</code> → <code>/stage/dsa110-contimg/ms/</code>
+- <code>calibration_tables</code> → <code>/stage/dsa110-contimg/ms/calibrators/</code>
+- <code>science_ms</code> → <code>/stage/dsa110-contimg/ms/science/</code>
+- <code>failed_ms</code> → <code>/stage/dsa110-contimg/ms/failed/</code>
+- <code>images</code> → <code>/stage/dsa110-contimg/images/</code>
+- <code>mosaics</code> → <code>/stage/dsa110-contimg/mosaics/</code></p>
+<p>Registered automatically when <code>StreamingMosaicManager</code> initializes.</p>
+<h4 id="2-individual-file-path-tracking">2. Individual File Path Tracking<a class="headerlink" href="#2-individual-file-path-tracking" title="Permanent link">¶</a></h4>
+<p><strong>MS Files</strong> (<code>ms_index</code> table in <code>products.sqlite3</code>):
+- Tracks full path of each MS file
+- Path updated when files are moved via <code>_organize_ms_file()</code>
+- Example: <code>/stage/dsa110-contimg/ms/science/2025-10-29/2025-10-29T13:54:17.ms</code></p>
+<p><strong>Calibration Tables</strong> (<code>cal_registry.sqlite3</code>):
+- Tracks individual calibration table paths
+- Uses <code>register_set_from_prefix()</code> which finds tables matching prefix pattern
+- Stores full organized path: <code>/stage/dsa110-contimg/ms/calibrators/2025-10-29/2025-10-29T13:54:17_0~23_bpcal</code></p>
+<p><strong>Recovery:</strong>
+- Query <code>storage_locations</code> to find base directories
+- Query <code>ms_index</code> for individual MS file paths
+- Query <code>cal_registry</code> for calibration table paths
+- All paths reflect the organized directory structure
+- This ensures continuity and smooth transitions between mosaics
+- The overlap tiles are re-calibrated using the new group's calibration solution</p>
+<h3 id="calibration-validity-windows">Calibration Validity Windows<a class="headerlink" href="#calibration-validity-windows" title="Permanent link">¶</a></h3>
+<h4 id="bandpass-calibration">Bandpass Calibration<a class="headerlink" href="#bandpass-calibration" title="Permanent link">¶</a></h4>
+<ul>
+<li><strong>Window</strong>: 24 hours centered on calibrator transit</li>
+<li>Start: 12 hours BEFORE transit</li>
+<li>End: 12 hours AFTER transit</li>
+<li><strong>Rationale</strong>: Solution generated at transit time falls in the middle of the 24-hour application window</li>
+<li><strong>New Calibrator Transition</strong>:</li>
+<li>When pointing Dec changes and new calibrator is chosen</li>
+<li>First transit starts "1st day" period ending 12 hours after that transit</li>
+<li>After "1st day", regular 24-hour intervals resume (centered on subsequent transits)</li>
+</ul>
+<h4 id="gain-calibration">Gain Calibration<a class="headerlink" href="#gain-calibration" title="Permanent link">¶</a></h4>
+<ul>
+<li><strong>Window</strong>: 1 hour centered on 5th MS observation time</li>
+<li>Start: 30 minutes BEFORE 5th MS <code>mid_mjd</code></li>
+<li>End: 30 minutes AFTER 5th MS <code>mid_mjd</code></li>
+<li><strong>Rationale</strong>: Solution generated from middle MS falls in the middle of the 1-hour application window</li>
+</ul>
+<h4 id="registry-integration">Registry Integration<a class="headerlink" href="#registry-integration" title="Permanent link">¶</a></h4>
+<ul>
+<li><strong>Registry as Authoritative Source</strong>: The calibration registry is the <strong>single source of truth</strong> for determining which calibration solutions to apply</li>
+<li><strong>Validity Window Queries</strong>: For each MS, query registry by observation time (<code>mid_mjd</code>) to find tables whose validity windows include the MS time:
+  <div class="highlight"><pre><span></span><code><span class="n">applylist</span> <span class="o">=</span> <span class="n">get_active_applylist</span><span class="p">(</span><span class="n">registry_db</span><span class="p">,</span> <span class="n">ms_mid_mjd</span><span class="p">)</span>
+</code></pre></div></li>
+<li><strong>Validity Window Storage</strong>: Registry tracks <code>valid_start_mjd</code> and <code>valid_end_mjd</code> for each calibration table:</li>
+<li>Bandpass: ±12 hours around calibrator transit (or first transit special case)</li>
+<li>Gain: ±30 minutes around 5th MS observation time</li>
+<li><strong>Solution Selection Logic</strong>:</li>
+<li>Query registry for each MS's observation time</li>
+<li>Registry returns ordered list of valid calibration tables</li>
+<li>Apply tables in order: BP → GP → 2G (if present and valid)</li>
+<li>If no valid tables found in registry, skip calibration or flag for manual review</li>
+</ul>
+<h3 id="state-tracking">State Tracking<a class="headerlink" href="#state-tracking" title="Permanent link">¶</a></h3>
+<ul>
+<li>Products database tracks MS state: <code>staging</code> → <code>converted</code> → <code>calibrated</code> → <code>imaged</code> → <code>mosaicked</code></li>
+<li>Registry tracks calibration table validity windows</li>
+<li>Groups are tracked to ensure proper sequencing</li>
+</ul>
+<h2 id="database-schema-requirements">Database Schema Requirements<a class="headerlink" href="#database-schema-requirements" title="Permanent link">¶</a></h2>
+<h3 id="products-database-ms_index-table">Products Database (<code>ms_index</code> table)<a class="headerlink" href="#products-database-ms_index-table" title="Permanent link">¶</a></h3>
+<ul>
+<li><code>stage</code>: Current pipeline stage (<code>staging</code>, <code>converted</code>, <code>calibrated</code>, <code>imaged</code>, <code>mosaicked</code>)</li>
+<li><code>status</code>: Processing status (<code>converted</code>, <code>done</code>, <code>failed</code>)</li>
+<li><code>cal_applied</code>: Flag indicating if calibration was applied</li>
+<li><code>imagename</code>: Path to image created from MS</li>
+<li><code>mid_mjd</code>: Observation midpoint time (for ordering)</li>
+</ul>
+<h3 id="new-table-mosaic_groups">New Table: <code>mosaic_groups</code><a class="headerlink" href="#new-table-mosaic_groups" title="Permanent link">¶</a></h3>
+<div class="highlight"><pre><span></span><code><span class="k">CREATE</span><span class="w"> </span><span class="k">TABLE</span><span class="w"> </span><span class="k">IF</span><span class="w"> </span><span class="k">NOT</span><span class="w"> </span><span class="k">EXISTS</span><span class="w"> </span><span class="n">mosaic_groups</span><span class="w"> </span><span class="p">(</span>
+<span class="w">    </span><span class="n">group_id</span><span class="w"> </span><span class="nb">TEXT</span><span class="w"> </span><span class="k">PRIMARY</span><span class="w"> </span><span class="k">KEY</span><span class="p">,</span>
+<span class="w">    </span><span class="n">mosaic_id</span><span class="w"> </span><span class="nb">TEXT</span><span class="p">,</span>
+<span class="w">    </span><span class="n">ms_paths</span><span class="w"> </span><span class="nb">TEXT</span><span class="p">,</span><span class="w">  </span><span class="c1">-- JSON array of MS paths</span>
+<span class="w">    </span><span class="n">calibration_ms_path</span><span class="w"> </span><span class="nb">TEXT</span><span class="p">,</span><span class="w">  </span><span class="c1">-- Path to MS used for calibration solving</span>
+<span class="w">    </span><span class="n">bpcal_solved</span><span class="w"> </span><span class="nb">INTEGER</span><span class="w"> </span><span class="k">DEFAULT</span><span class="w"> </span><span class="mi">0</span><span class="p">,</span>
+<span class="w">    </span><span class="n">created_at</span><span class="w"> </span><span class="nb">REAL</span><span class="w"> </span><span class="k">NOT</span><span class="w"> </span><span class="k">NULL</span><span class="p">,</span>
+<span class="w">    </span><span class="n">calibrated_at</span><span class="w"> </span><span class="nb">REAL</span><span class="p">,</span>
+<span class="w">    </span><span class="n">imaged_at</span><span class="w"> </span><span class="nb">REAL</span><span class="p">,</span>
+<span class="w">    </span><span class="n">mosaicked_at</span><span class="w"> </span><span class="nb">REAL</span><span class="p">,</span>
+<span class="w">    </span><span class="n">status</span><span class="w"> </span><span class="nb">TEXT</span><span class="w"> </span><span class="k">DEFAULT</span><span class="w"> </span><span class="s1">'pending'</span><span class="w">  </span><span class="c1">-- pending, calibrated, imaged, mosaicked, completed</span>
+<span class="p">)</span>
+</code></pre></div>
+<h2 id="implementation-notes">Implementation Notes<a class="headerlink" href="#implementation-notes" title="Permanent link">¶</a></h2>
+<h3 id="registry-first-approach">Registry-First Approach<a class="headerlink" href="#registry-first-approach" title="Permanent link">¶</a></h3>
+<ul>
+<li><strong>Always query registry first</strong> before solving calibration</li>
+<li>Registry determines which solutions to apply based on validity windows</li>
+<li>Only solve new calibration if registry has no valid solutions for the observation time</li>
+<li>Registry registration must include accurate validity windows for proper solution selection</li>
+</ul>
+<h3 id="calibration-ms-selection">Calibration MS Selection<a class="headerlink" href="#calibration-ms-selection" title="Permanent link">¶</a></h3>
+<ul>
+<li>Sort MS files by <code>mid_mjd</code> (observation time)</li>
+<li>Select MS at index 4 (0-indexed, so 5th MS)</li>
+<li>This ensures calibration represents the middle of the observation window</li>
+<li>When querying registry, use this 5th MS <code>mid_mjd</code> to check for existing valid solutions</li>
+</ul>
+<h3 id="calibrator-detection-and-transit-calculation">Calibrator Detection and Transit Calculation<a class="headerlink" href="#calibrator-detection-and-transit-calculation" title="Permanent link">¶</a></h3>
+<ul>
+<li>Query VLA catalog for calibrators valid for the current pointing (Dec)</li>
+<li>Check if any MS in the group contains a calibrator field</li>
+<li>Use field selection logic to identify calibrator presence</li>
+<li><strong>Transit Time Calculation</strong>: </li>
+<li>Calculate calibrator transit time for the observation date</li>
+<li>Transit occurs when calibrator RA matches local sidereal time</li>
+<li>Use <code>astropy</code> or similar to compute transit MJD</li>
+</ul>
+<h3 id="validity-window-calculation">Validity Window Calculation<a class="headerlink" href="#validity-window-calculation" title="Permanent link">¶</a></h3>
+<h4 id="bandpass-validity-window">Bandpass Validity Window<a class="headerlink" href="#bandpass-validity-window" title="Permanent link">¶</a></h4>
+<div class="highlight"><pre><span></span><code><span class="n">transit_mjd</span> <span class="o">=</span> <span class="n">calculate_calibrator_transit</span><span class="p">(</span><span class="n">calibrator_ra</span><span class="p">,</span> <span class="n">observation_date</span><span class="p">)</span>
+<span class="n">valid_start_mjd</span> <span class="o">=</span> <span class="n">transit_mjd</span> <span class="o">-</span> <span class="mf">0.5</span>  <span class="c1"># 12 hours before transit</span>
+<span class="n">valid_end_mjd</span> <span class="o">=</span> <span class="n">transit_mjd</span> <span class="o">+</span> <span class="mf">0.5</span>    <span class="c1"># 12 hours after transit</span>
+</code></pre></div>
+<h4 id="gain-validity-window">Gain Validity Window<a class="headerlink" href="#gain-validity-window" title="Permanent link">¶</a></h4>
+<div class="highlight"><pre><span></span><code><span class="n">calibration_ms_mid_mjd</span> <span class="o">=</span> <span class="n">extract_ms_time_range</span><span class="p">(</span><span class="n">calibration_ms_path</span><span class="p">)[</span><span class="mi">2</span><span class="p">]</span>  <span class="c1"># 5th MS</span>
+<span class="n">valid_start_mjd</span> <span class="o">=</span> <span class="n">calibration_ms_mid_mjd</span> <span class="o">-</span> <span class="p">(</span><span class="mi">30</span> <span class="o">/</span> <span class="mf">1440.0</span><span class="p">)</span>  <span class="c1"># 30 minutes before</span>
+<span class="n">valid_end_mjd</span> <span class="o">=</span> <span class="n">calibration_ms_mid_mjd</span> <span class="o">+</span> <span class="p">(</span><span class="mi">30</span> <span class="o">/</span> <span class="mf">1440.0</span><span class="p">)</span>    <span class="c1"># 30 minutes after</span>
+</code></pre></div>
+<h4 id="new-calibrator-transition-handling">New Calibrator Transition Handling<a class="headerlink" href="#new-calibrator-transition-handling" title="Permanent link">¶</a></h4>
+<ul>
+<li>Detect when pointing Dec changes (new calibrator selected)</li>
+<li>For first transit of new calibrator:</li>
+<li><code>valid_start_mjd = transit_mjd</code> (starts at transit, not 12h before)</li>
+<li><code>valid_end_mjd = transit_mjd + 0.5</code> (ends 12h after transit)</li>
+<li>For subsequent transits:</li>
+<li>Use standard ±12 hour window centered on transit</li>
+</ul>
+<h3 id="calibration-table-clearing">Calibration Table Clearing<a class="headerlink" href="#calibration-table-clearing" title="Permanent link">¶</a></h3>
+<ul>
+<li>When reusing MS files for next mosaic:</li>
+<li><strong>Registry-Based Approach</strong>: The registry automatically handles validity - old tables outside validity windows won't be selected</li>
+<li><strong>Physical Table Cleanup</strong> (optional): Remove calibration tables: <code>*_bpcal</code>, <code>*_gpcal</code>, <code>*_2gcal</code> from overlap MS files</li>
+<li><strong>Registry Status Update</strong>: Mark old tables as <code>status="retired"</code> in registry (or let validity windows expire naturally)</li>
+<li>Clear <code>cal_applied</code> flag in products database</li>
+<li><strong>New Calibration</strong>: When overlap MS files are processed in new group, registry will return new valid solutions based on new observation times</li>
+<li>This ensures overlap tiles are re-calibrated with the new group's solutions via registry queries</li>
+</ul>
+<h3 id="error-handling">Error Handling<a class="headerlink" href="#error-handling" title="Permanent link">¶</a></h3>
+<ul>
+<li>If calibration solving fails: mark group as <code>status="calibration_failed"</code></li>
+<li>If imaging fails for individual MS: mark that MS as <code>status="failed"</code>, continue with others</li>
+<li>If mosaic generation fails: mark group as <code>status="mosaic_failed"</code></li>
+<li>If registry query fails: log error, fall back to solving new calibration (don't skip calibration entirely)</li>
+</ul>
+<h2 id="registry-query-workflow-summary">Registry Query Workflow Summary<a class="headerlink" href="#registry-query-workflow-summary" title="Permanent link">¶</a></h2>
+<h3 id="for-each-ms-file">For Each MS File:<a class="headerlink" href="#for-each-ms-file" title="Permanent link">¶</a></h3>
+<ol>
+<li><strong>Extract observation time</strong>: Get <code>mid_mjd</code> from MS metadata</li>
+<li><strong>Query registry</strong>: <code>applylist = get_active_applylist(registry_db, mid_mjd)</code></li>
+<li><strong>Check results</strong>:</li>
+<li>If <code>applylist</code> is empty → solve new calibration</li>
+<li>If <code>applylist</code> contains tables → use those tables (skip solving)</li>
+<li><strong>Apply calibration</strong>: Use tables from registry (or newly solved tables)</li>
+<li><strong>Register new tables</strong>: If new calibration solved, register with proper validity windows</li>
+</ol>
+<h3 id="for-calibration-solving-5th-ms">For Calibration Solving (5th MS):<a class="headerlink" href="#for-calibration-solving-5th-ms" title="Permanent link">¶</a></h3>
+<ol>
+<li><strong>Query registry first</strong>: Check if valid solutions exist for 5th MS <code>mid_mjd</code></li>
+<li><strong>If valid solutions found</strong>: Skip solving, use registry tables</li>
+<li><strong>If no valid solutions</strong>: Solve new calibration</li>
+<li><strong>Register new solutions</strong>: Store with transit-centered validity windows (BP) or time-centered windows (G)</li>
+</ol>
+<h2 id="apicli-integration">API/CLI Integration<a class="headerlink" href="#apicli-integration" title="Permanent link">¶</a></h2>
+<h3 id="new-commands-needed">New Commands Needed<a class="headerlink" href="#new-commands-needed" title="Permanent link">¶</a></h3>
+<ul>
+<li><code>streaming-mosaic process</code>: Main processing loop</li>
+<li><code>streaming-mosaic check-groups</code>: Check if groups are ready for processing</li>
+<li><code>streaming-mosaic clear-calibration</code>: Clear calibration from MS files (for overlap)</li>
+</ul>
+<h3 id="monitoring">Monitoring<a class="headerlink" href="#monitoring" title="Permanent link">¶</a></h3>
+<ul>
+<li>Track number of MS files in staging</li>
+<li>Track group formation progress</li>
+<li>Monitor calibration solving success rates</li>
+<li>Track mosaic generation completion</li>
+</ul>
+<h2 id="future-enhancements">Future Enhancements<a class="headerlink" href="#future-enhancements" title="Permanent link">¶</a></h2>
+<ul>
+<li>Parallel processing of multiple groups</li>
+<li>Automatic retry for failed calibrations</li>
+<li>Quality checks before mosaic generation</li>
+<li>Mosaic validation and metrics</li>
+</ul>
+</article>
+</div>
+<script>var tabs=__md_get("__tabs");if(Array.isArray(tabs))e:for(var set of document.querySelectorAll(".tabbed-set")){var tab,labels=set.querySelector(".tabbed-labels");for(tab of tabs)for(var label of labels.getElementsByTagName("label"))if(label.innerText.trim()===tab){var input=document.getElementById(label.htmlFor);input.checked=!0;continue e}}</script>
+<script>var target=document.getElementById(location.hash.slice(1));target&&target.name&&(target.checked=target.name.startsWith("__tabbed_"))</script>
+</div>
+</main>
+<footer class="md-footer">
+<div class="md-footer-meta md-typeset">
+<div class="md-footer-meta__inner md-grid">
+<div class="md-copyright">
+  
+  
+    Made with
+    <a href="https://squidfunk.github.io/mkdocs-material/" rel="noopener" target="_blank">
+      Material for MkDocs
+    </a>
+</div>
+</div>
+</div>
+</footer>
+</div>
+<div class="md-dialog" data-md-component="dialog">
+<div class="md-dialog__inner md-typeset"></div>
+</div>
+<script id="__config" type="application/json">{"base": "../..", "features": ["navigation.sections", "navigation.indexes", "content.code.copy", "content.tabs.link"], "search": "../../assets/javascripts/workers/search.b8dbb3d2.min.js", "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}}</script>
+<script src="../../assets/javascripts/bundle.fe8b6f2b.min.js"></script>
+<script src="../../javascripts/mathjax.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+<script src="../../javascripts/mermaid-zoom.js"></script>
+</body>
+</html>

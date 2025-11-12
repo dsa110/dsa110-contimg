@@ -1,0 +1,1928 @@
+
+<!DOCTYPE html>
+
+<html class="no-js" lang="en">
+<head>
+<meta charset="utf-8"/>
+<meta content="width=device-width,initial-scale=1" name="viewport"/>
+<link href="http://code.deepsynoptic.org/dsa110-contimg/reference/EXTERNAL_CROSS_MATCHING_TOOLS_SURVEY/" rel="canonical"/>
+<link href="../../assets/images/favicon.png" rel="icon"/>
+<meta content="mkdocs-1.6.1, mkdocs-material-9.5.31" name="generator"/>
+<title>External Cross-Matching Tools Survey - DSA-110 Continuum Imaging Pipeline</title>
+<link href="../../assets/stylesheets/main.3cba04c6.min.css" rel="stylesheet"/>
+<link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect"/>
+<link href="https://fonts.googleapis.com/css?family=Roboto:300,300i,400,400i,700,700i%7CRoboto+Mono:400,400i,700,700i&amp;display=fallback" rel="stylesheet"/>
+<style>:root{--md-text-font:"Roboto";--md-code-font:"Roboto Mono"}</style>
+<link href="../../assets/_mkdocstrings.css" rel="stylesheet"/>
+<script>__md_scope=new URL("../..",location),__md_hash=e=>[...e].reduce((e,_)=>(e<<5)-e+_.charCodeAt(0),0),__md_get=(e,_=localStorage,t=__md_scope)=>JSON.parse(_.getItem(t.pathname+"."+e)),__md_set=(e,_,t=localStorage,a=__md_scope)=>{try{t.setItem(a.pathname+"."+e,JSON.stringify(_))}catch(e){}}</script>
+</head>
+<body dir="ltr">
+<input autocomplete="off" class="md-toggle" data-md-toggle="drawer" id="__drawer" type="checkbox"/>
+<input autocomplete="off" class="md-toggle" data-md-toggle="search" id="__search" type="checkbox"/>
+<label class="md-overlay" for="__drawer"></label>
+<div data-md-component="skip">
+<a class="md-skip" href="#external-cross-matching-tools-survey">
+          Skip to content
+        </a>
+</div>
+<div data-md-component="announce">
+</div>
+<header class="md-header md-header--shadow" data-md-component="header">
+<nav aria-label="Header" class="md-header__inner md-grid">
+<a aria-label="DSA-110 Continuum Imaging Pipeline" class="md-header__button md-logo" data-md-component="logo" href="../.." title="DSA-110 Continuum Imaging Pipeline">
+<svg viewbox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54Z"></path></svg>
+</a>
+<label class="md-header__button md-icon" for="__drawer">
+<svg viewbox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M3 6h18v2H3V6m0 5h18v2H3v-2m0 5h18v2H3v-2Z"></path></svg>
+</label>
+<div class="md-header__title" data-md-component="header-title">
+<div class="md-header__ellipsis">
+<div class="md-header__topic">
+<span class="md-ellipsis">
+            DSA-110 Continuum Imaging Pipeline
+          </span>
+</div>
+<div class="md-header__topic" data-md-component="header-topic">
+<span class="md-ellipsis">
+            
+              External Cross-Matching Tools Survey
+            
+          </span>
+</div>
+</div>
+</div>
+<script>var media,input,key,value,palette=__md_get("__palette");if(palette&&palette.color){"(prefers-color-scheme)"===palette.color.media&&(media=matchMedia("(prefers-color-scheme: light)"),input=document.querySelector(media.matches?"[data-md-color-media='(prefers-color-scheme: light)']":"[data-md-color-media='(prefers-color-scheme: dark)']"),palette.color.media=input.getAttribute("data-md-color-media"),palette.color.scheme=input.getAttribute("data-md-color-scheme"),palette.color.primary=input.getAttribute("data-md-color-primary"),palette.color.accent=input.getAttribute("data-md-color-accent"));for([key,value]of Object.entries(palette.color))document.body.setAttribute("data-md-color-"+key,value)}</script>
+<label class="md-header__button md-icon" for="__search">
+<svg viewbox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.516 6.516 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5Z"></path></svg>
+</label>
+<div class="md-search" data-md-component="search" role="dialog">
+<label class="md-search__overlay" for="__search"></label>
+<div class="md-search__inner" role="search">
+<form class="md-search__form" name="search">
+<input aria-label="Search" autocapitalize="off" autocomplete="off" autocorrect="off" class="md-search__input" data-md-component="search-query" name="query" placeholder="Search" required="" spellcheck="false" type="text"/>
+<label class="md-search__icon md-icon" for="__search">
+<svg viewbox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.516 6.516 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5Z"></path></svg>
+<svg viewbox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11h12Z"></path></svg>
+</label>
+<nav aria-label="Search" class="md-search__options">
+<button aria-label="Clear" class="md-search__icon md-icon" tabindex="-1" title="Clear" type="reset">
+<svg viewbox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M19 6.41 17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12 19 6.41Z"></path></svg>
+</button>
+</nav>
+</form>
+<div class="md-search__output">
+<div class="md-search__scrollwrap" data-md-scrollfix="" tabindex="0">
+<div class="md-search-result" data-md-component="search-result">
+<div class="md-search-result__meta">
+            Initializing search
+          </div>
+<ol class="md-search-result__list" role="presentation"></ol>
+</div>
+</div>
+</div>
+</div>
+</div>
+<div class="md-header__source">
+<a class="md-source" data-md-component="source" href="https://github.com/dsa110/dsa110-contimg" title="Go to repository">
+<div class="md-source__icon md-icon">
+<svg viewbox="0 0 448 512" xmlns="http://www.w3.org/2000/svg"><!--! Font Awesome Free 6.6.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2024 Fonticons, Inc.--><path d="M439.55 236.05 244 40.45a28.87 28.87 0 0 0-40.81 0l-40.66 40.63 51.52 51.52c27.06-9.14 52.68 16.77 43.39 43.68l49.66 49.66c34.23-11.8 61.18 31 35.47 56.69-26.49 26.49-70.21-2.87-56-37.34L240.22 199v121.85c25.3 12.54 22.26 41.85 9.08 55a34.34 34.34 0 0 1-48.55 0c-17.57-17.6-11.07-46.91 11.25-56v-123c-20.8-8.51-24.6-30.74-18.64-45L142.57 101 8.45 235.14a28.86 28.86 0 0 0 0 40.81l195.61 195.6a28.86 28.86 0 0 0 40.8 0l194.69-194.69a28.86 28.86 0 0 0 0-40.81z"></path></svg>
+</div>
+<div class="md-source__repository">
+    GitHub
+  </div>
+</a>
+</div>
+</nav>
+</header>
+<div class="md-container" data-md-component="container">
+<main class="md-main" data-md-component="main">
+<div class="md-main__inner md-grid">
+<div class="md-sidebar md-sidebar--primary" data-md-component="sidebar" data-md-type="navigation">
+<div class="md-sidebar__scrollwrap">
+<div class="md-sidebar__inner">
+<nav aria-label="Navigation" class="md-nav md-nav--primary" data-md-level="0">
+<label class="md-nav__title" for="__drawer">
+<a aria-label="DSA-110 Continuum Imaging Pipeline" class="md-nav__button md-logo" data-md-component="logo" href="../.." title="DSA-110 Continuum Imaging Pipeline">
+<svg viewbox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54Z"></path></svg>
+</a>
+    DSA-110 Continuum Imaging Pipeline
+  </label>
+<div class="md-nav__source">
+<a class="md-source" data-md-component="source" href="https://github.com/dsa110/dsa110-contimg" title="Go to repository">
+<div class="md-source__icon md-icon">
+<svg viewbox="0 0 448 512" xmlns="http://www.w3.org/2000/svg"><!--! Font Awesome Free 6.6.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2024 Fonticons, Inc.--><path d="M439.55 236.05 244 40.45a28.87 28.87 0 0 0-40.81 0l-40.66 40.63 51.52 51.52c27.06-9.14 52.68 16.77 43.39 43.68l49.66 49.66c34.23-11.8 61.18 31 35.47 56.69-26.49 26.49-70.21-2.87-56-37.34L240.22 199v121.85c25.3 12.54 22.26 41.85 9.08 55a34.34 34.34 0 0 1-48.55 0c-17.57-17.6-11.07-46.91 11.25-56v-123c-20.8-8.51-24.6-30.74-18.64-45L142.57 101 8.45 235.14a28.86 28.86 0 0 0 0 40.81l195.61 195.6a28.86 28.86 0 0 0 40.8 0l194.69-194.69a28.86 28.86 0 0 0 0-40.81z"></path></svg>
+</div>
+<div class="md-source__repository">
+    GitHub
+  </div>
+</a>
+</div>
+<ul class="md-nav__list" data-md-scrollfix="">
+<li class="md-nav__item">
+<a class="md-nav__link" href="../..">
+<span class="md-ellipsis">
+    Home
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../DOCUMENTATION_QUICK_REFERENCE/">
+<span class="md-ellipsis">
+    Documentation Guide
+  </span>
+</a>
+</li>
+<li class="md-nav__item md-nav__item--section md-nav__item--nested">
+<input class="md-nav__toggle md-toggle" id="__nav_3" type="checkbox"/>
+<div class="md-nav__link md-nav__container">
+<a class="md-nav__link" href="../../concepts/">
+<span class="md-ellipsis">
+    Concepts
+  </span>
+</a>
+<label class="md-nav__link" for="__nav_3" id="__nav_3_label" tabindex="">
+<span class="md-nav__icon md-icon"></span>
+</label>
+</div>
+<nav aria-expanded="false" aria-labelledby="__nav_3_label" class="md-nav" data-md-level="1">
+<label class="md-nav__title" for="__nav_3">
+<span class="md-nav__icon md-icon"></span>
+            Concepts
+          </label>
+<ul class="md-nav__list" data-md-scrollfix="">
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../concepts/architecture/">
+<span class="md-ellipsis">
+    Architecture
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../concepts/DIRECTORY_ARCHITECTURE/">
+<span class="md-ellipsis">
+    Directory Architecture
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../concepts/modules/">
+<span class="md-ellipsis">
+    Modules
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../concepts/control-panel/">
+<span class="md-ellipsis">
+    Control Panel
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../concepts/aoflagger/">
+<span class="md-ellipsis">
+    AOFlagger
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../concepts/frontend_design/">
+<span class="md-ellipsis">
+    Frontend Design
+  </span>
+</a>
+</li>
+<li class="md-nav__item md-nav__item--nested">
+<input class="md-nav__toggle md-toggle" id="__nav_3_8" type="checkbox"/>
+<label class="md-nav__link" for="__nav_3_8" id="__nav_3_8_label" tabindex="0">
+<span class="md-ellipsis">
+    Dashboard
+  </span>
+<span class="md-nav__icon md-icon"></span>
+</label>
+<nav aria-expanded="false" aria-labelledby="__nav_3_8_label" class="md-nav" data-md-level="2">
+<label class="md-nav__title" for="__nav_3_8">
+<span class="md-nav__icon md-icon"></span>
+            Dashboard
+          </label>
+<ul class="md-nav__list" data-md-scrollfix="">
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../concepts/dashboard_mockups/">
+<span class="md-ellipsis">
+    Mockups
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../SKYVIEW_IMPLEMENTATION_PLAN/">
+<span class="md-ellipsis">
+    Sky View
+  </span>
+</a>
+</li>
+</ul>
+</nav>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../concepts/GLOSSARY/">
+<span class="md-ellipsis">
+    Glossary
+  </span>
+</a>
+</li>
+<li class="md-nav__item md-nav__item--nested">
+<input class="md-nav__toggle md-toggle" id="__nav_3_10" type="checkbox"/>
+<label class="md-nav__link" for="__nav_3_10" id="__nav_3_10_label" tabindex="0">
+<span class="md-ellipsis">
+    Pipeline
+  </span>
+<span class="md-nav__icon md-icon"></span>
+</label>
+<nav aria-expanded="false" aria-labelledby="__nav_3_10_label" class="md-nav" data-md-level="2">
+<label class="md-nav__title" for="__nav_3_10">
+<span class="md-nav__icon md-icon"></span>
+            Pipeline
+          </label>
+<ul class="md-nav__list" data-md-scrollfix="">
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../concepts/pipeline_overview/">
+<span class="md-ellipsis">
+    Overview
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../concepts/pipeline_stage_architecture/">
+<span class="md-ellipsis">
+    Stage Architecture
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../concepts/pipeline_workflow_visualization/">
+<span class="md-ellipsis">
+    Workflow Visualization
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../concepts/pipeline_production_features/">
+<span class="md-ellipsis">
+    Production Features
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../concepts/pipeline_patterns/">
+<span class="md-ellipsis">
+    Patterns
+  </span>
+</a>
+</li>
+</ul>
+</nav>
+</li>
+<li class="md-nav__item md-nav__item--nested">
+<input class="md-nav__toggle md-toggle" id="__nav_3_11" type="checkbox"/>
+<label class="md-nav__link" for="__nav_3_11" id="__nav_3_11_label" tabindex="0">
+<span class="md-ellipsis">
+    Science
+  </span>
+<span class="md-nav__icon md-icon"></span>
+</label>
+<nav aria-expanded="false" aria-labelledby="__nav_3_11_label" class="md-nav" data-md-level="2">
+<label class="md-nav__title" for="__nav_3_11">
+<span class="md-nav__icon md-icon"></span>
+            Science
+          </label>
+<ul class="md-nav__list" data-md-scrollfix="">
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../concepts/science/photometry_normalization/">
+<span class="md-ellipsis">
+    Photometry Normalization
+  </span>
+</a>
+</li>
+</ul>
+</nav>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../concepts/mcp_browser_server_setup/">
+<span class="md-ellipsis">
+    Browser MCP Server
+  </span>
+</a>
+</li>
+</ul>
+</nav>
+</li>
+<li class="md-nav__item md-nav__item--section md-nav__item--nested">
+<input class="md-nav__toggle md-toggle" id="__nav_4" type="checkbox"/>
+<label class="md-nav__link" for="__nav_4" id="__nav_4_label" tabindex="">
+<span class="md-ellipsis">
+    Tutorials
+  </span>
+<span class="md-nav__icon md-icon"></span>
+</label>
+<nav aria-expanded="false" aria-labelledby="__nav_4_label" class="md-nav" data-md-level="1">
+<label class="md-nav__title" for="__nav_4">
+<span class="md-nav__icon md-icon"></span>
+            Tutorials
+          </label>
+<ul class="md-nav__list" data-md-scrollfix="">
+<li class="md-nav__item md-nav__item--nested">
+<input class="md-nav__toggle md-toggle" id="__nav_4_1" type="checkbox"/>
+<label class="md-nav__link" for="__nav_4_1" id="__nav_4_1_label" tabindex="0">
+<span class="md-ellipsis">
+    Conversion
+  </span>
+<span class="md-nav__icon md-icon"></span>
+</label>
+<nav aria-expanded="false" aria-labelledby="__nav_4_1_label" class="md-nav" data-md-level="2">
+<label class="md-nav__title" for="__nav_4_1">
+<span class="md-nav__icon md-icon"></span>
+            Conversion
+          </label>
+<ul class="md-nav__list" data-md-scrollfix="">
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../tutorials/HDF5_TO_MS_TUTORIAL/">
+<span class="md-ellipsis">
+    HDF5 to MS
+  </span>
+</a>
+</li>
+</ul>
+</nav>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../tutorials/simulation-tutorial/">
+<span class="md-ellipsis">
+    Simulation
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../tutorials/calibrate-apply/">
+<span class="md-ellipsis">
+    Calibrate and Apply
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../tutorials/convert-standalone/">
+<span class="md-ellipsis">
+    Convert Standalone
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../tutorials/streaming/">
+<span class="md-ellipsis">
+    Streaming
+  </span>
+</a>
+</li>
+<li class="md-nav__item md-nav__item--nested">
+<input class="md-nav__toggle md-toggle" id="__nav_4_6" type="checkbox"/>
+<label class="md-nav__link" for="__nav_4_6" id="__nav_4_6_label" tabindex="0">
+<span class="md-ellipsis">
+    Notebooks
+  </span>
+<span class="md-nav__icon md-icon"></span>
+</label>
+<nav aria-expanded="false" aria-labelledby="__nav_4_6_label" class="md-nav" data-md-level="2">
+<label class="md-nav__title" for="__nav_4_6">
+<span class="md-nav__icon md-icon"></span>
+            Notebooks
+          </label>
+<ul class="md-nav__list" data-md-scrollfix="">
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../tutorials/notebooks/bandpass_calibration_test.ipynb">
+<span class="md-ellipsis">
+    Bandpass Calibration Test
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../tutorials/notebooks/calibrator_helper.py">
+<span class="md-ellipsis">
+    Calibrator Helper
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../tutorials/notebooks/CalibratorSearch.ipynb">
+<span class="md-ellipsis">
+    Calibrator Search
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../tutorials/notebooks/ms_staging_workflow.ipynb">
+<span class="md-ellipsis">
+    MS Staging Workflow
+  </span>
+</a>
+</li>
+</ul>
+</nav>
+</li>
+</ul>
+</nav>
+</li>
+<li class="md-nav__item md-nav__item--section md-nav__item--nested">
+<input class="md-nav__toggle md-toggle" id="__nav_5" type="checkbox"/>
+<label class="md-nav__link" for="__nav_5" id="__nav_5_label" tabindex="">
+<span class="md-ellipsis">
+    How-To Guides
+  </span>
+<span class="md-nav__icon md-icon"></span>
+</label>
+<nav aria-expanded="false" aria-labelledby="__nav_5_label" class="md-nav" data-md-level="1">
+<label class="md-nav__title" for="__nav_5">
+<span class="md-nav__icon md-icon"></span>
+            How-To Guides
+          </label>
+<ul class="md-nav__list" data-md-scrollfix="">
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../how-to/github_pages_walkthrough/">
+<span class="md-ellipsis">
+    GitHub Pages Setup
+  </span>
+</a>
+</li>
+<li class="md-nav__item md-nav__item--nested">
+<input class="md-nav__toggle md-toggle" id="__nav_5_2" type="checkbox"/>
+<label class="md-nav__link" for="__nav_5_2" id="__nav_5_2_label" tabindex="0">
+<span class="md-ellipsis">
+    Quickstarts
+  </span>
+<span class="md-nav__icon md-icon"></span>
+</label>
+<nav aria-expanded="false" aria-labelledby="__nav_5_2_label" class="md-nav" data-md-level="2">
+<label class="md-nav__title" for="__nav_5_2">
+<span class="md-nav__icon md-icon"></span>
+            Quickstarts
+          </label>
+<ul class="md-nav__list" data-md-scrollfix="">
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../how-to/quickstart/">
+<span class="md-ellipsis">
+    General
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../how-to/control-panel-quickstart/">
+<span class="md-ellipsis">
+    Control Panel
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../how-to/LINEAR_SETUP_QUICKSTART/">
+<span class="md-ellipsis">
+    Linear Setup
+  </span>
+</a>
+</li>
+</ul>
+</nav>
+</li>
+<li class="md-nav__item md-nav__item--nested">
+<input class="md-nav__toggle md-toggle" id="__nav_5_3" type="checkbox"/>
+<label class="md-nav__link" for="__nav_5_3" id="__nav_5_3_label" tabindex="0">
+<span class="md-ellipsis">
+    Testing
+  </span>
+<span class="md-nav__icon md-icon"></span>
+</label>
+<nav aria-expanded="false" aria-labelledby="__nav_5_3_label" class="md-nav" data-md-level="2">
+<label class="md-nav__title" for="__nav_5_3">
+<span class="md-nav__icon md-icon"></span>
+            Testing
+          </label>
+<ul class="md-nav__list" data-md-scrollfix="">
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../how-to/FAST_TESTING/">
+<span class="md-ellipsis">
+    Fast Testing
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../how-to/PIPELINE_TESTING_GUIDE/">
+<span class="md-ellipsis">
+    Pipeline Guide
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../how-to/TEST_FLAG_SUBCOMMAND/">
+<span class="md-ellipsis">
+    Flag Subcommand
+  </span>
+</a>
+</li>
+</ul>
+</nav>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../how-to/build-vp-from-h5/">
+<span class="md-ellipsis">
+    Build VP from h5
+  </span>
+</a>
+</li>
+<li class="md-nav__item md-nav__item--nested">
+<input class="md-nav__toggle md-toggle" id="__nav_5_5" type="checkbox"/>
+<label class="md-nav__link" for="__nav_5_5" id="__nav_5_5_label" tabindex="0">
+<span class="md-ellipsis">
+    Calibration
+  </span>
+<span class="md-nav__icon md-icon"></span>
+</label>
+<nav aria-expanded="false" aria-labelledby="__nav_5_5_label" class="md-nav" data-md-level="2">
+<label class="md-nav__title" for="__nav_5_5">
+<span class="md-nav__icon md-icon"></span>
+            Calibration
+          </label>
+<ul class="md-nav__list" data-md-scrollfix="">
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../how-to/CALIBRATION_DETAILED_PROCEDURE/">
+<span class="md-ellipsis">
+    Detailed Procedure
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../how-to/FIND_CALIBRATOR_TRANSIT_DATA/">
+<span class="md-ellipsis">
+    Find Calibrator Transit
+  </span>
+</a>
+</li>
+</ul>
+</nav>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../how-to/IMAGE_0834_TRANSIT_5MIN/">
+<span class="md-ellipsis">
+    Image 0834 Transit 5min
+  </span>
+</a>
+</li>
+<li class="md-nav__item md-nav__item--nested">
+<input class="md-nav__toggle md-toggle" id="__nav_5_7" type="checkbox"/>
+<label class="md-nav__link" for="__nav_5_7" id="__nav_5_7_label" tabindex="0">
+<span class="md-ellipsis">
+    Mosaic
+  </span>
+<span class="md-nav__icon md-icon"></span>
+</label>
+<nav aria-expanded="false" aria-labelledby="__nav_5_7_label" class="md-nav" data-md-level="2">
+<label class="md-nav__title" for="__nav_5_7">
+<span class="md-nav__icon md-icon"></span>
+            Mosaic
+          </label>
+<ul class="md-nav__list" data-md-scrollfix="">
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../how-to/mosaic_quickstart/">
+<span class="md-ellipsis">
+    Quickstart
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../how-to/mosaic/">
+<span class="md-ellipsis">
+    Complete Guide
+  </span>
+</a>
+</li>
+</ul>
+</nav>
+</li>
+<li class="md-nav__item md-nav__item--nested">
+<input class="md-nav__toggle md-toggle" id="__nav_5_8" type="checkbox"/>
+<label class="md-nav__link" for="__nav_5_8" id="__nav_5_8_label" tabindex="0">
+<span class="md-ellipsis">
+    Quality Assurance
+  </span>
+<span class="md-nav__icon md-icon"></span>
+</label>
+<nav aria-expanded="false" aria-labelledby="__nav_5_8_label" class="md-nav" data-md-level="2">
+<label class="md-nav__title" for="__nav_5_8">
+<span class="md-nav__icon md-icon"></span>
+            Quality Assurance
+          </label>
+<ul class="md-nav__list" data-md-scrollfix="">
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../how-to/QUALITY_ASSURANCE_SETUP/">
+<span class="md-ellipsis">
+    Setup
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../how-to/quicklook/">
+<span class="md-ellipsis">
+    Quick Look
+  </span>
+</a>
+</li>
+</ul>
+</nav>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../how-to/reprocess/">
+<span class="md-ellipsis">
+    Reprocess
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../how-to/USING_ORCHESTRATOR_CLI/">
+<span class="md-ellipsis">
+    Using Orchestrator CLI
+  </span>
+</a>
+</li>
+<li class="md-nav__item md-nav__item--nested">
+<input class="md-nav__toggle md-toggle" id="__nav_5_11" type="checkbox"/>
+<label class="md-nav__link" for="__nav_5_11" id="__nav_5_11_label" tabindex="0">
+<span class="md-ellipsis">
+    Dashboard
+  </span>
+<span class="md-nav__icon md-icon"></span>
+</label>
+<nav aria-expanded="false" aria-labelledby="__nav_5_11_label" class="md-nav" data-md-level="2">
+<label class="md-nav__title" for="__nav_5_11">
+<span class="md-nav__icon md-icon"></span>
+            Dashboard
+          </label>
+<ul class="md-nav__list" data-md-scrollfix="">
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../how-to/dashboard-development/">
+<span class="md-ellipsis">
+    Development
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../how-to/dashboard-quickstart/">
+<span class="md-ellipsis">
+    Quickstart
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../how-to/dashboard_testing/">
+<span class="md-ellipsis">
+    Testing
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../how-to/dashboard_development_workflow/">
+<span class="md-ellipsis">
+    Development Workflow
+  </span>
+</a>
+</li>
+</ul>
+</nav>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../how-to/LINEAR_INTEGRATION/">
+<span class="md-ellipsis">
+    Linear Integration
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../how-to/frontend-initial-setup/">
+<span class="md-ellipsis">
+    Frontend Initial Setup
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../how-to/PARAMETER_OPTIMIZATION_GUIDE/">
+<span class="md-ellipsis">
+    AOFlagger Parameter Optimization
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../how-to/downsampling_guide/">
+<span class="md-ellipsis">
+    Downsampling Guide
+  </span>
+</a>
+</li>
+<li class="md-nav__item md-nav__item--nested">
+<input class="md-nav__toggle md-toggle" id="__nav_5_16" type="checkbox"/>
+<label class="md-nav__link" for="__nav_5_16" id="__nav_5_16_label" tabindex="0">
+<span class="md-ellipsis">
+    Conversion
+  </span>
+<span class="md-nav__icon md-icon"></span>
+</label>
+<nav aria-expanded="false" aria-labelledby="__nav_5_16_label" class="md-nav" data-md-level="2">
+<label class="md-nav__title" for="__nav_5_16">
+<span class="md-nav__icon md-icon"></span>
+            Conversion
+          </label>
+<ul class="md-nav__list" data-md-scrollfix="">
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../how-to/uvh5_to_ms_conversion/">
+<span class="md-ellipsis">
+    UVH5 to MS
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../how-to/streaming_converter_guide/">
+<span class="md-ellipsis">
+    Streaming Converter
+  </span>
+</a>
+</li>
+</ul>
+</nav>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../how-to/troubleshooting/">
+<span class="md-ellipsis">
+    Troubleshooting
+  </span>
+</a>
+</li>
+</ul>
+</nav>
+</li>
+<li class="md-nav__item md-nav__item--section md-nav__item--nested">
+<input class="md-nav__toggle md-toggle" id="__nav_6" type="checkbox"/>
+<label class="md-nav__link" for="__nav_6" id="__nav_6_label" tabindex="">
+<span class="md-ellipsis">
+    Reference
+  </span>
+<span class="md-nav__icon md-icon"></span>
+</label>
+<nav aria-expanded="false" aria-labelledby="__nav_6_label" class="md-nav" data-md-level="1">
+<label class="md-nav__title" for="__nav_6">
+<span class="md-nav__icon md-icon"></span>
+            Reference
+          </label>
+<ul class="md-nav__list" data-md-scrollfix="">
+<li class="md-nav__item md-nav__item--nested">
+<input class="md-nav__toggle md-toggle" id="__nav_6_1" type="checkbox"/>
+<label class="md-nav__link" for="__nav_6_1" id="__nav_6_1_label" tabindex="0">
+<span class="md-ellipsis">
+    API
+  </span>
+<span class="md-nav__icon md-icon"></span>
+</label>
+<nav aria-expanded="false" aria-labelledby="__nav_6_1_label" class="md-nav" data-md-level="2">
+<label class="md-nav__title" for="__nav_6_1">
+<span class="md-nav__icon md-icon"></span>
+            API
+          </label>
+<ul class="md-nav__list" data-md-scrollfix="">
+<li class="md-nav__item">
+<a class="md-nav__link" href="../api-endpoints/">
+<span class="md-ellipsis">
+    Endpoints
+  </span>
+</a>
+</li>
+<li class="md-nav__item md-nav__item--nested">
+<input class="md-nav__toggle md-toggle" id="__nav_6_1_2" type="checkbox"/>
+<label class="md-nav__link" for="__nav_6_1_2" id="__nav_6_1_2_label" tabindex="0">
+<span class="md-ellipsis">
+    Dashboard
+  </span>
+<span class="md-nav__icon md-icon"></span>
+</label>
+<nav aria-expanded="false" aria-labelledby="__nav_6_1_2_label" class="md-nav" data-md-level="3">
+<label class="md-nav__title" for="__nav_6_1_2">
+<span class="md-nav__icon md-icon"></span>
+            Dashboard
+          </label>
+<ul class="md-nav__list" data-md-scrollfix="">
+<li class="md-nav__item">
+<a class="md-nav__link" href="../dashboard_backend_api/">
+<span class="md-ellipsis">
+    API Reference
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../dashboard_pages_and_features/">
+<span class="md-ellipsis">
+    Pages &amp; Features
+  </span>
+</a>
+</li>
+</ul>
+</nav>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../backend_integration_snippets/">
+<span class="md-ellipsis">
+    Integration Snippets
+  </span>
+</a>
+</li>
+</ul>
+</nav>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../calibration-overview/">
+<span class="md-ellipsis">
+    Calibration Overview
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../cli/">
+<span class="md-ellipsis">
+    CLI
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../control-panel-cheatsheet/">
+<span class="md-ellipsis">
+    Control Panel Cheatsheet
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../database_schema/">
+<span class="md-ellipsis">
+    Database Schema
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../env/">
+<span class="md-ellipsis">
+    Environment Variables
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../CRITICAL_PYTHON_ENVIRONMENT/">
+<span class="md-ellipsis">
+    Critical Python Environment
+  </span>
+</a>
+</li>
+<li class="md-nav__item md-nav__item--nested">
+<input class="md-nav__toggle md-toggle" id="__nav_6_8" type="checkbox"/>
+<label class="md-nav__link" for="__nav_6_8" id="__nav_6_8_label" tabindex="0">
+<span class="md-ellipsis">
+    Optimizations
+  </span>
+<span class="md-nav__icon md-icon"></span>
+</label>
+<nav aria-expanded="false" aria-labelledby="__nav_6_8_label" class="md-nav" data-md-level="2">
+<label class="md-nav__title" for="__nav_6_8">
+<span class="md-nav__icon md-icon"></span>
+            Optimizations
+          </label>
+<ul class="md-nav__list" data-md-scrollfix="">
+<li class="md-nav__item">
+<a class="md-nav__link" href="../optimizations/OPTIMIZATION_API/">
+<span class="md-ellipsis">
+    API
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../optimizations/PROFILING_GUIDE/">
+<span class="md-ellipsis">
+    Profiling Guide
+  </span>
+</a>
+</li>
+</ul>
+</nav>
+</li>
+</ul>
+</nav>
+</li>
+<li class="md-nav__item md-nav__item--section md-nav__item--nested">
+<input class="md-nav__toggle md-toggle" id="__nav_7" type="checkbox"/>
+<label class="md-nav__link" for="__nav_7" id="__nav_7_label" tabindex="">
+<span class="md-ellipsis">
+    Operations
+  </span>
+<span class="md-nav__icon md-icon"></span>
+</label>
+<nav aria-expanded="false" aria-labelledby="__nav_7_label" class="md-nav" data-md-level="1">
+<label class="md-nav__title" for="__nav_7">
+<span class="md-nav__icon md-icon"></span>
+            Operations
+          </label>
+<ul class="md-nav__list" data-md-scrollfix="">
+<li class="md-nav__item md-nav__item--nested">
+<input class="md-nav__toggle md-toggle" id="__nav_7_1" type="checkbox"/>
+<label class="md-nav__link" for="__nav_7_1" id="__nav_7_1_label" tabindex="0">
+<span class="md-ellipsis">
+    Deployment
+  </span>
+<span class="md-nav__icon md-icon"></span>
+</label>
+<nav aria-expanded="false" aria-labelledby="__nav_7_1_label" class="md-nav" data-md-level="2">
+<label class="md-nav__title" for="__nav_7_1">
+<span class="md-nav__icon md-icon"></span>
+            Deployment
+          </label>
+<ul class="md-nav__list" data-md-scrollfix="">
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../operations/deploy-docker/">
+<span class="md-ellipsis">
+    Docker
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../operations/deploy-systemd/">
+<span class="md-ellipsis">
+    systemd
+  </span>
+</a>
+</li>
+</ul>
+</nav>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../operations/port-management/">
+<span class="md-ellipsis">
+    Port Management
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../operations/refant_quick_reference/">
+<span class="md-ellipsis">
+    Refant Quick Reference
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../operations/service_restart_fix/">
+<span class="md-ellipsis">
+    Service Restart Fix
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../operations/systemd-migration/">
+<span class="md-ellipsis">
+    Systemd Migration
+  </span>
+</a>
+</li>
+</ul>
+</nav>
+</li>
+<li class="md-nav__item md-nav__item--section md-nav__item--nested">
+<input class="md-nav__toggle md-toggle" id="__nav_8" type="checkbox"/>
+<div class="md-nav__link md-nav__container">
+<a class="md-nav__link" href="../../contributing/">
+<span class="md-ellipsis">
+    Contributing
+  </span>
+</a>
+<label class="md-nav__link" for="__nav_8" id="__nav_8_label" tabindex="">
+<span class="md-nav__icon md-icon"></span>
+</label>
+</div>
+<nav aria-expanded="false" aria-labelledby="__nav_8_label" class="md-nav" data-md-level="1">
+<label class="md-nav__title" for="__nav_8">
+<span class="md-nav__icon md-icon"></span>
+            Contributing
+          </label>
+<ul class="md-nav__list" data-md-scrollfix="">
+<li class="md-nav__item md-nav__item--nested">
+<input class="md-nav__toggle md-toggle" id="__nav_8_2" type="checkbox"/>
+<label class="md-nav__link" for="__nav_8_2" id="__nav_8_2_label" tabindex="0">
+<span class="md-ellipsis">
+    Archive
+  </span>
+<span class="md-nav__icon md-icon"></span>
+</label>
+<nav aria-expanded="false" aria-labelledby="__nav_8_2_label" class="md-nav" data-md-level="2">
+<label class="md-nav__title" for="__nav_8_2">
+<span class="md-nav__icon md-icon"></span>
+            Archive
+          </label>
+<ul class="md-nav__list" data-md-scrollfix="">
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../contributing/archive/CONTRIBUTING_TODO/">
+<span class="md-ellipsis">
+    Contributing to TODO
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../contributing/archive/rules/">
+<span class="md-ellipsis">
+    Rules
+  </span>
+</a>
+</li>
+</ul>
+</nav>
+</li>
+</ul>
+</nav>
+</li>
+</ul>
+</nav>
+</div>
+</div>
+</div>
+<div class="md-sidebar md-sidebar--secondary" data-md-component="sidebar" data-md-type="toc">
+<div class="md-sidebar__scrollwrap">
+<div class="md-sidebar__inner">
+<nav aria-label="Table of contents" class="md-nav md-nav--secondary">
+<label class="md-nav__title" for="__toc">
+<span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+<ul class="md-nav__list" data-md-component="toc" data-md-scrollfix="">
+<li class="md-nav__item">
+<a class="md-nav__link" href="#date-2025-11-10">
+<span class="md-ellipsis">
+      Date: 2025-11-10
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#overview">
+<span class="md-ellipsis">
+      Overview
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#summary">
+<span class="md-ellipsis">
+      Summary
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#1-vast-post-processing-crossmatchpy">
+<span class="md-ellipsis">
+      1. VAST Post-Processing: crossmatch.py
+    </span>
+</a>
+<nav aria-label="1. VAST Post-Processing: crossmatch.py" class="md-nav">
+<ul class="md-nav__list">
+<li class="md-nav__item">
+<a class="md-nav__link" href="#key-functions">
+<span class="md-ellipsis">
+      Key Functions
+    </span>
+</a>
+<nav aria-label="Key Functions" class="md-nav">
+<ul class="md-nav__list">
+<li class="md-nav__item">
+<a class="md-nav__link" href="#join_match_coordinates_skycoords1-coords2-seplimit">
+<span class="md-ellipsis">
+      join_match_coordinates_sky(coords1, coords2, seplimit)
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#crossmatch_qtablescatalog-catalog_reference-image_path-radius">
+<span class="md-ellipsis">
+      crossmatch_qtables(catalog, catalog_reference, image_path, radius)
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#calculate_positional_offsetsxmatch_qt">
+<span class="md-ellipsis">
+      calculate_positional_offsets(xmatch_qt)
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#calculate_flux_offsets_huberxmatch_qt">
+<span class="md-ellipsis">
+      calculate_flux_offsets_Huber(xmatch_qt)
+    </span>
+</a>
+</li>
+</ul>
+</nav>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#integration-points">
+<span class="md-ellipsis">
+      Integration Points
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#strengths">
+<span class="md-ellipsis">
+      Strengths
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#potential-adoption">
+<span class="md-ellipsis">
+      Potential Adoption
+    </span>
+</a>
+</li>
+</ul>
+</nav>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#2-vast-tools-cross-matching-examples">
+<span class="md-ellipsis">
+      2. VAST Tools: Cross-Matching Examples
+    </span>
+</a>
+<nav aria-label="2. VAST Tools: Cross-Matching Examples" class="md-nav">
+<ul class="md-nav__list">
+<li class="md-nav__item">
+<a class="md-nav__link" href="#key-files">
+<span class="md-ellipsis">
+      Key Files
+    </span>
+</a>
+<nav aria-label="Key Files" class="md-nav">
+<ul class="md-nav__list">
+<li class="md-nav__item">
+<a class="md-nav__link" href="#notebook-examples-pycatalogue-crossmatching-examplepy">
+<span class="md-ellipsis">
+      notebook-examples-py/catalogue-crossmatching-example.py
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#vasttoolssourcepy">
+<span class="md-ellipsis">
+      vasttools/source.py
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#vasttoolsquerypy">
+<span class="md-ellipsis">
+      vasttools/query.py
+    </span>
+</a>
+</li>
+</ul>
+</nav>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#strengths_1">
+<span class="md-ellipsis">
+      Strengths
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#potential-adoption_1">
+<span class="md-ellipsis">
+      Potential Adoption
+    </span>
+</a>
+</li>
+</ul>
+</nav>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#3-askap-continuum-validation-catalog-class">
+<span class="md-ellipsis">
+      3. ASKAP Continuum Validation: Catalog Class
+    </span>
+</a>
+<nav aria-label="3. ASKAP Continuum Validation: Catalog Class" class="md-nav">
+<ul class="md-nav__list">
+<li class="md-nav__item">
+<a class="md-nav__link" href="#key-function">
+<span class="md-ellipsis">
+      Key Function
+    </span>
+</a>
+<nav aria-label="Key Function" class="md-nav">
+<ul class="md-nav__list">
+<li class="md-nav__item">
+<a class="md-nav__link" href="#cross_matchcat-radiuslargest-join_type1-redofalse-writetrue">
+<span class="md-ellipsis">
+      cross_match(cat, radius='largest', join_type='1', redo=False, write=True)
+    </span>
+</a>
+</li>
+</ul>
+</nav>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#integration-points_1">
+<span class="md-ellipsis">
+      Integration Points
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#strengths_2">
+<span class="md-ellipsis">
+      Strengths
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#limitations">
+<span class="md-ellipsis">
+      Limitations
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#potential-adoption_2">
+<span class="md-ellipsis">
+      Potential Adoption
+    </span>
+</a>
+</li>
+</ul>
+</nav>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#4-vast-fast-detection-candidate-cross-matching">
+<span class="md-ellipsis">
+      4. VAST Fast Detection: Candidate Cross-Matching
+    </span>
+</a>
+<nav aria-label="4. VAST Fast Detection: Candidate Cross-Matching" class="md-nav">
+<ul class="md-nav__list">
+<li class="md-nav__item">
+<a class="md-nav__link" href="#key-function_1">
+<span class="md-ellipsis">
+      Key Function
+    </span>
+</a>
+<nav aria-label="Key Function" class="md-nav">
+<ul class="md-nav__list">
+<li class="md-nav__item">
+<a class="md-nav__link" href="#crossmatch_onebeamargs-cands-beamid-catname-catsrc-base_url-dyspec_url">
+<span class="md-ellipsis">
+      crossmatch_onebeam(args, cands, beamid, catname, catsrc, base_url, dyspec_url)
+    </span>
+</a>
+</li>
+</ul>
+</nav>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#integration-points_2">
+<span class="md-ellipsis">
+      Integration Points
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#strengths_3">
+<span class="md-ellipsis">
+      Strengths
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#limitations_1">
+<span class="md-ellipsis">
+      Limitations
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#potential-adoption_3">
+<span class="md-ellipsis">
+      Potential Adoption
+    </span>
+</a>
+</li>
+</ul>
+</nav>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#5-vast-pipeline-association-utilities">
+<span class="md-ellipsis">
+      5. VAST Pipeline: Association Utilities
+    </span>
+</a>
+<nav aria-label="5. VAST Pipeline: Association Utilities" class="md-nav">
+<ul class="md-nav__list">
+<li class="md-nav__item">
+<a class="md-nav__link" href="#key-files_1">
+<span class="md-ellipsis">
+      Key Files
+    </span>
+</a>
+<nav aria-label="Key Files" class="md-nav">
+<ul class="md-nav__list">
+<li class="md-nav__item">
+<a class="md-nav__link" href="#associationpy">
+<span class="md-ellipsis">
+      association.py
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#utilspy">
+<span class="md-ellipsis">
+      utils.py
+    </span>
+</a>
+</li>
+</ul>
+</nav>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#potential-adoption_4">
+<span class="md-ellipsis">
+      Potential Adoption
+    </span>
+</a>
+</li>
+</ul>
+</nav>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#comparison-matrix">
+<span class="md-ellipsis">
+      Comparison Matrix
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#recommendations-for-dsa-110">
+<span class="md-ellipsis">
+      Recommendations for DSA-110
+    </span>
+</a>
+<nav aria-label="Recommendations for DSA-110" class="md-nav">
+<ul class="md-nav__list">
+<li class="md-nav__item">
+<a class="md-nav__link" href="#primary-recommendation-adopt-vast-post-processing-pattern">
+<span class="md-ellipsis">
+      Primary Recommendation: Adopt VAST Post-Processing Pattern
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#implementation-strategy">
+<span class="md-ellipsis">
+      Implementation Strategy
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#secondary-reference-vast-tools-examples">
+<span class="md-ellipsis">
+      Secondary Reference: VAST Tools Examples
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#additional-considerations">
+<span class="md-ellipsis">
+      Additional Considerations
+    </span>
+</a>
+</li>
+</ul>
+</nav>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#code-patterns-to-adopt">
+<span class="md-ellipsis">
+      Code Patterns to Adopt
+    </span>
+</a>
+<nav aria-label="Code Patterns to Adopt" class="md-nav">
+<ul class="md-nav__list">
+<li class="md-nav__item">
+<a class="md-nav__link" href="#pattern-1-qtable-based-cross-matching-vast-post-processing">
+<span class="md-ellipsis">
+      Pattern 1: QTable-Based Cross-Matching (VAST Post-Processing)
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#pattern-2-simple-skycoord-matching-vast-tools">
+<span class="md-ellipsis">
+      Pattern 2: Simple SkyCoord Matching (VAST Tools)
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#pattern-3-separation-based-matching-vast-fast-detection">
+<span class="md-ellipsis">
+      Pattern 3: Separation-Based Matching (VAST Fast Detection)
+    </span>
+</a>
+</li>
+</ul>
+</nav>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#next-steps">
+<span class="md-ellipsis">
+      Next Steps
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#related-documentation">
+<span class="md-ellipsis">
+      Related Documentation
+    </span>
+</a>
+</li>
+</ul>
+</nav>
+</div>
+</div>
+</div>
+<div class="md-content" data-md-component="content">
+<article class="md-content__inner md-typeset">
+<h1 id="external-cross-matching-tools-survey">External Cross-Matching Tools Survey<a class="headerlink" href="#external-cross-matching-tools-survey" title="Permanent link">¶</a></h1>
+<h2 id="date-2025-11-10">Date: 2025-11-10<a class="headerlink" href="#date-2025-11-10" title="Permanent link">¶</a></h2>
+<h2 id="overview">Overview<a class="headerlink" href="#overview" title="Permanent link">¶</a></h2>
+<p>This document catalogs catalog cross-matching tools found in external codebases, reference repositories, and software suites that may be relevant to the DSA-110 pipeline. These tools were discovered through a thorough search of <code>/data/dsa110-contimg/archive/references/</code> and <code>~/proj/</code>.</p>
+<h2 id="summary">Summary<a class="headerlink" href="#summary" title="Permanent link">¶</a></h2>
+<p><strong>Total Cross-Matching Implementations Found:</strong> 5 major implementations</p>
+<ol>
+<li><strong>VAST Post-Processing</strong> (<code>vast-post-processing/crossmatch.py</code>) - Dedicated cross-matching module</li>
+<li><strong>VAST Tools</strong> (<code>vast-tools</code>) - Cross-matching via <code>match_to_catalog_sky</code> in examples</li>
+<li><strong>ASKAP Continuum Validation</strong> (<code>ASKAP-continuum-validation/catalogue.py</code>) - Catalog class with <code>cross_match()</code> method</li>
+<li><strong>VAST Fast Detection</strong> (<code>vast-fastdetection</code>) - Cross-matching for candidate prioritization</li>
+<li><strong>VAST Pipeline</strong> (<code>vast-pipeline</code>) - Association and cross-matching utilities</li>
+</ol>
+<hr/>
+<h2 id="1-vast-post-processing-crossmatchpy">1. VAST Post-Processing: <code>crossmatch.py</code><a class="headerlink" href="#1-vast-post-processing-crossmatchpy" title="Permanent link">¶</a></h2>
+<p><strong>Location:</strong> <code>/data/dsa110-contimg/archive/references/VAST/vast-post-processing/vast_post_processing/crossmatch.py</code></p>
+<p><strong>Type:</strong> Dedicated cross-matching module</p>
+<h3 id="key-functions">Key Functions<a class="headerlink" href="#key-functions" title="Permanent link">¶</a></h3>
+<h4 id="join_match_coordinates_skycoords1-coords2-seplimit"><code>join_match_coordinates_sky(coords1, coords2, seplimit)</code><a class="headerlink" href="#join_match_coordinates_skycoords1-coords2-seplimit" title="Permanent link">¶</a></h4>
+<ul>
+<li><strong>Purpose:</strong> Helper function for cross-matching using <code>astropy.coordinates.match_coordinates_sky()</code></li>
+<li><strong>Input:</strong> Two <code>SkyCoord</code> objects and separation limit</li>
+<li><strong>Output:</strong> Indices, matched indices, separations, 3D distances</li>
+<li><strong>Features:</strong></li>
+<li>Filters matches within separation limit</li>
+<li>Returns mask of valid matches</li>
+</ul>
+<h4 id="crossmatch_qtablescatalog-catalog_reference-image_path-radius"><code>crossmatch_qtables(catalog, catalog_reference, image_path, radius)</code><a class="headerlink" href="#crossmatch_qtablescatalog-catalog_reference-image_path-radius" title="Permanent link">¶</a></h4>
+<ul>
+<li><strong>Purpose:</strong> Main cross-matching function for QTable catalogs</li>
+<li><strong>Input:</strong> Two <code>Catalog</code> objects (QTable-based), image path, matching radius</li>
+<li><strong>Output:</strong> QTable with cross-matched sources</li>
+<li><strong>Features:</strong></li>
+<li>Uses <code>astropy.table.join()</code> with <code>join_skycoord()</code> function</li>
+<li>Computes separations (<code>dra</code>, <code>ddec</code>)</li>
+<li>Calculates distance to field center</li>
+<li>Computes flux ratio (<code>flux_peak_ratio</code>)</li>
+<li>Handles coordinate frame transformations (FK5)</li>
+<li>Removes trailing underscores from column names</li>
+<li>Logs statistics (number of matches, unique reference sources)</li>
+</ul>
+<p><strong>Code Pattern:</strong>
+<div class="highlight"><pre><span></span><code><span class="kn">from</span><span class="w"> </span><span class="nn">astropy.coordinates</span><span class="w"> </span><span class="kn">import</span> <span class="n">SkyCoord</span><span class="p">,</span> <span class="n">Angle</span><span class="p">,</span> <span class="n">match_coordinates_sky</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">astropy.table</span><span class="w"> </span><span class="kn">import</span> <span class="n">QTable</span><span class="p">,</span> <span class="n">join</span><span class="p">,</span> <span class="n">join_skycoord</span>
+
+<span class="n">xmatch</span> <span class="o">=</span> <span class="n">join</span><span class="p">(</span>
+    <span class="n">catalog</span><span class="o">.</span><span class="n">table</span><span class="p">,</span>
+    <span class="n">catalog_reference</span><span class="o">.</span><span class="n">table</span><span class="p">,</span>
+    <span class="n">keys</span><span class="o">=</span><span class="s2">"coord"</span><span class="p">,</span>
+    <span class="n">table_names</span><span class="o">=</span><span class="p">[</span><span class="s2">""</span><span class="p">,</span> <span class="s2">"reference"</span><span class="p">],</span>
+    <span class="n">join_funcs</span><span class="o">=</span><span class="p">{</span>
+        <span class="s2">"coord"</span><span class="p">:</span> <span class="n">join_skycoord</span><span class="p">(</span><span class="n">radius</span><span class="p">,</span> <span class="n">distance_func</span><span class="o">=</span><span class="n">join_match_coordinates_sky</span><span class="p">)</span>
+    <span class="p">}</span>
+<span class="p">)</span>
+<span class="n">xmatch</span><span class="p">[</span><span class="s2">"separation"</span><span class="p">]</span> <span class="o">=</span> <span class="n">xmatch</span><span class="p">[</span><span class="s2">"coord"</span><span class="p">]</span><span class="o">.</span><span class="n">separation</span><span class="p">(</span><span class="n">xmatch</span><span class="p">[</span><span class="s2">"coord_reference"</span><span class="p">])</span>
+<span class="n">xmatch</span><span class="p">[</span><span class="s2">"dra"</span><span class="p">],</span> <span class="n">xmatch</span><span class="p">[</span><span class="s2">"ddec"</span><span class="p">]</span> <span class="o">=</span> <span class="n">xmatch</span><span class="p">[</span><span class="s2">"coord"</span><span class="p">]</span><span class="o">.</span><span class="n">spherical_offsets_to</span><span class="p">(</span>
+    <span class="n">xmatch</span><span class="p">[</span><span class="s2">"coord_reference"</span><span class="p">]</span>
+<span class="p">)</span>
+</code></pre></div></p>
+<h4 id="calculate_positional_offsetsxmatch_qt"><code>calculate_positional_offsets(xmatch_qt)</code><a class="headerlink" href="#calculate_positional_offsetsxmatch_qt" title="Permanent link">¶</a></h4>
+<ul>
+<li><strong>Purpose:</strong> Calculate median positional offsets and MAD</li>
+<li><strong>Input:</strong> Cross-matched QTable</li>
+<li><strong>Output:</strong> Median RA/Dec offsets, MAD of RA/Dec offsets</li>
+<li><strong>Features:</strong></li>
+<li>Uses <code>np.median()</code> and <code>mad_std()</code> from <code>astropy.stats</code></li>
+</ul>
+<h4 id="calculate_flux_offsets_huberxmatch_qt"><code>calculate_flux_offsets_Huber(xmatch_qt)</code><a class="headerlink" href="#calculate_flux_offsets_huberxmatch_qt" title="Permanent link">¶</a></h4>
+<ul>
+<li><strong>Purpose:</strong> Fit flux relationship using HuberRegressor (robust to outliers)</li>
+<li><strong>Input:</strong> Cross-matched QTable with flux columns</li>
+<li><strong>Output:</strong> Flux correction factor (gradient), gradient error</li>
+<li><strong>Features:</strong></li>
+<li>Uses <code>statsmodels.api.RLM</code> with <code>HuberT</code> norm</li>
+<li>Robust against outliers and heteroscedasticity</li>
+<li>Fixed intercept at zero</li>
+</ul>
+<h3 id="integration-points">Integration Points<a class="headerlink" href="#integration-points" title="Permanent link">¶</a></h3>
+<ul>
+<li>Used in <code>corrections.py</code> for astrometry and flux scale corrections</li>
+<li>Works with <code>Catalog</code> class from <code>catalogs.py</code></li>
+<li>Supports QTable-based catalogs with <code>SkyCoord</code> columns</li>
+</ul>
+<h3 id="strengths">Strengths<a class="headerlink" href="#strengths" title="Permanent link">¶</a></h3>
+<ul>
+<li>✅ Dedicated, reusable cross-matching module</li>
+<li>✅ Handles coordinate frame transformations</li>
+<li>✅ Computes comprehensive metrics (separations, offsets, flux ratios)</li>
+<li>✅ Robust flux fitting with HuberRegressor</li>
+<li>✅ Well-documented with type hints</li>
+</ul>
+<h3 id="potential-adoption">Potential Adoption<a class="headerlink" href="#potential-adoption" title="Permanent link">¶</a></h3>
+<p><strong>High Priority</strong> - This is the most complete standalone cross-matching implementation found. Could serve as a template for DSA-110's cross-matching utility.</p>
+<hr/>
+<h2 id="2-vast-tools-cross-matching-examples">2. VAST Tools: Cross-Matching Examples<a class="headerlink" href="#2-vast-tools-cross-matching-examples" title="Permanent link">¶</a></h2>
+<p><strong>Location:</strong> <code>/data/dsa110-contimg/archive/references/VAST/vast-tools/</code></p>
+<p><strong>Type:</strong> Cross-matching via <code>match_to_catalog_sky</code> in examples and source class</p>
+<h3 id="key-files">Key Files<a class="headerlink" href="#key-files" title="Permanent link">¶</a></h3>
+<h4 id="notebook-examples-pycatalogue-crossmatching-examplepy"><code>notebook-examples-py/catalogue-crossmatching-example.py</code><a class="headerlink" href="#notebook-examples-pycatalogue-crossmatching-examplepy" title="Permanent link">¶</a></h4>
+<ul>
+<li><strong>Purpose:</strong> Example notebook demonstrating cross-matching workflow</li>
+<li><strong>Features:</strong></li>
+<li>Cross-matches external catalogs (e.g., ATNF Pulsar Catalog) with VAST Pipeline sources</li>
+<li>Uses <code>SkyCoord.match_to_catalog_sky()</code> for matching</li>
+<li>Demonstrates filtering and merging results</li>
+<li>Shows integration with VAST Pipeline <code>Pipeline</code> class</li>
+</ul>
+<p><strong>Code Pattern:</strong>
+<div class="highlight"><pre><span></span><code><span class="kn">from</span><span class="w"> </span><span class="nn">astropy.coordinates</span><span class="w"> </span><span class="kn">import</span> <span class="n">SkyCoord</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">astropy</span><span class="w"> </span><span class="kn">import</span> <span class="n">units</span> <span class="k">as</span> <span class="n">u</span>
+
+<span class="c1"># Create SkyCoord objects</span>
+<span class="n">psrcat_skycoord</span> <span class="o">=</span> <span class="n">SkyCoord</span><span class="p">(</span><span class="n">ra</span><span class="p">,</span> <span class="n">dec</span><span class="p">,</span> <span class="n">unit</span><span class="o">=</span><span class="n">u</span><span class="o">.</span><span class="n">deg</span><span class="p">)</span>
+<span class="n">vast_sources_skycoord</span> <span class="o">=</span> <span class="n">pipe_run</span><span class="o">.</span><span class="n">sources_skycoord</span>
+
+<span class="c1"># Perform cross-match</span>
+<span class="n">idx</span><span class="p">,</span> <span class="n">d2d</span><span class="p">,</span> <span class="n">d3d</span> <span class="o">=</span> <span class="n">psrcat_skycoord</span><span class="o">.</span><span class="n">match_to_catalog_sky</span><span class="p">(</span><span class="n">vast_sources_skycoord</span><span class="p">)</span>
+<span class="n">radius_limit</span> <span class="o">=</span> <span class="mi">15</span> <span class="o">*</span> <span class="n">u</span><span class="o">.</span><span class="n">arcsec</span>
+<span class="n">matches</span> <span class="o">=</span> <span class="n">d2d</span> <span class="o">&lt;=</span> <span class="n">radius_limit</span>
+
+<span class="c1"># Merge results</span>
+<span class="n">psrcat_crossmatch_result</span> <span class="o">=</span> <span class="n">psrcat_vast_sources_pd</span><span class="o">.</span><span class="n">loc</span><span class="p">[</span><span class="n">matches</span><span class="p">]</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span>
+<span class="n">psrcat_crossmatch_result</span><span class="p">[</span><span class="s1">'vast_xmatch_id'</span><span class="p">]</span> <span class="o">=</span> <span class="n">pipe_run</span><span class="o">.</span><span class="n">sources</span><span class="o">.</span><span class="n">iloc</span><span class="p">[</span><span class="n">idx</span><span class="p">[</span><span class="n">matches</span><span class="p">]]</span><span class="o">.</span><span class="n">index</span><span class="o">.</span><span class="n">values</span>
+<span class="n">psrcat_crossmatch_result</span><span class="p">[</span><span class="s1">'vast_xmatch_d2d_asec'</span><span class="p">]</span> <span class="o">=</span> <span class="n">d2d</span><span class="p">[</span><span class="n">matches</span><span class="p">]</span><span class="o">.</span><span class="n">arcsec</span>
+</code></pre></div></p>
+<h4 id="vasttoolssourcepy"><code>vasttools/source.py</code><a class="headerlink" href="#vasttoolssourcepy" title="Permanent link">¶</a></h4>
+<ul>
+<li><strong>Purpose:</strong> Source class with <code>crossmatch_radius</code> attribute</li>
+<li><strong>Features:</strong></li>
+<li>Stores cross-match radius used to find measurements</li>
+<li>Used internally for source creation</li>
+</ul>
+<h4 id="vasttoolsquerypy"><code>vasttools/query.py</code><a class="headerlink" href="#vasttoolsquerypy" title="Permanent link">¶</a></h4>
+<ul>
+<li><strong>Purpose:</strong> Query class with <code>crossmatch_radius</code> parameter</li>
+<li><strong>Features:</strong></li>
+<li>Configurable cross-match radius (default: 5.0 arcsec)</li>
+<li>Used for finding sources around coordinates</li>
+</ul>
+<h3 id="strengths_1">Strengths<a class="headerlink" href="#strengths_1" title="Permanent link">¶</a></h3>
+<ul>
+<li>✅ Clear examples and documentation</li>
+<li>✅ Integration with VAST Pipeline</li>
+<li>✅ Demonstrates filtering and merging workflows</li>
+</ul>
+<h3 id="potential-adoption_1">Potential Adoption<a class="headerlink" href="#potential-adoption_1" title="Permanent link">¶</a></h3>
+<p><strong>Medium Priority</strong> - Good reference for cross-matching workflows, but less complete than <code>vast-post-processing/crossmatch.py</code>.</p>
+<hr/>
+<h2 id="3-askap-continuum-validation-catalog-class">3. ASKAP Continuum Validation: Catalog Class<a class="headerlink" href="#3-askap-continuum-validation-catalog-class" title="Permanent link">¶</a></h2>
+<p><strong>Location:</strong> <code>/data/dsa110-contimg/archive/references/ASKAP-continuum-validation/catalogue.py</code></p>
+<p><strong>Type:</strong> Object-oriented catalog class with <code>cross_match()</code> method</p>
+<h3 id="key-function">Key Function<a class="headerlink" href="#key-function" title="Permanent link">¶</a></h3>
+<h4 id="cross_matchcat-radiuslargest-join_type1-redofalse-writetrue"><code>cross_match(cat, radius='largest', join_type='1', redo=False, write=True)</code><a class="headerlink" href="#cross_matchcat-radiuslargest-join_type1-redofalse-writetrue" title="Permanent link">¶</a></h4>
+<ul>
+<li><strong>Purpose:</strong> Perform nearest-neighbor cross-match between two catalog objects</li>
+<li><strong>Input:</strong> Another catalog object, matching radius, join type</li>
+<li><strong>Output:</strong> Updates catalog object with matched sources</li>
+<li><strong>Features:</strong></li>
+<li>Supports configurable radius (can use 'largest' to use larger of two default radii)</li>
+<li>Join types: '1' (keep all rows from this instance) or '1and2' (keep only matched rows)</li>
+<li>Caching: Skips re-matching if cross-matched file exists (unless <code>redo=True</code>)</li>
+<li>File I/O: Writes cross-matched catalog to CSV file</li>
+<li>Prevents duplicate cross-matching (checks <code>cat_list</code>)</li>
+<li>Handles empty catalogs gracefully</li>
+</ul>
+<p><strong>Code Pattern:</strong>
+<div class="highlight"><pre><span></span><code><span class="k">class</span><span class="w"> </span><span class="nc">Catalogue</span><span class="p">:</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">cross_match</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">cat</span><span class="p">,</span> <span class="n">radius</span><span class="o">=</span><span class="s1">'largest'</span><span class="p">,</span> <span class="n">join_type</span><span class="o">=</span><span class="s1">'1'</span><span class="p">,</span> <span class="n">redo</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">write</span><span class="o">=</span><span class="kc">True</span><span class="p">):</span>
+        <span class="c1"># Check if already cross-matched</span>
+        <span class="k">if</span> <span class="n">cat</span><span class="o">.</span><span class="n">name</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">cat_list</span><span class="p">:</span>
+            <span class="n">warnings</span><span class="o">.</span><span class="n">warn</span><span class="p">(</span><span class="s2">"Already cross-matched"</span><span class="p">)</span>
+            <span class="k">return</span>
+
+        <span class="c1"># Check for existing file</span>
+        <span class="n">filename</span> <span class="o">=</span> <span class="s1">'</span><span class="si">{0}</span><span class="s1">_</span><span class="si">{1}</span><span class="s1">.csv'</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">basename</span><span class="p">,</span> <span class="n">cat</span><span class="o">.</span><span class="n">name</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">redo</span> <span class="ow">or</span> <span class="ow">not</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">exists</span><span class="p">(</span><span class="n">filename</span><span class="p">):</span>
+            <span class="c1"># Perform cross-match</span>
+            <span class="c1"># Uses SkyCoord for matching</span>
+            <span class="c1"># Updates self.df with matched sources</span>
+            <span class="c1"># Writes to file if write=True</span>
+</code></pre></div></p>
+<h3 id="integration-points_1">Integration Points<a class="headerlink" href="#integration-points_1" title="Permanent link">¶</a></h3>
+<ul>
+<li>Part of ASKAP continuum validation workflow</li>
+<li>Used with <code>report.py</code> for generating cross-match tables in HTML reports</li>
+<li>Works with <code>radio_image.py</code> for image validation</li>
+</ul>
+<h3 id="strengths_2">Strengths<a class="headerlink" href="#strengths_2" title="Permanent link">¶</a></h3>
+<ul>
+<li>✅ Object-oriented design</li>
+<li>✅ Caching mechanism (avoids re-matching)</li>
+<li>✅ File I/O integration</li>
+<li>✅ Flexible join types</li>
+</ul>
+<h3 id="limitations">Limitations<a class="headerlink" href="#limitations" title="Permanent link">¶</a></h3>
+<ul>
+<li>❌ Less detailed than VAST Post-Processing implementation</li>
+<li>❌ No flux comparison or offset calculations</li>
+<li>❌ Limited documentation</li>
+</ul>
+<h3 id="potential-adoption_2">Potential Adoption<a class="headerlink" href="#potential-adoption_2" title="Permanent link">¶</a></h3>
+<p><strong>Low-Medium Priority</strong> - Good reference for object-oriented design and caching, but less feature-complete than VAST Post-Processing.</p>
+<hr/>
+<h2 id="4-vast-fast-detection-candidate-cross-matching">4. VAST Fast Detection: Candidate Cross-Matching<a class="headerlink" href="#4-vast-fast-detection-candidate-cross-matching" title="Permanent link">¶</a></h2>
+<p><strong>Location:</strong> <code>/data/dsa110-contimg/archive/references/VAST/vast-fastdetection/src/vaster/summarise_candidates.py</code></p>
+<p><strong>Type:</strong> Cross-matching for transient candidate prioritization</p>
+<h3 id="key-function_1">Key Function<a class="headerlink" href="#key-function_1" title="Permanent link">¶</a></h3>
+<h4 id="crossmatch_onebeamargs-cands-beamid-catname-catsrc-base_url-dyspec_url"><code>crossmatch_onebeam(args, cands, beamid, catname, catsrc, base_url, dyspec_url)</code><a class="headerlink" href="#crossmatch_onebeamargs-cands-beamid-catname-catsrc-base_url-dyspec_url" title="Permanent link">¶</a></h4>
+<ul>
+<li><strong>Purpose:</strong> Cross-match transient candidates with known sources (e.g., pulsars) for prioritization</li>
+<li><strong>Input:</strong> Candidate sources, catalog sources, cross-match radius</li>
+<li><strong>Output:</strong> Updated candidates table with cross-match information</li>
+<li><strong>Features:</strong></li>
+<li>Uses <code>SkyCoord.separation()</code> for matching</li>
+<li>Adds columns: <code>KNOWN_name</code>, <code>KNOWN_sep</code> (separation in arcsec)</li>
+<li>Used for candidate prioritization (high/mid/low priority)</li>
+<li>Integrates with email reporting and visualization</li>
+</ul>
+<p><strong>Code Pattern:</strong>
+<div class="highlight"><pre><span></span><code><span class="kn">from</span><span class="w"> </span><span class="nn">astropy.coordinates</span><span class="w"> </span><span class="kn">import</span> <span class="n">SkyCoord</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">astropy</span><span class="w"> </span><span class="kn">import</span> <span class="n">units</span> <span class="k">as</span> <span class="n">u</span>
+
+<span class="c1"># Create SkyCoord for candidate</span>
+<span class="n">candsrc</span> <span class="o">=</span> <span class="n">SkyCoord</span><span class="p">(</span><span class="n">cand</span><span class="p">[</span><span class="s1">'ra'</span><span class="p">],</span> <span class="n">cand</span><span class="p">[</span><span class="s1">'dec'</span><span class="p">],</span> <span class="n">unit</span><span class="o">=</span><span class="n">u</span><span class="o">.</span><span class="n">degree</span><span class="p">)</span>
+
+<span class="c1"># Match against catalog sources</span>
+<span class="n">ind</span> <span class="o">=</span> <span class="n">candsrc</span><span class="o">.</span><span class="n">separation</span><span class="p">(</span><span class="n">sel_catsrc</span><span class="p">)</span> <span class="o">&lt;</span> <span class="n">args</span><span class="o">.</span><span class="n">crossmatch_radius</span> <span class="o">*</span> <span class="n">u</span><span class="o">.</span><span class="n">arcsec</span>
+
+<span class="k">if</span> <span class="nb">sum</span><span class="p">(</span><span class="n">ind</span><span class="p">)</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+    <span class="n">match</span> <span class="o">=</span> <span class="s1">''</span>
+    <span class="n">sep</span> <span class="o">=</span> <span class="s1">''</span>
+<span class="k">else</span><span class="p">:</span>
+    <span class="n">match</span> <span class="o">=</span> <span class="n">sel_catname</span><span class="p">[</span><span class="n">ind</span><span class="p">][</span><span class="mi">0</span><span class="p">]</span>
+    <span class="n">sep</span> <span class="o">=</span> <span class="n">candsrc</span><span class="o">.</span><span class="n">separation</span><span class="p">(</span><span class="n">sel_catsrc</span><span class="p">)[</span><span class="n">ind</span><span class="p">]</span><span class="o">.</span><span class="n">arcsec</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+</code></pre></div></p>
+<h3 id="integration-points_2">Integration Points<a class="headerlink" href="#integration-points_2" title="Permanent link">¶</a></h3>
+<ul>
+<li>Used in transient detection pipeline</li>
+<li>Integrates with candidate prioritization</li>
+<li>Generates email reports with cross-match information</li>
+</ul>
+<h3 id="strengths_3">Strengths<a class="headerlink" href="#strengths_3" title="Permanent link">¶</a></h3>
+<ul>
+<li>✅ Simple, focused implementation</li>
+<li>✅ Good for candidate filtering/prioritization</li>
+<li>✅ Handles multiple matches (takes first)</li>
+</ul>
+<h3 id="limitations_1">Limitations<a class="headerlink" href="#limitations_1" title="Permanent link">¶</a></h3>
+<ul>
+<li>❌ Very specific use case (transient candidates)</li>
+<li>❌ Limited to single match per candidate</li>
+<li>❌ No flux comparison</li>
+</ul>
+<h3 id="potential-adoption_3">Potential Adoption<a class="headerlink" href="#potential-adoption_3" title="Permanent link">¶</a></h3>
+<p><strong>Low Priority</strong> - Too specific to transient detection workflow, but good reference for simple separation-based matching.</p>
+<hr/>
+<h2 id="5-vast-pipeline-association-utilities">5. VAST Pipeline: Association Utilities<a class="headerlink" href="#5-vast-pipeline-association-utilities" title="Permanent link">¶</a></h2>
+<p><strong>Location:</strong> <code>/data/dsa110-contimg/archive/references/VAST/vast-pipeline/vast_pipeline/pipeline/</code></p>
+<p><strong>Type:</strong> Association and cross-matching utilities for pipeline</p>
+<h3 id="key-files_1">Key Files<a class="headerlink" href="#key-files_1" title="Permanent link">¶</a></h3>
+<h4 id="associationpy"><code>association.py</code><a class="headerlink" href="#associationpy" title="Permanent link">¶</a></h4>
+<ul>
+<li><strong>Purpose:</strong> Source association across epochs (likely uses cross-matching)</li>
+<li><strong>Note:</strong> File not fully examined, but likely contains association logic</li>
+</ul>
+<h4 id="utilspy"><code>utils.py</code><a class="headerlink" href="#utilspy" title="Permanent link">¶</a></h4>
+<ul>
+<li><strong>Purpose:</strong> Pipeline utilities (may contain cross-matching helpers)</li>
+<li><strong>Note:</strong> File not fully examined</li>
+</ul>
+<h3 id="potential-adoption_4">Potential Adoption<a class="headerlink" href="#potential-adoption_4" title="Permanent link">¶</a></h3>
+<p><strong>Low Priority</strong> - Likely too integrated with VAST Pipeline architecture to be directly adoptable.</p>
+<hr/>
+<h2 id="comparison-matrix">Comparison Matrix<a class="headerlink" href="#comparison-matrix" title="Permanent link">¶</a></h2>
+<table>
+<thead>
+<tr>
+<th>Implementation</th>
+<th>Standalone</th>
+<th>Reusable</th>
+<th>Features</th>
+<th>Documentation</th>
+<th>Adoption Priority</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>VAST Post-Processing <code>crossmatch.py</code></td>
+<td>✅ Yes</td>
+<td>✅ Yes</td>
+<td>⭐⭐⭐⭐⭐</td>
+<td>⭐⭐⭐⭐</td>
+<td><strong>HIGH</strong></td>
+</tr>
+<tr>
+<td>VAST Tools Examples</td>
+<td>⚠️ Partial</td>
+<td>⚠️ Partial</td>
+<td>⭐⭐⭐</td>
+<td>⭐⭐⭐⭐⭐</td>
+<td><strong>MEDIUM</strong></td>
+</tr>
+<tr>
+<td>ASKAP Catalog Class</td>
+<td>✅ Yes</td>
+<td>✅ Yes</td>
+<td>⭐⭐⭐</td>
+<td>⭐⭐</td>
+<td><strong>LOW-MEDIUM</strong></td>
+</tr>
+<tr>
+<td>VAST Fast Detection</td>
+<td>❌ No</td>
+<td>❌ No</td>
+<td>⭐⭐</td>
+<td>⭐⭐</td>
+<td><strong>LOW</strong></td>
+</tr>
+<tr>
+<td>VAST Pipeline Utils</td>
+<td>❌ No</td>
+<td>❌ No</td>
+<td>⭐⭐</td>
+<td>⭐⭐</td>
+<td><strong>LOW</strong></td>
+</tr>
+</tbody>
+</table>
+<p><strong>Legend:</strong>
+- ⭐⭐⭐⭐⭐ = Excellent
+- ⭐⭐⭐⭐ = Very Good
+- ⭐⭐⭐ = Good
+- ⭐⭐ = Fair
+- ⭐ = Poor</p>
+<hr/>
+<h2 id="recommendations-for-dsa-110">Recommendations for DSA-110<a class="headerlink" href="#recommendations-for-dsa-110" title="Permanent link">¶</a></h2>
+<h3 id="primary-recommendation-adopt-vast-post-processing-pattern">Primary Recommendation: Adopt VAST Post-Processing Pattern<a class="headerlink" href="#primary-recommendation-adopt-vast-post-processing-pattern" title="Permanent link">¶</a></h3>
+<p><strong>File:</strong> <code>vast-post-processing/vast_post_processing/crossmatch.py</code></p>
+<p><strong>Rationale:</strong>
+1. <strong>Most Complete:</strong> Dedicated module with comprehensive functionality
+2. <strong>Reusable:</strong> Standalone functions that can be adapted
+3. <strong>Well-Designed:</strong> Uses QTable and SkyCoord effectively
+4. <strong>Feature-Rich:</strong> Includes positional offsets, flux comparisons, robust fitting
+5. <strong>Documented:</strong> Good docstrings and type hints</p>
+<h3 id="implementation-strategy">Implementation Strategy<a class="headerlink" href="#implementation-strategy" title="Permanent link">¶</a></h3>
+<ol>
+<li><strong>Create:</strong> <code>src/dsa110_contimg/catalog/crossmatch.py</code></li>
+<li><strong>Adapt Functions:</strong></li>
+<li><code>cross_match_sources()</code> - General-purpose cross-matching (based on <code>crossmatch_qtables</code>)</li>
+<li><code>calculate_positional_offsets()</code> - Offset calculations (directly adoptable)</li>
+<li><code>calculate_flux_scale()</code> - Flux comparison (adapt <code>calculate_flux_offsets_Huber</code>)</li>
+<li><strong>Integration:</strong></li>
+<li>Replace embedded matching in <code>catalog_validation.py</code></li>
+<li>Use in <code>build_master.py</code> for multi-catalog matching</li>
+<li>Add to API endpoints for cross-matching queries</li>
+</ol>
+<h3 id="secondary-reference-vast-tools-examples">Secondary Reference: VAST Tools Examples<a class="headerlink" href="#secondary-reference-vast-tools-examples" title="Permanent link">¶</a></h3>
+<p><strong>File:</strong> <code>vast-tools/notebook-examples-py/catalogue-crossmatching-example.py</code></p>
+<p><strong>Use For:</strong>
+- Workflow examples
+- Integration patterns with pipeline data
+- Filtering and merging strategies</p>
+<h3 id="additional-considerations">Additional Considerations<a class="headerlink" href="#additional-considerations" title="Permanent link">¶</a></h3>
+<ol>
+<li><strong>ASKAP Catalog Class:</strong> Reference for object-oriented design and caching</li>
+<li><strong>VAST Fast Detection:</strong> Reference for simple separation-based matching</li>
+</ol>
+<hr/>
+<h2 id="code-patterns-to-adopt">Code Patterns to Adopt<a class="headerlink" href="#code-patterns-to-adopt" title="Permanent link">¶</a></h2>
+<h3 id="pattern-1-qtable-based-cross-matching-vast-post-processing">Pattern 1: QTable-Based Cross-Matching (VAST Post-Processing)<a class="headerlink" href="#pattern-1-qtable-based-cross-matching-vast-post-processing" title="Permanent link">¶</a></h3>
+<div class="highlight"><pre><span></span><code><span class="kn">from</span><span class="w"> </span><span class="nn">astropy.table</span><span class="w"> </span><span class="kn">import</span> <span class="n">QTable</span><span class="p">,</span> <span class="n">join</span><span class="p">,</span> <span class="n">join_skycoord</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">astropy.coordinates</span><span class="w"> </span><span class="kn">import</span> <span class="n">SkyCoord</span><span class="p">,</span> <span class="n">Angle</span>
+
+<span class="k">def</span><span class="w"> </span><span class="nf">cross_match_sources</span><span class="p">(</span>
+    <span class="n">catalog1</span><span class="p">:</span> <span class="n">QTable</span><span class="p">,</span>
+    <span class="n">catalog2</span><span class="p">:</span> <span class="n">QTable</span><span class="p">,</span>
+    <span class="n">radius</span><span class="p">:</span> <span class="n">Angle</span> <span class="o">=</span> <span class="n">Angle</span><span class="p">(</span><span class="s2">"10 arcsec"</span><span class="p">)</span>
+<span class="p">)</span> <span class="o">-&gt;</span> <span class="n">QTable</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">"""Cross-match two catalogs using QTable join."""</span>
+    <span class="n">xmatch</span> <span class="o">=</span> <span class="n">join</span><span class="p">(</span>
+        <span class="n">catalog1</span><span class="p">,</span>
+        <span class="n">catalog2</span><span class="p">,</span>
+        <span class="n">keys</span><span class="o">=</span><span class="s2">"coord"</span><span class="p">,</span>
+        <span class="n">table_names</span><span class="o">=</span><span class="p">[</span><span class="s2">""</span><span class="p">,</span> <span class="s2">"reference"</span><span class="p">],</span>
+        <span class="n">join_funcs</span><span class="o">=</span><span class="p">{</span>
+            <span class="s2">"coord"</span><span class="p">:</span> <span class="n">join_skycoord</span><span class="p">(</span><span class="n">radius</span><span class="p">,</span> <span class="n">distance_func</span><span class="o">=</span><span class="n">join_match_coordinates_sky</span><span class="p">)</span>
+        <span class="p">}</span>
+    <span class="p">)</span>
+    <span class="n">xmatch</span><span class="p">[</span><span class="s2">"separation"</span><span class="p">]</span> <span class="o">=</span> <span class="n">xmatch</span><span class="p">[</span><span class="s2">"coord"</span><span class="p">]</span><span class="o">.</span><span class="n">separation</span><span class="p">(</span><span class="n">xmatch</span><span class="p">[</span><span class="s2">"coord_reference"</span><span class="p">])</span>
+    <span class="n">xmatch</span><span class="p">[</span><span class="s2">"dra"</span><span class="p">],</span> <span class="n">xmatch</span><span class="p">[</span><span class="s2">"ddec"</span><span class="p">]</span> <span class="o">=</span> <span class="n">xmatch</span><span class="p">[</span><span class="s2">"coord"</span><span class="p">]</span><span class="o">.</span><span class="n">spherical_offsets_to</span><span class="p">(</span>
+        <span class="n">xmatch</span><span class="p">[</span><span class="s2">"coord_reference"</span><span class="p">]</span>
+    <span class="p">)</span>
+    <span class="k">return</span> <span class="n">xmatch</span>
+</code></pre></div>
+<h3 id="pattern-2-simple-skycoord-matching-vast-tools">Pattern 2: Simple SkyCoord Matching (VAST Tools)<a class="headerlink" href="#pattern-2-simple-skycoord-matching-vast-tools" title="Permanent link">¶</a></h3>
+<div class="highlight"><pre><span></span><code><span class="kn">from</span><span class="w"> </span><span class="nn">astropy.coordinates</span><span class="w"> </span><span class="kn">import</span> <span class="n">SkyCoord</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">astropy</span><span class="w"> </span><span class="kn">import</span> <span class="n">units</span> <span class="k">as</span> <span class="n">u</span>
+
+<span class="k">def</span><span class="w"> </span><span class="nf">simple_cross_match</span><span class="p">(</span><span class="n">ra1</span><span class="p">,</span> <span class="n">dec1</span><span class="p">,</span> <span class="n">ra2</span><span class="p">,</span> <span class="n">dec2</span><span class="p">,</span> <span class="n">radius_arcsec</span><span class="o">=</span><span class="mf">10.0</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">"""Simple cross-match using match_to_catalog_sky."""</span>
+    <span class="n">coords1</span> <span class="o">=</span> <span class="n">SkyCoord</span><span class="p">(</span><span class="n">ra1</span><span class="p">,</span> <span class="n">dec1</span><span class="p">,</span> <span class="n">unit</span><span class="o">=</span><span class="n">u</span><span class="o">.</span><span class="n">deg</span><span class="p">)</span>
+    <span class="n">coords2</span> <span class="o">=</span> <span class="n">SkyCoord</span><span class="p">(</span><span class="n">ra2</span><span class="p">,</span> <span class="n">dec2</span><span class="p">,</span> <span class="n">unit</span><span class="o">=</span><span class="n">u</span><span class="o">.</span><span class="n">deg</span><span class="p">)</span>
+
+    <span class="n">idx</span><span class="p">,</span> <span class="n">d2d</span><span class="p">,</span> <span class="n">d3d</span> <span class="o">=</span> <span class="n">coords1</span><span class="o">.</span><span class="n">match_to_catalog_sky</span><span class="p">(</span><span class="n">coords2</span><span class="p">)</span>
+    <span class="n">matches</span> <span class="o">=</span> <span class="n">d2d</span> <span class="o">&lt;=</span> <span class="n">radius_arcsec</span> <span class="o">*</span> <span class="n">u</span><span class="o">.</span><span class="n">arcsec</span>
+
+    <span class="k">return</span> <span class="n">idx</span><span class="p">[</span><span class="n">matches</span><span class="p">],</span> <span class="n">d2d</span><span class="p">[</span><span class="n">matches</span><span class="p">],</span> <span class="n">matches</span>
+</code></pre></div>
+<h3 id="pattern-3-separation-based-matching-vast-fast-detection">Pattern 3: Separation-Based Matching (VAST Fast Detection)<a class="headerlink" href="#pattern-3-separation-based-matching-vast-fast-detection" title="Permanent link">¶</a></h3>
+<div class="highlight"><pre><span></span><code><span class="kn">from</span><span class="w"> </span><span class="nn">astropy.coordinates</span><span class="w"> </span><span class="kn">import</span> <span class="n">SkyCoord</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">astropy</span><span class="w"> </span><span class="kn">import</span> <span class="n">units</span> <span class="k">as</span> <span class="n">u</span>
+
+<span class="k">def</span><span class="w"> </span><span class="nf">separation_match</span><span class="p">(</span><span class="n">cand_coords</span><span class="p">,</span> <span class="n">catalog_coords</span><span class="p">,</span> <span class="n">radius_arcsec</span><span class="o">=</span><span class="mf">10.0</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">"""Match using separation calculation."""</span>
+    <span class="n">separations</span> <span class="o">=</span> <span class="n">cand_coords</span><span class="o">.</span><span class="n">separation</span><span class="p">(</span><span class="n">catalog_coords</span><span class="p">)</span>
+    <span class="n">matches</span> <span class="o">=</span> <span class="n">separations</span> <span class="o">&lt;</span> <span class="n">radius_arcsec</span> <span class="o">*</span> <span class="n">u</span><span class="o">.</span><span class="n">arcsec</span>
+    <span class="k">return</span> <span class="n">matches</span><span class="p">,</span> <span class="n">separations</span><span class="p">[</span><span class="n">matches</span><span class="p">]</span>
+</code></pre></div>
+<hr/>
+<h2 id="next-steps">Next Steps<a class="headerlink" href="#next-steps" title="Permanent link">¶</a></h2>
+<ol>
+<li><strong>Examine VAST Post-Processing <code>crossmatch.py</code> in detail</strong></li>
+<li><strong>Create DSA-110 cross-matching utility module</strong></li>
+<li><strong>Adapt functions from VAST Post-Processing</strong></li>
+<li><strong>Integrate with existing validation and catalog-building code</strong></li>
+<li><strong>Add unit tests based on VAST examples</strong></li>
+</ol>
+<hr/>
+<h2 id="related-documentation">Related Documentation<a class="headerlink" href="#related-documentation" title="Permanent link">¶</a></h2>
+<ul>
+<li><code>docs/reference/EXISTING_CROSS_MATCHING_TOOLS.md</code> - Current DSA-110 cross-matching tools</li>
+<li><code>docs/reference/CATALOG_CROSS_MATCHING_GUIDE.md</code> - Cross-matching strategies and algorithms</li>
+<li><code>docs/reference/CATALOG_USAGE_GUIDE.md</code> - General catalog usage guide</li>
+</ul>
+</article>
+</div>
+<script>var tabs=__md_get("__tabs");if(Array.isArray(tabs))e:for(var set of document.querySelectorAll(".tabbed-set")){var tab,labels=set.querySelector(".tabbed-labels");for(tab of tabs)for(var label of labels.getElementsByTagName("label"))if(label.innerText.trim()===tab){var input=document.getElementById(label.htmlFor);input.checked=!0;continue e}}</script>
+<script>var target=document.getElementById(location.hash.slice(1));target&&target.name&&(target.checked=target.name.startsWith("__tabbed_"))</script>
+</div>
+</main>
+<footer class="md-footer">
+<div class="md-footer-meta md-typeset">
+<div class="md-footer-meta__inner md-grid">
+<div class="md-copyright">
+  
+  
+    Made with
+    <a href="https://squidfunk.github.io/mkdocs-material/" rel="noopener" target="_blank">
+      Material for MkDocs
+    </a>
+</div>
+</div>
+</div>
+</footer>
+</div>
+<div class="md-dialog" data-md-component="dialog">
+<div class="md-dialog__inner md-typeset"></div>
+</div>
+<script id="__config" type="application/json">{"base": "../..", "features": ["navigation.sections", "navigation.indexes", "content.code.copy", "content.tabs.link"], "search": "../../assets/javascripts/workers/search.b8dbb3d2.min.js", "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}}</script>
+<script src="../../assets/javascripts/bundle.fe8b6f2b.min.js"></script>
+<script src="../../javascripts/mathjax.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+<script src="../../javascripts/mermaid-zoom.js"></script>
+</body>
+</html>

@@ -1,0 +1,1945 @@
+
+<!DOCTYPE html>
+
+<html class="no-js" lang="en">
+<head>
+<meta charset="utf-8"/>
+<meta content="width=device-width,initial-scale=1" name="viewport"/>
+<link href="http://code.deepsynoptic.org/dsa110-contimg/reference/VAST_PIPELINE_CROSS_MATCHING_INTEGRATION/" rel="canonical"/>
+<link href="../../assets/images/favicon.png" rel="icon"/>
+<meta content="mkdocs-1.6.1, mkdocs-material-9.5.31" name="generator"/>
+<title>VAST Pipeline Cross-Matching Integration Guide - DSA-110 Continuum Imaging Pipeline</title>
+<link href="../../assets/stylesheets/main.3cba04c6.min.css" rel="stylesheet"/>
+<link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect"/>
+<link href="https://fonts.googleapis.com/css?family=Roboto:300,300i,400,400i,700,700i%7CRoboto+Mono:400,400i,700,700i&amp;display=fallback" rel="stylesheet"/>
+<style>:root{--md-text-font:"Roboto";--md-code-font:"Roboto Mono"}</style>
+<link href="../../assets/_mkdocstrings.css" rel="stylesheet"/>
+<script>__md_scope=new URL("../..",location),__md_hash=e=>[...e].reduce((e,_)=>(e<<5)-e+_.charCodeAt(0),0),__md_get=(e,_=localStorage,t=__md_scope)=>JSON.parse(_.getItem(t.pathname+"."+e)),__md_set=(e,_,t=localStorage,a=__md_scope)=>{try{t.setItem(a.pathname+"."+e,JSON.stringify(_))}catch(e){}}</script>
+</head>
+<body dir="ltr">
+<input autocomplete="off" class="md-toggle" data-md-toggle="drawer" id="__drawer" type="checkbox"/>
+<input autocomplete="off" class="md-toggle" data-md-toggle="search" id="__search" type="checkbox"/>
+<label class="md-overlay" for="__drawer"></label>
+<div data-md-component="skip">
+<a class="md-skip" href="#vast-pipeline-cross-matching-integration-guide">
+          Skip to content
+        </a>
+</div>
+<div data-md-component="announce">
+</div>
+<header class="md-header md-header--shadow" data-md-component="header">
+<nav aria-label="Header" class="md-header__inner md-grid">
+<a aria-label="DSA-110 Continuum Imaging Pipeline" class="md-header__button md-logo" data-md-component="logo" href="../.." title="DSA-110 Continuum Imaging Pipeline">
+<svg viewbox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54Z"></path></svg>
+</a>
+<label class="md-header__button md-icon" for="__drawer">
+<svg viewbox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M3 6h18v2H3V6m0 5h18v2H3v-2m0 5h18v2H3v-2Z"></path></svg>
+</label>
+<div class="md-header__title" data-md-component="header-title">
+<div class="md-header__ellipsis">
+<div class="md-header__topic">
+<span class="md-ellipsis">
+            DSA-110 Continuum Imaging Pipeline
+          </span>
+</div>
+<div class="md-header__topic" data-md-component="header-topic">
+<span class="md-ellipsis">
+            
+              VAST Pipeline Cross-Matching Integration Guide
+            
+          </span>
+</div>
+</div>
+</div>
+<script>var media,input,key,value,palette=__md_get("__palette");if(palette&&palette.color){"(prefers-color-scheme)"===palette.color.media&&(media=matchMedia("(prefers-color-scheme: light)"),input=document.querySelector(media.matches?"[data-md-color-media='(prefers-color-scheme: light)']":"[data-md-color-media='(prefers-color-scheme: dark)']"),palette.color.media=input.getAttribute("data-md-color-media"),palette.color.scheme=input.getAttribute("data-md-color-scheme"),palette.color.primary=input.getAttribute("data-md-color-primary"),palette.color.accent=input.getAttribute("data-md-color-accent"));for([key,value]of Object.entries(palette.color))document.body.setAttribute("data-md-color-"+key,value)}</script>
+<label class="md-header__button md-icon" for="__search">
+<svg viewbox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.516 6.516 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5Z"></path></svg>
+</label>
+<div class="md-search" data-md-component="search" role="dialog">
+<label class="md-search__overlay" for="__search"></label>
+<div class="md-search__inner" role="search">
+<form class="md-search__form" name="search">
+<input aria-label="Search" autocapitalize="off" autocomplete="off" autocorrect="off" class="md-search__input" data-md-component="search-query" name="query" placeholder="Search" required="" spellcheck="false" type="text"/>
+<label class="md-search__icon md-icon" for="__search">
+<svg viewbox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.516 6.516 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5Z"></path></svg>
+<svg viewbox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11h12Z"></path></svg>
+</label>
+<nav aria-label="Search" class="md-search__options">
+<button aria-label="Clear" class="md-search__icon md-icon" tabindex="-1" title="Clear" type="reset">
+<svg viewbox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M19 6.41 17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12 19 6.41Z"></path></svg>
+</button>
+</nav>
+</form>
+<div class="md-search__output">
+<div class="md-search__scrollwrap" data-md-scrollfix="" tabindex="0">
+<div class="md-search-result" data-md-component="search-result">
+<div class="md-search-result__meta">
+            Initializing search
+          </div>
+<ol class="md-search-result__list" role="presentation"></ol>
+</div>
+</div>
+</div>
+</div>
+</div>
+<div class="md-header__source">
+<a class="md-source" data-md-component="source" href="https://github.com/dsa110/dsa110-contimg" title="Go to repository">
+<div class="md-source__icon md-icon">
+<svg viewbox="0 0 448 512" xmlns="http://www.w3.org/2000/svg"><!--! Font Awesome Free 6.6.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2024 Fonticons, Inc.--><path d="M439.55 236.05 244 40.45a28.87 28.87 0 0 0-40.81 0l-40.66 40.63 51.52 51.52c27.06-9.14 52.68 16.77 43.39 43.68l49.66 49.66c34.23-11.8 61.18 31 35.47 56.69-26.49 26.49-70.21-2.87-56-37.34L240.22 199v121.85c25.3 12.54 22.26 41.85 9.08 55a34.34 34.34 0 0 1-48.55 0c-17.57-17.6-11.07-46.91 11.25-56v-123c-20.8-8.51-24.6-30.74-18.64-45L142.57 101 8.45 235.14a28.86 28.86 0 0 0 0 40.81l195.61 195.6a28.86 28.86 0 0 0 40.8 0l194.69-194.69a28.86 28.86 0 0 0 0-40.81z"></path></svg>
+</div>
+<div class="md-source__repository">
+    GitHub
+  </div>
+</a>
+</div>
+</nav>
+</header>
+<div class="md-container" data-md-component="container">
+<main class="md-main" data-md-component="main">
+<div class="md-main__inner md-grid">
+<div class="md-sidebar md-sidebar--primary" data-md-component="sidebar" data-md-type="navigation">
+<div class="md-sidebar__scrollwrap">
+<div class="md-sidebar__inner">
+<nav aria-label="Navigation" class="md-nav md-nav--primary" data-md-level="0">
+<label class="md-nav__title" for="__drawer">
+<a aria-label="DSA-110 Continuum Imaging Pipeline" class="md-nav__button md-logo" data-md-component="logo" href="../.." title="DSA-110 Continuum Imaging Pipeline">
+<svg viewbox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54Z"></path></svg>
+</a>
+    DSA-110 Continuum Imaging Pipeline
+  </label>
+<div class="md-nav__source">
+<a class="md-source" data-md-component="source" href="https://github.com/dsa110/dsa110-contimg" title="Go to repository">
+<div class="md-source__icon md-icon">
+<svg viewbox="0 0 448 512" xmlns="http://www.w3.org/2000/svg"><!--! Font Awesome Free 6.6.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2024 Fonticons, Inc.--><path d="M439.55 236.05 244 40.45a28.87 28.87 0 0 0-40.81 0l-40.66 40.63 51.52 51.52c27.06-9.14 52.68 16.77 43.39 43.68l49.66 49.66c34.23-11.8 61.18 31 35.47 56.69-26.49 26.49-70.21-2.87-56-37.34L240.22 199v121.85c25.3 12.54 22.26 41.85 9.08 55a34.34 34.34 0 0 1-48.55 0c-17.57-17.6-11.07-46.91 11.25-56v-123c-20.8-8.51-24.6-30.74-18.64-45L142.57 101 8.45 235.14a28.86 28.86 0 0 0 0 40.81l195.61 195.6a28.86 28.86 0 0 0 40.8 0l194.69-194.69a28.86 28.86 0 0 0 0-40.81z"></path></svg>
+</div>
+<div class="md-source__repository">
+    GitHub
+  </div>
+</a>
+</div>
+<ul class="md-nav__list" data-md-scrollfix="">
+<li class="md-nav__item">
+<a class="md-nav__link" href="../..">
+<span class="md-ellipsis">
+    Home
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../DOCUMENTATION_QUICK_REFERENCE/">
+<span class="md-ellipsis">
+    Documentation Guide
+  </span>
+</a>
+</li>
+<li class="md-nav__item md-nav__item--section md-nav__item--nested">
+<input class="md-nav__toggle md-toggle" id="__nav_3" type="checkbox"/>
+<div class="md-nav__link md-nav__container">
+<a class="md-nav__link" href="../../concepts/">
+<span class="md-ellipsis">
+    Concepts
+  </span>
+</a>
+<label class="md-nav__link" for="__nav_3" id="__nav_3_label" tabindex="">
+<span class="md-nav__icon md-icon"></span>
+</label>
+</div>
+<nav aria-expanded="false" aria-labelledby="__nav_3_label" class="md-nav" data-md-level="1">
+<label class="md-nav__title" for="__nav_3">
+<span class="md-nav__icon md-icon"></span>
+            Concepts
+          </label>
+<ul class="md-nav__list" data-md-scrollfix="">
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../concepts/architecture/">
+<span class="md-ellipsis">
+    Architecture
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../concepts/DIRECTORY_ARCHITECTURE/">
+<span class="md-ellipsis">
+    Directory Architecture
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../concepts/modules/">
+<span class="md-ellipsis">
+    Modules
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../concepts/control-panel/">
+<span class="md-ellipsis">
+    Control Panel
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../concepts/aoflagger/">
+<span class="md-ellipsis">
+    AOFlagger
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../concepts/frontend_design/">
+<span class="md-ellipsis">
+    Frontend Design
+  </span>
+</a>
+</li>
+<li class="md-nav__item md-nav__item--nested">
+<input class="md-nav__toggle md-toggle" id="__nav_3_8" type="checkbox"/>
+<label class="md-nav__link" for="__nav_3_8" id="__nav_3_8_label" tabindex="0">
+<span class="md-ellipsis">
+    Dashboard
+  </span>
+<span class="md-nav__icon md-icon"></span>
+</label>
+<nav aria-expanded="false" aria-labelledby="__nav_3_8_label" class="md-nav" data-md-level="2">
+<label class="md-nav__title" for="__nav_3_8">
+<span class="md-nav__icon md-icon"></span>
+            Dashboard
+          </label>
+<ul class="md-nav__list" data-md-scrollfix="">
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../concepts/dashboard_mockups/">
+<span class="md-ellipsis">
+    Mockups
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../SKYVIEW_IMPLEMENTATION_PLAN/">
+<span class="md-ellipsis">
+    Sky View
+  </span>
+</a>
+</li>
+</ul>
+</nav>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../concepts/GLOSSARY/">
+<span class="md-ellipsis">
+    Glossary
+  </span>
+</a>
+</li>
+<li class="md-nav__item md-nav__item--nested">
+<input class="md-nav__toggle md-toggle" id="__nav_3_10" type="checkbox"/>
+<label class="md-nav__link" for="__nav_3_10" id="__nav_3_10_label" tabindex="0">
+<span class="md-ellipsis">
+    Pipeline
+  </span>
+<span class="md-nav__icon md-icon"></span>
+</label>
+<nav aria-expanded="false" aria-labelledby="__nav_3_10_label" class="md-nav" data-md-level="2">
+<label class="md-nav__title" for="__nav_3_10">
+<span class="md-nav__icon md-icon"></span>
+            Pipeline
+          </label>
+<ul class="md-nav__list" data-md-scrollfix="">
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../concepts/pipeline_overview/">
+<span class="md-ellipsis">
+    Overview
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../concepts/pipeline_stage_architecture/">
+<span class="md-ellipsis">
+    Stage Architecture
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../concepts/pipeline_workflow_visualization/">
+<span class="md-ellipsis">
+    Workflow Visualization
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../concepts/pipeline_production_features/">
+<span class="md-ellipsis">
+    Production Features
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../concepts/pipeline_patterns/">
+<span class="md-ellipsis">
+    Patterns
+  </span>
+</a>
+</li>
+</ul>
+</nav>
+</li>
+<li class="md-nav__item md-nav__item--nested">
+<input class="md-nav__toggle md-toggle" id="__nav_3_11" type="checkbox"/>
+<label class="md-nav__link" for="__nav_3_11" id="__nav_3_11_label" tabindex="0">
+<span class="md-ellipsis">
+    Science
+  </span>
+<span class="md-nav__icon md-icon"></span>
+</label>
+<nav aria-expanded="false" aria-labelledby="__nav_3_11_label" class="md-nav" data-md-level="2">
+<label class="md-nav__title" for="__nav_3_11">
+<span class="md-nav__icon md-icon"></span>
+            Science
+          </label>
+<ul class="md-nav__list" data-md-scrollfix="">
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../concepts/science/photometry_normalization/">
+<span class="md-ellipsis">
+    Photometry Normalization
+  </span>
+</a>
+</li>
+</ul>
+</nav>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../concepts/mcp_browser_server_setup/">
+<span class="md-ellipsis">
+    Browser MCP Server
+  </span>
+</a>
+</li>
+</ul>
+</nav>
+</li>
+<li class="md-nav__item md-nav__item--section md-nav__item--nested">
+<input class="md-nav__toggle md-toggle" id="__nav_4" type="checkbox"/>
+<label class="md-nav__link" for="__nav_4" id="__nav_4_label" tabindex="">
+<span class="md-ellipsis">
+    Tutorials
+  </span>
+<span class="md-nav__icon md-icon"></span>
+</label>
+<nav aria-expanded="false" aria-labelledby="__nav_4_label" class="md-nav" data-md-level="1">
+<label class="md-nav__title" for="__nav_4">
+<span class="md-nav__icon md-icon"></span>
+            Tutorials
+          </label>
+<ul class="md-nav__list" data-md-scrollfix="">
+<li class="md-nav__item md-nav__item--nested">
+<input class="md-nav__toggle md-toggle" id="__nav_4_1" type="checkbox"/>
+<label class="md-nav__link" for="__nav_4_1" id="__nav_4_1_label" tabindex="0">
+<span class="md-ellipsis">
+    Conversion
+  </span>
+<span class="md-nav__icon md-icon"></span>
+</label>
+<nav aria-expanded="false" aria-labelledby="__nav_4_1_label" class="md-nav" data-md-level="2">
+<label class="md-nav__title" for="__nav_4_1">
+<span class="md-nav__icon md-icon"></span>
+            Conversion
+          </label>
+<ul class="md-nav__list" data-md-scrollfix="">
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../tutorials/HDF5_TO_MS_TUTORIAL/">
+<span class="md-ellipsis">
+    HDF5 to MS
+  </span>
+</a>
+</li>
+</ul>
+</nav>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../tutorials/simulation-tutorial/">
+<span class="md-ellipsis">
+    Simulation
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../tutorials/calibrate-apply/">
+<span class="md-ellipsis">
+    Calibrate and Apply
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../tutorials/convert-standalone/">
+<span class="md-ellipsis">
+    Convert Standalone
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../tutorials/streaming/">
+<span class="md-ellipsis">
+    Streaming
+  </span>
+</a>
+</li>
+<li class="md-nav__item md-nav__item--nested">
+<input class="md-nav__toggle md-toggle" id="__nav_4_6" type="checkbox"/>
+<label class="md-nav__link" for="__nav_4_6" id="__nav_4_6_label" tabindex="0">
+<span class="md-ellipsis">
+    Notebooks
+  </span>
+<span class="md-nav__icon md-icon"></span>
+</label>
+<nav aria-expanded="false" aria-labelledby="__nav_4_6_label" class="md-nav" data-md-level="2">
+<label class="md-nav__title" for="__nav_4_6">
+<span class="md-nav__icon md-icon"></span>
+            Notebooks
+          </label>
+<ul class="md-nav__list" data-md-scrollfix="">
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../tutorials/notebooks/bandpass_calibration_test.ipynb">
+<span class="md-ellipsis">
+    Bandpass Calibration Test
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../tutorials/notebooks/calibrator_helper.py">
+<span class="md-ellipsis">
+    Calibrator Helper
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../tutorials/notebooks/CalibratorSearch.ipynb">
+<span class="md-ellipsis">
+    Calibrator Search
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../tutorials/notebooks/ms_staging_workflow.ipynb">
+<span class="md-ellipsis">
+    MS Staging Workflow
+  </span>
+</a>
+</li>
+</ul>
+</nav>
+</li>
+</ul>
+</nav>
+</li>
+<li class="md-nav__item md-nav__item--section md-nav__item--nested">
+<input class="md-nav__toggle md-toggle" id="__nav_5" type="checkbox"/>
+<label class="md-nav__link" for="__nav_5" id="__nav_5_label" tabindex="">
+<span class="md-ellipsis">
+    How-To Guides
+  </span>
+<span class="md-nav__icon md-icon"></span>
+</label>
+<nav aria-expanded="false" aria-labelledby="__nav_5_label" class="md-nav" data-md-level="1">
+<label class="md-nav__title" for="__nav_5">
+<span class="md-nav__icon md-icon"></span>
+            How-To Guides
+          </label>
+<ul class="md-nav__list" data-md-scrollfix="">
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../how-to/github_pages_walkthrough/">
+<span class="md-ellipsis">
+    GitHub Pages Setup
+  </span>
+</a>
+</li>
+<li class="md-nav__item md-nav__item--nested">
+<input class="md-nav__toggle md-toggle" id="__nav_5_2" type="checkbox"/>
+<label class="md-nav__link" for="__nav_5_2" id="__nav_5_2_label" tabindex="0">
+<span class="md-ellipsis">
+    Quickstarts
+  </span>
+<span class="md-nav__icon md-icon"></span>
+</label>
+<nav aria-expanded="false" aria-labelledby="__nav_5_2_label" class="md-nav" data-md-level="2">
+<label class="md-nav__title" for="__nav_5_2">
+<span class="md-nav__icon md-icon"></span>
+            Quickstarts
+          </label>
+<ul class="md-nav__list" data-md-scrollfix="">
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../how-to/quickstart/">
+<span class="md-ellipsis">
+    General
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../how-to/control-panel-quickstart/">
+<span class="md-ellipsis">
+    Control Panel
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../how-to/LINEAR_SETUP_QUICKSTART/">
+<span class="md-ellipsis">
+    Linear Setup
+  </span>
+</a>
+</li>
+</ul>
+</nav>
+</li>
+<li class="md-nav__item md-nav__item--nested">
+<input class="md-nav__toggle md-toggle" id="__nav_5_3" type="checkbox"/>
+<label class="md-nav__link" for="__nav_5_3" id="__nav_5_3_label" tabindex="0">
+<span class="md-ellipsis">
+    Testing
+  </span>
+<span class="md-nav__icon md-icon"></span>
+</label>
+<nav aria-expanded="false" aria-labelledby="__nav_5_3_label" class="md-nav" data-md-level="2">
+<label class="md-nav__title" for="__nav_5_3">
+<span class="md-nav__icon md-icon"></span>
+            Testing
+          </label>
+<ul class="md-nav__list" data-md-scrollfix="">
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../how-to/FAST_TESTING/">
+<span class="md-ellipsis">
+    Fast Testing
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../how-to/PIPELINE_TESTING_GUIDE/">
+<span class="md-ellipsis">
+    Pipeline Guide
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../how-to/TEST_FLAG_SUBCOMMAND/">
+<span class="md-ellipsis">
+    Flag Subcommand
+  </span>
+</a>
+</li>
+</ul>
+</nav>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../how-to/build-vp-from-h5/">
+<span class="md-ellipsis">
+    Build VP from h5
+  </span>
+</a>
+</li>
+<li class="md-nav__item md-nav__item--nested">
+<input class="md-nav__toggle md-toggle" id="__nav_5_5" type="checkbox"/>
+<label class="md-nav__link" for="__nav_5_5" id="__nav_5_5_label" tabindex="0">
+<span class="md-ellipsis">
+    Calibration
+  </span>
+<span class="md-nav__icon md-icon"></span>
+</label>
+<nav aria-expanded="false" aria-labelledby="__nav_5_5_label" class="md-nav" data-md-level="2">
+<label class="md-nav__title" for="__nav_5_5">
+<span class="md-nav__icon md-icon"></span>
+            Calibration
+          </label>
+<ul class="md-nav__list" data-md-scrollfix="">
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../how-to/CALIBRATION_DETAILED_PROCEDURE/">
+<span class="md-ellipsis">
+    Detailed Procedure
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../how-to/FIND_CALIBRATOR_TRANSIT_DATA/">
+<span class="md-ellipsis">
+    Find Calibrator Transit
+  </span>
+</a>
+</li>
+</ul>
+</nav>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../how-to/IMAGE_0834_TRANSIT_5MIN/">
+<span class="md-ellipsis">
+    Image 0834 Transit 5min
+  </span>
+</a>
+</li>
+<li class="md-nav__item md-nav__item--nested">
+<input class="md-nav__toggle md-toggle" id="__nav_5_7" type="checkbox"/>
+<label class="md-nav__link" for="__nav_5_7" id="__nav_5_7_label" tabindex="0">
+<span class="md-ellipsis">
+    Mosaic
+  </span>
+<span class="md-nav__icon md-icon"></span>
+</label>
+<nav aria-expanded="false" aria-labelledby="__nav_5_7_label" class="md-nav" data-md-level="2">
+<label class="md-nav__title" for="__nav_5_7">
+<span class="md-nav__icon md-icon"></span>
+            Mosaic
+          </label>
+<ul class="md-nav__list" data-md-scrollfix="">
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../how-to/mosaic_quickstart/">
+<span class="md-ellipsis">
+    Quickstart
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../how-to/mosaic/">
+<span class="md-ellipsis">
+    Complete Guide
+  </span>
+</a>
+</li>
+</ul>
+</nav>
+</li>
+<li class="md-nav__item md-nav__item--nested">
+<input class="md-nav__toggle md-toggle" id="__nav_5_8" type="checkbox"/>
+<label class="md-nav__link" for="__nav_5_8" id="__nav_5_8_label" tabindex="0">
+<span class="md-ellipsis">
+    Quality Assurance
+  </span>
+<span class="md-nav__icon md-icon"></span>
+</label>
+<nav aria-expanded="false" aria-labelledby="__nav_5_8_label" class="md-nav" data-md-level="2">
+<label class="md-nav__title" for="__nav_5_8">
+<span class="md-nav__icon md-icon"></span>
+            Quality Assurance
+          </label>
+<ul class="md-nav__list" data-md-scrollfix="">
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../how-to/QUALITY_ASSURANCE_SETUP/">
+<span class="md-ellipsis">
+    Setup
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../how-to/quicklook/">
+<span class="md-ellipsis">
+    Quick Look
+  </span>
+</a>
+</li>
+</ul>
+</nav>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../how-to/reprocess/">
+<span class="md-ellipsis">
+    Reprocess
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../how-to/USING_ORCHESTRATOR_CLI/">
+<span class="md-ellipsis">
+    Using Orchestrator CLI
+  </span>
+</a>
+</li>
+<li class="md-nav__item md-nav__item--nested">
+<input class="md-nav__toggle md-toggle" id="__nav_5_11" type="checkbox"/>
+<label class="md-nav__link" for="__nav_5_11" id="__nav_5_11_label" tabindex="0">
+<span class="md-ellipsis">
+    Dashboard
+  </span>
+<span class="md-nav__icon md-icon"></span>
+</label>
+<nav aria-expanded="false" aria-labelledby="__nav_5_11_label" class="md-nav" data-md-level="2">
+<label class="md-nav__title" for="__nav_5_11">
+<span class="md-nav__icon md-icon"></span>
+            Dashboard
+          </label>
+<ul class="md-nav__list" data-md-scrollfix="">
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../how-to/dashboard-development/">
+<span class="md-ellipsis">
+    Development
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../how-to/dashboard-quickstart/">
+<span class="md-ellipsis">
+    Quickstart
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../how-to/dashboard_testing/">
+<span class="md-ellipsis">
+    Testing
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../how-to/dashboard_development_workflow/">
+<span class="md-ellipsis">
+    Development Workflow
+  </span>
+</a>
+</li>
+</ul>
+</nav>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../how-to/LINEAR_INTEGRATION/">
+<span class="md-ellipsis">
+    Linear Integration
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../how-to/frontend-initial-setup/">
+<span class="md-ellipsis">
+    Frontend Initial Setup
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../how-to/PARAMETER_OPTIMIZATION_GUIDE/">
+<span class="md-ellipsis">
+    AOFlagger Parameter Optimization
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../how-to/downsampling_guide/">
+<span class="md-ellipsis">
+    Downsampling Guide
+  </span>
+</a>
+</li>
+<li class="md-nav__item md-nav__item--nested">
+<input class="md-nav__toggle md-toggle" id="__nav_5_16" type="checkbox"/>
+<label class="md-nav__link" for="__nav_5_16" id="__nav_5_16_label" tabindex="0">
+<span class="md-ellipsis">
+    Conversion
+  </span>
+<span class="md-nav__icon md-icon"></span>
+</label>
+<nav aria-expanded="false" aria-labelledby="__nav_5_16_label" class="md-nav" data-md-level="2">
+<label class="md-nav__title" for="__nav_5_16">
+<span class="md-nav__icon md-icon"></span>
+            Conversion
+          </label>
+<ul class="md-nav__list" data-md-scrollfix="">
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../how-to/uvh5_to_ms_conversion/">
+<span class="md-ellipsis">
+    UVH5 to MS
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../how-to/streaming_converter_guide/">
+<span class="md-ellipsis">
+    Streaming Converter
+  </span>
+</a>
+</li>
+</ul>
+</nav>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../how-to/troubleshooting/">
+<span class="md-ellipsis">
+    Troubleshooting
+  </span>
+</a>
+</li>
+</ul>
+</nav>
+</li>
+<li class="md-nav__item md-nav__item--section md-nav__item--nested">
+<input class="md-nav__toggle md-toggle" id="__nav_6" type="checkbox"/>
+<label class="md-nav__link" for="__nav_6" id="__nav_6_label" tabindex="">
+<span class="md-ellipsis">
+    Reference
+  </span>
+<span class="md-nav__icon md-icon"></span>
+</label>
+<nav aria-expanded="false" aria-labelledby="__nav_6_label" class="md-nav" data-md-level="1">
+<label class="md-nav__title" for="__nav_6">
+<span class="md-nav__icon md-icon"></span>
+            Reference
+          </label>
+<ul class="md-nav__list" data-md-scrollfix="">
+<li class="md-nav__item md-nav__item--nested">
+<input class="md-nav__toggle md-toggle" id="__nav_6_1" type="checkbox"/>
+<label class="md-nav__link" for="__nav_6_1" id="__nav_6_1_label" tabindex="0">
+<span class="md-ellipsis">
+    API
+  </span>
+<span class="md-nav__icon md-icon"></span>
+</label>
+<nav aria-expanded="false" aria-labelledby="__nav_6_1_label" class="md-nav" data-md-level="2">
+<label class="md-nav__title" for="__nav_6_1">
+<span class="md-nav__icon md-icon"></span>
+            API
+          </label>
+<ul class="md-nav__list" data-md-scrollfix="">
+<li class="md-nav__item">
+<a class="md-nav__link" href="../api-endpoints/">
+<span class="md-ellipsis">
+    Endpoints
+  </span>
+</a>
+</li>
+<li class="md-nav__item md-nav__item--nested">
+<input class="md-nav__toggle md-toggle" id="__nav_6_1_2" type="checkbox"/>
+<label class="md-nav__link" for="__nav_6_1_2" id="__nav_6_1_2_label" tabindex="0">
+<span class="md-ellipsis">
+    Dashboard
+  </span>
+<span class="md-nav__icon md-icon"></span>
+</label>
+<nav aria-expanded="false" aria-labelledby="__nav_6_1_2_label" class="md-nav" data-md-level="3">
+<label class="md-nav__title" for="__nav_6_1_2">
+<span class="md-nav__icon md-icon"></span>
+            Dashboard
+          </label>
+<ul class="md-nav__list" data-md-scrollfix="">
+<li class="md-nav__item">
+<a class="md-nav__link" href="../dashboard_backend_api/">
+<span class="md-ellipsis">
+    API Reference
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../dashboard_pages_and_features/">
+<span class="md-ellipsis">
+    Pages &amp; Features
+  </span>
+</a>
+</li>
+</ul>
+</nav>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../backend_integration_snippets/">
+<span class="md-ellipsis">
+    Integration Snippets
+  </span>
+</a>
+</li>
+</ul>
+</nav>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../calibration-overview/">
+<span class="md-ellipsis">
+    Calibration Overview
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../cli/">
+<span class="md-ellipsis">
+    CLI
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../control-panel-cheatsheet/">
+<span class="md-ellipsis">
+    Control Panel Cheatsheet
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../database_schema/">
+<span class="md-ellipsis">
+    Database Schema
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../env/">
+<span class="md-ellipsis">
+    Environment Variables
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../CRITICAL_PYTHON_ENVIRONMENT/">
+<span class="md-ellipsis">
+    Critical Python Environment
+  </span>
+</a>
+</li>
+<li class="md-nav__item md-nav__item--nested">
+<input class="md-nav__toggle md-toggle" id="__nav_6_8" type="checkbox"/>
+<label class="md-nav__link" for="__nav_6_8" id="__nav_6_8_label" tabindex="0">
+<span class="md-ellipsis">
+    Optimizations
+  </span>
+<span class="md-nav__icon md-icon"></span>
+</label>
+<nav aria-expanded="false" aria-labelledby="__nav_6_8_label" class="md-nav" data-md-level="2">
+<label class="md-nav__title" for="__nav_6_8">
+<span class="md-nav__icon md-icon"></span>
+            Optimizations
+          </label>
+<ul class="md-nav__list" data-md-scrollfix="">
+<li class="md-nav__item">
+<a class="md-nav__link" href="../optimizations/OPTIMIZATION_API/">
+<span class="md-ellipsis">
+    API
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../optimizations/PROFILING_GUIDE/">
+<span class="md-ellipsis">
+    Profiling Guide
+  </span>
+</a>
+</li>
+</ul>
+</nav>
+</li>
+</ul>
+</nav>
+</li>
+<li class="md-nav__item md-nav__item--section md-nav__item--nested">
+<input class="md-nav__toggle md-toggle" id="__nav_7" type="checkbox"/>
+<label class="md-nav__link" for="__nav_7" id="__nav_7_label" tabindex="">
+<span class="md-ellipsis">
+    Operations
+  </span>
+<span class="md-nav__icon md-icon"></span>
+</label>
+<nav aria-expanded="false" aria-labelledby="__nav_7_label" class="md-nav" data-md-level="1">
+<label class="md-nav__title" for="__nav_7">
+<span class="md-nav__icon md-icon"></span>
+            Operations
+          </label>
+<ul class="md-nav__list" data-md-scrollfix="">
+<li class="md-nav__item md-nav__item--nested">
+<input class="md-nav__toggle md-toggle" id="__nav_7_1" type="checkbox"/>
+<label class="md-nav__link" for="__nav_7_1" id="__nav_7_1_label" tabindex="0">
+<span class="md-ellipsis">
+    Deployment
+  </span>
+<span class="md-nav__icon md-icon"></span>
+</label>
+<nav aria-expanded="false" aria-labelledby="__nav_7_1_label" class="md-nav" data-md-level="2">
+<label class="md-nav__title" for="__nav_7_1">
+<span class="md-nav__icon md-icon"></span>
+            Deployment
+          </label>
+<ul class="md-nav__list" data-md-scrollfix="">
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../operations/deploy-docker/">
+<span class="md-ellipsis">
+    Docker
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../operations/deploy-systemd/">
+<span class="md-ellipsis">
+    systemd
+  </span>
+</a>
+</li>
+</ul>
+</nav>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../operations/port-management/">
+<span class="md-ellipsis">
+    Port Management
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../operations/refant_quick_reference/">
+<span class="md-ellipsis">
+    Refant Quick Reference
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../operations/service_restart_fix/">
+<span class="md-ellipsis">
+    Service Restart Fix
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../operations/systemd-migration/">
+<span class="md-ellipsis">
+    Systemd Migration
+  </span>
+</a>
+</li>
+</ul>
+</nav>
+</li>
+<li class="md-nav__item md-nav__item--section md-nav__item--nested">
+<input class="md-nav__toggle md-toggle" id="__nav_8" type="checkbox"/>
+<div class="md-nav__link md-nav__container">
+<a class="md-nav__link" href="../../contributing/">
+<span class="md-ellipsis">
+    Contributing
+  </span>
+</a>
+<label class="md-nav__link" for="__nav_8" id="__nav_8_label" tabindex="">
+<span class="md-nav__icon md-icon"></span>
+</label>
+</div>
+<nav aria-expanded="false" aria-labelledby="__nav_8_label" class="md-nav" data-md-level="1">
+<label class="md-nav__title" for="__nav_8">
+<span class="md-nav__icon md-icon"></span>
+            Contributing
+          </label>
+<ul class="md-nav__list" data-md-scrollfix="">
+<li class="md-nav__item md-nav__item--nested">
+<input class="md-nav__toggle md-toggle" id="__nav_8_2" type="checkbox"/>
+<label class="md-nav__link" for="__nav_8_2" id="__nav_8_2_label" tabindex="0">
+<span class="md-ellipsis">
+    Archive
+  </span>
+<span class="md-nav__icon md-icon"></span>
+</label>
+<nav aria-expanded="false" aria-labelledby="__nav_8_2_label" class="md-nav" data-md-level="2">
+<label class="md-nav__title" for="__nav_8_2">
+<span class="md-nav__icon md-icon"></span>
+            Archive
+          </label>
+<ul class="md-nav__list" data-md-scrollfix="">
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../contributing/archive/CONTRIBUTING_TODO/">
+<span class="md-ellipsis">
+    Contributing to TODO
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../contributing/archive/rules/">
+<span class="md-ellipsis">
+    Rules
+  </span>
+</a>
+</li>
+</ul>
+</nav>
+</li>
+</ul>
+</nav>
+</li>
+</ul>
+</nav>
+</div>
+</div>
+</div>
+<div class="md-sidebar md-sidebar--secondary" data-md-component="sidebar" data-md-type="toc">
+<div class="md-sidebar__scrollwrap">
+<div class="md-sidebar__inner">
+<nav aria-label="Table of contents" class="md-nav md-nav--secondary">
+<label class="md-nav__title" for="__toc">
+<span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+<ul class="md-nav__list" data-md-component="toc" data-md-scrollfix="">
+<li class="md-nav__item">
+<a class="md-nav__link" href="#date-2025-11-10">
+<span class="md-ellipsis">
+      Date: 2025-11-10
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#overview">
+<span class="md-ellipsis">
+      Overview
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#1-source-association-integration">
+<span class="md-ellipsis">
+      1. Source Association Integration
+    </span>
+</a>
+<nav aria-label="1. Source Association Integration" class="md-nav">
+<ul class="md-nav__list">
+<li class="md-nav__item">
+<a class="md-nav__link" href="#purpose">
+<span class="md-ellipsis">
+      Purpose
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#key-functions">
+<span class="md-ellipsis">
+      Key Functions
+    </span>
+</a>
+<nav aria-label="Key Functions" class="md-nav">
+<ul class="md-nav__list">
+<li class="md-nav__item">
+<a class="md-nav__link" href="#basic_association">
+<span class="md-ellipsis">
+      basic_association()
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#advanced_association">
+<span class="md-ellipsis">
+      advanced_association()
+    </span>
+</a>
+</li>
+</ul>
+</nav>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#integration-points">
+<span class="md-ellipsis">
+      Integration Points
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#key-design-patterns">
+<span class="md-ellipsis">
+      Key Design Patterns
+    </span>
+</a>
+</li>
+</ul>
+</nav>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#2-corrections-workflow-integration">
+<span class="md-ellipsis">
+      2. Corrections Workflow Integration
+    </span>
+</a>
+<nav aria-label="2. Corrections Workflow Integration" class="md-nav">
+<ul class="md-nav__list">
+<li class="md-nav__item">
+<a class="md-nav__link" href="#purpose_1">
+<span class="md-ellipsis">
+      Purpose
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#key-function">
+<span class="md-ellipsis">
+      Key Function
+    </span>
+</a>
+<nav aria-label="Key Function" class="md-nav">
+<ul class="md-nav__list">
+<li class="md-nav__item">
+<a class="md-nav__link" href="#vast_xmatch_qc">
+<span class="md-ellipsis">
+      vast_xmatch_qc()
+    </span>
+</a>
+</li>
+</ul>
+</nav>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#integration-points_1">
+<span class="md-ellipsis">
+      Integration Points
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#key-design-patterns_1">
+<span class="md-ellipsis">
+      Key Design Patterns
+    </span>
+</a>
+</li>
+</ul>
+</nav>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#3-database-model-integration">
+<span class="md-ellipsis">
+      3. Database Model Integration
+    </span>
+</a>
+<nav aria-label="3. Database Model Integration" class="md-nav">
+<ul class="md-nav__list">
+<li class="md-nav__item">
+<a class="md-nav__link" href="#purpose_2">
+<span class="md-ellipsis">
+      Purpose
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#database-schema">
+<span class="md-ellipsis">
+      Database Schema
+    </span>
+</a>
+<nav aria-label="Database Schema" class="md-nav">
+<ul class="md-nav__list">
+<li class="md-nav__item">
+<a class="md-nav__link" href="#crossmatch-model">
+<span class="md-ellipsis">
+      CrossMatch Model
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#source-model-relationship">
+<span class="md-ellipsis">
+      Source Model Relationship
+    </span>
+</a>
+</li>
+</ul>
+</nav>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#integration-points_2">
+<span class="md-ellipsis">
+      Integration Points
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#key-design-patterns_2">
+<span class="md-ellipsis">
+      Key Design Patterns
+    </span>
+</a>
+</li>
+</ul>
+</nav>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#4-duplicate-detection-integration">
+<span class="md-ellipsis">
+      4. Duplicate Detection Integration
+    </span>
+</a>
+<nav aria-label="4. Duplicate Detection Integration" class="md-nav">
+<ul class="md-nav__list">
+<li class="md-nav__item">
+<a class="md-nav__link" href="#purpose_3">
+<span class="md-ellipsis">
+      Purpose
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#key-function_1">
+<span class="md-ellipsis">
+      Key Function
+    </span>
+</a>
+<nav aria-label="Key Function" class="md-nav">
+<ul class="md-nav__list">
+<li class="md-nav__item">
+<a class="md-nav__link" href="#remove_duplicate_measurements">
+<span class="md-ellipsis">
+      remove_duplicate_measurements()
+    </span>
+</a>
+</li>
+</ul>
+</nav>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#integration-points_3">
+<span class="md-ellipsis">
+      Integration Points
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#key-design-patterns_3">
+<span class="md-ellipsis">
+      Key Design Patterns
+    </span>
+</a>
+</li>
+</ul>
+</nav>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#5-pipeline-workflow-integration">
+<span class="md-ellipsis">
+      5. Pipeline Workflow Integration
+    </span>
+</a>
+<nav aria-label="5. Pipeline Workflow Integration" class="md-nav">
+<ul class="md-nav__list">
+<li class="md-nav__item">
+<a class="md-nav__link" href="#overall-pipeline-flow">
+<span class="md-ellipsis">
+      Overall Pipeline Flow
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#key-integration-points">
+<span class="md-ellipsis">
+      Key Integration Points
+    </span>
+</a>
+</li>
+</ul>
+</nav>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#recommendations-for-dsa-110-pipeline-integration">
+<span class="md-ellipsis">
+      Recommendations for DSA-110 Pipeline Integration
+    </span>
+</a>
+<nav aria-label="Recommendations for DSA-110 Pipeline Integration" class="md-nav">
+<ul class="md-nav__list">
+<li class="md-nav__item">
+<a class="md-nav__link" href="#1-create-cross-matching-stage">
+<span class="md-ellipsis">
+      1. Create Cross-Matching Stage
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#2-integrate-with-validation-stage">
+<span class="md-ellipsis">
+      2. Integrate with Validation Stage
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#3-add-to-database-schema">
+<span class="md-ellipsis">
+      3. Add to Database Schema
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#4-integration-with-source-association">
+<span class="md-ellipsis">
+      4. Integration with Source Association
+    </span>
+</a>
+</li>
+</ul>
+</nav>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#summary">
+<span class="md-ellipsis">
+      Summary
+    </span>
+</a>
+<nav aria-label="Summary" class="md-nav">
+<ul class="md-nav__list">
+<li class="md-nav__item">
+<a class="md-nav__link" href="#vast-pipeline-cross-matching-integration-patterns">
+<span class="md-ellipsis">
+      VAST Pipeline Cross-Matching Integration Patterns
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#key-takeaways-for-dsa-110">
+<span class="md-ellipsis">
+      Key Takeaways for DSA-110
+    </span>
+</a>
+</li>
+</ul>
+</nav>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#related-documentation">
+<span class="md-ellipsis">
+      Related Documentation
+    </span>
+</a>
+</li>
+</ul>
+</nav>
+</div>
+</div>
+</div>
+<div class="md-content" data-md-component="content">
+<article class="md-content__inner md-typeset">
+<h1 id="vast-pipeline-cross-matching-integration-guide">VAST Pipeline Cross-Matching Integration Guide<a class="headerlink" href="#vast-pipeline-cross-matching-integration-guide" title="Permanent link">¶</a></h1>
+<h2 id="date-2025-11-10">Date: 2025-11-10<a class="headerlink" href="#date-2025-11-10" title="Permanent link">¶</a></h2>
+<h2 id="overview">Overview<a class="headerlink" href="#overview" title="Permanent link">¶</a></h2>
+<p>This document details how the VAST pipeline integrates cross-matching functionality into its workflow, providing guidance for pipeline-specific implementation in DSA-110. The VAST pipeline demonstrates several key integration patterns:</p>
+<ol>
+<li><strong>Source Association</strong> - Cross-matching for associating measurements across epochs</li>
+<li><strong>Corrections Workflow</strong> - Cross-matching for astrometry and flux scale corrections</li>
+<li><strong>Database Models</strong> - Storing cross-match results in database</li>
+<li><strong>Duplicate Detection</strong> - Using cross-matching to identify duplicate sources</li>
+</ol>
+<hr/>
+<h2 id="1-source-association-integration">1. Source Association Integration<a class="headerlink" href="#1-source-association-integration" title="Permanent link">¶</a></h2>
+<p><strong>Location:</strong> <code>vast-pipeline/vast_pipeline/pipeline/association.py</code></p>
+<h3 id="purpose">Purpose<a class="headerlink" href="#purpose" title="Permanent link">¶</a></h3>
+<p>Cross-matching is used to associate source detections across multiple epochs/images into unique sources. This is the core of VAST's variability analysis.</p>
+<h3 id="key-functions">Key Functions<a class="headerlink" href="#key-functions" title="Permanent link">¶</a></h3>
+<h4 id="basic_association"><code>basic_association()</code><a class="headerlink" href="#basic_association" title="Permanent link">¶</a></h4>
+<ul>
+<li><strong>Purpose:</strong> Basic source association using nearest-neighbor matching</li>
+<li><strong>Method:</strong> <code>SkyCoord.match_to_catalog_sky()</code></li>
+<li><strong>Features:</strong></li>
+<li>Matches new sources (<code>skyc2</code>) to existing sources (<code>skyc1</code>)</li>
+<li>Uses configurable association radius (<code>limit</code>)</li>
+<li>Handles one-to-many associations (multiple detections → one source)</li>
+<li>Assigns source IDs to matched detections</li>
+<li>Creates new source IDs for unmatched detections</li>
+</ul>
+<p><strong>Code Pattern:</strong>
+<div class="highlight"><pre><span></span><code><span class="kn">from</span><span class="w"> </span><span class="nn">astropy.coordinates</span><span class="w"> </span><span class="kn">import</span> <span class="n">SkyCoord</span><span class="p">,</span> <span class="n">Angle</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">astropy</span><span class="w"> </span><span class="kn">import</span> <span class="n">units</span> <span class="k">as</span> <span class="n">u</span>
+
+<span class="k">def</span><span class="w"> </span><span class="nf">basic_association</span><span class="p">(</span>
+    <span class="n">sources_df</span><span class="p">:</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">,</span>
+    <span class="n">skyc1_srcs</span><span class="p">:</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">,</span>  <span class="c1"># Existing sources</span>
+    <span class="n">skyc1</span><span class="p">:</span> <span class="n">SkyCoord</span><span class="p">,</span>            <span class="c1"># Existing source coordinates</span>
+    <span class="n">skyc2_srcs</span><span class="p">:</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">,</span>   <span class="c1"># New detections</span>
+    <span class="n">skyc2</span><span class="p">:</span> <span class="n">SkyCoord</span><span class="p">,</span>            <span class="c1"># New detection coordinates</span>
+    <span class="n">limit</span><span class="p">:</span> <span class="n">Angle</span><span class="p">,</span>               <span class="c1"># Association radius</span>
+<span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Tuple</span><span class="p">[</span><span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">,</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">]:</span>
+    <span class="c1"># Match new sources to existing sources</span>
+    <span class="n">idx</span><span class="p">,</span> <span class="n">d2d</span><span class="p">,</span> <span class="n">d3d</span> <span class="o">=</span> <span class="n">skyc2</span><span class="o">.</span><span class="n">match_to_catalog_sky</span><span class="p">(</span><span class="n">skyc1</span><span class="p">)</span>
+
+    <span class="c1"># Filter matches within association radius</span>
+    <span class="n">sel</span> <span class="o">=</span> <span class="n">d2d</span> <span class="o">&lt;=</span> <span class="n">limit</span>
+
+    <span class="c1"># Assign source IDs to matched detections</span>
+    <span class="n">skyc2_srcs</span><span class="o">.</span><span class="n">loc</span><span class="p">[</span><span class="n">sel</span><span class="p">,</span> <span class="s1">'source'</span><span class="p">]</span> <span class="o">=</span> <span class="n">skyc1_srcs</span><span class="o">.</span><span class="n">loc</span><span class="p">[</span><span class="n">idx</span><span class="p">[</span><span class="n">sel</span><span class="p">],</span> <span class="s1">'source'</span><span class="p">]</span><span class="o">.</span><span class="n">values</span>
+    <span class="n">skyc2_srcs</span><span class="o">.</span><span class="n">loc</span><span class="p">[</span><span class="n">sel</span><span class="p">,</span> <span class="s1">'d2d'</span><span class="p">]</span> <span class="o">=</span> <span class="n">d2d</span><span class="p">[</span><span class="n">sel</span><span class="p">]</span><span class="o">.</span><span class="n">arcsec</span>
+
+    <span class="c1"># Handle one-to-many associations</span>
+    <span class="n">skyc2_srcs</span><span class="p">,</span> <span class="n">sources_df</span> <span class="o">=</span> <span class="n">one_to_many_basic</span><span class="p">(</span><span class="n">skyc2_srcs</span><span class="p">,</span> <span class="n">sources_df</span><span class="p">)</span>
+
+    <span class="c1"># Create new source IDs for unmatched detections</span>
+    <span class="n">nan_sel</span> <span class="o">=</span> <span class="p">(</span><span class="n">skyc2_srcs</span><span class="p">[</span><span class="s1">'source'</span><span class="p">]</span> <span class="o">==</span> <span class="o">-</span><span class="mi">1</span><span class="p">)</span><span class="o">.</span><span class="n">values</span>
+    <span class="n">skyc2_srcs</span><span class="o">.</span><span class="n">loc</span><span class="p">[</span><span class="n">nan_sel</span><span class="p">,</span> <span class="s1">'source'</span><span class="p">]</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">arange</span><span class="p">(</span>
+        <span class="n">sources_df</span><span class="p">[</span><span class="s1">'source'</span><span class="p">]</span><span class="o">.</span><span class="n">values</span><span class="o">.</span><span class="n">max</span><span class="p">()</span> <span class="o">+</span> <span class="mi">1</span><span class="p">,</span>
+        <span class="n">sources_df</span><span class="p">[</span><span class="s1">'source'</span><span class="p">]</span><span class="o">.</span><span class="n">values</span><span class="o">.</span><span class="n">max</span><span class="p">()</span> <span class="o">+</span> <span class="mi">1</span> <span class="o">+</span> <span class="n">nan_sel</span><span class="o">.</span><span class="n">sum</span><span class="p">()</span>
+    <span class="p">)</span>
+
+    <span class="k">return</span> <span class="n">sources_df</span><span class="p">,</span> <span class="n">skyc1_srcs</span>
+</code></pre></div></p>
+<h4 id="advanced_association"><code>advanced_association()</code><a class="headerlink" href="#advanced_association" title="Permanent link">¶</a></h4>
+<ul>
+<li><strong>Purpose:</strong> Advanced association using de Ruiter radius</li>
+<li><strong>Method:</strong> <code>SkyCoord.search_around_sky()</code> (finds all matches, not just nearest)</li>
+<li><strong>Features:</strong></li>
+<li>Uses beamwidth limit for initial filtering</li>
+<li>Calculates de Ruiter radius (statistical association metric)</li>
+<li>Handles many-to-many associations</li>
+<li>More sophisticated than basic association</li>
+</ul>
+<p><strong>Code Pattern:</strong>
+<div class="highlight"><pre><span></span><code><span class="k">def</span><span class="w"> </span><span class="nf">advanced_association</span><span class="p">(</span>
+    <span class="n">method</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
+    <span class="n">sources_df</span><span class="p">:</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">,</span>
+    <span class="n">skyc1_srcs</span><span class="p">:</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">,</span>
+    <span class="n">skyc1</span><span class="p">:</span> <span class="n">SkyCoord</span><span class="p">,</span>
+    <span class="n">skyc2_srcs</span><span class="p">:</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">,</span>
+    <span class="n">skyc2</span><span class="p">:</span> <span class="n">SkyCoord</span><span class="p">,</span>
+    <span class="n">dr_limit</span><span class="p">:</span> <span class="nb">float</span><span class="p">,</span>      <span class="c1"># de Ruiter radius limit</span>
+    <span class="n">bw_max</span><span class="p">:</span> <span class="nb">float</span><span class="p">,</span>        <span class="c1"># Beamwidth limit</span>
+<span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Tuple</span><span class="p">[</span><span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">,</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">]:</span>
+    <span class="c1"># Find all matches within beamwidth limit</span>
+    <span class="n">idx_skyc1</span><span class="p">,</span> <span class="n">idx_skyc2</span><span class="p">,</span> <span class="n">d2d</span><span class="p">,</span> <span class="n">d3d</span> <span class="o">=</span> <span class="n">skyc2</span><span class="o">.</span><span class="n">search_around_sky</span><span class="p">(</span><span class="n">skyc1</span><span class="p">,</span> <span class="n">bw_max</span><span class="p">)</span>
+
+    <span class="c1"># Merge candidate matches</span>
+    <span class="n">temp_srcs</span> <span class="o">=</span> <span class="n">merge_candidates</span><span class="p">(</span><span class="n">idx_skyc1</span><span class="p">,</span> <span class="n">idx_skyc2</span><span class="p">,</span> <span class="n">skyc1_srcs</span><span class="p">,</span> <span class="n">skyc2_srcs</span><span class="p">)</span>
+
+    <span class="c1"># Apply beamwidth limit</span>
+    <span class="n">temp_srcs</span> <span class="o">=</span> <span class="n">temp_srcs</span><span class="p">[</span><span class="n">d2d</span> <span class="o">&lt;=</span> <span class="n">bw_max</span><span class="p">]</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span>
+
+    <span class="c1"># Calculate and apply de Ruiter radius cut</span>
+    <span class="k">if</span> <span class="n">method</span> <span class="o">==</span> <span class="s1">'deruiter'</span><span class="p">:</span>
+        <span class="n">temp_srcs</span><span class="p">[</span><span class="s1">'dr'</span><span class="p">]</span> <span class="o">=</span> <span class="n">calc_de_ruiter</span><span class="p">(</span><span class="n">temp_srcs</span><span class="p">)</span>
+        <span class="n">temp_srcs</span> <span class="o">=</span> <span class="n">temp_srcs</span><span class="p">[</span><span class="n">temp_srcs</span><span class="p">[</span><span class="s1">'dr'</span><span class="p">]</span> <span class="o">&lt;=</span> <span class="n">dr_limit</span><span class="p">]</span>
+
+    <span class="c1"># Handle many-to-many associations</span>
+    <span class="n">temp_srcs</span> <span class="o">=</span> <span class="n">many_to_many_advanced</span><span class="p">(</span><span class="n">temp_srcs</span><span class="p">,</span> <span class="n">method</span><span class="p">)</span>
+
+    <span class="k">return</span> <span class="n">sources_df</span><span class="p">,</span> <span class="n">skyc1_srcs</span>
+</code></pre></div></p>
+<h3 id="integration-points">Integration Points<a class="headerlink" href="#integration-points" title="Permanent link">¶</a></h3>
+<ul>
+<li>
+<p><strong>Pipeline Config:</strong> Association parameters in <code>PipelineConfig</code>:
+  <div class="highlight"><pre><span></span><code><span class="s2">"source_association"</span><span class="p">:</span> <span class="p">{</span>
+    <span class="s2">"method"</span><span class="p">:</span> <span class="s2">"basic"</span> <span class="o">|</span> <span class="s2">"advanced"</span> <span class="o">|</span> <span class="s2">"deruiter"</span><span class="p">,</span>
+    <span class="s2">"radius"</span><span class="p">:</span> <span class="nb">float</span><span class="p">,</span>              <span class="c1"># Association radius (arcsec)</span>
+    <span class="s2">"deruiter_radius"</span><span class="p">:</span> <span class="nb">float</span><span class="p">,</span>     <span class="c1"># de Ruiter radius limit</span>
+    <span class="s2">"deruiter_beamwidth_limit"</span><span class="p">:</span> <span class="nb">float</span><span class="p">,</span>
+    <span class="s2">"parallel"</span><span class="p">:</span> <span class="nb">bool</span><span class="p">,</span>
+    <span class="s2">"epoch_duplicate_radius"</span><span class="p">:</span> <span class="nb">float</span><span class="p">,</span>
+<span class="p">}</span>
+</code></pre></div></p>
+</li>
+<li>
+<p><strong>Pipeline Main:</strong> Called from <code>pipeline/main.py</code>:
+  <div class="highlight"><pre><span></span><code><span class="kn">from</span><span class="w"> </span><span class="nn">vast_pipeline.pipeline.association</span><span class="w"> </span><span class="kn">import</span> <span class="n">association</span>
+
+<span class="c1"># After loading measurements</span>
+<span class="n">sources_df</span> <span class="o">=</span> <span class="n">association</span><span class="p">(</span>
+    <span class="n">images_df</span><span class="o">=</span><span class="n">images_df</span><span class="p">,</span>
+    <span class="n">limit</span><span class="o">=</span><span class="n">config</span><span class="o">.</span><span class="n">source_association</span><span class="o">.</span><span class="n">radius</span><span class="p">,</span>
+    <span class="n">method</span><span class="o">=</span><span class="n">config</span><span class="o">.</span><span class="n">source_association</span><span class="o">.</span><span class="n">method</span><span class="p">,</span>
+    <span class="o">...</span>
+<span class="p">)</span>
+</code></pre></div></p>
+</li>
+</ul>
+<h3 id="key-design-patterns">Key Design Patterns<a class="headerlink" href="#key-design-patterns" title="Permanent link">¶</a></h3>
+<ol>
+<li><strong>Incremental Association:</strong> Sources are associated incrementally as new images are processed</li>
+<li><strong>Source ID Management:</strong> Unmatched detections get new source IDs</li>
+<li><strong>Relationship Tracking:</strong> One-to-many and many-to-many relationships are tracked</li>
+<li><strong>Distance Metrics:</strong> Both angular separation (<code>d2d</code>) and de Ruiter radius (<code>dr</code>) are stored</li>
+</ol>
+<hr/>
+<h2 id="2-corrections-workflow-integration">2. Corrections Workflow Integration<a class="headerlink" href="#2-corrections-workflow-integration" title="Permanent link">¶</a></h2>
+<p><strong>Location:</strong> <code>vast-post-processing/vast_post_processing/corrections.py</code></p>
+<h3 id="purpose_1">Purpose<a class="headerlink" href="#purpose_1" title="Permanent link">¶</a></h3>
+<p>Cross-matching is used to compare detected sources with reference catalogs to calculate astrometry and flux scale corrections.</p>
+<h3 id="key-function">Key Function<a class="headerlink" href="#key-function" title="Permanent link">¶</a></h3>
+<h4 id="vast_xmatch_qc"><code>vast_xmatch_qc()</code><a class="headerlink" href="#vast_xmatch_qc" title="Permanent link">¶</a></h4>
+<ul>
+<li><strong>Purpose:</strong> Cross-match detected sources with reference catalog for quality control</li>
+<li><strong>Integration:</strong> Uses <code>crossmatch_qtables()</code> from <code>crossmatch.py</code></li>
+<li><strong>Workflow:</strong></li>
+<li>Create <code>Catalog</code> objects for detected and reference catalogs</li>
+<li>Perform cross-match using <code>crossmatch_qtables()</code></li>
+<li>Filter matches (flux errors, crop size, sigma clipping)</li>
+<li>Calculate positional offsets</li>
+<li>Calculate flux scale corrections</li>
+<li>Write outputs (CSV, cross-match table)</li>
+</ul>
+<p><strong>Code Pattern:</strong>
+<div class="highlight"><pre><span></span><code><span class="kn">from</span><span class="w"> </span><span class="nn">vast_post_processing.catalogs</span><span class="w"> </span><span class="kn">import</span> <span class="n">Catalog</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">vast_post_processing.crossmatch</span><span class="w"> </span><span class="kn">import</span> <span class="p">(</span>
+    <span class="n">crossmatch_qtables</span><span class="p">,</span>
+    <span class="n">calculate_positional_offsets</span><span class="p">,</span>
+    <span class="n">calculate_flux_offsets_Huber</span>
+<span class="p">)</span>
+
+<span class="k">def</span><span class="w"> </span><span class="nf">vast_xmatch_qc</span><span class="p">(</span>
+    <span class="n">image_path</span><span class="p">:</span> <span class="n">Path</span><span class="p">,</span>
+    <span class="n">reference_catalog_path</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
+    <span class="n">catalog_path</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
+    <span class="n">radius</span><span class="p">:</span> <span class="n">Angle</span> <span class="o">=</span> <span class="n">Angle</span><span class="p">(</span><span class="s2">"10arcsec"</span><span class="p">),</span>
+    <span class="n">flux_limit</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mi">0</span><span class="p">,</span>
+    <span class="n">snr_limit</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mi">20</span><span class="p">,</span>
+    <span class="n">crop_size</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">6.67</span><span class="p">,</span>
+    <span class="n">crossmatch_output</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+<span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Tuple</span><span class="p">[</span><span class="nb">float</span><span class="p">,</span> <span class="nb">float</span><span class="p">,</span> <span class="n">AffineScalarFunc</span><span class="p">,</span> <span class="n">AffineScalarFunc</span><span class="p">]:</span>
+    <span class="c1"># Create Catalog objects</span>
+    <span class="n">reference_catalog</span> <span class="o">=</span> <span class="n">Catalog</span><span class="p">(</span>
+        <span class="n">reference_catalog_path</span><span class="p">,</span>
+        <span class="n">input_format</span><span class="o">=</span><span class="s2">"selavy"</span><span class="p">,</span>
+        <span class="n">flux_limit</span><span class="o">=</span><span class="n">flux_limit</span><span class="p">,</span>
+        <span class="n">snr_limit</span><span class="o">=</span><span class="n">snr_limit</span><span class="p">,</span>
+        <span class="o">...</span>
+    <span class="p">)</span>
+    <span class="n">catalog</span> <span class="o">=</span> <span class="n">Catalog</span><span class="p">(</span>
+        <span class="n">catalog_path</span><span class="p">,</span>
+        <span class="n">input_format</span><span class="o">=</span><span class="s2">"selavy"</span><span class="p">,</span>
+        <span class="n">flux_limit</span><span class="o">=</span><span class="n">flux_limit</span><span class="p">,</span>
+        <span class="n">snr_limit</span><span class="o">=</span><span class="n">snr_limit</span><span class="p">,</span>
+        <span class="o">...</span>
+    <span class="p">)</span>
+
+    <span class="c1"># Perform cross-match</span>
+    <span class="n">xmatch_qt</span> <span class="o">=</span> <span class="n">crossmatch_qtables</span><span class="p">(</span>
+        <span class="n">catalog</span><span class="p">,</span> 
+        <span class="n">reference_catalog</span><span class="p">,</span> 
+        <span class="n">image_path</span><span class="p">,</span> 
+        <span class="n">radius</span><span class="o">=</span><span class="n">radius</span>
+    <span class="p">)</span>
+
+    <span class="c1"># Filter matches</span>
+    <span class="n">mask</span> <span class="o">=</span> <span class="n">xmatch_qt</span><span class="p">[</span><span class="s2">"flux_peak_err"</span><span class="p">]</span> <span class="o">&gt;</span> <span class="mi">0</span>
+    <span class="n">mask</span> <span class="o">&amp;=</span> <span class="n">xmatch_qt</span><span class="p">[</span><span class="s2">"flux_peak_err_reference"</span><span class="p">]</span> <span class="o">&gt;</span> <span class="mi">0</span>
+    <span class="n">mask</span> <span class="o">&amp;=</span> <span class="nb">abs</span><span class="p">(</span><span class="n">xmatch_qt</span><span class="p">[</span><span class="s2">"fc_ddec"</span><span class="p">]</span><span class="o">.</span><span class="n">to</span><span class="p">(</span><span class="n">u</span><span class="o">.</span><span class="n">deg</span><span class="p">))</span> <span class="o">&lt;</span> <span class="p">(</span><span class="n">crop_size</span><span class="o">/</span><span class="mi">2</span><span class="p">)</span>
+    <span class="n">mask</span> <span class="o">&amp;=</span> <span class="nb">abs</span><span class="p">(</span><span class="n">xmatch_qt</span><span class="p">[</span><span class="s2">"fc_dra"</span><span class="p">]</span><span class="o">.</span><span class="n">to</span><span class="p">(</span><span class="n">u</span><span class="o">.</span><span class="n">deg</span><span class="p">))</span> <span class="o">&lt;</span> <span class="p">(</span><span class="n">crop_size</span><span class="o">/</span><span class="mi">2</span><span class="p">)</span>
+
+    <span class="c1"># Sigma clipping for outliers</span>
+    <span class="n">sigma_clip_mask</span> <span class="o">=</span> <span class="n">sigma_clip</span><span class="p">(</span>
+        <span class="n">data</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">asarray</span><span class="p">(</span><span class="n">xmatch_qt</span><span class="p">[</span><span class="s2">"flux_peak_ratio"</span><span class="p">]),</span>
+        <span class="n">sigma</span><span class="o">=</span><span class="n">flux_ratio_sigma_clip</span><span class="p">,</span>
+        <span class="n">maxiters</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+    <span class="p">)</span><span class="o">.</span><span class="n">mask</span>
+    <span class="n">mask</span> <span class="o">&amp;=</span> <span class="o">~</span><span class="p">(</span><span class="n">sigma_clip_mask</span><span class="p">)</span>
+
+    <span class="n">data</span> <span class="o">=</span> <span class="n">xmatch_qt</span><span class="p">[</span><span class="n">mask</span><span class="p">]</span>
+
+    <span class="c1"># Calculate offsets</span>
+    <span class="n">dra_median</span><span class="p">,</span> <span class="n">ddec_median</span><span class="p">,</span> <span class="n">dra_madfm</span><span class="p">,</span> <span class="n">ddec_madfm</span> <span class="o">=</span> <span class="n">calculate_positional_offsets</span><span class="p">(</span><span class="n">data</span><span class="p">)</span>
+    <span class="n">gradient</span><span class="p">,</span> <span class="n">offset</span><span class="p">,</span> <span class="n">gradient_err</span><span class="p">,</span> <span class="n">offset_err</span> <span class="o">=</span> <span class="n">calculate_flux_offsets_Huber</span><span class="p">(</span><span class="n">data</span><span class="p">)</span>
+
+    <span class="c1"># Write outputs</span>
+    <span class="k">if</span> <span class="n">crossmatch_output</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">data</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="n">crossmatch_output</span><span class="p">,</span> <span class="n">overwrite</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+
+    <span class="k">return</span> <span class="n">dra_median</span><span class="p">,</span> <span class="n">ddec_median</span><span class="p">,</span> <span class="n">flux_corr_mult</span><span class="p">,</span> <span class="n">flux_corr_add</span>
+</code></pre></div></p>
+<h3 id="integration-points_1">Integration Points<a class="headerlink" href="#integration-points_1" title="Permanent link">¶</a></h3>
+<ul>
+<li>
+<p><strong>CLI Integration:</strong> Called from <code>cli/run_corrections.py</code>:
+  <div class="highlight"><pre><span></span><code><span class="c1"># For each epoch</span>
+<span class="n">dra_median</span><span class="p">,</span> <span class="n">ddec_median</span><span class="p">,</span> <span class="n">flux_corr_mult</span><span class="p">,</span> <span class="n">flux_corr_add</span> <span class="o">=</span> <span class="n">vast_xmatch_qc</span><span class="p">(</span>
+    <span class="n">image_path</span><span class="o">=</span><span class="n">image_path</span><span class="p">,</span>
+    <span class="n">reference_catalog_path</span><span class="o">=</span><span class="n">reference_catalog</span><span class="p">,</span>
+    <span class="n">catalog_path</span><span class="o">=</span><span class="n">detected_catalog</span><span class="p">,</span>
+    <span class="n">radius</span><span class="o">=</span><span class="n">Angle</span><span class="p">(</span><span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">args</span><span class="o">.</span><span class="n">radius</span><span class="si">}</span><span class="s2">arcsec"</span><span class="p">),</span>
+    <span class="n">crossmatch_output</span><span class="o">=</span><span class="n">crossmatch_file</span><span class="p">,</span>
+    <span class="o">...</span>
+<span class="p">)</span>
+</code></pre></div></p>
+</li>
+<li>
+<p><strong>Epoch Processing:</strong> Applied per epoch/field:
+  <div class="highlight"><pre><span></span><code><span class="c1"># Process each epoch</span>
+<span class="k">for</span> <span class="n">epoch_dir</span> <span class="ow">in</span> <span class="n">epoch_dirs</span><span class="p">:</span>
+    <span class="n">epoch_corr_dir</span> <span class="o">=</span> <span class="n">epoch_dir</span> <span class="o">/</span> <span class="s2">"corrections"</span>
+    <span class="n">crossmatch_file</span> <span class="o">=</span> <span class="n">epoch_corr_dir</span> <span class="o">/</span> <span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">field</span><span class="si">}</span><span class="s2">_crossmatch.csv"</span>
+
+    <span class="n">corrections</span> <span class="o">=</span> <span class="n">vast_xmatch_qc</span><span class="p">(</span>
+        <span class="n">image_path</span><span class="o">=</span><span class="n">image_path</span><span class="p">,</span>
+        <span class="n">reference_catalog_path</span><span class="o">=</span><span class="n">reference_catalog</span><span class="p">,</span>
+        <span class="n">catalog_path</span><span class="o">=</span><span class="n">detected_catalog</span><span class="p">,</span>
+        <span class="n">crossmatch_output</span><span class="o">=</span><span class="n">crossmatch_file</span><span class="p">,</span>
+        <span class="o">...</span>
+    <span class="p">)</span>
+</code></pre></div></p>
+</li>
+</ul>
+<h3 id="key-design-patterns_1">Key Design Patterns<a class="headerlink" href="#key-design-patterns_1" title="Permanent link">¶</a></h3>
+<ol>
+<li><strong>Catalog Abstraction:</strong> Uses <code>Catalog</code> class to handle different input formats</li>
+<li><strong>Filtering Pipeline:</strong> Multiple filtering steps (flux errors, crop size, sigma clipping)</li>
+<li><strong>Robust Statistics:</strong> Uses MAD and Huber regression for robust offset calculations</li>
+<li><strong>Output Management:</strong> Writes cross-match tables and correction CSV files</li>
+</ol>
+<hr/>
+<h2 id="3-database-model-integration">3. Database Model Integration<a class="headerlink" href="#3-database-model-integration" title="Permanent link">¶</a></h2>
+<p><strong>Location:</strong> <code>vast-pipeline/vast_pipeline/models.py</code> and <code>migrations/0001_initial.py</code></p>
+<h3 id="purpose_2">Purpose<a class="headerlink" href="#purpose_2" title="Permanent link">¶</a></h3>
+<p>Cross-match results are stored in the database for tracking and querying.</p>
+<h3 id="database-schema">Database Schema<a class="headerlink" href="#database-schema" title="Permanent link">¶</a></h3>
+<h4 id="crossmatch-model"><code>CrossMatch</code> Model<a class="headerlink" href="#crossmatch-model" title="Permanent link">¶</a></h4>
+<div class="highlight"><pre><span></span><code><span class="k">class</span><span class="w"> </span><span class="nc">CrossMatch</span><span class="p">(</span><span class="n">models</span><span class="o">.</span><span class="n">Model</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">"""Cross-match between Source and SurveySource."""</span>
+    <span class="n">source</span> <span class="o">=</span> <span class="n">models</span><span class="o">.</span><span class="n">ForeignKey</span><span class="p">(</span><span class="n">Source</span><span class="p">,</span> <span class="n">on_delete</span><span class="o">=</span><span class="n">models</span><span class="o">.</span><span class="n">CASCADE</span><span class="p">)</span>
+    <span class="n">survey_source</span> <span class="o">=</span> <span class="n">models</span><span class="o">.</span><span class="n">ForeignKey</span><span class="p">(</span><span class="n">SurveySource</span><span class="p">,</span> <span class="n">on_delete</span><span class="o">=</span><span class="n">models</span><span class="o">.</span><span class="n">CASCADE</span><span class="p">)</span>
+    <span class="n">manual</span> <span class="o">=</span> <span class="n">models</span><span class="o">.</span><span class="n">BooleanField</span><span class="p">()</span>          <span class="c1"># Manual vs automatic match</span>
+    <span class="n">distance</span> <span class="o">=</span> <span class="n">models</span><span class="o">.</span><span class="n">FloatField</span><span class="p">()</span>          <span class="c1"># Separation (arcsec)</span>
+    <span class="n">probability</span> <span class="o">=</span> <span class="n">models</span><span class="o">.</span><span class="n">FloatField</span><span class="p">()</span>       <span class="c1"># Match probability</span>
+    <span class="n">comment</span> <span class="o">=</span> <span class="n">models</span><span class="o">.</span><span class="n">TextField</span><span class="p">(</span><span class="n">blank</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">default</span><span class="o">=</span><span class="s1">''</span><span class="p">,</span> <span class="n">max_length</span><span class="o">=</span><span class="mi">1000</span><span class="p">)</span>
+</code></pre></div>
+<h4 id="source-model-relationship"><code>Source</code> Model Relationship<a class="headerlink" href="#source-model-relationship" title="Permanent link">¶</a></h4>
+<div class="highlight"><pre><span></span><code><span class="k">class</span><span class="w"> </span><span class="nc">Source</span><span class="p">(</span><span class="n">models</span><span class="o">.</span><span class="n">Model</span><span class="p">):</span>
+    <span class="c1"># ...</span>
+    <span class="n">cross_match_sources</span> <span class="o">=</span> <span class="n">models</span><span class="o">.</span><span class="n">ManyToManyField</span><span class="p">(</span>
+        <span class="n">through</span><span class="o">=</span><span class="s1">'CrossMatch'</span><span class="p">,</span>
+        <span class="n">to</span><span class="o">=</span><span class="s1">'SurveySource'</span>
+    <span class="p">)</span>
+</code></pre></div>
+<h3 id="integration-points_2">Integration Points<a class="headerlink" href="#integration-points_2" title="Permanent link">¶</a></h3>
+<ul>
+<li><strong>Migration:</strong> Database schema defined in migrations</li>
+<li><strong>Loading:</strong> Cross-matches loaded via <code>loading.py</code>:
+  <div class="highlight"><pre><span></span><code><span class="kn">from</span><span class="w"> </span><span class="nn">vast_pipeline.pipeline.loading</span><span class="w"> </span><span class="kn">import</span> <span class="n">make_upload_crossmatches</span>
+
+<span class="c1"># After association</span>
+<span class="n">crossmatch_models</span> <span class="o">=</span> <span class="n">make_upload_crossmatches</span><span class="p">(</span>
+    <span class="n">crossmatch_df</span><span class="o">=</span><span class="n">crossmatch_df</span><span class="p">,</span>
+    <span class="n">pipeline_run</span><span class="o">=</span><span class="n">pipeline_run</span>
+<span class="p">)</span>
+</code></pre></div></li>
+</ul>
+<h3 id="key-design-patterns_2">Key Design Patterns<a class="headerlink" href="#key-design-patterns_2" title="Permanent link">¶</a></h3>
+<ol>
+<li><strong>Many-to-Many Relationship:</strong> Sources can match multiple survey sources</li>
+<li><strong>Through Model:</strong> <code>CrossMatch</code> model stores match metadata</li>
+<li><strong>Manual Override:</strong> Supports manual cross-match editing</li>
+<li><strong>Probability Scoring:</strong> Stores match confidence/probability</li>
+</ol>
+<hr/>
+<h2 id="4-duplicate-detection-integration">4. Duplicate Detection Integration<a class="headerlink" href="#4-duplicate-detection-integration" title="Permanent link">¶</a></h2>
+<p><strong>Location:</strong> <code>vast-pipeline/vast_pipeline/pipeline/utils.py</code></p>
+<h3 id="purpose_3">Purpose<a class="headerlink" href="#purpose_3" title="Permanent link">¶</a></h3>
+<p>Cross-matching is used to identify and remove duplicate source detections within the same epoch/image.</p>
+<h3 id="key-function_1">Key Function<a class="headerlink" href="#key-function_1" title="Permanent link">¶</a></h3>
+<h4 id="remove_duplicate_measurements"><code>remove_duplicate_measurements()</code><a class="headerlink" href="#remove_duplicate_measurements" title="Permanent link">¶</a></h4>
+<ul>
+<li><strong>Purpose:</strong> Remove duplicate sources within an epoch</li>
+<li><strong>Method:</strong> <code>SkyCoord.search_around_sky()</code> for self-matching</li>
+<li><strong>Features:</strong></li>
+<li>Finds sources within duplicate radius</li>
+<li>Keeps source closest to image center</li>
+<li>Removes duplicates from different images (not same image)</li>
+</ul>
+<p><strong>Code Pattern:</strong>
+<div class="highlight"><pre><span></span><code><span class="k">def</span><span class="w"> </span><span class="nf">remove_duplicate_measurements</span><span class="p">(</span>
+    <span class="n">sources_df</span><span class="p">:</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">,</span>
+    <span class="n">dup_lim</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">Angle</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+<span class="p">)</span> <span class="o">-&gt;</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">:</span>
+    <span class="k">if</span> <span class="n">dup_lim</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">dup_lim</span> <span class="o">=</span> <span class="n">Angle</span><span class="p">(</span><span class="mf">2.5</span> <span class="o">*</span> <span class="n">u</span><span class="o">.</span><span class="n">arcsec</span><span class="p">)</span>  <span class="c1"># Default: ASKAP pixel size</span>
+
+    <span class="c1"># Sort by distance from image center (keep closest)</span>
+    <span class="n">sources_df</span> <span class="o">=</span> <span class="n">sources_df</span><span class="o">.</span><span class="n">sort_values</span><span class="p">(</span><span class="n">by</span><span class="o">=</span><span class="s1">'dist_from_centre'</span><span class="p">)</span>
+
+    <span class="n">sources_sc</span> <span class="o">=</span> <span class="n">SkyCoord</span><span class="p">(</span>
+        <span class="n">sources_df</span><span class="p">[</span><span class="s1">'ra'</span><span class="p">],</span>
+        <span class="n">sources_df</span><span class="p">[</span><span class="s1">'dec'</span><span class="p">],</span>
+        <span class="n">unit</span><span class="o">=</span><span class="p">(</span><span class="n">u</span><span class="o">.</span><span class="n">deg</span><span class="p">,</span> <span class="n">u</span><span class="o">.</span><span class="n">deg</span><span class="p">)</span>
+    <span class="p">)</span>
+
+    <span class="c1"># Self-match to find duplicates</span>
+    <span class="n">idxc</span><span class="p">,</span> <span class="n">idxcatalog</span><span class="p">,</span> <span class="o">*</span><span class="n">_</span> <span class="o">=</span> <span class="n">sources_sc</span><span class="o">.</span><span class="n">search_around_sky</span><span class="p">(</span><span class="n">sources_sc</span><span class="p">,</span> <span class="n">dup_lim</span><span class="p">)</span>
+
+    <span class="c1"># Create results dataframe</span>
+    <span class="n">results</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">({</span>
+        <span class="s1">'source_id'</span><span class="p">:</span> <span class="n">idxc</span><span class="p">,</span>
+        <span class="s1">'match_id'</span><span class="p">:</span> <span class="n">idxcatalog</span><span class="p">,</span>
+        <span class="s1">'source_image'</span><span class="p">:</span> <span class="n">sources_df</span><span class="o">.</span><span class="n">iloc</span><span class="p">[</span><span class="n">idxc</span><span class="p">][</span><span class="s1">'image'</span><span class="p">]</span><span class="o">.</span><span class="n">tolist</span><span class="p">(),</span>
+        <span class="s1">'match_image'</span><span class="p">:</span> <span class="n">sources_df</span><span class="o">.</span><span class="n">iloc</span><span class="p">[</span><span class="n">idxcatalog</span><span class="p">][</span><span class="s1">'image'</span><span class="p">]</span><span class="o">.</span><span class="n">tolist</span><span class="p">()</span>
+    <span class="p">})</span>
+
+    <span class="c1"># Drop matches from same image (not duplicates)</span>
+    <span class="n">matching_image_mask</span> <span class="o">=</span> <span class="p">(</span><span class="n">results</span><span class="p">[</span><span class="s1">'source_image'</span><span class="p">]</span> <span class="o">!=</span> <span class="n">results</span><span class="p">[</span><span class="s1">'match_image'</span><span class="p">])</span>
+    <span class="n">results</span> <span class="o">=</span> <span class="n">results</span><span class="o">.</span><span class="n">loc</span><span class="p">[</span><span class="n">matching_image_mask</span><span class="p">]</span>
+
+    <span class="c1"># Drop duplicate pairs (keep first, drop second)</span>
+    <span class="n">to_drop</span> <span class="o">=</span> <span class="n">results</span><span class="o">.</span><span class="n">loc</span><span class="p">[</span>
+        <span class="n">results</span><span class="p">[</span><span class="s1">'source_id'</span><span class="p">]</span> <span class="o">!=</span> <span class="n">results</span><span class="p">[</span><span class="s1">'match_id'</span><span class="p">],</span>
+        <span class="s1">'match_id'</span>
+    <span class="p">]</span>
+
+    <span class="c1"># Remove duplicates</span>
+    <span class="n">sources_df</span> <span class="o">=</span> <span class="n">sources_df</span><span class="o">.</span><span class="n">drop</span><span class="p">(</span><span class="n">sources_df</span><span class="o">.</span><span class="n">index</span><span class="p">[</span><span class="n">to_drop</span><span class="p">])</span>
+
+    <span class="k">return</span> <span class="n">sources_df</span>
+</code></pre></div></p>
+<h3 id="integration-points_3">Integration Points<a class="headerlink" href="#integration-points_3" title="Permanent link">¶</a></h3>
+<ul>
+<li>
+<p><strong>Epoch Processing:</strong> Called during epoch-based association:
+  <div class="highlight"><pre><span></span><code><span class="c1"># In prep_skysrc_df()</span>
+<span class="k">if</span> <span class="n">epoch_based</span><span class="p">:</span>
+    <span class="n">sources_df</span> <span class="o">=</span> <span class="n">remove_duplicate_measurements</span><span class="p">(</span>
+        <span class="n">sources_df</span><span class="p">,</span>
+        <span class="n">duplicate_limit</span><span class="o">=</span><span class="n">duplicate_limit</span>
+    <span class="p">)</span>
+</code></pre></div></p>
+</li>
+<li>
+<p><strong>Config:</strong> Duplicate radius configurable:
+  <div class="highlight"><pre><span></span><code><span class="s2">"source_association"</span><span class="p">:</span> <span class="p">{</span>
+    <span class="s2">"epoch_duplicate_radius"</span><span class="p">:</span> <span class="nb">float</span><span class="p">,</span>  <span class="c1"># arcsec</span>
+<span class="p">}</span>
+</code></pre></div></p>
+</li>
+</ul>
+<h3 id="key-design-patterns_3">Key Design Patterns<a class="headerlink" href="#key-design-patterns_3" title="Permanent link">¶</a></h3>
+<ol>
+<li><strong>Self-Matching:</strong> Uses <code>search_around_sky()</code> on same catalog</li>
+<li><strong>Image-Aware:</strong> Only removes duplicates from different images</li>
+<li><strong>Center-Priority:</strong> Keeps source closest to image center</li>
+<li><strong>Configurable Radius:</strong> Default based on pixel size</li>
+</ol>
+<hr/>
+<h2 id="5-pipeline-workflow-integration">5. Pipeline Workflow Integration<a class="headerlink" href="#5-pipeline-workflow-integration" title="Permanent link">¶</a></h2>
+<h3 id="overall-pipeline-flow">Overall Pipeline Flow<a class="headerlink" href="#overall-pipeline-flow" title="Permanent link">¶</a></h3>
+<div class="highlight"><pre><span></span><code>1. Load Images &amp; Measurements
+   ↓
+2. Remove Duplicates (within epoch)
+   ↓
+3. Association (across epochs)
+   - basic_association() or advanced_association()
+   - Uses cross-matching to group detections into sources
+   ↓
+4. Calculate Metrics
+   - Variability metrics (V, η, Vs, m)
+   - Pair-wise metrics
+   ↓
+5. Finalize &amp; Upload
+   - Upload sources, associations, cross-matches to database
+   ↓
+6. Corrections (Post-Processing)
+   - vast_xmatch_qc() for astrometry/flux corrections
+   - Cross-match with reference catalogs
+</code></pre></div>
+<h3 id="key-integration-points">Key Integration Points<a class="headerlink" href="#key-integration-points" title="Permanent link">¶</a></h3>
+<ol>
+<li><strong>Config-Driven:</strong> All cross-matching parameters in pipeline config</li>
+<li><strong>Modular Design:</strong> Cross-matching functions are reusable modules</li>
+<li><strong>Database Integration:</strong> Results stored for querying and analysis</li>
+<li><strong>Error Handling:</strong> Robust filtering and outlier rejection</li>
+<li><strong>Performance:</strong> Supports parallel processing for large datasets</li>
+</ol>
+<hr/>
+<h2 id="recommendations-for-dsa-110-pipeline-integration">Recommendations for DSA-110 Pipeline Integration<a class="headerlink" href="#recommendations-for-dsa-110-pipeline-integration" title="Permanent link">¶</a></h2>
+<h3 id="1-create-cross-matching-stage">1. Create Cross-Matching Stage<a class="headerlink" href="#1-create-cross-matching-stage" title="Permanent link">¶</a></h3>
+<p><strong>Proposed:</strong> Add <code>CrossMatchStage</code> to pipeline workflow</p>
+<div class="highlight"><pre><span></span><code><span class="k">class</span><span class="w"> </span><span class="nc">CrossMatchStage</span><span class="p">(</span><span class="n">PipelineStage</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">"""Cross-match detected sources with reference catalogs."""</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">execute</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">context</span><span class="p">:</span> <span class="n">PipelineContext</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">PipelineContext</span><span class="p">:</span>
+        <span class="c1"># Get detected sources from previous stage</span>
+        <span class="n">detected_sources</span> <span class="o">=</span> <span class="n">context</span><span class="o">.</span><span class="n">outputs</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"detected_sources"</span><span class="p">)</span>
+
+        <span class="c1"># Query reference catalog</span>
+        <span class="n">catalog_sources</span> <span class="o">=</span> <span class="n">query_sources</span><span class="p">(</span>
+            <span class="n">catalog_type</span><span class="o">=</span><span class="s2">"nvss"</span><span class="p">,</span>
+            <span class="n">ra_center</span><span class="o">=</span><span class="n">context</span><span class="o">.</span><span class="n">observation</span><span class="o">.</span><span class="n">ra_deg</span><span class="p">,</span>
+            <span class="n">dec_center</span><span class="o">=</span><span class="n">context</span><span class="o">.</span><span class="n">observation</span><span class="o">.</span><span class="n">dec_deg</span><span class="p">,</span>
+            <span class="n">radius_deg</span><span class="o">=</span><span class="mf">1.5</span>
+        <span class="p">)</span>
+
+        <span class="c1"># Perform cross-match</span>
+        <span class="kn">from</span><span class="w"> </span><span class="nn">dsa110_contimg.catalog.crossmatch</span><span class="w"> </span><span class="kn">import</span> <span class="n">cross_match_sources</span>
+        <span class="n">matches</span> <span class="o">=</span> <span class="n">cross_match_sources</span><span class="p">(</span>
+            <span class="n">detected_sources</span><span class="p">,</span>
+            <span class="n">catalog_sources</span><span class="p">,</span>
+            <span class="n">radius</span><span class="o">=</span><span class="n">Angle</span><span class="p">(</span><span class="s2">"10arcsec"</span><span class="p">)</span>
+        <span class="p">)</span>
+
+        <span class="c1"># Calculate offsets</span>
+        <span class="n">offsets</span> <span class="o">=</span> <span class="n">calculate_positional_offsets</span><span class="p">(</span><span class="n">matches</span><span class="p">)</span>
+
+        <span class="c1"># Store in context</span>
+        <span class="k">return</span> <span class="n">context</span><span class="o">.</span><span class="n">with_output</span><span class="p">(</span><span class="s2">"cross_matches"</span><span class="p">,</span> <span class="n">matches</span><span class="p">)</span> \
+                      <span class="o">.</span><span class="n">with_output</span><span class="p">(</span><span class="s2">"astrometry_offsets"</span><span class="p">,</span> <span class="n">offsets</span><span class="p">)</span>
+</code></pre></div>
+<h3 id="2-integrate-with-validation-stage">2. Integrate with Validation Stage<a class="headerlink" href="#2-integrate-with-validation-stage" title="Permanent link">¶</a></h3>
+<p><strong>Current:</strong> Validation uses embedded cross-matching</p>
+<p><strong>Proposed:</strong> Use standalone cross-matching utility</p>
+<div class="highlight"><pre><span></span><code><span class="c1"># In ValidationStage</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">dsa110_contimg.catalog.crossmatch</span><span class="w"> </span><span class="kn">import</span> <span class="n">cross_match_sources</span>
+
+<span class="c1"># Replace embedded matching with utility call</span>
+<span class="n">matches</span> <span class="o">=</span> <span class="n">cross_match_sources</span><span class="p">(</span>
+    <span class="n">detected_sources_df</span><span class="p">,</span>
+    <span class="n">catalog_sources_df</span><span class="p">,</span>
+    <span class="n">radius</span><span class="o">=</span><span class="n">Angle</span><span class="p">(</span><span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">search_radius_arcsec</span><span class="si">}</span><span class="s2">arcsec"</span><span class="p">)</span>
+<span class="p">)</span>
+</code></pre></div>
+<h3 id="3-add-to-database-schema">3. Add to Database Schema<a class="headerlink" href="#3-add-to-database-schema" title="Permanent link">¶</a></h3>
+<p><strong>Proposed:</strong> Add cross-match table to <code>products.sqlite3</code></p>
+<div class="highlight"><pre><span></span><code><span class="k">CREATE</span><span class="w"> </span><span class="k">TABLE</span><span class="w"> </span><span class="k">IF</span><span class="w"> </span><span class="k">NOT</span><span class="w"> </span><span class="k">EXISTS</span><span class="w"> </span><span class="n">cross_matches</span><span class="w"> </span><span class="p">(</span>
+<span class="w">    </span><span class="n">id</span><span class="w"> </span><span class="nb">INTEGER</span><span class="w"> </span><span class="k">PRIMARY</span><span class="w"> </span><span class="k">KEY</span><span class="w"> </span><span class="n">AUTOINCREMENT</span><span class="p">,</span>
+<span class="w">    </span><span class="n">source_id</span><span class="w"> </span><span class="nb">TEXT</span><span class="w"> </span><span class="k">NOT</span><span class="w"> </span><span class="k">NULL</span><span class="p">,</span>
+<span class="w">    </span><span class="n">catalog_type</span><span class="w"> </span><span class="nb">TEXT</span><span class="w"> </span><span class="k">NOT</span><span class="w"> </span><span class="k">NULL</span><span class="p">,</span>
+<span class="w">    </span><span class="n">catalog_source_id</span><span class="w"> </span><span class="nb">TEXT</span><span class="p">,</span>
+<span class="w">    </span><span class="n">separation_arcsec</span><span class="w"> </span><span class="nb">REAL</span><span class="p">,</span>
+<span class="w">    </span><span class="n">dra_arcsec</span><span class="w"> </span><span class="nb">REAL</span><span class="p">,</span>
+<span class="w">    </span><span class="n">ddec_arcsec</span><span class="w"> </span><span class="nb">REAL</span><span class="p">,</span>
+<span class="w">    </span><span class="n">flux_ratio</span><span class="w"> </span><span class="nb">REAL</span><span class="p">,</span>
+<span class="w">    </span><span class="n">match_quality</span><span class="w"> </span><span class="nb">TEXT</span><span class="p">,</span>
+<span class="w">    </span><span class="n">created_at</span><span class="w"> </span><span class="k">TIMESTAMP</span><span class="w"> </span><span class="k">DEFAULT</span><span class="w"> </span><span class="k">CURRENT_TIMESTAMP</span><span class="p">,</span>
+<span class="w">    </span><span class="k">FOREIGN</span><span class="w"> </span><span class="k">KEY</span><span class="w"> </span><span class="p">(</span><span class="n">source_id</span><span class="p">)</span><span class="w"> </span><span class="k">REFERENCES</span><span class="w"> </span><span class="n">sources</span><span class="p">(</span><span class="n">id</span><span class="p">)</span>
+<span class="p">);</span>
+</code></pre></div>
+<h3 id="4-integration-with-source-association">4. Integration with Source Association<a class="headerlink" href="#4-integration-with-source-association" title="Permanent link">¶</a></h3>
+<p><strong>Proposed:</strong> Use cross-matching for source association (if needed)</p>
+<div class="highlight"><pre><span></span><code><span class="c1"># In SourceAssociationStage (if implemented)</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">dsa110_contimg.catalog.crossmatch</span><span class="w"> </span><span class="kn">import</span> <span class="n">cross_match_sources</span>
+
+<span class="c1"># Associate measurements across epochs</span>
+<span class="n">associated_sources</span> <span class="o">=</span> <span class="n">associate_measurements</span><span class="p">(</span>
+    <span class="n">measurements_list</span><span class="p">,</span>
+    <span class="n">association_radius</span><span class="o">=</span><span class="n">Angle</span><span class="p">(</span><span class="s2">"5arcsec"</span><span class="p">),</span>
+    <span class="n">method</span><span class="o">=</span><span class="s2">"basic"</span>  <span class="c1"># or "advanced"</span>
+<span class="p">)</span>
+</code></pre></div>
+<hr/>
+<h2 id="summary">Summary<a class="headerlink" href="#summary" title="Permanent link">¶</a></h2>
+<h3 id="vast-pipeline-cross-matching-integration-patterns">VAST Pipeline Cross-Matching Integration Patterns<a class="headerlink" href="#vast-pipeline-cross-matching-integration-patterns" title="Permanent link">¶</a></h3>
+<ol>
+<li><strong>Source Association:</strong> Cross-matching to group detections into sources</li>
+<li><strong>Corrections:</strong> Cross-matching for astrometry/flux corrections</li>
+<li><strong>Database Storage:</strong> Cross-match results stored in database</li>
+<li><strong>Duplicate Detection:</strong> Self-matching to find duplicates</li>
+<li><strong>Config-Driven:</strong> All parameters in pipeline configuration</li>
+<li><strong>Modular Design:</strong> Reusable cross-matching functions</li>
+<li><strong>Robust Filtering:</strong> Multiple filtering steps and outlier rejection</li>
+</ol>
+<h3 id="key-takeaways-for-dsa-110">Key Takeaways for DSA-110<a class="headerlink" href="#key-takeaways-for-dsa-110" title="Permanent link">¶</a></h3>
+<ul>
+<li>✅ Create standalone cross-matching utility module</li>
+<li>✅ Integrate into pipeline stages (validation, corrections)</li>
+<li>✅ Store cross-match results in database</li>
+<li>✅ Use config-driven parameters</li>
+<li>✅ Support multiple matching methods (basic, advanced)</li>
+<li>✅ Implement robust filtering and outlier rejection</li>
+<li>✅ Track match quality and metadata</li>
+</ul>
+<hr/>
+<h2 id="related-documentation">Related Documentation<a class="headerlink" href="#related-documentation" title="Permanent link">¶</a></h2>
+<ul>
+<li><code>docs/reference/EXISTING_CROSS_MATCHING_TOOLS.md</code> - Current DSA-110 cross-matching tools</li>
+<li><code>docs/reference/EXTERNAL_CROSS_MATCHING_TOOLS_SURVEY.md</code> - External tool survey</li>
+<li><code>docs/reference/CATALOG_CROSS_MATCHING_GUIDE.md</code> - Cross-matching strategies</li>
+<li><code>docs/reference/CATALOG_USAGE_GUIDE.md</code> - General catalog usage guide</li>
+</ul>
+</article>
+</div>
+<script>var tabs=__md_get("__tabs");if(Array.isArray(tabs))e:for(var set of document.querySelectorAll(".tabbed-set")){var tab,labels=set.querySelector(".tabbed-labels");for(tab of tabs)for(var label of labels.getElementsByTagName("label"))if(label.innerText.trim()===tab){var input=document.getElementById(label.htmlFor);input.checked=!0;continue e}}</script>
+<script>var target=document.getElementById(location.hash.slice(1));target&&target.name&&(target.checked=target.name.startsWith("__tabbed_"))</script>
+</div>
+</main>
+<footer class="md-footer">
+<div class="md-footer-meta md-typeset">
+<div class="md-footer-meta__inner md-grid">
+<div class="md-copyright">
+  
+  
+    Made with
+    <a href="https://squidfunk.github.io/mkdocs-material/" rel="noopener" target="_blank">
+      Material for MkDocs
+    </a>
+</div>
+</div>
+</div>
+</footer>
+</div>
+<div class="md-dialog" data-md-component="dialog">
+<div class="md-dialog__inner md-typeset"></div>
+</div>
+<script id="__config" type="application/json">{"base": "../..", "features": ["navigation.sections", "navigation.indexes", "content.code.copy", "content.tabs.link"], "search": "../../assets/javascripts/workers/search.b8dbb3d2.min.js", "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}}</script>
+<script src="../../assets/javascripts/bundle.fe8b6f2b.min.js"></script>
+<script src="../../javascripts/mathjax.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+<script src="../../javascripts/mermaid-zoom.js"></script>
+</body>
+</html>

@@ -1,0 +1,1943 @@
+
+<!DOCTYPE html>
+
+<html class="no-js" lang="en">
+<head>
+<meta charset="utf-8"/>
+<meta content="width=device-width,initial-scale=1" name="viewport"/>
+<link href="http://code.deepsynoptic.org/dsa110-contimg/reference/backend_integration_snippets/" rel="canonical"/>
+<link href="../dashboard_pages_and_features/" rel="prev"/>
+<link href="../calibration-overview/" rel="next"/>
+<link href="../../assets/images/favicon.png" rel="icon"/>
+<meta content="mkdocs-1.6.1, mkdocs-material-9.5.31" name="generator"/>
+<title>Integration Snippets - DSA-110 Continuum Imaging Pipeline</title>
+<link href="../../assets/stylesheets/main.3cba04c6.min.css" rel="stylesheet"/>
+<link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect"/>
+<link href="https://fonts.googleapis.com/css?family=Roboto:300,300i,400,400i,700,700i%7CRoboto+Mono:400,400i,700,700i&amp;display=fallback" rel="stylesheet"/>
+<style>:root{--md-text-font:"Roboto";--md-code-font:"Roboto Mono"}</style>
+<link href="../../assets/_mkdocstrings.css" rel="stylesheet"/>
+<script>__md_scope=new URL("../..",location),__md_hash=e=>[...e].reduce((e,_)=>(e<<5)-e+_.charCodeAt(0),0),__md_get=(e,_=localStorage,t=__md_scope)=>JSON.parse(_.getItem(t.pathname+"."+e)),__md_set=(e,_,t=localStorage,a=__md_scope)=>{try{t.setItem(a.pathname+"."+e,JSON.stringify(_))}catch(e){}}</script>
+</head>
+<body dir="ltr">
+<input autocomplete="off" class="md-toggle" data-md-toggle="drawer" id="__drawer" type="checkbox"/>
+<input autocomplete="off" class="md-toggle" data-md-toggle="search" id="__search" type="checkbox"/>
+<label class="md-overlay" for="__drawer"></label>
+<div data-md-component="skip">
+<a class="md-skip" href="#backend-integration-code-snippets">
+          Skip to content
+        </a>
+</div>
+<div data-md-component="announce">
+</div>
+<header class="md-header md-header--shadow" data-md-component="header">
+<nav aria-label="Header" class="md-header__inner md-grid">
+<a aria-label="DSA-110 Continuum Imaging Pipeline" class="md-header__button md-logo" data-md-component="logo" href="../.." title="DSA-110 Continuum Imaging Pipeline">
+<svg viewbox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54Z"></path></svg>
+</a>
+<label class="md-header__button md-icon" for="__drawer">
+<svg viewbox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M3 6h18v2H3V6m0 5h18v2H3v-2m0 5h18v2H3v-2Z"></path></svg>
+</label>
+<div class="md-header__title" data-md-component="header-title">
+<div class="md-header__ellipsis">
+<div class="md-header__topic">
+<span class="md-ellipsis">
+            DSA-110 Continuum Imaging Pipeline
+          </span>
+</div>
+<div class="md-header__topic" data-md-component="header-topic">
+<span class="md-ellipsis">
+            
+              Integration Snippets
+            
+          </span>
+</div>
+</div>
+</div>
+<script>var media,input,key,value,palette=__md_get("__palette");if(palette&&palette.color){"(prefers-color-scheme)"===palette.color.media&&(media=matchMedia("(prefers-color-scheme: light)"),input=document.querySelector(media.matches?"[data-md-color-media='(prefers-color-scheme: light)']":"[data-md-color-media='(prefers-color-scheme: dark)']"),palette.color.media=input.getAttribute("data-md-color-media"),palette.color.scheme=input.getAttribute("data-md-color-scheme"),palette.color.primary=input.getAttribute("data-md-color-primary"),palette.color.accent=input.getAttribute("data-md-color-accent"));for([key,value]of Object.entries(palette.color))document.body.setAttribute("data-md-color-"+key,value)}</script>
+<label class="md-header__button md-icon" for="__search">
+<svg viewbox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.516 6.516 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5Z"></path></svg>
+</label>
+<div class="md-search" data-md-component="search" role="dialog">
+<label class="md-search__overlay" for="__search"></label>
+<div class="md-search__inner" role="search">
+<form class="md-search__form" name="search">
+<input aria-label="Search" autocapitalize="off" autocomplete="off" autocorrect="off" class="md-search__input" data-md-component="search-query" name="query" placeholder="Search" required="" spellcheck="false" type="text"/>
+<label class="md-search__icon md-icon" for="__search">
+<svg viewbox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.516 6.516 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5Z"></path></svg>
+<svg viewbox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11h12Z"></path></svg>
+</label>
+<nav aria-label="Search" class="md-search__options">
+<button aria-label="Clear" class="md-search__icon md-icon" tabindex="-1" title="Clear" type="reset">
+<svg viewbox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M19 6.41 17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12 19 6.41Z"></path></svg>
+</button>
+</nav>
+</form>
+<div class="md-search__output">
+<div class="md-search__scrollwrap" data-md-scrollfix="" tabindex="0">
+<div class="md-search-result" data-md-component="search-result">
+<div class="md-search-result__meta">
+            Initializing search
+          </div>
+<ol class="md-search-result__list" role="presentation"></ol>
+</div>
+</div>
+</div>
+</div>
+</div>
+<div class="md-header__source">
+<a class="md-source" data-md-component="source" href="https://github.com/dsa110/dsa110-contimg" title="Go to repository">
+<div class="md-source__icon md-icon">
+<svg viewbox="0 0 448 512" xmlns="http://www.w3.org/2000/svg"><!--! Font Awesome Free 6.6.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2024 Fonticons, Inc.--><path d="M439.55 236.05 244 40.45a28.87 28.87 0 0 0-40.81 0l-40.66 40.63 51.52 51.52c27.06-9.14 52.68 16.77 43.39 43.68l49.66 49.66c34.23-11.8 61.18 31 35.47 56.69-26.49 26.49-70.21-2.87-56-37.34L240.22 199v121.85c25.3 12.54 22.26 41.85 9.08 55a34.34 34.34 0 0 1-48.55 0c-17.57-17.6-11.07-46.91 11.25-56v-123c-20.8-8.51-24.6-30.74-18.64-45L142.57 101 8.45 235.14a28.86 28.86 0 0 0 0 40.81l195.61 195.6a28.86 28.86 0 0 0 40.8 0l194.69-194.69a28.86 28.86 0 0 0 0-40.81z"></path></svg>
+</div>
+<div class="md-source__repository">
+    GitHub
+  </div>
+</a>
+</div>
+</nav>
+</header>
+<div class="md-container" data-md-component="container">
+<main class="md-main" data-md-component="main">
+<div class="md-main__inner md-grid">
+<div class="md-sidebar md-sidebar--primary" data-md-component="sidebar" data-md-type="navigation">
+<div class="md-sidebar__scrollwrap">
+<div class="md-sidebar__inner">
+<nav aria-label="Navigation" class="md-nav md-nav--primary" data-md-level="0">
+<label class="md-nav__title" for="__drawer">
+<a aria-label="DSA-110 Continuum Imaging Pipeline" class="md-nav__button md-logo" data-md-component="logo" href="../.." title="DSA-110 Continuum Imaging Pipeline">
+<svg viewbox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54Z"></path></svg>
+</a>
+    DSA-110 Continuum Imaging Pipeline
+  </label>
+<div class="md-nav__source">
+<a class="md-source" data-md-component="source" href="https://github.com/dsa110/dsa110-contimg" title="Go to repository">
+<div class="md-source__icon md-icon">
+<svg viewbox="0 0 448 512" xmlns="http://www.w3.org/2000/svg"><!--! Font Awesome Free 6.6.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2024 Fonticons, Inc.--><path d="M439.55 236.05 244 40.45a28.87 28.87 0 0 0-40.81 0l-40.66 40.63 51.52 51.52c27.06-9.14 52.68 16.77 43.39 43.68l49.66 49.66c34.23-11.8 61.18 31 35.47 56.69-26.49 26.49-70.21-2.87-56-37.34L240.22 199v121.85c25.3 12.54 22.26 41.85 9.08 55a34.34 34.34 0 0 1-48.55 0c-17.57-17.6-11.07-46.91 11.25-56v-123c-20.8-8.51-24.6-30.74-18.64-45L142.57 101 8.45 235.14a28.86 28.86 0 0 0 0 40.81l195.61 195.6a28.86 28.86 0 0 0 40.8 0l194.69-194.69a28.86 28.86 0 0 0 0-40.81z"></path></svg>
+</div>
+<div class="md-source__repository">
+    GitHub
+  </div>
+</a>
+</div>
+<ul class="md-nav__list" data-md-scrollfix="">
+<li class="md-nav__item">
+<a class="md-nav__link" href="../..">
+<span class="md-ellipsis">
+    Home
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../DOCUMENTATION_QUICK_REFERENCE/">
+<span class="md-ellipsis">
+    Documentation Guide
+  </span>
+</a>
+</li>
+<li class="md-nav__item md-nav__item--section md-nav__item--nested">
+<input class="md-nav__toggle md-toggle" id="__nav_3" type="checkbox"/>
+<div class="md-nav__link md-nav__container">
+<a class="md-nav__link" href="../../concepts/">
+<span class="md-ellipsis">
+    Concepts
+  </span>
+</a>
+<label class="md-nav__link" for="__nav_3" id="__nav_3_label" tabindex="">
+<span class="md-nav__icon md-icon"></span>
+</label>
+</div>
+<nav aria-expanded="false" aria-labelledby="__nav_3_label" class="md-nav" data-md-level="1">
+<label class="md-nav__title" for="__nav_3">
+<span class="md-nav__icon md-icon"></span>
+            Concepts
+          </label>
+<ul class="md-nav__list" data-md-scrollfix="">
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../concepts/architecture/">
+<span class="md-ellipsis">
+    Architecture
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../concepts/DIRECTORY_ARCHITECTURE/">
+<span class="md-ellipsis">
+    Directory Architecture
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../concepts/modules/">
+<span class="md-ellipsis">
+    Modules
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../concepts/control-panel/">
+<span class="md-ellipsis">
+    Control Panel
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../concepts/aoflagger/">
+<span class="md-ellipsis">
+    AOFlagger
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../concepts/frontend_design/">
+<span class="md-ellipsis">
+    Frontend Design
+  </span>
+</a>
+</li>
+<li class="md-nav__item md-nav__item--nested">
+<input class="md-nav__toggle md-toggle" id="__nav_3_8" type="checkbox"/>
+<label class="md-nav__link" for="__nav_3_8" id="__nav_3_8_label" tabindex="0">
+<span class="md-ellipsis">
+    Dashboard
+  </span>
+<span class="md-nav__icon md-icon"></span>
+</label>
+<nav aria-expanded="false" aria-labelledby="__nav_3_8_label" class="md-nav" data-md-level="2">
+<label class="md-nav__title" for="__nav_3_8">
+<span class="md-nav__icon md-icon"></span>
+            Dashboard
+          </label>
+<ul class="md-nav__list" data-md-scrollfix="">
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../concepts/dashboard_mockups/">
+<span class="md-ellipsis">
+    Mockups
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../SKYVIEW_IMPLEMENTATION_PLAN/">
+<span class="md-ellipsis">
+    Sky View
+  </span>
+</a>
+</li>
+</ul>
+</nav>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../concepts/GLOSSARY/">
+<span class="md-ellipsis">
+    Glossary
+  </span>
+</a>
+</li>
+<li class="md-nav__item md-nav__item--nested">
+<input class="md-nav__toggle md-toggle" id="__nav_3_10" type="checkbox"/>
+<label class="md-nav__link" for="__nav_3_10" id="__nav_3_10_label" tabindex="0">
+<span class="md-ellipsis">
+    Pipeline
+  </span>
+<span class="md-nav__icon md-icon"></span>
+</label>
+<nav aria-expanded="false" aria-labelledby="__nav_3_10_label" class="md-nav" data-md-level="2">
+<label class="md-nav__title" for="__nav_3_10">
+<span class="md-nav__icon md-icon"></span>
+            Pipeline
+          </label>
+<ul class="md-nav__list" data-md-scrollfix="">
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../concepts/pipeline_overview/">
+<span class="md-ellipsis">
+    Overview
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../concepts/pipeline_stage_architecture/">
+<span class="md-ellipsis">
+    Stage Architecture
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../concepts/pipeline_workflow_visualization/">
+<span class="md-ellipsis">
+    Workflow Visualization
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../concepts/pipeline_production_features/">
+<span class="md-ellipsis">
+    Production Features
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../concepts/pipeline_patterns/">
+<span class="md-ellipsis">
+    Patterns
+  </span>
+</a>
+</li>
+</ul>
+</nav>
+</li>
+<li class="md-nav__item md-nav__item--nested">
+<input class="md-nav__toggle md-toggle" id="__nav_3_11" type="checkbox"/>
+<label class="md-nav__link" for="__nav_3_11" id="__nav_3_11_label" tabindex="0">
+<span class="md-ellipsis">
+    Science
+  </span>
+<span class="md-nav__icon md-icon"></span>
+</label>
+<nav aria-expanded="false" aria-labelledby="__nav_3_11_label" class="md-nav" data-md-level="2">
+<label class="md-nav__title" for="__nav_3_11">
+<span class="md-nav__icon md-icon"></span>
+            Science
+          </label>
+<ul class="md-nav__list" data-md-scrollfix="">
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../concepts/science/photometry_normalization/">
+<span class="md-ellipsis">
+    Photometry Normalization
+  </span>
+</a>
+</li>
+</ul>
+</nav>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../concepts/mcp_browser_server_setup/">
+<span class="md-ellipsis">
+    Browser MCP Server
+  </span>
+</a>
+</li>
+</ul>
+</nav>
+</li>
+<li class="md-nav__item md-nav__item--section md-nav__item--nested">
+<input class="md-nav__toggle md-toggle" id="__nav_4" type="checkbox"/>
+<label class="md-nav__link" for="__nav_4" id="__nav_4_label" tabindex="">
+<span class="md-ellipsis">
+    Tutorials
+  </span>
+<span class="md-nav__icon md-icon"></span>
+</label>
+<nav aria-expanded="false" aria-labelledby="__nav_4_label" class="md-nav" data-md-level="1">
+<label class="md-nav__title" for="__nav_4">
+<span class="md-nav__icon md-icon"></span>
+            Tutorials
+          </label>
+<ul class="md-nav__list" data-md-scrollfix="">
+<li class="md-nav__item md-nav__item--nested">
+<input class="md-nav__toggle md-toggle" id="__nav_4_1" type="checkbox"/>
+<label class="md-nav__link" for="__nav_4_1" id="__nav_4_1_label" tabindex="0">
+<span class="md-ellipsis">
+    Conversion
+  </span>
+<span class="md-nav__icon md-icon"></span>
+</label>
+<nav aria-expanded="false" aria-labelledby="__nav_4_1_label" class="md-nav" data-md-level="2">
+<label class="md-nav__title" for="__nav_4_1">
+<span class="md-nav__icon md-icon"></span>
+            Conversion
+          </label>
+<ul class="md-nav__list" data-md-scrollfix="">
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../tutorials/HDF5_TO_MS_TUTORIAL/">
+<span class="md-ellipsis">
+    HDF5 to MS
+  </span>
+</a>
+</li>
+</ul>
+</nav>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../tutorials/simulation-tutorial/">
+<span class="md-ellipsis">
+    Simulation
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../tutorials/calibrate-apply/">
+<span class="md-ellipsis">
+    Calibrate and Apply
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../tutorials/convert-standalone/">
+<span class="md-ellipsis">
+    Convert Standalone
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../tutorials/streaming/">
+<span class="md-ellipsis">
+    Streaming
+  </span>
+</a>
+</li>
+<li class="md-nav__item md-nav__item--nested">
+<input class="md-nav__toggle md-toggle" id="__nav_4_6" type="checkbox"/>
+<label class="md-nav__link" for="__nav_4_6" id="__nav_4_6_label" tabindex="0">
+<span class="md-ellipsis">
+    Notebooks
+  </span>
+<span class="md-nav__icon md-icon"></span>
+</label>
+<nav aria-expanded="false" aria-labelledby="__nav_4_6_label" class="md-nav" data-md-level="2">
+<label class="md-nav__title" for="__nav_4_6">
+<span class="md-nav__icon md-icon"></span>
+            Notebooks
+          </label>
+<ul class="md-nav__list" data-md-scrollfix="">
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../tutorials/notebooks/bandpass_calibration_test.ipynb">
+<span class="md-ellipsis">
+    Bandpass Calibration Test
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../tutorials/notebooks/calibrator_helper.py">
+<span class="md-ellipsis">
+    Calibrator Helper
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../tutorials/notebooks/CalibratorSearch.ipynb">
+<span class="md-ellipsis">
+    Calibrator Search
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../tutorials/notebooks/ms_staging_workflow.ipynb">
+<span class="md-ellipsis">
+    MS Staging Workflow
+  </span>
+</a>
+</li>
+</ul>
+</nav>
+</li>
+</ul>
+</nav>
+</li>
+<li class="md-nav__item md-nav__item--section md-nav__item--nested">
+<input class="md-nav__toggle md-toggle" id="__nav_5" type="checkbox"/>
+<label class="md-nav__link" for="__nav_5" id="__nav_5_label" tabindex="">
+<span class="md-ellipsis">
+    How-To Guides
+  </span>
+<span class="md-nav__icon md-icon"></span>
+</label>
+<nav aria-expanded="false" aria-labelledby="__nav_5_label" class="md-nav" data-md-level="1">
+<label class="md-nav__title" for="__nav_5">
+<span class="md-nav__icon md-icon"></span>
+            How-To Guides
+          </label>
+<ul class="md-nav__list" data-md-scrollfix="">
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../how-to/github_pages_walkthrough/">
+<span class="md-ellipsis">
+    GitHub Pages Setup
+  </span>
+</a>
+</li>
+<li class="md-nav__item md-nav__item--nested">
+<input class="md-nav__toggle md-toggle" id="__nav_5_2" type="checkbox"/>
+<label class="md-nav__link" for="__nav_5_2" id="__nav_5_2_label" tabindex="0">
+<span class="md-ellipsis">
+    Quickstarts
+  </span>
+<span class="md-nav__icon md-icon"></span>
+</label>
+<nav aria-expanded="false" aria-labelledby="__nav_5_2_label" class="md-nav" data-md-level="2">
+<label class="md-nav__title" for="__nav_5_2">
+<span class="md-nav__icon md-icon"></span>
+            Quickstarts
+          </label>
+<ul class="md-nav__list" data-md-scrollfix="">
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../how-to/quickstart/">
+<span class="md-ellipsis">
+    General
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../how-to/control-panel-quickstart/">
+<span class="md-ellipsis">
+    Control Panel
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../how-to/LINEAR_SETUP_QUICKSTART/">
+<span class="md-ellipsis">
+    Linear Setup
+  </span>
+</a>
+</li>
+</ul>
+</nav>
+</li>
+<li class="md-nav__item md-nav__item--nested">
+<input class="md-nav__toggle md-toggle" id="__nav_5_3" type="checkbox"/>
+<label class="md-nav__link" for="__nav_5_3" id="__nav_5_3_label" tabindex="0">
+<span class="md-ellipsis">
+    Testing
+  </span>
+<span class="md-nav__icon md-icon"></span>
+</label>
+<nav aria-expanded="false" aria-labelledby="__nav_5_3_label" class="md-nav" data-md-level="2">
+<label class="md-nav__title" for="__nav_5_3">
+<span class="md-nav__icon md-icon"></span>
+            Testing
+          </label>
+<ul class="md-nav__list" data-md-scrollfix="">
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../how-to/FAST_TESTING/">
+<span class="md-ellipsis">
+    Fast Testing
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../how-to/PIPELINE_TESTING_GUIDE/">
+<span class="md-ellipsis">
+    Pipeline Guide
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../how-to/TEST_FLAG_SUBCOMMAND/">
+<span class="md-ellipsis">
+    Flag Subcommand
+  </span>
+</a>
+</li>
+</ul>
+</nav>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../how-to/build-vp-from-h5/">
+<span class="md-ellipsis">
+    Build VP from h5
+  </span>
+</a>
+</li>
+<li class="md-nav__item md-nav__item--nested">
+<input class="md-nav__toggle md-toggle" id="__nav_5_5" type="checkbox"/>
+<label class="md-nav__link" for="__nav_5_5" id="__nav_5_5_label" tabindex="0">
+<span class="md-ellipsis">
+    Calibration
+  </span>
+<span class="md-nav__icon md-icon"></span>
+</label>
+<nav aria-expanded="false" aria-labelledby="__nav_5_5_label" class="md-nav" data-md-level="2">
+<label class="md-nav__title" for="__nav_5_5">
+<span class="md-nav__icon md-icon"></span>
+            Calibration
+          </label>
+<ul class="md-nav__list" data-md-scrollfix="">
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../how-to/CALIBRATION_DETAILED_PROCEDURE/">
+<span class="md-ellipsis">
+    Detailed Procedure
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../how-to/FIND_CALIBRATOR_TRANSIT_DATA/">
+<span class="md-ellipsis">
+    Find Calibrator Transit
+  </span>
+</a>
+</li>
+</ul>
+</nav>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../how-to/IMAGE_0834_TRANSIT_5MIN/">
+<span class="md-ellipsis">
+    Image 0834 Transit 5min
+  </span>
+</a>
+</li>
+<li class="md-nav__item md-nav__item--nested">
+<input class="md-nav__toggle md-toggle" id="__nav_5_7" type="checkbox"/>
+<label class="md-nav__link" for="__nav_5_7" id="__nav_5_7_label" tabindex="0">
+<span class="md-ellipsis">
+    Mosaic
+  </span>
+<span class="md-nav__icon md-icon"></span>
+</label>
+<nav aria-expanded="false" aria-labelledby="__nav_5_7_label" class="md-nav" data-md-level="2">
+<label class="md-nav__title" for="__nav_5_7">
+<span class="md-nav__icon md-icon"></span>
+            Mosaic
+          </label>
+<ul class="md-nav__list" data-md-scrollfix="">
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../how-to/mosaic_quickstart/">
+<span class="md-ellipsis">
+    Quickstart
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../how-to/mosaic/">
+<span class="md-ellipsis">
+    Complete Guide
+  </span>
+</a>
+</li>
+</ul>
+</nav>
+</li>
+<li class="md-nav__item md-nav__item--nested">
+<input class="md-nav__toggle md-toggle" id="__nav_5_8" type="checkbox"/>
+<label class="md-nav__link" for="__nav_5_8" id="__nav_5_8_label" tabindex="0">
+<span class="md-ellipsis">
+    Quality Assurance
+  </span>
+<span class="md-nav__icon md-icon"></span>
+</label>
+<nav aria-expanded="false" aria-labelledby="__nav_5_8_label" class="md-nav" data-md-level="2">
+<label class="md-nav__title" for="__nav_5_8">
+<span class="md-nav__icon md-icon"></span>
+            Quality Assurance
+          </label>
+<ul class="md-nav__list" data-md-scrollfix="">
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../how-to/QUALITY_ASSURANCE_SETUP/">
+<span class="md-ellipsis">
+    Setup
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../how-to/quicklook/">
+<span class="md-ellipsis">
+    Quick Look
+  </span>
+</a>
+</li>
+</ul>
+</nav>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../how-to/reprocess/">
+<span class="md-ellipsis">
+    Reprocess
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../how-to/USING_ORCHESTRATOR_CLI/">
+<span class="md-ellipsis">
+    Using Orchestrator CLI
+  </span>
+</a>
+</li>
+<li class="md-nav__item md-nav__item--nested">
+<input class="md-nav__toggle md-toggle" id="__nav_5_11" type="checkbox"/>
+<label class="md-nav__link" for="__nav_5_11" id="__nav_5_11_label" tabindex="0">
+<span class="md-ellipsis">
+    Dashboard
+  </span>
+<span class="md-nav__icon md-icon"></span>
+</label>
+<nav aria-expanded="false" aria-labelledby="__nav_5_11_label" class="md-nav" data-md-level="2">
+<label class="md-nav__title" for="__nav_5_11">
+<span class="md-nav__icon md-icon"></span>
+            Dashboard
+          </label>
+<ul class="md-nav__list" data-md-scrollfix="">
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../how-to/dashboard-development/">
+<span class="md-ellipsis">
+    Development
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../how-to/dashboard-quickstart/">
+<span class="md-ellipsis">
+    Quickstart
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../how-to/dashboard_testing/">
+<span class="md-ellipsis">
+    Testing
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../how-to/dashboard_development_workflow/">
+<span class="md-ellipsis">
+    Development Workflow
+  </span>
+</a>
+</li>
+</ul>
+</nav>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../how-to/LINEAR_INTEGRATION/">
+<span class="md-ellipsis">
+    Linear Integration
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../how-to/frontend-initial-setup/">
+<span class="md-ellipsis">
+    Frontend Initial Setup
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../how-to/PARAMETER_OPTIMIZATION_GUIDE/">
+<span class="md-ellipsis">
+    AOFlagger Parameter Optimization
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../how-to/downsampling_guide/">
+<span class="md-ellipsis">
+    Downsampling Guide
+  </span>
+</a>
+</li>
+<li class="md-nav__item md-nav__item--nested">
+<input class="md-nav__toggle md-toggle" id="__nav_5_16" type="checkbox"/>
+<label class="md-nav__link" for="__nav_5_16" id="__nav_5_16_label" tabindex="0">
+<span class="md-ellipsis">
+    Conversion
+  </span>
+<span class="md-nav__icon md-icon"></span>
+</label>
+<nav aria-expanded="false" aria-labelledby="__nav_5_16_label" class="md-nav" data-md-level="2">
+<label class="md-nav__title" for="__nav_5_16">
+<span class="md-nav__icon md-icon"></span>
+            Conversion
+          </label>
+<ul class="md-nav__list" data-md-scrollfix="">
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../how-to/uvh5_to_ms_conversion/">
+<span class="md-ellipsis">
+    UVH5 to MS
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../how-to/streaming_converter_guide/">
+<span class="md-ellipsis">
+    Streaming Converter
+  </span>
+</a>
+</li>
+</ul>
+</nav>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../how-to/troubleshooting/">
+<span class="md-ellipsis">
+    Troubleshooting
+  </span>
+</a>
+</li>
+</ul>
+</nav>
+</li>
+<li class="md-nav__item md-nav__item--active md-nav__item--section md-nav__item--nested">
+<input checked="" class="md-nav__toggle md-toggle" id="__nav_6" type="checkbox"/>
+<label class="md-nav__link" for="__nav_6" id="__nav_6_label" tabindex="">
+<span class="md-ellipsis">
+    Reference
+  </span>
+<span class="md-nav__icon md-icon"></span>
+</label>
+<nav aria-expanded="true" aria-labelledby="__nav_6_label" class="md-nav" data-md-level="1">
+<label class="md-nav__title" for="__nav_6">
+<span class="md-nav__icon md-icon"></span>
+            Reference
+          </label>
+<ul class="md-nav__list" data-md-scrollfix="">
+<li class="md-nav__item md-nav__item--active md-nav__item--nested">
+<input checked="" class="md-nav__toggle md-toggle" id="__nav_6_1" type="checkbox"/>
+<label class="md-nav__link" for="__nav_6_1" id="__nav_6_1_label" tabindex="0">
+<span class="md-ellipsis">
+    API
+  </span>
+<span class="md-nav__icon md-icon"></span>
+</label>
+<nav aria-expanded="true" aria-labelledby="__nav_6_1_label" class="md-nav" data-md-level="2">
+<label class="md-nav__title" for="__nav_6_1">
+<span class="md-nav__icon md-icon"></span>
+            API
+          </label>
+<ul class="md-nav__list" data-md-scrollfix="">
+<li class="md-nav__item">
+<a class="md-nav__link" href="../api-endpoints/">
+<span class="md-ellipsis">
+    Endpoints
+  </span>
+</a>
+</li>
+<li class="md-nav__item md-nav__item--nested">
+<input class="md-nav__toggle md-toggle" id="__nav_6_1_2" type="checkbox"/>
+<label class="md-nav__link" for="__nav_6_1_2" id="__nav_6_1_2_label" tabindex="0">
+<span class="md-ellipsis">
+    Dashboard
+  </span>
+<span class="md-nav__icon md-icon"></span>
+</label>
+<nav aria-expanded="false" aria-labelledby="__nav_6_1_2_label" class="md-nav" data-md-level="3">
+<label class="md-nav__title" for="__nav_6_1_2">
+<span class="md-nav__icon md-icon"></span>
+            Dashboard
+          </label>
+<ul class="md-nav__list" data-md-scrollfix="">
+<li class="md-nav__item">
+<a class="md-nav__link" href="../dashboard_backend_api/">
+<span class="md-ellipsis">
+    API Reference
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../dashboard_pages_and_features/">
+<span class="md-ellipsis">
+    Pages &amp; Features
+  </span>
+</a>
+</li>
+</ul>
+</nav>
+</li>
+<li class="md-nav__item md-nav__item--active">
+<input class="md-nav__toggle md-toggle" id="__toc" type="checkbox"/>
+<label class="md-nav__link md-nav__link--active" for="__toc">
+<span class="md-ellipsis">
+    Integration Snippets
+  </span>
+<span class="md-nav__icon md-icon"></span>
+</label>
+<a class="md-nav__link md-nav__link--active" href="./">
+<span class="md-ellipsis">
+    Integration Snippets
+  </span>
+</a>
+<nav aria-label="Table of contents" class="md-nav md-nav--secondary">
+<label class="md-nav__title" for="__toc">
+<span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+<ul class="md-nav__list" data-md-component="toc" data-md-scrollfix="">
+<li class="md-nav__item">
+<a class="md-nav__link" href="#1-slack-alert-integration">
+<span class="md-ellipsis">
+      1. Slack Alert Integration
+    </span>
+</a>
+<nav aria-label="1. Slack Alert Integration" class="md-nav">
+<ul class="md-nav__list">
+<li class="md-nav__item">
+<a class="md-nav__link" href="#environment-configuration">
+<span class="md-ellipsis">
+      Environment Configuration
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#alert-module-srcdsa110_contimgalertsslackpy">
+<span class="md-ellipsis">
+      Alert Module (src/dsa110_contimg/alerts/slack.py)
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#integration-in-photometry-pipeline">
+<span class="md-ellipsis">
+      Integration in Photometry Pipeline
+    </span>
+</a>
+</li>
+</ul>
+</nav>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#2-mosaic-query-api">
+<span class="md-ellipsis">
+      2. Mosaic Query API
+    </span>
+</a>
+<nav aria-label="2. Mosaic Query API" class="md-nav">
+<ul class="md-nav__list">
+<li class="md-nav__item">
+<a class="md-nav__link" href="#api-route-srcdsa110_contimgapiroutespy">
+<span class="md-ellipsis">
+      API Route (src/dsa110_contimg/api/routes.py)
+    </span>
+</a>
+</li>
+</ul>
+</nav>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#3-ese-candidate-api-enhancements">
+<span class="md-ellipsis">
+      3. ESE Candidate API Enhancements
+    </span>
+</a>
+<nav aria-label="3. ESE Candidate API Enhancements" class="md-nav">
+<ul class="md-nav__list">
+<li class="md-nav__item">
+<a class="md-nav__link" href="#new-endpoint-for-active-alerts">
+<span class="md-ellipsis">
+      New Endpoint for Active Alerts
+    </span>
+</a>
+</li>
+</ul>
+</nav>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#4-vo-cone-search-endpoint-phase-3">
+<span class="md-ellipsis">
+      4. VO Cone Search Endpoint (Phase 3)
+    </span>
+</a>
+<nav aria-label="4. VO Cone Search Endpoint (Phase 3)" class="md-nav">
+<ul class="md-nav__list">
+<li class="md-nav__item">
+<a class="md-nav__link" href="#simple-cone-search-implementation">
+<span class="md-ellipsis">
+      Simple Cone Search Implementation
+    </span>
+</a>
+</li>
+</ul>
+</nav>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#5-database-schema-updates">
+<span class="md-ellipsis">
+      5. Database Schema Updates
+    </span>
+</a>
+<nav aria-label="5. Database Schema Updates" class="md-nav">
+<ul class="md-nav__list">
+<li class="md-nav__item">
+<a class="md-nav__link" href="#add-columns-to-support-new-features">
+<span class="md-ellipsis">
+      Add columns to support new features
+    </span>
+</a>
+</li>
+</ul>
+</nav>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#6-frontend-environment-configuration">
+<span class="md-ellipsis">
+      6. Frontend Environment Configuration
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#testing">
+<span class="md-ellipsis">
+      Testing
+    </span>
+</a>
+<nav aria-label="Testing" class="md-nav">
+<ul class="md-nav__list">
+<li class="md-nav__item">
+<a class="md-nav__link" href="#example-slack-alert-test">
+<span class="md-ellipsis">
+      Example Slack Alert Test
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#example-mosaic-query-test">
+<span class="md-ellipsis">
+      Example Mosaic Query Test
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#example-ese-candidates-test">
+<span class="md-ellipsis">
+      Example ESE Candidates Test
+    </span>
+</a>
+</li>
+</ul>
+</nav>
+</li>
+</ul>
+</nav>
+</li>
+</ul>
+</nav>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../calibration-overview/">
+<span class="md-ellipsis">
+    Calibration Overview
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../cli/">
+<span class="md-ellipsis">
+    CLI
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../control-panel-cheatsheet/">
+<span class="md-ellipsis">
+    Control Panel Cheatsheet
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../database_schema/">
+<span class="md-ellipsis">
+    Database Schema
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../env/">
+<span class="md-ellipsis">
+    Environment Variables
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../CRITICAL_PYTHON_ENVIRONMENT/">
+<span class="md-ellipsis">
+    Critical Python Environment
+  </span>
+</a>
+</li>
+<li class="md-nav__item md-nav__item--nested">
+<input class="md-nav__toggle md-toggle" id="__nav_6_8" type="checkbox"/>
+<label class="md-nav__link" for="__nav_6_8" id="__nav_6_8_label" tabindex="0">
+<span class="md-ellipsis">
+    Optimizations
+  </span>
+<span class="md-nav__icon md-icon"></span>
+</label>
+<nav aria-expanded="false" aria-labelledby="__nav_6_8_label" class="md-nav" data-md-level="2">
+<label class="md-nav__title" for="__nav_6_8">
+<span class="md-nav__icon md-icon"></span>
+            Optimizations
+          </label>
+<ul class="md-nav__list" data-md-scrollfix="">
+<li class="md-nav__item">
+<a class="md-nav__link" href="../optimizations/OPTIMIZATION_API/">
+<span class="md-ellipsis">
+    API
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../optimizations/PROFILING_GUIDE/">
+<span class="md-ellipsis">
+    Profiling Guide
+  </span>
+</a>
+</li>
+</ul>
+</nav>
+</li>
+</ul>
+</nav>
+</li>
+<li class="md-nav__item md-nav__item--section md-nav__item--nested">
+<input class="md-nav__toggle md-toggle" id="__nav_7" type="checkbox"/>
+<label class="md-nav__link" for="__nav_7" id="__nav_7_label" tabindex="">
+<span class="md-ellipsis">
+    Operations
+  </span>
+<span class="md-nav__icon md-icon"></span>
+</label>
+<nav aria-expanded="false" aria-labelledby="__nav_7_label" class="md-nav" data-md-level="1">
+<label class="md-nav__title" for="__nav_7">
+<span class="md-nav__icon md-icon"></span>
+            Operations
+          </label>
+<ul class="md-nav__list" data-md-scrollfix="">
+<li class="md-nav__item md-nav__item--nested">
+<input class="md-nav__toggle md-toggle" id="__nav_7_1" type="checkbox"/>
+<label class="md-nav__link" for="__nav_7_1" id="__nav_7_1_label" tabindex="0">
+<span class="md-ellipsis">
+    Deployment
+  </span>
+<span class="md-nav__icon md-icon"></span>
+</label>
+<nav aria-expanded="false" aria-labelledby="__nav_7_1_label" class="md-nav" data-md-level="2">
+<label class="md-nav__title" for="__nav_7_1">
+<span class="md-nav__icon md-icon"></span>
+            Deployment
+          </label>
+<ul class="md-nav__list" data-md-scrollfix="">
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../operations/deploy-docker/">
+<span class="md-ellipsis">
+    Docker
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../operations/deploy-systemd/">
+<span class="md-ellipsis">
+    systemd
+  </span>
+</a>
+</li>
+</ul>
+</nav>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../operations/port-management/">
+<span class="md-ellipsis">
+    Port Management
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../operations/refant_quick_reference/">
+<span class="md-ellipsis">
+    Refant Quick Reference
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../operations/service_restart_fix/">
+<span class="md-ellipsis">
+    Service Restart Fix
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../operations/systemd-migration/">
+<span class="md-ellipsis">
+    Systemd Migration
+  </span>
+</a>
+</li>
+</ul>
+</nav>
+</li>
+<li class="md-nav__item md-nav__item--section md-nav__item--nested">
+<input class="md-nav__toggle md-toggle" id="__nav_8" type="checkbox"/>
+<div class="md-nav__link md-nav__container">
+<a class="md-nav__link" href="../../contributing/">
+<span class="md-ellipsis">
+    Contributing
+  </span>
+</a>
+<label class="md-nav__link" for="__nav_8" id="__nav_8_label" tabindex="">
+<span class="md-nav__icon md-icon"></span>
+</label>
+</div>
+<nav aria-expanded="false" aria-labelledby="__nav_8_label" class="md-nav" data-md-level="1">
+<label class="md-nav__title" for="__nav_8">
+<span class="md-nav__icon md-icon"></span>
+            Contributing
+          </label>
+<ul class="md-nav__list" data-md-scrollfix="">
+<li class="md-nav__item md-nav__item--nested">
+<input class="md-nav__toggle md-toggle" id="__nav_8_2" type="checkbox"/>
+<label class="md-nav__link" for="__nav_8_2" id="__nav_8_2_label" tabindex="0">
+<span class="md-ellipsis">
+    Archive
+  </span>
+<span class="md-nav__icon md-icon"></span>
+</label>
+<nav aria-expanded="false" aria-labelledby="__nav_8_2_label" class="md-nav" data-md-level="2">
+<label class="md-nav__title" for="__nav_8_2">
+<span class="md-nav__icon md-icon"></span>
+            Archive
+          </label>
+<ul class="md-nav__list" data-md-scrollfix="">
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../contributing/archive/CONTRIBUTING_TODO/">
+<span class="md-ellipsis">
+    Contributing to TODO
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../contributing/archive/rules/">
+<span class="md-ellipsis">
+    Rules
+  </span>
+</a>
+</li>
+</ul>
+</nav>
+</li>
+</ul>
+</nav>
+</li>
+</ul>
+</nav>
+</div>
+</div>
+</div>
+<div class="md-sidebar md-sidebar--secondary" data-md-component="sidebar" data-md-type="toc">
+<div class="md-sidebar__scrollwrap">
+<div class="md-sidebar__inner">
+<nav aria-label="Table of contents" class="md-nav md-nav--secondary">
+<label class="md-nav__title" for="__toc">
+<span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+<ul class="md-nav__list" data-md-component="toc" data-md-scrollfix="">
+<li class="md-nav__item">
+<a class="md-nav__link" href="#1-slack-alert-integration">
+<span class="md-ellipsis">
+      1. Slack Alert Integration
+    </span>
+</a>
+<nav aria-label="1. Slack Alert Integration" class="md-nav">
+<ul class="md-nav__list">
+<li class="md-nav__item">
+<a class="md-nav__link" href="#environment-configuration">
+<span class="md-ellipsis">
+      Environment Configuration
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#alert-module-srcdsa110_contimgalertsslackpy">
+<span class="md-ellipsis">
+      Alert Module (src/dsa110_contimg/alerts/slack.py)
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#integration-in-photometry-pipeline">
+<span class="md-ellipsis">
+      Integration in Photometry Pipeline
+    </span>
+</a>
+</li>
+</ul>
+</nav>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#2-mosaic-query-api">
+<span class="md-ellipsis">
+      2. Mosaic Query API
+    </span>
+</a>
+<nav aria-label="2. Mosaic Query API" class="md-nav">
+<ul class="md-nav__list">
+<li class="md-nav__item">
+<a class="md-nav__link" href="#api-route-srcdsa110_contimgapiroutespy">
+<span class="md-ellipsis">
+      API Route (src/dsa110_contimg/api/routes.py)
+    </span>
+</a>
+</li>
+</ul>
+</nav>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#3-ese-candidate-api-enhancements">
+<span class="md-ellipsis">
+      3. ESE Candidate API Enhancements
+    </span>
+</a>
+<nav aria-label="3. ESE Candidate API Enhancements" class="md-nav">
+<ul class="md-nav__list">
+<li class="md-nav__item">
+<a class="md-nav__link" href="#new-endpoint-for-active-alerts">
+<span class="md-ellipsis">
+      New Endpoint for Active Alerts
+    </span>
+</a>
+</li>
+</ul>
+</nav>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#4-vo-cone-search-endpoint-phase-3">
+<span class="md-ellipsis">
+      4. VO Cone Search Endpoint (Phase 3)
+    </span>
+</a>
+<nav aria-label="4. VO Cone Search Endpoint (Phase 3)" class="md-nav">
+<ul class="md-nav__list">
+<li class="md-nav__item">
+<a class="md-nav__link" href="#simple-cone-search-implementation">
+<span class="md-ellipsis">
+      Simple Cone Search Implementation
+    </span>
+</a>
+</li>
+</ul>
+</nav>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#5-database-schema-updates">
+<span class="md-ellipsis">
+      5. Database Schema Updates
+    </span>
+</a>
+<nav aria-label="5. Database Schema Updates" class="md-nav">
+<ul class="md-nav__list">
+<li class="md-nav__item">
+<a class="md-nav__link" href="#add-columns-to-support-new-features">
+<span class="md-ellipsis">
+      Add columns to support new features
+    </span>
+</a>
+</li>
+</ul>
+</nav>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#6-frontend-environment-configuration">
+<span class="md-ellipsis">
+      6. Frontend Environment Configuration
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#testing">
+<span class="md-ellipsis">
+      Testing
+    </span>
+</a>
+<nav aria-label="Testing" class="md-nav">
+<ul class="md-nav__list">
+<li class="md-nav__item">
+<a class="md-nav__link" href="#example-slack-alert-test">
+<span class="md-ellipsis">
+      Example Slack Alert Test
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#example-mosaic-query-test">
+<span class="md-ellipsis">
+      Example Mosaic Query Test
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#example-ese-candidates-test">
+<span class="md-ellipsis">
+      Example ESE Candidates Test
+    </span>
+</a>
+</li>
+</ul>
+</nav>
+</li>
+</ul>
+</nav>
+</div>
+</div>
+</div>
+<div class="md-content" data-md-component="content">
+<article class="md-content__inner md-typeset">
+<h1 id="backend-integration-code-snippets">Backend Integration Code Snippets<a class="headerlink" href="#backend-integration-code-snippets" title="Permanent link">¶</a></h1>
+<p>Implementation examples for new front-end features integrated with the existing FastAPI backend.</p>
+<hr/>
+<h2 id="1-slack-alert-integration">1. Slack Alert Integration<a class="headerlink" href="#1-slack-alert-integration" title="Permanent link">¶</a></h2>
+<h3 id="environment-configuration">Environment Configuration<a class="headerlink" href="#environment-configuration" title="Permanent link">¶</a></h3>
+<p>Add to <code>ops/systemd/contimg.env</code>:
+<div class="highlight"><pre><span></span><code><span class="nv">SLACK_WEBHOOK_URL</span><span class="o">=</span>https://hooks.slack.com/services/YOUR/WEBHOOK/HERE
+<span class="nv">SLACK_ALERT_CHANNEL</span><span class="o">=</span><span class="c1">#dsa110-alerts</span>
+<span class="nv">ALERT_RATE_LIMIT_SECONDS</span><span class="o">=</span><span class="m">3600</span>
+<span class="nv">ESE_THRESHOLD_SIGMA</span><span class="o">=</span><span class="m">5</span>.0
+</code></pre></div></p>
+<h3 id="alert-module-srcdsa110_contimgalertsslackpy">Alert Module (<code>src/dsa110_contimg/alerts/slack.py</code>)<a class="headerlink" href="#alert-module-srcdsa110_contimgalertsslackpy" title="Permanent link">¶</a></h3>
+<div class="highlight"><pre><span></span><code><span class="sd">"""Slack notification system for ESE candidates and system alerts."""</span>
+
+<span class="kn">import</span><span class="w"> </span><span class="nn">os</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">time</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">json</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">typing</span><span class="w"> </span><span class="kn">import</span> <span class="n">Dict</span><span class="p">,</span> <span class="n">Optional</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">datetime</span><span class="w"> </span><span class="kn">import</span> <span class="n">datetime</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">requests</span>
+
+<span class="c1"># In-memory cache for rate limiting (production: use Redis)</span>
+<span class="n">_alert_cache</span><span class="p">:</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">float</span><span class="p">]</span> <span class="o">=</span> <span class="p">{}</span>
+
+<span class="k">def</span><span class="w"> </span><span class="nf">send_ese_alert</span><span class="p">(</span>
+    <span class="n">source_id</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
+    <span class="n">nvss_id</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
+    <span class="n">significance_sigma</span><span class="p">:</span> <span class="nb">float</span><span class="p">,</span>
+    <span class="n">flux_change_pct</span><span class="p">:</span> <span class="nb">float</span><span class="p">,</span>
+    <span class="n">flux_old_mjy</span><span class="p">:</span> <span class="nb">float</span><span class="p">,</span>
+    <span class="n">flux_new_mjy</span><span class="p">:</span> <span class="nb">float</span><span class="p">,</span>
+    <span class="n">obs_time_utc</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
+    <span class="n">source_url</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
+<span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">bool</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">"""Send ESE candidate alert to Slack.</span>
+
+<span class="sd">    Returns:</span>
+<span class="sd">        True if alert sent successfully, False if rate-limited or error</span>
+<span class="sd">    """</span>
+    <span class="n">webhook_url</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">getenv</span><span class="p">(</span><span class="s1">'SLACK_WEBHOOK_URL'</span><span class="p">)</span>
+    <span class="k">if</span> <span class="ow">not</span> <span class="n">webhook_url</span><span class="p">:</span>
+        <span class="k">return</span> <span class="kc">False</span>
+
+    <span class="c1"># Rate limiting: max 1 alert per source per hour</span>
+    <span class="n">rate_limit</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">getenv</span><span class="p">(</span><span class="s1">'ALERT_RATE_LIMIT_SECONDS'</span><span class="p">,</span> <span class="s1">'3600'</span><span class="p">))</span>
+    <span class="n">now</span> <span class="o">=</span> <span class="n">time</span><span class="o">.</span><span class="n">time</span><span class="p">()</span>
+    <span class="n">last_alert</span> <span class="o">=</span> <span class="n">_alert_cache</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">source_id</span><span class="p">,</span> <span class="mi">0</span><span class="p">)</span>
+
+    <span class="k">if</span> <span class="n">now</span> <span class="o">-</span> <span class="n">last_alert</span> <span class="o">&lt;</span> <span class="n">rate_limit</span><span class="p">:</span>
+        <span class="k">return</span> <span class="kc">False</span>  <span class="c1"># Rate limited</span>
+
+    <span class="c1"># Determine color based on significance</span>
+    <span class="k">if</span> <span class="n">significance_sigma</span> <span class="o">&gt;=</span> <span class="mf">8.0</span><span class="p">:</span>
+        <span class="n">color</span> <span class="o">=</span> <span class="s2">"danger"</span>
+        <span class="n">emoji</span> <span class="o">=</span> <span class="s2">"🔴"</span>
+    <span class="k">elif</span> <span class="n">significance_sigma</span> <span class="o">&gt;=</span> <span class="mf">5.0</span><span class="p">:</span>
+        <span class="n">color</span> <span class="o">=</span> <span class="s2">"warning"</span>
+        <span class="n">emoji</span> <span class="o">=</span> <span class="s2">"🟠"</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">color</span> <span class="o">=</span> <span class="s2">"good"</span>
+        <span class="n">emoji</span> <span class="o">=</span> <span class="s2">"🟡"</span>
+
+    <span class="c1"># Format flux change</span>
+    <span class="n">flux_direction</span> <span class="o">=</span> <span class="s2">"↗"</span> <span class="k">if</span> <span class="n">flux_change_pct</span> <span class="o">&gt;</span> <span class="mi">0</span> <span class="k">else</span> <span class="s2">"↘"</span>
+    <span class="n">flux_str</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">flux_direction</span><span class="si">}</span><span class="s2"> </span><span class="si">{</span><span class="nb">abs</span><span class="p">(</span><span class="n">flux_change_pct</span><span class="p">)</span><span class="si">:</span><span class="s2">.1f</span><span class="si">}</span><span class="s2">% (</span><span class="si">{</span><span class="n">flux_old_mjy</span><span class="si">:</span><span class="s2">.1f</span><span class="si">}</span><span class="s2">→</span><span class="si">{</span><span class="n">flux_new_mjy</span><span class="si">:</span><span class="s2">.1f</span><span class="si">}</span><span class="s2"> mJy)"</span>
+
+    <span class="n">payload</span> <span class="o">=</span> <span class="p">{</span>
+        <span class="s2">"text"</span><span class="p">:</span> <span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">emoji</span><span class="si">}</span><span class="s2"> *ESE Candidate Detected!*"</span><span class="p">,</span>
+        <span class="s2">"attachments"</span><span class="p">:</span> <span class="p">[{</span>
+            <span class="s2">"color"</span><span class="p">:</span> <span class="n">color</span><span class="p">,</span>
+            <span class="s2">"fields"</span><span class="p">:</span> <span class="p">[</span>
+                <span class="p">{</span>
+                    <span class="s2">"title"</span><span class="p">:</span> <span class="s2">"Source"</span><span class="p">,</span>
+                    <span class="s2">"value"</span><span class="p">:</span> <span class="n">nvss_id</span><span class="p">,</span>
+                    <span class="s2">"short"</span><span class="p">:</span> <span class="kc">True</span>
+                <span class="p">},</span>
+                <span class="p">{</span>
+                    <span class="s2">"title"</span><span class="p">:</span> <span class="s2">"Significance"</span><span class="p">,</span>
+                    <span class="s2">"value"</span><span class="p">:</span> <span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">significance_sigma</span><span class="si">:</span><span class="s2">.1f</span><span class="si">}</span><span class="s2">σ"</span><span class="p">,</span>
+                    <span class="s2">"short"</span><span class="p">:</span> <span class="kc">True</span>
+                <span class="p">},</span>
+                <span class="p">{</span>
+                    <span class="s2">"title"</span><span class="p">:</span> <span class="s2">"Flux Change"</span><span class="p">,</span>
+                    <span class="s2">"value"</span><span class="p">:</span> <span class="n">flux_str</span><span class="p">,</span>
+                    <span class="s2">"short"</span><span class="p">:</span> <span class="kc">True</span>
+                <span class="p">},</span>
+                <span class="p">{</span>
+                    <span class="s2">"title"</span><span class="p">:</span> <span class="s2">"Observation Time"</span><span class="p">,</span>
+                    <span class="s2">"value"</span><span class="p">:</span> <span class="n">obs_time_utc</span><span class="p">,</span>
+                    <span class="s2">"short"</span><span class="p">:</span> <span class="kc">True</span>
+                <span class="p">}</span>
+            <span class="p">],</span>
+            <span class="s2">"actions"</span><span class="p">:</span> <span class="p">[{</span>
+                <span class="s2">"type"</span><span class="p">:</span> <span class="s2">"button"</span><span class="p">,</span>
+                <span class="s2">"text"</span><span class="p">:</span> <span class="s2">"View Source Details"</span><span class="p">,</span>
+                <span class="s2">"url"</span><span class="p">:</span> <span class="n">source_url</span>
+            <span class="p">}],</span>
+            <span class="s2">"footer"</span><span class="p">:</span> <span class="s2">"DSA-110 Continuum Pipeline"</span><span class="p">,</span>
+            <span class="s2">"ts"</span><span class="p">:</span> <span class="nb">int</span><span class="p">(</span><span class="n">now</span><span class="p">)</span>
+        <span class="p">}]</span>
+    <span class="p">}</span>
+
+    <span class="k">try</span><span class="p">:</span>
+        <span class="n">response</span> <span class="o">=</span> <span class="n">requests</span><span class="o">.</span><span class="n">post</span><span class="p">(</span>
+            <span class="n">webhook_url</span><span class="p">,</span>
+            <span class="n">json</span><span class="o">=</span><span class="n">payload</span><span class="p">,</span>
+            <span class="n">headers</span><span class="o">=</span><span class="p">{</span><span class="s1">'Content-Type'</span><span class="p">:</span> <span class="s1">'application/json'</span><span class="p">},</span>
+            <span class="n">timeout</span><span class="o">=</span><span class="mi">5</span>
+        <span class="p">)</span>
+
+        <span class="k">if</span> <span class="n">response</span><span class="o">.</span><span class="n">status_code</span> <span class="o">==</span> <span class="mi">200</span><span class="p">:</span>
+            <span class="n">_alert_cache</span><span class="p">[</span><span class="n">source_id</span><span class="p">]</span> <span class="o">=</span> <span class="n">now</span>
+            <span class="k">return</span> <span class="kc">True</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">"Slack webhook failed: </span><span class="si">{</span><span class="n">response</span><span class="o">.</span><span class="n">status_code</span><span class="si">}</span><span class="s2"> </span><span class="si">{</span><span class="n">response</span><span class="o">.</span><span class="n">text</span><span class="si">}</span><span class="s2">"</span><span class="p">)</span>
+            <span class="k">return</span> <span class="kc">False</span>
+
+    <span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
+        <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">"Slack alert error: </span><span class="si">{</span><span class="n">e</span><span class="si">}</span><span class="s2">"</span><span class="p">)</span>
+        <span class="k">return</span> <span class="kc">False</span>
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">send_system_alert</span><span class="p">(</span>
+    <span class="n">title</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
+    <span class="n">message</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
+    <span class="n">severity</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">"warning"</span><span class="p">,</span>  <span class="c1"># "good", "warning", "danger"</span>
+<span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">bool</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">"""Send system-level alert (calibrator loss, disk space, etc.)."""</span>
+    <span class="n">webhook_url</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">getenv</span><span class="p">(</span><span class="s1">'SLACK_WEBHOOK_URL'</span><span class="p">)</span>
+    <span class="k">if</span> <span class="ow">not</span> <span class="n">webhook_url</span><span class="p">:</span>
+        <span class="k">return</span> <span class="kc">False</span>
+
+    <span class="n">emoji_map</span> <span class="o">=</span> <span class="p">{</span>
+        <span class="s2">"good"</span><span class="p">:</span> <span class="s2">"✓"</span><span class="p">,</span>
+        <span class="s2">"warning"</span><span class="p">:</span> <span class="s2">"⚠"</span><span class="p">,</span>
+        <span class="s2">"danger"</span><span class="p">:</span> <span class="s2">"✗"</span>
+    <span class="p">}</span>
+
+    <span class="n">payload</span> <span class="o">=</span> <span class="p">{</span>
+        <span class="s2">"text"</span><span class="p">:</span> <span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">emoji_map</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">severity</span><span class="p">,</span><span class="w"> </span><span class="s1">'•'</span><span class="p">)</span><span class="si">}</span><span class="s2"> *</span><span class="si">{</span><span class="n">title</span><span class="si">}</span><span class="s2">*"</span><span class="p">,</span>
+        <span class="s2">"attachments"</span><span class="p">:</span> <span class="p">[{</span>
+            <span class="s2">"color"</span><span class="p">:</span> <span class="n">severity</span><span class="p">,</span>
+            <span class="s2">"text"</span><span class="p">:</span> <span class="n">message</span><span class="p">,</span>
+            <span class="s2">"footer"</span><span class="p">:</span> <span class="s2">"DSA-110 Continuum Pipeline"</span><span class="p">,</span>
+            <span class="s2">"ts"</span><span class="p">:</span> <span class="nb">int</span><span class="p">(</span><span class="n">time</span><span class="o">.</span><span class="n">time</span><span class="p">())</span>
+        <span class="p">}]</span>
+    <span class="p">}</span>
+
+    <span class="k">try</span><span class="p">:</span>
+        <span class="n">response</span> <span class="o">=</span> <span class="n">requests</span><span class="o">.</span><span class="n">post</span><span class="p">(</span><span class="n">webhook_url</span><span class="p">,</span> <span class="n">json</span><span class="o">=</span><span class="n">payload</span><span class="p">,</span> <span class="n">timeout</span><span class="o">=</span><span class="mi">5</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">response</span><span class="o">.</span><span class="n">status_code</span> <span class="o">==</span> <span class="mi">200</span>
+    <span class="k">except</span> <span class="ne">Exception</span><span class="p">:</span>
+        <span class="k">return</span> <span class="kc">False</span>
+</code></pre></div>
+<h3 id="integration-in-photometry-pipeline">Integration in Photometry Pipeline<a class="headerlink" href="#integration-in-photometry-pipeline" title="Permanent link">¶</a></h3>
+<p>Add to <code>src/dsa110_contimg/photometry/cli.py</code>:</p>
+<div class="highlight"><pre><span></span><code><span class="kn">from</span><span class="w"> </span><span class="nn">dsa110_contimg.alerts.slack</span><span class="w"> </span><span class="kn">import</span> <span class="n">send_ese_alert</span>
+
+<span class="c1"># After photometry measurement and variability calculation</span>
+<span class="k">if</span> <span class="n">chi_squared_nu</span> <span class="o">&gt;</span> <span class="nb">float</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">getenv</span><span class="p">(</span><span class="s1">'ESE_THRESHOLD_SIGMA'</span><span class="p">,</span> <span class="s1">'5.0'</span><span class="p">)):</span>
+    <span class="n">source_url</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">"https://dsa110-pipeline.caltech.edu/sources/</span><span class="si">{</span><span class="n">source_id</span><span class="si">}</span><span class="s2">"</span>
+    <span class="n">send_ese_alert</span><span class="p">(</span>
+        <span class="n">source_id</span><span class="o">=</span><span class="n">source_id</span><span class="p">,</span>
+        <span class="n">nvss_id</span><span class="o">=</span><span class="n">nvss_id</span><span class="p">,</span>
+        <span class="n">significance_sigma</span><span class="o">=</span><span class="n">chi_squared_nu</span><span class="p">,</span>
+        <span class="n">flux_change_pct</span><span class="o">=</span><span class="n">flux_change_percent</span><span class="p">,</span>
+        <span class="n">flux_old_mjy</span><span class="o">=</span><span class="n">nvss_flux_mjy</span><span class="p">,</span>
+        <span class="n">flux_new_mjy</span><span class="o">=</span><span class="n">measured_flux_mjy</span><span class="p">,</span>
+        <span class="n">obs_time_utc</span><span class="o">=</span><span class="n">obs_time</span><span class="o">.</span><span class="n">strftime</span><span class="p">(</span><span class="s1">'%Y-%m-</span><span class="si">%d</span><span class="s1"> %H:%M UTC'</span><span class="p">),</span>
+        <span class="n">source_url</span><span class="o">=</span><span class="n">source_url</span>
+    <span class="p">)</span>
+</code></pre></div>
+<hr/>
+<h2 id="2-mosaic-query-api">2. Mosaic Query API<a class="headerlink" href="#2-mosaic-query-api" title="Permanent link">¶</a></h2>
+<h3 id="api-route-srcdsa110_contimgapiroutespy">API Route (<code>src/dsa110_contimg/api/routes.py</code>)<a class="headerlink" href="#api-route-srcdsa110_contimgapiroutespy" title="Permanent link">¶</a></h3>
+<p>Add to existing router:</p>
+<div class="highlight"><pre><span></span><code><span class="kn">from</span><span class="w"> </span><span class="nn">pathlib</span><span class="w"> </span><span class="kn">import</span> <span class="n">Path</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">typing</span><span class="w"> </span><span class="kn">import</span> <span class="n">List</span><span class="p">,</span> <span class="n">Optional</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">pydantic</span><span class="w"> </span><span class="kn">import</span> <span class="n">BaseModel</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">asyncio</span>
+
+<span class="k">class</span><span class="w"> </span><span class="nc">MosaicQueryRequest</span><span class="p">(</span><span class="n">BaseModel</span><span class="p">):</span>
+    <span class="n">start_mjd</span><span class="p">:</span> <span class="nb">float</span>
+    <span class="n">end_mjd</span><span class="p">:</span> <span class="nb">float</span>
+    <span class="n">dec_min</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">float</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span>
+    <span class="n">dec_max</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">float</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span>
+
+<span class="k">class</span><span class="w"> </span><span class="nc">MosaicQueryResponse</span><span class="p">(</span><span class="n">BaseModel</span><span class="p">):</span>
+    <span class="n">images</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span>
+    <span class="n">coverage</span><span class="p">:</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">List</span><span class="p">[</span><span class="nb">float</span><span class="p">]]</span>
+    <span class="n">total_images</span><span class="p">:</span> <span class="nb">int</span>
+    <span class="n">time_span_hours</span><span class="p">:</span> <span class="nb">float</span>
+    <span class="n">job_id</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span>
+    <span class="n">mosaic_url</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span>
+
+<span class="nd">@router</span><span class="o">.</span><span class="n">post</span><span class="p">(</span><span class="s2">"/mosaic/query"</span><span class="p">,</span> <span class="n">response_model</span><span class="o">=</span><span class="n">MosaicQueryResponse</span><span class="p">)</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">mosaic_query</span><span class="p">(</span><span class="n">request</span><span class="p">:</span> <span class="n">MosaicQueryRequest</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">MosaicQueryResponse</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">"""Query images for mosaic generation by time range and declination."""</span>
+
+    <span class="c1"># Query products database for images in range</span>
+    <span class="k">with</span> <span class="n">_connect</span><span class="p">(</span><span class="n">cfg</span><span class="o">.</span><span class="n">products_db</span><span class="p">)</span> <span class="k">as</span> <span class="n">conn</span><span class="p">:</span>
+        <span class="n">query</span> <span class="o">=</span> <span class="s2">"""</span>
+<span class="s2">            SELECT i.path, m.mid_mjd, m.start_mjd, m.end_mjd</span>
+<span class="s2">              FROM images i</span>
+<span class="s2">              JOIN ms_index m ON i.ms_path = m.path</span>
+<span class="s2">             WHERE m.mid_mjd &gt;= ? AND m.mid_mjd &lt;= ?</span>
+<span class="s2">               AND i.type = 'image.pbcor'</span>
+<span class="s2">        """</span>
+        <span class="n">params</span> <span class="o">=</span> <span class="p">[</span><span class="n">request</span><span class="o">.</span><span class="n">start_mjd</span><span class="p">,</span> <span class="n">request</span><span class="o">.</span><span class="n">end_mjd</span><span class="p">]</span>
+
+        <span class="k">if</span> <span class="n">request</span><span class="o">.</span><span class="n">dec_min</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="ow">and</span> <span class="n">request</span><span class="o">.</span><span class="n">dec_max</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="c1"># Note: requires dec_deg column in ms_index (future enhancement)</span>
+            <span class="n">query</span> <span class="o">+=</span> <span class="s2">" AND m.dec_deg &gt;= ? AND m.dec_deg &lt;= ?"</span>
+            <span class="n">params</span><span class="o">.</span><span class="n">extend</span><span class="p">([</span><span class="n">request</span><span class="o">.</span><span class="n">dec_min</span><span class="p">,</span> <span class="n">request</span><span class="o">.</span><span class="n">dec_max</span><span class="p">])</span>
+
+        <span class="n">query</span> <span class="o">+=</span> <span class="s2">" ORDER BY m.mid_mjd"</span>
+
+        <span class="n">rows</span> <span class="o">=</span> <span class="n">conn</span><span class="o">.</span><span class="n">execute</span><span class="p">(</span><span class="n">query</span><span class="p">,</span> <span class="n">params</span><span class="p">)</span><span class="o">.</span><span class="n">fetchall</span><span class="p">()</span>
+        <span class="n">image_paths</span> <span class="o">=</span> <span class="p">[</span><span class="n">r</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="k">for</span> <span class="n">r</span> <span class="ow">in</span> <span class="n">rows</span><span class="p">]</span>
+
+    <span class="c1"># Calculate coverage (RA/Dec bounds)</span>
+    <span class="c1"># This is simplified - real implementation would parse FITS headers</span>
+    <span class="n">coverage</span> <span class="o">=</span> <span class="p">{</span>
+        <span class="s2">"ra_range"</span><span class="p">:</span> <span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="mi">360</span><span class="p">],</span>  <span class="c1"># Placeholder</span>
+        <span class="s2">"dec_range"</span><span class="p">:</span> <span class="p">[</span><span class="n">request</span><span class="o">.</span><span class="n">dec_min</span> <span class="ow">or</span> <span class="o">-</span><span class="mi">90</span><span class="p">,</span> <span class="n">request</span><span class="o">.</span><span class="n">dec_max</span> <span class="ow">or</span> <span class="mi">90</span><span class="p">]</span>
+    <span class="p">}</span>
+
+    <span class="n">time_span</span> <span class="o">=</span> <span class="p">(</span><span class="n">request</span><span class="o">.</span><span class="n">end_mjd</span> <span class="o">-</span> <span class="n">request</span><span class="o">.</span><span class="n">start_mjd</span><span class="p">)</span> <span class="o">*</span> <span class="mi">24</span>  <span class="c1"># hours</span>
+
+    <span class="k">return</span> <span class="n">MosaicQueryResponse</span><span class="p">(</span>
+        <span class="n">images</span><span class="o">=</span><span class="n">image_paths</span><span class="p">,</span>
+        <span class="n">coverage</span><span class="o">=</span><span class="n">coverage</span><span class="p">,</span>
+        <span class="n">total_images</span><span class="o">=</span><span class="nb">len</span><span class="p">(</span><span class="n">image_paths</span><span class="p">),</span>
+        <span class="n">time_span_hours</span><span class="o">=</span><span class="n">time_span</span><span class="p">,</span>
+        <span class="n">job_id</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>  <span class="c1"># Async generation not yet implemented</span>
+        <span class="n">mosaic_url</span><span class="o">=</span><span class="kc">None</span>
+    <span class="p">)</span>
+
+
+<span class="nd">@router</span><span class="o">.</span><span class="n">post</span><span class="p">(</span><span class="s2">"/mosaic/generate"</span><span class="p">)</span>
+<span class="k">async</span> <span class="k">def</span><span class="w"> </span><span class="nf">mosaic_generate</span><span class="p">(</span><span class="n">request</span><span class="p">:</span> <span class="n">MosaicQueryRequest</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">"""Generate mosaic from queried images (async job)."""</span>
+    <span class="c1"># Placeholder for async mosaic generation</span>
+    <span class="c1"># Production: Use Celery or similar for background processing</span>
+
+    <span class="n">job_id</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">"mosaic_</span><span class="si">{</span><span class="nb">int</span><span class="p">(</span><span class="n">time</span><span class="o">.</span><span class="n">time</span><span class="p">())</span><span class="si">}</span><span class="s2">"</span>
+
+    <span class="c1"># Kick off background task (simplified example)</span>
+    <span class="c1"># In production: submit to job queue</span>
+    <span class="n">asyncio</span><span class="o">.</span><span class="n">create_task</span><span class="p">(</span><span class="n">_generate_mosaic_async</span><span class="p">(</span><span class="n">job_id</span><span class="p">,</span> <span class="n">request</span><span class="p">))</span>
+
+    <span class="k">return</span> <span class="p">{</span>
+        <span class="s2">"job_id"</span><span class="p">:</span> <span class="n">job_id</span><span class="p">,</span>
+        <span class="s2">"status"</span><span class="p">:</span> <span class="s2">"queued"</span><span class="p">,</span>
+        <span class="s2">"status_url"</span><span class="p">:</span> <span class="sa">f</span><span class="s2">"/api/mosaic/status/</span><span class="si">{</span><span class="n">job_id</span><span class="si">}</span><span class="s2">"</span>
+    <span class="p">}</span>
+
+
+<span class="k">async</span> <span class="k">def</span><span class="w"> </span><span class="nf">_generate_mosaic_async</span><span class="p">(</span><span class="n">job_id</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">request</span><span class="p">:</span> <span class="n">MosaicQueryRequest</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">"""Background task to generate mosaic."""</span>
+    <span class="c1"># Call existing mosaic CLI tools</span>
+    <span class="c1"># Save output to /scratch/mosaics/{job_id}.fits</span>
+    <span class="c1"># Update job status in database</span>
+    <span class="k">pass</span>
+
+
+<span class="nd">@router</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"/mosaic/status/</span><span class="si">{job_id}</span><span class="s2">"</span><span class="p">)</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">mosaic_status</span><span class="p">(</span><span class="n">job_id</span><span class="p">:</span> <span class="nb">str</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">"""Check status of mosaic generation job."""</span>
+    <span class="c1"># Query job database (to be implemented)</span>
+    <span class="k">return</span> <span class="p">{</span>
+        <span class="s2">"job_id"</span><span class="p">:</span> <span class="n">job_id</span><span class="p">,</span>
+        <span class="s2">"status"</span><span class="p">:</span> <span class="s2">"processing"</span><span class="p">,</span>  <span class="c1"># or "completed", "failed"</span>
+        <span class="s2">"progress"</span><span class="p">:</span> <span class="mf">0.45</span><span class="p">,</span>
+        <span class="s2">"download_url"</span><span class="p">:</span> <span class="kc">None</span>  <span class="c1"># Set when completed</span>
+    <span class="p">}</span>
+</code></pre></div>
+<hr/>
+<h2 id="3-ese-candidate-api-enhancements">3. ESE Candidate API Enhancements<a class="headerlink" href="#3-ese-candidate-api-enhancements" title="Permanent link">¶</a></h2>
+<h3 id="new-endpoint-for-active-alerts">New Endpoint for Active Alerts<a class="headerlink" href="#new-endpoint-for-active-alerts" title="Permanent link">¶</a></h3>
+<p>Add to <code>src/dsa110_contimg/api/routes.py</code>:</p>
+<div class="highlight"><pre><span></span><code><span class="kn">from</span><span class="w"> </span><span class="nn">datetime</span><span class="w"> </span><span class="kn">import</span> <span class="n">datetime</span><span class="p">,</span> <span class="n">timedelta</span>
+
+<span class="k">class</span><span class="w"> </span><span class="nc">ESECandidate</span><span class="p">(</span><span class="n">BaseModel</span><span class="p">):</span>
+    <span class="n">source_id</span><span class="p">:</span> <span class="nb">str</span>
+    <span class="n">nvss_id</span><span class="p">:</span> <span class="nb">str</span>
+    <span class="n">ra_deg</span><span class="p">:</span> <span class="nb">float</span>
+    <span class="n">dec_deg</span><span class="p">:</span> <span class="nb">float</span>
+    <span class="n">significance_sigma</span><span class="p">:</span> <span class="nb">float</span>
+    <span class="n">flux_change_pct</span><span class="p">:</span> <span class="nb">float</span>
+    <span class="n">nvss_flux_mjy</span><span class="p">:</span> <span class="nb">float</span>
+    <span class="n">latest_flux_mjy</span><span class="p">:</span> <span class="nb">float</span>
+    <span class="n">last_obs_utc</span><span class="p">:</span> <span class="n">datetime</span>
+    <span class="n">slack_sent</span><span class="p">:</span> <span class="nb">bool</span>
+    <span class="n">user_dismissed</span><span class="p">:</span> <span class="nb">bool</span>
+
+<span class="k">class</span><span class="w"> </span><span class="nc">ESECandidateList</span><span class="p">(</span><span class="n">BaseModel</span><span class="p">):</span>
+    <span class="n">items</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="n">ESECandidate</span><span class="p">]</span>
+    <span class="n">total</span><span class="p">:</span> <span class="nb">int</span>
+    <span class="n">threshold_sigma</span><span class="p">:</span> <span class="nb">float</span>
+
+<span class="nd">@router</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"/alerts/ese_candidates"</span><span class="p">,</span> <span class="n">response_model</span><span class="o">=</span><span class="n">ESECandidateList</span><span class="p">)</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">get_ese_candidates</span><span class="p">(</span>
+    <span class="n">min_sigma</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">5.0</span><span class="p">,</span>
+    <span class="n">hours_ago</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">24</span><span class="p">,</span>
+    <span class="n">include_dismissed</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span>
+<span class="p">)</span> <span class="o">-&gt;</span> <span class="n">ESECandidateList</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">"""Get list of ESE candidates above threshold."""</span>
+
+    <span class="n">threshold</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">getenv</span><span class="p">(</span><span class="s1">'ESE_THRESHOLD_SIGMA'</span><span class="p">,</span> <span class="nb">str</span><span class="p">(</span><span class="n">min_sigma</span><span class="p">)))</span>
+    <span class="n">cutoff_time</span> <span class="o">=</span> <span class="n">datetime</span><span class="o">.</span><span class="n">utcnow</span><span class="p">()</span> <span class="o">-</span> <span class="n">timedelta</span><span class="p">(</span><span class="n">hours</span><span class="o">=</span><span class="n">hours_ago</span><span class="p">)</span>
+
+    <span class="k">with</span> <span class="n">_connect</span><span class="p">(</span><span class="n">cfg</span><span class="o">.</span><span class="n">products_db</span><span class="p">)</span> <span class="k">as</span> <span class="n">conn</span><span class="p">:</span>
+        <span class="n">query</span> <span class="o">=</span> <span class="s2">"""</span>
+<span class="s2">            SELECT </span>
+<span class="s2">                p.source_id,</span>
+<span class="s2">                p.nvss_id,</span>
+<span class="s2">                p.ra_deg,</span>
+<span class="s2">                p.dec_deg,</span>
+<span class="s2">                p.chi_squared_nu as significance,</span>
+<span class="s2">                p.flux_change_pct,</span>
+<span class="s2">                p.nvss_flux_mjy,</span>
+<span class="s2">                p.latest_flux_mjy,</span>
+<span class="s2">                p.last_obs_time,</span>
+<span class="s2">                p.slack_sent,</span>
+<span class="s2">                COALESCE(p.user_dismissed, 0) as dismissed</span>
+<span class="s2">            FROM (</span>
+<span class="s2">                SELECT </span>
+<span class="s2">                    image_path,</span>
+<span class="s2">                    ra_deg,</span>
+<span class="s2">                    dec_deg,</span>
+<span class="s2">                    nvss_flux_mjy,</span>
+<span class="s2">                    peak_jyb * 1000 as latest_flux_mjy,</span>
+<span class="s2">                    measured_at as last_obs_time,</span>
+<span class="s2">                    -- Calculate variability stats (simplified)</span>
+<span class="s2">                    ABS((peak_jyb * 1000 - nvss_flux_mjy) / nvss_flux_mjy) * 100 as flux_change_pct,</span>
+<span class="s2">                    -- Placeholder chi_squared_nu calculation</span>
+<span class="s2">                    5.5 as chi_squared_nu,</span>
+<span class="s2">                    0 as slack_sent,</span>
+<span class="s2">                    0 as user_dismissed</span>
+<span class="s2">                FROM photometry</span>
+<span class="s2">                WHERE measured_at &gt;= ?</span>
+<span class="s2">            ) p</span>
+<span class="s2">            WHERE p.chi_squared_nu &gt;= ?</span>
+<span class="s2">        """</span>
+
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">include_dismissed</span><span class="p">:</span>
+            <span class="n">query</span> <span class="o">+=</span> <span class="s2">" AND p.user_dismissed = 0"</span>
+
+        <span class="n">query</span> <span class="o">+=</span> <span class="s2">" ORDER BY p.chi_squared_nu DESC"</span>
+
+        <span class="n">rows</span> <span class="o">=</span> <span class="n">conn</span><span class="o">.</span><span class="n">execute</span><span class="p">(</span>
+            <span class="n">query</span><span class="p">,</span> 
+            <span class="p">(</span><span class="n">cutoff_time</span><span class="o">.</span><span class="n">timestamp</span><span class="p">(),</span> <span class="n">threshold</span><span class="p">)</span>
+        <span class="p">)</span><span class="o">.</span><span class="n">fetchall</span><span class="p">()</span>
+
+        <span class="n">candidates</span> <span class="o">=</span> <span class="p">[</span>
+            <span class="n">ESECandidate</span><span class="p">(</span>
+                <span class="n">source_id</span><span class="o">=</span><span class="sa">f</span><span class="s2">"src_</span><span class="si">{</span><span class="n">i</span><span class="si">}</span><span class="s2">"</span><span class="p">,</span>
+                <span class="n">nvss_id</span><span class="o">=</span><span class="sa">f</span><span class="s2">"NVSS J</span><span class="si">{</span><span class="nb">int</span><span class="p">(</span><span class="n">r</span><span class="p">[</span><span class="s1">'ra_deg'</span><span class="p">])</span><span class="si">:</span><span class="s2">06d</span><span class="si">}{</span><span class="s1">'+-'</span><span class="p">[</span><span class="n">r</span><span class="p">[</span><span class="s1">'dec_deg'</span><span class="p">]</span><span class="o">&lt;</span><span class="mi">0</span><span class="p">]</span><span class="si">}{</span><span class="nb">abs</span><span class="p">(</span><span class="nb">int</span><span class="p">(</span><span class="n">r</span><span class="p">[</span><span class="s1">'dec_deg'</span><span class="p">]))</span><span class="si">:</span><span class="s2">02d</span><span class="si">}</span><span class="s2">"</span><span class="p">,</span>
+                <span class="n">ra_deg</span><span class="o">=</span><span class="n">r</span><span class="p">[</span><span class="s1">'ra_deg'</span><span class="p">],</span>
+                <span class="n">dec_deg</span><span class="o">=</span><span class="n">r</span><span class="p">[</span><span class="s1">'dec_deg'</span><span class="p">],</span>
+                <span class="n">significance_sigma</span><span class="o">=</span><span class="n">r</span><span class="p">[</span><span class="s1">'significance'</span><span class="p">],</span>
+                <span class="n">flux_change_pct</span><span class="o">=</span><span class="n">r</span><span class="p">[</span><span class="s1">'flux_change_pct'</span><span class="p">],</span>
+                <span class="n">nvss_flux_mjy</span><span class="o">=</span><span class="n">r</span><span class="p">[</span><span class="s1">'nvss_flux_mjy'</span><span class="p">],</span>
+                <span class="n">latest_flux_mjy</span><span class="o">=</span><span class="n">r</span><span class="p">[</span><span class="s1">'latest_flux_mjy'</span><span class="p">],</span>
+                <span class="n">last_obs_utc</span><span class="o">=</span><span class="n">datetime</span><span class="o">.</span><span class="n">fromtimestamp</span><span class="p">(</span><span class="n">r</span><span class="p">[</span><span class="s1">'last_obs_time'</span><span class="p">]),</span>
+                <span class="n">slack_sent</span><span class="o">=</span><span class="nb">bool</span><span class="p">(</span><span class="n">r</span><span class="p">[</span><span class="s1">'slack_sent'</span><span class="p">]),</span>
+                <span class="n">user_dismissed</span><span class="o">=</span><span class="nb">bool</span><span class="p">(</span><span class="n">r</span><span class="p">[</span><span class="s1">'dismissed'</span><span class="p">])</span>
+            <span class="p">)</span>
+            <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">r</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">rows</span><span class="p">)</span>
+        <span class="p">]</span>
+
+    <span class="k">return</span> <span class="n">ESECandidateList</span><span class="p">(</span>
+        <span class="n">items</span><span class="o">=</span><span class="n">candidates</span><span class="p">,</span>
+        <span class="n">total</span><span class="o">=</span><span class="nb">len</span><span class="p">(</span><span class="n">candidates</span><span class="p">),</span>
+        <span class="n">threshold_sigma</span><span class="o">=</span><span class="n">threshold</span>
+    <span class="p">)</span>
+
+
+<span class="nd">@router</span><span class="o">.</span><span class="n">post</span><span class="p">(</span><span class="s2">"/alerts/dismiss/</span><span class="si">{source_id}</span><span class="s2">"</span><span class="p">)</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">dismiss_alert</span><span class="p">(</span><span class="n">source_id</span><span class="p">:</span> <span class="nb">str</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">"""Dismiss an ESE candidate alert."""</span>
+    <span class="c1"># Update database to mark as dismissed</span>
+    <span class="c1"># Production: add user_id tracking</span>
+    <span class="k">return</span> <span class="p">{</span><span class="s2">"ok"</span><span class="p">:</span> <span class="kc">True</span><span class="p">,</span> <span class="s2">"source_id"</span><span class="p">:</span> <span class="n">source_id</span><span class="p">}</span>
+</code></pre></div>
+<hr/>
+<h2 id="4-vo-cone-search-endpoint-phase-3">4. VO Cone Search Endpoint (Phase 3)<a class="headerlink" href="#4-vo-cone-search-endpoint-phase-3" title="Permanent link">¶</a></h2>
+<h3 id="simple-cone-search-implementation">Simple Cone Search Implementation<a class="headerlink" href="#simple-cone-search-implementation" title="Permanent link">¶</a></h3>
+<div class="highlight"><pre><span></span><code><span class="kn">from</span><span class="w"> </span><span class="nn">astropy.io.votable</span><span class="w"> </span><span class="kn">import</span> <span class="n">from_table</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">astropy.table</span><span class="w"> </span><span class="kn">import</span> <span class="n">Table</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">astropy.coordinates</span><span class="w"> </span><span class="kn">import</span> <span class="n">SkyCoord</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">astropy.units</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">u</span>
+
+<span class="nd">@router</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"/vo/conesearch"</span><span class="p">)</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">vo_conesearch</span><span class="p">(</span>
+    <span class="n">RA</span><span class="p">:</span> <span class="nb">float</span><span class="p">,</span>
+    <span class="n">DEC</span><span class="p">:</span> <span class="nb">float</span><span class="p">,</span>
+    <span class="n">SR</span><span class="p">:</span> <span class="nb">float</span><span class="p">,</span>  <span class="c1"># Search radius in degrees</span>
+    <span class="n">VERB</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">2</span>  <span class="c1"># Verbosity level</span>
+<span class="p">):</span>
+<span class="w">    </span><span class="sd">"""Simple Cone Search protocol endpoint.</span>
+
+<span class="sd">    Complies with IVOA Simple Cone Search v1.03.</span>
+<span class="sd">    Returns sources within search radius as VOTable.</span>
+<span class="sd">    """</span>
+
+    <span class="n">center</span> <span class="o">=</span> <span class="n">SkyCoord</span><span class="p">(</span><span class="n">ra</span><span class="o">=</span><span class="n">RA</span><span class="o">*</span><span class="n">u</span><span class="o">.</span><span class="n">deg</span><span class="p">,</span> <span class="n">dec</span><span class="o">=</span><span class="n">DEC</span><span class="o">*</span><span class="n">u</span><span class="o">.</span><span class="n">deg</span><span class="p">,</span> <span class="n">frame</span><span class="o">=</span><span class="s1">'icrs'</span><span class="p">)</span>
+
+    <span class="c1"># Query photometry database</span>
+    <span class="k">with</span> <span class="n">_connect</span><span class="p">(</span><span class="n">cfg</span><span class="o">.</span><span class="n">products_db</span><span class="p">)</span> <span class="k">as</span> <span class="n">conn</span><span class="p">:</span>
+        <span class="n">rows</span> <span class="o">=</span> <span class="n">conn</span><span class="o">.</span><span class="n">execute</span><span class="p">(</span><span class="s2">"""</span>
+<span class="s2">            SELECT </span>
+<span class="s2">                ra_deg, dec_deg, nvss_flux_mjy,</span>
+<span class="s2">                peak_jyb * 1000 as latest_flux_mjy,</span>
+<span class="s2">                measured_at</span>
+<span class="s2">            FROM photometry</span>
+<span class="s2">            ORDER BY measured_at DESC</span>
+<span class="s2">            LIMIT 10000</span>
+<span class="s2">        """</span><span class="p">)</span><span class="o">.</span><span class="n">fetchall</span><span class="p">()</span>
+
+    <span class="c1"># Filter by cone search</span>
+    <span class="n">sources</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="k">for</span> <span class="n">r</span> <span class="ow">in</span> <span class="n">rows</span><span class="p">:</span>
+        <span class="n">src_coord</span> <span class="o">=</span> <span class="n">SkyCoord</span><span class="p">(</span><span class="n">ra</span><span class="o">=</span><span class="n">r</span><span class="p">[</span><span class="s1">'ra_deg'</span><span class="p">]</span><span class="o">*</span><span class="n">u</span><span class="o">.</span><span class="n">deg</span><span class="p">,</span> <span class="n">dec</span><span class="o">=</span><span class="n">r</span><span class="p">[</span><span class="s1">'dec_deg'</span><span class="p">]</span><span class="o">*</span><span class="n">u</span><span class="o">.</span><span class="n">deg</span><span class="p">)</span>
+        <span class="n">sep</span> <span class="o">=</span> <span class="n">center</span><span class="o">.</span><span class="n">separation</span><span class="p">(</span><span class="n">src_coord</span><span class="p">)</span><span class="o">.</span><span class="n">deg</span>
+
+        <span class="k">if</span> <span class="n">sep</span> <span class="o">&lt;=</span> <span class="n">SR</span><span class="p">:</span>
+            <span class="n">sources</span><span class="o">.</span><span class="n">append</span><span class="p">({</span>
+                <span class="s1">'RA'</span><span class="p">:</span> <span class="n">r</span><span class="p">[</span><span class="s1">'ra_deg'</span><span class="p">],</span>
+                <span class="s1">'DEC'</span><span class="p">:</span> <span class="n">r</span><span class="p">[</span><span class="s1">'dec_deg'</span><span class="p">],</span>
+                <span class="s1">'NVSS_FLUX_MJY'</span><span class="p">:</span> <span class="n">r</span><span class="p">[</span><span class="s1">'nvss_flux_mjy'</span><span class="p">],</span>
+                <span class="s1">'LATEST_FLUX_MJY'</span><span class="p">:</span> <span class="n">r</span><span class="p">[</span><span class="s1">'latest_flux_mjy'</span><span class="p">],</span>
+                <span class="s1">'SEPARATION_DEG'</span><span class="p">:</span> <span class="n">sep</span>
+            <span class="p">})</span>
+
+    <span class="c1"># Create Astropy table</span>
+    <span class="n">table</span> <span class="o">=</span> <span class="n">Table</span><span class="p">(</span><span class="n">sources</span><span class="p">)</span>
+
+    <span class="c1"># Convert to VOTable</span>
+    <span class="n">votable</span> <span class="o">=</span> <span class="n">from_table</span><span class="p">(</span><span class="n">table</span><span class="p">)</span>
+
+    <span class="c1"># Return as XML</span>
+    <span class="kn">from</span><span class="w"> </span><span class="nn">io</span><span class="w"> </span><span class="kn">import</span> <span class="n">BytesIO</span>
+    <span class="n">buf</span> <span class="o">=</span> <span class="n">BytesIO</span><span class="p">()</span>
+    <span class="n">votable</span><span class="o">.</span><span class="n">to_xml</span><span class="p">(</span><span class="n">buf</span><span class="p">)</span>
+
+    <span class="k">return</span> <span class="n">Response</span><span class="p">(</span>
+        <span class="n">content</span><span class="o">=</span><span class="n">buf</span><span class="o">.</span><span class="n">getvalue</span><span class="p">(),</span>
+        <span class="n">media_type</span><span class="o">=</span><span class="s1">'application/x-votable+xml'</span>
+    <span class="p">)</span>
+</code></pre></div>
+<hr/>
+<h2 id="5-database-schema-updates">5. Database Schema Updates<a class="headerlink" href="#5-database-schema-updates" title="Permanent link">¶</a></h2>
+<h3 id="add-columns-to-support-new-features">Add columns to support new features<a class="headerlink" href="#add-columns-to-support-new-features" title="Permanent link">¶</a></h3>
+<div class="highlight"><pre><span></span><code><span class="c1">-- Add to products.sqlite3 (ms_index table)</span>
+<span class="k">ALTER</span><span class="w"> </span><span class="k">TABLE</span><span class="w"> </span><span class="n">ms_index</span><span class="w"> </span><span class="k">ADD</span><span class="w"> </span><span class="k">COLUMN</span><span class="w"> </span><span class="n">dec_deg</span><span class="w"> </span><span class="nb">REAL</span><span class="p">;</span><span class="w">  </span><span class="c1">-- For mosaic Dec filtering</span>
+
+<span class="c1">-- Add ESE tracking table</span>
+<span class="k">CREATE</span><span class="w"> </span><span class="k">TABLE</span><span class="w"> </span><span class="k">IF</span><span class="w"> </span><span class="k">NOT</span><span class="w"> </span><span class="k">EXISTS</span><span class="w"> </span><span class="n">ese_candidates</span><span class="w"> </span><span class="p">(</span>
+<span class="w">    </span><span class="n">id</span><span class="w"> </span><span class="nb">INTEGER</span><span class="w"> </span><span class="k">PRIMARY</span><span class="w"> </span><span class="k">KEY</span><span class="p">,</span>
+<span class="w">    </span><span class="n">source_id</span><span class="w"> </span><span class="nb">TEXT</span><span class="w"> </span><span class="k">NOT</span><span class="w"> </span><span class="k">NULL</span><span class="p">,</span>
+<span class="w">    </span><span class="n">nvss_id</span><span class="w"> </span><span class="nb">TEXT</span><span class="w"> </span><span class="k">NOT</span><span class="w"> </span><span class="k">NULL</span><span class="p">,</span>
+<span class="w">    </span><span class="n">ra_deg</span><span class="w"> </span><span class="nb">REAL</span><span class="w"> </span><span class="k">NOT</span><span class="w"> </span><span class="k">NULL</span><span class="p">,</span>
+<span class="w">    </span><span class="n">dec_deg</span><span class="w"> </span><span class="nb">REAL</span><span class="w"> </span><span class="k">NOT</span><span class="w"> </span><span class="k">NULL</span><span class="p">,</span>
+<span class="w">    </span><span class="n">chi_squared_nu</span><span class="w"> </span><span class="nb">REAL</span><span class="w"> </span><span class="k">NOT</span><span class="w"> </span><span class="k">NULL</span><span class="p">,</span>
+<span class="w">    </span><span class="n">flux_change_pct</span><span class="w"> </span><span class="nb">REAL</span><span class="p">,</span>
+<span class="w">    </span><span class="n">detected_at</span><span class="w"> </span><span class="nb">REAL</span><span class="w"> </span><span class="k">NOT</span><span class="w"> </span><span class="k">NULL</span><span class="p">,</span>
+<span class="w">    </span><span class="n">slack_sent</span><span class="w"> </span><span class="nb">INTEGER</span><span class="w"> </span><span class="k">DEFAULT</span><span class="w"> </span><span class="mi">0</span><span class="p">,</span>
+<span class="w">    </span><span class="n">user_dismissed</span><span class="w"> </span><span class="nb">INTEGER</span><span class="w"> </span><span class="k">DEFAULT</span><span class="w"> </span><span class="mi">0</span><span class="p">,</span>
+<span class="w">    </span><span class="n">dismissed_at</span><span class="w"> </span><span class="nb">REAL</span><span class="p">,</span>
+<span class="w">    </span><span class="n">notes</span><span class="w"> </span><span class="nb">TEXT</span>
+<span class="p">);</span>
+
+<span class="k">CREATE</span><span class="w"> </span><span class="k">INDEX</span><span class="w"> </span><span class="k">IF</span><span class="w"> </span><span class="k">NOT</span><span class="w"> </span><span class="k">EXISTS</span><span class="w"> </span><span class="n">idx_ese_detected</span><span class="w"> </span><span class="k">ON</span><span class="w"> </span><span class="n">ese_candidates</span><span class="p">(</span><span class="n">detected_at</span><span class="p">);</span>
+<span class="k">CREATE</span><span class="w"> </span><span class="k">INDEX</span><span class="w"> </span><span class="k">IF</span><span class="w"> </span><span class="k">NOT</span><span class="w"> </span><span class="k">EXISTS</span><span class="w"> </span><span class="n">idx_ese_dismissed</span><span class="w"> </span><span class="k">ON</span><span class="w"> </span><span class="n">ese_candidates</span><span class="p">(</span><span class="n">user_dismissed</span><span class="p">);</span>
+
+<span class="c1">-- Add mosaic jobs table</span>
+<span class="k">CREATE</span><span class="w"> </span><span class="k">TABLE</span><span class="w"> </span><span class="k">IF</span><span class="w"> </span><span class="k">NOT</span><span class="w"> </span><span class="k">EXISTS</span><span class="w"> </span><span class="n">mosaic_jobs</span><span class="w"> </span><span class="p">(</span>
+<span class="w">    </span><span class="n">job_id</span><span class="w"> </span><span class="nb">TEXT</span><span class="w"> </span><span class="k">PRIMARY</span><span class="w"> </span><span class="k">KEY</span><span class="p">,</span>
+<span class="w">    </span><span class="n">start_mjd</span><span class="w"> </span><span class="nb">REAL</span><span class="w"> </span><span class="k">NOT</span><span class="w"> </span><span class="k">NULL</span><span class="p">,</span>
+<span class="w">    </span><span class="n">end_mjd</span><span class="w"> </span><span class="nb">REAL</span><span class="w"> </span><span class="k">NOT</span><span class="w"> </span><span class="k">NULL</span><span class="p">,</span>
+<span class="w">    </span><span class="n">dec_min</span><span class="w"> </span><span class="nb">REAL</span><span class="p">,</span>
+<span class="w">    </span><span class="n">dec_max</span><span class="w"> </span><span class="nb">REAL</span><span class="p">,</span>
+<span class="w">    </span><span class="n">status</span><span class="w"> </span><span class="nb">TEXT</span><span class="w"> </span><span class="k">NOT</span><span class="w"> </span><span class="k">NULL</span><span class="p">,</span><span class="w">  </span><span class="c1">-- queued, processing, completed, failed</span>
+<span class="w">    </span><span class="n">progress</span><span class="w"> </span><span class="nb">REAL</span><span class="w"> </span><span class="k">DEFAULT</span><span class="w"> </span><span class="mi">0</span><span class="p">.</span><span class="mi">0</span><span class="p">,</span>
+<span class="w">    </span><span class="n">created_at</span><span class="w"> </span><span class="nb">REAL</span><span class="w"> </span><span class="k">NOT</span><span class="w"> </span><span class="k">NULL</span><span class="p">,</span>
+<span class="w">    </span><span class="n">completed_at</span><span class="w"> </span><span class="nb">REAL</span><span class="p">,</span>
+<span class="w">    </span><span class="n">output_path</span><span class="w"> </span><span class="nb">TEXT</span><span class="p">,</span>
+<span class="w">    </span><span class="n">error_message</span><span class="w"> </span><span class="nb">TEXT</span>
+<span class="p">);</span>
+</code></pre></div>
+<hr/>
+<h2 id="6-frontend-environment-configuration">6. Frontend Environment Configuration<a class="headerlink" href="#6-frontend-environment-configuration" title="Permanent link">¶</a></h2>
+<p>Create <code>.env</code> file in React project root:</p>
+<div class="highlight"><pre><span></span><code><span class="c1"># API Configuration</span>
+<span class="nv">VITE_API_BASE_URL</span><span class="o">=</span>http://localhost:8000/api
+<span class="nv">VITE_WS_URL</span><span class="o">=</span>ws://localhost:8000/ws
+
+<span class="c1"># Feature Flags</span>
+<span class="nv">VITE_ESE_THRESHOLD_SIGMA</span><span class="o">=</span><span class="m">5</span>.0
+<span class="nv">VITE_REFRESH_INTERVAL_MS</span><span class="o">=</span><span class="m">10000</span>
+<span class="nv">VITE_ENABLE_SLACK_ALERTS</span><span class="o">=</span><span class="nb">true</span>
+<span class="nv">VITE_ENABLE_VO_CONESEARCH</span><span class="o">=</span><span class="nb">false</span><span class="w">  </span><span class="c1"># Enable in Phase 3</span>
+
+<span class="c1"># UI Configuration</span>
+<span class="nv">VITE_SOURCES_PER_PAGE</span><span class="o">=</span><span class="m">50</span>
+<span class="nv">VITE_IMAGES_PER_PAGE</span><span class="o">=</span><span class="m">24</span>
+<span class="nv">VITE_DEFAULT_SURVEY</span><span class="o">=</span>NVSS
+
+<span class="c1"># External Links</span>
+<span class="nv">VITE_SIMBAD_URL</span><span class="o">=</span>http://simbad.u-strasbg.fr/simbad/sim-coo
+<span class="nv">VITE_NED_URL</span><span class="o">=</span>https://ned.ipac.caltech.edu/conesearch
+</code></pre></div>
+<hr/>
+<h2 id="testing">Testing<a class="headerlink" href="#testing" title="Permanent link">¶</a></h2>
+<h3 id="example-slack-alert-test">Example Slack Alert Test<a class="headerlink" href="#example-slack-alert-test" title="Permanent link">¶</a></h3>
+<div class="highlight"><pre><span></span><code><span class="c1"># Test Slack webhook</span>
+curl<span class="w"> </span>-X<span class="w"> </span>POST<span class="w"> </span><span class="nv">$SLACK_WEBHOOK_URL</span><span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>-H<span class="w"> </span><span class="s1">'Content-Type: application/json'</span><span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>-d<span class="w"> </span><span class="s1">'{</span>
+<span class="s1">    "text": "Test ESE Alert",</span>
+<span class="s1">    "attachments": [{</span>
+<span class="s1">      "color": "danger",</span>
+<span class="s1">      "fields": [</span>
+<span class="s1">        {"title": "Source", "value": "NVSS J123456+420312", "short": true},</span>
+<span class="s1">        {"title": "Significance", "value": "6.2σ", "short": true}</span>
+<span class="s1">      ]</span>
+<span class="s1">    }]</span>
+<span class="s1">  }'</span>
+</code></pre></div>
+<h3 id="example-mosaic-query-test">Example Mosaic Query Test<a class="headerlink" href="#example-mosaic-query-test" title="Permanent link">¶</a></h3>
+<div class="highlight"><pre><span></span><code><span class="c1"># Query images for 1-hour window</span>
+curl<span class="w"> </span><span class="s2">"http://localhost:8000/api/mosaic/query?start_mjd=60238.0&amp;end_mjd=60238.042&amp;dec_min=40&amp;dec_max=45"</span>
+</code></pre></div>
+<h3 id="example-ese-candidates-test">Example ESE Candidates Test<a class="headerlink" href="#example-ese-candidates-test" title="Permanent link">¶</a></h3>
+<div class="highlight"><pre><span></span><code><span class="c1"># Get active ESE candidates</span>
+curl<span class="w"> </span><span class="s2">"http://localhost:8000/api/alerts/ese_candidates?min_sigma=5.0&amp;hours_ago=24"</span>
+</code></pre></div>
+<hr/>
+<p><strong>Document Version</strong>: 1.0<br/>
+<strong>Last Updated</strong>: 2025-10-24<br/>
+<strong>Status</strong>: Implementation Reference</p>
+</article>
+</div>
+<script>var tabs=__md_get("__tabs");if(Array.isArray(tabs))e:for(var set of document.querySelectorAll(".tabbed-set")){var tab,labels=set.querySelector(".tabbed-labels");for(tab of tabs)for(var label of labels.getElementsByTagName("label"))if(label.innerText.trim()===tab){var input=document.getElementById(label.htmlFor);input.checked=!0;continue e}}</script>
+<script>var target=document.getElementById(location.hash.slice(1));target&&target.name&&(target.checked=target.name.startsWith("__tabbed_"))</script>
+</div>
+</main>
+<footer class="md-footer">
+<div class="md-footer-meta md-typeset">
+<div class="md-footer-meta__inner md-grid">
+<div class="md-copyright">
+  
+  
+    Made with
+    <a href="https://squidfunk.github.io/mkdocs-material/" rel="noopener" target="_blank">
+      Material for MkDocs
+    </a>
+</div>
+</div>
+</div>
+</footer>
+</div>
+<div class="md-dialog" data-md-component="dialog">
+<div class="md-dialog__inner md-typeset"></div>
+</div>
+<script id="__config" type="application/json">{"base": "../..", "features": ["navigation.sections", "navigation.indexes", "content.code.copy", "content.tabs.link"], "search": "../../assets/javascripts/workers/search.b8dbb3d2.min.js", "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}}</script>
+<script src="../../assets/javascripts/bundle.fe8b6f2b.min.js"></script>
+<script src="../../javascripts/mathjax.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+<script src="../../javascripts/mermaid-zoom.js"></script>
+</body>
+</html>

@@ -1,0 +1,2051 @@
+
+<!DOCTYPE html>
+
+<html class="no-js" lang="en">
+<head>
+<meta charset="utf-8"/>
+<meta content="width=device-width,initial-scale=1" name="viewport"/>
+<link href="http://code.deepsynoptic.org/dsa110-contimg/reference/mcp-tools/" rel="canonical"/>
+<link href="../../assets/images/favicon.png" rel="icon"/>
+<meta content="mkdocs-1.6.1, mkdocs-material-9.5.31" name="generator"/>
+<title>MCP Server Tools Reference - DSA-110 Continuum Imaging Pipeline</title>
+<link href="../../assets/stylesheets/main.3cba04c6.min.css" rel="stylesheet"/>
+<link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect"/>
+<link href="https://fonts.googleapis.com/css?family=Roboto:300,300i,400,400i,700,700i%7CRoboto+Mono:400,400i,700,700i&amp;display=fallback" rel="stylesheet"/>
+<style>:root{--md-text-font:"Roboto";--md-code-font:"Roboto Mono"}</style>
+<link href="../../assets/_mkdocstrings.css" rel="stylesheet"/>
+<script>__md_scope=new URL("../..",location),__md_hash=e=>[...e].reduce((e,_)=>(e<<5)-e+_.charCodeAt(0),0),__md_get=(e,_=localStorage,t=__md_scope)=>JSON.parse(_.getItem(t.pathname+"."+e)),__md_set=(e,_,t=localStorage,a=__md_scope)=>{try{t.setItem(a.pathname+"."+e,JSON.stringify(_))}catch(e){}}</script>
+</head>
+<body dir="ltr">
+<input autocomplete="off" class="md-toggle" data-md-toggle="drawer" id="__drawer" type="checkbox"/>
+<input autocomplete="off" class="md-toggle" data-md-toggle="search" id="__search" type="checkbox"/>
+<label class="md-overlay" for="__drawer"></label>
+<div data-md-component="skip">
+<a class="md-skip" href="#mcp-server-tools-reference">
+          Skip to content
+        </a>
+</div>
+<div data-md-component="announce">
+</div>
+<header class="md-header md-header--shadow" data-md-component="header">
+<nav aria-label="Header" class="md-header__inner md-grid">
+<a aria-label="DSA-110 Continuum Imaging Pipeline" class="md-header__button md-logo" data-md-component="logo" href="../.." title="DSA-110 Continuum Imaging Pipeline">
+<svg viewbox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54Z"></path></svg>
+</a>
+<label class="md-header__button md-icon" for="__drawer">
+<svg viewbox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M3 6h18v2H3V6m0 5h18v2H3v-2m0 5h18v2H3v-2Z"></path></svg>
+</label>
+<div class="md-header__title" data-md-component="header-title">
+<div class="md-header__ellipsis">
+<div class="md-header__topic">
+<span class="md-ellipsis">
+            DSA-110 Continuum Imaging Pipeline
+          </span>
+</div>
+<div class="md-header__topic" data-md-component="header-topic">
+<span class="md-ellipsis">
+            
+              MCP Server Tools Reference
+            
+          </span>
+</div>
+</div>
+</div>
+<script>var media,input,key,value,palette=__md_get("__palette");if(palette&&palette.color){"(prefers-color-scheme)"===palette.color.media&&(media=matchMedia("(prefers-color-scheme: light)"),input=document.querySelector(media.matches?"[data-md-color-media='(prefers-color-scheme: light)']":"[data-md-color-media='(prefers-color-scheme: dark)']"),palette.color.media=input.getAttribute("data-md-color-media"),palette.color.scheme=input.getAttribute("data-md-color-scheme"),palette.color.primary=input.getAttribute("data-md-color-primary"),palette.color.accent=input.getAttribute("data-md-color-accent"));for([key,value]of Object.entries(palette.color))document.body.setAttribute("data-md-color-"+key,value)}</script>
+<label class="md-header__button md-icon" for="__search">
+<svg viewbox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.516 6.516 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5Z"></path></svg>
+</label>
+<div class="md-search" data-md-component="search" role="dialog">
+<label class="md-search__overlay" for="__search"></label>
+<div class="md-search__inner" role="search">
+<form class="md-search__form" name="search">
+<input aria-label="Search" autocapitalize="off" autocomplete="off" autocorrect="off" class="md-search__input" data-md-component="search-query" name="query" placeholder="Search" required="" spellcheck="false" type="text"/>
+<label class="md-search__icon md-icon" for="__search">
+<svg viewbox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.516 6.516 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5Z"></path></svg>
+<svg viewbox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11h12Z"></path></svg>
+</label>
+<nav aria-label="Search" class="md-search__options">
+<button aria-label="Clear" class="md-search__icon md-icon" tabindex="-1" title="Clear" type="reset">
+<svg viewbox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M19 6.41 17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12 19 6.41Z"></path></svg>
+</button>
+</nav>
+</form>
+<div class="md-search__output">
+<div class="md-search__scrollwrap" data-md-scrollfix="" tabindex="0">
+<div class="md-search-result" data-md-component="search-result">
+<div class="md-search-result__meta">
+            Initializing search
+          </div>
+<ol class="md-search-result__list" role="presentation"></ol>
+</div>
+</div>
+</div>
+</div>
+</div>
+<div class="md-header__source">
+<a class="md-source" data-md-component="source" href="https://github.com/dsa110/dsa110-contimg" title="Go to repository">
+<div class="md-source__icon md-icon">
+<svg viewbox="0 0 448 512" xmlns="http://www.w3.org/2000/svg"><!--! Font Awesome Free 6.6.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2024 Fonticons, Inc.--><path d="M439.55 236.05 244 40.45a28.87 28.87 0 0 0-40.81 0l-40.66 40.63 51.52 51.52c27.06-9.14 52.68 16.77 43.39 43.68l49.66 49.66c34.23-11.8 61.18 31 35.47 56.69-26.49 26.49-70.21-2.87-56-37.34L240.22 199v121.85c25.3 12.54 22.26 41.85 9.08 55a34.34 34.34 0 0 1-48.55 0c-17.57-17.6-11.07-46.91 11.25-56v-123c-20.8-8.51-24.6-30.74-18.64-45L142.57 101 8.45 235.14a28.86 28.86 0 0 0 0 40.81l195.61 195.6a28.86 28.86 0 0 0 40.8 0l194.69-194.69a28.86 28.86 0 0 0 0-40.81z"></path></svg>
+</div>
+<div class="md-source__repository">
+    GitHub
+  </div>
+</a>
+</div>
+</nav>
+</header>
+<div class="md-container" data-md-component="container">
+<main class="md-main" data-md-component="main">
+<div class="md-main__inner md-grid">
+<div class="md-sidebar md-sidebar--primary" data-md-component="sidebar" data-md-type="navigation">
+<div class="md-sidebar__scrollwrap">
+<div class="md-sidebar__inner">
+<nav aria-label="Navigation" class="md-nav md-nav--primary" data-md-level="0">
+<label class="md-nav__title" for="__drawer">
+<a aria-label="DSA-110 Continuum Imaging Pipeline" class="md-nav__button md-logo" data-md-component="logo" href="../.." title="DSA-110 Continuum Imaging Pipeline">
+<svg viewbox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54Z"></path></svg>
+</a>
+    DSA-110 Continuum Imaging Pipeline
+  </label>
+<div class="md-nav__source">
+<a class="md-source" data-md-component="source" href="https://github.com/dsa110/dsa110-contimg" title="Go to repository">
+<div class="md-source__icon md-icon">
+<svg viewbox="0 0 448 512" xmlns="http://www.w3.org/2000/svg"><!--! Font Awesome Free 6.6.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2024 Fonticons, Inc.--><path d="M439.55 236.05 244 40.45a28.87 28.87 0 0 0-40.81 0l-40.66 40.63 51.52 51.52c27.06-9.14 52.68 16.77 43.39 43.68l49.66 49.66c34.23-11.8 61.18 31 35.47 56.69-26.49 26.49-70.21-2.87-56-37.34L240.22 199v121.85c25.3 12.54 22.26 41.85 9.08 55a34.34 34.34 0 0 1-48.55 0c-17.57-17.6-11.07-46.91 11.25-56v-123c-20.8-8.51-24.6-30.74-18.64-45L142.57 101 8.45 235.14a28.86 28.86 0 0 0 0 40.81l195.61 195.6a28.86 28.86 0 0 0 40.8 0l194.69-194.69a28.86 28.86 0 0 0 0-40.81z"></path></svg>
+</div>
+<div class="md-source__repository">
+    GitHub
+  </div>
+</a>
+</div>
+<ul class="md-nav__list" data-md-scrollfix="">
+<li class="md-nav__item">
+<a class="md-nav__link" href="../..">
+<span class="md-ellipsis">
+    Home
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../DOCUMENTATION_QUICK_REFERENCE/">
+<span class="md-ellipsis">
+    Documentation Guide
+  </span>
+</a>
+</li>
+<li class="md-nav__item md-nav__item--section md-nav__item--nested">
+<input class="md-nav__toggle md-toggle" id="__nav_3" type="checkbox"/>
+<div class="md-nav__link md-nav__container">
+<a class="md-nav__link" href="../../concepts/">
+<span class="md-ellipsis">
+    Concepts
+  </span>
+</a>
+<label class="md-nav__link" for="__nav_3" id="__nav_3_label" tabindex="">
+<span class="md-nav__icon md-icon"></span>
+</label>
+</div>
+<nav aria-expanded="false" aria-labelledby="__nav_3_label" class="md-nav" data-md-level="1">
+<label class="md-nav__title" for="__nav_3">
+<span class="md-nav__icon md-icon"></span>
+            Concepts
+          </label>
+<ul class="md-nav__list" data-md-scrollfix="">
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../concepts/architecture/">
+<span class="md-ellipsis">
+    Architecture
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../concepts/DIRECTORY_ARCHITECTURE/">
+<span class="md-ellipsis">
+    Directory Architecture
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../concepts/modules/">
+<span class="md-ellipsis">
+    Modules
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../concepts/control-panel/">
+<span class="md-ellipsis">
+    Control Panel
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../concepts/aoflagger/">
+<span class="md-ellipsis">
+    AOFlagger
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../concepts/frontend_design/">
+<span class="md-ellipsis">
+    Frontend Design
+  </span>
+</a>
+</li>
+<li class="md-nav__item md-nav__item--nested">
+<input class="md-nav__toggle md-toggle" id="__nav_3_8" type="checkbox"/>
+<label class="md-nav__link" for="__nav_3_8" id="__nav_3_8_label" tabindex="0">
+<span class="md-ellipsis">
+    Dashboard
+  </span>
+<span class="md-nav__icon md-icon"></span>
+</label>
+<nav aria-expanded="false" aria-labelledby="__nav_3_8_label" class="md-nav" data-md-level="2">
+<label class="md-nav__title" for="__nav_3_8">
+<span class="md-nav__icon md-icon"></span>
+            Dashboard
+          </label>
+<ul class="md-nav__list" data-md-scrollfix="">
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../concepts/dashboard_mockups/">
+<span class="md-ellipsis">
+    Mockups
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../SKYVIEW_IMPLEMENTATION_PLAN/">
+<span class="md-ellipsis">
+    Sky View
+  </span>
+</a>
+</li>
+</ul>
+</nav>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../concepts/GLOSSARY/">
+<span class="md-ellipsis">
+    Glossary
+  </span>
+</a>
+</li>
+<li class="md-nav__item md-nav__item--nested">
+<input class="md-nav__toggle md-toggle" id="__nav_3_10" type="checkbox"/>
+<label class="md-nav__link" for="__nav_3_10" id="__nav_3_10_label" tabindex="0">
+<span class="md-ellipsis">
+    Pipeline
+  </span>
+<span class="md-nav__icon md-icon"></span>
+</label>
+<nav aria-expanded="false" aria-labelledby="__nav_3_10_label" class="md-nav" data-md-level="2">
+<label class="md-nav__title" for="__nav_3_10">
+<span class="md-nav__icon md-icon"></span>
+            Pipeline
+          </label>
+<ul class="md-nav__list" data-md-scrollfix="">
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../concepts/pipeline_overview/">
+<span class="md-ellipsis">
+    Overview
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../concepts/pipeline_stage_architecture/">
+<span class="md-ellipsis">
+    Stage Architecture
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../concepts/pipeline_workflow_visualization/">
+<span class="md-ellipsis">
+    Workflow Visualization
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../concepts/pipeline_production_features/">
+<span class="md-ellipsis">
+    Production Features
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../concepts/pipeline_patterns/">
+<span class="md-ellipsis">
+    Patterns
+  </span>
+</a>
+</li>
+</ul>
+</nav>
+</li>
+<li class="md-nav__item md-nav__item--nested">
+<input class="md-nav__toggle md-toggle" id="__nav_3_11" type="checkbox"/>
+<label class="md-nav__link" for="__nav_3_11" id="__nav_3_11_label" tabindex="0">
+<span class="md-ellipsis">
+    Science
+  </span>
+<span class="md-nav__icon md-icon"></span>
+</label>
+<nav aria-expanded="false" aria-labelledby="__nav_3_11_label" class="md-nav" data-md-level="2">
+<label class="md-nav__title" for="__nav_3_11">
+<span class="md-nav__icon md-icon"></span>
+            Science
+          </label>
+<ul class="md-nav__list" data-md-scrollfix="">
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../concepts/science/photometry_normalization/">
+<span class="md-ellipsis">
+    Photometry Normalization
+  </span>
+</a>
+</li>
+</ul>
+</nav>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../concepts/mcp_browser_server_setup/">
+<span class="md-ellipsis">
+    Browser MCP Server
+  </span>
+</a>
+</li>
+</ul>
+</nav>
+</li>
+<li class="md-nav__item md-nav__item--section md-nav__item--nested">
+<input class="md-nav__toggle md-toggle" id="__nav_4" type="checkbox"/>
+<label class="md-nav__link" for="__nav_4" id="__nav_4_label" tabindex="">
+<span class="md-ellipsis">
+    Tutorials
+  </span>
+<span class="md-nav__icon md-icon"></span>
+</label>
+<nav aria-expanded="false" aria-labelledby="__nav_4_label" class="md-nav" data-md-level="1">
+<label class="md-nav__title" for="__nav_4">
+<span class="md-nav__icon md-icon"></span>
+            Tutorials
+          </label>
+<ul class="md-nav__list" data-md-scrollfix="">
+<li class="md-nav__item md-nav__item--nested">
+<input class="md-nav__toggle md-toggle" id="__nav_4_1" type="checkbox"/>
+<label class="md-nav__link" for="__nav_4_1" id="__nav_4_1_label" tabindex="0">
+<span class="md-ellipsis">
+    Conversion
+  </span>
+<span class="md-nav__icon md-icon"></span>
+</label>
+<nav aria-expanded="false" aria-labelledby="__nav_4_1_label" class="md-nav" data-md-level="2">
+<label class="md-nav__title" for="__nav_4_1">
+<span class="md-nav__icon md-icon"></span>
+            Conversion
+          </label>
+<ul class="md-nav__list" data-md-scrollfix="">
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../tutorials/HDF5_TO_MS_TUTORIAL/">
+<span class="md-ellipsis">
+    HDF5 to MS
+  </span>
+</a>
+</li>
+</ul>
+</nav>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../tutorials/simulation-tutorial/">
+<span class="md-ellipsis">
+    Simulation
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../tutorials/calibrate-apply/">
+<span class="md-ellipsis">
+    Calibrate and Apply
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../tutorials/convert-standalone/">
+<span class="md-ellipsis">
+    Convert Standalone
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../tutorials/streaming/">
+<span class="md-ellipsis">
+    Streaming
+  </span>
+</a>
+</li>
+<li class="md-nav__item md-nav__item--nested">
+<input class="md-nav__toggle md-toggle" id="__nav_4_6" type="checkbox"/>
+<label class="md-nav__link" for="__nav_4_6" id="__nav_4_6_label" tabindex="0">
+<span class="md-ellipsis">
+    Notebooks
+  </span>
+<span class="md-nav__icon md-icon"></span>
+</label>
+<nav aria-expanded="false" aria-labelledby="__nav_4_6_label" class="md-nav" data-md-level="2">
+<label class="md-nav__title" for="__nav_4_6">
+<span class="md-nav__icon md-icon"></span>
+            Notebooks
+          </label>
+<ul class="md-nav__list" data-md-scrollfix="">
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../tutorials/notebooks/bandpass_calibration_test.ipynb">
+<span class="md-ellipsis">
+    Bandpass Calibration Test
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../tutorials/notebooks/calibrator_helper.py">
+<span class="md-ellipsis">
+    Calibrator Helper
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../tutorials/notebooks/CalibratorSearch.ipynb">
+<span class="md-ellipsis">
+    Calibrator Search
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../tutorials/notebooks/ms_staging_workflow.ipynb">
+<span class="md-ellipsis">
+    MS Staging Workflow
+  </span>
+</a>
+</li>
+</ul>
+</nav>
+</li>
+</ul>
+</nav>
+</li>
+<li class="md-nav__item md-nav__item--section md-nav__item--nested">
+<input class="md-nav__toggle md-toggle" id="__nav_5" type="checkbox"/>
+<label class="md-nav__link" for="__nav_5" id="__nav_5_label" tabindex="">
+<span class="md-ellipsis">
+    How-To Guides
+  </span>
+<span class="md-nav__icon md-icon"></span>
+</label>
+<nav aria-expanded="false" aria-labelledby="__nav_5_label" class="md-nav" data-md-level="1">
+<label class="md-nav__title" for="__nav_5">
+<span class="md-nav__icon md-icon"></span>
+            How-To Guides
+          </label>
+<ul class="md-nav__list" data-md-scrollfix="">
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../how-to/github_pages_walkthrough/">
+<span class="md-ellipsis">
+    GitHub Pages Setup
+  </span>
+</a>
+</li>
+<li class="md-nav__item md-nav__item--nested">
+<input class="md-nav__toggle md-toggle" id="__nav_5_2" type="checkbox"/>
+<label class="md-nav__link" for="__nav_5_2" id="__nav_5_2_label" tabindex="0">
+<span class="md-ellipsis">
+    Quickstarts
+  </span>
+<span class="md-nav__icon md-icon"></span>
+</label>
+<nav aria-expanded="false" aria-labelledby="__nav_5_2_label" class="md-nav" data-md-level="2">
+<label class="md-nav__title" for="__nav_5_2">
+<span class="md-nav__icon md-icon"></span>
+            Quickstarts
+          </label>
+<ul class="md-nav__list" data-md-scrollfix="">
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../how-to/quickstart/">
+<span class="md-ellipsis">
+    General
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../how-to/control-panel-quickstart/">
+<span class="md-ellipsis">
+    Control Panel
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../how-to/LINEAR_SETUP_QUICKSTART/">
+<span class="md-ellipsis">
+    Linear Setup
+  </span>
+</a>
+</li>
+</ul>
+</nav>
+</li>
+<li class="md-nav__item md-nav__item--nested">
+<input class="md-nav__toggle md-toggle" id="__nav_5_3" type="checkbox"/>
+<label class="md-nav__link" for="__nav_5_3" id="__nav_5_3_label" tabindex="0">
+<span class="md-ellipsis">
+    Testing
+  </span>
+<span class="md-nav__icon md-icon"></span>
+</label>
+<nav aria-expanded="false" aria-labelledby="__nav_5_3_label" class="md-nav" data-md-level="2">
+<label class="md-nav__title" for="__nav_5_3">
+<span class="md-nav__icon md-icon"></span>
+            Testing
+          </label>
+<ul class="md-nav__list" data-md-scrollfix="">
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../how-to/FAST_TESTING/">
+<span class="md-ellipsis">
+    Fast Testing
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../how-to/PIPELINE_TESTING_GUIDE/">
+<span class="md-ellipsis">
+    Pipeline Guide
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../how-to/TEST_FLAG_SUBCOMMAND/">
+<span class="md-ellipsis">
+    Flag Subcommand
+  </span>
+</a>
+</li>
+</ul>
+</nav>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../how-to/build-vp-from-h5/">
+<span class="md-ellipsis">
+    Build VP from h5
+  </span>
+</a>
+</li>
+<li class="md-nav__item md-nav__item--nested">
+<input class="md-nav__toggle md-toggle" id="__nav_5_5" type="checkbox"/>
+<label class="md-nav__link" for="__nav_5_5" id="__nav_5_5_label" tabindex="0">
+<span class="md-ellipsis">
+    Calibration
+  </span>
+<span class="md-nav__icon md-icon"></span>
+</label>
+<nav aria-expanded="false" aria-labelledby="__nav_5_5_label" class="md-nav" data-md-level="2">
+<label class="md-nav__title" for="__nav_5_5">
+<span class="md-nav__icon md-icon"></span>
+            Calibration
+          </label>
+<ul class="md-nav__list" data-md-scrollfix="">
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../how-to/CALIBRATION_DETAILED_PROCEDURE/">
+<span class="md-ellipsis">
+    Detailed Procedure
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../how-to/FIND_CALIBRATOR_TRANSIT_DATA/">
+<span class="md-ellipsis">
+    Find Calibrator Transit
+  </span>
+</a>
+</li>
+</ul>
+</nav>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../how-to/IMAGE_0834_TRANSIT_5MIN/">
+<span class="md-ellipsis">
+    Image 0834 Transit 5min
+  </span>
+</a>
+</li>
+<li class="md-nav__item md-nav__item--nested">
+<input class="md-nav__toggle md-toggle" id="__nav_5_7" type="checkbox"/>
+<label class="md-nav__link" for="__nav_5_7" id="__nav_5_7_label" tabindex="0">
+<span class="md-ellipsis">
+    Mosaic
+  </span>
+<span class="md-nav__icon md-icon"></span>
+</label>
+<nav aria-expanded="false" aria-labelledby="__nav_5_7_label" class="md-nav" data-md-level="2">
+<label class="md-nav__title" for="__nav_5_7">
+<span class="md-nav__icon md-icon"></span>
+            Mosaic
+          </label>
+<ul class="md-nav__list" data-md-scrollfix="">
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../how-to/mosaic_quickstart/">
+<span class="md-ellipsis">
+    Quickstart
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../how-to/mosaic/">
+<span class="md-ellipsis">
+    Complete Guide
+  </span>
+</a>
+</li>
+</ul>
+</nav>
+</li>
+<li class="md-nav__item md-nav__item--nested">
+<input class="md-nav__toggle md-toggle" id="__nav_5_8" type="checkbox"/>
+<label class="md-nav__link" for="__nav_5_8" id="__nav_5_8_label" tabindex="0">
+<span class="md-ellipsis">
+    Quality Assurance
+  </span>
+<span class="md-nav__icon md-icon"></span>
+</label>
+<nav aria-expanded="false" aria-labelledby="__nav_5_8_label" class="md-nav" data-md-level="2">
+<label class="md-nav__title" for="__nav_5_8">
+<span class="md-nav__icon md-icon"></span>
+            Quality Assurance
+          </label>
+<ul class="md-nav__list" data-md-scrollfix="">
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../how-to/QUALITY_ASSURANCE_SETUP/">
+<span class="md-ellipsis">
+    Setup
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../how-to/quicklook/">
+<span class="md-ellipsis">
+    Quick Look
+  </span>
+</a>
+</li>
+</ul>
+</nav>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../how-to/reprocess/">
+<span class="md-ellipsis">
+    Reprocess
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../how-to/USING_ORCHESTRATOR_CLI/">
+<span class="md-ellipsis">
+    Using Orchestrator CLI
+  </span>
+</a>
+</li>
+<li class="md-nav__item md-nav__item--nested">
+<input class="md-nav__toggle md-toggle" id="__nav_5_11" type="checkbox"/>
+<label class="md-nav__link" for="__nav_5_11" id="__nav_5_11_label" tabindex="0">
+<span class="md-ellipsis">
+    Dashboard
+  </span>
+<span class="md-nav__icon md-icon"></span>
+</label>
+<nav aria-expanded="false" aria-labelledby="__nav_5_11_label" class="md-nav" data-md-level="2">
+<label class="md-nav__title" for="__nav_5_11">
+<span class="md-nav__icon md-icon"></span>
+            Dashboard
+          </label>
+<ul class="md-nav__list" data-md-scrollfix="">
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../how-to/dashboard-development/">
+<span class="md-ellipsis">
+    Development
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../how-to/dashboard-quickstart/">
+<span class="md-ellipsis">
+    Quickstart
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../how-to/dashboard_testing/">
+<span class="md-ellipsis">
+    Testing
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../how-to/dashboard_development_workflow/">
+<span class="md-ellipsis">
+    Development Workflow
+  </span>
+</a>
+</li>
+</ul>
+</nav>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../how-to/LINEAR_INTEGRATION/">
+<span class="md-ellipsis">
+    Linear Integration
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../how-to/frontend-initial-setup/">
+<span class="md-ellipsis">
+    Frontend Initial Setup
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../how-to/PARAMETER_OPTIMIZATION_GUIDE/">
+<span class="md-ellipsis">
+    AOFlagger Parameter Optimization
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../how-to/downsampling_guide/">
+<span class="md-ellipsis">
+    Downsampling Guide
+  </span>
+</a>
+</li>
+<li class="md-nav__item md-nav__item--nested">
+<input class="md-nav__toggle md-toggle" id="__nav_5_16" type="checkbox"/>
+<label class="md-nav__link" for="__nav_5_16" id="__nav_5_16_label" tabindex="0">
+<span class="md-ellipsis">
+    Conversion
+  </span>
+<span class="md-nav__icon md-icon"></span>
+</label>
+<nav aria-expanded="false" aria-labelledby="__nav_5_16_label" class="md-nav" data-md-level="2">
+<label class="md-nav__title" for="__nav_5_16">
+<span class="md-nav__icon md-icon"></span>
+            Conversion
+          </label>
+<ul class="md-nav__list" data-md-scrollfix="">
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../how-to/uvh5_to_ms_conversion/">
+<span class="md-ellipsis">
+    UVH5 to MS
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../how-to/streaming_converter_guide/">
+<span class="md-ellipsis">
+    Streaming Converter
+  </span>
+</a>
+</li>
+</ul>
+</nav>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../how-to/troubleshooting/">
+<span class="md-ellipsis">
+    Troubleshooting
+  </span>
+</a>
+</li>
+</ul>
+</nav>
+</li>
+<li class="md-nav__item md-nav__item--section md-nav__item--nested">
+<input class="md-nav__toggle md-toggle" id="__nav_6" type="checkbox"/>
+<label class="md-nav__link" for="__nav_6" id="__nav_6_label" tabindex="">
+<span class="md-ellipsis">
+    Reference
+  </span>
+<span class="md-nav__icon md-icon"></span>
+</label>
+<nav aria-expanded="false" aria-labelledby="__nav_6_label" class="md-nav" data-md-level="1">
+<label class="md-nav__title" for="__nav_6">
+<span class="md-nav__icon md-icon"></span>
+            Reference
+          </label>
+<ul class="md-nav__list" data-md-scrollfix="">
+<li class="md-nav__item md-nav__item--nested">
+<input class="md-nav__toggle md-toggle" id="__nav_6_1" type="checkbox"/>
+<label class="md-nav__link" for="__nav_6_1" id="__nav_6_1_label" tabindex="0">
+<span class="md-ellipsis">
+    API
+  </span>
+<span class="md-nav__icon md-icon"></span>
+</label>
+<nav aria-expanded="false" aria-labelledby="__nav_6_1_label" class="md-nav" data-md-level="2">
+<label class="md-nav__title" for="__nav_6_1">
+<span class="md-nav__icon md-icon"></span>
+            API
+          </label>
+<ul class="md-nav__list" data-md-scrollfix="">
+<li class="md-nav__item">
+<a class="md-nav__link" href="../api-endpoints/">
+<span class="md-ellipsis">
+    Endpoints
+  </span>
+</a>
+</li>
+<li class="md-nav__item md-nav__item--nested">
+<input class="md-nav__toggle md-toggle" id="__nav_6_1_2" type="checkbox"/>
+<label class="md-nav__link" for="__nav_6_1_2" id="__nav_6_1_2_label" tabindex="0">
+<span class="md-ellipsis">
+    Dashboard
+  </span>
+<span class="md-nav__icon md-icon"></span>
+</label>
+<nav aria-expanded="false" aria-labelledby="__nav_6_1_2_label" class="md-nav" data-md-level="3">
+<label class="md-nav__title" for="__nav_6_1_2">
+<span class="md-nav__icon md-icon"></span>
+            Dashboard
+          </label>
+<ul class="md-nav__list" data-md-scrollfix="">
+<li class="md-nav__item">
+<a class="md-nav__link" href="../dashboard_backend_api/">
+<span class="md-ellipsis">
+    API Reference
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../dashboard_pages_and_features/">
+<span class="md-ellipsis">
+    Pages &amp; Features
+  </span>
+</a>
+</li>
+</ul>
+</nav>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../backend_integration_snippets/">
+<span class="md-ellipsis">
+    Integration Snippets
+  </span>
+</a>
+</li>
+</ul>
+</nav>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../calibration-overview/">
+<span class="md-ellipsis">
+    Calibration Overview
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../cli/">
+<span class="md-ellipsis">
+    CLI
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../control-panel-cheatsheet/">
+<span class="md-ellipsis">
+    Control Panel Cheatsheet
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../database_schema/">
+<span class="md-ellipsis">
+    Database Schema
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../env/">
+<span class="md-ellipsis">
+    Environment Variables
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../CRITICAL_PYTHON_ENVIRONMENT/">
+<span class="md-ellipsis">
+    Critical Python Environment
+  </span>
+</a>
+</li>
+<li class="md-nav__item md-nav__item--nested">
+<input class="md-nav__toggle md-toggle" id="__nav_6_8" type="checkbox"/>
+<label class="md-nav__link" for="__nav_6_8" id="__nav_6_8_label" tabindex="0">
+<span class="md-ellipsis">
+    Optimizations
+  </span>
+<span class="md-nav__icon md-icon"></span>
+</label>
+<nav aria-expanded="false" aria-labelledby="__nav_6_8_label" class="md-nav" data-md-level="2">
+<label class="md-nav__title" for="__nav_6_8">
+<span class="md-nav__icon md-icon"></span>
+            Optimizations
+          </label>
+<ul class="md-nav__list" data-md-scrollfix="">
+<li class="md-nav__item">
+<a class="md-nav__link" href="../optimizations/OPTIMIZATION_API/">
+<span class="md-ellipsis">
+    API
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../optimizations/PROFILING_GUIDE/">
+<span class="md-ellipsis">
+    Profiling Guide
+  </span>
+</a>
+</li>
+</ul>
+</nav>
+</li>
+</ul>
+</nav>
+</li>
+<li class="md-nav__item md-nav__item--section md-nav__item--nested">
+<input class="md-nav__toggle md-toggle" id="__nav_7" type="checkbox"/>
+<label class="md-nav__link" for="__nav_7" id="__nav_7_label" tabindex="">
+<span class="md-ellipsis">
+    Operations
+  </span>
+<span class="md-nav__icon md-icon"></span>
+</label>
+<nav aria-expanded="false" aria-labelledby="__nav_7_label" class="md-nav" data-md-level="1">
+<label class="md-nav__title" for="__nav_7">
+<span class="md-nav__icon md-icon"></span>
+            Operations
+          </label>
+<ul class="md-nav__list" data-md-scrollfix="">
+<li class="md-nav__item md-nav__item--nested">
+<input class="md-nav__toggle md-toggle" id="__nav_7_1" type="checkbox"/>
+<label class="md-nav__link" for="__nav_7_1" id="__nav_7_1_label" tabindex="0">
+<span class="md-ellipsis">
+    Deployment
+  </span>
+<span class="md-nav__icon md-icon"></span>
+</label>
+<nav aria-expanded="false" aria-labelledby="__nav_7_1_label" class="md-nav" data-md-level="2">
+<label class="md-nav__title" for="__nav_7_1">
+<span class="md-nav__icon md-icon"></span>
+            Deployment
+          </label>
+<ul class="md-nav__list" data-md-scrollfix="">
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../operations/deploy-docker/">
+<span class="md-ellipsis">
+    Docker
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../operations/deploy-systemd/">
+<span class="md-ellipsis">
+    systemd
+  </span>
+</a>
+</li>
+</ul>
+</nav>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../operations/port-management/">
+<span class="md-ellipsis">
+    Port Management
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../operations/refant_quick_reference/">
+<span class="md-ellipsis">
+    Refant Quick Reference
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../operations/service_restart_fix/">
+<span class="md-ellipsis">
+    Service Restart Fix
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../operations/systemd-migration/">
+<span class="md-ellipsis">
+    Systemd Migration
+  </span>
+</a>
+</li>
+</ul>
+</nav>
+</li>
+<li class="md-nav__item md-nav__item--section md-nav__item--nested">
+<input class="md-nav__toggle md-toggle" id="__nav_8" type="checkbox"/>
+<div class="md-nav__link md-nav__container">
+<a class="md-nav__link" href="../../contributing/">
+<span class="md-ellipsis">
+    Contributing
+  </span>
+</a>
+<label class="md-nav__link" for="__nav_8" id="__nav_8_label" tabindex="">
+<span class="md-nav__icon md-icon"></span>
+</label>
+</div>
+<nav aria-expanded="false" aria-labelledby="__nav_8_label" class="md-nav" data-md-level="1">
+<label class="md-nav__title" for="__nav_8">
+<span class="md-nav__icon md-icon"></span>
+            Contributing
+          </label>
+<ul class="md-nav__list" data-md-scrollfix="">
+<li class="md-nav__item md-nav__item--nested">
+<input class="md-nav__toggle md-toggle" id="__nav_8_2" type="checkbox"/>
+<label class="md-nav__link" for="__nav_8_2" id="__nav_8_2_label" tabindex="0">
+<span class="md-ellipsis">
+    Archive
+  </span>
+<span class="md-nav__icon md-icon"></span>
+</label>
+<nav aria-expanded="false" aria-labelledby="__nav_8_2_label" class="md-nav" data-md-level="2">
+<label class="md-nav__title" for="__nav_8_2">
+<span class="md-nav__icon md-icon"></span>
+            Archive
+          </label>
+<ul class="md-nav__list" data-md-scrollfix="">
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../contributing/archive/CONTRIBUTING_TODO/">
+<span class="md-ellipsis">
+    Contributing to TODO
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../contributing/archive/rules/">
+<span class="md-ellipsis">
+    Rules
+  </span>
+</a>
+</li>
+</ul>
+</nav>
+</li>
+</ul>
+</nav>
+</li>
+</ul>
+</nav>
+</div>
+</div>
+</div>
+<div class="md-sidebar md-sidebar--secondary" data-md-component="sidebar" data-md-type="toc">
+<div class="md-sidebar__scrollwrap">
+<div class="md-sidebar__inner">
+<nav aria-label="Table of contents" class="md-nav md-nav--secondary">
+<label class="md-nav__title" for="__toc">
+<span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+<ul class="md-nav__list" data-md-component="toc" data-md-scrollfix="">
+<li class="md-nav__item">
+<a class="md-nav__link" href="#overview">
+<span class="md-ellipsis">
+      Overview
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#quick-reference-all-mcp-servers">
+<span class="md-ellipsis">
+      Quick Reference: All MCP Servers
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#configured-mcp-servers">
+<span class="md-ellipsis">
+      Configured MCP Servers
+    </span>
+</a>
+<nav aria-label="Configured MCP Servers" class="md-nav">
+<ul class="md-nav__list">
+<li class="md-nav__item">
+<a class="md-nav__link" href="#1-codacy-mcp">
+<span class="md-ellipsis">
+      1. Codacy MCP
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#2-figma-mcp">
+<span class="md-ellipsis">
+      2. Figma MCP
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#3-perplexity-mcp-multiple-instances">
+<span class="md-ellipsis">
+      3. Perplexity MCP (Multiple Instances)
+    </span>
+</a>
+<nav aria-label="3. Perplexity MCP (Multiple Instances)" class="md-nav">
+<ul class="md-nav__list">
+<li class="md-nav__item">
+<a class="md-nav__link" href="#perplexity-ask">
+<span class="md-ellipsis">
+      Perplexity Ask
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#perplexity-server">
+<span class="md-ellipsis">
+      Perplexity Server
+    </span>
+</a>
+</li>
+</ul>
+</nav>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#4-cursor-ide-browser">
+<span class="md-ellipsis">
+      4. Cursor IDE Browser
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#5-chrome-devtools-mcp">
+<span class="md-ellipsis">
+      5. Chrome DevTools MCP
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#6-arxiv-mcp-server">
+<span class="md-ellipsis">
+      6. ArXiv MCP Server
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#7-ref-mcp">
+<span class="md-ellipsis">
+      7. Ref MCP
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#8-context7-mcp">
+<span class="md-ellipsis">
+      8. Context7 MCP
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#9-graphiti-memory-mcp">
+<span class="md-ellipsis">
+      9. Graphiti Memory MCP
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#10-desktop-commander">
+<span class="md-ellipsis">
+      10. Desktop Commander
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#11-mermaid-mcp">
+<span class="md-ellipsis">
+      11. Mermaid MCP
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#12-pexpect-mcp">
+<span class="md-ellipsis">
+      12. Pexpect MCP
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#13-my-graphiti">
+<span class="md-ellipsis">
+      13. My Graphiti
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#14-playwright-mcp">
+<span class="md-ellipsis">
+      14. Playwright MCP
+    </span>
+</a>
+</li>
+</ul>
+</nav>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#configuration-files">
+<span class="md-ellipsis">
+      Configuration Files
+    </span>
+</a>
+<nav aria-label="Configuration Files" class="md-nav">
+<ul class="md-nav__list">
+<li class="md-nav__item">
+<a class="md-nav__link" href="#project-level-config">
+<span class="md-ellipsis">
+      Project-Level Config
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#user-level-config">
+<span class="md-ellipsis">
+      User-Level Config
+    </span>
+</a>
+</li>
+</ul>
+</nav>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#usage-tips">
+<span class="md-ellipsis">
+      Usage Tips
+    </span>
+</a>
+<nav aria-label="Usage Tips" class="md-nav">
+<ul class="md-nav__list">
+<li class="md-nav__item">
+<a class="md-nav__link" href="#browser-tools">
+<span class="md-ellipsis">
+      Browser Tools
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#research-tools">
+<span class="md-ellipsis">
+      Research Tools
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#design-tools">
+<span class="md-ellipsis">
+      Design Tools
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#code-quality">
+<span class="md-ellipsis">
+      Code Quality
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#memory-knowledge">
+<span class="md-ellipsis">
+      Memory &amp; Knowledge
+    </span>
+</a>
+</li>
+</ul>
+</nav>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#troubleshooting">
+<span class="md-ellipsis">
+      Troubleshooting
+    </span>
+</a>
+<nav aria-label="Troubleshooting" class="md-nav">
+<ul class="md-nav__list">
+<li class="md-nav__item">
+<a class="md-nav__link" href="#browser-tools-not-working">
+<span class="md-ellipsis">
+      Browser Tools Not Working
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#docker-based-servers">
+<span class="md-ellipsis">
+      Docker-Based Servers
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#http-based-servers">
+<span class="md-ellipsis">
+      HTTP-Based Servers
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#graphiti-memory">
+<span class="md-ellipsis">
+      Graphiti Memory
+    </span>
+</a>
+</li>
+</ul>
+</nav>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#tool-selection-guide">
+<span class="md-ellipsis">
+      Tool Selection Guide
+    </span>
+</a>
+<nav aria-label="Tool Selection Guide" class="md-nav">
+<ul class="md-nav__list">
+<li class="md-nav__item">
+<a class="md-nav__link" href="#for-code-quality">
+<span class="md-ellipsis">
+      For Code Quality
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#for-design-ui">
+<span class="md-ellipsis">
+      For Design &amp; UI
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#for-research-information">
+<span class="md-ellipsis">
+      For Research &amp; Information
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#for-browser-automation">
+<span class="md-ellipsis">
+      For Browser Automation
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#for-knowledge-management">
+<span class="md-ellipsis">
+      For Knowledge Management
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#for-system-automation">
+<span class="md-ellipsis">
+      For System Automation
+    </span>
+</a>
+</li>
+</ul>
+</nav>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#common-workflows">
+<span class="md-ellipsis">
+      Common Workflows
+    </span>
+</a>
+<nav aria-label="Common Workflows" class="md-nav">
+<ul class="md-nav__list">
+<li class="md-nav__item">
+<a class="md-nav__link" href="#e2e-testing-workflow">
+<span class="md-ellipsis">
+      E2E Testing Workflow
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#research-workflow">
+<span class="md-ellipsis">
+      Research Workflow
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#design-to-code-workflow">
+<span class="md-ellipsis">
+      Design-to-Code Workflow
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#code-quality-workflow">
+<span class="md-ellipsis">
+      Code Quality Workflow
+    </span>
+</a>
+</li>
+</ul>
+</nav>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#related-documentation">
+<span class="md-ellipsis">
+      Related Documentation
+    </span>
+</a>
+</li>
+</ul>
+</nav>
+</div>
+</div>
+</div>
+<div class="md-content" data-md-component="content">
+<article class="md-content__inner md-typeset">
+<h1 id="mcp-server-tools-reference">MCP Server Tools Reference<a class="headerlink" href="#mcp-server-tools-reference" title="Permanent link">¶</a></h1>
+<p>This document lists all available Model Context Protocol (MCP) server tools configured for this project.</p>
+<h2 id="overview">Overview<a class="headerlink" href="#overview" title="Permanent link">¶</a></h2>
+<p>MCP servers provide specialized tools and capabilities that can be accessed through Cursor. Each server offers a set of tools for specific tasks.</p>
+<h2 id="quick-reference-all-mcp-servers">Quick Reference: All MCP Servers<a class="headerlink" href="#quick-reference-all-mcp-servers" title="Permanent link">¶</a></h2>
+<table>
+<thead>
+<tr>
+<th>#</th>
+<th>Server</th>
+<th>Purpose</th>
+<th>Config Location</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>1</td>
+<td><strong>Codacy</strong></td>
+<td>Code quality &amp; security analysis</td>
+<td>User-level</td>
+</tr>
+<tr>
+<td>2</td>
+<td><strong>Figma</strong></td>
+<td>Design system &amp; UI code generation</td>
+<td>User-level</td>
+</tr>
+<tr>
+<td>3</td>
+<td><strong>Perplexity</strong> (2 instances)</td>
+<td>Research &amp; web search</td>
+<td>Project-level</td>
+</tr>
+<tr>
+<td>4</td>
+<td><strong>Cursor IDE Browser</strong></td>
+<td>Browser automation &amp; web testing</td>
+<td>Built-in</td>
+</tr>
+<tr>
+<td>5</td>
+<td><strong>Chrome DevTools</strong></td>
+<td>DevTools Protocol integration</td>
+<td>Project-level</td>
+</tr>
+<tr>
+<td>6</td>
+<td><strong>ArXiv</strong></td>
+<td>Research paper access</td>
+<td>Project-level</td>
+</tr>
+<tr>
+<td>7</td>
+<td><strong>Ref</strong></td>
+<td>Code reference &amp; documentation</td>
+<td>Project-level</td>
+</tr>
+<tr>
+<td>8</td>
+<td><strong>Context7</strong></td>
+<td>Context management</td>
+<td>Project-level</td>
+</tr>
+<tr>
+<td>9</td>
+<td><strong>Graphiti Memory</strong></td>
+<td>Knowledge graph &amp; agent memory</td>
+<td>Project-level</td>
+</tr>
+<tr>
+<td>10</td>
+<td><strong>Desktop Commander</strong></td>
+<td>Desktop automation</td>
+<td>Project-level</td>
+</tr>
+<tr>
+<td>11</td>
+<td><strong>Mermaid</strong></td>
+<td>Diagram generation</td>
+<td>Project-level</td>
+</tr>
+<tr>
+<td>12</td>
+<td><strong>Pexpect</strong></td>
+<td>Interactive terminal automation</td>
+<td>Project-level</td>
+</tr>
+<tr>
+<td>13</td>
+<td><strong>My Graphiti</strong></td>
+<td>Custom knowledge graph instance</td>
+<td>Project-level</td>
+</tr>
+<tr>
+<td>14</td>
+<td><strong>Playwright</strong></td>
+<td>Browser automation &amp; E2E testing</td>
+<td>User-level</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Total: 14 MCP servers configured</strong></p>
+<h2 id="configured-mcp-servers">Configured MCP Servers<a class="headerlink" href="#configured-mcp-servers" title="Permanent link">¶</a></h2>
+<h3 id="1-codacy-mcp">1. Codacy MCP<a class="headerlink" href="#1-codacy-mcp" title="Permanent link">¶</a></h3>
+<p><strong>Purpose:</strong> Code quality and security analysis</p>
+<p><strong>Tools:</strong>
+- <code>codacy_get_pattern</code> - Get definition of a specific pattern
+- <code>codacy_list_tools</code> - List all code analysis tools available
+- <code>codacy_cli_analyze</code> - Run quality analysis locally using Codacy CLI</p>
+<p><strong>Configuration:</strong> User-level (<code>~/.cursor/mcp.json</code>)
+- Uses <code>npx -y @codacy/codacy-mcp@latest</code></p>
+<p><strong>Use Cases:</strong>
+- Analyzing code quality
+- Finding security issues
+- Understanding Codacy pattern definitions</p>
+<p><strong>Examples:</strong>
+<div class="highlight"><pre><span></span><code><span class="c1"># List available analysis tools</span>
+<span class="n">codacy_list_tools</span><span class="p">()</span>
+
+<span class="c1"># Get pattern definition for a specific issue</span>
+<span class="n">codacy_get_pattern</span><span class="p">(</span><span class="n">toolUuid</span><span class="o">=</span><span class="s2">"eslint"</span><span class="p">,</span> <span class="n">patternId</span><span class="o">=</span><span class="s2">"no-console"</span><span class="p">)</span>
+
+<span class="c1"># Analyze codebase for quality issues</span>
+<span class="n">codacy_cli_analyze</span><span class="p">(</span><span class="n">rootPath</span><span class="o">=</span><span class="s2">"/data/dsa110-contimg"</span><span class="p">,</span> <span class="n">file</span><span class="o">=</span><span class="s2">"src/pipeline/"</span><span class="p">)</span>
+</code></pre></div></p>
+<hr/>
+<h3 id="2-figma-mcp">2. Figma MCP<a class="headerlink" href="#2-figma-mcp" title="Permanent link">¶</a></h3>
+<p><strong>Purpose:</strong> Design system integration and UI code generation</p>
+<p><strong>Tools:</strong>
+- <code>Figma_get_screenshot</code> - Generate screenshot for a node or selected node
+- <code>Figma_create_design_system_rules</code> - Generate design system rules prompt
+- <code>Figma_get_design_context</code> - Generate UI code for a given node
+- <code>Figma_get_metadata</code> - Get metadata for a node or page (XML format)
+- <code>Figma_get_variable_defs</code> - Get variable definitions for a node
+- <code>Figma_get_figjam</code> - Generate UI code for FigJam nodes
+- <code>Figma_get_code_connect_map</code> - Get Code Connect mapping (nodeId to codebase location)
+- <code>Figma_whoami</code> - Get authenticated user information</p>
+<p><strong>Configuration:</strong> User-level (<code>~/.cursor/mcp.json</code>)
+- HTTP endpoint: <code>https://mcp.figma.com/mcp</code></p>
+<p><strong>Use Cases:</strong>
+- Converting Figma designs to code
+- Extracting design tokens and variables
+- Generating UI components from designs
+- Accessing design system information</p>
+<p><strong>Examples:</strong>
+<div class="highlight"><pre><span></span><code><span class="c1"># Get design context for a Figma node (generates React/TypeScript code)</span>
+<span class="n">Figma_get_design_context</span><span class="p">(</span>
+    <span class="n">fileKey</span><span class="o">=</span><span class="s2">"abc123"</span><span class="p">,</span>
+    <span class="n">nodeId</span><span class="o">=</span><span class="s2">"1:234"</span><span class="p">,</span>
+    <span class="n">clientLanguages</span><span class="o">=</span><span class="s2">"typescript,html,css"</span><span class="p">,</span>
+    <span class="n">clientFrameworks</span><span class="o">=</span><span class="s2">"react"</span>
+<span class="p">)</span>
+
+<span class="c1"># Get variable definitions (colors, spacing, etc.)</span>
+<span class="n">Figma_get_variable_defs</span><span class="p">(</span><span class="n">fileKey</span><span class="o">=</span><span class="s2">"abc123"</span><span class="p">,</span> <span class="n">nodeId</span><span class="o">=</span><span class="s2">"1:234"</span><span class="p">)</span>
+
+<span class="c1"># Get screenshot of a design</span>
+<span class="n">Figma_get_screenshot</span><span class="p">(</span><span class="n">fileKey</span><span class="o">=</span><span class="s2">"abc123"</span><span class="p">,</span> <span class="n">nodeId</span><span class="o">=</span><span class="s2">"1:234"</span><span class="p">)</span>
+
+<span class="c1"># Get Code Connect mapping (links Figma to codebase)</span>
+<span class="n">Figma_get_code_connect_map</span><span class="p">(</span><span class="n">fileKey</span><span class="o">=</span><span class="s2">"abc123"</span><span class="p">,</span> <span class="n">nodeId</span><span class="o">=</span><span class="s2">"1:234"</span><span class="p">)</span>
+</code></pre></div></p>
+<hr/>
+<h3 id="3-perplexity-mcp-multiple-instances">3. Perplexity MCP (Multiple Instances)<a class="headerlink" href="#3-perplexity-mcp-multiple-instances" title="Permanent link">¶</a></h3>
+<h4 id="perplexity-ask">Perplexity Ask<a class="headerlink" href="#perplexity-ask" title="Permanent link">¶</a></h4>
+<p><strong>Purpose:</strong> Conversational AI with Sonar API</p>
+<p><strong>Tools:</strong>
+- <code>perplexity_ask</code> - Engage in conversation using Sonar API
+- <code>perplexity_research</code> - Perform deep research with citations
+- <code>perplexity_reason</code> - Perform reasoning tasks using sonar-reasoning-pro model</p>
+<p><strong>Configuration:</strong> Project-level (<code>.cursor/mcp.json</code>)
+- Docker-based: <code>mcp/perplexity-ask</code>
+- API Key configured</p>
+<h4 id="perplexity-server">Perplexity Server<a class="headerlink" href="#perplexity-server" title="Permanent link">¶</a></h4>
+<p><strong>Purpose:</strong> Web search and research with advanced filtering</p>
+<p><strong>Tools:</strong>
+- <code>perplexity-server_search</code> - Web search via Perplexity AI with automatic model selection
+- <code>perplexity-server_domain_filter</code> - Configure domain filtering (allow/block)
+- <code>perplexity-server_recency_filter</code> - Control time window for search results
+- <code>perplexity-server_clear_filters</code> - Remove all domain filters
+- <code>perplexity-server_list_filters</code> - Display current filter configuration
+- <code>perplexity-server_model_info</code> - View available models and override selection</p>
+<p><strong>Configuration:</strong> Project-level (<code>.cursor/mcp.json</code>)
+- Node.js server: <code>/home/ubuntu/proj/mcps/perplexity-mcp/build/index.js</code>
+- Model: <code>sonar</code> (default)</p>
+<p><strong>Use Cases:</strong>
+- Research and fact-checking
+- Current events and news
+- Technical documentation lookup
+- Comparative analysis</p>
+<p><strong>Examples:</strong>
+<div class="highlight"><pre><span></span><code><span class="c1"># Search for current information</span>
+<span class="n">perplexity</span><span class="o">-</span><span class="n">server_search</span><span class="p">(</span><span class="n">query</span><span class="o">=</span><span class="s2">"React 19 new features 2025"</span><span class="p">)</span>
+
+<span class="c1"># Research with citations</span>
+<span class="n">perplexity_research</span><span class="p">(</span><span class="n">messages</span><span class="o">=</span><span class="p">[{</span>
+    <span class="s2">"role"</span><span class="p">:</span> <span class="s2">"user"</span><span class="p">,</span>
+    <span class="s2">"content"</span><span class="p">:</span> <span class="s2">"What are the latest developments in radio astronomy imaging?"</span>
+<span class="p">}])</span>
+
+<span class="c1"># Reasoning tasks</span>
+<span class="n">perplexity_reason</span><span class="p">(</span><span class="n">messages</span><span class="o">=</span><span class="p">[{</span>
+    <span class="s2">"role"</span><span class="p">:</span> <span class="s2">"user"</span><span class="p">,</span>
+    <span class="s2">"content"</span><span class="p">:</span> <span class="s2">"Compare X11 forwarding vs VNC for remote GUI access"</span>
+<span class="p">}])</span>
+
+<span class="c1"># Filter by domain (e.g., only docs.python.org)</span>
+<span class="n">perplexity</span><span class="o">-</span><span class="n">server_domain_filter</span><span class="p">(</span><span class="n">domain</span><span class="o">=</span><span class="s2">"docs.python.org"</span><span class="p">,</span> <span class="n">action</span><span class="o">=</span><span class="s2">"allow"</span><span class="p">)</span>
+
+<span class="c1"># Filter by recency (last week)</span>
+<span class="n">perplexity</span><span class="o">-</span><span class="n">server_recency_filter</span><span class="p">(</span><span class="nb">filter</span><span class="o">=</span><span class="s2">"week"</span><span class="p">)</span>
+</code></pre></div></p>
+<hr/>
+<h3 id="4-cursor-ide-browser">4. Cursor IDE Browser<a class="headerlink" href="#4-cursor-ide-browser" title="Permanent link">¶</a></h3>
+<p><strong>Purpose:</strong> Browser automation and web testing</p>
+<p><strong>Tools:</strong>
+- <code>browser_navigate</code> - Navigate to a URL
+- <code>browser_snapshot</code> - Capture accessibility snapshot (better than screenshot)
+- <code>browser_click</code> - Perform click on web page
+- <code>browser_type</code> - Type text into editable element
+- <code>browser_hover</code> - Hover over element
+- <code>browser_select_option</code> - Select option in dropdown
+- <code>browser_press_key</code> - Press keyboard key
+- <code>browser_wait_for</code> - Wait for text to appear/disappear or time to pass
+- <code>browser_navigate_back</code> - Go back to previous page
+- <code>browser_resize</code> - Resize browser window
+- <code>browser_console_messages</code> - Get all console messages
+- <code>browser_network_requests</code> - Get all network requests
+- <code>browser_take_screenshot</code> - Take screenshot of current page</p>
+<p><strong>Configuration:</strong> Built-in to Cursor
+- Uses native Chrome on Mac (when X11 forwarding is disabled)
+- See <a href="../../how-to/remote-access-tools/">Remote Access Tools Guide</a> for setup</p>
+<p><strong>Use Cases:</strong>
+- E2E testing
+- Web scraping
+- UI automation
+- Debugging web applications</p>
+<p><strong>Examples:</strong>
+<div class="highlight"><pre><span></span><code><span class="c1"># Navigate to a page</span>
+<span class="n">browser_navigate</span><span class="p">(</span><span class="n">url</span><span class="o">=</span><span class="s2">"http://localhost:5173/dashboard"</span><span class="p">)</span>
+
+<span class="c1"># Take accessibility snapshot (better than screenshot for automation)</span>
+<span class="n">browser_snapshot</span><span class="p">()</span>
+
+<span class="c1"># Click a button</span>
+<span class="n">browser_click</span><span class="p">(</span><span class="n">element</span><span class="o">=</span><span class="s2">"Submit button"</span><span class="p">,</span> <span class="n">ref</span><span class="o">=</span><span class="s2">"button[type='submit']"</span><span class="p">)</span>
+
+<span class="c1"># Type into a form field</span>
+<span class="n">browser_type</span><span class="p">(</span><span class="n">element</span><span class="o">=</span><span class="s2">"Search input"</span><span class="p">,</span> <span class="n">ref</span><span class="o">=</span><span class="s2">"input[name='search']"</span><span class="p">,</span> <span class="n">text</span><span class="o">=</span><span class="s2">"test query"</span><span class="p">)</span>
+
+<span class="c1"># Wait for content to appear</span>
+<span class="n">browser_wait_for</span><span class="p">(</span><span class="n">text</span><span class="o">=</span><span class="s2">"Loading complete"</span><span class="p">)</span>
+
+<span class="c1"># Get console messages</span>
+<span class="n">browser_console_messages</span><span class="p">()</span>
+
+<span class="c1"># Get network requests</span>
+<span class="n">browser_network_requests</span><span class="p">()</span>
+
+<span class="c1"># Take screenshot</span>
+<span class="n">browser_take_screenshot</span><span class="p">(</span><span class="n">filename</span><span class="o">=</span><span class="s2">"dashboard.png"</span><span class="p">,</span> <span class="n">fullPage</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+</code></pre></div></p>
+<hr/>
+<h3 id="5-chrome-devtools-mcp">5. Chrome DevTools MCP<a class="headerlink" href="#5-chrome-devtools-mcp" title="Permanent link">¶</a></h3>
+<p><strong>Purpose:</strong> Chrome DevTools Protocol integration</p>
+<p><strong>Configuration:</strong> Project-level (<code>.cursor/mcp.json</code>)
+- Docker-based: <code>node:22-alpine</code> with Chromium
+- Uses Chrome DevTools Protocol
+- Runs headless: <code>--headless --executablePath=/usr/bin/chromium</code></p>
+<p><strong>Use Cases:</strong>
+- Browser debugging via DevTools Protocol
+- Performance profiling
+- Network inspection
+- Console access</p>
+<p><strong>Note:</strong> This server runs in Docker and may require X11 forwarding for display. For most browser automation tasks, use Cursor Browser Tool or Playwright instead.</p>
+<hr/>
+<h3 id="6-arxiv-mcp-server">6. ArXiv MCP Server<a class="headerlink" href="#6-arxiv-mcp-server" title="Permanent link">¶</a></h3>
+<p><strong>Purpose:</strong> Access to arXiv research papers</p>
+<p><strong>Configuration:</strong> Project-level (<code>.cursor/mcp.json</code>)
+- Docker-based: <code>mcp/arxiv-mcp-server</code>
+- Storage mounted: <code>/home/ubuntu/proj/mcps/arxiv-md-mcp:/storage</code></p>
+<p><strong>Use Cases:</strong>
+- Searching arXiv papers
+- Accessing research documentation
+- Literature review
+- Converting LaTeX papers to Markdown</p>
+<p><strong>Examples:</strong>
+<div class="highlight"><pre><span></span><code><span class="c1"># Search for papers (typical tools available)</span>
+<span class="c1"># - search_papers: Search arXiv by keyword, author, category</span>
+<span class="c1"># - get_paper: Retrieve full paper content</span>
+<span class="c1"># - convert_to_markdown: Convert LaTeX to Markdown</span>
+
+<span class="c1"># Example workflow:</span>
+<span class="c1"># 1. Search for papers on "radio astronomy imaging"</span>
+<span class="c1"># 2. Get full paper content</span>
+<span class="c1"># 3. Convert to Markdown for easier reading</span>
+</code></pre></div></p>
+<hr/>
+<h3 id="7-ref-mcp">7. Ref MCP<a class="headerlink" href="#7-ref-mcp" title="Permanent link">¶</a></h3>
+<p><strong>Purpose:</strong> Code reference and documentation</p>
+<p><strong>Configuration:</strong> Project-level (<code>.cursor/mcp.json</code>)
+- HTTP endpoint: <code>https://api.ref.tools/mcp</code>
+- API Key configured</p>
+<p><strong>Use Cases:</strong>
+- Code reference lookup
+- Documentation access
+- Finding code examples
+- API documentation search</p>
+<p><strong>Examples:</strong>
+<div class="highlight"><pre><span></span><code><span class="c1"># Typical Ref MCP tools:</span>
+<span class="c1"># - search_code: Search code repositories</span>
+<span class="c1"># - get_reference: Get code reference documentation</span>
+<span class="c1"># - find_examples: Find code examples for a function/class</span>
+</code></pre></div></p>
+<hr/>
+<h3 id="8-context7-mcp">8. Context7 MCP<a class="headerlink" href="#8-context7-mcp" title="Permanent link">¶</a></h3>
+<p><strong>Purpose:</strong> Context management and information retrieval</p>
+<p><strong>Configuration:</strong> Project-level (<code>.cursor/mcp.json</code>)
+- HTTP endpoint: <code>https://mcp.context7.com/mcp</code>
+- API Key configured</p>
+<p><strong>Use Cases:</strong>
+- Context management
+- Information retrieval
+- Knowledge base access
+- Context-aware responses</p>
+<p><strong>Examples:</strong>
+<div class="highlight"><pre><span></span><code><span class="c1"># Typical Context7 tools:</span>
+<span class="c1"># - store_context: Store context for later retrieval</span>
+<span class="c1"># - retrieve_context: Retrieve stored context</span>
+<span class="c1"># - search_context: Search through stored contexts</span>
+</code></pre></div></p>
+<hr/>
+<h3 id="9-graphiti-memory-mcp">9. Graphiti Memory MCP<a class="headerlink" href="#9-graphiti-memory-mcp" title="Permanent link">¶</a></h3>
+<p><strong>Purpose:</strong> Knowledge graph and agent memory management</p>
+<p><strong>Configuration:</strong> Project-level (<code>.cursor/mcp.json</code>)
+- Python-based: <code>/home/ubuntu/proj/mcps/graphiti/mcp_server/main.py</code>
+- Neo4j backend (bolt://localhost:7687)
+- Group ID: <code>dsa110-contimg</code>
+- Uses Gemini embeddings (Vertex AI)</p>
+<p><strong>Use Cases:</strong>
+- Storing project knowledge
+- Agent memory management
+- Entity extraction and relationships
+- Long-term context management</p>
+<p><strong>Examples:</strong>
+<div class="highlight"><pre><span></span><code><span class="c1"># Search for existing knowledge</span>
+<span class="n">search_nodes</span><span class="p">(</span><span class="n">query</span><span class="o">=</span><span class="s2">"calibration procedures"</span><span class="p">,</span> <span class="n">entity</span><span class="o">=</span><span class="s2">"Procedure"</span><span class="p">)</span>
+
+<span class="c1"># Add new knowledge</span>
+<span class="n">add_episode</span><span class="p">(</span>
+    <span class="n">episode_body</span><span class="o">=</span><span class="s2">"The pipeline uses casa6 Python environment for all CASA operations"</span><span class="p">,</span>
+    <span class="n">source_type</span><span class="o">=</span><span class="s2">"text"</span>
+<span class="p">)</span>
+
+<span class="c1"># Search for facts/relationships</span>
+<span class="n">search_facts</span><span class="p">(</span><span class="n">query</span><span class="o">=</span><span class="s2">"pipeline dependencies"</span><span class="p">,</span> <span class="n">max_facts</span><span class="o">=</span><span class="mi">10</span><span class="p">)</span>
+
+<span class="c1"># Add explicit facts</span>
+<span class="n">add_triplet</span><span class="p">(</span>
+    <span class="n">subject</span><span class="o">=</span><span class="s2">"Pipeline"</span><span class="p">,</span>
+    <span class="n">predicate</span><span class="o">=</span><span class="s2">"DEPENDS_ON"</span><span class="p">,</span>
+    <span class="nb">object</span><span class="o">=</span><span class="s2">"casa6"</span>
+<span class="p">)</span>
+</code></pre></div></p>
+<p><strong>Related Documentation:</strong>
+- See <code>.cursor/rules/graphiti/</code> for Graphiti-specific rules
+- Project schema: <code>.cursor/rules/graphiti/graphiti-dsa110-contimg-schema.mdc</code></p>
+<hr/>
+<h3 id="10-desktop-commander">10. Desktop Commander<a class="headerlink" href="#10-desktop-commander" title="Permanent link">¶</a></h3>
+<p><strong>Purpose:</strong> Desktop automation and system control</p>
+<p><strong>Configuration:</strong> Project-level (<code>.cursor/mcp.json</code>)
+- Uses <code>npx -y @wonderwhy-er/desktop-commander@latest</code></p>
+<p><strong>Use Cases:</strong>
+- Desktop automation
+- System control
+- GUI automation
+- Cross-platform desktop operations</p>
+<p><strong>Examples:</strong>
+<div class="highlight"><pre><span></span><code><span class="c1"># Typical Desktop Commander tools:</span>
+<span class="c1"># - click: Click at coordinates or element</span>
+<span class="c1"># - type: Type text</span>
+<span class="c1"># - screenshot: Capture screen</span>
+<span class="c1"># - get_window_info: Get window information</span>
+<span class="c1"># - focus_window: Focus a specific window</span>
+</code></pre></div></p>
+<hr/>
+<h3 id="11-mermaid-mcp">11. Mermaid MCP<a class="headerlink" href="#11-mermaid-mcp" title="Permanent link">¶</a></h3>
+<p><strong>Purpose:</strong> Mermaid diagram generation and management</p>
+<p><strong>Configuration:</strong> Project-level (<code>.cursor/mcp.json</code>)
+- HTTP endpoint: <code>https://mcp.mermaidchart.com/mcp</code></p>
+<p><strong>Use Cases:</strong>
+- Generating Mermaid diagrams
+- Creating flowcharts and diagrams
+- Architecture diagrams
+- Process flow visualization</p>
+<p><strong>Examples:</strong>
+<div class="highlight"><pre><span></span><code><span class="c1"># Typical Mermaid MCP tools:</span>
+<span class="c1"># - create_diagram: Create a new Mermaid diagram</span>
+<span class="c1"># - render_diagram: Render diagram to image/SVG</span>
+<span class="c1"># - list_diagrams: List all diagrams</span>
+<span class="c1"># - update_diagram: Update existing diagram</span>
+
+<span class="c1"># Example: Create a flowchart</span>
+<span class="c1"># create_diagram(</span>
+<span class="c1">#     type="flowchart",</span>
+<span class="c1">#     content="graph TD\n    A[Start] --&gt; B[Process]\n    B --&gt; C[End]"</span>
+<span class="c1"># )</span>
+</code></pre></div></p>
+<hr/>
+<h3 id="12-pexpect-mcp">12. Pexpect MCP<a class="headerlink" href="#12-pexpect-mcp" title="Permanent link">¶</a></h3>
+<p><strong>Purpose:</strong> Interactive terminal automation</p>
+<p><strong>Configuration:</strong> Project-level (<code>.cursor/mcp.json</code>)
+- Binary: <code>/home/ubuntu/.local/bin/pexpect-mcp</code></p>
+<p><strong>Use Cases:</strong>
+- Interactive command execution
+- Terminal automation
+- Handling prompts and interactive sessions
+- Automated CLI interactions</p>
+<p><strong>Examples:</strong>
+<div class="highlight"><pre><span></span><code><span class="c1"># Typical Pexpect tools:</span>
+<span class="c1"># - run_command: Execute command and handle prompts</span>
+<span class="c1"># - expect: Wait for specific output</span>
+<span class="c1"># - send: Send input to interactive command</span>
+
+<span class="c1"># Example: Handle password prompt</span>
+<span class="c1"># run_command(</span>
+<span class="c1">#     command="sudo apt update",</span>
+<span class="c1">#     expect="password:",</span>
+<span class="c1">#     send="your_password"</span>
+<span class="c1"># )</span>
+</code></pre></div></p>
+<hr/>
+<h3 id="13-my-graphiti">13. My Graphiti<a class="headerlink" href="#13-my-graphiti" title="Permanent link">¶</a></h3>
+<p><strong>Purpose:</strong> Custom Graphiti instance (separate from graphiti-memory)</p>
+<p><strong>Configuration:</strong> Project-level (<code>.cursor/mcp.json</code>)
+- HTTP endpoint: <code>http://localhost:8002/mcp/</code>
+- API Key configured
+- Runs as separate Docker container: <code>docker-graphiti-mcp-1</code></p>
+<p><strong>Use Cases:</strong>
+- Custom knowledge graph operations
+- Project-specific memory management
+- Separate knowledge graph instance
+- Testing or staging knowledge graph</p>
+<p><strong>Note:</strong> This is a separate instance from <code>graphiti-memory</code>. Use this for testing or separate knowledge domains.</p>
+<hr/>
+<h3 id="14-playwright-mcp">14. Playwright MCP<a class="headerlink" href="#14-playwright-mcp" title="Permanent link">¶</a></h3>
+<p><strong>Purpose:</strong> Browser automation and testing</p>
+<p><strong>Configuration:</strong> 
+- User-level (<code>~/.cursor/mcp.json</code>)
+- Uses casa6 conda environment
+- Command: <code>npx -y @playwright/mcp@latest</code></p>
+<p><strong>Use Cases:</strong>
+- Browser automation
+- E2E testing
+- Web scraping
+- Complex browser interactions
+- Multi-page workflows</p>
+<p><strong>Examples:</strong>
+<div class="highlight"><pre><span></span><code><span class="c1"># Typical Playwright tools:</span>
+<span class="c1"># - navigate: Navigate to URL</span>
+<span class="c1"># - click: Click element</span>
+<span class="c1"># - fill: Fill form fields</span>
+<span class="c1"># - screenshot: Take screenshot</span>
+<span class="c1"># - evaluate: Execute JavaScript in page context</span>
+
+<span class="c1"># Example E2E test workflow:</span>
+<span class="c1"># 1. navigate(url="http://localhost:5173/dashboard")</span>
+<span class="c1"># 2. click(selector="button[data-testid='submit']")</span>
+<span class="c1"># 3. fill(selector="input[name='query']", value="test")</span>
+<span class="c1"># 4. screenshot(path="test-result.png")</span>
+</code></pre></div></p>
+<hr/>
+<h2 id="configuration-files">Configuration Files<a class="headerlink" href="#configuration-files" title="Permanent link">¶</a></h2>
+<h3 id="project-level-config">Project-Level Config<a class="headerlink" href="#project-level-config" title="Permanent link">¶</a></h3>
+<p>Location: <code>/data/dsa110-contimg/.cursor/mcp.json</code></p>
+<p>Contains servers specific to this project:
+- Ref, Chrome DevTools, ArXiv, Perplexity (both instances)
+- Context7, Graphiti Memory, Desktop Commander
+- Mermaid, Pexpect, My Graphiti, Playwright</p>
+<h3 id="user-level-config">User-Level Config<a class="headerlink" href="#user-level-config" title="Permanent link">¶</a></h3>
+<p>Location: <code>~/.cursor/mcp.json</code> (on lxd110h17: <code>/home/ubuntu/.cursor/mcp.json</code>)</p>
+<p>Contains user-specific servers:
+- Codacy
+- Figma
+- Playwright</p>
+<h2 id="usage-tips">Usage Tips<a class="headerlink" href="#usage-tips" title="Permanent link">¶</a></h2>
+<h3 id="browser-tools">Browser Tools<a class="headerlink" href="#browser-tools" title="Permanent link">¶</a></h3>
+<ul>
+<li><strong>Cursor Browser Tool</strong>: Best for quick web testing, uses native Chrome on Mac</li>
+<li><strong>Playwright MCP</strong>: Best for complex browser automation and E2E tests</li>
+<li><strong>Chrome DevTools MCP</strong>: Best for debugging and DevTools Protocol access</li>
+</ul>
+<h3 id="research-tools">Research Tools<a class="headerlink" href="#research-tools" title="Permanent link">¶</a></h3>
+<ul>
+<li><strong>Perplexity</strong>: Best for current information, research, and fact-checking</li>
+<li><strong>ArXiv MCP</strong>: Best for academic papers and research literature</li>
+<li><strong>Ref MCP</strong>: Best for code reference and documentation</li>
+</ul>
+<h3 id="design-tools">Design Tools<a class="headerlink" href="#design-tools" title="Permanent link">¶</a></h3>
+<ul>
+<li><strong>Figma MCP</strong>: Best for converting designs to code and accessing design systems</li>
+</ul>
+<h3 id="code-quality">Code Quality<a class="headerlink" href="#code-quality" title="Permanent link">¶</a></h3>
+<ul>
+<li><strong>Codacy MCP</strong>: Best for code analysis and security checks</li>
+</ul>
+<h3 id="memory-knowledge">Memory &amp; Knowledge<a class="headerlink" href="#memory-knowledge" title="Permanent link">¶</a></h3>
+<ul>
+<li><strong>Graphiti Memory</strong>: Best for long-term project knowledge and agent memory</li>
+<li><strong>My Graphiti</strong>: Custom instance for project-specific needs</li>
+</ul>
+<h2 id="troubleshooting">Troubleshooting<a class="headerlink" href="#troubleshooting" title="Permanent link">¶</a></h2>
+<h3 id="browser-tools-not-working">Browser Tools Not Working<a class="headerlink" href="#browser-tools-not-working" title="Permanent link">¶</a></h3>
+<ul>
+<li>Ensure X11 forwarding is <strong>disabled</strong> in SSH config (see <a href="../../how-to/remote-access-tools/">Remote Access Tools Guide</a>)</li>
+<li>Verify DISPLAY is unset: <code>echo $DISPLAY</code> should be empty</li>
+<li>Restart Cursor after changing SSH config</li>
+</ul>
+<h3 id="docker-based-servers">Docker-Based Servers<a class="headerlink" href="#docker-based-servers" title="Permanent link">¶</a></h3>
+<ul>
+<li>Ensure Docker is running: <code>docker ps</code></li>
+<li>Check Docker logs if servers fail to start</li>
+<li>Some servers require X11 forwarding (Chrome DevTools)</li>
+</ul>
+<h3 id="http-based-servers">HTTP-Based Servers<a class="headerlink" href="#http-based-servers" title="Permanent link">¶</a></h3>
+<ul>
+<li>Verify network connectivity</li>
+<li>Check API keys are valid</li>
+<li>Ensure endpoints are accessible</li>
+</ul>
+<h3 id="graphiti-memory">Graphiti Memory<a class="headerlink" href="#graphiti-memory" title="Permanent link">¶</a></h3>
+<ul>
+<li>Verify Neo4j is running: <code>systemctl status neo4j</code> or check port 7687</li>
+<li>Check Neo4j credentials in config</li>
+<li>Verify Python environment and dependencies</li>
+</ul>
+<h2 id="tool-selection-guide">Tool Selection Guide<a class="headerlink" href="#tool-selection-guide" title="Permanent link">¶</a></h2>
+<h3 id="for-code-quality">For Code Quality<a class="headerlink" href="#for-code-quality" title="Permanent link">¶</a></h3>
+<ul>
+<li><strong>Codacy</strong>: Use for code analysis, security checks, and pattern definitions</li>
+</ul>
+<h3 id="for-design-ui">For Design &amp; UI<a class="headerlink" href="#for-design-ui" title="Permanent link">¶</a></h3>
+<ul>
+<li><strong>Figma</strong>: Use for converting designs to code and accessing design systems</li>
+<li><strong>Mermaid</strong>: Use for creating diagrams and flowcharts</li>
+</ul>
+<h3 id="for-research-information">For Research &amp; Information<a class="headerlink" href="#for-research-information" title="Permanent link">¶</a></h3>
+<ul>
+<li><strong>Perplexity</strong>: Use for current information, research, and fact-checking</li>
+<li><strong>ArXiv</strong>: Use for academic papers and research literature</li>
+<li><strong>Ref</strong>: Use for code reference and documentation lookup</li>
+<li><strong>Context7</strong>: Use for context management and knowledge base access</li>
+</ul>
+<h3 id="for-browser-automation">For Browser Automation<a class="headerlink" href="#for-browser-automation" title="Permanent link">¶</a></h3>
+<ul>
+<li><strong>Cursor Browser Tool</strong>: Best for quick web testing (uses native Chrome on Mac)</li>
+<li><strong>Playwright</strong>: Best for complex E2E tests and multi-page workflows</li>
+<li><strong>Chrome DevTools</strong>: Best for DevTools Protocol debugging</li>
+</ul>
+<h3 id="for-knowledge-management">For Knowledge Management<a class="headerlink" href="#for-knowledge-management" title="Permanent link">¶</a></h3>
+<ul>
+<li><strong>Graphiti Memory</strong>: Use for project knowledge and agent memory (main instance)</li>
+<li><strong>My Graphiti</strong>: Use for testing or separate knowledge domains</li>
+</ul>
+<h3 id="for-system-automation">For System Automation<a class="headerlink" href="#for-system-automation" title="Permanent link">¶</a></h3>
+<ul>
+<li><strong>Desktop Commander</strong>: Use for desktop/GUI automation</li>
+<li><strong>Pexpect</strong>: Use for interactive terminal automation</li>
+</ul>
+<h2 id="common-workflows">Common Workflows<a class="headerlink" href="#common-workflows" title="Permanent link">¶</a></h2>
+<h3 id="e2e-testing-workflow">E2E Testing Workflow<a class="headerlink" href="#e2e-testing-workflow" title="Permanent link">¶</a></h3>
+<ol>
+<li>Use <strong>Playwright</strong> or <strong>Cursor Browser Tool</strong> for browser automation</li>
+<li>Use <strong>browser_snapshot()</strong> for accessibility-aware element selection</li>
+<li>Use <strong>browser_network_requests()</strong> to verify API calls</li>
+<li>Use <strong>browser_console_messages()</strong> to check for errors</li>
+</ol>
+<h3 id="research-workflow">Research Workflow<a class="headerlink" href="#research-workflow" title="Permanent link">¶</a></h3>
+<ol>
+<li>Use <strong>Perplexity</strong> for current information and research</li>
+<li>Use <strong>perplexity-server_domain_filter()</strong> to focus on trusted sources</li>
+<li>Use <strong>ArXiv</strong> for academic papers</li>
+<li>Store findings in <strong>Graphiti Memory</strong> for long-term knowledge</li>
+</ol>
+<h3 id="design-to-code-workflow">Design-to-Code Workflow<a class="headerlink" href="#design-to-code-workflow" title="Permanent link">¶</a></h3>
+<ol>
+<li>Use <strong>Figma_get_design_context()</strong> to generate code from designs</li>
+<li>Use <strong>Figma_get_variable_defs()</strong> to extract design tokens</li>
+<li>Use <strong>Figma_get_code_connect_map()</strong> to link designs to codebase</li>
+</ol>
+<h3 id="code-quality-workflow">Code Quality Workflow<a class="headerlink" href="#code-quality-workflow" title="Permanent link">¶</a></h3>
+<ol>
+<li>Use <strong>Codacy</strong> to analyze code</li>
+<li>Use <strong>codacy_get_pattern()</strong> to understand specific issues</li>
+<li>Fix issues and re-analyze</li>
+</ol>
+<h2 id="related-documentation">Related Documentation<a class="headerlink" href="#related-documentation" title="Permanent link">¶</a></h2>
+<ul>
+<li><a href="../../how-to/remote-access-tools/">Remote Access Tools Guide</a> - SSH, Chrome Remote Desktop, Browser tool setup</li>
+<li>Graphiti Rules: <code>../../.cursor/rules/graphiti/</code> (external directory) - Knowledge graph maintenance rules</li>
+<li>MCP Configuration: <code>../../.cursor/mcp.json</code> (external file) - Full configuration file</li>
+<li>User MCP Configuration: <code>~/.cursor/mcp.json</code> (external file) - User-level MCP config</li>
+</ul>
+<hr/>
+<p><strong>Last Updated:</strong> 2025-11-11</p>
+</article>
+</div>
+<script>var tabs=__md_get("__tabs");if(Array.isArray(tabs))e:for(var set of document.querySelectorAll(".tabbed-set")){var tab,labels=set.querySelector(".tabbed-labels");for(tab of tabs)for(var label of labels.getElementsByTagName("label"))if(label.innerText.trim()===tab){var input=document.getElementById(label.htmlFor);input.checked=!0;continue e}}</script>
+<script>var target=document.getElementById(location.hash.slice(1));target&&target.name&&(target.checked=target.name.startsWith("__tabbed_"))</script>
+</div>
+</main>
+<footer class="md-footer">
+<div class="md-footer-meta md-typeset">
+<div class="md-footer-meta__inner md-grid">
+<div class="md-copyright">
+  
+  
+    Made with
+    <a href="https://squidfunk.github.io/mkdocs-material/" rel="noopener" target="_blank">
+      Material for MkDocs
+    </a>
+</div>
+</div>
+</div>
+</footer>
+</div>
+<div class="md-dialog" data-md-component="dialog">
+<div class="md-dialog__inner md-typeset"></div>
+</div>
+<script id="__config" type="application/json">{"base": "../..", "features": ["navigation.sections", "navigation.indexes", "content.code.copy", "content.tabs.link"], "search": "../../assets/javascripts/workers/search.b8dbb3d2.min.js", "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}}</script>
+<script src="../../assets/javascripts/bundle.fe8b6f2b.min.js"></script>
+<script src="../../javascripts/mathjax.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+<script src="../../javascripts/mermaid-zoom.js"></script>
+</body>
+</html>

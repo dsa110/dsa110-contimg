@@ -1,0 +1,2055 @@
+
+<!DOCTYPE html>
+
+<html class="no-js" lang="en">
+<head>
+<meta charset="utf-8"/>
+<meta content="width=device-width,initial-scale=1" name="viewport"/>
+<link href="http://code.deepsynoptic.org/dsa110-contimg/analysis/VAST_TOOLS_REFERENCE_ANALYSIS/" rel="canonical"/>
+<link href="../../assets/images/favicon.png" rel="icon"/>
+<meta content="mkdocs-1.6.1, mkdocs-material-9.5.31" name="generator"/>
+<title>VAST Tools Reference Analysis - DSA-110 Continuum Imaging Pipeline</title>
+<link href="../../assets/stylesheets/main.3cba04c6.min.css" rel="stylesheet"/>
+<link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect"/>
+<link href="https://fonts.googleapis.com/css?family=Roboto:300,300i,400,400i,700,700i%7CRoboto+Mono:400,400i,700,700i&amp;display=fallback" rel="stylesheet"/>
+<style>:root{--md-text-font:"Roboto";--md-code-font:"Roboto Mono"}</style>
+<link href="../../assets/_mkdocstrings.css" rel="stylesheet"/>
+<script>__md_scope=new URL("../..",location),__md_hash=e=>[...e].reduce((e,_)=>(e<<5)-e+_.charCodeAt(0),0),__md_get=(e,_=localStorage,t=__md_scope)=>JSON.parse(_.getItem(t.pathname+"."+e)),__md_set=(e,_,t=localStorage,a=__md_scope)=>{try{t.setItem(a.pathname+"."+e,JSON.stringify(_))}catch(e){}}</script>
+</head>
+<body dir="ltr">
+<input autocomplete="off" class="md-toggle" data-md-toggle="drawer" id="__drawer" type="checkbox"/>
+<input autocomplete="off" class="md-toggle" data-md-toggle="search" id="__search" type="checkbox"/>
+<label class="md-overlay" for="__drawer"></label>
+<div data-md-component="skip">
+<a class="md-skip" href="#vast-tools-reference-analysis">
+          Skip to content
+        </a>
+</div>
+<div data-md-component="announce">
+</div>
+<header class="md-header md-header--shadow" data-md-component="header">
+<nav aria-label="Header" class="md-header__inner md-grid">
+<a aria-label="DSA-110 Continuum Imaging Pipeline" class="md-header__button md-logo" data-md-component="logo" href="../.." title="DSA-110 Continuum Imaging Pipeline">
+<svg viewbox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54Z"></path></svg>
+</a>
+<label class="md-header__button md-icon" for="__drawer">
+<svg viewbox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M3 6h18v2H3V6m0 5h18v2H3v-2m0 5h18v2H3v-2Z"></path></svg>
+</label>
+<div class="md-header__title" data-md-component="header-title">
+<div class="md-header__ellipsis">
+<div class="md-header__topic">
+<span class="md-ellipsis">
+            DSA-110 Continuum Imaging Pipeline
+          </span>
+</div>
+<div class="md-header__topic" data-md-component="header-topic">
+<span class="md-ellipsis">
+            
+              VAST Tools Reference Analysis
+            
+          </span>
+</div>
+</div>
+</div>
+<script>var media,input,key,value,palette=__md_get("__palette");if(palette&&palette.color){"(prefers-color-scheme)"===palette.color.media&&(media=matchMedia("(prefers-color-scheme: light)"),input=document.querySelector(media.matches?"[data-md-color-media='(prefers-color-scheme: light)']":"[data-md-color-media='(prefers-color-scheme: dark)']"),palette.color.media=input.getAttribute("data-md-color-media"),palette.color.scheme=input.getAttribute("data-md-color-scheme"),palette.color.primary=input.getAttribute("data-md-color-primary"),palette.color.accent=input.getAttribute("data-md-color-accent"));for([key,value]of Object.entries(palette.color))document.body.setAttribute("data-md-color-"+key,value)}</script>
+<label class="md-header__button md-icon" for="__search">
+<svg viewbox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.516 6.516 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5Z"></path></svg>
+</label>
+<div class="md-search" data-md-component="search" role="dialog">
+<label class="md-search__overlay" for="__search"></label>
+<div class="md-search__inner" role="search">
+<form class="md-search__form" name="search">
+<input aria-label="Search" autocapitalize="off" autocomplete="off" autocorrect="off" class="md-search__input" data-md-component="search-query" name="query" placeholder="Search" required="" spellcheck="false" type="text"/>
+<label class="md-search__icon md-icon" for="__search">
+<svg viewbox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.516 6.516 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5Z"></path></svg>
+<svg viewbox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11h12Z"></path></svg>
+</label>
+<nav aria-label="Search" class="md-search__options">
+<button aria-label="Clear" class="md-search__icon md-icon" tabindex="-1" title="Clear" type="reset">
+<svg viewbox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M19 6.41 17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12 19 6.41Z"></path></svg>
+</button>
+</nav>
+</form>
+<div class="md-search__output">
+<div class="md-search__scrollwrap" data-md-scrollfix="" tabindex="0">
+<div class="md-search-result" data-md-component="search-result">
+<div class="md-search-result__meta">
+            Initializing search
+          </div>
+<ol class="md-search-result__list" role="presentation"></ol>
+</div>
+</div>
+</div>
+</div>
+</div>
+<div class="md-header__source">
+<a class="md-source" data-md-component="source" href="https://github.com/dsa110/dsa110-contimg" title="Go to repository">
+<div class="md-source__icon md-icon">
+<svg viewbox="0 0 448 512" xmlns="http://www.w3.org/2000/svg"><!--! Font Awesome Free 6.6.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2024 Fonticons, Inc.--><path d="M439.55 236.05 244 40.45a28.87 28.87 0 0 0-40.81 0l-40.66 40.63 51.52 51.52c27.06-9.14 52.68 16.77 43.39 43.68l49.66 49.66c34.23-11.8 61.18 31 35.47 56.69-26.49 26.49-70.21-2.87-56-37.34L240.22 199v121.85c25.3 12.54 22.26 41.85 9.08 55a34.34 34.34 0 0 1-48.55 0c-17.57-17.6-11.07-46.91 11.25-56v-123c-20.8-8.51-24.6-30.74-18.64-45L142.57 101 8.45 235.14a28.86 28.86 0 0 0 0 40.81l195.61 195.6a28.86 28.86 0 0 0 40.8 0l194.69-194.69a28.86 28.86 0 0 0 0-40.81z"></path></svg>
+</div>
+<div class="md-source__repository">
+    GitHub
+  </div>
+</a>
+</div>
+</nav>
+</header>
+<div class="md-container" data-md-component="container">
+<main class="md-main" data-md-component="main">
+<div class="md-main__inner md-grid">
+<div class="md-sidebar md-sidebar--primary" data-md-component="sidebar" data-md-type="navigation">
+<div class="md-sidebar__scrollwrap">
+<div class="md-sidebar__inner">
+<nav aria-label="Navigation" class="md-nav md-nav--primary" data-md-level="0">
+<label class="md-nav__title" for="__drawer">
+<a aria-label="DSA-110 Continuum Imaging Pipeline" class="md-nav__button md-logo" data-md-component="logo" href="../.." title="DSA-110 Continuum Imaging Pipeline">
+<svg viewbox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54Z"></path></svg>
+</a>
+    DSA-110 Continuum Imaging Pipeline
+  </label>
+<div class="md-nav__source">
+<a class="md-source" data-md-component="source" href="https://github.com/dsa110/dsa110-contimg" title="Go to repository">
+<div class="md-source__icon md-icon">
+<svg viewbox="0 0 448 512" xmlns="http://www.w3.org/2000/svg"><!--! Font Awesome Free 6.6.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2024 Fonticons, Inc.--><path d="M439.55 236.05 244 40.45a28.87 28.87 0 0 0-40.81 0l-40.66 40.63 51.52 51.52c27.06-9.14 52.68 16.77 43.39 43.68l49.66 49.66c34.23-11.8 61.18 31 35.47 56.69-26.49 26.49-70.21-2.87-56-37.34L240.22 199v121.85c25.3 12.54 22.26 41.85 9.08 55a34.34 34.34 0 0 1-48.55 0c-17.57-17.6-11.07-46.91 11.25-56v-123c-20.8-8.51-24.6-30.74-18.64-45L142.57 101 8.45 235.14a28.86 28.86 0 0 0 0 40.81l195.61 195.6a28.86 28.86 0 0 0 40.8 0l194.69-194.69a28.86 28.86 0 0 0 0-40.81z"></path></svg>
+</div>
+<div class="md-source__repository">
+    GitHub
+  </div>
+</a>
+</div>
+<ul class="md-nav__list" data-md-scrollfix="">
+<li class="md-nav__item">
+<a class="md-nav__link" href="../..">
+<span class="md-ellipsis">
+    Home
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../DOCUMENTATION_QUICK_REFERENCE/">
+<span class="md-ellipsis">
+    Documentation Guide
+  </span>
+</a>
+</li>
+<li class="md-nav__item md-nav__item--section md-nav__item--nested">
+<input class="md-nav__toggle md-toggle" id="__nav_3" type="checkbox"/>
+<div class="md-nav__link md-nav__container">
+<a class="md-nav__link" href="../../concepts/">
+<span class="md-ellipsis">
+    Concepts
+  </span>
+</a>
+<label class="md-nav__link" for="__nav_3" id="__nav_3_label" tabindex="">
+<span class="md-nav__icon md-icon"></span>
+</label>
+</div>
+<nav aria-expanded="false" aria-labelledby="__nav_3_label" class="md-nav" data-md-level="1">
+<label class="md-nav__title" for="__nav_3">
+<span class="md-nav__icon md-icon"></span>
+            Concepts
+          </label>
+<ul class="md-nav__list" data-md-scrollfix="">
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../concepts/architecture/">
+<span class="md-ellipsis">
+    Architecture
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../concepts/DIRECTORY_ARCHITECTURE/">
+<span class="md-ellipsis">
+    Directory Architecture
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../concepts/modules/">
+<span class="md-ellipsis">
+    Modules
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../concepts/control-panel/">
+<span class="md-ellipsis">
+    Control Panel
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../concepts/aoflagger/">
+<span class="md-ellipsis">
+    AOFlagger
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../concepts/frontend_design/">
+<span class="md-ellipsis">
+    Frontend Design
+  </span>
+</a>
+</li>
+<li class="md-nav__item md-nav__item--nested">
+<input class="md-nav__toggle md-toggle" id="__nav_3_8" type="checkbox"/>
+<label class="md-nav__link" for="__nav_3_8" id="__nav_3_8_label" tabindex="0">
+<span class="md-ellipsis">
+    Dashboard
+  </span>
+<span class="md-nav__icon md-icon"></span>
+</label>
+<nav aria-expanded="false" aria-labelledby="__nav_3_8_label" class="md-nav" data-md-level="2">
+<label class="md-nav__title" for="__nav_3_8">
+<span class="md-nav__icon md-icon"></span>
+            Dashboard
+          </label>
+<ul class="md-nav__list" data-md-scrollfix="">
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../concepts/dashboard_mockups/">
+<span class="md-ellipsis">
+    Mockups
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../SKYVIEW_IMPLEMENTATION_PLAN/">
+<span class="md-ellipsis">
+    Sky View
+  </span>
+</a>
+</li>
+</ul>
+</nav>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../concepts/GLOSSARY/">
+<span class="md-ellipsis">
+    Glossary
+  </span>
+</a>
+</li>
+<li class="md-nav__item md-nav__item--nested">
+<input class="md-nav__toggle md-toggle" id="__nav_3_10" type="checkbox"/>
+<label class="md-nav__link" for="__nav_3_10" id="__nav_3_10_label" tabindex="0">
+<span class="md-ellipsis">
+    Pipeline
+  </span>
+<span class="md-nav__icon md-icon"></span>
+</label>
+<nav aria-expanded="false" aria-labelledby="__nav_3_10_label" class="md-nav" data-md-level="2">
+<label class="md-nav__title" for="__nav_3_10">
+<span class="md-nav__icon md-icon"></span>
+            Pipeline
+          </label>
+<ul class="md-nav__list" data-md-scrollfix="">
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../concepts/pipeline_overview/">
+<span class="md-ellipsis">
+    Overview
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../concepts/pipeline_stage_architecture/">
+<span class="md-ellipsis">
+    Stage Architecture
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../concepts/pipeline_workflow_visualization/">
+<span class="md-ellipsis">
+    Workflow Visualization
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../concepts/pipeline_production_features/">
+<span class="md-ellipsis">
+    Production Features
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../concepts/pipeline_patterns/">
+<span class="md-ellipsis">
+    Patterns
+  </span>
+</a>
+</li>
+</ul>
+</nav>
+</li>
+<li class="md-nav__item md-nav__item--nested">
+<input class="md-nav__toggle md-toggle" id="__nav_3_11" type="checkbox"/>
+<label class="md-nav__link" for="__nav_3_11" id="__nav_3_11_label" tabindex="0">
+<span class="md-ellipsis">
+    Science
+  </span>
+<span class="md-nav__icon md-icon"></span>
+</label>
+<nav aria-expanded="false" aria-labelledby="__nav_3_11_label" class="md-nav" data-md-level="2">
+<label class="md-nav__title" for="__nav_3_11">
+<span class="md-nav__icon md-icon"></span>
+            Science
+          </label>
+<ul class="md-nav__list" data-md-scrollfix="">
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../concepts/science/photometry_normalization/">
+<span class="md-ellipsis">
+    Photometry Normalization
+  </span>
+</a>
+</li>
+</ul>
+</nav>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../concepts/mcp_browser_server_setup/">
+<span class="md-ellipsis">
+    Browser MCP Server
+  </span>
+</a>
+</li>
+</ul>
+</nav>
+</li>
+<li class="md-nav__item md-nav__item--section md-nav__item--nested">
+<input class="md-nav__toggle md-toggle" id="__nav_4" type="checkbox"/>
+<label class="md-nav__link" for="__nav_4" id="__nav_4_label" tabindex="">
+<span class="md-ellipsis">
+    Tutorials
+  </span>
+<span class="md-nav__icon md-icon"></span>
+</label>
+<nav aria-expanded="false" aria-labelledby="__nav_4_label" class="md-nav" data-md-level="1">
+<label class="md-nav__title" for="__nav_4">
+<span class="md-nav__icon md-icon"></span>
+            Tutorials
+          </label>
+<ul class="md-nav__list" data-md-scrollfix="">
+<li class="md-nav__item md-nav__item--nested">
+<input class="md-nav__toggle md-toggle" id="__nav_4_1" type="checkbox"/>
+<label class="md-nav__link" for="__nav_4_1" id="__nav_4_1_label" tabindex="0">
+<span class="md-ellipsis">
+    Conversion
+  </span>
+<span class="md-nav__icon md-icon"></span>
+</label>
+<nav aria-expanded="false" aria-labelledby="__nav_4_1_label" class="md-nav" data-md-level="2">
+<label class="md-nav__title" for="__nav_4_1">
+<span class="md-nav__icon md-icon"></span>
+            Conversion
+          </label>
+<ul class="md-nav__list" data-md-scrollfix="">
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../tutorials/HDF5_TO_MS_TUTORIAL/">
+<span class="md-ellipsis">
+    HDF5 to MS
+  </span>
+</a>
+</li>
+</ul>
+</nav>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../tutorials/simulation-tutorial/">
+<span class="md-ellipsis">
+    Simulation
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../tutorials/calibrate-apply/">
+<span class="md-ellipsis">
+    Calibrate and Apply
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../tutorials/convert-standalone/">
+<span class="md-ellipsis">
+    Convert Standalone
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../tutorials/streaming/">
+<span class="md-ellipsis">
+    Streaming
+  </span>
+</a>
+</li>
+<li class="md-nav__item md-nav__item--nested">
+<input class="md-nav__toggle md-toggle" id="__nav_4_6" type="checkbox"/>
+<label class="md-nav__link" for="__nav_4_6" id="__nav_4_6_label" tabindex="0">
+<span class="md-ellipsis">
+    Notebooks
+  </span>
+<span class="md-nav__icon md-icon"></span>
+</label>
+<nav aria-expanded="false" aria-labelledby="__nav_4_6_label" class="md-nav" data-md-level="2">
+<label class="md-nav__title" for="__nav_4_6">
+<span class="md-nav__icon md-icon"></span>
+            Notebooks
+          </label>
+<ul class="md-nav__list" data-md-scrollfix="">
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../tutorials/notebooks/bandpass_calibration_test.ipynb">
+<span class="md-ellipsis">
+    Bandpass Calibration Test
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../tutorials/notebooks/calibrator_helper.py">
+<span class="md-ellipsis">
+    Calibrator Helper
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../tutorials/notebooks/CalibratorSearch.ipynb">
+<span class="md-ellipsis">
+    Calibrator Search
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../tutorials/notebooks/ms_staging_workflow.ipynb">
+<span class="md-ellipsis">
+    MS Staging Workflow
+  </span>
+</a>
+</li>
+</ul>
+</nav>
+</li>
+</ul>
+</nav>
+</li>
+<li class="md-nav__item md-nav__item--section md-nav__item--nested">
+<input class="md-nav__toggle md-toggle" id="__nav_5" type="checkbox"/>
+<label class="md-nav__link" for="__nav_5" id="__nav_5_label" tabindex="">
+<span class="md-ellipsis">
+    How-To Guides
+  </span>
+<span class="md-nav__icon md-icon"></span>
+</label>
+<nav aria-expanded="false" aria-labelledby="__nav_5_label" class="md-nav" data-md-level="1">
+<label class="md-nav__title" for="__nav_5">
+<span class="md-nav__icon md-icon"></span>
+            How-To Guides
+          </label>
+<ul class="md-nav__list" data-md-scrollfix="">
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../how-to/github_pages_walkthrough/">
+<span class="md-ellipsis">
+    GitHub Pages Setup
+  </span>
+</a>
+</li>
+<li class="md-nav__item md-nav__item--nested">
+<input class="md-nav__toggle md-toggle" id="__nav_5_2" type="checkbox"/>
+<label class="md-nav__link" for="__nav_5_2" id="__nav_5_2_label" tabindex="0">
+<span class="md-ellipsis">
+    Quickstarts
+  </span>
+<span class="md-nav__icon md-icon"></span>
+</label>
+<nav aria-expanded="false" aria-labelledby="__nav_5_2_label" class="md-nav" data-md-level="2">
+<label class="md-nav__title" for="__nav_5_2">
+<span class="md-nav__icon md-icon"></span>
+            Quickstarts
+          </label>
+<ul class="md-nav__list" data-md-scrollfix="">
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../how-to/quickstart/">
+<span class="md-ellipsis">
+    General
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../how-to/control-panel-quickstart/">
+<span class="md-ellipsis">
+    Control Panel
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../how-to/LINEAR_SETUP_QUICKSTART/">
+<span class="md-ellipsis">
+    Linear Setup
+  </span>
+</a>
+</li>
+</ul>
+</nav>
+</li>
+<li class="md-nav__item md-nav__item--nested">
+<input class="md-nav__toggle md-toggle" id="__nav_5_3" type="checkbox"/>
+<label class="md-nav__link" for="__nav_5_3" id="__nav_5_3_label" tabindex="0">
+<span class="md-ellipsis">
+    Testing
+  </span>
+<span class="md-nav__icon md-icon"></span>
+</label>
+<nav aria-expanded="false" aria-labelledby="__nav_5_3_label" class="md-nav" data-md-level="2">
+<label class="md-nav__title" for="__nav_5_3">
+<span class="md-nav__icon md-icon"></span>
+            Testing
+          </label>
+<ul class="md-nav__list" data-md-scrollfix="">
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../how-to/FAST_TESTING/">
+<span class="md-ellipsis">
+    Fast Testing
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../how-to/PIPELINE_TESTING_GUIDE/">
+<span class="md-ellipsis">
+    Pipeline Guide
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../how-to/TEST_FLAG_SUBCOMMAND/">
+<span class="md-ellipsis">
+    Flag Subcommand
+  </span>
+</a>
+</li>
+</ul>
+</nav>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../how-to/build-vp-from-h5/">
+<span class="md-ellipsis">
+    Build VP from h5
+  </span>
+</a>
+</li>
+<li class="md-nav__item md-nav__item--nested">
+<input class="md-nav__toggle md-toggle" id="__nav_5_5" type="checkbox"/>
+<label class="md-nav__link" for="__nav_5_5" id="__nav_5_5_label" tabindex="0">
+<span class="md-ellipsis">
+    Calibration
+  </span>
+<span class="md-nav__icon md-icon"></span>
+</label>
+<nav aria-expanded="false" aria-labelledby="__nav_5_5_label" class="md-nav" data-md-level="2">
+<label class="md-nav__title" for="__nav_5_5">
+<span class="md-nav__icon md-icon"></span>
+            Calibration
+          </label>
+<ul class="md-nav__list" data-md-scrollfix="">
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../how-to/CALIBRATION_DETAILED_PROCEDURE/">
+<span class="md-ellipsis">
+    Detailed Procedure
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../how-to/FIND_CALIBRATOR_TRANSIT_DATA/">
+<span class="md-ellipsis">
+    Find Calibrator Transit
+  </span>
+</a>
+</li>
+</ul>
+</nav>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../how-to/IMAGE_0834_TRANSIT_5MIN/">
+<span class="md-ellipsis">
+    Image 0834 Transit 5min
+  </span>
+</a>
+</li>
+<li class="md-nav__item md-nav__item--nested">
+<input class="md-nav__toggle md-toggle" id="__nav_5_7" type="checkbox"/>
+<label class="md-nav__link" for="__nav_5_7" id="__nav_5_7_label" tabindex="0">
+<span class="md-ellipsis">
+    Mosaic
+  </span>
+<span class="md-nav__icon md-icon"></span>
+</label>
+<nav aria-expanded="false" aria-labelledby="__nav_5_7_label" class="md-nav" data-md-level="2">
+<label class="md-nav__title" for="__nav_5_7">
+<span class="md-nav__icon md-icon"></span>
+            Mosaic
+          </label>
+<ul class="md-nav__list" data-md-scrollfix="">
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../how-to/mosaic_quickstart/">
+<span class="md-ellipsis">
+    Quickstart
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../how-to/mosaic/">
+<span class="md-ellipsis">
+    Complete Guide
+  </span>
+</a>
+</li>
+</ul>
+</nav>
+</li>
+<li class="md-nav__item md-nav__item--nested">
+<input class="md-nav__toggle md-toggle" id="__nav_5_8" type="checkbox"/>
+<label class="md-nav__link" for="__nav_5_8" id="__nav_5_8_label" tabindex="0">
+<span class="md-ellipsis">
+    Quality Assurance
+  </span>
+<span class="md-nav__icon md-icon"></span>
+</label>
+<nav aria-expanded="false" aria-labelledby="__nav_5_8_label" class="md-nav" data-md-level="2">
+<label class="md-nav__title" for="__nav_5_8">
+<span class="md-nav__icon md-icon"></span>
+            Quality Assurance
+          </label>
+<ul class="md-nav__list" data-md-scrollfix="">
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../how-to/QUALITY_ASSURANCE_SETUP/">
+<span class="md-ellipsis">
+    Setup
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../how-to/quicklook/">
+<span class="md-ellipsis">
+    Quick Look
+  </span>
+</a>
+</li>
+</ul>
+</nav>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../how-to/reprocess/">
+<span class="md-ellipsis">
+    Reprocess
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../how-to/USING_ORCHESTRATOR_CLI/">
+<span class="md-ellipsis">
+    Using Orchestrator CLI
+  </span>
+</a>
+</li>
+<li class="md-nav__item md-nav__item--nested">
+<input class="md-nav__toggle md-toggle" id="__nav_5_11" type="checkbox"/>
+<label class="md-nav__link" for="__nav_5_11" id="__nav_5_11_label" tabindex="0">
+<span class="md-ellipsis">
+    Dashboard
+  </span>
+<span class="md-nav__icon md-icon"></span>
+</label>
+<nav aria-expanded="false" aria-labelledby="__nav_5_11_label" class="md-nav" data-md-level="2">
+<label class="md-nav__title" for="__nav_5_11">
+<span class="md-nav__icon md-icon"></span>
+            Dashboard
+          </label>
+<ul class="md-nav__list" data-md-scrollfix="">
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../how-to/dashboard-development/">
+<span class="md-ellipsis">
+    Development
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../how-to/dashboard-quickstart/">
+<span class="md-ellipsis">
+    Quickstart
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../how-to/dashboard_testing/">
+<span class="md-ellipsis">
+    Testing
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../how-to/dashboard_development_workflow/">
+<span class="md-ellipsis">
+    Development Workflow
+  </span>
+</a>
+</li>
+</ul>
+</nav>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../how-to/LINEAR_INTEGRATION/">
+<span class="md-ellipsis">
+    Linear Integration
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../how-to/frontend-initial-setup/">
+<span class="md-ellipsis">
+    Frontend Initial Setup
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../how-to/PARAMETER_OPTIMIZATION_GUIDE/">
+<span class="md-ellipsis">
+    AOFlagger Parameter Optimization
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../how-to/downsampling_guide/">
+<span class="md-ellipsis">
+    Downsampling Guide
+  </span>
+</a>
+</li>
+<li class="md-nav__item md-nav__item--nested">
+<input class="md-nav__toggle md-toggle" id="__nav_5_16" type="checkbox"/>
+<label class="md-nav__link" for="__nav_5_16" id="__nav_5_16_label" tabindex="0">
+<span class="md-ellipsis">
+    Conversion
+  </span>
+<span class="md-nav__icon md-icon"></span>
+</label>
+<nav aria-expanded="false" aria-labelledby="__nav_5_16_label" class="md-nav" data-md-level="2">
+<label class="md-nav__title" for="__nav_5_16">
+<span class="md-nav__icon md-icon"></span>
+            Conversion
+          </label>
+<ul class="md-nav__list" data-md-scrollfix="">
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../how-to/uvh5_to_ms_conversion/">
+<span class="md-ellipsis">
+    UVH5 to MS
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../how-to/streaming_converter_guide/">
+<span class="md-ellipsis">
+    Streaming Converter
+  </span>
+</a>
+</li>
+</ul>
+</nav>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../how-to/troubleshooting/">
+<span class="md-ellipsis">
+    Troubleshooting
+  </span>
+</a>
+</li>
+</ul>
+</nav>
+</li>
+<li class="md-nav__item md-nav__item--section md-nav__item--nested">
+<input class="md-nav__toggle md-toggle" id="__nav_6" type="checkbox"/>
+<label class="md-nav__link" for="__nav_6" id="__nav_6_label" tabindex="">
+<span class="md-ellipsis">
+    Reference
+  </span>
+<span class="md-nav__icon md-icon"></span>
+</label>
+<nav aria-expanded="false" aria-labelledby="__nav_6_label" class="md-nav" data-md-level="1">
+<label class="md-nav__title" for="__nav_6">
+<span class="md-nav__icon md-icon"></span>
+            Reference
+          </label>
+<ul class="md-nav__list" data-md-scrollfix="">
+<li class="md-nav__item md-nav__item--nested">
+<input class="md-nav__toggle md-toggle" id="__nav_6_1" type="checkbox"/>
+<label class="md-nav__link" for="__nav_6_1" id="__nav_6_1_label" tabindex="0">
+<span class="md-ellipsis">
+    API
+  </span>
+<span class="md-nav__icon md-icon"></span>
+</label>
+<nav aria-expanded="false" aria-labelledby="__nav_6_1_label" class="md-nav" data-md-level="2">
+<label class="md-nav__title" for="__nav_6_1">
+<span class="md-nav__icon md-icon"></span>
+            API
+          </label>
+<ul class="md-nav__list" data-md-scrollfix="">
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../reference/api-endpoints/">
+<span class="md-ellipsis">
+    Endpoints
+  </span>
+</a>
+</li>
+<li class="md-nav__item md-nav__item--nested">
+<input class="md-nav__toggle md-toggle" id="__nav_6_1_2" type="checkbox"/>
+<label class="md-nav__link" for="__nav_6_1_2" id="__nav_6_1_2_label" tabindex="0">
+<span class="md-ellipsis">
+    Dashboard
+  </span>
+<span class="md-nav__icon md-icon"></span>
+</label>
+<nav aria-expanded="false" aria-labelledby="__nav_6_1_2_label" class="md-nav" data-md-level="3">
+<label class="md-nav__title" for="__nav_6_1_2">
+<span class="md-nav__icon md-icon"></span>
+            Dashboard
+          </label>
+<ul class="md-nav__list" data-md-scrollfix="">
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../reference/dashboard_backend_api/">
+<span class="md-ellipsis">
+    API Reference
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../reference/dashboard_pages_and_features/">
+<span class="md-ellipsis">
+    Pages &amp; Features
+  </span>
+</a>
+</li>
+</ul>
+</nav>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../reference/backend_integration_snippets/">
+<span class="md-ellipsis">
+    Integration Snippets
+  </span>
+</a>
+</li>
+</ul>
+</nav>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../reference/calibration-overview/">
+<span class="md-ellipsis">
+    Calibration Overview
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../reference/cli/">
+<span class="md-ellipsis">
+    CLI
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../reference/control-panel-cheatsheet/">
+<span class="md-ellipsis">
+    Control Panel Cheatsheet
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../reference/database_schema/">
+<span class="md-ellipsis">
+    Database Schema
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../reference/env/">
+<span class="md-ellipsis">
+    Environment Variables
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../reference/CRITICAL_PYTHON_ENVIRONMENT/">
+<span class="md-ellipsis">
+    Critical Python Environment
+  </span>
+</a>
+</li>
+<li class="md-nav__item md-nav__item--nested">
+<input class="md-nav__toggle md-toggle" id="__nav_6_8" type="checkbox"/>
+<label class="md-nav__link" for="__nav_6_8" id="__nav_6_8_label" tabindex="0">
+<span class="md-ellipsis">
+    Optimizations
+  </span>
+<span class="md-nav__icon md-icon"></span>
+</label>
+<nav aria-expanded="false" aria-labelledby="__nav_6_8_label" class="md-nav" data-md-level="2">
+<label class="md-nav__title" for="__nav_6_8">
+<span class="md-nav__icon md-icon"></span>
+            Optimizations
+          </label>
+<ul class="md-nav__list" data-md-scrollfix="">
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../reference/optimizations/OPTIMIZATION_API/">
+<span class="md-ellipsis">
+    API
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../reference/optimizations/PROFILING_GUIDE/">
+<span class="md-ellipsis">
+    Profiling Guide
+  </span>
+</a>
+</li>
+</ul>
+</nav>
+</li>
+</ul>
+</nav>
+</li>
+<li class="md-nav__item md-nav__item--section md-nav__item--nested">
+<input class="md-nav__toggle md-toggle" id="__nav_7" type="checkbox"/>
+<label class="md-nav__link" for="__nav_7" id="__nav_7_label" tabindex="">
+<span class="md-ellipsis">
+    Operations
+  </span>
+<span class="md-nav__icon md-icon"></span>
+</label>
+<nav aria-expanded="false" aria-labelledby="__nav_7_label" class="md-nav" data-md-level="1">
+<label class="md-nav__title" for="__nav_7">
+<span class="md-nav__icon md-icon"></span>
+            Operations
+          </label>
+<ul class="md-nav__list" data-md-scrollfix="">
+<li class="md-nav__item md-nav__item--nested">
+<input class="md-nav__toggle md-toggle" id="__nav_7_1" type="checkbox"/>
+<label class="md-nav__link" for="__nav_7_1" id="__nav_7_1_label" tabindex="0">
+<span class="md-ellipsis">
+    Deployment
+  </span>
+<span class="md-nav__icon md-icon"></span>
+</label>
+<nav aria-expanded="false" aria-labelledby="__nav_7_1_label" class="md-nav" data-md-level="2">
+<label class="md-nav__title" for="__nav_7_1">
+<span class="md-nav__icon md-icon"></span>
+            Deployment
+          </label>
+<ul class="md-nav__list" data-md-scrollfix="">
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../operations/deploy-docker/">
+<span class="md-ellipsis">
+    Docker
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../operations/deploy-systemd/">
+<span class="md-ellipsis">
+    systemd
+  </span>
+</a>
+</li>
+</ul>
+</nav>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../operations/port-management/">
+<span class="md-ellipsis">
+    Port Management
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../operations/refant_quick_reference/">
+<span class="md-ellipsis">
+    Refant Quick Reference
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../operations/service_restart_fix/">
+<span class="md-ellipsis">
+    Service Restart Fix
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../operations/systemd-migration/">
+<span class="md-ellipsis">
+    Systemd Migration
+  </span>
+</a>
+</li>
+</ul>
+</nav>
+</li>
+<li class="md-nav__item md-nav__item--section md-nav__item--nested">
+<input class="md-nav__toggle md-toggle" id="__nav_8" type="checkbox"/>
+<div class="md-nav__link md-nav__container">
+<a class="md-nav__link" href="../../contributing/">
+<span class="md-ellipsis">
+    Contributing
+  </span>
+</a>
+<label class="md-nav__link" for="__nav_8" id="__nav_8_label" tabindex="">
+<span class="md-nav__icon md-icon"></span>
+</label>
+</div>
+<nav aria-expanded="false" aria-labelledby="__nav_8_label" class="md-nav" data-md-level="1">
+<label class="md-nav__title" for="__nav_8">
+<span class="md-nav__icon md-icon"></span>
+            Contributing
+          </label>
+<ul class="md-nav__list" data-md-scrollfix="">
+<li class="md-nav__item md-nav__item--nested">
+<input class="md-nav__toggle md-toggle" id="__nav_8_2" type="checkbox"/>
+<label class="md-nav__link" for="__nav_8_2" id="__nav_8_2_label" tabindex="0">
+<span class="md-ellipsis">
+    Archive
+  </span>
+<span class="md-nav__icon md-icon"></span>
+</label>
+<nav aria-expanded="false" aria-labelledby="__nav_8_2_label" class="md-nav" data-md-level="2">
+<label class="md-nav__title" for="__nav_8_2">
+<span class="md-nav__icon md-icon"></span>
+            Archive
+          </label>
+<ul class="md-nav__list" data-md-scrollfix="">
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../contributing/archive/CONTRIBUTING_TODO/">
+<span class="md-ellipsis">
+    Contributing to TODO
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../contributing/archive/rules/">
+<span class="md-ellipsis">
+    Rules
+  </span>
+</a>
+</li>
+</ul>
+</nav>
+</li>
+</ul>
+</nav>
+</li>
+</ul>
+</nav>
+</div>
+</div>
+</div>
+<div class="md-sidebar md-sidebar--secondary" data-md-component="sidebar" data-md-type="toc">
+<div class="md-sidebar__scrollwrap">
+<div class="md-sidebar__inner">
+<nav aria-label="Table of contents" class="md-nav md-nav--secondary">
+<label class="md-nav__title" for="__toc">
+<span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+<ul class="md-nav__list" data-md-component="toc" data-md-scrollfix="">
+<li class="md-nav__item">
+<a class="md-nav__link" href="#executive-summary">
+<span class="md-ellipsis">
+      Executive Summary
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#1-architecture-overview">
+<span class="md-ellipsis">
+      1. Architecture Overview
+    </span>
+</a>
+<nav aria-label="1. Architecture Overview" class="md-nav">
+<ul class="md-nav__list">
+<li class="md-nav__item">
+<a class="md-nav__link" href="#11-core-modules">
+<span class="md-ellipsis">
+      1.1 Core Modules
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#12-key-dependencies">
+<span class="md-ellipsis">
+      1.2 Key Dependencies
+    </span>
+</a>
+</li>
+</ul>
+</nav>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#2-key-patterns-and-code-structures">
+<span class="md-ellipsis">
+      2. Key Patterns and Code Structures
+    </span>
+</a>
+<nav aria-label="2. Key Patterns and Code Structures" class="md-nav">
+<ul class="md-nav__list">
+<li class="md-nav__item">
+<a class="md-nav__link" href="#21-source-class-pattern">
+<span class="md-ellipsis">
+      2.1 Source Class Pattern
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#22-light-curve-plotting">
+<span class="md-ellipsis">
+      2.2 Light Curve Plotting
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#23-variability-metrics">
+<span class="md-ellipsis">
+      2.3 Variability Metrics
+    </span>
+</a>
+<nav aria-label="2.3 Variability Metrics" class="md-nav">
+<ul class="md-nav__list">
+<li class="md-nav__item">
+<a class="md-nav__link" href="#231-pipeline-variability-metrics">
+<span class="md-ellipsis">
+      2.3.1 Pipeline Variability Metrics
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#232-two-epoch-variability-metrics">
+<span class="md-ellipsis">
+      2.3.2 Two-Epoch Variability Metrics
+    </span>
+</a>
+</li>
+</ul>
+</nav>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#24-pipeline-result-loading">
+<span class="md-ellipsis">
+      2.4 Pipeline Result Loading
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#25-query-system">
+<span class="md-ellipsis">
+      2.5 Query System
+    </span>
+</a>
+</li>
+</ul>
+</nav>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#3-specific-code-snippets-for-adaptation">
+<span class="md-ellipsis">
+      3. Specific Code Snippets for Adaptation
+    </span>
+</a>
+<nav aria-label="3. Specific Code Snippets for Adaptation" class="md-nav">
+<ul class="md-nav__list">
+<li class="md-nav__item">
+<a class="md-nav__link" href="#31-light-curve-plotting-high-priority">
+<span class="md-ellipsis">
+      3.1 Light Curve Plotting (High Priority)
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#32-variability-metrics-high-priority">
+<span class="md-ellipsis">
+      3.2 Variability Metrics (High Priority)
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#33-source-class-pattern-medium-priority">
+<span class="md-ellipsis">
+      3.3 Source Class Pattern (Medium Priority)
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#34-postage-stamp-plotting-medium-priority">
+<span class="md-ellipsis">
+      3.4 Postage Stamp Plotting (Medium Priority)
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#35-crossmatching-utilities-low-priority">
+<span class="md-ellipsis">
+      3.5 Crossmatching Utilities (Low Priority)
+    </span>
+</a>
+</li>
+</ul>
+</nav>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#4-architecture-patterns">
+<span class="md-ellipsis">
+      4. Architecture Patterns
+    </span>
+</a>
+<nav aria-label="4. Architecture Patterns" class="md-nav">
+<ul class="md-nav__list">
+<li class="md-nav__item">
+<a class="md-nav__link" href="#41-class-based-source-representation">
+<span class="md-ellipsis">
+      4.1 Class-Based Source Representation
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#42-pipeline-result-wrapper">
+<span class="md-ellipsis">
+      4.2 Pipeline Result Wrapper
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#43-query-source-pipeline">
+<span class="md-ellipsis">
+      4.3 Query → Source Pipeline
+    </span>
+</a>
+</li>
+</ul>
+</nav>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#5-dsa-110-current-state-vs-vast-tools">
+<span class="md-ellipsis">
+      5. DSA-110 Current State vs. VAST Tools
+    </span>
+</a>
+<nav aria-label="5. DSA-110 Current State vs. VAST Tools" class="md-nav">
+<ul class="md-nav__list">
+<li class="md-nav__item">
+<a class="md-nav__link" href="#51-already-implemented">
+<span class="md-ellipsis">
+      5.1 Already Implemented
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#52-gaps-missing-features">
+<span class="md-ellipsis">
+      5.2 Gaps / Missing Features
+    </span>
+</a>
+</li>
+</ul>
+</nav>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#6-recommended-implementation-plan">
+<span class="md-ellipsis">
+      6. Recommended Implementation Plan
+    </span>
+</a>
+<nav aria-label="6. Recommended Implementation Plan" class="md-nav">
+<ul class="md-nav__list">
+<li class="md-nav__item">
+<a class="md-nav__link" href="#phase-1-high-priority-immediate">
+<span class="md-ellipsis">
+      Phase 1: High Priority (Immediate)
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#phase-2-medium-priority-next-sprint">
+<span class="md-ellipsis">
+      Phase 2: Medium Priority (Next Sprint)
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#phase-3-low-priority-future">
+<span class="md-ellipsis">
+      Phase 3: Low Priority (Future)
+    </span>
+</a>
+</li>
+</ul>
+</nav>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#7-code-examples">
+<span class="md-ellipsis">
+      7. Code Examples
+    </span>
+</a>
+<nav aria-label="7. Code Examples" class="md-nav">
+<ul class="md-nav__list">
+<li class="md-nav__item">
+<a class="md-nav__link" href="#71-light-curve-plotting-adapted">
+<span class="md-ellipsis">
+      7.1 Light Curve Plotting (Adapted)
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#72-variability-metrics-direct-copy">
+<span class="md-ellipsis">
+      7.2 Variability Metrics (Direct Copy)
+    </span>
+</a>
+</li>
+</ul>
+</nav>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#8-testing-strategy">
+<span class="md-ellipsis">
+      8. Testing Strategy
+    </span>
+</a>
+<nav aria-label="8. Testing Strategy" class="md-nav">
+<ul class="md-nav__list">
+<li class="md-nav__item">
+<a class="md-nav__link" href="#81-unit-tests">
+<span class="md-ellipsis">
+      8.1 Unit Tests
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#82-integration-tests">
+<span class="md-ellipsis">
+      8.2 Integration Tests
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#83-reference-validation">
+<span class="md-ellipsis">
+      8.3 Reference Validation
+    </span>
+</a>
+</li>
+</ul>
+</nav>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#9-documentation">
+<span class="md-ellipsis">
+      9. Documentation
+    </span>
+</a>
+<nav aria-label="9. Documentation" class="md-nav">
+<ul class="md-nav__list">
+<li class="md-nav__item">
+<a class="md-nav__link" href="#91-code-documentation">
+<span class="md-ellipsis">
+      9.1 Code Documentation
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#92-user-documentation">
+<span class="md-ellipsis">
+      9.2 User Documentation
+    </span>
+</a>
+</li>
+</ul>
+</nav>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#10-references">
+<span class="md-ellipsis">
+      10. References
+    </span>
+</a>
+<nav aria-label="10. References" class="md-nav">
+<ul class="md-nav__list">
+<li class="md-nav__item">
+<a class="md-nav__link" href="#101-vast-tools">
+<span class="md-ellipsis">
+      10.1 VAST Tools
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#102-scientific-references">
+<span class="md-ellipsis">
+      10.2 Scientific References
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#103-dsa-110-documentation">
+<span class="md-ellipsis">
+      10.3 DSA-110 Documentation
+    </span>
+</a>
+</li>
+</ul>
+</nav>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#11-conclusion">
+<span class="md-ellipsis">
+      11. Conclusion
+    </span>
+</a>
+</li>
+</ul>
+</nav>
+</div>
+</div>
+</div>
+<div class="md-content" data-md-component="content">
+<article class="md-content__inner md-typeset">
+<h1 id="vast-tools-reference-analysis">VAST Tools Reference Analysis<a class="headerlink" href="#vast-tools-reference-analysis" title="Permanent link">¶</a></h1>
+<p><strong>Date:</strong> 2025-11-12<br/>
+<strong>Purpose:</strong> Analysis of VAST Tools codebase as reference/template for DSA-110 pipeline development<br/>
+<strong>Reference Repository:</strong> <code>/data/dsa110-contimg/archive/references/vast-tools</code><br/>
+<strong>Source:</strong> https://github.com/askap-vast/vast-tools</p>
+<hr/>
+<h2 id="executive-summary">Executive Summary<a class="headerlink" href="#executive-summary" title="Permanent link">¶</a></h2>
+<p>VAST Tools is a Python module for interacting with VAST Pipeline results, providing tools for light curve analysis, transient detection, crossmatching, and source exploration. This analysis identifies key patterns, functions, and architectural approaches that can inform DSA-110's ESE detection pipeline development.</p>
+<p><strong>Key Relevance:</strong>
+- Light curve plotting and analysis (directly applicable to ESE detection)
+- Variability metrics calculation (Vs, M, η metrics)
+- Source class pattern for managing measurements and epochs
+- Pipeline result interaction patterns
+- Forced photometry integration</p>
+<p><strong>Note:</strong> We are NOT importing VAST Tools as a dependency. This analysis serves to identify code patterns and functions that can be adapted/copied directly into the DSA-110 codebase.</p>
+<hr/>
+<h2 id="1-architecture-overview">1. Architecture Overview<a class="headerlink" href="#1-architecture-overview" title="Permanent link">¶</a></h2>
+<h3 id="11-core-modules">1.1 Core Modules<a class="headerlink" href="#11-core-modules" title="Permanent link">¶</a></h3>
+<p><strong><code>vasttools/source.py</code></strong> (~93KB)
+- <strong>Purpose:</strong> Core class for representing and analyzing individual sources
+- <strong>Key Class:</strong> <code>Source</code>
+- <strong>Relevance:</strong> High - directly applicable to ESE candidate analysis</p>
+<p><strong><code>vasttools/pipeline.py</code></strong> (~95KB)
+- <strong>Purpose:</strong> Interface with VAST Pipeline results
+- <strong>Key Classes:</strong> <code>PipeRun</code>, <code>PipeAnalysis</code>, <code>Pipeline</code>
+- <strong>Relevance:</strong> Medium - patterns for loading/analyzing pipeline outputs</p>
+<p><strong><code>vasttools/query.py</code></strong> (~112KB)
+- <strong>Purpose:</strong> Query observational data and find sources
+- <strong>Key Class:</strong> <code>Query</code>
+- <strong>Relevance:</strong> Medium - patterns for catalog queries and crossmatching</p>
+<p><strong><code>vasttools/utils.py</code></strong> (~22KB)
+- <strong>Purpose:</strong> Utility functions including variability metrics
+- <strong>Relevance:</strong> High - contains variability calculation functions</p>
+<p><strong><code>vasttools/tools.py</code></strong> (~26KB)
+- <strong>Purpose:</strong> General tools and helper functions
+- <strong>Relevance:</strong> Low-Medium - various utility functions</p>
+<p><strong><code>vasttools/survey.py</code></strong> (~18KB)
+- <strong>Purpose:</strong> Survey footprint and image handling
+- <strong>Relevance:</strong> Low - survey-specific functionality</p>
+<h3 id="12-key-dependencies">1.2 Key Dependencies<a class="headerlink" href="#12-key-dependencies" title="Permanent link">¶</a></h3>
+<p>From <code>pyproject.toml</code>:
+- <code>astropy</code> (^5.2) - Core astronomy library
+- <code>pandas</code> (&lt;2.0) - Data manipulation
+- <code>matplotlib</code> (^3.7.0) - Plotting
+- <code>bokeh</code> (^3.1) - Interactive plotting
+- <code>dask</code> (^2022.01.0) - Parallel processing for large datasets
+- <code>vaex-core</code> (^4.17) - Large dataset handling
+- <code>forced-phot</code> - Forced photometry integration
+- <code>scipy</code> (^1.4) - Scientific computing
+- <code>radio-beam</code> (^0.3) - Beam handling</p>
+<p><strong>Note:</strong> DSA-110 already uses most of these (astropy, pandas, matplotlib, scipy). Consider <code>bokeh</code> for interactive plots and <code>dask</code>/<code>vaex</code> for large dataset handling.</p>
+<hr/>
+<h2 id="2-key-patterns-and-code-structures">2. Key Patterns and Code Structures<a class="headerlink" href="#2-key-patterns-and-code-structures" title="Permanent link">¶</a></h2>
+<h3 id="21-source-class-pattern">2.1 Source Class Pattern<a class="headerlink" href="#21-source-class-pattern" title="Permanent link">¶</a></h3>
+<p><strong>Location:</strong> <code>vasttools/source.py</code></p>
+<p><strong>Purpose:</strong> Represents a single source with measurements across multiple epochs.</p>
+<p><strong>Key Attributes:</strong>
+<div class="highlight"><pre><span></span><code><span class="k">class</span><span class="w"> </span><span class="nc">Source</span><span class="p">:</span>
+    <span class="n">coord</span><span class="p">:</span> <span class="n">SkyCoord</span>              <span class="c1"># Source coordinates</span>
+    <span class="n">name</span><span class="p">:</span> <span class="nb">str</span>                    <span class="c1"># Source name</span>
+    <span class="n">epochs</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span>            <span class="c1"># Epochs containing this source</span>
+    <span class="n">fields</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span>            <span class="c1"># Fields containing this source</span>
+    <span class="n">measurements</span><span class="p">:</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span>   <span class="c1"># All measurements (flux, errors, dates)</span>
+    <span class="n">detections</span><span class="p">:</span> <span class="nb">int</span>              <span class="c1"># Number of detections</span>
+    <span class="n">limits</span><span class="p">:</span> <span class="nb">int</span>                  <span class="c1"># Number of upper limits</span>
+    <span class="n">forced_fits</span><span class="p">:</span> <span class="nb">bool</span>            <span class="c1"># Whether forced fits are included</span>
+</code></pre></div></p>
+<p><strong>Relevance for DSA-110:</strong>
+- DSA-110 already has <code>photometry_timeseries</code> table with similar structure
+- Could create a <code>Source</code> class wrapper around database queries
+- Provides clean interface for ESE candidate analysis</p>
+<p><strong>Key Methods:</strong>
+- <code>plot_lightcurve()</code> - Light curve visualization
+- <code>plot_postagestamp()</code> - Image cutout visualization
+- <code>crossmatch()</code> - Crossmatch to external catalogs</p>
+<h3 id="22-light-curve-plotting">2.2 Light Curve Plotting<a class="headerlink" href="#22-light-curve-plotting" title="Permanent link">¶</a></h3>
+<p><strong>Location:</strong> <code>vasttools/source.py::Source.plot_lightcurve()</code></p>
+<p><strong>Key Features:</strong>
+- Handles both peak and integrated flux
+- Upper limits visualization (sigma threshold)
+- Forced photometry integration
+- Multiple time axis options (datetime, MJD, days from start)
+- Customizable figure size, DPI, grid, legend
+- Error bars and detection/limit distinction</p>
+<p><strong>Code Pattern:</strong>
+<div class="highlight"><pre><span></span><code><span class="k">def</span><span class="w"> </span><span class="nf">plot_lightcurve</span><span class="p">(</span>
+    <span class="bp">self</span><span class="p">,</span>
+    <span class="n">sigma_thresh</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">5</span><span class="p">,</span>
+    <span class="n">figsize</span><span class="p">:</span> <span class="n">Tuple</span><span class="p">[</span><span class="nb">int</span><span class="p">,</span> <span class="nb">int</span><span class="p">]</span> <span class="o">=</span> <span class="p">(</span><span class="mi">8</span><span class="p">,</span> <span class="mi">4</span><span class="p">),</span>
+    <span class="n">min_points</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">2</span><span class="p">,</span>
+    <span class="n">min_detections</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">0</span><span class="p">,</span>
+    <span class="n">mjd</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span>
+    <span class="n">start_date</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">pd</span><span class="o">.</span><span class="n">Timestamp</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+    <span class="n">grid</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span>
+    <span class="n">yaxis_start</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">"0"</span><span class="p">,</span>
+    <span class="n">peak_flux</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span><span class="p">,</span>
+    <span class="n">save</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span>
+    <span class="n">outfile</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+    <span class="n">use_forced_for_limits</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span>
+    <span class="n">use_forced_for_all</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span>
+    <span class="n">hide_legend</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span>
+    <span class="n">plot_dpi</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">150</span>
+<span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Union</span><span class="p">[</span><span class="kc">None</span><span class="p">,</span> <span class="n">matplotlib</span><span class="o">.</span><span class="n">figure</span><span class="o">.</span><span class="n">Figure</span><span class="p">]:</span>
+</code></pre></div></p>
+<p><strong>Relevance for DSA-110:</strong>
+- <strong>Directly applicable</strong> - DSA-110 needs light curve plotting for ESE candidates
+- Can adapt this method to work with <code>photometry_timeseries</code> table
+- Already handles normalized flux (via <code>use_forced_for_all</code> pattern)</p>
+<p><strong>Adaptation Notes:</strong>
+- DSA-110 uses normalized flux from differential photometry
+- May need to add baseline visualization (first 10 epochs)
+- Should highlight ESE candidate periods (14-180 days)</p>
+<h3 id="23-variability-metrics">2.3 Variability Metrics<a class="headerlink" href="#23-variability-metrics" title="Permanent link">¶</a></h3>
+<p><strong>Location:</strong> <code>vasttools/utils.py</code></p>
+<h4 id="231-pipeline-variability-metrics">2.3.1 Pipeline Variability Metrics<a class="headerlink" href="#231-pipeline-variability-metrics" title="Permanent link">¶</a></h4>
+<p><strong>Function:</strong> <code>pipeline_get_variable_metrics(df: pd.DataFrame) -&gt; pd.Series</code></p>
+<p><strong>Calculates:</strong>
+- <code>v_int</code>: Fractional variability (std/mean) for integrated flux
+- <code>v_peak</code>: Fractional variability (std/mean) for peak flux
+- <code>eta_int</code>: η metric for integrated flux
+- <code>eta_peak</code>: η metric for peak flux</p>
+<p><strong>Code:</strong>
+<div class="highlight"><pre><span></span><code><span class="k">def</span><span class="w"> </span><span class="nf">pipeline_get_variable_metrics</span><span class="p">(</span><span class="n">df</span><span class="p">:</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">pd</span><span class="o">.</span><span class="n">Series</span><span class="p">:</span>
+    <span class="n">d</span> <span class="o">=</span> <span class="p">{}</span>
+    <span class="k">if</span> <span class="n">df</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">==</span> <span class="mi">1</span><span class="p">:</span>
+        <span class="n">d</span><span class="p">[</span><span class="s1">'v_int'</span><span class="p">]</span> <span class="o">=</span> <span class="mf">0.</span>
+        <span class="n">d</span><span class="p">[</span><span class="s1">'v_peak'</span><span class="p">]</span> <span class="o">=</span> <span class="mf">0.</span>
+        <span class="n">d</span><span class="p">[</span><span class="s1">'eta_int'</span><span class="p">]</span> <span class="o">=</span> <span class="mf">0.</span>
+        <span class="n">d</span><span class="p">[</span><span class="s1">'eta_peak'</span><span class="p">]</span> <span class="o">=</span> <span class="mf">0.</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">d</span><span class="p">[</span><span class="s1">'v_int'</span><span class="p">]</span> <span class="o">=</span> <span class="n">df</span><span class="p">[</span><span class="s1">'flux_int'</span><span class="p">]</span><span class="o">.</span><span class="n">std</span><span class="p">()</span> <span class="o">/</span> <span class="n">df</span><span class="p">[</span><span class="s1">'flux_int'</span><span class="p">]</span><span class="o">.</span><span class="n">mean</span><span class="p">()</span>
+        <span class="n">d</span><span class="p">[</span><span class="s1">'v_peak'</span><span class="p">]</span> <span class="o">=</span> <span class="n">df</span><span class="p">[</span><span class="s1">'flux_peak'</span><span class="p">]</span><span class="o">.</span><span class="n">std</span><span class="p">()</span> <span class="o">/</span> <span class="n">df</span><span class="p">[</span><span class="s1">'flux_peak'</span><span class="p">]</span><span class="o">.</span><span class="n">mean</span><span class="p">()</span>
+        <span class="n">d</span><span class="p">[</span><span class="s1">'eta_int'</span><span class="p">]</span> <span class="o">=</span> <span class="n">pipeline_get_eta_metric</span><span class="p">(</span><span class="n">df</span><span class="p">)</span>
+        <span class="n">d</span><span class="p">[</span><span class="s1">'eta_peak'</span><span class="p">]</span> <span class="o">=</span> <span class="n">pipeline_get_eta_metric</span><span class="p">(</span><span class="n">df</span><span class="p">,</span> <span class="n">peak</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">pd</span><span class="o">.</span><span class="n">Series</span><span class="p">(</span><span class="n">d</span><span class="p">)</span>
+</code></pre></div></p>
+<p><strong>Relevance for DSA-110:</strong>
+- DSA-110 already calculates fractional variability (<code>V</code>) in <code>variability_stats</code> table
+- Could add η metric calculation (complementary to χ²)
+- Simple, clean implementation that can be copied directly</p>
+<h4 id="232-two-epoch-variability-metrics">2.3.2 Two-Epoch Variability Metrics<a class="headerlink" href="#232-two-epoch-variability-metrics" title="Permanent link">¶</a></h4>
+<p><strong>Functions:</strong>
+- <code>calculate_vs_metric()</code> - t-statistic for variability between two epochs
+- <code>calculate_m_metric()</code> - Modulation index (fractional variability) between two epochs</p>
+<p><strong>Code:</strong>
+<div class="highlight"><pre><span></span><code><span class="k">def</span><span class="w"> </span><span class="nf">calculate_vs_metric</span><span class="p">(</span>
+    <span class="n">flux_a</span><span class="p">:</span> <span class="nb">float</span><span class="p">,</span> <span class="n">flux_b</span><span class="p">:</span> <span class="nb">float</span><span class="p">,</span> <span class="n">flux_err_a</span><span class="p">:</span> <span class="nb">float</span><span class="p">,</span> <span class="n">flux_err_b</span><span class="p">:</span> <span class="nb">float</span>
+<span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">float</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">"""Vs metric: t-statistic that fluxes are variable."""</span>
+    <span class="k">return</span> <span class="p">(</span><span class="n">flux_a</span> <span class="o">-</span> <span class="n">flux_b</span><span class="p">)</span> <span class="o">/</span> <span class="n">np</span><span class="o">.</span><span class="n">hypot</span><span class="p">(</span><span class="n">flux_err_a</span><span class="p">,</span> <span class="n">flux_err_b</span><span class="p">)</span>
+
+<span class="k">def</span><span class="w"> </span><span class="nf">calculate_m_metric</span><span class="p">(</span><span class="n">flux_a</span><span class="p">:</span> <span class="nb">float</span><span class="p">,</span> <span class="n">flux_b</span><span class="p">:</span> <span class="nb">float</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">float</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">"""M metric: modulation index (fractional variability)."""</span>
+    <span class="k">return</span> <span class="mi">2</span> <span class="o">*</span> <span class="p">((</span><span class="n">flux_a</span> <span class="o">-</span> <span class="n">flux_b</span><span class="p">)</span> <span class="o">/</span> <span class="p">(</span><span class="n">flux_a</span> <span class="o">+</span> <span class="n">flux_b</span><span class="p">))</span>
+</code></pre></div></p>
+<p><strong>Reference:</strong> Mooley et al. (2016), DOI: 10.3847/0004-637X/818/2/105</p>
+<p><strong>Relevance for DSA-110:</strong>
+- Useful for pairwise epoch comparisons
+- Can identify rapid flux changes (ESEs have sharp caustic crossings)
+- Simple functions that can be copied directly</p>
+<p><strong>Usage in VAST:</strong>
+- Applied to measurement pairs for transient detection
+- Used in <code>PipeRun</code> class for two-epoch analysis</p>
+<h3 id="24-pipeline-result-loading">2.4 Pipeline Result Loading<a class="headerlink" href="#24-pipeline-result-loading" title="Permanent link">¶</a></h3>
+<p><strong>Location:</strong> <code>vasttools/pipeline.py</code></p>
+<p><strong>Key Class:</strong> <code>PipeRun</code></p>
+<p><strong>Purpose:</strong> Loads and manages pipeline output dataframes.</p>
+<p><strong>Key Attributes:</strong>
+<div class="highlight"><pre><span></span><code><span class="k">class</span><span class="w"> </span><span class="nc">PipeRun</span><span class="p">:</span>
+    <span class="n">name</span><span class="p">:</span> <span class="nb">str</span>
+    <span class="n">images</span><span class="p">:</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span>
+    <span class="n">skyregions</span><span class="p">:</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span>
+    <span class="n">relations</span><span class="p">:</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span>
+    <span class="n">sources</span><span class="p">:</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span>
+    <span class="n">associations</span><span class="p">:</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span>
+    <span class="n">bands</span><span class="p">:</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span>
+    <span class="n">measurements</span><span class="p">:</span> <span class="n">Union</span><span class="p">[</span><span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">,</span> <span class="n">vaex</span><span class="o">.</span><span class="n">dataframe</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">]</span>
+    <span class="n">measurement_pairs_file</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span>
+</code></pre></div></p>
+<p><strong>Key Features:</strong>
+- Loads parquet files (associations, bands, images, measurements, etc.)
+- Supports both pandas and vaex for large datasets
+- Parallel processing support (dask)
+- Two-epoch metrics calculation
+- Variability analysis methods</p>
+<p><strong>Relevance for DSA-110:</strong>
+- DSA-110 uses SQLite databases instead of parquet files
+- Pattern of loading pipeline results into DataFrames is applicable
+- Could create similar wrapper around <code>products.sqlite3</code> queries</p>
+<p><strong>Adaptation Notes:</strong>
+- Replace parquet loading with SQLite queries
+- Use existing <code>database/products.py</code> helpers
+- Maintain similar interface for analysis methods</p>
+<h3 id="25-query-system">2.5 Query System<a class="headerlink" href="#25-query-system" title="Permanent link">¶</a></h3>
+<p><strong>Location:</strong> <code>vasttools/query.py</code></p>
+<p><strong>Key Class:</strong> <code>Query</code></p>
+<p><strong>Purpose:</strong> Query observational data and find sources across epochs.</p>
+<p><strong>Key Features:</strong>
+- Coordinate-based queries
+- Source name queries
+- Crossmatching to catalogs
+- Forced photometry integration
+- Field/epoch filtering
+- Parallel processing support</p>
+<p><strong>Relevance for DSA-110:</strong>
+- DSA-110 already has catalog querying (<code>catalog/</code> module)
+- Pattern of query → Source objects could be useful
+- Forced photometry integration pattern is relevant</p>
+<p><strong>Adaptation Notes:</strong>
+- DSA-110's query system is more database-centric
+- Could adapt Query pattern for ESE candidate queries
+- Forced photometry already integrated in <code>photometry/forced.py</code></p>
+<hr/>
+<h2 id="3-specific-code-snippets-for-adaptation">3. Specific Code Snippets for Adaptation<a class="headerlink" href="#3-specific-code-snippets-for-adaptation" title="Permanent link">¶</a></h2>
+<h3 id="31-light-curve-plotting-high-priority">3.1 Light Curve Plotting (High Priority)<a class="headerlink" href="#31-light-curve-plotting-high-priority" title="Permanent link">¶</a></h3>
+<p><strong>File:</strong> <code>vasttools/source.py::Source.plot_lightcurve()</code></p>
+<p><strong>Why Adapt:</strong>
+- DSA-110 needs light curve visualization for ESE candidates
+- Comprehensive feature set (error bars, limits, multiple time axes)
+- Well-tested implementation</p>
+<p><strong>Adaptation Strategy:</strong>
+1. Copy method structure
+2. Adapt to use <code>photometry_timeseries</code> table
+3. Add ESE-specific features:
+   - Baseline period highlighting (first 10 epochs)
+   - ESE candidate period highlighting (14-180 days)
+   - Asymmetry visualization
+4. Integrate with DSA-110's normalized flux data</p>
+<p><strong>Location in DSA-110:</strong>
+- New module: <code>src/dsa110_contimg/qa/lightcurves.py</code>
+- Or extend: <code>src/dsa110_contimg/photometry/visualization.py</code></p>
+<h3 id="32-variability-metrics-high-priority">3.2 Variability Metrics (High Priority)<a class="headerlink" href="#32-variability-metrics-high-priority" title="Permanent link">¶</a></h3>
+<p><strong>Files:</strong> <code>vasttools/utils.py::pipeline_get_variable_metrics()</code>, <code>calculate_vs_metric()</code>, <code>calculate_m_metric()</code></p>
+<p><strong>Why Adapt:</strong>
+- Simple, well-tested implementations
+- Complementary to DSA-110's existing χ²-based metrics
+- Useful for pairwise epoch comparisons</p>
+<p><strong>Adaptation Strategy:</strong>
+1. Copy functions directly (they're pure functions)
+2. Integrate into <code>variability_stats</code> calculation
+3. Add to ESE detection algorithm</p>
+<p><strong>Location in DSA-110:</strong>
+- <code>src/dsa110_contimg/photometry/variability.py</code> (new or extend existing)</p>
+<h3 id="33-source-class-pattern-medium-priority">3.3 Source Class Pattern (Medium Priority)<a class="headerlink" href="#33-source-class-pattern-medium-priority" title="Permanent link">¶</a></h3>
+<p><strong>File:</strong> <code>vasttools/source.py::Source</code></p>
+<p><strong>Why Adapt:</strong>
+- Clean interface for source analysis
+- Encapsulates measurements, plotting, crossmatching
+- Useful for ESE candidate review workflow</p>
+<p><strong>Adaptation Strategy:</strong>
+1. Create <code>Source</code> class wrapping database queries
+2. Implement light curve and postage stamp plotting
+3. Add ESE-specific analysis methods</p>
+<p><strong>Location in DSA-110:</strong>
+- New module: <code>src/dsa110_contimg/photometry/source.py</code></p>
+<h3 id="34-postage-stamp-plotting-medium-priority">3.4 Postage Stamp Plotting (Medium Priority)<a class="headerlink" href="#34-postage-stamp-plotting-medium-priority" title="Permanent link">¶</a></h3>
+<p><strong>File:</strong> <code>vasttools/source.py::Source.plot_postagestamp()</code></p>
+<p><strong>Why Adapt:</strong>
+- Visual verification of ESE candidates
+- Image cutout visualization
+- Useful for quality assessment</p>
+<p><strong>Adaptation Strategy:</strong>
+1. Adapt to use DSA-110 FITS images
+2. Integrate with <code>qa/</code> module
+3. Add to ESE candidate review tools</p>
+<p><strong>Location in DSA-110:</strong>
+- <code>src/dsa110_contimg/qa/postage_stamps.py</code> (new)</p>
+<h3 id="35-crossmatching-utilities-low-priority">3.5 Crossmatching Utilities (Low Priority)<a class="headerlink" href="#35-crossmatching-utilities-low-priority" title="Permanent link">¶</a></h3>
+<p><strong>File:</strong> <code>vasttools/source.py::Source.crossmatch()</code></p>
+<p><strong>Why Adapt:</strong>
+- DSA-110 already uses NVSS/VLASS catalogs
+- Pattern for external catalog queries
+- Useful for source identification</p>
+<p><strong>Adaptation Strategy:</strong>
+- DSA-110 already has catalog querying
+- May adapt crossmatch interface pattern
+- Lower priority - existing functionality is sufficient</p>
+<hr/>
+<h2 id="4-architecture-patterns">4. Architecture Patterns<a class="headerlink" href="#4-architecture-patterns" title="Permanent link">¶</a></h2>
+<h3 id="41-class-based-source-representation">4.1 Class-Based Source Representation<a class="headerlink" href="#41-class-based-source-representation" title="Permanent link">¶</a></h3>
+<p><strong>Pattern:</strong> Encapsulate source data and analysis methods in a single class.</p>
+<p><strong>Benefits:</strong>
+- Clean API for source analysis
+- Encapsulates complexity
+- Easy to extend with new methods</p>
+<p><strong>Application to DSA-110:</strong>
+- Create <code>ESECandidate</code> or <code>Source</code> class
+- Wrap <code>photometry_timeseries</code> queries
+- Provide plotting and analysis methods</p>
+<h3 id="42-pipeline-result-wrapper">4.2 Pipeline Result Wrapper<a class="headerlink" href="#42-pipeline-result-wrapper" title="Permanent link">¶</a></h3>
+<p><strong>Pattern:</strong> Create wrapper classes around pipeline output data.</p>
+<p><strong>Benefits:</strong>
+- Clean interface for pipeline results
+- Hides data loading complexity
+- Provides analysis methods</p>
+<p><strong>Application to DSA-110:</strong>
+- Create wrapper around <code>products.sqlite3</code>
+- Similar to existing <code>database/products.py</code> but more object-oriented
+- Provide analysis methods (variability, ESE detection)</p>
+<h3 id="43-query-source-pipeline">4.3 Query → Source Pipeline<a class="headerlink" href="#43-query-source-pipeline" title="Permanent link">¶</a></h3>
+<p><strong>Pattern:</strong> Query system returns Source objects for analysis.</p>
+<p><strong>Benefits:</strong>
+- Consistent interface
+- Easy to chain operations
+- Supports both interactive and batch workflows</p>
+<p><strong>Application to DSA-110:</strong>
+- Query ESE candidates → Source objects
+- Analyze → Plot → Export workflow
+- Integrate with API endpoints</p>
+<hr/>
+<h2 id="5-dsa-110-current-state-vs-vast-tools">5. DSA-110 Current State vs. VAST Tools<a class="headerlink" href="#5-dsa-110-current-state-vs-vast-tools" title="Permanent link">¶</a></h2>
+<h3 id="51-already-implemented">5.1 Already Implemented<a class="headerlink" href="#51-already-implemented" title="Permanent link">¶</a></h3>
+<p><strong>Photometry:</strong>
+- ✅ Forced photometry (<code>photometry/forced.py</code>)
+- ✅ Differential normalization (<code>photometry/normalize.py</code>)
+- ✅ Variability statistics (<code>variability_stats</code> table)
+- ✅ Database storage (<code>photometry_timeseries</code> table)</p>
+<p><strong>Catalogs:</strong>
+- ✅ NVSS/VLASS catalog loading (<code>catalog/</code>)
+- ✅ Catalog queries (<code>catalog/query.py</code>)</p>
+<p><strong>Pipeline:</strong>
+- ✅ Pipeline framework (<code>pipeline/</code>)
+- ✅ Database products tracking (<code>database/products.py</code>)</p>
+<h3 id="52-gaps-missing-features">5.2 Gaps / Missing Features<a class="headerlink" href="#52-gaps-missing-features" title="Permanent link">¶</a></h3>
+<p><strong>Visualization:</strong>
+- ❌ Light curve plotting (high priority)
+- ❌ Postage stamp plotting (medium priority)
+- ❌ Interactive plots (low priority - bokeh)</p>
+<p><strong>Variability Metrics:</strong>
+- ⚠️ Fractional variability (V) - implemented
+- ❌ η metric (complementary to χ²)
+- ❌ Two-epoch metrics (Vs, M) for rapid change detection</p>
+<p><strong>Source Analysis:</strong>
+- ❌ Source class wrapper (medium priority)
+- ❌ Crossmatching interface (low priority)</p>
+<p><strong>API Integration:</strong>
+- ⚠️ ESE candidates endpoint exists but uses mock data
+- ❌ Light curve endpoint
+- ❌ Postage stamp endpoint</p>
+<hr/>
+<h2 id="6-recommended-implementation-plan">6. Recommended Implementation Plan<a class="headerlink" href="#6-recommended-implementation-plan" title="Permanent link">¶</a></h2>
+<h3 id="phase-1-high-priority-immediate">Phase 1: High Priority (Immediate)<a class="headerlink" href="#phase-1-high-priority-immediate" title="Permanent link">¶</a></h3>
+<p><strong>1. Light Curve Plotting</strong>
+- <strong>Effort:</strong> 4-6 hours
+- <strong>Location:</strong> <code>src/dsa110_contimg/qa/lightcurves.py</code>
+- <strong>Action:</strong> Adapt <code>Source.plot_lightcurve()</code> from VAST Tools
+- <strong>Integration:</strong> Add to ESE candidate review workflow</p>
+<p><strong>2. Variability Metrics</strong>
+- <strong>Effort:</strong> 2-3 hours
+- <strong>Location:</strong> <code>src/dsa110_contimg/photometry/variability.py</code>
+- <strong>Action:</strong> Copy <code>calculate_vs_metric()</code>, <code>calculate_m_metric()</code>, <code>pipeline_get_variable_metrics()</code>
+- <strong>Integration:</strong> Add to <code>variability_stats</code> calculation</p>
+<h3 id="phase-2-medium-priority-next-sprint">Phase 2: Medium Priority (Next Sprint)<a class="headerlink" href="#phase-2-medium-priority-next-sprint" title="Permanent link">¶</a></h3>
+<p><strong>3. Source Class</strong>
+- <strong>Effort:</strong> 6-8 hours
+- <strong>Location:</strong> <code>src/dsa110_contimg/photometry/source.py</code>
+- <strong>Action:</strong> Create Source class wrapping database queries
+- <strong>Integration:</strong> ESE candidate analysis workflow</p>
+<p><strong>4. Postage Stamp Plotting</strong>
+- <strong>Effort:</strong> 4-6 hours
+- <strong>Location:</strong> <code>src/dsa110_contimg/qa/postage_stamps.py</code>
+- <strong>Action:</strong> Adapt <code>Source.plot_postagestamp()</code> from VAST Tools
+- <strong>Integration:</strong> ESE candidate review tools</p>
+<h3 id="phase-3-low-priority-future">Phase 3: Low Priority (Future)<a class="headerlink" href="#phase-3-low-priority-future" title="Permanent link">¶</a></h3>
+<p><strong>5. Interactive Plotting</strong>
+- <strong>Effort:</strong> 8-10 hours
+- <strong>Action:</strong> Evaluate bokeh for interactive light curves
+- <strong>Integration:</strong> Frontend dashboard</p>
+<p><strong>6. Pipeline Result Wrapper</strong>
+- <strong>Effort:</strong> 6-8 hours
+- <strong>Action:</strong> Create object-oriented wrapper around products database
+- <strong>Integration:</strong> Analysis workflows</p>
+<hr/>
+<h2 id="7-code-examples">7. Code Examples<a class="headerlink" href="#7-code-examples" title="Permanent link">¶</a></h2>
+<h3 id="71-light-curve-plotting-adapted">7.1 Light Curve Plotting (Adapted)<a class="headerlink" href="#71-light-curve-plotting-adapted" title="Permanent link">¶</a></h3>
+<div class="highlight"><pre><span></span><code><span class="c1"># Location: src/dsa110_contimg/qa/lightcurves.py</span>
+
+<span class="kn">from</span><span class="w"> </span><span class="nn">typing</span><span class="w"> </span><span class="kn">import</span> <span class="n">Optional</span><span class="p">,</span> <span class="n">Tuple</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">pandas</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">pd</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">matplotlib.pyplot</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">plt</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">astropy.time</span><span class="w"> </span><span class="kn">import</span> <span class="n">Time</span>
+
+<span class="k">def</span><span class="w"> </span><span class="nf">plot_lightcurve</span><span class="p">(</span>
+    <span class="n">source_id</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
+    <span class="n">measurements</span><span class="p">:</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">,</span>
+    <span class="n">normalized</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span><span class="p">,</span>
+    <span class="n">figsize</span><span class="p">:</span> <span class="n">Tuple</span><span class="p">[</span><span class="nb">int</span><span class="p">,</span> <span class="nb">int</span><span class="p">]</span> <span class="o">=</span> <span class="p">(</span><span class="mi">10</span><span class="p">,</span> <span class="mi">6</span><span class="p">),</span>
+    <span class="n">baseline_epochs</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">10</span><span class="p">,</span>
+    <span class="n">ese_period_days</span><span class="p">:</span> <span class="n">Tuple</span><span class="p">[</span><span class="nb">int</span><span class="p">,</span> <span class="nb">int</span><span class="p">]</span> <span class="o">=</span> <span class="p">(</span><span class="mi">14</span><span class="p">,</span> <span class="mi">180</span><span class="p">),</span>
+    <span class="n">save</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span>
+    <span class="n">outfile</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+    <span class="n">plot_dpi</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">150</span>
+<span class="p">)</span> <span class="o">-&gt;</span> <span class="n">plt</span><span class="o">.</span><span class="n">Figure</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">"""</span>
+<span class="sd">    Plot light curve for ESE candidate analysis.</span>
+
+<span class="sd">    Adapted from VAST Tools Source.plot_lightcurve()</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        source_id: Source identifier</span>
+<span class="sd">        measurements: DataFrame with columns: dateobs, flux_norm, flux_err_norm</span>
+<span class="sd">        normalized: Whether flux is normalized (default: True)</span>
+<span class="sd">        figsize: Figure size</span>
+<span class="sd">        baseline_epochs: Number of epochs for baseline establishment</span>
+<span class="sd">        ese_period_days: ESE candidate period range (min, max) in days</span>
+<span class="sd">        save: Save figure instead of returning</span>
+<span class="sd">        outfile: Output filename</span>
+<span class="sd">        plot_dpi: DPI for saved figure</span>
+
+<span class="sd">    Returns:</span>
+<span class="sd">        matplotlib Figure object</span>
+<span class="sd">    """</span>
+    <span class="n">fig</span><span class="p">,</span> <span class="n">ax</span> <span class="o">=</span> <span class="n">plt</span><span class="o">.</span><span class="n">subplots</span><span class="p">(</span><span class="n">figsize</span><span class="o">=</span><span class="n">figsize</span><span class="p">)</span>
+
+    <span class="c1"># Convert dates to MJD for plotting</span>
+    <span class="n">dates</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">to_datetime</span><span class="p">(</span><span class="n">measurements</span><span class="p">[</span><span class="s1">'dateobs'</span><span class="p">])</span>
+    <span class="n">mjd</span> <span class="o">=</span> <span class="n">Time</span><span class="p">(</span><span class="n">dates</span><span class="p">)</span><span class="o">.</span><span class="n">mjd</span>
+
+    <span class="c1"># Plot measurements</span>
+    <span class="n">ax</span><span class="o">.</span><span class="n">errorbar</span><span class="p">(</span>
+        <span class="n">mjd</span><span class="p">,</span>
+        <span class="n">measurements</span><span class="p">[</span><span class="s1">'flux_norm'</span><span class="p">],</span>
+        <span class="n">yerr</span><span class="o">=</span><span class="n">measurements</span><span class="p">[</span><span class="s1">'flux_err_norm'</span><span class="p">],</span>
+        <span class="n">fmt</span><span class="o">=</span><span class="s1">'o'</span><span class="p">,</span>
+        <span class="n">label</span><span class="o">=</span><span class="s1">'Normalized Flux'</span>
+    <span class="p">)</span>
+
+    <span class="c1"># Highlight baseline period</span>
+    <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">measurements</span><span class="p">)</span> <span class="o">&gt;=</span> <span class="n">baseline_epochs</span><span class="p">:</span>
+        <span class="n">baseline_mjd</span> <span class="o">=</span> <span class="n">mjd</span><span class="p">[:</span><span class="n">baseline_epochs</span><span class="p">]</span>
+        <span class="n">ax</span><span class="o">.</span><span class="n">axvspan</span><span class="p">(</span>
+            <span class="n">baseline_mjd</span><span class="o">.</span><span class="n">min</span><span class="p">(),</span>
+            <span class="n">baseline_mjd</span><span class="o">.</span><span class="n">max</span><span class="p">(),</span>
+            <span class="n">alpha</span><span class="o">=</span><span class="mf">0.2</span><span class="p">,</span>
+            <span class="n">color</span><span class="o">=</span><span class="s1">'green'</span><span class="p">,</span>
+            <span class="n">label</span><span class="o">=</span><span class="s1">'Baseline Period'</span>
+        <span class="p">)</span>
+
+    <span class="c1"># Highlight ESE candidate periods (if detected)</span>
+    <span class="c1"># TODO: Add ESE period detection logic</span>
+
+    <span class="n">ax</span><span class="o">.</span><span class="n">set_xlabel</span><span class="p">(</span><span class="s1">'MJD'</span><span class="p">)</span>
+    <span class="n">ax</span><span class="o">.</span><span class="n">set_ylabel</span><span class="p">(</span><span class="s1">'Normalized Flux Density'</span><span class="p">)</span>
+    <span class="n">ax</span><span class="o">.</span><span class="n">set_title</span><span class="p">(</span><span class="sa">f</span><span class="s1">'Light Curve: </span><span class="si">{</span><span class="n">source_id</span><span class="si">}</span><span class="s1">'</span><span class="p">)</span>
+    <span class="n">ax</span><span class="o">.</span><span class="n">legend</span><span class="p">()</span>
+    <span class="n">ax</span><span class="o">.</span><span class="n">grid</span><span class="p">(</span><span class="kc">True</span><span class="p">,</span> <span class="n">alpha</span><span class="o">=</span><span class="mf">0.3</span><span class="p">)</span>
+
+    <span class="k">if</span> <span class="n">save</span><span class="p">:</span>
+        <span class="k">if</span> <span class="n">outfile</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">outfile</span> <span class="o">=</span> <span class="sa">f</span><span class="s1">'</span><span class="si">{</span><span class="n">source_id</span><span class="si">}</span><span class="s1">_lightcurve.png'</span>
+        <span class="n">fig</span><span class="o">.</span><span class="n">savefig</span><span class="p">(</span><span class="n">outfile</span><span class="p">,</span> <span class="n">dpi</span><span class="o">=</span><span class="n">plot_dpi</span><span class="p">,</span> <span class="n">bbox_inches</span><span class="o">=</span><span class="s1">'tight'</span><span class="p">)</span>
+        <span class="n">plt</span><span class="o">.</span><span class="n">close</span><span class="p">(</span><span class="n">fig</span><span class="p">)</span>
+        <span class="k">return</span> <span class="kc">None</span>
+
+    <span class="k">return</span> <span class="n">fig</span>
+</code></pre></div>
+<h3 id="72-variability-metrics-direct-copy">7.2 Variability Metrics (Direct Copy)<a class="headerlink" href="#72-variability-metrics-direct-copy" title="Permanent link">¶</a></h3>
+<div class="highlight"><pre><span></span><code><span class="c1"># Location: src/dsa110_contimg/photometry/variability.py</span>
+
+<span class="kn">import</span><span class="w"> </span><span class="nn">numpy</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">np</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">pandas</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">pd</span>
+
+<span class="k">def</span><span class="w"> </span><span class="nf">calculate_vs_metric</span><span class="p">(</span>
+    <span class="n">flux_a</span><span class="p">:</span> <span class="nb">float</span><span class="p">,</span> <span class="n">flux_b</span><span class="p">:</span> <span class="nb">float</span><span class="p">,</span> <span class="n">flux_err_a</span><span class="p">:</span> <span class="nb">float</span><span class="p">,</span> <span class="n">flux_err_b</span><span class="p">:</span> <span class="nb">float</span>
+<span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">float</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">"""</span>
+<span class="sd">    Calculate the Vs variability metric (t-statistic).</span>
+
+<span class="sd">    Copied from VAST Tools vasttools/utils.py</span>
+
+<span class="sd">    Reference: Mooley et al. (2016), DOI: 10.3847/0004-637X/818/2/105</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        flux_a: Flux value "A"</span>
+<span class="sd">        flux_b: Flux value "B"</span>
+<span class="sd">        flux_err_a: Error of flux_a</span>
+<span class="sd">        flux_err_b: Error of flux_b</span>
+
+<span class="sd">    Returns:</span>
+<span class="sd">        Vs metric (t-statistic)</span>
+<span class="sd">    """</span>
+    <span class="k">return</span> <span class="p">(</span><span class="n">flux_a</span> <span class="o">-</span> <span class="n">flux_b</span><span class="p">)</span> <span class="o">/</span> <span class="n">np</span><span class="o">.</span><span class="n">hypot</span><span class="p">(</span><span class="n">flux_err_a</span><span class="p">,</span> <span class="n">flux_err_b</span><span class="p">)</span>
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">calculate_m_metric</span><span class="p">(</span><span class="n">flux_a</span><span class="p">:</span> <span class="nb">float</span><span class="p">,</span> <span class="n">flux_b</span><span class="p">:</span> <span class="nb">float</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">float</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">"""</span>
+<span class="sd">    Calculate the M variability metric (modulation index).</span>
+
+<span class="sd">    Copied from VAST Tools vasttools/utils.py</span>
+
+<span class="sd">    Reference: Mooley et al. (2016), DOI: 10.3847/0004-637X/818/2/105</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        flux_a: Flux value "A"</span>
+<span class="sd">        flux_b: Flux value "B"</span>
+
+<span class="sd">    Returns:</span>
+<span class="sd">        M metric (modulation index, fractional variability)</span>
+<span class="sd">    """</span>
+    <span class="k">return</span> <span class="mi">2</span> <span class="o">*</span> <span class="p">((</span><span class="n">flux_a</span> <span class="o">-</span> <span class="n">flux_b</span><span class="p">)</span> <span class="o">/</span> <span class="p">(</span><span class="n">flux_a</span> <span class="o">+</span> <span class="n">flux_b</span><span class="p">))</span>
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">pipeline_get_variable_metrics</span><span class="p">(</span><span class="n">df</span><span class="p">:</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">pd</span><span class="o">.</span><span class="n">Series</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">"""</span>
+<span class="sd">    Calculate variability metrics for a source.</span>
+
+<span class="sd">    Adapted from VAST Tools vasttools/utils.py</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        df: DataFrame with grouped measurements (one source)</span>
+<span class="sd">            Requires columns: flux_norm, flux_err_norm</span>
+
+<span class="sd">    Returns:</span>
+<span class="sd">        Series with metrics: v_norm, eta_norm</span>
+<span class="sd">    """</span>
+    <span class="n">d</span> <span class="o">=</span> <span class="p">{}</span>
+
+    <span class="k">if</span> <span class="n">df</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">==</span> <span class="mi">1</span><span class="p">:</span>
+        <span class="n">d</span><span class="p">[</span><span class="s1">'v_norm'</span><span class="p">]</span> <span class="o">=</span> <span class="mf">0.0</span>
+        <span class="n">d</span><span class="p">[</span><span class="s1">'eta_norm'</span><span class="p">]</span> <span class="o">=</span> <span class="mf">0.0</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="c1"># Fractional variability (std/mean)</span>
+        <span class="n">d</span><span class="p">[</span><span class="s1">'v_norm'</span><span class="p">]</span> <span class="o">=</span> <span class="n">df</span><span class="p">[</span><span class="s1">'flux_norm'</span><span class="p">]</span><span class="o">.</span><span class="n">std</span><span class="p">()</span> <span class="o">/</span> <span class="n">df</span><span class="p">[</span><span class="s1">'flux_norm'</span><span class="p">]</span><span class="o">.</span><span class="n">mean</span><span class="p">()</span>
+
+        <span class="c1"># η metric (requires implementation of pipeline_get_eta_metric)</span>
+        <span class="c1"># TODO: Implement eta metric calculation</span>
+        <span class="n">d</span><span class="p">[</span><span class="s1">'eta_norm'</span><span class="p">]</span> <span class="o">=</span> <span class="mf">0.0</span>  <span class="c1"># Placeholder</span>
+
+    <span class="k">return</span> <span class="n">pd</span><span class="o">.</span><span class="n">Series</span><span class="p">(</span><span class="n">d</span><span class="p">)</span>
+</code></pre></div>
+<hr/>
+<h2 id="8-testing-strategy">8. Testing Strategy<a class="headerlink" href="#8-testing-strategy" title="Permanent link">¶</a></h2>
+<h3 id="81-unit-tests">8.1 Unit Tests<a class="headerlink" href="#81-unit-tests" title="Permanent link">¶</a></h3>
+<p><strong>For Adapted Code:</strong>
+- Test light curve plotting with sample data
+- Test variability metrics with known values
+- Test edge cases (single epoch, empty data, etc.)</p>
+<p><strong>Location:</strong> <code>tests/unit/test_lightcurves.py</code>, <code>tests/unit/test_variability.py</code></p>
+<h3 id="82-integration-tests">8.2 Integration Tests<a class="headerlink" href="#82-integration-tests" title="Permanent link">¶</a></h3>
+<p><strong>For Source Class:</strong>
+- Test database query integration
+- Test plotting with real data
+- Test ESE candidate workflow</p>
+<p><strong>Location:</strong> <code>tests/integration/test_source_analysis.py</code></p>
+<h3 id="83-reference-validation">8.3 Reference Validation<a class="headerlink" href="#83-reference-validation" title="Permanent link">¶</a></h3>
+<p><strong>For Copied Functions:</strong>
+- Compare outputs with VAST Tools reference implementation
+- Validate against published metrics (Mooley et al. 2016)
+- Test with VAST Tools example data if available</p>
+<hr/>
+<h2 id="9-documentation">9. Documentation<a class="headerlink" href="#9-documentation" title="Permanent link">¶</a></h2>
+<h3 id="91-code-documentation">9.1 Code Documentation<a class="headerlink" href="#91-code-documentation" title="Permanent link">¶</a></h3>
+<ul>
+<li>Add docstrings to all adapted functions</li>
+<li>Reference VAST Tools source in comments</li>
+<li>Document adaptations/changes from original</li>
+</ul>
+<h3 id="92-user-documentation">9.2 User Documentation<a class="headerlink" href="#92-user-documentation" title="Permanent link">¶</a></h3>
+<ul>
+<li>Add light curve plotting guide</li>
+<li>Document variability metrics</li>
+<li>Add ESE candidate analysis workflow</li>
+</ul>
+<p><strong>Location:</strong> <code>docs/how-to/lightcurves.md</code>, <code>docs/reference/variability_metrics.md</code></p>
+<hr/>
+<h2 id="10-references">10. References<a class="headerlink" href="#10-references" title="Permanent link">¶</a></h2>
+<h3 id="101-vast-tools">10.1 VAST Tools<a class="headerlink" href="#101-vast-tools" title="Permanent link">¶</a></h3>
+<ul>
+<li><strong>Repository:</strong> https://github.com/askap-vast/vast-tools</li>
+<li><strong>Documentation:</strong> https://vast-survey.org/vast-tools/</li>
+<li><strong>License:</strong> MIT</li>
+<li><strong>Version Analyzed:</strong> 3.2.0-dev</li>
+</ul>
+<h3 id="102-scientific-references">10.2 Scientific References<a class="headerlink" href="#102-scientific-references" title="Permanent link">¶</a></h3>
+<ul>
+<li><strong>Mooley et al. (2016):</strong> Variability metrics (Vs, M, η)</li>
+<li>DOI: 10.3847/0004-637X/818/2/105</li>
+<li>Section 5: Variability Metrics</li>
+</ul>
+<h3 id="103-dsa-110-documentation">10.3 DSA-110 Documentation<a class="headerlink" href="#103-dsa-110-documentation" title="Permanent link">¶</a></h3>
+<ul>
+<li><strong>Photometry Normalization:</strong> <code>docs/concepts/science/photometry_normalization.md</code></li>
+<li><strong>ESE Detection:</strong> <code>docs/analysis/MOFFAT_ROTATION_ESE_SCIENCE.md</code></li>
+<li><strong>Pipeline Overview:</strong> <code>docs/concepts/pipeline_overview.md</code></li>
+</ul>
+<hr/>
+<h2 id="11-conclusion">11. Conclusion<a class="headerlink" href="#11-conclusion" title="Permanent link">¶</a></h2>
+<p>VAST Tools provides excellent reference implementations for:</p>
+<ol>
+<li><strong>Light curve plotting</strong> - Comprehensive, well-tested implementation</li>
+<li><strong>Variability metrics</strong> - Simple, pure functions ready to copy</li>
+<li><strong>Source class pattern</strong> - Clean architecture for source analysis</li>
+<li><strong>Pipeline integration</strong> - Patterns for loading and analyzing pipeline results</li>
+</ol>
+<p><strong>Recommended Approach:</strong>
+- <strong>Copy directly:</strong> Variability metric functions (simple, pure functions)
+- <strong>Adapt:</strong> Light curve plotting (needs DSA-110-specific features)
+- <strong>Inspire:</strong> Source class pattern (create DSA-110-specific version)
+- <strong>Reference:</strong> Architecture patterns (inform design decisions)</p>
+<p><strong>Priority Order:</strong>
+1. Light curve plotting (high impact, immediate need)
+2. Variability metrics (complementary to existing metrics)
+3. Source class (improves analysis workflow)
+4. Postage stamps (useful for verification)</p>
+<p><strong>Estimated Total Effort:</strong> 20-30 hours for high/medium priority items</p>
+<hr/>
+<p><strong>Last Updated:</strong> 2025-11-12</p>
+</article>
+</div>
+<script>var tabs=__md_get("__tabs");if(Array.isArray(tabs))e:for(var set of document.querySelectorAll(".tabbed-set")){var tab,labels=set.querySelector(".tabbed-labels");for(tab of tabs)for(var label of labels.getElementsByTagName("label"))if(label.innerText.trim()===tab){var input=document.getElementById(label.htmlFor);input.checked=!0;continue e}}</script>
+<script>var target=document.getElementById(location.hash.slice(1));target&&target.name&&(target.checked=target.name.startsWith("__tabbed_"))</script>
+</div>
+</main>
+<footer class="md-footer">
+<div class="md-footer-meta md-typeset">
+<div class="md-footer-meta__inner md-grid">
+<div class="md-copyright">
+  
+  
+    Made with
+    <a href="https://squidfunk.github.io/mkdocs-material/" rel="noopener" target="_blank">
+      Material for MkDocs
+    </a>
+</div>
+</div>
+</div>
+</footer>
+</div>
+<div class="md-dialog" data-md-component="dialog">
+<div class="md-dialog__inner md-typeset"></div>
+</div>
+<script id="__config" type="application/json">{"base": "../..", "features": ["navigation.sections", "navigation.indexes", "content.code.copy", "content.tabs.link"], "search": "../../assets/javascripts/workers/search.b8dbb3d2.min.js", "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}}</script>
+<script src="../../assets/javascripts/bundle.fe8b6f2b.min.js"></script>
+<script src="../../javascripts/mathjax.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+<script src="../../javascripts/mermaid-zoom.js"></script>
+</body>
+</html>

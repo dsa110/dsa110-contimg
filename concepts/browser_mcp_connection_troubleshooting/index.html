@@ -1,0 +1,1990 @@
+
+<!DOCTYPE html>
+
+<html class="no-js" lang="en">
+<head>
+<meta charset="utf-8"/>
+<meta content="width=device-width,initial-scale=1" name="viewport"/>
+<link href="http://code.deepsynoptic.org/dsa110-contimg/concepts/browser_mcp_connection_troubleshooting/" rel="canonical"/>
+<link href="../../assets/images/favicon.png" rel="icon"/>
+<meta content="mkdocs-1.6.1, mkdocs-material-9.5.31" name="generator"/>
+<title>Browser MCP Connection Troubleshooting Guide - DSA-110 Continuum Imaging Pipeline</title>
+<link href="../../assets/stylesheets/main.3cba04c6.min.css" rel="stylesheet"/>
+<link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect"/>
+<link href="https://fonts.googleapis.com/css?family=Roboto:300,300i,400,400i,700,700i%7CRoboto+Mono:400,400i,700,700i&amp;display=fallback" rel="stylesheet"/>
+<style>:root{--md-text-font:"Roboto";--md-code-font:"Roboto Mono"}</style>
+<link href="../../assets/_mkdocstrings.css" rel="stylesheet"/>
+<script>__md_scope=new URL("../..",location),__md_hash=e=>[...e].reduce((e,_)=>(e<<5)-e+_.charCodeAt(0),0),__md_get=(e,_=localStorage,t=__md_scope)=>JSON.parse(_.getItem(t.pathname+"."+e)),__md_set=(e,_,t=localStorage,a=__md_scope)=>{try{t.setItem(a.pathname+"."+e,JSON.stringify(_))}catch(e){}}</script>
+</head>
+<body dir="ltr">
+<input autocomplete="off" class="md-toggle" data-md-toggle="drawer" id="__drawer" type="checkbox"/>
+<input autocomplete="off" class="md-toggle" data-md-toggle="search" id="__search" type="checkbox"/>
+<label class="md-overlay" for="__drawer"></label>
+<div data-md-component="skip">
+<a class="md-skip" href="#browser-mcp-connection-troubleshooting-guide">
+          Skip to content
+        </a>
+</div>
+<div data-md-component="announce">
+</div>
+<header class="md-header md-header--shadow" data-md-component="header">
+<nav aria-label="Header" class="md-header__inner md-grid">
+<a aria-label="DSA-110 Continuum Imaging Pipeline" class="md-header__button md-logo" data-md-component="logo" href="../.." title="DSA-110 Continuum Imaging Pipeline">
+<svg viewbox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54Z"></path></svg>
+</a>
+<label class="md-header__button md-icon" for="__drawer">
+<svg viewbox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M3 6h18v2H3V6m0 5h18v2H3v-2m0 5h18v2H3v-2Z"></path></svg>
+</label>
+<div class="md-header__title" data-md-component="header-title">
+<div class="md-header__ellipsis">
+<div class="md-header__topic">
+<span class="md-ellipsis">
+            DSA-110 Continuum Imaging Pipeline
+          </span>
+</div>
+<div class="md-header__topic" data-md-component="header-topic">
+<span class="md-ellipsis">
+            
+              Browser MCP Connection Troubleshooting Guide
+            
+          </span>
+</div>
+</div>
+</div>
+<script>var media,input,key,value,palette=__md_get("__palette");if(palette&&palette.color){"(prefers-color-scheme)"===palette.color.media&&(media=matchMedia("(prefers-color-scheme: light)"),input=document.querySelector(media.matches?"[data-md-color-media='(prefers-color-scheme: light)']":"[data-md-color-media='(prefers-color-scheme: dark)']"),palette.color.media=input.getAttribute("data-md-color-media"),palette.color.scheme=input.getAttribute("data-md-color-scheme"),palette.color.primary=input.getAttribute("data-md-color-primary"),palette.color.accent=input.getAttribute("data-md-color-accent"));for([key,value]of Object.entries(palette.color))document.body.setAttribute("data-md-color-"+key,value)}</script>
+<label class="md-header__button md-icon" for="__search">
+<svg viewbox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.516 6.516 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5Z"></path></svg>
+</label>
+<div class="md-search" data-md-component="search" role="dialog">
+<label class="md-search__overlay" for="__search"></label>
+<div class="md-search__inner" role="search">
+<form class="md-search__form" name="search">
+<input aria-label="Search" autocapitalize="off" autocomplete="off" autocorrect="off" class="md-search__input" data-md-component="search-query" name="query" placeholder="Search" required="" spellcheck="false" type="text"/>
+<label class="md-search__icon md-icon" for="__search">
+<svg viewbox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.516 6.516 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5Z"></path></svg>
+<svg viewbox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11h12Z"></path></svg>
+</label>
+<nav aria-label="Search" class="md-search__options">
+<button aria-label="Clear" class="md-search__icon md-icon" tabindex="-1" title="Clear" type="reset">
+<svg viewbox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M19 6.41 17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12 19 6.41Z"></path></svg>
+</button>
+</nav>
+</form>
+<div class="md-search__output">
+<div class="md-search__scrollwrap" data-md-scrollfix="" tabindex="0">
+<div class="md-search-result" data-md-component="search-result">
+<div class="md-search-result__meta">
+            Initializing search
+          </div>
+<ol class="md-search-result__list" role="presentation"></ol>
+</div>
+</div>
+</div>
+</div>
+</div>
+<div class="md-header__source">
+<a class="md-source" data-md-component="source" href="https://github.com/dsa110/dsa110-contimg" title="Go to repository">
+<div class="md-source__icon md-icon">
+<svg viewbox="0 0 448 512" xmlns="http://www.w3.org/2000/svg"><!--! Font Awesome Free 6.6.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2024 Fonticons, Inc.--><path d="M439.55 236.05 244 40.45a28.87 28.87 0 0 0-40.81 0l-40.66 40.63 51.52 51.52c27.06-9.14 52.68 16.77 43.39 43.68l49.66 49.66c34.23-11.8 61.18 31 35.47 56.69-26.49 26.49-70.21-2.87-56-37.34L240.22 199v121.85c25.3 12.54 22.26 41.85 9.08 55a34.34 34.34 0 0 1-48.55 0c-17.57-17.6-11.07-46.91 11.25-56v-123c-20.8-8.51-24.6-30.74-18.64-45L142.57 101 8.45 235.14a28.86 28.86 0 0 0 0 40.81l195.61 195.6a28.86 28.86 0 0 0 40.8 0l194.69-194.69a28.86 28.86 0 0 0 0-40.81z"></path></svg>
+</div>
+<div class="md-source__repository">
+    GitHub
+  </div>
+</a>
+</div>
+</nav>
+</header>
+<div class="md-container" data-md-component="container">
+<main class="md-main" data-md-component="main">
+<div class="md-main__inner md-grid">
+<div class="md-sidebar md-sidebar--primary" data-md-component="sidebar" data-md-type="navigation">
+<div class="md-sidebar__scrollwrap">
+<div class="md-sidebar__inner">
+<nav aria-label="Navigation" class="md-nav md-nav--primary" data-md-level="0">
+<label class="md-nav__title" for="__drawer">
+<a aria-label="DSA-110 Continuum Imaging Pipeline" class="md-nav__button md-logo" data-md-component="logo" href="../.." title="DSA-110 Continuum Imaging Pipeline">
+<svg viewbox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54Z"></path></svg>
+</a>
+    DSA-110 Continuum Imaging Pipeline
+  </label>
+<div class="md-nav__source">
+<a class="md-source" data-md-component="source" href="https://github.com/dsa110/dsa110-contimg" title="Go to repository">
+<div class="md-source__icon md-icon">
+<svg viewbox="0 0 448 512" xmlns="http://www.w3.org/2000/svg"><!--! Font Awesome Free 6.6.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2024 Fonticons, Inc.--><path d="M439.55 236.05 244 40.45a28.87 28.87 0 0 0-40.81 0l-40.66 40.63 51.52 51.52c27.06-9.14 52.68 16.77 43.39 43.68l49.66 49.66c34.23-11.8 61.18 31 35.47 56.69-26.49 26.49-70.21-2.87-56-37.34L240.22 199v121.85c25.3 12.54 22.26 41.85 9.08 55a34.34 34.34 0 0 1-48.55 0c-17.57-17.6-11.07-46.91 11.25-56v-123c-20.8-8.51-24.6-30.74-18.64-45L142.57 101 8.45 235.14a28.86 28.86 0 0 0 0 40.81l195.61 195.6a28.86 28.86 0 0 0 40.8 0l194.69-194.69a28.86 28.86 0 0 0 0-40.81z"></path></svg>
+</div>
+<div class="md-source__repository">
+    GitHub
+  </div>
+</a>
+</div>
+<ul class="md-nav__list" data-md-scrollfix="">
+<li class="md-nav__item">
+<a class="md-nav__link" href="../..">
+<span class="md-ellipsis">
+    Home
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../DOCUMENTATION_QUICK_REFERENCE/">
+<span class="md-ellipsis">
+    Documentation Guide
+  </span>
+</a>
+</li>
+<li class="md-nav__item md-nav__item--section md-nav__item--nested">
+<input class="md-nav__toggle md-toggle" id="__nav_3" type="checkbox"/>
+<div class="md-nav__link md-nav__container">
+<a class="md-nav__link" href="../">
+<span class="md-ellipsis">
+    Concepts
+  </span>
+</a>
+<label class="md-nav__link" for="__nav_3" id="__nav_3_label" tabindex="">
+<span class="md-nav__icon md-icon"></span>
+</label>
+</div>
+<nav aria-expanded="false" aria-labelledby="__nav_3_label" class="md-nav" data-md-level="1">
+<label class="md-nav__title" for="__nav_3">
+<span class="md-nav__icon md-icon"></span>
+            Concepts
+          </label>
+<ul class="md-nav__list" data-md-scrollfix="">
+<li class="md-nav__item">
+<a class="md-nav__link" href="../architecture/">
+<span class="md-ellipsis">
+    Architecture
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../DIRECTORY_ARCHITECTURE/">
+<span class="md-ellipsis">
+    Directory Architecture
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../modules/">
+<span class="md-ellipsis">
+    Modules
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../control-panel/">
+<span class="md-ellipsis">
+    Control Panel
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../aoflagger/">
+<span class="md-ellipsis">
+    AOFlagger
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../frontend_design/">
+<span class="md-ellipsis">
+    Frontend Design
+  </span>
+</a>
+</li>
+<li class="md-nav__item md-nav__item--nested">
+<input class="md-nav__toggle md-toggle" id="__nav_3_8" type="checkbox"/>
+<label class="md-nav__link" for="__nav_3_8" id="__nav_3_8_label" tabindex="0">
+<span class="md-ellipsis">
+    Dashboard
+  </span>
+<span class="md-nav__icon md-icon"></span>
+</label>
+<nav aria-expanded="false" aria-labelledby="__nav_3_8_label" class="md-nav" data-md-level="2">
+<label class="md-nav__title" for="__nav_3_8">
+<span class="md-nav__icon md-icon"></span>
+            Dashboard
+          </label>
+<ul class="md-nav__list" data-md-scrollfix="">
+<li class="md-nav__item">
+<a class="md-nav__link" href="../dashboard_mockups/">
+<span class="md-ellipsis">
+    Mockups
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../SKYVIEW_IMPLEMENTATION_PLAN/">
+<span class="md-ellipsis">
+    Sky View
+  </span>
+</a>
+</li>
+</ul>
+</nav>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../GLOSSARY/">
+<span class="md-ellipsis">
+    Glossary
+  </span>
+</a>
+</li>
+<li class="md-nav__item md-nav__item--nested">
+<input class="md-nav__toggle md-toggle" id="__nav_3_10" type="checkbox"/>
+<label class="md-nav__link" for="__nav_3_10" id="__nav_3_10_label" tabindex="0">
+<span class="md-ellipsis">
+    Pipeline
+  </span>
+<span class="md-nav__icon md-icon"></span>
+</label>
+<nav aria-expanded="false" aria-labelledby="__nav_3_10_label" class="md-nav" data-md-level="2">
+<label class="md-nav__title" for="__nav_3_10">
+<span class="md-nav__icon md-icon"></span>
+            Pipeline
+          </label>
+<ul class="md-nav__list" data-md-scrollfix="">
+<li class="md-nav__item">
+<a class="md-nav__link" href="../pipeline_overview/">
+<span class="md-ellipsis">
+    Overview
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../pipeline_stage_architecture/">
+<span class="md-ellipsis">
+    Stage Architecture
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../pipeline_workflow_visualization/">
+<span class="md-ellipsis">
+    Workflow Visualization
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../pipeline_production_features/">
+<span class="md-ellipsis">
+    Production Features
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../pipeline_patterns/">
+<span class="md-ellipsis">
+    Patterns
+  </span>
+</a>
+</li>
+</ul>
+</nav>
+</li>
+<li class="md-nav__item md-nav__item--nested">
+<input class="md-nav__toggle md-toggle" id="__nav_3_11" type="checkbox"/>
+<label class="md-nav__link" for="__nav_3_11" id="__nav_3_11_label" tabindex="0">
+<span class="md-ellipsis">
+    Science
+  </span>
+<span class="md-nav__icon md-icon"></span>
+</label>
+<nav aria-expanded="false" aria-labelledby="__nav_3_11_label" class="md-nav" data-md-level="2">
+<label class="md-nav__title" for="__nav_3_11">
+<span class="md-nav__icon md-icon"></span>
+            Science
+          </label>
+<ul class="md-nav__list" data-md-scrollfix="">
+<li class="md-nav__item">
+<a class="md-nav__link" href="../science/photometry_normalization/">
+<span class="md-ellipsis">
+    Photometry Normalization
+  </span>
+</a>
+</li>
+</ul>
+</nav>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../mcp_browser_server_setup/">
+<span class="md-ellipsis">
+    Browser MCP Server
+  </span>
+</a>
+</li>
+</ul>
+</nav>
+</li>
+<li class="md-nav__item md-nav__item--section md-nav__item--nested">
+<input class="md-nav__toggle md-toggle" id="__nav_4" type="checkbox"/>
+<label class="md-nav__link" for="__nav_4" id="__nav_4_label" tabindex="">
+<span class="md-ellipsis">
+    Tutorials
+  </span>
+<span class="md-nav__icon md-icon"></span>
+</label>
+<nav aria-expanded="false" aria-labelledby="__nav_4_label" class="md-nav" data-md-level="1">
+<label class="md-nav__title" for="__nav_4">
+<span class="md-nav__icon md-icon"></span>
+            Tutorials
+          </label>
+<ul class="md-nav__list" data-md-scrollfix="">
+<li class="md-nav__item md-nav__item--nested">
+<input class="md-nav__toggle md-toggle" id="__nav_4_1" type="checkbox"/>
+<label class="md-nav__link" for="__nav_4_1" id="__nav_4_1_label" tabindex="0">
+<span class="md-ellipsis">
+    Conversion
+  </span>
+<span class="md-nav__icon md-icon"></span>
+</label>
+<nav aria-expanded="false" aria-labelledby="__nav_4_1_label" class="md-nav" data-md-level="2">
+<label class="md-nav__title" for="__nav_4_1">
+<span class="md-nav__icon md-icon"></span>
+            Conversion
+          </label>
+<ul class="md-nav__list" data-md-scrollfix="">
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../tutorials/HDF5_TO_MS_TUTORIAL/">
+<span class="md-ellipsis">
+    HDF5 to MS
+  </span>
+</a>
+</li>
+</ul>
+</nav>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../tutorials/simulation-tutorial/">
+<span class="md-ellipsis">
+    Simulation
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../tutorials/calibrate-apply/">
+<span class="md-ellipsis">
+    Calibrate and Apply
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../tutorials/convert-standalone/">
+<span class="md-ellipsis">
+    Convert Standalone
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../tutorials/streaming/">
+<span class="md-ellipsis">
+    Streaming
+  </span>
+</a>
+</li>
+<li class="md-nav__item md-nav__item--nested">
+<input class="md-nav__toggle md-toggle" id="__nav_4_6" type="checkbox"/>
+<label class="md-nav__link" for="__nav_4_6" id="__nav_4_6_label" tabindex="0">
+<span class="md-ellipsis">
+    Notebooks
+  </span>
+<span class="md-nav__icon md-icon"></span>
+</label>
+<nav aria-expanded="false" aria-labelledby="__nav_4_6_label" class="md-nav" data-md-level="2">
+<label class="md-nav__title" for="__nav_4_6">
+<span class="md-nav__icon md-icon"></span>
+            Notebooks
+          </label>
+<ul class="md-nav__list" data-md-scrollfix="">
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../tutorials/notebooks/bandpass_calibration_test.ipynb">
+<span class="md-ellipsis">
+    Bandpass Calibration Test
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../tutorials/notebooks/calibrator_helper.py">
+<span class="md-ellipsis">
+    Calibrator Helper
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../tutorials/notebooks/CalibratorSearch.ipynb">
+<span class="md-ellipsis">
+    Calibrator Search
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../tutorials/notebooks/ms_staging_workflow.ipynb">
+<span class="md-ellipsis">
+    MS Staging Workflow
+  </span>
+</a>
+</li>
+</ul>
+</nav>
+</li>
+</ul>
+</nav>
+</li>
+<li class="md-nav__item md-nav__item--section md-nav__item--nested">
+<input class="md-nav__toggle md-toggle" id="__nav_5" type="checkbox"/>
+<label class="md-nav__link" for="__nav_5" id="__nav_5_label" tabindex="">
+<span class="md-ellipsis">
+    How-To Guides
+  </span>
+<span class="md-nav__icon md-icon"></span>
+</label>
+<nav aria-expanded="false" aria-labelledby="__nav_5_label" class="md-nav" data-md-level="1">
+<label class="md-nav__title" for="__nav_5">
+<span class="md-nav__icon md-icon"></span>
+            How-To Guides
+          </label>
+<ul class="md-nav__list" data-md-scrollfix="">
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../how-to/github_pages_walkthrough/">
+<span class="md-ellipsis">
+    GitHub Pages Setup
+  </span>
+</a>
+</li>
+<li class="md-nav__item md-nav__item--nested">
+<input class="md-nav__toggle md-toggle" id="__nav_5_2" type="checkbox"/>
+<label class="md-nav__link" for="__nav_5_2" id="__nav_5_2_label" tabindex="0">
+<span class="md-ellipsis">
+    Quickstarts
+  </span>
+<span class="md-nav__icon md-icon"></span>
+</label>
+<nav aria-expanded="false" aria-labelledby="__nav_5_2_label" class="md-nav" data-md-level="2">
+<label class="md-nav__title" for="__nav_5_2">
+<span class="md-nav__icon md-icon"></span>
+            Quickstarts
+          </label>
+<ul class="md-nav__list" data-md-scrollfix="">
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../how-to/quickstart/">
+<span class="md-ellipsis">
+    General
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../how-to/control-panel-quickstart/">
+<span class="md-ellipsis">
+    Control Panel
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../how-to/LINEAR_SETUP_QUICKSTART/">
+<span class="md-ellipsis">
+    Linear Setup
+  </span>
+</a>
+</li>
+</ul>
+</nav>
+</li>
+<li class="md-nav__item md-nav__item--nested">
+<input class="md-nav__toggle md-toggle" id="__nav_5_3" type="checkbox"/>
+<label class="md-nav__link" for="__nav_5_3" id="__nav_5_3_label" tabindex="0">
+<span class="md-ellipsis">
+    Testing
+  </span>
+<span class="md-nav__icon md-icon"></span>
+</label>
+<nav aria-expanded="false" aria-labelledby="__nav_5_3_label" class="md-nav" data-md-level="2">
+<label class="md-nav__title" for="__nav_5_3">
+<span class="md-nav__icon md-icon"></span>
+            Testing
+          </label>
+<ul class="md-nav__list" data-md-scrollfix="">
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../how-to/FAST_TESTING/">
+<span class="md-ellipsis">
+    Fast Testing
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../how-to/PIPELINE_TESTING_GUIDE/">
+<span class="md-ellipsis">
+    Pipeline Guide
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../how-to/TEST_FLAG_SUBCOMMAND/">
+<span class="md-ellipsis">
+    Flag Subcommand
+  </span>
+</a>
+</li>
+</ul>
+</nav>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../how-to/build-vp-from-h5/">
+<span class="md-ellipsis">
+    Build VP from h5
+  </span>
+</a>
+</li>
+<li class="md-nav__item md-nav__item--nested">
+<input class="md-nav__toggle md-toggle" id="__nav_5_5" type="checkbox"/>
+<label class="md-nav__link" for="__nav_5_5" id="__nav_5_5_label" tabindex="0">
+<span class="md-ellipsis">
+    Calibration
+  </span>
+<span class="md-nav__icon md-icon"></span>
+</label>
+<nav aria-expanded="false" aria-labelledby="__nav_5_5_label" class="md-nav" data-md-level="2">
+<label class="md-nav__title" for="__nav_5_5">
+<span class="md-nav__icon md-icon"></span>
+            Calibration
+          </label>
+<ul class="md-nav__list" data-md-scrollfix="">
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../how-to/CALIBRATION_DETAILED_PROCEDURE/">
+<span class="md-ellipsis">
+    Detailed Procedure
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../how-to/FIND_CALIBRATOR_TRANSIT_DATA/">
+<span class="md-ellipsis">
+    Find Calibrator Transit
+  </span>
+</a>
+</li>
+</ul>
+</nav>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../how-to/IMAGE_0834_TRANSIT_5MIN/">
+<span class="md-ellipsis">
+    Image 0834 Transit 5min
+  </span>
+</a>
+</li>
+<li class="md-nav__item md-nav__item--nested">
+<input class="md-nav__toggle md-toggle" id="__nav_5_7" type="checkbox"/>
+<label class="md-nav__link" for="__nav_5_7" id="__nav_5_7_label" tabindex="0">
+<span class="md-ellipsis">
+    Mosaic
+  </span>
+<span class="md-nav__icon md-icon"></span>
+</label>
+<nav aria-expanded="false" aria-labelledby="__nav_5_7_label" class="md-nav" data-md-level="2">
+<label class="md-nav__title" for="__nav_5_7">
+<span class="md-nav__icon md-icon"></span>
+            Mosaic
+          </label>
+<ul class="md-nav__list" data-md-scrollfix="">
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../how-to/mosaic_quickstart/">
+<span class="md-ellipsis">
+    Quickstart
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../how-to/mosaic/">
+<span class="md-ellipsis">
+    Complete Guide
+  </span>
+</a>
+</li>
+</ul>
+</nav>
+</li>
+<li class="md-nav__item md-nav__item--nested">
+<input class="md-nav__toggle md-toggle" id="__nav_5_8" type="checkbox"/>
+<label class="md-nav__link" for="__nav_5_8" id="__nav_5_8_label" tabindex="0">
+<span class="md-ellipsis">
+    Quality Assurance
+  </span>
+<span class="md-nav__icon md-icon"></span>
+</label>
+<nav aria-expanded="false" aria-labelledby="__nav_5_8_label" class="md-nav" data-md-level="2">
+<label class="md-nav__title" for="__nav_5_8">
+<span class="md-nav__icon md-icon"></span>
+            Quality Assurance
+          </label>
+<ul class="md-nav__list" data-md-scrollfix="">
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../how-to/QUALITY_ASSURANCE_SETUP/">
+<span class="md-ellipsis">
+    Setup
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../how-to/quicklook/">
+<span class="md-ellipsis">
+    Quick Look
+  </span>
+</a>
+</li>
+</ul>
+</nav>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../how-to/reprocess/">
+<span class="md-ellipsis">
+    Reprocess
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../how-to/USING_ORCHESTRATOR_CLI/">
+<span class="md-ellipsis">
+    Using Orchestrator CLI
+  </span>
+</a>
+</li>
+<li class="md-nav__item md-nav__item--nested">
+<input class="md-nav__toggle md-toggle" id="__nav_5_11" type="checkbox"/>
+<label class="md-nav__link" for="__nav_5_11" id="__nav_5_11_label" tabindex="0">
+<span class="md-ellipsis">
+    Dashboard
+  </span>
+<span class="md-nav__icon md-icon"></span>
+</label>
+<nav aria-expanded="false" aria-labelledby="__nav_5_11_label" class="md-nav" data-md-level="2">
+<label class="md-nav__title" for="__nav_5_11">
+<span class="md-nav__icon md-icon"></span>
+            Dashboard
+          </label>
+<ul class="md-nav__list" data-md-scrollfix="">
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../how-to/dashboard-development/">
+<span class="md-ellipsis">
+    Development
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../how-to/dashboard-quickstart/">
+<span class="md-ellipsis">
+    Quickstart
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../how-to/dashboard_testing/">
+<span class="md-ellipsis">
+    Testing
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../how-to/dashboard_development_workflow/">
+<span class="md-ellipsis">
+    Development Workflow
+  </span>
+</a>
+</li>
+</ul>
+</nav>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../how-to/LINEAR_INTEGRATION/">
+<span class="md-ellipsis">
+    Linear Integration
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../how-to/frontend-initial-setup/">
+<span class="md-ellipsis">
+    Frontend Initial Setup
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../how-to/PARAMETER_OPTIMIZATION_GUIDE/">
+<span class="md-ellipsis">
+    AOFlagger Parameter Optimization
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../how-to/downsampling_guide/">
+<span class="md-ellipsis">
+    Downsampling Guide
+  </span>
+</a>
+</li>
+<li class="md-nav__item md-nav__item--nested">
+<input class="md-nav__toggle md-toggle" id="__nav_5_16" type="checkbox"/>
+<label class="md-nav__link" for="__nav_5_16" id="__nav_5_16_label" tabindex="0">
+<span class="md-ellipsis">
+    Conversion
+  </span>
+<span class="md-nav__icon md-icon"></span>
+</label>
+<nav aria-expanded="false" aria-labelledby="__nav_5_16_label" class="md-nav" data-md-level="2">
+<label class="md-nav__title" for="__nav_5_16">
+<span class="md-nav__icon md-icon"></span>
+            Conversion
+          </label>
+<ul class="md-nav__list" data-md-scrollfix="">
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../how-to/uvh5_to_ms_conversion/">
+<span class="md-ellipsis">
+    UVH5 to MS
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../how-to/streaming_converter_guide/">
+<span class="md-ellipsis">
+    Streaming Converter
+  </span>
+</a>
+</li>
+</ul>
+</nav>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../how-to/troubleshooting/">
+<span class="md-ellipsis">
+    Troubleshooting
+  </span>
+</a>
+</li>
+</ul>
+</nav>
+</li>
+<li class="md-nav__item md-nav__item--section md-nav__item--nested">
+<input class="md-nav__toggle md-toggle" id="__nav_6" type="checkbox"/>
+<label class="md-nav__link" for="__nav_6" id="__nav_6_label" tabindex="">
+<span class="md-ellipsis">
+    Reference
+  </span>
+<span class="md-nav__icon md-icon"></span>
+</label>
+<nav aria-expanded="false" aria-labelledby="__nav_6_label" class="md-nav" data-md-level="1">
+<label class="md-nav__title" for="__nav_6">
+<span class="md-nav__icon md-icon"></span>
+            Reference
+          </label>
+<ul class="md-nav__list" data-md-scrollfix="">
+<li class="md-nav__item md-nav__item--nested">
+<input class="md-nav__toggle md-toggle" id="__nav_6_1" type="checkbox"/>
+<label class="md-nav__link" for="__nav_6_1" id="__nav_6_1_label" tabindex="0">
+<span class="md-ellipsis">
+    API
+  </span>
+<span class="md-nav__icon md-icon"></span>
+</label>
+<nav aria-expanded="false" aria-labelledby="__nav_6_1_label" class="md-nav" data-md-level="2">
+<label class="md-nav__title" for="__nav_6_1">
+<span class="md-nav__icon md-icon"></span>
+            API
+          </label>
+<ul class="md-nav__list" data-md-scrollfix="">
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../reference/api-endpoints/">
+<span class="md-ellipsis">
+    Endpoints
+  </span>
+</a>
+</li>
+<li class="md-nav__item md-nav__item--nested">
+<input class="md-nav__toggle md-toggle" id="__nav_6_1_2" type="checkbox"/>
+<label class="md-nav__link" for="__nav_6_1_2" id="__nav_6_1_2_label" tabindex="0">
+<span class="md-ellipsis">
+    Dashboard
+  </span>
+<span class="md-nav__icon md-icon"></span>
+</label>
+<nav aria-expanded="false" aria-labelledby="__nav_6_1_2_label" class="md-nav" data-md-level="3">
+<label class="md-nav__title" for="__nav_6_1_2">
+<span class="md-nav__icon md-icon"></span>
+            Dashboard
+          </label>
+<ul class="md-nav__list" data-md-scrollfix="">
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../reference/dashboard_backend_api/">
+<span class="md-ellipsis">
+    API Reference
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../reference/dashboard_pages_and_features/">
+<span class="md-ellipsis">
+    Pages &amp; Features
+  </span>
+</a>
+</li>
+</ul>
+</nav>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../reference/backend_integration_snippets/">
+<span class="md-ellipsis">
+    Integration Snippets
+  </span>
+</a>
+</li>
+</ul>
+</nav>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../reference/calibration-overview/">
+<span class="md-ellipsis">
+    Calibration Overview
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../reference/cli/">
+<span class="md-ellipsis">
+    CLI
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../reference/control-panel-cheatsheet/">
+<span class="md-ellipsis">
+    Control Panel Cheatsheet
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../reference/database_schema/">
+<span class="md-ellipsis">
+    Database Schema
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../reference/env/">
+<span class="md-ellipsis">
+    Environment Variables
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../reference/CRITICAL_PYTHON_ENVIRONMENT/">
+<span class="md-ellipsis">
+    Critical Python Environment
+  </span>
+</a>
+</li>
+<li class="md-nav__item md-nav__item--nested">
+<input class="md-nav__toggle md-toggle" id="__nav_6_8" type="checkbox"/>
+<label class="md-nav__link" for="__nav_6_8" id="__nav_6_8_label" tabindex="0">
+<span class="md-ellipsis">
+    Optimizations
+  </span>
+<span class="md-nav__icon md-icon"></span>
+</label>
+<nav aria-expanded="false" aria-labelledby="__nav_6_8_label" class="md-nav" data-md-level="2">
+<label class="md-nav__title" for="__nav_6_8">
+<span class="md-nav__icon md-icon"></span>
+            Optimizations
+          </label>
+<ul class="md-nav__list" data-md-scrollfix="">
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../reference/optimizations/OPTIMIZATION_API/">
+<span class="md-ellipsis">
+    API
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../reference/optimizations/PROFILING_GUIDE/">
+<span class="md-ellipsis">
+    Profiling Guide
+  </span>
+</a>
+</li>
+</ul>
+</nav>
+</li>
+</ul>
+</nav>
+</li>
+<li class="md-nav__item md-nav__item--section md-nav__item--nested">
+<input class="md-nav__toggle md-toggle" id="__nav_7" type="checkbox"/>
+<label class="md-nav__link" for="__nav_7" id="__nav_7_label" tabindex="">
+<span class="md-ellipsis">
+    Operations
+  </span>
+<span class="md-nav__icon md-icon"></span>
+</label>
+<nav aria-expanded="false" aria-labelledby="__nav_7_label" class="md-nav" data-md-level="1">
+<label class="md-nav__title" for="__nav_7">
+<span class="md-nav__icon md-icon"></span>
+            Operations
+          </label>
+<ul class="md-nav__list" data-md-scrollfix="">
+<li class="md-nav__item md-nav__item--nested">
+<input class="md-nav__toggle md-toggle" id="__nav_7_1" type="checkbox"/>
+<label class="md-nav__link" for="__nav_7_1" id="__nav_7_1_label" tabindex="0">
+<span class="md-ellipsis">
+    Deployment
+  </span>
+<span class="md-nav__icon md-icon"></span>
+</label>
+<nav aria-expanded="false" aria-labelledby="__nav_7_1_label" class="md-nav" data-md-level="2">
+<label class="md-nav__title" for="__nav_7_1">
+<span class="md-nav__icon md-icon"></span>
+            Deployment
+          </label>
+<ul class="md-nav__list" data-md-scrollfix="">
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../operations/deploy-docker/">
+<span class="md-ellipsis">
+    Docker
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../operations/deploy-systemd/">
+<span class="md-ellipsis">
+    systemd
+  </span>
+</a>
+</li>
+</ul>
+</nav>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../operations/port-management/">
+<span class="md-ellipsis">
+    Port Management
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../operations/refant_quick_reference/">
+<span class="md-ellipsis">
+    Refant Quick Reference
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../operations/service_restart_fix/">
+<span class="md-ellipsis">
+    Service Restart Fix
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../operations/systemd-migration/">
+<span class="md-ellipsis">
+    Systemd Migration
+  </span>
+</a>
+</li>
+</ul>
+</nav>
+</li>
+<li class="md-nav__item md-nav__item--section md-nav__item--nested">
+<input class="md-nav__toggle md-toggle" id="__nav_8" type="checkbox"/>
+<div class="md-nav__link md-nav__container">
+<a class="md-nav__link" href="../../contributing/">
+<span class="md-ellipsis">
+    Contributing
+  </span>
+</a>
+<label class="md-nav__link" for="__nav_8" id="__nav_8_label" tabindex="">
+<span class="md-nav__icon md-icon"></span>
+</label>
+</div>
+<nav aria-expanded="false" aria-labelledby="__nav_8_label" class="md-nav" data-md-level="1">
+<label class="md-nav__title" for="__nav_8">
+<span class="md-nav__icon md-icon"></span>
+            Contributing
+          </label>
+<ul class="md-nav__list" data-md-scrollfix="">
+<li class="md-nav__item md-nav__item--nested">
+<input class="md-nav__toggle md-toggle" id="__nav_8_2" type="checkbox"/>
+<label class="md-nav__link" for="__nav_8_2" id="__nav_8_2_label" tabindex="0">
+<span class="md-ellipsis">
+    Archive
+  </span>
+<span class="md-nav__icon md-icon"></span>
+</label>
+<nav aria-expanded="false" aria-labelledby="__nav_8_2_label" class="md-nav" data-md-level="2">
+<label class="md-nav__title" for="__nav_8_2">
+<span class="md-nav__icon md-icon"></span>
+            Archive
+          </label>
+<ul class="md-nav__list" data-md-scrollfix="">
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../contributing/archive/CONTRIBUTING_TODO/">
+<span class="md-ellipsis">
+    Contributing to TODO
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../contributing/archive/rules/">
+<span class="md-ellipsis">
+    Rules
+  </span>
+</a>
+</li>
+</ul>
+</nav>
+</li>
+</ul>
+</nav>
+</li>
+</ul>
+</nav>
+</div>
+</div>
+</div>
+<div class="md-sidebar md-sidebar--secondary" data-md-component="sidebar" data-md-type="toc">
+<div class="md-sidebar__scrollwrap">
+<div class="md-sidebar__inner">
+<nav aria-label="Table of contents" class="md-nav md-nav--secondary">
+<label class="md-nav__title" for="__toc">
+<span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+<ul class="md-nav__list" data-md-component="toc" data-md-scrollfix="">
+<li class="md-nav__item">
+<a class="md-nav__link" href="#overview">
+<span class="md-ellipsis">
+      Overview
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#architecture-overview-understanding-the-system">
+<span class="md-ellipsis">
+      Architecture Overview (Understanding the System)
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#file-locations-where-everything-lives">
+<span class="md-ellipsis">
+      File Locations (Where Everything Lives)
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#critical-configuration-values">
+<span class="md-ellipsis">
+      Critical Configuration Values
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#quick-diagnostic-checklist">
+<span class="md-ellipsis">
+      Quick Diagnostic Checklist
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#step-by-step-troubleshooting-process">
+<span class="md-ellipsis">
+      Step-by-Step Troubleshooting Process
+    </span>
+</a>
+<nav aria-label="Step-by-Step Troubleshooting Process" class="md-nav">
+<ul class="md-nav__list">
+<li class="md-nav__item">
+<a class="md-nav__link" href="#step-1-verify-server-is-running">
+<span class="md-ellipsis">
+      Step 1: Verify Server is Running
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#step-2-verify-websocket-port-configuration">
+<span class="md-ellipsis">
+      Step 2: Verify WebSocket Port Configuration
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#step-3-check-extension-connection">
+<span class="md-ellipsis">
+      Step 3: Check Extension Connection
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#step-4-verify-websocket-connection-is-established">
+<span class="md-ellipsis">
+      Step 4: Verify WebSocket Connection is Established
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#step-5-verify-message-format-handler">
+<span class="md-ellipsis">
+      Step 5: Verify Message Format Handler
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#step-6-test-browser-tools">
+<span class="md-ellipsis">
+      Step 6: Test Browser Tools
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#step-7-verify-cursor-mcp-connection">
+<span class="md-ellipsis">
+      Step 7: Verify Cursor MCP Connection
+    </span>
+</a>
+</li>
+</ul>
+</nav>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#understanding-error-messages">
+<span class="md-ellipsis">
+      Understanding Error Messages
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#common-issues-and-solutions">
+<span class="md-ellipsis">
+      Common Issues and Solutions
+    </span>
+</a>
+<nav aria-label="Common Issues and Solutions" class="md-nav">
+<ul class="md-nav__list">
+<li class="md-nav__item">
+<a class="md-nav__link" href="#issue-1-no-connection-to-browser-extension">
+<span class="md-ellipsis">
+      Issue 1: "No connection to browser extension"
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#issue-2-tools-timeout-after-30-seconds">
+<span class="md-ellipsis">
+      Issue 2: Tools Timeout After 30 Seconds
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#issue-3-session-not-found-error">
+<span class="md-ellipsis">
+      Issue 3: "Session not found" Error
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#issue-4-extension-shows-connected-but-no-websocket-connection">
+<span class="md-ellipsis">
+      Issue 4: Extension Shows "Connected" But No WebSocket Connection
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#issue-5-port-already-in-use">
+<span class="md-ellipsis">
+      Issue 5: Port Already in Use
+    </span>
+</a>
+</li>
+</ul>
+</nav>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#verification-after-fixes">
+<span class="md-ellipsis">
+      Verification After Fixes
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#key-files-to-check">
+<span class="md-ellipsis">
+      Key Files to Check
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#complete-setup-from-scratch">
+<span class="md-ellipsis">
+      Complete Setup from Scratch
+    </span>
+</a>
+<nav aria-label="Complete Setup from Scratch" class="md-nav">
+<ul class="md-nav__list">
+<li class="md-nav__item">
+<a class="md-nav__link" href="#prerequisites-check">
+<span class="md-ellipsis">
+      Prerequisites Check
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#setup-steps">
+<span class="md-ellipsis">
+      Setup Steps
+    </span>
+</a>
+</li>
+</ul>
+</nav>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#summary-critical-values-checklist">
+<span class="md-ellipsis">
+      Summary: Critical Values Checklist
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#related-documentation">
+<span class="md-ellipsis">
+      Related Documentation
+    </span>
+</a>
+</li>
+</ul>
+</nav>
+</div>
+</div>
+</div>
+<div class="md-content" data-md-component="content">
+<article class="md-content__inner md-typeset">
+<h1 id="browser-mcp-connection-troubleshooting-guide">Browser MCP Connection Troubleshooting Guide<a class="headerlink" href="#browser-mcp-connection-troubleshooting-guide" title="Permanent link">¶</a></h1>
+<h2 id="overview">Overview<a class="headerlink" href="#overview" title="Permanent link">¶</a></h2>
+<p>This document provides a <strong>step-by-step debugging process</strong> for resolving Browser MCP connection issues. It documents the exact troubleshooting steps used to resolve connection problems between the Browser MCP server, browser extension, and Cursor IDE.</p>
+<p><strong>Who is this for?</strong> Anyone encountering Browser MCP connection issues, even if you've never worked with this system before.</p>
+<p><strong>What you'll learn:</strong>
+- How to verify each component is working
+- How to identify the exact problem
+- How to fix common issues
+- How to verify the fix worked</p>
+<h2 id="architecture-overview-understanding-the-system">Architecture Overview (Understanding the System)<a class="headerlink" href="#architecture-overview-understanding-the-system" title="Permanent link">¶</a></h2>
+<p>Before troubleshooting, understand how the components connect:</p>
+<div class="highlight"><pre><span></span><code>Cursor IDE (your editor)
+    │
+    │ HTTP (port 3111) - MCP protocol
+    ▼
+Browser MCP Server (Node.js process)
+    │
+    │ WebSocket (port 9009) - Browser automation protocol
+    ▼
+Browser MCP Extension (Chrome extension)
+    │
+    │ Playwright API
+    ▼
+Chrome Browser (running on Chrome Remote Desktop)
+</code></pre></div>
+<p><strong>Key Points:</strong>
+- <strong>Cursor</strong> talks to the <strong>server</strong> via HTTP (port 3111)
+- <strong>Server</strong> talks to the <strong>extension</strong> via WebSocket (port 9009)
+- <strong>Extension</strong> controls <strong>Chrome</strong> via Playwright
+- All components must be running and connected for tools to work</p>
+<p><strong>Why HTTP for Cursor but WebSocket for Extension?</strong></p>
+<ul>
+<li>
+<p><strong>HTTP (Cursor ↔ Server):</strong> Cursor uses the MCP (Model Context Protocol) which supports HTTP transport. This is more reliable than stdio and works across network boundaries. Each request/response is independent.</p>
+</li>
+<li>
+<p><strong>WebSocket (Server ↔ Extension):</strong> The browser extension needs a persistent, bidirectional connection to receive commands and send responses. WebSocket allows the server to push commands to the extension and receive responses asynchronously.</p>
+</li>
+</ul>
+<p><strong>Important:</strong> These are two separate protocols on two separate ports. The HTTP connection (3111) is for Cursor, the WebSocket connection (9009) is for the extension. Both must be working for tools to function.</p>
+<h2 id="file-locations-where-everything-lives">File Locations (Where Everything Lives)<a class="headerlink" href="#file-locations-where-everything-lives" title="Permanent link">¶</a></h2>
+<p><strong>Server code:</strong>
+- Location: <code>/home/ubuntu/proj/mcps/browser-mcp/mcp/</code>
+- Config file: <code>src/local-deps/config/mcp.config.ts</code> (defines WebSocket port)
+- Message handler: <code>src/local-deps/r2r/messaging/ws/sender.ts</code> (handles extension responses)
+- HTTP server: <code>src/http-server.ts</code> (creates WebSocket server and HTTP endpoint)
+- Build output: <code>dist/index.js</code> (compiled server)</p>
+<p><strong>Cursor configuration:</strong>
+- Location: <code>/data/dsa110-contimg/.cursor/mcp.json</code>
+- Defines: How Cursor connects to the server</p>
+<p><strong>Server logs:</strong>
+- Location: <code>/tmp/browsermcp.log</code>
+- Contains: Server startup, WebSocket connections, errors</p>
+<p><strong>Extension location:</strong>
+- Chrome extension directory: <code>~/.config/google-chrome/Default/Extensions/bjfgambnhccakkhmkepdoekmckoijdlc/</code>
+- Background script: <code>background.js</code> (contains hardcoded port 9009)
+- Manifest: <code>manifest.json</code> (extension permissions)</p>
+<h2 id="critical-configuration-values">Critical Configuration Values<a class="headerlink" href="#critical-configuration-values" title="Permanent link">¶</a></h2>
+<p>Before troubleshooting, verify these <strong>critical values</strong> match:</p>
+<ol>
+<li><strong>WebSocket Port</strong>: Extension expects <code>9009</code> (hardcoded in extension)</li>
+<li><strong>HTTP Port</strong>: Cursor connects to <code>3111</code> (configurable in <code>mcp.json</code>)</li>
+<li><strong>Message Format</strong>: Extension sends <code>{id, type: "messageResponse", payload: {requestId, result, error}}</code></li>
+</ol>
+<h2 id="quick-diagnostic-checklist">Quick Diagnostic Checklist<a class="headerlink" href="#quick-diagnostic-checklist" title="Permanent link">¶</a></h2>
+<p>Run this command to check all components at once:</p>
+<div class="highlight"><pre><span></span><code>/data/dsa110-contimg/scripts/check_browser_mcp.sh
+</code></pre></div>
+<p>Or manually check each component:</p>
+<div class="highlight"><pre><span></span><code><span class="c1"># 1. HTTP Server (port 3111)</span>
+lsof<span class="w"> </span>-i<span class="w"> </span>:3111<span class="w"> </span><span class="p">|</span><span class="w"> </span>grep<span class="w"> </span>LISTEN
+
+<span class="c1"># 2. WebSocket Server (port 9009) - CRITICAL: Must be 9009, not 3000</span>
+lsof<span class="w"> </span>-i<span class="w"> </span>:9009<span class="w"> </span><span class="p">|</span><span class="w"> </span>grep<span class="w"> </span>LISTEN
+
+<span class="c1"># 3. Active WebSocket connections</span>
+netstat<span class="w"> </span>-an<span class="w"> </span><span class="m">2</span>&gt;/dev/null<span class="w"> </span><span class="p">|</span><span class="w"> </span>grep<span class="w"> </span><span class="s2">":9009.*ESTABLISHED"</span><span class="w"> </span><span class="o">||</span><span class="w"> </span>ss<span class="w"> </span>-an<span class="w"> </span><span class="m">2</span>&gt;/dev/null<span class="w"> </span><span class="p">|</span><span class="w"> </span>grep<span class="w"> </span><span class="s2">":9009.*ESTAB"</span>
+
+<span class="c1"># 4. Server process</span>
+ps<span class="w"> </span>aux<span class="w"> </span><span class="p">|</span><span class="w"> </span>grep<span class="w"> </span><span class="s2">"dist/index.js.*--http.*3111"</span><span class="w"> </span><span class="p">|</span><span class="w"> </span>grep<span class="w"> </span>-v<span class="w"> </span>grep
+
+<span class="c1"># 5. Server logs</span>
+tail<span class="w"> </span>-30<span class="w"> </span>/tmp/browsermcp.log<span class="w"> </span><span class="p">|</span><span class="w"> </span>grep<span class="w"> </span>-E<span class="w"> </span><span class="s2">"WebSocket|connection|connected|9009"</span>
+</code></pre></div>
+<h2 id="step-by-step-troubleshooting-process">Step-by-Step Troubleshooting Process<a class="headerlink" href="#step-by-step-troubleshooting-process" title="Permanent link">¶</a></h2>
+<h3 id="step-1-verify-server-is-running">Step 1: Verify Server is Running<a class="headerlink" href="#step-1-verify-server-is-running" title="Permanent link">¶</a></h3>
+<p><strong>Check HTTP server:</strong>
+<div class="highlight"><pre><span></span><code>ps<span class="w"> </span>aux<span class="w"> </span><span class="p">|</span><span class="w"> </span>grep<span class="w"> </span><span class="s2">"dist/index.js.*--http.*3111"</span><span class="w"> </span><span class="p">|</span><span class="w"> </span>grep<span class="w"> </span>-v<span class="w"> </span>grep
+</code></pre></div></p>
+<p><strong>Expected output:</strong> Process running with <code>--http --port 3111</code></p>
+<p><strong>If not running:</strong>
+<div class="highlight"><pre><span></span><code><span class="nb">cd</span><span class="w"> </span>/home/ubuntu/proj/mcps/browser-mcp/mcp
+/opt/miniforge/envs/casa6/bin/node<span class="w"> </span>dist/index.js<span class="w"> </span>--http<span class="w"> </span>--port<span class="w"> </span><span class="m">3111</span><span class="w"> </span>&gt;<span class="w"> </span>/tmp/browsermcp.log<span class="w"> </span><span class="m">2</span>&gt;<span class="p">&amp;</span><span class="m">1</span><span class="w"> </span><span class="p">&amp;</span>
+</code></pre></div></p>
+<h3 id="step-2-verify-websocket-port-configuration">Step 2: Verify WebSocket Port Configuration<a class="headerlink" href="#step-2-verify-websocket-port-configuration" title="Permanent link">¶</a></h3>
+<p><strong>CRITICAL:</strong> The Browser MCP extension is <strong>hardcoded</strong> to connect to port <code>9009</code>. The server <strong>must</strong> listen on port <code>9009</code>, not <code>3000</code>.</p>
+<p><strong>Why is this important?</strong> The extension's code has the port number baked in. If the server listens on a different port, the extension will try to connect to the wrong port and fail silently.</p>
+<p><strong>How to verify the extension's hardcoded port:</strong></p>
+<p>You can check what port the extension expects by looking at its background script:</p>
+<div class="highlight"><pre><span></span><code><span class="c1"># Find the extension directory</span>
+find<span class="w"> </span>~/.config/google-chrome<span class="w"> </span>-name<span class="w"> </span><span class="s2">"background.js"</span><span class="w"> </span>-path<span class="w"> </span><span class="s2">"*browsermcp*"</span><span class="w"> </span>-o<span class="w"> </span>-name<span class="w"> </span><span class="s2">"background.js"</span><span class="w"> </span>-path<span class="w"> </span><span class="s2">"*Browser*MCP*"</span><span class="w"> </span><span class="m">2</span>&gt;/dev/null<span class="w"> </span><span class="p">|</span><span class="w"> </span>head<span class="w"> </span>-1
+
+<span class="c1"># Check for the port number (usually shows 9009)</span>
+grep<span class="w"> </span>-o<span class="w"> </span><span class="s2">"defaultWsPort:[0-9]*\|localhost:[0-9]*"</span><span class="w"> </span>~/.config/google-chrome/Default/Extensions/bjfgambnhccakkhmkepdoekmckoijdlc/*/background.js<span class="w"> </span><span class="p">|</span><span class="w"> </span>head<span class="w"> </span>-5
+</code></pre></div>
+<p><strong>Expected:</strong> Extension code shows port <code>9009</code> (or <code>defaultWsPort:9009</code>)</p>
+<p><strong>Check server configuration:</strong>
+<div class="highlight"><pre><span></span><code>grep<span class="w"> </span>-n<span class="w"> </span><span class="s2">"defaultWsPort"</span><span class="w"> </span>/home/ubuntu/proj/mcps/browser-mcp/mcp/src/local-deps/config/mcp.config.ts
+</code></pre></div></p>
+<p><strong>Expected:</strong> <code>defaultWsPort: 9009</code></p>
+<p><strong>If wrong (shows <code>3000</code>):</strong></p>
+<ol>
+<li>
+<p>Edit the config file:
+   <div class="highlight"><pre><span></span><code><span class="nb">cd</span><span class="w"> </span>/home/ubuntu/proj/mcps/browser-mcp/mcp
+<span class="c1"># Edit src/local-deps/config/mcp.config.ts</span>
+<span class="c1"># Change: defaultWsPort: 3000</span>
+<span class="c1"># To:     defaultWsPort: 9009</span>
+</code></pre></div></p>
+</li>
+<li>
+<p>Rebuild the server:
+   <div class="highlight"><pre><span></span><code>/opt/miniforge/envs/casa6/bin/npm<span class="w"> </span>run<span class="w"> </span>build
+</code></pre></div></p>
+</li>
+</ol>
+<p><strong>Expected output:</strong> Build completes without errors</p>
+<ol>
+<li>Restart the server (see Step 1 for restart commands)</li>
+</ol>
+<p><strong>Verify port is listening:</strong>
+<div class="highlight"><pre><span></span><code>lsof<span class="w"> </span>-i<span class="w"> </span>:9009<span class="w"> </span><span class="p">|</span><span class="w"> </span>grep<span class="w"> </span>LISTEN
+</code></pre></div></p>
+<p><strong>Expected:</strong> Node.js process listening on port 9009</p>
+<p><strong>If port 9009 not listening:</strong>
+1. Check server logs: <code>tail -20 /tmp/browsermcp.log</code>
+2. Look for: <code>[MCP HTTP] WebSocket server listening on port 9009</code>
+3. If it says port 3000, rebuild and restart server</p>
+<h3 id="step-3-check-extension-connection">Step 3: Check Extension Connection<a class="headerlink" href="#step-3-check-extension-connection" title="Permanent link">¶</a></h3>
+<p><strong>In Chrome (via Chrome Remote Desktop):</strong>
+1. Open Chrome browser
+2. Click Browser MCP extension icon
+3. Click "Connect" button
+4. Extension popup should show "Connected"</p>
+<p><strong>If extension shows "Connected" but tools still fail:</strong></p>
+<p>This is a common issue! The popup might show "Connected" but the actual WebSocket connection might not be established. Here's how to verify:</p>
+<p><strong>Step-by-step: Check Extension Background Script Console</strong></p>
+<ol>
+<li>Open Chrome (via Chrome Remote Desktop)</li>
+<li>Type in address bar: <code>chrome://extensions/</code></li>
+<li>Find "Browser MCP" extension in the list</li>
+<li>Look for a link that says:</li>
+<li>"Inspect views: service worker" (for Manifest V3 extensions)</li>
+<li>OR "background page" (for Manifest V2 extensions)</li>
+<li>Click it - this opens Chrome DevTools for the extension</li>
+<li>Go to the "Console" tab</li>
+<li>Click "Connect" in the Browser MCP extension popup (if not already connected)</li>
+<li>Watch the console for messages</li>
+</ol>
+<p><strong>What to look for:</strong></p>
+<p><strong>Good signs:</strong>
+- No errors
+- Messages about WebSocket connection
+- Messages about connecting to <code>ws://localhost:9009</code></p>
+<p><strong>Bad signs - Common errors:</strong></p>
+<ol>
+<li>
+<p><strong>CSP (Content Security Policy) Error:</strong>
+<div class="highlight"><pre><span></span><code>Connecting to 'ws://localhost:3000/' violates Content Security Policy
+</code></pre></div>
+<strong>Meaning:</strong> Extension is trying to connect to port 3000, but should use 9009.
+   <strong>Solution:</strong> Check server is listening on port 9009, not 3000.</p>
+</li>
+<li>
+<p><strong>Connection Refused:</strong>
+<div class="highlight"><pre><span></span><code>WebSocket connection to 'ws://localhost:9009/' failed: Error in connection establishment
+</code></pre></div>
+<strong>Meaning:</strong> No server listening on port 9009.
+   <strong>Solution:</strong> Start the server (see Step 1).</p>
+</li>
+<li>
+<p><strong>No messages at all:</strong>
+<strong>Meaning:</strong> Extension might not be trying to connect, or connection is silently failing.
+   <strong>Solution:</strong> Disconnect and reconnect the extension, watch console while doing so.</p>
+</li>
+</ol>
+<p><strong>If you see errors:</strong> Note the exact error message - it tells you what's wrong.</p>
+<h3 id="step-4-verify-websocket-connection-is-established">Step 4: Verify WebSocket Connection is Established<a class="headerlink" href="#step-4-verify-websocket-connection-is-established" title="Permanent link">¶</a></h3>
+<p><strong>Check for active connections:</strong>
+<div class="highlight"><pre><span></span><code>netstat<span class="w"> </span>-an<span class="w"> </span><span class="m">2</span>&gt;/dev/null<span class="w"> </span><span class="p">|</span><span class="w"> </span>grep<span class="w"> </span><span class="s2">":9009.*ESTABLISHED"</span><span class="w"> </span><span class="o">||</span><span class="w"> </span>ss<span class="w"> </span>-an<span class="w"> </span><span class="m">2</span>&gt;/dev/null<span class="w"> </span><span class="p">|</span><span class="w"> </span>grep<span class="w"> </span><span class="s2">":9009.*ESTAB"</span>
+</code></pre></div></p>
+<p><strong>Expected:</strong> At least one ESTABLISHED connection</p>
+<p><strong>If no connections:</strong>
+1. Disconnect and reconnect extension in Chrome
+2. Wait 2-3 seconds
+3. Check again
+4. Check server logs: <code>tail -20 /tmp/browsermcp.log | grep -i websocket</code></p>
+<p><strong>Check server logs for connection:</strong>
+<div class="highlight"><pre><span></span><code>tail<span class="w"> </span>-50<span class="w"> </span>/tmp/browsermcp.log<span class="w"> </span><span class="p">|</span><span class="w"> </span>grep<span class="w"> </span>-E<span class="w"> </span><span class="s2">"WebSocket.*connection|Browser extension connected"</span>
+</code></pre></div></p>
+<p><strong>Expected:</strong> <code>[MCP HTTP] Browser extension connected via WebSocket (readyState: 1)</code></p>
+<h3 id="step-5-verify-message-format-handler">Step 5: Verify Message Format Handler<a class="headerlink" href="#step-5-verify-message-format-handler" title="Permanent link">¶</a></h3>
+<p><strong>CRITICAL:</strong> The extension sends responses in a specific format that must be handled correctly. If the handler doesn't recognize this format, tools will timeout even though the WebSocket connection is established.</p>
+<p><strong>Why this matters:</strong> The server sends a request to the extension and waits for a response. If the response format doesn't match what the handler expects, the handler won't recognize it as a response and will timeout.</p>
+<p><strong>Extension response format:</strong>
+The extension wraps responses in a specific structure:
+<div class="highlight"><pre><span></span><code><span class="p">{</span>
+<span class="w">  </span><span class="nt">"id"</span><span class="p">:</span><span class="w"> </span><span class="s2">"some-uuid"</span><span class="p">,</span>
+<span class="w">  </span><span class="nt">"type"</span><span class="p">:</span><span class="w"> </span><span class="s2">"messageResponse"</span><span class="p">,</span>
+<span class="w">  </span><span class="nt">"payload"</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
+<span class="w">    </span><span class="nt">"requestId"</span><span class="p">:</span><span class="w"> </span><span class="s2">"original-request-id"</span><span class="p">,</span>
+<span class="w">    </span><span class="nt">"result"</span><span class="p">:</span><span class="w"> </span><span class="p">{</span><span class="err">...ac</span><span class="kc">tual</span><span class="w"> </span><span class="err">respo</span><span class="kc">nse</span><span class="w"> </span><span class="err">da</span><span class="kc">ta</span><span class="err">...</span><span class="p">},</span>
+<span class="w">    </span><span class="nt">"error"</span><span class="p">:</span><span class="w"> </span><span class="kc">null</span>
+<span class="w">  </span><span class="p">}</span>
+<span class="p">}</span>
+</code></pre></div></p>
+<p><strong>Standard format (what the handler originally expected):</strong>
+<div class="highlight"><pre><span></span><code><span class="p">{</span>
+<span class="w">  </span><span class="nt">"id"</span><span class="p">:</span><span class="w"> </span><span class="s2">"original-request-id"</span><span class="p">,</span>
+<span class="w">  </span><span class="nt">"result"</span><span class="p">:</span><span class="w"> </span><span class="p">{</span><span class="err">...ac</span><span class="kc">tual</span><span class="w"> </span><span class="err">respo</span><span class="kc">nse</span><span class="w"> </span><span class="err">da</span><span class="kc">ta</span><span class="err">...</span><span class="p">},</span>
+<span class="w">  </span><span class="nt">"error"</span><span class="p">:</span><span class="w"> </span><span class="kc">null</span>
+<span class="p">}</span>
+</code></pre></div></p>
+<p><strong>Check message handler code:</strong>
+<div class="highlight"><pre><span></span><code>grep<span class="w"> </span>-A<span class="w"> </span><span class="m">30</span><span class="w"> </span><span class="s2">"messageHandler.*data.*Buffer"</span><span class="w"> </span>/home/ubuntu/proj/mcps/browser-mcp/mcp/src/local-deps/r2r/messaging/ws/sender.ts
+</code></pre></div></p>
+<p><strong>Expected:</strong> Handler checks both formats. Look for code like:
+<div class="highlight"><pre><span></span><code><span class="c1">// Check standard format</span>
+<span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="nx">response</span><span class="p">.</span><span class="nx">id</span><span class="w"> </span><span class="o">===</span><span class="w"> </span><span class="nx">messageId</span><span class="p">)</span><span class="w"> </span><span class="p">{</span>
+<span class="w">  </span><span class="c1">// handle response</span>
+<span class="p">}</span>
+
+<span class="c1">// Check extension format</span>
+<span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="nx">response</span><span class="p">.</span><span class="kr">type</span><span class="w"> </span><span class="o">===</span><span class="w"> </span><span class="s2">"messageResponse"</span><span class="w"> </span><span class="o">&amp;&amp;</span><span class="w"> </span><span class="nx">response</span><span class="p">.</span><span class="nx">payload</span><span class="p">.</span><span class="nx">requestId</span><span class="w"> </span><span class="o">===</span><span class="w"> </span><span class="nx">messageId</span><span class="p">)</span><span class="w"> </span><span class="p">{</span>
+<span class="w">  </span><span class="c1">// handle response from payload</span>
+<span class="p">}</span>
+</code></pre></div></p>
+<p><strong>If handler doesn't support extension format:</strong></p>
+<ol>
+<li>
+<p>Edit the file:
+   <div class="highlight"><pre><span></span><code><span class="nb">cd</span><span class="w"> </span>/home/ubuntu/proj/mcps/browser-mcp/mcp
+<span class="c1"># Edit: src/local-deps/r2r/messaging/ws/sender.ts</span>
+</code></pre></div></p>
+</li>
+<li>
+<p>Find the <code>messageHandler</code> function (around line 50-80)</p>
+</li>
+<li>
+<p>Update it to handle both formats. The handler should look like:
+   <div class="highlight"><pre><span></span><code><span class="kd">const</span><span class="w"> </span><span class="nx">messageHandler</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="p">(</span><span class="nx">data</span><span class="o">:</span><span class="w"> </span><span class="kt">Buffer</span><span class="p">)</span><span class="w"> </span><span class="p">=&gt;</span><span class="w"> </span><span class="p">{</span>
+<span class="w">  </span><span class="k">try</span><span class="w"> </span><span class="p">{</span>
+<span class="w">    </span><span class="kd">const</span><span class="w"> </span><span class="nx">response</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="nb">JSON</span><span class="p">.</span><span class="nx">parse</span><span class="p">(</span><span class="nx">data</span><span class="p">.</span><span class="nx">toString</span><span class="p">());</span>
+
+<span class="w">    </span><span class="c1">// Check standard format</span>
+<span class="w">    </span><span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="nx">response</span><span class="p">.</span><span class="nx">id</span><span class="w"> </span><span class="o">===</span><span class="w"> </span><span class="nx">messageId</span><span class="p">)</span><span class="w"> </span><span class="p">{</span>
+<span class="w">      </span><span class="nx">clearTimeout</span><span class="p">(</span><span class="nx">timeout</span><span class="p">);</span>
+<span class="w">      </span><span class="nx">ws</span><span class="p">.</span><span class="nx">removeListener</span><span class="p">(</span><span class="s2">"message"</span><span class="p">,</span><span class="w"> </span><span class="nx">messageHandler</span><span class="p">);</span>
+<span class="w">      </span><span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="nx">response</span><span class="p">.</span><span class="nx">error</span><span class="p">)</span><span class="w"> </span><span class="p">{</span>
+<span class="w">        </span><span class="nx">reject</span><span class="p">(</span><span class="ow">new</span><span class="w"> </span><span class="ne">Error</span><span class="p">(</span><span class="nx">response</span><span class="p">.</span><span class="nx">error</span><span class="p">));</span>
+<span class="w">      </span><span class="p">}</span><span class="w"> </span><span class="k">else</span><span class="w"> </span><span class="p">{</span>
+<span class="w">        </span><span class="nx">resolve</span><span class="p">(</span><span class="nx">response</span><span class="p">.</span><span class="nx">result</span><span class="p">);</span>
+<span class="w">      </span><span class="p">}</span>
+<span class="w">      </span><span class="k">return</span><span class="p">;</span>
+<span class="w">    </span><span class="p">}</span>
+
+<span class="w">    </span><span class="c1">// Check extension format</span>
+<span class="w">    </span><span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="nx">response</span><span class="p">.</span><span class="kr">type</span><span class="w"> </span><span class="o">===</span><span class="w"> </span><span class="s2">"messageResponse"</span><span class="w"> </span><span class="o">&amp;&amp;</span><span class="w"> </span><span class="nx">response</span><span class="p">.</span><span class="nx">payload</span><span class="w"> </span><span class="o">&amp;&amp;</span><span class="w"> </span><span class="nx">response</span><span class="p">.</span><span class="nx">payload</span><span class="p">.</span><span class="nx">requestId</span><span class="w"> </span><span class="o">===</span><span class="w"> </span><span class="nx">messageId</span><span class="p">)</span><span class="w"> </span><span class="p">{</span>
+<span class="w">      </span><span class="nx">clearTimeout</span><span class="p">(</span><span class="nx">timeout</span><span class="p">);</span>
+<span class="w">      </span><span class="nx">ws</span><span class="p">.</span><span class="nx">removeListener</span><span class="p">(</span><span class="s2">"message"</span><span class="p">,</span><span class="w"> </span><span class="nx">messageHandler</span><span class="p">);</span>
+<span class="w">      </span><span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="nx">response</span><span class="p">.</span><span class="nx">payload</span><span class="p">.</span><span class="nx">error</span><span class="p">)</span><span class="w"> </span><span class="p">{</span>
+<span class="w">        </span><span class="nx">reject</span><span class="p">(</span><span class="ow">new</span><span class="w"> </span><span class="ne">Error</span><span class="p">(</span><span class="nx">response</span><span class="p">.</span><span class="nx">payload</span><span class="p">.</span><span class="nx">error</span><span class="p">));</span>
+<span class="w">      </span><span class="p">}</span><span class="w"> </span><span class="k">else</span><span class="w"> </span><span class="p">{</span>
+<span class="w">        </span><span class="nx">resolve</span><span class="p">(</span><span class="nx">response</span><span class="p">.</span><span class="nx">payload</span><span class="p">.</span><span class="nx">result</span><span class="p">);</span>
+<span class="w">      </span><span class="p">}</span>
+<span class="w">      </span><span class="k">return</span><span class="p">;</span>
+<span class="w">    </span><span class="p">}</span>
+<span class="w">  </span><span class="p">}</span><span class="w"> </span><span class="k">catch</span><span class="w"> </span><span class="p">(</span><span class="nx">e</span><span class="p">)</span><span class="w"> </span><span class="p">{</span>
+<span class="w">    </span><span class="c1">// Not our message, ignore</span>
+<span class="w">  </span><span class="p">}</span>
+<span class="p">};</span>
+</code></pre></div></p>
+</li>
+<li>
+<p>Rebuild:
+   <div class="highlight"><pre><span></span><code>/opt/miniforge/envs/casa6/bin/npm<span class="w"> </span>run<span class="w"> </span>build
+</code></pre></div></p>
+</li>
+<li>
+<p>Restart server (see Step 1)</p>
+</li>
+</ol>
+<h3 id="step-6-test-browser-tools">Step 6: Test Browser Tools<a class="headerlink" href="#step-6-test-browser-tools" title="Permanent link">¶</a></h3>
+<p><strong>After fixing configuration, test the tools:</strong></p>
+<p><strong>In Cursor IDE:</strong>
+1. Open Cursor
+2. Try a simple navigation command:
+   <div class="highlight"><pre><span></span><code>Navigate to https://www.example.com
+</code></pre></div>
+   OR use the MCP tool directly:
+   <div class="highlight"><pre><span></span><code>mcp_browsermcp_browser_navigate({"url": "https://www.example.com"})
+</code></pre></div></p>
+<ol>
+<li>Try getting a snapshot:
+   <div class="highlight"><pre><span></span><code>mcp_browsermcp_browser_snapshot({})
+</code></pre></div></li>
+</ol>
+<p><strong>What success looks like:</strong></p>
+<p><strong>Successful navigation:</strong>
+- Returns immediately (no timeout)
+- Shows: <code>Page URL: https://www.example.com/</code>
+- Shows: <code>Page Title: Example Domain</code>
+- No error messages</p>
+<p><strong>Successful snapshot:</strong>
+- Returns immediately (no timeout)
+- Shows page structure in YAML format
+- Lists elements with references like <code>[ref=s1e2]</code>
+- No error messages</p>
+<p><strong>What failure looks like:</strong></p>
+<p><strong>Timeout (30 seconds):</strong>
+- Tool call hangs for 30 seconds
+- Then returns: <code>Error: WebSocket response timeout after 30000ms</code>
+- <strong>Meaning:</strong> Server sent request to extension but didn't receive response
+- <strong>Likely cause:</strong> Message format handler not recognizing extension's response format</p>
+<p><strong>"No connection to browser extension":</strong>
+- Returns immediately with error
+- <strong>Meaning:</strong> No WebSocket connection established
+- <strong>Likely cause:</strong> Extension not connected, or server not listening on port 9009</p>
+<p><strong>"Session not found":</strong>
+- Returns immediately with error
+- <strong>Meaning:</strong> Cursor's HTTP session expired or server restarted
+- <strong>Solution:</strong> Restart Cursor to reconnect</p>
+<p><strong>If tools timeout or fail:</strong></p>
+<ol>
+<li>
+<p><strong>Check WebSocket connection is still active:</strong>
+<div class="highlight"><pre><span></span><code>netstat<span class="w"> </span>-an<span class="w"> </span><span class="p">|</span><span class="w"> </span>grep<span class="w"> </span><span class="s2">":9009.*ESTABLISHED"</span>
+</code></pre></div>
+<strong>Expected:</strong> At least one ESTABLISHED connection</p>
+</li>
+<li>
+<p><strong>Check server logs for activity:</strong>
+<div class="highlight"><pre><span></span><code>tail<span class="w"> </span>-50<span class="w"> </span>/tmp/browsermcp.log
+</code></pre></div></p>
+</li>
+<li>
+<p><strong>Look for WebSocket message activity:</strong>
+<div class="highlight"><pre><span></span><code>tail<span class="w"> </span>-50<span class="w"> </span>/tmp/browsermcp.log<span class="w"> </span><span class="p">|</span><span class="w"> </span>grep<span class="w"> </span><span class="s2">"WebSocket message received"</span>
+</code></pre></div>
+<strong>Expected:</strong> Logs show <code>[MCP HTTP] WebSocket message received (XXX bytes)</code> when tools are called</p>
+</li>
+</ol>
+<p><strong>If you see messages being received:</strong> The connection is working, but responses aren't being recognized (message format issue)</p>
+<p><strong>If you don't see messages:</strong> The extension isn't receiving requests (connection issue)</p>
+<h3 id="step-7-verify-cursor-mcp-connection">Step 7: Verify Cursor MCP Connection<a class="headerlink" href="#step-7-verify-cursor-mcp-connection" title="Permanent link">¶</a></h3>
+<p><strong>Check Cursor configuration:</strong>
+<div class="highlight"><pre><span></span><code>cat<span class="w"> </span>/data/dsa110-contimg/.cursor/mcp.json<span class="w"> </span><span class="p">|</span><span class="w"> </span>jq<span class="w"> </span><span class="s1">'.mcpServers.browsermcp'</span>
+</code></pre></div></p>
+<p><strong>Expected:</strong>
+<div class="highlight"><pre><span></span><code><span class="p">{</span>
+<span class="w">  </span><span class="nt">"url"</span><span class="p">:</span><span class="w"> </span><span class="s2">"http://localhost:3111/mcp"</span><span class="p">,</span>
+<span class="w">  </span><span class="nt">"headers"</span><span class="p">:</span><span class="w"> </span><span class="p">{}</span>
+<span class="p">}</span>
+</code></pre></div></p>
+<p><strong>If wrong:</strong>
+1. Update <code>mcp.json</code> to use HTTP transport (not stdio)
+2. Restart Cursor completely
+3. Wait for Cursor to reconnect</p>
+<p><strong>Test HTTP endpoint:</strong>
+<div class="highlight"><pre><span></span><code>curl<span class="w"> </span>-s<span class="w"> </span>http://localhost:3111/mcp
+</code></pre></div></p>
+<p><strong>Expected:</strong> JSON response (may show "Invalid session" if accessed directly, but should not error)</p>
+<h2 id="understanding-error-messages">Understanding Error Messages<a class="headerlink" href="#understanding-error-messages" title="Permanent link">¶</a></h2>
+<p>Before diving into specific issues, here's what common error messages mean:</p>
+<table>
+<thead>
+<tr>
+<th>Error Message</th>
+<th>What It Means</th>
+<th>Where to Look</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>"No connection to browser extension"</code></td>
+<td>No WebSocket connection between server and extension</td>
+<td>Check port 9009 connection</td>
+</tr>
+<tr>
+<td><code>"WebSocket response timeout after 30000ms"</code></td>
+<td>Server sent request but didn't get response</td>
+<td>Check message format handler</td>
+</tr>
+<tr>
+<td><code>"Session not found"</code></td>
+<td>Cursor's HTTP session expired</td>
+<td>Restart Cursor</td>
+</tr>
+<tr>
+<td><code>"Stale aria-ref"</code></td>
+<td>Page changed, need fresh snapshot</td>
+<td>Get new snapshot before interacting</td>
+</tr>
+<tr>
+<td><code>"Invalid session or request"</code></td>
+<td>HTTP request format wrong or session expired</td>
+<td>Check Cursor connection</td>
+</tr>
+</tbody>
+</table>
+<h2 id="common-issues-and-solutions">Common Issues and Solutions<a class="headerlink" href="#common-issues-and-solutions" title="Permanent link">¶</a></h2>
+<h3 id="issue-1-no-connection-to-browser-extension">Issue 1: "No connection to browser extension"<a class="headerlink" href="#issue-1-no-connection-to-browser-extension" title="Permanent link">¶</a></h3>
+<p><strong>Symptoms:</strong>
+- Tool calls fail with "No connection to browser extension"
+- Extension popup shows "Connected" but tools don't work</p>
+<p><strong>Root Causes:</strong>
+1. <strong>Port mismatch</strong> (most common): Server listening on 3000, extension expects 9009
+2. <strong>WebSocket not established</strong>: Extension not actually connected
+3. <strong>Message format mismatch</strong>: Server not handling extension's response format</p>
+<p><strong>Solution:</strong>
+1. Verify server is listening on port <strong>9009</strong> (not 3000)
+2. Check <code>mcp.config.ts</code>: <code>defaultWsPort: 9009</code>
+3. Rebuild server: <code>npm run build</code>
+4. Restart server
+5. Disconnect and reconnect extension
+6. Verify connection: <code>netstat -an | grep ":9009.*ESTABLISHED"</code></p>
+<h3 id="issue-2-tools-timeout-after-30-seconds">Issue 2: Tools Timeout After 30 Seconds<a class="headerlink" href="#issue-2-tools-timeout-after-30-seconds" title="Permanent link">¶</a></h3>
+<p><strong>Symptoms:</strong>
+- WebSocket connection is established (you see ESTABLISHED in <code>netstat</code>)
+- Extension shows "Connected" in popup
+- Tools are called but timeout after exactly 30 seconds
+- Server logs show "WebSocket message received" when you call tools
+- But no response is processed</p>
+<p><strong>What's happening:</strong>
+1. Cursor sends HTTP request to server
+2. Server sends WebSocket message to extension
+3. Extension processes request and sends response
+4. Server receives response but doesn't recognize it
+5. Server waits 30 seconds, then times out</p>
+<p><strong>Root Cause:</strong> Message format handler not processing extension's response format correctly</p>
+<p><strong>How to verify this is the problem:</strong>
+<div class="highlight"><pre><span></span><code><span class="c1"># Check if messages are being received</span>
+tail<span class="w"> </span>-50<span class="w"> </span>/tmp/browsermcp.log<span class="w"> </span><span class="p">|</span><span class="w"> </span>grep<span class="w"> </span><span class="s2">"WebSocket message received"</span>
+
+<span class="c1"># If you see messages being received but tools still timeout,</span>
+<span class="c1"># it's definitely a message format handler issue</span>
+</code></pre></div></p>
+<p><strong>Solution:</strong>
+1. Check message handler in <code>sender.ts</code> (see Step 5 for exact code)
+2. Verify it handles <code>response.type === "messageResponse"</code> format
+3. Verify it extracts <code>requestId</code> from <code>response.payload.requestId</code>
+4. Rebuild: <code>cd /home/ubuntu/proj/mcps/browser-mcp/mcp &amp;&amp; /opt/miniforge/envs/casa6/bin/npm run build</code>
+5. Restart server (kill old process, start new one)
+6. Test again</p>
+<p><strong>Expected after fix:</strong> Tools return immediately instead of timing out</p>
+<h3 id="issue-3-session-not-found-error">Issue 3: "Session not found" Error<a class="headerlink" href="#issue-3-session-not-found-error" title="Permanent link">¶</a></h3>
+<p><strong>Symptoms:</strong>
+- HTTP endpoint returns <code>{"error":"Session not found"}</code>
+- Cursor can't connect to MCP server</p>
+<p><strong>Root Cause:</strong> Cursor needs to reconnect after server restart</p>
+<p><strong>Solution:</strong>
+1. Restart Cursor completely
+2. Wait for Cursor to reconnect (check MCP server status in Cursor)
+3. Test again</p>
+<h3 id="issue-4-extension-shows-connected-but-no-websocket-connection">Issue 4: Extension Shows "Connected" But No WebSocket Connection<a class="headerlink" href="#issue-4-extension-shows-connected-but-no-websocket-connection" title="Permanent link">¶</a></h3>
+<p><strong>Symptoms:</strong>
+- Extension popup shows "Connected"
+- But <code>netstat</code> shows no ESTABLISHED connections on port 9009
+- Server logs show no connection messages</p>
+<p><strong>Root Cause:</strong> Extension is connecting to wrong port or connection is being blocked</p>
+<p><strong>Solution:</strong>
+1. Check extension's background script console (<code>chrome://extensions/</code> → Inspect service worker)
+2. Look for CSP errors or connection errors
+3. Verify server is listening on port 9009: <code>lsof -i :9009</code>
+4. Check firewall: <code>sudo iptables -L -n | grep 9009</code>
+5. Try reconnecting extension</p>
+<h3 id="issue-5-port-already-in-use">Issue 5: Port Already in Use<a class="headerlink" href="#issue-5-port-already-in-use" title="Permanent link">¶</a></h3>
+<p><strong>Symptoms:</strong>
+- Server won't start: "Port 9009 already in use"
+- Or server starts but WebSocket server fails</p>
+<p><strong>Solution:</strong>
+<div class="highlight"><pre><span></span><code><span class="c1"># Find process using port 9009</span>
+lsof<span class="w"> </span>-i<span class="w"> </span>:9009
+
+<span class="c1"># Kill it</span>
+lsof<span class="w"> </span>-ti:9009<span class="w"> </span><span class="p">|</span><span class="w"> </span>xargs<span class="w"> </span><span class="nb">kill</span><span class="w"> </span>-9
+
+<span class="c1"># Restart server</span>
+<span class="nb">cd</span><span class="w"> </span>/home/ubuntu/proj/mcps/browser-mcp/mcp
+/opt/miniforge/envs/casa6/bin/node<span class="w"> </span>dist/index.js<span class="w"> </span>--http<span class="w"> </span>--port<span class="w"> </span><span class="m">3111</span><span class="w"> </span>&gt;<span class="w"> </span>/tmp/browsermcp.log<span class="w"> </span><span class="m">2</span>&gt;<span class="p">&amp;</span><span class="m">1</span><span class="w"> </span><span class="p">&amp;</span>
+</code></pre></div></p>
+<h2 id="verification-after-fixes">Verification After Fixes<a class="headerlink" href="#verification-after-fixes" title="Permanent link">¶</a></h2>
+<p>After applying fixes, verify everything works:</p>
+<div class="highlight"><pre><span></span><code><span class="c1"># 1. Server running</span>
+ps<span class="w"> </span>aux<span class="w"> </span><span class="p">|</span><span class="w"> </span>grep<span class="w"> </span><span class="s2">"dist/index.js.*--http.*3111"</span><span class="w"> </span><span class="p">|</span><span class="w"> </span>grep<span class="w"> </span>-v<span class="w"> </span>grep
+
+<span class="c1"># 2. Port 9009 listening</span>
+lsof<span class="w"> </span>-i<span class="w"> </span>:9009<span class="w"> </span><span class="p">|</span><span class="w"> </span>grep<span class="w"> </span>LISTEN
+
+<span class="c1"># 3. WebSocket connection established</span>
+netstat<span class="w"> </span>-an<span class="w"> </span><span class="p">|</span><span class="w"> </span>grep<span class="w"> </span><span class="s2">":9009.*ESTABLISHED"</span><span class="w"> </span><span class="p">|</span><span class="w"> </span>wc<span class="w"> </span>-l
+<span class="c1"># Should show at least 1</span>
+
+<span class="c1"># 4. Server logs show connection</span>
+tail<span class="w"> </span>-20<span class="w"> </span>/tmp/browsermcp.log<span class="w"> </span><span class="p">|</span><span class="w"> </span>grep<span class="w"> </span>-i<span class="w"> </span><span class="s2">"connected"</span>
+
+<span class="c1"># 5. Test tool in Cursor</span>
+<span class="c1"># mcp_browsermcp_browser_navigate({"url": "https://www.example.com"})</span>
+</code></pre></div>
+<h2 id="key-files-to-check">Key Files to Check<a class="headerlink" href="#key-files-to-check" title="Permanent link">¶</a></h2>
+<ol>
+<li><strong>Server configuration:</strong> <code>/home/ubuntu/proj/mcps/browser-mcp/mcp/src/local-deps/config/mcp.config.ts</code></li>
+<li>
+<p>Must have: <code>defaultWsPort: 9009</code></p>
+</li>
+<li>
+<p><strong>Message handler:</strong> <code>/home/ubuntu/proj/mcps/browser-mcp/mcp/src/local-deps/r2r/messaging/ws/sender.ts</code></p>
+</li>
+<li>
+<p>Must handle: <code>response.type === "messageResponse"</code> format</p>
+</li>
+<li>
+<p><strong>HTTP server:</strong> <code>/home/ubuntu/proj/mcps/browser-mcp/mcp/src/http-server.ts</code></p>
+</li>
+<li>Must create WebSocket server on port 9009</li>
+<li>
+<p>Must use <code>sharedContext</code> for WebSocket connection</p>
+</li>
+<li>
+<p><strong>Cursor config:</strong> <code>/data/dsa110-contimg/.cursor/mcp.json</code></p>
+</li>
+<li>
+<p>Must use HTTP transport: <code>"url": "http://localhost:3111/mcp"</code></p>
+</li>
+<li>
+<p><strong>Server logs:</strong> <code>/tmp/browsermcp.log</code></p>
+</li>
+<li>Check for connection messages and errors</li>
+</ol>
+<h2 id="complete-setup-from-scratch">Complete Setup from Scratch<a class="headerlink" href="#complete-setup-from-scratch" title="Permanent link">¶</a></h2>
+<p>If you're starting completely fresh, follow these steps in order:</p>
+<h3 id="prerequisites-check">Prerequisites Check<a class="headerlink" href="#prerequisites-check" title="Permanent link">¶</a></h3>
+<ol>
+<li>
+<p><strong>Node.js version:</strong>
+<div class="highlight"><pre><span></span><code>/opt/miniforge/envs/casa6/bin/node<span class="w"> </span>--version
+</code></pre></div>
+<strong>Expected:</strong> v22.6.0 or higher</p>
+</li>
+<li>
+<p><strong>Server code exists:</strong>
+<div class="highlight"><pre><span></span><code>ls<span class="w"> </span>-la<span class="w"> </span>/home/ubuntu/proj/mcps/browser-mcp/mcp/
+</code></pre></div>
+<strong>Expected:</strong> Directory exists with <code>package.json</code>, <code>src/</code>, etc.</p>
+</li>
+<li>
+<p><strong>Chrome Remote Desktop running:</strong>
+<div class="highlight"><pre><span></span><code>ps<span class="w"> </span>aux<span class="w"> </span><span class="p">|</span><span class="w"> </span>grep<span class="w"> </span>chrome-remote-desktop-host<span class="w"> </span><span class="p">|</span><span class="w"> </span>grep<span class="w"> </span>-v<span class="w"> </span>grep
+</code></pre></div>
+<strong>Expected:</strong> Process running</p>
+</li>
+<li>
+<p><strong>Chrome browser running:</strong>
+<div class="highlight"><pre><span></span><code>ps<span class="w"> </span>aux<span class="w"> </span><span class="p">|</span><span class="w"> </span>grep<span class="w"> </span><span class="s2">"/opt/google/chrome/chrome"</span><span class="w"> </span><span class="p">|</span><span class="w"> </span>grep<span class="w"> </span>-v<span class="w"> </span>grep
+</code></pre></div>
+<strong>Expected:</strong> Process running</p>
+</li>
+<li>
+<p><strong>Browser MCP extension installed:</strong></p>
+</li>
+<li>Open Chrome (via Chrome Remote Desktop)</li>
+<li>Go to <code>chrome://extensions/</code></li>
+<li>Look for "Browser MCP" extension</li>
+<li><strong>Expected:</strong> Extension is installed and enabled</li>
+</ol>
+<h3 id="setup-steps">Setup Steps<a class="headerlink" href="#setup-steps" title="Permanent link">¶</a></h3>
+<ol>
+<li><strong>Configure server port:</strong>
+<div class="highlight"><pre><span></span><code><span class="nb">cd</span><span class="w"> </span>/home/ubuntu/proj/mcps/browser-mcp/mcp
+grep<span class="w"> </span><span class="s2">"defaultWsPort"</span><span class="w"> </span>src/local-deps/config/mcp.config.ts
+</code></pre></div></li>
+<li>If shows <code>3000</code>, change to <code>9009</code></li>
+<li>
+<p>Edit file, change <code>defaultWsPort: 3000</code> to <code>defaultWsPort: 9009</code></p>
+</li>
+<li>
+<p><strong>Verify message handler:</strong>
+<div class="highlight"><pre><span></span><code>grep<span class="w"> </span>-A<span class="w"> </span><span class="m">30</span><span class="w"> </span><span class="s2">"messageHandler.*data.*Buffer"</span><span class="w"> </span>src/local-deps/r2r/messaging/ws/sender.ts<span class="w"> </span><span class="p">|</span><span class="w"> </span>grep<span class="w"> </span>-E<span class="w"> </span><span class="s2">"messageResponse|payload.requestId"</span>
+</code></pre></div></p>
+</li>
+<li>
+<p>Should show code handling <code>response.type === "messageResponse"</code></p>
+</li>
+<li>
+<p><strong>Build server:</strong>
+<div class="highlight"><pre><span></span><code>/opt/miniforge/envs/casa6/bin/npm<span class="w"> </span>run<span class="w"> </span>build
+</code></pre></div></p>
+</li>
+<li>Wait for build to complete</li>
+<li>
+<p>Check for errors</p>
+</li>
+<li>
+<p><strong>Start server:</strong>
+<div class="highlight"><pre><span></span><code>/opt/miniforge/envs/casa6/bin/node<span class="w"> </span>dist/index.js<span class="w"> </span>--http<span class="w"> </span>--port<span class="w"> </span><span class="m">3111</span><span class="w"> </span>&gt;<span class="w"> </span>/tmp/browsermcp.log<span class="w"> </span><span class="m">2</span>&gt;<span class="p">&amp;</span><span class="m">1</span><span class="w"> </span><span class="p">&amp;</span>
+</code></pre></div></p>
+</li>
+<li>
+<p><strong>Verify server started:</strong>
+<div class="highlight"><pre><span></span><code>sleep<span class="w"> </span><span class="m">3</span>
+tail<span class="w"> </span>-10<span class="w"> </span>/tmp/browsermcp.log
+lsof<span class="w"> </span>-i<span class="w"> </span>:9009<span class="w"> </span><span class="p">|</span><span class="w"> </span>grep<span class="w"> </span>LISTEN
+lsof<span class="w"> </span>-i<span class="w"> </span>:3111<span class="w"> </span><span class="p">|</span><span class="w"> </span>grep<span class="w"> </span>LISTEN
+</code></pre></div></p>
+</li>
+<li>
+<p>Should see server listening on both ports</p>
+</li>
+<li>
+<p><strong>Configure Cursor:</strong></p>
+</li>
+<li>Edit <code>/data/dsa110-contimg/.cursor/mcp.json</code></li>
+<li>
+<p>Ensure <code>browsermcp</code> entry uses HTTP transport:
+     <div class="highlight"><pre><span></span><code><span class="nt">"browsermcp"</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
+<span class="w">  </span><span class="nt">"url"</span><span class="p">:</span><span class="w"> </span><span class="s2">"http://localhost:3111/mcp"</span><span class="p">,</span>
+<span class="w">  </span><span class="nt">"headers"</span><span class="p">:</span><span class="w"> </span><span class="p">{}</span>
+<span class="p">}</span>
+</code></pre></div></p>
+</li>
+<li>
+<p><strong>Restart Cursor:</strong></p>
+</li>
+<li>Completely quit Cursor</li>
+<li>Restart Cursor</li>
+<li>
+<p>Wait for it to reconnect to MCP servers</p>
+</li>
+<li>
+<p><strong>Connect extension:</strong></p>
+</li>
+<li>Open Chrome (via Chrome Remote Desktop)</li>
+<li>Click Browser MCP extension icon</li>
+<li>Click "Connect" button</li>
+<li>
+<p>Popup should show "Connected"</p>
+</li>
+<li>
+<p><strong>Verify connection:</strong>
+<div class="highlight"><pre><span></span><code>netstat<span class="w"> </span>-an<span class="w"> </span><span class="p">|</span><span class="w"> </span>grep<span class="w"> </span><span class="s2">":9009.*ESTABLISHED"</span>
+</code></pre></div></p>
+</li>
+<li>
+<p>Should show at least one ESTABLISHED connection</p>
+</li>
+<li>
+<p><strong>Test tools:</strong></p>
+<ul>
+<li>In Cursor, try: <code>mcp_browsermcp_browser_navigate({"url": "https://www.example.com"})</code></li>
+<li>Should return immediately with page info</li>
+<li>No timeouts, no errors</li>
+</ul>
+</li>
+</ol>
+<h2 id="summary-critical-values-checklist">Summary: Critical Values Checklist<a class="headerlink" href="#summary-critical-values-checklist" title="Permanent link">¶</a></h2>
+<p>Before reporting issues, verify each of these:</p>
+<ul>
+<li>[ ] Server listening on port <strong>9009</strong> (WebSocket), not 3000</li>
+<li>Check: <code>lsof -i :9009 | grep LISTEN</code></li>
+<li>[ ] <code>mcp.config.ts</code> has <code>defaultWsPort: 9009</code></li>
+<li>Check: <code>grep defaultWsPort /home/ubuntu/proj/mcps/browser-mcp/mcp/src/local-deps/config/mcp.config.ts</code></li>
+<li>[ ] WebSocket connection established: <code>netstat -an | grep ":9009.*ESTABLISHED"</code></li>
+<li>Should show at least 1 ESTABLISHED connection</li>
+<li>[ ] Extension shows "Connected" in popup</li>
+<li>Check in Chrome extension popup</li>
+<li>[ ] Server logs show: <code>Browser extension connected via WebSocket</code></li>
+<li>Check: <code>tail -20 /tmp/browsermcp.log | grep "connected"</code></li>
+<li>[ ] Message handler supports <code>response.type === "messageResponse"</code> format</li>
+<li>Check: <code>grep -A 20 "messageHandler" /home/ubuntu/proj/mcps/browser-mcp/mcp/src/local-deps/r2r/messaging/ws/sender.ts | grep "messageResponse"</code></li>
+<li>[ ] Cursor <code>mcp.json</code> uses HTTP transport (not stdio)</li>
+<li>Check: <code>cat /data/dsa110-contimg/.cursor/mcp.json | jq '.mcpServers.browsermcp'</code></li>
+<li>Should show <code>"url": "http://localhost:3111/mcp"</code></li>
+<li>[ ] Cursor has been restarted after config changes</li>
+<li>After changing <code>mcp.json</code>, must restart Cursor completely</li>
+<li>[ ] Server process is running</li>
+<li>Check: <code>ps aux | grep "dist/index.js.*--http.*3111" | grep -v grep</code></li>
+</ul>
+<h2 id="related-documentation">Related Documentation<a class="headerlink" href="#related-documentation" title="Permanent link">¶</a></h2>
+<ul>
+<li><a href="../mcp_browser_server_setup/">Browser MCP Server Setup</a> - Initial setup and configuration</li>
+<li><a href="../browser_mcp_diagnostics/">Browser MCP Diagnostics</a> - Diagnostic commands and checks</li>
+<li><a href="../browser_mcp_chrome_remote_desktop_architecture/">Browser MCP + Chrome Remote Desktop Architecture</a> - Architecture overview</li>
+</ul>
+</article>
+</div>
+<script>var tabs=__md_get("__tabs");if(Array.isArray(tabs))e:for(var set of document.querySelectorAll(".tabbed-set")){var tab,labels=set.querySelector(".tabbed-labels");for(tab of tabs)for(var label of labels.getElementsByTagName("label"))if(label.innerText.trim()===tab){var input=document.getElementById(label.htmlFor);input.checked=!0;continue e}}</script>
+<script>var target=document.getElementById(location.hash.slice(1));target&&target.name&&(target.checked=target.name.startsWith("__tabbed_"))</script>
+</div>
+</main>
+<footer class="md-footer">
+<div class="md-footer-meta md-typeset">
+<div class="md-footer-meta__inner md-grid">
+<div class="md-copyright">
+  
+  
+    Made with
+    <a href="https://squidfunk.github.io/mkdocs-material/" rel="noopener" target="_blank">
+      Material for MkDocs
+    </a>
+</div>
+</div>
+</div>
+</footer>
+</div>
+<div class="md-dialog" data-md-component="dialog">
+<div class="md-dialog__inner md-typeset"></div>
+</div>
+<script id="__config" type="application/json">{"base": "../..", "features": ["navigation.sections", "navigation.indexes", "content.code.copy", "content.tabs.link"], "search": "../../assets/javascripts/workers/search.b8dbb3d2.min.js", "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}}</script>
+<script src="../../assets/javascripts/bundle.fe8b6f2b.min.js"></script>
+<script src="../../javascripts/mathjax.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+<script src="../../javascripts/mermaid-zoom.js"></script>
+</body>
+</html>
