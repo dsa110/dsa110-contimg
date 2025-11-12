@@ -38,10 +38,17 @@ def _flatten_nav(nav: List[Union[Dict[str, Any], str]]) -> List[str]:
 
 
 def _mkdocs_paths() -> List[str]:
-    # Use FullLoader to handle MkDocs-specific YAML tags (e.g., !python/name:...)
-    # We only need the 'nav' section, so this is safe for our use case
+    # Custom YAML loader that ignores unknown tags (like MkDocs-specific !python/name:...)
+    # This is safe because we only need the 'nav' section structure
+    class IgnoreUnknownLoader(yaml.SafeLoader):
+        def ignore_unknown(self, node):
+            return None
+    
+    # Register handler for unknown tags
+    IgnoreUnknownLoader.add_constructor(None, IgnoreUnknownLoader.ignore_unknown)
+    
     with MKDOCS_YML.open("r", encoding="utf-8") as f:
-        cfg = yaml.load(f, Loader=yaml.FullLoader)
+        cfg = yaml.load(f, Loader=IgnoreUnknownLoader)
     nav = cfg.get("nav", [])
     raw_paths = _flatten_nav(nav)
     # Keep only markdown pages under docs/
