@@ -11,6 +11,19 @@ Run with: pytest tests/unit/test_validation_functions.py -v
 
 # CRITICAL: Mock casacore, pyuvdata, casatasks, and matplotlib BEFORE any imports
 # that depend on them. These mocks must be set up before importing dsa110_contimg modules.
+from dsa110_contimg.conversion.helpers import (
+    cleanup_casa_file_handles,
+    validate_antenna_positions,
+    validate_model_data_quality,
+    validate_ms_frequency_order,
+    validate_phase_center_coherence,
+    validate_reference_antenna_stability,
+    validate_uvw_precision,
+)
+import pytest
+import numpy as np
+from unittest.mock import call, patch
+import logging
 import sys
 from unittest.mock import MagicMock
 
@@ -56,21 +69,6 @@ sys.modules["matplotlib.transforms"] = MagicMock()
 sys.modules["matplotlib.ticker"] = MagicMock()
 
 # Now safe to import other modules
-import logging
-from unittest.mock import call, patch
-
-import numpy as np
-import pytest
-
-from dsa110_contimg.conversion.helpers import (
-    cleanup_casa_file_handles,
-    validate_antenna_positions,
-    validate_model_data_quality,
-    validate_ms_frequency_order,
-    validate_phase_center_coherence,
-    validate_reference_antenna_stability,
-    validate_uvw_precision,
-)
 
 
 class MockTableContext:
@@ -308,7 +306,8 @@ class TestAntennaPositionValidation:
                 "dsa110_contimg.conversion.helpers.get_itrf", return_value=mock_ref_df
             ):
                 # Should not raise exception
-                validate_antenna_positions("/fake/ms/path", position_tolerance_m=0.05)
+                validate_antenna_positions(
+                    "/fake/ms/path", position_tolerance_m=0.05)
 
     def test_excessive_antenna_position_errors_fail(self):
         """Test that excessive antenna position errors fail validation."""
@@ -501,7 +500,8 @@ class TestReferenceAntennaStability:
                 "dsa110_contimg.conversion.helpers.os.path.join",
                 return_value="/fake/antenna",
             ):
-                best_ant = validate_reference_antenna_stability("/fake/ms/path")
+                best_ant = validate_reference_antenna_stability(
+                    "/fake/ms/path")
 
                 # Should select ea01 or ea02 (not ea03 which is heavily flagged)
                 assert best_ant in ["ea01", "ea02"]
@@ -519,7 +519,8 @@ class TestCasaFileHandleCleanup:
         mock_casa_tasks = MagicMock()
 
         with patch.dict(
-            "sys.modules", {"casatools": mock_casa_tools, "casatasks": mock_casa_tasks}
+            "sys.modules", {"casatools": mock_casa_tools,
+                            "casatasks": mock_casa_tasks}
         ):
             with patch("dsa110_contimg.conversion.helpers.gc.collect") as mock_gc:
                 cleanup_casa_file_handles()

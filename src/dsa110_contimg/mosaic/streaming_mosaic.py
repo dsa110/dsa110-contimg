@@ -841,13 +841,18 @@ class StreamingMosaicManager:
         # Calculate time difference to transit
         ra_angle = calibrator_ra * u.deg
         lst_angle = lst.to(u.deg)
-        hour_angle = ra_angle - lst_angle
+        hour_angle_deg = ra_angle - lst_angle
 
-        # Normalize to [-12, 12] hours
-        hour_angle = hour_angle.wrap_at(12 * u.hourangle)
+        # Normalize to [-180, 180] degrees (equivalent to [-12, 12] hours)
+        hour_angle_deg = hour_angle_deg.wrap_at(180 * u.deg)
+
+        # Convert hour angle from degrees to days
+        # 1 hour = 15 degrees, 1 day = 24 hours
+        # So: degrees / 15 degrees/hour / 24 hours/day = degrees / 360 degrees/day
+        hour_angle_days = hour_angle_deg.to_value(u.deg) / 360.0
 
         # Transit time
-        transit_time = observation_date + hour_angle.to(u.day)
+        transit_time = observation_date + hour_angle_days * u.day
 
         return transit_time.mjd
 
@@ -1369,6 +1374,7 @@ class StreamingMosaicManager:
 
                             # Register tables - only set bpcal_solved=True if registration succeeds
                             try:
+                                ms_stem = Path(calibration_ms_path).stem
                                 set_name = f"{ms_stem}_bp_{transit_mjd:.6f}"
                                 register_set_from_prefix(
                                     self.registry_db_path,
@@ -1480,8 +1486,7 @@ class StreamingMosaicManager:
                 try:
                     populate_model_from_catalog(
                         calibration_ms_path,
-                        cal_field=field_sel_str,
-                        catalog_path=None,  # Auto-resolve to SQLite catalog
+                        field=field_sel_str,
                     )
                     logger.debug("MODEL_DATA populated for gain calibration")
                 except Exception as e:
@@ -1536,6 +1541,7 @@ class StreamingMosaicManager:
 
                         # Register tables
                         try:
+                            ms_stem = Path(calibration_ms_path).stem
                             set_name = f"{ms_stem}_g_{cal_ms_mid:.6f}"
                             register_set_from_prefix(
                                 self.registry_db_path,

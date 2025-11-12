@@ -74,7 +74,8 @@ def temp_products_db(tmp_path):
             INSERT INTO ms_index (path, start_mjd, end_mjd, mid_mjd, status, dec_deg, ra_deg)
             VALUES (?, ?, ?, ?, ?, ?, ?)
             """,
-            (ms_path, mjd, mjd + 0.00347, mjd + 0.00174, "converted", -30.0, 150.0),
+            (ms_path, mjd, mjd + 0.00347, mjd +
+             0.00174, "converted", -30.0, 150.0),
         )
 
     conn.commit()
@@ -95,18 +96,26 @@ def temp_data_registry_db(tmp_path):
 
 @pytest.fixture
 def orchestrator(temp_products_db, temp_data_registry_db, tmp_path):
-    """Create a MosaicOrchestrator instance for testing."""
+    """Create a MosaicOrchestrator instance for testing.
+
+    Optimized: CalibratorMSGenerator is already mocked at module import time
+    to avoid ~9.6s import overhead. Tests that need calibrator service can
+    override orchestrator.calibrator_service.
+    """
     ms_output_dir = tmp_path / "ms_output"
     mosaic_output_dir = tmp_path / "mosaic_output"
     ms_output_dir.mkdir()
     mosaic_output_dir.mkdir()
 
-    return MosaicOrchestrator(
+    orch = MosaicOrchestrator(
         products_db_path=temp_products_db,
         data_registry_db_path=temp_data_registry_db,
         ms_output_dir=ms_output_dir,
         mosaic_output_dir=mosaic_output_dir,
     )
+    # Set to None - tests can override if needed
+    orch.calibrator_service = None
+    return orch
 
 
 @pytest.mark.unit
@@ -260,7 +269,8 @@ def test_create_mosaic_default_behavior_workflow(orchestrator):
             "transit_time": Time(60000.5, format="mjd"),
             "ms_count": 3,
         }
-        mock_ensure.return_value = ["/test/ms1.ms", "/test/ms2.ms", "/test/ms3.ms"]
+        mock_ensure.return_value = [
+            "/test/ms1.ms", "/test/ms2.ms", "/test/ms3.ms"]
         mock_form.return_value = True
         mock_process.return_value = "/test/mosaic.fits"
         mock_wait.return_value = "/data/mosaic.fits"
@@ -305,7 +315,8 @@ def test_create_mosaic_default_behavior_insufficient_ms(orchestrator):
         }
         mock_ensure.return_value = ["/test/ms1.ms"]  # Only 1 MS
 
-        result = orchestrator.create_mosaic_default_behavior(timespan_minutes=15)
+        result = orchestrator.create_mosaic_default_behavior(
+            timespan_minutes=15)
 
         # Should return None when insufficient MS files (< 3)
         assert result is None
@@ -334,8 +345,7 @@ def test_find_transit_centered_window_success(orchestrator):
     orchestrator.calibrator_service = mock_service
 
     result = orchestrator.find_transit_centered_window(
-        calibrator_name, timespan_minutes
-    )
+        calibrator_name, timespan_minutes)
 
     assert result is not None
     assert "transit_time" in result
@@ -351,8 +361,10 @@ def test_find_transit_centered_window_success(orchestrator):
     transit_time = result["transit_time"]
     start_time = result["start_time"]
     end_time = result["end_time"]
-    assert abs((end_time - start_time).to_value("min") - timespan_minutes) < 0.1
-    assert abs((transit_time - start_time).to_value("min") - timespan_minutes / 2) < 0.1
+    assert abs((end_time - start_time).to_value("min") -
+               timespan_minutes) < 0.1
+    assert abs((transit_time - start_time).to_value("min") -
+               timespan_minutes / 2) < 0.1
 
     mock_service.list_available_transits.assert_called_once_with(
         calibrator_name, max_days_back=60
@@ -402,14 +414,14 @@ def test_find_transit_centered_window_custom_timespan(orchestrator):
     orchestrator.calibrator_service = mock_service
 
     result = orchestrator.find_transit_centered_window(
-        calibrator_name, timespan_minutes
-    )
+        calibrator_name, timespan_minutes)
 
     assert result is not None
     # Verify window span matches custom timespan
     start_time = result["start_time"]
     end_time = result["end_time"]
-    assert abs((end_time - start_time).to_value("min") - timespan_minutes) < 0.1
+    assert abs((end_time - start_time).to_value("min") -
+               timespan_minutes) < 0.1
 
 
 @pytest.mark.unit
@@ -559,7 +571,8 @@ def test_form_group_from_ms_paths_group_id_collision(orchestrator, tmp_path):
         # Verify only one group exists (replaced)
         cursor = orchestrator.products_db.cursor()
         cursor.execute(
-            "SELECT ms_paths FROM mosaic_groups WHERE group_id = ?", (group_id,)
+            "SELECT ms_paths FROM mosaic_groups WHERE group_id = ?", (
+                group_id,)
         )
         row = cursor.fetchone()
         assert row is not None
@@ -586,12 +599,28 @@ def test_wait_for_published_success(orchestrator, tmp_path):
     mock_instance.status = "published"
     mock_instance.published_path = published_path
 
-    with patch("dsa110_contimg.mosaic.orchestrator.get_data") as mock_get_data, patch(
-        "time.sleep"
-    ):  # Skip sleep
-        mock_get_data.return_value = mock_instance
+    call_count = [0]
 
-        result = orchestrator.wait_for_published(mosaic_id, poll_interval_seconds=0.1)
+    def time_side_effect():
+        call_count[0] += 1
+        # First call: start_time (0.0)
+        # Second call: loop condition check (0.0, allows entry)
+        # If function doesn't return immediately, subsequent calls return increasing values
+        # to allow loop to exit (but shouldn't be needed for success case)
+        return 0.0 if call_count[0] <= 2 else 100.0
+
+    with patch(
+        "dsa110_contimg.mosaic.orchestrator.get_data"
+    ) as mock_get_data, patch(
+        "dsa110_contimg.mosaic.orchestrator.time.sleep"
+    ) as mock_sleep, patch(
+        "dsa110_contimg.mosaic.orchestrator.time.time"
+    ) as mock_time:
+        mock_get_data.return_value = mock_instance
+        mock_time.side_effect = time_side_effect
+
+        result = orchestrator.wait_for_published(
+            mosaic_id, poll_interval_seconds=0.1)
 
         assert result == published_path
         mock_get_data.assert_called()
@@ -612,12 +641,19 @@ def test_wait_for_published_timeout(orchestrator):
         call_count[0] += 1
         if call_count[0] == 1:
             return 0.0  # Start time
+        elif call_count[0] == 2:
+            return 0.0  # First loop condition check (allows entry)
         else:
-            return 25 * 3600  # Past timeout
+            # After sleep, loop condition check - return value > max_wait to exit
+            return 25 * 3600  # Past timeout (exits loop)
 
-    with patch("dsa110_contimg.mosaic.orchestrator.get_data") as mock_get_data, patch(
-        "time.sleep"
-    ), patch("time.time") as mock_time:
+    with patch(
+        "dsa110_contimg.mosaic.orchestrator.get_data"
+    ) as mock_get_data, patch(
+        "dsa110_contimg.mosaic.orchestrator.time.sleep"
+    ), patch(
+        "dsa110_contimg.mosaic.orchestrator.time.time"
+    ) as mock_time:
         mock_get_data.return_value = mock_instance
         mock_time.side_effect = time_side_effect
 
@@ -638,12 +674,28 @@ def test_wait_for_published_file_not_found(orchestrator):
     mock_instance.status = "published"
     mock_instance.published_path = "/nonexistent/path/mosaic.fits"
 
-    with patch("dsa110_contimg.mosaic.orchestrator.get_data") as mock_get_data, patch(
-        "time.sleep"
-    ), patch("time.time") as mock_time:
+    call_count = [0]
+
+    def time_side_effect():
+        call_count[0] += 1
+        if call_count[0] == 1:
+            return 0.0  # Start time
+        elif call_count[0] == 2:
+            return 0.0  # First loop condition check (allows entry)
+        else:
+            # After sleep, loop condition check - return value > max_wait to exit
+            # 0.001 hours = 3.6 seconds, so return > 3.6
+            return 10.0  # Past timeout (exits loop)
+
+    with patch(
+        "dsa110_contimg.mosaic.orchestrator.get_data"
+    ) as mock_get_data, patch(
+        "dsa110_contimg.mosaic.orchestrator.time.sleep"
+    ), patch(
+        "dsa110_contimg.mosaic.orchestrator.time.time"
+    ) as mock_time:
         mock_get_data.return_value = mock_instance
-        # time.time() called multiple times in loop
-        mock_time.side_effect = [0.0, 0.0, 2.0]  # Start, first check, timeout
+        mock_time.side_effect = time_side_effect
 
         result = orchestrator.wait_for_published(
             mosaic_id, poll_interval_seconds=0.1, max_wait_hours=0.001
@@ -658,12 +710,28 @@ def test_wait_for_published_no_registry_entry(orchestrator):
     """Test wait_for_published handles missing registry entry."""
     mosaic_id = "test_mosaic_no_entry"
 
-    with patch("dsa110_contimg.mosaic.orchestrator.get_data") as mock_get_data, patch(
-        "time.sleep"
-    ), patch("time.time") as mock_time:
+    call_count = [0]
+
+    def time_side_effect():
+        call_count[0] += 1
+        if call_count[0] == 1:
+            return 0.0  # Start time
+        elif call_count[0] == 2:
+            return 0.0  # First loop condition check (allows entry)
+        else:
+            # After sleep, loop condition check - return value > max_wait to exit
+            # 0.001 hours = 3.6 seconds, so return > 3.6
+            return 10.0  # Past timeout (exits loop)
+
+    with patch(
+        "dsa110_contimg.mosaic.orchestrator.get_data"
+    ) as mock_get_data, patch(
+        "dsa110_contimg.mosaic.orchestrator.time.sleep"
+    ), patch(
+        "dsa110_contimg.mosaic.orchestrator.time.time"
+    ) as mock_time:
         mock_get_data.return_value = None  # No entry found
-        # time.time() called multiple times in loop
-        mock_time.side_effect = [0.0, 0.0, 2.0]  # Start, first check, timeout
+        mock_time.side_effect = time_side_effect
 
         result = orchestrator.wait_for_published(
             mosaic_id, poll_interval_seconds=0.1, max_wait_hours=0.001
@@ -694,16 +762,17 @@ def test_wait_for_published_polling_interval(orchestrator, tmp_path):
             mock_instance.published_path = published_path
             return mock_instance
 
-    with patch("dsa110_contimg.mosaic.orchestrator.get_data") as mock_get_data, patch(
-        "time.sleep"
-    ) as mock_sleep, patch("time.time") as mock_time:
+    with patch(
+        "dsa110_contimg.mosaic.orchestrator.get_data"
+    ) as mock_get_data, patch(
+        "dsa110_contimg.mosaic.orchestrator.time.sleep"
+    ) as mock_sleep, patch(
+        "dsa110_contimg.mosaic.orchestrator.time.time"
+    ) as mock_time:
         mock_get_data.side_effect = get_data_side_effect
         # Simulate time progression
-        mock_time.side_effect = [
-            0.0,
-            0.05,
-            0.1,
-        ]  # Start, after first poll, after second poll
+        # Start, after first poll, after second poll
+        mock_time.side_effect = [0.0, 0.05, 0.1]
 
         result = orchestrator.wait_for_published(
             mosaic_id, poll_interval_seconds=0.05, max_wait_hours=1.0
