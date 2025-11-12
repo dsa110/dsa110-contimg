@@ -143,7 +143,7 @@ jobs:
       run: |
         set -euo pipefail
         conda activate casa6
-  export PYTHONPATH="${GITHUB_WORKSPACE}/src:${PYTHONPATH:-}"
+        export PYTHONPATH="${GITHUB_WORKSPACE}/src:${PYTHONPATH:-}"
         
         # Generate multiple test scenarios
         mkdir -p /tmp/test_scenarios
@@ -173,7 +173,7 @@ jobs:
       run: |
         set -euo pipefail
         conda activate casa6
-  export PYTHONPATH="${GITHUB_WORKSPACE}/src:${PYTHONPATH:-}"
+        export PYTHONPATH="${GITHUB_WORKSPACE}/src:${PYTHONPATH:-}"
         
         # Test each scenario
         for scenario in normal weak_calibrator; do
@@ -218,7 +218,7 @@ jobs:
       run: |
         set -euo pipefail
         conda activate casa6
-  export PYTHONPATH="${GITHUB_WORKSPACE}/src:${PYTHONPATH:-}"
+        export PYTHONPATH="${GITHUB_WORKSPACE}/src:${PYTHONPATH:-}"
         
         # Install additional performance testing dependencies
         pip install pytest-benchmark memory-profiler
