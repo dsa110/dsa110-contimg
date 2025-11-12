@@ -140,7 +140,7 @@ export function usePipelineStatus(): UseQueryResult<PipelineStatus> {
   return useRealtimeQuery(
     ['pipeline', 'status'],
     async () => {
-      const response = await apiClient.get<PipelineStatus>('/api/status');
+      const response = await apiClient.get<PipelineStatus>('/status');
       return response.data;
     },
     wsClient,
@@ -154,7 +154,7 @@ export function useSystemMetrics(): UseQueryResult<SystemMetrics> {
   return useRealtimeQuery(
     ['system', 'metrics'],
     async () => {
-      const response = await apiClient.get<SystemMetrics>('/api/metrics/system');
+      const response = await apiClient.get<SystemMetrics>('/metrics/system');
       return response.data;
     },
     wsClient,
@@ -168,7 +168,7 @@ export function useESECandidates(): UseQueryResult<ESECandidatesResponse> {
   return useRealtimeQuery(
     ['ese', 'candidates'],
     async () => {
-      const response = await apiClient.get<ESECandidatesResponse>('/api/ese/candidates');
+      const response = await apiClient.get<ESECandidatesResponse>('/ese/candidates');
       return response.data;
     },
     wsClient,
@@ -185,7 +185,7 @@ export function useMosaicQuery(
       if (!request) {
         return { mosaics: [], total: 0 };
       }
-      const response = await apiClient.post<MosaicQueryResponse>('/api/mosaics/query', request);
+      const response = await apiClient.post<MosaicQueryResponse>('/mosaics/query', request);
       return response.data;
     },
     enabled: !!request,
@@ -197,7 +197,7 @@ export function useMosaic(mosaicId: number | null): UseQueryResult<Mosaic> {
     queryKey: ['mosaics', mosaicId],
     queryFn: async () => {
       if (!mosaicId) throw new Error('Mosaic ID required');
-      const response = await apiClient.get<Mosaic>(`/api/mosaics/${mosaicId}`);
+      const response = await apiClient.get<Mosaic>(`/mosaics/${mosaicId}`);
       return response.data;
     },
     enabled: !!mosaicId,
@@ -213,7 +213,7 @@ export function useSourceSearch(
       if (!request) {
         return { sources: [], total: 0 };
       }
-      const response = await apiClient.post<SourceSearchResponse>('/api/sources/search', request);
+      const response = await apiClient.post<SourceSearchResponse>('/sources/search', request);
       return response.data;
     },
     enabled: !!request,
@@ -224,7 +224,7 @@ export function useAlertHistory(limit = 50): UseQueryResult<AlertHistory[]> {
   return useQuery({
     queryKey: ['alerts', 'history', limit],
     queryFn: async () => {
-      const response = await apiClient.get<AlertHistory[]>(`/api/alerts/history?limit=${limit}`);
+      const response = await apiClient.get<AlertHistory[]>(`/alerts/history?limit=${limit}`);
       return response.data;
     },
     refetchInterval: 30000, // Refresh every 30s
@@ -235,7 +235,7 @@ export function useCreateMosaic() {
   const queryClient = useQueryClient();
   return useMutation({
     mutationFn: async (request: MosaicQueryRequest) => {
-      const response = await apiClient.post('/api/mosaics/create', request);
+      const response = await apiClient.post('/mosaics/create', request);
       return response.data;
     },
     onSuccess: () => {
@@ -283,7 +283,7 @@ export function useMSList(filters?: MSListFilters): UseQueryResult<MSList> {
       if (filters?.scan) params.append('scan', String(filters.scan));
       if (filters?.scan_dir) params.append('scan_dir', filters.scan_dir);
       
-      const url = `/api/ms${params.toString() ? `?${params.toString()}` : ''}`;
+      const url = `/ms${params.toString() ? `?${params.toString()}` : ''}`;
       const response = await apiClient.get<MSList>(url);
       return response.data;
     },
@@ -298,7 +298,7 @@ export function useDiscoverMS() {
       const body: Record<string, unknown> = {};
       if (params?.scan_dir) body.scan_dir = params.scan_dir;
       if (params?.recursive !== undefined) body.recursive = params.recursive;
-      const response = await apiClient.post<{ success: boolean; count: number; scan_dir: string; discovered: string[] }>('/api/ms/discover', body);
+      const response = await apiClient.post<{ success: boolean; count: number; scan_dir: string; discovered: string[] }>('/ms/discover', body);
       return response.data;
     },
     onSuccess: () => {
@@ -314,7 +314,7 @@ export function useJobs(limit = 50, status?: string): UseQueryResult<JobList> {
       const params = new URLSearchParams();
       params.append('limit', limit.toString());
       if (status) params.append('status', status);
-      const response = await apiClient.get<JobList>(`/api/jobs?${params}`);
+      const response = await apiClient.get<JobList>(`/jobs?${params}`);
       return response.data;
     },
     refetchInterval: 5000, // Poll every 5 seconds
@@ -326,7 +326,7 @@ export function useJob(jobId: number | null): UseQueryResult<Job> {
     queryKey: ['job', jobId],
     queryFn: async () => {
       if (!jobId) throw new Error('Job ID required');
-      const response = await apiClient.get<Job>(`/api/jobs/id/${jobId}`);
+      const response = await apiClient.get<Job>(`/jobs/id/${jobId}`);
       return response.data;
     },
     enabled: !!jobId,
@@ -338,7 +338,7 @@ export function useCreateCalibrateJob() {
   const queryClient = useQueryClient();
   return useMutation({
     mutationFn: async (request: JobCreateRequest) => {
-      const response = await apiClient.post<Job>('/api/jobs/calibrate', request);
+      const response = await apiClient.post<Job>('/jobs/calibrate', request);
       return response.data;
     },
     onSuccess: () => {
@@ -351,7 +351,7 @@ export function useCreateApplyJob() {
   const queryClient = useQueryClient();
   return useMutation({
     mutationFn: async (request: JobCreateRequest) => {
-      const response = await apiClient.post<Job>('/api/jobs/apply', request);
+      const response = await apiClient.post<Job>('/jobs/apply', request);
       return response.data;
     },
     onSuccess: () => {
@@ -364,7 +364,7 @@ export function useCreateImageJob() {
   const queryClient = useQueryClient();
   return useMutation({
     mutationFn: async (request: JobCreateRequest) => {
-      const response = await apiClient.post<Job>('/api/jobs/image', request);
+      const response = await apiClient.post<Job>('/jobs/image', request);
       return response.data;
     },
     onSuccess: () => {
@@ -378,7 +378,7 @@ export function useUVH5Files(inputDir?: string): UseQueryResult<UVH5FileList> {
     queryKey: ['uvh5', 'list', inputDir],
     queryFn: async () => {
       const params = inputDir ? `?input_dir=${encodeURIComponent(inputDir)}` : '';
-      const response = await apiClient.get<UVH5FileList>(`/api/uvh5${params}`);
+      const response = await apiClient.get<UVH5FileList>(`/uvh5${params}`);
       return response.data;
     },
     refetchInterval: 30000, // Refresh every 30s
@@ -389,7 +389,7 @@ export function useCreateConvertJob() {
   const queryClient = useQueryClient();
   return useMutation({
     mutationFn: async (request: ConversionJobCreateRequest) => {
-      const response = await apiClient.post<Job>('/api/jobs/convert', request);
+      const response = await apiClient.post<Job>('/jobs/convert', request);
       return response.data;
     },
     onSuccess: () => {
@@ -405,7 +405,7 @@ export function useCalTables(calDir?: string): UseQueryResult<CalTableList> {
     queryKey: ['caltables', 'list', calDir],
     queryFn: async () => {
       const params = calDir ? `?cal_dir=${encodeURIComponent(calDir)}` : '';
-      const response = await apiClient.get<CalTableList>(`/api/caltables${params}`);
+      const response = await apiClient.get<CalTableList>(`/caltables${params}`);
       return response.data;
     },
     refetchInterval: 30000, // Refresh every 30s
@@ -420,7 +420,7 @@ export function useMSMetadata(msPath: string | null): UseQueryResult<MSMetadata>
       if (!msPath) throw new Error('MS path required');
       // Remove leading slash and encode
       const encodedPath = msPath.startsWith('/') ? msPath.slice(1) : msPath;
-      const response = await apiClient.get<MSMetadata>(`/api/ms/${encodedPath}/metadata`);
+      const response = await apiClient.get<MSMetadata>(`/ms/${encodedPath}/metadata`);
       return response.data;
     },
     enabled: !!msPath,
@@ -441,7 +441,7 @@ export function useCalibratorMatches(
       // Remove leading slash and encode
       const encodedPath = msPath.startsWith('/') ? msPath.slice(1) : msPath;
       const response = await apiClient.get<MSCalibratorMatchList>(
-        `/api/ms/${encodedPath}/calibrator-matches`,
+        `/ms/${encodedPath}/calibrator-matches`,
         { params: { catalog, radius_deg: radiusDeg } }
       );
       return response.data;
@@ -460,7 +460,7 @@ export function useExistingCalTables(msPath: string | null): UseQueryResult<Exis
       // Remove leading slash and encode
       const encodedPath = msPath.startsWith('/') ? msPath.slice(1) : msPath;
       const response = await apiClient.get<ExistingCalTables>(
-        `/api/ms/${encodedPath}/existing-caltables`
+        `/ms/${encodedPath}/existing-caltables`
       );
       return response.data;
     },
@@ -474,7 +474,7 @@ export function useValidateCalTable() {
     mutationFn: async ({ msPath, caltablePath }: { msPath: string; caltablePath: string }) => {
       const encodedMsPath = msPath.startsWith('/') ? msPath.slice(1) : msPath;
       const response = await apiClient.post<CalTableCompatibility>(
-        `/api/ms/${encodedMsPath}/validate-caltable`,
+        `/ms/${encodedMsPath}/validate-caltable`,
         { caltable_path: caltablePath }
       );
       return response.data;
@@ -503,7 +503,7 @@ export function useCalibrationQA(msPath: string | null): UseQueryResult<Calibrat
       // Remove leading slash and encode
       const encodedPath = msPath.startsWith('/') ? msPath.slice(1) : msPath;
       const response = await apiClient.get<CalibrationQA>(
-        `/api/qa/calibration/${encodedPath}`
+        `/qa/calibration/${encodedPath}`
       );
       return response.data;
     },
@@ -528,7 +528,7 @@ export function useBandpassPlots(msPath: string | null): UseQueryResult<Bandpass
       const pathWithoutLeadingSlash = msPath.startsWith('/') ? msPath.slice(1) : msPath;
       const encodedPath = encodeURIComponent(pathWithoutLeadingSlash);
       const response = await apiClient.get<BandpassPlotsList>(
-        `/api/qa/calibration/${encodedPath}/bandpass-plots`
+        `/qa/calibration/${encodedPath}/bandpass-plots`
       );
       return response.data;
     },
@@ -559,7 +559,7 @@ export function useImageQA(msPath: string | null): UseQueryResult<ImageQA> {
       // Remove leading slash and encode
       const encodedPath = msPath.startsWith('/') ? msPath.slice(1) : msPath;
       const response = await apiClient.get<ImageQA>(
-        `/api/qa/image/${encodedPath}`
+        `/qa/image/${encodedPath}`
       );
       return response.data;
     },
@@ -592,7 +592,7 @@ export function useQAMetrics(msPath: string | null): UseQueryResult<QAMetrics> {
       // Remove leading slash and encode
       const encodedPath = msPath.startsWith('/') ? msPath.slice(1) : msPath;
       const response = await apiClient.get<QAMetrics>(
-        `/api/qa/${encodedPath}`
+        `/qa/${encodedPath}`
       );
       return response.data;
     },
@@ -607,7 +607,7 @@ export function useCreateWorkflowJob() {
   const queryClient = useQueryClient();
   return useMutation({
     mutationFn: async (request: WorkflowJobCreateRequest) => {
-      const response = await apiClient.post<Job>('/api/jobs/workflow', request);
+      const response = await apiClient.post<Job>('/jobs/workflow', request);
       return response.data;
     },
     onSuccess: () => {
@@ -636,7 +636,7 @@ export function useBatchJobs(limit = 50, status?: string): UseQueryResult<BatchJ
       if (status) params.append('status', status);
       params.append('limit', String(limit));
       
-      const url = `/api/batch${params.toString() ? `?${params.toString()}` : ''}`;
+      const url = `/batch${params.toString() ? `?${params.toString()}` : ''}`;
       const response = await apiClient.get<BatchJobList>(url);
       return response.data;
     },
@@ -655,7 +655,7 @@ export function useBatchJob(batchId: number | null): UseQueryResult<BatchJob> {
     queryKey: ['batch', 'job', batchId],
     queryFn: async () => {
       if (!batchId) throw new Error('Batch ID required');
-      const response = await apiClient.get<BatchJob>(`/api/batch/${batchId}`);
+      const response = await apiClient.get<BatchJob>(`/batch/${batchId}`);
       return response.data;
     },
     enabled: !!batchId,
@@ -679,7 +679,7 @@ export function useCreateBatchCalibrateJob() {
   const queryClient = useQueryClient();
   return useMutation({
     mutationFn: async (request: BatchJobCreateRequest) => {
-      const response = await apiClient.post<BatchJob>('/api/batch/calibrate', request);
+      const response = await apiClient.post<BatchJob>('/batch/calibrate', request);
       return response.data;
     },
     onSuccess: () => {
@@ -698,7 +698,7 @@ export function useCreateBatchApplyJob() {
   const queryClient = useQueryClient();
   return useMutation({
     mutationFn: async (request: BatchJobCreateRequest) => {
-      const response = await apiClient.post<BatchJob>('/api/batch/apply', request);
+      const response = await apiClient.post<BatchJob>('/batch/apply', request);
       return response.data;
     },
     onSuccess: () => {
@@ -717,7 +717,7 @@ export function useCreateBatchImageJob() {
   const queryClient = useQueryClient();
   return useMutation({
     mutationFn: async (request: BatchJobCreateRequest) => {
-      const response = await apiClient.post<BatchJob>('/api/batch/image', request);
+      const response = await apiClient.post<BatchJob>('/batch/image', request);
       return response.data;
     },
     onSuccess: () => {
@@ -736,7 +736,7 @@ export function useCancelBatchJob() {
   const queryClient = useQueryClient();
   return useMutation({
     mutationFn: async (batchId: number) => {
-      const response = await apiClient.post(`/api/batch/${batchId}/cancel`);
+      const response = await apiClient.post(`/batch/${batchId}/cancel`);
       return response.data;
     },
     onSuccess: () => {
@@ -766,7 +766,7 @@ export function useImages(filters?: ImageFilters): UseQueryResult<ImageList> {
       if (filters?.noise_max !== undefined) params.append('noise_max', filters.noise_max.toString());
       if (filters?.has_calibrator !== undefined) params.append('has_calibrator', filters.has_calibrator.toString());
       
-      const response = await apiClient.get<ImageList>(`/api/images?${params.toString()}`);
+      const response = await apiClient.get<ImageList>(`/images?${params.toString()}`);
       return response.data;
     },
     refetchInterval: 30000, // Refresh every 30 seconds
@@ -830,7 +830,7 @@ export function useStreamingStatus(): UseQueryResult<StreamingStatus> {
   return useQuery({
     queryKey: ['streaming', 'status'],
     queryFn: async () => {
-      const response = await apiClient.get<StreamingStatus>('/api/streaming/status');
+      const response = await apiClient.get<StreamingStatus>('/streaming/status');
       return response.data;
     },
     refetchInterval: 5000, // Refresh every 5 seconds
@@ -841,7 +841,7 @@ export function useStreamingHealth(): UseQueryResult<StreamingHealth> {
   return useQuery({
     queryKey: ['streaming', 'health'],
     queryFn: async () => {
-      const response = await apiClient.get<StreamingHealth>('/api/streaming/health');
+      const response = await apiClient.get<StreamingHealth>('/streaming/health');
       return response.data;
     },
     refetchInterval: 10000, // Refresh every 10 seconds
@@ -852,7 +852,7 @@ export function useStreamingConfig(): UseQueryResult<StreamingConfig> {
   return useQuery({
     queryKey: ['streaming', 'config'],
     queryFn: async () => {
-      const response = await apiClient.get<StreamingConfig>('/api/streaming/config');
+      const response = await apiClient.get<StreamingConfig>('/streaming/config');
       return response.data;
     },
   });
@@ -862,7 +862,7 @@ export function useStreamingMetrics(): UseQueryResult<StreamingMetrics> {
   return useQuery({
     queryKey: ['streaming', 'metrics'],
     queryFn: async () => {
-      const response = await apiClient.get<StreamingMetrics>('/api/streaming/metrics');
+      const response = await apiClient.get<StreamingMetrics>('/streaming/metrics');
       return response.data;
     },
     refetchInterval: 30000, // Refresh every 30 seconds
@@ -901,7 +901,7 @@ export function usePointingMonitorStatus(): UseQueryResult<PointingMonitorStatus
   return useQuery({
     queryKey: ['pointing-monitor', 'status'],
     queryFn: async () => {
-      const response = await apiClient.get<PointingMonitorStatus>('/api/pointing-monitor/status');
+      const response = await apiClient.get<PointingMonitorStatus>('/pointing-monitor/status');
       return response.data;
     },
     refetchInterval: 30000, // Refresh every 30 seconds
@@ -916,7 +916,7 @@ export function usePointingHistory(
     queryKey: ['pointing-history', startMjd, endMjd],
     queryFn: async () => {
       const response = await apiClient.get<PointingHistoryList>(
-        `/api/pointing_history?start_mjd=${startMjd}&end_mjd=${endMjd}`
+        `/pointing_history?start_mjd=${startMjd}&end_mjd=${endMjd}`
       );
       return response.data;
     },
@@ -929,7 +929,7 @@ export function useStartStreaming() {
   const queryClient = useQueryClient();
   return useMutation({
     mutationFn: async (config?: StreamingConfig) => {
-      const response = await apiClient.post('/api/streaming/start', config || {});
+      const response = await apiClient.post('/streaming/start', config || {});
       return response.data;
     },
     onSuccess: () => {
@@ -942,7 +942,7 @@ export function useStopStreaming() {
   const queryClient = useQueryClient();
   return useMutation({
     mutationFn: async () => {
-      const response = await apiClient.post('/api/streaming/stop');
+      const response = await apiClient.post('/streaming/stop');
       return response.data;
     },
     onSuccess: () => {
@@ -955,7 +955,7 @@ export function useRestartStreaming() {
   const queryClient = useQueryClient();
   return useMutation({
     mutationFn: async (config?: StreamingConfig) => {
-      const response = await apiClient.post('/api/streaming/restart', config || {});
+      const response = await apiClient.post('/streaming/restart', config || {});
       return response.data;
     },
     onSuccess: () => {
@@ -968,7 +968,7 @@ export function useUpdateStreamingConfig() {
   const queryClient = useQueryClient();
   return useMutation({
     mutationFn: async (config: StreamingConfig) => {
-      const response = await apiClient.post('/api/streaming/config', config);
+      const response = await apiClient.post('/streaming/config', config);
       return response.data;
     },
     onSuccess: () => {
@@ -988,7 +988,7 @@ export function useDataInstances(
       const params = new URLSearchParams();
       if (dataType) params.append('data_type', dataType);
       if (status) params.append('status', status);
-      const response = await apiClient.get<DataInstance[]>(`/api/data?${params.toString()}`);
+      const response = await apiClient.get<DataInstance[]>(`/data?${params.toString()}`);
       return response.data;
     },
   });
@@ -999,7 +999,7 @@ export function useDataInstance(dataId: string): UseQueryResult<DataInstanceDeta
     queryKey: ['data', 'instance', dataId],
     queryFn: async () => {
       const encodedId = encodeURIComponent(dataId);
-      const response = await apiClient.get<DataInstanceDetail>(`/api/data/${encodedId}`);
+      const response = await apiClient.get<DataInstanceDetail>(`/data/${encodedId}`);
       return response.data;
     },
     enabled: !!dataId,
@@ -1011,7 +1011,7 @@ export function useAutoPublishStatus(dataId: string): UseQueryResult<AutoPublish
     queryKey: ['data', 'auto-publish', dataId],
     queryFn: async () => {
       const encodedId = encodeURIComponent(dataId);
-      const response = await apiClient.get<AutoPublishStatus>(`/api/data/${encodedId}/auto-publish/status`);
+      const response = await apiClient.get<AutoPublishStatus>(`/data/${encodedId}/auto-publish/status`);
       return response.data;
     },
     enabled: !!dataId,
@@ -1023,7 +1023,7 @@ export function useDataLineage(dataId: string): UseQueryResult<DataLineage> {
     queryKey: ['data', 'lineage', dataId],
     queryFn: async () => {
       const encodedId = encodeURIComponent(dataId);
-      const response = await apiClient.get<DataLineage>(`/api/data/${encodedId}/lineage`);
+      const response = await apiClient.get<DataLineage>(`/data/${encodedId}/lineage`);
       return response.data;
     },
     enabled: !!dataId,
@@ -1042,7 +1042,7 @@ export function useCatalogValidation(
       if (!imageId) throw new Error('Image ID required');
       const encodedId = encodeURIComponent(imageId);
       const response = await apiClient.get<CatalogValidationResults>(
-        `/api/qa/images/${encodedId}/catalog-validation?catalog=${catalog}&validation_type=${validationType}`
+        `/qa/images/${encodedId}/catalog-validation?catalog=${catalog}&validation_type=${validationType}`
       );
       return response.data;
     },
@@ -1064,7 +1064,7 @@ export function useCatalogOverlay(
       const params = new URLSearchParams({ catalog });
       if (minFluxJy !== undefined) params.append('min_flux_jy', minFluxJy.toString());
       const response = await apiClient.get<CatalogOverlayData>(
-        `/api/qa/images/${encodedId}/catalog-overlay?${params.toString()}`
+        `/qa/images/${encodedId}/catalog-overlay?${params.toString()}`
       );
       return response.data;
     },
@@ -1087,7 +1087,7 @@ export function useRunCatalogValidation() {
     }) => {
       const encodedId = encodeURIComponent(imageId);
       const response = await apiClient.post<CatalogValidationResults>(
-        `/api/qa/images/${encodedId}/catalog-validation/run`,
+        `/qa/images/${encodedId}/catalog-validation/run`,
         { catalog, validation_types: validationTypes }
       );
       return response.data;
@@ -1138,7 +1138,7 @@ export function useCatalogOverlayByCoords(
         catalog,
       });
       const response = await apiClient.get<CatalogOverlayResponse>(
-        `/api/catalog/overlay?${params.toString()}`
+        `/catalog/overlay?${params.toString()}`
       );
       return response.data;
     },
@@ -1177,7 +1177,7 @@ export function useRegions(
       if (imagePath) params.append('image_path', imagePath);
       if (regionType) params.append('region_type', regionType);
       const response = await apiClient.get<RegionListResponse>(
-        `/api/regions?${params.toString()}`
+        `/regions?${params.toString()}`
       );
       return response.data;
     },
@@ -1196,7 +1196,7 @@ export function useCreateRegion() {
       created_by?: string;
     }) => {
       const response = await apiClient.post<{ id: number; region: Region }>(
-        '/api/regions',
+        '/regions',
         regionData
       );
       return response.data;
@@ -1218,7 +1218,7 @@ export function useUpdateRegion() {
       regionData: Partial<Region>;
     }) => {
       const response = await apiClient.put<{ id: number; updated: boolean }>(
-        `/api/regions/${regionId}`,
+        `/regions/${regionId}`,
         regionData
       );
       return response.data;
@@ -1234,7 +1234,7 @@ export function useDeleteRegion() {
   return useMutation({
     mutationFn: async (regionId: number) => {
       const response = await apiClient.delete<{ id: number; deleted: boolean }>(
-        `/api/regions/${regionId}`
+        `/regions/${regionId}`
       );
       return response.data;
     },
@@ -1252,7 +1252,7 @@ export function useRegionStatistics(regionId: number | null) {
       const response = await apiClient.get<{
         region_id: number;
         statistics: Record<string, number>;
-      }>(`/api/regions/${regionId}/statistics`);
+      }>(`/regions/${regionId}/statistics`);
       return response.data;
     },
     enabled: regionId !== null,
@@ -1312,7 +1312,7 @@ export function useProfileExtraction() {
       }
 
       const response = await apiClient.get<ProfileExtractionResponse>(
-        `/api/images/${request.imageId}/profile?${params.toString()}`
+        `/images/${request.imageId}/profile?${params.toString()}`
       );
       return response.data;
     },
@@ -1377,7 +1377,7 @@ export function useImageFitting() {
       }
 
       const response = await apiClient.post<ImageFittingResponse>(
-        `/api/images/${request.imageId}/fit`,
+        `/images/${request.imageId}/fit`,
         body
       );
       return response.data;
@@ -1434,7 +1434,7 @@ export function useDirectoryListing(
       if (includePattern) params.append('include_pattern', includePattern);
       if (excludePattern) params.append('exclude_pattern', excludePattern);
       const response = await apiClient.get<DirectoryListing>(
-        `/api/visualization/browse?${params.toString()}`
+        `/visualization/browse?${params.toString()}`
       );
       return response.data;
     },
@@ -1473,7 +1473,7 @@ export function useDirectoryThumbnails(
       if (ncol !== undefined) params.append('ncol', ncol.toString());
       if (width !== undefined) params.append('width', width.toString());
       const response = await apiClient.get<string>(
-        `/api/visualization/directory/thumbnails?${params.toString()}`,
+        `/visualization/directory/thumbnails?${params.toString()}`,
         {
           responseType: 'text',
         }
@@ -1491,7 +1491,7 @@ export function useFITSInfo(path: string | null): UseQueryResult<FITSInfo> {
     queryFn: async () => {
       if (!path) throw new Error('Path required');
       const response = await apiClient.get<FITSInfo>(
-        `/api/visualization/fits/info?path=${encodeURIComponent(path)}`
+        `/visualization/fits/info?path=${encodeURIComponent(path)}`
       );
       return response.data;
     },
@@ -1505,7 +1505,7 @@ export function useCasaTableInfo(path: string | null): UseQueryResult<CasaTableI
     queryFn: async () => {
       if (!path) throw new Error('Path required');
       const response = await apiClient.get<CasaTableInfo>(
-        `/api/visualization/casatable/info?path=${encodeURIComponent(path)}`
+        `/visualization/casatable/info?path=${encodeURIComponent(path)}`
       );
       return response.data;
     },
@@ -1518,7 +1518,7 @@ export function useGenerateNotebook() {
   return useMutation({
     mutationFn: async (request: NotebookGenerateRequest) => {
       const response = await apiClient.post<NotebookGenerateResponse>(
-        '/api/visualization/notebook/generate',
+        '/visualization/notebook/generate',
         request
       );
       return response.data;
@@ -1534,7 +1534,7 @@ export function useRunQA() {
   return useMutation({
     mutationFn: async (request: QARunRequest) => {
       const response = await apiClient.post<QAResultSummary>(
-        '/api/visualization/notebook/qa',
+        '/visualization/notebook/qa',
         request
       );
       return response.data;
@@ -1550,7 +1550,7 @@ export function useSourceDetail(sourceId: string | null): UseQueryResult<any> {
   return useQuery({
     queryKey: ['source', sourceId],
     queryFn: async () => {
-      const response = await apiClient.get(`/api/sources/${sourceId}`);
+      const response = await apiClient.get(`/sources/${sourceId}`);
       return response.data;
     },
     enabled: !!sourceId,
@@ -1565,7 +1565,7 @@ export function useSourceDetections(
   return useQuery({
     queryKey: ['source', sourceId, 'detections', page, pageSize],
     queryFn: async () => {
-      const response = await apiClient.get(`/api/sources/${sourceId}/detections`, {
+      const response = await apiClient.get(`/sources/${sourceId}/detections`, {
         params: { page, page_size: pageSize },
       });
       return response.data;
@@ -1579,7 +1579,7 @@ export function useImageDetail(imageId: number | null): UseQueryResult<any> {
   return useQuery({
     queryKey: ['image', imageId],
     queryFn: async () => {
-      const response = await apiClient.get(`/api/images/${imageId}`);
+      const response = await apiClient.get(`/images/${imageId}`);
       return response.data;
     },
     enabled: !!imageId,
@@ -1594,7 +1594,7 @@ export function useImageMeasurements(
   return useQuery({
     queryKey: ['image', imageId, 'measurements', page, pageSize],
     queryFn: async () => {
-      const response = await apiClient.get(`/api/images/${imageId}/measurements`, {
+      const response = await apiClient.get(`/images/${imageId}/measurements`, {
         params: { page, page_size: pageSize },
       });
       return response.data;

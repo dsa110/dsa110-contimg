@@ -8,7 +8,7 @@
 ## API Reference
 
 - **[API Endpoints](api-endpoints.md)** - Complete API endpoint reference
-- **[Dashboard API](dashboard_api.md)** - Dashboard-specific API endpoints
+- **[Dashboard API](dashboard_backend_api.md)** - Dashboard-specific API endpoints
 - **[Streaming API](streaming-api.md)** - Streaming pipeline API
 - **[Backend Integration Snippets](backend_integration_snippets.md)** - Code snippets for backend integration
 
@@ -37,6 +37,7 @@
 ## Developer Resources
 
 - **[Developer Guide](developer_guide.md)** - Development guidelines and best practices
+- **[MCP Tools Reference](mcp-tools.md)** - Available Model Context Protocol server tools
 
 ## Optimization
 
@@ -50,8 +51,8 @@
 - [Concepts](../concepts/) - Understand how the pipeline works
 - [How-To Guides](../how-to/) - Task-oriented guides
 - [Tutorials](../tutorials/) - Step-by-step tutorials
-- [Main Documentation Index](../README.md)
+- [Main Documentation Index](../index.md)
 
 ---
 
-**Last Updated:** 2025-01-XX
+**Last Updated:** 2025-11-12

@@ -2,9 +2,48 @@
 
 ## Overview
 
-The DSA-110 continuum imaging pipeline includes comprehensive validation capabilities for assessing image quality, astrometry, flux scale, and source completeness. This guide explains how to use the validation system.
+The DSA-110 continuum imaging pipeline includes comprehensive validation capabilities for assessing image quality, astrometry, flux scale, source completeness, photometry, variability, mosaics, streaming, and database consistency. This guide explains how to use the validation system.
+
+**Note:** The validation system has been enhanced with a centralized configuration system and new validation modules. See [QA System Implementation](../dev/qa_system_implementation_complete.md) for details.
 
 ## Quick Start
+
+### Fast Pipeline Validation (<60 seconds)
+
+For rapid validation of the entire pipeline (MS, calibration, images), use the fast validation system:
+
+```python
+from dsa110_contimg.qa.fast_validation import ValidationMode, validate_pipeline_fast
+
+# Fast mode (<30s) - Aggressive sampling, skip expensive checks
+result = validate_pipeline_fast(
+    ms_path="/path/to/ms",
+    caltables=["/path/to/cal.kcal"],
+    image_paths=["/path/to/image.fits"],
+    mode=ValidationMode.FAST,
+)
+
+# Standard mode (<60s) - Balanced detail/speed
+result = validate_pipeline_fast(
+    ms_path="/path/to/ms",
+    caltables=["/path/to/cal.kcal"],
+    image_paths=["/path/to/image.fits"],
+    mode=ValidationMode.STANDARD,
+)
+
+# Check results
+print(f"Passed: {result.passed}")
+print(f"Timing: {result.timing}")
+print(f"Errors: {result.errors}")
+print(f"Warnings: {result.warnings}")
+```
+
+**Validation Modes:**
+- `ValidationMode.FAST`: <30s, 0.5% sampling, skip expensive checks
+- `ValidationMode.STANDARD`: <60s, 1% sampling, balanced detail/speed
+- `ValidationMode.COMPREHENSIVE`: <5min, 10% sampling, full validation
+
+See [Fast Validation Implementation](../dev/qa_fast_validation_implementation.md) for details.
 
 ### Running Validation via API
 
@@ -23,15 +62,53 @@ curl -X POST "http://localhost:8000/api/qa/images/{image_id}/catalog-validation/
 ### Running Validation in Python
 
 ```python
-from dsa110_contimg.qa.catalog_validation import run_full_validation
+from dsa110_contimg.qa.catalog_validation import (
+    validate_astrometry,
+    validate_flux_scale,
+    validate_source_counts,
+)
+from dsa110_contimg.qa.config import get_default_config
 
-# Run all validation tests and generate HTML report
-astrometry_result, flux_result, completeness_result = run_full_validation(
+# Get default configuration
+config = get_default_config()
+
+# Run astrometry validation
+astrometry_result = validate_astrometry(
     image_path="/path/to/image.fits",
     catalog="nvss",
-    validation_types=["astrometry", "flux_scale", "source_counts"],
-    generate_html=True,
-    html_output_path="/path/to/report.html"
+    config=config.astrometry,
+)
+
+# Run flux scale validation
+flux_result = validate_flux_scale(
+    image_path="/path/to/image.fits",
+    catalog="nvss",
+    config=config.flux_scale,
+)
+
+# Run source counts validation
+completeness_result = validate_source_counts(
+    image_path="/path/to/image.fits",
+    catalog="nvss",
+    config=config.source_counts,
+)
+```
+
+### Using Custom Configuration
+
+```python
+from dsa110_contimg.qa.config import QAConfig, AstrometryConfig
+
+# Create custom configuration
+custom_config = QAConfig()
+custom_config.astrometry.max_offset_arcsec = 2.0  # More lenient threshold
+custom_config.astrometry.min_match_fraction = 0.7  # Lower match requirement
+
+# Use custom config
+result = validate_astrometry(
+    image_path="image.fits",
+    catalog="nvss",
+    config=custom_config.astrometry,
 )
 ```
 
@@ -48,21 +125,35 @@ Validates the positional accuracy of detected sources by comparing with referenc
 - Number of matched sources
 
 **Configuration:**
-```yaml
-validation:
-  min_snr: 5.0  # Minimum SNR for source detection
-  search_radius_arcsec: 10.0  # Matching radius
+```python
+from dsa110_contimg.qa.config import AstrometryConfig
+
+config = AstrometryConfig(
+    max_offset_arcsec=1.0,      # Maximum acceptable offset
+    max_rms_arcsec=0.5,          # Maximum RMS offset
+    min_match_fraction=0.8,      # Minimum fraction of sources that must match
+    match_radius_arcsec=2.0,     # Matching radius
+)
 ```
 
 **Example:**
 ```python
 from dsa110_contimg.qa.catalog_validation import validate_astrometry
+from dsa110_contimg.qa.config import get_default_config
 
+# Use default config
 result = validate_astrometry(
     image_path="image.fits",
     catalog="nvss",
-    min_snr=5.0,
-    search_radius_arcsec=10.0
+    config=get_default_config().astrometry,
+)
+
+# Or override specific parameters
+result = validate_astrometry(
+    image_path="image.fits",
+    catalog="nvss",
+    search_radius_arcsec=10.0,  # Override config
+    config=get_default_config().astrometry,
 )
 
 print(f"Mean offset: {result.mean_offset_ra*3600:.2f} arcsec RA, "
@@ -80,258 +171,215 @@ Compares measured fluxes with reference catalog fluxes to assess calibration acc
 - Flux scale error percentage
 - Number of matched sources
 
-**Configuration:**
-```yaml
-validation:
-  min_snr: 5.0
-  search_radius_arcsec: 10.0
-```
-
 **Example:**
 ```python
 from dsa110_contimg.qa.catalog_validation import validate_flux_scale
+from dsa110_contimg.qa.config import get_default_config
 
 result = validate_flux_scale(
     image_path="image.fits",
     catalog="nvss",
-    min_snr=5.0
+    config=get_default_config().flux_scale,
 )
 
 print(f"Mean flux ratio: {result.mean_flux_ratio:.3f}")
-print(f"Flux scale error: {result.flux_scale_error*100:.1f}%")
 ```
 
-### 3. Source Counts Completeness Analysis
+### 3. Source Counts Validation
 
-Evaluates the completeness and reliability of source detection vs. flux density.
-
-**Metrics:**
-- Overall completeness percentage
-- Completeness limit (flux at which completeness drops below threshold)
-- Completeness per flux bin
-- Source counts per flux bin
-
-**Configuration:**
-```yaml
-validation:
-  completeness_threshold: 0.95  # 95% completeness threshold
-  min_snr: 5.0
-```
+Validates source detection completeness by comparing detected source counts with catalog.
 
 **Example:**
 ```python
 from dsa110_contimg.qa.catalog_validation import validate_source_counts
+from dsa110_contimg.qa.config import get_default_config
 
 result = validate_source_counts(
     image_path="image.fits",
     catalog="nvss",
-    completeness_threshold=0.95
+    config=get_default_config().source_counts,
 )
 
-print(f"Overall completeness: {result.completeness*100:.1f}%")
-print(f"Completeness limit: {result.completeness_limit_jy*1000:.2f} mJy")
+print(f"Completeness: {result.completeness:.1%}")
 ```
 
-## Configuration
+### 4. Photometry Validation (New)
 
-### YAML Configuration File
+Validates forced photometry accuracy and consistency across images.
 
-Create a validation configuration file:
-
-```yaml
-validation:
-  enabled: true
-  catalog: "nvss"  # or "vlass"
-  validation_types:
-    - "astrometry"
-    - "flux_scale"
-    - "source_counts"
-  generate_html_report: true
-  min_snr: 5.0
-  search_radius_arcsec: 10.0
-  completeness_threshold: 0.95
-```
-
-Load configuration:
-
+**Example:**
 ```python
-from dsa110_contimg.pipeline.config import PipelineConfig
+from dsa110_contimg.qa.photometry_validation import validate_forced_photometry
+from dsa110_contimg.qa.config import get_default_config
 
-config = PipelineConfig.from_yaml("validation_config.yaml")
-validation_config = config.validation
-```
-
-### Environment Variables
-
-You can also configure validation via environment variables:
-
-```bash
-export PIPELINE_VALIDATION_ENABLED=true
-export PIPELINE_VALIDATION_CATALOG=nvss
-export PIPELINE_VALIDATION_MIN_SNR=5.0
-```
-
-## HTML Reports
-
-Validation reports are generated as HTML files with:
-
-- **Summary Dashboard**: Overview of all validation metrics
-- **Data Type Banner**: Clear indication of test vs. real data
-- **Image Visualization**: FITS image preview
-- **Astrometry Section**: Positional accuracy metrics and plots
-- **Flux Scale Section**: Flux comparison metrics and plots
-- **Source Counts Section**: Completeness analysis and plots
-- **Enhanced Visualizations**:
-  - Spatial distribution plots
-  - Flux vs. offset correlation
-  - Validation summary dashboard
-
-### Generating HTML Reports
-
-**Via API:**
-```bash
-# Get HTML report (returns HTML directly)
-curl "http://localhost:8000/api/qa/images/{image_id}/validation-report.html?save_to_file=true"
-
-# Generate and save report
-curl -X POST "http://localhost:8000/api/qa/images/{image_id}/validation-report/generate" \
-  -H "Content-Type: application/json" \
-  -d '{"catalog": "nvss", "output_path": "/path/to/report.html"}'
-```
-
-**Via Python:**
-```python
-from dsa110_contimg.qa.html_reports import generate_validation_report
-
-generate_validation_report(
+result = validate_forced_photometry(
     image_path="image.fits",
-    astrometry_result=astrometry_result,
-    flux_scale_result=flux_result,
-    source_counts_result=completeness_result,
-    output_path="validation_report.html",
-    catalog="nvss"
+    catalog_sources=catalog_sources,
+    photometry_results=photometry_results,
+    config=get_default_config().photometry,
 )
+
+print(f"Pass rate: {result.calculate_pass_rate():.1%}")
+print(f"Mean flux error: {result.mean_flux_error_fraction:.3f}")
+```
+
+### 5. Variability/ESE Validation (New)
+
+Validates variability detection and ESE (Extreme Scattering Event) candidate identification.
+
+**Example:**
+```python
+from dsa110_contimg.qa.variability_validation import (
+    validate_variability_detection,
+    validate_ese_detection,
+)
+from dsa110_contimg.qa.config import get_default_config
+
+# Validate single source variability
+result = validate_variability_detection(
+    source_id="source_001",
+    photometry_history=photometry_history,
+    config=get_default_config().variability,
+)
+
+# Validate ESE candidates
+ese_result = validate_ese_detection(
+    ese_candidates=ese_candidates,
+    photometry_histories=photometry_histories,
+    config=get_default_config().variability,
+)
+```
+
+### 6. Mosaic Validation (New)
+
+Validates mosaic image quality, overlap handling, and consistency.
+
+**Example:**
+```python
+from dsa110_contimg.qa.mosaic_validation import validate_mosaic_quality
+from dsa110_contimg.qa.config import get_default_config
+
+result = validate_mosaic_quality(
+    mosaic_path="mosaic.fits",
+    tile_paths=["tile1.fits", "tile2.fits"],
+    config=get_default_config().mosaic,
+)
+
+print(f"Seams detected: {result.n_seams_detected}/{result.n_overlaps}")
+```
+
+### 7. Streaming Validation (New)
+
+Validates streaming pipeline continuity, latency, and data integrity.
+
+**Example:**
+```python
+from dsa110_contimg.qa.streaming_validation import validate_streaming_continuity
+from dsa110_contimg.qa.config import get_default_config
+from datetime import datetime
+
+result = validate_streaming_continuity(
+    time_range_start=datetime(2025, 1, 1, 0, 0, 0),
+    time_range_end=datetime(2025, 1, 1, 1, 0, 0),
+    expected_files=expected_files,
+    actual_files=actual_files,
+    file_timestamps=file_timestamps,
+    config=get_default_config().streaming,
+)
+
+print(f"Missing files: {result.n_missing_files}/{result.n_expected_files}")
+print(f"Max latency: {result.max_latency_seconds:.1f}s")
+```
+
+### 8. Database Validation (New)
+
+Validates database consistency, referential integrity, and data completeness.
+
+**Example:**
+```python
+from dsa110_contimg.qa.database_validation import validate_database_consistency
+from dsa110_contimg.qa.config import get_default_config
+
+result = validate_database_consistency(
+    db_path="products.sqlite3",
+    expected_tables=["images", "photometry", "variability_stats"],
+    file_registry=file_registry,
+    config=get_default_config().database,
+)
+
+print(f"Orphaned records: {result.n_orphaned_records}")
+print(f"Missing files: {result.n_missing_files}")
+```
+
+## Configuration System
+
+All validators use a centralized configuration system. Default configurations are provided, but can be customized:
+
+```python
+from dsa110_contimg.qa.config import QAConfig, get_default_config
+
+# Get default config
+config = get_default_config()
+
+# Customize specific thresholds
+config.astrometry.max_offset_arcsec = 2.0
+config.photometry.max_flux_error_fraction = 0.15
+config.variability.min_chi_squared = 30.0
+
+# Use in validations
+result = validate_astrometry(..., config=config.astrometry)
+```
+
+## Error Handling
+
+All validators use consistent error handling:
+
+```python
+from dsa110_contimg.qa.base import ValidationInputError, ValidationError
+
+try:
+    result = validate_astrometry(image_path="image.fits", ...)
+except ValidationInputError as e:
+    print(f"Invalid input: {e}")
+except ValidationError as e:
+    print(f"Validation failed: {e}")
 ```
 
 ## Pipeline Integration
 
-Validation is automatically integrated into the imaging pipeline:
+Validation is integrated into the pipeline via `pipeline_quality.py`:
 
 ```python
-from dsa110_contimg.pipeline.config import PipelineConfig
-from dsa110_contimg.pipeline.workflows import standard_imaging_workflow
-
-# Configure validation
-config = PipelineConfig.from_env()
-config.validation.enabled = True
-config.validation.generate_html_report = True
-
-# Run pipeline (validation runs automatically after imaging)
-workflow = standard_imaging_workflow(config)
-orchestrator = workflow.build()
-context = orchestrator.execute(context)
-```
-
-Validation reports are saved to: `{output_dir}/qa/reports/{image_name}_validation_report.html`
-
-## Reference Catalogs
-
-### NVSS (NRAO VLA Sky Survey)
-
-- Frequency: 1.4 GHz
-- Coverage: δ > -40°
-- Flux limit: ~2.5 mJy
-- Use for: Northern hemisphere sources, low-frequency validation
-
-### VLASS (VLA Sky Survey)
-
-- Frequency: 3 GHz
-- Coverage: δ > -40°
-- Flux limit: ~1 mJy
-- Use for: Higher frequency validation, better sensitivity
-
-## Interpreting Results
-
-### Astrometry Validation
-
-- **Good**: RMS offset < 1 arcsec, mean offset < 0.5 arcsec
-- **Acceptable**: RMS offset < 2 arcsec, mean offset < 1 arcsec
-- **Poor**: RMS offset > 2 arcsec or systematic offsets
-
-### Flux Scale Validation
-
-- **Good**: Flux ratio 0.95-1.05, error < 5%
-- **Acceptable**: Flux ratio 0.90-1.10, error < 10%
-- **Poor**: Flux ratio outside 0.90-1.10 or error > 10%
-
-### Source Counts Completeness
-
-- **Good**: Completeness > 90% at target flux limit
-- **Acceptable**: Completeness > 80% at target flux limit
-- **Poor**: Completeness < 80% or no completeness limit found
-
-## Troubleshooting
-
-### No Matched Sources
-
-- Check that catalog files are available
-- Verify image coordinates are within catalog coverage
-- Increase `search_radius_arcsec` if sources are slightly offset
-- Check that `min_snr` is appropriate for your image
-
-### Poor Astrometry
-
-- Verify WCS information in FITS header
-- Check for systematic offsets (may indicate calibration issues)
-- Review spatial distribution plot for patterns
-
-### Poor Flux Scale
-
-- Verify frequency scaling is correct
-- Check for systematic flux errors (may indicate calibration issues)
-- Review flux ratio histogram for outliers
-
-### Low Completeness
-
-- Check that `min_snr` is appropriate
-- Verify catalog coverage for your field
-- Review completeness curve to identify flux range issues
-
-## Advanced Usage
-
-### Custom Validation Configuration
-
-```python
-from dsa110_contimg.qa.catalog_validation import validate_astrometry
-
-# Custom validation with specific parameters
-result = validate_astrometry(
-    image_path="image.fits",
-    catalog="nvss",
-    min_snr=7.0,  # Higher SNR threshold
-    search_radius_arcsec=5.0,  # Tighter matching
-    min_flux_jy=0.01,  # Minimum flux threshold
-    max_flux_jy=10.0  # Maximum flux threshold
+from dsa110_contimg.qa.pipeline_quality import (
+    check_ms_after_conversion,
+    check_calibration_quality,
+    check_image_quality,
 )
-```
+from dsa110_contimg.qa.config import get_default_config
 
-### Accessing Raw Data
+config = get_default_config()
 
-```python
-# Access matched pairs for custom analysis
-for pair in result.matched_pairs:
-    detected_ra, detected_dec, catalog_ra, catalog_dec, offset = pair
-    # Custom processing...
+# Check MS quality
+passed, metrics = check_ms_after_conversion(
+    ms_path="data.ms",
+    config=config,
+)
 
-# Access matched fluxes
-for flux_pair in result.matched_fluxes:
-    detected_flux, catalog_flux, ratio = flux_pair
-    # Custom processing...
+# Check calibration quality
+passed, results = check_calibration_quality(
+    caltables=["K.cal", "BP.cal", "G.cal"],
+    config=config,
+)
+
+# Check image quality
+passed, metrics = check_image_quality(
+    image_path="image.fits",
+    config=config,
+)
 ```
 
 ## See Also
 
-- [API Documentation](../reference/api.md#validation-endpoints)
-- [Configuration Guide](../configuration.md)
-- [Pipeline Documentation](../operations/pipeline.md)
-
+- [Validation API Reference](../reference/validation_api.md)
+- [QA System Implementation](../dev/qa_system_implementation_complete.md)
+- [QA System Audit](../dev/analysis/qa_system_audit.md)

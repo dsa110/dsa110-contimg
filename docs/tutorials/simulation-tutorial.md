@@ -357,9 +357,8 @@ Future enhancements could add:
 
 ## See Also
 
-- [Conversion Pipeline Documentation](../pipeline/README_uvh5_to_ms.md)
-- [Streaming Converter Guide](../pipeline/streaming_converter_README.md)
-- [DSA-110 Subband Architecture](../reports/DSA110_SUBBAND_UPDATE_SUMMARY.md)
+- [Conversion Pipeline Documentation](../how-to/uvh5_to_ms_conversion.md)
+- [Streaming Converter Guide](../how-to/streaming_converter_guide.md)
 - [PyUVData Documentation](https://pyuvdata.readthedocs.io/)
 
 ## Support

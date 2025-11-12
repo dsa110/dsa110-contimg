@@ -6,15 +6,15 @@ Beyond Golden Layout, here are tools and patterns that would enhance the flexibl
 
 ## Table of Contents
 
-1. [Code & Script Management](#code--script-management)
+1. [Code & Script Management](#code-script-management)
 2. [Data Visualization](#data-visualization)
-3. [Data Tables & Grids](#data-tables--grids)
-4. [Comparison & Diff Views](#comparison--diff-views)
+3. [Data Tables & Grids](#data-tables-grids)
+4. [Comparison & Diff Views](#comparison-diff-views)
 5. [Parameter Configuration](#parameter-configuration)
 6. [Workflow Visualization](#workflow-visualization)
-7. [Documentation & Notes](#documentation--notes)
+7. [Documentation & Notes](#documentation-notes)
 8. [Keyboard Shortcuts](#keyboard-shortcuts)
-9. [State Management & Debugging](#state-management--debugging)
+9. [State Management & Debugging](#state-management-debugging)
 10. [File Management](#file-management)
 11. [Recommendations Summary](#recommendations-summary)
 

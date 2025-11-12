@@ -1,6 +1,6 @@
 # Image Filters Backend Implementation
 
-**Date:** 2025-01-XX  
+**Date:** 2025-11-12  
 **Endpoint:** `GET /api/images`  
 **File:** `src/dsa110_contimg/api/routers/images.py`
 

@@ -1,6 +1,6 @@
 # Image Metadata Not Populated
 
-**Date:** 2025-01-XX  
+**Date:** 2025-11-12  
 **Severity:** HIGH  
 **Status:** Open
 
@@ -332,7 +332,7 @@ Current implementation uses post-filtering (reading FITS files) for declination 
 
 ---
 
-**Created:** 2025-01-XX  
+**Created:** 2025-11-12  
 **Assigned to:** [TBD]  
 **Estimated Effort:** 4-6 hours (schema update + extraction + backfill)
 

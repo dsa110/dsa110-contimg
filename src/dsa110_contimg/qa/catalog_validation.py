@@ -28,6 +28,13 @@ from dsa110_contimg.utils.runtime_safeguards import (
     wcs_pixel_to_world_safe,
     wcs_world_to_pixel_safe,
 )
+from dsa110_contimg.qa.base import ValidationInputError
+from dsa110_contimg.qa.config import (
+    AstrometryConfig,
+    FluxScaleConfig,
+    SourceCountsConfig,
+    get_default_config,
+)
 
 logger = logging.getLogger(__name__)
 
@@ -320,9 +327,10 @@ def get_catalog_overlay_pixels(
 def validate_astrometry(
     image_path: str,
     catalog: str = "nvss",
-    search_radius_arcsec: float = 10.0,
+    search_radius_arcsec: Optional[float] = None,
     min_snr: float = 5.0,
-    max_offset_arcsec: float = 5.0,
+    max_offset_arcsec: Optional[float] = None,
+    config: Optional[AstrometryConfig] = None,
 ) -> CatalogValidationResult:
     """
     Validate image astrometry by matching detected sources to reference catalog.
@@ -330,13 +338,28 @@ def validate_astrometry(
     Args:
         image_path: Path to FITS image
         catalog: Reference catalog ("nvss" or "vlass")
-        search_radius_arcsec: Maximum matching radius in arcseconds
+        search_radius_arcsec: Maximum matching radius in arcseconds (overrides config)
         min_snr: Minimum SNR for detected sources
-        max_offset_arcsec: Maximum acceptable astrometric offset
+        max_offset_arcsec: Maximum acceptable astrometric offset (overrides config)
+        config: Optional AstrometryConfig. If not provided, uses default config.
 
     Returns:
         CatalogValidationResult with astrometry metrics
+        
+    Raises:
+        ValidationInputError: If image path is invalid or image not found
     """
+    if config is None:
+        config = get_default_config().astrometry
+    
+    # Use config values if parameters not provided
+    if search_radius_arcsec is None:
+        search_radius_arcsec = config.match_radius_arcsec
+    if max_offset_arcsec is None:
+        max_offset_arcsec = config.max_offset_arcsec
+    
+    if not Path(image_path).exists():
+        raise ValidationInputError(f"Image not found: {image_path}")
     # Extract sources from image
     detected_sources = extract_sources_from_image(image_path, min_snr=min_snr)
     n_detected = len(detected_sources)
@@ -449,9 +472,15 @@ def validate_astrometry(
     issues = []
     warnings = []
 
+    # Use config thresholds for validation
     if max_offset > max_offset_arcsec:
         issues.append(
             f"Maximum astrometric offset ({max_offset:.2f} arcsec) exceeds threshold ({max_offset_arcsec} arcsec)"
+        )
+    
+    if rms_offset > config.max_rms_arcsec:
+        issues.append(
+            f"RMS astrometric offset ({rms_offset:.2f} arcsec) exceeds threshold ({config.max_rms_arcsec} arcsec)"
         )
 
     if mean_offset > max_offset_arcsec * 0.5:
@@ -459,9 +488,11 @@ def validate_astrometry(
             f"Mean astrometric offset ({mean_offset:.2f} arcsec) is significant"
         )
 
-    if n_matched < n_detected * 0.3:
+    match_fraction = n_matched / n_detected if n_detected > 0 else 0.0
+    if match_fraction < config.min_match_fraction:
         warnings.append(
-            f"Only {n_matched}/{n_detected} detected sources matched to catalog"
+            f"Match fraction {match_fraction:.1%} below threshold {config.min_match_fraction:.1%} "
+            f"({n_matched}/{n_detected} sources matched)"
         )
 
     matched_pairs = [
@@ -496,12 +527,13 @@ def validate_astrometry(
 def validate_flux_scale(
     image_path: str,
     catalog: str = "nvss",
-    search_radius_arcsec: float = 10.0,
+    search_radius_arcsec: Optional[float] = None,
     min_snr: float = 5.0,
     flux_range_jy: Tuple[float, float] = (0.01, 10.0),
-    max_flux_ratio_error: float = 0.2,
-    box_size_pix: int = 5,
+    max_flux_ratio_error: Optional[float] = None,
+    box_size_pix: Optional[int] = None,
     annulus_pix: Tuple[int, int] = (12, 20),
+    config: Optional[FluxScaleConfig] = None,
 ) -> CatalogValidationResult:
     """
     Validate image flux scale using forced photometry at catalog positions.
@@ -513,16 +545,31 @@ def validate_flux_scale(
     Args:
         image_path: Path to FITS image
         catalog: Reference catalog ("nvss" or "vlass")
-        search_radius_arcsec: Not used (kept for API compatibility)
+        search_radius_arcsec: Matching radius in arcseconds (overrides config)
         min_snr: Minimum SNR threshold for accepting measurements
         flux_range_jy: Valid flux range (min, max) in Jy
-        max_flux_ratio_error: Maximum acceptable flux ratio error (0.2 = 20%)
-        box_size_pix: Pixel box size for forced photometry (default: 5)
-        annulus_pix: Annulus radii (inner, outer) for background estimation (default: 12, 20)
-
-    Returns:
-        CatalogValidationResult with flux scale metrics
+        max_flux_ratio_error: Maximum acceptable flux ratio error (overrides config)
+        box_size_pix: Photometry box size in pixels (overrides config)
+        annulus_pix: Annulus for background subtraction
+        config: Optional FluxScaleConfig. If not provided, uses default config.
+        
+    Raises:
+        ValidationInputError: If image path is invalid or image not found
     """
+    if config is None:
+        config = get_default_config().flux_scale
+    
+    # Use config values if parameters not provided
+    if search_radius_arcsec is None:
+        search_radius_arcsec = config.match_radius_arcsec
+    if max_flux_ratio_error is None:
+        max_flux_ratio_error = config.max_flux_ratio_deviation
+    if box_size_pix is None:
+        box_size_pix = config.flux_box_size_pix
+    
+    if not Path(image_path).exists():
+        raise ValidationInputError(f"Image not found: {image_path}")
+    
     # Get image metadata
     with fits.open(image_path) as hdul:
         header = hdul[0].header
@@ -729,13 +776,14 @@ def validate_flux_scale(
 def validate_source_counts(
     image_path: str,
     catalog: str = "nvss",
-    min_snr: float = 5.0,
-    completeness_threshold: float = 0.95,
-    search_radius_arcsec: float = 10.0,
+    min_snr: Optional[float] = None,
+    completeness_threshold: Optional[float] = None,
+    search_radius_arcsec: Optional[float] = None,
     min_flux_jy: float = 0.001,
     max_flux_jy: float = 10.0,
     n_bins: int = 10,
     completeness_limit_threshold: float = 0.95,
+    config: Optional[SourceCountsConfig] = None,
 ) -> CatalogValidationResult:
     """
     Validate source detection completeness by comparing counts to catalog.
@@ -745,21 +793,32 @@ def validate_source_counts(
     Args:
         image_path: Path to FITS image
         catalog: Reference catalog ("nvss" or "vlass")
-        min_snr: Minimum SNR threshold for source detection
-        completeness_threshold: Minimum acceptable overall completeness (0.95 = 95%)
-        search_radius_arcsec: Radius for matching detected sources to catalog (arcsec)
+        min_snr: Minimum SNR threshold for source detection (overrides config)
+        completeness_threshold: Minimum acceptable overall completeness (overrides config)
+        search_radius_arcsec: Radius for matching detected sources to catalog (overrides config)
         min_flux_jy: Minimum flux density to consider (Jy)
         max_flux_jy: Maximum flux density to consider (Jy)
         n_bins: Number of flux bins for completeness analysis
         completeness_limit_threshold: Threshold for completeness limit calculation (0.95 = 95%)
-
-    Returns:
-        CatalogValidationResult with completeness metrics including:
-        - Overall completeness
-        - Completeness limit (flux density at which completeness drops below threshold)
-        - Completeness per flux bin
-        - Source counts per bin (catalog vs detected)
+        config: Optional SourceCountsConfig. If not provided, uses default config.
+        
+    Raises:
+        ValidationInputError: If image path is invalid or image not found
     """
+    if config is None:
+        config = get_default_config().source_counts
+    
+    # Use config values if parameters not provided
+    if min_snr is None:
+        min_snr = config.min_detection_snr
+    if completeness_threshold is None:
+        completeness_threshold = config.min_completeness
+    if search_radius_arcsec is None:
+        search_radius_arcsec = 10.0  # Keep default for now
+    
+    if not Path(image_path).exists():
+        raise ValidationInputError(f"Image not found: {image_path}")
+    
     # Extract sources
     detected_sources = extract_sources_from_image(image_path, min_snr=min_snr)
     n_detected = len(detected_sources)

@@ -39,7 +39,34 @@ alerting.error("test", "This is an error")
 alerting.critical("test", "This is critical!")
 ```
 
-### 3. Check MS Quality After Conversion
+### 3. Fast Pipeline Validation (<60 seconds)
+
+For rapid validation of the entire pipeline, use the fast validation system:
+
+```python
+from dsa110_contimg.qa.fast_validation import ValidationMode, validate_pipeline_fast
+
+# Fast mode (<30s) - Recommended for quick checks
+result = validate_pipeline_fast(
+    ms_path="/path/to/your.ms",
+    caltables=["/path/to/cal.kcal"],
+    image_paths=["/path/to/image.fits"],
+    mode=ValidationMode.FAST,
+    alert_on_issues=True,
+)
+
+if not result.passed:
+    print("Pipeline validation failed!")
+    print(f"Errors: {result.errors}")
+    print(f"Timing: {result.timing}")
+```
+
+**Validation Modes:**
+- `FAST`: <30s, aggressive sampling, skip expensive checks
+- `STANDARD`: <60s, balanced detail/speed (recommended)
+- `COMPREHENSIVE`: <5min, full validation
+
+### 4. Check MS Quality After Conversion
 
 ```python
 from dsa110_contimg.qa.pipeline_quality import check_ms_after_conversion
@@ -63,7 +90,7 @@ if not passed:
     print(metrics)
 ```
 
-### 4. Check Calibration Quality
+### 5. Check Calibration Quality
 
 ```python
 from dsa110_contimg.qa.pipeline_quality import check_calibration_quality
@@ -84,7 +111,7 @@ if not passed:
     print(results)
 ```
 
-### 5. Check Image Quality
+### 6. Check Image Quality
 
 ```python
 from dsa110_contimg.qa.pipeline_quality import check_image_quality

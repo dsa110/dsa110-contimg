@@ -5,6 +5,7 @@ to improve maintainability and testability.
 """
 from __future__ import annotations
 
+import logging
 import os
 from datetime import datetime
 from pathlib import Path
@@ -20,6 +21,8 @@ from dsa110_contimg.api.data_access import (
     fetch_recent_queue_groups,
 )
 from dsa110_contimg.api.models import PipelineStatus
+
+logger = logging.getLogger(__name__)
 
 router = APIRouter()
 
@@ -87,7 +90,9 @@ def health(request: Request):
             "free_gb": round(disk_usage.free / (1024**3), 2),
             "total_gb": round(disk_usage.total / (1024**3), 2),
         }
-    except Exception:
+    except (OSError, ValueError, AttributeError) as e:
+        # Disk usage check failed - log but don't fail health check
+        logger.debug("Disk usage check failed: %s", e)
         pass
 
     if not all_healthy:
@@ -111,7 +116,9 @@ async def websocket_status(websocket: WebSocket):
                 await websocket.send_text("pong")
     except WebSocketDisconnect:
         await manager.disconnect(websocket)
-    except Exception:
+    except (ConnectionError, RuntimeError, ValueError) as e:
+        # Handle connection errors, runtime errors, or invalid data
+        logger.warning("WebSocket error: %s", e)
         await manager.disconnect(websocket)
 
 

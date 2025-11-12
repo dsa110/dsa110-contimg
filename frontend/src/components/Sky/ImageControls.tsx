@@ -2,7 +2,7 @@
  * ImageControls Component
  * Provides controls for JS9 image viewer (zoom, colormap, grid, coordinates)
  */
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import {
   Box,
   Button,
@@ -29,6 +29,8 @@ import {
   LocationOn,
 } from '@mui/icons-material';
 import { logger } from '../../utils/logger';
+import { findDisplay, isJS9Available } from '../../utils/js9';
+import { useJS9Safe } from '../../contexts/JS9Context';
 import styles from './Sky.module.css';
 
 declare global {
@@ -46,6 +48,11 @@ export default function ImageControls({
   displayId = 'js9Display',
   onImageLoad 
 }: ImageControlsProps) {
+  // Use JS9 context if available (backward compatible)
+  const js9Context = useJS9Safe();
+  const isJS9Ready = js9Context?.isJS9Ready ?? isJS9Available();
+  const getDisplaySafe = (id: string) => js9Context?.getDisplay(id) ?? findDisplay(id);
+
   const [colormap, setColormap] = useState('grey');
   const [gridVisible, setGridVisible] = useState(false);
   const [zoomLevel, setZoomLevel] = useState(1);
@@ -53,118 +60,112 @@ export default function ImageControls({
   const [raInput, setRaInput] = useState('');
   const [decInput, setDecInput] = useState('');
 
-  // Update zoom level when JS9 zoom changes
-  useEffect(() => {
-    if (!window.JS9) return;
+  // Update zoom level - use zoom event instead of polling
+  const updateZoom = useCallback(() => {
+    try {
+      if (!isJS9Ready) return;
+      const display = getDisplaySafe(displayId);
+      if (display?.im) {
+        const currentZoom = window.JS9.GetZoom?.(display.im.id) || 1;
+        setZoomLevel(currentZoom);
+      }
+    } catch (e) {
+      logger.debug('Error getting zoom level:', e);
+    }
+  }, [displayId, isJS9Ready, getDisplaySafe]);
 
-    const updateZoom = () => {
-      try {
-        const display = window.JS9.displays?.find((d: any) => {
-          const divId = d.id || d.display || d.divID;
-          return divId === displayId;
-        });
-        if (display?.im) {
-          const currentZoom = window.JS9.GetZoom(display.im.id) || 1;
-          setZoomLevel(currentZoom);
-        }
-      } catch (e) {
-        logger.debug('Error getting zoom level:', e);
+  // Listen for zoom events instead of polling
+  useEffect(() => {
+    if (!isJS9Ready) return;
+
+    // Initial zoom level
+    updateZoom();
+
+    // Listen for zoom events
+    if (typeof window.JS9.AddEventListener === 'function') {
+      window.JS9.AddEventListener('zoom', updateZoom);
+    }
+
+    return () => {
+      if (isJS9Ready && typeof window.JS9.RemoveEventListener === 'function') {
+        window.JS9.RemoveEventListener('zoom', updateZoom);
       }
     };
+  }, [updateZoom]);
 
-    // Poll for zoom changes (JS9 doesn't have a zoom event)
-    const interval = setInterval(updateZoom, 500);
-    return () => clearInterval(interval);
-  }, [displayId]);
-
-  const handleZoomIn = () => {
-    if (!window.JS9) return;
+  const handleZoomIn = useCallback(() => {
+    if (!isJS9Ready) return;
     try {
-      const display = window.JS9.displays?.find((d: any) => {
-        const divId = d.id || d.display || d.divID;
-        return divId === displayId;
-      });
+      const display = getDisplaySafe(displayId);
       if (display?.im) {
-        const currentZoom = window.JS9.GetZoom(display.im.id) || 1;
-        window.JS9.SetZoom(display.im.id, currentZoom * 1.5);
-        setZoomLevel(currentZoom * 1.5);
+        const currentZoom = window.JS9.GetZoom?.(display.im.id) || 1;
+        window.JS9.SetZoom?.(display.im.id, currentZoom * 1.5);
+        // Zoom event will update zoomLevel
       }
     } catch (e) {
       logger.error('Error zooming in:', e);
     }
-  };
+  }, [displayId]);
 
-  const handleZoomOut = () => {
-    if (!window.JS9) return;
+  const handleZoomOut = useCallback(() => {
+    if (!isJS9Ready) return;
     try {
-      const display = window.JS9.displays?.find((d: any) => {
-        const divId = d.id || d.display || d.divID;
-        return divId === displayId;
-      });
+      const display = getDisplaySafe(displayId);
       if (display?.im) {
-        const currentZoom = window.JS9.GetZoom(display.im.id) || 1;
-        window.JS9.SetZoom(display.im.id, currentZoom / 1.5);
-        setZoomLevel(currentZoom / 1.5);
+        const currentZoom = window.JS9.GetZoom?.(display.im.id) || 1;
+        window.JS9.SetZoom?.(display.im.id, currentZoom / 1.5);
+        // Zoom event will update zoomLevel
       }
     } catch (e) {
       logger.error('Error zooming out:', e);
     }
-  };
+  }, [displayId, isJS9Ready, getDisplaySafe]);
 
-  const handleZoomReset = () => {
-    if (!window.JS9) return;
+  const handleZoomReset = useCallback(() => {
+    if (!isJS9Ready) return;
     try {
-      const display = window.JS9.displays?.find((d: any) => {
-        const divId = d.id || d.display || d.divID;
-        return divId === displayId;
-      });
+      const display = getDisplaySafe(displayId);
       if (display?.im) {
-        window.JS9.SetZoom(display.im.id, 'fit');
-        setZoomLevel(1);
+        window.JS9.SetZoom?.(display.im.id, 'fit');
+        // Zoom event will update zoomLevel
       }
     } catch (e) {
       logger.error('Error resetting zoom:', e);
     }
-  };
+  }, [displayId, isJS9Ready, getDisplaySafe]);
 
-  const handleColormapChange = (newColormap: string) => {
-    if (!window.JS9) return;
+  const handleColormapChange = useCallback((newColormap: string) => {
+    if (!isJS9Ready) return;
     setColormap(newColormap);
     try {
-      const display = window.JS9.displays?.find((d: any) => {
-        const divId = d.id || d.display || d.divID;
-        return divId === displayId;
-      });
+      const display = getDisplaySafe(displayId);
       if (display?.im) {
-        window.JS9.SetColormap(display.im.id, newColormap);
+        window.JS9.SetColormap?.(display.im.id, newColormap);
         // Store preference
         localStorage.setItem('js9_colormap', newColormap);
       }
     } catch (e) {
       logger.error('Error changing colormap:', e);
     }
-  };
+  }, [displayId]);
 
-  const handleGridToggle = () => {
-    if (!window.JS9) return;
+  const handleGridToggle = useCallback(() => {
+    if (!isJS9Ready) return;
     const newGridVisible = !gridVisible;
     setGridVisible(newGridVisible);
     try {
-      const display = window.JS9.displays?.find((d: any) => {
-        const divId = d.id || d.display || d.divID;
-        return divId === displayId;
-      });
+      const display = getDisplaySafe(displayId);
       if (display?.im) {
         if (newGridVisible) {
-          window.JS9.SetGrid(display.im.id, true);
+          window.JS9.SetGrid?.(display.im.id, true);
         } else {
-          window.JS9.SetGrid(display.im.id, false);
+          window.JS9.SetGrid?.(display.im.id, false);
         }
       }
     } catch (e) {
       logger.error('Error toggling grid:', e);
     }
-  };
+  }, [displayId, gridVisible, isJS9Ready, getDisplaySafe]);
 
   const handleGoToCoordinates = () => {
     setCoordDialogOpen(true);
@@ -183,10 +184,7 @@ export default function ImageControls({
         return;
       }
 
-      const display = window.JS9.displays?.find((d: any) => {
-        const divId = d.id || d.display || d.divID;
-        return divId === displayId;
-      });
+      const display = getDisplaySafe(displayId);
       if (display?.im) {
         // Convert RA/Dec to pixel coordinates and pan
         window.JS9.SetPan(display.im.id, ra, dec);
@@ -229,8 +227,9 @@ export default function ImageControls({
   };
 
   // Hide JS9 default menubar and integrate controls into dashboard
+  // Note: JS9 keeps recreating menubar, so polling is necessary
   useEffect(() => {
-    if (!window.JS9) return;
+    if (!isJS9Ready) return;
 
     const hideJS9Menubar = () => {
       // Hide JS9 menubar elements

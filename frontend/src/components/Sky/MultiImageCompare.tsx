@@ -3,7 +3,7 @@
  * Side-by-side JS9 viewers with synchronized pan/zoom/colormap and blend mode
  * Reference: https://js9.si.edu/js9/help/publicapi.html
  */
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef, useCallback } from 'react';
 import {
   Box,
   Button,
@@ -34,6 +34,7 @@ import SkyViewer from './SkyViewer';
 import ImageBrowser from './ImageBrowser';
 import type { ImageInfo } from '../../api/types';
 import { logger } from '../../utils/logger';
+import { findDisplay, isJS9Available } from '../../utils/js9';
 
 declare global {
   interface Window {
@@ -95,14 +96,8 @@ export default function MultiImageCompare({
       syncing = true;
 
       try {
-        const sourceDisplay = window.JS9.displays?.find((d: any) => {
-          const divId = d.id || d.display || d.divID;
-          return divId === sourceDisplayId;
-        });
-        const targetDisplay = window.JS9.displays?.find((d: any) => {
-          const divId = d.id || d.display || d.divID;
-          return divId === targetDisplayId;
-        });
+        const sourceDisplay = findDisplay(displayAId);
+        const targetDisplay = findDisplay(displayBId);
 
         if (sourceDisplay?.im && targetDisplay?.im) {
           const sourceImageId = sourceDisplay.im.id;
@@ -134,14 +129,8 @@ export default function MultiImageCompare({
     };
 
     const setupSync = () => {
-      const displayA = window.JS9.displays?.find((d: any) => {
-        const divId = d.id || d.display || d.divID;
-        return divId === displayAId;
-      });
-      const displayB = window.JS9.displays?.find((d: any) => {
-        const divId = d.id || d.display || d.divID;
-        return divId === displayBId;
-      });
+      const displayA = findDisplay(displayAId);
+      const displayB = findDisplay(displayBId);
 
       if (displayA?.im && displayB?.im && !syncRef.current && !listenersRegisteredRef.current) {
         // Use JS9.SyncImages if available, otherwise use manual sync

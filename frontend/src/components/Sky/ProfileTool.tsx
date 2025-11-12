@@ -24,6 +24,7 @@ import ProfilePlot from './ProfilePlot';
 import type { ProfileData } from './ProfilePlot';
 import { useProfileExtraction } from '../../api/queries';
 import { logger } from '../../utils/logger';
+import { findDisplay } from '../../utils/js9';
 
 declare global {
   interface Window {
@@ -83,10 +84,7 @@ export default function ProfileTool({
   const getJS9Display = () => {
     if (!window.JS9) return null;
     try {
-      const display = window.JS9.displays?.find((d: any) => {
-        const divId = d.id || d.display || d.divID;
-        return divId === displayId;
-      });
+      const display = findDisplay(displayId);
       return display?.im ? display : null;
     } catch (e) {
       logger.error('Error getting JS9 display:', e);

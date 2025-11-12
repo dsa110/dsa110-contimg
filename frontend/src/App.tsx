@@ -5,6 +5,7 @@ import { ThemeProvider, CssBaseline, Box } from '@mui/material';
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import { darkTheme } from './theme/darkTheme';
 import { NotificationProvider } from './contexts/NotificationContext';
+import { JS9Provider } from './contexts/JS9Context';
 import Navigation from './components/Navigation';
 import ErrorBoundary from './components/ErrorBoundary';
 import DashboardPage from './pages/DashboardPage';
@@ -93,6 +94,7 @@ function AppContent() {
         <ThemeProvider theme={darkTheme}>
           <CssBaseline />
           <NotificationProvider>
+            <JS9Provider>
             <BrowserRouter basename={basename}>
             <Box sx={{ display: 'flex', flexDirection: 'column', minHeight: '100vh' }}>
               <Navigation />
@@ -139,6 +141,7 @@ function AppContent() {
               </Box>
             </Box>
           </BrowserRouter>
+          </JS9Provider>
           </NotificationProvider>
         </ThemeProvider>
       </QueryClientProvider>

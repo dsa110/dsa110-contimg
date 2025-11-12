@@ -1,6 +1,6 @@
 # DSA-110 Dashboard: Frontend Architecture & Implementation
 
-**Date:** 2025-01-XX  
+**Date:** 2025-11-12  
 **Status:** Consolidated frontend architecture documentation  
 **Audience:** Frontend developers, architects
 
@@ -564,7 +564,7 @@ const computed = useMemo(() => expensiveCalculation(data), [data]);
 
 ## See Also
 
-- [Backend API & Integration](./dashboard_backend_api.md) - API integration details
+- [Backend API & Integration](../reference/dashboard_backend_api.md) - API integration details
 - [State Management & Real-Time Updates](./dashboard_state_management.md) - State management patterns
 - [Error Handling & Resilience](./dashboard_error_handling.md) - Error handling strategies
 - [Dashboard Pages & Features Reference](../reference/dashboard_pages_and_features.md) - Page documentation

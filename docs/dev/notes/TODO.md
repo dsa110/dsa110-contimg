@@ -51,7 +51,7 @@ P25-11-05
 
 Track significant changes to this TODO list:
 
-- **2025-01-XX:** Added VAST Tools adoption section
+- **2025-11-12:** Added VAST Tools adoption section
   - Comprehensive 3-phase plan for adopting VAST Tools patterns
   - Source class pattern, light curve plotting, variability metrics
   - Postage stamp visualization, external catalog integration
@@ -261,7 +261,7 @@ Track significant changes to this TODO list:
 
 ### Phase 1: Core Source Class & Light Curves (High Priority) - 2-3 weeks
 
-- [x] **Source Class Pattern** (Week 1-2) (2025-01-XX)
+- [x] **Source Class Pattern** (Week 1-2) (2025-11-12)
   - [x] Create `src/dsa110_contimg/photometry/source.py`
   - [x] Implement Source class with database loading from `photometry_timeseries`
   - [x] Add properties: `coord`, `n_epochs`, `detections`
@@ -270,7 +270,7 @@ Track significant changes to this TODO list:
   - [x] Time estimate: (1-2 weeks)
   - [x] Adopt from: `vasttools/source.py::Source`
 
-- [x] **Light Curve Plotting** (Week 2-3) (2025-01-XX)
+- [x] **Light Curve Plotting** (Week 2-3) (2025-11-12)
   - [x] Implement `Source.plot_lightcurve()` method
   - [x] Add ESE-specific features:
     - [x] Highlight baseline period (first 10 epochs)
@@ -283,20 +283,20 @@ Track significant changes to this TODO list:
   - [x] Time estimate: (1 week)
   - [x] Adopt from: `vasttools/source.py::Source.plot_lightcurve()`
 
-- [x] **Basic Variability Metrics** (Week 3) (2025-01-XX)
+- [x] **Basic Variability Metrics** (Week 3) (2025-11-12)
   - [x] Create `src/dsa110_contimg/photometry/variability.py`
   - [x] Implement `calculate_eta_metric()` (weighted variance)
   - [x] Add `Source.calc_variability_metrics()` method
-  - [x] Database migration: Add `eta_metric` column to `variability_stats` table (2025-01-XX)
+  - [x] Database migration: Add `eta_metric` column to `variability_stats` table (2025-11-12)
   - [ ] Update variability calculation code to include η metric (when variability stats are computed)
-  - [x] Backfill script: `scripts/backfill_eta_metric.py` (2025-01-XX)
-  - [x] Backfill completed: 5 sources updated (2025-01-XX)
+  - [x] Backfill script: `scripts/backfill_eta_metric.py` (2025-11-12)
+  - [x] Backfill completed: 5 sources updated (2025-11-12)
   - [x] Time estimate: (3-5 days)
   - [x] Adopt from: `vasttools/utils.py::pipeline_get_eta_metric()`
 
 ### Phase 2: Visualization & Enhanced Metrics (Medium Priority) - 2 weeks
 
-- [x] **Postage Stamp Visualization** (Week 1) (2025-01-XX)
+- [x] **Postage Stamp Visualization** (Week 1) (2025-11-12)
   - [x] Create `src/dsa110_contimg/qa/postage_stamps.py`
   - [x] Implement `create_cutout()` function (image cutout around source)
   - [x] Implement `Source.show_all_cutouts()` method (monkey-patched)
@@ -316,7 +316,7 @@ Track significant changes to this TODO list:
   - [ ] Time estimate: (3-5 days)
   - [ ] Adopt from: `vasttools/utils.py::calculate_vs_metric()`, `calculate_m_metric()`
 
-- [x] **QA Module Integration** (Week 2) (2025-01-XX)
+- [x] **QA Module Integration** (Week 2) (2025-11-12)
   - [x] Add postage stamps to QA module
   - [x] Create API endpoints for postage stamps
     - [x] `GET /api/sources/{source_id}/variability` - Variability metrics

@@ -83,8 +83,8 @@ def _calculate_manual_model_data(
               - Field name: "MyField"
               If None, writes to all fields.
     """
-import casacore.tables as casatables
-casa_table = casatables.table  # noqa: N816
+    import casacore.tables as casatables
+    casa_table = casatables.table  # noqa: N816
 
     _ensure_imaging_columns(ms_path)
 

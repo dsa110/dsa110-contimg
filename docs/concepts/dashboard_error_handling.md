@@ -1,6 +1,6 @@
 # DSA-110 Dashboard: Error Handling & Resilience
 
-**Date:** 2025-01-XX  
+**Date:** 2025-11-12  
 **Status:** Consolidated error handling documentation  
 **Audience:** Frontend developers, backend developers
 
@@ -463,6 +463,6 @@ apiClient.interceptors.response.use(
 ## See Also
 
 - [Frontend Architecture](./dashboard_frontend_architecture.md) - Component architecture
-- [Backend API & Integration](./dashboard_backend_api.md) - API error handling
+- [Backend API & Integration](../reference/dashboard_backend_api.md) - API error handling
 - [State Management](./dashboard_state_management.md) - State error handling
 

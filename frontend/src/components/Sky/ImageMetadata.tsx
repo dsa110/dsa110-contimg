@@ -2,7 +2,7 @@
  * ImageMetadata Component
  * Displays image metadata (beam, noise, WCS, observation info, cursor position)
  */
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
 import {
   Box,
   Typography,
@@ -10,6 +10,9 @@ import {
   Divider,
 } from '@mui/material';
 import { logger } from '../../utils/logger';
+import { findDisplay, isJS9Available } from '../../utils/js9';
+import { throttle } from '../../utils/js9/throttle';
+import { useJS9Safe } from '../../contexts/JS9Context';
 
 declare global {
   interface Window {
@@ -41,6 +44,11 @@ export default function ImageMetadata({
   displayId = 'js9Display',
   imageInfo 
 }: ImageMetadataProps) {
+  // Use JS9 context if available (backward compatible)
+  const js9Context = useJS9Safe();
+  const isJS9Ready = js9Context?.isJS9Ready ?? isJS9Available();
+  const getDisplaySafe = (id: string) => js9Context?.getDisplay(id) ?? findDisplay(id);
+
   const [cursorInfo, setCursorInfo] = useState<CursorInfo>({
     pixelX: null,
     pixelY: null,
@@ -49,59 +57,79 @@ export default function ImageMetadata({
     flux: null,
   });
 
-  // Track cursor position
-  useEffect(() => {
-    if (!window.JS9) return;
-
-    const updateCursorInfo = () => {
-      try {
-        const display = window.JS9.displays?.find((d: any) => {
-          const divId = d.id || d.display || d.divID;
-          return divId === displayId;
+  // Update cursor info - throttled to prevent excessive API calls
+  const updateCursorInfo = useCallback(() => {
+    try {
+      if (!isJS9Ready) {
+        setCursorInfo({
+          pixelX: null,
+          pixelY: null,
+          ra: null,
+          dec: null,
+          flux: null,
         });
-        
-        if (!display?.im) {
-          setCursorInfo({
-            pixelX: null,
-            pixelY: null,
-            ra: null,
-            dec: null,
-            flux: null,
-          });
-          return;
-        }
-
-        // Get cursor position from JS9
-        const im = display.im;
-        const x = im.x || null;
-        const y = im.y || null;
-        
-        if (x !== null && y !== null) {
-          // Get WCS coordinates
-          const wcs = window.JS9.GetWCS(im.id, x, y);
-          const ra = wcs?.ra || null;
-          const dec = wcs?.dec || null;
-          
-          // Get flux value at cursor
-          const flux = window.JS9.GetVal(im.id, x, y);
-          
-          setCursorInfo({
-            pixelX: Math.round(x),
-            pixelY: Math.round(y),
-            ra: ra ? ra / 15 : null, // Convert to degrees
-            dec: dec || null,
-            flux: flux !== null && !isNaN(flux) ? flux : null,
-          });
-        }
-      } catch (e) {
-        logger.debug('Error getting cursor info:', e);
+        return;
       }
-    };
 
-    // Update cursor info periodically (JS9 doesn't have a cursor event)
-    const interval = setInterval(updateCursorInfo, 100);
+      const display = getDisplaySafe(displayId);
+      
+      if (!display?.im) {
+        setCursorInfo({
+          pixelX: null,
+          pixelY: null,
+          ra: null,
+          dec: null,
+          flux: null,
+        });
+        return;
+      }
+
+      // Get cursor position from JS9
+      const im = display.im;
+      const x = im.x || null;
+      const y = im.y || null;
+      
+      if (x !== null && y !== null) {
+        // Get WCS coordinates (throttled via polling interval)
+        const wcs = window.JS9.GetWCS?.(im.id, x, y);
+        const ra = wcs?.ra || null;
+        const dec = wcs?.dec || null;
+        
+        // Get flux value at cursor (throttled via polling interval)
+        const flux = window.JS9.GetVal?.(im.id, x, y);
+        
+        setCursorInfo({
+          pixelX: Math.round(x),
+          pixelY: Math.round(y),
+          ra: ra ? ra / 15 : null, // Convert to degrees
+          dec: dec || null,
+          flux: flux !== null && !isNaN(flux) ? flux : null,
+        });
+      }
+    } catch (e) {
+      logger.debug('Error getting cursor info:', e);
+    }
+  }, [displayId, isJS9Ready, getDisplaySafe]);
+
+  // Throttled version - limits API calls to 50ms intervals
+  const throttledUpdateCursor = useRef(
+    throttle(() => {
+      updateCursorInfo();
+    }, 50)
+  ).current;
+
+  // Track cursor position
+  // Note: JS9 doesn't have a cursor event, so we poll but throttle the expensive API calls
+  useEffect(() => {
+    if (!isJS9Ready) return;
+
+    // Poll at 200ms interval, but API calls are throttled to 50ms
+    const interval = setInterval(() => {
+      throttledUpdateCursor();
+    }, 200);
+    
     return () => clearInterval(interval);
-  }, [displayId]);
+  }, [throttledUpdateCursor]);
 
   const formatRA = (raDeg: number | null): string => {
     if (raDeg === null) return '--';

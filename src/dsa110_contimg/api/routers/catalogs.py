@@ -33,6 +33,7 @@ def get_catalog_overlay(
                 }
             )
         return {"sources": sources, "count": len(sources), "ra_center": ra, "dec_center": dec, "radius_deg": radius}
-    except Exception as e:
-        raise HTTPException(status_code=500, detail=f"Failed to query catalog: {str(e)}")
+    except (ValueError, KeyError, AttributeError, RuntimeError) as e:
+        # Handle specific errors: invalid coordinates, missing columns, attribute errors, or runtime errors
+        raise HTTPException(status_code=500, detail=f"Failed to query catalog: {str(e)}") from e
 

@@ -168,7 +168,7 @@ npx playwright test
 - [Playwright Documentation](https://playwright.dev)
 - [Testing Best Practices](https://playwright.dev/docs/best-practices)
 - [Test Plan](./COMPREHENSIVE_TESTING_PLAN.md)
-- [E2E Test Guide](../tests/e2e/README.md)
+- E2E Test Guide: `../tests/e2e/README.md` (external file)
 
 ## Support
 

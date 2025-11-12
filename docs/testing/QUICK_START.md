@@ -98,5 +98,5 @@ docker build -f docker/Dockerfile.test -t dsa110-test:latest .
 
 - **Full Test Plan**: See [COMPREHENSIVE_TESTING_PLAN.md](./COMPREHENSIVE_TESTING_PLAN.md)
 - **Docker Details**: See [DOCKER_TESTING_GUIDE.md](./DOCKER_TESTING_GUIDE.md)
-- **E2E Tests**: See [tests/e2e/README.md](../tests/e2e/README.md)
+- **E2E Tests**: See `../tests/e2e/README.md` (external file)
 

@@ -1,7 +1,7 @@
 # NVSS Masking Guide
 
 **Purpose:** Guide for using NVSS-based masking in the imaging pipeline  
-**Last Updated:** 2025-01-XX
+**Last Updated:** 2025-11-12
 
 ---
 
@@ -246,9 +246,9 @@ Potential future improvements:
 
 ## References
 
-- **Analysis**: [Masked Imaging Analysis](analysis/MASKED_IMAGING_ANALYSIS.md)
-- **Efficiency**: [Masking Efficiency Analysis](analysis/MASKING_EFFICIENCY_ANALYSIS.md)
-- **Implementation**: [Masking Implementation Complete](analysis/MASKING_IMPLEMENTATION_COMPLETE.md)
-- **Configuration**: [Configuration Reference](configuration.md)
-- **CLI Reference**: [CLI Reference](reference/cli.md)
+- **Analysis**: [Masked Imaging Analysis](../analysis/MASKED_IMAGING_ANALYSIS.md)
+- **Efficiency**: [Masking Efficiency Analysis](../analysis/MASKING_EFFICIENCY_ANALYSIS.md)
+- **Implementation**: [Masking Implementation Complete](../analysis/MASKING_IMPLEMENTATION_COMPLETE.md)
+- **Configuration**: See pipeline configuration in [Pipeline Overview](../concepts/pipeline_overview.md)
+- **CLI Reference**: [CLI Reference](../reference/cli.md)
 

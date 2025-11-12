@@ -16,6 +16,8 @@ ensure_casa_path()
 import numpy as np
 
 from dsa110_contimg.utils.runtime_safeguards import filter_non_finite_2d
+from dsa110_contimg.qa.base import ValidationInputError
+from dsa110_contimg.qa.config import ImageQualityConfig, get_default_config
 
 try:
     from casacore.images import image as casaimage
@@ -113,20 +115,30 @@ class ImageQualityMetrics:
         }
 
 
-def validate_image_quality(image_path: str) -> ImageQualityMetrics:
+def validate_image_quality(
+    image_path: str,
+    config: Optional[ImageQualityConfig] = None,
+) -> ImageQualityMetrics:
     """
     Validate quality of a CASA image.
 
     Args:
         image_path: Path to CASA image
+        config: Optional ImageQualityConfig. If not provided, uses default config.
 
     Returns:
         ImageQualityMetrics object
+        
+    Raises:
+        ValidationInputError: If image path is invalid or image not found
     """
     logger.info(f"Validating image quality: {image_path}")
 
+    if config is None:
+        config = get_default_config().image_quality
+
     if not os.path.exists(image_path):
-        raise FileNotFoundError(f"Image not found: {image_path}")
+        raise ValidationInputError(f"Image not found: {image_path}")
 
     issues = []
     warnings = []
@@ -275,17 +287,27 @@ def validate_image_quality(image_path: str) -> ImageQualityMetrics:
                 else:
                     n_pixels_above_5sigma = 0
 
-                # Quality checks
+                # Quality checks using config thresholds
                 if image_type in ["image", "pbcor"]:
-                    if dynamic_range < 5:
-                        warnings.append(f"Low dynamic range: {dynamic_range:.1f}")
+                    if dynamic_range < config.min_dynamic_range:
+                        warnings.append(
+                            f"Low dynamic range: {dynamic_range:.1f} "
+                            f"(threshold: {config.min_dynamic_range:.1f})"
+                        )
 
-                    if peak_snr < 5:
+                    if peak_snr < 5:  # Keep SNR threshold at 5-sigma
                         warnings.append(f"Low peak SNR: {peak_snr:.1f}")
 
-                    if n_pixels_above_5sigma < 10:
+                    if n_pixels_above_5sigma < 10:  # Keep pixel count threshold
                         warnings.append(
                             f"Few pixels above 5-sigma: {n_pixels_above_5sigma}"
+                        )
+                    
+                    # Check RMS noise threshold
+                    if rms_pixel > config.max_rms_noise:
+                        issues.append(
+                            f"RMS noise {rms_pixel:.6f} exceeds threshold "
+                            f"{config.max_rms_noise:.6f}"
                         )
 
                 # Check for all-zero image
@@ -367,8 +389,14 @@ def quick_image_check(image_path: str) -> Tuple[bool, str]:
     """
     Quick sanity check for image quality.
 
+    Args:
+        image_path: Path to CASA image
+
     Returns:
         (passed, message) tuple
+        
+    Note: This function maintains backward compatibility by returning a tuple.
+    For new code, prefer using validate_image_quality() which raises exceptions.
     """
     try:
         if not os.path.exists(image_path):
@@ -386,5 +414,8 @@ def quick_image_check(image_path: str) -> Tuple[bool, str]:
 
         return True, "Image passed quick check"
 
+    except ValidationInputError as e:
+        return False, str(e)
     except Exception as e:
+        logger.exception(f"Exception during quick image check: {e}")
         return False, f"Exception during check: {e}"

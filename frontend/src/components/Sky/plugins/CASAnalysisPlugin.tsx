@@ -3,7 +3,7 @@
  * Integrates server-side CASA analysis tasks (imstat, imfit, imview, specflux, imval) into JS9 viewer
  * Reference: https://js9.si.edu/js9/help/localtasks.html
  */
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useRef, useState, useCallback } from 'react';
 import {
   Dialog,
   DialogTitle,
@@ -39,6 +39,7 @@ import {
 } from '@mui/icons-material';
 import { apiClient } from '../../../api/client';
 import { logger } from '../../../utils/logger';
+import { findDisplay, isJS9Available } from '../../../utils/js9';
 import ContourOverlay from './ContourOverlay';
 
 declare global {
@@ -295,9 +296,9 @@ export default function CASAnalysisPlugin({
   const [batchLoading, setBatchLoading] = useState(false);
 
   useEffect(() => {
-    if (!window.JS9) {
+    if (!isJS9Available()) {
       const checkJS9 = setInterval(() => {
-        if (window.JS9 && typeof window.JS9.Load === 'function') {
+        if (isJS9Available()) {
           clearInterval(checkJS9);
           initializePlugin();
         }
@@ -305,7 +306,7 @@ export default function CASAnalysisPlugin({
 
       const timeout = setTimeout(() => {
         clearInterval(checkJS9);
-        if (!window.JS9) {
+        if (!isJS9Available()) {
           logger.warn('JS9 not available after timeout');
         }
       }, 10000);
@@ -649,10 +650,10 @@ export default function CASAnalysisPlugin({
       <Box sx={{ mb: 2 }}>
         <Box display="flex" gap={1} flexWrap="wrap" alignItems="center" mb={1}>
           <FormControl size="small" sx={{ minWidth: 200 }}>
-            <InputLabel>CASA Task</InputLabel>
+            <InputLabel id="casa-task-label">CASA Task</InputLabel>
             <Select
               value={selectedTask}
-              label="CASA Task"
+              labelId="casa-task-label"
               onChange={(e) => setSelectedTask(e.target.value)}
             >
               <MenuItem value="imstat">Image Statistics</MenuItem>

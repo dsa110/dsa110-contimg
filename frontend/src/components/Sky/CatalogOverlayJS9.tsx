@@ -6,6 +6,7 @@ import { useEffect, useRef, useState } from 'react';
 import { Box, Switch, FormControlLabel, Typography, CircularProgress } from '@mui/material';
 import { useCatalogOverlayByCoords } from '../../api/queries';
 import { logger } from '../../utils/logger';
+import { findDisplay } from '../../utils/js9';
 
 declare global {
   interface Window {
@@ -62,10 +63,7 @@ export default function CatalogOverlayJS9({
     }
 
     try {
-      const display = window.JS9.displays?.find((d: any) => {
-        const divId = d.id || d.display || d.divID;
-        return divId === displayId;
-      });
+      const display = findDisplay(displayId);
 
       if (!display?.im) {
         return; // No image loaded

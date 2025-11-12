@@ -3,9 +3,11 @@
  * Real-time WCS coordinate display overlay for JS9 viewer
  * Shows RA, Dec, pixel coordinates, and flux value at cursor position
  */
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef, useCallback } from 'react';
 import { Paper, Typography, Box } from '@mui/material';
 import { logger } from '../../utils/logger';
+import { findDisplay, isJS9Available } from '../../utils/js9';
+import { throttle } from '../../utils/js9/throttle';
 
 declare global {
   interface Window {
@@ -67,17 +69,92 @@ export default function WCSDisplay({ displayId = 'js9Display' }: WCSDisplayProps
     return flux.toFixed(3);
   };
 
+  // Update WCS data - throttled to prevent excessive API calls
+  const updateWCSData = useCallback((x: number, y: number, imageId: string) => {
+    try {
+      // Get WCS coordinates using JS9 API
+      let ra: number | null = null;
+      let dec: number | null = null;
+
+      // Try multiple methods to get WCS coordinates
+      // Method 1: GetWCS (preferred)
+      if (typeof window.JS9.GetWCS === 'function') {
+        try {
+          const wcs = window.JS9.GetWCS(imageId, x, y);
+          if (wcs && typeof wcs.ra === 'number' && typeof wcs.dec === 'number') {
+            ra = wcs.ra;
+            dec = wcs.dec;
+          }
+        } catch (e) {
+          logger.debug('GetWCS failed, trying fallback:', e);
+        }
+      }
+
+      // Fallback: Try PixToWCS if GetWCS doesn't work
+      if ((ra === null || dec === null) && typeof window.JS9.PixToWCS === 'function') {
+        try {
+          const wcs = window.JS9.PixToWCS(imageId, x, y);
+          if (wcs && typeof wcs.ra === 'number' && typeof wcs.dec === 'number') {
+            ra = wcs.ra;
+            dec = wcs.dec;
+          }
+        } catch (e) {
+          logger.debug('PixToWCS failed:', e);
+        }
+      }
+
+      // Additional fallback: Try GetVal with WCS option
+      if ((ra === null || dec === null) && typeof window.JS9.GetVal === 'function') {
+        try {
+          // Some JS9 versions return WCS in GetVal with options
+          const result = window.JS9.GetVal(imageId, x, y, { wcs: true });
+          if (result && typeof result.ra === 'number' && typeof result.dec === 'number') {
+            ra = result.ra;
+            dec = result.dec;
+          }
+        } catch (e) {
+          // Ignore errors
+        }
+      }
+
+      // Get pixel value (flux)
+      let flux: number | null = null;
+      if (typeof window.JS9.GetVal === 'function') {
+        const pixelValue = window.JS9.GetVal(imageId, x, y);
+        if (typeof pixelValue === 'number' && !isNaN(pixelValue)) {
+          flux = pixelValue;
+        }
+      }
+
+      // Update state
+      setWcsData({
+        ra,
+        dec,
+        x: Math.round(x),
+        y: Math.round(y),
+        flux,
+      });
+    } catch (e) {
+      // Silently handle errors during mouse move
+      logger.debug('Error updating WCS display:', e);
+    }
+  }, []);
+
+  // Throttled version - limits calls to 100ms intervals
+  const throttledUpdateWCS = useRef(
+    throttle((x: number, y: number, imageId: string) => {
+      updateWCSData(x, y, imageId);
+    }, 100)
+  ).current;
+
   // Register mouse move handler
   useEffect(() => {
-    if (!window.JS9) {
+    if (!isJS9Available()) {
       setVisible(false);
       return;
     }
 
-    const display = window.JS9.displays?.find((d: any) => {
-      const divId = d.id || d.display || d.divID;
-      return divId === displayId;
-    });
+    const display = findDisplay(displayId);
 
     if (!display?.im) {
       setVisible(false);
@@ -107,68 +184,8 @@ export default function WCSDisplay({ displayId = 'js9Display' }: WCSDisplayProps
         // Get image ID from display
         const imageId = display.im.id;
 
-        // Get WCS coordinates using JS9 API
-        let ra: number | null = null;
-        let dec: number | null = null;
-
-        // Try multiple methods to get WCS coordinates
-        // Method 1: GetWCS (preferred)
-        if (typeof window.JS9.GetWCS === 'function') {
-          try {
-            const wcs = window.JS9.GetWCS(imageId, x, y);
-            if (wcs && typeof wcs.ra === 'number' && typeof wcs.dec === 'number') {
-              ra = wcs.ra;
-              dec = wcs.dec;
-            }
-          } catch (e) {
-            logger.debug('GetWCS failed, trying fallback:', e);
-          }
-        }
-
-        // Fallback: Try PixToWCS if GetWCS doesn't work
-        if ((ra === null || dec === null) && typeof window.JS9.PixToWCS === 'function') {
-          try {
-            const wcs = window.JS9.PixToWCS(imageId, x, y);
-            if (wcs && typeof wcs.ra === 'number' && typeof wcs.dec === 'number') {
-              ra = wcs.ra;
-              dec = wcs.dec;
-            }
-          } catch (e) {
-            logger.debug('PixToWCS failed:', e);
-          }
-        }
-
-        // Additional fallback: Try GetVal with WCS option
-        if ((ra === null || dec === null) && typeof window.JS9.GetVal === 'function') {
-          try {
-            // Some JS9 versions return WCS in GetVal with options
-            const result = window.JS9.GetVal(imageId, x, y, { wcs: true });
-            if (result && typeof result.ra === 'number' && typeof result.dec === 'number') {
-              ra = result.ra;
-              dec = result.dec;
-            }
-          } catch (e) {
-            // Ignore errors
-          }
-        }
-
-        // Get pixel value (flux)
-        let flux: number | null = null;
-        if (typeof window.JS9.GetVal === 'function') {
-          const pixelValue = window.JS9.GetVal(imageId, x, y);
-          if (typeof pixelValue === 'number' && !isNaN(pixelValue)) {
-            flux = pixelValue;
-          }
-        }
-
-        // Update state
-        setWcsData({
-          ra,
-          dec,
-          x: Math.round(x),
-          y: Math.round(y),
-          flux,
-        });
+        // Use throttled update to prevent excessive API calls
+        throttledUpdateWCS(x, y, imageId);
       } catch (e) {
         // Silently handle errors during mouse move
         logger.debug('Error updating WCS display:', e);
@@ -202,52 +219,39 @@ export default function WCSDisplay({ displayId = 'js9Display' }: WCSDisplayProps
     };
   }, [displayId]);
 
-  // Also listen for image changes to update visibility
-  useEffect(() => {
-    if (!window.JS9) {
+  // Listen for image changes to update visibility - REMOVED redundant polling
+  const checkImage = useCallback(() => {
+    if (!isJS9Available()) {
       setVisible(false);
       return;
     }
+    const display = findDisplay(displayId);
+    setVisible(!!display?.im);
+  }, [displayId]);
 
-    const checkImage = () => {
-      const display = window.JS9.displays?.find((d: any) => {
-        const divId = d.id || d.display || d.divID;
-        return divId === displayId;
-      });
-      setVisible(!!display?.im);
-    };
-
+  useEffect(() => {
     checkImage();
 
-    // Listen for image load events
-    let imageLoadHandler: (() => void) | null = null;
-    let imageDisplayHandler: (() => void) | null = null;
+    // Listen for image load events - events should be sufficient
+    const imageLoadHandler = () => {
+      setTimeout(checkImage, 100);
+    };
+    const imageDisplayHandler = () => {
+      setTimeout(checkImage, 100);
+    };
 
-    if (typeof window.JS9.AddEventListener === 'function') {
-      imageLoadHandler = () => {
-        setTimeout(checkImage, 100);
-      };
-      imageDisplayHandler = () => {
-        setTimeout(checkImage, 100);
-      };
-
+    if (isJS9Available() && typeof window.JS9.AddEventListener === 'function') {
       window.JS9.AddEventListener('imageLoad', imageLoadHandler);
       window.JS9.AddEventListener('imageDisplay', imageDisplayHandler);
     }
 
-    // Fallback polling
-    const interval = setInterval(checkImage, 1000);
-
     return () => {
-      clearInterval(interval);
-      if (imageLoadHandler && typeof window.JS9?.RemoveEventListener === 'function') {
+      if (isJS9Available() && typeof window.JS9?.RemoveEventListener === 'function') {
         window.JS9.RemoveEventListener('imageLoad', imageLoadHandler);
-      }
-      if (imageDisplayHandler && typeof window.JS9?.RemoveEventListener === 'function') {
         window.JS9.RemoveEventListener('imageDisplay', imageDisplayHandler);
       }
     };
-  }, [displayId]);
+  }, [checkImage]);
 
   if (!visible) {
     return null;

@@ -2,8 +2,8 @@
 
 **Phase:** Core Visualization Improvements (Weeks 1-4)  
 **Status:** Core Implementation Complete  
-**Started:** 2025-01-XX  
-**Completed:** 2025-01-XX  
+**Started:** 2025-11-12  
+**Completed:** 2025-11-12  
 **Reference:** `docs/analysis/CARTA_INTEGRATION_ASSESSMENT.md`  
 **Completion Summary:** `docs/analysis/CARTA_PHASE1_COMPLETION.md`
 
@@ -12,21 +12,21 @@
 ## Week 1: Complete JS9 Integration
 
 ### Task 1.1: Debug and Fix JS9 Image Loading ✅
-- [x] **Investigate current JS9 loading issues** (2025-01-XX)
+- [x] **Investigate current JS9 loading issues** (2025-11-12)
   - [ ] Review `frontend/src/components/Sky/SkyViewer.tsx` implementation
   - [ ] Check browser console for errors when loading images
   - [ ] Verify JS9 library is properly loaded (check `window.JS9` availability)
   - [ ] Test image loading with sample FITS files
   - [ ] Document specific error messages and failure modes
 
-- [x] **Fix FITS file serving endpoint** (2025-01-XX)
+- [x] **Fix FITS file serving endpoint** (2025-11-12)
   - [x] Review `/api/images/{id}/fits` endpoint in `src/dsa110_contimg/api/routes.py`
   - [x] Verify endpoint correctly serves FITS files
   - [x] Check CORS headers if needed
   - [ ] Test endpoint with curl/Postman (pending testing)
   - [x] Ensure proper Content-Type headers (`application/fits` or `image/fits`)
 
-- [x] **Fix CASA image → FITS conversion** (2025-01-XX)
+- [x] **Fix CASA image → FITS conversion** (2025-11-12)
   - [x] Review `src/dsa110_contimg/api/image_utils.py` conversion logic
   - [x] Fixed HTTPException import issue
   - [ ] Test conversion with sample CASA images (pending testing)

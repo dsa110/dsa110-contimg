@@ -1,0 +1,335 @@
+# Pipeline Stage Patterns and Anti-Patterns
+
+This document outlines common patterns (best practices) and anti-patterns (things to avoid) when working with pipeline stages in the DSA-110 Continuum Imaging Pipeline.
+
+## Common Patterns (Best Practices)
+
+### Pattern 1: Immutable Context Updates
+
+**Always** return a new context using `with_output()` or `with_outputs()`:
+
+```python
+# ✓ GOOD: Return new context
+def execute(self, context: PipelineContext) -> PipelineContext:
+    result = process_data(context.inputs["input"])
+    return context.with_output("output_key", result)
+```
+
+**Why:** Ensures immutability, prevents side effects, makes debugging easier.
+
+### Pattern 2: Comprehensive Input Validation
+
+**Always** validate all required inputs and prerequisites in `validate()`:
+
+```python
+# ✓ GOOD: Comprehensive validation
+def validate(self, context: PipelineContext) -> Tuple[bool, Optional[str]]:
+    # Check required inputs exist
+    if "input_path" not in context.inputs:
+        return False, "input_path required in context.inputs"
+    
+    # Check file exists
+    input_path = context.inputs["input_path"]
+    if not Path(input_path).exists():
+        return False, f"Input file not found: {input_path}"
+    
+    # Check file is readable
+    if not os.access(input_path, os.R_OK):
+        return False, f"Input file not readable: {input_path}"
+    
+    return True, None
+```
+
+**Why:** Catches errors early, provides clear error messages, prevents partial execution.
+
+### Pattern 3: Cleanup on Failure
+
+**Always** clean up temporary resources in `cleanup()`, especially on failure:
+
+```python
+# ✓ GOOD: Cleanup temporary files
+def cleanup(self, context: PipelineContext) -> None:
+    if "temp_file" in context.metadata:
+        temp_path = Path(context.metadata["temp_file"])
+        if temp_path.exists():
+            temp_path.unlink()
+            logger.debug(f"Cleaned up temporary file: {temp_path}")
+```
+
+**Why:** Prevents disk space issues, avoids leaving corrupted files, maintains clean state.
+
+### Pattern 4: Output Validation
+
+**Validate** outputs after execution to catch errors early:
+
+```python
+# ✓ GOOD: Validate outputs
+def validate_outputs(self, context: PipelineContext) -> Tuple[bool, Optional[str]]:
+    if "output_path" not in context.outputs:
+        return False, "output_path missing from context.outputs"
+    
+    output_path = context.outputs["output_path"]
+    if not Path(output_path).exists():
+        return False, f"Output file not found: {output_path}"
+    
+    # Check file size is reasonable
+    file_size = Path(output_path).stat().st_size
+    if file_size == 0:
+        return False, f"Output file is empty: {output_path}"
+    
+    return True, None
+```
+
+**Why:** Catches errors before next stage, provides clear diagnostics, ensures data integrity.
+
+### Pattern 5: Descriptive Error Messages
+
+**Always** provide clear, actionable error messages:
+
+```python
+# ✓ GOOD: Clear error message
+if "ms_path" not in context.outputs:
+    return False, "ms_path required in context.outputs (from previous conversion stage)"
+```
+
+**Why:** Makes debugging easier, helps users understand what went wrong, guides fixes.
+
+### Pattern 6: Logging Important Events
+
+**Log** important events for observability:
+
+```python
+# ✓ GOOD: Logging key events
+def execute(self, context: PipelineContext) -> PipelineContext:
+    logger.info(f"Starting {self.get_name()} stage")
+    logger.debug(f"Input: {context.inputs.get('input_path')}")
+    
+    result = process_data(context.inputs["input_path"])
+    
+    logger.info(f"Completed {self.get_name()} stage: {result}")
+    return context.with_output("output", result)
+```
+
+**Why:** Enables monitoring, debugging, and understanding pipeline execution.
+
+### Pattern 7: Dependency Declaration
+
+**Declare** dependencies explicitly in stage definitions:
+
+```python
+# ✓ GOOD: Explicit dependencies
+stages = [
+    StageDefinition("conversion", ConversionStage(config), []),
+    StageDefinition("calibration", CalibrationStage(config), ["conversion"]),
+    StageDefinition("imaging", ImagingStage(config), ["calibration"]),
+]
+```
+
+**Why:** Makes execution order clear, enables parallel execution, prevents circular dependencies.
+
+### Pattern 8: Configuration-Based Behavior
+
+**Use** configuration to control stage behavior:
+
+```python
+# ✓ GOOD: Configuration-driven
+def validate(self, context: PipelineContext) -> Tuple[bool, Optional[str]]:
+    if not self.config.my_stage.enabled:
+        return False, "My stage is disabled in configuration"
+    return True, None
+```
+
+**Why:** Enables flexible pipeline configurations, allows disabling stages, supports testing.
+
+## Anti-Patterns (Things to Avoid)
+
+### Anti-Pattern 1: Mutating Input Context
+
+**Never** modify the input context directly:
+
+```python
+# ✗ BAD: Mutating context
+def execute(self, context: PipelineContext) -> PipelineContext:
+    context.outputs["key"] = value  # DON'T DO THIS
+    return context
+```
+
+**Why:** Breaks immutability, causes side effects, makes debugging difficult.
+
+**Fix:** Use `context.with_output()` or `context.with_outputs()`.
+
+### Anti-Pattern 2: Skipping Validation
+
+**Never** skip validation or assume inputs are valid:
+
+```python
+# ✗ BAD: No validation
+def execute(self, context: PipelineContext) -> PipelineContext:
+    input_path = context.inputs["input_path"]  # May not exist!
+    result = process_file(input_path)  # Will fail if file doesn't exist
+    return context.with_output("result", result)
+```
+
+**Why:** Causes cryptic errors, fails late in execution, harder to debug.
+
+**Fix:** Always validate in `validate()` method.
+
+### Anti-Pattern 3: Ignoring Cleanup
+
+**Never** leave temporary files or resources unmanaged:
+
+```python
+# ✗ BAD: No cleanup
+def execute(self, context: PipelineContext) -> PipelineContext:
+    temp_file = create_temp_file()  # Never cleaned up!
+    result = process_file(temp_file)
+    return context.with_output("result", result)
+```
+
+**Why:** Fills disk space, leaves corrupted files, causes resource leaks.
+
+**Fix:** Always implement `cleanup()` method.
+
+### Anti-Pattern 4: Vague Error Messages
+
+**Never** provide unhelpful error messages:
+
+```python
+# ✗ BAD: Vague error
+if "input_path" not in context.inputs:
+    return False, "Error"  # Not helpful!
+```
+
+**Why:** Makes debugging difficult, wastes time, frustrates users.
+
+**Fix:** Provide specific, actionable error messages.
+
+### Anti-Pattern 5: Hard-Coded Paths
+
+**Never** hard-code file paths or configuration values:
+
+```python
+# ✗ BAD: Hard-coded path
+def execute(self, context: PipelineContext) -> PipelineContext:
+    output_path = "/fixed/path/output.fits"  # DON'T DO THIS
+    return context.with_output("output", output_path)
+```
+
+**Why:** Breaks portability, makes testing difficult, prevents flexibility.
+
+**Fix:** Use configuration and context paths.
+
+### Anti-Pattern 6: Silent Failures
+
+**Never** silently ignore errors:
+
+```python
+# ✗ BAD: Silent failure
+def execute(self, context: PipelineContext) -> PipelineContext:
+    try:
+        result = risky_operation()
+    except Exception:
+        pass  # DON'T DO THIS - silently ignores errors!
+    return context.with_output("result", result)
+```
+
+**Why:** Hides problems, makes debugging impossible, causes downstream failures.
+
+**Fix:** Log errors, raise exceptions, or return error status.
+
+### Anti-Pattern 7: Circular Dependencies
+
+**Never** create circular dependencies between stages:
+
+```python
+# ✗ BAD: Circular dependency
+stages = [
+    StageDefinition("stage1", Stage1(), ["stage2"]),  # Depends on stage2
+    StageDefinition("stage2", Stage2(), ["stage1"]),  # Depends on stage1
+]
+```
+
+**Why:** Prevents execution, causes infinite loops, breaks pipeline.
+
+**Fix:** Redesign stages to remove circular dependencies.
+
+### Anti-Pattern 8: Mixing Concerns
+
+**Never** mix multiple responsibilities in one stage:
+
+```python
+# ✗ BAD: Multiple responsibilities
+def execute(self, context: PipelineContext) -> PipelineContext:
+    # Converts data
+    ms_path = convert_uvh5_to_ms(...)
+    # Calibrates data
+    calibrated_ms = calibrate_ms(ms_path)
+    # Images data
+    image = image_ms(calibrated_ms)
+    # Validates image
+    validation = validate_image(image)
+    return context.with_outputs({...})
+```
+
+**Why:** Hard to test, violates single responsibility, difficult to maintain.
+
+**Fix:** Split into separate stages (ConversionStage, CalibrationStage, ImagingStage, ValidationStage).
+
+### Anti-Pattern 9: Not Handling Edge Cases
+
+**Never** ignore edge cases:
+
+```python
+# ✗ BAD: No edge case handling
+def execute(self, context: PipelineContext) -> PipelineContext:
+    data = load_data(context.inputs["input_path"])
+    result = process_data(data[0])  # Assumes data is not empty!
+    return context.with_output("result", result)
+```
+
+**Why:** Causes crashes, produces incorrect results, breaks on real data.
+
+**Fix:** Validate inputs, handle empty data, check bounds.
+
+### Anti-Pattern 10: Not Testing Dependencies
+
+**Never** assume dependencies are always available:
+
+```python
+# ✗ BAD: No dependency check
+def execute(self, context: PipelineContext) -> PipelineContext:
+    ms_path = context.outputs["ms_path"]  # May not exist!
+    result = process_ms(ms_path)
+    return context.with_output("result", result)
+```
+
+**Why:** Causes KeyError, fails unpredictably, breaks pipeline flow.
+
+**Fix:** Always validate dependencies in `validate()` method.
+
+## Summary
+
+**Do:**
+- Use immutable context updates (`with_output()`)
+- Validate comprehensively
+- Clean up resources
+- Provide clear error messages
+- Log important events
+- Declare dependencies explicitly
+- Use configuration for behavior
+- Handle edge cases
+
+**Don't:**
+- Mutate input context
+- Skip validation
+- Ignore cleanup
+- Use vague error messages
+- Hard-code paths
+- Silently ignore errors
+- Create circular dependencies
+- Mix concerns
+- Ignore edge cases
+- Assume dependencies exist
+
+Following these patterns ensures robust, maintainable, and testable pipeline stages.
+

@@ -1,6 +1,6 @@
 # VAST Tools Reference Analysis
 
-**Date:** 2025-01-XX  
+**Date:** 2025-11-12  
 **Purpose:** Analysis of VAST Tools codebase as reference/template for DSA-110 pipeline development  
 **Reference Repository:** `/data/dsa110-contimg/archive/references/vast-tools`  
 **Source:** https://github.com/askap-vast/vast-tools
@@ -761,5 +761,5 @@ VAST Tools provides excellent reference implementations for:
 
 ---
 
-**Last Updated:** 2025-01-XX
+**Last Updated:** 2025-11-12
 

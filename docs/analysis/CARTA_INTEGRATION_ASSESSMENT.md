@@ -1,6 +1,6 @@
 # CARTA Integration Assessment for DSA-110 Pipeline
 
-**Date:** 2025-01-XX  
+**Date:** 2025-11-12  
 **Tool:** CARTA (Cube Analysis and Rendering Tool for Astronomy)  
 **Documentation:** https://carta.readthedocs.io/en/latest/
 

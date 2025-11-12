@@ -123,6 +123,6 @@ When I (as an agent) first enter this workspace, I see:
 ---
 
 **See Also:**
-- [Documentation Quick Reference](docs/DOCUMENTATION_QUICK_REFERENCE.md)
-- [Agent Safeguards Complete](docs/AGENT_SAFEGUARDS_COMPLETE.md)
-- [Cursor Rules Directory](.cursor/rules/)
+- [Documentation Quick Reference](DOCUMENTATION_QUICK_REFERENCE.md)
+- [Agent Safeguards Complete](AGENT_SAFEGUARDS_COMPLETE.md)
+- Cursor Rules Directory: `.cursor/rules/` (external directory)

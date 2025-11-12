@@ -3,7 +3,7 @@
  * Local JavaScript analysis tasks for JS9 images
  * Reference: https://js9.si.edu/js9/help/localtasks.html
  */
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import {
   Box,
   Button,
@@ -27,6 +27,7 @@ import {
   Download,
 } from '@mui/icons-material';
 import { logger } from '../../utils/logger';
+import { findDisplay, isJS9Available } from '../../utils/js9';
 
 declare global {
   interface Window {
@@ -72,55 +73,41 @@ export default function QuickAnalysisPanel({
   const [mousePosition, setMousePosition] = useState<{ x: number; y: number } | null>(null);
   const [hasImage, setHasImage] = useState(false);
 
-  // Check if image is loaded - use JS9 events when available, fallback to polling
-  useEffect(() => {
-    if (!window.JS9) {
+  // Check if image is loaded - use JS9 events (REMOVED redundant polling)
+  const checkImage = useCallback(() => {
+    if (!isJS9Available()) {
       setHasImage(false);
       return;
     }
+    const display = findDisplay(displayId);
+    setHasImage(!!display?.im);
+  }, [displayId]);
 
-    const checkImage = () => {
-      const display = window.JS9.displays?.find((d: any) => {
-        const divId = d.id || d.display || d.divID;
-        return divId === displayId;
-      });
-      setHasImage(!!display?.im);
-    };
-
+  useEffect(() => {
     // Initial check
     checkImage();
 
-    // Try to use JS9 events for real-time updates
-    let imageLoadHandler: (() => void) | null = null;
-    let imageDisplayHandler: (() => void) | null = null;
+    // Use JS9 events for real-time updates - events should be sufficient
+    const imageLoadHandler = () => {
+      // Small delay to ensure display is updated
+      setTimeout(checkImage, 100);
+    };
+    const imageDisplayHandler = () => {
+      setTimeout(checkImage, 100);
+    };
 
-    if (typeof window.JS9.AddEventListener === 'function') {
-      imageLoadHandler = () => {
-        // Small delay to ensure display is updated
-        setTimeout(checkImage, 100);
-      };
-      imageDisplayHandler = () => {
-        setTimeout(checkImage, 100);
-      };
-
+    if (isJS9Available() && typeof window.JS9.AddEventListener === 'function') {
       window.JS9.AddEventListener('imageLoad', imageLoadHandler);
       window.JS9.AddEventListener('imageDisplay', imageDisplayHandler);
     }
 
-    // Fallback polling (less frequent if events are available)
-    const pollInterval = imageLoadHandler ? 2000 : 1000;
-    const interval = setInterval(checkImage, pollInterval);
-
     return () => {
-      clearInterval(interval);
-      if (imageLoadHandler && typeof window.JS9?.RemoveEventListener === 'function') {
+      if (isJS9Available() && typeof window.JS9?.RemoveEventListener === 'function') {
         window.JS9.RemoveEventListener('imageLoad', imageLoadHandler);
-      }
-      if (imageDisplayHandler && typeof window.JS9?.RemoveEventListener === 'function') {
         window.JS9.RemoveEventListener('imageDisplay', imageDisplayHandler);
       }
     };
-  }, [displayId]);
+  }, [checkImage]);
 
   // Update WCS info on mouse move
   useEffect(() => {

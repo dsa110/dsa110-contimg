@@ -385,7 +385,7 @@ CASA calibration tables (`.bpcal`, `.gpcal`, `.kcal`, etc.) are **directories**,
 
 ---
 
-## Agent Rules Effectiveness (2025-01-XX)
+## Agent Rules Effectiveness (2025-11-12)
 
 **Lesson:** Concise, action-oriented rules in `.cursorrules` are highly effective at guiding agent behavior.
 
@@ -409,7 +409,7 @@ CASA calibration tables (`.bpcal`, `.gpcal`, `.kcal`, etc.) are **directories**,
 
 ---
 
-## Documentation Organization (2025-01-XX)
+## Documentation Organization (2025-11-12)
 
 **CRITICAL RULE:** All markdown documentation files MUST be placed in the `docs/` directory structure, NOT in the root directory.
 
@@ -424,14 +424,14 @@ CASA calibration tables (`.bpcal`, `.gpcal`, `.kcal`, etc.) are **directories**,
 - Historical: `docs/archive/`
 
 **Before creating any markdown file:**
-1. Check [`docs/DOCUMENTATION_QUICK_REFERENCE.md`](docs/DOCUMENTATION_QUICK_REFERENCE.md) for where to put it
+1. Check [`../../DOCUMENTATION_QUICK_REFERENCE.md`](../../DOCUMENTATION_QUICK_REFERENCE.md) for where to put it
 2. Use lowercase_with_underscores naming (not UPPERCASE)
 3. Never create files in root directory
 
 **See also:**
-- [Documentation Consolidation Strategy](docs/DOCUMENTATION_CONSOLIDATION_STRATEGY.md)
-- [Documentation Quick Reference](docs/DOCUMENTATION_QUICK_REFERENCE.md)
-- [Cursor Rule: Documentation Location](.cursor/rules/documentation-location.mdc)
+- [Documentation Consolidation Strategy](../../DOCUMENTATION_CONSOLIDATION_STRATEGY.md)
+- [Documentation Quick Reference](../../DOCUMENTATION_QUICK_REFERENCE.md)
+- Cursor Rule: Documentation Location: `../../../.cursor/rules/documentation-location.mdc` (external file)
 
 ---
 
@@ -467,7 +467,7 @@ These should reduce drift, improve predictability, and make the CLIs/API easier 
 
 ---
 
-## Ops Directory Redundancies (2025-01-XX)
+## Ops Directory Redundancies (2025-11-12)
 
 ### Legacy Systemd Service File
 
@@ -548,7 +548,7 @@ See `docs/OPS_REDUNDANCY_ANALYSIS.md` for comprehensive analysis and recommendat
   - **Verification:** Test script `scripts/test_ft_phase_dir_corrected.py` confirms ft() doesn't use PHASE_DIR (104.5° scatter even when component is at PHASE_DIR position).
   - **References:** `docs/reports/FT_PHASE_CENTER_FIX.md`, `docs/reports/FT_PHASE_CENTER_TEST_RESULTS.md`
 
-- **AOFlagger Docker Installation (2025-01-XX):**
+- **AOFlagger Docker Installation (2025-11-12):**
   - AOFlagger installed via Docker to resolve Ubuntu 18.x compatibility issues (CMake version conflicts with pybind11)
   - Dockerfile pattern mirrors WSClean installation (`~/proj/wsclean/Dockerfile.everybeam-0.7.4`)
   - **Location:** `~/proj/aoflagger/Dockerfile` and `~/proj/aoflagger/build-docker.sh`
@@ -585,7 +585,7 @@ See `docs/OPS_REDUNDANCY_ANALYSIS.md` for comprehensive analysis and recommendat
 - Needs honing: automate downstream triggering, improve error recovery, scale testing for high-volume streams.
 - Open TODO: Automate full streaming with ESE flagging; optimize for low-latency previews.
 
-## CASA-mpi Evaluation (2025-01-XX)
+## CASA-mpi Evaluation (2025-11-12)
 
 **Context**: Evaluated CASA-mpi for MPI parallelization on remote HPC server.
 
@@ -608,7 +608,7 @@ See `docs/OPS_REDUNDANCY_ANALYSIS.md` for comprehensive analysis and recommendat
 
 **Documentation**: See `docs/reports/CASA_MPI_EVALUATION.md` for complete analysis.
 
-## Deep Dive Issues Analysis (2025-01-XX)
+## Deep Dive Issues Analysis (2025-11-12)
 
 **Comprehensive codebase analysis** identified critical security vulnerabilities, resource management issues, and areas for improvement.
 
@@ -655,7 +655,7 @@ See `docs/OPS_REDUNDANCY_ANALYSIS.md` for comprehensive analysis and recommendat
 
 **Full Report**: `docs/reports/DEEP_DIVE_ISSUES_REPORT.md`
 
-## Post-Fix Reassessment (2025-01-XX)
+## Post-Fix Reassessment (2025-11-12)
 
 **Priority Reclassification** completed after applying fixes:
 
@@ -688,7 +688,7 @@ See `docs/OPS_REDUNDANCY_ANALYSIS.md` for comprehensive analysis and recommendat
 3. ✅ Add automatic path validation to config loading (MEDIUM priority) - DONE
 4. ✅ Create comprehensive configuration documentation (MEDIUM priority) - DONE
 
-## Code Quality Improvements (2025-01-XX)
+## Code Quality Improvements (2025-11-12)
 
 **High-priority work completed** for systematic code quality improvements across the codebase.
 
@@ -828,7 +828,7 @@ python -m dsa110_contimg.mosaic.cli build \
     --output /stage/dsa110-contimg/mosaics/0834_transit_2025-11-02.image
 ```
 
-## Deep Study Summary (2025-01-XX)
+## Deep Study Summary (2025-11-12)
 
 **Comprehensive Codebase Analysis:**
 
@@ -1045,7 +1045,7 @@ Error (Resource deadlock avoided) when acquiring lock on
 
 ## VAST Tools Comparison and Adoption Recommendations
 
-**Date:** 2025-01-XX  
+**Date:** 2025-11-12  
 **Reference:** `/data/dsa110-contimg/archive/references/vast-tools`
 
 ### Key Findings

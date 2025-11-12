@@ -1,6 +1,6 @@
 # JS9 CASA Analysis Plugin
 
-**Date:** 2025-01-XX  
+**Date:** 2025-11-12  
 **Status:** complete  
 **Related:** [Dashboard Documentation](../reference/dashboard_backend_api.md), [Sky View Page](../analysis/DASHBOARD_OVERVIEW_DETAILED.md)
 
@@ -331,7 +331,7 @@ conda install matplotlib
 
 - [Dashboard API Reference](../reference/dashboard_backend_api.md)
 - [Sky View Page Documentation](../analysis/DASHBOARD_OVERVIEW_DETAILED.md)
-- [JS9 Integration](../qa/visualization/js9/README.md)
+- JS9 Integration: `../qa/visualization/js9/README.md` (external file, if exists)
 - [CASA Tasks Documentation](https://casa.nrao.edu/docs/casa-reference/)
 
 ---

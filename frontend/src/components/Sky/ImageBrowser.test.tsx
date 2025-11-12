@@ -12,6 +12,7 @@ import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { render, screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import '@testing-library/jest-dom';
+import { BrowserRouter } from 'react-router-dom';
 import ImageBrowser from './ImageBrowser';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 
@@ -38,13 +39,15 @@ describe('ImageBrowser', () => {
 
   const renderWithProviders = (props = {}) => {
     return render(
-      <QueryClientProvider client={queryClient}>
-        <ImageBrowser
-          onSelectImage={mockOnSelectImage}
-          selectedImageId={undefined}
-          {...props}
-        />
-      </QueryClientProvider>
+      <BrowserRouter>
+        <QueryClientProvider client={queryClient}>
+          <ImageBrowser
+            onSelectImage={mockOnSelectImage}
+            selectedImageId={undefined}
+            {...props}
+          />
+        </QueryClientProvider>
+      </BrowserRouter>
     );
   };
 

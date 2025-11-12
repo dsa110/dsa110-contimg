@@ -1,6 +1,6 @@
 # Deep Study Analysis: DSA-110 Continuum Imaging Pipeline
 
-**Date:** 2025-01-XX  
+**Date:** 2025-11-12  
 **Repository:** `dsa110-contimg`  
 **Package:** `dsa110_contimg`
 

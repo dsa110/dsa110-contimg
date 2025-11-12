@@ -6,7 +6,7 @@ This documentation is organized to help you understand and use the pipeline effe
 
 ## Getting Started
 
-- **[Documentation Overview](README.md)**: Start here for an overview of the documentation structure.
+- **[Documentation Guide](DOCUMENTATION_QUICK_REFERENCE.md)**: Guide to documentation organization and location.
 - **[Quick Start Guide](how-to/quickstart.md)**: Get up and running quickly.
 - **[Mosaic Quickstart](how-to/mosaic_quickstart.md)**: Plan and build a basic sky mosaic.
 - **[Dashboard Development](how-to/dashboard-development.md)**: Set up the development environment.
@@ -28,9 +28,9 @@ This documentation is organized to help you understand and use the pipeline effe
 - **[Streaming Architecture](concepts/streaming-architecture.md)**: System architecture and design
 
 ### Dashboard
-- **[Dashboard API Reference](reference/dashboard_api.md)**: Complete API documentation
+- **[Dashboard API Reference](reference/dashboard_backend_api.md)**: Complete API documentation
 - **[Control Panel Guide](how-to/control-panel-quickstart.md)**: Using the control panel
-- **[Sky View](how-to/SKYVIEW_IMPLEMENTATION_PLAN.md)**: Image viewing and analysis
+- **[Sky View](SKYVIEW_IMPLEMENTATION_PLAN.md)**: Image viewing and analysis
 
 ### Pipeline Operations
 - **[Docker Deployment](operations/deploy-docker.md)**: Deploy with Docker

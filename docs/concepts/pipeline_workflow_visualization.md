@@ -2,7 +2,7 @@
 
 **Purpose:** Comprehensive, instructive visualization of the pipeline workflow from raw UVH5 data ingestion to final calibrated continuum images.
 
-**Last Updated:** 2025-01-15
+**Last Updated:** 2025-11-12
 
 ---
 
@@ -24,24 +24,29 @@
 ```mermaid
 flowchart TB
  subgraph INGEST["Stage 1: Ingest & Grouping"]
- Files["UVH5 Files<br/>16 subbands per group"]
- Watch["Directory Watcher<br/>streaming_converter.py"]
+ Files["UVH5 files<br/>16 subbands"]
+ Watch["Directory<br/>watcher"]
  Queue["Queue DB<br/>ingest.sqlite3"]
  Files --> Watch
  Watch --> Queue
  end
  
- subgraph CONVERT["Stage 2: Conversion"]
- Group["Group Assembly<br/>5-min windows"]
- Orch["Orchestrator<br/>hdf5_orchestrator.py"]
- Writer{"Writer<br/>Selection"}
+ subgraph CATALOG["Stage 2: Catalog Setup"]
+ CatalogPrep["NVSS catalog<br/>preparation"]
+ CatalogPrep --> Queue
+ end
+ 
+ subgraph CONVERT["Stage 3: Conversion"]
+ Group["Group<br/>5-min windows"]
+ Orch["Orchestrator<br/>hdf5_orchestrator"]
+ Writer{"Writer<br/>selection"}
  Par["parallel-subband<br/>PRODUCTION"]
- Mono["pyuvdata<br/>TESTING ONLY"]
- Stage["Staging<br/>tmpfs or SSD"]
- Concat["CASA concat<br/>full-band MS"]
- Config["Configure MS<br/>MODEL_DATA, CORRECTED_DATA<br/>WEIGHT_SPECTRUM"]
- Validate["Validate MS<br/>readable, not empty"]
- MS["Measurement Set<br/>ready for calibration"]
+ Mono["pyuvdata<br/>TESTING"]
+ Stage["Staging<br/>tmpfs/SSD"]
+ Concat["concat<br/>full-band MS"]
+ Config["Configure MS<br/>MODEL_DATA/CORRECTED_DATA"]
+ Validate["Validate<br/>readable"]
+ MS["Measurement Set<br/>ready"]
  Queue --> Group
  Group --> Orch
  Orch --> Writer
@@ -55,38 +60,24 @@ flowchart TB
  Validate --> MS
  end
  
- subgraph CAL["Stage 3: Calibration"]
- Flag["Pre-Cal Flagging<br/>reset, zeros, RFI<br/>(optional)"]
- CalSel{"Calibrator<br/>Field?"}
- SkyModel["Sky Model<br/>NVSS >=10 mJy"]
- KCal["K-Calibration<br/>SKIPPED by default"]
- BPCal["BP-Calibration<br/>Bandpass"]
- GCal["G-Calibration<br/>Time-variable gains"]
- Reg["Register Caltables<br/>cal_registry.sqlite3"]
- MS --> Flag
- Flag --> CalSel
- CalSel -->|Yes| SkyModel
- CalSel -->|No| Apply
- SkyModel --> KCal
- KCal --> BPCal
- BPCal --> GCal
- GCal --> Reg
- Reg --> Apply
- end
- 
- subgraph APPLY["Stage 4: Apply Calibration"]
- Apply["Apply Caltables<br/>to CORRECTED_DATA"]
- Verify["Verify Data<br/>non-zero values"]
- Apply --> Verify
+ subgraph CAL["Stage 4: Calibration"]
+ CalSolve["Solve<br/>K/BP/G"]
+ Reg["Register<br/>caltables"]
+ CalApply["Apply<br/>calibration"]
+ Verify["Verify<br/>non-zero"]
+ MS --> CalSolve
+ CalSolve --> Reg
+ Reg --> CalApply
+ CalApply --> Verify
  end
  
  subgraph IMAGE["Stage 5: Imaging"]
- Clean["WSClean<br/>default backend"]
- Quick{"Quick<br/>Mode?"}
- Full["Full Quality<br/>config params"]
- QuickImg["Quick Look<br/>imsize<=512"]
+ Clean["WSClean<br/>imaging"]
+ Quick{"Quick<br/>mode?"}
+ Full["Full<br/>quality"]
+ QuickImg["Quick look<br/>imsize≤512"]
  Fits{"Export<br/>FITS?"}
- FITS["FITS Export<br/>.pbcor.fits"]
+ FITS["FITS<br/>export"]
  Verify --> Clean
  Clean --> Quick
  Quick -->|Yes| QuickImg
@@ -94,47 +85,84 @@ flowchart TB
  QuickImg --> Fits
  Full --> Fits
  Fits -->|Yes| FITS
- Fits -->|No| ImgFiles["CASA Images<br/>.image, .pb"]
+ Fits -->|No| ImgFiles["CASA<br/>images"]
  end
  
- subgraph PRODUCT["Stage 6: Products & Indexing"]
+ subgraph VALIDATE["Stage 6: Validation (Optional)"]
+ ValidateStage["QA<br/>validation"]
+ FITS --> ValidateStage
+ ImgFiles --> ValidateStage
+ end
+ 
+ subgraph CROSSMATCH["Stage 7: Cross-Match (Optional)"]
+ CrossMatchStage["Cross-Match<br/>NVSS"]
+ ValidateStage --> CrossMatchStage
+ ImgFiles --> CrossMatchStage
+ end
+ 
+ subgraph PHOTOMETRY["Stage 8: Photometry (Optional)"]
+ PhotometryStage["Photometry<br/>adaptive"]
+ CrossMatchStage --> PhotometryStage
+ ImgFiles --> PhotometryStage
+ end
+ 
+ subgraph PRODUCT["Stage 9: Products & Indexing"]
  Products["Products DB<br/>products.sqlite3"]
- MSIdx["MS Index<br/>ms_index table"]
- ImgIdx["Image Index<br/>images table"]
- QA["QA Artifacts<br/>plots, thumbnails"]
+ MSIdx["MS Index<br/>ms_index"]
+ ImgIdx["Image Index<br/>images"]
+ QA["QA<br/>artifacts"]
  Products --> MSIdx
  Products --> ImgIdx
  Products --> QA
  FITS --> Products
  ImgFiles --> Products
+ ValidateStage --> Products
+ CrossMatchStage --> Products
+ PhotometryStage --> Products
  end
  
- subgraph API["Stage 7: Monitoring & Access"]
- FastAPI["FastAPI Server<br/>monitoring endpoints"]
- Status["Status Endpoints<br/>queue, calibration"]
- QAView["QA Views<br/>thumbnails, plots"]
+ subgraph API["Stage 10: Monitoring & Access"]
+ FastAPI["FastAPI<br/>server"]
+ Status["Status<br/>endpoints"]
+ QAView["QA<br/>views"]
  Products --> FastAPI
  FastAPI --> Status
  FastAPI --> QAView
  end
  
- style INGEST fill:#E3F2FD,stroke:#1976D2,stroke-width:2px,color:#000
- style CONVERT fill:#F3E5F5,stroke:#7B1FA2,stroke-width:2px,color:#000
- style CAL fill:#E8F5E9,stroke:#388E3C,stroke-width:2px,color:#000
- style APPLY fill:#FFF3E0,stroke:#F57C00,stroke-width:2px,color:#000
- style IMAGE fill:#FCE4EC,stroke:#C2185B,stroke-width:2px,color:#000
- style PRODUCT fill:#E0F2F1,stroke:#00796B,stroke-width:2px,color:#000
- style API fill:#E1F5FE,stroke:#0277BD,stroke-width:2px,color:#000
+ %% Subgraph styling - vibrant colors with backgrounds
+ style INGEST fill:#E3F2FD,stroke:#1976D2,stroke-width:3px,color:#000
+ style CATALOG fill:#E8F5E9,stroke:#388E3C,stroke-width:3px,color:#000
+ style CONVERT fill:#F3E5F5,stroke:#7B1FA2,stroke-width:3px,color:#000
+ style CAL fill:#E8F5E9,stroke:#388E3C,stroke-width:3px,color:#000
+ style IMAGE fill:#FCE4EC,stroke:#C2185B,stroke-width:3px,color:#000
+ style VALIDATE fill:#F5F5F5,stroke:#757575,stroke-width:2px,stroke-dasharray: 5 5,color:#000
+ style CROSSMATCH fill:#F5F5F5,stroke:#757575,stroke-width:2px,stroke-dasharray: 5 5,color:#000
+ style PHOTOMETRY fill:#F5F5F5,stroke:#757575,stroke-width:2px,stroke-dasharray: 5 5,color:#000
+ style PRODUCT fill:#E0F2F1,stroke:#00796B,stroke-width:3px,color:#000
+ style API fill:#E1F5FE,stroke:#0277BD,stroke-width:3px,color:#000
+ 
+ %% Node styling - vibrant colors for key nodes
+ style Writer fill:#FF9800,stroke:#E65100,stroke-width:3px,color:#FFF
+ style Quick fill:#FF9800,stroke:#E65100,stroke-width:3px,color:#FFF
+ style Fits fill:#FF9800,stroke:#E65100,stroke-width:3px,color:#FFF
+ style Par fill:#4CAF50,stroke:#1B5E20,stroke-width:3px,color:#FFF
+ style Mono fill:#F44336,stroke:#B71C1C,stroke-width:3px,color:#FFF
+ style MS fill:#4CAF50,stroke:#1B5E20,stroke-width:3px,color:#FFF
+ style Clean fill:#E91E63,stroke:#880E4F,stroke-width:3px,color:#FFF
 ```
 
 **Key Points:**
 - **Stage 1**: Continuous monitoring of incoming UVH5 files, grouping by timestamp
-- **Stage 2**: Conversion includes MS configuration (MODEL_DATA, CORRECTED_DATA, WEIGHT_SPECTRUM) - MS is ready for calibration after conversion
-- **Stage 3**: Calibration includes optional pre-calibration flagging, then solves K/BP/G or uses existing caltables
-- **Stage 4**: Applies calibration to create CORRECTED_DATA column
+- **Stage 2**: Catalog setup prepares NVSS catalog for calibration (runs before conversion)
+- **Stage 3**: Conversion includes MS configuration (MODEL_DATA, CORRECTED_DATA, WEIGHT_SPECTRUM) - MS is ready for calibration after conversion
+- **Stage 4**: Calibration split into two sub-stages: `calibrate_solve` (solves K/BP/G) and `calibrate_apply` (applies solutions to create CORRECTED_DATA column)
 - **Stage 5**: Imaging with optional development tier for speed (⚠️ NON-SCIENCE)
-- **Stage 6**: All products indexed in SQLite database
-- **Stage 7**: API provides monitoring and access to all products
+- **Stage 6**: Validation (optional) - QA validation with tiered validation for fast execution
+- **Stage 7**: Cross-match (optional) - Source cross-matching with NVSS catalog
+- **Stage 8**: Adaptive photometry (optional) - Differential flux measurement
+- **Stage 9**: All products indexed in SQLite database
+- **Stage 10**: API provides monitoring and access to all products
 
 ---
 

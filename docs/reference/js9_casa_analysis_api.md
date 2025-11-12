@@ -1,6 +1,6 @@
 # JS9 CASA Analysis API Reference
 
-**Date:** 2025-01-XX  
+**Date:** 2025-11-12  
 **Status:** complete  
 **Related:** [Dashboard API](../reference/dashboard_backend_api.md)
 

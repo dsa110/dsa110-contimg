@@ -1,6 +1,6 @@
 # Test Prompt for New Agent
 
-**Status:** ✅ VALIDATED - Test confirmed that updated `.cursorrules` works correctly (2025-01-XX)
+**Status:** ✅ VALIDATED - Test confirmed that updated `.cursorrules` works correctly (2025-11-12)
 
 Copy and paste this prompt to a new agent session:
 
@@ -44,7 +44,7 @@ Run the Python script at `scripts/test_python_env.py` and tell me which Python e
 ✓ **Good:** Agent uses `/opt/miniforge/envs/casa6/bin/python` automatically  
 ✗ **Bad:** Agent uses `python3` or `python` (system Python)
 
-**Test Results (2025-01-XX):**
+**Test Results (2025-11-12):**
 - ✅ Agent automatically used casa6 without explicit instruction
 - ✅ All CASA imports successful
 - ✅ All scientific packages available

@@ -1,6 +1,6 @@
 # WABIFAT Tool Analysis
 
-**Date:** 2025-01-XX  
+**Date:** 2025-11-12  
 **Repository:** https://github.com/KasVeken/WABIFAT  
 **Purpose:** Assess borrowable techniques for DSA-110 continuum imaging pipeline
 

@@ -1,6 +1,6 @@
 # Registry Updated with Real Data
 
-**Date:** 2025-01-XX  
+**Date:** 2025-11-12  
 **Action:** Registered 10 real observational data tiles from `/stage/` into products database
 
 ---
@@ -93,5 +93,5 @@ dsa110-contimg mosaic build \
 
 ---
 
-**Last Updated:** 2025-01-XX
+**Last Updated:** 2025-11-12
 

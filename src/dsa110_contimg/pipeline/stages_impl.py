@@ -49,6 +49,28 @@ class CatalogSetupStage(PipelineStage):
     2. Checks if catalog databases exist for that declination strip
     3. Builds missing catalogs automatically
     4. Logs catalog status for downstream stages
+
+    Example:
+        >>> config = PipelineConfig(paths=PathsConfig(...))
+        >>> stage = CatalogSetupStage(config)
+        >>> context = PipelineContext(
+        ...     config=config,
+        ...     inputs={"input_path": "/data/observation.hdf5"}
+        ... )
+        >>> # Validate prerequisites
+        >>> is_valid, error = stage.validate(context)
+        >>> if is_valid:
+        ...     # Execute stage
+        ...     result_context = stage.execute(context)
+        ...     # Check catalog setup status
+        ...     status = result_context.outputs["catalog_setup_status"]
+        ...     # Status can be: "completed", "skipped_no_dec", "skipped_error"
+
+    Inputs:
+        - `input_path` (str): Path to HDF5 observation file
+
+    Outputs:
+        - `catalog_setup_status` (str): Status of catalog setup operation
     """
 
     def __init__(self, config: PipelineConfig):
@@ -318,6 +340,34 @@ class ConversionStage(PipelineStage):
 
     Discovers complete subband groups in the specified time window and
     converts them to CASA Measurement Sets.
+
+    Example:
+        >>> config = PipelineConfig(paths=PathsConfig(...))
+        >>> stage = ConversionStage(config)
+        >>> context = PipelineContext(
+        ...     config=config,
+        ...     inputs={
+        ...         "input_path": "/data/observation.hdf5",
+        ...         "start_time": "2025-01-01T00:00:00",
+        ...         "end_time": "2025-01-01T01:00:00"
+        ...     }
+        ... )
+        >>> # Validate prerequisites
+        >>> is_valid, error = stage.validate(context)
+        >>> if is_valid:
+        ...     # Execute conversion
+        ...     result_context = stage.execute(context)
+        ...     # Get converted MS path
+        ...     ms_path = result_context.outputs["ms_path"]
+        ...     # MS path is now available for calibration stages
+
+    Inputs:
+        - `input_path` (str): Path to UVH5 input file
+        - `start_time` (str): Start time for conversion window
+        - `end_time` (str): End time for conversion window
+
+    Outputs:
+        - `ms_path` (str): Path to converted Measurement Set file
     """
 
     def __init__(self, config: PipelineConfig):
@@ -580,6 +630,31 @@ class CalibrationSolveStage(PipelineStage):
     This stage solves calibration tables (delay/K, bandpass/BP, gains/G)
     for a calibrator Measurement Set. This wraps the calibration CLI
     functions directly without subprocess overhead.
+
+    Example:
+        >>> config = PipelineConfig(paths=PathsConfig(...))
+        >>> stage = CalibrationSolveStage(config)
+        >>> # Context should have ms_path from conversion stage
+        >>> context = PipelineContext(
+        ...     config=config,
+        ...     outputs={"ms_path": "/data/converted.ms"}
+        ... )
+        >>> # Validate prerequisites
+        >>> is_valid, error = stage.validate(context)
+        >>> if is_valid:
+        ...     # Execute calibration solving
+        ...     result_context = stage.execute(context)
+        ...     # Get calibration tables
+        ...     cal_tables = result_context.outputs["calibration_tables"]
+        ...     # Tables include: K, BA, BP, GA, GP, 2G
+        ...     assert "K" in cal_tables
+
+    Inputs:
+        - `ms_path` (str): Path to Measurement Set (from context.outputs)
+
+    Outputs:
+        - `calibration_tables` (dict): Dictionary of calibration table paths
+          Keys: "K", "BA", "BP", "GA", "GP", "2G" (depending on config)
     """
 
     def __init__(self, config: PipelineConfig):
@@ -1049,6 +1124,33 @@ class CalibrationStage(PipelineStage):
     This stage applies calibration solutions (bandpass, gain) to the
     Measurement Set. In the current implementation, this wraps the
     existing calibration service.
+
+    Example:
+        >>> config = PipelineConfig(paths=PathsConfig(...))
+        >>> stage = CalibrationStage(config)
+        >>> # Context should have ms_path and calibration_tables
+        >>> context = PipelineContext(
+        ...     config=config,
+        ...     outputs={
+        ...         "ms_path": "/data/converted.ms",
+        ...         "calibration_tables": {"K": "/data/K.cal", "BA": "/data/BA.cal"}
+        ...     }
+        ... )
+        >>> # Validate prerequisites
+        >>> is_valid, error = stage.validate(context)
+        >>> if is_valid:
+        ...     # Execute calibration application
+        ...     result_context = stage.execute(context)
+        ...     # Calibrated MS path available for imaging
+        ...     calibrated_ms = result_context.outputs.get("ms_path")
+        ...     # Same MS path, now calibrated
+
+    Inputs:
+        - `ms_path` (str): Path to uncalibrated Measurement Set (from context.outputs)
+        - `calibration_tables` (dict): Calibration tables from CalibrationSolveStage
+
+    Outputs:
+        - `ms_path` (str): Path to calibrated Measurement Set (same or updated path)
     """
 
     def __init__(self, config: PipelineConfig):
@@ -1271,7 +1373,30 @@ class ImagingStage(PipelineStage):
     """Imaging stage: Create images from calibrated MS.
 
     This stage runs imaging on the calibrated Measurement Set to produce
-    continuum images.
+    continuum images using CASA's tclean algorithm.
+
+    Example:
+        >>> config = PipelineConfig(paths=PathsConfig(...))
+        >>> stage = ImagingStage(config)
+        >>> # Context should have ms_path from previous calibration stage
+        >>> context = PipelineContext(
+        ...     config=config,
+        ...     outputs={"ms_path": "/data/calibrated.ms"}
+        ... )
+        >>> # Validate prerequisites
+        >>> is_valid, error = stage.validate(context)
+        >>> if is_valid:
+        ...     # Execute imaging
+        ...     result_context = stage.execute(context)
+        ...     # Get image path
+        ...     image_path = result_context.outputs["image_path"]
+        ...     # Image is now available for validation/photometry stages
+
+    Inputs:
+        - `ms_path` (str): Path to calibrated Measurement Set (from context.outputs)
+
+    Outputs:
+        - `image_path` (str): Path to output FITS image file
     """
 
     def __init__(self, config: PipelineConfig):
@@ -1588,11 +1713,38 @@ class OrganizationStage(PipelineStage):
     - Failed MS → ms/failed/YYYY-MM-DD/
 
     Updates database paths to reflect new locations.
+
+    Example:
+        >>> config = PipelineConfig(paths=PathsConfig(...))
+        >>> stage = OrganizationStage(config)
+        >>> # Context should have ms_path or ms_paths from previous stages
+        >>> context = PipelineContext(
+        ...     config=config,
+        ...     outputs={"ms_path": "/data/raw/observation.ms"}
+        ... )
+        >>> # Validate prerequisites
+        >>> is_valid, error = stage.validate(context)
+        >>> if is_valid:
+        ...     # Execute organization
+        ...     result_context = stage.execute(context)
+        ...     # MS file moved to organized location
+        ...     organized_path = result_context.outputs.get("ms_path")
+        ...     # Path now in: ms/science/2025-01-01/observation.ms
+
+    Inputs:
+        - `ms_path` (str) or `ms_paths` (list): MS file(s) to organize (from context.outputs)
+
+    Outputs:
+        - `ms_path` (str) or `ms_paths` (list): Updated paths to organized MS files
     """
 
     def __init__(self, config: PipelineConfig):
-        super().__init__(config)
-        self.stage_name = "organization"
+        """Initialize organization stage.
+
+        Args:
+            config: Pipeline configuration
+        """
+        self.config = config
 
     def validate(self, context: PipelineContext) -> Tuple[bool, Optional[str]]:
         """Validate organization stage prerequisites."""
@@ -1725,6 +1877,30 @@ class ValidationStage(PipelineStage):
     - Source counts completeness analysis
 
     Optionally generates HTML validation reports with diagnostic plots.
+
+    Example:
+        >>> config = PipelineConfig(paths=PathsConfig(...))
+        >>> stage = ValidationStage(config)
+        >>> # Context should have image_path from imaging stage
+        >>> context = PipelineContext(
+        ...     config=config,
+        ...     outputs={"image_path": "/data/image.fits"}
+        ... )
+        >>> # Validate prerequisites
+        >>> is_valid, error = stage.validate(context)
+        >>> if is_valid:
+        ...     # Execute validation
+        ...     result_context = stage.execute(context)
+        ...     # Get validation results
+        ...     validation_results = result_context.outputs["validation_results"]
+        ...     # Results include: status, metrics, report_path
+        ...     assert validation_results["status"] in ["passed", "warning", "failed"]
+
+    Inputs:
+        - `image_path` (str): Path to FITS image file (from context.outputs)
+
+    Outputs:
+        - `validation_results` (dict): Validation results with status, metrics, and report_path
     """
 
     def __init__(self, config: PipelineConfig):
@@ -1895,6 +2071,34 @@ class CrossMatchStage(PipelineStage):
 
     The stage supports both basic (nearest neighbor) and advanced (all matches)
     matching methods.
+
+    Example:
+        >>> config = PipelineConfig(paths=PathsConfig(...))
+        >>> config.crossmatch.enabled = True
+        >>> stage = CrossMatchStage(config)
+        >>> # Context should have detected_sources or image_path
+        >>> context = PipelineContext(
+        ...     config=config,
+        ...     outputs={
+        ...         "image_path": "/data/image.fits",
+        ...         "detected_sources": pd.DataFrame([...])  # Optional
+        ...     }
+        ... )
+        >>> # Validate prerequisites
+        >>> is_valid, error = stage.validate(context)
+        >>> if is_valid:
+        ...     # Execute cross-matching
+        ...     result_context = stage.execute(context)
+        ...     # Get cross-match results
+        ...     crossmatch_results = result_context.outputs["crossmatch_results"]
+        ...     # Results include matches, offsets, flux scales
+
+    Inputs:
+        - `detected_sources` (DataFrame): Detected sources from photometry/validation
+        - `image_path` (str): Path to image (used if detected_sources not available)
+
+    Outputs:
+        - `crossmatch_results` (dict): Cross-match results with matches, offsets, flux scales
     """
 
     def __init__(self, config: PipelineConfig):
@@ -2064,8 +2268,10 @@ class CrossMatchStage(PipelineStage):
             # Build matches DataFrame for this catalog
             matches_list = []
             for detected_idx in matched_indices:
-                catalog_idx = int(multi_match_results.loc[detected_idx, f"{catalog_type}_idx"])
-                separation = float(multi_match_results.loc[detected_idx, f"{catalog_type}_separation_arcsec"])
+                catalog_idx = int(
+                    multi_match_results.loc[detected_idx, f"{catalog_type}_idx"])
+                separation = float(
+                    multi_match_results.loc[detected_idx, f"{catalog_type}_separation_arcsec"])
 
                 # Filter by separation limits
                 min_sep = self.config.crossmatch.min_separation_arcsec
@@ -2077,8 +2283,10 @@ class CrossMatchStage(PipelineStage):
                 catalog_row = catalog_sources.iloc[catalog_idx]
 
                 # Calculate offsets
-                dra_arcsec = (detected_row["ra_deg"] - catalog_row["ra_deg"]) * 3600.0
-                ddec_arcsec = (detected_row["dec_deg"] - catalog_row["dec_deg"]) * 3600.0
+                dra_arcsec = (detected_row["ra_deg"] -
+                              catalog_row["ra_deg"]) * 3600.0
+                ddec_arcsec = (
+                    detected_row["dec_deg"] - catalog_row["dec_deg"]) * 3600.0
 
                 match_dict = {
                     "detected_idx": detected_idx,
@@ -2096,9 +2304,11 @@ class CrossMatchStage(PipelineStage):
                 if "flux_jy" in detected_row:
                     match_dict["detected_flux"] = detected_row["flux_jy"]
                 if "flux_mjy" in catalog_row:
-                    match_dict["catalog_flux"] = catalog_row["flux_mjy"] / 1000.0  # Convert to Jy
+                    # Convert to Jy
+                    match_dict["catalog_flux"] = catalog_row["flux_mjy"] / 1000.0
                     if "detected_flux" in match_dict:
-                        match_dict["flux_ratio"] = match_dict["detected_flux"] / match_dict["catalog_flux"]
+                        match_dict["flux_ratio"] = match_dict["detected_flux"] / \
+                            match_dict["catalog_flux"]
 
                 # Add catalog source ID
                 if "id" in catalog_row:
@@ -2109,7 +2319,8 @@ class CrossMatchStage(PipelineStage):
                 matches_list.append(match_dict)
 
             if len(matches_list) == 0:
-                logger.info(f"No matches within separation limits for {catalog_type.upper()}")
+                logger.info(
+                    f"No matches within separation limits for {catalog_type.upper()}")
                 continue
 
             matches = pd.DataFrame(matches_list)
@@ -2246,8 +2457,9 @@ class CrossMatchStage(PipelineStage):
             if "detected_sources" in context.outputs:
                 detected_sources = context.outputs["detected_sources"]
                 if detected_idx < len(detected_sources):
-                    source_id = detected_sources.iloc[detected_idx].get("source_id")
-            
+                    source_id = detected_sources.iloc[detected_idx].get(
+                        "source_id")
+
             # Fallback: generate source_id from index if not available
             if source_id is None:
                 source_id = f"src_{detected_idx}"
@@ -2307,7 +2519,7 @@ class CrossMatchStage(PipelineStage):
 
     def get_name(self) -> str:
         """Get stage name."""
-        return "crossmatch"
+        return "cross_match"
 
 
 class AdaptivePhotometryStage(PipelineStage):
@@ -2315,6 +2527,34 @@ class AdaptivePhotometryStage(PipelineStage):
 
     This stage runs adaptive binning photometry on sources in the field, either
     from a provided list of coordinates or by querying the NVSS catalog.
+
+    Example:
+        >>> config = PipelineConfig(paths=PathsConfig(...))
+        >>> config.photometry.enabled = True
+        >>> stage = AdaptivePhotometryStage(config)
+        >>> # Context should have ms_path and optionally image_path
+        >>> context = PipelineContext(
+        ...     config=config,
+        ...     outputs={
+        ...         "ms_path": "/data/calibrated.ms",
+        ...         "image_path": "/data/image.fits"  # Optional
+        ...     }
+        ... )
+        >>> # Validate prerequisites
+        >>> is_valid, error = stage.validate(context)
+        >>> if is_valid:
+        ...     # Execute adaptive photometry
+        ...     result_context = stage.execute(context)
+        ...     # Get photometry results
+        ...     photometry_results = result_context.outputs["photometry_results"]
+        ...     # Results include flux measurements with adaptive binning
+
+    Inputs:
+        - `ms_path` (str): Path to calibrated Measurement Set (from context.outputs)
+        - `image_path` (str): Optional path to image for source detection
+
+    Outputs:
+        - `photometry_results` (DataFrame): Photometry results with adaptive binning
     """
 
     def __init__(self, config: PipelineConfig):

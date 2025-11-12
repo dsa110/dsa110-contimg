@@ -550,7 +550,7 @@ console.error('API error:', error);
 
 ## Next Steps
 
-- See [Dashboard Guide](dashboard.md) for user documentation
-- See [API Reference](../reference/dashboard_api.md) for endpoint details
+- See [Dashboard Quick Start](dashboard-quickstart.md) for user documentation
+- See [API Reference](../reference/dashboard_backend_api.md) for endpoint details
 - See [Frontend Design](../concepts/frontend_design.md) for architecture decisions
 

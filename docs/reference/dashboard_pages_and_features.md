@@ -1,6 +1,6 @@
 # DSA-110 Dashboard: Pages & Features Reference
 
-**Date:** 2025-01-XX  
+**Date:** 2025-11-12  
 **Status:** Consolidated feature documentation  
 **Audience:** Users, frontend developers, product managers
 
@@ -932,12 +932,12 @@
 ## Related Documentation
 
 - **[Dashboard Quick Start](../how-to/dashboard-quickstart.md)** - Getting started guide
-- **[API Reference](./dashboard_api.md)** - API endpoint documentation
+- **[API Reference](./dashboard_backend_api.md)** - API endpoint documentation
 - **[Dashboard Architecture](../concepts/dashboard_architecture.md)** - System architecture
 - **[Dashboard Vision & Design](../concepts/dashboard_vision_and_design.md)** - Design principles
 
 ---
 
-**Last Updated:** 2025-01-XX  
+**Last Updated:** 2025-11-12  
 **Status:** Consolidated Feature Reference
 

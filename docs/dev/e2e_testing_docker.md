@@ -228,4 +228,4 @@ Docker-based E2E tests work seamlessly in CI:
 
 - [Test Optimization Summary](test_optimization_summary.md)
 - [Casa6 Test Execution](casa6_test_execution.md)
-- [E2E Page Objects](../tests/e2e/pages/)
+- E2E Page Objects: `../tests/e2e/pages/` (external directory)

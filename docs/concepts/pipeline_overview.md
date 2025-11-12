@@ -8,58 +8,85 @@ This page illustrates the streaming continuum imaging pipeline from ingest to pr
 
 ```mermaid
 flowchart TB
-  Ingest["Ingest Watcher"] --> Group["Group Subbands<br/>by time window"]
-  Group --> Convert["Convert UVH5 to MS<br/>strategy orchestrator"]
-  Convert --> CalSel{"Calibrator<br/>Field?"}
-  CalSel -->|yes| Cal["Calibrate<br/>K, BP, G"]
-  CalSel -->|no| Apply["Apply Latest<br/>Caltables"]
-  Cal --> Reg["Register<br/>Caltables"]
-  Reg --> Apply
-  Apply --> Image["WSClean Image<br/>tclean available"]
-  Image --> Index["Record in Products DB<br/>ms_index, images, qa_artifacts"]
-  Index --> API["API/QA Views"]
+  Ingest["Ingest<br/>watcher"] --> Group["Group<br/>subbands"]
+  Group --> Catalog["Catalog<br/>NVSS prep"]
+  Catalog --> Convert["Convert<br/>UVH5→MS"]
+  Convert --> CalSolve["Solve<br/>K/BP/G"]
+  CalSolve --> Reg["Register<br/>caltables"]
+  Reg --> Apply["Apply<br/>calibration"]
+  Apply --> Image["Image<br/>WSClean"]
+  Image -.->|optional| Organize["Organize<br/>MS files"]
+  Image -.->|optional| Validate["Validate<br/>QA checks"]
+  Image -.->|optional| CrossMatch["Cross-Match<br/>NVSS"]
+  Image -.->|optional| Photometry["Photometry<br/>adaptive"]
+  Organize --> Index
+  Validate --> Index
+  CrossMatch --> Index
+  Photometry --> Index
+  Image --> Index
+  Index["Index<br/>products DB"] --> API["API<br/>monitoring"]
   
-  style Ingest fill:#E3F2FD,stroke:#1976D2,stroke-width:2px,color:#000
-  style Group fill:#E3F2FD,stroke:#1976D2,stroke-width:2px,color:#000
-  style Convert fill:#F3E5F5,stroke:#7B1FA2,stroke-width:2px,color:#000
-  style CalSel fill:#FFF9C4,stroke:#F57F17,stroke-width:2px,color:#000
-  style Cal fill:#E8F5E9,stroke:#388E3C,stroke-width:2px,color:#000
-  style Reg fill:#E8F5E9,stroke:#388E3C,stroke-width:2px,color:#000
-  style Apply fill:#FFF3E0,stroke:#F57C00,stroke-width:2px,color:#000
-  style Image fill:#FCE4EC,stroke:#C2185B,stroke-width:2px,color:#000
-  style Index fill:#E0F2F1,stroke:#00796B,stroke-width:2px,color:#000
-  style API fill:#E1F5FE,stroke:#0277BD,stroke-width:2px,color:#000
+  %% Core path - vibrant colors, thick strokes, white text
+  style Ingest fill:#2196F3,stroke:#0D47A1,stroke-width:3px,color:#FFF
+  style Group fill:#2196F3,stroke:#0D47A1,stroke-width:3px,color:#FFF
+  style Catalog fill:#4CAF50,stroke:#1B5E20,stroke-width:3px,color:#FFF
+  style Convert fill:#9C27B0,stroke:#4A148C,stroke-width:3px,color:#FFF
+  style CalSolve fill:#4CAF50,stroke:#1B5E20,stroke-width:3px,color:#FFF
+  style Reg fill:#4CAF50,stroke:#1B5E20,stroke-width:3px,color:#FFF
+  style Apply fill:#FF9800,stroke:#E65100,stroke-width:3px,color:#FFF
+  style Image fill:#E91E63,stroke:#880E4F,stroke-width:3px,color:#FFF
+  style Index fill:#00BCD4,stroke:#006064,stroke-width:3px,color:#FFF
+  style API fill:#2196F3,stroke:#0D47A1,stroke-width:3px,color:#FFF
+  
+  %% Optional path - lighter colors, dashed borders
+  style Organize fill:#F5F5F5,stroke:#757575,stroke-width:2px,stroke-dasharray: 5 5,color:#000
+  style Validate fill:#F5F5F5,stroke:#757575,stroke-width:2px,stroke-dasharray: 5 5,color:#000
+  style CrossMatch fill:#F5F5F5,stroke:#757575,stroke-width:2px,stroke-dasharray: 5 5,color:#000
+  style Photometry fill:#F5F5F5,stroke:#757575,stroke-width:2px,stroke-dasharray: 5 5,color:#000
 ```
 
 Notes:
+
+- **Catalog Setup**: Prepares NVSS catalog for calibration (runs before conversion in standard workflow).
 - Conversion uses a strategy pattern and can stage to tmpfs for speed.
+- Calibration is split into two stages: `calibrate_solve` (solves K/BP/G) and `calibrate_apply` (applies solutions).
 - Calibration supports quality tiers with explicit trade-offs for different use cases.
 - Imaging supports quality tiers: "standard" (recommended for science), "development" (⚠️ NON-SCIENCE), "high_precision" (enhanced quality).
+- Optional stages (organization, validation, cross-match, adaptive photometry) can be enabled via configuration.
+- **Organization Stage**: Organizes MS files into date-based directory structure (calibrators/science/failed subdirectories). Optional but recommended for production.
+- **Fast Validation**: Pipeline validation can run in <60 seconds using tiered validation with parallel execution. See [Fast Validation Implementation](../dev/qa_fast_validation_implementation.md) and [Validation Guide](../how-to/validation_guide.md).
 
 ## Conversion: Writer Selection and Staging
 
 ```mermaid
 flowchart LR
-  Auto["--writer auto"] --> N{"n_subbands<br/><= 2?"}
-  N -->|yes| Mono["pyuvdata<br/>monolithic write<br/>TESTING ONLY"]
-  N -->|no| Par["parallel-subband<br/>parallel per-subband writes<br/>PRODUCTION"]
-  Par --> Stage{"--stage-to-tmpfs?"}
-  Stage -->|yes| Tmp["tmpfs /dev/shm<br/>staging"]
-  Stage -->|no| Disk["SSD NVMe<br/>scratch"]
-  Tmp --> Concat["CASA concat<br/>full-band MS"]
+  Auto["auto"] --> N{"≤2<br/>subbands?"}
+  N -->|yes| Mono["pyuvdata<br/>TESTING"]
+  N -->|no| Par["parallel-subband<br/>PRODUCTION"]
+  Par --> Stage{"tmpfs<br/>staging?"}
+  Stage -->|yes| Tmp["tmpfs<br/>/dev/shm"]
+  Stage -->|no| Disk["SSD<br/>scratch"]
+  Tmp --> Concat["concat<br/>full-band MS"]
   Disk --> Concat
-  Mono --> MS["Final<br/>full-band MS"]
+  Mono --> MS["Final<br/>MS"]
   Concat --> MS
   
-  style Auto fill:#F3E5F5,stroke:#7B1FA2,stroke-width:2px,color:#000
-  style N fill:#FFF9C4,stroke:#F57F17,stroke-width:2px,color:#000
-  style Mono fill:#FFCDD2,stroke:#D32F2F,stroke-width:2px,color:#000
-  style Par fill:#C8E6C9,stroke:#388E3C,stroke-width:2px,color:#000
-  style Stage fill:#FFF9C4,stroke:#F57F17,stroke-width:2px,color:#000
-  style Tmp fill:#E3F2FD,stroke:#1976D2,stroke-width:2px,color:#000
-  style Disk fill:#FFF3E0,stroke:#F57C00,stroke-width:2px,color:#000
-  style Concat fill:#E8EAF6,stroke:#3F51B5,stroke-width:2px,color:#000
-  style MS fill:#C8E6C9,stroke:#388E3C,stroke-width:3px,color:#000
+  %% Decision points - bright, prominent
+  style Auto fill:#9C27B0,stroke:#4A148C,stroke-width:3px,color:#FFF
+  style N fill:#FF9800,stroke:#E65100,stroke-width:4px,color:#FFF
+  style Stage fill:#FF9800,stroke:#E65100,stroke-width:4px,color:#FFF
+  
+  %% Production path - vibrant green
+  style Par fill:#4CAF50,stroke:#1B5E20,stroke-width:3px,color:#FFF
+  style Tmp fill:#2196F3,stroke:#0D47A1,stroke-width:3px,color:#FFF
+  style Disk fill:#FF9800,stroke:#E65100,stroke-width:3px,color:#FFF
+  style Concat fill:#9C27B0,stroke:#4A148C,stroke-width:3px,color:#FFF
+  
+  %% Testing path - red/orange warning colors
+  style Mono fill:#F44336,stroke:#B71C1C,stroke-width:3px,color:#FFF
+  
+  %% Final output - success green
+  style MS fill:#4CAF50,stroke:#1B5E20,stroke-width:4px,color:#FFF
 ```
 
 - **Production**: Always uses `parallel-subband` writer for 16 subbands (default).
@@ -72,25 +99,36 @@ flowchart LR
 
 ```mermaid
 flowchart LR
-  MSIn["Input MS"] --> Fast{"--fast<br/>flag?"}
-  Fast -->|yes| Subset["mstransform subset<br/>timebin/chanbin"]
-  Fast -->|no| Full["Use Full<br/>MS"]
-  Subset --> K["solve_delay<br/>(K)"]
+  MSIn["Input MS"] --> Fast{"fast<br/>mode?"}
+  Fast -->|yes| Subset["subset<br/>timebin/chanbin"]
+  Fast -->|no| Full["full<br/>MS"]
+  Subset --> K["solve<br/>delay (K)"]
   Full --> K
-  K --> BP["solve_bandpass<br/>(BP) uvrange?"]
-  BP --> G["solve_gains<br/>(G) phase-only if fast"]
-  G --> Tabs["Caltables"]
-  Tabs --> Reg["Register<br/>+ apply"]
+  K --> BP["solve<br/>bandpass (BP)"]
+  BP --> G["solve<br/>gains (G)"]
+  G --> Tabs["caltables"]
+  Tabs --> Reg["register<br/>& apply"]
   
-  style MSIn fill:#E8EAF6,stroke:#3F51B5,stroke-width:2px,color:#000
-  style Fast fill:#FFF9C4,stroke:#F57F17,stroke-width:2px,color:#000
-  style Subset fill:#FFF3E0,stroke:#F57C00,stroke-width:2px,color:#000
-  style Full fill:#E8EAF6,stroke:#3F51B5,stroke-width:2px,color:#000
-  style K fill:#E8F5E9,stroke:#388E3C,stroke-width:2px,color:#000
-  style BP fill:#E8F5E9,stroke:#388E3C,stroke-width:2px,color:#000
-  style G fill:#E8F5E9,stroke:#388E3C,stroke-width:2px,color:#000
-  style Tabs fill:#C8E6C9,stroke:#388E3C,stroke-width:2px,color:#000
-  style Reg fill:#C8E6C9,stroke:#388E3C,stroke-width:2px,color:#000
+  %% Input - blue
+  style MSIn fill:#2196F3,stroke:#0D47A1,stroke-width:3px,color:#FFF
+  
+  %% Decision point - bright orange, prominent
+  style Fast fill:#FF9800,stroke:#E65100,stroke-width:4px,color:#FFF
+  
+  %% Fast path - orange/yellow
+  style Subset fill:#FFC107,stroke:#F57C00,stroke-width:3px,color:#000
+  
+  %% Full path - blue
+  style Full fill:#2196F3,stroke:#0D47A1,stroke-width:3px,color:#FFF
+  
+  %% Calibration steps - vibrant green
+  style K fill:#4CAF50,stroke:#1B5E20,stroke-width:3px,color:#FFF
+  style BP fill:#4CAF50,stroke:#1B5E20,stroke-width:3px,color:#FFF
+  style G fill:#4CAF50,stroke:#1B5E20,stroke-width:3px,color:#FFF
+  
+  %% Output - success green
+  style Tabs fill:#4CAF50,stroke:#1B5E20,stroke-width:3px,color:#FFF
+  style Reg fill:#4CAF50,stroke:#1B5E20,stroke-width:4px,color:#FFF
 ```
 
 - Typical fast knobs: `--timebin 30s`, `--chanbin 4`, `--uvrange >1klambda`, phase-only gains.
@@ -99,23 +137,34 @@ flowchart LR
 
 ```mermaid
 flowchart LR
-  CMS["Calibrated MS"] --> Quick{"--quick<br/>flag?"}
-  Quick -->|yes| Small["Quick Look<br/>imsize <= 512<br/>niter <= 300<br/>robust ~ 0"]
-  Quick -->|no| Def["Use Requested<br/>Defaults"]
-  Small --> WSClean["WSClean<br/>default backend"]
+  CMS["Calibrated MS"] --> Quick{"quick<br/>mode?"}
+  Quick -->|yes| Small["quick look<br/>imsize≤512"]
+  Quick -->|no| Def["full<br/>quality"]
+  Small --> WSClean["WSClean<br/>imaging"]
   Def --> WSClean
-  WSClean --> Fits{"--skip-fits<br/>flag?"}
-  Fits -->|yes| Done["Stop after<br/>CASA images"]
-  Fits -->|no| FITS["Export<br/>FITS"]
+  WSClean --> Fits{"export<br/>FITS?"}
+  Fits -->|yes| FITS["FITS<br/>export"]
+  Fits -->|no| Done["CASA<br/>images"]
   
-  style CMS fill:#E8F5E9,stroke:#388E3C,stroke-width:2px,color:#000
-  style Quick fill:#FFF9C4,stroke:#F57F17,stroke-width:2px,color:#000
-  style Small fill:#FFF9C4,stroke:#F57F17,stroke-width:2px,color:#000
-  style Def fill:#FCE4EC,stroke:#C2185B,stroke-width:2px,color:#000
-  style WSClean fill:#FCE4EC,stroke:#C2185B,stroke-width:2px,color:#000
-  style Fits fill:#FFF9C4,stroke:#F57F17,stroke-width:2px,color:#000
-  style Done fill:#C8E6C9,stroke:#388E3C,stroke-width:2px,color:#000
-  style FITS fill:#C8E6C9,stroke:#388E3C,stroke-width:2px,color:#000
+  %% Input - green (calibrated)
+  style CMS fill:#4CAF50,stroke:#1B5E20,stroke-width:3px,color:#FFF
+  
+  %% Decision points - bright orange, prominent
+  style Quick fill:#FF9800,stroke:#E65100,stroke-width:4px,color:#FFF
+  style Fits fill:#FF9800,stroke:#E65100,stroke-width:4px,color:#FFF
+  
+  %% Quick path - yellow/orange
+  style Small fill:#FFC107,stroke:#F57C00,stroke-width:3px,color:#000
+  
+  %% Default path - pink
+  style Def fill:#E91E63,stroke:#880E4F,stroke-width:3px,color:#FFF
+  
+  %% Imaging - vibrant pink
+  style WSClean fill:#E91E63,stroke:#880E4F,stroke-width:4px,color:#FFF
+  
+  %% Outputs - success green
+  style Done fill:#4CAF50,stroke:#1B5E20,stroke-width:3px,color:#FFF
+  style FITS fill:#4CAF50,stroke:#1B5E20,stroke-width:3px,color:#FFF
 ```
 
 - Quick-look is for speed and operator QA; omit `--quick` and `--skip-fits` for full-quality products.

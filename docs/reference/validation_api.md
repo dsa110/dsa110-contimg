@@ -2,7 +2,9 @@
 
 ## Overview
 
-The DSA-110 Continuum Imaging Pipeline provides comprehensive validation endpoints for assessing image quality, astrometry, flux scale, and source completeness. All endpoints are prefixed with `/api/qa/images/{image_id}`.
+The DSA-110 Continuum Imaging Pipeline provides comprehensive validation endpoints for assessing image quality, astrometry, flux scale, source completeness, photometry, variability, mosaics, streaming, and database consistency. All endpoints are prefixed with `/api/qa/images/{image_id}`.
+
+**Note:** The validation system uses a centralized configuration system. See [Validation Guide](../how-to/validation_guide.md) for details on using the configuration system in Python.
 
 ## Endpoints
 
@@ -327,5 +329,5 @@ print(f"Report saved to: {report_info['report_path']}")
 
 - [Validation Guide](../how-to/validation_guide.md)
 - [Configuration Guide](../configuration.md)
-- [Pipeline Documentation](../operations/pipeline.md)
+- [Pipeline Overview](../concepts/pipeline_overview.md)
 

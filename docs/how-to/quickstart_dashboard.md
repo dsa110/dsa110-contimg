@@ -39,9 +39,9 @@ High-performance AG Grid table with 10,000+ row capacity, interactive Plotly cha
 
 ## Documentation
 
-- **User Guide:** [guides/dashboard.md](guides/dashboard.md)
-- **Development:** [guides/dashboard_development.md](guides/dashboard_development.md)
-- **API Reference:** [reference/dashboard_api.md](reference/dashboard_api.md)
+- **User Guide:** [Dashboard Quick Start](dashboard-quickstart.md)
+- **Development:** [Dashboard Development](dashboard-development.md)
+- **API Reference:** [../reference/dashboard_backend_api.md](../reference/dashboard_backend_api.md)
 
 ## Tech Stack
 
@@ -58,5 +58,5 @@ React 18 + TypeScript + Vite + Material-UI + React Query + Plotly.js + AG Grid
 CORS middleware is enabled in `src/dsa110_contimg/api/routes.py` for localhost.
 
 **Need help?**
-See full [Dashboard Guide](guides/dashboard.md) or [Troubleshooting](troubleshooting.md).
+See full [Dashboard Quick Start](dashboard-quickstart.md) or [Troubleshooting](../troubleshooting/frontend-restart-needed.md).
 

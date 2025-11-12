@@ -1,6 +1,6 @@
 # Real Tiles Found in Registry for Testing
 
-**Date:** 2025-01-XX  
+**Date:** 2025-11-12  
 **Purpose:** Document real tiles available for testing the new VAST-like mosaicking implementation
 
 ---
@@ -143,5 +143,5 @@ for row in rows:
 
 ---
 
-**Last Updated:** 2025-01-XX
+**Last Updated:** 2025-11-12
 

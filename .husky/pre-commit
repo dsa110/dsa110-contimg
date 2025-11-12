@@ -1,0 +1,63 @@
+#!/usr/bin/env sh
+. "$(dirname -- "$0")/_/husky.sh"
+
+# Error detection and anti-pattern detection pre-commit hook
+# Runs pre-flight checks and anti-pattern detection before allowing commit
+
+# Get commit message
+COMMIT_MSG_FILE="$1"
+COMMIT_MSG=$(cat "$COMMIT_MSG_FILE" 2>/dev/null || echo "")
+
+# Source anti-pattern detection library
+if [ -f "scripts/lib/anti-pattern-detection.sh" ]; then
+  source scripts/lib/anti-pattern-detection.sh
+  
+  # Check commit message for dismissive/rationalizing language
+  if [ -n "$COMMIT_MSG" ]; then
+    echo "Checking commit message for anti-patterns..."
+    if ! detect_process_anti_patterns "$COMMIT_MSG"; then
+      echo ""
+      echo "❌ Anti-pattern detected in commit message!"
+      echo ""
+      echo "Please revise your commit message to avoid dismissive or rationalizing language."
+      echo "Examples to avoid: 'doesn't matter', 'edge case', 'works in practice', etc."
+      echo ""
+      echo "Instead, describe what you fixed and why."
+      exit 1
+    fi
+  fi
+else
+  echo "Warning: anti-pattern-detection.sh not found, skipping anti-pattern checks"
+fi
+
+# Error detection checks
+cd frontend || exit 1
+
+# Source error detection library
+if [ -f "../scripts/lib/error-detection.sh" ]; then
+  source ../scripts/lib/error-detection.sh
+  
+  # Run pre-flight checks
+  if ! preflight_checks; then
+    echo ""
+    echo "Pre-flight checks failed. Please fix issues before committing."
+    exit 1
+  fi
+  
+  # Run type check
+  if ! execute_with_monitoring "npm run type-check"; then
+    echo ""
+    echo "Type check failed. Please fix type errors before committing."
+    exit 1
+  fi
+  
+  # Run lint
+  if ! execute_with_monitoring "npm run lint"; then
+    echo ""
+    echo "Lint check failed. Please fix linting errors before committing."
+    exit 1
+  fi
+else
+  echo "Warning: error-detection.sh not found, skipping pre-flight checks"
+fi
+

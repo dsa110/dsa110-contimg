@@ -1,6 +1,6 @@
 # DSA-110 Dashboard: State Management & Real-Time Updates
 
-**Date:** 2025-01-XX  
+**Date:** 2025-11-12  
 **Status:** Consolidated state management documentation  
 **Audience:** Frontend developers, architects
 
@@ -365,6 +365,6 @@ const mutation = useMutation({
 ## See Also
 
 - [Frontend Architecture](./dashboard_frontend_architecture.md) - Component architecture
-- [Backend API & Integration](./dashboard_backend_api.md) - API endpoints
+- [Backend API & Integration](../reference/dashboard_backend_api.md) - API endpoints
 - [Error Handling & Resilience](./dashboard_error_handling.md) - Error handling patterns
 

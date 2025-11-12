@@ -19,6 +19,8 @@ import numpy as np
 import casacore.tables as casatables  # type: ignore
 table = casatables.table  # noqa: N816
 
+from dsa110_contimg.qa.base import ValidationInputError
+
 logger = logging.getLogger(__name__)
 
 
@@ -121,11 +123,14 @@ def validate_ms_quality(
 
     Returns:
         MSQualityMetrics object with validation results
+        
+    Raises:
+        ValidationInputError: If MS path is invalid or MS not found
     """
     logger.info(f"Validating MS quality: {ms_path}")
 
     if not os.path.exists(ms_path):
-        raise FileNotFoundError(f"MS not found: {ms_path}")
+        raise ValidationInputError(f"MS not found: {ms_path}")
 
     # Get MS size
     ms_size_bytes = sum(
@@ -326,8 +331,14 @@ def quick_ms_check(ms_path: str) -> Tuple[bool, str]:
     """
     Quick sanity check for MS quality.
 
+    Args:
+        ms_path: Path to MS
+
     Returns:
         (passed, message) tuple
+        
+    Note: This function maintains backward compatibility by returning a tuple.
+    For new code, prefer using validate_ms_quality() which raises exceptions.
     """
     try:
         if not os.path.exists(ms_path):
@@ -347,5 +358,8 @@ def quick_ms_check(ms_path: str) -> Tuple[bool, str]:
 
         return True, "MS passed quick check"
 
+    except ValidationInputError as e:
+        return False, str(e)
     except Exception as e:
+        logger.exception(f"Exception during quick MS check: {e}")
         return False, f"Exception during check: {e}"

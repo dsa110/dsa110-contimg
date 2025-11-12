@@ -1,6 +1,6 @@
 # DSA-110 Dashboard: Data Models & Database Schema
 
-**Date:** 2025-01-XX  
+**Date:** 2025-11-12  
 **Status:** Consolidated data models and database schema documentation  
 **Audience:** Backend developers, frontend developers, database administrators
 
@@ -602,6 +602,6 @@ def migrate_products_db(db_path: Path):
 ## See Also
 
 - [Database Schema Reference](../reference/database_schema.md) - Complete schema documentation
-- [Backend API & Integration](./dashboard_backend_api.md) - API endpoints using these models
+- [Backend API & Integration](../reference/dashboard_backend_api.md) - API endpoints using these models
 - [Frontend Architecture](./dashboard_frontend_architecture.md) - Frontend TypeScript types
 

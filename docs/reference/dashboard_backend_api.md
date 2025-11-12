@@ -1,6 +1,6 @@
 # DSA-110 Dashboard: Backend API & Integration
 
-**Date:** 2025-01-XX  
+**Date:** 2025-11-12  
 **Status:** Consolidated backend API documentation  
 **Audience:** Backend developers, frontend developers, API consumers
 
@@ -15,9 +15,9 @@
 5. [Source Monitoring Endpoints](#source-monitoring-endpoints)
 6. [Image Endpoints](#image-endpoints)
 7. [Region Management Endpoints](#region-management-endpoints)
-8. [Pointing & Observing Endpoints](#pointing--observing-endpoints)
+8. [Pointing & Observing Endpoints](#pointing-observing-endpoints)
 9. [Streaming Service Endpoints](#streaming-service-endpoints)
-10. [Control & Job Management Endpoints](#control--job-management-endpoints)
+10. [Control & Job Management Endpoints](#control-job-management-endpoints)
 11. [Batch Job Endpoints](#batch-job-endpoints)
 12. [MS Management Endpoints](#ms-management-endpoints)
 13. [QA Visualization Endpoints](#qa-visualization-endpoints)
@@ -29,7 +29,7 @@
 19. [Real-Time Updates](#real-time-updates)
 20. [Data Access Layer](#data-access-layer)
 21. [Error Handling](#error-handling)
-22. [Authentication & Security](#authentication--security)
+22. [Authentication & Security](#authentication-security)
 
 ---
 

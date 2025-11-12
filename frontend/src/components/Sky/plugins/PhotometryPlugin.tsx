@@ -2,7 +2,7 @@
  * DSA Photometry Plugin for JS9
  * Calculates photometry statistics (peak flux, integrated flux, RMS noise) for circular regions
  */
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useRef, useState, useCallback } from 'react';
 import {
   Paper,
   Typography,
@@ -17,6 +17,7 @@ import {
   Alert,
 } from '@mui/material';
 import { logger } from '../../../utils/logger';
+import { findDisplay, isJS9Available } from '../../../utils/js9';
 
 declare global {
   interface Window {
@@ -73,13 +74,10 @@ class DSAPhotometryPlugin {
         logger.debug('GetImageData failed, trying alternative method:', e);
       }
 
-      // Alternative: use GetVal for individual pixels if GetImageData not available
+        // Alternative: use GetVal for individual pixels if GetImageData not available
       if (!imageData || !imageData.data) {
         // Fallback: try to get image dimensions first
-        const display = window.JS9.displays?.find((d: any) => {
-          const divId = d.id || d.display || d.divID;
-          return divId === this.displayId;
-        });
+        const display = findDisplay(this.displayId);
         if (!display?.im) {
           return null;
         }
@@ -263,17 +261,15 @@ class DSAPhotometryPlugin {
    */
   private setupManualCallbacks() {
     // Set up interval to check for region changes
+    // Note: JS9 doesn't have region events, so polling is necessary
     const checkInterval = setInterval(() => {
-      if (!window.JS9) {
+      if (!isJS9Available()) {
         clearInterval(checkInterval);
         return;
       }
 
       try {
-        const display = window.JS9.displays?.find((d: any) => {
-          const divId = d.id || d.display || d.divID;
-          return divId === this.displayId;
-        });
+        const display = findDisplay(this.displayId);
 
         if (display && display.im) {
           // Check for regions
@@ -316,10 +312,10 @@ export default function PhotometryPlugin({ displayId = 'skyViewDisplay' }: Photo
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    if (!window.JS9) {
+    if (!isJS9Available()) {
       // Wait for JS9 to be available
       const checkJS9 = setInterval(() => {
-        if (window.JS9 && typeof window.JS9.Load === 'function') {
+        if (isJS9Available()) {
           clearInterval(checkJS9);
           initializePlugin();
         }
@@ -327,7 +323,7 @@ export default function PhotometryPlugin({ displayId = 'skyViewDisplay' }: Photo
 
       const timeout = setTimeout(() => {
         clearInterval(checkJS9);
-        if (!window.JS9) {
+        if (!isJS9Available()) {
           setError('JS9 not available');
         }
       }, 10000);
@@ -363,79 +359,78 @@ export default function PhotometryPlugin({ displayId = 'skyViewDisplay' }: Photo
     };
   }, [displayId]);
 
-  // Poll for region changes (JS9 doesn't always fire events reliably)
-  useEffect(() => {
-    if (!window.JS9) return;
+  // Poll for region changes (JS9 doesn't have region events, so polling is necessary)
+  const lastRegionHashRef = useRef<string>('');
+  const hasStatsRef = useRef<boolean>(false);
 
-    let lastRegionHash = '';
-    let hasStats = false;
+  const checkRegions = useCallback(() => {
+    if (!isJS9Available() || !pluginRef.current) return;
 
-    const checkRegions = () => {
+    try {
+      const display = findDisplay(displayId);
+
+      if (!display || !display.im) {
+        if (hasStatsRef.current) {
+          setStats(null);
+          hasStatsRef.current = false;
+          lastRegionHashRef.current = '';
+        }
+        return;
+      }
+
+      // Get regions for this image
+      let regions: any[] = [];
       try {
-        const display = window.JS9.displays?.find((d: any) => {
-          const divId = d.id || d.display || d.divID;
-          return divId === displayId;
-        });
-
-        if (!display || !display.im) {
-          if (hasStats) {
-            setStats(null);
-            hasStats = false;
-            lastRegionHash = '';
-          }
-          return;
+        if (typeof window.JS9.GetRegions === 'function') {
+          regions = window.JS9.GetRegions(display.im.id) || [];
         }
+      } catch (e) {
+        logger.debug('Error getting regions:', e);
+      }
 
-        // Get regions for this image
-        let regions: any[] = [];
-        try {
-          if (typeof window.JS9.GetRegions === 'function') {
-            regions = window.JS9.GetRegions(display.im.id) || [];
-          }
-        } catch (e) {
-          logger.debug('Error getting regions:', e);
-        }
+      // Find circular regions (prioritize circles for photometry)
+      const circleRegion = regions.find((r: any) => {
+        const shape = r.shape || r.type || r.regtype || '';
+        return shape === 'circle' || shape === 'c';
+      });
 
-        // Find circular regions (prioritize circles for photometry)
-        const circleRegion = regions.find((r: any) => {
-          const shape = r.shape || r.type || r.regtype || '';
-          return shape === 'circle' || shape === 'c';
-        });
+      // Create hash of region to detect changes
+      const regionHash = circleRegion
+        ? `${circleRegion.x || 0}_${circleRegion.y || 0}_${circleRegion.radius || circleRegion.r || 0}`
+        : '';
 
-        // Create hash of region to detect changes
-        const regionHash = circleRegion
-          ? `${circleRegion.x || 0}_${circleRegion.y || 0}_${circleRegion.radius || circleRegion.r || 0}`
-          : '';
+      // Only update if region changed
+      if (regionHash !== lastRegionHashRef.current) {
+        lastRegionHashRef.current = regionHash;
 
-        // Only update if region changed
-        if (regionHash !== lastRegionHash) {
-          lastRegionHash = regionHash;
-
-          if (circleRegion && pluginRef.current) {
-            // Trigger calculation
-            const calculatedStats = pluginRef.current.calculatePhotometry(
-              circleRegion,
-              display.im.id
-            );
-            if (calculatedStats) {
-              setStats(calculatedStats);
-              setError(null);
-              hasStats = true;
-            } else {
-              setStats(null);
-              hasStats = false;
-            }
+        if (circleRegion && pluginRef.current) {
+          // Trigger calculation
+          const calculatedStats = pluginRef.current.calculatePhotometry(
+            circleRegion,
+            display.im.id
+          );
+          if (calculatedStats) {
+            setStats(calculatedStats);
+            setError(null);
+            hasStatsRef.current = true;
           } else {
             setStats(null);
-            hasStats = false;
+            hasStatsRef.current = false;
           }
+        } else {
+          setStats(null);
+          hasStatsRef.current = false;
         }
-      } catch (err) {
-        logger.debug('Error checking regions:', err);
       }
-    };
+    } catch (err) {
+      logger.debug('Error checking regions:', err);
+    }
+  }, [displayId]);
 
-    // Poll every 500ms for region changes
+  useEffect(() => {
+    if (!isJS9Available() || !pluginRef.current) return;
+
+    // Poll every 500ms for region changes (JS9 doesn't have region events)
     const pollInterval = setInterval(checkRegions, 500);
 
     // Also check immediately
@@ -444,7 +439,7 @@ export default function PhotometryPlugin({ displayId = 'skyViewDisplay' }: Photo
     return () => {
       clearInterval(pollInterval);
     };
-  }, [displayId]);
+  }, [checkRegions]);
 
   const formatValue = (value: number | null): string => {
     if (value === null || isNaN(value)) return 'N/A';

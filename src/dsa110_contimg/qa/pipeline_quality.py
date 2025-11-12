@@ -17,12 +17,17 @@ from dsa110_contimg.qa.calibration_quality import (
 from dsa110_contimg.qa.image_quality import quick_image_check, validate_image_quality
 from dsa110_contimg.qa.ms_quality import quick_ms_check, validate_ms_quality
 from dsa110_contimg.utils import alerting
+from dsa110_contimg.qa.config import QAConfig, get_default_config
 
 logger = logging.getLogger(__name__)
 
 
 class QualityThresholds:
-    """Quality thresholds for pipeline products."""
+    """Quality thresholds for pipeline products.
+    
+    DEPRECATED: Use QAConfig from dsa110_contimg.qa.config instead.
+    This class is kept for backward compatibility but will be removed in a future version.
+    """
 
     def __init__(self):
         # MS quality thresholds
@@ -60,6 +65,7 @@ def check_ms_after_conversion(
     ms_path: str,
     alert_on_issues: bool = True,
     quick_check_only: bool = False,
+    config: Optional[QAConfig] = None,
 ) -> Tuple[bool, Optional[Dict]]:
     """
     Check MS quality after conversion.
@@ -68,10 +74,14 @@ def check_ms_after_conversion(
         ms_path: Path to MS
         alert_on_issues: Whether to send alerts for quality issues
         quick_check_only: Only perform quick checks
+        config: Optional QAConfig. If not provided, uses default config.
 
     Returns:
         (passed, metrics_dict) tuple
     """
+    if config is None:
+        config = get_default_config()
+    
     logger.info(f"Checking MS quality after conversion: {ms_path}")
 
     if quick_check_only:
@@ -87,6 +97,7 @@ def check_ms_after_conversion(
         return passed, {"message": message}
 
     try:
+        # Note: validate_ms_quality doesn't yet accept config, but will in future
         metrics = validate_ms_quality(ms_path, check_data_column="DATA")
 
         # Send alerts for critical issues
@@ -140,6 +151,7 @@ def check_calibration_quality(
     caltables: List[str],
     ms_path: Optional[str] = None,
     alert_on_issues: bool = True,
+    config: Optional[QAConfig] = None,
 ) -> Tuple[bool, Dict]:
     """
     Check quality of calibration tables and optionally CORRECTED_DATA.
@@ -148,10 +160,14 @@ def check_calibration_quality(
         caltables: List of calibration table paths
         ms_path: Optional MS path to check CORRECTED_DATA
         alert_on_issues: Whether to send alerts
+        config: Optional QAConfig. If not provided, uses default config.
 
     Returns:
         (passed, results_dict) tuple
     """
+    if config is None:
+        config = get_default_config()
+    
     logger.info(f"Checking calibration quality: {len(caltables)} tables")
 
     all_passed = True
@@ -266,6 +282,7 @@ def check_image_quality(
     image_path: str,
     alert_on_issues: bool = True,
     quick_check_only: bool = False,
+    config: Optional[QAConfig] = None,
 ) -> Tuple[bool, Optional[Dict]]:
     """
     Check image quality after imaging.
@@ -274,10 +291,14 @@ def check_image_quality(
         image_path: Path to image
         alert_on_issues: Whether to send alerts
         quick_check_only: Only perform quick checks
+        config: Optional QAConfig. If not provided, uses default config.
 
     Returns:
         (passed, metrics_dict) tuple
     """
+    if config is None:
+        config = get_default_config()
+    
     logger.info(f"Checking image quality: {image_path}")
 
     if quick_check_only:
@@ -297,7 +318,7 @@ def check_image_quality(
         return passed, {"message": message}
 
     try:
-        metrics = validate_image_quality(image_path)
+        metrics = validate_image_quality(image_path, config=config.image_quality)
 
         # Send alerts for critical issues
         if metrics.has_issues:

@@ -1,6 +1,6 @@
 # VAST Mosaic Creation and Analysis Workflow
 
-**Date:** 2025-01-XX  
+**Date:** 2025-11-12  
 **Purpose:** Analysis of VAST Pipeline mosaic creation and image/mosaic analysis workflows  
 **Reference:** VAST Pipeline (https://vast-survey.org/vast-pipeline/) + VAST Tools codebase  
 **Source:** Perplexity search results + VAST Tools code analysis
@@ -580,5 +580,5 @@ def pipeline_get_eta_metric(df: pd.DataFrame, peak: bool = False) -> float:
 
 ---
 
-**Last Updated:** 2025-01-XX
+**Last Updated:** 2025-11-12
 

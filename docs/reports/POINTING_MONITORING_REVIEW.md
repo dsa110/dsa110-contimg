@@ -1,6 +1,6 @@
 # Pointing Monitoring Review - DSA-110 Continuum Imaging Pipeline
 
-**Date:** 2025-01-XX  
+**Date:** 2025-11-12  
 **Status:** Comprehensive Review  
 **Purpose:** Review methods used to monitor DSA-110 pointing using incoming UVH5 visibilities
 

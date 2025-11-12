@@ -104,12 +104,11 @@ This matches VLA/ALMA practice for connected-element arrays. For bandpass, no im
 - **VLBI** (thousands of km baselines): Requires explicit K-calibration (fringe fitting)
 - **Connected arrays** (tens of km baselines): K-calibration not necessary
 
-See `docs/reports/K_CAL_VLBI_VS_CONNECTED_ARRAYS.md` for detailed technical explanation.
+See the calibration procedure documentation for detailed technical explanation.
 
 ## Related Documentation
 
-- [Calibration Tutorial](tutorials/calibrate-apply.md) - Step-by-step workflow
-- [Memory](reports/memory.md) - Project-specific notes and practices
-- [K-Calibration Research](reports/K_CALIBRATION_NEED_REASSESSMENT.md) - Detailed analysis
-- [VLBI vs Connected Arrays](reports/K_CAL_VLBI_VS_CONNECTED_ARRAYS.md) - Technical comparison
+- [Calibration Tutorial](../tutorials/calibrate-apply.md) - Step-by-step workflow
+- [Memory](../dev/notes/MEMORY.md) - Project-specific notes and practices
+- [Calibration Procedure](CURRENT_CALIBRATION_PROCEDURE.md) - Current calibration methodology
 

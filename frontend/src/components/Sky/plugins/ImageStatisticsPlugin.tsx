@@ -2,7 +2,7 @@
  * DSA Image Statistics Plugin for JS9
  * Displays real-time image statistics: peak flux, RMS noise, beam size, center coordinates, source count
  */
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useRef, useState, useCallback } from 'react';
 import {
   Paper,
   Typography,
@@ -14,6 +14,7 @@ import {
   Alert,
 } from '@mui/material';
 import { logger } from '../../../utils/logger';
+import { findDisplay, isJS9Available, getDisplayImageId } from '../../../utils/js9';
 
 declare global {
   interface Window {
@@ -52,7 +53,7 @@ function calculateImageStatistics(
   imageInfo?: ImageStatisticsPluginProps['imageInfo']
 ): ImageStatistics | null {
   try {
-    if (!window.JS9) {
+    if (!isJS9Available()) {
       return null;
     }
 
@@ -171,12 +172,56 @@ export default function ImageStatisticsPlugin({
   const [loading, setLoading] = useState(false);
   const lastImageIdRef = useRef<string | null>(null);
 
+  // Update statistics function - memoized with useCallback
+  const updateStatistics = useCallback(() => {
+    try {
+      if (!isJS9Available()) {
+        setStats(null);
+        setLoading(false);
+        return;
+      }
+
+      const display = findDisplay(displayId);
+      if (!display || !display.im) {
+        setStats(null);
+        setLoading(false);
+        return;
+      }
+
+      const imageId = display.im.id;
+      
+      // Only recalculate if image changed
+      if (lastImageIdRef.current === imageId) {
+        return;
+      }
+
+      lastImageIdRef.current = imageId;
+      setLoading(true);
+      setError(null);
+
+      // Calculate statistics
+      const calculatedStats = calculateImageStatistics(imageId, imageInfo);
+      
+      if (calculatedStats) {
+        setStats(calculatedStats);
+        setError(null);
+      } else {
+        setError('Failed to calculate statistics');
+      }
+      setLoading(false);
+    } catch (err: any) {
+      logger.error('Error updating statistics:', err);
+      setError(err.message || 'Failed to update statistics');
+      setLoading(false);
+    }
+  }, [displayId, imageInfo]);
+
   // Update statistics when image loads or changes
   useEffect(() => {
-    if (!window.JS9) {
+    if (!isJS9Available()) {
       // Wait for JS9 to be available
       const checkJS9 = setInterval(() => {
-        if (window.JS9 && typeof window.JS9.Load === 'function') {
+        if (isJS9Available()) {
           clearInterval(checkJS9);
           updateStatistics();
         }
@@ -184,7 +229,7 @@ export default function ImageStatisticsPlugin({
 
       const timeout = setTimeout(() => {
         clearInterval(checkJS9);
-        if (!window.JS9) {
+        if (!isJS9Available()) {
           setError('JS9 not available');
         }
       }, 10000);
@@ -196,82 +241,28 @@ export default function ImageStatisticsPlugin({
     } else {
       updateStatistics();
     }
+  }, [updateStatistics]);
 
-    function updateStatistics() {
-      try {
-        const display = window.JS9.displays?.find((d: any) => {
-          const divId = d.id || d.display || d.divID;
-          return divId === displayId;
-        });
+  // Event handlers - memoized with useCallback to prevent unnecessary re-renders
+  const handleImageDisplay = useCallback(() => {
+    // Reset last image ID to force recalculation
+    lastImageIdRef.current = null;
+    
+    // Small delay to ensure image is fully loaded
+    setTimeout(() => {
+      updateStatistics();
+    }, 100);
+  }, [updateStatistics]);
 
-        if (!display || !display.im) {
-          setStats(null);
-          setLoading(false);
-          return;
-        }
+  const handlePanZoom = useCallback(() => {
+    // Statistics don't change with pan/zoom, but we can update if needed
+    // For now, we'll just ensure stats are still valid
+  }, []);
 
-        const imageId = display.im.id;
-        
-        // Only recalculate if image changed
-        if (lastImageIdRef.current === imageId) {
-          return;
-        }
-
-        lastImageIdRef.current = imageId;
-        setLoading(true);
-        setError(null);
-
-        // Calculate statistics
-        const calculatedStats = calculateImageStatistics(imageId, imageInfo);
-        
-        if (calculatedStats) {
-          setStats(calculatedStats);
-          setError(null);
-        } else {
-          setError('Failed to calculate statistics');
-        }
-        setLoading(false);
-      } catch (err: any) {
-        logger.error('Error updating statistics:', err);
-        setError(err.message || 'Failed to update statistics');
-        setLoading(false);
-      }
-    }
-  }, [displayId, imageInfo]);
-
-  // Listen for image display events and pan/zoom changes
+  // Listen for image display events - REMOVED redundant polling
+  // Events should be sufficient; polling was wasteful
   useEffect(() => {
-    if (!window.JS9) return;
-
-    const handleImageDisplay = () => {
-      // Reset last image ID to force recalculation
-      lastImageIdRef.current = null;
-      
-      // Small delay to ensure image is fully loaded
-      setTimeout(() => {
-        try {
-          const display = window.JS9.displays?.find((d: any) => {
-            const divId = d.id || d.display || d.divID;
-            return divId === displayId;
-          });
-
-          if (display?.im) {
-            const calculatedStats = calculateImageStatistics(display.im.id, imageInfo);
-            if (calculatedStats) {
-              setStats(calculatedStats);
-              setError(null);
-            }
-          }
-        } catch (err) {
-          logger.debug('Error in image display handler:', err);
-        }
-      }, 100);
-    };
-
-    const handlePanZoom = () => {
-      // Statistics don't change with pan/zoom, but we can update if needed
-      // For now, we'll just ensure stats are still valid
-    };
+    if (!isJS9Available()) return;
 
     // Register event listeners if available
     if (typeof window.JS9.AddEventListener === 'function') {
@@ -280,44 +271,14 @@ export default function ImageStatisticsPlugin({
       window.JS9.AddEventListener('pan', handlePanZoom);
     }
 
-    // Also poll for image changes as fallback
-    const pollInterval = setInterval(() => {
-      try {
-        const display = window.JS9.displays?.find((d: any) => {
-          const divId = d.id || d.display || d.divID;
-          return divId === displayId;
-        });
-
-        if (display?.im) {
-          const imageId = display.im.id;
-          if (lastImageIdRef.current !== imageId) {
-            lastImageIdRef.current = imageId;
-            const calculatedStats = calculateImageStatistics(imageId, imageInfo);
-            if (calculatedStats) {
-              setStats(calculatedStats);
-              setError(null);
-            }
-          }
-        } else {
-          if (lastImageIdRef.current !== null) {
-            lastImageIdRef.current = null;
-            setStats(null);
-          }
-        }
-      } catch (err) {
-        logger.debug('Error polling for image changes:', err);
-      }
-    }, 1000);
-
     return () => {
-      if (window.JS9 && typeof window.JS9.RemoveEventListener === 'function') {
+      if (isJS9Available() && typeof window.JS9.RemoveEventListener === 'function') {
         window.JS9.RemoveEventListener('displayimage', handleImageDisplay);
         window.JS9.RemoveEventListener('zoom', handlePanZoom);
         window.JS9.RemoveEventListener('pan', handlePanZoom);
       }
-      clearInterval(pollInterval);
     };
-  }, [displayId, imageInfo]);
+  }, [handleImageDisplay, handlePanZoom]);
 
   const formatValue = (value: number | null, unit: string = ''): string => {
     if (value === null || isNaN(value)) return 'N/A';
@@ -365,9 +326,9 @@ export default function ImageStatisticsPlugin({
       )}
 
       {stats ? (
-        <Grid container spacing={2} {...({} as any)}>
+        <Grid container spacing={2}>
           {/* Peak Flux */}
-          <Grid item xs={12} sm={6} {...({} as any)}>
+          <Grid size={{ xs: 12, sm: 6 }}>
             <Card variant="outlined">
               <CardContent>
                 <Typography variant="subtitle2" color="text.secondary" gutterBottom>
@@ -381,7 +342,7 @@ export default function ImageStatisticsPlugin({
           </Grid>
 
           {/* RMS Noise */}
-          <Grid item xs={12} sm={6} {...({} as any)}>
+          <Grid size={{ xs: 12, sm: 6 }}>
             <Card variant="outlined">
               <CardContent>
                 <Typography variant="subtitle2" color="text.secondary" gutterBottom>
@@ -395,7 +356,7 @@ export default function ImageStatisticsPlugin({
           </Grid>
 
           {/* Beam Size */}
-          <Grid item xs={12} sm={6} {...({} as any)}>
+          <Grid size={{ xs: 12, sm: 6 }}>
             <Card variant="outlined">
               <CardContent>
                 <Typography variant="subtitle2" color="text.secondary" gutterBottom>
@@ -416,7 +377,7 @@ export default function ImageStatisticsPlugin({
           </Grid>
 
           {/* Image Center */}
-          <Grid item xs={12} sm={6} {...({} as any)}>
+          <Grid size={{ xs: 12, sm: 6 }}>
             <Card variant="outlined">
               <CardContent>
                 <Typography variant="subtitle2" color="text.secondary" gutterBottom>
@@ -431,7 +392,7 @@ export default function ImageStatisticsPlugin({
           </Grid>
 
           {/* Source Count */}
-          <Grid item xs={12} sm={6} {...({} as any)}>
+          <Grid size={{ xs: 12, sm: 6 }}>
             <Card variant="outlined">
               <CardContent>
                 <Typography variant="subtitle2" color="text.secondary" gutterBottom>
@@ -445,7 +406,7 @@ export default function ImageStatisticsPlugin({
           </Grid>
 
           {/* Image Dimensions */}
-          <Grid item xs={12} sm={6} {...({} as any)}>
+          <Grid size={{ xs: 12, sm: 6 }}>
             <Card variant="outlined">
               <CardContent>
                 <Typography variant="subtitle2" color="text.secondary" gutterBottom>

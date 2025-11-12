@@ -27,13 +27,13 @@ A comprehensive testing approach has been implemented for the DSA-110 Continuum 
 
 ### 2. Automated Test Suite
 
-#### [tests/e2e/dashboard.test.ts](../tests/e2e/dashboard.test.ts)
+#### E2E Test File: `../tests/e2e/dashboard.test.ts` (external file)
 - **50+ automated E2E tests** using Playwright
 - Tests organized by feature/page
 - Covers navigation, forms, buttons, API integration, error handling
 - Environment variable support for Docker
 
-#### [playwright.config.ts](../../playwright.config.ts)
+#### Playwright Config: `../../playwright.config.ts` (external file)
 - Playwright configuration
 - Multi-browser support (Chromium, Firefox, WebKit)
 - Mobile viewport testing
@@ -41,12 +41,12 @@ A comprehensive testing approach has been implemented for the DSA-110 Continuum 
 
 ### 3. Docker Infrastructure
 
-#### [docker/Dockerfile.test](../../docker/Dockerfile.test)
+#### Docker Test File: `../../docker/Dockerfile.test` (external file)
 - Node.js 22 Alpine base image
 - Playwright and Chromium pre-installed
 - Optimized for Ubuntu 18.x compatibility
 
-#### [docker/docker-compose.test.yml](../../docker/docker-compose.test.yml)
+#### Docker Compose: `../../docker/docker-compose.test.yml` (external file)
 - Complete test environment setup
 - Frontend and backend services
 - Test runner container
@@ -54,13 +54,13 @@ A comprehensive testing approach has been implemented for the DSA-110 Continuum 
 
 ### 4. Test Execution Scripts
 
-#### [scripts/run-tests.sh](../../scripts/run-tests.sh)
+#### Test Script: `../../scripts/run-tests.sh` (external file)
 - Main test execution script
 - Docker-based execution for Ubuntu 18.x
 - Service health checks
 - Multiple execution modes
 
-#### [scripts/run-tests-docker.sh](../../scripts/run-tests-docker.sh)
+#### Docker Test Script: `../../scripts/run-tests-docker.sh` (external file)
 - Docker Compose-based execution
 - Isolated test environment
 - UI mode support
@@ -203,7 +203,7 @@ ls test-results/
 - **Quick Start**: [QUICK_START.md](./QUICK_START.md)
 - **Test Plan**: [COMPREHENSIVE_TESTING_PLAN.md](./COMPREHENSIVE_TESTING_PLAN.md)
 - **Docker Guide**: [DOCKER_TESTING_GUIDE.md](./DOCKER_TESTING_GUIDE.md)
-- **E2E Tests**: [tests/e2e/README.md](../tests/e2e/README.md)
+- **E2E Tests**: `../tests/e2e/README.md` (external file)
 
 ## Support
 

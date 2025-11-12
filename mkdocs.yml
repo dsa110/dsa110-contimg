@@ -2,6 +2,7 @@ site_name: DSA-110 Continuum Imaging Pipeline
 dev_addr: 127.0.0.1:8001
 site_url: https://dsa110-contimg.github.io/dsa110-contimg/
 repo_url: https://github.com/dsa110/dsa110-contimg
+docs_dir: docs
 theme:
   name: material
   features:
@@ -28,14 +29,14 @@ markdown_extensions:
 extra_javascript:
   - javascripts/mathjax.js
   - https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js
-  - https://unpkg.com/mermaid@10/dist/mermaid.min.js
-  - javascripts/mermaid-init.js
+  - javascripts/mermaid-zoom.js
 plugins:
   - search
   - mermaid2:
       javascript: https://unpkg.com/mermaid@10/dist/mermaid.min.js
       arguments:
         theme: default
+        # Theme variables set to allow inline styles to override
         themeVariables:
           primaryColor: '#2196F3'
           primaryTextColor: '#fff'
@@ -43,6 +44,8 @@ plugins:
           lineColor: '#424242'
           secondaryColor: '#FFC107'
           tertiaryColor: '#4CAF50'
+        # Ensure inline styles take precedence
+        suppressErrorRendering: false
   - mkdocstrings:
       handlers:
         python:
@@ -51,6 +54,7 @@ plugins:
             docstring_style: google
 nav:
   - Home: index.md
+  - Documentation Guide: DOCUMENTATION_QUICK_REFERENCE.md
   - Concepts:
     - Overview: concepts/index.md
     - Architecture: concepts/architecture.md
@@ -59,14 +63,22 @@ nav:
     - Control Panel: concepts/control-panel.md
     - AOFlagger: concepts/aoflagger.md
     - Frontend Design: concepts/frontend_design.md
-    - Dashboard Mockups: concepts/dashboard_mockups.md
+    - Dashboard:
+      - Mockups: concepts/dashboard_mockups.md
+      - Sky View: SKYVIEW_IMPLEMENTATION_PLAN.md
     - Glossary: concepts/GLOSSARY.md
-    - Pipeline Overview: concepts/pipeline_overview.md
-    - Pipeline Workflow Visualization: concepts/pipeline_workflow_visualization.md
+    - Pipeline:
+      - Overview: concepts/pipeline_overview.md
+      - Stage Architecture: concepts/pipeline_stage_architecture.md
+      - Workflow Visualization: concepts/pipeline_workflow_visualization.md
+      - Production Features: concepts/pipeline_production_features.md
+      - Patterns: concepts/pipeline_patterns.md
     - Science:
       - Photometry Normalization: concepts/science/photometry_normalization.md
+    - Browser MCP Server: concepts/mcp_browser_server_setup.md
   - Tutorials:
-    - HDF5 to MS Conversion: tutorials/HDF5_TO_MS_TUTORIAL.md
+    - Conversion:
+      - HDF5 to MS: tutorials/HDF5_TO_MS_TUTORIAL.md
     - Simulation: tutorials/simulation-tutorial.md
     - Calibrate and Apply: tutorials/calibrate-apply.md
     - Convert Standalone: tutorials/convert-standalone.md
@@ -77,49 +89,61 @@ nav:
       - Calibrator Search: tutorials/notebooks/CalibratorSearch.ipynb
       - MS Staging Workflow: tutorials/notebooks/ms_staging_workflow.ipynb
   - How-To Guides:
-    - Mosaic Quickstart: how-to/mosaic_quickstart.md
-    - Fast Testing: how-to/FAST_TESTING.md
+    - GitHub Pages Setup: how-to/github_pages_walkthrough.md
+    - Quickstarts:
+      - General: how-to/quickstart.md
+      - Control Panel: how-to/control-panel-quickstart.md
+      - Linear Setup: how-to/LINEAR_SETUP_QUICKSTART.md
+    - Testing:
+      - Fast Testing: how-to/FAST_TESTING.md
+      - Pipeline Guide: how-to/PIPELINE_TESTING_GUIDE.md
+      - Flag Subcommand: how-to/TEST_FLAG_SUBCOMMAND.md
     - Build VP from h5: how-to/build-vp-from-h5.md
-    - Calibration Detailed Procedure: how-to/CALIBRATION_DETAILED_PROCEDURE.md
-    - Find Calibrator Transit Data: how-to/FIND_CALIBRATOR_TRANSIT_DATA.md
+    - Calibration:
+      - Detailed Procedure: how-to/CALIBRATION_DETAILED_PROCEDURE.md
+      - Find Calibrator Transit: how-to/FIND_CALIBRATOR_TRANSIT_DATA.md
     - Image 0834 Transit 5min: how-to/IMAGE_0834_TRANSIT_5MIN.md
-    - Mosaic: how-to/mosaic.md
-    - Pipeline Testing Guide: how-to/PIPELINE_TESTING_GUIDE.md
-    - Quality Assurance Setup: how-to/QUALITY_ASSURANCE_SETUP.md
+    - Mosaic:
+      - Quickstart: how-to/mosaic_quickstart.md
+      - Complete Guide: how-to/mosaic.md
+    - Quality Assurance:
+      - Setup: how-to/QUALITY_ASSURANCE_SETUP.md
+      - Quick Look: how-to/quicklook.md
     - Reprocess: how-to/reprocess.md
-    - Test Flag Subcommand: how-to/TEST_FLAG_SUBCOMMAND.md
     - Using Orchestrator CLI: how-to/USING_ORCHESTRATOR_CLI.md
-    - Dashboard Development: how-to/dashboard-development.md
-    - Dashboard Quickstart: how-to/dashboard-quickstart.md
+    - Dashboard:
+      - Development: how-to/dashboard-development.md
+      - Quickstart: how-to/dashboard-quickstart.md
+      - Testing: how-to/dashboard_testing.md
+      - Development Workflow: how-to/dashboard_development_workflow.md
     - Linear Integration: how-to/LINEAR_INTEGRATION.md
-    - Linear Setup Quickstart: how-to/LINEAR_SETUP_QUICKSTART.md
     - Frontend Initial Setup: how-to/frontend-initial-setup.md
     - AOFlagger Parameter Optimization: how-to/PARAMETER_OPTIMIZATION_GUIDE.md
-    - Control Panel Quickstart: how-to/control-panel-quickstart.md
     - Downsampling Guide: how-to/downsampling_guide.md
-    - UVH5 to MS Conversion: how-to/uvh5_to_ms_conversion.md
-    - Streaming Converter Guide: how-to/streaming_converter_guide.md
-    - Quick Look: how-to/quicklook.md
-    - Quickstart Dashboard: how-to/quickstart_dashboard.md
-    - Quickstart: how-to/quickstart.md
+    - Conversion:
+      - UVH5 to MS: how-to/uvh5_to_ms_conversion.md
+      - Streaming Converter: how-to/streaming_converter_guide.md
     - Troubleshooting: how-to/troubleshooting.md
   - Reference:
-    - API Endpoints: reference/api-endpoints.md
-    - Backend Integration Snippets: reference/backend_integration_snippets.md
+    - API:
+      - Endpoints: reference/api-endpoints.md
+      - Dashboard:
+        - API Reference: reference/dashboard_backend_api.md
+        - Pages & Features: reference/dashboard_pages_and_features.md
+      - Integration Snippets: reference/backend_integration_snippets.md
     - Calibration Overview: reference/calibration-overview.md
     - CLI: reference/cli.md
     - Control Panel Cheatsheet: reference/control-panel-cheatsheet.md
-    - Dashboard API: reference/dashboard_api.md
     - Database Schema: reference/database_schema.md
-    - AOFlagger Configuration: reference/dsa110-default.lua
     - Environment Variables: reference/env.md
     - Critical Python Environment: reference/CRITICAL_PYTHON_ENVIRONMENT.md
     - Optimizations:
       - API: reference/optimizations/OPTIMIZATION_API.md
       - Profiling Guide: reference/optimizations/PROFILING_GUIDE.md
   - Operations:
-    - Deploy with Docker: operations/deploy-docker.md
-    - Deploy with systemd: operations/deploy-systemd.md
+    - Deployment:
+      - Docker: operations/deploy-docker.md
+      - systemd: operations/deploy-systemd.md
     - Port Management: operations/port-management.md
     - Refant Quick Reference: operations/refant_quick_reference.md
     - Service Restart Fix: operations/service_restart_fix.md

@@ -1,11 +1,12 @@
 import { test, expect } from '@playwright/test';
+import { navigateToPage, waitForDashboardLoad } from './helpers/page-helpers';
+import { testRoutes } from './fixtures/test-data';
 
 test.describe('SkyView Page Fixes', () => {
   test.beforeEach(async ({ page }) => {
-    // Navigate to Sky View page
-    await page.goto('http://localhost:5173/sky');
-    // Wait for page to load
-    await page.waitForLoadState('networkidle');
+    // Navigate to Sky View page using baseURL from config
+    await navigateToPage(page, testRoutes.sky);
+    await waitForDashboardLoad(page);
   });
 
   test('should have no console errors for MUI Grid', async ({ page }) => {

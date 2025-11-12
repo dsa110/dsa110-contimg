@@ -45,6 +45,62 @@ from dsa110_contimg.qa.postage_stamps import (
     show_all_cutouts,
 )
 
+# New validation modules
+from dsa110_contimg.qa.base import (
+    ValidationContext,
+    ValidationError,
+    ValidationInputError,
+    ValidationResult,
+    Validator,
+)
+from dsa110_contimg.qa.config import (
+    AstrometryConfig,
+    CalibrationConfig,
+    DatabaseConfig,
+    FastValidationConfig,
+    FluxScaleConfig,
+    ImageQualityConfig,
+    MosaicConfig,
+    PhotometryConfig,
+    QAConfig,
+    SourceCountsConfig,
+    StreamingConfig,
+    VariabilityConfig,
+    get_default_config,
+    load_config_from_dict,
+)
+from dsa110_contimg.qa.photometry_validation import (
+    PhotometryValidationResult,
+    validate_forced_photometry,
+    validate_photometry_consistency,
+)
+from dsa110_contimg.qa.variability_validation import (
+    VariabilityValidationResult,
+    validate_ese_detection,
+    validate_variability_detection,
+    validate_variability_statistics,
+)
+from dsa110_contimg.qa.mosaic_validation import (
+    MosaicValidationResult,
+    validate_mosaic_quality,
+)
+from dsa110_contimg.qa.streaming_validation import (
+    StreamingValidationResult,
+    validate_data_integrity,
+    validate_streaming_continuity,
+)
+from dsa110_contimg.qa.fast_validation import (
+    TieredValidationResult,
+    ValidationMode,
+    get_fast_config_for_mode,
+    validate_pipeline_fast,
+)
+from dsa110_contimg.qa.database_validation import (
+    DatabaseValidationResult,
+    validate_database_consistency,
+    validate_referential_integrity,
+)
+
 __all__ = [
     # MS quality
     "validate_ms_quality",
@@ -86,4 +142,49 @@ __all__ = [
     "normalize_cutout",
     "plot_cutout",
     "show_all_cutouts",
+    # Base classes and configuration
+    "ValidationContext",
+    "ValidationError",
+    "ValidationInputError",
+    "ValidationResult",
+    "Validator",
+    "QAConfig",
+    "AstrometryConfig",
+    "FluxScaleConfig",
+    "SourceCountsConfig",
+    "ImageQualityConfig",
+    "CalibrationConfig",
+    "PhotometryConfig",
+    "VariabilityConfig",
+    "MosaicConfig",
+    "StreamingConfig",
+    "DatabaseConfig",
+    "FastValidationConfig",
+    "get_default_config",
+    "load_config_from_dict",
+    # Photometry validation
+    "PhotometryValidationResult",
+    "validate_forced_photometry",
+    "validate_photometry_consistency",
+    # Variability validation
+    "VariabilityValidationResult",
+    "validate_variability_detection",
+    "validate_ese_detection",
+    "validate_variability_statistics",
+    # Mosaic validation
+    "MosaicValidationResult",
+    "validate_mosaic_quality",
+    # Streaming validation
+    "StreamingValidationResult",
+    "validate_streaming_continuity",
+    "validate_data_integrity",
+    # Database validation
+    "DatabaseValidationResult",
+    "validate_database_consistency",
+    "validate_referential_integrity",
+    # Fast validation
+    "TieredValidationResult",
+    "ValidationMode",
+    "get_fast_config_for_mode",
+    "validate_pipeline_fast",
 ]

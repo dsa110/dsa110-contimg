@@ -1,6 +1,6 @@
 # DSA-110 Continuum Imaging Pipeline - Deep Understanding
 
-**Generated:** 2025-01-XX  
+**Generated:** 2025-11-12  
 **Purpose:** Comprehensive understanding of pipeline architecture, data flow, and key components
 
 ---

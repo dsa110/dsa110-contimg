@@ -29,16 +29,16 @@
 
 See also:
 - **[Automated Testing Strategy](../AUTOMATED_TESTING_STRATEGY.md)** - Overall testing strategy
-- **[Pipeline Testing Strategy](../../tests/PIPELINE_TESTING_STRATEGY.md)** - Detailed testing approach
+- **Pipeline Testing Strategy**: `../../../tests/PIPELINE_TESTING_STRATEGY.md` (external file) - Detailed testing approach
 
 ---
 
 ## Quick Links
 
 - [How-To Guides Index](README.md)
-- [Main Documentation Index](../README.md)
+- [Main Documentation Index](../index.md)
 
 ---
 
-**Last Updated:** 2025-01-XX
+**Last Updated:** 2025-11-12
 

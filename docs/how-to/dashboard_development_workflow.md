@@ -1,6 +1,6 @@
 # DSA-110 Dashboard: Development Workflow & Setup
 
-**Date:** 2025-01-XX  
+**Date:** 2025-11-12  
 **Status:** Consolidated development workflow documentation  
 **Audience:** Frontend developers, new contributors
 
@@ -12,7 +12,7 @@
 2. [Development Environment Setup](#development-environment-setup)
 3. [Project Structure](#project-structure)
 4. [Development Workflow](#development-workflow)
-5. [Code Style & Standards](#code-style--standards)
+5. [Code Style & Standards](#code-style-standards)
 6. [Debugging](#debugging)
 7. [Common Tasks](#common-tasks)
 8. [Troubleshooting](#troubleshooting)

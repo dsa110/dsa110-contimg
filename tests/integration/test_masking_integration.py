@@ -70,23 +70,38 @@ class TestMaskingIntegration:
         self, test_config, context_with_repo, temp_work_dir
     ):
         """Test ImagingStage with masking enabled."""
-        from dsa110_contimg.pipeline.config import ImagingConfig
+        from dsa110_contimg.pipeline.config import ImagingConfig, PathsConfig
         from dsa110_contimg.pipeline.stages_impl import ImagingStage
 
-        # Update config with masking enabled
-        test_config.imaging = ImagingConfig(
-            use_nvss_mask=True,
-            mask_radius_arcsec=60.0,
+        # Create config with masking enabled and temp paths
+        from dsa110_contimg.pipeline.config import PipelineConfig
+        config = PipelineConfig(
+            paths=PathsConfig(
+                input_dir=temp_work_dir / "input",
+                output_dir=temp_work_dir / "output",
+                scratch_dir=temp_work_dir / "scratch",
+            ),
+            imaging=ImagingConfig(
+                use_nvss_mask=True,
+                mask_radius_arcsec=60.0,
+            ),
+            **{k: v for k, v in test_config.__dict__.items() if k != "paths" and k != "imaging"},
         )
 
         # Create mock MS
         ms_path = str(temp_work_dir / "test.ms")
         Path(ms_path).mkdir(parents=True, exist_ok=True)
 
-        # Create context with MS path
-        context = context_with_repo
-        context.config = test_config
-        context.outputs = {"ms_path": ms_path}
+        # Create context with MS path (PipelineContext is frozen, so create new one)
+        from dsa110_contimg.pipeline.context import PipelineContext
+        context = PipelineContext(
+            config=config,
+            job_id=context_with_repo.job_id,
+            inputs=context_with_repo.inputs,
+            outputs={"ms_path": ms_path},
+            metadata=context_with_repo.metadata,
+            state_repository=context_with_repo.state_repository,
+        )
 
         # Mock MS structure
         def mock_table_factory(path, readonly=True):
@@ -131,14 +146,30 @@ class TestMaskingIntegration:
         ), patch(
             "dsa110_contimg.utils.validation.validate_corrected_data_quality",
             return_value=[],
+        ):
+            def mock_image_ms_side_effect(*args, **kwargs):
+                # Create the expected image files that ImagingStage looks for
+                imagename = kwargs.get("imagename", args[1] if len(args) > 1 else None)
+                if imagename:
+                    # Create the primary image file that ImagingStage expects
+                    primary_image = f"{imagename}.image"
+                    Path(primary_image).parent.mkdir(parents=True, exist_ok=True)
+                    Path(primary_image).touch()
+        
+        with patch("casacore.tables.table", side_effect=mock_table_factory), patch(
+            "dsa110_contimg.imaging.cli_imaging.validate_ms", return_value=None
         ), patch(
-            "dsa110_contimg.imaging.cli_imaging.image_ms"
+            "dsa110_contimg.utils.validation.validate_corrected_data_quality",
+            return_value=[],
+        ), patch(
+            "dsa110_contimg.imaging.cli_imaging.image_ms",
+            side_effect=mock_image_ms_side_effect
         ) as mock_image_ms, patch(
             "dsa110_contimg.imaging.nvss_tools.create_nvss_fits_mask",
             side_effect=mock_create_mask,
         ):
 
-            stage = ImagingStage(test_config)
+            stage = ImagingStage(config)
             is_valid, error_msg = stage.validate(context)
             assert is_valid, f"Validation failed: {error_msg}"
 

@@ -10,6 +10,7 @@
 - **[Quick Start](quickstart.md)** - General pipeline quickstart (Docker/systemd setup)
 - **[Dashboard Quick Start](quickstart_dashboard.md)** - Dashboard setup and usage
 - **[Linear Integration Quick Start](LINEAR_SETUP_QUICKSTART.md)** - Linear issue tracking integration
+- **[Remote Access Tools](remote-access-tools.md)** - SSH, Chrome Remote Desktop, and Cursor Browser tool setup
 
 ## Core Workflows
 
@@ -61,7 +62,7 @@
 
 - **[Testing Index](TESTING_INDEX.md)** - Overview of all testing guides
 - **[Pipeline Testing Guide](PIPELINE_TESTING_GUIDE.md)** - Test the pipeline
-- **[Test New Pipeline](TEST_NEW_PIPELINE.md)** - Test new pipeline features
+- **[Testing Guide](TESTING_INDEX.md)** - Testing procedures and strategies
 - **[Test Flag Subcommand](TEST_FLAG_SUBCOMMAND.md)** - Test flagging functionality
 - **[Troubleshooting](troubleshooting.md)** - Common issues and solutions
 
@@ -72,9 +73,9 @@
 - [Concepts](../concepts/) - Understand how the pipeline works
 - [Tutorials](../tutorials/) - Step-by-step tutorials
 - [Reference Documentation](../reference/) - API, CLI, schema reference
-- [Main Documentation Index](../README.md)
+- [Main Documentation Index](../index.md)
 
 ---
 
-**Last Updated:** 2025-01-XX
+**Last Updated:** 2025-11-12
 

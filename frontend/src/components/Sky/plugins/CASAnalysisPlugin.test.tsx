@@ -12,7 +12,7 @@
  */
 
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
-import { render, screen, waitFor } from '@testing-library/react';
+import { render, screen, waitFor, cleanup } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import '@testing-library/jest-dom';
 import CASAnalysisPlugin from './CASAnalysisPlugin';
@@ -23,10 +23,14 @@ declare global {
   }
 }
 
-// Mock API client
-const mockApiClient = {
-  post: vi.fn(),
-};
+// Mock API client - hoist to avoid initialization order issues
+const { mockApiClient } = vi.hoisted(() => {
+  return {
+    mockApiClient: {
+      post: vi.fn(),
+    },
+  };
+});
 
 vi.mock('../../../api/client', () => ({
   apiClient: mockApiClient,
@@ -53,7 +57,8 @@ describe('CASAnalysisPlugin', () => {
 
   beforeEach(() => {
     vi.clearAllMocks();
-    vi.useFakeTimers();
+    // Use real timers by default - userEvent requires real timers
+    // Tests that need fake timers can enable them individually
 
     mockImage = {
       id: 'test-image-1',
@@ -77,11 +82,23 @@ describe('CASAnalysisPlugin', () => {
     };
 
     (window as any).JS9 = mockJS9;
+    
+    // Ensure document.body exists for rendering
+    if (!document.body) {
+      document.body = document.createElement('body');
+    }
   });
 
   afterEach(() => {
+    cleanup(); // Clean up rendered components
     vi.useRealTimers();
+    vi.clearAllMocks();
     delete (window as any).JS9;
+    
+    // Ensure document.body is restored
+    if (!document.body) {
+      document.body = document.createElement('body');
+    }
   });
 
   describe('Component Rendering', () => {
@@ -97,7 +114,9 @@ describe('CASAnalysisPlugin', () => {
       const select = screen.getByLabelText(/CASA Task/i);
       await user.click(select);
 
-      expect(screen.getByText('Image Statistics')).toBeInTheDocument();
+      // Use getAllByText and check first element since Select shows selected value + menu items
+      const imageStats = screen.getAllByText('Image Statistics');
+      expect(imageStats.length).toBeGreaterThan(0);
       expect(screen.getByText('Source Fitting')).toBeInTheDocument();
       expect(screen.getByText('Contour Generation')).toBeInTheDocument();
       expect(screen.getByText('Spectral Flux')).toBeInTheDocument();
@@ -154,7 +173,9 @@ describe('CASAnalysisPlugin', () => {
       await user.click(button);
 
       await waitFor(() => {
-        expect(screen.getByText(/error/i)).toBeInTheDocument();
+        // Error message appears in both heading and body - use getAllByText
+        const errorElements = screen.getAllByText(/error/i);
+        expect(errorElements.length).toBeGreaterThan(0);
       });
     });
 
@@ -172,7 +193,9 @@ describe('CASAnalysisPlugin', () => {
       const button = screen.getByText('Run Analysis');
       await user.click(button);
 
-      expect(screen.getByText(/Executing CASA task/i)).toBeInTheDocument();
+      // Loading message may appear multiple times - use getAllByText
+      const loadingMessages = screen.getAllByText(/Executing CASA task/i);
+      expect(loadingMessages.length).toBeGreaterThan(0);
 
       resolvePromise!({
         data: {
@@ -232,8 +255,10 @@ describe('CASAnalysisPlugin', () => {
 
       render(<CASAnalysisPlugin displayId="skyViewDisplay" imagePath="/test/image.fits" />);
       
-      // Wait for region to be detected
-      await vi.advanceTimersByTimeAsync(1000);
+      // Wait for region to be detected (component uses polling)
+      await waitFor(() => {
+        expect(mockJS9.GetRegions).toHaveBeenCalled();
+      }, { timeout: 2000 });
 
       const user = userEvent.setup();
       const button = screen.getByText('Run Analysis');
@@ -374,9 +399,26 @@ describe('CASAnalysisPlugin', () => {
         remove: mockRemove,
       };
 
-      vi.spyOn(document, 'createElement').mockReturnValue(mockLink as any);
-      vi.spyOn(document.body, 'appendChild').mockImplementation(() => mockLink as any);
-      vi.spyOn(document.body, 'removeChild').mockImplementation(() => mockLink as any);
+      // Mock URL.createObjectURL and revokeObjectURL
+      global.URL.createObjectURL = mockCreateObjectURL;
+      global.URL.revokeObjectURL = mockRevokeObjectURL;
+      
+      // Create a real anchor element and mock its methods
+      const realAnchor = document.createElement('a');
+      realAnchor.href = 'blob:url';
+      realAnchor.download = '';
+      realAnchor.click = mockClick;
+      realAnchor.remove = mockRemove;
+      
+      // Mock document.createElement to return real anchor for 'a' elements
+      const originalCreateElement = document.createElement.bind(document);
+      const createElementSpy = vi.spyOn(document, 'createElement');
+      createElementSpy.mockImplementation((tagName: string) => {
+        if (tagName === 'a') {
+          return realAnchor;
+        }
+        return originalCreateElement(tagName);
+      });
 
       render(<CASAnalysisPlugin displayId="skyViewDisplay" imagePath="/test/image.fits" />);
       
@@ -389,17 +431,25 @@ describe('CASAnalysisPlugin', () => {
         expect(exportButton).toBeInTheDocument();
       });
 
-      const user = userEvent.setup();
+      // Reuse user from above
       const exportButton = screen.getByText('Export JSON');
       await user.click(exportButton);
 
       expect(mockCreateObjectURL).toHaveBeenCalled();
       expect(mockClick).toHaveBeenCalled();
+      
+      // Restore mocks
+      createElementSpy.mockRestore();
     });
   });
 
   describe('JS9 Integration', () => {
     it('should register analysis tasks with JS9', async () => {
+      // Ensure document.body exists
+      if (!document.body) {
+        document.body = document.createElement('body');
+      }
+      
       render(<CASAnalysisPlugin displayId="skyViewDisplay" imagePath="/test/image.fits" />);
 
       await waitFor(() => {
@@ -413,6 +463,11 @@ describe('CASAnalysisPlugin', () => {
 
     it('should handle missing JS9 gracefully', () => {
       delete (window as any).JS9;
+      
+      // Ensure document.body exists
+      if (!document.body) {
+        document.body = document.createElement('body');
+      }
 
       expect(() => {
         render(<CASAnalysisPlugin displayId="skyViewDisplay" imagePath="/test/image.fits" />);

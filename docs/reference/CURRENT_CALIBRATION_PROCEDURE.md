@@ -357,5 +357,5 @@ python -m dsa110_contimg.calibration.cli calibrate \
 
 - [Detailed Calibration Procedure](../how-to/CALIBRATION_DETAILED_PROCEDURE.md)
 - [pyradiosky Guide](../how-to/PYRADIOSKY_GUIDE.md)
-- [Calibration Defaults](../../src/dsa110_contimg/utils/defaults.py)
+- Calibration Defaults: `../../src/dsa110_contimg/utils/defaults.py` (external file)
 

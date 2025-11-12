@@ -684,7 +684,7 @@ Stats collection is the slowest operation:
 
 ## See Also
 
-- [Streaming Service Manager](../concepts/streaming-architecture.md#streaming-service-manager)
+- [Streaming Service Manager](../concepts/streaming-architecture.md#3-streaming-service-manager)
 - [Docker Deployment Guide](../operations/deploy-docker.md)
 - [Streaming API Reference](./streaming-api.md)
 - [Streaming Architecture](../concepts/streaming-architecture.md)

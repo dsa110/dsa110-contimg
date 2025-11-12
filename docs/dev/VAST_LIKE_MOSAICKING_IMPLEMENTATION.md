@@ -1,6 +1,6 @@
 # VAST-Like Mosaicking Implementation
 
-**Date:** 2025-01-XX  
+**Date:** 2025-11-12  
 **Status:** Implemented  
 **Purpose:** Migrate DSA-110 mosaicking to VAST Pipeline's simpler, more robust approach
 
@@ -151,5 +151,5 @@ dsa110-contimg mosaic build --name test_mosaic --output mosaics/test.fits
 
 ---
 
-**Last Updated:** 2025-01-XX
+**Last Updated:** 2025-11-12
 

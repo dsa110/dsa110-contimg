@@ -331,5 +331,5 @@ docker run --rm --network host \
 - [Docker Documentation](https://docs.docker.com/)
 - [Playwright Docker Guide](https://playwright.dev/docs/docker)
 - [Test Plan](./COMPREHENSIVE_TESTING_PLAN.md)
-- [E2E Test Guide](../tests/e2e/README.md)
+- E2E Test Guide: `../tests/e2e/README.md` (external file)
 

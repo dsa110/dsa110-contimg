@@ -1,8 +1,9 @@
 # Pipeline Production Features
 
-**Date:** 2025-01-29  
+**Date:** 2025-11-12  
+**Last Updated:** 2025-11-12  
 **Status:** complete  
-**Related:** [Pipeline Framework](pipeline_framework.md)
+**Related:** [Pipeline Stage Architecture](pipeline_stage_architecture.md)
 
 ---
 
@@ -162,12 +163,12 @@ All production features emit structured logs:
 
 ## See Also
 
-- [Pipeline Framework](pipeline_framework.md)
-- [Database Transaction Safety](../dev/analysis/database_transaction_safety.md)
-- [Pipeline Workflows](pipeline_workflows.md)
+- [Pipeline Overview](./pipeline_overview.md) - High-level pipeline overview
+- [Pipeline Stage Architecture](./pipeline_stage_architecture.md) - Stage-based architecture
+- [Pipeline Workflow Visualization](./pipeline_workflow_visualization.md) - Detailed workflow
 
 ## References
 
-- [Pipeline Orchestrator API](../../reference/pipeline_api.md)
-- [Stage Implementation Guide](../../how-to/create_pipeline_stage.md)
+- [Pipeline Stage Architecture](./pipeline_stage_architecture.md) - Orchestrator details
+- [Stage Implementation Guide](../how-to/create_pipeline_stage.md)
 

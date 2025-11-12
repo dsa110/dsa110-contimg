@@ -2,7 +2,7 @@
 
 **Purpose:** Document what should be included in the "Always Applied Workspace Rules" section
 
-**Last Updated:** 2025-01-XX
+**Last Updated:** 2025-11-12
 
 ---
 
