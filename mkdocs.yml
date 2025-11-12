@@ -1,6 +1,6 @@
 site_name: DSA-110 Continuum Imaging Pipeline
 dev_addr: 127.0.0.1:8001
-site_url: https://dsa110-contimg.github.io/dsa110-contimg/
+site_url: http://code.deepsynoptic.org/dsa110-contimg/
 repo_url: https://github.com/dsa110/dsa110-contimg
 docs_dir: docs
 theme:

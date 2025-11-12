@@ -20,8 +20,8 @@ docs_dir: docs
 
 **Key points:**
 - `site_url`: Where your documentation will be hosted
-  - Format: `https://<username-or-org>.github.io/<repo-name>/`
-  - Your repo: `dsa110/dsa110-contimg` → `dsa110-contimg.github.io/dsa110-contimg/`
+  - Your actual domain: `http://code.deepsynoptic.org/dsa110-contimg/`
+  - (Custom domain/reverse proxy setup, not standard GitHub Pages)
 - `docs_dir`: Where your source documentation lives (`docs/` folder)
 
 ### 2. GitHub Actions Workflow (`.github/workflows/docs.yml`)
@@ -107,7 +107,7 @@ After the workflow completes (usually 2-3 minutes):
 3. Expand the **Deploy to GitHub Pages** step
 4. You should see: "Deploying to GitHub Pages..."
 
-5. Visit your site: `https://dsa110-contimg.github.io/dsa110-contimg/`
+5. Visit your site: `http://code.deepsynoptic.org/dsa110-contimg/`
    - It may take 1-2 minutes for GitHub to update the site
    - Hard refresh (Ctrl+F5) if you don't see changes
 
@@ -260,7 +260,7 @@ You can manually trigger deployment:
 ## Quick Reference
 
 **Repository:** `https://github.com/dsa110/dsa110-contimg`  
-**Site URL:** `https://dsa110-contimg.github.io/dsa110-contimg/`  
+**Site URL:** `http://code.deepsynoptic.org/dsa110-contimg/`  
 **Workflow:** `.github/workflows/docs.yml`  
 **Build command:** `mkdocs build --strict`  
 **Deploy branch:** `gh-pages` (auto-managed)

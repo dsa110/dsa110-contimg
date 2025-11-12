@@ -37,7 +37,7 @@ GitHub Pages typically updates within 1-2 minutes after deployment completes, pr
 
 ## Current Configuration
 
-- **Site URL:** `https://dsa110-contimg.github.io/dsa110-contimg/`
+- **Site URL:** `http://code.deepsynoptic.org/dsa110-contimg/`
 - **Repository:** `https://github.com/dsa110/dsa110-contimg`
 - **Build command:** `mkdocs build --strict`
 - **Python version:** 3.11
