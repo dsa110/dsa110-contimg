@@ -16,15 +16,17 @@ from unittest.mock import MagicMock, call, patch
 import numpy as np
 import pytest
 
-# Mock casacore, pyuvdata, and matplotlib before importing modules that depend on them
+# Mock casacore, pyuvdata, casatasks, and matplotlib before importing modules that depend on them
 sys.modules["casacore"] = MagicMock()
 sys.modules["casacore.tables"] = MagicMock()
+sys.modules["casatasks"] = MagicMock()
 sys.modules["pyuvdata"] = MagicMock()
 sys.modules["pyuvdata.utils"] = MagicMock()
 sys.modules["pyuvdata.utils.phasing"] = MagicMock()
 # Mock matplotlib with proper __spec__ and __path__ for package-like behavior
 # Use a custom import hook to catch all matplotlib submodule imports
 _original_import = __import__
+
 
 def _mock_import(name, *args, **kwargs):
     """Intercept matplotlib imports and return mocks."""
@@ -39,6 +41,7 @@ def _mock_import(name, *args, **kwargs):
             sys.modules[name] = mock_module
         return sys.modules[name]
     return _original_import(name, *args, **kwargs)
+
 
 # Install the import hook
 __builtins__["__import__"] = _mock_import
