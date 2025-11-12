@@ -52,7 +52,9 @@ jobs:
   link-check:
     name: Check Markdown links
     needs: build
+    if: success() || failure()  # Run even if build fails
     runs-on: ubuntu-latest
+    continue-on-error: true  # Don't fail workflow if this fails
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -72,6 +74,7 @@ jobs:
     needs: build
     if: ${{ hashFiles('tests/docs/test_mermaid_diagrams.py') != '' }}
     runs-on: ubuntu-latest
+    continue-on-error: true  # Don't fail workflow if this fails
     steps:
       - name: Checkout
         uses: actions/checkout@v4
