@@ -69,7 +69,7 @@ jobs:
     - name: Run unit tests with mocking
       run: |
         set -euo pipefail
-  export PYTHONPATH="${GITHUB_WORKSPACE}/src:${PYTHONPATH:-}"
+        export PYTHONPATH="${GITHUB_WORKSPACE}/src:${PYTHONPATH:-}"
         pytest tests/unit/test_validation_functions.py -v \
           --cov=src/dsa110_contimg/conversion/helpers \
           --cov-report=xml \
@@ -106,7 +106,7 @@ jobs:
       run: |
         set -euo pipefail
         conda activate casa6
-  export PYTHONPATH="${GITHUB_WORKSPACE}/src:${PYTHONPATH:-}"
+        export PYTHONPATH="${GITHUB_WORKSPACE}/src:${PYTHONPATH:-}"
         
         # Run validation test script
         chmod +x test_enhanced_pipeline_production.sh
