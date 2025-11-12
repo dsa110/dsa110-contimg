@@ -72,7 +72,6 @@ jobs:
   mermaid-visual:
     name: Mermaid visual checks (optional)
     needs: build
-    if: ${{ github.event_name != 'pull_request' }}
     runs-on: ubuntu-latest
     continue-on-error: true  # Don't fail workflow if this fails
     steps:
