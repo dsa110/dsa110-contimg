@@ -153,17 +153,20 @@ def ft_from_cl(
     """
     # Ensure CASA env
     from dsa110_contimg.utils.casa_init import ensure_casa_path
+
     ensure_casa_path()
 
     import numpy as np
     from casatasks import ft as casa_ft  # type: ignore
     import casacore.tables as casatables  # type: ignore
+
     table = casatables.table  # noqa: N816
 
     # Ensure MODEL_DATA column exists before calling ft()
     # This is required for ft() to work properly
     try:
         from casacore.tables import addImagingColumns  # type: ignore
+
         addImagingColumns(ms_target)
     except Exception:
         pass  # Non-fatal if columns already exist

@@ -258,6 +258,7 @@ def extract_ms_time_range(
     # Method 1: msmetadata.timerangeforobs() - most reliable, returns MJD days directly
     # Ensure CASAPATH is set before importing CASA modules
     from dsa110_contimg.utils.casa_init import ensure_casa_path
+
     ensure_casa_path()
 
     try:
@@ -284,8 +285,7 @@ def extract_ms_time_range(
                         f"for {ms_path}: start={start_mjd}, end={end_mjd}"
                     )
         except Exception as e:
-            logger.debug(
-                f"msmetadata.timerangeforobs() failed for {ms_path}: {e}")
+            logger.debug(f"msmetadata.timerangeforobs() failed for {ms_path}: {e}")
         finally:
             try:
                 msmd.close()
@@ -319,8 +319,7 @@ def extract_ms_time_range(
                     ):
                         return float(start_mjd), float(end_mjd), float(mid_mjd)
         except Exception as e:
-            logger.debug(
-                f"msmetadata.timesforscans() failed for {ms_path}: {e}")
+            logger.debug(f"msmetadata.timesforscans() failed for {ms_path}: {e}")
         finally:
             try:
                 msmd.close()
@@ -332,6 +331,7 @@ def extract_ms_time_range(
     # Method 3: Main table TIME column - seconds, needs epoch conversion
     try:
         import casacore.tables as _casatables
+
         _tb = _casatables.table
 
         with _tb(ms_path, readonly=True) as _main:
@@ -362,6 +362,7 @@ def extract_ms_time_range(
     # Method 4: OBSERVATION table TIME_RANGE - seconds, needs epoch conversion
     try:
         import casacore.tables as _casatables
+
         _tb = _casatables.table
 
         with _tb(f"{ms_path}::OBSERVATION", readonly=True) as _obs:
@@ -385,7 +386,8 @@ def extract_ms_time_range(
         logger.debug(f"Failed to read TIME_RANGE from OBSERVATION table: {e}")
 
     logger.debug(
-        f"Could not extract valid time range from {ms_path} (fallback will be used)")
+        f"Could not extract valid time range from {ms_path} (fallback will be used)"
+    )
     return None, None, None
 
 

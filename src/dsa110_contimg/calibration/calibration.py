@@ -22,6 +22,7 @@ logger = logging.getLogger(__name__)
 
 # Provide a single casacore tables symbol for the module
 import casacore.tables as _casatables  # type: ignore
+
 table = _casatables.table  # noqa: N816
 
 
@@ -35,6 +36,7 @@ def _get_caltable_spw_count(caltable_path: str) -> Optional[int]:
         Number of unique SPWs, or None if unable to read
     """
     import numpy as np  # type: ignore[import]
+
     # use module-level table
 
     try:
@@ -249,6 +251,7 @@ def solve_delay(
     populated before invoking solve_delay().
     """
     import numpy as np  # type: ignore[import]
+
     # use module-level table
 
     # Validate data availability before attempting calibration
@@ -267,8 +270,7 @@ def solve_delay(
             )
 
         # Check if MODEL_DATA is populated (not all zeros)
-        model_sample = tb.getcol(
-            "MODEL_DATA", startrow=0, nrow=min(100, tb.nrows()))
+        model_sample = tb.getcol("MODEL_DATA", startrow=0, nrow=min(100, tb.nrows()))
         if np.all(np.abs(model_sample) < 1e-10):
             raise ValueError(
                 f"MODEL_DATA column exists but is all zeros (unpopulated). "
@@ -377,8 +379,7 @@ def solve_delay(
                 # immediately after solve completes, before proceeding.
                 _validate_solve_success(f"{table_prefix}_kcal", refant=refant)
                 tables.append(f"{table_prefix}_kcal")
-                logger.info(
-                    f"✓ Delay solve completed (retry): {table_prefix}_kcal")
+                logger.info(f"✓ Delay solve completed (retry): {table_prefix}_kcal")
             except Exception as e2:
                 raise RuntimeError(
                     f"Delay solve failed even with conservative settings: {e2}"
@@ -394,8 +395,7 @@ def solve_delay(
             t_fast = "60s"
             logger.debug(f"Using default fast solution interval: {t_fast}")
         try:
-            logger.info(
-                f"Running fast delay solve (K) on field {cal_field}...")
+            logger.info(f"Running fast delay solve (K) on field {cal_field}...")
             kwargs = dict(
                 vis=ms,
                 caltable=f"{table_prefix}_2kcal",
@@ -470,6 +470,7 @@ def solve_prebandpass_phase(
         Path to phase-only calibration table (to be passed to bandpass via gaintable)
     """
     import numpy as np  # type: ignore[import]
+
     # use module-level table
 
     if table_prefix is None:
@@ -565,8 +566,7 @@ def solve_prebandpass_phase(
                 )
             except ValueError:
                 # Field selector might be a name, use all data
-                spw_ids_with_data = np.unique(
-                    data_desc_to_spw[spw_ids_in_data])
+                spw_ids_with_data = np.unique(data_desc_to_spw[spw_ids_in_data])
         else:
             # Range of fields, use all data
             spw_ids_with_data = np.unique(data_desc_to_spw[spw_ids_in_data])
@@ -669,6 +669,7 @@ def solve_bandpass(
     (K-calibration is not used for DSA-110 connected-element array).
     """
     import numpy as np  # type: ignore[import]
+
     # use module-level table
     from casatasks import bandpass as casa_bandpass  # type: ignore[import]
 
@@ -678,8 +679,7 @@ def solve_bandpass(
     # PRECONDITION CHECK: Verify MODEL_DATA exists and is populated
     # This ensures we follow "measure twice, cut once" - establish requirements upfront
     # for consistent, reliable calibration across all calibrators (bright or faint).
-    logger.info(
-        f"Validating MODEL_DATA for bandpass solve on field(s) {cal_field}...")
+    logger.info(f"Validating MODEL_DATA for bandpass solve on field(s) {cal_field}...")
     with table(ms) as tb:
         if "MODEL_DATA" not in tb.colnames():
             raise ValueError(
@@ -690,8 +690,7 @@ def solve_bandpass(
             )
 
         # Check if MODEL_DATA is populated (not all zeros)
-        model_sample = tb.getcol(
-            "MODEL_DATA", startrow=0, nrow=min(100, tb.nrows()))
+        model_sample = tb.getcol("MODEL_DATA", startrow=0, nrow=min(100, tb.nrows()))
         if np.all(np.abs(model_sample) < 1e-10):
             raise ValueError(
                 f"MODEL_DATA column exists but is all zeros (unpopulated). "
@@ -779,8 +778,7 @@ def solve_bandpass(
                     data_desc_to_spw[spw_ids_in_data[field_mask]]
                 )
             except ValueError:
-                spw_ids_with_data = np.unique(
-                    data_desc_to_spw[spw_ids_in_data])
+                spw_ids_with_data = np.unique(data_desc_to_spw[spw_ids_in_data])
         else:
             spw_ids_with_data = np.unique(data_desc_to_spw[spw_ids_in_data])
 
@@ -945,6 +943,7 @@ def solve_gains(
     (K-calibration is not used for DSA-110 connected-element array).
     """
     import numpy as np  # type: ignore[import]
+
     # use module-level table
 
     if table_prefix is None:
@@ -953,8 +952,7 @@ def solve_gains(
     # PRECONDITION CHECK: Verify MODEL_DATA exists and is populated
     # This ensures we follow "measure twice, cut once" - establish requirements upfront
     # for consistent, reliable calibration across all calibrators (bright or faint).
-    logger.info(
-        f"Validating MODEL_DATA for gain solve on field(s) {cal_field}...")
+    logger.info(f"Validating MODEL_DATA for gain solve on field(s) {cal_field}...")
     with table(ms) as tb:
         if "MODEL_DATA" not in tb.colnames():
             raise ValueError(
@@ -965,8 +963,7 @@ def solve_gains(
             )
 
         # Check if MODEL_DATA is populated (not all zeros)
-        model_sample = tb.getcol(
-            "MODEL_DATA", startrow=0, nrow=min(100, tb.nrows()))
+        model_sample = tb.getcol("MODEL_DATA", startrow=0, nrow=min(100, tb.nrows()))
         if np.all(np.abs(model_sample) < 1e-10):
             raise ValueError(
                 f"MODEL_DATA column exists but is all zeros (unpopulated). "

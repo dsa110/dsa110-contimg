@@ -159,6 +159,7 @@ def create_nvss_fits_mask(
         if out_path is None:
             out_path = f"{imagename}.nvss_mask.fits"
         from dsa110_contimg.utils.fits_utils import create_fits_hdu
+
         header = wcs.to_header()
         hdu = create_fits_hdu(data=mask, header=header, fix_cdelt=True)
         hdu.writeto(out_path, overwrite=True)

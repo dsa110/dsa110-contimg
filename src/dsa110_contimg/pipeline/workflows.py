@@ -130,7 +130,7 @@ def standard_imaging_workflow(config: PipelineConfig) -> PipelineOrchestrator:
 
     # Add validation stage if enabled
     if config.validation.enabled:
-        builder = builder        .add_stage(
+        builder = builder.add_stage(
             "validate",
             stages_impl.ValidationStage(config),
             depends_on=["image"],
@@ -172,13 +172,15 @@ def quicklook_workflow(config: PipelineConfig) -> PipelineOrchestrator:
     builder = (
         WorkflowBuilder()
         .add_stage("catalog_setup", stages_impl.CatalogSetupStage(config))
-        .add_stage("convert", stages_impl.ConversionStage(config), depends_on=["catalog_setup"])
+        .add_stage(
+            "convert", stages_impl.ConversionStage(config), depends_on=["catalog_setup"]
+        )
         .add_stage("image", stages_impl.ImagingStage(config), depends_on=["convert"])
     )
 
     # Add validation stage if enabled
     if config.validation.enabled:
-        builder = builder        .add_stage(
+        builder = builder.add_stage(
             "validate",
             stages_impl.ValidationStage(config),
             depends_on=["image"],
@@ -209,7 +211,11 @@ def reprocessing_workflow(config: PipelineConfig) -> PipelineOrchestrator:
     builder = (
         WorkflowBuilder()
         .add_stage("catalog_setup", stages_impl.CatalogSetupStage(config))
-        .add_stage("calibrate", stages_impl.CalibrationStage(config), depends_on=["catalog_setup"])
+        .add_stage(
+            "calibrate",
+            stages_impl.CalibrationStage(config),
+            depends_on=["catalog_setup"],
+        )
         .add_stage("image", stages_impl.ImagingStage(config), depends_on=["calibrate"])
     )
 

@@ -21,6 +21,7 @@ except ImportError:
     def display(*args, **kwargs):
         pass
 
+
 from .file import FileBase
 from .render import render_error, render_preamble, render_titled_content, render_url
 from .settings_manager import settings
@@ -92,7 +93,7 @@ class HTMLFile(FileBase):
         height: Optional[int] = None,
         title: Optional[str] = None,
         collapsed: Optional[bool] = None,
-        **kwargs
+        **kwargs,
     ) -> str:
         """
         Render HTML file in an iframe.
@@ -113,8 +114,12 @@ class HTMLFile(FileBase):
         height = height or settings.display.window_height
 
         url = render_url(self.fullpath)
-        title_html = f'<h3>{title or self.basename}</h3>' if title or self.basename else ""
-        content_html = f'<iframe width="{width}" height="{height}" src="{url}"></iframe>'
+        title_html = (
+            f"<h3>{title or self.basename}</h3>" if title or self.basename else ""
+        )
+        content_html = (
+            f'<iframe width="{width}" height="{height}" src="{url}"></iframe>'
+        )
 
         if collapsed is None:
             collapsed = settings.gen.collapsible
@@ -123,7 +128,13 @@ class HTMLFile(FileBase):
             title_html=title_html, content_html=content_html, collapsed=collapsed
         )
 
-    def _render_thumb_impl(self, width: Optional[int] = None, height: Optional[int] = None, refresh: bool = False, **kwargs) -> str:
+    def _render_thumb_impl(
+        self,
+        width: Optional[int] = None,
+        height: Optional[int] = None,
+        refresh: bool = False,
+        **kwargs,
+    ) -> str:
         """
         Render thumbnail for HTML file.
 
@@ -146,7 +157,9 @@ class HTMLFile(FileBase):
         if needs_update or refresh:
             try:
                 url = "file://" + os.path.abspath(self.fullpath)
-                _render_html_thumbnail(url, img_representation, width, height, timeout=200)
+                _render_html_thumbnail(
+                    url, img_representation, width, height, timeout=200
+                )
             except Exception as e:
                 return render_error(str(e))
 
@@ -188,7 +201,7 @@ class URL(FileBase):
         height: Optional[int] = None,
         title: Optional[str] = None,
         collapsed: Optional[bool] = None,
-        **kwargs
+        **kwargs,
     ) -> str:
         """Render URL in an iframe."""
         if height is None:
@@ -196,8 +209,10 @@ class URL(FileBase):
         width = width or settings.display.cell_width
         height = height or settings.display.window_height
 
-        title_html = f'<h3>{title or self.url}</h3>' if title or self.url else ""
-        content_html = f'<iframe width="{width}" height="{height}" src="{self.url}"></iframe>'
+        title_html = f"<h3>{title or self.url}</h3>" if title or self.url else ""
+        content_html = (
+            f'<iframe width="{width}" height="{height}" src="{self.url}"></iframe>'
+        )
 
         if collapsed is None:
             collapsed = settings.gen.collapsible
@@ -212,4 +227,3 @@ class URL(FileBase):
         html = self.render_html(**kwargs)
         if HAS_IPYTHON:
             display(HTML(html))
-

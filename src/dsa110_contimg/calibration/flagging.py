@@ -181,8 +181,7 @@ def _get_default_aoflagger_strategy() -> Optional[str]:
     # Try multiple possible locations for the strategy file
     possible_paths = [
         Path("/data/dsa110-contimg/config/dsa110-default.lua"),
-        Path(__file__).parent.parent.parent.parent /
-        "config" / "dsa110-default.lua",
+        Path(__file__).parent.parent.parent.parent / "config" / "dsa110-default.lua",
         Path(os.getcwd()) / "config" / "dsa110-default.lua",
     ]
 
@@ -265,8 +264,7 @@ def flag_rfi_aoflagger(
         else:
             # Explicit path provided - use it directly
             aoflagger_cmd = [aoflagger_path]
-            logger.info(
-                f"Using AOFlagger from explicit path: {aoflagger_path}")
+            logger.info(f"Using AOFlagger from explicit path: {aoflagger_path}")
     else:
         # Auto-detect: prefer Docker (since that's what we built) but check for native
         docker_cmd = shutil.which("docker")
@@ -330,8 +328,7 @@ def flag_rfi_aoflagger(
         default_strategy = _get_default_aoflagger_strategy()
         if default_strategy:
             strategy_to_use = default_strategy
-            logger.info(
-                f"Using DSA-110 default AOFlagger strategy: {strategy_to_use}")
+            logger.info(f"Using DSA-110 default AOFlagger strategy: {strategy_to_use}")
         else:
             logger.debug(
                 "No default strategy found; AOFlagger will auto-detect strategy"
@@ -378,8 +375,7 @@ def flag_rfi_aoflagger(
             "Check Docker image is available (if using Docker)",
         ]
         error_msg = format_ms_error_with_suggestions(
-            FileNotFoundError(
-                f"AOFlagger executable not found: {aoflagger_cmd[0]}"),
+            FileNotFoundError(f"AOFlagger executable not found: {aoflagger_cmd[0]}"),
             ms,
             "AOFlagger execution",
             suggestions,
@@ -393,8 +389,7 @@ def flag_antenna(
 ) -> None:
     antenna_sel = antenna if pol is None else f"{antenna}&{pol}"
     with suppress_subprocess_stderr():
-        flagdata(vis=ms, mode="manual",
-                 antenna=antenna_sel, datacolumn=datacolumn)
+        flagdata(vis=ms, mode="manual", antenna=antenna_sel, datacolumn=datacolumn)
 
 
 def flag_baselines(ms: str, uvrange: str = "2~50m", datacolumn: str = "data") -> None:
@@ -641,8 +636,7 @@ def flag_extend(
             flagneartime or flagnearfreq
         ):
             logger = logging.getLogger(__name__)
-            logger.debug(
-                "CASA flagdata failed, trying direct casacore flag extension")
+            logger.debug("CASA flagdata failed, trying direct casacore flag extension")
             try:
                 _extend_flags_direct(
                     ms,
@@ -673,6 +667,7 @@ def _extend_flags_direct(
     try:
         import numpy as np
         import casacore.tables as casatables
+
         table = casatables.table
 
         with table(ms, readonly=False, ack=False) as tb:
@@ -754,6 +749,7 @@ def analyze_channel_flagging_stats(
     """
     import numpy as np
     import casacore.tables as casatables
+
     table = casatables.table
 
     logger = logging.getLogger(__name__)
@@ -772,13 +768,11 @@ def analyze_channel_flagging_stats(
             unique_ddids = np.unique(data_desc_id)
             unique_spws = np.unique([spw_ids[ddid] for ddid in unique_ddids])
 
-            logger.debug(
-                f"Analyzing channel flagging for {len(unique_spws)} SPW(s)")
+            logger.debug(f"Analyzing channel flagging for {len(unique_spws)} SPW(s)")
 
             for spw in unique_spws:
                 # Get rows for this SPW
-                spw_mask = np.array(
-                    [spw_ids[ddid] == spw for ddid in data_desc_id])
+                spw_mask = np.array([spw_ids[ddid] == spw for ddid in data_desc_id])
                 spw_flags = flags[spw_mask]
 
                 if len(spw_flags) == 0:
@@ -790,8 +784,7 @@ def analyze_channel_flagging_stats(
                 channel_flagging = np.mean(spw_flags, axis=(0, 2))
 
                 # Find channels above threshold
-                problematic = np.where(channel_flagging > threshold)[
-                    0].tolist()
+                problematic = np.where(channel_flagging > threshold)[0].tolist()
 
                 if problematic:
                     problematic_channels[int(spw)] = problematic
@@ -923,6 +916,7 @@ def flag_summary(
     try:
         import numpy as np
         import casacore.tables as casatables
+
         table = casatables.table
 
         stats = {}
@@ -933,8 +927,7 @@ def flag_summary(
                 total_points = flags.size
                 flagged_points = np.sum(flags)
                 stats["total_fraction_flagged"] = (
-                    float(flagged_points /
-                          total_points) if total_points > 0 else 0.0
+                    float(flagged_points / total_points) if total_points > 0 else 0.0
                 )
                 stats["n_rows"] = int(n_rows)
 

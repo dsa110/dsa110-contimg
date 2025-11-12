@@ -41,14 +41,12 @@ class MockCASAImage:
         # For 2D: pixel_coords = [dec_idx, ra_idx]
         if len(self._shape) >= 4:
             # Return [stokes, freq, dec, ra] in radians
-            corner = self._corners_world[self._corner_idx % len(
-                self._corners_world)]
+            corner = self._corners_world[self._corner_idx % len(self._corners_world)]
             self._corner_idx += 1
             return corner
         else:
             # Return [dec, ra] in radians
-            corner = self._corners_world[self._corner_idx % len(
-                self._corners_world)]
+            corner = self._corners_world[self._corner_idx % len(self._corners_world)]
             self._corner_idx += 1
             return corner
 
@@ -98,36 +96,28 @@ class TestBoundsCalculation:
         # Reset corner index for fresh test
         mock_4d_casa_image._corner_idx = 0
 
-        with patch('casacore.images.image', return_value=mock_4d_casa_image):
+        with patch("casacore.images.image", return_value=mock_4d_casa_image):
             tiles = ["/fake/path/tile1.image"]
             ra_min, ra_max, dec_min, dec_max = _calculate_mosaic_bounds(tiles)
 
-        assert abs(
-            ra_min - 117.0) < 0.1, f"RA min should be ~117.0°, got {ra_min}"
-        assert abs(
-            ra_max - 125.0) < 0.1, f"RA max should be ~125.0°, got {ra_max}"
-        assert abs(
-            dec_min - 52.0) < 0.1, f"Dec min should be ~52.0°, got {dec_min}"
-        assert abs(
-            dec_max - 56.0) < 0.1, f"Dec max should be ~56.0°, got {dec_max}"
+        assert abs(ra_min - 117.0) < 0.1, f"RA min should be ~117.0°, got {ra_min}"
+        assert abs(ra_max - 125.0) < 0.1, f"RA max should be ~125.0°, got {ra_max}"
+        assert abs(dec_min - 52.0) < 0.1, f"Dec min should be ~52.0°, got {dec_min}"
+        assert abs(dec_max - 56.0) < 0.1, f"Dec max should be ~56.0°, got {dec_max}"
 
     def test_2d_casa_image_bounds(self, mock_2d_casa_image):
         """Test bounds calculation for 2D CASA images."""
         # Reset corner index for fresh test
         mock_2d_casa_image._corner_idx = 0
 
-        with patch('casacore.images.image', return_value=mock_2d_casa_image):
+        with patch("casacore.images.image", return_value=mock_2d_casa_image):
             tiles = ["/fake/path/tile1.image"]
             ra_min, ra_max, dec_min, dec_max = _calculate_mosaic_bounds(tiles)
 
-            assert abs(
-                ra_min - 117.0) < 0.1, f"RA min should be ~117.0°, got {ra_min}"
-            assert abs(
-                ra_max - 125.0) < 0.1, f"RA max should be ~125.0°, got {ra_max}"
-            assert abs(
-                dec_min - 52.0) < 0.1, f"Dec min should be ~52.0°, got {dec_min}"
-            assert abs(
-                dec_max - 56.0) < 0.1, f"Dec max should be ~56.0°, got {dec_max}"
+            assert abs(ra_min - 117.0) < 0.1, f"RA min should be ~117.0°, got {ra_min}"
+            assert abs(ra_max - 125.0) < 0.1, f"RA max should be ~125.0°, got {ra_max}"
+            assert abs(dec_min - 52.0) < 0.1, f"Dec min should be ~52.0°, got {dec_min}"
+            assert abs(dec_max - 56.0) < 0.1, f"Dec max should be ~56.0°, got {dec_max}"
 
     def test_multiple_tiles_union_bounds(self):
         """Test bounds calculation with multiple tiles (union)."""
@@ -139,7 +129,7 @@ class TestBoundsCalculation:
                 [1.0, 1.0, np.radians(52.0), np.radians(125.0)],
                 [1.0, 1.0, np.radians(56.0), np.radians(117.0)],
                 [1.0, 1.0, np.radians(56.0), np.radians(125.0)],
-            ]
+            ],
         )
 
         # Tile 2: RA 120-128°, Dec 53-57° (overlaps and extends)
@@ -150,7 +140,7 @@ class TestBoundsCalculation:
                 [1.0, 1.0, np.radians(53.0), np.radians(128.0)],
                 [1.0, 1.0, np.radians(57.0), np.radians(120.0)],
                 [1.0, 1.0, np.radians(57.0), np.radians(128.0)],
-            ]
+            ],
         )
 
         def mock_casaimage_factory(path):
@@ -160,18 +150,14 @@ class TestBoundsCalculation:
                 return tile2
             return tile1
 
-        with patch('casacore.images.image', side_effect=mock_casaimage_factory):
+        with patch("casacore.images.image", side_effect=mock_casaimage_factory):
             tiles = ["/fake/path/tile1.image", "/fake/path/tile2.image"]
             ra_min, ra_max, dec_min, dec_max = _calculate_mosaic_bounds(tiles)
             # Union should cover RA 117-128°, Dec 52-57°
-            assert abs(
-                ra_min - 117.0) < 0.1, f"RA min should be ~117.0°, got {ra_min}"
-            assert abs(
-                ra_max - 128.0) < 0.1, f"RA max should be ~128.0°, got {ra_max}"
-            assert abs(
-                dec_min - 52.0) < 0.1, f"Dec min should be ~52.0°, got {dec_min}"
-            assert abs(
-                dec_max - 57.0) < 0.1, f"Dec max should be ~57.0°, got {dec_max}"
+            assert abs(ra_min - 117.0) < 0.1, f"RA min should be ~117.0°, got {ra_min}"
+            assert abs(ra_max - 128.0) < 0.1, f"RA max should be ~128.0°, got {ra_max}"
+            assert abs(dec_min - 52.0) < 0.1, f"Dec min should be ~52.0°, got {dec_min}"
+            assert abs(dec_max - 57.0) < 0.1, f"Dec max should be ~57.0°, got {dec_max}"
 
     def test_bounds_with_toworld_4d_order(self):
         """Test that toworld is called with correct pixel order for 4D images."""
@@ -186,16 +172,19 @@ class TestBoundsCalculation:
 
         mock_img = MockCASAImage(shape, corners)
 
-        with patch('casacore.images.image', return_value=mock_img):
+        with patch("casacore.images.image", return_value=mock_img):
             tiles = ["/fake/path/tile1.image"]
             _calculate_mosaic_bounds(tiles)
 
         # Verify toworld was called with correct order for 4D images
         # Should be called with [0, 0, y, x] for 4D images
-        assert mock_img._corner_idx == 4, "toworld should be called 4 times (once per corner)"
+        assert (
+            mock_img._corner_idx == 4
+        ), "toworld should be called 4 times (once per corner)"
 
     def test_bounds_handles_missing_corners(self):
         """Test that bounds calculation handles missing corner coordinates gracefully."""
+
         # Create image that fails on some corners
         class FailingMockImage(MockCASAImage):
             def toworld(self, pixel_coords):
@@ -214,7 +203,7 @@ class TestBoundsCalculation:
 
         mock_img = FailingMockImage(shape, corners)
 
-        with patch('casacore.images.image', return_value=mock_img):
+        with patch("casacore.images.image", return_value=mock_img):
             tiles = ["/fake/path/tile1.image"]
             ra_min, ra_max, dec_min, dec_max = _calculate_mosaic_bounds(tiles)
 

@@ -1,6 +1,7 @@
 """Utility functions for calibration CLI."""
 
 import casacore.tables as casatables
+
 table = casatables.table  # noqa: N816
 from astropy.coordinates import Angle, SkyCoord
 from astropy import units as u
@@ -58,8 +59,7 @@ def rephase_ms_to_calibrator(
             ms_ra_deg = np.rad2deg(ms_ra_rad)
             ms_dec_deg = np.rad2deg(ms_dec_rad)
 
-        print(
-            f"Current phase center: RA={ms_ra_deg:.4f}°, Dec={ms_dec_deg:.4f}°")
+        print(f"Current phase center: RA={ms_ra_deg:.4f}°, Dec={ms_dec_deg:.4f}°")
         ms_coord = SkyCoord(ra=ms_ra_deg * u.deg, dec=ms_dec_deg * u.deg)
         cal_coord = SkyCoord(ra=cal_ra_deg * u.deg, dec=cal_dec_deg * u.deg)
         sep_arcmin = ms_coord.separation(cal_coord).to(u.arcmin).value
@@ -75,10 +75,8 @@ def rephase_ms_to_calibrator(
             print(f"Rephasing needed: offset {sep_arcmin:.2f} arcmin")
             needs_rephasing = True
     except Exception as e:
-        print(
-            f"WARNING: Could not check phase center: {e}. Proceeding with rephasing.")
-        logger.warning(
-            f"Could not check phase center: {e}. Proceeding with rephasing.")
+        print(f"WARNING: Could not check phase center: {e}. Proceeding with rephasing.")
+        logger.warning(f"Could not check phase center: {e}. Proceeding with rephasing.")
         needs_rephasing = True
 
     if not needs_rephasing:
@@ -151,10 +149,8 @@ def rephase_ms_to_calibrator(
                     else:
                         print(f"✓ REFERENCE_DIR already correct for all fields")
         except Exception as refdir_error:
-            print(
-                f"WARNING: Could not verify/update REFERENCE_DIR: {refdir_error}")
-            logger.warning(
-                f"Could not verify/update REFERENCE_DIR: {refdir_error}")
+            print(f"WARNING: Could not verify/update REFERENCE_DIR: {refdir_error}")
+            logger.warning(f"Could not verify/update REFERENCE_DIR: {refdir_error}")
 
         # Verify phase center after rephasing
         try:
@@ -164,17 +160,14 @@ def rephase_ms_to_calibrator(
                     ref_ra_deg = ref_dir[0] * 180.0 / np.pi
                     ref_dec_deg = ref_dir[1] * 180.0 / np.pi
 
-                    ms_coord = SkyCoord(
-                        ra=ref_ra_deg * u.deg, dec=ref_dec_deg * u.deg)
-                    cal_coord = SkyCoord(
-                        ra=cal_ra_deg * u.deg, dec=cal_dec_deg * u.deg)
+                    ms_coord = SkyCoord(ra=ref_ra_deg * u.deg, dec=ref_dec_deg * u.deg)
+                    cal_coord = SkyCoord(ra=cal_ra_deg * u.deg, dec=cal_dec_deg * u.deg)
                     separation = ms_coord.separation(cal_coord)
 
                     print(
                         f"Final phase center: RA={ref_ra_deg:.6f}°, Dec={ref_dec_deg:.6f}°"
                     )
-                    print(
-                        f"Separation from calibrator: {separation.to(u.arcmin):.4f}")
+                    print(f"Separation from calibrator: {separation.to(u.arcmin):.4f}")
 
                     if separation.to(u.arcmin).value > 1.0:
                         print(
@@ -241,8 +234,7 @@ def clear_all_calibration_artifacts(
                     data_shape = getattr(data_sample, "shape", None)
                     data_dtype = getattr(data_sample, "dtype", None)
                     if data_shape and data_dtype:
-                        zeros = np.zeros(
-                            (tb.nrows(),) + data_shape, dtype=data_dtype)
+                        zeros = np.zeros((tb.nrows(),) + data_shape, dtype=data_dtype)
                         tb.putcol("MODEL_DATA", zeros)
                         cleared_items.append("MODEL_DATA")
                         print(f"  ✓ Cleared MODEL_DATA ({tb.nrows()} rows)")
@@ -259,12 +251,10 @@ def clear_all_calibration_artifacts(
                     data_shape = getattr(data_sample, "shape", None)
                     data_dtype = getattr(data_sample, "dtype", None)
                     if data_shape and data_dtype:
-                        zeros = np.zeros(
-                            (tb.nrows(),) + data_shape, dtype=data_dtype)
+                        zeros = np.zeros((tb.nrows(),) + data_shape, dtype=data_dtype)
                         tb.putcol("CORRECTED_DATA", zeros)
                         cleared_items.append("CORRECTED_DATA")
-                        print(
-                            f"  ✓ Cleared CORRECTED_DATA ({tb.nrows()} rows)")
+                        print(f"  ✓ Cleared CORRECTED_DATA ({tb.nrows()} rows)")
     except Exception as e:
         logger.warning(f"Could not clear CORRECTED_DATA: {e}")
 

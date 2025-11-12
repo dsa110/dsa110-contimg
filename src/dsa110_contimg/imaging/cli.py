@@ -20,14 +20,19 @@ from dsa110_contimg.utils.cli_helpers import (
     ensure_scratch_dirs,
 )
 from .cli_imaging import image_ms, run_wsclean as _run_wsclean
-from .cli_utils import detect_datacolumn as _detect_datacolumn, default_cell_arcsec as _default_cell_arcsec
+from .cli_utils import (
+    detect_datacolumn as _detect_datacolumn,
+    default_cell_arcsec as _default_cell_arcsec,
+)
 
 # Initialize CASA environment before importing CASA modules
 from dsa110_contimg.utils.casa_init import ensure_casa_path
+
 ensure_casa_path()
 
 from casatasks import tclean, exportfits  # type: ignore[import]
 import casacore.tables as casatables  # type: ignore[import]
+
 table = casatables.table  # noqa: N816
 import numpy as np
 import argparse
@@ -41,6 +46,7 @@ from typing import Optional
 
 import numpy as np
 import casacore.tables as casatables  # type: ignore[import]
+
 table = casatables.table  # noqa: N816
 from casatasks import exportfits, tclean  # type: ignore[import]
 

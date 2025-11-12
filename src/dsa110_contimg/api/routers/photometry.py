@@ -1,4 +1,5 @@
 """Photometry and sources-related API routes extracted from routes.py."""
+
 from __future__ import annotations
 
 import logging
@@ -57,6 +58,7 @@ def sources_search(request: Request, request_body: dict):
 @router.get("/sources/{source_id}/variability", response_model=VariabilityMetrics)
 def get_source_variability(request: Request, source_id: str):
     from dsa110_contimg.photometry.source import Source
+
     cfg = request.app.state.cfg
     try:
         source = Source(source_id=source_id, products_db=cfg.products_db)
@@ -71,19 +73,23 @@ def get_source_variability(request: Request, source_id: str):
         )
     except Exception as e:
         raise HTTPException(
-            status_code=404, detail=f"Source {source_id} not found or error calculating metrics: {str(e)}") from e
+            status_code=404,
+            detail=f"Source {source_id} not found or error calculating metrics: {str(e)}",
+        ) from e
 
 
 @router.get("/sources/{source_id}/lightcurve", response_model=LightCurveData)
 def get_source_lightcurve(request: Request, source_id: str):
     from astropy.time import Time
     from dsa110_contimg.photometry.source import Source
+
     cfg = request.app.state.cfg
     try:
         source = Source(source_id=source_id, products_db=cfg.products_db)
         if source.measurements.empty:
             raise HTTPException(
-                status_code=404, detail=f"No measurements found for source {source_id}")
+                status_code=404, detail=f"No measurements found for source {source_id}"
+            )
         flux_points = []
         normalized_flux_points = []
         for _, row in source.measurements.iterrows():
@@ -94,19 +100,45 @@ def get_source_lightcurve(request: Request, source_id: str):
             flux_jy = row.get("peak_jyb", row.get("flux_jy", 0.0))
             flux_err_jy = row.get("peak_err_jyb", row.get("flux_err_jy", None))
             image_path = row.get("image_path", "")
-            flux_points.append(SourceFluxPoint(mjd=float(mjd), time=time_str, flux_jy=float(
-                flux_jy) if flux_jy else 0.0, flux_err_jy=float(flux_err_jy) if flux_err_jy else None, image_id=image_path))
+            flux_points.append(
+                SourceFluxPoint(
+                    mjd=float(mjd),
+                    time=time_str,
+                    flux_jy=float(flux_jy) if flux_jy else 0.0,
+                    flux_err_jy=float(flux_err_jy) if flux_err_jy else None,
+                    image_id=image_path,
+                )
+            )
             if "normalized_flux_jy" in row:
                 norm_flux_jy = row.get("normalized_flux_jy", 0.0)
                 norm_flux_err_jy = row.get("normalized_flux_err_jy", None)
-                normalized_flux_points.append(SourceFluxPoint(mjd=float(mjd), time=time_str, flux_jy=float(
-                    norm_flux_jy) if norm_flux_jy else 0.0, flux_err_jy=float(norm_flux_err_jy) if norm_flux_err_jy else None, image_id=image_path))
-        return LightCurveData(source_id=source_id, ra_deg=source.ra_deg, dec_deg=source.dec_deg, flux_points=flux_points, normalized_flux_points=normalized_flux_points if normalized_flux_points else None)
+                normalized_flux_points.append(
+                    SourceFluxPoint(
+                        mjd=float(mjd),
+                        time=time_str,
+                        flux_jy=float(norm_flux_jy) if norm_flux_jy else 0.0,
+                        flux_err_jy=(
+                            float(norm_flux_err_jy) if norm_flux_err_jy else None
+                        ),
+                        image_id=image_path,
+                    )
+                )
+        return LightCurveData(
+            source_id=source_id,
+            ra_deg=source.ra_deg,
+            dec_deg=source.dec_deg,
+            flux_points=flux_points,
+            normalized_flux_points=(
+                normalized_flux_points if normalized_flux_points else None
+            ),
+        )
     except HTTPException:
         raise
     except Exception as e:
         raise HTTPException(
-            status_code=404, detail=f"Source {source_id} not found or error loading measurements: {str(e)}") from e
+            status_code=404,
+            detail=f"Source {source_id} not found or error loading measurements: {str(e)}",
+        ) from e
 
 
 @router.get("/sources/{source_id}/postage_stamps", response_model=PostageStampsResponse)
@@ -114,117 +146,192 @@ def get_source_postage_stamps(
     request: Request,
     source_id: str,
     size_arcsec: float = Query(60.0, description="Cutout size in arcseconds"),
-    max_stamps: int = Query(
-        20, description="Maximum number of stamps to return"),
+    max_stamps: int = Query(20, description="Maximum number of stamps to return"),
 ):
     from dsa110_contimg.photometry.source import Source
     from dsa110_contimg.qa.postage_stamps import create_cutout
+
     cfg = request.app.state.cfg
     try:
         source = Source(source_id=source_id, products_db=cfg.products_db)
         if source.measurements.empty:
             raise HTTPException(
-                status_code=404, detail=f"No measurements found for source {source_id}")
+                status_code=404, detail=f"No measurements found for source {source_id}"
+            )
         stamps = []
         temp_dir = Path(tempfile.gettempdir()) / "postage_stamps"
         temp_dir.mkdir(exist_ok=True)
-        image_paths = source.measurements["image_path"].dropna().unique()[
-            :max_stamps]
+        image_paths = source.measurements["image_path"].dropna().unique()[:max_stamps]
         for image_path in image_paths:
             if not Path(image_path).exists():
-                stamps.append(PostageStampInfo(
-                    image_path=image_path, mjd=0.0, error=f"Image file not found: {image_path}"))
+                stamps.append(
+                    PostageStampInfo(
+                        image_path=image_path,
+                        mjd=0.0,
+                        error=f"Image file not found: {image_path}",
+                    )
+                )
                 continue
-            img_measurements = source.measurements[source.measurements["image_path"] == image_path]
-            mjd = img_measurements["mjd"].iloc[0] if "mjd" in img_measurements.columns else 0.0
+            img_measurements = source.measurements[
+                source.measurements["image_path"] == image_path
+            ]
+            mjd = (
+                img_measurements["mjd"].iloc[0]
+                if "mjd" in img_measurements.columns
+                else 0.0
+            )
             try:
-                cutout_path = temp_dir / \
-                    f"{source_id}_{Path(image_path).stem}_cutout.fits"
+                cutout_path = (
+                    temp_dir / f"{source_id}_{Path(image_path).stem}_cutout.fits"
+                )
                 fits_path = Path(image_path)
                 size_arcmin = size_arcsec / 60.0
                 cutout_data, cutout_wcs, _metadata = create_cutout(
-                    fits_path=fits_path, ra_deg=source.ra_deg, dec_deg=source.dec_deg, size_arcmin=size_arcmin)
+                    fits_path=fits_path,
+                    ra_deg=source.ra_deg,
+                    dec_deg=source.dec_deg,
+                    size_arcmin=size_arcmin,
+                )
                 from astropy.io import fits as _fits
-                hdu = _fits.PrimaryHDU(
-                    data=cutout_data, header=cutout_wcs.to_header())
+
+                hdu = _fits.PrimaryHDU(data=cutout_data, header=cutout_wcs.to_header())
                 hdu.writeto(cutout_path, overwrite=True)
-                stamps.append(PostageStampInfo(
-                    image_path=image_path, mjd=float(mjd), cutout_path=str(cutout_path)))
+                stamps.append(
+                    PostageStampInfo(
+                        image_path=image_path,
+                        mjd=float(mjd),
+                        cutout_path=str(cutout_path),
+                    )
+                )
             except (FileNotFoundError, ValueError, OSError) as e:
                 # Catch specific exceptions: file not found, invalid coordinates, or I/O errors
-                stamps.append(PostageStampInfo(
-                    image_path=image_path, mjd=float(mjd), error=str(e)))
+                stamps.append(
+                    PostageStampInfo(
+                        image_path=image_path, mjd=float(mjd), error=str(e)
+                    )
+                )
             except Exception as e:
                 # Catch any other unexpected errors
                 logger.warning(
-                    "Unexpected error creating cutout for %s: %s", image_path, e, exc_info=True)
-                stamps.append(PostageStampInfo(image_path=image_path, mjd=float(
-                    mjd), error=f"Unexpected error: {str(e)}"))
+                    "Unexpected error creating cutout for %s: %s",
+                    image_path,
+                    e,
+                    exc_info=True,
+                )
+                stamps.append(
+                    PostageStampInfo(
+                        image_path=image_path,
+                        mjd=float(mjd),
+                        error=f"Unexpected error: {str(e)}",
+                    )
+                )
         return PostageStampsResponse(source_id=source_id, stamps=stamps)
     except HTTPException:
         raise
     except Exception as e:
         raise HTTPException(
-            status_code=500, detail=f"Error getting postage stamps for {source_id}: {e}") from e
+            status_code=500, detail=f"Error getting postage stamps for {source_id}: {e}"
+        ) from e
 
 
-@router.get("/sources/{source_id}/external_catalogs", response_model=ExternalCatalogsResponse)
+@router.get(
+    "/sources/{source_id}/external_catalogs", response_model=ExternalCatalogsResponse
+)
 def get_source_external_catalogs(
     request: Request,
     source_id: str,
-    radius_arcsec: float = Query(
-        5.0, description="Search radius in arcseconds"),
+    radius_arcsec: float = Query(5.0, description="Search radius in arcseconds"),
     catalogs: Optional[str] = Query(
-        None, description="Comma-separated list of catalogs (simbad,ned,gaia). If None, queries all. "),
+        None,
+        description="Comma-separated list of catalogs (simbad,ned,gaia). If None, queries all. ",
+    ),
     timeout: float = Query(30.0, description="Query timeout in seconds"),
 ):
     from dsa110_contimg.photometry.source import Source
+
     cfg = request.app.state.cfg
     try:
         source = Source(source_id=source_id, products_db=cfg.products_db)
         if source.ra_deg is None or source.dec_deg is None:
             raise HTTPException(
-                status_code=404, detail=f"Source {source_id} does not have RA/Dec coordinates")
+                status_code=404,
+                detail=f"Source {source_id} does not have RA/Dec coordinates",
+            )
         catalog_list = None
         if catalogs:
-            catalog_list = [c.strip().lower() for c in catalogs.split(',')]
+            catalog_list = [c.strip().lower() for c in catalogs.split(",")]
             valid_catalogs = {"simbad", "ned", "gaia"}
             invalid = set(catalog_list) - valid_catalogs
             if invalid:
                 raise HTTPException(
-                    status_code=400, detail=f"Invalid catalogs: {invalid}. Valid options: simbad, ned, gaia")
+                    status_code=400,
+                    detail=f"Invalid catalogs: {invalid}. Valid options: simbad, ned, gaia",
+                )
         import time
+
         start_time = time.time()
         results = source.crossmatch_external(
-            radius_arcsec=radius_arcsec, catalogs=catalog_list, timeout=timeout)
+            radius_arcsec=radius_arcsec, catalogs=catalog_list, timeout=timeout
+        )
         query_time = time.time() - start_time
         matches = {}
         for catalog_name in ["simbad", "ned", "gaia"]:
             result = results.get(catalog_name)
             if result is None:
                 matches[catalog_name] = ExternalCatalogMatch(
-                    catalog=catalog_name, matched=False)
+                    catalog=catalog_name, matched=False
+                )
             else:
                 if catalog_name == "simbad":
-                    matches[catalog_name] = ExternalCatalogMatch(catalog=catalog_name, matched=True, main_id=result.get(
-                        "main_id"), object_type=result.get("otype"), separation_arcsec=result.get("separation_arcsec"), redshift=result.get("redshift"))
+                    matches[catalog_name] = ExternalCatalogMatch(
+                        catalog=catalog_name,
+                        matched=True,
+                        main_id=result.get("main_id"),
+                        object_type=result.get("otype"),
+                        separation_arcsec=result.get("separation_arcsec"),
+                        redshift=result.get("redshift"),
+                    )
                 elif catalog_name == "ned":
-                    matches[catalog_name] = ExternalCatalogMatch(catalog=catalog_name, matched=True, main_id=result.get("ned_name"), object_type=result.get(
-                        "object_type"), separation_arcsec=result.get("separation_arcsec"), redshift=result.get("redshift"))
+                    matches[catalog_name] = ExternalCatalogMatch(
+                        catalog=catalog_name,
+                        matched=True,
+                        main_id=result.get("ned_name"),
+                        object_type=result.get("object_type"),
+                        separation_arcsec=result.get("separation_arcsec"),
+                        redshift=result.get("redshift"),
+                    )
                 elif catalog_name == "gaia":
-                    matches[catalog_name] = ExternalCatalogMatch(catalog=catalog_name, matched=True, main_id=result.get("source_id"), separation_arcsec=result.get("separation_arcsec"), parallax=result.get(
-                        "parallax"), distance=result.get("distance"), pmra=result.get("pmra"), pmdec=result.get("pmdec"), phot_g_mean_mag=result.get("phot_g_mean_mag"))
-        return ExternalCatalogsResponse(source_id=source_id, ra_deg=source.ra_deg, dec_deg=source.dec_deg, matches=matches, query_time_sec=query_time)
+                    matches[catalog_name] = ExternalCatalogMatch(
+                        catalog=catalog_name,
+                        matched=True,
+                        main_id=result.get("source_id"),
+                        separation_arcsec=result.get("separation_arcsec"),
+                        parallax=result.get("parallax"),
+                        distance=result.get("distance"),
+                        pmra=result.get("pmra"),
+                        pmdec=result.get("pmdec"),
+                        phot_g_mean_mag=result.get("phot_g_mean_mag"),
+                    )
+        return ExternalCatalogsResponse(
+            source_id=source_id,
+            ra_deg=source.ra_deg,
+            dec_deg=source.dec_deg,
+            matches=matches,
+            query_time_sec=query_time,
+        )
     except HTTPException:
         raise
     except Exception as e:
         raise HTTPException(
-            status_code=404, detail=f"Source {source_id} not found or error querying catalogs: {str(e)}") from e
+            status_code=404,
+            detail=f"Source {source_id} not found or error querying catalogs: {str(e)}",
+        ) from e
 
 
 @router.get("/sources/{source_id}", response_model=SourceDetail)
 def get_source_detail(request: Request, source_id: str):
     from dsa110_contimg.photometry.source import Source
+
     cfg = request.app.state.cfg
     try:
         source = Source(source_id=source_id, products_db=cfg.products_db)
@@ -243,7 +350,9 @@ def get_source_detail(request: Request, source_id: str):
         except Exception as e:
             logger.warning(
                 "Failed to calculate variability metrics for source %s: %s",
-                source_id, e, exc_info=True
+                source_id,
+                e,
+                exc_info=True,
             )
         # Compute summary metrics
         n_forced = 0
@@ -251,11 +360,13 @@ def get_source_detail(request: Request, source_id: str):
         try:
             if not source.measurements.empty:
                 forced_mask = source.measurements.get(
-                    "forced", source.measurements.get("is_forced", False))
+                    "forced", source.measurements.get("is_forced", False)
+                )
                 if forced_mask is not False:
                     n_forced = int(forced_mask.sum())
                 flux = source.measurements.get(
-                    "peak_jyb", source.measurements.get("flux_jy"))
+                    "peak_jyb", source.measurements.get("flux_jy")
+                )
                 if flux is not None:
                     flux_vals = flux.dropna().astype(float)
                     if len(flux_vals) > 0:
@@ -269,7 +380,9 @@ def get_source_detail(request: Request, source_id: str):
         except Exception as e:
             logger.warning(
                 "Failed to compute summary metrics for source %s: %s",
-                source_id, e, exc_info=True
+                source_id,
+                e,
+                exc_info=True,
             )
         # Simple ESE probability (heuristic)
         ese_probability = None
@@ -277,8 +390,11 @@ def get_source_detail(request: Request, source_id: str):
             if variability_metrics:
                 v = variability_metrics.v or 0.0
                 eta = variability_metrics.eta or 0.0
-                chi2_nu = variability_metrics.chi_sq_nu if hasattr(
-                    variability_metrics, "chi_sq_nu") else None
+                chi2_nu = (
+                    variability_metrics.chi_sq_nu
+                    if hasattr(variability_metrics, "chi_sq_nu")
+                    else None
+                )
                 ese_timescale = None
                 mean_flux_val = mean_flux
                 std_flux_val = std_flux
@@ -303,7 +419,9 @@ def get_source_detail(request: Request, source_id: str):
         except Exception as e:
             logger.warning(
                 "Failed to calculate ESE probability for source %s: %s",
-                source_id, e, exc_info=True
+                source_id,
+                e,
+                exc_info=True,
             )
             ese_probability = None
         return SourceDetail(
@@ -317,14 +435,17 @@ def get_source_detail(request: Request, source_id: str):
             mean_flux_jy=mean_flux,
             std_flux_jy=std_flux,
             max_snr=max_snr,
-            is_variable=variability_metrics.is_variable if variability_metrics else False,
+            is_variable=(
+                variability_metrics.is_variable if variability_metrics else False
+            ),
             ese_probability=ese_probability,
             new_source=None,
             variability_metrics=variability_metrics,
         )
     except Exception as e:
         raise HTTPException(
-            status_code=404, detail=f"Source {source_id} not found: {str(e)}") from e
+            status_code=404, detail=f"Source {source_id} not found: {str(e)}"
+        ) from e
 
 
 @router.get("/sources/{source_id}/detections", response_model=DetectionList)
@@ -335,6 +456,7 @@ def get_source_detections(
     page_size: int = Query(25, ge=1, le=100, description="Items per page"),
 ):
     from dsa110_contimg.photometry.source import Source
+
     cfg = request.app.state.cfg
     try:
         source = Source(source_id=source_id, products_db=cfg.products_db)
@@ -352,13 +474,13 @@ def get_source_detections(
                 try:
                     with _connect(cfg.products_db) as conn:
                         img_row = conn.execute(
-                            "SELECT id FROM images WHERE path = ?", (image_path,)).fetchone()
+                            "SELECT id FROM images WHERE path = ?", (image_path,)
+                        ).fetchone()
                         if img_row:
                             image_id = img_row["id"]
                 except Exception as e:
                     logger.debug(
-                        "Could not resolve image_id for path %s: %s",
-                        image_path, e
+                        "Could not resolve image_id for path %s: %s", image_path, e
                     )
             flux_peak = row.get("peak_jyb", row.get("flux_jy", 0.0))
             if flux_peak and flux_peak < 1.0:
@@ -377,14 +499,15 @@ def get_source_detections(
                 try:
                     if isinstance(row["measured_at"], (int, float)):
                         measured_at = datetime.fromtimestamp(
-                            row["measured_at"])  # type: ignore
+                            row["measured_at"]
+                        )  # type: ignore
                     else:
-                        measured_at = datetime.fromisoformat(
-                            str(row["measured_at"]))
+                        measured_at = datetime.fromisoformat(str(row["measured_at"]))
                 except (ValueError, TypeError, OSError) as e:
                     logger.debug(
                         "Could not parse measured_at timestamp for detection %s: %s",
-                        row.get('id', 'unknown'), e
+                        row.get("id", "unknown"),
+                        e,
                     )
                     measured_at = None
             detections.append(
@@ -396,21 +519,28 @@ def get_source_detections(
                     ra=float(row.get("ra_deg", 0.0)),
                     dec=float(row.get("dec_deg", 0.0)),
                     flux_peak=float(flux_peak) if flux_peak else 0.0,
-                    flux_peak_err=float(
-                        flux_peak_err) if flux_peak_err else None,
+                    flux_peak_err=float(flux_peak_err) if flux_peak_err else None,
                     flux_int=float(flux_int) if flux_int else None,
                     flux_int_err=float(flux_int_err) if flux_int_err else None,
-                    snr=float(row.get("snr")) if "snr" in row and row.get(
-                        "snr") is not None else None,
-                    forced=bool(
-                        row.get("forced", row.get("is_forced", False))),
+                    snr=(
+                        float(row.get("snr"))
+                        if "snr" in row and row.get("snr") is not None
+                        else None
+                    ),
+                    forced=bool(row.get("forced", row.get("is_forced", False))),
                     frequency=None,
-                    mjd=float(row.get("mjd")) if "mjd" in row and row.get(
-                        "mjd") is not None else None,
+                    mjd=(
+                        float(row.get("mjd"))
+                        if "mjd" in row and row.get("mjd") is not None
+                        else None
+                    ),
                     measured_at=measured_at,
                 )
             )
-        return DetectionList(items=detections, total=total, page=page, page_size=page_size)
+        return DetectionList(
+            items=detections, total=total, page=page, page_size=page_size
+        )
     except Exception as e:
         raise HTTPException(
-            status_code=404, detail=f"Source {source_id} not found: {str(e)}") from e
+            status_code=404, detail=f"Source {source_id} not found: {str(e)}"
+        ) from e

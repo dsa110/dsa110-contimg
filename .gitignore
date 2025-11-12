@@ -1,6 +1,6 @@
 # Ignore old files
 *old*/
-archive/
+# archive/
 
 # Ignore Linear config (contains API keys)
 .linear_config.json

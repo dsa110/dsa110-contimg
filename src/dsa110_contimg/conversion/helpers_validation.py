@@ -5,8 +5,10 @@ from typing import Optional
 
 import numpy as np
 from astropy.time import Time
+
 # Ensure CASAPATH is set before importing CASA modules
 from dsa110_contimg.utils.casa_init import ensure_casa_path
+
 ensure_casa_path()
 
 # Use the shared patchable table symbol from conversion.helpers to make unit tests simpler
@@ -76,10 +78,9 @@ def validate_ms_frequency_order(ms_path: str) -> None:
                 f"range {chan_freq.min()/1e6:.1f}-{chan_freq.max()/1e6:.1f} MHz"
             )
     except Exception as e:
-        if (
-            "incorrect frequency order" in str(e)
-            or "frequencies are in DESCENDING order" in str(e)
-        ):
+        if "incorrect frequency order" in str(
+            e
+        ) or "frequencies are in DESCENDING order" in str(e):
             raise  # Re-raise our validation errors
         else:
             logger.warning(f"Frequency order validation failed (non-fatal): {e}")
@@ -118,7 +119,9 @@ def validate_phase_center_coherence(
                 # Time-dependent phasing: phase centers should track LST (RA changes with time)
                 # Get observation time range from main table
                 try:
-                    with _helpers.table(ms_path, readonly=True, ack=False) as main_table:
+                    with _helpers.table(
+                        ms_path, readonly=True, ack=False
+                    ) as main_table:
                         if main_table.nrows() > 0:
                             times = main_table.getcol("TIME")
                             if times.size > 0:

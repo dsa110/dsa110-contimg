@@ -66,7 +66,7 @@ class TestQAConfig:
         """Test config conversion to dictionary."""
         config = QAConfig()
         config_dict = config.to_dict()
-        
+
         assert "astrometry" in config_dict
         assert "flux_scale" in config_dict
         assert "image_quality" in config_dict
@@ -82,7 +82,7 @@ class TestQAConfig:
             },
             "generate_html_report": False,
         }
-        
+
         config = load_config_from_dict(config_dict)
         assert config.astrometry.max_offset_arcsec == 2.0
         assert config.astrometry.max_rms_arcsec == 1.0
@@ -142,4 +142,3 @@ class TestFastValidationConfig:
         assert config.parallel_workers == 8
         assert config.timeout_seconds == 30
         assert config.skip_catalog_validation is True
-

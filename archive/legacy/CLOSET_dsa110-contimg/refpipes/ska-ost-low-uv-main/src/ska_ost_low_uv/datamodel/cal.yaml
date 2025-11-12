@@ -1,0 +1,57 @@
+cal:
+  CLASS: AA_UV_CAL
+  VERSION: X.Y.Z
+  hdf5_type: root
+
+###############
+# Calibration dataset
+
+cal/attrs:
+  description: Calibration array metadata
+  hdf5_type: group
+
+cal/gains:
+  description: Per-antenna calibration coefficients
+  dims:
+    - frequency
+    - antenna
+    - polarization
+  hdf5_type: dataset
+
+cal/flags:
+  description: Boolean flags for antenna. 0=unflagged (good), 1=flagged (bad).
+  dims:
+    - frequency
+    - antenna
+    - polarization
+  hdf5_type: dataset
+
+cal/coords/frequency:
+  description: Frequency at channel center
+  hdf5_type: dataset
+  dims:
+    - frequency
+  units: Hz
+
+cal/coords/antenna:
+  description: Antenna index (numerical, 0-based)
+  hdf5_type: dataset
+  dims:
+    - antenna
+  units: Hz
+
+cal/coords/polarization:
+  description: Polarization products coordinate
+  hdf5_type: dataset
+  dims:
+    - polarization
+
+
+###############
+# Provenance
+cal/provenance:
+  description: History and data provenance information.
+  hdf5_type: group
+cal/provenance/ska_ost_low_uv_config:
+  description: Software versions used in file generation.
+  hdf5_type: group

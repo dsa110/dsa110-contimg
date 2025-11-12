@@ -19,6 +19,7 @@ except ImportError:
     def display(*args, **kwargs):
         pass
 
+
 from .render import render_url
 
 _ALL_SECTIONS = {}
@@ -175,7 +176,9 @@ def Section(name: str, refreshable: bool = False) -> None:
         display(HTML(html))
 
 
-def _render_refresh_button(content: Optional[str] = None, style: Optional[str] = None) -> str:
+def _render_refresh_button(
+    content: Optional[str] = None, style: Optional[str] = None
+) -> str:
     """
     Render a refresh button (internal use).
 
@@ -191,4 +194,3 @@ def _render_refresh_button(content: Optional[str] = None, style: Optional[str] =
     if style is None:
         style = "padding: 2px 5px; cursor: pointer;"
     return f'<button onclick="location.reload()" style="{style}">{content}</button>'
-

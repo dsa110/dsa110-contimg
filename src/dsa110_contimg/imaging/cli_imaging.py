@@ -9,11 +9,14 @@ from typing import Optional
 
 # Initialize CASA environment before importing CASA modules
 from dsa110_contimg.utils.casa_init import ensure_casa_path
+
 ensure_casa_path()
 
 import numpy as np
+
 # Prefer module import so mocks on casacore.tables.table are respected at call time
 import casacore.tables as casatables
+
 # Back-compat symbol for tests that patch dsa110_contimg.imaging.cli_imaging.table
 table = casatables.table  # noqa: N816 (kept for test patchability)
 from casatasks import exportfits, tclean  # type: ignore[import]

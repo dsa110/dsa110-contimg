@@ -16,12 +16,43 @@ from unittest.mock import MagicMock, call, patch
 import numpy as np
 import pytest
 
-# Mock casacore and pyuvdata before importing modules that depend on them
-sys.modules['casacore'] = MagicMock()
-sys.modules['casacore.tables'] = MagicMock()
-sys.modules['pyuvdata'] = MagicMock()
-sys.modules['pyuvdata.utils'] = MagicMock()
-sys.modules['pyuvdata.utils.phasing'] = MagicMock()
+# Mock casacore, pyuvdata, and matplotlib before importing modules that depend on them
+sys.modules["casacore"] = MagicMock()
+sys.modules["casacore.tables"] = MagicMock()
+sys.modules["pyuvdata"] = MagicMock()
+sys.modules["pyuvdata.utils"] = MagicMock()
+sys.modules["pyuvdata.utils.phasing"] = MagicMock()
+# Mock matplotlib with proper __spec__ and __path__ for package-like behavior
+# Use a custom import hook to catch all matplotlib submodule imports
+_original_import = __import__
+
+def _mock_import(name, *args, **kwargs):
+    """Intercept matplotlib imports and return mocks."""
+    if name.startswith("matplotlib"):
+        if name not in sys.modules:
+            # Create a mock module for any matplotlib submodule
+            mock_module = MagicMock()
+            mock_module.__spec__ = MagicMock()
+            if "." in name:
+                # Submodule - add __path__ to make it package-like
+                mock_module.__path__ = []
+            sys.modules[name] = mock_module
+        return sys.modules[name]
+    return _original_import(name, *args, **kwargs)
+
+# Install the import hook
+__builtins__["__import__"] = _mock_import
+
+# Pre-create common matplotlib modules
+sys.modules["matplotlib"] = MagicMock()
+sys.modules["matplotlib"].__spec__ = MagicMock()
+sys.modules["matplotlib"].__path__ = []
+sys.modules["matplotlib.pyplot"] = MagicMock()
+sys.modules["matplotlib.patches"] = MagicMock()
+sys.modules["matplotlib.colors"] = MagicMock()
+sys.modules["matplotlib.pylab"] = MagicMock()
+sys.modules["matplotlib.transforms"] = MagicMock()
+sys.modules["matplotlib.ticker"] = MagicMock()
 
 from dsa110_contimg.conversion.helpers import (
     cleanup_casa_file_handles,

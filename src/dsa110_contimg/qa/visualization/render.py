@@ -224,11 +224,7 @@ def htmlize(text: str) -> str:
         >>> htmlize("Hello <world>")
         'Hello &lt;world&gt;'
     """
-    return (
-        _escape_html(text)
-        .replace("\n", "<br>")
-        .replace("  ", "&nbsp;&nbsp;")
-    )
+    return _escape_html(text).replace("\n", "<br>").replace("  ", "&nbsp;&nbsp;")
 
 
 def render_url(path: str) -> str:
@@ -335,7 +331,9 @@ def render_titled_content(
     return html
 
 
-def render_refresh_button(content: Optional[str] = None, style: Optional[str] = None) -> str:
+def render_refresh_button(
+    content: Optional[str] = None, style: Optional[str] = None
+) -> str:
     """
     Render a refresh button.
 
@@ -361,7 +359,14 @@ class RenderingProxy:
     and render only when needed.
     """
 
-    def __init__(self, elem, method: str, name: str, arg0: Optional[str] = None, kwargs: Optional[dict] = None):
+    def __init__(
+        self,
+        elem,
+        method: str,
+        name: str,
+        arg0: Optional[str] = None,
+        kwargs: Optional[dict] = None,
+    ):
         """
         Initialize a rendering proxy.
 
@@ -396,10 +401,14 @@ class RenderingProxy:
         if self._arg0:
             if args:
                 if len(args) > 1:
-                    raise TypeError(f"at most one non-keyword argument expected in call to {self._name}()")
+                    raise TypeError(
+                        f"at most one non-keyword argument expected in call to {self._name}()"
+                    )
                 kw[self._arg0] = args[0]
 
-        return RenderingProxy(self._elem, self._method, self._name, arg0=self._arg0, kwargs=kw)
+        return RenderingProxy(
+            self._elem, self._method, self._name, arg0=self._arg0, kwargs=kw
+        )
 
     def render_html(self, **kwargs) -> str:
         """

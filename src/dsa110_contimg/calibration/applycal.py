@@ -3,6 +3,7 @@ from typing import List, Optional, Union
 
 # Ensure CASAPATH is set before importing CASA modules
 from dsa110_contimg.utils.casa_init import ensure_casa_path
+
 ensure_casa_path()
 
 from casatasks import applycal as casa_applycal
@@ -29,6 +30,7 @@ def _verify_corrected_data_populated(ms_path: str, min_fraction: float = 0.01) -
     """
     import numpy as np  # type: ignore[import]
     import casacore.tables as casatables  # type: ignore[import]
+
     table = casatables.table  # noqa: N816
 
     try:

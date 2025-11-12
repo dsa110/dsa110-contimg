@@ -30,6 +30,7 @@ def casa6_python():
     Raises error if not using casa6.
     """
     import sys
+
     casa6_path = "/opt/miniforge/envs/casa6/bin/python"
     if sys.executable != casa6_path:
         pytest.skip(f"Requires casa6 Python environment. Current: {sys.executable}")
@@ -43,9 +44,9 @@ def clean_test_dir(shared_temp_dir):
     Uses session-scoped temp dir but creates unique subdirs.
     """
     import uuid
+
     test_dir = shared_temp_dir / f"test_{uuid.uuid4().hex[:8]}"
     test_dir.mkdir(parents=True, exist_ok=True)
     yield test_dir
     # Cleanup test-specific directory
     shutil.rmtree(test_dir, ignore_errors=True)
-

@@ -1,0 +1,178 @@
+# Configuration File for DSA-110 Continuum Imaging Pipeline
+
+# --- File Paths ---
+paths:
+  # Input directory for raw HDF5 files (monitored by Service 1)
+  hdf5_incoming: ${DSA110_HDF5_INCOMING_DIR:-/data/incoming_test/}
+  # Directory to store processed HDF5 files (optional, if post_handle='move')
+  hdf5_processed: ${DSA110_HDF5_PROCESSED_DIR:-/data/incoming/processed/}
+  # Base directory for all pipeline outputs
+  pipeline_base_dir: ${DSA110_PIPELINE_BASE_DIR:-./pipeline/}
+  # Path to VLA calibrator catalog
+  vla_calibrator_catalog: ${DSA110_VLA_CATALOG:-./vlacals.csv}
+  # Subdirectories (relative to pipeline_base_dir, or absolute paths)
+  ms_stage1_dir: ms_stage1/         # Output of Service 1 (5-min MS files)
+  cal_tables_dir: cal_tables/       # BPCAL, Gain tables
+  skymodels_dir: skymodels/         # Component lists (.cl), Masks (.mask)
+  images_dir: images/             # Individual tclean images/pbs
+  mosaics_dir: mosaics/            # Mosaicked images
+  photometry_dir: photometry/       # Photometry results, light curves, DB
+  log_dir: ../logs/                 # Pipeline execution logs (relative to pipeline dir)
+  casa_log_dir: ../casalogs/        # CASA log files (relative to pipeline dir)
+  diagnostics_base_dir: ../logs/diagnostics/ # Diagnostic plots
+
+# --- CASA Configuration ---
+casa:
+  # Data paths (as per CASA documentation)
+  datapath: ['~/.casa/data']        # Where CASA searches for data subdirectories
+  measurespath: '~/.casa/data'      # Location of required measures data
+  
+  # Auto-update settings (as per CASA documentation)
+  measures_auto_update: true        # Auto-update IERS data when casatools starts
+  data_auto_update: true            # Auto-update casarundata when casatools starts
+  
+  # Logging configuration
+  logfile: '../casalogs/casa.log'   # CASA log file path
+  logdir: '../casalogs'             # CASA log directory
+  
+  # Performance settings
+  startupfile: null                 # Optional startup file
+  cachedir: null                    # Optional cache directory
+
+# --- Service Control ---
+services:
+  # Service 1: HDF5 Watcher
+  hdf5_watcher_poll_interval_sec: 60  # How often to check if using polling (ignored if using watchdog events)
+  hdf5_expected_subbands: 16         # Number of subbands expected per 5-min chunk
+  hdf5_post_handle: none             # What to do after processing: 'move', 'delete', 'none'
+
+  # Service 2: MS Processor
+  ms_processor_poll_interval_sec: 120 # How often to check if using polling (ignored if using watchdog events)
+  mosaic_duration_min: 60            # Duration covered by each mosaic
+  mosaic_overlap_min: 10             # Overlap between consecutive mosaics
+  ms_chunk_duration_min: 5           # Expected duration of each input MS file
+
+  # Service 3: Variability Analyzer (if run via scheduler within Python)
+  variability_run_schedule: "daily@01:00" # Example schedule
+
+# --- MS Creation Parameters (ms_creation.py) ---
+ms_creation:
+  # List of antenna numbers (1-based) to include, e.g., [1, 2, ..., 110] or null for all valid
+  output_antennas: null
+  # Time tolerance for grouping HDF5 files (seconds)
+  same_timestamp_tolerance: 120.0
+  # Spectral windows (SPWs) to include from HDF5
+  spws: ['sb00','sb01','sb02','sb03','sb04','sb05','sb06','sb07','sb08','sb09','sb10','sb11','sb12','sb13','sb14','sb15']
+  check_coordinate_systems: true  # Enable coordinate system validation
+  fix_antenna_positions: true     # Auto-fix antenna position reference frame
+
+# --- Calibration Parameters (calibration.py) ---
+calibration:
+  # Enhanced Calibration Parameters
+  bandpass_interval_hours: 8.0        # Bandpass every 6-12 hours
+  gain_interval_hours: 1.0            # Gain every hour
+  reference_antennas: ['pad103', 'pad001']  # Priority list for reference antenna
+  uv_range_taper_klambda: 1.0         # Taper-off at 1 klambda (not hard cutoff)
+  
+  # Legacy parameters (for backward compatibility)
+  bcal_interval_hours: 8.0            # Updated to match enhanced parameters
+  bcal_refant: 'pad103'               # Primary reference antenna
+  bcal_uvrange: '>1klambda'           # Will be replaced with taper-off
+  fixed_declination_deg: 16.0         # Fixed declination for BPCAL
+  bcal_search_beam_radius_deg: 1.5    # Search radius for BPCAL candidates
+  bcal_min_flux_jy: 3.0               # Minimum flux for BPCAL candidates
+  bcal_max_flux_jy: 15.0              # Maximum flux for BPCAL candidates
+  bcal_candidate_catalog: ${DSA110_BCAL_CATALOG:-./bcal_candidates_vla.csv}
+
+  # Gain Calibration (Enhanced)
+  gcal_interval_min: 60               # Updated to 1 hour
+  gcal_refant: 'pad103'               # Primary reference antenna
+  gcal_mode: 'ap'                     # 'ap', 'p'
+  gcal_solint: '1h'                   # Solution interval for gaincal
+  gcal_minsnr: 2.0                    # Reduced from 3.0 for better solution rate
+  gcal_uvrange: '>1klambda'           # Will be replaced with taper-off
+
+  # Flagging (used in multiple steps)
+  flagging:
+    tfcrop_timecutoff: 3.0
+    tfcrop_freqcutoff: 3.0
+    # Add other flagging parameters as needed (shadow, clip, etc.)
+
+# --- Sky Model Parameters (skymodel.py) ---
+skymodel:
+  # Parameters for NVSS query when creating field models
+  nvss_query_radius_deg: 1.5 # Radius around beam center for source finding
+  nvss_flux_limit_jy: 0.050 # Minimum NVSS flux (50 mJy) to include in model
+  nvss_top_n: 100          # Max number of sources to include in model
+  # Add options for using TGSS spectral indices if desired
+
+  # MIGHT NEED TO FIX LATER
+  # ... other skymodel params like nvss_query_radius_deg, nvss_flux_limit_jy ...
+  primary_catalog:
+    name: NVSS
+    vizier_code: 'VIII/65/nvss'
+    flux_column: 'S1.4'
+    frequency_hz: 1.4e9
+    # Add other relevant columns if needed (e.g., MajAxis, MinAxis, PA)
+    # maj_axis_col: 'MajAxis'
+    # min_axis_col: 'MinAxis'
+    # pa_col: 'PA'
+    # name_col: 'NVSS' # Column for unique source name/ID
+  secondary_catalog: # Optional, for spectral index
+    enabled: true
+    name: TGSS ADR1
+    vizier_code: 'J/A+A/598/A78/table3'
+    flux_column: 'Peak_flux'
+    frequency_hz: 150e6
+    crossmatch_radius_arcsec: 15
+
+# --- Imaging Parameters (imaging.py) ---
+imaging:
+  # tclean parameters
+  cell_size: '3arcsec'
+  image_size: [4800, 4800] # Pixels [x, y]
+  weighting: 'briggs'
+  robust: 0.5
+  niter: 5000           # Reduced iterations assuming mask helps
+  threshold: '1mJy'     # Adjust based on expected noise, e.g., '0.001Jy'
+  deconvolver: 'hogbom' # or 'multiscale'
+  gridder: 'wproject'
+  wprojplanes: -1       # Auto calculate
+  pblimit: 0.1          # Primary beam cutoff
+  save_fits: true
+
+  # Mask creation (makemask) parameters
+  use_clean_mask: true
+  mask_padding_factor: 1.5 # Optional: Expand mask regions by this factor around CL components
+
+# --- Mosaicking Parameters (mosaicking.py) ---
+mosaicking:
+  # Output mosaic size (can be determined automatically or set)
+  mosaic_nx: 28800 # Example
+  mosaic_ny: 4800  # Example
+  mosaic_cell: '3arcsec'
+  mosaic_type: 'optimal' # optimal or pbweight
+  save_fits: true
+
+# --- Photometry Parameters (photometry.py) ---
+photometry:
+  database_type: sqlite # 'sqlite' or 'postgresql'
+  database_path: photometry_store.db # Path relative to photometry_dir if sqlite
+  # database_connection_string: "dbname=... user=... password=... host=..." # If postgresql
+  target_nvss_min_flux_mjy: 5.0 # Min NVSS catalog flux for target selection
+  # Aperture Photometry settings (example, adjust based on beam size)
+  aperture_radius_arcsec: 6.0
+  background_inner_radius_arcsec: 9.0
+  background_outer_radius_arcsec: 15.0
+  # Reference star selection
+  reference_max_radius_arcmin: 15.0 # Max distance from target for local ensemble
+  reference_min_catalog_flux_mjy: 100.0 # Min NVSS flux for potential references
+  reference_max_catalog_flux_mjy: 5000.0 # Max NVSS flux (avoid very bright/resolved)
+  reference_ensemble_size: 10       # Aim for this many references per target
+
+# --- Variability Analysis Parameters (variability_analyzer.py) ---
+variability_analysis:
+  lookback_days: 90
+  significance_threshold_mad: 5.0
+  min_consecutive_points: 2
+  candidate_list_path: ${DSA110_VARIABLE_CANDIDATES:-variable_candidates.csv} # Relative to photometry_dir

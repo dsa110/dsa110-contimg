@@ -19,6 +19,7 @@ except ImportError:
     def display(*args, **kwargs):
         pass
 
+
 from .render import htmlize, rich_string
 
 
@@ -173,9 +174,7 @@ class Table:
         for irow in range(self._nrow):
             evenodd = "table-row-odd" if irow % 2 else "table-row-even"
             row_style = self.get_styles("table-row", evenodd)
-            html_parts.append(
-                f'<div style="display: table-row; {row_style}">'
-            )
+            html_parts.append(f'<div style="display: table-row; {row_style}">')
             for icol in range(self._ncol):
                 cell_html = self._get_cell_html(irow, icol)
                 col_style = self.get_styles("table-cell", f"col{icol}")
@@ -270,7 +269,7 @@ def tabulate(
     ncol: int = 0,
     mincol: int = 0,
     maxcol: int = 8,
-    **kwargs
+    **kwargs,
 ) -> Table:
     """
     Create a table from a flat list of items.
@@ -305,4 +304,3 @@ def tabulate(
         del itemlist[:ncol]
 
     return Table(tablerows, ncol=ncol, **kwargs)
-

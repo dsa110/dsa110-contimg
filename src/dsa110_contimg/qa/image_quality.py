@@ -12,6 +12,7 @@ from typing import Dict, List, Optional, Tuple
 
 # Ensure CASAPATH is set before importing CASA modules
 from dsa110_contimg.utils.casa_init import ensure_casa_path
+
 ensure_casa_path()
 import numpy as np
 
@@ -128,7 +129,7 @@ def validate_image_quality(
 
     Returns:
         ImageQualityMetrics object
-        
+
     Raises:
         ValidationInputError: If image path is invalid or image not found
     """
@@ -225,6 +226,7 @@ def validate_image_quality(
         else:
             # Fallback: try to read with CASA table interface
             import casacore.tables as casatables
+
             table = casatables.table  # noqa: N816
 
             with table(image_path, readonly=True, ack=False) as tb:
@@ -302,7 +304,7 @@ def validate_image_quality(
                         warnings.append(
                             f"Few pixels above 5-sigma: {n_pixels_above_5sigma}"
                         )
-                    
+
                     # Check RMS noise threshold
                     if rms_pixel > config.max_rms_noise:
                         issues.append(
@@ -394,7 +396,7 @@ def quick_image_check(image_path: str) -> Tuple[bool, str]:
 
     Returns:
         (passed, message) tuple
-        
+
     Note: This function maintains backward compatibility by returning a tuple.
     For new code, prefer using validate_image_quality() which raises exceptions.
     """

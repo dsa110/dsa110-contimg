@@ -20,6 +20,7 @@ except ImportError:
     def display(*args, **kwargs):
         pass
 
+
 from .file import FileBase
 from .render import render_error, render_url
 from .thumbnail import get_cache_file
@@ -65,12 +66,16 @@ class PDFFile(FileBase):
         """
         npix = npix or 800
 
-        thumbnail, thumbnail_url, needs_update = self._get_cache_file("pdf-render", "png")
+        thumbnail, thumbnail_url, needs_update = self._get_cache_file(
+            "pdf-render", "png"
+        )
 
         if needs_update or refresh:
             gs = _find_ghostscript()
             if not gs:
-                return render_error("Ghostscript not found (required for PDF thumbnails)")
+                return render_error(
+                    "Ghostscript not found (required for PDF thumbnails)"
+                )
 
             cmd = (
                 f"{shlex.quote(gs)} -sDEVICE=png16m "
@@ -80,7 +85,9 @@ class PDFFile(FileBase):
             )
 
             try:
-                subprocess.run(cmd, check=True, shell=True, capture_output=True, timeout=30)
+                subprocess.run(
+                    cmd, check=True, shell=True, capture_output=True, timeout=30
+                )
             except subprocess.CalledProcessError as e:
                 return render_error(f"Ghostscript error (code {e.returncode})")
             except subprocess.TimeoutExpired:
@@ -102,4 +109,3 @@ class PDFFile(FileBase):
         html = self.render_html(**kwargs)
         if HAS_IPYTHON:
             display(HTML(html))
-

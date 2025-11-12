@@ -88,7 +88,8 @@ def ensure_data_registry_db(path: Path) -> sqlite3.Connection:
         # Column doesn't exist, add it
         try:
             conn.execute(
-                "ALTER TABLE data_registry ADD COLUMN publish_attempts INTEGER DEFAULT 0")
+                "ALTER TABLE data_registry ADD COLUMN publish_attempts INTEGER DEFAULT 0"
+            )
             logger.info("Added publish_attempts column to data_registry")
         except sqlite3.OperationalError as e:
             logger.warning(f"Could not add publish_attempts column: {e}")
@@ -99,8 +100,7 @@ def ensure_data_registry_db(path: Path) -> sqlite3.Connection:
     except sqlite3.OperationalError:
         # Column doesn't exist, add it
         try:
-            conn.execute(
-                "ALTER TABLE data_registry ADD COLUMN publish_error TEXT")
+            conn.execute("ALTER TABLE data_registry ADD COLUMN publish_error TEXT")
             logger.info("Added publish_error column to data_registry")
         except sqlite3.OperationalError as e:
             logger.warning(f"Could not add publish_error column: {e}")
@@ -350,10 +350,11 @@ def trigger_auto_publish(
         data_type, stage_path, base_path, publish_attempts, status = row
 
         # Check if already publishing (another process has the lock)
-        if status == 'publishing':
+        if status == "publishing":
             conn.rollback()
             logger.debug(
-                f"Data {data_id} is already being published by another process")
+                f"Data {data_id} is already being published by another process"
+            )
             return False
 
         # Check if max attempts exceeded
@@ -406,21 +407,17 @@ def trigger_auto_publish(
     if not stage_path_obj.exists():
         error_msg = f"Stage path does not exist: {stage_path}"
         logger.error(error_msg)
-        _record_publish_failure(
-            conn, cur, data_id, publish_attempts, error_msg)
+        _record_publish_failure(conn, cur, data_id, publish_attempts, error_msg)
         return False
 
     # CRITICAL: Enhanced path validation using validate_path_safe helper
     from dsa110_contimg.utils.naming import validate_path_safe
 
     expected_staging_base = Path("/stage/dsa110-contimg")
-    is_safe, error_msg = validate_path_safe(
-        stage_path_obj, expected_staging_base)
+    is_safe, error_msg = validate_path_safe(stage_path_obj, expected_staging_base)
     if not is_safe:
-        logger.error(
-            f"Stage path validation failed for {data_id}: {error_msg}")
-        _record_publish_failure(
-            conn, cur, data_id, publish_attempts, error_msg)
+        logger.error(f"Stage path validation failed for {data_id}: {error_msg}")
+        _record_publish_failure(conn, cur, data_id, publish_attempts, error_msg)
         return False
 
     # Published path maintains same structure
@@ -434,18 +431,16 @@ def trigger_auto_publish(
         )
         # For safety, append timestamp to avoid overwriting
         timestamp = int(time.time())
-        published_path = published_dir / \
-            f"{stage_path_obj.stem}_{timestamp}{stage_path_obj.suffix}"
+        published_path = (
+            published_dir / f"{stage_path_obj.stem}_{timestamp}{stage_path_obj.suffix}"
+        )
 
     # CRITICAL: Enhanced path validation for published path
     expected_products_base = Path("/data/dsa110-contimg/products")
-    is_safe, error_msg = validate_path_safe(
-        published_path, expected_products_base)
+    is_safe, error_msg = validate_path_safe(published_path, expected_products_base)
     if not is_safe:
-        logger.error(
-            f"Published path validation failed for {data_id}: {error_msg}")
-        _record_publish_failure(
-            conn, cur, data_id, publish_attempts, error_msg)
+        logger.error(f"Published path validation failed for {data_id}: {error_msg}")
+        _record_publish_failure(conn, cur, data_id, publish_attempts, error_msg)
         return False
 
     try:
@@ -459,10 +454,12 @@ def trigger_auto_publish(
         # CRITICAL: Verify move succeeded before updating database
         if not published_path.exists():
             raise RuntimeError(
-                f"Move appeared to succeed but destination does not exist: {published_path}")
+                f"Move appeared to succeed but destination does not exist: {published_path}"
+            )
         if stage_path_obj.exists():
             raise RuntimeError(
-                f"Move appeared to succeed but source still exists: {stage_path}")
+                f"Move appeared to succeed but source still exists: {stage_path}"
+            )
 
         # Update database - clear publish error on success
         now = time.time()
@@ -481,16 +478,13 @@ def trigger_auto_publish(
         )
         conn.commit()
 
-        logger.info(
-            f"Auto-published {data_id} from {stage_path} to {published_path}")
+        logger.info(f"Auto-published {data_id} from {stage_path} to {published_path}")
         return True
 
     except Exception as e:
         error_msg = str(e)
-        logger.error(
-            f"Failed to auto-publish {data_id}: {error_msg}", exc_info=True)
-        _record_publish_failure(
-            conn, cur, data_id, publish_attempts, error_msg)
+        logger.error(f"Failed to auto-publish {data_id}: {error_msg}", exc_info=True)
+        _record_publish_failure(conn, cur, data_id, publish_attempts, error_msg)
         return False
 
 
@@ -520,12 +514,12 @@ def _record_publish_failure(
                 publish_error = ?
             WHERE data_id = ?
             """,
-            (new_attempts, error_msg[:500],
-             data_id),  # Limit error message length
+            (new_attempts, error_msg[:500], data_id),  # Limit error message length
         )
         conn.commit()
         logger.debug(
-            f"Recorded publish failure for {data_id}: attempt {new_attempts}, error: {error_msg[:100]}")
+            f"Recorded publish failure for {data_id}: attempt {new_attempts}, error: {error_msg[:100]}"
+        )
     except Exception as e:
         logger.error(f"Failed to record publish failure for {data_id}: {e}")
         conn.rollback()
@@ -776,8 +770,9 @@ def list_data(
                 validation_status=row[13],
                 finalization_status=row[14],
                 auto_publish_enabled=bool(row[15]),
-                publish_attempts=row[16] if len(
-                    row) > 16 and row[16] is not None else 0,
+                publish_attempts=(
+                    row[16] if len(row) > 16 and row[16] is not None else 0
+                ),
                 publish_error=row[17] if len(row) > 17 else None,
             )
             for row in rows

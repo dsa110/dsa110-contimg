@@ -34,6 +34,7 @@ try:
     from astroquery.simbad import Simbad
     from astroquery.ned import Ned
     from astroquery.gaia import Gaia
+
     HAS_ASTROQUERY = True
 except ImportError:
     HAS_ASTROQUERY = False
@@ -86,13 +87,10 @@ def simbad_search(
     try:
         # Configure SIMBAD query
         Simbad.TIMEOUT = timeout
-        Simbad.add_votable_fields('otype', 'flux(V)', 'z_value', 'ids')
+        Simbad.add_votable_fields("otype", "flux(V)", "z_value", "ids")
 
         # Perform query
-        result_table = Simbad.query_region(
-            coord,
-            radius=f"{radius_arcsec}arcsec"
-        )
+        result_table = Simbad.query_region(coord, radius=f"{radius_arcsec}arcsec")
 
         if result_table is None or len(result_table) == 0:
             return None
@@ -101,35 +99,43 @@ def simbad_search(
         row = result_table[0]
 
         # Calculate separation
-        simbad_coord = SkyCoord(
-            ra=row['RA'],
-            dec=row['DEC'],
-            unit=(u.hourangle, u.deg)
-        )
+        simbad_coord = SkyCoord(ra=row["RA"], dec=row["DEC"], unit=(u.hourangle, u.deg))
         separation = coord.separation(simbad_coord).to(u.arcsec).value
 
         # Extract names
         names = []
-        if 'MAIN_ID' in row.colnames:
-            names.append(str(row['MAIN_ID']))
-        if 'IDS' in row.colnames and row['IDS']:
+        if "MAIN_ID" in row.colnames:
+            names.append(str(row["MAIN_ID"]))
+        if "IDS" in row.colnames and row["IDS"]:
             # IDs field contains semicolon-separated names
-            ids_str = str(row['IDS'])
-            names.extend([n.strip() for n in ids_str.split(';')])
+            ids_str = str(row["IDS"])
+            names.extend([n.strip() for n in ids_str.split(";")])
 
         result = {
-            'main_id': str(row['MAIN_ID']) if 'MAIN_ID' in row.colnames else None,
-            'otype': str(row['OTYPE']) if 'OTYPE' in row.colnames else None,
-            'ra': simbad_coord.ra.deg,
-            'dec': simbad_coord.dec.deg,
-            'separation_arcsec': separation,
-            'flux_v': float(row['FLUX_V']) if 'FLUX_V' in row.colnames and row['FLUX_V'] else None,
-            'redshift': float(row['Z_VALUE']) if 'Z_VALUE' in row.colnames and row['Z_VALUE'] else None,
-            'names': names,
-            'bibcode': str(row['COO_BIBCODE']) if 'COO_BIBCODE' in row.colnames else None,
+            "main_id": str(row["MAIN_ID"]) if "MAIN_ID" in row.colnames else None,
+            "otype": str(row["OTYPE"]) if "OTYPE" in row.colnames else None,
+            "ra": simbad_coord.ra.deg,
+            "dec": simbad_coord.dec.deg,
+            "separation_arcsec": separation,
+            "flux_v": (
+                float(row["FLUX_V"])
+                if "FLUX_V" in row.colnames and row["FLUX_V"]
+                else None
+            ),
+            "redshift": (
+                float(row["Z_VALUE"])
+                if "Z_VALUE" in row.colnames and row["Z_VALUE"]
+                else None
+            ),
+            "names": names,
+            "bibcode": (
+                str(row["COO_BIBCODE"]) if "COO_BIBCODE" in row.colnames else None
+            ),
         }
 
-        logger.debug(f"SIMBAD query successful: {result['main_id']} at {separation:.2f} arcsec")
+        logger.debug(
+            f"SIMBAD query successful: {result['main_id']} at {separation:.2f} arcsec"
+        )
         return result
 
     except Exception as e:
@@ -184,10 +190,7 @@ def ned_search(
         Ned.TIMEOUT = timeout
 
         # Perform query
-        result_table = Ned.query_region(
-            coord,
-            radius=f"{radius_arcsec}arcsec"
-        )
+        result_table = Ned.query_region(coord, radius=f"{radius_arcsec}arcsec")
 
         if result_table is None or len(result_table) == 0:
             return None
@@ -196,28 +199,50 @@ def ned_search(
         row = result_table[0]
 
         # Calculate separation
-        ned_coord = SkyCoord(
-            ra=row['RA'],
-            dec=row['DEC'],
-            unit=u.deg
-        )
+        ned_coord = SkyCoord(ra=row["RA"], dec=row["DEC"], unit=u.deg)
         separation = coord.separation(ned_coord).to(u.arcsec).value
 
         result = {
-            'ned_name': str(row['Object Name']) if 'Object Name' in row.colnames else None,
-            'object_type': str(row['Type']) if 'Type' in row.colnames else None,
-            'ra': ned_coord.ra.deg,
-            'dec': ned_coord.dec.deg,
-            'separation_arcsec': separation,
-            'redshift': float(row['Redshift']) if 'Redshift' in row.colnames and row['Redshift'] else None,
-            'redshift_type': str(row['Redshift Type']) if 'Redshift Type' in row.colnames else None,
-            'velocity': float(row['Velocity']) if 'Velocity' in row.colnames and row['Velocity'] else None,
-            'distance': float(row['Distance']) if 'Distance' in row.colnames and row['Distance'] else None,
-            'magnitude': float(row['Magnitude']) if 'Magnitude' in row.colnames and row['Magnitude'] else None,
-            'flux_1_4ghz': float(row['1.4GHz']) if '1.4GHz' in row.colnames and row['1.4GHz'] else None,
+            "ned_name": (
+                str(row["Object Name"]) if "Object Name" in row.colnames else None
+            ),
+            "object_type": str(row["Type"]) if "Type" in row.colnames else None,
+            "ra": ned_coord.ra.deg,
+            "dec": ned_coord.dec.deg,
+            "separation_arcsec": separation,
+            "redshift": (
+                float(row["Redshift"])
+                if "Redshift" in row.colnames and row["Redshift"]
+                else None
+            ),
+            "redshift_type": (
+                str(row["Redshift Type"]) if "Redshift Type" in row.colnames else None
+            ),
+            "velocity": (
+                float(row["Velocity"])
+                if "Velocity" in row.colnames and row["Velocity"]
+                else None
+            ),
+            "distance": (
+                float(row["Distance"])
+                if "Distance" in row.colnames and row["Distance"]
+                else None
+            ),
+            "magnitude": (
+                float(row["Magnitude"])
+                if "Magnitude" in row.colnames and row["Magnitude"]
+                else None
+            ),
+            "flux_1_4ghz": (
+                float(row["1.4GHz"])
+                if "1.4GHz" in row.colnames and row["1.4GHz"]
+                else None
+            ),
         }
 
-        logger.debug(f"NED query successful: {result['ned_name']} at {separation:.2f} arcsec")
+        logger.debug(
+            f"NED query successful: {result['ned_name']} at {separation:.2f} arcsec"
+        )
         return result
 
     except Exception as e:
@@ -304,36 +329,42 @@ def gaia_search(
         row = result_table[0]
 
         # Calculate separation
-        gaia_coord = SkyCoord(
-            ra=row['ra'],
-            dec=row['dec'],
-            unit=u.deg
-        )
+        gaia_coord = SkyCoord(ra=row["ra"], dec=row["dec"], unit=u.deg)
         separation = coord.separation(gaia_coord).to(u.arcsec).value
 
         # Calculate distance from parallax
         distance = None
-        if row['parallax'] and row['parallax'] > 0:
-            distance = 1000.0 / row['parallax']  # Convert mas to pc
+        if row["parallax"] and row["parallax"] > 0:
+            distance = 1000.0 / row["parallax"]  # Convert mas to pc
 
         result = {
-            'source_id': str(row['source_id']),
-            'ra': float(row['ra']),
-            'dec': float(row['dec']),
-            'separation_arcsec': separation,
-            'parallax': float(row['parallax']) if row['parallax'] else None,
-            'parallax_error': float(row['parallax_error']) if row['parallax_error'] else None,
-            'pmra': float(row['pmra']) if row['pmra'] else None,
-            'pmdec': float(row['pmdec']) if row['pmdec'] else None,
-            'pmra_error': float(row['pmra_error']) if row['pmra_error'] else None,
-            'pmdec_error': float(row['pmdec_error']) if row['pmdec_error'] else None,
-            'phot_g_mean_mag': float(row['phot_g_mean_mag']) if row['phot_g_mean_mag'] else None,
-            'phot_bp_mean_mag': float(row['phot_bp_mean_mag']) if row['phot_bp_mean_mag'] else None,
-            'phot_rp_mean_mag': float(row['phot_rp_mean_mag']) if row['phot_rp_mean_mag'] else None,
-            'distance': distance,
+            "source_id": str(row["source_id"]),
+            "ra": float(row["ra"]),
+            "dec": float(row["dec"]),
+            "separation_arcsec": separation,
+            "parallax": float(row["parallax"]) if row["parallax"] else None,
+            "parallax_error": (
+                float(row["parallax_error"]) if row["parallax_error"] else None
+            ),
+            "pmra": float(row["pmra"]) if row["pmra"] else None,
+            "pmdec": float(row["pmdec"]) if row["pmdec"] else None,
+            "pmra_error": float(row["pmra_error"]) if row["pmra_error"] else None,
+            "pmdec_error": float(row["pmdec_error"]) if row["pmdec_error"] else None,
+            "phot_g_mean_mag": (
+                float(row["phot_g_mean_mag"]) if row["phot_g_mean_mag"] else None
+            ),
+            "phot_bp_mean_mag": (
+                float(row["phot_bp_mean_mag"]) if row["phot_bp_mean_mag"] else None
+            ),
+            "phot_rp_mean_mag": (
+                float(row["phot_rp_mean_mag"]) if row["phot_rp_mean_mag"] else None
+            ),
+            "distance": distance,
         }
 
-        logger.debug(f"Gaia query successful: {result['source_id']} at {separation:.2f} arcsec")
+        logger.debug(
+            f"Gaia query successful: {result['source_id']} at {separation:.2f} arcsec"
+        )
         return result
 
     except Exception as e:
@@ -371,10 +402,9 @@ def query_all_catalogs(
         ...     print(f"NED redshift: {results['ned']['redshift']}")
     """
     results = {
-        'simbad': simbad_search(coord, radius_arcsec=radius_arcsec, timeout=timeout),
-        'ned': ned_search(coord, radius_arcsec=radius_arcsec, timeout=timeout),
-        'gaia': gaia_search(coord, radius_arcsec=radius_arcsec, timeout=timeout),
+        "simbad": simbad_search(coord, radius_arcsec=radius_arcsec, timeout=timeout),
+        "ned": ned_search(coord, radius_arcsec=radius_arcsec, timeout=timeout),
+        "gaia": gaia_search(coord, radius_arcsec=radius_arcsec, timeout=timeout),
     }
 
     return results
-

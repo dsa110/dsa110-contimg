@@ -28,14 +28,16 @@ def _ensure_imaging_columns_exist(ms_path: str) -> None:
     import logging
 
     logger = logging.getLogger(__name__)
-    
+
     # Ensure CASAPATH is set before importing CASA modules
     from dsa110_contimg.utils.casa_init import ensure_casa_path
+
     ensure_casa_path()
 
     try:
         from casacore.tables import addImagingColumns as _addImCols  # type: ignore
         import casacore.tables as _casatables
+
         _tb = _casatables.table
 
         # Check if columns already exist before attempting creation
@@ -73,6 +75,7 @@ def _ensure_imaging_columns_exist(ms_path: str) -> None:
         # Check if columns exist despite the error (might have been created)
         try:
             import casacore.tables as _casatables
+
             _tb = _casatables.table
 
             with _tb(ms_path, readonly=True) as tb:
@@ -110,6 +113,7 @@ def _ensure_imaging_columns_populated(ms_path: str) -> None:
     try:
         import numpy as _np
         import casacore.tables as _casatables  # type: ignore
+
         _tb = _casatables.table
     except ImportError as e:
         error_msg = f"Failed to import required modules for column population: {e}"
@@ -201,6 +205,7 @@ def _ensure_flag_and_weight_spectrum(ms_path: str) -> None:
     try:
         import numpy as _np
         import casacore.tables as _casatables  # type: ignore
+
         _tb = _casatables.table
     except Exception:
         return
@@ -279,6 +284,7 @@ def _fix_mount_type_in_ms(ms_path: str) -> None:
     """Normalize ANTENNA.MOUNT values to CASA-supported strings."""
     try:
         import casacore.tables as _casatables  # type: ignore
+
         _tb = _casatables.table
 
         with _tb(ms_path + "/ANTENNA", readonly=False) as ant_table:
@@ -329,6 +335,7 @@ def _fix_field_phase_centers_from_times(ms_path: str) -> None:
         import astropy.units as u  # type: ignore
         import numpy as _np
         import casacore.tables as _casatables  # type: ignore
+
         _tb = _casatables.table
 
         from dsa110_contimg.conversion.helpers_coordinates import get_meridian_coords
@@ -482,6 +489,7 @@ def _fix_observation_time_range(ms_path: str) -> None:
     try:
         import numpy as _np
         import casacore.tables as _casatables
+
         _tb = _casatables.table
 
         from dsa110_contimg.utils.time_utils import (
@@ -721,6 +729,7 @@ def configure_ms_for_imaging(
             # CRITICAL: Validate columns actually exist and are populated (if enabled)
             if validate_columns:
                 import casacore.tables as _casatables
+
                 _tb = _casatables.table
 
                 with _tb(ms_path, readonly=True) as tb:
@@ -808,6 +817,7 @@ def configure_ms_for_imaging(
     if stamp_observation_telescope:
         try:
             import casacore.tables as _casatables  # type: ignore
+
             _tb = _casatables.table
 
             name = os.getenv("PIPELINE_TELESCOPE_NAME", "DSA_110")
@@ -854,6 +864,7 @@ def configure_ms_for_imaging(
     # Final validation: verify MS is still readable after all operations
     try:
         import casacore.tables as _casatables
+
         _tb = _casatables.table
 
         with _tb(ms_path, readonly=True) as tb:

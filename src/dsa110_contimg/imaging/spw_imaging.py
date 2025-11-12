@@ -18,10 +18,12 @@ import numpy as np
 
 # Ensure CASAPATH is set before importing CASA modules
 from dsa110_contimg.utils.casa_init import ensure_casa_path
+
 ensure_casa_path()
 
 try:
     import casacore.tables as casatables
+
     table = casatables.table  # noqa: N816
 except ImportError:
     table = None  # type: ignore[assignment, misc]

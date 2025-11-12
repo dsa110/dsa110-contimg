@@ -40,13 +40,17 @@ class MockCoordinateSystem:
     def __init__(self):
         self._dir_coord = Mock()
         self._dir_coord.get_increment.return_value = [
-            np.radians(2.0/3600.0), -np.radians(2.0/3600.0)]
+            np.radians(2.0 / 3600.0),
+            -np.radians(2.0 / 3600.0),
+        ]
         self._dir_coord.get_referencevalue.return_value = [
-            np.radians(54.0), np.radians(122.0)]
+            np.radians(54.0),
+            np.radians(122.0),
+        ]
         self._dir_coord.get_referencepixel.return_value = [50.0, 100.0]
 
     def get_coordinate(self, coord_type):
-        if coord_type == 'direction':
+        if coord_type == "direction":
             return self._dir_coord
         return Mock()
 
@@ -57,10 +61,10 @@ class MockCoordinateSystem:
 class TestCoordinateSystemCreation:
     """Test suite for _create_common_coordinate_system."""
 
-    @patch('casacore.images.image')
-    @patch('casatasks.importfits')
-    @patch('dsa110_contimg.mosaic.cli.os.path.exists')
-    @patch('dsa110_contimg.mosaic.cli.os.makedirs')
+    @patch("casacore.images.image")
+    @patch("casatasks.importfits")
+    @patch("dsa110_contimg.mosaic.cli.os.path.exists")
+    @patch("dsa110_contimg.mosaic.cli.os.makedirs")
     def test_create_coordinate_system_from_fits_template(
         self, mock_makedirs, mock_exists, mock_importfits, mock_casaimage
     ):
@@ -88,7 +92,7 @@ class TestCoordinateSystemCreation:
                 pixel_scale_arcsec=2.0,
                 padding_pixels=10,
                 template_tile=template_tile,
-                output_dir=output_dir
+                output_dir=output_dir,
             )
 
             # Verify template was created
@@ -99,9 +103,9 @@ class TestCoordinateSystemCreation:
             # Verify importfits was called
             mock_importfits.assert_called_once()
 
-    @patch('casacore.images.image')
-    @patch('dsa110_contimg.mosaic.cli.os.path.exists')
-    @patch('dsa110_contimg.mosaic.cli.os.makedirs')
+    @patch("casacore.images.image")
+    @patch("dsa110_contimg.mosaic.cli.os.path.exists")
+    @patch("dsa110_contimg.mosaic.cli.os.makedirs")
     def test_create_coordinate_system_from_casa_template(
         self, mock_makedirs, mock_exists, mock_casaimage
     ):
@@ -132,7 +136,7 @@ class TestCoordinateSystemCreation:
                 pixel_scale_arcsec=2.0,
                 padding_pixels=10,
                 template_tile=template_tile,
-                output_dir=output_dir
+                output_dir=output_dir,
             )
 
             # Verify template was created
@@ -148,10 +152,12 @@ class TestCoordinateSystemCreation:
         ra_center = (ra_min + ra_max) / 2.0
         dec_center = (dec_min + dec_max) / 2.0
 
-        assert abs(
-            ra_center - 121.0) < 0.01, f"RA center should be 121.0°, got {ra_center}"
-        assert abs(
-            dec_center - 54.0) < 0.01, f"Dec center should be 54.0°, got {dec_center}"
+        assert (
+            abs(ra_center - 121.0) < 0.01
+        ), f"RA center should be 121.0°, got {ra_center}"
+        assert (
+            abs(dec_center - 54.0) < 0.01
+        ), f"Dec center should be 54.0°, got {dec_center}"
 
     def test_pixel_scale_calculation(self):
         """Test pixel scale calculation for template."""

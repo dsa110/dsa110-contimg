@@ -324,9 +324,7 @@ class TestPathMapperConsistency(unittest.TestCase):
         ms_path = path_mapper(base_name, "/stage/dsa110-contimg/ms")
 
         # Path should be in organized location
-        expected_path = (
-            ms_base_dir / "science" / "2025-10-02" / f"{base_name}.ms"
-        )
+        expected_path = ms_base_dir / "science" / "2025-10-02" / f"{base_name}.ms"
         self.assertEqual(
             str(ms_path),
             str(expected_path),
@@ -342,4 +340,3 @@ class TestPathMapperConsistency(unittest.TestCase):
 
 if __name__ == "__main__":
     unittest.main()
-

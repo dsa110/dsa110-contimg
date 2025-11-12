@@ -7,7 +7,11 @@ Implements tiered validation architecture with parallel execution and aggressive
 import logging
 import os
 import time
-from concurrent.futures import ThreadPoolExecutor, TimeoutError as FutureTimeoutError, as_completed
+from concurrent.futures import (
+    ThreadPoolExecutor,
+    TimeoutError as FutureTimeoutError,
+    as_completed,
+)
 from dataclasses import dataclass, field
 from enum import Enum
 from pathlib import Path
@@ -28,6 +32,7 @@ logger = logging.getLogger(__name__)
 
 class ValidationMode(Enum):
     """Validation mode enumeration."""
+
     FAST = "fast"  # <30s, aggressive sampling, parallel, skip expensive checks
     STANDARD = "standard"  # <60s, parallel, caching, balanced detail/speed
     COMPREHENSIVE = "comprehensive"  # Full validation, can be deferred/background
@@ -36,6 +41,7 @@ class ValidationMode(Enum):
 @dataclass
 class TieredValidationResult:
     """Results from tiered validation."""
+
     tier1_results: Dict[str, Any] = field(default_factory=dict)
     tier2_results: Dict[str, Any] = field(default_factory=dict)
     tier3_results: Dict[str, Any] = field(default_factory=dict)
@@ -255,8 +261,7 @@ def validate_pipeline_fast(
             tier3_time = time.time() - tier3_start
 
             if not result.tier3_results.get("passed", True):
-                result.warnings.extend(
-                    result.tier3_results.get("warnings", []))
+                result.warnings.extend(result.tier3_results.get("warnings", []))
 
             result.timing["tier3_seconds"] = tier3_time
 
@@ -266,7 +271,8 @@ def validate_pipeline_fast(
             result.timing["tier3_seconds"] = time.time() - tier3_start
     else:
         result.warnings.append(
-            "Tier3 validation skipped (insufficient time or disabled)")
+            "Tier3 validation skipped (insufficient time or disabled)"
+        )
         result.timing["tier3_seconds"] = 0.0
 
     result.timing["total_seconds"] = time.time() - start_time
@@ -316,10 +322,12 @@ def _run_tier1_validation(
                 passed, message = quick_image_check(img_path)
                 if not passed:
                     results["warnings"].append(
-                        f"Image quick check warning for {img_path}: {message}")
+                        f"Image quick check warning for {img_path}: {message}"
+                    )
             except Exception as e:
                 results["warnings"].append(
-                    f"Image quick check error for {img_path}: {str(e)}")
+                    f"Image quick check error for {img_path}: {str(e)}"
+                )
 
     # Caltable existence already checked in main function
     if caltables:
@@ -328,7 +336,8 @@ def _run_tier1_validation(
     elapsed = time.time() - start_time
     if elapsed > timeout:
         results["warnings"].append(
-            f"Tier1 exceeded timeout ({timeout}s), took {elapsed:.2f}s")
+            f"Tier1 exceeded timeout ({timeout}s), took {elapsed:.2f}s"
+        )
 
     results["elapsed_seconds"] = elapsed
     return results
@@ -400,15 +409,15 @@ def _run_tier2_validation(
             remaining_timeout = max(1.0, timeout - elapsed)
 
             try:
-                check_result = future.result(
-                    timeout=min(remaining_timeout, 10.0))
+                check_result = future.result(timeout=min(remaining_timeout, 10.0))
                 if check_result and not check_result.get("passed", True):
                     results["passed"] = False
                     results["errors"].extend(check_result.get("errors", []))
                 results[key] = check_result
             except FutureTimeoutError:
                 results["warnings"].append(
-                    f"{key} check timed out after {remaining_timeout:.1f}s")
+                    f"{key} check timed out after {remaining_timeout:.1f}s"
+                )
                 results[key] = {"passed": False, "timeout": True}
                 future.cancel()  # Cancel the future
             except Exception as e:
@@ -419,7 +428,8 @@ def _run_tier2_validation(
     elapsed = time.time() - start_time
     if elapsed > timeout:
         results["warnings"].append(
-            f"Tier2 exceeded timeout ({timeout}s), took {elapsed:.2f}s")
+            f"Tier2 exceeded timeout ({timeout}s), took {elapsed:.2f}s"
+        )
 
     results["elapsed_seconds"] = elapsed
     return results
@@ -449,8 +459,7 @@ def _run_tier3_validation(
 
     # Skip if configured to skip expensive checks
     if fast_config.skip_expensive_checks:
-        results["warnings"].append(
-            "Tier3 skipped (skip_expensive_checks=True)")
+        results["warnings"].append("Tier3 skipped (skip_expensive_checks=True)")
         results["elapsed_seconds"] = time.time() - start_time
         return results
 
@@ -458,18 +467,21 @@ def _run_tier3_validation(
     if not fast_config.skip_catalog_validation and image_paths:
         # Would run catalog validation here
         results["warnings"].append(
-            "Catalog validation not yet implemented in fast mode")
+            "Catalog validation not yet implemented in fast mode"
+        )
 
     # Photometry validation (if not skipped)
     if not fast_config.skip_photometry_validation and image_paths:
         # Would run photometry validation here
         results["warnings"].append(
-            "Photometry validation not yet implemented in fast mode")
+            "Photometry validation not yet implemented in fast mode"
+        )
 
     elapsed = time.time() - start_time
     if elapsed > timeout:
         results["warnings"].append(
-            f"Tier3 exceeded timeout ({timeout}s), took {elapsed:.2f}s")
+            f"Tier3 exceeded timeout ({timeout}s), took {elapsed:.2f}s"
+        )
 
     results["elapsed_seconds"] = elapsed
     return results

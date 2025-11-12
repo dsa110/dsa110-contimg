@@ -12,11 +12,14 @@ from typing import Any, Dict, List, Optional, Tuple
 
 # Ensure CASAPATH is set before importing CASA modules
 from dsa110_contimg.utils.casa_init import ensure_casa_path
+
 ensure_casa_path()
 
 import casacore.tables as casatables
+
 table = casatables.table  # noqa: N816
 import numpy as np
+
 # casacore is only available inside the CASA / casa6 environment. Guard the
 # import so that running tests on plain runners (without CASA) doesn't fail at
 # module import time. When casacore is unavailable we set a flag and leave
@@ -24,6 +27,7 @@ import numpy as np
 # attempt to use it.
 try:
     import casacore.tables as casatables  # type: ignore
+
     table = casatables.table  # noqa: N816
     HAVE_CASACORE = True
 except Exception:
@@ -695,6 +699,7 @@ def analyze_per_spw_flagging(
     """
     import numpy as np
     import casacore.tables as casatables
+
     table = casatables.table  # noqa: N816
 
     if not os.path.exists(caltable_path):

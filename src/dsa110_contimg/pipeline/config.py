@@ -83,10 +83,8 @@ class CalibrationConfig(BaseModel):
     cal_bp_minsnr: float = Field(
         default=3.0, ge=1.0, le=10.0, description="Minimum SNR for bandpass calibration"
     )
-    cal_gain_solint: str = Field(
-        default="inf", description="Gain solution interval")
-    default_refant: str = Field(
-        default="103", description="Default reference antenna")
+    cal_gain_solint: str = Field(default="inf", description="Gain solution interval")
+    default_refant: str = Field(default="103", description="Default reference antenna")
     auto_select_refant: bool = Field(
         default=True, description="Automatically select reference antenna"
     )
@@ -96,8 +94,7 @@ class ImagingConfig(BaseModel):
     """Configuration for imaging stage."""
 
     field: Optional[str] = Field(None, description="Field name or coordinates")
-    refant: Optional[str] = Field(
-        default="103", description="Reference antenna")
+    refant: Optional[str] = Field(default="103", description="Reference antenna")
     gridder: str = Field(default="wproject", description="Gridding algorithm")
     wprojplanes: int = Field(
         default=-1, description="W-projection planes (-1 for auto)"
@@ -136,8 +133,7 @@ class ValidationConfig(BaseModel):
     generate_html_report: bool = Field(
         default=True, description="Generate HTML validation report"
     )
-    min_snr: float = Field(
-        default=5.0, description="Minimum SNR for source detection")
+    min_snr: float = Field(default=5.0, description="Minimum SNR for source detection")
     search_radius_arcsec: float = Field(
         default=10.0, description="Search radius for source matching (arcsec)"
     )
@@ -149,9 +145,7 @@ class ValidationConfig(BaseModel):
 class CrossMatchConfig(BaseModel):
     """Configuration for cross-matching stage."""
 
-    enabled: bool = Field(
-        default=True, description="Enable cross-matching stage"
-    )
+    enabled: bool = Field(default=True, description="Enable cross-matching stage")
     catalog_types: List[str] = Field(
         default=["nvss"],
         description="Catalogs to cross-match against ('nvss', 'first', 'rax')",
@@ -213,8 +207,7 @@ class PhotometryConfig(BaseModel):
         default=True,
         description="Serialize MS access using file locking when processing multiple sources",
     )
-    imsize: int = Field(default=1024, ge=256,
-                        description="Image size in pixels")
+    imsize: int = Field(default=1024, ge=256, description="Image size in pixels")
     quality_tier: str = Field(
         default="standard",
         description="Imaging quality tier: 'development', 'standard', or 'high_precision'",
@@ -268,7 +261,8 @@ class PipelineConfig(BaseModel):
         """
         base_state = Path(os.getenv("PIPELINE_STATE_DIR", "state"))
         synthetic_dir = Path(
-            os.getenv("PIPELINE_SYNTHETIC_DIR", str(base_state / "synth")))
+            os.getenv("PIPELINE_SYNTHETIC_DIR", str(base_state / "synth"))
+        )
 
         input_dir = os.getenv("PIPELINE_INPUT_DIR")
         output_dir = os.getenv("PIPELINE_OUTPUT_DIR")
@@ -292,11 +286,9 @@ class PipelineConfig(BaseModel):
             try:
                 value = int(value_str)
                 if min_val is not None and value < min_val:
-                    raise ValueError(
-                        f"{env_var}={value} is below minimum {min_val}")
+                    raise ValueError(f"{env_var}={value} is below minimum {min_val}")
                 if max_val is not None and value > max_val:
-                    raise ValueError(
-                        f"{env_var}={value} is above maximum {max_val}")
+                    raise ValueError(f"{env_var}={value} is above maximum {max_val}")
                 return value
             except ValueError as e:
                 if "invalid literal" in str(e) or "could not convert" in str(e):
@@ -318,11 +310,9 @@ class PipelineConfig(BaseModel):
             try:
                 value = float(value_str)
                 if min_val is not None and value < min_val:
-                    raise ValueError(
-                        f"{env_var}={value} is below minimum {min_val}")
+                    raise ValueError(f"{env_var}={value} is below minimum {min_val}")
                 if max_val is not None and value > max_val:
-                    raise ValueError(
-                        f"{env_var}={value} is above maximum {max_val}")
+                    raise ValueError(f"{env_var}={value} is above maximum {max_val}")
                 return value
             except ValueError as e:
                 if "invalid literal" in str(e) or "could not convert" in str(e):
@@ -345,8 +335,7 @@ class PipelineConfig(BaseModel):
                 max_workers=safe_int(
                     "PIPELINE_MAX_WORKERS", "4", min_val=1, max_val=32
                 ),
-                stage_to_tmpfs=os.getenv(
-                    "PIPELINE_STAGE_TO_TMPFS", "true").lower()
+                stage_to_tmpfs=os.getenv("PIPELINE_STAGE_TO_TMPFS", "true").lower()
                 == "true",
                 expected_subbands=safe_int(
                     "PIPELINE_EXPECTED_SUBBANDS", "16", min_val=1, max_val=32
@@ -368,8 +357,7 @@ class PipelineConfig(BaseModel):
                 refant=os.getenv("PIPELINE_REFANT", "103"),
                 gridder=os.getenv("PIPELINE_GRIDDER", "wproject"),
                 wprojplanes=safe_int("PIPELINE_WPROJPLANES", "-1"),
-                use_nvss_mask=os.getenv(
-                    "PIPELINE_USE_NVSS_MASK", "true").lower()
+                use_nvss_mask=os.getenv("PIPELINE_USE_NVSS_MASK", "true").lower()
                 == "true",
                 mask_radius_arcsec=safe_float(
                     "PIPELINE_MASK_RADIUS_ARCSEC", "60.0", min_val=10.0, max_val=300.0
@@ -486,8 +474,7 @@ class PipelineConfig(BaseModel):
         """
         yaml_path = Path(yaml_path)
         if not yaml_path.exists():
-            raise FileNotFoundError(
-                f"Configuration file not found: {yaml_path}")
+            raise FileNotFoundError(f"Configuration file not found: {yaml_path}")
 
         try:
             with open(yaml_path, "r") as f:
@@ -541,8 +528,7 @@ class PipelineConfig(BaseModel):
         data = convert_paths(data)
 
         with open(yaml_path, "w") as f:
-            yaml.dump(data, f, default_flow_style=False,
-                      sort_keys=False, indent=2)
+            yaml.dump(data, f, default_flow_style=False, sort_keys=False, indent=2)
 
     def to_dict(self) -> Dict[str, Any]:
         """Convert configuration to dictionary.

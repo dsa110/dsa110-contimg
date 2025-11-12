@@ -75,6 +75,7 @@ class TestMaskingIntegration:
 
         # Create config with masking enabled and temp paths
         from dsa110_contimg.pipeline.config import PipelineConfig
+
         config = PipelineConfig(
             paths=PathsConfig(
                 input_dir=temp_work_dir / "input",
@@ -85,7 +86,11 @@ class TestMaskingIntegration:
                 use_nvss_mask=True,
                 mask_radius_arcsec=60.0,
             ),
-            **{k: v for k, v in test_config.__dict__.items() if k != "paths" and k != "imaging"},
+            **{
+                k: v
+                for k, v in test_config.__dict__.items()
+                if k != "paths" and k != "imaging"
+            },
         )
 
         # Create mock MS
@@ -94,6 +99,7 @@ class TestMaskingIntegration:
 
         # Create context with MS path (PipelineContext is frozen, so create new one)
         from dsa110_contimg.pipeline.context import PipelineContext
+
         context = PipelineContext(
             config=config,
             job_id=context_with_repo.job_id,
@@ -147,6 +153,7 @@ class TestMaskingIntegration:
             "dsa110_contimg.utils.validation.validate_corrected_data_quality",
             return_value=[],
         ):
+
             def mock_image_ms_side_effect(*args, **kwargs):
                 # Create the expected image files that ImagingStage looks for
                 imagename = kwargs.get("imagename", args[1] if len(args) > 1 else None)
@@ -155,7 +162,7 @@ class TestMaskingIntegration:
                     primary_image = f"{imagename}.image"
                     Path(primary_image).parent.mkdir(parents=True, exist_ok=True)
                     Path(primary_image).touch()
-        
+
         with patch("casacore.tables.table", side_effect=mock_table_factory), patch(
             "dsa110_contimg.imaging.cli_imaging.validate_ms", return_value=None
         ), patch(
@@ -163,7 +170,7 @@ class TestMaskingIntegration:
             return_value=[],
         ), patch(
             "dsa110_contimg.imaging.cli_imaging.image_ms",
-            side_effect=mock_image_ms_side_effect
+            side_effect=mock_image_ms_side_effect,
         ) as mock_image_ms, patch(
             "dsa110_contimg.imaging.nvss_tools.create_nvss_fits_mask",
             side_effect=mock_create_mask,

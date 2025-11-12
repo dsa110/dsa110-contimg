@@ -16,6 +16,7 @@ from .flagging import (
 )
 from dsa110_contimg.utils.validation import ValidationError, validate_ms
 import casacore.tables as casatables
+
 table = casatables.table  # noqa: N816
 import numpy as np
 import argparse
@@ -248,8 +249,7 @@ def handle_flag(args: argparse.Namespace) -> int:
 
     elif mode == "rfi":
         if args.rfi_backend == "aoflagger":
-            logger.info(
-                "Flagging RFI using AOFlagger (SumThreshold algorithm)...")
+            logger.info("Flagging RFI using AOFlagger (SumThreshold algorithm)...")
             flag_rfi(
                 args.ms,
                 datacolumn=args.datacolumn,
@@ -270,8 +270,7 @@ def handle_flag(args: argparse.Namespace) -> int:
         logger.info("✓ Shadow flagging complete")
 
     elif mode == "quack":
-        logger.info(
-            f"Flagging {args.quack_mode} of scans ({args.quack_interval}s)...")
+        logger.info(f"Flagging {args.quack_mode} of scans ({args.quack_interval}s)...")
         flag_quack(
             args.ms,
             quackinterval=args.quack_interval,
@@ -300,8 +299,7 @@ def handle_flag(args: argparse.Namespace) -> int:
 
     elif mode == "clip":
         if args.clip_min is None or args.clip_max is None:
-            logger.error(
-                "--clip-min and --clip-max are required for clip mode")
+            logger.error("--clip-min and --clip-max are required for clip mode")
             sys.exit(1)
         clip_range = [args.clip_min, args.clip_max]
         direction = "outside" if args.clip_outside else "inside"
@@ -346,13 +344,11 @@ def handle_flag(args: argparse.Namespace) -> int:
         }
         provided = {k: v for k, v in selections.items() if v is not None}
         if not provided:
-            logger.error(
-                "At least one selection parameter is required for manual mode")
+            logger.error("At least one selection parameter is required for manual mode")
             logger.error("Examples:")
             logger.error("  --antenna '10' --scan '1~5'")
             logger.error("  --spw '0:10~20'")
-            logger.error(
-                "  --field '0' --timerange '2025/01/01/10:00:00~10:05:00'")
+            logger.error("  --field '0' --timerange '2025/01/01/10:00:00~10:05:00'")
             sys.exit(1)
 
         selection_str = ", ".join([f"{k}={v}" for k, v in provided.items()])

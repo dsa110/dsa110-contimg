@@ -37,11 +37,11 @@ from astropy.wcs import WCS
 
 # Disable Python output buffering - use unbuffered mode
 import os
-os.environ['PYTHONUNBUFFERED'] = '1'
+
+os.environ["PYTHONUNBUFFERED"] = "1"
 # Suppress FITSFixedWarning (just header fixes, not errors)
-warnings.filterwarnings('ignore', message='.*FITSFixedWarning.*')
-warnings.filterwarnings('ignore', category=UserWarning,
-                        module='astropy.io.fits')
+warnings.filterwarnings("ignore", message=".*FITSFixedWarning.*")
+warnings.filterwarnings("ignore", category=UserWarning, module="astropy.io.fits")
 
 # Add src to path
 sys.path.insert(0, str(Path(__file__).parent / "src"))
@@ -52,8 +52,7 @@ def log_progress(message: str, start_time: float = None):
     timestamp = datetime.now().strftime("%H:%M:%S")
     if start_time:
         elapsed = time.time() - start_time
-        sys.stdout.write(
-            f"[{timestamp}] {message} (elapsed: {elapsed:.1f}s)\n")
+        sys.stdout.write(f"[{timestamp}] {message} (elapsed: {elapsed:.1f}s)\n")
     else:
         sys.stdout.write(f"[{timestamp}] {message}\n")
     sys.stdout.flush()
@@ -125,7 +124,7 @@ def test_spatial_profiler(fits_path: str):
             fits_path,
             start_coord=start_coord,
             end_coord=end_coord,
-            coordinate_system="pixel"
+            coordinate_system="pixel",
         )
         log_progress("  Line profile extracted", line_start)
 
@@ -136,19 +135,18 @@ def test_spatial_profiler(fits_path: str):
             valid_profile = [v for v in profile if np.isfinite(v)]
             if valid_profile:
                 print(
-                    f"  Min: {np.min(valid_profile):.6f}, Max: {np.max(valid_profile):.6f}")
+                    f"  Min: {np.min(valid_profile):.6f}, Max: {np.max(valid_profile):.6f}"
+                )
 
             # Test 1D fitting
             try:
                 # fit_gaussian_profile expects flux array and distance array
-                distances = profile_result.get(
-                    "distance", np.arange(len(profile)))
+                distances = profile_result.get("distance", np.arange(len(profile)))
                 if isinstance(distances, list):
                     distances = np.array(distances)
                 # Convert to numpy arrays
                 flux_array = np.array(profile)
-                fit_result = fit_gaussian_profile(
-                    distance=distances, flux=flux_array)
+                fit_result = fit_gaussian_profile(distance=distances, flux=flux_array)
                 if fit_result:
                     print(f"✓ 1D Gaussian fit successful")
                     print(f"  Amplitude: {fit_result['amplitude']:.6f}")
@@ -174,7 +172,7 @@ def test_spatial_profiler(fits_path: str):
             center_coord=center_coord,
             radius_arcsec=radius_arcsec,
             coordinate_system="pixel",
-            n_annuli=n_annuli
+            n_annuli=n_annuli,
         )
         elapsed = time.time() - point_start
         log_progress(f"  Point profile extracted ({elapsed:.1f}s)", point_start)
@@ -201,16 +199,13 @@ def test_spatial_profiler(fits_path: str):
         ]
 
         polyline_profile_result = extract_polyline_profile(
-            fits_path,
-            coordinates=polyline_coords,
-            coordinate_system="pixel"
+            fits_path, coordinates=polyline_coords, coordinate_system="pixel"
         )
         log_progress("  Polyline profile extracted", polyline_start)
 
         if polyline_profile_result and "flux" in polyline_profile_result:
             polyline_profile = polyline_profile_result["flux"]
-            print(
-                f"✓ Polyline profile extracted: {len(polyline_profile)} points")
+            print(f"✓ Polyline profile extracted: {len(polyline_profile)} points")
             print(f"  Path length: {len(polyline_coords)} segments")
         else:
             print("✗ Polyline profile extraction failed")
@@ -222,6 +217,7 @@ def test_spatial_profiler(fits_path: str):
     except Exception as e:
         print(f"\n✗ Spatial Profiler test failed: {e}")
         import traceback
+
         traceback.print_exc()
         return False
 
@@ -259,70 +255,79 @@ def test_image_fitting(fits_path: str):
         # Test 2.1: Gaussian Fitting (Small Sub-region for Speed)
         print("\n--- Test 2.1: Gaussian Fitting (Sub-region) ---")
         # Use a small sub-region around center for faster fitting
-        sub_size = min(500, nx // 4, ny // 4)  # 500x500 or 1/4 of image, whichever is smaller
+        sub_size = min(
+            500, nx // 4, ny // 4
+        )  # 500x500 or 1/4 of image, whichever is smaller
         x_center, y_center = nx // 2, ny // 2
         x_min = max(0, x_center - sub_size // 2)
         x_max = min(nx, x_center + sub_size // 2)
         y_min = max(0, y_center - sub_size // 2)
         y_max = min(ny, y_center + sub_size // 2)
-        
-        log_progress(f"  Using sub-region: {x_max-x_min}x{y_max-y_min} pixels (center region)")
+
+        log_progress(
+            f"  Using sub-region: {x_max-x_min}x{y_max-y_min} pixels (center region)"
+        )
         sub_data = data[y_min:y_max, x_min:x_max]
         nan_count = np.sum(~np.isfinite(sub_data))
         if nan_count > 0:
             print(
-                f"  ⚠ Warning: {nan_count} non-finite values in sub-region ({100*nan_count/sub_data.size:.2f}%)")
+                f"  ⚠ Warning: {nan_count} non-finite values in sub-region ({100*nan_count/sub_data.size:.2f}%)"
+            )
 
         # Create a temporary FITS file with sub-region
         import tempfile
-        with tempfile.NamedTemporaryFile(suffix='.fits', delete=False) as tmp_fits:
+
+        with tempfile.NamedTemporaryFile(suffix=".fits", delete=False) as tmp_fits:
             tmp_fits_path = tmp_fits.name
-        
+
         try:
             # Save sub-region to temporary FITS
             from astropy.io import fits as fits_io
+
             hdu = fits_io.PrimaryHDU(data=sub_data, header=header)
             hdu.writeto(tmp_fits_path, overwrite=True)
-            
+
             log_progress("  Fitting Gaussian model to sub-region...")
             gauss_start = time.time()
             fit_result = fit_2d_gaussian(
-                tmp_fits_path,
-                region_mask=None,
-                fit_background=True,
-                wcs=wcs
+                tmp_fits_path, region_mask=None, fit_background=True, wcs=wcs
             )
             elapsed = time.time() - gauss_start
             log_progress(f"  Gaussian fit completed ({elapsed:.1f}s)", gauss_start)
 
             if fit_result:
                 print("✓ Gaussian fit successful")
-                params = fit_result['parameters']
+                params = fit_result["parameters"]
                 print(f"  Amplitude: {params['amplitude']:.6f}")
                 print(
-                    f"  Center (x, y): ({params['center']['x']:.2f}, {params['center']['y']:.2f})")
+                    f"  Center (x, y): ({params['center']['x']:.2f}, {params['center']['y']:.2f})"
+                )
                 print(f"  Major axis: {params['major_axis']:.2f} pixels")
                 print(f"  Minor axis: {params['minor_axis']:.2f} pixels")
                 print(f"  PA: {params['pa']:.2f} deg")
                 print(f"  Background: {params['background']:.6f}")
 
-                stats = fit_result['statistics']
-                print(
-                    f"  Reduced chi-squared: {stats['reduced_chi_squared']:.4f}")
+                stats = fit_result["statistics"]
+                print(f"  Reduced chi-squared: {stats['reduced_chi_squared']:.4f}")
                 print(f"  R-squared: {stats['r_squared']:.4f}")
 
                 # Check if results are reasonable
-                if stats['reduced_chi_squared'] > 0 and stats['reduced_chi_squared'] < 100:
+                if (
+                    stats["reduced_chi_squared"] > 0
+                    and stats["reduced_chi_squared"] < 100
+                ):
                     print("  ✓ Fit quality reasonable")
                 else:
                     print(
-                        f"  ⚠ Fit quality questionable (chi-squared: {stats['reduced_chi_squared']:.2f})")
+                        f"  ⚠ Fit quality questionable (chi-squared: {stats['reduced_chi_squared']:.2f})"
+                    )
             else:
                 print("✗ Gaussian fit returned no result")
                 return False
         except Exception as e:
             print(f"✗ Gaussian fit failed: {e}")
             import traceback
+
             traceback.print_exc()
             return False
         finally:
@@ -335,37 +340,34 @@ def test_image_fitting(fits_path: str):
         # Test 2.2: Moffat Fitting (Same Sub-region)
         print("\n--- Test 2.2: Moffat Fitting (Sub-region) ---")
         # Recreate sub-region FITS
-        with tempfile.NamedTemporaryFile(suffix='.fits', delete=False) as tmp_fits:
+        with tempfile.NamedTemporaryFile(suffix=".fits", delete=False) as tmp_fits:
             tmp_fits_path = tmp_fits.name
-        
+
         try:
             hdu = fits_io.PrimaryHDU(data=sub_data, header=header)
             hdu.writeto(tmp_fits_path, overwrite=True)
-            
+
             log_progress("  Fitting Moffat model to sub-region...")
             moffat_start = time.time()
             fit_result = fit_2d_moffat(
-                tmp_fits_path,
-                region_mask=None,
-                fit_background=True,
-                wcs=wcs
+                tmp_fits_path, region_mask=None, fit_background=True, wcs=wcs
             )
             elapsed = time.time() - moffat_start
             log_progress(f"  Moffat fit completed ({elapsed:.1f}s)", moffat_start)
 
             if fit_result:
                 print("✓ Moffat fit successful")
-                params = fit_result['parameters']
+                params = fit_result["parameters"]
                 print(f"  Amplitude: {params['amplitude']:.6f}")
                 print(
-                    f"  Center (x, y): ({params['center']['x']:.2f}, {params['center']['y']:.2f})")
+                    f"  Center (x, y): ({params['center']['x']:.2f}, {params['center']['y']:.2f})"
+                )
                 print(f"  Major axis: {params['major_axis']:.2f} pixels")
                 print(f"  Minor axis: {params['minor_axis']:.2f} pixels")
                 print(f"  Background: {params['background']:.6f}")
 
-                stats = fit_result['statistics']
-                print(
-                    f"  Reduced chi-squared: {stats['reduced_chi_squared']:.4f}")
+                stats = fit_result["statistics"]
+                print(f"  Reduced chi-squared: {stats['reduced_chi_squared']:.4f}")
                 print(f"  R-squared: {stats['r_squared']:.4f}")
             else:
                 print("✗ Moffat fit returned no result")
@@ -373,6 +375,7 @@ def test_image_fitting(fits_path: str):
         except Exception as e:
             print(f"✗ Moffat fit failed: {e}")
             import traceback
+
             traceback.print_exc()
             return False
         finally:
@@ -393,11 +396,10 @@ def test_image_fitting(fits_path: str):
                 print("✓ Initial guess estimated")
                 print(f"  Amplitude: {initial_guess['amplitude']:.6f}")
                 print(
-                    f"  Center (x, y): ({initial_guess['x_center']:.2f}, {initial_guess['y_center']:.2f})")
-                print(
-                    f"  Major axis: {initial_guess['major_axis']:.2f} pixels")
-                print(
-                    f"  Minor axis: {initial_guess['minor_axis']:.2f} pixels")
+                    f"  Center (x, y): ({initial_guess['x_center']:.2f}, {initial_guess['y_center']:.2f})"
+                )
+                print(f"  Major axis: {initial_guess['major_axis']:.2f} pixels")
+                print(f"  Minor axis: {initial_guess['minor_axis']:.2f} pixels")
                 print(f"  PA: {initial_guess['pa']:.2f} deg")
             else:
                 print("✗ Initial guess estimation failed")
@@ -405,6 +407,7 @@ def test_image_fitting(fits_path: str):
         except Exception as e:
             print(f"✗ Initial guess estimation failed: {e}")
             import traceback
+
             traceback.print_exc()
             return False
 
@@ -414,6 +417,7 @@ def test_image_fitting(fits_path: str):
     except Exception as e:
         print(f"\n✗ Image Fitting test failed: {e}")
         import traceback
+
         traceback.print_exc()
         return False
 
@@ -457,13 +461,16 @@ def test_region_management(fits_path: str):
             if wcs:
                 center_pix = [nx // 2, ny // 2]
                 # Handle 4D WCS
-                if hasattr(wcs, 'naxis') and wcs.naxis == 4:
-                    center_world = wcs.all_pix2world(center_pix[0], center_pix[1], 0, 0, 0)
+                if hasattr(wcs, "naxis") and wcs.naxis == 4:
+                    center_world = wcs.all_pix2world(
+                        center_pix[0], center_pix[1], 0, 0, 0
+                    )
                     center_ra = float(center_world[0])
                     center_dec = float(center_world[1])
                 else:
                     center_world = wcs.pixel_to_world_values(
-                        center_pix[1], center_pix[0])
+                        center_pix[1], center_pix[0]
+                    )
                     center_ra = float(center_world[0])
                     center_dec = float(center_world[1])
             else:
@@ -476,21 +483,20 @@ def test_region_management(fits_path: str):
                 coordinates={
                     "ra_deg": center_ra,
                     "dec_deg": center_dec,
-                    "radius_deg": 0.01  # ~36 arcsec
+                    "radius_deg": 0.01,  # ~36 arcsec
                 },
-                image_path=fits_path
+                image_path=fits_path,
             )
 
             circle_mask = create_region_mask(
-                shape=(ny, nx),
-                region=circle_region,
-                wcs=wcs,
-                header=header
+                shape=(ny, nx), region=circle_region, wcs=wcs, header=header
             )
 
             n_pixels = np.sum(circle_mask)
             log_progress(
-                f"  Circle mask created: {n_pixels} pixels ({100*n_pixels/(nx*ny):.1f}% of image)", circle_start)
+                f"  Circle mask created: {n_pixels} pixels ({100*n_pixels/(nx*ny):.1f}% of image)",
+                circle_start,
+            )
 
             if n_pixels == 0:
                 print("  ⚠ Warning: Mask is empty")
@@ -499,6 +505,7 @@ def test_region_management(fits_path: str):
         except Exception as e:
             print(f"✗ Circle region mask creation failed: {e}")
             import traceback
+
             traceback.print_exc()
             return False
 
@@ -515,21 +522,20 @@ def test_region_management(fits_path: str):
                     "dec_deg": center_dec,
                     "width_deg": 0.01,
                     "height_deg": 0.01,
-                    "angle_deg": 0.0
+                    "angle_deg": 0.0,
                 },
-                image_path=fits_path
+                image_path=fits_path,
             )
 
             rect_mask = create_region_mask(
-                shape=(ny, nx),
-                region=rect_region,
-                wcs=wcs,
-                header=header
+                shape=(ny, nx), region=rect_region, wcs=wcs, header=header
             )
 
             n_pixels = np.sum(rect_mask)
             log_progress(
-                f"  Rectangle mask created: {n_pixels} pixels ({100*n_pixels/(nx*ny):.1f}% of image)", rect_start)
+                f"  Rectangle mask created: {n_pixels} pixels ({100*n_pixels/(nx*ny):.1f}% of image)",
+                rect_start,
+            )
 
             if n_pixels == 0:
                 print("  ⚠ Warning: Mask is empty")
@@ -538,6 +544,7 @@ def test_region_management(fits_path: str):
         except Exception as e:
             print(f"✗ Rectangle region mask creation failed: {e}")
             import traceback
+
             traceback.print_exc()
             return False
 
@@ -563,20 +570,17 @@ def test_region_management(fits_path: str):
         try:
             if n_pixels > 0:  # Only if mask has pixels
                 fit_result = fit_2d_gaussian(
-                    fits_path,
-                    region_mask=circle_mask,
-                    fit_background=True,
-                    wcs=wcs
+                    fits_path, region_mask=circle_mask, fit_background=True, wcs=wcs
                 )
 
                 if fit_result:
                     print("✓ Region-constrained Gaussian fit successful")
-                    params = fit_result['parameters']
+                    params = fit_result["parameters"]
                     print(
-                        f"  Center (x, y): ({params['center']['x']:.2f}, {params['center']['y']:.2f})")
-                    stats = fit_result['statistics']
-                    print(
-                        f"  Reduced chi-squared: {stats['reduced_chi_squared']:.4f}")
+                        f"  Center (x, y): ({params['center']['x']:.2f}, {params['center']['y']:.2f})"
+                    )
+                    stats = fit_result["statistics"]
+                    print(f"  Reduced chi-squared: {stats['reduced_chi_squared']:.4f}")
                 else:
                     print("✗ Region-constrained fit returned no result")
             else:
@@ -591,6 +595,7 @@ def test_region_management(fits_path: str):
     except Exception as e:
         print(f"\n✗ Region Management test failed: {e}")
         import traceback
+
         traceback.print_exc()
         return False
 
@@ -657,5 +662,6 @@ if __name__ == "__main__":
     except Exception as e:
         sys.stderr.write(f"Fatal error: {e}\n")
         import traceback
+
         traceback.print_exc()
         sys.exit(1)

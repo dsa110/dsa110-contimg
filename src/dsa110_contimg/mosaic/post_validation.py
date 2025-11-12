@@ -16,6 +16,7 @@ logger = logging.getLogger(__name__)
 # Ensure CASAPATH is set before importing CASA modules
 try:
     from dsa110_contimg.utils.casa_init import ensure_casa_path
+
     ensure_casa_path()
 except ImportError:
     pass  # If casa_init not available, continue anyway

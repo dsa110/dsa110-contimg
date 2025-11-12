@@ -1,4 +1,4 @@
-can #!/usr/bin/env python
+can  #!/usr/bin/env python
 """
 Quick verification test for Priority 1: Region Mask Integration
 
@@ -23,6 +23,7 @@ def test_imports():
 
     try:
         from dsa110_contimg.utils.regions import create_region_mask, RegionData
+
         print("✓ Region utilities imported")
     except Exception as e:
         print(f"✗ Failed to import region utilities: {e}")
@@ -30,6 +31,7 @@ def test_imports():
 
     try:
         from dsa110_contimg.utils.fitting import fit_2d_gaussian, fit_2d_moffat
+
         print("✓ Fitting utilities imported")
     except Exception as e:
         print(f"✗ Failed to import fitting utilities: {e}")
@@ -38,6 +40,7 @@ def test_imports():
     try:
         from astropy.io import fits
         from astropy.wcs import WCS
+
         print("✓ Astropy imports work")
     except Exception as e:
         print(f"✗ Failed to import astropy: {e}")
@@ -46,14 +49,16 @@ def test_imports():
     # Check that routes.py can import create_region_mask
     try:
         import importlib.util
-        routes_path = Path(__file__).parent / "src" / \
-            "dsa110_contimg" / "api" / "routes.py"
+
+        routes_path = (
+            Path(__file__).parent / "src" / "dsa110_contimg" / "api" / "routes.py"
+        )
         spec = importlib.util.spec_from_file_location("routes", routes_path)
         routes = importlib.util.module_from_spec(spec)
         # Just check syntax, don't execute
         with open(routes_path) as f:
             code = f.read()
-            compile(code, routes_path, 'exec')
+            compile(code, routes_path, "exec")
         print("✓ routes.py syntax is valid")
     except Exception as e:
         print(f"✗ routes.py has syntax errors: {e}")
@@ -74,17 +79,17 @@ def test_region_mask_synthetic():
 
     # Create a simple synthetic FITS header
     header = fits.Header()
-    header['NAXIS'] = 2
-    header['NAXIS1'] = 100
-    header['NAXIS2'] = 100
-    header['CDELT1'] = -0.0001  # degrees per pixel
-    header['CDELT2'] = 0.0001
-    header['CRVAL1'] = 0.0  # RA at reference pixel
-    header['CRVAL2'] = 0.0  # Dec at reference pixel
-    header['CRPIX1'] = 50.0  # Reference pixel
-    header['CRPIX2'] = 50.0
-    header['CTYPE1'] = 'RA---TAN'
-    header['CTYPE2'] = 'DEC--TAN'
+    header["NAXIS"] = 2
+    header["NAXIS1"] = 100
+    header["NAXIS2"] = 100
+    header["CDELT1"] = -0.0001  # degrees per pixel
+    header["CDELT2"] = 0.0001
+    header["CRVAL1"] = 0.0  # RA at reference pixel
+    header["CRVAL2"] = 0.0  # Dec at reference pixel
+    header["CRPIX1"] = 50.0  # Reference pixel
+    header["CRPIX2"] = 50.0
+    header["CTYPE1"] = "RA---TAN"
+    header["CTYPE2"] = "DEC--TAN"
 
     try:
         wcs = WCS(header)
@@ -103,30 +108,27 @@ def test_region_mask_synthetic():
         coordinates={
             "ra_deg": 0.0,
             "dec_deg": 0.0,
-            "radius_deg": 0.005  # Small radius
+            "radius_deg": 0.005,  # Small radius
         },
-        image_path="test_image.fits"
+        image_path="test_image.fits",
     )
 
     try:
         circle_mask = create_region_mask(
-            shape=shape,
-            region=circle_region,
-            wcs=wcs,
-            header=header
+            shape=shape, region=circle_region, wcs=wcs, header=header
         )
 
         n_pixels = np.sum(circle_mask)
         print(
-            f"✓ Circle mask created: {n_pixels} pixels ({100*n_pixels/np.prod(shape):.1f}% of image)")
+            f"✓ Circle mask created: {n_pixels} pixels ({100*n_pixels/np.prod(shape):.1f}% of image)"
+        )
 
         if n_pixels == 0:
             print("  WARNING: Mask is empty")
             return False
 
         if circle_mask.shape != shape:
-            print(
-                f"  ERROR: Mask shape {circle_mask.shape} != image shape {shape}")
+            print(f"  ERROR: Mask shape {circle_mask.shape} != image shape {shape}")
             return False
 
         print("  ✓ Mask shape is correct")
@@ -135,6 +137,7 @@ def test_region_mask_synthetic():
     except Exception as e:
         print(f"✗ Circle mask creation failed: {e}")
         import traceback
+
         traceback.print_exc()
         return False
 
@@ -148,30 +151,27 @@ def test_region_mask_synthetic():
             "dec_deg": 0.0,
             "width_deg": 0.01,
             "height_deg": 0.01,
-            "angle_deg": 0.0
+            "angle_deg": 0.0,
         },
-        image_path="test_image.fits"
+        image_path="test_image.fits",
     )
 
     try:
         rect_mask = create_region_mask(
-            shape=shape,
-            region=rect_region,
-            wcs=wcs,
-            header=header
+            shape=shape, region=rect_region, wcs=wcs, header=header
         )
 
         n_pixels = np.sum(rect_mask)
         print(
-            f"✓ Rectangle mask created: {n_pixels} pixels ({100*n_pixels/np.prod(shape):.1f}% of image)")
+            f"✓ Rectangle mask created: {n_pixels} pixels ({100*n_pixels/np.prod(shape):.1f}% of image)"
+        )
 
         if n_pixels == 0:
             print("  WARNING: Mask is empty")
             return False
 
         if rect_mask.shape != shape:
-            print(
-                f"  ERROR: Mask shape {rect_mask.shape} != image shape {shape}")
+            print(f"  ERROR: Mask shape {rect_mask.shape} != image shape {shape}")
             return False
 
         print("  ✓ Mask shape is correct")
@@ -180,6 +180,7 @@ def test_region_mask_synthetic():
     except Exception as e:
         print(f"✗ Rectangle mask creation failed: {e}")
         import traceback
+
         traceback.print_exc()
         return False
 
@@ -192,25 +193,35 @@ def test_api_structure():
     print("Test 3: API Endpoint Structure Verification")
     print("=" * 60)
 
-    routes_path = Path(__file__).parent / "src" / \
-        "dsa110_contimg" / "api" / "routes.py"
+    routes_path = Path(__file__).parent / "src" / "dsa110_contimg" / "api" / "routes.py"
 
     with open(routes_path) as f:
         code = f.read()
 
     checks = [
-        ("create_region_mask import", "from dsa110_contimg.utils.regions import",
-         "create_region_mask" in code),
-        ("fits import", "from astropy.io import fits",
-         "from astropy.io import fits" in code),
-        ("WCS import", "from astropy.wcs import WCS",
-         "from astropy.wcs import WCS" in code),
+        (
+            "create_region_mask import",
+            "from dsa110_contimg.utils.regions import",
+            "create_region_mask" in code,
+        ),
+        (
+            "fits import",
+            "from astropy.io import fits",
+            "from astropy.io import fits" in code,
+        ),
+        (
+            "WCS import",
+            "from astropy.wcs import WCS",
+            "from astropy.wcs import WCS" in code,
+        ),
         ("numpy import", "import numpy as np", "import numpy as np" in code),
-        ("region_mask creation", "create_region_mask(",
-         "create_region_mask(" in code),
+        ("region_mask creation", "create_region_mask(", "create_region_mask(" in code),
         ("mask validation", "np.any(region_mask)", "np.any(region_mask)" in code),
-        ("mask passed to fitting", "region_mask=region_mask",
-         "region_mask=region_mask" in code),
+        (
+            "mask passed to fitting",
+            "region_mask=region_mask",
+            "region_mask=region_mask" in code,
+        ),
     ]
 
     all_passed = True

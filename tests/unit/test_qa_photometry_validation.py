@@ -61,7 +61,7 @@ class TestValidateForcedPhotometry:
     def test_missing_image_file(self, tmp_path):
         """Test error when image file doesn't exist."""
         image_path = tmp_path / "nonexistent.fits"
-        
+
         with pytest.raises(ValidationInputError):
             validate_forced_photometry(
                 image_path=str(image_path),
@@ -73,7 +73,7 @@ class TestValidateForcedPhotometry:
         """Test error when neither catalog_path nor catalog_sources provided."""
         image_path = tmp_path / "test.fits"
         image_path.touch()
-        
+
         with pytest.raises(ValidationInputError):
             validate_forced_photometry(
                 image_path=str(image_path),
@@ -84,7 +84,7 @@ class TestValidateForcedPhotometry:
         """Test error when photometry_results not provided."""
         image_path = tmp_path / "test.fits"
         image_path.touch()
-        
+
         with pytest.raises(ValidationInputError):
             validate_forced_photometry(
                 image_path=str(image_path),
@@ -95,20 +95,20 @@ class TestValidateForcedPhotometry:
         """Test validation when no sources match."""
         image_path = tmp_path / "test.fits"
         image_path.touch()
-        
+
         catalog_sources = [
             {"ra": 0.0, "dec": 0.0, "flux": 1.0, "source_id": "cat1"},
         ]
         photometry_results = [
             {"ra": 10.0, "dec": 10.0, "flux": 1.0},  # Far from catalog source
         ]
-        
+
         result = validate_forced_photometry(
             image_path=str(image_path),
             catalog_sources=catalog_sources,
             photometry_results=photometry_results,
         )
-        
+
         assert result.passed is False
         assert "No sources matched" in result.message
 
@@ -117,30 +117,34 @@ class TestValidateForcedPhotometry:
         """Test successful validation with matching sources."""
         image_path = tmp_path / "test.fits"
         image_path.touch()
-        
+
         # Mock FITS header
         mock_header = Mock()
-        mock_header.__getitem__ = Mock(side_effect=lambda k: {"CRVAL1": 0.0, "CRVAL2": 0.0}.get(k, 0))
+        mock_header.__getitem__ = Mock(
+            side_effect=lambda k: {"CRVAL1": 0.0, "CRVAL2": 0.0}.get(k, 0)
+        )
         mock_hdul = [Mock(header=mock_header)]
         mock_fits.return_value.__enter__ = Mock(return_value=mock_hdul)
         mock_fits.return_value.__exit__ = Mock(return_value=None)
-        
+
         catalog_sources = [
             {"ra": 0.0, "dec": 0.0, "flux": 1.0, "source_id": "cat1"},
         ]
         photometry_results = [
             {"ra": 0.0, "dec": 0.0, "flux": 0.95, "flux_err": 0.05},  # Close match
         ]
-        
-        config = PhotometryConfig(max_flux_error_fraction=0.1, max_position_offset_arcsec=1.0)
-        
+
+        config = PhotometryConfig(
+            max_flux_error_fraction=0.1, max_position_offset_arcsec=1.0
+        )
+
         result = validate_forced_photometry(
             image_path=str(image_path),
             catalog_sources=catalog_sources,
             photometry_results=photometry_results,
             config=config,
         )
-        
+
         # Should pass if flux error is within threshold
         assert result.n_sources_validated > 0
 
@@ -156,9 +160,8 @@ class TestValidatePhotometryConsistency:
             [{"source_id": "src1", "flux": 1.05}, {"source_id": "src2", "flux": 2.1}],
             [{"source_id": "src1", "flux": 0.98}, {"source_id": "src2", "flux": 1.95}],
         ]
-        
+
         result = validate_photometry_consistency(photometry_results_list)
-        
+
         assert isinstance(result, PhotometryValidationResult)
         assert result.flux_consistency_rms is not None
-

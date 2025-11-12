@@ -28,6 +28,7 @@ except ImportError:
     def display(*args, **kwargs):
         pass
 
+
 from .file import FileBase
 from .render import render_error, render_url
 from .thumbnail import is_svg_file, make_thumbnail, render_thumbnail_html
@@ -126,4 +127,3 @@ class ImageFile(FileBase):
     def _repr_html_(self) -> str:
         """HTML representation for Jupyter."""
         return self.render_thumb()
-

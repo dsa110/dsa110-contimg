@@ -20,8 +20,9 @@ from dsa110_contimg.qa.catalog_validation import CatalogValidationResult
 from dsa110_contimg.qa.html_reports import generate_validation_report, ValidationReport
 
 
-logging.basicConfig(level=logging.INFO,
-                    format='%(asctime)s [%(levelname)s] %(message)s')
+logging.basicConfig(
+    level=logging.INFO, format="%(asctime)s [%(levelname)s] %(message)s"
+)
 logger = logging.getLogger(__name__)
 
 
@@ -45,8 +46,7 @@ def test_html_report_with_mock_data():
     if not test_image:
         # Use a dummy path if no test file found
         test_image = "/data/test/image.fits"
-        logger.warning(
-            f"No test FITS files found, using dummy path: {test_image}")
+        logger.warning(f"No test FITS files found, using dummy path: {test_image}")
 
     # Create output directory
     output_dir = Path("state/qa/reports")
@@ -75,7 +75,7 @@ def test_html_report_with_mock_data():
             has_issues=False,
             has_warnings=False,
             issues=[],
-            warnings=[]
+            warnings=[],
         )
 
         mock_flux_scale_pass = CatalogValidationResult(
@@ -91,7 +91,7 @@ def test_html_report_with_mock_data():
             has_issues=False,
             has_warnings=False,
             issues=[],
-            warnings=[]
+            warnings=[],
         )
 
         mock_source_counts_pass = CatalogValidationResult(
@@ -105,7 +105,7 @@ def test_html_report_with_mock_data():
             has_issues=False,
             has_warnings=False,
             issues=[],
-            warnings=[]
+            warnings=[],
         )
 
         report_pass = generate_validation_report(
@@ -114,7 +114,7 @@ def test_html_report_with_mock_data():
             flux_scale_result=mock_flux_scale_pass,
             source_counts_result=mock_source_counts_pass,
             output_path=str(output_dir / "test_report_pass.html"),
-            catalog="nvss"
+            catalog="nvss",
         )
 
         logger.info(f"✓ PASS report created: {report_pass.overall_status}")
@@ -138,8 +138,10 @@ def test_html_report_with_mock_data():
             has_issues=False,
             has_warnings=True,
             issues=[],
-            warnings=["Mean astrometric offset (2.5 arcsec) is significant",
-                      "Only 10/15 detected sources matched to catalog"]
+            warnings=[
+                "Mean astrometric offset (2.5 arcsec) is significant",
+                "Only 10/15 detected sources matched to catalog",
+            ],
         )
 
         mock_flux_scale_warn = CatalogValidationResult(
@@ -155,7 +157,7 @@ def test_html_report_with_mock_data():
             has_issues=False,
             has_warnings=True,
             issues=[],
-            warnings=["High scatter in flux ratios (RMS=0.25)"]
+            warnings=["High scatter in flux ratios (RMS=0.25)"],
         )
 
         report_warn = generate_validation_report(
@@ -164,7 +166,7 @@ def test_html_report_with_mock_data():
             flux_scale_result=mock_flux_scale_warn,
             source_counts_result=None,  # Skip source counts
             output_path=str(output_dir / "test_report_warning.html"),
-            catalog="nvss"
+            catalog="nvss",
         )
 
         logger.info(f"✓ WARNING report created: {report_warn.overall_status}")
@@ -189,8 +191,9 @@ def test_html_report_with_mock_data():
             has_issues=True,
             has_warnings=True,
             issues=[
-                "Maximum astrometric offset (25.0 arcsec) exceeds threshold (5.0 arcsec)"],
-            warnings=["Mean astrometric offset (8.5 arcsec) is significant"]
+                "Maximum astrometric offset (25.0 arcsec) exceeds threshold (5.0 arcsec)"
+            ],
+            warnings=["Mean astrometric offset (8.5 arcsec) is significant"],
         )
 
         mock_flux_scale_fail = CatalogValidationResult(
@@ -206,8 +209,10 @@ def test_html_report_with_mock_data():
             has_issues=True,
             has_warnings=True,
             issues=["Flux scale error (25.0%) exceeds threshold (20.0%)"],
-            warnings=["High scatter in flux ratios (RMS=0.35)",
-                      "Low number of valid measurements: 3 (recommend at least 3)"]
+            warnings=[
+                "High scatter in flux ratios (RMS=0.35)",
+                "Low number of valid measurements: 3 (recommend at least 3)",
+            ],
         )
 
         report_fail = generate_validation_report(
@@ -216,7 +221,7 @@ def test_html_report_with_mock_data():
             flux_scale_result=mock_flux_scale_fail,
             source_counts_result=None,
             output_path=str(output_dir / "test_report_fail.html"),
-            catalog="nvss"
+            catalog="nvss",
         )
 
         logger.info(f"✓ FAIL report created: {report_fail.overall_status}")
@@ -238,11 +243,10 @@ def test_html_report_with_mock_data():
                 logger.info(f"✓ {html_file.name}: {file_size:,} bytes")
 
                 # Verify content
-                with open(html_file, 'r') as f:
+                with open(html_file, "r") as f:
                     content = f.read()
 
-                required = ["<!DOCTYPE html>", "DSA-110",
-                            "Summary", "Overall Status"]
+                required = ["<!DOCTYPE html>", "DSA-110", "Summary", "Overall Status"]
                 missing = [r for r in required if r not in content]
                 if missing:
                     logger.warning(f"  Missing elements: {missing}")
@@ -261,8 +265,7 @@ def test_html_report_with_mock_data():
         logger.info("  1. test_report_pass.html (PASS status)")
         logger.info("  2. test_report_warning.html (WARNING status)")
         logger.info("  3. test_report_fail.html (FAIL status)")
-        logger.info(
-            f"\nOpen any of these files in a web browser to view the reports.")
+        logger.info(f"\nOpen any of these files in a web browser to view the reports.")
 
         return True
 

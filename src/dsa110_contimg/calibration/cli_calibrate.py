@@ -1059,9 +1059,11 @@ def handle_calibrate(args: argparse.Namespace) -> int:
                     # Get total number of fields from MS
                     # Ensure CASAPATH is set before importing CASA modules
                     from dsa110_contimg.utils.casa_init import ensure_casa_path
+
                     ensure_casa_path()
 
                     import casacore.tables as casatables
+
                     table = casatables.table
 
                     with table(f"{args.ms}::FIELD", readonly=True) as tb:
@@ -1275,6 +1277,7 @@ def handle_calibrate(args: argparse.Namespace) -> int:
     if args.minimal:
         # Minimal mode overrides fast mode settings
         import casacore.tables as casatables
+
         table = casatables.table
 
         from .subset import make_subset
@@ -1327,6 +1330,7 @@ def handle_calibrate(args: argparse.Namespace) -> int:
 
     if args.fast and (args.timebin or args.chanbin) and not args.minimal:
         import casacore.tables as casatables
+
         table = casatables.table
 
         from .subset import make_subset
@@ -1472,6 +1476,7 @@ def handle_calibrate(args: argparse.Namespace) -> int:
         # OPTIMIZATION: Use memory-efficient sampling instead of reading entire MS
         try:
             import casacore.tables as casatables
+
             table = casatables.table
 
             from dsa110_contimg.utils.ms_helpers import (
@@ -1686,6 +1691,7 @@ def handle_calibrate(args: argparse.Namespace) -> int:
                         from astropy import units as u
                         from astropy.coordinates import SkyCoord
                         import casacore.tables as casatables
+
                         table = casatables.table
 
                         logger.debug("Reading MS phase center...")
@@ -1875,6 +1881,7 @@ def handle_calibrate(args: argparse.Namespace) -> int:
                             # Manually update REFERENCE_DIR for ALL fields if phaseshift didn't update it
                             try:
                                 import casacore.tables as casatables
+
                                 casa_table = casatables.table
 
                                 with casa_table(
@@ -1932,6 +1939,7 @@ def handle_calibrate(args: argparse.Namespace) -> int:
                             # Verify REFERENCE_DIR is correct after rephasing
                             try:
                                 import casacore.tables as casatables
+
                                 casa_table = casatables.table
 
                                 with casa_table(
@@ -2059,6 +2067,7 @@ def handle_calibrate(args: argparse.Namespace) -> int:
                     # Rename field to calibrator name
                     try:
                         import casacore.tables as casatables
+
                         table = casatables.table
 
                         with table(f"{args.ms}::FIELD", readonly=False) as field_tb:
@@ -2181,6 +2190,7 @@ def handle_calibrate(args: argparse.Namespace) -> int:
                         # Get flux from setjy first, then use manual calculation
                         try:
                             import casacore.tables as casatables
+
                             table = casatables.table
                             from casatasks import setjy as casa_setjy
 
@@ -2289,6 +2299,7 @@ def handle_calibrate(args: argparse.Namespace) -> int:
         try:
             import numpy as np
             import casacore.tables as casatables
+
             table = casatables.table
 
             with table(ms_in, readonly=True) as tb:

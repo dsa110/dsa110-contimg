@@ -21,6 +21,7 @@ except ImportError:
     def display(*args, **kwargs):
         pass
 
+
 from .file import FileBase
 from .render import render_error, render_preamble, render_table, rich_string, htmlize
 
@@ -34,7 +35,9 @@ class NumberedLineList:
 
     MAX_SIZE = 1_000_000  # 1MB limit for full file loading
 
-    def __init__(self, lines: Optional[List[Tuple[int, str]]] = None, title: Optional[str] = None):
+    def __init__(
+        self, lines: Optional[List[Tuple[int, str]]] = None, title: Optional[str] = None
+    ):
         """
         Initialize a numbered line list.
 
@@ -118,7 +121,9 @@ class NumberedLineList:
 
         return NumberedLineList(matching_lines, self._title)
 
-    def extract(self, regexp: str, groups: Union[int, slice, List[int]] = slice(None)) -> List[List[str]]:
+    def extract(
+        self, regexp: str, groups: Union[int, slice, List[int]] = slice(None)
+    ) -> List[List[str]]:
         """
         Extract data from lines using regex.
 
@@ -143,7 +148,12 @@ class NumberedLineList:
             if match:
                 matched_groups = match.groups()
                 if isinstance(groups, slice):
-                    results.append([matched_groups[i] for i in range(*groups.indices(len(matched_groups)))])
+                    results.append(
+                        [
+                            matched_groups[i]
+                            for i in range(*groups.indices(len(matched_groups)))
+                        ]
+                    )
                 else:
                     results.append([matched_groups[i] for i in groups])
 
@@ -192,9 +202,14 @@ class TextFile(FileBase, NumberedLineList):
                     self.lines = (
                         [(i + 1, line) for i, line in enumerate(head_lines)]
                         + [(tail_start_num, "...\n")]
-                        + [(tail_start_num + i + 1, line) for i, line in enumerate(tail_lines)]
+                        + [
+                            (tail_start_num + i + 1, line)
+                            for i, line in enumerate(tail_lines)
+                        ]
                     )
-                    self.description = f"large text ({self.size}), modified {self.mtime_str}"
+                    self.description = (
+                        f"large text ({self.size}), modified {self.mtime_str}"
+                    )
                     return
 
             self.description = f"{len(self.lines)} lines, modified {self.mtime_str}"
@@ -244,7 +259,7 @@ class TextFile(FileBase, NumberedLineList):
         grep: Optional[Union[str, List[str]]] = None,
         number: Optional[bool] = None,
         title: Optional[str] = None,
-        **kwargs
+        **kwargs,
     ) -> str:
         """
         Render text file as HTML.
@@ -288,16 +303,20 @@ class TextFile(FileBase, NumberedLineList):
             return "".join(html_parts)
 
         # Render as table
-        html_parts.append('<table class="qa-textfile-table" style="font-family: monospace; border-collapse: collapse;">')
+        html_parts.append(
+            '<table class="qa-textfile-table" style="font-family: monospace; border-collapse: collapse;">'
+        )
         for line_num, line in lines_to_show:
             if line_num == 0:  # Separator
-                html_parts.append('<tr><td colspan="2" style="text-align: center; color: #666;">...</td></tr>')
+                html_parts.append(
+                    '<tr><td colspan="2" style="text-align: center; color: #666;">...</td></tr>'
+                )
             else:
                 line_html = htmlize(line.rstrip("\n"))
                 if number:
                     html_parts.append(
                         f'<tr><td style="padding-right: 10px; color: #666; text-align: right;">{line_num}</td>'
-                        f'<td>{line_html}</td></tr>'
+                        f"<td>{line_html}</td></tr>"
                     )
                 else:
                     html_parts.append(f"<tr><td>{line_html}</td></tr>")
@@ -311,7 +330,7 @@ class TextFile(FileBase, NumberedLineList):
         tail: Optional[int] = 10,
         full: bool = False,
         grep: Optional[Union[str, List[str]]] = None,
-        **kwargs
+        **kwargs,
     ) -> None:
         """
         Display text file.
@@ -330,4 +349,3 @@ class TextFile(FileBase, NumberedLineList):
     def _repr_html_(self) -> str:
         """HTML representation for Jupyter."""
         return self.render_html()
-

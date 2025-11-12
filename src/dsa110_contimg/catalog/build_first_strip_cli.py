@@ -33,12 +33,12 @@ def main(argv: list[str] | None = None) -> int:
     )
     ap.add_argument(
         "--first-catalog-path",
-        help="Path to FIRST catalog file (CSV/FITS). If not provided, attempts to auto-download/cache."
+        help="Path to FIRST catalog file (CSV/FITS). If not provided, attempts to auto-download/cache.",
     )
     ap.add_argument(
         "--cache-dir",
         default=".cache/catalogs",
-        help="Directory for caching catalog files (default: .cache/catalogs)"
+        help="Directory for caching catalog files (default: .cache/catalogs)",
     )
 
     args = ap.parse_args(argv)
@@ -100,4 +100,3 @@ if __name__ == "__main__":
     import sys
 
     sys.exit(main())
-

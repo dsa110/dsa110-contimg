@@ -4,12 +4,15 @@ import logging
 from typing import Optional
 
 import astropy.units as u
+
 # Ensure CASAPATH is set before importing CASA modules
 from dsa110_contimg.utils.casa_init import ensure_casa_path
+
 ensure_casa_path()
 
 import numpy as np
 import casacore.tables as casatables  # type: ignore
+
 table = casatables.table  # noqa: N816
 
 logger = logging.getLogger("dsa110_contimg.conversion.helpers")

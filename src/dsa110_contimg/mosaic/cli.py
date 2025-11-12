@@ -44,6 +44,7 @@ from typing import Dict, List, Optional, Tuple
 
 # Initialize CASA environment before importing CASA modules
 from dsa110_contimg.utils.casa_init import ensure_casa_path
+
 ensure_casa_path()
 
 try:
@@ -93,15 +94,13 @@ def _ensure_mosaics_table(conn: sqlite3.Connection) -> None:
         conn.execute("ALTER TABLE mosaics ADD COLUMN output_path TEXT")
         conn.execute("ALTER TABLE mosaics ADD COLUMN validation_issues TEXT")
         # Set default status for existing rows
-        conn.execute(
-            "UPDATE mosaics SET status = 'built' WHERE status IS NULL")
+        conn.execute("UPDATE mosaics SET status = 'built' WHERE status IS NULL")
 
     # Ensure metrics_path column exists (used in cmd_build)
     if "metrics_path" not in columns:
         conn.execute("ALTER TABLE mosaics ADD COLUMN metrics_path TEXT")
 
-    conn.execute(
-        "CREATE INDEX IF NOT EXISTS idx_mosaics_name ON mosaics(name)")
+    conn.execute("CREATE INDEX IF NOT EXISTS idx_mosaics_name ON mosaics(name)")
 
 
 def _fetch_tiles(
@@ -234,10 +233,10 @@ def _check_consistent_tiles(tiles: List[str]) -> Tuple[bool, Optional[str]]:
                 try:
                     import ast
                     import re
+
                     # First try direct ast.literal_eval for list-style "[512, 512]"
                     shape_list = ast.literal_eval(shape)
-                    shape = tuple(shape_list) if isinstance(
-                        shape_list, list) else shape
+                    shape = tuple(shape_list) if isinstance(shape_list, list) else shape
                 except (ValueError, SyntaxError):
                     # If parsing fails, use string comparison (less ideal but works)
                     pass
@@ -300,8 +299,7 @@ def generate_mosaic_metrics(
     metric_files = {}
 
     if not HAVE_CASACORE:
-        LOG.warning(
-            "casacore.images not available, skipping mosaic metrics generation")
+        LOG.warning("casacore.images not available, skipping mosaic metrics generation")
         return metric_files
 
     try:
@@ -321,8 +319,7 @@ def generate_mosaic_metrics(
             casaimage = None
 
         if not casaimage:
-            LOG.warning(
-                "CASA tools not available, skipping mosaic metrics generation")
+            LOG.warning("CASA tools not available, skipping mosaic metrics generation")
             return metric_files
 
         # Determine output directory
@@ -344,8 +341,7 @@ def generate_mosaic_metrics(
         else:
             mosaic_2d = mosaic_data.squeeze()
             if mosaic_2d.ndim > 2:
-                mosaic_2d = mosaic_2d[0, :,
-                                      :] if mosaic_2d.ndim == 3 else mosaic_2d
+                mosaic_2d = mosaic_2d[0, :, :] if mosaic_2d.ndim == 3 else mosaic_2d
 
         ny, nx = mosaic_2d.shape
         mosaic_base = os.path.splitext(os.path.basename(mosaic_path))[0]
@@ -358,8 +354,7 @@ def generate_mosaic_metrics(
 
         # Process each tile
         for tile in tiles:
-            metrics = metrics_dict.get(
-                tile, TileQualityMetrics(tile_path=tile))
+            metrics = metrics_dict.get(tile, TileQualityMetrics(tile_path=tile))
 
             # Get PB path
             pb_path = metrics.pb_path
@@ -379,8 +374,7 @@ def generate_mosaic_metrics(
                     else:
                         pb_2d = pb_data.squeeze()
                         if pb_2d.ndim > 2:
-                            pb_2d = pb_2d[0, :,
-                                          :] if pb_2d.ndim == 3 else pb_2d
+                            pb_2d = pb_2d[0, :, :] if pb_2d.ndim == 3 else pb_2d
 
                     # Check if PB needs regridding
                     if pb_2d.shape != (ny, nx):
@@ -406,8 +400,7 @@ def generate_mosaic_metrics(
                             else:
                                 pb_2d = pb_data.squeeze()
                                 if pb_2d.ndim > 2:
-                                    pb_2d = pb_2d[0, :,
-                                                  :] if pb_2d.ndim == 3 else pb_2d
+                                    pb_2d = pb_2d[0, :, :] if pb_2d.ndim == 3 else pb_2d
                         except Exception as e:
                             LOG.warning(f"Failed to regrid PB for {tile}: {e}")
                             pb_img.close()
@@ -475,8 +468,7 @@ def generate_mosaic_metrics(
         tile_count_img = casaimage()
         tile_count_img.fromarray(
             outfile=f"{base_path}_tile_count",
-            pixels=tile_count_map.astype(
-                np.float32)[np.newaxis, np.newaxis, :, :],
+            pixels=tile_count_map.astype(np.float32)[np.newaxis, np.newaxis, :, :],
             csys=coord_sys,
             overwrite=True,
         )
@@ -551,7 +543,7 @@ def _calculate_mosaic_bounds(tiles: List[str]) -> Tuple[float, float, float, flo
     # Check if tiles are CASA image directories or FITS files
     use_casa = False
     for tile in tiles:
-        if os.path.isdir(str(tile)) or str(tile).endswith('.image'):
+        if os.path.isdir(str(tile)) or str(tile).endswith(".image"):
             use_casa = True
             break
 
@@ -576,8 +568,7 @@ def _calculate_mosaic_bounds(tiles: List[str]) -> Tuple[float, float, float, flo
                     ny, nx = shape[0], shape[1] if len(shape) > 1 else shape[0]
 
                 # Get corner coordinates
-                corners_pix = [[0, 0], [nx - 1, 0],
-                               [0, ny - 1], [nx - 1, ny - 1]]
+                corners_pix = [[0, 0], [nx - 1, 0], [0, ny - 1], [nx - 1, ny - 1]]
 
                 ras, decs = [], []
                 for x, y in corners_pix:
@@ -673,13 +664,11 @@ def _calculate_mosaic_bounds(tiles: List[str]) -> Tuple[float, float, float, flo
                     )
 
                 # Get corner coordinates
-                corners_pix = [[0, 0], [nx - 1, 0],
-                               [0, ny - 1], [nx - 1, ny - 1]]
+                corners_pix = [[0, 0], [nx - 1, 0], [0, ny - 1], [nx - 1, ny - 1]]
 
                 wcs_validated, is_4d, defaults = validate_wcs_4d(wcs)
                 corners_world = [
-                    wcs_pixel_to_world_safe(
-                        wcs_validated, c[1], c[0], is_4d, defaults)
+                    wcs_pixel_to_world_safe(wcs_validated, c[1], c[0], is_4d, defaults)
                     for c in corners_pix
                 ]
                 ras = [c[0] for c in corners_world]
@@ -737,8 +726,7 @@ def _create_common_coordinate_system(
     from casatasks import immath, imregrid
 
     if template_tile is None:
-        raise ValueError(
-            "template_tile is required to create coordinate system")
+        raise ValueError("template_tile is required to create coordinate system")
 
     # Calculate center
     ra_center = (ra_min + ra_max) / 2.0
@@ -767,8 +755,7 @@ def _create_common_coordinate_system(
     template_tile_casa = template_tile
     if template_tile.endswith(".fits"):
         # Convert FITS to CASA image format for template
-        template_tile_casa = os.path.join(
-            output_dir, "template_tile_casa.image")
+        template_tile_casa = os.path.join(output_dir, "template_tile_casa.image")
         if os.path.exists(template_tile_casa):
             import shutil
 
@@ -781,8 +768,7 @@ def _create_common_coordinate_system(
             importfits(
                 fitsimage=template_tile, imagename=template_tile_casa, overwrite=True
             )
-            LOG.debug(
-                f"Converted FITS template to CASA image: {template_tile_casa}")
+            LOG.debug(f"Converted FITS template to CASA image: {template_tile_casa}")
         except Exception as e:
             LOG.warning(
                 f"Could not convert FITS to CASA image: {e}, using FITS directly"
@@ -1016,24 +1002,21 @@ def _build_weighted_mosaic_linearmosaic(
         if not tiles:
             raise MosaicError("No tiles provided", "tiles list is empty")
         if len(tiles) == 0:
-            raise MosaicError("Empty tiles list",
-                              "Must provide at least one tile")
+            raise MosaicError("Empty tiles list", "Must provide at least one tile")
         for i, tile in enumerate(tiles):
             if not tile:
                 raise MosaicError(
                     f"Tile {i+1} is empty", "All tiles must be non-empty paths"
                 )
             if not isinstance(tile, str):
-                raise MosaicError(
-                    f"Tile {i+1} is not a string", f"Got {type(tile)}")
+                raise MosaicError(f"Tile {i+1} is not a string", f"Got {type(tile)}")
             if not os.path.exists(tile):
                 raise MosaicError(
                     f"Tile {i+1} does not exist: {tile}",
                     "All tiles must exist before building mosaic",
                 )
         if not output_path:
-            raise MosaicError("Output path is empty",
-                              "Must provide output_path")
+            raise MosaicError("Output path is empty", "Must provide output_path")
         if not isinstance(output_path, str):
             raise MosaicError(
                 f"Output path is not a string", f"Got {type(output_path)}"
@@ -1049,7 +1032,7 @@ def _build_weighted_mosaic_linearmosaic(
         if not os.path.exists(tile):
             raise MosaicError(
                 f"Tile {i+1} does not exist: {tile}",
-                "All tiles must exist before building mosaic"
+                "All tiles must exist before building mosaic",
             )
 
     try:
@@ -1072,10 +1055,11 @@ def _build_weighted_mosaic_linearmosaic(
 
     # Initialize linearmosaic tool
     from casatools import linearmosaic
+
     lm = linearmosaic()
 
     # Convert FITS to CASA format if needed
-    temp_dir = tempfile.mkdtemp(prefix='mosaic_linearmosaic_')
+    temp_dir = tempfile.mkdtemp(prefix="mosaic_linearmosaic_")
     try:
         ra_min, ra_max, dec_min, dec_max = _calculate_mosaic_bounds(tiles)
 
@@ -1083,6 +1067,7 @@ def _build_weighted_mosaic_linearmosaic(
         # This is needed because tiles may have similar Dec centers but large individual spans
         from casacore.images import image as casaimage
         import numpy as np
+
         max_tile_dec_span = 0.0
         for tile in tiles:
             try:
@@ -1100,13 +1085,13 @@ def _build_weighted_mosaic_linearmosaic(
                 # toworld([dec_pix, ra_pix, freq_idx, stokes_idx]) returns [stokes, freq, dec, ra] in world coords
                 # Try multiple corner combinations to handle edge cases
                 corners_to_try = [
-                    [0, 0],           # BLC
-                    [nx - 1, 0],      # BRC (if valid)
-                    [0, ny - 1],      # TLC (if valid)
+                    [0, 0],  # BLC
+                    [nx - 1, 0],  # BRC (if valid)
+                    [0, ny - 1],  # TLC (if valid)
                     [nx - 1, ny - 1],  # TRC (if valid)
-                    [nx // 2, 0],     # Bottom center
+                    [nx // 2, 0],  # Bottom center
                     [nx // 2, ny - 1],  # Top center
-                    [0, ny // 2],     # Left center
+                    [0, ny // 2],  # Left center
                     [nx - 1, ny // 2],  # Right center
                 ]
                 decs = []
@@ -1153,23 +1138,28 @@ def _build_weighted_mosaic_linearmosaic(
                     except Exception as e:
                         # Skip this corner if it fails (e.g., out of range)
                         LOG.debug(
-                            f"Could not get world coords for corner ({x}, {y}): {e}")
+                            f"Could not get world coords for corner ({x}, {y}): {e}"
+                        )
                         continue
 
                 if decs:
                     tile_dec_span = max(decs) - min(decs)
                     max_tile_dec_span = max(max_tile_dec_span, tile_dec_span)
                     LOG.debug(
-                        f"Tile {Path(tile).name}: Dec span = {tile_dec_span:.6f}° ({tile_dec_span*3600:.1f}\")")
+                        f'Tile {Path(tile).name}: Dec span = {tile_dec_span:.6f}° ({tile_dec_span*3600:.1f}")'
+                    )
                 else:
                     LOG.debug(
-                        f"Tile {Path(tile).name}: Could not extract Dec values from corners")
+                        f"Tile {Path(tile).name}: Could not extract Dec values from corners"
+                    )
 
                 del img
             except Exception as e:
                 LOG.warning(
-                    f"Could not calculate Dec span for tile {Path(tile).name}: {e}")
+                    f"Could not calculate Dec span for tile {Path(tile).name}: {e}"
+                )
                 import traceback
+
                 LOG.debug(traceback.format_exc())
                 continue
 
@@ -1177,7 +1167,8 @@ def _build_weighted_mosaic_linearmosaic(
         # expand it to ensure template covers full extent of each tile
         calc_dec_span = dec_max - dec_min
         LOG.debug(
-            f"Calculated Dec span: {calc_dec_span:.6f}°, Max tile Dec span: {max_tile_dec_span:.6f}°")
+            f"Calculated Dec span: {calc_dec_span:.6f}°, Max tile Dec span: {max_tile_dec_span:.6f}°"
+        )
         if max_tile_dec_span > 0 and calc_dec_span < max_tile_dec_span * 0.5:
             # Expand Dec bounds to cover full extent of tiles
             dec_center = (dec_min + dec_max) / 2.0
@@ -1193,8 +1184,7 @@ def _build_weighted_mosaic_linearmosaic(
             f"Mosaic bounds: RA=[{ra_min:.6f}°, {ra_max:.6f}°], "
             f"Dec=[{dec_min:.6f}°, {dec_max:.6f}°]"
         )
-        LOG.info(
-            f"Mosaic span: RA={ra_max-ra_min:.6f}°, Dec={dec_max-dec_min:.6f}°")
+        LOG.info(f"Mosaic span: RA={ra_max-ra_min:.6f}°, Dec={dec_max-dec_min:.6f}°")
     except Exception as e:
         LOG.error(f"Failed to calculate mosaic bounds: {e}")
         raise MosaicError(
@@ -1209,28 +1199,35 @@ def _build_weighted_mosaic_linearmosaic(
         if pixel_scale_arcsec is None:
             # Use safe_casaimage_open to prevent segfaults
             first_tile_img = safe_casaimage_open(
-                str(tiles[0]), operation="get_pixel_scale")
+                str(tiles[0]), operation="get_pixel_scale"
+            )
             first_coordsys = first_tile_img.coordinates()
 
             try:
                 # Get pixel scale from direction coordinate (RA/Dec)
-                dir_coord = first_coordsys.get_coordinate('direction')
+                dir_coord = first_coordsys.get_coordinate("direction")
                 dir_increment = dir_coord.get_increment()
 
                 # dir_increment is [dec_increment, ra_increment] in radians
-                if isinstance(dir_increment, (list, tuple, np.ndarray)) and len(dir_increment) >= 2:
-                    dec_inc_rad = float(dir_increment[0]) if not isinstance(
-                        dir_increment[0], np.ndarray) else float(dir_increment[0][0])
-                    ra_inc_rad = float(dir_increment[1]) if not isinstance(
-                        dir_increment[1], np.ndarray) else float(dir_increment[1][0])
+                if (
+                    isinstance(dir_increment, (list, tuple, np.ndarray))
+                    and len(dir_increment) >= 2
+                ):
+                    dec_inc_rad = (
+                        float(dir_increment[0])
+                        if not isinstance(dir_increment[0], np.ndarray)
+                        else float(dir_increment[0][0])
+                    )
+                    ra_inc_rad = (
+                        float(dir_increment[1])
+                        if not isinstance(dir_increment[1], np.ndarray)
+                        else float(dir_increment[1][0])
+                    )
                     # Use average of dec and ra increments (should be similar)
-                    pixel_scale_rad = (abs(dec_inc_rad) +
-                                       abs(ra_inc_rad)) / 2.0
-                    pixel_scale_arcsec = abs(
-                        np.degrees(pixel_scale_rad)) * 3600.0
+                    pixel_scale_rad = (abs(dec_inc_rad) + abs(ra_inc_rad)) / 2.0
+                    pixel_scale_arcsec = abs(np.degrees(pixel_scale_rad)) * 3600.0
                 else:
-                    raise ValueError(
-                        "Could not extract direction coordinate increment")
+                    raise ValueError("Could not extract direction coordinate increment")
             except Exception as e:
                 # Fallback to default
                 pixel_scale_arcsec = 2.0
@@ -1240,7 +1237,7 @@ def _build_weighted_mosaic_linearmosaic(
             finally:
                 del first_tile_img
         else:
-            LOG.info(f"Using provided pixel scale: {pixel_scale_arcsec}\"")
+            LOG.info(f'Using provided pixel scale: {pixel_scale_arcsec}"')
 
         # Calculate output size in pixels from mosaic bounds
         ra_span = ra_max - ra_min
@@ -1253,12 +1250,15 @@ def _build_weighted_mosaic_linearmosaic(
 
         LOG.info(
             f"Mosaic output size: {nx}x{ny} pixels "
-            f"(pixel scale: {pixel_scale_arcsec}\")"
+            f'(pixel scale: {pixel_scale_arcsec}")'
         )
 
         # Get PB images and prepare for linearmosaic
         from .validation import _find_pb_path
-        from .coordinate_utils import check_tile_overlaps_template, filter_tiles_by_overlap
+        from .coordinate_utils import (
+            check_tile_overlaps_template,
+            filter_tiles_by_overlap,
+        )
 
         # Convert FITS tiles to CASA format if needed
         casa_tiles = []
@@ -1269,8 +1269,7 @@ def _build_weighted_mosaic_linearmosaic(
                 if not os.path.exists(casa_tile):
                     from casatasks import importfits
 
-                    importfits(fitsimage=tile,
-                               imagename=casa_tile, overwrite=True)
+                    importfits(fitsimage=tile, imagename=casa_tile, overwrite=True)
                 casa_tiles.append(casa_tile)
             else:
                 # Already CASA format
@@ -1279,7 +1278,8 @@ def _build_weighted_mosaic_linearmosaic(
         # Get first tile shape for common_shape calculation
         # Use safe_casaimage_open to prevent segfaults
         first_tile_img = safe_casaimage_open(
-            str(casa_tiles[0]), operation="get_tile_shape")
+            str(casa_tiles[0]), operation="get_tile_shape"
+        )
         first_tile_shape = first_tile_img.shape()
         del first_tile_img
 
@@ -1317,7 +1317,7 @@ def _build_weighted_mosaic_linearmosaic(
             padding_pixels=padding_pixels,
             # Use first tile for coordinate system structure
             template_tile=casa_tiles[0],
-            output_dir=template_output_dir
+            output_dir=template_output_dir,
         )
 
         LOG.info(
@@ -1370,7 +1370,7 @@ def _build_weighted_mosaic_linearmosaic(
     if not has_all_pb_images:
         raise MissingPrimaryBeamError(
             "linearmosaic requires primary beam images for all tiles",
-            "Ensure PB images are available for all tiles or use the fallback method (imregrid + immath)"
+            "Ensure PB images are available for all tiles or use the fallback method (imregrid + immath)",
         )
 
     # Filter tiles by overlap with template to prevent "All output pixels are masked" errors
@@ -1382,7 +1382,7 @@ def _build_weighted_mosaic_linearmosaic(
     if not overlapping_tiles:
         raise MosaicError(
             "No tiles overlap with template coordinate system",
-            "All tiles were filtered out. Check coordinate systems and tile coverage."
+            "All tiles were filtered out. Check coordinate systems and tile coverage.",
         )
 
     if skipped_tiles:
@@ -1401,18 +1401,14 @@ def _build_weighted_mosaic_linearmosaic(
     LOG.info(f"Using {len(casa_tiles)} overlapping tiles for mosaicking")
 
     # Regrid all tiles and PB images to the common coordinate system
-    LOG.info(
-        f"Regridding {len(casa_tiles)} tiles to common coordinate system...")
+    LOG.info(f"Regridding {len(casa_tiles)} tiles to common coordinate system...")
     regridded_tiles = []
     regridded_pbs = []
 
     for i, (casa_tile, pb_path) in enumerate(zip(casa_tiles, pb_paths), 1):
         # Regrid tile
-        regridded_tile = os.path.join(
-            temp_dir, f"regridded_tile_{i:03d}.image"
-        )
-        LOG.info(
-            f"Regridding tile {i}/{len(casa_tiles)}: {Path(casa_tile).name}")
+        regridded_tile = os.path.join(temp_dir, f"regridded_tile_{i:03d}.image")
+        LOG.info(f"Regridding tile {i}/{len(casa_tiles)}: {Path(casa_tile).name}")
         print(
             f"[DEBUG] Regridding tile {i}/{len(casa_tiles)}: {Path(casa_tile).name}",
             file=sys.stderr,
@@ -1441,11 +1437,8 @@ def _build_weighted_mosaic_linearmosaic(
 
         # Regrid PB image
         if pb_path:
-            regridded_pb = os.path.join(
-                temp_dir, f"regridded_pb_{i:03d}.image"
-            )
-            LOG.info(
-                f"Regridding PB {i}/{len(pb_paths)}: {Path(pb_path).name}")
+            regridded_pb = os.path.join(temp_dir, f"regridded_pb_{i:03d}.image")
+            LOG.info(f"Regridding PB {i}/{len(pb_paths)}: {Path(pb_path).name}")
             print(
                 f"[DEBUG] Regridding PB {i}/{len(pb_paths)}: {Path(pb_path).name}",
                 file=sys.stderr,
@@ -1459,8 +1452,8 @@ def _build_weighted_mosaic_linearmosaic(
                     pb_casa = pb_path.replace(".fits", ".casa.image")
                     if not os.path.exists(pb_casa):
                         from casatasks import importfits
-                        importfits(fitsimage=pb_path,
-                                   imagename=pb_casa, overwrite=True)
+
+                        importfits(fitsimage=pb_path, imagename=pb_casa, overwrite=True)
 
                 imregrid(
                     imagename=pb_casa,
@@ -1487,7 +1480,8 @@ def _build_weighted_mosaic_linearmosaic(
             )
 
     LOG.info(
-        f"Successfully regridded {len(regridded_tiles)} tiles and {len(regridded_pbs)} PB images")
+        f"Successfully regridded {len(regridded_tiles)} tiles and {len(regridded_pbs)} PB images"
+    )
 
     # Verify template coordinate system matches calculated bounds
     # This ensures the regridded tiles and output mosaic use the exact bounds
@@ -1497,7 +1491,7 @@ def _build_weighted_mosaic_linearmosaic(
     del template_img_check
 
     # Get template coordinate bounds
-    dir_coord_check = template_coordsys_check.get_coordinate('direction')
+    dir_coord_check = template_coordsys_check.get_coordinate("direction")
     ref_val = dir_coord_check.get_referencevalue()
     ref_pix = dir_coord_check.get_referencepixel()
     increment = dir_coord_check.get_increment()
@@ -1519,18 +1513,22 @@ def _build_weighted_mosaic_linearmosaic(
     # TRC pixel: [ny-1, nx-1] relative to reference pixel (0-indexed)
     # ref_pix is [dec_ref, ra_ref] in 1-indexed pixels
     blc_pix_offset_dec = 0 - (ref_pix[0] - 1)  # Dec offset (0-indexed)
-    blc_pix_offset_ra = 0 - (ref_pix[1] - 1)   # RA offset (0-indexed)
-    trc_pix_offset_dec = (template_ny - 1) - \
-        (ref_pix[0] - 1)  # Dec offset (0-indexed)
-    trc_pix_offset_ra = (template_nx - 1) - \
-        (ref_pix[1] - 1)   # RA offset (0-indexed)
+    blc_pix_offset_ra = 0 - (ref_pix[1] - 1)  # RA offset (0-indexed)
+    trc_pix_offset_dec = (template_ny - 1) - (ref_pix[0] - 1)  # Dec offset (0-indexed)
+    trc_pix_offset_ra = (template_nx - 1) - (ref_pix[1] - 1)  # RA offset (0-indexed)
 
     # Convert to world coordinates (radians)
     if isinstance(increment, (list, tuple, np.ndarray)) and len(increment) >= 2:
-        dec_inc_rad = float(increment[0]) if not isinstance(
-            increment[0], np.ndarray) else float(increment[0][0])
-        ra_inc_rad = float(increment[1]) if not isinstance(
-            increment[1], np.ndarray) else float(increment[1][0])
+        dec_inc_rad = (
+            float(increment[0])
+            if not isinstance(increment[0], np.ndarray)
+            else float(increment[0][0])
+        )
+        ra_inc_rad = (
+            float(increment[1])
+            if not isinstance(increment[1], np.ndarray)
+            else float(increment[1][0])
+        )
     else:
         pixel_scale_rad = np.radians(pixel_scale_arcsec / 3600.0)
         dec_inc_rad = pixel_scale_rad
@@ -1550,7 +1548,10 @@ def _build_weighted_mosaic_linearmosaic(
 
     # Ensure RA is in correct order (RA increases to the left, so min > max)
     if template_ra_min_deg > template_ra_max_deg:
-        template_ra_min_deg, template_ra_max_deg = template_ra_max_deg, template_ra_min_deg
+        template_ra_min_deg, template_ra_max_deg = (
+            template_ra_max_deg,
+            template_ra_min_deg,
+        )
 
     LOG.info(
         f"Template coordinate system bounds: "
@@ -1567,9 +1568,11 @@ def _build_weighted_mosaic_linearmosaic(
 
     # Warn if template bounds don't match calculated bounds
     ra_span_diff = abs(
-        abs(template_ra_max_deg - template_ra_min_deg) - (ra_max - ra_min))
+        abs(template_ra_max_deg - template_ra_min_deg) - (ra_max - ra_min)
+    )
     dec_span_diff = abs(
-        abs(template_dec_max_deg - template_dec_min_deg) - (dec_max - dec_min))
+        abs(template_dec_max_deg - template_dec_min_deg) - (dec_max - dec_min)
+    )
     if ra_span_diff > 0.1 or dec_span_diff > 0.1:
         LOG.warning(
             f"Template coordinate system bounds differ from calculated bounds: "
@@ -1587,8 +1590,7 @@ def _build_weighted_mosaic_linearmosaic(
         else:
             os.remove(output_path)
     if os.path.exists(output_weight_path):
-        LOG.info(
-            f"Removing existing output weight image: {output_weight_path}")
+        LOG.info(f"Removing existing output weight image: {output_weight_path}")
         if os.path.isdir(output_weight_path):
             shutil.rmtree(output_weight_path)
         else:
@@ -1597,15 +1599,16 @@ def _build_weighted_mosaic_linearmosaic(
     # Define output image for linearmosaic
     # Use the template's coordinate system parameters to ensure exact bounds
     from casatools import measures
+
     me = measures()
     ra_center = (ra_min + ra_max) / 2.0
     dec_center = (dec_min + dec_max) / 2.0
-    direction = me.direction('J2000', f'{ra_center}deg', f'{dec_center}deg')
+    direction = me.direction("J2000", f"{ra_center}deg", f"{dec_center}deg")
 
     LOG.info(
         f"Defining output image for linearmosaic with exact bounds: "
         f"{nx}x{ny} pixels, center=({ra_center:.6f}°, {dec_center:.6f}°), "
-        f"pixel_scale={pixel_scale_arcsec}\""
+        f'pixel_scale={pixel_scale_arcsec}"'
     )
     lm.defineoutputimage(
         nx=nx,
@@ -1614,12 +1617,11 @@ def _build_weighted_mosaic_linearmosaic(
         celly=f"{pixel_scale_arcsec}arcsec",
         imagecenter=direction,
         outputimage=str(output_path),
-        outputweight=output_weight_path
+        outputweight=output_weight_path,
     )
 
     # Make mosaic using linearmosaic
-    LOG.info(
-        f"Making mosaic with linearmosaic using {len(regridded_tiles)} tiles...")
+    LOG.info(f"Making mosaic with linearmosaic using {len(regridded_tiles)} tiles...")
     # NOTE: The '-pb.fits' files are NOT actually PB-corrected (they're identical to uncorrected)
     # Therefore, we use imageweighttype=0 and let linearmosaic handle PB correction
     lm.makemosaic(
@@ -1627,7 +1629,7 @@ def _build_weighted_mosaic_linearmosaic(
         weightimages=regridded_pbs,
         # Images are NOT PB-corrected (let linearmosaic handle it)
         imageweighttype=0,
-        weighttype=1  # PB weight images
+        weighttype=1,  # PB weight images
     )
 
     LOG.info(f"Mosaic created successfully: {output_path}")
@@ -1640,7 +1642,7 @@ def _build_weighted_mosaic_linearmosaic(
         mosaic_shape_check = mosaic_img_check.shape()
 
         # Get mosaic coordinate bounds
-        mosaic_dir_coord = mosaic_coordsys_check.get_coordinate('direction')
+        mosaic_dir_coord = mosaic_coordsys_check.get_coordinate("direction")
         mosaic_ref_val = mosaic_dir_coord.get_referencevalue()
         mosaic_ref_pix = mosaic_dir_coord.get_referencepixel()
         mosaic_increment = mosaic_dir_coord.get_increment()
@@ -1655,35 +1657,50 @@ def _build_weighted_mosaic_linearmosaic(
 
         # Convert pixel offsets to world coordinates
         # CASA reference pixel is [dec_pix, ra_pix] (1-indexed)
-        mosaic_blc_pix_offset_dec = 0 - \
-            (mosaic_ref_pix[0] - 1)  # Dec offset (0-indexed)
-        mosaic_blc_pix_offset_ra = 0 - \
-            (mosaic_ref_pix[1] - 1)   # RA offset (0-indexed)
-        mosaic_trc_pix_offset_dec = (
-            mosaic_ny - 1) - (mosaic_ref_pix[0] - 1)  # Dec offset (0-indexed)
-        mosaic_trc_pix_offset_ra = (
-            mosaic_nx - 1) - (mosaic_ref_pix[1] - 1)   # RA offset (0-indexed)
+        mosaic_blc_pix_offset_dec = 0 - (
+            mosaic_ref_pix[0] - 1
+        )  # Dec offset (0-indexed)
+        mosaic_blc_pix_offset_ra = 0 - (mosaic_ref_pix[1] - 1)  # RA offset (0-indexed)
+        mosaic_trc_pix_offset_dec = (mosaic_ny - 1) - (
+            mosaic_ref_pix[0] - 1
+        )  # Dec offset (0-indexed)
+        mosaic_trc_pix_offset_ra = (mosaic_nx - 1) - (
+            mosaic_ref_pix[1] - 1
+        )  # RA offset (0-indexed)
 
         # Convert to world coordinates (radians)
-        if isinstance(mosaic_increment, (list, tuple, np.ndarray)) and len(mosaic_increment) >= 2:
-            mosaic_dec_inc_rad = float(mosaic_increment[0]) if not isinstance(
-                mosaic_increment[0], np.ndarray) else float(mosaic_increment[0][0])
-            mosaic_ra_inc_rad = float(mosaic_increment[1]) if not isinstance(
-                mosaic_increment[1], np.ndarray) else float(mosaic_increment[1][0])
+        if (
+            isinstance(mosaic_increment, (list, tuple, np.ndarray))
+            and len(mosaic_increment) >= 2
+        ):
+            mosaic_dec_inc_rad = (
+                float(mosaic_increment[0])
+                if not isinstance(mosaic_increment[0], np.ndarray)
+                else float(mosaic_increment[0][0])
+            )
+            mosaic_ra_inc_rad = (
+                float(mosaic_increment[1])
+                if not isinstance(mosaic_increment[1], np.ndarray)
+                else float(mosaic_increment[1][0])
+            )
         else:
             pixel_scale_rad = np.radians(pixel_scale_arcsec / 3600.0)
             mosaic_dec_inc_rad = pixel_scale_rad
             mosaic_ra_inc_rad = -pixel_scale_rad
 
         # Calculate world coordinates at corners
-        mosaic_dec_min_rad = mosaic_ref_val[0] + \
-            mosaic_blc_pix_offset_dec * mosaic_dec_inc_rad
-        mosaic_dec_max_rad = mosaic_ref_val[0] + \
-            mosaic_trc_pix_offset_dec * mosaic_dec_inc_rad
-        mosaic_ra_min_rad = mosaic_ref_val[1] + \
-            mosaic_blc_pix_offset_ra * mosaic_ra_inc_rad
-        mosaic_ra_max_rad = mosaic_ref_val[1] + \
-            mosaic_trc_pix_offset_ra * mosaic_ra_inc_rad
+        mosaic_dec_min_rad = (
+            mosaic_ref_val[0] + mosaic_blc_pix_offset_dec * mosaic_dec_inc_rad
+        )
+        mosaic_dec_max_rad = (
+            mosaic_ref_val[0] + mosaic_trc_pix_offset_dec * mosaic_dec_inc_rad
+        )
+        mosaic_ra_min_rad = (
+            mosaic_ref_val[1] + mosaic_blc_pix_offset_ra * mosaic_ra_inc_rad
+        )
+        mosaic_ra_max_rad = (
+            mosaic_ref_val[1] + mosaic_trc_pix_offset_ra * mosaic_ra_inc_rad
+        )
 
         # Convert to degrees
         mosaic_dec_min_deg = np.degrees(mosaic_dec_min_rad)
@@ -1730,13 +1747,13 @@ def _build_weighted_mosaic_linearmosaic(
 
     # Cleanup temporary regridded images
     import shutil
+
     for regridded_tile in regridded_tiles:
         try:
             if os.path.exists(regridded_tile):
                 shutil.rmtree(regridded_tile)
         except Exception as e:
-            LOG.warning(
-                f"Failed to cleanup regridded tile {regridded_tile}: {e}")
+            LOG.warning(f"Failed to cleanup regridded tile {regridded_tile}: {e}")
 
     for regridded_pb in regridded_pbs:
         try:
@@ -1752,8 +1769,7 @@ def _build_weighted_mosaic_linearmosaic(
                 if os.path.exists(casa_tile):
                     shutil.rmtree(casa_tile)
             except Exception as e:
-                LOG.warning(
-                    f"Failed to cleanup temporary CASA tile {casa_tile}: {e}")
+                LOG.warning(f"Failed to cleanup temporary CASA tile {casa_tile}: {e}")
 
     # Cleanup temp_dir if empty
     try:
@@ -1809,8 +1825,7 @@ def _build_weighted_mosaic_imregrid_immath(
     )
 
     # Get pixel scale from first tile
-    first_tile_img = safe_casaimage_open(
-        str(tiles[0]), operation="get_pixel_scale")
+    first_tile_img = safe_casaimage_open(str(tiles[0]), operation="get_pixel_scale")
     first_coordsys = first_tile_img.coordinates()
     dir_coord = first_coordsys.get_coordinate("direction")
     increment = dir_coord.get_increment()
@@ -1826,8 +1841,7 @@ def _build_weighted_mosaic_imregrid_immath(
     ny = int(np.ceil(dec_span / pixel_scale_deg)) + 2 * padding_pixels
 
     LOG.info(
-        f"Mosaic output size: {nx}x{ny} pixels "
-        f"(pixel scale: {pixel_scale_arcsec}\")"
+        f"Mosaic output size: {nx}x{ny} pixels " f'(pixel scale: {pixel_scale_arcsec}")'
     )
 
     # Convert FITS tiles to CASA format if needed
@@ -1837,15 +1851,14 @@ def _build_weighted_mosaic_imregrid_immath(
             casa_tile = tile.replace(".fits", ".casa.image")
             if not os.path.exists(casa_tile):
                 from casatasks import importfits
+
                 importfits(fitsimage=tile, imagename=casa_tile, overwrite=True)
             casa_tiles.append(casa_tile)
         else:
             casa_tiles.append(tile)
 
     # Create synthetic template centered on mosaic bounds
-    template_output_dir = os.path.join(
-        os.path.dirname(output_path), ".mosaic_template"
-    )
+    template_output_dir = os.path.join(os.path.dirname(output_path), ".mosaic_template")
     os.makedirs(template_output_dir, exist_ok=True)
 
     LOG.info("Creating synthetic template centered on mosaic bounds...")
@@ -1857,7 +1870,7 @@ def _build_weighted_mosaic_imregrid_immath(
         pixel_scale_arcsec=pixel_scale_arcsec,
         padding_pixels=padding_pixels,
         template_tile=casa_tiles[0],
-        output_dir=template_output_dir
+        output_dir=template_output_dir,
     )
 
     # Filter tiles by overlap with template
@@ -1868,15 +1881,14 @@ def _build_weighted_mosaic_imregrid_immath(
     if not overlapping_tiles:
         raise MosaicError(
             "No tiles overlap with template coordinate system",
-            "All tiles were filtered out. Check coordinate systems."
+            "All tiles were filtered out. Check coordinate systems.",
         )
 
     if skipped_tiles:
         LOG.warning(f"Skipped {len(skipped_tiles)} non-overlapping tiles")
 
     casa_tiles = overlapping_tiles
-    tiles = [tiles[i]
-             for i in range(len(tiles)) if casa_tiles[i] in overlapping_tiles]
+    tiles = [tiles[i] for i in range(len(tiles)) if casa_tiles[i] in overlapping_tiles]
 
     # Get PB images
     pb_paths = []
@@ -1885,8 +1897,9 @@ def _build_weighted_mosaic_imregrid_immath(
         pb_paths.append(pb_path)
 
     # Check if we have PB images for all tiles
-    has_all_pbs = all(pb_path is not None and os.path.exists(pb_path)
-                      for pb_path in pb_paths)
+    has_all_pbs = all(
+        pb_path is not None and os.path.exists(pb_path) for pb_path in pb_paths
+    )
 
     if not has_all_pbs:
         LOG.warning(
@@ -1900,11 +1913,9 @@ def _build_weighted_mosaic_imregrid_immath(
 
     try:
         # Regrid all tiles to common coordinate system
-        LOG.info(
-            f"Regridding {len(casa_tiles)} tiles to common coordinate system...")
+        LOG.info(f"Regridding {len(casa_tiles)} tiles to common coordinate system...")
         for i, casa_tile in enumerate(casa_tiles):
-            regridded_tile = os.path.join(
-                temp_dir, f"regridded_tile_{i}.image")
+            regridded_tile = os.path.join(temp_dir, f"regridded_tile_{i}.image")
             try:
                 imregrid(
                     imagename=casa_tile,
@@ -1921,23 +1932,25 @@ def _build_weighted_mosaic_imregrid_immath(
             except RuntimeError as e:
                 if "All output pixels are masked" in str(e):
                     LOG.warning(
-                        f"Skipping tile {i+1}: {Path(casa_tile).name} - no overlap with template")
+                        f"Skipping tile {i+1}: {Path(casa_tile).name} - no overlap with template"
+                    )
                     continue
                 raise MosaicError(
                     f"Failed to regrid tile {casa_tile}: {e}",
-                    "Check tile coordinate system compatibility."
+                    "Check tile coordinate system compatibility.",
                 ) from e
 
         if not regridded_tiles:
             raise MosaicError(
                 "No tiles could be regridded successfully",
-                "All tiles were filtered out or regridding failed."
+                "All tiles were filtered out or regridding failed.",
             )
 
         # Regrid PB images if available
         if has_all_pbs:
             LOG.info(
-                f"Regridding {len(pb_paths)} PB images to common coordinate system...")
+                f"Regridding {len(pb_paths)} PB images to common coordinate system..."
+            )
             for i, pb_path in enumerate(pb_paths):
                 if pb_path is None or not os.path.exists(pb_path):
                     continue
@@ -1948,11 +1961,10 @@ def _build_weighted_mosaic_imregrid_immath(
                     pb_casa = os.path.join(temp_dir, f"pb_{i}.casa.image")
                     if not os.path.exists(pb_casa):
                         from casatasks import importfits
-                        importfits(fitsimage=pb_path,
-                                   imagename=pb_casa, overwrite=True)
 
-                regridded_pb = os.path.join(
-                    temp_dir, f"regridded_pb_{i}.image")
+                        importfits(fitsimage=pb_path, imagename=pb_casa, overwrite=True)
+
+                regridded_pb = os.path.join(temp_dir, f"regridded_pb_{i}.image")
                 try:
                     imregrid(
                         imagename=pb_casa,
@@ -1962,24 +1974,26 @@ def _build_weighted_mosaic_imregrid_immath(
                     )
                     if not os.path.exists(regridded_pb):
                         LOG.warning(
-                            f"PB regridding failed: {regridded_pb} does not exist")
+                            f"PB regridding failed: {regridded_pb} does not exist"
+                        )
                         continue
                     regridded_pbs.append(regridded_pb)
                 except RuntimeError as e:
                     if "All output pixels are masked" in str(e):
                         LOG.warning(
-                            f"Skipping PB {i+1}: {Path(pb_path).name} - no overlap")
+                            f"Skipping PB {i+1}: {Path(pb_path).name} - no overlap"
+                        )
                         continue
                     LOG.warning(f"Failed to regrid PB {pb_path}: {e}")
                     continue
 
         # Combine regridded tiles using immath
-        LOG.info(
-            f"Combining {len(regridded_tiles)} regridded tiles using immath...")
+        LOG.info(f"Combining {len(regridded_tiles)} regridded tiles using immath...")
 
         # Remove existing output if present
         if os.path.exists(output_path):
             import shutil
+
             if os.path.isdir(output_path):
                 shutil.rmtree(output_path)
             else:
@@ -2006,21 +2020,24 @@ def _build_weighted_mosaic_imregrid_immath(
             sum_weighted = os.path.join(temp_dir, "sum_weighted.image")
             if len(weighted_images) == 1:
                 import shutil
+
                 shutil.copytree(weighted_images[0], sum_weighted)
             else:
                 expr = "+".join([f"IM{i}" for i in range(len(weighted_images))])
-                immath(imagename=weighted_images,
-                       expr=expr, outfile=sum_weighted)
+                immath(imagename=weighted_images, expr=expr, outfile=sum_weighted)
 
             # Sum of PB²
             sum_pb2 = os.path.join(temp_dir, "sum_pb2.image")
-            pb2_images = [os.path.join(
-                temp_dir, f"pb2_{i}.image") for i in range(len(regridded_pbs))]
+            pb2_images = [
+                os.path.join(temp_dir, f"pb2_{i}.image")
+                for i in range(len(regridded_pbs))
+            ]
             for i, pb in enumerate(regridded_pbs):
                 immath(imagename=[pb], expr="IM0 * IM0", outfile=pb2_images[i])
 
             if len(pb2_images) == 1:
                 import shutil
+
                 shutil.copytree(pb2_images[0], sum_pb2)
             else:
                 expr = "+".join([f"IM{i}" for i in range(len(pb2_images))])
@@ -2037,16 +2054,16 @@ def _build_weighted_mosaic_imregrid_immath(
             LOG.info("Using noise-weighted combination (mean)")
             if len(regridded_tiles) == 1:
                 import shutil
+
                 shutil.copytree(regridded_tiles[0], output_path)
             else:
                 expr = f"({'+'.join([f'IM{i}' for i in range(len(regridded_tiles))])})/{len(regridded_tiles)}"
-                immath(imagename=regridded_tiles,
-                       expr=expr, outfile=output_path)
+                immath(imagename=regridded_tiles, expr=expr, outfile=output_path)
 
         if not os.path.exists(output_path):
             raise MosaicError(
                 f"Mosaic creation failed: {output_path} does not exist after immath",
-                "Check CASA immath output for errors."
+                "Check CASA immath output for errors.",
             )
 
         LOG.info(f"Mosaic created successfully: {Path(output_path).name}")
@@ -2056,6 +2073,7 @@ def _build_weighted_mosaic_imregrid_immath(
         try:
             if os.path.exists(temp_dir):
                 import shutil
+
                 shutil.rmtree(temp_dir)
         except Exception as e:
             LOG.debug(f"Could not remove temp_dir {temp_dir}: {e}")
@@ -2132,8 +2150,7 @@ def cmd_build(args: argparse.Namespace) -> int:
             if not is_chronological:
                 print(f"ERROR: Tiles are NOT in chronological order!")
                 print(f"  Validated {len(tile_times)}/{len(tiles)} tiles")
-                print(
-                    f"  Observation times (MJD): {[f'{t:.6f}' for t in tile_times]}")
+                print(f"  Observation times (MJD): {[f'{t:.6f}' for t in tile_times]}")
                 print(
                     f"  This will cause mosaic artifacts and incorrect coordinate system."
                 )
@@ -2194,18 +2211,15 @@ def cmd_build(args: argparse.Namespace) -> int:
         estimates = estimate_resources(tiles, str(out))
         print(f"\nResource estimates:")
         print(f"  - Tiles: {estimates['num_tiles']}")
-        print(
-            f"  - Estimated disk space: {estimates['estimated_disk_gb']:.1f} GB")
+        print(f"  - Estimated disk space: {estimates['estimated_disk_gb']:.1f} GB")
         print(f"  - Estimated operations: {estimates['estimated_operations']}")
-        print(
-            f"  - Estimated time: ~{estimates['estimated_time_minutes']:.0f} minutes")
+        print(f"  - Estimated time: ~{estimates['estimated_time_minutes']:.0f} minutes")
     except Exception as e:
         LOG.debug(f"Could not estimate resources: {e}")
 
     # Warn if output exists
     if preflight_info.get("output_exists"):
-        print(
-            f"\nWarning: Output '{out}' already exists and will be overwritten")
+        print(f"\nWarning: Output '{out}' already exists and will be overwritten")
 
     # Comprehensive validation
     print(f"Validating {len(tiles)} tiles...", flush=True)
@@ -2225,7 +2239,8 @@ def cmd_build(args: argparse.Namespace) -> int:
         tiles, products_db=pdb
     )
     LOG.debug(
-        f"validate_tiles_consistency complete: is_valid={is_valid}, issues={len(validation_issues)}")
+        f"validate_tiles_consistency complete: is_valid={is_valid}, issues={len(validation_issues)}"
+    )
 
     # Re-run pre-flight with computed metrics_dict for better PB checking
     if require_pb:
@@ -2267,10 +2282,10 @@ def cmd_build(args: argparse.Namespace) -> int:
     # 3. Astrometric registration check
     LOG.debug("Starting astrometric verification...")
     try:
-        astro_valid, astro_issues, offsets = verify_astrometric_registration(
-            tiles)
+        astro_valid, astro_issues, offsets = verify_astrometric_registration(tiles)
         LOG.debug(
-            f"Astrometric verification complete: valid={astro_valid}, issues={len(astro_issues)}")
+            f"Astrometric verification complete: valid={astro_valid}, issues={len(astro_issues)}"
+        )
     except Exception as e:
         LOG.debug(f"Astrometric verification exception: {e}", exc_info=True)
         raise ValidationError(
@@ -2301,7 +2316,8 @@ def cmd_build(args: argparse.Namespace) -> int:
         ]
 
         LOG.debug(
-            f"Astrometric filtering: {len(astro_issues)} total, {len(non_fatal_issues)} non-fatal, {len(actual_astro_issues)} actual")
+            f"Astrometric filtering: {len(astro_issues)} total, {len(non_fatal_issues)} non-fatal, {len(actual_astro_issues)} actual"
+        )
 
         for issue in astro_issues:
             print(f"  - {issue}", flush=True)
@@ -2410,8 +2426,7 @@ def cmd_build(args: argparse.Namespace) -> int:
                     raise CASAToolError(
                         "CASA immath not available",
                         "Ensure CASA is installed: conda activate casa6",
-                        context={"tool": "immath",
-                                 "operation": "build_mean_mosaic"},
+                        context={"tool": "immath", "operation": "build_mean_mosaic"},
                     )
                 expr = (
                     f"({'+'.join([f'IM{i}' for i in range(len(tiles))])})/{len(tiles)}"
@@ -2439,8 +2454,7 @@ def cmd_build(args: argparse.Namespace) -> int:
 
             from .error_handling import handle_casa_tool_error
 
-            exportfits(imagename=str(out), fitsimage=str(
-                out) + ".fits", overwrite=True)
+            exportfits(imagename=str(out), fitsimage=str(out) + ".fits", overwrite=True)
         except Exception as exc:
             # Don't fail build if export fails, but log it properly
             try:
@@ -2499,8 +2513,7 @@ def cmd_build(args: argparse.Namespace) -> int:
                 output_dir=str(out.parent),
             )
             if metrics_files:
-                print(
-                    f"✓ Generated {len(metrics_files)} quality metric images")
+                print(f"✓ Generated {len(metrics_files)} quality metric images")
                 for metric_name, metric_path in metrics_files.items():
                     print(f"  - {metric_name}: {metric_path}")
             else:
@@ -2511,13 +2524,11 @@ def cmd_build(args: argparse.Namespace) -> int:
             # Don't fail the build if metrics generation fails
 
         # Update mosaic status
-        validation_summary = "\n".join(
-            validation_issues) if validation_issues else None
+        validation_summary = "\n".join(validation_issues) if validation_issues else None
         metrics_summary = None
         if metrics_files:
             # Store metrics paths as JSON-like string (simple format)
-            metrics_list = [f"{name}:{path}" for name,
-                            path in metrics_files.items()]
+            metrics_list = [f"{name}:{path}" for name, path in metrics_files.items()]
             metrics_summary = "\n".join(metrics_list)
 
         with ensure_products_db(pdb) as conn:
@@ -2529,8 +2540,7 @@ def cmd_build(args: argparse.Namespace) -> int:
                 conn.execute("SELECT metrics_path FROM mosaics LIMIT 1")
             except sqlite3.OperationalError:
                 # Column doesn't exist, add it
-                conn.execute(
-                    "ALTER TABLE mosaics ADD COLUMN metrics_path TEXT")
+                conn.execute("ALTER TABLE mosaics ADD COLUMN metrics_path TEXT")
                 conn.commit()
 
             conn.execute(

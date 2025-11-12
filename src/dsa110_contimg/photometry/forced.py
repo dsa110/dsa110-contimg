@@ -19,9 +19,11 @@ from typing import Dict, List, Optional, Tuple, Union
 import numpy as np
 from astropy import units as u
 from astropy.io import fits  # type: ignore[reportMissingTypeStubs]
+
 # type: ignore[reportMissingTypeStubs]
 from astropy.modeling import fitting, models
 from astropy.wcs import WCS  # type: ignore[reportMissingTypeStubs]
+
 # type: ignore[reportMissingTypeStubs]
 from astropy.wcs.utils import proj_plane_pixel_scales
 
@@ -109,16 +111,16 @@ class G2D:
 
         # Pre-compute coefficients for efficiency
         self.a = (
-            np.cos(self.pa) ** 2 / 2 / self.sigma_x ** 2
-            + np.sin(self.pa) ** 2 / 2 / self.sigma_y ** 2
+            np.cos(self.pa) ** 2 / 2 / self.sigma_x**2
+            + np.sin(self.pa) ** 2 / 2 / self.sigma_y**2
         )
         self.b = (
-            np.sin(2 * self.pa) / 2 / self.sigma_x ** 2
-            - np.sin(2 * self.pa) / 2 / self.sigma_y ** 2
+            np.sin(2 * self.pa) / 2 / self.sigma_x**2
+            - np.sin(2 * self.pa) / 2 / self.sigma_y**2
         )
         self.c = (
-            np.sin(self.pa) ** 2 / 2 / self.sigma_x ** 2
-            + np.cos(self.pa) ** 2 / 2 / self.sigma_y ** 2
+            np.sin(self.pa) ** 2 / 2 / self.sigma_x**2
+            + np.cos(self.pa) ** 2 / 2 / self.sigma_y**2
         )
 
     def __call__(self, x: np.ndarray, y: np.ndarray) -> np.ndarray:
@@ -153,8 +155,8 @@ def _weighted_convolution(
     Returns:
         Tuple of (flux, flux_err, chisq)
     """
-    kernel_n2 = kernel / noise ** 2
-    flux = ((data) * kernel_n2).sum() / (kernel ** 2 / noise ** 2).sum()
+    kernel_n2 = kernel / noise**2
+    flux = ((data) * kernel_n2).sum() / (kernel**2 / noise**2).sum()
     flux_err = ((noise) * kernel_n2).sum() / kernel_n2.sum()
     chisq = (((data - kernel * flux) / noise) ** 2).sum()
 
@@ -187,7 +189,9 @@ def _identify_clusters(
 
     for i in range(len(X0)):
         dists, indices = tree.query(
-            np.c_[X0[i], Y0[i]], k=min(10, len(X0)), distance_upper_bound=threshold_pixels
+            np.c_[X0[i], Y0[i]],
+            k=min(10, len(X0)),
+            distance_upper_bound=threshold_pixels,
         )
         indices = indices[~np.isinf(dists)]
         if len(indices) > 1:
@@ -306,6 +310,7 @@ def measure_forced_peak(
     if has_beam_info:
         # Use weighted convolution method
         pixelscale = (proj_plane_pixel_scales(wcs)[1] * u.deg).to(u.arcsec)
+
         # Some generators (tests) store BMAJ/BMIN in arcsec instead of degrees.
         # Heuristic: values > 2 likely given in arcsec; else assume degrees.
         def _to_arcsec(v: float) -> float:
@@ -356,15 +361,14 @@ def measure_forced_peak(
             else:
                 m = np.median(finite_vals)
                 s = 1.4826 * np.median(np.abs(finite_vals - m))
-                mask = (finite_vals > (m - 3 * s)
-                        ) & (finite_vals < (m + 3 * s))
-                rms = float(np.std(finite_vals[mask])) if np.any(
-                    mask) else float("nan")
+                mask = (finite_vals > (m - 3 * s)) & (finite_vals < (m + 3 * s))
+                rms = float(np.std(finite_vals[mask])) if np.any(mask) else float("nan")
             cutout_noise = np.full_like(cutout_data, rms)
 
         # Filter NaN pixels
-        good = np.isfinite(cutout_data) & np.isfinite(
-            cutout_noise) & np.isfinite(kernel)
+        good = (
+            np.isfinite(cutout_data) & np.isfinite(cutout_noise) & np.isfinite(kernel)
+        )
         if good.sum() == 0:
             return ForcedPhotometryResult(
                 ra_deg=ra_deg,
@@ -407,10 +411,9 @@ def measure_forced_peak(
         h, w = data.shape[-2], data.shape[-1]
         x1c, x2c = max(0, x1), min(w - 1, x2)
         y1c, y2c = max(0, y1), min(h - 1, y2)
-        cut = data[y1c: y2c + 1, x1c: x2c + 1]
+        cut = data[y1c : y2c + 1, x1c : x2c + 1]
         finite_cut = cut[np.isfinite(cut)]
-        peak = float(np.max(finite_cut)
-                     ) if finite_cut.size > 0 else float("nan")
+        peak = float(np.max(finite_cut)) if finite_cut.size > 0 else float("nan")
 
         # Local RMS in annulus
         rin, rout = annulus_pix
@@ -425,8 +428,7 @@ def measure_forced_peak(
             m = np.median(finite_vals)
             s = 1.4826 * np.median(np.abs(finite_vals - m))
             mask = (finite_vals > (m - 3 * s)) & (finite_vals < (m + 3 * s))
-            rms = float(np.std(finite_vals[mask])) if np.any(
-                mask) else float("nan")
+            rms = float(np.std(finite_vals[mask])) if np.any(mask) else float("nan")
 
         return ForcedPhotometryResult(
             ra_deg=ra_deg,
@@ -467,8 +469,9 @@ def _measure_cluster(
     if not ("BMAJ" in hdr and "BMIN" in hdr and "BPA" in hdr):
         # Fall back to individual measurements
         return [
-            measure_forced_peak(fits_path, ra, dec,
-                                nbeam=nbeam, annulus_pix=annulus_pix)
+            measure_forced_peak(
+                fits_path, ra, dec, nbeam=nbeam, annulus_pix=annulus_pix
+            )
             for ra, dec in positions
         ]
 
@@ -515,8 +518,7 @@ def _measure_cluster(
             m = np.median(finite_vals)
             s = 1.4826 * np.median(np.abs(finite_vals - m))
             mask = (finite_vals > (m - 3 * s)) & (finite_vals < (m + 3 * s))
-            rms = float(np.std(finite_vals[mask])) if np.any(
-                mask) else float("nan")
+            rms = float(np.std(finite_vals[mask])) if np.any(mask) else float("nan")
         cutout_noise = np.full_like(cutout_data, rms)
 
     # Create meshgrid for cutout
@@ -581,7 +583,8 @@ def _measure_cluster(
         )
         model = fitted_model(xx, yy)
         chisq_total = (
-            ((cutout_data[good] - model[good]) / cutout_noise[good]) ** 2).sum()
+            ((cutout_data[good] - model[good]) / cutout_noise[good]) ** 2
+        ).sum()
         dof_total = int(good.sum() - len(positions))
     except Exception:
         # Fit failed, return NaN results
@@ -816,8 +819,7 @@ def inject_source(
         raise FileNotFoundError(f"FITS file not found: {fits_path}")
 
     # Load data/header
-    hdul = fits.open(
-        fits_path, mode="update" if output_path is None else "readonly")
+    hdul = fits.open(fits_path, mode="update" if output_path is None else "readonly")
     hdr = hdul[0].header
     data = hdul[0].data.squeeze()
 

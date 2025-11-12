@@ -304,8 +304,7 @@ def test_list_data_handles_old_schema(temp_registry_db):
     # Should handle gracefully
     records = list_data(conn, status="staging")
     assert len(records) >= 1
-    old_record = next((r for r in records if r.data_id ==
-                      "old_schema_list_test"), None)
+    old_record = next((r for r in records if r.data_id == "old_schema_list_test"), None)
     assert old_record is not None
     assert old_record.publish_attempts == 0
     assert old_record.publish_error is None
@@ -345,15 +344,11 @@ def test_successful_publish_clears_attempts(temp_registry_db, tmp_path):
     conn.commit()
 
     # Mock path validation to allow temp directory
-    with patch(
-        "dsa110_contimg.utils.naming.validate_path_safe"
-    ) as mock_validate:
+    with patch("dsa110_contimg.utils.naming.validate_path_safe") as mock_validate:
         mock_validate.return_value = (True, None)
 
         # Successful publish
-        success = trigger_auto_publish(
-            conn, data_id, products_base=products_dir.parent
-        )
+        success = trigger_auto_publish(conn, data_id, products_base=products_dir.parent)
 
         assert success is True
 

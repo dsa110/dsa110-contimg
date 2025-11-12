@@ -30,33 +30,35 @@ _CASACORE_AVAILABLE = None
 def _ensure_casa_initialized():
     """
     Lazy initialization of CASA modules.
-    
+
     This function ensures CASAPATH is set and imports casacore.tables
     only when actually needed, preventing segfaults during module import.
-    
+
     Returns:
         tuple: (table_class, available) where table_class is the casacore.tables.table
                class if available, None otherwise. available is a boolean.
     """
     global _CASACORE_TABLE, _CASACORE_AVAILABLE
-    
+
     if _CASACORE_AVAILABLE is not None:
         # Already checked
         return _CASACORE_TABLE, _CASACORE_AVAILABLE
-    
+
     # First time - initialize
     from dsa110_contimg.utils.casa_init import ensure_casa_path
+
     ensure_casa_path()
-    
+
     try:
         import casacore.tables as casatables
+
         table = casatables.table  # noqa: N816
         _CASACORE_TABLE = table
         _CASACORE_AVAILABLE = True
     except ImportError:
         _CASACORE_TABLE = None
         _CASACORE_AVAILABLE = False
-    
+
     return _CASACORE_TABLE, _CASACORE_AVAILABLE
 
 
@@ -70,8 +72,11 @@ def _get_table_class():
     """Get casacore.tables.table class (lazy)."""
     table_class, _ = _ensure_casa_initialized()
     return table_class
+
+
 try:
     import casacore.tables as casatables
+
     table = casatables.table  # noqa: N816
 
     HAS_CASACORE = True

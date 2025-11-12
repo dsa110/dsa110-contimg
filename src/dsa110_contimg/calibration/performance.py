@@ -56,9 +56,11 @@ def parallel_process_spws(
     """
     # Ensure CASAPATH is set before importing CASA modules
     from dsa110_contimg.utils.casa_init import ensure_casa_path
+
     ensure_casa_path()
 
     import casacore.tables as casatables
+
     table = casatables.table
 
     # Auto-detect SPWs if not provided
@@ -119,6 +121,7 @@ def parallel_process_antennas(
         List of results from process_func
     """
     import casacore.tables as casatables
+
     table = casatables.table
 
     # Auto-detect antennas if not provided
@@ -238,6 +241,7 @@ def estimate_memory_requirements(ms_path: str) -> dict:
     """
     import numpy as np
     import casacore.tables as casatables
+
     table = casatables.table
 
     try:

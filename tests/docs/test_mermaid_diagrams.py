@@ -43,10 +43,10 @@ def _mkdocs_paths() -> List[str]:
     class IgnoreUnknownLoader(yaml.SafeLoader):
         def ignore_unknown(self, node):
             return None
-    
+
     # Register handler for unknown tags
     IgnoreUnknownLoader.add_constructor(None, IgnoreUnknownLoader.ignore_unknown)
-    
+
     with MKDOCS_YML.open("r", encoding="utf-8") as f:
         cfg = yaml.load(f, Loader=IgnoreUnknownLoader)
     nav = cfg.get("nav", [])

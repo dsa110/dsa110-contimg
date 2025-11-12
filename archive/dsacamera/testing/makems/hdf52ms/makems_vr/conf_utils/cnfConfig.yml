@@ -1,0 +1,12 @@
+# Config for cnf.py in YAML format
+# Specifies mapping between logical subsystem names to etcd key names
+t2: /cnf/t2
+corr: /cnf/corr
+fringe: /cnf/fringe
+cal: /cnf/cal
+snap: /cnf/snap
+pipeline: /cnf/pipeline
+search: /cnf/search
+minmax_ant: /cnf/minmax_ant
+minmax_beb: /cnf/minmax_beb
+minmax_service: /cnf/minmax_service

@@ -1,0 +1,10 @@
+# name, RA, DEC, equinox, flux [Jy], sidx, sidx nu0 [GHz]
+# M82,09:55:52.9200,+69:40:46.140,J2000.0,6.2,None,None
+3c48,01:37:41.2995,+33:09:35.134,J2000.0,16.5,None,None
+3c84,03:19:48.160102,+41:30:42.103050,J2000.0,23.9,None,None # Probably lower flux now based on more recent VLA monitoring
+J1459+7140,14:59:07.5839,+71:40:19.868,J2000.0,7.008,None,None
+J1924+334,19:24:17.4839,+33:29:29.724,J2000.0,3.88,None,None
+# J2011-067,20:11:14.215847,-06:44:03.555190,J2000.0,2.60,None,None # Do not use
+3c343,16:34:33.8029,+62:45:35.903,J2000.0,4.8,None,None # alternative name 1634+627
+3c343.1,16:38:28.2058,+62:34:44.318,J2000.0,4.5,None,None # alternative name 1638+625
+1733-130,17:33:02.705790,-13:04:49.548230,J2000.0,5.2,None,None # S X X P

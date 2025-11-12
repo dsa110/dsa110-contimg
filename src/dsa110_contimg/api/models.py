@@ -21,8 +21,7 @@ class QueueGroup(BaseModel):
     subbands_present: int = Field(
         ..., description="Number of subbands ingested for this group"
     )
-    expected_subbands: int = Field(...,
-                                   description="Expected subbands per group")
+    expected_subbands: int = Field(..., description="Expected subbands per group")
     has_calibrator: bool | None = Field(
         None, description="True if any calibrator was matched in beam"
     )
@@ -78,8 +77,7 @@ class ImageInfo(BaseModel):
     path: str
     ms_path: str
     created_at: Optional[datetime] = None
-    type: str = Field(...,
-                      description="Image type: image, pbcor, residual, psf, pb")
+    type: str = Field(..., description="Image type: image, pbcor, residual, psf, pb")
     beam_major_arcsec: Optional[float] = None
     beam_minor_arcsec: Optional[float] = None
     beam_pa_deg: Optional[float] = None
@@ -147,8 +145,9 @@ class GroupDetail(BaseModel):
 class DiskInfo(BaseModel):
     """Disk usage information for a specific mount point."""
 
-    mount_point: str = Field(...,
-                             description="Mount point path (e.g., '/stage/', '/data/')")
+    mount_point: str = Field(
+        ..., description="Mount point path (e.g., '/stage/', '/data/')"
+    )
     total: int = Field(..., description="Total disk space in bytes")
     used: int = Field(..., description="Used disk space in bytes")
     free: int = Field(..., description="Free disk space in bytes")
@@ -164,7 +163,8 @@ class SystemMetrics(BaseModel):
     disk_total: int | None = None  # Deprecated: kept for backward compatibility
     disk_used: int | None = None  # Deprecated: kept for backward compatibility
     disks: List[DiskInfo] = Field(
-        default_factory=list, description="Disk usage information for multiple mount points"
+        default_factory=list,
+        description="Disk usage information for multiple mount points",
     )
     load_1: float | None = None
     load_5: float | None = None
@@ -203,8 +203,7 @@ class TimelineSegment(BaseModel):
 
     start_time: datetime = Field(..., description="Start time of the segment")
     end_time: datetime = Field(..., description="End time of the segment")
-    file_count: int = Field(...,
-                            description="Number of HDF5 files in this segment")
+    file_count: int = Field(..., description="Number of HDF5 files in this segment")
 
 
 class ObservationTimeline(BaseModel):
@@ -678,8 +677,7 @@ class Mosaic(BaseModel):
     start_time: str  # ISO format datetime
     end_time: str  # ISO format datetime
     created_at: str  # ISO format datetime
-    status: str = Field(...,
-                        description="pending, in_progress, completed, failed")
+    status: str = Field(..., description="pending, in_progress, completed, failed")
     image_count: Optional[int] = None
     noise_jy: Optional[float] = None
     source_count: Optional[int] = None
@@ -726,17 +724,18 @@ class SourceSearchResponse(BaseModel):
 
 class VariabilityMetrics(BaseModel):
     """Variability metrics for a source."""
+
     source_id: str
     v: float = Field(..., description="Coefficient of variation (std/mean)")
     eta: float = Field(..., description="Weighted variance metric (η)")
-    vs_mean: Optional[float] = Field(
-        None, description="Mean two-epoch t-statistic")
+    vs_mean: Optional[float] = Field(None, description="Mean two-epoch t-statistic")
     m_mean: Optional[float] = Field(None, description="Mean modulation index")
     n_epochs: int = Field(..., description="Number of epochs")
 
 
 class LightCurveData(BaseModel):
     """Light curve data for a source."""
+
     source_id: str
     ra_deg: float
     dec_deg: float
@@ -746,6 +745,7 @@ class LightCurveData(BaseModel):
 
 class PostageStampInfo(BaseModel):
     """Postage stamp image information."""
+
     image_path: str
     mjd: float
     cutout_path: Optional[str] = None
@@ -754,6 +754,7 @@ class PostageStampInfo(BaseModel):
 
 class PostageStampsResponse(BaseModel):
     """Response for postage stamps endpoint."""
+
     source_id: str
     ra_deg: float
     dec_deg: float
@@ -763,36 +764,33 @@ class PostageStampsResponse(BaseModel):
 
 class ExternalCatalogMatch(BaseModel):
     """External catalog match result."""
+
     catalog: str = Field(..., description="Catalog name (simbad, ned, gaia)")
     matched: bool = Field(..., description="Whether a match was found")
     main_id: Optional[str] = Field(None, description="Primary identifier")
-    object_type: Optional[str] = Field(
-        None, description="Object type/classification")
+    object_type: Optional[str] = Field(None, description="Object type/classification")
     separation_arcsec: Optional[float] = Field(
-        None, description="Separation from query position")
+        None, description="Separation from query position"
+    )
     redshift: Optional[float] = Field(None, description="Redshift (NED)")
-    parallax: Optional[float] = Field(
-        None, description="Parallax in mas (Gaia)")
-    distance: Optional[float] = Field(
-        None, description="Distance in pc (Gaia)")
-    pmra: Optional[float] = Field(
-        None, description="Proper motion RA (mas/yr, Gaia)")
-    pmdec: Optional[float] = Field(
-        None, description="Proper motion Dec (mas/yr, Gaia)")
+    parallax: Optional[float] = Field(None, description="Parallax in mas (Gaia)")
+    distance: Optional[float] = Field(None, description="Distance in pc (Gaia)")
+    pmra: Optional[float] = Field(None, description="Proper motion RA (mas/yr, Gaia)")
+    pmdec: Optional[float] = Field(None, description="Proper motion Dec (mas/yr, Gaia)")
     phot_g_mean_mag: Optional[float] = Field(
-        None, description="G-band magnitude (Gaia)")
-    error: Optional[str] = Field(
-        None, description="Error message if query failed")
+        None, description="G-band magnitude (Gaia)"
+    )
+    error: Optional[str] = Field(None, description="Error message if query failed")
 
 
 class ExternalCatalogsResponse(BaseModel):
     """Response for external catalogs endpoint."""
+
     source_id: str
     ra_deg: float
     dec_deg: float
     matches: Dict[str, ExternalCatalogMatch]
-    query_time_sec: Optional[float] = Field(
-        None, description="Total query time")
+    query_time_sec: Optional[float] = Field(None, description="Total query time")
 
 
 class AlertHistory(BaseModel):
@@ -812,6 +810,7 @@ class AlertHistory(BaseModel):
 # Source Detail Models
 class Detection(BaseModel):
     """Single detection/measurement for a source."""
+
     id: Optional[int] = None
     name: Optional[str] = None
     image_id: Optional[int] = None
@@ -820,14 +819,14 @@ class Detection(BaseModel):
     dec: float = Field(..., description="Declination in degrees")
     flux_peak: float = Field(..., description="Peak flux in mJy/beam")
     flux_peak_err: Optional[float] = Field(
-        None, description="Peak flux error in mJy/beam")
-    flux_int: Optional[float] = Field(
-        None, description="Integrated flux in mJy")
+        None, description="Peak flux error in mJy/beam"
+    )
+    flux_int: Optional[float] = Field(None, description="Integrated flux in mJy")
     flux_int_err: Optional[float] = Field(
-        None, description="Integrated flux error in mJy")
+        None, description="Integrated flux error in mJy"
+    )
     snr: Optional[float] = Field(None, description="Signal-to-noise ratio")
-    forced: bool = Field(
-        False, description="Whether this is a forced measurement")
+    forced: bool = Field(False, description="Whether this is a forced measurement")
     frequency: Optional[float] = Field(None, description="Frequency in MHz")
     mjd: Optional[float] = Field(None, description="Modified Julian Date")
     measured_at: Optional[datetime] = None
@@ -835,6 +834,7 @@ class Detection(BaseModel):
 
 class DetectionList(BaseModel):
     """Paginated list of detections."""
+
     items: List[Detection]
     total: int
     page: int = 1
@@ -843,6 +843,7 @@ class DetectionList(BaseModel):
 
 class SourceDetail(BaseModel):
     """Detailed source information."""
+
     id: str = Field(..., description="Source ID")
     name: Optional[str] = None
     ra_deg: float = Field(..., description="Right ascension in degrees")
@@ -852,11 +853,13 @@ class SourceDetail(BaseModel):
     n_meas_forced: int = Field(0, description="Number of forced measurements")
     mean_flux_jy: Optional[float] = Field(None, description="Mean flux in Jy")
     std_flux_jy: Optional[float] = Field(
-        None, description="Standard deviation of flux in Jy")
+        None, description="Standard deviation of flux in Jy"
+    )
     max_snr: Optional[float] = Field(None, description="Maximum SNR")
     is_variable: bool = Field(False, description="Whether source is variable")
     ese_probability: Optional[float] = Field(
-        None, description="ESE candidate probability")
+        None, description="ESE candidate probability"
+    )
     new_source: bool = Field(False, description="Whether this is a new source")
     variability_metrics: Optional[VariabilityMetrics] = None
 
@@ -864,6 +867,7 @@ class SourceDetail(BaseModel):
 # Image Detail Models
 class Measurement(BaseModel):
     """Single measurement/detection in an image."""
+
     id: Optional[int] = None
     name: Optional[str] = None
     source_id: Optional[str] = None
@@ -871,23 +875,22 @@ class Measurement(BaseModel):
     dec: float = Field(..., description="Declination in degrees")
     flux_peak: float = Field(..., description="Peak flux in mJy/beam")
     flux_peak_err: Optional[float] = Field(
-        None, description="Peak flux error in mJy/beam")
-    flux_int: Optional[float] = Field(
-        None, description="Integrated flux in mJy")
+        None, description="Peak flux error in mJy/beam"
+    )
+    flux_int: Optional[float] = Field(None, description="Integrated flux in mJy")
     flux_int_err: Optional[float] = Field(
-        None, description="Integrated flux error in mJy")
+        None, description="Integrated flux error in mJy"
+    )
     snr: Optional[float] = Field(None, description="Signal-to-noise ratio")
-    forced: bool = Field(
-        False, description="Whether this is a forced measurement")
+    forced: bool = Field(False, description="Whether this is a forced measurement")
     frequency: Optional[float] = Field(None, description="Frequency in MHz")
-    compactness: Optional[float] = Field(
-        None, description="Source compactness")
-    has_siblings: bool = Field(
-        False, description="Whether source has siblings")
+    compactness: Optional[float] = Field(None, description="Source compactness")
+    has_siblings: bool = Field(False, description="Whether source has siblings")
 
 
 class MeasurementList(BaseModel):
     """Paginated list of measurements."""
+
     items: List[Measurement]
     total: int
     page: int = 1
@@ -896,6 +899,7 @@ class MeasurementList(BaseModel):
 
 class ImageDetail(BaseModel):
     """Detailed image information."""
+
     id: int
     name: Optional[str] = None
     path: str
@@ -904,16 +908,13 @@ class ImageDetail(BaseModel):
     dec: Optional[float] = Field(None, description="Declination in degrees")
     ra_hms: Optional[str] = None
     dec_dms: Optional[str] = None
-    l: Optional[float] = Field(
-        None, description="Galactic longitude in degrees")
-    b: Optional[float] = Field(
-        None, description="Galactic latitude in degrees")
-    beam_bmaj: Optional[float] = Field(
-        None, description="Beam major axis in degrees")
-    beam_bmin: Optional[float] = Field(
-        None, description="Beam minor axis in degrees")
+    l: Optional[float] = Field(None, description="Galactic longitude in degrees")
+    b: Optional[float] = Field(None, description="Galactic latitude in degrees")
+    beam_bmaj: Optional[float] = Field(None, description="Beam major axis in degrees")
+    beam_bmin: Optional[float] = Field(None, description="Beam minor axis in degrees")
     beam_bpa: Optional[float] = Field(
-        None, description="Beam position angle in degrees")
+        None, description="Beam position angle in degrees"
+    )
     rms_median: Optional[float] = Field(None, description="Median RMS in mJy")
     rms_min: Optional[float] = Field(None, description="Minimum RMS in mJy")
     rms_max: Optional[float] = Field(None, description="Maximum RMS in mJy")

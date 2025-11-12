@@ -234,7 +234,11 @@ class FITSFile(FileBase):
 
             # JS9 display HTML
             js9_html = self._render_js9_html(
-                width=width, height=height, dual_window=dual_window, scale=scale, colormap=colormap
+                width=width,
+                height=height,
+                dual_window=dual_window,
+                scale=scale,
+                colormap=colormap,
             )
 
             # Combine and display

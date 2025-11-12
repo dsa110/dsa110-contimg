@@ -3,6 +3,7 @@
 Moves lightweight status, health, and streaming endpoints out of routes.py
 to improve maintainability and testability.
 """
+
 from __future__ import annotations
 
 import logging
@@ -145,11 +146,12 @@ def status(request: Request, limit: int = 20) -> PipelineStatus:
     queue_stats = fetch_queue_stats(cfg.queue_db)
     recent_groups = fetch_recent_queue_groups(cfg.queue_db, cfg, limit=limit)
     cal_sets = fetch_calibration_sets(cfg.registry_db)
-    matched_recent = sum(1 for g in recent_groups if getattr(g, "has_calibrator", False))
+    matched_recent = sum(
+        1 for g in recent_groups if getattr(g, "has_calibrator", False)
+    )
     return PipelineStatus(
         queue=queue_stats,
         recent_groups=recent_groups,
         calibration_sets=cal_sets,
         matched_recent=matched_recent,
     )
-

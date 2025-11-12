@@ -42,7 +42,9 @@ class TestCatalogSetupStage:
 
     def test_validate_missing_input_path(self):
         """Test validation fails when input_path is missing."""
-        config = PipelineConfig(paths=PathsConfig(input_dir=Path("/input"), output_dir=Path("/output")))
+        config = PipelineConfig(
+            paths=PathsConfig(input_dir=Path("/input"), output_dir=Path("/output"))
+        )
         context = PipelineContext(config=config)
         stage = CatalogSetupStage(config)
 
@@ -52,8 +54,12 @@ class TestCatalogSetupStage:
 
     def test_validate_nonexistent_file(self):
         """Test validation fails when file doesn't exist."""
-        config = PipelineConfig(paths=PathsConfig(input_dir=Path("/input"), output_dir=Path("/output")))
-        context = PipelineContext(config=config, inputs={"input_path": "/nonexistent/file.hdf5"})
+        config = PipelineConfig(
+            paths=PathsConfig(input_dir=Path("/input"), output_dir=Path("/output"))
+        )
+        context = PipelineContext(
+            config=config, inputs={"input_path": "/nonexistent/file.hdf5"}
+        )
         stage = CatalogSetupStage(config)
 
         is_valid, error_msg = stage.validate(context)
@@ -64,11 +70,13 @@ class TestCatalogSetupStage:
     def test_validate_valid_input(self, mock_load_pointing):
         """Test validation succeeds with valid input."""
         mock_load_pointing.return_value = {"dec_deg": 30.0}
-        
-        config = PipelineConfig(paths=PathsConfig(input_dir=Path("/input"), output_dir=Path("/output")))
+
+        config = PipelineConfig(
+            paths=PathsConfig(input_dir=Path("/input"), output_dir=Path("/output"))
+        )
         with tempfile.NamedTemporaryFile(suffix=".hdf5", delete=False) as tmp:
             tmp_path = tmp.name
-        
+
         try:
             context = PipelineContext(config=config, inputs={"input_path": tmp_path})
             stage = CatalogSetupStage(config)
@@ -81,7 +89,9 @@ class TestCatalogSetupStage:
 
     def test_get_name(self):
         """Test stage name."""
-        config = PipelineConfig(paths=PathsConfig(input_dir=Path("/input"), output_dir=Path("/output")))
+        config = PipelineConfig(
+            paths=PathsConfig(input_dir=Path("/input"), output_dir=Path("/output"))
+        )
         stage = CatalogSetupStage(config)
         # Stages use snake_case names, not CamelCase
         assert stage.get_name() == "catalog_setup"
@@ -92,7 +102,9 @@ class TestConversionStage:
 
     def test_validate_missing_input_path(self):
         """Test validation fails when input_path is missing."""
-        config = PipelineConfig(paths=PathsConfig(input_dir=Path("/input"), output_dir=Path("/output")))
+        config = PipelineConfig(
+            paths=PathsConfig(input_dir=Path("/input"), output_dir=Path("/output"))
+        )
         context = PipelineContext(config=config)
         stage = ConversionStage(config)
 
@@ -103,7 +115,9 @@ class TestConversionStage:
 
     def test_get_name(self):
         """Test stage name."""
-        config = PipelineConfig(paths=PathsConfig(input_dir=Path("/input"), output_dir=Path("/output")))
+        config = PipelineConfig(
+            paths=PathsConfig(input_dir=Path("/input"), output_dir=Path("/output"))
+        )
         stage = ConversionStage(config)
         assert stage.get_name() == "conversion"
 
@@ -113,7 +127,9 @@ class TestCalibrationSolveStage:
 
     def test_validate_missing_ms_path(self):
         """Test validation fails when ms_path is missing."""
-        config = PipelineConfig(paths=PathsConfig(input_dir=Path("/input"), output_dir=Path("/output")))
+        config = PipelineConfig(
+            paths=PathsConfig(input_dir=Path("/input"), output_dir=Path("/output"))
+        )
         context = PipelineContext(config=config)
         stage = CalibrationSolveStage(config)
 
@@ -123,7 +139,9 @@ class TestCalibrationSolveStage:
 
     def test_get_name(self):
         """Test stage name."""
-        config = PipelineConfig(paths=PathsConfig(input_dir=Path("/input"), output_dir=Path("/output")))
+        config = PipelineConfig(
+            paths=PathsConfig(input_dir=Path("/input"), output_dir=Path("/output"))
+        )
         stage = CalibrationSolveStage(config)
         assert stage.get_name() == "calibration_solve"
 
@@ -133,7 +151,9 @@ class TestCalibrationStage:
 
     def test_validate_missing_ms_path(self):
         """Test validation fails when ms_path is missing."""
-        config = PipelineConfig(paths=PathsConfig(input_dir=Path("/input"), output_dir=Path("/output")))
+        config = PipelineConfig(
+            paths=PathsConfig(input_dir=Path("/input"), output_dir=Path("/output"))
+        )
         context = PipelineContext(config=config)
         stage = CalibrationStage(config)
 
@@ -143,7 +163,9 @@ class TestCalibrationStage:
 
     def test_get_name(self):
         """Test stage name."""
-        config = PipelineConfig(paths=PathsConfig(input_dir=Path("/input"), output_dir=Path("/output")))
+        config = PipelineConfig(
+            paths=PathsConfig(input_dir=Path("/input"), output_dir=Path("/output"))
+        )
         stage = CalibrationStage(config)
         assert stage.get_name() == "calibration"
 
@@ -153,7 +175,9 @@ class TestImagingStage:
 
     def test_validate_missing_ms_path(self):
         """Test validation fails when ms_path is missing."""
-        config = PipelineConfig(paths=PathsConfig(input_dir=Path("/input"), output_dir=Path("/output")))
+        config = PipelineConfig(
+            paths=PathsConfig(input_dir=Path("/input"), output_dir=Path("/output"))
+        )
         context = PipelineContext(config=config)
         stage = ImagingStage(config)
 
@@ -163,7 +187,9 @@ class TestImagingStage:
 
     def test_get_name(self):
         """Test stage name."""
-        config = PipelineConfig(paths=PathsConfig(input_dir=Path("/input"), output_dir=Path("/output")))
+        config = PipelineConfig(
+            paths=PathsConfig(input_dir=Path("/input"), output_dir=Path("/output"))
+        )
         stage = ImagingStage(config)
         assert stage.get_name() == "imaging"
 
@@ -173,7 +199,9 @@ class TestOrganizationStage:
 
     def test_validate_missing_ms_path(self):
         """Test validation fails when ms_path is missing."""
-        config = PipelineConfig(paths=PathsConfig(input_dir=Path("/input"), output_dir=Path("/output")))
+        config = PipelineConfig(
+            paths=PathsConfig(input_dir=Path("/input"), output_dir=Path("/output"))
+        )
         context = PipelineContext(config=config)
         stage = OrganizationStage(config)
 
@@ -183,7 +211,9 @@ class TestOrganizationStage:
 
     def test_get_name(self):
         """Test stage name."""
-        config = PipelineConfig(paths=PathsConfig(input_dir=Path("/input"), output_dir=Path("/output")))
+        config = PipelineConfig(
+            paths=PathsConfig(input_dir=Path("/input"), output_dir=Path("/output"))
+        )
         stage = OrganizationStage(config)
         assert stage.get_name() == "organization"
 
@@ -193,7 +223,9 @@ class TestValidationStage:
 
     def test_validate_missing_image_path(self):
         """Test validation fails when image_path is missing."""
-        config = PipelineConfig(paths=PathsConfig(input_dir=Path("/input"), output_dir=Path("/output")))
+        config = PipelineConfig(
+            paths=PathsConfig(input_dir=Path("/input"), output_dir=Path("/output"))
+        )
         context = PipelineContext(config=config)
         stage = ValidationStage(config)
 
@@ -203,7 +235,9 @@ class TestValidationStage:
 
     def test_get_name(self):
         """Test stage name."""
-        config = PipelineConfig(paths=PathsConfig(input_dir=Path("/input"), output_dir=Path("/output")))
+        config = PipelineConfig(
+            paths=PathsConfig(input_dir=Path("/input"), output_dir=Path("/output"))
+        )
         stage = ValidationStage(config)
         assert stage.get_name() == "validation"
 
@@ -213,7 +247,9 @@ class TestCrossMatchStage:
 
     def test_validate_missing_detected_sources(self):
         """Test validation fails when detected_sources are missing."""
-        config = PipelineConfig(paths=PathsConfig(input_dir=Path("/input"), output_dir=Path("/output")))
+        config = PipelineConfig(
+            paths=PathsConfig(input_dir=Path("/input"), output_dir=Path("/output"))
+        )
         # Enable crossmatch for this test
         config.crossmatch.enabled = True
         context = PipelineContext(config=config)
@@ -221,11 +257,16 @@ class TestCrossMatchStage:
 
         is_valid, error_msg = stage.validate(context)
         assert not is_valid
-        assert "detected sources" in error_msg.lower() or "no detected sources" in error_msg.lower()
+        assert (
+            "detected sources" in error_msg.lower()
+            or "no detected sources" in error_msg.lower()
+        )
 
     def test_get_name(self):
         """Test stage name."""
-        config = PipelineConfig(paths=PathsConfig(input_dir=Path("/input"), output_dir=Path("/output")))
+        config = PipelineConfig(
+            paths=PathsConfig(input_dir=Path("/input"), output_dir=Path("/output"))
+        )
         stage = CrossMatchStage(config)
         assert stage.get_name() == "cross_match"
 
@@ -235,7 +276,9 @@ class TestAdaptivePhotometryStage:
 
     def test_validate_missing_ms_path(self):
         """Test validation fails when ms_path is missing."""
-        config = PipelineConfig(paths=PathsConfig(input_dir=Path("/input"), output_dir=Path("/output")))
+        config = PipelineConfig(
+            paths=PathsConfig(input_dir=Path("/input"), output_dir=Path("/output"))
+        )
         # Enable photometry for this test
         config.photometry.enabled = True
         context = PipelineContext(config=config)
@@ -247,7 +290,9 @@ class TestAdaptivePhotometryStage:
 
     def test_get_name(self):
         """Test stage name."""
-        config = PipelineConfig(paths=PathsConfig(input_dir=Path("/input"), output_dir=Path("/output")))
+        config = PipelineConfig(
+            paths=PathsConfig(input_dir=Path("/input"), output_dir=Path("/output"))
+        )
         stage = AdaptivePhotometryStage(config)
         assert stage.get_name() == "adaptive_photometry"
 
@@ -255,20 +300,25 @@ class TestAdaptivePhotometryStage:
 class TestStageCleanup:
     """Test cleanup behavior for all stages."""
 
-    @pytest.mark.parametrize("stage_class,config_kwargs", [
-        (CatalogSetupStage, {}),
-        (ConversionStage, {}),
-        (CalibrationSolveStage, {}),
-        (CalibrationStage, {}),
-        (ImagingStage, {}),
-        (OrganizationStage, {}),
-        (ValidationStage, {}),
-        (CrossMatchStage, {}),
-        (AdaptivePhotometryStage, {}),
-    ])
+    @pytest.mark.parametrize(
+        "stage_class,config_kwargs",
+        [
+            (CatalogSetupStage, {}),
+            (ConversionStage, {}),
+            (CalibrationSolveStage, {}),
+            (CalibrationStage, {}),
+            (ImagingStage, {}),
+            (OrganizationStage, {}),
+            (ValidationStage, {}),
+            (CrossMatchStage, {}),
+            (AdaptivePhotometryStage, {}),
+        ],
+    )
     def test_cleanup_called_on_success(self, stage_class, config_kwargs):
         """Test cleanup is called after successful execution."""
-        config = PipelineConfig(paths=PathsConfig(input_dir=Path("/input"), output_dir=Path("/output")))
+        config = PipelineConfig(
+            paths=PathsConfig(input_dir=Path("/input"), output_dir=Path("/output"))
+        )
         stage = stage_class(config, **config_kwargs)
         context = PipelineContext(config=config)
 
@@ -292,20 +342,25 @@ class TestStageCleanup:
 class TestStageOutputValidation:
     """Test output validation for stages."""
 
-    @pytest.mark.parametrize("stage_class,config_kwargs", [
-        (CatalogSetupStage, {}),
-        (ConversionStage, {}),
-        (CalibrationSolveStage, {}),
-        (CalibrationStage, {}),
-        (ImagingStage, {}),
-        (OrganizationStage, {}),
-        (ValidationStage, {}),
-        (CrossMatchStage, {}),
-        (AdaptivePhotometryStage, {}),
-    ])
+    @pytest.mark.parametrize(
+        "stage_class,config_kwargs",
+        [
+            (CatalogSetupStage, {}),
+            (ConversionStage, {}),
+            (CalibrationSolveStage, {}),
+            (CalibrationStage, {}),
+            (ImagingStage, {}),
+            (OrganizationStage, {}),
+            (ValidationStage, {}),
+            (CrossMatchStage, {}),
+            (AdaptivePhotometryStage, {}),
+        ],
+    )
     def test_validate_outputs_method_exists(self, stage_class, config_kwargs):
         """Test validate_outputs method exists and is callable."""
-        config = PipelineConfig(paths=PathsConfig(input_dir=Path("/input"), output_dir=Path("/output")))
+        config = PipelineConfig(
+            paths=PathsConfig(input_dir=Path("/input"), output_dir=Path("/output"))
+        )
         stage = stage_class(config, **config_kwargs)
         context = PipelineContext(config=config)
 
@@ -356,5 +411,6 @@ class TestStageDependencies:
 
         for stage_name in dependencies:
             if stage_name not in visited:
-                assert not has_cycle(stage_name), f"Circular dependency detected involving {stage_name}"
-
+                assert not has_cycle(
+                    stage_name
+                ), f"Circular dependency detected involving {stage_name}"

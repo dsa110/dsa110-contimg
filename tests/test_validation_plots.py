@@ -18,8 +18,9 @@ from dsa110_contimg.qa.catalog_validation import CatalogValidationResult
 from dsa110_contimg.qa.html_reports import generate_validation_report
 
 
-logging.basicConfig(level=logging.INFO,
-                    format='%(asctime)s [%(levelname)s] %(message)s')
+logging.basicConfig(
+    level=logging.INFO, format="%(asctime)s [%(levelname)s] %(message)s"
+)
 logger = logging.getLogger(__name__)
 
 
@@ -49,11 +50,13 @@ def test_validation_plots():
             offset_arcsec = np.random.normal(1.5, 0.8)  # Mean 1.5", RMS 0.8"
             offset_ra_arcsec = np.random.normal(0.5, 0.5)
             offset_dec_arcsec = np.random.normal(1.0, 0.5)
-            detected_ra = catalog_ra + offset_ra_arcsec / \
-                (3600.0 * np.cos(np.radians(catalog_dec)))
+            detected_ra = catalog_ra + offset_ra_arcsec / (
+                3600.0 * np.cos(np.radians(catalog_dec))
+            )
             detected_dec = catalog_dec + offset_dec_arcsec / 3600.0
             matched_pairs.append(
-                (detected_ra, detected_dec, catalog_ra, catalog_dec, abs(offset_arcsec)))
+                (detected_ra, detected_dec, catalog_ra, catalog_dec, abs(offset_arcsec))
+            )
 
         astrometry_result = CatalogValidationResult(
             validation_type="astrometry",
@@ -71,7 +74,7 @@ def test_validation_plots():
             has_warnings=True,
             issues=[],
             warnings=["Some sources have offsets > 3 arcsec"],
-            matched_pairs=matched_pairs
+            matched_pairs=matched_pairs,
         )
 
         logger.info("✓ Astrometry result created")
@@ -99,7 +102,7 @@ def test_validation_plots():
             has_warnings=False,
             issues=[],
             warnings=[],
-            matched_fluxes=matched_fluxes
+            matched_fluxes=matched_fluxes,
         )
 
         logger.info("✓ Flux scale result created")
@@ -108,13 +111,14 @@ def test_validation_plots():
         logger.info("Creating mock completeness result...")
         n_bins = 10
         flux_bins = np.logspace(np.log10(0.001), np.log10(10.0), n_bins + 1)
-        bin_centers = [(flux_bins[i] + flux_bins[i+1]) /
-                       2 for i in range(n_bins)]
+        bin_centers = [(flux_bins[i] + flux_bins[i + 1]) / 2 for i in range(n_bins)]
         catalog_counts = [50, 40, 30, 25, 20, 15, 10, 8, 5, 3]
         detected_counts = []
         completeness_per_bin = []
 
-        for i, (catalog_count, bin_center) in enumerate(zip(catalog_counts, bin_centers)):
+        for i, (catalog_count, bin_center) in enumerate(
+            zip(catalog_counts, bin_centers)
+        ):
             completeness = max(0.0, min(1.0, 0.98 - (i * 0.08)))
             detected = int(catalog_count * completeness)
             detected_counts.append(detected)
@@ -138,7 +142,7 @@ def test_validation_plots():
             has_issues=False,
             has_warnings=False,
             issues=[],
-            warnings=[]
+            warnings=[],
         )
 
         logger.info("✓ Completeness result created")
@@ -151,11 +155,12 @@ def test_validation_plots():
             flux_scale_result=flux_scale_result,
             source_counts_result=source_counts_result,
             output_path=str(output_dir / "test_validation_plots_report.html"),
-            catalog="nvss"
+            catalog="nvss",
         )
 
         logger.info(
-            f"✓ HTML report created: {output_dir / 'test_validation_plots_report.html'}")
+            f"✓ HTML report created: {output_dir / 'test_validation_plots_report.html'}"
+        )
         logger.info(f"  Report status: {report.overall_status}")
         logger.info(f"  Report score: {report.score:.1%}")
 
@@ -165,7 +170,7 @@ def test_validation_plots():
             file_size = html_file.stat().st_size
             logger.info(f"  File size: {file_size:,} bytes")
 
-            with open(html_file, 'r') as f:
+            with open(html_file, "r") as f:
                 html_content = f.read()
 
             # Check for plot images (base64 encoded)
@@ -173,11 +178,10 @@ def test_validation_plots():
                 "data:image/png;base64,",
                 "Astrometry Visualization",
                 "Flux Scale Visualization",
-                "Completeness Visualization"
+                "Completeness Visualization",
             ]
 
-            missing = [
-                ind for ind in plot_indicators if ind not in html_content]
+            missing = [ind for ind in plot_indicators if ind not in html_content]
             if missing:
                 logger.warning(f"  Missing plot indicators: {missing}")
             else:

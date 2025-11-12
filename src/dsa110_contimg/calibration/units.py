@@ -171,10 +171,12 @@ def get_reference_frequency_from_ms(ms_path: str) -> Optional[u.Quantity]:
     """
     # Ensure CASAPATH is set before importing CASA modules
     from dsa110_contimg.utils.casa_init import ensure_casa_path
+
     ensure_casa_path()
 
     try:
         import casacore.tables as casatables
+
         table = casatables.table
 
         with table(f"{ms_path}::SPECTRAL_WINDOW", readonly=True, ack=False) as spw_tb:

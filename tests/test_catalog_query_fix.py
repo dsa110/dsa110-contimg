@@ -25,7 +25,9 @@ try:
 except TypeError as e:
     print(f"✗ Scalar input failed: {e}")
 except FileNotFoundError:
-    print("✓ Scalar input handled correctly (FileNotFoundError expected - no catalog file)")
+    print(
+        "✓ Scalar input handled correctly (FileNotFoundError expected - no catalog file)"
+    )
 except Exception as e:
     print(f"✗ Unexpected error: {e}")
 
@@ -38,7 +40,9 @@ try:
 except TypeError as e:
     print(f"✗ NumPy array (1D) input failed: {e}")
 except FileNotFoundError:
-    print("✓ NumPy array (1D) input handled correctly (FileNotFoundError expected - no catalog file)")
+    print(
+        "✓ NumPy array (1D) input handled correctly (FileNotFoundError expected - no catalog file)"
+    )
 except Exception as e:
     print(f"✗ Unexpected error: {e}")
 
@@ -51,7 +55,9 @@ try:
 except TypeError as e:
     print(f"✗ NumPy array (2D) input failed: {e}")
 except FileNotFoundError:
-    print("✓ NumPy array (2D) input handled correctly (FileNotFoundError expected - no catalog file)")
+    print(
+        "✓ NumPy array (2D) input handled correctly (FileNotFoundError expected - no catalog file)"
+    )
 except Exception as e:
     print(f"✗ Unexpected error: {e}")
 
@@ -64,7 +70,9 @@ try:
 except TypeError as e:
     print(f"✗ NumPy scalar (0D) input failed: {e}")
 except FileNotFoundError:
-    print("✓ NumPy scalar (0D) input handled correctly (FileNotFoundError expected - no catalog file)")
+    print(
+        "✓ NumPy scalar (0D) input handled correctly (FileNotFoundError expected - no catalog file)"
+    )
 except Exception as e:
     print(f"✗ Unexpected error: {e}")
 
@@ -72,4 +80,3 @@ print("\n" + "=" * 70)
 print("All tests completed!")
 print("\nNote: FileNotFoundError is expected since we don't have catalog files.")
 print("The important thing is that TypeError is NOT raised.")
-

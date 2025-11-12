@@ -1,4 +1,5 @@
 """Mosaic-related API routes extracted from routes.py."""
+
 from __future__ import annotations
 
 from pathlib import Path
@@ -53,6 +54,10 @@ def get_mosaic_fits(request: Request, mosaic_id: int):
         raise HTTPException(status_code=404, detail=f"Mosaic {mosaic_id} not found")
     mosaic_path = mosaic_data["path"]
     if not Path(mosaic_path).exists():
-        raise HTTPException(status_code=404, detail=f"FITS file not found for mosaic {mosaic_id}: {mosaic_path}")
-    return FileResponse(mosaic_path, media_type="application/fits", filename=Path(mosaic_path).name)
-
+        raise HTTPException(
+            status_code=404,
+            detail=f"FITS file not found for mosaic {mosaic_id}: {mosaic_path}",
+        )
+    return FileResponse(
+        mosaic_path, media_type="application/fits", filename=Path(mosaic_path).name
+    )

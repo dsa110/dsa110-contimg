@@ -18,7 +18,11 @@ designed to be compatible with our architecture, Python version, and dependencie
 """
 
 from .notebook import generate_qa_notebook, generate_fits_viewer_notebook
-from .integration import browse_qa_outputs, display_qa_summary, generate_qa_notebook_from_result
+from .integration import (
+    browse_qa_outputs,
+    display_qa_summary,
+    generate_qa_notebook_from_result,
+)
 from .js9 import init_js9, is_js9_available
 from .thumbnail import (
     get_cache_dir,
@@ -55,6 +59,7 @@ from .render import (
 )
 from .pdffile import PDFFile
 from .htmlfile import HTMLFile, URL
+
 __version__ = "0.2.0"
 
 # Core file types

@@ -1,0 +1,24 @@
+image: $SKA_K8S_TOOLS_DOCKER_BUILDER_IMAGE
+
+variables:
+  GIT_SUBMODULE_STRATEGY: recursive
+  PIP_CACHE_DIR: "$CI_PROJECT_DIR/.pip-cache"
+  CONDA_PKGS_DIRS: "$CI_PROJECT_DIR/.conda-pkgs"
+
+cache:
+  key:
+    files:
+      - environment.yml
+      - pyproject.toml
+  paths:
+    - .conda-pkgs
+    - .pip-cache
+
+stages:
+  - ruff
+  - test
+  - codecov
+  - safety
+
+include:
+  - '.gitlab-ci-stages.yml'

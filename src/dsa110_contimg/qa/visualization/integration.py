@@ -55,14 +55,10 @@ def generate_qa_notebook_from_result(
         >>> notebook = generate_qa_notebook_from_result(result)
     """
     if not HAS_QA:
-        raise ImportError(
-            "dsa110_contimg.qa.casa_ms_qa is required for QA integration"
-        )
+        raise ImportError("dsa110_contimg.qa.casa_ms_qa is required for QA integration")
 
     ms_path = result.ms_path if include_ms else None
-    qa_root = (
-        str(Path(result.artifacts[0]).parent) if result.artifacts else None
-    )
+    qa_root = str(Path(result.artifacts[0]).parent) if result.artifacts else None
 
     # Filter artifacts to include only relevant ones
     artifacts = []
@@ -83,7 +79,12 @@ def generate_qa_notebook_from_result(
             artifacts.append(artifact)
         # Include text/log files
         elif artifact_path.suffix.lower() in [
-            ".txt", ".log", ".out", ".err", ".dat", ".csv"
+            ".txt",
+            ".log",
+            ".out",
+            ".err",
+            ".dat",
+            ".csv",
         ]:
             artifacts.append(artifact)
         # Include MS files
@@ -147,9 +148,7 @@ def display_qa_summary(result: QaResult) -> None:
         >>> display_qa_summary(result)
     """
     if not HAS_QA:
-        raise ImportError(
-            "dsa110_contimg.qa.casa_ms_qa is required for QA integration"
-        )
+        raise ImportError("dsa110_contimg.qa.casa_ms_qa is required for QA integration")
 
     if not HAS_IPYTHON:
         # Fallback to print
@@ -188,8 +187,7 @@ def display_qa_summary(result: QaResult) -> None:
     if result.artifacts:
         html += "<h4>Artifacts</h4>"
         artifacts_data = [
-            (i + 1, Path(artifact).name)
-            for i, artifact in enumerate(result.artifacts)
+            (i + 1, Path(artifact).name) for i, artifact in enumerate(result.artifacts)
         ]
         html += render_table(
             artifacts_data,
@@ -222,9 +220,7 @@ def enhance_qa_with_notebook(
         >>> # Notebook is now in enhanced.artifacts
     """
     if not HAS_QA:
-        raise ImportError(
-            "dsa110_contimg.qa.casa_ms_qa is required for QA integration"
-        )
+        raise ImportError("dsa110_contimg.qa.casa_ms_qa is required for QA integration")
 
     if auto_generate:
         try:

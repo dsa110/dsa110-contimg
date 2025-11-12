@@ -301,13 +301,19 @@ def main(argv: list = None) -> int:
             return 0 if valid_count == total_count else 1
 
     elif args.command == "verify-ms":
-        from dsa110_contimg.utils.validation import validate_ms, validate_corrected_data_quality
+        from dsa110_contimg.utils.validation import (
+            validate_ms,
+            validate_corrected_data_quality,
+        )
         from dsa110_contimg.utils.validation import ValidationError
+
         # Ensure CASAPATH is set before importing CASA modules
         from dsa110_contimg.utils.casa_init import ensure_casa_path
+
         ensure_casa_path()
 
         import casacore.tables as casatables
+
         table = casatables.table
 
         from dsa110_contimg.utils.validation import (

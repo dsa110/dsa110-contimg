@@ -19,9 +19,11 @@ def detect_ms_corruption(ms_path: str) -> tuple[bool, list[str]]:
     """
     # Ensure CASAPATH is set before importing CASA modules
     from dsa110_contimg.utils.casa_init import ensure_casa_path
+
     ensure_casa_path()
 
     import casacore.tables as casatables  # type: ignore
+
     table = casatables.table  # noqa: N816
 
     issues = []
@@ -158,6 +160,7 @@ def repair_ms_for_ft(ms_path: str, backup: bool = True) -> Optional[str]:
             shutil.rmtree(backup_path)
 
         import casacore.tables as casatables
+
         table = casatables.table  # noqa: N816
 
         t = table(ms_path, readonly=True)

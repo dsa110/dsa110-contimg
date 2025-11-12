@@ -192,4 +192,3 @@ def render_thumbnail_html(
 
     width_attr = f' width="{width}"' if width else ""
     return f'<a href="{url}" target="_blank"><img src="{thumb_url}"{width_attr} alt="thumbnail"></a>'
-

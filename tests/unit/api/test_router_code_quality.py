@@ -254,7 +254,13 @@ class TestCodeQualityImprovements:
         import ast
         from pathlib import Path
 
-        router_path = Path(__file__).parent.parent.parent.parent / "src" / "dsa110_contimg" / "api" / "routers"
+        router_path = (
+            Path(__file__).parent.parent.parent.parent
+            / "src"
+            / "dsa110_contimg"
+            / "api"
+            / "routers"
+        )
 
         class ExceptionVisitor(ast.NodeVisitor):
             """Visitor to find broad exception handlers."""
@@ -301,8 +307,18 @@ class TestCodeQualityImprovements:
                         lineno = node.lineno
                         # Allow specific acceptable lines
                         acceptable_lines = {
-                            "status.py": [78, 90, 116],  # Database errors, disk errors, websocket errors
-                            "photometry.py": [157, 243, 269, 303, 358],  # Error logging in try blocks
+                            "status.py": [
+                                78,
+                                90,
+                                116,
+                            ],  # Database errors, disk errors, websocket errors
+                            "photometry.py": [
+                                157,
+                                243,
+                                269,
+                                303,
+                                358,
+                            ],  # Error logging in try blocks
                             "images.py": [294, 345],  # Error logging in try blocks
                         }
                         if not (
@@ -328,4 +344,3 @@ class TestCodeQualityImprovements:
         assert (
             len(visitor.broad_exceptions) == 0
         ), f"Found broad exception handlers: {visitor.broad_exceptions}"
-

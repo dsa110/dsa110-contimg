@@ -162,10 +162,8 @@ class QANotebookRequest(BaseModel):
 def browse_directory(
     path: str = Query(..., description="Directory path to browse"),
     recursive: bool = Query(False, description="Recursive directory scan"),
-    include_pattern: Optional[str] = Query(
-        None, description="Include pattern (glob)"),
-    exclude_pattern: Optional[str] = Query(
-        None, description="Exclude pattern (glob)"),
+    include_pattern: Optional[str] = Query(None, description="Include pattern (glob)"),
+    exclude_pattern: Optional[str] = Query(None, description="Exclude pattern (glob)"),
 ):
     """
     Browse a directory and return file listing.
@@ -196,8 +194,7 @@ def browse_directory(
             )
 
         if not target_path.exists():
-            raise HTTPException(
-                status_code=404, detail=f"Path not found: {path}")
+            raise HTTPException(status_code=404, detail=f"Path not found: {path}")
 
         if not target_path.is_dir():
             raise HTTPException(
@@ -218,9 +215,11 @@ def browse_directory(
         # Convert to API response
         entries = []
         from dsa110_contimg.qa.visualization.file import autodetect_file_type
+
         for item in qa_dir:
             file_type = autodetect_file_type(item.fullpath) or (
-                "directory" if item.isdir else "file")
+                "directory" if item.isdir else "file"
+            )
             entry = DirectoryEntry(
                 name=item.basename,
                 path=item.fullpath,
@@ -255,17 +254,13 @@ def browse_directory(
 def get_directory_thumbnails(
     path: str = Query(..., description="Directory path to browse"),
     recursive: bool = Query(False, description="Recursive directory scan"),
-    include_pattern: Optional[str] = Query(
-        None, description="Include pattern (glob)"),
-    exclude_pattern: Optional[str] = Query(
-        None, description="Exclude pattern (glob)"),
-    ncol: Optional[int] = Query(
-        None, description="Number of columns (None = auto)"),
+    include_pattern: Optional[str] = Query(None, description="Include pattern (glob)"),
+    exclude_pattern: Optional[str] = Query(None, description="Exclude pattern (glob)"),
+    ncol: Optional[int] = Query(None, description="Number of columns (None = auto)"),
     mincol: int = Query(0, description="Minimum number of columns"),
     maxcol: int = Query(8, description="Maximum number of columns"),
     titles: bool = Query(True, description="Show file titles"),
-    width: Optional[int] = Query(
-        None, description="Thumbnail width in pixels"),
+    width: Optional[int] = Query(None, description="Thumbnail width in pixels"),
 ):
     """
     Render a thumbnail catalog (grid view) of files in a directory.
@@ -295,8 +290,7 @@ def get_directory_thumbnails(
             )
 
         if not target_path.exists():
-            raise HTTPException(
-                status_code=404, detail=f"Path not found: {path}")
+            raise HTTPException(status_code=404, detail=f"Path not found: {path}")
 
         if not target_path.is_dir():
             raise HTTPException(
@@ -351,8 +345,7 @@ def get_fits_info(
         # Validate path
         target_path = Path(path).resolve()
         if not target_path.exists():
-            raise HTTPException(
-                status_code=404, detail=f"FITS file not found: {path}")
+            raise HTTPException(status_code=404, detail=f"FITS file not found: {path}")
 
         fits_file = FITSFile(str(target_path))
 
@@ -399,8 +392,7 @@ def view_fits_file(
     try:
         target_path = Path(path).resolve()
         if not target_path.exists():
-            raise HTTPException(
-                status_code=404, detail=f"FITS file not found: {path}")
+            raise HTTPException(status_code=404, detail=f"FITS file not found: {path}")
 
         fits_file = FITSFile(str(target_path))
 
@@ -435,8 +427,7 @@ def get_casatable_info(
     try:
         target_path = Path(path).resolve()
         if not target_path.exists():
-            raise HTTPException(
-                status_code=404, detail=f"CASA table not found: {path}")
+            raise HTTPException(status_code=404, detail=f"CASA table not found: {path}")
 
         if not target_path.is_dir():
             raise HTTPException(
@@ -453,8 +444,7 @@ def get_casatable_info(
             columns=casa_table.columns if casa_table.exists else None,
             keywords=casa_table.keywords if casa_table.exists else None,
             subtables=(
-                [str(s)
-                 for s in casa_table.subtables] if casa_table.exists else None
+                [str(s) for s in casa_table.subtables] if casa_table.exists else None
             ),
             is_writable=casa_table._is_writable if casa_table.exists else None,
             error=casa_table._error if hasattr(casa_table, "_error") else None,
@@ -485,8 +475,7 @@ def view_casatable(
     try:
         target_path = Path(path).resolve()
         if not target_path.exists():
-            raise HTTPException(
-                status_code=404, detail=f"CASA table not found: {path}")
+            raise HTTPException(status_code=404, detail=f"CASA table not found: {path}")
 
         casa_table = CasaTable(str(target_path))
         casa_table.rescan()
@@ -523,8 +512,7 @@ def get_image_info(
     try:
         target_path = Path(path).resolve()
         if not target_path.exists():
-            raise HTTPException(
-                status_code=404, detail=f"Image file not found: {path}")
+            raise HTTPException(status_code=404, detail=f"Image file not found: {path}")
 
         img_file = ImageFile(str(target_path))
 
@@ -533,6 +521,7 @@ def get_image_info(
         if img_file.exists:
             try:
                 from PIL import Image as PILImage
+
                 with PILImage.open(target_path) as img:
                     dimensions = {"width": img.width, "height": img.height}
             except Exception:
@@ -571,8 +560,7 @@ def view_image_file(
     try:
         target_path = Path(path).resolve()
         if not target_path.exists():
-            raise HTTPException(
-                status_code=404, detail=f"Image file not found: {path}")
+            raise HTTPException(status_code=404, detail=f"Image file not found: {path}")
 
         img_file = ImageFile(str(target_path))
         html = img_file.render_html(width=width)
@@ -601,8 +589,7 @@ def get_image_thumbnail(
     try:
         target_path = Path(path).resolve()
         if not target_path.exists():
-            raise HTTPException(
-                status_code=404, detail=f"Image file not found: {path}")
+            raise HTTPException(status_code=404, detail=f"Image file not found: {path}")
 
         img_file = ImageFile(str(target_path))
         html = img_file.render_thumb(width=width)
@@ -631,8 +618,7 @@ def get_text_info(
     try:
         target_path = Path(path).resolve()
         if not target_path.exists():
-            raise HTTPException(
-                status_code=404, detail=f"Text file not found: {path}")
+            raise HTTPException(status_code=404, detail=f"Text file not found: {path}")
 
         text_file = TextFile(str(target_path))
         text_file._load_impl()  # Load file content
@@ -641,8 +627,7 @@ def get_text_info(
             path=str(target_path),
             exists=text_file.exists,
             size=text_file.size if text_file.exists else None,
-            line_count=len(text_file.lines) if hasattr(
-                text_file, "lines") else None,
+            line_count=len(text_file.lines) if hasattr(text_file, "lines") else None,
             error=None,
         )
 
@@ -673,8 +658,7 @@ def view_text_file(
     try:
         target_path = Path(path).resolve()
         if not target_path.exists():
-            raise HTTPException(
-                status_code=404, detail=f"Text file not found: {path}")
+            raise HTTPException(status_code=404, detail=f"Text file not found: {path}")
 
         text_file = TextFile(str(target_path))
         text_file._load_impl()  # Load file content
@@ -746,8 +730,7 @@ def generate_qa_notebook_endpoint(request: QANotebookRequest):
     try:
         # Run QA
         thresholds = (
-            QaThresholds(**(request.thresholds or {})
-                         ) if request.thresholds else None
+            QaThresholds(**(request.thresholds or {})) if request.thresholds else None
         )
 
         qa_result = run_ms_qa(
@@ -806,8 +789,7 @@ def serve_notebook(notebook_path: str):
         raise
     except Exception as e:
         logger.exception(f"Error serving notebook {notebook_path}")
-        raise HTTPException(
-            status_code=500, detail=f"Error serving notebook: {str(e)}")
+        raise HTTPException(status_code=500, detail=f"Error serving notebook: {str(e)}")
 
 
 # ============================================================================
@@ -827,14 +809,17 @@ def browse_qa_directory(
     try:
         # browse_qa_outputs returns a DataDir, use it directly
         from dsa110_contimg.qa.visualization.datadir import DataDir
+
         qa_dir = DataDir(qa_root)
         qa_dir.rescan()
 
         entries = []
         from dsa110_contimg.qa.visualization.file import autodetect_file_type
+
         for item in qa_dir:
             file_type = autodetect_file_type(item.fullpath) or (
-                "directory" if item.isdir else "file")
+                "directory" if item.isdir else "file"
+            )
             entries.append(
                 DirectoryEntry(
                     name=item.basename,
@@ -842,8 +827,7 @@ def browse_qa_directory(
                     type=file_type,
                     size=item.size,
                     modified_time=(
-                        datetime.fromtimestamp(
-                            item.mtime) if item.mtime else None
+                        datetime.fromtimestamp(item.mtime) if item.mtime else None
                     ),
                     is_dir=item.is_dir,
                 )
@@ -872,8 +856,9 @@ def browse_qa_directory(
 class JS9AnalysisRequest(BaseModel):
     """Request for JS9 CASA analysis."""
 
-    task: str = Field(...,
-                      description="CASA task name (imstat, imfit, imview, specflux)")
+    task: str = Field(
+        ..., description="CASA task name (imstat, imfit, imview, specflux)"
+    )
     image_path: str = Field(..., description="Path to FITS image file")
     region: Optional[Dict[str, Any]] = Field(
         None, description="JS9 region object (optional, for region-based analysis)"
@@ -919,13 +904,11 @@ def js9_casa_analysis(request: JS9AnalysisRequest):
     try:
         # Create cache key
         import json as json_module
+
         region_str = (
-            json_module.dumps(request.region, sort_keys=True)
-            if request.region
-            else ""
+            json_module.dumps(request.region, sort_keys=True) if request.region else ""
         )
-        params_str = json_module.dumps(
-            request.parameters or {}, sort_keys=True)
+        params_str = json_module.dumps(request.parameters or {}, sort_keys=True)
         cache_key_data = (
             f"{request.task}:{request.image_path}:{region_str}:{params_str}"
         )
@@ -959,7 +942,15 @@ def js9_casa_analysis(request: JS9AnalysisRequest):
             )
 
         # Validate task name
-        valid_tasks = ["imstat", "imfit", "imview", "specflux", "imval", "imhead", "immath"]
+        valid_tasks = [
+            "imstat",
+            "imfit",
+            "imview",
+            "specflux",
+            "imval",
+            "imhead",
+            "immath",
+        ]
         if request.task not in valid_tasks:
             raise HTTPException(
                 status_code=400,
@@ -984,11 +975,14 @@ def js9_casa_analysis(request: JS9AnalysisRequest):
         )
 
         # Cache the result
-        _cache_result(cache_key, {
-            "success": True,
-            "result": result,
-            "error": None,
-        })
+        _cache_result(
+            cache_key,
+            {
+                "success": True,
+                "result": result,
+                "error": None,
+            },
+        )
 
         return response
 
@@ -1023,7 +1017,10 @@ def _cache_result(cache_key: str, result: Dict[str, Any]) -> None:
 
 
 def _execute_casa_task(
-    task: str, image_path: str, region: Optional[Dict[str, Any]], parameters: Dict[str, Any]
+    task: str,
+    image_path: str,
+    region: Optional[Dict[str, Any]],
+    parameters: Dict[str, Any],
 ) -> Dict[str, Any]:
     """
     Execute a CASA task on an image.
@@ -1059,7 +1056,9 @@ def _execute_casa_task(
         raise ValueError(f"Unsupported task: {task}")
 
 
-def _run_imstat(image_path: str, region: Optional[Dict[str, Any]], parameters: Dict[str, Any]) -> Dict[str, Any]:
+def _run_imstat(
+    image_path: str, region: Optional[Dict[str, Any]], parameters: Dict[str, Any]
+) -> Dict[str, Any]:
     """Run imstat CASA task."""
     from casatasks import imstat
 
@@ -1089,7 +1088,9 @@ def _run_imstat(image_path: str, region: Optional[Dict[str, Any]], parameters: D
     return result
 
 
-def _run_imfit(image_path: str, region: Optional[Dict[str, Any]], parameters: Dict[str, Any]) -> Dict[str, Any]:
+def _run_imfit(
+    image_path: str, region: Optional[Dict[str, Any]], parameters: Dict[str, Any]
+) -> Dict[str, Any]:
     """Run imfit CASA task for source fitting."""
     from casatasks import imfit
 
@@ -1104,7 +1105,9 @@ def _run_imfit(image_path: str, region: Optional[Dict[str, Any]], parameters: Di
     return {"fit": _convert_to_json_serializable(fit_result)}
 
 
-def _run_imview(image_path: str, region: Optional[Dict[str, Any]], parameters: Dict[str, Any]) -> Dict[str, Any]:
+def _run_imview(
+    image_path: str, region: Optional[Dict[str, Any]], parameters: Dict[str, Any]
+) -> Dict[str, Any]:
     """Run imview CASA task for contour generation."""
     import numpy as np
     from astropy.io import fits
@@ -1137,9 +1140,7 @@ def _run_imview(image_path: str, region: Optional[Dict[str, Any]], parameters: D
         max_val = float(np.nanmax(valid_data))
 
         # Generate contour levels (linear spacing)
-        contour_levels = (
-            np.linspace(min_val, max_val, n_levels + 2)[1:-1].tolist()
-        )
+        contour_levels = np.linspace(min_val, max_val, n_levels + 2)[1:-1].tolist()
 
         # Generate contour coordinates using matplotlib
         try:
@@ -1158,14 +1159,18 @@ def _run_imview(image_path: str, region: Optional[Dict[str, Any]], parameters: D
                 paths = []
                 for path in collection.get_paths():
                     vertices = path.vertices
-                    paths.append({
-                        "x": vertices[:, 0].tolist(),
-                        "y": vertices[:, 1].tolist(),
-                    })
-                contour_paths.append({
-                    "level": float(level),
-                    "paths": paths,
-                })
+                    paths.append(
+                        {
+                            "x": vertices[:, 0].tolist(),
+                            "y": vertices[:, 1].tolist(),
+                        }
+                    )
+                contour_paths.append(
+                    {
+                        "level": float(level),
+                        "paths": paths,
+                    }
+                )
 
             plt.close(fig)
 
@@ -1183,19 +1188,16 @@ def _run_imview(image_path: str, region: Optional[Dict[str, Any]], parameters: D
             if region:
                 region_str = _js9_region_to_casa(region)
 
-            stats = imstat(
-                imagename=image_path, region=region_str, **parameters
-            )
+            stats = imstat(imagename=image_path, region=region_str, **parameters)
             return {
                 "contour_data": _convert_to_json_serializable(stats),
-                "note": (
-                    "Matplotlib not available, "
-                    "returning statistics instead"
-                ),
+                "note": ("Matplotlib not available, " "returning statistics instead"),
             }
 
 
-def _run_specflux(image_path: str, region: Optional[Dict[str, Any]], parameters: Dict[str, Any]) -> Dict[str, Any]:
+def _run_specflux(
+    image_path: str, region: Optional[Dict[str, Any]], parameters: Dict[str, Any]
+) -> Dict[str, Any]:
     """Run spectral flux extraction."""
     from casatasks import imstat
 
@@ -1212,7 +1214,9 @@ def _run_specflux(image_path: str, region: Optional[Dict[str, Any]], parameters:
     }
 
 
-def _run_imval(image_path: str, region: Optional[Dict[str, Any]], parameters: Dict[str, Any]) -> Dict[str, Any]:
+def _run_imval(
+    image_path: str, region: Optional[Dict[str, Any]], parameters: Dict[str, Any]
+) -> Dict[str, Any]:
     """Run imval CASA task for pixel value extraction."""
     from casatasks import imval
 
@@ -1255,9 +1259,7 @@ def _run_imval(image_path: str, region: Optional[Dict[str, Any]], parameters: Di
                 if data.ndim > 2:
                     data = data.squeeze()
                     if data.ndim > 2:
-                        data = (
-                            data[0, 0] if data.ndim == 4 else data[0]
-                        )
+                        data = data[0, 0] if data.ndim == 4 else data[0]
 
                 # If region provided, extract values from region
                 if region:
@@ -1268,14 +1270,18 @@ def _run_imval(image_path: str, region: Optional[Dict[str, Any]], parameters: Di
                     from astropy.wcs import WCS
 
                     wcs = WCS(hdul[0].header)
-                    region_data = type("RegionData", (), {
-                        "type": region.get("shape", "circle"),
-                        "coordinates": {
-                            "ra_deg": region.get("ra", 0),
-                            "dec_deg": region.get("dec", 0),
-                            "radius_deg": region.get("r", 1),
+                    region_data = type(
+                        "RegionData",
+                        (),
+                        {
+                            "type": region.get("shape", "circle"),
+                            "coordinates": {
+                                "ra_deg": region.get("ra", 0),
+                                "dec_deg": region.get("dec", 0),
+                                "radius_deg": region.get("r", 1),
+                            },
                         },
-                    })()
+                    )()
 
                     mask = create_region_mask(
                         data.shape, region_data, wcs, hdul[0].header
@@ -1288,28 +1294,25 @@ def _run_imval(image_path: str, region: Optional[Dict[str, Any]], parameters: Di
                 return {
                     "values": values,
                     "shape": list(data.shape),
-                    "note": (
-                        "Extracted directly from FITS file "
-                        "(imval fallback)"
-                    ),
+                    "note": ("Extracted directly from FITS file " "(imval fallback)"),
                 }
         except Exception as e2:
             return {
-                "error": (
-                    f"Failed to extract pixel values: {str(e2)}"
-                ),
+                "error": (f"Failed to extract pixel values: {str(e2)}"),
                 "original_error": str(e),
             }
 
 
-def _run_imhead(image_path: str, region: Optional[Dict[str, Any]], parameters: Dict[str, Any]) -> Dict[str, Any]:
+def _run_imhead(
+    image_path: str, region: Optional[Dict[str, Any]], parameters: Dict[str, Any]
+) -> Dict[str, Any]:
     """Run imhead CASA task to get image header information."""
     from casatasks import imhead
-    
+
     try:
         # Get mode (list, get, put)
         mode = parameters.get("mode", "list")
-        
+
         if mode == "list":
             # List all header keywords
             header_info = imhead(imagename=image_path, mode="list")
@@ -1321,19 +1324,19 @@ def _run_imhead(image_path: str, region: Optional[Dict[str, Any]], parameters: D
             header_info = imhead(imagename=image_path, mode="get", hdkey=keyword)
         else:
             return {"error": f"Unsupported mode: {mode}"}
-        
+
         return {"header": _convert_to_json_serializable(header_info)}
     except Exception as e:
         # Fallback: read header directly from FITS
         try:
             from astropy.io import fits
-            
+
             with fits.open(image_path) as hdul:
                 header = hdul[0].header
                 header_dict = {}
                 for key, value in header.items():
                     # Skip COMMENT and HISTORY cards
-                    if key not in ['COMMENT', 'HISTORY']:
+                    if key not in ["COMMENT", "HISTORY"]:
                         try:
                             # Try to convert to JSON-serializable types
                             if isinstance(value, (int, float, str, bool)):
@@ -1342,55 +1345,58 @@ def _run_imhead(image_path: str, region: Optional[Dict[str, Any]], parameters: D
                                 header_dict[key] = str(value)
                         except Exception:
                             header_dict[key] = str(value)
-                
+
                 return {
                     "header": header_dict,
-                    "note": "Extracted directly from FITS file (imhead fallback)"
+                    "note": "Extracted directly from FITS file (imhead fallback)",
                 }
         except Exception as e2:
             return {
                 "error": f"Failed to extract header: {str(e2)}",
-                "original_error": str(e)
+                "original_error": str(e),
             }
 
 
-def _run_immath(image_path: str, region: Optional[Dict[str, Any]], parameters: Dict[str, Any]) -> Dict[str, Any]:
+def _run_immath(
+    image_path: str, region: Optional[Dict[str, Any]], parameters: Dict[str, Any]
+) -> Dict[str, Any]:
     """Run immath CASA task for image arithmetic operations."""
     from casatasks import immath
     import tempfile
     import os
-    
+
     try:
         # Get expression and output name
         expr = parameters.get("expr", None)
         if not expr:
             return {"error": "expr parameter required for immath"}
-        
+
         # Create temporary output file
         output_path = parameters.get("output", None)
         if not output_path:
             # Generate temporary filename
             temp_dir = tempfile.gettempdir()
             output_path = os.path.join(temp_dir, f"immath_temp_{os.getpid()}.fits")
-        
+
         # Run immath
         immath(
             imagename=image_path,
             expr=expr,
             outfile=output_path,
-            **{k: v for k, v in parameters.items() if k not in ["expr", "output"]}
+            **{k: v for k, v in parameters.items() if k not in ["expr", "output"]},
         )
-        
+
         # Read result statistics
         from casatasks import imstat
+
         stats = imstat(imagename=output_path)
-        
+
         result = {
             "output_path": output_path,
             "statistics": _convert_to_json_serializable(stats),
-            "expression": expr
+            "expression": expr,
         }
-        
+
         # Clean up temporary file if we created it
         if not parameters.get("output") and os.path.exists(output_path):
             try:
@@ -1398,12 +1404,10 @@ def _run_immath(image_path: str, region: Optional[Dict[str, Any]], parameters: D
                 result["note"] = "Temporary output file cleaned up"
             except Exception:
                 result["note"] = "Temporary output file preserved"
-        
+
         return result
     except Exception as e:
-        return {
-            "error": f"Failed to execute immath: {str(e)}"
-        }
+        return {"error": f"Failed to execute immath: {str(e)}"}
 
 
 def _js9_region_to_casa(region: Dict[str, Any]) -> str:
@@ -1457,6 +1461,7 @@ def _convert_to_json_serializable(obj: Any) -> Any:
 
 # Demo/Viewer Page
 # ============================================================================
+
 
 @router.get("/viewer", response_class=HTMLResponse)
 def visualization_viewer():

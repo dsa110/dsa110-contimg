@@ -117,11 +117,13 @@ def cross_match_sources(
         return pd.DataFrame()
 
     # Build results DataFrame
-    results = pd.DataFrame({
-        "detected_idx": np.where(match_mask)[0],
-        "catalog_idx": idx[match_mask],
-        "separation_arcsec": sep_arcsec[match_mask],
-    })
+    results = pd.DataFrame(
+        {
+            "detected_idx": np.where(match_mask)[0],
+            "catalog_idx": idx[match_mask],
+            "separation_arcsec": sep_arcsec[match_mask],
+        }
+    )
 
     # Calculate RA/Dec offsets
     matched_detected = detected_coords[match_mask]
@@ -140,13 +142,9 @@ def cross_match_sources(
     if catalog_flux is not None:
         results["catalog_flux"] = catalog_flux[results["catalog_idx"].values]
     if detected_flux_err is not None:
-        results["detected_flux_err"] = detected_flux_err[
-            results["detected_idx"].values
-        ]
+        results["detected_flux_err"] = detected_flux_err[results["detected_idx"].values]
     if catalog_flux_err is not None:
-        results["catalog_flux_err"] = catalog_flux_err[
-            results["catalog_idx"].values
-        ]
+        results["catalog_flux_err"] = catalog_flux_err[results["catalog_idx"].values]
 
     # Add IDs if provided
     if detected_ids is not None:
@@ -156,13 +154,9 @@ def cross_match_sources(
 
     # Calculate flux ratio if both fluxes provided
     if detected_flux is not None and catalog_flux is not None:
-        results["flux_ratio"] = (
-            results["detected_flux"] / results["catalog_flux"]
-        )
+        results["flux_ratio"] = results["detected_flux"] / results["catalog_flux"]
 
-    logger.info(
-        f"Cross-matched {n_matched} sources within {radius_arcsec} arcsec"
-    )
+    logger.info(f"Cross-matched {n_matched} sources within {radius_arcsec} arcsec")
 
     return results
 
@@ -206,24 +200,36 @@ def cross_match_dataframes(
         catalog_ra=catalog_df[catalog_ra_col].values,
         catalog_dec=catalog_df[catalog_dec_col].values,
         radius_arcsec=radius_arcsec,
-        detected_flux=detected_df[detected_flux_col].values
-        if detected_flux_col and detected_flux_col in detected_df.columns
-        else None,
-        catalog_flux=catalog_df[catalog_flux_col].values
-        if catalog_flux_col and catalog_flux_col in catalog_df.columns
-        else None,
-        detected_flux_err=detected_df.get("flux_err_jy")
-        if "flux_err_jy" in detected_df.columns
-        else None,
-        catalog_flux_err=catalog_df.get("flux_err_mjy")
-        if "flux_err_mjy" in catalog_df.columns
-        else None,
-        detected_ids=detected_df[detected_id_col].values
-        if detected_id_col and detected_id_col in detected_df.columns
-        else None,
-        catalog_ids=catalog_df[catalog_id_col].values
-        if catalog_id_col and catalog_id_col in catalog_df.columns
-        else None,
+        detected_flux=(
+            detected_df[detected_flux_col].values
+            if detected_flux_col and detected_flux_col in detected_df.columns
+            else None
+        ),
+        catalog_flux=(
+            catalog_df[catalog_flux_col].values
+            if catalog_flux_col and catalog_flux_col in catalog_df.columns
+            else None
+        ),
+        detected_flux_err=(
+            detected_df.get("flux_err_jy")
+            if "flux_err_jy" in detected_df.columns
+            else None
+        ),
+        catalog_flux_err=(
+            catalog_df.get("flux_err_mjy")
+            if "flux_err_mjy" in catalog_df.columns
+            else None
+        ),
+        detected_ids=(
+            detected_df[detected_id_col].values
+            if detected_id_col and detected_id_col in detected_df.columns
+            else None
+        ),
+        catalog_ids=(
+            catalog_df[catalog_id_col].values
+            if catalog_id_col and catalog_id_col in catalog_df.columns
+            else None
+        ),
     )
 
 
@@ -285,7 +291,7 @@ def calculate_flux_scale(
 
     # Flux correction is inverse of ratio
     flux_corr = 1.0 / median_ratio
-    flux_corr_err = mad_ratio / (median_ratio ** 2)
+    flux_corr_err = mad_ratio / (median_ratio**2)
 
     # Ensure std_dev is never exactly 0 to avoid uncertainties warning
     # Use a small epsilon if MAD is zero (all ratios identical)
@@ -349,9 +355,11 @@ def multi_catalog_match(
     """
     detected_coords = SkyCoord(detected_ra * u.deg, detected_dec * u.deg)
 
-    results = pd.DataFrame({
-        "detected_idx": np.arange(len(detected_ra)),
-    })
+    results = pd.DataFrame(
+        {
+            "detected_idx": np.arange(len(detected_ra)),
+        }
+    )
 
     best_separations = np.full(len(detected_ra), np.inf)
     best_catalogs = np.full(len(detected_ra), "", dtype=object)
@@ -398,9 +406,7 @@ def multi_catalog_match(
     results["best_separation_arcsec"] = best_separations
 
     n_matched = np.sum(best_separations < np.inf)
-    logger.info(
-        f"Multi-catalog match: {n_matched}/{len(detected_ra)} sources matched"
-    )
+    logger.info(f"Multi-catalog match: {n_matched}/{len(detected_ra)} sources matched")
 
     return results
 
@@ -440,7 +446,10 @@ def identify_duplicate_catalog_sources(
 
         for idx, row in matches_df.iterrows():
             # Get catalog source position
-            if "catalog_ra_deg" in matches_df.columns and "catalog_dec_deg" in matches_df.columns:
+            if (
+                "catalog_ra_deg" in matches_df.columns
+                and "catalog_dec_deg" in matches_df.columns
+            ):
                 ra = row["catalog_ra_deg"]
                 dec = row["catalog_dec_deg"]
             elif "ra_deg" in matches_df.columns and "dra_arcsec" in matches_df.columns:
@@ -450,13 +459,11 @@ def identify_duplicate_catalog_sources(
             else:
                 continue
 
-            catalog_source_id = row.get(
-                "catalog_source_id", f"{catalog_type}_{idx}")
+            catalog_source_id = row.get("catalog_source_id", f"{catalog_type}_{idx}")
             entry_key = f"{catalog_type}:{catalog_source_id}"
 
             all_entries.append((ra, dec))
-            entry_to_catalog[len(all_entries) -
-                             1] = (catalog_type, catalog_source_id)
+            entry_to_catalog[len(all_entries) - 1] = (catalog_type, catalog_source_id)
 
     if len(all_entries) == 0:
         return {}

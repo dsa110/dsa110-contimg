@@ -131,8 +131,7 @@ def _peek_uvh5_phase_and_midtime(
                         height=OVRO_LOCATION.height,
                     )
                     tref = Time(mid_jd, format="jd")
-                    lst = tref.sidereal_time(
-                        "apparent", longitude=location.lon)
+                    lst = tref.sidereal_time("apparent", longitude=location.lon)
 
                     # Calculate RA: RA = LST - HA
                     ha_rad = float(val_ha)  # HA is in radians
@@ -229,8 +228,7 @@ def find_subband_groups(
     for i in range(len(times_sec)):
         if used[i]:
             continue
-        close_indices = np.where(
-            np.abs(times_sec - times_sec[i]) <= tolerance_s)[0]
+        close_indices = np.where(np.abs(times_sec - times_sec[i]) <= tolerance_s)[0]
         group_indices = [idx for idx in close_indices if not used[idx]]
 
         selected_files = [files[j] for j in group_indices]
@@ -325,7 +323,7 @@ def _load_and_merge_subbands(
 
         for i in range(0, len(sorted_file_list), batch_size):
             batch_num += 1
-            batch = sorted_file_list[i: i + batch_size]
+            batch = sorted_file_list[i : i + batch_size]
 
             if show_progress:
                 logger.info(
@@ -435,15 +433,13 @@ def _load_and_merge_subbands_single_batch(
                         ]
                         raise ValidationError(
                             errors=[f"Invalid HDF5 structure: {path}"],
-                            context={"path": str(
-                                path), "operation": "file validation"},
+                            context={"path": str(path), "operation": "file validation"},
                             suggestion="Check file format and structure. Re-run conversion if file is corrupted.",
                         )
             except Exception as e:
                 raise ValidationError(
                     errors=[f"File validation failed: {e}"],
-                    context={"path": str(
-                        path), "operation": "file validation"},
+                    context={"path": str(path), "operation": "file validation"},
                     suggestion="Verify file is a valid UVH5/HDF5 file. Check file format and structure. Review detailed error logs.",
                 ) from e
 
@@ -480,8 +476,7 @@ def _load_and_merge_subbands_single_batch(
     if len(acc) > 1:
         uv.fast_concat(acc[1:], axis="freq", inplace=True, run_check=False)
     logger.debug(
-        "Concatenated %d subbands in %.2fs", len(
-            acc), time.perf_counter() - t_cat0
+        "Concatenated %d subbands in %.2fs", len(acc), time.perf_counter() - t_cat0
     )
     uv.reorder_freqs(channel_order="freq", run_check=False)
     return uv
@@ -568,22 +563,19 @@ def convert_subband_groups_to_ms(
         ]
         raise ValidationError(
             errors=[f"Input directory does not exist: {input_dir}"],
-            context={"input_dir": input_dir,
-                     "operation": "directory validation"},
+            context={"input_dir": input_dir, "operation": "directory validation"},
             suggestion="Verify directory exists. Check file system permissions.",
         )
     if not os.path.isdir(input_dir):
         raise ValidationError(
             errors=[f"Input path is not a directory: {input_dir}"],
-            context={"input_dir": input_dir,
-                     "operation": "directory validation"},
+            context={"input_dir": input_dir, "operation": "directory validation"},
             suggestion="Verify path is a directory, not a file. Check input path is correct.",
         )
     if not os.access(input_dir, os.R_OK):
         raise ValidationError(
             errors=[f"Input directory is not readable: {input_dir}"],
-            context={"input_dir": input_dir,
-                     "operation": "directory validation"},
+            context={"input_dir": input_dir, "operation": "directory validation"},
             suggestion="Check file system permissions. Verify read access to input directory. Check SELinux/AppArmor restrictions if applicable.",
         )
 
@@ -651,8 +643,7 @@ def convert_subband_groups_to_ms(
                 "Check SELinux/AppArmor restrictions if applicable",
             ]
             error_msg = format_file_error_with_suggestions(
-                PermissionError(
-                    f"Scratch directory is not writable: {scratch_dir}"),
+                PermissionError(f"Scratch directory is not writable: {scratch_dir}"),
                 scratch_dir,
                 "directory validation",
                 suggestions,
@@ -674,8 +665,7 @@ def convert_subband_groups_to_ms(
     except Exception as e:
         if isinstance(e, ValueError) and "Invalid time range" in str(e):
             raise
-        logger.warning(
-            f"Failed to validate time range (proceeding anyway): {e}")
+        logger.warning(f"Failed to validate time range (proceeding anyway): {e}")
 
     groups = find_subband_groups(input_dir, start_time, end_time)
     if not groups:
@@ -900,8 +890,7 @@ def convert_subband_groups_to_ms(
                 env_var="CONTIMG_DISABLE_PROGRESS",
             )
 
-            uv = _load_and_merge_subbands(
-                file_list, show_progress=show_progress)
+            uv = _load_and_merge_subbands(file_list, show_progress=show_progress)
             logger.info(
                 "Loaded and merged %d subbands in %.2fs",
                 len(file_list),
@@ -917,11 +906,9 @@ def convert_subband_groups_to_ms(
                     os.getenv("PIPELINE_TELESCOPE_NAME", "DSA_110"),
                 )
             except Exception:
-                logger.debug(
-                    "set_telescope_identity best-effort failed", exc_info=True)
+                logger.debug("set_telescope_identity best-effort failed", exc_info=True)
             pt_dec, phase_ra, phase_dec = _set_phase_and_uvw(uv)
-            logger.info("Phased and updated UVW in %.2fs",
-                        time.perf_counter() - t1)
+            logger.info("Phased and updated UVW in %.2fs", time.perf_counter() - t1)
         else:
             _, pt_dec, mid_mjd = _peek_uvh5_phase_and_midtime(file_list[0])
             if not np.isfinite(mid_mjd) or mid_mjd == 0.0:
@@ -935,10 +922,8 @@ def convert_subband_groups_to_ms(
                     run_check_acceptability=False,
                     strict_uvw_antpos_check=False,
                 )
-                pt_dec = temp_uv.extra_keywords.get(
-                    "phase_center_dec", 0.0) * u.rad
-                mid_mjd = Time(
-                    float(np.mean(temp_uv.time_array)), format="jd").mjd
+                pt_dec = temp_uv.extra_keywords.get("phase_center_dec", 0.0) * u.rad
+                mid_mjd = Time(float(np.mean(temp_uv.time_array)), format="jd").mjd
                 del temp_uv
             phase_ra, phase_dec = get_meridian_coords(pt_dec, mid_mjd)
 
@@ -957,8 +942,7 @@ def convert_subband_groups_to_ms(
                 sb_num = int(sb.replace("sb", "")) if sb else 999
                 return sb_num
 
-            sorted_file_list = sorted(
-                file_list, key=sort_by_subband, reverse=True)
+            sorted_file_list = sorted(file_list, key=sort_by_subband, reverse=True)
 
             # CRITICAL FIX: Create a copy of writer_kwargs for each iteration
             # to prevent file_list from being shared between groups.
@@ -1035,13 +1019,13 @@ def convert_subband_groups_to_ms(
                     from dsa110_contimg.conversion.ms_utils import (
                         _fix_field_phase_centers_from_times,
                     )
+
                     _fix_field_phase_centers_from_times(ms_path)
-                    logger.info(
-                        "Fixed FIELD table phase centers after concatenation")
+                    logger.info("Fixed FIELD table phase centers after concatenation")
                 except Exception as e:
                     logger.error(
                         f"CRITICAL: Failed to fix phase centers before validation: {e}",
-                        exc_info=True
+                        exc_info=True,
                     )
                     # Phase center fixing failure is critical - re-raise to fail conversion
                     raise RuntimeError(
@@ -1056,8 +1040,7 @@ def convert_subband_groups_to_ms(
                 # and skip the strict coherence check. If it doesn't detect time-dependent
                 # phasing, it will raise RuntimeError, which we should handle gracefully.
                 try:
-                    validate_phase_center_coherence(
-                        ms_path, tolerance_arcsec=2.0)
+                    validate_phase_center_coherence(ms_path, tolerance_arcsec=2.0)
                     logger.debug("Phase center coherence validation passed")
                 except RuntimeError as e:
                     # Check if this is time-dependent phasing (expected) vs actual error
@@ -1069,8 +1052,10 @@ def convert_subband_groups_to_ms(
                         # If phase centers are separated by large amounts (>1 arcmin), it's
                         # likely time-dependent phasing, not an error
                         import re
+
                         separation_match = re.search(
-                            r'Maximum separation: ([\d.]+) arcsec', error_msg)
+                            r"Maximum separation: ([\d.]+) arcsec", error_msg
+                        )
                         if separation_match:
                             max_sep = float(separation_match.group(1))
                             # If separation is > 1 arcmin (60 arcsec), likely time-dependent phasing
@@ -1109,8 +1094,7 @@ def convert_subband_groups_to_ms(
                 # CRITICAL: Validate antenna positions to prevent calibration decorrelation
                 # Position errors cause systematic phase errors and flagged solutions
                 try:
-                    validate_antenna_positions(
-                        ms_path, position_tolerance_m=0.05)
+                    validate_antenna_positions(ms_path, position_tolerance_m=0.05)
                 except RuntimeError as e:
                     # Position errors are critical for calibration
                     logger.error(f"CRITICAL: {e}")
@@ -1132,10 +1116,12 @@ def convert_subband_groups_to_ms(
             # Verify MS is readable and has required structure
             # Ensure CASAPATH is set before importing CASA modules
             from dsa110_contimg.utils.casa_init import ensure_casa_path
+
             ensure_casa_path()
 
             try:
                 import casacore.tables as casatables
+
                 table = casatables.table  # noqa: N816
 
                 with table(ms_path, readonly=True) as tb:
@@ -1155,10 +1141,8 @@ def convert_subband_groups_to_ms(
                         raise RuntimeError(error_msg)
 
                     # Verify required columns exist
-                    required_cols = ["DATA", "ANTENNA1",
-                                     "ANTENNA2", "TIME", "UVW"]
-                    missing_cols = [
-                        c for c in required_cols if c not in tb.colnames()]
+                    required_cols = ["DATA", "ANTENNA1", "ANTENNA2", "TIME", "UVW"]
+                    missing_cols = [c for c in required_cols if c not in tb.colnames()]
                     if missing_cols:
                         suggestions = [
                             "Check conversion writer implementation",
@@ -1397,8 +1381,7 @@ def add_args(p: argparse.ArgumentParser) -> None:
     p.add_argument(
         "--flux", type=float, help="Optional flux in Jy to write to MODEL_DATA."
     )
-    p.add_argument("--scratch-dir",
-                   help="Scratch directory for temporary files.")
+    p.add_argument("--scratch-dir", help="Scratch directory for temporary files.")
     p.add_argument(
         "--max-workers",
         type=int,
@@ -1421,8 +1404,7 @@ def add_args(p: argparse.ArgumentParser) -> None:
         dest="stage_to_tmpfs",
         help="Disable tmpfs staging and use scratch directory only.",
     )
-    p.add_argument("--tmpfs-path", default="/dev/shm",
-                   help="Path to tmpfs (RAM disk).")
+    p.add_argument("--tmpfs-path", default="/dev/shm", help="Path to tmpfs (RAM disk).")
     p.add_argument(
         "--merge-spws",
         action="store_true",
@@ -1441,8 +1423,7 @@ def add_args(p: argparse.ArgumentParser) -> None:
         help="Logging level.",
     )
     # Utility flags
-    utility_group = p.add_argument_group(
-        "utility", "Utility and debugging options")
+    utility_group = p.add_argument_group("utility", "Utility and debugging options")
     utility_group.add_argument(
         "--find-only",
         action="store_true",
@@ -1551,8 +1532,7 @@ def main(args: Optional[argparse.Namespace] = None) -> int:
 
                 if is_date_only:
                     # Optimize: Calculate transit for specific date instead of searching all dates
-                    logger.info(
-                        f"Calculating transit for date: {args.transit_date}")
+                    logger.info(f"Calculating transit for date: {args.transit_date}")
 
                     # Load RA/Dec for calibrator
                     ra_deg, dec_deg = service._load_radec(args.calibrator)
@@ -1628,8 +1608,7 @@ def main(args: Optional[argparse.Namespace] = None) -> int:
                 else:
                     # Full ISO time provided, use it directly
                     transit_time = transit_time_parsed
-                    logger.info(
-                        f"Using provided transit time: {transit_time.isot}")
+                    logger.info(f"Using provided transit time: {transit_time.isot}")
 
             # If we don't have transit_info yet, call find_transit
             if transit_info is None:
@@ -1696,8 +1675,7 @@ def main(args: Optional[argparse.Namespace] = None) -> int:
                     return sb_num
 
                 for i, fpath in enumerate(
-                    sorted(transit_info.get("files", []),
-                           key=sort_key_files), 1
+                    sorted(transit_info.get("files", []), key=sort_key_files), 1
                 ):
                     logger.info(f"  {i:2d}. {os.path.basename(fpath)}")
                 logger.info(f"\nTime Window:")
@@ -1745,8 +1723,7 @@ def main(args: Optional[argparse.Namespace] = None) -> int:
         groups = find_subband_groups(args.input_dir, start_time, end_time)
         logger.info(f"\nWould convert {len(groups)} group(s):")
         for i, file_list in enumerate(groups, 1):
-            first_file = os.path.basename(
-                file_list[0]) if file_list else "unknown"
+            first_file = os.path.basename(file_list[0]) if file_list else "unknown"
             base_name = os.path.splitext(first_file)[0].split("_sb")[0]
             ms_path = os.path.join(args.output_dir, f"{base_name}.ms")
             logger.info(
@@ -1758,8 +1735,7 @@ def main(args: Optional[argparse.Namespace] = None) -> int:
         try:
             from dsa110_contimg.utils.validation import validate_directory
 
-            validate_directory(
-                args.output_dir, must_exist=False, must_writable=True)
+            validate_directory(args.output_dir, must_exist=False, must_writable=True)
             if args.scratch_dir:
                 validate_directory(
                     args.scratch_dir, must_exist=False, must_writable=True
@@ -1772,8 +1748,7 @@ def main(args: Optional[argparse.Namespace] = None) -> int:
                 logger.error(f"  ✗ Validation failed: {', '.join(e.errors)}")
             else:
                 logger.error(f"  ✗ Validation failed: {e}")
-        logger.info(
-            "\nDry-run complete. Use without --dry-run to perform conversion.")
+        logger.info("\nDry-run complete. Use without --dry-run to perform conversion.")
         return 0
 
     writer_kwargs = {"max_workers": args.max_workers}

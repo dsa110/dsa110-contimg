@@ -24,7 +24,7 @@ logger = logging.getLogger(__name__)
 
 class QualityThresholds:
     """Quality thresholds for pipeline products.
-    
+
     DEPRECATED: Use QAConfig from dsa110_contimg.qa.config instead.
     This class is kept for backward compatibility but will be removed in a future version.
     """
@@ -81,7 +81,7 @@ def check_ms_after_conversion(
     """
     if config is None:
         config = get_default_config()
-    
+
     logger.info(f"Checking MS quality after conversion: {ms_path}")
 
     if quick_check_only:
@@ -167,7 +167,7 @@ def check_calibration_quality(
     """
     if config is None:
         config = get_default_config()
-    
+
     logger.info(f"Checking calibration quality: {len(caltables)} tables")
 
     all_passed = True
@@ -227,10 +227,12 @@ def check_calibration_quality(
     if ms_path and os.path.exists(ms_path):
         # Ensure CASAPATH is set before importing CASA modules
         from dsa110_contimg.utils.casa_init import ensure_casa_path
+
         ensure_casa_path()
 
         try:
             import casacore.tables as casatables
+
             table = casatables.table  # noqa: N816
 
             with table(ms_path, readonly=True, ack=False) as tb:
@@ -298,7 +300,7 @@ def check_image_quality(
     """
     if config is None:
         config = get_default_config()
-    
+
     logger.info(f"Checking image quality: {image_path}")
 
     if quick_check_only:

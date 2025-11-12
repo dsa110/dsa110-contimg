@@ -184,6 +184,7 @@ class StreamingMosaicManager:
         # Pipeline configuration (optional, for cross-matching and other stages)
         if config is None:
             from dsa110_contimg.pipeline.config import PipelineConfig
+
             try:
                 self.config = PipelineConfig.from_env(validate_paths=False)
             except Exception:
@@ -471,7 +472,7 @@ class StreamingMosaicManager:
         ms_paths_with_time = [(row[1], row[0]) for row in valid_rows]
         # Sort by mid_mjd to ensure chronological order (should already be sorted, but enforce it)
         ms_paths_with_time.sort(key=lambda x: x[0])
-        
+
         # CRITICAL: Validate that MS files are sequential 5-minute observation chunks at the same declination
         # Each MS file represents a 5-minute observation, so consecutive files must be ~5 minutes apart
         # and all files must be at the same declination (within tolerance)
@@ -481,7 +482,7 @@ class StreamingMosaicManager:
                 f"Need exactly 10 neighboring 5-minute observations at the same Dec. Skipping group formation."
             )
             return None
-        
+
         # CRITICAL: Validate total time span is reasonable for mosaic
         # 10 files × 5 minutes = 50 minutes ideal, allow up to 60 minutes total span
         if not self._validate_total_time_span(ms_paths_with_time):
@@ -490,7 +491,7 @@ class StreamingMosaicManager:
                 f"Need contiguous observations within 60 minutes. Skipping group formation."
             )
             return None
-        
+
         ms_paths = [path for _, path in ms_paths_with_time]
         # Store paths in chronological order (comma-separated)
         ms_paths_str = ",".join(ms_paths)
@@ -506,25 +507,29 @@ class StreamingMosaicManager:
         # Create new group with collision-resistant ID
         # Use hash of MS paths + timestamp to prevent collisions and ensure uniqueness
         import hashlib
+
         ms_paths_hash = hashlib.sha256(ms_paths_str.encode()).hexdigest()[:12]
-        timestamp = int(time.time() * 1000000)  # Include microseconds for collision prevention
+        timestamp = int(
+            time.time() * 1000000
+        )  # Include microseconds for collision prevention
         group_id = f"group_{ms_paths_hash}_{timestamp}"
-        
+
         # CRITICAL: Check for duplicate group_id (shouldn't happen, but safeguard)
         existing_id = self.products_db.execute(
             "SELECT group_id FROM mosaic_groups WHERE group_id = ?",
             (group_id,),
         ).fetchone()
-        
+
         if existing_id:
             # Collision detected - add random suffix
             import random
+
             suffix = random.randint(1000, 9999)
             group_id = f"group_{ms_paths_hash}_{timestamp}_{suffix}"
             logger.warning(
                 f"Group ID collision detected, using alternative ID: {group_id}"
             )
-        
+
         self.products_db.execute(
             """
             INSERT INTO mosaic_groups (group_id, ms_paths, created_at, status)
@@ -578,12 +583,10 @@ class StreamingMosaicManager:
                     logger.warning(
                         f"Could not extract time from {ms_path}, using path order"
                     )
-                    ms_paths_with_time.append(
-                        (float("inf"), ms_path))  # Put at end
+                    ms_paths_with_time.append((float("inf"), ms_path))  # Put at end
             except Exception as e:
                 logger.warning(f"Error extracting time from {ms_path}: {e}")
-                ms_paths_with_time.append(
-                    (float("inf"), ms_path))  # Put at end
+                ms_paths_with_time.append((float("inf"), ms_path))  # Put at end
 
         # Sort by mid_mjd (chronological order)
         ms_paths_with_time.sort(key=lambda x: x[0])
@@ -595,38 +598,37 @@ class StreamingMosaicManager:
         self, ms_paths_with_time: List[Tuple[float, str]]
     ) -> bool:
         """Validate that MS files are sequential 5-minute observation chunks at the same declination.
-        
+
         Each MS file represents a 5-minute observation. This function ensures that:
         1. Consecutive MS files are less than 6 minutes apart
         2. All MS files are at the same declination (within tolerance for field tracking)
-        
+
         Args:
             ms_paths_with_time: List of (mid_mjd, path) tuples in chronological order
-            
+
         Returns:
             True if all consecutive MS files are ~5 minutes apart and at same Dec, False otherwise
         """
         if len(ms_paths_with_time) < 2:
             # Need at least 2 files to check spacing
             return len(ms_paths_with_time) == MS_PER_GROUP
-        
+
         # Maximum time difference: 6 minutes = 6/60/24 days = 0.004166667... days
         # Consecutive MS files must be less than 6 minutes apart
         max_diff_days = 6.0 / 60.0 / 24.0  # 6 minutes in days
-        
+
         # Extract declinations from all MS files
         dec_degrees = []
         for mid_mjd, ms_path in ms_paths_with_time:
             try:
                 import casacore.tables as casatables
+
                 table = casatables.table  # noqa: N816
-                
+
                 t = table(ms_path)
                 field_table = t.getkeyword("FIELD")
                 # Get mean declination across all fields in the MS (in radians)
-                dec_rad = np.mean(
-                    [f["REFERENCE_DIR"][0][1] for f in field_table]
-                )
+                dec_rad = np.mean([f["REFERENCE_DIR"][0][1] for f in field_table])
                 dec_deg = dec_rad * 180.0 / np.pi
                 dec_degrees.append(dec_deg)
                 t.close()
@@ -635,14 +637,14 @@ class StreamingMosaicManager:
                     f"Failed to extract declination from {Path(ms_path).name}: {e}"
                 )
                 return False
-        
+
         if len(dec_degrees) != len(ms_paths_with_time):
             logger.debug(
                 f"Could not extract declination from all MS files. "
                 f"Extracted {len(dec_degrees)}/{len(ms_paths_with_time)} declinations."
             )
             return False
-        
+
         # Check that all declinations are the same (within tolerance)
         # Tolerance: ±0.1 degrees (~6 arcminutes) to account for field tracking variations
         dec_tolerance_deg = 0.1
@@ -657,25 +659,29 @@ class StreamingMosaicManager:
                     f"tolerance: ±{dec_tolerance_deg:.6f}°)"
                 )
                 return False
-        
+
         # Check spacing between consecutive MS files
         for i in range(len(ms_paths_with_time) - 1):
             mid_mjd_1 = ms_paths_with_time[i][0]
             mid_mjd_2 = ms_paths_with_time[i + 1][0]
             path_1 = ms_paths_with_time[i][1]
             path_2 = ms_paths_with_time[i + 1][1]
-            
+
             # Skip if either time is invalid (inf indicates extraction failure)
-            if not (mid_mjd_1 is not None and mid_mjd_2 is not None and 
-                    mid_mjd_1 != float("inf") and mid_mjd_2 != float("inf")):
+            if not (
+                mid_mjd_1 is not None
+                and mid_mjd_2 is not None
+                and mid_mjd_1 != float("inf")
+                and mid_mjd_2 != float("inf")
+            ):
                 logger.debug(
                     f"Invalid time extracted from MS files, cannot validate spacing: "
                     f"{Path(path_1).name} or {Path(path_2).name}"
                 )
                 return False
-            
+
             diff_days = mid_mjd_2 - mid_mjd_1
-            
+
             if diff_days > max_diff_days:
                 # Calculate actual time difference in minutes for logging
                 diff_minutes = diff_days * 24.0 * 60.0
@@ -685,7 +691,7 @@ class StreamingMosaicManager:
                     f"(gap: {diff_minutes:.2f} minutes, must be < 6.00 minutes)"
                 )
                 return False
-        
+
         # All consecutive pairs are valid 5-minute chunks at the same declination
         logger.debug(
             f"Validated {len(ms_paths_with_time)} MS files: "
@@ -698,34 +704,38 @@ class StreamingMosaicManager:
         self, ms_paths_with_time: List[Tuple[float, str]]
     ) -> bool:
         """Validate total time span is reasonable for mosaic creation.
-        
+
         For 10 sequential 5-minute observations, total span should be:
         - Ideal: 50 minutes (10 × 5 minutes)
         - Maximum: 60 minutes (allowing for small gaps)
-        
+
         Args:
             ms_paths_with_time: List of (mid_mjd, path) tuples in chronological order
-            
+
         Returns:
             True if total time span is within limits, False otherwise
         """
         if len(ms_paths_with_time) < 2:
             return True
-        
+
         first_time = ms_paths_with_time[0][0]
         last_time = ms_paths_with_time[-1][0]
-        
+
         # Skip if times are invalid
-        if (first_time == float("inf") or last_time == float("inf") or
-            first_time is None or last_time is None):
+        if (
+            first_time == float("inf")
+            or last_time == float("inf")
+            or first_time is None
+            or last_time is None
+        ):
             return False
-        
+
         total_span_days = last_time - first_time
         total_span_minutes = total_span_days * 24.0 * 60.0
-        
+
         # Maximum span: 60 minutes (10 files × 5 minutes + 10 minutes tolerance)
         max_span_minutes = 60.0
-        
+
         if total_span_minutes > max_span_minutes:
             logger.debug(
                 f"Total time span too large for mosaic: {total_span_minutes:.2f} minutes "
@@ -734,7 +744,7 @@ class StreamingMosaicManager:
                 f"Last: {Path(ms_paths_with_time[-1][1]).name}"
             )
             return False
-        
+
         return True
 
     def select_calibration_ms(self, ms_paths: List[str]) -> Optional[str]:
@@ -1070,7 +1080,8 @@ class StreamingMosaicManager:
             bp_table_path = registry_tables.get("BP", [])[0]
             if not Path(bp_table_path).exists():
                 logger.warning(
-                    f"BP table in registry does not exist on disk: {bp_table_path}")
+                    f"BP table in registry does not exist on disk: {bp_table_path}"
+                )
                 has_bp = False
 
         if has_g:
@@ -1088,10 +1099,12 @@ class StreamingMosaicManager:
             # Get observation Dec from calibration MS
             # Ensure CASAPATH is set before importing CASA modules
             from dsa110_contimg.utils.casa_init import ensure_casa_path
+
             ensure_casa_path()
 
             try:
                 import casacore.tables as casatables
+
                 table = casatables.table  # noqa: N816
 
                 t = table(calibration_ms_path)
@@ -1188,8 +1201,7 @@ class StreamingMosaicManager:
                             )
                             break
                     except Exception as e:
-                        logger.debug(
-                            f"Could not find calibrator in {ms_path}: {e}")
+                        logger.debug(f"Could not find calibrator in {ms_path}: {e}")
                         continue
 
                 # If not found via catalog search, try calibration MS directly
@@ -1433,8 +1445,7 @@ class StreamingMosaicManager:
                     )
                     # Look for BP tables with the expected naming pattern (_bpcal directory)
                     bp_table_path = (
-                        Path(table_prefix).parent /
-                        f"{table_prefix.name}_bpcal"
+                        Path(table_prefix).parent / f"{table_prefix.name}_bpcal"
                     )
                     if bp_table_path.exists() and bp_table_path.is_dir():
                         bp_tables_list = [str(bp_table_path)]
@@ -1511,8 +1522,7 @@ class StreamingMosaicManager:
                 )
 
                 if gain_tables and len(gain_tables) > 0:
-                    logger.info(
-                        f"Gain calibration solved successfully: {gain_tables}")
+                    logger.info(f"Gain calibration solved successfully: {gain_tables}")
 
                     # Register gain calibration tables with validity windows
                     # Validity: ±gain_validity_minutes around calibration MS observation time
@@ -1611,8 +1621,7 @@ class StreamingMosaicManager:
         ).fetchone()
 
         if row and row[1] == "calibrated" and row[2] == 1:
-            logger.info(
-                f"Calibration already applied to group {group_id}, skipping")
+            logger.info(f"Calibration already applied to group {group_id}, skipping")
             return True
 
         success_count = 0
@@ -1621,13 +1630,11 @@ class StreamingMosaicManager:
                 ms_path_obj = Path(ms_path)
                 _, _, mid_mjd = extract_ms_time_range(str(ms_path_obj))
                 if mid_mjd is None:
-                    logger.warning(
-                        f"Could not extract time from {ms_path}, skipping")
+                    logger.warning(f"Could not extract time from {ms_path}, skipping")
                     continue
 
                 # Query registry for valid calibration tables
-                applylist = get_active_applylist(
-                    self.registry_db_path, mid_mjd)
+                applylist = get_active_applylist(self.registry_db_path, mid_mjd)
 
                 if not applylist:
                     logger.warning(
@@ -1645,7 +1652,7 @@ class StreamingMosaicManager:
                         # CASA tables are directories - check for required files
                         if not (table_path_obj / "table.dat").exists():
                             missing_tables.append(table_path)
-                
+
                 if missing_tables:
                     logger.error(
                         f"CRITICAL: Calibration tables not found on filesystem for {ms_path}: "
@@ -1738,20 +1745,25 @@ class StreamingMosaicManager:
             for ms_path in ms_paths:
                 ms_path_obj = Path(ms_path)
                 img_basename = construct_image_basename(ms_path_obj)
-                imgroot = str(self.images_dir /
-                              img_basename.replace(".img", ""))
+                imgroot = str(self.images_dir / img_basename.replace(".img", ""))
                 pbcor_fits = f"{imgroot}-image-pb.fits"
                 pbcor_path = f"{imgroot}.pbcor"
                 image_path = f"{imgroot}.image"
-                if not (Path(pbcor_fits).exists() or Path(pbcor_path).exists() or Path(image_path).exists()):
+                if not (
+                    Path(pbcor_fits).exists()
+                    or Path(pbcor_path).exists()
+                    or Path(image_path).exists()
+                ):
                     all_exist = False
                     logger.warning(
-                        f"Database says imaged but image missing for {ms_path}, re-imaging")
+                        f"Database says imaged but image missing for {ms_path}, re-imaging"
+                    )
                     break
 
             if all_exist:
                 logger.info(
-                    f"Images already exist for group {group_id} (verified), skipping imaging")
+                    f"Images already exist for group {group_id} (verified), skipping imaging"
+                )
                 return True
             # If files missing, fall through to re-image
 
@@ -1765,17 +1777,19 @@ class StreamingMosaicManager:
 
                 ms_path_obj = Path(ms_path)
                 img_basename = construct_image_basename(ms_path_obj)
-                imgroot = str(self.images_dir /
-                              img_basename.replace(".img", ""))
+                imgroot = str(self.images_dir / img_basename.replace(".img", ""))
 
                 # Check if image already exists on disk
                 pbcor_fits = f"{imgroot}-image-pb.fits"
                 pbcor_path = f"{imgroot}.pbcor"
                 image_path = f"{imgroot}.image"
 
-                if Path(pbcor_fits).exists() or Path(pbcor_path).exists() or Path(image_path).exists():
-                    logger.debug(
-                        f"Image already exists for {ms_path}, skipping")
+                if (
+                    Path(pbcor_fits).exists()
+                    or Path(pbcor_path).exists()
+                    or Path(image_path).exists()
+                ):
+                    logger.debug(f"Image already exists for {ms_path}, skipping")
                     success_count += 1
                     continue
 
@@ -1961,7 +1975,7 @@ class StreamingMosaicManager:
                 f"All MS files must have corresponding images before mosaic creation."
             )
             return None
-        
+
         # Verify all image files are readable
         for image_path in image_paths:
             if not Path(image_path).exists():
@@ -1975,7 +1989,7 @@ class StreamingMosaicManager:
                     f"CRITICAL: Image path is not a valid file or directory: {image_path}"
                 )
                 return None
-        
+
         logger.debug(
             f"Validated {len(image_paths)} image files exist for group {group_id}"
         )
@@ -1992,10 +2006,18 @@ class StreamingMosaicManager:
         if row and row[1] == "completed":
             mosaic_path = row[0]
             # Verify mosaic file actually exists
-            if Path(mosaic_path).exists() or Path(mosaic_path.replace(".image", ".fits")).exists():
+            if (
+                Path(mosaic_path).exists()
+                or Path(mosaic_path.replace(".image", ".fits")).exists()
+            ):
                 logger.info(
-                    f"Mosaic already exists for group {group_id}: {mosaic_path}, skipping")
-                return mosaic_path if Path(mosaic_path).exists() else mosaic_path.replace(".image", ".fits")
+                    f"Mosaic already exists for group {group_id}: {mosaic_path}, skipping"
+                )
+                return (
+                    mosaic_path
+                    if Path(mosaic_path).exists()
+                    else mosaic_path.replace(".image", ".fits")
+                )
 
         # Generate mosaic
         # Construct mosaic ID using validated naming conventions
@@ -2038,21 +2060,21 @@ class StreamingMosaicManager:
 
             # Generate PNG visualization automatically
             try:
-                from dsa110_contimg.imaging.export import export_fits, save_png_from_fits
+                from dsa110_contimg.imaging.export import (
+                    export_fits,
+                    save_png_from_fits,
+                )
 
                 # If we have a CASA image but no FITS, export to FITS first
-                png_source_path = fits_path if Path(
-                    fits_path).exists() else None
+                png_source_path = fits_path if Path(fits_path).exists() else None
                 if not png_source_path:
-                    logger.info(
-                        "Exporting CASA image to FITS for PNG generation...")
+                    logger.info("Exporting CASA image to FITS for PNG generation...")
                     exported_fits = export_fits([mosaic_path])
                     if exported_fits:
                         png_source_path = exported_fits[0]
                         logger.info(f"Exported FITS: {png_source_path}")
                     else:
-                        logger.warning(
-                            "Failed to export FITS for PNG generation")
+                        logger.warning("Failed to export FITS for PNG generation")
 
                 # Generate PNG from FITS
                 if png_source_path:
@@ -2066,7 +2088,8 @@ class StreamingMosaicManager:
             except Exception as e:
                 # Don't fail the mosaic creation if PNG generation fails
                 logger.warning(
-                    f"PNG visualization generation failed (non-critical): {e}")
+                    f"PNG visualization generation failed (non-critical): {e}"
+                )
 
             # Update group status
             self.products_db.execute(
@@ -2149,14 +2172,14 @@ class StreamingMosaicManager:
             start_mjd = end_mjd = None
             if ms_paths:
                 try:
-                    first_start, _, first_mid = extract_ms_time_range(
-                        ms_paths[0])
+                    first_start, _, first_mid = extract_ms_time_range(ms_paths[0])
                     _, last_end, last_mid = extract_ms_time_range(ms_paths[-1])
                     start_mjd = first_start if first_start else first_mid
                     end_mjd = last_end if last_end else last_mid
                 except Exception as e:
                     logger.warning(
-                        f"Could not extract time range for mosaic metadata: {e}")
+                        f"Could not extract time range for mosaic metadata: {e}"
+                    )
 
             # Prepare metadata
             metadata = {
@@ -2181,8 +2204,7 @@ class StreamingMosaicManager:
             )
 
             if not success:
-                logger.error(
-                    f"Failed to register mosaic {mosaic_id} in data_registry")
+                logger.error(f"Failed to register mosaic {mosaic_id} in data_registry")
                 return False
 
             logger.info(f"Registered mosaic {mosaic_id} in data_registry")
@@ -2211,11 +2233,11 @@ class StreamingMosaicManager:
                     validation_status=validation_status,
                 )
                 if finalize_success:
-                    logger.info(
-                        f"Finalized mosaic {mosaic_id}, auto-publish triggered")
+                    logger.info(f"Finalized mosaic {mosaic_id}, auto-publish triggered")
                 else:
                     logger.warning(
-                        f"Finalization of mosaic {mosaic_id} did not trigger publish")
+                        f"Finalization of mosaic {mosaic_id} did not trigger publish"
+                    )
             finally:
                 conn.close()
 
@@ -2243,15 +2265,13 @@ class StreamingMosaicManager:
         # Get MS paths
         ms_paths = self.get_group_ms_paths(group_id)
         if len(ms_paths) < MS_PER_GROUP:
-            logger.warning(
-                f"Group {group_id} has only {len(ms_paths)} MS files")
+            logger.warning(f"Group {group_id} has only {len(ms_paths)} MS files")
             return False
 
         # Select calibration MS
         calibration_ms = self.select_calibration_ms(ms_paths)
         if not calibration_ms:
-            logger.error(
-                f"Could not select calibration MS for group {group_id}")
+            logger.error(f"Could not select calibration MS for group {group_id}")
             return False
 
         # Solve calibration
@@ -2290,8 +2310,7 @@ class StreamingMosaicManager:
                     "Continuing without cross-match results."
                 )
 
-        logger.info(
-            f"Successfully processed group {group_id}, mosaic: {mosaic_path}")
+        logger.info(f"Successfully processed group {group_id}, mosaic: {mosaic_path}")
         return True
 
     def get_last_group_overlap_ms(self) -> List[str]:
@@ -2358,8 +2377,7 @@ class StreamingMosaicManager:
                     logger.warning(f"Failed to remove {cal_table}: {e}")
 
         if removed:
-            logger.info(
-                f"Cleared calibration tables from {ms_path}: {removed}")
+            logger.info(f"Cleared calibration tables from {ms_path}: {removed}")
 
         # Update products database
         ms_index_upsert(
@@ -2392,8 +2410,7 @@ class StreamingMosaicManager:
         ).fetchall()
 
         # Filter out overlap MS and get new MS
-        new_ms = [(row[0], row[1])
-                  for row in rows if row[0] not in overlap_set]
+        new_ms = [(row[0], row[1]) for row in rows if row[0] not in overlap_set]
 
         if len(new_ms) < MS_NEW_PER_MOSAIC:
             return None
@@ -2442,25 +2459,29 @@ class StreamingMosaicManager:
 
         # Create new group with collision-resistant ID (same as check_for_new_group)
         import hashlib
+
         ms_paths_hash = hashlib.sha256(ms_paths_str.encode()).hexdigest()[:12]
-        timestamp = int(time.time() * 1000000)  # Include microseconds for collision prevention
+        timestamp = int(
+            time.time() * 1000000
+        )  # Include microseconds for collision prevention
         group_id = f"group_{ms_paths_hash}_{timestamp}"
-        
+
         # CRITICAL: Check for duplicate group_id (shouldn't happen, but safeguard)
         existing_id = self.products_db.execute(
             "SELECT group_id FROM mosaic_groups WHERE group_id = ?",
             (group_id,),
         ).fetchone()
-        
+
         if existing_id:
             # Collision detected - add random suffix
             import random
+
             suffix = random.randint(1000, 9999)
             group_id = f"group_{ms_paths_hash}_{timestamp}_{suffix}"
             logger.warning(
                 f"Group ID collision detected in sliding window, using alternative ID: {group_id}"
             )
-        
+
         self.products_db.execute(
             """
             INSERT INTO mosaic_groups (group_id, ms_paths, created_at, status)
@@ -2488,6 +2509,7 @@ class StreamingMosaicManager:
         # Get Dec from first MS
         try:
             import casacore.tables as casatables
+
             table = casatables.table  # noqa: N816
 
             t = table(ms_paths[0])
@@ -2540,8 +2562,7 @@ class StreamingMosaicManager:
         # Get MS paths
         ms_paths = self.get_group_ms_paths(group_id)
         if len(ms_paths) < MS_PER_GROUP:
-            logger.warning(
-                f"Group {group_id} has only {len(ms_paths)} MS files")
+            logger.warning(f"Group {group_id} has only {len(ms_paths)} MS files")
             return False
 
         # Validate Dec and calibrator registration
@@ -2555,8 +2576,7 @@ class StreamingMosaicManager:
         # Select calibration MS
         calibration_ms = self.select_calibration_ms(ms_paths)
         if not calibration_ms:
-            logger.error(
-                f"Could not select calibration MS for group {group_id}")
+            logger.error(f"Could not select calibration MS for group {group_id}")
             return False
 
         # Solve calibration
@@ -2595,8 +2615,7 @@ class StreamingMosaicManager:
                     "Continuing without cross-match results."
                 )
 
-        logger.info(
-            f"Successfully processed group {group_id}, mosaic: {mosaic_path}")
+        logger.info(f"Successfully processed group {group_id}, mosaic: {mosaic_path}")
         return True
 
     def run_crossmatch_for_mosaic(
@@ -2647,8 +2666,7 @@ class StreamingMosaicManager:
             updated_context = crossmatch_stage.execute(context)
 
             # Extract status from outputs
-            status = updated_context.outputs.get(
-                "crossmatch_status", "unknown")
+            status = updated_context.outputs.get("crossmatch_status", "unknown")
             n_matches = updated_context.outputs.get("n_matches", 0)
             n_catalogs = updated_context.outputs.get("n_catalogs", 0)
 
@@ -2671,41 +2689,35 @@ def main() -> int:
     """CLI entry point for streaming mosaic processing."""
     import argparse
 
-    parser = argparse.ArgumentParser(
-        description="Process streaming mosaic groups")
+    parser = argparse.ArgumentParser(description="Process streaming mosaic groups")
     parser.add_argument(
         "--products-db",
         type=Path,
-        default=Path(os.getenv("PIPELINE_PRODUCTS_DB",
-                     "state/products.sqlite3")),
+        default=Path(os.getenv("PIPELINE_PRODUCTS_DB", "state/products.sqlite3")),
         help="Path to products database",
     )
     parser.add_argument(
         "--registry-db",
         type=Path,
-        default=Path(os.getenv("CAL_REGISTRY_DB",
-                     "state/cal_registry.sqlite3")),
+        default=Path(os.getenv("CAL_REGISTRY_DB", "state/cal_registry.sqlite3")),
         help="Path to calibration registry database",
     )
     parser.add_argument(
         "--ms-dir",
         type=Path,
-        default=Path(os.getenv("CONTIMG_OUTPUT_DIR",
-                     "/stage/dsa110-contimg/ms")),
+        default=Path(os.getenv("CONTIMG_OUTPUT_DIR", "/stage/dsa110-contimg/ms")),
         help="Directory containing MS files",
     )
     parser.add_argument(
         "--images-dir",
         type=Path,
-        default=Path(os.getenv("CONTIMG_IMAGES_DIR",
-                     "/stage/dsa110-contimg/images")),
+        default=Path(os.getenv("CONTIMG_IMAGES_DIR", "/stage/dsa110-contimg/images")),
         help="Directory for individual image outputs",
     )
     parser.add_argument(
         "--mosaic-dir",
         type=Path,
-        default=Path(os.getenv("CONTIMG_MOSAIC_DIR",
-                     "/stage/dsa110-contimg/mosaics")),
+        default=Path(os.getenv("CONTIMG_MOSAIC_DIR", "/stage/dsa110-contimg/mosaics")),
         help="Directory for mosaic output",
     )
     parser.add_argument(
@@ -2805,8 +2817,7 @@ def main() -> int:
         return 0
     else:
         # Process single group
-        processed = manager.process_next_group(
-            use_sliding_window=use_sliding_window)
+        processed = manager.process_next_group(use_sliding_window=use_sliding_window)
         return 0 if processed else 1
 
 

@@ -161,7 +161,11 @@ fits.show(dual_window=False, scale="linear", colormap="grey")
 """
                 nb.cells.append(nbformat.v4.new_code_cell(fits_code))
             elif artifact_path.suffix.lower() in [
-                ".png", ".jpg", ".jpeg", ".gif", ".svg"
+                ".png",
+                ".jpg",
+                ".jpeg",
+                ".gif",
+                ".svg",
             ]:
                 # Image file - use ImageFile class
                 img_code = f"""
@@ -173,7 +177,11 @@ img.show()
 """
                 nb.cells.append(nbformat.v4.new_code_cell(img_code))
             elif artifact_path.suffix.lower() in [
-                ".txt", ".log", ".out", ".err", ".dat"
+                ".txt",
+                ".log",
+                ".out",
+                ".err",
+                ".dat",
             ]:
                 # Text file - use TextFile class
                 text_code = f"""

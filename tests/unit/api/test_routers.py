@@ -63,8 +63,7 @@ def mock_dbs(tmp_path):
         conn.executemany(
             "INSERT INTO subband_files(group_id, subband_idx, path) VALUES(?,?,?)",
             [
-                ("2025-10-07T00:00:00", idx,
-                 f"/data/subbands/file_sb{idx:02d}.hdf5")
+                ("2025-10-07T00:00:00", idx, f"/data/subbands/file_sb{idx:02d}.hdf5")
                 for idx in range(10)
             ],
         )
@@ -168,16 +167,35 @@ def mock_dbs(tmp_path):
             INSERT INTO variability_stats(source_id, ra_deg, dec_deg, nvss_flux_mjy, mean_flux_mjy, std_flux_mjy, chi2_nu, sigma_deviation, last_measured_at, last_mjd, updated_at)
             VALUES(?,?,?,?,?,?,?,?,?,?,?)
             """,
-            ("NVSS J123456.7+420312", 188.73625, 42.05333,
-             145.0, 153.0, 12.0, 8.3, 6.2, now, 60238.5, now),
+            (
+                "NVSS J123456.7+420312",
+                188.73625,
+                42.05333,
+                145.0,
+                153.0,
+                12.0,
+                8.3,
+                6.2,
+                now,
+                60238.5,
+                now,
+            ),
         )
         conn.execute(
             """
             INSERT INTO photometry(source_id, image_path, ra_deg, dec_deg, peak_jyb, peak_err_jyb, measured_at, mjd)
             VALUES(?,?,?,?,?,?,?,?)
             """,
-            ("NVSS J123456.7+420312", "/data/images/test.fits",
-             188.73625, 42.05333, 0.153, 0.005, now, 60238.5),
+            (
+                "NVSS J123456.7+420312",
+                "/data/images/test.fits",
+                188.73625,
+                42.05333,
+                0.153,
+                0.005,
+                now,
+                60238.5,
+            ),
         )
 
     # Initialize registry DB
@@ -266,8 +284,7 @@ class TestImagesRouter:
 
     def test_get_images_with_filters(self, test_client):
         """Test GET /api/images with filters."""
-        response = test_client.get(
-            "/api/images?limit=10&image_type=image&pbcor=true")
+        response = test_client.get("/api/images?limit=10&image_type=image&pbcor=true")
         assert response.status_code == 200
         data = response.json()
         assert isinstance(data["items"], list)
@@ -322,18 +339,21 @@ class TestPhotometryRouter:
             mock_instance.dec_deg = 42.05333
             mock_instance.name = "NVSS J123456.7+420312"
             mock_instance.catalog = "NVSS"
-            
+
             # Mock measurements DataFrame properly - use a real DataFrame
             import pandas as pd
-            mock_df = pd.DataFrame({
-                "peak_jyb": [0.153],
-                "flux_jy": [0.153],
-                "snr": [38.1],
-                "forced": [False],
-                "is_forced": [False],
-            })
+
+            mock_df = pd.DataFrame(
+                {
+                    "peak_jyb": [0.153],
+                    "flux_jy": [0.153],
+                    "snr": [38.1],
+                    "forced": [False],
+                    "is_forced": [False],
+                }
+            )
             mock_instance.measurements = mock_df
-            
+
             mock_instance.calc_variability_metrics.return_value = {
                 "v": 0.25,
                 "eta": 0.12,
@@ -342,11 +362,10 @@ class TestPhotometryRouter:
                 "n_epochs": 142,
                 "is_variable": True,
             }
-            
+
             mock_source_class.return_value = mock_instance
 
-            response = test_client.get(
-                "/api/sources/NVSS%20J123456.7%2B420312")
+            response = test_client.get("/api/sources/NVSS%20J123456.7%2B420312")
             # Endpoint may return 404 if Source raises exception or source not found
             # Accept both 200 and 404 as valid test outcomes (404 if Source init fails)
             assert response.status_code in [200, 404]
@@ -369,7 +388,8 @@ class TestPhotometryRouter:
             mock_source.return_value = mock_instance
 
             response = test_client.get(
-                "/api/sources/NVSS%20J123456.7%2B420312/variability")
+                "/api/sources/NVSS%20J123456.7%2B420312/variability"
+            )
             assert response.status_code == 200
             data = response.json()
             assert "v" in data
@@ -421,8 +441,7 @@ class TestESERouter:
 
     def test_get_ese_candidates_success(self, test_client):
         """Test GET /api/ese/candidates endpoint."""
-        response = test_client.get(
-            "/api/ese/candidates?limit=10&min_sigma=5.0")
+        response = test_client.get("/api/ese/candidates?limit=10&min_sigma=5.0")
         assert response.status_code == 200
         data = response.json()
         assert "candidates" in data
@@ -431,8 +450,7 @@ class TestESERouter:
 
     def test_get_ese_candidates_min_sigma_filter(self, test_client):
         """Test GET /api/ese/candidates with sigma threshold."""
-        response = test_client.get(
-            "/api/ese/candidates?limit=10&min_sigma=10.0")
+        response = test_client.get("/api/ese/candidates?limit=10&min_sigma=10.0")
         assert response.status_code == 200
         data = response.json()
         assert len(data["candidates"]) == 0  # 7.8 < 10.0

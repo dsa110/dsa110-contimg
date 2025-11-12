@@ -1,4 +1,5 @@
 """Products-related API routes extracted from routes.py."""
+
 from __future__ import annotations
 
 from fastapi import APIRouter, Request
@@ -14,4 +15,3 @@ def products(request: Request, limit: int = 50) -> ProductList:
     cfg = request.app.state.cfg
     items = fetch_recent_products(cfg.products_db, limit=limit)
     return ProductList(items=items)
-

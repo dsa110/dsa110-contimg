@@ -59,13 +59,13 @@ def test_fitsfile_header():
         test_fits_path = "/tmp/test_fits_visualization.fits"
         data = np.random.randn(100, 100)
         hdu = fits.PrimaryHDU(data=data)
-        hdu.header['NAXIS'] = 2
-        hdu.header['NAXIS1'] = 100
-        hdu.header['NAXIS2'] = 100
-        hdu.header['CTYPE1'] = 'RA---TAN'
-        hdu.header['CTYPE2'] = 'DEC--TAN'
-        hdu.header['CDELT1'] = -0.001  # degrees
-        hdu.header['CDELT2'] = 0.001
+        hdu.header["NAXIS"] = 2
+        hdu.header["NAXIS1"] = 100
+        hdu.header["NAXIS2"] = 100
+        hdu.header["CTYPE1"] = "RA---TAN"
+        hdu.header["CTYPE2"] = "DEC--TAN"
+        hdu.header["CDELT1"] = -0.001  # degrees
+        hdu.header["CDELT2"] = 0.001
         hdu.writeto(test_fits_path, overwrite=True)
 
         # Test FITSFile with real file
@@ -103,6 +103,7 @@ def test_fitsfile_header():
     except Exception as e:
         print(f"✗ Error: {e}")
         import traceback
+
         traceback.print_exc()
         return False
 
@@ -126,10 +127,12 @@ def test_js9_integration():
             print(f"✓ JS9 initialization function works (result: {result})")
         except Exception as e:
             print(
-                f"⚠ JS9 initialization error (expected without IPython): {type(e).__name__}")
+                f"⚠ JS9 initialization error (expected without IPython): {type(e).__name__}"
+            )
 
         # Test get_js9_init_html
         from dsa110_contimg.qa.visualization.js9 import get_js9_init_html
+
         html = get_js9_init_html()
         assert html is not None
         print(f"✓ JS9 init HTML generation works (length: {len(html)} chars)")
@@ -137,6 +140,7 @@ def test_js9_integration():
     except Exception as e:
         print(f"✗ Error: {e}")
         import traceback
+
         traceback.print_exc()
         return False
 
@@ -157,11 +161,11 @@ def test_fitsfile_integration():
             test_file = f"/tmp/test_fits_integration_{i}{ext}"
             # Create minimal FITS file
             if ext == ".fits":
-                with open(test_file, 'w') as f:
+                with open(test_file, "w") as f:
                     f.write("SIMPLE  =                    T / FITS file\n")
             else:
                 # Create dummy PNG (just empty file for test)
-                with open(test_file, 'w') as f:
+                with open(test_file, "w") as f:
                     f.write("PNG")
             test_files.append(test_file)
 
@@ -170,8 +174,7 @@ def test_fitsfile_integration():
 
         # Test FITS filtering
         fits_files = filelist.fits
-        assert len(
-            fits_files) == 2, f"Expected 2 FITS files, got {len(fits_files)}"
+        assert len(fits_files) == 2, f"Expected 2 FITS files, got {len(fits_files)}"
         print(f"✓ FITS filtering works: {len(fits_files)} FITS files")
 
         # Verify they are FITSFile instances
@@ -192,7 +195,7 @@ def test_fitsfile_integration():
         # Create dummy FITS files
         for i in range(3):
             test_fits = os.path.join(test_dir, f"test_{i}.fits")
-            with open(test_fits, 'w') as f:
+            with open(test_fits, "w") as f:
                 f.write("SIMPLE  =                    T / FITS file\n")
 
         # Test ls() with FITS files
@@ -202,12 +205,14 @@ def test_fitsfile_integration():
 
         # Cleanup
         import shutil
+
         shutil.rmtree(test_dir)
         print("✓ Test directory cleaned up")
 
     except Exception as e:
         print(f"✗ Error: {e}")
         import traceback
+
         traceback.print_exc()
         return False
 
@@ -248,8 +253,7 @@ def test_fitsfile_show():
         summary_html = fits_file._render_summary_html()
         assert summary_html is not None
         assert len(summary_html) > 0
-        print(
-            f"✓ Summary HTML rendering works (length: {len(summary_html)} chars)")
+        print(f"✓ Summary HTML rendering works (length: {len(summary_html)} chars)")
 
         js9_html = fits_file._render_js9_html()
         assert js9_html is not None
@@ -265,6 +269,7 @@ def test_fitsfile_show():
     except Exception as e:
         print(f"✗ Error: {e}")
         import traceback
+
         traceback.print_exc()
         return False
 
@@ -295,6 +300,7 @@ def main():
         except Exception as e:
             print(f"✗ Test '{name}' failed with exception: {e}")
             import traceback
+
             traceback.print_exc()
             results.append((name, False))
 

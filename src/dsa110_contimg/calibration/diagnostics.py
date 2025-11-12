@@ -17,6 +17,7 @@ ensure_casa_path()
 
 import numpy as np
 import casacore.tables as casatables
+
 table = casatables.table  # noqa: N816
 
 from dsa110_contimg.calibration.validate import (

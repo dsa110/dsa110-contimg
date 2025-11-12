@@ -21,8 +21,7 @@ def export_fits(images: Iterable[str]) -> List[str]:
     try:
         from casatasks import exportfits as _exportfits  # type: ignore
     except Exception as e:
-        print("casatasks.exportfits not available:",
-              e, file=__import__("sys").stderr)
+        print("casatasks.exportfits not available:", e, file=__import__("sys").stderr)
         return []
 
     exported: List[str] = []
@@ -33,8 +32,7 @@ def export_fits(images: Iterable[str]) -> List[str]:
             print("Exported FITS:", fits_out)
             exported.append(fits_out)
         except Exception as e:
-            print("exportfits failed for", p, ":",
-                  e, file=__import__("sys").stderr)
+            print("exportfits failed for", p, ":", e, file=__import__("sys").stderr)
     return exported
 
 
@@ -56,8 +54,7 @@ def save_png_from_fits(paths: Iterable[str]) -> List[str]:
         matplotlib.use("Agg")
         import matplotlib.pyplot as plt
     except Exception as e:
-        print("PNG conversion dependencies missing:",
-              e, file=__import__("sys").stderr)
+        print("PNG conversion dependencies missing:", e, file=__import__("sys").stderr)
         return saved
 
     for f in paths:
@@ -76,8 +73,7 @@ def save_png_from_fits(paths: Iterable[str]) -> List[str]:
                         except ValueError as e:
                             import logging
 
-                            logging.warning(
-                                f"Skipping invalid image in {f}: {e}")
+                            logging.warning(f"Skipping invalid image in {f}: {e}")
                             continue
                         data = hdu.data
                         break
@@ -102,13 +98,14 @@ def save_png_from_fits(paths: Iterable[str]) -> List[str]:
                     h, w = arr.shape
                     h_new, w_new = h // factor, w // factor
                     if h_new > 0 and w_new > 0:
-                        arr_downsampled = arr[:h_new * factor, :w_new * factor].reshape(
-                            h_new, factor, w_new, factor
-                        ).mean(axis=(1, 3))
+                        arr_downsampled = (
+                            arr[: h_new * factor, : w_new * factor]
+                            .reshape(h_new, factor, w_new, factor)
+                            .mean(axis=(1, 3))
+                        )
                         arr = arr_downsampled
                         m = np.isfinite(arr)
-                        print(
-                            f"Downsampled by factor {factor} for faster processing")
+                        print(f"Downsampled by factor {factor} for faster processing")
 
                 # Use ZScale normalization (better for astronomical images)
                 # This matches VAST Tools approach and handles outliers better
@@ -120,17 +117,22 @@ def save_png_from_fits(paths: Iterable[str]) -> List[str]:
                     normalize = ImageNormalize(
                         arr[m],  # Use finite values for interval calculation
                         interval=ZScaleInterval(contrast=0.2),
-                        stretch=AsinhStretch()
+                        stretch=AsinhStretch(),
                     )
-                    
+
                     # Set NaN values to 0 for display (they'll be outside the colormap range)
                     arr_display = arr.copy()
                     arr_display[~m] = 0
-                    
+
                     plt.figure(figsize=(6, 5), dpi=140)
-                    im = plt.imshow(arr_display, origin="lower", cmap="inferno",
-                                   interpolation="nearest", norm=normalize)
-                    plt.colorbar(im, fraction=0.046, pad=0.04, label='Flux (Jy/beam)')
+                    im = plt.imshow(
+                        arr_display,
+                        origin="lower",
+                        cmap="inferno",
+                        interpolation="nearest",
+                        norm=normalize,
+                    )
+                    plt.colorbar(im, fraction=0.046, pad=0.04, label="Flux (Jy/beam)")
                     plt.title(os.path.basename(f))
                     plt.tight_layout()
                     out = f + ".png"
@@ -141,15 +143,21 @@ def save_png_from_fits(paths: Iterable[str]) -> List[str]:
                 except Exception as norm_error:
                     # Fallback to simple percentile normalization if ZScale fails
                     import logging
-                    logging.warning(f"ZScale normalization failed, using percentile fallback: {norm_error}")
+
+                    logging.warning(
+                        f"ZScale normalization failed, using percentile fallback: {norm_error}"
+                    )
                     vals = arr[m]
-                    lo, hi = np.percentile(vals, [1.0, 99.9])  # Standardized to 99.9 (matches VAST Tools)
+                    lo, hi = np.percentile(
+                        vals, [1.0, 99.9]
+                    )  # Standardized to 99.9 (matches VAST Tools)
                     img = np.clip(arr, lo, hi)
                     img = np.arcsinh((img - lo) / max(1e-12, (hi - lo)))
                     img[~m] = np.nan
                     plt.figure(figsize=(6, 5), dpi=140)
-                    plt.imshow(img, origin="lower", cmap="inferno",
-                               interpolation="nearest")
+                    plt.imshow(
+                        img, origin="lower", cmap="inferno", interpolation="nearest"
+                    )
                     plt.colorbar(fraction=0.046, pad=0.04)
                     plt.title(os.path.basename(f))
                     plt.tight_layout()
@@ -159,6 +167,5 @@ def save_png_from_fits(paths: Iterable[str]) -> List[str]:
                     print("Wrote PNG:", out)
                     saved.append(out)
         except Exception as e:
-            print("PNG conversion failed for", f, ":",
-                  e, file=__import__("sys").stderr)
+            print("PNG conversion failed for", f, ":", e, file=__import__("sys").stderr)
     return saved

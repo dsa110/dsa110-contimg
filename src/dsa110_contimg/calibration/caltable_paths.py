@@ -13,8 +13,10 @@ logger = logging.getLogger(__name__)
 
 # Provide a patchable casacore table symbol for unit tests
 from dsa110_contimg.utils.casa_init import ensure_casa_path
+
 ensure_casa_path()
 import casacore.tables as casatables  # type: ignore
+
 table = casatables.table  # noqa: N816
 
 

@@ -345,19 +345,19 @@ def validate_astrometry(
 
     Returns:
         CatalogValidationResult with astrometry metrics
-        
+
     Raises:
         ValidationInputError: If image path is invalid or image not found
     """
     if config is None:
         config = get_default_config().astrometry
-    
+
     # Use config values if parameters not provided
     if search_radius_arcsec is None:
         search_radius_arcsec = config.match_radius_arcsec
     if max_offset_arcsec is None:
         max_offset_arcsec = config.max_offset_arcsec
-    
+
     if not Path(image_path).exists():
         raise ValidationInputError(f"Image not found: {image_path}")
     # Extract sources from image
@@ -477,7 +477,7 @@ def validate_astrometry(
         issues.append(
             f"Maximum astrometric offset ({max_offset:.2f} arcsec) exceeds threshold ({max_offset_arcsec} arcsec)"
         )
-    
+
     if rms_offset > config.max_rms_arcsec:
         issues.append(
             f"RMS astrometric offset ({rms_offset:.2f} arcsec) exceeds threshold ({config.max_rms_arcsec} arcsec)"
@@ -552,13 +552,13 @@ def validate_flux_scale(
         box_size_pix: Photometry box size in pixels (overrides config)
         annulus_pix: Annulus for background subtraction
         config: Optional FluxScaleConfig. If not provided, uses default config.
-        
+
     Raises:
         ValidationInputError: If image path is invalid or image not found
     """
     if config is None:
         config = get_default_config().flux_scale
-    
+
     # Use config values if parameters not provided
     if search_radius_arcsec is None:
         search_radius_arcsec = config.match_radius_arcsec
@@ -566,10 +566,10 @@ def validate_flux_scale(
         max_flux_ratio_error = config.max_flux_ratio_deviation
     if box_size_pix is None:
         box_size_pix = config.flux_box_size_pix
-    
+
     if not Path(image_path).exists():
         raise ValidationInputError(f"Image not found: {image_path}")
-    
+
     # Get image metadata
     with fits.open(image_path) as hdul:
         header = hdul[0].header
@@ -801,13 +801,13 @@ def validate_source_counts(
         n_bins: Number of flux bins for completeness analysis
         completeness_limit_threshold: Threshold for completeness limit calculation (0.95 = 95%)
         config: Optional SourceCountsConfig. If not provided, uses default config.
-        
+
     Raises:
         ValidationInputError: If image path is invalid or image not found
     """
     if config is None:
         config = get_default_config().source_counts
-    
+
     # Use config values if parameters not provided
     if min_snr is None:
         min_snr = config.min_detection_snr
@@ -815,10 +815,10 @@ def validate_source_counts(
         completeness_threshold = config.min_completeness
     if search_radius_arcsec is None:
         search_radius_arcsec = 10.0  # Keep default for now
-    
+
     if not Path(image_path).exists():
         raise ValidationInputError(f"Image not found: {image_path}")
-    
+
     # Extract sources
     detected_sources = extract_sources_from_image(image_path, min_snr=min_snr)
     n_detected = len(detected_sources)

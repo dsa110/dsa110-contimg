@@ -77,20 +77,22 @@ def main():
         default=5.0,
         help="Dec tolerance in degrees (default: 5.0)",
     )
-    
+
     args = parser.parse_args()
-    
+
     # Validate calibrator name
     from dsa110_contimg.utils.naming import validate_calibrator_name
-    
+
     is_valid, error = validate_calibrator_name(args.calibrator_name)
     if not is_valid:
         logger.error(f"Invalid calibrator name: {error}")
         return 1
-    
+
     # Lookup coordinates if not provided
     if args.ra_deg is None or args.dec_deg is None:
-        logger.info(f"Looking up coordinates for '{args.calibrator_name}' in catalog...")
+        logger.info(
+            f"Looking up coordinates for '{args.calibrator_name}' in catalog..."
+        )
         try:
             catalog = load_vla_catalog()
             ra_deg, dec_deg = get_calibrator_radec(catalog, args.calibrator_name)
@@ -103,11 +105,11 @@ def main():
         ra_deg = args.ra_deg
         dec_deg = args.dec_deg
         logger.info(f"Using provided coordinates: RA={ra_deg:.6f}°, Dec={dec_deg:.6f}°")
-    
+
     # Ensure databases exist
     args.products_db.parent.mkdir(parents=True, exist_ok=True)
     args.registry_db.parent.mkdir(parents=True, exist_ok=True)
-    
+
     # Initialize manager and register
     logger.info("Registering bandpass calibrator...")
     manager = StreamingMosaicManager(
@@ -117,7 +119,7 @@ def main():
         images_dir=args.images_dir,
         mosaic_output_dir=args.mosaic_dir,
     )
-    
+
     manager.register_bandpass_calibrator(
         calibrator_name=args.calibrator_name,
         ra_deg=ra_deg,
@@ -125,16 +127,17 @@ def main():
         dec_tolerance=args.dec_tolerance,
         registered_by="lookup_and_register_calibrator",
     )
-    
+
     logger.info("✓ Calibrator registered successfully!")
     logger.info(f"  Name: {args.calibrator_name}")
     logger.info(f"  RA: {ra_deg:.6f}°")
     logger.info(f"  Dec: {dec_deg:.6f}°")
-    logger.info(f"  Dec range: [{dec_deg - args.dec_tolerance:.2f}°, {dec_deg + args.dec_tolerance:.2f}°]")
-    
+    logger.info(
+        f"  Dec range: [{dec_deg - args.dec_tolerance:.2f}°, {dec_deg + args.dec_tolerance:.2f}°]"
+    )
+
     return 0
 
 
 if __name__ == "__main__":
     sys.exit(main())
-

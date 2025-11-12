@@ -12,6 +12,7 @@ import numpy as np
 import pandas as pd
 from astropy.coordinates import Angle
 import casacore.tables as casatables
+
 table = casatables.table  # noqa: N816
 
 from .catalogs import (

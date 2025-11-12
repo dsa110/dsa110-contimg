@@ -49,7 +49,7 @@ def create_test_fits_with_beam(
     bmaj_deg=0.001,  # ~3.6 arcsec
     bmin_deg=0.001,
     bpa_deg=0.0,
-    **header_kwargs
+    **header_kwargs,
 ) -> str:
     """Create a test FITS file with beam information."""
     if data is None:
@@ -88,7 +88,7 @@ def create_test_fits(
     crpix2=256.0,
     cdelts=(-0.00055555555555556, 0.00055555555555556),
     data=None,
-    **header_kwargs
+    **header_kwargs,
 ) -> str:
     """Create a test FITS file without beam information."""
     if data is None:
@@ -220,9 +220,7 @@ class TestMeasureForcedPeak:
         tmp_fits = create_test_fits_with_beam()
         # Create noise map
         hdr = fits.getheader(tmp_fits)
-        noise_data = np.full(
-            (hdr["NAXIS2"], hdr["NAXIS1"]), 0.001, dtype=np.float32
-        )
+        noise_data = np.full((hdr["NAXIS2"], hdr["NAXIS1"]), 0.001, dtype=np.float32)
         noise_hdu = fits.PrimaryHDU(data=noise_data)
         noise_hdu.header = hdr.copy()
         tmp_noise = tempfile.NamedTemporaryFile(suffix=".fits", delete=False)
@@ -283,9 +281,7 @@ class TestMeasureForcedPeak:
         tmp_fits = create_test_fits()
         try:
             # Coordinates that cause WCS conversion failure
-            result = measure_forced_peak(
-                tmp_fits, ra_deg=float("inf"), dec_deg=35.0
-            )
+            result = measure_forced_peak(tmp_fits, ra_deg=float("inf"), dec_deg=35.0)
             assert isinstance(result, ForcedPhotometryResult)
             assert np.isnan(result.pix_x) or not np.isfinite(result.pix_x)
         finally:
@@ -296,9 +292,7 @@ class TestMeasureForcedPeak:
         data = np.full((512, 512), np.nan)
         tmp_fits = create_test_fits(data=data)
         try:
-            result = measure_forced_peak(
-                tmp_fits, ra_deg=180.0, dec_deg=35.0
-            )
+            result = measure_forced_peak(tmp_fits, ra_deg=180.0, dec_deg=35.0)
             assert isinstance(result, ForcedPhotometryResult)
             assert np.isnan(result.peak_jyb) or result.peak_jyb == 0
         finally:
@@ -314,9 +308,7 @@ class TestMeasureForcedPeak:
             # Convert edge pixel to world coordinates
             edge_ra, edge_dec = wcs.pixel_to_world_values(0, 0)
 
-            result = measure_forced_peak(
-                tmp_fits, ra_deg=edge_ra, dec_deg=edge_dec
-            )
+            result = measure_forced_peak(tmp_fits, ra_deg=edge_ra, dec_deg=edge_dec)
             assert isinstance(result, ForcedPhotometryResult)
             # Should handle gracefully (may clip to image bounds)
         finally:
@@ -356,9 +348,7 @@ class TestMeasureMany:
         """Test measure_many with noise map."""
         tmp_fits = create_test_fits_with_beam()
         hdr = fits.getheader(tmp_fits)
-        noise_data = np.full(
-            (hdr["NAXIS2"], hdr["NAXIS1"]), 0.001, dtype=np.float32
-        )
+        noise_data = np.full((hdr["NAXIS2"], hdr["NAXIS1"]), 0.001, dtype=np.float32)
         noise_hdu = fits.PrimaryHDU(data=noise_data)
         noise_hdu.header = hdr.copy()
         tmp_noise = tempfile.NamedTemporaryFile(suffix=".fits", delete=False)
@@ -368,9 +358,7 @@ class TestMeasureMany:
         coords = [(180.0, 35.0), (180.01, 35.01)]
 
         try:
-            results = measure_many(
-                tmp_fits, coords, noise_map_path=tmp_noise_fits
-            )
+            results = measure_many(tmp_fits, coords, noise_map_path=tmp_noise_fits)
             assert len(results) == 2
         finally:
             os.unlink(tmp_fits)
@@ -383,9 +371,7 @@ class TestMeasureMany:
         coords = [(180.0, 35.0), (180.0001, 35.0001)]
 
         try:
-            results = measure_many(
-                tmp_fits, coords, use_cluster_fitting=False
-            )
+            results = measure_many(tmp_fits, coords, use_cluster_fitting=False)
             assert len(results) == 2
             # Should not have cluster_id set
             for result in results:
@@ -411,8 +397,7 @@ class TestMeasureMany:
             )
             assert len(results) == 2
             # Check if clustering occurred (may or may not depending on exact separation)
-            cluster_ids = [
-                r.cluster_id for r in results if r.cluster_id is not None]
+            cluster_ids = [r.cluster_id for r in results if r.cluster_id is not None]
             # If clustered, both should have same cluster_id
             if len(cluster_ids) == 2:
                 assert cluster_ids[0] == cluster_ids[1]
@@ -436,8 +421,7 @@ class TestClusterIdentification:
         """Test cluster identification with single source."""
         X0 = np.array([100.0])
         Y0 = np.array([100.0])
-        clusters, in_cluster = _identify_clusters(
-            X0, Y0, threshold_pixels=10.0)
+        clusters, in_cluster = _identify_clusters(X0, Y0, threshold_pixels=10.0)
         assert len(clusters) == 0
         assert len(in_cluster) == 0
 
@@ -455,8 +439,7 @@ class TestClusterIdentification:
         """Test cluster identification with two distant sources."""
         X0 = np.array([100.0, 200.0])
         Y0 = np.array([100.0, 100.0])
-        clusters, in_cluster = _identify_clusters(
-            X0, Y0, threshold_pixels=10.0)
+        clusters, in_cluster = _identify_clusters(X0, Y0, threshold_pixels=10.0)
         # Should not cluster
         assert len(clusters) == 0
         assert len(in_cluster) == 0
@@ -475,8 +458,7 @@ class TestClusterIdentification:
         # This should work even without scipy (returns empty clusters)
         X0 = np.array([100.0, 101.0])
         Y0 = np.array([100.0, 100.0])
-        clusters, in_cluster = _identify_clusters(
-            X0, Y0, threshold_pixels=10.0)
+        clusters, in_cluster = _identify_clusters(X0, Y0, threshold_pixels=10.0)
         # Should return empty if scipy not available
         assert isinstance(clusters, dict)
         assert isinstance(in_cluster, list)
@@ -504,9 +486,7 @@ class TestSourceInjection:
             assert output_path == tmp_output_fits
 
             # Verify injection by measuring
-            result = measure_forced_peak(
-                output_path, ra_deg=180.0, dec_deg=35.0
-            )
+            result = measure_forced_peak(output_path, ra_deg=180.0, dec_deg=35.0)
             # Injected source should be detectable
             assert np.isfinite(result.peak_jyb)
         finally:
@@ -518,9 +498,7 @@ class TestSourceInjection:
         """Test in-place source injection."""
         tmp_fits = create_test_fits_with_beam()
         # Get original peak value
-        original_result = measure_forced_peak(
-            tmp_fits, ra_deg=180.0, dec_deg=35.0
-        )
+        original_result = measure_forced_peak(tmp_fits, ra_deg=180.0, dec_deg=35.0)
         original_peak = original_result.peak_jyb
 
         try:
@@ -531,9 +509,7 @@ class TestSourceInjection:
             assert output_path == tmp_fits
 
             # Measure again - should be brighter
-            new_result = measure_forced_peak(
-                tmp_fits, ra_deg=180.0, dec_deg=35.0
-            )
+            new_result = measure_forced_peak(tmp_fits, ra_deg=180.0, dec_deg=35.0)
             if np.isfinite(original_peak) and np.isfinite(new_result.peak_jyb):
                 assert new_result.peak_jyb > original_peak
         finally:
@@ -766,9 +742,7 @@ class TestEdgeCases:
         """Test handling of zero-valued noise pixels."""
         tmp_fits = create_test_fits_with_beam()
         hdr = fits.getheader(tmp_fits)
-        noise_data = np.full(
-            (hdr["NAXIS2"], hdr["NAXIS1"]), 0.001, dtype=np.float32
-        )
+        noise_data = np.full((hdr["NAXIS2"], hdr["NAXIS1"]), 0.001, dtype=np.float32)
         noise_data[100:200, 100:200] = 0.0  # Zero noise region
         noise_hdu = fits.PrimaryHDU(data=noise_data)
         noise_hdu.header = hdr.copy()

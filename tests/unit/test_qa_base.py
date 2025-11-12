@@ -85,7 +85,7 @@ class TestValidationResult:
         )
         result.add_warning("Warning")
         result.add_error("Error")
-        
+
         result_dict = result.to_dict()
         # add_error() sets passed=False
         assert result_dict["passed"] is False
@@ -108,8 +108,7 @@ class TestValidationErrors:
         """Test ValidationInputError."""
         with pytest.raises(ValidationInputError):
             raise ValidationInputError("Invalid input")
-        
+
         # Should also be catchable as ValidationError
         with pytest.raises(ValidationError):
             raise ValidationInputError("Invalid input")
-

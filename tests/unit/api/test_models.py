@@ -82,8 +82,7 @@ class TestQueueGroup:
     def test_queue_group_with_calibrator(self):
         """Test QueueGroup with calibrator matches."""
         now = datetime.now(tz=timezone.utc)
-        match = CalibratorMatch(
-            name="3C123", ra_deg=188.7, dec_deg=42.1, sep_deg=0.1)
+        match = CalibratorMatch(name="3C123", ra_deg=188.7, dec_deg=42.1, sep_deg=0.1)
         group = QueueGroup(
             group_id="2025-10-07T00:00:00",
             state="pending",

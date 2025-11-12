@@ -215,9 +215,7 @@ def test_retry_publish_endpoint_success(api_client, temp_registry_db):
         return_value=True,
     ):
         # Use data_id that exists in test database
-        response = api_client.post(
-            "/api/monitoring/publish/retry/mosaic_failed_001"
-        )
+        response = api_client.post("/api/monitoring/publish/retry/mosaic_failed_001")
 
         # Should succeed (mocked)
         assert response.status_code == 200
@@ -238,9 +236,7 @@ def test_retry_publish_endpoint_not_found(api_client):
 @pytest.mark.unit
 def test_retry_publish_endpoint_already_published(api_client):
     """Test retry endpoint with already published data."""
-    response = api_client.post(
-        "/api/monitoring/publish/retry/mosaic_published_001"
-    )
+    response = api_client.post("/api/monitoring/publish/retry/mosaic_published_001")
 
     assert response.status_code == 400
     assert "already published" in response.json()["detail"].lower()

@@ -50,24 +50,28 @@ def test_context(test_config):
 @pytest.fixture
 def mock_detected_sources():
     """Create mock detected sources DataFrame."""
-    return pd.DataFrame({
-        "ra_deg": [10.0, 20.0, 30.0],
-        "dec_deg": [0.0, 5.0, 10.0],
-        "flux_jy": [1.0, 2.0, 3.0],
-        "flux_err_jy": [0.1, 0.2, 0.3],
-        "snr": [10.0, 10.0, 10.0],
-    })
+    return pd.DataFrame(
+        {
+            "ra_deg": [10.0, 20.0, 30.0],
+            "dec_deg": [0.0, 5.0, 10.0],
+            "flux_jy": [1.0, 2.0, 3.0],
+            "flux_err_jy": [0.1, 0.2, 0.3],
+            "snr": [10.0, 10.0, 10.0],
+        }
+    )
 
 
 @pytest.fixture
 def mock_catalog_sources():
     """Create mock catalog sources DataFrame."""
-    return pd.DataFrame({
-        "ra_deg": [10.1, 20.1, 30.1],
-        "dec_deg": [0.1, 5.1, 10.1],
-        "flux_mjy": [1000.0, 2000.0, 3000.0],
-        "flux_err_mjy": [100.0, 200.0, 300.0],
-    })
+    return pd.DataFrame(
+        {
+            "ra_deg": [10.1, 20.1, 30.1],
+            "dec_deg": [0.1, 5.1, 10.1],
+            "flux_mjy": [1000.0, 2000.0, 3000.0],
+            "flux_err_mjy": [100.0, 200.0, 300.0],
+        }
+    )
 
 
 class TestCrossMatchStage:
@@ -152,11 +156,13 @@ class TestCrossMatchStage:
 
         def mock_query_sources(*args, **kwargs):
             # Use sources very close to detected sources (within 10 arcsec = ~0.0028 degrees)
-            return pd.DataFrame({
-                "ra_deg": [10.0 + 0.001, 20.0 + 0.001, 30.0 + 0.001],
-                "dec_deg": [0.0 + 0.001, 5.0 + 0.001, 10.0 + 0.001],
-                "flux_mjy": [1000.0, 2000.0, 3000.0],
-            })
+            return pd.DataFrame(
+                {
+                    "ra_deg": [10.0 + 0.001, 20.0 + 0.001, 30.0 + 0.001],
+                    "dec_deg": [0.0 + 0.001, 5.0 + 0.001, 10.0 + 0.001],
+                    "flux_mjy": [1000.0, 2000.0, 3000.0],
+                }
+            )
 
         query_module.query_sources = mock_query_sources
 
@@ -178,16 +184,16 @@ class TestCrossMatchStage:
     ):
         """Test stage execution when no matches found."""
         # Create detected sources far from catalog
-        detected_sources = pd.DataFrame({
-            "ra_deg": [100.0, 200.0],
-            "dec_deg": [50.0, 60.0],
-            "flux_jy": [1.0, 2.0],
-        })
+        detected_sources = pd.DataFrame(
+            {
+                "ra_deg": [100.0, 200.0],
+                "dec_deg": [50.0, 60.0],
+                "flux_jy": [1.0, 2.0],
+            }
+        )
 
         stage = CrossMatchStage(test_config)
-        test_context = test_context.with_output(
-            "detected_sources", detected_sources
-        )
+        test_context = test_context.with_output("detected_sources", detected_sources)
 
         # Mock catalog query to return sources far away
         import dsa110_contimg.catalog.query as query_module
@@ -195,11 +201,13 @@ class TestCrossMatchStage:
         original_query = query_module.query_sources
 
         def mock_query_sources(*args, **kwargs):
-            return pd.DataFrame({
-                "ra_deg": [10.0, 20.0],
-                "dec_deg": [0.0, 5.0],
-                "flux_mjy": [1000.0, 2000.0],
-            })
+            return pd.DataFrame(
+                {
+                    "ra_deg": [10.0, 20.0],
+                    "dec_deg": [0.0, 5.0],
+                    "flux_mjy": [1000.0, 2000.0],
+                }
+            )
 
         query_module.query_sources = mock_query_sources
 
@@ -223,19 +231,22 @@ class TestCrossMatchStage:
         ensure_products_db(products_db)
         # Run schema evolution to create cross_matches table
         from dsa110_contimg.database.schema_evolution import evolve_products_schema
+
         evolve_products_schema(products_db, verbose=False)
 
         # Create mock matches
-        matches = pd.DataFrame({
-            "detected_idx": [0, 1],
-            "catalog_idx": [0, 1],
-            "separation_arcsec": [5.0, 6.0],
-            "dra_arcsec": [1.0, 2.0],
-            "ddec_arcsec": [0.5, 1.0],
-            "detected_flux": [1.0, 2.0],
-            "catalog_flux": [1.1, 2.1],
-            "flux_ratio": [0.91, 0.95],
-        })
+        matches = pd.DataFrame(
+            {
+                "detected_idx": [0, 1],
+                "catalog_idx": [0, 1],
+                "separation_arcsec": [5.0, 6.0],
+                "dra_arcsec": [1.0, 2.0],
+                "ddec_arcsec": [0.5, 1.0],
+                "detected_flux": [1.0, 2.0],
+                "catalog_flux": [1.1, 2.1],
+                "flux_ratio": [0.91, 0.95],
+            }
+        )
 
         stage = CrossMatchStage(test_config)
         stage._store_matches_in_database(
@@ -260,16 +271,19 @@ class TestCrossMatchStage:
         products_db = test_config.paths.products_db
         ensure_products_db(products_db)
         from dsa110_contimg.database.schema_evolution import evolve_products_schema
+
         evolve_products_schema(products_db, verbose=False)
-        
+
         stage = CrossMatchStage(test_config)
 
         # Test excellent match
-        matches_excellent = pd.DataFrame({
-            "detected_idx": [0],
-            "catalog_idx": [0],
-            "separation_arcsec": [1.0],
-        })
+        matches_excellent = pd.DataFrame(
+            {
+                "detected_idx": [0],
+                "catalog_idx": [0],
+                "separation_arcsec": [1.0],
+            }
+        )
         stage._store_matches_in_database(
             matches=matches_excellent,
             catalog_type="nvss",
@@ -286,7 +300,9 @@ class TestCrossMatchStage:
 
         assert quality == "excellent"
 
-    def test_master_catalog_id_storage(self, test_config, test_context, mock_detected_sources, temp_state_dir):
+    def test_master_catalog_id_storage(
+        self, test_config, test_context, mock_detected_sources, temp_state_dir
+    ):
         """Test that master catalog IDs are stored in database."""
         from dsa110_contimg.database.products import ensure_products_db
         from dsa110_contimg.database.schema_evolution import evolve_products_schema
@@ -297,17 +313,19 @@ class TestCrossMatchStage:
         evolve_products_schema(products_db, verbose=False)
 
         # Create matches with master catalog IDs
-        matches = pd.DataFrame({
-            "detected_idx": [0, 1],
-            "catalog_idx": [0, 1],
-            "separation_arcsec": [5.0, 6.0],
-            "dra_arcsec": [1.0, 2.0],
-            "ddec_arcsec": [0.5, 1.0],
-            "detected_flux": [1.0, 2.0],
-            "catalog_flux": [1.1, 2.1],
-            "flux_ratio": [0.91, 0.95],
-            "catalog_source_id": ["nvss_1", "nvss_2"],
-        })
+        matches = pd.DataFrame(
+            {
+                "detected_idx": [0, 1],
+                "catalog_idx": [0, 1],
+                "separation_arcsec": [5.0, 6.0],
+                "dra_arcsec": [1.0, 2.0],
+                "ddec_arcsec": [0.5, 1.0],
+                "detected_flux": [1.0, 2.0],
+                "catalog_flux": [1.1, 2.1],
+                "flux_ratio": [0.91, 0.95],
+                "catalog_source_id": ["nvss_1", "nvss_2"],
+            }
+        )
 
         master_catalog_ids = {
             "nvss:nvss_1": "nvss:nvss_1",
@@ -326,13 +344,17 @@ class TestCrossMatchStage:
         # Verify master catalog IDs were stored
         conn = sqlite3.connect(products_db)
         cursor = conn.cursor()
-        cursor.execute("SELECT master_catalog_id FROM cross_matches WHERE catalog_source_id = 'nvss_1'")
+        cursor.execute(
+            "SELECT master_catalog_id FROM cross_matches WHERE catalog_source_id = 'nvss_1'"
+        )
         master_id = cursor.fetchone()[0]
         conn.close()
 
         assert master_id == "nvss:nvss_1"
 
-    def test_unique_constraint(self, test_config, test_context, mock_detected_sources, temp_state_dir):
+    def test_unique_constraint(
+        self, test_config, test_context, mock_detected_sources, temp_state_dir
+    ):
         """Test that UNIQUE constraint prevents duplicate entries."""
         from dsa110_contimg.database.products import ensure_products_db
         from dsa110_contimg.database.schema_evolution import evolve_products_schema
@@ -343,14 +365,16 @@ class TestCrossMatchStage:
         evolve_products_schema(products_db, verbose=False)
 
         # Create matches
-        matches = pd.DataFrame({
-            "detected_idx": [0],
-            "catalog_idx": [0],
-            "separation_arcsec": [5.0],
-            "dra_arcsec": [1.0],
-            "ddec_arcsec": [0.5],
-            "catalog_source_id": ["nvss_1"],
-        })
+        matches = pd.DataFrame(
+            {
+                "detected_idx": [0],
+                "catalog_idx": [0],
+                "separation_arcsec": [5.0],
+                "dra_arcsec": [1.0],
+                "ddec_arcsec": [0.5],
+                "catalog_source_id": ["nvss_1"],
+            }
+        )
 
         stage = CrossMatchStage(test_config)
 
@@ -378,4 +402,3 @@ class TestCrossMatchStage:
         conn.close()
 
         assert count == 1  # Should be 1, not 2 (UNIQUE constraint)
-

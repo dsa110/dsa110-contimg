@@ -1,0 +1,93 @@
+#D2_THEME=100 d2 --sketch -w postx_modules.d2 postx_modules.svg
+#rsvg-convert -o postx_modules.png postx_modules.svg
+
+ApertureArray: {
+  shape: class
+  generate_vis_matrix()
+  set_idx()
+  set_cal()
+  set_gsm()
+}
+
+Calibration {
+  shape: class
+  load_cal(): TODO
+}
+
+Holography {
+  shape: class
+  set_cal_src()
+  run_phasecal(): UVXAntennaCal
+  run_selfholo(): UVXAntennaCal
+  report_flagged_antennas(): dict
+  plot_phasecal_iterations()
+  plot_aperture()
+  plot_aperture_xy()
+  plot_farfield_beam_pattern()
+}
+
+Stefcal {
+  shape: class
+  set_model()
+  run_stefcal()
+}
+
+Imager {
+  shape: class
+  make_image(): np.array
+  make_healpix(): np.array
+  #deconvolve(): TODO
+  #peel(): TODO
+}
+
+Viewer {
+  shape: class
+  orthview()
+  mollview()
+  load_labels()
+  get_pixel(): tuple
+  write_fits()
+}
+
+Simulation {
+  shape: class
+  sim_vis_gsm():  xr.DataArray
+  sim_vis_pointsrc():  xr.DataArray
+  orthview_gsm()
+  mollview_gsm()
+}
+
+Models {
+  shape: class
+  visibilities: xr.DataArray
+  gains: xr.DataArray
+  beam: xr.DataArray
+  gsm: GlobalSkyModel
+  point_source_sky: Dict
+}
+
+Coords {
+  shape: class
+  get_sun(): SkyCoord
+  get_zenith(): SkyCoord
+  get_alt_az(): SkyCoord
+  generate_phase_vector(): np.array
+}
+
+Plotting {
+  shape: class
+  plot_antennas()
+  plot_corr_matrix()
+  plot_corr_matrix_4pol()
+  plot_uv_dist_amp()
+}
+
+ApertureArray -> Coords
+ApertureArray -> Plotting
+ApertureArray -> Imager
+ApertureArray -> Viewer
+ApertureArray -> Calibration
+ApertureArray -> Simulation -> Models
+
+Calibration -> Holography
+Calibration -> Stefcal

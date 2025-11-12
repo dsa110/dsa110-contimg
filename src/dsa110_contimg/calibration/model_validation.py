@@ -10,6 +10,7 @@ from typing import Dict, List, Optional, Tuple
 
 import astropy.units as u
 import numpy as np
+
 # Ensure CASAPATH is set before importing CASA modules
 from dsa110_contimg.utils.casa_init import ensure_casa_path
 
@@ -17,6 +18,7 @@ ensure_casa_path()
 
 from astropy.coordinates import Angle, SkyCoord
 import casacore.tables as casatables
+
 table = casatables.table  # noqa: N816
 
 logger = logging.getLogger(__name__)

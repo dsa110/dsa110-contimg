@@ -69,4 +69,3 @@ def shutdown_executor():
     if _executor is not None:
         _executor.shutdown(wait=True)
         _executor = None
-

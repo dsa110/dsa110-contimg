@@ -1,0 +1,44 @@
+ruff:
+  stage: ruff
+  image: registry.gitlab.com/pipeline-components/ruff:latest
+  script:
+    - ruff check --output-format=gitlab ./src ./tests
+    - ruff format --check --line-length=112 --respect-gitignore ./src ./tests
+  allow_failure: true
+
+test:
+  stage: test
+  image: condaforge/miniforge3
+  before_script:
+    - eval "$(mamba shell hook --shell bash)"
+    - mkdir -p .pip-cache
+    - mamba env create -n ci-env -f environment.yml || mamba env update -n ci-env -f environment.yml
+    - mamba activate ci-env
+    - uv pip install -e .[test,postx,acacia]
+  script:
+    - pytest --cov=src/ska_ost_low_uv --cov-report=xml --cov-report=term-missing
+  artifacts:
+    paths:
+      - coverage.xml
+    reports:
+      coverage_report:
+        coverage_format: cobertura
+        path: coverage.xml
+
+codecov:
+  stage: codecov
+  image: python:latest
+  dependencies:
+    - test
+  script:
+    - curl -Os https://cli.codecov.io/latest/linux/codecov
+    - chmod +x codecov
+    - ./codecov upload-process -t $CODECOV_TOKEN
+
+safety:
+  stage: safety
+  image: python:3.11
+  script:
+    - pip install safety
+    - safety --key $SAFETY_API_KEY scan
+  allow_failure: true

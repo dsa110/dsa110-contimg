@@ -390,8 +390,7 @@ class FileList(FileBase, list):
 
         if len(self) == 0:
             display(
-                HTML(
-                    f'<p class="qa-status-message">No files found in {self.title}</p>')
+                HTML(f'<p class="qa-status-message">No files found in {self.title}</p>')
             )
             return
 
@@ -472,7 +471,7 @@ class FileList(FileBase, list):
         titles: bool = True,
         buttons: bool = True,
         collapsed: Optional[bool] = None,
-        **kwargs
+        **kwargs,
     ) -> str:
         """
         Render a thumbnail catalog (grid view) of all files in the list.
@@ -513,7 +512,9 @@ class FileList(FileBase, list):
             thumb_html = item.render_thumb(**kwargs)
             if titles:
                 title_html = f'<div class="qa-thumb-title">{item.basename}</div>'
-                thumb_html = f'<div class="qa-thumb-item">{thumb_html}{title_html}</div>'
+                thumb_html = (
+                    f'<div class="qa-thumb-item">{thumb_html}{title_html}</div>'
+                )
             return HTMLString(thumb_html)
 
         # Use parallel processing if multiple CPUs available
@@ -523,7 +524,9 @@ class FileList(FileBase, list):
             thumbs = list(executor().map(_make_thumb, enumerate(self)))
 
         if not thumbs:
-            return render_status_message("No thumbnails generated", message_type="warning")
+            return render_status_message(
+                "No thumbnails generated", message_type="warning"
+            )
 
         # Determine number of columns
         if ncol is None:
@@ -533,17 +536,19 @@ class FileList(FileBase, list):
 
         # Create table from thumbnails
         thumb_table = tabulate(
-            thumbs, ncol=ncol, mincol=mincol, maxcol=maxcol, zebra=False, align="center")
+            thumbs, ncol=ncol, mincol=mincol, maxcol=maxcol, zebra=False, align="center"
+        )
         content_html = thumb_table.render_html()
 
         # Build title HTML
-        title_html = f'<h3>{title or self.title}</h3>' if title or self.title else ""
+        title_html = f"<h3>{title or self.title}</h3>" if title or self.title else ""
 
         # Determine collapsed state
         if collapsed is None:
             try:
-                collapsed = getattr(settings, 'thumb', None) and getattr(
-                    settings.thumb, 'collapsed', False)
+                collapsed = getattr(settings, "thumb", None) and getattr(
+                    settings.thumb, "collapsed", False
+                )
             except AttributeError:
                 collapsed = False
 
@@ -588,11 +593,15 @@ class FileList(FileBase, list):
         """
 
         # Render with collapsible section
-        return css + render_preamble() + render_titled_content(
-            title_html=title_html,
-            content_html=content_html,
-            buttons_html="",
-            collapsed=collapsed
+        return (
+            css
+            + render_preamble()
+            + render_titled_content(
+                title_html=title_html,
+                content_html=content_html,
+                buttons_html="",
+                collapsed=collapsed,
+            )
         )
 
     @property
@@ -608,7 +617,7 @@ class FileList(FileBase, list):
         Returns:
             RenderingProxy for render_thumbnail_catalog()
         """
-        return RenderingProxy(self, 'render_thumbnail_catalog', 'thumbs', arg0='ncol')
+        return RenderingProxy(self, "render_thumbnail_catalog", "thumbs", arg0="ncol")
 
     def show_all(self, *args, **kwargs) -> None:
         """
@@ -639,6 +648,7 @@ class FileList(FileBase, list):
                 error_msg = f"Error displaying {item.basename}: {e}"
                 if HAS_IPYTHON:
                     from .render import render_error
+
                     display(HTML(render_error(error_msg)))
                 else:
                     print(f"ERROR: {error_msg}")
@@ -672,24 +682,32 @@ class FileList(FileBase, list):
 
         # Process patterns
         for patt in itertools.chain(*[p.split() for p in patterns]):
-            if patt.startswith('!'):
+            if patt.startswith("!"):
                 # Exclusion pattern
                 exclude_pattern = patt[1:]
-                files = [f for f in self if not (
-                    fnmatch.fnmatch(f.basename, exclude_pattern) or
-                    fnmatch.fnmatch(f.path, exclude_pattern)
-                )]
+                files = [
+                    f
+                    for f in self
+                    if not (
+                        fnmatch.fnmatch(f.basename, exclude_pattern)
+                        or fnmatch.fnmatch(f.path, exclude_pattern)
+                    )
+                ]
                 subsets.append(patt)
-            elif patt.startswith('-'):
+            elif patt.startswith("-"):
                 # Sort flags
                 sort_flags = patt[1:]
                 subsets.append(f"sort: {sort_flags}")
             else:
                 # Inclusion pattern
-                matching = [f for f in self if (
-                    fnmatch.fnmatch(f.basename, patt) or
-                    fnmatch.fnmatch(f.path, patt)
-                )]
+                matching = [
+                    f
+                    for f in self
+                    if (
+                        fnmatch.fnmatch(f.basename, patt)
+                        or fnmatch.fnmatch(f.path, patt)
+                    )
+                ]
                 if files:
                     # Intersection with previous matches
                     files = [f for f in files if f in matching]

@@ -362,10 +362,12 @@ def _fix_mount_type_in_ms(ms_path: str) -> None:
     """
     # Ensure CASAPATH is set before importing CASA modules
     from dsa110_contimg.utils.casa_init import ensure_casa_path
+
     ensure_casa_path()
 
     try:
         import casacore.tables as casatables
+
         table = casatables.table  # noqa: N816
 
         # Open the antenna table for read/write
@@ -931,6 +933,7 @@ def _ensure_imaging_columns_populated(ms_path: str) -> None:
     cells in these columns.
     """
     import casacore.tables as casatables
+
     table = casatables.table  # noqa: N816
 
     with table(ms_path, readonly=False) as tb:

@@ -381,8 +381,9 @@ def get_storage_locations(
     )
     # Lightweight migrations to add missing columns
     try:
-        cols = {r[1] for r in conn.execute("PRAGMA table_info(ms_index)").fetchall()}
         cur = conn.cursor()
+        cur.execute("PRAGMA table_info(ms_index)")
+        cols = {r[1] for r in cur.fetchall()}
         if "stage" not in cols:
             cur.execute("ALTER TABLE ms_index ADD COLUMN stage TEXT")
         if "stage_updated_at" not in cols:
@@ -391,6 +392,10 @@ def get_storage_locations(
             cur.execute("ALTER TABLE ms_index ADD COLUMN cal_applied INTEGER DEFAULT 0")
         if "imagename" not in cols:
             cur.execute("ALTER TABLE ms_index ADD COLUMN imagename TEXT")
+        if "ra_deg" not in cols:
+            cur.execute("ALTER TABLE ms_index ADD COLUMN ra_deg REAL")
+        if "dec_deg" not in cols:
+            cur.execute("ALTER TABLE ms_index ADD COLUMN dec_deg REAL")
         conn.commit()
     except Exception:
         pass
@@ -410,6 +415,8 @@ def ms_index_upsert(
     imagename: Optional[str] = None,
     processed_at: Optional[float] = None,
     stage_updated_at: Optional[float] = None,
+    ra_deg: Optional[float] = None,
+    dec_deg: Optional[float] = None,
 ) -> None:
     """Upsert a row into ms_index, preserving existing values when None.
 
@@ -424,8 +431,8 @@ def ms_index_upsert(
     )
     conn.execute(
         """
-        INSERT INTO ms_index(path, start_mjd, end_mjd, mid_mjd, processed_at, status, stage, stage_updated_at, cal_applied, imagename)
-        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+        INSERT INTO ms_index(path, start_mjd, end_mjd, mid_mjd, processed_at, status, stage, stage_updated_at, cal_applied, imagename, ra_deg, dec_deg)
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
         ON CONFLICT(path) DO UPDATE SET
             start_mjd = COALESCE(excluded.start_mjd, ms_index.start_mjd),
             end_mjd = COALESCE(excluded.end_mjd, ms_index.end_mjd),
@@ -435,7 +442,9 @@ def ms_index_upsert(
             stage = COALESCE(excluded.stage, ms_index.stage),
             stage_updated_at = COALESCE(excluded.stage_updated_at, ms_index.stage_updated_at),
             cal_applied = COALESCE(excluded.cal_applied, ms_index.cal_applied),
-            imagename = COALESCE(excluded.imagename, ms_index.imagename)
+            imagename = COALESCE(excluded.imagename, ms_index.imagename),
+            ra_deg = COALESCE(excluded.ra_deg, ms_index.ra_deg),
+            dec_deg = COALESCE(excluded.dec_deg, ms_index.dec_deg)
         """,
         (
             ms_path,
@@ -448,8 +457,34 @@ def ms_index_upsert(
             stage_updated_at,
             cal_applied,
             imagename,
+            ra_deg,
+            dec_deg,
         ),
     )
+
+
+def log_pointing(
+    conn: sqlite3.Connection,
+    timestamp_mjd: float,
+    ra_deg: float,
+    dec_deg: float,
+) -> None:
+    """Log pointing to pointing_history table.
+
+    Args:
+        conn: Database connection
+        timestamp_mjd: Observation timestamp (MJD)
+        ra_deg: Right ascension in degrees
+        dec_deg: Declination in degrees
+    """
+    conn.execute(
+        """
+        INSERT OR REPLACE INTO pointing_history (timestamp, ra_deg, dec_deg)
+        VALUES (?, ?, ?)
+        """,
+        (timestamp_mjd, ra_deg, dec_deg),
+    )
+    conn.commit()
 
 
 def images_insert(

@@ -17,8 +17,10 @@ import numpy as np
 
 # Provide a patchable casacore table symbol for tests
 from dsa110_contimg.utils.casa_init import ensure_casa_path
+
 ensure_casa_path()
 import casacore.tables as casatables  # type: ignore
+
 table = casatables.table  # noqa: N816
 
 # Import ValidationError from unified exception hierarchy
@@ -144,6 +146,7 @@ def validate_ms(
     # Validate MS structure (lazy import CASA dependency)
     # Ensure CASAPATH is set before importing CASA modules
     from dsa110_contimg.utils.casa_init import ensure_casa_path
+
     ensure_casa_path()
 
     try:

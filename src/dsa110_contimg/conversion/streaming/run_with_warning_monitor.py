@@ -36,13 +36,11 @@ class WarningMonitor:
         "SEVERE",  # CASA severity level
         "FATAL",
         "fatal",
-        
         # Fallback/compromise patterns
         "fallback",
         "falling back",
         "using default",
         "defaulting to",
-        
         # Failure patterns
         "failed",
         "failure",
@@ -51,7 +49,6 @@ class WarningMonitor:
         "unable to",
         "abort",
         "aborting",
-        
         # Exception patterns
         "exception",
         "Exception",
@@ -62,37 +59,31 @@ class WarningMonitor:
         "KeyError",
         "FileNotFoundError",
         "PermissionError",
-        
         # File system issues
         "permission denied",
         "no such file",
         "no space left",
         "disk full",
         "read-only",
-        
         # Database issues
         "database is locked",
         "sqlite error",
         "connection failed",
-        
         # Calibration-specific
         "calibration failed",
         "no valid data",
         "insufficient data",
         "calibrator not found",
         "no calibrator",
-        
         # CASA task failures
         "task failed",
         "Task failed",
         "cannot proceed",
-        
         # Resource issues
         "MemoryError",
         "out of memory",
         "timeout",
         "Timeout",
-        
         # Configuration issues
         "missing required",
         "invalid configuration",
@@ -103,7 +94,7 @@ class WarningMonitor:
     # Patterns that are OK (not actual warnings)
     IGNORE_PATTERNS = [
         "debug",  # DEBUG level is fine
-        "info",   # INFO level is fine
+        "info",  # INFO level is fine
         "completed",  # "completed successfully" is fine
         "success",  # Success messages are fine
     ]
@@ -113,7 +104,7 @@ class WarningMonitor:
         self.warning_detected = False
         self.warning_line = None
         self.output_queue = Queue()
-        self.log_handle = open(log_file, 'w')
+        self.log_handle = open(log_file, "w")
 
     def _is_warning(self, line: str) -> bool:
         """Check if a line contains a warning pattern."""
@@ -138,13 +129,13 @@ class WarningMonitor:
     def _read_stream(self, stream, prefix: str):
         """Read from a stream and queue lines for processing."""
         try:
-            for line in iter(stream.readline, ''):
+            for line in iter(stream.readline, ""):
                 if not line:
                     break
-                line = line.rstrip('\n\r')
+                line = line.rstrip("\n\r")
                 self.output_queue.put((prefix, line))
         except Exception as e:
-            self.output_queue.put(('ERROR', f"Stream read error: {e}"))
+            self.output_queue.put(("ERROR", f"Stream read error: {e}"))
         finally:
             stream.close()
 
@@ -156,14 +147,10 @@ class WarningMonitor:
         """
         # Start threads to read stdout and stderr
         stdout_thread = threading.Thread(
-            target=self._read_stream,
-            args=(process.stdout, 'STDOUT'),
-            daemon=True
+            target=self._read_stream, args=(process.stdout, "STDOUT"), daemon=True
         )
         stderr_thread = threading.Thread(
-            target=self._read_stream,
-            args=(process.stderr, 'STDERR'),
-            daemon=True
+            target=self._read_stream, args=(process.stderr, "STDERR"), daemon=True
         )
 
         stdout_thread.start()
@@ -223,9 +210,7 @@ class WarningMonitor:
 
 
 def main():
-    parser = argparse.ArgumentParser(
-        description="Run a script with warning monitoring"
-    )
+    parser = argparse.ArgumentParser(description="Run a script with warning monitoring")
     parser.add_argument(
         "script",
         help="Script to run (e.g., run_first_mosaic.py)",

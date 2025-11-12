@@ -141,10 +141,11 @@ def write_skymodel_fits(
 
     # Create FITS HDU with properly formatted header
     from dsa110_contimg.utils.fits_utils import create_fits_hdu
+
     header = wcs.to_header()
     hdu = create_fits_hdu(data=image, header=header, fix_cdelt=True)
-    hdu.header['BUNIT'] = 'Jy/pixel'
-    hdu.header['BTYPE'] = 'Intensity'
+    hdu.header["BUNIT"] = "Jy/pixel"
+    hdu.header["BTYPE"] = "Intensity"
 
     # Write FITS file
     hdu.writeto(output_path, overwrite=True)

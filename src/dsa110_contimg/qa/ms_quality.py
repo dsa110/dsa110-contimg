@@ -13,10 +13,12 @@ from typing import Dict, List, Optional, Tuple
 
 # Ensure CASAPATH is set before importing CASA modules
 from dsa110_contimg.utils.casa_init import ensure_casa_path
+
 ensure_casa_path()
 
 import numpy as np
 import casacore.tables as casatables  # type: ignore
+
 table = casatables.table  # noqa: N816
 
 from dsa110_contimg.qa.base import ValidationInputError
@@ -123,7 +125,7 @@ def validate_ms_quality(
 
     Returns:
         MSQualityMetrics object with validation results
-        
+
     Raises:
         ValidationInputError: If MS path is invalid or MS not found
     """
@@ -336,7 +338,7 @@ def quick_ms_check(ms_path: str) -> Tuple[bool, str]:
 
     Returns:
         (passed, message) tuple
-        
+
     Note: This function maintains backward compatibility by returning a tuple.
     For new code, prefer using validate_ms_quality() which raises exceptions.
     """

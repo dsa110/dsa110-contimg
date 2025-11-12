@@ -86,16 +86,13 @@ def test_get_failed_publishes(temp_registry_db):
 
 
 @pytest.mark.unit
-def test_get_failed_publishes_with_max_attempts_filter(
-    temp_registry_db
-):
+def test_get_failed_publishes_with_max_attempts_filter(temp_registry_db):
     """Test get_failed_publishes with max_attempts filter."""
     # Get all failed
     all_failed = get_failed_publishes(temp_registry_db)
 
     # Get only max attempts
-    max_attempts_failed = get_failed_publishes(
-        temp_registry_db, max_attempts=3)
+    max_attempts_failed = get_failed_publishes(temp_registry_db, max_attempts=3)
 
     assert len(max_attempts_failed) <= len(all_failed)
 
@@ -166,9 +163,7 @@ def test_check_alerts_no_alerts():
 @pytest.mark.unit
 def test_retry_failed_publish_dry_run(temp_registry_db):
     """Test retry_failed_publish in dry run mode."""
-    success = retry_failed_publish(
-        temp_registry_db, "test_mosaic_001", dry_run=True
-    )
+    success = retry_failed_publish(temp_registry_db, "test_mosaic_001", dry_run=True)
 
     assert success is True
 

@@ -84,8 +84,7 @@ class TestCrossMatchSources:
         assert "detected_flux" in matches.columns
         assert "catalog_flux" in matches.columns
         assert "flux_ratio" in matches.columns
-        assert np.allclose(matches["flux_ratio"], [
-                           1.0 / 1.1, 2.0 / 2.1], rtol=0.1)
+        assert np.allclose(matches["flux_ratio"], [1.0 / 1.1, 2.0 / 2.1], rtol=0.1)
 
     def test_with_ids(self):
         """Test cross-matching with source IDs."""
@@ -119,18 +118,22 @@ class TestCrossMatchDataframes:
 
     def test_dataframe_matching(self):
         """Test cross-matching with DataFrames."""
-        detected_df = pd.DataFrame({
-            "ra_deg": [10.0, 20.0],
-            "dec_deg": [0.0, 5.0],
-            "flux_jy": [1.0, 2.0],
-        })
+        detected_df = pd.DataFrame(
+            {
+                "ra_deg": [10.0, 20.0],
+                "dec_deg": [0.0, 5.0],
+                "flux_jy": [1.0, 2.0],
+            }
+        )
 
         # Use small offsets (within 10 arcsec)
-        catalog_df = pd.DataFrame({
-            "ra_deg": [10.0 + 0.001, 20.0 + 0.001],
-            "dec_deg": [0.0 + 0.001, 5.0 + 0.001],
-            "flux_mjy": [1100.0, 2100.0],
-        })
+        catalog_df = pd.DataFrame(
+            {
+                "ra_deg": [10.0 + 0.001, 20.0 + 0.001],
+                "dec_deg": [0.0 + 0.001, 5.0 + 0.001],
+                "flux_mjy": [1100.0, 2100.0],
+            }
+        )
 
         matches = cross_match_dataframes(
             detected_df=detected_df,
@@ -161,8 +164,9 @@ class TestCrossMatchDataframes:
                 radius_arcsec=10.0,
             )
             # Should return empty DataFrame with expected columns
-            assert len(matches) == 0 or (isinstance(
-                matches, pd.DataFrame) and matches.empty)
+            assert len(matches) == 0 or (
+                isinstance(matches, pd.DataFrame) and matches.empty
+            )
         except ValueError:
             # Expected behavior when catalog is empty
             pass
@@ -173,10 +177,12 @@ class TestCalculatePositionalOffsets:
 
     def test_offset_calculation(self):
         """Test offset calculation."""
-        matches = pd.DataFrame({
-            "dra_arcsec": [1.0, -1.0, 2.0, -2.0],
-            "ddec_arcsec": [0.5, -0.5, 1.0, -1.0],
-        })
+        matches = pd.DataFrame(
+            {
+                "dra_arcsec": [1.0, -1.0, 2.0, -2.0],
+                "ddec_arcsec": [0.5, -0.5, 1.0, -1.0],
+            }
+        )
 
         dra_median, ddec_median, dra_madfm, ddec_madfm = calculate_positional_offsets(
             matches
@@ -190,21 +196,26 @@ class TestCalculatePositionalOffsets:
     def test_empty_matches(self):
         """Test with empty matches."""
         import warnings
+
         matches = pd.DataFrame({"dra_arcsec": [], "ddec_arcsec": []})
 
         # Empty matches should raise ValueError or return NaN
         # Suppress expected RuntimeWarnings from numpy when operating on empty arrays
         with warnings.catch_warnings():
             warnings.filterwarnings(
-                "ignore", category=RuntimeWarning, message="Mean of empty slice")
+                "ignore", category=RuntimeWarning, message="Mean of empty slice"
+            )
             warnings.filterwarnings(
-                "ignore", category=RuntimeWarning, message="invalid value encountered")
+                "ignore", category=RuntimeWarning, message="invalid value encountered"
+            )
             try:
-                dra_median, ddec_median, dra_madfm, ddec_madfm = calculate_positional_offsets(
-                    matches)
+                dra_median, ddec_median, dra_madfm, ddec_madfm = (
+                    calculate_positional_offsets(matches)
+                )
                 # If it doesn't raise, check that results are NaN or invalid
                 assert np.isnan(dra_median.to(u.arcsec).value) or np.isnan(
-                    ddec_median.to(u.arcsec).value)
+                    ddec_median.to(u.arcsec).value
+                )
             except (ValueError, IndexError, RuntimeError):
                 # Expected behavior - empty matches should raise an error
                 pass
@@ -215,9 +226,11 @@ class TestCalculateFluxScale:
 
     def test_flux_scale_calculation(self):
         """Test flux scale calculation."""
-        matches = pd.DataFrame({
-            "flux_ratio": [1.0, 1.1, 0.9, 1.05],
-        })
+        matches = pd.DataFrame(
+            {
+                "flux_ratio": [1.0, 1.1, 0.9, 1.05],
+            }
+        )
 
         flux_corr, flux_ratio = calculate_flux_scale(matches)
 
@@ -234,9 +247,11 @@ class TestCalculateFluxScale:
 
     def test_invalid_flux_ratios(self):
         """Test with invalid flux ratios."""
-        matches = pd.DataFrame({
-            "flux_ratio": [np.nan, -1.0, 0.0],
-        })
+        matches = pd.DataFrame(
+            {
+                "flux_ratio": [np.nan, -1.0, 0.0],
+            }
+        )
 
         with pytest.raises(ValueError):
             calculate_flux_scale(matches)
@@ -251,7 +266,7 @@ class TestSearchAroundSky:
         # Use small offsets (within 10 arcsec)
         coords2 = SkyCoord(
             [10.0 + 0.001, 20.0 + 0.001, 30.0] * u.deg,
-            [0.0 + 0.001, 5.0 + 0.001, 50.0] * u.deg
+            [0.0 + 0.001, 5.0 + 0.001, 50.0] * u.deg,
         )
         radius = Angle(10.0 * u.arcsec)
 
@@ -318,7 +333,8 @@ class TestMultiCatalogMatch:
         assert len(results) == 1
         # When no matches, separation should be very large (not necessarily inf)
         assert results["best_separation_arcsec"].iloc[0] > 1000.0 or np.isinf(
-            results["best_separation_arcsec"].iloc[0])
+            results["best_separation_arcsec"].iloc[0]
+        )
 
 
 class TestIdentifyDuplicateCatalogSources:
@@ -327,16 +343,20 @@ class TestIdentifyDuplicateCatalogSources:
     def test_no_duplicates(self):
         """Test when no duplicates exist."""
         catalog_matches = {
-            "nvss": pd.DataFrame({
-                "catalog_ra_deg": [10.0, 20.0],
-                "catalog_dec_deg": [0.0, 5.0],
-                "catalog_source_id": ["nvss_1", "nvss_2"],
-            }),
-            "first": pd.DataFrame({
-                "catalog_ra_deg": [30.0, 40.0],
-                "catalog_dec_deg": [10.0, 15.0],
-                "catalog_source_id": ["first_1", "first_2"],
-            }),
+            "nvss": pd.DataFrame(
+                {
+                    "catalog_ra_deg": [10.0, 20.0],
+                    "catalog_dec_deg": [0.0, 5.0],
+                    "catalog_source_id": ["nvss_1", "nvss_2"],
+                }
+            ),
+            "first": pd.DataFrame(
+                {
+                    "catalog_ra_deg": [30.0, 40.0],
+                    "catalog_dec_deg": [10.0, 15.0],
+                    "catalog_source_id": ["first_1", "first_2"],
+                }
+            ),
         }
 
         master_ids = identify_duplicate_catalog_sources(catalog_matches)
@@ -352,16 +372,20 @@ class TestIdentifyDuplicateCatalogSources:
         """Test when multiple catalogs have sources at same position."""
         # Same position (within 2 arcsec = ~0.00056 degrees)
         catalog_matches = {
-            "nvss": pd.DataFrame({
-                "catalog_ra_deg": [10.0],
-                "catalog_dec_deg": [0.0],
-                "catalog_source_id": ["nvss_J123456+012345"],
-            }),
-            "first": pd.DataFrame({
-                "catalog_ra_deg": [10.0 + 0.0001],  # Very close
-                "catalog_dec_deg": [0.0 + 0.0001],
-                "catalog_source_id": ["first_J123456+012345"],
-            }),
+            "nvss": pd.DataFrame(
+                {
+                    "catalog_ra_deg": [10.0],
+                    "catalog_dec_deg": [0.0],
+                    "catalog_source_id": ["nvss_J123456+012345"],
+                }
+            ),
+            "first": pd.DataFrame(
+                {
+                    "catalog_ra_deg": [10.0 + 0.0001],  # Very close
+                    "catalog_dec_deg": [0.0 + 0.0001],
+                    "catalog_source_id": ["first_J123456+012345"],
+                }
+            ),
         }
 
         master_ids = identify_duplicate_catalog_sources(
@@ -376,21 +400,27 @@ class TestIdentifyDuplicateCatalogSources:
     def test_catalog_priority(self):
         """Test that catalog priority is respected (NVSS > FIRST > RACS)."""
         catalog_matches = {
-            "rax": pd.DataFrame({
-                "catalog_ra_deg": [10.0],
-                "catalog_dec_deg": [0.0],
-                "catalog_source_id": ["rax_1"],
-            }),
-            "first": pd.DataFrame({
-                "catalog_ra_deg": [10.0 + 0.0001],
-                "catalog_dec_deg": [0.0 + 0.0001],
-                "catalog_source_id": ["first_1"],
-            }),
-            "nvss": pd.DataFrame({
-                "catalog_ra_deg": [10.0 + 0.0002],
-                "catalog_dec_deg": [0.0 + 0.0002],
-                "catalog_source_id": ["nvss_1"],
-            }),
+            "rax": pd.DataFrame(
+                {
+                    "catalog_ra_deg": [10.0],
+                    "catalog_dec_deg": [0.0],
+                    "catalog_source_id": ["rax_1"],
+                }
+            ),
+            "first": pd.DataFrame(
+                {
+                    "catalog_ra_deg": [10.0 + 0.0001],
+                    "catalog_dec_deg": [0.0 + 0.0001],
+                    "catalog_source_id": ["first_1"],
+                }
+            ),
+            "nvss": pd.DataFrame(
+                {
+                    "catalog_ra_deg": [10.0 + 0.0002],
+                    "catalog_dec_deg": [0.0 + 0.0002],
+                    "catalog_source_id": ["nvss_1"],
+                }
+            ),
         }
 
         master_ids = identify_duplicate_catalog_sources(
@@ -405,21 +435,27 @@ class TestIdentifyDuplicateCatalogSources:
     def test_transitive_duplicates(self):
         """Test transitive duplicate relationships (A matches B, B matches C)."""
         catalog_matches = {
-            "nvss": pd.DataFrame({
-                "catalog_ra_deg": [10.0],
-                "catalog_dec_deg": [0.0],
-                "catalog_source_id": ["nvss_A"],
-            }),
-            "first": pd.DataFrame({
-                "catalog_ra_deg": [10.0 + 0.0003],  # Matches NVSS
-                "catalog_dec_deg": [0.0 + 0.0003],
-                "catalog_source_id": ["first_B"],
-            }),
-            "rax": pd.DataFrame({
-                "catalog_ra_deg": [10.0 + 0.0006],  # Matches FIRST
-                "catalog_dec_deg": [0.0 + 0.0006],
-                "catalog_source_id": ["rax_C"],
-            }),
+            "nvss": pd.DataFrame(
+                {
+                    "catalog_ra_deg": [10.0],
+                    "catalog_dec_deg": [0.0],
+                    "catalog_source_id": ["nvss_A"],
+                }
+            ),
+            "first": pd.DataFrame(
+                {
+                    "catalog_ra_deg": [10.0 + 0.0003],  # Matches NVSS
+                    "catalog_dec_deg": [0.0 + 0.0003],
+                    "catalog_source_id": ["first_B"],
+                }
+            ),
+            "rax": pd.DataFrame(
+                {
+                    "catalog_ra_deg": [10.0 + 0.0006],  # Matches FIRST
+                    "catalog_dec_deg": [0.0 + 0.0006],
+                    "catalog_source_id": ["rax_C"],
+                }
+            ),
         }
 
         master_ids = identify_duplicate_catalog_sources(
@@ -442,11 +478,13 @@ class TestIdentifyDuplicateCatalogSources:
     def test_partial_catalog_matches(self):
         """Test with some catalogs having no matches."""
         catalog_matches = {
-            "nvss": pd.DataFrame({
-                "catalog_ra_deg": [10.0],
-                "catalog_dec_deg": [0.0],
-                "catalog_source_id": ["nvss_1"],
-            }),
+            "nvss": pd.DataFrame(
+                {
+                    "catalog_ra_deg": [10.0],
+                    "catalog_dec_deg": [0.0],
+                    "catalog_source_id": ["nvss_1"],
+                }
+            ),
             "first": pd.DataFrame(),  # Empty
             "rax": None,  # None
         }
@@ -460,17 +498,21 @@ class TestIdentifyDuplicateCatalogSources:
     def test_deduplication_radius(self):
         """Test that deduplication radius affects grouping."""
         catalog_matches = {
-            "nvss": pd.DataFrame({
-                "catalog_ra_deg": [10.0],
-                "catalog_dec_deg": [0.0],
-                "catalog_source_id": ["nvss_1"],
-            }),
-            "first": pd.DataFrame({
-                # ~1.08 arcsec (within 2 arcsec)
-                "catalog_ra_deg": [10.0 + 0.0003],
-                "catalog_dec_deg": [0.0 + 0.0003],
-                "catalog_source_id": ["first_1"],
-            }),
+            "nvss": pd.DataFrame(
+                {
+                    "catalog_ra_deg": [10.0],
+                    "catalog_dec_deg": [0.0],
+                    "catalog_source_id": ["nvss_1"],
+                }
+            ),
+            "first": pd.DataFrame(
+                {
+                    # ~1.08 arcsec (within 2 arcsec)
+                    "catalog_ra_deg": [10.0 + 0.0003],
+                    "catalog_dec_deg": [0.0 + 0.0003],
+                    "catalog_source_id": ["first_1"],
+                }
+            ),
         }
 
         # Small radius - should group (within 2 arcsec)
@@ -482,16 +524,20 @@ class TestIdentifyDuplicateCatalogSources:
 
         # Test with sources too far apart
         catalog_matches_far = {
-            "nvss": pd.DataFrame({
-                "catalog_ra_deg": [10.0],
-                "catalog_dec_deg": [0.0],
-                "catalog_source_id": ["nvss_1"],
-            }),
-            "first": pd.DataFrame({
-                "catalog_ra_deg": [10.0 + 0.01],  # ~36 arcsec (too far)
-                "catalog_dec_deg": [0.0 + 0.01],
-                "catalog_source_id": ["first_1"],
-            }),
+            "nvss": pd.DataFrame(
+                {
+                    "catalog_ra_deg": [10.0],
+                    "catalog_dec_deg": [0.0],
+                    "catalog_source_id": ["nvss_1"],
+                }
+            ),
+            "first": pd.DataFrame(
+                {
+                    "catalog_ra_deg": [10.0 + 0.01],  # ~36 arcsec (too far)
+                    "catalog_dec_deg": [0.0 + 0.01],
+                    "catalog_source_id": ["first_1"],
+                }
+            ),
         }
 
         # Small radius - should not group
@@ -504,20 +550,24 @@ class TestIdentifyDuplicateCatalogSources:
     def test_approximate_position_from_offset(self):
         """Test when catalog positions are approximated from offsets."""
         catalog_matches = {
-            "nvss": pd.DataFrame({
-                "ra_deg": [10.0],
-                "dec_deg": [0.0],
-                "dra_arcsec": [0.0],
-                "ddec_arcsec": [0.0],
-                "catalog_source_id": ["nvss_1"],
-            }),
-            "first": pd.DataFrame({
-                "ra_deg": [10.0],
-                "dec_deg": [0.0],
-                "dra_arcsec": [0.1],
-                "ddec_arcsec": [0.1],
-                "catalog_source_id": ["first_1"],
-            }),
+            "nvss": pd.DataFrame(
+                {
+                    "ra_deg": [10.0],
+                    "dec_deg": [0.0],
+                    "dra_arcsec": [0.0],
+                    "ddec_arcsec": [0.0],
+                    "catalog_source_id": ["nvss_1"],
+                }
+            ),
+            "first": pd.DataFrame(
+                {
+                    "ra_deg": [10.0],
+                    "dec_deg": [0.0],
+                    "dra_arcsec": [0.1],
+                    "ddec_arcsec": [0.1],
+                    "catalog_source_id": ["first_1"],
+                }
+            ),
         }
 
         master_ids = identify_duplicate_catalog_sources(
