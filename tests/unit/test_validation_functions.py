@@ -9,6 +9,15 @@ failure scenarios, and ensures proper error handling.
 Run with: pytest tests/unit/test_validation_functions.py -v
 """
 
+from dsa110_contimg.conversion.helpers import (
+    cleanup_casa_file_handles,
+    validate_antenna_positions,
+    validate_model_data_quality,
+    validate_ms_frequency_order,
+    validate_phase_center_coherence,
+    validate_reference_antenna_stability,
+    validate_uvw_precision,
+)
 import sys
 import logging
 from unittest.mock import MagicMock, call, patch
@@ -56,16 +65,6 @@ sys.modules["matplotlib.colors"] = MagicMock()
 sys.modules["matplotlib.pylab"] = MagicMock()
 sys.modules["matplotlib.transforms"] = MagicMock()
 sys.modules["matplotlib.ticker"] = MagicMock()
-
-from dsa110_contimg.conversion.helpers import (
-    cleanup_casa_file_handles,
-    validate_antenna_positions,
-    validate_model_data_quality,
-    validate_ms_frequency_order,
-    validate_phase_center_coherence,
-    validate_reference_antenna_stability,
-    validate_uvw_precision,
-)
 
 
 class MockTableContext:
@@ -171,7 +170,8 @@ class TestUVWPrecisionValidation:
         )
 
         mock_data = {
-            "spectral_window": {"CHAN_FREQ": np.array([[1400e6]])},  # λ ≈ 0.21m
+            # λ ≈ 0.21m
+            "spectral_window": {"CHAN_FREQ": np.array([[1400e6]])},
             "main_table": {"UVW": mock_uvw, "nrows": len(mock_uvw)},
         }
 
@@ -201,7 +201,8 @@ class TestUVWPrecisionValidation:
         )
 
         mock_data = {
-            "spectral_window": {"CHAN_FREQ": np.array([[1400e6]])},  # λ ≈ 0.21m
+            # λ ≈ 0.21m
+            "spectral_window": {"CHAN_FREQ": np.array([[1400e6]])},
             "main_table": {"UVW": mock_uvw, "nrows": len(mock_uvw)},
         }
 
