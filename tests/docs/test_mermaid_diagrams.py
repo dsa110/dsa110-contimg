@@ -38,8 +38,10 @@ def _flatten_nav(nav: List[Union[Dict[str, Any], str]]) -> List[str]:
 
 
 def _mkdocs_paths() -> List[str]:
+    # Use FullLoader to handle MkDocs-specific YAML tags (e.g., !python/name:...)
+    # We only need the 'nav' section, so this is safe for our use case
     with MKDOCS_YML.open("r", encoding="utf-8") as f:
-        cfg = yaml.safe_load(f)
+        cfg = yaml.load(f, Loader=yaml.FullLoader)
     nav = cfg.get("nav", [])
     raw_paths = _flatten_nav(nav)
     # Keep only markdown pages under docs/
