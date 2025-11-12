@@ -20,26 +20,10 @@ sys.modules["casatasks"] = MagicMock()
 sys.modules["pyuvdata"] = MagicMock()
 sys.modules["pyuvdata.utils"] = MagicMock()
 sys.modules["pyuvdata.utils.phasing"] = MagicMock()
+
 # Mock matplotlib with proper __spec__ and __path__ for package-like behavior
 # Use a custom import hook to catch all matplotlib submodule imports
 _original_import = __import__
-
-# Now safe to import other modules
-import logging
-from unittest.mock import call, patch
-
-import numpy as np
-import pytest
-
-from dsa110_contimg.conversion.helpers import (
-    cleanup_casa_file_handles,
-    validate_antenna_positions,
-    validate_model_data_quality,
-    validate_ms_frequency_order,
-    validate_phase_center_coherence,
-    validate_reference_antenna_stability,
-    validate_uvw_precision,
-)
 
 
 def _mock_import(name, *args, **kwargs):
@@ -57,7 +41,7 @@ def _mock_import(name, *args, **kwargs):
     return _original_import(name, *args, **kwargs)
 
 
-# Install the import hook
+# Install the import hook BEFORE any imports
 __builtins__["__import__"] = _mock_import
 
 # Pre-create common matplotlib modules
@@ -70,6 +54,23 @@ sys.modules["matplotlib.colors"] = MagicMock()
 sys.modules["matplotlib.pylab"] = MagicMock()
 sys.modules["matplotlib.transforms"] = MagicMock()
 sys.modules["matplotlib.ticker"] = MagicMock()
+
+# Now safe to import other modules
+import logging
+from unittest.mock import call, patch
+
+import numpy as np
+import pytest
+
+from dsa110_contimg.conversion.helpers import (
+    cleanup_casa_file_handles,
+    validate_antenna_positions,
+    validate_model_data_quality,
+    validate_ms_frequency_order,
+    validate_phase_center_coherence,
+    validate_reference_antenna_stability,
+    validate_uvw_precision,
+)
 
 
 class MockTableContext:
