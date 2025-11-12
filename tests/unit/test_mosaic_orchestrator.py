@@ -2,13 +2,18 @@
 
 Tests for:
 - find_earliest_incomplete_window with Dec extraction
+- find_transit_centered_window (transit lookup, failures, edge cases)
 - _trigger_hdf5_conversion (mocked)
 - ensure_ms_files_in_window conversion triggering
+- _form_group_from_ms_paths (group formation, error handling)
+- wait_for_published (polling, timeouts, errors)
 - create_mosaic_default_behavior workflow (mocked)
 """
 
 from __future__ import annotations
 
+import sqlite3
+import time
 from pathlib import Path
 from unittest.mock import MagicMock, Mock, patch
 
@@ -34,6 +39,26 @@ def temp_products_db(tmp_path):
         cur.execute("ALTER TABLE ms_index ADD COLUMN ra_deg REAL")
     if "dec_deg" not in cols:
         cur.execute("ALTER TABLE ms_index ADD COLUMN dec_deg REAL")
+
+    # Ensure mosaic_groups table exists
+    cur.execute(
+        """
+        CREATE TABLE IF NOT EXISTS mosaic_groups (
+            group_id TEXT PRIMARY KEY,
+            mosaic_id TEXT,
+            ms_paths TEXT NOT NULL,
+            calibration_ms_path TEXT,
+            bpcal_solved INTEGER DEFAULT 0,
+            created_at REAL NOT NULL,
+            calibrated_at REAL,
+            imaged_at REAL,
+            mosaicked_at REAL,
+            status TEXT DEFAULT 'pending',
+            stage TEXT,
+            cal_applied INTEGER DEFAULT 0
+        )
+        """
+    )
 
     # Insert test MS files with pointing
     ms_paths = [
@@ -284,3 +309,406 @@ def test_create_mosaic_default_behavior_insufficient_ms(orchestrator):
 
         # Should return None when insufficient MS files (< 3)
         assert result is None
+
+
+# ============================================================================
+# Tests for find_transit_centered_window
+# ============================================================================
+
+
+@pytest.mark.unit
+def test_find_transit_centered_window_success(orchestrator):
+    """Test find_transit_centered_window successfully finds transit window."""
+    calibrator_name = "0834+555"
+    timespan_minutes = 50
+
+    # Mock calibrator service
+    mock_service = MagicMock()
+    mock_service.list_available_transits.return_value = [
+        {"transit_iso": "2024-01-15T12:00:00"},  # Most recent first
+        {"transit_iso": "2024-01-14T12:00:00"},
+        {"transit_iso": "2024-01-13T12:00:00"},  # Earliest (last in list)
+    ]
+    mock_service._load_radec.return_value = (150.0, -30.0)  # RA, Dec
+
+    orchestrator.calibrator_service = mock_service
+
+    result = orchestrator.find_transit_centered_window(
+        calibrator_name, timespan_minutes
+    )
+
+    assert result is not None
+    assert "transit_time" in result
+    assert "start_time" in result
+    assert "end_time" in result
+    assert "dec_deg" in result
+    assert "bp_calibrator" in result
+    assert "ms_count" in result
+    assert result["bp_calibrator"] == calibrator_name
+    assert abs(result["dec_deg"] - (-30.0)) < 1e-6
+
+    # Verify window is centered on transit (±25 minutes for 50-minute span)
+    transit_time = result["transit_time"]
+    start_time = result["start_time"]
+    end_time = result["end_time"]
+    assert abs((end_time - start_time).to_value("min") - timespan_minutes) < 0.1
+    assert abs((transit_time - start_time).to_value("min") - timespan_minutes / 2) < 0.1
+
+    mock_service.list_available_transits.assert_called_once_with(
+        calibrator_name, max_days_back=60
+    )
+    mock_service._load_radec.assert_called_once_with(calibrator_name)
+
+
+@pytest.mark.unit
+def test_find_transit_centered_window_no_transits(orchestrator):
+    """Test find_transit_centered_window handles no transits found."""
+    calibrator_name = "0834+555"
+
+    # Mock calibrator service returning empty list
+    mock_service = MagicMock()
+    mock_service.list_available_transits.return_value = []
+
+    orchestrator.calibrator_service = mock_service
+
+    result = orchestrator.find_transit_centered_window(calibrator_name)
+
+    assert result is None
+    mock_service.list_available_transits.assert_called_once()
+
+
+@pytest.mark.unit
+def test_find_transit_centered_window_no_calibrator_service(orchestrator):
+    """Test find_transit_centered_window handles missing calibrator service."""
+    orchestrator.calibrator_service = None
+
+    result = orchestrator.find_transit_centered_window("0834+555")
+
+    assert result is None
+
+
+@pytest.mark.unit
+def test_find_transit_centered_window_custom_timespan(orchestrator):
+    """Test find_transit_centered_window with custom timespan."""
+    calibrator_name = "0834+555"
+    timespan_minutes = 15  # 3 MS files instead of 10
+
+    mock_service = MagicMock()
+    mock_service.list_available_transits.return_value = [
+        {"transit_iso": "2024-01-13T12:00:00"}
+    ]
+    mock_service._load_radec.return_value = (150.0, -30.0)
+
+    orchestrator.calibrator_service = mock_service
+
+    result = orchestrator.find_transit_centered_window(
+        calibrator_name, timespan_minutes
+    )
+
+    assert result is not None
+    # Verify window span matches custom timespan
+    start_time = result["start_time"]
+    end_time = result["end_time"]
+    assert abs((end_time - start_time).to_value("min") - timespan_minutes) < 0.1
+
+
+@pytest.mark.unit
+def test_find_transit_centered_window_ms_count_query(orchestrator):
+    """Test find_transit_centered_window queries MS count correctly."""
+    calibrator_name = "0834+555"
+
+    mock_service = MagicMock()
+    mock_service.list_available_transits.return_value = [
+        {"transit_iso": "2024-01-13T12:00:00"}
+    ]
+    mock_service._load_radec.return_value = (150.0, -30.0)
+
+    orchestrator.calibrator_service = mock_service
+
+    result = orchestrator.find_transit_centered_window(calibrator_name)
+
+    assert result is not None
+    assert "ms_count" in result
+    # Should query ms_index for files in window
+    assert isinstance(result["ms_count"], int)
+
+
+# ============================================================================
+# Tests for _form_group_from_ms_paths
+# ============================================================================
+
+
+@pytest.mark.unit
+def test_form_group_from_ms_paths_success(orchestrator, tmp_path):
+    """Test _form_group_from_ms_paths successfully creates group."""
+    # Create test MS files
+    ms_dir = tmp_path / "ms_files"
+    ms_dir.mkdir()
+    ms_paths = [
+        str(ms_dir / "ms1.ms"),
+        str(ms_dir / "ms2.ms"),
+        str(ms_dir / "ms3.ms"),
+    ]
+    for ms_path in ms_paths:
+        Path(ms_path).touch()
+
+    group_id = "test_group_123"
+
+    # Mock mosaic manager
+    with patch.object(orchestrator, "_get_mosaic_manager") as mock_get_manager:
+        mock_manager = MagicMock()
+        mock_manager.products_db = orchestrator.products_db
+        mock_get_manager.return_value = mock_manager
+
+        result = orchestrator._form_group_from_ms_paths(ms_paths, group_id)
+
+        assert result is True
+        mock_get_manager.assert_called_once()
+
+        # Verify group was inserted into database
+        cursor = orchestrator.products_db.cursor()
+        cursor.execute(
+            "SELECT group_id, ms_paths, status FROM mosaic_groups WHERE group_id = ?",
+            (group_id,),
+        )
+        row = cursor.fetchone()
+        assert row is not None
+        assert row[0] == group_id
+        assert row[2] == "pending"
+
+
+@pytest.mark.unit
+def test_form_group_from_ms_paths_missing_file(orchestrator, tmp_path):
+    """Test _form_group_from_ms_paths handles missing MS file."""
+    ms_dir = tmp_path / "ms_files"
+    ms_dir.mkdir()
+    ms_paths = [
+        str(ms_dir / "ms1.ms"),  # Exists
+        str(ms_dir / "ms2.ms"),  # Missing
+        str(ms_dir / "ms3.ms"),  # Exists
+    ]
+    Path(ms_paths[0]).touch()
+    Path(ms_paths[2]).touch()
+
+    group_id = "test_group_456"
+
+    with patch.object(orchestrator, "_get_mosaic_manager") as mock_get_manager:
+        mock_manager = MagicMock()
+        mock_manager.products_db = orchestrator.products_db
+        mock_get_manager.return_value = mock_manager
+
+        result = orchestrator._form_group_from_ms_paths(ms_paths, group_id)
+
+        assert result is False
+        # Group should not be created
+        cursor = orchestrator.products_db.cursor()
+        cursor.execute(
+            "SELECT COUNT(*) FROM mosaic_groups WHERE group_id = ?", (group_id,)
+        )
+        assert cursor.fetchone()[0] == 0
+
+
+@pytest.mark.unit
+def test_form_group_from_ms_paths_database_error(orchestrator, tmp_path):
+    """Test _form_group_from_ms_paths handles database errors."""
+    ms_dir = tmp_path / "ms_files"
+    ms_dir.mkdir()
+    ms_paths = [str(ms_dir / "ms1.ms")]
+    Path(ms_paths[0]).touch()
+
+    group_id = "test_group_789"
+
+    with patch.object(orchestrator, "_get_mosaic_manager") as mock_get_manager:
+        mock_manager = MagicMock()
+        # Simulate database error
+        mock_manager.products_db.execute.side_effect = sqlite3.OperationalError(
+            "database locked"
+        )
+        mock_get_manager.return_value = mock_manager
+
+        result = orchestrator._form_group_from_ms_paths(ms_paths, group_id)
+
+        assert result is False
+
+
+@pytest.mark.unit
+def test_form_group_from_ms_paths_group_id_collision(orchestrator, tmp_path):
+    """Test _form_group_from_ms_paths handles group ID collision (INSERT OR REPLACE)."""
+    ms_dir = tmp_path / "ms_files"
+    ms_dir.mkdir()
+    ms_paths1 = [str(ms_dir / "ms1.ms")]
+    ms_paths2 = [str(ms_dir / "ms2.ms")]
+    Path(ms_paths1[0]).touch()
+    Path(ms_paths2[0]).touch()
+
+    group_id = "collision_group"
+
+    with patch.object(orchestrator, "_get_mosaic_manager") as mock_get_manager:
+        mock_manager = MagicMock()
+        mock_manager.products_db = orchestrator.products_db
+        mock_get_manager.return_value = mock_manager
+
+        # Create first group
+        result1 = orchestrator._form_group_from_ms_paths(ms_paths1, group_id)
+        assert result1 is True
+
+        # Create second group with same ID (should replace)
+        result2 = orchestrator._form_group_from_ms_paths(ms_paths2, group_id)
+        assert result2 is True
+
+        # Verify only one group exists (replaced)
+        cursor = orchestrator.products_db.cursor()
+        cursor.execute(
+            "SELECT ms_paths FROM mosaic_groups WHERE group_id = ?", (group_id,)
+        )
+        row = cursor.fetchone()
+        assert row is not None
+        # Should contain ms_paths2, not ms_paths1
+        assert "ms2.ms" in row[0]
+        assert "ms1.ms" not in row[0]
+
+
+# ============================================================================
+# Tests for wait_for_published
+# ============================================================================
+
+
+@pytest.mark.unit
+def test_wait_for_published_success(orchestrator, tmp_path):
+    """Test wait_for_published successfully detects published status."""
+    mosaic_id = "test_mosaic_123"
+    published_path = str(tmp_path / "published" / "mosaic.fits")
+    Path(published_path).parent.mkdir(parents=True)
+    Path(published_path).touch()
+
+    # Mock data registry to return published status
+    mock_instance = MagicMock()
+    mock_instance.status = "published"
+    mock_instance.published_path = published_path
+
+    with patch("dsa110_contimg.mosaic.orchestrator.get_data") as mock_get_data, patch(
+        "time.sleep"
+    ):  # Skip sleep
+        mock_get_data.return_value = mock_instance
+
+        result = orchestrator.wait_for_published(mosaic_id, poll_interval_seconds=0.1)
+
+        assert result == published_path
+        mock_get_data.assert_called()
+
+
+@pytest.mark.unit
+def test_wait_for_published_timeout(orchestrator):
+    """Test wait_for_published times out when not published."""
+    mosaic_id = "test_mosaic_timeout"
+
+    # Mock data registry to return non-published status
+    mock_instance = MagicMock()
+    mock_instance.status = "staging"  # Not published
+
+    call_count = [0]
+
+    def time_side_effect():
+        call_count[0] += 1
+        if call_count[0] == 1:
+            return 0.0  # Start time
+        else:
+            return 25 * 3600  # Past timeout
+
+    with patch("dsa110_contimg.mosaic.orchestrator.get_data") as mock_get_data, patch(
+        "time.sleep"
+    ), patch("time.time") as mock_time:
+        mock_get_data.return_value = mock_instance
+        mock_time.side_effect = time_side_effect
+
+        result = orchestrator.wait_for_published(
+            mosaic_id, poll_interval_seconds=0.1, max_wait_hours=24.0
+        )
+
+        assert result is None
+
+
+@pytest.mark.unit
+def test_wait_for_published_file_not_found(orchestrator):
+    """Test wait_for_published handles file not found scenario."""
+    mosaic_id = "test_mosaic_no_file"
+
+    # Mock data registry: status is published but file doesn't exist
+    mock_instance = MagicMock()
+    mock_instance.status = "published"
+    mock_instance.published_path = "/nonexistent/path/mosaic.fits"
+
+    with patch("dsa110_contimg.mosaic.orchestrator.get_data") as mock_get_data, patch(
+        "time.sleep"
+    ), patch("time.time") as mock_time:
+        mock_get_data.return_value = mock_instance
+        # time.time() called multiple times in loop
+        mock_time.side_effect = [0.0, 0.0, 2.0]  # Start, first check, timeout
+
+        result = orchestrator.wait_for_published(
+            mosaic_id, poll_interval_seconds=0.1, max_wait_hours=0.001
+        )
+
+        # Should timeout because file doesn't exist
+        assert result is None
+
+
+@pytest.mark.unit
+def test_wait_for_published_no_registry_entry(orchestrator):
+    """Test wait_for_published handles missing registry entry."""
+    mosaic_id = "test_mosaic_no_entry"
+
+    with patch("dsa110_contimg.mosaic.orchestrator.get_data") as mock_get_data, patch(
+        "time.sleep"
+    ), patch("time.time") as mock_time:
+        mock_get_data.return_value = None  # No entry found
+        # time.time() called multiple times in loop
+        mock_time.side_effect = [0.0, 0.0, 2.0]  # Start, first check, timeout
+
+        result = orchestrator.wait_for_published(
+            mosaic_id, poll_interval_seconds=0.1, max_wait_hours=0.001
+        )
+
+        assert result is None
+
+
+@pytest.mark.unit
+def test_wait_for_published_polling_interval(orchestrator, tmp_path):
+    """Test wait_for_published respects polling interval."""
+    mosaic_id = "test_mosaic_polling"
+    published_path = str(tmp_path / "published" / "mosaic.fits")
+    Path(published_path).parent.mkdir(parents=True)
+    Path(published_path).touch()
+
+    mock_instance = MagicMock()
+    mock_instance.status = "staging"
+    # Change to published on second call
+    call_count = [0]
+
+    def get_data_side_effect(*args):
+        call_count[0] += 1
+        if call_count[0] == 1:
+            return mock_instance
+        else:
+            mock_instance.status = "published"
+            mock_instance.published_path = published_path
+            return mock_instance
+
+    with patch("dsa110_contimg.mosaic.orchestrator.get_data") as mock_get_data, patch(
+        "time.sleep"
+    ) as mock_sleep, patch("time.time") as mock_time:
+        mock_get_data.side_effect = get_data_side_effect
+        # Simulate time progression
+        mock_time.side_effect = [
+            0.0,
+            0.05,
+            0.1,
+        ]  # Start, after first poll, after second poll
+
+        result = orchestrator.wait_for_published(
+            mosaic_id, poll_interval_seconds=0.05, max_wait_hours=1.0
+        )
+
+        assert result == published_path
+        # Should have slept at least once
+        assert mock_sleep.call_count >= 1

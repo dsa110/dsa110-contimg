@@ -10,10 +10,14 @@ Run with: pytest tests/unit/test_validation_functions.py -v
 """
 
 from dsa110_contimg.conversion.helpers import (
-    cleanup_casa_file_handles, validate_antenna_positions,
-    validate_model_data_quality, validate_ms_frequency_order,
-    validate_phase_center_coherence, validate_reference_antenna_stability,
-    validate_uvw_precision)
+    cleanup_casa_file_handles,
+    validate_antenna_positions,
+    validate_model_data_quality,
+    validate_ms_frequency_order,
+    validate_phase_center_coherence,
+    validate_reference_antenna_stability,
+    validate_uvw_precision,
+)
 import sys
 import logging
 from unittest.mock import MagicMock, call, patch
