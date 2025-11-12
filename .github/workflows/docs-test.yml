@@ -1,0 +1,39 @@
+name: Docs Build Test (Minimal)
+
+on:
+  workflow_dispatch:
+  push:
+    branches:
+      - jakob-wdash
+    paths:
+      - 'docs/**'
+      - 'mkdocs.yml'
+      - '.github/workflows/docs-test.yml'
+
+jobs:
+  test-build:
+    name: Test MkDocs Build
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r docs/requirements.txt
+          echo "=== Installed packages ==="
+          pip list | grep -E "mkdocs|mkdocstrings|griffe|autorefs"
+
+      - name: Build site
+        run: |
+          echo "=== Building MkDocs ==="
+          python -m mkdocs build --verbose 2>&1 | head -100
+          echo "=== Build complete ==="
+          ls -la site/ | head -20
+
