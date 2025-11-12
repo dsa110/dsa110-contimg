@@ -107,4 +107,6 @@ jobs:
       - name: Run Mermaid diagram tests
         run: |
           set -euo pipefail
+          # Install test dependencies (numpy needed by conftest.py)
+          pip install numpy pytest pyyaml
           python -m pytest -q tests/docs/test_mermaid_diagrams.py

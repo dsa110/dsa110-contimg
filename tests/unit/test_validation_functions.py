@@ -9,11 +9,16 @@ failure scenarios, and ensures proper error handling.
 Run with: pytest tests/unit/test_validation_functions.py -v
 """
 
+import sys
 import logging
 from unittest.mock import MagicMock, call, patch
 
 import numpy as np
 import pytest
+
+# Mock casacore before importing modules that depend on it
+sys.modules['casacore'] = MagicMock()
+sys.modules['casacore.tables'] = MagicMock()
 
 from dsa110_contimg.conversion.helpers import (
     cleanup_casa_file_handles,
