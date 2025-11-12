@@ -9,23 +9,11 @@ failure scenarios, and ensures proper error handling.
 Run with: pytest tests/unit/test_validation_functions.py -v
 """
 
-from dsa110_contimg.conversion.helpers import (
-    cleanup_casa_file_handles,
-    validate_antenna_positions,
-    validate_model_data_quality,
-    validate_ms_frequency_order,
-    validate_phase_center_coherence,
-    validate_reference_antenna_stability,
-    validate_uvw_precision,
-)
+# CRITICAL: Mock casacore, pyuvdata, casatasks, and matplotlib BEFORE any imports
+# that depend on them. These mocks must be set up before importing dsa110_contimg modules.
 import sys
-import logging
-from unittest.mock import MagicMock, call, patch
+from unittest.mock import MagicMock
 
-import numpy as np
-import pytest
-
-# Mock casacore, pyuvdata, casatasks, and matplotlib before importing modules that depend on them
 sys.modules["casacore"] = MagicMock()
 sys.modules["casacore.tables"] = MagicMock()
 sys.modules["casatasks"] = MagicMock()
@@ -35,6 +23,23 @@ sys.modules["pyuvdata.utils.phasing"] = MagicMock()
 # Mock matplotlib with proper __spec__ and __path__ for package-like behavior
 # Use a custom import hook to catch all matplotlib submodule imports
 _original_import = __import__
+
+# Now safe to import other modules
+import logging
+from unittest.mock import call, patch
+
+import numpy as np
+import pytest
+
+from dsa110_contimg.conversion.helpers import (
+    cleanup_casa_file_handles,
+    validate_antenna_positions,
+    validate_model_data_quality,
+    validate_ms_frequency_order,
+    validate_phase_center_coherence,
+    validate_reference_antenna_stability,
+    validate_uvw_precision,
+)
 
 
 def _mock_import(name, *args, **kwargs):
