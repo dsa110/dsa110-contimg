@@ -70,7 +70,7 @@ class TestMosaicPhotometryIntegration:
         )
 
     @patch("dsa110_contimg.mosaic.orchestrator.query_sources_for_mosaic")
-    @patch("dsa110_contimg.mosaic.orchestrator.create_batch_photometry_job")
+    @patch("dsa110_contimg.api.batch_jobs.create_batch_photometry_job")
     def test_photometry_triggered_after_mosaic(
         self,
         mock_create_job,

@@ -1213,6 +1213,19 @@ def query_nvss_sources(
                 )
                 return pd.DataFrame(columns=["ra_deg", "dec_deg", "flux_mjy"])
 
+    # No SQLite database found and CSV fallback disabled
+    if db_path is None:
+        logger.error(
+            "SQLite database not found. SQLite database required. "
+            "CSV fallback is available but disabled. "
+            "Set use_csv_fallback=True to enable CSV fallback."
+        )
+        print(
+            "Note: CSV catalog is available as an alternative. "
+            "Set use_csv_fallback=True to enable CSV fallback (slower, ~1s vs ~0.01s)."
+        )
+        return pd.DataFrame(columns=["ra_deg", "dec_deg", "flux_mjy"])
+
 
 def query_rax_sources(
     ra_deg: float,
@@ -1411,7 +1424,7 @@ def query_rax_sources(
 
                 # Sort by flux and limit
                 if "flux_mjy" in result.columns and result["flux_mjy"].notna().any():
-                    result = result.sort_values("flux_mjy", ascending=False, na_last=True)
+                    result = result.sort_values("flux_mjy", ascending=False, na_position="last")
                 if max_sources:
                     result = result.head(max_sources)
 
@@ -1434,6 +1447,19 @@ def query_rax_sources(
                     "Set use_csv_fallback=True to enable CSV fallback (slower, ~1s vs ~0.01s)."
                 )
                 return pd.DataFrame(columns=["ra_deg", "dec_deg", "flux_mjy"])
+
+    # No SQLite database found and CSV fallback disabled
+    if db_path is None:
+        logger.error(
+            "SQLite database not found. SQLite database required. "
+            "CSV fallback is available but disabled. "
+            "Set use_csv_fallback=True to enable CSV fallback."
+        )
+        print(
+            "Note: CSV catalog is available as an alternative. "
+            "Set use_csv_fallback=True to enable CSV fallback (slower, ~1s vs ~0.01s)."
+        )
+        return pd.DataFrame(columns=["ra_deg", "dec_deg", "flux_mjy"])
 
 
 def query_vlass_sources(
@@ -1657,7 +1683,7 @@ def query_vlass_sources(
 
                 # Sort by flux and limit
                 if "flux_mjy" in result.columns and result["flux_mjy"].notna().any():
-                    result = result.sort_values("flux_mjy", ascending=False, na_last=True)
+                    result = result.sort_values("flux_mjy", ascending=False, na_position="last")
                 if max_sources:
                     result = result.head(max_sources)
 
@@ -1681,6 +1707,18 @@ def query_vlass_sources(
                 )
                 return pd.DataFrame(columns=["ra_deg", "dec_deg", "flux_mjy"])
 
+    # No SQLite database found and CSV fallback disabled
+    if db_path is None:
+        logger.error(
+            "SQLite database not found. SQLite database required. "
+            "CSV fallback is available but disabled. "
+            "Set use_csv_fallback=True to enable CSV fallback."
+        )
+        print(
+            "Note: CSV catalog is available as an alternative. "
+            "Set use_csv_fallback=True to enable CSV fallback (slower, ~1s vs ~0.01s)."
+        )
+        return pd.DataFrame(columns=["ra_deg", "dec_deg", "flux_mjy"])
 
 
 def query_catalog_sources(

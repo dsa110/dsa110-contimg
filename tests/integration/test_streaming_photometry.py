@@ -69,7 +69,7 @@ class TestStreamingPhotometryIntegration:
         return args
 
     @patch("dsa110_contimg.conversion.streaming.streaming_converter.query_sources_for_fits")
-    @patch("dsa110_contimg.conversion.streaming.streaming_converter.create_batch_photometry_job")
+    @patch("dsa110_contimg.api.batch_jobs.create_batch_photometry_job")
     def test_photometry_triggered_after_imaging(
         self, mock_create_job, mock_query_sources, mock_fits_image, mock_args, temp_products_db
     ):
@@ -86,7 +86,7 @@ class TestStreamingPhotometryIntegration:
             image_path=mock_fits_image,
             group_id="test_group",
             args=mock_args,
-            products_db_path=temp_products_db.parent,
+            products_db_path=temp_products_db,
         )
 
         # Verify photometry was triggered
@@ -109,7 +109,7 @@ class TestStreamingPhotometryIntegration:
             image_path=mock_fits_image,
             group_id="test_group",
             args=mock_args,
-            products_db_path=temp_products_db.parent,
+            products_db_path=temp_products_db,
         )
 
         assert job_id is None

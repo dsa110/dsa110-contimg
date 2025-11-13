@@ -413,6 +413,27 @@ def create_app(config: ApiConfig | None = None) -> FastAPI:
     from dsa110_contimg.api.routers.mosaics import router as mosaics_router
     from dsa110_contimg.api.routers.photometry import router as photometry_router
     from dsa110_contimg.api.routers.catalogs import router as catalogs_router
+    from dsa110_contimg.api.routers.operations import router as operations_router
+
+    # Health checks and metrics (no /api prefix)
+    from dsa110_contimg.api.health import router as health_router
+    app.include_router(health_router)
+
+    # Prometheus metrics endpoint
+    try:
+        from prometheus_client import generate_latest, CONTENT_TYPE_LATEST
+        from fastapi.responses import Response
+
+        @app.get("/metrics")
+        def metrics():
+            """Prometheus metrics endpoint."""
+            return Response(
+                content=generate_latest(),
+                media_type=CONTENT_TYPE_LATEST
+            )
+    except ImportError:
+        logger.warning(
+            "Prometheus client not available, /metrics endpoint disabled")
 
     app.include_router(status_router, prefix="/api")
     app.include_router(images_router, prefix="/api")
@@ -420,6 +441,7 @@ def create_app(config: ApiConfig | None = None) -> FastAPI:
     app.include_router(mosaics_router, prefix="/api")
     app.include_router(photometry_router, prefix="/api")
     app.include_router(catalogs_router, prefix="/api")
+    app.include_router(operations_router, prefix="/api")
 
     @router.get("/images/{image_id}/measurements", response_model=MeasurementList)
     def get_image_measurements(
@@ -5032,7 +5054,8 @@ def create_app(config: ApiConfig | None = None) -> FastAPI:
         conn = ensure_products_db(db_path)
 
         # Create ESE detection job
-        job_id = create_job(conn, "ese-detect", "", request.params.model_dump())
+        job_id = create_job(conn, "ese-detect", "",
+                            request.params.model_dump())
         conn.close()
 
         # Start job in background

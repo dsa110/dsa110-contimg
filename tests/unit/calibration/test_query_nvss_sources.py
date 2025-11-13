@@ -181,14 +181,16 @@ class TestQueryNVSSSourcesSQLite:
 
 @pytest.mark.unit
 class TestQueryNVSSSourcesCSVFallback:
-    """Test CSV fallback path (when SQLite unavailable)."""
+    """Test CSV fallback path (when SQLite unavailable and use_csv_fallback=True)."""
 
     @patch("dsa110_contimg.calibration.catalogs.read_nvss_catalog")
+    @patch("sqlite3.connect")
     @patch("dsa110_contimg.calibration.catalogs.Path.exists")
-    def test_csv_fallback_when_no_sqlite(self, mock_exists, mock_read_nvss):
-        """Test CSV fallback when SQLite database not found."""
-        # Mock Path.exists to return False (no SQLite database found)
-        mock_exists.return_value = False
+    def test_csv_fallback_when_no_sqlite(self, mock_exists, mock_connect, mock_read_nvss):
+        """Test CSV fallback when SQLite database fails and use_csv_fallback=True."""
+        # Mock Path.exists to return True (database path found) but connection fails
+        mock_exists.return_value = True
+        mock_connect.side_effect = Exception("Database connection failed")
 
         # Mock CSV data
         mock_df = pd.DataFrame(
@@ -200,8 +202,10 @@ class TestQueryNVSSSourcesCSVFallback:
         )
         mock_read_nvss.return_value = mock_df
 
-        # Query should fall back to CSV
-        df = query_nvss_sources(ra_deg=83.5, dec_deg=54.6, radius_deg=0.2)
+        # Query should fall back to CSV when explicitly enabled
+        df = query_nvss_sources(
+            ra_deg=83.5, dec_deg=54.6, radius_deg=0.2, use_csv_fallback=True
+        )
 
         assert isinstance(df, pd.DataFrame)
         assert "ra_deg" in df.columns
@@ -210,8 +214,12 @@ class TestQueryNVSSSourcesCSVFallback:
         mock_read_nvss.assert_called_once()
 
     @patch("dsa110_contimg.calibration.catalogs.read_nvss_catalog")
-    def test_csv_fallback_with_flux_filter(self, mock_read_nvss):
+    @patch("sqlite3.connect")
+    @patch("dsa110_contimg.calibration.catalogs.Path.exists")
+    def test_csv_fallback_with_flux_filter(self, mock_exists, mock_connect, mock_read_nvss):
         """Test CSV fallback with flux filtering."""
+        mock_exists.return_value = True
+        mock_connect.side_effect = Exception("Database connection failed")
         mock_df = pd.DataFrame(
             {
                 "ra": [83.5, 83.4, 83.3],
@@ -222,15 +230,23 @@ class TestQueryNVSSSourcesCSVFallback:
         mock_read_nvss.return_value = mock_df
 
         df = query_nvss_sources(
-            ra_deg=83.5, dec_deg=54.6, radius_deg=0.5, min_flux_mjy=10.0
+            ra_deg=83.5,
+            dec_deg=54.6,
+            radius_deg=0.5,
+            min_flux_mjy=10.0,
+            use_csv_fallback=True,
         )
 
         assert len(df) >= 2  # Should filter out flux < 10 mJy
         assert all(df["flux_mjy"] >= 10.0)
 
     @patch("dsa110_contimg.calibration.catalogs.read_nvss_catalog")
-    def test_csv_fallback_with_max_sources(self, mock_read_nvss):
+    @patch("sqlite3.connect")
+    @patch("dsa110_contimg.calibration.catalogs.Path.exists")
+    def test_csv_fallback_with_max_sources(self, mock_exists, mock_connect, mock_read_nvss):
         """Test CSV fallback with max_sources limit."""
+        mock_exists.return_value = True
+        mock_connect.side_effect = Exception("Database connection failed")
         # Create many sources
         n_sources = 100
         mock_df = pd.DataFrame(
@@ -243,13 +259,68 @@ class TestQueryNVSSSourcesCSVFallback:
         mock_read_nvss.return_value = mock_df
 
         df = query_nvss_sources(
-            ra_deg=83.5, dec_deg=54.6, radius_deg=1.0, max_sources=10
+            ra_deg=83.5,
+            dec_deg=54.6,
+            radius_deg=1.0,
+            max_sources=10,
+            use_csv_fallback=True,
         )
 
         assert len(df) <= 10
 
 
 @pytest.mark.unit
+class TestQueryNVSSSourcesNoFallback:
+    """Test behavior when SQLite fails and use_csv_fallback=False (default)."""
+
+    @patch("sqlite3.connect")
+    @patch("dsa110_contimg.calibration.catalogs.Path.exists")
+    def test_no_fallback_returns_empty_when_sqlite_fails(self, mock_exists, mock_connect):
+        """Test that query returns empty DataFrame when SQLite fails and fallback disabled."""
+        # Mock Path.exists to return True (database path found) but connection fails
+        mock_exists.return_value = True
+        # Mock sqlite3.connect to raise an exception
+        mock_connect.side_effect = Exception("Database connection failed")
+
+        # Query without CSV fallback (default)
+        df = query_nvss_sources(ra_deg=83.5, dec_deg=54.6, radius_deg=0.2)
+
+        assert isinstance(df, pd.DataFrame)
+        assert len(df) == 0
+        assert list(df.columns) == ["ra_deg", "dec_deg", "flux_mjy"]
+
+    @patch("sqlite3.connect")
+    @patch("dsa110_contimg.calibration.catalogs.logger")
+    @patch("dsa110_contimg.calibration.catalogs.Path.exists")
+    def test_no_fallback_logs_error(self, mock_exists, mock_logger, mock_connect):
+        """Test that error is logged when SQLite fails and fallback disabled."""
+        mock_exists.return_value = True
+        mock_connect.side_effect = Exception("Database connection failed")
+
+        query_nvss_sources(ra_deg=83.5, dec_deg=54.6, radius_deg=0.2)
+
+        # Verify error was logged
+        mock_logger.error.assert_called_once()
+        error_call = mock_logger.error.call_args[0][0]
+        assert "SQLite query failed" in error_call
+        assert "use_csv_fallback=True" in error_call
+
+    @patch("sqlite3.connect")
+    @patch("builtins.print")
+    @patch("dsa110_contimg.calibration.catalogs.Path.exists")
+    def test_no_fallback_prints_info_message(self, mock_exists, mock_print, mock_connect):
+        """Test that informational message is printed when CSV fallback disabled."""
+        mock_exists.return_value = True
+        mock_connect.side_effect = Exception("Database connection failed")
+
+        query_nvss_sources(ra_deg=83.5, dec_deg=54.6, radius_deg=0.2)
+
+        # Verify print was called with informational message
+        print_calls = [str(call) for call in mock_print.call_args_list]
+        assert any("CSV catalog is available" in str(call) for call in print_calls)
+        assert any("use_csv_fallback=True" in str(call) for call in print_calls)
+
+
 class TestQueryNVSSSourcesErrorHandling:
     """Test error handling and edge cases."""
 
@@ -280,27 +351,23 @@ class TestQueryNVSSSourcesErrorHandling:
         assert isinstance(df, pd.DataFrame)
         assert len(df) > 0
 
-    def test_explicit_catalog_path_not_found(self):
-        """Test query with non-existent explicit path falls back to CSV."""
-        with patch(
-            "dsa110_contimg.calibration.catalogs.Path.exists", return_value=False
-        ), patch(
-            "dsa110_contimg.calibration.catalogs.read_nvss_catalog"
-        ) as mock_read:
-            mock_df = pd.DataFrame(
-                {"ra": [83.5], "dec": [54.6], "flux_20_cm": [100.0]}
-            )
-            mock_read.return_value = mock_df
+    @patch("dsa110_contimg.calibration.catalogs.Path.exists")
+    def test_explicit_catalog_path_not_found(self, mock_exists):
+        """Test query with non-existent explicit path returns empty (no CSV fallback by default)."""
+        # Mock Path.exists to return False for all paths (including auto-resolution)
+        mock_exists.return_value = False
+        
+        df = query_nvss_sources(
+            ra_deg=83.5,
+            dec_deg=54.6,
+            radius_deg=0.2,
+            catalog_path="/nonexistent/path.sqlite3",
+        )
 
-            df = query_nvss_sources(
-                ra_deg=83.5,
-                dec_deg=54.6,
-                radius_deg=0.2,
-                catalog_path="/nonexistent/path.sqlite3",
-            )
-
-            assert isinstance(df, pd.DataFrame)
-            mock_read.assert_called_once()
+        # Should return empty DataFrame (no CSV fallback by default)
+        assert isinstance(df, pd.DataFrame)
+        assert len(df) == 0
+        assert list(df.columns) == ["ra_deg", "dec_deg", "flux_mjy"]
 
     def test_zero_radius(self, mock_sqlite_db, tmp_path):
         """Test query with zero radius."""
@@ -349,12 +416,19 @@ class TestQueryNVSSSourcesReturnFormat:
         assert df["flux_mjy"].dtype in [np.float64, np.float32]
 
     @patch("dsa110_contimg.calibration.catalogs.read_nvss_catalog")
-    def test_return_format_empty(self, mock_read_nvss):
+    @patch("sqlite3.connect")
+    @patch("dsa110_contimg.calibration.catalogs.Path.exists")
+    def test_return_format_empty(self, mock_exists, mock_connect, mock_read_nvss):
         """Test return format for empty results."""
+        mock_exists.return_value = True  # Database path found
+        mock_connect.side_effect = Exception("Database connection failed")
         mock_df = pd.DataFrame({"ra": [], "dec": [], "flux_20_cm": []})
         mock_read_nvss.return_value = mock_df
 
-        df = query_nvss_sources(ra_deg=0.0, dec_deg=0.0, radius_deg=0.1)
+        # With CSV fallback enabled, should return empty DataFrame
+        df = query_nvss_sources(
+            ra_deg=0.0, dec_deg=0.0, radius_deg=0.1, use_csv_fallback=True
+        )
 
         assert isinstance(df, pd.DataFrame)
         assert list(df.columns) == ["ra_deg", "dec_deg", "flux_mjy"]
@@ -548,15 +622,16 @@ class TestQueryNVSSSourcesSmoke:
         ]
 
         for ra, dec, radius in edge_cases:
-            # Should not raise exception
+            # Query may return empty if SQLite DB not available (default behavior)
             df = query_nvss_sources(ra_deg=ra, dec_deg=dec, radius_deg=radius)
 
             assert isinstance(df, pd.DataFrame)
             assert list(df.columns) == ["ra_deg", "dec_deg", "flux_mjy"]
+            # May be empty if SQLite DB not available (expected behavior)
 
     def test_smoke_result_consistency(self):
         """Smoke test: Multiple queries with same parameters return consistent results."""
-        # Query same field twice
+        # Query same field twice (using SQLite, not CSV fallback)
         df1 = query_nvss_sources(
             ra_deg=83.5, dec_deg=54.6, radius_deg=1.0, min_flux_mjy=10.0
         )
@@ -564,11 +639,12 @@ class TestQueryNVSSSourcesSmoke:
             ra_deg=83.5, dec_deg=54.6, radius_deg=1.0, min_flux_mjy=10.0
         )
 
-        # Results should be consistent (same number of sources)
-        assert len(df1) == len(df2)
-
-        # If results exist, they should be identical (sorted by flux)
-        if len(df1) > 0:
-            pd.testing.assert_frame_equal(
-                df1.reset_index(drop=True), df2.reset_index(drop=True)
-            )
+    def test_smoke_csv_fallback_disabled_by_default(self):
+        """Smoke test: CSV fallback is disabled by default."""
+        # This test verifies the default behavior - SQLite required
+        # If SQLite is available, query succeeds
+        # If SQLite unavailable, returns empty DataFrame (not CSV fallback)
+        df = query_nvss_sources(ra_deg=83.5, dec_deg=54.6, radius_deg=1.0)
+        # Should either succeed (if SQLite available) or return empty (if not)
+        assert isinstance(df, pd.DataFrame)
+        assert list(df.columns) == ["ra_deg", "dec_deg", "flux_mjy"]

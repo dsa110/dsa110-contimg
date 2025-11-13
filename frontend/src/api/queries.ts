@@ -52,6 +52,13 @@ import type {
   NotebookGenerateResponse,
   QARunRequest,
   QAResultSummary,
+  DLQItem,
+  DLQStats,
+  DLQRetryRequest,
+  DLQResolveRequest,
+  CircuitBreakerState,
+  CircuitBreakerList,
+  HealthSummary,
 } from './types';
 
 /**
@@ -1600,5 +1607,125 @@ export function useImageMeasurements(
       return response.data;
     },
     enabled: !!imageId,
+  });
+}
+
+// ============================================================================
+// Operations API Queries (DLQ, Circuit Breakers, Health)
+// ============================================================================
+
+export function useDLQItems(
+  component?: string,
+  status?: string,
+  limit: number = 100,
+  offset: number = 0
+): UseQueryResult<DLQItem[]> {
+  return useQuery({
+    queryKey: ['dlq', 'items', component, status, limit, offset],
+    queryFn: async () => {
+      const params = new URLSearchParams();
+      if (component) params.append('component', component);
+      if (status) params.append('status', status);
+      params.append('limit', limit.toString());
+      params.append('offset', offset.toString());
+      const response = await apiClient.get<DLQItem[]>(`/operations/dlq/items?${params}`);
+      return response.data;
+    },
+    refetchInterval: 30000, // Refresh every 30 seconds
+  });
+}
+
+export function useDLQStats(): UseQueryResult<DLQStats> {
+  return useQuery({
+    queryKey: ['dlq', 'stats'],
+    queryFn: async () => {
+      const response = await apiClient.get<DLQStats>('/operations/dlq/stats');
+      return response.data;
+    },
+    refetchInterval: 10000, // Refresh every 10 seconds
+  });
+}
+
+export function useDLQItem(itemId: number): UseQueryResult<DLQItem> {
+  return useQuery({
+    queryKey: ['dlq', 'item', itemId],
+    queryFn: async () => {
+      const response = await apiClient.get<DLQItem>(`/operations/dlq/items/${itemId}`);
+      return response.data;
+    },
+  });
+}
+
+export function useRetryDLQItem() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: async ({ itemId, note }: { itemId: number; note?: string }) => {
+      const response = await apiClient.post(`/operations/dlq/items/${itemId}/retry`, { note });
+      return response.data;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['dlq'] });
+    },
+  });
+}
+
+export function useResolveDLQItem() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: async ({ itemId, note }: { itemId: number; note?: string }) => {
+      const response = await apiClient.post(`/operations/dlq/items/${itemId}/resolve`, { note });
+      return response.data;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['dlq'] });
+    },
+  });
+}
+
+export function useFailDLQItem() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: async ({ itemId, note }: { itemId: number; note?: string }) => {
+      const response = await apiClient.post(`/operations/dlq/items/${itemId}/fail`, { note });
+      return response.data;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['dlq'] });
+    },
+  });
+}
+
+export function useCircuitBreakers(): UseQueryResult<CircuitBreakerList> {
+  return useQuery({
+    queryKey: ['circuit-breakers'],
+    queryFn: async () => {
+      const response = await apiClient.get<CircuitBreakerList>('/operations/circuit-breakers');
+      return response.data;
+    },
+    refetchInterval: 5000, // Refresh every 5 seconds
+  });
+}
+
+export function useResetCircuitBreaker() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: async (name: string) => {
+      const response = await apiClient.post(`/operations/circuit-breakers/${name}/reset`);
+      return response.data;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['circuit-breakers'] });
+    },
+  });
+}
+
+export function useHealthSummary(): UseQueryResult<HealthSummary> {
+  return useQuery({
+    queryKey: ['health', 'summary'],
+    queryFn: async () => {
+      const response = await apiClient.get<HealthSummary>('/health/summary');
+      return response.data;
+    },
+    refetchInterval: 10000, // Refresh every 10 seconds
   });
 }

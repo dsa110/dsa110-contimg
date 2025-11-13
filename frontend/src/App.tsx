@@ -23,6 +23,7 @@ import QAVisualizationPage from './pages/QAVisualizationPage';
 import QACartaPage from './pages/QACartaPage';
 import ObservingPage from './pages/ObservingPage';
 import HealthPage from './pages/HealthPage';
+import { OperationsPage } from './pages/OperationsPage';
 import { isRetryableError } from './utils/errorUtils';
 
 // Create React Query client factory function
@@ -135,6 +136,7 @@ function AppContent() {
                       <Route path="/qa/carta" element={<QACartaPage />} />
                       <Route path="/observing" element={<ObservingPage />} />
                       <Route path="/health" element={<HealthPage />} />
+                      <Route path="/operations" element={<OperationsPage />} />
                     </Routes>
                   </ErrorBoundary>
                 </Box>

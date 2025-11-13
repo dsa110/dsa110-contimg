@@ -205,6 +205,7 @@ def create_batch_photometry_job(
         fits_paths: List of FITS image paths to process
         coordinates: List of coordinate dicts with ra_deg and dec_deg
         params: Shared parameters for all photometry jobs
+        data_id: Optional data ID to link photometry job to data registry
 
     Returns:
         Batch job ID
@@ -236,6 +237,15 @@ def create_batch_photometry_job(
             FOREIGN KEY (batch_id) REFERENCES batch_jobs(id)
         )
     """)
+    # Migrate existing tables to add data_id column if it doesn't exist
+    try:
+        conn.execute("SELECT data_id FROM batch_job_items LIMIT 1")
+    except sqlite3.OperationalError:
+        # Column doesn't exist, add it
+        try:
+            conn.execute("ALTER TABLE batch_job_items ADD COLUMN data_id TEXT DEFAULT NULL")
+        except sqlite3.OperationalError:
+            pass  # Column may already exist from concurrent creation
     conn.commit()
 
     # Input validation

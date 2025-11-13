@@ -36,10 +36,14 @@ import {
   usePipelineStatus,
   useSystemMetrics,
   useESECandidates,
+  useHealthSummary,
 } from '../api/queries';
 import Plot from 'react-plotly.js';
 import type { Data, Layout } from 'plotly.js';
 import { useNavigate } from 'react-router-dom';
+import { DeadLetterQueueStats } from '../components/DeadLetterQueue';
+import { CircuitBreakerStatus } from '../components/CircuitBreaker';
+import type { HealthSummary } from '../api/types';
 
 interface TabPanelProps {
   children?: React.ReactNode;
@@ -99,6 +103,93 @@ function MetricCard({
         </Stack>
       </CardContent>
     </Card>
+  );
+}
+
+function OperationsHealthTab() {
+  const { data: healthSummary, isLoading } = useHealthSummary();
+
+  if (isLoading || !healthSummary) {
+    return (
+      <Box sx={{ display: 'flex', justifyContent: 'center', py: 8 }}>
+        <CircularProgress />
+      </Box>
+    );
+  }
+
+  const getStatusColor = (status: string) => {
+    switch (status) {
+      case 'healthy':
+        return 'success';
+      case 'degraded':
+        return 'warning';
+      case 'unhealthy':
+        return 'error';
+      default:
+        return 'default';
+    }
+  };
+
+  return (
+    <Grid container spacing={3}>
+      {/* Overall Status */}
+      <Grid item xs={12}>
+        <Card>
+          <CardContent>
+            <Stack direction="row" spacing={2} alignItems="center">
+              <Chip
+                label={`Overall Status: ${healthSummary.status.toUpperCase()}`}
+                color={getStatusColor(healthSummary.status) as any}
+                size="large"
+              />
+              <Typography variant="body2" color="text.secondary">
+                Last updated: {new Date(healthSummary.timestamp * 1000).toLocaleString()}
+              </Typography>
+            </Stack>
+          </CardContent>
+        </Card>
+      </Grid>
+
+      {/* Health Checks */}
+      <Grid item xs={12} md={6}>
+        <Card>
+          <CardHeader title="Health Checks" />
+          <CardContent>
+            <Stack spacing={2}>
+              {Object.entries(healthSummary.checks).map(([name, check]) => (
+                <Box key={name}>
+                  <Stack direction="row" spacing={2} alignItems="center">
+                    <Chip
+                      label={check.healthy ? 'Healthy' : 'Unhealthy'}
+                      color={check.healthy ? 'success' : 'error'}
+                      size="small"
+                    />
+                    <Typography variant="body2">
+                      <strong>{name.replace(/_/g, ' ')}</strong>
+                    </Typography>
+                  </Stack>
+                  {check.error && (
+                    <Typography variant="caption" color="error" sx={{ ml: 5 }}>
+                      {check.error}
+                    </Typography>
+                  )}
+                </Box>
+              ))}
+            </Stack>
+          </CardContent>
+        </Card>
+      </Grid>
+
+      {/* DLQ Stats */}
+      <Grid item xs={12} md={6}>
+        <DeadLetterQueueStats />
+      </Grid>
+
+      {/* Circuit Breakers */}
+      <Grid item xs={12}>
+        <CircuitBreakerStatus />
+      </Grid>
+    </Grid>
   );
 }
 
@@ -168,6 +259,7 @@ export default function HealthPage() {
       <Tabs value={tabValue} onChange={(_, v) => setTabValue(v)} sx={{ mb: 3 }}>
         <Tab label="System Monitoring" />
         <Tab label="Queue Status" />
+        <Tab label="Operations Health" />
         <Tab label="QA Diagnostics" />
       </Tabs>
 
@@ -504,8 +596,13 @@ export default function HealthPage() {
         )}
       </TabPanel>
 
-      {/* QA Diagnostics Tab */}
+      {/* Operations Health Tab */}
       <TabPanel value={tabValue} index={2}>
+        <OperationsHealthTab />
+      </TabPanel>
+
+      {/* QA Diagnostics Tab */}
+      <TabPanel value={tabValue} index={3}>
         <Grid container spacing={3}>
           <Grid item xs={12}>
             <Alert severity="info">

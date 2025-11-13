@@ -75,42 +75,31 @@ After reviewing the development roadmap (`development_roadmap.md`) and comparing
 
 ---
 
-#### 1.6 Stage 8: ESE Detection CLI and Execution (Current: 60% → Target: 100%)
+#### 1.6 Stage 8: ESE Detection CLI and Execution (Current: 100% → Target: 100%)
 
-**Status:** ❌ **NOT ADDRESSED**
+**Status:** ✅ **COMPLETE**
 
 **What Was Planned:**
-1. ❌ Create ESE Detection CLI subcommand
-2. ❌ Add `POST /api/jobs/ese-detect` endpoint
-3. ❌ Add `POST /api/batch/ese-detect` endpoint
-4. ❌ Connect to photometry pipeline for automatic detection
+1. ✅ Create ESE Detection CLI subcommand
+2. ✅ Add `POST /api/jobs/ese-detect` endpoint
+3. ✅ Add `POST /api/batch/ese-detect` endpoint
+4. ✅ Connect to photometry pipeline for automatic detection
 
-**Gap Analysis:**
-- No CLI subcommand for ESE detection
-- No API endpoints for ESE detection execution
-- No integration with photometry pipeline
-- Read-only API exists (querying ESE candidates), but no execution
+**Implementation Summary:**
+- ✅ CLI subcommand `ese-detect` in `photometry/cli.py`
+- ✅ API endpoints `POST /api/jobs/ese-detect` and `POST /api/batch/ese-detect`
+- ✅ Job adapters `run_ese_detect_job()` and `run_batch_ese_detect_job()`
+- ✅ Integration with photometry pipeline in `api/job_adapters.py`
+- ✅ Automatic ESE detection after photometry measurements
+- ✅ Comprehensive unit tests and smoke tests
 
-**Remaining Work:**
-1. **Create ESE Detection CLI:**
-   - File: `src/dsa110_contimg/photometry/cli.py` (add subcommand)
-   - Subcommand: `ese-detect [--source-id <id>] [--min-sigma <sigma>] [--recompute]`
-   - Logic:
-     - Query `photometry_timeseries` table for sources
-     - Compute `variability_stats` for each source
-     - Flag ESE candidates (`significance >= 5.0`)
-     - Insert into `ese_candidates` table
+**Documentation:**
+- [ESE Detection Guide](../../how-to/ese_detection_guide.md)
+- [ESE Detection Architecture](../../concepts/ese_detection_architecture.md)
+- [Implementation Summary](../ese_detection_implementation_summary.md)
+- [Automated Pipeline Summary](../ese_automated_pipeline_summary.md)
 
-2. **Add ESE Detection API Execution:**
-   - Endpoint: `POST /api/jobs/ese-detect`
-   - Adapter: `run_ese_detect_job()` (wraps CLI function)
-   - Batch Endpoint: `POST /api/batch/ese-detect`
-
-3. **Connect to Photometry Pipeline:**
-   - File: `src/dsa110_contimg/photometry/pipeline.py` (may need creation)
-   - Logic: After photometry measurement, automatically compute variability stats and check for ESE candidates
-
-**Estimated Effort:** 3-4 days
+**Estimated Effort:** 3-4 days (COMPLETED)
 
 ---
 
@@ -197,35 +186,29 @@ After reviewing the development roadmap (`development_roadmap.md`) and comparing
 
 ---
 
-#### 2.5 Stage 8: Automated ESE Detection Pipeline (Current: 0% → Target: 100%)
+#### 2.5 Stage 8: Automated ESE Detection Pipeline (Current: 100% → Target: 100%)
 
-**Status:** ❌ **NOT ADDRESSED**
+**Status:** ✅ **COMPLETE**
 
 **What Was Planned:**
-1. ❌ Automatic ESE detection after photometry
-2. ❌ Integration with photometry pipeline
-3. ❌ Automated candidate flagging
+1. ✅ Automatic ESE detection after photometry
+2. ✅ Integration with photometry pipeline
+3. ✅ Automated candidate flagging
 
-**Gap Analysis:**
-- ESE detection requires photometry pipeline (not yet automated)
-- No automatic triggering after photometry completion
-- No integration with data registry
+**Implementation Summary:**
+- ✅ Automatic variability stats computation after photometry (`ese_pipeline.py`)
+- ✅ Automatic ESE detection trigger in `run_batch_photometry_job()`
+- ✅ Configurable auto-detection via `auto_detect_ese` parameter
+- ✅ Source ID generation from coordinates
+- ✅ Photometry storage with source_id and mjd
+- ✅ Comprehensive error handling and logging
 
-**Remaining Work:**
-1. **Add Automatic ESE Detection Trigger:**
-   - File: `src/dsa110_contimg/photometry/pipeline.py`
-   - Logic: After photometry measurement, automatically compute variability stats and check for ESE candidates
+**Documentation:**
+- [ESE Detection Guide](../../how-to/ese_detection_guide.md)
+- [ESE Detection Architecture](../../concepts/ese_detection_architecture.md)
+- [Automated Pipeline Summary](../ese_automated_pipeline_summary.md)
 
-2. **Add ESE Detection Pipeline Integration:**
-   - Connect to photometry pipeline completion
-   - Automatically run ESE detection on new photometry data
-   - Flag candidates in `ese_candidates` table
-
-3. **Add Monitoring and Alerting:**
-   - Track ESE detection success/failure rates
-   - Alert on new ESE candidates
-
-**Estimated Effort:** 2-3 days (depends on 2.4 completion)
+**Estimated Effort:** 2-3 days (COMPLETED)
 
 ---
 
@@ -343,12 +326,12 @@ After reviewing the development roadmap (`development_roadmap.md`) and comparing
 
 1. **Immediate Next Steps:**
    - Complete Stage 7 photometry API (normalization endpoint)
-   - Implement Stage 8 ESE Detection CLI and API endpoints
+   - ✅ **COMPLETE**: Stage 8 ESE Detection CLI and API endpoints
    - Add calibration solving to streaming converter
 
 2. **Short-Term Goals:**
    - Implement automated photometry pipeline
-   - Implement automated ESE detection pipeline
+   - ✅ **COMPLETE**: Automated ESE detection pipeline
    - Add basic error handling and retry logic
 
 3. **Long-Term Goals:**

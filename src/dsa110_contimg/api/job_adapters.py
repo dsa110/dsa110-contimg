@@ -8,6 +8,7 @@ from __future__ import annotations
 
 import json
 import os
+import sqlite3
 import time
 from pathlib import Path
 from typing import List
@@ -1001,8 +1002,108 @@ def run_batch_photometry_job(
                         normalized_flux = raw_flux
                         normalized_error = raw_error
 
-                    # Store results in photometry_timeseries table (if needed)
-                    # This would require additional database functions
+                    # Store photometry results in database
+                    from dsa110_contimg.database.products import photometry_insert
+                    import time as time_module
+
+                    # Generate source_id from coordinates (format: "JHHMMSS+DDMMSS")
+                    # Round to nearest arcsecond for consistent ID
+                    ra_sec = int(coord["ra_deg"] * 3600)
+                    dec_sec = int(coord["dec_deg"] * 3600)
+                    ra_h = ra_sec // 3600
+                    ra_m = (ra_sec % 3600) // 60
+                    ra_s = ra_sec % 60
+                    dec_d = abs(dec_sec) // 3600
+                    dec_m = (abs(dec_sec) % 3600) // 60
+                    dec_s = abs(dec_sec) % 60
+                    dec_sign = "+" if coord["dec_deg"] >= 0 else "-"
+                    source_id = f"J{ra_h:02d}{ra_m:02d}{ra_s:02d}{dec_sign}{dec_d:02d}{dec_m:02d}{dec_s:02d}"
+
+                    # Get NVSS flux if available (from reference sources used for normalization)
+                    nvss_flux_mjy = None
+                    if params.get("normalize", False) and correction and ref_sources:
+                        # Try to find matching source in reference sources
+                        try:
+                            import numpy as np
+                            from astropy import coordinates as acoords
+
+                            target_coord = acoords.SkyCoord(
+                                coord["ra_deg"], coord["dec_deg"], unit="deg", frame="icrs"
+                            )
+                            min_sep = None
+                            closest_source = None
+                            for ref in ref_sources:
+                                ref_coord = acoords.SkyCoord(
+                                    ref["ra_deg"], ref["dec_deg"], unit="deg", frame="icrs"
+                                )
+                                sep = target_coord.separation(ref_coord).arcsec
+                                if min_sep is None or sep < min_sep:
+                                    min_sep = sep
+                                    closest_source = ref
+                            if closest_source and min_sep < 5.0:  # Within 5 arcsec
+                                nvss_flux_mjy = closest_source.get("flux_mjy")
+                        except Exception:
+                            pass
+
+                    # Store photometry measurement
+                    try:
+                        photometry_insert(
+                            conn,
+                            image_path=fits_path,
+                            ra_deg=coord["ra_deg"],
+                            dec_deg=coord["dec_deg"],
+                            nvss_flux_mjy=nvss_flux_mjy,
+                            peak_jyb=normalized_flux,
+                            peak_err_jyb=normalized_error,
+                            measured_at=time_module.time(),
+                        )
+
+                        # Update source_id in photometry table if column exists
+                        try:
+                            conn.execute(
+                                """
+                                UPDATE photometry 
+                                SET source_id = ?, mjd = ?
+                                WHERE image_path = ? AND ra_deg = ? AND dec_deg = ?
+                                ORDER BY rowid DESC LIMIT 1
+                                """,
+                                (
+                                    source_id,
+                                    time_module.time() / 86400.0 + 40587.0,  # Approximate MJD
+                                    fits_path,
+                                    coord["ra_deg"],
+                                    coord["dec_deg"],
+                                ),
+                            )
+                        except sqlite3.OperationalError:
+                            # Column may not exist, skip
+                            pass
+
+                        conn.commit()
+
+                        # Automatically detect ESE candidates for this source
+                        if params.get("auto_detect_ese", True):
+                            try:
+                                from dsa110_contimg.photometry.ese_pipeline import (
+                                    auto_detect_ese_for_new_measurements,
+                                )
+
+                                min_sigma = params.get("ese_min_sigma", 5.0)
+                                candidate = auto_detect_ese_for_new_measurements(
+                                    products_db=products_db,
+                                    source_id=source_id,
+                                    min_sigma=min_sigma,
+                                )
+                                if candidate:
+                                    logger.info(
+                                        f"Auto-detected ESE candidate: {source_id} "
+                                        f"(significance={candidate.get('significance', 0):.2f})"
+                                    )
+                            except Exception as e:
+                                logger.warning(f"Auto ESE detection failed for {source_id}: {e}")
+
+                    except Exception as e:
+                        logger.warning(f"Failed to store photometry result: {e}")
 
                     update_batch_item(conn, batch_id, item_id, None, "done")
                     conn.commit()

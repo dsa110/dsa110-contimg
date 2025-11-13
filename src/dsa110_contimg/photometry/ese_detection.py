@@ -271,9 +271,13 @@ def _recompute_variability_stats(conn: sqlite3.Connection) -> None:
             chi2_nu = None
 
         # Compute sigma deviation (how many sigma away from mean)
+        # This measures the maximum deviation from the mean in units of standard deviation
         if std_flux > 0:
-            sigma_deviation = std_flux / \
-                (mean_flux / np.sqrt(n_obs)) if mean_flux > 0 else 0.0
+            sigma_deviation = abs(max_flux - mean_flux) / std_flux
+            sigma_deviation = max(
+                sigma_deviation,
+                abs(min_flux - mean_flux) / std_flux
+            )
         else:
             sigma_deviation = 0.0
 

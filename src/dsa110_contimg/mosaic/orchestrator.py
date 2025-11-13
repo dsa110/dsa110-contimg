@@ -14,7 +14,7 @@ import os
 import sqlite3
 import time
 from pathlib import Path
-from typing import Dict, List, Optional, Tuple
+from typing import Any, Dict, List, Optional, Tuple
 
 import numpy as np
 from astropy.coordinates import EarthLocation, SkyCoord
