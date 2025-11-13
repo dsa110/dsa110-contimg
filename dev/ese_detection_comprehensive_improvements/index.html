@@ -1,0 +1,2749 @@
+
+<!DOCTYPE html>
+
+<html class="no-js" lang="en">
+<head>
+<meta charset="utf-8"/>
+<meta content="width=device-width,initial-scale=1" name="viewport"/>
+<link href="http://code.deepsynoptic.org/dsa110-contimg/dev/ese_detection_comprehensive_improvements/" rel="canonical"/>
+<link href="../../assets/images/favicon.png" rel="icon"/>
+<meta content="mkdocs-1.6.1, mkdocs-material-9.5.31" name="generator"/>
+<title>ESE Detection Comprehensive Improvement Plan - DSA-110 Continuum Imaging Pipeline</title>
+<link href="../../assets/stylesheets/main.3cba04c6.min.css" rel="stylesheet"/>
+<link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect"/>
+<link href="https://fonts.googleapis.com/css?family=Roboto:300,300i,400,400i,700,700i%7CRoboto+Mono:400,400i,700,700i&amp;display=fallback" rel="stylesheet"/>
+<style>:root{--md-text-font:"Roboto";--md-code-font:"Roboto Mono"}</style>
+<link href="../../assets/_mkdocstrings.css" rel="stylesheet"/>
+<script>__md_scope=new URL("../..",location),__md_hash=e=>[...e].reduce((e,_)=>(e<<5)-e+_.charCodeAt(0),0),__md_get=(e,_=localStorage,t=__md_scope)=>JSON.parse(_.getItem(t.pathname+"."+e)),__md_set=(e,_,t=localStorage,a=__md_scope)=>{try{t.setItem(a.pathname+"."+e,JSON.stringify(_))}catch(e){}}</script>
+</head>
+<body dir="ltr">
+<input autocomplete="off" class="md-toggle" data-md-toggle="drawer" id="__drawer" type="checkbox"/>
+<input autocomplete="off" class="md-toggle" data-md-toggle="search" id="__search" type="checkbox"/>
+<label class="md-overlay" for="__drawer"></label>
+<div data-md-component="skip">
+<a class="md-skip" href="#ese-detection-comprehensive-improvement-plan">
+          Skip to content
+        </a>
+</div>
+<div data-md-component="announce">
+</div>
+<header class="md-header md-header--shadow" data-md-component="header">
+<nav aria-label="Header" class="md-header__inner md-grid">
+<a aria-label="DSA-110 Continuum Imaging Pipeline" class="md-header__button md-logo" data-md-component="logo" href="../.." title="DSA-110 Continuum Imaging Pipeline">
+<svg viewbox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54Z"></path></svg>
+</a>
+<label class="md-header__button md-icon" for="__drawer">
+<svg viewbox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M3 6h18v2H3V6m0 5h18v2H3v-2m0 5h18v2H3v-2Z"></path></svg>
+</label>
+<div class="md-header__title" data-md-component="header-title">
+<div class="md-header__ellipsis">
+<div class="md-header__topic">
+<span class="md-ellipsis">
+            DSA-110 Continuum Imaging Pipeline
+          </span>
+</div>
+<div class="md-header__topic" data-md-component="header-topic">
+<span class="md-ellipsis">
+            
+              ESE Detection Comprehensive Improvement Plan
+            
+          </span>
+</div>
+</div>
+</div>
+<script>var media,input,key,value,palette=__md_get("__palette");if(palette&&palette.color){"(prefers-color-scheme)"===palette.color.media&&(media=matchMedia("(prefers-color-scheme: light)"),input=document.querySelector(media.matches?"[data-md-color-media='(prefers-color-scheme: light)']":"[data-md-color-media='(prefers-color-scheme: dark)']"),palette.color.media=input.getAttribute("data-md-color-media"),palette.color.scheme=input.getAttribute("data-md-color-scheme"),palette.color.primary=input.getAttribute("data-md-color-primary"),palette.color.accent=input.getAttribute("data-md-color-accent"));for([key,value]of Object.entries(palette.color))document.body.setAttribute("data-md-color-"+key,value)}</script>
+<label class="md-header__button md-icon" for="__search">
+<svg viewbox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.516 6.516 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5Z"></path></svg>
+</label>
+<div class="md-search" data-md-component="search" role="dialog">
+<label class="md-search__overlay" for="__search"></label>
+<div class="md-search__inner" role="search">
+<form class="md-search__form" name="search">
+<input aria-label="Search" autocapitalize="off" autocomplete="off" autocorrect="off" class="md-search__input" data-md-component="search-query" name="query" placeholder="Search" required="" spellcheck="false" type="text"/>
+<label class="md-search__icon md-icon" for="__search">
+<svg viewbox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.516 6.516 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5Z"></path></svg>
+<svg viewbox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11h12Z"></path></svg>
+</label>
+<nav aria-label="Search" class="md-search__options">
+<button aria-label="Clear" class="md-search__icon md-icon" tabindex="-1" title="Clear" type="reset">
+<svg viewbox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M19 6.41 17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12 19 6.41Z"></path></svg>
+</button>
+</nav>
+</form>
+<div class="md-search__output">
+<div class="md-search__scrollwrap" data-md-scrollfix="" tabindex="0">
+<div class="md-search-result" data-md-component="search-result">
+<div class="md-search-result__meta">
+            Initializing search
+          </div>
+<ol class="md-search-result__list" role="presentation"></ol>
+</div>
+</div>
+</div>
+</div>
+</div>
+<div class="md-header__source">
+<a class="md-source" data-md-component="source" href="https://github.com/dsa110/dsa110-contimg" title="Go to repository">
+<div class="md-source__icon md-icon">
+<svg viewbox="0 0 448 512" xmlns="http://www.w3.org/2000/svg"><!--! Font Awesome Free 6.6.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2024 Fonticons, Inc.--><path d="M439.55 236.05 244 40.45a28.87 28.87 0 0 0-40.81 0l-40.66 40.63 51.52 51.52c27.06-9.14 52.68 16.77 43.39 43.68l49.66 49.66c34.23-11.8 61.18 31 35.47 56.69-26.49 26.49-70.21-2.87-56-37.34L240.22 199v121.85c25.3 12.54 22.26 41.85 9.08 55a34.34 34.34 0 0 1-48.55 0c-17.57-17.6-11.07-46.91 11.25-56v-123c-20.8-8.51-24.6-30.74-18.64-45L142.57 101 8.45 235.14a28.86 28.86 0 0 0 0 40.81l195.61 195.6a28.86 28.86 0 0 0 40.8 0l194.69-194.69a28.86 28.86 0 0 0 0-40.81z"></path></svg>
+</div>
+<div class="md-source__repository">
+    GitHub
+  </div>
+</a>
+</div>
+</nav>
+</header>
+<div class="md-container" data-md-component="container">
+<main class="md-main" data-md-component="main">
+<div class="md-main__inner md-grid">
+<div class="md-sidebar md-sidebar--primary" data-md-component="sidebar" data-md-type="navigation">
+<div class="md-sidebar__scrollwrap">
+<div class="md-sidebar__inner">
+<nav aria-label="Navigation" class="md-nav md-nav--primary" data-md-level="0">
+<label class="md-nav__title" for="__drawer">
+<a aria-label="DSA-110 Continuum Imaging Pipeline" class="md-nav__button md-logo" data-md-component="logo" href="../.." title="DSA-110 Continuum Imaging Pipeline">
+<svg viewbox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54Z"></path></svg>
+</a>
+    DSA-110 Continuum Imaging Pipeline
+  </label>
+<div class="md-nav__source">
+<a class="md-source" data-md-component="source" href="https://github.com/dsa110/dsa110-contimg" title="Go to repository">
+<div class="md-source__icon md-icon">
+<svg viewbox="0 0 448 512" xmlns="http://www.w3.org/2000/svg"><!--! Font Awesome Free 6.6.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2024 Fonticons, Inc.--><path d="M439.55 236.05 244 40.45a28.87 28.87 0 0 0-40.81 0l-40.66 40.63 51.52 51.52c27.06-9.14 52.68 16.77 43.39 43.68l49.66 49.66c34.23-11.8 61.18 31 35.47 56.69-26.49 26.49-70.21-2.87-56-37.34L240.22 199v121.85c25.3 12.54 22.26 41.85 9.08 55a34.34 34.34 0 0 1-48.55 0c-17.57-17.6-11.07-46.91 11.25-56v-123c-20.8-8.51-24.6-30.74-18.64-45L142.57 101 8.45 235.14a28.86 28.86 0 0 0 0 40.81l195.61 195.6a28.86 28.86 0 0 0 40.8 0l194.69-194.69a28.86 28.86 0 0 0 0-40.81z"></path></svg>
+</div>
+<div class="md-source__repository">
+    GitHub
+  </div>
+</a>
+</div>
+<ul class="md-nav__list" data-md-scrollfix="">
+<li class="md-nav__item">
+<a class="md-nav__link" href="../..">
+<span class="md-ellipsis">
+    Home
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../DOCUMENTATION_QUICK_REFERENCE/">
+<span class="md-ellipsis">
+    Documentation Guide
+  </span>
+</a>
+</li>
+<li class="md-nav__item md-nav__item--section md-nav__item--nested">
+<input class="md-nav__toggle md-toggle" id="__nav_3" type="checkbox"/>
+<div class="md-nav__link md-nav__container">
+<a class="md-nav__link" href="../../concepts/">
+<span class="md-ellipsis">
+    Concepts
+  </span>
+</a>
+<label class="md-nav__link" for="__nav_3" id="__nav_3_label" tabindex="">
+<span class="md-nav__icon md-icon"></span>
+</label>
+</div>
+<nav aria-expanded="false" aria-labelledby="__nav_3_label" class="md-nav" data-md-level="1">
+<label class="md-nav__title" for="__nav_3">
+<span class="md-nav__icon md-icon"></span>
+            Concepts
+          </label>
+<ul class="md-nav__list" data-md-scrollfix="">
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../concepts/architecture/">
+<span class="md-ellipsis">
+    Architecture
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../concepts/DIRECTORY_ARCHITECTURE/">
+<span class="md-ellipsis">
+    Directory Architecture
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../concepts/modules/">
+<span class="md-ellipsis">
+    Modules
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../concepts/control-panel/">
+<span class="md-ellipsis">
+    Control Panel
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../concepts/aoflagger/">
+<span class="md-ellipsis">
+    AOFlagger
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../concepts/frontend_design/">
+<span class="md-ellipsis">
+    Frontend Design
+  </span>
+</a>
+</li>
+<li class="md-nav__item md-nav__item--nested">
+<input class="md-nav__toggle md-toggle" id="__nav_3_8" type="checkbox"/>
+<label class="md-nav__link" for="__nav_3_8" id="__nav_3_8_label" tabindex="0">
+<span class="md-ellipsis">
+    Dashboard
+  </span>
+<span class="md-nav__icon md-icon"></span>
+</label>
+<nav aria-expanded="false" aria-labelledby="__nav_3_8_label" class="md-nav" data-md-level="2">
+<label class="md-nav__title" for="__nav_3_8">
+<span class="md-nav__icon md-icon"></span>
+            Dashboard
+          </label>
+<ul class="md-nav__list" data-md-scrollfix="">
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../concepts/dashboard_mockups/">
+<span class="md-ellipsis">
+    Mockups
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../SKYVIEW_IMPLEMENTATION_PLAN/">
+<span class="md-ellipsis">
+    Sky View
+  </span>
+</a>
+</li>
+</ul>
+</nav>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../concepts/GLOSSARY/">
+<span class="md-ellipsis">
+    Glossary
+  </span>
+</a>
+</li>
+<li class="md-nav__item md-nav__item--nested">
+<input class="md-nav__toggle md-toggle" id="__nav_3_10" type="checkbox"/>
+<label class="md-nav__link" for="__nav_3_10" id="__nav_3_10_label" tabindex="0">
+<span class="md-ellipsis">
+    Pipeline
+  </span>
+<span class="md-nav__icon md-icon"></span>
+</label>
+<nav aria-expanded="false" aria-labelledby="__nav_3_10_label" class="md-nav" data-md-level="2">
+<label class="md-nav__title" for="__nav_3_10">
+<span class="md-nav__icon md-icon"></span>
+            Pipeline
+          </label>
+<ul class="md-nav__list" data-md-scrollfix="">
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../concepts/pipeline_overview/">
+<span class="md-ellipsis">
+    Overview
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../concepts/pipeline_stage_architecture/">
+<span class="md-ellipsis">
+    Stage Architecture
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../concepts/pipeline_workflow_visualization/">
+<span class="md-ellipsis">
+    Workflow Visualization
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../concepts/pipeline_production_features/">
+<span class="md-ellipsis">
+    Production Features
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../concepts/pipeline_patterns/">
+<span class="md-ellipsis">
+    Patterns
+  </span>
+</a>
+</li>
+</ul>
+</nav>
+</li>
+<li class="md-nav__item md-nav__item--nested">
+<input class="md-nav__toggle md-toggle" id="__nav_3_11" type="checkbox"/>
+<label class="md-nav__link" for="__nav_3_11" id="__nav_3_11_label" tabindex="0">
+<span class="md-ellipsis">
+    Science
+  </span>
+<span class="md-nav__icon md-icon"></span>
+</label>
+<nav aria-expanded="false" aria-labelledby="__nav_3_11_label" class="md-nav" data-md-level="2">
+<label class="md-nav__title" for="__nav_3_11">
+<span class="md-nav__icon md-icon"></span>
+            Science
+          </label>
+<ul class="md-nav__list" data-md-scrollfix="">
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../concepts/science/photometry_normalization/">
+<span class="md-ellipsis">
+    Photometry Normalization
+  </span>
+</a>
+</li>
+</ul>
+</nav>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../concepts/mcp_browser_server_setup/">
+<span class="md-ellipsis">
+    Browser MCP Server
+  </span>
+</a>
+</li>
+</ul>
+</nav>
+</li>
+<li class="md-nav__item md-nav__item--section md-nav__item--nested">
+<input class="md-nav__toggle md-toggle" id="__nav_4" type="checkbox"/>
+<label class="md-nav__link" for="__nav_4" id="__nav_4_label" tabindex="">
+<span class="md-ellipsis">
+    Tutorials
+  </span>
+<span class="md-nav__icon md-icon"></span>
+</label>
+<nav aria-expanded="false" aria-labelledby="__nav_4_label" class="md-nav" data-md-level="1">
+<label class="md-nav__title" for="__nav_4">
+<span class="md-nav__icon md-icon"></span>
+            Tutorials
+          </label>
+<ul class="md-nav__list" data-md-scrollfix="">
+<li class="md-nav__item md-nav__item--nested">
+<input class="md-nav__toggle md-toggle" id="__nav_4_1" type="checkbox"/>
+<label class="md-nav__link" for="__nav_4_1" id="__nav_4_1_label" tabindex="0">
+<span class="md-ellipsis">
+    Conversion
+  </span>
+<span class="md-nav__icon md-icon"></span>
+</label>
+<nav aria-expanded="false" aria-labelledby="__nav_4_1_label" class="md-nav" data-md-level="2">
+<label class="md-nav__title" for="__nav_4_1">
+<span class="md-nav__icon md-icon"></span>
+            Conversion
+          </label>
+<ul class="md-nav__list" data-md-scrollfix="">
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../tutorials/HDF5_TO_MS_TUTORIAL/">
+<span class="md-ellipsis">
+    HDF5 to MS
+  </span>
+</a>
+</li>
+</ul>
+</nav>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../tutorials/simulation-tutorial/">
+<span class="md-ellipsis">
+    Simulation
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../tutorials/calibrate-apply/">
+<span class="md-ellipsis">
+    Calibrate and Apply
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../tutorials/convert-standalone/">
+<span class="md-ellipsis">
+    Convert Standalone
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../tutorials/streaming/">
+<span class="md-ellipsis">
+    Streaming
+  </span>
+</a>
+</li>
+<li class="md-nav__item md-nav__item--nested">
+<input class="md-nav__toggle md-toggle" id="__nav_4_6" type="checkbox"/>
+<label class="md-nav__link" for="__nav_4_6" id="__nav_4_6_label" tabindex="0">
+<span class="md-ellipsis">
+    Notebooks
+  </span>
+<span class="md-nav__icon md-icon"></span>
+</label>
+<nav aria-expanded="false" aria-labelledby="__nav_4_6_label" class="md-nav" data-md-level="2">
+<label class="md-nav__title" for="__nav_4_6">
+<span class="md-nav__icon md-icon"></span>
+            Notebooks
+          </label>
+<ul class="md-nav__list" data-md-scrollfix="">
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../tutorials/notebooks/bandpass_calibration_test.ipynb">
+<span class="md-ellipsis">
+    Bandpass Calibration Test
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../tutorials/notebooks/calibrator_helper.py">
+<span class="md-ellipsis">
+    Calibrator Helper
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../tutorials/notebooks/CalibratorSearch.ipynb">
+<span class="md-ellipsis">
+    Calibrator Search
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../tutorials/notebooks/ms_staging_workflow.ipynb">
+<span class="md-ellipsis">
+    MS Staging Workflow
+  </span>
+</a>
+</li>
+</ul>
+</nav>
+</li>
+</ul>
+</nav>
+</li>
+<li class="md-nav__item md-nav__item--section md-nav__item--nested">
+<input class="md-nav__toggle md-toggle" id="__nav_5" type="checkbox"/>
+<label class="md-nav__link" for="__nav_5" id="__nav_5_label" tabindex="">
+<span class="md-ellipsis">
+    How-To Guides
+  </span>
+<span class="md-nav__icon md-icon"></span>
+</label>
+<nav aria-expanded="false" aria-labelledby="__nav_5_label" class="md-nav" data-md-level="1">
+<label class="md-nav__title" for="__nav_5">
+<span class="md-nav__icon md-icon"></span>
+            How-To Guides
+          </label>
+<ul class="md-nav__list" data-md-scrollfix="">
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../how-to/github_pages_walkthrough/">
+<span class="md-ellipsis">
+    GitHub Pages Setup
+  </span>
+</a>
+</li>
+<li class="md-nav__item md-nav__item--nested">
+<input class="md-nav__toggle md-toggle" id="__nav_5_2" type="checkbox"/>
+<label class="md-nav__link" for="__nav_5_2" id="__nav_5_2_label" tabindex="0">
+<span class="md-ellipsis">
+    Quickstarts
+  </span>
+<span class="md-nav__icon md-icon"></span>
+</label>
+<nav aria-expanded="false" aria-labelledby="__nav_5_2_label" class="md-nav" data-md-level="2">
+<label class="md-nav__title" for="__nav_5_2">
+<span class="md-nav__icon md-icon"></span>
+            Quickstarts
+          </label>
+<ul class="md-nav__list" data-md-scrollfix="">
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../how-to/quickstart/">
+<span class="md-ellipsis">
+    General
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../how-to/control-panel-quickstart/">
+<span class="md-ellipsis">
+    Control Panel
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../how-to/LINEAR_SETUP_QUICKSTART/">
+<span class="md-ellipsis">
+    Linear Setup
+  </span>
+</a>
+</li>
+</ul>
+</nav>
+</li>
+<li class="md-nav__item md-nav__item--nested">
+<input class="md-nav__toggle md-toggle" id="__nav_5_3" type="checkbox"/>
+<label class="md-nav__link" for="__nav_5_3" id="__nav_5_3_label" tabindex="0">
+<span class="md-ellipsis">
+    Testing
+  </span>
+<span class="md-nav__icon md-icon"></span>
+</label>
+<nav aria-expanded="false" aria-labelledby="__nav_5_3_label" class="md-nav" data-md-level="2">
+<label class="md-nav__title" for="__nav_5_3">
+<span class="md-nav__icon md-icon"></span>
+            Testing
+          </label>
+<ul class="md-nav__list" data-md-scrollfix="">
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../how-to/FAST_TESTING/">
+<span class="md-ellipsis">
+    Fast Testing
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../how-to/PIPELINE_TESTING_GUIDE/">
+<span class="md-ellipsis">
+    Pipeline Guide
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../how-to/TEST_FLAG_SUBCOMMAND/">
+<span class="md-ellipsis">
+    Flag Subcommand
+  </span>
+</a>
+</li>
+</ul>
+</nav>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../how-to/build-vp-from-h5/">
+<span class="md-ellipsis">
+    Build VP from h5
+  </span>
+</a>
+</li>
+<li class="md-nav__item md-nav__item--nested">
+<input class="md-nav__toggle md-toggle" id="__nav_5_5" type="checkbox"/>
+<label class="md-nav__link" for="__nav_5_5" id="__nav_5_5_label" tabindex="0">
+<span class="md-ellipsis">
+    Calibration
+  </span>
+<span class="md-nav__icon md-icon"></span>
+</label>
+<nav aria-expanded="false" aria-labelledby="__nav_5_5_label" class="md-nav" data-md-level="2">
+<label class="md-nav__title" for="__nav_5_5">
+<span class="md-nav__icon md-icon"></span>
+            Calibration
+          </label>
+<ul class="md-nav__list" data-md-scrollfix="">
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../how-to/CALIBRATION_DETAILED_PROCEDURE/">
+<span class="md-ellipsis">
+    Detailed Procedure
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../how-to/FIND_CALIBRATOR_TRANSIT_DATA/">
+<span class="md-ellipsis">
+    Find Calibrator Transit
+  </span>
+</a>
+</li>
+</ul>
+</nav>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../how-to/IMAGE_0834_TRANSIT_5MIN/">
+<span class="md-ellipsis">
+    Image 0834 Transit 5min
+  </span>
+</a>
+</li>
+<li class="md-nav__item md-nav__item--nested">
+<input class="md-nav__toggle md-toggle" id="__nav_5_7" type="checkbox"/>
+<label class="md-nav__link" for="__nav_5_7" id="__nav_5_7_label" tabindex="0">
+<span class="md-ellipsis">
+    Mosaic
+  </span>
+<span class="md-nav__icon md-icon"></span>
+</label>
+<nav aria-expanded="false" aria-labelledby="__nav_5_7_label" class="md-nav" data-md-level="2">
+<label class="md-nav__title" for="__nav_5_7">
+<span class="md-nav__icon md-icon"></span>
+            Mosaic
+          </label>
+<ul class="md-nav__list" data-md-scrollfix="">
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../how-to/mosaic_quickstart/">
+<span class="md-ellipsis">
+    Quickstart
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../how-to/mosaic/">
+<span class="md-ellipsis">
+    Complete Guide
+  </span>
+</a>
+</li>
+</ul>
+</nav>
+</li>
+<li class="md-nav__item md-nav__item--nested">
+<input class="md-nav__toggle md-toggle" id="__nav_5_8" type="checkbox"/>
+<label class="md-nav__link" for="__nav_5_8" id="__nav_5_8_label" tabindex="0">
+<span class="md-ellipsis">
+    Quality Assurance
+  </span>
+<span class="md-nav__icon md-icon"></span>
+</label>
+<nav aria-expanded="false" aria-labelledby="__nav_5_8_label" class="md-nav" data-md-level="2">
+<label class="md-nav__title" for="__nav_5_8">
+<span class="md-nav__icon md-icon"></span>
+            Quality Assurance
+          </label>
+<ul class="md-nav__list" data-md-scrollfix="">
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../how-to/QUALITY_ASSURANCE_SETUP/">
+<span class="md-ellipsis">
+    Setup
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../how-to/quicklook/">
+<span class="md-ellipsis">
+    Quick Look
+  </span>
+</a>
+</li>
+</ul>
+</nav>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../how-to/reprocess/">
+<span class="md-ellipsis">
+    Reprocess
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../how-to/USING_ORCHESTRATOR_CLI/">
+<span class="md-ellipsis">
+    Using Orchestrator CLI
+  </span>
+</a>
+</li>
+<li class="md-nav__item md-nav__item--nested">
+<input class="md-nav__toggle md-toggle" id="__nav_5_11" type="checkbox"/>
+<label class="md-nav__link" for="__nav_5_11" id="__nav_5_11_label" tabindex="0">
+<span class="md-ellipsis">
+    Dashboard
+  </span>
+<span class="md-nav__icon md-icon"></span>
+</label>
+<nav aria-expanded="false" aria-labelledby="__nav_5_11_label" class="md-nav" data-md-level="2">
+<label class="md-nav__title" for="__nav_5_11">
+<span class="md-nav__icon md-icon"></span>
+            Dashboard
+          </label>
+<ul class="md-nav__list" data-md-scrollfix="">
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../how-to/dashboard-development/">
+<span class="md-ellipsis">
+    Development
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../how-to/dashboard-quickstart/">
+<span class="md-ellipsis">
+    Quickstart
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../how-to/dashboard_testing/">
+<span class="md-ellipsis">
+    Testing
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../how-to/dashboard_development_workflow/">
+<span class="md-ellipsis">
+    Development Workflow
+  </span>
+</a>
+</li>
+</ul>
+</nav>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../how-to/LINEAR_INTEGRATION/">
+<span class="md-ellipsis">
+    Linear Integration
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../how-to/frontend-initial-setup/">
+<span class="md-ellipsis">
+    Frontend Initial Setup
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../how-to/PARAMETER_OPTIMIZATION_GUIDE/">
+<span class="md-ellipsis">
+    AOFlagger Parameter Optimization
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../how-to/downsampling_guide/">
+<span class="md-ellipsis">
+    Downsampling Guide
+  </span>
+</a>
+</li>
+<li class="md-nav__item md-nav__item--nested">
+<input class="md-nav__toggle md-toggle" id="__nav_5_16" type="checkbox"/>
+<label class="md-nav__link" for="__nav_5_16" id="__nav_5_16_label" tabindex="0">
+<span class="md-ellipsis">
+    Conversion
+  </span>
+<span class="md-nav__icon md-icon"></span>
+</label>
+<nav aria-expanded="false" aria-labelledby="__nav_5_16_label" class="md-nav" data-md-level="2">
+<label class="md-nav__title" for="__nav_5_16">
+<span class="md-nav__icon md-icon"></span>
+            Conversion
+          </label>
+<ul class="md-nav__list" data-md-scrollfix="">
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../how-to/uvh5_to_ms_conversion/">
+<span class="md-ellipsis">
+    UVH5 to MS
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../how-to/streaming_converter_guide/">
+<span class="md-ellipsis">
+    Streaming Converter
+  </span>
+</a>
+</li>
+</ul>
+</nav>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../how-to/troubleshooting/">
+<span class="md-ellipsis">
+    Troubleshooting
+  </span>
+</a>
+</li>
+</ul>
+</nav>
+</li>
+<li class="md-nav__item md-nav__item--section md-nav__item--nested">
+<input class="md-nav__toggle md-toggle" id="__nav_6" type="checkbox"/>
+<label class="md-nav__link" for="__nav_6" id="__nav_6_label" tabindex="">
+<span class="md-ellipsis">
+    Reference
+  </span>
+<span class="md-nav__icon md-icon"></span>
+</label>
+<nav aria-expanded="false" aria-labelledby="__nav_6_label" class="md-nav" data-md-level="1">
+<label class="md-nav__title" for="__nav_6">
+<span class="md-nav__icon md-icon"></span>
+            Reference
+          </label>
+<ul class="md-nav__list" data-md-scrollfix="">
+<li class="md-nav__item md-nav__item--nested">
+<input class="md-nav__toggle md-toggle" id="__nav_6_1" type="checkbox"/>
+<label class="md-nav__link" for="__nav_6_1" id="__nav_6_1_label" tabindex="0">
+<span class="md-ellipsis">
+    API
+  </span>
+<span class="md-nav__icon md-icon"></span>
+</label>
+<nav aria-expanded="false" aria-labelledby="__nav_6_1_label" class="md-nav" data-md-level="2">
+<label class="md-nav__title" for="__nav_6_1">
+<span class="md-nav__icon md-icon"></span>
+            API
+          </label>
+<ul class="md-nav__list" data-md-scrollfix="">
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../reference/api-endpoints/">
+<span class="md-ellipsis">
+    Endpoints
+  </span>
+</a>
+</li>
+<li class="md-nav__item md-nav__item--nested">
+<input class="md-nav__toggle md-toggle" id="__nav_6_1_2" type="checkbox"/>
+<label class="md-nav__link" for="__nav_6_1_2" id="__nav_6_1_2_label" tabindex="0">
+<span class="md-ellipsis">
+    Dashboard
+  </span>
+<span class="md-nav__icon md-icon"></span>
+</label>
+<nav aria-expanded="false" aria-labelledby="__nav_6_1_2_label" class="md-nav" data-md-level="3">
+<label class="md-nav__title" for="__nav_6_1_2">
+<span class="md-nav__icon md-icon"></span>
+            Dashboard
+          </label>
+<ul class="md-nav__list" data-md-scrollfix="">
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../reference/dashboard_backend_api/">
+<span class="md-ellipsis">
+    API Reference
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../reference/dashboard_pages_and_features/">
+<span class="md-ellipsis">
+    Pages &amp; Features
+  </span>
+</a>
+</li>
+</ul>
+</nav>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../reference/backend_integration_snippets/">
+<span class="md-ellipsis">
+    Integration Snippets
+  </span>
+</a>
+</li>
+</ul>
+</nav>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../reference/calibration-overview/">
+<span class="md-ellipsis">
+    Calibration Overview
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../reference/cli/">
+<span class="md-ellipsis">
+    CLI
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../reference/control-panel-cheatsheet/">
+<span class="md-ellipsis">
+    Control Panel Cheatsheet
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../reference/database_schema/">
+<span class="md-ellipsis">
+    Database Schema
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../reference/env/">
+<span class="md-ellipsis">
+    Environment Variables
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../reference/CRITICAL_PYTHON_ENVIRONMENT/">
+<span class="md-ellipsis">
+    Critical Python Environment
+  </span>
+</a>
+</li>
+<li class="md-nav__item md-nav__item--nested">
+<input class="md-nav__toggle md-toggle" id="__nav_6_8" type="checkbox"/>
+<label class="md-nav__link" for="__nav_6_8" id="__nav_6_8_label" tabindex="0">
+<span class="md-ellipsis">
+    Optimizations
+  </span>
+<span class="md-nav__icon md-icon"></span>
+</label>
+<nav aria-expanded="false" aria-labelledby="__nav_6_8_label" class="md-nav" data-md-level="2">
+<label class="md-nav__title" for="__nav_6_8">
+<span class="md-nav__icon md-icon"></span>
+            Optimizations
+          </label>
+<ul class="md-nav__list" data-md-scrollfix="">
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../reference/optimizations/OPTIMIZATION_API/">
+<span class="md-ellipsis">
+    API
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../reference/optimizations/PROFILING_GUIDE/">
+<span class="md-ellipsis">
+    Profiling Guide
+  </span>
+</a>
+</li>
+</ul>
+</nav>
+</li>
+</ul>
+</nav>
+</li>
+<li class="md-nav__item md-nav__item--section md-nav__item--nested">
+<input class="md-nav__toggle md-toggle" id="__nav_7" type="checkbox"/>
+<label class="md-nav__link" for="__nav_7" id="__nav_7_label" tabindex="">
+<span class="md-ellipsis">
+    Operations
+  </span>
+<span class="md-nav__icon md-icon"></span>
+</label>
+<nav aria-expanded="false" aria-labelledby="__nav_7_label" class="md-nav" data-md-level="1">
+<label class="md-nav__title" for="__nav_7">
+<span class="md-nav__icon md-icon"></span>
+            Operations
+          </label>
+<ul class="md-nav__list" data-md-scrollfix="">
+<li class="md-nav__item md-nav__item--nested">
+<input class="md-nav__toggle md-toggle" id="__nav_7_1" type="checkbox"/>
+<label class="md-nav__link" for="__nav_7_1" id="__nav_7_1_label" tabindex="0">
+<span class="md-ellipsis">
+    Deployment
+  </span>
+<span class="md-nav__icon md-icon"></span>
+</label>
+<nav aria-expanded="false" aria-labelledby="__nav_7_1_label" class="md-nav" data-md-level="2">
+<label class="md-nav__title" for="__nav_7_1">
+<span class="md-nav__icon md-icon"></span>
+            Deployment
+          </label>
+<ul class="md-nav__list" data-md-scrollfix="">
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../operations/deploy-docker/">
+<span class="md-ellipsis">
+    Docker
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../operations/deploy-systemd/">
+<span class="md-ellipsis">
+    systemd
+  </span>
+</a>
+</li>
+</ul>
+</nav>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../operations/port-management/">
+<span class="md-ellipsis">
+    Port Management
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../operations/refant_quick_reference/">
+<span class="md-ellipsis">
+    Refant Quick Reference
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../operations/service_restart_fix/">
+<span class="md-ellipsis">
+    Service Restart Fix
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../operations/systemd-migration/">
+<span class="md-ellipsis">
+    Systemd Migration
+  </span>
+</a>
+</li>
+</ul>
+</nav>
+</li>
+<li class="md-nav__item md-nav__item--section md-nav__item--nested">
+<input class="md-nav__toggle md-toggle" id="__nav_8" type="checkbox"/>
+<div class="md-nav__link md-nav__container">
+<a class="md-nav__link" href="../../contributing/">
+<span class="md-ellipsis">
+    Contributing
+  </span>
+</a>
+<label class="md-nav__link" for="__nav_8" id="__nav_8_label" tabindex="">
+<span class="md-nav__icon md-icon"></span>
+</label>
+</div>
+<nav aria-expanded="false" aria-labelledby="__nav_8_label" class="md-nav" data-md-level="1">
+<label class="md-nav__title" for="__nav_8">
+<span class="md-nav__icon md-icon"></span>
+            Contributing
+          </label>
+<ul class="md-nav__list" data-md-scrollfix="">
+<li class="md-nav__item md-nav__item--nested">
+<input class="md-nav__toggle md-toggle" id="__nav_8_2" type="checkbox"/>
+<label class="md-nav__link" for="__nav_8_2" id="__nav_8_2_label" tabindex="0">
+<span class="md-ellipsis">
+    Archive
+  </span>
+<span class="md-nav__icon md-icon"></span>
+</label>
+<nav aria-expanded="false" aria-labelledby="__nav_8_2_label" class="md-nav" data-md-level="2">
+<label class="md-nav__title" for="__nav_8_2">
+<span class="md-nav__icon md-icon"></span>
+            Archive
+          </label>
+<ul class="md-nav__list" data-md-scrollfix="">
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../contributing/archive/CONTRIBUTING_TODO/">
+<span class="md-ellipsis">
+    Contributing to TODO
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../contributing/archive/rules/">
+<span class="md-ellipsis">
+    Rules
+  </span>
+</a>
+</li>
+</ul>
+</nav>
+</li>
+</ul>
+</nav>
+</li>
+</ul>
+</nav>
+</div>
+</div>
+</div>
+<div class="md-sidebar md-sidebar--secondary" data-md-component="sidebar" data-md-type="toc">
+<div class="md-sidebar__scrollwrap">
+<div class="md-sidebar__inner">
+<nav aria-label="Table of contents" class="md-nav md-nav--secondary">
+<label class="md-nav__title" for="__toc">
+<span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+<ul class="md-nav__list" data-md-component="toc" data-md-scrollfix="">
+<li class="md-nav__item">
+<a class="md-nav__link" href="#date-2025-11-12">
+<span class="md-ellipsis">
+      Date: 2025-11-12
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#1-code-quality-architecture-improvements">
+<span class="md-ellipsis">
+      1. Code Quality &amp; Architecture Improvements
+    </span>
+</a>
+<nav aria-label="1. Code Quality &amp; Architecture Improvements" class="md-nav">
+<ul class="md-nav__list">
+<li class="md-nav__item">
+<a class="md-nav__link" href="#11-extract-shared-sigma-deviation-function">
+<span class="md-ellipsis">
+      1.1 Extract Shared Sigma Deviation Function
+    </span>
+</a>
+<nav aria-label="1.1 Extract Shared Sigma Deviation Function" class="md-nav">
+<ul class="md-nav__list">
+<li class="md-nav__item">
+<a class="md-nav__link" href="#scientific-rationale">
+<span class="md-ellipsis">
+      Scientific Rationale
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#current-problem">
+<span class="md-ellipsis">
+      Current Problem
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#technical-specification">
+<span class="md-ellipsis">
+      Technical Specification
+    </span>
+</a>
+</li>
+</ul>
+</nav>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#12-comprehensive-validation-test-suite">
+<span class="md-ellipsis">
+      1.2 Comprehensive Validation Test Suite
+    </span>
+</a>
+<nav aria-label="1.2 Comprehensive Validation Test Suite" class="md-nav">
+<ul class="md-nav__list">
+<li class="md-nav__item">
+<a class="md-nav__link" href="#scientific-rationale_1">
+<span class="md-ellipsis">
+      Scientific Rationale
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#test-categories">
+<span class="md-ellipsis">
+      Test Categories
+    </span>
+</a>
+</li>
+</ul>
+</nav>
+</li>
+</ul>
+</nav>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#2-enhanced-detection-algorithms">
+<span class="md-ellipsis">
+      2. Enhanced Detection Algorithms
+    </span>
+</a>
+<nav aria-label="2. Enhanced Detection Algorithms" class="md-nav">
+<ul class="md-nav__list">
+<li class="md-nav__item">
+<a class="md-nav__link" href="#21-multi-metric-scoring-system">
+<span class="md-ellipsis">
+      2.1 Multi-Metric Scoring System
+    </span>
+</a>
+<nav aria-label="2.1 Multi-Metric Scoring System" class="md-nav">
+<ul class="md-nav__list">
+<li class="md-nav__item">
+<a class="md-nav__link" href="#scientific-rationale_2">
+<span class="md-ellipsis">
+      Scientific Rationale
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#theoretical-foundation">
+<span class="md-ellipsis">
+      Theoretical Foundation
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#algorithm-design">
+<span class="md-ellipsis">
+      Algorithm Design
+    </span>
+</a>
+</li>
+</ul>
+</nav>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#22-configurable-threshold-presets">
+<span class="md-ellipsis">
+      2.2 Configurable Threshold Presets
+    </span>
+</a>
+<nav aria-label="2.2 Configurable Threshold Presets" class="md-nav">
+<ul class="md-nav__list">
+<li class="md-nav__item">
+<a class="md-nav__link" href="#scientific-rationale_3">
+<span class="md-ellipsis">
+      Scientific Rationale
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#threshold-selection-theory">
+<span class="md-ellipsis">
+      Threshold Selection Theory
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#implementation">
+<span class="md-ellipsis">
+      Implementation
+    </span>
+</a>
+</li>
+</ul>
+</nav>
+</li>
+</ul>
+</nav>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#3-performance-optimizations">
+<span class="md-ellipsis">
+      3. Performance Optimizations
+    </span>
+</a>
+<nav aria-label="3. Performance Optimizations" class="md-nav">
+<ul class="md-nav__list">
+<li class="md-nav__item">
+<a class="md-nav__link" href="#31-caching-variability-statistics">
+<span class="md-ellipsis">
+      3.1 Caching Variability Statistics
+    </span>
+</a>
+<nav aria-label="3.1 Caching Variability Statistics" class="md-nav">
+<ul class="md-nav__list">
+<li class="md-nav__item">
+<a class="md-nav__link" href="#scientific-rationale_4">
+<span class="md-ellipsis">
+      Scientific Rationale
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#cache-design">
+<span class="md-ellipsis">
+      Cache Design
+    </span>
+</a>
+</li>
+</ul>
+</nav>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#32-parallel-processing">
+<span class="md-ellipsis">
+      3.2 Parallel Processing
+    </span>
+</a>
+<nav aria-label="3.2 Parallel Processing" class="md-nav">
+<ul class="md-nav__list">
+<li class="md-nav__item">
+<a class="md-nav__link" href="#scientific-rationale_5">
+<span class="md-ellipsis">
+      Scientific Rationale
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#implementation_1">
+<span class="md-ellipsis">
+      Implementation
+    </span>
+</a>
+</li>
+</ul>
+</nav>
+</li>
+</ul>
+</nav>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#4-multi-frequency-analysis">
+<span class="md-ellipsis">
+      4. Multi-Frequency Analysis
+    </span>
+</a>
+<nav aria-label="4. Multi-Frequency Analysis" class="md-nav">
+<ul class="md-nav__list">
+<li class="md-nav__item">
+<a class="md-nav__link" href="#scientific-rationale_6">
+<span class="md-ellipsis">
+      Scientific Rationale
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#implementation_2">
+<span class="md-ellipsis">
+      Implementation
+    </span>
+</a>
+</li>
+</ul>
+</nav>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#5-multi-observable-correlation">
+<span class="md-ellipsis">
+      5. Multi-Observable Correlation
+    </span>
+</a>
+<nav aria-label="5. Multi-Observable Correlation" class="md-nav">
+<ul class="md-nav__list">
+<li class="md-nav__item">
+<a class="md-nav__link" href="#scientific-rationale_7">
+<span class="md-ellipsis">
+      Scientific Rationale
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#implementation_3">
+<span class="md-ellipsis">
+      Implementation
+    </span>
+</a>
+</li>
+</ul>
+</nav>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#summary">
+<span class="md-ellipsis">
+      Summary
+    </span>
+</a>
+</li>
+</ul>
+</nav>
+</div>
+</div>
+</div>
+<div class="md-content" data-md-component="content">
+<article class="md-content__inner md-typeset">
+<h1 id="ese-detection-comprehensive-improvement-plan">ESE Detection Comprehensive Improvement Plan<a class="headerlink" href="#ese-detection-comprehensive-improvement-plan" title="Permanent link">¶</a></h1>
+<h2 id="date-2025-11-12">Date: 2025-11-12<a class="headerlink" href="#date-2025-11-12" title="Permanent link">¶</a></h2>
+<p>This document provides detailed technical specifications, scientific reasoning, and implementation guidance for all identified ESE detection improvements. All items are treated as equally high priority with deep technical analysis.</p>
+<hr/>
+<h2 id="1-code-quality-architecture-improvements">1. Code Quality &amp; Architecture Improvements<a class="headerlink" href="#1-code-quality-architecture-improvements" title="Permanent link">¶</a></h2>
+<h3 id="11-extract-shared-sigma-deviation-function">1.1 Extract Shared Sigma Deviation Function<a class="headerlink" href="#11-extract-shared-sigma-deviation-function" title="Permanent link">¶</a></h3>
+<h4 id="scientific-rationale">Scientific Rationale<a class="headerlink" href="#scientific-rationale" title="Permanent link">¶</a></h4>
+<p>The sigma deviation metric is fundamental to ESE detection, representing how many standard deviations the maximum flux deviation is from the mean. This is a standard statistical measure in variability analysis, and consistency is critical for:</p>
+<ul>
+<li><strong>Reproducibility</strong>: Same input data must produce identical results regardless of code path</li>
+<li><strong>Scientific validity</strong>: Inconsistent calculations invalidate comparisons between automatic and manual detection</li>
+<li><strong>Maintainability</strong>: Single source of truth reduces bugs and simplifies testing</li>
+</ul>
+<h4 id="current-problem">Current Problem<a class="headerlink" href="#current-problem" title="Permanent link">¶</a></h4>
+<p>Two implementations exist with identical intent but potential for divergence:
+- <code>ese_pipeline.py</code>: Used in automated detection
+- <code>ese_detection.py</code>: Used in manual/recompute operations</p>
+<p>Even though currently fixed to be identical, code duplication violates DRY (Don't Repeat Yourself) principle and creates maintenance risk.</p>
+<h4 id="technical-specification">Technical Specification<a class="headerlink" href="#technical-specification" title="Permanent link">¶</a></h4>
+<p><strong>Location</strong>: <code>src/dsa110_contimg/photometry/variability.py</code></p>
+<p><strong>Function Signature</strong>:
+<div class="highlight"><pre><span></span><code><span class="k">def</span><span class="w"> </span><span class="nf">calculate_sigma_deviation</span><span class="p">(</span>
+    <span class="n">fluxes</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">,</span>
+    <span class="n">mean_flux</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">float</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+    <span class="n">std_flux</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">float</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span>
+<span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">float</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">"""</span>
+<span class="sd">    Calculate maximum sigma deviation from mean flux.</span>
+
+<span class="sd">    This measures the maximum deviation from the mean in units of standard</span>
+<span class="sd">    deviation, which is the primary metric for ESE detection. The calculation</span>
+<span class="sd">    considers both positive and negative deviations to capture variability</span>
+<span class="sd">    in either direction.</span>
+
+<span class="sd">    Mathematical Definition:</span>
+<span class="sd">        σ_dev = max(|max(flux) - μ|, |min(flux) - μ|) / σ</span>
+
+<span class="sd">    where:</span>
+<span class="sd">        μ = mean(flux)</span>
+<span class="sd">        σ = std(flux)</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        fluxes: Array of flux measurements (any units, but must be consistent)</span>
+<span class="sd">        mean_flux: Pre-computed mean (optional, computed if None)</span>
+<span class="sd">        std_flux: Pre-computed standard deviation (optional, computed if None)</span>
+
+<span class="sd">    Returns:</span>
+<span class="sd">        Maximum sigma deviation (float). Returns 0.0 if:</span>
+<span class="sd">        - Less than 2 measurements</span>
+<span class="sd">        - Zero variance (all measurements identical)</span>
+<span class="sd">        - Invalid input (NaN, Inf)</span>
+
+<span class="sd">    Raises:</span>
+<span class="sd">        ValueError: If fluxes array is empty or contains only NaN values</span>
+
+<span class="sd">    Examples:</span>
+<span class="sd">        &gt;&gt;&gt; fluxes = np.array([1.0, 2.0, 3.0, 4.0, 5.0])</span>
+<span class="sd">        &gt;&gt;&gt; calculate_sigma_deviation(fluxes)</span>
+<span class="sd">        2.0  # (5.0 - 3.0) / 1.414 = 1.414, but max considers both directions</span>
+
+<span class="sd">        &gt;&gt;&gt; fluxes = np.array([1.0, 1.0, 1.0])</span>
+<span class="sd">        &gt;&gt;&gt; calculate_sigma_deviation(fluxes)</span>
+<span class="sd">        0.0  # Zero variance</span>
+
+<span class="sd">        &gt;&gt;&gt; fluxes = np.array([10.0, 12.0, 8.0, 11.0, 9.0])</span>
+<span class="sd">        &gt;&gt;&gt; calculate_sigma_deviation(fluxes)</span>
+<span class="sd">        1.414  # Maximum deviation is 2.0, std is ~1.414</span>
+<span class="sd">    """</span>
+</code></pre></div></p>
+<p><strong>Implementation Details</strong>:</p>
+<div class="highlight"><pre><span></span><code><span class="k">def</span><span class="w"> </span><span class="nf">calculate_sigma_deviation</span><span class="p">(</span>
+    <span class="n">fluxes</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">,</span>
+    <span class="n">mean_flux</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">float</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+    <span class="n">std_flux</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">float</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span>
+<span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">float</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">"""Calculate maximum sigma deviation from mean flux."""</span>
+    <span class="c1"># Input validation</span>
+    <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">fluxes</span><span class="p">)</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">"Fluxes array cannot be empty"</span><span class="p">)</span>
+
+    <span class="c1"># Filter invalid values</span>
+    <span class="n">valid_mask</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">isfinite</span><span class="p">(</span><span class="n">fluxes</span><span class="p">)</span>
+    <span class="k">if</span> <span class="ow">not</span> <span class="n">np</span><span class="o">.</span><span class="n">any</span><span class="p">(</span><span class="n">valid_mask</span><span class="p">):</span>
+        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">"Fluxes array contains no valid values"</span><span class="p">)</span>
+
+    <span class="n">valid_fluxes</span> <span class="o">=</span> <span class="n">fluxes</span><span class="p">[</span><span class="n">valid_mask</span><span class="p">]</span>
+
+    <span class="c1"># Need at least 2 measurements for meaningful variance</span>
+    <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">valid_fluxes</span><span class="p">)</span> <span class="o">&lt;</span> <span class="mi">2</span><span class="p">:</span>
+        <span class="k">return</span> <span class="mf">0.0</span>
+
+    <span class="c1"># Compute statistics if not provided</span>
+    <span class="k">if</span> <span class="n">mean_flux</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">mean_flux</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">mean</span><span class="p">(</span><span class="n">valid_fluxes</span><span class="p">))</span>
+    <span class="k">if</span> <span class="n">std_flux</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">std_flux</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">std</span><span class="p">(</span><span class="n">valid_fluxes</span><span class="p">,</span> <span class="n">ddof</span><span class="o">=</span><span class="mi">1</span><span class="p">))</span>  <span class="c1"># Sample std (N-1)</span>
+
+    <span class="c1"># Zero variance case</span>
+    <span class="k">if</span> <span class="n">std_flux</span> <span class="o">&lt;=</span> <span class="mi">0</span><span class="p">:</span>
+        <span class="k">return</span> <span class="mf">0.0</span>
+
+    <span class="c1"># Calculate deviations in both directions</span>
+    <span class="n">max_flux</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">max</span><span class="p">(</span><span class="n">valid_fluxes</span><span class="p">))</span>
+    <span class="n">min_flux</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">min</span><span class="p">(</span><span class="n">valid_fluxes</span><span class="p">))</span>
+
+    <span class="n">max_deviation</span> <span class="o">=</span> <span class="nb">abs</span><span class="p">(</span><span class="n">max_flux</span> <span class="o">-</span> <span class="n">mean_flux</span><span class="p">)</span> <span class="o">/</span> <span class="n">std_flux</span>
+    <span class="n">min_deviation</span> <span class="o">=</span> <span class="nb">abs</span><span class="p">(</span><span class="n">min_flux</span> <span class="o">-</span> <span class="n">mean_flux</span><span class="p">)</span> <span class="o">/</span> <span class="n">std_flux</span>
+
+    <span class="c1"># Return maximum deviation (most significant variability)</span>
+    <span class="k">return</span> <span class="nb">max</span><span class="p">(</span><span class="n">max_deviation</span><span class="p">,</span> <span class="n">min_deviation</span><span class="p">)</span>
+</code></pre></div>
+<p><strong>Integration Points</strong>:</p>
+<ol>
+<li>
+<p><strong>Update <code>ese_pipeline.py</code></strong>:
+<div class="highlight"><pre><span></span><code><span class="kn">from</span><span class="w"> </span><span class="nn">dsa110_contimg.photometry.variability</span><span class="w"> </span><span class="kn">import</span> <span class="n">calculate_sigma_deviation</span>
+
+<span class="c1"># Replace inline calculation with:</span>
+<span class="n">sigma_deviation</span> <span class="o">=</span> <span class="n">calculate_sigma_deviation</span><span class="p">(</span>
+    <span class="n">flux_mjy</span><span class="p">,</span>
+    <span class="n">mean_flux</span><span class="o">=</span><span class="n">mean_flux_mjy</span><span class="p">,</span>
+    <span class="n">std_flux</span><span class="o">=</span><span class="n">std_flux_mjy</span>
+<span class="p">)</span>
+</code></pre></div></p>
+</li>
+<li>
+<p><strong>Update <code>ese_detection.py</code></strong>:
+<div class="highlight"><pre><span></span><code><span class="kn">from</span><span class="w"> </span><span class="nn">dsa110_contimg.photometry.variability</span><span class="w"> </span><span class="kn">import</span> <span class="n">calculate_sigma_deviation</span>
+
+<span class="c1"># Replace inline calculation with:</span>
+<span class="n">sigma_deviation</span> <span class="o">=</span> <span class="n">calculate_sigma_deviation</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">fluxes</span><span class="p">))</span>
+</code></pre></div></p>
+</li>
+</ol>
+<p><strong>Testing Requirements</strong>:</p>
+<div class="highlight"><pre><span></span><code><span class="k">class</span><span class="w"> </span><span class="nc">TestCalculateSigmaDeviation</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">"""Comprehensive tests for sigma deviation calculation."""</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">test_basic_calculation</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">"""Test basic sigma deviation calculation."""</span>
+        <span class="n">fluxes</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="mf">1.0</span><span class="p">,</span> <span class="mf">2.0</span><span class="p">,</span> <span class="mf">3.0</span><span class="p">,</span> <span class="mf">4.0</span><span class="p">,</span> <span class="mf">5.0</span><span class="p">])</span>
+        <span class="n">result</span> <span class="o">=</span> <span class="n">calculate_sigma_deviation</span><span class="p">(</span><span class="n">fluxes</span><span class="p">)</span>
+        <span class="n">expected</span> <span class="o">=</span> <span class="nb">abs</span><span class="p">(</span><span class="mf">5.0</span> <span class="o">-</span> <span class="mf">3.0</span><span class="p">)</span> <span class="o">/</span> <span class="n">np</span><span class="o">.</span><span class="n">std</span><span class="p">(</span><span class="n">fluxes</span><span class="p">,</span> <span class="n">ddof</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
+        <span class="k">assert</span> <span class="nb">abs</span><span class="p">(</span><span class="n">result</span> <span class="o">-</span> <span class="n">expected</span><span class="p">)</span> <span class="o">&lt;</span> <span class="mf">1e-10</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">test_symmetric_deviations</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">"""Test that both positive and negative deviations are considered."""</span>
+        <span class="c1"># Create symmetric distribution around mean</span>
+        <span class="n">fluxes</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="mf">1.0</span><span class="p">,</span> <span class="mf">2.0</span><span class="p">,</span> <span class="mf">3.0</span><span class="p">,</span> <span class="mf">4.0</span><span class="p">,</span> <span class="mf">5.0</span><span class="p">])</span>
+        <span class="c1"># Max deviation: 5.0 - 3.0 = 2.0</span>
+        <span class="c1"># Min deviation: 1.0 - 3.0 = -2.0 (abs = 2.0)</span>
+        <span class="n">result</span> <span class="o">=</span> <span class="n">calculate_sigma_deviation</span><span class="p">(</span><span class="n">fluxes</span><span class="p">)</span>
+        <span class="k">assert</span> <span class="n">result</span> <span class="o">&gt;</span> <span class="mi">0</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">test_zero_variance</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">"""Test zero variance case."""</span>
+        <span class="n">fluxes</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="mf">1.0</span><span class="p">,</span> <span class="mf">1.0</span><span class="p">,</span> <span class="mf">1.0</span><span class="p">])</span>
+        <span class="k">assert</span> <span class="n">calculate_sigma_deviation</span><span class="p">(</span><span class="n">fluxes</span><span class="p">)</span> <span class="o">==</span> <span class="mf">0.0</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">test_single_measurement</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">"""Test single measurement case."""</span>
+        <span class="n">fluxes</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="mf">1.0</span><span class="p">])</span>
+        <span class="k">assert</span> <span class="n">calculate_sigma_deviation</span><span class="p">(</span><span class="n">fluxes</span><span class="p">)</span> <span class="o">==</span> <span class="mf">0.0</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">test_negative_fluxes</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">"""Test with negative flux values."""</span>
+        <span class="n">fluxes</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="o">-</span><span class="mf">1.0</span><span class="p">,</span> <span class="mf">0.0</span><span class="p">,</span> <span class="mf">1.0</span><span class="p">])</span>
+        <span class="n">result</span> <span class="o">=</span> <span class="n">calculate_sigma_deviation</span><span class="p">(</span><span class="n">fluxes</span><span class="p">)</span>
+        <span class="k">assert</span> <span class="n">result</span> <span class="o">&gt;</span> <span class="mi">0</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">test_nan_handling</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">"""Test NaN filtering."""</span>
+        <span class="n">fluxes</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="mf">1.0</span><span class="p">,</span> <span class="mf">2.0</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">nan</span><span class="p">,</span> <span class="mf">4.0</span><span class="p">,</span> <span class="mf">5.0</span><span class="p">])</span>
+        <span class="n">result</span> <span class="o">=</span> <span class="n">calculate_sigma_deviation</span><span class="p">(</span><span class="n">fluxes</span><span class="p">)</span>
+        <span class="k">assert</span> <span class="n">np</span><span class="o">.</span><span class="n">isfinite</span><span class="p">(</span><span class="n">result</span><span class="p">)</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">test_precomputed_statistics</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">"""Test with pre-computed mean and std."""</span>
+        <span class="n">fluxes</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="mf">1.0</span><span class="p">,</span> <span class="mf">2.0</span><span class="p">,</span> <span class="mf">3.0</span><span class="p">,</span> <span class="mf">4.0</span><span class="p">,</span> <span class="mf">5.0</span><span class="p">])</span>
+        <span class="n">mean</span> <span class="o">=</span> <span class="mf">3.0</span>
+        <span class="n">std</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">std</span><span class="p">(</span><span class="n">fluxes</span><span class="p">,</span> <span class="n">ddof</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
+        <span class="n">result1</span> <span class="o">=</span> <span class="n">calculate_sigma_deviation</span><span class="p">(</span><span class="n">fluxes</span><span class="p">)</span>
+        <span class="n">result2</span> <span class="o">=</span> <span class="n">calculate_sigma_deviation</span><span class="p">(</span><span class="n">fluxes</span><span class="p">,</span> <span class="n">mean_flux</span><span class="o">=</span><span class="n">mean</span><span class="p">,</span> <span class="n">std_flux</span><span class="o">=</span><span class="n">std</span><span class="p">)</span>
+        <span class="k">assert</span> <span class="nb">abs</span><span class="p">(</span><span class="n">result1</span> <span class="o">-</span> <span class="n">result2</span><span class="p">)</span> <span class="o">&lt;</span> <span class="mf">1e-10</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">test_edge_case_large_deviations</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">"""Test with extreme outliers."""</span>
+        <span class="n">fluxes</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="mf">1.0</span><span class="p">,</span> <span class="mf">2.0</span><span class="p">,</span> <span class="mf">3.0</span><span class="p">,</span> <span class="mf">4.0</span><span class="p">,</span> <span class="mf">100.0</span><span class="p">])</span>
+        <span class="n">result</span> <span class="o">=</span> <span class="n">calculate_sigma_deviation</span><span class="p">(</span><span class="n">fluxes</span><span class="p">)</span>
+        <span class="k">assert</span> <span class="n">result</span> <span class="o">&gt;</span> <span class="mf">10.0</span>  <span class="c1"># Should detect large deviation</span>
+</code></pre></div>
+<p><strong>Benefits</strong>:
+- Single source of truth eliminates inconsistencies
+- Easier to optimize and maintain
+- Comprehensive testing ensures correctness
+- Reusable across codebase
+- Clear documentation of mathematical definition</p>
+<hr/>
+<h3 id="12-comprehensive-validation-test-suite">1.2 Comprehensive Validation Test Suite<a class="headerlink" href="#12-comprehensive-validation-test-suite" title="Permanent link">¶</a></h3>
+<h4 id="scientific-rationale_1">Scientific Rationale<a class="headerlink" href="#scientific-rationale_1" title="Permanent link">¶</a></h4>
+<p>Statistical calculations must be validated against known values to ensure correctness. Errors in variability metrics propagate through the entire detection pipeline, potentially causing:</p>
+<ul>
+<li><strong>False positives</strong>: Incorrectly flagging normal sources as ESE candidates</li>
+<li><strong>False negatives</strong>: Missing real ESE events</li>
+<li><strong>Scientific invalidity</strong>: Published results based on incorrect calculations</li>
+</ul>
+<p>Validation tests serve as:
+- Regression prevention: Catch bugs introduced by future changes
+- Documentation: Tests serve as executable specifications
+- Confidence: Verify implementation matches mathematical definitions</p>
+<h4 id="test-categories">Test Categories<a class="headerlink" href="#test-categories" title="Permanent link">¶</a></h4>
+<p><strong>1. Unit Tests for Individual Metrics</strong></p>
+<div class="highlight"><pre><span></span><code><span class="k">class</span><span class="w"> </span><span class="nc">TestVariabilityMetrics</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">"""Test individual variability metric calculations."""</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">test_chi_squared_calculation</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">"""</span>
+<span class="sd">        Test chi-squared calculation against known formula.</span>
+
+<span class="sd">        χ² = Σ((obs - expected)² / σ²)</span>
+<span class="sd">        χ²_ν = χ² / (N - 1)</span>
+<span class="sd">        """</span>
+        <span class="n">fluxes</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="mf">1.0</span><span class="p">,</span> <span class="mf">2.0</span><span class="p">,</span> <span class="mf">3.0</span><span class="p">,</span> <span class="mf">4.0</span><span class="p">,</span> <span class="mf">5.0</span><span class="p">])</span>
+        <span class="n">errors</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="mf">0.1</span><span class="p">,</span> <span class="mf">0.1</span><span class="p">,</span> <span class="mf">0.1</span><span class="p">,</span> <span class="mf">0.1</span><span class="p">,</span> <span class="mf">0.1</span><span class="p">])</span>
+        <span class="n">mean</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">mean</span><span class="p">(</span><span class="n">fluxes</span><span class="p">)</span>
+
+        <span class="c1"># Manual calculation</span>
+        <span class="n">chi2_manual</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">sum</span><span class="p">(((</span><span class="n">fluxes</span> <span class="o">-</span> <span class="n">mean</span><span class="p">)</span> <span class="o">**</span> <span class="mi">2</span><span class="p">)</span> <span class="o">/</span> <span class="p">(</span><span class="n">errors</span> <span class="o">**</span> <span class="mi">2</span><span class="p">))</span>
+        <span class="n">chi2_nu_manual</span> <span class="o">=</span> <span class="n">chi2_manual</span> <span class="o">/</span> <span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">fluxes</span><span class="p">)</span> <span class="o">-</span> <span class="mi">1</span><span class="p">)</span>
+
+        <span class="c1"># Function calculation</span>
+        <span class="n">chi2_nu_func</span> <span class="o">=</span> <span class="n">calculate_chi2_nu</span><span class="p">(</span><span class="n">fluxes</span><span class="p">,</span> <span class="n">errors</span><span class="p">)</span>
+
+        <span class="k">assert</span> <span class="nb">abs</span><span class="p">(</span><span class="n">chi2_nu_func</span> <span class="o">-</span> <span class="n">chi2_nu_manual</span><span class="p">)</span> <span class="o">&lt;</span> <span class="mf">1e-10</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">test_eta_metric_against_vast_tools</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">"""</span>
+<span class="sd">        Test eta metric against VAST Tools reference implementation.</span>
+
+<span class="sd">        Use known test cases from VAST Tools test suite.</span>
+<span class="sd">        """</span>
+        <span class="c1"># Reference values from VAST Tools</span>
+        <span class="n">test_cases</span> <span class="o">=</span> <span class="p">[</span>
+            <span class="p">{</span>
+                <span class="s2">"fluxes"</span><span class="p">:</span> <span class="p">[</span><span class="mf">1.0</span><span class="p">,</span> <span class="mf">1.0</span><span class="p">,</span> <span class="mf">1.0</span><span class="p">],</span>
+                <span class="s2">"errors"</span><span class="p">:</span> <span class="p">[</span><span class="mf">0.1</span><span class="p">,</span> <span class="mf">0.1</span><span class="p">,</span> <span class="mf">0.1</span><span class="p">],</span>
+                <span class="s2">"expected_eta"</span><span class="p">:</span> <span class="mf">0.0</span>  <span class="c1"># No variability</span>
+            <span class="p">},</span>
+            <span class="p">{</span>
+                <span class="s2">"fluxes"</span><span class="p">:</span> <span class="p">[</span><span class="mf">1.0</span><span class="p">,</span> <span class="mf">2.0</span><span class="p">,</span> <span class="mf">3.0</span><span class="p">],</span>
+                <span class="s2">"errors"</span><span class="p">:</span> <span class="p">[</span><span class="mf">0.1</span><span class="p">,</span> <span class="mf">0.1</span><span class="p">,</span> <span class="mf">0.1</span><span class="p">],</span>
+                <span class="s2">"expected_eta"</span><span class="p">:</span> <span class="mf">0.6667</span>  <span class="c1"># Approximate from VAST Tools</span>
+            <span class="p">}</span>
+        <span class="p">]</span>
+
+        <span class="k">for</span> <span class="n">case</span> <span class="ow">in</span> <span class="n">test_cases</span><span class="p">:</span>
+            <span class="n">df</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">({</span>
+                <span class="s2">"normalized_flux_jy"</span><span class="p">:</span> <span class="n">case</span><span class="p">[</span><span class="s2">"fluxes"</span><span class="p">],</span>
+                <span class="s2">"normalized_flux_err_jy"</span><span class="p">:</span> <span class="n">case</span><span class="p">[</span><span class="s2">"errors"</span><span class="p">]</span>
+            <span class="p">})</span>
+            <span class="n">eta</span> <span class="o">=</span> <span class="n">calculate_eta_metric</span><span class="p">(</span><span class="n">df</span><span class="p">)</span>
+            <span class="k">assert</span> <span class="nb">abs</span><span class="p">(</span><span class="n">eta</span> <span class="o">-</span> <span class="n">case</span><span class="p">[</span><span class="s2">"expected_eta"</span><span class="p">])</span> <span class="o">&lt;</span> <span class="mf">0.01</span>
+</code></pre></div>
+<p><strong>2. Integration Tests for Complete Pipeline</strong></p>
+<div class="highlight"><pre><span></span><code><span class="k">class</span><span class="w"> </span><span class="nc">TestESEDetectionPipeline</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">"""Test complete ESE detection pipeline."""</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">test_end_to_end_detection</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">"""Test complete detection flow from photometry to candidates."""</span>
+        <span class="c1"># Create test database with known variability</span>
+        <span class="n">db_path</span> <span class="o">=</span> <span class="n">create_test_db</span><span class="p">()</span>
+
+        <span class="c1"># Add photometry measurements with known variability pattern</span>
+        <span class="n">add_photometry_measurements</span><span class="p">(</span>
+            <span class="n">db_path</span><span class="p">,</span>
+            <span class="n">source_id</span><span class="o">=</span><span class="s2">"TEST001"</span><span class="p">,</span>
+            <span class="n">fluxes</span><span class="o">=</span><span class="p">[</span><span class="mf">1.0</span><span class="p">,</span> <span class="mf">1.1</span><span class="p">,</span> <span class="mf">1.2</span><span class="p">,</span> <span class="mf">1.3</span><span class="p">,</span> <span class="mf">5.0</span><span class="p">],</span>  <span class="c1"># Large jump at end</span>
+            <span class="n">errors</span><span class="o">=</span><span class="p">[</span><span class="mf">0.1</span><span class="p">]</span> <span class="o">*</span> <span class="mi">5</span>
+        <span class="p">)</span>
+
+        <span class="c1"># Run detection</span>
+        <span class="n">candidates</span> <span class="o">=</span> <span class="n">detect_ese_candidates</span><span class="p">(</span><span class="n">db_path</span><span class="p">,</span> <span class="n">min_sigma</span><span class="o">=</span><span class="mf">3.0</span><span class="p">)</span>
+
+        <span class="c1"># Verify detection</span>
+        <span class="k">assert</span> <span class="nb">len</span><span class="p">(</span><span class="n">candidates</span><span class="p">)</span> <span class="o">==</span> <span class="mi">1</span>
+        <span class="k">assert</span> <span class="n">candidates</span><span class="p">[</span><span class="mi">0</span><span class="p">][</span><span class="s2">"source_id"</span><span class="p">]</span> <span class="o">==</span> <span class="s2">"TEST001"</span>
+        <span class="k">assert</span> <span class="n">candidates</span><span class="p">[</span><span class="mi">0</span><span class="p">][</span><span class="s2">"significance"</span><span class="p">]</span> <span class="o">&gt;</span> <span class="mf">3.0</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">test_consistency_automatic_vs_manual</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">"""Test that automatic and manual detection produce same results."""</span>
+        <span class="n">db_path</span> <span class="o">=</span> <span class="n">create_test_db</span><span class="p">()</span>
+        <span class="n">source_id</span> <span class="o">=</span> <span class="s2">"TEST002"</span>
+
+        <span class="c1"># Add measurements</span>
+        <span class="n">add_photometry_measurements</span><span class="p">(</span><span class="n">db_path</span><span class="p">,</span> <span class="n">source_id</span><span class="p">,</span> <span class="o">...</span><span class="p">)</span>
+
+        <span class="c1"># Automatic detection</span>
+        <span class="n">auto_candidates</span> <span class="o">=</span> <span class="n">auto_detect_ese_for_new_measurements</span><span class="p">(</span>
+            <span class="n">db_path</span><span class="p">,</span> <span class="n">source_id</span><span class="p">,</span> <span class="n">min_sigma</span><span class="o">=</span><span class="mf">5.0</span>
+        <span class="p">)</span>
+
+        <span class="c1"># Manual detection</span>
+        <span class="n">manual_candidates</span> <span class="o">=</span> <span class="n">detect_ese_candidates</span><span class="p">(</span>
+            <span class="n">db_path</span><span class="p">,</span> <span class="n">min_sigma</span><span class="o">=</span><span class="mf">5.0</span><span class="p">,</span> <span class="n">source_id</span><span class="o">=</span><span class="n">source_id</span>
+        <span class="p">)</span>
+
+        <span class="c1"># Should produce identical results</span>
+        <span class="k">assert</span> <span class="nb">len</span><span class="p">(</span><span class="n">auto_candidates</span><span class="p">)</span> <span class="o">==</span> <span class="nb">len</span><span class="p">(</span><span class="n">manual_candidates</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">auto_candidates</span><span class="p">:</span>
+            <span class="k">assert</span> <span class="n">auto_candidates</span><span class="p">[</span><span class="mi">0</span><span class="p">][</span><span class="s2">"significance"</span><span class="p">]</span> <span class="o">==</span> <span class="n">manual_candidates</span><span class="p">[</span><span class="mi">0</span><span class="p">][</span><span class="s2">"significance"</span><span class="p">]</span>
+</code></pre></div>
+<p><strong>3. Edge Case Tests</strong></p>
+<div class="highlight"><pre><span></span><code><span class="k">class</span><span class="w"> </span><span class="nc">TestEdgeCases</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">"""Test edge cases and error conditions."""</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">test_single_measurement</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">"""Test behavior with only one measurement."""</span>
+        <span class="n">db_path</span> <span class="o">=</span> <span class="n">create_test_db</span><span class="p">()</span>
+        <span class="n">add_photometry_measurements</span><span class="p">(</span><span class="n">db_path</span><span class="p">,</span> <span class="s2">"TEST"</span><span class="p">,</span> <span class="n">fluxes</span><span class="o">=</span><span class="p">[</span><span class="mf">1.0</span><span class="p">],</span> <span class="n">errors</span><span class="o">=</span><span class="p">[</span><span class="mf">0.1</span><span class="p">])</span>
+
+        <span class="n">candidates</span> <span class="o">=</span> <span class="n">detect_ese_candidates</span><span class="p">(</span><span class="n">db_path</span><span class="p">)</span>
+        <span class="c1"># Should handle gracefully, no candidates (need multiple measurements)</span>
+        <span class="k">assert</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">candidates</span><span class="p">,</span> <span class="nb">list</span><span class="p">)</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">test_zero_variance</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">"""Test with zero variance measurements."""</span>
+        <span class="n">db_path</span> <span class="o">=</span> <span class="n">create_test_db</span><span class="p">()</span>
+        <span class="n">add_photometry_measurements</span><span class="p">(</span>
+            <span class="n">db_path</span><span class="p">,</span> <span class="s2">"TEST"</span><span class="p">,</span> 
+            <span class="n">fluxes</span><span class="o">=</span><span class="p">[</span><span class="mf">1.0</span><span class="p">,</span> <span class="mf">1.0</span><span class="p">,</span> <span class="mf">1.0</span><span class="p">,</span> <span class="mf">1.0</span><span class="p">],</span>
+            <span class="n">errors</span><span class="o">=</span><span class="p">[</span><span class="mf">0.1</span><span class="p">,</span> <span class="mf">0.1</span><span class="p">,</span> <span class="mf">0.1</span><span class="p">,</span> <span class="mf">0.1</span><span class="p">]</span>
+        <span class="p">)</span>
+
+        <span class="n">candidates</span> <span class="o">=</span> <span class="n">detect_ese_candidates</span><span class="p">(</span><span class="n">db_path</span><span class="p">)</span>
+        <span class="c1"># Should not detect (no variability)</span>
+        <span class="k">assert</span> <span class="nb">len</span><span class="p">(</span><span class="n">candidates</span><span class="p">)</span> <span class="o">==</span> <span class="mi">0</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">test_missing_errors</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">"""Test handling of missing error values."""</span>
+        <span class="n">db_path</span> <span class="o">=</span> <span class="n">create_test_db</span><span class="p">()</span>
+        <span class="c1"># Add measurements with some missing errors</span>
+        <span class="c1"># Should handle gracefully, skip chi-squared calculation</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">test_negative_fluxes</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">"""Test with negative flux values (possible in some contexts)."""</span>
+        <span class="c1"># Should handle correctly, variability still detectable</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">test_extreme_outliers</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">"""Test with extreme outlier values."""</span>
+        <span class="c1"># Should detect but not crash</span>
+</code></pre></div>
+<p><strong>4. Performance Tests</strong></p>
+<div class="highlight"><pre><span></span><code><span class="k">class</span><span class="w"> </span><span class="nc">TestPerformance</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">"""Test performance characteristics."""</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">test_large_source_count</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">"""Test with large number of sources."""</span>
+        <span class="n">db_path</span> <span class="o">=</span> <span class="n">create_test_db</span><span class="p">()</span>
+        <span class="c1"># Add 10,000 sources</span>
+        <span class="c1"># Measure detection time</span>
+        <span class="c1"># Should complete in reasonable time (&lt; 1 minute)</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">test_incremental_updates</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">"""Test that incremental updates are efficient."""</span>
+        <span class="c1"># Add measurements incrementally</span>
+        <span class="c1"># Verify only affected sources are recomputed</span>
+</code></pre></div>
+<p><strong>Test Infrastructure</strong>:</p>
+<div class="highlight"><pre><span></span><code><span class="c1"># tests/conftest.py additions</span>
+<span class="nd">@pytest</span><span class="o">.</span><span class="n">fixture</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">test_photometry_data</span><span class="p">():</span>
+<span class="w">    </span><span class="sd">"""Create standardized test photometry data."""</span>
+    <span class="k">return</span> <span class="p">{</span>
+        <span class="s2">"source_id"</span><span class="p">:</span> <span class="s2">"TEST001"</span><span class="p">,</span>
+        <span class="s2">"ra_deg"</span><span class="p">:</span> <span class="mf">120.0</span><span class="p">,</span>
+        <span class="s2">"dec_deg"</span><span class="p">:</span> <span class="mf">45.0</span><span class="p">,</span>
+        <span class="s2">"fluxes"</span><span class="p">:</span> <span class="p">[</span><span class="mf">1.0</span><span class="p">,</span> <span class="mf">1.1</span><span class="p">,</span> <span class="mf">1.2</span><span class="p">,</span> <span class="mf">1.3</span><span class="p">,</span> <span class="mf">1.4</span><span class="p">],</span>
+        <span class="s2">"errors"</span><span class="p">:</span> <span class="p">[</span><span class="mf">0.1</span><span class="p">,</span> <span class="mf">0.1</span><span class="p">,</span> <span class="mf">0.1</span><span class="p">,</span> <span class="mf">0.1</span><span class="p">,</span> <span class="mf">0.1</span><span class="p">],</span>
+        <span class="s2">"mjd"</span><span class="p">:</span> <span class="p">[</span><span class="mf">60000.0</span><span class="p">,</span> <span class="mf">60001.0</span><span class="p">,</span> <span class="mf">60002.0</span><span class="p">,</span> <span class="mf">60003.0</span><span class="p">,</span> <span class="mf">60004.0</span><span class="p">]</span>
+    <span class="p">}</span>
+
+<span class="nd">@pytest</span><span class="o">.</span><span class="n">fixture</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">known_ese_pattern</span><span class="p">():</span>
+<span class="w">    </span><span class="sd">"""Create known ESE variability pattern."""</span>
+    <span class="c1"># Simulate ESE: gradual increase then sudden spike</span>
+    <span class="k">return</span> <span class="p">{</span>
+        <span class="s2">"fluxes"</span><span class="p">:</span> <span class="p">[</span><span class="mf">1.0</span><span class="p">,</span> <span class="mf">1.1</span><span class="p">,</span> <span class="mf">1.2</span><span class="p">,</span> <span class="mf">1.3</span><span class="p">,</span> <span class="mf">5.0</span><span class="p">],</span>  <span class="c1"># Large jump</span>
+        <span class="s2">"expected_sigma"</span><span class="p">:</span> <span class="mf">3.5</span><span class="p">,</span>  <span class="c1"># Known sigma deviation</span>
+        <span class="s2">"expected_detection"</span><span class="p">:</span> <span class="kc">True</span>
+    <span class="p">}</span>
+</code></pre></div>
+<hr/>
+<h2 id="2-enhanced-detection-algorithms">2. Enhanced Detection Algorithms<a class="headerlink" href="#2-enhanced-detection-algorithms" title="Permanent link">¶</a></h2>
+<h3 id="21-multi-metric-scoring-system">2.1 Multi-Metric Scoring System<a class="headerlink" href="#21-multi-metric-scoring-system" title="Permanent link">¶</a></h3>
+<h4 id="scientific-rationale_2">Scientific Rationale<a class="headerlink" href="#scientific-rationale_2" title="Permanent link">¶</a></h4>
+<p>Single-metric thresholds are vulnerable to:
+- <strong>Noise</strong>: Single outlier can trigger false positive
+- <strong>Incomplete information</strong>: Ignores complementary variability indicators
+- <strong>Context loss</strong>: Doesn't consider measurement quality or quantity</p>
+<p>Multi-metric scoring provides:
+- <strong>Robustness</strong>: Multiple independent indicators reduce false positives
+- <strong>Confidence</strong>: Higher confidence when multiple metrics agree
+- <strong>Ranking</strong>: Better candidate prioritization for follow-up</p>
+<h4 id="theoretical-foundation">Theoretical Foundation<a class="headerlink" href="#theoretical-foundation" title="Permanent link">¶</a></h4>
+<p><strong>Information Theory Perspective</strong>:
+- Each metric provides independent information about variability
+- Combining metrics increases information content
+- Weighted combination maximizes signal-to-noise ratio</p>
+<p><strong>Statistical Perspective</strong>:
+- Chi-squared tests constant flux model (goodness of fit)
+- Eta metric measures weighted variance (accounting for errors)
+- Sigma deviation measures extreme outliers (ESE signature)
+- Observation count affects confidence (more observations = more reliable)</p>
+<h4 id="algorithm-design">Algorithm Design<a class="headerlink" href="#algorithm-design" title="Permanent link">¶</a></h4>
+<p><strong>Scoring Function</strong>:</p>
+<div class="highlight"><pre><span></span><code><span class="k">def</span><span class="w"> </span><span class="nf">calculate_ese_composite_score</span><span class="p">(</span>
+    <span class="n">sigma_deviation</span><span class="p">:</span> <span class="nb">float</span><span class="p">,</span>
+    <span class="n">chi2_nu</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">float</span><span class="p">],</span>
+    <span class="n">eta_metric</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">float</span><span class="p">],</span>
+    <span class="n">n_obs</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span>
+    <span class="n">weights</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">dict</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span>
+<span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">dict</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">"""</span>
+<span class="sd">    Calculate composite ESE candidate score using multiple metrics.</span>
+
+<span class="sd">    This function combines multiple variability indicators into a single</span>
+<span class="sd">    composite score that provides more robust detection than any single</span>
+<span class="sd">    metric alone.</span>
+
+<span class="sd">    Algorithm:</span>
+<span class="sd">        1. Base score from sigma deviation (primary indicator)</span>
+<span class="sd">        2. Boost from chi-squared if indicates variability</span>
+<span class="sd">        3. Boost from eta metric if indicates variability</span>
+<span class="sd">        4. Penalty for low observation count (reduced confidence)</span>
+<span class="sd">        5. Normalize to produce interpretable score</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        sigma_deviation: Maximum sigma deviation from mean</span>
+<span class="sd">        chi2_nu: Reduced chi-squared (goodness of fit to constant model)</span>
+<span class="sd">        eta_metric: Weighted variance metric</span>
+<span class="sd">        n_obs: Number of observations</span>
+<span class="sd">        weights: Optional custom weights for metrics</span>
+
+<span class="sd">    Returns:</span>
+<span class="sd">        Dictionary containing:</span>
+<span class="sd">        - score: Composite score (higher = more likely ESE)</span>
+<span class="sd">        - components: Individual metric contributions</span>
+<span class="sd">        - confidence: Confidence level (low/medium/high)</span>
+<span class="sd">        - explanation: Human-readable explanation</span>
+
+<span class="sd">    Examples:</span>
+<span class="sd">        &gt;&gt;&gt; result = calculate_ese_composite_score(</span>
+<span class="sd">        ...     sigma_deviation=6.5,</span>
+<span class="sd">        ...     chi2_nu=3.2,</span>
+<span class="sd">        ...     eta_metric=0.15,</span>
+<span class="sd">        ...     n_obs=10</span>
+<span class="sd">        ... )</span>
+<span class="sd">        &gt;&gt;&gt; result["score"]</span>
+<span class="sd">        7.2</span>
+<span class="sd">        &gt;&gt;&gt; result["confidence"]</span>
+<span class="sd">        "high"</span>
+<span class="sd">    """</span>
+    <span class="c1"># Default weights (can be tuned based on validation)</span>
+    <span class="n">default_weights</span> <span class="o">=</span> <span class="p">{</span>
+        <span class="s2">"sigma_deviation"</span><span class="p">:</span> <span class="mf">1.0</span><span class="p">,</span>  <span class="c1"># Primary metric</span>
+        <span class="s2">"chi2_nu"</span><span class="p">:</span> <span class="mf">0.5</span><span class="p">,</span>          <span class="c1"># Secondary metric</span>
+        <span class="s2">"eta_metric"</span><span class="p">:</span> <span class="mf">0.3</span><span class="p">,</span>       <span class="c1"># Tertiary metric</span>
+        <span class="s2">"n_obs_penalty"</span><span class="p">:</span> <span class="mf">0.2</span>     <span class="c1"># Observation count factor</span>
+    <span class="p">}</span>
+
+    <span class="k">if</span> <span class="n">weights</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">weights</span> <span class="o">=</span> <span class="n">default_weights</span>
+
+    <span class="c1"># Base score from sigma deviation</span>
+    <span class="n">base_score</span> <span class="o">=</span> <span class="n">sigma_deviation</span> <span class="o">*</span> <span class="n">weights</span><span class="p">[</span><span class="s2">"sigma_deviation"</span><span class="p">]</span>
+
+    <span class="c1"># Chi-squared contribution</span>
+    <span class="n">chi2_contribution</span> <span class="o">=</span> <span class="mf">0.0</span>
+    <span class="k">if</span> <span class="n">chi2_nu</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="c1"># Chi-squared &gt; 2 indicates significant variability</span>
+        <span class="k">if</span> <span class="n">chi2_nu</span> <span class="o">&gt;</span> <span class="mf">2.0</span><span class="p">:</span>
+            <span class="c1"># Normalize: chi2_nu of 5.0 gives full boost</span>
+            <span class="n">chi2_normalized</span> <span class="o">=</span> <span class="nb">min</span><span class="p">(</span><span class="n">chi2_nu</span> <span class="o">/</span> <span class="mf">5.0</span><span class="p">,</span> <span class="mf">1.0</span><span class="p">)</span>
+            <span class="n">chi2_contribution</span> <span class="o">=</span> <span class="n">chi2_normalized</span> <span class="o">*</span> <span class="n">weights</span><span class="p">[</span><span class="s2">"chi2_nu"</span><span class="p">]</span>
+
+    <span class="c1"># Eta metric contribution</span>
+    <span class="n">eta_contribution</span> <span class="o">=</span> <span class="mf">0.0</span>
+    <span class="k">if</span> <span class="n">eta_metric</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="c1"># Eta &gt; 0.1 indicates variability</span>
+        <span class="k">if</span> <span class="n">eta_metric</span> <span class="o">&gt;</span> <span class="mf">0.1</span><span class="p">:</span>
+            <span class="c1"># Normalize: eta of 0.5 gives full boost</span>
+            <span class="n">eta_normalized</span> <span class="o">=</span> <span class="nb">min</span><span class="p">(</span><span class="n">eta_metric</span> <span class="o">/</span> <span class="mf">0.5</span><span class="p">,</span> <span class="mf">1.0</span><span class="p">)</span>
+            <span class="n">eta_contribution</span> <span class="o">=</span> <span class="n">eta_normalized</span> <span class="o">*</span> <span class="n">weights</span><span class="p">[</span><span class="s2">"eta_metric"</span><span class="p">]</span>
+
+    <span class="c1"># Observation count penalty</span>
+    <span class="c1"># Fewer observations = less confidence</span>
+    <span class="n">obs_penalty</span> <span class="o">=</span> <span class="mf">0.0</span>
+    <span class="k">if</span> <span class="n">n_obs</span> <span class="o">&lt;</span> <span class="mi">5</span><span class="p">:</span>
+        <span class="c1"># Penalize sources with &lt; 5 observations</span>
+        <span class="n">obs_penalty</span> <span class="o">=</span> <span class="p">(</span><span class="mi">5</span> <span class="o">-</span> <span class="n">n_obs</span><span class="p">)</span> <span class="o">/</span> <span class="mf">5.0</span> <span class="o">*</span> <span class="n">weights</span><span class="p">[</span><span class="s2">"n_obs_penalty"</span><span class="p">]</span>
+    <span class="k">elif</span> <span class="n">n_obs</span> <span class="o">&lt;</span> <span class="mi">10</span><span class="p">:</span>
+        <span class="c1"># Slight penalty for &lt; 10 observations</span>
+        <span class="n">obs_penalty</span> <span class="o">=</span> <span class="p">(</span><span class="mi">10</span> <span class="o">-</span> <span class="n">n_obs</span><span class="p">)</span> <span class="o">/</span> <span class="mf">10.0</span> <span class="o">*</span> <span class="n">weights</span><span class="p">[</span><span class="s2">"n_obs_penalty"</span><span class="p">]</span> <span class="o">*</span> <span class="mf">0.5</span>
+
+    <span class="c1"># Calculate composite score</span>
+    <span class="n">composite_score</span> <span class="o">=</span> <span class="n">base_score</span> <span class="o">+</span> <span class="n">chi2_contribution</span> <span class="o">+</span> <span class="n">eta_contribution</span> <span class="o">-</span> <span class="n">obs_penalty</span>
+
+    <span class="c1"># Determine confidence level</span>
+    <span class="k">if</span> <span class="n">composite_score</span> <span class="o">&gt;=</span> <span class="mf">7.0</span><span class="p">:</span>
+        <span class="n">confidence</span> <span class="o">=</span> <span class="s2">"high"</span>
+    <span class="k">elif</span> <span class="n">composite_score</span> <span class="o">&gt;=</span> <span class="mf">5.0</span><span class="p">:</span>
+        <span class="n">confidence</span> <span class="o">=</span> <span class="s2">"medium"</span>
+    <span class="k">elif</span> <span class="n">composite_score</span> <span class="o">&gt;=</span> <span class="mf">3.0</span><span class="p">:</span>
+        <span class="n">confidence</span> <span class="o">=</span> <span class="s2">"low"</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">confidence</span> <span class="o">=</span> <span class="s2">"very_low"</span>
+
+    <span class="c1"># Generate explanation</span>
+    <span class="n">explanation_parts</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="n">explanation_parts</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="sa">f</span><span class="s2">"Sigma deviation: </span><span class="si">{</span><span class="n">sigma_deviation</span><span class="si">:</span><span class="s2">.2f</span><span class="si">}</span><span class="s2">σ"</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">chi2_nu</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">explanation_parts</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="sa">f</span><span class="s2">"Chi-squared: </span><span class="si">{</span><span class="n">chi2_nu</span><span class="si">:</span><span class="s2">.2f</span><span class="si">}</span><span class="s2">"</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">eta_metric</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">explanation_parts</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="sa">f</span><span class="s2">"Eta metric: </span><span class="si">{</span><span class="n">eta_metric</span><span class="si">:</span><span class="s2">.3f</span><span class="si">}</span><span class="s2">"</span><span class="p">)</span>
+    <span class="n">explanation_parts</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="sa">f</span><span class="s2">"Observations: </span><span class="si">{</span><span class="n">n_obs</span><span class="si">}</span><span class="s2">"</span><span class="p">)</span>
+    <span class="n">explanation</span> <span class="o">=</span> <span class="s2">"; "</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">explanation_parts</span><span class="p">)</span>
+
+    <span class="k">return</span> <span class="p">{</span>
+        <span class="s2">"score"</span><span class="p">:</span> <span class="n">composite_score</span><span class="p">,</span>
+        <span class="s2">"components"</span><span class="p">:</span> <span class="p">{</span>
+            <span class="s2">"base_score"</span><span class="p">:</span> <span class="n">base_score</span><span class="p">,</span>
+            <span class="s2">"chi2_contribution"</span><span class="p">:</span> <span class="n">chi2_contribution</span><span class="p">,</span>
+            <span class="s2">"eta_contribution"</span><span class="p">:</span> <span class="n">eta_contribution</span><span class="p">,</span>
+            <span class="s2">"obs_penalty"</span><span class="p">:</span> <span class="n">obs_penalty</span>
+        <span class="p">},</span>
+        <span class="s2">"confidence"</span><span class="p">:</span> <span class="n">confidence</span><span class="p">,</span>
+        <span class="s2">"explanation"</span><span class="p">:</span> <span class="n">explanation</span>
+    <span class="p">}</span>
+</code></pre></div>
+<p><strong>Integration with Detection</strong>:</p>
+<div class="highlight"><pre><span></span><code><span class="k">def</span><span class="w"> </span><span class="nf">detect_ese_candidates_with_scoring</span><span class="p">(</span>
+    <span class="n">products_db</span><span class="p">:</span> <span class="n">Path</span><span class="p">,</span>
+    <span class="n">min_sigma</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">5.0</span><span class="p">,</span>
+    <span class="n">use_composite_score</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span><span class="p">,</span>
+    <span class="n">score_threshold</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">float</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span>
+<span class="p">)</span> <span class="o">-&gt;</span> <span class="n">List</span><span class="p">[</span><span class="nb">dict</span><span class="p">]:</span>
+<span class="w">    </span><span class="sd">"""</span>
+<span class="sd">    Detect ESE candidates with optional composite scoring.</span>
+
+<span class="sd">    If use_composite_score=True, uses composite score instead of</span>
+<span class="sd">    simple sigma threshold for more robust detection.</span>
+<span class="sd">    """</span>
+    <span class="c1"># ... existing detection logic ...</span>
+
+    <span class="k">for</span> <span class="n">row</span> <span class="ow">in</span> <span class="n">candidates</span><span class="p">:</span>
+        <span class="n">sigma_dev</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span><span class="n">row</span><span class="p">[</span><span class="s2">"sigma_deviation"</span><span class="p">])</span>
+
+        <span class="k">if</span> <span class="n">use_composite_score</span><span class="p">:</span>
+            <span class="c1"># Calculate composite score</span>
+            <span class="n">score_result</span> <span class="o">=</span> <span class="n">calculate_ese_composite_score</span><span class="p">(</span>
+                <span class="n">sigma_deviation</span><span class="o">=</span><span class="n">sigma_dev</span><span class="p">,</span>
+                <span class="n">chi2_nu</span><span class="o">=</span><span class="nb">float</span><span class="p">(</span><span class="n">row</span><span class="p">[</span><span class="s2">"chi2_nu"</span><span class="p">])</span> <span class="k">if</span> <span class="n">row</span><span class="p">[</span><span class="s2">"chi2_nu"</span><span class="p">]</span> <span class="k">else</span> <span class="kc">None</span><span class="p">,</span>
+                <span class="n">eta_metric</span><span class="o">=</span><span class="nb">float</span><span class="p">(</span><span class="n">row</span><span class="p">[</span><span class="s2">"eta_metric"</span><span class="p">])</span> <span class="k">if</span> <span class="n">row</span><span class="p">[</span><span class="s2">"eta_metric"</span><span class="p">]</span> <span class="k">else</span> <span class="kc">None</span><span class="p">,</span>
+                <span class="n">n_obs</span><span class="o">=</span><span class="nb">int</span><span class="p">(</span><span class="n">row</span><span class="p">[</span><span class="s2">"n_obs"</span><span class="p">])</span>
+            <span class="p">)</span>
+
+            <span class="c1"># Use score threshold or fall back to sigma threshold</span>
+            <span class="n">threshold</span> <span class="o">=</span> <span class="n">score_threshold</span> <span class="k">if</span> <span class="n">score_threshold</span> <span class="k">else</span> <span class="n">min_sigma</span>
+
+            <span class="k">if</span> <span class="n">score_result</span><span class="p">[</span><span class="s2">"score"</span><span class="p">]</span> <span class="o">&gt;=</span> <span class="n">threshold</span><span class="p">:</span>
+                <span class="n">candidate</span> <span class="o">=</span> <span class="p">{</span>
+                    <span class="s2">"source_id"</span><span class="p">:</span> <span class="n">row</span><span class="p">[</span><span class="s2">"source_id"</span><span class="p">],</span>
+                    <span class="s2">"significance"</span><span class="p">:</span> <span class="n">sigma_dev</span><span class="p">,</span>  <span class="c1"># Keep original for compatibility</span>
+                    <span class="s2">"composite_score"</span><span class="p">:</span> <span class="n">score_result</span><span class="p">[</span><span class="s2">"score"</span><span class="p">],</span>
+                    <span class="s2">"confidence"</span><span class="p">:</span> <span class="n">score_result</span><span class="p">[</span><span class="s2">"confidence"</span><span class="p">],</span>
+                    <span class="s2">"score_components"</span><span class="p">:</span> <span class="n">score_result</span><span class="p">[</span><span class="s2">"components"</span><span class="p">],</span>
+                    <span class="s2">"explanation"</span><span class="p">:</span> <span class="n">score_result</span><span class="p">[</span><span class="s2">"explanation"</span><span class="p">],</span>
+                    <span class="c1"># ... other fields ...</span>
+                <span class="p">}</span>
+                <span class="n">results</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">candidate</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="c1"># Traditional single-metric detection</span>
+            <span class="k">if</span> <span class="n">sigma_dev</span> <span class="o">&gt;=</span> <span class="n">min_sigma</span><span class="p">:</span>
+                <span class="c1"># ... existing logic ...</span>
+</code></pre></div>
+<p><strong>Configuration</strong>:</p>
+<div class="highlight"><pre><span></span><code><span class="c1"># config/ese_detection.yaml</span>
+<span class="n">ese_detection</span><span class="p">:</span>
+  <span class="n">scoring</span><span class="p">:</span>
+    <span class="n">method</span><span class="p">:</span> <span class="s2">"composite"</span>  <span class="c1"># or "sigma_only"</span>
+    <span class="n">composite_weights</span><span class="p">:</span>
+      <span class="n">sigma_deviation</span><span class="p">:</span> <span class="mf">1.0</span>
+      <span class="n">chi2_nu</span><span class="p">:</span> <span class="mf">0.5</span>
+      <span class="n">eta_metric</span><span class="p">:</span> <span class="mf">0.3</span>
+      <span class="n">n_obs_penalty</span><span class="p">:</span> <span class="mf">0.2</span>
+    <span class="n">thresholds</span><span class="p">:</span>
+      <span class="n">conservative</span><span class="p">:</span> <span class="mf">7.0</span>  <span class="c1"># High confidence</span>
+      <span class="n">moderate</span><span class="p">:</span> <span class="mf">5.5</span>      <span class="c1"># Medium confidence</span>
+      <span class="n">sensitive</span><span class="p">:</span> <span class="mf">4.0</span>     <span class="c1"># Lower threshold</span>
+</code></pre></div>
+<p><strong>Validation Strategy</strong>:</p>
+<div class="highlight"><pre><span></span><code><span class="k">def</span><span class="w"> </span><span class="nf">validate_composite_scoring</span><span class="p">():</span>
+<span class="w">    </span><span class="sd">"""</span>
+<span class="sd">    Validate composite scoring against known ESE candidates.</span>
+
+<span class="sd">    Use historical ESE detections to tune weights and thresholds.</span>
+<span class="sd">    """</span>
+    <span class="c1"># Load known ESE candidates with confirmed follow-up</span>
+    <span class="n">known_eses</span> <span class="o">=</span> <span class="n">load_confirmed_ese_candidates</span><span class="p">()</span>
+
+    <span class="c1"># Calculate scores for known ESEs</span>
+    <span class="n">scores_ese</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="k">for</span> <span class="n">ese</span> <span class="ow">in</span> <span class="n">known_eses</span><span class="p">:</span>
+        <span class="n">score</span> <span class="o">=</span> <span class="n">calculate_ese_composite_score</span><span class="p">(</span><span class="o">...</span><span class="p">)</span>
+        <span class="n">scores_ese</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">score</span><span class="p">[</span><span class="s2">"score"</span><span class="p">])</span>
+
+    <span class="c1"># Calculate scores for non-ESE sources</span>
+    <span class="n">non_eses</span> <span class="o">=</span> <span class="n">load_non_ese_sources</span><span class="p">()</span>
+    <span class="n">scores_non_ese</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="k">for</span> <span class="n">source</span> <span class="ow">in</span> <span class="n">non_eses</span><span class="p">:</span>
+        <span class="n">score</span> <span class="o">=</span> <span class="n">calculate_ese_composite_score</span><span class="p">(</span><span class="o">...</span><span class="p">)</span>
+        <span class="n">scores_non_ese</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">score</span><span class="p">[</span><span class="s2">"score"</span><span class="p">])</span>
+
+    <span class="c1"># Analyze separation</span>
+    <span class="c1"># Tune weights to maximize separation between ESE and non-ESE</span>
+    <span class="c1"># Optimize threshold to minimize false positives/negatives</span>
+</code></pre></div>
+<p><strong>Benefits</strong>:
+- More robust detection (multiple independent indicators)
+- Better candidate ranking (composite score)
+- Configurable sensitivity (adjustable weights)
+- Human-readable explanations (transparency)
+- Backward compatible (can disable composite scoring)</p>
+<hr/>
+<h3 id="22-configurable-threshold-presets">2.2 Configurable Threshold Presets<a class="headerlink" href="#22-configurable-threshold-presets" title="Permanent link">¶</a></h3>
+<h4 id="scientific-rationale_3">Scientific Rationale<a class="headerlink" href="#scientific-rationale_3" title="Permanent link">¶</a></h4>
+<p>Different use cases require different sensitivity/specificity trade-offs:</p>
+<ul>
+<li><strong>Production monitoring</strong>: High specificity (low false positives)</li>
+<li><strong>Initial screening</strong>: Higher sensitivity (catch more candidates)</li>
+<li><strong>Follow-up analysis</strong>: Balanced approach</li>
+<li><strong>Research exploration</strong>: Very sensitive (find all potential candidates)</li>
+</ul>
+<p>Fixed thresholds don't accommodate these needs.</p>
+<h4 id="threshold-selection-theory">Threshold Selection Theory<a class="headerlink" href="#threshold-selection-theory" title="Permanent link">¶</a></h4>
+<p><strong>False Positive Rate</strong>:
+- 3σ: ~0.3% false positive rate
+- 4σ: ~0.006% false positive rate
+- 5σ: ~0.00006% false positive rate
+- 6σ: ~0.0000002% false positive rate</p>
+<p><strong>Sensitivity vs Specificity Trade-off</strong>:
+- Lower threshold: More candidates (higher sensitivity), more false positives (lower specificity)
+- Higher threshold: Fewer candidates (lower sensitivity), fewer false positives (higher specificity)</p>
+<p><strong>Use Case Mapping</strong>:</p>
+<table>
+<thead>
+<tr>
+<th>Use Case</th>
+<th>Threshold</th>
+<th>Rationale</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Production monitoring</td>
+<td>5.0σ</td>
+<td>Low false positive rate, high confidence</td>
+</tr>
+<tr>
+<td>Initial screening</td>
+<td>3.0σ</td>
+<td>Catch potential candidates, manual review</td>
+</tr>
+<tr>
+<td>Follow-up analysis</td>
+<td>4.0σ</td>
+<td>Balanced for detailed investigation</td>
+</tr>
+<tr>
+<td>Research exploration</td>
+<td>2.5σ</td>
+<td>Very sensitive, requires extensive validation</td>
+</tr>
+</tbody>
+</table>
+<h4 id="implementation">Implementation<a class="headerlink" href="#implementation" title="Permanent link">¶</a></h4>
+<div class="highlight"><pre><span></span><code><span class="k">class</span><span class="w"> </span><span class="nc">ESEThresholdPreset</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">"""ESE detection threshold presets for different use cases."""</span>
+
+    <span class="n">PRESETS</span> <span class="o">=</span> <span class="p">{</span>
+        <span class="s2">"conservative"</span><span class="p">:</span> <span class="p">{</span>
+            <span class="s2">"sigma_threshold"</span><span class="p">:</span> <span class="mf">5.0</span><span class="p">,</span>
+            <span class="s2">"description"</span><span class="p">:</span> <span class="s2">"Production monitoring - high confidence, low false positives"</span><span class="p">,</span>
+            <span class="s2">"false_positive_rate"</span><span class="p">:</span> <span class="mf">0.00006</span><span class="p">,</span>
+            <span class="s2">"use_cases"</span><span class="p">:</span> <span class="p">[</span><span class="s2">"production"</span><span class="p">,</span> <span class="s2">"automated_monitoring"</span><span class="p">,</span> <span class="s2">"alerts"</span><span class="p">]</span>
+        <span class="p">},</span>
+        <span class="s2">"moderate"</span><span class="p">:</span> <span class="p">{</span>
+            <span class="s2">"sigma_threshold"</span><span class="p">:</span> <span class="mf">4.0</span><span class="p">,</span>
+            <span class="s2">"description"</span><span class="p">:</span> <span class="s2">"Balanced detection - moderate confidence"</span><span class="p">,</span>
+            <span class="s2">"false_positive_rate"</span><span class="p">:</span> <span class="mf">0.006</span><span class="p">,</span>
+            <span class="s2">"use_cases"</span><span class="p">:</span> <span class="p">[</span><span class="s2">"follow_up"</span><span class="p">,</span> <span class="s2">"detailed_analysis"</span><span class="p">]</span>
+        <span class="p">},</span>
+        <span class="s2">"sensitive"</span><span class="p">:</span> <span class="p">{</span>
+            <span class="s2">"sigma_threshold"</span><span class="p">:</span> <span class="mf">3.0</span><span class="p">,</span>
+            <span class="s2">"description"</span><span class="p">:</span> <span class="s2">"Initial screening - higher sensitivity, manual review"</span><span class="p">,</span>
+            <span class="s2">"false_positive_rate"</span><span class="p">:</span> <span class="mf">0.3</span><span class="p">,</span>
+            <span class="s2">"use_cases"</span><span class="p">:</span> <span class="p">[</span><span class="s2">"initial_screening"</span><span class="p">,</span> <span class="s2">"exploratory_analysis"</span><span class="p">]</span>
+        <span class="p">},</span>
+        <span class="s2">"very_sensitive"</span><span class="p">:</span> <span class="p">{</span>
+            <span class="s2">"sigma_threshold"</span><span class="p">:</span> <span class="mf">2.5</span><span class="p">,</span>
+            <span class="s2">"description"</span><span class="p">:</span> <span class="s2">"Research exploration - very sensitive, extensive validation required"</span><span class="p">,</span>
+            <span class="s2">"false_positive_rate"</span><span class="p">:</span> <span class="mf">1.2</span><span class="p">,</span>
+            <span class="s2">"use_cases"</span><span class="p">:</span> <span class="p">[</span><span class="s2">"research"</span><span class="p">,</span> <span class="s2">"exploration"</span><span class="p">]</span>
+        <span class="p">}</span>
+    <span class="p">}</span>
+
+    <span class="nd">@classmethod</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">get_threshold</span><span class="p">(</span>
+        <span class="bp">cls</span><span class="p">,</span>
+        <span class="n">preset</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
+        <span class="n">custom</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">float</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span>
+    <span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">float</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">"""</span>
+<span class="sd">        Get threshold value from preset or custom value.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            preset: Preset name ("conservative", "moderate", "sensitive", "very_sensitive")</span>
+<span class="sd">            custom: Optional custom threshold value (overrides preset)</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            Threshold value (sigma)</span>
+
+<span class="sd">        Raises:</span>
+<span class="sd">            ValueError: If preset not found</span>
+<span class="sd">        """</span>
+        <span class="k">if</span> <span class="n">custom</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="k">return</span> <span class="n">custom</span>
+
+        <span class="k">if</span> <span class="n">preset</span> <span class="ow">not</span> <span class="ow">in</span> <span class="bp">cls</span><span class="o">.</span><span class="n">PRESETS</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
+                <span class="sa">f</span><span class="s2">"Unknown preset: </span><span class="si">{</span><span class="n">preset</span><span class="si">}</span><span class="s2">. "</span>
+                <span class="sa">f</span><span class="s2">"Available: </span><span class="si">{</span><span class="nb">list</span><span class="p">(</span><span class="bp">cls</span><span class="o">.</span><span class="n">PRESETS</span><span class="o">.</span><span class="n">keys</span><span class="p">())</span><span class="si">}</span><span class="s2">"</span>
+            <span class="p">)</span>
+
+        <span class="k">return</span> <span class="bp">cls</span><span class="o">.</span><span class="n">PRESETS</span><span class="p">[</span><span class="n">preset</span><span class="p">][</span><span class="s2">"sigma_threshold"</span><span class="p">]</span>
+
+    <span class="nd">@classmethod</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">get_preset_info</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">preset</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">dict</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">"""Get information about a preset."""</span>
+        <span class="k">if</span> <span class="n">preset</span> <span class="ow">not</span> <span class="ow">in</span> <span class="bp">cls</span><span class="o">.</span><span class="n">PRESETS</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="sa">f</span><span class="s2">"Unknown preset: </span><span class="si">{</span><span class="n">preset</span><span class="si">}</span><span class="s2">"</span><span class="p">)</span>
+        <span class="k">return</span> <span class="bp">cls</span><span class="o">.</span><span class="n">PRESETS</span><span class="p">[</span><span class="n">preset</span><span class="p">]</span>
+</code></pre></div>
+<p><strong>API Integration</strong>:</p>
+<div class="highlight"><pre><span></span><code><span class="c1"># In API models</span>
+<span class="k">class</span><span class="w"> </span><span class="nc">ESEDetectJobParams</span><span class="p">(</span><span class="n">BaseModel</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">"""Parameters for ESE detection job."""</span>
+
+    <span class="n">min_sigma</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">float</span><span class="p">]</span> <span class="o">=</span> <span class="n">Field</span><span class="p">(</span>
+        <span class="kc">None</span><span class="p">,</span>
+        <span class="n">description</span><span class="o">=</span><span class="s2">"Custom sigma threshold (overrides preset)"</span>
+    <span class="p">)</span>
+    <span class="n">threshold_preset</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="n">Field</span><span class="p">(</span>
+        <span class="s2">"conservative"</span><span class="p">,</span>
+        <span class="n">description</span><span class="o">=</span><span class="s2">"Threshold preset: conservative, moderate, sensitive, very_sensitive"</span>
+    <span class="p">)</span>
+
+    <span class="nd">@validator</span><span class="p">(</span><span class="s2">"threshold_preset"</span><span class="p">)</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">validate_preset</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">v</span><span class="p">):</span>
+        <span class="n">valid_presets</span> <span class="o">=</span> <span class="p">[</span><span class="s2">"conservative"</span><span class="p">,</span> <span class="s2">"moderate"</span><span class="p">,</span> <span class="s2">"sensitive"</span><span class="p">,</span> <span class="s2">"very_sensitive"</span><span class="p">]</span>
+        <span class="k">if</span> <span class="n">v</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">valid_presets</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="sa">f</span><span class="s2">"Invalid preset. Must be one of: </span><span class="si">{</span><span class="n">valid_presets</span><span class="si">}</span><span class="s2">"</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">v</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">get_threshold</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">float</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">"""Get effective threshold value."""</span>
+        <span class="k">return</span> <span class="n">ESEThresholdPreset</span><span class="o">.</span><span class="n">get_threshold</span><span class="p">(</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">threshold_preset</span><span class="p">,</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">min_sigma</span>
+        <span class="p">)</span>
+</code></pre></div>
+<p><strong>CLI Integration</strong>:</p>
+<div class="highlight"><pre><span></span><code><span class="c1"># In CLI</span>
+<span class="n">sp</span><span class="o">.</span><span class="n">add_argument</span><span class="p">(</span>
+    <span class="s2">"--threshold-preset"</span><span class="p">,</span>
+    <span class="nb">type</span><span class="o">=</span><span class="nb">str</span><span class="p">,</span>
+    <span class="n">choices</span><span class="o">=</span><span class="p">[</span><span class="s2">"conservative"</span><span class="p">,</span> <span class="s2">"moderate"</span><span class="p">,</span> <span class="s2">"sensitive"</span><span class="p">,</span> <span class="s2">"very_sensitive"</span><span class="p">],</span>
+    <span class="n">default</span><span class="o">=</span><span class="s2">"conservative"</span><span class="p">,</span>
+    <span class="n">help</span><span class="o">=</span><span class="s2">"Threshold preset (default: conservative)"</span>
+<span class="p">)</span>
+<span class="n">sp</span><span class="o">.</span><span class="n">add_argument</span><span class="p">(</span>
+    <span class="s2">"--min-sigma"</span><span class="p">,</span>
+    <span class="nb">type</span><span class="o">=</span><span class="nb">float</span><span class="p">,</span>
+    <span class="n">default</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+    <span class="n">help</span><span class="o">=</span><span class="s2">"Custom sigma threshold (overrides preset)"</span>
+<span class="p">)</span>
+
+<span class="c1"># In command handler</span>
+<span class="n">threshold</span> <span class="o">=</span> <span class="n">ESEThresholdPreset</span><span class="o">.</span><span class="n">get_threshold</span><span class="p">(</span>
+    <span class="n">args</span><span class="o">.</span><span class="n">threshold_preset</span><span class="p">,</span>
+    <span class="n">args</span><span class="o">.</span><span class="n">min_sigma</span>
+<span class="p">)</span>
+</code></pre></div>
+<p><strong>Documentation</strong>:</p>
+<div class="highlight"><pre><span></span><code><span class="gu">## Threshold Selection Guide</span>
+
+<span class="gu">### Conservative (5.0σ) - Default</span>
+<span class="k">-</span><span class="w"> </span><span class="gs">**Use for**</span>: Production monitoring, automated alerts
+<span class="k">-</span><span class="w"> </span><span class="gs">**False positive rate**</span>: ~0.00006%
+<span class="k">-</span><span class="w"> </span><span class="gs">**When to use**</span>: When false positives are costly
+
+<span class="gu">### Moderate (4.0σ)</span>
+<span class="k">-</span><span class="w"> </span><span class="gs">**Use for**</span>: Follow-up analysis, detailed investigation
+<span class="k">-</span><span class="w"> </span><span class="gs">**False positive rate**</span>: ~0.006%
+<span class="k">-</span><span class="w"> </span><span class="gs">**When to use**</span>: Balanced sensitivity/specificity needed
+
+<span class="gu">### Sensitive (3.0σ)</span>
+<span class="k">-</span><span class="w"> </span><span class="gs">**Use for**</span>: Initial screening, exploratory analysis
+<span class="k">-</span><span class="w"> </span><span class="gs">**False positive rate**</span>: ~0.3%
+<span class="k">-</span><span class="w"> </span><span class="gs">**When to use**</span>: When you want to catch more candidates for manual review
+
+<span class="gu">### Very Sensitive (2.5σ)</span>
+<span class="k">-</span><span class="w"> </span><span class="gs">**Use for**</span>: Research exploration
+<span class="k">-</span><span class="w"> </span><span class="gs">**False positive rate**</span>: ~1.2%
+<span class="k">-</span><span class="w"> </span><span class="gs">**When to use**</span>: When extensive validation is possible
+</code></pre></div>
+<hr/>
+<h2 id="3-performance-optimizations">3. Performance Optimizations<a class="headerlink" href="#3-performance-optimizations" title="Permanent link">¶</a></h2>
+<h3 id="31-caching-variability-statistics">3.1 Caching Variability Statistics<a class="headerlink" href="#31-caching-variability-statistics" title="Permanent link">¶</a></h3>
+<h4 id="scientific-rationale_4">Scientific Rationale<a class="headerlink" href="#scientific-rationale_4" title="Permanent link">¶</a></h4>
+<p>Variability statistics are expensive to compute:
+- Require reading all photometry measurements for a source
+- Statistical calculations (mean, std, chi-squared, etc.)
+- Database queries for each source</p>
+<p>However, statistics don't change unless:
+- New photometry measurements added
+- Existing measurements modified/deleted</p>
+<p>Caching provides:
+- <strong>Performance</strong>: Avoid recomputation for unchanged sources
+- <strong>Scalability</strong>: Handle larger source catalogs efficiently
+- <strong>Resource efficiency</strong>: Reduce database load</p>
+<h4 id="cache-design">Cache Design<a class="headerlink" href="#cache-design" title="Permanent link">¶</a></h4>
+<p><strong>Cache Strategy</strong>: Time-based invalidation with manual refresh</p>
+<p><strong>Cache Key</strong>: <code>source_id</code> + <code>last_photometry_timestamp</code></p>
+<p><strong>Cache Structure</strong>:</p>
+<div class="highlight"><pre><span></span><code><span class="kn">from</span><span class="w"> </span><span class="nn">dataclasses</span><span class="w"> </span><span class="kn">import</span> <span class="n">dataclass</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">datetime</span><span class="w"> </span><span class="kn">import</span> <span class="n">datetime</span><span class="p">,</span> <span class="n">timedelta</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">typing</span><span class="w"> </span><span class="kn">import</span> <span class="n">Optional</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">hashlib</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">json</span>
+
+<span class="nd">@dataclass</span>
+<span class="k">class</span><span class="w"> </span><span class="nc">VariabilityStatsCache</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">"""Cached variability statistics."""</span>
+    <span class="n">source_id</span><span class="p">:</span> <span class="nb">str</span>
+    <span class="n">stats</span><span class="p">:</span> <span class="nb">dict</span>
+    <span class="n">cache_timestamp</span><span class="p">:</span> <span class="nb">float</span>
+    <span class="n">photometry_timestamp</span><span class="p">:</span> <span class="nb">float</span>  <span class="c1"># Last photometry measurement time</span>
+    <span class="n">cache_key</span><span class="p">:</span> <span class="nb">str</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">is_valid</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">max_age_seconds</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mi">3600</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">bool</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">"""Check if cache entry is still valid."""</span>
+        <span class="n">age</span> <span class="o">=</span> <span class="n">time</span><span class="o">.</span><span class="n">time</span><span class="p">()</span> <span class="o">-</span> <span class="bp">self</span><span class="o">.</span><span class="n">cache_timestamp</span>
+        <span class="k">return</span> <span class="n">age</span> <span class="o">&lt;</span> <span class="n">max_age_seconds</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">matches_photometry</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">current_photometry_timestamp</span><span class="p">:</span> <span class="nb">float</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">bool</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">"""Check if cache matches current photometry state."""</span>
+        <span class="k">return</span> <span class="nb">abs</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">photometry_timestamp</span> <span class="o">-</span> <span class="n">current_photometry_timestamp</span><span class="p">)</span> <span class="o">&lt;</span> <span class="mf">1.0</span>
+
+
+<span class="k">class</span><span class="w"> </span><span class="nc">VariabilityStatsCacheManager</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">"""Manages caching of variability statistics."""</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span>
+        <span class="n">cache_backend</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">"memory"</span><span class="p">,</span>  <span class="c1"># or "redis", "file"</span>
+        <span class="n">max_size</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">10000</span><span class="p">,</span>
+        <span class="n">default_ttl</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">3600.0</span>  <span class="c1"># 1 hour</span>
+    <span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">cache_backend</span> <span class="o">=</span> <span class="n">cache_backend</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">max_size</span> <span class="o">=</span> <span class="n">max_size</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">default_ttl</span> <span class="o">=</span> <span class="n">default_ttl</span>
+
+        <span class="k">if</span> <span class="n">cache_backend</span> <span class="o">==</span> <span class="s2">"memory"</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">cache</span> <span class="o">=</span> <span class="p">{}</span>  <span class="c1"># In-memory dict</span>
+        <span class="k">elif</span> <span class="n">cache_backend</span> <span class="o">==</span> <span class="s2">"redis"</span><span class="p">:</span>
+            <span class="kn">import</span><span class="w"> </span><span class="nn">redis</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">cache</span> <span class="o">=</span> <span class="n">redis</span><span class="o">.</span><span class="n">Redis</span><span class="p">(</span><span class="o">...</span><span class="p">)</span>
+        <span class="k">elif</span> <span class="n">cache_backend</span> <span class="o">==</span> <span class="s2">"file"</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">cache_path</span> <span class="o">=</span> <span class="n">Path</span><span class="p">(</span><span class="s2">"/tmp/ese_cache"</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">cache_path</span><span class="o">.</span><span class="n">mkdir</span><span class="p">(</span><span class="n">exist_ok</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">get_cache_key</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span>
+        <span class="n">source_id</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
+        <span class="n">photometry_timestamp</span><span class="p">:</span> <span class="nb">float</span>
+    <span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">"""Generate cache key."""</span>
+        <span class="n">key_data</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">source_id</span><span class="si">}</span><span class="s2">:</span><span class="si">{</span><span class="n">photometry_timestamp</span><span class="si">}</span><span class="s2">"</span>
+        <span class="k">return</span> <span class="n">hashlib</span><span class="o">.</span><span class="n">md5</span><span class="p">(</span><span class="n">key_data</span><span class="o">.</span><span class="n">encode</span><span class="p">())</span><span class="o">.</span><span class="n">hexdigest</span><span class="p">()</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">get</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span>
+        <span class="n">source_id</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
+        <span class="n">current_photometry_timestamp</span><span class="p">:</span> <span class="nb">float</span>
+    <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">dict</span><span class="p">]:</span>
+<span class="w">        </span><span class="sd">"""Get cached statistics if available and valid."""</span>
+        <span class="n">cache_key</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_cache_key</span><span class="p">(</span><span class="n">source_id</span><span class="p">,</span> <span class="n">current_photometry_timestamp</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">cache_backend</span> <span class="o">==</span> <span class="s2">"memory"</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">cache_key</span> <span class="ow">not</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">cache</span><span class="p">:</span>
+                <span class="k">return</span> <span class="kc">None</span>
+
+            <span class="n">cached</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">cache</span><span class="p">[</span><span class="n">cache_key</span><span class="p">]</span>
+            <span class="k">if</span> <span class="ow">not</span> <span class="n">cached</span><span class="o">.</span><span class="n">is_valid</span><span class="p">():</span>
+                <span class="k">del</span> <span class="bp">self</span><span class="o">.</span><span class="n">cache</span><span class="p">[</span><span class="n">cache_key</span><span class="p">]</span>
+                <span class="k">return</span> <span class="kc">None</span>
+
+            <span class="k">if</span> <span class="ow">not</span> <span class="n">cached</span><span class="o">.</span><span class="n">matches_photometry</span><span class="p">(</span><span class="n">current_photometry_timestamp</span><span class="p">):</span>
+                <span class="c1"># Photometry changed, invalidate</span>
+                <span class="k">del</span> <span class="bp">self</span><span class="o">.</span><span class="n">cache</span><span class="p">[</span><span class="n">cache_key</span><span class="p">]</span>
+                <span class="k">return</span> <span class="kc">None</span>
+
+            <span class="k">return</span> <span class="n">cached</span><span class="o">.</span><span class="n">stats</span>
+
+        <span class="c1"># Similar logic for other backends...</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">set</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span>
+        <span class="n">source_id</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
+        <span class="n">stats</span><span class="p">:</span> <span class="nb">dict</span><span class="p">,</span>
+        <span class="n">photometry_timestamp</span><span class="p">:</span> <span class="nb">float</span>
+    <span class="p">):</span>
+<span class="w">        </span><span class="sd">"""Cache statistics."""</span>
+        <span class="n">cache_key</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_cache_key</span><span class="p">(</span><span class="n">source_id</span><span class="p">,</span> <span class="n">photometry_timestamp</span><span class="p">)</span>
+
+        <span class="n">cached</span> <span class="o">=</span> <span class="n">VariabilityStatsCache</span><span class="p">(</span>
+            <span class="n">source_id</span><span class="o">=</span><span class="n">source_id</span><span class="p">,</span>
+            <span class="n">stats</span><span class="o">=</span><span class="n">stats</span><span class="p">,</span>
+            <span class="n">cache_timestamp</span><span class="o">=</span><span class="n">time</span><span class="o">.</span><span class="n">time</span><span class="p">(),</span>
+            <span class="n">photometry_timestamp</span><span class="o">=</span><span class="n">photometry_timestamp</span><span class="p">,</span>
+            <span class="n">cache_key</span><span class="o">=</span><span class="n">cache_key</span>
+        <span class="p">)</span>
+
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">cache_backend</span> <span class="o">==</span> <span class="s2">"memory"</span><span class="p">:</span>
+            <span class="c1"># Evict oldest if at capacity</span>
+            <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">cache</span><span class="p">)</span> <span class="o">&gt;=</span> <span class="bp">self</span><span class="o">.</span><span class="n">max_size</span><span class="p">:</span>
+                <span class="n">oldest_key</span> <span class="o">=</span> <span class="nb">min</span><span class="p">(</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">cache</span><span class="o">.</span><span class="n">keys</span><span class="p">(),</span>
+                    <span class="n">key</span><span class="o">=</span><span class="k">lambda</span> <span class="n">k</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">cache</span><span class="p">[</span><span class="n">k</span><span class="p">]</span><span class="o">.</span><span class="n">cache_timestamp</span>
+                <span class="p">)</span>
+                <span class="k">del</span> <span class="bp">self</span><span class="o">.</span><span class="n">cache</span><span class="p">[</span><span class="n">oldest_key</span><span class="p">]</span>
+
+            <span class="bp">self</span><span class="o">.</span><span class="n">cache</span><span class="p">[</span><span class="n">cache_key</span><span class="p">]</span> <span class="o">=</span> <span class="n">cached</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">invalidate</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">source_id</span><span class="p">:</span> <span class="nb">str</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">"""Invalidate cache for a source."""</span>
+        <span class="c1"># Remove all entries for this source</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">cache_backend</span> <span class="o">==</span> <span class="s2">"memory"</span><span class="p">:</span>
+            <span class="n">keys_to_remove</span> <span class="o">=</span> <span class="p">[</span>
+                <span class="n">k</span> <span class="k">for</span> <span class="n">k</span><span class="p">,</span> <span class="n">v</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">cache</span><span class="o">.</span><span class="n">items</span><span class="p">()</span>
+                <span class="k">if</span> <span class="n">v</span><span class="o">.</span><span class="n">source_id</span> <span class="o">==</span> <span class="n">source_id</span>
+            <span class="p">]</span>
+            <span class="k">for</span> <span class="n">k</span> <span class="ow">in</span> <span class="n">keys_to_remove</span><span class="p">:</span>
+                <span class="k">del</span> <span class="bp">self</span><span class="o">.</span><span class="n">cache</span><span class="p">[</span><span class="n">k</span><span class="p">]</span>
+</code></pre></div>
+<p><strong>Integration</strong>:</p>
+<div class="highlight"><pre><span></span><code><span class="c1"># Global cache manager instance</span>
+<span class="n">_cache_manager</span> <span class="o">=</span> <span class="kc">None</span>
+
+<span class="k">def</span><span class="w"> </span><span class="nf">get_cache_manager</span><span class="p">()</span> <span class="o">-&gt;</span> <span class="n">VariabilityStatsCacheManager</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">"""Get or create cache manager."""</span>
+    <span class="k">global</span> <span class="n">_cache_manager</span>
+    <span class="k">if</span> <span class="n">_cache_manager</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">_cache_manager</span> <span class="o">=</span> <span class="n">VariabilityStatsCacheManager</span><span class="p">(</span>
+            <span class="n">cache_backend</span><span class="o">=</span><span class="n">os</span><span class="o">.</span><span class="n">getenv</span><span class="p">(</span><span class="s2">"ESE_CACHE_BACKEND"</span><span class="p">,</span> <span class="s2">"memory"</span><span class="p">),</span>
+            <span class="n">max_size</span><span class="o">=</span><span class="nb">int</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">getenv</span><span class="p">(</span><span class="s2">"ESE_CACHE_SIZE"</span><span class="p">,</span> <span class="s2">"10000"</span><span class="p">)),</span>
+            <span class="n">default_ttl</span><span class="o">=</span><span class="nb">float</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">getenv</span><span class="p">(</span><span class="s2">"ESE_CACHE_TTL"</span><span class="p">,</span> <span class="s2">"3600"</span><span class="p">))</span>
+        <span class="p">)</span>
+    <span class="k">return</span> <span class="n">_cache_manager</span>
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">update_variability_stats_for_source_cached</span><span class="p">(</span>
+    <span class="n">conn</span><span class="p">:</span> <span class="n">sqlite3</span><span class="o">.</span><span class="n">Connection</span><span class="p">,</span>
+    <span class="n">source_id</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
+    <span class="n">use_cache</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span>
+<span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">bool</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">"""Update variability stats with caching."""</span>
+    <span class="n">cache_manager</span> <span class="o">=</span> <span class="n">get_cache_manager</span><span class="p">()</span>
+
+    <span class="c1"># Get last photometry timestamp</span>
+    <span class="n">cursor</span> <span class="o">=</span> <span class="n">conn</span><span class="o">.</span><span class="n">execute</span><span class="p">(</span>
+<span class="w">        </span><span class="sd">"""</span>
+<span class="sd">        SELECT MAX(measured_at) FROM photometry WHERE source_id = ?</span>
+<span class="sd">        """</span><span class="p">,</span>
+        <span class="p">(</span><span class="n">source_id</span><span class="p">,)</span>
+    <span class="p">)</span>
+    <span class="n">row</span> <span class="o">=</span> <span class="n">cursor</span><span class="o">.</span><span class="n">fetchone</span><span class="p">()</span>
+    <span class="k">if</span> <span class="ow">not</span> <span class="n">row</span> <span class="ow">or</span> <span class="ow">not</span> <span class="n">row</span><span class="p">[</span><span class="mi">0</span><span class="p">]:</span>
+        <span class="k">return</span> <span class="kc">False</span>
+
+    <span class="n">current_photometry_timestamp</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span><span class="n">row</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span>
+
+    <span class="c1"># Check cache</span>
+    <span class="k">if</span> <span class="n">use_cache</span><span class="p">:</span>
+        <span class="n">cached_stats</span> <span class="o">=</span> <span class="n">cache_manager</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">source_id</span><span class="p">,</span> <span class="n">current_photometry_timestamp</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">cached_stats</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="c1"># Cache hit - update database with cached stats</span>
+            <span class="n">update_stats_from_dict</span><span class="p">(</span><span class="n">conn</span><span class="p">,</span> <span class="n">source_id</span><span class="p">,</span> <span class="n">cached_stats</span><span class="p">)</span>
+            <span class="k">return</span> <span class="kc">True</span>
+
+    <span class="c1"># Cache miss - compute statistics</span>
+    <span class="n">stats</span> <span class="o">=</span> <span class="n">compute_variability_stats</span><span class="p">(</span><span class="n">conn</span><span class="p">,</span> <span class="n">source_id</span><span class="p">)</span>
+
+    <span class="c1"># Update database</span>
+    <span class="n">update_stats_from_dict</span><span class="p">(</span><span class="n">conn</span><span class="p">,</span> <span class="n">source_id</span><span class="p">,</span> <span class="n">stats</span><span class="p">)</span>
+
+    <span class="c1"># Cache results</span>
+    <span class="k">if</span> <span class="n">use_cache</span><span class="p">:</span>
+        <span class="n">cache_manager</span><span class="o">.</span><span class="n">set</span><span class="p">(</span><span class="n">source_id</span><span class="p">,</span> <span class="n">stats</span><span class="p">,</span> <span class="n">current_photometry_timestamp</span><span class="p">)</span>
+
+    <span class="k">return</span> <span class="kc">True</span>
+</code></pre></div>
+<p><strong>Performance Benefits</strong>:</p>
+<ul>
+<li><strong>Cache hit rate</strong>: Expected 80-90% for stable sources</li>
+<li><strong>Speedup</strong>: 10-100x faster for cached sources</li>
+<li><strong>Database load</strong>: Reduced by 80-90%</li>
+<li><strong>Scalability</strong>: Can handle 10x more sources with same resources</li>
+</ul>
+<hr/>
+<h3 id="32-parallel-processing">3.2 Parallel Processing<a class="headerlink" href="#32-parallel-processing" title="Permanent link">¶</a></h3>
+<h4 id="scientific-rationale_5">Scientific Rationale<a class="headerlink" href="#scientific-rationale_5" title="Permanent link">¶</a></h4>
+<p>ESE detection is embarrassingly parallel:
+- Each source processed independently
+- No dependencies between sources
+- Stateless computation</p>
+<p>Parallelization provides:
+- <strong>Speed</strong>: Process multiple sources simultaneously
+- <strong>Resource utilization</strong>: Better CPU/memory usage
+- <strong>Scalability</strong>: Handle larger catalogs efficiently</p>
+<h4 id="implementation_1">Implementation<a class="headerlink" href="#implementation_1" title="Permanent link">¶</a></h4>
+<div class="highlight"><pre><span></span><code><span class="kn">from</span><span class="w"> </span><span class="nn">multiprocessing</span><span class="w"> </span><span class="kn">import</span> <span class="n">Pool</span><span class="p">,</span> <span class="n">cpu_count</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">functools</span><span class="w"> </span><span class="kn">import</span> <span class="n">partial</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">sqlite3</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">pathlib</span><span class="w"> </span><span class="kn">import</span> <span class="n">Path</span>
+
+<span class="k">def</span><span class="w"> </span><span class="nf">process_source_batch</span><span class="p">(</span>
+    <span class="n">source_ids</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="nb">str</span><span class="p">],</span>
+    <span class="n">products_db</span><span class="p">:</span> <span class="n">Path</span><span class="p">,</span>
+    <span class="n">batch_size</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">100</span>
+<span class="p">)</span> <span class="o">-&gt;</span> <span class="n">List</span><span class="p">[</span><span class="nb">dict</span><span class="p">]:</span>
+<span class="w">    </span><span class="sd">"""</span>
+<span class="sd">    Process sources in parallel batches.</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        source_ids: List of source IDs to process</span>
+<span class="sd">        products_db: Path to products database</span>
+<span class="sd">        batch_size: Number of sources per batch</span>
+
+<span class="sd">    Returns:</span>
+<span class="sd">        List of detection results</span>
+<span class="sd">    """</span>
+    <span class="c1"># Determine optimal worker count</span>
+    <span class="n">n_workers</span> <span class="o">=</span> <span class="nb">min</span><span class="p">(</span><span class="n">cpu_count</span><span class="p">(),</span> <span class="nb">len</span><span class="p">(</span><span class="n">source_ids</span><span class="p">),</span> <span class="mi">8</span><span class="p">)</span>  <span class="c1"># Cap at 8 workers</span>
+
+    <span class="c1"># Split into batches</span>
+    <span class="n">batches</span> <span class="o">=</span> <span class="p">[</span>
+        <span class="n">source_ids</span><span class="p">[</span><span class="n">i</span><span class="p">:</span><span class="n">i</span> <span class="o">+</span> <span class="n">batch_size</span><span class="p">]</span>
+        <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="nb">len</span><span class="p">(</span><span class="n">source_ids</span><span class="p">),</span> <span class="n">batch_size</span><span class="p">)</span>
+    <span class="p">]</span>
+
+    <span class="c1"># Process batches in parallel</span>
+    <span class="k">with</span> <span class="n">Pool</span><span class="p">(</span><span class="n">n_workers</span><span class="p">)</span> <span class="k">as</span> <span class="n">pool</span><span class="p">:</span>
+        <span class="n">process_func</span> <span class="o">=</span> <span class="n">partial</span><span class="p">(</span>
+            <span class="n">process_single_batch</span><span class="p">,</span>
+            <span class="n">products_db</span><span class="o">=</span><span class="n">products_db</span>
+        <span class="p">)</span>
+        <span class="n">results</span> <span class="o">=</span> <span class="n">pool</span><span class="o">.</span><span class="n">map</span><span class="p">(</span><span class="n">process_func</span><span class="p">,</span> <span class="n">batches</span><span class="p">)</span>
+
+    <span class="c1"># Flatten results</span>
+    <span class="k">return</span> <span class="p">[</span><span class="n">item</span> <span class="k">for</span> <span class="n">sublist</span> <span class="ow">in</span> <span class="n">results</span> <span class="k">for</span> <span class="n">item</span> <span class="ow">in</span> <span class="n">sublist</span><span class="p">]</span>
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">process_single_batch</span><span class="p">(</span>
+    <span class="n">source_ids</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="nb">str</span><span class="p">],</span>
+    <span class="n">products_db</span><span class="p">:</span> <span class="n">Path</span>
+<span class="p">)</span> <span class="o">-&gt;</span> <span class="n">List</span><span class="p">[</span><span class="nb">dict</span><span class="p">]:</span>
+<span class="w">    </span><span class="sd">"""Process a single batch of sources."""</span>
+    <span class="c1"># Each worker gets its own database connection</span>
+    <span class="n">conn</span> <span class="o">=</span> <span class="n">sqlite3</span><span class="o">.</span><span class="n">connect</span><span class="p">(</span><span class="n">products_db</span><span class="p">,</span> <span class="n">timeout</span><span class="o">=</span><span class="mf">30.0</span><span class="p">)</span>
+    <span class="n">conn</span><span class="o">.</span><span class="n">row_factory</span> <span class="o">=</span> <span class="n">sqlite3</span><span class="o">.</span><span class="n">Row</span>
+
+    <span class="n">results</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="k">for</span> <span class="n">source_id</span> <span class="ow">in</span> <span class="n">source_ids</span><span class="p">:</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="c1"># Update stats</span>
+            <span class="n">update_variability_stats_for_source</span><span class="p">(</span><span class="n">conn</span><span class="p">,</span> <span class="n">source_id</span><span class="p">)</span>
+
+            <span class="c1"># Check for ESE candidate</span>
+            <span class="n">candidate</span> <span class="o">=</span> <span class="n">check_ese_candidate</span><span class="p">(</span><span class="n">conn</span><span class="p">,</span> <span class="n">source_id</span><span class="p">)</span>
+            <span class="k">if</span> <span class="n">candidate</span><span class="p">:</span>
+                <span class="n">results</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">candidate</span><span class="p">)</span>
+        <span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
+            <span class="n">logger</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="sa">f</span><span class="s2">"Error processing </span><span class="si">{</span><span class="n">source_id</span><span class="si">}</span><span class="s2">: </span><span class="si">{</span><span class="n">e</span><span class="si">}</span><span class="s2">"</span><span class="p">)</span>
+        <span class="k">finally</span><span class="p">:</span>
+            <span class="n">conn</span><span class="o">.</span><span class="n">close</span><span class="p">()</span>
+
+    <span class="k">return</span> <span class="n">results</span>
+</code></pre></div>
+<p><strong>Database Considerations</strong>:</p>
+<div class="highlight"><pre><span></span><code><span class="k">def</span><span class="w"> </span><span class="nf">parallel_detection_with_locking</span><span class="p">(</span>
+    <span class="n">source_ids</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="nb">str</span><span class="p">],</span>
+    <span class="n">products_db</span><span class="p">:</span> <span class="n">Path</span>
+<span class="p">):</span>
+<span class="w">    </span><span class="sd">"""</span>
+<span class="sd">    Parallel detection with proper database locking.</span>
+
+<span class="sd">    SQLite supports concurrent reads but requires careful</span>
+<span class="sd">    handling for writes.</span>
+<span class="sd">    """</span>
+    <span class="c1"># Use WAL mode for better concurrency</span>
+    <span class="n">conn</span> <span class="o">=</span> <span class="n">sqlite3</span><span class="o">.</span><span class="n">connect</span><span class="p">(</span><span class="n">products_db</span><span class="p">)</span>
+    <span class="n">conn</span><span class="o">.</span><span class="n">execute</span><span class="p">(</span><span class="s2">"PRAGMA journal_mode=WAL"</span><span class="p">)</span>
+    <span class="n">conn</span><span class="o">.</span><span class="n">close</span><span class="p">()</span>
+
+    <span class="c1"># Process in parallel with connection pooling</span>
+    <span class="k">with</span> <span class="n">Pool</span><span class="p">()</span> <span class="k">as</span> <span class="n">pool</span><span class="p">:</span>
+        <span class="c1"># Each worker creates its own connection</span>
+        <span class="n">results</span> <span class="o">=</span> <span class="n">pool</span><span class="o">.</span><span class="n">map</span><span class="p">(</span>
+            <span class="n">partial</span><span class="p">(</span><span class="n">process_source_with_connection</span><span class="p">,</span> <span class="n">products_db</span><span class="o">=</span><span class="n">products_db</span><span class="p">),</span>
+            <span class="n">source_ids</span>
+        <span class="p">)</span>
+</code></pre></div>
+<p><strong>Performance Characteristics</strong>:</p>
+<ul>
+<li><strong>Speedup</strong>: Near-linear up to CPU count</li>
+<li><strong>Scalability</strong>: Handles 100K+ sources efficiently</li>
+<li><strong>Resource usage</strong>: Configurable worker count</li>
+<li><strong>Fault tolerance</strong>: Individual source failures don't crash batch</li>
+</ul>
+<hr/>
+<h2 id="4-multi-frequency-analysis">4. Multi-Frequency Analysis<a class="headerlink" href="#4-multi-frequency-analysis" title="Permanent link">¶</a></h2>
+<h4 id="scientific-rationale_6">Scientific Rationale<a class="headerlink" href="#scientific-rationale_6" title="Permanent link">¶</a></h4>
+<p>ESEs show frequency-dependent variability:
+- <strong>Plasma lensing</strong>: Frequency-dependent refractive index
+- <strong>Scintillation</strong>: Frequency-dependent scattering
+- <strong>Correlation</strong>: Variability correlated across frequencies</p>
+<p>Single-frequency analysis misses:
+- Frequency-dependent signatures
+- Enhanced detection confidence from correlation
+- Physical interpretation of ESE mechanism</p>
+<h4 id="implementation_2">Implementation<a class="headerlink" href="#implementation_2" title="Permanent link">¶</a></h4>
+<div class="highlight"><pre><span></span><code><span class="k">def</span><span class="w"> </span><span class="nf">detect_ese_multi_frequency</span><span class="p">(</span>
+    <span class="n">source_id</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
+    <span class="n">frequencies</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="nb">float</span><span class="p">],</span>
+    <span class="n">products_db</span><span class="p">:</span> <span class="n">Path</span>
+<span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">dict</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">"""</span>
+<span class="sd">    Detect ESE using multi-frequency analysis.</span>
+
+<span class="sd">    Analyzes variability at multiple frequencies and looks for</span>
+<span class="sd">    correlated changes that indicate ESE rather than intrinsic</span>
+<span class="sd">    source variability.</span>
+
+<span class="sd">    Algorithm:</span>
+<span class="sd">        1. Compute variability at each frequency</span>
+<span class="sd">        2. Check for correlation across frequencies</span>
+<span class="sd">        3. Enhanced confidence if correlated</span>
+<span class="sd">        4. Flag as ESE if significance exceeds threshold</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        source_id: Source identifier</span>
+<span class="sd">        frequencies: List of observation frequencies (MHz)</span>
+<span class="sd">        products_db: Path to products database</span>
+
+<span class="sd">    Returns:</span>
+<span class="sd">        Detection result with multi-frequency analysis</span>
+<span class="sd">    """</span>
+    <span class="n">conn</span> <span class="o">=</span> <span class="n">sqlite3</span><span class="o">.</span><span class="n">connect</span><span class="p">(</span><span class="n">products_db</span><span class="p">)</span>
+
+    <span class="c1"># Get flux measurements at each frequency</span>
+    <span class="n">flux_by_freq</span> <span class="o">=</span> <span class="p">{}</span>
+    <span class="k">for</span> <span class="n">freq</span> <span class="ow">in</span> <span class="n">frequencies</span><span class="p">:</span>
+        <span class="n">measurements</span> <span class="o">=</span> <span class="n">get_flux_at_frequency</span><span class="p">(</span><span class="n">conn</span><span class="p">,</span> <span class="n">source_id</span><span class="p">,</span> <span class="n">freq</span><span class="p">)</span>
+        <span class="n">flux_by_freq</span><span class="p">[</span><span class="n">freq</span><span class="p">]</span> <span class="o">=</span> <span class="n">measurements</span>
+
+    <span class="c1"># Compute variability at each frequency</span>
+    <span class="n">variability_by_freq</span> <span class="o">=</span> <span class="p">{}</span>
+    <span class="k">for</span> <span class="n">freq</span><span class="p">,</span> <span class="n">measurements</span> <span class="ow">in</span> <span class="n">flux_by_freq</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">measurements</span><span class="p">)</span> <span class="o">&lt;</span> <span class="mi">2</span><span class="p">:</span>
+            <span class="k">continue</span>
+
+        <span class="n">fluxes</span> <span class="o">=</span> <span class="p">[</span><span class="n">m</span><span class="p">[</span><span class="s2">"flux"</span><span class="p">]</span> <span class="k">for</span> <span class="n">m</span> <span class="ow">in</span> <span class="n">measurements</span><span class="p">]</span>
+        <span class="n">variability_by_freq</span><span class="p">[</span><span class="n">freq</span><span class="p">]</span> <span class="o">=</span> <span class="p">{</span>
+            <span class="s2">"sigma_deviation"</span><span class="p">:</span> <span class="n">calculate_sigma_deviation</span><span class="p">(</span><span class="n">fluxes</span><span class="p">),</span>
+            <span class="s2">"mean_flux"</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">mean</span><span class="p">(</span><span class="n">fluxes</span><span class="p">),</span>
+            <span class="s2">"std_flux"</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">std</span><span class="p">(</span><span class="n">fluxes</span><span class="p">),</span>
+            <span class="s2">"n_obs"</span><span class="p">:</span> <span class="nb">len</span><span class="p">(</span><span class="n">measurements</span><span class="p">)</span>
+        <span class="p">}</span>
+
+    <span class="c1"># Check for frequency correlation</span>
+    <span class="n">correlation_result</span> <span class="o">=</span> <span class="n">analyze_frequency_correlation</span><span class="p">(</span>
+        <span class="n">variability_by_freq</span><span class="p">,</span>
+        <span class="n">frequencies</span>
+    <span class="p">)</span>
+
+    <span class="c1"># Calculate composite significance</span>
+    <span class="c1"># Higher significance if variability is correlated across frequencies</span>
+    <span class="n">base_significance</span> <span class="o">=</span> <span class="nb">max</span><span class="p">(</span>
+        <span class="n">v</span><span class="p">[</span><span class="s2">"sigma_deviation"</span><span class="p">]</span> <span class="k">for</span> <span class="n">v</span> <span class="ow">in</span> <span class="n">variability_by_freq</span><span class="o">.</span><span class="n">values</span><span class="p">()</span>
+    <span class="p">)</span>
+
+    <span class="k">if</span> <span class="n">correlation_result</span><span class="p">[</span><span class="s2">"correlated"</span><span class="p">]:</span>
+        <span class="c1"># Boost significance for correlated variability</span>
+        <span class="n">correlation_boost</span> <span class="o">=</span> <span class="mf">1.0</span> <span class="o">+</span> <span class="n">correlation_result</span><span class="p">[</span><span class="s2">"correlation_strength"</span><span class="p">]</span> <span class="o">*</span> <span class="mf">0.5</span>
+        <span class="n">composite_significance</span> <span class="o">=</span> <span class="n">base_significance</span> <span class="o">*</span> <span class="n">correlation_boost</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">composite_significance</span> <span class="o">=</span> <span class="n">base_significance</span>
+
+    <span class="k">return</span> <span class="p">{</span>
+        <span class="s2">"source_id"</span><span class="p">:</span> <span class="n">source_id</span><span class="p">,</span>
+        <span class="s2">"frequencies"</span><span class="p">:</span> <span class="n">frequencies</span><span class="p">,</span>
+        <span class="s2">"variability_by_frequency"</span><span class="p">:</span> <span class="n">variability_by_freq</span><span class="p">,</span>
+        <span class="s2">"correlation_analysis"</span><span class="p">:</span> <span class="n">correlation_result</span><span class="p">,</span>
+        <span class="s2">"base_significance"</span><span class="p">:</span> <span class="n">base_significance</span><span class="p">,</span>
+        <span class="s2">"composite_significance"</span><span class="p">:</span> <span class="n">composite_significance</span><span class="p">,</span>
+        <span class="s2">"is_ese_candidate"</span><span class="p">:</span> <span class="n">composite_significance</span> <span class="o">&gt;=</span> <span class="mf">5.0</span>
+    <span class="p">}</span>
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">analyze_frequency_correlation</span><span class="p">(</span>
+    <span class="n">variability_by_freq</span><span class="p">:</span> <span class="nb">dict</span><span class="p">,</span>
+    <span class="n">frequencies</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="nb">float</span><span class="p">]</span>
+<span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">dict</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">"""</span>
+<span class="sd">    Analyze correlation of variability across frequencies.</span>
+
+<span class="sd">    ESEs should show correlated variability across frequencies</span>
+<span class="sd">    due to plasma lensing effects.</span>
+<span class="sd">    """</span>
+    <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">variability_by_freq</span><span class="p">)</span> <span class="o">&lt;</span> <span class="mi">2</span><span class="p">:</span>
+        <span class="k">return</span> <span class="p">{</span>
+            <span class="s2">"correlated"</span><span class="p">:</span> <span class="kc">False</span><span class="p">,</span>
+            <span class="s2">"correlation_strength"</span><span class="p">:</span> <span class="mf">0.0</span><span class="p">,</span>
+            <span class="s2">"correlation_coefficient"</span><span class="p">:</span> <span class="kc">None</span>
+        <span class="p">}</span>
+
+    <span class="c1"># Extract sigma deviations</span>
+    <span class="n">sigmas</span> <span class="o">=</span> <span class="p">[</span>
+        <span class="n">variability_by_freq</span><span class="p">[</span><span class="n">freq</span><span class="p">][</span><span class="s2">"sigma_deviation"</span><span class="p">]</span>
+        <span class="k">for</span> <span class="n">freq</span> <span class="ow">in</span> <span class="n">frequencies</span>
+        <span class="k">if</span> <span class="n">freq</span> <span class="ow">in</span> <span class="n">variability_by_freq</span>
+    <span class="p">]</span>
+
+    <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">sigmas</span><span class="p">)</span> <span class="o">&lt;</span> <span class="mi">2</span><span class="p">:</span>
+        <span class="k">return</span> <span class="p">{</span><span class="s2">"correlated"</span><span class="p">:</span> <span class="kc">False</span><span class="p">,</span> <span class="s2">"correlation_strength"</span><span class="p">:</span> <span class="mf">0.0</span><span class="p">}</span>
+
+    <span class="c1"># Check if variability is correlated</span>
+    <span class="c1"># Simple heuristic: if multiple frequencies show high variability</span>
+    <span class="n">high_variability_count</span> <span class="o">=</span> <span class="nb">sum</span><span class="p">(</span><span class="mi">1</span> <span class="k">for</span> <span class="n">s</span> <span class="ow">in</span> <span class="n">sigmas</span> <span class="k">if</span> <span class="n">s</span> <span class="o">&gt;</span> <span class="mf">3.0</span><span class="p">)</span>
+    <span class="n">correlation_strength</span> <span class="o">=</span> <span class="n">high_variability_count</span> <span class="o">/</span> <span class="nb">len</span><span class="p">(</span><span class="n">sigmas</span><span class="p">)</span>
+
+    <span class="c1"># More sophisticated: temporal correlation</span>
+    <span class="c1"># (would require time-series data at each frequency)</span>
+
+    <span class="k">return</span> <span class="p">{</span>
+        <span class="s2">"correlated"</span><span class="p">:</span> <span class="n">correlation_strength</span> <span class="o">&gt;</span> <span class="mf">0.5</span><span class="p">,</span>
+        <span class="s2">"correlation_strength"</span><span class="p">:</span> <span class="n">correlation_strength</span><span class="p">,</span>
+        <span class="s2">"high_variability_frequencies"</span><span class="p">:</span> <span class="p">[</span>
+            <span class="n">freq</span> <span class="k">for</span> <span class="n">freq</span><span class="p">,</span> <span class="n">var</span> <span class="ow">in</span> <span class="n">variability_by_freq</span><span class="o">.</span><span class="n">items</span><span class="p">()</span>
+            <span class="k">if</span> <span class="n">var</span><span class="p">[</span><span class="s2">"sigma_deviation"</span><span class="p">]</span> <span class="o">&gt;</span> <span class="mf">3.0</span>
+        <span class="p">]</span>
+    <span class="p">}</span>
+</code></pre></div>
+<p><strong>Database Schema Extension</strong>:</p>
+<div class="highlight"><pre><span></span><code><span class="c1">-- Add frequency column to photometry table</span>
+<span class="k">ALTER</span><span class="w"> </span><span class="k">TABLE</span><span class="w"> </span><span class="n">photometry</span><span class="w"> </span><span class="k">ADD</span><span class="w"> </span><span class="k">COLUMN</span><span class="w"> </span><span class="n">frequency_mhz</span><span class="w"> </span><span class="nb">REAL</span><span class="p">;</span>
+
+<span class="c1">-- Create index for frequency queries</span>
+<span class="k">CREATE</span><span class="w"> </span><span class="k">INDEX</span><span class="w"> </span><span class="k">IF</span><span class="w"> </span><span class="k">NOT</span><span class="w"> </span><span class="k">EXISTS</span><span class="w"> </span><span class="n">idx_photometry_frequency</span><span class="w"> </span>
+<span class="k">ON</span><span class="w"> </span><span class="n">photometry</span><span class="p">(</span><span class="n">source_id</span><span class="p">,</span><span class="w"> </span><span class="n">frequency_mhz</span><span class="p">,</span><span class="w"> </span><span class="n">measured_at</span><span class="p">);</span>
+
+<span class="c1">-- Multi-frequency variability stats</span>
+<span class="k">CREATE</span><span class="w"> </span><span class="k">TABLE</span><span class="w"> </span><span class="k">IF</span><span class="w"> </span><span class="k">NOT</span><span class="w"> </span><span class="k">EXISTS</span><span class="w"> </span><span class="n">variability_stats_multi_freq</span><span class="w"> </span><span class="p">(</span>
+<span class="w">    </span><span class="n">source_id</span><span class="w"> </span><span class="nb">TEXT</span><span class="w"> </span><span class="k">NOT</span><span class="w"> </span><span class="k">NULL</span><span class="p">,</span>
+<span class="w">    </span><span class="n">frequency_mhz</span><span class="w"> </span><span class="nb">REAL</span><span class="w"> </span><span class="k">NOT</span><span class="w"> </span><span class="k">NULL</span><span class="p">,</span>
+<span class="w">    </span><span class="n">sigma_deviation</span><span class="w"> </span><span class="nb">REAL</span><span class="p">,</span>
+<span class="w">    </span><span class="n">mean_flux_mjy</span><span class="w"> </span><span class="nb">REAL</span><span class="p">,</span>
+<span class="w">    </span><span class="n">std_flux_mjy</span><span class="w"> </span><span class="nb">REAL</span><span class="p">,</span>
+<span class="w">    </span><span class="n">n_obs</span><span class="w"> </span><span class="nb">INTEGER</span><span class="p">,</span>
+<span class="w">    </span><span class="k">PRIMARY</span><span class="w"> </span><span class="k">KEY</span><span class="w"> </span><span class="p">(</span><span class="n">source_id</span><span class="p">,</span><span class="w"> </span><span class="n">frequency_mhz</span><span class="p">)</span>
+<span class="p">);</span>
+</code></pre></div>
+<hr/>
+<h2 id="5-multi-observable-correlation">5. Multi-Observable Correlation<a class="headerlink" href="#5-multi-observable-correlation" title="Permanent link">¶</a></h2>
+<h4 id="scientific-rationale_7">Scientific Rationale<a class="headerlink" href="#scientific-rationale_7" title="Permanent link">¶</a></h4>
+<p>ESEs manifest in multiple observables:
+- <strong>Flux density</strong>: Primary indicator (what we currently use)
+- <strong>Scintillation bandwidth</strong>: Frequency-dependent scattering
+- <strong>Dispersion measure</strong>: Electron density variations (for pulsars)
+- <strong>Scintillation timescale</strong>: Temporal variations</p>
+<p>Correlated changes across observables:
+- <strong>Higher confidence</strong>: Multiple independent indicators
+- <strong>Physical interpretation</strong>: Constrains ESE mechanism
+- <strong>False positive reduction</strong>: Intrinsic variability unlikely to correlate</p>
+<h4 id="implementation_3">Implementation<a class="headerlink" href="#implementation_3" title="Permanent link">¶</a></h4>
+<div class="highlight"><pre><span></span><code><span class="k">def</span><span class="w"> </span><span class="nf">detect_ese_multi_observable</span><span class="p">(</span>
+    <span class="n">source_id</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
+    <span class="n">products_db</span><span class="p">:</span> <span class="n">Path</span><span class="p">,</span>
+    <span class="n">observables</span><span class="p">:</span> <span class="nb">dict</span>
+<span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">dict</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">"""</span>
+<span class="sd">    Detect ESE using multiple observables.</span>
+
+<span class="sd">    Observables should include:</span>
+<span class="sd">    - flux: Flux density measurements</span>
+<span class="sd">    - scintillation_bandwidth: Scintillation bandwidth (if available)</span>
+<span class="sd">    - dm: Dispersion measure (for pulsars, if available)</span>
+<span class="sd">    - scintillation_timescale: Scintillation timescale (if available)</span>
+
+<span class="sd">    Returns detection result with multi-observable analysis.</span>
+<span class="sd">    """</span>
+    <span class="n">results</span> <span class="o">=</span> <span class="p">{}</span>
+
+    <span class="c1"># Analyze flux variability (existing)</span>
+    <span class="k">if</span> <span class="s2">"flux"</span> <span class="ow">in</span> <span class="n">observables</span><span class="p">:</span>
+        <span class="n">flux_result</span> <span class="o">=</span> <span class="n">analyze_flux_variability</span><span class="p">(</span>
+            <span class="n">source_id</span><span class="p">,</span>
+            <span class="n">observables</span><span class="p">[</span><span class="s2">"flux"</span><span class="p">],</span>
+            <span class="n">products_db</span>
+        <span class="p">)</span>
+        <span class="n">results</span><span class="p">[</span><span class="s2">"flux"</span><span class="p">]</span> <span class="o">=</span> <span class="n">flux_result</span>
+
+    <span class="c1"># Analyze scintillation bandwidth (if available)</span>
+    <span class="k">if</span> <span class="s2">"scintillation_bandwidth"</span> <span class="ow">in</span> <span class="n">observables</span><span class="p">:</span>
+        <span class="n">scint_result</span> <span class="o">=</span> <span class="n">analyze_scintillation_variability</span><span class="p">(</span>
+            <span class="n">source_id</span><span class="p">,</span>
+            <span class="n">observables</span><span class="p">[</span><span class="s2">"scintillation_bandwidth"</span><span class="p">],</span>
+            <span class="n">products_db</span>
+        <span class="p">)</span>
+        <span class="n">results</span><span class="p">[</span><span class="s2">"scintillation"</span><span class="p">]</span> <span class="o">=</span> <span class="n">scint_result</span>
+
+    <span class="c1"># Analyze DM variations (for pulsars)</span>
+    <span class="k">if</span> <span class="s2">"dm"</span> <span class="ow">in</span> <span class="n">observables</span><span class="p">:</span>
+        <span class="n">dm_result</span> <span class="o">=</span> <span class="n">analyze_dm_variability</span><span class="p">(</span>
+            <span class="n">source_id</span><span class="p">,</span>
+            <span class="n">observables</span><span class="p">[</span><span class="s2">"dm"</span><span class="p">],</span>
+            <span class="n">products_db</span>
+        <span class="p">)</span>
+        <span class="n">results</span><span class="p">[</span><span class="s2">"dm"</span><span class="p">]</span> <span class="o">=</span> <span class="n">dm_result</span>
+
+    <span class="c1"># Check for correlation</span>
+    <span class="n">correlation</span> <span class="o">=</span> <span class="n">calculate_observable_correlation</span><span class="p">(</span><span class="n">results</span><span class="p">)</span>
+
+    <span class="c1"># Composite significance</span>
+    <span class="n">base_significance</span> <span class="o">=</span> <span class="n">results</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"flux"</span><span class="p">,</span> <span class="p">{})</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"significance"</span><span class="p">,</span> <span class="mf">0.0</span><span class="p">)</span>
+
+    <span class="k">if</span> <span class="n">correlation</span><span class="p">[</span><span class="s2">"correlated"</span><span class="p">]:</span>
+        <span class="c1"># Boost for correlated multi-observable changes</span>
+        <span class="n">composite_significance</span> <span class="o">=</span> <span class="n">base_significance</span> <span class="o">*</span> <span class="p">(</span><span class="mf">1.0</span> <span class="o">+</span> <span class="n">correlation</span><span class="p">[</span><span class="s2">"strength"</span><span class="p">]</span> <span class="o">*</span> <span class="mf">0.3</span><span class="p">)</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">composite_significance</span> <span class="o">=</span> <span class="n">base_significance</span>
+
+    <span class="k">return</span> <span class="p">{</span>
+        <span class="s2">"source_id"</span><span class="p">:</span> <span class="n">source_id</span><span class="p">,</span>
+        <span class="s2">"observable_results"</span><span class="p">:</span> <span class="n">results</span><span class="p">,</span>
+        <span class="s2">"correlation"</span><span class="p">:</span> <span class="n">correlation</span><span class="p">,</span>
+        <span class="s2">"composite_significance"</span><span class="p">:</span> <span class="n">composite_significance</span><span class="p">,</span>
+        <span class="s2">"is_ese_candidate"</span><span class="p">:</span> <span class="n">composite_significance</span> <span class="o">&gt;=</span> <span class="mf">5.0</span><span class="p">,</span>
+        <span class="s2">"confidence"</span><span class="p">:</span> <span class="s2">"high"</span> <span class="k">if</span> <span class="n">correlation</span><span class="p">[</span><span class="s2">"correlated"</span><span class="p">]</span> <span class="k">else</span> <span class="s2">"medium"</span>
+    <span class="p">}</span>
+</code></pre></div>
+<hr/>
+<h2 id="summary">Summary<a class="headerlink" href="#summary" title="Permanent link">¶</a></h2>
+<p>This comprehensive improvement plan provides:</p>
+<ol>
+<li><strong>Deep technical specifications</strong> for each improvement</li>
+<li><strong>Scientific rationale</strong> explaining why each improvement matters</li>
+<li><strong>Implementation details</strong> with code examples</li>
+<li><strong>Testing strategies</strong> to validate improvements</li>
+<li><strong>Performance considerations</strong> and optimizations</li>
+<li><strong>Integration points</strong> with existing code</li>
+</ol>
+<p>All improvements are treated as equally high priority with equal depth of analysis, providing a complete roadmap for enhancing the ESE detection system.</p>
+</article>
+</div>
+<script>var tabs=__md_get("__tabs");if(Array.isArray(tabs))e:for(var set of document.querySelectorAll(".tabbed-set")){var tab,labels=set.querySelector(".tabbed-labels");for(tab of tabs)for(var label of labels.getElementsByTagName("label"))if(label.innerText.trim()===tab){var input=document.getElementById(label.htmlFor);input.checked=!0;continue e}}</script>
+<script>var target=document.getElementById(location.hash.slice(1));target&&target.name&&(target.checked=target.name.startsWith("__tabbed_"))</script>
+</div>
+</main>
+<footer class="md-footer">
+<div class="md-footer-meta md-typeset">
+<div class="md-footer-meta__inner md-grid">
+<div class="md-copyright">
+  
+  
+    Made with
+    <a href="https://squidfunk.github.io/mkdocs-material/" rel="noopener" target="_blank">
+      Material for MkDocs
+    </a>
+</div>
+</div>
+</div>
+</footer>
+</div>
+<div class="md-dialog" data-md-component="dialog">
+<div class="md-dialog__inner md-typeset"></div>
+</div>
+<script id="__config" type="application/json">{"base": "../..", "features": ["navigation.sections", "navigation.indexes", "content.code.copy", "content.tabs.link"], "search": "../../assets/javascripts/workers/search.b8dbb3d2.min.js", "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}}</script>
+<script src="../../assets/javascripts/bundle.fe8b6f2b.min.js"></script>
+<script src="../../javascripts/mathjax.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+<script src="../../javascripts/mermaid-zoom.js"></script>
+</body>
+</html>

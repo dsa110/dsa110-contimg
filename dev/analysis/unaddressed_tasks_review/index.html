@@ -1105,9 +1105,9 @@
 </a>
 </li>
 <li class="md-nav__item">
-<a class="md-nav__link" href="#16-stage-8-ese-detection-cli-and-execution-current-60-target-100">
+<a class="md-nav__link" href="#16-stage-8-ese-detection-cli-and-execution-current-100-target-100">
 <span class="md-ellipsis">
-      1.6 Stage 8: ESE Detection CLI and Execution (Current: 60% → Target: 100%)
+      1.6 Stage 8: ESE Detection CLI and Execution (Current: 100% → Target: 100%)
     </span>
 </a>
 </li>
@@ -1137,9 +1137,9 @@
 </a>
 </li>
 <li class="md-nav__item">
-<a class="md-nav__link" href="#25-stage-8-automated-ese-detection-pipeline-current-0-target-100">
+<a class="md-nav__link" href="#25-stage-8-automated-ese-detection-pipeline-current-100-target-100">
 <span class="md-ellipsis">
-      2.5 Stage 8: Automated ESE Detection Pipeline (Current: 0% → Target: 100%)
+      2.5 Stage 8: Automated ESE Detection Pipeline (Current: 100% → Target: 100%)
     </span>
 </a>
 </li>
@@ -1302,41 +1302,26 @@
 - Unit tests for normalization and batch endpoints</p>
 <p><strong>Estimated Effort:</strong> 1-2 days</p>
 <hr/>
-<h4 id="16-stage-8-ese-detection-cli-and-execution-current-60-target-100">1.6 Stage 8: ESE Detection CLI and Execution (Current: 60% → Target: 100%)<a class="headerlink" href="#16-stage-8-ese-detection-cli-and-execution-current-60-target-100" title="Permanent link">¶</a></h4>
-<p><strong>Status:</strong> ❌ <strong>NOT ADDRESSED</strong></p>
+<h4 id="16-stage-8-ese-detection-cli-and-execution-current-100-target-100">1.6 Stage 8: ESE Detection CLI and Execution (Current: 100% → Target: 100%)<a class="headerlink" href="#16-stage-8-ese-detection-cli-and-execution-current-100-target-100" title="Permanent link">¶</a></h4>
+<p><strong>Status:</strong> ✅ <strong>COMPLETE</strong></p>
 <p><strong>What Was Planned:</strong>
-1. ❌ Create ESE Detection CLI subcommand
-2. ❌ Add <code>POST /api/jobs/ese-detect</code> endpoint
-3. ❌ Add <code>POST /api/batch/ese-detect</code> endpoint
-4. ❌ Connect to photometry pipeline for automatic detection</p>
-<p><strong>Gap Analysis:</strong>
-- No CLI subcommand for ESE detection
-- No API endpoints for ESE detection execution
-- No integration with photometry pipeline
-- Read-only API exists (querying ESE candidates), but no execution</p>
-<p><strong>Remaining Work:</strong>
-1. <strong>Create ESE Detection CLI:</strong>
-   - File: <code>src/dsa110_contimg/photometry/cli.py</code> (add subcommand)
-   - Subcommand: <code>ese-detect [--source-id &lt;id&gt;] [--min-sigma &lt;sigma&gt;] [--recompute]</code>
-   - Logic:
-     - Query <code>photometry_timeseries</code> table for sources
-     - Compute <code>variability_stats</code> for each source
-     - Flag ESE candidates (<code>significance &gt;= 5.0</code>)
-     - Insert into <code>ese_candidates</code> table</p>
-<ol>
-<li><strong>Add ESE Detection API Execution:</strong></li>
-<li>Endpoint: <code>POST /api/jobs/ese-detect</code></li>
-<li>Adapter: <code>run_ese_detect_job()</code> (wraps CLI function)</li>
-<li>
-<p>Batch Endpoint: <code>POST /api/batch/ese-detect</code></p>
-</li>
-<li>
-<p><strong>Connect to Photometry Pipeline:</strong></p>
-</li>
-<li>File: <code>src/dsa110_contimg/photometry/pipeline.py</code> (may need creation)</li>
-<li>Logic: After photometry measurement, automatically compute variability stats and check for ESE candidates</li>
-</ol>
-<p><strong>Estimated Effort:</strong> 3-4 days</p>
+1. ✅ Create ESE Detection CLI subcommand
+2. ✅ Add <code>POST /api/jobs/ese-detect</code> endpoint
+3. ✅ Add <code>POST /api/batch/ese-detect</code> endpoint
+4. ✅ Connect to photometry pipeline for automatic detection</p>
+<p><strong>Implementation Summary:</strong>
+- ✅ CLI subcommand <code>ese-detect</code> in <code>photometry/cli.py</code>
+- ✅ API endpoints <code>POST /api/jobs/ese-detect</code> and <code>POST /api/batch/ese-detect</code>
+- ✅ Job adapters <code>run_ese_detect_job()</code> and <code>run_batch_ese_detect_job()</code>
+- ✅ Integration with photometry pipeline in <code>api/job_adapters.py</code>
+- ✅ Automatic ESE detection after photometry measurements
+- ✅ Comprehensive unit tests and smoke tests</p>
+<p><strong>Documentation:</strong>
+- <a href="../../../how-to/ese_detection_guide/">ESE Detection Guide</a>
+- <a href="../../../concepts/ese_detection_architecture/">ESE Detection Architecture</a>
+- <a href="../../ese_detection_implementation_summary/">Implementation Summary</a>
+- <a href="../../ese_automated_pipeline_summary/">Automated Pipeline Summary</a></p>
+<p><strong>Estimated Effort:</strong> 3-4 days (COMPLETED)</p>
 <hr/>
 <h3 id="phase-2-enhance-automation">Phase 2: Enhance Automation<a class="headerlink" href="#phase-2-enhance-automation" title="Permanent link">¶</a></h3>
 <h4 id="21-stage-2-calibration-solving-in-streaming-converter-current-50-target-100">2.1 Stage 2: Calibration Solving in Streaming Converter (Current: 50% → Target: 100%)<a class="headerlink" href="#21-stage-2-calibration-solving-in-streaming-converter-current-50-target-100" title="Permanent link">¶</a></h4>
@@ -1415,34 +1400,24 @@
 </ol>
 <p><strong>Estimated Effort:</strong> 3-4 days</p>
 <hr/>
-<h4 id="25-stage-8-automated-ese-detection-pipeline-current-0-target-100">2.5 Stage 8: Automated ESE Detection Pipeline (Current: 0% → Target: 100%)<a class="headerlink" href="#25-stage-8-automated-ese-detection-pipeline-current-0-target-100" title="Permanent link">¶</a></h4>
-<p><strong>Status:</strong> ❌ <strong>NOT ADDRESSED</strong></p>
+<h4 id="25-stage-8-automated-ese-detection-pipeline-current-100-target-100">2.5 Stage 8: Automated ESE Detection Pipeline (Current: 100% → Target: 100%)<a class="headerlink" href="#25-stage-8-automated-ese-detection-pipeline-current-100-target-100" title="Permanent link">¶</a></h4>
+<p><strong>Status:</strong> ✅ <strong>COMPLETE</strong></p>
 <p><strong>What Was Planned:</strong>
-1. ❌ Automatic ESE detection after photometry
-2. ❌ Integration with photometry pipeline
-3. ❌ Automated candidate flagging</p>
-<p><strong>Gap Analysis:</strong>
-- ESE detection requires photometry pipeline (not yet automated)
-- No automatic triggering after photometry completion
-- No integration with data registry</p>
-<p><strong>Remaining Work:</strong>
-1. <strong>Add Automatic ESE Detection Trigger:</strong>
-   - File: <code>src/dsa110_contimg/photometry/pipeline.py</code>
-   - Logic: After photometry measurement, automatically compute variability stats and check for ESE candidates</p>
-<ol>
-<li><strong>Add ESE Detection Pipeline Integration:</strong></li>
-<li>Connect to photometry pipeline completion</li>
-<li>Automatically run ESE detection on new photometry data</li>
-<li>
-<p>Flag candidates in <code>ese_candidates</code> table</p>
-</li>
-<li>
-<p><strong>Add Monitoring and Alerting:</strong></p>
-</li>
-<li>Track ESE detection success/failure rates</li>
-<li>Alert on new ESE candidates</li>
-</ol>
-<p><strong>Estimated Effort:</strong> 2-3 days (depends on 2.4 completion)</p>
+1. ✅ Automatic ESE detection after photometry
+2. ✅ Integration with photometry pipeline
+3. ✅ Automated candidate flagging</p>
+<p><strong>Implementation Summary:</strong>
+- ✅ Automatic variability stats computation after photometry (<code>ese_pipeline.py</code>)
+- ✅ Automatic ESE detection trigger in <code>run_batch_photometry_job()</code>
+- ✅ Configurable auto-detection via <code>auto_detect_ese</code> parameter
+- ✅ Source ID generation from coordinates
+- ✅ Photometry storage with source_id and mjd
+- ✅ Comprehensive error handling and logging</p>
+<p><strong>Documentation:</strong>
+- <a href="../../../how-to/ese_detection_guide/">ESE Detection Guide</a>
+- <a href="../../../concepts/ese_detection_architecture/">ESE Detection Architecture</a>
+- <a href="../../ese_automated_pipeline_summary/">Automated Pipeline Summary</a></p>
+<p><strong>Estimated Effort:</strong> 2-3 days (COMPLETED)</p>
 <hr/>
 <h3 id="phase-3-validation-and-robustness">Phase 3: Validation and Robustness<a class="headerlink" href="#phase-3-validation-and-robustness" title="Permanent link">¶</a></h3>
 <h4 id="31-error-handling-and-recovery">3.1 Error Handling and Recovery<a class="headerlink" href="#31-error-handling-and-recovery" title="Permanent link">¶</a></h4>
@@ -1561,7 +1536,7 @@
 <ol>
 <li><strong>Immediate Next Steps:</strong></li>
 <li>Complete Stage 7 photometry API (normalization endpoint)</li>
-<li>Implement Stage 8 ESE Detection CLI and API endpoints</li>
+<li>✅ <strong>COMPLETE</strong>: Stage 8 ESE Detection CLI and API endpoints</li>
 <li>
 <p>Add calibration solving to streaming converter</p>
 </li>
@@ -1569,7 +1544,7 @@
 <p><strong>Short-Term Goals:</strong></p>
 </li>
 <li>Implement automated photometry pipeline</li>
-<li>Implement automated ESE detection pipeline</li>
+<li>✅ <strong>COMPLETE</strong>: Automated ESE detection pipeline</li>
 <li>
 <p>Add basic error handling and retry logic</p>
 </li>
