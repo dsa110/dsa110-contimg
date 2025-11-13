@@ -3523,49 +3523,265 @@ curl<span class="w"> </span>-X<span class="w"> </span>POST<span class="w"> </spa
 - Frequency correlation analysis: &lt; 10ms per analysis
 - Database queries: &lt; 50ms per frequency query</p>
 <h4 id="42-multi-observable-correlation">4.2 Multi-Observable Correlation<a class="headerlink" href="#42-multi-observable-correlation" title="Permanent link">¶</a></h4>
-<p><strong>Effort</strong>: 5-6 days</p>
-<p><strong>Tasks</strong>:
-- [ ] Design multi-observable analysis architecture
-  - [ ] Observable types (flux, scintillation, DM, timescale)
-  - [ ] Correlation algorithm
-  - [ ] Composite significance calculation
-- [ ] Implement observable analysis functions
-  - [ ] <code>analyze_flux_variability()</code> (existing, may need updates)
-  - [ ] <code>analyze_scintillation_variability()</code> (new)
-  - [ ] <code>analyze_dm_variability()</code> (new)
-  - [ ] <code>analyze_scintillation_timescale()</code> (new)
-- [ ] Implement correlation analysis
-  - [ ] <code>calculate_observable_correlation()</code> function
-  - [ ] Correlation strength calculation
-  - [ ] Composite significance with correlation boost
-- [ ] Integrate with detection pipeline
-  - [ ] <code>detect_ese_multi_observable()</code> function
-  - [ ] Update API models
-  - [ ] Update CLI
-- [ ] Extend database schema (if needed)
-  - [ ] Tables for scintillation data
-  - [ ] Tables for DM data
-- [ ] Write tests
-  - [ ] Observable analysis tests
-  - [ ] Correlation tests
-  - [ ] Multi-observable detection tests
-- [ ] Create documentation
-  - [ ] Multi-observable analysis guide
-  - [ ] Scientific rationale
-  - [ ] Use case examples</p>
-<p><strong>Deliverables</strong>:
-- Multi-observable analysis functions
-- Correlation analysis functions
-- Integration with detection pipeline
-- Database schema extensions (if needed)
-- Updated API and CLI
-- Test suite
-- Documentation</p>
-<p><strong>Acceptance Criteria</strong>:
-- Multiple observables analyzed correctly
-- Correlation correctly identified
-- Composite significance includes correlation boost
-- API and CLI support multi-observable analysis</p>
+<p><strong>Effort</strong>: 5-6 days<br/>
+<strong>File Locations</strong>:
+- Implementation: <code>src/dsa110_contimg/photometry/multi_observable.py</code> (new file)
+- Database schema: <code>src/dsa110_contimg/database/schema_evolution.py</code> (add tables if needed)
+- Integration points:
+  - <code>src/dsa110_contimg/photometry/ese_detection.py</code> (add multi-observable option)
+  - <code>src/dsa110_contimg/api/models.py</code> (update job params)
+  - <code>src/dsa110_contimg/photometry/cli.py</code> (add multi-observable flag)
+- Tests: <code>tests/unit/photometry/test_multi_observable.py</code> (new file)
+- Documentation: <code>docs/concepts/multi_observable_analysis.md</code> (new file)</p>
+<p><strong>Task Breakdown</strong>:</p>
+<ol>
+<li><strong>Design Multi-Observable Analysis Architecture</strong> (4-5 hours)</li>
+<li>[ ] Review comprehensive improvements doc Section 4.2 for design</li>
+<li>[ ] Observable types:<ul>
+<li>[ ] Flux density (existing)</li>
+<li>[ ] Scintillation bandwidth (new)</li>
+<li>[ ] Dispersion measure (DM, for pulsars, new)</li>
+<li>[ ] Scintillation timescale (new)</li>
+</ul>
+</li>
+<li>[ ] Correlation algorithm:<ul>
+<li>[ ] Analyze variability in each observable</li>
+<li>[ ] Check for temporal correlation</li>
+<li>[ ] Calculate correlation strength</li>
+</ul>
+</li>
+<li>
+<p>[ ] Composite significance calculation:</p>
+<ul>
+<li>[ ] Base significance from flux (primary)</li>
+<li>[ ] Correlation boost: <code>1.0 + correlation_strength * 0.3</code></li>
+<li>[ ] Final: <code>base_significance * correlation_boost</code></li>
+</ul>
+</li>
+<li>
+<p><strong>Implement Observable Analysis Functions</strong> (5-6 hours)</p>
+</li>
+<li>[ ] Create <code>src/dsa110_contimg/photometry/multi_observable.py</code></li>
+<li>[ ] Function: <code>analyze_flux_variability()</code> (update existing or create wrapper):<ul>
+<li>[ ] Use existing flux variability analysis</li>
+<li>[ ] Return variability metrics</li>
+</ul>
+</li>
+<li>[ ] Function: <code>analyze_scintillation_variability(source_id: str, products_db: Path) -&gt; dict</code>:<ul>
+<li>[ ] Get scintillation bandwidth measurements</li>
+<li>[ ] Calculate variability metrics</li>
+<li>[ ] Return variability result</li>
+</ul>
+</li>
+<li>[ ] Function: <code>analyze_dm_variability(source_id: str, products_db: Path) -&gt; dict</code>:<ul>
+<li>[ ] Get DM measurements (for pulsars)</li>
+<li>[ ] Calculate variability metrics</li>
+<li>[ ] Return variability result</li>
+</ul>
+</li>
+<li>
+<p>[ ] Function: <code>analyze_scintillation_timescale(source_id: str, products_db: Path) -&gt; dict</code>:</p>
+<ul>
+<li>[ ] Get scintillation timescale measurements</li>
+<li>[ ] Calculate variability metrics</li>
+<li>[ ] Return variability result</li>
+</ul>
+</li>
+<li>
+<p><strong>Implement Correlation Analysis</strong> (4-5 hours)</p>
+</li>
+<li>[ ] Function: <code>calculate_observable_correlation(observable_results: dict) -&gt; dict</code>:<ul>
+<li>[ ] Extract variability indicators from each observable</li>
+<li>[ ] Check for temporal correlation</li>
+<li>[ ] Calculate correlation strength (0.0 to 1.0)</li>
+<li>[ ] Determine if correlated (strength &gt; 0.5)</li>
+<li>[ ] Return correlation analysis</li>
+</ul>
+</li>
+<li>
+<p>[ ] Correlation strength calculation:</p>
+<ul>
+<li>[ ] Count observables with high variability</li>
+<li>[ ] Check temporal alignment</li>
+<li>[ ] Calculate strength: <code>high_variability_count / total_observables</code></li>
+</ul>
+</li>
+<li>
+<p><strong>Integrate with Detection Pipeline</strong> (3-4 hours)</p>
+</li>
+<li>[ ] Function: <code>detect_ese_multi_observable(source_id: str, observables: dict, products_db: Path) -&gt; dict</code>:<ul>
+<li>[ ] Analyze each observable</li>
+<li>[ ] Calculate correlation</li>
+<li>[ ] Compute composite significance</li>
+<li>[ ] Return detection result</li>
+</ul>
+</li>
+<li>[ ] Update <code>detect_ese_candidates()</code> in <code>ese_detection.py</code>:<ul>
+<li>[ ] Add parameter: <code>use_multi_observable: bool = False</code></li>
+<li>[ ] Add parameter: <code>observables: Optional[dict] = None</code></li>
+<li>[ ] If <code>use_multi_observable</code>:</li>
+<li>[ ] Use <code>detect_ese_multi_observable()</code></li>
+<li>[ ] Include correlation analysis in results</li>
+</ul>
+</li>
+<li>[ ] Update API models:<ul>
+<li>[ ] Add <code>use_multi_observable</code> and <code>observables</code> to <code>ESEDetectJobParams</code></li>
+</ul>
+</li>
+<li>
+<p>[ ] Update CLI:</p>
+<ul>
+<li>[ ] Add <code>--multi-observable</code> flag</li>
+<li>[ ] Add <code>--observables</code> argument (comma-separated list)</li>
+</ul>
+</li>
+<li>
+<p><strong>Extend Database Schema</strong> (2-3 hours, if needed)</p>
+</li>
+<li>[ ] Create tables for scintillation data (if needed):
+     <div class="highlight"><pre><span></span><code><span class="k">CREATE</span><span class="w"> </span><span class="k">TABLE</span><span class="w"> </span><span class="k">IF</span><span class="w"> </span><span class="k">NOT</span><span class="w"> </span><span class="k">EXISTS</span><span class="w"> </span><span class="n">scintillation_data</span><span class="w"> </span><span class="p">(</span>
+<span class="w">    </span><span class="n">source_id</span><span class="w"> </span><span class="nb">TEXT</span><span class="w"> </span><span class="k">NOT</span><span class="w"> </span><span class="k">NULL</span><span class="p">,</span>
+<span class="w">    </span><span class="n">measured_at</span><span class="w"> </span><span class="nb">REAL</span><span class="w"> </span><span class="k">NOT</span><span class="w"> </span><span class="k">NULL</span><span class="p">,</span>
+<span class="w">    </span><span class="n">scintillation_bandwidth_mhz</span><span class="w"> </span><span class="nb">REAL</span><span class="p">,</span>
+<span class="w">    </span><span class="n">scintillation_timescale_sec</span><span class="w"> </span><span class="nb">REAL</span><span class="p">,</span>
+<span class="w">    </span><span class="k">PRIMARY</span><span class="w"> </span><span class="k">KEY</span><span class="w"> </span><span class="p">(</span><span class="n">source_id</span><span class="p">,</span><span class="w"> </span><span class="n">measured_at</span><span class="p">)</span>
+<span class="p">)</span>
+</code></pre></div></li>
+<li>[ ] Create tables for DM data (if needed):
+     <div class="highlight"><pre><span></span><code><span class="k">CREATE</span><span class="w"> </span><span class="k">TABLE</span><span class="w"> </span><span class="k">IF</span><span class="w"> </span><span class="k">NOT</span><span class="w"> </span><span class="k">EXISTS</span><span class="w"> </span><span class="n">dm_data</span><span class="w"> </span><span class="p">(</span>
+<span class="w">    </span><span class="n">source_id</span><span class="w"> </span><span class="nb">TEXT</span><span class="w"> </span><span class="k">NOT</span><span class="w"> </span><span class="k">NULL</span><span class="p">,</span>
+<span class="w">    </span><span class="n">measured_at</span><span class="w"> </span><span class="nb">REAL</span><span class="w"> </span><span class="k">NOT</span><span class="w"> </span><span class="k">NULL</span><span class="p">,</span>
+<span class="w">    </span><span class="n">dm_pc_cm3</span><span class="w"> </span><span class="nb">REAL</span><span class="p">,</span>
+<span class="w">    </span><span class="k">PRIMARY</span><span class="w"> </span><span class="k">KEY</span><span class="w"> </span><span class="p">(</span><span class="n">source_id</span><span class="p">,</span><span class="w"> </span><span class="n">measured_at</span><span class="p">)</span>
+<span class="p">)</span>
+</code></pre></div></li>
+<li>
+<p>[ ] Create indexes as needed</p>
+</li>
+<li>
+<p><strong>Write Comprehensive Tests</strong> (5-6 hours)</p>
+</li>
+<li>[ ] Test file: <code>tests/unit/photometry/test_multi_observable.py</code></li>
+<li>[ ] Test class: <code>TestMultiObservableAnalysis</code></li>
+<li>[ ] <strong>Unit Test Checklist</strong>:<ul>
+<li>[ ] Core functionality tests (3-7 cases)</li>
+<li>[ ] Edge case tests (missing observables, single observable, no correlation)</li>
+<li>[ ] Error handling tests (invalid input, exceptions)</li>
+<li>[ ] Smoke test for integration</li>
+</ul>
+</li>
+<li>[ ] <strong>Unit tests</strong> (execution time target: &lt; 400ms total):<ul>
+<li>[ ] <code>test_analyze_scintillation_variability()</code> - Verify scintillation analysis</li>
+<li>[ ] Input: Scintillation bandwidth measurements</li>
+<li>[ ] Expected: Variability metrics calculated</li>
+<li>[ ] Execution time: &lt; 50ms</li>
+<li>[ ] <code>test_analyze_dm_variability()</code> - Verify DM analysis</li>
+<li>[ ] Input: DM measurements</li>
+<li>[ ] Expected: Variability metrics calculated</li>
+<li>[ ] Execution time: &lt; 50ms</li>
+<li>[ ] <code>test_observable_correlation_correlated()</code> - Verify correlation detection</li>
+<li>[ ] Input: High variability in multiple observables</li>
+<li>[ ] Expected: Correlation detected, strength &gt; 0.5</li>
+<li>[ ] Execution time: &lt; 50ms</li>
+<li>[ ] <code>test_observable_correlation_not_correlated()</code> - Verify no correlation</li>
+<li>[ ] Input: Variability in one observable only</li>
+<li>[ ] Expected: No correlation detected</li>
+<li>[ ] Execution time: &lt; 30ms</li>
+<li>[ ] <code>test_composite_significance_with_correlation()</code> - Verify composite significance</li>
+<li>[ ] Input: Base significance 5.0, correlation strength 0.8</li>
+<li>[ ] Expected: Composite significance ≈ 6.2 (5.0 * 1.24)</li>
+<li>[ ] Execution time: &lt; 20ms</li>
+<li>[ ] <code>test_detect_ese_multi_observable()</code> - Verify multi-observable detection</li>
+<li>[ ] Input: Source with flux and scintillation data</li>
+<li>[ ] Expected: Detection result with correlation analysis</li>
+<li>[ ] Execution time: &lt; 100ms</li>
+<li>[ ] <code>test_missing_observables()</code> - Verify missing observable handling</li>
+<li>[ ] Input: Some observables missing data</li>
+<li>[ ] Expected: Uses available observables, handles gracefully</li>
+<li>[ ] Execution time: &lt; 50ms</li>
+<li>[ ] <code>test_single_observable()</code> - Verify single observable handling</li>
+<li>[ ] Input: Only flux data available</li>
+<li>[ ] Expected: Falls back to single-observable analysis</li>
+<li>[ ] Execution time: &lt; 30ms</li>
+</ul>
+</li>
+<li>[ ] <strong>Smoke tests</strong> (execution time target: &lt; 3 seconds):<ul>
+<li>[ ] <code>test_multi_observable_integration_smoke()</code> - End-to-end integration</li>
+<li>[ ] Use multi-observable detection in pipeline</li>
+<li>[ ] Verify results include correlation analysis</li>
+<li>[ ] Execution time: &lt; 2 seconds</li>
+<li>[ ] <code>test_multi_observable_api_smoke()</code> - API integration</li>
+<li>[ ] Create job with <code>use_multi_observable=true</code></li>
+<li>[ ] Verify multi-observable analysis performed</li>
+<li>[ ] Execution time: &lt; 1 second</li>
+</ul>
+</li>
+<li>
+<p>[ ] <strong>Total test execution time</strong>: &lt; 4 seconds (unit + smoke)</p>
+</li>
+<li>
+<p><strong>Create Documentation</strong> (2-3 hours)</p>
+</li>
+<li>[ ] Create <code>docs/concepts/multi_observable_analysis.md</code>:<ul>
+<li>[ ] Multi-observable analysis guide</li>
+<li>[ ] Scientific rationale (flux, scintillation, DM correlations)</li>
+<li>[ ] Use case examples</li>
+<li>[ ] API/CLI usage examples</li>
+</ul>
+</li>
+<li>[ ] Update API documentation</li>
+</ol>
+<p><strong>Deliverables Checklist</strong>:
+- [ ] <code>multi_observable.py</code> created with analysis functions
+- [ ] Database schema extended (if needed)
+- [ ] Integration with detection pipeline
+- [ ] Updated API models and CLI
+- [ ] Test suite created (<code>test_multi_observable.py</code>)
+- [ ] Documentation created
+- [ ] All tests passing</p>
+<p><strong>Acceptance Criteria</strong> (All Must Pass):
+- [ ] <strong>Multiple Observables</strong>: Multiple observables analyzed correctly (tested)
+- [ ] <strong>Correlation</strong>: Correlation correctly identified (tested)
+- [ ] <strong>Composite Significance</strong>: Composite significance includes correlation boost (tested)
+- [ ] <strong>API Integration</strong>: API endpoints support multi-observable analysis (tested)
+- [ ] <strong>CLI Integration</strong>: CLI supports multi-observable analysis (tested)
+- [ ] <strong>Test Coverage</strong>: <code>pytest --cov=dsa110_contimg/photometry/multi_observable</code> shows &gt; 95% coverage</p>
+<p><strong>Code Review Checklist</strong>:
+- [ ] Observable analysis functions are correct
+- [ ] Correlation algorithm is sound
+- [ ] Composite significance calculation matches specification
+- [ ] Error handling for missing observables
+- [ ] Type hints complete
+- [ ] Docstrings comprehensive</p>
+<p><strong>Verification Commands</strong>:
+<div class="highlight"><pre><span></span><code><span class="c1"># Run unit tests (should complete in &lt; 400ms)</span>
+/opt/miniforge/envs/casa6/bin/python<span class="w"> </span>-m<span class="w"> </span>pytest<span class="w"> </span>tests/unit/photometry/test_multi_observable.py::TestMultiObservableAnalysis<span class="w"> </span>-v<span class="w"> </span>--tb<span class="o">=</span>short<span class="w"> </span>--durations<span class="o">=</span><span class="m">0</span>
+
+<span class="c1"># Run smoke tests (should complete in &lt; 3 seconds)</span>
+/opt/miniforge/envs/casa6/bin/python<span class="w"> </span>-m<span class="w"> </span>pytest<span class="w"> </span>tests/unit/photometry/test_multi_observable.py<span class="w"> </span>-k<span class="w"> </span>smoke<span class="w"> </span>-v<span class="w"> </span>--tb<span class="o">=</span>short<span class="w"> </span>--durations<span class="o">=</span><span class="m">0</span>
+
+<span class="c1"># Run all multi-observable tests (unit + smoke, should complete in &lt; 4 seconds)</span>
+/opt/miniforge/envs/casa6/bin/python<span class="w"> </span>-m<span class="w"> </span>pytest<span class="w"> </span>tests/unit/photometry/test_multi_observable.py<span class="w"> </span>-v<span class="w"> </span>--tb<span class="o">=</span>short<span class="w"> </span>--durations<span class="o">=</span><span class="m">0</span>
+
+<span class="c1"># Check test coverage</span>
+/opt/miniforge/envs/casa6/bin/python<span class="w"> </span>-m<span class="w"> </span>pytest<span class="w"> </span>tests/unit/photometry/test_multi_observable.py<span class="w"> </span>--cov<span class="o">=</span>dsa110_contimg/photometry/multi_observable<span class="w"> </span>--cov-report<span class="o">=</span>term-missing
+
+<span class="c1"># Fast failure mode (stop on first failure)</span>
+/opt/miniforge/envs/casa6/bin/python<span class="w"> </span>-m<span class="w"> </span>pytest<span class="w"> </span>tests/unit/photometry/test_multi_observable.py<span class="w"> </span>-x<span class="w"> </span>-v
+
+<span class="c1"># Test API endpoint (requires API server running)</span>
+curl<span class="w"> </span>-X<span class="w"> </span>POST<span class="w"> </span>http://localhost:8000/api/jobs/ese-detect<span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>-H<span class="w"> </span><span class="s2">"Content-Type: application/json"</span><span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>-d<span class="w"> </span><span class="s1">'{"params": {"use_multi_observable": true, "observables": ["flux", "scintillation"]}}'</span>
+
+<span class="c1"># Test CLI</span>
+/opt/miniforge/envs/casa6/bin/python<span class="w"> </span>-m<span class="w"> </span>dsa110_contimg.photometry.cli<span class="w"> </span>ese-detect<span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>--multi-observable<span class="w"> </span>--observables<span class="w"> </span>flux,scintillation
+</code></pre></div></p>
+<p><strong>Performance Benchmarks</strong>:
+- Multi-observable detection: &lt; 150ms per source (with 2-3 observables)
+- Observable correlation analysis: &lt; 20ms per analysis
+- Database queries: &lt; 50ms per observable query</p>
 <h3 id="phase-4-summary">Phase 4 Summary<a class="headerlink" href="#phase-4-summary" title="Permanent link">¶</a></h3>
 <p><strong>Key Outcomes</strong>:
 - Advanced scientific capabilities (multi-frequency, multi-observable)
@@ -3818,6 +4034,10 @@ curl<span class="w"> </span>-X<span class="w"> </span>POST<span class="w"> </spa
    - Task 1.2: Unit tests for all metrics + smoke tests (&lt; 200ms unit, &lt; 2 seconds smoke)
    - Task 2.1: 8 unit tests + 2 smoke tests + 2 validation tests (&lt; 4 seconds total)
    - Task 2.2: 9 unit tests + 3 smoke tests (&lt; 1.5 seconds total)
+   - Task 3.1: 8 unit tests + 2 smoke tests + 1 performance test (&lt; 8 seconds total)
+   - Task 3.2: 8 unit tests + 2 smoke tests + 2 concurrency tests + 2 performance tests (&lt; 20 seconds total)
+   - Task 4.1: 7 unit tests + 2 smoke tests (&lt; 4 seconds total)
+   - Task 4.2: 8 unit tests + 2 smoke tests (&lt; 4 seconds total)
    - All tasks include verification commands with execution time checks</p>
 <h3 id="5-benefits-of-these-improvements">5. <strong>Benefits of These Improvements</strong><a class="headerlink" href="#5-benefits-of-these-improvements" title="Permanent link">¶</a></h3>
 <ul>

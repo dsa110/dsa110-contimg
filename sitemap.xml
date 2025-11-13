@@ -197,6 +197,10 @@
          <lastmod>2025-11-13</lastmod>
     </url>
     <url>
+         <loc>http://code.deepsynoptic.org/dsa110-contimg/analysis/DASHBOARD_DESIGN_IMPROVEMENTS/</loc>
+         <lastmod>2025-11-13</lastmod>
+    </url>
+    <url>
          <loc>http://code.deepsynoptic.org/dsa110-contimg/analysis/DASHBOARD_FRONTEND_DOCUMENTATION_INDEX/</loc>
          <lastmod>2025-11-13</lastmod>
     </url>
@@ -961,6 +965,10 @@
          <lastmod>2025-11-13</lastmod>
     </url>
     <url>
+         <loc>http://code.deepsynoptic.org/dsa110-contimg/dev/browser_testing_guide/</loc>
+         <lastmod>2025-11-13</lastmod>
+    </url>
+    <url>
          <loc>http://code.deepsynoptic.org/dsa110-contimg/dev/calibration_provenance_risk_analysis/</loc>
          <lastmod>2025-11-13</lastmod>
     </url>
@@ -1053,6 +1061,10 @@
          <lastmod>2025-11-13</lastmod>
     </url>
     <url>
+         <loc>http://code.deepsynoptic.org/dsa110-contimg/dev/frontend_verification_summary/</loc>
+         <lastmod>2025-11-13</lastmod>
+    </url>
+    <url>
          <loc>http://code.deepsynoptic.org/dsa110-contimg/dev/implementation_plan/</loc>
          <lastmod>2025-11-13</lastmod>
     </url>
@@ -1069,6 +1081,22 @@
          <lastmod>2025-11-13</lastmod>
     </url>
     <url>
+         <loc>http://code.deepsynoptic.org/dsa110-contimg/dev/phase1_backend_testing_complete/</loc>
+         <lastmod>2025-11-13</lastmod>
+    </url>
+    <url>
+         <loc>http://code.deepsynoptic.org/dsa110-contimg/dev/phase1_browser_testing_complete/</loc>
+         <lastmod>2025-11-13</lastmod>
+    </url>
+    <url>
+         <loc>http://code.deepsynoptic.org/dsa110-contimg/dev/phase1_browser_testing_summary/</loc>
+         <lastmod>2025-11-13</lastmod>
+    </url>
+    <url>
+         <loc>http://code.deepsynoptic.org/dsa110-contimg/dev/phase1_completion_summary/</loc>
+         <lastmod>2025-11-13</lastmod>
+    </url>
+    <url>
          <loc>http://code.deepsynoptic.org/dsa110-contimg/dev/phase1_implementation_status/</loc>
          <lastmod>2025-11-13</lastmod>
     </url>
@@ -1077,7 +1105,51 @@
          <lastmod>2025-11-13</lastmod>
     </url>
     <url>
+         <loc>http://code.deepsynoptic.org/dsa110-contimg/dev/phase1_programmatic_verification/</loc>
+         <lastmod>2025-11-13</lastmod>
+    </url>
+    <url>
          <loc>http://code.deepsynoptic.org/dsa110-contimg/dev/phase1_test_checklist/</loc>
+         <lastmod>2025-11-13</lastmod>
+    </url>
+    <url>
+         <loc>http://code.deepsynoptic.org/dsa110-contimg/dev/phase1_test_results/</loc>
+         <lastmod>2025-11-13</lastmod>
+    </url>
+    <url>
+         <loc>http://code.deepsynoptic.org/dsa110-contimg/dev/phase2_implementation_plan/</loc>
+         <lastmod>2025-11-13</lastmod>
+    </url>
+    <url>
+         <loc>http://code.deepsynoptic.org/dsa110-contimg/dev/phase2_implementation_summary/</loc>
+         <lastmod>2025-11-13</lastmod>
+    </url>
+    <url>
+         <loc>http://code.deepsynoptic.org/dsa110-contimg/dev/phase2_testing_summary/</loc>
+         <lastmod>2025-11-13</lastmod>
+    </url>
+    <url>
+         <loc>http://code.deepsynoptic.org/dsa110-contimg/dev/phase3_backend_complete/</loc>
+         <lastmod>2025-11-13</lastmod>
+    </url>
+    <url>
+         <loc>http://code.deepsynoptic.org/dsa110-contimg/dev/phase3_complete/</loc>
+         <lastmod>2025-11-13</lastmod>
+    </url>
+    <url>
+         <loc>http://code.deepsynoptic.org/dsa110-contimg/dev/phase3_frontend_complete/</loc>
+         <lastmod>2025-11-13</lastmod>
+    </url>
+    <url>
+         <loc>http://code.deepsynoptic.org/dsa110-contimg/dev/phase3_implementation_plan/</loc>
+         <lastmod>2025-11-13</lastmod>
+    </url>
+    <url>
+         <loc>http://code.deepsynoptic.org/dsa110-contimg/dev/phase3_testing_summary/</loc>
+         <lastmod>2025-11-13</lastmod>
+    </url>
+    <url>
+         <loc>http://code.deepsynoptic.org/dsa110-contimg/dev/phase3_ui_testing_complete/</loc>
          <lastmod>2025-11-13</lastmod>
     </url>
     <url>
@@ -1186,6 +1258,10 @@
     </url>
     <url>
          <loc>http://code.deepsynoptic.org/dsa110-contimg/dev/web_interface_analysis/</loc>
+         <lastmod>2025-11-13</lastmod>
+    </url>
+    <url>
+         <loc>http://code.deepsynoptic.org/dsa110-contimg/dev/workflow_navigation_implementation/</loc>
          <lastmod>2025-11-13</lastmod>
     </url>
     <url>
@@ -1425,11 +1501,27 @@
          <lastmod>2025-11-13</lastmod>
     </url>
     <url>
+         <loc>http://code.deepsynoptic.org/dsa110-contimg/how-to/agentic-session-setup/</loc>
+         <lastmod>2025-11-13</lastmod>
+    </url>
+    <url>
+         <loc>http://code.deepsynoptic.org/dsa110-contimg/how-to/auto-error-detection-non-interactive/</loc>
+         <lastmod>2025-11-13</lastmod>
+    </url>
+    <url>
+         <loc>http://code.deepsynoptic.org/dsa110-contimg/how-to/bash-shell-sourcing-behavior/</loc>
+         <lastmod>2025-11-13</lastmod>
+    </url>
+    <url>
          <loc>http://code.deepsynoptic.org/dsa110-contimg/how-to/build-first-rax-catalogs/</loc>
          <lastmod>2025-11-13</lastmod>
     </url>
     <url>
          <loc>http://code.deepsynoptic.org/dsa110-contimg/how-to/build-vp-from-h5/</loc>
+         <lastmod>2025-11-13</lastmod>
+    </url>
+    <url>
+         <loc>http://code.deepsynoptic.org/dsa110-contimg/how-to/command-chains-with-error-detection/</loc>
          <lastmod>2025-11-13</lastmod>
     </url>
     <url>
@@ -1465,7 +1557,19 @@
          <lastmod>2025-11-13</lastmod>
     </url>
     <url>
+         <loc>http://code.deepsynoptic.org/dsa110-contimg/how-to/deterministic-error-detection/</loc>
+         <lastmod>2025-11-13</lastmod>
+    </url>
+    <url>
          <loc>http://code.deepsynoptic.org/dsa110-contimg/how-to/downsampling_guide/</loc>
+         <lastmod>2025-11-13</lastmod>
+    </url>
+    <url>
+         <loc>http://code.deepsynoptic.org/dsa110-contimg/how-to/enable-auto-error-detection/</loc>
+         <lastmod>2025-11-13</lastmod>
+    </url>
+    <url>
+         <loc>http://code.deepsynoptic.org/dsa110-contimg/how-to/ese_detection_advanced_features/</loc>
          <lastmod>2025-11-13</lastmod>
     </url>
     <url>
@@ -1477,11 +1581,19 @@
          <lastmod>2025-11-13</lastmod>
     </url>
     <url>
+         <loc>http://code.deepsynoptic.org/dsa110-contimg/how-to/full-path-commands-error-detection/</loc>
+         <lastmod>2025-11-13</lastmod>
+    </url>
+    <url>
          <loc>http://code.deepsynoptic.org/dsa110-contimg/how-to/github_pages_troubleshooting/</loc>
          <lastmod>2025-11-13</lastmod>
     </url>
     <url>
          <loc>http://code.deepsynoptic.org/dsa110-contimg/how-to/github_pages_walkthrough/</loc>
+         <lastmod>2025-11-13</lastmod>
+    </url>
+    <url>
+         <loc>http://code.deepsynoptic.org/dsa110-contimg/how-to/immediate-error-termination/</loc>
          <lastmod>2025-11-13</lastmod>
     </url>
     <url>
@@ -1506,6 +1618,10 @@
     </url>
     <url>
          <loc>http://code.deepsynoptic.org/dsa110-contimg/how-to/ms_organization/</loc>
+         <lastmod>2025-11-13</lastmod>
+    </url>
+    <url>
+         <loc>http://code.deepsynoptic.org/dsa110-contimg/how-to/output-handling-validation/</loc>
          <lastmod>2025-11-13</lastmod>
     </url>
     <url>
@@ -1557,6 +1673,14 @@
          <lastmod>2025-11-13</lastmod>
     </url>
     <url>
+         <loc>http://code.deepsynoptic.org/dsa110-contimg/how-to/system-wide-error-detection-setup/</loc>
+         <lastmod>2025-11-13</lastmod>
+    </url>
+    <url>
+         <loc>http://code.deepsynoptic.org/dsa110-contimg/how-to/system-wide-error-detection-verification/</loc>
+         <lastmod>2025-11-13</lastmod>
+    </url>
+    <url>
          <loc>http://code.deepsynoptic.org/dsa110-contimg/how-to/testing/</loc>
          <lastmod>2025-11-13</lastmod>
     </url>
@@ -1569,11 +1693,23 @@
          <lastmod>2025-11-13</lastmod>
     </url>
     <url>
+         <loc>http://code.deepsynoptic.org/dsa110-contimg/how-to/truly-automatic-error-detection/</loc>
+         <lastmod>2025-11-13</lastmod>
+    </url>
+    <url>
          <loc>http://code.deepsynoptic.org/dsa110-contimg/how-to/uvh5_to_ms_conversion/</loc>
          <lastmod>2025-11-13</lastmod>
     </url>
     <url>
          <loc>http://code.deepsynoptic.org/dsa110-contimg/how-to/validation_guide/</loc>
+         <lastmod>2025-11-13</lastmod>
+    </url>
+    <url>
+         <loc>http://code.deepsynoptic.org/dsa110-contimg/how-to/verify-auto-error-detection/</loc>
+         <lastmod>2025-11-13</lastmod>
+    </url>
+    <url>
+         <loc>http://code.deepsynoptic.org/dsa110-contimg/how-to/warning-detection/</loc>
          <lastmod>2025-11-13</lastmod>
     </url>
     <url>
