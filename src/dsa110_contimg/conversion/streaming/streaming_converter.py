@@ -67,6 +67,10 @@ from dsa110_contimg.calibration.calibration import (  # noqa
     solve_delay,
     solve_gains,
 )
+from dsa110_contimg.calibration.streaming import (  # noqa
+    has_calibrator,
+    solve_calibration_for_ms,
+)
 from dsa110_contimg.database.products import (  # noqa
     ensure_products_db,
     images_insert,
@@ -75,6 +79,9 @@ from dsa110_contimg.database.products import (  # noqa
 )
 from dsa110_contimg.database.registry import ensure_db as ensure_cal_db  # noqa
 from dsa110_contimg.imaging.cli import image_ms  # noqa
+from dsa110_contimg.photometry.helpers import (  # noqa
+    query_sources_for_fits,
+)
 from dsa110_contimg.utils.ms_organization import (  # noqa
     create_path_mapper,
     determine_ms_type,
@@ -651,6 +658,204 @@ class _FSHandler(FileSystemEventHandler):
         self._maybe_record(event.dest_path)
 
 
+def check_for_complete_group(
+    ms_path: str, products_db_path: Path, time_window_minutes: float = 25.0
+) -> Optional[List[str]]:
+    """Check if a complete group (10 MS files) exists within time window.
+
+    Args:
+        ms_path: Path to MS file that was just imaged
+        products_db_path: Path to products database
+        time_window_minutes: Time window in minutes (±window/2 around MS mid_mjd)
+
+    Returns:
+        List of MS paths in complete group, or None if group incomplete
+    """
+    import sqlite3
+
+    conn = sqlite3.connect(str(products_db_path))
+
+    try:
+        # Get mid_mjd for this MS
+        cursor = conn.execute(
+            "SELECT mid_mjd FROM ms_index WHERE path = ?", (ms_path,)
+        )
+        row = cursor.fetchone()
+        if not row or row[0] is None:
+            return None
+
+        mid_mjd = row[0]
+        window_half_days = time_window_minutes / (2 * 24 * 60)
+
+        # Query for MS files in same time window that are imaged
+        cursor = conn.execute(
+            """
+            SELECT path FROM ms_index
+            WHERE mid_mjd BETWEEN ? AND ?
+            AND stage = 'imaged'
+            AND status = 'done'
+            ORDER BY mid_mjd
+            """,
+            (mid_mjd - window_half_days, mid_mjd + window_half_days),
+        )
+
+        ms_paths = [row[0] for row in cursor.fetchall()]
+
+        # Check if we have a complete group (10 MS files = 50 minutes)
+        if len(ms_paths) >= 10:
+            return ms_paths[:10]  # Return first 10 for consistent group size
+        return None
+    finally:
+        conn.close()
+
+
+def trigger_photometry_for_image(
+    image_path: Path,
+    group_id: str,
+    args: argparse.Namespace,
+    products_db_path: Optional[Path] = None,
+) -> Optional[int]:
+    """Trigger photometry measurement for a newly imaged FITS file.
+
+    Args:
+        image_path: Path to FITS image file
+        group_id: Group ID for tracking
+        args: Command-line arguments with photometry configuration
+        products_db_path: Path to products database (optional)
+
+    Returns:
+        Batch job ID if successful, None otherwise
+    """
+    log = logging.getLogger("stream.photometry")
+
+    if not image_path.exists():
+        log.warning(f"FITS image not found: {image_path}")
+        return None
+
+    try:
+        from dsa110_contimg.api.batch_jobs import create_batch_photometry_job
+        from dsa110_contimg.database.products import ensure_products_db
+
+        # Query sources for the image field
+        sources = query_sources_for_fits(
+            image_path,
+            catalog=getattr(args, "photometry_catalog", "nvss"),
+            radius_deg=getattr(args, "photometry_radius", 0.5),
+            max_sources=getattr(args, "photometry_max_sources", None),
+        )
+
+        if not sources:
+            log.info(f"No sources found for photometry in {image_path}")
+            return None
+
+        # Extract coordinates from sources
+        coordinates = [
+            {"ra_deg": float(src.get("ra", src.get("ra_deg", 0.0))), "dec_deg": float(src.get("dec", src.get("dec_deg", 0.0)))}
+            for src in sources
+        ]
+
+        log.info(
+            f"Found {len(coordinates)} sources for photometry in {image_path.name}"
+        )
+
+        # Prepare batch job parameters
+        params = {
+            "method": "peak",
+            "normalize": getattr(args, "photometry_normalize", False),
+        }
+
+        # Get products DB connection
+        if products_db_path is None:
+            products_db_path = Path(
+                os.getenv("PIPELINE_PRODUCTS_DB", "state/products.sqlite3")
+            )
+        conn = ensure_products_db(products_db_path)
+
+        # Generate data_id from image path (stem without extension)
+        image_data_id = image_path.stem
+
+        # Create batch photometry job
+        batch_job_id = create_batch_photometry_job(
+            conn=conn,
+            job_type="batch_photometry",
+            fits_paths=[str(image_path)],
+            coordinates=coordinates,
+            params=params,
+            data_id=image_data_id,
+        )
+
+        log.info(f"Created photometry batch job {batch_job_id} for {image_path.name}")
+        return batch_job_id
+
+    except Exception as e:
+        log.error(
+            f"Failed to trigger photometry for {image_path}: {e}", exc_info=True
+        )
+        return None
+
+
+def trigger_group_mosaic_creation(
+    group_ms_paths: List[str],
+    products_db_path: Path,
+    args: argparse.Namespace,
+) -> Optional[str]:
+    """Trigger mosaic creation for a complete group of MS files.
+
+    Args:
+        group_ms_paths: List of MS file paths in chronological order
+        products_db_path: Path to products database
+        args: Command-line arguments
+
+    Returns:
+        Mosaic path if successful, None otherwise
+    """
+    log = logging.getLogger("stream.mosaic")
+
+    try:
+        from dsa110_contimg.mosaic.orchestrator import MosaicOrchestrator
+
+        # Initialize orchestrator
+        orchestrator = MosaicOrchestrator(products_db_path=products_db_path)
+
+        # Generate group ID from first MS timestamp
+        # Extract timestamp from first MS path
+        first_ms = Path(group_ms_paths[0])
+        # Try to extract timestamp from filename (format: YYYY-MM-DDTHH:MM:SS)
+        import re
+
+        match = re.search(r"(\d{4}-\d{2}-\d{2}[T ]\d{2}:\d{2}:\d{2})", first_ms.name)
+        if match:
+            timestamp_str = match.group(1).replace(" ", "T")
+            group_id = f"mosaic_{timestamp_str.replace(':', '-').replace('.', '-')}"
+        else:
+            # Fallback: use hash of paths
+            import hashlib
+
+            paths_str = "|".join(sorted(group_ms_paths))
+            group_id = f"mosaic_{hashlib.md5(paths_str.encode()).hexdigest()[:8]}"
+
+        log.info(f"Forming mosaic group {group_id} from {len(group_ms_paths)} MS files")
+
+        # Form group
+        if not orchestrator._form_group_from_ms_paths(group_ms_paths, group_id):
+            log.error(f"Failed to form group {group_id}")
+            return None
+
+        # Process group workflow (calibration → imaging → mosaic)
+        mosaic_path = orchestrator._process_group_workflow(group_id)
+
+        if mosaic_path:
+            log.info(f"Mosaic created successfully: {mosaic_path}")
+            return mosaic_path
+        else:
+            log.error(f"Mosaic creation failed for group {group_id}")
+            return None
+
+    except Exception as e:
+        log.exception(f"Failed to trigger mosaic creation: {e}")
+        return None
+
+
 def _worker_loop(args: argparse.Namespace, queue: QueueDB) -> None:
     """Poll for pending groups, convert via orchestrator, and mark complete."""
     log = logging.getLogger("stream.worker")
@@ -675,6 +880,10 @@ def _worker_loop(args: argparse.Namespace, queue: QueueDB) -> None:
                 ms_base_dir, is_calibrator=False, is_failed=False
             )
 
+            # Initialize calibrator status (will be updated if detection enabled)
+            is_calibrator = False
+            is_failed = False
+            
             try:
                 if getattr(args, "use_subprocess", False):
                     # Note: Subprocess mode doesn't support path_mapper yet
@@ -774,6 +983,25 @@ def _worker_loop(args: argparse.Namespace, queue: QueueDB) -> None:
                 if not getattr(args, "use_subprocess", False):
                     # MS was written directly to organized location via path_mapper
                     ms_path = path_mapper(base, args.output_dir)
+                    # Check if this is a calibrator MS (content-based detection)
+                    if getattr(args, "enable_calibration_solving", False):
+                        try:
+                            ms_path_obj = Path(ms_path)
+                            if ms_path_obj.exists():
+                                # First try path-based detection
+                                is_calibrator, is_failed = determine_ms_type(ms_path_obj)
+                                # If not detected, try content-based detection
+                                if not is_calibrator:
+                                    is_calibrator = has_calibrator(str(ms_path_obj))
+                                    if is_calibrator:
+                                        log.info(
+                                            f"Detected calibrator in MS content: {ms_path_obj.name}"
+                                        )
+                        except Exception as e:
+                            log.debug(
+                                f"Calibrator detection failed for {ms_path}: {e}",
+                                exc_info=True,
+                            )
                 else:
                     # Subprocess mode: compute organized path and move if needed
                     ms_path_flat = os.path.join(args.output_dir, base + ".ms")
@@ -782,7 +1010,23 @@ def _worker_loop(args: argparse.Namespace, queue: QueueDB) -> None:
 
                     # Determine MS type and organize
                     try:
+                        # First try path-based detection (fast)
                         is_calibrator, is_failed = determine_ms_type(ms_path_obj)
+                        
+                        # If not detected as calibrator by path, try content-based detection
+                        if not is_calibrator and getattr(args, "enable_calibration_solving", False):
+                            try:
+                                is_calibrator = has_calibrator(str(ms_path_obj))
+                                if is_calibrator:
+                                    log.info(
+                                        f"Detected calibrator in MS content: {ms_path_obj.name}"
+                                    )
+                            except Exception as e:
+                                log.debug(
+                                    f"Calibrator detection failed for {ms_path_obj}: {e}",
+                                    exc_info=True,
+                                )
+                        
                         organized_path = organize_ms_file(
                             ms_path_obj,
                             ms_base_dir,
@@ -800,6 +1044,8 @@ def _worker_loop(args: argparse.Namespace, queue: QueueDB) -> None:
                             exc_info=True,
                         )
                         ms_path = ms_path_flat
+                        is_calibrator = False
+                        is_failed = False
             except Exception as exc:
                 log.error("Failed to locate MS for %s: %s", gid, exc)
                 queue.update_state(gid, "completed")
@@ -846,6 +1092,57 @@ def _worker_loop(args: argparse.Namespace, queue: QueueDB) -> None:
                 conn.commit()
             except Exception:
                 log.debug("ms_index conversion upsert failed", exc_info=True)
+
+            # Solve calibration if this is a calibrator MS (before applying to science MS)
+            cal_solved = 0
+            if is_calibrator and getattr(args, "enable_calibration_solving", False):
+                try:
+                    log.info(f"Solving calibration for calibrator MS: {ms_path}")
+                    success, error_msg = solve_calibration_for_ms(ms_path, do_k=False)
+                    if success:
+                        cal_solved = 1
+                        # Register calibration tables in registry
+                        try:
+                            # Extract calibration table prefix (MS path without .ms extension)
+                            cal_prefix = Path(ms_path).with_suffix("")
+                            register_set_from_prefix(
+                                Path(args.registry_db),
+                                set_name=f"cal_{gid}",
+                                prefix=cal_prefix,
+                                cal_field=None,  # Auto-detected during solve
+                                refant=None,  # Auto-detected during solve
+                                valid_start_mjd=mid_mjd,
+                                valid_end_mjd=None,  # No end time limit
+                            )
+                            log.info(
+                                f"Registered calibration tables for {ms_path} "
+                                f"in registry (set_name=cal_{gid})"
+                            )
+                        except Exception as e:
+                            log.warning(
+                                f"Failed to register calibration tables: {e}",
+                                exc_info=True,
+                            )
+                    else:
+                        log.error(
+                            f"Calibration solve failed for {ms_path}: {error_msg}"
+                        )
+                except Exception as e:
+                    log.warning(
+                        f"Calibration solve exception for {ms_path}: {e}",
+                        exc_info=True,
+                    )
+
+            # Update ingest_queue with calibrator status
+            try:
+                conn_queue = queue.conn
+                conn_queue.execute(
+                    "UPDATE ingest_queue SET has_calibrator = ? WHERE group_id = ?",
+                    (1 if is_calibrator else 0, gid),
+                )
+                conn_queue.commit()
+            except Exception as e:
+                log.debug(f"Failed to update has_calibrator in ingest_queue: {e}")
 
             # Apply calibration from registry if available, then image (development tier)
             try:
@@ -977,6 +1274,143 @@ def _worker_loop(args: argparse.Namespace, queue: QueueDB) -> None:
                         if os.path.isdir(p) or os.path.isfile(p):
                             images_insert(conn, p, ms_path, now_ts, "5min", pbcor)
                     conn.commit()
+
+                    # Trigger photometry if enabled
+                    if getattr(args, "enable_photometry", False):
+                        try:
+                            # Use PB-corrected FITS if available, otherwise regular FITS
+                            pbcor_fits = f"{imgroot}.pbcor.fits"
+                            fits_image = (
+                                pbcor_fits
+                                if Path(pbcor_fits).exists()
+                                else f"{imgroot}.fits"
+                            )
+
+                            if Path(fits_image).exists():
+                                log.info(
+                                    f"Triggering photometry for {Path(fits_image).name}"
+                                )
+                                products_db_path = Path(
+                                    os.getenv(
+                                        "PIPELINE_PRODUCTS_DB", "state/products.sqlite3"
+                                    )
+                                )
+                                photometry_job_id = trigger_photometry_for_image(
+                                    image_path=Path(fits_image),
+                                    group_id=gid,
+                                    args=args,
+                                    products_db_path=products_db_path,
+                                )
+                                if photometry_job_id:
+                                    log.info(
+                                        f"Photometry job {photometry_job_id} created for {Path(fits_image).name}"
+                                    )
+                                    # Link photometry job to data registry if possible
+                                    try:
+                                        from dsa110_contimg.database.data_registry import (
+                                            ensure_data_registry_db,
+                                            link_photometry_to_data,
+                                        )
+
+                                        registry_db_path = Path(
+                                            os.getenv(
+                                                "DATA_REGISTRY_DB",
+                                                str(products_db_path.parent / "data_registry.sqlite3"),
+                                            )
+                                        )
+                                        registry_conn = ensure_data_registry_db(registry_db_path)
+                                        # Generate data_id from image path (stem without extension)
+                                        image_data_id = Path(fits_image).stem
+                                        if link_photometry_to_data(
+                                            registry_conn, image_data_id, str(photometry_job_id)
+                                        ):
+                                            log.debug(
+                                                f"Linked photometry job {photometry_job_id} to data_id {image_data_id}"
+                                            )
+                                        else:
+                                            log.debug(
+                                                f"Could not link photometry job (data_id {image_data_id} may not exist in registry)"
+                                            )
+                                        registry_conn.close()
+                                    except Exception as e:
+                                        log.debug(
+                                            f"Failed to link photometry to data registry (non-fatal): {e}"
+                                        )
+                                else:
+                                    log.warning(
+                                        f"No photometry job created for {Path(fits_image).name}"
+                                    )
+                            else:
+                                log.debug(
+                                    f"Photometry skipped: FITS image not found ({fits_image})"
+                                )
+                        except Exception as e:
+                            log.warning(
+                                f"Photometry trigger failed (non-fatal): {e}", exc_info=True
+                            )
+
+                    # Check for complete group and trigger mosaic creation if enabled
+                    if getattr(args, "enable_group_imaging", False):
+                        try:
+                            products_db_path = os.getenv(
+                                "PIPELINE_PRODUCTS_DB", "state/products.sqlite3"
+                            )
+                            group_ms_paths = check_for_complete_group(
+                                ms_path, Path(products_db_path)
+                            )
+
+                            if group_ms_paths:
+                                log.info(
+                                    f"Complete group detected: {len(group_ms_paths)} MS files"
+                                )
+                                if getattr(args, "enable_mosaic_creation", False):
+                                    mosaic_path = trigger_group_mosaic_creation(
+                                        group_ms_paths,
+                                        Path(products_db_path),
+                                        args,
+                                    )
+                                    if mosaic_path:
+                                        # Trigger QA and publishing if enabled
+                                        if getattr(args, "enable_auto_qa", False):
+                                            try:
+                                                from dsa110_contimg.database.data_registry import (
+                                                    ensure_data_registry_db,
+                                                    finalize_data,
+                                                    trigger_auto_publish,
+                                                )
+
+                                                registry_conn = ensure_data_registry_db(
+                                                    Path(products_db_path)
+                                                )
+                                                # Register mosaic in data registry
+                                                mosaic_id = Path(mosaic_path).stem
+                                                finalize_data(
+                                                    registry_conn,
+                                                    data_type="mosaic",
+                                                    data_id=mosaic_id,
+                                                    stage_path=mosaic_path,
+                                                    auto_publish=getattr(
+                                                        args, "enable_auto_publish", False
+                                                    ),
+                                                )
+                                                registry_conn.close()
+                                                log.info(
+                                                    f"Mosaic {mosaic_id} registered and QA triggered"
+                                                )
+                                            except Exception as e:
+                                                log.warning(
+                                                    f"Failed to trigger QA/publishing for mosaic: {e}",
+                                                    exc_info=True,
+                                                )
+                                else:
+                                    log.debug(
+                                        "Group imaging enabled but mosaic creation disabled"
+                                    )
+                        except Exception as e:
+                            log.debug(
+                                f"Group detection/mosaic creation check failed: {e}",
+                                exc_info=True,
+                            )
                 except Exception:
                     log.debug("products DB update failed", exc_info=True)
             except Exception:
@@ -1064,6 +1498,59 @@ def build_parser() -> argparse.ArgumentParser:
     p.add_argument("--poll-interval", type=float, default=5.0)
     p.add_argument("--worker-poll-interval", type=float, default=5.0)
     p.add_argument("--max-workers", type=int, default=4)
+    p.add_argument(
+        "--enable-calibration-solving",
+        action="store_true",
+        help="Enable automatic calibration solving for calibrator MS files",
+    )
+    p.add_argument(
+        "--enable-group-imaging",
+        action="store_true",
+        help="Enable group detection and coordinated imaging after individual MS imaging",
+    )
+    p.add_argument(
+        "--enable-mosaic-creation",
+        action="store_true",
+        help="Enable automatic mosaic creation when complete group detected",
+    )
+    p.add_argument(
+        "--enable-auto-qa",
+        action="store_true",
+        help="Enable automatic QA validation after mosaic creation",
+    )
+    p.add_argument(
+        "--enable-auto-publish",
+        action="store_true",
+        help="Enable automatic publishing after QA passes",
+    )
+    p.add_argument(
+        "--enable-photometry",
+        action="store_true",
+        help="Enable automatic photometry measurement after imaging",
+    )
+    p.add_argument(
+        "--photometry-catalog",
+        default="nvss",
+        choices=["nvss", "first", "rax", "vlass", "master"],
+        help="Catalog to use for source queries (default: nvss)",
+    )
+    p.add_argument(
+        "--photometry-radius",
+        type=float,
+        default=0.5,
+        help="Search radius in degrees for source queries (default: 0.5)",
+    )
+    p.add_argument(
+        "--photometry-normalize",
+        action="store_true",
+        help="Enable photometry normalization",
+    )
+    p.add_argument(
+        "--photometry-max-sources",
+        type=int,
+        default=None,
+        help="Maximum number of sources to measure (default: no limit)",
+    )
     p.add_argument("--stage-to-tmpfs", action="store_true")
     p.add_argument("--tmpfs-path", default="/dev/shm")
     return p

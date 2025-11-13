@@ -1,7 +1,8 @@
 import fnmatch
+import json
 import logging
 import os
-from typing import List, Optional, Union
+from typing import Any, Dict, List, Optional, Union
 
 from casatasks import gaincal as casa_gaincal  # type: ignore[import]
 
@@ -47,6 +48,216 @@ def _get_caltable_spw_count(caltable_path: str) -> Optional[int]:
             return len(np.unique(spw_ids))
     except Exception:
         return None
+
+
+def _get_casa_version() -> Optional[str]:
+    """Get CASA version string.
+    
+    Returns:
+        CASA version string (e.g., "6.7.2"), or None if unavailable
+    """
+    try:
+        import casatools  # type: ignore[import]
+        
+        # Try to get version from casatools
+        if hasattr(casatools, "version"):
+            version = casatools.version()
+            # Handle both string and list/tuple formats
+            if isinstance(version, str):
+                return version
+            elif isinstance(version, (list, tuple)):
+                # Convert list/tuple to string (e.g., [6, 7, 2] -> "6.7.2")
+                return ".".join(str(v) for v in version)
+            else:
+                return str(version)
+        
+        # Fallback: try casatasks
+        try:
+            import casatasks  # type: ignore[import]
+            if hasattr(casatasks, "version"):
+                version = casatasks.version()
+                if isinstance(version, str):
+                    return version
+                elif isinstance(version, (list, tuple)):
+                    return ".".join(str(v) for v in version)
+                else:
+                    return str(version)
+        except Exception:
+            pass
+        
+        # Fallback: try environment variable
+        casa_version = os.environ.get("CASA_VERSION")
+        if casa_version:
+            return casa_version
+            
+        return None
+    except Exception:
+        return None
+
+
+def _build_command_string(
+    task_name: str, kwargs: Dict[str, Any]
+) -> str:
+    """Build a human-readable command string from task name and kwargs.
+    
+    Args:
+        task_name: CASA task name (e.g., "gaincal", "bandpass")
+        kwargs: Dictionary of task parameters
+        
+    Returns:
+        Formatted command string
+    """
+    # Filter out None values and format
+    filtered_kwargs = {k: v for k, v in kwargs.items() if v is not None}
+    
+    # Format parameters
+    params = []
+    for key, value in sorted(filtered_kwargs.items()):
+        if isinstance(value, str):
+            params.append(f"{key}='{value}'")
+        elif isinstance(value, (list, tuple)):
+            params.append(f"{key}={list(value)}")
+        else:
+            params.append(f"{key}={value}")
+    
+    return f"{task_name}({', '.join(params)})"
+
+
+def _extract_quality_metrics(
+    caltable_path: str,
+) -> Optional[Dict[str, Any]]:
+    """Extract quality metrics from a calibration table.
+    
+    Args:
+        caltable_path: Path to calibration table
+        
+    Returns:
+        Dictionary with quality metrics (SNR, flagged_fraction, etc.), or None
+    """
+    import numpy as np  # type: ignore[import]
+
+    try:
+        with table(caltable_path, readonly=True) as tb:
+            metrics: Dict[str, Any] = {}
+            
+            # Number of solutions
+            nrows = tb.nrows()
+            metrics["n_solutions"] = nrows
+            
+            if nrows == 0:
+                return metrics
+            
+            # Check for FLAG column
+            if "FLAG" in tb.colnames():
+                flags = tb.getcol("FLAG")
+                if flags.size > 0:
+                    flagged_count = np.sum(flags)
+                    total_count = flags.size
+                    metrics["flagged_fraction"] = float(flagged_count / total_count)
+            
+            # Check for SNR column
+            if "SNR" in tb.colnames():
+                snr = tb.getcol("SNR")
+                if snr.size > 0:
+                    snr_flat = snr.flatten()
+                    snr_valid = snr_flat[~np.isnan(snr_flat)]
+                    if len(snr_valid) > 0:
+                        metrics["snr_mean"] = float(np.mean(snr_valid))
+                        metrics["snr_median"] = float(np.median(snr_valid))
+                        metrics["snr_min"] = float(np.min(snr_valid))
+                        metrics["snr_max"] = float(np.max(snr_valid))
+            
+            # Number of antennas
+            if "ANTENNA1" in tb.colnames():
+                ant1 = tb.getcol("ANTENNA1")
+                unique_ants = np.unique(ant1)
+                metrics["n_antennas"] = len(unique_ants)
+            
+            # Number of spectral windows
+            if "SPECTRAL_WINDOW_ID" in tb.colnames():
+                spw_ids = tb.getcol("SPECTRAL_WINDOW_ID")
+                unique_spws = np.unique(spw_ids)
+                metrics["n_spws"] = len(unique_spws)
+            
+            return metrics if metrics else None
+            
+    except Exception as e:
+        logger.warning(
+            f"Failed to extract quality metrics from {caltable_path}: {e}"
+        )
+        return None
+
+
+def _track_calibration_provenance(
+    ms_path: str,
+    caltable_path: str,
+    task_name: str,
+    params: Dict[str, Any],
+    registry_db: Optional[str] = None,
+) -> None:
+    """Track calibration provenance after successful solve.
+    
+    This function captures and stores provenance information (source MS,
+    solver command, version, parameters, quality metrics) for a calibration table.
+    
+    Args:
+        ms_path: Path to the input MS that generated this caltable
+        caltable_path: Path to the calibration table
+        task_name: CASA task name used (e.g., "gaincal", "bandpass")
+        params: Dictionary of all calibration parameters used
+        registry_db: Optional path to registry database (if None, uses default)
+    """
+    try:
+        from pathlib import Path as PathLib
+        
+        from dsa110_contimg.database.provenance import track_calibration_provenance
+        
+        # Get CASA version
+        casa_version = _get_casa_version()
+        
+        # Build command string
+        command_str = _build_command_string(task_name, params)
+        
+        # Extract quality metrics
+        quality_metrics = _extract_quality_metrics(caltable_path)
+        
+        # Determine registry DB path
+        if registry_db is None:
+            # Use default registry path logic
+            registry_db_path = PathLib(
+                os.environ.get(
+                    "CAL_REGISTRY_DB",
+                    os.path.join(
+                        os.environ.get("PIPELINE_STATE_DIR", "/data/dsa110-contimg/state"),
+                        "cal_registry.sqlite3",
+                    ),
+                )
+            )
+        else:
+            registry_db_path = PathLib(registry_db)
+        
+        # Track provenance
+        track_calibration_provenance(
+            registry_db=registry_db_path,
+            ms_path=ms_path,
+            caltable_path=caltable_path,
+            params=params,
+            metrics=quality_metrics,
+            solver_command=command_str,
+            solver_version=casa_version,
+        )
+        
+        logger.debug(
+            f"Tracked provenance for {caltable_path} "
+            f"(source: {ms_path}, version: {casa_version})"
+        )
+        
+    except Exception as e:
+        # Don't fail calibration if provenance tracking fails
+        logger.warning(
+            f"Failed to track provenance for {caltable_path}: {e}. "
+            f"Calibration succeeded but provenance not recorded."
+        )
 
 
 def _determine_spwmap_for_bptables(
@@ -353,6 +564,13 @@ def solve_delay(
             # This ensures we follow "measure twice, cut once" - verify solutions exist
             # immediately after solve completes, before proceeding.
             _validate_solve_success(f"{table_prefix}_kcal", refant=refant)
+            # Track provenance after successful solve
+            _track_calibration_provenance(
+                ms_path=ms,
+                caltable_path=f"{table_prefix}_kcal",
+                task_name="gaincal",
+                params=kwargs,
+            )
             tables.append(f"{table_prefix}_kcal")
             logger.info(f"✓ Delay solve completed: {table_prefix}_kcal")
         except Exception as e:
@@ -378,6 +596,13 @@ def solve_delay(
                 # This ensures we follow "measure twice, cut once" - verify solutions exist
                 # immediately after solve completes, before proceeding.
                 _validate_solve_success(f"{table_prefix}_kcal", refant=refant)
+                # Track provenance after successful solve
+                _track_calibration_provenance(
+                    ms_path=ms,
+                    caltable_path=f"{table_prefix}_kcal",
+                    task_name="gaincal",
+                    params=kwargs,
+                )
                 tables.append(f"{table_prefix}_kcal")
                 logger.info(f"✓ Delay solve completed (retry): {table_prefix}_kcal")
             except Exception as e2:
@@ -414,6 +639,13 @@ def solve_delay(
             # This ensures we follow "measure twice, cut once" - verify solutions exist
             # immediately after solve completes, before proceeding.
             _validate_solve_success(f"{table_prefix}_2kcal", refant=refant)
+            # Track provenance after successful solve
+            _track_calibration_provenance(
+                ms_path=ms,
+                caltable_path=f"{table_prefix}_2kcal",
+                task_name="gaincal",
+                params=kwargs,
+            )
             tables.append(f"{table_prefix}_2kcal")
             logger.info(f"✓ Fast delay solve completed: {table_prefix}_2kcal")
         except Exception as e:
@@ -630,6 +862,13 @@ def solve_prebandpass_phase(
 
     casa_gaincal(**kwargs)
     _validate_solve_success(caltable_name, refant=refant)
+    # Track provenance after successful solve
+    _track_calibration_provenance(
+        ms_path=ms,
+        caltable_path=caltable_name,
+        task_name="gaincal",
+        params=kwargs,
+    )
     logger.info(f"✓ Pre-bandpass phase-only solve completed: {caltable_name}")
 
     return caltable_name
@@ -864,6 +1103,13 @@ def solve_bandpass(
     # This ensures we follow "measure twice, cut once" - verify solutions exist
     # immediately after solve completes, before proceeding.
     _validate_solve_success(f"{table_prefix}_bpcal", refant=refant)
+    # Track provenance after successful solve
+    _track_calibration_provenance(
+        ms_path=ms,
+        caltable_path=f"{table_prefix}_bpcal",
+        task_name="bandpass",
+        params=kwargs,
+    )
     logger.info(f"✓ Bandpass solve completed: {table_prefix}_bpcal")
 
     # Optional smoothing of bandpass table (post-solve), off by default
@@ -1065,6 +1311,13 @@ def solve_gains(
     # This ensures we follow "measure twice, cut once" - verify solutions exist
     # immediately after solve completes, before proceeding.
     _validate_solve_success(f"{table_prefix}_gpcal", refant=refant)
+    # Track provenance after successful solve
+    _track_calibration_provenance(
+        ms_path=ms,
+        caltable_path=f"{table_prefix}_gpcal",
+        task_name="gaincal",
+        params=kwargs,
+    )
     logger.info(f"✓ Phase-only gain solve completed: {table_prefix}_gpcal")
 
     out = [f"{table_prefix}_gpcal"]
@@ -1099,6 +1352,13 @@ def solve_gains(
         # This ensures we follow "measure twice, cut once" - verify solutions exist
         # immediately after solve completes, before proceeding.
         _validate_solve_success(f"{table_prefix}_2gcal", refant=refant)
+        # Track provenance after successful solve
+        _track_calibration_provenance(
+            ms_path=ms,
+            caltable_path=f"{table_prefix}_2gcal",
+            task_name="gaincal",
+            params=kwargs,
+        )
         logger.info(
             f"✓ Short-timescale phase-only gain solve completed: {table_prefix}_2gcal"
         )

@@ -7,6 +7,7 @@ direct calls to the new pipeline framework stages.
 from __future__ import annotations
 
 import json
+import os
 import time
 from pathlib import Path
 from typing import List
@@ -19,7 +20,8 @@ from dsa110_contimg.database.jobs import (
     get_job,
     update_job_status,
 )
-from dsa110_contimg.database.products import ensure_jobs_table, ensure_products_db
+from dsa110_contimg.database.jobs import ensure_jobs_table
+from dsa110_contimg.database.products import ensure_products_db
 from dsa110_contimg.pipeline.config import PipelineConfig
 from dsa110_contimg.pipeline.context import PipelineContext
 from dsa110_contimg.pipeline.stages_impl import (
@@ -607,5 +609,690 @@ def run_batch_image_job(
             "UPDATE batch_jobs SET status = 'failed' WHERE id = ?", (batch_id,)
         )
         conn.commit()
+    finally:
+        conn.close()
+
+
+def run_batch_convert_job(
+    batch_id: int, time_windows: List[dict], params: dict, products_db: Path
+) -> None:
+    """Process batch conversion job using new pipeline framework.
+
+    Args:
+        batch_id: Batch job ID
+        time_windows: List of time window dicts with "start_time" and "end_time"
+        params: Conversion parameters (shared for all windows)
+        products_db: Path to products database
+    """
+    from dsa110_contimg.api.batch_jobs import update_batch_conversion_item
+
+    conn = ensure_products_db(products_db)
+
+    try:
+        conn.execute(
+            "UPDATE batch_jobs SET status = 'running' WHERE id = ?", (batch_id,)
+        )
+        conn.commit()
+
+        for tw in time_windows:
+            # Check if batch was cancelled
+            cursor = conn.execute(
+                "SELECT status FROM batch_jobs WHERE id = ?", (batch_id,)
+            )
+            batch_status = cursor.fetchone()[0]
+            if batch_status == "cancelled":
+                break
+
+            time_window_id = f"time_window_{tw['start_time']}_{tw['end_time']}"
+            start_time = tw["start_time"]
+            end_time = tw["end_time"]
+
+            try:
+                # Create conversion params for this time window
+                conversion_params = params.copy()
+                conversion_params["start_time"] = start_time
+                conversion_params["end_time"] = end_time
+
+                # Create individual conversion job
+                # Use placeholder ms_path since conversion doesn't have MS yet
+                placeholder_ms_path = f"conversion_{start_time}_{end_time}"
+                individual_job_id = create_job(
+                    conn, "convert", placeholder_ms_path, conversion_params
+                )
+                conn.commit()
+
+                # Update batch item status
+                update_batch_conversion_item(
+                    conn, batch_id, time_window_id, individual_job_id, "running"
+                )
+                conn.commit()
+
+                # Run conversion job using new framework
+                run_convert_job(individual_job_id, conversion_params, products_db)
+
+                # Check job result
+                jd = get_job(conn, individual_job_id)
+                if jd["status"] == "done":
+                    update_batch_conversion_item(
+                        conn, batch_id, time_window_id, individual_job_id, "done"
+                    )
+                else:
+                    update_batch_conversion_item(
+                        conn,
+                        batch_id,
+                        time_window_id,
+                        individual_job_id,
+                        "failed",
+                        error=jd.get("logs", "")[-500:] if jd.get("logs") else "Conversion failed",
+                    )
+                conn.commit()
+
+            except Exception as e:
+                update_batch_conversion_item(
+                    conn, batch_id, time_window_id, None, "failed", error=str(e)
+                )
+                conn.commit()
+
+    except Exception as e:
+        conn = ensure_products_db(products_db)
+        conn.execute(
+            "UPDATE batch_jobs SET status = 'failed' WHERE id = ?", (batch_id,)
+        )
+        conn.commit()
+    finally:
+        conn.close()
+
+
+def run_mosaic_create_job(job_id: int, params: dict, products_db: Path) -> None:
+    """Run mosaic creation job using MosaicOrchestrator.
+
+    Args:
+        job_id: Job ID from database
+        params: Job parameters containing:
+            - calibrator_name: Optional[str] (for calibrator-centered)
+            - start_time: Optional[str] (for time-window)
+            - end_time: Optional[str] (for time-window)
+            - timespan_minutes: int (default: 50)
+            - wait_for_published: bool (default: True)
+        products_db: Path to products database
+    """
+    from dsa110_contimg.mosaic.orchestrator import MosaicOrchestrator
+
+    conn = ensure_products_db(products_db)
+    ensure_jobs_table(conn)
+
+    try:
+        update_job_status(conn, job_id, "running", started_at=time.time())
+        _log_to_db(conn, job_id, "=== Starting Mosaic Creation ===\n")
+
+        # Initialize orchestrator
+        orchestrator = MosaicOrchestrator(products_db_path=products_db)
+
+        calibrator_name = params.get("calibrator_name")
+        start_time = params.get("start_time")
+        end_time = params.get("end_time")
+        timespan_minutes = params.get("timespan_minutes", 50)
+        wait_for_published = params.get("wait_for_published", True)
+
+        # Determine which method to call
+        if calibrator_name:
+            _log_to_db(
+                conn,
+                job_id,
+                f"Creating mosaic centered on calibrator: {calibrator_name}\n",
+            )
+            published_path = orchestrator.create_mosaic_centered_on_calibrator(
+                calibrator_name=calibrator_name,
+                timespan_minutes=timespan_minutes,
+                wait_for_published=wait_for_published,
+            )
+            group_id = f"mosaic_{calibrator_name}"
+        elif start_time and end_time:
+            _log_to_db(
+                conn,
+                job_id,
+                f"Creating mosaic for time window: {start_time} to {end_time}\n",
+            )
+            published_path = orchestrator.create_mosaic_in_time_window(
+                start_time=start_time,
+                end_time=end_time,
+                wait_for_published=wait_for_published,
+            )
+            # Extract group_id from start_time
+            group_id = f"mosaic_{start_time.replace(':', '-').replace('.', '-').replace('T', '_')}"
+        else:
+            raise ValueError(
+                "Either calibrator_name or (start_time and end_time) must be provided"
+            )
+
+        if published_path:
+            artifacts = [published_path]
+            cursor = conn.cursor()
+            cursor.execute(
+                "UPDATE jobs SET artifacts = ?, status = 'done', finished_at = ? WHERE id = ?",
+                (json.dumps(artifacts), time.time(), job_id),
+            )
+            conn.commit()
+            _log_to_db(
+                conn, job_id, f"✓ Mosaic creation complete: {published_path}\n"
+            )
+            # Store group_id in job params for reference
+            params["group_id"] = group_id
+            cursor.execute(
+                "UPDATE jobs SET params = ? WHERE id = ?",
+                (json.dumps(params), job_id),
+            )
+            conn.commit()
+        else:
+            raise RuntimeError("Mosaic creation failed - no path returned")
+
+    except (ValueError, RuntimeError, OSError, FileNotFoundError) as e:
+        logger.exception("Mosaic creation job failed", job_id=job_id, error=str(e))
+        conn = ensure_products_db(products_db)
+        append_job_log(conn, job_id, f"ERROR: {str(e)}\n")
+        update_job_status(conn, job_id, "failed", finished_at=time.time())
+        conn.commit()
+    except Exception as e:
+        logger.exception(
+            "Mosaic creation job failed with unexpected error",
+            job_id=job_id,
+            error=str(e),
+        )
+        conn = ensure_products_db(products_db)
+        append_job_log(conn, job_id, f"ERROR: {str(e)}\n")
+        update_job_status(conn, job_id, "failed", finished_at=time.time())
+        conn.commit()
+    finally:
+        conn.close()
+
+
+def run_batch_publish_job(
+    batch_id: int, data_ids: List[str], params: dict, products_db: Path
+) -> None:
+    """Process batch publish job.
+
+    Args:
+        batch_id: Batch job ID
+        data_ids: List of data instance IDs to publish
+        params: Publish parameters (e.g., products_base)
+        products_db: Path to products database
+    """
+    from dsa110_contimg.api.batch_jobs import update_batch_item
+    from dsa110_contimg.database.data_registry import (
+        ensure_data_registry_db,
+        get_data,
+        publish_data_manual,
+    )
+
+    conn = ensure_products_db(products_db)
+    registry_conn = ensure_data_registry_db(products_db)
+
+    try:
+        conn.execute(
+            "UPDATE batch_jobs SET status = 'running' WHERE id = ?", (batch_id,)
+        )
+        conn.commit()
+
+        products_base = params.get("products_base")
+        if products_base:
+            products_base = Path(products_base)
+
+        for data_id in data_ids:
+            # Check if batch was cancelled
+            cursor = conn.execute(
+                "SELECT status FROM batch_jobs WHERE id = ?", (batch_id,)
+            )
+            batch_status = cursor.fetchone()[0]
+            if batch_status == "cancelled":
+                break
+
+            try:
+                # Update batch item status
+                update_batch_item(conn, batch_id, data_id, None, "running")
+                conn.commit()
+
+                # Publish data
+                success = publish_data_manual(
+                    registry_conn, data_id, products_base=products_base
+                )
+
+                if success:
+                    updated_record = get_data(registry_conn, data_id)
+                    update_batch_item(conn, batch_id, data_id, None, "done")
+                else:
+                    record = get_data(registry_conn, data_id)
+                    error_msg = (
+                        getattr(record, "publish_error", None)
+                        if record
+                        else "Publish failed"
+                    )
+                    update_batch_item(
+                        conn, batch_id, data_id, None, "failed", error=error_msg
+                    )
+                conn.commit()
+
+            except Exception as e:
+                update_batch_item(
+                    conn, batch_id, data_id, None, "failed", error=str(e)
+                )
+                conn.commit()
+
+    except Exception as e:
+        conn = ensure_products_db(products_db)
+        conn.execute(
+            "UPDATE batch_jobs SET status = 'failed' WHERE id = ?", (batch_id,)
+        )
+        conn.commit()
+    finally:
+            conn.close()
+            registry_conn.close()
+
+
+def run_batch_photometry_job(
+    batch_id: int, fits_paths: List[str], coordinates: List[dict], params: dict, products_db: Path
+) -> None:
+    """Process batch photometry job.
+
+    Args:
+        batch_id: Batch job ID
+        fits_paths: List of FITS image paths to process
+        coordinates: List of coordinate dicts with ra_deg and dec_deg
+        params: Photometry parameters (box_size_pix, annulus_pix, use_aegean, normalize)
+        products_db: Path to products database
+    """
+    from dsa110_contimg.api.batch_jobs import update_batch_item
+    from dsa110_contimg.photometry.forced import measure_forced_peak
+    from dsa110_contimg.photometry.normalize import (
+        compute_ensemble_correction,
+        normalize_measurement,
+        query_reference_sources,
+    )
+
+    conn = ensure_products_db(products_db)
+
+    try:
+        conn.execute(
+            "UPDATE batch_jobs SET status = 'running' WHERE id = ?", (batch_id,)
+        )
+        conn.commit()
+
+        master_sources_db = Path(
+            os.getenv("MASTER_SOURCES_DB", str(products_db.parent / "master_sources.sqlite3"))
+        )
+
+        for fits_path in fits_paths:
+            # Check if batch was cancelled
+            cursor = conn.execute(
+                "SELECT status FROM batch_jobs WHERE id = ?", (batch_id,)
+            )
+            batch_status = cursor.fetchone()[0]
+            if batch_status == "cancelled":
+                break
+
+            # Compute normalization correction if needed
+            correction = None
+            if params.get("normalize", False):
+                try:
+                    # Use first coordinate as field center
+                    ra_center = coordinates[0]["ra_deg"]
+                    dec_center = coordinates[0]["dec_deg"]
+                    ref_sources = query_reference_sources(
+                        master_sources_db,
+                        ra_center,
+                        dec_center,
+                        fov_radius_deg=params.get("fov_radius_deg", 1.5),
+                        min_snr=params.get("min_snr", 50.0),
+                        max_sources=params.get("max_sources", 20),
+                    )
+                    if ref_sources:
+                        correction = compute_ensemble_correction(
+                            fits_path,
+                            ref_sources,
+                            box_size_pix=params.get("box_size_pix", 5),
+                            annulus_pix=params.get("annulus_pix", (12, 20)),
+                            max_deviation_sigma=params.get("max_deviation_sigma", 3.0),
+                        )
+                except Exception as e:
+                    structlog.get_logger(__name__).warning(
+                        "Failed to compute normalization correction", error=str(e)
+                    )
+
+            for coord in coordinates:
+                item_id = f"{fits_path}:{coord['ra_deg']}:{coord['dec_deg']}"
+                try:
+                    # Update batch item status
+                    update_batch_item(conn, batch_id, item_id, None, "running")
+                    conn.commit()
+
+                    # Perform photometry measurement
+                    if params.get("use_aegean", False):
+                        from dsa110_contimg.photometry.aegean_fitting import measure_with_aegean
+
+                        res = measure_with_aegean(
+                            fits_path,
+                            coord["ra_deg"],
+                            coord["dec_deg"],
+                            use_prioritized=params.get("aegean_prioritized", False),
+                            negative=params.get("aegean_negative", False),
+                        )
+                        raw_flux = res.peak_flux_jy
+                        raw_error = res.err_peak_flux_jy
+                    else:
+                        res = measure_forced_peak(
+                            fits_path,
+                            coord["ra_deg"],
+                            coord["dec_deg"],
+                            box_size_pix=params.get("box_size_pix", 5),
+                            annulus_pix=params.get("annulus_pix", (12, 20)),
+                            noise_map_path=params.get("noise_map_path"),
+                            background_map_path=params.get("background_map_path"),
+                            nbeam=params.get("nbeam", 3.0),
+                            use_weighted_convolution=params.get("use_weighted_convolution", True),
+                        )
+                        raw_flux = res.peak_jyb
+                        raw_error = res.peak_err_jyb
+
+                    # Apply normalization if requested and correction available
+                    if params.get("normalize", False) and correction:
+                        normalized_flux, normalized_error = normalize_measurement(
+                            raw_flux, raw_error, correction
+                        )
+                    else:
+                        normalized_flux = raw_flux
+                        normalized_error = raw_error
+
+                    # Store results in photometry_timeseries table (if needed)
+                    # This would require additional database functions
+
+                    update_batch_item(conn, batch_id, item_id, None, "done")
+                    conn.commit()
+
+                except Exception as e:
+                    update_batch_item(
+                        conn, batch_id, item_id, None, "failed", error=str(e)
+                    )
+                    conn.commit()
+
+        # Update batch job status
+        cursor = conn.execute(
+            """
+            SELECT COUNT(*) FROM batch_job_items
+            WHERE batch_id = ? AND status = 'done'
+            """,
+            (batch_id,),
+        )
+        completed = cursor.fetchone()[0]
+        cursor = conn.execute(
+            """
+            SELECT COUNT(*) FROM batch_job_items
+            WHERE batch_id = ? AND status = 'failed'
+            """,
+            (batch_id,),
+        )
+        failed = cursor.fetchone()[0]
+
+        if failed == 0:
+            status = "done"
+        elif completed > 0:
+            status = "partial"
+        else:
+            status = "failed"
+
+        conn.execute(
+            """
+            UPDATE batch_jobs
+            SET status = ?, completed_items = ?, failed_items = ?
+            WHERE id = ?
+            """,
+            (status, completed, failed, batch_id),
+        )
+        conn.commit()
+
+        # Update data registry photometry status if data_id is available
+        try:
+            # Get data_id from first batch item (all items should have same data_id)
+            cursor = conn.execute(
+                """
+                SELECT DISTINCT data_id FROM batch_job_items
+                WHERE batch_id = ? AND data_id IS NOT NULL
+                LIMIT 1
+                """,
+                (batch_id,),
+            )
+            row = cursor.fetchone()
+            if row:
+                data_id = row[0]
+                from dsa110_contimg.database.data_registry import (
+                    ensure_data_registry_db,
+                    update_photometry_status,
+                )
+
+                registry_db_path = Path(
+                    os.getenv(
+                        "DATA_REGISTRY_DB",
+                        str(products_db.parent / "data_registry.sqlite3"),
+                    )
+                )
+                registry_conn = ensure_data_registry_db(registry_db_path)
+                # Map batch status to photometry status
+                if status == "done":
+                    photometry_status = "completed"
+                elif status == "failed":
+                    photometry_status = "failed"
+                else:
+                    photometry_status = "running"  # partial or still running
+
+                update_photometry_status(
+                    registry_conn, data_id, photometry_status, str(batch_id)
+                )
+                registry_conn.close()
+        except Exception as e:
+            structlog.get_logger(__name__).debug(
+                f"Failed to update data registry photometry status: {e}"
+            )
+
+    except Exception as e:
+        conn = ensure_products_db(products_db)
+        conn.execute(
+            "UPDATE batch_jobs SET status = 'failed' WHERE id = ?", (batch_id,)
+        )
+        conn.commit()
+        # Update data registry photometry status to failed
+        try:
+            cursor = conn.execute(
+                """
+                SELECT DISTINCT data_id FROM batch_job_items
+                WHERE batch_id = ? AND data_id IS NOT NULL
+                LIMIT 1
+                """,
+                (batch_id,),
+            )
+            row = cursor.fetchone()
+            if row:
+                data_id = row[0]
+                from dsa110_contimg.database.data_registry import (
+                    ensure_data_registry_db,
+                    update_photometry_status,
+                )
+
+                registry_db_path = Path(
+                    os.getenv(
+                        "DATA_REGISTRY_DB",
+                        str(products_db.parent / "data_registry.sqlite3"),
+                    )
+                )
+                registry_conn = ensure_data_registry_db(registry_db_path)
+                update_photometry_status(
+                    registry_conn, data_id, "failed", str(batch_id)
+                )
+                registry_conn.close()
+        except Exception:
+            pass  # Non-fatal
+    finally:
+        conn.close()
+
+
+def run_ese_detect_job(job_id: int, params: dict, products_db: Path) -> None:
+    """Run ESE detection job.
+
+    Args:
+        job_id: Job ID from database
+        params: ESE detection parameters (min_sigma, source_id, recompute)
+        products_db: Path to products database
+    """
+    from dsa110_contimg.photometry.ese_detection import detect_ese_candidates
+
+    conn = ensure_products_db(products_db)
+    ensure_jobs_table(conn)
+
+    try:
+        update_job_status(conn, job_id, "running", started_at=time.time())
+        _log_to_db(conn, job_id, "=== Starting ESE Detection ===\n")
+
+        min_sigma = params.get("min_sigma", 5.0)
+        source_id = params.get("source_id")
+        recompute = params.get("recompute", False)
+
+        _log_to_db(
+            conn,
+            job_id,
+            f"Parameters: min_sigma={min_sigma}, source_id={source_id}, recompute={recompute}\n",
+        )
+
+        candidates = detect_ese_candidates(
+            products_db=products_db,
+            min_sigma=min_sigma,
+            source_id=source_id,
+            recompute=recompute,
+        )
+
+        _log_to_db(
+            conn,
+            job_id,
+            f"Detected {len(candidates)} ESE candidates\n",
+        )
+
+        for cand in candidates:
+            _log_to_db(
+                conn,
+                job_id,
+                f"  - {cand['source_id']}: significance={cand['significance']:.2f}\n",
+            )
+
+        update_job_status(conn, job_id, "done", finished_at=time.time())
+        _log_to_db(conn, job_id, "=== ESE Detection Complete ===\n")
+
+    except Exception as e:
+        error_msg = f"ESE detection failed: {e}"
+        logger.error(error_msg, exc_info=True)
+        _log_to_db(conn, job_id, f"ERROR: {error_msg}\n")
+        update_job_status(conn, job_id, "failed", finished_at=time.time())
+        raise
+    finally:
+        conn.close()
+
+
+def run_batch_ese_detect_job(
+    batch_id: int, params: dict, products_db: Path
+) -> None:
+    """Run batch ESE detection job.
+
+    Args:
+        batch_id: Batch job ID from database
+        params: Batch ESE detection parameters (min_sigma, recompute, source_ids)
+        products_db: Path to products database
+    """
+    from dsa110_contimg.api.batch_jobs import update_batch_item
+    from dsa110_contimg.photometry.ese_detection import detect_ese_candidates
+
+    conn = ensure_products_db(products_db)
+
+    try:
+        # Update batch job status
+        conn.execute(
+            "UPDATE batch_jobs SET status = 'running' WHERE id = ?", (batch_id,)
+        )
+        conn.commit()
+
+        min_sigma = params.get("min_sigma", 5.0)
+        recompute = params.get("recompute", False)
+        source_ids = params.get("source_ids")
+
+        if source_ids:
+            # Process specific source IDs
+            for source_id in source_ids:
+                try:
+                    update_batch_item(conn, batch_id, source_id, None, "running")
+                    candidates = detect_ese_candidates(
+                        products_db=products_db,
+                        min_sigma=min_sigma,
+                        source_id=source_id,
+                        recompute=recompute,
+                    )
+                    update_batch_item(
+                        conn, batch_id, source_id, None, "done"
+                    )
+                except Exception as e:
+                    update_batch_item(
+                        conn, batch_id, source_id, None, "failed", error=str(e)
+                    )
+        else:
+            # Process all sources
+            try:
+                update_batch_item(conn, batch_id, "all_sources", None, "running")
+                candidates = detect_ese_candidates(
+                    products_db=products_db,
+                    min_sigma=min_sigma,
+                    source_id=None,
+                    recompute=recompute,
+                )
+                update_batch_item(conn, batch_id, "all_sources", None, "done")
+            except Exception as e:
+                update_batch_item(
+                    conn, batch_id, "all_sources", None, "failed", error=str(e)
+                )
+
+        # Update batch job status
+        cursor = conn.execute(
+            """
+            SELECT COUNT(*) FROM batch_job_items
+            WHERE batch_id = ? AND status = 'done'
+            """,
+            (batch_id,),
+        )
+        completed = cursor.fetchone()[0]
+        cursor = conn.execute(
+            """
+            SELECT COUNT(*) FROM batch_job_items
+            WHERE batch_id = ? AND status = 'failed'
+            """,
+            (batch_id,),
+        )
+        failed = cursor.fetchone()[0]
+
+        if failed == 0:
+            status = "done"
+        elif completed > 0:
+            status = "partial"
+        else:
+            status = "failed"
+
+        conn.execute(
+            """
+            UPDATE batch_jobs
+            SET status = ?, completed_items = ?, failed_items = ?
+            WHERE id = ?
+            """,
+            (status, completed, failed, batch_id),
+        )
+        conn.commit()
+
+    except Exception as e:
+        conn = ensure_products_db(products_db)
+        conn.execute(
+            "UPDATE batch_jobs SET status = 'failed' WHERE id = ?", (batch_id,)
+        )
+        conn.commit()
+        raise
     finally:
         conn.close()

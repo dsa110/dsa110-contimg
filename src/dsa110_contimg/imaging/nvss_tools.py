@@ -39,15 +39,18 @@ def create_nvss_mask(
     center, radius_deg = image_center_and_radius_deg(hdr)
 
     # Load NVSS catalog and select sources in FoV above threshold
-    from dsa110_contimg.calibration.catalogs import read_nvss_catalog
+    # Use SQLite-first query function (falls back to CSV if needed)
+    from dsa110_contimg.calibration.catalogs import query_nvss_sources
 
-    df = read_nvss_catalog()
-    sc = SkyCoord(df["ra"].values * u.deg, df["dec"].values * u.deg, frame="icrs")
-    sep = sc.separation(center).deg
-    m = (sep <= radius_deg) & (
-        np.asarray(df["flux_20_cm"].values, float) >= float(min_mjy)
+    df = query_nvss_sources(
+        ra_deg=center.ra.deg,
+        dec_deg=center.dec.deg,
+        radius_deg=radius_deg,
+        min_flux_mjy=float(min_mjy),
     )
-    sub = df.loc[m, ["ra", "dec"]].astype(float).to_numpy()
+    # Rename columns to match expected format
+    df = df.rename(columns={"ra_deg": "ra", "dec_deg": "dec"})
+    sub = df[["ra", "dec"]].astype(float).to_numpy()
 
     os.makedirs(os.path.dirname(out_path) or ".", exist_ok=True)
     with open(out_path, "w") as f:
@@ -139,20 +142,20 @@ def create_nvss_fits_mask(
     mask = np.zeros((imsize, imsize), dtype=np.float32)
 
     # Query NVSS sources
-    from dsa110_contimg.calibration.catalogs import read_nvss_catalog
-
-    df = read_nvss_catalog()
-    sc = SkyCoord(df["ra"].values * u.deg, df["dec"].values * u.deg, frame="icrs")
-    center = SkyCoord(ra0_deg * u.deg, dec0_deg * u.deg, frame="icrs")
+    # Use SQLite-first query function (falls back to CSV if needed)
+    from dsa110_contimg.calibration.catalogs import query_nvss_sources
 
     # Calculate FoV radius
     fov_radius_deg = (cell_arcsec * imsize) / 3600.0 / 2.0
-    sep = sc.separation(center).deg
-    flux_mjy = np.asarray(df["flux_20_cm"].values, float)
-
-    # Select sources within FoV and above threshold
-    keep = (sep <= fov_radius_deg) & (flux_mjy >= float(nvss_min_mjy))
-    sources = df.loc[keep]
+    df = query_nvss_sources(
+        ra_deg=ra0_deg,
+        dec_deg=dec0_deg,
+        radius_deg=fov_radius_deg,
+        min_flux_mjy=float(nvss_min_mjy),
+    )
+    # Rename columns to match expected format
+    df = df.rename(columns={"ra_deg": "ra", "dec_deg": "dec", "flux_mjy": "flux_20_cm"})
+    sources = df.copy()
 
     if len(sources) == 0:
         # No sources found, create empty mask
@@ -216,14 +219,18 @@ def create_nvss_overlay(
     radius_deg = 0.5 * max(ra_span, dec_span) * 1.1  # 10% padding
 
     # Load NVSS catalog
-    from dsa110_contimg.calibration.catalogs import read_nvss_catalog
+    # Use SQLite-first query function (falls back to CSV if needed)
+    from dsa110_contimg.calibration.catalogs import query_nvss_sources
 
-    df = read_nvss_catalog()
-    sc = SkyCoord(df["ra"].values * u.deg, df["dec"].values * u.deg, frame="icrs")
-    sep = sc.separation(center).deg
-    flux = np.asarray(df["flux_20_cm"].values, float)
-    m = (sep <= radius_deg) & (flux >= float(min_mjy))
-    sub = df.loc[m].copy()
+    df = query_nvss_sources(
+        ra_deg=center.ra.deg,
+        dec_deg=center.dec.deg,
+        radius_deg=radius_deg,
+        min_flux_mjy=float(min_mjy),
+    )
+    # Rename columns to match expected format
+    df = df.rename(columns={"ra_deg": "ra", "dec_deg": "dec", "flux_mjy": "flux_20_cm"})
+    sub = df.copy()
 
     # Load PB mask if provided
     pb_mask = _load_pb_mask(pb_path, pblimit) if pb_path else None

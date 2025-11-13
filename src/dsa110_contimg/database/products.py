@@ -308,10 +308,20 @@ def get_storage_locations(
             error TEXT,
             started_at REAL,
             completed_at REAL,
+            data_id TEXT DEFAULT NULL,
             FOREIGN KEY (batch_id) REFERENCES batch_jobs(id)
         )
         """
     )
+    # Migrate existing tables to add data_id column if it doesn't exist
+    try:
+        conn.execute("SELECT data_id FROM batch_job_items LIMIT 1")
+    except sqlite3.OperationalError:
+        # Column doesn't exist, add it
+        try:
+            conn.execute("ALTER TABLE batch_job_items ADD COLUMN data_id TEXT DEFAULT NULL")
+        except sqlite3.OperationalError:
+            pass  # Column may already exist from concurrent creation
 
     # Calibration QA metrics table
     conn.execute(

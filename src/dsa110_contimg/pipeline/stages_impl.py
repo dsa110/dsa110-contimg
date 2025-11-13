@@ -2571,7 +2571,6 @@ class AdaptivePhotometryStage(PipelineStage):
 
         table = casatables.table
 
-        from dsa110_contimg.calibration.catalogs import read_nvss_catalog
         from dsa110_contimg.photometry.adaptive_binning import AdaptiveBinningConfig
         from dsa110_contimg.photometry.adaptive_photometry import (
             measure_with_adaptive_binning,
@@ -2723,27 +2722,22 @@ class AdaptivePhotometryStage(PipelineStage):
                     )
                     return []
 
-            # Query NVSS catalog
-            df = read_nvss_catalog()
-            sc = acoords.SkyCoord(
-                df["ra"].to_numpy(),
-                df["dec"].to_numpy(),
-                unit="deg",
-                frame="icrs",
-            )
-            center = acoords.SkyCoord(ra_deg, dec_deg, unit="deg", frame="icrs")
-            sep_deg = sc.separation(center).deg
-            flux_mjy = df["flux_20_cm"].to_numpy()
+            # Query NVSS catalog using optimized SQLite backend (or CSV fallback)
+            from dsa110_contimg.calibration.catalogs import query_nvss_sources
 
-            # Filter: sources within reasonable radius (1 degree), flux >= min_flux_mjy
             max_radius_deg = 1.0
-            keep = (sep_deg <= max_radius_deg) & (
-                flux_mjy >= self.config.photometry.min_flux_mjy
+            df = query_nvss_sources(
+                ra_deg=ra_deg,
+                dec_deg=dec_deg,
+                radius_deg=max_radius_deg,
+                min_flux_mjy=self.config.photometry.min_flux_mjy,
             )
-            ra_sel = df["ra"].to_numpy()[keep]
-            dec_sel = df["dec"].to_numpy()[keep]
 
-            sources = list(zip(ra_sel, dec_sel))
+            # Extract coordinates as list of tuples
+            if len(df) > 0:
+                sources = list(zip(df["ra_deg"].to_numpy(), df["dec_deg"].to_numpy()))
+            else:
+                sources = []
             logger.info(
                 f"Found {len(sources)} NVSS sources in field "
                 f"(center: RA={ra_deg:.6f}, Dec={dec_deg:.6f}, "

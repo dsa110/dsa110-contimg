@@ -34,7 +34,12 @@ __all__ = [
     "identify_duplicate_catalog_sources",
 ]
 
-from .builders import build_first_strip_db, build_nvss_strip_db, build_rax_strip_db
+from .builders import (
+    build_first_strip_db,
+    build_nvss_strip_db,
+    build_rax_strip_db,
+    build_vlass_strip_db,
+)
 from .query import query_sources, resolve_catalog_path
 
 __all__ = [
@@ -43,6 +48,7 @@ __all__ = [
     "build_nvss_strip_db",
     "build_first_strip_db",
     "build_rax_strip_db",
+    "build_vlass_strip_db",
     "simbad_search",
     "ned_search",
     "gaia_search",

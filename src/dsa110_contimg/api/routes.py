@@ -60,8 +60,12 @@ from dsa110_contimg.api.models import (
     AntennaInfo,
     BatchApplyParams,
     BatchCalibrateParams,
+    BatchConversionParams,
     BatchImageParams,
     BatchJob,
+    BatchPhotometryParams,
+    BatchPublishParams,
+    BatchESEDetectParams,
     BatchJobCreateRequest,
     BatchJobList,
     BatchJobStatus,
@@ -73,6 +77,8 @@ from dsa110_contimg.api.models import (
     CalTableList,
     ConversionJobCreateRequest,
     ConversionJobParams,
+    ESEDetectJobCreateRequest,
+    ESEDetectJobParams,
     Detection,
     DetectionList,
     DiskInfo,
@@ -226,12 +232,14 @@ def create_app(config: ApiConfig | None = None) -> FastAPI:
                                 else None
                             ),
                             "disk_free_gb": (
-                                round(system_metrics.disks[0].free / (1024**3), 2)
+                                round(
+                                    system_metrics.disks[0].free / (1024**3), 2)
                                 if system_metrics.disks
                                 else None
                             ),
                             "disk_total_gb": (
-                                round(system_metrics.disks[0].total / (1024**3), 2)
+                                round(
+                                    system_metrics.disks[0].total / (1024**3), 2)
                                 if system_metrics.disks
                                 else None
                             ),
@@ -243,7 +251,8 @@ def create_app(config: ApiConfig | None = None) -> FastAPI:
                     try:
                         from dsa110_contimg.api.data_access import fetch_ese_candidates
 
-                        ese_data = fetch_ese_candidates(cfg.products_db, limit=50)
+                        ese_data = fetch_ese_candidates(
+                            cfg.products_db, limit=50)
                         ese_candidates = {
                             "candidates": [
                                 c.dict() if hasattr(c, "dict") else c for c in ese_data
@@ -317,7 +326,8 @@ def create_app(config: ApiConfig | None = None) -> FastAPI:
                 file_path = js9_files_map["js9Prefs.json"]
                 if file_path.exists():
                     return FileResponse(str(file_path), media_type="application/json")
-                raise HTTPException(status_code=404, detail="js9Prefs.json not found")
+                raise HTTPException(
+                    status_code=404, detail="js9Prefs.json not found")
 
             @app.get("/ui/js9worker.js")
             def serve_js9_worker():
@@ -326,14 +336,16 @@ def create_app(config: ApiConfig | None = None) -> FastAPI:
                     return FileResponse(
                         str(file_path), media_type="application/javascript"
                     )
-                raise HTTPException(status_code=404, detail="js9worker.js not found")
+                raise HTTPException(
+                    status_code=404, detail="js9worker.js not found")
 
             @app.get("/ui/astroemw.wasm")
             def serve_astroemw_wasm():
                 file_path = js9_files_map["astroemw.wasm"]
                 if file_path.exists():
                     return FileResponse(str(file_path), media_type="application/wasm")
-                raise HTTPException(status_code=404, detail="astroemw.wasm not found")
+                raise HTTPException(
+                    status_code=404, detail="astroemw.wasm not found")
 
             @app.get("/ui/astroemw.js")
             def serve_astroemw_js():
@@ -342,7 +354,8 @@ def create_app(config: ApiConfig | None = None) -> FastAPI:
                     return FileResponse(
                         str(file_path), media_type="application/javascript"
                     )
-                raise HTTPException(status_code=404, detail="astroemw.js not found")
+                raise HTTPException(
+                    status_code=404, detail="astroemw.js not found")
 
             # Catch-all for client-side routing - serve index.html for any /ui/* path
             # This must come BEFORE mounts to handle client-side routes
@@ -369,7 +382,8 @@ def create_app(config: ApiConfig | None = None) -> FastAPI:
                 index_path = frontend_dist / "index.html"
                 if index_path.exists():
                     return FileResponse(str(index_path), media_type="text/html")
-                raise HTTPException(status_code=404, detail="Frontend not found")
+                raise HTTPException(
+                    status_code=404, detail="Frontend not found")
 
             # Mount static files for assets and JS9 (these will only match exact paths)
             app.mount(
@@ -502,10 +516,13 @@ def create_app(config: ApiConfig | None = None) -> FastAPI:
                         ra=float(r.get("ra_deg", 0.0)),
                         dec=float(r.get("dec_deg", 0.0)),
                         flux_peak=float(flux_peak) if flux_peak else 0.0,
-                        flux_peak_err=float(flux_peak_err) if flux_peak_err else None,
+                        flux_peak_err=float(
+                            flux_peak_err) if flux_peak_err else None,
                         flux_int=float(flux_int) if flux_int else None,
-                        flux_int_err=float(flux_int_err) if flux_int_err else None,
-                        snr=float(r.get("snr")) if r.get("snr") is not None else None,
+                        flux_int_err=float(
+                            flux_int_err) if flux_int_err else None,
+                        snr=float(r.get("snr")) if r.get(
+                            "snr") is not None else None,
                         forced=forced,
                         frequency=None,  # Would need to extract from image metadata
                         compactness=None,  # Not stored in photometry table
@@ -523,11 +540,13 @@ def create_app(config: ApiConfig | None = None) -> FastAPI:
         profile_type: str = Query(
             ..., description="Profile type: line, polyline, or point"
         ),
-        coordinates: str = Query(..., description="JSON array of coordinate pairs"),
+        coordinates: str = Query(...,
+                                 description="JSON array of coordinate pairs"),
         coordinate_system: str = Query(
             "wcs", description="Coordinate system: wcs or pixel"
         ),
-        width: int = Query(1, description="Width of profile extraction in pixels"),
+        width: int = Query(
+            1, description="Width of profile extraction in pixels"),
         radius: float = Query(
             10.0, description="Radius in arcseconds for point profile"
         ),
@@ -589,7 +608,8 @@ def create_app(config: ApiConfig | None = None) -> FastAPI:
             # Validate coordinate count based on profile type
             if profile_type == "point":
                 if len(coords_list) < 1:
-                    raise ValueError("Point profile requires at least 1 coordinate")
+                    raise ValueError(
+                        "Point profile requires at least 1 coordinate")
             else:
                 if len(coords_list) < 2:
                     raise ValueError(
@@ -658,7 +678,8 @@ def create_app(config: ApiConfig | None = None) -> FastAPI:
                 distance = np.array(profile_data["distance"])
                 flux = np.array(profile_data["flux"])
                 error = (
-                    np.array(profile_data["error"]) if profile_data["error"] else None
+                    np.array(profile_data["error"]
+                             ) if profile_data["error"] else None
                 )
 
                 if fit_model == "gaussian":
@@ -676,7 +697,8 @@ def create_app(config: ApiConfig | None = None) -> FastAPI:
             return profile_data
 
         except Exception as e:
-            logger.error(f"Error extracting profile from image {image_id}: {e}")
+            logger.error(
+                f"Error extracting profile from image {image_id}: {e}")
             raise HTTPException(
                 status_code=500, detail=f"Failed to extract profile: {str(e)}"
             )
@@ -804,7 +826,8 @@ def create_app(config: ApiConfig | None = None) -> FastAPI:
                             )
                             region_mask = None
         except Exception as e:
-            logger.error(f"Error loading FITS file or creating region mask: {e}")
+            logger.error(
+                f"Error loading FITS file or creating region mask: {e}")
             raise HTTPException(
                 status_code=500, detail=f"Failed to process image: {str(e)}"
             )
@@ -840,8 +863,10 @@ def create_app(config: ApiConfig | None = None) -> FastAPI:
 
     @router.get("/regions")
     def get_regions(
-        image_path: Optional[str] = Query(None, description="Filter by image path"),
-        region_type: Optional[str] = Query(None, description="Filter by region type"),
+        image_path: Optional[str] = Query(
+            None, description="Filter by image path"),
+        region_type: Optional[str] = Query(
+            None, description="Filter by region type"),
     ):
         """Get regions for images.
 
@@ -1025,7 +1050,8 @@ def create_app(config: ApiConfig | None = None) -> FastAPI:
             raise HTTPException(status_code=404, detail="Database not found")
 
         with _connect(db_path) as conn:
-            cursor = conn.execute("DELETE FROM regions WHERE id = ?", (region_id,))
+            cursor = conn.execute(
+                "DELETE FROM regions WHERE id = ?", (region_id,))
 
             if cursor.rowcount == 0:
                 raise HTTPException(
@@ -1183,7 +1209,8 @@ def create_app(config: ApiConfig | None = None) -> FastAPI:
 
         # Set y-axis
         ax.set_yticks(range(len(timeline.segments)))
-        ax.set_yticklabels([f"Segment {i+1}" for i in range(len(timeline.segments))])
+        ax.set_yticklabels(
+            [f"Segment {i+1}" for i in range(len(timeline.segments))])
         ax.set_ylim(-0.5, len(timeline.segments) - 0.5)
 
         # Title
@@ -1238,7 +1265,8 @@ def create_app(config: ApiConfig | None = None) -> FastAPI:
     def qa(limit: int = 100) -> QAList:
         # Prefer DB-backed artifacts if available
         artifacts: list[QAArtifact] = []
-        db_path = Path(os.getenv("PIPELINE_PRODUCTS_DB", "state/products.sqlite3"))
+        db_path = Path(os.getenv("PIPELINE_PRODUCTS_DB",
+                       "state/products.sqlite3"))
         try:
             if db_path.exists():
                 with _connect(db_path) as conn:
@@ -1429,7 +1457,8 @@ def create_app(config: ApiConfig | None = None) -> FastAPI:
     @router.get("/qa/thumbs", response_model=QAList)
     def qa_thumbs(limit: int = 100) -> QAList:
         artifacts: list[QAArtifact] = []
-        db_path = Path(os.getenv("PIPELINE_PRODUCTS_DB", "state/products.sqlite3"))
+        db_path = Path(os.getenv("PIPELINE_PRODUCTS_DB",
+                       "state/products.sqlite3"))
         try:
             if db_path.exists():
                 with _connect(db_path) as conn:
@@ -1512,7 +1541,8 @@ def create_app(config: ApiConfig | None = None) -> FastAPI:
                 "SELECT total_time FROM performance_metrics WHERE group_id = ?",
                 (group_id,),
             ).fetchone()
-            perf_total = float(perf[0]) if perf and perf[0] is not None else None
+            perf_total = float(
+                perf[0]) if perf and perf[0] is not None else None
 
         # Parse matches JSON
         import json as _json
@@ -1549,7 +1579,8 @@ def create_app(config: ApiConfig | None = None) -> FastAPI:
         qa_items: list[QAArtifact] = []
         # DB first
         try:
-            pdb = Path(os.getenv("PIPELINE_PRODUCTS_DB", "state/products.sqlite3"))
+            pdb = Path(os.getenv("PIPELINE_PRODUCTS_DB",
+                       "state/products.sqlite3"))
             if pdb.exists():
                 with _connect(pdb) as conn:
                     rows = conn.execute(
@@ -1670,7 +1701,8 @@ def create_app(config: ApiConfig | None = None) -> FastAPI:
     def ms_index(
         stage: str | None = None, status: str | None = None, limit: int = 100
     ) -> MsIndexList:
-        db_path = Path(os.getenv("PIPELINE_PRODUCTS_DB", "state/products.sqlite3"))
+        db_path = Path(os.getenv("PIPELINE_PRODUCTS_DB",
+                       "state/products.sqlite3"))
         items: list[MsIndexEntry] = []
         if not db_path.exists():
             return MsIndexList(items=items)
@@ -1768,8 +1800,10 @@ def create_app(config: ApiConfig | None = None) -> FastAPI:
     )
     def get_ese_candidate_postage_stamps(
         source_id: str,
-        size_arcsec: float = Query(60.0, description="Cutout size in arcseconds"),
-        max_stamps: int = Query(20, description="Maximum number of stamps to return"),
+        size_arcsec: float = Query(
+            60.0, description="Cutout size in arcseconds"),
+        max_stamps: int = Query(
+            20, description="Maximum number of stamps to return"),
     ):
         """Get postage stamp cutouts for an ESE candidate source."""
         # Reuse existing postage stamps endpoint logic
@@ -1791,7 +1825,8 @@ def create_app(config: ApiConfig | None = None) -> FastAPI:
     )
     def get_ese_candidate_external_catalogs(
         source_id: str,
-        radius_arcsec: float = Query(5.0, description="Search radius in arcseconds"),
+        radius_arcsec: float = Query(
+            5.0, description="Search radius in arcseconds"),
         catalogs: Optional[str] = Query(
             None, description="Comma-separated list of catalogs"
         ),
@@ -1821,7 +1856,8 @@ def create_app(config: ApiConfig | None = None) -> FastAPI:
         # Convert flux points to SourceFluxPoint models
         from dsa110_contimg.api.models import SourceFluxPoint
 
-        flux_points = [SourceFluxPoint(**fp) for fp in source_data["flux_points"]]
+        flux_points = [SourceFluxPoint(**fp)
+                       for fp in source_data["flux_points"]]
 
         source = SourceTimeseries(
             source_id=source_data["source_id"],
@@ -1860,7 +1896,8 @@ def create_app(config: ApiConfig | None = None) -> FastAPI:
                 n_epochs=metrics.get("n_epochs", 0),
             )
         except Exception as e:
-            logger.error(f"Error getting variability metrics for {source_id}: {e}")
+            logger.error(
+                f"Error getting variability metrics for {source_id}: {e}")
             raise HTTPException(
                 status_code=404,
                 detail=f"Source {source_id} not found or error calculating metrics: {str(e)}",
@@ -1896,7 +1933,8 @@ def create_app(config: ApiConfig | None = None) -> FastAPI:
 
                 # Regular flux points
                 flux_jy = row.get("peak_jyb", row.get("flux_jy", 0.0))
-                flux_err_jy = row.get("peak_err_jyb", row.get("flux_err_jy", None))
+                flux_err_jy = row.get(
+                    "peak_err_jyb", row.get("flux_err_jy", None))
                 image_path = row.get("image_path", "")
 
                 flux_points.append(
@@ -1904,7 +1942,8 @@ def create_app(config: ApiConfig | None = None) -> FastAPI:
                         mjd=float(mjd),
                         time=time_str,
                         flux_jy=float(flux_jy) if flux_jy else 0.0,
-                        flux_err_jy=float(flux_err_jy) if flux_err_jy else None,
+                        flux_err_jy=float(
+                            flux_err_jy) if flux_err_jy else None,
                         image_id=image_path,
                     )
                 )
@@ -1917,9 +1956,11 @@ def create_app(config: ApiConfig | None = None) -> FastAPI:
                         SourceFluxPoint(
                             mjd=float(mjd),
                             time=time_str,
-                            flux_jy=float(norm_flux_jy) if norm_flux_jy else 0.0,
+                            flux_jy=float(
+                                norm_flux_jy) if norm_flux_jy else 0.0,
                             flux_err_jy=(
-                                float(norm_flux_err_jy) if norm_flux_err_jy else None
+                                float(
+                                    norm_flux_err_jy) if norm_flux_err_jy else None
                             ),
                             image_id=image_path,
                         )
@@ -1949,8 +1990,10 @@ def create_app(config: ApiConfig | None = None) -> FastAPI:
     )
     def get_source_postage_stamps(
         source_id: str,
-        size_arcsec: float = Query(60.0, description="Cutout size in arcseconds"),
-        max_stamps: int = Query(20, description="Maximum number of stamps to return"),
+        size_arcsec: float = Query(
+            60.0, description="Cutout size in arcseconds"),
+        max_stamps: int = Query(
+            20, description="Maximum number of stamps to return"),
     ):
         """Get postage stamp cutouts for a source."""
         from dsa110_contimg.photometry.source import Source
@@ -1972,7 +2015,8 @@ def create_app(config: ApiConfig | None = None) -> FastAPI:
 
             # Get unique image paths
             image_paths = (
-                source.measurements["image_path"].dropna().unique()[:max_stamps]
+                source.measurements["image_path"].dropna().unique()[
+                    :max_stamps]
             )
 
             for image_path in image_paths:
@@ -1999,7 +2043,8 @@ def create_app(config: ApiConfig | None = None) -> FastAPI:
                 try:
                     # Create cutout
                     cutout_path = (
-                        temp_dir / f"{source_id}_{Path(image_path).stem}_cutout.fits"
+                        temp_dir /
+                        f"{source_id}_{Path(image_path).stem}_cutout.fits"
                     )
 
                     # Convert image_path to Path and size_arcsec to size_arcmin
@@ -2030,7 +2075,8 @@ def create_app(config: ApiConfig | None = None) -> FastAPI:
                         )
                     )
                 except Exception as e:
-                    logger.warning(f"Error creating cutout for {image_path}: {e}")
+                    logger.warning(
+                        f"Error creating cutout for {image_path}: {e}")
                     stamps.append(
                         PostageStampInfo(
                             image_path=image_path, mjd=float(mjd), error=str(e)
@@ -2059,7 +2105,8 @@ def create_app(config: ApiConfig | None = None) -> FastAPI:
     )
     def get_source_external_catalogs(
         source_id: str,
-        radius_arcsec: float = Query(5.0, description="Search radius in arcseconds"),
+        radius_arcsec: float = Query(
+            5.0, description="Search radius in arcseconds"),
         catalogs: Optional[str] = Query(
             None,
             description="Comma-separated list of catalogs (simbad,ned,gaia). If None, queries all.",
@@ -2153,7 +2200,8 @@ def create_app(config: ApiConfig | None = None) -> FastAPI:
         except HTTPException:
             raise
         except Exception as e:
-            logger.error(f"Error getting external catalogs for {source_id}: {e}")
+            logger.error(
+                f"Error getting external catalogs for {source_id}: {e}")
             raise HTTPException(
                 status_code=404,
                 detail=f"Source {source_id} not found or error querying catalogs: {str(e)}",
@@ -2197,7 +2245,8 @@ def create_app(config: ApiConfig | None = None) -> FastAPI:
                 if "peak_jyb" in source.measurements.columns:
                     fluxes = source.measurements["peak_jyb"].dropna()
                     if len(fluxes) > 0:
-                        mean_flux = float(fluxes.mean()) / 1000.0  # Convert mJy to Jy
+                        mean_flux = float(fluxes.mean()) / \
+                            1000.0  # Convert mJy to Jy
                         std_flux = float(fluxes.std()) / 1000.0
                 if "snr" in source.measurements.columns:
                     snrs = source.measurements["snr"].dropna()
@@ -2353,7 +2402,8 @@ def create_app(config: ApiConfig | None = None) -> FastAPI:
                     try:
                         with _connect(cfg.products_db) as conn:
                             img_row = conn.execute(
-                                "SELECT id FROM images WHERE path = ?", (image_path,)
+                                "SELECT id FROM images WHERE path = ?", (
+                                    image_path,)
                             ).fetchone()
                             if img_row:
                                 image_id = img_row["id"]
@@ -2382,7 +2432,8 @@ def create_app(config: ApiConfig | None = None) -> FastAPI:
                 if "measured_at" in row and row["measured_at"]:
                     try:
                         if isinstance(row["measured_at"], (int, float)):
-                            measured_at = datetime.fromtimestamp(row["measured_at"])
+                            measured_at = datetime.fromtimestamp(
+                                row["measured_at"])
                         else:
                             measured_at = datetime.fromisoformat(
                                 str(row["measured_at"])
@@ -2399,15 +2450,18 @@ def create_app(config: ApiConfig | None = None) -> FastAPI:
                         ra=float(row.get("ra_deg", 0.0)),
                         dec=float(row.get("dec_deg", 0.0)),
                         flux_peak=float(flux_peak) if flux_peak else 0.0,
-                        flux_peak_err=float(flux_peak_err) if flux_peak_err else None,
+                        flux_peak_err=float(
+                            flux_peak_err) if flux_peak_err else None,
                         flux_int=float(flux_int) if flux_int else None,
-                        flux_int_err=float(flux_int_err) if flux_int_err else None,
+                        flux_int_err=float(
+                            flux_int_err) if flux_int_err else None,
                         snr=(
                             float(row.get("snr"))
                             if "snr" in row and row.get("snr") is not None
                             else None
                         ),
-                        forced=bool(row.get("forced", row.get("is_forced", False))),
+                        forced=bool(
+                            row.get("forced", row.get("is_forced", False))),
                         frequency=None,  # Would need to extract from image metadata
                         mjd=(
                             float(row.get("mjd"))
@@ -2470,15 +2524,19 @@ def create_app(config: ApiConfig | None = None) -> FastAPI:
             ensure_products_db,
         )
 
-        db_path = Path(os.getenv("PIPELINE_PRODUCTS_DB", "state/products.sqlite3"))
+        db_path = Path(os.getenv("PIPELINE_PRODUCTS_DB",
+                       "state/products.sqlite3"))
 
         # Optionally scan filesystem for MS files
         if scan:
             if scan_dir is None:
-                scan_dir = os.getenv("CONTIMG_OUTPUT_DIR", "/stage/dsa110-contimg/ms")
+                scan_dir = os.getenv("CONTIMG_OUTPUT_DIR",
+                                     "/stage/dsa110-contimg/ms")
             try:
-                discovered = discover_ms_files(db_path, scan_dir, recursive=True)
-                logger.info(f"Discovered {len(discovered)} MS files from {scan_dir}")
+                discovered = discover_ms_files(
+                    db_path, scan_dir, recursive=True)
+                logger.info(
+                    f"Discovered {len(discovered)} MS files from {scan_dir}")
             except Exception as e:
                 logger.warning(f"Failed to scan for MS files: {e}")
 
@@ -2509,7 +2567,8 @@ def create_app(config: ApiConfig | None = None) -> FastAPI:
                 if is_calibrated:
                     where_clauses.append("m.cal_applied = 1")
                 else:
-                    where_clauses.append("(m.cal_applied = 0 OR m.cal_applied IS NULL)")
+                    where_clauses.append(
+                        "(m.cal_applied = 0 OR m.cal_applied IS NULL)")
 
             if is_imaged is not None:
                 if is_imaged:
@@ -2517,7 +2576,8 @@ def create_app(config: ApiConfig | None = None) -> FastAPI:
                         "m.imagename IS NOT NULL AND m.imagename != ''"
                     )
                 else:
-                    where_clauses.append("(m.imagename IS NULL OR m.imagename = '')")
+                    where_clauses.append(
+                        "(m.imagename IS NULL OR m.imagename = '')")
 
             if calibrator_quality:
                 where_clauses.append("cm.calibrator_quality = ?")
@@ -2656,7 +2716,8 @@ def create_app(config: ApiConfig | None = None) -> FastAPI:
             ensure_products_db,
         )
 
-        db_path = Path(os.getenv("PIPELINE_PRODUCTS_DB", "state/products.sqlite3"))
+        db_path = Path(os.getenv("PIPELINE_PRODUCTS_DB",
+                       "state/products.sqlite3"))
 
         if request is None:
             request = {}
@@ -2665,10 +2726,12 @@ def create_app(config: ApiConfig | None = None) -> FastAPI:
         recursive = request.get("recursive", True)
 
         if scan_dir is None:
-            scan_dir = os.getenv("CONTIMG_OUTPUT_DIR", "/stage/dsa110-contimg/ms")
+            scan_dir = os.getenv("CONTIMG_OUTPUT_DIR",
+                                 "/stage/dsa110-contimg/ms")
 
         try:
-            discovered = discover_ms_files(db_path, scan_dir, recursive=recursive)
+            discovered = discover_ms_files(
+                db_path, scan_dir, recursive=recursive)
             return {
                 "success": True,
                 "count": len(discovered),
@@ -2677,7 +2740,8 @@ def create_app(config: ApiConfig | None = None) -> FastAPI:
             }
         except Exception as e:
             logger.error(f"Failed to discover MS files: {e}", exc_info=True)
-            raise HTTPException(status_code=500, detail=f"Discovery failed: {str(e)}")
+            raise HTTPException(
+                status_code=500, detail=f"Discovery failed: {str(e)}")
 
     @router.get("/jobs", response_model=JobList)
     def list_jobs(limit: int = 50, status: str | None = None) -> JobList:
@@ -2686,7 +2750,8 @@ def create_app(config: ApiConfig | None = None) -> FastAPI:
         from dsa110_contimg.database.jobs import list_jobs as db_list_jobs
         from dsa110_contimg.database.products import ensure_products_db
 
-        db_path = Path(os.getenv("PIPELINE_PRODUCTS_DB", "state/products.sqlite3"))
+        db_path = Path(os.getenv("PIPELINE_PRODUCTS_DB",
+                       "state/products.sqlite3"))
         conn = ensure_products_db(db_path)
         jobs_data = db_list_jobs(conn, limit=limit, status=status)
         conn.close()
@@ -2725,7 +2790,8 @@ def create_app(config: ApiConfig | None = None) -> FastAPI:
         from dsa110_contimg.database.jobs import get_job as db_get_job
         from dsa110_contimg.database.products import ensure_products_db
 
-        db_path = Path(os.getenv("PIPELINE_PRODUCTS_DB", "state/products.sqlite3"))
+        db_path = Path(os.getenv("PIPELINE_PRODUCTS_DB",
+                       "state/products.sqlite3"))
         conn = ensure_products_db(db_path)
         jd = db_get_job(conn, job_id)
         conn.close()
@@ -2743,10 +2809,12 @@ def create_app(config: ApiConfig | None = None) -> FastAPI:
             artifacts=jd["artifacts"],
             created_at=datetime.fromtimestamp(jd["created_at"]),
             started_at=(
-                datetime.fromtimestamp(jd["started_at"]) if jd["started_at"] else None
+                datetime.fromtimestamp(
+                    jd["started_at"]) if jd["started_at"] else None
             ),
             finished_at=(
-                datetime.fromtimestamp(jd["finished_at"]) if jd["finished_at"] else None
+                datetime.fromtimestamp(
+                    jd["finished_at"]) if jd["finished_at"] else None
             ),
         )
 
@@ -2756,7 +2824,8 @@ def create_app(config: ApiConfig | None = None) -> FastAPI:
         from dsa110_contimg.database.jobs import get_job as db_get_job
         from dsa110_contimg.database.products import ensure_products_db
 
-        db_path = Path(os.getenv("PIPELINE_PRODUCTS_DB", "state/products.sqlite3"))
+        db_path = Path(os.getenv("PIPELINE_PRODUCTS_DB",
+                       "state/products.sqlite3"))
 
         async def event_stream():
             last_pos = 0
@@ -2795,7 +2864,8 @@ def create_app(config: ApiConfig | None = None) -> FastAPI:
         from dsa110_contimg.database.jobs import create_job
         from dsa110_contimg.database.products import ensure_products_db
 
-        db_path = Path(os.getenv("PIPELINE_PRODUCTS_DB", "state/products.sqlite3"))
+        db_path = Path(os.getenv("PIPELINE_PRODUCTS_DB",
+                       "state/products.sqlite3"))
         conn = ensure_products_db(db_path)
 
         job_id = create_job(
@@ -2829,10 +2899,12 @@ def create_app(config: ApiConfig | None = None) -> FastAPI:
             artifacts=jd["artifacts"],
             created_at=datetime.fromtimestamp(jd["created_at"]),
             started_at=(
-                datetime.fromtimestamp(jd["started_at"]) if jd["started_at"] else None
+                datetime.fromtimestamp(
+                    jd["started_at"]) if jd["started_at"] else None
             ),
             finished_at=(
-                datetime.fromtimestamp(jd["finished_at"]) if jd["finished_at"] else None
+                datetime.fromtimestamp(
+                    jd["finished_at"]) if jd["finished_at"] else None
             ),
         )
 
@@ -2846,10 +2918,12 @@ def create_app(config: ApiConfig | None = None) -> FastAPI:
         from dsa110_contimg.database.jobs import create_job
         from dsa110_contimg.database.products import ensure_products_db
 
-        db_path = Path(os.getenv("PIPELINE_PRODUCTS_DB", "state/products.sqlite3"))
+        db_path = Path(os.getenv("PIPELINE_PRODUCTS_DB",
+                       "state/products.sqlite3"))
         conn = ensure_products_db(db_path)
 
-        job_id = create_job(conn, "apply", request.ms_path, request.params.model_dump())
+        job_id = create_job(conn, "apply", request.ms_path,
+                            request.params.model_dump())
         conn.close()
 
         # Start job in background
@@ -2874,10 +2948,12 @@ def create_app(config: ApiConfig | None = None) -> FastAPI:
             artifacts=jd["artifacts"],
             created_at=datetime.fromtimestamp(jd["created_at"]),
             started_at=(
-                datetime.fromtimestamp(jd["started_at"]) if jd["started_at"] else None
+                datetime.fromtimestamp(
+                    jd["started_at"]) if jd["started_at"] else None
             ),
             finished_at=(
-                datetime.fromtimestamp(jd["finished_at"]) if jd["finished_at"] else None
+                datetime.fromtimestamp(
+                    jd["finished_at"]) if jd["finished_at"] else None
             ),
         )
 
@@ -2891,10 +2967,12 @@ def create_app(config: ApiConfig | None = None) -> FastAPI:
         from dsa110_contimg.database.jobs import create_job
         from dsa110_contimg.database.products import ensure_products_db
 
-        db_path = Path(os.getenv("PIPELINE_PRODUCTS_DB", "state/products.sqlite3"))
+        db_path = Path(os.getenv("PIPELINE_PRODUCTS_DB",
+                       "state/products.sqlite3"))
         conn = ensure_products_db(db_path)
 
-        job_id = create_job(conn, "image", request.ms_path, request.params.model_dump())
+        job_id = create_job(conn, "image", request.ms_path,
+                            request.params.model_dump())
         conn.close()
 
         # Start job in background
@@ -2919,10 +2997,12 @@ def create_app(config: ApiConfig | None = None) -> FastAPI:
             artifacts=jd["artifacts"],
             created_at=datetime.fromtimestamp(jd["created_at"]),
             started_at=(
-                datetime.fromtimestamp(jd["started_at"]) if jd["started_at"] else None
+                datetime.fromtimestamp(
+                    jd["started_at"]) if jd["started_at"] else None
             ),
             finished_at=(
-                datetime.fromtimestamp(jd["finished_at"]) if jd["finished_at"] else None
+                datetime.fromtimestamp(
+                    jd["finished_at"]) if jd["finished_at"] else None
             ),
         )
 
@@ -2946,7 +3026,8 @@ def create_app(config: ApiConfig | None = None) -> FastAPI:
 
             # Find all .hdf5 files
             pattern = str(search_path / "**/*.hdf5")
-            files = sorted(_glob.glob(pattern, recursive=True), reverse=True)[:limit]
+            files = sorted(_glob.glob(pattern, recursive=True),
+                           reverse=True)[:limit]
 
             for fpath in files:
                 fname = os.path.basename(fpath)
@@ -2984,7 +3065,8 @@ def create_app(config: ApiConfig | None = None) -> FastAPI:
         from dsa110_contimg.database.jobs import create_job
         from dsa110_contimg.database.products import ensure_products_db
 
-        db_path = Path(os.getenv("PIPELINE_PRODUCTS_DB", "state/products.sqlite3"))
+        db_path = Path(os.getenv("PIPELINE_PRODUCTS_DB",
+                       "state/products.sqlite3"))
         conn = ensure_products_db(db_path)
 
         # Create job with conversion params (ms_path is empty for conversion jobs)
@@ -3010,16 +3092,19 @@ def create_app(config: ApiConfig | None = None) -> FastAPI:
             status=jd["status"],
             ms_path=jd["ms_path"],
             params=(
-                JobParams(**jd["params"]) if jd["type"] != "convert" else JobParams()
+                JobParams(**jd["params"]
+                          ) if jd["type"] != "convert" else JobParams()
             ),  # Placeholder
             logs=jd["logs"],
             artifacts=jd["artifacts"],
             created_at=datetime.fromtimestamp(jd["created_at"]),
             started_at=(
-                datetime.fromtimestamp(jd["started_at"]) if jd["started_at"] else None
+                datetime.fromtimestamp(
+                    jd["started_at"]) if jd["started_at"] else None
             ),
             finished_at=(
-                datetime.fromtimestamp(jd["finished_at"]) if jd["finished_at"] else None
+                datetime.fromtimestamp(
+                    jd["finished_at"]) if jd["finished_at"] else None
             ),
         )
 
@@ -3032,7 +3117,8 @@ def create_app(config: ApiConfig | None = None) -> FastAPI:
         from dsa110_contimg.api.models import CalTableInfo, CalTableList
 
         if cal_dir is None:
-            cal_dir = os.getenv("CONTIMG_CAL_DIR", "/stage/dsa110-contimg/caltables")
+            cal_dir = os.getenv("CONTIMG_CAL_DIR",
+                                "/stage/dsa110-contimg/caltables")
 
         entries: list[CalTableInfo] = []
 
@@ -3045,9 +3131,11 @@ def create_app(config: ApiConfig | None = None) -> FastAPI:
             patterns = ["**/*.kcal", "**/*.bpcal", "**/*.gpcal", "**/*.fcal"]
             files = []
             for pattern in patterns:
-                files.extend(_glob.glob(str(search_path / pattern), recursive=True))
+                files.extend(_glob.glob(
+                    str(search_path / pattern), recursive=True))
 
-            files = sorted(files, key=lambda x: os.path.getmtime(x), reverse=True)
+            files = sorted(
+                files, key=lambda x: os.path.getmtime(x), reverse=True)
 
             for fpath in files:
                 fname = os.path.basename(fpath)
@@ -3118,7 +3206,8 @@ def create_app(config: ApiConfig | None = None) -> FastAPI:
         )
 
         # Decode path
-        ms_full_path = f"/{ms_path}" if not ms_path.startswith("/") else ms_path
+        ms_full_path = f"/{ms_path}" if not ms_path.startswith(
+            "/") else ms_path
 
         if not os.path.exists(ms_full_path):
             raise HTTPException(status_code=404, detail="MS not found")
@@ -3156,7 +3245,8 @@ def create_app(config: ApiConfig | None = None) -> FastAPI:
                     total_flagged = np.sum(flags)
                     total_data = flags.size
                     flag_fraction = (
-                        float(total_flagged / total_data) if total_data > 0 else 0.0
+                        float(total_flagged /
+                              total_data) if total_data > 0 else 0.0
                     )
 
                     # Per-antenna flagging
@@ -3291,7 +3381,8 @@ def create_app(config: ApiConfig | None = None) -> FastAPI:
         from dsa110_contimg.pointing.utils import load_pointing
 
         # Decode path
-        ms_full_path = f"/{ms_path}" if not ms_path.startswith("/") else ms_path
+        ms_full_path = f"/{ms_path}" if not ms_path.startswith(
+            "/") else ms_path
 
         if not os.path.exists(ms_full_path):
             raise HTTPException(status_code=404, detail="MS not found")
@@ -3308,7 +3399,8 @@ def create_app(config: ApiConfig | None = None) -> FastAPI:
             start_mjd, end_mjd, mid_mjd = extract_ms_time_range(ms_full_path)
 
             if mid_mjd is None:
-                raise HTTPException(status_code=400, detail="MS has no valid time data")
+                raise HTTPException(
+                    status_code=400, detail="MS has no valid time data")
 
             # Load catalog
             if catalog == "vla":
@@ -3337,7 +3429,8 @@ def create_app(config: ApiConfig | None = None) -> FastAPI:
 
             # Check if MS filename suggests it's phased (heuristic)
             ms_basename = os.path.basename(ms_full_path).lower()
-            ms_dirname = os.path.basename(os.path.dirname(ms_full_path)).lower()
+            ms_dirname = os.path.basename(
+                os.path.dirname(ms_full_path)).lower()
             is_phased_ms = "phased" in ms_basename
 
             # If MS appears phased and we have matches, check if calibrator name matches directory
@@ -3347,9 +3440,11 @@ def create_app(config: ApiConfig | None = None) -> FastAPI:
                 calibrator_name = best_match["name"].lower()
                 # Check if calibrator name appears in directory name (e.g., "0834_transit" contains "0834")
                 # Clean calibrator name: remove + and -, split by spaces
-                calibrator_clean = calibrator_name.replace("+", "").replace("-", "")
+                calibrator_clean = calibrator_name.replace(
+                    "+", "").replace("-", "")
                 # Extract numeric part (e.g., "0834" from "0834555")
-                calibrator_parts = [p for p in calibrator_clean.split() if len(p) >= 4]
+                calibrator_parts = [
+                    p for p in calibrator_clean.split() if len(p) >= 4]
                 if not calibrator_parts:
                     # Try to extract first 4 digits
                     import re
@@ -3357,7 +3452,8 @@ def create_app(config: ApiConfig | None = None) -> FastAPI:
                     digits = re.findall(r"\d{4,}", calibrator_clean)
                     # Use first 4+ digit sequence
                     calibrator_parts = digits[:1]
-                name_in_dir = any(part in ms_dirname for part in calibrator_parts)
+                name_in_dir = any(
+                    part in ms_dirname for part in calibrator_parts)
 
                 # For phased MS, use calibrator coordinates if:
                 # 1. Calibrator name matches directory, OR
@@ -3371,7 +3467,8 @@ def create_app(config: ApiConfig | None = None) -> FastAPI:
             matches = []
             for m in matches_raw:
                 # Get flux from catalog - use flux_jy column (already in Jy)
-                flux_jy = df.loc[m["name"], "flux_jy"] if m["name"] in df.index else 0.0
+                flux_jy = df.loc[m["name"],
+                                 "flux_jy"] if m["name"] in df.index else 0.0
 
                 # Compute PB response
                 # For phased MS files phased to a calibrator, use calibrator coordinates
@@ -3452,7 +3549,8 @@ def create_app(config: ApiConfig | None = None) -> FastAPI:
         import time
 
         # Decode path
-        ms_full_path = f"/{ms_path}" if not ms_path.startswith("/") else ms_path
+        ms_full_path = f"/{ms_path}" if not ms_path.startswith(
+            "/") else ms_path
 
         if not os.path.exists(ms_full_path):
             raise HTTPException(status_code=404, detail="MS not found")
@@ -3524,15 +3622,18 @@ def create_app(config: ApiConfig | None = None) -> FastAPI:
         from casatools import table
 
         # Decode paths
-        ms_full_path = f"/{ms_path}" if not ms_path.startswith("/") else ms_path
+        ms_full_path = f"/{ms_path}" if not ms_path.startswith(
+            "/") else ms_path
         cal_full_path = (
-            f"/{caltable_path}" if not caltable_path.startswith("/") else caltable_path
+            f"/{caltable_path}" if not caltable_path.startswith(
+                "/") else caltable_path
         )
 
         if not os.path.exists(ms_full_path):
             raise HTTPException(status_code=404, detail="MS not found")
         if not os.path.exists(cal_full_path):
-            raise HTTPException(status_code=404, detail="Calibration table not found")
+            raise HTTPException(
+                status_code=404, detail="Calibration table not found")
 
         issues = []
         warnings = []
@@ -3579,7 +3680,8 @@ def create_app(config: ApiConfig | None = None) -> FastAPI:
                     # Try to get frequency info from cal table's SPECTRAL_WINDOW subtable
                     try:
                         tb_spw = table()
-                        tb_spw.open(f"{cal_full_path}/SPECTRAL_WINDOW", nomodify=True)
+                        tb_spw.open(
+                            f"{cal_full_path}/SPECTRAL_WINDOW", nomodify=True)
                         if tb_spw.nrows() > 0:
                             cal_chan_freqs = tb_spw.getcol("CHAN_FREQ")
                             if len(cal_chan_freqs) > 0:
@@ -3640,7 +3742,8 @@ def create_app(config: ApiConfig | None = None) -> FastAPI:
                         )
 
         except Exception as e:
-            logger.error(f"Error validating calibration table compatibility: {e}")
+            logger.error(
+                f"Error validating calibration table compatibility: {e}")
             issues.append(f"Validation error: {e}")
             is_compatible = False
 
@@ -3671,7 +3774,8 @@ def create_app(config: ApiConfig | None = None) -> FastAPI:
         # Handle URL-encoded colons and other special characters
         decoded_path = urllib.parse.unquote(ms_path)
         ms_full_path = (
-            f"/{decoded_path}" if not decoded_path.startswith("/") else decoded_path
+            f"/{decoded_path}" if not decoded_path.startswith(
+                "/") else decoded_path
         )
 
         # Log for debugging
@@ -3771,7 +3875,8 @@ def create_app(config: ApiConfig | None = None) -> FastAPI:
         # cases where the path might not start with / and ensure proper decoding
         decoded_path = urllib.parse.unquote(ms_path)
         ms_full_path = (
-            f"/{decoded_path}" if not decoded_path.startswith("/") else decoded_path
+            f"/{decoded_path}" if not decoded_path.startswith(
+                "/") else decoded_path
         )
 
         if not os.path.exists(ms_full_path):
@@ -3818,7 +3923,8 @@ def create_app(config: ApiConfig | None = None) -> FastAPI:
         )
 
         # Decode path
-        ms_full_path = f"/{ms_path}" if not ms_path.startswith("/") else ms_path
+        ms_full_path = f"/{ms_path}" if not ms_path.startswith(
+            "/") else ms_path
 
         if not os.path.exists(ms_full_path):
             raise HTTPException(status_code=404, detail="MS not found")
@@ -3909,12 +4015,14 @@ def create_app(config: ApiConfig | None = None) -> FastAPI:
         from dsa110_contimg.database.products import ensure_products_db
 
         # Decode path
-        ms_full_path = f"/{ms_path}" if not ms_path.startswith("/") else ms_path
+        ms_full_path = f"/{ms_path}" if not ms_path.startswith(
+            "/") else ms_path
 
         if not os.path.exists(ms_full_path):
             raise HTTPException(status_code=404, detail="MS not found")
 
-        db_path = Path(os.getenv("PIPELINE_PRODUCTS_DB", "state/products.sqlite3"))
+        db_path = Path(os.getenv("PIPELINE_PRODUCTS_DB",
+                       "state/products.sqlite3"))
         conn = ensure_products_db(db_path)
 
         try:
@@ -4037,7 +4145,8 @@ def create_app(config: ApiConfig | None = None) -> FastAPI:
         )
 
         # Convert to pixel coordinates
-        sources_pixels = get_catalog_overlay_pixels(image_path, catalog_sources)
+        sources_pixels = get_catalog_overlay_pixels(
+            image_path, catalog_sources)
 
         return {
             "sources": sources_pixels,
@@ -4119,10 +4228,12 @@ def create_app(config: ApiConfig | None = None) -> FastAPI:
         results = {}
 
         if validation_type in ("all", "astrometry"):
-            results["astrometry"] = validate_astrometry(image_path, catalog=catalog)
+            results["astrometry"] = validate_astrometry(
+                image_path, catalog=catalog)
 
         if validation_type in ("all", "flux_scale"):
-            results["flux_scale"] = validate_flux_scale(image_path, catalog=catalog)
+            results["flux_scale"] = validate_flux_scale(
+                image_path, catalog=catalog)
 
         if validation_type in ("all", "source_counts"):
             results["source_counts"] = validate_source_counts(
@@ -4198,7 +4309,8 @@ def create_app(config: ApiConfig | None = None) -> FastAPI:
     async def run_catalog_validation(
         image_id: str,
         catalog: str = "nvss",
-        validation_types: List[str] = ["astrometry", "flux_scale", "source_counts"],
+        validation_types: List[str] = [
+            "astrometry", "flux_scale", "source_counts"],
     ):
         """
         Run catalog validation for an image and return results.
@@ -4229,10 +4341,12 @@ def create_app(config: ApiConfig | None = None) -> FastAPI:
         results = {}
 
         if "astrometry" in validation_types:
-            results["astrometry"] = validate_astrometry(image_path, catalog=catalog)
+            results["astrometry"] = validate_astrometry(
+                image_path, catalog=catalog)
 
         if "flux_scale" in validation_types:
-            results["flux_scale"] = validate_flux_scale(image_path, catalog=catalog)
+            results["flux_scale"] = validate_flux_scale(
+                image_path, catalog=catalog)
 
         if "source_counts" in validation_types:
             results["source_counts"] = validate_source_counts(
@@ -4318,7 +4432,8 @@ def create_app(config: ApiConfig | None = None) -> FastAPI:
             )
 
         # Generate HTML
-        html_content = generate_html_report(report, output_path=html_output_path)
+        html_content = generate_html_report(
+            report, output_path=html_output_path)
 
         return HTMLResponse(content=html_content, status_code=200)
 
@@ -4326,7 +4441,8 @@ def create_app(config: ApiConfig | None = None) -> FastAPI:
     async def generate_validation_html_report(
         image_id: str,
         catalog: str = "nvss",
-        validation_types: List[str] = ["astrometry", "flux_scale", "source_counts"],
+        validation_types: List[str] = [
+            "astrometry", "flux_scale", "source_counts"],
         output_path: Optional[str] = None,
     ):
         """
@@ -4390,12 +4506,14 @@ def create_app(config: ApiConfig | None = None) -> FastAPI:
         from dsa110_contimg.database.products import ensure_products_db
 
         # Decode path
-        ms_full_path = f"/{ms_path}" if not ms_path.startswith("/") else ms_path
+        ms_full_path = f"/{ms_path}" if not ms_path.startswith(
+            "/") else ms_path
 
         if not os.path.exists(ms_full_path):
             raise HTTPException(status_code=404, detail="MS not found")
 
-        db_path = Path(os.getenv("PIPELINE_PRODUCTS_DB", "state/products.sqlite3"))
+        db_path = Path(os.getenv("PIPELINE_PRODUCTS_DB",
+                       "state/products.sqlite3"))
         conn = ensure_products_db(db_path)
 
         try:
@@ -4452,12 +4570,14 @@ def create_app(config: ApiConfig | None = None) -> FastAPI:
         from dsa110_contimg.database.products import ensure_products_db
 
         # Decode path
-        ms_full_path = f"/{ms_path}" if not ms_path.startswith("/") else ms_path
+        ms_full_path = f"/{ms_path}" if not ms_path.startswith(
+            "/") else ms_path
 
         if not os.path.exists(ms_full_path):
             raise HTTPException(status_code=404, detail="MS not found")
 
-        db_path = Path(os.getenv("PIPELINE_PRODUCTS_DB", "state/products.sqlite3"))
+        db_path = Path(os.getenv("PIPELINE_PRODUCTS_DB",
+                       "state/products.sqlite3"))
         conn = ensure_products_db(db_path)
 
         try:
@@ -4545,9 +4665,11 @@ def create_app(config: ApiConfig | None = None) -> FastAPI:
         from dsa110_contimg.database.products import ensure_products_db
 
         # Decode path
-        ms_full_path = f"/{ms_path}" if not ms_path.startswith("/") else ms_path
+        ms_full_path = f"/{ms_path}" if not ms_path.startswith(
+            "/") else ms_path
 
-        db_path = Path(os.getenv("PIPELINE_PRODUCTS_DB", "state/products.sqlite3"))
+        db_path = Path(os.getenv("PIPELINE_PRODUCTS_DB",
+                       "state/products.sqlite3"))
         conn = ensure_products_db(db_path)
 
         try:
@@ -4570,7 +4692,8 @@ def create_app(config: ApiConfig | None = None) -> FastAPI:
 
             thumbnail_path = Path(row[0])
             if not thumbnail_path.exists():
-                raise HTTPException(status_code=404, detail="Thumbnail file not found")
+                raise HTTPException(
+                    status_code=404, detail="Thumbnail file not found")
 
             return FileResponse(
                 str(thumbnail_path),
@@ -4611,11 +4734,13 @@ def create_app(config: ApiConfig | None = None) -> FastAPI:
 
         # Decode path
         cal_full_path = (
-            f"/{caltable_path}" if not caltable_path.startswith("/") else caltable_path
+            f"/{caltable_path}" if not caltable_path.startswith(
+                "/") else caltable_path
         )
 
         if not os.path.exists(cal_full_path):
-            raise HTTPException(status_code=404, detail="Calibration table not found")
+            raise HTTPException(
+                status_code=404, detail="Calibration table not found")
 
         try:
             tb = table()
@@ -4627,7 +4752,8 @@ def create_app(config: ApiConfig | None = None) -> FastAPI:
                 )
 
             # Get data columns
-            antenna_ids = tb.getcol("ANTENNA1") if "ANTENNA1" in tb.colnames() else None
+            antenna_ids = tb.getcol(
+                "ANTENNA1") if "ANTENNA1" in tb.colnames() else None
             spw_ids = (
                 tb.getcol("SPECTRAL_WINDOW_ID")
                 if "SPECTRAL_WINDOW_ID" in tb.colnames()
@@ -4644,7 +4770,8 @@ def create_app(config: ApiConfig | None = None) -> FastAPI:
                 )
 
             # Convert to numpy arrays
-            antenna_ids = np.asarray(antenna_ids) if antenna_ids is not None else None
+            antenna_ids = np.asarray(
+                antenna_ids) if antenna_ids is not None else None
             spw_ids = np.asarray(spw_ids) if spw_ids is not None else None
             times = np.asarray(times) if times is not None else None
             gains = np.asarray(gains)
@@ -4685,7 +4812,8 @@ def create_app(config: ApiConfig | None = None) -> FastAPI:
                 # Get frequencies from SPW subtable
                 try:
                     tb_spw = table()
-                    tb_spw.open(f"{cal_full_path}/SPECTRAL_WINDOW", nomodify=True)
+                    tb_spw.open(
+                        f"{cal_full_path}/SPECTRAL_WINDOW", nomodify=True)
                     chan_freqs = tb_spw.getcol("CHAN_FREQ")
                     tb_spw.close()
 
@@ -4715,7 +4843,8 @@ def create_app(config: ApiConfig | None = None) -> FastAPI:
                             freq_data.extend(spw_freqs.tolist())
                             amp_data.extend(spw_amps.tolist())
 
-                    ax.plot(freq_data, amp_data, "b-", alpha=0.7, linewidth=0.5)
+                    ax.plot(freq_data, amp_data, "b-",
+                            alpha=0.7, linewidth=0.5)
                     ax.set_xlabel("Frequency (GHz)")
                     ax.set_ylabel("Amplitude")
                     ax.set_title(
@@ -4765,7 +4894,8 @@ def create_app(config: ApiConfig | None = None) -> FastAPI:
 
                 try:
                     tb_spw = table()
-                    tb_spw.open(f"{cal_full_path}/SPECTRAL_WINDOW", nomodify=True)
+                    tb_spw.open(
+                        f"{cal_full_path}/SPECTRAL_WINDOW", nomodify=True)
                     chan_freqs = tb_spw.getcol("CHAN_FREQ")
                     tb_spw.close()
 
@@ -4792,7 +4922,8 @@ def create_app(config: ApiConfig | None = None) -> FastAPI:
                                 wrap_phase_deg(np.degrees(spw_phases)).tolist()
                             )
 
-                    ax.plot(freq_data, phase_data, "b-", alpha=0.7, linewidth=0.5)
+                    ax.plot(freq_data, phase_data, "b-",
+                            alpha=0.7, linewidth=0.5)
                     ax.set_xlabel("Frequency (GHz)")
                     ax.set_ylabel("Phase (degrees)")
                     ax.set_title(
@@ -4847,7 +4978,8 @@ def create_app(config: ApiConfig | None = None) -> FastAPI:
         from dsa110_contimg.database.jobs import create_job
         from dsa110_contimg.database.products import ensure_products_db
 
-        db_path = Path(os.getenv("PIPELINE_PRODUCTS_DB", "state/products.sqlite3"))
+        db_path = Path(os.getenv("PIPELINE_PRODUCTS_DB",
+                       "state/products.sqlite3"))
         conn = ensure_products_db(db_path)
 
         # Create workflow job
@@ -4876,10 +5008,61 @@ def create_app(config: ApiConfig | None = None) -> FastAPI:
             artifacts=jd["artifacts"],
             created_at=datetime.fromtimestamp(jd["created_at"]),
             started_at=(
-                datetime.fromtimestamp(jd["started_at"]) if jd["started_at"] else None
+                datetime.fromtimestamp(
+                    jd["started_at"]) if jd["started_at"] else None
             ),
             finished_at=(
-                datetime.fromtimestamp(jd["finished_at"]) if jd["finished_at"] else None
+                datetime.fromtimestamp(
+                    jd["finished_at"]) if jd["finished_at"] else None
+            ),
+        )
+
+    @router.post("/jobs/ese-detect", response_model=Job)
+    def create_ese_detect_job(
+        request: ESEDetectJobCreateRequest, background_tasks: BackgroundTasks
+    ) -> Job:
+        """Create and run an ESE detection job."""
+        from dsa110_contimg.api.job_runner import run_ese_detect_job
+        from dsa110_contimg.api.models import JobParams
+        from dsa110_contimg.database.jobs import create_job
+        from dsa110_contimg.database.products import ensure_products_db
+
+        db_path = Path(os.getenv("PIPELINE_PRODUCTS_DB",
+                       "state/products.sqlite3"))
+        conn = ensure_products_db(db_path)
+
+        # Create ESE detection job
+        job_id = create_job(conn, "ese-detect", "", request.params.model_dump())
+        conn.close()
+
+        # Start job in background
+        background_tasks.add_task(
+            run_ese_detect_job, job_id, request.params.model_dump(), db_path
+        )
+
+        # Return initial job state
+        conn = ensure_products_db(db_path)
+        from dsa110_contimg.database.jobs import get_job as db_get_job
+
+        jd = db_get_job(conn, job_id)
+        conn.close()
+
+        return Job(
+            id=jd["id"],
+            type=jd["type"],
+            status=jd["status"],
+            ms_path=jd["ms_path"],
+            params=JobParams(**jd["params"]) if jd["params"] else JobParams(),
+            logs=jd["logs"],
+            artifacts=jd["artifacts"],
+            created_at=datetime.fromtimestamp(jd["created_at"]),
+            started_at=(
+                datetime.fromtimestamp(
+                    jd["started_at"]) if jd["started_at"] else None
+            ),
+            finished_at=(
+                datetime.fromtimestamp(
+                    jd["finished_at"]) if jd["finished_at"] else None
             ),
         )
 
@@ -4894,14 +5077,16 @@ def create_app(config: ApiConfig | None = None) -> FastAPI:
         from dsa110_contimg.database.products import ensure_products_db
 
         if request.job_type != "calibrate":
-            raise HTTPException(status_code=400, detail="Job type must be 'calibrate'")
+            raise HTTPException(
+                status_code=400, detail="Job type must be 'calibrate'")
 
         if not isinstance(request.params, BatchCalibrateParams):
             raise HTTPException(
                 status_code=400, detail="Invalid params type for batch calibrate"
             )
 
-        db_path = Path(os.getenv("PIPELINE_PRODUCTS_DB", "state/products.sqlite3"))
+        db_path = Path(os.getenv("PIPELINE_PRODUCTS_DB",
+                       "state/products.sqlite3"))
         conn = ensure_products_db(db_path)
 
         try:
@@ -4948,10 +5133,12 @@ def create_app(config: ApiConfig | None = None) -> FastAPI:
                         status=item_row[2],
                         error=item_row[3],
                         started_at=(
-                            datetime.fromtimestamp(item_row[4]) if item_row[4] else None
+                            datetime.fromtimestamp(
+                                item_row[4]) if item_row[4] else None
                         ),
                         completed_at=(
-                            datetime.fromtimestamp(item_row[5]) if item_row[5] else None
+                            datetime.fromtimestamp(
+                                item_row[5]) if item_row[5] else None
                         ),
                     )
                 )
@@ -4980,14 +5167,16 @@ def create_app(config: ApiConfig | None = None) -> FastAPI:
         from dsa110_contimg.database.products import ensure_products_db
 
         if request.job_type != "apply":
-            raise HTTPException(status_code=400, detail="Job type must be 'apply'")
+            raise HTTPException(
+                status_code=400, detail="Job type must be 'apply'")
 
         if not isinstance(request.params, BatchApplyParams):
             raise HTTPException(
                 status_code=400, detail="Invalid params type for batch apply"
             )
 
-        db_path = Path(os.getenv("PIPELINE_PRODUCTS_DB", "state/products.sqlite3"))
+        db_path = Path(os.getenv("PIPELINE_PRODUCTS_DB",
+                       "state/products.sqlite3"))
         conn = ensure_products_db(db_path)
 
         try:
@@ -5032,10 +5221,12 @@ def create_app(config: ApiConfig | None = None) -> FastAPI:
                         status=item_row[2],
                         error=item_row[3],
                         started_at=(
-                            datetime.fromtimestamp(item_row[4]) if item_row[4] else None
+                            datetime.fromtimestamp(
+                                item_row[4]) if item_row[4] else None
                         ),
                         completed_at=(
-                            datetime.fromtimestamp(item_row[5]) if item_row[5] else None
+                            datetime.fromtimestamp(
+                                item_row[5]) if item_row[5] else None
                         ),
                     )
                 )
@@ -5064,14 +5255,16 @@ def create_app(config: ApiConfig | None = None) -> FastAPI:
         from dsa110_contimg.database.products import ensure_products_db
 
         if request.job_type != "image":
-            raise HTTPException(status_code=400, detail="Job type must be 'image'")
+            raise HTTPException(
+                status_code=400, detail="Job type must be 'image'")
 
         if not isinstance(request.params, BatchImageParams):
             raise HTTPException(
                 status_code=400, detail="Invalid params type for batch image"
             )
 
-        db_path = Path(os.getenv("PIPELINE_PRODUCTS_DB", "state/products.sqlite3"))
+        db_path = Path(os.getenv("PIPELINE_PRODUCTS_DB",
+                       "state/products.sqlite3"))
         conn = ensure_products_db(db_path)
 
         try:
@@ -5116,10 +5309,12 @@ def create_app(config: ApiConfig | None = None) -> FastAPI:
                         status=item_row[2],
                         error=item_row[3],
                         started_at=(
-                            datetime.fromtimestamp(item_row[4]) if item_row[4] else None
+                            datetime.fromtimestamp(
+                                item_row[4]) if item_row[4] else None
                         ),
                         completed_at=(
-                            datetime.fromtimestamp(item_row[5]) if item_row[5] else None
+                            datetime.fromtimestamp(
+                                item_row[5]) if item_row[5] else None
                         ),
                     )
                 )
@@ -5143,7 +5338,8 @@ def create_app(config: ApiConfig | None = None) -> FastAPI:
         """List batch jobs with optional status filter."""
         from dsa110_contimg.database.products import ensure_products_db
 
-        db_path = Path(os.getenv("PIPELINE_PRODUCTS_DB", "state/products.sqlite3"))
+        db_path = Path(os.getenv("PIPELINE_PRODUCTS_DB",
+                       "state/products.sqlite3"))
         conn = ensure_products_db(db_path)
 
         try:
@@ -5218,7 +5414,8 @@ def create_app(config: ApiConfig | None = None) -> FastAPI:
         """Get batch job details by ID."""
         from dsa110_contimg.database.products import ensure_products_db
 
-        db_path = Path(os.getenv("PIPELINE_PRODUCTS_DB", "state/products.sqlite3"))
+        db_path = Path(os.getenv("PIPELINE_PRODUCTS_DB",
+                       "state/products.sqlite3"))
         conn = ensure_products_db(db_path)
 
         try:
@@ -5232,7 +5429,8 @@ def create_app(config: ApiConfig | None = None) -> FastAPI:
             row = cursor.fetchone()
 
             if not row:
-                raise HTTPException(status_code=404, detail="Batch job not found")
+                raise HTTPException(
+                    status_code=404, detail="Batch job not found")
 
             # Get items
             items_cursor = conn.execute(
@@ -5252,10 +5450,383 @@ def create_app(config: ApiConfig | None = None) -> FastAPI:
                         status=item_row[2],
                         error=item_row[3],
                         started_at=(
-                            datetime.fromtimestamp(item_row[4]) if item_row[4] else None
+                            datetime.fromtimestamp(
+                                item_row[4]) if item_row[4] else None
                         ),
                         completed_at=(
-                            datetime.fromtimestamp(item_row[5]) if item_row[5] else None
+                            datetime.fromtimestamp(
+                                item_row[5]) if item_row[5] else None
+                        ),
+                    )
+                )
+
+            return BatchJob(
+                id=row[0],
+                type=row[1],
+                created_at=datetime.fromtimestamp(row[2]),
+                status=row[3],
+                total_items=row[4],
+                completed_items=row[5],
+                failed_items=row[6],
+                params=json.loads(row[7]) if row[7] else {},
+                items=items,
+            )
+        finally:
+            conn.close()
+
+    @router.post("/batch/convert", response_model=BatchJob)
+    def create_batch_convert_job(
+        request: BatchJobCreateRequest, background_tasks: BackgroundTasks
+    ) -> BatchJob:
+        """Create a batch conversion job for multiple time windows."""
+        from dsa110_contimg.api.batch_jobs import create_batch_conversion_job
+        from dsa110_contimg.api.job_runner import run_batch_convert_job
+        from dsa110_contimg.database.products import ensure_products_db
+
+        if request.job_type != "convert":
+            raise HTTPException(
+                status_code=400, detail="Job type must be 'convert'")
+
+        if not isinstance(request.params, BatchConversionParams):
+            raise HTTPException(
+                status_code=400, detail="Invalid params type for batch convert"
+            )
+
+        db_path = Path(os.getenv("PIPELINE_PRODUCTS_DB",
+                       "state/products.sqlite3"))
+        conn = ensure_products_db(db_path)
+
+        try:
+            # Convert time windows to list of dicts
+            time_windows = [
+                {"start_time": tw.start_time, "end_time": tw.end_time}
+                for tw in request.params.time_windows
+            ]
+
+            batch_id = create_batch_conversion_job(
+                conn,
+                "batch_convert",
+                time_windows,
+                request.params.params.model_dump(),
+            )
+
+            # Start batch processing in background
+            background_tasks.add_task(
+                run_batch_convert_job,
+                batch_id,
+                time_windows,
+                request.params.params.model_dump(),
+                db_path,
+            )
+
+            # Get batch job details
+            cursor = conn.execute(
+                """
+                SELECT id, type, created_at, status, total_items, completed_items, failed_items, params
+                FROM batch_jobs WHERE id = ?
+                """,
+                (batch_id,),
+            )
+            row = cursor.fetchone()
+
+            # Get batch items
+            items_cursor = conn.execute(
+                """
+                SELECT ms_path, job_id, status, error, started_at, completed_at
+                FROM batch_job_items WHERE batch_id = ?
+                """,
+                (batch_id,),
+            )
+            items = []
+            for item_row in items_cursor.fetchall():
+                items.append(
+                    BatchJobStatus(
+                        ms_path=item_row[0],
+                        job_id=item_row[1],
+                        status=item_row[2],
+                        error=item_row[3],
+                        started_at=(
+                            datetime.fromtimestamp(
+                                item_row[4]) if item_row[4] else None
+                        ),
+                        completed_at=(
+                            datetime.fromtimestamp(
+                                item_row[5]) if item_row[5] else None
+                        ),
+                    )
+                )
+
+            return BatchJob(
+                id=row[0],
+                type=row[1],
+                created_at=datetime.fromtimestamp(row[2]),
+                status=row[3],
+                total_items=row[4],
+                completed_items=row[5],
+                failed_items=row[6],
+                params=json.loads(row[7]) if row[7] else {},
+                items=items,
+            )
+        finally:
+            conn.close()
+
+    @router.post("/batch/publish", response_model=BatchJob)
+    def create_batch_publish_job(
+        request: BatchJobCreateRequest, background_tasks: BackgroundTasks
+    ) -> BatchJob:
+        """Create a batch publish job for multiple data instances."""
+        from dsa110_contimg.api.batch_jobs import create_batch_publish_job
+        from dsa110_contimg.api.job_runner import run_batch_publish_job
+        from dsa110_contimg.database.products import ensure_products_db
+
+        if request.job_type != "publish":
+            raise HTTPException(
+                status_code=400, detail="Job type must be 'publish'")
+
+        if not isinstance(request.params, BatchPublishParams):
+            raise HTTPException(
+                status_code=400, detail="Invalid params type for batch publish"
+            )
+
+        db_path = Path(os.getenv("PIPELINE_PRODUCTS_DB",
+                       "state/products.sqlite3"))
+        conn = ensure_products_db(db_path)
+
+        try:
+            batch_id = create_batch_publish_job(
+                conn,
+                "batch_publish",
+                request.params.data_ids,
+                {"products_base": request.params.products_base},
+            )
+
+            # Start batch processing in background
+            background_tasks.add_task(
+                run_batch_publish_job,
+                batch_id,
+                request.params.data_ids,
+                {"products_base": request.params.products_base},
+                db_path,
+            )
+
+            # Get batch job details
+            cursor = conn.execute(
+                """
+                SELECT id, type, created_at, status, total_items, completed_items, failed_items, params
+                FROM batch_jobs WHERE id = ?
+                """,
+                (batch_id,),
+            )
+            row = cursor.fetchone()
+
+            # Get batch items
+            items_cursor = conn.execute(
+                """
+                SELECT ms_path, job_id, status, error, started_at, completed_at
+                FROM batch_job_items WHERE batch_id = ?
+                """,
+                (batch_id,),
+            )
+            items = []
+            for item_row in items_cursor.fetchall():
+                items.append(
+                    BatchJobStatus(
+                        ms_path=item_row[0],
+                        job_id=item_row[1],
+                        status=item_row[2],
+                        error=item_row[3],
+                        started_at=(
+                            datetime.fromtimestamp(
+                                item_row[4]) if item_row[4] else None
+                        ),
+                        completed_at=(
+                            datetime.fromtimestamp(
+                                item_row[5]) if item_row[5] else None
+                        ),
+                    )
+                )
+
+            return BatchJob(
+                id=row[0],
+                type=row[1],
+                created_at=datetime.fromtimestamp(row[2]),
+                status=row[3],
+                total_items=row[4],
+                completed_items=row[5],
+                failed_items=row[6],
+                params=json.loads(row[7]) if row[7] else {},
+                items=items,
+            )
+        finally:
+            conn.close()
+
+    @router.post("/batch/photometry", response_model=BatchJob)
+    def create_batch_photometry_job_endpoint(
+        request: BatchJobCreateRequest, background_tasks: BackgroundTasks
+    ) -> BatchJob:
+        """Create a batch photometry job for multiple images and coordinates."""
+        from dsa110_contimg.api.batch_jobs import create_batch_photometry_job
+        from dsa110_contimg.api.job_runner import run_batch_photometry_job
+        from dsa110_contimg.database.products import ensure_products_db
+
+        if request.job_type != "photometry":
+            raise HTTPException(
+                status_code=400, detail="Job type must be 'photometry'")
+
+        if not isinstance(request.params, BatchPhotometryParams):
+            raise HTTPException(
+                status_code=400, detail="Invalid params type for batch photometry"
+            )
+
+        db_path = Path(os.getenv("PIPELINE_PRODUCTS_DB",
+                       "state/products.sqlite3"))
+        conn = ensure_products_db(db_path)
+
+        try:
+            # Convert coordinates to list of dicts
+            coordinates = [
+                {"ra_deg": c.ra_deg, "dec_deg": c.dec_deg} for c in request.params.coordinates
+            ]
+
+            batch_id = create_batch_photometry_job(
+                conn,
+                "batch_photometry",
+                request.params.fits_paths,
+                coordinates,
+                request.params.model_dump(),
+            )
+
+            # Start batch processing in background
+            background_tasks.add_task(
+                run_batch_photometry_job,
+                batch_id,
+                request.params.fits_paths,
+                coordinates,
+                request.params.model_dump(),
+                db_path,
+            )
+
+            # Get batch job details
+            cursor = conn.execute(
+                """
+                SELECT id, type, created_at, status, total_items, completed_items, failed_items, params
+                FROM batch_jobs WHERE id = ?
+                """,
+                (batch_id,),
+            )
+            row = cursor.fetchone()
+
+            # Get batch items
+            items_cursor = conn.execute(
+                """
+                SELECT ms_path, job_id, status, error, started_at, completed_at
+                FROM batch_job_items WHERE batch_id = ?
+                """,
+                (batch_id,),
+            )
+            items = []
+            for item_row in items_cursor.fetchall():
+                items.append(
+                    BatchJobStatus(
+                        ms_path=item_row[0],
+                        job_id=item_row[1],
+                        status=item_row[2],
+                        error=item_row[3],
+                        started_at=(
+                            datetime.fromtimestamp(
+                                item_row[4]) if item_row[4] else None
+                        ),
+                        completed_at=(
+                            datetime.fromtimestamp(
+                                item_row[5]) if item_row[5] else None
+                        ),
+                    )
+                )
+
+            return BatchJob(
+                id=row[0],
+                type=row[1],
+                created_at=datetime.fromtimestamp(row[2]),
+                status=row[3],
+                total_items=row[4],
+                completed_items=row[5],
+                failed_items=row[6],
+                params=json.loads(row[7]) if row[7] else {},
+                items=items,
+            )
+        finally:
+            conn.close()
+
+    @router.post("/batch/ese-detect", response_model=BatchJob)
+    def create_batch_ese_detect_job_endpoint(
+        request: BatchJobCreateRequest, background_tasks: BackgroundTasks
+    ) -> BatchJob:
+        """Create a batch ESE detection job."""
+        from dsa110_contimg.api.batch_jobs import create_batch_ese_detect_job
+        from dsa110_contimg.api.job_runner import run_batch_ese_detect_job
+        from dsa110_contimg.database.products import ensure_products_db
+
+        if request.job_type != "ese-detect":
+            raise HTTPException(
+                status_code=400, detail="Job type must be 'ese-detect'")
+
+        if not isinstance(request.params, BatchESEDetectParams):
+            raise HTTPException(
+                status_code=400, detail="Invalid params type for batch ESE detection"
+            )
+
+        db_path = Path(os.getenv("PIPELINE_PRODUCTS_DB",
+                       "state/products.sqlite3"))
+        conn = ensure_products_db(db_path)
+
+        try:
+            batch_id = create_batch_ese_detect_job(
+                conn,
+                "batch_ese-detect",
+                request.params.model_dump(),
+            )
+
+            # Start batch processing in background
+            background_tasks.add_task(
+                run_batch_ese_detect_job,
+                batch_id,
+                request.params.model_dump(),
+                db_path,
+            )
+
+            # Get batch job details
+            cursor = conn.execute(
+                """
+                SELECT id, type, created_at, status, total_items, completed_items, failed_items, params
+                FROM batch_jobs WHERE id = ?
+                """,
+                (batch_id,),
+            )
+            row = cursor.fetchone()
+
+            # Get batch items
+            items_cursor = conn.execute(
+                """
+                SELECT ms_path, job_id, status, error, started_at, completed_at
+                FROM batch_job_items WHERE batch_id = ?
+                """,
+                (batch_id,),
+            )
+            items = []
+            for item_row in items_cursor.fetchall():
+                items.append(
+                    BatchJobStatus(
+                        ms_path=item_row[0],
+                        job_id=item_row[1],
+                        status=item_row[2],
+                        error=item_row[3],
+                        started_at=(
+                            datetime.fromtimestamp(
+                                item_row[4]) if item_row[4] else None
+                        ),
+                        completed_at=(
+                            datetime.fromtimestamp(
+                                item_row[5]) if item_row[5] else None
                         ),
                     )
                 )
@@ -5279,7 +5850,8 @@ def create_app(config: ApiConfig | None = None) -> FastAPI:
         """Cancel a running batch job."""
         from dsa110_contimg.database.products import ensure_products_db
 
-        db_path = Path(os.getenv("PIPELINE_PRODUCTS_DB", "state/products.sqlite3"))
+        db_path = Path(os.getenv("PIPELINE_PRODUCTS_DB",
+                       "state/products.sqlite3"))
         conn = ensure_products_db(db_path)
 
         try:
@@ -5290,7 +5862,8 @@ def create_app(config: ApiConfig | None = None) -> FastAPI:
             row = cursor.fetchone()
 
             if not row:
-                raise HTTPException(status_code=404, detail="Batch job not found")
+                raise HTTPException(
+                    status_code=404, detail="Batch job not found")
 
             if row[0] not in ("pending", "running"):
                 raise HTTPException(
@@ -5300,7 +5873,8 @@ def create_app(config: ApiConfig | None = None) -> FastAPI:
 
             # Update batch status to cancelled
             conn.execute(
-                "UPDATE batch_jobs SET status = 'cancelled' WHERE id = ?", (batch_id,)
+                "UPDATE batch_jobs SET status = 'cancelled' WHERE id = ?", (
+                    batch_id,)
             )
 
             # Update pending/running items to cancelled
@@ -5366,7 +5940,8 @@ def create_app(config: ApiConfig | None = None) -> FastAPI:
         Reads status from the JSON file written by the pointing monitor.
         Returns status information including health, metrics, and issues.
         """
-        state_dir = Path(os.getenv("PIPELINE_STATE_DIR", "/data/dsa110-contimg/state"))
+        state_dir = Path(os.getenv("PIPELINE_STATE_DIR",
+                         "/data/dsa110-contimg/state"))
         status_file = state_dir / "pointing-monitor-status.json"
 
         if not status_file.exists():
@@ -5391,7 +5966,8 @@ def create_app(config: ApiConfig | None = None) -> FastAPI:
                 status["healthy"] = False
                 if "issues" not in status:
                     status["issues"] = []
-                status["issues"].append(f"Status file is stale (age: {file_age:.0f}s)")
+                status["issues"].append(
+                    f"Status file is stale (age: {file_age:.0f}s)")
             else:
                 status["stale"] = False
 
@@ -5421,12 +5997,14 @@ def create_app(config: ApiConfig | None = None) -> FastAPI:
             # Return defaults
             return StreamingConfigRequest(
                 input_dir=os.getenv("CONTIMG_INPUT_DIR", "/data/incoming"),
-                output_dir=os.getenv("CONTIMG_OUTPUT_DIR", "/stage/dsa110-contimg/ms"),
+                output_dir=os.getenv("CONTIMG_OUTPUT_DIR",
+                                     "/stage/dsa110-contimg/ms"),
                 queue_db=os.getenv("CONTIMG_QUEUE_DB", "state/ingest.sqlite3"),
                 registry_db=os.getenv(
                     "CONTIMG_REGISTRY_DB", "state/cal_registry.sqlite3"
                 ),
-                scratch_dir=os.getenv("CONTIMG_SCRATCH_DIR", "/stage/dsa110-contimg"),
+                scratch_dir=os.getenv(
+                    "CONTIMG_SCRATCH_DIR", "/stage/dsa110-contimg"),
             )
 
     @router.post("/streaming/config", response_model=StreamingControlResponse)
@@ -5711,7 +6289,8 @@ def create_app(config: ApiConfig | None = None) -> FastAPI:
             src_json = {"ok": False, "error": src_err}
 
         # 4) Products DB readability
-        db_path = Path(os.getenv("PIPELINE_PRODUCTS_DB", "state/products.sqlite3"))
+        db_path = Path(os.getenv("PIPELINE_PRODUCTS_DB",
+                       "state/products.sqlite3"))
         db_ok = False
         db_exists = db_path.exists()
         db_error = None
@@ -5810,7 +6389,8 @@ def create_app(config: ApiConfig | None = None) -> FastAPI:
 
         record = get_data(conn, data_id)
         if not record:
-            raise HTTPException(status_code=404, detail=f"Data {data_id} not found")
+            raise HTTPException(
+                status_code=404, detail=f"Data {data_id} not found")
 
         return {
             "id": record.data_id,
@@ -5827,7 +6407,8 @@ def create_app(config: ApiConfig | None = None) -> FastAPI:
             "finalization_status": record.finalization_status,
             "auto_publish_enabled": record.auto_publish_enabled,
             "metadata": (
-                json.loads(record.metadata_json) if record.metadata_json else None
+                json.loads(
+                    record.metadata_json) if record.metadata_json else None
             ),
         }
 
@@ -5851,7 +6432,8 @@ def create_app(config: ApiConfig | None = None) -> FastAPI:
 
         record = get_data(conn, data_id)
         if not record:
-            raise HTTPException(status_code=404, detail=f"Data {data_id} not found")
+            raise HTTPException(
+                status_code=404, detail=f"Data {data_id} not found")
 
         finalized = finalize_data(
             conn, data_id, qa_status=qa_status, validation_status=validation_status
@@ -5885,7 +6467,8 @@ def create_app(config: ApiConfig | None = None) -> FastAPI:
 
         record = get_data(conn, data_id)
         if not record:
-            raise HTTPException(status_code=404, detail=f"Data {data_id} not found")
+            raise HTTPException(
+                status_code=404, detail=f"Data {data_id} not found")
 
         if record.status == "published":
             raise HTTPException(
@@ -5894,7 +6477,8 @@ def create_app(config: ApiConfig | None = None) -> FastAPI:
 
         success = publish_data_manual(conn, data_id)
         if not success:
-            raise HTTPException(status_code=500, detail=f"Failed to publish {data_id}")
+            raise HTTPException(
+                status_code=500, detail=f"Failed to publish {data_id}")
 
         updated_record = get_data(conn, data_id)
         return {
@@ -5920,7 +6504,8 @@ def create_app(config: ApiConfig | None = None) -> FastAPI:
 
         success = enable_ap(conn, data_id)
         if not success:
-            raise HTTPException(status_code=404, detail=f"Data {data_id} not found")
+            raise HTTPException(
+                status_code=404, detail=f"Data {data_id} not found")
 
         return {"enabled": True}
 
@@ -5941,7 +6526,8 @@ def create_app(config: ApiConfig | None = None) -> FastAPI:
 
         success = disable_ap(conn, data_id)
         if not success:
-            raise HTTPException(status_code=404, detail=f"Data {data_id} not found")
+            raise HTTPException(
+                status_code=404, detail=f"Data {data_id} not found")
 
         return {"enabled": False}
 
@@ -5977,7 +6563,8 @@ def create_app(config: ApiConfig | None = None) -> FastAPI:
 
         record = get_data(conn, data_id)
         if not record:
-            raise HTTPException(status_code=404, detail=f"Data {data_id} not found")
+            raise HTTPException(
+                status_code=404, detail=f"Data {data_id} not found")
 
         lineage = get_data_lineage(conn, data_id)
         return lineage
@@ -6031,7 +6618,8 @@ def create_app(config: ApiConfig | None = None) -> FastAPI:
         # Calculate success rate (published / (published + failed))
         total_attempts = total_published + len(failed_publishes)
         success_rate = (
-            (total_published / total_attempts * 100) if total_attempts > 0 else 100.0
+            (total_published / total_attempts *
+             100) if total_attempts > 0 else 100.0
         )
 
         # Get recent failures (last 24 hours)
@@ -6081,7 +6669,8 @@ def create_app(config: ApiConfig | None = None) -> FastAPI:
         staging = list_data(conn, status="staging")
 
         # Filter failed publishes
-        failed = [r for r in staging if r.publish_attempts and r.publish_attempts > 0]
+        failed = [
+            r for r in staging if r.publish_attempts and r.publish_attempts > 0]
 
         # Filter by max_attempts if specified
         if max_attempts is not None:
@@ -6134,7 +6723,8 @@ def create_app(config: ApiConfig | None = None) -> FastAPI:
 
         record = get_data(conn, data_id)
         if not record:
-            raise HTTPException(status_code=404, detail=f"Data {data_id} not found")
+            raise HTTPException(
+                status_code=404, detail=f"Data {data_id} not found")
 
         if record.status == "published":
             raise HTTPException(
@@ -6201,7 +6791,8 @@ def create_app(config: ApiConfig | None = None) -> FastAPI:
 
         # Get failed publishes
         staging = list_data(conn, status="staging")
-        failed = [r for r in staging if r.publish_attempts and r.publish_attempts > 0]
+        failed = [
+            r for r in staging if r.publish_attempts and r.publish_attempts > 0]
 
         if max_attempts is not None:
             failed = [r for r in failed if r.publish_attempts >= max_attempts]

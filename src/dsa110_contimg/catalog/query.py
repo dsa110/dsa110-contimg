@@ -25,7 +25,7 @@ def resolve_catalog_path(
     """Resolve path to a catalog (SQLite or CSV) using standard precedence.
 
     Args:
-        catalog_type: One of "nvss", "first", "rax", "master"
+        catalog_type: One of "nvss", "first", "rax", "vlass", "master"
         dec_strip: Declination in degrees (for per-strip SQLite databases)
         explicit_path: Override path (highest priority)
 
@@ -60,6 +60,7 @@ def resolve_catalog_path(
             # Extract scalar from array (take first element if array)
             dec_strip = float(dec_strip.flat[0])
         dec_rounded = round(float(dec_strip), 1)
+        # Map catalog type to database name
         db_name = f"{catalog_type}_dec{dec_rounded:+.1f}.sqlite3"
 
         # Try standard locations
@@ -68,7 +69,8 @@ def resolve_catalog_path(
             current_file = Path(__file__).resolve()
             potential_root = current_file.parents[3]
             if (potential_root / "src" / "dsa110_contimg").exists():
-                candidates.append(potential_root / "state" / "catalogs" / db_name)
+                candidates.append(potential_root / "state" /
+                                  "catalogs" / db_name)
         except Exception:
             pass
 
@@ -78,7 +80,8 @@ def resolve_catalog_path(
                 candidates.append(root_path / "state" / "catalogs" / db_name)
 
         candidates.append(Path.cwd() / "state" / "catalogs" / db_name)
-        candidates.append(Path("/data/dsa110-contimg/state/catalogs") / db_name)
+        candidates.append(
+            Path("/data/dsa110-contimg/state/catalogs") / db_name)
 
         for candidate in candidates:
             if candidate.exists():
@@ -94,12 +97,9 @@ def resolve_catalog_path(
             if candidate.exists():
                 return candidate
 
-    # 5. Fallback: CSV (NVSS specific for now)
-    if catalog_type == "nvss":
-        from dsa110_contimg.calibration.catalogs import read_nvss_catalog
-
-        # This will download/cache if needed, but we need a path for checking
-        # For now, return None and let the query function handle CSV fallback
+    # 5. Fallback: CSV (for NVSS, RAX, VLASS)
+    if catalog_type in ["nvss", "rax", "vlass"]:
+        # CSV fallback is handled in query_sources() function
         pass
 
     raise FileNotFoundError(
@@ -124,7 +124,7 @@ def query_sources(
     """Query sources from catalog within a field of view.
 
     Args:
-        catalog_type: One of "nvss", "first", "rax", "master"
+        catalog_type: One of "nvss", "first", "rax", "vlass", "master"
         ra_center: Field center RA in degrees
         dec_center: Field center Dec in degrees
         radius_deg: Search radius in degrees
@@ -153,11 +153,31 @@ def query_sources(
             explicit_path=catalog_path,
         )
     except FileNotFoundError:
-        # Fallback to CSV for NVSS
+        # Fallback to CSV for supported catalogs
         if catalog_type == "nvss":
             return _query_nvss_csv(
                 ra_center=ra_center,
                 dec_center=dec_center,
+                radius_deg=radius_deg,
+                min_flux_mjy=min_flux_mjy,
+                max_sources=max_sources,
+            )
+        elif catalog_type == "rax":
+            from dsa110_contimg.calibration.catalogs import query_rax_sources
+
+            return query_rax_sources(
+                ra_deg=ra_center,
+                dec_deg=dec_center,
+                radius_deg=radius_deg,
+                min_flux_mjy=min_flux_mjy,
+                max_sources=max_sources,
+            )
+        elif catalog_type == "vlass":
+            from dsa110_contimg.calibration.catalogs import query_vlass_sources
+
+            return query_vlass_sources(
+                ra_deg=ra_center,
+                dec_deg=dec_center,
                 radius_deg=radius_deg,
                 min_flux_mjy=min_flux_mjy,
                 max_sources=max_sources,
@@ -302,6 +322,37 @@ def _query_sqlite(
 
             rows = conn.execute(query, params).fetchall()
 
+        elif catalog_type == "vlass":
+            # VLASS catalog schema (similar to NVSS)
+            flux_col = "flux_mjy"
+            where_clauses = [
+                "ra_deg BETWEEN ? AND ?",
+                "dec_deg BETWEEN ? AND ?",
+            ]
+            if min_flux_mjy is not None:
+                where_clauses.append(f"{flux_col} >= ?")
+
+            query = f"""
+            SELECT ra_deg, dec_deg, flux_mjy
+            FROM sources
+            WHERE {' AND '.join(where_clauses)}
+            ORDER BY flux_mjy DESC
+            """
+
+            params = [
+                ra_center - ra_half,
+                ra_center + ra_half,
+                dec_center - dec_half,
+                dec_center + dec_half,
+            ]
+            if min_flux_mjy is not None:
+                params.append(min_flux_mjy)
+
+            if max_sources:
+                query += f" LIMIT {max_sources}"
+
+            rows = conn.execute(query, params).fetchall()
+
         elif catalog_type == "master":
             # Use master_sources schema
             where_clauses = [
@@ -334,7 +385,10 @@ def _query_sqlite(
             rows = conn.execute(query, params).fetchall()
 
         else:
-            raise ValueError(f"Unsupported catalog type for SQLite: {catalog_type}")
+            raise ValueError(
+                f"Unsupported catalog type for SQLite: {catalog_type}. "
+                f"Supported types: nvss, first, rax, vlass, master"
+            )
 
         # Convert to DataFrame
         if not rows:
@@ -349,7 +403,8 @@ def _query_sqlite(
                 dec=df["dec_deg"].values * u.deg,
                 frame="icrs",
             )
-            center = SkyCoord(ra_center * u.deg, dec_center * u.deg, frame="icrs")
+            center = SkyCoord(ra_center * u.deg,
+                              dec_center * u.deg, frame="icrs")
             sep = sc.separation(center).deg
             df = df[sep <= radius_deg].copy()
 

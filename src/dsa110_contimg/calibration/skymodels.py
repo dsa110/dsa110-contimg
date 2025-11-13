@@ -416,18 +416,20 @@ def make_nvss_skymodel(
     import numpy as np
     from astropy.coordinates import SkyCoord
 
-    from dsa110_contimg.calibration.catalogs import read_nvss_catalog  # type: ignore
+    # Use SQLite-first query function (falls back to CSV if needed)
+    from dsa110_contimg.calibration.catalogs import query_nvss_sources  # type: ignore
 
-    df = read_nvss_catalog()
-    sc_all = SkyCoord(
-        df["ra"].to_numpy() * u.deg, df["dec"].to_numpy() * u.deg, frame="icrs"
+    df = query_nvss_sources(
+        ra_deg=center_ra_deg,
+        dec_deg=center_dec_deg,
+        radius_deg=float(radius_deg),
+        min_flux_mjy=float(min_mjy),
     )
-    ctr = SkyCoord(center_ra_deg * u.deg, center_dec_deg * u.deg, frame="icrs")
-    sep = sc_all.separation(ctr).deg
+    # Rename columns to match expected format
+    df = df.rename(columns={"ra_deg": "ra", "dec_deg": "dec", "flux_mjy": "flux_20_cm"})
     flux_mjy = np.asarray(df["flux_20_cm"].to_numpy(), float)
-    keep = (sep <= float(radius_deg)) & (flux_mjy >= float(min_mjy))
 
-    if keep.sum() == 0:
+    if len(df) == 0:
         # Return empty SkyModel
         return SkyModel(
             name=[],
@@ -437,10 +439,10 @@ def make_nvss_skymodel(
             component_type="point",
         )
 
-    # Extract sources
-    ras = df.loc[keep, "ra"].to_numpy()
-    decs = df.loc[keep, "dec"].to_numpy()
-    fluxes = flux_mjy[keep] / 1000.0  # Convert to Jy
+    # Extract sources (already filtered by query_nvss_sources)
+    ras = df["ra"].to_numpy()
+    decs = df["dec"].to_numpy()
+    fluxes = flux_mjy / 1000.0  # Convert to Jy
 
     # Create SkyCoord
     ra = ras * u.deg

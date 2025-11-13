@@ -85,25 +85,45 @@ CREATE INDEX IF NOT EXISTS idx_perf_group ON performance_metrics(group_id);
 ## 2. Calibration Registry (`cal_registry.sqlite3`)
 
 ### Table: `caltables`
-Tracks calibration tables and their validity ranges.
+Tracks calibration tables and their validity ranges, with complete provenance tracking.
 
 ```sql
 CREATE TABLE IF NOT EXISTS caltables (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
     set_name TEXT NOT NULL,                -- e.g., 'bp_3c286_60238'
     path TEXT NOT NULL UNIQUE,             -- Full path to caltable
-    table_type TEXT NOT NULL,              -- 'K' | 'BP' | 'G'
+    table_type TEXT NOT NULL,              -- 'K' | 'BP' | 'G' | 'BA' | 'GA' | 'GP' | '2G' | 'FLUX'
     order_index INTEGER NOT NULL,          -- Application order (K=0, BP=1, G=2)
-    valid_start_mjd REAL NOT NULL,         -- Start of validity window
-    valid_end_mjd REAL NOT NULL,           -- End of validity window
+    cal_field TEXT,                        -- Source/field used to solve
+    refant TEXT,                           -- Reference antenna
+    valid_start_mjd REAL,                  -- Start of validity window (MJD)
+    valid_end_mjd REAL,                    -- End of validity window (MJD)
     created_at REAL NOT NULL,              -- Unix timestamp
-    active INTEGER DEFAULT 1               -- 0/1 boolean
+    status TEXT NOT NULL,                  -- 'active' | 'retired' | 'failed'
+    notes TEXT,                            -- Free-form notes
+    -- Provenance tracking columns (added 2025-01-XX)
+    source_ms_path TEXT,                   -- Input MS that generated this caltable
+    solver_command TEXT,                   -- Full CASA command executed
+    solver_version TEXT,                   -- CASA version used (e.g., '6.7.2')
+    solver_params TEXT,                    -- JSON: all calibration parameters
+    quality_metrics TEXT                  -- JSON: SNR, flagged_fraction, etc.
 );
 
 CREATE INDEX IF NOT EXISTS idx_caltables_set ON caltables(set_name);
 CREATE INDEX IF NOT EXISTS idx_caltables_valid ON caltables(valid_start_mjd, valid_end_mjd);
-CREATE INDEX IF NOT EXISTS idx_caltables_active ON caltables(active);
+CREATE INDEX IF NOT EXISTS idx_caltables_source ON caltables(source_ms_path);
 ```
+
+**Provenance Fields:**
+- `source_ms_path`: Path to the input Measurement Set that generated this calibration table
+- `solver_command`: Human-readable CASA command string (e.g., `"gaincal(vis='...', caltable='...', ...)"`)
+- `solver_version`: CASA version string (e.g., `"6.7.2"`)
+- `solver_params`: JSON object containing all calibration parameters (e.g., `{"field": "0", "refant": "103", "gaintype": "K"}`)
+- `quality_metrics`: JSON object with quality statistics (e.g., `{"snr_mean": 10.5, "flagged_fraction": 0.1, "n_antennas": 10}`)
+
+**Migration**: Existing databases are automatically migrated when accessed. Old entries will have NULL values for provenance fields.
+
+**See Also**: `docs/dev/calibration_provenance_tracking_implementation.md` for complete documentation.
 
 ---
 

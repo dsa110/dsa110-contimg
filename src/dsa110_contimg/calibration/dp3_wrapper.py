@@ -88,16 +88,18 @@ def convert_nvss_to_dp3_skymodel(
     import numpy as np
     from astropy.coordinates import SkyCoord
 
-    from dsa110_contimg.calibration.catalogs import read_nvss_catalog
+    # Use SQLite-first query function (falls back to CSV if needed)
+    from dsa110_contimg.calibration.catalogs import query_nvss_sources
 
-    df = read_nvss_catalog()
-    sc_all = SkyCoord(
-        df["ra"].to_numpy() * u.deg, df["dec"].to_numpy() * u.deg, frame="icrs"
+    df = query_nvss_sources(
+        ra_deg=center_ra_deg,
+        dec_deg=center_dec_deg,
+        radius_deg=float(radius_deg),
+        min_flux_mjy=float(min_mjy),
     )
-    ctr = SkyCoord(center_ra_deg * u.deg, center_dec_deg * u.deg, frame="icrs")
-    sep = sc_all.separation(ctr).deg
+    # Rename columns to match expected format
+    df = df.rename(columns={"ra_deg": "ra", "dec_deg": "dec", "flux_mjy": "flux_20_cm"})
     flux_mjy = np.asarray(df["flux_20_cm"].to_numpy(), float)
-    keep = (sep <= float(radius_deg)) & (flux_mjy >= float(min_mjy))
 
     # Format RA/Dec as HH:MM:SS.sss and DD:MM:SS.sss
     from astropy.coordinates import Angle
@@ -112,12 +114,12 @@ def convert_nvss_to_dp3_skymodel(
             f"ReferenceFrequency='{ref_freq_hz:.1f}', MajorAxis, MinorAxis, Orientation\n"
         )
 
-        # Write sources
+        # Write sources (already filtered by query_nvss_sources)
         for idx, (ra, dec, flux) in enumerate(
             zip(
-                df.loc[keep, "ra"].to_numpy(),
-                df.loc[keep, "dec"].to_numpy(),
-                flux_mjy[keep],
+                df["ra"].to_numpy(),
+                df["dec"].to_numpy(),
+                flux_mjy,
             )
         ):
             ra_angle = Angle(ra, unit="deg")

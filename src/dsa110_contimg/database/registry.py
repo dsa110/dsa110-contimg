@@ -39,7 +39,12 @@ Schema (tables):
     valid_start_mjd   REAL            -- start of validity window (MJD)
     valid_end_mjd     REAL            -- end of validity window (MJD)
     status            TEXT            -- active|retired|failed
-    notes             TEXT
+    notes             TEXT            -- free-form notes
+    source_ms_path    TEXT            -- input MS that generated this caltable
+    solver_command    TEXT            -- full CASA command executed
+    solver_version    TEXT            -- CASA version used
+    solver_params     TEXT            -- JSON: all calibration parameters
+    quality_metrics   TEXT            -- JSON: SNR, flagged_fraction, etc.
 
 Convenience:
 - register_set_from_prefix: scans on-disk tables with a common prefix and
@@ -47,12 +52,13 @@ Convenience:
 - get_active_applylist: returns ordered list of table paths for a given MJD.
 """
 
+import json
 import os
 import sqlite3
 import time
 from dataclasses import dataclass
 from pathlib import Path
-from typing import List, Optional, Sequence, Tuple
+from typing import Any, Dict, List, Optional, Sequence, Tuple
 
 DEFAULT_ORDER = [
     ("K", 10),  # delays
@@ -77,11 +83,19 @@ class CalTableRow:
     valid_end_mjd: Optional[float]
     status: str = "active"
     notes: Optional[str] = None
+    source_ms_path: Optional[str] = None
+    solver_command: Optional[str] = None
+    solver_version: Optional[str] = None
+    solver_params: Optional[Dict[str, Any]] = None
+    quality_metrics: Optional[Dict[str, Any]] = None
 
 
 def ensure_db(path: Path) -> sqlite3.Connection:
+    """Ensure database exists with current schema, migrating if needed."""
     path.parent.mkdir(parents=True, exist_ok=True)
     conn = sqlite3.connect(str(path))
+    
+    # Create table with current schema
     conn.execute(
         """
         CREATE TABLE IF NOT EXISTS caltables (
@@ -96,17 +110,73 @@ def ensure_db(path: Path) -> sqlite3.Connection:
             valid_start_mjd REAL,
             valid_end_mjd REAL,
             status TEXT NOT NULL,
-            notes TEXT
+            notes TEXT,
+            source_ms_path TEXT,
+            solver_command TEXT,
+            solver_version TEXT,
+            solver_params TEXT,
+            quality_metrics TEXT
         )
         """
     )
+    
+    # Migrate existing databases by adding new columns if they don't exist
+    _migrate_schema(conn)
+    
+    # Create indexes
     conn.execute("CREATE INDEX IF NOT EXISTS idx_caltables_set ON caltables(set_name)")
     conn.execute(
         "CREATE INDEX IF NOT EXISTS idx_caltables_valid "
         "ON caltables(valid_start_mjd, valid_end_mjd)"
     )
+    conn.execute(
+        "CREATE INDEX IF NOT EXISTS idx_caltables_source "
+        "ON caltables(source_ms_path)"
+    )
     conn.commit()
     return conn
+
+
+def _migrate_schema(conn: sqlite3.Connection) -> None:
+    """Migrate existing database schema to add provenance columns."""
+    cursor = conn.cursor()
+    
+    # Get existing columns
+    cursor.execute("PRAGMA table_info(caltables)")
+    existing_columns = {row[1] for row in cursor.fetchall()}
+    
+    # Add missing provenance columns
+    new_columns = [
+        ("source_ms_path", "TEXT"),
+        ("solver_command", "TEXT"),
+        ("solver_version", "TEXT"),
+        ("solver_params", "TEXT"),
+        ("quality_metrics", "TEXT"),
+    ]
+    
+    for col_name, col_type in new_columns:
+        if col_name not in existing_columns:
+            try:
+                conn.execute(f"ALTER TABLE caltables ADD COLUMN {col_name} {col_type}")
+            except sqlite3.OperationalError as e:
+                # Column might already exist from concurrent migration
+                if "duplicate column" not in str(e).lower():
+                    raise
+    
+    # Create index on source_ms_path if column exists
+    if "source_ms_path" in existing_columns or any(
+        name == "source_ms_path" for name, _ in new_columns
+    ):
+        try:
+            conn.execute(
+                "CREATE INDEX IF NOT EXISTS idx_caltables_source "
+                "ON caltables(source_ms_path)"
+            )
+        except sqlite3.OperationalError:
+            # Index might already exist
+            pass
+    
+    conn.commit()
 
 
 def _detect_type_from_filename(path: Path) -> Optional[str]:
@@ -142,14 +212,24 @@ def register_set(
     now = time.time()
     with conn:
         for r in rows:
+            # Serialize JSON fields
+            solver_params_json = (
+                json.dumps(r.solver_params) if r.solver_params else None
+            )
+            quality_metrics_json = (
+                json.dumps(r.quality_metrics) if r.quality_metrics else None
+            )
+            
             if upsert:
                 conn.execute(
                     """
                     INSERT OR REPLACE INTO caltables(
                         set_name, path, table_type, order_index, cal_field, refant,
-                        created_at, valid_start_mjd, valid_end_mjd, status, notes
+                        created_at, valid_start_mjd, valid_end_mjd, status, notes,
+                        source_ms_path, solver_command, solver_version, solver_params,
+                        quality_metrics
                     )
-                    VALUES(?,?,?,?,?,?,?,?,?,?,?)
+                    VALUES(?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)
                     """,
                     (
                         r.set_name,
@@ -163,6 +243,11 @@ def register_set(
                         r.valid_end_mjd,
                         r.status,
                         r.notes,
+                        r.source_ms_path,
+                        r.solver_command,
+                        r.solver_version,
+                        solver_params_json,
+                        quality_metrics_json,
                     ),
                 )
             else:
@@ -170,9 +255,11 @@ def register_set(
                     """
                     INSERT OR IGNORE INTO caltables(
                         set_name, path, table_type, order_index, cal_field, refant,
-                        created_at, valid_start_mjd, valid_end_mjd, status, notes
+                        created_at, valid_start_mjd, valid_end_mjd, status, notes,
+                        source_ms_path, solver_command, solver_version, solver_params,
+                        quality_metrics
                     )
-                    VALUES(?,?,?,?,?,?,?,?,?,?,?)
+                    VALUES(?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)
                     """,
                     (
                         r.set_name,
@@ -186,6 +273,11 @@ def register_set(
                         r.valid_end_mjd,
                         r.status,
                         r.notes,
+                        r.source_ms_path,
+                        r.solver_command,
+                        r.solver_version,
+                        solver_params_json,
+                        quality_metrics_json,
                     ),
                 )
 

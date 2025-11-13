@@ -30,11 +30,12 @@ from astropy.io import fits  # type: ignore[reportMissingTypeStubs]
 from astropy.wcs import WCS  # type: ignore[reportMissingTypeStubs]
 from matplotlib.colors import Normalize
 
-from dsa110_contimg.calibration.catalogs import read_nvss_catalog
+from dsa110_contimg.calibration.catalogs import query_nvss_sources
 from dsa110_contimg.database.products import (
     ensure_products_db,
     photometry_insert,
 )
+from dsa110_contimg.photometry.ese_detection import detect_ese_candidates
 
 from .adaptive_binning import AdaptiveBinningConfig
 from .adaptive_photometry import measure_with_adaptive_binning
@@ -126,21 +127,21 @@ def _image_center_and_radius_deg(fits_path: str) -> Tuple[float, float, float]:
 
 def cmd_nvss(args: argparse.Namespace) -> int:
     ra0, dec0, auto_rad = _image_center_and_radius_deg(args.fits)
-    radius_deg = float(args.radius_deg) if args.radius_deg is not None else auto_rad
-    df = read_nvss_catalog()
-    sc = acoords.SkyCoord(
-        df["ra"].to_numpy(),
-        df["dec"].to_numpy(),
-        unit="deg",
-        frame="icrs",
+    radius_deg = float(
+        args.radius_deg) if args.radius_deg is not None else auto_rad
+    # Use SQLite-first query function (falls back to CSV if needed)
+    df = query_nvss_sources(
+        ra_deg=ra0,
+        dec_deg=dec0,
+        radius_deg=radius_deg,
+        min_flux_mjy=float(args.min_mjy),
     )
-    center = acoords.SkyCoord(ra0, dec0, unit="deg", frame="icrs")
-    sep_deg = sc.separation(center).deg
-    flux_mjy = df["flux_20_cm"].to_numpy()
-    keep = (sep_deg <= radius_deg) & (flux_mjy >= float(args.min_mjy))
-    ra_sel = df["ra"].to_numpy()[keep]
-    dec_sel = df["dec"].to_numpy()[keep]
-    flux_sel = flux_mjy[keep]
+    # Rename columns to match expected format
+    df = df.rename(
+        columns={"ra_deg": "ra", "dec_deg": "dec", "flux_mjy": "flux_20_cm"})
+    ra_sel = df["ra"].to_numpy()
+    dec_sel = df["dec"].to_numpy()
+    flux_sel = df["flux_20_cm"].to_numpy()
 
     results = []
     now = time.time()
@@ -260,6 +261,42 @@ def cmd_adaptive(args: argparse.Namespace) -> int:
     return 0 if result.success else 1
 
 
+def cmd_ese_detect(args: argparse.Namespace) -> int:
+    """Detect ESE candidates from variability statistics."""
+    products_db = Path(
+        os.getenv("PIPELINE_PRODUCTS_DB", args.products_db)
+    )
+
+    if not products_db.exists():
+        print(json.dumps(
+            {"error": f"Products database not found: {products_db}"}, indent=2))
+        return 1
+
+    try:
+        candidates = detect_ese_candidates(
+            products_db=products_db,
+            min_sigma=args.min_sigma,
+            source_id=args.source_id,
+            recompute=args.recompute,
+        )
+
+        result = {
+            "products_db": str(products_db),
+            "min_sigma": args.min_sigma,
+            "source_id": args.source_id,
+            "recompute": args.recompute,
+            "candidates_found": len(candidates),
+            "candidates": candidates,
+        }
+
+        print(json.dumps(result, indent=2))
+        return 0
+
+    except Exception as e:
+        print(json.dumps({"error": str(e)}, indent=2))
+        return 1
+
+
 def cmd_plot(args: argparse.Namespace) -> int:
     # Load image
     hdr = fits.getheader(args.fits)
@@ -308,7 +345,8 @@ def cmd_plot(args: argparse.Namespace) -> int:
     x, y = w.world_to_pixel(coords)
 
     # Plot
-    fig, axes = plt.subplots(1, 2, figsize=(12, 6), subplot_kw={"projection": w})
+    fig, axes = plt.subplots(1, 2, figsize=(
+        12, 6), subplot_kw={"projection": w})
     # Left: forced photometry peak
     ax = axes[0]
     ax.imshow(img, origin="lower", cmap="gray")
@@ -334,7 +372,8 @@ def cmd_plot(args: argparse.Namespace) -> int:
         edgecolor="white",
         linewidths=0.3,
     )
-    cb0 = fig.colorbar(sc0, ax=ax, orientation="vertical", fraction=0.046, pad=0.04)
+    cb0 = fig.colorbar(sc0, ax=ax, orientation="vertical",
+                       fraction=0.046, pad=0.04)
     cb0.set_label("Peak [Jy/beam]")
     ax.set_title("Forced Photometry Peak")
     ax.set_xlabel("RA")
@@ -362,12 +401,14 @@ def cmd_plot(args: argparse.Namespace) -> int:
         edgecolor="white",
         linewidths=0.3,
     )
-    cb1 = fig.colorbar(sc1, ax=ax, orientation="vertical", fraction=0.046, pad=0.04)
+    cb1 = fig.colorbar(sc1, ax=ax, orientation="vertical",
+                       fraction=0.046, pad=0.04)
     cb1.set_label("NVSS Flux [Jy]")
     ax.set_title("NVSS Catalog Flux")
     ax.set_xlabel("RA")
     ax.set_ylabel("Dec")
-    out = args.out or (os.path.splitext(args.fits)[0] + "_photometry_compare.png")
+    out = args.out or (os.path.splitext(args.fits)[
+                       0] + "_photometry_compare.png")
     fig.tight_layout()
     fig.savefig(out, dpi=150, bbox_inches="tight")
     print(out)
@@ -379,9 +420,12 @@ def build_parser() -> argparse.ArgumentParser:
     sub = p.add_subparsers(dest="cmd")
 
     sp = sub.add_parser("peak", help="Measure peak at a single RA,Dec")
-    sp.add_argument("--fits", required=True, help="Input FITS image (PB-corrected)")
-    sp.add_argument("--ra", type=float, required=True, help="Right Ascension (deg)")
-    sp.add_argument("--dec", type=float, required=True, help="Declination (deg)")
+    sp.add_argument("--fits", required=True,
+                    help="Input FITS image (PB-corrected)")
+    sp.add_argument("--ra", type=float, required=True,
+                    help="Right Ascension (deg)")
+    sp.add_argument("--dec", type=float, required=True,
+                    help="Declination (deg)")
     sp.add_argument("--box", type=int, default=5, help="Box size in pixels")
     sp.add_argument(
         "--annulus",
@@ -414,8 +458,10 @@ def build_parser() -> argparse.ArgumentParser:
     )
     sp.set_defaults(func=cmd_peak)
 
-    sp = sub.add_parser("peak-many", help="Measure peaks for a list of RA,Dec pairs")
-    sp.add_argument("--fits", required=True, help="Input FITS image (PB-corrected)")
+    sp = sub.add_parser(
+        "peak-many", help="Measure peaks for a list of RA,Dec pairs")
+    sp.add_argument("--fits", required=True,
+                    help="Input FITS image (PB-corrected)")
     sp.add_argument(
         "--coords",
         required=True,
@@ -427,7 +473,8 @@ def build_parser() -> argparse.ArgumentParser:
     sp = sub.add_parser(
         "nvss", help="Forced photometry for NVSS sources within the image FoV"
     )
-    sp.add_argument("--fits", required=True, help="Input FITS image (PB-corrected)")
+    sp.add_argument("--fits", required=True,
+                    help="Input FITS image (PB-corrected)")
     sp.add_argument("--products-db", default="state/products.sqlite3")
     sp.add_argument("--min-mjy", type=float, default=10.0)
     sp.add_argument(
@@ -446,7 +493,8 @@ def build_parser() -> argparse.ArgumentParser:
     sp = sub.add_parser(
         "plot", help="Visualize photometry results overlaid on FITS image"
     )
-    sp.add_argument("--fits", required=True, help="Input FITS image (PB-corrected)")
+    sp.add_argument("--fits", required=True,
+                    help="Input FITS image (PB-corrected)")
     sp.add_argument("--products-db", default="state/products.sqlite3")
     sp.add_argument("--out", default=None, help="Output PNG path")
     sp.add_argument("--cmap", default="viridis")
@@ -458,8 +506,10 @@ def build_parser() -> argparse.ArgumentParser:
         "adaptive", help="Adaptive channel binning photometry from Measurement Set"
     )
     sp.add_argument("--ms", required=True, help="Input Measurement Set path")
-    sp.add_argument("--ra", type=float, required=True, help="Right Ascension (deg)")
-    sp.add_argument("--dec", type=float, required=True, help="Declination (deg)")
+    sp.add_argument("--ra", type=float, required=True,
+                    help="Right Ascension (deg)")
+    sp.add_argument("--dec", type=float, required=True,
+                    help="Declination (deg)")
     sp.add_argument(
         "--output-dir",
         type=str,
@@ -521,6 +571,34 @@ def build_parser() -> argparse.ArgumentParser:
     )
     sp.set_defaults(func=cmd_adaptive)
 
+    sp = sub.add_parser(
+        "ese-detect", help="Detect ESE candidates from variability statistics"
+    )
+    sp.add_argument(
+        "--products-db",
+        type=str,
+        default="state/products.sqlite3",
+        help="Path to products database (default: state/products.sqlite3)",
+    )
+    sp.add_argument(
+        "--min-sigma",
+        type=float,
+        default=5.0,
+        help="Minimum sigma deviation threshold (default: 5.0)",
+    )
+    sp.add_argument(
+        "--source-id",
+        type=str,
+        default=None,
+        help="Optional specific source ID to check (if not provided, checks all sources)",
+    )
+    sp.add_argument(
+        "--recompute",
+        action="store_true",
+        help="Recompute variability statistics before detection",
+    )
+    sp.set_defaults(func=cmd_ese_detect)
+
     return p
 
 
@@ -537,10 +615,12 @@ def main(argv: list[str] | None = None) -> int:
             raise FileNotFoundError(f"MS file not found: {args.ms}")
     if hasattr(args, "ra") and args.ra is not None:
         if not (-180 <= args.ra <= 360):
-            raise ValueError(f"RA must be between -180 and 360 degrees, got {args.ra}")
+            raise ValueError(
+                f"RA must be between -180 and 360 degrees, got {args.ra}")
     if hasattr(args, "dec") and args.dec is not None:
         if not (-90 <= args.dec <= 90):
-            raise ValueError(f"Dec must be between -90 and 90 degrees, got {args.dec}")
+            raise ValueError(
+                f"Dec must be between -90 and 90 degrees, got {args.dec}")
 
     if not hasattr(args, "func"):
         p.print_help()

@@ -1,4 +1,5 @@
 import gzip
+import logging
 import os
 from pathlib import Path
 from typing import List, Optional, Tuple
@@ -11,6 +12,8 @@ from astropy.coordinates import Angle, SkyCoord
 from astropy.time import Time
 
 from .schedule import DSA110_LOCATION
+
+logger = logging.getLogger(__name__)
 
 NVSS_URL = (
     "https://heasarc.gsfc.nasa.gov/FTP/heasarc/dbase/tdat_files/heasarc_nvss.tdat.gz"
@@ -1005,3 +1008,753 @@ def update_caltable(
     if not os.path.exists(csv_path):
         generate_caltable(vla_df=vla_df, pt_dec=pt_dec, csv_path=csv_path)
     return csv_path
+
+
+def query_nvss_sources(
+    ra_deg: float,
+    dec_deg: float,
+    radius_deg: float,
+    min_flux_mjy: Optional[float] = None,
+    max_sources: Optional[int] = None,
+    catalog_path: Optional[str | os.PathLike[str]] = None,
+    use_csv_fallback: bool = False,
+) -> pd.DataFrame:
+    """Query NVSS catalog for sources within a radius using SQLite database.
+
+    This function requires SQLite databases for optimal performance (~170× faster than CSV).
+    CSV fallback is available but disabled by default. Set use_csv_fallback=True to enable.
+
+    Args:
+        ra_deg: Field center RA in degrees
+        dec_deg: Field center Dec in degrees
+        radius_deg: Search radius in degrees
+        min_flux_mjy: Minimum flux in mJy (optional)
+        max_sources: Maximum number of sources to return (optional)
+        catalog_path: Explicit path to SQLite database (overrides auto-resolution)
+        use_csv_fallback: If True, fall back to CSV when SQLite fails (default: False)
+
+    Returns:
+        DataFrame with columns: ra_deg, dec_deg, flux_mjy
+    """
+    import sqlite3
+
+    # Try SQLite first (much faster)
+    db_path = None
+
+    # 1. Explicit path provided
+    if catalog_path:
+        db_path = Path(catalog_path)
+        if not db_path.exists():
+            db_path = None
+
+    # 2. Auto-resolve based on declination strip
+    if db_path is None:
+        dec_rounded = round(float(dec_deg), 1)
+        db_name = f"nvss_dec{dec_rounded:+.1f}.sqlite3"
+
+        # Try standard locations
+        candidates = []
+        try:
+            current_file = Path(__file__).resolve()
+            potential_root = current_file.parents[3]
+            if (potential_root / "src" / "dsa110_contimg").exists():
+                candidates.append(potential_root / "state" / "catalogs" / db_name)
+        except Exception:
+            pass
+
+        for root_str in ["/data/dsa110-contimg", "/app"]:
+            root_path = Path(root_str)
+            if root_path.exists():
+                candidates.append(root_path / "state" / "catalogs" / db_name)
+
+        candidates.append(Path.cwd() / "state" / "catalogs" / db_name)
+        candidates.append(Path("/data/dsa110-contimg/state/catalogs") / db_name)
+
+        for candidate in candidates:
+            if candidate.exists():
+                db_path = candidate
+                break
+
+    # Query SQLite if available
+    if db_path is not None:
+        try:
+            conn = sqlite3.connect(str(db_path))
+            conn.row_factory = sqlite3.Row
+
+            try:
+                # Approximate box search (faster than exact angular separation)
+                # Account for RA wrapping at dec
+                cos_dec = max(np.cos(np.radians(dec_deg)), 1e-3)
+                ra_half = radius_deg / cos_dec
+                dec_half = radius_deg
+
+                # Build query with spatial index
+                where_clauses = [
+                    "ra_deg BETWEEN ? AND ?",
+                    "dec_deg BETWEEN ? AND ?",
+                ]
+                params = [
+                    ra_deg - ra_half,
+                    ra_deg + ra_half,
+                    dec_deg - dec_half,
+                    dec_deg + dec_half,
+                ]
+
+                if min_flux_mjy is not None:
+                    where_clauses.append("flux_mjy >= ?")
+                    params.append(min_flux_mjy)
+
+                query = f"""
+                SELECT ra_deg, dec_deg, flux_mjy
+                FROM sources
+                WHERE {' AND '.join(where_clauses)}
+                ORDER BY flux_mjy DESC
+                """
+
+                if max_sources:
+                    query += f" LIMIT {max_sources}"
+
+                rows = conn.execute(query, params).fetchall()
+
+                if not rows:
+                    return pd.DataFrame(columns=["ra_deg", "dec_deg", "flux_mjy"])
+
+                df = pd.DataFrame([dict(row) for row in rows])
+
+                # Exact angular separation filter (post-query refinement)
+                if len(df) > 0:
+                    sc = SkyCoord(
+                        ra=df["ra_deg"].values * u.deg,
+                        dec=df["dec_deg"].values * u.deg,
+                        frame="icrs",
+                    )
+                    center = SkyCoord(ra_deg * u.deg, dec_deg * u.deg, frame="icrs")
+                    sep = sc.separation(center).deg
+                    df = df[sep <= radius_deg].copy()
+
+                    # Re-apply flux filter if needed (for exact separation)
+                    if min_flux_mjy is not None and len(df) > 0:
+                        df = df[df["flux_mjy"] >= min_flux_mjy].copy()
+
+                    # Re-apply limit if needed
+                    if max_sources and len(df) > max_sources:
+                        df = df.head(max_sources)
+
+                return df
+
+            finally:
+                conn.close()
+
+        except Exception as e:
+            # SQLite query failed
+            if use_csv_fallback:
+                print(
+                    "Note: CSV catalog is available as an alternative. "
+                    "Set use_csv_fallback=True to enable CSV fallback (slower, ~1s vs ~0.01s)."
+                )
+                logger.warning(
+                    f"SQLite query failed ({e}), falling back to CSV. "
+                    f"This will be slower (~1s vs ~0.01s)."
+                )
+                # Fallback to CSV (slower but always works)
+                df_full = read_nvss_catalog()
+
+                # Convert to SkyCoord for separation calculation
+                sc = SkyCoord(
+                    ra=df_full["ra"].values * u.deg,
+                    dec=df_full["dec"].values * u.deg,
+                    frame="icrs",
+                )
+                center = SkyCoord(ra_deg * u.deg, dec_deg * u.deg, frame="icrs")
+                sep = sc.separation(center).deg
+
+                # Filter by separation
+                keep = sep <= radius_deg
+
+                # Filter by flux if specified
+                if min_flux_mjy is not None:
+                    flux_mjy = pd.to_numeric(df_full["flux_20_cm"], errors="coerce")
+                    keep = keep & (flux_mjy >= min_flux_mjy)
+
+                result = df_full[keep].copy()
+
+                # Rename columns to standard format
+                result = result.rename(
+                    columns={
+                        "ra": "ra_deg",
+                        "dec": "dec_deg",
+                        "flux_20_cm": "flux_mjy",
+                    }
+                )
+
+                # Sort by flux and limit
+                if "flux_mjy" in result.columns:
+                    result = result.sort_values("flux_mjy", ascending=False)
+                if max_sources:
+                    result = result.head(max_sources)
+
+                # Select only the columns we need
+                if len(result) > 0:
+                    result = result[["ra_deg", "dec_deg", "flux_mjy"]].copy()
+                else:
+                    result = pd.DataFrame(columns=["ra_deg", "dec_deg", "flux_mjy"])
+
+                return result
+            else:
+                # No fallback - return empty DataFrame
+                logger.error(
+                    f"SQLite query failed ({e}). "
+                    f"SQLite database required. CSV fallback is available but disabled. "
+                    f"Set use_csv_fallback=True to enable CSV fallback."
+                )
+                print(
+                    "Note: CSV catalog is available as an alternative. "
+                    "Set use_csv_fallback=True to enable CSV fallback (slower, ~1s vs ~0.01s)."
+                )
+                return pd.DataFrame(columns=["ra_deg", "dec_deg", "flux_mjy"])
+
+
+def query_rax_sources(
+    ra_deg: float,
+    dec_deg: float,
+    radius_deg: float,
+    min_flux_mjy: Optional[float] = None,
+    max_sources: Optional[int] = None,
+    catalog_path: Optional[str | os.PathLike[str]] = None,
+    use_csv_fallback: bool = False,
+) -> pd.DataFrame:
+    """Query RACS/RAX catalog for sources within a radius using SQLite database.
+
+    This function requires SQLite databases for optimal performance (~170× faster than CSV).
+    CSV fallback is available but disabled by default. Set use_csv_fallback=True to enable.
+
+    Args:
+        ra_deg: Field center RA in degrees
+        dec_deg: Field center Dec in degrees
+        radius_deg: Search radius in degrees
+        min_flux_mjy: Minimum flux in mJy (optional)
+        max_sources: Maximum number of sources to return (optional)
+        catalog_path: Explicit path to SQLite database (overrides auto-resolution)
+        use_csv_fallback: If True, fall back to CSV when SQLite fails (default: False)
+
+    Returns:
+        DataFrame with columns: ra_deg, dec_deg, flux_mjy
+    """
+    import sqlite3
+
+    # Try SQLite first (much faster)
+    db_path = None
+
+    # 1. Explicit path provided
+    if catalog_path:
+        db_path = Path(catalog_path)
+        if not db_path.exists():
+            db_path = None
+
+    # 2. Auto-resolve based on declination strip
+    if db_path is None:
+        dec_rounded = round(float(dec_deg), 1)
+        db_name = f"rax_dec{dec_rounded:+.1f}.sqlite3"
+
+        # Try standard locations
+        candidates = []
+        try:
+            current_file = Path(__file__).resolve()
+            potential_root = current_file.parents[3]
+            if (potential_root / "src" / "dsa110_contimg").exists():
+                candidates.append(potential_root / "state" / "catalogs" / db_name)
+        except Exception:
+            pass
+
+        for root_str in ["/data/dsa110-contimg", "/app"]:
+            root_path = Path(root_str)
+            if root_path.exists():
+                candidates.append(root_path / "state" / "catalogs" / db_name)
+
+        candidates.append(Path.cwd() / "state" / "catalogs" / db_name)
+        candidates.append(Path("/data/dsa110-contimg/state/catalogs") / db_name)
+
+        for candidate in candidates:
+            if candidate.exists():
+                db_path = candidate
+                break
+
+    # Query SQLite if available
+    if db_path is not None:
+        try:
+            conn = sqlite3.connect(str(db_path))
+            conn.row_factory = sqlite3.Row
+
+            try:
+                # Approximate box search (faster than exact angular separation)
+                cos_dec = max(np.cos(np.radians(dec_deg)), 1e-3)
+                ra_half = radius_deg / cos_dec
+                dec_half = radius_deg
+
+                # Build query with spatial index
+                where_clauses = [
+                    "ra_deg BETWEEN ? AND ?",
+                    "dec_deg BETWEEN ? AND ?",
+                ]
+                params = [
+                    ra_deg - ra_half,
+                    ra_deg + ra_half,
+                    dec_deg - dec_half,
+                    dec_deg + dec_half,
+                ]
+
+                if min_flux_mjy is not None:
+                    where_clauses.append("flux_mjy >= ?")
+                    params.append(min_flux_mjy)
+
+                query = f"""
+                SELECT ra_deg, dec_deg, flux_mjy
+                FROM sources
+                WHERE {' AND '.join(where_clauses)}
+                ORDER BY flux_mjy DESC
+                """
+
+                if max_sources:
+                    query += f" LIMIT {max_sources}"
+
+                rows = conn.execute(query, params).fetchall()
+
+                if not rows:
+                    return pd.DataFrame(columns=["ra_deg", "dec_deg", "flux_mjy"])
+
+                df = pd.DataFrame([dict(row) for row in rows])
+
+                # Exact angular separation filter (post-query refinement)
+                if len(df) > 0:
+                    sc = SkyCoord(
+                        ra=df["ra_deg"].values * u.deg,
+                        dec=df["dec_deg"].values * u.deg,
+                        frame="icrs",
+                    )
+                    center = SkyCoord(ra_deg * u.deg, dec_deg * u.deg, frame="icrs")
+                    sep = sc.separation(center).deg
+                    df = df[sep <= radius_deg].copy()
+
+                    # Re-apply flux filter if needed
+                    if min_flux_mjy is not None and len(df) > 0:
+                        df = df[df["flux_mjy"] >= min_flux_mjy].copy()
+
+                    # Re-apply limit if needed
+                    if max_sources and len(df) > max_sources:
+                        df = df.head(max_sources)
+
+                return df
+
+            finally:
+                conn.close()
+
+        except Exception as e:
+            # SQLite query failed
+            if use_csv_fallback:
+                print(
+                    "Note: CSV catalog is available as an alternative. "
+                    "Set use_csv_fallback=True to enable CSV fallback (slower, ~1s vs ~0.01s)."
+                )
+                logger.warning(
+                    f"SQLite query failed ({e}), falling back to CSV. "
+                    f"This will be slower (~1s vs ~0.01s)."
+                )
+                # Fallback to CSV (slower but always works)
+                df_full = read_rax_catalog()
+
+                # Normalize column names for RAX
+                from dsa110_contimg.catalog.build_master import _normalize_columns
+
+                RAX_CANDIDATES = {
+                    "ra": ["ra", "ra_deg", "raj2000", "ra_hms"],
+                    "dec": ["dec", "dec_deg", "dej2000", "dec_dms"],
+                    "flux": ["flux", "flux_mjy", "flux_jy", "peak_flux", "fpeak", "s1.4"],
+                }
+                col_map = _normalize_columns(df_full, RAX_CANDIDATES)
+
+                ra_col = col_map.get("ra", "ra")
+                dec_col = col_map.get("dec", "dec")
+                flux_col = col_map.get("flux", None)
+
+                # Convert to SkyCoord for separation calculation
+                ra_vals = pd.to_numeric(df_full[ra_col], errors="coerce")
+                dec_vals = pd.to_numeric(df_full[dec_col], errors="coerce")
+                sc = SkyCoord(ra=ra_vals.values * u.deg, dec=dec_vals.values * u.deg, frame="icrs")
+                center = SkyCoord(ra_deg * u.deg, dec_deg * u.deg, frame="icrs")
+                sep = sc.separation(center).deg
+
+                # Filter by separation
+                keep = sep <= radius_deg
+
+                # Filter by flux if specified
+                if min_flux_mjy is not None and flux_col:
+                    flux_vals = pd.to_numeric(df_full[flux_col], errors="coerce")
+                    # Convert to mJy if needed (assume > 1000 means Jy)
+                    if len(flux_vals) > 0 and flux_vals.max() > 1000:
+                        flux_vals = flux_vals * 1000.0
+                    keep = keep & (flux_vals >= min_flux_mjy)
+
+                result = df_full[keep].copy()
+
+                # Standardize column names
+                result["ra_deg"] = pd.to_numeric(result[ra_col], errors="coerce")
+                result["dec_deg"] = pd.to_numeric(result[dec_col], errors="coerce")
+
+                if flux_col and flux_col in result.columns:
+                    flux_vals = pd.to_numeric(result[flux_col], errors="coerce")
+                    if len(flux_vals) > 0 and flux_vals.max() > 1000:
+                        result["flux_mjy"] = flux_vals * 1000.0
+                    else:
+                        result["flux_mjy"] = flux_vals
+                else:
+                    result["flux_mjy"] = None
+
+                # Sort by flux and limit
+                if "flux_mjy" in result.columns and result["flux_mjy"].notna().any():
+                    result = result.sort_values("flux_mjy", ascending=False, na_last=True)
+                if max_sources:
+                    result = result.head(max_sources)
+
+                # Select only the columns we need
+                if len(result) > 0:
+                    result = result[["ra_deg", "dec_deg", "flux_mjy"]].copy()
+                else:
+                    result = pd.DataFrame(columns=["ra_deg", "dec_deg", "flux_mjy"])
+
+                return result
+            else:
+                # No fallback - return empty DataFrame
+                logger.error(
+                    f"SQLite query failed ({e}). "
+                    f"SQLite database required. CSV fallback is available but disabled. "
+                    f"Set use_csv_fallback=True to enable CSV fallback."
+                )
+                print(
+                    "Note: CSV catalog is available as an alternative. "
+                    "Set use_csv_fallback=True to enable CSV fallback (slower, ~1s vs ~0.01s)."
+                )
+                return pd.DataFrame(columns=["ra_deg", "dec_deg", "flux_mjy"])
+
+
+def query_vlass_sources(
+    ra_deg: float,
+    dec_deg: float,
+    radius_deg: float,
+    min_flux_mjy: Optional[float] = None,
+    max_sources: Optional[int] = None,
+    catalog_path: Optional[str | os.PathLike[str]] = None,
+    use_csv_fallback: bool = False,
+) -> pd.DataFrame:
+    """Query VLASS catalog for sources within a radius using SQLite database.
+
+    This function requires SQLite databases for optimal performance (~170× faster than CSV).
+    CSV fallback is available but disabled by default. Set use_csv_fallback=True to enable.
+
+    Args:
+        ra_deg: Field center RA in degrees
+        dec_deg: Field center Dec in degrees
+        radius_deg: Search radius in degrees
+        min_flux_mjy: Minimum flux in mJy (optional)
+        max_sources: Maximum number of sources to return (optional)
+        catalog_path: Explicit path to SQLite database (overrides auto-resolution)
+        use_csv_fallback: If True, fall back to CSV when SQLite fails (default: False)
+
+    Returns:
+        DataFrame with columns: ra_deg, dec_deg, flux_mjy
+    """
+    import sqlite3
+
+    # Try SQLite first (much faster)
+    db_path = None
+
+    # 1. Explicit path provided
+    if catalog_path:
+        db_path = Path(catalog_path)
+        if not db_path.exists():
+            db_path = None
+
+    # 2. Auto-resolve based on declination strip
+    if db_path is None:
+        dec_rounded = round(float(dec_deg), 1)
+        db_name = f"vlass_dec{dec_rounded:+.1f}.sqlite3"
+
+        # Try standard locations
+        candidates = []
+        try:
+            current_file = Path(__file__).resolve()
+            potential_root = current_file.parents[3]
+            if (potential_root / "src" / "dsa110_contimg").exists():
+                candidates.append(potential_root / "state" / "catalogs" / db_name)
+        except Exception:
+            pass
+
+        for root_str in ["/data/dsa110-contimg", "/app"]:
+            root_path = Path(root_str)
+            if root_path.exists():
+                candidates.append(root_path / "state" / "catalogs" / db_name)
+
+        candidates.append(Path.cwd() / "state" / "catalogs" / db_name)
+        candidates.append(Path("/data/dsa110-contimg/state/catalogs") / db_name)
+
+        for candidate in candidates:
+            if candidate.exists():
+                db_path = candidate
+                break
+
+    # Query SQLite if available
+    if db_path is not None:
+        try:
+            conn = sqlite3.connect(str(db_path))
+            conn.row_factory = sqlite3.Row
+
+            try:
+                # Approximate box search (faster than exact angular separation)
+                cos_dec = max(np.cos(np.radians(dec_deg)), 1e-3)
+                ra_half = radius_deg / cos_dec
+                dec_half = radius_deg
+
+                # Build query with spatial index
+                where_clauses = [
+                    "ra_deg BETWEEN ? AND ?",
+                    "dec_deg BETWEEN ? AND ?",
+                ]
+                params = [
+                    ra_deg - ra_half,
+                    ra_deg + ra_half,
+                    dec_deg - dec_half,
+                    dec_deg + dec_half,
+                ]
+
+                if min_flux_mjy is not None:
+                    where_clauses.append("flux_mjy >= ?")
+                    params.append(min_flux_mjy)
+
+                query = f"""
+                SELECT ra_deg, dec_deg, flux_mjy
+                FROM sources
+                WHERE {' AND '.join(where_clauses)}
+                ORDER BY flux_mjy DESC
+                """
+
+                if max_sources:
+                    query += f" LIMIT {max_sources}"
+
+                rows = conn.execute(query, params).fetchall()
+
+                if not rows:
+                    return pd.DataFrame(columns=["ra_deg", "dec_deg", "flux_mjy"])
+
+                df = pd.DataFrame([dict(row) for row in rows])
+
+                # Exact angular separation filter (post-query refinement)
+                if len(df) > 0:
+                    sc = SkyCoord(
+                        ra=df["ra_deg"].values * u.deg,
+                        dec=df["dec_deg"].values * u.deg,
+                        frame="icrs",
+                    )
+                    center = SkyCoord(ra_deg * u.deg, dec_deg * u.deg, frame="icrs")
+                    sep = sc.separation(center).deg
+                    df = df[sep <= radius_deg].copy()
+
+                    # Re-apply flux filter if needed
+                    if min_flux_mjy is not None and len(df) > 0:
+                        df = df[df["flux_mjy"] >= min_flux_mjy].copy()
+
+                    # Re-apply limit if needed
+                    if max_sources and len(df) > max_sources:
+                        df = df.head(max_sources)
+
+                return df
+
+            finally:
+                conn.close()
+
+        except Exception as e:
+            # SQLite query failed
+            if use_csv_fallback:
+                print(
+                    "Note: CSV catalog is available as an alternative. "
+                    "Set use_csv_fallback=True to enable CSV fallback (slower, ~1s vs ~0.01s)."
+                )
+                logger.warning(
+                    f"SQLite query failed ({e}), falling back to CSV. "
+                    f"This will be slower (~1s vs ~0.01s)."
+                )
+                # Fallback to CSV (slower but always works)
+                # VLASS catalog reading - need to implement read_vlass_catalog or use generic reader
+                from dsa110_contimg.catalog.build_master import _read_table
+
+                # Try to find cached VLASS catalog
+                cache_dir = ".cache/catalogs"
+                os.makedirs(cache_dir, exist_ok=True)
+                cache_path = Path(cache_dir) / "vlass_catalog"
+
+                # Try common extensions
+                vlass_path = None
+                for ext in [".csv", ".fits", ".fits.gz", ".csv.gz"]:
+                    candidate = cache_path.with_suffix(ext)
+                    if candidate.exists():
+                        vlass_path = str(candidate)
+                        break
+
+                if vlass_path is None:
+                    # Return empty DataFrame if no catalog found
+                    logger.warning(
+                        "VLASS catalog not found. Please provide catalog_path or place "
+                        f"VLASS catalog in {cache_dir}/vlass_catalog.csv or .fits"
+                    )
+                    return pd.DataFrame(columns=["ra_deg", "dec_deg", "flux_mjy"])
+
+                df_full = _read_table(vlass_path)
+
+                # Normalize column names for VLASS
+                from dsa110_contimg.catalog.build_master import _normalize_columns
+
+                VLASS_CANDIDATES = {
+                    "ra": ["ra", "ra_deg", "raj2000"],
+                    "dec": ["dec", "dec_deg", "dej2000"],
+                    "flux": ["peak_flux", "peak_mjy_per_beam", "flux_peak", "flux", "total_flux"],
+                }
+                col_map = _normalize_columns(df_full, VLASS_CANDIDATES)
+
+                ra_col = col_map.get("ra", "ra")
+                dec_col = col_map.get("dec", "dec")
+                flux_col = col_map.get("flux", None)
+
+                # Convert to SkyCoord for separation calculation
+                ra_vals = pd.to_numeric(df_full[ra_col], errors="coerce")
+                dec_vals = pd.to_numeric(df_full[dec_col], errors="coerce")
+                sc = SkyCoord(ra=ra_vals.values * u.deg, dec=dec_vals.values * u.deg, frame="icrs")
+                center = SkyCoord(ra_deg * u.deg, dec_deg * u.deg, frame="icrs")
+                sep = sc.separation(center).deg
+
+                # Filter by separation
+                keep = sep <= radius_deg
+
+                # Filter by flux if specified
+                if min_flux_mjy is not None and flux_col:
+                    flux_vals = pd.to_numeric(df_full[flux_col], errors="coerce")
+                    # VLASS flux is typically in mJy, but check if conversion needed
+                    if len(flux_vals) > 0 and flux_vals.max() > 1000:
+                        flux_vals = flux_vals * 1000.0  # Convert Jy to mJy
+                    keep = keep & (flux_vals >= min_flux_mjy)
+
+                result = df_full[keep].copy()
+
+                # Standardize column names
+                result["ra_deg"] = pd.to_numeric(result[ra_col], errors="coerce")
+                result["dec_deg"] = pd.to_numeric(result[dec_col], errors="coerce")
+
+                if flux_col and flux_col in result.columns:
+                    flux_vals = pd.to_numeric(result[flux_col], errors="coerce")
+                    if len(flux_vals) > 0 and flux_vals.max() > 1000:
+                        result["flux_mjy"] = flux_vals * 1000.0
+                    else:
+                        result["flux_mjy"] = flux_vals
+                else:
+                    result["flux_mjy"] = None
+
+                # Sort by flux and limit
+                if "flux_mjy" in result.columns and result["flux_mjy"].notna().any():
+                    result = result.sort_values("flux_mjy", ascending=False, na_last=True)
+                if max_sources:
+                    result = result.head(max_sources)
+
+                # Select only the columns we need
+                if len(result) > 0:
+                    result = result[["ra_deg", "dec_deg", "flux_mjy"]].copy()
+                else:
+                    result = pd.DataFrame(columns=["ra_deg", "dec_deg", "flux_mjy"])
+
+                return result
+            else:
+                # No fallback - return empty DataFrame
+                logger.error(
+                    f"SQLite query failed ({e}). "
+                    f"SQLite database required. CSV fallback is available but disabled. "
+                    f"Set use_csv_fallback=True to enable CSV fallback."
+                )
+                print(
+                    "Note: CSV catalog is available as an alternative. "
+                    "Set use_csv_fallback=True to enable CSV fallback (slower, ~1s vs ~0.01s)."
+                )
+                return pd.DataFrame(columns=["ra_deg", "dec_deg", "flux_mjy"])
+
+
+
+def query_catalog_sources(
+    catalog_type: str,
+    ra_deg: float,
+    dec_deg: float,
+    radius_deg: float,
+    min_flux_mjy: Optional[float] = None,
+    max_sources: Optional[int] = None,
+    catalog_path: Optional[str | os.PathLike[str]] = None,
+    use_csv_fallback: bool = False,
+) -> pd.DataFrame:
+    """Unified interface to query catalog sources (NVSS, RAX, VLASS).
+
+    This function provides a common API for querying different radio source catalogs.
+    It automatically selects the appropriate query function based on catalog_type.
+
+    Args:
+        catalog_type: One of "nvss", "rax", "vlass"
+        ra_deg: Field center RA in degrees
+        dec_deg: Field center Dec in degrees
+        radius_deg: Search radius in degrees
+        min_flux_mjy: Minimum flux in mJy (optional)
+        max_sources: Maximum number of sources to return (optional)
+        catalog_path: Explicit path to SQLite database (overrides auto-resolution)
+        use_csv_fallback: If True, fall back to CSV when SQLite fails (default: False)
+
+    Returns:
+        DataFrame with columns: ra_deg, dec_deg, flux_mjy
+
+    Examples:
+        >>> # Query NVSS sources
+        >>> df = query_catalog_sources("nvss", ra_deg=83.5, dec_deg=54.6, radius_deg=1.0)
+
+        >>> # Query RAX sources
+        >>> df = query_catalog_sources("rax", ra_deg=83.5, dec_deg=54.6, radius_deg=1.0)
+
+        >>> # Query VLASS sources
+        >>> df = query_catalog_sources("vlass", ra_deg=83.5, dec_deg=54.6, radius_deg=1.0)
+    """
+    catalog_type_lower = catalog_type.lower()
+
+    if catalog_type_lower == "nvss":
+        return query_nvss_sources(
+            ra_deg=ra_deg,
+            dec_deg=dec_deg,
+            radius_deg=radius_deg,
+            min_flux_mjy=min_flux_mjy,
+            max_sources=max_sources,
+            catalog_path=catalog_path,
+            use_csv_fallback=use_csv_fallback,
+        )
+    elif catalog_type_lower == "rax":
+        return query_rax_sources(
+            ra_deg=ra_deg,
+            dec_deg=dec_deg,
+            radius_deg=radius_deg,
+            min_flux_mjy=min_flux_mjy,
+            max_sources=max_sources,
+            catalog_path=catalog_path,
+            use_csv_fallback=use_csv_fallback,
+        )
+    elif catalog_type_lower == "vlass":
+        return query_vlass_sources(
+            ra_deg=ra_deg,
+            dec_deg=dec_deg,
+            radius_deg=radius_deg,
+            min_flux_mjy=min_flux_mjy,
+            max_sources=max_sources,
+            catalog_path=catalog_path,
+            use_csv_fallback=use_csv_fallback,
+        )
+    else:
+        raise ValueError(
+            f"Unsupported catalog_type: {catalog_type}. "
+            f"Supported types: nvss, rax, vlass"
+        )

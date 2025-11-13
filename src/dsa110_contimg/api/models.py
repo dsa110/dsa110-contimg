@@ -21,7 +21,8 @@ class QueueGroup(BaseModel):
     subbands_present: int = Field(
         ..., description="Number of subbands ingested for this group"
     )
-    expected_subbands: int = Field(..., description="Expected subbands per group")
+    expected_subbands: int = Field(...,
+                                   description="Expected subbands per group")
     has_calibrator: bool | None = Field(
         None, description="True if any calibrator was matched in beam"
     )
@@ -77,7 +78,8 @@ class ImageInfo(BaseModel):
     path: str
     ms_path: str
     created_at: Optional[datetime] = None
-    type: str = Field(..., description="Image type: image, pbcor, residual, psf, pb")
+    type: str = Field(...,
+                      description="Image type: image, pbcor, residual, psf, pb")
     beam_major_arcsec: Optional[float] = None
     beam_minor_arcsec: Optional[float] = None
     beam_pa_deg: Optional[float] = None
@@ -203,7 +205,8 @@ class TimelineSegment(BaseModel):
 
     start_time: datetime = Field(..., description="Start time of the segment")
     end_time: datetime = Field(..., description="End time of the segment")
-    file_count: int = Field(..., description="Number of HDF5 files in this segment")
+    file_count: int = Field(...,
+                            description="Number of HDF5 files in this segment")
 
 
 class ObservationTimeline(BaseModel):
@@ -518,6 +521,35 @@ class WorkflowJobCreateRequest(BaseModel):
     params: WorkflowParams
 
 
+class ESEDetectJobParams(BaseModel):
+    """Parameters for ESE detection job."""
+
+    min_sigma: float = Field(
+        5.0, description="Minimum sigma deviation threshold")
+    source_id: Optional[str] = Field(
+        None, description="Optional specific source ID to check")
+    recompute: bool = Field(
+        False, description="Recompute variability statistics before detection")
+
+
+class ESEDetectJobCreateRequest(BaseModel):
+    """Request to create an ESE detection job."""
+
+    params: ESEDetectJobParams
+
+
+class BatchESEDetectParams(BaseModel):
+    """Parameters for batch ESE detection job."""
+
+    min_sigma: float = Field(
+        5.0, description="Minimum sigma deviation threshold")
+    recompute: bool = Field(
+        False, description="Recompute variability statistics before detection")
+    source_ids: Optional[List[str]] = Field(
+        None, description="Optional list of specific source IDs to check (if None, checks all)"
+    )
+
+
 # ============================================================================
 # Batch Job Models
 # ============================================================================
@@ -573,11 +605,56 @@ class BatchImageParams(BaseModel):
     params: JobParams
 
 
+class TimeWindow(BaseModel):
+    """Time window for batch conversion."""
+
+    start_time: str
+    end_time: str
+
+
+class BatchConversionParams(BaseModel):
+    """Parameters for batch conversion."""
+
+    time_windows: List[TimeWindow]
+    params: ConversionJobParams
+
+
+class BatchPublishParams(BaseModel):
+    """Parameters for batch publishing."""
+
+    data_ids: List[str]
+    products_base: Optional[str] = None
+
+
+class BatchPhotometryParams(BaseModel):
+    """Parameters for batch photometry job."""
+
+    fits_paths: List[str] = Field(..., description="List of FITS image paths")
+    coordinates: List[Coordinate] = Field(
+        ..., description="List of RA/Dec coordinates to measure")
+    box_size_pix: int = Field(
+        5, description="Size of measurement box (pixels)")
+    annulus_pix: Tuple[int, int] = Field(
+        (12, 20), description="Annulus for RMS estimation (r_in, r_out) pixels"
+    )
+    use_aegean: bool = Field(False, description="Use Aegean forced fitting")
+    normalize: bool = Field(
+        False, description="Apply normalization to measurements")
+
+
 class BatchJobCreateRequest(BaseModel):
     """Request to create a batch job."""
 
-    job_type: str  # calibrate, apply, image
-    params: Union[BatchCalibrateParams, BatchApplyParams, BatchImageParams]
+    job_type: str  # calibrate, apply, image, convert, publish, photometry, ese-detect
+    params: Union[
+        BatchCalibrateParams,
+        BatchApplyParams,
+        BatchImageParams,
+        BatchConversionParams,
+        BatchPublishParams,
+        BatchPhotometryParams,
+        BatchESEDetectParams,
+    ]
 
 
 # ============================================================================
@@ -677,7 +754,8 @@ class Mosaic(BaseModel):
     start_time: str  # ISO format datetime
     end_time: str  # ISO format datetime
     created_at: str  # ISO format datetime
-    status: str = Field(..., description="pending, in_progress, completed, failed")
+    status: str = Field(...,
+                        description="pending, in_progress, completed, failed")
     image_count: Optional[int] = None
     noise_jy: Optional[float] = None
     source_count: Optional[int] = None
@@ -689,6 +767,33 @@ class MosaicQueryResponse(BaseModel):
 
     mosaics: List[Mosaic]
     total: int
+
+
+class MosaicCreateRequest(BaseModel):
+    """Request to create a mosaic."""
+
+    calibrator_name: Optional[str] = Field(
+        None, description="Calibrator name for calibrator-centered mosaic (e.g., '0834+555')"
+    )
+    start_time: Optional[str] = Field(
+        None, description="Start time for time-window mosaic (ISO format)"
+    )
+    end_time: Optional[str] = Field(
+        None, description="End time for time-window mosaic (ISO format)"
+    )
+    timespan_minutes: int = Field(50, description="Mosaic timespan in minutes")
+    wait_for_published: bool = Field(
+        True, description="Wait until mosaic is published before returning"
+    )
+
+
+class MosaicCreateResponse(BaseModel):
+    """Response for mosaic creation endpoint."""
+
+    job_id: int
+    group_id: Optional[str] = None
+    status: str
+    message: str
 
 
 class SourceFluxPoint(BaseModel):
@@ -728,7 +833,8 @@ class VariabilityMetrics(BaseModel):
     source_id: str
     v: float = Field(..., description="Coefficient of variation (std/mean)")
     eta: float = Field(..., description="Weighted variance metric (η)")
-    vs_mean: Optional[float] = Field(None, description="Mean two-epoch t-statistic")
+    vs_mean: Optional[float] = Field(
+        None, description="Mean two-epoch t-statistic")
     m_mean: Optional[float] = Field(None, description="Mean modulation index")
     n_epochs: int = Field(..., description="Number of epochs")
 
@@ -768,19 +874,25 @@ class ExternalCatalogMatch(BaseModel):
     catalog: str = Field(..., description="Catalog name (simbad, ned, gaia)")
     matched: bool = Field(..., description="Whether a match was found")
     main_id: Optional[str] = Field(None, description="Primary identifier")
-    object_type: Optional[str] = Field(None, description="Object type/classification")
+    object_type: Optional[str] = Field(
+        None, description="Object type/classification")
     separation_arcsec: Optional[float] = Field(
         None, description="Separation from query position"
     )
     redshift: Optional[float] = Field(None, description="Redshift (NED)")
-    parallax: Optional[float] = Field(None, description="Parallax in mas (Gaia)")
-    distance: Optional[float] = Field(None, description="Distance in pc (Gaia)")
-    pmra: Optional[float] = Field(None, description="Proper motion RA (mas/yr, Gaia)")
-    pmdec: Optional[float] = Field(None, description="Proper motion Dec (mas/yr, Gaia)")
+    parallax: Optional[float] = Field(
+        None, description="Parallax in mas (Gaia)")
+    distance: Optional[float] = Field(
+        None, description="Distance in pc (Gaia)")
+    pmra: Optional[float] = Field(
+        None, description="Proper motion RA (mas/yr, Gaia)")
+    pmdec: Optional[float] = Field(
+        None, description="Proper motion Dec (mas/yr, Gaia)")
     phot_g_mean_mag: Optional[float] = Field(
         None, description="G-band magnitude (Gaia)"
     )
-    error: Optional[str] = Field(None, description="Error message if query failed")
+    error: Optional[str] = Field(
+        None, description="Error message if query failed")
 
 
 class ExternalCatalogsResponse(BaseModel):
@@ -790,7 +902,8 @@ class ExternalCatalogsResponse(BaseModel):
     ra_deg: float
     dec_deg: float
     matches: Dict[str, ExternalCatalogMatch]
-    query_time_sec: Optional[float] = Field(None, description="Total query time")
+    query_time_sec: Optional[float] = Field(
+        None, description="Total query time")
 
 
 class AlertHistory(BaseModel):
@@ -821,12 +934,14 @@ class Detection(BaseModel):
     flux_peak_err: Optional[float] = Field(
         None, description="Peak flux error in mJy/beam"
     )
-    flux_int: Optional[float] = Field(None, description="Integrated flux in mJy")
+    flux_int: Optional[float] = Field(
+        None, description="Integrated flux in mJy")
     flux_int_err: Optional[float] = Field(
         None, description="Integrated flux error in mJy"
     )
     snr: Optional[float] = Field(None, description="Signal-to-noise ratio")
-    forced: bool = Field(False, description="Whether this is a forced measurement")
+    forced: bool = Field(
+        False, description="Whether this is a forced measurement")
     frequency: Optional[float] = Field(None, description="Frequency in MHz")
     mjd: Optional[float] = Field(None, description="Modified Julian Date")
     measured_at: Optional[datetime] = None
@@ -877,15 +992,19 @@ class Measurement(BaseModel):
     flux_peak_err: Optional[float] = Field(
         None, description="Peak flux error in mJy/beam"
     )
-    flux_int: Optional[float] = Field(None, description="Integrated flux in mJy")
+    flux_int: Optional[float] = Field(
+        None, description="Integrated flux in mJy")
     flux_int_err: Optional[float] = Field(
         None, description="Integrated flux error in mJy"
     )
     snr: Optional[float] = Field(None, description="Signal-to-noise ratio")
-    forced: bool = Field(False, description="Whether this is a forced measurement")
+    forced: bool = Field(
+        False, description="Whether this is a forced measurement")
     frequency: Optional[float] = Field(None, description="Frequency in MHz")
-    compactness: Optional[float] = Field(None, description="Source compactness")
-    has_siblings: bool = Field(False, description="Whether source has siblings")
+    compactness: Optional[float] = Field(
+        None, description="Source compactness")
+    has_siblings: bool = Field(
+        False, description="Whether source has siblings")
 
 
 class MeasurementList(BaseModel):
@@ -908,10 +1027,14 @@ class ImageDetail(BaseModel):
     dec: Optional[float] = Field(None, description="Declination in degrees")
     ra_hms: Optional[str] = None
     dec_dms: Optional[str] = None
-    l: Optional[float] = Field(None, description="Galactic longitude in degrees")
-    b: Optional[float] = Field(None, description="Galactic latitude in degrees")
-    beam_bmaj: Optional[float] = Field(None, description="Beam major axis in degrees")
-    beam_bmin: Optional[float] = Field(None, description="Beam minor axis in degrees")
+    l: Optional[float] = Field(
+        None, description="Galactic longitude in degrees")
+    b: Optional[float] = Field(
+        None, description="Galactic latitude in degrees")
+    beam_bmaj: Optional[float] = Field(
+        None, description="Beam major axis in degrees")
+    beam_bmin: Optional[float] = Field(
+        None, description="Beam minor axis in degrees")
     beam_bpa: Optional[float] = Field(
         None, description="Beam position angle in degrees"
     )
@@ -961,7 +1084,143 @@ class StreamingStatusResponse(BaseModel):
     memory_mb: Optional[float] = None
     last_heartbeat: Optional[str] = None  # ISO format
     config: Optional[dict] = None
+
+
+# ============================================================================
+# Photometry Execution Models
+# ============================================================================
+
+
+class Coordinate(BaseModel):
+    """RA/Dec coordinate pair."""
+
+    ra_deg: float = Field(..., description="Right ascension in degrees")
+    dec_deg: float = Field(..., description="Declination in degrees")
+
+
+class PhotometryMeasureRequest(BaseModel):
+    """Request for single forced photometry measurement."""
+
+    fits_path: str = Field(..., description="Path to FITS image")
+    ra_deg: float = Field(..., description="Right ascension in degrees")
+    dec_deg: float = Field(..., description="Declination in degrees")
+    box_size_pix: int = Field(
+        5, description="Size of measurement box (pixels)")
+    annulus_pix: Tuple[int, int] = Field(
+        (12, 20), description="Annulus for RMS estimation (r_in, r_out) pixels"
+    )
+    noise_map_path: Optional[str] = Field(
+        None, description="Optional path to noise map FITS file")
+    background_map_path: Optional[str] = Field(
+        None, description="Optional path to background map FITS file"
+    )
+    nbeam: float = Field(
+        3.0, description="Size of cutout in units of beam major axis")
+    use_weighted_convolution: bool = Field(
+        True, description="Use weighted convolution if beam info available"
+    )
+    use_aegean: bool = Field(False, description="Use Aegean forced fitting")
+    aegean_prioritized: bool = Field(
+        False, description="Use prioritized Aegean fitting")
+    aegean_negative: bool = Field(
+        False, description="Allow negative Aegean fits")
+
+
+class PhotometryMeasureBatchRequest(BaseModel):
+    """Request for batch forced photometry measurements."""
+
+    fits_path: str = Field(..., description="Path to FITS image")
+    coordinates: List[Coordinate] = Field(...,
+                                          description="List of RA/Dec coordinates")
+    box_size_pix: int = Field(
+        5, description="Size of measurement box (pixels)")
+    annulus_pix: Tuple[int, int] = Field(
+        (12, 20), description="Annulus for RMS estimation (r_in, r_out) pixels"
+    )
+    noise_map_path: Optional[str] = Field(
+        None, description="Optional path to noise map FITS file")
+    background_map_path: Optional[str] = Field(
+        None, description="Optional path to background map FITS file"
+    )
+    use_cluster_fitting: bool = Field(
+        False, description="Enable cluster fitting for blended sources"
+    )
+    cluster_threshold: float = Field(
+        1.5, description="Cluster threshold in units of BMAJ"
+    )
+    nbeam: float = Field(
+        3.0, description="Size of cutout in units of beam major axis")
+
+
+class PhotometryResult(BaseModel):
+    """Result of a photometry measurement."""
+
+    ra_deg: float
+    dec_deg: float
+    peak_jyb: Optional[float] = None
+    peak_err_jyb: Optional[float] = None
+    integrated_flux_jy: Optional[float] = None
+    err_integrated_flux_jy: Optional[float] = None
+    local_rms_jy: Optional[float] = None
+    success: bool
+    error_message: Optional[str] = None
+    method: str = "peak"
+
+
+class PhotometryMeasureResponse(BaseModel):
+    """Response for single photometry measurement."""
+
+    result: PhotometryResult
+
+
+class PhotometryMeasureBatchResponse(BaseModel):
+    """Response for batch photometry measurements."""
+
+    results: List[PhotometryResult]
     error: Optional[str] = None
+
+
+class PhotometryNormalizeRequest(BaseModel):
+    """Request for photometry normalization."""
+
+    fits_path: str = Field(..., description="Path to FITS image")
+    ra_deg: float = Field(..., description="Right ascension in degrees")
+    dec_deg: float = Field(..., description="Declination in degrees")
+    raw_flux_jy: float = Field(...,
+                               description="Raw flux measurement in Jy/beam")
+    raw_error_jy: float = Field(..., description="Raw flux error in Jy/beam")
+    ra_center: Optional[float] = Field(
+        None, description="Field center RA in degrees (for reference source query)"
+    )
+    dec_center: Optional[float] = Field(
+        None, description="Field center Dec in degrees (for reference source query)"
+    )
+    fov_radius_deg: float = Field(
+        1.5, description="Field of view radius for reference sources")
+    min_snr: float = Field(
+        50.0, description="Minimum NVSS SNR for reference sources")
+    max_sources: int = Field(
+        20, description="Maximum number of reference sources")
+    box_size_pix: int = Field(
+        5, description="Size of measurement box (pixels)")
+    annulus_pix: Tuple[int, int] = Field(
+        (12, 20), description="Annulus for RMS estimation (r_in, r_out) pixels"
+    )
+    max_deviation_sigma: float = Field(
+        3.0, description="Maximum deviation in sigma for reference rejection"
+    )
+
+
+class PhotometryNormalizeResponse(BaseModel):
+    """Response for photometry normalization."""
+
+    normalized_flux_jy: float
+    normalized_error_jy: float
+    correction_factor: float
+    correction_rms: float
+    n_references: int
+    success: bool
+    error_message: Optional[str] = None
 
 
 class StreamingHealthResponse(BaseModel):

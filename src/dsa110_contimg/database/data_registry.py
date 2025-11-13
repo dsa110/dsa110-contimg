@@ -105,6 +105,33 @@ def ensure_data_registry_db(path: Path) -> sqlite3.Connection:
         except sqlite3.OperationalError as e:
             logger.warning(f"Could not add publish_error column: {e}")
 
+    # Add photometry tracking columns
+    try:
+        # Check if photometry_status column exists
+        conn.execute("SELECT photometry_status FROM data_registry LIMIT 1")
+    except sqlite3.OperationalError:
+        # Column doesn't exist, add it
+        try:
+            conn.execute(
+                "ALTER TABLE data_registry ADD COLUMN photometry_status TEXT DEFAULT NULL"
+            )
+            logger.info("Added photometry_status column to data_registry")
+        except sqlite3.OperationalError as e:
+            logger.warning(f"Could not add photometry_status column: {e}")
+
+    try:
+        # Check if photometry_job_id column exists
+        conn.execute("SELECT photometry_job_id FROM data_registry LIMIT 1")
+    except sqlite3.OperationalError:
+        # Column doesn't exist, add it
+        try:
+            conn.execute(
+                "ALTER TABLE data_registry ADD COLUMN photometry_job_id TEXT DEFAULT NULL"
+            )
+            logger.info("Added photometry_job_id column to data_registry")
+        except sqlite3.OperationalError as e:
+            logger.warning(f"Could not add photometry_job_id column: {e}")
+
     # Data relationships table
     conn.execute(
         """
@@ -486,6 +513,109 @@ def trigger_auto_publish(
         logger.error(f"Failed to auto-publish {data_id}: {error_msg}", exc_info=True)
         _record_publish_failure(conn, cur, data_id, publish_attempts, error_msg)
         return False
+
+
+def update_photometry_status(
+    conn: sqlite3.Connection,
+    data_id: str,
+    status: str,
+    job_id: Optional[str] = None,
+) -> bool:
+    """Update photometry status for a data product.
+
+    Args:
+        conn: Database connection
+        data_id: Data product ID
+        status: Status ("pending", "running", "completed", "failed")
+        job_id: Optional batch job ID
+
+    Returns:
+        True if updated successfully, False otherwise
+    """
+    try:
+        cur = conn.cursor()
+        cur.execute(
+            """
+            UPDATE data_registry
+            SET photometry_status = ?, photometry_job_id = ?
+            WHERE data_id = ?
+            """,
+            (status, job_id, data_id),
+        )
+        conn.commit()
+        if cur.rowcount == 0:
+            logger.warning(f"No data record found for data_id: {data_id}")
+            return False
+        return True
+    except Exception as e:
+        logger.error(f"Failed to update photometry status for {data_id}: {e}")
+        conn.rollback()
+        return False
+
+
+def get_photometry_status(
+    conn: sqlite3.Connection,
+    data_id: str,
+) -> Optional[Dict[str, Any]]:
+    """Get photometry status for a data product.
+
+    Args:
+        conn: Database connection
+        data_id: Data product ID
+
+    Returns:
+        Dict with "status" and "job_id" keys, or None if not found
+    """
+    try:
+        cur = conn.cursor()
+        # Try to select photometry columns (may not exist in older schemas)
+        try:
+            cur.execute(
+                """
+                SELECT photometry_status, photometry_job_id
+                FROM data_registry
+                WHERE data_id = ?
+                """,
+                (data_id,),
+            )
+        except sqlite3.OperationalError:
+            # Columns don't exist yet
+            return None
+
+        row = cur.fetchone()
+        if not row:
+            return None
+
+        status, job_id = row
+        return {"status": status, "job_id": job_id}
+    except Exception as e:
+        logger.error(f"Failed to get photometry status for {data_id}: {e}")
+        return None
+
+
+def link_photometry_to_data(
+    conn: sqlite3.Connection,
+    data_id: str,
+    photometry_job_id: str,
+) -> bool:
+    """Link a photometry job to a data product.
+
+    Convenience function that calls update_photometry_status() with "pending" status.
+
+    Args:
+        conn: Database connection
+        data_id: Data product ID
+        photometry_job_id: Batch photometry job ID
+
+    Returns:
+        True if linked successfully, False otherwise
+    """
+    return update_photometry_status(
+        conn=conn,
+        data_id=data_id,
+        status="pending",
+        job_id=photometry_job_id,
+    )
 
 
 def _record_publish_failure(

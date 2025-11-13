@@ -17,10 +17,16 @@ from dsa110_contimg.api.job_adapters import (
     run_apply_job,
     run_batch_apply_job,
     run_batch_calibrate_job,
+    run_batch_convert_job,
+    run_batch_ese_detect_job,
     run_batch_image_job,
+    run_batch_photometry_job,
+    run_batch_publish_job,
     run_calibrate_job,
     run_convert_job,
+    run_ese_detect_job,
     run_image_job,
+    run_mosaic_create_job,
 )
 
 # Keep helper functions that may still be used
@@ -106,9 +112,15 @@ __all__ = [
     "run_apply_job",
     "run_image_job",
     "run_workflow_job",
+    "run_ese_detect_job",
     "run_batch_calibrate_job",
     "run_batch_apply_job",
+    "run_batch_convert_job",
     "run_batch_image_job",
+    "run_batch_photometry_job",
+    "run_batch_publish_job",
+    "run_batch_ese_detect_job",
+    "run_mosaic_create_job",
     "list_caltables",
     "_python_cmd_for_jobs",  # Utility function for health checks
     "_src_path_for_env",  # Utility function for health checks
