@@ -40,6 +40,7 @@
     "ag-grid-react": "^34.3.0",
     "axios": "^1.12.2",
     "d3": "^7.9.0",
+    "date-fns": "^4.1.0",
     "dayjs": "^1.11.18",
     "golden-layout": "^2.6.0",
     "plotly.js": "^3.1.2",

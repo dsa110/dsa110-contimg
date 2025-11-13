@@ -14,6 +14,12 @@ from typing import List, Optional
 
 import numpy as np
 
+from dsa110_contimg.photometry.variability import calculate_sigma_deviation
+from dsa110_contimg.photometry.scoring import (
+    calculate_composite_score,
+    get_confidence_level,
+)
+
 logger = logging.getLogger(__name__)
 
 
@@ -22,6 +28,8 @@ def detect_ese_candidates(
     min_sigma: float = 5.0,
     source_id: Optional[str] = None,
     recompute: bool = False,
+    use_composite_scoring: bool = False,
+    scoring_weights: Optional[dict] = None,
 ) -> List[dict]:
     """Detect ESE candidates from variability statistics.
 
@@ -33,9 +41,12 @@ def detect_ese_candidates(
         min_sigma: Minimum sigma deviation threshold (default: 5.0)
         source_id: Optional specific source ID to check (if None, checks all sources)
         recompute: If True, recompute variability stats before detection
+        use_composite_scoring: If True, compute composite score from multiple metrics
+        scoring_weights: Optional custom weights for composite scoring
 
     Returns:
         List of detected ESE candidate dictionaries with source_id, significance, etc.
+        If use_composite_scoring is True, includes 'composite_score' and 'confidence_level'.
     """
     if not products_db.exists():
         logger.warning(f"Products database not found: {products_db}")
@@ -69,6 +80,7 @@ def detect_ese_candidates(
             _recompute_variability_stats(conn)
 
         # Query for sources with high variability
+        # Include eta_metric if available for composite scoring
         if source_id:
             query = """
                 SELECT 
@@ -80,6 +92,7 @@ def detect_ese_candidates(
                     std_flux_mjy,
                     chi2_nu,
                     sigma_deviation,
+                    eta_metric,
                     n_obs,
                     last_mjd
                 FROM variability_stats
@@ -97,6 +110,7 @@ def detect_ese_candidates(
                     std_flux_mjy,
                     chi2_nu,
                     sigma_deviation,
+                    eta_metric,
                     n_obs,
                     last_mjd
                 FROM variability_stats
@@ -118,6 +132,30 @@ def detect_ese_candidates(
         for row in rows:
             source_id_val = row["source_id"]
             significance = float(row["sigma_deviation"])
+
+            # Compute composite score if enabled
+            composite_score = None
+            confidence_level = None
+            if use_composite_scoring:
+                metrics = {
+                    "sigma_deviation": significance,
+                }
+                
+                # Add chi2_nu if available
+                if row["chi2_nu"] is not None:
+                    metrics["chi2_nu"] = float(row["chi2_nu"])
+                
+                # Add eta_metric if available
+                if row.get("eta_metric") is not None:
+                    metrics["eta_metric"] = float(row["eta_metric"])
+                
+                if metrics:
+                    composite_score = calculate_composite_score(
+                        metrics,
+                        weights=scoring_weights,
+                        normalize=True,
+                    )
+                    confidence_level = get_confidence_level(composite_score)
 
             # Check if already flagged
             existing = conn.execute(
@@ -163,20 +201,25 @@ def detect_ese_candidates(
                     f"(significance: {significance:.2f})"
                 )
 
-            detected.append(
-                {
-                    "source_id": source_id_val,
-                    "ra_deg": float(row["ra_deg"]),
-                    "dec_deg": float(row["dec_deg"]),
-                    "significance": significance,
-                    "nvss_flux_mjy": float(row["nvss_flux_mjy"]) if row["nvss_flux_mjy"] else None,
-                    "mean_flux_mjy": float(row["mean_flux_mjy"]) if row["mean_flux_mjy"] else None,
-                    "std_flux_mjy": float(row["std_flux_mjy"]) if row["std_flux_mjy"] else None,
-                    "chi2_nu": float(row["chi2_nu"]) if row["chi2_nu"] else None,
-                    "n_obs": int(row["n_obs"]),
-                    "last_mjd": float(row["last_mjd"]) if row["last_mjd"] else None,
-                }
-            )
+            candidate_dict = {
+                "source_id": source_id_val,
+                "ra_deg": float(row["ra_deg"]),
+                "dec_deg": float(row["dec_deg"]),
+                "significance": significance,
+                "nvss_flux_mjy": float(row["nvss_flux_mjy"]) if row["nvss_flux_mjy"] else None,
+                "mean_flux_mjy": float(row["mean_flux_mjy"]) if row["mean_flux_mjy"] else None,
+                "std_flux_mjy": float(row["std_flux_mjy"]) if row["std_flux_mjy"] else None,
+                "chi2_nu": float(row["chi2_nu"]) if row["chi2_nu"] else None,
+                "n_obs": int(row["n_obs"]),
+                "last_mjd": float(row["last_mjd"]) if row["last_mjd"] else None,
+            }
+            
+            # Add composite scoring fields if enabled
+            if use_composite_scoring and composite_score is not None:
+                candidate_dict["composite_score"] = composite_score
+                candidate_dict["confidence_level"] = confidence_level
+            
+            detected.append(candidate_dict)
 
         conn.commit()
         logger.info(f"Detected {len(detected)} ESE candidates")
@@ -272,13 +315,14 @@ def _recompute_variability_stats(conn: sqlite3.Connection) -> None:
 
         # Compute sigma deviation (how many sigma away from mean)
         # This measures the maximum deviation from the mean in units of standard deviation
-        if std_flux > 0:
-            sigma_deviation = abs(max_flux - mean_flux) / std_flux
-            sigma_deviation = max(
-                sigma_deviation,
-                abs(min_flux - mean_flux) / std_flux
+        try:
+            sigma_deviation = calculate_sigma_deviation(
+                np.array(fluxes),
+                mean=mean_flux,
+                std=std_flux
             )
-        else:
+        except ValueError:
+            # Handle edge case: empty array or all NaN
             sigma_deviation = 0.0
 
         # Get first row for position and NVSS flux

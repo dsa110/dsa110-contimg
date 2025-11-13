@@ -34,6 +34,8 @@ check_port() {
         return 0
     fi
     # Fallback to fuser
+    # Note: fuser output is suppressed here because we only care about exit code
+    # This is an exception: checking port availability, not suppressing errors
     if fuser $port/tcp >/dev/null 2>&1 || sudo fuser $port/tcp >/dev/null 2>&1; then
         return 0
     fi
@@ -60,6 +62,8 @@ kill_port() {
     local attempt=0
     
     while [ $attempt -lt $max_attempts ]; do
+        # Note: Suppressing lsof errors here is acceptable - we only care if port is in use
+        # This is an exception: checking port status, not suppressing actual errors
         local pids=$(lsof -ti:$port 2>/dev/null)
         if [ -z "$pids" ]; then
             pids=$(sudo lsof -ti:$port 2>/dev/null)
@@ -73,6 +77,8 @@ kill_port() {
             echo -e "${YELLOW}Killing process(es) on port $port: $pids${NC}"
         fi
         # If we still don't have PIDs (docker-proxy), try fuser kill directly
+        # Note: Suppressing fuser output here is acceptable - we only care about success
+        # This is an exception: killing processes, not suppressing actual errors
         if [ -z "$pids" ]; then
             if [ $attempt -lt 2 ]; then
                 sudo fuser -k $port/tcp >/dev/null 2>&1 || true

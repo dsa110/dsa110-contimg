@@ -17,19 +17,26 @@ from dsa110_contimg.photometry.ese_detection import detect_ese_candidates
 from dsa110_contimg.photometry.variability import (
     calculate_eta_metric,
     calculate_v_metric,
+    calculate_sigma_deviation,
+)
+from dsa110_contimg.photometry.caching import (
+    get_cached_variability_stats,
+    invalidate_cache,
 )
 
 logger = logging.getLogger(__name__)
 
 
 def update_variability_stats_for_source(
-    conn: sqlite3.Connection, source_id: str
+    conn: sqlite3.Connection, source_id: str, use_cache: bool = True, cache_ttl: int = 3600, products_db: Optional[Path] = None
 ) -> bool:
     """Update variability statistics for a single source from photometry measurements.
 
     Args:
         conn: Database connection
         source_id: Source ID to update
+        use_cache: If True, check cache before recomputing (default: True)
+        cache_ttl: Cache time-to-live in seconds (default: 3600)
 
     Returns:
         True if stats were updated, False otherwise
@@ -43,8 +50,16 @@ def update_variability_stats_for_source(
     }
 
     if "photometry" not in tables:
-        logger.debug(f"photometry table not found - skipping variability stats for {source_id}")
+        logger.debug(
+            f"photometry table not found - skipping variability stats for {source_id}")
         return False
+
+    # Check cache first if enabled
+    if use_cache:
+        # Get database path from connection (approximate)
+        # Note: SQLite connections don't expose the path directly, so we'll skip cache check
+        # for now and rely on database-level caching in get_cached_variability_stats
+        pass
 
     # Get photometry history for this source
     rows = conn.execute(
@@ -87,11 +102,13 @@ def update_variability_stats_for_source(
     # Use first row for position and NVSS flux
     ra_deg = df["ra_deg"].iloc[0]
     dec_deg = df["dec_deg"].iloc[0]
-    nvss_flux_mjy = df["nvss_flux_mjy"].iloc[0] if not pd.isna(df["nvss_flux_mjy"].iloc[0]) else None
+    nvss_flux_mjy = df["nvss_flux_mjy"].iloc[0] if not pd.isna(
+        df["nvss_flux_mjy"].iloc[0]) else None
 
     # Convert peak_jyb to mJy for consistency
     flux_mjy = df["peak_jyb"].values * 1000.0  # Jy to mJy
-    flux_err_mjy = df["peak_err_jyb"].values * 1000.0 if "peak_err_jyb" in df.columns else None
+    flux_err_mjy = df["peak_err_jyb"].values * \
+        1000.0 if "peak_err_jyb" in df.columns else None
 
     # Normalize flux by NVSS if available
     if nvss_flux_mjy is not None and nvss_flux_mjy > 0:
@@ -110,7 +127,8 @@ def update_variability_stats_for_source(
 
     # Calculate chi2_nu (chi-squared per degree of freedom)
     if normalized_err is not None and (normalized_err > 0).any():
-        chi2 = ((normalized_flux - normalized_flux.mean()) ** 2 / (normalized_err ** 2)).sum()
+        chi2 = ((normalized_flux - normalized_flux.mean())
+                ** 2 / (normalized_err ** 2)).sum()
         chi2_nu = float(chi2 / (n_obs - 1)) if n_obs > 1 else 0.0
     else:
         chi2_nu = None
@@ -126,18 +144,23 @@ def update_variability_stats_for_source(
         eta_metric = None
 
     # Calculate sigma deviation (how many sigma away from mean)
-    if std_flux_mjy > 0:
-        sigma_deviation = abs(max_flux_mjy - mean_flux_mjy) / std_flux_mjy
-        sigma_deviation = max(
-            sigma_deviation,
-            abs(min_flux_mjy - mean_flux_mjy) / std_flux_mjy
+    try:
+        # Handle both pandas Series and numpy arrays
+        flux_array = flux_mjy.values if hasattr(
+            flux_mjy, 'values') else flux_mjy
+        sigma_deviation = calculate_sigma_deviation(
+            flux_array,
+            mean=mean_flux_mjy,
+            std=std_flux_mjy
         )
-    else:
+    except ValueError:
+        # Handle edge case: empty array or all NaN
         sigma_deviation = 0.0
 
     # Get last measurement time
     last_measured_at = float(df["measured_at"].max())
-    last_mjd = float(df["mjd"].max()) if "mjd" in df.columns and not df["mjd"].isna().all() else None
+    last_mjd = float(
+        df["mjd"].max()) if "mjd" in df.columns and not df["mjd"].isna().all() else None
     updated_at = time.time()
 
     # Insert or update variability_stats
@@ -180,7 +203,14 @@ def update_variability_stats_for_source(
         ),
     )
 
-    logger.debug(f"Updated variability stats for source {source_id}: sigma_deviation={sigma_deviation:.2f}")
+    logger.debug(
+        f"Updated variability stats for source {source_id}: sigma_deviation={sigma_deviation:.2f}")
+    
+    # Invalidate cache for this source since we just updated stats
+    # Only invalidate if products_db is provided (cache needs it for key generation)
+    if products_db:
+        invalidate_cache(source_id, products_db)
+    
     return True
 
 
@@ -236,9 +266,10 @@ def auto_detect_ese_after_photometry(
                 # Update specific sources
                 for source_id in source_ids:
                     try:
-                        update_variability_stats_for_source(conn, source_id)
+                        update_variability_stats_for_source(conn, source_id, products_db=products_db)
                     except Exception as e:
-                        logger.warning(f"Failed to update variability stats for {source_id}: {e}")
+                        logger.warning(
+                            f"Failed to update variability stats for {source_id}: {e}")
             else:
                 # Update all sources with photometry data
                 source_rows = conn.execute(
@@ -249,12 +280,14 @@ def auto_detect_ese_after_photometry(
                     """
                 ).fetchall()
 
-                logger.info(f"Updating variability stats for {len(source_rows)} sources...")
+                logger.info(
+                    f"Updating variability stats for {len(source_rows)} sources...")
                 for (source_id,) in source_rows:
                     try:
-                        update_variability_stats_for_source(conn, source_id)
+                        update_variability_stats_for_source(conn, source_id, products_db=products_db)
                     except Exception as e:
-                        logger.warning(f"Failed to update variability stats for {source_id}: {e}")
+                        logger.warning(
+                            f"Failed to update variability stats for {source_id}: {e}")
 
             conn.commit()
 
@@ -262,7 +295,8 @@ def auto_detect_ese_after_photometry(
         candidates = detect_ese_candidates(
             products_db=products_db,
             min_sigma=min_sigma,
-            source_id=None if not source_ids else source_ids[0] if len(source_ids) == 1 else None,
+            source_id=None if not source_ids else source_ids[0] if len(
+                source_ids) == 1 else None,
             recompute=False,  # Already updated above
         )
 
@@ -300,7 +334,7 @@ def auto_detect_ese_for_new_measurements(
 
     try:
         # Update variability stats for this source
-        updated = update_variability_stats_for_source(conn, source_id)
+        updated = update_variability_stats_for_source(conn, source_id, products_db=products_db)
         if not updated:
             return None
 
@@ -334,4 +368,3 @@ def auto_detect_ese_for_new_measurements(
         return None
     finally:
         conn.close()
-

@@ -163,7 +163,8 @@ def run_calibrate_job(
 
     try:
         update_job_status(conn, job_id, "running", started_at=time.time())
-        _log_to_db(conn, job_id, "=== Starting Calibration Solve (New Pipeline) ===\n")
+        _log_to_db(
+            conn, job_id, "=== Starting Calibration Solve (New Pipeline) ===\n")
 
         # Convert params to PipelineConfig
         config = PipelineConfig.from_dict(params)
@@ -227,7 +228,8 @@ def run_calibrate_job(
 
     except (ValueError, RuntimeError, OSError, FileNotFoundError) as e:
         # Catch specific exceptions that can occur during calibration
-        logger.exception("Calibration solve job failed", job_id=job_id, error=str(e))
+        logger.exception("Calibration solve job failed",
+                         job_id=job_id, error=str(e))
         conn = ensure_products_db(products_db)
         append_job_log(conn, job_id, f"ERROR: {str(e)}\n")
         update_job_status(conn, job_id, "failed", finished_at=time.time())
@@ -261,7 +263,8 @@ def run_apply_job(job_id: int, ms_path: str, params: dict, products_db: Path) ->
 
     try:
         update_job_status(conn, job_id, "running", started_at=time.time())
-        _log_to_db(conn, job_id, "=== Starting Calibration Apply (New Pipeline) ===\n")
+        _log_to_db(
+            conn, job_id, "=== Starting Calibration Apply (New Pipeline) ===\n")
 
         # Convert params to PipelineConfig
         config = PipelineConfig.from_dict(params)
@@ -309,7 +312,8 @@ def run_apply_job(job_id: int, ms_path: str, params: dict, products_db: Path) ->
 
     except (ValueError, RuntimeError, OSError, FileNotFoundError) as e:
         # Catch specific exceptions that can occur during calibration apply
-        logger.exception("Calibration apply job failed", job_id=job_id, error=str(e))
+        logger.exception("Calibration apply job failed",
+                         job_id=job_id, error=str(e))
         conn = ensure_products_db(products_db)
         append_job_log(conn, job_id, f"ERROR: {str(e)}\n")
         update_job_status(conn, job_id, "failed", finished_at=time.time())
@@ -367,7 +371,8 @@ def run_image_job(job_id: int, ms_path: str, params: dict, products_db: Path) ->
 
             raise ValidationError(
                 errors=[f"Validation failed: {error_msg}"],
-                context={"job_id": job_id, "ms_path": ms_path, "stage": "imaging"},
+                context={"job_id": job_id,
+                         "ms_path": ms_path, "stage": "imaging"},
                 suggestion="Check imaging parameters and MS path",
             )
 
@@ -422,7 +427,8 @@ def run_batch_calibrate_job(
 
     try:
         conn.execute(
-            "UPDATE batch_jobs SET status = 'running' WHERE id = ?", (batch_id,)
+            "UPDATE batch_jobs SET status = 'running' WHERE id = ?", (
+                batch_id,)
         )
         conn.commit()
 
@@ -437,15 +443,18 @@ def run_batch_calibrate_job(
 
             try:
                 # Create individual calibration job
-                individual_job_id = create_job(conn, "calibrate", ms_path, params)
+                individual_job_id = create_job(
+                    conn, "calibrate", ms_path, params)
                 conn.commit()
 
                 # Update batch item status
-                update_batch_item(conn, batch_id, ms_path, individual_job_id, "running")
+                update_batch_item(conn, batch_id, ms_path,
+                                  individual_job_id, "running")
                 conn.commit()
 
                 # Run calibration job using new framework
-                run_calibrate_job(individual_job_id, ms_path, params, products_db)
+                run_calibrate_job(individual_job_id, ms_path,
+                                  params, products_db)
 
                 # Check job result
                 jd = get_job(conn, individual_job_id)
@@ -465,7 +474,8 @@ def run_batch_calibrate_job(
                 conn.commit()
 
             except Exception as e:
-                update_batch_item(conn, batch_id, ms_path, None, "failed", error=str(e))
+                update_batch_item(conn, batch_id, ms_path,
+                                  None, "failed", error=str(e))
                 conn.commit()
 
     except Exception as e:
@@ -495,7 +505,8 @@ def run_batch_apply_job(
 
     try:
         conn.execute(
-            "UPDATE batch_jobs SET status = 'running' WHERE id = ?", (batch_id,)
+            "UPDATE batch_jobs SET status = 'running' WHERE id = ?", (
+                batch_id,)
         )
         conn.commit()
 
@@ -511,7 +522,8 @@ def run_batch_apply_job(
                 individual_job_id = create_job(conn, "apply", ms_path, params)
                 conn.commit()
 
-                update_batch_item(conn, batch_id, ms_path, individual_job_id, "running")
+                update_batch_item(conn, batch_id, ms_path,
+                                  individual_job_id, "running")
                 conn.commit()
 
                 run_apply_job(individual_job_id, ms_path, params, products_db)
@@ -533,7 +545,8 @@ def run_batch_apply_job(
                 conn.commit()
 
             except Exception as e:
-                update_batch_item(conn, batch_id, ms_path, None, "failed", error=str(e))
+                update_batch_item(conn, batch_id, ms_path,
+                                  None, "failed", error=str(e))
                 conn.commit()
 
     except Exception as e:
@@ -563,7 +576,8 @@ def run_batch_image_job(
 
     try:
         conn.execute(
-            "UPDATE batch_jobs SET status = 'running' WHERE id = ?", (batch_id,)
+            "UPDATE batch_jobs SET status = 'running' WHERE id = ?", (
+                batch_id,)
         )
         conn.commit()
 
@@ -579,7 +593,8 @@ def run_batch_image_job(
                 individual_job_id = create_job(conn, "image", ms_path, params)
                 conn.commit()
 
-                update_batch_item(conn, batch_id, ms_path, individual_job_id, "running")
+                update_batch_item(conn, batch_id, ms_path,
+                                  individual_job_id, "running")
                 conn.commit()
 
                 run_image_job(individual_job_id, ms_path, params, products_db)
@@ -601,7 +616,8 @@ def run_batch_image_job(
                 conn.commit()
 
             except Exception as e:
-                update_batch_item(conn, batch_id, ms_path, None, "failed", error=str(e))
+                update_batch_item(conn, batch_id, ms_path,
+                                  None, "failed", error=str(e))
                 conn.commit()
 
     except Exception as e:
@@ -631,7 +647,8 @@ def run_batch_convert_job(
 
     try:
         conn.execute(
-            "UPDATE batch_jobs SET status = 'running' WHERE id = ?", (batch_id,)
+            "UPDATE batch_jobs SET status = 'running' WHERE id = ?", (
+                batch_id,)
         )
         conn.commit()
 
@@ -669,7 +686,8 @@ def run_batch_convert_job(
                 conn.commit()
 
                 # Run conversion job using new framework
-                run_convert_job(individual_job_id, conversion_params, products_db)
+                run_convert_job(individual_job_id,
+                                conversion_params, products_db)
 
                 # Check job result
                 jd = get_job(conn, individual_job_id)
@@ -684,7 +702,8 @@ def run_batch_convert_job(
                         time_window_id,
                         individual_job_id,
                         "failed",
-                        error=jd.get("logs", "")[-500:] if jd.get("logs") else "Conversion failed",
+                        error=jd.get(
+                            "logs", "")[-500:] if jd.get("logs") else "Conversion failed",
                     )
                 conn.commit()
 
@@ -788,7 +807,8 @@ def run_mosaic_create_job(job_id: int, params: dict, products_db: Path) -> None:
             raise RuntimeError("Mosaic creation failed - no path returned")
 
     except (ValueError, RuntimeError, OSError, FileNotFoundError) as e:
-        logger.exception("Mosaic creation job failed", job_id=job_id, error=str(e))
+        logger.exception("Mosaic creation job failed",
+                         job_id=job_id, error=str(e))
         conn = ensure_products_db(products_db)
         append_job_log(conn, job_id, f"ERROR: {str(e)}\n")
         update_job_status(conn, job_id, "failed", finished_at=time.time())
@@ -830,7 +850,8 @@ def run_batch_publish_job(
 
     try:
         conn.execute(
-            "UPDATE batch_jobs SET status = 'running' WHERE id = ?", (batch_id,)
+            "UPDATE batch_jobs SET status = 'running' WHERE id = ?", (
+                batch_id,)
         )
         conn.commit()
 
@@ -885,8 +906,8 @@ def run_batch_publish_job(
         )
         conn.commit()
     finally:
-            conn.close()
-            registry_conn.close()
+        conn.close()
+        registry_conn.close()
 
 
 def run_batch_photometry_job(
@@ -913,12 +934,14 @@ def run_batch_photometry_job(
 
     try:
         conn.execute(
-            "UPDATE batch_jobs SET status = 'running' WHERE id = ?", (batch_id,)
+            "UPDATE batch_jobs SET status = 'running' WHERE id = ?", (
+                batch_id,)
         )
         conn.commit()
 
         master_sources_db = Path(
-            os.getenv("MASTER_SOURCES_DB", str(products_db.parent / "master_sources.sqlite3"))
+            os.getenv("MASTER_SOURCES_DB", str(
+                products_db.parent / "master_sources.sqlite3"))
         )
 
         for fits_path in fits_paths:
@@ -951,7 +974,8 @@ def run_batch_photometry_job(
                             ref_sources,
                             box_size_pix=params.get("box_size_pix", 5),
                             annulus_pix=params.get("annulus_pix", (12, 20)),
-                            max_deviation_sigma=params.get("max_deviation_sigma", 3.0),
+                            max_deviation_sigma=params.get(
+                                "max_deviation_sigma", 3.0),
                         )
                 except Exception as e:
                     structlog.get_logger(__name__).warning(
@@ -973,7 +997,8 @@ def run_batch_photometry_job(
                             fits_path,
                             coord["ra_deg"],
                             coord["dec_deg"],
-                            use_prioritized=params.get("aegean_prioritized", False),
+                            use_prioritized=params.get(
+                                "aegean_prioritized", False),
                             negative=params.get("aegean_negative", False),
                         )
                         raw_flux = res.peak_flux_jy
@@ -986,9 +1011,11 @@ def run_batch_photometry_job(
                             box_size_pix=params.get("box_size_pix", 5),
                             annulus_pix=params.get("annulus_pix", (12, 20)),
                             noise_map_path=params.get("noise_map_path"),
-                            background_map_path=params.get("background_map_path"),
+                            background_map_path=params.get(
+                                "background_map_path"),
                             nbeam=params.get("nbeam", 3.0),
-                            use_weighted_convolution=params.get("use_weighted_convolution", True),
+                            use_weighted_convolution=params.get(
+                                "use_weighted_convolution", True),
                         )
                         raw_flux = res.peak_jyb
                         raw_error = res.peak_err_jyb
@@ -1100,10 +1127,12 @@ def run_batch_photometry_job(
                                         f"(significance={candidate.get('significance', 0):.2f})"
                                     )
                             except Exception as e:
-                                logger.warning(f"Auto ESE detection failed for {source_id}: {e}")
+                                logger.warning(
+                                    f"Auto ESE detection failed for {source_id}: {e}")
 
                     except Exception as e:
-                        logger.warning(f"Failed to store photometry result: {e}")
+                        logger.warning(
+                            f"Failed to store photometry result: {e}")
 
                     update_batch_item(conn, batch_id, item_id, None, "done")
                     conn.commit()
@@ -1238,10 +1267,11 @@ def run_ese_detect_job(job_id: int, params: dict, products_db: Path) -> None:
 
     Args:
         job_id: Job ID from database
-        params: ESE detection parameters (min_sigma, source_id, recompute)
+        params: ESE detection parameters (min_sigma, preset, source_id, recompute)
         products_db: Path to products database
     """
     from dsa110_contimg.photometry.ese_detection import detect_ese_candidates
+    from dsa110_contimg.photometry.thresholds import get_threshold_preset
 
     conn = ensure_products_db(products_db)
     ensure_jobs_table(conn)
@@ -1250,7 +1280,29 @@ def run_ese_detect_job(job_id: int, params: dict, products_db: Path) -> None:
         update_job_status(conn, job_id, "running", started_at=time.time())
         _log_to_db(conn, job_id, "=== Starting ESE Detection ===\n")
 
-        min_sigma = params.get("min_sigma", 5.0)
+        # Handle preset or min_sigma
+        preset = params.get("preset")
+        min_sigma_param = params.get("min_sigma")
+
+        if preset:
+            thresholds = get_threshold_preset(preset)
+            min_sigma = thresholds.get("min_sigma", 5.0)
+            _log_to_db(
+                conn,
+                job_id,
+                f"Using preset '{preset}': min_sigma={min_sigma}\n",
+            )
+        elif min_sigma_param is not None:
+            min_sigma = min_sigma_param
+        else:
+            # Default fallback
+            min_sigma = 5.0
+            _log_to_db(
+                conn,
+                job_id,
+                "No preset or min_sigma provided, using default min_sigma=5.0\n",
+            )
+
         source_id = params.get("source_id")
         recompute = params.get("recompute", False)
 
@@ -1265,6 +1317,8 @@ def run_ese_detect_job(job_id: int, params: dict, products_db: Path) -> None:
             min_sigma=min_sigma,
             source_id=source_id,
             recompute=recompute,
+            use_composite_scoring=params.get("use_composite_scoring", False),
+            scoring_weights=params.get("scoring_weights"),
         )
 
         _log_to_db(
@@ -1311,24 +1365,61 @@ def run_batch_ese_detect_job(
     try:
         # Update batch job status
         conn.execute(
-            "UPDATE batch_jobs SET status = 'running' WHERE id = ?", (batch_id,)
+            "UPDATE batch_jobs SET status = 'running' WHERE id = ?", (
+                batch_id,)
         )
         conn.commit()
 
-        min_sigma = params.get("min_sigma", 5.0)
+        # Handle preset or min_sigma
+        preset = params.get("preset")
+        min_sigma_param = params.get("min_sigma")
+
+        if preset:
+            from dsa110_contimg.photometry.thresholds import get_threshold_preset
+            thresholds = get_threshold_preset(preset)
+            min_sigma = thresholds.get("min_sigma", 5.0)
+        elif min_sigma_param is not None:
+            min_sigma = min_sigma_param
+        else:
+            # Default fallback
+            min_sigma = 5.0
+
         recompute = params.get("recompute", False)
         source_ids = params.get("source_ids")
+        use_parallel = params.get("use_parallel", False)
+
+        # Use parallel processing if enabled and multiple sources
+        if use_parallel and source_ids and len(source_ids) > 1:
+            from dsa110_contimg.photometry.parallel import detect_ese_parallel
+            try:
+                update_batch_item(conn, batch_id, "all_sources", None, "running")
+                candidates = detect_ese_parallel(
+                    source_ids=source_ids,
+                    products_db=products_db,
+                    min_sigma=min_sigma,
+                )
+                update_batch_item(conn, batch_id, "all_sources", None, "done")
+                return
+            except Exception as e:
+                update_batch_item(
+                    conn, batch_id, "all_sources", None, "failed", error=str(e)
+                )
+                return
 
         if source_ids:
             # Process specific source IDs
             for source_id in source_ids:
                 try:
-                    update_batch_item(conn, batch_id, source_id, None, "running")
+                    update_batch_item(
+                        conn, batch_id, source_id, None, "running")
                     candidates = detect_ese_candidates(
                         products_db=products_db,
                         min_sigma=min_sigma,
                         source_id=source_id,
                         recompute=recompute,
+                        use_composite_scoring=params.get(
+                            "use_composite_scoring", False),
+                        scoring_weights=params.get("scoring_weights"),
                     )
                     update_batch_item(
                         conn, batch_id, source_id, None, "done"
@@ -1340,12 +1431,16 @@ def run_batch_ese_detect_job(
         else:
             # Process all sources
             try:
-                update_batch_item(conn, batch_id, "all_sources", None, "running")
+                update_batch_item(
+                    conn, batch_id, "all_sources", None, "running")
                 candidates = detect_ese_candidates(
                     products_db=products_db,
                     min_sigma=min_sigma,
                     source_id=None,
                     recompute=recompute,
+                    use_composite_scoring=params.get(
+                        "use_composite_scoring", False),
+                    scoring_weights=params.get("scoring_weights"),
                 )
                 update_batch_item(conn, batch_id, "all_sources", None, "done")
             except Exception as e:

@@ -31,9 +31,11 @@ check_response() {
     local response="$2"
     local expected_status="${3:-200}"
     
-    # Extract HTTP status code
-    local status_code=$(echo "$response" | grep -oP 'HTTP/\d\.\d \K\d+' || echo "000")
-    local body=$(echo "$response" | sed -n '/^{/,$p')
+    # Extract HTTP status code (handle both HTTP_STATUS:XXX and HTTP/X.X XXX formats)
+    local status_code=$(echo "$response" | grep -oE 'HTTP_STATUS:([0-9]+)' | grep -oE '[0-9]+' || \
+                        echo "$response" | grep -oE 'HTTP/[0-9]\.[0-9] ([0-9]+)' | grep -oE '[0-9]+' || \
+                        echo "000")
+    local body=$(echo "$response" | sed 's/HTTP_STATUS:[0-9]*$//' | sed 's/HTTP\/[0-9]\.[0-9] [0-9]*$//')
     
     if [ "$status_code" = "$expected_status" ]; then
         echo -e "${GREEN}✓${NC} $test_name: Status $status_code"

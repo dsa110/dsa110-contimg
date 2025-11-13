@@ -107,8 +107,8 @@ def sample_variability_stats(temp_products_db):
         INSERT INTO variability_stats 
         (source_id, ra_deg, dec_deg, nvss_flux_mjy, n_obs, mean_flux_mjy, 
          std_flux_mjy, min_flux_mjy, max_flux_mjy, chi2_nu, sigma_deviation,
-         last_measured_at, last_mjd, updated_at)
-        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+         eta_metric, last_measured_at, last_mjd, updated_at)
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
         """,
         sources,
     )

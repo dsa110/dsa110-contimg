@@ -13,6 +13,8 @@ CASA6_NPM="/opt/miniforge/envs/casa6/bin/npm"
 # Check if casa6 Node.js is available and meets version requirements
 USE_CASA6=false
 if [ -x "${CASA6_NODE}" ] && [ -x "${CASA6_NPM}" ]; then
+    # Note: Suppressing version check errors is acceptable here - we only care if version is readable
+    # This is an exception: version detection, not suppressing actual errors
     NODE_VERSION=$("${CASA6_NODE}" --version 2>/dev/null | sed 's/v//')
     # Check if version is >= 20.19.0 or >= 22.12.0
     MAJOR=$(echo "$NODE_VERSION" | cut -d. -f1)
@@ -43,6 +45,8 @@ if [ "$USE_CASA6" = true ]; then
     echo "Cleaning existing node_modules (if any)..."
     if [ -d node_modules ]; then
         # Try to remove, but don't fail if some directories are locked
+        # Note: Suppressing rm errors here is acceptable - we handle failure explicitly
+        # This is an exception: cleanup operation with explicit error handling
         rm -rf node_modules 2>/dev/null || {
             echo "Warning: Some node_modules directories couldn't be removed (may be from Docker build)"
             echo "npm install will handle this..."
@@ -77,6 +81,8 @@ else
       sh -c "
         echo 'Cleaning existing node_modules (if any)...'
         if [ -d node_modules ]; then
+          # Note: Suppressing cleanup errors is acceptable - we handle failure explicitly
+          # This is an exception: cleanup operation with explicit error handling
           find node_modules -mindepth 1 -delete 2>/dev/null || rm -rf node_modules/* 2>/dev/null || true
           rm -rf node_modules 2>/dev/null || true
         fi

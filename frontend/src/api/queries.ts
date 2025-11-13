@@ -59,6 +59,18 @@ import type {
   CircuitBreakerState,
   CircuitBreakerList,
   HealthSummary,
+  PipelineExecutionResponse,
+  StageStatusResponse,
+  StageMetricsResponse,
+  DependencyGraphResponse,
+  PipelineMetricsSummary,
+  EventStreamItem,
+  EventStatistics,
+  EventTypesResponse,
+  CacheStatistics,
+  CacheKeysResponse,
+  CacheKeyDetail,
+  CachePerformance,
 } from './types';
 
 /**
@@ -1724,6 +1736,222 @@ export function useHealthSummary(): UseQueryResult<HealthSummary> {
     queryKey: ['health', 'summary'],
     queryFn: async () => {
       const response = await apiClient.get<HealthSummary>('/health/summary');
+      return response.data;
+    },
+    refetchInterval: 10000, // Refresh every 10 seconds
+  });
+}
+
+// Pipeline Execution Hooks
+export function usePipelineExecutions(
+  status?: string,
+  jobType?: string,
+  limit: number = 100,
+  offset: number = 0
+): UseQueryResult<PipelineExecutionResponse[]> {
+  return useQuery({
+    queryKey: ['pipeline', 'executions', status, jobType, limit, offset],
+    queryFn: async () => {
+      const params = new URLSearchParams();
+      if (status) params.append('status', status);
+      if (jobType) params.append('job_type', jobType);
+      params.append('limit', limit.toString());
+      params.append('offset', offset.toString());
+      const response = await apiClient.get<PipelineExecutionResponse[]>(
+        `/pipeline/executions?${params.toString()}`
+      );
+      return response.data;
+    },
+    refetchInterval: 5000, // Refresh every 5 seconds
+  });
+}
+
+export function useActivePipelineExecutions(): UseQueryResult<PipelineExecutionResponse[]> {
+  return useQuery({
+    queryKey: ['pipeline', 'executions', 'active'],
+    queryFn: async () => {
+      const response = await apiClient.get<PipelineExecutionResponse[]>('/pipeline/executions/active');
+      return response.data;
+    },
+    refetchInterval: 3000, // Refresh every 3 seconds for active executions
+  });
+}
+
+export function usePipelineExecution(executionId: number): UseQueryResult<PipelineExecutionResponse> {
+  return useQuery({
+    queryKey: ['pipeline', 'executions', executionId],
+    queryFn: async () => {
+      const response = await apiClient.get<PipelineExecutionResponse>(
+        `/pipeline/executions/${executionId}`
+      );
+      return response.data;
+    },
+    refetchInterval: 5000, // Refresh every 5 seconds
+    enabled: executionId > 0,
+  });
+}
+
+export function useExecutionStages(executionId: number): UseQueryResult<StageStatusResponse[]> {
+  return useQuery({
+    queryKey: ['pipeline', 'executions', executionId, 'stages'],
+    queryFn: async () => {
+      const response = await apiClient.get<StageStatusResponse[]>(
+        `/pipeline/executions/${executionId}/stages`
+      );
+      return response.data;
+    },
+    refetchInterval: 5000,
+    enabled: executionId > 0,
+  });
+}
+
+// Stage Metrics Hooks
+export function useStageMetrics(stageName?: string, limit: number = 100): UseQueryResult<StageMetricsResponse[]> {
+  return useQuery({
+    queryKey: ['pipeline', 'stages', 'metrics', stageName, limit],
+    queryFn: async () => {
+      const params = new URLSearchParams();
+      if (stageName) params.append('stage_name', stageName);
+      params.append('limit', limit.toString());
+      const response = await apiClient.get<StageMetricsResponse[]>(
+        `/pipeline/stages/metrics?${params.toString()}`
+      );
+      return response.data;
+    },
+    refetchInterval: 30000, // Refresh every 30 seconds
+  });
+}
+
+export function useStageMetricsByName(stageName: string): UseQueryResult<StageMetricsResponse> {
+  return useQuery({
+    queryKey: ['pipeline', 'stages', 'metrics', stageName],
+    queryFn: async () => {
+      const response = await apiClient.get<StageMetricsResponse>(
+        `/pipeline/stages/${stageName}/metrics`
+      );
+      return response.data;
+    },
+    refetchInterval: 30000,
+    enabled: !!stageName,
+  });
+}
+
+// Dependency Graph Hook
+export function useDependencyGraph(): UseQueryResult<DependencyGraphResponse> {
+  return useQuery({
+    queryKey: ['pipeline', 'dependency-graph'],
+    queryFn: async () => {
+      const response = await apiClient.get<DependencyGraphResponse>('/pipeline/dependency-graph');
+      return response.data;
+    },
+    refetchInterval: 60000, // Refresh every minute (graph doesn't change often)
+  });
+}
+
+// Pipeline Metrics Summary Hook
+export function usePipelineMetricsSummary(): UseQueryResult<PipelineMetricsSummary> {
+  return useQuery({
+    queryKey: ['pipeline', 'metrics', 'summary'],
+    queryFn: async () => {
+      const response = await apiClient.get<PipelineMetricsSummary>('/pipeline/metrics/summary');
+      return response.data;
+    },
+    refetchInterval: 10000, // Refresh every 10 seconds
+  });
+}
+
+// Event Bus Hooks (Phase 3)
+export function useEventStream(
+  eventType?: string,
+  limit: number = 100,
+  sinceMinutes?: number
+): UseQueryResult<EventStreamItem[]> {
+  return useQuery({
+    queryKey: ['events', 'stream', eventType, limit, sinceMinutes],
+    queryFn: async () => {
+      const params = new URLSearchParams();
+      if (eventType) params.append('event_type', eventType);
+      params.append('limit', limit.toString());
+      if (sinceMinutes !== undefined) params.append('since_minutes', sinceMinutes.toString());
+      const response = await apiClient.get<EventStreamItem[]>(
+        `/events/stream?${params.toString()}`
+      );
+      return response.data;
+    },
+    refetchInterval: 5000, // Refresh every 5 seconds for real-time updates
+  });
+}
+
+export function useEventStatistics(): UseQueryResult<EventStatistics> {
+  return useQuery({
+    queryKey: ['events', 'stats'],
+    queryFn: async () => {
+      const response = await apiClient.get<EventStatistics>('/events/stats');
+      return response.data;
+    },
+    refetchInterval: 10000, // Refresh every 10 seconds
+  });
+}
+
+export function useEventTypes(): UseQueryResult<EventTypesResponse> {
+  return useQuery({
+    queryKey: ['events', 'types'],
+    queryFn: async () => {
+      const response = await apiClient.get<EventTypesResponse>('/events/types');
+      return response.data;
+    },
+    staleTime: 300000, // Cache for 5 minutes (event types don't change often)
+  });
+}
+
+// Cache Hooks (Phase 3)
+export function useCacheStatistics(): UseQueryResult<CacheStatistics> {
+  return useQuery({
+    queryKey: ['cache', 'stats'],
+    queryFn: async () => {
+      const response = await apiClient.get<CacheStatistics>('/cache/stats');
+      return response.data;
+    },
+    refetchInterval: 10000, // Refresh every 10 seconds
+  });
+}
+
+export function useCacheKeys(
+  pattern?: string,
+  limit: number = 100
+): UseQueryResult<CacheKeysResponse> {
+  return useQuery({
+    queryKey: ['cache', 'keys', pattern, limit],
+    queryFn: async () => {
+      const params = new URLSearchParams();
+      if (pattern) params.append('pattern', pattern);
+      params.append('limit', limit.toString());
+      const response = await apiClient.get<CacheKeysResponse>(
+        `/cache/keys?${params.toString()}`
+      );
+      return response.data;
+    },
+    refetchInterval: 30000, // Refresh every 30 seconds
+  });
+}
+
+export function useCacheKey(key: string): UseQueryResult<CacheKeyDetail> {
+  return useQuery({
+    queryKey: ['cache', 'keys', key],
+    queryFn: async () => {
+      const response = await apiClient.get<CacheKeyDetail>(`/cache/keys/${encodeURIComponent(key)}`);
+      return response.data;
+    },
+    enabled: !!key,
+    refetchInterval: 30000,
+  });
+}
+
+export function useCachePerformance(): UseQueryResult<CachePerformance> {
+  return useQuery({
+    queryKey: ['cache', 'performance'],
+    queryFn: async () => {
+      const response = await apiClient.get<CachePerformance>('/cache/performance');
       return response.data;
     },
     refetchInterval: 10000, // Refresh every 10 seconds

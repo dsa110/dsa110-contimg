@@ -6,7 +6,9 @@ import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import { darkTheme } from './theme/darkTheme';
 import { NotificationProvider } from './contexts/NotificationContext';
 import { JS9Provider } from './contexts/JS9Context';
+import { WorkflowProvider } from './contexts/WorkflowContext';
 import Navigation from './components/Navigation';
+import WorkflowBreadcrumbs from './components/WorkflowBreadcrumbs';
 import ErrorBoundary from './components/ErrorBoundary';
 import DashboardPage from './pages/DashboardPage';
 import ControlPage from './pages/ControlPage';
@@ -24,6 +26,9 @@ import QACartaPage from './pages/QACartaPage';
 import ObservingPage from './pages/ObservingPage';
 import HealthPage from './pages/HealthPage';
 import { OperationsPage } from './pages/OperationsPage';
+import PipelinePage from './pages/PipelinePage';
+import EventsPage from './pages/EventsPage';
+import CachePage from './pages/CachePage';
 import { isRetryableError } from './utils/errorUtils';
 
 // Create React Query client factory function
@@ -96,54 +101,60 @@ function AppContent() {
           <CssBaseline />
           <NotificationProvider>
             <JS9Provider>
-            <BrowserRouter basename={basename}>
-            <Box sx={{ display: 'flex', flexDirection: 'column', minHeight: '100vh' }}>
-              <Navigation />
-              <Box 
-                component="main" 
-                sx={{ 
-                  flexGrow: 1,
-                  width: '100%',
-                  display: 'flex',
-                  justifyContent: 'center'
-                }}
-              >
-                <Box
-                  sx={{
-                    width: '100%',
-                    maxWidth: '1536px', // MUI xl breakpoint
-                    px: { xs: 2, sm: 3, md: 4 },
-                    display: 'flex',
-                    flexDirection: 'column',
-                    alignItems: 'stretch' // Stretch children to container width, but container respects maxWidth
-                  }}
-                >
-                  <ErrorBoundary>
-                    <Routes>
-                      <Route path="/" element={<Navigate to="/dashboard" replace />} />
-                      <Route path="/dashboard" element={<DashboardPage />} />
-                      <Route path="/control" element={<ControlPage />} />
-                      <Route path="/mosaics" element={<MosaicGalleryPage />} />
-                      <Route path="/mosaics/:mosaicId" element={<MosaicViewPage />} />
-                      <Route path="/sources" element={<SourceMonitoringPage />} />
-                      <Route path="/sources/:sourceId" element={<SourceDetailPage />} />
-                      <Route path="/images/:imageId" element={<ImageDetailPage />} />
-                      <Route path="/sky" element={<SkyViewPage />} />
-                      <Route path="/streaming" element={<StreamingPage />} />
-                      <Route path="/data" element={<DataBrowserPage />} />
-                      <Route path="/data/:type/:id" element={<DataDetailPage />} />
-                      <Route path="/qa" element={<QAVisualizationPage />} />
-                      <Route path="/qa/carta" element={<QACartaPage />} />
-                      <Route path="/observing" element={<ObservingPage />} />
-                      <Route path="/health" element={<HealthPage />} />
-                      <Route path="/operations" element={<OperationsPage />} />
-                    </Routes>
-                  </ErrorBoundary>
-                </Box>
-              </Box>
-            </Box>
-          </BrowserRouter>
-          </JS9Provider>
+              <BrowserRouter basename={basename}>
+                <WorkflowProvider>
+                  <Box sx={{ display: 'flex', flexDirection: 'column', minHeight: '100vh' }}>
+                    <Navigation />
+                    <WorkflowBreadcrumbs />
+                    <Box 
+                      component="main" 
+                      sx={{ 
+                        flexGrow: 1,
+                        width: '100%',
+                        display: 'flex',
+                        justifyContent: 'center'
+                      }}
+                    >
+                      <Box
+                        sx={{
+                          width: '100%',
+                          maxWidth: '1536px', // MUI xl breakpoint
+                          px: { xs: 2, sm: 3, md: 4 },
+                          display: 'flex',
+                          flexDirection: 'column',
+                          alignItems: 'stretch' // Stretch children to container width, but container respects maxWidth
+                        }}
+                      >
+                        <ErrorBoundary>
+                          <Routes>
+                            <Route path="/" element={<Navigate to="/dashboard" replace />} />
+                            <Route path="/dashboard" element={<DashboardPage />} />
+                            <Route path="/control" element={<ControlPage />} />
+                            <Route path="/mosaics" element={<MosaicGalleryPage />} />
+                            <Route path="/mosaics/:mosaicId" element={<MosaicViewPage />} />
+                            <Route path="/sources" element={<SourceMonitoringPage />} />
+                            <Route path="/sources/:sourceId" element={<SourceDetailPage />} />
+                            <Route path="/images/:imageId" element={<ImageDetailPage />} />
+                            <Route path="/sky" element={<SkyViewPage />} />
+                            <Route path="/streaming" element={<StreamingPage />} />
+                            <Route path="/data" element={<DataBrowserPage />} />
+                            <Route path="/data/:type/:id" element={<DataDetailPage />} />
+                            <Route path="/qa" element={<QAVisualizationPage />} />
+                            <Route path="/qa/carta" element={<QACartaPage />} />
+                            <Route path="/observing" element={<ObservingPage />} />
+                            <Route path="/health" element={<HealthPage />} />
+                            <Route path="/operations" element={<OperationsPage />} />
+                            <Route path="/pipeline" element={<PipelinePage />} />
+                            <Route path="/events" element={<EventsPage />} />
+                            <Route path="/cache" element={<CachePage />} />
+                          </Routes>
+                        </ErrorBoundary>
+                      </Box>
+                    </Box>
+                  </Box>
+                </WorkflowProvider>
+              </BrowserRouter>
+            </JS9Provider>
           </NotificationProvider>
         </ThemeProvider>
       </QueryClientProvider>

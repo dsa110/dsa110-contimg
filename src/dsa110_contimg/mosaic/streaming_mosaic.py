@@ -583,10 +583,12 @@ class StreamingMosaicManager:
                     logger.warning(
                         f"Could not extract time from {ms_path}, using path order"
                     )
-                    ms_paths_with_time.append((float("inf"), ms_path))  # Put at end
+                    ms_paths_with_time.append(
+                        (float("inf"), ms_path))  # Put at end
             except Exception as e:
                 logger.warning(f"Error extracting time from {ms_path}: {e}")
-                ms_paths_with_time.append((float("inf"), ms_path))  # Put at end
+                ms_paths_with_time.append(
+                    (float("inf"), ms_path))  # Put at end
 
         # Sort by mid_mjd (chronological order)
         ms_paths_with_time.sort(key=lambda x: x[0])
@@ -628,7 +630,8 @@ class StreamingMosaicManager:
                 t = table(ms_path)
                 field_table = t.getkeyword("FIELD")
                 # Get mean declination across all fields in the MS (in radians)
-                dec_rad = np.mean([f["REFERENCE_DIR"][0][1] for f in field_table])
+                dec_rad = np.mean([f["REFERENCE_DIR"][0][1]
+                                  for f in field_table])
                 dec_deg = dec_rad * 180.0 / np.pi
                 dec_degrees.append(dec_deg)
                 t.close()
@@ -1206,7 +1209,8 @@ class StreamingMosaicManager:
                             )
                             break
                     except Exception as e:
-                        logger.debug(f"Could not find calibrator in {ms_path}: {e}")
+                        logger.debug(
+                            f"Could not find calibrator in {ms_path}: {e}")
                         continue
 
                 # If not found via catalog search, try calibration MS directly
@@ -1430,6 +1434,8 @@ class StreamingMosaicManager:
                 return False, False, error_msg
         else:
             logger.info("BP calibration found in registry, skipping solve")
+            # Tables exist and are verified on disk, mark as solved
+            bpcal_solved = True
 
         # Solve gain calibration if not in registry
         if not has_g:
@@ -1451,7 +1457,8 @@ class StreamingMosaicManager:
                     )
                     # Look for BP tables with the expected naming pattern (_bpcal directory)
                     bp_table_path = (
-                        Path(table_prefix).parent / f"{table_prefix.name}_bpcal"
+                        Path(table_prefix).parent /
+                        f"{table_prefix.name}_bpcal"
                     )
                     if bp_table_path.exists() and bp_table_path.is_dir():
                         bp_tables_list = [str(bp_table_path)]
@@ -1527,7 +1534,8 @@ class StreamingMosaicManager:
                 )
 
                 if gain_tables and len(gain_tables) > 0:
-                    logger.info(f"Gain calibration solved successfully: {gain_tables}")
+                    logger.info(
+                        f"Gain calibration solved successfully: {gain_tables}")
 
                     # Register gain calibration tables with validity windows
                     # Validity: ±gain_validity_minutes around calibration MS observation time
@@ -1589,6 +1597,8 @@ class StreamingMosaicManager:
                 return bpcal_solved, gaincal_solved, error_msg
         else:
             logger.info("Gain calibration found in registry, skipping solve")
+            # Tables exist and are verified on disk, mark as solved
+            gaincal_solved = True
 
         # Update group status
         self.products_db.execute(
@@ -1627,7 +1637,8 @@ class StreamingMosaicManager:
         ).fetchone()
 
         if row and row[1] == "calibrated" and row[2] == 1:
-            logger.info(f"Calibration already applied to group {group_id}, skipping")
+            logger.info(
+                f"Calibration already applied to group {group_id}, skipping")
             return True
 
         success_count = 0
@@ -1636,11 +1647,13 @@ class StreamingMosaicManager:
                 ms_path_obj = Path(ms_path)
                 _, _, mid_mjd = extract_ms_time_range(str(ms_path_obj))
                 if mid_mjd is None:
-                    logger.warning(f"Could not extract time from {ms_path}, skipping")
+                    logger.warning(
+                        f"Could not extract time from {ms_path}, skipping")
                     continue
 
                 # Query registry for valid calibration tables
-                applylist = get_active_applylist(self.registry_db_path, mid_mjd)
+                applylist = get_active_applylist(
+                    self.registry_db_path, mid_mjd)
 
                 if not applylist:
                     logger.warning(
@@ -1751,7 +1764,8 @@ class StreamingMosaicManager:
             for ms_path in ms_paths:
                 ms_path_obj = Path(ms_path)
                 img_basename = construct_image_basename(ms_path_obj)
-                imgroot = str(self.images_dir / img_basename.replace(".img", ""))
+                imgroot = str(self.images_dir /
+                              img_basename.replace(".img", ""))
                 pbcor_fits = f"{imgroot}-image-pb.fits"
                 pbcor_path = f"{imgroot}.pbcor"
                 image_path = f"{imgroot}.image"
@@ -1783,7 +1797,8 @@ class StreamingMosaicManager:
 
                 ms_path_obj = Path(ms_path)
                 img_basename = construct_image_basename(ms_path_obj)
-                imgroot = str(self.images_dir / img_basename.replace(".img", ""))
+                imgroot = str(self.images_dir /
+                              img_basename.replace(".img", ""))
 
                 # Check if image already exists on disk
                 pbcor_fits = f"{imgroot}-image-pb.fits"
@@ -1795,7 +1810,8 @@ class StreamingMosaicManager:
                     or Path(pbcor_path).exists()
                     or Path(image_path).exists()
                 ):
-                    logger.debug(f"Image already exists for {ms_path}, skipping")
+                    logger.debug(
+                        f"Image already exists for {ms_path}, skipping")
                     success_count += 1
                     continue
 
@@ -2072,15 +2088,18 @@ class StreamingMosaicManager:
                 )
 
                 # If we have a CASA image but no FITS, export to FITS first
-                png_source_path = fits_path if Path(fits_path).exists() else None
+                png_source_path = fits_path if Path(
+                    fits_path).exists() else None
                 if not png_source_path:
-                    logger.info("Exporting CASA image to FITS for PNG generation...")
+                    logger.info(
+                        "Exporting CASA image to FITS for PNG generation...")
                     exported_fits = export_fits([mosaic_path])
                     if exported_fits:
                         png_source_path = exported_fits[0]
                         logger.info(f"Exported FITS: {png_source_path}")
                     else:
-                        logger.warning("Failed to export FITS for PNG generation")
+                        logger.warning(
+                            "Failed to export FITS for PNG generation")
 
                 # Generate PNG from FITS
                 if png_source_path:
@@ -2178,7 +2197,8 @@ class StreamingMosaicManager:
             start_mjd = end_mjd = None
             if ms_paths:
                 try:
-                    first_start, _, first_mid = extract_ms_time_range(ms_paths[0])
+                    first_start, _, first_mid = extract_ms_time_range(
+                        ms_paths[0])
                     _, last_end, last_mid = extract_ms_time_range(ms_paths[-1])
                     start_mjd = first_start if first_start else first_mid
                     end_mjd = last_end if last_end else last_mid
@@ -2210,7 +2230,8 @@ class StreamingMosaicManager:
             )
 
             if not success:
-                logger.error(f"Failed to register mosaic {mosaic_id} in data_registry")
+                logger.error(
+                    f"Failed to register mosaic {mosaic_id} in data_registry")
                 return False
 
             logger.info(f"Registered mosaic {mosaic_id} in data_registry")
@@ -2239,7 +2260,8 @@ class StreamingMosaicManager:
                     validation_status=validation_status,
                 )
                 if finalize_success:
-                    logger.info(f"Finalized mosaic {mosaic_id}, auto-publish triggered")
+                    logger.info(
+                        f"Finalized mosaic {mosaic_id}, auto-publish triggered")
                 else:
                     logger.warning(
                         f"Finalization of mosaic {mosaic_id} did not trigger publish"
@@ -2271,13 +2293,15 @@ class StreamingMosaicManager:
         # Get MS paths
         ms_paths = self.get_group_ms_paths(group_id)
         if len(ms_paths) < MS_PER_GROUP:
-            logger.warning(f"Group {group_id} has only {len(ms_paths)} MS files")
+            logger.warning(
+                f"Group {group_id} has only {len(ms_paths)} MS files")
             return False
 
         # Select calibration MS
         calibration_ms = self.select_calibration_ms(ms_paths)
         if not calibration_ms:
-            logger.error(f"Could not select calibration MS for group {group_id}")
+            logger.error(
+                f"Could not select calibration MS for group {group_id}")
             return False
 
         # Solve calibration
@@ -2316,7 +2340,8 @@ class StreamingMosaicManager:
                     "Continuing without cross-match results."
                 )
 
-        logger.info(f"Successfully processed group {group_id}, mosaic: {mosaic_path}")
+        logger.info(
+            f"Successfully processed group {group_id}, mosaic: {mosaic_path}")
         return True
 
     def get_last_group_overlap_ms(self) -> List[str]:
@@ -2383,7 +2408,8 @@ class StreamingMosaicManager:
                     logger.warning(f"Failed to remove {cal_table}: {e}")
 
         if removed:
-            logger.info(f"Cleared calibration tables from {ms_path}: {removed}")
+            logger.info(
+                f"Cleared calibration tables from {ms_path}: {removed}")
 
         # Update products database
         ms_index_upsert(
@@ -2416,7 +2442,8 @@ class StreamingMosaicManager:
         ).fetchall()
 
         # Filter out overlap MS and get new MS
-        new_ms = [(row[0], row[1]) for row in rows if row[0] not in overlap_set]
+        new_ms = [(row[0], row[1])
+                  for row in rows if row[0] not in overlap_set]
 
         if len(new_ms) < MS_NEW_PER_MOSAIC:
             return None
@@ -2568,7 +2595,8 @@ class StreamingMosaicManager:
         # Get MS paths
         ms_paths = self.get_group_ms_paths(group_id)
         if len(ms_paths) < MS_PER_GROUP:
-            logger.warning(f"Group {group_id} has only {len(ms_paths)} MS files")
+            logger.warning(
+                f"Group {group_id} has only {len(ms_paths)} MS files")
             return False
 
         # Validate Dec and calibrator registration
@@ -2582,7 +2610,8 @@ class StreamingMosaicManager:
         # Select calibration MS
         calibration_ms = self.select_calibration_ms(ms_paths)
         if not calibration_ms:
-            logger.error(f"Could not select calibration MS for group {group_id}")
+            logger.error(
+                f"Could not select calibration MS for group {group_id}")
             return False
 
         # Solve calibration
@@ -2621,7 +2650,8 @@ class StreamingMosaicManager:
                     "Continuing without cross-match results."
                 )
 
-        logger.info(f"Successfully processed group {group_id}, mosaic: {mosaic_path}")
+        logger.info(
+            f"Successfully processed group {group_id}, mosaic: {mosaic_path}")
         return True
 
     def run_crossmatch_for_mosaic(
@@ -2672,7 +2702,8 @@ class StreamingMosaicManager:
             updated_context = crossmatch_stage.execute(context)
 
             # Extract status from outputs
-            status = updated_context.outputs.get("crossmatch_status", "unknown")
+            status = updated_context.outputs.get(
+                "crossmatch_status", "unknown")
             n_matches = updated_context.outputs.get("n_matches", 0)
             n_catalogs = updated_context.outputs.get("n_catalogs", 0)
 
@@ -2695,35 +2726,41 @@ def main() -> int:
     """CLI entry point for streaming mosaic processing."""
     import argparse
 
-    parser = argparse.ArgumentParser(description="Process streaming mosaic groups")
+    parser = argparse.ArgumentParser(
+        description="Process streaming mosaic groups")
     parser.add_argument(
         "--products-db",
         type=Path,
-        default=Path(os.getenv("PIPELINE_PRODUCTS_DB", "state/products.sqlite3")),
+        default=Path(os.getenv("PIPELINE_PRODUCTS_DB",
+                     "state/products.sqlite3")),
         help="Path to products database",
     )
     parser.add_argument(
         "--registry-db",
         type=Path,
-        default=Path(os.getenv("CAL_REGISTRY_DB", "state/cal_registry.sqlite3")),
+        default=Path(os.getenv("CAL_REGISTRY_DB",
+                     "state/cal_registry.sqlite3")),
         help="Path to calibration registry database",
     )
     parser.add_argument(
         "--ms-dir",
         type=Path,
-        default=Path(os.getenv("CONTIMG_OUTPUT_DIR", "/stage/dsa110-contimg/ms")),
+        default=Path(os.getenv("CONTIMG_OUTPUT_DIR",
+                     "/stage/dsa110-contimg/ms")),
         help="Directory containing MS files",
     )
     parser.add_argument(
         "--images-dir",
         type=Path,
-        default=Path(os.getenv("CONTIMG_IMAGES_DIR", "/stage/dsa110-contimg/images")),
+        default=Path(os.getenv("CONTIMG_IMAGES_DIR",
+                     "/stage/dsa110-contimg/images")),
         help="Directory for individual image outputs",
     )
     parser.add_argument(
         "--mosaic-dir",
         type=Path,
-        default=Path(os.getenv("CONTIMG_MOSAIC_DIR", "/stage/dsa110-contimg/mosaics")),
+        default=Path(os.getenv("CONTIMG_MOSAIC_DIR",
+                     "/stage/dsa110-contimg/mosaics")),
         help="Directory for mosaic output",
     )
     parser.add_argument(
@@ -2823,7 +2860,8 @@ def main() -> int:
         return 0
     else:
         # Process single group
-        processed = manager.process_next_group(use_sliding_window=use_sliding_window)
+        processed = manager.process_next_group(
+            use_sliding_window=use_sliding_window)
         return 0 if processed else 1
 
 

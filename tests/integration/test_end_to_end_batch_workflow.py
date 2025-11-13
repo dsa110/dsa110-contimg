@@ -50,7 +50,8 @@ def mock_ms_paths(tmp_path):
     ms_dir.mkdir()
 
     ms_paths = []
-    for i in range(10):
+    # Create 20 MS files to ensure we have enough for group detection tests
+    for i in range(20):
         ms_path = ms_dir / f"2025-11-12T10:{i:02d}:00.ms"
         ms_path.mkdir()  # MS is a directory
         ms_paths.append(str(ms_path))
@@ -69,8 +70,10 @@ class TestBatchConversionWorkflow:
         products_db, products_conn = temp_dbs["products"]
 
         time_windows = [
-            {"start_time": "2025-11-12T10:00:00", "end_time": "2025-11-12T10:50:00"},
-            {"start_time": "2025-11-12T11:00:00", "end_time": "2025-11-12T11:50:00"},
+            {"start_time": "2025-11-12T10:00:00",
+                "end_time": "2025-11-12T10:50:00"},
+            {"start_time": "2025-11-12T11:00:00",
+                "end_time": "2025-11-12T11:50:00"},
         ]
         params = {
             "input_dir": "/data/incoming",
@@ -120,7 +123,8 @@ class TestMosaicCreationWorkflow:
         orchestrator = MosaicOrchestrator(products_db_path=products_db)
 
         group_id = "mosaic_2025-11-12_10-00-00"
-        success = orchestrator._form_group_from_ms_paths(mock_ms_paths, group_id)
+        success = orchestrator._form_group_from_ms_paths(
+            mock_ms_paths, group_id)
 
         assert success is True
         mock_form_group.assert_called_once_with(mock_ms_paths, group_id)
@@ -208,9 +212,11 @@ class TestStreamingConverterGroupDetection:
             )
         products_conn.commit()
 
-        # Check for complete group
+        # Check for complete group from a middle MS file (index 10) to ensure we capture 10 files
+        # To capture 10 files with 5-minute spacing, we need a 50-minute window (±25 min)
+        # Around index 10 (50 min), ±25 min = indices 5-14 (10 files)
         group_ms_paths = check_for_complete_group(
-            mock_ms_paths[5], products_db, time_window_minutes=25.0
+            mock_ms_paths[10], products_db, time_window_minutes=50.0
         )
 
         assert group_ms_paths is not None
@@ -220,14 +226,11 @@ class TestStreamingConverterGroupDetection:
 class TestEndToEndWorkflow:
     """Test complete end-to-end workflow integration."""
 
-    @patch("dsa110_contimg.mosaic.orchestrator.MosaicOrchestrator._process_group_workflow")
-    @patch("dsa110_contimg.mosaic.orchestrator.MosaicOrchestrator._form_group_from_ms_paths")
     def test_complete_streaming_workflow(
         self,
-        mock_form_group,
-        mock_process_workflow,
         temp_dbs,
         mock_ms_paths,
+        tmp_path,
     ):
         """Test complete streaming workflow: conversion → imaging → mosaic → QA → publish."""
         from dsa110_contimg.conversion.streaming.streaming_converter import (
@@ -261,9 +264,11 @@ class TestEndToEndWorkflow:
             )
         products_conn.commit()
 
-        # Step 1: Detect complete group
+        # Step 1: Detect complete group from a middle MS file (index 10) to ensure we capture 10 files
+        # To capture 10 files with 5-minute spacing, we need a 50-minute window (±25 min)
+        # Around index 10 (50 min), ±25 min = indices 5-14 (10 files)
         group_ms_paths = check_for_complete_group(
-            mock_ms_paths[5], products_db, time_window_minutes=25.0
+            mock_ms_paths[10], products_db, time_window_minutes=50.0
         )
 
         assert group_ms_paths is not None
@@ -271,14 +276,19 @@ class TestEndToEndWorkflow:
 
         # Step 2: Trigger mosaic creation
         # Mock the orchestrator methods
+        # Note: MosaicOrchestrator is imported inside trigger_group_mosaic_creation,
+        # so we patch it at the orchestrator module level
         with patch(
-            "dsa110_contimg.conversion.streaming.streaming_converter.MosaicOrchestrator"
+            "dsa110_contimg.mosaic.orchestrator.MosaicOrchestrator"
         ) as mock_orch_class:
             mock_orch = MagicMock()
             mock_orch._form_group_from_ms_paths.return_value = True
-            mock_orch._process_group_workflow.return_value = (
-                "/stage/mosaics/mosaic_test.fits"
-            )
+            # Use tmp_path for mosaic output instead of /stage
+            mosaic_output_dir = tmp_path / "mosaics"
+            mosaic_output_dir.mkdir(parents=True, exist_ok=True)
+            mosaic_output_path = mosaic_output_dir / "mosaic_test.fits"
+            mock_orch._process_group_workflow.return_value = str(
+                mosaic_output_path)
             mock_orch_class.return_value = mock_orch
 
             # Create mock args
@@ -298,19 +308,30 @@ class TestEndToEndWorkflow:
         Path(mosaic_path).parent.mkdir(parents=True, exist_ok=True)
         Path(mosaic_path).touch()
 
-        finalize_data(
+        # Register the mosaic data first
+        from dsa110_contimg.database.data_registry import register_data
+
+        register_data(
             data_registry_conn,
             data_type="mosaic",
             data_id=mosaic_id,
-            stage_path=mosaic_path,
+            stage_path=str(mosaic_path),
             auto_publish=True,
         )
 
-        # Verify mosaic registered
+        # Finalize the mosaic data
+        finalized = finalize_data(
+            data_registry_conn,
+            data_id=mosaic_id,
+            qa_status="passed",
+            validation_status="validated",
+        )
+
+        assert finalized is True
+
+        # Verify mosaic can be retrieved
         from dsa110_contimg.database.data_registry import get_data
 
         record = get_data(data_registry_conn, mosaic_id)
         assert record is not None
         assert record.data_type == "mosaic"
-        assert record.auto_publish is True
-

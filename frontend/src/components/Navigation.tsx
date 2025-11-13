@@ -1,9 +1,9 @@
 /**
  * Main Navigation Component
  */
-import { AppBar, Toolbar, Typography, Button, Box, IconButton, Drawer, useMediaQuery, useTheme, List, ListItem, ListItemButton, ListItemIcon, ListItemText } from '@mui/material';
+import { AppBar, Toolbar, Typography, Button, Box, IconButton, Drawer, useMediaQuery, useTheme, List, ListItem, ListItemButton, ListItemIcon, ListItemText, Chip } from '@mui/material';
 import { Link as RouterLink, useLocation } from 'react-router-dom';
-import { Menu as MenuIcon } from '@mui/icons-material';
+import { Menu as MenuIcon, Keyboard } from '@mui/icons-material';
 import { useState } from 'react';
 import {
   Dashboard,
@@ -15,7 +15,14 @@ import {
   PlayArrow,
   Storage,
   Assessment,
+  Build,
+  AccountTree,
+  EventNote,
+  Cached,
 } from '@mui/icons-material';
+import CommandPalette from './CommandPalette';
+import { useCommandPalette } from '../hooks/useCommandPalette';
+import { useWorkflow } from '../contexts/WorkflowContext';
 
 const navItems = [
   { path: '/dashboard', label: 'Dashboard', icon: Dashboard },
@@ -28,6 +35,10 @@ const navItems = [
   { path: '/sky', label: 'Sky View', icon: Public },
   { path: '/observing', label: 'Observing', icon: Public },
   { path: '/health', label: 'Health', icon: Assessment },
+  { path: '/operations', label: 'Operations', icon: Build },
+  { path: '/pipeline', label: 'Pipeline', icon: AccountTree },
+  { path: '/events', label: 'Events', icon: EventNote },
+  { path: '/cache', label: 'Cache', icon: Cached },
 ];
 
 export default function Navigation() {
@@ -35,6 +46,8 @@ export default function Navigation() {
   const [mobileOpen, setMobileOpen] = useState(false);
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down('md'));
+  const { open: commandPaletteOpen, setOpen: setCommandPaletteOpen } = useCommandPalette();
+  const { currentWorkflow } = useWorkflow();
 
   const handleDrawerToggle = () => {
     setMobileOpen(!mobileOpen);
@@ -118,6 +131,23 @@ export default function Navigation() {
               })}
             </Box>
           )}
+          <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+            {currentWorkflow && !isMobile && (
+              <Chip
+                label={currentWorkflow}
+                size="small"
+                sx={{ textTransform: 'capitalize' }}
+              />
+            )}
+            <IconButton
+              color="inherit"
+              onClick={() => setCommandPaletteOpen(true)}
+              title="Open command palette (Cmd+K / Ctrl+K)"
+              sx={{ ml: 1 }}
+            >
+              <Keyboard />
+            </IconButton>
+          </Box>
         </Toolbar>
     </AppBar>
     <Drawer
@@ -134,6 +164,7 @@ export default function Navigation() {
     >
       {drawer}
     </Drawer>
+    <CommandPalette open={commandPaletteOpen} onClose={() => setCommandPaletteOpen(false)} />
     </>
   );
 }

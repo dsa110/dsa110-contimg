@@ -524,12 +524,18 @@ class WorkflowJobCreateRequest(BaseModel):
 class ESEDetectJobParams(BaseModel):
     """Parameters for ESE detection job."""
 
-    min_sigma: float = Field(
-        5.0, description="Minimum sigma deviation threshold")
+    min_sigma: Optional[float] = Field(
+        None, description="Minimum sigma deviation threshold (ignored if preset is provided)")
+    preset: Optional[str] = Field(
+        None, description="Threshold preset name: 'conservative', 'moderate', 'sensitive', or 'custom'")
     source_id: Optional[str] = Field(
         None, description="Optional specific source ID to check")
     recompute: bool = Field(
         False, description="Recompute variability statistics before detection")
+    use_composite_scoring: bool = Field(
+        False, description="Enable multi-metric composite scoring")
+    scoring_weights: Optional[Dict[str, float]] = Field(
+        None, description="Custom weights for composite scoring (e.g., {'sigma_deviation': 0.5, 'chi2_nu': 0.3})")
 
 
 class ESEDetectJobCreateRequest(BaseModel):
@@ -541,13 +547,25 @@ class ESEDetectJobCreateRequest(BaseModel):
 class BatchESEDetectParams(BaseModel):
     """Parameters for batch ESE detection job."""
 
-    min_sigma: float = Field(
-        5.0, description="Minimum sigma deviation threshold")
+    min_sigma: Optional[float] = Field(
+        None, description="Minimum sigma deviation threshold (ignored if preset is provided)")
+    preset: Optional[str] = Field(
+        None, description="Threshold preset name: 'conservative', 'moderate', 'sensitive', or 'custom'")
     recompute: bool = Field(
         False, description="Recompute variability statistics before detection")
     source_ids: Optional[List[str]] = Field(
         None, description="Optional list of specific source IDs to check (if None, checks all)"
     )
+    use_composite_scoring: bool = Field(
+        False, description="Enable multi-metric composite scoring")
+    scoring_weights: Optional[Dict[str, float]] = Field(
+        None, description="Custom weights for composite scoring")
+    use_parallel: bool = Field(
+        False, description="Use parallel processing for batch detection (faster for many sources)")
+    use_multi_frequency: bool = Field(
+        False, description="Enable multi-frequency analysis (correlate variability across frequencies)")
+    use_multi_observable: bool = Field(
+        False, description="Enable multi-observable correlation (correlate with scintillation/DM)")
 
 
 # ============================================================================

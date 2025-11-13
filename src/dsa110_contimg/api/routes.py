@@ -414,6 +414,7 @@ def create_app(config: ApiConfig | None = None) -> FastAPI:
     from dsa110_contimg.api.routers.photometry import router as photometry_router
     from dsa110_contimg.api.routers.catalogs import router as catalogs_router
     from dsa110_contimg.api.routers.operations import router as operations_router
+    from dsa110_contimg.api.routers.pipeline import router as pipeline_router
 
     # Health checks and metrics (no /api prefix)
     from dsa110_contimg.api.health import router as health_router
@@ -442,6 +443,14 @@ def create_app(config: ApiConfig | None = None) -> FastAPI:
     app.include_router(photometry_router, prefix="/api")
     app.include_router(catalogs_router, prefix="/api")
     app.include_router(operations_router, prefix="/api")
+    app.include_router(pipeline_router, prefix="/api/pipeline")
+
+    # Events and Cache monitoring (Phase 3)
+    from dsa110_contimg.api.routers import events as events_router_module
+    from dsa110_contimg.api.routers import cache as cache_router_module
+
+    app.include_router(events_router_module.router, prefix="/api/events", tags=["events"])
+    app.include_router(cache_router_module.router, prefix="/api/cache", tags=["cache"])
 
     @router.get("/images/{image_id}/measurements", response_model=MeasurementList)
     def get_image_measurements(

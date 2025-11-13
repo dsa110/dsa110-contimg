@@ -11,7 +11,7 @@ import json
 import os
 import time
 from functools import lru_cache, wraps
-from typing import Any, Callable, Optional, TypeVar, Dict
+from typing import Any, Callable, Optional, TypeVar, Dict, List
 from pathlib import Path
 
 T = TypeVar('T')
@@ -41,6 +41,14 @@ class CacheBackend:
     def clear(self) -> None:
         """Clear all cache."""
         raise NotImplementedError
+    
+    def get_statistics(self) -> Dict[str, Any]:
+        """Get cache statistics."""
+        raise NotImplementedError
+    
+    def list_keys(self, pattern: Optional[str] = None, limit: int = 100) -> List[str]:
+        """List cache keys, optionally filtered by pattern."""
+        raise NotImplementedError
 
 
 class InMemoryCache(CacheBackend):
@@ -48,31 +56,77 @@ class InMemoryCache(CacheBackend):
     
     def __init__(self):
         self._cache: Dict[str, tuple[Any, float]] = {}
+        self._hits: int = 0
+        self._misses: int = 0
+        self._sets: int = 0
+        self._deletes: int = 0
     
     def get(self, key: str) -> Optional[Any]:
         """Get value from cache."""
         if key not in self._cache:
+            self._misses += 1
             return None
         
         value, expiry = self._cache[key]
         if expiry > 0 and time.time() > expiry:
             del self._cache[key]
+            self._misses += 1
             return None
         
+        self._hits += 1
         return value
     
     def set(self, key: str, value: Any, ttl: Optional[float] = None) -> None:
         """Set value in cache."""
         expiry = time.time() + ttl if ttl else 0
         self._cache[key] = (value, expiry)
+        self._sets += 1
     
     def delete(self, key: str) -> None:
         """Delete value from cache."""
-        self._cache.pop(key, None)
+        if key in self._cache:
+            self._cache.pop(key, None)
+            self._deletes += 1
     
     def clear(self) -> None:
         """Clear all cache."""
         self._cache.clear()
+        self._hits = 0
+        self._misses = 0
+        self._sets = 0
+        self._deletes = 0
+    
+    def get_statistics(self) -> Dict[str, Any]:
+        """Get cache statistics."""
+        total_requests = self._hits + self._misses
+        hit_rate = (self._hits / total_requests * 100) if total_requests > 0 else 0.0
+        
+        # Count active (non-expired) keys
+        now = time.time()
+        active_keys = sum(1 for _, expiry in self._cache.values() if expiry == 0 or expiry > now)
+        
+        return {
+            "backend_type": "InMemoryCache",
+            "total_keys": len(self._cache),
+            "active_keys": active_keys,
+            "hits": self._hits,
+            "misses": self._misses,
+            "sets": self._sets,
+            "deletes": self._deletes,
+            "hit_rate": round(hit_rate, 2),
+            "miss_rate": round(100 - hit_rate, 2) if total_requests > 0 else 0.0,
+            "total_requests": total_requests
+        }
+    
+    def list_keys(self, pattern: Optional[str] = None, limit: int = 100) -> List[str]:
+        """List cache keys, optionally filtered by pattern."""
+        keys = list(self._cache.keys())
+        
+        if pattern:
+            import fnmatch
+            keys = [k for k in keys if fnmatch.fnmatch(k, pattern)]
+        
+        return keys[:limit]
 
 
 class RedisCache(CacheBackend):
@@ -110,6 +164,42 @@ class RedisCache(CacheBackend):
     def clear(self) -> None:
         """Clear all cache."""
         self.client.flushdb()
+    
+    def get_statistics(self) -> Dict[str, Any]:
+        """Get cache statistics."""
+        info = self.client.info('stats')
+        keyspace = self.client.info('keyspace')
+        
+        # Count keys
+        total_keys = self.client.dbsize()
+        
+        # Get hit/miss from Redis INFO stats
+        keyspace_hits = info.get('keyspace_hits', 0)
+        keyspace_misses = info.get('keyspace_misses', 0)
+        total_requests = keyspace_hits + keyspace_misses
+        hit_rate = (keyspace_hits / total_requests * 100) if total_requests > 0 else 0.0
+        
+        return {
+            "backend_type": "RedisCache",
+            "total_keys": total_keys,
+            "active_keys": total_keys,  # Redis doesn't track expired separately
+            "hits": keyspace_hits,
+            "misses": keyspace_misses,
+            "sets": info.get('total_commands_processed', 0),  # Approximate
+            "deletes": 0,  # Redis doesn't track this separately
+            "hit_rate": round(hit_rate, 2),
+            "miss_rate": round(100 - hit_rate, 2) if total_requests > 0 else 0.0,
+            "total_requests": total_requests
+        }
+    
+    def list_keys(self, pattern: Optional[str] = None, limit: int = 100) -> List[str]:
+        """List cache keys, optionally filtered by pattern."""
+        if pattern:
+            keys = list(self.client.scan_iter(match=pattern, count=limit))
+        else:
+            keys = list(self.client.scan_iter(count=limit))
+        
+        return keys[:limit]
 
 
 # Global cache instance

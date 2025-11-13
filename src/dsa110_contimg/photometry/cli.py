@@ -263,6 +263,8 @@ def cmd_adaptive(args: argparse.Namespace) -> int:
 
 def cmd_ese_detect(args: argparse.Namespace) -> int:
     """Detect ESE candidates from variability statistics."""
+    from dsa110_contimg.photometry.thresholds import get_threshold_preset
+
     products_db = Path(
         os.getenv("PIPELINE_PRODUCTS_DB", args.products_db)
     )
@@ -272,19 +274,35 @@ def cmd_ese_detect(args: argparse.Namespace) -> int:
             {"error": f"Products database not found: {products_db}"}, indent=2))
         return 1
 
+    # Handle preset or min_sigma
+    preset = getattr(args, 'preset', None)
+    min_sigma_param = getattr(args, 'min_sigma', None)
+
+    if preset:
+        thresholds = get_threshold_preset(preset)
+        min_sigma = thresholds.get("min_sigma", 5.0)
+    elif min_sigma_param is not None:
+        min_sigma = min_sigma_param
+    else:
+        # Default fallback
+        min_sigma = 5.0
+
     try:
         candidates = detect_ese_candidates(
             products_db=products_db,
-            min_sigma=args.min_sigma,
-            source_id=args.source_id,
-            recompute=args.recompute,
+            min_sigma=min_sigma,
+            source_id=getattr(args, 'source_id', None),
+            recompute=getattr(args, 'recompute', False),
+            use_composite_scoring=getattr(
+                args, 'use_composite_scoring', False),
         )
 
         result = {
             "products_db": str(products_db),
-            "min_sigma": args.min_sigma,
-            "source_id": args.source_id,
-            "recompute": args.recompute,
+            "preset": preset,
+            "min_sigma": min_sigma,
+            "source_id": getattr(args, 'source_id', None),
+            "recompute": getattr(args, 'recompute', False),
             "candidates_found": len(candidates),
             "candidates": candidates,
         }
@@ -583,8 +601,15 @@ def build_parser() -> argparse.ArgumentParser:
     sp.add_argument(
         "--min-sigma",
         type=float,
-        default=5.0,
-        help="Minimum sigma deviation threshold (default: 5.0)",
+        default=None,
+        help="Minimum sigma deviation threshold (ignored if --preset is provided)",
+    )
+    sp.add_argument(
+        "--preset",
+        type=str,
+        choices=["conservative", "moderate", "sensitive"],
+        default=None,
+        help="Threshold preset: 'conservative' (5.0), 'moderate' (3.5), or 'sensitive' (3.0)",
     )
     sp.add_argument(
         "--source-id",
@@ -596,6 +621,11 @@ def build_parser() -> argparse.ArgumentParser:
         "--recompute",
         action="store_true",
         help="Recompute variability statistics before detection",
+    )
+    sp.add_argument(
+        "--use-composite-scoring",
+        action="store_true",
+        help="Enable multi-metric composite scoring for better confidence assessment",
     )
     sp.set_defaults(func=cmd_ese_detect)
 
