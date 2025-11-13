@@ -1,0 +1,1723 @@
+
+<!DOCTYPE html>
+
+<html class="no-js" lang="en">
+<head>
+<meta charset="utf-8"/>
+<meta content="width=device-width,initial-scale=1" name="viewport"/>
+<link href="http://code.deepsynoptic.org/dsa110-contimg/dev/analysis/implementation_readiness_assessment/" rel="canonical"/>
+<link href="../../../assets/images/favicon.png" rel="icon"/>
+<meta content="mkdocs-1.6.1, mkdocs-material-9.5.31" name="generator"/>
+<title>Implementation Readiness Assessment - DSA-110 Continuum Imaging Pipeline</title>
+<link href="../../../assets/stylesheets/main.3cba04c6.min.css" rel="stylesheet"/>
+<link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect"/>
+<link href="https://fonts.googleapis.com/css?family=Roboto:300,300i,400,400i,700,700i%7CRoboto+Mono:400,400i,700,700i&amp;display=fallback" rel="stylesheet"/>
+<style>:root{--md-text-font:"Roboto";--md-code-font:"Roboto Mono"}</style>
+<link href="../../../assets/_mkdocstrings.css" rel="stylesheet"/>
+<script>__md_scope=new URL("../../..",location),__md_hash=e=>[...e].reduce((e,_)=>(e<<5)-e+_.charCodeAt(0),0),__md_get=(e,_=localStorage,t=__md_scope)=>JSON.parse(_.getItem(t.pathname+"."+e)),__md_set=(e,_,t=localStorage,a=__md_scope)=>{try{t.setItem(a.pathname+"."+e,JSON.stringify(_))}catch(e){}}</script>
+</head>
+<body dir="ltr">
+<input autocomplete="off" class="md-toggle" data-md-toggle="drawer" id="__drawer" type="checkbox"/>
+<input autocomplete="off" class="md-toggle" data-md-toggle="search" id="__search" type="checkbox"/>
+<label class="md-overlay" for="__drawer"></label>
+<div data-md-component="skip">
+<a class="md-skip" href="#implementation-readiness-assessment">
+          Skip to content
+        </a>
+</div>
+<div data-md-component="announce">
+</div>
+<header class="md-header md-header--shadow" data-md-component="header">
+<nav aria-label="Header" class="md-header__inner md-grid">
+<a aria-label="DSA-110 Continuum Imaging Pipeline" class="md-header__button md-logo" data-md-component="logo" href="../../.." title="DSA-110 Continuum Imaging Pipeline">
+<svg viewbox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54Z"></path></svg>
+</a>
+<label class="md-header__button md-icon" for="__drawer">
+<svg viewbox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M3 6h18v2H3V6m0 5h18v2H3v-2m0 5h18v2H3v-2Z"></path></svg>
+</label>
+<div class="md-header__title" data-md-component="header-title">
+<div class="md-header__ellipsis">
+<div class="md-header__topic">
+<span class="md-ellipsis">
+            DSA-110 Continuum Imaging Pipeline
+          </span>
+</div>
+<div class="md-header__topic" data-md-component="header-topic">
+<span class="md-ellipsis">
+            
+              Implementation Readiness Assessment
+            
+          </span>
+</div>
+</div>
+</div>
+<script>var media,input,key,value,palette=__md_get("__palette");if(palette&&palette.color){"(prefers-color-scheme)"===palette.color.media&&(media=matchMedia("(prefers-color-scheme: light)"),input=document.querySelector(media.matches?"[data-md-color-media='(prefers-color-scheme: light)']":"[data-md-color-media='(prefers-color-scheme: dark)']"),palette.color.media=input.getAttribute("data-md-color-media"),palette.color.scheme=input.getAttribute("data-md-color-scheme"),palette.color.primary=input.getAttribute("data-md-color-primary"),palette.color.accent=input.getAttribute("data-md-color-accent"));for([key,value]of Object.entries(palette.color))document.body.setAttribute("data-md-color-"+key,value)}</script>
+<label class="md-header__button md-icon" for="__search">
+<svg viewbox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.516 6.516 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5Z"></path></svg>
+</label>
+<div class="md-search" data-md-component="search" role="dialog">
+<label class="md-search__overlay" for="__search"></label>
+<div class="md-search__inner" role="search">
+<form class="md-search__form" name="search">
+<input aria-label="Search" autocapitalize="off" autocomplete="off" autocorrect="off" class="md-search__input" data-md-component="search-query" name="query" placeholder="Search" required="" spellcheck="false" type="text"/>
+<label class="md-search__icon md-icon" for="__search">
+<svg viewbox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.516 6.516 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5Z"></path></svg>
+<svg viewbox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11h12Z"></path></svg>
+</label>
+<nav aria-label="Search" class="md-search__options">
+<button aria-label="Clear" class="md-search__icon md-icon" tabindex="-1" title="Clear" type="reset">
+<svg viewbox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M19 6.41 17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12 19 6.41Z"></path></svg>
+</button>
+</nav>
+</form>
+<div class="md-search__output">
+<div class="md-search__scrollwrap" data-md-scrollfix="" tabindex="0">
+<div class="md-search-result" data-md-component="search-result">
+<div class="md-search-result__meta">
+            Initializing search
+          </div>
+<ol class="md-search-result__list" role="presentation"></ol>
+</div>
+</div>
+</div>
+</div>
+</div>
+<div class="md-header__source">
+<a class="md-source" data-md-component="source" href="https://github.com/dsa110/dsa110-contimg" title="Go to repository">
+<div class="md-source__icon md-icon">
+<svg viewbox="0 0 448 512" xmlns="http://www.w3.org/2000/svg"><!--! Font Awesome Free 6.6.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2024 Fonticons, Inc.--><path d="M439.55 236.05 244 40.45a28.87 28.87 0 0 0-40.81 0l-40.66 40.63 51.52 51.52c27.06-9.14 52.68 16.77 43.39 43.68l49.66 49.66c34.23-11.8 61.18 31 35.47 56.69-26.49 26.49-70.21-2.87-56-37.34L240.22 199v121.85c25.3 12.54 22.26 41.85 9.08 55a34.34 34.34 0 0 1-48.55 0c-17.57-17.6-11.07-46.91 11.25-56v-123c-20.8-8.51-24.6-30.74-18.64-45L142.57 101 8.45 235.14a28.86 28.86 0 0 0 0 40.81l195.61 195.6a28.86 28.86 0 0 0 40.8 0l194.69-194.69a28.86 28.86 0 0 0 0-40.81z"></path></svg>
+</div>
+<div class="md-source__repository">
+    GitHub
+  </div>
+</a>
+</div>
+</nav>
+</header>
+<div class="md-container" data-md-component="container">
+<main class="md-main" data-md-component="main">
+<div class="md-main__inner md-grid">
+<div class="md-sidebar md-sidebar--primary" data-md-component="sidebar" data-md-type="navigation">
+<div class="md-sidebar__scrollwrap">
+<div class="md-sidebar__inner">
+<nav aria-label="Navigation" class="md-nav md-nav--primary" data-md-level="0">
+<label class="md-nav__title" for="__drawer">
+<a aria-label="DSA-110 Continuum Imaging Pipeline" class="md-nav__button md-logo" data-md-component="logo" href="../../.." title="DSA-110 Continuum Imaging Pipeline">
+<svg viewbox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54Z"></path></svg>
+</a>
+    DSA-110 Continuum Imaging Pipeline
+  </label>
+<div class="md-nav__source">
+<a class="md-source" data-md-component="source" href="https://github.com/dsa110/dsa110-contimg" title="Go to repository">
+<div class="md-source__icon md-icon">
+<svg viewbox="0 0 448 512" xmlns="http://www.w3.org/2000/svg"><!--! Font Awesome Free 6.6.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2024 Fonticons, Inc.--><path d="M439.55 236.05 244 40.45a28.87 28.87 0 0 0-40.81 0l-40.66 40.63 51.52 51.52c27.06-9.14 52.68 16.77 43.39 43.68l49.66 49.66c34.23-11.8 61.18 31 35.47 56.69-26.49 26.49-70.21-2.87-56-37.34L240.22 199v121.85c25.3 12.54 22.26 41.85 9.08 55a34.34 34.34 0 0 1-48.55 0c-17.57-17.6-11.07-46.91 11.25-56v-123c-20.8-8.51-24.6-30.74-18.64-45L142.57 101 8.45 235.14a28.86 28.86 0 0 0 0 40.81l195.61 195.6a28.86 28.86 0 0 0 40.8 0l194.69-194.69a28.86 28.86 0 0 0 0-40.81z"></path></svg>
+</div>
+<div class="md-source__repository">
+    GitHub
+  </div>
+</a>
+</div>
+<ul class="md-nav__list" data-md-scrollfix="">
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../..">
+<span class="md-ellipsis">
+    Home
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../../DOCUMENTATION_QUICK_REFERENCE/">
+<span class="md-ellipsis">
+    Documentation Guide
+  </span>
+</a>
+</li>
+<li class="md-nav__item md-nav__item--section md-nav__item--nested">
+<input class="md-nav__toggle md-toggle" id="__nav_3" type="checkbox"/>
+<div class="md-nav__link md-nav__container">
+<a class="md-nav__link" href="../../../concepts/">
+<span class="md-ellipsis">
+    Concepts
+  </span>
+</a>
+<label class="md-nav__link" for="__nav_3" id="__nav_3_label" tabindex="">
+<span class="md-nav__icon md-icon"></span>
+</label>
+</div>
+<nav aria-expanded="false" aria-labelledby="__nav_3_label" class="md-nav" data-md-level="1">
+<label class="md-nav__title" for="__nav_3">
+<span class="md-nav__icon md-icon"></span>
+            Concepts
+          </label>
+<ul class="md-nav__list" data-md-scrollfix="">
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../../concepts/architecture/">
+<span class="md-ellipsis">
+    Architecture
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../../concepts/DIRECTORY_ARCHITECTURE/">
+<span class="md-ellipsis">
+    Directory Architecture
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../../concepts/modules/">
+<span class="md-ellipsis">
+    Modules
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../../concepts/control-panel/">
+<span class="md-ellipsis">
+    Control Panel
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../../concepts/aoflagger/">
+<span class="md-ellipsis">
+    AOFlagger
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../../concepts/frontend_design/">
+<span class="md-ellipsis">
+    Frontend Design
+  </span>
+</a>
+</li>
+<li class="md-nav__item md-nav__item--nested">
+<input class="md-nav__toggle md-toggle" id="__nav_3_8" type="checkbox"/>
+<label class="md-nav__link" for="__nav_3_8" id="__nav_3_8_label" tabindex="0">
+<span class="md-ellipsis">
+    Dashboard
+  </span>
+<span class="md-nav__icon md-icon"></span>
+</label>
+<nav aria-expanded="false" aria-labelledby="__nav_3_8_label" class="md-nav" data-md-level="2">
+<label class="md-nav__title" for="__nav_3_8">
+<span class="md-nav__icon md-icon"></span>
+            Dashboard
+          </label>
+<ul class="md-nav__list" data-md-scrollfix="">
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../../concepts/dashboard_mockups/">
+<span class="md-ellipsis">
+    Mockups
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../../SKYVIEW_IMPLEMENTATION_PLAN/">
+<span class="md-ellipsis">
+    Sky View
+  </span>
+</a>
+</li>
+</ul>
+</nav>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../../concepts/GLOSSARY/">
+<span class="md-ellipsis">
+    Glossary
+  </span>
+</a>
+</li>
+<li class="md-nav__item md-nav__item--nested">
+<input class="md-nav__toggle md-toggle" id="__nav_3_10" type="checkbox"/>
+<label class="md-nav__link" for="__nav_3_10" id="__nav_3_10_label" tabindex="0">
+<span class="md-ellipsis">
+    Pipeline
+  </span>
+<span class="md-nav__icon md-icon"></span>
+</label>
+<nav aria-expanded="false" aria-labelledby="__nav_3_10_label" class="md-nav" data-md-level="2">
+<label class="md-nav__title" for="__nav_3_10">
+<span class="md-nav__icon md-icon"></span>
+            Pipeline
+          </label>
+<ul class="md-nav__list" data-md-scrollfix="">
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../../concepts/pipeline_overview/">
+<span class="md-ellipsis">
+    Overview
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../../concepts/pipeline_stage_architecture/">
+<span class="md-ellipsis">
+    Stage Architecture
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../../concepts/pipeline_workflow_visualization/">
+<span class="md-ellipsis">
+    Workflow Visualization
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../../concepts/pipeline_production_features/">
+<span class="md-ellipsis">
+    Production Features
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../../concepts/pipeline_patterns/">
+<span class="md-ellipsis">
+    Patterns
+  </span>
+</a>
+</li>
+</ul>
+</nav>
+</li>
+<li class="md-nav__item md-nav__item--nested">
+<input class="md-nav__toggle md-toggle" id="__nav_3_11" type="checkbox"/>
+<label class="md-nav__link" for="__nav_3_11" id="__nav_3_11_label" tabindex="0">
+<span class="md-ellipsis">
+    Science
+  </span>
+<span class="md-nav__icon md-icon"></span>
+</label>
+<nav aria-expanded="false" aria-labelledby="__nav_3_11_label" class="md-nav" data-md-level="2">
+<label class="md-nav__title" for="__nav_3_11">
+<span class="md-nav__icon md-icon"></span>
+            Science
+          </label>
+<ul class="md-nav__list" data-md-scrollfix="">
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../../concepts/science/photometry_normalization/">
+<span class="md-ellipsis">
+    Photometry Normalization
+  </span>
+</a>
+</li>
+</ul>
+</nav>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../../concepts/mcp_browser_server_setup/">
+<span class="md-ellipsis">
+    Browser MCP Server
+  </span>
+</a>
+</li>
+</ul>
+</nav>
+</li>
+<li class="md-nav__item md-nav__item--section md-nav__item--nested">
+<input class="md-nav__toggle md-toggle" id="__nav_4" type="checkbox"/>
+<label class="md-nav__link" for="__nav_4" id="__nav_4_label" tabindex="">
+<span class="md-ellipsis">
+    Tutorials
+  </span>
+<span class="md-nav__icon md-icon"></span>
+</label>
+<nav aria-expanded="false" aria-labelledby="__nav_4_label" class="md-nav" data-md-level="1">
+<label class="md-nav__title" for="__nav_4">
+<span class="md-nav__icon md-icon"></span>
+            Tutorials
+          </label>
+<ul class="md-nav__list" data-md-scrollfix="">
+<li class="md-nav__item md-nav__item--nested">
+<input class="md-nav__toggle md-toggle" id="__nav_4_1" type="checkbox"/>
+<label class="md-nav__link" for="__nav_4_1" id="__nav_4_1_label" tabindex="0">
+<span class="md-ellipsis">
+    Conversion
+  </span>
+<span class="md-nav__icon md-icon"></span>
+</label>
+<nav aria-expanded="false" aria-labelledby="__nav_4_1_label" class="md-nav" data-md-level="2">
+<label class="md-nav__title" for="__nav_4_1">
+<span class="md-nav__icon md-icon"></span>
+            Conversion
+          </label>
+<ul class="md-nav__list" data-md-scrollfix="">
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../../tutorials/HDF5_TO_MS_TUTORIAL/">
+<span class="md-ellipsis">
+    HDF5 to MS
+  </span>
+</a>
+</li>
+</ul>
+</nav>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../../tutorials/simulation-tutorial/">
+<span class="md-ellipsis">
+    Simulation
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../../tutorials/calibrate-apply/">
+<span class="md-ellipsis">
+    Calibrate and Apply
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../../tutorials/convert-standalone/">
+<span class="md-ellipsis">
+    Convert Standalone
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../../tutorials/streaming/">
+<span class="md-ellipsis">
+    Streaming
+  </span>
+</a>
+</li>
+<li class="md-nav__item md-nav__item--nested">
+<input class="md-nav__toggle md-toggle" id="__nav_4_6" type="checkbox"/>
+<label class="md-nav__link" for="__nav_4_6" id="__nav_4_6_label" tabindex="0">
+<span class="md-ellipsis">
+    Notebooks
+  </span>
+<span class="md-nav__icon md-icon"></span>
+</label>
+<nav aria-expanded="false" aria-labelledby="__nav_4_6_label" class="md-nav" data-md-level="2">
+<label class="md-nav__title" for="__nav_4_6">
+<span class="md-nav__icon md-icon"></span>
+            Notebooks
+          </label>
+<ul class="md-nav__list" data-md-scrollfix="">
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../../tutorials/notebooks/bandpass_calibration_test.ipynb">
+<span class="md-ellipsis">
+    Bandpass Calibration Test
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../../tutorials/notebooks/calibrator_helper.py">
+<span class="md-ellipsis">
+    Calibrator Helper
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../../tutorials/notebooks/CalibratorSearch.ipynb">
+<span class="md-ellipsis">
+    Calibrator Search
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../../tutorials/notebooks/ms_staging_workflow.ipynb">
+<span class="md-ellipsis">
+    MS Staging Workflow
+  </span>
+</a>
+</li>
+</ul>
+</nav>
+</li>
+</ul>
+</nav>
+</li>
+<li class="md-nav__item md-nav__item--section md-nav__item--nested">
+<input class="md-nav__toggle md-toggle" id="__nav_5" type="checkbox"/>
+<label class="md-nav__link" for="__nav_5" id="__nav_5_label" tabindex="">
+<span class="md-ellipsis">
+    How-To Guides
+  </span>
+<span class="md-nav__icon md-icon"></span>
+</label>
+<nav aria-expanded="false" aria-labelledby="__nav_5_label" class="md-nav" data-md-level="1">
+<label class="md-nav__title" for="__nav_5">
+<span class="md-nav__icon md-icon"></span>
+            How-To Guides
+          </label>
+<ul class="md-nav__list" data-md-scrollfix="">
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../../how-to/github_pages_walkthrough/">
+<span class="md-ellipsis">
+    GitHub Pages Setup
+  </span>
+</a>
+</li>
+<li class="md-nav__item md-nav__item--nested">
+<input class="md-nav__toggle md-toggle" id="__nav_5_2" type="checkbox"/>
+<label class="md-nav__link" for="__nav_5_2" id="__nav_5_2_label" tabindex="0">
+<span class="md-ellipsis">
+    Quickstarts
+  </span>
+<span class="md-nav__icon md-icon"></span>
+</label>
+<nav aria-expanded="false" aria-labelledby="__nav_5_2_label" class="md-nav" data-md-level="2">
+<label class="md-nav__title" for="__nav_5_2">
+<span class="md-nav__icon md-icon"></span>
+            Quickstarts
+          </label>
+<ul class="md-nav__list" data-md-scrollfix="">
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../../how-to/quickstart/">
+<span class="md-ellipsis">
+    General
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../../how-to/control-panel-quickstart/">
+<span class="md-ellipsis">
+    Control Panel
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../../how-to/LINEAR_SETUP_QUICKSTART/">
+<span class="md-ellipsis">
+    Linear Setup
+  </span>
+</a>
+</li>
+</ul>
+</nav>
+</li>
+<li class="md-nav__item md-nav__item--nested">
+<input class="md-nav__toggle md-toggle" id="__nav_5_3" type="checkbox"/>
+<label class="md-nav__link" for="__nav_5_3" id="__nav_5_3_label" tabindex="0">
+<span class="md-ellipsis">
+    Testing
+  </span>
+<span class="md-nav__icon md-icon"></span>
+</label>
+<nav aria-expanded="false" aria-labelledby="__nav_5_3_label" class="md-nav" data-md-level="2">
+<label class="md-nav__title" for="__nav_5_3">
+<span class="md-nav__icon md-icon"></span>
+            Testing
+          </label>
+<ul class="md-nav__list" data-md-scrollfix="">
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../../how-to/FAST_TESTING/">
+<span class="md-ellipsis">
+    Fast Testing
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../../how-to/PIPELINE_TESTING_GUIDE/">
+<span class="md-ellipsis">
+    Pipeline Guide
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../../how-to/TEST_FLAG_SUBCOMMAND/">
+<span class="md-ellipsis">
+    Flag Subcommand
+  </span>
+</a>
+</li>
+</ul>
+</nav>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../../how-to/build-vp-from-h5/">
+<span class="md-ellipsis">
+    Build VP from h5
+  </span>
+</a>
+</li>
+<li class="md-nav__item md-nav__item--nested">
+<input class="md-nav__toggle md-toggle" id="__nav_5_5" type="checkbox"/>
+<label class="md-nav__link" for="__nav_5_5" id="__nav_5_5_label" tabindex="0">
+<span class="md-ellipsis">
+    Calibration
+  </span>
+<span class="md-nav__icon md-icon"></span>
+</label>
+<nav aria-expanded="false" aria-labelledby="__nav_5_5_label" class="md-nav" data-md-level="2">
+<label class="md-nav__title" for="__nav_5_5">
+<span class="md-nav__icon md-icon"></span>
+            Calibration
+          </label>
+<ul class="md-nav__list" data-md-scrollfix="">
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../../how-to/CALIBRATION_DETAILED_PROCEDURE/">
+<span class="md-ellipsis">
+    Detailed Procedure
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../../how-to/FIND_CALIBRATOR_TRANSIT_DATA/">
+<span class="md-ellipsis">
+    Find Calibrator Transit
+  </span>
+</a>
+</li>
+</ul>
+</nav>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../../how-to/IMAGE_0834_TRANSIT_5MIN/">
+<span class="md-ellipsis">
+    Image 0834 Transit 5min
+  </span>
+</a>
+</li>
+<li class="md-nav__item md-nav__item--nested">
+<input class="md-nav__toggle md-toggle" id="__nav_5_7" type="checkbox"/>
+<label class="md-nav__link" for="__nav_5_7" id="__nav_5_7_label" tabindex="0">
+<span class="md-ellipsis">
+    Mosaic
+  </span>
+<span class="md-nav__icon md-icon"></span>
+</label>
+<nav aria-expanded="false" aria-labelledby="__nav_5_7_label" class="md-nav" data-md-level="2">
+<label class="md-nav__title" for="__nav_5_7">
+<span class="md-nav__icon md-icon"></span>
+            Mosaic
+          </label>
+<ul class="md-nav__list" data-md-scrollfix="">
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../../how-to/mosaic_quickstart/">
+<span class="md-ellipsis">
+    Quickstart
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../../how-to/mosaic/">
+<span class="md-ellipsis">
+    Complete Guide
+  </span>
+</a>
+</li>
+</ul>
+</nav>
+</li>
+<li class="md-nav__item md-nav__item--nested">
+<input class="md-nav__toggle md-toggle" id="__nav_5_8" type="checkbox"/>
+<label class="md-nav__link" for="__nav_5_8" id="__nav_5_8_label" tabindex="0">
+<span class="md-ellipsis">
+    Quality Assurance
+  </span>
+<span class="md-nav__icon md-icon"></span>
+</label>
+<nav aria-expanded="false" aria-labelledby="__nav_5_8_label" class="md-nav" data-md-level="2">
+<label class="md-nav__title" for="__nav_5_8">
+<span class="md-nav__icon md-icon"></span>
+            Quality Assurance
+          </label>
+<ul class="md-nav__list" data-md-scrollfix="">
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../../how-to/QUALITY_ASSURANCE_SETUP/">
+<span class="md-ellipsis">
+    Setup
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../../how-to/quicklook/">
+<span class="md-ellipsis">
+    Quick Look
+  </span>
+</a>
+</li>
+</ul>
+</nav>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../../how-to/reprocess/">
+<span class="md-ellipsis">
+    Reprocess
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../../how-to/USING_ORCHESTRATOR_CLI/">
+<span class="md-ellipsis">
+    Using Orchestrator CLI
+  </span>
+</a>
+</li>
+<li class="md-nav__item md-nav__item--nested">
+<input class="md-nav__toggle md-toggle" id="__nav_5_11" type="checkbox"/>
+<label class="md-nav__link" for="__nav_5_11" id="__nav_5_11_label" tabindex="0">
+<span class="md-ellipsis">
+    Dashboard
+  </span>
+<span class="md-nav__icon md-icon"></span>
+</label>
+<nav aria-expanded="false" aria-labelledby="__nav_5_11_label" class="md-nav" data-md-level="2">
+<label class="md-nav__title" for="__nav_5_11">
+<span class="md-nav__icon md-icon"></span>
+            Dashboard
+          </label>
+<ul class="md-nav__list" data-md-scrollfix="">
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../../how-to/dashboard-development/">
+<span class="md-ellipsis">
+    Development
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../../how-to/dashboard-quickstart/">
+<span class="md-ellipsis">
+    Quickstart
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../../how-to/dashboard_testing/">
+<span class="md-ellipsis">
+    Testing
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../../how-to/dashboard_development_workflow/">
+<span class="md-ellipsis">
+    Development Workflow
+  </span>
+</a>
+</li>
+</ul>
+</nav>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../../how-to/LINEAR_INTEGRATION/">
+<span class="md-ellipsis">
+    Linear Integration
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../../how-to/frontend-initial-setup/">
+<span class="md-ellipsis">
+    Frontend Initial Setup
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../../how-to/PARAMETER_OPTIMIZATION_GUIDE/">
+<span class="md-ellipsis">
+    AOFlagger Parameter Optimization
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../../how-to/downsampling_guide/">
+<span class="md-ellipsis">
+    Downsampling Guide
+  </span>
+</a>
+</li>
+<li class="md-nav__item md-nav__item--nested">
+<input class="md-nav__toggle md-toggle" id="__nav_5_16" type="checkbox"/>
+<label class="md-nav__link" for="__nav_5_16" id="__nav_5_16_label" tabindex="0">
+<span class="md-ellipsis">
+    Conversion
+  </span>
+<span class="md-nav__icon md-icon"></span>
+</label>
+<nav aria-expanded="false" aria-labelledby="__nav_5_16_label" class="md-nav" data-md-level="2">
+<label class="md-nav__title" for="__nav_5_16">
+<span class="md-nav__icon md-icon"></span>
+            Conversion
+          </label>
+<ul class="md-nav__list" data-md-scrollfix="">
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../../how-to/uvh5_to_ms_conversion/">
+<span class="md-ellipsis">
+    UVH5 to MS
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../../how-to/streaming_converter_guide/">
+<span class="md-ellipsis">
+    Streaming Converter
+  </span>
+</a>
+</li>
+</ul>
+</nav>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../../how-to/troubleshooting/">
+<span class="md-ellipsis">
+    Troubleshooting
+  </span>
+</a>
+</li>
+</ul>
+</nav>
+</li>
+<li class="md-nav__item md-nav__item--section md-nav__item--nested">
+<input class="md-nav__toggle md-toggle" id="__nav_6" type="checkbox"/>
+<label class="md-nav__link" for="__nav_6" id="__nav_6_label" tabindex="">
+<span class="md-ellipsis">
+    Reference
+  </span>
+<span class="md-nav__icon md-icon"></span>
+</label>
+<nav aria-expanded="false" aria-labelledby="__nav_6_label" class="md-nav" data-md-level="1">
+<label class="md-nav__title" for="__nav_6">
+<span class="md-nav__icon md-icon"></span>
+            Reference
+          </label>
+<ul class="md-nav__list" data-md-scrollfix="">
+<li class="md-nav__item md-nav__item--nested">
+<input class="md-nav__toggle md-toggle" id="__nav_6_1" type="checkbox"/>
+<label class="md-nav__link" for="__nav_6_1" id="__nav_6_1_label" tabindex="0">
+<span class="md-ellipsis">
+    API
+  </span>
+<span class="md-nav__icon md-icon"></span>
+</label>
+<nav aria-expanded="false" aria-labelledby="__nav_6_1_label" class="md-nav" data-md-level="2">
+<label class="md-nav__title" for="__nav_6_1">
+<span class="md-nav__icon md-icon"></span>
+            API
+          </label>
+<ul class="md-nav__list" data-md-scrollfix="">
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../../reference/api-endpoints/">
+<span class="md-ellipsis">
+    Endpoints
+  </span>
+</a>
+</li>
+<li class="md-nav__item md-nav__item--nested">
+<input class="md-nav__toggle md-toggle" id="__nav_6_1_2" type="checkbox"/>
+<label class="md-nav__link" for="__nav_6_1_2" id="__nav_6_1_2_label" tabindex="0">
+<span class="md-ellipsis">
+    Dashboard
+  </span>
+<span class="md-nav__icon md-icon"></span>
+</label>
+<nav aria-expanded="false" aria-labelledby="__nav_6_1_2_label" class="md-nav" data-md-level="3">
+<label class="md-nav__title" for="__nav_6_1_2">
+<span class="md-nav__icon md-icon"></span>
+            Dashboard
+          </label>
+<ul class="md-nav__list" data-md-scrollfix="">
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../../reference/dashboard_backend_api/">
+<span class="md-ellipsis">
+    API Reference
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../../reference/dashboard_pages_and_features/">
+<span class="md-ellipsis">
+    Pages &amp; Features
+  </span>
+</a>
+</li>
+</ul>
+</nav>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../../reference/backend_integration_snippets/">
+<span class="md-ellipsis">
+    Integration Snippets
+  </span>
+</a>
+</li>
+</ul>
+</nav>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../../reference/calibration-overview/">
+<span class="md-ellipsis">
+    Calibration Overview
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../../reference/cli/">
+<span class="md-ellipsis">
+    CLI
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../../reference/control-panel-cheatsheet/">
+<span class="md-ellipsis">
+    Control Panel Cheatsheet
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../../reference/database_schema/">
+<span class="md-ellipsis">
+    Database Schema
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../../reference/env/">
+<span class="md-ellipsis">
+    Environment Variables
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../../reference/CRITICAL_PYTHON_ENVIRONMENT/">
+<span class="md-ellipsis">
+    Critical Python Environment
+  </span>
+</a>
+</li>
+<li class="md-nav__item md-nav__item--nested">
+<input class="md-nav__toggle md-toggle" id="__nav_6_8" type="checkbox"/>
+<label class="md-nav__link" for="__nav_6_8" id="__nav_6_8_label" tabindex="0">
+<span class="md-ellipsis">
+    Optimizations
+  </span>
+<span class="md-nav__icon md-icon"></span>
+</label>
+<nav aria-expanded="false" aria-labelledby="__nav_6_8_label" class="md-nav" data-md-level="2">
+<label class="md-nav__title" for="__nav_6_8">
+<span class="md-nav__icon md-icon"></span>
+            Optimizations
+          </label>
+<ul class="md-nav__list" data-md-scrollfix="">
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../../reference/optimizations/OPTIMIZATION_API/">
+<span class="md-ellipsis">
+    API
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../../reference/optimizations/PROFILING_GUIDE/">
+<span class="md-ellipsis">
+    Profiling Guide
+  </span>
+</a>
+</li>
+</ul>
+</nav>
+</li>
+</ul>
+</nav>
+</li>
+<li class="md-nav__item md-nav__item--section md-nav__item--nested">
+<input class="md-nav__toggle md-toggle" id="__nav_7" type="checkbox"/>
+<label class="md-nav__link" for="__nav_7" id="__nav_7_label" tabindex="">
+<span class="md-ellipsis">
+    Operations
+  </span>
+<span class="md-nav__icon md-icon"></span>
+</label>
+<nav aria-expanded="false" aria-labelledby="__nav_7_label" class="md-nav" data-md-level="1">
+<label class="md-nav__title" for="__nav_7">
+<span class="md-nav__icon md-icon"></span>
+            Operations
+          </label>
+<ul class="md-nav__list" data-md-scrollfix="">
+<li class="md-nav__item md-nav__item--nested">
+<input class="md-nav__toggle md-toggle" id="__nav_7_1" type="checkbox"/>
+<label class="md-nav__link" for="__nav_7_1" id="__nav_7_1_label" tabindex="0">
+<span class="md-ellipsis">
+    Deployment
+  </span>
+<span class="md-nav__icon md-icon"></span>
+</label>
+<nav aria-expanded="false" aria-labelledby="__nav_7_1_label" class="md-nav" data-md-level="2">
+<label class="md-nav__title" for="__nav_7_1">
+<span class="md-nav__icon md-icon"></span>
+            Deployment
+          </label>
+<ul class="md-nav__list" data-md-scrollfix="">
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../../operations/deploy-docker/">
+<span class="md-ellipsis">
+    Docker
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../../operations/deploy-systemd/">
+<span class="md-ellipsis">
+    systemd
+  </span>
+</a>
+</li>
+</ul>
+</nav>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../../operations/port-management/">
+<span class="md-ellipsis">
+    Port Management
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../../operations/refant_quick_reference/">
+<span class="md-ellipsis">
+    Refant Quick Reference
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../../operations/service_restart_fix/">
+<span class="md-ellipsis">
+    Service Restart Fix
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../../operations/systemd-migration/">
+<span class="md-ellipsis">
+    Systemd Migration
+  </span>
+</a>
+</li>
+</ul>
+</nav>
+</li>
+<li class="md-nav__item md-nav__item--section md-nav__item--nested">
+<input class="md-nav__toggle md-toggle" id="__nav_8" type="checkbox"/>
+<div class="md-nav__link md-nav__container">
+<a class="md-nav__link" href="../../../contributing/">
+<span class="md-ellipsis">
+    Contributing
+  </span>
+</a>
+<label class="md-nav__link" for="__nav_8" id="__nav_8_label" tabindex="">
+<span class="md-nav__icon md-icon"></span>
+</label>
+</div>
+<nav aria-expanded="false" aria-labelledby="__nav_8_label" class="md-nav" data-md-level="1">
+<label class="md-nav__title" for="__nav_8">
+<span class="md-nav__icon md-icon"></span>
+            Contributing
+          </label>
+<ul class="md-nav__list" data-md-scrollfix="">
+<li class="md-nav__item md-nav__item--nested">
+<input class="md-nav__toggle md-toggle" id="__nav_8_2" type="checkbox"/>
+<label class="md-nav__link" for="__nav_8_2" id="__nav_8_2_label" tabindex="0">
+<span class="md-ellipsis">
+    Archive
+  </span>
+<span class="md-nav__icon md-icon"></span>
+</label>
+<nav aria-expanded="false" aria-labelledby="__nav_8_2_label" class="md-nav" data-md-level="2">
+<label class="md-nav__title" for="__nav_8_2">
+<span class="md-nav__icon md-icon"></span>
+            Archive
+          </label>
+<ul class="md-nav__list" data-md-scrollfix="">
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../../contributing/archive/CONTRIBUTING_TODO/">
+<span class="md-ellipsis">
+    Contributing to TODO
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../../contributing/archive/rules/">
+<span class="md-ellipsis">
+    Rules
+  </span>
+</a>
+</li>
+</ul>
+</nav>
+</li>
+</ul>
+</nav>
+</li>
+</ul>
+</nav>
+</div>
+</div>
+</div>
+<div class="md-sidebar md-sidebar--secondary" data-md-component="sidebar" data-md-type="toc">
+<div class="md-sidebar__scrollwrap">
+<div class="md-sidebar__inner">
+<nav aria-label="Table of contents" class="md-nav md-nav--secondary">
+<label class="md-nav__title" for="__toc">
+<span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+<ul class="md-nav__list" data-md-component="toc" data-md-scrollfix="">
+<li class="md-nav__item">
+<a class="md-nav__link" href="#assessment-criteria">
+<span class="md-ellipsis">
+      Assessment Criteria
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#phase-1-complete-batch-mode-development">
+<span class="md-ellipsis">
+      Phase 1: Complete Batch Mode Development
+    </span>
+</a>
+<nav aria-label="Phase 1: Complete Batch Mode Development" class="md-nav">
+<ul class="md-nav__list">
+<li class="md-nav__item">
+<a class="md-nav__link" href="#priority-1-critical-gaps">
+<span class="md-ellipsis">
+      Priority 1: Critical Gaps
+    </span>
+</a>
+<nav aria-label="Priority 1: Critical Gaps" class="md-nav">
+<ul class="md-nav__list">
+<li class="md-nav__item">
+<a class="md-nav__link" href="#11-stage-4-mosaic-creation-api-exposure">
+<span class="md-ellipsis">
+      1.1 Stage 4: Mosaic Creation API Exposure
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#12-stage-1-batch-conversion-api">
+<span class="md-ellipsis">
+      1.2 Stage 1: Batch Conversion API
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#13-stage-6-publishing-cli">
+<span class="md-ellipsis">
+      1.3 Stage 6: Publishing CLI
+    </span>
+</a>
+</li>
+</ul>
+</nav>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#priority-2-quality-of-life-improvements">
+<span class="md-ellipsis">
+      Priority 2: Quality of Life Improvements
+    </span>
+</a>
+<nav aria-label="Priority 2: Quality of Life Improvements" class="md-nav">
+<ul class="md-nav__list">
+<li class="md-nav__item">
+<a class="md-nav__link" href="#14-stage-5-unified-qa-cli">
+<span class="md-ellipsis">
+      1.4 Stage 5: Unified QA CLI
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#15-stage-7-photometry-api-execution-endpoints">
+<span class="md-ellipsis">
+      1.5 Stage 7: Photometry API Execution Endpoints
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#16-stage-8-ese-detection-cli-and-execution">
+<span class="md-ellipsis">
+      1.6 Stage 8: ESE Detection CLI and Execution
+    </span>
+</a>
+</li>
+</ul>
+</nav>
+</li>
+</ul>
+</nav>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#phase-2-enhance-automation">
+<span class="md-ellipsis">
+      Phase 2: Enhance Automation
+    </span>
+</a>
+<nav aria-label="Phase 2: Enhance Automation" class="md-nav">
+<ul class="md-nav__list">
+<li class="md-nav__item">
+<a class="md-nav__link" href="#priority-1-streaming-converter-enhancements">
+<span class="md-ellipsis">
+      Priority 1: Streaming Converter Enhancements
+    </span>
+</a>
+<nav aria-label="Priority 1: Streaming Converter Enhancements" class="md-nav">
+<ul class="md-nav__list">
+<li class="md-nav__item">
+<a class="md-nav__link" href="#21-stage-2-calibration-solving-in-streaming-converter">
+<span class="md-ellipsis">
+      2.1 Stage 2: Calibration Solving in Streaming Converter
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#22-stage-3-coordinated-group-imaging-in-streaming-converter">
+<span class="md-ellipsis">
+      2.2 Stage 3: Coordinated Group Imaging in Streaming Converter
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#23-stages-4-6-mosaic-creation-qa-publishing-in-streaming-converter">
+<span class="md-ellipsis">
+      2.3 Stages 4-6: Mosaic Creation, QA, Publishing in Streaming Converter
+    </span>
+</a>
+</li>
+</ul>
+</nav>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#priority-2-photometry-and-ese-detection-automation">
+<span class="md-ellipsis">
+      Priority 2: Photometry and ESE Detection Automation
+    </span>
+</a>
+<nav aria-label="Priority 2: Photometry and ESE Detection Automation" class="md-nav">
+<ul class="md-nav__list">
+<li class="md-nav__item">
+<a class="md-nav__link" href="#24-stage-7-automated-photometry-pipeline">
+<span class="md-ellipsis">
+      2.4 Stage 7: Automated Photometry Pipeline
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#25-stage-8-automated-ese-detection-pipeline">
+<span class="md-ellipsis">
+      2.5 Stage 8: Automated ESE Detection Pipeline
+    </span>
+</a>
+</li>
+</ul>
+</nav>
+</li>
+</ul>
+</nav>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#phase-3-validation-and-robustness">
+<span class="md-ellipsis">
+      Phase 3: Validation and Robustness
+    </span>
+</a>
+<nav aria-label="Phase 3: Validation and Robustness" class="md-nav">
+<ul class="md-nav__list">
+<li class="md-nav__item">
+<a class="md-nav__link" href="#31-error-handling-and-recovery">
+<span class="md-ellipsis">
+      3.1 Error Handling and Recovery
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#32-end-to-end-integration-testing">
+<span class="md-ellipsis">
+      3.2 End-to-End Integration Testing
+    </span>
+</a>
+</li>
+</ul>
+</nav>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#summary-by-readiness">
+<span class="md-ellipsis">
+      Summary by Readiness
+    </span>
+</a>
+<nav aria-label="Summary by Readiness" class="md-nav">
+<ul class="md-nav__list">
+<li class="md-nav__item">
+<a class="md-nav__link" href="#ready-to-implement-high-confidence">
+<span class="md-ellipsis">
+      ✅ Ready to Implement (High Confidence)
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#needs-investigation-medium-low-confidence">
+<span class="md-ellipsis">
+      ⚠️ Needs Investigation (Medium-Low Confidence)
+    </span>
+</a>
+</li>
+</ul>
+</nav>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#recommended-investigation-order">
+<span class="md-ellipsis">
+      Recommended Investigation Order
+    </span>
+</a>
+<nav aria-label="Recommended Investigation Order" class="md-nav">
+<ul class="md-nav__list">
+<li class="md-nav__item">
+<a class="md-nav__link" href="#week-1-critical-path-investigation">
+<span class="md-ellipsis">
+      Week 1: Critical Path Investigation
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#week-2-supporting-investigation">
+<span class="md-ellipsis">
+      Week 2: Supporting Investigation
+    </span>
+</a>
+</li>
+</ul>
+</nav>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#risk-assessment">
+<span class="md-ellipsis">
+      Risk Assessment
+    </span>
+</a>
+<nav aria-label="Risk Assessment" class="md-nav">
+<ul class="md-nav__list">
+<li class="md-nav__item">
+<a class="md-nav__link" href="#high-risk-needs-investigation-before-implementation">
+<span class="md-ellipsis">
+      High Risk (Needs Investigation Before Implementation)
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#medium-risk-can-start-with-investigation">
+<span class="md-ellipsis">
+      Medium Risk (Can Start with Investigation)
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#low-risk-ready-to-implement">
+<span class="md-ellipsis">
+      Low Risk (Ready to Implement)
+    </span>
+</a>
+</li>
+</ul>
+</nav>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#next-steps">
+<span class="md-ellipsis">
+      Next Steps
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#conclusion">
+<span class="md-ellipsis">
+      Conclusion
+    </span>
+</a>
+</li>
+</ul>
+</nav>
+</div>
+</div>
+</div>
+<div class="md-content" data-md-component="content">
+<article class="md-content__inner md-typeset">
+<h1 id="implementation-readiness-assessment">Implementation Readiness Assessment<a class="headerlink" href="#implementation-readiness-assessment" title="Permanent link">¶</a></h1>
+<p><strong>Date:</strong> 2025-11-12<br/>
+<strong>Purpose:</strong> Categorize roadmap tasks by implementation readiness - what can be done directly vs what requires investigation</p>
+<hr/>
+<h2 id="assessment-criteria">Assessment Criteria<a class="headerlink" href="#assessment-criteria" title="Permanent link">¶</a></h2>
+<p><strong>✅ KNOW HOW TO IMPLEMENT:</strong> Clear patterns exist in codebase, similar implementations present, straightforward integration<br/>
+<strong>⚠️ NEEDS INVESTIGATION:</strong> Domain knowledge required, complex integration, unclear patterns, or dependencies need exploration</p>
+<hr/>
+<h2 id="phase-1-complete-batch-mode-development">Phase 1: Complete Batch Mode Development<a class="headerlink" href="#phase-1-complete-batch-mode-development" title="Permanent link">¶</a></h2>
+<h3 id="priority-1-critical-gaps">Priority 1: Critical Gaps<a class="headerlink" href="#priority-1-critical-gaps" title="Permanent link">¶</a></h3>
+<h4 id="11-stage-4-mosaic-creation-api-exposure">1.1 Stage 4: Mosaic Creation API Exposure<a class="headerlink" href="#11-stage-4-mosaic-creation-api-exposure" title="Permanent link">¶</a></h4>
+<p><strong>Status:</strong> ✅ <strong>KNOW HOW TO IMPLEMENT</strong> (with minor investigation)</p>
+<p><strong>Confidence:</strong> High (90%)</p>
+<p><strong>What I Know:</strong>
+- FastAPI router pattern exists (<code>src/dsa110_contimg/api/routers/mosaics.py</code>)
+- Job adapter pattern exists (<code>src/dsa110_contimg/api/job_adapters.py</code>)
+- <code>MosaicOrchestrator.create_mosaic_centered_on_calibrator()</code> exists and works
+- Job database schema exists (<code>database/jobs.py</code>)
+- SSE log streaming pattern exists (seen in other endpoints)</p>
+<p><strong>Implementation Pattern:</strong>
+<div class="highlight"><pre><span></span><code><span class="c1"># Follow existing job adapter pattern:</span>
+<span class="c1"># 1. Create endpoint in routers/mosaics.py</span>
+<span class="c1"># 2. Create job adapter function in job_adapters.py</span>
+<span class="c1"># 3. Use existing job creation/status tracking</span>
+<span class="c1"># 4. Wrap orchestrator call with error handling</span>
+</code></pre></div></p>
+<p><strong>What Needs Investigation:</strong>
+- ⚠️ <strong>Job status tracking details:</strong> Need to verify how job status updates work during long-running orchestrator workflows
+- ⚠️ <strong>SSE log streaming:</strong> Need to check if orchestrator supports log streaming or if we need to wrap it
+- ⚠️ <strong>Error propagation:</strong> Need to understand how orchestrator errors should be reported to API</p>
+<p><strong>Estimated Investigation Time:</strong> 2-4 hours<br/>
+<strong>Estimated Implementation Time:</strong> 1.5-2 days</p>
+<hr/>
+<h4 id="12-stage-1-batch-conversion-api">1.2 Stage 1: Batch Conversion API<a class="headerlink" href="#12-stage-1-batch-conversion-api" title="Permanent link">¶</a></h4>
+<p><strong>Status:</strong> ✅ <strong>KNOW HOW TO IMPLEMENT</strong></p>
+<p><strong>Confidence:</strong> Very High (95%)</p>
+<p><strong>What I Know:</strong>
+- Batch job pattern exists (<code>src/dsa110_contimg/api/batch_jobs.py</code>)
+- Conversion job adapter exists (<code>run_convert_job()</code> in <code>job_adapters.py</code>)
+- Batch endpoints exist for calibration/imaging
+- Time window handling is straightforward</p>
+<p><strong>Implementation Pattern:</strong>
+<div class="highlight"><pre><span></span><code><span class="c1"># Follow existing batch job pattern:</span>
+<span class="c1"># 1. Create POST /api/batch/convert endpoint</span>
+<span class="c1"># 2. Create batch job record</span>
+<span class="c1"># 3. Create individual conversion jobs for each time window</span>
+<span class="c1"># 4. Track batch status</span>
+</code></pre></div></p>
+<p><strong>What Needs Investigation:</strong>
+- ✅ <strong>Minimal</strong> - Pattern is clear from existing batch implementations</p>
+<p><strong>Estimated Investigation Time:</strong> 1 hour<br/>
+<strong>Estimated Implementation Time:</strong> 1 day</p>
+<hr/>
+<h4 id="13-stage-6-publishing-cli">1.3 Stage 6: Publishing CLI<a class="headerlink" href="#13-stage-6-publishing-cli" title="Permanent link">¶</a></h4>
+<p><strong>Status:</strong> ✅ <strong>KNOW HOW TO IMPLEMENT</strong></p>
+<p><strong>Confidence:</strong> High (85%)</p>
+<p><strong>What I Know:</strong>
+- CLI pattern exists (<code>calibration/cli.py</code>, <code>conversion/cli.py</code>)
+- <code>data_registry.py</code> has functions: <code>publish_data_manual()</code>, <code>get_data()</code>, <code>trigger_auto_publish()</code>
+- Database schema is clear (<code>data_registry</code> table)
+- argparse pattern is standard</p>
+<p><strong>Implementation Pattern:</strong>
+<div class="highlight"><pre><span></span><code><span class="c1"># Follow existing CLI pattern:</span>
+<span class="c1"># 1. Create database/cli.py with argparse subcommands</span>
+<span class="c1"># 2. Import data_registry functions</span>
+<span class="c1"># 3. Add subcommands: publish, status, retry, list</span>
+<span class="c1"># 4. Use existing database connection patterns</span>
+</code></pre></div></p>
+<p><strong>What Needs Investigation:</strong>
+- ⚠️ <strong>Error handling:</strong> Need to understand what errors <code>publish_data_manual()</code> can raise
+- ⚠️ <strong>Retry logic:</strong> Need to understand what "retry" means in context of publishing (re-attempt move operation?)</p>
+<p><strong>Estimated Investigation Time:</strong> 2-3 hours<br/>
+<strong>Estimated Implementation Time:</strong> 1 day</p>
+<hr/>
+<h3 id="priority-2-quality-of-life-improvements">Priority 2: Quality of Life Improvements<a class="headerlink" href="#priority-2-quality-of-life-improvements" title="Permanent link">¶</a></h3>
+<h4 id="14-stage-5-unified-qa-cli">1.4 Stage 5: Unified QA CLI<a class="headerlink" href="#14-stage-5-unified-qa-cli" title="Permanent link">¶</a></h4>
+<p><strong>Status:</strong> ✅ <strong>KNOW HOW TO IMPLEMENT</strong> (with investigation)</p>
+<p><strong>Confidence:</strong> Medium-High (75%)</p>
+<p><strong>What I Know:</strong>
+- CLI pattern exists
+- QA functions exist in multiple modules (<code>calibration/cli_qa.py</code>, <code>imaging/cli.py</code>, <code>mosaic/cli.py</code>)
+- argparse subcommand pattern is standard</p>
+<p><strong>What Needs Investigation:</strong>
+- ⚠️ <strong>QA function locations:</strong> Need to find all QA functions across modules
+- ⚠️ <strong>QA function signatures:</strong> Need to understand input/output formats
+- ⚠️ <strong>QA report format:</strong> Need to understand what "comprehensive QA report" means</p>
+<p><strong>Estimated Investigation Time:</strong> 4-6 hours<br/>
+<strong>Estimated Implementation Time:</strong> 1.5 days</p>
+<hr/>
+<h4 id="15-stage-7-photometry-api-execution-endpoints">1.5 Stage 7: Photometry API Execution Endpoints<a class="headerlink" href="#15-stage-7-photometry-api-execution-endpoints" title="Permanent link">¶</a></h4>
+<p><strong>Status:</strong> ✅ <strong>KNOW HOW TO IMPLEMENT</strong></p>
+<p><strong>Confidence:</strong> High (85%)</p>
+<p><strong>What I Know:</strong>
+- Photometry CLI exists (<code>photometry/cli.py</code>)
+- Functions: <code>cmd_peak()</code>, <code>cmd_peak_many()</code>, normalization functions exist
+- API router pattern exists (<code>api/routers/photometry.py</code>)
+- Job adapter pattern exists</p>
+<p><strong>Implementation Pattern:</strong>
+<div class="highlight"><pre><span></span><code><span class="c1"># Wrap CLI functions:</span>
+<span class="c1"># 1. Create POST /api/photometry/measure endpoint</span>
+<span class="c1"># 2. Extract parameters from request</span>
+<span class="c1"># 3. Call cmd_peak() or cmd_peak_many()</span>
+<span class="c1"># 4. Return results as JSON</span>
+</code></pre></div></p>
+<p><strong>What Needs Investigation:</strong>
+- ⚠️ <strong>Normalization API:</strong> Need to understand normalization function signature
+- ⚠️ <strong>Batch photometry:</strong> Need to understand how to batch multiple measurements</p>
+<p><strong>Estimated Investigation Time:</strong> 2-3 hours<br/>
+<strong>Estimated Implementation Time:</strong> 1.5-2 days</p>
+<hr/>
+<h4 id="16-stage-8-ese-detection-cli-and-execution">1.6 Stage 8: ESE Detection CLI and Execution<a class="headerlink" href="#16-stage-8-ese-detection-cli-and-execution" title="Permanent link">¶</a></h4>
+<p><strong>Status:</strong> ⚠️ <strong>NEEDS INVESTIGATION</strong></p>
+<p><strong>Confidence:</strong> Medium (60%)</p>
+<p><strong>What I Know:</strong>
+- Variability stats computation exists (<code>photometry/source.py::calc_variability_metrics()</code>)
+- <code>ese_candidates</code> table exists in database schema
+- <code>variability_stats</code> table exists
+- Photometry timeseries table exists</p>
+<p><strong>What Needs Investigation:</strong>
+- ⚠️ <strong>ESE Detection Logic:</strong> Need to understand exact criteria for flagging ESE candidates
+- ⚠️ <strong>Variability Stats Computation:</strong> Need to understand how <code>calc_variability_metrics()</code> works and when to call it
+- ⚠️ <strong>Pipeline Integration:</strong> Need to understand how to connect photometry → variability stats → ESE detection
+- ⚠️ <strong>Database Schema:</strong> Need to verify exact schema of <code>ese_candidates</code> and <code>variability_stats</code> tables
+- ⚠️ <strong>Significance Threshold:</strong> Need to understand what "significance &gt;= 5.0" means (sigma? chi-squared? custom metric?)</p>
+<p><strong>Critical Questions:</strong>
+1. What exactly is the ESE detection algorithm?
+2. How is variability_stats computed? Per-source? Per-epoch?
+3. What triggers ESE detection? After each photometry measurement? Batch?
+4. What are the exact database fields and types?</p>
+<p><strong>Estimated Investigation Time:</strong> 1-2 days<br/>
+<strong>Estimated Implementation Time:</strong> 2-3 days</p>
+<hr/>
+<h2 id="phase-2-enhance-automation">Phase 2: Enhance Automation<a class="headerlink" href="#phase-2-enhance-automation" title="Permanent link">¶</a></h2>
+<h3 id="priority-1-streaming-converter-enhancements">Priority 1: Streaming Converter Enhancements<a class="headerlink" href="#priority-1-streaming-converter-enhancements" title="Permanent link">¶</a></h3>
+<h4 id="21-stage-2-calibration-solving-in-streaming-converter">2.1 Stage 2: Calibration Solving in Streaming Converter<a class="headerlink" href="#21-stage-2-calibration-solving-in-streaming-converter" title="Permanent link">¶</a></h4>
+<p><strong>Status:</strong> ⚠️ <strong>NEEDS INVESTIGATION</strong></p>
+<p><strong>Confidence:</strong> Medium (65%)</p>
+<p><strong>What I Know:</strong>
+- Calibration solving exists in orchestrator (<code>StreamingMosaicManager.solve_calibration_for_group()</code>)
+- Calibration functions exist (<code>calibration/calibration.py</code>: <code>solve_bandpass()</code>, <code>solve_gains()</code>)
+- Streaming converter structure exists (<code>conversion/streaming/streaming_converter.py</code>)
+- Calibration application logic exists (Lines 850-890)</p>
+<p><strong>What Needs Investigation:</strong>
+- ⚠️ <strong>Calibrator Detection:</strong> Need to understand how to detect if MS contains calibrator
+- ⚠️ <strong>Single MS Calibration:</strong> Orchestrator solves for groups, need to adapt for single MS
+- ⚠️ <strong>BP Calibrator Selection:</strong> Need to understand how <code>get_bandpass_calibrator_for_dec()</code> works
+- ⚠️ <strong>Calibration Registry:</strong> Need to understand how calibration tables are registered and retrieved
+- ⚠️ <strong>Error Handling:</strong> Need to understand what happens if calibration solving fails mid-stream</p>
+<p><strong>Critical Questions:</strong>
+1. How do we detect if an MS file contains a calibrator?
+2. Can we solve calibration for a single MS, or do we need multiple MS files?
+3. What's the relationship between BP calibrator and gain calibrator?
+4. How do we handle calibration solving failures in streaming mode?</p>
+<p><strong>Estimated Investigation Time:</strong> 1-2 days<br/>
+<strong>Estimated Implementation Time:</strong> 2-3 days</p>
+<hr/>
+<h4 id="22-stage-3-coordinated-group-imaging-in-streaming-converter">2.2 Stage 3: Coordinated Group Imaging in Streaming Converter<a class="headerlink" href="#22-stage-3-coordinated-group-imaging-in-streaming-converter" title="Permanent link">¶</a></h4>
+<p><strong>Status:</strong> ✅ <strong>KNOW HOW TO IMPLEMENT</strong> (with investigation)</p>
+<p><strong>Confidence:</strong> Medium-High (75%)</p>
+<p><strong>What I Know:</strong>
+- Group detection logic exists in orchestrator (<code>find_transit_centered_window()</code>)
+- <code>ms_index</code> table tracks MS files with timestamps
+- Imaging logic exists (<code>imaging/cli.py</code>)
+- Mosaic creation logic exists (<code>mosaic/streaming_mosaic.py</code>)</p>
+<p><strong>What Needs Investigation:</strong>
+- ⚠️ <strong>Group Detection Query:</strong> Need to understand exact query for finding complete groups
+- ⚠️ <strong>Time Window Logic:</strong> Need to understand how to determine "same time window" (±25 minutes?)
+- ⚠️ <strong>Group Size:</strong> Need to verify what "complete group" means (10 MS files? configurable?)</p>
+<p><strong>Estimated Investigation Time:</strong> 3-4 hours<br/>
+<strong>Estimated Implementation Time:</strong> 1.5-2 days</p>
+<hr/>
+<h4 id="23-stages-4-6-mosaic-creation-qa-publishing-in-streaming-converter">2.3 Stages 4-6: Mosaic Creation, QA, Publishing in Streaming Converter<a class="headerlink" href="#23-stages-4-6-mosaic-creation-qa-publishing-in-streaming-converter" title="Permanent link">¶</a></h4>
+<p><strong>Status:</strong> ✅ <strong>KNOW HOW TO IMPLEMENT</strong> (with investigation)</p>
+<p><strong>Confidence:</strong> Medium-High (80%)</p>
+<p><strong>What I Know:</strong>
+- Mosaic creation logic exists (<code>MosaicOrchestrator</code>, <code>StreamingMosaicManager</code>)
+- QA/validation logic exists (<code>data_registry.finalize_data()</code>)
+- Publishing logic exists (<code>data_registry.trigger_auto_publish()</code>)
+- Streaming converter structure exists</p>
+<p><strong>What Needs Investigation:</strong>
+- ⚠️ <strong>Integration Points:</strong> Need to understand where exactly to trigger mosaic creation in streaming converter
+- ⚠️ <strong>Error Handling:</strong> Need to understand how to handle failures in mosaic creation during streaming
+- ⚠️ <strong>State Management:</strong> Need to understand how to track mosaic creation status in streaming mode
+- ⚠️ <strong>Configuration:</strong> Need to understand how to make this configurable (flags, settings)</p>
+<p><strong>Estimated Investigation Time:</strong> 4-6 hours<br/>
+<strong>Estimated Implementation Time:</strong> 2-3 days</p>
+<hr/>
+<h3 id="priority-2-photometry-and-ese-detection-automation">Priority 2: Photometry and ESE Detection Automation<a class="headerlink" href="#priority-2-photometry-and-ese-detection-automation" title="Permanent link">¶</a></h3>
+<h4 id="24-stage-7-automated-photometry-pipeline">2.4 Stage 7: Automated Photometry Pipeline<a class="headerlink" href="#24-stage-7-automated-photometry-pipeline" title="Permanent link">¶</a></h4>
+<p><strong>Status:</strong> ⚠️ <strong>NEEDS INVESTIGATION</strong></p>
+<p><strong>Confidence:</strong> Medium (65%)</p>
+<p><strong>What I Know:</strong>
+- Photometry CLI exists (<code>photometry/cli.py</code>)
+- Source catalog exists (<code>master_sources.sqlite3</code>)
+- Image creation triggers exist (after imaging stage)</p>
+<p><strong>What Needs Investigation:</strong>
+- ⚠️ <strong>Source Selection:</strong> Need to understand how to query <code>master_sources.sqlite3</code> for sources in image field
+- ⚠️ <strong>Field Coverage:</strong> Need to understand how to determine which sources are in image field (WCS? radius?)
+- ⚠️ <strong>Trigger Points:</strong> Need to understand exactly when to trigger photometry (after each image? after mosaic?)
+- ⚠️ <strong>Normalization Logic:</strong> Need to understand when normalization should be triggered (always? conditional?)
+- ⚠️ <strong>Performance:</strong> Need to understand if photometry on all sources is feasible (may be slow)</p>
+<p><strong>Critical Questions:</strong>
+1. How do we query sources in image field? WCS-based? Catalog query?
+2. Should photometry run after every image or only after mosaics?
+3. What's the performance impact of photometry on all sources?
+4. When should normalization run? After every photometry? Batch?</p>
+<p><strong>Estimated Investigation Time:</strong> 1-2 days<br/>
+<strong>Estimated Implementation Time:</strong> 2-3 days</p>
+<hr/>
+<h4 id="25-stage-8-automated-ese-detection-pipeline">2.5 Stage 8: Automated ESE Detection Pipeline<a class="headerlink" href="#25-stage-8-automated-ese-detection-pipeline" title="Permanent link">¶</a></h4>
+<p><strong>Status:</strong> ⚠️ <strong>NEEDS INVESTIGATION</strong></p>
+<p><strong>Confidence:</strong> Low-Medium (50%)</p>
+<p><strong>What I Know:</strong>
+- Variability stats computation exists (<code>photometry/source.py::calc_variability_metrics()</code>)
+- ESE candidate flagging logic needs to be created
+- Database tables exist (<code>ese_candidates</code>, <code>variability_stats</code>)</p>
+<p><strong>What Needs Investigation:</strong>
+- ⚠️ <strong>Variability Stats Computation:</strong> Need to understand exactly how <code>calc_variability_metrics()</code> works
+- ⚠️ <strong>ESE Detection Algorithm:</strong> Need to understand exact criteria for flagging ESE candidates
+- ⚠️ <strong>Trigger Logic:</strong> Need to understand when to compute variability stats (after each photometry? batch?)
+- ⚠️ <strong>Database Schema:</strong> Need to verify exact schema and understand relationships
+- ⚠️ <strong>Performance:</strong> Need to understand if computing variability stats for all sources is feasible</p>
+<p><strong>Critical Questions:</strong>
+1. What exactly is the ESE detection algorithm? (significance &gt;= 5.0 - but what metric?)
+2. How is variability_stats computed? Per-source? Per-epoch? Batch?
+3. When should variability stats be computed? After each photometry measurement? Periodic batch?
+4. What's the performance impact of computing variability stats for all sources?</p>
+<p><strong>Estimated Investigation Time:</strong> 2-3 days<br/>
+<strong>Estimated Implementation Time:</strong> 3-4 days</p>
+<hr/>
+<h2 id="phase-3-validation-and-robustness">Phase 3: Validation and Robustness<a class="headerlink" href="#phase-3-validation-and-robustness" title="Permanent link">¶</a></h2>
+<h3 id="31-error-handling-and-recovery">3.1 Error Handling and Recovery<a class="headerlink" href="#31-error-handling-and-recovery" title="Permanent link">¶</a></h3>
+<p><strong>Status:</strong> ⚠️ <strong>NEEDS INVESTIGATION</strong></p>
+<p><strong>Confidence:</strong> Medium (60%)</p>
+<p><strong>What I Know:</strong>
+- Orchestrator structure exists (<code>mosaic/orchestrator.py</code>)
+- Database schema exists (<code>mosaic_groups</code> table)
+- Error handling patterns exist in codebase</p>
+<p><strong>What Needs Investigation:</strong>
+- ⚠️ <strong>Failure Modes:</strong> Need to understand all possible failure modes in orchestrator
+- ⚠️ <strong>State Tracking:</strong> Need to understand how to track partial failures in <code>mosaic_groups</code> table
+- ⚠️ <strong>Retry Logic:</strong> Need to understand what "retry" means for each stage (re-run? resume?)
+- ⚠️ <strong>Recovery Mechanisms:</strong> Need to understand how to resume from last successful stage
+- ⚠️ <strong>Error Reporting:</strong> Need to understand how errors should be reported and logged</p>
+<p><strong>Critical Questions:</strong>
+1. What are all possible failure modes in orchestrator workflow?
+2. How do we track partial failures? What state information do we need?
+3. What does "retry" mean for each stage? Re-run from scratch? Resume?
+4. How do we determine "last successful stage" for recovery?</p>
+<p><strong>Estimated Investigation Time:</strong> 1-2 days<br/>
+<strong>Estimated Implementation Time:</strong> 3-4 days</p>
+<hr/>
+<h3 id="32-end-to-end-integration-testing">3.2 End-to-End Integration Testing<a class="headerlink" href="#32-end-to-end-integration-testing" title="Permanent link">¶</a></h3>
+<p><strong>Status:</strong> ✅ <strong>KNOW HOW TO IMPLEMENT</strong> (with investigation)</p>
+<p><strong>Confidence:</strong> Medium-High (75%)</p>
+<p><strong>What I Know:</strong>
+- Test infrastructure exists (<code>tests/integration/</code>)
+- Synthetic data generation exists (<code>tests/integration/test_forced_photometry_simulation.py</code>)
+- pytest patterns exist</p>
+<p><strong>What Needs Investigation:</strong>
+- ⚠️ <strong>Test Data:</strong> Need to understand how to generate synthetic HDF5/MS files for testing
+- ⚠️ <strong>Test Scenarios:</strong> Need to understand what scenarios to test (success, partial failure, etc.)
+- ⚠️ <strong>Performance Benchmarks:</strong> Need to understand what metrics to track</p>
+<p><strong>Estimated Investigation Time:</strong> 1 day<br/>
+<strong>Estimated Implementation Time:</strong> 2-3 days</p>
+<hr/>
+<h2 id="summary-by-readiness">Summary by Readiness<a class="headerlink" href="#summary-by-readiness" title="Permanent link">¶</a></h2>
+<h3 id="ready-to-implement-high-confidence">✅ Ready to Implement (High Confidence)<a class="headerlink" href="#ready-to-implement-high-confidence" title="Permanent link">¶</a></h3>
+<ol>
+<li><strong>Stage 1: Batch Conversion API</strong> (95% confidence)</li>
+<li><strong>Stage 4: Mosaic Creation API</strong> (90% confidence)</li>
+<li><strong>Stage 6: Publishing CLI</strong> (85% confidence)</li>
+<li><strong>Stage 7: Photometry API Execution</strong> (85% confidence)</li>
+<li><strong>Stage 3: Coordinated Group Imaging</strong> (75% confidence)</li>
+<li><strong>Stage 5: Unified QA CLI</strong> (75% confidence)</li>
+<li><strong>Stages 4-6: Mosaic/QA/Publishing in Streaming</strong> (80% confidence)</li>
+<li><strong>End-to-End Integration Testing</strong> (75% confidence)</li>
+</ol>
+<p><strong>Total:</strong> 8 tasks, ~12-15 days implementation</p>
+<hr/>
+<h3 id="needs-investigation-medium-low-confidence">⚠️ Needs Investigation (Medium-Low Confidence)<a class="headerlink" href="#needs-investigation-medium-low-confidence" title="Permanent link">¶</a></h3>
+<ol>
+<li><strong>Stage 8: ESE Detection CLI and Execution</strong> (60% confidence)</li>
+<li><strong>Stage 2: Calibration Solving in Streaming</strong> (65% confidence)</li>
+<li><strong>Stage 7: Automated Photometry Pipeline</strong> (65% confidence)</li>
+<li><strong>Stage 8: Automated ESE Detection Pipeline</strong> (50% confidence)</li>
+<li><strong>Error Handling and Recovery</strong> (60% confidence)</li>
+</ol>
+<p><strong>Total:</strong> 5 tasks, ~8-12 days investigation + ~10-15 days implementation</p>
+<hr/>
+<h2 id="recommended-investigation-order">Recommended Investigation Order<a class="headerlink" href="#recommended-investigation-order" title="Permanent link">¶</a></h2>
+<h3 id="week-1-critical-path-investigation">Week 1: Critical Path Investigation<a class="headerlink" href="#week-1-critical-path-investigation" title="Permanent link">¶</a></h3>
+<ol>
+<li><strong>ESE Detection Algorithm</strong> (2-3 days)</li>
+<li>Understand variability stats computation</li>
+<li>Understand ESE detection criteria</li>
+<li>Understand database schema</li>
+<li>
+<p><strong>Blocking:</strong> Stage 8 implementation</p>
+</li>
+<li>
+<p><strong>Calibration Solving in Streaming</strong> (1-2 days)</p>
+</li>
+<li>Understand calibrator detection</li>
+<li>Understand single MS calibration</li>
+<li>Understand calibration registry</li>
+<li><strong>Blocking:</strong> Stage 2 automation</li>
+</ol>
+<h3 id="week-2-supporting-investigation">Week 2: Supporting Investigation<a class="headerlink" href="#week-2-supporting-investigation" title="Permanent link">¶</a></h3>
+<ol>
+<li><strong>Automated Photometry Pipeline</strong> (1-2 days)</li>
+<li>Understand source selection</li>
+<li>Understand trigger points</li>
+<li>Understand performance implications</li>
+<li>
+<p><strong>Blocking:</strong> Stage 7 automation</p>
+</li>
+<li>
+<p><strong>Error Handling Patterns</strong> (1-2 days)</p>
+</li>
+<li>Understand failure modes</li>
+<li>Understand state tracking</li>
+<li>Understand retry logic</li>
+<li><strong>Blocking:</strong> Phase 3 implementation</li>
+</ol>
+<hr/>
+<h2 id="risk-assessment">Risk Assessment<a class="headerlink" href="#risk-assessment" title="Permanent link">¶</a></h2>
+<h3 id="high-risk-needs-investigation-before-implementation">High Risk (Needs Investigation Before Implementation)<a class="headerlink" href="#high-risk-needs-investigation-before-implementation" title="Permanent link">¶</a></h3>
+<ul>
+<li><strong>ESE Detection:</strong> Complex domain logic, unclear algorithm</li>
+<li><strong>Calibration Solving:</strong> Complex integration, domain knowledge required</li>
+<li><strong>Error Handling:</strong> Complex state management, unclear recovery patterns</li>
+</ul>
+<h3 id="medium-risk-can-start-with-investigation">Medium Risk (Can Start with Investigation)<a class="headerlink" href="#medium-risk-can-start-with-investigation" title="Permanent link">¶</a></h3>
+<ul>
+<li><strong>Automated Photometry:</strong> Performance concerns, integration complexity</li>
+<li><strong>End-to-End Testing:</strong> Test data generation complexity</li>
+</ul>
+<h3 id="low-risk-ready-to-implement">Low Risk (Ready to Implement)<a class="headerlink" href="#low-risk-ready-to-implement" title="Permanent link">¶</a></h3>
+<ul>
+<li><strong>API Endpoints:</strong> Clear patterns, straightforward integration</li>
+<li><strong>CLI Tools:</strong> Standard patterns, clear requirements</li>
+</ul>
+<hr/>
+<h2 id="next-steps">Next Steps<a class="headerlink" href="#next-steps" title="Permanent link">¶</a></h2>
+<ol>
+<li><strong>Start with High-Confidence Tasks:</strong> Implement Stage 1, 4, 6, 7 API endpoints while investigating ESE detection</li>
+<li><strong>Parallel Investigation:</strong> Run ESE detection and calibration solving investigations in parallel</li>
+<li><strong>Incremental Implementation:</strong> Implement as investigation completes</li>
+<li><strong>Test Early:</strong> Create integration tests as features are implemented</li>
+</ol>
+<hr/>
+<h2 id="conclusion">Conclusion<a class="headerlink" href="#conclusion" title="Permanent link">¶</a></h2>
+<p><strong>Ready to Implement:</strong> ~60% of roadmap tasks (8 of 13 major tasks)<br/>
+<strong>Needs Investigation:</strong> ~40% of roadmap tasks (5 of 13 major tasks)</p>
+<p><strong>Recommendation:</strong> Start with high-confidence tasks (API endpoints, CLI tools) while running investigations in parallel for complex domain logic (ESE detection, calibration solving, error handling).</p>
+</article>
+</div>
+<script>var tabs=__md_get("__tabs");if(Array.isArray(tabs))e:for(var set of document.querySelectorAll(".tabbed-set")){var tab,labels=set.querySelector(".tabbed-labels");for(tab of tabs)for(var label of labels.getElementsByTagName("label"))if(label.innerText.trim()===tab){var input=document.getElementById(label.htmlFor);input.checked=!0;continue e}}</script>
+<script>var target=document.getElementById(location.hash.slice(1));target&&target.name&&(target.checked=target.name.startsWith("__tabbed_"))</script>
+</div>
+</main>
+<footer class="md-footer">
+<div class="md-footer-meta md-typeset">
+<div class="md-footer-meta__inner md-grid">
+<div class="md-copyright">
+  
+  
+    Made with
+    <a href="https://squidfunk.github.io/mkdocs-material/" rel="noopener" target="_blank">
+      Material for MkDocs
+    </a>
+</div>
+</div>
+</div>
+</footer>
+</div>
+<div class="md-dialog" data-md-component="dialog">
+<div class="md-dialog__inner md-typeset"></div>
+</div>
+<script id="__config" type="application/json">{"base": "../../..", "features": ["navigation.sections", "navigation.indexes", "content.code.copy", "content.tabs.link"], "search": "../../../assets/javascripts/workers/search.b8dbb3d2.min.js", "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}}</script>
+<script src="../../../assets/javascripts/bundle.fe8b6f2b.min.js"></script>
+<script src="../../../javascripts/mathjax.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+<script src="../../../javascripts/mermaid-zoom.js"></script>
+</body>
+</html>
