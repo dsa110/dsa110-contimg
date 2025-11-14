@@ -37,7 +37,7 @@ import { useNavigate } from "react-router-dom";
 import { useMSList, useMSMetadata, useCalibrationQA, useBandpassPlots } from "../api/queries";
 import MSTable from "../components/MSTable";
 import CalibrationQAPanel from "../components/CalibrationQAPanel";
-import CalibrationSPWPanel from "../components/CalibrationSPWPanel";
+import { CalibrationSPWPanel } from "../components/CalibrationSPWPanel";
 import { CalibrationWorkflow } from "../components/workflows/CalibrationWorkflow";
 import PageBreadcrumbs from "../components/PageBreadcrumbs";
 import type { MSListEntry } from "../api/types";
