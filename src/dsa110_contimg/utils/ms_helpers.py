@@ -5,6 +5,9 @@ This module provides optimized MS access patterns using sampling and chunking
 to reduce memory usage for validation and QA operations.
 """
 
+# Note: cache_info() methods from lru_cache don't take arguments, but pylint
+# incorrectly infers parameters from the cached function signatures.
+
 import os
 from functools import lru_cache
 from typing import Any, Dict, List, Optional, Tuple
@@ -477,6 +480,7 @@ def clear_flag_validation_cache() -> None:
     _validate_ms_unflagged_fraction_cached.cache_clear()
 
 
+# pylint: disable=no-value-for-parameter
 def get_cache_stats() -> Dict[str, Dict[str, Any]]:
     """
     Get cache statistics for monitoring and debugging.
@@ -495,10 +499,15 @@ def get_cache_stats() -> Dict[str, Dict[str, Any]]:
         print(f"MS metadata cache hits: {stats['ms_metadata']['hits']}")
         print(f"Cache size: {stats['ms_metadata']['currsize']}/{stats['ms_metadata']['maxsize']}")
         ```
+
+    Note:
+        cache_info() is a method on lru_cache that takes no arguments.
+        Pylint incorrectly infers mtime parameter is required.
     """
     stats = {}
 
     # MS metadata cache stats
+    # cache_info() is a method on lru_cache that takes no arguments
     ms_cache = get_ms_metadata_cached.cache_info()
     stats["ms_metadata"] = {
         "hits": ms_cache.hits,
@@ -513,6 +522,7 @@ def get_cache_stats() -> Dict[str, Dict[str, Any]]:
     }
 
     # Flag validation cache stats
+    # cache_info() is a method on lru_cache that takes no arguments
     flag_cache = _validate_ms_unflagged_fraction_cached.cache_info()
     stats["flag_validation"] = {
         "hits": flag_cache.hits,
