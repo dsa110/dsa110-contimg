@@ -168,7 +168,7 @@ if [ -n "$STAGED_PYTHON_FILES" ]; then
     # Filter out binary files, empty files, and files with merge conflicts
     if [ -n "$FORMATTABLE_PYTHON_FILES" ]; then
         FILTERED_FILES=""
-        for file in $FORMATTABLE_PYTHON_FILES; do
+        while IFS= read -r file; do
             # Skip if file doesn't exist (might be deleted)
             [ ! -f "$file" ] && continue
             
@@ -195,7 +195,7 @@ if [ -n "$STAGED_PYTHON_FILES" ]; then
             fi
             
             FILTERED_FILES="$FILTERED_FILES $file"
-        done
+        done <<< "$FORMATTABLE_PYTHON_FILES"
         FORMATTABLE_PYTHON_FILES=$(echo $FILTERED_FILES | xargs -n1 2>/dev/null || true)
     fi
     
