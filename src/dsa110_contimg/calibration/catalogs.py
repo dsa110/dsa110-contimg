@@ -914,14 +914,14 @@ def generate_caltable(
             & (
                 vla_df["ra"]
                 < row["ra"]
-                + radius.to_value(u.deg)
-                / max(np.cos(np.deg2rad(pt_dec_deg)), 1e-3)  # pylint: disable=no-member
+                + radius.to_value(u.deg)  # pylint: disable=no-member
+                / max(np.cos(np.deg2rad(pt_dec_deg)), 1e-3)
             )
             & (
                 vla_df["ra"]
                 > row["ra"]
-                - radius.to_value(u.deg)
-                / max(np.cos(np.deg2rad(pt_dec_deg)), 1e-3)  # pylint: disable=no-member
+                - radius.to_value(u.deg)  # pylint: disable=no-member
+                / max(np.cos(np.deg2rad(pt_dec_deg)), 1e-3)
             )
         ].copy()
         wsum = 0.0
@@ -1135,8 +1135,10 @@ def query_nvss_sources(
                         frame="icrs",
                     )
                     center = SkyCoord(
-                        ra_deg * u.deg, dec_deg * u.deg, frame="icrs"
-                    )  # pylint: disable=no-member
+                        ra_deg * u.deg,
+                        dec_deg * u.deg,
+                        frame="icrs",  # pylint: disable=no-member,no-member
+                    )
                     sep = sc.separation(center).deg
                     df = df[sep <= radius_deg].copy()
 
@@ -1355,8 +1357,10 @@ def query_rax_sources(
                         frame="icrs",
                     )
                     center = SkyCoord(
-                        ra_deg * u.deg, dec_deg * u.deg, frame="icrs"
-                    )  # pylint: disable=no-member
+                        ra_deg * u.deg,
+                        dec_deg * u.deg,
+                        frame="icrs",  # pylint: disable=no-member,no-member
+                    )
                     sep = sc.separation(center).deg
                     df = df[sep <= radius_deg].copy()
 
@@ -1598,8 +1602,10 @@ def query_vlass_sources(
                         frame="icrs",
                     )
                     center = SkyCoord(
-                        ra_deg * u.deg, dec_deg * u.deg, frame="icrs"
-                    )  # pylint: disable=no-member
+                        ra_deg * u.deg,
+                        dec_deg * u.deg,
+                        frame="icrs",  # pylint: disable=no-member,no-member
+                    )
                     sep = sc.separation(center).deg
                     df = df[sep <= radius_deg].copy()
 

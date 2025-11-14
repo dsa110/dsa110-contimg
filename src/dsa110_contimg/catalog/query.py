@@ -461,10 +461,10 @@ def _query_nvss_csv(
 
     df = read_nvss_catalog()
     sc = SkyCoord(
-        ra=df["ra"].values * u.deg,
+        ra=df["ra"].values * u.deg,  # pylint: disable=no-member
         dec=df["dec"].values * u.deg,  # pylint: disable=no-member
         frame="icrs",
-    )  # pylint: disable=no-member
+    )
     center = SkyCoord(
         ra_center * u.deg, dec_center * u.deg, frame="icrs"  # pylint: disable=no-member
     )  # pylint: disable=no-member

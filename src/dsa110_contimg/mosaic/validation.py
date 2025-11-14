@@ -302,10 +302,6 @@ def validate_tiles_consistency(
         file=sys.stderr,
         flush=True,
     )
-    print(
-        f"[DEBUG] validate_tiles_consistency: Starting for {len(tiles)} tiles",
-        flush=True,
-    )
 
     cache = get_cache()
     print(

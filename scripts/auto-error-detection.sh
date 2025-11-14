@@ -10,6 +10,11 @@
 #   unset AUTO_ERROR_DETECTION
 #   # Or restart shell
 
+# Be completely silent for non-tty sessions (scp, ssh cmd, etc.)
+if [ ! -t 1 ]; then
+    return 0 2>/dev/null || exit 0
+fi
+
 # Get script directory and project root
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 PROJECT_ROOT="$(cd "$SCRIPT_DIR/.." && pwd)"
