@@ -3,7 +3,6 @@ import {
   Box,
   Card,
   CardContent,
-  CircularProgress,
   LinearProgress,
   Table,
   TableBody,
@@ -13,20 +12,21 @@ import {
   TableRow,
   Typography,
   Chip,
+  Paper,
 } from "@mui/material";
+import { PlayArrow } from "@mui/icons-material";
+import { alpha } from "@mui/material/styles";
 import { formatDistanceToNow } from "date-fns";
 import { useActivePipelineExecutions } from "../../api/queries";
 import ExecutionDetails from "./ExecutionDetails";
+import { SkeletonLoader } from "../SkeletonLoader";
+import { EmptyState } from "../EmptyState";
 
 export default function ActiveExecutions() {
   const { data: executions, isLoading, error } = useActivePipelineExecutions();
 
   if (isLoading) {
-    return (
-      <Box sx={{ display: "flex", justifyContent: "center", py: 8 }}>
-        <CircularProgress />
-      </Box>
-    );
+    return <SkeletonLoader variant="cards" rows={2} />;
   }
 
   if (error) {
@@ -39,9 +39,11 @@ export default function ActiveExecutions() {
 
   if (!executions || executions.length === 0) {
     return (
-      <Box sx={{ p: 2 }}>
-        <Typography>No active pipeline executions</Typography>
-      </Box>
+      <EmptyState
+        icon={<PlayArrow sx={{ fontSize: 64, color: "text.secondary" }} />}
+        title="No active executions"
+        description="There are no active pipeline executions. Start a new workflow from the Control page to begin processing."
+      />
     );
   }
 
@@ -51,7 +53,12 @@ export default function ActiveExecutions() {
         <Card key={execution.id} sx={{ mb: 2 }}>
           <CardContent>
             <Box
-              sx={{ display: "flex", justifyContent: "space-between", alignItems: "center", mb: 2 }}
+              sx={{
+                display: "flex",
+                justifyContent: "space-between",
+                alignItems: "center",
+                mb: 2,
+              }}
             >
               <Box>
                 <Typography variant="h6">Execution #{execution.id}</Typography>

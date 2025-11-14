@@ -45,7 +45,11 @@ from dsa110_contimg.pipeline.metrics import (
     record_photometry_measurement,
     record_pipeline_stage,
 )
-from dsa110_contimg.pipeline.orchestrator import PipelineOrchestrator, StageDefinition
+from dsa110_contimg.pipeline.orchestrator import (
+    PipelineOrchestrator,
+    PipelineStatus,
+    StageDefinition,
+)
 from dsa110_contimg.pipeline.resilience import RetryPolicy, RetryStrategy
 from dsa110_contimg.pipeline.retry_enhanced import (
     retry_calibration_solve,
@@ -76,6 +80,7 @@ __all__ = [
     "PipelineContext",
     "PipelineOrchestrator",
     "StageDefinition",
+    "PipelineStatus",
     "RetryPolicy",
     "RetryStrategy",
     "PipelineStage",

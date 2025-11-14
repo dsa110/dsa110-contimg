@@ -94,6 +94,37 @@ def create_batch_conversion_job(
     if not isinstance(params, dict):
         raise ValueError("params must be a dictionary")
 
+    # Ensure batch_jobs table exists
+    conn.execute(
+        """
+        CREATE TABLE IF NOT EXISTS batch_jobs (
+            id INTEGER PRIMARY KEY,
+            type TEXT NOT NULL,
+            created_at REAL NOT NULL,
+            status TEXT NOT NULL,
+            total_items INTEGER NOT NULL,
+            completed_items INTEGER DEFAULT 0,
+            failed_items INTEGER DEFAULT 0,
+            params TEXT
+        )
+    """
+    )
+    conn.execute(
+        """
+        CREATE TABLE IF NOT EXISTS batch_job_items (
+            id INTEGER PRIMARY KEY,
+            batch_id INTEGER NOT NULL,
+            ms_path TEXT NOT NULL,
+            job_id INTEGER,
+            status TEXT NOT NULL,
+            error TEXT,
+            started_at REAL,
+            completed_at REAL,
+            FOREIGN KEY (batch_id) REFERENCES batch_jobs(id)
+        )
+    """
+    )
+
     cursor = conn.cursor()
     cursor.execute(
         """

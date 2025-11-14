@@ -47,7 +47,7 @@ export default function PipelinePage() {
 
   return (
     <Container maxWidth="xl" sx={{ py: 4 }}>
-      <Typography variant="h4" component="h1" gutterBottom>
+      <Typography variant="h1" component="h1" gutterBottom>
         Pipeline Monitoring
       </Typography>
 

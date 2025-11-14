@@ -1,5 +1,6 @@
 /**
  * Main Navigation Component
+ * Uses grouped navigation to reduce clutter
  */
 import {
   AppBar,
@@ -39,22 +40,84 @@ import {
 import CommandPalette from "./CommandPalette";
 import { useCommandPalette } from "../hooks/useCommandPalette";
 import { useWorkflow } from "../contexts/WorkflowContext";
+import { NavigationGroup } from "./NavigationGroup";
 
+// Navigation groups for consolidated pages
+const navigationGroups = {
+  pipeline: {
+    label: "Pipeline Operations",
+    icon: <AccountTree />,
+    items: [
+      {
+        label: "Pipeline Monitoring",
+        path: "/pipeline-operations",
+        icon: <AccountTree />,
+      },
+      {
+        label: "Operations (DLQ)",
+        path: "/pipeline-operations",
+        icon: <Build />,
+      },
+      { label: "Events", path: "/pipeline-operations", icon: <EventNote /> },
+    ],
+  },
+  data: {
+    label: "Data Explorer",
+    icon: <Storage />,
+    items: [
+      { label: "Data Browser", path: "/data-explorer", icon: <Storage /> },
+      { label: "Mosaics", path: "/data-explorer", icon: <Image /> },
+      { label: "Sources", path: "/data-explorer", icon: <TableChart /> },
+      { label: "Sky View", path: "/data-explorer", icon: <Public /> },
+    ],
+  },
+  control: {
+    label: "Pipeline Control",
+    icon: <Settings />,
+    items: [
+      { label: "Control Panel", path: "/pipeline-control", icon: <Settings /> },
+      {
+        label: "Streaming Service",
+        path: "/pipeline-control",
+        icon: <PlayArrow />,
+      },
+      { label: "Observing", path: "/pipeline-control", icon: <Public /> },
+    ],
+  },
+  diagnostics: {
+    label: "System Diagnostics",
+    icon: <Assessment />,
+    items: [
+      {
+        label: "System Health",
+        path: "/system-diagnostics",
+        icon: <Assessment />,
+      },
+      { label: "QA Tools", path: "/system-diagnostics", icon: <Assessment /> },
+      {
+        label: "Cache Statistics",
+        path: "/system-diagnostics",
+        icon: <Cached />,
+      },
+    ],
+  },
+};
+
+// Legacy nav items for mobile drawer (backward compatibility)
 const navItems = [
   { path: "/dashboard", label: "Dashboard", icon: Dashboard },
-  { path: "/control", label: "Control", icon: Settings },
-  { path: "/streaming", label: "Streaming", icon: PlayArrow },
-  { path: "/data", label: "Data", icon: Storage },
-  { path: "/qa", label: "QA Visualization", icon: Assessment },
-  { path: "/mosaics", label: "Mosaics", icon: Image },
-  { path: "/sources", label: "Sources", icon: TableChart },
-  { path: "/sky", label: "Sky View", icon: Public },
-  { path: "/observing", label: "Observing", icon: Public },
-  { path: "/health", label: "Health", icon: Assessment },
-  { path: "/operations", label: "Operations", icon: Build },
-  { path: "/pipeline", label: "Pipeline", icon: AccountTree },
-  { path: "/events", label: "Events", icon: EventNote },
-  { path: "/cache", label: "Cache", icon: Cached },
+  {
+    path: "/pipeline-operations",
+    label: "Pipeline Operations",
+    icon: AccountTree,
+  },
+  { path: "/data-explorer", label: "Data Explorer", icon: Storage },
+  { path: "/pipeline-control", label: "Pipeline Control", icon: Settings },
+  {
+    path: "/system-diagnostics",
+    label: "System Diagnostics",
+    icon: Assessment,
+  },
 ];
 
 export default function Navigation() {
@@ -99,8 +162,16 @@ export default function Navigation() {
 
   return (
     <>
-      <AppBar position="sticky" sx={{ bgcolor: "#1e1e1e" }}>
-        <Toolbar>
+      <AppBar
+        position="sticky"
+        sx={{
+          bgcolor: "#1e1e1e",
+          width: "100%",
+          left: 0,
+          right: 0,
+        }}
+      >
+        <Toolbar sx={{ width: "100%", maxWidth: "100%" }}>
           {isMobile && (
             <IconButton color="inherit" edge="start" onClick={handleDrawerToggle} sx={{ mr: 2 }}>
               <MenuIcon />
@@ -112,32 +183,44 @@ export default function Navigation() {
           </Typography>
 
           {!isMobile && (
-            <Box sx={{ display: "flex", gap: 1, flexGrow: 1 }}>
-              {navItems.map((item) => {
-                const Icon = item.icon;
-                const isActive =
-                  location.pathname === item.path ||
-                  (item.path === "/data" && location.pathname.startsWith("/data")) ||
-                  (item.path === "/qa" && location.pathname.startsWith("/qa"));
+            <Box
+              sx={{
+                display: "flex",
+                gap: 1,
+                flexGrow: 1,
+                alignItems: "center",
+              }}
+            >
+              {/* Dashboard - Always visible */}
+              <Button
+                component={RouterLink}
+                to="/dashboard"
+                startIcon={<Dashboard />}
+                sx={{
+                  color: location.pathname === "/dashboard" ? "primary.main" : "inherit",
+                  bgcolor:
+                    location.pathname === "/dashboard"
+                      ? "rgba(144, 202, 249, 0.08)"
+                      : "transparent",
+                  fontWeight: location.pathname === "/dashboard" ? 600 : 400,
+                  "&:hover": {
+                    bgcolor: "rgba(144, 202, 249, 0.12)",
+                  },
+                }}
+              >
+                Dashboard
+              </Button>
 
-                return (
-                  <Button
-                    key={item.path}
-                    component={RouterLink}
-                    to={item.path}
-                    startIcon={<Icon />}
-                    sx={{
-                      color: isActive ? "primary.main" : "inherit",
-                      bgcolor: isActive ? "rgba(144, 202, 249, 0.08)" : "transparent",
-                      "&:hover": {
-                        bgcolor: "rgba(144, 202, 249, 0.12)",
-                      },
-                    }}
-                  >
-                    {item.label}
-                  </Button>
-                );
-              })}
+              {/* Grouped Navigation */}
+              {Object.entries(navigationGroups).map(([key, group]) => (
+                <NavigationGroup
+                  key={key}
+                  label={group.label}
+                  icon={group.icon}
+                  items={group.items}
+                  currentPath={location.pathname}
+                />
+              ))}
             </Box>
           )}
           <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>

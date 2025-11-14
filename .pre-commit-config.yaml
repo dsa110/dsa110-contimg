@@ -51,10 +51,12 @@ repos:
         # Note: Pylint on tests can be noisy; consider enabling separately if desired
 
   # Port configuration validation
-  - id: validate-port-config
-    name: Validate Port Configuration
-    entry: scripts/validate-port-config.py
-    language: system
-    pass_filenames: false
-    always_run: true
-    stages: [pre-commit]
+  - repo: local
+    hooks:
+      - id: validate-port-config
+        name: Validate Port Configuration
+        entry: scripts/validate-port-config.py
+        language: system
+        pass_filenames: false
+        always_run: true
+        stages: [pre-commit]
