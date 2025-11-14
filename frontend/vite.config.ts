@@ -53,6 +53,41 @@ export default defineConfig({
       },
     },
   },
+  build: {
+    // Code splitting configuration
+    rollupOptions: {
+      output: {
+        // Manual chunk splitting for better caching
+        manualChunks: {
+          // Vendor chunks
+          "react-vendor": ["react", "react-dom", "react-router-dom"],
+          "mui-vendor": [
+            "@mui/material",
+            "@mui/icons-material",
+            "@emotion/react",
+            "@emotion/styled",
+          ],
+          "query-vendor": ["@tanstack/react-query"],
+          "plotly-vendor": ["plotly.js", "react-plotly.js"],
+          // Heavy components
+          "carta-vendor": [
+            "./src/components/CARTA",
+            "./src/pages/CARTAPage",
+            "./src/pages/QACartaPage",
+          ],
+          "js9-vendor": ["./src/contexts/JS9Context"],
+        },
+        // Optimize chunk size
+        chunkSizeWarningLimit: 1000, // 1MB warning threshold
+      },
+    },
+    // Optimize build output
+    target: "esnext",
+    minify: "esbuild",
+    sourcemap: process.env.NODE_ENV === "development",
+    // Increase chunk size limit for large dependencies
+    chunkSizeWarningLimit: 1000,
+  },
   resolve: {
     // Ensure proper module resolution for date-fns
     dedupe: ["date-fns"],

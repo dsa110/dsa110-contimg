@@ -14,6 +14,7 @@ import DirectoryBrowser from "../components/QA/DirectoryBrowser";
 import FITSViewer from "../components/QA/FITSViewer";
 import CasaTableViewer from "../components/QA/CasaTableViewer";
 import { logger } from "../utils/logger";
+import PageBreadcrumbs from "../components/PageBreadcrumbs";
 
 // Widget component registry
 const WIDGET_COMPONENTS: Record<string, React.ComponentType<any>> = {
@@ -295,30 +296,33 @@ export default function QACartaPage() {
   }, [isInitialized, selectedFITSPath, selectedTablePath]);
 
   return (
-    <Box sx={{ height: "calc(100vh - 64px)", width: "100%" }}>
-      <Box sx={{ p: 2, borderBottom: 1, borderColor: "divider" }}>
-        <Typography variant="h5" gutterBottom>
-          QA Visualization (CARTA Style)
-        </Typography>
-        <Typography variant="body2" color="text.secondary">
-          Drag panels to rearrange, resize, and customize your workspace
-        </Typography>
+    <>
+      <PageBreadcrumbs />
+      <Box sx={{ height: "calc(100vh - 64px)", width: "100%" }}>
+        <Box sx={{ p: 2, borderBottom: 1, borderColor: "divider" }}>
+          <Typography variant="h5" gutterBottom>
+            QA Visualization (CARTA Style)
+          </Typography>
+          <Typography variant="body2" color="text.secondary">
+            Drag panels to rearrange, resize, and customize your workspace
+          </Typography>
+        </Box>
+        {error && (
+          <Alert severity="error" sx={{ m: 2 }}>
+            <strong>Error loading Golden Layout:</strong> {error}
+            <br />
+            Check browser console for details.
+          </Alert>
+        )}
+        <Box
+          ref={layoutRef}
+          sx={{
+            height: "calc(100% - 100px)",
+            width: "100%",
+            position: "relative",
+          }}
+        />
       </Box>
-      {error && (
-        <Alert severity="error" sx={{ m: 2 }}>
-          <strong>Error loading Golden Layout:</strong> {error}
-          <br />
-          Check browser console for details.
-        </Alert>
-      )}
-      <Box
-        ref={layoutRef}
-        sx={{
-          height: "calc(100% - 100px)",
-          width: "100%",
-          position: "relative",
-        }}
-      />
-    </Box>
+    </>
   );
 }

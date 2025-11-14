@@ -38,6 +38,7 @@ import { SkeletonLoader } from "../components/SkeletonLoader";
 import Plot from "react-plotly.js";
 import type { Data, Layout } from "plotly.js";
 import dayjs from "dayjs";
+import PageBreadcrumbs from "../components/PageBreadcrumbs";
 
 interface TabPanelProps {
   children?: React.ReactNode;
@@ -152,151 +153,156 @@ export default function ObservingPage() {
   }, [allCalibratorMatches]);
 
   return (
-    <Container maxWidth="xl" sx={{ py: 4 }}>
-      <Typography variant="h2" component="h2" gutterBottom sx={{ mb: 4 }}>
-        Observing Status
-      </Typography>
+    <>
+      <PageBreadcrumbs />
+      <Container maxWidth="xl" sx={{ py: 4 }}>
+        <Typography variant="h2" component="h2" gutterBottom sx={{ mb: 4 }}>
+          Observing Status
+        </Typography>
 
-      {pointingLoading && <SkeletonLoader variant="cards" rows={2} />}
+        {pointingLoading && <SkeletonLoader variant="cards" rows={2} />}
 
-      {pointingError && (
-        <Alert severity="warning" sx={{ mb: 3 }}>
-          Unable to load pointing history. Some features may be unavailable.
-        </Alert>
-      )}
+        {pointingError && (
+          <Alert severity="warning" sx={{ mb: 3 }}>
+            Unable to load pointing history. Some features may be unavailable.
+          </Alert>
+        )}
 
-      <Grid container spacing={3}>
-        {/* Current Status Panel */}
-        <Grid item xs={12} md={4}>
-          <Card>
-            <CardHeader title="Current Status" avatar={<PointIcon />} />
-            <CardContent>
-              {currentPointing ? (
-                <Stack spacing={2}>
-                  <Box>
-                    <Typography variant="body2" color="text.secondary">
-                      Current Pointing
-                    </Typography>
-                    <Typography variant="h6">RA: {currentPointing.ra.toFixed(4)}°</Typography>
-                    <Typography variant="h6">Dec: {currentPointing.dec.toFixed(4)}°</Typography>
-                  </Box>
-                  <Divider />
-                  <Box>
-                    <Typography variant="body2" color="text.secondary">
-                      Last Update
-                    </Typography>
-                    <Typography variant="body1">
-                      {dayjs(currentPointing.timestamp).format("YYYY-MM-DD HH:mm:ss")}
-                    </Typography>
-                  </Box>
-                  <Divider />
-                  <Box>
-                    <Typography variant="body2" color="text.secondary">
-                      Pipeline Status
-                    </Typography>
-                    <Stack direction="row" spacing={1} sx={{ mt: 1 }}>
-                      <Chip
-                        label={`Pending: ${status?.queue.pending || 0}`}
-                        size="small"
-                        color="warning"
-                      />
-                      <Chip
-                        label={`In Progress: ${status?.queue.in_progress || 0}`}
-                        size="small"
-                        color="info"
-                      />
-                      <Chip
-                        label={`Completed: ${status?.queue.completed || 0}`}
-                        size="small"
-                        color="success"
-                      />
-                    </Stack>
-                  </Box>
-                </Stack>
-              ) : (
-                <Typography variant="body2" color="text.secondary">
-                  No current pointing data available
-                </Typography>
-              )}
-            </CardContent>
-          </Card>
-        </Grid>
-
-        {/* Calibrator Tracking */}
-        <Grid item xs={12} md={8}>
-          <Card>
-            <CardHeader title="Calibrator Tracking" avatar={<ScheduleIcon />} />
-            <CardContent>
-              {calibratorLoading ? (
-                <SkeletonLoader variant="table" rows={3} columns={4} />
-              ) : allCalibratorMatches.length > 0 ? (
-                <TableContainer>
-                  <Table size="small">
-                    <TableHead>
-                      <TableRow>
-                        <TableCell>Calibrator</TableCell>
-                        <TableCell>RA (deg)</TableCell>
-                        <TableCell>Dec (deg)</TableCell>
-                        <TableCell>Flux (mJy)</TableCell>
-                        <TableCell>Separation (°)</TableCell>
-                        <TableCell>Last Seen</TableCell>
-                      </TableRow>
-                    </TableHead>
-                    <TableBody>
-                      {allCalibratorMatches.slice(0, 10).map((match: any, idx: number) => (
-                        <TableRow key={idx}>
-                          <TableCell>{match.name || "Unknown"}</TableCell>
-                          <TableCell>{match.ra_deg?.toFixed(4) || "N/A"}</TableCell>
-                          <TableCell>{match.dec_deg?.toFixed(4) || "N/A"}</TableCell>
-                          <TableCell>
-                            {(match.weighted_flux || match.flux_jy || 0) * 1000 > 0
-                              ? ((match.weighted_flux || match.flux_jy) * 1000).toFixed(2)
-                              : "N/A"}
-                          </TableCell>
-                          <TableCell>{match.sep_deg?.toFixed(3) || "N/A"}</TableCell>
-                          <TableCell>
-                            {match.timestamp ? dayjs(match.timestamp).format("MM-DD HH:mm") : "N/A"}
-                          </TableCell>
-                        </TableRow>
-                      ))}
-                    </TableBody>
-                  </Table>
-                </TableContainer>
-              ) : (
-                <Typography variant="body2" color="text.secondary">
-                  No recent calibrator matches
-                </Typography>
-              )}
-            </CardContent>
-          </Card>
-        </Grid>
-
-        {/* Pointing Visualization */}
-        <Grid item xs={12}>
-          <Card>
-            <CardHeader title="Pointing History" />
-            <CardContent>
-              <PointingVisualization height={500} showHistory={true} historyDays={7} />
-            </CardContent>
-          </Card>
-        </Grid>
-
-        {/* Calibrator Flux Plot */}
-        {calibratorPlotData.data.length > 0 && (
-          <Grid item xs={12}>
+        <Grid container spacing={3}>
+          {/* Current Status Panel */}
+          <Grid item xs={12} md={4}>
             <Card>
-              <CardHeader title="Calibrator Flux vs Time" avatar={<TrendingUpIcon />} />
+              <CardHeader title="Current Status" avatar={<PointIcon />} />
               <CardContent>
-                <Plot
-                  data={calibratorPlotData.data}
-                  layout={calibratorPlotData.layout}
-                  style={{ width: "100%", height: "400px" }}
-                />
+                {currentPointing ? (
+                  <Stack spacing={2}>
+                    <Box>
+                      <Typography variant="body2" color="text.secondary">
+                        Current Pointing
+                      </Typography>
+                      <Typography variant="h6">RA: {currentPointing.ra.toFixed(4)}°</Typography>
+                      <Typography variant="h6">Dec: {currentPointing.dec.toFixed(4)}°</Typography>
+                    </Box>
+                    <Divider />
+                    <Box>
+                      <Typography variant="body2" color="text.secondary">
+                        Last Update
+                      </Typography>
+                      <Typography variant="body1">
+                        {dayjs(currentPointing.timestamp).format("YYYY-MM-DD HH:mm:ss")}
+                      </Typography>
+                    </Box>
+                    <Divider />
+                    <Box>
+                      <Typography variant="body2" color="text.secondary">
+                        Pipeline Status
+                      </Typography>
+                      <Stack direction="row" spacing={1} sx={{ mt: 1 }}>
+                        <Chip
+                          label={`Pending: ${status?.queue.pending || 0}`}
+                          size="small"
+                          color="warning"
+                        />
+                        <Chip
+                          label={`In Progress: ${status?.queue.in_progress || 0}`}
+                          size="small"
+                          color="info"
+                        />
+                        <Chip
+                          label={`Completed: ${status?.queue.completed || 0}`}
+                          size="small"
+                          color="success"
+                        />
+                      </Stack>
+                    </Box>
+                  </Stack>
+                ) : (
+                  <Typography variant="body2" color="text.secondary">
+                    No current pointing data available
+                  </Typography>
+                )}
               </CardContent>
             </Card>
           </Grid>
-        )}
-      </Grid>
-    </Container>
+
+          {/* Calibrator Tracking */}
+          <Grid item xs={12} md={8}>
+            <Card>
+              <CardHeader title="Calibrator Tracking" avatar={<ScheduleIcon />} />
+              <CardContent>
+                {calibratorLoading ? (
+                  <SkeletonLoader variant="table" rows={3} columns={4} />
+                ) : allCalibratorMatches.length > 0 ? (
+                  <TableContainer>
+                    <Table size="small">
+                      <TableHead>
+                        <TableRow>
+                          <TableCell>Calibrator</TableCell>
+                          <TableCell>RA (deg)</TableCell>
+                          <TableCell>Dec (deg)</TableCell>
+                          <TableCell>Flux (mJy)</TableCell>
+                          <TableCell>Separation (°)</TableCell>
+                          <TableCell>Last Seen</TableCell>
+                        </TableRow>
+                      </TableHead>
+                      <TableBody>
+                        {allCalibratorMatches.slice(0, 10).map((match: any, idx: number) => (
+                          <TableRow key={idx}>
+                            <TableCell>{match.name || "Unknown"}</TableCell>
+                            <TableCell>{match.ra_deg?.toFixed(4) || "N/A"}</TableCell>
+                            <TableCell>{match.dec_deg?.toFixed(4) || "N/A"}</TableCell>
+                            <TableCell>
+                              {(match.weighted_flux || match.flux_jy || 0) * 1000 > 0
+                                ? ((match.weighted_flux || match.flux_jy) * 1000).toFixed(2)
+                                : "N/A"}
+                            </TableCell>
+                            <TableCell>{match.sep_deg?.toFixed(3) || "N/A"}</TableCell>
+                            <TableCell>
+                              {match.timestamp
+                                ? dayjs(match.timestamp).format("MM-DD HH:mm")
+                                : "N/A"}
+                            </TableCell>
+                          </TableRow>
+                        ))}
+                      </TableBody>
+                    </Table>
+                  </TableContainer>
+                ) : (
+                  <Typography variant="body2" color="text.secondary">
+                    No recent calibrator matches
+                  </Typography>
+                )}
+              </CardContent>
+            </Card>
+          </Grid>
+
+          {/* Pointing Visualization */}
+          <Grid item xs={12}>
+            <Card>
+              <CardHeader title="Pointing History" />
+              <CardContent>
+                <PointingVisualization height={500} showHistory={true} historyDays={7} />
+              </CardContent>
+            </Card>
+          </Grid>
+
+          {/* Calibrator Flux Plot */}
+          {calibratorPlotData.data.length > 0 && (
+            <Grid item xs={12}>
+              <Card>
+                <CardHeader title="Calibrator Flux vs Time" avatar={<TrendingUpIcon />} />
+                <CardContent>
+                  <Plot
+                    data={calibratorPlotData.data}
+                    layout={calibratorPlotData.layout}
+                    style={{ width: "100%", height: "400px" }}
+                  />
+                </CardContent>
+              </Card>
+            </Grid>
+          )}
+        </Grid>
+      </Container>
+    </>
   );
 }

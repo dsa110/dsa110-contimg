@@ -23,6 +23,7 @@ import { JobManagement } from "../components/workflows/JobManagement";
 import { ConversionWorkflow } from "../components/workflows/ConversionWorkflow";
 import { CalibrationWorkflow } from "../components/workflows/CalibrationWorkflow";
 import { ImagingWorkflow } from "../components/workflows/ImagingWorkflow";
+import { WorkflowTemplates } from "../components/workflows/WorkflowTemplates";
 import PageBreadcrumbs from "../components/PageBreadcrumbs";
 
 export default function ControlPage() {
@@ -501,13 +502,30 @@ export default function ControlPage() {
             {/* Workflow Tabs */}
             <Paper sx={{ p: 2 }}>
               <Tabs value={activeTab} onChange={(_, val) => setActiveTab(val)}>
+                <Tab label="Templates" />
                 <Tab label="Convert" />
                 <Tab label="Calibrate" />
                 <Tab label="Image" />
               </Tabs>
 
-              {/* Convert Tab */}
+              {/* Templates Tab */}
               {activeTab === 0 && (
+                <WorkflowTemplates
+                  onTemplateSelect={(template) => {
+                    // Navigate to appropriate workflow based on template
+                    if (template.category === "calibration") {
+                      setActiveTab(2); // Calibrate tab
+                    } else if (template.category === "imaging") {
+                      setActiveTab(3); // Image tab
+                    } else if (template.category === "mosaic") {
+                      // Could navigate to mosaics page
+                    }
+                  }}
+                />
+              )}
+
+              {/* Convert Tab */}
+              {activeTab === 1 && (
                 <ConversionWorkflow
                   selectedMS={selectedMS}
                   onJobCreated={handleJobCreated}
@@ -516,7 +534,7 @@ export default function ControlPage() {
               )}
 
               {/* Calibrate Tab (includes Apply sub-tab) */}
-              {activeTab === 1 && (
+              {activeTab === 2 && (
                 <CalibrationWorkflow
                   selectedMS={selectedMS}
                   selectedMSList={selectedMSList}
@@ -526,7 +544,7 @@ export default function ControlPage() {
               )}
 
               {/* Image Tab */}
-              {activeTab === 2 && (
+              {activeTab === 3 && (
                 <ImagingWorkflow
                   selectedMS={selectedMS}
                   onJobCreated={handleJobCreated}

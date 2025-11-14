@@ -1,12 +1,15 @@
 # Makefile targets for test organization validation
 
+# Python interpreter - can be overridden via environment variable
+CASA6_PYTHON ?= /opt/miniforge/envs/casa6/bin/python
+
 .PHONY: test-validate test-org-install test-org-check test-pytest-validate check-env setup-dev auto-fix check-code-quality
  .PHONY: doc-audit
 
 # Validate test organization
 test-validate:
 	@echo "Validating test organization..."
-	@/opt/miniforge/envs/casa6/bin/python scripts/validate-test-organization.py
+	@$(CASA6_PYTHON) scripts/validate-test-organization.py
 
 # Validate pytest usage patterns
 test-pytest-validate:

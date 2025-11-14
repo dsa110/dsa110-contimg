@@ -417,24 +417,24 @@ export default function StreamingPage() {
       {/* Stop Confirmation Dialog */}
       <ConfirmationDialog
         open={stopDialogOpen}
+        onClose={() => setStopDialogOpen(false)}
+        onConfirm={handleStop}
         title="Stop Streaming Service"
         message="Are you sure you want to stop the streaming service? This will halt all data ingestion."
         confirmText="Stop"
-        severity="warning"
-        onConfirm={handleStop}
-        onCancel={() => setStopDialogOpen(false)}
+        severity="error"
         loading={stopMutation.isPending}
       />
 
       {/* Restart Confirmation Dialog */}
       <ConfirmationDialog
         open={restartDialogOpen}
+        onClose={() => setRestartDialogOpen(false)}
+        onConfirm={handleRestart}
         title="Restart Streaming Service"
         message="Are you sure you want to restart the streaming service? This will temporarily stop data ingestion."
         confirmText="Restart"
         severity="warning"
-        onConfirm={handleRestart}
-        onCancel={() => setRestartDialogOpen(false)}
         loading={restartMutation.isPending}
       />
 

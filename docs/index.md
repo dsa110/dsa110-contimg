@@ -18,8 +18,7 @@ effectively.
 - **[Quick Start Guide](how-to/quickstart.md)**: Get up and running quickly.
 - **[Mosaic Quickstart](how-to/mosaic_quickstart.md)**: Plan and build a basic
   sky mosaic.
-- **[Dashboard Development](how-to/dashboard-development.md)**: Set up the
-  development environment.
+- **[Dashboard Guide](how-to/dashboard.md)**: Development, deployment, testing
 
 ## Documentation Sections
 
@@ -29,6 +28,8 @@ effectively.
 - **[How-To Guides](how-to/)**: Find instructions for specific procedures.
 - **[Reference](reference/)**: API documentation and technical references.
 - **[Operations](operations/)**: Deployment and operational procedures.
+- **Authoring Guide**:
+  [Documentation Quick Reference](DOCUMENTATION_QUICK_REFERENCE.md)
 
 ## Key Features
 
@@ -49,7 +50,6 @@ effectively.
   API documentation
 - **[Control Panel Guide](how-to/control-panel-quickstart.md)**: Using the
   control panel
-- **[Sky View](SKYVIEW_IMPLEMENTATION_PLAN.md)**: Image viewing and analysis
 - **[QA Visualization Quick Start](QA_VISUALIZATION_QUICK_START.md)**: FITS
   viewing, CASA browsing, QA notebooks
 - **[QA Visualization Usage Guide](QA_VISUALIZATION_USAGE.md)**: Full usage and
@@ -61,6 +61,5 @@ effectively.
 - **[Systemd Deployment](operations/deploy-systemd.md)**: Deploy as system
   service
 - **[CASA Log Daemon](operations/CASA_LOG_DAEMON_PROTECTION_SUMMARY.md)**:
-  Automated log file management and monitoring
-- **[Streaming Converter](how-to/streaming_converter_guide.md)**: Streaming
-  converter architecture
+Automated log file management and monitoring
+<!-- Streaming Converter doc consolidated into Streaming Guide -->

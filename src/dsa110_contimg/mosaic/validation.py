@@ -17,10 +17,36 @@ from typing import Any, Dict, List, Optional, Tuple
 
 import numpy as np
 
-from .cache import get_cache
-
 # Ensure CASAPATH is set before importing CASA modules
 from dsa110_contimg.utils.casa_init import ensure_casa_path
+
+from .cache import get_cache
+
+
+def normalize_shape(shape) -> tuple:
+    """Normalize shape to a tuple for comparison.
+
+    Handles numpy arrays, lists, tuples, and string representations.
+    """
+    if isinstance(shape, np.ndarray):
+        return tuple(shape.tolist())
+    elif isinstance(shape, list):
+        return tuple(shape)
+    elif isinstance(shape, tuple):
+        return shape
+    elif isinstance(shape, str):
+        try:
+            import ast
+
+            shape_list = ast.literal_eval(shape)
+            if isinstance(shape_list, (list, np.ndarray)):
+                return tuple(shape_list)
+            return tuple(shape_list) if isinstance(shape_list, tuple) else (shape_list,)
+        except (ValueError, SyntaxError):
+            return (shape,)  # Fallback: return as single-element tuple
+    else:
+        return (shape,) if shape is not None else ()
+
 
 ensure_casa_path()
 
@@ -220,9 +246,7 @@ def validate_tile_quality(
             metrics.pb_response_max = pb_stats.get("pb_response_max")
 
             if metrics.pb_response_min and metrics.pb_response_min < 0.1:
-                metrics.warnings.append(
-                    f"Low primary beam response: {metrics.pb_response_min:.3f}"
-                )
+                metrics.warnings.append(f"Low primary beam response: {metrics.pb_response_min:.3f}")
 
     # Batch database queries (look up all tiles at once if possible)
     # Note: Individual queries still used for calibration check
@@ -384,9 +408,7 @@ def validate_tiles_consistency(
                         import ast
 
                         shape_list = ast.literal_eval(shape)
-                        shape = (
-                            tuple(shape_list) if isinstance(shape_list, list) else shape
-                        )
+                        shape = tuple(shape_list) if isinstance(shape_list, list) else shape
                     except (ValueError, SyntaxError):
                         # If parsing fails, use string comparison (less ideal but works)
                         pass
@@ -409,16 +431,12 @@ def validate_tiles_consistency(
                     cdelt1 = header.get("cdelt1")
                     cdelt2 = header.get("cdelt2")
                     if cdelt1 is not None and ref_cdelt1 is not None:
-                        if abs(cdelt1 - ref_cdelt1) > max(
-                            1e-12, abs(ref_cdelt1) * 1e-9
-                        ):
+                        if abs(cdelt1 - ref_cdelt1) > max(1e-12, abs(ref_cdelt1) * 1e-9):
                             all_issues.append(
                                 f"Grid inconsistency: {tile} cdelt1 {cdelt1} differs from {ref_tile} cdelt1 {ref_cdelt1}"
                             )
                     if cdelt2 is not None and ref_cdelt2 is not None:
-                        if abs(cdelt2 - ref_cdelt2) > max(
-                            1e-12, abs(ref_cdelt2) * 1e-9
-                        ):
+                        if abs(cdelt2 - ref_cdelt2) > max(1e-12, abs(ref_cdelt2) * 1e-9):
                             all_issues.append(
                                 f"Grid inconsistency: {tile} cdelt2 {cdelt2} differs from {ref_tile} cdelt2 {ref_cdelt2}"
                             )
@@ -426,9 +444,7 @@ def validate_tiles_consistency(
             all_issues.append(f"Failed to read header for {tile}: {e}")
 
     # Check noise consistency
-    noise_values = [
-        m.rms_noise for m in metrics_dict.values() if m.rms_noise is not None
-    ]
+    noise_values = [m.rms_noise for m in metrics_dict.values() if m.rms_noise is not None]
     if len(noise_values) > 1:
         median_noise = np.median(noise_values)
         for tile, metrics in metrics_dict.items():
@@ -498,11 +514,7 @@ def validate_tiles_consistency(
                         beam_info[tile] = {
                             "major": maj_val,
                             "minor": min_val,
-                            "pa": (
-                                beam_pa.get("value")
-                                if isinstance(beam_pa, dict)
-                                else beam_pa
-                            ),
+                            "pa": (beam_pa.get("value") if isinstance(beam_pa, dict) else beam_pa),
                         }
             except Exception:
                 # Beam info not available or in unexpected format
@@ -760,9 +772,7 @@ def verify_astrometric_registration(
 
                             # Convert peak pixel back to sky coordinates
                             try:
-                                world_coords = coord_sys.toworldmany(
-                                    [[peak_x, peak_y]]
-                                )[0]
+                                world_coords = coord_sys.toworldmany([[peak_x, peak_y]])[0]
                                 det_ra = float(world_coords[0])
                                 det_dec = float(world_coords[1])
                             except (AttributeError, TypeError):
@@ -775,23 +785,20 @@ def verify_astrometric_registration(
                                 det_dec = dec_center + pix_offset_y * cdelt_dec
 
                             # Compute offset (in arcseconds)
-                            offset_ra = (
-                                (det_ra - cat_ra)
-                                * np.cos(np.radians(dec_center))
-                                * 3600.0
-                            )
+                            offset_ra = (det_ra - cat_ra) * np.cos(np.radians(dec_center)) * 3600.0
                             offset_dec = (det_dec - cat_dec) * 3600.0
 
                             offsets_ra_arcsec.append(offset_ra)
                             offsets_dec_arcsec.append(offset_dec)
 
                 except Exception as e:
-                    logger.debug(
-                        f"Failed to match catalog source at ({cat_ra}, {cat_dec}): {e}"
-                    )
+                    logger.debug(f"Failed to match catalog source at ({cat_ra}, {cat_dec}): {e}")
                     continue
 
-            img.close()
+            try:
+                img.close()
+            except AttributeError:
+                pass  # Some image objects don't have close() method
 
             if len(offsets_ra_arcsec) < min_sources:
                 issues.append(
@@ -854,9 +861,7 @@ def check_calibration_consistency(
             ms_paths = []
             tile_to_ms = {}
             for tile in tiles:
-                row = conn.execute(
-                    "SELECT ms_path FROM images WHERE path = ?", (tile,)
-                ).fetchone()
+                row = conn.execute("SELECT ms_path FROM images WHERE path = ?", (tile,)).fetchone()
                 if row:
                     ms_path = row["ms_path"]
                     ms_paths.append(ms_path)
@@ -917,29 +922,21 @@ def check_calibration_consistency(
                                                 (first_table,),
                                             ).fetchone()
                                             if row:
-                                                calibration_dict[tile][
-                                                    "cal_set_name"
-                                                ] = row["set_name"]
+                                                calibration_dict[tile]["cal_set_name"] = row[
+                                                    "set_name"
+                                                ]
 
                                 except Exception as e:
-                                    logger.debug(
-                                        f"Failed to query registry for {tile}: {e}"
-                                    )
+                                    logger.debug(f"Failed to query registry for {tile}: {e}")
 
                         except Exception as e:
-                            logger.debug(
-                                f"Failed to get calibration tables for {tile}: {e}"
-                            )
+                            logger.debug(f"Failed to get calibration tables for {tile}: {e}")
 
                 except ImportError:
-                    logger.debug(
-                        "Calibration apply_service not available, skipping registry query"
-                    )
+                    logger.debug("Calibration apply_service not available, skipping registry query")
 
             # Check consistency
-            cal_applied_list = [
-                cal_dict["cal_applied"] for cal_dict in calibration_dict.values()
-            ]
+            cal_applied_list = [cal_dict["cal_applied"] for cal_dict in calibration_dict.values()]
             if len(cal_applied_list) > 0:
                 if not all(cal_applied_list):
                     issues.append(
@@ -1138,9 +1135,7 @@ def check_primary_beam_consistency(
                 else:
                     import logging
 
-                    logging.warning(
-                        f"No valid PB data found for {pb_path} (all NaN/Inf or <= 0)"
-                    )
+                    logging.warning(f"No valid PB data found for {pb_path} (all NaN/Inf or <= 0)")
 
                     # Basic pattern check: verify PB has reasonable shape
                     # (should peak near center, decrease toward edges)
@@ -1187,9 +1182,7 @@ def check_primary_beam_consistency(
     if len(pb_info_dict) > 1:
         # Check frequency consistency
         freq_values = [
-            info["freq_ghz"]
-            for info in pb_info_dict.values()
-            if info["freq_ghz"] is not None
+            info["freq_ghz"] for info in pb_info_dict.values() if info["freq_ghz"] is not None
         ]
 
         if len(freq_values) > 1:
@@ -1240,10 +1233,7 @@ def check_primary_beam_consistency(
 
             # Check for outliers
             for tile, info in pb_info_dict.items():
-                if (
-                    info["pb_response_min"] is not None
-                    and info["pb_response_max"] is not None
-                ):
+                if info["pb_response_min"] is not None and info["pb_response_max"] is not None:
                     if info["pb_response_min"] < min_median * 0.5:
                         issues.append(
                             f"Tile {tile} has unusually low PB response: "

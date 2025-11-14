@@ -5,20 +5,20 @@
 
 /* Main layout background - matches MUI background.default */
 .lm_goldenlayout {
-  background: #0D1117;
+  background: #0d1117;
 }
 
 /* Content area - matches MUI background.paper */
 .lm_content {
-  background: #161B22 !important;
-  background-color: #161B22 !important;
-  color: #C9D1D9 !important;
-  border: 1px solid #30363D; /* MUI divider color */
+  background: #161b22 !important;
+  background-color: #161b22 !important;
+  color: #c9d1d9 !important;
+  border: 1px solid #30363d; /* MUI divider color */
 }
 
 .lm_content > * {
-  background-color: #161B22 !important;
-  color: #C9D1D9 !important;
+  background-color: #161b22 !important;
+  color: #c9d1d9 !important;
 }
 
 /* Catch any divs or other elements with white backgrounds */
@@ -27,26 +27,26 @@
 }
 
 .lm_content div[style*="background"] {
-  background-color: #161B22 !important;
+  background-color: #161b22 !important;
 }
 
 /* Override any white backgrounds in nested components */
 .lm_content .MuiPaper-root {
-  background-color: #161B22 !important;
-  color: #C9D1D9 !important;
+  background-color: #161b22 !important;
+  color: #c9d1d9 !important;
 }
 
 .lm_content .MuiList-root {
-  background-color: #161B22 !important;
+  background-color: #161b22 !important;
 }
 
 .lm_content .MuiListItem-root {
-  background-color: #161B22 !important;
-  color: #C9D1D9 !important;
+  background-color: #161b22 !important;
+  color: #c9d1d9 !important;
 }
 
 .lm_content .MuiListItem-root:hover {
-  background-color: #21262D !important; /* Slightly lighter on hover */
+  background-color: #21262d !important; /* Slightly lighter on hover */
 }
 
 /* Ensure ListItem content (nested divs) also use dark theme */
@@ -59,65 +59,65 @@
 }
 
 .lm_content .MuiListItem-root .MuiTypography-root {
-  color: #C9D1D9 !important;
+  color: #c9d1d9 !important;
 }
 
 .lm_content .MuiTableContainer-root {
-  background-color: #161B22 !important;
+  background-color: #161b22 !important;
 }
 
 .lm_content .MuiTable-root {
-  background-color: #161B22 !important;
+  background-color: #161b22 !important;
 }
 
 .lm_content .MuiTableRow-root {
-  background-color: #161B22 !important;
+  background-color: #161b22 !important;
 }
 
 .lm_content .MuiTableRow-root:hover {
-  background-color: #21262D !important;
+  background-color: #21262d !important;
 }
 
 .lm_content .MuiTableCell-root {
-  background-color: #161B22 !important;
-  color: #C9D1D9 !important;
-  border-color: #30363D !important;
+  background-color: #161b22 !important;
+  color: #c9d1d9 !important;
+  border-color: #30363d !important;
 }
 
 /* Form elements - TextField, Select, etc. */
 .lm_content .MuiTextField-root .MuiInputBase-root {
-  background-color: #0D1117 !important;
-  color: #C9D1D9 !important;
+  background-color: #0d1117 !important;
+  color: #c9d1d9 !important;
 }
 
 .lm_content .MuiTextField-root .MuiInputBase-input {
-  color: #C9D1D9 !important;
+  color: #c9d1d9 !important;
 }
 
 .lm_content .MuiTextField-root .MuiInputLabel-root {
-  color: #8B949E !important;
+  color: #8b949e !important;
 }
 
 .lm_content .MuiTextField-root .MuiOutlinedInput-notchedOutline {
-  border-color: #30363D !important;
+  border-color: #30363d !important;
 }
 
 .lm_content .MuiTextField-root .MuiOutlinedInput-root:hover .MuiOutlinedInput-notchedOutline {
-  border-color: #58A6FF !important;
+  border-color: #58a6ff !important;
 }
 
 .lm_content .MuiTextField-root .MuiOutlinedInput-root.Mui-focused .MuiOutlinedInput-notchedOutline {
-  border-color: #58A6FF !important;
+  border-color: #58a6ff !important;
 }
 
 /* Select/Dropdown */
 .lm_content .MuiSelect-root {
-  background-color: #0D1117 !important;
-  color: #C9D1D9 !important;
+  background-color: #0d1117 !important;
+  color: #c9d1d9 !important;
 }
 
 .lm_content .MuiSelect-icon {
-  color: #8B949E !important;
+  color: #8b949e !important;
 }
 
 /* Breadcrumbs and navigation */
@@ -130,55 +130,55 @@
 }
 
 .lm_content .MuiBreadcrumbs-separator {
-  color: #8B949E !important;
+  color: #8b949e !important;
 }
 
 /* Alert/Info messages */
 .lm_content .MuiAlert-root {
-  background-color: #161B22 !important;
-  color: #C9D1D9 !important;
+  background-color: #161b22 !important;
+  color: #c9d1d9 !important;
 }
 
 /* Buttons */
 .lm_content .MuiButton-root {
-  color: #C9D1D9 !important;
+  color: #c9d1d9 !important;
 }
 
 .lm_content .MuiButton-contained {
-  background-color: #1F6FEB !important;
-  color: #FFFFFF !important;
+  background-color: #1f6feb !important;
+  color: #ffffff !important;
 }
 
 .lm_content .MuiButton-contained:hover {
-  background-color: #58A6FF !important;
+  background-color: #58a6ff !important;
 }
 
 /* Chips */
 .lm_content .MuiChip-root {
-  background-color: #21262D !important;
-  color: #C9D1D9 !important;
+  background-color: #21262d !important;
+  color: #c9d1d9 !important;
 }
 
 /* Alerts */
 .lm_content .MuiAlert-root {
-  background-color: #161B22 !important;
-  color: #C9D1D9 !important;
+  background-color: #161b22 !important;
+  color: #c9d1d9 !important;
 }
 
 /* Accordion */
 .lm_content .MuiAccordion-root {
-  background-color: #161B22 !important;
-  color: #C9D1D9 !important;
+  background-color: #161b22 !important;
+  color: #c9d1d9 !important;
 }
 
 .lm_content .MuiAccordionSummary-root {
-  background-color: #161B22 !important;
-  color: #C9D1D9 !important;
+  background-color: #161b22 !important;
+  color: #c9d1d9 !important;
 }
 
 .lm_content .MuiAccordionDetails-root {
-  background-color: #161B22 !important;
-  color: #C9D1D9 !important;
+  background-color: #161b22 !important;
+  color: #c9d1d9 !important;
 }
 
 .lm_dragProxy .lm_content {
@@ -186,41 +186,41 @@
 }
 
 .lm_dropTargetIndicator {
-  box-shadow: inset 0 0 30px #0D1117;
-  outline: 1px dashed #58A6FF; /* MUI primary color */
+  box-shadow: inset 0 0 30px #0d1117;
+  outline: 1px dashed #58a6ff; /* MUI primary color */
 }
 
 .lm_dropTargetIndicator .lm_inner {
-  background: #0D1117;
+  background: #0d1117;
   opacity: 0.2;
 }
 
 /* Splitter - matches MUI divider */
 .lm_splitter {
-  background: #30363D;
+  background: #30363d;
   opacity: 0.3;
   transition: opacity 200ms ease;
 }
 
 .lm_splitter:hover,
 .lm_splitter.lm_dragging {
-  background: #58A6FF; /* MUI primary color on hover */
+  background: #58a6ff; /* MUI primary color on hover */
   opacity: 0.6;
 }
 
 /* Header styling */
 .lm_header {
   height: 20px;
-  background: #161B22; /* MUI background.paper */
-  border-bottom: 1px solid #30363D; /* MUI divider */
+  background: #161b22; /* MUI background.paper */
+  border-bottom: 1px solid #30363d; /* MUI divider */
 }
 
 /* Tab styling - matches MUI text colors */
 .lm_header .lm_tab {
   font-family: "Inter", "Roboto", "Helvetica", "Arial", sans-serif; /* Match MUI typography */
   font-size: 12px;
-  color: #8B949E; /* MUI text.secondary */
-  background: #161B22; /* MUI background.paper */
+  color: #8b949e; /* MUI text.secondary */
+  background: #161b22; /* MUI background.paper */
   box-shadow: 2px -2px 2px rgba(0, 0, 0, 0.3);
   margin-right: 2px;
   padding-bottom: 2px;
@@ -230,7 +230,7 @@
 .lm_header .lm_tab .lm_close_tab {
   width: 11px;
   height: 11px;
-  background-image: url('../../../node_modules/golden-layout/dist/img/lm_close_white.png');
+  background-image: url("../../../node_modules/golden-layout/dist/img/lm_close_white.png");
   background-position: center center;
   background-repeat: no-repeat;
   top: 4px;
@@ -245,11 +245,11 @@
 /* Active tab - uses MUI primary color */
 .lm_header .lm_tab.lm_active {
   border-bottom: none;
-  box-shadow: 0 -2px 2px #0D1117;
+  box-shadow: 0 -2px 2px #0d1117;
   padding-bottom: 3px;
-  background: #161B22;
-  color: #C9D1D9; /* MUI text.primary */
-  border-bottom: 2px solid #58A6FF; /* MUI primary color underline */
+  background: #161b22;
+  color: #c9d1d9; /* MUI text.primary */
+  border-bottom: 2px solid #58a6ff; /* MUI primary color underline */
 }
 
 .lm_header .lm_tab.lm_active .lm_close_tab {
@@ -257,13 +257,13 @@
 }
 
 .lm_header .lm_tab.lm_active.lm_focused {
-  background-color: #1F6FEB; /* MUI primary.dark */
-  color: #C9D1D9;
+  background-color: #1f6feb; /* MUI primary.dark */
+  color: #c9d1d9;
 }
 
 .lm_dragProxy.lm_right .lm_header .lm_tab.lm_active,
 .lm_stack.lm_right .lm_header .lm_tab.lm_active {
-  box-shadow: 2px -2px 2px #0D1117;
+  box-shadow: 2px -2px 2px #0d1117;
 }
 
 .lm_dragProxy.lm_bottom .lm_header .lm_tab,
@@ -273,26 +273,26 @@
 
 .lm_dragProxy.lm_bottom .lm_header .lm_tab.lm_active,
 .lm_stack.lm_bottom .lm_header .lm_tab.lm_active {
-  box-shadow: 0 2px 2px #0D1117;
+  box-shadow: 0 2px 2px #0d1117;
 }
 
 .lm_selected .lm_header {
-  background-color: #1F6FEB; /* MUI primary.dark */
+  background-color: #1f6feb; /* MUI primary.dark */
 }
 
 /* Tab hover states */
 .lm_tab:hover {
-  background: #21262D; /* Slightly lighter than paper */
-  color: #C9D1D9; /* MUI text.primary */
+  background: #21262d; /* Slightly lighter than paper */
+  color: #c9d1d9; /* MUI text.primary */
 }
 
 .lm_tab.lm_active {
-  background: #161B22;
-  color: #C9D1D9;
+  background: #161b22;
+  color: #c9d1d9;
 }
 
 .lm_header .lm_controls .lm_tabdropdown:before {
-  color: #C9D1D9; /* MUI text.primary */
+  color: #c9d1d9; /* MUI text.primary */
 }
 
 /* Control buttons */
@@ -309,28 +309,28 @@
 }
 
 .lm_controls .lm_popout {
-  background-image: url('../../../node_modules/golden-layout/dist/img/lm_popout_white.png');
+  background-image: url("../../../node_modules/golden-layout/dist/img/lm_popout_white.png");
 }
 
 .lm_controls .lm_maximise {
-  background-image: url('../../../node_modules/golden-layout/dist/img/lm_maximise_white.png');
+  background-image: url("../../../node_modules/golden-layout/dist/img/lm_maximise_white.png");
 }
 
 .lm_controls .lm_close {
-  background-image: url('../../../node_modules/golden-layout/dist/img/lm_close_white.png');
+  background-image: url("../../../node_modules/golden-layout/dist/img/lm_close_white.png");
 }
 
 .lm_maximised .lm_header {
-  background-color: #161B22; /* MUI background.paper */
+  background-color: #161b22; /* MUI background.paper */
 }
 
 .lm_maximised .lm_controls .lm_maximise {
-  background-image: url('../../../node_modules/golden-layout/dist/img/lm_minimize_white.png');
+  background-image: url("../../../node_modules/golden-layout/dist/img/lm_minimize_white.png");
 }
 
 .lm_transition_indicator {
-  background-color: #0D1117;
-  border: 1px solid #58A6FF; /* MUI primary color */
+  background-color: #0d1117;
+  border: 1px solid #58a6ff; /* MUI primary color */
 }
 
 .lm_popin {
@@ -338,20 +338,19 @@
 }
 
 .lm_popin .lm_bg {
-  background: #C9D1D9; /* MUI text.primary */
+  background: #c9d1d9; /* MUI text.primary */
   opacity: 0.1;
 }
 
 .lm_popin .lm_icon {
-  background-image: url('../../../node_modules/golden-layout/dist/img/lm_popin_white.png');
+  background-image: url("../../../node_modules/golden-layout/dist/img/lm_popin_white.png");
   background-position: center center;
   background-repeat: no-repeat;
-  border-left: 1px solid #30363D; /* MUI divider */
-  border-top: 1px solid #30363D; /* MUI divider */
+  border-left: 1px solid #30363d; /* MUI divider */
+  border-top: 1px solid #30363d; /* MUI divider */
   opacity: 0.7;
 }
 
 .lm_popin:hover .lm_icon {
   opacity: 1;
 }
-

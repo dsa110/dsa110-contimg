@@ -37,7 +37,7 @@ jobs:
       - name: Install dependencies
         run: |
           python -m pip install --upgrade pip
-          pip install -r docs/requirements.txt
+          pip install -r ops/docs/requirements.txt
           pip install pyyaml  # Needed for generate_mkdocs_config.py
           pip list | grep -E "mkdocs|mkdocstrings|griffe|autorefs"
 
@@ -96,7 +96,7 @@ jobs:
         run: |
           set -euo pipefail
           python -m pip install --upgrade pip
-          pip install -r docs/requirements.txt
+          pip install -r ops/docs/requirements.txt
           pip install playwright pytest pyyaml
 
       - name: Install Playwright browser

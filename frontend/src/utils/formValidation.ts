@@ -127,3 +127,32 @@ export const validationRules = {
 export function useFieldValidation<T>(value: T, rules: ValidationRule<T>[]): ValidationResult {
   return validateValue(value, rules);
 }
+
+/**
+ * Validate that end time is after start time
+ * @param startTime Start time string (format: YYYY-MM-DD HH:MM:SS)
+ * @param endTime End time string (format: YYYY-MM-DD HH:MM:SS)
+ * @returns ValidationResult with isValid and message
+ */
+export function validateTimeRange(startTime: string, endTime: string): ValidationResult {
+  if (!startTime || !endTime) {
+    return { isValid: true };
+  }
+
+  try {
+    const start = new Date(startTime);
+    const end = new Date(endTime);
+
+    if (isNaN(start.getTime()) || isNaN(end.getTime())) {
+      return { isValid: false, error: "Invalid date format" };
+    }
+
+    if (end <= start) {
+      return { isValid: false, error: "End time must be after start time" };
+    }
+
+    return { isValid: true };
+  } catch (error) {
+    return { isValid: false, error: "Error validating time range" };
+  }
+}

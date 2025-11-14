@@ -38,10 +38,12 @@ import {
   Cached,
   Science,
   Visibility,
+  FolderOpen,
 } from "@mui/icons-material";
 import CommandPalette from "./CommandPalette";
 import { useCommandPalette } from "../hooks/useCommandPalette";
 import { useWorkflow } from "../contexts/WorkflowContext";
+import { prefetchRoute } from "../utils/routePrefetch";
 
 // Flattened navigation items - all primary sections visible
 const navItems = [
@@ -49,6 +51,8 @@ const navItems = [
   { path: "/pipeline", label: "Pipeline", icon: AccountTree },
   { path: "/operations", label: "Operations", icon: Build },
   { path: "/control", label: "Control", icon: Settings },
+  { path: "/calibration", label: "Calibration", icon: Build },
+  { path: "/ms-browser", label: "MS Browser", icon: FolderOpen },
   { path: "/streaming", label: "Streaming", icon: PlayArrow },
   { path: "/data", label: "Data Browser", icon: Storage },
   { path: "/sources", label: "Sources", icon: TableChart },
@@ -93,7 +97,12 @@ export default function Navigation() {
 
           return (
             <ListItem key={item.path} disablePadding>
-              <ListItemButton component={RouterLink} to={item.path} selected={active}>
+              <ListItemButton
+                component={RouterLink}
+                to={item.path}
+                selected={active}
+                onMouseEnter={() => prefetchRoute(item.path)}
+              >
                 <ListItemIcon>
                   <Icon color={active ? "primary" : "inherit"} />
                 </ListItemIcon>
@@ -155,6 +164,7 @@ export default function Navigation() {
                     component={RouterLink}
                     to={item.path}
                     startIcon={<Icon />}
+                    onMouseEnter={() => prefetchRoute(item.path)}
                     sx={{
                       color: active ? "primary.main" : "text.secondary",
                       bgcolor: active ? "rgba(144, 202, 249, 0.08)" : "transparent",

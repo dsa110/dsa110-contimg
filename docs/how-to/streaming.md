@@ -57,8 +57,22 @@ make compose-logs SERVICE=stream
 3. Verify
 
 - Output MS under `${CONTIMG_OUTPUT_DIR}`
-- API at `http://localhost:${CONTIMG_API_PORT}/api/status`
-- Dashboard at `http://localhost:5173`
+  - API at `http://localhost:${CONTIMG_API_PORT}/api/status`
+  - Dashboard at `http://localhost:5173`
+
+## Quick Start Warnings
+
+- Always use casa6 Python (`/opt/miniforge/envs/casa6/bin/python`).
+- Verify env vars and directory permissions before enabling streaming.
+- Use tmpfs (`/dev/shm`) for faster staging when memory allows.
+- Confirm HDF5 locking (`HDF5_USE_FILE_LOCKING=FALSE`) on NFS.
+
+## SkyView Notes (folded from plan)
+
+- SkyView’s image gallery and JS9 viewer surface images produced by streaming.
+- Use Products API to filter by date/noise/type; validate FITS headers if
+  filtering by declination.
+- For QA overlay/validation, see QA Visualization guides and Validation API.
 
 ### systemd (production host services)
 

@@ -10,7 +10,10 @@ import sys
 import time
 from typing import List
 
-from dsa110_contimg.calibration.performance import optimize_memory_usage
+from dsa110_contimg.calibration.performance import (
+    estimate_memory_requirements,
+    optimize_memory_usage,
+)
 from dsa110_contimg.utils.cli_helpers import configure_logging_from_args
 from dsa110_contimg.utils.error_context import (
     format_error_with_context,
@@ -1436,7 +1439,9 @@ def handle_calibrate(args: argparse.Namespace) -> int:
                             f"{len(problematic_channels)} SPW(s):"
                         )
                         flag_problematic_channels(
-                            args.ms, problematic_channels, datacolumn=args.datacolumn
+                            args.ms,
+                            problematic_channels,
+                            datacolumn=getattr(args, "datacolumn", "DATA"),
                         )
                         logger.info(
                             f"✓ [2/6] Channel-level flagging complete: {total_flagged_channels} "
@@ -1612,9 +1617,18 @@ def handle_calibrate(args: argparse.Namespace) -> int:
                             ms_dec_deg = np.rad2deg(ms_dec_rad)
 
                         print(f"MS phase center: RA={ms_ra_deg:.4f}°, Dec={ms_dec_deg:.4f}°")
-                        ms_coord = SkyCoord(ra=ms_ra_deg * u.deg, dec=ms_dec_deg * u.deg)
-                        cal_coord = SkyCoord(ra=ra_deg * u.deg, dec=dec_deg * u.deg)
-                        sep_arcmin = ms_coord.separation(cal_coord).to(u.arcmin).value
+                        ms_coord = SkyCoord(
+                            ra=ms_ra_deg * u.deg,
+                            dec=ms_dec_deg * u.deg,  # pylint: disable=no-member
+                        )
+                        cal_coord = SkyCoord(
+                            ra=ra_deg * u.deg, dec=dec_deg * u.deg  # pylint: disable=no-member
+                        )
+                        sep_arcmin = (
+                            ms_coord.separation(cal_coord)
+                            .to(u.arcmin)
+                            .value  # pylint: disable=no-member
+                        )
 
                         print(f"Separation: {sep_arcmin:.2f} arcmin")
                         if sep_arcmin < 1.0:
@@ -1702,16 +1716,20 @@ def handle_calibrate(args: argparse.Namespace) -> int:
                             from astropy.coordinates import SkyCoord
 
                             old_coord = SkyCoord(
-                                ra=old_phase_center[0] * u.deg,
-                                dec=old_phase_center[1] * u.deg,
+                                ra=old_phase_center[0] * u.deg,  # pylint: disable=no-member
+                                dec=old_phase_center[1] * u.deg,  # pylint: disable=no-member
                                 frame="icrs",
                             )
                             new_coord = SkyCoord(
-                                ra=new_phase_center[0] * u.deg,
-                                dec=new_phase_center[1] * u.deg,
+                                ra=new_phase_center[0] * u.deg,  # pylint: disable=no-member
+                                dec=new_phase_center[1] * u.deg,  # pylint: disable=no-member
                                 frame="icrs",
                             )
-                            phase_shift_arcmin = old_coord.separation(new_coord).to(u.arcmin).value
+                            phase_shift_arcmin = (
+                                old_coord.separation(new_coord)
+                                .to(u.arcmin)
+                                .value  # pylint: disable=no-member
+                            )
 
                             logger.debug(f"Phase shift magnitude: {phase_shift_arcmin:.1f} arcmin")
 
@@ -1828,13 +1846,13 @@ def handle_calibrate(args: argparse.Namespace) -> int:
                                         from astropy.coordinates import SkyCoord
 
                                         ms_coord = SkyCoord(
-                                            ra=ref_ra_deg * u.deg,
-                                            dec=ref_dec_deg * u.deg,
+                                            ra=ref_ra_deg * u.deg,  # pylint: disable=no-member
+                                            dec=ref_dec_deg * u.deg,  # pylint: disable=no-member
                                             frame="icrs",
                                         )
                                         cal_coord = SkyCoord(
-                                            ra=ra_deg * u.deg,
-                                            dec=dec_deg * u.deg,
+                                            ra=ra_deg * u.deg,  # pylint: disable=no-member
+                                            dec=dec_deg * u.deg,  # pylint: disable=no-member
                                             frame="icrs",
                                         )
                                         separation = ms_coord.separation(cal_coord)
@@ -1843,12 +1861,15 @@ def handle_calibrate(args: argparse.Namespace) -> int:
                                             f"Final REFERENCE_DIR: RA={ref_ra_deg:.6f}°, Dec={ref_dec_deg:.6f}°"
                                         )
                                         logger.debug(
-                                            f"Separation from calibrator: {separation.to(u.arcmin):.4f}"
+                                            f"Separation from calibrator: {separation.to(u.arcmin):.4f}"  # pylint: disable=no-member
                                         )
 
-                                        if separation.to(u.arcmin).value > 1.0:
+                                        if (
+                                            separation.to(u.arcmin).value
+                                            > 1.0  # pylint: disable=no-member
+                                        ):
                                             logger.warning(
-                                                f"REFERENCE_DIR still offset by {separation.to(u.arcmin):.4f} - calibration may fail"
+                                                f"REFERENCE_DIR still offset by {separation.to(u.arcmin):.4f} - calibration may fail"  # pylint: disable=no-member
                                             )
                                         else:
                                             logger.info(

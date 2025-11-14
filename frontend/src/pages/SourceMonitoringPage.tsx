@@ -41,6 +41,7 @@ import "ag-grid-community/styles/ag-theme-alpine.css";
 import { useSourceSearch } from "../api/queries";
 import type { SourceTimeseries, SourceSearchRequest } from "../api/types";
 import { EmptyState } from "../components/EmptyState";
+import PageBreadcrumbs from "../components/PageBreadcrumbs";
 
 export default function SourceMonitoringPage() {
   const navigate = useNavigate();
@@ -184,156 +185,159 @@ export default function SourceMonitoringPage() {
   );
 
   return (
-    <Container maxWidth="xl" sx={{ py: 4 }}>
-      <Typography variant="h2" component="h2" gutterBottom sx={{ mb: 4 }}>
-        Source Monitoring
-      </Typography>
+    <>
+      <PageBreadcrumbs />
+      <Container maxWidth="xl" sx={{ py: 4 }}>
+        <Typography variant="h2" component="h2" gutterBottom sx={{ mb: 4 }}>
+          Source Monitoring
+        </Typography>
 
-      {/* Search Interface */}
-      <Paper sx={{ p: 3, mb: 3 }}>
-        <Stack spacing={2}>
-          <Box display="flex" justifyContent="space-between" alignItems="center">
-            <Typography variant="h6">Search Sources</Typography>
-            <Box display="flex" gap={1} alignItems="center">
-              {activeFiltersCount > 0 && (
-                <Chip
-                  label={`${activeFiltersCount} filter${activeFiltersCount > 1 ? "s" : ""}`}
-                  size="small"
-                  onDelete={handleClearFilters}
-                  deleteIcon={<ClearIcon />}
-                />
-              )}
-              <Button
-                size="small"
-                startIcon={showAdvancedFilters ? <ExpandLess /> : <ExpandMore />}
-                onClick={() => setShowAdvancedFilters(!showAdvancedFilters)}
-              >
-                {showAdvancedFilters ? "Hide" : "Show"} Advanced Filters
-              </Button>
-            </Box>
-          </Box>
-
-          <Box display="flex" gap={2} alignItems="center" flexWrap="wrap">
-            <TextField
-              label="Source ID (e.g., NVSS J123456.7+420312)"
-              value={sourceId}
-              onChange={(e) => setSourceId(e.target.value)}
-              onKeyPress={(e) => e.key === "Enter" && handleSearch()}
-              size="small"
-              sx={{ flexGrow: 1, minWidth: 300 }}
-            />
-            <Button
-              variant="contained"
-              startIcon={<Search />}
-              onClick={handleSearch}
-              disabled={!sourceId.trim() && !showAdvancedFilters}
-            >
-              Search
-            </Button>
-            {activeFiltersCount > 0 && (
-              <Button variant="outlined" startIcon={<ClearIcon />} onClick={handleClearFilters}>
-                Clear
-              </Button>
-            )}
-          </Box>
-
-          {/* Advanced Filters */}
-          <Collapse in={showAdvancedFilters}>
-            <Divider sx={{ my: 2 }} />
-            <Grid container spacing={2}>
-              <Grid item xs={12} md={6}>
-                <Typography variant="body2" gutterBottom>
-                  Variability Threshold (σ): {variabilityThreshold}
-                </Typography>
-                <Slider
-                  value={variabilityThreshold}
-                  onChange={(_, value) => setVariabilityThreshold(value as number)}
-                  min={0}
-                  max={10}
-                  step={0.5}
-                  marks={[
-                    { value: 0, label: "0" },
-                    { value: 5, label: "5" },
-                    { value: 10, label: "10" },
-                  ]}
-                />
-              </Grid>
-              <Grid item xs={12} md={6}>
-                <Typography variant="body2" gutterBottom>
-                  Declination Range: {decMin.toFixed(1)}° to {decMax.toFixed(1)}°
-                </Typography>
-                <Box sx={{ px: 2 }}>
-                  <Slider
-                    value={[decMin, decMax]}
-                    onChange={(_, value) => {
-                      const [min, max] = value as number[];
-                      setDecMin(min);
-                      setDecMax(max);
-                    }}
-                    min={-90}
-                    max={90}
-                    step={1}
-                    valueLabelDisplay="auto"
+        {/* Search Interface */}
+        <Paper sx={{ p: 3, mb: 3 }}>
+          <Stack spacing={2}>
+            <Box display="flex" justifyContent="space-between" alignItems="center">
+              <Typography variant="h6">Search Sources</Typography>
+              <Box display="flex" gap={1} alignItems="center">
+                {activeFiltersCount > 0 && (
+                  <Chip
+                    label={`${activeFiltersCount} filter${activeFiltersCount > 1 ? "s" : ""}`}
+                    size="small"
+                    onDelete={handleClearFilters}
+                    deleteIcon={<ClearIcon />}
                   />
-                </Box>
-              </Grid>
-              <Grid item xs={12}>
-                <FormControlLabel
-                  control={
-                    <Checkbox checked={eseOnly} onChange={(e) => setEseOnly(e.target.checked)} />
-                  }
-                  label="Show only ESE candidates (>5σ variability)"
-                />
-              </Grid>
-            </Grid>
-          </Collapse>
-        </Stack>
-      </Paper>
+                )}
+                <Button
+                  size="small"
+                  startIcon={showAdvancedFilters ? <ExpandLess /> : <ExpandMore />}
+                  onClick={() => setShowAdvancedFilters(!showAdvancedFilters)}
+                >
+                  {showAdvancedFilters ? "Hide" : "Show"} Advanced Filters
+                </Button>
+              </Box>
+            </Box>
 
-      {/* Results Table */}
-      {error && (
-        <Alert severity="warning">
-          Source monitoring not available. This feature requires enhanced API endpoints.
-        </Alert>
-      )}
+            <Box display="flex" gap={2} alignItems="center" flexWrap="wrap">
+              <TextField
+                label="Source ID (e.g., NVSS J123456.7+420312)"
+                value={sourceId}
+                onChange={(e) => setSourceId(e.target.value)}
+                onKeyPress={(e) => e.key === "Enter" && handleSearch()}
+                size="small"
+                sx={{ flexGrow: 1, minWidth: 300 }}
+              />
+              <Button
+                variant="contained"
+                startIcon={<Search />}
+                onClick={handleSearch}
+                disabled={!sourceId.trim() && !showAdvancedFilters}
+              >
+                Search
+              </Button>
+              {activeFiltersCount > 0 && (
+                <Button variant="outlined" startIcon={<ClearIcon />} onClick={handleClearFilters}>
+                  Clear
+                </Button>
+              )}
+            </Box>
 
-      {!error && (
-        <Paper sx={{ p: 2 }}>
-          <Box className="ag-theme-alpine-dark" sx={{ height: 600, width: "100%" }}>
-            <AgGridReact
-              ref={gridRef}
-              rowData={data?.sources || []}
-              columnDefs={columnDefs}
-              defaultColDef={defaultColDef}
-              pagination={true}
-              paginationPageSize={20}
-              loading={isLoading}
-              loadingOverlayComponent={() => (
-                <Box display="flex" justifyContent="center" alignItems="center" height="100%">
-                  <Typography>Loading sources...</Typography>
-                </Box>
-              )}
-              noRowsOverlayComponent={() => (
-                <Box sx={{ py: 8, px: 4 }}>
-                  {searchRequest ? (
-                    <EmptyState
-                      icon={<TableChart sx={{ fontSize: 64, color: "text.secondary" }} />}
-                      title="No sources found"
-                      description="No sources match your search criteria. Try a different source ID or check the spelling."
+            {/* Advanced Filters */}
+            <Collapse in={showAdvancedFilters}>
+              <Divider sx={{ my: 2 }} />
+              <Grid container spacing={2}>
+                <Grid item xs={12} md={6}>
+                  <Typography variant="body2" gutterBottom>
+                    Variability Threshold (σ): {variabilityThreshold}
+                  </Typography>
+                  <Slider
+                    value={variabilityThreshold}
+                    onChange={(_, value) => setVariabilityThreshold(value as number)}
+                    min={0}
+                    max={10}
+                    step={0.5}
+                    marks={[
+                      { value: 0, label: "0" },
+                      { value: 5, label: "5" },
+                      { value: 10, label: "10" },
+                    ]}
+                  />
+                </Grid>
+                <Grid item xs={12} md={6}>
+                  <Typography variant="body2" gutterBottom>
+                    Declination Range: {decMin.toFixed(1)}° to {decMax.toFixed(1)}°
+                  </Typography>
+                  <Box sx={{ px: 2 }}>
+                    <Slider
+                      value={[decMin, decMax]}
+                      onChange={(_, value) => {
+                        const [min, max] = value as number[];
+                        setDecMin(min);
+                        setDecMax(max);
+                      }}
+                      min={-90}
+                      max={90}
+                      step={1}
+                      valueLabelDisplay="auto"
                     />
-                  ) : (
-                    <EmptyState
-                      icon={<TableChart sx={{ fontSize: 64, color: "text.secondary" }} />}
-                      title="Search for sources"
-                      description="Enter a source ID (e.g., NVSS J123456.7+420312) to search the catalog. You can also use advanced filters to find sources by coordinates, flux, or variability."
-                    />
-                  )}
-                </Box>
-              )}
-            />
-          </Box>
+                  </Box>
+                </Grid>
+                <Grid item xs={12}>
+                  <FormControlLabel
+                    control={
+                      <Checkbox checked={eseOnly} onChange={(e) => setEseOnly(e.target.checked)} />
+                    }
+                    label="Show only ESE candidates (>5σ variability)"
+                  />
+                </Grid>
+              </Grid>
+            </Collapse>
+          </Stack>
         </Paper>
-      )}
-    </Container>
+
+        {/* Results Table */}
+        {error && (
+          <Alert severity="warning">
+            Source monitoring not available. This feature requires enhanced API endpoints.
+          </Alert>
+        )}
+
+        {!error && (
+          <Paper sx={{ p: 2 }}>
+            <Box className="ag-theme-alpine-dark" sx={{ height: 600, width: "100%" }}>
+              <AgGridReact
+                ref={gridRef}
+                rowData={data?.sources || []}
+                columnDefs={columnDefs}
+                defaultColDef={defaultColDef}
+                pagination={true}
+                paginationPageSize={20}
+                loading={isLoading}
+                loadingOverlayComponent={() => (
+                  <Box display="flex" justifyContent="center" alignItems="center" height="100%">
+                    <Typography>Loading sources...</Typography>
+                  </Box>
+                )}
+                noRowsOverlayComponent={() => (
+                  <Box sx={{ py: 8, px: 4 }}>
+                    {searchRequest ? (
+                      <EmptyState
+                        icon={<TableChart sx={{ fontSize: 64, color: "text.secondary" }} />}
+                        title="No sources found"
+                        description="No sources match your search criteria. Try a different source ID or check the spelling."
+                      />
+                    ) : (
+                      <EmptyState
+                        icon={<TableChart sx={{ fontSize: 64, color: "text.secondary" }} />}
+                        title="Search for sources"
+                        description="Enter a source ID (e.g., NVSS J123456.7+420312) to search the catalog. You can also use advanced filters to find sources by coordinates, flux, or variability."
+                      />
+                    )}
+                  </Box>
+                )}
+              />
+            </Box>
+          </Paper>
+        )}
+      </Container>
+    </>
   );
 }

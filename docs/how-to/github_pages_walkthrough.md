@@ -99,7 +99,7 @@ git push origin main
 
 4. Watch the **Build** job:
    - It installs Python 3.11
-   - Installs dependencies from `docs/requirements.txt`
+   - Installs dependencies from `ops/docs/requirements.txt`
    - Runs `mkdocs build --strict`
    - **Deploys to GitHub Pages** (only on push to main)
 
@@ -194,8 +194,8 @@ Common issues:
 **Missing dependencies:**
 
 ```bash
-# Check docs/requirements.txt exists
-cat docs/requirements.txt
+# Check ops/docs/requirements.txt exists
+cat ops/docs/requirements.txt
 ```
 
 **MkDocs errors:**

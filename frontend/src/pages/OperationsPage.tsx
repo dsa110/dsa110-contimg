@@ -19,6 +19,7 @@ import {
 } from "@mui/material";
 import { DeadLetterQueueTable, DeadLetterQueueStats } from "../components/DeadLetterQueue";
 import { CircuitBreakerStatus } from "../components/CircuitBreaker/CircuitBreakerStatus";
+import PageBreadcrumbs from "../components/PageBreadcrumbs";
 
 interface TabPanelProps {
   children?: React.ReactNode;
@@ -45,66 +46,69 @@ export function OperationsPage() {
   };
 
   return (
-    <Container maxWidth="xl" sx={{ py: 4 }}>
-      <Typography variant="h4" gutterBottom>
-        Operations Management
-      </Typography>
+    <>
+      <PageBreadcrumbs />
+      <Container maxWidth="xl" sx={{ py: 4 }}>
+        <Typography variant="h4" gutterBottom>
+          Operations Management
+        </Typography>
 
-      <Paper sx={{ mt: 3 }}>
-        <Tabs value={tabValue} onChange={handleTabChange}>
-          <Tab label="Dead Letter Queue" />
-          <Tab label="Circuit Breakers" />
-        </Tabs>
+        <Paper sx={{ mt: 3 }}>
+          <Tabs value={tabValue} onChange={handleTabChange}>
+            <Tab label="Dead Letter Queue" />
+            <Tab label="Circuit Breakers" />
+          </Tabs>
 
-        <TabPanel value={tabValue} index={0}>
-          <Stack spacing={3}>
-            <DeadLetterQueueStats />
+          <TabPanel value={tabValue} index={0}>
+            <Stack spacing={3}>
+              <DeadLetterQueueStats />
 
-            <Box>
-              <Stack direction="row" spacing={2} sx={{ mb: 2 }}>
-                <FormControl size="small" sx={{ minWidth: 200 }}>
-                  <InputLabel>Component</InputLabel>
-                  <Select
-                    value={componentFilter}
-                    label="Component"
-                    onChange={(e) => setComponentFilter(e.target.value)}
-                  >
-                    <MenuItem value="">All</MenuItem>
-                    <MenuItem value="ese_detection">ESE Detection</MenuItem>
-                    <MenuItem value="calibration">Calibration</MenuItem>
-                    <MenuItem value="photometry">Photometry</MenuItem>
-                    <MenuItem value="pipeline">Pipeline</MenuItem>
-                  </Select>
-                </FormControl>
+              <Box>
+                <Stack direction="row" spacing={2} sx={{ mb: 2 }}>
+                  <FormControl size="small" sx={{ minWidth: 200 }}>
+                    <InputLabel>Component</InputLabel>
+                    <Select
+                      value={componentFilter}
+                      label="Component"
+                      onChange={(e) => setComponentFilter(e.target.value)}
+                    >
+                      <MenuItem value="">All</MenuItem>
+                      <MenuItem value="ese_detection">ESE Detection</MenuItem>
+                      <MenuItem value="calibration">Calibration</MenuItem>
+                      <MenuItem value="photometry">Photometry</MenuItem>
+                      <MenuItem value="pipeline">Pipeline</MenuItem>
+                    </Select>
+                  </FormControl>
 
-                <FormControl size="small" sx={{ minWidth: 200 }}>
-                  <InputLabel>Status</InputLabel>
-                  <Select
-                    value={statusFilter}
-                    label="Status"
-                    onChange={(e) => setStatusFilter(e.target.value)}
-                  >
-                    <MenuItem value="pending">Pending</MenuItem>
-                    <MenuItem value="retrying">Retrying</MenuItem>
-                    <MenuItem value="resolved">Resolved</MenuItem>
-                    <MenuItem value="failed">Failed</MenuItem>
-                  </Select>
-                </FormControl>
-              </Stack>
+                  <FormControl size="small" sx={{ minWidth: 200 }}>
+                    <InputLabel>Status</InputLabel>
+                    <Select
+                      value={statusFilter}
+                      label="Status"
+                      onChange={(e) => setStatusFilter(e.target.value)}
+                    >
+                      <MenuItem value="pending">Pending</MenuItem>
+                      <MenuItem value="retrying">Retrying</MenuItem>
+                      <MenuItem value="resolved">Resolved</MenuItem>
+                      <MenuItem value="failed">Failed</MenuItem>
+                    </Select>
+                  </FormControl>
+                </Stack>
 
-              <DeadLetterQueueTable
-                component={componentFilter || undefined}
-                status={statusFilter}
-                limit={100}
-              />
-            </Box>
-          </Stack>
-        </TabPanel>
+                <DeadLetterQueueTable
+                  component={componentFilter || undefined}
+                  status={statusFilter}
+                  limit={100}
+                />
+              </Box>
+            </Stack>
+          </TabPanel>
 
-        <TabPanel value={tabValue} index={1}>
-          <CircuitBreakerStatus />
-        </TabPanel>
-      </Paper>
-    </Container>
+          <TabPanel value={tabValue} index={1}>
+            <CircuitBreakerStatus />
+          </TabPanel>
+        </Paper>
+      </Container>
+    </>
   );
 }

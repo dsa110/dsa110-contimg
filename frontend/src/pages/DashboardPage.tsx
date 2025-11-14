@@ -9,10 +9,21 @@ import { MetricWithSparkline } from "../components/Sparkline";
 import { SkeletonLoader } from "../components/SkeletonLoader";
 import CollapsibleSection from "../components/CollapsibleSection";
 import PageBreadcrumbs from "../components/PageBreadcrumbs";
+import { useMetricHistory } from "../hooks/useMetricHistory";
 
 export default function DashboardPage() {
   const { data: status, isLoading: statusLoading, error: statusError } = usePipelineStatus();
   const { data: metrics, isLoading: metricsLoading, error: metricsError } = useSystemMetrics();
+
+  // Track metric history for sparklines
+  const cpuHistory = useMetricHistory(metrics?.cpu_percent);
+  const memHistory = useMetricHistory(metrics?.mem_percent);
+  const diskHistory = useMetricHistory(
+    metrics?.disk_total && metrics?.disk_used
+      ? (metrics.disk_used / metrics.disk_total) * 100
+      : undefined
+  );
+  const loadHistory = useMetricHistory(metrics?.load_1);
 
   if (statusLoading || metricsLoading) {
     return (
@@ -124,6 +135,10 @@ export default function DashboardPage() {
                       thresholds={{ good: 70, warning: 50 }}
                       label="CPU"
                       size="medium"
+                      showTrend={cpuHistory.length > 1}
+                      previousValue={
+                        cpuHistory.length > 1 ? cpuHistory[cpuHistory.length - 2] : undefined
+                      }
                     />
                   )}
                   {metrics?.mem_percent !== undefined && (
@@ -132,6 +147,10 @@ export default function DashboardPage() {
                       thresholds={{ good: 80, warning: 60 }}
                       label="Memory"
                       size="medium"
+                      showTrend={memHistory.length > 1}
+                      previousValue={
+                        memHistory.length > 1 ? memHistory[memHistory.length - 2] : undefined
+                      }
                     />
                   )}
                   {metrics?.disk_total && metrics?.disk_used && (
@@ -140,14 +159,19 @@ export default function DashboardPage() {
                       thresholds={{ good: 75, warning: 90 }}
                       label="Disk"
                       size="medium"
+                      showTrend={diskHistory.length > 1}
+                      previousValue={
+                        diskHistory.length > 1 ? diskHistory[diskHistory.length - 2] : undefined
+                      }
                     />
                   )}
                   {metrics?.load_1 !== undefined && (
-                    <MetricCard
+                    <MetricWithSparkline
                       label="Load (1m)"
                       value={metrics.load_1.toFixed(2)}
                       color="info"
                       size="small"
+                      sparklineData={loadHistory.length > 1 ? loadHistory : undefined}
                     />
                   )}
                 </Box>

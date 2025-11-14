@@ -32,8 +32,18 @@ echo "Build started at: $(date)"
 # Clean previous build
 if [[ -d "${BUILD_DIR}" ]]; then
     echo "Cleaning previous build..."
-    rm -rf "${BUILD_DIR}"
+    # Try to remove directory, fall back to clearing contents if protected
+    if rm -rf "${BUILD_DIR}" 2>/dev/null; then
+        echo "Previous build cleaned successfully"
+    else
+        echo "Warning: Could not remove ${BUILD_DIR}, attempting to clear contents..."
+        find "${BUILD_DIR}" -mindepth 1 -delete 2>/dev/null || true
+    fi
 fi
+
+# Ensure build directory exists and has correct permissions
+mkdir -p "${BUILD_DIR}"
+chmod 755 "${BUILD_DIR}" 2>/dev/null || true
 
 # Install dependencies if needed
 if [[ ! -d "node_modules" ]] || [[ "package.json" -nt "node_modules" ]]; then
@@ -45,6 +55,8 @@ fi
 # Note: Using build:no-check to skip TypeScript errors temporarily
 # TODO: Fix TypeScript errors and switch back to "build"
 echo "Running production build (skipping type check due to pre-existing errors)..."
+# Increase Node.js heap size to prevent OOM during build
+export NODE_OPTIONS="--max-old-space-size=4096"
 NODE_ENV=production "${CASA6_NPM}" run build:no-check
 
 # Verify build output

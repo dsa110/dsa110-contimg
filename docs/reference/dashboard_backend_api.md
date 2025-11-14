@@ -20,6 +20,10 @@ generated from the code and is the single source of truth.
 
 - `/api/alerts/history`
 
+### available
+
+- `/api/available`
+
 ### batch
 
 - `/api/batch`
@@ -32,6 +36,10 @@ generated from the code and is the single source of truth.
 - `/api/batch/publish`
 - `/api/batch/{batch_id}`
 - `/api/batch/{batch_id}/cancel`
+
+### cache
+
+- `/api/cache/stats`
 
 ### calibrator_matches
 
@@ -97,6 +105,7 @@ generated from the code and is the single source of truth.
 - `/api/jobs/id/{job_id}/logs`
 - `/api/jobs/image`
 - `/api/jobs/workflow`
+- `/api/jobs/{job_id}`
 
 ### keys
 
@@ -115,6 +124,7 @@ generated from the code and is the single source of truth.
 
 ### metrics
 
+- `/api/metrics`
 - `/api/metrics/system`
 - `/api/metrics/system/history`
 
@@ -216,6 +226,15 @@ generated from the code and is the single source of truth.
 - `/api/qa/images/{image_id}/validation-report/generate`
 - `/api/qa/thumbs`
 - `/api/qa/{ms_path:path}`
+
+### queues
+
+- `/api/queues/{queue_name}/enqueue`
+- `/api/queues/{queue_name}/stats`
+
+### rate-limiting
+
+- `/api/rate-limiting/stats`
 
 ### regions
 

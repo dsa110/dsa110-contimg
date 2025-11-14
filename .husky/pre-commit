@@ -18,7 +18,7 @@ cd "$REPO_ROOT" || {
 if command -v python3 >/dev/null 2>&1; then
   echo "Running documentation audit..."
   if ! python3 scripts/doc_audit.py; then
-    echo "\n[doc-audit] Documentation audit failed. Fix issues or run: python3 scripts/doc_audit.py\n" >&2
+    printf "\n[doc-audit] Documentation audit failed. Fix issues or run: python3 scripts/doc_audit.py\n\n" >&2
     exit 1
   fi
 fi
