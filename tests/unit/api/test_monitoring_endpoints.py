@@ -288,7 +288,7 @@ def test_monitoring_endpoints_handle_empty_database(tmp_path, monkeypatch):
     conn = ensure_data_registry_db(db_path)
     conn.close()
 
-    monkeypatch.setenv("PIPELINE_STATE_DIR", str(tmp_path))
+    monkeypatch.setenv("PIPELINE_PRODUCTS_DB", str(db_path))
 
     app = create_app()
     client = TestClient(app)
