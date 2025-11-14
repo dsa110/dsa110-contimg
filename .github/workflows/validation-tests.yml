@@ -40,6 +40,8 @@ jobs:
           python -m pip install --upgrade pip
           pip install pytest pytest-cov pytest-xdist pytest-timeout pytest-mock
           if [ -f requirements-test.txt ]; then pip install -r requirements-test.txt; fi
+          # Install the package in editable mode
+          pip install -e .
 
       - name: Run impacted tests (fail-fast)
         run: |
@@ -65,6 +67,8 @@ jobs:
           set -euo pipefail
           python -m pip install --upgrade pip
           pip install -r requirements-test.txt
+          # Install the package in editable mode
+          pip install -e .
 
       - name: Run unit tests with mocking
         run: |
@@ -110,6 +114,8 @@ jobs:
 
           # Install test dependencies
           pip install -r requirements-test.txt
+          # Install the package in editable mode
+          pip install -e .
 
           # Run validation tests
           pytest tests/unit/ -v --tb=short || echo "Validation tests completed with issues"
@@ -149,6 +155,8 @@ jobs:
 
           # Install test dependencies
           pip install -r requirements-test.txt
+          # Install the package in editable mode
+          pip install -e .
 
           # Run integration tests
           pytest tests/integration/ -v --tb=short || echo "Integration tests completed with issues"
@@ -189,6 +197,8 @@ jobs:
           # Install test and benchmark dependencies
           pip install -r requirements-test.txt
           pip install pytest-benchmark memory-profiler
+          # Install the package in editable mode
+          pip install -e .
 
           # Run performance tests if they exist
           if [ -d "tests/performance" ]; then
