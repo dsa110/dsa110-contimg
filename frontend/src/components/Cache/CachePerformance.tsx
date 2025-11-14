@@ -1,4 +1,4 @@
-import React from "react";
+// import React from "react";
 import {
   Box,
   Card,
@@ -42,7 +42,12 @@ export default function CachePerformance() {
         </Typography>
 
         <Grid container spacing={3}>
-          <Grid item xs={12} md={6}>
+          <Grid
+            size={{
+              xs: 12,
+              md: 6,
+            }}
+          >
             <Box sx={{ mb: 3 }}>
               <Box sx={{ display: "flex", justifyContent: "space-between", mb: 1 }}>
                 <Typography variant="body1" fontWeight="bold">
@@ -74,7 +79,12 @@ export default function CachePerformance() {
             </Box>
           </Grid>
 
-          <Grid item xs={12} md={6}>
+          <Grid
+            size={{
+              xs: 12,
+              md: 6,
+            }}
+          >
             <Card variant="outlined">
               <CardContent>
                 <Typography variant="subtitle1" gutterBottom>

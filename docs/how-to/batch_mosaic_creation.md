@@ -4,8 +4,8 @@
 **Status:** complete  
 **Related:**
 
-- [create_mosaic_centered.py](../../scripts/create_mosaic_centered.py) - Base
-  script
+- [create_mosaic_centered.py](../../scripts/mosaic/create_mosaic_centered.py) -
+  Base script
 - [Batch Mode Guide](batch_mode_guide.md) - General batch processing
 - [Mosaic Quickstart](mosaic_quickstart.md) - Single mosaic creation
 
@@ -15,8 +15,8 @@
 
 This guide explains how to run the DSA-110 Continuum Imaging Pipeline in batch
 mode to create multiple mosaics centered on calibrator transits. The workflow is
-based on `scripts/create_mosaic_centered.py`, which orchestrates the complete
-end-to-end pipeline from HDF5 data to published science-ready mosaics.
+based on `scripts/mosaic/create_mosaic_centered.py`, which orchestrates the
+complete end-to-end pipeline from HDF5 data to published science-ready mosaics.
 
 **What this guide covers:**
 
@@ -65,7 +65,7 @@ Before running batch mode, understand the single-mosaic workflow:
 ```bash
 cd /data/dsa110-contimg
 PYTHONPATH=/data/dsa110-contimg/src \
-/opt/miniforge/envs/casa6/bin/python scripts/create_mosaic_centered.py \
+/opt/miniforge/envs/casa6/bin/python scripts/mosaic/create_mosaic_centered.py \
     --calibrator 0834+555 \
     --timespan-minutes 50
 ```
@@ -93,7 +93,7 @@ PYTHONPATH=/data/dsa110-contimg/src \
 
 ```bash
 PYTHONPATH=/data/dsa110-contimg/src \
-/opt/miniforge/envs/casa6/bin/python scripts/create_mosaic_centered.py \
+/opt/miniforge/envs/casa6/bin/python scripts/mosaic/create_mosaic_centered.py \
     --calibrator 0834+555 \
     --timespan-minutes 50 \
     --no-wait
@@ -114,6 +114,9 @@ Process multiple calibrators one at a time:
 #!/bin/bash
 # batch_sequential_calibrators.sh
 
+set -euo pipefail
+IFS=$'\n\t'
+
 CALIBRATORS=("0834+555" "3C48" "3C147" "3C286")
 TIMESPAN=50
 
@@ -123,7 +126,7 @@ export PYTHONPATH=/data/dsa110-contimg/src
 for cal in "${CALIBRATORS[@]}"; do
     echo "Processing calibrator: $cal"
 
-    /opt/miniforge/envs/casa6/bin/python scripts/create_mosaic_centered.py \
+    /opt/miniforge/envs/casa6/bin/python scripts/mosaic/create_mosaic_centered.py \
         --calibrator "$cal" \
         --timespan-minutes "$TIMESPAN" \
         --max-wait-hours 24.0
@@ -136,6 +139,9 @@ for cal in "${CALIBRATORS[@]}"; do
     fi
 done
 ```
+
+`set -euo pipefail` ensures unexpected failures stop the run immediately instead
+of continuing with stale state.
 
 **Execution:**
 
@@ -173,7 +179,7 @@ while IFS= read -r cal; do
 
     echo "Processing: $cal"
 
-    /opt/miniforge/envs/casa6/bin/python scripts/create_mosaic_centered.py \
+    /opt/miniforge/envs/casa6/bin/python scripts/mosaic/create_mosaic_centered.py \
         --calibrator "$cal" \
         --timespan-minutes "$TIMESPAN"
 
@@ -231,6 +237,9 @@ Run multiple calibrators in parallel using background jobs:
 #!/bin/bash
 # batch_parallel_simple.sh
 
+set -euo pipefail
+IFS=$'\n\t'
+
 CALIBRATORS=("0834+555" "3C48" "3C147" "3C286")
 TIMESPAN=50
 MAX_PARALLEL=2  # Limit concurrent jobs
@@ -238,19 +247,26 @@ MAX_PARALLEL=2  # Limit concurrent jobs
 cd /data/dsa110-contimg
 export PYTHONPATH=/data/dsa110-contimg/src
 
-# Array to track background job PIDs
-declare -a PIDS=()
+declare -A JOBS=()  # Track PID -> calibrator name
+
+reap_finished_jobs() {
+    for pid in "${!JOBS[@]}"; do
+        if ! kill -0 "$pid"; then
+            if wait "$pid"; then
+                echo "Job $pid (${JOBS[$pid]}) completed successfully"
+            else
+                status=$?
+                echo "Job $pid (${JOBS[$pid]}) FAILED with exit code $status"
+            fi
+            unset 'JOBS[$pid]'
+        fi
+    done
+}
 
 for cal in "${CALIBRATORS[@]}"; do
     # Wait if we've hit the parallel limit
-    while [ ${#PIDS[@]} -ge $MAX_PARALLEL ]; do
-        # Check which jobs are still running
-        for pid in "${PIDS[@]}"; do
-            if ! kill -0 "$pid" 2>/dev/null; then
-                # Job finished, remove from array
-                PIDS=("${PIDS[@]/$pid}")
-            fi
-        done
+    while [ "${#JOBS[@]}" -ge "$MAX_PARALLEL" ]; do
+        reap_finished_jobs
         sleep 5
     done
 
@@ -258,25 +274,29 @@ for cal in "${CALIBRATORS[@]}"; do
 
     # Run in background with no-wait to avoid blocking
     (
-        /opt/miniforge/envs/casa6/bin/python scripts/create_mosaic_centered.py \
+        /opt/miniforge/envs/casa6/bin/python scripts/mosaic/create_mosaic_centered.py \
             --calibrator "$cal" \
             --timespan-minutes "$TIMESPAN" \
             --no-wait > "mosaic_${cal}.log" 2>&1
     ) &
 
-    PIDS+=($!)
-    echo "Started job for $cal (PID: $!)"
+    pid=$!
+    JOBS["$pid"]="$cal"
+    echo "Started job for $cal (PID: $pid)"
 done
 
 # Wait for all remaining jobs
 echo "Waiting for all jobs to complete..."
-for pid in "${PIDS[@]}"; do
-    wait "$pid"
-    echo "Job $pid completed"
+while [ "${#JOBS[@]}" -gt 0 ]; do
+    reap_finished_jobs
+    sleep 5
 done
 
 echo "All batch jobs finished"
 ```
+
+Do not redirect `kill` or `wait` errors—seeing those messages helps catch
+orphaned or crashed jobs quickly.
 
 ### Method 2: GNU Parallel (Advanced)
 
@@ -298,7 +318,7 @@ EOF
 cat job_list.txt | parallel -j 2 \
     "cd /data/dsa110-contimg && \
      PYTHONPATH=/data/dsa110-contimg/src \
-     /opt/miniforge/envs/casa6/bin/python scripts/create_mosaic_centered.py \
+     /opt/miniforge/envs/casa6/bin/python scripts/mosaic/create_mosaic_centered.py \
          --calibrator {} \
          --timespan-minutes 50 \
          --no-wait \
@@ -398,6 +418,10 @@ PYTHONPATH=/data/dsa110-contimg/src \
 /opt/miniforge/envs/casa6/bin/python batch_parallel_mosaics.py
 ```
 
+Each worker spins up its own `MosaicOrchestrator` (and SQLite connections), so
+start with `max_workers=1` or `2` and increase only after confirming you are not
+hitting `database is locked` warnings.
+
 ---
 
 ## Monitoring Batch Execution
@@ -477,7 +501,7 @@ CALIBRATORS=("0834+555" "3C48" "3C147")
 FAILED=()
 
 for cal in "${CALIBRATORS[@]}"; do
-    if ! /opt/miniforge/envs/casa6/bin/python scripts/create_mosaic_centered.py \
+    if ! /opt/miniforge/envs/casa6/bin/python scripts/mosaic/create_mosaic_centered.py \
         --calibrator "$cal" \
         --timespan-minutes 50; then
         FAILED+=("$cal")
@@ -490,7 +514,7 @@ if [ ${#FAILED[@]} -gt 0 ]; then
     echo "Retrying failed calibrators: ${FAILED[*]}"
     for cal in "${FAILED[@]}"; do
         # Retry with longer timeout
-        /opt/miniforge/envs/casa6/bin/python scripts/create_mosaic_centered.py \
+        /opt/miniforge/envs/casa6/bin/python scripts/mosaic/create_mosaic_centered.py \
             --calibrator "$cal" \
             --timespan-minutes 50 \
             --max-wait-hours 48.0
@@ -528,7 +552,7 @@ while IFS= read -r cal; do
 
     echo "Processing: $cal"
 
-    if /opt/miniforge/envs/casa6/bin/python scripts/create_mosaic_centered.py \
+    if /opt/miniforge/envs/casa6/bin/python scripts/mosaic/create_mosaic_centered.py \
         --calibrator "$cal" \
         --timespan-minutes 50; then
         echo "$cal" >> "$COMPLETED_FILE"
@@ -613,7 +637,7 @@ while IFS= read -r cal; do
     # Launch job
     (
         echo "Starting: $cal at $(date)"
-        /opt/miniforge/envs/casa6/bin/python scripts/create_mosaic_centered.py \
+        /opt/miniforge/envs/casa6/bin/python scripts/mosaic/create_mosaic_centered.py \
             --calibrator "$cal" \
             --timespan-minutes "$TIMESPAN" \
             --no-wait \
@@ -666,7 +690,7 @@ Run with verbose logging:
 
 ```bash
 PYTHONPATH=/data/dsa110-contimg/src \
-/opt/miniforge/envs/casa6/bin/python -u scripts/create_mosaic_centered.py \
+/opt/miniforge/envs/casa6/bin/python -u scripts/mosaic/create_mosaic_centered.py \
     --calibrator 0834+555 \
     --timespan-minutes 50 \
     2>&1 | tee debug_mosaic.log
@@ -676,8 +700,8 @@ PYTHONPATH=/data/dsa110-contimg/src \
 
 ## See Also
 
-- [create_mosaic_centered.py](../../scripts/create_mosaic_centered.py) - Base
-  script implementation
+- [create_mosaic_centered.py](../../scripts/mosaic/create_mosaic_centered.py) -
+  Base script implementation
 - [Mosaic Orchestrator](../../src/dsa110_contimg/mosaic/orchestrator.py) - Core
   orchestrator class
 - [Batch Mode Guide](batch_mode_guide.md) - General batch processing patterns

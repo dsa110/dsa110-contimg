@@ -234,8 +234,11 @@ export default function MosaicGalleryPage() {
                             <Chip label={status.label} color={status.color} size="small" />
                           </Box>
                           <Typography variant="body2" color="text.secondary">
-                            {new Date(mosaic.start_time).toLocaleString()} →<br />
-                            {new Date(mosaic.end_time).toLocaleString()}
+                            {mosaic.start_time
+                              ? new Date(mosaic.start_time).toLocaleString()
+                              : "N/A"}{" "}
+                            →<br />
+                            {mosaic.end_time ? new Date(mosaic.end_time).toLocaleString() : "N/A"}
                           </Typography>
                           <Box mt={2} display="flex" gap={2} flexWrap="wrap">
                             <Chip
@@ -243,11 +246,13 @@ export default function MosaicGalleryPage() {
                               size="small"
                               variant="outlined"
                             />
-                            <Chip
-                              label={`${(mosaic.noise_jy * 1000).toFixed(2)} mJy noise`}
-                              size="small"
-                              variant="outlined"
-                            />
+                            {mosaic.noise_jy != null && (
+                              <Chip
+                                label={`${(mosaic.noise_jy * 1000).toFixed(2)} mJy noise`}
+                                size="small"
+                                variant="outlined"
+                              />
+                            )}
                             <Chip
                               label={`${mosaic.image_count} images`}
                               size="small"

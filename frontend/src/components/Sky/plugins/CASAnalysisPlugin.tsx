@@ -3,7 +3,7 @@
  * Integrates server-side CASA analysis tasks (imstat, imfit, imview, specflux, imval) into JS9 viewer
  * Reference: https://js9.si.edu/js9/help/localtasks.html
  */
-import { useEffect, useRef, useState, useCallback } from "react";
+import { useEffect, useRef, useState } from "react";
 import {
   Dialog,
   DialogTitle,
@@ -39,7 +39,7 @@ import {
 } from "@mui/icons-material";
 import { apiClient } from "../../../api/client";
 import { logger } from "../../../utils/logger";
-import { findDisplay, isJS9Available } from "../../../utils/js9";
+import { isJS9Available } from "../../../utils/js9";
 import ContourOverlay from "./ContourOverlay";
 
 declare global {

@@ -129,8 +129,8 @@ export default defineConfig({
     chunkSizeWarningLimit: 1000,
   },
   resolve: {
-    // Ensure proper module resolution for date-fns
-    dedupe: ["date-fns"],
+    // Ensure proper module resolution and prevent multiple React copies
+    dedupe: ["react", "react-dom", "date-fns"],
   },
   optimizeDeps: {
     include: ["date-fns"],

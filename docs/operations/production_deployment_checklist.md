@@ -21,7 +21,8 @@
 
 ### Environment Setup
 
-- [ ] Verify casa6 Python environment exists: `/opt/miniforge/envs/casa6/bin/python`
+- [ ] Verify casa6 Python environment exists:
+      `/opt/miniforge/envs/casa6/bin/python`
 - [ ] Verify required directories exist:
   - [ ] `/stage/dsa110-contimg/` (SSD staging)
   - [ ] `/data/dsa110-contimg/products/` (HDD production)
@@ -54,23 +55,29 @@
   - [ ] `CONTIMG_INPUT_DIR` (default: `/data/incoming`)
   - [ ] `CONTIMG_OUTPUT_DIR` (default: `/stage/dsa110-contimg`)
   - [ ] `CONTIMG_STATE_DIR` (default: `/data/dsa110-contimg/state`)
-  - [ ] `CONTIMG_PRODUCTS_DB` (default: `/data/dsa110-contimg/state/products.sqlite3`)
-  - [ ] `CONTIMG_REGISTRY_DB` (default: `/data/dsa110-contimg/state/data_registry.sqlite3`)
-- [ ] Verify CASA6 Python path: `CASA6_PYTHON_BIN=/opt/miniforge/envs/casa6/bin/python`
+  - [ ] `CONTIMG_PRODUCTS_DB` (default:
+        `/data/dsa110-contimg/state/products.sqlite3`)
+  - [ ] `CONTIMG_REGISTRY_DB` (default:
+        `/data/dsa110-contimg/state/data_registry.sqlite3`)
+- [ ] Verify CASA6 Python path:
+      `CASA6_PYTHON_BIN=/opt/miniforge/envs/casa6/bin/python`
 - [ ] Review pipeline configuration files (if any)
 
 ### Service Deployment
 
 - [ ] **API Service:**
-  - [ ] Copy systemd service file: `ops/systemd/contimg-api.service` → `/etc/systemd/system/`
-  - [ ] Copy environment file: `ops/systemd/contimg.env` → `/data/dsa110-contimg/ops/systemd/`
+  - [ ] Copy systemd service file: `ops/systemd/contimg-api.service` →
+        `/etc/systemd/system/`
+  - [ ] Copy environment file: `ops/systemd/contimg.env` →
+        `/data/dsa110-contimg/ops/systemd/`
   - [ ] Reload systemd: `sudo systemctl daemon-reload`
   - [ ] Enable service: `sudo systemctl enable contimg-api.service`
   - [ ] Start service: `sudo systemctl start contimg-api.service`
   - [ ] Verify status: `sudo systemctl status contimg-api.service`
 
 - [ ] **Streaming Service (if enabled):**
-  - [ ] Copy systemd service file: `ops/systemd/contimg-stream.service` → `/etc/systemd/system/`
+  - [ ] Copy systemd service file: `ops/systemd/contimg-stream.service` →
+        `/etc/systemd/system/`
   - [ ] Enable service: `sudo systemctl enable contimg-stream.service`
   - [ ] Start service: `sudo systemctl start contimg-stream.service`
   - [ ] Verify status: `sudo systemctl status contimg-stream.service`
@@ -94,8 +101,10 @@
   - [ ] Check for any database errors in logs
 
 - [ ] **Monitoring Endpoints:**
-  - [ ] Check publish status: `curl http://localhost:8000/api/monitoring/publish/status`
-  - [ ] Check failed publishes: `curl http://localhost:8000/api/monitoring/publish/failed`
+  - [ ] Check publish status:
+        `curl http://localhost:8000/api/monitoring/publish/status`
+  - [ ] Check failed publishes:
+        `curl http://localhost:8000/api/monitoring/publish/failed`
   - [ ] Verify response includes metrics
 
 ### Logging Setup
@@ -104,14 +113,17 @@
   - [ ] `/data/dsa110-contimg/state/logs/`
 - [ ] Verify log rotation configured (if applicable)
 - [ ] Test log writing:
-  - [ ] Check API logs: `tail -f /data/dsa110-contimg/state/logs/contimg-api.out`
-  - [ ] Check API errors: `tail -f /data/dsa110-contimg/state/logs/contimg-api.err`
+  - [ ] Check API logs:
+        `tail -f /data/dsa110-contimg/state/logs/contimg-api.out`
+  - [ ] Check API errors:
+        `tail -f /data/dsa110-contimg/state/logs/contimg-api.err`
 
 ### Monitoring Setup
 
 - [ ] **Metrics Collection:**
   - [ ] Verify monitoring script exists: `scripts/monitor_publish_status.py`
-  - [ ] Test monitoring script: `python scripts/monitor_publish_status.py --test`
+  - [ ] Test monitoring script:
+        `python scripts/monitor_publish_status.py --test`
   - [ ] Set up cron job for periodic monitoring (if desired)
 
 - [ ] **Alerting (Optional):**
@@ -137,9 +149,12 @@
 
 ### Documentation
 
-- [ ] Review production readiness plan: `docs/reports/production_readiness_plan_2025-11-11.md`
-- [ ] Review safeguards documentation: `docs/reports/safeguards_implemented_2025-11-10.md`
-- [ ] Review enhancements documentation: `docs/reports/enhancements_implemented_2025-11-11.md`
+- [ ] Review production readiness plan:
+      `docs/reports/production_readiness_plan_2025-11-11.md`
+- [ ] Review safeguards documentation:
+      `docs/reports/safeguards_implemented_2025-11-10.md`
+- [ ] Review enhancements documentation:
+      `docs/reports/enhancements_implemented_2025-11-11.md`
 - [ ] Document any custom configuration changes
 
 ---
@@ -192,7 +207,7 @@ curl http://localhost:8000/api/monitoring/publish/failed
 python scripts/monitor_publish_status.py --daemon
 
 # Or set up cron job
-# Add to crontab: */5 * * * * /opt/miniforge/envs/casa6/bin/python /data/dsa110-contimg/scripts/monitor_publish_status.py
+# Add to crontab: */5 * * * * /data/dsa110-contimg/scripts/run_casa_cmd.sh /opt/miniforge/envs/casa6/bin/python /data/dsa110-contimg/scripts/monitor_publish_status.py
 ```
 
 ---
@@ -226,12 +241,14 @@ python scripts/monitor_publish_status.py --daemon
 If issues occur after deployment:
 
 1. **Stop Services:**
+
    ```bash
    sudo systemctl stop contimg-api.service
    sudo systemctl stop contimg-stream.service
    ```
 
 2. **Review Logs:**
+
    ```bash
    tail -100 /data/dsa110-contimg/state/logs/contimg-api.err
    ```
@@ -259,13 +276,15 @@ If issues occur after deployment:
 
 ## Related Documentation
 
-- **Production Readiness Plan:** `docs/reports/production_readiness_plan_2025-11-11.md`
-- **Safeguards Implemented:** `docs/reports/safeguards_implemented_2025-11-10.md`
-- **Enhancements Implemented:** `docs/reports/enhancements_implemented_2025-11-11.md`
+- **Production Readiness Plan:**
+  `docs/reports/production_readiness_plan_2025-11-11.md`
+- **Safeguards Implemented:**
+  `docs/reports/safeguards_implemented_2025-11-10.md`
+- **Enhancements Implemented:**
+  `docs/reports/enhancements_implemented_2025-11-11.md`
 - **API Documentation:** `docs/reference/dashboard_backend_api.md`
 
 ---
 
 **Status:** Ready for Production Deployment  
 **Last Updated:** 2025-11-11
-

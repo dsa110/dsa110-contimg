@@ -6,7 +6,7 @@
  */
 
 import { logger } from "../../utils/logger";
-import { RasterTileData, RasterTile, ImageBounds, Point } from "../../services/cartaProtobuf";
+import type { RasterTileData, RasterTile, ImageBounds, Point } from "../../services/cartaProtobuf";
 
 export interface RenderOptions {
   /** Color scale (linear, log, sqrt, etc.) */
@@ -258,7 +258,7 @@ export class CARTAImageRenderer {
   private async decodeJPEG(jpegData: Uint8Array): Promise<Uint8Array | null> {
     try {
       // Create blob and load as image
-      const blob = new Blob([jpegData], { type: "image/jpeg" });
+      const blob = new Blob([jpegData as BlobPart], { type: "image/jpeg" });
       const url = URL.createObjectURL(blob);
       const img = new Image();
 
@@ -301,7 +301,7 @@ export class CARTAImageRenderer {
   private async decodePNG(pngData: Uint8Array): Promise<Uint8Array | null> {
     try {
       // Create blob and load as image
-      const blob = new Blob([pngData], { type: "image/png" });
+      const blob = new Blob([pngData as BlobPart], { type: "image/png" });
       const url = URL.createObjectURL(blob);
       const img = new Image();
 
@@ -380,7 +380,9 @@ export class CARTAImageRenderer {
       }
 
       // Apply brightness and contrast
-      value = (value - 0.5) * contrast + 0.5 + (brightness - 1.0) * 0.5;
+      const contrastValue = contrast ?? 1.0;
+      const brightnessValue = brightness ?? 1.0;
+      value = (value - 0.5) * contrastValue + 0.5 + (brightnessValue - 1.0) * 0.5;
       value = Math.max(0, Math.min(1, value));
 
       // Apply color map

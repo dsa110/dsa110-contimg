@@ -200,6 +200,7 @@ If SARIF file is too large:
 
 ## Related Documentation
 
-- `CODEQL_RESULTS_SUMMARY.md` - Analysis summary
+- `internal/docs/dev/status/2025-11/codeql_results_summary.md` - Analysis
+  summary
 - `docs/how-to/fixing_codeql_security_issues.md` - How to fix issues
 - `docs/how-to/codeql_setup_and_usage.md` - CodeQL usage guide

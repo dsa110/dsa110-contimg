@@ -25,24 +25,24 @@ import ExpandMoreIcon from "@mui/icons-material/ExpandMore";
 import ZoomInIcon from "@mui/icons-material/ZoomIn";
 import ZoomOutIcon from "@mui/icons-material/ZoomOut";
 import FitScreenIcon from "@mui/icons-material/FitScreen";
-import { CARTAClient, CARTAConfig } from "../../services/cartaClient";
+import { CARTAClient } from "../../services/cartaClient";
+import type { CARTAConfig } from "../../services/cartaClient";
 import { logger } from "../../utils/logger";
 import { CARTAImageRenderer } from "./CARTAImageRenderer";
 import { CARTAZoomPan } from "./CARTAZoomPan";
 import CARTAProfilePlot from "./CARTAProfilePlot";
 import CARTAHistogram from "./CARTAHistogram";
 import CARTARegionSelector from "./CARTARegionSelector";
-import {
-  CARTAMessageType,
+import type {
   FileInfo,
   RasterTileData,
   SetRegionRequest,
-  RegionType,
   Point,
   SpatialProfileData,
   SpectralProfileData,
   RegionHistogramData,
 } from "../../services/cartaProtobuf";
+import { RegionType, CARTAMessageType } from "../../services/cartaProtobuf";
 
 interface CARTAViewerProps {
   /** CARTA backend URL (e.g., "http://localhost:9002" or "ws://localhost:9002") */
@@ -703,7 +703,6 @@ export default function CARTAViewer({
           Histogram
         </Button>
       </Box>
-
       {showFileInfo && fileInfo && (
         <Accordion expanded={showFileInfo} sx={{ maxHeight: "200px", overflow: "auto" }}>
           <AccordionSummary expandIcon={<ExpandMoreIcon />}>
@@ -749,9 +748,8 @@ export default function CARTAViewer({
           </AccordionDetails>
         </Accordion>
       )}
-
       <Grid container sx={{ flex: 1, overflow: "hidden" }}>
-        <Grid item xs={showProfiles || showHistogram ? 8 : 12} sx={{ position: "relative" }}>
+        <Grid sx={{ position: "relative" }} size={showProfiles || showHistogram ? 8 : 12}>
           <Box
             sx={{
               width: "100%",
@@ -778,7 +776,7 @@ export default function CARTAViewer({
           </Box>
         </Grid>
         {(showProfiles || showHistogram) && (
-          <Grid item xs={4} sx={{ borderLeft: 1, borderColor: "divider", overflow: "auto" }}>
+          <Grid sx={{ borderLeft: 1, borderColor: "divider", overflow: "auto" }} size={4}>
             <Box sx={{ p: 1, display: "flex", flexDirection: "column", gap: 2, height: "100%" }}>
               {showProfiles && (spatialProfile || spectralProfile) && (
                 <CARTAProfilePlot

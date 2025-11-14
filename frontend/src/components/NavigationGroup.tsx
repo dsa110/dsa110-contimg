@@ -1,7 +1,7 @@
 import React, { useState } from "react";
 import { Button, Menu, MenuItem, ListItemIcon, ListItemText, Chip } from "@mui/material";
 import { ExpandMore, CheckCircle as Check } from "@mui/icons-material";
-import { useNavigate, useLocation } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
 
 interface NavItem {
   label: string;

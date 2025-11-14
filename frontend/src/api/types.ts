@@ -108,26 +108,6 @@ export interface CircuitBreakerList {
   circuit_breakers: CircuitBreakerState[];
 }
 
-// Health Check Types (enhanced)
-export interface HealthCheck {
-  healthy: boolean;
-  error?: string;
-  type?: string;
-  [key: string]: any;
-}
-
-export interface HealthSummary {
-  status: "healthy" | "degraded" | "unhealthy";
-  timestamp: number;
-  checks: Record<string, HealthCheck>;
-  circuit_breakers: Array<{
-    name: string;
-    state: string;
-    failure_count: number;
-  }>;
-  dlq_stats: DLQStats;
-}
-
 // Pipeline Types
 export type StageStatus = "pending" | "running" | "completed" | "failed" | "skipped";
 
@@ -408,6 +388,9 @@ export interface ESECandidate {
   variability_sigma: number;
   first_detection?: string;
   last_detection?: string;
+  last_detection_at?: string;
+  max_sigma_dev?: number;
+  status?: string;
 }
 
 export interface MosaicQueryRequest {
@@ -441,6 +424,7 @@ export interface Mosaic {
   source_count?: number;
   created_at?: string;
   path?: string;
+  thumbnail_path?: string;
 }
 
 export interface AlertHistory {
@@ -482,6 +466,17 @@ export interface MSListFilters {
   status?: string;
   stage?: string;
   scan?: string;
+  search?: string;
+  has_calibrator?: boolean;
+  is_calibrated?: boolean;
+  is_imaged?: boolean;
+  calibrator_quality?: string;
+  start_date?: string;
+  end_date?: string;
+  sort_by?: string;
+  limit?: number;
+  offset?: number;
+  scan_dir?: string;
 }
 
 export interface MSMetadata {
@@ -619,6 +614,11 @@ export interface WorkflowJobCreateRequest {
 export interface CalibrationQA {
   group_id: string;
   artifacts: QAArtifact[];
+  overall_quality?: string;
+  flags_total?: number;
+  k_metrics?: Record<string, unknown>;
+  bp_metrics?: Record<string, unknown>;
+  per_spw_stats?: Record<string, unknown>;
 }
 
 export interface QAArtifact {
@@ -697,6 +697,15 @@ export interface ImageFilters {
   type?: string;
   pbcor?: boolean;
   limit?: number;
+  offset?: number;
+  ms_path?: string;
+  image_type?: string;
+  start_date?: string;
+  end_date?: string;
+  dec_min?: number;
+  dec_max?: number;
+  noise_max?: number;
+  has_calibrator?: boolean;
 }
 
 export interface DataInstance {
@@ -704,6 +713,13 @@ export interface DataInstance {
   type: string;
   path: string;
   created_at: string;
+  data_type?: string;
+  qa_status?: string;
+  finalization_status?: string;
+  auto_publish_enabled?: boolean;
+  published_at?: string;
+  status?: string;
+  map?: (fn: (id: string) => void) => void;
 }
 
 export interface DataInstanceDetail {
@@ -712,18 +728,32 @@ export interface DataInstanceDetail {
   path: string;
   created_at: string;
   metadata?: Record<string, unknown>;
+  data_type?: string;
+  qa_status?: string;
+  validation_status?: string;
+  finalization_status?: string;
+  auto_publish_enabled?: boolean;
+  published_at?: string;
+  publish_mode?: string;
+  status?: string;
+  stage_path?: string;
+  published_path?: string;
+  processing_params?: Record<string, unknown>;
 }
 
 export interface AutoPublishStatus {
   enabled: boolean;
   last_publish?: string;
   next_publish?: string;
+  criteria_met?: boolean;
+  reasons?: string[];
 }
 
 export interface DataLineage {
   instance_id: string;
-  parents: DataInstance[];
-  children: DataInstance[];
+  parents: Record<string, string[]>;
+  children: Record<string, string[]>;
+  processing_history?: Array<Record<string, unknown>>;
 }
 
 export interface PointingHistoryList {

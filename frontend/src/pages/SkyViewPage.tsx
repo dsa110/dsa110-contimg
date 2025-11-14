@@ -157,10 +157,10 @@ export default function SkyViewPage() {
                 <ImageStatisticsPlugin
                   displayId="skyViewDisplay"
                   imageInfo={{
-                    noise_jy: selectedImage.noise_jy,
-                    beam_major_arcsec: selectedImage.beam_major_arcsec,
-                    beam_minor_arcsec: selectedImage.beam_minor_arcsec,
-                    beam_pa_deg: selectedImage.beam_pa_deg,
+                    noise_jy: selectedImage.noise_jy ?? undefined,
+                    beam_major_arcsec: selectedImage.beam_major_arcsec ?? undefined,
+                    beam_minor_arcsec: selectedImage.beam_minor_arcsec ?? undefined,
+                    beam_pa_deg: selectedImage.beam_pa_deg ?? undefined,
                   }}
                 />
               )}
@@ -182,10 +182,10 @@ export default function SkyViewPage() {
                   imageInfo={{
                     path: selectedImage.path,
                     type: selectedImage.type,
-                    noise_jy: selectedImage.noise_jy,
-                    beam_major_arcsec: selectedImage.beam_major_arcsec,
-                    beam_minor_arcsec: selectedImage.beam_minor_arcsec,
-                    beam_pa_deg: selectedImage.beam_pa_deg,
+                    noise_jy: selectedImage.noise_jy ?? undefined,
+                    beam_major_arcsec: selectedImage.beam_major_arcsec ?? undefined,
+                    beam_minor_arcsec: selectedImage.beam_minor_arcsec ?? undefined,
+                    beam_pa_deg: selectedImage.beam_pa_deg ?? undefined,
                   }}
                 />
               )}

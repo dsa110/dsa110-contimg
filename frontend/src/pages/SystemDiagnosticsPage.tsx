@@ -89,13 +89,19 @@ export default function SystemDiagnosticsPage() {
               <Grid item xs={12} md={4}>
                 <StatCard
                   title="CPU Usage"
-                  value={`${systemMetrics.cpu_percent.toFixed(1)}%`}
+                  value={
+                    systemMetrics.cpu_percent != null
+                      ? `${systemMetrics.cpu_percent.toFixed(1)}%`
+                      : "N/A"
+                  }
                   color={
-                    systemMetrics.cpu_percent > 70
-                      ? "error"
-                      : systemMetrics.cpu_percent > 50
-                        ? "warning"
-                        : "success"
+                    systemMetrics.cpu_percent != null
+                      ? systemMetrics.cpu_percent > 70
+                        ? "error"
+                        : systemMetrics.cpu_percent > 50
+                          ? "warning"
+                          : "success"
+                      : "default"
                   }
                   icon={<HealthIcon />}
                 />
@@ -103,13 +109,19 @@ export default function SystemDiagnosticsPage() {
               <Grid item xs={12} md={4}>
                 <StatCard
                   title="Memory Usage"
-                  value={`${systemMetrics.mem_percent.toFixed(1)}%`}
+                  value={
+                    systemMetrics.mem_percent != null
+                      ? `${systemMetrics.mem_percent.toFixed(1)}%`
+                      : "N/A"
+                  }
                   color={
-                    systemMetrics.mem_percent > 80
-                      ? "error"
-                      : systemMetrics.mem_percent > 60
-                        ? "warning"
-                        : "success"
+                    systemMetrics.mem_percent != null
+                      ? systemMetrics.mem_percent > 80
+                        ? "error"
+                        : systemMetrics.mem_percent > 60
+                          ? "warning"
+                          : "success"
+                      : "default"
                   }
                   icon={<HealthIcon />}
                 />

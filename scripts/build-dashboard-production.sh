@@ -33,11 +33,8 @@ fi
 NODE_VERSION=$("${CASA6_NODE}" --version)
 echo "Using Node.js: ${NODE_VERSION} from ${CASA6_NODE}"
 
-# Helper function to run npm using casa6's node directly
-# This bypasses npm's shebang which might find the wrong node
-run_npm() {
-    "${CASA6_NODE}" "${CASA6_NPM_SCRIPT}" "$@"
-}
+# Helper to invoke npm via casa6's node directly
+NPM_CMD=("${CASA6_NODE}" "${CASA6_NPM_SCRIPT}")
 
 # Ensure log directory exists
 mkdir -p "${LOG_DIR}"
@@ -65,7 +62,7 @@ chmod 755 "${BUILD_DIR}" || true
 # Install dependencies if needed
 if [[ ! -d "node_modules" ]] || [[ "package.json" -nt "node_modules" ]]; then
     echo "Installing/updating dependencies..."
-    run_npm ci --production=false
+    "${NPM_CMD[@]}" ci --production=false
 fi
 
 # Build for production
@@ -78,7 +75,7 @@ export NODE_OPTIONS="--max-old-space-size=4096"
 export PATH="${CASA6_BIN}:${PATH}"
 
 # Run build with strict timeout
-if timeout "${BUILD_TIMEOUT}" bash -c "NODE_ENV=production run_npm run build"; then
+if timeout "${BUILD_TIMEOUT}" env NODE_ENV=production "${NPM_CMD[@]}" run build; then
     echo "Build completed within timeout"
 else
     EXIT_CODE=$?

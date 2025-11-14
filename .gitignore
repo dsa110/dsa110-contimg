@@ -218,3 +218,7 @@ site/
 
 # Ignore archived docs folder
 docs/archive/
+
+# Development
+.local/
+internal/

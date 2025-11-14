@@ -1,4 +1,4 @@
-import React from "react";
+// import React from "react";
 import {
   Box,
   Card,
@@ -48,7 +48,13 @@ export default function EventStats() {
         </Typography>
 
         <Grid container spacing={2} sx={{ mb: 3 }}>
-          <Grid item xs={12} sm={6} md={3}>
+          <Grid
+            size={{
+              xs: 12,
+              sm: 6,
+              md: 3,
+            }}
+          >
             <Card variant="outlined">
               <CardContent>
                 <Typography variant="body2" color="text.secondary">
@@ -59,7 +65,13 @@ export default function EventStats() {
             </Card>
           </Grid>
 
-          <Grid item xs={12} sm={6} md={3}>
+          <Grid
+            size={{
+              xs: 12,
+              sm: 6,
+              md: 3,
+            }}
+          >
             <Card variant="outlined">
               <CardContent>
                 <Typography variant="body2" color="text.secondary">
@@ -70,7 +82,13 @@ export default function EventStats() {
             </Card>
           </Grid>
 
-          <Grid item xs={12} sm={6} md={3}>
+          <Grid
+            size={{
+              xs: 12,
+              sm: 6,
+              md: 3,
+            }}
+          >
             <Card variant="outlined">
               <CardContent>
                 <Typography variant="body2" color="text.secondary">
@@ -81,7 +99,13 @@ export default function EventStats() {
             </Card>
           </Grid>
 
-          <Grid item xs={12} sm={6} md={3}>
+          <Grid
+            size={{
+              xs: 12,
+              sm: 6,
+              md: 3,
+            }}
+          >
             <Card variant="outlined">
               <CardContent>
                 <Typography variant="body2" color="text.secondary">

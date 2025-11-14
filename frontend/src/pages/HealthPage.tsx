@@ -48,6 +48,7 @@ import PageBreadcrumbs from "../components/PageBreadcrumbs";
 import { StatusIndicator } from "../components/StatusIndicator";
 import { MetricWithSparkline } from "../components/Sparkline";
 import { useMetricHistory } from "../hooks/useMetricHistory";
+import dayjs from "dayjs";
 
 interface TabPanelProps {
   children?: React.ReactNode;
@@ -91,7 +92,7 @@ function OperationsHealthTab() {
   return (
     <Grid container spacing={3}>
       {/* Overall Status */}
-      <Grid item xs={12}>
+      <Grid size={12}>
         <Card>
           <CardContent>
             <Stack direction="row" spacing={2} alignItems="center">
@@ -107,9 +108,13 @@ function OperationsHealthTab() {
           </CardContent>
         </Card>
       </Grid>
-
       {/* Health Checks */}
-      <Grid item xs={12} md={6}>
+      <Grid
+        size={{
+          xs: 12,
+          md: 6,
+        }}
+      >
         <Card>
           <CardHeader title="Health Checks" />
           <CardContent>
@@ -137,14 +142,17 @@ function OperationsHealthTab() {
           </CardContent>
         </Card>
       </Grid>
-
       {/* DLQ Stats */}
-      <Grid item xs={12} md={6}>
+      <Grid
+        size={{
+          xs: 12,
+          md: 6,
+        }}
+      >
         <DeadLetterQueueStats />
       </Grid>
-
       {/* Circuit Breakers */}
-      <Grid item xs={12}>
+      <Grid size={12}>
         <CircuitBreakerStatus />
       </Grid>
     </Grid>
@@ -242,9 +250,15 @@ export default function HealthPage() {
           ) : (
             <Grid container spacing={3}>
               {/* Current Metrics */}
-              <Grid item xs={12}>
+              <Grid size={12}>
                 <Grid container spacing={2}>
-                  <Grid item xs={12} sm={6} md={3}>
+                  <Grid
+                    size={{
+                      xs: 12,
+                      sm: 6,
+                      md: 3,
+                    }}
+                  >
                     <StatusIndicator
                       value={metrics?.cpu_percent || 0}
                       thresholds={{ good: 70, warning: 50 }}
@@ -257,7 +271,13 @@ export default function HealthPage() {
                       }
                     />
                   </Grid>
-                  <Grid item xs={12} sm={6} md={3}>
+                  <Grid
+                    size={{
+                      xs: 12,
+                      sm: 6,
+                      md: 3,
+                    }}
+                  >
                     <StatusIndicator
                       value={metrics?.mem_percent || 0}
                       thresholds={{ good: 80, warning: 60 }}
@@ -270,7 +290,13 @@ export default function HealthPage() {
                       }
                     />
                   </Grid>
-                  <Grid item xs={12} sm={6} md={3}>
+                  <Grid
+                    size={{
+                      xs: 12,
+                      sm: 6,
+                      md: 3,
+                    }}
+                  >
                     <StatusIndicator
                       value={
                         metrics?.disk_total && metrics?.disk_used
@@ -287,7 +313,13 @@ export default function HealthPage() {
                       }
                     />
                   </Grid>
-                  <Grid item xs={12} sm={6} md={3}>
+                  <Grid
+                    size={{
+                      xs: 12,
+                      sm: 6,
+                      md: 3,
+                    }}
+                  >
                     <MetricWithSparkline
                       label="Load Average (1m)"
                       value={metrics?.load_1?.toFixed(2) || "N/A"}
@@ -301,7 +333,7 @@ export default function HealthPage() {
 
               {/* Metrics Plot */}
               {metricsPlotData.data.length > 0 && (
-                <Grid item xs={12}>
+                <Grid size={12}>
                   <Card>
                     <CardHeader title="Resource Usage Over Time" />
                     <CardContent>
@@ -316,7 +348,12 @@ export default function HealthPage() {
               )}
 
               {/* Detailed Metrics */}
-              <Grid item xs={12} md={6}>
+              <Grid
+                size={{
+                  xs: 12,
+                  md: 6,
+                }}
+              >
                 <Card>
                   <CardHeader title="Memory Details" />
                   <CardContent>
@@ -360,7 +397,12 @@ export default function HealthPage() {
                 </Card>
               </Grid>
 
-              <Grid item xs={12} md={6}>
+              <Grid
+                size={{
+                  xs: 12,
+                  md: 6,
+                }}
+              >
                 <Card>
                   <CardHeader title="Disk Details" />
                   <CardContent>
@@ -412,12 +454,18 @@ export default function HealthPage() {
           ) : (
             <Grid container spacing={3}>
               {/* Queue Statistics */}
-              <Grid item xs={12}>
+              <Grid size={12}>
                 <Card>
                   <CardHeader title="Queue Statistics" />
                   <CardContent>
                     <Grid container spacing={2}>
-                      <Grid item xs={12} sm={6} md={2.4}>
+                      <Grid
+                        size={{
+                          xs: 12,
+                          sm: 6,
+                          md: 2.4,
+                        }}
+                      >
                         <Box textAlign="center">
                           <Typography variant="h4">{status?.queue.total || 0}</Typography>
                           <Typography variant="body2" color="text.secondary">
@@ -425,7 +473,13 @@ export default function HealthPage() {
                           </Typography>
                         </Box>
                       </Grid>
-                      <Grid item xs={12} sm={6} md={2.4}>
+                      <Grid
+                        size={{
+                          xs: 12,
+                          sm: 6,
+                          md: 2.4,
+                        }}
+                      >
                         <Box textAlign="center">
                           <Typography variant="h4" color="warning.main">
                             {status?.queue.pending || 0}
@@ -435,7 +489,13 @@ export default function HealthPage() {
                           </Typography>
                         </Box>
                       </Grid>
-                      <Grid item xs={12} sm={6} md={2.4}>
+                      <Grid
+                        size={{
+                          xs: 12,
+                          sm: 6,
+                          md: 2.4,
+                        }}
+                      >
                         <Box textAlign="center">
                           <Typography variant="h4" color="info.main">
                             {status?.queue.in_progress || 0}
@@ -445,7 +505,13 @@ export default function HealthPage() {
                           </Typography>
                         </Box>
                       </Grid>
-                      <Grid item xs={12} sm={6} md={2.4}>
+                      <Grid
+                        size={{
+                          xs: 12,
+                          sm: 6,
+                          md: 2.4,
+                        }}
+                      >
                         <Box textAlign="center">
                           <Typography variant="h4" color="success.main">
                             {status?.queue.completed || 0}
@@ -455,7 +521,13 @@ export default function HealthPage() {
                           </Typography>
                         </Box>
                       </Grid>
-                      <Grid item xs={12} sm={6} md={2.4}>
+                      <Grid
+                        size={{
+                          xs: 12,
+                          sm: 6,
+                          md: 2.4,
+                        }}
+                      >
                         <Box textAlign="center">
                           <Typography variant="h4" color="error.main">
                             {status?.queue.failed || 0}
@@ -472,7 +544,12 @@ export default function HealthPage() {
 
               {/* State Distribution */}
               {queueDistribution && queueDistribution.length > 0 && (
-                <Grid item xs={12} md={6}>
+                <Grid
+                  size={{
+                    xs: 12,
+                    md: 6,
+                  }}
+                >
                   <Card>
                     <CardHeader title="State Distribution" />
                     <CardContent>
@@ -518,7 +595,12 @@ export default function HealthPage() {
               )}
 
               {/* Recent Groups */}
-              <Grid item xs={12} md={6}>
+              <Grid
+                size={{
+                  xs: 12,
+                  md: 6,
+                }}
+              >
                 <Card>
                   <CardHeader title="Recent Groups" />
                   <CardContent>
@@ -579,7 +661,7 @@ export default function HealthPage() {
         {/* QA Diagnostics Tab */}
         <TabPanel value={tabValue} index={3}>
           <Grid container spacing={3}>
-            <Grid item xs={12}>
+            <Grid size={12}>
               <Alert severity="info">
                 QA diagnostics and gallery features are available on the{" "}
                 <strong
@@ -592,7 +674,7 @@ export default function HealthPage() {
               </Alert>
             </Grid>
 
-            <Grid item xs={12}>
+            <Grid size={12}>
               <Card>
                 <CardHeader title="ESE Candidates" avatar={<AssessmentIcon />} />
                 <CardContent>

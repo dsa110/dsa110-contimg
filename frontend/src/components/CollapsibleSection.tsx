@@ -4,7 +4,7 @@
  */
 import React, { useState } from "react";
 import { Box, Typography, IconButton, Collapse, Paper, alpha } from "@mui/material";
-import { ExpandMore, ExpandLess } from "@mui/icons-material";
+import { ExpandMore } from "@mui/icons-material";
 
 interface CollapsibleSectionProps {
   title: string;

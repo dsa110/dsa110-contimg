@@ -13,8 +13,8 @@ RestartSec=10
 # Restart on failure, but wait longer if it keeps failing
 StartLimitInterval=300
 StartLimitBurst=5
-# Watchdog: if service doesn't respond, restart it
-WatchdogSec=600
+# Note: WatchdogSec removed - bash scripts don't send watchdog heartbeats
+# The separate casa-log-daemon-watchdog.timer handles health monitoring instead
 # Log to file for easier debugging
 StandardOutput=append:/data/dsa110-contimg/state/logs/casa-log-daemon.out
 StandardError=append:/data/dsa110-contimg/state/logs/casa-log-daemon.err

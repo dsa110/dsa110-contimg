@@ -10,7 +10,7 @@ HDF5 conversion (if needed), calibration solving/application, imaging, mosaic cr
 validation/QA, and automatic publishing.
 
 Usage:
-    PYTHONPATH=/data/dsa110-contimg/src python scripts/create_mosaic_centered.py \
+    PYTHONPATH=/data/dsa110-contimg/src python scripts/mosaic/create_mosaic_centered.py \
         --calibrator 0834+555 \
         [--timespan-minutes 50] \
         [--no-wait]
@@ -23,11 +23,11 @@ import logging
 import sys
 from pathlib import Path
 
-from dsa110_contimg.mosaic.orchestrator import MosaicOrchestrator
-
-# Add src to path
-repo_root = Path(__file__).resolve().parent.parent
+# Add src to path before importing project modules
+repo_root = Path(__file__).resolve().parents[2]
 sys.path.insert(0, str(repo_root / "src"))
+
+from dsa110_contimg.mosaic.orchestrator import MosaicOrchestrator
 
 
 logging.basicConfig(
@@ -193,4 +193,8 @@ def main():
 
 
 if __name__ == "__main__":
-    sys.exit(main())
+    try:
+        sys.exit(main())
+    except Exception:
+        logger.exception("Unhandled error while creating mosaic")
+        sys.exit(1)

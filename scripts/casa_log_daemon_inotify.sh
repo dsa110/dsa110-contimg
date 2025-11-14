@@ -111,13 +111,27 @@ process_existing_files() {
     local count=0
     local moved=0
     
-    # Use find with -print0 and read -d '' to handle filenames with spaces
+    # Check root directory first (most common location), then do recursive search
+    # Use maxdepth 1 for root to avoid timeout on large trees
+    # Use process substitution to avoid subshell issues with variable updates
     while IFS= read -r -d '' file_path; do
-        count=$((count + 1))
-        if move_file "$file_path"; then
-            moved=$((moved + 1))
+        if [[ -n "$file_path" ]]; then
+            count=$((count + 1))
+            if move_file "$file_path"; then
+                moved=$((moved + 1))
+            fi
         fi
-    done < <(find "$SOURCE_ROOT" -type f -name "casa-*.log" -not -path "$TARGET_ROOT/*" -print0 2>/dev/null)
+    done < <(timeout 10 find "$SOURCE_ROOT" -maxdepth 1 -type f -name "casa-*.log" -print0 2>/dev/null)
+    
+    # Then check subdirectories (excluding target and root already processed)
+    while IFS= read -r -d '' file_path; do
+        if [[ -n "$file_path" ]]; then
+            count=$((count + 1))
+            if move_file "$file_path"; then
+                moved=$((moved + 1))
+            fi
+        fi
+    done < <(timeout 20 find "$SOURCE_ROOT" -mindepth 2 -type f -name "casa-*.log" -not -path "$TARGET_ROOT/*" -print0 2>/dev/null)
     
     log "Processed $count existing casa log files, moved $moved"
     rm -f "$LOCK_FILE"
@@ -194,8 +208,10 @@ periodic_cleanup() {
     while true; do
         sleep "$interval"
         
-        # Check how many files exist anywhere (recursively, excluding target directory)
-        local file_count=$(find "$SOURCE_ROOT" -type f -name "casa-*.log" -not -path "$TARGET_ROOT/*" 2>/dev/null | wc -l)
+        # Check root directory first (most common), then subdirectories
+        # Use separate checks to avoid timeout
+        local file_count=$(timeout 10 find "$SOURCE_ROOT" -maxdepth 1 -type f -name "casa-*.log" 2>/dev/null | wc -l)
+        file_count=$((file_count + $(timeout 20 find "$SOURCE_ROOT" -mindepth 2 -type f -name "casa-*.log" -not -path "$TARGET_ROOT/*" 2>/dev/null | wc -l)))
         
         if [[ $file_count -gt 0 ]]; then
             log "Running periodic cleanup: found $file_count casa log files (anywhere in $SOURCE_ROOT)"
@@ -215,9 +231,10 @@ periodic_cleanup() {
     done
 }
 
-# Process existing files FIRST (blocking) to ensure clean state
-log "Processing existing casa-*.log files..."
-process_existing_files
+# Process existing files in background (non-blocking) to avoid hanging on large directory trees
+# Periodic cleanup will handle any files we miss
+log "Starting background processing of existing casa-*.log files..."
+(process_existing_files) &
 
 # Start periodic cleanup in background (more aggressive)
 log "Starting periodic cleanup daemon (every 5 minutes, or 1 minute if files accumulate)..."

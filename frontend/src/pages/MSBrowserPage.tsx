@@ -78,12 +78,17 @@ function MSInspectionPanel({
   return (
     <Grid container spacing={2}>
       {/* Overview */}
-      <Grid item xs={12}>
+      <Grid size={12}>
         <Card>
           <CardHeader title="MS Overview" />
           <CardContent>
             <Grid container spacing={2}>
-              <Grid item xs={12} md={6}>
+              <Grid
+                size={{
+                  xs: 12,
+                  md: 6,
+                }}
+              >
                 <Typography variant="subtitle2" color="text.secondary" gutterBottom>
                   Time Range
                 </Typography>
@@ -94,7 +99,12 @@ function MSInspectionPanel({
                   Duration: {metadata.duration_sec?.toFixed(1)}s
                 </Typography>
               </Grid>
-              <Grid item xs={12} md={6}>
+              <Grid
+                size={{
+                  xs: 12,
+                  md: 6,
+                }}
+              >
                 <Typography variant="subtitle2" color="text.secondary" gutterBottom>
                   Frequency Coverage
                 </Typography>
@@ -105,13 +115,23 @@ function MSInspectionPanel({
                   {metadata.num_channels} channels
                 </Typography>
               </Grid>
-              <Grid item xs={12} md={6}>
+              <Grid
+                size={{
+                  xs: 12,
+                  md: 6,
+                }}
+              >
                 <Typography variant="subtitle2" color="text.secondary" gutterBottom>
                   Size
                 </Typography>
                 <Typography variant="body1">{metadata.size_gb?.toFixed(2) || "N/A"} GB</Typography>
               </Grid>
-              <Grid item xs={12} md={6}>
+              <Grid
+                size={{
+                  xs: 12,
+                  md: 6,
+                }}
+              >
                 <Typography variant="subtitle2" color="text.secondary" gutterBottom>
                   Calibration Status
                 </Typography>
@@ -125,10 +145,14 @@ function MSInspectionPanel({
           </CardContent>
         </Card>
       </Grid>
-
       {/* Antennas */}
       {metadata.antennas && metadata.antennas.length > 0 && (
-        <Grid item xs={12} md={6}>
+        <Grid
+          size={{
+            xs: 12,
+            md: 6,
+          }}
+        >
           <Card>
             <CardHeader title={`Antennas (${metadata.antennas.length})`} />
             <CardContent>
@@ -154,10 +178,14 @@ function MSInspectionPanel({
           </Card>
         </Grid>
       )}
-
       {/* Fields */}
       {metadata.fields && metadata.fields.length > 0 && (
-        <Grid item xs={12} md={6}>
+        <Grid
+          size={{
+            xs: 12,
+            md: 6,
+          }}
+        >
           <Card>
             <CardHeader title={`Fields (${metadata.fields.length})`} />
             <CardContent>
@@ -187,10 +215,9 @@ function MSInspectionPanel({
           </Card>
         </Grid>
       )}
-
       {/* Flagging Statistics */}
       {metadata.flagging_stats && (
-        <Grid item xs={12}>
+        <Grid size={12}>
           <Card>
             <CardHeader title="Flagging Statistics" />
             <CardContent>
@@ -240,10 +267,9 @@ function MSInspectionPanel({
           </Card>
         </Grid>
       )}
-
       {/* Data Columns */}
       {metadata.data_columns && metadata.data_columns.length > 0 && (
-        <Grid item xs={12}>
+        <Grid size={12}>
           <Card>
             <CardHeader title="Data Columns" />
             <CardContent>
@@ -367,7 +393,13 @@ export default function MSBrowserPage() {
         {/* Quick Quality Metrics */}
         {selectedMS && qualityMetrics && (
           <Grid container spacing={2} sx={{ mb: 3 }}>
-            <Grid item xs={12} sm={6} md={3}>
+            <Grid
+              size={{
+                xs: 12,
+                sm: 6,
+                md: 3,
+              }}
+            >
               <Card>
                 <CardContent>
                   <Typography variant="caption" color="text.secondary" gutterBottom>
@@ -381,7 +413,13 @@ export default function MSBrowserPage() {
                 </CardContent>
               </Card>
             </Grid>
-            <Grid item xs={12} sm={6} md={3}>
+            <Grid
+              size={{
+                xs: 12,
+                sm: 6,
+                md: 3,
+              }}
+            >
               <Card>
                 <CardContent>
                   <Typography variant="caption" color="text.secondary" gutterBottom>
@@ -391,7 +429,13 @@ export default function MSBrowserPage() {
                 </CardContent>
               </Card>
             </Grid>
-            <Grid item xs={12} sm={6} md={3}>
+            <Grid
+              size={{
+                xs: 12,
+                sm: 6,
+                md: 3,
+              }}
+            >
               <Card>
                 <CardContent>
                   <Typography variant="caption" color="text.secondary" gutterBottom>
@@ -401,7 +445,13 @@ export default function MSBrowserPage() {
                 </CardContent>
               </Card>
             </Grid>
-            <Grid item xs={12} sm={6} md={3}>
+            <Grid
+              size={{
+                xs: 12,
+                sm: 6,
+                md: 3,
+              }}
+            >
               <Card>
                 <CardContent>
                   <Typography variant="caption" color="text.secondary" gutterBottom>
@@ -439,7 +489,12 @@ export default function MSBrowserPage() {
                 Select two MSs to compare their properties side-by-side
               </Typography>
               <Grid container spacing={2}>
-                <Grid item xs={12} md={6}>
+                <Grid
+                  size={{
+                    xs: 12,
+                    md: 6,
+                  }}
+                >
                   <Paper sx={{ p: 2 }}>
                     <Typography variant="subtitle2" gutterBottom>
                       MS 1
@@ -459,7 +514,12 @@ export default function MSBrowserPage() {
                     />
                   </Paper>
                 </Grid>
-                <Grid item xs={12} md={6}>
+                <Grid
+                  size={{
+                    xs: 12,
+                    md: 6,
+                  }}
+                >
                   <Paper sx={{ p: 2 }}>
                     <Typography variant="subtitle2" gutterBottom>
                       MS 2 (for comparison)
@@ -480,7 +540,7 @@ export default function MSBrowserPage() {
                   </Paper>
                 </Grid>
                 {selectedMS && compareMS && (
-                  <Grid item xs={12}>
+                  <Grid size={12}>
                     <Paper sx={{ p: 2 }}>
                       <Typography variant="subtitle2" gutterBottom>
                         Comparison

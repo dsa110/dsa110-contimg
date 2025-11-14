@@ -553,7 +553,7 @@ if qa_status == "passed" and validation_status == "validated" and auto_publish:
 
 **Code Reference:**
 
-- `scripts/create_mosaic_centered.py`: No PHASE for photometry
+- `scripts/mosaic/create_mosaic_centered.py`: No PHASE for photometry
 - `src/dsa110_contimg/mosaic/orchestrator.py`: No photometry methods
 - `src/dsa110_contimg/mosaic/streaming_mosaic.py`: No photometry methods
 
@@ -604,7 +604,7 @@ if qa_status == "passed" and validation_status == "validated" and auto_publish:
 
 **Code Reference:**
 
-- `scripts/create_mosaic_centered.py`: No PHASE for ESE detection
+- `scripts/mosaic/create_mosaic_centered.py`: No PHASE for ESE detection
 - `src/dsa110_contimg/mosaic/orchestrator.py`: No ESE detection methods
 - `src/dsa110_contimg/mosaic/streaming_mosaic.py`: No ESE detection methods
 
@@ -651,7 +651,7 @@ Orchestrator)
 2. **Mosaic Orchestrator Provides Full Automation:**
    - Stages 1-6 are fully automated when using `create_mosaic_centered.py`
    - Single trigger:
-     `python scripts/create_mosaic_centered.py --calibrator 0834+555`
+     `python scripts/mosaic/create_mosaic_centered.py --calibrator 0834+555`
    - Hands-off operation: waits until published
 
 3. **Streaming Converter Has Partial Automation:**

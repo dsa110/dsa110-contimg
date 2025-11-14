@@ -4,7 +4,7 @@
  */
 import React, { useState, useEffect } from "react";
 import { useSearchParams } from "react-router-dom";
-import { Container, Typography, Box, Tabs, Tab, Paper, Button, Stack } from "@mui/material";
+import { Container, Typography, Box, Tabs, Tab, Button, Stack } from "@mui/material";
 import {
   Storage as BrowserIcon,
   GridOn as MosaicsIcon,

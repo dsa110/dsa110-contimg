@@ -194,6 +194,8 @@ export PATH="/opt/miniforge/envs/casa6/bin:$HOME/codeql:$PATH"
 
 ## Related Documentation
 
-- `CODEQL_SETUP.md` - Initial setup instructions
-- `CODEQL_RESULTS_SUMMARY.md` - Analysis results summary
+- `internal/docs/dev/status/2025-11/codeql_setup.md` - Initial setup
+  instructions
+- `internal/docs/dev/status/2025-11/codeql_results_summary.md` - Analysis
+  results summary
 - `.codeql/codeql-config.yml` - Configuration file

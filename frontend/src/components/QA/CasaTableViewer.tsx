@@ -120,11 +120,9 @@ export default function CasaTableViewer({ tablePath }: CasaTableViewerProps) {
           Refresh
         </Button>
       </Box>
-
       <Typography variant="body2" color="text.secondary" sx={{ mb: 2, fontFamily: "monospace" }}>
         {tablePath}
       </Typography>
-
       <Box sx={{ display: "flex", gap: 2, mb: 2 }}>
         <TextField
           label="Max Rows"
@@ -148,20 +146,17 @@ export default function CasaTableViewer({ tablePath }: CasaTableViewerProps) {
           Update View
         </Button>
       </Box>
-
       {infoError && (
         <Alert severity="error" sx={{ mb: 2 }}>
           Error loading table info:{" "}
           {infoError instanceof Error ? infoError.message : "Unknown error"}
         </Alert>
       )}
-
       {loadingInfo && (
         <Box sx={{ display: "flex", justifyContent: "center", p: 2 }}>
           <CircularProgress size={24} />
         </Box>
       )}
-
       {tableInfo && tableInfo.exists && (
         <>
           <Accordion defaultExpanded={false}>
@@ -314,7 +309,6 @@ export default function CasaTableViewer({ tablePath }: CasaTableViewerProps) {
           )}
         </>
       )}
-
       {tableInfo && !tableInfo.exists && (
         <Alert severity="warning">Table not found or not accessible: {tablePath}</Alert>
       )}

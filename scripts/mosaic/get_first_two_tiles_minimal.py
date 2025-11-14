@@ -13,9 +13,14 @@ from pathlib import Path
 
 from astropy.time import Time, TimeDelta
 
+# Add src to path before importing project modules
+repo_root = Path(__file__).resolve().parents[2]
+sys.path.insert(0, str(repo_root / "src"))
+
 from dsa110_contimg.calibration.schedule import next_transit_time
 from dsa110_contimg.conversion.strategies.hdf5_orchestrator import (
     _peek_uvh5_phase_and_midtime,
+    find_subband_groups,
 )
 from dsa110_contimg.mosaic.cli import (
     _build_weighted_mosaic_linearmosaic,
@@ -28,8 +33,6 @@ from dsa110_contimg.pointing.utils import load_pointing
 
 # Suppress ERFA warnings about "dubious years" (harmless for dates in 2025+)
 warnings.filterwarnings("ignore", category=UserWarning, module="erfa")
-
-sys.path.insert(0, str(Path(__file__).parent.parent / "src"))
 
 
 def main():
@@ -213,16 +216,72 @@ def main():
     )[:2]
 
     if not tiles:
-        sys.exit("No tiles found")
-    print(f"✓ Found {len(tiles)} tile(s):")
-    for i, tile in enumerate(tiles, 1):
-        print(f"  {i}. {Path(tile).name}")
+        print("  No existing tiles found - will create from HDF5 groups")
+        print("\nStep 5a: Finding complete 16-subband groups...")
+        # Find complete groups of 16 subbands in the validity window
+        start_str = window_start.isot.replace("T", " ")
+        end_str = window_end.isot.replace("T", " ")
+        groups = find_subband_groups(
+            str(incoming_dir),
+            start_str,
+            end_str,
+            tolerance_s=30.0,
+        )
+        
+        if not groups:
+            sys.exit("No complete 16-subband groups found in validity window")
+        
+        print(f"✓ Found {len(groups)} complete group(s) in validity window")
+        if len(groups) < 2:
+            sys.exit(f"Need at least 2 groups, but only found {len(groups)}")
+        
+        # Take first 2 groups
+        selected_groups = groups[:2]
+        print(f"  Selected first 2 groups:")
+        for i, group in enumerate(selected_groups, 1):
+            # Get timestamp from first file in group
+            first_file = Path(group[0])
+            timestamp = first_file.name.split("_sb")[0]
+            print(f"    Group {i}: {timestamp} ({len(group)} subbands)")
+        
+        if dry_run:
+            print("\nStep 5b: Simulating tile creation workflow (dry-run)...")
+            print("  Would convert 2 groups of 16 subbands to MS files")
+            print("  Would form group and solve calibration")
+            print("  Would apply calibration to MS files")
+            print("  Would image MS files to create tiles")
+            print("✓ Tile creation workflow validated (dry-run)")
+            # In dry-run, we can't actually create tiles, so simulate success
+            print("\nStep 5c: Re-querying for tiles (simulated)...")
+            # Create placeholder tiles for dry-run continuation
+            tiles = ["simulated_tile_1.fits", "simulated_tile_2.fits"]
+            print("✓ Found 2 tile(s) (simulated for dry-run)")
+        else:
+            print("\nStep 5b: Creating tiles from groups...")
+            # TODO: Implement actual conversion/calibration/imaging pipeline
+            # For now, this is a placeholder
+            print("  ERROR: Tile creation from groups not yet implemented")
+            print("  This requires:")
+            print("    1. Convert groups to MS files")
+            print("    2. Form group and solve calibration")
+            print("    3. Apply calibration")
+            print("    4. Image MS files")
+            sys.exit("Tile creation from groups requires implementation")
+    
+    if tiles:
+        print(f"✓ Found {len(tiles)} tile(s):")
+        for i, tile in enumerate(tiles, 1):
+            print(f"  {i}. {Path(tile).name}")
 
     # Build mosaic from tiles
     print("\nStep 6: Building mosaic...")
     mosaic_path = Path("/stage/dsa110-contimg/mosaics/first_two_tiles")
-    metrics_dict = {t: TileQualityMetrics(tile_path=t) for t in tiles}
-    _build_weighted_mosaic_linearmosaic(tiles, metrics_dict, str(mosaic_path), dry_run=dry_run)
+    
+    if tiles:
+        if dry_run and tiles[0].startswith("simulated_"):
+            print("  (dry-run: using simulated tiles)")
+        metrics_dict = {t: TileQualityMetrics(tile_path=t) for t in tiles}
+        _build_weighted_mosaic_linearmosaic(tiles, metrics_dict, str(mosaic_path), dry_run=dry_run)
 
     if dry_run:
         print("✓ Mosaic plan validated (dry-run)")

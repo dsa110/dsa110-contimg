@@ -202,7 +202,12 @@ export default function CalibrationWorkflowPage() {
                           </Typography>
                           {msMetadata && (
                             <Grid container spacing={2}>
-                              <Grid item xs={12} md={6}>
+                              <Grid
+                                size={{
+                                  xs: 12,
+                                  md: 6,
+                                }}
+                              >
                                 <Paper sx={{ p: 2 }}>
                                   <Typography variant="subtitle2" gutterBottom>
                                     Time Range
@@ -215,7 +220,12 @@ export default function CalibrationWorkflowPage() {
                                   </Typography>
                                 </Paper>
                               </Grid>
-                              <Grid item xs={12} md={6}>
+                              <Grid
+                                size={{
+                                  xs: 12,
+                                  md: 6,
+                                }}
+                              >
                                 <Paper sx={{ p: 2 }}>
                                   <Typography variant="subtitle2" gutterBottom>
                                     Frequency Coverage
@@ -229,7 +239,7 @@ export default function CalibrationWorkflowPage() {
                                   </Typography>
                                 </Paper>
                               </Grid>
-                              <Grid item xs={12}>
+                              <Grid size={12}>
                                 <Paper sx={{ p: 2 }}>
                                   <Typography variant="subtitle2" gutterBottom>
                                     Flagging Statistics

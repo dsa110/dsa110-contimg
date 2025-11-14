@@ -136,7 +136,6 @@ export default function CalibrationQAPanel({ msPath }: CalibrationQAPanelProps) 
         <Typography variant="h6">Calibration Quality Assessment</Typography>
         <QualityIndicator quality={quality} />
       </Stack>
-
       <Tabs value={tabValue} onChange={(_, v) => setTabValue(v)} sx={{ mb: 3 }}>
         <Tab label="Overview" />
         <Tab label="K-Calibration" />
@@ -144,10 +143,9 @@ export default function CalibrationQAPanel({ msPath }: CalibrationQAPanelProps) 
         <Tab label="G-Calibration" />
         <Tab label="Plots" />
       </Tabs>
-
       {tabValue === 0 && (
         <Grid container spacing={2}>
-          <Grid item xs={12} {...({} as any)}>
+          <Grid size={12}>
             <Alert
               severity={
                 quality === "poor" ? "error" : quality === "marginal" ? "warning" : "success"
@@ -157,7 +155,13 @@ export default function CalibrationQAPanel({ msPath }: CalibrationQAPanelProps) 
             </Alert>
           </Grid>
 
-          <Grid item xs={12} sm={6} md={3} {...({} as any)}>
+          <Grid
+            size={{
+              xs: 12,
+              sm: 6,
+              md: 3,
+            }}
+          >
             <MetricCard
               label="Flagged Fraction"
               value={qa.flags_total}
@@ -169,7 +173,13 @@ export default function CalibrationQAPanel({ msPath }: CalibrationQAPanelProps) 
 
           {qa.k_metrics && (
             <>
-              <Grid item xs={12} sm={6} md={3} {...({} as any)}>
+              <Grid
+                size={{
+                  xs: 12,
+                  sm: 6,
+                  md: 3,
+                }}
+              >
                 <MetricCard
                   label="K-Cal SNR"
                   value={qa.k_metrics.avg_snr}
@@ -177,7 +187,13 @@ export default function CalibrationQAPanel({ msPath }: CalibrationQAPanelProps) 
                   warningThreshold={5}
                 />
               </Grid>
-              <Grid item xs={12} sm={6} md={3} {...({} as any)}>
+              <Grid
+                size={{
+                  xs: 12,
+                  sm: 6,
+                  md: 3,
+                }}
+              >
                 <MetricCard
                   label="K-Cal Flagged"
                   value={qa.k_metrics.flag_fraction}
@@ -191,7 +207,13 @@ export default function CalibrationQAPanel({ msPath }: CalibrationQAPanelProps) 
 
           {qa.bp_metrics && (
             <>
-              <Grid item xs={12} sm={6} md={3} {...({} as any)}>
+              <Grid
+                size={{
+                  xs: 12,
+                  sm: 6,
+                  md: 3,
+                }}
+              >
                 <MetricCard
                   label="BP Amplitude Mean"
                   value={qa.bp_metrics.amp_mean}
@@ -199,7 +221,13 @@ export default function CalibrationQAPanel({ msPath }: CalibrationQAPanelProps) 
                   warningThreshold={0.7}
                 />
               </Grid>
-              <Grid item xs={12} sm={6} md={3} {...({} as any)}>
+              <Grid
+                size={{
+                  xs: 12,
+                  sm: 6,
+                  md: 3,
+                }}
+              >
                 <MetricCard
                   label="BP Amplitude Std"
                   value={qa.bp_metrics.amp_std}
@@ -211,14 +239,18 @@ export default function CalibrationQAPanel({ msPath }: CalibrationQAPanelProps) 
           )}
         </Grid>
       )}
-
       {tabValue === 1 && qa.k_metrics && (
         <Box>
           <Typography variant="subtitle1" gutterBottom>
             K-Calibration Metrics
           </Typography>
           <Grid container spacing={2}>
-            <Grid item xs={12} sm={6} {...({} as any)}>
+            <Grid
+              size={{
+                xs: 12,
+                sm: 6,
+              }}
+            >
               <MetricCard
                 label="Average SNR"
                 value={qa.k_metrics.avg_snr}
@@ -226,7 +258,12 @@ export default function CalibrationQAPanel({ msPath }: CalibrationQAPanelProps) 
                 warningThreshold={5}
               />
             </Grid>
-            <Grid item xs={12} sm={6} {...({} as any)}>
+            <Grid
+              size={{
+                xs: 12,
+                sm: 6,
+              }}
+            >
               <MetricCard
                 label="Flagged Fraction"
                 value={qa.k_metrics.flag_fraction}
@@ -238,14 +275,18 @@ export default function CalibrationQAPanel({ msPath }: CalibrationQAPanelProps) 
           </Grid>
         </Box>
       )}
-
       {tabValue === 2 && qa.bp_metrics && (
         <Box>
           <Typography variant="subtitle1" gutterBottom>
             Bandpass Calibration Metrics
           </Typography>
           <Grid container spacing={2}>
-            <Grid item xs={12} sm={6} {...({} as any)}>
+            <Grid
+              size={{
+                xs: 12,
+                sm: 6,
+              }}
+            >
               <MetricCard
                 label="Amplitude Mean"
                 value={qa.bp_metrics.amp_mean}
@@ -253,7 +294,12 @@ export default function CalibrationQAPanel({ msPath }: CalibrationQAPanelProps) 
                 warningThreshold={0.7}
               />
             </Grid>
-            <Grid item xs={12} sm={6} {...({} as any)}>
+            <Grid
+              size={{
+                xs: 12,
+                sm: 6,
+              }}
+            >
               <MetricCard
                 label="Amplitude Std Dev"
                 value={qa.bp_metrics.amp_std}
@@ -261,7 +307,12 @@ export default function CalibrationQAPanel({ msPath }: CalibrationQAPanelProps) 
                 warningThreshold={0.2}
               />
             </Grid>
-            <Grid item xs={12} sm={6} {...({} as any)}>
+            <Grid
+              size={{
+                xs: 12,
+                sm: 6,
+              }}
+            >
               <MetricCard
                 label="Flagged Fraction"
                 value={qa.bp_metrics.flag_fraction}
@@ -302,14 +353,18 @@ export default function CalibrationQAPanel({ msPath }: CalibrationQAPanelProps) 
           )}
         </Box>
       )}
-
       {tabValue === 3 && qa.g_metrics && (
         <Box>
           <Typography variant="subtitle1" gutterBottom>
             G-Calibration Metrics
           </Typography>
           <Grid container spacing={2}>
-            <Grid item xs={12} sm={6} {...({} as any)}>
+            <Grid
+              size={{
+                xs: 12,
+                sm: 6,
+              }}
+            >
               <MetricCard
                 label="Average SNR"
                 value={(qa.g_metrics as any).avg_snr}
@@ -317,7 +372,12 @@ export default function CalibrationQAPanel({ msPath }: CalibrationQAPanelProps) 
                 warningThreshold={5}
               />
             </Grid>
-            <Grid item xs={12} sm={6} {...({} as any)}>
+            <Grid
+              size={{
+                xs: 12,
+                sm: 6,
+              }}
+            >
               <MetricCard
                 label="Flagged Fraction"
                 value={qa.g_metrics.flag_fraction}
@@ -329,7 +389,6 @@ export default function CalibrationQAPanel({ msPath }: CalibrationQAPanelProps) 
           </Grid>
         </Box>
       )}
-
       {tabValue === 4 && (
         <Box>
           <Typography variant="subtitle1" gutterBottom>
@@ -338,7 +397,13 @@ export default function CalibrationQAPanel({ msPath }: CalibrationQAPanelProps) 
           {bandpassPlots && bandpassPlots.plots && bandpassPlots.plots.length > 0 ? (
             <Grid container spacing={2}>
               {bandpassPlots.plots.map((plot, idx) => (
-                <Grid item xs={12} sm={6} key={idx} {...({} as any)}>
+                <Grid
+                  key={idx}
+                  size={{
+                    xs: 12,
+                    sm: 6,
+                  }}
+                >
                   <Box
                     component="img"
                     src={plot.url}

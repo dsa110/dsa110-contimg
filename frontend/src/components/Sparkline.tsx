@@ -2,7 +2,7 @@
  * Sparkline Component
  * Mini chart for trend visualization
  */
-import React from "react";
+// import React from "react";
 import { Box, useTheme } from "@mui/material";
 
 interface SparklineProps {

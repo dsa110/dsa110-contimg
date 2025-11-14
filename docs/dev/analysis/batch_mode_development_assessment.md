@@ -682,7 +682,8 @@ functionality.
 
 - **File:** `src/dsa110_contimg/mosaic/orchestrator.py` (MosaicOrchestrator
   class)
-- **Script:** `scripts/create_mosaic_centered.py` (demonstrates full automation)
+- **Script:** `scripts/mosaic/create_mosaic_centered.py` (demonstrates full
+  automation)
 - **Manager:** `src/dsa110_contimg/mosaic/streaming_mosaic.py`
   (StreamingMosaicManager)
 
@@ -724,7 +725,7 @@ functionality.
 **Code Reference:**
 
 ```python
-# scripts/create_mosaic_centered.py Lines 179-185
+# scripts/mosaic/create_mosaic_centered.py Lines 179-185
 published_path = orchestrator.create_mosaic_centered_on_calibrator(
     calibrator_name=args.calibrator,
     timespan_minutes=args.timespan_minutes,
@@ -1428,7 +1429,7 @@ automation from HDF5 data to published mosaic. This orchestrator can trigger
 HDF5 conversion, form groups, solve/apply calibration, image, create mosaics,
 and wait for automatic QA/publishing. However, this functionality is not exposed
 via API endpoints - users must use CLI scripts like
-`scripts/create_mosaic_centered.py` to access it.
+`scripts/mosaic/create_mosaic_centered.py` to access it.
 
 ---
 
@@ -1507,8 +1508,8 @@ in API interfaces and batch job support.
 from HDF5 data to published mosaic. This orchestrator integrates Stages 1-6
 (conversion, calibration, imaging, mosaic creation, QA, publishing) into a
 single automated workflow. However, this orchestrator functionality is currently
-only accessible via CLI scripts (`scripts/create_mosaic_centered.py`) and is not
-exposed via API endpoints.
+only accessible via CLI scripts (`scripts/mosaic/create_mosaic_centered.py`) and
+is not exposed via API endpoints.
 
 The pipeline framework provides a solid foundation for batch job execution, but
 several stages need API endpoints and batch job adapters to reach full

@@ -14,7 +14,7 @@ import {
   Alert,
 } from "@mui/material";
 import { logger } from "../../../utils/logger";
-import { findDisplay, isJS9Available, getDisplayImageId } from "../../../utils/js9";
+import { findDisplay, isJS9Available } from "../../../utils/js9";
 
 declare global {
   interface Window {

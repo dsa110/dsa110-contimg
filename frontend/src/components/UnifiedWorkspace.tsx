@@ -14,7 +14,7 @@ import {
   Button,
   Stack,
 } from "@mui/material";
-import { Close, Fullscreen, FullscreenExit, ViewSidebar } from "@mui/icons-material";
+import { Close, Fullscreen, FullscreenExit } from "@mui/icons-material";
 
 export interface WorkspaceView {
   id: string;

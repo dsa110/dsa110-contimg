@@ -312,7 +312,7 @@ published_path = orchestrator.create_mosaic_centered_on_calibrator(
 **CLI script:**
 
 ```bash
-python scripts/create_mosaic_centered.py \
+python scripts/mosaic/create_mosaic_centered.py \
     --calibrator 0834+555 \
     --timespan-minutes 60 \
     --poll-interval 30 \

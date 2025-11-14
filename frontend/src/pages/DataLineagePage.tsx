@@ -154,14 +154,26 @@ export default function DataLineagePage() {
             action={
               <Chip
                 label={DATA_TYPE_LABELS[currentInstance.data_type] || currentInstance.data_type}
-                color={DATA_TYPE_COLORS[currentInstance.data_type] || "default"}
+                color={
+                  (DATA_TYPE_COLORS[currentInstance.data_type] || "info") as
+                    | "primary"
+                    | "success"
+                    | "info"
+                    | "warning"
+                    | "error"
+                }
                 size="small"
               />
             }
           />
           <CardContent>
             <Grid container spacing={2}>
-              <Grid item xs={12} md={6}>
+              <Grid
+                size={{
+                  xs: 12,
+                  md: 6,
+                }}
+              >
                 <Typography variant="subtitle2" color="text.secondary" gutterBottom>
                   Data ID
                 </Typography>
@@ -177,7 +189,12 @@ export default function DataLineagePage() {
                   View Details
                 </Button>
               </Grid>
-              <Grid item xs={12} md={6}>
+              <Grid
+                size={{
+                  xs: 12,
+                  md: 6,
+                }}
+              >
                 <Typography variant="subtitle2" color="text.secondary" gutterBottom>
                   Status
                 </Typography>

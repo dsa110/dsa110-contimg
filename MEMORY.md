@@ -1859,3 +1859,265 @@ docs/reference/README.md.
 5. Read error messages carefully
 
 **See:** `.cursor/rules/coding-best-practices.mdc` for detailed guide
+
+---
+
+## Workspace Architecture Overview (2025-11-14)
+
+**Comprehensive study of the DSA-110 Continuum Imaging Pipeline codebase structure and organization.**
+
+### Project Purpose
+
+The DSA-110 Continuum Imaging Pipeline is a **production-ready radio astronomy data processing system** that:
+
+1. **Converts** raw UVH5 subband visibility data (16 subbands) into CASA Measurement Sets (MS)
+2. **Calibrates** observations using CASA calibration tasks (BP/G/2G calibration)
+3. **Images** calibrated data using CASA tclean
+4. **Detects** Extreme Scattering Events (ESEs) through differential photometry with 1-2% relative flux precision
+
+### Core Architecture
+
+#### 1. **Streaming Pipeline** (`src/dsa110_contimg/conversion/streaming/`)
+- **Entry Point**: `streaming_converter.py` - Main daemon that watches `/data/incoming/` for `*_sb??.hdf5` files
+- **State Machine**: `collecting` → `pending` → `in_progress` → `completed`/`failed`
+- **Queue Management**: SQLite database (`state/ingest.sqlite3`) tracks groups and subband files
+- **Grouping**: 5-minute time windows, expects 16 subbands per group
+- **Deployment**: systemd service (`contimg-stream.service`) or Docker Compose
+
+#### 2. **Conversion Layer** (`src/dsa110_contimg/conversion/strategies/`)
+- **Orchestrator** (`hdf5_orchestrator.py`): Primary entry point for conversion
+- **Writers**:
+  - `direct_subband.py`: Production path - parallel per-subband writes, then CASA concat (preferred)
+  - `pyuvdata_monolithic.py`: Testing only (≤2 subbands)
+- **Operations**:
+  - Sets telescope identity (`DSA_110`)
+  - Phases to meridian at midpoint
+  - Computes UVW coordinates
+  - Initializes imaging columns (`MODEL_DATA`, `CORRECTED_DATA`, `WEIGHT_SPECTRUM`)
+- **Performance**: Uses tmpfs staging (`/dev/shm`) for 3-5x speedup
+
+#### 3. **Pipeline Framework** (`src/dsa110_contimg/pipeline/`)
+- **Orchestrator** (`orchestrator.py`): Dependency resolution, topological sort, retry policies
+- **Stages** (`stages.py`): Abstract stage interface with pre/post validation
+- **Context** (`context.py`): Immutable context passed between stages
+- **Workflows** (`workflows.py`): Pre-defined workflows (standard_imaging_workflow, quicklook_workflow)
+- **Features**:
+  - Dependency resolution (topological sort)
+  - Retry policies with exponential backoff
+  - Stage validation (pre/post execution)
+  - Observability (metrics, logging)
+  - Resource management (timeouts, memory limits)
+
+#### 4. **Calibration** (`src/dsa110_contimg/calibration/`)
+- **K-calibration** (delay): **SKIPPED by default** for DSA-110 (short baselines, delays <0.5 ns)
+- **BP-calibration** (bandpass): Frequency-dependent gains, every 24 hours
+- **G-calibration** (gain): Time-variable atmospheric effects, every 1 hour
+- **Sky Model**: Uses NVSS catalog to build component lists per pointing
+- **Registry**: `cal_registry.sqlite3` tracks calibration tables with validity windows
+
+#### 5. **Imaging** (`src/dsa110_contimg/imaging/`)
+- **Worker** (`worker.py`): Backfill imaging worker for missed observations
+- **CLI** (`cli.py`): Standalone imaging commands
+- **Output**: CASA images (`.image`, `.pbcor`) stored in organized directories
+
+#### 6. **Photometry & ESE Detection** (`src/dsa110_contimg/photometry/`)
+- **Forced Photometry**: Measures flux at known source positions
+- **Normalization**: Differential photometry normalization for 1-2% relative precision
+- **ESE Detection** (`ese_detection.py`): Detects >5σ flux variability events
+- **Variability Analysis**: Tracks flux changes over time
+
+#### 7. **Mosaicking** (`src/dsa110_contimg/mosaic/`)
+- **Streaming Mosaic Manager** (`streaming_mosaic.py`): Creates mosaics from multiple observations
+- **CLI** (`cli.py`): Plan and build mosaics
+- **Organization**: Date-organized directories (`YYYY-MM-DD/`)
+
+#### 8. **API** (`src/dsa110_contimg/api/`)
+- **Framework**: FastAPI with async/await
+- **Entry Point**: `routes.py` → `create_app()` factory
+- **Routers**:
+  - `status.py`: Pipeline status, queue stats
+  - `images.py`: Image products
+  - `products.py`: MS index, products
+  - `photometry.py`: Photometry results, ESE candidates
+  - `mosaics.py`: Mosaic plans and builds
+  - `catalogs.py`: Catalog queries
+  - `operations.py`: Pipeline operations (reprocess, etc.)
+- **Deployment**: uvicorn ASGI server (systemd or Docker)
+
+#### 9. **Frontend** (`frontend/`)
+- **Framework**: React 18 + TypeScript + Material-UI v6
+- **Build Tool**: Vite 7
+- **State Management**: TanStack React Query (API state), Zustand (local state)
+- **Visualization**: Plotly.js, D3.js, JS9 (FITS viewer)
+- **Pages**:
+  - Dashboard (`/dashboard`) - Pipeline status, metrics
+  - Control (`/control`) - Pipeline control
+  - Streaming (`/streaming`) - Streaming status
+  - QA (`/qa`) - Quality assurance
+  - Data Browser (`/data`) - Data products
+  - Sky View (`/sky`) - Image gallery
+  - Sources (`/sources`) - Source monitoring
+- **Deployment**: Production build (static files) or dev server (hot reload)
+
+### Database Architecture
+
+**4 SQLite Databases** (all in `/data/dsa110-contimg/state/`):
+
+1. **`ingest.sqlite3`**: Queue management
+   - `ingest_queue`: Group state tracking
+   - `subband_files`: File arrivals
+   - `performance_metrics`: Writer type, timings
+
+2. **`cal_registry.sqlite3`**: Calibration table registry
+   - `caltables`: Caltable metadata, validity windows, apply order
+
+3. **`products.sqlite3`**: Product catalog
+   - `ms_index`: MS file index (path, time range, status, stage)
+   - `images`: Image artifacts (path, MS path, beam, noise, pbcor)
+   - `photometry`: Forced photometry results
+   - `mosaics`: Mosaic plans and builds
+   - `storage_locations`: Storage location registry
+
+4. **`master_sources.sqlite3`**: Source catalog (in `state/catalogs/`)
+   - NVSS/VLASS/FIRST crossmatch results
+
+### Directory Structure
+
+**Code** (`/data/dsa110-contimg/`):
+- `src/dsa110_contimg/`: Python package
+- `frontend/`: React frontend
+- `tests/`: Test suite (organized by type: unit/integration/science/e2e/smoke)
+- `docs/`: Documentation (organized by purpose: how-to/concepts/reference)
+- `ops/`: Deployment configs (systemd, Docker)
+- `scripts/`: Operational scripts
+- `state/`: SQLite databases (persistent)
+
+**Data** (`/stage/dsa110-contimg/`):
+- `incoming/`: Raw UVH5 files (watched by streaming worker)
+- `ms/`: Measurement Sets
+  - `calibrators/YYYY-MM-DD/`: Calibrator MS + calibration tables
+  - `science/YYYY-MM-DD/`: Science MS files
+  - `failed/YYYY-MM-DD/`: Failed conversions
+- `images/`: Individual image products
+- `mosaics/`: Mosaic images
+- `static/`: Beam models, catalogs
+
+**Staging** (`/dev/shm/`):
+- tmpfs RAM disk for fast conversion staging (3-5x speedup)
+- Auto-cleaned after atomic move to organized location
+
+### Testing Strategy
+
+**Test Organization** (enforced via pre-commit hook):
+- `tests/smoke/`: Quick sanity checks (< 10s)
+- `tests/unit/<module>/`: Unit tests (fast, isolated, mocked)
+- `tests/integration/`: Integration tests (component interactions)
+- `tests/science/`: Science validation tests (real CASA workflows)
+- `tests/e2e/`: End-to-end tests (full pipeline)
+
+**Test Markers**:
+- `@pytest.mark.unit`: Unit tests
+- `@pytest.mark.integration`: Integration tests
+- `@pytest.mark.science`: Science validation
+- `@pytest.mark.slow`: Slow tests
+- `@pytest.mark.casa`: CASA-specific tests
+
+**Key Testing Rules**:
+- Always use casa6 Python: `/opt/miniforge/envs/casa6/bin/python`
+- Never use `2>&1` in pytest commands (causes file not found errors)
+- Use test template: `python scripts/test-template.py <type> <module> <feature>`
+- Validate organization: `./scripts/validate-test-organization.py`
+
+### Deployment Options
+
+1. **systemd** (recommended for production):
+   - `contimg-stream.service`: Streaming worker
+   - `contimg-api.service`: API server
+   - Config: `ops/systemd/contimg.env`
+
+2. **Docker Compose**:
+   - `stream`: Streaming worker
+   - `api`: API server
+   - `dashboard`: Production frontend
+   - `dashboard-dev`: Development frontend (hot reload)
+   - `scheduler`: Nightly mosaic + housekeeping
+
+### Key Environment Variables
+
+- `PIPELINE_PRODUCTS_DB`: Products database path
+- `PIPELINE_STATE_DIR`: State directory
+- `CONTIMG_INPUT_DIR`: Input directory (`/data/incoming`)
+- `CONTIMG_OUTPUT_DIR`: Output directory (`/stage/dsa110-contimg/ms`)
+- `CONTIMG_SCRATCH_DIR`: Scratch directory (`/stage/dsa110-contimg`)
+- `HDF5_USE_FILE_LOCKING=FALSE`: Recommended for HDF5
+- `OMP_NUM_THREADS`, `MKL_NUM_THREADS`: Thread limits (e.g., 4)
+
+### Critical Requirements
+
+1. **Python Environment**: MUST use casa6 (`/opt/miniforge/envs/casa6/bin/python`)
+   - System Python (3.6.9) lacks CASA dependencies
+   - Pipeline WILL FAIL without casa6
+
+2. **Documentation Location**: Follow `docs/DOCUMENTATION_QUICK_REFERENCE.md`
+   - User docs: `docs/how-to/`, `docs/concepts/`, `docs/reference/`
+   - Dev notes: `internal/docs/dev/status/`, `internal/docs/dev/analysis/`
+   - Never create markdown files in root
+
+3. **Test Organization**: Enforced via pre-commit hook
+   - Use test template for new tests
+   - Follow taxonomy (unit/integration/science/e2e/smoke)
+   - Validate before committing
+
+4. **Error Handling**: Never suppress or dismiss errors
+   - Report all failures accurately
+   - Investigate root causes
+   - Never claim success with failures present
+
+### Key Files to Reference
+
+- **Architecture**: `docs/concepts/DIRECTORY_ARCHITECTURE.md`
+- **Documentation Guide**: `docs/DOCUMENTATION_QUICK_REFERENCE.md`
+- **Test Organization**: `docs/concepts/TEST_ORGANIZATION.md`
+- **Pipeline Overview**: `README.md`
+- **Memory/Notes**: `docs/MEMORY.md` (this file)
+
+### Common Workflows
+
+**Start Streaming Worker**:
+```bash
+python -m dsa110_contimg.conversion.streaming.streaming_converter \
+  --input-dir /data/incoming \
+  --output-dir /stage/dsa110-contimg/ms \
+  --queue-db state/ingest.sqlite3 \
+  --registry-db state/cal_registry.sqlite3 \
+  --scratch-dir /stage/dsa110-contimg \
+  --log-level INFO \
+  --use-subprocess \
+  --expected-subbands 16 \
+  --chunk-duration 5 \
+  --monitoring
+```
+
+**Start API**:
+```bash
+uvicorn dsa110_contimg.api:app --host 0.0.0.0 --port 8000
+```
+
+**Run Tests**:
+```bash
+# Fast unit tests
+/opt/miniforge/envs/casa6/bin/python -m pytest tests/unit -q -x -m "unit and not slow"
+
+# Integration tests (requires TEST_WITH_SYNTHETIC_DATA=1)
+TEST_WITH_SYNTHETIC_DATA=1 /opt/miniforge/envs/casa6/bin/python -m pytest tests/integration -q -x
+```
+
+**Frontend Development**:
+```bash
+cd frontend
+conda run -n casa6 npm run dev
+```
+
+---
+
+**Summary**: This is a mature, production-ready radio astronomy pipeline with comprehensive testing, documentation, and deployment options. The architecture is modular, well-organized, and follows best practices for scientific software development.

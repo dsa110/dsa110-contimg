@@ -174,7 +174,6 @@ export function MosaicConstructionWorkflow({
       <Typography variant="body2" color="text.secondary" sx={{ mb: 3 }}>
         Step-by-step workflow to create mosaics from multiple images
       </Typography>
-
       <Stepper activeStep={activeStep} orientation="vertical">
         {MOSAIC_STEPS.map((step, index) => (
           <Step key={step.label} completed={index < activeStep}>
@@ -218,7 +217,14 @@ export function MosaicConstructionWorkflow({
                       {imagesData?.items.map((image) => {
                         const isSelected = selectedImages.some((img) => img.id === image.id);
                         return (
-                          <Grid item xs={12} sm={6} md={4} key={image.id}>
+                          <Grid
+                            key={image.id}
+                            size={{
+                              xs: 12,
+                              sm: 6,
+                              md: 4,
+                            }}
+                          >
                             <Card
                               sx={{
                                 border: isSelected ? 2 : 1,
@@ -280,7 +286,7 @@ export function MosaicConstructionWorkflow({
                       Configure mosaic parameters:
                     </Typography>
                     <Grid container spacing={2}>
-                      <Grid item xs={12}>
+                      <Grid size={12}>
                         <TextField
                           fullWidth
                           label="Mosaic Name"
@@ -291,7 +297,12 @@ export function MosaicConstructionWorkflow({
                           placeholder="e.g., Field_2024_01_15"
                         />
                       </Grid>
-                      <Grid item xs={12} sm={6}>
+                      <Grid
+                        size={{
+                          xs: 12,
+                          sm: 6,
+                        }}
+                      >
                         <FormControl fullWidth>
                           <InputLabel>Method</InputLabel>
                           <Select
@@ -307,7 +318,12 @@ export function MosaicConstructionWorkflow({
                           </Select>
                         </FormControl>
                       </Grid>
-                      <Grid item xs={12} sm={6}>
+                      <Grid
+                        size={{
+                          xs: 12,
+                          sm: 6,
+                        }}
+                      >
                         <FormControl fullWidth>
                           <InputLabel>Combine</InputLabel>
                           <Select
@@ -325,7 +341,12 @@ export function MosaicConstructionWorkflow({
                           </Select>
                         </FormControl>
                       </Grid>
-                      <Grid item xs={12} sm={6}>
+                      <Grid
+                        size={{
+                          xs: 12,
+                          sm: 6,
+                        }}
+                      >
                         <TextField
                           fullWidth
                           label="Clip Min"
@@ -339,7 +360,12 @@ export function MosaicConstructionWorkflow({
                           }
                         />
                       </Grid>
-                      <Grid item xs={12} sm={6}>
+                      <Grid
+                        size={{
+                          xs: 12,
+                          sm: 6,
+                        }}
+                      >
                         <TextField
                           fullWidth
                           label="Clip Max"
@@ -369,7 +395,12 @@ export function MosaicConstructionWorkflow({
                       Review selected images and configuration:
                     </Typography>
                     <Grid container spacing={2}>
-                      <Grid item xs={12} md={6}>
+                      <Grid
+                        size={{
+                          xs: 12,
+                          md: 6,
+                        }}
+                      >
                         <Card>
                           <CardHeader title="Selected Images" />
                           <CardContent>
@@ -400,7 +431,12 @@ export function MosaicConstructionWorkflow({
                           </CardContent>
                         </Card>
                       </Grid>
-                      <Grid item xs={12} md={6}>
+                      <Grid
+                        size={{
+                          xs: 12,
+                          md: 6,
+                        }}
+                      >
                         <Card>
                           <CardHeader title="Configuration" />
                           <CardContent>

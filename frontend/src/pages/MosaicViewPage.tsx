@@ -9,6 +9,7 @@ import { ArrowBack } from "@mui/icons-material";
 import SkyViewer from "../components/Sky/SkyViewer";
 import { useMosaic } from "../api/queries";
 import PageBreadcrumbs from "../components/PageBreadcrumbs";
+import { SkeletonLoader } from "../components/SkeletonLoader";
 
 export default function MosaicViewPage() {
   const { mosaicId } = useParams<{ mosaicId: string }>();
@@ -83,8 +84,8 @@ export default function MosaicViewPage() {
                   <strong>Time Range:</strong>
                 </Typography>
                 <Typography variant="body2" sx={{ mb: 2 }}>
-                  {new Date(mosaic.start_time).toLocaleString()} →<br />
-                  {new Date(mosaic.end_time).toLocaleString()}
+                  {mosaic.start_time ? new Date(mosaic.start_time).toLocaleString() : "N/A"} →<br />
+                  {mosaic.end_time ? new Date(mosaic.end_time).toLocaleString() : "N/A"}
                 </Typography>
 
                 <Box sx={{ mt: 2, display: "flex", flexWrap: "wrap", gap: 1 }}>

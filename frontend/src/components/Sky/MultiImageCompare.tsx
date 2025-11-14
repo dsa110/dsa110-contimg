@@ -3,7 +3,7 @@
  * Side-by-side JS9 viewers with synchronized pan/zoom/colormap and blend mode
  * Reference: https://js9.si.edu/js9/help/publicapi.html
  */
-import { useState, useEffect, useRef, useCallback } from "react";
+import { useState, useEffect, useRef } from "react";
 import {
   Box,
   Button,
@@ -23,12 +23,12 @@ import {
   Tooltip,
   Chip,
 } from "@mui/material";
-import { Close, CompareArrows, Opacity, Link, LinkOff } from "@mui/icons-material";
+import { Close, Opacity, Link, LinkOff } from "@mui/icons-material";
 import SkyViewer from "./SkyViewer";
 import ImageBrowser from "./ImageBrowser";
 import type { ImageInfo } from "../../api/types";
 import { logger } from "../../utils/logger";
-import { findDisplay, isJS9Available } from "../../utils/js9";
+import { findDisplay } from "../../utils/js9";
 
 declare global {
   interface Window {

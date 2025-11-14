@@ -1,4 +1,4 @@
-import React from "react";
+// import React from "react";
 import {
   Box,
   Card,
@@ -42,7 +42,13 @@ export default function CacheStats() {
         </Typography>
 
         <Grid container spacing={2} sx={{ mb: 3 }}>
-          <Grid item xs={12} sm={6} md={3}>
+          <Grid
+            size={{
+              xs: 12,
+              sm: 6,
+              md: 3,
+            }}
+          >
             <Card variant="outlined">
               <CardContent>
                 <Typography variant="body2" color="text.secondary">
@@ -53,7 +59,13 @@ export default function CacheStats() {
             </Card>
           </Grid>
 
-          <Grid item xs={12} sm={6} md={3}>
+          <Grid
+            size={{
+              xs: 12,
+              sm: 6,
+              md: 3,
+            }}
+          >
             <Card variant="outlined">
               <CardContent>
                 <Typography variant="body2" color="text.secondary">
@@ -64,7 +76,13 @@ export default function CacheStats() {
             </Card>
           </Grid>
 
-          <Grid item xs={12} sm={6} md={3}>
+          <Grid
+            size={{
+              xs: 12,
+              sm: 6,
+              md: 3,
+            }}
+          >
             <Card variant="outlined">
               <CardContent>
                 <Typography variant="body2" color="text.secondary">
@@ -75,7 +93,13 @@ export default function CacheStats() {
             </Card>
           </Grid>
 
-          <Grid item xs={12} sm={6} md={3}>
+          <Grid
+            size={{
+              xs: 12,
+              sm: 6,
+              md: 3,
+            }}
+          >
             <Card variant="outlined">
               <CardContent>
                 <Typography variant="body2" color="text.secondary">
@@ -92,7 +116,12 @@ export default function CacheStats() {
           Performance Metrics
         </Typography>
         <Grid container spacing={2}>
-          <Grid item xs={12} md={6}>
+          <Grid
+            size={{
+              xs: 12,
+              md: 6,
+            }}
+          >
             <Box sx={{ mb: 2 }}>
               <Box sx={{ display: "flex", justifyContent: "space-between", mb: 1 }}>
                 <Typography variant="body2">Hit Rate</Typography>
@@ -120,7 +149,12 @@ export default function CacheStats() {
             </Box>
           </Grid>
 
-          <Grid item xs={12} md={6}>
+          <Grid
+            size={{
+              xs: 12,
+              md: 6,
+            }}
+          >
             <Card variant="outlined">
               <CardContent>
                 <Typography variant="body2" color="text.secondary" gutterBottom>

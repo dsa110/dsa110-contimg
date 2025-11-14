@@ -17,7 +17,7 @@ scripts/auto-error-detection.sh:123:error-detection:Suppresses file existence ch
 scripts/auto-error-detection.sh:165:error-detection:Suppresses shebang check errors in error detection - optional validation
 scripts/auto-error-detection-universal.sh:24:error-detection:Suppresses wrapper errors in universal error detection - prevents recursive loops
 scripts/auto-error-detection-universal.sh:28:error-detection:Suppresses chmod errors for universal error detection wrapper - optional setup
-scripts/agent-setup.sh:12:infrastructure:Suppresses sourcing errors for optional error detection setup - infrastructure initialization
+scripts/developer-setup.sh:12:infrastructure:Suppresses sourcing errors for optional error detection setup - infrastructure initialization
 
 # ============================================================================
 # INFRASTRUCTURE SETUP
@@ -209,6 +209,6 @@ scripts/setup-auto-error-detection.sh:36:error-detection:Suppresses sed errors f
 scripts/setup-auto-error-detection.sh:37:error-detection:Suppresses sed errors for optional setup removal - error detection system
 scripts/setup-auto-error-detection.sh:68:error-detection:Suppresses grep errors for optional profile check - error detection system
 scripts/setup-dev.sh:16:infrastructure:Suppresses chmod errors for optional Git hooks setup
-scripts/agent-setup.sh:13:error-detection:Suppresses sourcing errors for optional error detection setup - infrastructure initialization
+scripts/developer-setup.sh:13:error-detection:Suppresses sourcing errors for optional error detection setup - infrastructure initialization
 scripts/auto-error-detection-env.sh:7:error-detection:Suppresses sourcing errors for optional error detection setup - infrastructure initialization
 scripts/ensure-error-detection.sh:11:error-detection:Suppresses sourcing errors for optional error detection setup - infrastructure initialization

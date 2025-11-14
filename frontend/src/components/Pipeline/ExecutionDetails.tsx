@@ -33,7 +33,6 @@ export default function ExecutionDetails({ execution }: ExecutionDetailsProps) {
       >
         {expanded ? "Hide" : "Show"} Details
       </Button>
-
       <Collapse in={expanded}>
         <Box sx={{ mt: 2 }}>
           <Accordion>

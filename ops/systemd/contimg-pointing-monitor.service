@@ -11,7 +11,7 @@ EnvironmentFile=/data/dsa110-contimg/ops/systemd/contimg.env
 Environment=PYTHONPATH=/data/dsa110-contimg/src
 Environment=CASACORE_NOROOT=true
 WorkingDirectory=/data/dsa110-contimg
-ExecStart=/opt/miniforge/envs/casa6/bin/python -m dsa110_contimg.pointing.monitor \
+ExecStart=/bin/bash /data/dsa110-contimg/scripts/casa_wrapper.sh /opt/miniforge/envs/casa6/bin/python -m dsa110_contimg.pointing.monitor \
     ${CONTIMG_INPUT_DIR} \
     ${PIPELINE_PRODUCTS_DB} \
     --status-file ${PIPELINE_STATE_DIR}/pointing-monitor-status.json \
@@ -25,4 +25,3 @@ StandardError=append:/data/dsa110-contimg/state/logs/pointing-monitor.err
 
 [Install]
 WantedBy=multi-user.target
-

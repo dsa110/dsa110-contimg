@@ -10,8 +10,8 @@
 
 import { useEffect, useState, useRef } from "react";
 import { logger } from "../../../utils/logger";
-import { isJS9Available, findDisplay } from "../../../utils/js9";
-import { useJS9Safe } from "../../../contexts/JS9Context";
+import { findDisplay } from "../../../utils/js9";
+// import { useJS9Safe } from "../../../contexts/JS9Context";
 import { js9Service } from "../../../services/js9";
 
 interface UseJS9ImageLoaderOptions {

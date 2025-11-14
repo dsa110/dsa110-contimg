@@ -152,7 +152,12 @@ export default function ImageComparisonTool({
 
             {beforeAfterImages.before && beforeAfterImages.after ? (
               <Grid container spacing={2}>
-                <Grid item xs={12} md={6}>
+                <Grid
+                  size={{
+                    xs: 12,
+                    md: 6,
+                  }}
+                >
                   <Card>
                     <CardHeader
                       title="Before"
@@ -176,7 +181,12 @@ export default function ImageComparisonTool({
                     </CardContent>
                   </Card>
                 </Grid>
-                <Grid item xs={12} md={6}>
+                <Grid
+                  size={{
+                    xs: 12,
+                    md: 6,
+                  }}
+                >
                   <Card>
                     <CardHeader
                       title="After"
@@ -200,7 +210,7 @@ export default function ImageComparisonTool({
                     </CardContent>
                   </Card>
                 </Grid>
-                <Grid item xs={12}>
+                <Grid size={12}>
                   <Button
                     variant="contained"
                     fullWidth
@@ -235,7 +245,14 @@ export default function ImageComparisonTool({
             {epochImages.length > 0 ? (
               <Grid container spacing={2}>
                 {epochImages.map((img, idx) => (
-                  <Grid item xs={12} sm={6} md={4} key={img.id}>
+                  <Grid
+                    key={img.id}
+                    size={{
+                      xs: 12,
+                      sm: 6,
+                      md: 4,
+                    }}
+                  >
                     <Card>
                       <CardHeader
                         title={`Epoch ${idx + 1}`}
@@ -270,7 +287,7 @@ export default function ImageComparisonTool({
                     </Card>
                   </Grid>
                 ))}
-                <Grid item xs={12}>
+                <Grid size={12}>
                   <Button
                     variant="contained"
                     startIcon={<CompareArrows />}
@@ -305,7 +322,12 @@ export default function ImageComparisonTool({
             </Typography>
 
             <Grid container spacing={2}>
-              <Grid item xs={12} md={6}>
+              <Grid
+                size={{
+                  xs: 12,
+                  md: 6,
+                }}
+              >
                 <Card>
                   <CardHeader title="Image A" />
                   <CardContent>
@@ -317,7 +339,12 @@ export default function ImageComparisonTool({
                   </CardContent>
                 </Card>
               </Grid>
-              <Grid item xs={12} md={6}>
+              <Grid
+                size={{
+                  xs: 12,
+                  md: 6,
+                }}
+              >
                 <Card>
                   <CardHeader title="Image B" />
                   <CardContent>
@@ -329,7 +356,7 @@ export default function ImageComparisonTool({
                   </CardContent>
                 </Card>
               </Grid>
-              <Grid item xs={12}>
+              <Grid size={12}>
                 <Button
                   variant="contained"
                   fullWidth
@@ -355,7 +382,12 @@ export default function ImageComparisonTool({
 
             {imageA && imageB ? (
               <Grid container spacing={2}>
-                <Grid item xs={12} md={6}>
+                <Grid
+                  size={{
+                    xs: 12,
+                    md: 6,
+                  }}
+                >
                   <Card>
                     <CardHeader title="Image A Statistics" />
                     <CardContent>
@@ -379,7 +411,12 @@ export default function ImageComparisonTool({
                     </CardContent>
                   </Card>
                 </Grid>
-                <Grid item xs={12} md={6}>
+                <Grid
+                  size={{
+                    xs: 12,
+                    md: 6,
+                  }}
+                >
                   <Card>
                     <CardHeader title="Image B Statistics" />
                     <CardContent>
@@ -403,7 +440,7 @@ export default function ImageComparisonTool({
                     </CardContent>
                   </Card>
                 </Grid>
-                <Grid item xs={12}>
+                <Grid size={12}>
                   <Alert severity="info">
                     Advanced comparison metrics (flux differences, RMS, etc.) would be calculated
                     here when the backend API supports it.
@@ -416,7 +453,6 @@ export default function ImageComparisonTool({
           </Box>
         </TabPanel>
       </Paper>
-
       {/* Multi-Image Compare Dialog */}
       <MultiImageCompare
         open={compareDialogOpen}

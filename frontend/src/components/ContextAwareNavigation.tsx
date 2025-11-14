@@ -2,7 +2,7 @@
  * Context-Aware Navigation Component
  * Shows suggested next steps and quick actions based on current workflow
  */
-import React from "react";
+// import React from "react";
 import { Box, Paper, Typography, Button, Chip, Stack } from "@mui/material";
 import { useNavigate } from "react-router-dom";
 import { ArrowForward, Lightbulb } from "@mui/icons-material";

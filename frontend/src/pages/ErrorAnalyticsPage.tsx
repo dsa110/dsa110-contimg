@@ -25,7 +25,7 @@ import {
   FormControl,
   InputLabel,
 } from "@mui/material";
-import { ErrorOutline, TrendingUp, TrendingDown, Warning, CheckCircle } from "@mui/icons-material";
+import { ErrorOutline, TrendingUp, TrendingDown, CheckCircle } from "@mui/icons-material";
 import { useQuery } from "@tanstack/react-query";
 import { apiClient } from "../api/client";
 import { SkeletonLoader } from "../components/SkeletonLoader";
@@ -85,7 +85,6 @@ export default function ErrorAnalyticsPage() {
       <Typography variant="h4" gutterBottom>
         Error Analytics
       </Typography>
-
       <Box sx={{ mb: 3 }}>
         <FormControl size="small" sx={{ minWidth: 200 }}>
           <InputLabel>Time Range</InputLabel>
@@ -100,10 +99,15 @@ export default function ErrorAnalyticsPage() {
           </Select>
         </FormControl>
       </Box>
-
       <Grid container spacing={3}>
         {/* Total Errors */}
-        <Grid item xs={12} sm={6} md={3}>
+        <Grid
+          size={{
+            xs: 12,
+            sm: 6,
+            md: 3,
+          }}
+        >
           <Card>
             <CardContent>
               <Typography color="text.secondary" gutterBottom>
@@ -115,7 +119,13 @@ export default function ErrorAnalyticsPage() {
         </Grid>
 
         {/* Error Rate */}
-        <Grid item xs={12} sm={6} md={3}>
+        <Grid
+          size={{
+            xs: 12,
+            sm: 6,
+            md: 3,
+          }}
+        >
           <Card>
             <CardContent>
               <Typography color="text.secondary" gutterBottom>
@@ -138,7 +148,12 @@ export default function ErrorAnalyticsPage() {
         </Grid>
 
         {/* Errors by Type */}
-        <Grid item xs={12} md={6}>
+        <Grid
+          size={{
+            xs: 12,
+            md: 6,
+          }}
+        >
           <Card>
             <CardContent>
               <Typography variant="h6" gutterBottom>
@@ -159,7 +174,12 @@ export default function ErrorAnalyticsPage() {
         </Grid>
 
         {/* Errors by Status */}
-        <Grid item xs={12} md={6}>
+        <Grid
+          size={{
+            xs: 12,
+            md: 6,
+          }}
+        >
           <Card>
             <CardContent>
               <Typography variant="h6" gutterBottom>
@@ -184,7 +204,7 @@ export default function ErrorAnalyticsPage() {
         </Grid>
 
         {/* Recent Errors Table */}
-        <Grid item xs={12}>
+        <Grid size={12}>
           <Card>
             <CardContent>
               <Typography variant="h6" gutterBottom>

@@ -158,6 +158,6 @@ file_path = construct_path(validated_input)
 ## Resources
 
 - Path validation utilities: `src/dsa110_contimg/utils/path_validation.py`
-- CodeQL results: `CODEQL_RESULTS_SUMMARY.md`
+- CodeQL results: `internal/docs/dev/status/2025-11/codeql_results_summary.md`
 - Security best practices:
   [OWASP Path Traversal](https://owasp.org/www-community/attacks/Path_Traversal)
