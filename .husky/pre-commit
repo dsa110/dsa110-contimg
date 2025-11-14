@@ -14,6 +14,15 @@ cd "$REPO_ROOT" || {
   exit 1
 }
 
+# Run doc audit to prevent endpoint/link drift
+if command -v python3 >/dev/null 2>&1; then
+  echo "Running documentation audit..."
+  if ! python3 scripts/doc_audit.py; then
+    echo "\n[doc-audit] Documentation audit failed. Fix issues or run: python3 scripts/doc_audit.py\n" >&2
+    exit 1
+  fi
+fi
+
 # Get staged files early to check what we're committing
 STAGED_FILES_EARLY=$(git diff --cached --name-only --diff-filter=ACM 2>/dev/null || echo "")
 
@@ -292,4 +301,3 @@ if [ -n "$STAGED_FRONTEND_FILES" ]; then
 else
   echo "No frontend files staged, skipping frontend checks." >&2
 fi
-

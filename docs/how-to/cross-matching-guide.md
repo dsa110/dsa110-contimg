@@ -2,7 +2,11 @@
 
 ## Overview
 
-Cross-matching is the process of identifying the same astronomical sources in different catalogs or datasets. The DSA-110 pipeline provides comprehensive cross-matching functionality to match detected sources with reference catalogs (NVSS, FIRST, RACS) for astrometry validation, flux scale calibration, and source identification.
+Cross-matching is the process of identifying the same astronomical sources in
+different catalogs or datasets. The DSA-110 pipeline provides comprehensive
+cross-matching functionality to match detected sources with reference catalogs
+(NVSS, FIRST, RACS) for astrometry validation, flux scale calibration, and
+source identification.
 
 ## Quick Start
 
@@ -85,6 +89,7 @@ matches = cross_match_sources(
 ```
 
 **Parameters:**
+
 - `detected_ra`, `detected_dec`: Arrays of detected source positions (degrees)
 - `catalog_ra`, `catalog_dec`: Arrays of catalog source positions (degrees)
 - `radius_arcsec`: Matching radius in arcseconds
@@ -92,6 +97,7 @@ matches = cross_match_sources(
 - `detected_ids`, `catalog_ids`: Optional ID arrays
 
 **Returns:** DataFrame with matches containing:
+
 - `detected_idx`, `catalog_idx`: Indices of matched sources
 - `separation_arcsec`: Separation distance
 - `dra_arcsec`, `ddec_arcsec`: RA/Dec offsets
@@ -197,10 +203,13 @@ config.crossmatch = CrossMatchConfig(
 ```
 
 **Configuration Options:**
+
 - `enabled`: Enable/disable cross-matching stage
-- `catalog_types`: List of catalogs to match against (`["nvss"]`, `["first"]`, `["rax"]`, or combinations)
+- `catalog_types`: List of catalogs to match against (`["nvss"]`, `["first"]`,
+  `["rax"]`, or combinations)
 - `radius_arcsec`: Matching radius in arcseconds (default: 10.0)
-- `method`: Matching method - `"basic"` (nearest neighbor) or `"advanced"` (all matches)
+- `method`: Matching method - `"basic"` (nearest neighbor) or `"advanced"` (all
+  matches)
 - `store_in_database`: Store results in database (default: True)
 - `min_separation_arcsec`: Minimum separation for valid match (default: 0.1)
 - `max_separation_arcsec`: Maximum separation for valid match (default: 60.0)
@@ -227,20 +236,20 @@ Cross-match results are available in the pipeline context:
 # After pipeline execution
 if "crossmatch_results" in context.outputs:
     results = context.outputs["crossmatch_results"]
-    
+
     print(f"Matched {results['n_catalogs']} catalogs")
     print(f"Catalog types: {results['catalog_types']}")
-    
+
     # Access matches for each catalog
     for catalog_type, matches in results["matches"].items():
         print(f"{catalog_type}: {len(matches)} matches")
-    
+
     # Access offsets
     for catalog_type, offsets in results["offsets"].items():
         print(f"{catalog_type} offsets:")
         print(f"  RA: {offsets['dra_median_arcsec']:.2f} arcsec")
         print(f"  Dec: {offsets['ddec_median_arcsec']:.2f} arcsec")
-    
+
     # Access flux scales
     for catalog_type, flux_scale in results["flux_scales"].items():
         print(f"{catalog_type} flux correction: {flux_scale['flux_correction_factor']:.3f}")
@@ -277,6 +286,7 @@ conn.close()
 ```
 
 **Table Schema:**
+
 - `id`: Primary key
 - `source_id`: Source identifier (foreign key to `variability_stats`)
 - `catalog_type`: Catalog name (`nvss`, `first`, `rax`)
@@ -409,11 +419,16 @@ for idx, row in results.iterrows():
 
 ## Best Practices
 
-1. **Choose Appropriate Radius**: Use 2-3× the astrometric uncertainty for matching radius
-2. **Filter by Quality**: Use `match_quality` to filter matches (e.g., only `excellent` or `good`)
-3. **Check Separation Limits**: Use `min_separation_arcsec` and `max_separation_arcsec` to filter outliers
-4. **Multiple Catalogs**: Use `multi_catalog_match()` when matching against multiple catalogs
-5. **Flux Scaling**: Account for frequency differences when comparing fluxes (use `scale_flux_to_frequency()`)
+1. **Choose Appropriate Radius**: Use 2-3× the astrometric uncertainty for
+   matching radius
+2. **Filter by Quality**: Use `match_quality` to filter matches (e.g., only
+   `excellent` or `good`)
+3. **Check Separation Limits**: Use `min_separation_arcsec` and
+   `max_separation_arcsec` to filter outliers
+4. **Multiple Catalogs**: Use `multi_catalog_match()` when matching against
+   multiple catalogs
+5. **Flux Scaling**: Account for frequency differences when comparing fluxes
+   (use `scale_flux_to_frequency()`)
 
 ## Troubleshooting
 
@@ -440,5 +455,5 @@ for idx, row in results.iterrows():
 - `docs/reference/CATALOG_CROSS_MATCHING_GUIDE.md` - Cross-matching strategies
 - `docs/reference/CATALOG_USAGE_GUIDE.md` - General catalog usage
 - `docs/reference/EXISTING_CROSS_MATCHING_TOOLS.md` - Current tools overview
-- `docs/dev/CROSS_MATCHING_IMPLEMENTATION.md` - Implementation details
-
+- `internal/docs/dev/imported/CROSS_MATCHING_IMPLEMENTATION.md` - Implementation
+  details

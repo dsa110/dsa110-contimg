@@ -439,7 +439,7 @@ To integrate JS9 or Aladin Lite:
 2. **Aladin Lite:** See
    [Aladin Lite API](https://aladin.cds.unistra.fr/AladinLite/doc/)
 
-Placeholder is ready in `src/pages/SkyViewPage.tsx`.
+Placeholder is ready in `frontend/src/pages/SkyViewPage.tsx`.
 
 ## Support
 

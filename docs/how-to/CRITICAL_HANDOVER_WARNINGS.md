@@ -75,7 +75,7 @@ pytest tests/ 2>&1 | tee log.txt
 **Why:** Pytest receives `2>&1` as a literal argument and tries to find a test
 file named "2>&1".
 
-**Reference:** `docs/dev/PYTEST_REDIRECTION_FIX.md`
+**Reference:** `internal/docs/dev/imported/PYTEST_REDIRECTION_FIX.md`
 
 ---
 

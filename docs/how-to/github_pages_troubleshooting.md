@@ -7,6 +7,7 @@
 ### Issue 1: 404 Error - "There isn't a GitHub Pages site here"
 
 **Symptoms:**
+
 - Visiting `dsa110-contimg.github.io/dsa110-contimg/` shows 404
 - GitHub Pages error page appears
 
@@ -21,7 +22,8 @@
    - Folder: **"/ (root)"**
    - Click **"Save"**
 
-**Important:** The `gh-pages` branch will be created automatically by the workflow on first deployment.
+**Important:** The `gh-pages` branch will be created automatically by the
+workflow on first deployment.
 
 #### Step 2: Verify Workflow Ran Successfully
 
@@ -78,7 +80,7 @@
      - `docs/**`
      - `mkdocs.yml`
      - `.github/workflows/docs.yml`
-     - `docs/javascripts/**`
+     - docs/javascripts/ (custom JavaScript)
    - If you changed other files, workflow won't trigger
 
 3. **Workflow file:**
@@ -87,11 +89,13 @@
 
 ### Issue 4: Custom Domain (code.deepsynoptic.org)
 
-If your site is actually hosted at `http://code.deepsynoptic.org/dsa110-contimg/`:
+If your site is actually hosted at
+`http://code.deepsynoptic.org/dsa110-contimg/`:
 
 1. **This is NOT GitHub Pages** - it's a custom server/reverse proxy
 2. The GitHub Pages workflow still deploys to `gh-pages` branch
-3. Your custom server likely pulls from `gh-pages` branch or has its own deployment
+3. Your custom server likely pulls from `gh-pages` branch or has its own
+   deployment
 4. Check with your server administrator about the deployment process
 
 ## Verification Steps
@@ -161,4 +165,3 @@ ls -la site/
 - **Actions:** `https://github.com/dsa110/dsa110-contimg/actions`
 - **Settings:** `https://github.com/dsa110/dsa110-contimg/settings/pages`
 - **Branches:** `https://github.com/dsa110/dsa110-contimg/branches`
-

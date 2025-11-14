@@ -111,7 +111,7 @@ python script.py  # Automatically uses casa6
 - ✅ Prevents log file creation suppression
 - ✅ Allows documented legitimate exceptions
 
-**Details:** `docs/dev/OUTPUT_SUPPRESSION_EXCEPTIONS.md`
+**Details:** `internal/docs/dev/imported/OUTPUT_SUPPRESSION_EXCEPTIONS.md`
 
 ---
 

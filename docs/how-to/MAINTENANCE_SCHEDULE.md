@@ -109,7 +109,8 @@ ls -t docs/dev/audits/output-suppression-audit-*.txt | head -2 | xargs diff
 
 **Tasks:**
 
-1. Update `docs/dev/OUTPUT_SUPPRESSION_EXCEPTIONS.md` with new patterns
+1. Update `internal/docs/dev/imported/OUTPUT_SUPPRESSION_EXCEPTIONS.md` with new
+   patterns
 2. Update team training materials
 3. Review and update guidelines
 
@@ -314,7 +315,8 @@ ls -t docs/dev/audits/output-suppression-audit-*.txt | head -2 | xargs diff
 - **Whitelist:** `.output-suppression-whitelist`
 - **Audit script:** `scripts/maintenance-audit-output-suppression.sh`
 - **Fix script:** `scripts/fix-non-legitimate-suppressions.sh`
-- **Documentation:** `docs/dev/OUTPUT_SUPPRESSION_EXCEPTIONS.md`
+- **Documentation:**
+  `internal/docs/dev/imported/OUTPUT_SUPPRESSION_EXCEPTIONS.md`
 - **Team training:** `docs/how-to/TEAM_TRAINING_OUTPUT_SUPPRESSION.md`
 
 ---

@@ -6,7 +6,7 @@ The Streaming Service API provides RESTful endpoints for controlling and
 monitoring the streaming converter service. All endpoints are under the base
 path api/streaming (base path, not a standalone endpoint).
 
-**Base URL:** `http://localhost:8010/api/streaming`
+Base path: `http://localhost:8010/api/streaming`
 
 **Authentication:** None (currently)
 

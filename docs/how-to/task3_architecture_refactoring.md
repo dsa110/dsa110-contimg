@@ -1,5 +1,11 @@
 # Task 3: Architecture & Code Organization - Implementation Plan
 
+**Date:** 2025-11-13  
+**Status:** in-progress  
+**Related:** [Task 3 Progress](task3_progress.md), [Dashboard Remodeling](../dev/analysis/dashboard_remodeling.md)
+
+---
+
 ## Overview
 
 This document outlines the refactoring plan for improving code architecture and
