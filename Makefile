@@ -43,4 +43,4 @@ check-code-quality:
 # Run documentation audit to verify endpoints and links
 doc-audit:
 	@echo "Running documentation audit..."
-	@python3 scripts/doc_audit.py
+	@$(CASA6_PYTHON) scripts/doc_audit.py

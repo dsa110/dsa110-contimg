@@ -198,6 +198,9 @@ site/
 # Kluster
 .kluster
 
+# Docker user configuration (can contain credentials)
+.docker/
+
 # Process IDs and lock files
 *.pid
 
