@@ -280,24 +280,26 @@ def create_app(config: ApiConfig | None = None) -> FastAPI:
                             ],
                             # Legacy fields for backward compatibility
                             "disk_percent": (
-                                system_metrics.disks[
+                                system_metrics.disks[  # pylint: disable=unsubscriptable-object
                                     0
-                                ].percent  # pylint: disable=unsubscriptable-object
+                                ].percent
                                 if system_metrics.disks
                                 else None
                             ),
                             "disk_free_gb": (
                                 round(
-                                    system_metrics.disks[0].free / (1024**3),
-                                    2,  # pylint: disable=unsubscriptable-object
+                                    system_metrics.disks[0].free
+                                    / (1024**3),  # pylint: disable=unsubscriptable-object
+                                    2,
                                 )
                                 if system_metrics.disks
                                 else None
                             ),
                             "disk_total_gb": (
                                 round(
-                                    system_metrics.disks[0].total / (1024**3),
-                                    2,  # pylint: disable=unsubscriptable-object
+                                    system_metrics.disks[0].total
+                                    / (1024**3),  # pylint: disable=unsubscriptable-object
+                                    2,
                                 )
                                 if system_metrics.disks
                                 else None
