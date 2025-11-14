@@ -43,7 +43,7 @@ import {
   Delete,
   Add,
 } from "@mui/icons-material";
-import { useImagesQuery, useCreateMosaic } from "../../api/queries";
+import { useImages, useCreateMosaic } from "../../api/queries";
 import type { ImageInfo, Mosaic } from "../../api/types";
 
 const MOSAIC_STEPS = [
@@ -88,7 +88,7 @@ export function MosaicConstructionWorkflow({
     name: "",
   });
 
-  const { data: imagesData } = useImagesQuery({
+  const { data: imagesData } = useImages({
     limit: 500,
     order_by: "created_at",
     order: "desc",

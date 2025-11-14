@@ -1,4 +1,5 @@
 # Moved
 
-This working/planning document was moved to:
+This document has been moved.
+
 internal/docs/dev/imported/IMPLEMENTATION_CHECKLIST.md

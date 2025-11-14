@@ -37,12 +37,13 @@ def get_limiter() -> Optional[Any]:
         return None
 
     if _limiter is None:
+        # Import Limiter at function level to avoid import issues
+        from slowapi import Limiter
+
         # Try to use Redis for distributed rate limiting, fall back to memory
         redis_url = os.getenv("REDIS_URL")
         if redis_url:
             try:
-                from slowapi import Limiter
-
                 _limiter = Limiter(
                     key_func=get_remote_address,
                     storage_uri=redis_url,

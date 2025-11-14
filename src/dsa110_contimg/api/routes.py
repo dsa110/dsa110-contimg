@@ -69,6 +69,7 @@ from dsa110_contimg.api.models import (
     BatchJobStatus,
     BatchPhotometryParams,
     BatchPublishParams,
+    CalibrateJobCreateRequest,
     CalibrateJobParams,
     CalibrationQA,
     CalibratorMatchList,
@@ -98,6 +99,7 @@ from dsa110_contimg.api.models import (
     Job,
     JobCreateRequest,
     JobList,
+    JobParams,
     LightCurveData,
     Measurement,
     MeasurementList,
@@ -113,6 +115,7 @@ from dsa110_contimg.api.models import (
     ObservationTimeline,
     PipelineStatus,
     PointingHistoryList,
+    PostageStampInfo,
     PostageStampsResponse,
     ProductList,
     QAArtifact,
@@ -135,6 +138,7 @@ from dsa110_contimg.api.streaming_service import (
     StreamingConfig,
     StreamingServiceManager,
 )
+from dsa110_contimg.qa.html_reports import generate_html_report
 
 # Module-level cache for UVH5 file listings (TTL: 30 seconds)
 # Shared across all requests for fast file discovery
@@ -276,15 +280,21 @@ def create_app(config: ApiConfig | None = None) -> FastAPI:
                             ],
                             # Legacy fields for backward compatibility
                             "disk_percent": (
-                                system_metrics.disks[0].percent if system_metrics.disks else None
+                                system_metrics.disks[0].percent
+                                if system_metrics.disks
+                                else None  # pylint: disable=unsubscriptable-object
                             ),
                             "disk_free_gb": (
-                                round(system_metrics.disks[0].free / (1024**3), 2)
+                                round(
+                                    system_metrics.disks[0].free / (1024**3), 2
+                                )  # pylint: disable=unsubscriptable-object
                                 if system_metrics.disks
                                 else None
                             ),
                             "disk_total_gb": (
-                                round(system_metrics.disks[0].total / (1024**3), 2)
+                                round(
+                                    system_metrics.disks[0].total / (1024**3), 2
+                                )  # pylint: disable=unsubscriptable-object
                                 if system_metrics.disks
                                 else None
                             ),
@@ -478,9 +488,15 @@ def create_app(config: ApiConfig | None = None) -> FastAPI:
     # Events and Cache monitoring (Phase 3)
     from dsa110_contimg.api.routers import cache as cache_router_module
     from dsa110_contimg.api.routers import events as events_router_module
+    from dsa110_contimg.api.routers import performance as performance_router_module
+    from dsa110_contimg.api.routers import tasks as tasks_router_module
 
     app.include_router(events_router_module.router, prefix="/api/events", tags=["events"])
     app.include_router(cache_router_module.router, prefix="/api/cache", tags=["cache"])
+    app.include_router(
+        performance_router_module.router, prefix="/api/performance", tags=["performance"]
+    )
+    app.include_router(tasks_router_module.router, prefix="/api/tasks", tags=["tasks"])
 
     @router.get("/images/{image_id}/measurements", response_model=MeasurementList)
     def get_image_measurements(
@@ -786,8 +802,8 @@ def create_app(config: ApiConfig | None = None) -> FastAPI:
         wcs = None
         try:
             with fits.open(fits_path) as hdul:
-                header = hdul[0].header
-                data = hdul[0].data
+                header = hdul[0].header  # pylint: disable=no-member
+                data = hdul[0].data  # pylint: disable=no-member
 
                 # Handle multi-dimensional data
                 if data.ndim > 2:
@@ -1207,8 +1223,8 @@ def create_app(config: ApiConfig | None = None) -> FastAPI:
 
         # Add statistics text
         if timeline.earliest_time and timeline.latest_time:
-            stats_text = f"First: {timeline.earliest_time.strftime('%Y-%m-%d %H:%M:%S')}\n"
-            stats_text += f"Last: {timeline.latest_time.strftime('%Y-%m-%d %H:%M:%S')}\n"
+            stats_text = f"First: {timeline.earliest_time.strftime('%Y-%m-%d %H:%M:%S')}\n"  # pylint: disable=no-member
+            stats_text += f"Last: {timeline.latest_time.strftime('%Y-%m-%d %H:%M:%S')}\n"  # pylint: disable=no-member
             stats_text += f"Span: {time_span_days} days\n"
             stats_text += f"Segments: {len(timeline.segments)}\n"
             stats_text += f"Files: {timeline.total_files}"
@@ -2716,7 +2732,6 @@ def create_app(config: ApiConfig | None = None) -> FastAPI:
     ) -> Job:
         """Create and run a calibration job."""
         from dsa110_contimg.api.job_runner import run_calibrate_job
-        from dsa110_contimg.api.models import CalibrateJobCreateRequest
         from dsa110_contimg.database.jobs import create_job
         from dsa110_contimg.database.products import ensure_products_db
 
@@ -3291,7 +3306,7 @@ def create_app(config: ApiConfig | None = None) -> FastAPI:
         try:
             # Get pointing declination
             pointing_info = load_pointing(ms_full_path)
-            pt_dec = pointing_info["dec_deg"] * u.deg
+            pt_dec = pointing_info["dec_deg"] * u.deg  # pylint: disable=no-member
 
             # Get mid MJD from MS using standardized utility function
             # This handles both TIME formats (seconds since MJD 0 vs MJD 51544.0)
@@ -3383,8 +3398,10 @@ def create_app(config: ApiConfig | None = None) -> FastAPI:
                     from dsa110_contimg.utils.constants import DSA110_LOCATION
 
                     t.location = DSA110_LOCATION
-                    ra_meridian = t.sidereal_time("apparent").to_value(u.deg)
-                    dec_meridian = float(pt_dec.to_value(u.deg))
+                    ra_meridian = t.sidereal_time("apparent").to_value(
+                        u.deg
+                    )  # pylint: disable=no-member
+                    dec_meridian = float(pt_dec.to_value(u.deg))  # pylint: disable=no-member
 
                     pb_response = airy_primary_beam_response(
                         np.deg2rad(ra_meridian),
@@ -3422,7 +3439,7 @@ def create_app(config: ApiConfig | None = None) -> FastAPI:
 
             return MSCalibratorMatchList(
                 ms_path=ms_full_path,
-                pointing_dec=float(pt_dec.to_value(u.deg)),
+                pointing_dec=float(pt_dec.to_value(u.deg)),  # pylint: disable=no-member
                 mid_mjd=float(mid_mjd),
                 matches=matches,
                 has_calibrator=has_calibrator,
@@ -3964,7 +3981,7 @@ def create_app(config: ApiConfig | None = None) -> FastAPI:
 
         # Get image metadata
         with fits.open(image_path) as hdul:
-            header = hdul[0].header
+            header = hdul[0].header  # pylint: disable=no-member
             wcs = WCS(header)
 
             nx = header.get("NAXIS1", 0)
@@ -5846,7 +5863,7 @@ def create_app(config: ApiConfig | None = None) -> FastAPI:
                         recent_completed["count"] if recent_completed else 0
                     )
             except Exception as e:
-                log.warning(f"Failed to get queue metrics: {e}")
+                logger.warning(f"Failed to get queue metrics: {e}")
                 metrics["queue_error"] = str(e)
 
         return metrics

@@ -38,7 +38,7 @@ import { useNavigate } from "react-router-dom";
 import MultiImageCompare from "./Sky/MultiImageCompare";
 import ImageBrowser from "./Sky/ImageBrowser";
 import type { ImageInfo } from "../api/types";
-import { useImagesQuery } from "../api/queries";
+import { useImages } from "../api/queries";
 
 interface TabPanelProps {
   children?: React.ReactNode;
@@ -74,7 +74,7 @@ export default function ImageComparisonTool({
   const [comparisonMode, setComparisonMode] = useState<"before-after" | "epochs" | "custom">(mode);
 
   // Query for images if needed
-  const { data: imagesData } = useImagesQuery({
+  const { data: imagesData } = useImages({
     limit: 100,
     order_by: "created_at",
     order: "desc",

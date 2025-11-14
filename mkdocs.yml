@@ -72,7 +72,6 @@ nav:
       - Frontend Design: concepts/frontend_design.md
       - Dashboard:
           - Mockups: concepts/dashboard_mockups.md
-          - Sky View: SKYVIEW_IMPLEMENTATION_PLAN.md
       - Glossary: concepts/GLOSSARY.md
       - Pipeline:
           - Overview: concepts/pipeline_overview.md
@@ -89,13 +88,15 @@ nav:
       - Simulation: tutorials/simulation-tutorial.md
       - Calibrate and Apply: tutorials/calibrate-apply.md
       - Convert Standalone: tutorials/convert-standalone.md
-      - Streaming: tutorials/streaming.md
+      # (Streaming tutorial folded into How-To Streaming Guide)
       - Notebooks:
           - Bandpass Calibration Test: tutorials/notebooks/bandpass_calibration_test.ipynb
           - Calibrator Helper: tutorials/notebooks/calibrator_helper.py
           - Calibrator Search: tutorials/notebooks/CalibratorSearch.ipynb
           - MS Staging Workflow: tutorials/notebooks/ms_staging_workflow.ipynb
   - How-To Guides:
+      - Streaming Guide: how-to/streaming.md
+      - Dashboard Guide: how-to/dashboard.md
       - GitHub Pages Setup: how-to/github_pages_walkthrough.md
       - Quickstarts:
           - General: how-to/quickstart.md
@@ -118,18 +119,13 @@ nav:
           - Quick Look: how-to/quicklook.md
       - Reprocess: how-to/reprocess.md
       - Using Orchestrator CLI: how-to/USING_ORCHESTRATOR_CLI.md
-      - Dashboard:
-          - Development: how-to/dashboard-development.md
-          - Quickstart: how-to/dashboard-quickstart.md
-          - Testing: how-to/dashboard_testing.md
-          - Development Workflow: how-to/dashboard_development_workflow.md
+      # (Dashboard sub-pages consolidated into Dashboard Guide)
       - Linear Integration: how-to/LINEAR_INTEGRATION.md
       - Frontend Initial Setup: how-to/frontend-initial-setup.md
       - AOFlagger Parameter Optimization: how-to/PARAMETER_OPTIMIZATION_GUIDE.md
       - Downsampling Guide: how-to/downsampling_guide.md
       - Conversion:
           - UVH5 to MS: how-to/uvh5_to_ms_conversion.md
-          - Streaming Converter: how-to/streaming_converter_guide.md
       - Troubleshooting: how-to/troubleshooting.md
   - Reference:
       - API:

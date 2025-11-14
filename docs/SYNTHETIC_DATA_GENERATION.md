@@ -1,8 +1,8 @@
 # Archived
 
-This document was archived to docs/archive/SYNTHETIC_DATA_GENERATION.md
+This document has been archived.
 
-Relevant, current docs:
+See current guides:
 
 - docs/how-to/streaming.md
 - docs/how-to/dashboard.md
