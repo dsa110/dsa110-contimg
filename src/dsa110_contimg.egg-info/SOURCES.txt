@@ -10,6 +10,7 @@ src/dsa110_contimg.egg-info/top_level.txt
 src/dsa110_contimg/api/__init__.py
 src/dsa110_contimg/api/auth.py
 src/dsa110_contimg/api/batch_jobs.py
+src/dsa110_contimg/api/caching.py
 src/dsa110_contimg/api/config.py
 src/dsa110_contimg/api/data_access.py
 src/dsa110_contimg/api/db_coordinator.py
@@ -20,8 +21,11 @@ src/dsa110_contimg/api/job_adapters.py
 src/dsa110_contimg/api/job_runner.py
 src/dsa110_contimg/api/mock_data.py
 src/dsa110_contimg/api/models.py
+src/dsa110_contimg/api/rate_limiting.py
 src/dsa110_contimg/api/routes.py
 src/dsa110_contimg/api/streaming_service.py
+src/dsa110_contimg/api/task_queue.py
+src/dsa110_contimg/api/timeout_middleware.py
 src/dsa110_contimg/api/visualization_routes.py
 src/dsa110_contimg/api/websocket_manager.py
 src/dsa110_contimg/api/routers/cache.py
@@ -30,10 +34,12 @@ src/dsa110_contimg/api/routers/events.py
 src/dsa110_contimg/api/routers/images.py
 src/dsa110_contimg/api/routers/mosaics.py
 src/dsa110_contimg/api/routers/operations.py
+src/dsa110_contimg/api/routers/performance.py
 src/dsa110_contimg/api/routers/photometry.py
 src/dsa110_contimg/api/routers/pipeline.py
 src/dsa110_contimg/api/routers/products.py
 src/dsa110_contimg/api/routers/status.py
+src/dsa110_contimg/api/routers/tasks.py
 src/dsa110_contimg/beam/cli.py
 src/dsa110_contimg/beam/vp_builder.py
 src/dsa110_contimg/calibration/__init__.py
