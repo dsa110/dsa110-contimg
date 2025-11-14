@@ -21,8 +21,7 @@ on:
       - ".prettierignore"
   push:
     branches:
-      - main
-      - develop
+      - master
     paths:
       - "**/*.js"
       - "**/*.jsx"

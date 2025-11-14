@@ -6245,6 +6245,7 @@ def create_app(config: ApiConfig | None = None) -> FastAPI:
             - Success rate
             - Recent failures
         """
+        import os
         from datetime import datetime
         from pathlib import Path
 
@@ -6253,7 +6254,7 @@ def create_app(config: ApiConfig | None = None) -> FastAPI:
             list_data,
         )
 
-        db_path = Path("/data/dsa110-contimg/state/products.sqlite3")
+        db_path = Path(os.getenv("PIPELINE_PRODUCTS_DB", "state/products.sqlite3"))
         conn = ensure_data_registry_db(db_path)
 
         # Get all published data
@@ -6313,6 +6314,7 @@ def create_app(config: ApiConfig | None = None) -> FastAPI:
         Returns:
             List of failed publish records with error details
         """
+        import os
         from pathlib import Path
 
         from dsa110_contimg.database.data_registry import (
@@ -6320,7 +6322,7 @@ def create_app(config: ApiConfig | None = None) -> FastAPI:
             list_data,
         )
 
-        db_path = Path("/data/dsa110-contimg/state/products.sqlite3")
+        db_path = Path(os.getenv("PIPELINE_PRODUCTS_DB", "state/products.sqlite3"))
         conn = ensure_data_registry_db(db_path)
 
         # Get staging data
