@@ -43,6 +43,7 @@ import {
 import CommandPalette from "./CommandPalette";
 import { useCommandPalette } from "../hooks/useCommandPalette";
 import { useWorkflow } from "../contexts/WorkflowContext";
+import { prefetchRoute } from "../utils/routePrefetch";
 
 // Flattened navigation items - all primary sections visible
 const navItems = [
@@ -96,7 +97,12 @@ export default function Navigation() {
 
           return (
             <ListItem key={item.path} disablePadding>
-              <ListItemButton component={RouterLink} to={item.path} selected={active}>
+              <ListItemButton
+                component={RouterLink}
+                to={item.path}
+                selected={active}
+                onMouseEnter={() => prefetchRoute(item.path)}
+              >
                 <ListItemIcon>
                   <Icon color={active ? "primary" : "inherit"} />
                 </ListItemIcon>
@@ -158,6 +164,7 @@ export default function Navigation() {
                     component={RouterLink}
                     to={item.path}
                     startIcon={<Icon />}
+                    onMouseEnter={() => prefetchRoute(item.path)}
                     sx={{
                       color: active ? "primary.main" : "text.secondary",
                       bgcolor: active ? "rgba(144, 202, 249, 0.08)" : "transparent",

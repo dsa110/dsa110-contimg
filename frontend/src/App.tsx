@@ -1,7 +1,7 @@
-import { useState } from "react";
+import { useState, lazy, Suspense } from "react";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { ReactQueryDevtools } from "@tanstack/react-query-devtools";
-import { ThemeProvider, CssBaseline, Box } from "@mui/material";
+import { ThemeProvider, CssBaseline, Box, CircularProgress } from "@mui/material";
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import { darkTheme } from "./theme/darkTheme";
 import { NotificationProvider } from "./contexts/NotificationContext";
@@ -10,32 +10,52 @@ import { WorkflowProvider } from "./contexts/WorkflowContext";
 import Navigation from "./components/Navigation";
 import WorkflowBreadcrumbs from "./components/WorkflowBreadcrumbs";
 import ErrorBoundary from "./components/ErrorBoundary";
-import DashboardPage from "./pages/DashboardPage";
-import ControlPage from "./pages/ControlPage";
-import MosaicGalleryPage from "./pages/MosaicGalleryPage";
-import MosaicViewPage from "./pages/MosaicViewPage";
-import SourceMonitoringPage from "./pages/SourceMonitoringPage";
-import SourceDetailPage from "./pages/SourceDetailPage";
-import ImageDetailPage from "./pages/ImageDetailPage";
-import SkyViewPage from "./pages/SkyViewPage";
-import StreamingPage from "./pages/StreamingPage";
-import DataBrowserPage from "./pages/DataBrowserPage";
-import DataDetailPage from "./pages/DataDetailPage";
-import QAVisualizationPage from "./pages/QAVisualizationPage";
-import QACartaPage from "./pages/QACartaPage";
-import CARTAPage from "./pages/CARTAPage";
-import ObservingPage from "./pages/ObservingPage";
-import HealthPage from "./pages/HealthPage";
-import { OperationsPage } from "./pages/OperationsPage";
-import PipelinePage from "./pages/PipelinePage";
-import EventsPage from "./pages/EventsPage";
-import CachePage from "./pages/CachePage";
-import DataLineagePage from "./pages/DataLineagePage";
-import CalibrationWorkflowPage from "./pages/CalibrationWorkflowPage";
-import MSBrowserPage from "./pages/MSBrowserPage";
+import { LoadingProgress } from "./components/LoadingProgress";
 import { isRetryableError } from "./utils/errorUtils";
 
-// Create React Query client factory function
+// Lazy load all page components for code splitting
+const DashboardPage = lazy(() => import("./pages/DashboardPage"));
+const ControlPage = lazy(() => import("./pages/ControlPage"));
+const MosaicGalleryPage = lazy(() => import("./pages/MosaicGalleryPage"));
+const MosaicViewPage = lazy(() => import("./pages/MosaicViewPage"));
+const SourceMonitoringPage = lazy(() => import("./pages/SourceMonitoringPage"));
+const SourceDetailPage = lazy(() => import("./pages/SourceDetailPage"));
+const ImageDetailPage = lazy(() => import("./pages/ImageDetailPage"));
+const SkyViewPage = lazy(() => import("./pages/SkyViewPage"));
+const StreamingPage = lazy(() => import("./pages/StreamingPage"));
+const DataBrowserPage = lazy(() => import("./pages/DataBrowserPage"));
+const DataDetailPage = lazy(() => import("./pages/DataDetailPage"));
+const QAVisualizationPage = lazy(() => import("./pages/QAVisualizationPage"));
+const QACartaPage = lazy(() => import("./pages/QACartaPage"));
+const CARTAPage = lazy(() => import("./pages/CARTAPage"));
+const ObservingPage = lazy(() => import("./pages/ObservingPage"));
+const HealthPage = lazy(() => import("./pages/HealthPage"));
+const OperationsPage = lazy(() => import("./pages/OperationsPage"));
+const PipelinePage = lazy(() => import("./pages/PipelinePage"));
+const EventsPage = lazy(() => import("./pages/EventsPage"));
+const CachePage = lazy(() => import("./pages/CachePage"));
+const DataLineagePage = lazy(() => import("./pages/DataLineagePage"));
+const CalibrationWorkflowPage = lazy(() => import("./pages/CalibrationWorkflowPage"));
+const MSBrowserPage = lazy(() => import("./pages/MSBrowserPage"));
+
+// Loading fallback component
+function PageLoadingFallback() {
+  return (
+    <Box
+      sx={{
+        display: "flex",
+        justifyContent: "center",
+        alignItems: "center",
+        minHeight: "400px",
+        width: "100%",
+      }}
+    >
+      <CircularProgress />
+    </Box>
+  );
+}
+
+// Create React Query client factory function with optimized staleTime strategy
 function makeQueryClient() {
   return new QueryClient({
     defaultOptions: {
@@ -57,7 +77,11 @@ function makeQueryClient() {
           return Math.min(1000 * Math.pow(2, attemptIndex), 10000);
         },
         refetchOnWindowFocus: false,
-        staleTime: 30000, // 30 seconds default stale time
+        // Strategic staleTime: shorter for dynamic data, longer for static data
+        // Individual queries can override this with longer staleTime for static data
+        staleTime: 30000, // 30 seconds default (for dynamic data)
+        // Cache time: keep unused data for 5 minutes
+        gcTime: 300000, // 5 minutes (formerly cacheTime)
       },
       mutations: {
         retry: (failureCount, error) => {
@@ -107,6 +131,7 @@ function AppContent() {
             <JS9Provider>
               <BrowserRouter basename={basename}>
                 <WorkflowProvider>
+                  <LoadingProgress />
                   <Box sx={{ display: "flex", flexDirection: "column", minHeight: "100vh" }}>
                     <Navigation />
                     <WorkflowBreadcrumbs />
@@ -130,50 +155,52 @@ function AppContent() {
                         }}
                       >
                         <ErrorBoundary>
-                          <Routes>
-                            <Route path="/" element={<Navigate to="/dashboard" replace />} />
-                            <Route path="/dashboard" element={<DashboardPage />} />
-                            {/* Legacy route redirects */}
-                            <Route
-                              path="/pipeline-control"
-                              element={<Navigate to="/control" replace />}
-                            />
-                            <Route
-                              path="/pipeline-operations"
-                              element={<Navigate to="/pipeline" replace />}
-                            />
-                            <Route
-                              path="/data-explorer"
-                              element={<Navigate to="/data" replace />}
-                            />
-                            <Route
-                              path="/system-diagnostics"
-                              element={<Navigate to="/health" replace />}
-                            />
-                            <Route path="/control" element={<ControlPage />} />
-                            <Route path="/mosaics" element={<MosaicGalleryPage />} />
-                            <Route path="/mosaics/:mosaicId" element={<MosaicViewPage />} />
-                            <Route path="/sources" element={<SourceMonitoringPage />} />
-                            <Route path="/sources/:sourceId" element={<SourceDetailPage />} />
-                            <Route path="/images/:imageId" element={<ImageDetailPage />} />
-                            <Route path="/sky" element={<SkyViewPage />} />
-                            <Route path="/streaming" element={<StreamingPage />} />
-                            <Route path="/data" element={<DataBrowserPage />} />
-                            <Route path="/data/:type/:id" element={<DataDetailPage />} />
-                            <Route path="/qa" element={<QAVisualizationPage />} />
-                            <Route path="/qa/carta" element={<QACartaPage />} />
-                            <Route path="/carta" element={<CARTAPage />} />
-                            <Route path="/observing" element={<ObservingPage />} />
-                            <Route path="/health" element={<HealthPage />} />
-                            <Route path="/operations" element={<OperationsPage />} />
-                            <Route path="/pipeline" element={<PipelinePage />} />
-                            <Route path="/events" element={<EventsPage />} />
-                            <Route path="/cache" element={<CachePage />} />
-                            {/* Domain-specific pages */}
-                            <Route path="/lineage/:id" element={<DataLineagePage />} />
-                            <Route path="/calibration" element={<CalibrationWorkflowPage />} />
-                            <Route path="/ms-browser" element={<MSBrowserPage />} />
-                          </Routes>
+                          <Suspense fallback={<PageLoadingFallback />}>
+                            <Routes>
+                              <Route path="/" element={<Navigate to="/dashboard" replace />} />
+                              <Route path="/dashboard" element={<DashboardPage />} />
+                              {/* Legacy route redirects */}
+                              <Route
+                                path="/pipeline-control"
+                                element={<Navigate to="/control" replace />}
+                              />
+                              <Route
+                                path="/pipeline-operations"
+                                element={<Navigate to="/pipeline" replace />}
+                              />
+                              <Route
+                                path="/data-explorer"
+                                element={<Navigate to="/data" replace />}
+                              />
+                              <Route
+                                path="/system-diagnostics"
+                                element={<Navigate to="/health" replace />}
+                              />
+                              <Route path="/control" element={<ControlPage />} />
+                              <Route path="/mosaics" element={<MosaicGalleryPage />} />
+                              <Route path="/mosaics/:mosaicId" element={<MosaicViewPage />} />
+                              <Route path="/sources" element={<SourceMonitoringPage />} />
+                              <Route path="/sources/:sourceId" element={<SourceDetailPage />} />
+                              <Route path="/images/:imageId" element={<ImageDetailPage />} />
+                              <Route path="/sky" element={<SkyViewPage />} />
+                              <Route path="/streaming" element={<StreamingPage />} />
+                              <Route path="/data" element={<DataBrowserPage />} />
+                              <Route path="/data/:type/:id" element={<DataDetailPage />} />
+                              <Route path="/qa" element={<QAVisualizationPage />} />
+                              <Route path="/qa/carta" element={<QACartaPage />} />
+                              <Route path="/carta" element={<CARTAPage />} />
+                              <Route path="/observing" element={<ObservingPage />} />
+                              <Route path="/health" element={<HealthPage />} />
+                              <Route path="/operations" element={<OperationsPage />} />
+                              <Route path="/pipeline" element={<PipelinePage />} />
+                              <Route path="/events" element={<EventsPage />} />
+                              <Route path="/cache" element={<CachePage />} />
+                              {/* Domain-specific pages */}
+                              <Route path="/lineage/:id" element={<DataLineagePage />} />
+                              <Route path="/calibration" element={<CalibrationWorkflowPage />} />
+                              <Route path="/ms-browser" element={<MSBrowserPage />} />
+                            </Routes>
+                          </Suspense>
                         </ErrorBoundary>
                       </Box>
                     </Box>

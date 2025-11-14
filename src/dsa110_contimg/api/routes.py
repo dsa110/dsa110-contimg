@@ -152,6 +152,20 @@ def create_app(config: ApiConfig | None = None) -> FastAPI:
     # Expose config to subrouters via app.state
     app.state.cfg = cfg
 
+    # Setup performance and scalability middleware
+    from dsa110_contimg.api.caching import get_cache
+    from dsa110_contimg.api.rate_limiting import setup_rate_limiting
+    from dsa110_contimg.api.timeout_middleware import setup_timeout_middleware
+
+    # Setup timeout middleware (must be added before other middleware)
+    setup_timeout_middleware(app, timeout=int(os.getenv("REQUEST_TIMEOUT_SECONDS", "60")))
+
+    # Setup rate limiting
+    setup_rate_limiting(app)
+
+    # Initialize cache backend (will be available via get_cache())
+    _ = get_cache()  # Initialize cache on startup
+
     # Background task to broadcast status updates
     @app.on_event("startup")
     async def start_status_broadcaster():
