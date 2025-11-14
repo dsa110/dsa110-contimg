@@ -14,28 +14,22 @@ import {
   Stack,
   Chip,
   Collapse,
-  FormControl,
-  InputLabel,
-  Select,
-  MenuItem,
   Slider,
   FormControlLabel,
   Checkbox,
-  IconButton,
   Divider,
 } from "@mui/material";
 import {
   Search,
   ExpandMore,
   ExpandLess,
-  FilterList,
   Clear as ClearIcon,
   TableChart,
 } from "@mui/icons-material";
 import { useNavigate } from "react-router-dom";
 import { AgGridReact } from "ag-grid-react";
 import type { ColDef } from "ag-grid-community";
-import { Grid } from "@mui/material";
+import Grid from "@mui/material/GridLegacy";
 import "ag-grid-community/styles/ag-grid.css";
 import "ag-grid-community/styles/ag-theme-alpine.css";
 import { useSourceSearch } from "../api/queries";

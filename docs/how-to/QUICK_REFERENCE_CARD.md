@@ -10,7 +10,7 @@
 ## Error Detection Setup
 
 ```bash
-source /data/dsa110-contimg/scripts/agent-setup.sh
+source /data/dsa110-contimg/scripts/developer-setup.sh
 ```
 
 ## Running Tests
@@ -60,7 +60,7 @@ git commit  # Will show pre-commit errors
 
 ### "Tests failing silently"
 
-→ Source error detection: `source scripts/agent-setup.sh`
+→ Source error detection: `source scripts/developer-setup.sh`
 
 ## Critical Paths
 

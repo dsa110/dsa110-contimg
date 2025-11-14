@@ -18,7 +18,7 @@ error detection is **always** enabled.
 At the start of any agentic session, run:
 
 ```bash
-source /data/dsa110-contimg/scripts/agent-setup.sh
+source /data/dsa110-contimg/scripts/developer-setup.sh
 ```
 
 This will:
@@ -29,7 +29,7 @@ This will:
 
 ### What the Script Does
 
-The `agent-setup.sh` script:
+The `developer-setup.sh` script:
 
 - Sets `BASH_ENV` to point to the error detection environment script
 - Sources the auto-error-detection script to enable wrapping
@@ -41,7 +41,7 @@ The `agent-setup.sh` script:
 
 ```bash
 # At the start of the session
-source /data/dsa110-contimg/scripts/agent-setup.sh
+source /data/dsa110-contimg/scripts/developer-setup.sh
 
 # Now all commands are wrapped with error detection
 pytest tests/ -v
@@ -64,7 +64,7 @@ Then all subsequent `bash -c` commands will have error detection enabled.
 After sourcing the setup script:
 
 ```bash
-$ source /data/dsa110-contimg/scripts/agent-setup.sh
+$ source /data/dsa110-contimg/scripts/developer-setup.sh
 ✅ Error detection enabled for agentic session
    BASH_ENV=/data/dsa110-contimg/scripts/auto-error-detection-env.sh
    AUTO_ERROR_DETECTION=1
@@ -94,7 +94,7 @@ of agentic sessions:
 
 ```bash
 # Always do this first
-source /data/dsa110-contimg/scripts/agent-setup.sh
+source /data/dsa110-contimg/scripts/developer-setup.sh
 
 # Then run your commands
 pytest tests/ -v

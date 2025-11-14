@@ -33,7 +33,7 @@ for pattern in "${PATTERNS[@]}"; do
             CATEGORY="comment"
             REASON="In comment, not actual suppression"
         # Check for error detection infrastructure
-        elif [[ "$file" == *"error-detection"* ]] || [[ "$file" == *"agent-setup"* ]]; then
+        elif [[ "$file" == *"error-detection"* ]] || [[ "$file" == *"developer-setup"* ]]; then
             CATEGORY="error-detection"
             REASON="Error detection infrastructure - suppresses wrapper errors"
         # Check for environment checks

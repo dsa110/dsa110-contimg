@@ -9,7 +9,6 @@ import {
   Box,
   Button,
   Alert,
-  Grid,
   Card,
   CardContent,
   Chip,
@@ -24,6 +23,7 @@ import {
   DialogContent,
   DialogActions,
 } from "@mui/material";
+import Grid from "@mui/material/GridLegacy";
 import {
   PlayArrow,
   Stop,
@@ -47,6 +47,7 @@ import {
   type StreamingConfig,
 } from "../api/queries";
 import { SkeletonLoader } from "../components/SkeletonLoader";
+import { ConfirmationDialog } from "../components/ConfirmationDialog";
 
 function formatUptime(seconds?: number): string {
   if (!seconds) return "N/A";

@@ -2,7 +2,8 @@
  * QA Visualization Page - Main page for QA data visualization and exploration
  */
 import { useState } from "react";
-import { Box, Typography, Tabs, Tab, Paper, Grid } from "@mui/material";
+import { Box, Typography, Tabs, Tab, Paper } from "@mui/material";
+import Grid from "@mui/material/GridLegacy";
 import {
   Folder,
   Image as ImageIcon,

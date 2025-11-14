@@ -14,8 +14,8 @@ import {
   Tooltip,
 } from "@mui/material";
 import { RadioButtonChecked as PointIcon, Refresh as RefreshIcon } from "@mui/icons-material";
-import Plot from "react-plotly.js";
-import type { Data, Layout } from "plotly.js";
+import { PlotlyLazy } from "./PlotlyLazy";
+import type { Data, Layout } from "./PlotlyLazy";
 import { usePointingMonitorStatus, usePointingHistory } from "../api/queries";
 
 interface PointingVisualizationProps {
@@ -259,7 +259,7 @@ export default function PointingVisualization({
           </Box>
 
           {plotData.length > 0 ? (
-            <Plot
+            <PlotlyLazy
               data={plotData}
               layout={layout}
               config={{

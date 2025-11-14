@@ -164,6 +164,9 @@ state/
 codeql-db-python/
 codeql-db-*/
 
+# CodeQL SARIF results (can be very large)
+*.sarif
+
 # Editor/tool-specific directories to ignore
 .codex/
 

@@ -238,7 +238,7 @@ npm run format:check  # Check formatting
 **For AI agents or automated scripts:**
 
 ```bash
-source /data/dsa110-contimg/scripts/agent-setup.sh
+source /data/dsa110-contimg/scripts/developer-setup.sh
 ```
 
 **This enables:**

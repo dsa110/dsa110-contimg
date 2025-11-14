@@ -49,8 +49,8 @@ CONFIG_BLOCK="# DSA110_CONTIMG_DEV_ENV - Auto-configured by setup-developer-env.
 # Generated: $(date)
 
 # Auto-source error detection for agentic sessions
-if [ -f \"$PROJECT_ROOT/scripts/agent-setup.sh\" ]; then
-    source \"$PROJECT_ROOT/scripts/agent-setup.sh\"
+if [ -f \"$PROJECT_ROOT/scripts/developer-setup.sh\" ]; then
+    source \"$PROJECT_ROOT/scripts/developer-setup.sh\"
 fi
 
 # Python wrapper - redirects python/python3 to casa6

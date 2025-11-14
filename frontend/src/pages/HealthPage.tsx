@@ -38,8 +38,8 @@ import {
   useESECandidates,
   useHealthSummary,
 } from "../api/queries";
-import Plot from "react-plotly.js";
-import type { Data, Layout } from "plotly.js";
+import { PlotlyLazy } from "../components/PlotlyLazy";
+import type { Data, Layout } from "../components/PlotlyLazy";
 import { useNavigate } from "react-router-dom";
 import { DeadLetterQueueStats } from "../components/DeadLetterQueue";
 import { CircuitBreakerStatus } from "../components/CircuitBreaker";
@@ -305,7 +305,7 @@ export default function HealthPage() {
                   <Card>
                     <CardHeader title="Resource Usage Over Time" />
                     <CardContent>
-                      <Plot
+                      <PlotlyLazy
                         data={metricsPlotData.data}
                         layout={metricsPlotData.layout}
                         style={{ width: "100%", height: "400px" }}

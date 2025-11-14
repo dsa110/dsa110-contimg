@@ -4,8 +4,8 @@
  */
 import { useMemo } from "react";
 import { Paper, Typography, Box, Alert } from "@mui/material";
-import Plot from "react-plotly.js";
-import type { Data, Layout } from "plotly.js";
+import { PlotlyLazy } from "./PlotlyLazy";
+import type { Data, Layout } from "./PlotlyLazy";
 import type { SourceTimeseries } from "../api/types";
 
 interface FluxChartPanelProps {
@@ -121,7 +121,7 @@ export default function FluxChartPanel({ source, height = 400 }: FluxChartPanelP
   return (
     <Paper sx={{ p: 2 }}>
       <Box>
-        <Plot
+        <PlotlyLazy
           data={plotData}
           layout={{ ...layout, height, autosize: true }}
           config={{

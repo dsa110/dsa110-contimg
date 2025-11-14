@@ -8,7 +8,6 @@ import {
   Typography,
   Paper,
   Box,
-  Grid,
   Card,
   CardContent,
   CardHeader,
@@ -25,6 +24,7 @@ import {
   TableHead,
   TableRow,
 } from "@mui/material";
+import Grid from "@mui/material/GridLegacy";
 import {
   RadioButtonChecked as PointIcon,
   Schedule as ScheduleIcon,
@@ -35,8 +35,8 @@ import { apiClient } from "../api/client";
 import { useQuery } from "@tanstack/react-query";
 import PointingVisualization from "../components/PointingVisualization";
 import { SkeletonLoader } from "../components/SkeletonLoader";
-import Plot from "react-plotly.js";
-import type { Data, Layout } from "plotly.js";
+import { PlotlyLazy } from "../components/PlotlyLazy";
+import type { Data, Layout } from "../components/PlotlyLazy";
 import dayjs from "dayjs";
 import PageBreadcrumbs from "../components/PageBreadcrumbs";
 
@@ -292,7 +292,7 @@ export default function ObservingPage() {
               <Card>
                 <CardHeader title="Calibrator Flux vs Time" avatar={<TrendingUpIcon />} />
                 <CardContent>
-                  <Plot
+                  <PlotlyLazy
                     data={calibratorPlotData.data}
                     layout={calibratorPlotData.layout}
                     style={{ width: "100%", height: "400px" }}

@@ -8,7 +8,6 @@ import {
   Typography,
   Paper,
   Box,
-  Grid,
   Tabs,
   Tab,
   Stack,

@@ -139,6 +139,7 @@ from dsa110_contimg.api.streaming_service import (
     StreamingServiceManager,
 )
 from dsa110_contimg.qa.html_reports import generate_html_report
+from dsa110_contimg.utils.path_validation import sanitize_filename, validate_path
 
 # Module-level cache for UVH5 file listings (TTL: 30 seconds)
 # Shared across all requests for fast file discovery
@@ -155,6 +156,79 @@ def create_app(config: ApiConfig | None = None) -> FastAPI:
     app = FastAPI(title="DSA-110 Continuum Pipeline API", version="0.1.0")
     # Expose config to subrouters via app.state
     app.state.cfg = cfg
+
+    # Add exception handler for 404s that might be path traversal attempts
+    import urllib.parse
+
+    from fastapi.exceptions import RequestValidationError
+    from fastapi.responses import JSONResponse
+
+    @app.exception_handler(404)
+    async def path_traversal_handler(request: Request, exc: HTTPException):
+        """Catch 404s that might be path traversal attempts and return 400 instead."""
+        path = request.url.path
+        query_string = str(request.url.query)
+
+        # Check both path and query string
+        full_path = f"{path}?{query_string}" if query_string else path
+
+        # Decode and normalize
+        decoded_path = urllib.parse.unquote(full_path)
+        normalized_path = decoded_path.replace("\\", "/")
+
+        # Check for path traversal indicators
+        suspicious_patterns = [
+            "..",
+            "/etc/",
+            "/usr/",
+            "/var/",
+            "/sys/",
+            "/proc/",
+            "/dev/",
+            "/root/",
+            "etc/passwd",
+            "etc/shadow",
+        ]
+
+        # Check if any suspicious pattern is in the path or query
+        if any(pattern in normalized_path for pattern in suspicious_patterns):
+            return JSONResponse(
+                status_code=400,
+                content={
+                    "detail": f"Invalid path: Path traversal attempt detected in '{full_path}'"
+                },
+            )
+
+        # Check for suspicious path components in API routes
+        if "/api/" in path:
+            # Check path components
+            path_parts = normalized_path.split("/")
+            # Also check query parameters
+            query_parts = query_string.split("&") if query_string else []
+            all_parts = path_parts + [part.split("=")[-1] for part in query_parts if "=" in part]
+
+            suspicious_components = [
+                "etc",
+                "usr",
+                "var",
+                "sys",
+                "proc",
+                "dev",
+                "root",
+                "home",
+                "passwd",
+                "shadow",
+            ]
+            if any(comp in part for part in all_parts for comp in suspicious_components):
+                return JSONResponse(
+                    status_code=400,
+                    content={
+                        "detail": f"Invalid path: Suspicious path component detected in '{full_path}'"
+                    },
+                )
+
+        # Default 404 response
+        return JSONResponse(status_code=404, content={"detail": "Not found"})
 
     # Setup performance and scalability middleware
     from dsa110_contimg.api.caching import get_cache
@@ -1310,32 +1384,23 @@ def create_app(config: ApiConfig | None = None) -> FastAPI:
         CRITICAL: Validates input to prevent path traversal attacks.
         Only allows files within the QA directory structure.
         """
-        # CRITICAL: Validate input doesn't contain path separators or traversal sequences
-        if "/" in group or "\\" in group or ".." in group:
-            return HTMLResponse(status_code=400, content="Invalid group name")
-        if "/" in name or "\\" in name or ".." in name:
-            return HTMLResponse(status_code=400, content="Invalid file name")
+        try:
+            # Sanitize input filenames
+            safe_group = sanitize_filename(group)
+            safe_name = sanitize_filename(name)
+        except ValueError as e:
+            return HTMLResponse(status_code=400, content=f"Invalid filename: {str(e)}")
 
         base_state = Path(os.getenv("PIPELINE_STATE_DIR", "state"))
         base = (base_state / "qa").resolve()
 
-        # CRITICAL: Use joinpath to safely construct path (prevents double slashes, etc.)
-        # Then resolve to handle any symlinks and get absolute path
-        fpath = base.joinpath(group, name).resolve()
-
-        # CRITICAL: Verify resolved path is still within base directory
-        # This handles symlink attacks and ensures we don't escape the base directory
         try:
-            # Python 3.9+: safe containment check that handles symlinks
-            fpath.relative_to(base.resolve())
-        except (ValueError, AttributeError):
-            # Path is outside base directory or Python < 3.9 fallback
-            # For Python < 3.9, use string comparison as fallback
-            # Note: This is less secure against symlinks but better than nothing
-            base_str = str(base.resolve()) + os.sep
-            fpath_str = str(fpath)
-            if not fpath_str.startswith(base_str):
-                return HTMLResponse(status_code=403, content="Forbidden")
+            # Use path validation utility to safely construct and validate path
+            # Construct path from sanitized components
+            relative_path = Path(safe_group) / safe_name
+            fpath = validate_path(relative_path, base)
+        except ValueError as e:
+            return HTMLResponse(status_code=403, content=f"Forbidden: {str(e)}")
 
         if not fpath.exists() or not fpath.is_file():
             return HTMLResponse(status_code=404, content="Not found")
@@ -3134,11 +3199,32 @@ def create_app(config: ApiConfig | None = None) -> FastAPI:
             MSMetadata,
         )
 
-        # Decode path
-        ms_full_path = f"/{ms_path}" if not ms_path.startswith("/") else ms_path
+        # Validate and sanitize path to prevent path traversal
+        try:
+            ms_base_dir = Path(os.getenv("PIPELINE_DATA_DIR", "/data"))
+            # Handle absolute paths: if path starts with /, validate as absolute
+            # Otherwise, treat as relative to base directory
+            if ms_path.startswith("/"):
+                # Absolute path - validate directly
+                ms_full_path = validate_path(ms_path, ms_base_dir, allow_absolute=True)
+            else:
+                # Relative path - validate against base
+                # Additional check: reject paths that look like system paths
+                if any(
+                    component in ["etc", "usr", "var", "sys", "proc", "dev", "root", "home"]
+                    for component in ms_path.split("/")[:2]
+                ):
+                    raise ValueError(f"Suspicious path component detected: {ms_path}")
+                ms_full_path = validate_path(ms_path, ms_base_dir)
+        except ValueError as e:
+            raise HTTPException(status_code=400, detail=f"Invalid MS path: {str(e)}")
 
         if not os.path.exists(ms_full_path):
             raise HTTPException(status_code=404, detail="MS not found")
+
+        # Additional security: ensure it's actually a directory (MS files are directories)
+        if not os.path.isdir(ms_full_path):
+            raise HTTPException(status_code=400, detail="Path is not a valid MS directory")
 
         metadata = MSMetadata(path=ms_full_path)
 
@@ -3299,11 +3385,32 @@ def create_app(config: ApiConfig | None = None) -> FastAPI:
         )
         from dsa110_contimg.pointing.utils import load_pointing
 
-        # Decode path
-        ms_full_path = f"/{ms_path}" if not ms_path.startswith("/") else ms_path
+        # Validate and sanitize path to prevent path traversal
+        try:
+            ms_base_dir = Path(os.getenv("PIPELINE_DATA_DIR", "/data"))
+            # Handle absolute paths: if path starts with /, validate as absolute
+            # Otherwise, treat as relative to base directory
+            if ms_path.startswith("/"):
+                # Absolute path - validate directly
+                ms_full_path = validate_path(ms_path, ms_base_dir, allow_absolute=True)
+            else:
+                # Relative path - validate against base
+                # Additional check: reject paths that look like system paths
+                if any(
+                    component in ["etc", "usr", "var", "sys", "proc", "dev", "root", "home"]
+                    for component in ms_path.split("/")[:2]
+                ):
+                    raise ValueError(f"Suspicious path component detected: {ms_path}")
+                ms_full_path = validate_path(ms_path, ms_base_dir)
+        except ValueError as e:
+            raise HTTPException(status_code=400, detail=f"Invalid MS path: {str(e)}")
 
         if not os.path.exists(ms_full_path):
             raise HTTPException(status_code=404, detail="MS not found")
+
+        # Additional security: ensure it's actually a directory (MS files are directories)
+        if not os.path.isdir(ms_full_path):
+            raise HTTPException(status_code=400, detail="Path is not a valid MS directory")
 
         try:
             # Get pointing declination
@@ -3456,11 +3563,32 @@ def create_app(config: ApiConfig | None = None) -> FastAPI:
         import glob
         import time
 
-        # Decode path
-        ms_full_path = f"/{ms_path}" if not ms_path.startswith("/") else ms_path
+        # Validate and sanitize path to prevent path traversal
+        try:
+            ms_base_dir = Path(os.getenv("PIPELINE_DATA_DIR", "/data"))
+            # Handle absolute paths: if path starts with /, validate as absolute
+            # Otherwise, treat as relative to base directory
+            if ms_path.startswith("/"):
+                # Absolute path - validate directly
+                ms_full_path = validate_path(ms_path, ms_base_dir, allow_absolute=True)
+            else:
+                # Relative path - validate against base
+                # Additional check: reject paths that look like system paths
+                if any(
+                    component in ["etc", "usr", "var", "sys", "proc", "dev", "root", "home"]
+                    for component in ms_path.split("/")[:2]
+                ):
+                    raise ValueError(f"Suspicious path component detected: {ms_path}")
+                ms_full_path = validate_path(ms_path, ms_base_dir)
+        except ValueError as e:
+            raise HTTPException(status_code=400, detail=f"Invalid MS path: {str(e)}")
 
         if not os.path.exists(ms_full_path):
             raise HTTPException(status_code=404, detail="MS not found")
+
+        # Additional security: ensure it's actually a directory (MS files are directories)
+        if not os.path.isdir(ms_full_path):
+            raise HTTPException(status_code=400, detail="Path is not a valid MS directory")
 
         # Get MS directory and base name
         ms_dir = os.path.dirname(ms_full_path)
@@ -3653,46 +3781,42 @@ def create_app(config: ApiConfig | None = None) -> FastAPI:
         import glob
         import urllib.parse
 
-        from dsa110_contimg.calibration.caltables import discover_caltables
-
-        # FastAPI automatically URL-decodes path parameters, but we need to handle
-        # cases where the path might not start with / and ensure proper decoding
-        # Handle URL-encoded colons and other special characters
+        # Decode URL-encoded path and normalize Windows-style separators
         decoded_path = urllib.parse.unquote(ms_path)
-        ms_full_path = f"/{decoded_path}" if not decoded_path.startswith("/") else decoded_path
+        # Replace Windows-style backslashes with forward slashes
+        normalized_path = decoded_path.replace("\\", "/")
 
-        # Log for debugging
-        logger.debug(
-            f"Bandpass plots request - received: {ms_path}, decoded: {decoded_path}, full: {ms_full_path}"
-        )
+        # Validate and sanitize path to prevent path traversal
+        try:
+            ms_base_dir = Path(os.getenv("PIPELINE_DATA_DIR", "/data"))
+            # Handle absolute paths: if path starts with /, validate as absolute
+            # Otherwise, treat as relative to base directory
+            if normalized_path.startswith("/"):
+                # Absolute path - validate directly
+                ms_full_path = validate_path(normalized_path, ms_base_dir, allow_absolute=True)
+            else:
+                # Relative path - validate against base
+                # Additional check: reject paths that look like system paths
+                if any(
+                    component in ["etc", "usr", "var", "sys", "proc", "dev", "root", "home"]
+                    for component in normalized_path.split("/")[:2]
+                ):
+                    raise ValueError(f"Suspicious path component detected: {normalized_path}")
+                ms_full_path = validate_path(normalized_path, ms_base_dir)
+        except ValueError as e:
+            raise HTTPException(status_code=400, detail=f"Invalid MS path: {str(e)}")
 
         if not os.path.exists(ms_full_path):
-            logger.warning(
-                f"MS not found at path: {ms_full_path} (received: {ms_path}, decoded: {decoded_path})"
-            )
-            # Try alternative path constructions
-            alt_paths = [
-                ms_full_path,
-                decoded_path,
-                f"/{decoded_path}",
-                ms_path if ms_path.startswith("/") else f"/{ms_path}",
-            ]
-            logger.debug(f"Tried paths: {alt_paths}")
-            for alt in alt_paths:
-                if os.path.exists(alt):
-                    logger.info(f"Found MS at alternative path: {alt}")
-                    ms_full_path = alt
-                    break
-            else:
-                # Return detailed error with all attempted paths for debugging
-                error_detail = (
-                    f"MS not found. Received: '{ms_path}', "
-                    f"Decoded: '{decoded_path}', "
-                    f"Full path: '{ms_full_path}'. "
-                    f"Tried: {alt_paths}"
-                )
-                logger.error(error_detail)
-                raise HTTPException(status_code=404, detail=error_detail)
+            raise HTTPException(status_code=404, detail="MS not found")
+
+        # Additional security: ensure it's actually a directory (MS files are directories)
+        if not os.path.isdir(ms_full_path):
+            raise HTTPException(status_code=400, detail="Path is not a valid MS directory")
+
+        from dsa110_contimg.calibration.caltables import discover_caltables
+
+        # Log for debugging
+        logger.debug(f"Bandpass plots request - validated path: {ms_full_path}")
 
         # Find bandpass table
         caltables = discover_caltables(ms_full_path)
@@ -3754,37 +3878,36 @@ def create_app(config: ApiConfig | None = None) -> FastAPI:
         """Serve a specific bandpass plot file."""
         import urllib.parse
 
-        # FastAPI automatically URL-decodes path parameters, but we need to handle
-        # cases where the path might not start with / and ensure proper decoding
-        decoded_path = urllib.parse.unquote(ms_path)
-        ms_full_path = f"/{decoded_path}" if not decoded_path.startswith("/") else decoded_path
+        # Validate and sanitize MS path
+        try:
+            ms_base_dir = Path(os.getenv("PIPELINE_DATA_DIR", "/data"))
+            decoded_path = urllib.parse.unquote(ms_path)
+            ms_path_clean = decoded_path.lstrip("/")
+            ms_full_path = validate_path(ms_path_clean, ms_base_dir)
+        except ValueError as e:
+            raise HTTPException(status_code=400, detail=f"Invalid MS path: {str(e)}")
 
         if not os.path.exists(ms_full_path):
-            # Try alternative path constructions
-            alt_paths = [
-                ms_full_path,
-                decoded_path,
-                f"/{decoded_path}",
-                ms_path if ms_path.startswith("/") else f"/{ms_path}",
-            ]
-            for alt in alt_paths:
-                if os.path.exists(alt):
-                    ms_full_path = alt
-                    break
-            else:
-                raise HTTPException(status_code=404, detail=f"MS not found: {ms_full_path}")
+            raise HTTPException(status_code=404, detail="MS not found")
 
-        # Determine plot directory
-        ms_dir = os.path.dirname(ms_full_path)
-        plot_dir = os.path.join(ms_dir, "calibration_plots", "bandpass")
-        plot_path = os.path.join(plot_dir, filename)
+        # Validate and sanitize filename
+        try:
+            safe_filename = sanitize_filename(filename)
+        except ValueError as e:
+            raise HTTPException(status_code=400, detail=f"Invalid filename: {str(e)}")
+
+        # Determine plot directory - use validated path
+        ms_dir = Path(ms_full_path).parent
+        plot_dir = ms_dir / "calibration_plots" / "bandpass"
+
+        # Validate plot path is within MS directory
+        try:
+            plot_path = validate_path(safe_filename, plot_dir)
+        except ValueError as e:
+            raise HTTPException(status_code=403, detail=f"Forbidden: {str(e)}")
 
         if not os.path.exists(plot_path):
             raise HTTPException(status_code=404, detail="Plot file not found")
-
-        # Security: ensure filename doesn't contain path traversal
-        if ".." in filename or "/" in filename or "\\" in filename:
-            raise HTTPException(status_code=400, detail="Invalid filename")
 
         from fastapi.responses import FileResponse
 
@@ -3800,11 +3923,32 @@ def create_app(config: ApiConfig | None = None) -> FastAPI:
             plot_per_spw_flagging,
         )
 
-        # Decode path
-        ms_full_path = f"/{ms_path}" if not ms_path.startswith("/") else ms_path
+        # Validate and sanitize path to prevent path traversal
+        try:
+            ms_base_dir = Path(os.getenv("PIPELINE_DATA_DIR", "/data"))
+            # Handle absolute paths: if path starts with /, validate as absolute
+            # Otherwise, treat as relative to base directory
+            if ms_path.startswith("/"):
+                # Absolute path - validate directly
+                ms_full_path = validate_path(ms_path, ms_base_dir, allow_absolute=True)
+            else:
+                # Relative path - validate against base
+                # Additional check: reject paths that look like system paths
+                if any(
+                    component in ["etc", "usr", "var", "sys", "proc", "dev", "root", "home"]
+                    for component in ms_path.split("/")[:2]
+                ):
+                    raise ValueError(f"Suspicious path component detected: {ms_path}")
+                ms_full_path = validate_path(ms_path, ms_base_dir)
+        except ValueError as e:
+            raise HTTPException(status_code=400, detail=f"Invalid MS path: {str(e)}")
 
         if not os.path.exists(ms_full_path):
             raise HTTPException(status_code=404, detail="MS not found")
+
+        # Additional security: ensure it's actually a directory (MS files are directories)
+        if not os.path.isdir(ms_full_path):
+            raise HTTPException(status_code=400, detail="Path is not a valid MS directory")
 
         try:
             # Find the bandpass table for this MS
@@ -3873,9 +4017,23 @@ def create_app(config: ApiConfig | None = None) -> FastAPI:
             - completeness: Fraction of expected tables that exist
             - has_issues: bool (True if any tables missing)
         """
+        # Validate and sanitize path to prevent path traversal
+        try:
+            ms_base_dir = Path(os.getenv("PIPELINE_DATA_DIR", "/data"))
+            # Handle absolute paths: if path starts with /, validate as absolute
+            # Otherwise, treat as relative to base directory
+            if ms_path.startswith("/"):
+                # Absolute path - validate directly
+                ms_full_path = validate_path(ms_path, ms_base_dir, allow_absolute=True)
+            else:
+                # Relative path - validate against base
+                ms_full_path = validate_path(ms_path, ms_base_dir)
+        except ValueError as e:
+            raise HTTPException(status_code=400, detail=f"Invalid MS path: {str(e)}")
+
         from dsa110_contimg.qa.calibration_quality import check_caltable_completeness
 
-        result = check_caltable_completeness(ms_path)
+        result = check_caltable_completeness(str(ms_full_path))
         return result
 
     @router.get("/qa/calibration/{ms_path:path}", response_model=CalibrationQA)
@@ -3885,11 +4043,32 @@ def create_app(config: ApiConfig | None = None) -> FastAPI:
 
         from dsa110_contimg.database.products import ensure_products_db
 
-        # Decode path
-        ms_full_path = f"/{ms_path}" if not ms_path.startswith("/") else ms_path
+        # Validate and sanitize path to prevent path traversal
+        try:
+            ms_base_dir = Path(os.getenv("PIPELINE_DATA_DIR", "/data"))
+            # Handle absolute paths: if path starts with /, validate as absolute
+            # Otherwise, treat as relative to base directory
+            if ms_path.startswith("/"):
+                # Absolute path - validate directly
+                ms_full_path = validate_path(ms_path, ms_base_dir, allow_absolute=True)
+            else:
+                # Relative path - validate against base
+                # Additional check: reject paths that look like system paths
+                if any(
+                    component in ["etc", "usr", "var", "sys", "proc", "dev", "root", "home"]
+                    for component in ms_path.split("/")[:2]
+                ):
+                    raise ValueError(f"Suspicious path component detected: {ms_path}")
+                ms_full_path = validate_path(ms_path, ms_base_dir)
+        except ValueError as e:
+            raise HTTPException(status_code=400, detail=f"Invalid MS path: {str(e)}")
 
         if not os.path.exists(ms_full_path):
             raise HTTPException(status_code=404, detail="MS not found")
+
+        # Additional security: ensure it's actually a directory (MS files are directories)
+        if not os.path.isdir(ms_full_path):
+            raise HTTPException(status_code=400, detail="Path is not a valid MS directory")
 
         db_path = Path(os.getenv("PIPELINE_PRODUCTS_DB", "state/products.sqlite3"))
         conn = ensure_products_db(db_path)
@@ -4346,11 +4525,32 @@ def create_app(config: ApiConfig | None = None) -> FastAPI:
         """Get image QA metrics for an MS."""
         from dsa110_contimg.database.products import ensure_products_db
 
-        # Decode path
-        ms_full_path = f"/{ms_path}" if not ms_path.startswith("/") else ms_path
+        # Validate and sanitize path to prevent path traversal
+        try:
+            ms_base_dir = Path(os.getenv("PIPELINE_DATA_DIR", "/data"))
+            # Handle absolute paths: if path starts with /, validate as absolute
+            # Otherwise, treat as relative to base directory
+            if ms_path.startswith("/"):
+                # Absolute path - validate directly
+                ms_full_path = validate_path(ms_path, ms_base_dir, allow_absolute=True)
+            else:
+                # Relative path - validate against base
+                # Additional check: reject paths that look like system paths
+                if any(
+                    component in ["etc", "usr", "var", "sys", "proc", "dev", "root", "home"]
+                    for component in ms_path.split("/")[:2]
+                ):
+                    raise ValueError(f"Suspicious path component detected: {ms_path}")
+                ms_full_path = validate_path(ms_path, ms_base_dir)
+        except ValueError as e:
+            raise HTTPException(status_code=400, detail=f"Invalid MS path: {str(e)}")
 
         if not os.path.exists(ms_full_path):
             raise HTTPException(status_code=404, detail="MS not found")
+
+        # Additional security: ensure it's actually a directory (MS files are directories)
+        if not os.path.isdir(ms_full_path):
+            raise HTTPException(status_code=400, detail="Path is not a valid MS directory")
 
         db_path = Path(os.getenv("PIPELINE_PRODUCTS_DB", "state/products.sqlite3"))
         conn = ensure_products_db(db_path)
@@ -4400,15 +4600,50 @@ def create_app(config: ApiConfig | None = None) -> FastAPI:
     @router.get("/qa/{ms_path:path}", response_model=QAMetrics)
     def get_qa_metrics(ms_path: str) -> QAMetrics:
         """Get combined QA metrics (calibration + image) for an MS."""
+        # Validate and sanitize path to prevent path traversal
+        try:
+            ms_base_dir = Path(os.getenv("PIPELINE_DATA_DIR", "/data"))
+            # Handle absolute paths: if path starts with /, validate as absolute
+            # Otherwise, treat as relative to base directory
+            if ms_path.startswith("/"):
+                # Absolute path - validate directly
+                ms_full_path = validate_path(ms_path, ms_base_dir, allow_absolute=True)
+            else:
+                # Relative path - validate against base
+                ms_full_path = validate_path(ms_path, ms_base_dir)
+        except ValueError as e:
+            raise HTTPException(status_code=400, detail=f"Invalid MS path: {str(e)}")
+
         import json
 
         from dsa110_contimg.database.products import ensure_products_db
 
-        # Decode path
-        ms_full_path = f"/{ms_path}" if not ms_path.startswith("/") else ms_path
+        # Validate and sanitize path to prevent path traversal
+        try:
+            ms_base_dir = Path(os.getenv("PIPELINE_DATA_DIR", "/data"))
+            # Handle absolute paths: if path starts with /, validate as absolute
+            # Otherwise, treat as relative to base directory
+            if ms_path.startswith("/"):
+                # Absolute path - validate directly
+                ms_full_path = validate_path(ms_path, ms_base_dir, allow_absolute=True)
+            else:
+                # Relative path - validate against base
+                # Additional check: reject paths that look like system paths
+                if any(
+                    component in ["etc", "usr", "var", "sys", "proc", "dev", "root", "home"]
+                    for component in ms_path.split("/")[:2]
+                ):
+                    raise ValueError(f"Suspicious path component detected: {ms_path}")
+                ms_full_path = validate_path(ms_path, ms_base_dir)
+        except ValueError as e:
+            raise HTTPException(status_code=400, detail=f"Invalid MS path: {str(e)}")
 
         if not os.path.exists(ms_full_path):
             raise HTTPException(status_code=404, detail="MS not found")
+
+        # Additional security: ensure it's actually a directory (MS files are directories)
+        if not os.path.isdir(ms_full_path):
+            raise HTTPException(status_code=400, detail="Path is not a valid MS directory")
 
         db_path = Path(os.getenv("PIPELINE_PRODUCTS_DB", "state/products.sqlite3"))
         conn = ensure_products_db(db_path)
@@ -4491,10 +4726,41 @@ def create_app(config: ApiConfig | None = None) -> FastAPI:
     @router.get("/thumbnails/{ms_path:path}.png")
     def get_image_thumbnail(ms_path: str):
         """Serve image thumbnail for an MS."""
-        from dsa110_contimg.database.products import ensure_products_db
+        import urllib.parse
 
-        # Decode path
-        ms_full_path = f"/{ms_path}" if not ms_path.startswith("/") else ms_path
+        # Decode URL-encoded path and normalize Windows-style separators
+        decoded_path = urllib.parse.unquote(ms_path)
+        # Replace Windows-style backslashes with forward slashes
+        normalized_path = decoded_path.replace("\\", "/")
+
+        # Validate and sanitize path to prevent path traversal
+        try:
+            ms_base_dir = Path(os.getenv("PIPELINE_DATA_DIR", "/data"))
+            # Handle absolute paths: if path starts with /, validate as absolute
+            # Otherwise, treat as relative to base directory
+            if normalized_path.startswith("/"):
+                # Absolute path - validate directly
+                ms_full_path = validate_path(normalized_path, ms_base_dir, allow_absolute=True)
+            else:
+                # Relative path - validate against base
+                # Additional check: reject paths that look like system paths
+                if any(
+                    component in ["etc", "usr", "var", "sys", "proc", "dev", "root", "home"]
+                    for component in normalized_path.split("/")[:2]
+                ):
+                    raise ValueError(f"Suspicious path component detected: {normalized_path}")
+                ms_full_path = validate_path(normalized_path, ms_base_dir)
+        except ValueError as e:
+            raise HTTPException(status_code=400, detail=f"Invalid MS path: {str(e)}")
+
+        if not os.path.exists(ms_full_path):
+            raise HTTPException(status_code=404, detail="MS not found")
+
+        # Additional security: ensure it's actually a directory (MS files are directories)
+        if not os.path.isdir(ms_full_path):
+            raise HTTPException(status_code=400, detail="Path is not a valid MS directory")
+
+        from dsa110_contimg.database.products import ensure_products_db
 
         db_path = Path(os.getenv("PIPELINE_PRODUCTS_DB", "state/products.sqlite3"))
         conn = ensure_products_db(db_path)

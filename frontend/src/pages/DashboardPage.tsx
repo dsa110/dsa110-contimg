@@ -77,37 +77,37 @@ export default function DashboardPage() {
                 >
                   <MetricCard
                     label="Total"
-                    value={status?.queue.total || 0}
+                    value={status?.queue?.total || 0}
                     color="primary"
                     size="small"
                   />
                   <MetricCard
                     label="Pending"
-                    value={status?.queue.pending || 0}
+                    value={status?.queue?.pending || 0}
                     color="info"
                     size="small"
                   />
                   <MetricCard
                     label="In Progress"
-                    value={status?.queue.in_progress || 0}
+                    value={status?.queue?.in_progress || 0}
                     color="warning"
                     size="small"
                   />
                   <MetricCard
                     label="Completed"
-                    value={status?.queue.completed || 0}
+                    value={status?.queue?.completed || 0}
                     color="success"
                     size="small"
                   />
                   <MetricCard
                     label="Failed"
-                    value={status?.queue.failed || 0}
+                    value={status?.queue?.failed || 0}
                     color="error"
                     size="small"
                   />
                   <MetricCard
                     label="Collecting"
-                    value={status?.queue.collecting || 0}
+                    value={status?.queue?.collecting || 0}
                     color="info"
                     size="small"
                   />
@@ -117,7 +117,7 @@ export default function DashboardPage() {
                   Calibration Sets
                 </Typography>
                 <Typography variant="body2" sx={{ mt: 1 }}>
-                  Active: <strong>{status?.calibration_sets.length || 0}</strong>
+                  Active: <strong>{status?.calibration_sets?.length || 0}</strong>
                 </Typography>
               </Box>
             </CollapsibleSection>
@@ -189,7 +189,9 @@ export default function DashboardPage() {
           {/* Recent Observations */}
           <CollapsibleSection title="Recent Observations" defaultExpanded={true} variant="outlined">
             <Box sx={{ mt: 2 }}>
-              {status?.recent_groups && status.recent_groups.length > 0 ? (
+              {status?.recent_groups &&
+              Array.isArray(status.recent_groups) &&
+              status.recent_groups.length > 0 ? (
                 <Box sx={{ overflowX: "auto" }}>
                   <Box
                     component="table"
@@ -234,7 +236,7 @@ export default function DashboardPage() {
                       </tr>
                     </thead>
                     <tbody>
-                      {status.recent_groups.slice(0, 10).map((group) => (
+                      {status?.recent_groups?.slice(0, 10).map((group) => (
                         <tr key={group.group_id}>
                           <td>{group.group_id}</td>
                           <td>{group.state}</td>

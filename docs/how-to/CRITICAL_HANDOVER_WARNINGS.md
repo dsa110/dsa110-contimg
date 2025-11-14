@@ -28,7 +28,7 @@ without casa6.
 export PYTHON_BIN="/opt/miniforge/envs/casa6/bin/python"
 
 # Or source the agent setup
-source /data/dsa110-contimg/scripts/agent-setup.sh
+source /data/dsa110-contimg/scripts/developer-setup.sh
 ```
 
 **Reference:** `docs/reference/CRITICAL_PYTHON_ENVIRONMENT.md`
@@ -44,7 +44,7 @@ source /data/dsa110-contimg/scripts/agent-setup.sh
 **Solution:** Always source the setup at the start of a session:
 
 ```bash
-source /data/dsa110-contimg/scripts/agent-setup.sh
+source /data/dsa110-contimg/scripts/developer-setup.sh
 ```
 
 **What it does:**
@@ -269,7 +269,7 @@ pytest tests/unit/
 
 Before starting work:
 
-- [ ] Source error detection: `source scripts/agent-setup.sh`
+- [ ] Source error detection: `source scripts/developer-setup.sh`
 - [ ] Verify Python: `/opt/miniforge/envs/casa6/bin/python --version`
 - [ ] Check test organization rules if adding tests
 - [ ] Review directory structure rules if creating files

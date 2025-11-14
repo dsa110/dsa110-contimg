@@ -135,7 +135,7 @@ scripts/cleanup_casa_logs.sh:8:cleanup:Suppresses permission errors during log c
 # Categories: error-detection, optional-check, infrastructure, cleanup
 
 scripts/auto-error-detection.sh:45:error-detection:Suppresses wrapper errors in error detection system
-scripts/agent-setup.sh:12:infrastructure:Suppresses sourcing errors for optional setup
+scripts/developer-setup.sh:12:infrastructure:Suppresses sourcing errors for optional setup
 scripts/check-environment.sh:23:optional-check:Suppresses command-not-found for optional tools
 ```
 

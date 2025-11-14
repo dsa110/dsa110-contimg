@@ -1,0 +1,29 @@
+name: "dsa110-contimg CodeQL Configuration"
+
+# Query suites to run
+query-filters:
+  - exclude:
+      id: py/unused-import
+      # Too many false positives, handled by linters
+  - exclude:
+      id: py/unused-local-variable
+      # Too many false positives, handled by linters
+  - include:
+      # Custom queries
+      path: .codeql/queries
+
+# Paths to exclude from analysis
+paths-ignore:
+  - archive/
+  - node_modules/
+  - .venv/
+  - .git/
+  - htmlcov/
+  - .pytest_cache/
+  - test-results/
+  - notebook_outputs/
+  - TMPPOINTING*/
+
+# Languages to analyze
+languages:
+  - python

@@ -74,7 +74,7 @@ The **most reliable** approach is to have agents explicitly source the setup
 script:
 
 ```bash
-source /data/dsa110-contimg/scripts/agent-setup.sh
+source /data/dsa110-contimg/scripts/developer-setup.sh
 ```
 
 This:
@@ -106,7 +106,7 @@ $ bash -c 'echo $AUTO_ERROR_DETECTION'
 ### Test 3: After Agent Setup
 
 ```bash
-$ source /data/dsa110-contimg/scripts/agent-setup.sh
+$ source /data/dsa110-contimg/scripts/developer-setup.sh
 ✅ Error detection enabled for agentic session
 $ bash -c 'echo $AUTO_ERROR_DETECTION'
 1
@@ -120,7 +120,7 @@ $ bash -c 'echo $AUTO_ERROR_DETECTION'
 
 To make error detection deterministic:
 
-1. **Best:** Agents source `agent-setup.sh` at session start
+1. **Best:** Agents source `developer-setup.sh` at session start
 2. **Fallback:** `BASH_ENV` set in `~/.profile` (for login shells)
 3. **Fallback:** `BASH_ENV` set in `~/.bashrc` (for interactive shells)
 

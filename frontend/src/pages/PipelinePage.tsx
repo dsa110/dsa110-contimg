@@ -9,7 +9,7 @@ import {
   Tabs,
   Typography,
 } from "@mui/material";
-import { useActivePipelineExecutions, usePipelineMetricsSummary } from "../api/queries";
+import { usePipelineMetricsSummary } from "../api/queries";
 import ActiveExecutions from "../components/Pipeline/ActiveExecutions";
 import ExecutionHistory from "../components/Pipeline/ExecutionHistory";
 import StageMetrics from "../components/Pipeline/StageMetrics";

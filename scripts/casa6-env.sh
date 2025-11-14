@@ -1,7 +1,7 @@
 #!/bin/bash
 # Casa6 Environment Enforcement
 # Source this script to ensure casa6 is always used for Python and related tools
-# This should be sourced by all scripts and can be included in agent-setup.sh
+# This should be sourced by all scripts and can be included in developer-setup.sh
 
 # Define casa6 paths
 CASA6_ENV="/opt/miniforge/envs/casa6"

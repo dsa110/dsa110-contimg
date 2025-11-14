@@ -18,8 +18,8 @@ import {
   Button,
   Divider,
 } from "@mui/material";
-import Plot from "react-plotly.js";
-import type { Data, Layout } from "plotly.js";
+import { PlotlyLazy } from "../PlotlyLazy";
+import type { Data, Layout } from "../PlotlyLazy";
 import { usePointingHistory } from "../../api/queries";
 import { useImages } from "../../api/queries";
 import type { ImageInfo, PointingHistoryEntry } from "../../api/types";
@@ -345,7 +345,7 @@ export default function SkyMap({
                 </Stack>
               </Box>
 
-              <Plot
+              <PlotlyLazy
                 data={plotData}
                 layout={layout}
                 config={{

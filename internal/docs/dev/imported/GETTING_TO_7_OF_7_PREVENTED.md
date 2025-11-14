@@ -60,7 +60,7 @@
 # Format: file_path:line_number:category:reason
 
 scripts/auto-error-detection.sh:28:error-detection:Suppresses wrapper errors in error detection system
-scripts/agent-setup.sh:12:infrastructure:Suppresses sourcing errors for optional setup
+scripts/developer-setup.sh:12:infrastructure:Suppresses sourcing errors for optional setup
 scripts/check-environment.sh:23:optional-check:Suppresses command-not-found for optional tools
 scripts/cleanup_casa_logs.sh:115:cleanup:Suppresses permission errors during log cleanup
 ```

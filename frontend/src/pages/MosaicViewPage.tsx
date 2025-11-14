@@ -3,7 +3,8 @@
  * JS9 FITS mosaic viewer
  */
 import { useParams, useNavigate } from "react-router-dom";
-import { Container, Typography, Paper, Box, Alert, Chip, Button, Grid } from "@mui/material";
+import { Container, Typography, Paper, Box, Alert, Chip, Button } from "@mui/material";
+import Grid from "@mui/material/GridLegacy";
 import { ArrowBack } from "@mui/icons-material";
 import SkyViewer from "../components/Sky/SkyViewer";
 import { useMosaic } from "../api/queries";

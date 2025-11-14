@@ -230,7 +230,7 @@
 .lm_header .lm_tab .lm_close_tab {
   width: 11px;
   height: 11px;
-  background-image: url("../../../node_modules/golden-layout/dist/img/lm_close_white.png");
+  background-image: url("/ui/golden-layout/img/lm_close_white.png");
   background-position: center center;
   background-repeat: no-repeat;
   top: 4px;
@@ -309,15 +309,15 @@
 }
 
 .lm_controls .lm_popout {
-  background-image: url("../../../node_modules/golden-layout/dist/img/lm_popout_white.png");
+  background-image: url("/ui/golden-layout/img/lm_popout_white.png");
 }
 
 .lm_controls .lm_maximise {
-  background-image: url("../../../node_modules/golden-layout/dist/img/lm_maximise_white.png");
+  background-image: url("/ui/golden-layout/img/lm_maximise_white.png");
 }
 
 .lm_controls .lm_close {
-  background-image: url("../../../node_modules/golden-layout/dist/img/lm_close_white.png");
+  background-image: url("/ui/golden-layout/img/lm_close_white.png");
 }
 
 .lm_maximised .lm_header {
@@ -325,7 +325,7 @@
 }
 
 .lm_maximised .lm_controls .lm_maximise {
-  background-image: url("../../../node_modules/golden-layout/dist/img/lm_minimize_white.png");
+  background-image: url("/ui/golden-layout/img/lm_minimize_white.png");
 }
 
 .lm_transition_indicator {
@@ -343,7 +343,7 @@
 }
 
 .lm_popin .lm_icon {
-  background-image: url("../../../node_modules/golden-layout/dist/img/lm_popin_white.png");
+  background-image: url("/ui/golden-layout/img/lm_popin_white.png");
   background-position: center center;
   background-repeat: no-repeat;
   border-left: 1px solid #30363d; /* MUI divider */

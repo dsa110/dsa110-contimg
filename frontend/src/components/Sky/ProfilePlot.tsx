@@ -4,8 +4,8 @@
  */
 import { useMemo } from "react";
 import { Paper, Typography, Box, Alert, Chip } from "@mui/material";
-import Plot from "react-plotly.js";
-import type { Data, Layout } from "plotly.js";
+import { PlotlyLazy } from "../PlotlyLazy";
+import type { Data, Layout } from "../PlotlyLazy";
 
 export interface ProfileData {
   profile_type: string;
@@ -146,7 +146,11 @@ export default function ProfilePlot({
         Profile Plot
       </Typography>
       <Box sx={{ mb: 2 }}>
-        <Plot data={plotData} layout={layout} style={{ width: "100%", height: `${height}px` }} />
+        <PlotlyLazy
+          data={plotData}
+          layout={layout}
+          style={{ width: "100%", height: `${height}px` }}
+        />
       </Box>
       {fitInfo && (
         <Box sx={{ mt: 2 }}>

@@ -4,7 +4,8 @@
  */
 import React, { useState, useEffect } from "react";
 import { useSearchParams } from "react-router-dom";
-import { Container, Typography, Box, Tabs, Tab, Grid, Stack } from "@mui/material";
+import { Container, Typography, Box, Tabs, Tab, Stack } from "@mui/material";
+import Grid from "@mui/material/GridLegacy";
 import {
   HealthAndSafety as HealthIcon,
   Assessment as QAIcon,
@@ -85,7 +86,7 @@ export default function SystemDiagnosticsPage() {
         <Grid container spacing={3}>
           {systemMetrics && (
             <>
-              <Grid xs={12} md={4}>
+              <Grid item xs={12} md={4}>
                 <StatCard
                   title="CPU Usage"
                   value={`${systemMetrics.cpu_percent.toFixed(1)}%`}
@@ -99,7 +100,7 @@ export default function SystemDiagnosticsPage() {
                   icon={<HealthIcon />}
                 />
               </Grid>
-              <Grid xs={12} md={4}>
+              <Grid item xs={12} md={4}>
                 <StatCard
                   title="Memory Usage"
                   value={`${systemMetrics.mem_percent.toFixed(1)}%`}
@@ -113,7 +114,7 @@ export default function SystemDiagnosticsPage() {
                   icon={<HealthIcon />}
                 />
               </Grid>
-              <Grid xs={12} md={4}>
+              <Grid item xs={12} md={4}>
                 <StatCard
                   title="Disk Usage"
                   value={
@@ -137,7 +138,7 @@ export default function SystemDiagnosticsPage() {
           )}
           {dlqStats && (
             <>
-              <Grid xs={12} md={4}>
+              <Grid item xs={12} md={4}>
                 <StatCard
                   title="DLQ Issues"
                   value={dlqStats.total}
@@ -145,7 +146,7 @@ export default function SystemDiagnosticsPage() {
                   icon={<HealthIcon />}
                 />
               </Grid>
-              <Grid xs={12} md={4}>
+              <Grid item xs={12} md={4}>
                 <StatCard
                   title="DLQ Pending"
                   value={dlqStats.pending}

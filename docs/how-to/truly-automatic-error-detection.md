@@ -105,8 +105,8 @@ Create a script that checks if error detection is enabled and auto-enables it:
 
 ```bash
 # In ~/.bashrc or ~/.profile
-if [ -z "${AUTO_ERROR_DETECTION:-}" ] && [ -f "/data/dsa110-contimg/scripts/agent-setup.sh" ]; then
-    source /data/dsa110-contimg/scripts/agent-setup.sh >/dev/null 2>&1
+if [ -z "${AUTO_ERROR_DETECTION:-}" ] && [ -f "/data/dsa110-contimg/scripts/developer-setup.sh" ]; then
+    source /data/dsa110-contimg/scripts/developer-setup.sh >/dev/null 2>&1
 fi
 ```
 
@@ -127,7 +127,7 @@ there is NO way to guarantee error detection is enabled for random agents.**
 The best we can do is:
 
 1. Set `BASH_ENV` in `~/.profile` and `~/.bashrc` (helps when those are sourced)
-2. Create `agent-setup.sh` script (works if agents source it)
+2. Create `developer-setup.sh` script (works if agents source it)
 3. Document it clearly (helps if agents read docs)
 4. Consider system-wide setup if you have admin access
 

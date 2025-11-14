@@ -1,4 +1,4 @@
-import { useState, lazy, Suspense } from "react";
+import { useState, lazy, Suspense, useEffect } from "react";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { ReactQueryDevtools } from "@tanstack/react-query-devtools";
 import { ThemeProvider, CssBaseline, Box, CircularProgress } from "@mui/material";
@@ -11,7 +11,10 @@ import Navigation from "./components/Navigation";
 import WorkflowBreadcrumbs from "./components/WorkflowBreadcrumbs";
 import ErrorBoundary from "./components/ErrorBoundary";
 import { LoadingProgress } from "./components/LoadingProgress";
+import { OfflineIndicator } from "./components/OfflineIndicator";
 import { isRetryableError } from "./utils/errorUtils";
+import { initErrorTracking } from "./utils/errorTracking";
+import { registerServiceWorker } from "./utils/serviceWorker";
 
 // Lazy load all page components for code splitting
 const DashboardPage = lazy(() => import("./pages/DashboardPage"));
@@ -37,6 +40,7 @@ const CachePage = lazy(() => import("./pages/CachePage"));
 const DataLineagePage = lazy(() => import("./pages/DataLineagePage"));
 const CalibrationWorkflowPage = lazy(() => import("./pages/CalibrationWorkflowPage"));
 const MSBrowserPage = lazy(() => import("./pages/MSBrowserPage"));
+const ErrorAnalyticsPage = lazy(() => import("./pages/ErrorAnalyticsPage"));
 
 // Loading fallback component
 function PageLoadingFallback() {
@@ -124,6 +128,20 @@ function AppContent() {
   const basename: string | undefined =
     typeof import.meta.env.PROD === "boolean" && import.meta.env.PROD ? "/ui" : undefined;
 
+  // Initialize error tracking and service worker
+  useEffect(() => {
+    // Initialize error tracking (Sentry) if DSN is provided
+    const sentryDsn = import.meta.env.VITE_SENTRY_DSN;
+    if (sentryDsn) {
+      initErrorTracking(sentryDsn);
+    }
+
+    // Register service worker for offline support
+    if (import.meta.env.PROD) {
+      registerServiceWorker();
+    }
+  }, []);
+
   return (
     <ErrorBoundary>
       <QueryClientProvider client={queryClient}>
@@ -135,6 +153,7 @@ function AppContent() {
               <BrowserRouter basename={basename}>
                 <WorkflowProvider>
                   <LoadingProgress />
+                  <OfflineIndicator />
                   <Box sx={{ display: "flex", flexDirection: "column", minHeight: "100vh" }}>
                     <Navigation />
                     <WorkflowBreadcrumbs />
@@ -195,6 +214,7 @@ function AppContent() {
                               <Route path="/observing" element={<ObservingPage />} />
                               <Route path="/health" element={<HealthPage />} />
                               <Route path="/operations" element={<OperationsPage />} />
+                              <Route path="/error-analytics" element={<ErrorAnalyticsPage />} />
                               <Route path="/pipeline" element={<PipelinePage />} />
                               <Route path="/events" element={<EventsPage />} />
                               <Route path="/cache" element={<CachePage />} />

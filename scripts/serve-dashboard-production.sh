@@ -28,12 +28,10 @@ if [[ ! -x "${CASA6_PYTHON}" ]]; then
     exit 1
 fi
 
-cd "${BUILD_DIR}"
-
 echo "Serving DSA-110 Dashboard on port ${PORT}..."
 echo "Serving from: ${BUILD_DIR}"
+echo "Base path: /ui/"
 
-# Use Python's http.server with proper MIME types
-# Note: This serves from /ui/ base path as expected by FastAPI
-exec "${CASA6_PYTHON}" -m http.server "${PORT}" --bind 0.0.0.0
+# Use custom Python server that handles /ui/ base path and SPA routing
+exec "${CASA6_PYTHON}" "${SCRIPT_DIR}/serve-dashboard-production.py"
 

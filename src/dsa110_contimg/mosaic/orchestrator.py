@@ -30,7 +30,7 @@ from dsa110_contimg.database.data_registry import (
 )
 from dsa110_contimg.database.products import ensure_products_db
 from dsa110_contimg.mosaic.streaming_mosaic import StreamingMosaicManager
-from dsa110_contimg.photometry.helpers import query_sources_for_mosaic
+from dsa110_contimg.photometry.manager import PhotometryConfig, PhotometryManager
 from dsa110_contimg.utils.time_utils import extract_ms_time_range
 
 logger = logging.getLogger(__name__)
@@ -126,14 +126,23 @@ class MosaicOrchestrator:
         # Initialize streaming mosaic manager (lazy, after we know what we're doing)
         self.mosaic_manager: Optional[StreamingMosaicManager] = None
 
-        # Photometry configuration
+        # Photometry configuration and manager
         self.enable_photometry = enable_photometry
-        self.photometry_config = photometry_config or {
+        photometry_config_dict = photometry_config or {
             "catalog": "nvss",
             "radius_deg": 1.0,
             "normalize": False,
             "max_sources": None,
         }
+        self.photometry_config = photometry_config_dict  # Keep for backward compatibility
+        self.photometry_manager: Optional[PhotometryManager] = None
+        if self.enable_photometry:
+            pm_config = PhotometryConfig.from_dict(photometry_config_dict)
+            self.photometry_manager = PhotometryManager(
+                products_db_path=self.products_db_path,
+                data_registry_db_path=self.data_registry_db_path,
+                default_config=pm_config,
+            )
 
     def _get_mosaic_manager(self) -> StreamingMosaicManager:
         """Get or create StreamingMosaicManager instance."""
@@ -616,64 +625,28 @@ class MosaicOrchestrator:
         Returns:
             Batch job ID if successful, None otherwise
         """
-        if not mosaic_path.exists():
-            logger.warning(f"Mosaic FITS file not found: {mosaic_path}")
+        if not self.photometry_manager:
+            logger.warning("Photometry manager not initialized")
             return None
 
         try:
-            from dsa110_contimg.api.batch_jobs import create_batch_photometry_job
-
-            # Query sources for the mosaic field
-            sources = query_sources_for_mosaic(
-                mosaic_path,
-                catalog=self.photometry_config.get("catalog", "nvss"),
-                radius_deg=self.photometry_config.get("radius_deg", 1.0),
-                max_sources=self.photometry_config.get("max_sources", None),
-            )
-
-            if not sources:
-                logger.info(f"No sources found for photometry in mosaic {mosaic_path}")
-                return None
-
-            # Extract coordinates from sources
-            coordinates = [
-                {
-                    "ra_deg": float(src.get("ra", src.get("ra_deg", 0.0))),
-                    "dec_deg": float(src.get("dec", src.get("dec_deg", 0.0))),
-                }
-                for src in sources
-            ]
-
-            logger.info(
-                f"Found {len(coordinates)} sources for photometry in mosaic {mosaic_path.name}"
-            )
-
-            # Prepare batch job parameters
-            params = {
-                "method": "peak",
-                "normalize": self.photometry_config.get("normalize", False),
-            }
-
-            # Get products DB connection
-            conn = ensure_products_db(self.products_db_path)
-
             # Generate data_id from mosaic path (stem without extension)
             mosaic_data_id = mosaic_path.stem
 
-            # Create batch photometry job
-            batch_job_id = create_batch_photometry_job(
-                conn=conn,
-                job_type="batch_photometry",
-                fits_paths=[str(mosaic_path)],
-                coordinates=coordinates,
-                params=params,
+            # Use PhotometryManager to handle the workflow
+            result = self.photometry_manager.measure_for_mosaic(
+                mosaic_path=mosaic_path,
+                create_batch_job=True,
                 data_id=mosaic_data_id,
+                group_id=group_id,
             )
 
-            logger.info(
-                f"Created photometry batch job {batch_job_id} for mosaic {mosaic_path.name}"
-            )
-            return batch_job_id
+            if result and result.batch_job_id:
+                logger.info(
+                    f"Created photometry batch job {result.batch_job_id} for mosaic {mosaic_path.name}"
+                )
+                return result.batch_job_id
+            return None
 
         except Exception as e:
             logger.error(

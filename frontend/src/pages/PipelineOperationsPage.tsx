@@ -4,35 +4,19 @@
  */
 import React, { useState, useEffect } from "react";
 import { useSearchParams } from "react-router-dom";
-import {
-  Container,
-  Typography,
-  Paper,
-  Box,
-  Grid,
-  Tabs,
-  Tab,
-  Card,
-  CardContent,
-  CardHeader,
-  Stack,
-} from "@mui/material";
+import { Container, Typography, Paper, Box, Tabs, Tab, Stack } from "@mui/material";
+import Grid from "@mui/material/GridLegacy";
 import {
   AccountTree as PipelineIcon,
   ErrorOutline as OperationsIcon,
   EventNote as EventsIcon,
 } from "@mui/icons-material";
-import { useActivePipelineExecutions, usePipelineMetricsSummary } from "../api/queries";
+import { usePipelineMetricsSummary } from "../api/queries";
 import { useDLQStats } from "../api/queries";
-import {
-  ActiveExecutions,
-  ExecutionHistory,
-  StageMetrics,
-  DependencyGraph,
-} from "../components/Pipeline";
+import { ActiveExecutions, DependencyGraph } from "../components/Pipeline";
 import { DeadLetterQueueTable, DeadLetterQueueStats } from "../components/DeadLetterQueue";
 import { CircuitBreakerStatus } from "../components/CircuitBreaker/CircuitBreakerStatus";
-import { EventStream, EventStats } from "../components/Events";
+import { EventStream } from "../components/Events";
 import { StatCard } from "../components/StatCard";
 import UnifiedSearch from "../components/UnifiedSearch";
 
@@ -109,7 +93,7 @@ export default function PipelineOperationsPage() {
           {/* Pipeline Summary */}
           {!metricsLoading && metricsSummary && (
             <>
-              <Grid xs={12} md={6}>
+              <Grid item xs={12} md={6}>
                 <StatCard
                   title="Success Rate"
                   value={`${(metricsSummary.success_rate * 100).toFixed(1)}%`}
@@ -121,7 +105,7 @@ export default function PipelineOperationsPage() {
                   }
                 />
               </Grid>
-              <Grid xs={12} md={6}>
+              <Grid item xs={12} md={6}>
                 <StatCard
                   title="Failed Jobs"
                   value={metricsSummary.failed_jobs}
@@ -130,14 +114,14 @@ export default function PipelineOperationsPage() {
                   alert={metricsSummary.failed_jobs > 0}
                 />
               </Grid>
-              <Grid xs={6} md={3}>
+              <Grid item xs={6} md={3}>
                 <StatCard
                   title="Total Jobs"
                   value={metricsSummary.total_jobs}
                   icon={<PipelineIcon />}
                 />
               </Grid>
-              <Grid xs={6} md={3}>
+              <Grid item xs={6} md={3}>
                 <StatCard
                   title="Running"
                   value={metricsSummary.running_jobs}
@@ -145,7 +129,7 @@ export default function PipelineOperationsPage() {
                   icon={<PipelineIcon />}
                 />
               </Grid>
-              <Grid xs={6} md={3}>
+              <Grid item xs={6} md={3}>
                 <StatCard
                   title="Completed"
                   value={metricsSummary.completed_jobs}
@@ -153,12 +137,12 @@ export default function PipelineOperationsPage() {
                   icon={<PipelineIcon />}
                 />
               </Grid>
-              <Grid xs={6} md={3}>
+              <Grid item xs={6} md={3}>
                 <StatCard
                   title="Avg Duration"
                   value={
-                    metricsSummary.avg_duration_minutes
-                      ? `${metricsSummary.avg_duration_minutes.toFixed(1)} min`
+                    metricsSummary.average_duration_seconds
+                      ? `${(metricsSummary.average_duration_seconds / 60).toFixed(1)} min`
                       : "N/A"
                   }
                   icon={<PipelineIcon />}
@@ -170,7 +154,7 @@ export default function PipelineOperationsPage() {
           {/* DLQ Summary */}
           {dlqStats && (
             <>
-              <Grid xs={12} md={4}>
+              <Grid item xs={12} md={4}>
                 <StatCard
                   title="DLQ Total"
                   value={dlqStats.total}
@@ -178,7 +162,7 @@ export default function PipelineOperationsPage() {
                   icon={<OperationsIcon />}
                 />
               </Grid>
-              <Grid xs={12} md={4}>
+              <Grid item xs={12} md={4}>
                 <StatCard
                   title="DLQ Pending"
                   value={dlqStats.pending}
@@ -188,7 +172,7 @@ export default function PipelineOperationsPage() {
                   icon={<OperationsIcon />}
                 />
               </Grid>
-              <Grid xs={12} md={4}>
+              <Grid item xs={12} md={4}>
                 <StatCard
                   title="DLQ Resolved"
                   value={dlqStats.resolved}

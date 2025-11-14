@@ -1,0 +1,4 @@
+name: dsa110-contimg-custom-queries
+version: 1.0.0
+dependencies:
+  codeql/python-queries: "*"

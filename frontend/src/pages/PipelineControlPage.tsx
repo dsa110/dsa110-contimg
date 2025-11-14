@@ -4,7 +4,7 @@
  */
 import React, { useState, useEffect } from "react";
 import { useSearchParams } from "react-router-dom";
-import { Container, Typography, Box, Tabs, Tab, Grid, Paper, Stack } from "@mui/material";
+import { Container, Typography, Box, Tabs, Tab, Stack } from "@mui/material";
 import {
   Settings as ControlIcon,
   PlayArrow as StreamingIcon,

@@ -92,7 +92,7 @@ export BASH_ENV="$BASH_ENV_SCRIPT"
 EOF
 
 # Create agent setup script for explicit agentic session setup
-AGENT_SETUP_SCRIPT="$PROJECT_ROOT/scripts/agent-setup.sh"
+AGENT_SETUP_SCRIPT="$PROJECT_ROOT/scripts/developer-setup.sh"
 cat > "$AGENT_SETUP_SCRIPT" << 'AGENTSETUPEOF'
 #!/bin/bash
 # Agent Setup Script

@@ -80,9 +80,7 @@ from dsa110_contimg.database.products import (  # noqa
 )
 from dsa110_contimg.database.registry import ensure_db as ensure_cal_db  # noqa
 from dsa110_contimg.imaging.cli import image_ms  # noqa
-from dsa110_contimg.photometry.helpers import (  # noqa
-    query_sources_for_fits,
-)
+from dsa110_contimg.photometry.manager import PhotometryConfig, PhotometryManager
 from dsa110_contimg.utils.ms_organization import (  # noqa
     create_path_mapper,
     determine_ms_type,
@@ -690,6 +688,7 @@ def trigger_photometry_for_image(
     group_id: str,
     args: argparse.Namespace,
     products_db_path: Optional[Path] = None,
+    data_registry_db_path: Optional[Path] = None,
 ) -> Optional[int]:
     """Trigger photometry measurement for a newly imaged FITS file.
 
@@ -698,6 +697,7 @@ def trigger_photometry_for_image(
         group_id: Group ID for tracking
         args: Command-line arguments with photometry configuration
         products_db_path: Path to products database (optional)
+        data_registry_db_path: Path to data registry database (optional)
 
     Returns:
         Batch job ID if successful, None otherwise
@@ -709,58 +709,41 @@ def trigger_photometry_for_image(
         return None
 
     try:
-        from dsa110_contimg.api.batch_jobs import create_batch_photometry_job
-        from dsa110_contimg.database.products import ensure_products_db
+        # Get products DB path
+        if products_db_path is None:
+            products_db_path = Path(os.getenv("PIPELINE_PRODUCTS_DB", "state/products.sqlite3"))
 
-        # Query sources for the image field
-        sources = query_sources_for_fits(
-            image_path,
+        # Create photometry configuration from args
+        config = PhotometryConfig(
             catalog=getattr(args, "photometry_catalog", "nvss"),
             radius_deg=getattr(args, "photometry_radius", 0.5),
             max_sources=getattr(args, "photometry_max_sources", None),
+            method="peak",
+            normalize=getattr(args, "photometry_normalize", False),
         )
 
-        if not sources:
-            log.info(f"No sources found for photometry in {image_path}")
-            return None
-
-        # Extract coordinates from sources
-        coordinates = [
-            {
-                "ra_deg": float(src.get("ra", src.get("ra_deg", 0.0))),
-                "dec_deg": float(src.get("dec", src.get("dec_deg", 0.0))),
-            }
-            for src in sources
-        ]
-
-        log.info(f"Found {len(coordinates)} sources for photometry in {image_path.name}")
-
-        # Prepare batch job parameters
-        params = {
-            "method": "peak",
-            "normalize": getattr(args, "photometry_normalize", False),
-        }
-
-        # Get products DB connection
-        if products_db_path is None:
-            products_db_path = Path(os.getenv("PIPELINE_PRODUCTS_DB", "state/products.sqlite3"))
-        conn = ensure_products_db(products_db_path)
+        # Initialize PhotometryManager
+        manager = PhotometryManager(
+            products_db_path=products_db_path,
+            data_registry_db_path=data_registry_db_path,
+            default_config=config,
+        )
 
         # Generate data_id from image path (stem without extension)
         image_data_id = image_path.stem
 
-        # Create batch photometry job
-        batch_job_id = create_batch_photometry_job(
-            conn=conn,
-            job_type="batch_photometry",
-            fits_paths=[str(image_path)],
-            coordinates=coordinates,
-            params=params,
+        # Use PhotometryManager to handle the workflow
+        result = manager.measure_for_fits(
+            fits_path=image_path,
+            create_batch_job=True,
             data_id=image_data_id,
+            group_id=group_id,
         )
 
-        log.info(f"Created photometry batch job {batch_job_id} for {image_path.name}")
-        return batch_job_id
+        if result and result.batch_job_id:
+            log.info(f"Created photometry batch job {result.batch_job_id} for {image_path.name}")
+            return result.batch_job_id
+        return None
 
     except Exception as e:
         log.error(f"Failed to trigger photometry for {image_path}: {e}", exc_info=True)

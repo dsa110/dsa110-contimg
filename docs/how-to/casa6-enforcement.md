@@ -22,7 +22,8 @@ Python:
 1. **Shell Functions** (via `casa6-env.sh`) - Works in all shell types
 2. **Developer Environment Setup** (via `setup-developer-env.sh`) - Configures
    `.bashrc` automatically
-3. **Agent Setup** (via `agent-setup.sh`) - For agentic/automated sessions
+3. **Developer Setup** (via `developer-setup.sh`) - For agentic/automated
+   sessions
 
 ## Quick Start
 
@@ -42,7 +43,7 @@ source ~/.bashrc  # Apply immediately in current shell
 
 **After running it once**, every new interactive shell will automatically:
 
-- Source `agent-setup.sh` (error detection + casa6 enforcement)
+- Source `developer-setup.sh` (error detection + casa6 enforcement)
 - Have `python` and `python3` commands use casa6
 - Have `sqlite3` use casa6 version
 
@@ -54,7 +55,7 @@ source ~/.bashrc  # Apply immediately in current shell
 **At the start of EVERY agentic session:**
 
 ```bash
-source /data/dsa110-contimg/scripts/agent-setup.sh
+source /data/dsa110-contimg/scripts/developer-setup.sh
 ```
 
 This automatically:
@@ -88,7 +89,7 @@ The `setup-developer-env.sh` script configures your `.bashrc` to:
 
 1. **Source `casa6-env.sh`** - Creates wrapper functions for `python`,
    `python3`, `sqlite3`, `pip`
-2. **Source `agent-setup.sh`** - Enables error detection
+2. **Source `developer-setup.sh`** - Enables error detection
 3. **Set PATH** - Prepends casa6 bin directory when in project directory
 
 **This means in interactive shells, `python` automatically uses casa6.**
@@ -108,7 +109,7 @@ This script (sourced by both developer setup and agent setup):
 **Functions work in both interactive and non-interactive shells** (unlike
 aliases).
 
-### Layer 3: Agent Setup (`scripts/agent-setup.sh`)
+### Layer 3: Developer Setup (`scripts/developer-setup.sh`)
 
 For agentic/automated sessions, this script:
 
@@ -157,7 +158,7 @@ source ~/.bashrc
 Source at the start of each session:
 
 ```bash
-source /data/dsa110-contimg/scripts/agent-setup.sh
+source /data/dsa110-contimg/scripts/developer-setup.sh
 ```
 
 **Benefits:**
@@ -225,7 +226,7 @@ python -c "import casatools; print('CASA OK')"
 1. **For interactive shells**: Run `./scripts/setup-developer-env.sh` and
    `source ~/.bashrc`
 2. **For scripts**: Add `source scripts/casa6-env.sh` at the top
-3. **For agentic sessions**: Source `agent-setup.sh` at session start
+3. **For agentic sessions**: Source `developer-setup.sh` at session start
 
 ### "casa6-env.sh not found"
 
@@ -264,7 +265,7 @@ source scripts/casa6-env.sh
 ## Best Practices
 
 1. **Run setup-developer-env.sh once** - For interactive development
-2. **Source agent-setup.sh for sessions** - For agentic/automated sessions
+2. **Source developer-setup.sh for sessions** - For agentic/automated sessions
 3. **Source casa6-env.sh in scripts** - For individual scripts
 4. **Verify in CI/CD** - Add verification steps to CI/CD pipelines
 5. **Document in scripts** - Add comments explaining casa6 requirement
@@ -284,6 +285,6 @@ source scripts/casa6-env.sh
 ## References
 
 - Casa6 conda environment: `/opt/miniforge/envs/casa6`
-- Enforcement scripts: `scripts/casa6-env.sh`, `scripts/agent-setup.sh`,
+- Enforcement scripts: `scripts/casa6-env.sh`, `scripts/developer-setup.sh`,
   `scripts/setup-developer-env.sh`
 - Python wrapper: `scripts/python-wrapper.sh`
