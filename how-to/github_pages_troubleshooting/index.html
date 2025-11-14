@@ -1200,9 +1200,11 @@
 <p><strong>Date:</strong> 2025-11-12</p>
 <h2 id="common-issues-and-solutions">Common Issues and Solutions<a class="headerlink" href="#common-issues-and-solutions" title="Permanent link">¶</a></h2>
 <h3 id="issue-1-404-error-there-isnt-a-github-pages-site-here">Issue 1: 404 Error - "There isn't a GitHub Pages site here"<a class="headerlink" href="#issue-1-404-error-there-isnt-a-github-pages-site-here" title="Permanent link">¶</a></h3>
-<p><strong>Symptoms:</strong>
-- Visiting <code>dsa110-contimg.github.io/dsa110-contimg/</code> shows 404
-- GitHub Pages error page appears</p>
+<p><strong>Symptoms:</strong></p>
+<ul>
+<li>Visiting <code>dsa110-contimg.github.io/dsa110-contimg/</code> shows 404</li>
+<li>GitHub Pages error page appears</li>
+</ul>
 <p><strong>Solutions:</strong></p>
 <h4 id="step-1-enable-github-pages-in-repository-settings">Step 1: Enable GitHub Pages in Repository Settings<a class="headerlink" href="#step-1-enable-github-pages-in-repository-settings" title="Permanent link">¶</a></h4>
 <ol>
@@ -1213,7 +1215,8 @@
 <li>Folder: <strong>"/ (root)"</strong></li>
 <li>Click <strong>"Save"</strong></li>
 </ol>
-<p><strong>Important:</strong> The <code>gh-pages</code> branch will be created automatically by the workflow on first deployment.</p>
+<p><strong>Important:</strong> The <code>gh-pages</code> branch will be created automatically by the
+workflow on first deployment.</p>
 <h4 id="step-2-verify-workflow-ran-successfully">Step 2: Verify Workflow Ran Successfully<a class="headerlink" href="#step-2-verify-workflow-ran-successfully" title="Permanent link">¶</a></h4>
 <ol>
 <li>Go to: <code>https://github.com/dsa110/dsa110-contimg/actions</code></li>
@@ -1276,10 +1279,10 @@
 <p><strong>File paths:</strong></p>
 </li>
 <li>Workflow only triggers on changes to:<ul>
-<li><code>docs/**</code></li>
+<li><code>docs/</code></li>
 <li><code>mkdocs.yml</code></li>
 <li><code>.github/workflows/docs.yml</code></li>
-<li><code>docs/javascripts/**</code></li>
+<li>docs/javascripts/ (custom JavaScript)</li>
 </ul>
 </li>
 <li>
@@ -1292,11 +1295,13 @@
 <li>Check syntax is valid (YAML)</li>
 </ol>
 <h3 id="issue-4-custom-domain-codedeepsynopticorg">Issue 4: Custom Domain (code.deepsynoptic.org)<a class="headerlink" href="#issue-4-custom-domain-codedeepsynopticorg" title="Permanent link">¶</a></h3>
-<p>If your site is actually hosted at <code>http://code.deepsynoptic.org/dsa110-contimg/</code>:</p>
+<p>If your site is actually hosted at
+<code>http://code.deepsynoptic.org/dsa110-contimg/</code>:</p>
 <ol>
 <li><strong>This is NOT GitHub Pages</strong> - it's a custom server/reverse proxy</li>
 <li>The GitHub Pages workflow still deploys to <code>gh-pages</code> branch</li>
-<li>Your custom server likely pulls from <code>gh-pages</code> branch or has its own deployment</li>
+<li>Your custom server likely pulls from <code>gh-pages</code> branch or has its own
+   deployment</li>
 <li>Check with your server administrator about the deployment process</li>
 </ol>
 <h2 id="verification-steps">Verification Steps<a class="headerlink" href="#verification-steps" title="Permanent link">¶</a></h2>

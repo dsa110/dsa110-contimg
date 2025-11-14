@@ -1294,7 +1294,11 @@
 <article class="md-content__inner md-typeset">
 <h1 id="cross-matching-guide">Cross-Matching Guide<a class="headerlink" href="#cross-matching-guide" title="Permanent link">¶</a></h1>
 <h2 id="overview">Overview<a class="headerlink" href="#overview" title="Permanent link">¶</a></h2>
-<p>Cross-matching is the process of identifying the same astronomical sources in different catalogs or datasets. The DSA-110 pipeline provides comprehensive cross-matching functionality to match detected sources with reference catalogs (NVSS, FIRST, RACS) for astrometry validation, flux scale calibration, and source identification.</p>
+<p>Cross-matching is the process of identifying the same astronomical sources in
+different catalogs or datasets. The DSA-110 pipeline provides comprehensive
+cross-matching functionality to match detected sources with reference catalogs
+(NVSS, FIRST, RACS) for astrometry validation, flux scale calibration, and
+source identification.</p>
 <h2 id="quick-start">Quick Start<a class="headerlink" href="#quick-start" title="Permanent link">¶</a></h2>
 <h3 id="basic-cross-matching">Basic Cross-Matching<a class="headerlink" href="#basic-cross-matching" title="Permanent link">¶</a></h3>
 <div class="highlight"><pre><span></span><code><span class="kn">from</span><span class="w"> </span><span class="nn">dsa110_contimg.catalog.crossmatch</span><span class="w"> </span><span class="kn">import</span> <span class="n">cross_match_dataframes</span>
@@ -1363,18 +1367,22 @@
     <span class="n">catalog_flux</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="mf">1.1</span><span class="p">,</span> <span class="mf">2.1</span><span class="p">]),</span>
 <span class="p">)</span>
 </code></pre></div>
-<p><strong>Parameters:</strong>
-- <code>detected_ra</code>, <code>detected_dec</code>: Arrays of detected source positions (degrees)
-- <code>catalog_ra</code>, <code>catalog_dec</code>: Arrays of catalog source positions (degrees)
-- <code>radius_arcsec</code>: Matching radius in arcseconds
-- <code>detected_flux</code>, <code>catalog_flux</code>: Optional flux arrays
-- <code>detected_ids</code>, <code>catalog_ids</code>: Optional ID arrays</p>
-<p><strong>Returns:</strong> DataFrame with matches containing:
-- <code>detected_idx</code>, <code>catalog_idx</code>: Indices of matched sources
-- <code>separation_arcsec</code>: Separation distance
-- <code>dra_arcsec</code>, <code>ddec_arcsec</code>: RA/Dec offsets
-- <code>detected_flux</code>, <code>catalog_flux</code>: Flux values (if provided)
-- <code>flux_ratio</code>: Flux ratio (if both fluxes provided)</p>
+<p><strong>Parameters:</strong></p>
+<ul>
+<li><code>detected_ra</code>, <code>detected_dec</code>: Arrays of detected source positions (degrees)</li>
+<li><code>catalog_ra</code>, <code>catalog_dec</code>: Arrays of catalog source positions (degrees)</li>
+<li><code>radius_arcsec</code>: Matching radius in arcseconds</li>
+<li><code>detected_flux</code>, <code>catalog_flux</code>: Optional flux arrays</li>
+<li><code>detected_ids</code>, <code>catalog_ids</code>: Optional ID arrays</li>
+</ul>
+<p><strong>Returns:</strong> DataFrame with matches containing:</p>
+<ul>
+<li><code>detected_idx</code>, <code>catalog_idx</code>: Indices of matched sources</li>
+<li><code>separation_arcsec</code>: Separation distance</li>
+<li><code>dra_arcsec</code>, <code>ddec_arcsec</code>: RA/Dec offsets</li>
+<li><code>detected_flux</code>, <code>catalog_flux</code>: Flux values (if provided)</li>
+<li><code>flux_ratio</code>: Flux ratio (if both fluxes provided)</li>
+</ul>
 <h3 id="cross_match_dataframes"><code>cross_match_dataframes()</code><a class="headerlink" href="#cross_match_dataframes" title="Permanent link">¶</a></h3>
 <p>Convenience wrapper for DataFrame inputs.</p>
 <div class="highlight"><pre><span></span><code><span class="kn">from</span><span class="w"> </span><span class="nn">dsa110_contimg.catalog.crossmatch</span><span class="w"> </span><span class="kn">import</span> <span class="n">cross_match_dataframes</span>
@@ -1452,14 +1460,18 @@
     <span class="n">max_separation_arcsec</span><span class="o">=</span><span class="mf">60.0</span><span class="p">,</span>
 <span class="p">)</span>
 </code></pre></div>
-<p><strong>Configuration Options:</strong>
-- <code>enabled</code>: Enable/disable cross-matching stage
-- <code>catalog_types</code>: List of catalogs to match against (<code>["nvss"]</code>, <code>["first"]</code>, <code>["rax"]</code>, or combinations)
-- <code>radius_arcsec</code>: Matching radius in arcseconds (default: 10.0)
-- <code>method</code>: Matching method - <code>"basic"</code> (nearest neighbor) or <code>"advanced"</code> (all matches)
-- <code>store_in_database</code>: Store results in database (default: True)
-- <code>min_separation_arcsec</code>: Minimum separation for valid match (default: 0.1)
-- <code>max_separation_arcsec</code>: Maximum separation for valid match (default: 60.0)</p>
+<p><strong>Configuration Options:</strong></p>
+<ul>
+<li><code>enabled</code>: Enable/disable cross-matching stage</li>
+<li><code>catalog_types</code>: List of catalogs to match against (<code>["nvss"]</code>, <code>["first"]</code>,
+  <code>["rax"]</code>, or combinations)</li>
+<li><code>radius_arcsec</code>: Matching radius in arcseconds (default: 10.0)</li>
+<li><code>method</code>: Matching method - <code>"basic"</code> (nearest neighbor) or <code>"advanced"</code> (all
+  matches)</li>
+<li><code>store_in_database</code>: Store results in database (default: True)</li>
+<li><code>min_separation_arcsec</code>: Minimum separation for valid match (default: 0.1)</li>
+<li><code>max_separation_arcsec</code>: Maximum separation for valid match (default: 60.0)</li>
+</ul>
 <h3 id="workflow-integration">Workflow Integration<a class="headerlink" href="#workflow-integration" title="Permanent link">¶</a></h3>
 <p>Cross-matching is automatically included in all standard workflows:</p>
 <div class="highlight"><pre><span></span><code><span class="kn">from</span><span class="w"> </span><span class="nn">dsa110_contimg.pipeline.workflows</span><span class="w"> </span><span class="kn">import</span> <span class="n">standard_imaging_workflow</span>
@@ -1519,18 +1531,20 @@
 
 <span class="n">conn</span><span class="o">.</span><span class="n">close</span><span class="p">()</span>
 </code></pre></div>
-<p><strong>Table Schema:</strong>
-- <code>id</code>: Primary key
-- <code>source_id</code>: Source identifier (foreign key to <code>variability_stats</code>)
-- <code>catalog_type</code>: Catalog name (<code>nvss</code>, <code>first</code>, <code>rax</code>)
-- <code>catalog_source_id</code>: Catalog source identifier
-- <code>separation_arcsec</code>: Separation distance
-- <code>dra_arcsec</code>, <code>ddec_arcsec</code>: RA/Dec offsets
-- <code>detected_flux_jy</code>, <code>catalog_flux_jy</code>: Flux values
-- <code>flux_ratio</code>: Flux ratio
-- <code>match_quality</code>: Quality classification (<code>excellent</code>, <code>good</code>, <code>fair</code>, <code>poor</code>)
-- <code>match_method</code>: Matching method used (<code>basic</code> or <code>advanced</code>)
-- <code>created_at</code>: Timestamp</p>
+<p><strong>Table Schema:</strong></p>
+<ul>
+<li><code>id</code>: Primary key</li>
+<li><code>source_id</code>: Source identifier (foreign key to <code>variability_stats</code>)</li>
+<li><code>catalog_type</code>: Catalog name (<code>nvss</code>, <code>first</code>, <code>rax</code>)</li>
+<li><code>catalog_source_id</code>: Catalog source identifier</li>
+<li><code>separation_arcsec</code>: Separation distance</li>
+<li><code>dra_arcsec</code>, <code>ddec_arcsec</code>: RA/Dec offsets</li>
+<li><code>detected_flux_jy</code>, <code>catalog_flux_jy</code>: Flux values</li>
+<li><code>flux_ratio</code>: Flux ratio</li>
+<li><code>match_quality</code>: Quality classification (<code>excellent</code>, <code>good</code>, <code>fair</code>, <code>poor</code>)</li>
+<li><code>match_method</code>: Matching method used (<code>basic</code> or <code>advanced</code>)</li>
+<li><code>created_at</code>: Timestamp</li>
+</ul>
 <h2 id="match-quality">Match Quality<a class="headerlink" href="#match-quality" title="Permanent link">¶</a></h2>
 <p>Matches are automatically classified by separation:</p>
 <ul>
@@ -1639,11 +1653,16 @@
 </code></pre></div>
 <h2 id="best-practices">Best Practices<a class="headerlink" href="#best-practices" title="Permanent link">¶</a></h2>
 <ol>
-<li><strong>Choose Appropriate Radius</strong>: Use 2-3× the astrometric uncertainty for matching radius</li>
-<li><strong>Filter by Quality</strong>: Use <code>match_quality</code> to filter matches (e.g., only <code>excellent</code> or <code>good</code>)</li>
-<li><strong>Check Separation Limits</strong>: Use <code>min_separation_arcsec</code> and <code>max_separation_arcsec</code> to filter outliers</li>
-<li><strong>Multiple Catalogs</strong>: Use <code>multi_catalog_match()</code> when matching against multiple catalogs</li>
-<li><strong>Flux Scaling</strong>: Account for frequency differences when comparing fluxes (use <code>scale_flux_to_frequency()</code>)</li>
+<li><strong>Choose Appropriate Radius</strong>: Use 2-3× the astrometric uncertainty for
+   matching radius</li>
+<li><strong>Filter by Quality</strong>: Use <code>match_quality</code> to filter matches (e.g., only
+   <code>excellent</code> or <code>good</code>)</li>
+<li><strong>Check Separation Limits</strong>: Use <code>min_separation_arcsec</code> and
+   <code>max_separation_arcsec</code> to filter outliers</li>
+<li><strong>Multiple Catalogs</strong>: Use <code>multi_catalog_match()</code> when matching against
+   multiple catalogs</li>
+<li><strong>Flux Scaling</strong>: Account for frequency differences when comparing fluxes
+   (use <code>scale_flux_to_frequency()</code>)</li>
 </ol>
 <h2 id="troubleshooting">Troubleshooting<a class="headerlink" href="#troubleshooting" title="Permanent link">¶</a></h2>
 <h3 id="no-matches-found">No Matches Found<a class="headerlink" href="#no-matches-found" title="Permanent link">¶</a></h3>
@@ -1669,7 +1688,8 @@
 <li><code>docs/reference/CATALOG_CROSS_MATCHING_GUIDE.md</code> - Cross-matching strategies</li>
 <li><code>docs/reference/CATALOG_USAGE_GUIDE.md</code> - General catalog usage</li>
 <li><code>docs/reference/EXISTING_CROSS_MATCHING_TOOLS.md</code> - Current tools overview</li>
-<li><code>docs/dev/CROSS_MATCHING_IMPLEMENTATION.md</code> - Implementation details</li>
+<li><code>internal/docs/dev/imported/CROSS_MATCHING_IMPLEMENTATION.md</code> - Implementation
+  details</li>
 </ul>
 </article>
 </div>

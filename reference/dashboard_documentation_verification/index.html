@@ -1226,132 +1226,183 @@
 <strong>Status:</strong> Documentation updated to match current implementation</p>
 <hr/>
 <h2 id="summary">Summary<a class="headerlink" href="#summary" title="Permanent link">¶</a></h2>
-<p>All 9 dashboard pages are now implemented. Documentation has been updated to accurately reflect what is actually implemented vs. what is planned or partially implemented.</p>
+<p>All 9 dashboard pages are now implemented. Documentation has been updated to
+accurately reflect what is actually implemented vs. what is planned or partially
+implemented.</p>
 <hr/>
 <h2 id="key-discrepancies-found-and-fixed">Key Discrepancies Found and Fixed<a class="headerlink" href="#key-discrepancies-found-and-fixed" title="Permanent link">¶</a></h2>
 <h3 id="1-dashboard-page-dashboard">1. Dashboard Page (<code>/dashboard</code>)<a class="headerlink" href="#1-dashboard-page-dashboard" title="Permanent link">¶</a></h3>
-<p><strong>Documentation Claimed:</strong>
-- "Live metrics chart (last 6 hours)"
-- "Color-coded status indicators (green/yellow/red)"
-- "Quick actions (View Source, Dismiss, Export)" for ESE candidates</p>
-<p><strong>Actual Implementation:</strong>
-- Current metrics display only (no historical chart)
-- Basic status indicators
-- ESE candidates panel with clickable navigation to source detail page</p>
+<p><strong>Documentation Claimed:</strong></p>
+<ul>
+<li>"Live metrics chart (last 6 hours)"</li>
+<li>"Color-coded status indicators (green/yellow/red)"</li>
+<li>"Quick actions (View Source, Dismiss, Export)" for ESE candidates</li>
+</ul>
+<p><strong>Actual Implementation:</strong></p>
+<ul>
+<li>Current metrics display only (no historical chart)</li>
+<li>Basic status indicators</li>
+<li>ESE candidates panel with clickable navigation to source detail page</li>
+</ul>
 <p><strong>Fixed:</strong> Updated documentation to reflect current implementation.</p>
 <hr/>
 <h3 id="2-sky-view-page-sky">2. Sky View Page (<code>/sky</code>)<a class="headerlink" href="#2-sky-view-page-sky" title="Permanent link">¶</a></h3>
-<p><strong>Documentation Claimed:</strong>
-- Mosaic Builder on Sky View page
-- "Download PNG image"
-- "Reprocess with different parameters"
-- "View QA plots"</p>
-<p><strong>Actual Implementation:</strong>
-- Mosaic Builder is on separate Mosaic Gallery page (<code>/mosaics</code>)
-- Sky View has: ImageBrowser, SkyMap, JS9 viewer, Catalog overlay, Region tools, Profile tool, Image fitting tool, Photometry plugin
-- No PNG download, reprocessing, or QA plot viewing on Sky View</p>
-<p><strong>Fixed:</strong> Updated documentation to reflect actual features and noted that Mosaic Builder is on separate page.</p>
+<p><strong>Documentation Claimed:</strong></p>
+<ul>
+<li>Mosaic Builder on Sky View page</li>
+<li>"Download PNG image"</li>
+<li>"Reprocess with different parameters"</li>
+<li>"View QA plots"</li>
+</ul>
+<p><strong>Actual Implementation:</strong></p>
+<ul>
+<li>Mosaic Builder is on separate Mosaic Gallery page (<code>/mosaics</code>)</li>
+<li>Sky View has: ImageBrowser, SkyMap, JS9 viewer, Catalog overlay, Region tools,
+  Profile tool, Image fitting tool, Photometry plugin</li>
+<li>No PNG download, reprocessing, or QA plot viewing on Sky View</li>
+</ul>
+<p><strong>Fixed:</strong> Updated documentation to reflect actual features and noted that
+Mosaic Builder is on separate page.</p>
 <hr/>
 <h3 id="3-sources-page-sources">3. Sources Page (<code>/sources</code>)<a class="headerlink" href="#3-sources-page-sources" title="Permanent link">¶</a></h3>
-<p><strong>Documentation Claimed:</strong>
-- "Auto-complete suggestions"
-- "Save filter presets"
-- "Bulk Actions: Select all, Flag selected, Export selected, Add to watch list"
-- "Trend sparkline (last 20 observations)"
-- "Variability indicator (✓/⚠/✗)"</p>
-<p><strong>Actual Implementation:</strong>
-- Basic search by source ID
-- Advanced filters: variability threshold slider, declination range slider, ESE filter checkbox
-- Filter management: active filter count chip, clear button
-- Table columns: Source ID (clickable), RA/Dec, Catalog, Mean Flux, Std Dev, χ²/ν, Variable flag, Observation count
-- No auto-complete, presets, bulk actions, sparklines, or variability indicators</p>
-<p><strong>Fixed:</strong> Updated documentation to match actual table columns and filter features.</p>
+<p><strong>Documentation Claimed:</strong></p>
+<ul>
+<li>"Auto-complete suggestions"</li>
+<li>"Save filter presets"</li>
+<li>"Bulk Actions: Select all, Flag selected, Export selected, Add to watch list"</li>
+<li>"Trend sparkline (last 20 observations)"</li>
+<li>"Variability indicator (✓/⚠/✗)"</li>
+</ul>
+<p><strong>Actual Implementation:</strong></p>
+<ul>
+<li>Basic search by source ID</li>
+<li>Advanced filters: variability threshold slider, declination range slider, ESE
+  filter checkbox</li>
+<li>Filter management: active filter count chip, clear button</li>
+<li>Table columns: Source ID (clickable), RA/Dec, Catalog, Mean Flux, Std Dev,
+  χ²/ν, Variable flag, Observation count</li>
+<li>No auto-complete, presets, bulk actions, sparklines, or variability indicators</li>
+</ul>
+<p><strong>Fixed:</strong> Updated documentation to match actual table columns and filter
+features.</p>
 <hr/>
 <h3 id="4-source-detail-page-sourcessourceid">4. Source Detail Page (<code>/sources/:sourceId</code>)<a class="headerlink" href="#4-source-detail-page-sourcessourceid" title="Permanent link">¶</a></h3>
-<p><strong>Documentation Claimed:</strong>
-- "Interactive Plotly.js visualization" for light curve
-- "Statistics Panel" with detailed metrics
-- "Catalog Information" with NVSS/VLASS/FIRST details
-- "Images Containing Source" grid
-- "Notes &amp; Classification" system</p>
-<p><strong>Actual Implementation:</strong>
-- Light curve section exists but is placeholder (not implemented)
-- Source details panel with basic metadata
-- Detections table (GenericTable) with clickable rows
-- Aladin Lite placeholder (not implemented)
-- Comments placeholder (not implemented)</p>
-<p><strong>Fixed:</strong> Updated documentation to clearly mark placeholders vs. implemented features.</p>
+<p><strong>Documentation Claimed:</strong></p>
+<ul>
+<li>"Interactive Plotly.js visualization" for light curve</li>
+<li>"Statistics Panel" with detailed metrics</li>
+<li>"Catalog Information" with NVSS/VLASS/FIRST details</li>
+<li>"Images Containing Source" grid</li>
+<li>"Notes &amp; Classification" system</li>
+</ul>
+<p><strong>Actual Implementation:</strong></p>
+<ul>
+<li>Light curve section exists but is placeholder (not implemented)</li>
+<li>Source details panel with basic metadata</li>
+<li>Detections table (GenericTable) with clickable rows</li>
+<li>Aladin Lite placeholder (not implemented)</li>
+<li>Comments placeholder (not implemented)</li>
+</ul>
+<p><strong>Fixed:</strong> Updated documentation to clearly mark placeholders vs. implemented
+features.</p>
 <hr/>
 <h3 id="5-observing-page-observing">5. Observing Page (<code>/observing</code>)<a class="headerlink" href="#5-observing-page-observing" title="Permanent link">¶</a></h3>
-<p><strong>Documentation Claimed:</strong>
-- "Local Sidereal Time (LST)"
-- "Altitude and Azimuth"
-- "Parallactic angle"
-- "Antenna Status" panel
-- "Observing Mode" display
-- "Calibrator Plan" with upcoming transits
-- "Time range selection" for pointing history
-- "Declination strip coverage overlay"</p>
-<p><strong>Actual Implementation:</strong>
-- Current pointing (RA/Dec from most recent history entry)
-- Pipeline status chips
-- Calibrator tracking table (top 10 matches)
-- Calibrator flux vs time plot (conditional)
-- Pointing history visualization (7-day fixed trail)
-- No LST, Alt/Az, Parallactic angle, Antenna status, Observing mode, Calibrator plan, or time range selection</p>
-<p><strong>Fixed:</strong> Updated documentation to reflect implemented features and note missing features.</p>
+<p><strong>Documentation Claimed:</strong></p>
+<ul>
+<li>"Local Sidereal Time (LST)"</li>
+<li>"Altitude and Azimuth"</li>
+<li>"Parallactic angle"</li>
+<li>"Antenna Status" panel</li>
+<li>"Observing Mode" display</li>
+<li>"Calibrator Plan" with upcoming transits</li>
+<li>"Time range selection" for pointing history</li>
+<li>"Declination strip coverage overlay"</li>
+</ul>
+<p><strong>Actual Implementation:</strong></p>
+<ul>
+<li>Current pointing (RA/Dec from most recent history entry)</li>
+<li>Pipeline status chips</li>
+<li>Calibrator tracking table (top 10 matches)</li>
+<li>Calibrator flux vs time plot (conditional)</li>
+<li>Pointing history visualization (7-day fixed trail)</li>
+<li>No LST, Alt/Az, Parallactic angle, Antenna status, Observing mode, Calibrator
+  plan, or time range selection</li>
+</ul>
+<p><strong>Fixed:</strong> Updated documentation to reflect implemented features and note
+missing features.</p>
 <hr/>
 <h3 id="6-health-page-health">6. Health Page (<code>/health</code>)<a class="headerlink" href="#6-health-page-health" title="Permanent link">¶</a></h3>
-<p><strong>Documentation Claimed:</strong>
-- "Resource Usage Plots (Last 6 Hours)" with historical data
-- "CPU percentage (current, average, peak)"
-- "Memory percentage (current, average, peak)"
-- "Calibration Registry" section
-- "Data Quality Metrics" section
-- "Performance Metrics" section
-- "QA Diagnostic Gallery" with thumbnails</p>
-<p><strong>Actual Implementation:</strong>
-- Current metrics only (single data point plot, not historical)
-- Metric cards with progress bars
-- Detailed memory and disk information
-- Queue Status tab with statistics and state distribution
-- QA Diagnostics tab with ESE candidates table and link to QA page
-- No historical plots, calibration registry, data quality metrics, performance metrics, or QA gallery</p>
-<p><strong>Fixed:</strong> Updated documentation to reflect actual three-tab structure and implemented features.</p>
+<p><strong>Documentation Claimed:</strong></p>
+<ul>
+<li>"Resource Usage Plots (Last 6 Hours)" with historical data</li>
+<li>"CPU percentage (current, average, peak)"</li>
+<li>"Memory percentage (current, average, peak)"</li>
+<li>"Calibration Registry" section</li>
+<li>"Data Quality Metrics" section</li>
+<li>"Performance Metrics" section</li>
+<li>"QA Diagnostic Gallery" with thumbnails</li>
+</ul>
+<p><strong>Actual Implementation:</strong></p>
+<ul>
+<li>Current metrics only (single data point plot, not historical)</li>
+<li>Metric cards with progress bars</li>
+<li>Detailed memory and disk information</li>
+<li>Queue Status tab with statistics and state distribution</li>
+<li>QA Diagnostics tab with ESE candidates table and link to QA page</li>
+<li>No historical plots, calibration registry, data quality metrics, performance
+  metrics, or QA gallery</li>
+</ul>
+<p><strong>Fixed:</strong> Updated documentation to reflect actual three-tab structure and
+implemented features.</p>
 <hr/>
 <h3 id="7-streaming-page-streaming">7. Streaming Page (<code>/streaming</code>)<a class="headerlink" href="#7-streaming-page-streaming" title="Permanent link">¶</a></h3>
-<p><strong>Documentation Claimed:</strong>
-- "Current Operations" with operation type, progress percentage, estimated completion
-- "Processing Rate: Groups processed per hour, Average processing time, Throughput metrics"
-- "Validation before save" for configuration
-- "Reset to defaults" button</p>
-<p><strong>Actual Implementation:</strong>
-- Service status (running/stopped, PID, uptime)
-- Resource usage (CPU %, Memory MB with progress bars)
-- Queue statistics (from metrics, if available)
-- Configuration display and dialog editor
-- No current operations display, detailed processing rate metrics, or reset defaults</p>
+<p><strong>Documentation Claimed:</strong></p>
+<ul>
+<li>"Current Operations" with operation type, progress percentage, estimated
+  completion</li>
+<li>"Processing Rate: Groups processed per hour, Average processing time,
+  Throughput metrics"</li>
+<li>"Validation before save" for configuration</li>
+<li>"Reset to defaults" button</li>
+</ul>
+<p><strong>Actual Implementation:</strong></p>
+<ul>
+<li>Service status (running/stopped, PID, uptime)</li>
+<li>Resource usage (CPU %, Memory MB with progress bars)</li>
+<li>Queue statistics (from metrics, if available)</li>
+<li>Configuration display and dialog editor</li>
+<li>No current operations display, detailed processing rate metrics, or reset
+  defaults</li>
+</ul>
 <p><strong>Fixed:</strong> Updated documentation to match actual implementation.</p>
 <hr/>
 <h3 id="8-qa-visualization-page-qa">8. QA Visualization Page (<code>/qa</code>)<a class="headerlink" href="#8-qa-visualization-page-qa" title="Permanent link">¶</a></h3>
-<p><strong>Documentation Claimed:</strong>
-- "Dual Window Mode" for FITS comparison</p>
-<p><strong>Actual Implementation:</strong>
-- Single FITS viewer
-- No dual window mode</p>
+<p><strong>Documentation Claimed:</strong></p>
+<ul>
+<li>"Dual Window Mode" for FITS comparison</li>
+</ul>
+<p><strong>Actual Implementation:</strong></p>
+<ul>
+<li>Single FITS viewer</li>
+<li>No dual window mode</li>
+</ul>
 <p><strong>Fixed:</strong> Added note that dual window mode is not yet implemented.</p>
 <hr/>
 <h3 id="9-data-browser-page-data">9. Data Browser Page (<code>/data</code>)<a class="headerlink" href="#9-data-browser-page-data" title="Permanent link">¶</a></h3>
-<p><strong>Documentation Claimed:</strong>
-- "Data Lineage Graph" visualization
-- "Date range" filter
-- "Quality threshold" filter
-- "Search functionality"</p>
-<p><strong>Actual Implementation:</strong>
-- Staging/Published tabs
-- Data type filter dropdown
-- Data instance table with status, QA status, finalization status
-- No lineage graph, date range filter, quality threshold, or search</p>
+<p><strong>Documentation Claimed:</strong></p>
+<ul>
+<li>"Data Lineage Graph" visualization</li>
+<li>"Date range" filter</li>
+<li>"Quality threshold" filter</li>
+<li>"Search functionality"</li>
+</ul>
+<p><strong>Actual Implementation:</strong></p>
+<ul>
+<li>Staging/Published tabs</li>
+<li>Data type filter dropdown</li>
+<li>Data instance table with status, QA status, finalization status</li>
+<li>No lineage graph, date range filter, quality threshold, or search</li>
+</ul>
 <p><strong>Fixed:</strong> Updated documentation to reflect actual table structure and filters.</p>
 <hr/>
 <h2 id="documentation-updates-made">Documentation Updates Made<a class="headerlink" href="#documentation-updates-made" title="Permanent link">¶</a></h2>
@@ -1417,8 +1468,8 @@
 <hr/>
 <h2 id="verification-methodology">Verification Methodology<a class="headerlink" href="#verification-methodology" title="Permanent link">¶</a></h2>
 <ol>
-<li>Read actual page component files (<code>frontend/src/pages/*.tsx</code>)</li>
-<li>Read actual component files (<code>frontend/src/components/**/*.tsx</code>)</li>
+<li>Read actual page component files (<code>frontend/src/pages/</code>)</li>
+<li>Read actual component files (<code>frontend/src/components/</code>)</li>
 <li>Checked API endpoint usage in queries (<code>frontend/src/api/queries.ts</code>)</li>
 <li>Compared against documentation claims</li>
 <li>Updated documentation to match reality</li>
@@ -1426,7 +1477,9 @@
 </ol>
 <hr/>
 <h2 id="conclusion">Conclusion<a class="headerlink" href="#conclusion" title="Permanent link">¶</a></h2>
-<p>Documentation has been updated to accurately reflect the current implementation state. All 9 pages are implemented, but some advanced features within pages are still planned. The documentation now clearly distinguishes between:</p>
+<p>Documentation has been updated to accurately reflect the current implementation
+state. All 9 pages are implemented, but some advanced features within pages are
+still planned. The documentation now clearly distinguishes between:</p>
 <ul>
 <li>✅ <strong>Implemented</strong> - Actually working in code</li>
 <li>📋 <strong>Planned</strong> - Documented but not yet implemented</li>

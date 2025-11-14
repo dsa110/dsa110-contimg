@@ -1632,10 +1632,13 @@
 <p>This document describes how to sync TODO.md items with Linear issues.</p>
 <hr/>
 <h2 id="overview">Overview<a class="headerlink" href="#overview" title="Permanent link">¶</a></h2>
-<p>The Linear integration allows you to:
-- <strong>Sync TODO items to Linear</strong> - Automatically create Linear issues from TODO.md items
-- <strong>Track issues</strong> - Link TODO items to Linear issues using issue IDs
-- <strong>Bi-directional sync</strong> - Keep TODO.md and Linear in sync</p>
+<p>The Linear integration allows you to:</p>
+<ul>
+<li><strong>Sync TODO items to Linear</strong> - Automatically create Linear issues from
+  TODO.md items</li>
+<li><strong>Track issues</strong> - Link TODO items to Linear issues using issue IDs</li>
+<li><strong>Bi-directional sync</strong> - Keep TODO.md and Linear in sync</li>
+</ul>
 <hr/>
 <h2 id="setup">Setup<a class="headerlink" href="#setup" title="Permanent link">¶</a></h2>
 <h3 id="1-get-linear-api-key">1. Get Linear API Key<a class="headerlink" href="#1-get-linear-api-key" title="Permanent link">¶</a></h3>
@@ -1657,29 +1660,30 @@ cp<span class="w"> </span>.linear_config.json.example<span class="w"> </span>.li
 <span class="c1"># Edit with your credentials</span>
 nano<span class="w"> </span>.linear_config.json
 </code></pre></div>
-<p>Your <code>.linear_config.json</code> should look like:
+<p>Your <code>.linear_config.json</code> should look like:</p>
 <div class="highlight"><pre><span></span><code><span class="p">{</span>
 <span class="w">  </span><span class="nt">"api_key"</span><span class="p">:</span><span class="w"> </span><span class="s2">"lin_api_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx"</span><span class="p">,</span>
 <span class="w">  </span><span class="nt">"team_key"</span><span class="p">:</span><span class="w"> </span><span class="s2">"ENG"</span>
 <span class="p">}</span>
-</code></pre></div></p>
-<p><strong>Important:</strong> The <code>.linear_config.json</code> file is in <code>.gitignore</code> and will not be committed to the repository.</p>
+</code></pre></div>
+<p><strong>Important:</strong> The <code>.linear_config.json</code> file is in <code>.gitignore</code> and will not be
+committed to the repository.</p>
 <hr/>
 <h2 id="usage">Usage<a class="headerlink" href="#usage" title="Permanent link">¶</a></h2>
 <h3 id="sync-todomd-to-linear">Sync TODO.md to Linear<a class="headerlink" href="#sync-todomd-to-linear" title="Permanent link">¶</a></h3>
-<p><strong>Dry run (see what would be created):</strong>
+<p><strong>Dry run (see what would be created):</strong></p>
 <div class="highlight"><pre><span></span><code>make<span class="w"> </span>sync-linear-dry-run
 <span class="c1"># or</span>
 python3<span class="w"> </span>scripts/linear_sync.py<span class="w"> </span>--dry-run
-</code></pre></div></p>
-<p><strong>Actual sync:</strong>
+</code></pre></div>
+<p><strong>Actual sync:</strong></p>
 <div class="highlight"><pre><span></span><code>make<span class="w"> </span>sync-linear
 <span class="c1"># or</span>
 python3<span class="w"> </span>scripts/linear_sync.py
-</code></pre></div></p>
-<p><strong>Sync all items (including completed):</strong>
+</code></pre></div>
+<p><strong>Sync all items (including completed):</strong></p>
 <div class="highlight"><pre><span></span><code>python3<span class="w"> </span>scripts/linear_sync.py<span class="w"> </span>--all
-</code></pre></div></p>
+</code></pre></div>
 <h3 id="how-it-works">How It Works<a class="headerlink" href="#how-it-works" title="Permanent link">¶</a></h3>
 <ol>
 <li><strong>Parses TODO.md</strong> - Extracts all unchecked TODO items</li>
@@ -1692,17 +1696,19 @@ python3<span class="w"> </span>scripts/linear_sync.py
 <li>📋 Separate Projects → Linear Priority 3 (Low)</li>
 </ol>
 <h3 id="example">Example<a class="headerlink" href="#example" title="Permanent link">¶</a></h3>
-<p><strong>Before sync:</strong>
+<p><strong>Before sync:</strong></p>
 <div class="highlight"><pre><span></span><code><span class="k">- [ ]</span> <span class="gs">**Fix bug in calibration CLI**</span>
-</code></pre></div></p>
-<p><strong>After sync:</strong>
+</code></pre></div>
+<p><strong>After sync:</strong></p>
 <div class="highlight"><pre><span></span><code><span class="k">- [ ]</span> <span class="gs">**Fix bug in calibration CLI**</span> (Linear: ENG-123)
-</code></pre></div></p>
-<p>The Linear issue will be created with:
-- <strong>Title:</strong> "Fix bug in calibration CLI"
-- <strong>Description:</strong> Section name, time estimate, and source reference
-- <strong>Priority:</strong> Based on TODO section
-- <strong>Team:</strong> Your configured team</p>
+</code></pre></div>
+<p>The Linear issue will be created with:</p>
+<ul>
+<li><strong>Title:</strong> "Fix bug in calibration CLI"</li>
+<li><strong>Description:</strong> Section name, time estimate, and source reference</li>
+<li><strong>Priority:</strong> Based on TODO section</li>
+<li><strong>Team:</strong> Your configured team</li>
+</ul>
 <hr/>
 <h2 id="features">Features<a class="headerlink" href="#features" title="Permanent link">¶</a></h2>
 <h3 id="automatic-issue-creation">Automatic Issue Creation<a class="headerlink" href="#automatic-issue-creation" title="Permanent link">¶</a></h3>
@@ -1785,62 +1791,70 @@ python3<span class="w"> </span>scripts/linear_sync.py
 <div class="highlight"><pre><span></span><code>pip<span class="w"> </span>install<span class="w"> </span>requests
 </code></pre></div>
 <h3 id="linear-api-permissions">Linear API Permissions<a class="headerlink" href="#linear-api-permissions" title="Permanent link">¶</a></h3>
-<p>Your API key needs permissions to:
-- Read teams
-- Create issues
-- Update issues
-- Read issues</p>
+<p>Your API key needs permissions to:</p>
+<ul>
+<li>Read teams</li>
+<li>Create issues</li>
+<li>Update issues</li>
+<li>Read issues</li>
+</ul>
 <hr/>
 <h2 id="advanced-usage">Advanced Usage<a class="headerlink" href="#advanced-usage" title="Permanent link">¶</a></h2>
 <h3 id="custom-priority-mapping">Custom Priority Mapping<a class="headerlink" href="#custom-priority-mapping" title="Permanent link">¶</a></h3>
-<p>Edit <code>scripts/linear_sync.py</code> to customize priority mapping:
+<p>Edit <code>scripts/linear_sync.py</code> to customize priority mapping:</p>
 <div class="highlight"><pre><span></span><code><span class="c1"># In parse_items() method</span>
 <span class="k">if</span> <span class="s1">'## 🔴 High Priority'</span> <span class="ow">in</span> <span class="n">line</span><span class="p">:</span>
     <span class="n">current_priority</span> <span class="o">=</span> <span class="mi">0</span>  <span class="c1"># Linear priority 0 = Urgent</span>
-</code></pre></div></p>
+</code></pre></div>
 <h3 id="custom-issue-states">Custom Issue States<a class="headerlink" href="#custom-issue-states" title="Permanent link">¶</a></h3>
-<p>Add state mapping to create issues in specific states:
+<p>Add state mapping to create issues in specific states:</p>
 <div class="highlight"><pre><span></span><code><span class="c1"># In create_issue() method</span>
 <span class="k">if</span> <span class="n">state_id</span><span class="p">:</span>
     <span class="n">input_data</span><span class="p">[</span><span class="s2">"stateId"</span><span class="p">]</span> <span class="o">=</span> <span class="n">state_id</span>
-</code></pre></div></p>
+</code></pre></div>
 <h3 id="filter-by-section">Filter by Section<a class="headerlink" href="#filter-by-section" title="Permanent link">¶</a></h3>
-<p>Modify the script to sync only specific sections:
+<p>Modify the script to sync only specific sections:</p>
 <div class="highlight"><pre><span></span><code><span class="c1"># Only sync high priority items</span>
 <span class="n">items</span> <span class="o">=</span> <span class="p">[</span><span class="n">item</span> <span class="k">for</span> <span class="n">item</span> <span class="ow">in</span> <span class="n">items</span> <span class="k">if</span> <span class="n">item</span><span class="p">[</span><span class="s1">'priority'</span><span class="p">]</span> <span class="o">==</span> <span class="mi">0</span><span class="p">]</span>
-</code></pre></div></p>
+</code></pre></div>
 <hr/>
 <h2 id="limitations">Limitations<a class="headerlink" href="#limitations" title="Permanent link">¶</a></h2>
 <ul>
-<li><strong>One-way sync (TODO → Linear):</strong> Currently syncs TODO.md to Linear, not reverse</li>
+<li><strong>One-way sync (TODO → Linear):</strong> Currently syncs TODO.md to Linear, not
+  reverse</li>
 <li><strong>No automatic updates:</strong> Changes in Linear don't automatically update TODO.md</li>
 <li><strong>Manual linking:</strong> Completed items need to be marked manually</li>
-<li><strong>No conflict resolution:</strong> If both TODO.md and Linear are edited, manual sync needed</li>
+<li><strong>No conflict resolution:</strong> If both TODO.md and Linear are edited, manual sync
+  needed</li>
 </ul>
 <hr/>
 <h2 id="future-enhancements">Future Enhancements<a class="headerlink" href="#future-enhancements" title="Permanent link">¶</a></h2>
-<p>Potential improvements:
-- [ ] Bi-directional sync (Linear → TODO.md)
-- [ ] Automatic status updates (completed in Linear → checked in TODO.md)
-- [ ] Conflict resolution
-- [ ] Webhook integration for real-time updates
-- [ ] Support for subtasks/checklists
-- [ ] Label/project mapping</p>
+<p>Potential improvements:</p>
+<ul>
+<li>[ ] Bi-directional sync (Linear → TODO.md)</li>
+<li>[ ] Automatic status updates (completed in Linear → checked in TODO.md)</li>
+<li>[ ] Conflict resolution</li>
+<li>[ ] Webhook integration for real-time updates</li>
+<li>[ ] Support for subtasks/checklists</li>
+<li>[ ] Label/project mapping</li>
+</ul>
 <hr/>
 <h2 id="related-documentation">Related Documentation<a class="headerlink" href="#related-documentation" title="Permanent link">¶</a></h2>
 <ul>
 <li><a href="https://linear.app/developers/graphql">Linear API Documentation</a></li>
 <li><a href="https://linear.app/developers/api-reference">Linear GraphQL Schema</a></li>
-<li><code>docs/CONTRIBUTING_TODO.md</code> - How to modify TODO.md</li>
+<li><code>docs/</code> - How to modify TODO.md</li>
 <li><code>scripts/linear_sync.py</code> - Sync script source code</li>
 </ul>
 <hr/>
 <h2 id="support">Support<a class="headerlink" href="#support" title="Permanent link">¶</a></h2>
-<p>For issues or questions:
-1. Check troubleshooting section above
-2. Review Linear API documentation
-3. Check script logs for detailed error messages
-4. Verify configuration file format</p>
+<p>For issues or questions:</p>
+<ol>
+<li>Check troubleshooting section above</li>
+<li>Review Linear API documentation</li>
+<li>Check script logs for detailed error messages</li>
+<li>Verify configuration file format</li>
+</ol>
 </article>
 </div>
 <script>var tabs=__md_get("__tabs");if(Array.isArray(tabs))e:for(var set of document.querySelectorAll(".tabbed-set")){var tab,labels=set.querySelector(".tabbed-labels");for(tab of tabs)for(var label of labels.getElementsByTagName("label"))if(label.innerText.trim()===tab){var input=document.getElementById(label.htmlFor);input.checked=!0;continue e}}</script>

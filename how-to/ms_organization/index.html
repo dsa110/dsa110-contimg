@@ -1209,7 +1209,10 @@
 <article class="md-content__inner md-typeset">
 <h1 id="ms-file-organization">MS File Organization<a class="headerlink" href="#ms-file-organization" title="Permanent link">¶</a></h1>
 <h2 id="overview">Overview<a class="headerlink" href="#overview" title="Permanent link">¶</a></h2>
-<p>The pipeline automatically writes MS files directly to organized, hierarchical, date-based directory structures. Files are written to their final organized locations during conversion (not moved afterward), ensuring consistent file management and eliminating post-conversion file moves.</p>
+<p>The pipeline automatically writes MS files directly to organized, hierarchical,
+date-based directory structures. Files are written to their final organized
+locations during conversion (not moved afterward), ensuring consistent file
+management and eliminating post-conversion file moves.</p>
 <h2 id="directory-structure">Directory Structure<a class="headerlink" href="#directory-structure" title="Permanent link">¶</a></h2>
 <p>MS files are organized into date-based subdirectories:</p>
 <div class="highlight"><pre><span></span><code>/stage/dsa110-contimg/ms/
@@ -1230,16 +1233,22 @@
 </code></pre></div>
 <h2 id="implementation">Implementation<a class="headerlink" href="#implementation" title="Permanent link">¶</a></h2>
 <h3 id="core-utility-module">Core Utility Module<a class="headerlink" href="#core-utility-module" title="Permanent link">¶</a></h3>
-<p>The organization logic is centralized in <code>src/dsa110_contimg/utils/ms_organization.py</code>:</p>
+<p>The organization logic is centralized in
+<code>src/dsa110_contimg/utils/ms_organization.py</code>:</p>
 <ul>
-<li><strong><code>create_path_mapper()</code></strong>: Creates a path mapper function for direct-to-organized writing</li>
-<li><strong><code>organize_ms_file()</code></strong>: Moves MS files to organized locations (for legacy files or manual organization)</li>
-<li><strong><code>get_organized_ms_path()</code></strong>: Computes the target organized path without moving files</li>
-<li><strong><code>determine_ms_type()</code></strong>: Determines if an MS is a calibrator or failed observation</li>
+<li><strong><code>create_path_mapper()</code></strong>: Creates a path mapper function for
+  direct-to-organized writing</li>
+<li><strong><code>organize_ms_file()</code></strong>: Moves MS files to organized locations (for legacy
+  files or manual organization)</li>
+<li><strong><code>get_organized_ms_path()</code></strong>: Computes the target organized path without
+  moving files</li>
+<li><strong><code>determine_ms_type()</code></strong>: Determines if an MS is a calibrator or failed
+  observation</li>
 <li><strong><code>extract_date_from_filename()</code></strong>: Extracts date from MS filename</li>
 </ul>
 <h3 id="direct-to-organized-writing-preferred">Direct-to-Organized Writing (Preferred)<a class="headerlink" href="#direct-to-organized-writing-preferred" title="Permanent link">¶</a></h3>
-<p>MS files are written directly to organized locations using a <code>path_mapper</code> function:</p>
+<p>MS files are written directly to organized locations using a <code>path_mapper</code>
+function:</p>
 <div class="highlight"><pre><span></span><code><span class="kn">from</span><span class="w"> </span><span class="nn">dsa110_contimg.utils.ms_organization</span><span class="w"> </span><span class="kn">import</span> <span class="n">create_path_mapper</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">dsa110_contimg.conversion.strategies.hdf5_orchestrator</span><span class="w"> </span><span class="kn">import</span> <span class="n">convert_subband_groups_to_ms</span>
 
@@ -1256,14 +1265,17 @@
     <span class="n">path_mapper</span><span class="o">=</span><span class="n">path_mapper</span>  <span class="c1"># MS written directly to organized location</span>
 <span class="p">)</span>
 </code></pre></div>
-<p><strong>Benefits:</strong>
-- No file moves: Files written directly to final location
-- Single database operation: Register once with correct path
-- No race conditions: Database always has correct path
-- Better performance: Eliminates move operations</p>
+<p><strong>Benefits:</strong></p>
+<ul>
+<li>No file moves: Files written directly to final location</li>
+<li>Single database operation: Register once with correct path</li>
+<li>No race conditions: Database always has correct path</li>
+<li>Better performance: Eliminates move operations</li>
+</ul>
 <h3 id="integration-points">Integration Points<a class="headerlink" href="#integration-points" title="Permanent link">¶</a></h3>
 <h4 id="1-streaming-converter">1. Streaming Converter<a class="headerlink" href="#1-streaming-converter" title="Permanent link">¶</a></h4>
-<p>The streaming converter writes MS files directly to organized locations using <code>path_mapper</code>:</p>
+<p>The streaming converter writes MS files directly to organized locations using
+<code>path_mapper</code>:</p>
 <div class="highlight"><pre><span></span><code><span class="c1"># Create path mapper before conversion</span>
 <span class="n">path_mapper</span> <span class="o">=</span> <span class="n">create_path_mapper</span><span class="p">(</span><span class="n">ms_base_dir</span><span class="p">,</span> <span class="n">is_calibrator</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">is_failed</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
 
@@ -1273,10 +1285,12 @@
     <span class="n">path_mapper</span><span class="o">=</span><span class="n">path_mapper</span>  <span class="c1"># MS written directly to organized location</span>
 <span class="p">)</span>
 </code></pre></div>
-<p><strong>Location</strong>: <code>src/dsa110_contimg/conversion/streaming/streaming_converter.py:574-625</code></p>
-<p><strong>Note</strong>: In subprocess mode (when <code>--use-subprocess</code> is used), files are written to flat locations and organized afterward using <code>organize_ms_file()</code>.</p>
+<p><strong>Location</strong>: <code>src/dsa110_contimg/conversion/</code></p>
+<p><strong>Note</strong>: In subprocess mode (when <code>--use-subprocess</code> is used), files are
+written to flat locations and organized afterward using <code>organize_ms_file()</code>.</p>
 <h4 id="2-pipeline-conversion-stage">2. Pipeline Conversion Stage<a class="headerlink" href="#2-pipeline-conversion-stage" title="Permanent link">¶</a></h4>
-<p>The <code>ConversionStage</code> writes MS files directly to organized locations using <code>path_mapper</code>:</p>
+<p>The <code>ConversionStage</code> writes MS files directly to organized locations using
+<code>path_mapper</code>:</p>
 <div class="highlight"><pre><span></span><code><span class="c1"># Create path mapper before conversion</span>
 <span class="n">path_mapper</span> <span class="o">=</span> <span class="n">create_path_mapper</span><span class="p">(</span><span class="n">ms_base_dir</span><span class="p">,</span> <span class="n">is_calibrator</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">is_failed</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
 
@@ -1286,48 +1300,59 @@
     <span class="n">path_mapper</span><span class="o">=</span><span class="n">path_mapper</span>
 <span class="p">)</span>
 </code></pre></div>
-<p><strong>Location</strong>: <code>src/dsa110_contimg/pipeline/stages_impl.py:82-95</code></p>
+<p><strong>Location</strong>: <code>src/dsa110_contimg/pipeline/</code></p>
 <h4 id="3-organization-stage">3. Organization Stage<a class="headerlink" href="#3-organization-stage" title="Permanent link">¶</a></h4>
-<p>A standalone <code>OrganizationStage</code> is available for manual workflows or post-processing:</p>
-<p><strong>Location</strong>: <code>src/dsa110_contimg/pipeline/stages_impl.py:1185-1296</code></p>
-<p><strong>Usage</strong>:
+<p>A standalone <code>OrganizationStage</code> is available for manual workflows or
+post-processing:</p>
+<p><strong>Location</strong>: <code>src/dsa110_contimg/pipeline/</code></p>
+<p><strong>Usage</strong>:</p>
 <div class="highlight"><pre><span></span><code><span class="kn">from</span><span class="w"> </span><span class="nn">dsa110_contimg.pipeline.stages_impl</span><span class="w"> </span><span class="kn">import</span> <span class="n">OrganizationStage</span>
 
 <span class="n">stage</span> <span class="o">=</span> <span class="n">OrganizationStage</span><span class="p">(</span><span class="n">config</span><span class="p">)</span>
 <span class="n">context</span> <span class="o">=</span> <span class="n">stage</span><span class="o">.</span><span class="n">execute</span><span class="p">(</span><span class="n">context</span><span class="p">)</span>
-</code></pre></div></p>
+</code></pre></div>
 <h4 id="4-streaming-mosaic-manager">4. Streaming Mosaic Manager<a class="headerlink" href="#4-streaming-mosaic-manager" title="Permanent link">¶</a></h4>
 <p>The <code>StreamingMosaicManager</code> uses the shared utility for consistency:</p>
-<p><strong>Location</strong>: <code>src/dsa110_contimg/mosaic/streaming_mosaic.py:617-658</code></p>
+<p><strong>Location</strong>: <code>src/dsa110_contimg/mosaic/</code></p>
 <h2 id="database-updates">Database Updates<a class="headerlink" href="#database-updates" title="Permanent link">¶</a></h2>
 <h3 id="direct-to-organized-writing">Direct-to-Organized Writing<a class="headerlink" href="#direct-to-organized-writing" title="Permanent link">¶</a></h3>
-<p>When MS files are written directly to organized locations:
-- <strong>Single Registration</strong>: MS is registered in the database with the correct organized path immediately
-- <strong>No Path Updates</strong>: No need to update paths since files are already in the correct location
-- <strong>Consistent State</strong>: Database always reflects actual file locations</p>
+<p>When MS files are written directly to organized locations:</p>
+<ul>
+<li><strong>Single Registration</strong>: MS is registered in the database with the correct
+  organized path immediately</li>
+<li><strong>No Path Updates</strong>: No need to update paths since files are already in the
+  correct location</li>
+<li><strong>Consistent State</strong>: Database always reflects actual file locations</li>
+</ul>
 <h3 id="post-conversion-organization-legacymanual">Post-Conversion Organization (Legacy/Manual)<a class="headerlink" href="#post-conversion-organization-legacymanual" title="Permanent link">¶</a></h3>
-<p>When organizing existing MS files (via <code>organize_ms_file()</code>), the <code>products.sqlite3</code> database is automatically updated:</p>
+<p>When organizing existing MS files (via <code>organize_ms_file()</code>), the
+<code>products.sqlite3</code> database is automatically updated:</p>
 <ol>
 <li><strong>Path Update</strong>: The <code>ms_index</code> table is updated with the new organized path</li>
-<li><strong>Metadata Preservation</strong>: All existing metadata (start_mjd, end_mjd, mid_mjd, status, stage, etc.) is preserved</li>
+<li><strong>Metadata Preservation</strong>: All existing metadata (start_mjd, end_mjd,
+   mid_mjd, status, stage, etc.) is preserved</li>
 <li><strong>Old Path Removal</strong>: The old path entry is removed to prevent duplicates</li>
 </ol>
 <h2 id="benefits">Benefits<a class="headerlink" href="#benefits" title="Permanent link">¶</a></h2>
 <ol>
-<li><strong>Direct Writing</strong>: Files written directly to organized locations (no post-conversion moves)</li>
+<li><strong>Direct Writing</strong>: Files written directly to organized locations (no
+   post-conversion moves)</li>
 <li><strong>Automatic Organization</strong>: Files are organized without manual intervention</li>
 <li><strong>Consistent Structure</strong>: All workflows use the same organization logic</li>
 <li><strong>Database Consistency</strong>: Database paths always reflect actual file locations</li>
 <li><strong>Date-Based Access</strong>: Easy to locate files by observation date</li>
-<li><strong>Type Separation</strong>: Clear separation between calibrators, science, and failed observations</li>
+<li><strong>Type Separation</strong>: Clear separation between calibrators, science, and
+   failed observations</li>
 <li><strong>Performance</strong>: Eliminates file move operations, reducing I/O overhead</li>
 <li><strong>Reusable</strong>: Single utility used across all pipeline components</li>
 </ol>
 <h2 id="behavior">Behavior<a class="headerlink" href="#behavior" title="Permanent link">¶</a></h2>
 <h3 id="direct-to-organized-writing_1">Direct-to-Organized Writing<a class="headerlink" href="#direct-to-organized-writing_1" title="Permanent link">¶</a></h3>
 <ul>
-<li><strong>Automatic</strong>: Path mapper automatically creates organized paths during conversion</li>
-<li><strong>Efficient</strong>: No file moves required - files written directly to final location</li>
+<li><strong>Automatic</strong>: Path mapper automatically creates organized paths during
+  conversion</li>
+<li><strong>Efficient</strong>: No file moves required - files written directly to final
+  location</li>
 <li><strong>Consistent</strong>: All conversions use the same organization logic</li>
 </ul>
 <h3 id="post-conversion-organization-legacymanual_1">Post-Conversion Organization (Legacy/Manual)<a class="headerlink" href="#post-conversion-organization-legacymanual_1" title="Permanent link">¶</a></h3>

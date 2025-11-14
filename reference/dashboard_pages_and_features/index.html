@@ -2609,8 +2609,8 @@ are placeholders and not yet fully implemented.</p>
 <h3 id="api-endpoints-used_2">API Endpoints Used<a class="headerlink" href="#api-endpoints-used_2" title="Permanent link">¶</a></h3>
 <ul>
 <li><code>POST /api/legacy/sources/search</code> - Search sources (legacy endpoint)</li>
-<li><code>GET /api/sources/{sourceId}</code> - Get source details</li>
-<li><code>GET /api/sources/{sourceId}/detections</code> - Get source detections (for detail
+<li><code>GET /api/sources/{source_id}</code> - Get source details</li>
+<li><code>GET /api/sources/{source_id}/detections</code> - Get source detections (for detail
   page table)</li>
 </ul>
 <h3 id="user-workflows_2">User Workflows<a class="headerlink" href="#user-workflows_2" title="Permanent link">¶</a></h3>
@@ -2891,7 +2891,12 @@ Visualization page for QA features.</p>
 <h3 id="api-endpoints-used_5">API Endpoints Used<a class="headerlink" href="#api-endpoints-used_5" title="Permanent link">¶</a></h3>
 <ul>
 <li><code>GET /api/ms</code> - List Measurement Sets</li>
-<li><code>GET /api/ms/{ms_path}</code> - Get MS details</li>
+<li><code>GET /api/ms</code> - List Measurement Sets</li>
+<li><code>GET /api/ms/{ms_path:path}/metadata</code> - MS metadata</li>
+<li><code>GET /api/ms/{ms_path:path}/calibrator-matches</code> - Calibrator candidates</li>
+<li><code>GET /api/ms/{ms_path:path}/existing-caltables</code> - Existing calibration tables</li>
+<li><code>POST /api/ms/{ms_path:path}/validate-caltable</code> - Validate caltable
+  compatibility</li>
 <li><code>POST /api/jobs/calibrate</code> - Create calibration job</li>
 <li><code>POST /api/jobs/apply</code> - Create apply job</li>
 <li><code>POST /api/jobs/image</code> - Create imaging job</li>
@@ -2899,7 +2904,7 @@ Visualization page for QA features.</p>
 <li><code>GET /api/jobs</code> - List jobs</li>
 <li><code>GET /api/jobs/id/{job_id}</code> - Get job details</li>
 <li><code>GET /api/jobs/id/{job_id}/logs</code> - Stream job logs</li>
-<li><code>GET /api/calibration/qa</code> - Get calibration QA</li>
+<li><code>GET (removed)</code> - Get calibration QA</li>
 </ul>
 <h3 id="user-workflows_5">User Workflows<a class="headerlink" href="#user-workflows_5" title="Permanent link">¶</a></h3>
 <p><strong>Manual Calibration:</strong></p>
@@ -3133,7 +3138,7 @@ pages (<code>/data/:type/:id</code>) may provide lineage information.</p>
 <h3 id="api-endpoints-used_8">API Endpoints Used<a class="headerlink" href="#api-endpoints-used_8" title="Permanent link">¶</a></h3>
 <ul>
 <li><code>GET /api/data</code> - List data instances (with type and status filters)</li>
-<li><code>GET /api/data/{type}/{id}</code> - Get data instance details (via detail page)</li>
+<li><code>GET (removed)</code> - Get data instance details (via detail page)</li>
 </ul>
 <h3 id="user-workflows_8">User Workflows<a class="headerlink" href="#user-workflows_8" title="Permanent link">¶</a></h3>
 <p><strong>Product Exploration:</strong></p>

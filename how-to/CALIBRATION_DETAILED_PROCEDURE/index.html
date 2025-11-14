@@ -1481,17 +1481,23 @@
 <div class="md-content" data-md-component="content">
 <article class="md-content__inner md-typeset">
 <h1 id="detailed-calibration-procedure">Detailed Calibration Procedure<a class="headerlink" href="#detailed-calibration-procedure" title="Permanent link">¶</a></h1>
-<p><strong>Purpose:</strong> This document provides a comprehensive, step-by-step explanation of the calibration procedure for DSA-110 continuum imaging pipeline.</p>
-<p><strong>Location:</strong> <code>docs/howto/CALIBRATION_DETAILED_PROCEDURE.md</code></p>
+<p><strong>Purpose:</strong> This document provides a comprehensive, step-by-step explanation of
+the calibration procedure for DSA-110 continuum imaging pipeline.</p>
+<p><strong>Location:</strong> <code>docs/how-to/CALIBRATION_DETAILED_PROCEDURE.md</code></p>
 <hr/>
 <h2 id="overview">Overview<a class="headerlink" href="#overview" title="Permanent link">¶</a></h2>
-<p>The calibration procedure corrects for instrumental and atmospheric effects that distort radio interferometric data. The pipeline performs <strong>bandpass (BP)</strong> and <strong>gain (G)</strong> calibration by default, with optional <strong>delay (K)</strong> calibration available.</p>
+<p>The calibration procedure corrects for instrumental and atmospheric effects that
+distort radio interferometric data. The pipeline performs <strong>bandpass (BP)</strong> and
+<strong>gain (G)</strong> calibration by default, with optional <strong>delay (K)</strong> calibration
+available.</p>
 <p><strong>Calibration Order:</strong> K → BP → G (if K is enabled)</p>
-<p><strong>Default Behavior:</strong> K-calibration is <strong>skipped by default</strong> for DSA-110 (connected-element array, 2.6 km max baseline), following VLA/ALMA practice.</p>
+<p><strong>Default Behavior:</strong> K-calibration is <strong>skipped by default</strong> for DSA-110
+(connected-element array, 2.6 km max baseline), following VLA/ALMA practice.</p>
 <hr/>
 <h2 id="pre-calibration-steps">Pre-Calibration Steps<a class="headerlink" href="#pre-calibration-steps" title="Permanent link">¶</a></h2>
 <h3 id="step-1-pre-calibration-flagging">Step 1: Pre-Calibration Flagging<a class="headerlink" href="#step-1-pre-calibration-flagging" title="Permanent link">¶</a></h3>
-<p><strong>Purpose:</strong> Remove bad data (zeros, RFI) before calibration to ensure solution integrity.</p>
+<p><strong>Purpose:</strong> Remove bad data (zeros, RFI) before calibration to ensure solution
+integrity.</p>
 <p><strong>Process:</strong></p>
 <ol>
 <li><strong>Reset Flags</strong> (<code>reset_flags</code>)</li>
@@ -1524,22 +1530,27 @@
 <li>
 <p><strong>Channel-Level Flagging</strong> (<code>--auto-flag-channels</code>, default: enabled)</p>
 </li>
-<li><strong>Purpose</strong>: After RFI flagging, analyzes flagging statistics per channel and flags channels with high flagging rates before calibration</li>
-<li><strong>How it works</strong>: <ul>
+<li><strong>Purpose</strong>: After RFI flagging, analyzes flagging statistics per channel
+     and flags channels with high flagging rates before calibration</li>
+<li><strong>How it works</strong>:<ul>
 <li>Calculates flagging fraction per channel across all SPWs</li>
-<li>Flags channels where &gt;50% of data is flagged (configurable via <code>--channel-flag-threshold</code>)</li>
-<li>More precise than SPW-level flagging since SPWs are arbitrary subdivisions</li>
+<li>Flags channels where &gt;50% of data is flagged (configurable via
+   <code>--channel-flag-threshold</code>)</li>
+<li>More precise than SPW-level flagging since SPWs are arbitrary
+   subdivisions</li>
 </ul>
 </li>
-<li><strong>When to use</strong>: Enabled by default. Use <code>--no-auto-flag-channels</code> to disable.</li>
-<li><strong>Benefits</strong>: <ul>
+<li><strong>When to use</strong>: Enabled by default. Use <code>--no-auto-flag-channels</code> to
+     disable.</li>
+<li><strong>Benefits</strong>:<ul>
 <li>Preserves good channels even in "bad" SPWs</li>
 <li>Reduces data loss compared to flagging entire SPWs</li>
 <li>Improves calibration quality by using maximum available data</li>
 </ul>
 </li>
-<li><strong>Example</strong>:
-     <div class="highlight"><pre><span></span><code><span class="c1"># Use default threshold (50%)</span>
+<li>
+<p><strong>Example</strong>:</p>
+<div class="highlight"><pre><span></span><code><span class="c1"># Use default threshold (50%)</span>
 python<span class="w"> </span>-m<span class="w"> </span>dsa110_contimg.calibration.cli<span class="w"> </span>calibrate<span class="w"> </span><span class="se">\</span>
 <span class="w">    </span>--ms<span class="w"> </span>/path/to/ms<span class="w"> </span><span class="se">\</span>
 <span class="w">    </span>--auto-fields<span class="w"> </span><span class="se">\</span>
@@ -1551,39 +1562,48 @@ python<span class="w"> </span>-m<span class="w"> </span>dsa110_contimg.calibrati
 <span class="w">    </span>--auto-fields<span class="w"> </span><span class="se">\</span>
 <span class="w">    </span>--flagging-mode<span class="w"> </span>rfi<span class="w"> </span><span class="se">\</span>
 <span class="w">    </span>--channel-flag-threshold<span class="w"> </span><span class="m">0</span>.4
-</code></pre></div></li>
+</code></pre></div>
+</li>
 </ol>
-<p><strong>Flagging Modes:</strong>
-- <code>--flagging-mode zeros</code> (default): Only zeros flagging
-- <code>--flagging-mode rfi</code>: Zeros + RFI flagging
-- <code>--flagging-mode none</code>: Skip flagging (not recommended)</p>
-<p><strong>Validation:</strong>
-- After flagging, pipeline verifies ≥10% unflagged data remains
-- Warns if &lt;30% unflagged (may affect solution quality)</p>
-<p><strong>Example:</strong>
+<p><strong>Flagging Modes:</strong></p>
+<ul>
+<li><code>--flagging-mode zeros</code> (default): Only zeros flagging</li>
+<li><code>--flagging-mode rfi</code>: Zeros + RFI flagging</li>
+<li><code>--flagging-mode none</code>: Skip flagging (not recommended)</li>
+</ul>
+<p><strong>Validation:</strong></p>
+<ul>
+<li>After flagging, pipeline verifies ≥10% unflagged data remains</li>
+<li>Warns if &lt;30% unflagged (may affect solution quality)</li>
+</ul>
+<p><strong>Example:</strong></p>
 <div class="highlight"><pre><span></span><code><span class="c1"># Flagging is automatic, but can be controlled:</span>
 python<span class="w"> </span>-m<span class="w"> </span>dsa110_contimg.calibration.cli<span class="w"> </span>calibrate<span class="w"> </span><span class="se">\</span>
 <span class="w">    </span>--ms<span class="w"> </span>/path/to/ms<span class="w"> </span><span class="se">\</span>
 <span class="w">    </span>--field<span class="w"> </span><span class="m">0</span><span class="w"> </span><span class="se">\</span>
 <span class="w">    </span>--refant<span class="w"> </span><span class="m">103</span><span class="w"> </span><span class="se">\</span>
 <span class="w">    </span>--flagging-mode<span class="w"> </span>rfi<span class="w">  </span><span class="c1"># Use RFI flagging</span>
-</code></pre></div></p>
+</code></pre></div>
 <h3 id="step-2-fast-mode-subset-creation-optional">Step 2: Fast Mode Subset Creation (Optional)<a class="headerlink" href="#step-2-fast-mode-subset-creation-optional" title="Permanent link">¶</a></h3>
 <p><strong>Purpose:</strong> Speed up calibration by creating a time/channel-binned subset MS.</p>
 <p><strong>When Enabled:</strong> <code>--fast</code> flag with <code>--timebin</code> and <code>--chanbin</code> parameters</p>
-<p><strong>Process:</strong>
-1. Creates a new MS with binned data:
-   - Time averaging: <code>--timebin 30s</code> (average over 30 seconds)
-   - Channel binning: <code>--chanbin 4</code> (average 4 channels together)
-2. Uses subset MS for all calibration solves
-3. Original MS remains unchanged
-4. Subset can be cleaned up with <code>--cleanup-subset</code></p>
-<p><strong>Trade-offs:</strong>
-- ✓ <strong>Faster</strong>: 3-5x speedup for large MS files
-- ✓ <strong>Lower memory</strong>: Reduced data volume
-- ⚠️ <strong>Lower resolution</strong>: Solutions have coarser time/channel resolution
-- ⚠️ <strong>May miss fast variations</strong>: Time-variable effects may be averaged out</p>
-<p><strong>Example:</strong>
+<p><strong>Process:</strong></p>
+<ol>
+<li>Creates a new MS with binned data:</li>
+<li>Time averaging: <code>--timebin 30s</code> (average over 30 seconds)</li>
+<li>Channel binning: <code>--chanbin 4</code> (average 4 channels together)</li>
+<li>Uses subset MS for all calibration solves</li>
+<li>Original MS remains unchanged</li>
+<li>Subset can be cleaned up with <code>--cleanup-subset</code></li>
+</ol>
+<p><strong>Trade-offs:</strong></p>
+<ul>
+<li>✓ <strong>Faster</strong>: 3-5x speedup for large MS files</li>
+<li>✓ <strong>Lower memory</strong>: Reduced data volume</li>
+<li>⚠️ <strong>Lower resolution</strong>: Solutions have coarser time/channel resolution</li>
+<li>⚠️ <strong>May miss fast variations</strong>: Time-variable effects may be averaged out</li>
+</ul>
+<p><strong>Example:</strong></p>
 <div class="highlight"><pre><span></span><code>python<span class="w"> </span>-m<span class="w"> </span>dsa110_contimg.calibration.cli<span class="w"> </span>calibrate<span class="w"> </span><span class="se">\</span>
 <span class="w">    </span>--ms<span class="w"> </span>/path/to/ms<span class="w"> </span><span class="se">\</span>
 <span class="w">    </span>--field<span class="w"> </span><span class="m">0</span><span class="w"> </span><span class="se">\</span>
@@ -1591,10 +1611,13 @@ python<span class="w"> </span>-m<span class="w"> </span>dsa110_contimg.calibrati
 <span class="w">    </span>--fast<span class="w"> </span><span class="se">\</span>
 <span class="w">    </span>--timebin<span class="w"> </span>30s<span class="w"> </span><span class="se">\</span>
 <span class="w">    </span>--chanbin<span class="w"> </span><span class="m">4</span>
-</code></pre></div></p>
+</code></pre></div>
 <h3 id="step-3-model-data-population">Step 3: Model Data Population<a class="headerlink" href="#step-3-model-data-population" title="Permanent link">¶</a></h3>
-<p><strong>Purpose:</strong> Populate <code>MODEL_DATA</code> column with expected visibility predictions from sky model.</p>
-<p><strong>CRITICAL:</strong> All calibration steps (K, BP, G) <strong>require</strong> <code>MODEL_DATA</code> to be populated. Calibration compares observed data (<code>DATA</code>) to model predictions (<code>MODEL_DATA</code>) to solve for corrections.</p>
+<p><strong>Purpose:</strong> Populate <code>MODEL_DATA</code> column with expected visibility predictions
+from sky model.</p>
+<p><strong>CRITICAL:</strong> All calibration steps (K, BP, G) <strong>require</strong> <code>MODEL_DATA</code> to be
+populated. Calibration compares observed data (<code>DATA</code>) to model predictions
+(<code>MODEL_DATA</code>) to solve for corrections.</p>
 <p><strong>Population Methods:</strong></p>
 <ol>
 <li><strong>Catalog Model</strong> (<code>--model-source catalog</code>, default)</li>
@@ -1619,13 +1642,18 @@ python<span class="w"> </span>-m<span class="w"> </span>dsa110_contimg.calibrati
 <li>Creates point source model with specified flux</li>
 <li><strong>Useful for non-standard calibrators</strong></li>
 </ol>
-<p><strong>Validation:</strong>
-- Pipeline verifies <code>MODEL_DATA</code> exists and is populated (not all zeros)
-- Raises error if <code>MODEL_DATA</code> is missing or unpopulated</p>
-<p><strong>Technical Details:</strong>
-- Model written via CASA <code>ft()</code> (Fourier transform) or <code>setjy()</code> (standard calibrators)
-- Model stored in <code>MODEL_DATA</code> column as complex visibilities</p>
-<p><strong>Example:</strong>
+<p><strong>Validation:</strong></p>
+<ul>
+<li>Pipeline verifies <code>MODEL_DATA</code> exists and is populated (not all zeros)</li>
+<li>Raises error if <code>MODEL_DATA</code> is missing or unpopulated</li>
+</ul>
+<p><strong>Technical Details:</strong></p>
+<ul>
+<li>Model written via CASA <code>ft()</code> (Fourier transform) or <code>setjy()</code> (standard
+  calibrators)</li>
+<li>Model stored in <code>MODEL_DATA</code> column as complex visibilities</li>
+</ul>
+<p><strong>Example:</strong></p>
 <div class="highlight"><pre><span></span><code><span class="c1"># Use catalog model (automatic for calibrators)</span>
 python<span class="w"> </span>-m<span class="w"> </span>dsa110_contimg.calibration.cli<span class="w"> </span>calibrate<span class="w"> </span><span class="se">\</span>
 <span class="w">    </span>--ms<span class="w"> </span>/path/to/ms<span class="w"> </span><span class="se">\</span>
@@ -1640,19 +1668,26 @@ python<span class="w"> </span>-m<span class="w"> </span>dsa110_contimg.calibrati
 <span class="w">    </span>--refant<span class="w"> </span><span class="m">103</span><span class="w"> </span><span class="se">\</span>
 <span class="w">    </span>--model-source<span class="w"> </span>nvss<span class="w"> </span><span class="se">\</span>
 <span class="w">    </span>--nvss-min-mjy<span class="w"> </span><span class="m">10</span>.0
-</code></pre></div></p>
+</code></pre></div>
 <hr/>
 <h2 id="calibration-solve-steps">Calibration Solve Steps<a class="headerlink" href="#calibration-solve-steps" title="Permanent link">¶</a></h2>
 <h3 id="step-1-delay-calibration-k-optional">Step 1: Delay Calibration (K) - <strong>Optional</strong><a class="headerlink" href="#step-1-delay-calibration-k-optional" title="Permanent link">¶</a></h3>
 <p><strong>Status:</strong> <strong>Skipped by default</strong> for DSA-110</p>
-<p><strong>Purpose:</strong> Corrects frequency-independent delays per antenna (clock offsets, cable delays).</p>
-<p><strong>Rationale for Skipping:</strong>
-- DSA-110 is a connected-element array (2.6 km max baseline)
-- Following VLA/ALMA practice: residual delays (&lt;0.5 ns) are absorbed into complex gain calibration
-- K-calibration is primarily needed for VLBI arrays (thousands of km baselines, independent atomic clocks)</p>
-<p><strong>When to Enable:</strong>
-- Use <code>--do-k</code> flag to explicitly enable if needed
-- Typically only required for VLBI observations or explicit delay measurements</p>
+<p><strong>Purpose:</strong> Corrects frequency-independent delays per antenna (clock offsets,
+cable delays).</p>
+<p><strong>Rationale for Skipping:</strong></p>
+<ul>
+<li>DSA-110 is a connected-element array (2.6 km max baseline)</li>
+<li>Following VLA/ALMA practice: residual delays (&lt;0.5 ns) are absorbed into
+  complex gain calibration</li>
+<li>K-calibration is primarily needed for VLBI arrays (thousands of km baselines,
+  independent atomic clocks)</li>
+</ul>
+<p><strong>When to Enable:</strong></p>
+<ul>
+<li>Use <code>--do-k</code> flag to explicitly enable if needed</li>
+<li>Typically only required for VLBI observations or explicit delay measurements</li>
+</ul>
 <p><strong>Process (if enabled):</strong></p>
 <ol>
 <li><strong>Slow Solve</strong> (<code>solint='inf'</code>)</li>
@@ -1669,30 +1704,37 @@ python<span class="w"> </span>-m<span class="w"> </span>dsa110_contimg.calibrati
 <li><strong>Duration:</strong> ~2-3 minutes</li>
 <li>Can be skipped with <code>--k-fast-only</code></li>
 </ol>
-<p><strong>Technical Details:</strong>
-- Uses CASA <code>gaincal</code> with <code>gaintype='K'</code>
-- Combines across scans by default (<code>combine='scan'</code>)
-- Can combine across SPWs with <code>--combine-spw</code>
-- Minimum SNR threshold: <code>--bp-minsnr</code> (default: 5.0)</p>
-<p><strong>Output:</strong>
-- Calibration table: <code>&lt;ms_prefix&gt;_kcal</code>
-- Format: CASA table directory (not a file)</p>
-<p><strong>Example:</strong>
+<p><strong>Technical Details:</strong></p>
+<ul>
+<li>Uses CASA <code>gaincal</code> with <code>gaintype='K'</code></li>
+<li>Combines across scans by default (<code>combine='scan'</code>)</li>
+<li>Can combine across SPWs with <code>--combine-spw</code></li>
+<li>Minimum SNR threshold: <code>--bp-minsnr</code> (default: 5.0)</li>
+</ul>
+<p><strong>Output:</strong></p>
+<ul>
+<li>Calibration table: <code>&lt;ms_prefix&gt;_kcal</code></li>
+<li>Format: CASA table directory (not a file)</li>
+</ul>
+<p><strong>Example:</strong></p>
 <div class="highlight"><pre><span></span><code><span class="c1"># Enable K-calibration</span>
 python<span class="w"> </span>-m<span class="w"> </span>dsa110_contimg.calibration.cli<span class="w"> </span>calibrate<span class="w"> </span><span class="se">\</span>
 <span class="w">    </span>--ms<span class="w"> </span>/path/to/ms<span class="w"> </span><span class="se">\</span>
 <span class="w">    </span>--field<span class="w"> </span><span class="m">0</span><span class="w"> </span><span class="se">\</span>
 <span class="w">    </span>--refant<span class="w"> </span><span class="m">103</span><span class="w"> </span><span class="se">\</span>
 <span class="w">    </span>--do-k
-</code></pre></div></p>
+</code></pre></div>
 <hr/>
 <h3 id="step-2-bandpass-calibration-bp-standard">Step 2: Bandpass Calibration (BP) - <strong>Standard</strong><a class="headerlink" href="#step-2-bandpass-calibration-bp-standard" title="Permanent link">¶</a></h3>
 <p><strong>Status:</strong> <strong>Enabled by default</strong></p>
-<p><strong>Purpose:</strong> Corrects frequency-dependent amplitude and phase variations across the observing band.</p>
-<p><strong>Why Needed:</strong>
-- Receivers have frequency-dependent response
-- Bandpass shape varies per antenna
-- Essential for accurate flux measurements</p>
+<p><strong>Purpose:</strong> Corrects frequency-dependent amplitude and phase variations across
+the observing band.</p>
+<p><strong>Why Needed:</strong></p>
+<ul>
+<li>Receivers have frequency-dependent response</li>
+<li>Bandpass shape varies per antenna</li>
+<li>Essential for accurate flux measurements</li>
+</ul>
 <p><strong>Process:</strong></p>
 <ol>
 <li><strong>Pre-Bandpass Phase-Only Solve</strong> (optional, <code>--prebp-phase</code>)</li>
@@ -1718,9 +1760,13 @@ python<span class="w"> </span>-m<span class="w"> </span>dsa110_contimg.calibrati
 <li>Auto-select: <code>--auto-fields</code> (finds calibrator fields automatically)</li>
 </ul>
 <p><strong>Default Field Combining</strong> (when using <code>--auto-fields</code>):
-  - After rephasing MS to calibrator position, automatically selects <strong>all fields</strong> (0~N-1) instead of just the peak field
-  - Automatically enables <code>--bp-combine-field</code> to combine all fields for better SNR
-  - <strong>Rationale</strong>: For drift-scan instruments like DSA-110, all fields share the same phase center after rephasing, so combining them maximizes integration time (e.g., 300 seconds vs 12.5 seconds)
+  - After rephasing MS to calibrator position, automatically selects <strong>all
+    fields</strong> (0~N-1) instead of just the peak field
+  - Automatically enables <code>--bp-combine-field</code> to combine all fields for better
+    SNR
+  - <strong>Rationale</strong>: For drift-scan instruments like DSA-110, all fields share the
+    same phase center after rephasing, so combining them maximizes integration
+    time (e.g., 300 seconds vs 12.5 seconds)
   - <strong>When to use</strong>: Default behavior. Manually specify <code>--field</code> to override.
   - <strong>Example</strong>:
     <div class="highlight"><pre><span></span><code><span class="c1"># Automatically combines all fields after rephasing</span>
@@ -1751,24 +1797,32 @@ python<span class="w"> </span>-m<span class="w"> </span>dsa110_contimg.calibrati
 <li><code>--bp-smooth-window &lt;channels&gt;</code></li>
 <li>Smooths bandpass table after solve</li>
 </ul>
-<p><strong>Technical Details:</strong>
-- <strong>PRECONDITION:</strong> <code>MODEL_DATA</code> must be populated
-- Uses <code>MODEL_DATA</code> as source model (<code>smodel</code>)
-- Reference antenna: <code>--refant</code> (must have good SNR)
-- Solution normalization: <code>solnorm=True</code> (normalizes solutions)</p>
-<p><strong>Validation:</strong>
-- Verifies table exists and has solutions
-- Checks reference antenna has solutions
-- Validates table compatibility with MS</p>
-<p><strong>Output:</strong>
-- Calibration table: <code>&lt;ms_prefix&gt;_bpcal</code>
-- Format: CASA table directory
-- <strong>Plots</strong> (if <code>--plot-bandpass</code> enabled, default: True):
-  - Bandpass amplitude plots: <code>{ms_dir}/calibration_plots/bandpass/{table_name}_plot_amp*.png</code>
-  - Bandpass phase plots: <code>{ms_dir}/calibration_plots/bandpass/{table_name}_plot_phase*.png</code>
-  - One plot per SPW, showing all antennas overlaid
-  - Accessible via dashboard API endpoints</p>
-<p><strong>Example:</strong>
+<p><strong>Technical Details:</strong></p>
+<ul>
+<li><strong>PRECONDITION:</strong> <code>MODEL_DATA</code> must be populated</li>
+<li>Uses <code>MODEL_DATA</code> as source model (<code>smodel</code>)</li>
+<li>Reference antenna: <code>--refant</code> (must have good SNR)</li>
+<li>Solution normalization: <code>solnorm=True</code> (normalizes solutions)</li>
+</ul>
+<p><strong>Validation:</strong></p>
+<ul>
+<li>Verifies table exists and has solutions</li>
+<li>Checks reference antenna has solutions</li>
+<li>Validates table compatibility with MS</li>
+</ul>
+<p><strong>Output:</strong></p>
+<ul>
+<li>Calibration table: <code>&lt;ms_prefix&gt;_bpcal</code></li>
+<li>Format: CASA table directory</li>
+<li><strong>Plots</strong> (if <code>--plot-bandpass</code> enabled, default: True):</li>
+<li>Bandpass amplitude plots:
+    <code>{ms_dir}/calibration_plots/bandpass/{table_name}_plot_amp*.png</code></li>
+<li>Bandpass phase plots:
+    <code>{ms_dir}/calibration_plots/bandpass/{table_name}_plot_phase*.png</code></li>
+<li>One plot per SPW, showing all antennas overlaid</li>
+<li>Accessible via dashboard API endpoints</li>
+</ul>
+<p><strong>Example:</strong></p>
 <div class="highlight"><pre><span></span><code><span class="c1"># Standard bandpass calibration</span>
 python<span class="w"> </span>-m<span class="w"> </span>dsa110_contimg.calibration.cli<span class="w"> </span>calibrate<span class="w"> </span><span class="se">\</span>
 <span class="w">    </span>--ms<span class="w"> </span>/path/to/ms<span class="w"> </span><span class="se">\</span>
@@ -1789,15 +1843,18 @@ python<span class="w"> </span>-m<span class="w"> </span>dsa110_contimg.calibrati
 <span class="w">    </span>--field<span class="w"> </span><span class="m">0</span><span class="w"> </span><span class="se">\</span>
 <span class="w">    </span>--refant<span class="w"> </span><span class="m">103</span><span class="w"> </span><span class="se">\</span>
 <span class="w">    </span>--prebp-phase
-</code></pre></div></p>
+</code></pre></div>
 <hr/>
 <h3 id="step-3-gain-calibration-g-standard">Step 3: Gain Calibration (G) - <strong>Standard</strong><a class="headerlink" href="#step-3-gain-calibration-g-standard" title="Permanent link">¶</a></h3>
 <p><strong>Status:</strong> <strong>Enabled by default</strong></p>
-<p><strong>Purpose:</strong> Corrects time-dependent phase and amplitude variations (atmospheric effects, instrumental drifts).</p>
-<p><strong>Why Needed:</strong>
-- Atmospheric phase varies on timescales of seconds to minutes
-- Instrumental gains drift over time
-- Essential for phase coherence and accurate imaging</p>
+<p><strong>Purpose:</strong> Corrects time-dependent phase and amplitude variations (atmospheric
+effects, instrumental drifts).</p>
+<p><strong>Why Needed:</strong></p>
+<ul>
+<li>Atmospheric phase varies on timescales of seconds to minutes</li>
+<li>Instrumental gains drift over time</li>
+<li>Essential for phase coherence and accurate imaging</li>
+</ul>
 <p><strong>Process:</strong></p>
 <ol>
 <li><strong>Phase-Only Gain Solve</strong> (<code>calmode='p'</code>)</li>
@@ -1849,26 +1906,35 @@ python<span class="w"> </span>-m<span class="w"> </span>dsa110_contimg.calibrati
 <li><code>--gain-minsnr 3.0</code> (default: 3.0)</li>
 <li>Solutions below threshold are flagged</li>
 </ul>
-<p><strong>Technical Details:</strong>
-- <strong>PRECONDITION:</strong> <code>MODEL_DATA</code> must be populated
-- <strong>PRECONDITION:</strong> Bandpass tables must exist and be validated
-- Applies bandpass tables during gain solve (<code>gaintable=bptables</code>)
-- Uses CASA <code>gaincal</code> with <code>gaintype='G'</code>
-- Combines across scans by default
-- Optionally combines across fields (<code>--bp-combine-field</code>)</p>
-<p><strong>Fast Mode:</strong>
-- <code>--fast</code> flag enables phase-only gains automatically
-- Phase-only (<code>calmode='p'</code>) is faster than amplitude+phase</p>
-<p><strong>Output:</strong>
-- Calibration tables:
-  - <code>&lt;ms_prefix&gt;_gpcal</code> (phase-only, <code>solint='inf'</code>)
-  - <code>&lt;ms_prefix&gt;_2gcal</code> (phase-only, <code>solint='60s'</code>, if <code>--gain-solint</code> specified)
-- Format: CASA table directories</p>
-<p><strong>Validation:</strong>
-- Verifies tables exist and have solutions
-- Checks reference antenna has solutions
-- Validates table compatibility with MS</p>
-<p><strong>Example:</strong>
+<p><strong>Technical Details:</strong></p>
+<ul>
+<li><strong>PRECONDITION:</strong> <code>MODEL_DATA</code> must be populated</li>
+<li><strong>PRECONDITION:</strong> Bandpass tables must exist and be validated</li>
+<li>Applies bandpass tables during gain solve (<code>gaintable=bptables</code>)</li>
+<li>Uses CASA <code>gaincal</code> with <code>gaintype='G'</code></li>
+<li>Combines across scans by default</li>
+<li>Optionally combines across fields (<code>--bp-combine-field</code>)</li>
+</ul>
+<p><strong>Fast Mode:</strong></p>
+<ul>
+<li><code>--fast</code> flag enables phase-only gains automatically</li>
+<li>Phase-only (<code>calmode='p'</code>) is faster than amplitude+phase</li>
+</ul>
+<p><strong>Output:</strong></p>
+<ul>
+<li>Calibration tables:</li>
+<li><code>&lt;ms_prefix&gt;_gpcal</code> (phase-only, <code>solint='inf'</code>)</li>
+<li><code>&lt;ms_prefix&gt;_2gcal</code> (phase-only, <code>solint='60s'</code>, if <code>--gain-solint</code>
+    specified)</li>
+<li>Format: CASA table directories</li>
+</ul>
+<p><strong>Validation:</strong></p>
+<ul>
+<li>Verifies tables exist and have solutions</li>
+<li>Checks reference antenna has solutions</li>
+<li>Validates table compatibility with MS</li>
+</ul>
+<p><strong>Example:</strong></p>
 <div class="highlight"><pre><span></span><code><span class="c1"># Standard gain calibration (phase-only)</span>
 python<span class="w"> </span>-m<span class="w"> </span>dsa110_contimg.calibration.cli<span class="w"> </span>calibrate<span class="w"> </span><span class="se">\</span>
 <span class="w">    </span>--ms<span class="w"> </span>/path/to/ms<span class="w"> </span><span class="se">\</span>
@@ -1891,30 +1957,39 @@ python<span class="w"> </span>-m<span class="w"> </span>dsa110_contimg.calibrati
 <span class="w">    </span>--refant<span class="w"> </span><span class="m">103</span><span class="w"> </span><span class="se">\</span>
 <span class="w">    </span>--auto-fields<span class="w"> </span><span class="se">\</span>
 <span class="w">    </span>--gain-calmode<span class="w"> </span>ap
-</code></pre></div></p>
+</code></pre></div>
 <hr/>
 <h2 id="post-calibration-steps">Post-Calibration Steps<a class="headerlink" href="#post-calibration-steps" title="Permanent link">¶</a></h2>
 <h3 id="step-1-calibration-table-validation">Step 1: Calibration Table Validation<a class="headerlink" href="#step-1-calibration-table-validation" title="Permanent link">¶</a></h3>
 <p><strong>Purpose:</strong> Verify calibration tables are valid and compatible with MS.</p>
-<p><strong>Process:</strong>
-- Checks tables exist and are readable
-- Verifies tables have solutions (non-empty)
-- Validates reference antenna has solutions
-- Checks table compatibility with MS (frequency ranges, time ranges)</p>
-<p><strong>QA Validation:</strong>
-- Runs <code>check_calibration_quality()</code> after each solve
-- Checks solution quality metrics
-- Alerts on issues (low SNR, flagged solutions, etc.)</p>
+<p><strong>Process:</strong></p>
+<ul>
+<li>Checks tables exist and are readable</li>
+<li>Verifies tables have solutions (non-empty)</li>
+<li>Validates reference antenna has solutions</li>
+<li>Checks table compatibility with MS (frequency ranges, time ranges)</li>
+</ul>
+<p><strong>QA Validation:</strong></p>
+<ul>
+<li>Runs <code>check_calibration_quality()</code> after each solve</li>
+<li>Checks solution quality metrics</li>
+<li>Alerts on issues (low SNR, flagged solutions, etc.)</li>
+</ul>
 <h3 id="step-2-calibration-table-registration">Step 2: Calibration Table Registration<a class="headerlink" href="#step-2-calibration-table-registration" title="Permanent link">¶</a></h3>
-<p><strong>Purpose:</strong> Register calibration tables in database for later application to target fields.</p>
-<p><strong>Process:</strong>
-- Tables registered in <code>cal_registry.sqlite3</code>
-- Validity windows stored (MJD ranges)
-- Apply order tracked (K → BP → G)</p>
-<p><strong>Benefits:</strong>
-- Tracks which tables are valid for which time periods
-- Enables automatic table selection for target fields
-- Prevents using outdated calibration tables</p>
+<p><strong>Purpose:</strong> Register calibration tables in database for later application to
+target fields.</p>
+<p><strong>Process:</strong></p>
+<ul>
+<li>Tables registered in <code>cal_registry.sqlite3</code></li>
+<li>Validity windows stored (MJD ranges)</li>
+<li>Apply order tracked (K → BP → G)</li>
+</ul>
+<p><strong>Benefits:</strong></p>
+<ul>
+<li>Tracks which tables are valid for which time periods</li>
+<li>Enables automatic table selection for target fields</li>
+<li>Prevents using outdated calibration tables</li>
+</ul>
 <hr/>
 <h2 id="complete-calibration-workflow-example">Complete Calibration Workflow Example<a class="headerlink" href="#complete-calibration-workflow-example" title="Permanent link">¶</a></h2>
 <h3 id="standard-calibration-recommended">Standard Calibration (Recommended)<a class="headerlink" href="#standard-calibration-recommended" title="Permanent link">¶</a></h3>
@@ -1925,16 +2000,20 @@ python<span class="w"> </span>-m<span class="w"> </span>dsa110_contimg.calibrati
 <span class="w">    </span>--auto-fields<span class="w"> </span><span class="se">\</span>
 <span class="w">    </span>--model-source<span class="w"> </span>catalog
 </code></pre></div>
-<p><strong>What Happens:</strong>
-1. ✓ Flagging: Reset flags → Flag zeros → (Optional RFI)
-2. ✓ Model Population: Populate <code>MODEL_DATA</code> from VLA catalog
-3. ✗ K-calibration: Skipped (default)
-4. ✓ Bandpass: Solve frequency-dependent gains
-5. ✓ Gain: Solve time-dependent phase variations
-6. ✓ Validation: Verify tables and register in database</p>
-<p><strong>Output Tables:</strong>
-- <code>&lt;ms_prefix&gt;_bpcal</code> (bandpass)
-- <code>&lt;ms_prefix&gt;_gpcal</code> (phase-only gains)</p>
+<p><strong>What Happens:</strong></p>
+<ol>
+<li>✓ Flagging: Reset flags → Flag zeros → (Optional RFI)</li>
+<li>✓ Model Population: Populate <code>MODEL_DATA</code> from VLA catalog</li>
+<li>✗ K-calibration: Skipped (default)</li>
+<li>✓ Bandpass: Solve frequency-dependent gains</li>
+<li>✓ Gain: Solve time-dependent phase variations</li>
+<li>✓ Validation: Verify tables and register in database</li>
+</ol>
+<p><strong>Output Tables:</strong></p>
+<ul>
+<li><code>&lt;ms_prefix&gt;_bpcal</code> (bandpass)</li>
+<li><code>&lt;ms_prefix&gt;_gpcal</code> (phase-only gains)</li>
+</ul>
 <h3 id="fast-calibration-quick-5-minute-image">Fast Calibration (Quick 5-Minute Image)<a class="headerlink" href="#fast-calibration-quick-5-minute-image" title="Permanent link">¶</a></h3>
 <div class="highlight"><pre><span></span><code>python<span class="w"> </span>-m<span class="w"> </span>dsa110_contimg.calibration.cli<span class="w"> </span>calibrate<span class="w"> </span><span class="se">\</span>
 <span class="w">    </span>--ms<span class="w"> </span>/stage/dsa110-contimg/ms/2025-10-30T13:34:54.ms<span class="w"> </span><span class="se">\</span>
@@ -1946,16 +2025,20 @@ python<span class="w"> </span>-m<span class="w"> </span>dsa110_contimg.calibrati
 <span class="w">    </span>--chanbin<span class="w"> </span><span class="m">4</span><span class="w"> </span><span class="se">\</span>
 <span class="w">    </span>--uvrange<span class="w"> </span><span class="s1">'&gt;1klambda'</span>
 </code></pre></div>
-<p><strong>What Happens:</strong>
-1. ✓ Create subset MS (time/channel binned)
-2. ✓ Flagging: Reset flags → Flag zeros
-3. ✓ Model Population: Populate <code>MODEL_DATA</code> from catalog
-4. ✓ Bandpass: Solve on subset MS (faster)
-5. ✓ Gain: Solve phase-only gains on subset MS (faster)
-6. ✓ Validation: Verify tables</p>
-<p><strong>Trade-offs:</strong>
-- ✓ Faster: 3-5x speedup
-- ⚠️ Lower resolution: Solutions averaged over bins</p>
+<p><strong>What Happens:</strong></p>
+<ol>
+<li>✓ Create subset MS (time/channel binned)</li>
+<li>✓ Flagging: Reset flags → Flag zeros</li>
+<li>✓ Model Population: Populate <code>MODEL_DATA</code> from catalog</li>
+<li>✓ Bandpass: Solve on subset MS (faster)</li>
+<li>✓ Gain: Solve phase-only gains on subset MS (faster)</li>
+<li>✓ Validation: Verify tables</li>
+</ol>
+<p><strong>Trade-offs:</strong></p>
+<ul>
+<li>✓ Faster: 3-5x speedup</li>
+<li>⚠️ Lower resolution: Solutions averaged over bins</li>
+</ul>
 <h3 id="full-calibration-k-bp-g">Full Calibration (K + BP + G)<a class="headerlink" href="#full-calibration-k-bp-g" title="Permanent link">¶</a></h3>
 <div class="highlight"><pre><span></span><code>python<span class="w"> </span>-m<span class="w"> </span>dsa110_contimg.calibration.cli<span class="w"> </span>calibrate<span class="w"> </span><span class="se">\</span>
 <span class="w">    </span>--ms<span class="w"> </span>/stage/dsa110-contimg/ms/2025-10-30T13:34:54.ms<span class="w"> </span><span class="se">\</span>
@@ -1965,18 +2048,22 @@ python<span class="w"> </span>-m<span class="w"> </span>dsa110_contimg.calibrati
 <span class="w">    </span>--do-k<span class="w"> </span><span class="se">\</span>
 <span class="w">    </span>--gain-solint<span class="w"> </span>60s
 </code></pre></div>
-<p><strong>What Happens:</strong>
-1. ✓ Flagging: Reset flags → Flag zeros → RFI
-2. ✓ Model Population: Populate <code>MODEL_DATA</code> from catalog
-3. ✓ K-calibration: Solve delays (slow + fast)
-4. ✓ Bandpass: Solve frequency-dependent gains (uses K)
-5. ✓ Gain: Solve phase-only gains (uses K + BP)
-6. ✓ Validation: Verify all tables</p>
-<p><strong>Output Tables:</strong>
-- <code>&lt;ms_prefix&gt;_kcal</code> (delay)
-- <code>&lt;ms_prefix&gt;_bpcal</code> (bandpass)
-- <code>&lt;ms_prefix&gt;_gpcal</code> (phase-only gains, <code>solint='inf'</code>)
-- <code>&lt;ms_prefix&gt;_2gcal</code> (phase-only gains, <code>solint='60s'</code>)</p>
+<p><strong>What Happens:</strong></p>
+<ol>
+<li>✓ Flagging: Reset flags → Flag zeros → RFI</li>
+<li>✓ Model Population: Populate <code>MODEL_DATA</code> from catalog</li>
+<li>✓ K-calibration: Solve delays (slow + fast)</li>
+<li>✓ Bandpass: Solve frequency-dependent gains (uses K)</li>
+<li>✓ Gain: Solve phase-only gains (uses K + BP)</li>
+<li>✓ Validation: Verify all tables</li>
+</ol>
+<p><strong>Output Tables:</strong></p>
+<ul>
+<li><code>&lt;ms_prefix&gt;_kcal</code> (delay)</li>
+<li><code>&lt;ms_prefix&gt;_bpcal</code> (bandpass)</li>
+<li><code>&lt;ms_prefix&gt;_gpcal</code> (phase-only gains, <code>solint='inf'</code>)</li>
+<li><code>&lt;ms_prefix&gt;_2gcal</code> (phase-only gains, <code>solint='60s'</code>)</li>
+</ul>
 <hr/>
 <h2 id="key-parameters-summary">Key Parameters Summary<a class="headerlink" href="#key-parameters-summary" title="Permanent link">¶</a></h2>
 <h3 id="required-parameters">Required Parameters<a class="headerlink" href="#required-parameters" title="Permanent link">¶</a></h3>
@@ -1986,68 +2073,89 @@ python<span class="w"> </span>-m<span class="w"> </span>dsa110_contimg.calibrati
 <li><code>--refant</code>: Reference antenna ID (e.g., <code>103</code>)</li>
 </ul>
 <h3 id="optional-parameters">Optional Parameters<a class="headerlink" href="#optional-parameters" title="Permanent link">¶</a></h3>
-<p><strong>Flagging:</strong>
-- <code>--flagging-mode zeros|rfi|none</code> (default: <code>zeros</code>)
-- <code>--no-flagging</code>: Skip flagging (not recommended)</p>
-<p><strong>Fast Mode:</strong>
-- <code>--preset development</code>: Use development quality tier (⚠️ NON-SCIENCE)
-- <code>--timebin &lt;interval&gt;</code>: Time averaging (e.g., <code>30s</code>)
-- <code>--chanbin &lt;factor&gt;</code>: Channel binning (e.g., <code>4</code>)</p>
-<p><strong>Model Population:</strong>
-- <code>--model-source catalog|nvss</code> (default: <code>catalog</code>)
-- <code>--cal-catalog &lt;path&gt;</code>: Calibrator catalog path
-- <code>--cal-flux-jy &lt;flux&gt;</code>: Manual calibrator flux</p>
-<p><strong>Bandpass:</strong>
-- <code>--bp-combine-field</code>: Combine across fields
-- <code>--bp-minsnr &lt;value&gt;</code>: Minimum SNR (default: 3.0)
-- <code>--uvrange &lt;cut&gt;</code>: UV range selection (e.g., <code>&gt;1klambda</code>)
-- <code>--prebp-phase</code>: Pre-bandpass phase correction</p>
-<p><strong>Gain:</strong>
-- <code>--gain-solint &lt;interval&gt;</code>: Solution interval (default: <code>inf</code>)
-- <code>--gain-calmode p|ap|a</code>: Calibration mode (default: <code>p</code>)
-- <code>--gain-minsnr &lt;value&gt;</code>: Minimum SNR (default: 3.0)</p>
-<p><strong>K-Calibration:</strong>
-- <code>--do-k</code>: Enable K-calibration (disabled by default)
-- <code>--combine-spw</code>: Combine across SPWs
-- <code>--k-fast-only</code>: Skip slow solve, only fast solve</p>
+<p><strong>Flagging:</strong></p>
+<ul>
+<li><code>--flagging-mode zeros|rfi|none</code> (default: <code>zeros</code>)</li>
+<li><code>--no-flagging</code>: Skip flagging (not recommended)</li>
+</ul>
+<p><strong>Fast Mode:</strong></p>
+<ul>
+<li><code>--preset development</code>: Use development quality tier (⚠️ NON-SCIENCE)</li>
+<li><code>--timebin &lt;interval&gt;</code>: Time averaging (e.g., <code>30s</code>)</li>
+<li><code>--chanbin &lt;factor&gt;</code>: Channel binning (e.g., <code>4</code>)</li>
+</ul>
+<p><strong>Model Population:</strong></p>
+<ul>
+<li><code>--model-source catalog|nvss</code> (default: <code>catalog</code>)</li>
+<li><code>--cal-catalog &lt;path&gt;</code>: Calibrator catalog path</li>
+<li><code>--cal-flux-jy &lt;flux&gt;</code>: Manual calibrator flux</li>
+</ul>
+<p><strong>Bandpass:</strong></p>
+<ul>
+<li><code>--bp-combine-field</code>: Combine across fields</li>
+<li><code>--bp-minsnr &lt;value&gt;</code>: Minimum SNR (default: 3.0)</li>
+<li><code>--uvrange &lt;cut&gt;</code>: UV range selection (e.g., <code>&gt;1klambda</code>)</li>
+<li><code>--prebp-phase</code>: Pre-bandpass phase correction</li>
+</ul>
+<p><strong>Gain:</strong></p>
+<ul>
+<li><code>--gain-solint &lt;interval&gt;</code>: Solution interval (default: <code>inf</code>)</li>
+<li><code>--gain-calmode p|ap|a</code>: Calibration mode (default: <code>p</code>)</li>
+<li><code>--gain-minsnr &lt;value&gt;</code>: Minimum SNR (default: 3.0)</li>
+</ul>
+<p><strong>K-Calibration:</strong></p>
+<ul>
+<li><code>--do-k</code>: Enable K-calibration (disabled by default)</li>
+<li><code>--combine-spw</code>: Combine across SPWs</li>
+<li><code>--k-fast-only</code>: Skip slow solve, only fast solve</li>
+</ul>
 <hr/>
 <h2 id="troubleshooting">Troubleshooting<a class="headerlink" href="#troubleshooting" title="Permanent link">¶</a></h2>
 <h3 id="low-snr-solutions">Low SNR Solutions<a class="headerlink" href="#low-snr-solutions" title="Permanent link">¶</a></h3>
 <p><strong>Symptoms:</strong> Many solutions flagged, warnings about low SNR</p>
-<p><strong>Solutions:</strong>
-- Use <code>--bp-combine-field</code> to combine across fields (improves SNR)
-- Reduce UV range cut: <code>--uvrange ''</code> (no cut)
-- Lower SNR threshold: <code>--bp-minsnr 3.0</code> (default)
-- Use pre-bandpass phase: <code>--prebp-phase</code>
-- Check reference antenna: <code>--auto-refant</code> or <code>--refant-ranking</code></p>
+<p><strong>Solutions:</strong></p>
+<ul>
+<li>Use <code>--bp-combine-field</code> to combine across fields (improves SNR)</li>
+<li>Reduce UV range cut: <code>--uvrange ''</code> (no cut)</li>
+<li>Lower SNR threshold: <code>--bp-minsnr 3.0</code> (default)</li>
+<li>Use pre-bandpass phase: <code>--prebp-phase</code></li>
+<li>Check reference antenna: <code>--auto-refant</code> or <code>--refant-ranking</code></li>
+</ul>
 <h3 id="missing-model_data">Missing MODEL_DATA<a class="headerlink" href="#missing-model_data" title="Permanent link">¶</a></h3>
-<p><strong>Symptoms:</strong> Error: "MODEL_DATA column does not exist" or "MODEL_DATA is all zeros"</p>
-<p><strong>Solutions:</strong>
-- Ensure <code>--model-source catalog</code> or <code>--model-source nvss</code> is specified
-- Check calibrator is in catalog: <code>--cal-catalog &lt;path&gt;</code>
-- Verify calibrator coordinates: <code>--cal-ra-deg</code>, <code>--cal-dec-deg</code>
-- Manual flux: <code>--cal-flux-jy &lt;flux&gt;</code></p>
+<p><strong>Symptoms:</strong> Error: "MODEL_DATA column does not exist" or "MODEL_DATA is all
+zeros"</p>
+<p><strong>Solutions:</strong></p>
+<ul>
+<li>Ensure <code>--model-source catalog</code> or <code>--model-source nvss</code> is specified</li>
+<li>Check calibrator is in catalog: <code>--cal-catalog &lt;path&gt;</code></li>
+<li>Verify calibrator coordinates: <code>--cal-ra-deg</code>, <code>--cal-dec-deg</code></li>
+<li>Manual flux: <code>--cal-flux-jy &lt;flux&gt;</code></li>
+</ul>
 <h3 id="insufficient-unflagged-data">Insufficient Unflagged Data<a class="headerlink" href="#insufficient-unflagged-data" title="Permanent link">¶</a></h3>
 <p><strong>Symptoms:</strong> Warning: "Only X% data remains unflagged"</p>
-<p><strong>Solutions:</strong>
-- Use less aggressive flagging: <code>--flagging-mode zeros</code> (skip RFI)
-- Check data quality: <code>python -m dsa110_contimg.qa.ms_quality &lt;ms&gt;</code>
-- Adjust flagging parameters: <code>--no-flagging</code> (not recommended)</p>
+<p><strong>Solutions:</strong></p>
+<ul>
+<li>Use less aggressive flagging: <code>--flagging-mode zeros</code> (skip RFI)</li>
+<li>Check data quality: <code>python -m dsa110_contimg.qa.ms_quality &lt;ms&gt;</code></li>
+<li>Adjust flagging parameters: <code>--no-flagging</code> (not recommended)</li>
+</ul>
 <h3 id="calibration-tables-not-found">Calibration Tables Not Found<a class="headerlink" href="#calibration-tables-not-found" title="Permanent link">¶</a></h3>
 <p><strong>Symptoms:</strong> Error: "Calibration table does not exist"</p>
-<p><strong>Solutions:</strong>
-- Verify MS path is correct
-- Check calibration completed successfully (check logs)
-- Verify table names match expected pattern: <code>&lt;ms_prefix&gt;_bpcal</code>, <code>&lt;ms_prefix&gt;_gpcal</code></p>
+<p><strong>Solutions:</strong></p>
+<ul>
+<li>Verify MS path is correct</li>
+<li>Check calibration completed successfully (check logs)</li>
+<li>Verify table names match expected pattern: <code>&lt;ms_prefix&gt;_bpcal</code>,
+  <code>&lt;ms_prefix&gt;_gpcal</code></li>
+</ul>
 <hr/>
 <h2 id="references">References<a class="headerlink" href="#references" title="Permanent link">¶</a></h2>
 <ul>
-<li><strong>Calibration Reference</strong>: <code>docs/reference/calibration.md</code></li>
+<li>Calibration reference: see <code>docs/index.md</code> and <code>docs/how-to/streaming.md</code></li>
 <li><strong>Calibration CLI</strong>: <code>src/dsa110_contimg/calibration/cli.py</code></li>
 <li><strong>Calibration Functions</strong>: <code>src/dsa110_contimg/calibration/calibration.py</code></li>
 <li><strong>Flagging Module</strong>: <code>src/dsa110_contimg/calibration/flagging.py</code></li>
 <li><strong>Model Population</strong>: <code>src/dsa110_contimg/calibration/model.py</code></li>
-<li><strong>Best Practices Review</strong>: <code>docs/reports/CALIBRATION_REVIEW_PERPLEXITY.md</code></li>
 </ul>
 </article>
 </div>

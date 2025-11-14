@@ -1140,29 +1140,30 @@
 <p>Found in team URL or settings</p>
 </li>
 <li>
-<p><strong>Create config file:</strong>
+<p><strong>Create config file:</strong></p>
+</li>
+</ol>
 <div class="highlight"><pre><span></span><code>cp<span class="w"> </span>.linear_config.json.example<span class="w"> </span>.linear_config.json
 nano<span class="w"> </span>.linear_config.json
 </code></pre></div>
-   Add your credentials:
-   <div class="highlight"><pre><span></span><code><span class="p">{</span>
+<p>Add your credentials:</p>
+<div class="highlight"><pre><span></span><code><span class="p">{</span>
 <span class="w">  </span><span class="nt">"api_key"</span><span class="p">:</span><span class="w"> </span><span class="s2">"lin_api_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx"</span><span class="p">,</span>
 <span class="w">  </span><span class="nt">"team_key"</span><span class="p">:</span><span class="w"> </span><span class="s2">"ENG"</span>
 <span class="p">}</span>
-</code></pre></div></p>
-</li>
-<li>
-<p><strong>Test the connection:</strong>
-<div class="highlight"><pre><span></span><code>make<span class="w"> </span>sync-linear-dry-run
-</code></pre></div></p>
-</li>
-<li>
-<p><strong>Sync your TODO items:</strong>
-<div class="highlight"><pre><span></span><code>make<span class="w"> </span>sync-linear
-</code></pre></div></p>
-</li>
+</code></pre></div>
+<ol>
+<li><strong>Test the connection:</strong></li>
 </ol>
-<p>That's it! Your TODO items will be created as Linear issues and linked back to TODO.md.</p>
+<div class="highlight"><pre><span></span><code>make<span class="w"> </span>sync-linear-dry-run
+</code></pre></div>
+<ol>
+<li><strong>Sync your TODO items:</strong>
+<div class="highlight"><pre><span></span><code>make<span class="w"> </span>sync-linear
+</code></pre></div></li>
+</ol>
+<p>That's it! Your TODO items will be created as Linear issues and linked back to
+TODO.md.</p>
 <hr/>
 <h2 id="what-happens">What Happens<a class="headerlink" href="#what-happens" title="Permanent link">¶</a></h2>
 <ul>
@@ -1173,7 +1174,8 @@ nano<span class="w"> </span>.linear_config.json
 </ul>
 <hr/>
 <h2 id="need-help">Need Help?<a class="headerlink" href="#need-help" title="Permanent link">¶</a></h2>
-<p>See <code>docs/LINEAR_INTEGRATION.md</code> for detailed documentation, troubleshooting, and advanced usage.</p>
+<p>See <code>docs/how-to/LINEAR_INTEGRATION.md</code> for detailed documentation,
+troubleshooting, and advanced usage.</p>
 </article>
 </div>
 <script>var tabs=__md_get("__tabs");if(Array.isArray(tabs))e:for(var set of document.querySelectorAll(".tabbed-set")){var tab,labels=set.querySelector(".tabbed-labels");for(tab of tabs)for(var label of labels.getElementsByTagName("label"))if(label.innerText.trim()===tab){var input=document.getElementById(label.htmlFor);input.checked=!0;continue e}}</script>

@@ -556,9 +556,9 @@
 </a>
 </li>
 <li class="md-nav__item">
-<a class="md-nav__link" href="#option-2-manual-3-stage-quick-look-from-docsquicklookmd">
+<a class="md-nav__link" href="#option-2-manual-3-stage-quick-look">
 <span class="md-ellipsis">
-      Option 2: Manual 3-Stage Quick-Look (from docs/quicklook.md)
+      Option 2: Manual 3-Stage Quick-Look
     </span>
 </a>
 </li>
@@ -1342,9 +1342,9 @@
 </a>
 </li>
 <li class="md-nav__item">
-<a class="md-nav__link" href="#option-2-manual-3-stage-quick-look-from-docsquicklookmd">
+<a class="md-nav__link" href="#option-2-manual-3-stage-quick-look">
 <span class="md-ellipsis">
-      Option 2: Manual 3-Stage Quick-Look (from docs/quicklook.md)
+      Option 2: Manual 3-Stage Quick-Look
     </span>
 </a>
 </li>
@@ -1571,23 +1571,29 @@
 <div class="md-content" data-md-component="content">
 <article class="md-content__inner md-typeset">
 <h1 id="pipeline-testing-guide">Pipeline Testing Guide<a class="headerlink" href="#pipeline-testing-guide" title="Permanent link">¶</a></h1>
-<p><strong>Purpose:</strong> Verify each pipeline stage is functional and ready for streaming/debugging</p>
-<p><strong>Related Guides:</strong>
-- Finding calibrator transit data: <a href="../FIND_CALIBRATOR_TRANSIT_DATA/"><code>FIND_CALIBRATOR_TRANSIT_DATA.md</code></a></p>
+<p><strong>Purpose:</strong> Verify each pipeline stage is functional and ready for
+streaming/debugging</p>
+<p><strong>Related Guides:</strong></p>
+<ul>
+<li>Finding calibrator transit data:
+  <a href="../FIND_CALIBRATOR_TRANSIT_DATA/"><code>FIND_CALIBRATOR_TRANSIT_DATA.md</code></a></li>
+</ul>
 <hr/>
 <h2 id="quick-answer-simplest-test">Quick Answer: Simplest Test<a class="headerlink" href="#quick-answer-simplest-test" title="Permanent link">¶</a></h2>
 <p>The <strong>simplest end-to-end test</strong> covers all pipeline stages in ~2-5 minutes:</p>
 <div class="highlight"><pre><span></span><code>conda<span class="w"> </span>activate<span class="w"> </span>casa6
 bash<span class="w"> </span>scripts/test_pipeline_end_to_end.sh
 </code></pre></div>
-<p>This test:
-1. ✅ Generates minimal synthetic UVH5 data (4 subbands, 1 minute, 64 channels)
-2. ✅ Converts UVH5 → MS (orchestrator with direct-subband writer)
-3. ✅ RFI flagging (reset flags, flag zeros)
-4. ✅ Calibration (BP/G in development tier, K skipped by default)
-5. ✅ Apply calibration (if caltables created)
-6. ✅ Imaging (quick-look tclean)
-7. ✅ Basic QA checks</p>
+<p>This test:</p>
+<ol>
+<li>✅ Generates minimal synthetic UVH5 data (4 subbands, 1 minute, 64 channels)</li>
+<li>✅ Converts UVH5 → MS (orchestrator with direct-subband writer)</li>
+<li>✅ RFI flagging (reset flags, flag zeros)</li>
+<li>✅ Calibration (BP/G in development tier, K skipped by default)</li>
+<li>✅ Apply calibration (if caltables created)</li>
+<li>✅ Imaging (quick-look tclean)</li>
+<li>✅ Basic QA checks</li>
+</ol>
 <p><strong>Time:</strong> 2-5 minutes depending on hardware<br/>
 <strong>Requirements:</strong> casa6 conda environment, ~500 MB disk space</p>
 <hr/>
@@ -1602,7 +1608,7 @@ bash<span class="w"> </span>scripts/test_pipeline_end_to_end.sh<span class="w"> 
 </code></pre></div>
 <p><strong>Best for:</strong> Testing calibration/imaging stages with production data</p>
 <hr/>
-<h3 id="option-2-manual-3-stage-quick-look-from-docsquicklookmd">Option 2: Manual 3-Stage Quick-Look (from docs/quicklook.md)<a class="headerlink" href="#option-2-manual-3-stage-quick-look-from-docsquicklookmd" title="Permanent link">¶</a></h3>
+<h3 id="option-2-manual-3-stage-quick-look">Option 2: Manual 3-Stage Quick-Look<a class="headerlink" href="#option-2-manual-3-stage-quick-look" title="Permanent link">¶</a></h3>
 <p>For fastest iteration on specific stages:</p>
 <div class="highlight"><pre><span></span><code><span class="c1"># 1. Conversion (if you have UVH5 files)</span>
 scripts/run_conversion.sh<span class="w"> </span>/path/to/uvh5_dir<span class="w"> </span>/scratch/ms<span class="w"> </span><span class="se">\</span>
@@ -1651,7 +1657,8 @@ python<span class="w"> </span>-m<span class="w"> </span>dsa110_contimg.calibrati
 <span class="w">  </span>--ms<span class="w"> </span>/scratch/ms/full_test.ms<span class="w"> </span><span class="se">\</span>
 <span class="w">  </span>--field<span class="w"> </span><span class="m">0</span><span class="w"> </span>--refant<span class="w"> </span><span class="m">1</span><span class="w"> </span>--fast
 </code></pre></div>
-<p><strong>Best for:</strong> Faster calibration iteration (preserves full bandwidth, reduces baselines/times)</p>
+<p><strong>Best for:</strong> Faster calibration iteration (preserves full bandwidth, reduces
+baselines/times)</p>
 <hr/>
 <h3 id="option-5-check-upstream-delay-correction">Option 5: Check Upstream Delay Correction<a class="headerlink" href="#option-5-check-upstream-delay-correction" title="Permanent link">¶</a></h3>
 <p>Verify if delays are already corrected before calibration:</p>
@@ -1659,15 +1666,21 @@ python<span class="w"> </span>-m<span class="w"> </span>dsa110_contimg.calibrati
 <span class="w">  </span>&lt;ms_path&gt;<span class="w"> </span><span class="se">\</span>
 <span class="w">  </span>--n-baselines<span class="w"> </span><span class="m">50</span>
 </code></pre></div>
-<p><strong>Output interpretation:</strong>
-- &lt;1 ns: Likely corrected upstream ✓
-- 1-5 ns: Partial correction (may need K-calibration)
-- &gt;5 ns: Needs K-calibration (use <code>--do-k</code> flag)</p>
+<p><strong>Output interpretation:</strong></p>
+<ul>
+<li>&lt;1 ns: Likely corrected upstream ✓</li>
+<li>1-5 ns: Partial correction (may need K-calibration)</li>
+<li>
+<blockquote>
+<p>5 ns: Needs K-calibration (use <code>--do-k</code> flag)</p>
+</blockquote>
+</li>
+</ul>
 <p><strong>Best for:</strong> Determining if K-calibration is needed</p>
 <hr/>
 <h2 id="stage-by-stage-verification">Stage-by-Stage Verification<a class="headerlink" href="#stage-by-stage-verification" title="Permanent link">¶</a></h2>
 <h3 id="stage-1-conversion-uvh5-ms">Stage 1: Conversion (UVH5 → MS)<a class="headerlink" href="#stage-1-conversion-uvh5-ms" title="Permanent link">¶</a></h3>
-<p><strong>Test:</strong>
+<p><strong>Test:</strong></p>
 <div class="highlight"><pre><span></span><code>python<span class="w"> </span>-m<span class="w"> </span>dsa110_contimg.conversion.strategies.hdf5_orchestrator<span class="w"> </span><span class="se">\</span>
 <span class="w">  </span>/path/to/uvh5_dir<span class="w"> </span><span class="se">\</span>
 <span class="w">  </span>/scratch/ms<span class="w"> </span><span class="se">\</span>
@@ -1675,34 +1688,44 @@ python<span class="w"> </span>-m<span class="w"> </span>dsa110_contimg.calibrati
 <span class="w">  </span><span class="s2">"2025-01-15T12:01:00"</span><span class="w"> </span><span class="se">\</span>
 <span class="w">  </span>--writer<span class="w"> </span>auto<span class="w"> </span><span class="se">\</span>
 <span class="w">  </span>--max-workers<span class="w"> </span><span class="m">4</span>
-</code></pre></div></p>
-<p><strong>Verify:</strong>
-- MS created in output directory
-- MS has correct columns: <code>DATA</code>, <code>MODEL_DATA</code>, <code>CORRECTED_DATA</code>, <code>WEIGHT_SPECTRUM</code>
-- No errors in logs
-- MS can be opened with <code>casatasks</code>: <code>python -c "from casacore.tables import table; t = table('${MS_PATH}'); print(t.nrows())"</code></p>
-<p><strong>Common issues:</strong>
-- Missing subbands → Check file pattern matches <code>*_sb??.hdf5</code>
-- Writer errors → Try <code>--writer direct-subband</code> explicitly
-- Memory issues → Reduce <code>--max-workers</code> or disable tmpfs staging</p>
+</code></pre></div>
+<p><strong>Verify:</strong></p>
+<ul>
+<li>MS created in output directory</li>
+<li>MS has correct columns: <code>DATA</code>, <code>MODEL_DATA</code>, <code>CORRECTED_DATA</code>,
+  <code>WEIGHT_SPECTRUM</code></li>
+<li>No errors in logs</li>
+<li>MS can be opened with <code>casatasks</code>:
+  <code>python -c "from casacore.tables import table; t = table('${MS_PATH}'); print(t.nrows())"</code></li>
+</ul>
+<p><strong>Common issues:</strong></p>
+<ul>
+<li>Missing subbands → Check file pattern matches <code>*_sb??.hdf5</code></li>
+<li>Writer errors → Try <code>--writer direct-subband</code> explicitly</li>
+<li>Memory issues → Reduce <code>--max-workers</code> or disable tmpfs staging</li>
+</ul>
 <hr/>
 <h3 id="stage-2-rfi-flagging">Stage 2: RFI Flagging<a class="headerlink" href="#stage-2-rfi-flagging" title="Permanent link">¶</a></h3>
-<p><strong>Test:</strong>
+<p><strong>Test:</strong></p>
 <div class="highlight"><pre><span></span><code>python<span class="w"> </span>-m<span class="w"> </span>dsa110_contimg.calibration.cli<span class="w"> </span>flag<span class="w"> </span><span class="se">\</span>
 <span class="w">  </span>--ms<span class="w"> </span>/scratch/ms/test.ms<span class="w"> </span><span class="se">\</span>
 <span class="w">  </span>--reset<span class="w"> </span><span class="se">\</span>
 <span class="w">  </span>--flag-zeros
-</code></pre></div></p>
-<p><strong>Verify:</strong>
-- Flags reset to False
-- Zero visibilities flagged
-- MS still readable</p>
-<p><strong>Common issues:</strong>
-- MS locked → Check no other processes accessing MS
-- No flags column → Should be created automatically</p>
+</code></pre></div>
+<p><strong>Verify:</strong></p>
+<ul>
+<li>Flags reset to False</li>
+<li>Zero visibilities flagged</li>
+<li>MS still readable</li>
+</ul>
+<p><strong>Common issues:</strong></p>
+<ul>
+<li>MS locked → Check no other processes accessing MS</li>
+<li>No flags column → Should be created automatically</li>
+</ul>
 <hr/>
 <h3 id="stage-3-calibration-kbpg">Stage 3: Calibration (K/BP/G)<a class="headerlink" href="#stage-3-calibration-kbpg" title="Permanent link">¶</a></h3>
-<p><strong>Test:</strong>
+<p><strong>Test:</strong></p>
 <div class="highlight"><pre><span></span><code>python<span class="w"> </span>-m<span class="w"> </span>dsa110_contimg.calibration.cli<span class="w"> </span>calibrate<span class="w"> </span><span class="se">\</span>
 <span class="w">  </span>--ms<span class="w"> </span>/scratch/ms/test.ms<span class="w"> </span><span class="se">\</span>
 <span class="w">  </span>--field<span class="w"> </span><span class="m">0</span><span class="w"> </span><span class="se">\</span>
@@ -1711,48 +1734,68 @@ python<span class="w"> </span>-m<span class="w"> </span>dsa110_contimg.calibrati
 <span class="w">  </span>--timebin<span class="w"> </span>30s<span class="w"> </span><span class="se">\</span>
 <span class="w">  </span>--chanbin<span class="w"> </span><span class="m">4</span><span class="w"> </span><span class="se">\</span>
 <span class="w">  </span>--uvrange<span class="w"> </span><span class="s1">'&gt;1klambda'</span>
-</code></pre></div></p>
-<p><strong>Note:</strong> K-calibration is <strong>skipped by default</strong> for DSA-110. Use <code>--do-k</code> to enable.</p>
-<p><strong>Verify:</strong>
-- Caltables created: <code>test.ms.bpcal</code>, <code>test.ms.gcal</code> (and <code>test.ms.kcal</code> if <code>--do-k</code>)
-- No errors in logs
-- Caltables readable: <code>python -c "from casacore.tables import table; t = table('test.ms.bpcal'); print(t.nrows())"</code></p>
-<p><strong>Common issues:</strong>
-- No calibrator field → Ensure field 0 (or specified field) has bright source
-- Low SNR → Increase <code>--timebin</code> or remove <code>--uvrange</code> cut
-- K-calibration fails → Check if delays corrected upstream (see Option 5)</p>
+</code></pre></div>
+<p><strong>Note:</strong> K-calibration is <strong>skipped by default</strong> for DSA-110. Use <code>--do-k</code> to
+enable.</p>
+<p><strong>Verify:</strong></p>
+<ul>
+<li>Caltables created: <code>test.ms.bpcal</code>, <code>test.ms.gcal</code> (and <code>test.ms.kcal</code> if
+  <code>--do-k</code>)</li>
+<li>No errors in logs</li>
+<li>Caltables readable:
+  <code>python -c "from casacore.tables import table; t = table('test.ms.bpcal'); print(t.nrows())"</code></li>
+</ul>
+<p><strong>Common issues:</strong></p>
+<ul>
+<li>No calibrator field → Ensure field 0 (or specified field) has bright source</li>
+<li>Low SNR → Increase <code>--timebin</code> or remove <code>--uvrange</code> cut</li>
+<li>K-calibration fails → Check if delays corrected upstream (see Option 5)</li>
+</ul>
 <hr/>
 <h3 id="stage-4-apply-calibration">Stage 4: Apply Calibration<a class="headerlink" href="#stage-4-apply-calibration" title="Permanent link">¶</a></h3>
-<p><strong>Test:</strong>
+<p><strong>Test:</strong></p>
 <div class="highlight"><pre><span></span><code>python<span class="w"> </span>-m<span class="w"> </span>dsa110_contimg.calibration.cli<span class="w"> </span>apply<span class="w"> </span><span class="se">\</span>
 <span class="w">  </span>--ms<span class="w"> </span>/scratch/ms/test.ms
-</code></pre></div></p>
-<p><strong>Verify:</strong>
-- <code>CORRECTED_DATA</code> column has non-zero values
-- No errors in logs
-- Check values: <code>python -c "from casacore.tables import table; t = table('test.ms'); cd = t.getcol('CORRECTED_DATA'); print('Non-zero:', (cd != 0).sum())"</code></p>
-<p><strong>Common issues:</strong>
-- No caltables found → Check caltable registry: <code>python -m dsa110_contimg.database.registry_cli list</code>
-- CORRECTED_DATA all zeros → Verify caltables are valid and applied in correct order</p>
+</code></pre></div>
+<p><strong>Verify:</strong></p>
+<ul>
+<li><code>CORRECTED_DATA</code> column has non-zero values</li>
+<li>No errors in logs</li>
+<li>Check values:
+  <code>python -c "from casacore.tables import table; t = table('test.ms'); cd = t.getcol('CORRECTED_DATA'); print('Non-zero:', (cd != 0).sum())"</code></li>
+</ul>
+<p><strong>Common issues:</strong></p>
+<ul>
+<li>No caltables found → Check caltable registry:
+  <code>python -m dsa110_contimg.database.registry_cli list</code></li>
+<li>CORRECTED_DATA all zeros → Verify caltables are valid and applied in correct
+  order</li>
+</ul>
 <hr/>
 <h3 id="stage-5-imaging">Stage 5: Imaging<a class="headerlink" href="#stage-5-imaging" title="Permanent link">¶</a></h3>
-<p><strong>Test:</strong>
+<p><strong>Test:</strong></p>
 <div class="highlight"><pre><span></span><code>scripts/image_ms.sh<span class="w"> </span>/scratch/ms/test.ms<span class="w"> </span>/scratch/out/test<span class="w"> </span><span class="se">\</span>
 <span class="w">  </span>--quick<span class="w"> </span><span class="se">\</span>
 <span class="w">  </span>--skip-fits<span class="w"> </span><span class="se">\</span>
 <span class="w">  </span>--uvrange<span class="w"> </span><span class="s1">'&gt;1klambda'</span>
-</code></pre></div></p>
-<p><strong>Verify:</strong>
-- Image created: <code>test.image</code> directory
-- No errors in logs
-- Image readable: <code>python -c "from casacore.tables import table; t = table('test.image'); print('Shape:', t.getcol('map').shape)"</code></p>
-<p><strong>Common issues:</strong>
-- tclean fails → Check if <code>CORRECTED_DATA</code> exists and is non-zero (or falls back to <code>DATA</code>)
-- Out of memory → Reduce <code>imsize</code> or use <code>--quality-tier development</code>
-- No convergence → Increase <code>--niter</code> or adjust threshold</p>
+</code></pre></div>
+<p><strong>Verify:</strong></p>
+<ul>
+<li>Image created: <code>test.image</code> directory</li>
+<li>No errors in logs</li>
+<li>Image readable:
+  <code>python -c "from casacore.tables import table; t = table('test.image'); print('Shape:', t.getcol('map').shape)"</code></li>
+</ul>
+<p><strong>Common issues:</strong></p>
+<ul>
+<li>tclean fails → Check if <code>CORRECTED_DATA</code> exists and is non-zero (or falls back
+  to <code>DATA</code>)</li>
+<li>Out of memory → Reduce <code>imsize</code> or use <code>--quality-tier development</code></li>
+<li>No convergence → Increase <code>--niter</code> or adjust threshold</li>
+</ul>
 <hr/>
 <h3 id="stage-6-qa-checks">Stage 6: QA Checks<a class="headerlink" href="#stage-6-qa-checks" title="Permanent link">¶</a></h3>
-<p><strong>Test:</strong>
+<p><strong>Test:</strong></p>
 <div class="highlight"><pre><span></span><code>python<span class="w"> </span><span class="s">&lt;&lt;PY</span>
 <span class="s">from dsa110_contimg.qa.pipeline_quality import (</span>
 <span class="s">    check_ms_after_conversion,</span>
@@ -1760,7 +1803,7 @@ python<span class="w"> </span>-m<span class="w"> </span>dsa110_contimg.calibrati
 <span class="s">)</span>
 
 <span class="s"># MS QA</span>
-<span class="s">passed, metrics = check_ms_after_conversion("/scratch/ms/test.ms", </span>
+<span class="s">passed, metrics = check_ms_after_conversion("/scratch/ms/test.ms",</span>
 <span class="s">                                             quick_check_only=True)</span>
 <span class="s">print(f"MS QA: {'PASS' if passed else 'FAIL'}")</span>
 <span class="s">print(f"Metrics: {metrics}")</span>
@@ -1771,18 +1814,22 @@ python<span class="w"> </span>-m<span class="w"> </span>dsa110_contimg.calibrati
 <span class="s">print(f"Image QA: {'PASS' if passed else 'FAIL'}")</span>
 <span class="s">print(f"Metrics: {metrics}")</span>
 <span class="s">PY</span>
-</code></pre></div></p>
-<p><strong>Verify:</strong>
-- QA checks return <code>passed=True</code> (or identify specific issues)
-- Metrics are reasonable (no NaN/Inf values)
-- QA plots generated (if enabled)</p>
+</code></pre></div>
+<p><strong>Verify:</strong></p>
+<ul>
+<li>QA checks return <code>passed=True</code> (or identify specific issues)</li>
+<li>Metrics are reasonable (no NaN/Inf values)</li>
+<li>QA plots generated (if enabled)</li>
+</ul>
 <hr/>
 <h2 id="debugging-tips">Debugging Tips<a class="headerlink" href="#debugging-tips" title="Permanent link">¶</a></h2>
 <h3 id="1-check-logs">1. Check Logs<a class="headerlink" href="#1-check-logs" title="Permanent link">¶</a></h3>
-<p>All pipeline stages output detailed logs:
-- Conversion: Check orchestrator output for writer type, timing, errors
-- Calibration: Check for solve statistics, reference antenna warnings
-- Imaging: Check tclean convergence, deconvolution progress</p>
+<p>All pipeline stages output detailed logs:</p>
+<ul>
+<li>Conversion: Check orchestrator output for writer type, timing, errors</li>
+<li>Calibration: Check for solve statistics, reference antenna warnings</li>
+<li>Imaging: Check tclean convergence, deconvolution progress</li>
+</ul>
 <h3 id="2-validate-ms-structure">2. Validate MS Structure<a class="headerlink" href="#2-validate-ms-structure" title="Permanent link">¶</a></h3>
 <div class="highlight"><pre><span></span><code>python<span class="w"> </span><span class="s">&lt;&lt;PY</span>
 <span class="s">from casacore.tables import table</span>
@@ -1805,24 +1852,30 @@ python<span class="w"> </span>-m<span class="w"> </span>dsa110_contimg.calibrati
 <h3 id="3-verify-data-accessibility">3. Verify Data Accessibility<a class="headerlink" href="#3-verify-data-accessibility" title="Permanent link">¶</a></h3>
 <div class="highlight"><pre><span></span><code>python<span class="w"> </span>scripts/test_data_accessibility.py
 </code></pre></div>
-<p>This checks:
-- MS files readable
-- Image directories accessible
-- Database connectivity
-- Temp directories writable</p>
+<p>This checks:</p>
+<ul>
+<li>MS files readable</li>
+<li>Image directories accessible</li>
+<li>Database connectivity</li>
+<li>Temp directories writable</li>
+</ul>
 <h3 id="4-check-calibration-tables">4. Check Calibration Tables<a class="headerlink" href="#4-check-calibration-tables" title="Permanent link">¶</a></h3>
 <div class="highlight"><pre><span></span><code>python<span class="w"> </span>-m<span class="w"> </span>dsa110_contimg.database.registry_cli<span class="w"> </span>list
 </code></pre></div>
-<p>This shows:
-- Registered caltables
-- Validity windows
-- Apply order</p>
+<p>This shows:</p>
+<ul>
+<li>Registered caltables</li>
+<li>Validity windows</li>
+<li>Apply order</li>
+</ul>
 <h3 id="5-test-with-minimal-data">5. Test with Minimal Data<a class="headerlink" href="#5-test-with-minimal-data" title="Permanent link">¶</a></h3>
-<p>If full pipeline fails, test stages individually:
-1. Create minimal synthetic data (4 subbands, 1 minute)
-2. Test conversion only
-3. Test calibration on converted MS
-4. Test imaging on calibrated MS</p>
+<p>If full pipeline fails, test stages individually:</p>
+<ol>
+<li>Create minimal synthetic data (4 subbands, 1 minute)</li>
+<li>Test conversion only</li>
+<li>Test calibration on converted MS</li>
+<li>Test imaging on calibrated MS</li>
+</ol>
 <hr/>
 <h2 id="expected-outputs">Expected Outputs<a class="headerlink" href="#expected-outputs" title="Permanent link">¶</a></h2>
 <h3 id="successful-conversion">Successful Conversion<a class="headerlink" href="#successful-conversion" title="Permanent link">¶</a></h3>
@@ -1856,29 +1909,37 @@ python<span class="w"> </span>-m<span class="w"> </span>dsa110_contimg.calibrati
 <hr/>
 <h2 id="troubleshooting">Troubleshooting<a class="headerlink" href="#troubleshooting" title="Permanent link">¶</a></h2>
 <h3 id="problem-conversion-fails">Problem: Conversion fails<a class="headerlink" href="#problem-conversion-fails" title="Permanent link">¶</a></h3>
-<p><strong>Check:</strong>
-- UVH5 file pattern matches <code>*_sb??.hdf5</code>
-- All 16 subbands present (or reduced set if using minimal config)
-- Timestamps match search window
-- Sufficient disk space in scratch directory</p>
+<p><strong>Check:</strong></p>
+<ul>
+<li>UVH5 file pattern matches <code>*_sb??.hdf5</code></li>
+<li>All 16 subbands present (or reduced set if using minimal config)</li>
+<li>Timestamps match search window</li>
+<li>Sufficient disk space in scratch directory</li>
+</ul>
 <h3 id="problem-calibration-fails">Problem: Calibration fails<a class="headerlink" href="#problem-calibration-fails" title="Permanent link">¶</a></h3>
-<p><strong>Check:</strong>
-- Calibrator field exists and has bright source
-- Reference antenna is present in MS
-- Sufficient baselines for solving
-- Delays already corrected (may not need K-calibration)</p>
+<p><strong>Check:</strong></p>
+<ul>
+<li>Calibrator field exists and has bright source</li>
+<li>Reference antenna is present in MS</li>
+<li>Sufficient baselines for solving</li>
+<li>Delays already corrected (may not need K-calibration)</li>
+</ul>
 <h3 id="problem-imaging-fails">Problem: Imaging fails<a class="headerlink" href="#problem-imaging-fails" title="Permanent link">¶</a></h3>
-<p><strong>Check:</strong>
-- <code>CORRECTED_DATA</code> exists and non-zero (or <code>DATA</code> if no calibration)
-- Sufficient memory for imsize
-- UV range has data (<code>--uvrange</code> may be too restrictive)
-- Convergence criteria met (increase <code>--niter</code> if needed)</p>
+<p><strong>Check:</strong></p>
+<ul>
+<li><code>CORRECTED_DATA</code> exists and non-zero (or <code>DATA</code> if no calibration)</li>
+<li>Sufficient memory for imsize</li>
+<li>UV range has data (<code>--uvrange</code> may be too restrictive)</li>
+<li>Convergence criteria met (increase <code>--niter</code> if needed)</li>
+</ul>
 <h3 id="problem-qa-checks-fail">Problem: QA checks fail<a class="headerlink" href="#problem-qa-checks-fail" title="Permanent link">¶</a></h3>
-<p><strong>Check:</strong>
-- MS structure is valid (all required columns present)
-- Image dimensions match expected
-- No corrupted data (NaN/Inf)
-- Metrics thresholds are appropriate for test data</p>
+<p><strong>Check:</strong></p>
+<ul>
+<li>MS structure is valid (all required columns present)</li>
+<li>Image dimensions match expected</li>
+<li>No corrupted data (NaN/Inf)</li>
+<li>Metrics thresholds are appropriate for test data</li>
+</ul>
 <hr/>
 <h2 id="next-steps">Next Steps<a class="headerlink" href="#next-steps" title="Permanent link">¶</a></h2>
 <p>After verifying all stages work:</p>
@@ -1892,12 +1953,11 @@ python<span class="w"> </span>-m<span class="w"> </span>dsa110_contimg.calibrati
 <hr/>
 <h2 id="references">References<a class="headerlink" href="#references" title="Permanent link">¶</a></h2>
 <ul>
-<li><strong>Quick-look guide:</strong> <code>docs/quicklook.md</code></li>
-<li><strong>Quick-start guide:</strong> <code>docs/quickstart.md</code></li>
-<li><strong>Pipeline overview:</strong> <code>docs/pipeline.md</code></li>
-<li><strong>Simulation docs:</strong> <code>docs/simulation/README.md</code> (if exists)</li>
-<li><strong>Test results:</strong> <code>docs/reports/TESTING_COMPLETE_SUMMARY.md</code></li>
+<li><strong>Streaming:</strong> <code>docs/how-to/streaming.md</code></li>
+<li><strong>Dashboard:</strong> <code>docs/how-to/dashboard.md</code></li>
+<li><strong>Project index:</strong> <code>docs/index.md</code></li>
 </ul>
+<!-- Removed archived test results link that no longer exists -->
 </article>
 </div>
 <script>var tabs=__md_get("__tabs");if(Array.isArray(tabs))e:for(var set of document.querySelectorAll(".tabbed-set")){var tab,labels=set.querySelector(".tabbed-labels");for(tab of tabs)for(var label of labels.getElementsByTagName("label"))if(label.innerText.trim()===tab){var input=document.getElementById(label.htmlFor);input.checked=!0;continue e}}</script>

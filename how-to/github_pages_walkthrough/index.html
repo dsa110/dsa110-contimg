@@ -1498,7 +1498,8 @@
 <p><strong>Date:</strong> 2025-11-12<br/>
 <strong>Repository:</strong> <code>dsa110/dsa110-contimg</code></p>
 <h2 id="overview">Overview<a class="headerlink" href="#overview" title="Permanent link">¶</a></h2>
-<p>This walkthrough explains how the GitHub Pages deployment is configured for this project and how to use it.</p>
+<p>This walkthrough explains how the GitHub Pages deployment is configured for this
+project and how to use it.</p>
 <h2 id="current-configuration">Current Configuration<a class="headerlink" href="#current-configuration" title="Permanent link">¶</a></h2>
 <h3 id="1-mkdocs-configuration-mkdocsyml">1. MkDocs Configuration (<code>mkdocs.yml</code>)<a class="headerlink" href="#1-mkdocs-configuration-mkdocsyml" title="Permanent link">¶</a></h3>
 <div class="highlight"><pre><span></span><code><span class="nt">site_name</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">DSA-110 Continuum Imaging Pipeline</span>
@@ -1506,27 +1507,29 @@
 <span class="nt">repo_url</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">https://github.com/dsa110/dsa110-contimg</span>
 <span class="nt">docs_dir</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">docs</span>
 </code></pre></div>
-<p><strong>Key points:</strong>
-- <code>site_url</code>: Where your documentation will be hosted
-  - Your actual domain: <code>http://code.deepsynoptic.org/dsa110-contimg/</code>
-  - (Custom domain/reverse proxy setup, not standard GitHub Pages)
-- <code>docs_dir</code>: Where your source documentation lives (<code>docs/</code> folder)</p>
+<p><strong>Key points:</strong></p>
+<ul>
+<li><code>site_url</code>: Where your documentation will be hosted</li>
+<li>Your actual domain: <code>http://code.deepsynoptic.org/dsa110-contimg/</code></li>
+<li>(Custom domain/reverse proxy setup, not standard GitHub Pages)</li>
+<li><code>docs_dir</code>: Where your source documentation lives (<code>docs/</code> folder)</li>
+</ul>
 <h3 id="2-github-actions-workflow-githubworkflowsdocsyml">2. GitHub Actions Workflow (<code>.github/workflows/docs.yml</code>)<a class="headerlink" href="#2-github-actions-workflow-githubworkflowsdocsyml" title="Permanent link">¶</a></h3>
 <p>The workflow has three triggers:</p>
-<p><strong>A. Push to main/master</strong> (deploys to GitHub Pages)
+<p><strong>A. Push to main/master</strong> (deploys to GitHub Pages)</p>
 <div class="highlight"><pre><span></span><code><span class="nt">on</span><span class="p">:</span>
 <span class="w">  </span><span class="nt">push</span><span class="p">:</span>
 <span class="w">    </span><span class="nt">branches</span><span class="p">:</span><span class="w"> </span><span class="p p-Indicator">[</span><span class="nv">main</span><span class="p p-Indicator">,</span><span class="w"> </span><span class="nv">master</span><span class="p p-Indicator">]</span>
 <span class="w">    </span><span class="nt">paths</span><span class="p">:</span>
-<span class="w">      </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="s">'docs/**'</span>
-<span class="w">      </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="s">'mkdocs.yml'</span>
-<span class="w">      </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="s">'.github/workflows/docs.yml'</span>
-<span class="w">      </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="s">'docs/javascripts/**'</span>
-</code></pre></div></p>
-<p><strong>B. Pull Request</strong> (builds and tests, but doesn't deploy)
-<div class="highlight"><pre><span></span><code><span class="w">  </span><span class="nt">pull_request</span><span class="p">:</span>
-<span class="w">    </span><span class="nt">paths</span><span class="p">:</span><span class="w"> </span><span class="p p-Indicator">[</span><span class="nv">...</span><span class="p p-Indicator">]</span>
-</code></pre></div></p>
+<span class="w">      </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="s">"docs/"</span>
+<span class="w">      </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="s">"mkdocs.yml"</span>
+<span class="w">      </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="s">".github/workflows/docs.yml"</span>
+<span class="w">      </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">docs/javascripts/ (custom JavaScript)</span>
+</code></pre></div>
+<p><strong>B. Pull Request</strong> (builds and tests, but doesn't deploy)</p>
+<div class="highlight"><pre><span></span><code><span class="nt">pull_request</span><span class="p">:</span>
+<span class="w">  </span><span class="nt">paths</span><span class="p">:</span><span class="w"> </span><span class="p p-Indicator">[</span><span class="nv">...</span><span class="p p-Indicator">]</span>
+</code></pre></div>
 <p><strong>C. Manual trigger</strong> (workflow_dispatch - run from GitHub UI)</p>
 <h2 id="step-by-step-setup">Step-by-Step Setup<a class="headerlink" href="#step-by-step-setup" title="Permanent link">¶</a></h2>
 <h3 id="step-1-enable-github-pages-in-repository-settings">Step 1: Enable GitHub Pages in Repository Settings<a class="headerlink" href="#step-1-enable-github-pages-in-repository-settings" title="Permanent link">¶</a></h3>
@@ -1540,7 +1543,8 @@
 <li><strong>Folder:</strong> <code>/ (root)</code></li>
 <li>Click <strong>Save</strong></li>
 </ol>
-<p><strong>What happens:</strong> GitHub creates a <code>gh-pages</code> branch (if it doesn't exist) and serves files from it.</p>
+<p><strong>What happens:</strong> GitHub creates a <code>gh-pages</code> branch (if it doesn't exist) and
+serves files from it.</p>
 <h3 id="step-2-verify-workflow-is-ready">Step 2: Verify Workflow is Ready<a class="headerlink" href="#step-2-verify-workflow-is-ready" title="Permanent link">¶</a></h3>
 <ol>
 <li>Go to <strong>Actions</strong> tab in your repository</li>
@@ -1592,16 +1596,20 @@ git<span class="w"> </span>push<span class="w"> </span>origin<span class="w"> </
 </ol>
 <h2 id="how-hot-reload-works">How "Hot Reload" Works<a class="headerlink" href="#how-hot-reload-works" title="Permanent link">¶</a></h2>
 <h3 id="automatic-rebuilds">Automatic Rebuilds<a class="headerlink" href="#automatic-rebuilds" title="Permanent link">¶</a></h3>
-<p>Every time you push to <code>main</code> with changes to:
-- <code>docs/**</code> (any documentation file)
-- <code>mkdocs.yml</code> (configuration)
-- <code>.github/workflows/docs.yml</code> (workflow itself)
-- <code>docs/javascripts/**</code> (custom JavaScript)</p>
-<p>The workflow automatically:
-1. ✅ Builds the documentation
-2. ✅ Tests links and diagrams
-3. ✅ Deploys to GitHub Pages
-4. ✅ Updates the live site within 1-2 minutes</p>
+<p>Every time you push to <code>main</code> with changes to:</p>
+<ul>
+<li><code>docs/</code> (any documentation file)</li>
+<li><code>mkdocs.yml</code> (configuration)</li>
+<li><code>.github/workflows/docs.yml</code> (workflow itself)</li>
+<li>docs/javascripts/ (custom JavaScript)</li>
+</ul>
+<p>The workflow automatically:</p>
+<ol>
+<li>✅ Builds the documentation</li>
+<li>✅ Tests links and diagrams</li>
+<li>✅ Deploys to GitHub Pages</li>
+<li>✅ Updates the live site within 1-2 minutes</li>
+</ol>
 <h3 id="example-workflow">Example Workflow<a class="headerlink" href="#example-workflow" title="Permanent link">¶</a></h3>
 <div class="highlight"><pre><span></span><code>You edit docs/concepts/pipeline_overview.md
     ↓
@@ -1630,11 +1638,13 @@ Your changes are live! 🎉
 <span class="c1"># Visit http://127.0.0.1:8001</span>
 </code></pre></div>
 <h3 id="pull-request-testing">Pull Request Testing<a class="headerlink" href="#pull-request-testing" title="Permanent link">¶</a></h3>
-<p>When you open a PR:
-- Workflow runs but <strong>doesn't deploy</strong>
-- Validates that documentation builds successfully
-- Checks links and diagrams
-- You can see build errors before merging</p>
+<p>When you open a PR:</p>
+<ul>
+<li>Workflow runs but <strong>doesn't deploy</strong></li>
+<li>Validates that documentation builds successfully</li>
+<li>Checks links and diagrams</li>
+<li>You can see build errors before merging</li>
+</ul>
 <h2 id="troubleshooting">Troubleshooting<a class="headerlink" href="#troubleshooting" title="Permanent link">¶</a></h2>
 <h3 id="site-not-updating">Site Not Updating<a class="headerlink" href="#site-not-updating" title="Permanent link">¶</a></h3>
 <ol>
@@ -1645,40 +1655,42 @@ Your changes are live! 🎉
 </ol>
 <h3 id="build-failures">Build Failures<a class="headerlink" href="#build-failures" title="Permanent link">¶</a></h3>
 <p>Common issues:</p>
-<p><strong>Missing dependencies:</strong>
+<p><strong>Missing dependencies:</strong></p>
 <div class="highlight"><pre><span></span><code><span class="c1"># Check docs/requirements.txt exists</span>
 cat<span class="w"> </span>docs/requirements.txt
-</code></pre></div></p>
-<p><strong>MkDocs errors:</strong>
+</code></pre></div>
+<p><strong>MkDocs errors:</strong></p>
 <div class="highlight"><pre><span></span><code><span class="c1"># Test build locally</span>
 /opt/miniforge/envs/casa6/bin/python<span class="w"> </span>-m<span class="w"> </span>mkdocs<span class="w"> </span>build<span class="w"> </span>--strict
-</code></pre></div></p>
-<p><strong>Link errors:</strong>
-- Check the "link-check" job in Actions
-- Fix broken links in your markdown files</p>
+</code></pre></div>
+<p><strong>Link errors:</strong></p>
+<ul>
+<li>Check the "link-check" job in Actions</li>
+<li>Fix broken links in your markdown files</li>
+</ul>
 <h3 id="deployment-not-happening">Deployment Not Happening<a class="headerlink" href="#deployment-not-happening" title="Permanent link">¶</a></h3>
-<p>Check:
-1. ✅ Are you pushing to <code>main</code> or <code>master</code>?
-2. ✅ Did you change files in <code>docs/</code> or <code>mkdocs.yml</code>?
-3. ✅ Is GitHub Pages enabled in Settings → Pages?
-4. ✅ Check workflow logs for errors</p>
+<p>Check:</p>
+<ol>
+<li>✅ Are you pushing to <code>main</code> or <code>master</code>?</li>
+<li>✅ Did you change files in <code>docs/</code> or <code>mkdocs.yml</code>?</li>
+<li>✅ Is GitHub Pages enabled in Settings → Pages?</li>
+<li>✅ Check workflow logs for errors</li>
+</ol>
 <h2 id="advanced-configuration">Advanced Configuration<a class="headerlink" href="#advanced-configuration" title="Permanent link">¶</a></h2>
 <h3 id="custom-domain">Custom Domain<a class="headerlink" href="#custom-domain" title="Permanent link">¶</a></h3>
 <p>If you want a custom domain (e.g., <code>docs.yoursite.com</code>):</p>
 <ol>
-<li>
-<p>Add <code>CNAME</code> file to <code>docs/</code> directory:
-   <div class="highlight"><pre><span></span><code><span class="nb">echo</span><span class="w"> </span><span class="s2">"docs.yoursite.com"</span><span class="w"> </span>&gt;<span class="w"> </span>docs/CNAME
-</code></pre></div></p>
-</li>
-<li>
-<p>Update <code>mkdocs.yml</code>:
-   <div class="highlight"><pre><span></span><code><span class="nt">site_url</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">https://docs.yoursite.com/</span>
-</code></pre></div></p>
-</li>
-<li>
-<p>Configure DNS with your domain provider</p>
-</li>
+<li>Add <code>CNAME</code> file to <code>docs/</code> directory:</li>
+</ol>
+<div class="highlight"><pre><span></span><code><span class="nb">echo</span><span class="w"> </span><span class="s2">"docs.yoursite.com"</span><span class="w"> </span>&gt;<span class="w"> </span>docs/CNAME
+</code></pre></div>
+<ol>
+<li>Update <code>mkdocs.yml</code>:</li>
+</ol>
+<div class="highlight"><pre><span></span><code><span class="nt">site_url</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">https://docs.yoursite.com/</span>
+</code></pre></div>
+<ol>
+<li>Configure DNS with your domain provider</li>
 </ol>
 <h3 id="branch-protection">Branch Protection<a class="headerlink" href="#branch-protection" title="Permanent link">¶</a></h3>
 <p>To prevent accidental deployments:</p>
@@ -1698,15 +1710,19 @@ cat<span class="w"> </span>docs/requirements.txt
 <li>Click <strong>Run workflow</strong></li>
 </ol>
 <h2 id="summary">Summary<a class="headerlink" href="#summary" title="Permanent link">¶</a></h2>
-<p><strong>Your setup:</strong>
-- ✅ Workflow configured (<code>.github/workflows/docs.yml</code>)
-- ✅ MkDocs configured (<code>mkdocs.yml</code>)
-- ✅ Automatic deployment on push to <code>main</code>
-- ⏳ <strong>Next step:</strong> Enable GitHub Pages in repository settings</p>
-<p><strong>After enabling GitHub Pages:</strong>
-- Push to <code>main</code> → Docs deploy automatically
-- Changes go live in 1-2 minutes
-- No manual steps needed!</p>
+<p><strong>Your setup:</strong></p>
+<ul>
+<li>✅ Workflow configured (<code>.github/workflows/docs.yml</code>)</li>
+<li>✅ MkDocs configured (<code>mkdocs.yml</code>)</li>
+<li>✅ Automatic deployment on push to <code>main</code></li>
+<li>⏳ <strong>Next step:</strong> Enable GitHub Pages in repository settings</li>
+</ul>
+<p><strong>After enabling GitHub Pages:</strong></p>
+<ul>
+<li>Push to <code>main</code> → Docs deploy automatically</li>
+<li>Changes go live in 1-2 minutes</li>
+<li>No manual steps needed!</li>
+</ul>
 <h2 id="quick-reference">Quick Reference<a class="headerlink" href="#quick-reference" title="Permanent link">¶</a></h2>
 <p><strong>Repository:</strong> <code>https://github.com/dsa110/dsa110-contimg</code><br/>
 <strong>Site URL:</strong> <code>http://code.deepsynoptic.org/dsa110-contimg/</code><br/>

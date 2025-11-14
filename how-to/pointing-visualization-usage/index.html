@@ -1363,9 +1363,12 @@
 <hr/>
 <h2 id="quick-start">Quick Start<a class="headerlink" href="#quick-start" title="Permanent link">¶</a></h2>
 <ol>
-<li><strong>Access Dashboard</strong>: Navigate to <code>http://localhost:5173/</code> (or your frontend URL)</li>
-<li><strong>View Visualization</strong>: The pointing visualization appears on the main dashboard</li>
-<li><strong>Monitor Status</strong>: Check the status indicators at the top of the visualization</li>
+<li><strong>Access Dashboard</strong>: Navigate to <code>http://localhost:5173/</code> (or your frontend
+   URL)</li>
+<li><strong>View Visualization</strong>: The pointing visualization appears on the main
+   dashboard</li>
+<li><strong>Monitor Status</strong>: Check the status indicators at the top of the
+   visualization</li>
 </ol>
 <hr/>
 <h2 id="understanding-the-visualization">Understanding the Visualization<a class="headerlink" href="#understanding-the-visualization" title="Permanent link">¶</a></h2>
@@ -1430,19 +1433,18 @@
 <h2 id="status-messages">Status Messages<a class="headerlink" href="#status-messages" title="Permanent link">¶</a></h2>
 <h3 id="normal-operation">Normal Operation<a class="headerlink" href="#normal-operation" title="Permanent link">¶</a></h3>
 <ul>
-<li><strong>"Waiting for pointing data..."</strong>: No data available yet (normal on first start)</li>
+<li><strong>"Waiting for pointing data..."</strong>: No data available yet (normal on first
+  start)</li>
 <li><strong>Status indicators show green</strong>: Everything working correctly</li>
 </ul>
 <h3 id="warnings">Warnings<a class="headerlink" href="#warnings" title="Permanent link">¶</a></h3>
 <ul>
 <li><strong>"Pointing monitor is not running"</strong>: Service stopped</li>
-<li>
-<p><strong>Action</strong>: Check service status: <code>sudo systemctl status contimg-pointing-monitor.service</code></p>
-</li>
-<li>
-<p><strong>"Pointing monitor health check failed"</strong>: Service has issues</p>
-</li>
-<li><strong>Action</strong>: Check logs: <code>sudo journalctl -u contimg-pointing-monitor.service -n 50</code></li>
+<li><strong>Action</strong>: Check service status:
+    <code>sudo systemctl status contimg-pointing-monitor.service</code></li>
+<li><strong>"Pointing monitor health check failed"</strong>: Service has issues</li>
+<li><strong>Action</strong>: Check logs:
+    <code>sudo journalctl -u contimg-pointing-monitor.service -n 50</code></li>
 </ul>
 <h3 id="no-data">No Data<a class="headerlink" href="#no-data" title="Permanent link">¶</a></h3>
 <ul>
@@ -1470,53 +1472,61 @@
 <hr/>
 <h2 id="troubleshooting">Troubleshooting<a class="headerlink" href="#troubleshooting" title="Permanent link">¶</a></h2>
 <h3 id="visualization-not-showing">Visualization Not Showing<a class="headerlink" href="#visualization-not-showing" title="Permanent link">¶</a></h3>
-<p><strong>Check 1: Frontend Server</strong>
+<p><strong>Check 1: Frontend Server</strong></p>
 <div class="highlight"><pre><span></span><code>curl<span class="w"> </span>http://localhost:5173
 </code></pre></div>
-Should return HTML. If not, start frontend:
+<p>Should return HTML. If not, start frontend:</p>
 <div class="highlight"><pre><span></span><code><span class="nb">cd</span><span class="w"> </span>/data/dsa110-contimg/frontend
 npm<span class="w"> </span>run<span class="w"> </span>dev
-</code></pre></div></p>
-<p><strong>Check 2: API Server</strong>
+</code></pre></div>
+<p><strong>Check 2: API Server</strong></p>
 <div class="highlight"><pre><span></span><code>curl<span class="w"> </span>http://localhost:8000/api/pointing-monitor/status
 </code></pre></div>
-Should return JSON. If not, check API service.</p>
-<p><strong>Check 3: Browser Console</strong>
-- Open browser developer tools (F12)
-- Check Console tab for errors
-- Check Network tab for failed API requests</p>
+<p>Should return JSON. If not, check API service.</p>
+<p><strong>Check 3: Browser Console</strong></p>
+<ul>
+<li>Open browser developer tools (F12)</li>
+<li>Check Console tab for errors</li>
+<li>Check Network tab for failed API requests</li>
+</ul>
 <h3 id="no-data-displayed">No Data Displayed<a class="headerlink" href="#no-data-displayed" title="Permanent link">¶</a></h3>
-<p><strong>Check Database:</strong>
+<p><strong>Check Database:</strong></p>
 <div class="highlight"><pre><span></span><code>sqlite3<span class="w"> </span>/data/dsa110-contimg/state/products.sqlite3<span class="w"> </span><span class="se">\</span>
 <span class="w">  </span><span class="s2">"SELECT COUNT(*) FROM pointing_history;"</span>
-</code></pre></div></p>
-<p><strong>Check Monitor:</strong>
+</code></pre></div>
+<p><strong>Check Monitor:</strong></p>
 <div class="highlight"><pre><span></span><code>sudo<span class="w"> </span>systemctl<span class="w"> </span>status<span class="w"> </span>contimg-pointing-monitor.service
 cat<span class="w"> </span>/data/dsa110-contimg/state/pointing-monitor-status.json<span class="w"> </span><span class="p">|</span><span class="w"> </span>jq
-</code></pre></div></p>
-<p><strong>Check API:</strong>
+</code></pre></div>
+<p><strong>Check API:</strong></p>
 <div class="highlight"><pre><span></span><code>curl<span class="w"> </span><span class="s2">"http://localhost:8000/api/pointing_history?start_mjd=60300&amp;end_mjd=60400"</span><span class="w"> </span><span class="p">|</span><span class="w"> </span>jq
-</code></pre></div></p>
+</code></pre></div>
 <h3 id="data-not-updating">Data Not Updating<a class="headerlink" href="#data-not-updating" title="Permanent link">¶</a></h3>
-<p><strong>Check Monitor Logs:</strong>
+<p><strong>Check Monitor Logs:</strong></p>
 <div class="highlight"><pre><span></span><code>sudo<span class="w"> </span>journalctl<span class="w"> </span>-u<span class="w"> </span>contimg-pointing-monitor.service<span class="w"> </span>-f
-</code></pre></div></p>
-<p><strong>Check for New Files:</strong>
+</code></pre></div>
+<p><strong>Check for New Files:</strong></p>
 <div class="highlight"><pre><span></span><code>ls<span class="w"> </span>-lt<span class="w"> </span>/data/incoming/*_sb00.hdf5<span class="w"> </span><span class="p">|</span><span class="w"> </span>head<span class="w"> </span>-5
-</code></pre></div></p>
-<p><strong>Verify Processing:</strong>
-- Monitor should log: "Processed pointing from file: ..."
-- Database count should increase
-- Status file should show <code>files_processed</code> increasing</p>
+</code></pre></div>
+<p><strong>Verify Processing:</strong></p>
+<ul>
+<li>Monitor should log: "Processed pointing from file: ..."</li>
+<li>Database count should increase</li>
+<li>Status file should show <code>files_processed</code> increasing</li>
+</ul>
 <h3 id="performance-issues">Performance Issues<a class="headerlink" href="#performance-issues" title="Permanent link">¶</a></h3>
-<p><strong>If Plot is Slow:</strong>
-- Reduce <code>historyDays</code> prop (default: 7)
-- Disable history: <code>showHistory={false}</code>
-- Check data volume: Large datasets may be slow</p>
-<p><strong>If Updates are Slow:</strong>
-- Check network latency
-- Verify API response times
-- Check browser performance</p>
+<p><strong>If Plot is Slow:</strong></p>
+<ul>
+<li>Reduce <code>historyDays</code> prop (default: 7)</li>
+<li>Disable history: <code>showHistory={false}</code></li>
+<li>Check data volume: Large datasets may be slow</li>
+</ul>
+<p><strong>If Updates are Slow:</strong></p>
+<ul>
+<li>Check network latency</li>
+<li>Verify API response times</li>
+<li>Check browser performance</li>
+</ul>
 <hr/>
 <h2 id="configuration">Configuration<a class="headerlink" href="#configuration" title="Permanent link">¶</a></h2>
 <h3 id="component-props">Component Props<a class="headerlink" href="#component-props" title="Permanent link">¶</a></h3>
@@ -1527,35 +1537,35 @@ cat<span class="w"> </span>/data/dsa110-contimg/state/pointing-monitor-status.js
 <span class="err">/&gt;</span>
 </code></pre></div>
 <h3 id="customization">Customization<a class="headerlink" href="#customization" title="Permanent link">¶</a></h3>
-<p><strong>Change History Range:</strong>
-<div class="highlight"><pre><span></span><code><span class="p">&lt;</span><span class="nt">PointingVisualization</span><span class="w"> </span><span class="na">historyDays</span><span class="o">=</span><span class="p">{</span><span class="mf">14</span><span class="p">}</span><span class="w"> </span><span class="p">/&gt;</span><span class="w">  </span><span class="c1">// 2 weeks</span>
-</code></pre></div></p>
-<p><strong>Disable History:</strong>
-<div class="highlight"><pre><span></span><code><span class="p">&lt;</span><span class="nt">PointingVisualization</span><span class="w"> </span><span class="na">showHistory</span><span class="o">=</span><span class="p">{</span><span class="kc">false</span><span class="p">}</span><span class="w"> </span><span class="p">/&gt;</span><span class="w">  </span><span class="c1">// Current only</span>
-</code></pre></div></p>
-<p><strong>Adjust Height:</strong>
-<div class="highlight"><pre><span></span><code><span class="p">&lt;</span><span class="nt">PointingVisualization</span><span class="w"> </span><span class="na">height</span><span class="o">=</span><span class="p">{</span><span class="mf">600</span><span class="p">}</span><span class="w"> </span><span class="p">/&gt;</span><span class="w">  </span><span class="c1">// Taller plot</span>
-</code></pre></div></p>
+<p><strong>Change History Range:</strong></p>
+<div class="highlight"><pre><span></span><code><span class="p">&lt;</span><span class="nt">PointingVisualization</span><span class="w"> </span><span class="na">historyDays</span><span class="o">=</span><span class="p">{</span><span class="mf">14</span><span class="p">}</span><span class="w"> </span><span class="p">/&gt;</span><span class="w"> </span><span class="c1">// 2 weeks</span>
+</code></pre></div>
+<p><strong>Disable History:</strong></p>
+<div class="highlight"><pre><span></span><code><span class="p">&lt;</span><span class="nt">PointingVisualization</span><span class="w"> </span><span class="na">showHistory</span><span class="o">=</span><span class="p">{</span><span class="kc">false</span><span class="p">}</span><span class="w"> </span><span class="p">/&gt;</span><span class="w"> </span><span class="c1">// Current only</span>
+</code></pre></div>
+<p><strong>Adjust Height:</strong></p>
+<div class="highlight"><pre><span></span><code><span class="p">&lt;</span><span class="nt">PointingVisualization</span><span class="w"> </span><span class="na">height</span><span class="o">=</span><span class="p">{</span><span class="mf">600</span><span class="p">}</span><span class="w"> </span><span class="p">/&gt;</span><span class="w"> </span><span class="c1">// Taller plot</span>
+</code></pre></div>
 <hr/>
 <h2 id="api-reference">API Reference<a class="headerlink" href="#api-reference" title="Permanent link">¶</a></h2>
 <h3 id="endpoints-used">Endpoints Used<a class="headerlink" href="#endpoints-used" title="Permanent link">¶</a></h3>
-<p><strong>Monitor Status:</strong>
+<p><strong>Monitor Status:</strong></p>
 <div class="highlight"><pre><span></span><code>GET /api/pointing-monitor/status
 </code></pre></div>
-Returns monitor health and metrics.</p>
-<p><strong>Pointing History:</strong>
+<p>Returns monitor health and metrics.</p>
+<p><strong>Pointing History:</strong></p>
 <div class="highlight"><pre><span></span><code>GET /api/pointing_history?start_mjd=X&amp;end_mjd=Y
 </code></pre></div>
-Returns pointing entries in MJD range.</p>
+<p>Returns pointing entries in MJD range.</p>
 <h3 id="data-format">Data Format<a class="headerlink" href="#data-format" title="Permanent link">¶</a></h3>
-<p><strong>Pointing Entry:</strong>
+<p><strong>Pointing Entry:</strong></p>
 <div class="highlight"><pre><span></span><code><span class="p">{</span>
 <span class="w">  </span><span class="nt">"timestamp"</span><span class="p">:</span><span class="w"> </span><span class="mf">60986.73</span><span class="p">,</span>
 <span class="w">  </span><span class="nt">"ra_deg"</span><span class="p">:</span><span class="w"> </span><span class="mf">204.5</span><span class="p">,</span>
 <span class="w">  </span><span class="nt">"dec_deg"</span><span class="p">:</span><span class="w"> </span><span class="mf">54.01</span>
 <span class="p">}</span>
-</code></pre></div></p>
-<p><strong>Monitor Status:</strong>
+</code></pre></div>
+<p><strong>Monitor Status:</strong></p>
 <div class="highlight"><pre><span></span><code><span class="p">{</span>
 <span class="w">  </span><span class="nt">"running"</span><span class="p">:</span><span class="w"> </span><span class="kc">true</span><span class="p">,</span>
 <span class="w">  </span><span class="nt">"healthy"</span><span class="p">:</span><span class="w"> </span><span class="kc">true</span><span class="p">,</span>
@@ -1564,7 +1574,7 @@ Returns pointing entries in MJD range.</p>
 <span class="w">    </span><span class="nt">"success_rate_percent"</span><span class="p">:</span><span class="w"> </span><span class="mf">99.68</span>
 <span class="w">  </span><span class="p">}</span>
 <span class="p">}</span>
-</code></pre></div></p>
+</code></pre></div>
 <hr/>
 <h2 id="best-practices">Best Practices<a class="headerlink" href="#best-practices" title="Permanent link">¶</a></h2>
 <h3 id="for-operators">For Operators<a class="headerlink" href="#for-operators" title="Permanent link">¶</a></h3>
@@ -1585,19 +1595,23 @@ Returns pointing entries in MJD range.</p>
 <h2 id="related-documentation">Related Documentation<a class="headerlink" href="#related-documentation" title="Permanent link">¶</a></h2>
 <ul>
 <li><strong>Deployment</strong>: <code>docs/how-to/pointing-monitor-deployment.md</code></li>
-<li><strong>API Reference</strong>: <code>docs/reference/dashboard_api.md</code></li>
-<li><strong>Testing</strong>: <code>docs/reports/POINTING_VISUALIZATION_TEST.md</code></li>
+<li><strong>API Reference</strong>: <code>docs/reference/dashboard_backend_api.md</code></li>
+<li><strong>Testing (archived)</strong>: <code>docs/archive/reports/POINTING_VISUALIZATION_TEST.md</code></li>
 </ul>
 <hr/>
 <h2 id="support">Support<a class="headerlink" href="#support" title="Permanent link">¶</a></h2>
-<p><strong>Issues?</strong>
-1. Check troubleshooting section above
-2. Review monitor logs
-3. Verify API endpoints
-4. Check browser console for errors</p>
-<p><strong>Questions?</strong>
-- See technical documentation: <code>docs/how-to/pointing-visualization.md</code>
-- Check API documentation: <code>docs/reference/dashboard_api.md</code></p>
+<p><strong>Issues?</strong></p>
+<ol>
+<li>Check troubleshooting section above</li>
+<li>Review monitor logs</li>
+<li>Verify API endpoints</li>
+<li>Check browser console for errors</li>
+</ol>
+<p><strong>Questions?</strong></p>
+<ul>
+<li>See technical documentation: <code>docs/how-to/pointing-visualization.md</code></li>
+<li>Check API documentation: <code>docs/reference/dashboard_backend_api.md</code></li>
+</ul>
 <hr/>
 <p><strong>Status</strong>: ✅ Production Ready<br/>
 <strong>Version</strong>: 1.0.0<br/>

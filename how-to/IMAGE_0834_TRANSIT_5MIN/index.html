@@ -1295,15 +1295,19 @@
 <div class="md-content" data-md-component="content">
 <article class="md-content__inner md-typeset">
 <h1 id="steps-to-produce-a-5-minute-image-of-0834555-transit">Steps to Produce a 5-Minute Image of 0834+555 Transit<a class="headerlink" href="#steps-to-produce-a-5-minute-image-of-0834555-transit" title="Permanent link">¶</a></h1>
-<p><strong>Objective:</strong> Create a calibrated continuum image from a 5-minute observation containing a transit of the VLA calibrator 0834+555.</p>
-<p><strong>Prerequisites:</strong>
-- UVH5 subband files available in <code>/data/incoming</code> (or your input directory)
-- <code>casa6</code> conda environment activated
-- Pipeline environment variables configured (if using custom paths)</p>
+<p><strong>Objective:</strong> Create a calibrated continuum image from a 5-minute observation
+containing a transit of the VLA calibrator 0834+555.</p>
+<p><strong>Prerequisites:</strong></p>
+<ul>
+<li>UVH5 subband files available in <code>/data/incoming</code> (or your input directory)</li>
+<li><code>casa6</code> conda environment activated</li>
+<li>Pipeline environment variables configured (if using custom paths)</li>
+</ul>
 <hr/>
 <h2 id="step-1-find-and-convert-calibrator-transit-data">Step 1: Find and Convert Calibrator Transit Data<a class="headerlink" href="#step-1-find-and-convert-calibrator-transit-data" title="Permanent link">¶</a></h2>
 <h3 id="option-a-using-orchestrator-cli-recommended">Option A: Using Orchestrator CLI (Recommended)<a class="headerlink" href="#option-a-using-orchestrator-cli-recommended" title="Permanent link">¶</a></h3>
-<p>The orchestrator CLI automatically finds the transit time and converts the matching 5-minute group:</p>
+<p>The orchestrator CLI automatically finds the transit time and converts the
+matching 5-minute group:</p>
 <div class="highlight"><pre><span></span><code>python<span class="w"> </span>-m<span class="w"> </span>dsa110_contimg.conversion.strategies.hdf5_orchestrator<span class="w"> </span><span class="se">\</span>
 <span class="w">    </span>/data/incoming<span class="w"> </span><span class="se">\</span>
 <span class="w">    </span>/stage/dsa110-contimg/ms<span class="w"> </span><span class="se">\</span>
@@ -1311,13 +1315,15 @@
 <span class="w">    </span>--writer<span class="w"> </span>parallel-subband<span class="w"> </span><span class="se">\</span>
 <span class="w">    </span>--stage-to-tmpfs
 </code></pre></div>
-<p><strong>What this does:</strong>
-- Finds the most recent transit of 0834+555
-- Locates the 5-minute group containing that transit time
-- Verifies all 16 subband files exist
-- Converts UVH5 → MS using the production writer
-- Outputs MS to <code>/stage/dsa110-contimg/ms/&lt;group_id&gt;.ms</code></p>
-<p><strong>For a specific date:</strong>
+<p><strong>What this does:</strong></p>
+<ul>
+<li>Finds the most recent transit of 0834+555</li>
+<li>Locates the 5-minute group containing that transit time</li>
+<li>Verifies all 16 subband files exist</li>
+<li>Converts UVH5 → MS using the production writer</li>
+<li>Outputs MS to <code>/stage/dsa110-contimg/ms/&lt;group_id&gt;.ms</code></li>
+</ul>
+<p><strong>For a specific date:</strong></p>
 <div class="highlight"><pre><span></span><code>python<span class="w"> </span>-m<span class="w"> </span>dsa110_contimg.conversion.strategies.hdf5_orchestrator<span class="w"> </span><span class="se">\</span>
 <span class="w">    </span>/data/incoming<span class="w"> </span><span class="se">\</span>
 <span class="w">    </span>/stage/dsa110-contimg/ms<span class="w"> </span><span class="se">\</span>
@@ -1325,7 +1331,7 @@
 <span class="w">    </span>--transit-date<span class="w"> </span><span class="m">2025</span>-10-30<span class="w"> </span><span class="se">\</span>
 <span class="w">    </span>--writer<span class="w"> </span>parallel-subband<span class="w"> </span><span class="se">\</span>
 <span class="w">    </span>--stage-to-tmpfs
-</code></pre></div></p>
+</code></pre></div>
 <h3 id="option-b-using-unified-conversion-cli">Option B: Using Unified Conversion CLI<a class="headerlink" href="#option-b-using-unified-conversion-cli" title="Permanent link">¶</a></h3>
 <div class="highlight"><pre><span></span><code>python<span class="w"> </span>-m<span class="w"> </span>dsa110_contimg.conversion.cli<span class="w"> </span>groups<span class="w"> </span><span class="se">\</span>
 <span class="w">    </span>/data/incoming<span class="w"> </span><span class="se">\</span>
@@ -1334,12 +1340,15 @@
 <span class="w">    </span>--writer<span class="w"> </span>parallel-subband<span class="w"> </span><span class="se">\</span>
 <span class="w">    </span>--stage-to-tmpfs
 </code></pre></div>
-<p><strong>Expected output:</strong>
-- MS file path: <code>/stage/dsa110-contimg/ms/2025-10-30T13:34:54.ms</code> (example)
-- Group ID corresponds to the 5-minute window containing the transit</p>
+<p><strong>Expected output:</strong></p>
+<ul>
+<li>MS file path: <code>/stage/dsa110-contimg/ms/2025-10-30T13:34:54.ms</code> (example)</li>
+<li>Group ID corresponds to the 5-minute window containing the transit</li>
+</ul>
 <hr/>
 <h2 id="step-2-calibrate-the-measurement-set-recommended">Step 2: Calibrate the Measurement Set (Recommended)<a class="headerlink" href="#step-2-calibrate-the-measurement-set-recommended" title="Permanent link">¶</a></h2>
-<p>Calibration improves image quality by correcting for frequency-dependent bandpass and time-variable gains.</p>
+<p>Calibration improves image quality by correcting for frequency-dependent
+bandpass and time-variable gains.</p>
 <h3 id="option-a-quick-calibration-development-tier">Option A: Quick Calibration (Development Tier)<a class="headerlink" href="#option-a-quick-calibration-development-tier" title="Permanent link">¶</a></h3>
 <p>For a quick 5-minute image, use development quality tier:</p>
 <div class="highlight"><pre><span></span><code>python<span class="w"> </span>-m<span class="w"> </span>dsa110_contimg.calibration.cli<span class="w"> </span>calibrate<span class="w"> </span><span class="se">\</span>
@@ -1355,12 +1364,16 @@
 <span class="w">    </span>--prebp-minsnr<span class="w"> </span><span class="m">3</span>.0<span class="w"> </span><span class="se">\</span>
 <span class="w">    </span>--prebp-solint<span class="w"> </span>30s
 </code></pre></div>
-<p><strong>What this does:</strong>
-- Performs bandpass (BP) and gain (G) calibration
-- Uses development quality tier with time/channel binning
-- ⚠️  Creates <strong>NON_SCIENCE_DEVELOPMENT</strong> prefixed calibration tables
-- Skips K-calibration (delay) by default (appropriate for DSA-110 short baselines)
-- <strong>These tables CANNOT be applied to production data</strong> due to binning mismatches</p>
+<p><strong>What this does:</strong></p>
+<ul>
+<li>Performs bandpass (BP) and gain (G) calibration</li>
+<li>Uses development quality tier with time/channel binning</li>
+<li>⚠️ Creates <strong>NON_SCIENCE_DEVELOPMENT</strong> prefixed calibration tables</li>
+<li>Skips K-calibration (delay) by default (appropriate for DSA-110 short
+  baselines)</li>
+<li><strong>These tables CANNOT be applied to production data</strong> due to binning
+  mismatches</li>
+</ul>
 <h3 id="option-b-standard-calibration">Option B: Standard Calibration<a class="headerlink" href="#option-b-standard-calibration" title="Permanent link">¶</a></h3>
 <p>For higher quality (slower):</p>
 <div class="highlight"><pre><span></span><code>python<span class="w"> </span>-m<span class="w"> </span>dsa110_contimg.calibration.cli<span class="w"> </span>calibrate<span class="w"> </span><span class="se">\</span>
@@ -1369,13 +1382,19 @@
 <span class="w">    </span>--refant<span class="w"> </span><span class="m">103</span><span class="w"> </span><span class="se">\</span>
 <span class="w">    </span>--auto-fields
 </code></pre></div>
-<p><strong>Calibration tables created:</strong>
-- <code>/stage/dsa110-contimg/ms/2025-10-30T13:34:54.ms.bpcal</code>
-- <code>/stage/dsa110-contimg/ms/2025-10-30T13:34:54.ms.gpcal</code></p>
-<p><strong>Note:</strong> If calibration tables already exist from a previous calibration run, you can skip this step if you're satisfied with the existing calibration.</p>
+<p><strong>Calibration tables created:</strong></p>
+<ul>
+<li><code>/stage/dsa110-contimg/ms/2025-10-30T13:34:54.ms.bpcal</code></li>
+<li><code>/stage/dsa110-contimg/ms/2025-10-30T13:34:54.ms.gpcal</code></li>
+</ul>
+<p><strong>Note:</strong> If calibration tables already exist from a previous calibration run,
+you can skip this step if you're satisfied with the existing calibration.</p>
 <h3 id="detailed-calibration-procedure">Detailed Calibration Procedure<a class="headerlink" href="#detailed-calibration-procedure" title="Permanent link">¶</a></h3>
-<p>For a comprehensive explanation of what happens during calibration, see:
-- <strong>Complete calibration guide</strong>: <code>docs/howto/CALIBRATION_DETAILED_PROCEDURE.md</code></p>
+<p>For a comprehensive explanation of what happens during calibration, see:</p>
+<ul>
+<li><strong>Complete calibration guide</strong>:
+  <code>docs/how-to/CALIBRATION_DETAILED_PROCEDURE.md</code></li>
+</ul>
 <hr/>
 <h2 id="step-3-image-the-measurement-set">Step 3: Image the Measurement Set<a class="headerlink" href="#step-3-image-the-measurement-set" title="Permanent link">¶</a></h2>
 <p>Create a quick-look image optimized for speed:</p>
@@ -1388,12 +1407,15 @@
 <span class="w">    </span>--threshold<span class="w"> </span><span class="m">0</span>.1mJy<span class="w"> </span><span class="se">\</span>
 <span class="w">    </span>--pbcor
 </code></pre></div>
-<p><strong>Parameters explained:</strong>
-- <code>--quality-tier development</code>: Enables development tier (reduces <code>imsize</code> and <code>niter</code> automatically)
-- <code>--imsize 512</code>: Image size in pixels (512×512 for quick look)
-- <code>--niter 300</code>: Maximum iterations (quick mode)
-- <code>--threshold 0.1mJy</code>: Stopping threshold
-- <code>--pbcor</code>: Apply primary beam correction</p>
+<p><strong>Parameters explained:</strong></p>
+<ul>
+<li><code>--quality-tier development</code>: Enables development tier (reduces <code>imsize</code> and
+  <code>niter</code> automatically)</li>
+<li><code>--imsize 512</code>: Image size in pixels (512×512 for quick look)</li>
+<li><code>--niter 300</code>: Maximum iterations (quick mode)</li>
+<li><code>--threshold 0.1mJy</code>: Stopping threshold</li>
+<li><code>--pbcor</code>: Apply primary beam correction</li>
+</ul>
 <p><strong>Alternative: Quick Script</strong></p>
 <div class="highlight"><pre><span></span><code>scripts/image_ms.sh<span class="w"> </span><span class="se">\</span>
 <span class="w">    </span>/stage/dsa110-contimg/ms/2025-10-30T13:34:54.ms<span class="w"> </span><span class="se">\</span>
@@ -1404,15 +1426,19 @@
 </code></pre></div>
 <hr/>
 <h2 id="step-4-verify-output">Step 4: Verify Output<a class="headerlink" href="#step-4-verify-output" title="Permanent link">¶</a></h2>
-<p><strong>Image files created:</strong>
-- <code>/stage/dsa110-contimg/images/0834_transit_5min.image/</code> - Cleaned image
-- <code>/stage/dsa110-contimg/images/0834_transit_5min.pbcor/</code> - Primary beam corrected image
-- <code>/stage/dsa110-contimg/images/0834_transit_5min.pbcor.fits</code> - FITS export (if not skipped)</p>
-<p><strong>Check image quality:</strong>
+<p><strong>Image files created:</strong></p>
+<ul>
+<li><code>/stage/dsa110-contimg/images/0834_transit_5min.image/</code> - Cleaned image</li>
+<li><code>/stage/dsa110-contimg/images/0834_transit_5min.pbcor/</code> - Primary beam
+  corrected image</li>
+<li><code>/stage/dsa110-contimg/images/0834_transit_5min.pbcor.fits</code> - FITS export (if
+  not skipped)</li>
+</ul>
+<p><strong>Check image quality:</strong></p>
 <div class="highlight"><pre><span></span><code><span class="c1"># View image statistics</span>
 python<span class="w"> </span>-m<span class="w"> </span>dsa110_contimg.qa.image_quality<span class="w"> </span><span class="se">\</span>
 <span class="w">    </span>/stage/dsa110-contimg/images/0834_transit_5min.pbcor.fits
-</code></pre></div></p>
+</code></pre></div>
 <hr/>
 <h2 id="complete-workflow-example">Complete Workflow Example<a class="headerlink" href="#complete-workflow-example" title="Permanent link">¶</a></h2>
 <p>Here's a complete end-to-end example:</p>
@@ -1500,46 +1526,58 @@ python<span class="w"> </span>-m<span class="w"> </span>dsa110_contimg.imaging.c
 <h2 id="notes">Notes<a class="headerlink" href="#notes" title="Permanent link">¶</a></h2>
 <ol>
 <li>
-<p><strong>Calibration is optional</strong> but recommended for best image quality. Uncalibrated images will use <code>DATA</code> column instead of <code>CORRECTED_DATA</code>.</p>
+<p><strong>Calibration is optional</strong> but recommended for best image quality.
+   Uncalibrated images will use <code>DATA</code> column instead of <code>CORRECTED_DATA</code>.</p>
 </li>
 <li>
-<p><strong>Quick mode</strong> (<code>--quick</code>) reduces image size and iterations for speed. For higher quality, omit <code>--quick</code> and use larger <code>imsize</code> (e.g., 1024 or 2048).</p>
+<p><strong>Quick mode</strong> (<code>--quick</code>) reduces image size and iterations for speed. For
+   higher quality, omit <code>--quick</code> and use larger <code>imsize</code> (e.g., 1024 or 2048).</p>
 </li>
 <li>
-<p><strong>Primary beam correction</strong> (<code>--pbcor</code>) should always be used for flux-accurate images.</p>
+<p><strong>Primary beam correction</strong> (<code>--pbcor</code>) should always be used for
+   flux-accurate images.</p>
 </li>
 <li>
-<p><strong>Reference antenna</strong> (<code>--refant 103</code>) may need adjustment based on your array configuration. Use <code>--auto-refant</code> to select automatically.</p>
+<p><strong>Reference antenna</strong> (<code>--refant 103</code>) may need adjustment based on your
+   array configuration. Use <code>--auto-refant</code> to select automatically.</p>
 </li>
 <li>
-<p><strong>Time window</strong>: The orchestrator automatically finds the 5-minute group containing the transit. Each group represents a ~5-minute observation window.</p>
+<p><strong>Time window</strong>: The orchestrator automatically finds the 5-minute group
+   containing the transit. Each group represents a ~5-minute observation window.</p>
 </li>
 <li>
-<p><strong>Performance</strong>: Using <code>--stage-to-tmpfs</code> speeds up conversion by staging files in RAM (<code>/dev/shm</code>) instead of disk.</p>
+<p><strong>Performance</strong>: Using <code>--stage-to-tmpfs</code> speeds up conversion by staging
+   files in RAM (<code>/dev/shm</code>) instead of disk.</p>
 </li>
 </ol>
 <hr/>
 <h2 id="troubleshooting">Troubleshooting<a class="headerlink" href="#troubleshooting" title="Permanent link">¶</a></h2>
-<p><strong>No transit found:</strong>
-- Check that data exists: <code>ls /data/incoming/*_sb??.hdf5 | head -20</code>
-- Try increasing <code>--max-days-back</code> (default: 30 days)
-- Verify calibrator name: <code>0834+555</code> (not <code>0834+555</code> with different formatting)</p>
-<p><strong>Calibration fails:</strong>
-- Check that MODEL_DATA is populated (needed for calibration)
-- Try different reference antenna: <code>--auto-refant</code>
-- Reduce UV range cut: <code>--uvrange ''</code> (no cut)</p>
-<p><strong>Imaging fails:</strong>
-- Verify MS has data: <code>python -m dsa110_contimg.qa.ms_quality &lt;ms_path&gt;</code>
-- Check disk space: <code>df -h /stage/dsa110-contimg</code>
-- Reduce image size: <code>--imsize 256</code></p>
+<p><strong>No transit found:</strong></p>
+<ul>
+<li>Check that data exists: <code>ls /data/incoming/*_sb??.hdf5 | head -20</code></li>
+<li>Try increasing <code>--max-days-back</code> (default: 30 days)</li>
+<li>Verify calibrator name: <code>0834+555</code> (not <code>0834+555</code> with different formatting)</li>
+</ul>
+<p><strong>Calibration fails:</strong></p>
+<ul>
+<li>Check that MODEL_DATA is populated (needed for calibration)</li>
+<li>Try different reference antenna: <code>--auto-refant</code></li>
+<li>Reduce UV range cut: <code>--uvrange ''</code> (no cut)</li>
+</ul>
+<p><strong>Imaging fails:</strong></p>
+<ul>
+<li>Verify MS has data: <code>python -m dsa110_contimg.qa.ms_quality &lt;ms_path&gt;</code></li>
+<li>Check disk space: <code>df -h /stage/dsa110-contimg</code></li>
+<li>Reduce image size: <code>--imsize 256</code></li>
+</ul>
 <hr/>
 <h2 id="references">References<a class="headerlink" href="#references" title="Permanent link">¶</a></h2>
 <ul>
-<li><strong>Finding transit data</strong>: <code>docs/howto/FIND_CALIBRATOR_TRANSIT_DATA.md</code></li>
-<li><strong>Orchestrator CLI</strong>: <code>docs/howto/USING_ORCHESTRATOR_CLI.md</code></li>
-<li><strong>Calibration guide</strong>: <code>docs/reference/calibration.md</code></li>
+<li><strong>Finding transit data</strong>: <code>docs/how-to/FIND_CALIBRATOR_TRANSIT_DATA.md</code></li>
+<li><strong>Orchestrator CLI</strong>: <code>docs/how-to/USING_ORCHESTRATOR_CLI.md</code></li>
+<li><strong>Calibration guide</strong>: <code>docs/how-to/streaming.md</code></li>
 <li><strong>Imaging guide</strong>: <code>docs/reference/cli.md</code></li>
-<li><strong>Quick-look workflow</strong>: <code>docs/quicklook.md</code></li>
+<li><strong>Quick-look workflow</strong>: <code>docs/index.md</code></li>
 </ul>
 </article>
 </div>

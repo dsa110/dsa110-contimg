@@ -1267,19 +1267,21 @@
 <h4 id="date-filter">Date Filter<a class="headerlink" href="#date-filter" title="Permanent link">¶</a></h4>
 <p><strong>Status:</strong> ⏳ <strong>NOT TESTED</strong> (API not running)</p>
 <p><strong>Expected:</strong> ✅ Should work (uses <code>created_at</code> timestamp column)</p>
-<p><strong>Test Command:</strong>
+<p><strong>Test Command:</strong></p>
 <div class="highlight"><pre><span></span><code>curl<span class="w"> </span>-s<span class="w"> </span><span class="s2">"http://localhost:8000/api/images?start_date=2025-10-28T00:00:00&amp;limit=5"</span><span class="w"> </span><span class="p">|</span><span class="w"> </span>jq<span class="w"> </span><span class="s1">'.total, .items[0].created_at'</span>
-</code></pre></div></p>
-<p><strong>Notes:</strong>
-- Date filtering uses SQL WHERE clause on <code>created_at</code> column
-- Should be fast (&lt;200ms)
-- Should have accurate pagination</p>
+</code></pre></div>
+<p><strong>Notes:</strong></p>
+<ul>
+<li>Date filtering uses SQL WHERE clause on <code>created_at</code> column</li>
+<li>Should be fast (&lt;200ms)</li>
+<li>Should have accurate pagination</li>
+</ul>
 <h4 id="noise-filter">Noise Filter<a class="headerlink" href="#noise-filter" title="Permanent link">¶</a></h4>
 <p><strong>Status:</strong> ⚠️ <strong>EXPECTED FAIL</strong> (metadata not populated)</p>
 <p><strong>Expected:</strong> ❌ Will not work (all <code>noise_jy</code> are NULL)</p>
-<p><strong>Test Command:</strong>
+<p><strong>Test Command:</strong></p>
 <div class="highlight"><pre><span></span><code>curl<span class="w"> </span>-s<span class="w"> </span><span class="s2">"http://localhost:8000/api/images?noise_max=0.001&amp;limit=5"</span><span class="w"> </span><span class="p">|</span><span class="w"> </span>jq<span class="w"> </span><span class="s1">'.total'</span>
-</code></pre></div></p>
+</code></pre></div>
 <p><strong>Root Cause:</strong> All images in database have <code>noise_jy = NULL</code></p>
 <p><strong>Impact:</strong> Filter will return all images (no filtering occurs)</p>
 <p><strong>Workaround:</strong> None - requires metadata population fix</p>
@@ -1287,28 +1289,32 @@
 <h4 id="declination-filter">Declination Filter<a class="headerlink" href="#declination-filter" title="Permanent link">¶</a></h4>
 <p><strong>Status:</strong> ⏳ <strong>NOT TESTED</strong> (API not running)</p>
 <p><strong>Expected:</strong> ⚠️ Will work but slow (requires reading FITS files)</p>
-<p><strong>Test Command:</strong>
+<p><strong>Test Command:</strong></p>
 <div class="highlight"><pre><span></span><code>curl<span class="w"> </span>-s<span class="w"> </span><span class="s2">"http://localhost:8000/api/images?dec_min=40&amp;dec_max=50&amp;limit=5"</span><span class="w"> </span><span class="p">|</span><span class="w"> </span>jq<span class="w"> </span><span class="s1">'.total'</span>
-</code></pre></div></p>
-<p><strong>Expected Behavior:</strong>
-- Will work (post-processing extracts coordinates from FITS)
-- Slow (1-5 seconds per request)
-- May have pagination issues
-- Requires FITS files to be accessible</p>
+</code></pre></div>
+<p><strong>Expected Behavior:</strong></p>
+<ul>
+<li>Will work (post-processing extracts coordinates from FITS)</li>
+<li>Slow (1-5 seconds per request)</li>
+<li>May have pagination issues</li>
+<li>Requires FITS files to be accessible</li>
+</ul>
 <p><strong>Root Cause:</strong> <code>center_dec_deg</code> not stored in database</p>
 <p><strong>Workaround:</strong> Post-filtering implemented (reads FITS headers)</p>
 <p><strong>Documentation:</strong> See <code>docs/known-issues/image-metadata-population.md</code></p>
 <h4 id="calibrator-filter">Calibrator Filter<a class="headerlink" href="#calibrator-filter" title="Permanent link">¶</a></h4>
 <p><strong>Status:</strong> ⏳ <strong>NOT TESTED</strong> (API not running)</p>
 <p><strong>Expected:</strong> ⚠️ Will work but heuristic-based</p>
-<p><strong>Test Command:</strong>
+<p><strong>Test Command:</strong></p>
 <div class="highlight"><pre><span></span><code>curl<span class="w"> </span>-s<span class="w"> </span><span class="s2">"http://localhost:8000/api/images?has_calibrator=true&amp;limit=5"</span><span class="w"> </span><span class="p">|</span><span class="w"> </span>jq<span class="w"> </span><span class="s1">'.total'</span>
-</code></pre></div></p>
-<p><strong>Expected Behavior:</strong>
-- Uses path pattern matching (heuristic)
-- Looks for: 'cal', 'calibrator', '3c', 'j1331' in MS path
-- May have false positives/negatives
-- Moderate performance (pattern matching)</p>
+</code></pre></div>
+<p><strong>Expected Behavior:</strong></p>
+<ul>
+<li>Uses path pattern matching (heuristic)</li>
+<li>Looks for: 'cal', 'calibrator', '3c', 'j1331' in MS path</li>
+<li>May have false positives/negatives</li>
+<li>Moderate performance (pattern matching)</li>
+</ul>
 <p><strong>Root Cause:</strong> No actual calibrator detection flag in database</p>
 <p><strong>Workaround:</strong> Heuristic pattern matching implemented</p>
 <hr/>
@@ -1316,65 +1322,82 @@
 <h3 id="1-image-metadata-not-populated-high-priority">1. Image Metadata Not Populated (HIGH Priority)<a class="headerlink" href="#1-image-metadata-not-populated-high-priority" title="Permanent link">¶</a></h3>
 <p><strong>Severity:</strong> HIGH<br/>
 <strong>Status:</strong> Documented</p>
-<p><strong>Issue:</strong> All images have <code>noise_jy</code>, <code>center_ra_deg</code>, <code>center_dec_deg</code> set to NULL</p>
-<p><strong>Impact:</strong>
-- Noise filtering non-functional
-- Declination filtering slow (requires FITS reading)
-- User experience degraded</p>
+<p><strong>Issue:</strong> All images have <code>noise_jy</code>, <code>center_ra_deg</code>, <code>center_dec_deg</code> set to
+NULL</p>
+<p><strong>Impact:</strong></p>
+<ul>
+<li>Noise filtering non-functional</li>
+<li>Declination filtering slow (requires FITS reading)</li>
+<li>User experience degraded</li>
+</ul>
 <p><strong>Documentation:</strong> <code>docs/known-issues/image-metadata-population.md</code></p>
-<p><strong>Action Required:</strong>
-1. Update database schema (add missing columns)
-2. Extract metadata during image creation
-3. Backfill existing images</p>
+<p><strong>Action Required:</strong></p>
+<ol>
+<li>Update database schema (add missing columns)</li>
+<li>Extract metadata during image creation</li>
+<li>Backfill existing images</li>
+</ol>
 <p><strong>Estimated Effort:</strong> 4-6 hours</p>
 <h3 id="2-visualization-browse-bug-medium-priority">2. Visualization Browse Bug (MEDIUM Priority)<a class="headerlink" href="#2-visualization-browse-bug-medium-priority" title="Permanent link">¶</a></h3>
 <p><strong>Severity:</strong> MEDIUM<br/>
 <strong>Status:</strong> ✅ <strong>FIXED</strong></p>
 <p><strong>Issue:</strong> <code>AttributeError: 'FileBase' object has no attribute 'file_type'</code></p>
-<p><strong>Location:</strong> <code>src/dsa110_contimg/api/visualization_routes.py:219</code></p>
+<p><strong>Location:</strong> <code>src/dsa110_contimg/api/visualization_routes.py</code></p>
 <p><strong>Root Cause:</strong> <code>FileBase</code> class doesn't have <code>file_type</code> attribute</p>
-<p><strong>Fix Applied:</strong>
-- Changed <code>item.file_type</code> to <code>autodetect_file_type(item.fullpath)</code>
-- Added fallback: <code>"directory" if item.isdir else "file"</code>
-- Fixed in both locations (lines 219 and 831)</p>
+<p><strong>Fix Applied:</strong></p>
+<ul>
+<li>Changed <code>item.file_type</code> to <code>autodetect_file_type(item.fullpath)</code></li>
+<li>Added fallback: <code>"directory" if item.isdir else "file"</code></li>
+<li>Fixed in both locations (lines 219 and 831)</li>
+</ul>
 <p><strong>Impact:</strong> QA file browsing now works correctly</p>
 <p><strong>Status:</strong> Fixed, ready for testing</p>
 <h3 id="3-missing-health-endpoint-low-priority">3. Missing /health Endpoint (LOW Priority)<a class="headerlink" href="#3-missing-health-endpoint-low-priority" title="Permanent link">¶</a></h3>
 <p><strong>Severity:</strong> LOW<br/>
 <strong>Status:</strong> Informational</p>
 <p><strong>Issue:</strong> Requests to <code>/health</code> return 404 (should be <code>/api/health</code>)</p>
-<p><strong>Root Cause:</strong> Endpoint exists at <code>/api/health</code> but something is requesting <code>/health</code></p>
-<p><strong>Investigation:</strong>
-- Endpoint exists: <code>src/dsa110_contimg/api/routers/status.py:46</code>
-- Router registered: <code>app.include_router(status_router, prefix="/api")</code>
-- Something is polling <code>/health</code> (without <code>/api</code> prefix)</p>
+<p><strong>Root Cause:</strong> Endpoint exists at <code>/api/health</code> but something is requesting
+<code>/health</code></p>
+<p><strong>Investigation:</strong></p>
+<ul>
+<li>Endpoint exists: <code>src/dsa110_contimg/api/routers/status.py</code></li>
+<li>Router registered: <code>app.include_router(status_router, prefix="/api")</code></li>
+<li>Something is polling <code>/health</code> (without <code>/api</code> prefix)</li>
+</ul>
 <p><strong>Impact:</strong> Just log noise (404 errors in logs)</p>
-<p><strong>Action Required:</strong>
-- Identify what's requesting <code>/health</code> (monitoring tool?)
-- Either fix requester to use <code>/api/health</code>
-- Or add redirect from <code>/health</code> to <code>/api/health</code></p>
+<p><strong>Action Required:</strong></p>
+<ul>
+<li>Identify what's requesting <code>/health</code> (monitoring tool?)</li>
+<li>Either fix requester to use <code>/api/health</code></li>
+<li>Or add redirect from <code>/health</code> to <code>/api/health</code></li>
+</ul>
 <p><strong>Priority:</strong> Low - doesn't affect functionality</p>
 <h3 id="4-multiple-frontend-instances-low-priority">4. Multiple Frontend Instances (LOW Priority)<a class="headerlink" href="#4-multiple-frontend-instances-low-priority" title="Permanent link">¶</a></h3>
 <p><strong>Severity:</strong> LOW<br/>
 <strong>Status:</strong> Informational</p>
 <p><strong>Issue:</strong> 4+ Vite dev server instances running (ports 5173-5176)</p>
-<p><strong>Current Status:</strong>
-- Port 5173: Root user (Docker?)
-- Port 5174: Ubuntu user (PID 29636)
-- Port 5175: Ubuntu user (PID 11829)
-- Port 5176: Ubuntu user (PID 24626)
-- Port 5177: Current instance (auto-selected)</p>
+<p><strong>Current Status:</strong></p>
+<ul>
+<li>Port 5173: Root user (Docker?)</li>
+<li>Port 5174: Ubuntu user (PID 29636)</li>
+<li>Port 5175: Ubuntu user (PID 11829)</li>
+<li>Port 5176: Ubuntu user (PID 24626)</li>
+<li>Port 5177: Current instance (auto-selected)</li>
+</ul>
 <p><strong>Impact:</strong> Resource waste, port confusion</p>
-<p><strong>Action Required:</strong>
-- Clean up old instances: <code>pkill -f "vite.*517[3-6]"</code>
-- Restart on default port 5173
-- Document single-instance best practice</p>
+<p><strong>Action Required:</strong></p>
+<ul>
+<li>Clean up old instances: <code>pkill -f "vite.*517[3-6]"</code></li>
+<li>Restart on default port 5173</li>
+<li>Document single-instance best practice</li>
+</ul>
 <p><strong>Priority:</strong> Low - doesn't affect functionality</p>
 <hr/>
 <h2 id="recommendations">Recommendations<a class="headerlink" href="#recommendations" title="Permanent link">¶</a></h2>
 <h3 id="immediate-before-committing-image-filters">Immediate (Before Committing Image Filters)<a class="headerlink" href="#immediate-before-committing-image-filters" title="Permanent link">¶</a></h3>
 <ul>
-<li>[x] ✅ Document metadata limitation (<code>docs/known-issues/image-metadata-population.md</code>)</li>
+<li>[x] ✅ Document metadata limitation
+      (<code>docs/known-issues/image-metadata-population.md</code>)</li>
 <li>[x] ✅ Fix visualization browse bug</li>
 <li>[ ] ⏳ Test date filter (requires API running)</li>
 <li>[ ] ⏳ Test experimental filters (requires API running)</li>
@@ -1400,27 +1423,37 @@
 <h2 id="commit-decision">Commit Decision<a class="headerlink" href="#commit-decision" title="Permanent link">¶</a></h2>
 <h3 id="status-conditionally-ready">Status: ⚠️ <strong>CONDITIONALLY READY</strong><a class="headerlink" href="#status-conditionally-ready" title="Permanent link">¶</a></h3>
 <h3 id="reasoning">Reasoning:<a class="headerlink" href="#reasoning" title="Permanent link">¶</a></h3>
-<p><strong>What Works:</strong>
-- ✅ Date filtering (SQL-level, fast, accurate)
-- ✅ Code quality excellent (10/10)
-- ✅ Security verified (SQL injection safe)
-- ✅ Documentation complete
-- ✅ Visualization bug fixed</p>
-<p><strong>What Doesn't Work:</strong>
-- ❌ Noise filtering (metadata not populated)
-- ⚠️ Declination filtering (slow, requires FITS reading)
-- ⚠️ Calibrator filtering (heuristic, may have false positives)</p>
+<p><strong>What Works:</strong></p>
+<ul>
+<li>✅ Date filtering (SQL-level, fast, accurate)</li>
+<li>✅ Code quality excellent (10/10)</li>
+<li>✅ Security verified (SQL injection safe)</li>
+<li>✅ Documentation complete</li>
+<li>✅ Visualization bug fixed</li>
+</ul>
+<p><strong>What Doesn't Work:</strong></p>
+<ul>
+<li>❌ Noise filtering (metadata not populated)</li>
+<li>⚠️ Declination filtering (slow, requires FITS reading)</li>
+<li>⚠️ Calibrator filtering (heuristic, may have false positives)</li>
+</ul>
 <p><strong>Recommendation:</strong></p>
-<p><strong>Option A: Commit Now (Recommended)</strong>
-- Document limitations clearly
-- Note noise filter requires metadata fix
-- Mark experimental filters as "slow" or "heuristic"
-- Proceed with date filtering as primary feature</p>
-<p><strong>Option B: Wait for Metadata Fix</strong>
-- Fix metadata population first
-- Test all filters
-- Then commit complete feature</p>
-<p><strong>Recommendation:</strong> <strong>Option A</strong> - Commit with clear documentation of limitations. The date filtering works perfectly, and experimental filters are functional (even if slow/limited). Metadata fix can be separate PR.</p>
+<p><strong>Option A: Commit Now (Recommended)</strong></p>
+<ul>
+<li>Document limitations clearly</li>
+<li>Note noise filter requires metadata fix</li>
+<li>Mark experimental filters as "slow" or "heuristic"</li>
+<li>Proceed with date filtering as primary feature</li>
+</ul>
+<p><strong>Option B: Wait for Metadata Fix</strong></p>
+<ul>
+<li>Fix metadata population first</li>
+<li>Test all filters</li>
+<li>Then commit complete feature</li>
+</ul>
+<p><strong>Recommendation:</strong> <strong>Option A</strong> - Commit with clear documentation of
+limitations. The date filtering works perfectly, and experimental filters are
+functional (even if slow/limited). Metadata fix can be separate PR.</p>
 <h3 id="commit-message-suggestion">Commit Message Suggestion:<a class="headerlink" href="#commit-message-suggestion" title="Permanent link">¶</a></h3>
 <div class="highlight"><pre><span></span><code>Add advanced filtering to Image Browser
 
@@ -1462,12 +1495,19 @@ Next Steps:
 <h3 id="before-commit">Before Commit:<a class="headerlink" href="#before-commit" title="Permanent link">¶</a></h3>
 <ul>
 <li>[ ] Start API server</li>
-<li>[ ] Test date filter: <code>curl "http://localhost:8000/api/images?start_date=2025-10-28T00:00:00&amp;limit=5"</code></li>
-<li>[ ] Test noise filter: <code>curl "http://localhost:8000/api/images?noise_max=0.001&amp;limit=5"</code> (expect no filtering)</li>
-<li>[ ] Test declination filter: <code>curl "http://localhost:8000/api/images?dec_min=40&amp;dec_max=50&amp;limit=5"</code> (expect slow)</li>
-<li>[ ] Test calibrator filter: <code>curl "http://localhost:8000/api/images?has_calibrator=true&amp;limit=5"</code></li>
+<li>[ ] Test date filter:
+      <code>curl "http://localhost:8000/api/images?start_date=2025-10-28T00:00:00&amp;limit=5"</code></li>
+<li>[ ] Test noise filter:
+      <code>curl "http://localhost:8000/api/images?noise_max=0.001&amp;limit=5"</code> (expect
+      no filtering)</li>
+<li>[ ] Test declination filter:
+      <code>curl "http://localhost:8000/api/images?dec_min=40&amp;dec_max=50&amp;limit=5"</code>
+      (expect slow)</li>
+<li>[ ] Test calibrator filter:
+      <code>curl "http://localhost:8000/api/images?has_calibrator=true&amp;limit=5"</code></li>
 <li>[ ] Test frontend UI: <code>http://localhost:5177/sky</code></li>
-<li>[ ] Verify visualization browse bug fix: <code>curl "http://localhost:8000/api/visualization/browse?path=/data/dsa110-contimg/state/qa"</code></li>
+<li>[ ] Verify visualization browse bug fix:
+      <code>curl "http://localhost:8000/api/visualization/browse?path=/data/dsa110-contimg/state/qa"</code></li>
 </ul>
 <h3 id="after-commit">After Commit:<a class="headerlink" href="#after-commit" title="Permanent link">¶</a></h3>
 <ul>

@@ -593,9 +593,9 @@
 </a>
 </li>
 <li class="md-nav__item">
-<a class="md-nav__link" href="#the-proper-method-from-docsreportsmemorymd-line-45">
+<a class="md-nav__link" href="#the-proper-method-summary">
 <span class="md-ellipsis">
-      The Proper Method (From docs/reports/memory.md Line 45)
+      The Proper Method (Summary)
     </span>
 </a>
 </li>
@@ -1217,9 +1217,9 @@
 </a>
 </li>
 <li class="md-nav__item">
-<a class="md-nav__link" href="#the-proper-method-from-docsreportsmemorymd-line-45">
+<a class="md-nav__link" href="#the-proper-method-summary">
 <span class="md-ellipsis">
-      The Proper Method (From docs/reports/memory.md Line 45)
+      The Proper Method (Summary)
     </span>
 </a>
 </li>
@@ -1337,12 +1337,16 @@
 <div class="md-content" data-md-component="content">
 <article class="md-content__inner md-typeset">
 <h1 id="finding-calibrator-transit-data-with-hdf5-file-lists">Finding Calibrator Transit Data with HDF5 File Lists<a class="headerlink" href="#finding-calibrator-transit-data-with-hdf5-file-lists" title="Permanent link">¶</a></h1>
-<p><strong>CRITICAL</strong>: This document explains the <strong>canonical method</strong> for finding calibrator transit data and obtaining the list of 16 subband HDF5 files. This is frequently misunderstood, so read carefully.</p>
-<p><strong>Location</strong>: <code>docs/howto/FIND_CALIBRATOR_TRANSIT_DATA.md</code><br/>
-<strong>Related</strong>: See also <code>docs/reports/memory.md</code> line 45 for the underlying method.</p>
+<p><strong>CRITICAL</strong>: This document explains the <strong>canonical method</strong> for finding
+calibrator transit data and obtaining the list of 16 subband HDF5 files. This is
+frequently misunderstood, so read carefully.</p>
+<p><strong>Location</strong>: <code>docs/how-to/FIND_CALIBRATOR_TRANSIT_DATA.md</code><br/>
+<strong>Related</strong>: See also <code>MEMORY.md</code> (background and method).</p>
 <h2 id="quick-answer">Quick Answer<a class="headerlink" href="#quick-answer" title="Permanent link">¶</a></h2>
-<p><strong>Question</strong>: How do I get the list of 16 subband HDF5 files containing a calibrator transit?</p>
-<p><strong>Answer</strong>: Use <code>CalibratorMSGenerator.find_transit()</code> or <code>generate_from_transit()</code>. The file list is in <code>transit_info['files']</code>.</p>
+<p><strong>Question</strong>: How do I get the list of 16 subband HDF5 files containing a
+calibrator transit?</p>
+<p><strong>Answer</strong>: Use <code>CalibratorMSGenerator.find_transit()</code> or
+<code>generate_from_transit()</code>. The file list is in <code>transit_info['files']</code>.</p>
 <div class="highlight"><pre><span></span><code><span class="kn">from</span><span class="w"> </span><span class="nn">dsa110_contimg.conversion.calibrator_ms_service</span><span class="w"> </span><span class="kn">import</span> <span class="n">CalibratorMSGenerator</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">dsa110_contimg.conversion.config</span><span class="w"> </span><span class="kn">import</span> <span class="n">CalibratorMSConfig</span>
 
@@ -1362,20 +1366,28 @@
     <span class="n">ms_path</span> <span class="o">=</span> <span class="n">result</span><span class="o">.</span><span class="n">ms_path</span>  <span class="c1"># MS path (may already exist)</span>
 </code></pre></div>
 <h2 id="what-not-to-do">What NOT to Do<a class="headerlink" href="#what-not-to-do" title="Permanent link">¶</a></h2>
-<p><strong>❌ Don't manually reimplement the logic:</strong>
-- Don't call <code>load_vla_catalog()</code>, <code>previous_transits()</code>, and <code>find_subband_groups()</code> separately
-- Don't manually search for MS files using glob patterns
-- Don't try to parse timestamps from filenames yourself</p>
-<p><strong>✓ Use <code>list_available_transits()</code> to get ALL transits with file lists:</strong>
-- This method returns file lists for ALL available transits in one call
-- Each transit dict includes <code>'files'</code> with the complete 16-subband HDF5 file list</p>
-<h2 id="the-proper-method-from-docsreportsmemorymd-line-45">The Proper Method (From <code>docs/reports/memory.md</code> Line 45)<a class="headerlink" href="#the-proper-method-from-docsreportsmemorymd-line-45" title="Permanent link">¶</a></h2>
+<p><strong>❌ Don't manually reimplement the logic:</strong></p>
+<ul>
+<li>Don't call <code>load_vla_catalog()</code>, <code>previous_transits()</code>, and
+  <code>find_subband_groups()</code> separately</li>
+<li>Don't manually search for MS files using glob patterns</li>
+<li>Don't try to parse timestamps from filenames yourself</li>
+</ul>
+<p><strong>✓ Use <code>list_available_transits()</code> to get ALL transits with file lists:</strong></p>
+<ul>
+<li>This method returns file lists for ALL available transits in one call</li>
+<li>Each transit dict includes <code>'files'</code> with the complete 16-subband HDF5 file
+  list</li>
+</ul>
+<h2 id="the-proper-method-summary">The Proper Method (Summary)<a class="headerlink" href="#the-proper-method-summary" title="Permanent link">¶</a></h2>
 <p>The canonical workflow is:</p>
 <ol>
 <li><strong>Load calibrator coordinates</strong> via <code>load_vla_catalog()</code> (SQLite preferred)</li>
-<li><strong>Calculate transit times</strong> using <code>previous_transits(ra_deg=..., start_time=Time.now(), n=5)</code></li>
+<li><strong>Calculate transit times</strong> using
+   <code>previous_transits(ra_deg=..., start_time=Time.now(), n=5)</code></li>
 <li><strong>Calculate search window</strong> (±30-60 minutes around transit)</li>
-<li><strong>CRITICAL: Verify data exists</strong> using <code>find_subband_groups()</code> from <code>hdf5_orchestrator</code></li>
+<li><strong>CRITICAL: Verify data exists</strong> using <code>find_subband_groups()</code> from
+   <code>hdf5_orchestrator</code></li>
 <li><strong>Select the group whose 5-minute window contains the transit time</strong></li>
 </ol>
 <p><code>CalibratorMSGenerator</code> implements this entire workflow for you. Use it.</p>
@@ -1392,11 +1404,13 @@
     <span class="n">hdf5_files</span> <span class="o">=</span> <span class="n">transit_info</span><span class="p">[</span><span class="s1">'files'</span><span class="p">]</span>
     <span class="c1"># Example: ['/data/incoming/2025-11-02T13:34:54_sb00.hdf5', ...]</span>
 </code></pre></div>
-<p><strong>Returns:</strong>
-- <code>transit_info['files']</code>: <strong>List of 16 HDF5 file paths</strong> ✓
-- <code>transit_info['group_id']</code>: Timestamp string (e.g., "2025-11-02T13:34:54")
-- <code>transit_info['transit_iso']</code>: Transit time in ISO format
-- Other metadata (delta_minutes, start_iso, end_iso, etc.)</p>
+<p><strong>Returns:</strong></p>
+<ul>
+<li><code>transit_info['files']</code>: <strong>List of 16 HDF5 file paths</strong> ✓</li>
+<li><code>transit_info['group_id']</code>: Timestamp string (e.g., "2025-11-02T13:34:54")</li>
+<li><code>transit_info['transit_iso']</code>: Transit time in ISO format</li>
+<li>Other metadata (delta_minutes, start_iso, end_iso, etc.)</li>
+</ul>
 <h3 id="generate_from_transit-creates-ms-returns-result-with-file-list"><code>generate_from_transit()</code> - Creates MS, Returns Result WITH File List<a class="headerlink" href="#generate_from_transit-creates-ms-returns-result-with-file-list" title="Permanent link">¶</a></h3>
 <div class="highlight"><pre><span></span><code><span class="n">result</span> <span class="o">=</span> <span class="n">service</span><span class="o">.</span><span class="n">generate_from_transit</span><span class="p">(</span><span class="s2">"0834+555"</span><span class="p">)</span>
 
@@ -1411,12 +1425,14 @@
     <span class="n">group_id</span> <span class="o">=</span> <span class="n">result</span><span class="o">.</span><span class="n">group_id</span>
     <span class="n">already_exists</span> <span class="o">=</span> <span class="n">result</span><span class="o">.</span><span class="n">already_exists</span>  <span class="c1"># True if MS was pre-existing</span>
 </code></pre></div>
-<p><strong>Returns:</strong>
-- <code>result.transit_info['files']</code>: <strong>List of 16 HDF5 file paths</strong> ✓
-- <code>result.ms_path</code>: Path to MS file (created or found existing)
-- <code>result.group_id</code>: Group timestamp
-- <code>result.already_exists</code>: Whether MS already existed
-- <code>result.metrics</code>: Conversion metrics, subband count, etc.</p>
+<p><strong>Returns:</strong></p>
+<ul>
+<li><code>result.transit_info['files']</code>: <strong>List of 16 HDF5 file paths</strong> ✓</li>
+<li><code>result.ms_path</code>: Path to MS file (created or found existing)</li>
+<li><code>result.group_id</code>: Group timestamp</li>
+<li><code>result.already_exists</code>: Whether MS already existed</li>
+<li><code>result.metrics</code>: Conversion metrics, subband count, etc.</li>
+</ul>
 <h3 id="list_available_transits-lists-all-transits-with-file-lists"><code>list_available_transits()</code> - Lists ALL Transits WITH File Lists<a class="headerlink" href="#list_available_transits-lists-all-transits-with-file-lists" title="Permanent link">¶</a></h3>
 <div class="highlight"><pre><span></span><code><span class="n">transits</span> <span class="o">=</span> <span class="n">service</span><span class="o">.</span><span class="n">list_available_transits</span><span class="p">(</span><span class="s2">"0834+555"</span><span class="p">,</span> <span class="n">max_days_back</span><span class="o">=</span><span class="mi">30</span><span class="p">)</span>
 
@@ -1429,11 +1445,14 @@
     <span class="c1"># Access the file list</span>
     <span class="n">hdf5_files</span> <span class="o">=</span> <span class="n">transit</span><span class="p">[</span><span class="s1">'files'</span><span class="p">]</span>  <span class="c1"># List of 16 HDF5 paths</span>
 </code></pre></div>
-<p><strong>Returns:</strong>
-- List of dicts with transit metadata AND file lists
-- <strong><code>'files'</code> field</strong>: List of 16 HDF5 file paths for each transit ✓
-- Also includes: transit_iso, group_id, has_ms, subband_count, delta_minutes, etc.
-- <strong>Use this to get file lists for ALL available transits in one call</strong></p>
+<p><strong>Returns:</strong></p>
+<ul>
+<li>List of dicts with transit metadata AND file lists</li>
+<li><strong><code>'files'</code> field</strong>: List of 16 HDF5 file paths for each transit ✓</li>
+<li>Also includes: transit_iso, group_id, has_ms, subband_count, delta_minutes,
+  etc.</li>
+<li><strong>Use this to get file lists for ALL available transits in one call</strong></li>
+</ul>
 <h2 id="complete-example-getting-file-lists-for-all-transits">Complete Example: Getting File Lists for ALL Transits<a class="headerlink" href="#complete-example-getting-file-lists-for-all-transits" title="Permanent link">¶</a></h2>
 <div class="highlight"><pre><span></span><code><span class="ch">#!/opt/miniforge/envs/casa6/bin/python</span>
 <span class="sd">"""</span>
@@ -1529,11 +1548,12 @@
 </code></pre></div>
 <h2 id="why-this-method">Why This Method?<a class="headerlink" href="#why-this-method" title="Permanent link">¶</a></h2>
 <ol>
-<li><strong>Implements the canonical workflow</strong> from <code>docs/reports/memory.md</code> line 45</li>
+<li>Canonical workflow summary captured in <code>MEMORY.md</code></li>
 <li><strong>Checks data availability</strong> before proceeding</li>
 <li><strong>Finds the correct group</strong> whose 5-minute window contains the transit</li>
 <li><strong>Returns the complete file list</strong> as part of transit info</li>
-<li><strong>Handles edge cases</strong> (missing files, incomplete groups, declination matching)</li>
+<li><strong>Handles edge cases</strong> (missing files, incomplete groups, declination
+   matching)</li>
 </ol>
 <h2 id="common-mistakes">Common Mistakes<a class="headerlink" href="#common-mistakes" title="Permanent link">¶</a></h2>
 <h3 id="mistake-1-not-knowing-which-method-to-use">Mistake 1: Not knowing which method to use<a class="headerlink" href="#mistake-1-not-knowing-which-method-to-use" title="Permanent link">¶</a></h3>
@@ -1617,11 +1637,13 @@
 </tr>
 </tbody>
 </table>
-<p><strong>Use <code>list_available_transits()</code> when you need file lists for multiple transits. Use <code>find_transit()</code> for just the most recent transit.</strong></p>
+<p><strong>Use <code>list_available_transits()</code> when you need file lists for multiple
+transits. Use <code>find_transit()</code> for just the most recent transit.</strong></p>
 <h2 id="references">References<a class="headerlink" href="#references" title="Permanent link">¶</a></h2>
 <ul>
-<li><strong>Canonical Method</strong>: <code>docs/reports/memory.md</code> line 45</li>
-<li><strong>Service Implementation</strong>: <code>src/dsa110_contimg/conversion/calibrator_ms_service.py</code></li>
+<li>See <code>MEMORY.md</code> for broader context</li>
+<li><strong>Service Implementation</strong>:
+  <code>src/dsa110_contimg/conversion/calibrator_ms_service.py</code></li>
 <li><strong>Config</strong>: <code>src/dsa110_contimg/conversion/config.py</code></li>
 </ul>
 </article>

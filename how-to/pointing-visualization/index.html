@@ -1370,12 +1370,16 @@
 <strong>Location:</strong> Dashboard Page</p>
 <hr/>
 <h2 id="overview">Overview<a class="headerlink" href="#overview" title="Permanent link">¶</a></h2>
-<p>The pointing visualization feature provides a live, interactive sky map showing the DSA-110 telescope's current pointing position and historical pointing trail. This enables real-time monitoring of telescope operations and analysis of sky coverage.</p>
+<p>The pointing visualization feature provides a live, interactive sky map showing
+the DSA-110 telescope's current pointing position and historical pointing trail.
+This enables real-time monitoring of telescope operations and analysis of sky
+coverage.</p>
 <hr/>
 <h2 id="features">Features<a class="headerlink" href="#features" title="Permanent link">¶</a></h2>
 <h3 id="live-pointing-display">Live Pointing Display<a class="headerlink" href="#live-pointing-display" title="Permanent link">¶</a></h3>
 <ul>
-<li><strong>Current Position</strong>: Shows the most recent pointing position as a green marker</li>
+<li><strong>Current Position</strong>: Shows the most recent pointing position as a green
+  marker</li>
 <li><strong>Real-time Updates</strong>: Refreshes every 30 seconds from the pointing monitor</li>
 <li><strong>Status Indicators</strong>: Displays monitor health and running status</li>
 </ul>
@@ -1401,9 +1405,9 @@
 </ul>
 <h3 id="props">Props<a class="headerlink" href="#props" title="Permanent link">¶</a></h3>
 <div class="highlight"><pre><span></span><code><span class="kd">interface</span><span class="w"> </span><span class="nx">PointingVisualizationProps</span><span class="w"> </span><span class="p">{</span>
-<span class="w">  </span><span class="nx">height?</span><span class="o">:</span><span class="w"> </span><span class="kt">number</span><span class="p">;</span><span class="w">           </span><span class="c1">// Plot height in pixels (default: 500)</span>
-<span class="w">  </span><span class="nx">showHistory?</span><span class="o">:</span><span class="w"> </span><span class="kt">boolean</span><span class="p">;</span><span class="w">     </span><span class="c1">// Show historical trail (default: true)</span>
-<span class="w">  </span><span class="nx">historyDays?</span><span class="o">:</span><span class="w"> </span><span class="kt">number</span><span class="p">;</span><span class="w">      </span><span class="c1">// Days of history to show (default: 7)</span>
+<span class="w">  </span><span class="nx">height?</span><span class="o">:</span><span class="w"> </span><span class="kt">number</span><span class="p">;</span><span class="w"> </span><span class="c1">// Plot height in pixels (default: 500)</span>
+<span class="w">  </span><span class="nx">showHistory?</span><span class="o">:</span><span class="w"> </span><span class="kt">boolean</span><span class="p">;</span><span class="w"> </span><span class="c1">// Show historical trail (default: true)</span>
+<span class="w">  </span><span class="nx">historyDays?</span><span class="o">:</span><span class="w"> </span><span class="kt">number</span><span class="p">;</span><span class="w"> </span><span class="c1">// Days of history to show (default: 7)</span>
 <span class="p">}</span>
 </code></pre></div>
 <h3 id="data-sources">Data Sources<a class="headerlink" href="#data-sources" title="Permanent link">¶</a></h3>
@@ -1424,20 +1428,16 @@
 <h2 id="usage">Usage<a class="headerlink" href="#usage" title="Permanent link">¶</a></h2>
 <h3 id="in-dashboard">In Dashboard<a class="headerlink" href="#in-dashboard" title="Permanent link">¶</a></h3>
 <p>The pointing visualization is automatically displayed on the dashboard:</p>
-<div class="highlight"><pre><span></span><code><span class="p">&lt;</span><span class="nt">PointingVisualization</span><span class="w"> </span>
-<span class="w">  </span><span class="na">height</span><span class="o">=</span><span class="p">{</span><span class="mf">500</span><span class="p">}</span><span class="w"> </span>
-<span class="w">  </span><span class="na">showHistory</span><span class="o">=</span><span class="p">{</span><span class="kc">true</span><span class="p">}</span><span class="w"> </span>
-<span class="w">  </span><span class="na">historyDays</span><span class="o">=</span><span class="p">{</span><span class="mf">7</span><span class="p">}</span><span class="w"> </span>
-<span class="p">/&gt;</span>
+<div class="highlight"><pre><span></span><code><span class="p">&lt;</span><span class="nt">PointingVisualization</span><span class="w"> </span><span class="na">height</span><span class="o">=</span><span class="p">{</span><span class="mf">500</span><span class="p">}</span><span class="w"> </span><span class="na">showHistory</span><span class="o">=</span><span class="p">{</span><span class="kc">true</span><span class="p">}</span><span class="w"> </span><span class="na">historyDays</span><span class="o">=</span><span class="p">{</span><span class="mf">7</span><span class="p">}</span><span class="w"> </span><span class="p">/&gt;</span>
 </code></pre></div>
 <h3 id="standalone-usage">Standalone Usage<a class="headerlink" href="#standalone-usage" title="Permanent link">¶</a></h3>
-<div class="highlight"><pre><span></span><code><span class="k">import</span><span class="w"> </span><span class="nx">PointingVisualization</span><span class="w"> </span><span class="kr">from</span><span class="w"> </span><span class="s1">'../components/PointingVisualization'</span><span class="p">;</span>
+<div class="highlight"><pre><span></span><code><span class="k">import</span><span class="w"> </span><span class="nx">PointingVisualization</span><span class="w"> </span><span class="kr">from</span><span class="w"> </span><span class="s2">"../components/PointingVisualization"</span><span class="p">;</span>
 
-<span class="p">&lt;</span><span class="nt">PointingVisualization</span><span class="w"> </span>
+<span class="p">&lt;</span><span class="nt">PointingVisualization</span>
 <span class="w">  </span><span class="na">height</span><span class="o">=</span><span class="p">{</span><span class="mf">600</span><span class="p">}</span>
 <span class="w">  </span><span class="na">showHistory</span><span class="o">=</span><span class="p">{</span><span class="kc">true</span><span class="p">}</span>
-<span class="w">  </span><span class="na">historyDays</span><span class="o">=</span><span class="p">{</span><span class="mf">14</span><span class="p">}</span><span class="w">  </span><span class="err">//</span><span class="w"> </span><span class="na">Show</span><span class="w"> </span><span class="na">2</span><span class="w"> </span><span class="na">weeks</span><span class="w"> </span><span class="na">of</span><span class="w"> </span><span class="na">history</span>
-<span class="p">/&gt;</span>
+<span class="w">  </span><span class="na">historyDays</span><span class="o">=</span><span class="p">{</span><span class="mf">14</span><span class="p">}</span><span class="w"> </span><span class="err">//</span><span class="w"> </span><span class="na">Show</span><span class="w"> </span><span class="na">2</span><span class="w"> </span><span class="na">weeks</span><span class="w"> </span><span class="na">of</span><span class="w"> </span><span class="na">history</span>
+<span class="p">/&gt;;</span>
 </code></pre></div>
 <hr/>
 <h2 id="visualization-details">Visualization Details<a class="headerlink" href="#visualization-details" title="Permanent link">¶</a></h2>
@@ -1464,12 +1464,12 @@
 <h2 id="api-integration">API Integration<a class="headerlink" href="#api-integration" title="Permanent link">¶</a></h2>
 <h3 id="endpoints-used">Endpoints Used<a class="headerlink" href="#endpoints-used" title="Permanent link">¶</a></h3>
 <ol>
-<li>
-<p><strong>Pointing Monitor Status</strong>
+<li><strong>Pointing Monitor Status</strong></li>
+</ol>
 <div class="highlight"><pre><span></span><code>GET /api/pointing-monitor/status
 </code></pre></div>
-   Returns:
-   <div class="highlight"><pre><span></span><code><span class="p">{</span>
+<p>Returns:</p>
+<div class="highlight"><pre><span></span><code><span class="p">{</span>
 <span class="w">  </span><span class="nt">"running"</span><span class="p">:</span><span class="w"> </span><span class="kc">true</span><span class="p">,</span>
 <span class="w">  </span><span class="nt">"healthy"</span><span class="p">:</span><span class="w"> </span><span class="kc">true</span><span class="p">,</span>
 <span class="w">  </span><span class="nt">"metrics"</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
@@ -1477,10 +1477,9 @@
 <span class="w">    </span><span class="nt">"success_rate_percent"</span><span class="p">:</span><span class="w"> </span><span class="mf">99.68</span>
 <span class="w">  </span><span class="p">}</span>
 <span class="p">}</span>
-</code></pre></div></p>
-</li>
-<li>
-<p><strong>Pointing History</strong>
+</code></pre></div>
+<ol>
+<li><strong>Pointing History</strong>
 <div class="highlight"><pre><span></span><code>GET /api/pointing_history?start_mjd=60300&amp;end_mjd=60400
 </code></pre></div>
    Returns:
@@ -1493,8 +1492,7 @@
 <span class="w">    </span><span class="p">}</span>
 <span class="w">  </span><span class="p">]</span>
 <span class="p">}</span>
-</code></pre></div></p>
-</li>
+</code></pre></div></li>
 </ol>
 <h3 id="data-flow">Data Flow<a class="headerlink" href="#data-flow" title="Permanent link">¶</a></h3>
 <div class="highlight"><pre><span></span><code>Pointing Monitor → Database → API → Frontend Hook → Component → Plotly.js
@@ -1505,7 +1503,8 @@
 <ol>
 <li><strong>Sparse Markers</strong>: Only displays every Nth marker for large datasets</li>
 <li><strong>Caching</strong>: React Query caches data for 30 seconds</li>
-<li><strong>Debounced Updates</strong>: Status updates every 30 seconds, history every 60 seconds</li>
+<li><strong>Debounced Updates</strong>: Status updates every 30 seconds, history every 60
+   seconds</li>
 <li><strong>Efficient Rendering</strong>: Plotly.js handles large datasets efficiently</li>
 </ol>
 <h3 id="limits">Limits<a class="headerlink" href="#limits" title="Permanent link">¶</a></h3>
@@ -1537,22 +1536,20 @@
 <h2 id="troubleshooting">Troubleshooting<a class="headerlink" href="#troubleshooting" title="Permanent link">¶</a></h2>
 <h3 id="no-data-displayed">No Data Displayed<a class="headerlink" href="#no-data-displayed" title="Permanent link">¶</a></h3>
 <ol>
-<li>
-<p><strong>Check Monitor Status</strong>: Verify pointing monitor is running
-   <div class="highlight"><pre><span></span><code>sudo<span class="w"> </span>systemctl<span class="w"> </span>status<span class="w"> </span>contimg-pointing-monitor.service
-</code></pre></div></p>
-</li>
-<li>
-<p><strong>Check Database</strong>: Verify pointing data exists
-   <div class="highlight"><pre><span></span><code>sqlite3<span class="w"> </span>/data/dsa110-contimg/state/products.sqlite3<span class="w"> </span><span class="se">\</span>
+<li><strong>Check Monitor Status</strong>: Verify pointing monitor is running</li>
+</ol>
+<div class="highlight"><pre><span></span><code>sudo<span class="w"> </span>systemctl<span class="w"> </span>status<span class="w"> </span>contimg-pointing-monitor.service
+</code></pre></div>
+<ol>
+<li><strong>Check Database</strong>: Verify pointing data exists</li>
+</ol>
+<div class="highlight"><pre><span></span><code>sqlite3<span class="w"> </span>/data/dsa110-contimg/state/products.sqlite3<span class="w"> </span><span class="se">\</span>
 <span class="w">  </span><span class="s2">"SELECT COUNT(*) FROM pointing_history;"</span>
-</code></pre></div></p>
-</li>
-<li>
-<p><strong>Check API</strong>: Test endpoint directly
+</code></pre></div>
+<ol>
+<li><strong>Check API</strong>: Test endpoint directly
    <div class="highlight"><pre><span></span><code>curl<span class="w"> </span>http://localhost:8000/api/pointing-monitor/status
-</code></pre></div></p>
-</li>
+</code></pre></div></li>
 </ol>
 <h3 id="visualization-not-updating">Visualization Not Updating<a class="headerlink" href="#visualization-not-updating" title="Permanent link">¶</a></h3>
 <ol>
@@ -1582,7 +1579,7 @@
 <h2 id="related-documentation">Related Documentation<a class="headerlink" href="#related-documentation" title="Permanent link">¶</a></h2>
 <ul>
 <li><strong>Pointing Monitor</strong>: <code>docs/how-to/pointing-monitor-deployment.md</code></li>
-<li><strong>API Reference</strong>: <code>docs/reference/dashboard_api.md</code></li>
+<li><strong>API Reference</strong>: <code>docs/reference/dashboard_backend_api.md</code></li>
 <li><strong>Dashboard Guide</strong>: <code>docs/how-to/control-panel-quickstart.md</code></li>
 </ul>
 <hr/>

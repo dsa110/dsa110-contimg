@@ -129,6 +129,10 @@
          <lastmod>2025-11-14</lastmod>
     </url>
     <url>
+         <loc>http://code.deepsynoptic.org/dsa110-contimg/archive/js9_casa_analysis_api/</loc>
+         <lastmod>2025-11-14</lastmod>
+    </url>
+    <url>
          <loc>http://code.deepsynoptic.org/dsa110-contimg/archive/2025-01/ARCHIVAL_NOTE/</loc>
          <lastmod>2025-11-14</lastmod>
     </url>
@@ -1465,7 +1469,15 @@
          <lastmod>2025-11-14</lastmod>
     </url>
     <url>
+         <loc>http://code.deepsynoptic.org/dsa110-contimg/how-to/batch_mode_execution_guide/</loc>
+         <lastmod>2025-11-14</lastmod>
+    </url>
+    <url>
          <loc>http://code.deepsynoptic.org/dsa110-contimg/how-to/batch_mode_guide/</loc>
+         <lastmod>2025-11-14</lastmod>
+    </url>
+    <url>
+         <loc>http://code.deepsynoptic.org/dsa110-contimg/how-to/bug_fixes_task2/</loc>
          <lastmod>2025-11-14</lastmod>
     </url>
     <url>
@@ -1474,6 +1486,26 @@
     </url>
     <url>
          <loc>http://code.deepsynoptic.org/dsa110-contimg/how-to/build-vp-from-h5/</loc>
+         <lastmod>2025-11-14</lastmod>
+    </url>
+    <url>
+         <loc>http://code.deepsynoptic.org/dsa110-contimg/how-to/carta_integration_guide/</loc>
+         <lastmod>2025-11-14</lastmod>
+    </url>
+    <url>
+         <loc>http://code.deepsynoptic.org/dsa110-contimg/how-to/carta_port_allocation/</loc>
+         <lastmod>2025-11-14</lastmod>
+    </url>
+    <url>
+         <loc>http://code.deepsynoptic.org/dsa110-contimg/how-to/carta_quick_start/</loc>
+         <lastmod>2025-11-14</lastmod>
+    </url>
+    <url>
+         <loc>http://code.deepsynoptic.org/dsa110-contimg/how-to/carta_user_access/</loc>
+         <lastmod>2025-11-14</lastmod>
+    </url>
+    <url>
+         <loc>http://code.deepsynoptic.org/dsa110-contimg/how-to/casa6-enforcement/</loc>
          <lastmod>2025-11-14</lastmod>
     </url>
     <url>
@@ -1657,6 +1689,38 @@
          <lastmod>2025-11-14</lastmod>
     </url>
     <url>
+         <loc>http://code.deepsynoptic.org/dsa110-contimg/how-to/task3_architecture_refactoring/</loc>
+         <lastmod>2025-11-14</lastmod>
+    </url>
+    <url>
+         <loc>http://code.deepsynoptic.org/dsa110-contimg/how-to/task3_phase2_complete/</loc>
+         <lastmod>2025-11-14</lastmod>
+    </url>
+    <url>
+         <loc>http://code.deepsynoptic.org/dsa110-contimg/how-to/task3_phase2_refactoring_plan/</loc>
+         <lastmod>2025-11-14</lastmod>
+    </url>
+    <url>
+         <loc>http://code.deepsynoptic.org/dsa110-contimg/how-to/task3_progress/</loc>
+         <lastmod>2025-11-14</lastmod>
+    </url>
+    <url>
+         <loc>http://code.deepsynoptic.org/dsa110-contimg/how-to/task3_ux_final_integration/</loc>
+         <lastmod>2025-11-14</lastmod>
+    </url>
+    <url>
+         <loc>http://code.deepsynoptic.org/dsa110-contimg/how-to/task3_ux_improvements/</loc>
+         <lastmod>2025-11-14</lastmod>
+    </url>
+    <url>
+         <loc>http://code.deepsynoptic.org/dsa110-contimg/how-to/task3_ux_integration_complete/</loc>
+         <lastmod>2025-11-14</lastmod>
+    </url>
+    <url>
+         <loc>http://code.deepsynoptic.org/dsa110-contimg/how-to/task3_ux_pattern_opportunities/</loc>
+         <lastmod>2025-11-14</lastmod>
+    </url>
+    <url>
          <loc>http://code.deepsynoptic.org/dsa110-contimg/how-to/testing/</loc>
          <lastmod>2025-11-14</lastmod>
     </url>
@@ -1690,6 +1754,10 @@
     </url>
     <url>
          <loc>http://code.deepsynoptic.org/dsa110-contimg/how-to/verify-auto-error-detection/</loc>
+         <lastmod>2025-11-14</lastmod>
+    </url>
+    <url>
+         <loc>http://code.deepsynoptic.org/dsa110-contimg/how-to/visual_improvements_task2/</loc>
          <lastmod>2025-11-14</lastmod>
     </url>
     <url>

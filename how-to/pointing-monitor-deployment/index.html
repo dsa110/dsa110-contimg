@@ -1370,10 +1370,13 @@
 <h1 id="pointing-monitor-deployment-guide">Pointing Monitor Deployment Guide<a class="headerlink" href="#pointing-monitor-deployment-guide" title="Permanent link">¶</a></h1>
 <p><strong>Date:</strong> 2025-11-12<br/>
 <strong>Status:</strong> Production Ready<br/>
-<strong>Purpose:</strong> Guide for deploying and monitoring the DSA-110 pointing monitor service</p>
+<strong>Purpose:</strong> Guide for deploying and monitoring the DSA-110 pointing monitor
+service</p>
 <hr/>
 <h2 id="overview">Overview<a class="headerlink" href="#overview" title="Permanent link">¶</a></h2>
-<p>The pointing monitor automatically extracts telescope pointing information from incoming UVH5 visibility files and stores it in the products database. This enables:</p>
+<p>The pointing monitor automatically extracts telescope pointing information from
+incoming UVH5 visibility files and stores it in the products database. This
+enables:</p>
 <ul>
 <li>Real-time tracking of telescope pointing</li>
 <li>Historical pointing analysis</li>
@@ -1384,7 +1387,8 @@
 <h2 id="architecture">Architecture<a class="headerlink" href="#architecture" title="Permanent link">¶</a></h2>
 <h3 id="components">Components<a class="headerlink" href="#components" title="Permanent link">¶</a></h3>
 <ol>
-<li><strong>File System Watcher</strong>: Monitors <code>/data/incoming/</code> for new <code>*_sb00.hdf5</code> files</li>
+<li><strong>File System Watcher</strong>: Monitors <code>/data/incoming/</code> for new <code>*_sb00.hdf5</code>
+   files</li>
 <li><strong>Pointing Extractor</strong>: Reads pointing metadata from UVH5 headers</li>
 <li><strong>Database Writer</strong>: Stores pointing data in <code>pointing_history</code> table</li>
 <li><strong>Health Monitor</strong>: Performs periodic health checks and writes status JSON</li>
@@ -1400,7 +1404,8 @@
 <ol>
 <li><strong>Python Environment</strong>: Requires <code>casa6</code> conda environment</li>
 <li><strong>Dependencies</strong>: <code>watchdog</code>, <code>h5py</code>, <code>astropy</code>, <code>casacore</code></li>
-<li><strong>Directory Access</strong>: Read access to <code>/data/incoming/</code>, write access to state directory</li>
+<li><strong>Directory Access</strong>: Read access to <code>/data/incoming/</code>, write access to state
+   directory</li>
 <li><strong>Database</strong>: Products database must exist (created automatically)</li>
 </ol>
 <h3 id="step-1-verify-environment">Step 1: Verify Environment<a class="headerlink" href="#step-1-verify-environment" title="Permanent link">¶</a></h3>
@@ -1454,7 +1459,8 @@ sqlite3<span class="w"> </span>/data/dsa110-contimg/state/products.sqlite3<span 
 <p>Edit <code>/etc/systemd/system/contimg-pointing-monitor.service</code> to customize:</p>
 <ul>
 <li><code>--health-check-interval</code>: Health check frequency in seconds (default: 300)</li>
-<li><code>--status-file</code>: Path to status JSON file (default: <code>${PIPELINE_STATE_DIR}/pointing-monitor-status.json</code>)</li>
+<li><code>--status-file</code>: Path to status JSON file (default:
+  <code>${PIPELINE_STATE_DIR}/pointing-monitor-status.json</code>)</li>
 <li><code>--log-level</code>: Logging verbosity</li>
 </ul>
 <hr/>
@@ -1470,7 +1476,7 @@ watch<span class="w"> </span>-n<span class="w"> </span><span class="m">5</span><
 <span class="c1"># Check health</span>
 cat<span class="w"> </span>/data/dsa110-contimg/state/pointing-monitor-status.json<span class="w"> </span><span class="p">|</span><span class="w"> </span>jq<span class="w"> </span>.healthy
 </code></pre></div>
-<p><strong>Status File Structure:</strong>
+<p><strong>Status File Structure:</strong></p>
 <div class="highlight"><pre><span></span><code><span class="p">{</span>
 <span class="w">  </span><span class="nt">"running"</span><span class="p">:</span><span class="w"> </span><span class="kc">true</span><span class="p">,</span>
 <span class="w">  </span><span class="nt">"healthy"</span><span class="p">:</span><span class="w"> </span><span class="kc">true</span><span class="p">,</span>
@@ -1492,7 +1498,7 @@ cat<span class="w"> </span>/data/dsa110-contimg/state/pointing-monitor-status.js
 <span class="w">  </span><span class="nt">"timestamp"</span><span class="p">:</span><span class="w"> </span><span class="mf">1704067200.0</span><span class="p">,</span>
 <span class="w">  </span><span class="nt">"timestamp_iso"</span><span class="p">:</span><span class="w"> </span><span class="s2">"2024-01-01T00:00:00Z"</span>
 <span class="p">}</span>
-</code></pre></div></p>
+</code></pre></div>
 <h3 id="api-endpoint">API Endpoint<a class="headerlink" href="#api-endpoint" title="Permanent link">¶</a></h3>
 <p>Query status via the API:</p>
 <div class="highlight"><pre><span></span><code><span class="c1"># Get status</span>
@@ -1546,22 +1552,37 @@ ls<span class="w"> </span>-la<span class="w"> </span>/opt/miniforge/envs/casa6/b
 <span class="w">  </span>--status-file<span class="w"> </span>/tmp/test-status.json
 </code></pre></div>
 <h3 id="common-issues">Common Issues<a class="headerlink" href="#common-issues" title="Permanent link">¶</a></h3>
-<p><strong>1. Status file not updating</strong>
-- Check service is running: <code>sudo systemctl is-active contimg-pointing-monitor.service</code>
-- Check write permissions: <code>ls -la /data/dsa110-contimg/state/</code>
-- Check disk space: <code>df -h /data/dsa110-contimg/state/</code></p>
-<p><strong>2. No files being processed</strong>
-- Verify watch directory exists: <code>ls -la /data/incoming/</code>
-- Check for <code>*_sb00.hdf5</code> files: <code>find /data/incoming -name "*_sb00.hdf5" | head -5</code>
-- Check file permissions: <code>ls -la /data/incoming/*_sb00.hdf5 | head -1</code></p>
-<p><strong>3. Database errors</strong>
-- Check database exists: <code>ls -la /data/dsa110-contimg/state/products.sqlite3</code>
-- Check database permissions: <code>ls -la /data/dsa110-contimg/state/products.sqlite3</code>
-- Test database access: <code>sqlite3 /data/dsa110-contimg/state/products.sqlite3 "SELECT 1;"</code></p>
-<p><strong>4. High error rate</strong>
-- Check recent errors in status file: <code>jq .metrics.recent_error_count /data/dsa110-contimg/state/pointing-monitor-status.json</code>
-- View error messages: <code>jq .metrics.last_error_message /data/dsa110-contimg/state/pointing-monitor-status.json</code>
-- Check UVH5 file format: <code>h5dump -H /data/incoming/&lt;file&gt;_sb00.hdf5 | grep -i "phase_center"</code></p>
+<p><strong>1. Status file not updating</strong></p>
+<ul>
+<li>Check service is running:
+  <code>sudo systemctl is-active contimg-pointing-monitor.service</code></li>
+<li>Check write permissions: <code>ls -la /data/dsa110-contimg/state/</code></li>
+<li>Check disk space: <code>df -h /data/dsa110-contimg/state/</code></li>
+</ul>
+<p><strong>2. No files being processed</strong></p>
+<ul>
+<li>Verify watch directory exists: <code>ls -la /data/incoming/</code></li>
+<li>Check for <code>*_sb00.hdf5</code> files:
+  <code>find /data/incoming -name "*_sb00.hdf5" | head -5</code></li>
+<li>Check file permissions: <code>ls -la /data/incoming/*_sb00.hdf5 | head -1</code></li>
+</ul>
+<p><strong>3. Database errors</strong></p>
+<ul>
+<li>Check database exists: <code>ls -la /data/dsa110-contimg/state/products.sqlite3</code></li>
+<li>Check database permissions:
+  <code>ls -la /data/dsa110-contimg/state/products.sqlite3</code></li>
+<li>Test database access:
+  <code>sqlite3 /data/dsa110-contimg/state/products.sqlite3 "SELECT 1;"</code></li>
+</ul>
+<p><strong>4. High error rate</strong></p>
+<ul>
+<li>Check recent errors in status file:
+  <code>jq .metrics.recent_error_count /data/dsa110-contimg/state/pointing-monitor-status.json</code></li>
+<li>View error messages:
+  <code>jq .metrics.last_error_message /data/dsa110-contimg/state/pointing-monitor-status.json</code></li>
+<li>Check UVH5 file format:
+  <code>h5dump -H /data/incoming/&lt;file&gt;_sb00.hdf5 | grep -i "phase_center"</code></li>
+</ul>
 <h3 id="health-check-failures">Health Check Failures<a class="headerlink" href="#health-check-failures" title="Permanent link">¶</a></h3>
 <p>The monitor performs health checks every 5 minutes. Common failures:</p>
 <ul>
@@ -1569,7 +1590,8 @@ ls<span class="w"> </span>-la<span class="w"> </span>/opt/miniforge/envs/casa6/b
 <li><strong>Database connection lost</strong>: Database may be locked or corrupted</li>
 <li><strong>Status file write failure</strong>: Check disk space and permissions</li>
 </ul>
-<p>Health check failures are logged but don't stop the monitor. Check logs for details.</p>
+<p>Health check failures are logged but don't stop the monitor. Check logs for
+details.</p>
 <hr/>
 <h2 id="manual-operations">Manual Operations<a class="headerlink" href="#manual-operations" title="Permanent link">¶</a></h2>
 <h3 id="startstop-service">Start/Stop Service<a class="headerlink" href="#startstop-service" title="Permanent link">¶</a></h3>
@@ -1632,7 +1654,7 @@ sudo<span class="w"> </span>systemctl<span class="w"> </span>disable<span class=
 </code></pre></div>
 <h3 id="dashboard-integration">Dashboard Integration<a class="headerlink" href="#dashboard-integration" title="Permanent link">¶</a></h3>
 <p>The frontend can query pointing monitor status:</p>
-<div class="highlight"><pre><span></span><code><span class="kd">const</span><span class="w"> </span><span class="nx">response</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="k">await</span><span class="w"> </span><span class="nx">fetch</span><span class="p">(</span><span class="s1">'/api/pointing-monitor/status'</span><span class="p">);</span>
+<div class="highlight"><pre><span></span><code><span class="kd">const</span><span class="w"> </span><span class="nx">response</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="k">await</span><span class="w"> </span><span class="nx">fetch</span><span class="p">(</span><span class="s2">"/api/pointing-monitor/status"</span><span class="p">);</span>
 <span class="kd">const</span><span class="w"> </span><span class="nx">status</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="k">await</span><span class="w"> </span><span class="nx">response</span><span class="p">.</span><span class="nx">json</span><span class="p">();</span>
 </code></pre></div>
 <h3 id="alerting-integration">Alerting Integration<a class="headerlink" href="#alerting-integration" title="Permanent link">¶</a></h3>
@@ -1695,9 +1717,11 @@ sqlite3<span class="w"> </span>/data/dsa110-contimg/state/products.sqlite3<span 
 sqlite3<span class="w"> </span>/data/dsa110-contimg/state/products.sqlite3<span class="w"> </span><span class="s2">"ANALYZE pointing_history;"</span>
 </code></pre></div>
 <h3 id="log-rotation">Log Rotation<a class="headerlink" href="#log-rotation" title="Permanent link">¶</a></h3>
-<p>Logs are written to:
-- <code>/data/dsa110-contimg/state/logs/pointing-monitor.out</code>
-- <code>/data/dsa110-contimg/state/logs/pointing-monitor.err</code></p>
+<p>Logs are written to:</p>
+<ul>
+<li><code>/data/dsa110-contimg/state/logs/pointing-monitor.out</code></li>
+<li><code>/data/dsa110-contimg/state/logs/pointing-monitor.err</code></li>
+</ul>
 <p>Configure logrotate if needed:</p>
 <div class="highlight"><pre><span></span><code><span class="c1"># /etc/logrotate.d/pointing-monitor</span>
 /data/dsa110-contimg/state/logs/pointing-monitor.*<span class="w"> </span><span class="o">{</span>
@@ -1715,7 +1739,7 @@ sqlite3<span class="w"> </span>/data/dsa110-contimg/state/products.sqlite3<span 
 <li><strong>Pointing Utilities</strong>: <code>src/dsa110_contimg/pointing/utils.py</code></li>
 <li><strong>Service File</strong>: <code>ops/systemd/contimg-pointing-monitor.service</code></li>
 <li><strong>API Endpoint</strong>: <code>/api/pointing-monitor/status</code></li>
-<li><strong>Review Document</strong>: <code>docs/reports/POINTING_MONITORING_REVIEW.md</code></li>
+<li><strong>Review Document</strong>: <code>docs/archive/reports/POINTING_MONITORING_REVIEW.md</code></li>
 </ul>
 </article>
 </div>

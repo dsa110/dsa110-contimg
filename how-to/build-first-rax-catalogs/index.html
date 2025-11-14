@@ -1198,11 +1198,14 @@
 <article class="md-content__inner md-typeset">
 <h1 id="building-first-and-rax-sqlite-catalogs">Building FIRST and RAX SQLite Catalogs<a class="headerlink" href="#building-first-and-rax-sqlite-catalogs" title="Permanent link">¶</a></h1>
 <h2 id="overview">Overview<a class="headerlink" href="#overview" title="Permanent link">¶</a></h2>
-<p>Similar to NVSS catalog conversion, FIRST and RAX catalogs can be converted to SQLite databases for efficient querying. This document describes how to build these catalogs.</p>
+<p>Similar to NVSS catalog conversion, FIRST and RAX catalogs can be converted to
+SQLite databases for efficient querying. This document describes how to build
+these catalogs.</p>
 <h2 id="prerequisites">Prerequisites<a class="headerlink" href="#prerequisites" title="Permanent link">¶</a></h2>
 <ul>
 <li>HDF5 file with pointing information (to extract declination)</li>
-<li>FIRST/RAX catalog files (CSV/FITS) - will be auto-downloaded/cached if not provided</li>
+<li>FIRST/RAX catalog files (CSV/FITS) - will be auto-downloaded/cached if not
+  provided</li>
 <li>Python environment with DSA-110 dependencies</li>
 </ul>
 <h2 id="building-first-catalog">Building FIRST Catalog<a class="headerlink" href="#building-first-catalog" title="Permanent link">¶</a></h2>
@@ -1278,9 +1281,12 @@ python<span class="w"> </span>-m<span class="w"> </span>dsa110_contimg.catalog.b
 <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">"RAX database created: </span><span class="si">{</span><span class="n">output_path</span><span class="si">}</span><span class="s2">"</span><span class="p">)</span>
 </code></pre></div>
 <h2 id="output-format">Output Format<a class="headerlink" href="#output-format" title="Permanent link">¶</a></h2>
-<p>Both scripts create SQLite databases in <code>state/catalogs/</code> with naming convention:
-- FIRST: <code>first_dec{dec_rounded:+.1f}.sqlite3</code>
-- RAX: <code>rax_dec{dec_rounded:+.1f}.sqlite3</code></p>
+<p>Both scripts create SQLite databases in <code>state/catalogs/</code> with naming
+convention:</p>
+<ul>
+<li>FIRST: <code>first_dec{dec_rounded:+.1f}.sqlite3</code></li>
+<li>RAX: <code>rax_dec{dec_rounded:+.1f}.sqlite3</code></li>
+</ul>
 <p>Example: <code>first_dec+54.7.sqlite3</code>, <code>rax_dec+54.7.sqlite3</code></p>
 <h2 id="database-schema">Database Schema<a class="headerlink" href="#database-schema" title="Permanent link">¶</a></h2>
 <h3 id="first-database">FIRST Database<a class="headerlink" href="#first-database" title="Permanent link">¶</a></h3>
@@ -1330,10 +1336,12 @@ python<span class="w"> </span>-m<span class="w"> </span>dsa110_contimg.catalog.b
 <li><code>FIRST_CATALOG</code>: Path to FIRST catalog directory or file</li>
 <li><code>RAX_CATALOG</code>: Path to RAX catalog directory or file</li>
 </ul>
-<p>If not set, the system will:
-1. Look for databases in <code>state/catalogs/</code>
-2. Attempt to auto-download/cache catalog files
-3. Fall back to CSV files if available</p>
+<p>If not set, the system will:</p>
+<ol>
+<li>Look for databases in <code>state/catalogs/</code></li>
+<li>Attempt to auto-download/cache catalog files</li>
+<li>Fall back to CSV files if available</li>
+</ol>
 <h2 id="comparison-with-nvss">Comparison with NVSS<a class="headerlink" href="#comparison-with-nvss" title="Permanent link">¶</a></h2>
 <table>
 <thead>
@@ -1382,11 +1390,13 @@ python<span class="w"> </span>-m<span class="w"> </span>dsa110_contimg.catalog.b
 <li><strong>FIRST Catalog</strong>: May require manual download from FIRST survey website</li>
 <li><strong>RAX Catalog</strong>: May need to be provided manually or cached</li>
 <li><strong>Declination Range</strong>: Default ±6 degrees matches NVSS convention</li>
-<li><strong>Caching</strong>: Catalog files are cached in <code>.cache/catalogs/</code> to avoid re-downloading</li>
+<li><strong>Caching</strong>: Catalog files are cached in <code>.cache/catalogs/</code> to avoid
+   re-downloading</li>
 </ol>
 <h2 id="related-documentation">Related Documentation<a class="headerlink" href="#related-documentation" title="Permanent link">¶</a></h2>
 <ul>
-<li><code>docs/how-to/build-nvss-catalog.md</code> - NVSS catalog building (similar process)</li>
+<li><code>docs/reference/CATALOG_DOCUMENTATION_INDEX.md</code> - NVSS catalog building
+  (similar process)</li>
 <li><code>src/dsa110_contimg/catalog/builders.py</code> - Builder functions</li>
 <li><code>src/dsa110_contimg/catalog/query.py</code> - Catalog query interface</li>
 </ul>

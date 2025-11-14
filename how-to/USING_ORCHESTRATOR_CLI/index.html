@@ -1309,11 +1309,16 @@
 <div class="md-content" data-md-component="content">
 <article class="md-content__inner md-typeset">
 <h1 id="using-the-conversion-orchestrator-cli">Using the Conversion Orchestrator CLI<a class="headerlink" href="#using-the-conversion-orchestrator-cli" title="Permanent link">¶</a></h1>
-<p><strong>Purpose</strong>: This document explains how to use the unified orchestrator CLI for UVH5 → MS conversion. The orchestrator CLI is the <strong>single, canonical pathway</strong> for all conversion workflows, with flags enabling different modes.</p>
-<p><strong>Location</strong>: <code>docs/howto/USING_ORCHESTRATOR_CLI.md</code><br/>
-<strong>Related</strong>: <code>docs/howto/FIND_CALIBRATOR_TRANSIT_DATA.md</code></p>
+<p><strong>Purpose</strong>: This document explains how to use the unified orchestrator CLI for
+UVH5 → MS conversion. The orchestrator CLI is the <strong>single, canonical pathway</strong>
+for all conversion workflows, with flags enabling different modes.</p>
+<p><strong>Location</strong>: <code>docs/how-to/USING_ORCHESTRATOR_CLI.md</code><br/>
+<strong>Related</strong>: <code>docs/how-to/FIND_CALIBRATOR_TRANSIT_DATA.md</code></p>
 <h2 id="philosophy-one-pathway-with-flags">Philosophy: One Pathway with Flags<a class="headerlink" href="#philosophy-one-pathway-with-flags" title="Permanent link">¶</a></h2>
-<p>The orchestrator CLI (<code>dsa110_contimg.conversion.strategies.hdf5_orchestrator</code>) is the <strong>single entry point</strong> for all conversion workflows. Instead of creating separate scripts for different use cases, we use flags to enable different modes:</p>
+<p>The orchestrator CLI (<code>dsa110_contimg.conversion.strategies.hdf5_orchestrator</code>)
+is the <strong>single entry point</strong> for all conversion workflows. Instead of creating
+separate scripts for different use cases, we use flags to enable different
+modes:</p>
 <ul>
 <li><strong>Standard mode</strong>: Explicit time window (<code>start_time</code> and <code>end_time</code>)</li>
 <li><strong>Calibrator mode</strong>: Automatic transit finding (<code>--calibrator</code>)</li>
@@ -1330,13 +1335,17 @@
 <span class="w">    </span>--writer<span class="w"> </span>parallel-subband<span class="w"> </span><span class="se">\</span>
 <span class="w">    </span>--stage-to-tmpfs
 </code></pre></div>
-<p><strong>Output</strong>: MS files are written directly to organized locations:
-- <code>ms/science/YYYY-MM-DD/&lt;timestamp&gt;.ms</code> (default)
-- <code>ms/calibrators/YYYY-MM-DD/&lt;timestamp&gt;.ms</code> (if calibrator detected)
-- <code>ms/failed/YYYY-MM-DD/&lt;timestamp&gt;.ms</code> (if conversion fails)</p>
-<p><strong>When to use</strong>: Processing all groups in a time window (streaming pipeline, batch processing)</p>
+<p><strong>Output</strong>: MS files are written directly to organized locations:</p>
+<ul>
+<li><code>ms/science/YYYY-MM-DD/&lt;timestamp&gt;.ms</code> (default)</li>
+<li><code>ms/calibrators/YYYY-MM-DD/&lt;timestamp&gt;.ms</code> (if calibrator detected)</li>
+<li><code>ms/failed/YYYY-MM-DD/&lt;timestamp&gt;.ms</code> (if conversion fails)</li>
+</ul>
+<p><strong>When to use</strong>: Processing all groups in a time window (streaming pipeline,
+batch processing)</p>
 <h3 id="mode-2-calibrator-transit-find-transit-automatically">Mode 2: Calibrator Transit (Find Transit Automatically)<a class="headerlink" href="#mode-2-calibrator-transit-find-transit-automatically" title="Permanent link">¶</a></h3>
-<p>This mode finds the calibrator transit and calculates the time window automatically:</p>
+<p>This mode finds the calibrator transit and calculates the time window
+automatically:</p>
 <div class="highlight"><pre><span></span><code>python<span class="w"> </span>-m<span class="w"> </span>dsa110_contimg.conversion.strategies.hdf5_orchestrator<span class="w"> </span><span class="se">\</span>
 <span class="w">    </span>/data/incoming<span class="w"> </span><span class="se">\</span>
 <span class="w">    </span>/stage/dsa110-contimg/ms<span class="w"> </span><span class="se">\</span>
@@ -1344,7 +1353,8 @@
 <span class="w">    </span>--writer<span class="w"> </span>parallel-subband<span class="w"> </span><span class="se">\</span>
 <span class="w">    </span>--stage-to-tmpfs
 </code></pre></div>
-<p><strong>When to use</strong>: Processing a specific calibrator transit (most recent available)</p>
+<p><strong>When to use</strong>: Processing a specific calibrator transit (most recent
+available)</p>
 <h3 id="mode-3-specific-calibrator-transit-date">Mode 3: Specific Calibrator Transit Date<a class="headerlink" href="#mode-3-specific-calibrator-transit-date" title="Permanent link">¶</a></h3>
 <p>To target a specific transit date:</p>
 <div class="highlight"><pre><span></span><code>python<span class="w"> </span>-m<span class="w"> </span>dsa110_contimg.conversion.strategies.hdf5_orchestrator<span class="w"> </span><span class="se">\</span>
@@ -1366,11 +1376,13 @@
 <span class="w">    </span>--writer<span class="w"> </span>parallel-subband<span class="w"> </span><span class="se">\</span>
 <span class="w">    </span>--stage-to-tmpfs
 </code></pre></div>
-<p><strong>When to use</strong>: Processing a specific calibrator transit with a known exact time</p>
+<p><strong>When to use</strong>: Processing a specific calibrator transit with a known exact
+time</p>
 <h2 id="calibrator-mode-options">Calibrator Mode Options<a class="headerlink" href="#calibrator-mode-options" title="Permanent link">¶</a></h2>
 <p>When using <code>--calibrator</code>, you can customize the search:</p>
 <ul>
-<li><code>--window-minutes</code>: Search window in minutes around transit (default: 60, i.e., ±30 minutes)</li>
+<li><code>--window-minutes</code>: Search window in minutes around transit (default: 60,
+  i.e., ±30 minutes)</li>
 <li><code>--max-days-back</code>: Maximum days to search back (default: 30)</li>
 <li><code>--transit-date</code>: Specific date (YYYY-MM-DD) or time (YYYY-MM-DDTHH:MM:SS)</li>
 </ul>
@@ -1386,10 +1398,13 @@
 </code></pre></div>
 <h2 id="what-happens-in-calibrator-mode">What Happens in Calibrator Mode<a class="headerlink" href="#what-happens-in-calibrator-mode" title="Permanent link">¶</a></h2>
 <ol>
-<li><strong>Finds transit</strong>: Uses <code>CalibratorMSGenerator.find_transit()</code> to locate the transit</li>
+<li><strong>Finds transit</strong>: Uses <code>CalibratorMSGenerator.find_transit()</code> to locate the
+   transit</li>
 <li><strong>Verifies data</strong>: Checks that subband groups exist for that transit time</li>
-<li><strong>Calculates window</strong>: Computes <code>start_time</code> and <code>end_time</code> based on transit ± window</li>
-<li><strong>Converts groups</strong>: Calls the standard conversion pipeline with the calculated window</li>
+<li><strong>Calculates window</strong>: Computes <code>start_time</code> and <code>end_time</code> based on transit
+   ± window</li>
+<li><strong>Converts groups</strong>: Calls the standard conversion pipeline with the
+   calculated window</li>
 </ol>
 <p>The orchestrator logs the transit information:</p>
 <div class="highlight"><pre><span></span><code>INFO: Finding transit for calibrator: 0834+555
@@ -1429,13 +1444,19 @@ python<span class="w"> </span>-m<span class="w"> </span>dsa110_contimg.conversio
 <span class="w">    </span>--stage-to-tmpfs
 </code></pre></div>
 <h2 id="why-this-approach">Why This Approach?<a class="headerlink" href="#why-this-approach" title="Permanent link">¶</a></h2>
-<p><strong>Before</strong>: Multiple scripts (<code>generate_calibrator_ms.py</code>, <code>generate_transit_hour_ms.py</code>, etc.) that duplicated logic and created confusion about which tool to use.</p>
-<p><strong>Now</strong>: Single orchestrator CLI with flags. One pathway, different modes enabled by flags.</p>
-<p><strong>Benefits</strong>:
-- <strong>Clear entry point</strong>: Always use the orchestrator CLI
-- <strong>No redundancy</strong>: Logic lives in one place (orchestrator + CalibratorMSGenerator service)
-- <strong>Consistent behavior</strong>: Same conversion pipeline regardless of mode
-- <strong>Easier maintenance</strong>: Changes to conversion logic affect all use cases</p>
+<p><strong>Before</strong>: Multiple scripts (<code>generate_calibrator_ms.py</code>,
+<code>generate_transit_hour_ms.py</code>, etc.) that duplicated logic and created confusion
+about which tool to use.</p>
+<p><strong>Now</strong>: Single orchestrator CLI with flags. One pathway, different modes
+enabled by flags.</p>
+<p><strong>Benefits</strong>:</p>
+<ul>
+<li><strong>Clear entry point</strong>: Always use the orchestrator CLI</li>
+<li><strong>No redundancy</strong>: Logic lives in one place (orchestrator +
+  CalibratorMSGenerator service)</li>
+<li><strong>Consistent behavior</strong>: Same conversion pipeline regardless of mode</li>
+<li><strong>Easier maintenance</strong>: Changes to conversion logic affect all use cases</li>
+</ul>
 <h2 id="integration-with-other-pipeline-stages">Integration with Other Pipeline Stages<a class="headerlink" href="#integration-with-other-pipeline-stages" title="Permanent link">¶</a></h2>
 <p>The orchestrator CLI is designed to work with other pipeline stages:</p>
 <ol>
@@ -1443,12 +1464,14 @@ python<span class="w"> </span>-m<span class="w"> </span>dsa110_contimg.conversio
 <li><strong>Calibration</strong>: <code>python -m dsa110_contimg.calibration.cli</code></li>
 <li><strong>Imaging</strong>: <code>python -m dsa110_contimg.imaging.cli</code></li>
 </ol>
-<p>Each stage has its own CLI with flags for different modes. The orchestrator CLI focuses solely on conversion.</p>
+<p>Each stage has its own CLI with flags for different modes. The orchestrator CLI
+focuses solely on conversion.</p>
 <h2 id="see-also">See Also<a class="headerlink" href="#see-also" title="Permanent link">¶</a></h2>
 <ul>
-<li><strong>Finding transit data</strong>: <code>docs/howto/FIND_CALIBRATOR_TRANSIT_DATA.md</code></li>
-<li><strong>CalibratorMSGenerator</strong>: <code>src/dsa110_contimg/conversion/calibrator_ms_service.py</code></li>
-<li><strong>Conversion process</strong>: <code>docs/reports/CONVERSION_PROCESS_SUMMARY.md</code></li>
+<li><strong>Finding transit data</strong>: <code>docs/how-to/FIND_CALIBRATOR_TRANSIT_DATA.md</code></li>
+<li><strong>CalibratorMSGenerator</strong>:
+  <code>src/dsa110_contimg/conversion/calibrator_ms_service.py</code></li>
+<li><strong>Conversion process</strong>: <code>docs/archive/reports/</code></li>
 </ul>
 </article>
 </div>

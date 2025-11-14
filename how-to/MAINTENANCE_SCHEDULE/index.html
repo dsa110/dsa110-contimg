@@ -1324,7 +1324,7 @@ prevention system.</p>
 <p><strong>What it does:</strong></p>
 <ul>
 <li>Audits all suppression patterns in codebase</li>
-<li>Saves results to <code>docs/dev/audits/output-suppression-audit-YYYYMMDD.txt</code></li>
+<li>Saves results to <code>internal/docs/dev/imported/audits/</code></li>
 <li>Checks for non-whitelisted suppressions</li>
 <li>Provides statistics</li>
 </ul>
@@ -1389,7 +1389,8 @@ ls<span class="w"> </span>-t<span class="w"> </span>docs/dev/audits/output-suppr
 <p><strong>When:</strong> First Monday of each quarter</p>
 <p><strong>Tasks:</strong></p>
 <ol>
-<li>Update <code>docs/dev/OUTPUT_SUPPRESSION_EXCEPTIONS.md</code> with new patterns</li>
+<li>Update <code>internal/docs/dev/imported/OUTPUT_SUPPRESSION_EXCEPTIONS.md</code> with new
+   patterns</li>
 <li>Update team training materials</li>
 <li>Review and update guidelines</li>
 </ol>
@@ -1553,7 +1554,8 @@ ls<span class="w"> </span>-t<span class="w"> </span>docs/dev/audits/output-suppr
 <li><strong>Whitelist:</strong> <code>.output-suppression-whitelist</code></li>
 <li><strong>Audit script:</strong> <code>scripts/maintenance-audit-output-suppression.sh</code></li>
 <li><strong>Fix script:</strong> <code>scripts/fix-non-legitimate-suppressions.sh</code></li>
-<li><strong>Documentation:</strong> <code>docs/dev/OUTPUT_SUPPRESSION_EXCEPTIONS.md</code></li>
+<li><strong>Documentation:</strong>
+<code>internal/docs/dev/imported/OUTPUT_SUPPRESSION_EXCEPTIONS.md</code></li>
 <li><strong>Team training:</strong> <code>docs/how-to/TEAM_TRAINING_OUTPUT_SUPPRESSION.md</code></li>
 </ul>
 <hr/>

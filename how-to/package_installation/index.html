@@ -1225,9 +1225,8 @@
 <div class="md-content" data-md-component="content">
 <article class="md-content__inner md-typeset">
 <h1 id="package-installation-guide">Package Installation Guide<a class="headerlink" href="#package-installation-guide" title="Permanent link">¶</a></h1>
-<p><strong>Purpose</strong>: This guide explains how to install the
-<strong>{{ config.extra.package_name }}</strong> package (version {{ config.extra.version }})
-as a proper Python package.</p>
+<p><strong>Purpose</strong>: This guide explains how to install the <strong>dsa110-contimg</strong> package
+(version 0.1.0) as a proper Python package.</p>
 <p><strong>Location</strong>: <code>docs/how-to/package_installation.md</code><br/>
 <strong>Related</strong>:</p>
 <ul>
@@ -1235,8 +1234,8 @@ as a proper Python package.</p>
 <li><a href="../../reference/CRITICAL_PYTHON_ENVIRONMENT/">Critical Python Environment</a></li>
 </ul>
 <h2 id="overview">Overview<a class="headerlink" href="#overview" title="Permanent link">¶</a></h2>
-<p>The <strong>{{ config.extra.package_name }}</strong> pipeline is now configured as a proper
-Python package using <code>pyproject.toml</code>. This allows:</p>
+<p>The <strong>dsa110-contimg</strong> pipeline is now configured as a proper Python package
+using <code>pyproject.toml</code>. This allows:</p>
 <ul>
 <li><strong>Direct imports</strong> without <code>sys.path</code> manipulation</li>
 <li><strong>CLI entry points</strong> as system commands</li>
@@ -1380,7 +1379,7 @@ pip<span class="w"> </span>install<span class="w"> </span>-e<span class="w"> </s
 <li><strong>Dependencies</strong>: Listed in <code>[project]</code> section</li>
 <li><strong>Optional dependencies</strong>: <code>[project.optional-dependencies]</code> (dev, casa, all)</li>
 <li><strong>CLI entry points</strong>: <code>[project.scripts]</code> section</li>
-<li><strong>Package discovery</strong>: Finds all packages in <code>src/dsa110_contimg*</code></li>
+<li><strong>Package discovery</strong>: Finds all packages in <code>src/dsa110_contimg/</code></li>
 </ul>
 <h2 id="troubleshooting">Troubleshooting<a class="headerlink" href="#troubleshooting" title="Permanent link">¶</a></h2>
 <h3 id="import-errors-after-installation">Import Errors After Installation<a class="headerlink" href="#import-errors-after-installation" title="Permanent link">¶</a></h3>
