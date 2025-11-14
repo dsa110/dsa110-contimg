@@ -1,0 +1,1777 @@
+
+<!DOCTYPE html>
+
+<html class="no-js" lang="en">
+<head>
+<meta charset="utf-8"/>
+<meta content="width=device-width,initial-scale=1" name="viewport"/>
+<link href="http://code.deepsynoptic.org/dsa110-contimg/archive/dashboard_ui_recommendations/" rel="canonical"/>
+<link href="../../assets/images/favicon.png" rel="icon"/>
+<meta content="mkdocs-1.6.1, mkdocs-material-9.5.31" name="generator"/>
+<title>Dashboard UI Development Recommendations - DSA-110 Continuum Imaging Pipeline</title>
+<link href="../../assets/stylesheets/main.3cba04c6.min.css" rel="stylesheet"/>
+<link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect"/>
+<link href="https://fonts.googleapis.com/css?family=Roboto:300,300i,400,400i,700,700i%7CRoboto+Mono:400,400i,700,700i&amp;display=fallback" rel="stylesheet"/>
+<style>:root{--md-text-font:"Roboto";--md-code-font:"Roboto Mono"}</style>
+<link href="../../assets/_mkdocstrings.css" rel="stylesheet"/>
+<script>__md_scope=new URL("../..",location),__md_hash=e=>[...e].reduce((e,_)=>(e<<5)-e+_.charCodeAt(0),0),__md_get=(e,_=localStorage,t=__md_scope)=>JSON.parse(_.getItem(t.pathname+"."+e)),__md_set=(e,_,t=localStorage,a=__md_scope)=>{try{t.setItem(a.pathname+"."+e,JSON.stringify(_))}catch(e){}}</script>
+</head>
+<body dir="ltr">
+<input autocomplete="off" class="md-toggle" data-md-toggle="drawer" id="__drawer" type="checkbox"/>
+<input autocomplete="off" class="md-toggle" data-md-toggle="search" id="__search" type="checkbox"/>
+<label class="md-overlay" for="__drawer"></label>
+<div data-md-component="skip">
+<a class="md-skip" href="#dashboard-ui-development-recommendations">
+          Skip to content
+        </a>
+</div>
+<div data-md-component="announce">
+</div>
+<div data-md-color-scheme="default" data-md-component="outdated" hidden="">
+</div>
+<header class="md-header md-header--shadow" data-md-component="header">
+<nav aria-label="Header" class="md-header__inner md-grid">
+<a aria-label="DSA-110 Continuum Imaging Pipeline" class="md-header__button md-logo" data-md-component="logo" href="../.." title="DSA-110 Continuum Imaging Pipeline">
+<svg viewbox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54Z"></path></svg>
+</a>
+<label class="md-header__button md-icon" for="__drawer">
+<svg viewbox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M3 6h18v2H3V6m0 5h18v2H3v-2m0 5h18v2H3v-2Z"></path></svg>
+</label>
+<div class="md-header__title" data-md-component="header-title">
+<div class="md-header__ellipsis">
+<div class="md-header__topic">
+<span class="md-ellipsis">
+            DSA-110 Continuum Imaging Pipeline
+          </span>
+</div>
+<div class="md-header__topic" data-md-component="header-topic">
+<span class="md-ellipsis">
+            
+              Dashboard UI Development Recommendations
+            
+          </span>
+</div>
+</div>
+</div>
+<script>var media,input,key,value,palette=__md_get("__palette");if(palette&&palette.color){"(prefers-color-scheme)"===palette.color.media&&(media=matchMedia("(prefers-color-scheme: light)"),input=document.querySelector(media.matches?"[data-md-color-media='(prefers-color-scheme: light)']":"[data-md-color-media='(prefers-color-scheme: dark)']"),palette.color.media=input.getAttribute("data-md-color-media"),palette.color.scheme=input.getAttribute("data-md-color-scheme"),palette.color.primary=input.getAttribute("data-md-color-primary"),palette.color.accent=input.getAttribute("data-md-color-accent"));for([key,value]of Object.entries(palette.color))document.body.setAttribute("data-md-color-"+key,value)}</script>
+<label class="md-header__button md-icon" for="__search">
+<svg viewbox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.516 6.516 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5Z"></path></svg>
+</label>
+<div class="md-search" data-md-component="search" role="dialog">
+<label class="md-search__overlay" for="__search"></label>
+<div class="md-search__inner" role="search">
+<form class="md-search__form" name="search">
+<input aria-label="Search" autocapitalize="off" autocomplete="off" autocorrect="off" class="md-search__input" data-md-component="search-query" name="query" placeholder="Search" required="" spellcheck="false" type="text"/>
+<label class="md-search__icon md-icon" for="__search">
+<svg viewbox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.516 6.516 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5Z"></path></svg>
+<svg viewbox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11h12Z"></path></svg>
+</label>
+<nav aria-label="Search" class="md-search__options">
+<button aria-label="Clear" class="md-search__icon md-icon" tabindex="-1" title="Clear" type="reset">
+<svg viewbox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M19 6.41 17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12 19 6.41Z"></path></svg>
+</button>
+</nav>
+</form>
+<div class="md-search__output">
+<div class="md-search__scrollwrap" data-md-scrollfix="" tabindex="0">
+<div class="md-search-result" data-md-component="search-result">
+<div class="md-search-result__meta">
+            Initializing search
+          </div>
+<ol class="md-search-result__list" role="presentation"></ol>
+</div>
+</div>
+</div>
+</div>
+</div>
+<div class="md-header__source">
+<a class="md-source" data-md-component="source" href="https://github.com/dsa110/dsa110-contimg" title="Go to repository">
+<div class="md-source__icon md-icon">
+<svg viewbox="0 0 448 512" xmlns="http://www.w3.org/2000/svg"><!--! Font Awesome Free 6.6.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2024 Fonticons, Inc.--><path d="M439.55 236.05 244 40.45a28.87 28.87 0 0 0-40.81 0l-40.66 40.63 51.52 51.52c27.06-9.14 52.68 16.77 43.39 43.68l49.66 49.66c34.23-11.8 61.18 31 35.47 56.69-26.49 26.49-70.21-2.87-56-37.34L240.22 199v121.85c25.3 12.54 22.26 41.85 9.08 55a34.34 34.34 0 0 1-48.55 0c-17.57-17.6-11.07-46.91 11.25-56v-123c-20.8-8.51-24.6-30.74-18.64-45L142.57 101 8.45 235.14a28.86 28.86 0 0 0 0 40.81l195.61 195.6a28.86 28.86 0 0 0 40.8 0l194.69-194.69a28.86 28.86 0 0 0 0-40.81z"></path></svg>
+</div>
+<div class="md-source__repository">
+    GitHub
+  </div>
+</a>
+</div>
+</nav>
+</header>
+<div class="md-container" data-md-component="container">
+<main class="md-main" data-md-component="main">
+<div class="md-main__inner md-grid">
+<div class="md-sidebar md-sidebar--primary" data-md-component="sidebar" data-md-type="navigation">
+<div class="md-sidebar__scrollwrap">
+<div class="md-sidebar__inner">
+<nav aria-label="Navigation" class="md-nav md-nav--primary" data-md-level="0">
+<label class="md-nav__title" for="__drawer">
+<a aria-label="DSA-110 Continuum Imaging Pipeline" class="md-nav__button md-logo" data-md-component="logo" href="../.." title="DSA-110 Continuum Imaging Pipeline">
+<svg viewbox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54Z"></path></svg>
+</a>
+    DSA-110 Continuum Imaging Pipeline
+  </label>
+<div class="md-nav__source">
+<a class="md-source" data-md-component="source" href="https://github.com/dsa110/dsa110-contimg" title="Go to repository">
+<div class="md-source__icon md-icon">
+<svg viewbox="0 0 448 512" xmlns="http://www.w3.org/2000/svg"><!--! Font Awesome Free 6.6.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2024 Fonticons, Inc.--><path d="M439.55 236.05 244 40.45a28.87 28.87 0 0 0-40.81 0l-40.66 40.63 51.52 51.52c27.06-9.14 52.68 16.77 43.39 43.68l49.66 49.66c34.23-11.8 61.18 31 35.47 56.69-26.49 26.49-70.21-2.87-56-37.34L240.22 199v121.85c25.3 12.54 22.26 41.85 9.08 55a34.34 34.34 0 0 1-48.55 0c-17.57-17.6-11.07-46.91 11.25-56v-123c-20.8-8.51-24.6-30.74-18.64-45L142.57 101 8.45 235.14a28.86 28.86 0 0 0 0 40.81l195.61 195.6a28.86 28.86 0 0 0 40.8 0l194.69-194.69a28.86 28.86 0 0 0 0-40.81z"></path></svg>
+</div>
+<div class="md-source__repository">
+    GitHub
+  </div>
+</a>
+</div>
+<ul class="md-nav__list" data-md-scrollfix="">
+<li class="md-nav__item">
+<a class="md-nav__link" href="../..">
+<span class="md-ellipsis">
+    Home
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../DOCUMENTATION_QUICK_REFERENCE/">
+<span class="md-ellipsis">
+    Documentation Guide
+  </span>
+</a>
+</li>
+<li class="md-nav__item md-nav__item--section md-nav__item--nested">
+<input class="md-nav__toggle md-toggle" id="__nav_3" type="checkbox"/>
+<div class="md-nav__link md-nav__container">
+<a class="md-nav__link" href="../../concepts/">
+<span class="md-ellipsis">
+    Concepts
+  </span>
+</a>
+<label class="md-nav__link" for="__nav_3" id="__nav_3_label" tabindex="">
+<span class="md-nav__icon md-icon"></span>
+</label>
+</div>
+<nav aria-expanded="false" aria-labelledby="__nav_3_label" class="md-nav" data-md-level="1">
+<label class="md-nav__title" for="__nav_3">
+<span class="md-nav__icon md-icon"></span>
+            Concepts
+          </label>
+<ul class="md-nav__list" data-md-scrollfix="">
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../concepts/architecture/">
+<span class="md-ellipsis">
+    Architecture
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../concepts/DIRECTORY_ARCHITECTURE/">
+<span class="md-ellipsis">
+    Directory Architecture
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../concepts/modules/">
+<span class="md-ellipsis">
+    Modules
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../concepts/control-panel/">
+<span class="md-ellipsis">
+    Control Panel
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../concepts/aoflagger/">
+<span class="md-ellipsis">
+    AOFlagger
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../concepts/frontend_design/">
+<span class="md-ellipsis">
+    Frontend Design
+  </span>
+</a>
+</li>
+<li class="md-nav__item md-nav__item--nested">
+<input class="md-nav__toggle md-toggle" id="__nav_3_8" type="checkbox"/>
+<label class="md-nav__link" for="__nav_3_8" id="__nav_3_8_label" tabindex="0">
+<span class="md-ellipsis">
+    Dashboard
+  </span>
+<span class="md-nav__icon md-icon"></span>
+</label>
+<nav aria-expanded="false" aria-labelledby="__nav_3_8_label" class="md-nav" data-md-level="2">
+<label class="md-nav__title" for="__nav_3_8">
+<span class="md-nav__icon md-icon"></span>
+            Dashboard
+          </label>
+<ul class="md-nav__list" data-md-scrollfix="">
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../concepts/dashboard_mockups/">
+<span class="md-ellipsis">
+    Mockups
+  </span>
+</a>
+</li>
+</ul>
+</nav>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../concepts/GLOSSARY/">
+<span class="md-ellipsis">
+    Glossary
+  </span>
+</a>
+</li>
+<li class="md-nav__item md-nav__item--nested">
+<input class="md-nav__toggle md-toggle" id="__nav_3_10" type="checkbox"/>
+<label class="md-nav__link" for="__nav_3_10" id="__nav_3_10_label" tabindex="0">
+<span class="md-ellipsis">
+    Pipeline
+  </span>
+<span class="md-nav__icon md-icon"></span>
+</label>
+<nav aria-expanded="false" aria-labelledby="__nav_3_10_label" class="md-nav" data-md-level="2">
+<label class="md-nav__title" for="__nav_3_10">
+<span class="md-nav__icon md-icon"></span>
+            Pipeline
+          </label>
+<ul class="md-nav__list" data-md-scrollfix="">
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../concepts/pipeline_overview/">
+<span class="md-ellipsis">
+    Overview
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../concepts/pipeline_stage_architecture/">
+<span class="md-ellipsis">
+    Stage Architecture
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../concepts/pipeline_workflow_visualization/">
+<span class="md-ellipsis">
+    Workflow Visualization
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../concepts/pipeline_production_features/">
+<span class="md-ellipsis">
+    Production Features
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../concepts/pipeline_patterns/">
+<span class="md-ellipsis">
+    Patterns
+  </span>
+</a>
+</li>
+</ul>
+</nav>
+</li>
+<li class="md-nav__item md-nav__item--nested">
+<input class="md-nav__toggle md-toggle" id="__nav_3_11" type="checkbox"/>
+<label class="md-nav__link" for="__nav_3_11" id="__nav_3_11_label" tabindex="0">
+<span class="md-ellipsis">
+    Science
+  </span>
+<span class="md-nav__icon md-icon"></span>
+</label>
+<nav aria-expanded="false" aria-labelledby="__nav_3_11_label" class="md-nav" data-md-level="2">
+<label class="md-nav__title" for="__nav_3_11">
+<span class="md-nav__icon md-icon"></span>
+            Science
+          </label>
+<ul class="md-nav__list" data-md-scrollfix="">
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../concepts/science/photometry_normalization/">
+<span class="md-ellipsis">
+    Photometry Normalization
+  </span>
+</a>
+</li>
+</ul>
+</nav>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../concepts/mcp_browser_server_setup/">
+<span class="md-ellipsis">
+    Browser MCP Server
+  </span>
+</a>
+</li>
+</ul>
+</nav>
+</li>
+<li class="md-nav__item md-nav__item--section md-nav__item--nested">
+<input class="md-nav__toggle md-toggle" id="__nav_4" type="checkbox"/>
+<label class="md-nav__link" for="__nav_4" id="__nav_4_label" tabindex="">
+<span class="md-ellipsis">
+    Tutorials
+  </span>
+<span class="md-nav__icon md-icon"></span>
+</label>
+<nav aria-expanded="false" aria-labelledby="__nav_4_label" class="md-nav" data-md-level="1">
+<label class="md-nav__title" for="__nav_4">
+<span class="md-nav__icon md-icon"></span>
+            Tutorials
+          </label>
+<ul class="md-nav__list" data-md-scrollfix="">
+<li class="md-nav__item md-nav__item--nested">
+<input class="md-nav__toggle md-toggle" id="__nav_4_1" type="checkbox"/>
+<label class="md-nav__link" for="__nav_4_1" id="__nav_4_1_label" tabindex="0">
+<span class="md-ellipsis">
+    Conversion
+  </span>
+<span class="md-nav__icon md-icon"></span>
+</label>
+<nav aria-expanded="false" aria-labelledby="__nav_4_1_label" class="md-nav" data-md-level="2">
+<label class="md-nav__title" for="__nav_4_1">
+<span class="md-nav__icon md-icon"></span>
+            Conversion
+          </label>
+<ul class="md-nav__list" data-md-scrollfix="">
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../tutorials/HDF5_TO_MS_TUTORIAL/">
+<span class="md-ellipsis">
+    HDF5 to MS
+  </span>
+</a>
+</li>
+</ul>
+</nav>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../tutorials/simulation-tutorial/">
+<span class="md-ellipsis">
+    Simulation
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../tutorials/calibrate-apply/">
+<span class="md-ellipsis">
+    Calibrate and Apply
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../tutorials/convert-standalone/">
+<span class="md-ellipsis">
+    Convert Standalone
+  </span>
+</a>
+</li>
+<li class="md-nav__item md-nav__item--nested">
+<input class="md-nav__toggle md-toggle" id="__nav_4_5" type="checkbox"/>
+<label class="md-nav__link" for="__nav_4_5" id="__nav_4_5_label" tabindex="0">
+<span class="md-ellipsis">
+    Notebooks
+  </span>
+<span class="md-nav__icon md-icon"></span>
+</label>
+<nav aria-expanded="false" aria-labelledby="__nav_4_5_label" class="md-nav" data-md-level="2">
+<label class="md-nav__title" for="__nav_4_5">
+<span class="md-nav__icon md-icon"></span>
+            Notebooks
+          </label>
+<ul class="md-nav__list" data-md-scrollfix="">
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../tutorials/notebooks/bandpass_calibration_test.ipynb">
+<span class="md-ellipsis">
+    Bandpass Calibration Test
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../tutorials/notebooks/calibrator_helper.py">
+<span class="md-ellipsis">
+    Calibrator Helper
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../tutorials/notebooks/CalibratorSearch.ipynb">
+<span class="md-ellipsis">
+    Calibrator Search
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../tutorials/notebooks/ms_staging_workflow.ipynb">
+<span class="md-ellipsis">
+    MS Staging Workflow
+  </span>
+</a>
+</li>
+</ul>
+</nav>
+</li>
+</ul>
+</nav>
+</li>
+<li class="md-nav__item md-nav__item--section md-nav__item--nested">
+<input class="md-nav__toggle md-toggle" id="__nav_5" type="checkbox"/>
+<label class="md-nav__link" for="__nav_5" id="__nav_5_label" tabindex="">
+<span class="md-ellipsis">
+    How-To Guides
+  </span>
+<span class="md-nav__icon md-icon"></span>
+</label>
+<nav aria-expanded="false" aria-labelledby="__nav_5_label" class="md-nav" data-md-level="1">
+<label class="md-nav__title" for="__nav_5">
+<span class="md-nav__icon md-icon"></span>
+            How-To Guides
+          </label>
+<ul class="md-nav__list" data-md-scrollfix="">
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../how-to/streaming/">
+<span class="md-ellipsis">
+    Streaming Guide
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../how-to/dashboard/">
+<span class="md-ellipsis">
+    Dashboard Guide
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../how-to/github_pages_walkthrough/">
+<span class="md-ellipsis">
+    GitHub Pages Setup
+  </span>
+</a>
+</li>
+<li class="md-nav__item md-nav__item--nested">
+<input class="md-nav__toggle md-toggle" id="__nav_5_4" type="checkbox"/>
+<label class="md-nav__link" for="__nav_5_4" id="__nav_5_4_label" tabindex="0">
+<span class="md-ellipsis">
+    Quickstarts
+  </span>
+<span class="md-nav__icon md-icon"></span>
+</label>
+<nav aria-expanded="false" aria-labelledby="__nav_5_4_label" class="md-nav" data-md-level="2">
+<label class="md-nav__title" for="__nav_5_4">
+<span class="md-nav__icon md-icon"></span>
+            Quickstarts
+          </label>
+<ul class="md-nav__list" data-md-scrollfix="">
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../how-to/quickstart/">
+<span class="md-ellipsis">
+    General
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../how-to/control-panel-quickstart/">
+<span class="md-ellipsis">
+    Control Panel
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../how-to/LINEAR_SETUP_QUICKSTART/">
+<span class="md-ellipsis">
+    Linear Setup
+  </span>
+</a>
+</li>
+</ul>
+</nav>
+</li>
+<li class="md-nav__item md-nav__item--nested">
+<input class="md-nav__toggle md-toggle" id="__nav_5_5" type="checkbox"/>
+<label class="md-nav__link" for="__nav_5_5" id="__nav_5_5_label" tabindex="0">
+<span class="md-ellipsis">
+    Testing
+  </span>
+<span class="md-nav__icon md-icon"></span>
+</label>
+<nav aria-expanded="false" aria-labelledby="__nav_5_5_label" class="md-nav" data-md-level="2">
+<label class="md-nav__title" for="__nav_5_5">
+<span class="md-nav__icon md-icon"></span>
+            Testing
+          </label>
+<ul class="md-nav__list" data-md-scrollfix="">
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../how-to/FAST_TESTING/">
+<span class="md-ellipsis">
+    Fast Testing
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../how-to/PIPELINE_TESTING_GUIDE/">
+<span class="md-ellipsis">
+    Pipeline Guide
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../how-to/TEST_FLAG_SUBCOMMAND/">
+<span class="md-ellipsis">
+    Flag Subcommand
+  </span>
+</a>
+</li>
+</ul>
+</nav>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../how-to/build-vp-from-h5/">
+<span class="md-ellipsis">
+    Build VP from h5
+  </span>
+</a>
+</li>
+<li class="md-nav__item md-nav__item--nested">
+<input class="md-nav__toggle md-toggle" id="__nav_5_7" type="checkbox"/>
+<label class="md-nav__link" for="__nav_5_7" id="__nav_5_7_label" tabindex="0">
+<span class="md-ellipsis">
+    Calibration
+  </span>
+<span class="md-nav__icon md-icon"></span>
+</label>
+<nav aria-expanded="false" aria-labelledby="__nav_5_7_label" class="md-nav" data-md-level="2">
+<label class="md-nav__title" for="__nav_5_7">
+<span class="md-nav__icon md-icon"></span>
+            Calibration
+          </label>
+<ul class="md-nav__list" data-md-scrollfix="">
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../how-to/CALIBRATION_DETAILED_PROCEDURE/">
+<span class="md-ellipsis">
+    Detailed Procedure
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../how-to/FIND_CALIBRATOR_TRANSIT_DATA/">
+<span class="md-ellipsis">
+    Find Calibrator Transit
+  </span>
+</a>
+</li>
+</ul>
+</nav>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../how-to/IMAGE_0834_TRANSIT_5MIN/">
+<span class="md-ellipsis">
+    Image 0834 Transit 5min
+  </span>
+</a>
+</li>
+<li class="md-nav__item md-nav__item--nested">
+<input class="md-nav__toggle md-toggle" id="__nav_5_9" type="checkbox"/>
+<label class="md-nav__link" for="__nav_5_9" id="__nav_5_9_label" tabindex="0">
+<span class="md-ellipsis">
+    Mosaic
+  </span>
+<span class="md-nav__icon md-icon"></span>
+</label>
+<nav aria-expanded="false" aria-labelledby="__nav_5_9_label" class="md-nav" data-md-level="2">
+<label class="md-nav__title" for="__nav_5_9">
+<span class="md-nav__icon md-icon"></span>
+            Mosaic
+          </label>
+<ul class="md-nav__list" data-md-scrollfix="">
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../how-to/mosaic_quickstart/">
+<span class="md-ellipsis">
+    Quickstart
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../how-to/mosaic/">
+<span class="md-ellipsis">
+    Complete Guide
+  </span>
+</a>
+</li>
+</ul>
+</nav>
+</li>
+<li class="md-nav__item md-nav__item--nested">
+<input class="md-nav__toggle md-toggle" id="__nav_5_10" type="checkbox"/>
+<label class="md-nav__link" for="__nav_5_10" id="__nav_5_10_label" tabindex="0">
+<span class="md-ellipsis">
+    Quality Assurance
+  </span>
+<span class="md-nav__icon md-icon"></span>
+</label>
+<nav aria-expanded="false" aria-labelledby="__nav_5_10_label" class="md-nav" data-md-level="2">
+<label class="md-nav__title" for="__nav_5_10">
+<span class="md-nav__icon md-icon"></span>
+            Quality Assurance
+          </label>
+<ul class="md-nav__list" data-md-scrollfix="">
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../how-to/QUALITY_ASSURANCE_SETUP/">
+<span class="md-ellipsis">
+    Setup
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../how-to/quicklook/">
+<span class="md-ellipsis">
+    Quick Look
+  </span>
+</a>
+</li>
+</ul>
+</nav>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../how-to/reprocess/">
+<span class="md-ellipsis">
+    Reprocess
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../how-to/USING_ORCHESTRATOR_CLI/">
+<span class="md-ellipsis">
+    Using Orchestrator CLI
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../how-to/LINEAR_INTEGRATION/">
+<span class="md-ellipsis">
+    Linear Integration
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../how-to/frontend-initial-setup/">
+<span class="md-ellipsis">
+    Frontend Initial Setup
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../how-to/PARAMETER_OPTIMIZATION_GUIDE/">
+<span class="md-ellipsis">
+    AOFlagger Parameter Optimization
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../how-to/downsampling_guide/">
+<span class="md-ellipsis">
+    Downsampling Guide
+  </span>
+</a>
+</li>
+<li class="md-nav__item md-nav__item--nested">
+<input class="md-nav__toggle md-toggle" id="__nav_5_17" type="checkbox"/>
+<label class="md-nav__link" for="__nav_5_17" id="__nav_5_17_label" tabindex="0">
+<span class="md-ellipsis">
+    Conversion
+  </span>
+<span class="md-nav__icon md-icon"></span>
+</label>
+<nav aria-expanded="false" aria-labelledby="__nav_5_17_label" class="md-nav" data-md-level="2">
+<label class="md-nav__title" for="__nav_5_17">
+<span class="md-nav__icon md-icon"></span>
+            Conversion
+          </label>
+<ul class="md-nav__list" data-md-scrollfix="">
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../how-to/uvh5_to_ms_conversion/">
+<span class="md-ellipsis">
+    UVH5 to MS
+  </span>
+</a>
+</li>
+</ul>
+</nav>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../how-to/troubleshooting/">
+<span class="md-ellipsis">
+    Troubleshooting
+  </span>
+</a>
+</li>
+</ul>
+</nav>
+</li>
+<li class="md-nav__item md-nav__item--section md-nav__item--nested">
+<input class="md-nav__toggle md-toggle" id="__nav_6" type="checkbox"/>
+<label class="md-nav__link" for="__nav_6" id="__nav_6_label" tabindex="">
+<span class="md-ellipsis">
+    Reference
+  </span>
+<span class="md-nav__icon md-icon"></span>
+</label>
+<nav aria-expanded="false" aria-labelledby="__nav_6_label" class="md-nav" data-md-level="1">
+<label class="md-nav__title" for="__nav_6">
+<span class="md-nav__icon md-icon"></span>
+            Reference
+          </label>
+<ul class="md-nav__list" data-md-scrollfix="">
+<li class="md-nav__item md-nav__item--nested">
+<input class="md-nav__toggle md-toggle" id="__nav_6_1" type="checkbox"/>
+<label class="md-nav__link" for="__nav_6_1" id="__nav_6_1_label" tabindex="0">
+<span class="md-ellipsis">
+    API
+  </span>
+<span class="md-nav__icon md-icon"></span>
+</label>
+<nav aria-expanded="false" aria-labelledby="__nav_6_1_label" class="md-nav" data-md-level="2">
+<label class="md-nav__title" for="__nav_6_1">
+<span class="md-nav__icon md-icon"></span>
+            API
+          </label>
+<ul class="md-nav__list" data-md-scrollfix="">
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../reference/api-endpoints/">
+<span class="md-ellipsis">
+    Endpoints
+  </span>
+</a>
+</li>
+<li class="md-nav__item md-nav__item--nested">
+<input class="md-nav__toggle md-toggle" id="__nav_6_1_2" type="checkbox"/>
+<label class="md-nav__link" for="__nav_6_1_2" id="__nav_6_1_2_label" tabindex="0">
+<span class="md-ellipsis">
+    Dashboard
+  </span>
+<span class="md-nav__icon md-icon"></span>
+</label>
+<nav aria-expanded="false" aria-labelledby="__nav_6_1_2_label" class="md-nav" data-md-level="3">
+<label class="md-nav__title" for="__nav_6_1_2">
+<span class="md-nav__icon md-icon"></span>
+            Dashboard
+          </label>
+<ul class="md-nav__list" data-md-scrollfix="">
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../reference/dashboard_backend_api/">
+<span class="md-ellipsis">
+    API Reference
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../reference/dashboard_pages_and_features/">
+<span class="md-ellipsis">
+    Pages &amp; Features
+  </span>
+</a>
+</li>
+</ul>
+</nav>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../reference/backend_integration_snippets/">
+<span class="md-ellipsis">
+    Integration Snippets
+  </span>
+</a>
+</li>
+</ul>
+</nav>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../reference/calibration-overview/">
+<span class="md-ellipsis">
+    Calibration Overview
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../reference/cli/">
+<span class="md-ellipsis">
+    CLI
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../reference/control-panel-cheatsheet/">
+<span class="md-ellipsis">
+    Control Panel Cheatsheet
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../reference/database_schema/">
+<span class="md-ellipsis">
+    Database Schema
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../reference/env/">
+<span class="md-ellipsis">
+    Environment Variables
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../reference/CRITICAL_PYTHON_ENVIRONMENT/">
+<span class="md-ellipsis">
+    Critical Python Environment
+  </span>
+</a>
+</li>
+<li class="md-nav__item md-nav__item--nested">
+<input class="md-nav__toggle md-toggle" id="__nav_6_8" type="checkbox"/>
+<label class="md-nav__link" for="__nav_6_8" id="__nav_6_8_label" tabindex="0">
+<span class="md-ellipsis">
+    Optimizations
+  </span>
+<span class="md-nav__icon md-icon"></span>
+</label>
+<nav aria-expanded="false" aria-labelledby="__nav_6_8_label" class="md-nav" data-md-level="2">
+<label class="md-nav__title" for="__nav_6_8">
+<span class="md-nav__icon md-icon"></span>
+            Optimizations
+          </label>
+<ul class="md-nav__list" data-md-scrollfix="">
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../reference/optimizations/OPTIMIZATION_API/">
+<span class="md-ellipsis">
+    API
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../reference/optimizations/PROFILING_GUIDE/">
+<span class="md-ellipsis">
+    Profiling Guide
+  </span>
+</a>
+</li>
+</ul>
+</nav>
+</li>
+</ul>
+</nav>
+</li>
+<li class="md-nav__item md-nav__item--section md-nav__item--nested">
+<input class="md-nav__toggle md-toggle" id="__nav_7" type="checkbox"/>
+<label class="md-nav__link" for="__nav_7" id="__nav_7_label" tabindex="">
+<span class="md-ellipsis">
+    Operations
+  </span>
+<span class="md-nav__icon md-icon"></span>
+</label>
+<nav aria-expanded="false" aria-labelledby="__nav_7_label" class="md-nav" data-md-level="1">
+<label class="md-nav__title" for="__nav_7">
+<span class="md-nav__icon md-icon"></span>
+            Operations
+          </label>
+<ul class="md-nav__list" data-md-scrollfix="">
+<li class="md-nav__item md-nav__item--nested">
+<input class="md-nav__toggle md-toggle" id="__nav_7_1" type="checkbox"/>
+<label class="md-nav__link" for="__nav_7_1" id="__nav_7_1_label" tabindex="0">
+<span class="md-ellipsis">
+    Deployment
+  </span>
+<span class="md-nav__icon md-icon"></span>
+</label>
+<nav aria-expanded="false" aria-labelledby="__nav_7_1_label" class="md-nav" data-md-level="2">
+<label class="md-nav__title" for="__nav_7_1">
+<span class="md-nav__icon md-icon"></span>
+            Deployment
+          </label>
+<ul class="md-nav__list" data-md-scrollfix="">
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../operations/deploy-docker/">
+<span class="md-ellipsis">
+    Docker
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../operations/deploy-systemd/">
+<span class="md-ellipsis">
+    systemd
+  </span>
+</a>
+</li>
+</ul>
+</nav>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../operations/port-management/">
+<span class="md-ellipsis">
+    Port Management
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../operations/refant_quick_reference/">
+<span class="md-ellipsis">
+    Refant Quick Reference
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../operations/service_restart_fix/">
+<span class="md-ellipsis">
+    Service Restart Fix
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../operations/systemd-migration/">
+<span class="md-ellipsis">
+    Systemd Migration
+  </span>
+</a>
+</li>
+</ul>
+</nav>
+</li>
+<li class="md-nav__item md-nav__item--section md-nav__item--nested">
+<input class="md-nav__toggle md-toggle" id="__nav_8" type="checkbox"/>
+<div class="md-nav__link md-nav__container">
+<a class="md-nav__link" href="../../contributing/">
+<span class="md-ellipsis">
+    Contributing
+  </span>
+</a>
+<label class="md-nav__link" for="__nav_8" id="__nav_8_label" tabindex="">
+<span class="md-nav__icon md-icon"></span>
+</label>
+</div>
+<nav aria-expanded="false" aria-labelledby="__nav_8_label" class="md-nav" data-md-level="1">
+<label class="md-nav__title" for="__nav_8">
+<span class="md-nav__icon md-icon"></span>
+            Contributing
+          </label>
+<ul class="md-nav__list" data-md-scrollfix="">
+<li class="md-nav__item md-nav__item--nested">
+<input class="md-nav__toggle md-toggle" id="__nav_8_2" type="checkbox"/>
+<label class="md-nav__link" for="__nav_8_2" id="__nav_8_2_label" tabindex="0">
+<span class="md-ellipsis">
+    Archive
+  </span>
+<span class="md-nav__icon md-icon"></span>
+</label>
+<nav aria-expanded="false" aria-labelledby="__nav_8_2_label" class="md-nav" data-md-level="2">
+<label class="md-nav__title" for="__nav_8_2">
+<span class="md-nav__icon md-icon"></span>
+            Archive
+          </label>
+<ul class="md-nav__list" data-md-scrollfix="">
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../contributing/archive/CONTRIBUTING_TODO/">
+<span class="md-ellipsis">
+    Contributing to TODO
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../contributing/archive/rules/">
+<span class="md-ellipsis">
+    Rules
+  </span>
+</a>
+</li>
+</ul>
+</nav>
+</li>
+</ul>
+</nav>
+</li>
+</ul>
+</nav>
+</div>
+</div>
+</div>
+<div class="md-sidebar md-sidebar--secondary" data-md-component="sidebar" data-md-type="toc">
+<div class="md-sidebar__scrollwrap">
+<div class="md-sidebar__inner">
+<nav aria-label="Table of contents" class="md-nav md-nav--secondary">
+<label class="md-nav__title" for="__toc">
+<span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+<ul class="md-nav__list" data-md-component="toc" data-md-scrollfix="">
+<li class="md-nav__item">
+<a class="md-nav__link" href="#current-stack-analysis">
+<span class="md-ellipsis">
+      Current Stack Analysis
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#recommended-approach-leverage-existing-libraries">
+<span class="md-ellipsis">
+      Recommended Approach: Leverage Existing Libraries
+    </span>
+</a>
+<nav aria-label="Recommended Approach: Leverage Existing Libraries" class="md-nav">
+<ul class="md-nav__list">
+<li class="md-nav__item">
+<a class="md-nav__link" href="#1-material-ui-components-you-already-have-this">
+<span class="md-ellipsis">
+      1. Material-UI Components (You Already Have This!)
+    </span>
+</a>
+<nav aria-label="1. Material-UI Components (You Already Have This!)" class="md-nav">
+<ul class="md-nav__list">
+<li class="md-nav__item">
+<a class="md-nav__link" href="#file-browser-use-mui-datagrid-or-treeview">
+<span class="md-ellipsis">
+      File Browser → Use MUI DataGrid or TreeView
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#forms-use-mui-form-components">
+<span class="md-ellipsis">
+      Forms → Use MUI Form Components
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#loading-states-use-mui-skeletonbackdrop">
+<span class="md-ellipsis">
+      Loading States → Use MUI Skeleton/Backdrop
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#dialogsmodals-use-mui-dialog">
+<span class="md-ellipsis">
+      Dialogs/Modals → Use MUI Dialog
+    </span>
+</a>
+</li>
+</ul>
+</nav>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#2-react-query-patterns-you-already-have-this">
+<span class="md-ellipsis">
+      2. React Query Patterns (You Already Have This!)
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#3-ag-grid-for-tables-you-already-have-this">
+<span class="md-ellipsis">
+      3. AG Grid for Tables (You Already Have This!)
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#4-add-these-missing-libraries">
+<span class="md-ellipsis">
+      4. Add These Missing Libraries
+    </span>
+</a>
+<nav aria-label="4. Add These Missing Libraries" class="md-nav">
+<ul class="md-nav__list">
+<li class="md-nav__item">
+<a class="md-nav__link" href="#form-validation-react-hook-form-zod">
+<span class="md-ellipsis">
+      Form Validation: React Hook Form + Zod
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#file-viewer-react-file-viewer-or-react-pdf">
+<span class="md-ellipsis">
+      File Viewer: react-file-viewer or react-pdf
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#codetext-viewer-react-syntax-highlighter">
+<span class="md-ellipsis">
+      Code/Text Viewer: react-syntax-highlighter
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#virtual-scrolling-for-large-lists-react-window">
+<span class="md-ellipsis">
+      Virtual Scrolling for Large Lists: react-window
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#toast-notifications-notistack-mui-compatible">
+<span class="md-ellipsis">
+      Toast Notifications: notistack (MUI-compatible)
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#drag-drop-react-beautiful-dnd-or-dnd-kit">
+<span class="md-ellipsis">
+      Drag &amp; Drop: react-beautiful-dnd or @dnd-kit
+    </span>
+</a>
+</li>
+</ul>
+</nav>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#5-component-architecture-pattern">
+<span class="md-ellipsis">
+      5. Component Architecture Pattern
+    </span>
+</a>
+<nav aria-label="5. Component Architecture Pattern" class="md-nav">
+<ul class="md-nav__list">
+<li class="md-nav__item">
+<a class="md-nav__link" href="#create-reusable-wrapper-components">
+<span class="md-ellipsis">
+      Create Reusable Wrapper Components
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#create-specialized-viewer-components">
+<span class="md-ellipsis">
+      Create Specialized Viewer Components
+    </span>
+</a>
+</li>
+</ul>
+</nav>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#6-error-handling-pattern">
+<span class="md-ellipsis">
+      6. Error Handling Pattern
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#7-state-management-pattern">
+<span class="md-ellipsis">
+      7. State Management Pattern
+    </span>
+</a>
+</li>
+</ul>
+</nav>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#recommended-package-additions">
+<span class="md-ellipsis">
+      Recommended Package Additions
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#quick-wins-replace-custom-components">
+<span class="md-ellipsis">
+      Quick Wins: Replace Custom Components
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#example-complete-file-browser-component">
+<span class="md-ellipsis">
+      Example: Complete File Browser Component
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#benefits">
+<span class="md-ellipsis">
+      Benefits
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#migration-strategy">
+<span class="md-ellipsis">
+      Migration Strategy
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#resources">
+<span class="md-ellipsis">
+      Resources
+    </span>
+</a>
+</li>
+</ul>
+</nav>
+</div>
+</div>
+</div>
+<div class="md-content" data-md-component="content">
+<article class="md-content__inner md-typeset">
+<h1 id="dashboard-ui-development-recommendations">Dashboard UI Development Recommendations<a class="headerlink" href="#dashboard-ui-development-recommendations" title="Permanent link">¶</a></h1>
+<h2 id="current-stack-analysis">Current Stack Analysis<a class="headerlink" href="#current-stack-analysis" title="Permanent link">¶</a></h2>
+<p>You're already using excellent libraries:
+- ✅ <strong>Material-UI (MUI) v7</strong> - Comprehensive component library
+- ✅ <strong>React Query (TanStack Query)</strong> - Data fetching &amp; caching
+- ✅ <strong>AG Grid</strong> - Enterprise-grade tables
+- ✅ <strong>Plotly.js</strong> - Scientific plotting
+- ✅ <strong>React Router</strong> - Navigation</p>
+<p><strong>The problem</strong>: Building custom components from scratch instead of leveraging these libraries' built-in solutions.</p>
+<h2 id="recommended-approach-leverage-existing-libraries">Recommended Approach: Leverage Existing Libraries<a class="headerlink" href="#recommended-approach-leverage-existing-libraries" title="Permanent link">¶</a></h2>
+<h3 id="1-material-ui-components-you-already-have-this">1. Material-UI Components (You Already Have This!)<a class="headerlink" href="#1-material-ui-components-you-already-have-this" title="Permanent link">¶</a></h3>
+<p><strong>Stop building custom components</strong> - MUI has pre-built, tested components for almost everything:</p>
+<h4 id="file-browser-use-mui-datagrid-or-treeview">File Browser → Use MUI DataGrid or TreeView<a class="headerlink" href="#file-browser-use-mui-datagrid-or-treeview" title="Permanent link">¶</a></h4>
+<div class="highlight"><pre><span></span><code><span class="k">import</span><span class="w"> </span><span class="p">{</span><span class="w"> </span><span class="nx">DataGrid</span><span class="p">,</span><span class="w"> </span><span class="nx">GridColDef</span><span class="w"> </span><span class="p">}</span><span class="w"> </span><span class="kr">from</span><span class="w"> </span><span class="s1">'@mui/x-data-grid'</span><span class="p">;</span>
+<span class="k">import</span><span class="w"> </span><span class="p">{</span><span class="w"> </span><span class="nx">TreeView</span><span class="p">,</span><span class="w"> </span><span class="nx">TreeItem</span><span class="w"> </span><span class="p">}</span><span class="w"> </span><span class="kr">from</span><span class="w"> </span><span class="s1">'@mui/x-tree-view'</span><span class="p">;</span>
+
+<span class="c1">// Instead of custom file list, use DataGrid</span>
+<span class="kd">const</span><span class="w"> </span><span class="nx">columns</span><span class="o">:</span><span class="w"> </span><span class="kt">GridColDef</span><span class="p">[]</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="p">[</span>
+<span class="w">  </span><span class="p">{</span><span class="w"> </span><span class="nx">field</span><span class="o">:</span><span class="w"> </span><span class="s1">'name'</span><span class="p">,</span><span class="w"> </span><span class="nx">headerName</span><span class="o">:</span><span class="w"> </span><span class="s1">'Name'</span><span class="p">,</span><span class="w"> </span><span class="nx">width</span><span class="o">:</span><span class="w"> </span><span class="kt">300</span><span class="w"> </span><span class="p">},</span>
+<span class="w">  </span><span class="p">{</span><span class="w"> </span><span class="nx">field</span><span class="o">:</span><span class="w"> </span><span class="s1">'type'</span><span class="p">,</span><span class="w"> </span><span class="nx">headerName</span><span class="o">:</span><span class="w"> </span><span class="s1">'Type'</span><span class="p">,</span><span class="w"> </span><span class="nx">width</span><span class="o">:</span><span class="w"> </span><span class="kt">150</span><span class="w"> </span><span class="p">},</span>
+<span class="w">  </span><span class="p">{</span><span class="w"> </span><span class="nx">field</span><span class="o">:</span><span class="w"> </span><span class="s1">'size'</span><span class="p">,</span><span class="w"> </span><span class="nx">headerName</span><span class="o">:</span><span class="w"> </span><span class="s1">'Size'</span><span class="p">,</span><span class="w"> </span><span class="nx">width</span><span class="o">:</span><span class="w"> </span><span class="kt">120</span><span class="w"> </span><span class="p">},</span>
+<span class="w">  </span><span class="p">{</span><span class="w"> </span><span class="nx">field</span><span class="o">:</span><span class="w"> </span><span class="s1">'modified'</span><span class="p">,</span><span class="w"> </span><span class="nx">headerName</span><span class="o">:</span><span class="w"> </span><span class="s1">'Modified'</span><span class="p">,</span><span class="w"> </span><span class="nx">width</span><span class="o">:</span><span class="w"> </span><span class="kt">180</span><span class="w"> </span><span class="p">},</span>
+<span class="p">];</span>
+
+<span class="o">&lt;</span><span class="nx">DataGrid</span>
+<span class="w">  </span><span class="nx">rows</span><span class="o">=</span><span class="p">{</span><span class="nx">files</span><span class="p">}</span>
+<span class="w">  </span><span class="nx">columns</span><span class="o">=</span><span class="p">{</span><span class="nx">columns</span><span class="p">}</span>
+<span class="w">  </span><span class="nx">onRowClick</span><span class="o">=</span><span class="p">{(</span><span class="nx">params</span><span class="p">)</span><span class="w"> </span><span class="p">=&gt;</span><span class="w"> </span><span class="nx">handleFileClick</span><span class="p">(</span><span class="nx">params</span><span class="p">.</span><span class="nx">row</span><span class="p">)}</span>
+<span class="w">  </span><span class="nx">getRowId</span><span class="o">=</span><span class="p">{(</span><span class="nx">row</span><span class="p">)</span><span class="w"> </span><span class="p">=&gt;</span><span class="w"> </span><span class="nx">row</span><span class="p">.</span><span class="nx">path</span><span class="p">}</span>
+<span class="w">  </span><span class="c1">// Built-in: sorting, filtering, pagination, selection</span>
+<span class="err">/&gt;</span>
+</code></pre></div>
+<h4 id="forms-use-mui-form-components">Forms → Use MUI Form Components<a class="headerlink" href="#forms-use-mui-form-components" title="Permanent link">¶</a></h4>
+<div class="highlight"><pre><span></span><code><span class="k">import</span><span class="w"> </span><span class="p">{</span><span class="w"> </span><span class="nx">TextField</span><span class="p">,</span><span class="w"> </span><span class="nx">Select</span><span class="p">,</span><span class="w"> </span><span class="nx">MenuItem</span><span class="p">,</span><span class="w"> </span><span class="nx">Button</span><span class="w"> </span><span class="p">}</span><span class="w"> </span><span class="kr">from</span><span class="w"> </span><span class="s1">'@mui/material'</span><span class="p">;</span>
+<span class="k">import</span><span class="w"> </span><span class="p">{</span><span class="w"> </span><span class="nx">DatePicker</span><span class="w"> </span><span class="p">}</span><span class="w"> </span><span class="kr">from</span><span class="w"> </span><span class="s1">'@mui/x-date-pickers'</span><span class="p">;</span>
+
+<span class="c1">// Instead of custom form inputs</span>
+<span class="o">&lt;</span><span class="nx">TextField</span>
+<span class="w">  </span><span class="nx">label</span><span class="o">=</span><span class="s2">"MS Path"</span>
+<span class="w">  </span><span class="nx">value</span><span class="o">=</span><span class="p">{</span><span class="nx">msPath</span><span class="p">}</span>
+<span class="w">  </span><span class="nx">onChange</span><span class="o">=</span><span class="p">{(</span><span class="nx">e</span><span class="p">)</span><span class="w"> </span><span class="p">=&gt;</span><span class="w"> </span><span class="nx">setMsPath</span><span class="p">(</span><span class="nx">e</span><span class="p">.</span><span class="nx">target</span><span class="p">.</span><span class="nx">value</span><span class="p">)}</span>
+<span class="w">  </span><span class="nx">error</span><span class="o">=</span><span class="p">{</span><span class="o">!!</span><span class="nx">errors</span><span class="p">.</span><span class="nx">msPath</span><span class="p">}</span>
+<span class="w">  </span><span class="nx">helperText</span><span class="o">=</span><span class="p">{</span><span class="nx">errors</span><span class="p">.</span><span class="nx">msPath</span><span class="p">}</span>
+<span class="w">  </span><span class="nx">fullWidth</span>
+<span class="err">/&gt;</span>
+</code></pre></div>
+<h4 id="loading-states-use-mui-skeletonbackdrop">Loading States → Use MUI Skeleton/Backdrop<a class="headerlink" href="#loading-states-use-mui-skeletonbackdrop" title="Permanent link">¶</a></h4>
+<div class="highlight"><pre><span></span><code><span class="k">import</span><span class="w"> </span><span class="p">{</span><span class="w"> </span><span class="nx">Skeleton</span><span class="p">,</span><span class="w"> </span><span class="nx">Backdrop</span><span class="p">,</span><span class="w"> </span><span class="nx">CircularProgress</span><span class="w"> </span><span class="p">}</span><span class="w"> </span><span class="kr">from</span><span class="w"> </span><span class="s1">'@mui/material'</span><span class="p">;</span>
+
+<span class="c1">// Instead of custom loading spinners</span>
+<span class="p">{</span><span class="nx">loading</span><span class="w"> </span><span class="o">?</span><span class="w"> </span><span class="p">(</span>
+<span class="w">  </span><span class="o">&lt;</span><span class="nx">Skeleton</span><span class="w"> </span><span class="nx">variant</span><span class="o">=</span><span class="s2">"rectangular"</span><span class="w"> </span><span class="nx">height</span><span class="o">=</span><span class="p">{</span><span class="mf">400</span><span class="p">}</span><span class="w"> </span><span class="o">/&gt;</span>
+<span class="p">)</span><span class="w"> </span><span class="o">:</span><span class="w"> </span><span class="p">(</span>
+<span class="w">  </span><span class="o">&lt;</span><span class="nx">FileList</span><span class="w"> </span><span class="nx">files</span><span class="o">=</span><span class="p">{</span><span class="nx">files</span><span class="p">}</span><span class="w"> </span><span class="o">/&gt;</span>
+<span class="p">)}</span>
+
+<span class="o">&lt;</span><span class="nx">Backdrop</span><span class="w"> </span><span class="nx">open</span><span class="o">=</span><span class="p">{</span><span class="nx">isLoading</span><span class="p">}</span><span class="w"> </span><span class="nx">sx</span><span class="o">=</span><span class="p">{{</span><span class="w"> </span><span class="nx">zIndex</span><span class="o">:</span><span class="w"> </span><span class="kt">9999</span><span class="w"> </span><span class="p">}}</span><span class="o">&gt;</span>
+<span class="w">  </span><span class="o">&lt;</span><span class="nx">CircularProgress</span><span class="w"> </span><span class="o">/&gt;</span>
+<span class="o">&lt;</span><span class="err">/Backdrop&gt;</span>
+</code></pre></div>
+<h4 id="dialogsmodals-use-mui-dialog">Dialogs/Modals → Use MUI Dialog<a class="headerlink" href="#dialogsmodals-use-mui-dialog" title="Permanent link">¶</a></h4>
+<div class="highlight"><pre><span></span><code><span class="k">import</span><span class="w"> </span><span class="p">{</span><span class="w"> </span><span class="nx">Dialog</span><span class="p">,</span><span class="w"> </span><span class="nx">DialogTitle</span><span class="p">,</span><span class="w"> </span><span class="nx">DialogContent</span><span class="p">,</span><span class="w"> </span><span class="nx">DialogActions</span><span class="w"> </span><span class="p">}</span><span class="w"> </span><span class="kr">from</span><span class="w"> </span><span class="s1">'@mui/material'</span><span class="p">;</span>
+
+<span class="c1">// Instead of custom modals</span>
+<span class="o">&lt;</span><span class="nx">Dialog</span><span class="w"> </span><span class="nx">open</span><span class="o">=</span><span class="p">{</span><span class="nx">open</span><span class="p">}</span><span class="w"> </span><span class="nx">onClose</span><span class="o">=</span><span class="p">{</span><span class="nx">handleClose</span><span class="p">}</span><span class="w"> </span><span class="nx">maxWidth</span><span class="o">=</span><span class="s2">"lg"</span><span class="w"> </span><span class="nx">fullWidth</span><span class="o">&gt;</span>
+<span class="w">  </span><span class="o">&lt;</span><span class="nx">DialogTitle</span><span class="o">&gt;</span><span class="nx">View</span><span class="w"> </span><span class="nx">FITS</span><span class="w"> </span><span class="nx">File</span><span class="o">&lt;</span><span class="err">/DialogTitle&gt;</span>
+<span class="w">  </span><span class="o">&lt;</span><span class="nx">DialogContent</span><span class="o">&gt;</span>
+<span class="w">    </span><span class="o">&lt;</span><span class="nx">FITSViewer</span><span class="w"> </span><span class="nx">path</span><span class="o">=</span><span class="p">{</span><span class="nx">selectedFile</span><span class="p">}</span><span class="w"> </span><span class="o">/&gt;</span>
+<span class="w">  </span><span class="o">&lt;</span><span class="err">/DialogContent&gt;</span>
+<span class="w">  </span><span class="o">&lt;</span><span class="nx">DialogActions</span><span class="o">&gt;</span>
+<span class="w">    </span><span class="o">&lt;</span><span class="nx">Button</span><span class="w"> </span><span class="nx">onClick</span><span class="o">=</span><span class="p">{</span><span class="nx">handleClose</span><span class="p">}</span><span class="o">&gt;</span><span class="nx">Close</span><span class="o">&lt;</span><span class="err">/Button&gt;</span>
+<span class="w">  </span><span class="o">&lt;</span><span class="err">/DialogActions&gt;</span>
+<span class="o">&lt;</span><span class="err">/Dialog&gt;</span>
+</code></pre></div>
+<h3 id="2-react-query-patterns-you-already-have-this">2. React Query Patterns (You Already Have This!)<a class="headerlink" href="#2-react-query-patterns-you-already-have-this" title="Permanent link">¶</a></h3>
+<p><strong>Stop manually managing loading/error states</strong> - React Query handles it:</p>
+<div class="highlight"><pre><span></span><code><span class="k">import</span><span class="w"> </span><span class="p">{</span><span class="w"> </span><span class="nx">useQuery</span><span class="p">,</span><span class="w"> </span><span class="nx">useMutation</span><span class="w"> </span><span class="p">}</span><span class="w"> </span><span class="kr">from</span><span class="w"> </span><span class="s1">'@tanstack/react-query'</span><span class="p">;</span>
+
+<span class="c1">// Instead of useState + useEffect + manual error handling</span>
+<span class="kd">function</span><span class="w"> </span><span class="nx">useDirectoryListing</span><span class="p">(</span><span class="nx">path</span><span class="o">:</span><span class="w"> </span><span class="kt">string</span><span class="p">)</span><span class="w"> </span><span class="p">{</span>
+<span class="w">  </span><span class="k">return</span><span class="w"> </span><span class="nx">useQuery</span><span class="p">({</span>
+<span class="w">    </span><span class="nx">queryKey</span><span class="o">:</span><span class="w"> </span><span class="p">[</span><span class="s1">'directory'</span><span class="p">,</span><span class="w"> </span><span class="nx">path</span><span class="p">],</span>
+<span class="w">    </span><span class="nx">queryFn</span><span class="o">:</span><span class="w"> </span><span class="p">()</span><span class="w"> </span><span class="p">=&gt;</span><span class="w"> </span><span class="nx">apiClient</span><span class="p">.</span><span class="nx">get</span><span class="p">(</span><span class="sb">`/api/visualization/browse?path=</span><span class="si">${</span><span class="nx">path</span><span class="si">}</span><span class="sb">`</span><span class="p">),</span>
+<span class="w">    </span><span class="nx">staleTime</span><span class="o">:</span><span class="w"> </span><span class="kt">30000</span><span class="p">,</span><span class="w"> </span><span class="c1">// Cache for 30 seconds</span>
+<span class="w">    </span><span class="c1">// Built-in: loading, error, refetch, caching, deduplication</span>
+<span class="w">  </span><span class="p">});</span>
+<span class="p">}</span>
+
+<span class="kd">function</span><span class="w"> </span><span class="nx">useQARun</span><span class="p">()</span><span class="w"> </span><span class="p">{</span>
+<span class="w">  </span><span class="k">return</span><span class="w"> </span><span class="nx">useMutation</span><span class="p">({</span>
+<span class="w">    </span><span class="nx">mutationFn</span><span class="o">:</span><span class="w"> </span><span class="p">(</span><span class="nx">data</span><span class="o">:</span><span class="w"> </span><span class="kt">QARunRequest</span><span class="p">)</span><span class="w"> </span><span class="p">=&gt;</span><span class="w"> </span>
+<span class="w">      </span><span class="nx">apiClient</span><span class="p">.</span><span class="nx">post</span><span class="p">(</span><span class="s1">'/api/visualization/qa/run'</span><span class="p">,</span><span class="w"> </span><span class="nx">data</span><span class="p">),</span>
+<span class="w">    </span><span class="nx">onSuccess</span><span class="o">:</span><span class="w"> </span><span class="p">()</span><span class="w"> </span><span class="p">=&gt;</span><span class="w"> </span><span class="p">{</span>
+<span class="w">      </span><span class="c1">// Invalidate queries to refetch</span>
+<span class="w">      </span><span class="nx">queryClient</span><span class="p">.</span><span class="nx">invalidateQueries</span><span class="p">({</span><span class="w"> </span><span class="nx">queryKey</span><span class="o">:</span><span class="w"> </span><span class="p">[</span><span class="s1">'qa-runs'</span><span class="p">]</span><span class="w"> </span><span class="p">});</span>
+<span class="w">    </span><span class="p">},</span>
+<span class="w">  </span><span class="p">});</span>
+<span class="p">}</span>
+
+<span class="c1">// Usage</span>
+<span class="kd">function</span><span class="w"> </span><span class="nx">FileBrowser</span><span class="p">({</span><span class="w"> </span><span class="nx">path</span><span class="w"> </span><span class="p">}</span><span class="o">:</span><span class="w"> </span><span class="p">{</span><span class="w"> </span><span class="nx">path</span><span class="o">:</span><span class="w"> </span><span class="kt">string</span><span class="w"> </span><span class="p">})</span><span class="w"> </span><span class="p">{</span>
+<span class="w">  </span><span class="kd">const</span><span class="w"> </span><span class="p">{</span><span class="w"> </span><span class="nx">data</span><span class="p">,</span><span class="w"> </span><span class="nx">isLoading</span><span class="p">,</span><span class="w"> </span><span class="nx">error</span><span class="p">,</span><span class="w"> </span><span class="nx">refetch</span><span class="w"> </span><span class="p">}</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="nx">useDirectoryListing</span><span class="p">(</span><span class="nx">path</span><span class="p">);</span>
+
+<span class="w">  </span><span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="nx">isLoading</span><span class="p">)</span><span class="w"> </span><span class="k">return</span><span class="w"> </span><span class="o">&lt;</span><span class="nx">Skeleton</span><span class="w"> </span><span class="o">/&gt;</span><span class="p">;</span>
+<span class="w">  </span><span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="nx">error</span><span class="p">)</span><span class="w"> </span><span class="k">return</span><span class="w"> </span><span class="o">&lt;</span><span class="nx">Alert</span><span class="w"> </span><span class="nx">severity</span><span class="o">=</span><span class="s2">"error"</span><span class="o">&gt;</span><span class="p">{</span><span class="nx">error</span><span class="p">.</span><span class="nx">message</span><span class="p">}</span><span class="o">&lt;</span><span class="err">/Alert&gt;;</span>
+
+<span class="w">  </span><span class="k">return</span><span class="w"> </span><span class="o">&lt;</span><span class="nx">DataGrid</span><span class="w"> </span><span class="nx">rows</span><span class="o">=</span><span class="p">{</span><span class="nx">data</span><span class="p">.</span><span class="nx">entries</span><span class="p">}</span><span class="w"> </span><span class="nx">columns</span><span class="o">=</span><span class="p">{</span><span class="nx">columns</span><span class="p">}</span><span class="w"> </span><span class="o">/&gt;</span><span class="p">;</span>
+<span class="p">}</span>
+</code></pre></div>
+<h3 id="3-ag-grid-for-tables-you-already-have-this">3. AG Grid for Tables (You Already Have This!)<a class="headerlink" href="#3-ag-grid-for-tables-you-already-have-this" title="Permanent link">¶</a></h3>
+<p><strong>Stop building custom tables</strong> - AG Grid handles everything:</p>
+<div class="highlight"><pre><span></span><code><span class="k">import</span><span class="w"> </span><span class="p">{</span><span class="w"> </span><span class="nx">AgGridReact</span><span class="w"> </span><span class="p">}</span><span class="w"> </span><span class="kr">from</span><span class="w"> </span><span class="s1">'ag-grid-react'</span><span class="p">;</span>
+<span class="k">import</span><span class="w"> </span><span class="s1">'ag-grid-community/styles/ag-grid.css'</span><span class="p">;</span>
+<span class="k">import</span><span class="w"> </span><span class="s1">'ag-grid-community/styles/ag-theme-material.css'</span><span class="p">;</span>
+
+<span class="c1">// Instead of custom table component</span>
+<span class="o">&lt;</span><span class="nx">AgGridReact</span>
+<span class="w">  </span><span class="nx">rowData</span><span class="o">=</span><span class="p">{</span><span class="nx">tableData</span><span class="p">}</span>
+<span class="w">  </span><span class="nx">columnDefs</span><span class="o">=</span><span class="p">{</span><span class="nx">columnDefs</span><span class="p">}</span>
+<span class="w">  </span><span class="nx">defaultColDef</span><span class="o">=</span><span class="p">{{</span>
+<span class="w">    </span><span class="nx">sortable</span><span class="o">:</span><span class="w"> </span><span class="kt">true</span><span class="p">,</span>
+<span class="w">    </span><span class="nx">filter</span><span class="o">:</span><span class="w"> </span><span class="kt">true</span><span class="p">,</span>
+<span class="w">    </span><span class="nx">resizable</span><span class="o">:</span><span class="w"> </span><span class="kt">true</span><span class="p">,</span>
+<span class="w">  </span><span class="p">}}</span>
+<span class="w">  </span><span class="nx">pagination</span><span class="o">=</span><span class="p">{</span><span class="kc">true</span><span class="p">}</span>
+<span class="w">  </span><span class="nx">paginationPageSize</span><span class="o">=</span><span class="p">{</span><span class="mf">50</span><span class="p">}</span>
+<span class="w">  </span><span class="nx">onRowClicked</span><span class="o">=</span><span class="p">{(</span><span class="nx">event</span><span class="p">)</span><span class="w"> </span><span class="p">=&gt;</span><span class="w"> </span><span class="nx">handleRowClick</span><span class="p">(</span><span class="nx">event</span><span class="p">.</span><span class="nx">data</span><span class="p">)}</span>
+<span class="w">  </span><span class="c1">// Built-in: sorting, filtering, pagination, column resizing, </span>
+<span class="w">  </span><span class="c1">// row selection, export, grouping, etc.</span>
+<span class="err">/&gt;</span>
+</code></pre></div>
+<h3 id="4-add-these-missing-libraries">4. Add These Missing Libraries<a class="headerlink" href="#4-add-these-missing-libraries" title="Permanent link">¶</a></h3>
+<h4 id="form-validation-react-hook-form-zod">Form Validation: React Hook Form + Zod<a class="headerlink" href="#form-validation-react-hook-form-zod" title="Permanent link">¶</a></h4>
+<div class="highlight"><pre><span></span><code>npm<span class="w"> </span>install<span class="w"> </span>react-hook-form<span class="w"> </span>zod<span class="w"> </span>@hookform/resolvers
+</code></pre></div>
+<div class="highlight"><pre><span></span><code><span class="k">import</span><span class="w"> </span><span class="p">{</span><span class="w"> </span><span class="nx">useForm</span><span class="w"> </span><span class="p">}</span><span class="w"> </span><span class="kr">from</span><span class="w"> </span><span class="s1">'react-hook-form'</span><span class="p">;</span>
+<span class="k">import</span><span class="w"> </span><span class="p">{</span><span class="w"> </span><span class="nx">zodResolver</span><span class="w"> </span><span class="p">}</span><span class="w"> </span><span class="kr">from</span><span class="w"> </span><span class="s1">'@hookform/resolvers/zod'</span><span class="p">;</span>
+<span class="k">import</span><span class="w"> </span><span class="p">{</span><span class="w"> </span><span class="nx">z</span><span class="w"> </span><span class="p">}</span><span class="w"> </span><span class="kr">from</span><span class="w"> </span><span class="s1">'zod'</span><span class="p">;</span>
+
+<span class="kd">const</span><span class="w"> </span><span class="nx">qaRunSchema</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="nx">z</span><span class="p">.</span><span class="nx">object</span><span class="p">({</span>
+<span class="w">  </span><span class="nx">ms_path</span><span class="o">:</span><span class="w"> </span><span class="kt">z.string</span><span class="p">().</span><span class="nx">min</span><span class="p">(</span><span class="mf">1</span><span class="p">,</span><span class="w"> </span><span class="s1">'MS path is required'</span><span class="p">),</span>
+<span class="w">  </span><span class="nx">qa_root</span><span class="o">:</span><span class="w"> </span><span class="kt">z.string</span><span class="p">().</span><span class="nx">min</span><span class="p">(</span><span class="mf">1</span><span class="p">,</span><span class="w"> </span><span class="s1">'QA root is required'</span><span class="p">),</span>
+<span class="w">  </span><span class="nx">thresholds</span><span class="o">:</span><span class="w"> </span><span class="kt">z.object</span><span class="p">({</span>
+<span class="w">    </span><span class="nx">min_snr</span><span class="o">:</span><span class="w"> </span><span class="kt">z.number</span><span class="p">().</span><span class="nx">min</span><span class="p">(</span><span class="mf">0</span><span class="p">).</span><span class="nx">optional</span><span class="p">(),</span>
+<span class="w">  </span><span class="p">}).</span><span class="nx">optional</span><span class="p">(),</span>
+<span class="p">});</span>
+
+<span class="kd">function</span><span class="w"> </span><span class="nx">QARunForm</span><span class="p">()</span><span class="w"> </span><span class="p">{</span>
+<span class="w">  </span><span class="kd">const</span><span class="w"> </span><span class="p">{</span><span class="w"> </span><span class="nx">register</span><span class="p">,</span><span class="w"> </span><span class="nx">handleSubmit</span><span class="p">,</span><span class="w"> </span><span class="nx">formState</span><span class="o">:</span><span class="w"> </span><span class="p">{</span><span class="w"> </span><span class="nx">errors</span><span class="w"> </span><span class="p">}</span><span class="w"> </span><span class="p">}</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="nx">useForm</span><span class="p">({</span>
+<span class="w">    </span><span class="nx">resolver</span><span class="o">:</span><span class="w"> </span><span class="kt">zodResolver</span><span class="p">(</span><span class="nx">qaRunSchema</span><span class="p">),</span>
+<span class="w">  </span><span class="p">});</span>
+
+<span class="w">  </span><span class="kd">const</span><span class="w"> </span><span class="nx">mutation</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="nx">useQARun</span><span class="p">();</span>
+
+<span class="w">  </span><span class="k">return</span><span class="w"> </span><span class="p">(</span>
+<span class="w">    </span><span class="o">&lt;</span><span class="nx">form</span><span class="w"> </span><span class="nx">onSubmit</span><span class="o">=</span><span class="p">{</span><span class="nx">handleSubmit</span><span class="p">(</span><span class="nx">mutation</span><span class="p">.</span><span class="nx">mutate</span><span class="p">)}</span><span class="o">&gt;</span>
+<span class="w">      </span><span class="o">&lt;</span><span class="nx">TextField</span>
+<span class="w">        </span><span class="p">{...</span><span class="nx">register</span><span class="p">(</span><span class="s1">'ms_path'</span><span class="p">)}</span>
+<span class="w">        </span><span class="nx">error</span><span class="o">=</span><span class="p">{</span><span class="o">!!</span><span class="nx">errors</span><span class="p">.</span><span class="nx">ms_path</span><span class="p">}</span>
+<span class="w">        </span><span class="nx">helperText</span><span class="o">=</span><span class="p">{</span><span class="nx">errors</span><span class="p">.</span><span class="nx">ms_path</span><span class="o">?</span><span class="p">.</span><span class="nx">message</span><span class="p">}</span>
+<span class="w">      </span><span class="o">/&gt;</span>
+<span class="w">      </span><span class="p">{</span><span class="cm">/* Automatic validation, error handling */</span><span class="p">}</span>
+<span class="w">    </span><span class="o">&lt;</span><span class="err">/form&gt;</span>
+<span class="w">  </span><span class="p">);</span>
+<span class="p">}</span>
+</code></pre></div>
+<h4 id="file-viewer-react-file-viewer-or-react-pdf">File Viewer: react-file-viewer or react-pdf<a class="headerlink" href="#file-viewer-react-file-viewer-or-react-pdf" title="Permanent link">¶</a></h4>
+<div class="highlight"><pre><span></span><code>npm<span class="w"> </span>install<span class="w"> </span>react-file-viewer<span class="w"> </span>react-pdf
+</code></pre></div>
+<div class="highlight"><pre><span></span><code><span class="k">import</span><span class="w"> </span><span class="nx">FileViewer</span><span class="w"> </span><span class="kr">from</span><span class="w"> </span><span class="s1">'react-file-viewer'</span><span class="p">;</span>
+<span class="k">import</span><span class="w"> </span><span class="p">{</span><span class="w"> </span><span class="nx">Document</span><span class="p">,</span><span class="w"> </span><span class="nx">Page</span><span class="w"> </span><span class="p">}</span><span class="w"> </span><span class="kr">from</span><span class="w"> </span><span class="s1">'react-pdf'</span><span class="p">;</span>
+
+<span class="c1">// For images, PDFs, etc.</span>
+<span class="o">&lt;</span><span class="nx">FileViewer</span>
+<span class="w">  </span><span class="nx">fileType</span><span class="o">=</span><span class="p">{</span><span class="nx">fileExtension</span><span class="p">}</span>
+<span class="w">  </span><span class="nx">filePath</span><span class="o">=</span><span class="p">{</span><span class="nx">fileUrl</span><span class="p">}</span>
+<span class="w">  </span><span class="nx">onError</span><span class="o">=</span><span class="p">{</span><span class="nx">handleError</span><span class="p">}</span>
+<span class="err">/&gt;</span>
+</code></pre></div>
+<h4 id="codetext-viewer-react-syntax-highlighter">Code/Text Viewer: react-syntax-highlighter<a class="headerlink" href="#codetext-viewer-react-syntax-highlighter" title="Permanent link">¶</a></h4>
+<div class="highlight"><pre><span></span><code>npm<span class="w"> </span>install<span class="w"> </span>react-syntax-highlighter<span class="w"> </span>@types/react-syntax-highlighter
+</code></pre></div>
+<div class="highlight"><pre><span></span><code><span class="k">import</span><span class="w"> </span><span class="p">{</span><span class="w"> </span><span class="nx">Prism</span><span class="w"> </span><span class="kr">as</span><span class="w"> </span><span class="nx">SyntaxHighlighter</span><span class="w"> </span><span class="p">}</span><span class="w"> </span><span class="kr">from</span><span class="w"> </span><span class="s1">'react-syntax-highlighter'</span><span class="p">;</span>
+<span class="k">import</span><span class="w"> </span><span class="p">{</span><span class="w"> </span><span class="nx">vscDarkPlus</span><span class="w"> </span><span class="p">}</span><span class="w"> </span><span class="kr">from</span><span class="w"> </span><span class="s1">'react-syntax-highlighter/dist/esm/styles/prism'</span><span class="p">;</span>
+
+<span class="o">&lt;</span><span class="nx">SyntaxHighlighter</span>
+<span class="w">  </span><span class="nx">language</span><span class="o">=</span><span class="s2">"python"</span>
+<span class="w">  </span><span class="nx">style</span><span class="o">=</span><span class="p">{</span><span class="nx">vscDarkPlus</span><span class="p">}</span>
+<span class="w">  </span><span class="nx">showLineNumbers</span>
+<span class="w">  </span><span class="nx">wrapLines</span>
+<span class="o">&gt;</span>
+<span class="w">  </span><span class="p">{</span><span class="nx">code</span><span class="p">}</span>
+<span class="o">&lt;</span><span class="err">/SyntaxHighlighter&gt;</span>
+</code></pre></div>
+<h4 id="virtual-scrolling-for-large-lists-react-window">Virtual Scrolling for Large Lists: react-window<a class="headerlink" href="#virtual-scrolling-for-large-lists-react-window" title="Permanent link">¶</a></h4>
+<div class="highlight"><pre><span></span><code>npm<span class="w"> </span>install<span class="w"> </span>react-window<span class="w"> </span>@types/react-window
+</code></pre></div>
+<div class="highlight"><pre><span></span><code><span class="k">import</span><span class="w"> </span><span class="p">{</span><span class="w"> </span><span class="nx">FixedSizeList</span><span class="w"> </span><span class="p">}</span><span class="w"> </span><span class="kr">from</span><span class="w"> </span><span class="s1">'react-window'</span><span class="p">;</span>
+
+<span class="c1">// For large file lists (thousands of files)</span>
+<span class="o">&lt;</span><span class="nx">FixedSizeList</span>
+<span class="w">  </span><span class="nx">height</span><span class="o">=</span><span class="p">{</span><span class="mf">600</span><span class="p">}</span>
+<span class="w">  </span><span class="nx">itemCount</span><span class="o">=</span><span class="p">{</span><span class="nx">files</span><span class="p">.</span><span class="nx">length</span><span class="p">}</span>
+<span class="w">  </span><span class="nx">itemSize</span><span class="o">=</span><span class="p">{</span><span class="mf">50</span><span class="p">}</span>
+<span class="w">  </span><span class="nx">width</span><span class="o">=</span><span class="s2">"100%"</span>
+<span class="o">&gt;</span>
+<span class="w">  </span><span class="p">{({</span><span class="w"> </span><span class="nx">index</span><span class="p">,</span><span class="w"> </span><span class="nx">style</span><span class="w"> </span><span class="p">})</span><span class="w"> </span><span class="p">=&gt;</span><span class="w"> </span><span class="p">(</span>
+<span class="w">    </span><span class="o">&lt;</span><span class="nx">div</span><span class="w"> </span><span class="nx">style</span><span class="o">=</span><span class="p">{</span><span class="nx">style</span><span class="p">}</span><span class="o">&gt;</span>
+<span class="w">      </span><span class="o">&lt;</span><span class="nx">FileItem</span><span class="w"> </span><span class="nx">file</span><span class="o">=</span><span class="p">{</span><span class="nx">files</span><span class="p">[</span><span class="nx">index</span><span class="p">]}</span><span class="w"> </span><span class="o">/&gt;</span>
+<span class="w">    </span><span class="o">&lt;</span><span class="err">/div&gt;</span>
+<span class="w">  </span><span class="p">)}</span>
+<span class="o">&lt;</span><span class="err">/FixedSizeList&gt;</span>
+</code></pre></div>
+<h4 id="toast-notifications-notistack-mui-compatible">Toast Notifications: notistack (MUI-compatible)<a class="headerlink" href="#toast-notifications-notistack-mui-compatible" title="Permanent link">¶</a></h4>
+<div class="highlight"><pre><span></span><code>npm<span class="w"> </span>install<span class="w"> </span>notistack
+</code></pre></div>
+<div class="highlight"><pre><span></span><code><span class="k">import</span><span class="w"> </span><span class="p">{</span><span class="w"> </span><span class="nx">SnackbarProvider</span><span class="p">,</span><span class="w"> </span><span class="nx">useSnackbar</span><span class="w"> </span><span class="p">}</span><span class="w"> </span><span class="kr">from</span><span class="w"> </span><span class="s1">'notistack'</span><span class="p">;</span>
+
+<span class="kd">function</span><span class="w"> </span><span class="nx">App</span><span class="p">()</span><span class="w"> </span><span class="p">{</span>
+<span class="w">  </span><span class="k">return</span><span class="w"> </span><span class="p">(</span>
+<span class="w">    </span><span class="o">&lt;</span><span class="nx">SnackbarProvider</span><span class="w"> </span><span class="nx">maxSnack</span><span class="o">=</span><span class="p">{</span><span class="mf">3</span><span class="p">}</span><span class="o">&gt;</span>
+<span class="w">      </span><span class="o">&lt;</span><span class="nx">YourApp</span><span class="w"> </span><span class="o">/&gt;</span>
+<span class="w">    </span><span class="o">&lt;</span><span class="err">/SnackbarProvider&gt;</span>
+<span class="w">  </span><span class="p">);</span>
+<span class="p">}</span>
+
+<span class="kd">function</span><span class="w"> </span><span class="nx">MyComponent</span><span class="p">()</span><span class="w"> </span><span class="p">{</span>
+<span class="w">  </span><span class="kd">const</span><span class="w"> </span><span class="p">{</span><span class="w"> </span><span class="nx">enqueueSnackbar</span><span class="w"> </span><span class="p">}</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="nx">useSnackbar</span><span class="p">();</span>
+
+<span class="w">  </span><span class="kd">const</span><span class="w"> </span><span class="nx">handleSuccess</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="p">()</span><span class="w"> </span><span class="p">=&gt;</span><span class="w"> </span><span class="p">{</span>
+<span class="w">    </span><span class="nx">enqueueSnackbar</span><span class="p">(</span><span class="s1">'QA run started successfully'</span><span class="p">,</span><span class="w"> </span><span class="p">{</span><span class="w"> </span><span class="nx">variant</span><span class="o">:</span><span class="w"> </span><span class="s1">'success'</span><span class="w"> </span><span class="p">});</span>
+<span class="w">  </span><span class="p">};</span>
+<span class="p">}</span>
+</code></pre></div>
+<h4 id="drag-drop-react-beautiful-dnd-or-dnd-kit">Drag &amp; Drop: react-beautiful-dnd or @dnd-kit<a class="headerlink" href="#drag-drop-react-beautiful-dnd-or-dnd-kit" title="Permanent link">¶</a></h4>
+<div class="highlight"><pre><span></span><code>npm<span class="w"> </span>install<span class="w"> </span>@dnd-kit/core<span class="w"> </span>@dnd-kit/sortable
+</code></pre></div>
+<h3 id="5-component-architecture-pattern">5. Component Architecture Pattern<a class="headerlink" href="#5-component-architecture-pattern" title="Permanent link">¶</a></h3>
+<h4 id="create-reusable-wrapper-components">Create Reusable Wrapper Components<a class="headerlink" href="#create-reusable-wrapper-components" title="Permanent link">¶</a></h4>
+<div class="highlight"><pre><span></span><code><span class="c1">// components/common/QueryWrapper.tsx</span>
+<span class="k">import</span><span class="w"> </span><span class="p">{</span><span class="w"> </span><span class="nx">useQuery</span><span class="p">,</span><span class="w"> </span><span class="nx">UseQueryResult</span><span class="w"> </span><span class="p">}</span><span class="w"> </span><span class="kr">from</span><span class="w"> </span><span class="s1">'@tanstack/react-query'</span><span class="p">;</span>
+<span class="k">import</span><span class="w"> </span><span class="p">{</span><span class="w"> </span><span class="nx">Skeleton</span><span class="p">,</span><span class="w"> </span><span class="nx">Alert</span><span class="p">,</span><span class="w"> </span><span class="nx">AlertTitle</span><span class="w"> </span><span class="p">}</span><span class="w"> </span><span class="kr">from</span><span class="w"> </span><span class="s1">'@mui/material'</span><span class="p">;</span>
+
+<span class="kd">interface</span><span class="w"> </span><span class="nx">QueryWrapperProps</span><span class="o">&lt;</span><span class="nx">T</span><span class="o">&gt;</span><span class="w"> </span><span class="p">{</span>
+<span class="w">  </span><span class="nx">query</span><span class="o">:</span><span class="w"> </span><span class="kt">UseQueryResult</span><span class="o">&lt;</span><span class="nx">T</span><span class="o">&gt;</span><span class="p">;</span>
+<span class="w">  </span><span class="nx">children</span><span class="o">:</span><span class="w"> </span><span class="p">(</span><span class="nx">data</span><span class="o">:</span><span class="w"> </span><span class="kt">T</span><span class="p">)</span><span class="w"> </span><span class="p">=&gt;</span><span class="w"> </span><span class="nx">React</span><span class="p">.</span><span class="nx">ReactNode</span><span class="p">;</span>
+<span class="w">  </span><span class="nx">skeleton?</span><span class="o">:</span><span class="w"> </span><span class="kt">React.ReactNode</span><span class="p">;</span>
+<span class="p">}</span>
+
+<span class="k">export</span><span class="w"> </span><span class="kd">function</span><span class="w"> </span><span class="nx">QueryWrapper</span><span class="o">&lt;</span><span class="nx">T</span><span class="o">&gt;</span><span class="p">({</span><span class="w"> </span><span class="nx">query</span><span class="p">,</span><span class="w"> </span><span class="nx">children</span><span class="p">,</span><span class="w"> </span><span class="nx">skeleton</span><span class="w"> </span><span class="p">}</span><span class="o">:</span><span class="w"> </span><span class="nx">QueryWrapperProps</span><span class="o">&lt;</span><span class="nx">T</span><span class="o">&gt;</span><span class="p">)</span><span class="w"> </span><span class="p">{</span>
+<span class="w">  </span><span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="nx">query</span><span class="p">.</span><span class="nx">isLoading</span><span class="p">)</span><span class="w"> </span><span class="p">{</span>
+<span class="w">    </span><span class="k">return</span><span class="w"> </span><span class="nx">skeleton</span><span class="w"> </span><span class="o">||</span><span class="w"> </span><span class="o">&lt;</span><span class="nx">Skeleton</span><span class="w"> </span><span class="nx">variant</span><span class="o">=</span><span class="s2">"rectangular"</span><span class="w"> </span><span class="nx">height</span><span class="o">=</span><span class="p">{</span><span class="mf">400</span><span class="p">}</span><span class="w"> </span><span class="o">/&gt;</span><span class="p">;</span>
+<span class="w">  </span><span class="p">}</span>
+
+<span class="w">  </span><span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="nx">query</span><span class="p">.</span><span class="nx">isError</span><span class="p">)</span><span class="w"> </span><span class="p">{</span>
+<span class="w">    </span><span class="k">return</span><span class="w"> </span><span class="p">(</span>
+<span class="w">      </span><span class="o">&lt;</span><span class="nx">Alert</span><span class="w"> </span><span class="nx">severity</span><span class="o">=</span><span class="s2">"error"</span><span class="o">&gt;</span>
+<span class="w">        </span><span class="o">&lt;</span><span class="nx">AlertTitle</span><span class="o">&gt;</span><span class="ne">Error</span><span class="o">&lt;</span><span class="err">/AlertTitle&gt;</span>
+<span class="w">        </span><span class="p">{</span><span class="nx">query</span><span class="p">.</span><span class="nx">error</span><span class="w"> </span><span class="ow">instanceof</span><span class="w"> </span><span class="ne">Error</span><span class="w"> </span><span class="o">?</span><span class="w"> </span><span class="nx">query</span><span class="p">.</span><span class="nx">error</span><span class="p">.</span><span class="nx">message</span><span class="w"> </span><span class="o">:</span><span class="w"> </span><span class="s1">'An error occurred'</span><span class="p">}</span>
+<span class="w">      </span><span class="o">&lt;</span><span class="err">/Alert&gt;</span>
+<span class="w">    </span><span class="p">);</span>
+<span class="w">  </span><span class="p">}</span>
+
+<span class="w">  </span><span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="o">!</span><span class="nx">query</span><span class="p">.</span><span class="nx">data</span><span class="p">)</span><span class="w"> </span><span class="p">{</span>
+<span class="w">    </span><span class="k">return</span><span class="w"> </span><span class="o">&lt;</span><span class="nx">Alert</span><span class="w"> </span><span class="nx">severity</span><span class="o">=</span><span class="s2">"info"</span><span class="o">&gt;</span><span class="nx">No</span><span class="w"> </span><span class="nx">data</span><span class="w"> </span><span class="nx">available</span><span class="o">&lt;</span><span class="err">/Alert&gt;;</span>
+<span class="w">  </span><span class="p">}</span>
+
+<span class="w">  </span><span class="k">return</span><span class="w"> </span><span class="o">&lt;&gt;</span><span class="p">{</span><span class="nx">children</span><span class="p">(</span><span class="nx">query</span><span class="p">.</span><span class="nx">data</span><span class="p">)}</span><span class="o">&lt;</span><span class="err">/&gt;;</span>
+<span class="p">}</span>
+
+<span class="c1">// Usage</span>
+<span class="kd">function</span><span class="w"> </span><span class="nx">FileBrowser</span><span class="p">({</span><span class="w"> </span><span class="nx">path</span><span class="w"> </span><span class="p">}</span><span class="o">:</span><span class="w"> </span><span class="p">{</span><span class="w"> </span><span class="nx">path</span><span class="o">:</span><span class="w"> </span><span class="kt">string</span><span class="w"> </span><span class="p">})</span><span class="w"> </span><span class="p">{</span>
+<span class="w">  </span><span class="kd">const</span><span class="w"> </span><span class="nx">query</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="nx">useDirectoryListing</span><span class="p">(</span><span class="nx">path</span><span class="p">);</span>
+
+<span class="w">  </span><span class="k">return</span><span class="w"> </span><span class="p">(</span>
+<span class="w">    </span><span class="o">&lt;</span><span class="nx">QueryWrapper</span><span class="w"> </span><span class="nx">query</span><span class="o">=</span><span class="p">{</span><span class="nx">query</span><span class="p">}</span><span class="o">&gt;</span>
+<span class="w">      </span><span class="p">{(</span><span class="nx">data</span><span class="p">)</span><span class="w"> </span><span class="p">=&gt;</span><span class="w"> </span><span class="o">&lt;</span><span class="nx">DataGrid</span><span class="w"> </span><span class="nx">rows</span><span class="o">=</span><span class="p">{</span><span class="nx">data</span><span class="p">.</span><span class="nx">entries</span><span class="p">}</span><span class="w"> </span><span class="nx">columns</span><span class="o">=</span><span class="p">{</span><span class="nx">columns</span><span class="p">}</span><span class="w"> </span><span class="o">/&gt;</span><span class="p">}</span>
+<span class="w">    </span><span class="o">&lt;</span><span class="err">/QueryWrapper&gt;</span>
+<span class="w">  </span><span class="p">);</span>
+<span class="p">}</span>
+</code></pre></div>
+<h4 id="create-specialized-viewer-components">Create Specialized Viewer Components<a class="headerlink" href="#create-specialized-viewer-components" title="Permanent link">¶</a></h4>
+<div class="highlight"><pre><span></span><code><span class="c1">// components/viewers/FITSViewer.tsx</span>
+<span class="k">import</span><span class="w"> </span><span class="p">{</span><span class="w"> </span><span class="nx">useState</span><span class="w"> </span><span class="p">}</span><span class="w"> </span><span class="kr">from</span><span class="w"> </span><span class="s1">'react'</span><span class="p">;</span>
+<span class="k">import</span><span class="w"> </span><span class="p">{</span><span class="w"> </span><span class="nx">Box</span><span class="p">,</span><span class="w"> </span><span class="nx">Select</span><span class="p">,</span><span class="w"> </span><span class="nx">MenuItem</span><span class="p">,</span><span class="w"> </span><span class="nx">FormControl</span><span class="p">,</span><span class="w"> </span><span class="nx">InputLabel</span><span class="p">,</span><span class="w"> </span><span class="nx">ToggleButtonGroup</span><span class="p">,</span><span class="w"> </span><span class="nx">ToggleButton</span><span class="w"> </span><span class="p">}</span><span class="w"> </span><span class="kr">from</span><span class="w"> </span><span class="s1">'@mui/material'</span><span class="p">;</span>
+<span class="k">import</span><span class="w"> </span><span class="p">{</span><span class="w"> </span><span class="nx">useQuery</span><span class="w"> </span><span class="p">}</span><span class="w"> </span><span class="kr">from</span><span class="w"> </span><span class="s1">'@tanstack/react-query'</span><span class="p">;</span>
+
+<span class="k">export</span><span class="w"> </span><span class="kd">function</span><span class="w"> </span><span class="nx">FITSViewer</span><span class="p">({</span><span class="w"> </span><span class="nx">path</span><span class="w"> </span><span class="p">}</span><span class="o">:</span><span class="w"> </span><span class="p">{</span><span class="w"> </span><span class="nx">path</span><span class="o">:</span><span class="w"> </span><span class="kt">string</span><span class="w"> </span><span class="p">})</span><span class="w"> </span><span class="p">{</span>
+<span class="w">  </span><span class="kd">const</span><span class="w"> </span><span class="p">[</span><span class="nx">scale</span><span class="p">,</span><span class="w"> </span><span class="nx">setScale</span><span class="p">]</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="nx">useState</span><span class="p">(</span><span class="s1">'linear'</span><span class="p">);</span>
+<span class="w">  </span><span class="kd">const</span><span class="w"> </span><span class="p">[</span><span class="nx">colormap</span><span class="p">,</span><span class="w"> </span><span class="nx">setColormap</span><span class="p">]</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="nx">useState</span><span class="p">(</span><span class="s1">'grey'</span><span class="p">);</span>
+<span class="w">  </span><span class="kd">const</span><span class="w"> </span><span class="p">[</span><span class="nx">dualWindow</span><span class="p">,</span><span class="w"> </span><span class="nx">setDualWindow</span><span class="p">]</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="nx">useState</span><span class="p">(</span><span class="kc">false</span><span class="p">);</span>
+
+<span class="w">  </span><span class="kd">const</span><span class="w"> </span><span class="p">{</span><span class="w"> </span><span class="nx">data</span><span class="o">:</span><span class="w"> </span><span class="kt">html</span><span class="w"> </span><span class="p">}</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="nx">useQuery</span><span class="p">({</span>
+<span class="w">    </span><span class="nx">queryKey</span><span class="o">:</span><span class="w"> </span><span class="p">[</span><span class="s1">'fits-view'</span><span class="p">,</span><span class="w"> </span><span class="nx">path</span><span class="p">,</span><span class="w"> </span><span class="nx">scale</span><span class="p">,</span><span class="w"> </span><span class="nx">colormap</span><span class="p">,</span><span class="w"> </span><span class="nx">dualWindow</span><span class="p">],</span>
+<span class="w">    </span><span class="nx">queryFn</span><span class="o">:</span><span class="w"> </span><span class="p">()</span><span class="w"> </span><span class="p">=&gt;</span><span class="w"> </span>
+<span class="w">      </span><span class="nx">apiClient</span><span class="p">.</span><span class="nx">get</span><span class="p">(</span><span class="sb">`/api/visualization/fits/view`</span><span class="p">,</span><span class="w"> </span><span class="p">{</span>
+<span class="w">        </span><span class="nx">params</span><span class="o">:</span><span class="w"> </span><span class="p">{</span><span class="w"> </span><span class="nx">path</span><span class="p">,</span><span class="w"> </span><span class="nx">scale</span><span class="p">,</span><span class="w"> </span><span class="nx">colormap</span><span class="p">,</span><span class="w"> </span><span class="nx">dual_window</span><span class="o">:</span><span class="w"> </span><span class="kt">dualWindow</span><span class="w"> </span><span class="p">},</span>
+<span class="w">      </span><span class="p">}),</span>
+<span class="w">  </span><span class="p">});</span>
+
+<span class="w">  </span><span class="k">return</span><span class="w"> </span><span class="p">(</span>
+<span class="w">    </span><span class="o">&lt;</span><span class="nx">Box</span><span class="o">&gt;</span>
+<span class="w">      </span><span class="o">&lt;</span><span class="nx">Box</span><span class="w"> </span><span class="nx">sx</span><span class="o">=</span><span class="p">{{</span><span class="w"> </span><span class="nx">mb</span><span class="o">:</span><span class="w"> </span><span class="kt">2</span><span class="p">,</span><span class="w"> </span><span class="nx">display</span><span class="o">:</span><span class="w"> </span><span class="s1">'flex'</span><span class="p">,</span><span class="w"> </span><span class="nx">gap</span><span class="o">:</span><span class="w"> </span><span class="kt">2</span><span class="w"> </span><span class="p">}}</span><span class="o">&gt;</span>
+<span class="w">        </span><span class="o">&lt;</span><span class="nx">FormControl</span><span class="w"> </span><span class="nx">size</span><span class="o">=</span><span class="s2">"small"</span><span class="o">&gt;</span>
+<span class="w">          </span><span class="o">&lt;</span><span class="nx">InputLabel</span><span class="o">&gt;</span><span class="nx">Scale</span><span class="o">&lt;</span><span class="err">/InputLabel&gt;</span>
+<span class="w">          </span><span class="o">&lt;</span><span class="nx">Select</span><span class="w"> </span><span class="nx">value</span><span class="o">=</span><span class="p">{</span><span class="nx">scale</span><span class="p">}</span><span class="w"> </span><span class="nx">onChange</span><span class="o">=</span><span class="p">{(</span><span class="nx">e</span><span class="p">)</span><span class="w"> </span><span class="p">=&gt;</span><span class="w"> </span><span class="nx">setScale</span><span class="p">(</span><span class="nx">e</span><span class="p">.</span><span class="nx">target</span><span class="p">.</span><span class="nx">value</span><span class="p">)}</span><span class="o">&gt;</span>
+<span class="w">            </span><span class="o">&lt;</span><span class="nx">MenuItem</span><span class="w"> </span><span class="nx">value</span><span class="o">=</span><span class="s2">"linear"</span><span class="o">&gt;</span><span class="nx">Linear</span><span class="o">&lt;</span><span class="err">/MenuItem&gt;</span>
+<span class="w">            </span><span class="o">&lt;</span><span class="nx">MenuItem</span><span class="w"> </span><span class="nx">value</span><span class="o">=</span><span class="s2">"log"</span><span class="o">&gt;</span><span class="nx">Log</span><span class="o">&lt;</span><span class="err">/MenuItem&gt;</span>
+<span class="w">            </span><span class="o">&lt;</span><span class="nx">MenuItem</span><span class="w"> </span><span class="nx">value</span><span class="o">=</span><span class="s2">"sqrt"</span><span class="o">&gt;</span><span class="nx">Square</span><span class="w"> </span><span class="nx">Root</span><span class="o">&lt;</span><span class="err">/MenuItem&gt;</span>
+<span class="w">          </span><span class="o">&lt;</span><span class="err">/Select&gt;</span>
+<span class="w">        </span><span class="o">&lt;</span><span class="err">/FormControl&gt;</span>
+
+<span class="w">        </span><span class="o">&lt;</span><span class="nx">FormControl</span><span class="w"> </span><span class="nx">size</span><span class="o">=</span><span class="s2">"small"</span><span class="o">&gt;</span>
+<span class="w">          </span><span class="o">&lt;</span><span class="nx">InputLabel</span><span class="o">&gt;</span><span class="nx">Colormap</span><span class="o">&lt;</span><span class="err">/InputLabel&gt;</span>
+<span class="w">          </span><span class="o">&lt;</span><span class="nx">Select</span><span class="w"> </span><span class="nx">value</span><span class="o">=</span><span class="p">{</span><span class="nx">colormap</span><span class="p">}</span><span class="w"> </span><span class="nx">onChange</span><span class="o">=</span><span class="p">{(</span><span class="nx">e</span><span class="p">)</span><span class="w"> </span><span class="p">=&gt;</span><span class="w"> </span><span class="nx">setColormap</span><span class="p">(</span><span class="nx">e</span><span class="p">.</span><span class="nx">target</span><span class="p">.</span><span class="nx">value</span><span class="p">)}</span><span class="o">&gt;</span>
+<span class="w">            </span><span class="o">&lt;</span><span class="nx">MenuItem</span><span class="w"> </span><span class="nx">value</span><span class="o">=</span><span class="s2">"grey"</span><span class="o">&gt;</span><span class="nx">Grey</span><span class="o">&lt;</span><span class="err">/MenuItem&gt;</span>
+<span class="w">            </span><span class="o">&lt;</span><span class="nx">MenuItem</span><span class="w"> </span><span class="nx">value</span><span class="o">=</span><span class="s2">"heat"</span><span class="o">&gt;</span><span class="nx">Heat</span><span class="o">&lt;</span><span class="err">/MenuItem&gt;</span>
+<span class="w">            </span><span class="o">&lt;</span><span class="nx">MenuItem</span><span class="w"> </span><span class="nx">value</span><span class="o">=</span><span class="s2">"cool"</span><span class="o">&gt;</span><span class="nx">Cool</span><span class="o">&lt;</span><span class="err">/MenuItem&gt;</span>
+<span class="w">          </span><span class="o">&lt;</span><span class="err">/Select&gt;</span>
+<span class="w">        </span><span class="o">&lt;</span><span class="err">/FormControl&gt;</span>
+
+<span class="w">        </span><span class="o">&lt;</span><span class="nx">ToggleButtonGroup</span>
+<span class="w">          </span><span class="nx">value</span><span class="o">=</span><span class="p">{</span><span class="nx">dualWindow</span><span class="p">}</span>
+<span class="w">          </span><span class="nx">exclusive</span>
+<span class="w">          </span><span class="nx">onChange</span><span class="o">=</span><span class="p">{(</span><span class="nx">_</span><span class="p">,</span><span class="w"> </span><span class="nx">value</span><span class="p">)</span><span class="w"> </span><span class="p">=&gt;</span><span class="w"> </span><span class="nx">setDualWindow</span><span class="p">(</span><span class="nx">value</span><span class="p">)}</span>
+<span class="w">        </span><span class="o">&gt;</span>
+<span class="w">          </span><span class="o">&lt;</span><span class="nx">ToggleButton</span><span class="w"> </span><span class="nx">value</span><span class="o">=</span><span class="p">{</span><span class="kc">false</span><span class="p">}</span><span class="o">&gt;</span><span class="nx">Single</span><span class="o">&lt;</span><span class="err">/ToggleButton&gt;</span>
+<span class="w">          </span><span class="o">&lt;</span><span class="nx">ToggleButton</span><span class="w"> </span><span class="nx">value</span><span class="o">=</span><span class="p">{</span><span class="kc">true</span><span class="p">}</span><span class="o">&gt;</span><span class="nx">Dual</span><span class="o">&lt;</span><span class="err">/ToggleButton&gt;</span>
+<span class="w">        </span><span class="o">&lt;</span><span class="err">/ToggleButtonGroup&gt;</span>
+<span class="w">      </span><span class="o">&lt;</span><span class="err">/Box&gt;</span>
+
+<span class="w">      </span><span class="o">&lt;</span><span class="nx">Box</span><span class="w"> </span><span class="nx">dangerouslySetInnerHTML</span><span class="o">=</span><span class="p">{{</span><span class="w"> </span><span class="nx">__html</span><span class="o">:</span><span class="w"> </span><span class="kt">html</span><span class="w"> </span><span class="p">}}</span><span class="w"> </span><span class="o">/&gt;</span>
+<span class="w">    </span><span class="o">&lt;</span><span class="err">/Box&gt;</span>
+<span class="w">  </span><span class="p">);</span>
+<span class="p">}</span>
+</code></pre></div>
+<h3 id="6-error-handling-pattern">6. Error Handling Pattern<a class="headerlink" href="#6-error-handling-pattern" title="Permanent link">¶</a></h3>
+<div class="highlight"><pre><span></span><code><span class="c1">// hooks/useErrorHandler.ts</span>
+<span class="k">import</span><span class="w"> </span><span class="p">{</span><span class="w"> </span><span class="nx">useSnackbar</span><span class="w"> </span><span class="p">}</span><span class="w"> </span><span class="kr">from</span><span class="w"> </span><span class="s1">'notistack'</span><span class="p">;</span>
+<span class="k">import</span><span class="w"> </span><span class="p">{</span><span class="w"> </span><span class="nx">useQueryErrorResetBoundary</span><span class="w"> </span><span class="p">}</span><span class="w"> </span><span class="kr">from</span><span class="w"> </span><span class="s1">'@tanstack/react-query'</span><span class="p">;</span>
+<span class="k">import</span><span class="w"> </span><span class="p">{</span><span class="w"> </span><span class="nx">ErrorBoundary</span><span class="w"> </span><span class="p">}</span><span class="w"> </span><span class="kr">from</span><span class="w"> </span><span class="s1">'react-error-boundary'</span><span class="p">;</span>
+
+<span class="k">export</span><span class="w"> </span><span class="kd">function</span><span class="w"> </span><span class="nx">useErrorHandler</span><span class="p">()</span><span class="w"> </span><span class="p">{</span>
+<span class="w">  </span><span class="kd">const</span><span class="w"> </span><span class="p">{</span><span class="w"> </span><span class="nx">enqueueSnackbar</span><span class="w"> </span><span class="p">}</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="nx">useSnackbar</span><span class="p">();</span>
+
+<span class="w">  </span><span class="k">return</span><span class="w"> </span><span class="p">{</span>
+<span class="w">    </span><span class="nx">handleError</span><span class="o">:</span><span class="w"> </span><span class="p">(</span><span class="nx">error</span><span class="o">:</span><span class="w"> </span><span class="kt">unknown</span><span class="p">)</span><span class="w"> </span><span class="p">=&gt;</span><span class="w"> </span><span class="p">{</span>
+<span class="w">      </span><span class="kd">const</span><span class="w"> </span><span class="nx">message</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="nx">error</span><span class="w"> </span><span class="ow">instanceof</span><span class="w"> </span><span class="ne">Error</span><span class="w"> </span><span class="o">?</span><span class="w"> </span><span class="nx">error</span><span class="p">.</span><span class="nx">message</span><span class="w"> </span><span class="o">:</span><span class="w"> </span><span class="s1">'An error occurred'</span><span class="p">;</span>
+<span class="w">      </span><span class="nx">enqueueSnackbar</span><span class="p">(</span><span class="nx">message</span><span class="p">,</span><span class="w"> </span><span class="p">{</span><span class="w"> </span><span class="nx">variant</span><span class="o">:</span><span class="w"> </span><span class="s1">'error'</span><span class="w"> </span><span class="p">});</span>
+<span class="w">    </span><span class="p">},</span>
+<span class="w">  </span><span class="p">};</span>
+<span class="p">}</span>
+
+<span class="c1">// components/common/ErrorFallback.tsx</span>
+<span class="k">export</span><span class="w"> </span><span class="kd">function</span><span class="w"> </span><span class="nx">ErrorFallback</span><span class="p">({</span><span class="w"> </span><span class="nx">error</span><span class="p">,</span><span class="w"> </span><span class="nx">resetErrorBoundary</span><span class="w"> </span><span class="p">}</span><span class="o">:</span><span class="w"> </span><span class="nx">any</span><span class="p">)</span><span class="w"> </span><span class="p">{</span>
+<span class="w">  </span><span class="k">return</span><span class="w"> </span><span class="p">(</span>
+<span class="w">    </span><span class="o">&lt;</span><span class="nx">Alert</span><span class="w"> </span><span class="nx">severity</span><span class="o">=</span><span class="s2">"error"</span><span class="w"> </span><span class="nx">action</span><span class="o">=</span><span class="p">{</span><span class="o">&lt;</span><span class="nx">Button</span><span class="w"> </span><span class="nx">onClick</span><span class="o">=</span><span class="p">{</span><span class="nx">resetErrorBoundary</span><span class="p">}</span><span class="o">&gt;</span><span class="nx">Retry</span><span class="o">&lt;</span><span class="err">/Button&gt;}&gt;</span>
+<span class="w">      </span><span class="o">&lt;</span><span class="nx">AlertTitle</span><span class="o">&gt;</span><span class="nx">Something</span><span class="w"> </span><span class="nx">went</span><span class="w"> </span><span class="nx">wrong</span><span class="o">&lt;</span><span class="err">/AlertTitle&gt;</span>
+<span class="w">      </span><span class="p">{</span><span class="nx">error</span><span class="p">.</span><span class="nx">message</span><span class="p">}</span>
+<span class="w">    </span><span class="o">&lt;</span><span class="err">/Alert&gt;</span>
+<span class="w">  </span><span class="p">);</span>
+<span class="p">}</span>
+
+<span class="c1">// Usage in App</span>
+<span class="o">&lt;</span><span class="nx">ErrorBoundary</span><span class="w"> </span><span class="nx">FallbackComponent</span><span class="o">=</span><span class="p">{</span><span class="nx">ErrorFallback</span><span class="p">}</span><span class="o">&gt;</span>
+<span class="w">  </span><span class="o">&lt;</span><span class="nx">YourComponent</span><span class="w"> </span><span class="o">/&gt;</span>
+<span class="o">&lt;</span><span class="err">/ErrorBoundary&gt;</span>
+</code></pre></div>
+<h3 id="7-state-management-pattern">7. State Management Pattern<a class="headerlink" href="#7-state-management-pattern" title="Permanent link">¶</a></h3>
+<p><strong>For simple state</strong>: Use React Query + local state
+<strong>For complex state</strong>: Consider Zustand (lightweight, no boilerplate)</p>
+<div class="highlight"><pre><span></span><code>npm<span class="w"> </span>install<span class="w"> </span>zustand
+</code></pre></div>
+<div class="highlight"><pre><span></span><code><span class="c1">// stores/qaStore.ts</span>
+<span class="k">import</span><span class="w"> </span><span class="p">{</span><span class="w"> </span><span class="nx">create</span><span class="w"> </span><span class="p">}</span><span class="w"> </span><span class="kr">from</span><span class="w"> </span><span class="s1">'zustand'</span><span class="p">;</span>
+
+<span class="kd">interface</span><span class="w"> </span><span class="nx">QAStore</span><span class="w"> </span><span class="p">{</span>
+<span class="w">  </span><span class="nx">selectedFile</span><span class="o">:</span><span class="w"> </span><span class="kt">string</span><span class="w"> </span><span class="o">|</span><span class="w"> </span><span class="kc">null</span><span class="p">;</span>
+<span class="w">  </span><span class="nx">viewerSettings</span><span class="o">:</span><span class="w"> </span><span class="p">{</span>
+<span class="w">    </span><span class="nx">scale</span><span class="o">:</span><span class="w"> </span><span class="kt">string</span><span class="p">;</span>
+<span class="w">    </span><span class="nx">colormap</span><span class="o">:</span><span class="w"> </span><span class="kt">string</span><span class="p">;</span>
+<span class="w">  </span><span class="p">};</span>
+<span class="w">  </span><span class="nx">setSelectedFile</span><span class="o">:</span><span class="w"> </span><span class="p">(</span><span class="nx">path</span><span class="o">:</span><span class="w"> </span><span class="kt">string</span><span class="w"> </span><span class="o">|</span><span class="w"> </span><span class="kc">null</span><span class="p">)</span><span class="w"> </span><span class="p">=&gt;</span><span class="w"> </span><span class="ow">void</span><span class="p">;</span>
+<span class="w">  </span><span class="nx">setViewerSettings</span><span class="o">:</span><span class="w"> </span><span class="p">(</span><span class="nx">settings</span><span class="o">:</span><span class="w"> </span><span class="kt">Partial</span><span class="o">&lt;</span><span class="nx">QAStore</span><span class="p">[</span><span class="s1">'viewerSettings'</span><span class="p">]</span><span class="o">&gt;</span><span class="p">)</span><span class="w"> </span><span class="p">=&gt;</span><span class="w"> </span><span class="ow">void</span><span class="p">;</span>
+<span class="p">}</span>
+
+<span class="k">export</span><span class="w"> </span><span class="kd">const</span><span class="w"> </span><span class="nx">useQAStore</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="nx">create</span><span class="o">&lt;</span><span class="nx">QAStore</span><span class="o">&gt;</span><span class="p">((</span><span class="nx">set</span><span class="p">)</span><span class="w"> </span><span class="p">=&gt;</span><span class="w"> </span><span class="p">({</span>
+<span class="w">  </span><span class="nx">selectedFile</span><span class="o">:</span><span class="w"> </span><span class="kt">null</span><span class="p">,</span>
+<span class="w">  </span><span class="nx">viewerSettings</span><span class="o">:</span><span class="w"> </span><span class="p">{</span><span class="w"> </span><span class="nx">scale</span><span class="o">:</span><span class="w"> </span><span class="s1">'linear'</span><span class="p">,</span><span class="w"> </span><span class="nx">colormap</span><span class="o">:</span><span class="w"> </span><span class="s1">'grey'</span><span class="w"> </span><span class="p">},</span>
+<span class="w">  </span><span class="nx">setSelectedFile</span><span class="o">:</span><span class="w"> </span><span class="p">(</span><span class="nx">path</span><span class="p">)</span><span class="w"> </span><span class="p">=&gt;</span><span class="w"> </span><span class="nx">set</span><span class="p">({</span><span class="w"> </span><span class="nx">selectedFile</span><span class="o">:</span><span class="w"> </span><span class="kt">path</span><span class="w"> </span><span class="p">}),</span>
+<span class="w">  </span><span class="nx">setViewerSettings</span><span class="o">:</span><span class="w"> </span><span class="p">(</span><span class="nx">settings</span><span class="p">)</span><span class="w"> </span><span class="p">=&gt;</span><span class="w"> </span>
+<span class="w">    </span><span class="nx">set</span><span class="p">((</span><span class="nx">state</span><span class="p">)</span><span class="w"> </span><span class="p">=&gt;</span><span class="w"> </span><span class="p">({</span><span class="w"> </span><span class="nx">viewerSettings</span><span class="o">:</span><span class="w"> </span><span class="p">{</span><span class="w"> </span><span class="p">...</span><span class="nx">state</span><span class="p">.</span><span class="nx">viewerSettings</span><span class="p">,</span><span class="w"> </span><span class="p">...</span><span class="nx">settings</span><span class="w"> </span><span class="p">}</span><span class="w"> </span><span class="p">})),</span>
+<span class="p">}));</span>
+</code></pre></div>
+<h2 id="recommended-package-additions">Recommended Package Additions<a class="headerlink" href="#recommended-package-additions" title="Permanent link">¶</a></h2>
+<div class="highlight"><pre><span></span><code><span class="c1"># Form handling &amp; validation</span>
+npm<span class="w"> </span>install<span class="w"> </span>react-hook-form<span class="w"> </span>zod<span class="w"> </span>@hookform/resolvers
+
+<span class="c1"># File viewing</span>
+npm<span class="w"> </span>install<span class="w"> </span>react-file-viewer<span class="w"> </span>react-pdf
+
+<span class="c1"># Code/text viewing</span>
+npm<span class="w"> </span>install<span class="w"> </span>react-syntax-highlighter<span class="w"> </span>@types/react-syntax-highlighter
+
+<span class="c1"># Performance (large lists)</span>
+npm<span class="w"> </span>install<span class="w"> </span>react-window<span class="w"> </span>@types/react-window
+
+<span class="c1"># Notifications</span>
+npm<span class="w"> </span>install<span class="w"> </span>notistack
+
+<span class="c1"># State management (if needed)</span>
+npm<span class="w"> </span>install<span class="w"> </span>zustand
+
+<span class="c1"># Drag &amp; drop (if needed)</span>
+npm<span class="w"> </span>install<span class="w"> </span>@dnd-kit/core<span class="w"> </span>@dnd-kit/sortable
+
+<span class="c1"># Date/time utilities (you have dayjs, but consider)</span>
+<span class="c1"># dayjs is already installed - use it!</span>
+</code></pre></div>
+<h2 id="quick-wins-replace-custom-components">Quick Wins: Replace Custom Components<a class="headerlink" href="#quick-wins-replace-custom-components" title="Permanent link">¶</a></h2>
+<ol>
+<li><strong>Custom file list</strong> → MUI DataGrid or AG Grid</li>
+<li><strong>Custom loading spinner</strong> → MUI Skeleton/CircularProgress</li>
+<li><strong>Custom modal</strong> → MUI Dialog</li>
+<li><strong>Custom form inputs</strong> → MUI TextField/Select/etc.</li>
+<li><strong>Custom error display</strong> → MUI Alert</li>
+<li><strong>Custom table</strong> → AG Grid</li>
+<li><strong>Manual API calls</strong> → React Query hooks</li>
+<li><strong>Custom toast</strong> → notistack</li>
+</ol>
+<h2 id="example-complete-file-browser-component">Example: Complete File Browser Component<a class="headerlink" href="#example-complete-file-browser-component" title="Permanent link">¶</a></h2>
+<div class="highlight"><pre><span></span><code><span class="k">import</span><span class="w"> </span><span class="p">{</span><span class="w"> </span><span class="nx">useQuery</span><span class="w"> </span><span class="p">}</span><span class="w"> </span><span class="kr">from</span><span class="w"> </span><span class="s1">'@tanstack/react-query'</span><span class="p">;</span>
+<span class="k">import</span><span class="w"> </span><span class="p">{</span><span class="w"> </span><span class="nx">DataGrid</span><span class="p">,</span><span class="w"> </span><span class="nx">GridColDef</span><span class="p">,</span><span class="w"> </span><span class="nx">GridActionsCellItem</span><span class="w"> </span><span class="p">}</span><span class="w"> </span><span class="kr">from</span><span class="w"> </span><span class="s1">'@mui/x-data-grid'</span><span class="p">;</span>
+<span class="k">import</span><span class="w"> </span><span class="p">{</span><span class="w"> </span><span class="nx">IconButton</span><span class="p">,</span><span class="w"> </span><span class="nx">Chip</span><span class="p">,</span><span class="w"> </span><span class="nx">Box</span><span class="w"> </span><span class="p">}</span><span class="w"> </span><span class="kr">from</span><span class="w"> </span><span class="s1">'@mui/material'</span><span class="p">;</span>
+<span class="k">import</span><span class="w"> </span><span class="p">{</span><span class="w"> </span><span class="nx">Visibility</span><span class="p">,</span><span class="w"> </span><span class="nx">Download</span><span class="w"> </span><span class="p">}</span><span class="w"> </span><span class="kr">from</span><span class="w"> </span><span class="s1">'@mui/icons-material'</span><span class="p">;</span>
+<span class="k">import</span><span class="w"> </span><span class="p">{</span><span class="w"> </span><span class="nx">QueryWrapper</span><span class="w"> </span><span class="p">}</span><span class="w"> </span><span class="kr">from</span><span class="w"> </span><span class="s1">'./QueryWrapper'</span><span class="p">;</span>
+<span class="k">import</span><span class="w"> </span><span class="p">{</span><span class="w"> </span><span class="nx">FITSViewer</span><span class="w"> </span><span class="p">}</span><span class="w"> </span><span class="kr">from</span><span class="w"> </span><span class="s1">'./viewers/FITSViewer'</span><span class="p">;</span>
+<span class="k">import</span><span class="w"> </span><span class="p">{</span><span class="w"> </span><span class="nx">Dialog</span><span class="w"> </span><span class="p">}</span><span class="w"> </span><span class="kr">from</span><span class="w"> </span><span class="s1">'@mui/material'</span><span class="p">;</span>
+
+<span class="kd">const</span><span class="w"> </span><span class="nx">columns</span><span class="o">:</span><span class="w"> </span><span class="kt">GridColDef</span><span class="p">[]</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="p">[</span>
+<span class="w">  </span><span class="p">{</span><span class="w"> </span><span class="nx">field</span><span class="o">:</span><span class="w"> </span><span class="s1">'name'</span><span class="p">,</span><span class="w"> </span><span class="nx">headerName</span><span class="o">:</span><span class="w"> </span><span class="s1">'Name'</span><span class="p">,</span><span class="w"> </span><span class="nx">width</span><span class="o">:</span><span class="w"> </span><span class="kt">300</span><span class="w"> </span><span class="p">},</span>
+<span class="w">  </span><span class="p">{</span><span class="w"> </span>
+<span class="w">    </span><span class="nx">field</span><span class="o">:</span><span class="w"> </span><span class="s1">'type'</span><span class="p">,</span><span class="w"> </span>
+<span class="w">    </span><span class="nx">headerName</span><span class="o">:</span><span class="w"> </span><span class="s1">'Type'</span><span class="p">,</span><span class="w"> </span>
+<span class="w">    </span><span class="nx">width</span><span class="o">:</span><span class="w"> </span><span class="kt">150</span><span class="p">,</span>
+<span class="w">    </span><span class="nx">renderCell</span><span class="o">:</span><span class="w"> </span><span class="p">(</span><span class="nx">params</span><span class="p">)</span><span class="w"> </span><span class="p">=&gt;</span><span class="w"> </span><span class="p">(</span>
+<span class="w">      </span><span class="o">&lt;</span><span class="nx">Chip</span><span class="w"> </span><span class="nx">label</span><span class="o">=</span><span class="p">{</span><span class="nx">params</span><span class="p">.</span><span class="nx">value</span><span class="p">}</span><span class="w"> </span><span class="nx">size</span><span class="o">=</span><span class="s2">"small"</span><span class="w"> </span><span class="nx">color</span><span class="o">=</span><span class="s2">"primary"</span><span class="w"> </span><span class="o">/&gt;</span>
+<span class="w">    </span><span class="p">),</span>
+<span class="w">  </span><span class="p">},</span>
+<span class="w">  </span><span class="p">{</span><span class="w"> </span><span class="nx">field</span><span class="o">:</span><span class="w"> </span><span class="s1">'size'</span><span class="p">,</span><span class="w"> </span><span class="nx">headerName</span><span class="o">:</span><span class="w"> </span><span class="s1">'Size'</span><span class="p">,</span><span class="w"> </span><span class="nx">width</span><span class="o">:</span><span class="w"> </span><span class="kt">120</span><span class="w"> </span><span class="p">},</span>
+<span class="w">  </span><span class="p">{</span>
+<span class="w">    </span><span class="nx">field</span><span class="o">:</span><span class="w"> </span><span class="s1">'actions'</span><span class="p">,</span>
+<span class="w">    </span><span class="kr">type</span><span class="o">:</span><span class="w"> </span><span class="s1">'actions'</span><span class="p">,</span>
+<span class="w">    </span><span class="nx">width</span><span class="o">:</span><span class="w"> </span><span class="kt">100</span><span class="p">,</span>
+<span class="w">    </span><span class="nx">getActions</span><span class="o">:</span><span class="w"> </span><span class="p">(</span><span class="nx">params</span><span class="p">)</span><span class="w"> </span><span class="p">=&gt;</span><span class="w"> </span><span class="p">[</span>
+<span class="w">      </span><span class="o">&lt;</span><span class="nx">GridActionsCellItem</span>
+<span class="w">        </span><span class="nx">icon</span><span class="o">=</span><span class="p">{</span><span class="o">&lt;</span><span class="nx">Visibility</span><span class="w"> </span><span class="o">/&gt;</span><span class="p">}</span>
+<span class="w">        </span><span class="nx">label</span><span class="o">=</span><span class="s2">"View"</span>
+<span class="w">        </span><span class="nx">onClick</span><span class="o">=</span><span class="p">{()</span><span class="w"> </span><span class="p">=&gt;</span><span class="w"> </span><span class="nx">handleView</span><span class="p">(</span><span class="nx">params</span><span class="p">.</span><span class="nx">row</span><span class="p">)}</span>
+<span class="w">      </span><span class="o">/&gt;</span><span class="p">,</span>
+<span class="w">      </span><span class="o">&lt;</span><span class="nx">GridActionsCellItem</span>
+<span class="w">        </span><span class="nx">icon</span><span class="o">=</span><span class="p">{</span><span class="o">&lt;</span><span class="nx">Download</span><span class="w"> </span><span class="o">/&gt;</span><span class="p">}</span>
+<span class="w">        </span><span class="nx">label</span><span class="o">=</span><span class="s2">"Download"</span>
+<span class="w">        </span><span class="nx">onClick</span><span class="o">=</span><span class="p">{()</span><span class="w"> </span><span class="p">=&gt;</span><span class="w"> </span><span class="nx">handleDownload</span><span class="p">(</span><span class="nx">params</span><span class="p">.</span><span class="nx">row</span><span class="p">)}</span>
+<span class="w">      </span><span class="o">/&gt;</span><span class="p">,</span>
+<span class="w">    </span><span class="p">],</span>
+<span class="w">  </span><span class="p">},</span>
+<span class="p">];</span>
+
+<span class="k">export</span><span class="w"> </span><span class="kd">function</span><span class="w"> </span><span class="nx">FileBrowser</span><span class="p">({</span><span class="w"> </span><span class="nx">path</span><span class="w"> </span><span class="p">}</span><span class="o">:</span><span class="w"> </span><span class="p">{</span><span class="w"> </span><span class="nx">path</span><span class="o">:</span><span class="w"> </span><span class="kt">string</span><span class="w"> </span><span class="p">})</span><span class="w"> </span><span class="p">{</span>
+<span class="w">  </span><span class="kd">const</span><span class="w"> </span><span class="p">[</span><span class="nx">selectedFile</span><span class="p">,</span><span class="w"> </span><span class="nx">setSelectedFile</span><span class="p">]</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="nx">useState</span><span class="o">&lt;</span><span class="kt">string</span><span class="w"> </span><span class="o">|</span><span class="w"> </span><span class="kc">null</span><span class="o">&gt;</span><span class="p">(</span><span class="kc">null</span><span class="p">);</span>
+
+<span class="w">  </span><span class="kd">const</span><span class="w"> </span><span class="nx">query</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="nx">useQuery</span><span class="p">({</span>
+<span class="w">    </span><span class="nx">queryKey</span><span class="o">:</span><span class="w"> </span><span class="p">[</span><span class="s1">'directory'</span><span class="p">,</span><span class="w"> </span><span class="nx">path</span><span class="p">],</span>
+<span class="w">    </span><span class="nx">queryFn</span><span class="o">:</span><span class="w"> </span><span class="p">()</span><span class="w"> </span><span class="p">=&gt;</span><span class="w"> </span><span class="nx">apiClient</span><span class="p">.</span><span class="nx">get</span><span class="p">(</span><span class="sb">`/api/visualization/browse?path=</span><span class="si">${</span><span class="nx">path</span><span class="si">}</span><span class="sb">`</span><span class="p">),</span>
+<span class="w">  </span><span class="p">});</span>
+
+<span class="w">  </span><span class="k">return</span><span class="w"> </span><span class="p">(</span>
+<span class="w">    </span><span class="o">&lt;&gt;</span>
+<span class="w">      </span><span class="o">&lt;</span><span class="nx">QueryWrapper</span><span class="w"> </span><span class="nx">query</span><span class="o">=</span><span class="p">{</span><span class="nx">query</span><span class="p">}</span><span class="o">&gt;</span>
+<span class="w">        </span><span class="p">{(</span><span class="nx">data</span><span class="p">)</span><span class="w"> </span><span class="p">=&gt;</span><span class="w"> </span><span class="p">(</span>
+<span class="w">          </span><span class="o">&lt;</span><span class="nx">DataGrid</span>
+<span class="w">            </span><span class="nx">rows</span><span class="o">=</span><span class="p">{</span><span class="nx">data</span><span class="p">.</span><span class="nx">entries</span><span class="p">}</span>
+<span class="w">            </span><span class="nx">columns</span><span class="o">=</span><span class="p">{</span><span class="nx">columns</span><span class="p">}</span>
+<span class="w">            </span><span class="nx">onRowClick</span><span class="o">=</span><span class="p">{(</span><span class="nx">params</span><span class="p">)</span><span class="w"> </span><span class="p">=&gt;</span><span class="w"> </span><span class="nx">setSelectedFile</span><span class="p">(</span><span class="nx">params</span><span class="p">.</span><span class="nx">row</span><span class="p">.</span><span class="nx">path</span><span class="p">)}</span>
+<span class="w">            </span><span class="nx">getRowId</span><span class="o">=</span><span class="p">{(</span><span class="nx">row</span><span class="p">)</span><span class="w"> </span><span class="p">=&gt;</span><span class="w"> </span><span class="nx">row</span><span class="p">.</span><span class="nx">path</span><span class="p">}</span>
+<span class="w">            </span><span class="nx">pageSizeOptions</span><span class="o">=</span><span class="p">{[</span><span class="mf">25</span><span class="p">,</span><span class="w"> </span><span class="mf">50</span><span class="p">,</span><span class="w"> </span><span class="mf">100</span><span class="p">]}</span>
+<span class="w">            </span><span class="nx">initialState</span><span class="o">=</span><span class="p">{{</span><span class="w"> </span><span class="nx">pagination</span><span class="o">:</span><span class="w"> </span><span class="p">{</span><span class="w"> </span><span class="nx">paginationModel</span><span class="o">:</span><span class="w"> </span><span class="p">{</span><span class="w"> </span><span class="nx">pageSize</span><span class="o">:</span><span class="w"> </span><span class="kt">50</span><span class="w"> </span><span class="p">}</span><span class="w"> </span><span class="p">}</span><span class="w"> </span><span class="p">}}</span>
+<span class="w">          </span><span class="o">/&gt;</span>
+<span class="w">        </span><span class="p">)}</span>
+<span class="w">      </span><span class="o">&lt;</span><span class="err">/QueryWrapper&gt;</span>
+
+<span class="w">      </span><span class="o">&lt;</span><span class="nx">Dialog</span><span class="w"> </span><span class="nx">open</span><span class="o">=</span><span class="p">{</span><span class="o">!!</span><span class="nx">selectedFile</span><span class="p">}</span><span class="w"> </span><span class="nx">onClose</span><span class="o">=</span><span class="p">{()</span><span class="w"> </span><span class="p">=&gt;</span><span class="w"> </span><span class="nx">setSelectedFile</span><span class="p">(</span><span class="kc">null</span><span class="p">)}</span><span class="w"> </span><span class="nx">maxWidth</span><span class="o">=</span><span class="s2">"lg"</span><span class="w"> </span><span class="nx">fullWidth</span><span class="o">&gt;</span>
+<span class="w">        </span><span class="o">&lt;</span><span class="nx">DialogTitle</span><span class="o">&gt;</span><span class="p">{</span><span class="nx">selectedFile</span><span class="p">}</span><span class="o">&lt;</span><span class="err">/DialogTitle&gt;</span>
+<span class="w">        </span><span class="o">&lt;</span><span class="nx">DialogContent</span><span class="o">&gt;</span>
+<span class="w">          </span><span class="p">{</span><span class="nx">selectedFile</span><span class="w"> </span><span class="o">&amp;&amp;</span><span class="w"> </span><span class="o">&lt;</span><span class="nx">FileViewer</span><span class="w"> </span><span class="nx">path</span><span class="o">=</span><span class="p">{</span><span class="nx">selectedFile</span><span class="p">}</span><span class="w"> </span><span class="o">/&gt;</span><span class="p">}</span>
+<span class="w">        </span><span class="o">&lt;</span><span class="err">/DialogContent&gt;</span>
+<span class="w">      </span><span class="o">&lt;</span><span class="err">/Dialog&gt;</span>
+<span class="w">    </span><span class="o">&lt;</span><span class="err">/&gt;</span>
+<span class="w">  </span><span class="p">);</span>
+<span class="p">}</span>
+</code></pre></div>
+<h2 id="benefits">Benefits<a class="headerlink" href="#benefits" title="Permanent link">¶</a></h2>
+<ol>
+<li><strong>Less code</strong> - Use pre-built components instead of custom ones</li>
+<li><strong>Fewer bugs</strong> - Components are battle-tested by thousands of users</li>
+<li><strong>Better UX</strong> - Components follow Material Design principles</li>
+<li><strong>Accessibility</strong> - MUI components are WCAG compliant</li>
+<li><strong>Performance</strong> - Optimized by library authors</li>
+<li><strong>Maintainability</strong> - Standard patterns, easier to understand</li>
+</ol>
+<h2 id="migration-strategy">Migration Strategy<a class="headerlink" href="#migration-strategy" title="Permanent link">¶</a></h2>
+<ol>
+<li><strong>Start with one component</strong> - Pick your most problematic custom component</li>
+<li><strong>Replace with MUI equivalent</strong> - Use MUI docs to find matching component</li>
+<li><strong>Test thoroughly</strong> - Ensure all edge cases are handled</li>
+<li><strong>Repeat</strong> - Gradually replace other custom components</li>
+</ol>
+<h2 id="resources">Resources<a class="headerlink" href="#resources" title="Permanent link">¶</a></h2>
+<ul>
+<li><a href="https://mui.com/components/">MUI Component Library</a></li>
+<li><a href="https://tanstack.com/query/latest">React Query Docs</a></li>
+<li><a href="https://www.ag-grid.com/react-data-grid/">AG Grid Docs</a></li>
+<li><a href="https://react-hook-form.com/">React Hook Form</a></li>
+<li><a href="https://zod.dev/">Zod Validation</a></li>
+</ul>
+</article>
+</div>
+<script>var tabs=__md_get("__tabs");if(Array.isArray(tabs))e:for(var set of document.querySelectorAll(".tabbed-set")){var tab,labels=set.querySelector(".tabbed-labels");for(tab of tabs)for(var label of labels.getElementsByTagName("label"))if(label.innerText.trim()===tab){var input=document.getElementById(label.htmlFor);input.checked=!0;continue e}}</script>
+<script>var target=document.getElementById(location.hash.slice(1));target&&target.name&&(target.checked=target.name.startsWith("__tabbed_"))</script>
+</div>
+</main>
+<footer class="md-footer">
+<div class="md-footer-meta md-typeset">
+<div class="md-footer-meta__inner md-grid">
+<div class="md-copyright">
+  
+  
+    Made with
+    <a href="https://squidfunk.github.io/mkdocs-material/" rel="noopener" target="_blank">
+      Material for MkDocs
+    </a>
+</div>
+</div>
+</div>
+</footer>
+</div>
+<div class="md-dialog" data-md-component="dialog">
+<div class="md-dialog__inner md-typeset"></div>
+</div>
+<script id="__config" type="application/json">{"base": "../..", "features": ["navigation.sections", "navigation.indexes", "content.code.copy", "content.tabs.link"], "search": "../../assets/javascripts/workers/search.b8dbb3d2.min.js", "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": "0.1.0"}</script>
+<script src="../../assets/javascripts/bundle.fe8b6f2b.min.js"></script>
+<script src="../../javascripts/mathjax.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+<script src="../../javascripts/mermaid-zoom.js"></script>
+</body>
+</html>
