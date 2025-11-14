@@ -1,6 +1,30 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
+# Post-commit hook for optional Graphiti integration
+# This hook is optional and will silently fail if Graphiti is not configured
+# To enable: Set GRAPHITI_ENABLED=1 and configure GRAPHITI_* environment variables
+
+# Check if Graphiti integration is enabled
+if [ "${GRAPHITI_ENABLED:-0}" != "1" ]; then
+    # Graphiti not enabled, exit silently
+    exit 0
+fi
+
+# Validate required environment variables
+if [ -z "${GRAPHITI_NEO4J_URI:-}" ] || \
+   [ -z "${GRAPHITI_NEO4J_USER:-}" ] || \
+   [ -z "${GRAPHITI_NEO4J_PASSWORD:-}" ]; then
+    # Required variables not set, exit silently
+    exit 0
+fi
+
+# Check if uv and Graphiti are available
+if ! command -v uv >/dev/null 2>&1; then
+    # uv not available, exit silently
+    exit 0
+fi
+
 # Capture commit info
 MSG="$(git log -1 --pretty=%B)"
 HASH="$(git rev-parse --short HEAD)"
@@ -10,12 +34,19 @@ BRANCH="$(git rev-parse --abbrev-ref HEAD)"
 (
   set +e
   HOOK_MSG="$MSG" HOOK_HASH="$HASH" HOOK_BRANCH="$BRANCH" \
-  /home/ubuntu/.local/bin/uv run --isolated --directory /home/ubuntu/proj/mcps/graphiti/mcp_server python - <<'PY' >/dev/null 2>&1
-from dotenv import load_dotenv; load_dotenv('/home/ubuntu/proj/mcps/graphiti/mcp_server/.env')
-import os, asyncio
+  GRAPHITI_NEO4J_URI="${GRAPHITI_NEO4J_URI}" \
+  GRAPHITI_NEO4J_USER="${GRAPHITI_NEO4J_USER}" \
+  GRAPHITI_NEO4J_PASSWORD="${GRAPHITI_NEO4J_PASSWORD}" \
+  uv run --isolated python - <<'PY' >/dev/null 2>&1
+import os, asyncio, sys
 from datetime import datetime, timezone
-from graphiti_core import Graphiti
-from graphiti_core.nodes import EpisodeType
+
+# Try to import Graphiti, exit silently if not available
+try:
+    from graphiti_core import Graphiti
+    from graphiti_core.nodes import EpisodeType
+except ImportError:
+    sys.exit(0)
 
 GROUP='dsa110-contimg'
 msg=os.environ.get('HOOK_MSG','').strip()
@@ -24,19 +55,24 @@ branch=os.environ.get('HOOK_BRANCH','').strip()
 body=f"Commit {hash_} on {branch}\n\n{msg}"
 
 async def main():
-    g = Graphiti(
-        uri=os.environ['NEO4J_URI'],
-        user=os.environ['NEO4J_USER'],
-        password=os.environ['NEO4J_PASSWORD']
-    )
-    await g.add_episode(
-        name=f"Commit {hash_}",
-        episode_body=body,
-        source_description="git post-commit",
-        reference_time=datetime.now(timezone.utc),
-        source=EpisodeType.text,
-        group_id=GROUP
-    )
+    try:
+        g = Graphiti(
+            uri=os.environ.get('GRAPHITI_NEO4J_URI'),
+            user=os.environ.get('GRAPHITI_NEO4J_USER'),
+            password=os.environ.get('GRAPHITI_NEO4J_PASSWORD')
+        )
+        await g.add_episode(
+            name=f"Commit {hash_}",
+            episode_body=body,
+            source_description="git post-commit",
+            reference_time=datetime.now(timezone.utc),
+            source=EpisodeType.text,
+            group_id=GROUP
+        )
+    except Exception:
+        # Silently fail - don't block commits
+        pass
+
 asyncio.run(main())
 PY
 ) & disown

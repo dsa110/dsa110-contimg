@@ -1,13 +1,14 @@
 name: Docs Build (Minimal - Working)
 
 on:
-  workflow_dispatch:  # Manual trigger only
+  workflow_dispatch: # Manual trigger only
   push:
     branches:
-      - jakob-wdash
+      - main
+      - master
     paths:
-      - 'docs/**'
-      - 'mkdocs.yml'
+      - "docs/**"
+      - "mkdocs.yml"
 
 jobs:
   build:
@@ -20,7 +21,7 @@ jobs:
       - name: Set up Python
         uses: actions/setup-python@v5
         with:
-          python-version: '3.11'
+          python-version: "3.11"
 
       - name: Install dependencies
         run: |
@@ -37,4 +38,3 @@ jobs:
         with:
           github_token: ${{ secrets.GITHUB_TOKEN }}
           publish_dir: ./site
-

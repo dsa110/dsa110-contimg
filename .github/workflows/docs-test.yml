@@ -4,11 +4,12 @@ on:
   workflow_dispatch:
   push:
     branches:
-      - jakob-wdash
+      - main
+      - master
     paths:
-      - 'docs/**'
-      - 'mkdocs.yml'
-      - '.github/workflows/docs-test.yml'
+      - "docs/**"
+      - "mkdocs.yml"
+      - ".github/workflows/docs-test.yml"
 
 jobs:
   test-build:
@@ -21,7 +22,7 @@ jobs:
       - name: Set up Python
         uses: actions/setup-python@v5
         with:
-          python-version: '3.11'
+          python-version: "3.11"
 
       - name: Install dependencies
         run: |
@@ -36,4 +37,3 @@ jobs:
           python -m mkdocs build --verbose 2>&1 | head -100
           echo "=== Build complete ==="
           ls -la site/ | head -20
-
