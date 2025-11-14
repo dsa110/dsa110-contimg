@@ -1436,7 +1436,9 @@ def handle_calibrate(args: argparse.Namespace) -> int:
                             f"{len(problematic_channels)} SPW(s):"
                         )
                         flag_problematic_channels(
-                            args.ms, problematic_channels, datacolumn=args.datacolumn
+                            args.ms,
+                            problematic_channels,
+                            datacolumn=getattr(args, "datacolumn", "DATA"),
                         )
                         logger.info(
                             f"✓ [2/6] Channel-level flagging complete: {total_flagged_channels} "

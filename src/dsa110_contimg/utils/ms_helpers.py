@@ -90,9 +90,7 @@ def sample_ms_column(
             np.random.seed(seed)
 
         # Use random sampling for better representation
-        indices = np.random.choice(
-            n_rows_available, size=actual_sample_size, replace=False
-        )
+        indices = np.random.choice(n_rows_available, size=actual_sample_size, replace=False)
         indices.sort()
 
         # Read in chunks to avoid memory spikes
@@ -126,9 +124,15 @@ def _validate_ms_unflagged_fraction_cached(
 
     Cache key includes file modification time for automatic invalidation.
     """
+    # Ensure CASAPATH is set before importing CASA modules
+    from dsa110_contimg.utils.casa_init import ensure_casa_path
+
+    ensure_casa_path()
+
     try:
-        # use module-level table
-        pass
+        import casacore.tables as casatables
+
+        table = casatables.table  # noqa: N816
     except ImportError:
         raise ImportError("casacore.tables required for MS operations")
 
@@ -191,9 +195,7 @@ def validate_ms_unflagged_fraction(
     if not os.path.exists(ms_path):
         raise FileNotFoundError(f"MS not found: {ms_path}")
     mtime = os.path.getmtime(ms_path)
-    return _validate_ms_unflagged_fraction_cached(
-        ms_path, mtime, sample_size, datacolumn
-    )
+    return _validate_ms_unflagged_fraction_cached(ms_path, mtime, sample_size, datacolumn)
 
 
 def get_antennas_cached(ms_path: str) -> List[str]:
@@ -209,9 +211,15 @@ def get_antennas_cached(ms_path: str) -> List[str]:
     Returns:
         List of antenna names
     """
+    # Ensure CASAPATH is set before importing CASA modules
+    from dsa110_contimg.utils.casa_init import ensure_casa_path
+
+    ensure_casa_path()
+
     try:
-        # use module-level table
-        pass
+        import casacore.tables as casatables
+
+        table = casatables.table  # noqa: N816
     except ImportError:
         raise ImportError("casacore.tables required for MS operations")
 
@@ -232,9 +240,15 @@ def get_fields_cached(ms_path: str) -> List[Tuple[str, float, float]]:
     Returns:
         List of tuples: (field_name, ra_deg, dec_deg)
     """
+    # Ensure CASAPATH is set before importing CASA modules
+    from dsa110_contimg.utils.casa_init import ensure_casa_path
+
+    ensure_casa_path()
+
     try:
-        # use module-level table
-        pass
+        import casacore.tables as casatables
+
+        table = casatables.table  # noqa: N816
     except ImportError:
         raise ImportError("casacore.tables required for MS operations")
 
@@ -278,9 +292,15 @@ def estimate_ms_size(ms_path: str) -> dict:
         - n_channels: Number of channels (per SPW)
         - estimated_memory_gb: Rough estimate of memory usage (GB)
     """
+    # Ensure CASAPATH is set before importing CASA modules
+    from dsa110_contimg.utils.casa_init import ensure_casa_path
+
+    ensure_casa_path()
+
     try:
-        # use module-level table
-        pass
+        import casacore.tables as casatables
+
+        table = casatables.table  # noqa: N816
     except ImportError:
         raise ImportError("casacore.tables required for MS operations")
 
@@ -325,9 +345,7 @@ def estimate_ms_size(ms_path: str) -> dict:
 
         # Rough memory estimate: DATA + FLAG + MODEL_DATA + CORRECTED_DATA
         # Complex64 = 8 bytes per value, bool = 1 byte
-        bytes_per_row = (n_channels * n_pols * 8 * 4) + (
-            n_channels * n_pols * 1
-        )  # 4 columns
+        bytes_per_row = (n_channels * n_pols * 8 * 4) + (n_channels * n_pols * 1)  # 4 columns
         estimated_memory_gb = (n_rows * bytes_per_row) / (1024**3)
 
     return {
@@ -342,9 +360,7 @@ def estimate_ms_size(ms_path: str) -> dict:
 
 
 @lru_cache(maxsize=128)
-def get_ms_metadata_cached(
-    ms_path: str, mtime: float  # noqa: ARG001
-) -> Dict[str, Any]:
+def get_ms_metadata_cached(ms_path: str, mtime: float) -> Dict[str, Any]:  # noqa: ARG001
     """
     Get and cache MS metadata (SPW, FIELD, ANTENNA) to avoid redundant reads.
 
@@ -373,9 +389,15 @@ def get_ms_metadata_cached(
         chan_freq = metadata['chan_freq']
         phase_dir = metadata['phase_dir']
     """
+    # Ensure CASAPATH is set before importing CASA modules
+    from dsa110_contimg.utils.casa_init import ensure_casa_path
+
+    ensure_casa_path()
+
     try:
-        # use module-level table
-        pass
+        import casacore.tables as casatables
+
+        table = casatables.table  # noqa: N816
     except ImportError:
         raise ImportError("casacore.tables required for MS operations")
 

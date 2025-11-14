@@ -30,6 +30,7 @@ import CASAnalysisPlugin from "../components/Sky/plugins/CASAnalysisPlugin";
 import MultiImageCompare from "../components/Sky/MultiImageCompare";
 import QuickAnalysisPanel from "../components/Sky/QuickAnalysisPanel";
 import type { ImageInfo } from "../api/types";
+import PageBreadcrumbs from "../components/PageBreadcrumbs";
 
 export default function SkyViewPage() {
   const [selectedImage, setSelectedImage] = useState<ImageInfo | null>(null);
@@ -50,161 +51,169 @@ export default function SkyViewPage() {
     : { ra: null, dec: null };
 
   return (
-    <Container maxWidth="xl" sx={{ py: 4 }}>
-      <Typography variant="h2" component="h2" gutterBottom sx={{ mb: 4 }}>
-        Sky View
-      </Typography>
+    <>
+      <PageBreadcrumbs />
+      <Container maxWidth="xl" sx={{ py: 4 }}>
+        <Typography variant="h2" component="h2" gutterBottom sx={{ mb: 4 }}>
+          Sky View
+        </Typography>
 
-      {/* Interactive Sky Map */}
-      <Box sx={{ mb: 4 }}>
-        <SkyMap height={500} historyDays={7} showPointingHistory={true} showObservedFields={true} />
-      </Box>
+        {/* Interactive Sky Map */}
+        <Box sx={{ mb: 4 }}>
+          <SkyMap
+            height={500}
+            historyDays={7}
+            showPointingHistory={true}
+            showObservedFields={true}
+          />
+        </Box>
 
-      <Grid container spacing={3}>
-        {/* Image Browser Sidebar */}
-        <Grid size={{ xs: 12, md: 4 }}>
-          <ImageBrowser onSelectImage={setSelectedImage} selectedImageId={selectedImage?.id} />
-        </Grid>
+        <Grid container spacing={3}>
+          {/* Image Browser Sidebar */}
+          <Grid size={{ xs: 12, md: 4 }}>
+            <ImageBrowser onSelectImage={setSelectedImage} selectedImageId={selectedImage?.id} />
+          </Grid>
 
-        {/* Main Image Display */}
-        <Grid size={{ xs: 12, md: 8 }}>
-          <Paper sx={{ p: 3 }}>
-            <Box display="flex" justifyContent="space-between" alignItems="center" sx={{ mb: 2 }}>
-              <Typography variant="h6">Image Display</Typography>
-              <Button
-                variant="outlined"
-                startIcon={<CompareArrows />}
-                onClick={() => setCompareDialogOpen(true)}
-                size="small"
-              >
-                Compare Images
-              </Button>
-            </Box>
-
-            {/* Image Controls */}
-            <ImageControls displayId="skyViewDisplay" />
-
-            {/* Quick Analysis Panel - Always visible */}
-            <Box sx={{ mb: 2 }}>
-              <QuickAnalysisPanel displayId="skyViewDisplay" />
-            </Box>
-
-            {/* Catalog Overlay Toggle */}
-            {selectedImage && imageCenter.ra !== null && imageCenter.dec !== null && (
-              <Box sx={{ mb: 2 }}>
-                <FormControlLabel
-                  control={
-                    <Switch
-                      checked={catalogOverlayVisible}
-                      onChange={(e) => setCatalogOverlayVisible(e.target.checked)}
-                    />
-                  }
-                  label="Show Catalog Overlay"
-                />
-                {catalogOverlayVisible && (
-                  <CatalogOverlayJS9
-                    displayId="skyViewDisplay"
-                    ra={imageCenter.ra}
-                    dec={imageCenter.dec}
-                    radius={1.5}
-                    catalog="all"
-                    visible={catalogOverlayVisible}
-                  />
-                )}
+          {/* Main Image Display */}
+          <Grid size={{ xs: 12, md: 8 }}>
+            <Paper sx={{ p: 3 }}>
+              <Box display="flex" justifyContent="space-between" alignItems="center" sx={{ mb: 2 }}>
+                <Typography variant="h6">Image Display</Typography>
+                <Button
+                  variant="outlined"
+                  startIcon={<CompareArrows />}
+                  onClick={() => setCompareDialogOpen(true)}
+                  size="small"
+                >
+                  Compare Images
+                </Button>
               </Box>
-            )}
 
-            {/* Region Tools */}
-            {selectedImage && (
+              {/* Image Controls */}
+              <ImageControls displayId="skyViewDisplay" />
+
+              {/* Quick Analysis Panel - Always visible */}
               <Box sx={{ mb: 2 }}>
-                <RegionTools
+                <QuickAnalysisPanel displayId="skyViewDisplay" />
+              </Box>
+
+              {/* Catalog Overlay Toggle */}
+              {selectedImage && imageCenter.ra !== null && imageCenter.dec !== null && (
+                <Box sx={{ mb: 2 }}>
+                  <FormControlLabel
+                    control={
+                      <Switch
+                        checked={catalogOverlayVisible}
+                        onChange={(e) => setCatalogOverlayVisible(e.target.checked)}
+                      />
+                    }
+                    label="Show Catalog Overlay"
+                  />
+                  {catalogOverlayVisible && (
+                    <CatalogOverlayJS9
+                      displayId="skyViewDisplay"
+                      ra={imageCenter.ra}
+                      dec={imageCenter.dec}
+                      radius={1.5}
+                      catalog="all"
+                      visible={catalogOverlayVisible}
+                    />
+                  )}
+                </Box>
+              )}
+
+              {/* Region Tools */}
+              {selectedImage && (
+                <Box sx={{ mb: 2 }}>
+                  <RegionTools
+                    displayId="skyViewDisplay"
+                    imagePath={selectedImage.path}
+                    onRegionCreated={(region) => {
+                      // Refresh region list
+                      setSelectedRegionId(region.id);
+                    }}
+                  />
+                </Box>
+              )}
+
+              {selectedImage && (
+                <Box sx={{ mb: 2 }}>
+                  <ProfileTool displayId="skyViewDisplay" imageId={selectedImage.id} />
+                </Box>
+              )}
+
+              {selectedImage && (
+                <Box sx={{ mb: 2 }}>
+                  <ImageFittingTool
+                    displayId="skyViewDisplay"
+                    imageId={selectedImage.id}
+                    imagePath={selectedImage.path}
+                  />
+                </Box>
+              )}
+
+              {/* Image Statistics Plugin */}
+              {selectedImage && (
+                <ImageStatisticsPlugin
                   displayId="skyViewDisplay"
-                  imagePath={selectedImage.path}
-                  onRegionCreated={(region) => {
-                    // Refresh region list
-                    setSelectedRegionId(region.id);
+                  imageInfo={{
+                    noise_jy: selectedImage.noise_jy,
+                    beam_major_arcsec: selectedImage.beam_major_arcsec,
+                    beam_minor_arcsec: selectedImage.beam_minor_arcsec,
+                    beam_pa_deg: selectedImage.beam_pa_deg,
                   }}
                 />
-              </Box>
-            )}
+              )}
 
-            {selectedImage && (
-              <Box sx={{ mb: 2 }}>
-                <ProfileTool displayId="skyViewDisplay" imageId={selectedImage.id} />
-              </Box>
-            )}
+              {/* Photometry Plugin */}
+              {selectedImage && <PhotometryPlugin displayId="skyViewDisplay" />}
 
-            {selectedImage && (
-              <Box sx={{ mb: 2 }}>
-                <ImageFittingTool
+              {/* CASA Analysis Plugin */}
+              {selectedImage && (
+                <Box sx={{ mb: 2 }}>
+                  <CASAnalysisPlugin displayId="skyViewDisplay" imagePath={selectedImage.path} />
+                </Box>
+              )}
+
+              {/* Image Metadata */}
+              {selectedImage && (
+                <ImageMetadata
                   displayId="skyViewDisplay"
-                  imageId={selectedImage.id}
-                  imagePath={selectedImage.path}
+                  imageInfo={{
+                    path: selectedImage.path,
+                    type: selectedImage.type,
+                    noise_jy: selectedImage.noise_jy,
+                    beam_major_arcsec: selectedImage.beam_major_arcsec,
+                    beam_minor_arcsec: selectedImage.beam_minor_arcsec,
+                    beam_pa_deg: selectedImage.beam_pa_deg,
+                  }}
                 />
-              </Box>
-            )}
+              )}
 
-            {/* Image Statistics Plugin */}
-            {selectedImage && (
-              <ImageStatisticsPlugin
-                displayId="skyViewDisplay"
-                imageInfo={{
-                  noise_jy: selectedImage.noise_jy,
-                  beam_major_arcsec: selectedImage.beam_major_arcsec,
-                  beam_minor_arcsec: selectedImage.beam_minor_arcsec,
-                  beam_pa_deg: selectedImage.beam_pa_deg,
-                }}
-              />
-            )}
+              <SkyViewer imagePath={fitsUrl} displayId="skyViewDisplay" height={600} />
 
-            {/* Photometry Plugin */}
-            {selectedImage && <PhotometryPlugin displayId="skyViewDisplay" />}
-
-            {/* CASA Analysis Plugin */}
-            {selectedImage && (
-              <Box sx={{ mb: 2 }}>
-                <CASAnalysisPlugin displayId="skyViewDisplay" imagePath={selectedImage.path} />
-              </Box>
-            )}
-
-            {/* Image Metadata */}
-            {selectedImage && (
-              <ImageMetadata
-                displayId="skyViewDisplay"
-                imageInfo={{
-                  path: selectedImage.path,
-                  type: selectedImage.type,
-                  noise_jy: selectedImage.noise_jy,
-                  beam_major_arcsec: selectedImage.beam_major_arcsec,
-                  beam_minor_arcsec: selectedImage.beam_minor_arcsec,
-                  beam_pa_deg: selectedImage.beam_pa_deg,
-                }}
-              />
-            )}
-
-            <SkyViewer imagePath={fitsUrl} displayId="skyViewDisplay" height={600} />
-
-            {/* Region List */}
-            {selectedImage && (
-              <Box sx={{ mt: 2 }}>
-                <RegionList
-                  imagePath={selectedImage.path}
-                  onRegionSelect={(region) => setSelectedRegionId(region.id)}
-                  selectedRegionId={selectedRegionId}
-                />
-              </Box>
-            )}
-          </Paper>
+              {/* Region List */}
+              {selectedImage && (
+                <Box sx={{ mt: 2 }}>
+                  <RegionList
+                    imagePath={selectedImage.path}
+                    onRegionSelect={(region) => setSelectedRegionId(region.id)}
+                    selectedRegionId={selectedRegionId}
+                  />
+                </Box>
+              )}
+            </Paper>
+          </Grid>
         </Grid>
-      </Grid>
 
-      {/* Multi-Image Compare Dialog */}
-      <MultiImageCompare
-        open={compareDialogOpen}
-        onClose={() => setCompareDialogOpen(false)}
-        initialImageA={selectedImage}
-        initialImageB={null}
-      />
-    </Container>
+        {/* Multi-Image Compare Dialog */}
+        <MultiImageCompare
+          open={compareDialogOpen}
+          onClose={() => setCompareDialogOpen(false)}
+          initialImageA={selectedImage}
+          initialImageB={null}
+        />
+      </Container>
+    </>
   );
 }

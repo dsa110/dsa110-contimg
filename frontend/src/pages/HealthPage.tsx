@@ -45,6 +45,9 @@ import { DeadLetterQueueStats } from "../components/DeadLetterQueue";
 import { CircuitBreakerStatus } from "../components/CircuitBreaker";
 import type { HealthSummary } from "../api/types";
 import PageBreadcrumbs from "../components/PageBreadcrumbs";
+import { StatusIndicator } from "../components/StatusIndicator";
+import { MetricWithSparkline } from "../components/Sparkline";
+import { useMetricHistory } from "../hooks/useMetricHistory";
 
 interface TabPanelProps {
   children?: React.ReactNode;
@@ -58,52 +61,6 @@ function TabPanel(props: TabPanelProps) {
     <div role="tabpanel" hidden={value !== index} {...other}>
       {value === index && <Box sx={{ pt: 3 }}>{children}</Box>}
     </div>
-  );
-}
-
-function MetricCard({
-  label,
-  value,
-  unit = "",
-  threshold = { warning: 75, critical: 90 },
-  icon,
-}: {
-  label: string;
-  value: number | undefined;
-  unit?: string;
-  threshold?: { warning: number; critical: number };
-  icon?: React.ReactNode;
-}) {
-  const percentage = value || 0;
-  const severity =
-    percentage >= threshold.critical
-      ? "error"
-      : percentage >= threshold.warning
-        ? "warning"
-        : "success";
-
-  return (
-    <Card>
-      <CardContent>
-        <Stack direction="row" spacing={2} alignItems="center">
-          {icon && <Box sx={{ color: "text.secondary" }}>{icon}</Box>}
-          <Box sx={{ flexGrow: 1 }}>
-            <Typography variant="body2" color="text.secondary">
-              {label}
-            </Typography>
-            <Typography variant="h5">
-              {value !== undefined ? `${value.toFixed(1)}${unit}` : "N/A"}
-            </Typography>
-            <LinearProgress
-              variant="determinate"
-              value={percentage}
-              color={severity}
-              sx={{ mt: 1 }}
-            />
-          </Box>
-        </Stack>
-      </CardContent>
-    </Card>
   );
 }
 
@@ -202,6 +159,16 @@ export default function HealthPage() {
   const { data: metrics, isLoading: metricsLoading } = useSystemMetrics();
   const { data: eseCandidates } = useESECandidates();
 
+  // Track metric history for sparklines
+  const cpuHistory = useMetricHistory(metrics?.cpu_percent);
+  const memHistory = useMetricHistory(metrics?.mem_percent);
+  const diskHistory = useMetricHistory(
+    metrics?.disk_total && metrics?.disk_used
+      ? (metrics.disk_used / metrics.disk_total) * 100
+      : undefined
+  );
+  const loadHistory = useMetricHistory(metrics?.load_1);
+
   // Prepare system metrics plot data
   const metricsPlotData = useMemo(() => {
     if (!metrics) return { data: [], layout: {} };
@@ -278,49 +245,56 @@ export default function HealthPage() {
               <Grid item xs={12}>
                 <Grid container spacing={2}>
                   <Grid item xs={12} sm={6} md={3}>
-                    <MetricCard
+                    <StatusIndicator
+                      value={metrics?.cpu_percent || 0}
+                      thresholds={{ good: 70, warning: 50 }}
                       label="CPU Usage"
-                      value={metrics?.cpu_percent}
                       unit="%"
-                      icon={<SpeedIcon />}
+                      size="medium"
+                      showTrend={cpuHistory.length > 1}
+                      previousValue={
+                        cpuHistory.length > 1 ? cpuHistory[cpuHistory.length - 2] : undefined
+                      }
                     />
                   </Grid>
                   <Grid item xs={12} sm={6} md={3}>
-                    <MetricCard
+                    <StatusIndicator
+                      value={metrics?.mem_percent || 0}
+                      thresholds={{ good: 80, warning: 60 }}
                       label="Memory Usage"
-                      value={metrics?.mem_percent}
                       unit="%"
-                      icon={<MemoryIcon />}
+                      size="medium"
+                      showTrend={memHistory.length > 1}
+                      previousValue={
+                        memHistory.length > 1 ? memHistory[memHistory.length - 2] : undefined
+                      }
                     />
                   </Grid>
                   <Grid item xs={12} sm={6} md={3}>
-                    <MetricCard
-                      label="Disk Usage"
+                    <StatusIndicator
                       value={
                         metrics?.disk_total && metrics?.disk_used
                           ? (metrics.disk_used / metrics.disk_total) * 100
-                          : undefined
+                          : 0
                       }
+                      thresholds={{ good: 75, warning: 90 }}
+                      label="Disk Usage"
                       unit="%"
-                      icon={<StorageIcon />}
+                      size="medium"
+                      showTrend={diskHistory.length > 1}
+                      previousValue={
+                        diskHistory.length > 1 ? diskHistory[diskHistory.length - 2] : undefined
+                      }
                     />
                   </Grid>
                   <Grid item xs={12} sm={6} md={3}>
-                    <Card>
-                      <CardContent>
-                        <Stack direction="row" spacing={2} alignItems="center">
-                          <SpeedIcon sx={{ color: "text.secondary" }} />
-                          <Box>
-                            <Typography variant="body2" color="text.secondary">
-                              Load Average (1m)
-                            </Typography>
-                            <Typography variant="h5">
-                              {metrics?.load_1?.toFixed(2) || "N/A"}
-                            </Typography>
-                          </Box>
-                        </Stack>
-                      </CardContent>
-                    </Card>
+                    <MetricWithSparkline
+                      label="Load Average (1m)"
+                      value={metrics?.load_1?.toFixed(2) || "N/A"}
+                      color="info"
+                      size="medium"
+                      sparklineData={loadHistory.length > 1 ? loadHistory : undefined}
+                    />
                   </Grid>
                 </Grid>
               </Grid>

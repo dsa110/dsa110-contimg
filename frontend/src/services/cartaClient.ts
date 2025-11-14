@@ -7,6 +7,27 @@
  */
 
 import { logger } from "../utils/logger";
+import * as protobuf from "protobufjs";
+import {
+  CARTAMessageType,
+  CARTA_ICD_VERSION,
+  encodeHeader,
+  decodeHeader,
+  combineMessage,
+  splitMessage,
+  RegisterViewerRequest,
+  RegisterViewerAck,
+  OpenFileRequest,
+  OpenFileAck,
+  SetImageViewRequest,
+  SetImageViewAck,
+  FileInfoRequest,
+  FileInfoResponse,
+  RasterTileData,
+  SetRegionRequest,
+  SetRegionAck,
+  ErrorData,
+} from "./cartaProtobuf";
 
 export interface CARTAConfig {
   /** CARTA backend WebSocket URL (e.g., "ws://localhost:9002") */
@@ -30,15 +51,6 @@ export interface CARTARegion {
   controlPoints: Array<{ x: number; y: number }>;
 }
 
-export type CARTAMessageType =
-  | "REGISTER_VIEWER"
-  | "OPEN_FILE"
-  | "SET_IMAGE_VIEW"
-  | "SET_REGION"
-  | "FILE_INFO"
-  | "REGISTER_VIEWER_ACK"
-  | "OPEN_FILE_ACK";
-
 export type CARTAMessageHandler = (message: any) => void;
 
 /**
@@ -58,10 +70,40 @@ export class CARTAClient {
   private isConnecting = false;
   private isConnected = false;
   private sessionId: string | null = null;
+  private requestIdCounter = 0;
+  private pendingRequests: Map<
+    number,
+    { resolve: (value: any) => void; reject: (error: Error) => void }
+  > = new Map();
+  private root: protobuf.Root | null = null;
 
   constructor(config: CARTAConfig) {
     this.config = config;
     this.sessionId = config.sessionId || null;
+    this.initializeProtobuf();
+  }
+
+  /**
+   * Initialize Protocol Buffer definitions
+   * Note: In production, load actual .proto files from CARTA
+   */
+  private async initializeProtobuf(): Promise<void> {
+    try {
+      // For now, we'll use JSON-based message encoding/decoding
+      // In production, load actual CARTA .proto files:
+      // this.root = await protobuf.load("path/to/carta.proto");
+      logger.info("Protocol Buffer support initialized (using JSON fallback)");
+    } catch (error) {
+      logger.warn("Failed to load Protocol Buffer definitions, using JSON fallback:", error);
+    }
+  }
+
+  /**
+   * Generate next request ID
+   */
+  private getNextRequestId(): number {
+    this.requestIdCounter = (this.requestIdCounter + 1) % 0xffffffff;
+    return this.requestIdCounter;
   }
 
   /**
@@ -129,24 +171,45 @@ export class CARTAClient {
    * This is the first message sent after connection
    */
   private async registerViewer(): Promise<void> {
-    // TODO: Implement Protocol Buffer message encoding
-    // This requires CARTA's protobuf definitions
-    // For now, we'll use a placeholder structure
-
-    const message = {
-      type: "REGISTER_VIEWER",
-      sessionId: this.sessionId || "",
+    const requestId = this.getNextRequestId();
+    const request: RegisterViewerRequest = {
+      sessionId: this.sessionId || undefined,
       clientFeatureFlags: this.config.clientFeatureFlags || {},
     };
 
-    logger.info("Registering CARTA viewer", message);
-    // await this.sendMessage(message);
+    logger.info("Registering CARTA viewer", { requestId, request });
+
+    return new Promise((resolve, reject) => {
+      // Set up handler for response
+      const handler = (ack: RegisterViewerAck) => {
+        this.offMessage(CARTAMessageType.REGISTER_VIEWER_ACK, handler);
+        if (ack.success) {
+          if (ack.sessionId) {
+            this.sessionId = ack.sessionId;
+          }
+          logger.info("CARTA viewer registered successfully", { sessionId: this.sessionId });
+          resolve();
+        } else {
+          reject(new Error(ack.message || "Failed to register viewer"));
+        }
+      };
+
+      this.onMessage(CARTAMessageType.REGISTER_VIEWER_ACK, handler);
+
+      // Send message
+      this.sendProtobufMessage(CARTAMessageType.REGISTER_VIEWER, requestId, request).catch(
+        (error) => {
+          this.offMessage(CARTAMessageType.REGISTER_VIEWER_ACK, handler);
+          reject(error);
+        }
+      );
+    });
   }
 
   /**
    * Open a FITS file in CARTA
    */
-  async openFile(filePath: string, fileId: number = 0, hdu: string = ""): Promise<void> {
+  async openFile(filePath: string, fileId: number = 0, hdu: string = ""): Promise<OpenFileAck> {
     if (!this.isConnected) {
       throw new Error("CARTA client not connected");
     }
@@ -154,53 +217,150 @@ export class CARTAClient {
     const directory = this.getDirectory(filePath);
     const filename = this.getFilename(filePath);
 
-    const message = {
-      type: "OPEN_FILE",
+    const requestId = this.getNextRequestId();
+    const request: OpenFileRequest = {
       directory,
       file: filename,
       fileId,
-      hdu,
+      hdu: hdu || undefined,
     };
 
-    logger.info("Opening file in CARTA", { filePath, directory, filename });
-    // await this.sendMessage(message);
+    logger.info("Opening file in CARTA", { filePath, directory, filename, requestId });
+
+    return new Promise((resolve, reject) => {
+      const handler = (ack: OpenFileAck) => {
+        this.offMessage(CARTAMessageType.OPEN_FILE_ACK, handler);
+        if (ack.success) {
+          logger.info("File opened successfully", { fileId: ack.fileId });
+          resolve(ack);
+        } else {
+          reject(new Error(ack.message || "Failed to open file"));
+        }
+      };
+
+      this.onMessage(CARTAMessageType.OPEN_FILE_ACK, handler);
+
+      this.sendProtobufMessage(CARTAMessageType.OPEN_FILE, requestId, request).catch((error) => {
+        this.offMessage(CARTAMessageType.OPEN_FILE_ACK, handler);
+        reject(error);
+      });
+    });
   }
 
   /**
    * Set image view parameters (channel, stokes, etc.)
    */
-  async setImageView(params: {
-    fileId: number;
-    channel?: number;
-    stokes?: number;
-    requiredTiles?: any;
-  }): Promise<void> {
+  async setImageView(params: SetImageViewRequest): Promise<SetImageViewAck> {
     if (!this.isConnected) {
       throw new Error("CARTA client not connected");
     }
 
-    const message = {
-      type: "SET_IMAGE_VIEW",
-      ...params,
+    const requestId = this.getNextRequestId();
+    const request: SetImageViewRequest = {
+      fileId: params.fileId,
+      channel: params.channel,
+      stokes: params.stokes,
+      xMin: params.xMin,
+      xMax: params.xMax,
+      yMin: params.yMin,
+      yMax: params.yMax,
+      mip: params.mip,
+      compressionQuality: params.compressionQuality,
+      compressionType: params.compressionType,
+      nanHandling: params.nanHandling,
+      customWcs: params.customWcs,
     };
 
-    // await this.sendMessage(message);
+    logger.info("Setting image view", { requestId, request });
+
+    return new Promise((resolve, reject) => {
+      const handler = (ack: SetImageViewAck) => {
+        this.offMessage(CARTAMessageType.SET_IMAGE_VIEW_ACK, handler);
+        if (ack.success) {
+          resolve(ack);
+        } else {
+          reject(new Error(ack.message || "Failed to set image view"));
+        }
+      };
+
+      this.onMessage(CARTAMessageType.SET_IMAGE_VIEW_ACK, handler);
+
+      this.sendProtobufMessage(CARTAMessageType.SET_IMAGE_VIEW, requestId, request).catch(
+        (error) => {
+          this.offMessage(CARTAMessageType.SET_IMAGE_VIEW_ACK, handler);
+          reject(error);
+        }
+      );
+    });
   }
 
   /**
    * Create or update a region
    */
-  async setRegion(region: CARTARegion): Promise<void> {
+  async setRegion(request: SetRegionRequest): Promise<SetRegionAck> {
     if (!this.isConnected) {
       throw new Error("CARTA client not connected");
     }
 
-    const message = {
-      type: "SET_REGION",
-      region,
+    const requestId = this.getNextRequestId();
+
+    logger.info("Setting region", { requestId, request });
+
+    return new Promise((resolve, reject) => {
+      const handler = (ack: SetRegionAck) => {
+        this.offMessage(CARTAMessageType.SET_REGION_ACK, handler);
+        if (ack.success) {
+          resolve(ack);
+        } else {
+          reject(new Error(ack.message || "Failed to set region"));
+        }
+      };
+
+      this.onMessage(CARTAMessageType.SET_REGION_ACK, handler);
+
+      this.sendProtobufMessage(CARTAMessageType.SET_REGION, requestId, request).catch((error) => {
+        this.offMessage(CARTAMessageType.SET_REGION_ACK, handler);
+        reject(error);
+      });
+    });
+  }
+
+  /**
+   * Request file information
+   */
+  async requestFileInfo(directory: string, file: string, hdu?: string): Promise<FileInfoResponse> {
+    if (!this.isConnected) {
+      throw new Error("CARTA client not connected");
+    }
+
+    const requestId = this.getNextRequestId();
+    const request: FileInfoRequest = {
+      directory,
+      file,
+      hdu: hdu || undefined,
     };
 
-    // await this.sendMessage(message);
+    logger.info("Requesting file info", { requestId, request });
+
+    return new Promise((resolve, reject) => {
+      const handler = (response: FileInfoResponse) => {
+        this.offMessage(CARTAMessageType.FILE_INFO_RESPONSE, handler);
+        if (response.success) {
+          resolve(response);
+        } else {
+          reject(new Error(response.message || "Failed to get file info"));
+        }
+      };
+
+      this.onMessage(CARTAMessageType.FILE_INFO_RESPONSE, handler);
+
+      this.sendProtobufMessage(CARTAMessageType.FILE_INFO_REQUEST, requestId, request).catch(
+        (error) => {
+          this.offMessage(CARTAMessageType.FILE_INFO_RESPONSE, handler);
+          reject(error);
+        }
+      );
+    });
   }
 
   /**
@@ -225,61 +385,133 @@ export class CARTAClient {
    */
   private handleMessage(event: MessageEvent): void {
     try {
-      // TODO: Decode Protocol Buffer message
-      // For now, we'll assume JSON format for development
-      // In production, this should decode protobuf messages
-
       let data: any;
+      let messageType: CARTAMessageType;
+
       if (event.data instanceof ArrayBuffer) {
-        // Protocol Buffer binary data
-        // TODO: Decode using protobuf library
-        logger.debug("Received binary message from CARTA");
-        return;
+        // Protocol Buffer binary message
+        const { header, payload } = splitMessage(event.data);
+        const decodedHeader = decodeHeader(header);
+        messageType = decodedHeader.messageType as CARTAMessageType;
+
+        // Decode payload
+        // For now, use JSON fallback if protobuf root is not loaded
+        // In production, decode using actual protobuf definitions
+        try {
+          if (this.root) {
+            // Decode using protobuf
+            const MessageType = this.root.lookupType(`CARTA.${CARTAMessageType[messageType]}`);
+            const message = MessageType.decode(new Uint8Array(payload));
+            data = MessageType.toObject(message, { longs: String, enums: String, bytes: String });
+          } else {
+            // JSON fallback for development
+            const textDecoder = new TextDecoder();
+            const jsonText = textDecoder.decode(payload);
+            data = JSON.parse(jsonText);
+          }
+        } catch (error) {
+          logger.warn("Failed to decode message payload, using raw data:", error);
+          data = { raw: true };
+        }
+
+        // Check for pending request
+        if (decodedHeader.requestId > 0) {
+          const pending = this.pendingRequests.get(decodedHeader.requestId);
+          if (pending) {
+            this.pendingRequests.delete(decodedHeader.requestId);
+            pending.resolve(data);
+            return;
+          }
+        }
       } else if (typeof event.data === "string") {
+        // JSON message (fallback for development)
         try {
           data = JSON.parse(event.data);
+          messageType = data.messageType || (data.type as CARTAMessageType);
         } catch {
-          // Not JSON, might be text message
-          data = { type: "TEXT", content: event.data };
+          logger.warn("Received non-JSON text message:", event.data);
+          return;
         }
       } else {
-        data = event.data;
+        logger.warn("Received unexpected message type:", typeof event.data);
+        return;
       }
 
-      const messageType = data.type as CARTAMessageType;
-      if (messageType) {
-        const handlers = this.messageHandlers.get(messageType);
-        if (handlers) {
-          handlers.forEach((handler) => {
-            try {
-              handler(data);
-            } catch (error) {
-              logger.error(`Error in CARTA message handler for ${messageType}:`, error);
-            }
-          });
+      // Handle error messages
+      if (messageType === CARTAMessageType.ERROR_DATA) {
+        const errorData = data as ErrorData;
+        logger.error("CARTA error:", errorData);
+        if (errorData.requestId) {
+          const pending = this.pendingRequests.get(errorData.requestId);
+          if (pending) {
+            this.pendingRequests.delete(errorData.requestId);
+            pending.reject(new Error(errorData.message));
+            return;
+          }
         }
       }
 
-      // Also call generic handlers
-      const allHandlers = this.messageHandlers.get("REGISTER_VIEWER" as CARTAMessageType); // Use a generic type
-      // This is a placeholder - in real implementation, you'd have a generic handler
+      // Call registered handlers
+      const handlers = this.messageHandlers.get(messageType);
+      if (handlers) {
+        handlers.forEach((handler) => {
+          try {
+            handler(data);
+          } catch (error) {
+            logger.error(`Error in CARTA message handler for ${messageType}:`, error);
+          }
+        });
+      } else {
+        logger.debug(`No handlers registered for message type: ${messageType}`);
+      }
     } catch (error) {
       logger.error("Failed to handle CARTA message:", error);
     }
   }
 
   /**
-   * Send a message to CARTA backend
+   * Send a Protocol Buffer message to CARTA backend
    */
-  private async sendMessage(message: any): Promise<void> {
+  private async sendProtobufMessage(
+    messageType: CARTAMessageType,
+    requestId: number,
+    payload: any
+  ): Promise<void> {
     if (!this.ws || this.ws.readyState !== WebSocket.OPEN) {
       throw new Error("WebSocket not connected");
     }
 
-    // TODO: Encode as Protocol Buffer
-    // For now, send as JSON for development
-    const jsonMessage = JSON.stringify(message);
-    this.ws.send(jsonMessage);
+    try {
+      // Encode header
+      const header = encodeHeader(messageType, requestId);
+
+      // Encode payload
+      let payloadBuffer: ArrayBuffer;
+      if (this.root) {
+        // Encode using protobuf
+        const MessageType = this.root.lookupType(`CARTA.${CARTAMessageType[messageType]}`);
+        const message = MessageType.create(payload);
+        const encoded = MessageType.encode(message).finish();
+        payloadBuffer = encoded.buffer;
+      } else {
+        // JSON fallback for development
+        const jsonText = JSON.stringify(payload);
+        const encoder = new TextEncoder();
+        payloadBuffer = encoder.encode(jsonText).buffer;
+      }
+
+      // Combine header and payload
+      const message = combineMessage(header, payloadBuffer);
+
+      // Send message
+      this.ws.send(message);
+      logger.debug(
+        `Sent CARTA message: ${CARTAMessageType[messageType]} (requestId: ${requestId})`
+      );
+    } catch (error) {
+      logger.error("Failed to encode/send CARTA message:", error);
+      throw error;
+    }
   }
 
   /**
