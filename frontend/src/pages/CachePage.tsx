@@ -1,5 +1,16 @@
 import React, { useState } from "react";
-import { Box, Typography, Tabs, Tab, Paper, Button } from "@mui/material";
+import {
+  Box,
+  Typography,
+  Tabs,
+  Tab,
+  Paper,
+  Button,
+  Dialog,
+  DialogTitle,
+  DialogContent,
+  DialogActions,
+} from "@mui/material";
 import { CacheStats, CacheKeys, CachePerformance } from "../components/Cache";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { apiClient } from "../api/client";
@@ -51,15 +62,8 @@ export default function CachePage() {
 
   return (
     <Box sx={{ width: "100%" }}>
-      <Box
-        sx={{
-          display: "flex",
-          justifyContent: "space-between",
-          alignItems: "center",
-          mb: 2,
-        }}
-      >
-        <Typography variant="h2" component="h2">
+      <Box sx={{ display: "flex", justifyContent: "space-between", alignItems: "center", mb: 2 }}>
+        <Typography variant="h4" component="h1">
           Cache Statistics
         </Typography>
         <Button variant="outlined" color="error" onClick={() => setClearDialogOpen(true)}>
@@ -88,16 +92,25 @@ export default function CachePage() {
       </Paper>
 
       {/* Clear Cache Confirmation Dialog */}
-      <ConfirmationDialog
-        open={clearDialogOpen}
-        title="Clear All Cache"
-        message="Are you sure you want to clear all cache? This action cannot be undone."
-        confirmText="Clear All"
-        severity="error"
-        onConfirm={handleClearCache}
-        onCancel={() => setClearDialogOpen(false)}
-        loading={clearCacheMutation.isPending}
-      />
+      <Dialog open={clearDialogOpen} onClose={() => setClearDialogOpen(false)}>
+        <DialogTitle>Clear All Cache</DialogTitle>
+        <DialogContent>
+          <Typography>
+            Are you sure you want to clear all cache? This action cannot be undone.
+          </Typography>
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={() => setClearDialogOpen(false)}>Cancel</Button>
+          <Button
+            onClick={handleClearCache}
+            color="error"
+            variant="contained"
+            disabled={clearCacheMutation.isPending}
+          >
+            {clearCacheMutation.isPending ? "Clearing..." : "Clear All"}
+          </Button>
+        </DialogActions>
+      </Dialog>
     </Box>
   );
 }

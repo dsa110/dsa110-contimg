@@ -16,16 +16,11 @@ import {
   MenuItem,
   FormControl,
   InputLabel,
+  CircularProgress,
   Alert,
-  Paper,
-  Button,
 } from "@mui/material";
-import { EventNote } from "@mui/icons-material";
 import { formatDistanceToNow } from "date-fns";
 import { useEventStream, useEventTypes } from "../../api/queries";
-import { SkeletonLoader } from "../SkeletonLoader";
-import { EmptyState } from "../EmptyState";
-import { alpha } from "@mui/material/styles";
 
 export default function EventStream() {
   const [eventTypeFilter, setEventTypeFilter] = useState<string>("");
@@ -101,32 +96,11 @@ export default function EventStream() {
 
         {/* Event Table */}
         {isLoading ? (
-          <SkeletonLoader variant="table" rows={5} columns={3} />
-        ) : events && events.length > 0 ? (
-          <TableContainer
-            component={Paper}
-            sx={{
-              "& .MuiTable-root": {
-                "& .MuiTableHead-root .MuiTableRow-root": {
-                  backgroundColor: "background.paper",
-                  "& .MuiTableCell-head": {
-                    fontWeight: 600,
-                    backgroundColor: "action.hover",
-                  },
-                },
-                "& .MuiTableBody-root .MuiTableRow-root": {
-                  "&:nth-of-type(even)": {
-                    backgroundColor: alpha("#fff", 0.02),
-                  },
-                  "&:hover": {
-                    backgroundColor: "action.hover",
-                    cursor: "default",
-                  },
-                  transition: "background-color 0.2s ease",
-                },
-              },
-            }}
-          >
+          <Box sx={{ display: "flex", justifyContent: "center", py: 4 }}>
+            <CircularProgress />
+          </Box>
+        ) : (
+          <TableContainer>
             <Table size="small">
               <TableHead>
                 <TableRow>
@@ -136,67 +110,45 @@ export default function EventStream() {
                 </TableRow>
               </TableHead>
               <TableBody>
-                {events.map((event, index) => (
-                  <TableRow key={index}>
-                    <TableCell>
-                      {formatDistanceToNow(new Date(event.timestamp_iso), {
-                        addSuffix: true,
-                      })}
-                    </TableCell>
-                    <TableCell>
-                      <Chip
-                        label={event.event_type}
-                        color={getEventTypeColor(event.event_type)}
-                        size="small"
-                      />
-                    </TableCell>
-                    <TableCell>
-                      <Box sx={{ fontFamily: "monospace", fontSize: "0.875rem" }}>
-                        {JSON.stringify(
-                          Object.fromEntries(
-                            Object.entries(event).filter(
-                              ([key]) => !["event_type", "timestamp", "timestamp_iso"].includes(key)
-                            )
-                          ),
-                          null,
-                          2
-                        )}
-                      </Box>
+                {events && events.length > 0 ? (
+                  events.map((event, index) => (
+                    <TableRow key={index}>
+                      <TableCell>
+                        {formatDistanceToNow(new Date(event.timestamp_iso), { addSuffix: true })}
+                      </TableCell>
+                      <TableCell>
+                        <Chip
+                          label={event.event_type}
+                          color={getEventTypeColor(event.event_type)}
+                          size="small"
+                        />
+                      </TableCell>
+                      <TableCell>
+                        <Box sx={{ fontFamily: "monospace", fontSize: "0.875rem" }}>
+                          {JSON.stringify(
+                            Object.fromEntries(
+                              Object.entries(event).filter(
+                                ([key]) =>
+                                  !["event_type", "timestamp", "timestamp_iso"].includes(key)
+                              )
+                            ),
+                            null,
+                            2
+                          )}
+                        </Box>
+                      </TableCell>
+                    </TableRow>
+                  ))
+                ) : (
+                  <TableRow>
+                    <TableCell colSpan={3} align="center">
+                      No events found
                     </TableCell>
                   </TableRow>
-                ))}
+                )}
               </TableBody>
             </Table>
           </TableContainer>
-        ) : (
-          <EmptyState
-            icon={<EventNote sx={{ fontSize: 64, color: "text.secondary" }} />}
-            title="No events found"
-            description="Events are system notifications about pipeline activities, errors, and status changes. They will appear here as the pipeline processes data."
-            actions={[
-              <Button
-                key="clear"
-                variant="outlined"
-                onClick={() => {
-                  setEventTypeFilter("");
-                  setSinceMinutes(undefined);
-                }}
-              >
-                Clear Filters
-              </Button>,
-            ]}
-          >
-            <Box sx={{ mt: 2 }}>
-              <Typography variant="body2" color="text.secondary" gutterBottom>
-                Example event types:
-              </Typography>
-              <Box sx={{ display: "flex", gap: 1, flexWrap: "wrap", mt: 1 }}>
-                <Chip label="pipeline.started" size="small" />
-                <Chip label="calibration.completed" size="small" />
-                <Chip label="error.occurred" size="small" />
-              </Box>
-            </Box>
-          </EmptyState>
         )}
       </CardContent>
     </Card>

@@ -150,7 +150,7 @@ def cmd_list(args: argparse.Namespace) -> int:
     db_path = Path(args.db)
     conn = ensure_data_registry_db(db_path)
 
-    records, _ = list_data(conn, data_type=args.data_type, status=args.status)
+    records = list_data(conn, data_type=args.data_type, status=args.status)
 
     if args.json:
         result = []

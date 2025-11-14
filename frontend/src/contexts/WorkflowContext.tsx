@@ -31,14 +31,10 @@ const PAGE_TO_WORKFLOW: Record<string, WorkflowType> = {
   "/sources": "investigation",
   "/sources/": "investigation",
   "/data": "analysis",
-  "/data-explorer": "analysis",
   "/qa": "analysis",
   "/control": "control",
-  "/pipeline-control": "control",
   "/operations": "debugging",
-  "/pipeline-operations": "monitoring",
   "/health": "debugging",
-  "/system-diagnostics": "debugging",
   "/pipeline": "monitoring",
 };
 
@@ -48,17 +44,14 @@ function detectWorkflow(path: string, previousWorkflow: WorkflowType | null): Wo
   if (path.includes("/sources/")) {
     return "investigation";
   }
-  if (path === "/operations" || path === "/health" || path.startsWith("/system-diagnostics")) {
+  if (path === "/operations" || path === "/health") {
     return "debugging";
   }
-  if (path === "/control" || path.startsWith("/pipeline-control")) {
+  if (path === "/control") {
     return "control";
   }
-  if (path === "/data" || path === "/qa" || path.startsWith("/data-explorer")) {
+  if (path === "/data" || path === "/qa") {
     return "analysis";
-  }
-  if (path.startsWith("/pipeline-operations") || path.startsWith("/pipeline")) {
-    return "monitoring";
   }
 
   // Use page-based detection
@@ -93,10 +86,6 @@ export function WorkflowProvider({ children }: { children: React.ReactNode }) {
     if (pathParts.length > 0) {
       const pageMap: Record<string, string> = {
         sources: "Sources",
-        "data-explorer": "Data Explorer",
-        "pipeline-operations": "Pipeline Operations",
-        "pipeline-control": "Pipeline Control",
-        "system-diagnostics": "System Diagnostics",
         data: "Data Browser",
         qa: "QA Visualization",
         control: "Control",

@@ -46,7 +46,7 @@ export function OperationsPage() {
 
   return (
     <Container maxWidth="xl" sx={{ py: 4 }}>
-      <Typography variant="h1" component="h1" gutterBottom>
+      <Typography variant="h4" gutterBottom>
         Operations Management
       </Typography>
 

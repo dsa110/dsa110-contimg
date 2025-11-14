@@ -41,7 +41,6 @@ import {
 import Plot from "react-plotly.js";
 import type { Data, Layout } from "plotly.js";
 import { useNavigate } from "react-router-dom";
-import dayjs from "dayjs";
 import { DeadLetterQueueStats } from "../components/DeadLetterQueue";
 import { CircuitBreakerStatus } from "../components/CircuitBreaker";
 import type { HealthSummary } from "../api/types";
@@ -111,7 +110,11 @@ function OperationsHealthTab() {
   const { data: healthSummary, isLoading } = useHealthSummary();
 
   if (isLoading || !healthSummary) {
-    return <SkeletonLoader variant="cards" rows={3} />;
+    return (
+      <Box sx={{ display: "flex", justifyContent: "center", py: 8 }}>
+        <CircularProgress />
+      </Box>
+    );
   }
 
   const getStatusColor = (status: string) => {
@@ -239,11 +242,7 @@ export default function HealthPage() {
     const states = [
       { name: "Completed", value: status.queue.completed, color: "#4caf50" },
       { name: "Pending", value: status.queue.pending, color: "#ff9800" },
-      {
-        name: "In Progress",
-        value: status.queue.in_progress,
-        color: "#2196f3",
-      },
+      { name: "In Progress", value: status.queue.in_progress, color: "#2196f3" },
       { name: "Failed", value: status.queue.failed, color: "#f44336" },
       { name: "Collecting", value: status.queue.collecting, color: "#9e9e9e" },
     ].filter((s) => s.value > 0);
@@ -253,7 +252,7 @@ export default function HealthPage() {
 
   return (
     <Container maxWidth="xl" sx={{ py: 4 }}>
-      <Typography variant="h2" component="h2" gutterBottom sx={{ mb: 4 }}>
+      <Typography variant="h3" gutterBottom sx={{ mb: 4 }}>
         System Health & Diagnostics
       </Typography>
 
@@ -268,7 +267,7 @@ export default function HealthPage() {
       <TabPanel value={tabValue} index={0}>
         {metricsLoading ? (
           <Box sx={{ display: "flex", justifyContent: "center", py: 8 }}>
-            <SkeletonLoader variant="cards" rows={2} />
+            <CircularProgress />
           </Box>
         ) : (
           <Grid container spacing={3}>
@@ -431,7 +430,7 @@ export default function HealthPage() {
       <TabPanel value={tabValue} index={1}>
         {statusLoading ? (
           <Box sx={{ display: "flex", justifyContent: "center", py: 8 }}>
-            <SkeletonLoader variant="cards" rows={2} />
+            <CircularProgress />
           </Box>
         ) : (
           <Grid container spacing={3}>

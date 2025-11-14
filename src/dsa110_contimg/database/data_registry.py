@@ -835,35 +835,12 @@ def list_data(
     conn: sqlite3.Connection,
     data_type: Optional[str] = None,
     status: Optional[str] = None,
-    limit: Optional[int] = None,
-    offset: Optional[int] = None,
-) -> tuple[List[DataRecord], int]:
-    """List data records with optional filters and pagination.
-
-    Returns:
-        Tuple of (records, total_count)
-    """
+) -> List[DataRecord]:
+    """List data records with optional filters."""
     cur = conn.cursor()
 
     # Try to select with new columns, fall back to old columns if they don't exist
     try:
-        # Build base query for counting
-        count_query = "SELECT COUNT(*) FROM data_registry WHERE 1=1"
-        count_params = []
-
-        if data_type:
-            count_query += " AND data_type = ?"
-            count_params.append(data_type)
-
-        if status:
-            count_query += " AND status = ?"
-            count_params.append(status)
-
-        # Get total count
-        cur.execute(count_query, count_params)
-        total_count = cur.fetchone()[0]
-
-        # Build query for data
         query = """
             SELECT id, data_type, data_id, base_path, status, stage_path, published_path,
                    created_at, staged_at, published_at, publish_mode, metadata_json,
@@ -884,18 +861,10 @@ def list_data(
 
         query += " ORDER BY created_at DESC"
 
-        # Add pagination
-        if limit is not None:
-            query += " LIMIT ?"
-            params.append(limit)
-            if offset is not None:
-                query += " OFFSET ?"
-                params.append(offset)
-
         cur.execute(query, params)
         rows = cur.fetchall()
 
-        records = [
+        return [
             DataRecord(
                 id=row[0],
                 data_type=row[1],
@@ -918,25 +887,8 @@ def list_data(
             )
             for row in rows
         ]
-        return records, total_count
     except sqlite3.OperationalError:
         # Fall back to old schema if columns don't exist
-        # Build count query
-        count_query = "SELECT COUNT(*) FROM data_registry WHERE 1=1"
-        count_params = []
-
-        if data_type:
-            count_query += " AND data_type = ?"
-            count_params.append(data_type)
-
-        if status:
-            count_query += " AND status = ?"
-            count_params.append(status)
-
-        cur.execute(count_query, count_params)
-        total_count = cur.fetchone()[0]
-
-        # Build data query
         query = """
             SELECT id, data_type, data_id, base_path, status, stage_path, published_path,
                    created_at, staged_at, published_at, publish_mode, metadata_json,
@@ -956,18 +908,10 @@ def list_data(
 
         query += " ORDER BY created_at DESC"
 
-        # Add pagination
-        if limit is not None:
-            query += " LIMIT ?"
-            params.append(limit)
-            if offset is not None:
-                query += " OFFSET ?"
-                params.append(offset)
-
         cur.execute(query, params)
         rows = cur.fetchall()
 
-        records = [
+        return [
             DataRecord(
                 id=row[0],
                 data_type=row[1],
@@ -990,7 +934,6 @@ def list_data(
             )
             for row in rows
         ]
-        return records, total_count
 
 
 def link_data(

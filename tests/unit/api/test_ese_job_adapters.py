@@ -80,7 +80,7 @@ def temp_products_db(tmp_path):
 class TestRunESEDetectJob:
     """Test run_ese_detect_job function."""
 
-    @patch("dsa110_contimg.photometry.ese_detection.detect_ese_candidates")
+    @patch("dsa110_contimg.api.job_adapters.detect_ese_candidates")
     def test_run_ese_detect_job_success(self, mock_detect, temp_products_db):
         """Test successful ESE detection job execution."""
         mock_detect.return_value = [
@@ -121,7 +121,7 @@ class TestRunESEDetectJob:
             recompute=False,
         )
 
-    @patch("dsa110_contimg.photometry.ese_detection.detect_ese_candidates")
+    @patch("dsa110_contimg.api.job_adapters.detect_ese_candidates")
     def test_run_ese_detect_job_failure(self, mock_detect, temp_products_db):
         """Test ESE detection job failure handling."""
         mock_detect.side_effect = Exception("Test error")
@@ -155,7 +155,7 @@ class TestRunESEDetectJob:
 class TestRunBatchESEDetectJob:
     """Test run_batch_ese_detect_job function."""
 
-    @patch("dsa110_contimg.photometry.ese_detection.detect_ese_candidates")
+    @patch("dsa110_contimg.api.job_adapters.detect_ese_candidates")
     def test_run_batch_ese_detect_job_all_sources(self, mock_detect, temp_products_db):
         """Test batch ESE detection for all sources."""
         mock_detect.return_value = [
@@ -194,7 +194,7 @@ class TestRunBatchESEDetectJob:
         assert status == "done"
         conn.close()
 
-    @patch("dsa110_contimg.photometry.ese_detection.detect_ese_candidates")
+    @patch("dsa110_contimg.api.job_adapters.detect_ese_candidates")
     def test_run_batch_ese_detect_job_specific_sources(self, mock_detect, temp_products_db):
         """Test batch ESE detection for specific source IDs."""
         mock_detect.return_value = [{"source_id": "source_001", "significance": 6.5}]
@@ -235,7 +235,7 @@ class TestRunBatchESEDetectJob:
         assert status == "done"
         conn.close()
 
-    @patch("dsa110_contimg.photometry.ese_detection.detect_ese_candidates")
+    @patch("dsa110_contimg.api.job_adapters.detect_ese_candidates")
     def test_run_batch_ese_detect_job_partial_failure(self, mock_detect, temp_products_db):
         """Test batch ESE detection with partial failures."""
 

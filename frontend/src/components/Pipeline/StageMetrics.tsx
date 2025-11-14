@@ -3,6 +3,7 @@ import {
   Box,
   Card,
   CardContent,
+  CircularProgress,
   Table,
   TableBody,
   TableCell,
@@ -11,19 +12,18 @@ import {
   TableRow,
   Typography,
   LinearProgress,
-  Paper,
 } from "@mui/material";
-import { Assessment } from "@mui/icons-material";
-import { alpha } from "@mui/material/styles";
 import { useStageMetrics } from "../../api/queries";
-import { SkeletonLoader } from "../SkeletonLoader";
-import { EmptyState } from "../EmptyState";
 
 export default function StageMetrics() {
   const { data: metrics, isLoading, error } = useStageMetrics();
 
   if (isLoading) {
-    return <SkeletonLoader variant="table" rows={5} columns={7} />;
+    return (
+      <Box sx={{ display: "flex", justifyContent: "center", py: 8 }}>
+        <CircularProgress />
+      </Box>
+    );
   }
 
   if (error) {
@@ -36,11 +36,9 @@ export default function StageMetrics() {
 
   if (!metrics || metrics.length === 0) {
     return (
-      <EmptyState
-        icon={<Assessment sx={{ fontSize: 64, color: "text.secondary" }} />}
-        title="No stage metrics available"
-        description="Stage performance metrics will appear here once pipeline stages have been executed. Run a workflow to generate metrics data."
-      />
+      <Box sx={{ p: 2 }}>
+        <Typography>No stage metrics available</Typography>
+      </Box>
     );
   }
 
@@ -51,30 +49,7 @@ export default function StageMetrics() {
           Stage Performance Metrics
         </Typography>
 
-        <TableContainer
-          component={Paper}
-          sx={{
-            "& .MuiTable-root": {
-              "& .MuiTableHead-root .MuiTableRow-root": {
-                backgroundColor: "background.paper",
-                "& .MuiTableCell-head": {
-                  fontWeight: 600,
-                  backgroundColor: "action.hover",
-                },
-              },
-              "& .MuiTableBody-root .MuiTableRow-root": {
-                "&:nth-of-type(even)": {
-                  backgroundColor: alpha("#fff", 0.02),
-                },
-                "&:hover": {
-                  backgroundColor: "action.hover",
-                  cursor: "default",
-                },
-                transition: "background-color 0.2s ease",
-              },
-            },
-          }}
-        >
+        <TableContainer>
           <Table>
             <TableHead>
               <TableRow>

@@ -98,7 +98,7 @@ class TestESEDetectJobEndpoint:
     """Test POST /api/jobs/ese-detect endpoint."""
 
     @patch("dsa110_contimg.api.routes.run_ese_detect_job")
-    @patch("dsa110_contimg.database.products.ensure_products_db")
+    @patch("dsa110_contimg.api.routes.ensure_products_db")
     def test_create_ese_detect_job(
         self, mock_ensure_db, mock_run_job, client, mock_products_db, setup_jobs_tables
     ):
@@ -127,7 +127,7 @@ class TestESEDetectJobEndpoint:
         mock_run_job.assert_not_called()  # Background task
 
     @patch("dsa110_contimg.api.routes.run_ese_detect_job")
-    @patch("dsa110_contimg.database.products.ensure_products_db")
+    @patch("dsa110_contimg.api.routes.ensure_products_db")
     def test_create_ese_detect_job_with_source_id(
         self, mock_ensure_db, mock_run_job, client, mock_products_db, setup_jobs_tables
     ):
@@ -169,7 +169,7 @@ class TestBatchESEDetectEndpoint:
     """Test POST /api/batch/ese-detect endpoint."""
 
     @patch("dsa110_contimg.api.routes.run_batch_ese_detect_job")
-    @patch("dsa110_contimg.database.products.ensure_products_db")
+    @patch("dsa110_contimg.api.routes.ensure_products_db")
     def test_create_batch_ese_detect_job(
         self, mock_ensure_db, mock_run_job, client, mock_products_db, setup_jobs_tables
     ):
@@ -198,7 +198,7 @@ class TestBatchESEDetectEndpoint:
         assert data["total_items"] == 1  # All sources = 1 item
 
     @patch("dsa110_contimg.api.routes.run_batch_ese_detect_job")
-    @patch("dsa110_contimg.database.products.ensure_products_db")
+    @patch("dsa110_contimg.api.routes.ensure_products_db")
     def test_create_batch_ese_detect_job_with_source_ids(
         self, mock_ensure_db, mock_run_job, client, mock_products_db, setup_jobs_tables
     ):

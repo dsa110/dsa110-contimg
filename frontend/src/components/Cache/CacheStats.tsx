@@ -1,9 +1,15 @@
 import React from "react";
-import { Box, Card, CardContent, Typography, Grid, Alert, LinearProgress } from "@mui/material";
-import { Cached } from "@mui/icons-material";
+import {
+  Box,
+  Card,
+  CardContent,
+  Typography,
+  Grid,
+  CircularProgress,
+  Alert,
+  LinearProgress,
+} from "@mui/material";
 import { useCacheStatistics } from "../../api/queries";
-import { SkeletonLoader } from "../SkeletonLoader";
-import { EmptyState } from "../EmptyState";
 
 export default function CacheStats() {
   const { data: stats, isLoading, error } = useCacheStatistics();
@@ -17,17 +23,15 @@ export default function CacheStats() {
   }
 
   if (isLoading) {
-    return <SkeletonLoader variant="cards" rows={4} />;
+    return (
+      <Box sx={{ display: "flex", justifyContent: "center", py: 4 }}>
+        <CircularProgress />
+      </Box>
+    );
   }
 
   if (!stats) {
-    return (
-      <EmptyState
-        icon={<Cached sx={{ fontSize: 64, color: "text.secondary" }} />}
-        title="No statistics available"
-        description="Cache statistics will appear here once the cache system has been initialized and is storing data."
-      />
-    );
+    return <Alert severity="info">No statistics available</Alert>;
   }
 
   return (
@@ -38,7 +42,7 @@ export default function CacheStats() {
         </Typography>
 
         <Grid container spacing={2} sx={{ mb: 3 }}>
-          <Grid xs={12} sm={6} md={3}>
+          <Grid item xs={12} sm={6} md={3}>
             <Card variant="outlined">
               <CardContent>
                 <Typography variant="body2" color="text.secondary">
@@ -49,7 +53,7 @@ export default function CacheStats() {
             </Card>
           </Grid>
 
-          <Grid xs={12} sm={6} md={3}>
+          <Grid item xs={12} sm={6} md={3}>
             <Card variant="outlined">
               <CardContent>
                 <Typography variant="body2" color="text.secondary">
@@ -60,7 +64,7 @@ export default function CacheStats() {
             </Card>
           </Grid>
 
-          <Grid xs={12} sm={6} md={3}>
+          <Grid item xs={12} sm={6} md={3}>
             <Card variant="outlined">
               <CardContent>
                 <Typography variant="body2" color="text.secondary">
@@ -71,7 +75,7 @@ export default function CacheStats() {
             </Card>
           </Grid>
 
-          <Grid xs={12} sm={6} md={3}>
+          <Grid item xs={12} sm={6} md={3}>
             <Card variant="outlined">
               <CardContent>
                 <Typography variant="body2" color="text.secondary">
@@ -88,7 +92,7 @@ export default function CacheStats() {
           Performance Metrics
         </Typography>
         <Grid container spacing={2}>
-          <Grid xs={12} md={6}>
+          <Grid item xs={12} md={6}>
             <Box sx={{ mb: 2 }}>
               <Box sx={{ display: "flex", justifyContent: "space-between", mb: 1 }}>
                 <Typography variant="body2">Hit Rate</Typography>
@@ -116,7 +120,7 @@ export default function CacheStats() {
             </Box>
           </Grid>
 
-          <Grid xs={12} md={6}>
+          <Grid item xs={12} md={6}>
             <Card variant="outlined">
               <CardContent>
                 <Typography variant="body2" color="text.secondary" gutterBottom>

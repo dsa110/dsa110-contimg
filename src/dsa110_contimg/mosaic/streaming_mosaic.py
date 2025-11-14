@@ -115,7 +115,6 @@ class StreamingMosaicManager:
         calibration_params: Optional[Dict] = None,
         min_calibrator_flux_jy: float = 0.1,
         min_calibrator_pb_response: float = 0.3,
-        ms_per_group: int = MS_PER_GROUP,
         config: Optional[Any] = None,
     ):
         """Initialize streaming mosaic manager.
@@ -129,7 +128,6 @@ class StreamingMosaicManager:
             observatory_location: Observatory location for transit calculations
             refant: Reference antenna ID (default: "103")
             bp_validity_hours: Bandpass calibration validity window in hours (default: 24.0)
-            ms_per_group: Number of MS files required per mosaic group (default: 10)
             gain_validity_minutes: Gain calibration validity window in minutes (default: 30.0)
             calibration_params: Optional dict of calibration parameters to override defaults
             min_calibrator_flux_jy: Minimum calibrator flux in Jy for visibility validation (default: 0.1)
@@ -151,7 +149,6 @@ class StreamingMosaicManager:
         self.gain_validity_minutes = gain_validity_minutes
         self.min_calibrator_flux_jy = min_calibrator_flux_jy
         self.min_calibrator_pb_response = min_calibrator_pb_response
-        self.ms_per_group = ms_per_group
 
         # Set default calibration parameters
         self.calibration_params = {
@@ -443,10 +440,10 @@ class StreamingMosaicManager:
             ORDER BY mid_mjd ASC
             LIMIT ?
             """,
-            (self.ms_per_group,),
+            (MS_PER_GROUP,),
         ).fetchall()
 
-        if len(rows) < self.ms_per_group:
+        if len(rows) < MS_PER_GROUP:
             return None
 
         # CRITICAL: Verify files exist on filesystem before forming group
@@ -462,8 +459,8 @@ class StreamingMosaicManager:
                     f"Skipping this file."
                 )
 
-        if len(valid_rows) < self.ms_per_group:
-            logger.debug(f"Only {len(valid_rows)}/{self.ms_per_group} MS files exist on filesystem")
+        if len(valid_rows) < MS_PER_GROUP:
+            logger.debug(f"Only {len(valid_rows)}/{MS_PER_GROUP} MS files exist on filesystem")
             return None
 
         # CRITICAL: Keep paths in chronological order (by mid_mjd), not alphabetical
@@ -602,7 +599,7 @@ class StreamingMosaicManager:
         """
         if len(ms_paths_with_time) < 2:
             # Need at least 2 files to check spacing
-            return len(ms_paths_with_time) == self.ms_per_group
+            return len(ms_paths_with_time) == MS_PER_GROUP
 
         # Maximum time difference: 6 minutes = 6/60/24 days = 0.004166667... days
         # Consecutive MS files must be less than 6 minutes apart
@@ -754,10 +751,8 @@ class StreamingMosaicManager:
                 logger.warning(f"Failed to extract time from {ms_path}: {e}")
                 continue
 
-        if len(ms_times) < self.ms_per_group:
-            logger.warning(
-                f"Only {len(ms_times)} MS files have valid times, need {self.ms_per_group}"
-            )
+        if len(ms_times) < MS_PER_GROUP:
+            logger.warning(f"Only {len(ms_times)} MS files have valid times, need {MS_PER_GROUP}")
             return None
 
         # Sort by time and select 5th (index 4)
@@ -1460,26 +1455,7 @@ class StreamingMosaicManager:
                     peak_field_idx=peak_field_idx,
                 )
 
-                # Handle both tuple (success, tables) and list (tables) return formats
-                # This supports both the actual API (returns List[str]) and test mocks
-                # that may return (bool, List[str]) tuples
-                if isinstance(gain_tables, tuple) and len(gain_tables) == 2:
-                    # Tuple format: (success: bool, tables: List[str])
-                    success, tables = gain_tables
-                    if not success or not tables or len(tables) == 0:
-                        logger.error("Gain calibration solving returned failure or no tables")
-                        gaincal_solved = False
-                        gain_tables = []  # Set to empty list to skip processing
-                    else:
-                        gain_tables = tables  # Use the tables list for processing
-                        # gaincal_solved remains False until registration succeeds
-                elif not gain_tables or len(gain_tables) == 0:
-                    # Empty list or None indicates failure
-                    logger.error("Gain calibration solving returned no tables")
-                    gaincal_solved = False
-
-                # Process gain tables if we have them (only if not already marked as failed)
-                if not gaincal_solved and gain_tables and len(gain_tables) > 0:
+                if gain_tables and len(gain_tables) > 0:
                     logger.info(f"Gain calibration solved successfully: {gain_tables}")
 
                     # Register gain calibration tables with validity windows
@@ -1543,10 +1519,10 @@ class StreamingMosaicManager:
         self.products_db.execute(
             """
             UPDATE mosaic_groups
-            SET calibration_ms_path = ?, bpcal_solved = ?, gaincal_solved = ?
+            SET calibration_ms_path = ?, bpcal_solved = ?
             WHERE group_id = ?
             """,
-            (calibration_ms_path, 1 if bpcal_solved else 0, 1 if gaincal_solved else 0, group_id),
+            (calibration_ms_path, 1 if bpcal_solved else 0, group_id),
         )
         self.products_db.commit()
 
@@ -1648,7 +1624,7 @@ class StreamingMosaicManager:
             self.products_db.execute(
                 """
                 UPDATE mosaic_groups
-                SET calibrated_at = ?, status = 'calibrated', stage = 'calibrated', cal_applied = 1
+                SET calibrated_at = ?, status = 'calibrated'
                 WHERE group_id = ?
                 """,
                 (time.time(), group_id),
@@ -1781,7 +1757,7 @@ class StreamingMosaicManager:
             self.products_db.execute(
                 """
                 UPDATE mosaic_groups
-                SET imaged_at = ?, status = 'imaged', stage = 'imaged'
+                SET imaged_at = ?, status = 'imaged'
                 WHERE group_id = ?
                 """,
                 (time.time(), group_id),
@@ -1904,12 +1880,10 @@ class StreamingMosaicManager:
                     )
 
         # CRITICAL: Validate all images exist before mosaic creation
-        # Use actual number of MS files in group, not hardcoded MS_PER_GROUP
-        expected_image_count = len(ms_paths)
-        if len(image_paths) < expected_image_count:
-            missing_count = expected_image_count - len(image_paths)
+        if len(image_paths) < MS_PER_GROUP:
+            missing_count = MS_PER_GROUP - len(image_paths)
             logger.error(
-                f"CRITICAL: Only {len(image_paths)}/{expected_image_count} images found for group {group_id}. "
+                f"CRITICAL: Only {len(image_paths)}/{MS_PER_GROUP} images found for group {group_id}. "
                 f"Missing {missing_count} images. Cannot create mosaic. "
                 f"All MS files must have corresponding images before mosaic creation."
             )
@@ -1929,24 +1903,24 @@ class StreamingMosaicManager:
         logger.debug(f"Validated {len(image_paths)} image files exist for group {group_id}")
 
         # Check if mosaic already exists (check database state)
-        # Note: mosaic_path column doesn't exist, use mosaic_id to check
         row = self.products_db.execute(
             """
-            SELECT mosaic_id, status FROM mosaic_groups 
-            WHERE group_id = ? AND mosaic_id IS NOT NULL
+            SELECT mosaic_path, status FROM mosaic_groups 
+            WHERE group_id = ? AND mosaic_path IS NOT NULL
             """,
             (group_id,),
         ).fetchone()
 
         if row and row[1] == "completed":
-            mosaic_id = row[0]
-            # Reconstruct mosaic path from mosaic_id
-            mosaic_path = str(self.mosaic_output_dir / f"{mosaic_id}.image")
-            fits_path = mosaic_path.replace(".image", ".fits")
+            mosaic_path = row[0]
             # Verify mosaic file actually exists
-            if Path(fits_path).exists() or Path(mosaic_path).exists():
-                logger.info(f"Mosaic already exists for group {group_id}: {mosaic_id}, skipping")
-                return fits_path if Path(fits_path).exists() else mosaic_path
+            if Path(mosaic_path).exists() or Path(mosaic_path.replace(".image", ".fits")).exists():
+                logger.info(f"Mosaic already exists for group {group_id}: {mosaic_path}, skipping")
+                return (
+                    mosaic_path
+                    if Path(mosaic_path).exists()
+                    else mosaic_path.replace(".image", ".fits")
+                )
 
         # Generate mosaic
         # Construct mosaic ID using validated naming conventions
@@ -2022,7 +1996,7 @@ class StreamingMosaicManager:
             self.products_db.execute(
                 """
                 UPDATE mosaic_groups
-                SET mosaic_id = ?, mosaicked_at = ?, status = 'completed', stage = 'mosaicked'
+                SET mosaic_id = ?, mosaicked_at = ?, status = 'completed'
                 WHERE group_id = ?
                 """,
                 (mosaic_id, time.time(), group_id),
@@ -2187,7 +2161,7 @@ class StreamingMosaicManager:
 
         # Get MS paths
         ms_paths = self.get_group_ms_paths(group_id)
-        if len(ms_paths) < self.ms_per_group:
+        if len(ms_paths) < MS_PER_GROUP:
             logger.warning(f"Group {group_id} has only {len(ms_paths)} MS files")
             return False
 
@@ -2355,7 +2329,7 @@ class StreamingMosaicManager:
         # Sort by time (chronological order)
         all_ms.sort(key=lambda x: x[0])
 
-        if len(all_ms) < self.ms_per_group:
+        if len(all_ms) < MS_PER_GROUP:
             return None
 
         # Clear calibration from overlap MS
@@ -2478,7 +2452,7 @@ class StreamingMosaicManager:
 
         # Get MS paths
         ms_paths = self.get_group_ms_paths(group_id)
-        if len(ms_paths) < self.ms_per_group:
+        if len(ms_paths) < MS_PER_GROUP:
             logger.warning(f"Group {group_id} has only {len(ms_paths)} MS files")
             return False
 

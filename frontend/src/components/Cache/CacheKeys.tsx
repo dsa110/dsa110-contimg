@@ -12,6 +12,7 @@ import {
   TableHead,
   TableRow,
   Chip,
+  CircularProgress,
   Alert,
   IconButton,
   Dialog,
@@ -19,16 +20,11 @@ import {
   DialogContent,
   DialogActions,
   Button,
-  Paper,
 } from "@mui/material";
-import { Storage } from "@mui/icons-material";
-import { alpha } from "@mui/material/styles";
 import { Delete as DeleteIcon, Visibility as VisibilityIcon } from "@mui/icons-material";
 import { useCacheKeys, useCacheKey } from "../../api/queries";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { apiClient } from "../../api/client";
-import { SkeletonLoader } from "../SkeletonLoader";
-import { EmptyState } from "../EmptyState";
 
 export default function CacheKeys() {
   const [pattern, setPattern] = useState<string>("");
@@ -102,32 +98,11 @@ export default function CacheKeys() {
 
           {/* Keys Table */}
           {isLoading ? (
-            <SkeletonLoader variant="table" rows={5} columns={3} />
-          ) : keysData && keysData.keys && keysData.keys.length > 0 ? (
-            <TableContainer
-              component={Paper}
-              sx={{
-                "& .MuiTable-root": {
-                  "& .MuiTableHead-root .MuiTableRow-root": {
-                    backgroundColor: "background.paper",
-                    "& .MuiTableCell-head": {
-                      fontWeight: 600,
-                      backgroundColor: "action.hover",
-                    },
-                  },
-                  "& .MuiTableBody-root .MuiTableRow-root": {
-                    "&:nth-of-type(even)": {
-                      backgroundColor: alpha("#fff", 0.02),
-                    },
-                    "&:hover": {
-                      backgroundColor: "action.hover",
-                      cursor: "default",
-                    },
-                    transition: "background-color 0.2s ease",
-                  },
-                },
-              }}
-            >
+            <Box sx={{ display: "flex", justifyContent: "center", py: 4 }}>
+              <CircularProgress />
+            </Box>
+          ) : (
+            <TableContainer>
               <Table size="small">
                 <TableHead>
                   <TableRow>
@@ -137,60 +112,53 @@ export default function CacheKeys() {
                   </TableRow>
                 </TableHead>
                 <TableBody>
-                  {keysData && keysData.keys.length > 0
-                    ? keysData.keys.map((keyInfo) => (
-                        <TableRow key={keyInfo.key}>
-                          <TableCell>
-                            <Typography
-                              variant="body2"
-                              sx={{
-                                fontFamily: "monospace",
-                                fontSize: "0.875rem",
-                              }}
-                            >
-                              {keyInfo.key}
-                            </Typography>
-                          </TableCell>
-                          <TableCell>
-                            {keyInfo.has_value ? (
-                              <Chip label="Active" color="success" size="small" />
-                            ) : (
-                              <Chip label="Expired" color="default" size="small" />
-                            )}
-                          </TableCell>
-                          <TableCell>
-                            <IconButton
-                              size="small"
-                              onClick={() => setSelectedKey(keyInfo.key)}
-                              title="View details"
-                            >
-                              <VisibilityIcon fontSize="small" />
-                            </IconButton>
-                            <IconButton
-                              size="small"
-                              onClick={() => handleDelete(keyInfo.key)}
-                              title="Delete"
-                              color="error"
-                            >
-                              <DeleteIcon fontSize="small" />
-                            </IconButton>
-                          </TableCell>
-                        </TableRow>
-                      ))
-                    : null}
+                  {keysData && keysData.keys.length > 0 ? (
+                    keysData.keys.map((keyInfo) => (
+                      <TableRow key={keyInfo.key}>
+                        <TableCell>
+                          <Typography
+                            variant="body2"
+                            sx={{ fontFamily: "monospace", fontSize: "0.875rem" }}
+                          >
+                            {keyInfo.key}
+                          </Typography>
+                        </TableCell>
+                        <TableCell>
+                          {keyInfo.has_value ? (
+                            <Chip label="Active" color="success" size="small" />
+                          ) : (
+                            <Chip label="Expired" color="default" size="small" />
+                          )}
+                        </TableCell>
+                        <TableCell>
+                          <IconButton
+                            size="small"
+                            onClick={() => setSelectedKey(keyInfo.key)}
+                            title="View details"
+                          >
+                            <VisibilityIcon fontSize="small" />
+                          </IconButton>
+                          <IconButton
+                            size="small"
+                            onClick={() => handleDelete(keyInfo.key)}
+                            title="Delete"
+                            color="error"
+                          >
+                            <DeleteIcon fontSize="small" />
+                          </IconButton>
+                        </TableCell>
+                      </TableRow>
+                    ))
+                  ) : (
+                    <TableRow>
+                      <TableCell colSpan={3} align="center">
+                        No cache keys found
+                      </TableCell>
+                    </TableRow>
+                  )}
                 </TableBody>
               </Table>
             </TableContainer>
-          ) : (
-            <EmptyState
-              icon={<Storage sx={{ fontSize: 64, color: "text.secondary" }} />}
-              title="No cache keys found"
-              description={
-                pattern
-                  ? `No cache keys match the pattern "${pattern}". Try a different filter pattern.`
-                  : "No cache keys are currently stored. Keys will appear here as the cache system stores data."
-              }
-            />
           )}
 
           {keysData && (
@@ -248,15 +216,18 @@ export default function CacheKeys() {
       </Dialog>
 
       {/* Delete Confirmation Dialog */}
-      <ConfirmationDialog
-        open={deleteDialogOpen}
-        title="Delete Cache Key"
-        message={`Are you sure you want to delete the cache key "${keyToDelete}"?`}
-        confirmText="Delete"
-        severity="error"
-        onConfirm={confirmDelete}
-        onCancel={() => setDeleteDialogOpen(false)}
-      />
+      <Dialog open={deleteDialogOpen} onClose={() => setDeleteDialogOpen(false)}>
+        <DialogTitle>Delete Cache Key</DialogTitle>
+        <DialogContent>
+          <Typography>Are you sure you want to delete the cache key "{keyToDelete}"?</Typography>
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={() => setDeleteDialogOpen(false)}>Cancel</Button>
+          <Button onClick={confirmDelete} color="error" variant="contained">
+            Delete
+          </Button>
+        </DialogActions>
+      </Dialog>
     </>
   );
 }

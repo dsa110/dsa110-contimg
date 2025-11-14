@@ -136,11 +136,6 @@ from dsa110_contimg.api.streaming_service import (
     StreamingServiceManager,
 )
 
-# Module-level cache for UVH5 file listings (TTL: 30 seconds)
-# Shared across all requests for fast file discovery
-_uvh5_file_cache: dict[str, tuple[float, list[str]]] = {}
-_uvh5_cache_ttl = 30.0  # seconds
-
 logger = logging.getLogger(__name__)
 
 
@@ -155,46 +150,8 @@ def create_app(config: ApiConfig | None = None) -> FastAPI:
     # Background task to broadcast status updates
     @app.on_event("startup")
     async def start_status_broadcaster():
-        """Start background task to broadcast status updates and pre-warm database connections."""
-        from pathlib import Path
-
+        """Start background task to broadcast status updates."""
         from dsa110_contimg.api.websocket_manager import create_status_update, manager
-        from dsa110_contimg.database.data_registry import ensure_data_registry_db
-
-        # Pre-warm database connection to avoid cold-start delays
-        try:
-            db_path = Path("/data/dsa110-contimg/state/products.sqlite3")
-            conn = ensure_data_registry_db(db_path)
-            # Execute a simple query to initialize the connection
-            conn.execute("SELECT 1").fetchone()
-            logger.info("Pre-warmed data registry database connection")
-        except Exception as e:
-            logger.warning(f"Failed to pre-warm database connection: {e}")
-
-        # Pre-warm UVH5 file cache in background
-        async def pre_warm_uvh5_cache():
-            """Pre-warm the UVH5 file cache in the background."""
-            try:
-                input_dir = os.getenv("CONTIMG_INPUT_DIR", "/data/incoming")
-                search_path = Path(input_dir)
-                if search_path.exists():
-                    # Build cache in background (use module-level cache)
-                    all_files = []
-                    for root, dirs, files in os.walk(search_path):
-                        for file in files:
-                            if file.endswith(".hdf5"):
-                                all_files.append(os.path.join(root, file))
-                    all_files.sort(reverse=True)
-                    # Access module-level cache (defined at top of file)
-                    import dsa110_contimg.api.routes as routes_module
-
-                    routes_module._uvh5_file_cache[str(search_path)] = (time.time(), all_files)
-                    logger.info(f"Pre-warmed UVH5 file cache: {len(all_files)} files")
-            except Exception as e:
-                logger.warning(f"Failed to pre-warm UVH5 cache: {e}")
-
-        # Start pre-warming in background (don't await to avoid blocking startup)
-        asyncio.create_task(pre_warm_uvh5_cache())
 
         async def broadcast_status():
             """Periodically fetch and broadcast status updates."""
@@ -423,7 +380,6 @@ def create_app(config: ApiConfig | None = None) -> FastAPI:
         pass
 
     router = APIRouter(prefix="/api")
-
     # Include subrouters
     # Health checks and metrics (no /api prefix)
     from dsa110_contimg.api.health import router as health_router
@@ -2816,153 +2772,53 @@ def create_app(config: ApiConfig | None = None) -> FastAPI:
             finished_at=(datetime.fromtimestamp(jd["finished_at"]) if jd["finished_at"] else None),
         )
 
-    @router.get("/uvh5")
-    def list_uvh5_files(
-        input_dir: str | None = None,
-        limit: int = Query(100, ge=1, le=10000, description="Maximum number of files to return"),
-        offset: int = Query(0, ge=0, description="Number of files to skip"),
-        search: str | None = Query(None, description="Search filter (matches filename or path)"),
-        subband: str | None = Query(None, description="Filter by subband (e.g., 'sb0', 'sb23')"),
-    ) -> dict:
-        """List available UVH5 files for conversion with pagination and search.
-
-        Returns:
-            Dict with 'items' (list of UVH5 files), 'total' (total count), 'limit', 'offset'
-        """
+    @router.get("/uvh5", response_model=UVH5FileList)
+    def list_uvh5_files(input_dir: str | None = None, limit: int = 100) -> UVH5FileList:
+        """List available UVH5 files for conversion."""
         import glob as _glob
         import re
-        import time
 
-        from dsa110_contimg.api.models import UVH5FileEntry
+        from dsa110_contimg.api.models import UVH5FileEntry, UVH5FileList
 
         if input_dir is None:
             input_dir = os.getenv("CONTIMG_INPUT_DIR", "/data/incoming")
 
         entries: list[UVH5FileEntry] = []
-        all_files: list[str] = []
 
         try:
             search_path = Path(input_dir)
             if not search_path.exists():
-                return {
-                    "items": [],
-                    "total": 0,
-                    "limit": limit,
-                    "offset": offset,
-                }
+                return UVH5FileList(items=[])
 
-            # Use cached file list if available and fresh
-            # Access module-level cache explicitly
-            import dsa110_contimg.api.routes as routes_module
+            # Find all .hdf5 files
+            pattern = str(search_path / "**/*.hdf5")
+            files = sorted(_glob.glob(pattern, recursive=True), reverse=True)[:limit]
 
-            cache = routes_module._uvh5_file_cache
-            cache_ttl = routes_module._uvh5_cache_ttl
-
-            cache_key = str(search_path)
-            current_time = time.time()
-
-            if cache_key in cache:
-                cached_time, cached_files = cache[cache_key]
-                if current_time - cached_time < cache_ttl:
-                    all_files = cached_files
-                else:
-                    # Cache expired, refresh it
-                    del cache[cache_key]
-
-            if not all_files:
-                # Find all .hdf5 files (use os.walk for better performance on large dirs)
-                # Limit initial scan to avoid very long first request
-                # Cache will be built incrementally
-                all_files = []
-                max_scan_files = 100000  # Limit to prevent extremely long scans
-                file_count = 0
-
-                for root, dirs, files in os.walk(search_path):
-                    for file in files:
-                        if file.endswith(".hdf5"):
-                            all_files.append(os.path.join(root, file))
-                            file_count += 1
-                            if file_count >= max_scan_files:
-                                break
-                    if file_count >= max_scan_files:
-                        break
-
-                # Sort by path (reverse for newest first)
-                all_files.sort(reverse=True)
-
-                # Cache the result
-                cache[cache_key] = (current_time, all_files)
-
-            # Apply filters (optimized with early filtering)
-            filtered_files = all_files
-
-            # Pre-compile regex for subband if needed
-            subband_pattern = None
-            if subband:
-                subband_num = subband.replace("sb", "")
-                subband_pattern = f"_sb{subband_num}.hdf5"
-
-            if search or subband:
-                search_lower = search.lower() if search else None
-                filtered_files = []
-                for f in all_files:
-                    # Apply search filter
-                    if search_lower and search_lower not in f.lower():
-                        continue
-                    # Apply subband filter
-                    if subband_pattern and subband_pattern not in f:
-                        continue
-                    filtered_files.append(f)
-
-            # Get total count before pagination
-            total_count = len(filtered_files)
-
-            # Apply pagination
-            paginated_files = filtered_files[offset : offset + limit]
-
-            # Pre-compile regex for filename parsing
-            filename_pattern = re.compile(r"(.+)_sb(\d+)\.hdf5$")
-
-            # Batch process files for better performance
-            for fpath in paginated_files:
+            for fpath in files:
                 fname = os.path.basename(fpath)
-
-                # Get file size (with error handling, only for paginated files)
-                # This is fast since we only check sizes for the current page
-                size_mb = None
-                try:
-                    stat_result = os.stat(fpath)
-                    size_mb = stat_result.st_size / (1024 * 1024)
-                except (OSError, FileNotFoundError):
-                    # File may have been deleted, skip size
-                    pass
+                size_mb = os.path.getsize(fpath) / (1024 * 1024)
 
                 # Extract timestamp and subband from filename
                 # Expected format: YYYY-MM-DDTHH:MM:SS_sbXX.hdf5
                 timestamp = None
-                file_subband = None
-                match = filename_pattern.match(fname)
+                subband = None
+                match = re.match(r"(.+)_sb(\d+)\.hdf5$", fname)
                 if match:
                     timestamp = match.group(1)
-                    file_subband = f"sb{match.group(2)}"
+                    subband = f"sb{match.group(2)}"
 
                 entries.append(
                     UVH5FileEntry(
                         path=fpath,
                         timestamp=timestamp,
-                        subband=file_subband,
-                        size_mb=round(size_mb, 2) if size_mb else None,
+                        subband=subband,
+                        size_mb=round(size_mb, 2),
                     )
                 )
-        except Exception as e:
-            logger.warning(f"Error listing UVH5 files: {e}")
+        except Exception:
+            pass
 
-        return {
-            "items": [entry.dict() for entry in entries],
-            "total": total_count,
-            "limit": limit,
-            "offset": offset,
-        }
+        return UVH5FileList(items=entries)
 
     @router.post("/jobs/convert", response_model=Job)
     def create_convert_job(
@@ -5970,14 +5826,8 @@ def create_app(config: ApiConfig | None = None) -> FastAPI:
     async def list_data_instances(
         data_type: str | None = None,
         status: str | None = None,
-        limit: int = Query(50, ge=1, le=1000, description="Number of records to return"),
-        offset: int = Query(0, ge=0, description="Number of records to skip"),
     ):
-        """List data instances with optional filters and pagination.
-
-        Returns:
-            Dict with 'items' (list of data instances) and 'total' (total count)
-        """
+        """List data instances with optional filters."""
         from pathlib import Path
 
         from dsa110_contimg.database.data_registry import (
@@ -5989,37 +5839,26 @@ def create_app(config: ApiConfig | None = None) -> FastAPI:
         db_path = Path("/data/dsa110-contimg/state/products.sqlite3")
         conn = ensure_data_registry_db(db_path)
 
-        records, total_count = list_data(
-            conn,
-            data_type=data_type,
-            status=status,
-            limit=limit,
-            offset=offset,
-        )
+        records = list_data(conn, data_type=data_type, status=status)
 
-        return {
-            "items": [
-                {
-                    "id": r.data_id,
-                    "data_type": r.data_type,
-                    "status": r.status,
-                    "stage_path": r.stage_path,
-                    "published_path": r.published_path,
-                    "created_at": r.created_at,
-                    "published_at": r.published_at,
-                    "publish_mode": r.publish_mode,
-                    "qa_status": r.qa_status,
-                    "validation_status": r.validation_status,
-                    "finalization_status": r.finalization_status,
-                    "auto_publish_enabled": r.auto_publish_enabled,
-                    "metadata": json.loads(r.metadata_json) if r.metadata_json else None,
-                }
-                for r in records
-            ],
-            "total": total_count,
-            "limit": limit,
-            "offset": offset,
-        }
+        return [
+            {
+                "id": r.data_id,
+                "data_type": r.data_type,
+                "status": r.status,
+                "stage_path": r.stage_path,
+                "published_path": r.published_path,
+                "created_at": r.created_at,
+                "published_at": r.published_at,
+                "publish_mode": r.publish_mode,
+                "qa_status": r.qa_status,
+                "validation_status": r.validation_status,
+                "finalization_status": r.finalization_status,
+                "auto_publish_enabled": r.auto_publish_enabled,
+                "metadata": json.loads(r.metadata_json) if r.metadata_json else None,
+            }
+            for r in records
+        ]
 
     @router.get("/data/{data_id:path}")
     async def get_data_instance(data_id: str) -> dict:
@@ -6221,13 +6060,13 @@ def create_app(config: ApiConfig | None = None) -> FastAPI:
         conn = ensure_data_registry_db(db_path)
 
         # Get all published data
-        published, _ = list_data(conn, status="published")
+        published = list_data(conn, status="published")
 
         # Get all staging data (may include failed publishes)
-        staging, _ = list_data(conn, status="staging")
+        staging = list_data(conn, status="staging")
 
         # Get publishing data (currently being published)
-        publishing, _ = list_data(conn, status="publishing")
+        publishing = list_data(conn, status="publishing")
 
         # Calculate metrics
         total_published = len(published)
@@ -6288,7 +6127,7 @@ def create_app(config: ApiConfig | None = None) -> FastAPI:
         conn = ensure_data_registry_db(db_path)
 
         # Get staging data
-        staging, _ = list_data(conn, status="staging")
+        staging = list_data(conn, status="staging")
 
         # Filter failed publishes
         failed = [r for r in staging if r.publish_attempts and r.publish_attempts > 0]
@@ -6408,7 +6247,7 @@ def create_app(config: ApiConfig | None = None) -> FastAPI:
         conn = ensure_data_registry_db(db_path)
 
         # Get failed publishes
-        staging, _ = list_data(conn, status="staging")
+        staging = list_data(conn, status="staging")
         failed = [r for r in staging if r.publish_attempts and r.publish_attempts > 0]
 
         if max_attempts is not None:

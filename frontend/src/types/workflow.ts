@@ -57,11 +57,7 @@ export const WORKFLOW_TEMPLATES: WorkflowTemplate[] = [
     description: "Investigate an Extreme Scattering Event candidate",
     steps: [
       { path: "/dashboard", label: "Dashboard", description: "View ESE alert" },
-      {
-        path: "/sources",
-        label: "Sources",
-        description: "View source details",
-      },
+      { path: "/sources", label: "Sources", description: "View source details" },
       { path: "/qa", label: "QA", description: "Check data quality" },
       { path: "/data", label: "Data Browser", description: "View images" },
     ],
@@ -73,11 +69,7 @@ export const WORKFLOW_TEMPLATES: WorkflowTemplate[] = [
     steps: [
       { path: "/dashboard", label: "Dashboard", description: "View errors" },
       { path: "/operations", label: "Operations", description: "Check DLQ" },
-      {
-        path: "/control",
-        label: "Control",
-        description: "Manual intervention",
-      },
+      { path: "/control", label: "Control", description: "Manual intervention" },
       { path: "/health", label: "Health", description: "View metrics" },
     ],
   },
@@ -105,11 +97,7 @@ export const NAVIGATION_RULES: NavigationRule[] = [
   {
     condition: (ctx) => ctx.currentPage === "/dashboard" && ctx.currentWorkflow === "discovery",
     suggestions: [
-      {
-        path: "/sources",
-        label: "View Sources",
-        description: "Investigate ESE candidates",
-      },
+      { path: "/sources", label: "View Sources", description: "Investigate ESE candidates" },
       { path: "/qa", label: "Check QA", description: "Validate data quality" },
     ],
     quickActions: [],
@@ -118,11 +106,7 @@ export const NAVIGATION_RULES: NavigationRule[] = [
     condition: (ctx) =>
       ctx.currentPage.startsWith("/sources/") && ctx.currentWorkflow === "investigation",
     suggestions: [
-      {
-        path: "/data",
-        label: "View Images",
-        description: "See images for this source",
-      },
+      { path: "/data", label: "View Images", description: "See images for this source" },
       { path: "/qa", label: "Check QA", description: "Validate calibration" },
     ],
     quickActions: [],
@@ -130,11 +114,7 @@ export const NAVIGATION_RULES: NavigationRule[] = [
   {
     condition: (ctx) => ctx.currentPage === "/dashboard" && ctx.currentWorkflow === "debugging",
     suggestions: [
-      {
-        path: "/operations",
-        label: "Check DLQ",
-        description: "View failed operations",
-      },
+      { path: "/operations", label: "Check DLQ", description: "View failed operations" },
       { path: "/health", label: "System Health", description: "View metrics" },
     ],
     quickActions: [],

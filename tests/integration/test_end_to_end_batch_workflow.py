@@ -135,12 +135,11 @@ class TestMosaicCreationWorkflow:
 class TestQAAndPublishingWorkflow:
     """Test QA and publishing workflow."""
 
-    def test_qa_registration_and_publishing(self, temp_dbs, tmp_path):
+    def test_qa_registration_and_publishing(self, temp_dbs):
         """Test QA registration and automatic publishing."""
         from dsa110_contimg.database.data_registry import (
             finalize_data,
             get_data,
-            register_data,
             trigger_auto_publish,
         )
 
@@ -148,15 +147,13 @@ class TestQAAndPublishingWorkflow:
 
         # Register mosaic data
         mosaic_id = "mosaic_test_001"
-        mosaic_dir = tmp_path / "mosaics"
-        mosaic_dir.mkdir(parents=True, exist_ok=True)
-        mosaic_path = str(mosaic_dir / "mosaic_test_001.fits")
+        mosaic_path = "/stage/mosaics/mosaic_test_001.fits"
 
         # Create mock mosaic file
+        Path(mosaic_path).parent.mkdir(parents=True, exist_ok=True)
         Path(mosaic_path).touch()
 
-        # Register data first
-        register_data(
+        finalize_data(
             data_registry_conn,
             data_type="mosaic",
             data_id=mosaic_id,
@@ -164,20 +161,12 @@ class TestQAAndPublishingWorkflow:
             auto_publish=True,
         )
 
-        # Then finalize it
-        finalize_data(
-            data_registry_conn,
-            data_id=mosaic_id,
-            qa_status="passed",
-            validation_status="validated",
-        )
-
         # Verify data registered
         record = get_data(data_registry_conn, mosaic_id)
         assert record is not None
         assert record.data_type == "mosaic"
         assert record.status == "staging"
-        assert record.auto_publish_enabled is True
+        assert record.auto_publish is True
 
         # Trigger auto-publish (would normally happen automatically)
         success = trigger_auto_publish(data_registry_conn, mosaic_id)

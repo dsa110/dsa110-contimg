@@ -12,17 +12,8 @@ export default function WorkflowBreadcrumbs() {
   const { breadcrumbs, currentWorkflow } = useWorkflow();
   const navigate = useNavigate();
 
-  // Don't show breadcrumbs on top-level pages (dashboard or consolidated pages at root)
-  const isTopLevel =
-    breadcrumbs.length <= 1 ||
-    (breadcrumbs.length === 2 &&
-      (breadcrumbs[1].path === "/pipeline-operations" ||
-        breadcrumbs[1].path === "/data-explorer" ||
-        breadcrumbs[1].path === "/pipeline-control" ||
-        breadcrumbs[1].path === "/system-diagnostics"));
-
-  if (isTopLevel) {
-    return null;
+  if (breadcrumbs.length <= 1) {
+    return null; // Don't show breadcrumbs if we're just on the dashboard
   }
 
   return (

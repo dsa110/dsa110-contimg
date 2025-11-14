@@ -33,7 +33,7 @@ export default function EventsPage() {
 
   return (
     <Box sx={{ width: "100%" }}>
-      <Typography variant="h1" component="h1" gutterBottom>
+      <Typography variant="h4" component="h1" gutterBottom>
         Event Bus Monitor
       </Typography>
 

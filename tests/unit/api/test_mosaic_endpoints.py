@@ -40,7 +40,7 @@ class TestMosaicCreateEndpoint:
     @patch("dsa110_contimg.api.routers.mosaics.run_mosaic_create_job")
     @patch("dsa110_contimg.api.routers.mosaics.create_job")
     @patch("dsa110_contimg.api.routers.mosaics.get_job")
-    @patch("dsa110_contimg.database.products.ensure_products_db")
+    @patch("dsa110_contimg.api.routers.mosaics.ensure_products_db")
     def test_create_mosaic_calibrator_centered(
         self, mock_ensure_db, mock_get_job, mock_create_job, mock_run_job, client, mock_products_db
     ):
@@ -76,7 +76,7 @@ class TestMosaicCreateEndpoint:
     @patch("dsa110_contimg.api.routers.mosaics.run_mosaic_create_job")
     @patch("dsa110_contimg.api.routers.mosaics.create_job")
     @patch("dsa110_contimg.api.routers.mosaics.get_job")
-    @patch("dsa110_contimg.database.products.ensure_products_db")
+    @patch("dsa110_contimg.api.routers.mosaics.ensure_products_db")
     def test_create_mosaic_time_window(
         self, mock_ensure_db, mock_get_job, mock_create_job, mock_run_job, client, mock_products_db
     ):

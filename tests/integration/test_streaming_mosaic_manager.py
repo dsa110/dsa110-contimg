@@ -31,7 +31,7 @@ def temp_products_db(tmp_path):
     db_path = tmp_path / "test_products.sqlite3"
     conn = ensure_products_db(db_path)
 
-    # Ensure mosaic_groups table exists (match the schema from StreamingMosaicManager)
+    # Ensure mosaic_groups table exists
     cur = conn.cursor()
     cur.execute(
         """
@@ -42,11 +42,7 @@ def temp_products_db(tmp_path):
             calibration_ms_path TEXT,
             bpcal_solved INTEGER DEFAULT 0,
             gaincal_solved INTEGER DEFAULT 0,
-            created_at REAL NOT NULL,
-            calibrated_at REAL,
-            imaged_at REAL,
-            mosaicked_at REAL,
-            status TEXT DEFAULT 'pending',
+            status TEXT DEFAULT 'registered',
             stage TEXT DEFAULT 'registered',
             cal_applied INTEGER DEFAULT 0
         )
@@ -99,10 +95,9 @@ def mock_ms_files(tmp_path, temp_dirs):
     """Create mock MS file directories for testing."""
     ms_files = []
     base_time = Time("2024-01-15T12:00:00", format="isot", scale="utc")
-    from astropy.time import TimeDelta
 
     for i in range(3):  # Create 3 MS files
-        ms_time = base_time + TimeDelta(i * 0.00347, format="jd")  # ~5 minutes apart
+        ms_time = base_time + i * 0.00347  # ~5 minutes apart
         ms_name = f"test_{ms_time.mjd:.6f}.ms"
         ms_path = temp_dirs["ms_dir"] / ms_name
         ms_path.mkdir()
@@ -119,15 +114,13 @@ def registered_group(mosaic_manager, mock_ms_files):
     group_id = "test_group_001"
     ms_paths_str = ",".join(mock_ms_files)
 
-    import time
-
     cursor = mosaic_manager.products_db.cursor()
     cursor.execute(
         """
-        INSERT INTO mosaic_groups (group_id, ms_paths, status, stage, created_at)
-        VALUES (?, ?, ?, ?, ?)
+        INSERT INTO mosaic_groups (group_id, ms_paths, status, stage)
+        VALUES (?, ?, ?, ?)
         """,
-        (group_id, ms_paths_str, "registered", "registered", time.time()),
+        (group_id, ms_paths_str, "registered", "registered"),
     )
     mosaic_manager.products_db.commit()
 
@@ -180,8 +173,7 @@ def test_solve_calibration_for_group_success(
             "0",  # field_sel_str
             [0],  # field_indices
             np.array([1.0]),  # weighted_flux_per_field
-            # calibrator_info: (name, ra_deg, dec_deg, flux_jy)
-            ("0834+555", 129.0, -30.0, 1.0),
+            ("0834+555", 129.0, -30.0, 1.0),  # calibrator_info: (name, ra_deg, dec_deg, flux_jy)
             0,  # peak_field_idx
         )
 
@@ -286,8 +278,7 @@ def test_solve_calibration_for_group_bp_only(mosaic_manager, registered_group, t
             "0",  # field_sel_str
             [0],  # field_indices
             np.array([1.0]),  # weighted_flux_per_field
-            # calibrator_info: (name, ra_deg, dec_deg, flux_jy)
-            ("0834+555", 129.0, -30.0, 1.0),
+            ("0834+555", 129.0, -30.0, 1.0),  # calibrator_info: (name, ra_deg, dec_deg, flux_jy)
             0,  # peak_field_idx
         )
         mock_bp.return_value = (True, "/test/bp.table")
@@ -491,14 +482,10 @@ def test_create_mosaic_success(mosaic_manager, registered_group, mock_ms_files, 
     with (
         patch("dsa110_contimg.mosaic.cli._build_weighted_mosaic") as mock_create,
         patch("dsa110_contimg.mosaic.streaming_mosaic.validate_tiles_consistency") as mock_validate,
-        patch("dsa110_contimg.utils.naming.construct_mosaic_id") as mock_mosaic_id,
     ):
 
         # Mock validation to return success
         mock_validate.return_value = (True, [], {})
-
-        # Mock mosaic_id to return predictable value
-        mock_mosaic_id.return_value = "test_mosaic"
 
         mosaic_path = str(temp_dirs["mosaics_dir"] / "test_mosaic.image")
         mock_create.return_value = None  # Function doesn't return value
@@ -557,25 +544,6 @@ def test_full_workflow_integration(
     bp_table.mkdir()
     gp_table.mkdir()
     g2_table.mkdir()
-    # Create table.dat files so tables are recognized as valid
-    (bp_table / "table.dat").touch()
-    (gp_table / "table.dat").touch()
-    (g2_table / "table.dat").touch()
-
-    # Register a bandpass calibrator for the test
-    mosaic_manager.register_bandpass_calibrator(
-        calibrator_name="0834+555",
-        ra_deg=129.0,
-        dec_deg=-30.0,
-        dec_tolerance=5.0,
-    )
-
-    # Mock casacore.tables to handle MS opening
-    mock_table = MagicMock()
-    mock_table.getkeyword.return_value = [{"REFERENCE_DIR": [[0.0, -0.523599]]}]  # ~-30 deg Dec
-    mock_table.close.return_value = None
-    mock_casatables_module = MagicMock()
-    mock_casatables_module.table = MagicMock(return_value=mock_table)
 
     with (
         patch("dsa110_contimg.mosaic.streaming_mosaic.solve_bandpass") as mock_bp,
@@ -586,21 +554,10 @@ def test_full_workflow_integration(
         patch("dsa110_contimg.mosaic.streaming_mosaic.image_ms") as mock_image,
         patch("dsa110_contimg.mosaic.cli._build_weighted_mosaic") as mock_create,
         patch("dsa110_contimg.mosaic.streaming_mosaic.validate_tiles_consistency") as mock_validate,
-        patch("casacore.tables", mock_casatables_module),
-        patch("dsa110_contimg.mosaic.streaming_mosaic.select_bandpass_from_catalog") as mock_select,
     ):
 
         # Mock calibration solving
         mock_extract.return_value = (None, None, 60000.0)
-        import numpy as np
-
-        mock_select.return_value = (
-            "0",  # field_sel_str
-            [0],  # field_indices
-            np.array([1.0]),  # weighted_flux_per_field
-            ("0834+555", 129.0, -30.0, 1.0),  # calibrator_info
-            0,  # peak_field_idx
-        )
         mock_bp.return_value = (True, str(bp_table))
         mock_gains.return_value = (True, [str(gp_table), str(g2_table)])
 
@@ -616,39 +573,14 @@ def test_full_workflow_integration(
         assert bpcal_solved and gaincal_solved
 
         # Step 2: Apply calibration
-        # Ensure MS files exist on filesystem (they're created by mock_ms_files fixture)
-        # Verify files exist before applying calibration
-        for ms_path in mock_ms_files:
-            ms_path_obj = Path(ms_path)
-            if not ms_path_obj.exists():
-                # Recreate if missing (shouldn't happen, but be defensive)
-                ms_path_obj.mkdir(parents=True, exist_ok=True)
-                (ms_path_obj / "table.dat").touch()
+        mock_get_applylist.return_value = [str(bp_table), str(gp_table), str(g2_table)]
+        mock_apply.return_value = True
+        mock_extract.side_effect = [
+            (None, None, 60000.0 + i * 0.00347) for i in range(len(mock_ms_files))
+        ]
 
-        # The mock_extract needs to handle multiple calls - use a callable that can handle any number
-        def extract_side_effect(ms_path):
-            # Return time based on MS index in mock_ms_files
-            try:
-                idx = mock_ms_files.index(ms_path) if ms_path in mock_ms_files else 0
-            except (ValueError, AttributeError):
-                idx = 0
-            return (None, None, 60000.0 + idx * 0.00347)
-
-        # Mock organize_ms_file to return the original path (don't actually move files in test)
-        with patch("dsa110_contimg.mosaic.streaming_mosaic.organize_ms_file") as mock_organize:
-
-            def organize_side_effect(ms_path, is_calibrator=False, date_str=None):
-                # Return original path without organizing
-                return str(ms_path)
-
-            mock_organize.side_effect = organize_side_effect
-
-            mock_get_applylist.return_value = [str(bp_table), str(gp_table), str(g2_table)]
-            mock_apply.return_value = True
-            mock_extract.side_effect = extract_side_effect
-
-            apply_result = mosaic_manager.apply_calibration_to_group(registered_group)
-            assert apply_result is True
+        apply_result = mosaic_manager.apply_calibration_to_group(registered_group)
+        assert apply_result is True
 
         # Step 3: Image group
         def create_mock_images(*args, **kwargs):
@@ -665,19 +597,15 @@ def test_full_workflow_integration(
         # Step 4: Create mosaic
         mock_validate.return_value = (True, [], {})
 
-        # Mock construct_mosaic_id to return predictable value
-        with patch("dsa110_contimg.utils.naming.construct_mosaic_id") as mock_mosaic_id:
-            mock_mosaic_id.return_value = "test_mosaic"
+        mosaic_path = str(temp_dirs["mosaics_dir"] / "test_mosaic.image")
+        mock_create.return_value = None
 
-            mosaic_path = str(temp_dirs["mosaics_dir"] / "test_mosaic.image")
-            mock_create.return_value = None
+        # Create the mosaic file (FITS format preferred)
+        fits_path = mosaic_path.replace(".image", ".fits")
+        Path(fits_path).touch()
 
-            # Create the mosaic file (FITS format preferred)
-            fits_path = mosaic_path.replace(".image", ".fits")
-            Path(fits_path).touch()
-
-            mosaic_result = mosaic_manager.create_mosaic(registered_group)
-            assert mosaic_result == fits_path
+        mosaic_result = mosaic_manager.create_mosaic(registered_group)
+        assert mosaic_result == fits_path
 
         # Verify final database state
         cursor = mosaic_manager.products_db.cursor()

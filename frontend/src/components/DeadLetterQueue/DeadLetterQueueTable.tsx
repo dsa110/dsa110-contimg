@@ -25,10 +25,6 @@ import {
   Alert,
   Stack,
 } from "@mui/material";
-import { alpha } from "@mui/material/styles";
-import { ErrorOutline } from "@mui/icons-material";
-import { SkeletonLoader } from "../SkeletonLoader";
-import { EmptyState } from "../EmptyState";
 import {
   Refresh as RefreshIcon,
   PlayArrow as RetryIcon,
@@ -82,20 +78,11 @@ export function DeadLetterQueueTable({
 
     try {
       if (dialogAction === "retry") {
-        await retryMutation.mutateAsync({
-          itemId: selectedItem.id,
-          note: note || undefined,
-        });
+        await retryMutation.mutateAsync({ itemId: selectedItem.id, note: note || undefined });
       } else if (dialogAction === "resolve") {
-        await resolveMutation.mutateAsync({
-          itemId: selectedItem.id,
-          note: note || undefined,
-        });
+        await resolveMutation.mutateAsync({ itemId: selectedItem.id, note: note || undefined });
       } else if (dialogAction === "fail") {
-        await failMutation.mutateAsync({
-          itemId: selectedItem.id,
-          note: note || undefined,
-        });
+        await failMutation.mutateAsync({ itemId: selectedItem.id, note: note || undefined });
       }
       setDialogOpen(false);
       setSelectedItem(null);
@@ -123,45 +110,12 @@ export function DeadLetterQueueTable({
   };
 
   if (isLoading) {
-    return <SkeletonLoader variant="table" rows={5} columns={9} />;
-  }
-
-  if (items.length === 0) {
-    return (
-      <EmptyState
-        icon={<ErrorOutline sx={{ fontSize: 64, color: "text.secondary" }} />}
-        title="No DLQ items found"
-        description="No items match your current filters. All operations are processing successfully or have been resolved."
-      />
-    );
+    return <Typography>Loading...</Typography>;
   }
 
   return (
     <>
-      <TableContainer
-        component={Paper}
-        sx={{
-          "& .MuiTable-root": {
-            "& .MuiTableHead-root .MuiTableRow-root": {
-              backgroundColor: "background.paper",
-              "& .MuiTableCell-head": {
-                fontWeight: 600,
-                backgroundColor: "action.hover",
-              },
-            },
-            "& .MuiTableBody-root .MuiTableRow-root": {
-              "&:nth-of-type(even)": {
-                backgroundColor: alpha("#fff", 0.02),
-              },
-              "&:hover": {
-                backgroundColor: "action.hover",
-                cursor: "default",
-              },
-              transition: "background-color 0.2s ease",
-            },
-          },
-        }}
-      >
+      <TableContainer component={Paper}>
         <Table>
           <TableHead>
             <TableRow>
@@ -177,80 +131,75 @@ export function DeadLetterQueueTable({
             </TableRow>
           </TableHead>
           <TableBody>
-            {items.map((item) => (
-              <TableRow key={item.id}>
-                <TableCell>{item.id}</TableCell>
-                <TableCell>{item.component}</TableCell>
-                <TableCell>{item.operation}</TableCell>
-                <TableCell>
-                  <Chip
-                    label={item.error_type}
-                    size="small"
-                    variant="outlined"
-                    color={
-                      ["RuntimeError", "ValueError", "KeyError"].includes(item.error_type)
-                        ? "error"
-                        : item.error_type.includes("Warning")
-                          ? "warning"
-                          : "default"
-                    }
-                  />
-                </TableCell>
-                <TableCell>
-                  <Tooltip title={item.error_message}>
-                    <Typography
-                      variant="body2"
-                      sx={{
-                        maxWidth: 300,
-                        overflow: "hidden",
-                        textOverflow: "ellipsis",
-                      }}
-                    >
-                      {item.error_message}
-                    </Typography>
-                  </Tooltip>
-                </TableCell>
-                <TableCell>{item.retry_count}</TableCell>
-                <TableCell>
-                  {format(new Date(item.created_at * 1000), "yyyy-MM-dd HH:mm:ss")}
-                </TableCell>
-                <TableCell>
-                  <Chip
-                    label={item.status}
-                    color={getStatusColor(item.status) as any}
-                    size="small"
-                  />
-                </TableCell>
-                <TableCell>
-                  <Stack direction="row" spacing={1}>
-                    <Tooltip title="View Details">
-                      <IconButton size="small" onClick={() => handleView(item)}>
-                        <InfoIcon fontSize="small" />
-                      </IconButton>
-                    </Tooltip>
-                    {item.status === "pending" && (
-                      <>
-                        <Tooltip title="Retry">
-                          <IconButton size="small" onClick={() => handleAction(item, "retry")}>
-                            <RetryIcon fontSize="small" />
-                          </IconButton>
-                        </Tooltip>
-                        <Tooltip title="Resolve">
-                          <IconButton size="small" onClick={() => handleAction(item, "resolve")}>
-                            <ResolveIcon fontSize="small" />
-                          </IconButton>
-                        </Tooltip>
-                        <Tooltip title="Mark as Failed">
-                          <IconButton size="small" onClick={() => handleAction(item, "fail")}>
-                            <FailIcon fontSize="small" />
-                          </IconButton>
-                        </Tooltip>
-                      </>
-                    )}
-                  </Stack>
+            {items.length === 0 ? (
+              <TableRow>
+                <TableCell colSpan={9} align="center">
+                  <Typography variant="body2" color="text.secondary">
+                    No items found
+                  </Typography>
                 </TableCell>
               </TableRow>
-            ))}
+            ) : (
+              items.map((item) => (
+                <TableRow key={item.id}>
+                  <TableCell>{item.id}</TableCell>
+                  <TableCell>{item.component}</TableCell>
+                  <TableCell>{item.operation}</TableCell>
+                  <TableCell>
+                    <Chip label={item.error_type} size="small" variant="outlined" />
+                  </TableCell>
+                  <TableCell>
+                    <Tooltip title={item.error_message}>
+                      <Typography
+                        variant="body2"
+                        sx={{ maxWidth: 300, overflow: "hidden", textOverflow: "ellipsis" }}
+                      >
+                        {item.error_message}
+                      </Typography>
+                    </Tooltip>
+                  </TableCell>
+                  <TableCell>{item.retry_count}</TableCell>
+                  <TableCell>
+                    {format(new Date(item.created_at * 1000), "yyyy-MM-dd HH:mm:ss")}
+                  </TableCell>
+                  <TableCell>
+                    <Chip
+                      label={item.status}
+                      color={getStatusColor(item.status) as any}
+                      size="small"
+                    />
+                  </TableCell>
+                  <TableCell>
+                    <Stack direction="row" spacing={1}>
+                      <Tooltip title="View Details">
+                        <IconButton size="small" onClick={() => handleView(item)}>
+                          <InfoIcon fontSize="small" />
+                        </IconButton>
+                      </Tooltip>
+                      {item.status === "pending" && (
+                        <>
+                          <Tooltip title="Retry">
+                            <IconButton size="small" onClick={() => handleAction(item, "retry")}>
+                              <RetryIcon fontSize="small" />
+                            </IconButton>
+                          </Tooltip>
+                          <Tooltip title="Resolve">
+                            <IconButton size="small" onClick={() => handleAction(item, "resolve")}>
+                              <ResolveIcon fontSize="small" />
+                            </IconButton>
+                          </Tooltip>
+                          <Tooltip title="Mark as Failed">
+                            <IconButton size="small" onClick={() => handleAction(item, "fail")}>
+                              <FailIcon fontSize="small" />
+                            </IconButton>
+                          </Tooltip>
+                        </>
+                      )}
+                    </Stack>
+                  </TableCell>
+                </TableRow>
+              ))
+            )}
           </TableBody>
         </Table>
       </TableContainer>

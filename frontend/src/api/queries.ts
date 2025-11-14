@@ -400,39 +400,15 @@ export function useCreateImageJob() {
   });
 }
 
-export interface UVH5FileListResponse {
-  items: Array<{
-    path: string;
-    timestamp: string | null;
-    subband: string | null;
-    size_mb: number | null;
-  }>;
-  total: number;
-  limit: number;
-  offset: number;
-}
-
-export function useUVH5Files(
-  inputDir?: string,
-  limit: number = 100,
-  offset: number = 0,
-  search?: string,
-  subband?: string
-): UseQueryResult<UVH5FileListResponse> {
+export function useUVH5Files(inputDir?: string): UseQueryResult<UVH5FileList> {
   return useQuery({
-    queryKey: ["uvh5", "list", inputDir, limit, offset, search, subband],
+    queryKey: ["uvh5", "list", inputDir],
     queryFn: async () => {
-      const params = new URLSearchParams();
-      if (inputDir) params.append("input_dir", inputDir);
-      params.append("limit", limit.toString());
-      params.append("offset", offset.toString());
-      if (search) params.append("search", search);
-      if (subband) params.append("subband", subband);
-      const response = await apiClient.get<UVH5FileListResponse>(`/uvh5?${params.toString()}`);
+      const params = inputDir ? `?input_dir=${encodeURIComponent(inputDir)}` : "";
+      const response = await apiClient.get<UVH5FileList>(`/uvh5${params}`);
       return response.data;
     },
-    staleTime: 30000, // Cache for 30 seconds
-    cacheTime: 300000, // Keep in cache for 5 minutes
+    refetchInterval: 30000, // Refresh every 30s
   });
 }
 
@@ -1025,32 +1001,19 @@ export function useUpdateStreamingConfig() {
 }
 
 // Data Registry Queries
-export interface DataInstanceListResponse {
-  items: DataInstance[];
-  total: number;
-  limit: number;
-  offset: number;
-}
-
 export function useDataInstances(
   dataType?: string,
-  status?: "staging" | "published",
-  limit: number = 50,
-  offset: number = 0
-): UseQueryResult<DataInstanceListResponse> {
+  status?: "staging" | "published"
+): UseQueryResult<DataInstance[]> {
   return useQuery({
-    queryKey: ["data", "instances", dataType, status, limit, offset],
+    queryKey: ["data", "instances", dataType, status],
     queryFn: async () => {
       const params = new URLSearchParams();
       if (dataType) params.append("data_type", dataType);
       if (status) params.append("status", status);
-      params.append("limit", limit.toString());
-      params.append("offset", offset.toString());
-      const response = await apiClient.get<DataInstanceListResponse>(`/data?${params.toString()}`);
+      const response = await apiClient.get<DataInstance[]>(`/data?${params.toString()}`);
       return response.data;
     },
-    staleTime: 30000, // Cache for 30 seconds - helps with first response caching
-    cacheTime: 300000, // Keep in cache for 5 minutes
   });
 }
 
@@ -1601,9 +1564,7 @@ export function useGenerateNotebook() {
       return response.data;
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({
-        queryKey: ["visualization", "notebook"],
-      });
+      queryClient.invalidateQueries({ queryKey: ["visualization", "notebook"] });
     },
   });
 }

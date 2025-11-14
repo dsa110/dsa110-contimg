@@ -59,40 +59,6 @@ const PAGE_COMMANDS: Command[] = [
     category: "page",
     keywords: ["dashboard", "home", "main"],
   },
-  // Consolidated pages
-  {
-    id: "pipeline-operations",
-    label: "Pipeline Operations",
-    icon: AccountTree,
-    path: "/pipeline-operations",
-    category: "page",
-    keywords: ["pipeline", "operations", "dlq", "events", "monitoring", "executions"],
-  },
-  {
-    id: "data-explorer",
-    label: "Data Explorer",
-    icon: Storage,
-    path: "/data-explorer",
-    category: "page",
-    keywords: ["data", "explorer", "browser", "mosaics", "sources", "sky", "images"],
-  },
-  {
-    id: "pipeline-control",
-    label: "Pipeline Control",
-    icon: Settings,
-    path: "/pipeline-control",
-    category: "page",
-    keywords: ["control", "pipeline", "streaming", "observing", "ms", "workflows"],
-  },
-  {
-    id: "system-diagnostics",
-    label: "System Diagnostics",
-    icon: Assessment,
-    path: "/system-diagnostics",
-    category: "page",
-    keywords: ["diagnostics", "health", "qa", "cache", "system", "monitoring"],
-  },
-  // Legacy routes (for backward compatibility)
   {
     id: "sources",
     label: "Sources",
@@ -405,13 +371,7 @@ export default function CommandPalette({ open, onClose }: CommandPaletteProps) {
           </List>
         )}
         <Box
-          sx={{
-            px: 2,
-            py: 1,
-            borderTop: 1,
-            borderColor: "divider",
-            bgcolor: "background.default",
-          }}
+          sx={{ px: 2, py: 1, borderTop: 1, borderColor: "divider", bgcolor: "background.default" }}
         >
           <Typography variant="caption" color="text.secondary">
             Use ↑↓ to navigate, Enter to select, Esc to close

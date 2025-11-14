@@ -2,7 +2,7 @@
  * Unified Workspace Component
  * Allows multiple views in a single pane (multi-pane layout)
  */
-import React, { useState, useEffect } from "react";
+import React, { useState } from "react";
 import {
   Box,
   Paper,
@@ -48,20 +48,11 @@ export default function UnifiedWorkspace({
     );
   }
 
-  // Handle fullscreen view cleanup if view no longer exists
-  useEffect(() => {
-    if (fullscreenView) {
-      const view = views.find((v) => v.id === fullscreenView);
-      if (!view) {
-        setFullscreenView(null);
-      }
-    }
-  }, [fullscreenView, views]);
-
   // If one view is fullscreen, show only that
   if (fullscreenView) {
     const view = views.find((v) => v.id === fullscreenView);
     if (!view) {
+      setFullscreenView(null);
       return null;
     }
 
@@ -131,14 +122,7 @@ export default function UnifiedWorkspace({
 
     if (layout === "split-vertical" && views.length >= 2) {
       return (
-        <Box
-          sx={{
-            display: "flex",
-            flexDirection: "column",
-            height: "100%",
-            gap: 1,
-          }}
-        >
+        <Box sx={{ display: "flex", flexDirection: "column", height: "100%", gap: 1 }}>
           {views.slice(0, 2).map((view) => (
             <Box
               key={view.id}

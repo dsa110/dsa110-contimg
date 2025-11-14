@@ -1,8 +1,5 @@
 # Pre-commit hooks configuration
 # See https://pre-commit.com for more information
-#
-# CRITICAL: All Python hooks MUST use casa6 Python environment
-# Path: /opt/miniforge/envs/casa6/bin/python
 
 repos:
   # Output handling validation
@@ -15,46 +12,4 @@ repos:
         types: [shell]
         pass_filenames: false
         always_run: false
-        stages: [pre-commit]
-
-  # Python code formatting and linting (using casa6 Python)
-  - repo: local
-    hooks:
-      - id: black
-        name: black (casa6) - Code formatting
-        entry: /opt/miniforge/envs/casa6/bin/black
-        language: system
-        types: [python]
-        # No args = auto-format (files are modified in place)
-        exclude: ^(archive/|notebooks/|\.venv/|venv/|env/)
-
-      - id: isort
-        name: isort (casa6) - Import sorting
-        entry: /opt/miniforge/envs/casa6/bin/isort
-        language: system
-        types: [python]
-        # No args = auto-format (files are modified in place)
-        exclude: ^(archive/|notebooks/|\.venv/|venv/|env/)
-
-      - id: pylint
-        name: pylint (casa6) - Code quality
-        entry: /opt/miniforge/envs/casa6/bin/pylint
-        language: system
-        types: [python]
-        args:
-          [
-            --errors-only,
-            --max-line-length=88,
-            --ignore-patterns=^(archive/|notebooks/|\.venv/|venv/|env/),
-          ]
-        exclude: ^(archive/|notebooks/|\.venv/|venv/|env/|tests/.*test_.*\.py)
-        # Note: Pylint on tests can be noisy; consider enabling separately if desired
-
-  # Port configuration validation
-  - id: validate-port-config
-    name: Validate Port Configuration
-    entry: scripts/validate-port-config.py
-    language: system
-    pass_filenames: false
-    always_run: true
-    stages: [pre-commit]
+        stages: [commit]

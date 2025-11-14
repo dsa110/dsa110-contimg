@@ -73,11 +73,7 @@ export default function ExecutionDetails({ execution }: ExecutionDetailsProps) {
                   {exec.stages.map((stage) => (
                     <Box
                       key={stage.name}
-                      sx={{
-                        p: 1,
-                        bgcolor: "background.default",
-                        borderRadius: 1,
-                      }}
+                      sx={{ p: 1, bgcolor: "background.default", borderRadius: 1 }}
                     >
                       <Typography variant="body2">
                         <strong>{stage.name.replace(/_/g, " ")}</strong>

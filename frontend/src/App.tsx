@@ -29,11 +29,6 @@ import { OperationsPage } from "./pages/OperationsPage";
 import PipelinePage from "./pages/PipelinePage";
 import EventsPage from "./pages/EventsPage";
 import CachePage from "./pages/CachePage";
-// Consolidated pages
-import PipelineOperationsPage from "./pages/PipelineOperationsPage";
-import DataExplorerPage from "./pages/DataExplorerPage";
-import PipelineControlPage from "./pages/PipelineControlPage";
-import SystemDiagnosticsPage from "./pages/SystemDiagnosticsPage";
 import { isRetryableError } from "./utils/errorUtils";
 
 // Create React Query client factory function
@@ -108,13 +103,7 @@ function AppContent() {
             <JS9Provider>
               <BrowserRouter basename={basename}>
                 <WorkflowProvider>
-                  <Box
-                    sx={{
-                      display: "flex",
-                      flexDirection: "column",
-                      minHeight: "100vh",
-                    }}
-                  >
+                  <Box sx={{ display: "flex", flexDirection: "column", minHeight: "100vh" }}>
                     <Navigation />
                     <WorkflowBreadcrumbs />
                     <Box
@@ -140,17 +129,6 @@ function AppContent() {
                           <Routes>
                             <Route path="/" element={<Navigate to="/dashboard" replace />} />
                             <Route path="/dashboard" element={<DashboardPage />} />
-
-                            {/* Consolidated pages - primary routes */}
-                            <Route
-                              path="/pipeline-operations"
-                              element={<PipelineOperationsPage />}
-                            />
-                            <Route path="/data-explorer" element={<DataExplorerPage />} />
-                            <Route path="/pipeline-control" element={<PipelineControlPage />} />
-                            <Route path="/system-diagnostics" element={<SystemDiagnosticsPage />} />
-
-                            {/* Legacy routes - kept for backward compatibility */}
                             <Route path="/control" element={<ControlPage />} />
                             <Route path="/mosaics" element={<MosaicGalleryPage />} />
                             <Route path="/mosaics/:mosaicId" element={<MosaicViewPage />} />

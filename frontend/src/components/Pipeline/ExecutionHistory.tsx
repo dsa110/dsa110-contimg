@@ -3,6 +3,7 @@ import {
   Box,
   Card,
   CardContent,
+  CircularProgress,
   Table,
   TableBody,
   TableCell,
@@ -14,14 +15,9 @@ import {
   TablePagination,
   TextField,
   MenuItem,
-  Paper,
 } from "@mui/material";
-import { History } from "@mui/icons-material";
-import { alpha } from "@mui/material/styles";
 import { formatDistanceToNow } from "date-fns";
 import { usePipelineExecutions } from "../../api/queries";
-import { SkeletonLoader } from "../SkeletonLoader";
-import { EmptyState } from "../EmptyState";
 
 export default function ExecutionHistory() {
   const [page, setPage] = useState(0);
@@ -50,7 +46,11 @@ export default function ExecutionHistory() {
   };
 
   if (isLoading) {
-    return <SkeletonLoader variant="table" rows={5} columns={6} />;
+    return (
+      <Box sx={{ display: "flex", justifyContent: "center", py: 8 }}>
+        <CircularProgress />
+      </Box>
+    );
   }
 
   if (error) {
@@ -63,11 +63,9 @@ export default function ExecutionHistory() {
 
   if (!executions || executions.length === 0) {
     return (
-      <EmptyState
-        icon={<History sx={{ fontSize: 64, color: "text.secondary" }} />}
-        title="No execution history"
-        description="Execution history will appear here once pipeline workflows have been run. Start a new workflow from the Control page to generate execution records."
-      />
+      <Box sx={{ p: 2 }}>
+        <Typography>No execution history found</Typography>
+      </Box>
     );
   }
 
@@ -105,30 +103,7 @@ export default function ExecutionHistory() {
           />
         </Box>
 
-        <TableContainer
-          component={Paper}
-          sx={{
-            "& .MuiTable-root": {
-              "& .MuiTableHead-root .MuiTableRow-root": {
-                backgroundColor: "background.paper",
-                "& .MuiTableCell-head": {
-                  fontWeight: 600,
-                  backgroundColor: "action.hover",
-                },
-              },
-              "& .MuiTableBody-root .MuiTableRow-root": {
-                "&:nth-of-type(even)": {
-                  backgroundColor: alpha("#fff", 0.02),
-                },
-                "&:hover": {
-                  backgroundColor: "action.hover",
-                  cursor: "default",
-                },
-                transition: "background-color 0.2s ease",
-              },
-            },
-          }}
-        >
+        <TableContainer>
           <Table>
             <TableHead>
               <TableRow>
@@ -166,8 +141,7 @@ export default function ExecutionHistory() {
                       : "N/A"}
                   </TableCell>
                   <TableCell>
-                    {execution.stages?.length || 0} stage
-                    {execution.stages?.length !== 1 ? "s" : ""}
+                    {execution.stages?.length || 0} stage{execution.stages?.length !== 1 ? "s" : ""}
                   </TableCell>
                   <TableCell>
                     {execution.started_at

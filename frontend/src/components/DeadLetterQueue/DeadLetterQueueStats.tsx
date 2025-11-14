@@ -9,46 +9,25 @@ import {
   Cancel as CancelIcon,
 } from "@mui/icons-material";
 import { useDLQStats } from "../../api/queries";
-import { SkeletonLoader } from "../SkeletonLoader";
 
 export function DeadLetterQueueStats() {
   const { data: stats, isLoading } = useDLQStats();
 
   if (isLoading || !stats) {
-    return <SkeletonLoader variant="cards" rows={2} />;
+    return <Typography>Loading...</Typography>;
   }
 
   const statItems = [
-    {
-      label: "Total",
-      value: stats.total,
-      icon: <ErrorIcon />,
-      color: "default" as const,
-    },
-    {
-      label: "Pending",
-      value: stats.pending,
-      icon: <ScheduleIcon />,
-      color: "warning" as const,
-    },
-    {
-      label: "Retrying",
-      value: stats.retrying,
-      icon: <ScheduleIcon />,
-      color: "info" as const,
-    },
+    { label: "Total", value: stats.total, icon: <ErrorIcon />, color: "default" as const },
+    { label: "Pending", value: stats.pending, icon: <ScheduleIcon />, color: "warning" as const },
+    { label: "Retrying", value: stats.retrying, icon: <ScheduleIcon />, color: "info" as const },
     {
       label: "Resolved",
       value: stats.resolved,
       icon: <CheckCircleIcon />,
       color: "success" as const,
     },
-    {
-      label: "Failed",
-      value: stats.failed,
-      icon: <CancelIcon />,
-      color: "error" as const,
-    },
+    { label: "Failed", value: stats.failed, icon: <CancelIcon />, color: "error" as const },
   ];
 
   return (

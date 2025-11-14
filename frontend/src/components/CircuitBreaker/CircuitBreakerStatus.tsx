@@ -11,6 +11,12 @@ import {
   Chip,
   IconButton,
   Tooltip,
+  Dialog,
+  DialogTitle,
+  DialogContent,
+  DialogActions,
+  Button,
+  Alert,
   Grid,
 } from "@mui/material";
 import {
@@ -21,8 +27,6 @@ import {
   HourglassEmpty as HalfOpenIcon,
 } from "@mui/icons-material";
 import { useCircuitBreakers, useResetCircuitBreaker } from "../../api/queries";
-import { SkeletonLoader } from "../SkeletonLoader";
-import ConfirmationDialog from "../ConfirmationDialog";
 
 export function CircuitBreakerStatus() {
   const { data, isLoading, refetch } = useCircuitBreakers();
@@ -82,7 +86,7 @@ export function CircuitBreakerStatus() {
   };
 
   if (isLoading || !data) {
-    return <SkeletonLoader variant="cards" rows={3} />;
+    return <Typography>Loading...</Typography>;
   }
 
   return (
@@ -98,7 +102,7 @@ export function CircuitBreakerStatus() {
 
       <Grid container spacing={2}>
         {data.circuit_breakers.map((breaker) => (
-          <Grid xs={12} md={6} lg={4} key={breaker.name}>
+          <Grid item xs={12} md={6} lg={4} key={breaker.name}>
             <Card>
               <CardContent>
                 <Stack spacing={2}>
@@ -164,16 +168,27 @@ export function CircuitBreakerStatus() {
         ))}
       </Grid>
 
-      <ConfirmationDialog
-        open={resetDialogOpen}
-        title="Reset Circuit Breaker"
-        message={`Are you sure you want to reset the circuit breaker for ${selectedBreaker}? This will close the circuit and allow requests to flow through again.`}
-        confirmText="Reset"
-        severity="warning"
-        onConfirm={handleReset}
-        onCancel={() => setResetDialogOpen(false)}
-        loading={resetMutation.isPending}
-      />
+      <Dialog open={resetDialogOpen} onClose={() => setResetDialogOpen(false)}>
+        <DialogTitle>Reset Circuit Breaker</DialogTitle>
+        <DialogContent>
+          <Alert severity="warning" sx={{ mb: 2 }}>
+            Are you sure you want to reset the circuit breaker for{" "}
+            <strong>{selectedBreaker}</strong>? This will close the circuit and allow requests to
+            flow through again.
+          </Alert>
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={() => setResetDialogOpen(false)}>Cancel</Button>
+          <Button
+            onClick={handleReset}
+            variant="contained"
+            color="error"
+            disabled={resetMutation.isPending}
+          >
+            Reset
+          </Button>
+        </DialogActions>
+      </Dialog>
     </>
   );
 }

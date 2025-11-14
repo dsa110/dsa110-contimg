@@ -1,9 +1,15 @@
 import React from "react";
-import { Box, Card, CardContent, Typography, Grid, Alert, LinearProgress } from "@mui/material";
-import { Speed } from "@mui/icons-material";
+import {
+  Box,
+  Card,
+  CardContent,
+  Typography,
+  Grid,
+  CircularProgress,
+  Alert,
+  LinearProgress,
+} from "@mui/material";
 import { useCachePerformance } from "../../api/queries";
-import { SkeletonLoader } from "../SkeletonLoader";
-import { EmptyState } from "../EmptyState";
 
 export default function CachePerformance() {
   const { data: performance, isLoading, error } = useCachePerformance();
@@ -17,17 +23,15 @@ export default function CachePerformance() {
   }
 
   if (isLoading) {
-    return <SkeletonLoader variant="cards" rows={2} />;
+    return (
+      <Box sx={{ display: "flex", justifyContent: "center", py: 4 }}>
+        <CircularProgress />
+      </Box>
+    );
   }
 
   if (!performance) {
-    return (
-      <EmptyState
-        icon={<Speed sx={{ fontSize: 64, color: "text.secondary" }} />}
-        title="No performance data available"
-        description="Cache performance metrics will appear here once the cache system has been used and performance data has been collected."
-      />
-    );
+    return <Alert severity="info">No performance data available</Alert>;
   }
 
   return (
@@ -38,7 +42,7 @@ export default function CachePerformance() {
         </Typography>
 
         <Grid container spacing={3}>
-          <Grid xs={12} md={6}>
+          <Grid item xs={12} md={6}>
             <Box sx={{ mb: 3 }}>
               <Box sx={{ display: "flex", justifyContent: "space-between", mb: 1 }}>
                 <Typography variant="body1" fontWeight="bold">
@@ -70,7 +74,7 @@ export default function CachePerformance() {
             </Box>
           </Grid>
 
-          <Grid xs={12} md={6}>
+          <Grid item xs={12} md={6}>
             <Card variant="outlined">
               <CardContent>
                 <Typography variant="subtitle1" gutterBottom>
