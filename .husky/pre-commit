@@ -36,8 +36,13 @@ fi
 STAGED_FILES_EARLY=$(git diff --cached --name-only --diff-filter=ACM 2>/dev/null || echo "")
 
 # Check Python environment - FAIL if Python files are staged
+# Use CASA6_PYTHON from environment if set, otherwise use default
+# (CASA6_PYTHON was already set on line 19 with default fallback)
 CURRENT_PYTHON=$(which python 2>/dev/null || echo "")
-CASA6_PYTHON="/opt/miniforge/envs/casa6/bin/python"
+# Don't overwrite CASA6_PYTHON if it was set via environment variable
+if [ -z "$CASA6_PYTHON" ]; then
+  CASA6_PYTHON="/opt/miniforge/envs/casa6/bin/python"
+fi
 STAGED_PYTHON_FILES=$(echo "$STAGED_FILES_EARLY" | grep -E "\.(py)$" || true)
 
 if [ -n "$STAGED_PYTHON_FILES" ]; then

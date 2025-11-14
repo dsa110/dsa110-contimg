@@ -135,43 +135,61 @@ class TestMosaicCreationWorkflow:
 class TestQAAndPublishingWorkflow:
     """Test QA and publishing workflow."""
 
-    def test_qa_registration_and_publishing(self, temp_dbs):
+    def test_qa_registration_and_publishing(self, temp_dbs, tmp_path):
         """Test QA registration and automatic publishing."""
         from dsa110_contimg.database.data_registry import (
             finalize_data,
             get_data,
+            register_data,
             trigger_auto_publish,
         )
 
         data_registry_db, data_registry_conn = temp_dbs["data_registry"]
 
-        # Register mosaic data
+        # Register mosaic data - use tmp_path instead of hardcoded /stage path
         mosaic_id = "mosaic_test_001"
-        mosaic_path = "/stage/mosaics/mosaic_test_001.fits"
+        mosaic_dir = tmp_path / "mosaics"
+        mosaic_dir.mkdir(parents=True, exist_ok=True)
+        mosaic_path = mosaic_dir / "mosaic_test_001.fits"
 
         # Create mock mosaic file
-        Path(mosaic_path).parent.mkdir(parents=True, exist_ok=True)
-        Path(mosaic_path).touch()
+        mosaic_path.touch()
 
-        finalize_data(
+        # First register the data
+        register_data(
             data_registry_conn,
             data_type="mosaic",
             data_id=mosaic_id,
-            stage_path=mosaic_path,
+            stage_path=str(mosaic_path),
             auto_publish=True,
         )
+        data_registry_conn.commit()
 
         # Verify data registered
         record = get_data(data_registry_conn, mosaic_id)
         assert record is not None
         assert record.data_type == "mosaic"
         assert record.status == "staging"
-        assert record.auto_publish is True
+        assert record.auto_publish_enabled is True
 
-        # Trigger auto-publish (would normally happen automatically)
-        success = trigger_auto_publish(data_registry_conn, mosaic_id)
-        # Note: This will fail if publish criteria not met, which is expected in test
-        # The important thing is that the function exists and can be called
+        # Finalize the data (this will trigger auto-publish if criteria are met)
+        # Note: finalize_data commits internally, but we may need to handle transaction issues
+        finalized = finalize_data(
+            data_registry_conn,
+            data_id=mosaic_id,
+            qa_status="passed",
+            validation_status="validated",
+        )
+
+        # Verify finalization succeeded
+        assert finalized is True
+
+        # Verify data can still be retrieved after finalization
+        record = get_data(data_registry_conn, mosaic_id)
+        assert record is not None
+        # Note: finalization_status may be 'pending' if auto-publish failed
+        # The important thing is that the function executed without error
+        assert record.finalization_status in ("finalized", "pending")
 
 
 class TestStreamingConverterGroupDetection:
